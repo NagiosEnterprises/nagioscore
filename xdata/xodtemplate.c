@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-20-2007
+ * Last Modified: 05-29-2007
  *
  * Description:
  *
@@ -1019,6 +1019,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_timeperiod->alias=NULL;
 		for(x=0;x<7;x++)
 			new_timeperiod->timeranges[x]=NULL;
+		for(x=0;x<DATERANGE_TYPES;x++)
+			new_timeperiod->exceptions[x]=NULL;
 		new_timeperiod->has_been_resolved=FALSE;
 		new_timeperiod->register_object=TRUE;
 
@@ -1909,6 +1911,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			if((temp_timeperiod->alias=(char *)strdup(value))==NULL)
 				result=ERROR;
 		        }
+		/*
 		else if(!strcmp(variable,"monday") || !strcmp(variable,"tuesday") || !strcmp(variable,"wednesday") || !strcmp(variable,"thursday") || !strcmp(variable,"friday") || !strcmp(variable,"saturday") || !strcmp(variable,"sunday")){
 			if(!strcmp(variable,"monday"))
 				x=1;
@@ -1927,8 +1930,11 @@ int xodtemplate_add_object_property(char *input, int options){
 			if((temp_timeperiod->timeranges[x]=(char *)strdup(value))==NULL)
 				result=ERROR;
 		        }
+		*/
 		else if(!strcmp(variable,"register"))
 			temp_timeperiod->register_object=(atoi(value)>0)?TRUE:FALSE;
+		else if(xodtemplate_parse_timeperiod_directive(temp_timeperiod,variable,value)==OK)
+			result=OK;
 		else{
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Invalid timeperiod object directive '%s'.\n",variable);
@@ -4204,6 +4210,347 @@ xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_object(xod
 
 
 
+/* parses a timeperod directive... :-) */
+int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *tperiod, char *var, char *val){
+	char *input=NULL;
+	char temp_buffer[5][MAX_INPUT_BUFFER]={"","","","",""};
+	int items=0;
+	int x=0;
+	int daterange_type=-1;
+	int error=FALSE;
+	int result=OK;
+
+	int syear=0;
+	int smon=0;
+	int smday=0;
+	int swday=0;
+	int swday_offset=0;
+	int eyear=0;
+	int emon=0;
+	int emday=0;
+	int ewday=0;
+	int ewday_offset=0;
+	int skip_interval=0;
+	int wday=0;
+
+	/* make sure we've got the reqs */
+	if(tperiod==NULL || var==NULL || val==NULL)
+		return ERROR;
+
+	/* we'll need the full (unsplit) input later */
+	if((input=(char *)malloc(strlen(var)+strlen(val)+2))==NULL)
+		return ERROR;
+	strcpy(input,var);
+	strcat(input," ");
+	strcat(input,val);
+
+	if(0)
+		return OK;
+
+	/* calendar dates */
+	else if((items=sscanf(input,"%4d-%2d-%2d - %4d-%2d-%2d / %d %[0-9:, -]",&syear,&smon,&smday,&eyear,&emon,&emday,&skip_interval,temp_buffer[0]))==8){
+		/* add timerange exception */
+		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon,smday,0,0,eyear,emon,emday,0,0,skip_interval,temp_buffer[0])==NULL)
+			result=ERROR;
+		}
+
+	else if((items=sscanf(input,"%4d-%2d-%2d / %d %[0-9:, -]",&syear,&smon,&smday,&skip_interval,temp_buffer[0]))==5){
+		eyear=syear;
+		emon=smon;
+		emday=smday;
+		/* add timerange exception */
+		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon,smday,0,0,eyear,emon,emday,0,0,skip_interval,temp_buffer[0])==NULL)
+			result=ERROR;
+		}
+
+	else if((items=sscanf(input,"%4d-%2d-%2d - %4d-%2d-%2d %[0-9:, -]",&syear,&smon,&smday,&eyear,&emon,&emday,temp_buffer[0]))==7){
+		/* add timerange exception */
+		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon,smday,0,0,eyear,emon,emday,0,0,0,temp_buffer[0])==NULL)
+			result=ERROR;
+		}
+
+	else if((items=sscanf(input,"%4d-%2d-%2d %[0-9:, -]",&syear,&smon,&smday,temp_buffer[0]))==4){
+		eyear=syear;
+		emon=smon;
+		emday=smday;
+		/* add timerange exception */
+		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon,smday,0,0,eyear,emon,emday,0,0,0,temp_buffer[0])==NULL)
+			result=ERROR;
+		}
+
+	/* other types... */
+	else if((items=sscanf(input,"%[a-z] %d %[a-z] - %[a-z] %d %[a-z] / %d %[0-9:, -]",temp_buffer[0],&swday_offset,temp_buffer[1],temp_buffer[2],&ewday_offset,temp_buffer[3],&skip_interval,temp_buffer[4]))==8){
+		/* wednesday 1 january - thursday 2 july / 3 */
+		if((result=xodtemplate_get_weekday_from_string(temp_buffer[0],&swday))==OK&& (result=xodtemplate_get_month_from_string(temp_buffer[1],&smon))==OK && (result=xodtemplate_get_weekday_from_string(temp_buffer[2],&ewday))==OK&& (result=xodtemplate_get_month_from_string(temp_buffer[3],&emon))==OK){
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_WEEK_DAY,0,smon,0,swday,swday_offset,0,emon,0,ewday,ewday_offset,skip_interval,temp_buffer[4])==NULL)
+				result=ERROR;
+			}
+		}
+
+	else if((items=sscanf(input,"%[a-z] %d - %[a-z] %d / %d %[0-9:, -]",temp_buffer[0],&smday,temp_buffer[1],&emday,&skip_interval,temp_buffer[2]))==6){
+		/* february 1 - march 15 / 3 */
+		/* monday 2 - thursday 3 / 2 */
+		/* day 4 - day 6 / 2 */
+		if((result=xodtemplate_get_weekday_from_string(temp_buffer[0],&swday))==OK && (result=xodtemplate_get_weekday_from_string(temp_buffer[1],&ewday))==OK){
+			/* monday 2 - thursday 3 / 2 */
+			swday_offset=smday;
+			ewday_offset=emday;
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_WEEK_DAY,0,0,0,swday,swday_offset,0,0,0,ewday,ewday_offset,skip_interval,temp_buffer[2])==NULL)
+				result=ERROR;
+			}
+		else if((result=xodtemplate_get_month_from_string(temp_buffer[0],&smon))==OK && (result=xodtemplate_get_month_from_string(temp_buffer[1],&emon))==OK){
+			/* february 1 - march 15 / 3 */
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_DATE,0,smon,smday,0,0,0,emon,emday,0,0,skip_interval,temp_buffer[2])==NULL)
+				result=ERROR;
+			}
+		else if(!strcmp(temp_buffer[0],"day")  && !strcmp(temp_buffer[1],"day")){
+			/* day 4 - 6 / 2 */
+			/* add timeperiod exception */
+			result=OK;
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_DAY,0,0,smday,0,0,0,0,emday,0,0,skip_interval,temp_buffer[2])==NULL)
+				result=ERROR;
+			}
+		}
+
+	else if((items=sscanf(input,"%[a-z] %d - %d / %d %[0-9:, -]",temp_buffer[0],&smday,&emday,&skip_interval,temp_buffer[1]))==5){
+		/* february 1 - 15 / 3 */
+		/* monday 2 - 3 / 2 */
+		/* day 1 - 25 / 4 */
+		if((result=xodtemplate_get_weekday_from_string(temp_buffer[0],&swday))==OK){
+			/* thursday 2 - 4 */
+			swday_offset=smday;
+			ewday=swday;
+			ewday_offset=emday;
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_WEEK_DAY,0,0,0,swday,swday_offset,0,0,0,ewday,ewday_offset,skip_interval,temp_buffer[1])==NULL)
+				result=ERROR;
+			}
+		else if((result=xodtemplate_get_month_from_string(temp_buffer[0],&smon))==OK){
+			/* february 3 - 5 */
+			emon=smon;
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_DATE,0,smon,smday,0,0,0,emon,emday,0,0,skip_interval,temp_buffer[1])==NULL)
+				result=ERROR;
+			}
+		else if(!strcmp(temp_buffer[0],"day")){
+			/* day 1 - 4 */
+			/* add timeperiod exception */
+			result=OK;
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_DAY,0,0,smday,0,0,0,0,emday,0,0,skip_interval,temp_buffer[1])==NULL)
+				result=ERROR;
+			}
+		}
+
+	else if((items=sscanf(input,"%[a-z] %d %[a-z] - %[a-z] %d %[a-z] %[0-9:, -]",temp_buffer[0],&swday_offset,temp_buffer[1],temp_buffer[2],&ewday_offset,temp_buffer[3],temp_buffer[4]))==7){
+		/* wednesday 1 january - thursday 2 july */
+		if((result=xodtemplate_get_weekday_from_string(temp_buffer[0],&swday))==OK&& (result=xodtemplate_get_month_from_string(temp_buffer[1],&smon))==OK && (result=xodtemplate_get_weekday_from_string(temp_buffer[2],&ewday))==OK&& (result=xodtemplate_get_month_from_string(temp_buffer[3],&emon))==OK){
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_WEEK_DAY,0,smon,0,swday,swday_offset,0,emon,0,ewday,ewday_offset,0,temp_buffer[4])==NULL)
+				result=ERROR;
+			}
+		}
+
+	else if((items=sscanf(input,"%[a-z] %d - %d %[0-9:, -]",temp_buffer[0],&smday,&emday,temp_buffer[1]))==4){
+		/* february 3 - 5 */
+		/* thursday 2 - 4 */
+		/* day 1 - 4 */
+		if((result=xodtemplate_get_weekday_from_string(temp_buffer[0],&swday))==OK){
+			/* thursday 2 - 4 */
+			swday_offset=smday;
+			ewday=swday;
+			ewday_offset=emday;
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_WEEK_DAY,0,0,0,swday,swday_offset,0,0,0,ewday,ewday_offset,0,temp_buffer[1])==NULL)
+				result=ERROR;
+			}
+		else if((result=xodtemplate_get_month_from_string(temp_buffer[0],&smon))==OK){
+			/* february 3 - 5 */
+			emon=smon;
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_DATE,0,smon,smday,0,0,0,emon,emday,0,0,0,temp_buffer[1])==NULL)
+				result=ERROR;
+			}
+		else if(!strcmp(temp_buffer[0],"day")){
+			/* day 1 - 4 */
+			/* add timeperiod exception */
+			result=OK;
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_DAY,0,0,smday,0,0,0,0,emday,0,0,0,temp_buffer[1])==NULL)
+				result=ERROR;
+			}
+		}
+
+	else if((items=sscanf(input,"%[a-z] %d - %[a-z] %d %[0-9:, -]",temp_buffer[0],&smday,temp_buffer[1],&emday,temp_buffer[2]))==5){
+		/* february 1 - march 15 */
+		/* monday 2 - thursday 3 */
+		/* day 1 - day 5 */
+		if((result=xodtemplate_get_weekday_from_string(temp_buffer[0],&swday))==OK && (result=xodtemplate_get_weekday_from_string(temp_buffer[1],&ewday))==OK){
+			/* monday 2 - thursday 3 */
+			swday_offset=smday;
+			ewday_offset=emday;
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_WEEK_DAY,0,0,0,swday,swday_offset,0,0,0,ewday,ewday_offset,0,temp_buffer[2])==NULL)
+				result=ERROR;
+			}
+		else if((result=xodtemplate_get_month_from_string(temp_buffer[0],&smon))==OK && (result=xodtemplate_get_month_from_string(temp_buffer[1],&emon))==OK){
+			/* february 1 - march 15 */
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_DATE,0,smon,smday,0,0,0,emon,emday,0,0,0,temp_buffer[2])==NULL)
+				result=ERROR;
+			}
+		else if(!strcmp(temp_buffer[0],"day")  && !strcmp(temp_buffer[1],"day")){
+			/* day 1 - day 5 */
+			/* add timeperiod exception */
+			result=OK;
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_DAY,0,0,smday,0,0,0,0,emday,0,0,0,temp_buffer[2])==NULL)
+				result=ERROR;
+			}
+		}
+	
+	else if((items=sscanf(input,"%[a-z] %d%*[ \t]%[0-9:, -]",temp_buffer[0],&smday,temp_buffer[1]))==3){
+		/* february 3 */
+		/* thursday 2 */
+		/* day 1 */
+		if((result=xodtemplate_get_weekday_from_string(temp_buffer[0],&swday))==OK){
+			/* thursday 2 */
+			swday_offset=smday;
+			ewday=swday;
+			ewday_offset=swday_offset;
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_WEEK_DAY,0,0,0,swday,swday_offset,0,0,0,ewday,ewday_offset,0,temp_buffer[1])==NULL)
+				result=ERROR;
+			}
+		else if((result=xodtemplate_get_month_from_string(temp_buffer[0],&smon))==OK){
+			/* february 3 */
+			emon=smon;
+			emday=smday;
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_DATE,0,smon,smday,0,0,0,emon,emday,0,0,0,temp_buffer[1])==NULL)
+				result=ERROR;
+			}
+		else if(!strcmp(temp_buffer[0],"day")){
+			/* day 1 */
+			emday=smday;
+			/* add timeperiod exception */
+			result=OK;
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_DAY,0,0,smday,0,0,0,0,emday,0,0,0,temp_buffer[1])==NULL)
+				result=ERROR;
+			}
+		}
+
+	else if((items=sscanf(input,"%[a-z] %d %[a-z] %[0-9:, -]",temp_buffer[0],&swday_offset,temp_buffer[1],temp_buffer[2]))==4){
+		/* thursday 3 february */
+		if((result=xodtemplate_get_weekday_from_string(temp_buffer[0],&swday))==OK&& (result=xodtemplate_get_month_from_string(temp_buffer[1],&smon))==OK){
+			emon=smon;
+			ewday=swday;
+			ewday_offset=swday_offset;
+			/* add timeperiod exception */
+			if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_MONTH_WEEK_DAY,0,smon,0,swday,swday_offset,0,emon,0,ewday,ewday_offset,0,temp_buffer[2])==NULL)
+				result=ERROR;
+			}
+		}
+	
+	else if((items=sscanf(input,"%[a-z] %[0-9:, -]",temp_buffer[0],temp_buffer[1]))==2){
+		/* monday */
+		if((result=xodtemplate_get_weekday_from_string(temp_buffer[0],&swday))==OK){
+			/* add normal weekday timerange */
+			if((tperiod->timeranges[swday]=(char *)strdup(temp_buffer[1]))==NULL)
+				result=ERROR;
+			}
+		}
+
+	else
+		result=ERROR;
+
+	if(result==ERROR){
+#ifdef NSCORE
+		printf("Error: Could not parse timeperiod directive '%s'!\n",input);
+#endif
+		return ERROR;
+		}
+
+	return OK;
+	}
+
+
+
+/* add a new exception to a timeperiod */
+xodtemplate_daterange *xodtemplate_add_exception_to_timeperiod(xodtemplate_timeperiod *period, int type, int syear, int smon, int smday, int swday, int swday_offset, int eyear, int emon, int emday, int ewday, int ewday_offset, int skip_interval, char *timeranges){
+	xodtemplate_daterange *new_daterange=NULL;
+
+	/* make sure we have the data we need */
+	if(period==NULL || timeranges==NULL)
+		return NULL;
+
+	/* allocate memory for the date range range */
+	if((new_daterange=malloc(sizeof(xodtemplate_daterange)))==NULL)
+		return NULL;
+
+	new_daterange->next=NULL;
+
+	new_daterange->type=type;
+	new_daterange->syear=syear;
+	new_daterange->smon=smon;
+	new_daterange->smday=smday;
+	new_daterange->swday=swday;
+	new_daterange->swday_offset=swday_offset;
+	new_daterange->eyear=eyear;
+	new_daterange->emon=emon;
+	new_daterange->emday=emday;
+	new_daterange->ewday=ewday;
+	new_daterange->ewday_offset=ewday_offset;
+	new_daterange->skip_interval=skip_interval;
+	new_daterange->timeranges=(char *)strdup(timeranges);
+
+	/* add the new date range to the head of the range list for this exception type */
+	new_daterange->next=period->exceptions[type];
+	period->exceptions[type]=new_daterange;
+
+	return new_daterange;
+        }
+
+
+
+int xodtemplate_get_month_from_string(char *str, int *month){
+	char *months[12]={"january","february","march","april","may","june","july","august","september","october","november","december"};
+	int x=0;
+
+	if(str==NULL || month==NULL)
+		return ERROR;
+
+	for(x=0;x<12;x++){
+		if(!strcmp(str,months[x])){
+			*month=x;
+			return OK;
+			}
+		}
+
+	return ERROR;
+	}
+
+
+
+
+int xodtemplate_get_weekday_from_string(char *str, int *weekday){
+	char *days[7]={"sunday","monday","tuesday","wednesday","thursday","friday","saturday"};
+	int x=0;
+
+	if(str==NULL || weekday==NULL)
+		return ERROR;
+
+	for(x=0;x<7;x++){
+		if(!strcmp(str,days[x])){
+			*weekday=x;
+			return OK;
+			}
+		}
+
+	return ERROR;
+	}
+
+
 
 /******************************************************************/
 /***************** OBJECT DUPLICATION FUNCTIONS *******************/
@@ -6010,6 +6357,9 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
 	char *template_name_ptr=NULL;
+	xodtemplate_daterange *template_daterange=NULL;
+	xodtemplate_daterange *this_daterange=NULL;
+	xodtemplate_daterange *new_daterange=NULL;
 	xodtemplate_timeperiod *template_timeperiod=NULL;
 	int x;
 #ifdef NSCORE
@@ -6058,6 +6408,44 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 				this_timeperiod->timeranges[x]=(char *)strdup(template_timeperiod->timeranges[x]);
 		                }
 	                }
+		/* daterange exceptions require more work to apply missing ranges... */
+		for(x=0;x<DATERANGE_TYPES;x++){
+			for(template_daterange=template_timeperiod->exceptions[x];template_daterange!=NULL;template_daterange=template_daterange->next){
+
+				/* see if this same daterange already exists in the timeperiod */
+				for(this_daterange=this_timeperiod->exceptions[x];this_daterange!=NULL;this_daterange=this_daterange->next){
+					if((this_daterange->type==template_daterange->type) && (this_daterange->syear==template_daterange->syear) && (this_daterange->smon==template_daterange->smon) && (this_daterange->smday==template_daterange->smday) && (this_daterange->swday==template_daterange->swday) && (this_daterange->swday_offset==template_daterange->swday_offset) && (this_daterange->eyear==template_daterange->eyear) && (this_daterange->emon==template_daterange->emon) && (this_daterange->emday==template_daterange->emday) && (this_daterange->ewday==template_daterange->ewday) && (this_daterange->ewday_offset==template_daterange->ewday_offset) && (this_daterange->skip_interval==template_daterange->skip_interval))
+						break;
+					}
+
+				/* this daterange already exists in the timeperiod, so don't inherit it */
+				if(this_daterange!=NULL)
+					continue;
+
+				/* inherit the daterange from the template */
+				if((new_daterange=(xodtemplate_daterange *)malloc(sizeof(xodtemplate_daterange)))==NULL)
+					continue;
+				new_daterange->type=template_daterange->type;
+				new_daterange->syear=template_daterange->syear;
+				new_daterange->smon=template_daterange->smon;
+				new_daterange->smday=template_daterange->smday;
+				new_daterange->swday=template_daterange->swday;
+				new_daterange->swday_offset=template_daterange->swday_offset;
+				new_daterange->eyear=template_daterange->eyear;
+				new_daterange->emon=template_daterange->emon;
+				new_daterange->emday=template_daterange->emday;
+				new_daterange->ewday=template_daterange->ewday;
+				new_daterange->ewday_offset=template_daterange->ewday_offset;
+				new_daterange->skip_interval=template_daterange->skip_interval;
+				new_daterange->timeranges=NULL;
+				if(template_daterange->timeranges!=NULL)
+					new_daterange->timeranges=(char *)strdup(template_daterange->timeranges);
+
+				/* add new daterange to head of list (should it be added to the end instead?) */
+				new_daterange->next=this_timeperiod->exceptions[x];
+				this_timeperiod->exceptions[x]=new_daterange;
+				}
+			}
 	        }
 
 	my_free((void **)&template_names);
@@ -8626,17 +9014,15 @@ int xodtemplate_register_objects(void){
 
 /* registers a timeperiod definition */
 int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
+	xodtemplate_daterange *temp_daterange=NULL;
 	timeperiod *new_timeperiod=NULL;
+	daterange *new_daterange=NULL;
 	timerange *new_timerange=NULL;
 	int day=0;
+	int range=0;
+	int x=0;
 	char *day_range_ptr=NULL;
 	char *day_range_start_buffer=NULL;
-	char *range_ptr=NULL;
-	char *range_buffer=NULL;
-	char *time_ptr=NULL;
-	char *time_buffer=NULL;
-	int hours=0;
-	int minutes=0;
 	unsigned long range_start_time=0L;
 	unsigned long range_end_time=0L;
 #ifdef NSCORE
@@ -8661,92 +9047,84 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 		return ERROR;
 	        }
 
+	/* add all exceptions to timeperiod */
+	for(x=0;x<DATERANGE_TYPES;x++){
+		for(temp_daterange=this_timeperiod->exceptions[x];temp_daterange!=NULL;temp_daterange=temp_daterange->next){
+
+			/* skip null entries */
+			if(temp_daterange->timeranges==NULL || !strcmp(temp_daterange->timeranges,XODTEMPLATE_NULL))
+				continue;
+
+			/* add new exception to timeperiod */
+			new_daterange=add_exception_to_timeperiod(new_timeperiod,temp_daterange->type,temp_daterange->syear,temp_daterange->smon,temp_daterange->smday,temp_daterange->swday,temp_daterange->swday_offset,temp_daterange->eyear,temp_daterange->emon,temp_daterange->emday,temp_daterange->ewday,temp_daterange->ewday_offset,temp_daterange->skip_interval);
+			if(new_daterange==NULL){
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Could not add date exception to timeperiod (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				return ERROR;
+			        }
+
+			/* add timeranges to exception */
+			day_range_ptr=temp_daterange->timeranges;
+			range=0;
+			for(day_range_start_buffer=my_strsep(&day_range_ptr,", ");day_range_start_buffer!=NULL;day_range_start_buffer=my_strsep(&day_range_ptr,", ")){
+
+				range++;
+
+				/* get time ranges */
+				if(xodtemplate_get_time_ranges(day_range_start_buffer,&range_start_time,&range_end_time)==ERROR){
+#ifdef NSCORE
+					asprintf(&temp_buffer,"Error: Could not parse timerange #%d of timeperiod (config file '%s', starting on line %d)\n",range,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+					my_free((void **)&temp_buffer);
+#endif
+					return ERROR;
+					}
+
+				/* add the new time range to the date range */
+				new_timerange=add_timerange_to_daterange(new_daterange,range_start_time,range_end_time);
+				if(new_timerange==NULL){
+#ifdef NSCORE
+					asprintf(&temp_buffer,"Error: Could not add timerange #%d to timeperiod (config file '%s', starting on line %d)\n",range,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+					my_free((void **)&temp_buffer);
+#endif
+					return ERROR;
+					}
+				}
+			}
+		}
+
 	/* add all necessary timeranges to timeperiod */
 	for(day=0;day<7;day++){
 
-		if(this_timeperiod->timeranges[day]==NULL)
+		/* skip null entries */
+		if(this_timeperiod->timeranges[day]==NULL || !strcmp(this_timeperiod->timeranges[day],XODTEMPLATE_NULL))
 			continue;
 
 		day_range_ptr=this_timeperiod->timeranges[day];
+		range=0;
 		for(day_range_start_buffer=my_strsep(&day_range_ptr,", ");day_range_start_buffer!=NULL;day_range_start_buffer=my_strsep(&day_range_ptr,", ")){
 
-			range_ptr=day_range_start_buffer;
-			range_buffer=my_strsep(&range_ptr,"-");
-			if(range_buffer==NULL){
+			range++;
+
+			/* get time ranges */
+			if(xodtemplate_get_time_ranges(day_range_start_buffer,&range_start_time,&range_end_time)==ERROR){
 #ifdef NSCORE
-				asprintf(&temp_buffer,"Error: Could not add timerange for day %d to timeperiod (No start time delimiter) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				asprintf(&temp_buffer,"Error: Could not parse timerange #%d for day %d of timeperiod (config file '%s', starting on line %d)\n",range,day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 				my_free((void **)&temp_buffer);
 #endif
 				return ERROR;
-			        }
-
-			time_ptr=range_buffer;
-			time_buffer=my_strsep(&time_ptr,":");
-			if(time_buffer==NULL){
-#ifdef NSCORE
-				asprintf(&temp_buffer,"Error: Could not add timerange for day %d to timeperiod (No start time hours) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
-#endif
-				return ERROR;
-			        }
-			hours=atoi(time_buffer);
-			time_buffer=my_strsep(&time_ptr,":");
-			if(time_buffer==NULL){
-#ifdef NSCORE
-				asprintf(&temp_buffer,"Error: Could not add timerange for day %d to timeperiod (No start time minutes) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
-#endif
-				return ERROR;
-			        }
-			minutes=atoi(time_buffer);
-
-			/* calculate the range start time in seconds */
-			range_start_time=(unsigned long)((minutes*60)+(hours*60*60));
-
-			range_buffer=my_strsep(&range_ptr,"-");
-			if(range_buffer==NULL){
-#ifdef NSCORE
-				asprintf(&temp_buffer,"Error: Could not add timerange for day %d to timeperiod (No end time delimiter) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
-#endif
-				return ERROR;
-			        }
-
-			time_ptr=range_buffer;
-			time_buffer=my_strsep(&time_ptr,":");
-			if(time_buffer==NULL){
-#ifdef NSCORE
-				asprintf(&temp_buffer,"Error: Could not add timerange for day %d to timeperiod (No end time hours) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
-#endif
-				return ERROR;
-			        }
-			hours=atoi(time_buffer);
-
-			time_buffer=my_strsep(&time_ptr,":");
-			if(time_buffer==NULL){
-#ifdef NSCORE
-				asprintf(&temp_buffer,"Error: Could not add timerange for day %d to timeperiod (No end time minutes) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
-#endif
-				return ERROR;
-			        }
-			minutes=atoi(time_buffer);
-
-			/* calculate the range end time in seconds */
-			range_end_time=(unsigned long)((minutes*60)+(hours*3600));
+				}
 
 			/* add the new time range to the time period */
 			new_timerange=add_timerange_to_timeperiod(new_timeperiod,day,range_start_time,range_end_time);
 			if(new_timerange==NULL){
 #ifdef NSCORE
-				asprintf(&temp_buffer,"Error: Could not add timerange for day %d to timeperiod (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				asprintf(&temp_buffer,"Error: Could not add timerange #%d for day %d to timeperiod (config file '%s', starting on line %d)\n",range,day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 				my_free((void **)&temp_buffer);
 #endif
@@ -8758,6 +9136,60 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 
 	return OK;
         }
+
+
+
+/* parses timerange string into start and end minutes */
+int xodtemplate_get_time_ranges(char *buf, unsigned long *range_start, unsigned long *range_end){
+	char *range_ptr=NULL;
+	char *range_buffer=NULL;
+	char *time_ptr=NULL;
+	char *time_buffer=NULL;
+	int hours=0;
+	int minutes=0;
+
+	if(buf==NULL | range_start==NULL || range_end==NULL)
+		return ERROR;
+
+	range_ptr=buf;
+	range_buffer=my_strsep(&range_ptr,"-");
+	if(range_buffer==NULL)
+		return ERROR;
+
+	time_ptr=range_buffer;
+	time_buffer=my_strsep(&time_ptr,":");
+	if(time_buffer==NULL)
+		return ERROR;
+	hours=atoi(time_buffer);
+
+	time_buffer=my_strsep(&time_ptr,":");
+	if(time_buffer==NULL)
+		return ERROR;
+	minutes=atoi(time_buffer);
+
+	/* calculate the range start time in seconds */
+	*range_start=(unsigned long)((minutes*60)+(hours*60*60));
+
+	range_buffer=my_strsep(&range_ptr,"-");
+	if(range_buffer==NULL)
+		return ERROR;
+
+	time_ptr=range_buffer;
+	time_buffer=my_strsep(&time_ptr,":");
+	if(time_buffer==NULL)
+		return ERROR;
+	hours=atoi(time_buffer);
+
+	time_buffer=my_strsep(&time_ptr,":");
+	if(time_buffer==NULL)
+		return ERROR;
+	minutes=atoi(time_buffer);
+
+	/* calculate the range end time in seconds */
+	*range_end=(unsigned long)((minutes*60)+(hours*3600));
+
+	return OK;
+	}
 
 
 
@@ -10379,7 +10811,9 @@ int xodtemplate_cache_objects(char *cache_file){
 	char *temp_buffer=NULL;
 	register int x=0;
 	char *days[7]={"sunday","monday","tuesday","wednesday","thursday","friday","saturday"};
+	char *months[12]={"january","february","march","april","may","june","july","august","september","october","november","december"};
 	xodtemplate_timeperiod *temp_timeperiod=NULL;
+	xodtemplate_daterange *temp_daterange=NULL;
 	xodtemplate_command *temp_command=NULL;
 	xodtemplate_contactgroup *temp_contactgroup=NULL;
 	xodtemplate_hostgroup *temp_hostgroup=NULL;
@@ -10426,9 +10860,66 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\ttimeperiod_name\t%s\n",temp_timeperiod->timeperiod_name);
 		if(temp_timeperiod->alias)
 			fprintf(fp,"\talias\t%s\n",temp_timeperiod->alias);
+		for(x=0;x<DATERANGE_TYPES;x++){
+			for(temp_daterange=temp_timeperiod->exceptions[x];temp_daterange!=NULL;temp_daterange=temp_daterange->next){
+
+				/* skip null entries */
+				if(temp_daterange->timeranges==NULL || !strcmp(temp_daterange->timeranges,XODTEMPLATE_NULL))
+					continue;
+
+				switch(temp_daterange->type){
+				case DATERANGE_CALENDAR_DATE:
+					fprintf(fp,"\t%d-%02d-%02d",temp_daterange->syear,temp_daterange->smon,temp_daterange->smday);
+					if((temp_daterange->smday!=temp_daterange->emday) || (temp_daterange->smon!=temp_daterange->emon) || (temp_daterange->syear!=temp_daterange->eyear))
+						fprintf(fp," - %d-%02d-%02d",temp_daterange->eyear,temp_daterange->emon,temp_daterange->emday);
+					if(temp_daterange->skip_interval>1)
+						fprintf(fp," / %d",temp_daterange->skip_interval);
+					break;
+				case DATERANGE_MONTH_DATE:
+					fprintf(fp,"\t%s %d",months[temp_daterange->smon],temp_daterange->smday);
+					if((temp_daterange->smon!=temp_daterange->emon) || (temp_daterange->smday!=temp_daterange->emday)){
+						fprintf(fp," - %s %d",months[temp_daterange->emon],temp_daterange->emday);
+						if(temp_daterange->skip_interval>1)
+							fprintf(fp," / %d",temp_daterange->skip_interval);
+						}
+					break;
+				case DATERANGE_MONTH_DAY:
+					fprintf(fp,"\tday %d",temp_daterange->smday);
+					if(temp_daterange->smday!=temp_daterange->emday){
+						fprintf(fp," - %d",temp_daterange->emday);
+						if(temp_daterange->skip_interval>1)
+							fprintf(fp," / %d",temp_daterange->skip_interval);
+						}
+					break;
+				case DATERANGE_MONTH_WEEK_DAY:
+					fprintf(fp,"\t%s %d %s",days[temp_daterange->swday],temp_daterange->swday_offset,months[temp_daterange->smon]);
+					if((temp_daterange->smon!=temp_daterange->emon) || (temp_daterange->swday!=temp_daterange->ewday) || (temp_daterange->swday_offset!=temp_daterange->ewday_offset)){
+						fprintf(fp," - %s %d %s",days[temp_daterange->ewday],temp_daterange->ewday_offset,months[temp_daterange->emon]);
+						if(temp_daterange->skip_interval>1)
+							fprintf(fp," / %d",temp_daterange->skip_interval);
+						}
+					break;
+				case DATERANGE_WEEK_DAY:
+					fprintf(fp,"\t%s %d",days[temp_daterange->swday],temp_daterange->swday_offset);
+					if((temp_daterange->swday!=temp_daterange->ewday) || (temp_daterange->swday_offset!=temp_daterange->ewday_offset)){
+						fprintf(fp," - %s %d",days[temp_daterange->ewday],temp_daterange->ewday_offset);
+						if(temp_daterange->skip_interval>1)
+							fprintf(fp," / %d",temp_daterange->skip_interval);
+						}
+					break;
+				default:
+					break;
+					}
+
+				fprintf(fp,"\t%s\n",temp_daterange->timeranges);
+				}
+			}
 		for(x=0;x<7;x++){
-			if(temp_timeperiod->timeranges[x]!=NULL)
-				fprintf(fp,"\t%s\t%s\n",days[x],temp_timeperiod->timeranges[x]);
+			/* skip null entries */
+			if(temp_timeperiod->timeranges[x]==NULL  || !strcmp(temp_timeperiod->timeranges[x],XODTEMPLATE_NULL))
+				continue;
+
+			fprintf(fp,"\t%s\t%s\n",days[x],temp_timeperiod->timeranges[x]);
 		        }
 		fprintf(fp,"\t}\n\n");
 	        }
@@ -10968,6 +11459,8 @@ int xodtemplate_cache_objects(char *cache_file){
 int xodtemplate_free_memory(void){
 	xodtemplate_timeperiod *this_timeperiod=NULL;
 	xodtemplate_timeperiod *next_timeperiod=NULL;
+	xodtemplate_daterange *this_daterange=NULL;
+	xodtemplate_daterange *next_daterange=NULL;
 	xodtemplate_command *this_command=NULL;
 	xodtemplate_command *next_command=NULL;
 	xodtemplate_contactgroup *this_contactgroup=NULL;
@@ -11008,6 +11501,13 @@ int xodtemplate_free_memory(void){
 		my_free((void **)&this_timeperiod->alias);
 		for(x=0;x<7;x++)
 			my_free((void **)&this_timeperiod->timeranges[x]);
+		for(x=0;x<DATERANGE_TYPES;x++){
+			for(this_daterange=this_timeperiod->exceptions[x];this_daterange!=NULL;this_daterange=next_daterange){
+				next_daterange=this_daterange->next;
+				my_free((void **)&this_daterange->timeranges);
+				my_free((void **)&this_daterange);
+				}
+			}
 		my_free((void **)&this_timeperiod);
 	        }
 	xodtemplate_timeperiod_list=NULL;

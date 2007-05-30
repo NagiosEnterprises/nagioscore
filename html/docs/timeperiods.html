@@ -51,6 +51,27 @@ or...<br>
 </p>
 
 <p>
+<strong><u>Precedence in Time Periods</u></strong>
+</p>
+
+<p>
+Timeperod <a href="objectdefinitions.html#timeperiod">definitions</a> may contain multiple types of directives, including weekdays, days of the month, and calendar dates.  Different types of directives have different precendence levels and may override other directives in your timeperiod definitions.  The order of precedence for different types of directives (in descending order) is as follows:
+</p>
+
+<ul>
+<li>Calendar date (2008-01-01)</li>
+<li>Specific month date (January 1st)</li>
+<li>Generic month date (Day 15)</li>
+<li>Offset weekday of specific month (2nd Tuesday in December)</li>
+<li>Offset weekday (3rd Monday)</li>
+<li>Normal weekday (Tuesday)</li>
+</ul>
+
+<p>
+Examples of different timeperiod directives can be found <a href="objectdefinitions.html#timeperiod">here</a>.
+</p>
+
+<p>
 <strong><u>How Time Periods Work With Host and Service Checks</u></strong>
 </p>
 

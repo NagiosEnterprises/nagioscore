@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-19-2007
+ * Last Modified:   05-25-2007
  *
  * License:
  *
@@ -65,6 +65,25 @@ typedef struct xodtemplate_customvariablesmember_struct{
         }xodtemplate_customvariablesmember;
 
 
+/* DATERANGE structure */
+typedef struct xodtemplate_daterange_struct{
+	int type;
+	int syear;          /* start year */
+	int smon;           /* start month */
+	int smday;          /* start day of month (may 3rd, last day in feb) */
+	int swday;          /* start day of week (thursday) */
+	int swday_offset;   /* start weekday offset (3rd thursday, last monday in jan) */
+	int eyear;
+	int emon;
+	int emday;
+	int ewday;
+	int ewday_offset;
+	int skip_interval;
+	char *timeranges;
+	struct xodtemplate_daterange_struct *next;
+	}xodtemplate_daterange;
+
+
 /* TIMEPERIOD TEMPLATE STRUCTURE */
 typedef struct xodtemplate_timeperiod_struct{
 	char       *template;
@@ -75,6 +94,7 @@ typedef struct xodtemplate_timeperiod_struct{
 	char       *timeperiod_name;
 	char       *alias;
 	char       *timeranges[7];
+	xodtemplate_daterange *exceptions[DATERANGE_TYPES];
 
 	int        has_been_resolved;
 	int        register_object;
@@ -771,6 +791,11 @@ int xodtemplate_begin_object_definition(char *,int,int,int);
 int xodtemplate_add_object_property(char *,int);
 int xodtemplate_end_object_definition(int);
 
+int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *,char *,char *);
+xodtemplate_daterange *xodtemplate_add_exception_to_timeperiod(xodtemplate_timeperiod *,int,int,int,int,int,int,int,int,int,int,int,int,char *);
+int xodtemplate_get_month_from_string(char *,int *);
+int xodtemplate_get_weekday_from_string(char *,int *);
+
 xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_host(xodtemplate_host *,char *,char *);
 xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_service(xodtemplate_service *,char *,char *);
 xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_contact(xodtemplate_contact *,char *,char *);
@@ -863,6 +888,7 @@ int xodtemplate_get_inherited_string(int *,char **,int *,char **);
 #endif
 
 int xodtemplate_register_timeperiod(xodtemplate_timeperiod *);
+int xodtemplate_get_time_ranges(char *,unsigned long *,unsigned long *);
 int xodtemplate_register_command(xodtemplate_command *);
 int xodtemplate_register_contactgroup(xodtemplate_contactgroup *);
 int xodtemplate_register_hostgroup(xodtemplate_hostgroup *);

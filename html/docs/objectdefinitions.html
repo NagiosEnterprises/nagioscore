@@ -1240,7 +1240,7 @@ This optional directive can be used to include contacts from other "sub" contact
 
 <p><div class="SectionTitle">Description:</div></p>
 <p>
-A time period is a list of times during various days that are considered to be "valid" times for notifications and service checks. It consists one or more time periods for each day of the week that "rotate" once the week has come to an end.  Exceptions to the normal weekly time range rotations are not suported.
+A time period is a list of times during various days that are considered to be "valid" times for notifications and service checks. It consists of time ranges for each day of the week that "rotate" once the week has come to an end.  Different types of exceptions to the normal weekly time are supported, including: specific weekdays, days of generic months, days of specific months, and calendar dates.
 </p>
 
 
@@ -1254,31 +1254,61 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td></td><td class="Required">timeperiod_name</td><td class="Required"><i>timeperiod_name</i></td></tr>
 <tr><td></td><td class="Required">alias</td><td class="Required"><i>alias</i></td></tr>
-<tr><td></td><td class="Optional">sunday</td><td class="Optional"><i>timeranges</i></td></tr>
-<tr><td></td><td class="Optional">monday</td><td class="Optional"><i>timeranges</i></td></tr>
-<tr><td></td><td class="Optional">tuesday</td><td class="Optional"><i>timeranges</i></td></tr>
-<tr><td></td><td class="Optional">wednesday</td><td class="Optional"><i>timeranges</i></td></tr>
-<tr><td></td><td class="Optional">thursday</td><td class="Optional"><i>timeranges</i></td></tr>
-<tr><td></td><td class="Optional">friday</td><td class="Optional"><i>timeranges</i></td></tr>
-<tr><td></td><td class="Optional">saturday</td><td class="Optional"><i>timeranges</i></td></tr>
+<tr><td></td><td class="Optional">[weekday]</td><td class="Optional"><i>timeranges</i></td></tr>
+<tr><td></td><td class="Optional">[exception]</td><td class="Optional"><i>timeranges</i></td></tr>
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
 </p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p><div class="SectionTitle">Example Definitions:</div></p>
 <p class="SectionBody">
 <pre>
 define timeperiod{
 	timeperiod_name		nonworkhours
 	alias			Non-Work Hours
-	sunday			00:00-24:00
-	monday			00:00-09:00,17:00-24:00
-	tuesday			00:00-09:00,17:00-24:00
-	wednesday		00:00-09:00,17:00-24:00
-	thursday		00:00-09:00,17:00-24:00
-	friday			00:00-09:00,17:00-24:00
-	saturday		00:00-24:00
+	sunday			00:00-24:00			; Every Sunday of every week
+	monday			00:00-09:00,17:00-24:00		; Every Monday of every week
+	tuesday			00:00-09:00,17:00-24:00		; Every Tuesday of every week
+	wednesday			00:00-09:00,17:00-24:00		; Every Wednesday of every week
+	thursday			00:00-09:00,17:00-24:00		; Every Thursday of every week
+	friday			00:00-09:00,17:00-24:00		; Every Friday of every week
+	saturday			00:00-24:00			; Every Saturday of every week
+	}
+
+define timeperiod{
+	timeperiod_name		misc-single-days
+	alias			Misc Single Days
+	1999-01-28		00:00-24:00 		; January 28th, 1999
+	monday 3			00:00-24:00		; 3rd Monday of every month
+	day 2			00:00-24:00		; 2nd day of every month
+	february 10		00:00-24:00		; February 10th of every year
+	february -1		00:00-24:00		; Last day in February of every year
+	friday -2			00:00-24:00		; 2nd to last Friday of every month
+	thursday -1 november	00:00-24:00		; Last Thursday in November of every year
+	}
+	
+define timeperod{
+	timeperiod_name		misc-date-ranges
+	alias			Misc Date Ranges
+	2007-01-01 - 2008-02-01	00:00-24:00		; January 1st, 2007 to February 1st, 2008
+	monday 3 - thursday 4	00:00-24:00		; 3rd Monday to 4th Thursday of every month
+	day 1 - 15		00:00-24:00		; 1st to 15th day of every month
+	day 20 - -1		00:00-24:00		; 20th to the last day of every month
+	july 10 - 15		00:00-24:00		; July 10th to July 15th of every year
+	april 10 - may 15		00:00-24:00		; April 10th to May 15th of every year
+	tuesday 1 april - friday 2 may	00:00-24:00	; 1st Tuesday in April to 2nd Friday in May of every year
+	}
+
+define timeperod{
+	timeperiod_name		misc-skip-ranges
+	alias			Misc Skip Ranges
+	2007-01-01 - 2008-02-01 / 3		00:00-24:00	; Every 3 days from January 1st, 2007 to February 1st, 2008
+	2008-04-01 / 7			00:00-24:00	; Every 7 days from April 1st, 2008 (continuing forever)
+	monday 3 - thursday 4 / 2		00:00-24:00	; Every other day from 3rd Monday to 4th Thursday of every month
+	day 1 - 15 / 5			00:00-24:00	; Every 5 days from the 1st to the 15th day of every month
+	july 10 - 15 / 2			00:00-24:00	; Every other day from July 10th to July 15th of every year
+	tuesday 1 april - friday 2 may / 6	00:00-24:00	; Every 6 days from the 1st Tuesday in April to the 2nd Friday in May of every year
 	}
 </pre>
 </p>
@@ -1299,9 +1329,20 @@ This directive is a longer name or description used to identify the time period.
 </td>
 </tr>
 <tr>
-<td valign="top"><strong><i>some</i>day</strong>:</td>
+<td valign="top"><strong>[<i>weekday</i>]</strong>:</td>
 <td>
-The <i>sunday</i> through <i>saturday</i> directives are comma-delimited lists of time ranges that are "valid" times for a particular day of the week.  Notice that there are seven different days for which you can define time ranges (Sunday through Saturday).  Each time range is in the form of <b>HH:MM-HH:MM</b>, where hours are specified on a 24 hour clock.  For example, <b>00:15-24:00</b> means 12:15am in the morning for this day until 12:20am midnight (a 23 hour, 45 minute total time range).  If you wish to exclude an entire day from the timeperiod, simply do not include it in the timeperiod definition.
+The weekday directives ("<i>sunday</i>" through "<i>saturday</i>")are comma-delimited lists of time ranges that are "valid" times for a particular day of the week.  Notice that there are seven different days for which you can define time ranges (Sunday through Saturday).  Each time range is in the form of <b>HH:MM-HH:MM</b>, where hours are specified on a 24 hour clock.  For example, <b>00:15-24:00</b> means 12:15am in the morning for this day until 12:20am midnight (a 23 hour, 45 minute total time range).  If you wish to exclude an entire day from the timeperiod, simply do not include it in the timeperiod definition.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>[<i>exception</i>]</strong>:</td>
+<td>
+<p>
+You can specify several different types of exceptions to the standard rotating weekday schedule.  Exceptions can take a number of different forms including single days of a specific or generic month, single weekdays in a month, or single calendar dates.  You can also specify a range of days/dates and even specify skip intervals to obtain functionality described by "every 3 days between these dates".  Rather than list all the possible formats for exception strings, I'll let you look at the example timeperiod definitions above to see what's possible. :-)
+</p>
+<p>
+Weekdays and different types of exceptions all have different levels of precedence, so its important to understand how they can affect each other.  More information on this can be found in the documentation on <a href="timeperiods.html">timeperiods</a>.
+</p>
 </td>
 </tr>
 </table>

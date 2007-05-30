@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-08-2007
+ * Last Modified: 05-30-2007
  *
  * This CGI program will display various configuration information.
  *
@@ -1411,14 +1411,19 @@ void display_services(void){
 
 void display_timeperiods(void){
 	timerange *temp_timerange;
+	daterange *temp_daterange;
 	timeperiod *temp_timeperiod;
+	char *months[12]={"january","february","march","april","may","june","july","august","september","october","november","december"};
+	char *days[7]={"sunday","monday","tuesday","wednesday","thursday","friday","saturday"};
 	int odd=0;
 	int day=0;
+	int x=0;
 	char *bg_class="";
 	char timestring[10];
 	int hours=0;
 	int minutes=0;
 	int seconds=0;
+	int line=0;
 
 	/* see if user is authorized to view time period information... */
 	if(is_authorized_for_configuration_information(&current_authdata)==FALSE){
@@ -1438,13 +1443,8 @@ void display_timeperiods(void){
 	printf("<TR>\n");
 	printf("<TH CLASS='data'>Name</TH>\n");
 	printf("<TH CLASS='data'>Alias/Description</TH>\n");
-	printf("<TH CLASS='data'>Sunday Time Ranges</TH>\n");
-	printf("<TH CLASS='data'>Monday Time Ranges</TH>\n");
-	printf("<TH CLASS='data'>Tuesday Time Ranges</TH>\n");
-	printf("<TH CLASS='data'>Wednesday Time Ranges</TH>\n");
-	printf("<TH CLASS='data'>Thursday Time Ranges</TH>\n");
-	printf("<TH CLASS='data'>Friday Time Ranges</TH>\n");
-	printf("<TH CLASS='data'>Saturday Time Ranges</TH>\n");
+	printf("<TH CLASS='data'>Days/Dates</TH>\n");
+	printf("<TH CLASS='data'>Times</TH>\n");
 	printf("</TR>\n");
 
 	/* check all the time periods... */
@@ -1463,11 +1463,101 @@ void display_timeperiods(void){
 
 		printf("<TD CLASS='%s'><A NAME='%s'>%s</A></TD>\n",bg_class,url_encode(temp_timeperiod->name),temp_timeperiod->name);
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_timeperiod->alias);
+		printf("<TD CLASS='%s'>",bg_class);
 
+		line=0;
+		for(x=0;x<DATERANGE_TYPES;x++){
+			for(temp_daterange=temp_timeperiod->exceptions[x];temp_daterange!=NULL;temp_daterange=temp_daterange->next){
+
+				line++;
+
+				if(line>1)
+					printf("<TR><TD COLSPAN='2'></TD><TD CLASS='%s'>\n",bg_class);
+
+				switch(temp_daterange->type){
+				case DATERANGE_CALENDAR_DATE:
+					printf("%d-%02d-%02d",temp_daterange->syear,temp_daterange->smon,temp_daterange->smday);
+					if((temp_daterange->smday!=temp_daterange->emday) || (temp_daterange->smon!=temp_daterange->emon) || (temp_daterange->syear!=temp_daterange->eyear))
+						printf(" - %d-%02d-%02d",temp_daterange->eyear,temp_daterange->emon,temp_daterange->emday);
+					if(temp_daterange->skip_interval>1)
+						printf(" / %d",temp_daterange->skip_interval);
+					break;
+				case DATERANGE_MONTH_DATE:
+					printf("%s %d",months[temp_daterange->smon],temp_daterange->smday);
+					if((temp_daterange->smon!=temp_daterange->emon) || (temp_daterange->smday!=temp_daterange->emday)){
+						printf(" - %s %d",months[temp_daterange->emon],temp_daterange->emday);
+						if(temp_daterange->skip_interval>1)
+							printf(" / %d",temp_daterange->skip_interval);
+						}
+					break;
+				case DATERANGE_MONTH_DAY:
+					printf("day %d",temp_daterange->smday);
+					if(temp_daterange->smday!=temp_daterange->emday){
+						printf(" - %d",temp_daterange->emday);
+						if(temp_daterange->skip_interval>1)
+							printf(" / %d",temp_daterange->skip_interval);
+						}
+					break;
+				case DATERANGE_MONTH_WEEK_DAY:
+					printf("%s %d %s",days[temp_daterange->swday],temp_daterange->swday_offset,months[temp_daterange->smon]);
+					if((temp_daterange->smon!=temp_daterange->emon) || (temp_daterange->swday!=temp_daterange->ewday) || (temp_daterange->swday_offset!=temp_daterange->ewday_offset)){
+						printf(" - %s %d %s",days[temp_daterange->ewday],temp_daterange->ewday_offset,months[temp_daterange->emon]);
+						if(temp_daterange->skip_interval>1)
+							printf(" / %d",temp_daterange->skip_interval);
+						}
+					break;
+				case DATERANGE_WEEK_DAY:
+					printf("%s %d",days[temp_daterange->swday],temp_daterange->swday_offset);
+					if((temp_daterange->swday!=temp_daterange->ewday) || (temp_daterange->swday_offset!=temp_daterange->ewday_offset)){
+						printf(" - %s %d",days[temp_daterange->ewday],temp_daterange->ewday_offset);
+						if(temp_daterange->skip_interval>1)
+							printf(" / %d",temp_daterange->skip_interval);
+						}
+					break;
+				default:
+					break;
+					}
+
+				printf("</TD><TD CLASS='%s'>\n",bg_class);
+
+				for(temp_timerange=temp_daterange->times;temp_timerange!=NULL;temp_timerange=temp_timerange->next){
+
+					if(temp_timerange!=temp_daterange->times)
+						printf(", ");
+
+					hours=temp_timerange->range_start/3600;
+					minutes=(temp_timerange->range_start-(hours*3600))/60;
+					seconds=temp_timerange->range_start-(hours*3600)-(minutes*60);
+					snprintf(timestring,sizeof(timestring)-1,"%02d:%02d:%02d",hours,minutes,seconds);
+					timestring[sizeof(timestring)-1]='\x0';
+					printf("%s - ",timestring);
+
+					hours=temp_timerange->range_end/3600;
+					minutes=(temp_timerange->range_end-(hours*3600))/60;
+					seconds=temp_timerange->range_end-(hours*3600)-(minutes*60);
+					snprintf(timestring,sizeof(timestring)-1,"%02d:%02d:%02d",hours,minutes,seconds);
+					timestring[sizeof(timestring)-1]='\x0';
+					printf("%s",timestring);
+					}
+
+				printf("</TD>\n");
+				printf("</TR>\n");
+				}
+			}
 		for(day=0;day<7;day++){
 
-			printf("<TD CLASS='%s'>",bg_class);
+			if(temp_timeperiod->days[day]==NULL)
+				continue;
+			
+			line++;
 
+			if(line>1)
+				printf("<TR><TD COLSPAN='2'></TD><TD CLASS='%s'>\n",bg_class);
+
+			printf("%s",days[day]);
+
+			printf("</TD><TD CLASS='%s'>\n",bg_class);
+				
 			for(temp_timerange=temp_timeperiod->days[day];temp_timerange!=NULL;temp_timerange=temp_timerange->next){
 
 				if(temp_timerange!=temp_timeperiod->days[day])
@@ -1487,13 +1577,15 @@ void display_timeperiods(void){
 				timestring[sizeof(timestring)-1]='\x0';
 				printf("%s",timestring);
 			        }
-			if(temp_timeperiod->days[day]==NULL)
-				printf("&nbsp;");
 
-			printf("</TD>\n");
+			printf("&nbsp;</TD>\n");
+			printf("</TR>\n");
 		        }
 
-		printf("</TR>\n");
+		if(line==0){
+			printf("</TD>\n");
+			printf("</TR>\n");
+			}
 	        }
 
 	printf("</TABLE>\n");

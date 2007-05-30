@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-01-2007
+ * Last Modified: 05-25-2007
  *
  * License:
  *
@@ -401,6 +401,16 @@
 #define READ_SERVICEGROUPS              16384
 
 #define READ_ALL_OBJECT_DATA            READ_HOSTS | READ_HOSTGROUPS | READ_CONTACTS | READ_CONTACTGROUPS | READ_SERVICES | READ_COMMANDS | READ_TIMEPERIODS | READ_SERVICEESCALATIONS | READ_SERVICEDEPENDENCIES | READ_HOSTDEPENDENCIES | READ_HOSTESCALATIONS | READ_HOSTEXTINFO | READ_SERVICEEXTINFO | READ_SERVICEGROUPS
+
+
+/************************** DATE RANGE TYPES ****************************/
+
+#define DATERANGE_CALENDAR_DATE  0  /* 2008-12-25 */
+#define DATERANGE_MONTH_DATE     1  /* july 4 (specific month) */
+#define DATERANGE_MONTH_DAY      2  /* day 21 (generic month) */
+#define DATERANGE_MONTH_WEEK_DAY 3  /* 3rd thursday (specific month) */
+#define DATERANGE_WEEK_DAY       4  /* 3rd thursday (generic month) */
+#define DATERANGE_TYPES          5 
 
 
 /************************** DATE/TIME TYPES *****************************/

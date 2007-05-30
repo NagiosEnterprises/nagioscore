@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-24-2007
+ * Last Modified: 05-25-2007
  *
  * License:
  *
@@ -772,6 +772,87 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 	return new_timerange;
         }
+
+
+/* add a new exception to a timeperiod */
+daterange *add_exception_to_timeperiod(timeperiod *period, int type, int syear, int smon, int smday, int swday, int swday_offset, int eyear, int emon, int emday, int ewday, int ewday_offset, int skip_interval){
+	daterange *new_daterange=NULL;
+
+	/* make sure we have the data we need */
+	if(period==NULL)
+		return NULL;
+
+	/* allocate memory for the date range range */
+	if((new_daterange=malloc(sizeof(daterange)))==NULL)
+		return NULL;
+
+	new_daterange->times=NULL;
+	new_daterange->next=NULL;
+
+	new_daterange->type=type;
+	new_daterange->syear=syear;
+	new_daterange->smon=smon;
+	new_daterange->smday=smday;
+	new_daterange->swday=swday;
+	new_daterange->swday_offset=swday_offset;
+	new_daterange->eyear=eyear;
+	new_daterange->emon=emon;
+	new_daterange->emday=emday;
+	new_daterange->ewday=ewday;
+	new_daterange->ewday_offset=ewday_offset;
+	new_daterange->skip_interval=skip_interval;
+
+	/* add the new date range to the head of the range list for this exception type */
+	new_daterange->next=period->exceptions[type];
+	period->exceptions[type]=new_daterange;
+
+	return new_daterange;
+        }
+
+
+
+/* add a new timerange to a daterange */
+timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_time, unsigned long end_time){
+	timerange *new_timerange=NULL;
+#ifdef NSCORE
+	char *temp_buffer=NULL;
+#endif
+
+	/* make sure we have the data we need */
+	if(drange==NULL)
+		return NULL;
+
+	if(start_time<0 || start_time>86400){
+#ifdef NSCORE
+		asprintf(&temp_buffer,"Error: Start time %lu is not valid for timeperiod\n",start_time);
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+#endif
+		return NULL;
+	        }
+	if(end_time<0 || end_time>86400){
+#ifdef NSCORE
+		asprintf(&temp_buffer,"Error: End time %lu is not value for timeperiod\n",end_time);
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+#endif
+		return NULL;
+	        }
+
+	/* allocate memory for the new time range */
+	if((new_timerange=malloc(sizeof(timerange)))==NULL)
+		return NULL;
+
+	new_timerange->range_start=start_time;
+	new_timerange->range_end=end_time;
+
+	/* add the new time range to the head of the range list for this date range */
+	new_timerange->next=drange->times;
+	drange->times=new_timerange;
+
+	return new_timerange;
+        }
+
 
 
 /* add a new host definition */

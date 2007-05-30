@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-22-2007
+ * Last Modified:   05-25-2007
  *
  * License:
  *
@@ -1219,6 +1219,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		        }
 
 		/* if the host is down or unreachable ... */
+		/* 05/29/2007 NOTE: The host might be in a SOFT problem state due to host check retries/caching.  Not sure if we should take that into account and do something different or not... */
 		if(route_result!=HOST_UP){
 
 			/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earlier... */

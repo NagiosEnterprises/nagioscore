@@ -2812,7 +2812,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 			}
 
 		/* recalculate midnight time at next run if necessary */
-		if(daterange_type==DATERANGE_CALENDAR_DATE || daterange_type==DATERANGE_SKIP_DAY)
+		if(daterange_type==DATERANGE_CALENDAR_DATE)
 			recalculate_midnight=TRUE;
 
 		for(temp_daterange=tperiod->exceptions[daterange_type];temp_daterange!=NULL;temp_daterange=temp_daterange->next){
@@ -2836,28 +2836,6 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 				break;
 			case DATERANGE_WEEK_DAY:
 				start_time=calculate_time_from_weekday_of_month(t->tm_year,t->tm_mon,temp_daterange->swday,temp_daterange->swday_offset);
-				break;
-			case DATERANGE_SKIP_DAY:
-				/* get the date the skipping starts*/
-				t->tm_mday=temp_daterange->smday;
-				t->tm_mon=temp_daterange->smon;
-				t->tm_year=(temp_daterange->syear-1900);
-				start_time=mktime(t);
-
-				/* skip start date must be before test time */
-				if(start_time>test_time)
-					continue;
-
-				/* how many days have passed between skip start date and test time? */
-				days=((unsigned long)start_time-midnight)/(3600*24);
-
-				/* if test date doesn't fall on a skip interval day, bail out early */
-				if((days % temp_daterange->skip_interval)!=0)
-					continue;
-
-				/* use midnight of test date as start time */
-				else
-					start_time=(time_t)midnight;
 				break;
 			default:
 				continue;
@@ -2883,9 +2861,6 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 				break;
 			case DATERANGE_WEEK_DAY:
 				end_time=calculate_time_from_weekday_of_month(t->tm_year,t->tm_mon,temp_daterange->ewday,temp_daterange->ewday_offset);
-				break;
-			case DATERANGE_SKIP_DAY:
-				end_time=start_time;
 				break;
 			default:
 				continue;
@@ -2940,8 +2915,31 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 					}
 				}
 
+			/* calculate skip date start (and end) */
+			if(temp_daterange->skip_interval>1){
+
+				/* skip start date must be before test time */
+				if(start_time>test_time)
+					continue;
+
+				/* how many days have passed between skip start date and test time? */
+				days=(midnight-(unsigned long)start_time)/(3600*24);
+
+				/* if test date doesn't fall on a skip interval day, bail out early */
+				if((days % (temp_daterange->skip_interval-1))!=0)
+					continue;
+
+				/* use midnight of test date as start time */
+				else
+					start_time=(time_t)midnight;
+
+				/* if skipping range has no end, use test date as end */
+				if((daterange_type==DATERANGE_CALENDAR_DATE) && (is_daterange_single_day(temp_daterange)==TRUE))
+					end_time=(time_t)midnight;
+				}
+
 			/* time falls into the range of days */
-			if(test_time>=start_time && test_time<=end_time)
+			if(midnight>=start_time && midnight<=end_time)
 				found_match=TRUE;
 
 			/* found a day match, so see if time ranges are good */
@@ -3034,7 +3032,7 @@ void get_next_valid_time(time_t preferred_time, time_t *valid_time, timeperiod *
 			}
 
 		/* recalculate midnight time at next run if necessary */
-		if(daterange_type==DATERANGE_CALENDAR_DATE || daterange_type==DATERANGE_SKIP_DAY)
+		if(daterange_type==DATERANGE_CALENDAR_DATE)
 			recalculate_midnight=TRUE;
 
 		for(temp_daterange=tperiod->exceptions[daterange_type];temp_daterange!=NULL;temp_daterange=temp_daterange->next){
@@ -3059,51 +3057,7 @@ void get_next_valid_time(time_t preferred_time, time_t *valid_time, timeperiod *
 			case DATERANGE_WEEK_DAY:
 				start_time=calculate_time_from_weekday_of_month(t->tm_year,t->tm_mon,temp_daterange->swday,temp_daterange->swday_offset);
 				break;
-				break;
-			case DATERANGE_SKIP_DAY:
-				/* get the date the skipping starts*/
-				t->tm_mday=temp_daterange->smday;
-				t->tm_mon=temp_daterange->smon;
-				t->tm_year=(temp_daterange->syear-1900);
-				start_time=mktime(t);
-
-				/* how many days have passed between skip start date and preferred time? */
-				days=((unsigned long)start_time-midnight)/(3600*24);
-
-				/* how many days from the preferred date must we advance to hit the next skip date? */
-				day_diff=(days % temp_daterange->skip_interval);
-
-				/* advance to the next possible skip date */
-				start_time=(time_t)((unsigned long)start_time+(day_diff*3600*24));
-				break;
-			default:
-				continue;
-				break;
-				}
-
-			/* get the end time */
-			switch(daterange_type){
-			case DATERANGE_CALENDAR_DATE:
-				t->tm_mday=temp_daterange->emday;
-				t->tm_mon=temp_daterange->emon;
-				t->tm_year=(temp_daterange->eyear-1900);
-				end_time=mktime(t);
-				break;
-			case DATERANGE_MONTH_DATE:
-				end_time=calculate_time_from_day_of_month(t->tm_year,temp_daterange->emon,temp_daterange->emday);
-				break;
-			case DATERANGE_MONTH_DAY:
-				end_time=calculate_time_from_day_of_month(t->tm_year,t->tm_mon,temp_daterange->emday);
-				break;
-			case DATERANGE_MONTH_WEEK_DAY:
-				end_time=calculate_time_from_weekday_of_month(t->tm_year,temp_daterange->emon,temp_daterange->ewday,temp_daterange->ewday_offset);
-				break;
-			case DATERANGE_WEEK_DAY:
-				end_time=calculate_time_from_weekday_of_month(t->tm_year,t->tm_mon,temp_daterange->ewday,temp_daterange->ewday_offset);
-				break;
-			case DATERANGE_SKIP_DAY:
-				/* get the date the skipping ends */
-				t->tm_mday=temp_daterange->emday;
+							t->tm_mday=temp_daterange->emday;
 				t->tm_mon=temp_daterange->emon;
 				t->tm_year=(temp_daterange->eyear-1900);
 				end_time=mktime(t);
@@ -3161,12 +3115,30 @@ void get_next_valid_time(time_t preferred_time, time_t *valid_time, timeperiod *
 					}
 				}
 
+			/* if skipping days... */
+			if(temp_daterange->skip_interval>1){
+
+				/* advance to the next possible skip date */
+				if(start_time<preferred_time){
+
+					/* how many days have passed between skip start date and preferred time? */
+					days=(midnight-(unsigned long)start_time)/(3600*24);
+
+					/* advance start date to next skip day */
+					start_time+=((days % (temp_daterange->skip_interval-1))*3600*24);
+					}
+
+				/* if skipping has no end, use start date as end */
+				if((daterange_type==DATERANGE_CALENDAR_DATE) && is_daterange_single_day(temp_daterange)==TRUE)
+					end_time=start_time;
+				}
+
 			/* skip this date range its out of bounds with what we want */
 			if(preferred_time > end_time)
 				continue;
 
 			/* how many days at a time should we advance? */
-			if(daterange_type==DATERANGE_SKIP_DAY)
+			if(temp_daterange->skip_interval>1)
 				advance_interval=temp_daterange->skip_interval;
 			else
 				advance_interval=1;
@@ -3242,7 +3214,28 @@ void get_next_valid_time(time_t preferred_time, time_t *valid_time, timeperiod *
 	return;
         }
 
-	
+
+
+/* tests if a date range covers just a single day */
+int is_daterange_single_day(daterange *dr){
+
+	if(dr==NULL)
+		return FALSE;
+
+	if(dr->syear!=dr->eyear)
+		return FALSE;
+	if(dr->smon!=dr->emon)
+		return FALSE;
+	if(dr->smday!=dr->emday)
+		return FALSE;
+	if(dr->swday!=dr->ewday)
+		return FALSE;
+	if(dr->swday_offset!=dr->ewday_offset)
+		return FALSE;
+
+	return TRUE;
+	}
+
 
 
 /* returns a time (midnight) of particular (3rd, last) day in a given month */

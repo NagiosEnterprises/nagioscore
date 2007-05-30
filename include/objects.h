@@ -48,17 +48,6 @@
 #define MAX_CONTACT_ADDRESSES                   6       /* max number of custom addresses a contact can have */
 
 
-/***************** DATE RANGE TYPES *******************/
-
-#define DATERANGE_CALENDAR_DATE  0  /* 2008-12-25 */
-#define DATERANGE_MONTH_DATE     1  /* july 4 (specific month) */
-#define DATERANGE_MONTH_DAY      2  /* day 21 (generic month) */
-#define DATERANGE_MONTH_WEEK_DAY 3  /* 3rd thursday (specific month) */
-#define DATERANGE_WEEK_DAY       4  /* 3rd thursday (generic month) */
-#define DATERANGE_SKIP_DAY       5  /* every n days */
-#define DATERANGE_TYPES          6 
-
-
 /***************** CHAINED HASH LIMITS ****************/
 
 #define SERVICE_HASHSLOTS                      1024
@@ -678,6 +667,8 @@ contactsmember *add_contact_to_host(host *,char *);                             
 customvariablesmember *add_custom_variable_to_host(host *,char *,char *);                               /* adds a custom variable to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */
 timerange *add_timerange_to_timeperiod(timeperiod *,int,unsigned long,unsigned long);			/* adds a timerange to a timeperiod definition */
+daterange *add_exception_to_timeperiod(timeperiod *,int,int,int,int,int,int,int,int,int,int,int,int);
+timerange *add_timerange_to_daterange(daterange *,unsigned long,unsigned long);
 hostgroup *add_hostgroup(char *,char *,char *,char *,char *);						/* adds a hostgroup definition */
 hostgroupmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host to a hostgroup definition */
 servicegroup *add_servicegroup(char *,char *,char *,char *,char *);                                     /* adds a servicegroup definition */

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-20-2007
+ * Last Modified:   05-26-2007
  *
  * License:
  *
@@ -384,6 +384,12 @@ int check_service_notification_viability(service *svc, int type){
 	/****************************************/
 	/*** NORMAL NOTIFICATIONS ***************/
 	/****************************************/
+
+	/* is this a hard problem/recovery? */
+	if(svc->state_type==SOFT_STATE){
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This service is in a soft state, so we won't send a notification out.\n");
+		return ERROR;
+	        }
 
 	/* has this problem already been acknowledged? */
 	if(svc->problem_has_been_acknowledged==TRUE){
@@ -1134,6 +1140,12 @@ int check_host_notification_viability(host *hst, int type){
 	/****************************************/
 	/*** NORMAL NOTIFICATIONS ***************/
 	/****************************************/
+
+	/* is this a hard problem/recovery? */
+	if(hst->state_type==SOFT_STATE){
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This host is in a soft state, so we won't send a notification out.\n");
+		return ERROR;
+	        }
 
 	/* has this problem already been acknowledged? */
 	if(hst->problem_has_been_acknowledged==TRUE){

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-09-2007
+ * Last Modified: 05-30-2007
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -714,7 +714,7 @@ void display_notifications(void){
 				printf("<td CLASS='notifications%s'>%s</td>\n",(odd)?"Even":"Odd",date_time);
 				printf("<td CLASS='notifications%s'><a href='%s?type=contacts#%s'>%s</a></td>\n",(odd)?"Even":"Odd",CONFIG_CGI,url_encode(contact_name),contact_name);
 				printf("<td CLASS='notifications%s'><a href='%s?type=commands#%s'>%s</a></td>\n",(odd)?"Even":"Odd",CONFIG_CGI,url_encode(method_name),method_name);
-				printf("<td CLASS='notifications%s'>%s</td>\n",(odd)?"Even":"Odd",html_encode(temp_buffer));
+				printf("<td CLASS='notifications%s'>%s</td>\n",(odd)?"Even":"Odd",html_encode(temp_buffer,FALSE));
 				printf("</tr>\n");
 			        }
 		        }

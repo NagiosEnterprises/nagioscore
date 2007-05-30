@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-08-2007
+ * Last Modified: 05-30-2007
  *
  * License:
  * 
@@ -3416,7 +3416,7 @@ void write_log_entries(avail_subject *subject){
 		printf("<td class='logEntries%s'>%s</td>",bgclass,end_date_time);
 		printf("<td class='logEntries%s'>%s</td>",bgclass,duration);
 		printf("<td class='logEntries%s'>%s%s</td>",ebgclass,entry_type,state_type);
-		printf("<td class='logEntries%s'>%s</td>",bgclass,(temp_as->state_info==NULL)?"":html_encode(temp_as->state_info));
+		printf("<td class='logEntries%s'>%s</td>",bgclass,(temp_as->state_info==NULL)?"":html_encode(temp_as->state_info,FALSE));
 		printf("</tr>\n");
 	        }
 

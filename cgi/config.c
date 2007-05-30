@@ -502,7 +502,7 @@ void display_hosts(void){
 		if(temp_host->host_check_command==NULL)
 			printf("&nbsp;");
 		else
-			printf("<a href='%s?type=commands#%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(temp_host->host_check_command),html_encode(temp_host->host_check_command));
+			printf("<a href='%s?type=commands#%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(temp_host->host_check_command),html_encode(temp_host->host_check_command,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->obsess_over_host==TRUE)?"Yes":"No");
@@ -1203,7 +1203,7 @@ void display_services(void){
 		command_line[sizeof(command_line)-1]='\x0';
 		command_name=strtok(command_line,"!");
 
-		printf("<TD CLASS='%s'><A HREF='%s?type=commands#%s'>%s</A></TD>\n",bg_class,CONFIG_CGI,url_encode(command_name),html_encode(temp_service->service_check_command));
+		printf("<TD CLASS='%s'><A HREF='%s?type=commands#%s'>%s</A></TD>\n",bg_class,CONFIG_CGI,url_encode(command_name),html_encode(temp_service->service_check_command,FALSE));
 		printf("<TD CLASS='%s'>",bg_class);
 		if(temp_service->check_period==NULL)
 			printf("&nbsp;");
@@ -1632,7 +1632,7 @@ void display_commands(void){
 		printf("<TR CLASS='%s'>\n",bg_class);
 
 		printf("<TD CLASS='%s'><A NAME='%s'></A>%s</TD>\n",bg_class,url_encode(temp_command->name),temp_command->name);
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_command->command_line));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_command->command_line,FALSE));
 
 		printf("</TR>\n");
 	        }

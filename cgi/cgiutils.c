@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-09-2007
+ * Last Modified: 05-30-2007
  *
  * License:
  *
@@ -1374,7 +1374,7 @@ char * url_encode(char *input){
 
 
 /* escapes a string used in HTML */
-char * html_encode(char *input){
+char * html_encode(char *input, int escape_newlines){
 	int len,output_len;
 	int x,y;
 	char temp_expansion[7];
@@ -1402,11 +1402,11 @@ char * html_encode(char *input){
 		        }
 
 		/* newlines turn to <BR> tags */
-		else if((char)input[x]==(char)'\n'){
+		else if(escape_newlines==TRUE && (char)input[x]==(char)'\n'){
 			strcpy(&encoded_html_string[y],"<BR>");
 			y+=4;
 			}
-		else if((char)input[x]==(char)'\\' && (char)input[x+1]==(char)'n'){
+		else if(escape_newlines==TRUE && (char)input[x]==(char)'\\' && (char)input[x+1]==(char)'n'){
 			strcpy(&encoded_html_string[y],"<BR>");
 			y+=4;
 			x++;

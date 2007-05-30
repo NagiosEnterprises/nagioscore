@@ -4118,8 +4118,8 @@ int process_check_result_file(char *fname){
 		if(input[0]=='#')
 			continue;
 
-		/* whitespace indicates end of record */
-		else if(input[0]=='\x0'){
+		/* empty line indicates end of record */
+		else if(input[0]=='\n'){
 
 			/* we have something... */
 			if(new_cr){
@@ -4317,7 +4317,7 @@ int add_check_result_to_list(check_result *new_cr){
 		if(temp_cr->finish_time.tv_sec >= new_cr->finish_time.tv_sec){
 			if(temp_cr->finish_time.tv_sec > new_cr->finish_time.tv_sec)
 				break;
-			else if(temp_cr->finish_time.tv_usec >= new_cr->finish_time.tv_usec)
+			else if(temp_cr->finish_time.tv_usec > new_cr->finish_time.tv_usec)
 				break;
 			}
 		last_cr=temp_cr;

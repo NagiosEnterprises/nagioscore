@@ -513,7 +513,7 @@ int display_log(void){
 			
 			if(display_frills==TRUE)
 				printf("<img align='left' src='%s%s' alt='%s' title='%s'>",url_images_path,image,image_alt,image_alt);
-			printf("[%s] %s<br clear='all'>\n",date_time,(temp_buffer==NULL)?"":html_encode(temp_buffer));
+			printf("[%s] %s<br clear='all'>\n",date_time,(temp_buffer==NULL)?"":html_encode(temp_buffer,FALSE));
 		        }
 
 		printf("</DIV></P>\n");

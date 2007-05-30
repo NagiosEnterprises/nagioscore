@@ -10,6 +10,7 @@ Nagios 3.x Change Log
 * More debug/trace log functionality
 * Added new 'passive_host_checks_are_soft' config option
 * Fixed bug with host notifications occurring during soft host states
+* Fixed bug in processing multiple check results contained in a single file
 * Expanded timeperiod definitions to allow for day/date exceptions
 
 

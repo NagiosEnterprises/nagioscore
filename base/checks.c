@@ -193,7 +193,9 @@ int reap_check_results(void){
 
 		/* delete the file that contains the check results, as well as the ok-to-go file */
 		/* files can contain multiple check results - in this case, the file will be removed when the first check result is processed */
+#ifdef TEST
 		unlink(queued_check_result->output_file);
+#endif
 		asprintf(&temp_buffer,"%s.ok",queued_check_result->output_file);
 		unlink(temp_buffer);
 		my_free((void **)&temp_buffer);
@@ -857,14 +859,9 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* get the current time */
 	time(&current_time);
 
-	log_debug_info(DEBUGL_CHECKS,0,"** Handling check result for service '%s' on host '%s'\n",temp_service->description,temp_service->host_name);
-	log_debug_info(DEBUGL_CHECKS,1,"\tCheck Type:        %s\n",(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
-	log_debug_info(DEBUGL_CHECKS,1,"\tScheduled Check?   %s\n",(queued_check_result->scheduled_check==TRUE)?"Yes":"No");
-	log_debug_info(DEBUGL_CHECKS,1,"\tReschedule Check?  %s\n",(queued_check_result->reschedule_check==TRUE)?"Yes":"No");
-	log_debug_info(DEBUGL_CHECKS,1,"\tExited OK?:        %s\n",(queued_check_result->exited_ok==TRUE)?"Yes":"No");
-	log_debug_info(DEBUGL_CHECKS,1,"\tReturn Status:     %d\n",queued_check_result->return_code);
-	log_debug_info(DEBUGL_CHECKS,1,"\tOutput:            %s\n",queued_check_result->output);
-
+	log_debug_info(DEBUGL_CHECKS,0,"** Handling check result for service '%s' on host '%s'...\n",temp_service->description,temp_service->host_name);
+	log_debug_info(DEBUGL_CHECKS,1,"HOST: %s, SERVICE: %s, CHECK TYPE: %s, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT: %s\n",temp_service->description,temp_service->host_name,(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",(queued_check_result->scheduled_check==TRUE)?"Yes":"No",(queued_check_result->reschedule_check==TRUE)?"Yes":"No",(queued_check_result->exited_ok==TRUE)?"Yes":"No",queued_check_result->return_code,queued_check_result->output);
+	
 	/* decrement the number of service checks still out there... */
 	if(queued_check_result->check_type==SERVICE_CHECK_ACTIVE && currently_running_service_checks>0)
 		currently_running_service_checks--;

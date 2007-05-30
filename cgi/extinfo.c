@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-19-2007
+ * Last Modified: 05-30-2007
  *
  * License:
  * 
@@ -1050,12 +1050,12 @@ void show_host_info(void){
 
 		printf("<TR><TD CLASS='dataVar'>Host Status:</td><td CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV>&nbsp;(for %s)%s</td></tr>\n",bg_class,state_string,state_duration,(temp_hoststatus->problem_has_been_acknowledged==TRUE)?"&nbsp;&nbsp;(Has been acknowledged)":"");
 
-		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Status Information:</td><td CLASS='dataVal'>%s",(temp_hoststatus->plugin_output==NULL)?"":html_encode(temp_hoststatus->plugin_output));
+		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Status Information:</td><td CLASS='dataVal'>%s",(temp_hoststatus->plugin_output==NULL)?"":html_encode(temp_hoststatus->plugin_output,TRUE));
 		if(temp_hoststatus->long_plugin_output!=NULL)
-			printf("<BR>%s",html_encode(temp_hoststatus->long_plugin_output));
+			printf("<BR>%s",html_encode(temp_hoststatus->long_plugin_output,TRUE));
 		printf("</TD></TR>\n");
 
-		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->perf_data==NULL)?"":html_encode(temp_hoststatus->perf_data));
+		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->perf_data==NULL)?"":html_encode(temp_hoststatus->perf_data,TRUE));
 
 		printf("<TR><TD CLASS='dataVar'>Current Attempt:</TD><TD CLASS='dataVal'>%d/%d",temp_hoststatus->current_attempt,temp_hoststatus->max_attempts);
 		printf("&nbsp;&nbsp;(%s state)</TD></TR>\n",(temp_hoststatus->state_type==HARD_STATE)?"HARD":"SOFT");
@@ -1096,7 +1096,8 @@ void show_host_info(void){
 		if(temp_hoststatus->last_check>current_time)
 			duration_error=TRUE;
 		else
-			t=current_time-temp_hoststatus->last_check;
+                        /*t=current_time-temp_hoststatus->last_check;*/
+			t=current_time-temp_hoststatus->last_update;
 		get_time_breakdown((unsigned long)t,&days,&hours,&minutes,&seconds);
 		if(duration_error==TRUE)
 			snprintf(status_age,sizeof(status_age)-1,"???");
@@ -1350,12 +1351,12 @@ void show_service_info(void){
 			}
 		printf("<TR><TD CLASS='dataVar'>Current Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV>&nbsp;(for %s)%s</TD></TR>\n",bg_class,state_string,state_duration,(temp_svcstatus->problem_has_been_acknowledged==TRUE)?"&nbsp;&nbsp;(Has been acknowledged)":"");
 
-		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Status Information:</TD><TD CLASS='dataVal'>%s",(temp_svcstatus->plugin_output==NULL)?"":html_encode(temp_svcstatus->plugin_output));
+		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Status Information:</TD><TD CLASS='dataVal'>%s",(temp_svcstatus->plugin_output==NULL)?"":html_encode(temp_svcstatus->plugin_output,TRUE));
 		if(temp_svcstatus->long_plugin_output!=NULL)
-			printf("<BR>%s",html_encode(temp_svcstatus->long_plugin_output));
+			printf("<BR>%s",html_encode(temp_svcstatus->long_plugin_output,TRUE));
 		printf("</TD></TR>\n");
 
-		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_svcstatus->perf_data==NULL)?"":html_encode(temp_svcstatus->perf_data));
+		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_svcstatus->perf_data==NULL)?"":html_encode(temp_svcstatus->perf_data,TRUE));
 
 		printf("<TR><TD CLASS='dataVar'>Current Attempt:</TD><TD CLASS='dataVal'>%d/%d",temp_svcstatus->current_attempt,temp_svcstatus->max_attempts);
 		printf("&nbsp;&nbsp;(%s state)</TD></TR>\n",(temp_svcstatus->state_type==HARD_STATE)?"HARD":"SOFT");
@@ -1396,7 +1397,8 @@ void show_service_info(void){
 		if(temp_svcstatus->last_check>current_time)
 			duration_error=TRUE;
 		else
-			t=current_time-temp_svcstatus->last_check;
+			/*t=current_time-temp_svcstatus->last_check;*/
+			t=current_time-temp_svcstatus->last_update;
 		get_time_breakdown((unsigned long)t,&days,&hours,&minutes,&seconds);
 		if(duration_error==TRUE)
 			snprintf(status_age,sizeof(status_age)-1,"???");

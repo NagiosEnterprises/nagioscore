@@ -2,8 +2,8 @@
  *
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 05-30-2007
  *
  * Description:
  *
@@ -1926,11 +1926,11 @@ void write_host_popup_text(host *hst){
 	printf("<table border=0 cellpadding=0 cellspacing=5>");
 
 	printf("<tr><td><img src=%s%s border=0 width=40 height=40></td>",url_logo_images_path,(hst->icon_image==NULL)?UNKNOWN_ICON_IMAGE:hst->icon_image);
-	printf("<td class=\\\"popupText\\\"><i>%s</i></td></tr>",(hst->icon_image_alt==NULL)?"":html_encode(hst->icon_image_alt));
+	printf("<td class=\\\"popupText\\\"><i>%s</i></td></tr>",(hst->icon_image_alt==NULL)?"":html_encode(hst->icon_image_alt,TRUE));
 
-	printf("<tr><td class=\\\"popupText\\\">Name:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->name));
-	printf("<tr><td class=\\\"popupText\\\">Alias:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->alias));
-	printf("<tr><td class=\\\"popupText\\\">Address:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->address));
+	printf("<tr><td class=\\\"popupText\\\">Name:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->name,TRUE));
+	printf("<tr><td class=\\\"popupText\\\">Alias:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->alias,TRUE));
+	printf("<tr><td class=\\\"popupText\\\">Address:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->address,TRUE));
 	printf("<tr><td class=\\\"popupText\\\">State:</td><td class=\\\"popupText\\\"><b>");
 
 	/* get the status of the host (pending, up, down, or unreachable) */
@@ -1977,7 +1977,7 @@ void write_host_popup_text(host *hst){
 		printf("None (This is a root host)");
 	else{
 		for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next)
-			printf("%s%s",(temp_hostsmember==hst->parent_hosts)?"":", ",html_encode(temp_hostsmember->host_name));
+			printf("%s%s",(temp_hostsmember==hst->parent_hosts)?"":", ",html_encode(temp_hostsmember->host_name,TRUE));
 	        }
 	printf("</b></td></tr>");
 

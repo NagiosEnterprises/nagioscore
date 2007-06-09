@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-20-2007
+ * Last Modified: 06-09-2007
  *
  * License:
  *
@@ -414,6 +414,10 @@ int write_log_file_info(time_t *timestamp){
 /* opens the debug log for writing */
 int open_debug_log(void){
 
+	/* don't do anything if we're not actually running... */
+	if(verify_config==TRUE || test_scheduling==TRUE)
+		return OK;
+
 	/* don't do anything if we're not debugging */
 	if(debug_level==DEBUGL_NONE)
 		return OK;
@@ -454,7 +458,7 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...){
 
 	/* write the timestamp */
 	gettimeofday(&current_time,NULL);
-	fprintf(debug_file_fp,"[%lu.%06lu:%03d.%d] ",current_time.tv_sec,current_time.tv_usec,level,verbosity);
+	fprintf(debug_file_fp,"[%lu.%06lu] [%03d.%d] [pid=%lu] ",current_time.tv_sec,current_time.tv_usec,level,verbosity,(unsigned long)getpid());
 
 	/* write the data */
 	va_start(ap,fmt);

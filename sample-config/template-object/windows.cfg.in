@@ -1,34 +1,23 @@
 ###############################################################################
-# WINDOWS.CFG - SAMPLE OBJECT CONFIG FILE FOR MONITORING A WINDOWS MACHINE
+# WINDOWS.CFG - SAMPLE CONFIG FILE FOR MONITORING A WINDOWS MACHINE
 #
-# Last Modified: 03-06-2007
+# Last Modified: 05-31-2007
 #
-# NOTE: This config file assumes that you are using the sample configuration
-#	files that get installed with the Nagios quickstart guide:
-#		commands.cfg
-#		localhost.cfg
+# NOTES: This config file assumes that you are using the sample configuration
+#	 files that get installed with the Nagios quickstart guide.
 #
 ###############################################################################
 
 
 
-# We define a generic template that can be used for most Mindows machines we monitor
 
-define host{
-	name			windows-server	; The name of this host template
-	use			generic-host	; Inherit default values from the generic-host template
-	check_period		24x7		; By default, Windows servers are monitored round the clock
-	check_interval		5		; Actively check the server every 5 minutes
-	retry_interval		1		; Schedule host check retries at 1 minute intervals
-	max_check_attempts	10		; Check each server 10 times (max)
-	check_command		check-host-alive	; Default command to check if servers are "alive"
-	notification_period	24x7		; Send notification out at any time - day or night
-	notification_interval	30		; Resend notifications every 30 minutes
-	notification_options	d,r		; Only send notifications for specific host states
-	contact_groups		admins		; Notifications get sent to the admins by default
-	register		0		; DONT REGISTER THIS - ITS JUST A TEMPLATE
-	}
-
+###############################################################################
+###############################################################################
+#
+# HOST DEFINITIONS
+#
+###############################################################################
+###############################################################################
 
 # Define a host for the Windows machine we'll be monitoring
 # Change the host_name, alias, and address to fit your situation
@@ -43,6 +32,16 @@ define host{
 
 
 
+
+###############################################################################
+###############################################################################
+#
+# HOST GROUP DEFINITIONS
+#
+###############################################################################
+###############################################################################
+
+
 # Define an optional hostgroup for Windows machines
 # Change the members directive to match the name of the host you define above
 
@@ -52,6 +51,16 @@ define hostgroup{
 	members		winserver	; Comma separated list of hosts that belong to this group
 	}
 
+
+
+
+###############################################################################
+###############################################################################
+#
+# SERVICE DEFINITIONS
+#
+###############################################################################
+###############################################################################
 
 
 # Create a service for monitoring the version of NSCLient++ that is installed

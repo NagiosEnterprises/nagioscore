@@ -4250,7 +4250,7 @@ int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *tperiod, char
 	/* calendar dates */
 	else if((items=sscanf(input,"%4d-%2d-%2d - %4d-%2d-%2d / %d %[0-9:, -]",&syear,&smon,&smday,&eyear,&emon,&emday,&skip_interval,temp_buffer[0]))==8){
 		/* add timerange exception */
-		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon,smday,0,0,eyear,emon,emday,0,0,skip_interval,temp_buffer[0])==NULL)
+		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon-1,smday,0,0,eyear,emon-1,emday,0,0,skip_interval,temp_buffer[0])==NULL)
 			result=ERROR;
 		}
 
@@ -4259,13 +4259,13 @@ int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *tperiod, char
 		emon=smon;
 		emday=smday;
 		/* add timerange exception */
-		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon,smday,0,0,eyear,emon,emday,0,0,skip_interval,temp_buffer[0])==NULL)
+		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon-1,smday,0,0,eyear,emon-1,emday,0,0,skip_interval,temp_buffer[0])==NULL)
 			result=ERROR;
 		}
 
 	else if((items=sscanf(input,"%4d-%2d-%2d - %4d-%2d-%2d %[0-9:, -]",&syear,&smon,&smday,&eyear,&emon,&emday,temp_buffer[0]))==7){
 		/* add timerange exception */
-		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon,smday,0,0,eyear,emon,emday,0,0,0,temp_buffer[0])==NULL)
+		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon-1,smday,0,0,eyear,emon-1,emday,0,0,0,temp_buffer[0])==NULL)
 			result=ERROR;
 		}
 
@@ -4274,7 +4274,7 @@ int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *tperiod, char
 		emon=smon;
 		emday=smday;
 		/* add timerange exception */
-		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon,smday,0,0,eyear,emon,emday,0,0,0,temp_buffer[0])==NULL)
+		if(xodtemplate_add_exception_to_timeperiod(tperiod,DATERANGE_CALENDAR_DATE,syear,smon-1,smday,0,0,eyear,emon-1,emday,0,0,0,temp_buffer[0])==NULL)
 			result=ERROR;
 		}
 

@@ -8216,8 +8216,12 @@ perl subst sample-config/resource.cfg
 perl subst sample-config/httpd.conf
 perl subst sample-config/mrtg.cfg
 
-perl subst sample-config/template-object/localhost.cfg
+perl subst sample-config/template-object/templates.cfg
 perl subst sample-config/template-object/commands.cfg
+perl subst sample-config/template-object/timeperiods.cfg
+perl subst sample-config/template-object/contacts.cfg
+
+perl subst sample-config/template-object/localhost.cfg
 perl subst sample-config/template-object/windows.cfg
 perl subst sample-config/template-object/printer.cfg
 perl subst sample-config/template-object/switch.cfg

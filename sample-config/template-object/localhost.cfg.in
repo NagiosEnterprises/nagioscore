@@ -1,67 +1,13 @@
 ###############################################################################
 # LOCALHOST.CFG - SAMPLE OBJECT CONFIG FILE FOR MONITORING THIS MACHINE
 #
-# Last Modified: 02-27-2007
+# Last Modified: 05-31-2007
 #
 # NOTE: This config file is intended to serve as an *extremely* simple 
-#       example of how you can create your object configuration file(s).
+#       example of how you can create configuration entries to monitor
+#       the local (Linux) machine.
 #
 ###############################################################################
-
-
-
-###############################################################################
-###############################################################################
-#
-# TIME PERIODS
-#
-###############################################################################
-###############################################################################
-
-# This defines a timeperiod where all times are valid for checks, 
-# notifications, etc.  The classic "24x7" support nightmare. :-)
-define timeperiod{
-        timeperiod_name 24x7
-        alias           24 Hours A Day, 7 Days A Week
-        sunday          00:00-24:00
-        monday          00:00-24:00
-        tuesday         00:00-24:00
-        wednesday       00:00-24:00
-        thursday        00:00-24:00
-        friday          00:00-24:00
-        saturday        00:00-24:00
-        }
-
-
-# 'workhours' timeperiod definition
-define timeperiod{
-	timeperiod_name	workhours
-	alias		Normal Work Hours
-	monday		09:00-17:00
-	tuesday		09:00-17:00
-	wednesday	09:00-17:00
-	thursday	09:00-17:00
-	friday		09:00-17:00
-	}
-
-
-# 'none' timeperiod definition
-define timeperiod{
-	timeperiod_name	none
-	alias		No Time Is A Good Time
-	}
-
-
-
-###############################################################################
-###############################################################################
-#
-# COMMANDS
-#
-###############################################################################
-###############################################################################
-
-# NOTE: Sample command definitions can now be found in the sample commands.cfg file
 
 
 
@@ -69,103 +15,12 @@ define timeperiod{
 ###############################################################################
 ###############################################################################
 #
-# CONTACTS
+# HOST DEFINITION
 #
 ###############################################################################
 ###############################################################################
 
-# Generic contact definition template - This is NOT a real contact, just a template!
-
-define contact{
-        name                            generic-contact    	; The name of this contact template
-        service_notification_period     24x7			; service notifications can be sent anytime
-        host_notification_period        24x7			; host notifications can be sent anytime
-        service_notification_options    w,u,c,r,f,s		; send notifications for all service states, flapping events, and scheduled downtime events
-        host_notification_options       d,u,r,f,s		; send notifications for all host states, flapping events, and scheduled downtime events
-        service_notification_commands   notify-service-by-email	; send service notifications via email
-        host_notification_commands      notify-host-by-email	; send host notifications via email
-        register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL CONTACT, JUST A TEMPLATE!
-        }
-
-
-# Just one contact defined by default - the Nagios admin (that's you)
-
-define contact{
-        contact_name                    nagiosadmin		; Short name of user
-	use				generic-contact		; Inherit default values from generic-contact template (defined above)
-        alias                           Nagios Admin		; Full name of user
-
-        email                           @nagios_user@@localhost	; <<***** CHANGE THIS TO YOUR EMAIL ADDRESS ******
-        }
-
-
-
-###############################################################################
-###############################################################################
-#
-# CONTACT GROUPS
-#
-###############################################################################
-###############################################################################
-
-# We only have one contact in this simple configuration file, so there is
-# no need to create more than one contact group.
-
-define contactgroup{
-        contactgroup_name       admins
-        alias                   Nagios Administrators
-        members                 nagiosadmin
-        }
-
-
-
-###############################################################################
-###############################################################################
-#
-# HOSTS
-#
-###############################################################################
-###############################################################################
-
-# Generic host definition template - This is NOT a real host, just a template!
-
-define host{
-        name                            generic-host    ; The name of this host template
-        notifications_enabled           1       	; Host notifications are enabled
-        event_handler_enabled           1       	; Host event handler is enabled
-        flap_detection_enabled          1       	; Flap detection is enabled
-        failure_prediction_enabled      1       	; Failure prediction is enabled
-        process_perf_data               1       	; Process performance data
-        retain_status_information       1       	; Retain status information across program restarts
-        retain_nonstatus_information    1       	; Retain non-status information across program restarts
-	notification_period		24x7		; Send host notifications at any time
-        register                        0       	; DONT REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!
-        }
-
-
-# Linux host definition template - This is NOT a real host, just a template!
-
-define host{
-	name				linux-server	; The name of this host template
-	use				generic-host	; This template inherits other values from the generic-host template
-	check_period			24x7		; By default, Linux hosts are checked round the clock
-	check_interval			5		; Actively check the host every 5 minutes
-	retry_interval			1		; Schedule host check retries at 1 minute intervals
-	max_check_attempts		10		; Check each Linux host 10 times (max)
-        check_command           	check-host-alive ; Default command to check Linux hosts
-	notification_period		workhours	; Linux admins hate to be woken up, so we only notify during the day
-							; Note that the notification_period variable is being overridden from
-							; the value that is inherited from the generic-host template!
-	notification_interval		120		; Resend notifications every 2 hours
-	notification_options		d,u,r		; Only send notifications for specific host states
-	contact_groups			admins		; Notifications get sent to the admins by default
-	register			0		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!
-	}
-
-
-
-# Since this is a simple configuration file, we only monitor one host - the
-# local host (this machine).
+# Define a host for the local machine
 
 define host{
         use                     linux-server            ; Name of host template to use
@@ -181,18 +36,17 @@ define host{
 ###############################################################################
 ###############################################################################
 #
-# HOST GROUPS
+# HOST GROUP DEFINITION
 #
 ###############################################################################
 ###############################################################################
 
-# We only have one host in our simple config file, so there is no need to
-# create more than one hostgroup.
+# Define an optional hostgroup for Linux machines
 
 define hostgroup{
-        hostgroup_name  allhosts
-        alias           All Hosts
-        members         localhost
+        hostgroup_name  linux-servers ; The name of the hostgroup
+        alias           Linux Servers ; Long name of the group
+        members         localhost     ; Comma separated list of hosts that belong to this group
         }
 
 
@@ -200,50 +54,10 @@ define hostgroup{
 ###############################################################################
 ###############################################################################
 #
-# SERVICES
+# SERVICE DEFINITIONS
 #
 ###############################################################################
 ###############################################################################
-
-# Generic service definition template - This is NOT a real service, just a template!
-
-define service{
-        name                            generic-service 	; The 'name' of this service template
-        active_checks_enabled           1       		; Active service checks are enabled
-        passive_checks_enabled          1    		   	; Passive service checks are enabled/accepted
-        parallelize_check               1       		; Active service checks should be parallelized (disabling this can lead to major performance problems)
-        obsess_over_service             1       		; We should obsess over this service (if necessary)
-        check_freshness                 0       		; Default is to NOT check service 'freshness'
-        notifications_enabled           1       		; Service notifications are enabled
-        event_handler_enabled           1       		; Service event handler is enabled
-        flap_detection_enabled          1       		; Flap detection is enabled
-        failure_prediction_enabled      1       		; Failure prediction is enabled
-        process_perf_data               1       		; Process performance data
-        retain_status_information       1       		; Retain status information across program restarts
-        retain_nonstatus_information    1       		; Retain non-status information across program restarts
-        is_volatile                     0       		; The service is not volatile
-        check_period                    24x7			; The service can be checked at any time of the day
-        max_check_attempts              3			; Re-check the service up to 3 times in order to determine its final (hard) state
-        normal_check_interval           10			; Check the service every 10 minutes under normal conditions
-        retry_check_interval            2			; Re-check the service every two minutes until a hard state can be determined
-        contact_groups                  admins			; Notifications get sent out to everyone in the 'admins' group
-	notification_options		w,u,c,r			; Send notifications about warning, unknown, critical, and recovery events
-        notification_interval           60			; Re-notify about service problems every hour
-        notification_period             24x7			; Notifications can be sent out at any time
-         register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
-        }
-
-
-# Local service definition template - This is NOT a real service, just a template!
-
-define service{
-	name				local-service 		; The name of this service template
-	use				generic-service		; Inherit default values from the generic-service definition
-        max_check_attempts              4			; Re-check the service up to 4 times in order to determine its final (hard) state
-        normal_check_interval           5			; Check the service every 5 minutes under normal conditions
-        retry_check_interval            1			; Re-check the service every minute until a hard state can be determined
-        register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
-	}
 
 
 # Define a service to "ping" the local machine

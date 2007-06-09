@@ -193,9 +193,7 @@ int reap_check_results(void){
 
 		/* delete the file that contains the check results, as well as the ok-to-go file */
 		/* files can contain multiple check results - in this case, the file will be removed when the first check result is processed */
-#ifdef TEST
 		unlink(queued_check_result->output_file);
-#endif
 		asprintf(&temp_buffer,"%s.ok",queued_check_result->output_file);
 		unlink(temp_buffer);
 		my_free((void **)&temp_buffer);

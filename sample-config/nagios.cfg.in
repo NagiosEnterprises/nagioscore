@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 05-22-2007
+# Last Modified: 05-31-2007
 #
 ##############################################################################
 
@@ -26,20 +26,9 @@ log_file=@localstatedir@/nagios.log
 # You can split your object definitions across several config files
 # if you wish (as shown below), or keep them all in a single config file.
 
-# Command definitions
-cfg_file=@sysconfdir@/commands.cfg
-
-# Host and service definitions, etc. for monitoring this machine
-cfg_file=@sysconfdir@/localhost.cfg
-
-# Sample definitions for monitoring a Windows machine
-#cfg_file=@sysconfdir@/windows.cfg
-
-# Sample definitions for monitoring a network printer
-#cfg_file=@sysconfdir@/printer.cfg
-
-# Sample definitions for monitoring a switch/router
-#cfg_file=@sysconfdir@/switch.cfg
+# You can specify individual object config files as shown below:
+#cfg_file=@sysconfdir@/objects/file1.cfg
+#cfg_file=@sysconfdir@/objects/file2.cfg
 
 
 # You can also tell Nagios to process all config files (with a .cfg
@@ -50,6 +39,12 @@ cfg_file=@sysconfdir@/localhost.cfg
 #cfg_dir=@sysconfdir@/printers
 #cfg_dir=@sysconfdir@/switches
 #cfg_dir=@sysconfdir@/routers
+
+
+# Sample config files get installed in the objects/ subdirectory.
+# Nagios will process any file with a .cfg extension in that directory.
+
+cfg_dir=@sysconfdir@/objects
 
 
 

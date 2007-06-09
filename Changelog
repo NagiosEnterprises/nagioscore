@@ -12,6 +12,7 @@ Nagios 3.x Change Log
 * Fixed bug with host notifications occurring during soft host states
 * Fixed bug in processing multiple check results contained in a single file
 * Expanded timeperiod definitions to allow for day/date exceptions
+* Changes to sample config files and installation location
 
 
 

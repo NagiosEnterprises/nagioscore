@@ -1,0 +1,94 @@
+###############################################################################
+# TIMEPERIODS.CFG - SAMPLE TIMEPERIOD DEFINITIONS
+#
+# Last Modified: 05-31-2007
+#
+# NOTES: This config file provides you with some example timeperiod definitions
+#        that you can reference in host, service, contact, and dependency
+#        definitions.
+#       
+#        You don't need to keep timeperiods in a separate file from your other
+#        object definitions.  This has been done just to make things easier to
+#        understand.
+#
+###############################################################################
+
+
+
+###############################################################################
+###############################################################################
+#
+# TIME PERIODS
+#
+###############################################################################
+###############################################################################
+
+# This defines a timeperiod where all times are valid for checks, 
+# notifications, etc.  The classic "24x7" support nightmare. :-)
+define timeperiod{
+        timeperiod_name 24x7
+        alias           24 Hours A Day, 7 Days A Week
+        sunday          00:00-24:00
+        monday          00:00-24:00
+        tuesday         00:00-24:00
+        wednesday       00:00-24:00
+        thursday        00:00-24:00
+        friday          00:00-24:00
+        saturday        00:00-24:00
+        }
+
+
+# 'workhours' timeperiod definition
+define timeperiod{
+	timeperiod_name	workhours
+	alias		Normal Work Hours
+	monday		09:00-17:00
+	tuesday		09:00-17:00
+	wednesday	09:00-17:00
+	thursday	09:00-17:00
+	friday		09:00-17:00
+	}
+
+
+# 'none' timeperiod definition
+define timeperiod{
+	timeperiod_name	none
+	alias		No Time Is A Good Time
+	}
+
+
+# Some U.S. holidays
+# Note: The timeranges for each holiday are meant to *exclude* the holidays from being
+# treated as a valid time for notifications, etc.  You probably don't want your pager 
+# going off on New Year's.  Although you're employer might... :-)
+define timeperiod{
+	name			us-holidays
+        timeperiod_name         us-holidays
+        alias                   U.S. Holidays
+
+        january 1               00:00-00:00     ; New Years
+        monday -1 may           00:00-00:00     ; Memorial Day (last Monday in May)
+        july 4                  00:00-00:00     ; Independence Day
+        monday 1 september      00:00-00:00     ; Labor Day (first Monday in September)
+        thursday -1 november    00:00-00:00     ; Thanksgiving (last Thursday in November)
+        december 25             00:00-00:00     ; Christmas
+        }
+
+
+# This defines a modified "24x7" timeperiod that covers every day of the
+# year, except for U.S. holidays (defined in the timeperiod above).
+define timeperiod{
+        timeperiod_name 24x7_sans_holidays
+        alias           24x7 Sans Holidays
+
+	use		us-holidays		; Get holiday exceptions from other timeperiod
+
+        sunday          00:00-24:00
+        monday          00:00-24:00
+        tuesday         00:00-24:00
+        wednesday       00:00-24:00
+        thursday        00:00-24:00
+        friday          00:00-24:00
+        saturday        00:00-24:00
+        }
+

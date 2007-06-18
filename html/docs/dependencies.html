@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,6 +17,7 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Host and Service Dependencies</h2>
 </div>
 </p>
@@ -24,11 +25,16 @@
 <hr>
 
 <p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="dependencychecks.html">Predictive Dependency Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="hostchecks.html">Host Checks</a>
+</p>
+
+<p>
 <strong><u>Introduction</u></strong>
 </p>
 
 <p>
-Service and host dependencies are an <i>advanced</i> feature that allow you to control the behavior of hosts and services based on the status of one or more other hosts or services.  I'll explain how dependencies work, along with the differences between host and service dependencies.
+Service and host dependencies are an advanced feature of Nagios that allow you to control the behavior of hosts and services based on the status of one or more other hosts or services.  I'll explain how dependencies work, along with the differences between host and service dependencies.
 </p>
 
 <p>
@@ -36,19 +42,16 @@ Service and host dependencies are an <i>advanced</i> feature that allow you to c
 </p>
 
 <p>
-The image below shows an example logical layout of service dependencies.  There are a few things you should notice:
+There are a few things you should know about service dependencies:
 </p>
 <p>
 <ol>
 <li>A service can be dependent on one or more other services
 <li>A service can be dependent on services which are not associated with the same host
 <li>Service dependencies are not inherited (unless specifically configured to)
-<li>Service dependencies can be used to cause service execution and service notifications to be suppressed under different circumstances (OK, WARNING, UNKNOWN, and/or CRITICAL states)
+<li>Service dependencies can be used to cause service check execution and service notifications to be suppressed under different circumstances (OK, WARNING, UNKNOWN, and/or CRITICAL states)
+<li>Service dependencies might only be valid during specific <a href="timeperiods.html">timeperiods</a></li>
 </ol>
-</p>
-
-<p>
-<a href="images/service-dependencies.png"><img src="images/service-dependencies.png" alt="Service Dependencies" width="150" height="160" border=1></a>
 </p>
 
 
@@ -57,20 +60,29 @@ The image below shows an example logical layout of service dependencies.  There 
 </p>
 
 <p>
-First, the basics.  You create service dependencies by adding service dependency definitions in your <a href="configobject.html">object config file(s)</a>.  In each definition you specify the <i>dependent</i> service, the service you are <i>depending on</i>, and the criteria (if any) that cause the execution and notification dependencies to fail (these are described later).
+First, the basics.  You create service dependencies by adding <a href="objectdefinitions.html#servicedependency">service dependency definitions</a> in your <a href="configobject.html">object config file(s)</a>.  In each definition you specify the <i>dependent</i> service, the service you are <i>depending on</i>, and the criteria (if any) that cause the execution and notification dependencies to fail (these are described later).
 </p>
 
 <p>
 You can create several dependencies for a given service, but you must add a separate service dependency definition for each dependency you create.
 </p>
 
+
 <p>
-In the image above, the dependency definitions for <i>Service F</i> on <i>Host C</i> would be defined as follows:
+<strong><u>Example Service Dependencies</u></strong>
 </p>
 
 <p>
-<strong>
-<font color='red'>
+The image below shows an example logical layout of service notification and execution dependencies.   Different services are dependent on other services for notifications and check execution.
+</p>
+
+<img src="images/service-dependencies.png" alt="Service Dependencies">
+
+<p>
+In this example, the dependency definitions for <i>Service F</i> on <i>Host C</i> would be defined as follows:
+</p>
+
+<p>
 <pre>
 define servicedependency{
 	host_name			Host B
@@ -99,8 +111,6 @@ define servicedependency{
 	notification_failure_criteria	c
 	}
 </pre>
-</font>
-</strong>
 </p>
 
 
@@ -109,8 +119,6 @@ The other dependency definitions shown in the image above would be defined as fo
 </p>
 
 <p>
-<strong>
-<font color='red'>
 <pre>
 define servicedependency{
 	host_name			Host A
@@ -139,8 +147,6 @@ define servicedependency{
 	notification_failure_criteria	w,u,c
 	}
 </pre>
-</font>
-</strong>
 </p>
 
 
@@ -166,7 +172,7 @@ This cycle continues until either all dependencies for the service have been che
 
 <p>
 <a name="hard_dependencies"></a>
-<sup>*</sup>One important thing to note is that by default, Nagios will use the most current <a href="statetypes.html">hard</a> state of the service(s) that is/are being depended upon when it does the dependeny checks.  If you want Nagios to use the most current state of the services (regardless of whether its a soft or hard state), enable the <a href="configmain.html#soft_service_dependencies">soft_service_dependencies</a> option.
+<img src="images/note.gif" border="0" align="bottom"> Note: <sup>*</sup>One important thing to note is that by default, Nagios will use the most current <a href="statetypes.html">hard state</a> of the service(s) that is/are being depended upon when it does the dependeny checks.  If you want Nagios to use the most current state of the services (regardless of whether its a soft or hard state), enable the <a href="configmain.html#soft_service_dependencies">soft_service_dependencies</a> option.
 </p>
 
 <p>
@@ -174,7 +180,7 @@ This cycle continues until either all dependencies for the service have been che
 </p>
 
 <p>
-Execution dependencies are used to restrict when <i>active</i> checks of a service can be performed.  Passive checks are not restricted by execution dependencies.
+Execution dependencies are used to restrict when <a href="activechecks.html">active checks</a> of a service can be performed.  <a href="passivechecks.html">Passive checks</a> are not restricted by execution dependencies.
 </p>
 
 <p>
@@ -214,8 +220,6 @@ In the example above, imagine that you want to add a new dependency for service 
 </p>
 
 <p>
-<strong>
-<font color='red'>
 <pre>
 define servicedependency{
 	host_name			Host B
@@ -228,8 +232,6 @@ define servicedependency{
 	}
 
 </pre>
-</font>
-</strong>
 </p>
 
 <p>
@@ -245,28 +247,40 @@ Dependencies can have multiple levels of inheritence.  If the dependency definit
 </p>
 
 <p>
-As you'd probably expect, host dependencies work in a similiar fashion to service dependencies.  The big difference is that they're for hosts, not services.  Another difference is that host dependencies only work for suppressing host notifications, not host checks.
+As you'd probably expect, host dependencies work in a similiar fashion to service dependencies.  The difference is that they're for hosts, not services.
 </p>
 
 <p>
-<strong>BEWARE!</strong>  Do not confuse host dependencies with parent/child host relationships.  You should be using parent/child host relationships (defined with the <i>parents</i> directive in <a href="objectdefinitions.html#host">host</a> definitions) for most cases, rather than host dependencies.
+<img src="images/tip.gif" border="0" align="bottom"> Tip:  Do not confuse host dependencies with parent/child host relationships.  You should be using parent/child host relationships (defined with the <i>parents</i> directive in <a href="objectdefinitions.html#host">host</a> definitions) for most cases, rather than host dependencies.  A description of how parent/child host relationships work can be found in the documentation on <a href="networkreachability.html">network reachability</a>.
 </p>
 
 <p>
-The image below shows an example of the logical layout of host dependencies.
+Here are the basics about host dependencies:
+</p>
+<p>
+<ol>
+<li>A host can be dependent on one or more other host
+<li>Host dependencies are not inherited (unless specifically configured to)
+<li>Host dependencies can be used to cause host check execution and host notifications to be suppressed under different circumstances (UP, DOWN, and/or UNREACHABLE states)
+<li>Host dependencies might only be valid during specific <a href="timeperiods.html">timeperiods</a></li>
+</ol>
 </p>
 
 <p>
-<a href="images/host-dependencies.png"><img src="images/host-dependencies.png" alt="Host Dependencies" width="125" height="160" border=1></a>
+<strong><u>Example Host Dependencies</u></strong>
 </p>
 
 <p>
-In the image above, the dependency definitions for <i>Host C</i> would be defined as follows:
+The image below shows an example of the logical layout of host notification dependencies.  Different hosts are dependent on other hosts for notifications.
+</p>
+
+<img src="images/host-dependencies.png" alt="Host Dependencies">
+
+<p>
+In the example above, the dependency definitions for <i>Host C</i> would be defined as follows:
 </p>
 
 <p>
-<strong>
-<font color='red'>
 <pre>
 define hostdependency{
 	host_name			Host A
@@ -280,8 +294,6 @@ define hostdependency{
 	notification_failure_criteria	d,u
 	}
 </pre>
-</font>
-</strong>
 </p>
 
 <p>
@@ -292,9 +304,6 @@ As with service dependencies, host dependencies are not inherited.  In the examp
 Host notification dependencies work in a similiar manner to service notification dependencies.  If <i>all</i> of the notification dependency tests for the host <i>pass</i>, Nagios will send notifications out for the host as it normally would.  If even just one of the notification dependencies for a host fails, Nagios will temporarily repress notifications for that (dependent) host.  At some point in the future the notification dependency tests for the host may all pass.  If this happens, Nagios will start sending out notifications again as it normally would for the host.  More information on the notification logic can be found <a href="notifications.html">here</a>.
 </p>
 
-<p>
-<strong>NOTE:</strong> Host execution dependencies work in a similiar manner to service execution dependencies.  However, they only have an affect on <i>regularly scheduled host checks</i>.  On-demand host checks are not affected by host execution dependencies.
-</p>
 
 
 <hr>

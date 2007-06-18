@@ -53,7 +53,7 @@ Objects are all the elements that are involved in the monitoring and notificatio
 </p>
 
 <p>
-More information on what objects are and how they relate to each other can be found <a href="#objectoverview">below</a>.
+More information on what objects are and how they relate to each other can be found below.
 </p>
 
 <p>
@@ -61,7 +61,11 @@ More information on what objects are and how they relate to each other can be fo
 </p>
 
 <p>
-Objects are defined in one or more configuration files that you specify using the <a href="configmain.html#cfg_file">cfg_file</a> and/or <a href="configmain.html#cfg_dir">cfg_dir</a> directives in the main configuration file.
+Objects can be defined in one or more configuration files and/or directories that you specify using the <a href="configmain.html#cfg_file">cfg_file</a> and/or <a href="configmain.html#cfg_dir">cfg_dir</a> directives in the main configuration file.
+</p>
+
+<p>
+<img src="images/tip.gif" border="0" align="bottom"> Tip: When you follow <a href="quickstart.html">quickstart installation guide</a>, several sample object configuration files are placed in <i>/usr/local/nagios/etc/objects/</i>.  You can use these sample files to see how object inheritance works and learn how to define your own object definitions.
 </p>
 
 <p>
@@ -89,7 +93,7 @@ Some of the main object types are explained in greater detail below...
 <tr>
 <td valign="top">
 <p>
-<b>Hosts</b> are one of the central objects in the monitoring logic.  Important attributes of hosts are as follows:
+<a href="objectdefinitions.html#host"><b>Hosts</b></a> are one of the central objects in the monitoring logic.  Important attributes of hosts are as follows:
 </p>
 <p>
 <ul>
@@ -98,6 +102,9 @@ Some of the main object types are explained in greater detail below...
 <li>Hosts have one or more more services associated with them.</li>
 <li>Hosts can have parent/child relationships with other hosts, often representing real-world network connections, which is used in the <a href="networkreachability.html">network reachability</a> logic.</li>
 </ul>
+</p>
+<p>
+<a href="objectdefinitions.html#hostgroup"><b>Host Groups</b></a> are groups of one or more hosts.  Host groups can make it easier to (1) view the status of related hosts in the Nagios web interface and (2) simplify your configuration through the use of <a href="objecttricks.html">object tricks</a>.
 </p>
 </td>
 <td valign="top">
@@ -112,7 +119,7 @@ Some of the main object types are explained in greater detail below...
 <tr>
 <td valign="top">
 <p>
-<b>Services</b> are one of the central objects in the monitoring logic.  Services are associated with hosts and can be:
+<a href="objectdefinitions.html#service"><b>Services</b></a> are one of the central objects in the monitoring logic.  Services are associated with hosts and can be:
 </p>
 <p>
 <ul>
@@ -120,6 +127,9 @@ Some of the main object types are explained in greater detail below...
 <li>Services provided by the host (HTTP, POP3, FTP, SSH, etc.)</li>
 <li>Other things associated with the host (DNS records, etc.)</li>
 </ul>
+</p>
+<p>
+<a href="objectdefinitions.html#servicegroup"><b>Service Groups</b></a> are groups of one or more services.  Service groups can make it easier to (1) view the status of related services in the Nagios web interface and (2) simplify your configuration through the use of <a href="objecttricks.html">object tricks</a>.
 </p>
 </td>
 <td valign="top">
@@ -134,13 +144,16 @@ Some of the main object types are explained in greater detail below...
 <tr>
 <td valign="top">
 <p>
-<b>Contacts</b> are people involved in the notification process:
+<a href="objectdefinitions.html#contact"><b>Contacts</b></a> are people involved in the notification process:
 </p>
 <p>
 <ul>
 <li>Contacts have one or more notification methods (cellphone, pager, email, instant messaging, etc.)</li>
 <li>Contacts receive notifications for hosts and service they are responsible for</li>
 </ul>
+</p>
+<p>
+<a href="objectdefinitions.html#contactgroup"><b>Contact Groups</b></a> are groups of one or more contacts.  Contact groups can make it easier to define all the people who get notified when certain host or service problems occur.
 </p>
 </td>
 <td valign="top">
@@ -155,13 +168,16 @@ Some of the main object types are explained in greater detail below...
 <tr>
 <td valign="top">
 <p>
-<b>Timeperiods</b> are are used to control:
+<a href="objectdefinitions.html#timeperiod"><b>Timeperiods</b></a> are are used to control:
 </p>
 <p>
 <ul>
 <li>When hosts and services can be monitored</li>
 <li>When contacts can receive notifications</li>
 </ul>
+</p>
+<p>
+Information on how timeperiods work can be found <a href="timeperiods.html">here</a>.
 </p>
 </td>
 <td valign="top">
@@ -176,7 +192,7 @@ Some of the main object types are explained in greater detail below...
 <tr>
 <td valign="top">
 <p>
-<b>Commands</b> are used to tell Nagios what programs, scripts, etc. it should execute to perform:
+<a href="objectdefinitions.html#command"><b>Commands</b></a> are used to tell Nagios what programs, scripts, etc. it should execute to perform:
 </p>
 <p>
 <ul>

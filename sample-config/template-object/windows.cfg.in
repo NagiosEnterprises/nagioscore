@@ -1,7 +1,7 @@
 ###############################################################################
 # WINDOWS.CFG - SAMPLE CONFIG FILE FOR MONITORING A WINDOWS MACHINE
 #
-# Last Modified: 05-31-2007
+# Last Modified: 06-13-2007
 #
 # NOTES: This config file assumes that you are using the sample configuration
 #	 files that get installed with the Nagios quickstart guide.
@@ -27,7 +27,6 @@ define host{
 	host_name	winserver	; The name we're giving to this host
 	alias		My Windows Server	; A longer name associated with the host
 	address		192.168.1.2	; IP address of the host
-	hostgroups	allhosts	; Host groups this server is associated with
 	}
 
 
@@ -42,13 +41,12 @@ define host{
 ###############################################################################
 
 
-# Define an optional hostgroup for Windows machines
-# Change the members directive to match the name of the host you define above
+# Define a hostgroup for Windows machines
+# All hosts that use the windows-server template will automatically be a member of this group
 
 define hostgroup{
 	hostgroup_name	windows-servers	; The name of the hostgroup
 	alias		Windows Servers	; Long name of the group
-	members		winserver	; Comma separated list of hosts that belong to this group
 	}
 
 

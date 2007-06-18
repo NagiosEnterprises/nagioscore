@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,11 +17,17 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Performance Data</h2>
 </div>
 </p>
 
 <hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="plugins.html">Plugins</a>, <a href="pluginapi.html">Plugin API</a>
+</p>
 
 <p>
 <strong><u>Introduction</u></strong>
@@ -41,17 +47,17 @@ There are two basic categories of performance data that can be obtained from Nag
 
 <p>
 <ol>
-<li><b>Check performance data</b>
-<li><b>Plugin performance data</b>
+<li>Check performance data
+<li>Plugin performance data
 </ol>
 </p>
 
 <p>
-<i>Check performance data</i> is internal data that relates to the actual execution of a host or service check.  This might include things like service check latency (i.e. how "late" was the service check from its scheduled execution time) and the number of seconds a host or service check took to execute.  This type of performance data is available for all checks that are performed.  The $HOSTEXECUTIONTIME$ and $SERVICEEXECUTIONTIME$ <a href="macros.html">macros</a> can be used to determine the number of seconds a host or service check was running and the $HOSTLATENCY$ and $SERVICELATENCY$ macros can be used to determine how "late" a regularly-scheduled host or service check was.
+<i>Check performance data</i> is internal data that relates to the actual execution of a host or service check.  This might include things like service check latency (i.e. how "late" was the service check from its scheduled execution time) and the number of seconds a host or service check took to execute.  This type of performance data is available for all checks that are performed.  The <a href="macrolist.html#hostexecutiontime">$HOSTEXECUTIONTIME$</a> and <a href="macrolist.html#serviceexecutiontime">$SERVICEEXECUTIONTIME$</a> <a href="macros.html">macros</a> can be used to determine the number of seconds a host or service check was running and the <a href="macrolist.html#hostlatency">$HOSTLATENCY$</a> and <a href="macrolist.html#servicelatency">$SERVICELATENCY$</a> macros can be used to determine how "late" a regularly-scheduled host or service check was.
 </p>
 
 <p>
-<i>Plugin performance data</i> is external data specific to the plugin used to perform the host or service check.  Plugin-specific data can include things like percent packet loss, free disk space, processor load, number of current users, etc. - basically any type of metric that the plugin is measuring when it executes.   Plugin-specific performance data is optional and may not be supported by all plugins.  As of this writing, no plugins return performance data, although they mostly likely will in the near future.  Plugin-specific performance data (if available) can be obtained by using the $HOSTPERFDATA$ and $SERVICEPERFDATA$ <a href="macros.html">macros</a>.  See below for more information on how plugins can return performance data to Nagios for inclusion in the $HOSTPERFDATA$ and $SERVICEPERFDATA$ macros.
+<i>Plugin performance data</i> is external data specific to the plugin used to perform the host or service check.  Plugin-specific data can include things like percent packet loss, free disk space, processor load, number of current users, etc. - basically any type of metric that the plugin is measuring when it executes.   Plugin-specific performance data is optional and may not be supported by all plugins.  As of this writing, no plugins return performance data, although they mostly likely will in the near future.  Plugin-specific performance data (if available) can be obtained by using the <a href="macrolist.html#hostperfdata">$HOSTPERFDATA$</a> and <a href="macrolist.html#serviceperfdata">$SERVICEPERFDATA$</a> <a href="macros.html">macros</a>.  See below for more information on how plugins can return performance data to Nagios for inclusion in the $HOSTPERFDATA$ and $SERVICEPERFDATA$ macros.
 </p>
 
 <p>
@@ -126,14 +132,12 @@ You can have Nagios process host and service performance data by executing comma
 </p>
 
 <p>
-<font color='red'>
 <pre>
 define command{
 	command_name	process-service-perfdata
 	command_line	/bin/echo -e "$LASTSERVICECHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$SERVICESTATETYPE$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$" &gt;&gt; /usr/local/nagios/var/service-perfdata.dat
 	}
 </pre>
-</font>
 </p>
 
 

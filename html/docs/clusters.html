@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,11 +17,18 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Monitoring Service and Host Clusters</h2>
 </div>
 </p>
 
 <hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="activechecks.html">Active Checks</a>, <a href="macros.html">Macros</a>
+</p>
+
 
 <p>
 <strong><u>Introduction</u></strong>
@@ -89,17 +96,12 @@ In order to monitor the services as a cluster, you'll need to create a new "clus
 </p>
 
 <p>
-<font color="red">
-<strong>
 <pre>
 define command{
 	command_name	check_service_cluster
 	command_line	/usr/local/nagios/libexec/check_cluster2 --service -l $ARG1$ -w $ARG2$ -c $ARG3$ -d $ARG4$ 
 	}
 </pre>
-
-</strong>
-</font>
 </p>
 
 <p>
@@ -107,15 +109,11 @@ Now you'll need to create the "cluster" service and use the <i>check_service_clu
 </p>
 
 <pre>
-<font color="red">
-<strong>
 define service{
 	...
 	check_command	check_service_cluster!"DNS Cluster"!1!2!$SERVICESTATEID:host1:DNS Service$,$SERVICESTATEID:host2:DNS Service$,$SERVICESTATEID:host3:DNS Service$
 	...
 	}
-</strong>
-</font>
 </pre>
 
 <p>
@@ -137,33 +135,27 @@ Anyway, let's assume that you have a <i>check_host_cluster</i> command defined a
 </p>
 
 <p>
-<font color="red">
-<strong>
 <pre>
 define command{
 	command_name	check_host_cluster
 	command_line	/usr/local/nagios/libexec/check_cluster2 --host -l $ARG1$ -w $ARG2$ -c $ARG3$ -d $ARG4$ 
 	}
 </pre>
-</strong>
-</font>
 </p>
 
 <p>
 Let's say you have three hosts (named "host1", "host2" and "host3") in the host cluster.  If you want Nagios to generate a warning alert if one host in the cluster is not UP or a critical alert if two or more hosts are not UP, the the service you define to monitor the host cluster might look something like this:
 </p>
 
+<p>
 <pre>
-<font color="red">
-<strong>
 define service{
 	...
 	check_command	check_host_cluster!"Super Host Cluster"!1!2!$HOSTSTATEID:host1$,$HOSTSTATEID:host2$,$HOSTSTATEID:host3$
 	...
 	}
-</strong>
-</font>
 </pre>
+</p>
 
 <p>
 It is important to notice that we are passing a comma-delimited list of <i>on-demand</i> host state <a href="macros.html">macros</a> to the $ARG4$ macro in the cluster check command.  That's important!  Nagios will fill those on-demand macros in with the current host state IDs (numerical values, rather than text strings) of the individual members of the cluster.

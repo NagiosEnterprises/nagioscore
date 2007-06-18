@@ -217,7 +217,17 @@ Don't start Nagios yet - there's still more that needs to be done...
 </p>
 
 <p>
-Edit the <i>localhost.cfg</i> config file with your favorite editor and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
+Sample <a href="config.html">configuration files</a> have now been installed in the <i>/usr/local/nagios/etc</i> directory.  These sample files should work fine for getting started with Nagios.  You'll need to make just one change before you proceed...
+</p>
+
+<p>
+Edit the <i>/usr/local/nagios/etc/objects/contacts.cfg</i> config file with your favorite editor and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
+</p>
+
+<p>
+<pre>
+vi /usr/local/nagios/etc/objects/contacts.cfg
+</pre>
 </p>
 
 <p>

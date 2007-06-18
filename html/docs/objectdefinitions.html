@@ -70,8 +70,9 @@ One way to get around this problem is to disable the retention of non-status inf
 <p>
 <strong><u>Sample Configuration Files</u></strong>
 </p>
+
 <p>
-A few sample object configuration files are created when you run the configure script - you can find them in the <i>sample-config/template-object/</i> subdirectory of the Nagios distribution.
+<img src="images/note.gif" border="0" align="bottom"> Note: Sample object configuration files are installed in the <i>/usr/local/nagios/etc/</i> directory when you follow the <a href="quickstart.html">quickstart installation guide</a>.
 </p>
 
 <p>
@@ -121,6 +122,7 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Optional">parents</td><td class="Optional"><i>host_names</i></td></tr>
 <tr><td></td><td class="Optional">hostgroups</td><td class="Optional"><i>hostgroup_names</i></td></tr>
 <tr><td></td><td class="Optional">check_command</td><td class="Optional"><i>command_name</i></td></tr>
+<tr><td></td><td class="Optional">initial_state</td><td class="Optional">[o,d,u]</td></tr>
 <tr><td></td><td class="Required">max_check_attempts</td><td class="Required">#</td></tr>
 <tr><td></td><td class="Optional">check_interval</td><td class="Optional">#</td></tr>
 <tr><td></td><td class="Optional">retry_interval</td><td class="Optional">#</td></tr>
@@ -228,6 +230,12 @@ This directive is used to identify the <i>short name(s)</i> of the <a href="#hos
 <td valign="top"><strong>check_command</strong>:</td>
 <td>
 This directive is used to specify the <i>short name</i> of the <a href="#command">command</a> that should be used to check if the host is up or down.  Typically, this command would try and ping the host to see if it is "alive".  The command must return a status of OK (0) or Nagios will assume the host is down.  If you leave this argument blank, the host will <i>not</i> be checked - Nagios will always assume the host is up.  This is useful if you are monitoring printers or other devices that are frequently turned off.  The maximum amount of time that the notification command can run is controlled by the <a href="configmain.html#host_check_timeout">host_check_timeout</a> option.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>initial_state</strong>:</td>
+<td>
+By default Nagios will assume that all hosts are in UP states when in starts.  You can override the initial state for a host by using this directive.  Valid options are: <b>o</b> = UP, <b>d</b> = DOWN, and <b>u</b> = UNREACHABLE.
 </td>
 </tr>
 <tr>
@@ -477,7 +485,7 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td></td><td class="Required">hostgroup_name</td><td class="Required"><i>hostgroup_name</i></td></tr>
 <tr><td></td><td class="Required">alias</td><td class="Required"><i>alias</i></td></tr>
-<tr><td></td><td class="Required">members</td><td class="Required"><i>hosts</i></td></tr>
+<tr><td></td><td class="Optional">members</td><td class="Optional"><i>hosts</i></td></tr>
 <tr><td></td><td class="Optional">hostgroup_members</td><td class="Optional"><i>hostgroups</i></td></tr>
 <tr><td></td><td class="Optional">notes</td><td class="Optional"><i>note_string</i></td></tr>
 <tr><td></td><td class="Optional">notes_url</td><td class="Optional"><i>url</i></td></tr>
@@ -576,6 +584,7 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Optional">servicegroups</td><td class="Optional">servicegroup_names</td></tr>
 <tr><td></td><td class="Optional">is_volatile</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Required">check_command</td><td class="Required"><i>command_name</i></td></tr>
+<tr><td></td><td class="Optional">initial_state</td><td class="Optional">[o,w,u,c]</td></tr>
 <tr><td></td><td class="Required">max_check_attempts</td><td class="Required">#</td></tr>
 <tr><td></td><td class="Required">check_interval</td><td class="Required">#</td></tr>
 <tr><td></td><td class="Required">retry_interval</td><td class="Required">#</td></tr>
@@ -676,6 +685,12 @@ This directive is used to denote whether the service is "volatile".  Services ar
 <td>
 <p>
 This directive is used to specify the <i>short name</i> of the <a href="#command">command</a> that Nagios will run in order to check the status of the service.  The maximum amount of time that the service check command can run is controlled by the <a href="configmain.html#service_check_timeout">service_check_timeout</a> option.</p>
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>initial_state</strong>:</td>
+<td>
+By default Nagios will assume that all services are in OK states when in starts.  You can override the initial state for a service by using this directive.  Valid options are: <b>o</b> = OK, <b>w</b> = WARNING, <b>u</b> = UNKNOWN, and <b>c</b> = CRITICAL.
 </td>
 </tr>
 <tr>
@@ -896,7 +911,7 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td></td><td class="Required">servicegroup_name</td><td class="Required"><i>servicegroup_name</i></td></tr>
 <tr><td></td><td class="Required">alias</td><td class="Required"><i>alias</i></td></tr>
-<tr><td></td><td class="Required">members</td><td class="Required"><i>services</i></td></tr>
+<tr><td></td><td class="Optional">members</td><td class="Optional"><i>services</i></td></tr>
 <tr><td></td><td class="Optional">servicegroup_members</td><td class="Optional"><i>servicegroups</i></td></tr>
 <tr><td></td><td class="Optional">notes</td><td class="Optional"><i>note_string</i></td></tr>
 <tr><td></td><td class="Optional">notes_url</td><td class="Optional"><i>url</i></td></tr>

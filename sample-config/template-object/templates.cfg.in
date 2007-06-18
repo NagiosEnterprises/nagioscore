@@ -1,7 +1,7 @@
 ###############################################################################
 # TEMPLATES.CFG - SAMPLE OBJECT TEMPLATES
 #
-# Last Modified: 05-31-2007
+# Last Modified: 06-13-2007
 #
 # NOTES: This config file provides you with some example object definition
 #        templates that are refered by other host, service, contact, etc.
@@ -98,6 +98,7 @@ define host{
 	notification_interval	30		; Resend notifications every 30 minutes
 	notification_options	d,r		; Only send notifications for specific host states
 	contact_groups		admins		; Notifications get sent to the admins by default
+	hostgroups		allhosts,windows-servers ; Host groups that Windows servers should be a member of
 	register		0		; DONT REGISTER THIS - ITS JUST A TEMPLATE
 	}
 

@@ -14,6 +14,7 @@ Nagios 3.x Change Log
 * Expanded timeperiod definitions to allow for day/date exceptions
 * Changes to sample config files and installation location
 * Changed debug file format to include current pid
+* Added 'initial_state' option to host and service definitions to allow for non-UP/OK initial states
 
 
 

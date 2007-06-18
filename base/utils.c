@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-09-2007
+ * Last Modified:   06-12-2007
  *
  * License:
  *
@@ -2789,6 +2789,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 	int test_time_mon=0;
 	int test_time_mday=0;
 	int test_time_wday=0;
+	int year=0;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_time_against_period()\n");
 	
@@ -2862,13 +2863,25 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 				end_time=mktime(t);
 				break;
 			case DATERANGE_MONTH_DATE:
-				end_time=calculate_time_from_day_of_month(test_time_year,temp_daterange->emon,temp_daterange->emday);
+				year=test_time_year;
+				end_time=calculate_time_from_day_of_month(year,temp_daterange->emon,temp_daterange->emday);
+				/* advance a year if necessary: august 2 - february 5 */
+				if(end_time<start_time){
+					year++;
+					end_time=calculate_time_from_day_of_month(year,temp_daterange->emon,temp_daterange->emday);
+					}
 				break;
 			case DATERANGE_MONTH_DAY:
 				end_time=calculate_time_from_day_of_month(test_time_year,test_time_mon,temp_daterange->emday);
 				break;
 			case DATERANGE_MONTH_WEEK_DAY:
-				end_time=calculate_time_from_weekday_of_month(test_time_year,temp_daterange->emon,temp_daterange->ewday,temp_daterange->ewday_offset);
+				year=test_time_year;
+				end_time=calculate_time_from_weekday_of_month(year,temp_daterange->emon,temp_daterange->ewday,temp_daterange->ewday_offset);
+				/* advance a year if necessary: thursday 2 august - monday 3 february */
+				if(end_time<start_time){
+					year++;
+					end_time=calculate_time_from_weekday_of_month(year,temp_daterange->emon,temp_daterange->ewday,temp_daterange->ewday_offset);
+					}
 				break;
 			case DATERANGE_WEEK_DAY:
 				end_time=calculate_time_from_weekday_of_month(test_time_year,test_time_mon,temp_daterange->ewday,temp_daterange->ewday_offset);
@@ -2899,7 +2912,8 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 						continue;
 
 					/* else end date slipped past end of month, so use last day of month as end date */
-					end_time=calculate_time_from_day_of_month(test_time_year,temp_daterange->emon,-1);
+					/* use same year calculated above */
+					end_time=calculate_time_from_day_of_month(year,temp_daterange->emon,-1);
 					break;
 				case DATERANGE_MONTH_DAY:
 					/* end date can't be helped, so skip it */
@@ -2915,7 +2929,8 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 						continue;
 
 					/* else end date slipped past end of month, so use last day of month as end date */
-					end_time=calculate_time_from_day_of_month(test_time_year,test_time_mon,-1);
+					/* use same year calculated above */
+					end_time=calculate_time_from_day_of_month(year,test_time_mon,-1);
 					break;
 				case DATERANGE_WEEK_DAY:
 					/* end date can't be helped, so skip it */
@@ -3196,6 +3211,11 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 			case DATERANGE_MONTH_DATE:
 				/* use same year as was calculated for start time above */
 				end_time=calculate_time_from_day_of_month(year,temp_daterange->emon,temp_daterange->emday);
+				/* advance a year if necessary: august 5 - feburary 2 */
+				if(end_time<start_time){
+					year++;
+					end_time=calculate_time_from_day_of_month(year,temp_daterange->emon,temp_daterange->emday);
+					}
 				break;
 			case DATERANGE_MONTH_DAY:
 				/* use same year and month as was calculated for start time above */
@@ -3204,6 +3224,11 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 			case DATERANGE_MONTH_WEEK_DAY:
 				/* use same year as was calculated for start time above */
 				end_time=calculate_time_from_weekday_of_month(year,temp_daterange->emon,temp_daterange->ewday,temp_daterange->ewday_offset);
+				/* advance a year if necessary: thursday 2 august - monday 3 february */
+				if(end_time<start_time){
+					year++;
+					end_time=calculate_time_from_weekday_of_month(year,temp_daterange->emon,temp_daterange->ewday,temp_daterange->ewday_offset);
+					}
 				break;
 			case DATERANGE_WEEK_DAY:
 				/* use same year and month as was calculated for start time above */
@@ -3994,7 +4019,7 @@ int daemon_init(void){
 	if(fcntl(lockfile,F_SETLK,&lock)<0){
 		if(errno==EACCES || errno==EAGAIN){
 			fcntl(lockfile,F_GETLK,&lock);
-			asprintf(&temp_buffer,"Lockfile '%s' is held by PID %d.  Bailing out...",lock_file,(int)lock.l_pid);
+			asprintf(&temp_buffer,"Lockfile '%s' looks like its already held by another instance of Nagios (PID %d).  Bailing out...",lock_file,(int)lock.l_pid);
 		        }
 		else
 			asprintf(&temp_buffer,"Cannot lock lockfile '%s': %s. Bailing out...",lock_file,strerror(errno));

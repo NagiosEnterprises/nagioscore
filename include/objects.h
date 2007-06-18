@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-25-2007
+ * Last Modified: 06-10-2007
  *
  * License:
  *
@@ -37,7 +37,7 @@
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        302     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        303     /* increment when changes are made to data structures... */
 	                                                /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -269,6 +269,7 @@ struct host_struct{
 	char    *address;
         hostsmember *parent_hosts;
 	char    *host_check_command;
+	int     initial_state;
 	double  check_interval;
 	double  retry_interval;
 	int     max_attempts;
@@ -413,6 +414,7 @@ struct service_struct{
 	char    *display_name;
         char    *service_check_command;
 	char    *event_handler;
+	int     initial_state;
 	double	check_interval;
 	double  retry_interval;
 	int	max_attempts;
@@ -660,7 +662,7 @@ contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,i
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
 customvariablesmember *add_custom_variable_to_contact(contact *,char *,char *);                         /* adds a custom variable to a service definition */
- host *add_host(char *,char *,char *,char *,char *,double,double,int,int,int,int,int,int,double,double,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,char *,char *,int,double,double,int,int,int,int,int,int,double,double,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 contactsmember *add_contact_to_host(host *,char *);                                                     /* adds a contact to a host definition */
@@ -676,7 +678,7 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *,char *,char *);  
 contactgroup *add_contactgroup(char *,char *);								/* adds a contactgroup definition */
 contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group definition */
 command *add_command(char *,char *);									/* adds a command definition */
-service *add_service(char *,char *,char *,char *,int,int,int,double,double,double,double,char *,int,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,int,int,int);	/* adds a service definition */
+service *add_service(char *,char *,char *,char *,int,int,int,int,double,double,double,double,char *,int,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,int,int,int);	/* adds a service definition */
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
 contactsmember *add_contact_to_service(service *,char *);                                               /* adds a contact to a host definition */
 serviceescalation *add_serviceescalation(char *,char *,int,int,double,char *,int,int,int,int);          /* adds a service escalation definition */

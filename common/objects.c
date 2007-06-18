@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-25-2007
+ * Last Modified: 06-12-2007
  *
  * License:
  *
@@ -856,7 +856,7 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *temp_host=NULL;
 	host *new_host=NULL;
 	int result=OK;
@@ -1064,18 +1064,18 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->retain_status_information=(retain_status_information>0)?TRUE:FALSE;
 	new_host->retain_nonstatus_information=(retain_nonstatus_information>0)?TRUE:FALSE;
 #ifdef NSCORE
-	new_host->current_state=HOST_UP;
+	new_host->current_state=initial_state;
 	new_host->current_event_id=0L;
 	new_host->last_event_id=0L;
-	new_host->last_state=HOST_UP;
-	new_host->last_hard_state=HOST_UP;
+	new_host->last_state=initial_state;
+	new_host->last_hard_state=initial_state;
 	new_host->check_type=HOST_CHECK_ACTIVE;
 	new_host->last_host_notification=(time_t)0;
 	new_host->next_host_notification=(time_t)0;
 	new_host->next_check=(time_t)0;
 	new_host->should_be_scheduled=TRUE;
 	new_host->last_check=(time_t)0;
-	new_host->current_attempt=1;
+	new_host->current_attempt=(initial_state==HOST_UP)?1:max_attempts;
 	new_host->state_type=HARD_STATE;
 	new_host->execution_time=0.0;
 	new_host->is_executing=FALSE;
@@ -2005,7 +2005,7 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notify_downtime, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notify_downtime, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
 	service *new_service=NULL;
 	int result=OK;
 #ifdef NSCORE
@@ -2174,12 +2174,12 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->problem_has_been_acknowledged=FALSE;
 	new_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 	new_service->check_type=SERVICE_CHECK_ACTIVE;
-	new_service->current_attempt=1;
-	new_service->current_state=STATE_OK;
+	new_service->current_attempt=(initial_state==STATE_OK)?1:max_attempts;
+	new_service->current_state=initial_state;
 	new_service->current_event_id=0L;
 	new_service->last_event_id=0L;
-	new_service->last_state=STATE_OK;
-	new_service->last_hard_state=STATE_OK;
+	new_service->last_state=initial_state;
+	new_service->last_hard_state=initial_state;
 	new_service->state_type=HARD_STATE;
 	new_service->host_problem_at_last_check=FALSE;
 	new_service->check_flapping_recovery_notification=FALSE;

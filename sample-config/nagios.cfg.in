@@ -27,8 +27,22 @@ log_file=@localstatedir@/nagios.log
 # if you wish (as shown below), or keep them all in a single config file.
 
 # You can specify individual object config files as shown below:
-#cfg_file=@sysconfdir@/objects/file1.cfg
-#cfg_file=@sysconfdir@/objects/file2.cfg
+cfg_file=@sysconfdir@/objects/commands.cfg
+cfg_file=@sysconfdir@/objects/contacts.cfg
+cfg_file=@sysconfdir@/objects/timeperiods.cfg
+cfg_file=@sysconfdir@/objects/templates.cfg
+
+# Definitions for monitoring the local (Linux) host
+cfg_file=@sysconfdir@/objects/localhost.cfg
+
+# Definitions for monitoring a Windows machine
+#cfg_file=@sysconfdir@/objects/windows.cfg
+
+# Definitions for monitoring a router/switch
+#cfg_file=@sysconfdir@/objects/switch.cfg
+
+# Definitions for monitoring a network printer
+#cfg_file=@sysconfdir@/objects/printer.cfg
 
 
 # You can also tell Nagios to process all config files (with a .cfg
@@ -40,11 +54,6 @@ log_file=@localstatedir@/nagios.log
 #cfg_dir=@sysconfdir@/switches
 #cfg_dir=@sysconfdir@/routers
 
-
-# Sample config files get installed in the objects/ subdirectory.
-# Nagios will process any file with a .cfg extension in that directory.
-
-cfg_dir=@sysconfdir@/objects
 
 
 

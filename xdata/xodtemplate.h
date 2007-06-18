@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-25-2007
+ * Last Modified:   06-10-2007
  *
  * License:
  *
@@ -212,6 +212,7 @@ typedef struct xodtemplate_host_struct{
 	char      *host_groups;
 	char      *check_command;
 	char      *check_period;
+	int       initial_state;
 	double    check_interval;
 	double    retry_interval;
 	int       max_check_attempts;
@@ -279,6 +280,7 @@ typedef struct xodtemplate_host_struct{
 	int       have_vrml_image;
 	int       have_statusmap_image;
 
+	int       have_initial_state;
 	int       have_check_interval;
 	int       have_retry_interval;
 	int       have_max_check_attempts;
@@ -350,6 +352,7 @@ typedef struct xodtemplate_service_struct{
 	char       *hostgroup_name;
 	char       *service_groups;
 	char       *check_command;
+	int        initial_state;
 	int        max_check_attempts;
         double     check_interval;
         double     retry_interval;
@@ -416,6 +419,7 @@ typedef struct xodtemplate_service_struct{
 	int        have_icon_image;
 	int        have_icon_image_alt;
 
+	int        have_initial_state;
 	int        have_max_check_attempts;
 	int        have_check_interval;
 	int        have_retry_interval;

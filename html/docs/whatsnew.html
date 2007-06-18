@@ -157,6 +157,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 	<li>The <i>parallelize</i> directive in service definitions is now deprecated and no longer used. All service checks are run in parallel in Nagios 3.</li>
 	<li>There are no longer any inherent limitations on the length of host names or service descriptions.</li>
 	<li>Extended regular expressions are now used if you enable the <a href="configmain.html#use_regexp_matching">use_regexp_matching</a> config option.  Regular expression matching is only used in certain object definition directives that contain <b>*</b>, <b>?</b>, <b>+</b>, or <b>\.</b>.</li>
+	<li>A new <i>initial_state</i> directive has been added to host and service definitions, so you can tell Nagios that a host/service should default to a specific state when Nagios starts, rather than UP or OK (which is still the default).</li>
 	</ul>
 </li>
 <br>

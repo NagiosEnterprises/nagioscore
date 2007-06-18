@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-29-2007
+ * Last Modified: 06-10-2007
  *
  * Description:
  *
@@ -1387,6 +1387,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_vrml_image=FALSE;
 		new_host->statusmap_image=NULL;
 		new_host->have_statusmap_image=FALSE;
+		new_host->initial_state=0; /* HOST_UP */
+		new_host->have_initial_state=FALSE;
 		new_host->check_interval=5.0;
 		new_host->have_check_interval=FALSE;
 		new_host->retry_interval=1.0;
@@ -1495,6 +1497,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_contacts=FALSE;
 		new_service->failure_prediction_options=NULL;
 		new_service->have_failure_prediction_options=FALSE;
+		new_service->initial_state=STATE_OK;
+		new_service->have_initial_state=FALSE;
 		new_service->max_check_attempts=-2;
 		new_service->have_max_check_attempts=FALSE;
 		new_service->check_interval=5.0;
@@ -2957,6 +2961,23 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			temp_host->have_statusmap_image=TRUE;
 		        }
+		else if(!strcmp(variable,"initial_state")){
+			if(!strcmp(value,"o") || !strcmp(value,"up"))
+				temp_host->initial_state=0; /* HOST_UP */
+			else if(!strcmp(value,"d") || !strcmp(value,"down"))
+				temp_host->initial_state=1; /* HOST_DOWN */
+			else if(!strcmp(value,"u") || !strcmp(value,"unreachable"))
+				temp_host->initial_state=2; /* HOST_UNREACHABLE */
+			else{
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Invalid initial state '%s' in host definition.\n",value);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				result=ERROR;
+				}
+			temp_host->have_initial_state=TRUE;
+			}
 		else if(!strcmp(variable,"check_interval") || !strcmp(variable,"normal_check_interval")){
 			temp_host->check_interval=strtod(value,NULL);
 			temp_host->have_check_interval=TRUE;
@@ -3378,6 +3399,25 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			temp_service->have_icon_image_alt=TRUE;
 		        }
+		else if(!strcmp(variable,"initial_state")){
+			if(!strcmp(value,"o") || !strcmp(value,"ok"))
+				temp_service->initial_state=STATE_OK;
+			else if(!strcmp(value,"w") || !strcmp(value,"warning"))
+				temp_service->initial_state=STATE_WARNING;
+			else if(!strcmp(value,"u") || !strcmp(value,"unknown"))
+				temp_service->initial_state=STATE_UNKNOWN;
+			else if(!strcmp(value,"c") || !strcmp(value,"critical"))
+				temp_service->initial_state=STATE_CRITICAL;
+			else{
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Invalid initial state '%s' in service definition.\n",value);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				result=ERROR;
+				}
+			temp_service->have_initial_state=TRUE;
+			}
 		else if(!strcmp(variable,"max_check_attempts")){
 			temp_service->max_check_attempts=atoi(value);
 			temp_service->have_max_check_attempts=TRUE;
@@ -5537,6 +5577,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		xodtemplate_add_custom_variable_to_service(new_service,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value);
 
 	/* duplicate non-string members */
+	new_service->initial_state=temp_service->initial_state;
 	new_service->max_check_attempts=temp_service->max_check_attempts;
 	new_service->have_max_check_attempts=temp_service->have_max_check_attempts;
 	new_service->check_interval=temp_service->check_interval;
@@ -7157,6 +7198,10 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 				this_host->statusmap_image=(char *)strdup(template_host->statusmap_image);
 			this_host->have_statusmap_image=TRUE;
 		        }
+		if(this_host->have_initial_state==FALSE && template_host->have_initial_state==TRUE){
+			this_host->initial_state=template_host->initial_state;
+			this_host->have_initial_state=TRUE;
+	                }
 		if(this_host->have_check_interval==FALSE && template_host->have_check_interval==TRUE){
 			this_host->check_interval=template_host->check_interval;
 			this_host->have_check_interval=TRUE;
@@ -7399,6 +7444,10 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 				this_service->icon_image_alt=(char *)strdup(template_service->icon_image_alt);
 			this_service->have_icon_image_alt=TRUE;
 		        }
+		if(this_service->have_initial_state==FALSE && template_service->have_initial_state==TRUE){
+			this_service->initial_state=template_service->initial_state;
+			this_service->have_initial_state=TRUE;
+	                }
 		if(this_service->have_max_check_attempts==FALSE && template_service->have_max_check_attempts==TRUE){
 			this_service->max_check_attempts=template_service->max_check_attempts;
 			this_service->have_max_check_attempts=TRUE;
@@ -9630,7 +9679,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		this_host->address=(char *)strdup(this_host->host_name);
 
 	/* add the host definition */
-	new_host=add_host(this_host->host_name,this_host->display_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->retry_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notify_on_downtime,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->notes,this_host->notes_url,this_host->action_url,this_host->icon_image,this_host->icon_image_alt,this_host->vrml_image,this_host->statusmap_image,this_host->x_2d,this_host->y_2d,this_host->have_2d_coords,this_host->x_3d,this_host->y_3d,this_host->z_3d,this_host->have_3d_coords,TRUE,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
+	new_host=add_host(this_host->host_name,this_host->display_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->initial_state,this_host->check_interval,this_host->retry_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notify_on_downtime,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->notes,this_host->notes_url,this_host->action_url,this_host->icon_image,this_host->icon_image_alt,this_host->vrml_image,this_host->statusmap_image,this_host->x_2d,this_host->y_2d,this_host->have_2d_coords,this_host->x_3d,this_host->y_3d,this_host->z_3d,this_host->have_3d_coords,TRUE,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
 
 
 	/* return with an error if we couldn't add the host */
@@ -9730,7 +9779,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 		return OK;
 
 	/* add the service */
-	new_service=add_service(this_service->host_name,this_service->service_description,this_service->display_name,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->check_interval,this_service->retry_interval,this_service->notification_interval,this_service->first_notification_delay,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notify_on_downtime,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->flap_detection_on_ok,this_service->flap_detection_on_warning,this_service->flap_detection_on_unknown,this_service->flap_detection_on_critical,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->notes,this_service->notes_url,this_service->action_url,this_service->icon_image,this_service->icon_image_alt,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
+	new_service=add_service(this_service->host_name,this_service->service_description,this_service->display_name,this_service->check_period,this_service->initial_state,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->check_interval,this_service->retry_interval,this_service->notification_interval,this_service->first_notification_delay,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notify_on_downtime,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->flap_detection_on_ok,this_service->flap_detection_on_warning,this_service->flap_detection_on_unknown,this_service->flap_detection_on_critical,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->notes,this_service->notes_url,this_service->action_url,this_service->icon_image,this_service->icon_image_alt,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service==NULL){
@@ -11090,6 +11139,13 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tnotification_period\t%s\n",temp_host->notification_period);
 		if(temp_host->failure_prediction_options)
 			fprintf(fp,"\tfailure_prediction_options\t%s\n",temp_host->failure_prediction_options);
+		fprintf(fp,"\tinitial_state\t");
+		if(temp_host->initial_state==HOST_DOWN)
+			fprintf(fp,"d\n");
+		else if(temp_host->initial_state==HOST_UNREACHABLE)
+			fprintf(fp,"u\n");
+		else 
+			fprintf(fp,"o\n");
 		fprintf(fp,"\tcheck_interval\t%f\n",temp_host->check_interval);
 		fprintf(fp,"\tretry_interval\t%f\n",temp_host->retry_interval);
 		fprintf(fp,"\tmax_check_attempts\t%d\n",temp_host->max_check_attempts);
@@ -11198,6 +11254,15 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tnotification_period\t%s\n",temp_service->notification_period);
 		if(temp_service->failure_prediction_options)
 			fprintf(fp,"\tfailure_prediction_options\t%s\n",temp_service->failure_prediction_options);
+		fprintf(fp,"\tinitial_state\t");
+		if(temp_service->initial_state==STATE_WARNING)
+			fprintf(fp,"w\n");
+		else if(temp_service->initial_state==STATE_UNKNOWN)
+			fprintf(fp,"u\n");
+		else if(temp_service->initial_state==STATE_CRITICAL)
+			fprintf(fp,"c\n");
+		else 
+			fprintf(fp,"o\n");
 		fprintf(fp,"\tcheck_interval\t%f\n",temp_service->check_interval);
 		fprintf(fp,"\tretry_interval\t%f\n",temp_service->retry_interval);
 		fprintf(fp,"\tmax_check_attempts\t%d\n",temp_service->max_check_attempts);

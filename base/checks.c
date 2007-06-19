@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-25-2007
+ * Last Modified:   06-19-2007
  *
  * License:
  *
@@ -1828,7 +1828,10 @@ void check_service_result_freshness(void){
 		/* calculate expiration time */
 		/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
 		/* CHANGED 02/25/06 SG - passive checks also become stale, so remove dependence on active check logic */
-		if(temp_service->has_been_checked==FALSE || program_start>temp_service->last_check)
+		if(temp_service->has_been_checked==FALSE)
+			expiration_time=(time_t)(program_start+freshness_threshold);
+		/* CHANGED 06/19/07 EG - Per Ton's suggestion (and user requests), only use program start time over last check if no specific threshold has been set by user.  Otheriwse use it.  Problems can occur if Nagios is restarted more frequently that freshness threshold intervals (services never go stale). */
+		else if(program_start>temp_service->last_check && temp_service->freshness_threshold==0)
 			expiration_time=(time_t)(program_start+freshness_threshold);
 		else
 			expiration_time=(time_t)(temp_service->last_check+freshness_threshold);
@@ -2178,7 +2181,10 @@ void check_host_result_freshness(void){
 
 		/* calculate expiration time */
 		/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
-		if(temp_host->has_been_checked==FALSE || (temp_host->checks_enabled==TRUE && (program_start>temp_host->last_check)))
+		if(temp_host->has_been_checked==FALSE)
+			expiration_time=(time_t)(program_start+freshness_threshold);
+		/* CHANGED 06/19/07 EG - Per Ton's suggestion (and user requests), only use program start time over last check if no specific threshold has been set by user.  Otheriwse use it.  Problems can occur if Nagios is restarted more frequently that freshness threshold intervals (hosts never go stale). */
+		else if(temp_host->checks_enabled==TRUE && program_start>temp_host->last_check && temp_host->freshness_threshold==0)
 			expiration_time=(time_t)(program_start+freshness_threshold);
 		else
 			expiration_time=(time_t)(temp_host->last_check+freshness_threshold);

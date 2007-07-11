@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-22-2007
+ * Last Modified: 07-11-2007
  *
  * License:
  *
@@ -441,6 +441,9 @@ int read_main_config_file(char *main_config_file){
 				if(temp_path[strlen(temp_path)-1]=='/')
 					temp_path[strlen(temp_path)-1]='\x0';
 			        }
+
+			my_free((void **)&check_result_path);
+			check_result_path=(char *)strdup(temp_path);
 			}
 
 		else if(!strcmp(variable,"max_check_result_file_age"))

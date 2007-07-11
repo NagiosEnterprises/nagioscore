@@ -6,6 +6,7 @@ Nagios 3.x Change Log
 3.0b1 - ??/??/2007
 ------------------
 * Fixed bug with processing epn directives in Perl plugins
+* Fixed bug with check_result_path config option being ignored
 
 
 

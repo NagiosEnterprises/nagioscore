@@ -3,6 +3,12 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0b1 - ??/??/2007
+------------------
+* Fixed bug with processing epn directives in Perl plugins
+
+
+
 3.0a5 - 06/19/2007
 ------------------
 * Fixed problem with multiline long plugin output and Perl plugin output

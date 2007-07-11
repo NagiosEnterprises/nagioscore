@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-12-2007
+ * Last Modified:   07-11-2007
  *
  * License:
  *
@@ -5696,6 +5696,8 @@ int file_uses_embedded_perl(char *fname){
 
 							/* process each directive */
 							for(ptr=strtok(NULL,",");ptr!=NULL;ptr=strtok(NULL,",")){
+
+								strip(ptr);
 
 								if(!strcmp(ptr,"+epn")){
 									use_epn=TRUE;

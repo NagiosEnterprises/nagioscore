@@ -129,6 +129,10 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
+<td class='MacroName'><a href="#maxhostattempts">$MAXHOSTATTEMPTS$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
 <td class='MacroName'><a href="#hosteventid">$HOSTEVENTID$</a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
@@ -261,6 +265,10 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 <tr>
 <td class='MacroName'><a href="#serviceattempt">$SERVICEATTEMPT$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#maxserviceattempts">$MAXSERVICEATTEMPTS$</a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
@@ -655,6 +663,12 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 
 <tr>
+<a name="maxhostattempts"></a>
+<td class="MacroName">$MAXHOSTATTEMPTS$</td>
+<td class="MacroDescription">The max check attempts as defined for the current host. Useful when writing host event handlers for "soft" states that take a specific action based on the host retry number.</td>
+</tr>
+
+<tr>
 <a name="hosteventid"></a>
 <td class="MacroName">$HOSTEVENTID$</td>
 <td class="MacroDescription">A globally unique number associated with the host's current state.  Every time a host (or service) experiences a state change, a global event ID number is incremented by one (1).  If a host has experienced no state changes, this macro will be set to zero (0).</td>
@@ -854,6 +868,12 @@ The tables below list all macros currently available in Nagios, along with a bri
 <a name="serviceattempt"></a>
 <td class="MacroName">$SERVICEATTEMPT$</td>
 <td class="MacroDescription">The number of the current service check retry. For instance, if this is the second time that the service is being rechecked, this will be the number two. Current attempt number is really only useful when writing service event handlers for "soft" states that take a specific action based on the service retry number.</td>
+</tr>
+
+<tr>
+<a name="maxserviceattempts"></a>
+<td class="MacroName">$MAXSERVICEATTEMPTS$</td>
+<td class="MacroDescription">The max check attempts as defined for the current service. Useful when writing host event handlers for "soft" states that take a specific action based on the service retry number.</td>
 </tr>
 
 <tr>

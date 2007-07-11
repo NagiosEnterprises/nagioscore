@@ -562,6 +562,10 @@ int grab_service_macros(service *svc){
 	my_free((void **)&macro_x[MACRO_SERVICEATTEMPT]);
 	asprintf(&macro_x[MACRO_SERVICEATTEMPT],"%d",svc->current_attempt);
 
+	/* get the max service check attempts macro */
+	my_free((void **)&macro_x[MACRO_MAXSERVICEATTEMPTS]);
+	asprintf(&macro_x[MACRO_MAXSERVICEATTEMPTS],"%d",svc->max_attempts);
+
 	/* get the execution time macro */
 	my_free((void **)&macro_x[MACRO_SERVICEEXECUTIONTIME]);
 	asprintf(&macro_x[MACRO_SERVICEEXECUTIONTIME],"%.3f",svc->execution_time);
@@ -789,6 +793,10 @@ int grab_host_macros(host *hst){
 	/* get the host current attempt */
 	my_free((void **)&macro_x[MACRO_HOSTATTEMPT]);
 	asprintf(&macro_x[MACRO_HOSTATTEMPT],"%d",hst->current_attempt);
+
+	/* get the max host attempts */
+	my_free((void **)&macro_x[MACRO_MAXHOSTATTEMPTS]);
+	asprintf(&macro_x[MACRO_MAXHOSTATTEMPTS],"%d",hst->max_attempts);
 
 	/* get the host downtime depth */
 	my_free((void **)&macro_x[MACRO_HOSTDOWNTIME]);
@@ -1209,6 +1217,10 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTATTEMPT"))
 		asprintf(&macro_ondemand,"%d",hst->current_attempt);
 
+	/* get the max host attempts */
+	else if(!strcmp(macro,"MAXHOSTATTEMPTS"))
+		asprintf(&macro_ondemand,"%d",hst->max_attempts);
+
 	/* get the host downtime depth */
 	else if(!strcmp(macro,"HOSTDOWNTIME"))
 		asprintf(&macro_ondemand,"%d",hst->scheduled_downtime_depth);
@@ -1458,6 +1470,9 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICEATTEMPT"))
 		asprintf(&macro_ondemand,"%d",svc->current_attempt);
 
+	/* get the max service check attempts macro */
+	else if(!strcmp(macro,"MAXSERVICEATTEMPTS"))
+		asprintf(&macro_ondemand,"%d",svc->max_attempts);
 
 	/* get the execution time macro */
 	else if(!strcmp(macro,"SERVICEEXECUTIONTIME"))
@@ -2168,6 +2183,8 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_HOSTACKAUTHORALIAS,"HOSTACKAUTHORALIAS");
 	add_macrox_name(MACRO_SERVICEACKAUTHORNAME,"SERVICEACKAUTHORNAME");
 	add_macrox_name(MACRO_SERVICEACKAUTHORALIAS,"SERVICEACKAUTHORALIAS");
+	add_macrox_name(MACRO_MAXHOSTATTEMPTS,"MAXHOSTATTEMPTS");
+	add_macrox_name(MACRO_MAXSERVICEATTEMPTS,"MAXSERVICEATTEMPTS");
 
 	return OK;
         }

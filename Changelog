@@ -9,6 +9,8 @@ Nagios 3.x Change Log
 * Fixed bug with check_result_path config option being ignored
 * Added $MAXHOSTATTEMPTS$ and $MAXSERVICEATTEMPTS$ macros
 * Fixed bug with incorrect output returned from embedded Perl plugins
+* Fixed bug where status data file was not read by CGIs using mmap()
+* Fix for CGI segfault
 
 
 

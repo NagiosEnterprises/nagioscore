@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-19-2007
+ * Last Modified: 07-16-2007
  *
  * License:
  * 
@@ -375,11 +375,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			comment_author=(char *)malloc(strlen(variables[x])+1);
-			if(comment_author==NULL)
+			if((comment_author=(char *)strdup(variables[x]))==NULL)
 				comment_author="";
-			else
-				strcpy(comment_author,variables[x]);
+			strip_html_brackets(comment_author);
 			}
 
 		/* we found the comment data */
@@ -390,11 +388,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			comment_data=(char *)malloc(strlen(variables[x])+1);
-			if(comment_data==NULL)
+			if((comment_data=(char *)strdup(variables[x]))==NULL)
 				comment_data="";
-			else
-				strcpy(comment_data,variables[x]);
+			strip_html_brackets(comment_data);
 			}
 
 		/* we found the host name */
@@ -405,11 +401,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			host_name=(char *)malloc(strlen(variables[x])+1);
-			if(host_name==NULL)
+			if((host_name=(char *)strdup(variables[x]))==NULL)
 				host_name="";
-			else
-				strcpy(host_name,variables[x]);
+			strip_html_brackets(host_name);
 			}
 
 		/* we found the hostgroup name */
@@ -420,11 +414,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			hostgroup_name=(char *)malloc(strlen(variables[x])+1);
-			if(hostgroup_name==NULL)
+			if((hostgroup_name=(char *)strdup(variables[x]))==NULL)
 				hostgroup_name="";
-			else
-				strcpy(hostgroup_name,variables[x]);
+			strip_html_brackets(hostgroup_name);
 			}
 
 		/* we found the service name */
@@ -435,11 +427,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			service_desc=(char *)malloc(strlen(variables[x])+1);
-			if(service_desc==NULL)
+			if((service_desc=(char *)strdup(variables[x]))==NULL)
 				service_desc="";
-			else
-				strcpy(service_desc,variables[x]);
+			strip_html_brackets(service_desc);
 			}
 
 		/* we found the servicegroup name */
@@ -450,11 +440,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			servicegroup_name=(char *)malloc(strlen(variables[x])+1);
-			if(servicegroup_name==NULL)
+			if((servicegroup_name=(char *)strdup(variables[x]))==NULL)
 				servicegroup_name="";
-			else
-				strcpy(servicegroup_name,variables[x]);
+			strip_html_brackets(servicegroup_name);
 			}
 
 		/* we got the persistence option for a comment */

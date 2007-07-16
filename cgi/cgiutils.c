@@ -1450,6 +1450,28 @@ char * html_encode(char *input, int escape_newlines){
 
 
 
+/* strip > and < from string */
+void strip_html_brackets(char *buffer){
+	register int x;
+	register int y;
+	register int z;
+
+	if(buffer==NULL || buffer[0]=='\x0')
+		return;
+
+	/* remove all occurances in string */
+	z=(int)strlen(buffer);
+	for(x=0,y=0;x<z;x++){
+		if(buffer[x]=='<' || buffer[x]=='>')
+			continue;
+		buffer[y++]=buffer[x];
+	        }
+	buffer[y++]='\x0';
+
+	return;
+	}
+
+
 
 /* determines the log file we should use (from current time) */
 void get_log_archive_to_use(int archive,char *buffer,int buffer_length){

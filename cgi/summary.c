@@ -2,8 +2,8 @@
  *
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
- * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Copyright (c) 2002-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 07-16-2007
  *
  * License:
  * 
@@ -1130,11 +1130,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			target_hostgroup_name=(char *)malloc(strlen(variables[x])+1);
-			if(target_hostgroup_name==NULL)
+			if((target_hostgroup_name=(char *)strdup(variables[x]))==NULL)
 				target_hostgroup_name="";
-			else
-				strcpy(target_hostgroup_name,variables[x]);
+			strip_html_brackets(target_hostgroup_name);
 
 			if(!strcmp(target_hostgroup_name,"all"))
 				show_all_hostgroups=TRUE;
@@ -1152,11 +1150,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			target_servicegroup_name=(char *)malloc(strlen(variables[x])+1);
-			if(target_servicegroup_name==NULL)
+			if((target_servicegroup_name=(char *)strdup(variables[x]))==NULL)
 				target_servicegroup_name="";
-			else
-				strcpy(target_servicegroup_name,variables[x]);
+			strip(target_servicegroup_name);
 
 			if(!strcmp(target_servicegroup_name,"all"))
 				show_all_servicegroups=TRUE;
@@ -1174,11 +1170,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			target_host_name=(char *)malloc(strlen(variables[x])+1);
-			if(target_host_name==NULL)
+			if((target_host_name=(char *)strdup(target_host_name))==NULL)
 				target_host_name="";
-			else
-				strcpy(target_host_name,variables[x]);
+			strip_html_brackets(target_host_name);
 
 			if(!strcmp(target_host_name,"all"))
 				show_all_hosts=TRUE;

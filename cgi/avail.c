@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-30-2007
+ * Last Modified: 07-16-2007
  *
  * License:
  * 
@@ -1152,11 +1152,10 @@ int process_cgivars(void){
 				break;
 			        }
 
-			hostgroup_name=(char *)malloc(strlen(variables[x])+1);
-			if(hostgroup_name==NULL)
+			if((hostgroup_name=(char *)strdup(variables[x]))==NULL)
 				hostgroup_name="";
-			else
-				strcpy(hostgroup_name,variables[x]);
+			strip_html_brackets(hostgroup_name);
+
 			display_type=DISPLAY_HOSTGROUP_AVAIL;
 			show_all_hostgroups=(strcmp(hostgroup_name,"all"))?FALSE:TRUE;
 		        }
@@ -1169,11 +1168,10 @@ int process_cgivars(void){
 				break;
 			        }
 
-			servicegroup_name=(char *)malloc(strlen(variables[x])+1);
-			if(servicegroup_name==NULL)
+			if((servicegroup_name=(char *)strdup(variables[x]))==NULL)
 				servicegroup_name="";
-			else
-				strcpy(servicegroup_name,variables[x]);
+			strip_html_brackets(servicegroup_name);
+
 			display_type=DISPLAY_SERVICEGROUP_AVAIL;
 			show_all_servicegroups=(strcmp(servicegroup_name,"all"))?FALSE:TRUE;
 		        }
@@ -1186,11 +1184,10 @@ int process_cgivars(void){
 				break;
 			        }
 
-			host_name=(char *)malloc(strlen(variables[x])+1);
-			if(host_name==NULL)
+			if((host_name=(char *)strdup(variables[x]))==NULL)
 				host_name="";
-			else
-				strcpy(host_name,variables[x]);
+			strip_html_brackets(host_name);
+
 			display_type=DISPLAY_HOST_AVAIL;
 			show_all_hosts=(strcmp(host_name,"all"))?FALSE:TRUE;
 		        }
@@ -1203,11 +1200,10 @@ int process_cgivars(void){
 				break;
 			        }
 
-			svc_description=(char *)malloc(strlen(variables[x])+1);
-			if(svc_description==NULL)
+			if((svc_description=(char *)strdup(variables[x]))==NULL)
 				svc_description="";
-			else
-				strcpy(svc_description,variables[x]);
+			strip_html_brackets(svc_description);
+
 			display_type=DISPLAY_SERVICE_AVAIL;
 			show_all_services=(strcmp(svc_description,"all"))?FALSE:TRUE;
 		        }

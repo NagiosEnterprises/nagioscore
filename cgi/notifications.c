@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-30-2007
+ * Last Modified: 07-16-2007
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -367,10 +367,11 @@ int process_cgivars(void){
 				error=TRUE;
 				break;
 			        }
-
-			query_host_name=strdup(variables[x]);
-			if(query_host_name==NULL)
+	
+			if((query_host_name=strdup(variables[x]))==NULL)
 				query_host_name="";
+			strip_html_brackets(query_host_name);
+
 			if(!strcmp(query_host_name,"all"))
 				find_all=TRUE;
 			else
@@ -386,10 +387,10 @@ int process_cgivars(void){
 				break;
 			        }
 
-			query_contact_name=strdup(variables[x]);
-
-			if(query_contact_name==NULL)
+			if((query_contact_name=strdup(variables[x]))==NULL)
 				query_contact_name="";
+			strip_html_brackets(query_contact_name);
+
 			if(!strcmp(query_contact_name,"all"))
 				find_all=TRUE;
 			else
@@ -404,10 +405,9 @@ int process_cgivars(void){
 				error=TRUE;
 				break;
 			        }
-
-			query_svc_description=strdup(variables[x]);
-			if(query_svc_description==NULL)
+			if((query_svc_description=strdup(variables[x]))==NULL)
 				query_svc_description="";
+			strip_html_brackets(query_svc_description);
 		        }
 	
 		/* we found the notification type argument */

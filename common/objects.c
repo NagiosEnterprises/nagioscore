@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-12-2007
+ * Last Modified: 07-16-2007
  *
  * License:
  *
@@ -2583,12 +2583,12 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->dependent_service_description=NULL;
 	new_servicedependency->host_name=NULL;
 	new_servicedependency->service_description=NULL;
+	new_servicedependency->dependency_period=NULL;
 	new_servicedependency->next=NULL;
 	new_servicedependency->nexthash=NULL;
 #ifdef NSCORE
 	new_servicedependency->master_service_ptr=NULL;
 	new_servicedependency->dependent_service_ptr=NULL;
-	new_servicedependency->dependency_period=NULL;
 #endif
 
 

@@ -3,7 +3,7 @@
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Last Modified: 07-16-2006
  *
  * License:
  * 
@@ -1081,11 +1081,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			host_name=(char *)malloc(strlen(variables[x])+1);
-			if(host_name==NULL)
+			if((host_name=(char *)strdup(variables[x]))==NULL)
 				host_name="";
-			else
-				strcpy(host_name,variables[x]);
+			strip_html_brackets(host_name);
 
 			display_type=DISPLAY_HOST_HISTOGRAM;
 		        }
@@ -1098,11 +1096,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			svc_description=(char *)malloc(strlen(variables[x])+1);
-			if(svc_description==NULL)
+			if((svc_description=(char *)strdup(variables[x]))==NULL)
 				svc_description="";
-			else
-				strcpy(svc_description,variables[x]);
+			strip_html_brackets(svc_description);
 
 			display_type=DISPLAY_SERVICE_HISTOGRAM;
 		        }

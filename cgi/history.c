@@ -3,7 +3,7 @@
  * HISTORY.C - Nagios History CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-30-2007
+ * Last Modified: 07-16-2007
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -374,11 +374,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			host_name=(char *)malloc(strlen(variables[x])+1);
-			if(host_name==NULL)
+			if((host_name=(char *)strdup(variables[x]))==NULL)
 				host_name="";
-			else
-				strcpy(host_name,variables[x]);
+			strip_html_brackets(host_name);
 
 			display_type=DISPLAY_HOSTS;
 
@@ -396,11 +394,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			svc_description=(char *)malloc(strlen(variables[x])+1);
-			if(svc_description==NULL)
+			if((svc_description=(char *)strdup(variables[x]))==NULL)
 				svc_description="";
-			else
-				strcpy(svc_description,variables[x]);
+			strip_html_brackets(svc_description);
 
 			display_type=DISPLAY_SERVICES;
 		        }

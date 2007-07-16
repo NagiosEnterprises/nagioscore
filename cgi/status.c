@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-30-2007
+ * Last Modified: 07-16-2007
  *
  * License:
  * 
@@ -570,7 +570,8 @@ int process_cgivars(void){
 				break;
 			        }
 
-			hostgroup_name=strdup(variables[x]);
+			hostgroup_name=(char *)strdup(variables[x]);
+			strip_html_brackets(hostgroup_name);
 
 			if(hostgroup_name!=NULL && !strcmp(hostgroup_name,"all"))
 				show_all_hostgroups=TRUE;
@@ -588,6 +589,7 @@ int process_cgivars(void){
 			        }
 
 			servicegroup_name=strdup(variables[x]);
+			strip_html_brackets(servicegroup_name);
 
 			if(servicegroup_name!=NULL && !strcmp(servicegroup_name,"all"))
 				show_all_servicegroups=TRUE;
@@ -605,6 +607,7 @@ int process_cgivars(void){
 			        }
 
 			host_name=strdup(variables[x]);
+			strip_html_brackets(host_name);
 
 			if(host_name!=NULL && !strcmp(host_name,"all"))
 				show_all_hosts=TRUE;
@@ -729,6 +732,7 @@ int process_cgivars(void){
                                 break;
                                 }
                         service_filter=strdup(variables[x]);
+			strip_html_brackets(service_filter);
                         }
 	        }
 

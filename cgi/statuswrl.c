@@ -2,8 +2,8 @@
  *
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-27-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   07-16-2007
  *
  * Description:
  *
@@ -233,11 +233,10 @@ int process_cgivars(void){
 				break;
 			        }
 
-			host_name=(char *)malloc(strlen(variables[x])+1);
-			if(host_name==NULL)
+			if((host_name=(char *)strdup(variables[x]))==NULL)
 				host_name="all";
 			else
-				strcpy(host_name,variables[x]);
+				strip_html_brackets(host_name);
 
 			if(!strcmp(host_name,"all"))
 				show_all_hosts=TRUE;

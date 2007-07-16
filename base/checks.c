@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-19-2007
+ * Last Modified:   07-16-2007
  *
  * License:
  *
@@ -478,7 +478,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* if yes, do some initialization */
 	if(use_epn==TRUE){
 
-		log_debug_info(DEBUGL_CHECKS,1,"** Using embedded Perl interpreter to run service check...\n");
+		log_debug_info(DEBUGL_CHECKS,1,"** Using Embedded Perl interpreter to run service check...\n");
 
 		args[0]=fname;
 		args[2]="";
@@ -636,21 +636,22 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 				SPAGAIN;
 
-				perl_plugin_output=POPpx;
-				pclose_result=POPi;
+				perl_plugin_output = POPpx ;
+				pclose_result = POPi ;
 
-				PUTBACK;
-				FREETMPS;
-				LEAVE;
-
-				log_debug_info(DEBUGL_CHECKS,1,"embedded perl ran %s, plugin output was %d, %s\n",fname,pclose_result,(perl_plugin_output==NULL)?"NULL":perl_plugin_output);
-
+				/* NOTE: 07/16/07 This has to be done before FREETMPS statement below, or the POPpx pointer will be invalid (Hendrik B.) */
 				/* get perl plugin output - escape newlines */
 				if(perl_plugin_output!=NULL){
 					temp_buffer=escape_newlines(perl_plugin_output);
 					dbuf_strcat(&checkresult_dbuf,temp_buffer);
 					my_free((void **)&temp_buffer);
 					}
+
+				PUTBACK;
+				FREETMPS;
+				LEAVE;
+
+				log_debug_info(DEBUGL_CHECKS,1,"Embedded Perl ran %s: return code=%d, plugin output=%s\n",fname,pclose_result,(perl_plugin_output==NULL)?"NULL":checkresult_dbuf.buf);
 
 				/* reset the alarm */
 				alarm(0);

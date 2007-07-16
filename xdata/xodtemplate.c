@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-10-2007
+ * Last Modified: 07-16-2007
  *
  * Description:
  *
@@ -10753,11 +10753,14 @@ int xodtemplate_merge_extinfo_ojects(void){
 	        }
 
 #ifdef NSCORE
+	/* REMOVED 07/16/07 EG - mabye they'll stay in future versions? */
+	/*
 	if(xodtemplate_serviceextinfo_list!=NULL){
 		asprintf(&temp_buffer,"Warning: Extended service information (serviceextinfo) definitions are deprecated in Nagios 3.x and will not be supported in future versions.  Please merge variables in these definitions with your service definitions.");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 	        }
+	*/
 #endif
 
 	/* merge host extinfo definitions */
@@ -10776,11 +10779,14 @@ int xodtemplate_merge_extinfo_ojects(void){
 	        }
 
 #ifdef NSCORE
+	/* REMOVED 07/16/07 EG - mabye they'll stay in future versions? */
+	/*
 	if(xodtemplate_serviceextinfo_list!=NULL){
 		asprintf(&temp_buffer,"Warning: Extended host information (hostextinfo) definitions are deprecated in Nagios 3.x and will not be supported in future versions.  Please merge variables in these definitions with your host definitions.");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 	        }
+	*/
 #endif
 
 	return OK;

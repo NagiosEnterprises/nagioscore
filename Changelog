@@ -8,6 +8,7 @@ Nagios 3.x Change Log
 * Fixed bug with processing epn directives in Perl plugins
 * Fixed bug with check_result_path config option being ignored
 * Added $MAXHOSTATTEMPTS$ and $MAXSERVICEATTEMPTS$ macros
+* Fixed bug with incorrect output returned from embedded Perl plugins
 
 
 

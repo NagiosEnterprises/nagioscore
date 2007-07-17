@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2007  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 07-17-2007
  *
  * License:
  * 
@@ -184,6 +184,9 @@ extern "C" {
 
 #define CONTEXT_HELP_ICON1		"contexthelp1.gif"
 #define CONTEXT_HELP_ICON2		"contexthelp2.gif"
+
+#define SPLUNK_SMALL_WHITE_ICON		"splunk1.gif"
+#define SPLUNK_SMALL_BLACK_ICON		"splunk2.gif"
 
 
 
@@ -485,6 +488,11 @@ void print_extra_servicegroup_url(char *,char *);
 
 void display_info_table(char *,int,authdata *);
 void display_nav_table(char *,int);
+
+void display_splunk_host_url(host *);
+void display_splunk_service_url(service *);
+void display_splunk_generic_url(char *,int);
+void strip_splunk_query_terms(char *);
 
 void include_ssi_files(char *,int);                             /* include user-defined SSI footers/headers */
 void include_ssi_file(char *);                                  /* include user-defined SSI footer/header */

@@ -3,7 +3,7 @@
  * SHOWLOG.C - Nagios Log File CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-09-2007
+ * Last Modified: 07-17-2007
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -37,6 +37,8 @@ extern char   url_images_path[MAX_FILENAME_LENGTH];
 extern char   url_stylesheets_path[MAX_FILENAME_LENGTH];
 
 extern int    log_rotation_method;
+
+extern int    enable_splunk_integration;
 
 void document_header(int);
 void document_footer(void);
@@ -513,7 +515,12 @@ int display_log(void){
 			
 			if(display_frills==TRUE)
 				printf("<img align='left' src='%s%s' alt='%s' title='%s'>",url_images_path,image,image_alt,image_alt);
-			printf("[%s] %s<br clear='all'>\n",date_time,(temp_buffer==NULL)?"":html_encode(temp_buffer,FALSE));
+			printf("[%s] %s",date_time,(temp_buffer==NULL)?"":html_encode(temp_buffer,FALSE));
+			if(enable_splunk_integration==TRUE){
+				printf("&nbsp;&nbsp;&nbsp;");
+				display_splunk_generic_url(temp_buffer,2);
+				}
+			printf("<br clear='all'>\n");
 		        }
 
 		printf("</DIV></P>\n");

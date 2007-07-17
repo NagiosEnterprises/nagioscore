@@ -11,6 +11,7 @@ Nagios 3.x Change Log
 * Fixed bug with incorrect output returned from embedded Perl plugins
 * Fixed bug where status data file was not read by CGIs using mmap()
 * Fix for CGI segfault
+* Added optional integration with Splunk into the CGIs
 
 
 

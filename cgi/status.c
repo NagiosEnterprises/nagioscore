@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 07-17-2007
  *
  * License:
  * 
@@ -51,6 +51,8 @@ extern char *host_unreachable_sound;
 extern char *normal_sound;
 
 extern int suppress_alert_window;
+
+extern int enable_splunk_integration;
 
 extern host *host_list;
 extern service *service_list;
@@ -1688,6 +1690,11 @@ void show_service_detail(void){
 				printf("</A>");
 				printf("</TD>\n");
 			        }
+			if(enable_splunk_integration==TRUE){
+				printf("<TD ALIGN=center valign=center>");
+				display_splunk_service_url(temp_service);
+				printf("</TD>\n");
+				}
 			printf("</TR>\n");
 			printf("</TABLE>\n");
 			printf("</TD>\n");
@@ -1722,7 +1729,13 @@ void show_service_detail(void){
 			printf("<TD CLASS='status%s' nowrap>%s</TD>\n",status_bg_class,date_time);
 			printf("<TD CLASS='status%s' nowrap>%s</TD>\n",status_bg_class,state_duration);
 			printf("<TD CLASS='status%s'>%d/%d</TD>\n",status_bg_class,temp_status->current_attempt,temp_status->max_attempts);
-			printf("<TD CLASS='status%s'>%s&nbsp;</TD>\n",status_bg_class,(temp_status->plugin_output==NULL)?"":html_encode(temp_status->plugin_output,TRUE));
+			printf("<TD CLASS='status%s' valign='center'>",status_bg_class);
+			printf("%s&nbsp;",(temp_status->plugin_output==NULL)?"":html_encode(temp_status->plugin_output,TRUE));
+			/*
+			if(enable_splunk_integration==TRUE)
+				display_splunk_service_url(temp_service);
+			*/
+			printf("</TD>\n");
 
 			printf("</TR>\n");
 
@@ -2065,7 +2078,14 @@ void show_host_detail(void){
 				printf("</A>");
 				printf("</TD>\n");
 			        }
-			printf("<TD><a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a></TD>\n",STATUS_CGI,url_encode(temp_status->host_name),url_images_path,STATUS_DETAIL_ICON);
+			if(enable_splunk_integration==TRUE){
+				printf("<TD ALIGN=center valign=center>");
+				display_splunk_host_url(temp_host);
+				printf("</TD>\n");
+				}
+			printf("<TD>");
+			printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>",STATUS_CGI,url_encode(temp_status->host_name),url_images_path,STATUS_DETAIL_ICON);
+			printf("</TD>\n");
 			printf("</TR>\n");
 			printf("</TABLE>\n");
 			printf("</TD>\n");
@@ -2101,7 +2121,13 @@ void show_host_detail(void){
 			printf("<TD CLASS='status%s'>%s</TD>\n",status_class,status);
 			printf("<TD CLASS='status%s' nowrap>%s</TD>\n",status_bg_class,date_time);
 			printf("<TD CLASS='status%s' nowrap>%s</TD>\n",status_bg_class,state_duration);
-			printf("<TD CLASS='status%s'>%s&nbsp;</TD>\n",status_bg_class,(temp_status->plugin_output==NULL)?"":html_encode(temp_status->plugin_output,TRUE));
+			printf("<TD CLASS='status%s' valign='center'>",status_bg_class);
+			printf("%s&nbsp;",(temp_status->plugin_output==NULL)?"":html_encode(temp_status->plugin_output,TRUE));
+			/*
+			if(enable_splunk_integration==TRUE)
+				display_splunk_host_url(temp_host);
+			*/
+			printf("</TD>\n");
 
 			printf("</TR>\n");
 		        }

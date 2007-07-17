@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 07-17-2007
  *
  * License:
  * 
@@ -64,6 +64,8 @@ extern char url_docs_path[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_logo_images_path[MAX_FILENAME_LENGTH];
 extern char log_file[MAX_FILENAME_LENGTH];
+
+extern int              enable_splunk_integration;
 
 extern comment           *comment_list;
 extern scheduled_downtime  *scheduled_downtime_list;
@@ -961,6 +963,7 @@ void show_host_info(void){
 	char status_age[48];
 	char state_string[MAX_INPUT_BUFFER];
 	char *bg_class="";
+	char *buf=NULL;
 	int days;
 	int hours;
 	int minutes;
@@ -1055,6 +1058,12 @@ void show_host_info(void){
 		printf("<TR><TD CLASS='dataVar'>Host Status:</td><td CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV>&nbsp;(for %s)%s</td></tr>\n",bg_class,state_string,state_duration,(temp_hoststatus->problem_has_been_acknowledged==TRUE)?"&nbsp;&nbsp;(Has been acknowledged)":"");
 
 		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Status Information:</td><td CLASS='dataVal'>%s",(temp_hoststatus->plugin_output==NULL)?"":html_encode(temp_hoststatus->plugin_output,TRUE));
+		if(enable_splunk_integration==TRUE){
+			printf("&nbsp;&nbsp;");
+			asprintf(&buf,"%s %s",temp_host->name,temp_hoststatus->plugin_output);
+			display_splunk_generic_url(buf,1);
+			free(buf);
+			}
 		if(temp_hoststatus->long_plugin_output!=NULL)
 			printf("<BR>%s",html_encode(temp_hoststatus->long_plugin_output,TRUE));
 		printf("</TD></TR>\n");
@@ -1258,6 +1267,7 @@ void show_service_info(void){
 	servicestatus *temp_svcstatus;
 	char state_string[MAX_INPUT_BUFFER];
 	char *bg_class="";
+	char *buf=NULL;
 	int days;
 	int hours;
 	int minutes;
@@ -1356,6 +1366,12 @@ void show_service_info(void){
 		printf("<TR><TD CLASS='dataVar'>Current Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV>&nbsp;(for %s)%s</TD></TR>\n",bg_class,state_string,state_duration,(temp_svcstatus->problem_has_been_acknowledged==TRUE)?"&nbsp;&nbsp;(Has been acknowledged)":"");
 
 		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Status Information:</TD><TD CLASS='dataVal'>%s",(temp_svcstatus->plugin_output==NULL)?"":html_encode(temp_svcstatus->plugin_output,TRUE));
+		if(enable_splunk_integration==TRUE){
+			printf("&nbsp;&nbsp;");
+			asprintf(&buf,"%s %s %s",temp_service->host_name,temp_service->description,temp_svcstatus->plugin_output);
+			display_splunk_generic_url(buf,1);
+			free(buf);
+			}
 		if(temp_svcstatus->long_plugin_output!=NULL)
 			printf("<BR>%s",html_encode(temp_svcstatus->long_plugin_output,TRUE));
 		printf("</TD></TR>\n");

@@ -84,6 +84,9 @@ By default, Nagios expects the CGI configuration file to be named <b>cgi.cfg</b>
 <a href="#audio_alerts">Audio alerts</a><br>
 <br>
 <a href="#ping_syntax">Ping syntax</a><br>
+<br>
+<a href="#enable_splunk_integration">Splunk integration option</a><br>
+<a href="#splunk_url">Splunk URL</a><br>
 </p>
 
 <p>
@@ -641,6 +644,59 @@ These options allow you to specify an audio file that should be played in your b
 <p>
 This option determines what syntax should be used when attempting to ping a host from the WAP interface (using
 the <a href="cgis.html#statuswml_cgi">statuswml CGI</a>.  You must include the full path to the ping binary, along with all required options.  The $HOSTADDRESS$ macro is substituted with the address of the host before the command is executed.
+</p>
+
+
+<p>
+<a name="enable_splunk_integration"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Splunk Integration Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>enable_splunk_integration=[0/1]</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>enable_splunk_integration=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines whether integration functionality with Splunk is enabled in the web interface.  If enabled, you'll be presented with "Splunk It" links in various places in the CGIs (log file, alert history, host/service detail, etc).  Useful if you're trying to research why a particular problem occurred. For more information on Splunk, visit <a href="http://www.splunk.com/" target="_blank">http://www.splunk.com/</a>.
+</p>
+
+<p>
+<a name="splunk_url"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Splunk URL</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>splunk_url=&lt;path&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>splunk_url=http://127.0.0.1:8000/</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option is used to define the base URL to your Splunk interface.  This URL is used by the CGIs when creating links if the <a href="#enable_splunk_integration">enable_splunk_integration</a> option is enabled.
 </p>
 
 

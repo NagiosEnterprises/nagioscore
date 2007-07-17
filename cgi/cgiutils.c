@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-30-2007
+ * Last Modified: 07-16-2007
  *
  * License:
  *
@@ -59,6 +59,9 @@ char            *ping_syntax=NULL;
 char            nagios_check_command[MAX_INPUT_BUFFER]="";
 char            nagios_process_info[MAX_INPUT_BUFFER]="";
 int             nagios_process_state=STATE_OK;
+
+int             enable_splunk_integration=FALSE;
+char            *splunk_url=NULL;
 
 extern time_t   program_start;
 extern int      nagios_pid;
@@ -455,6 +458,23 @@ int read_cgi_config_file(char *filename){
 			if(temp_buffer==NULL)
 				continue;
 			ping_syntax=strdup(temp_buffer);
+		        }
+
+		else if((strstr(input,"enable_splunk_integration=")==input)){
+			temp_buffer=strtok(input,"=");
+			temp_buffer=strtok(NULL,"\n");
+			if(temp_buffer==NULL)
+				enable_splunk_integration=FALSE;
+			else 
+				enable_splunk_integration=(atoi(temp_buffer)>0)?TRUE:FALSE;
+		        }
+
+		else if(strstr(input,"splunk_url=")==input){
+			temp_buffer=strtok(input,"=");
+			temp_buffer=strtok(NULL,"\n");
+			if(temp_buffer==NULL)
+				continue;
+			splunk_url=strdup(temp_buffer);
 		        }
 
  	        }
@@ -1350,10 +1370,12 @@ char * url_encode(char *input){
 		        }
 
 		/* spaces are pluses */
+		/*
 		else if((char)input[x]<=(char)' '){
 			encoded_url_string[y]='+';
 			y++;
 		        }
+		*/
 
 		/* anything else gets represented by its hex value */
 		else{
@@ -2190,3 +2212,82 @@ void display_context_help(char *chid){
 
 	return;
         }
+
+
+
+void display_splunk_host_url(host *hst){
+
+	if(enable_splunk_integration==FALSE)
+		return;
+	if(hst==NULL)
+		return;
+
+	printf("<a href='%s?q=%s' target='_blank'><img src='%s%s' alt='Splunk It' title='Splunk It' border='0'></a>\n",splunk_url,url_encode(hst->name),url_images_path,SPLUNK_SMALL_WHITE_ICON);
+
+	return;
+	}
+
+
+
+void display_splunk_service_url(service *svc){
+
+	if(enable_splunk_integration==FALSE)
+		return;
+	if(svc==NULL)
+		return;
+
+	printf("<a href='%s?q=%s%%20",splunk_url,url_encode(svc->host_name));
+	printf("%s' target='_blank'><img src='%s%s' alt='Splunk It' title='Splunk It' border='0'></a>\n",url_encode(svc->description),url_images_path,SPLUNK_SMALL_WHITE_ICON);
+
+	return;
+	}
+
+
+
+void display_splunk_generic_url(char *buf, int icon){
+	char *newbuf=NULL;
+
+	if(enable_splunk_integration==FALSE)
+		return;
+	if(buf==NULL)
+		return;
+
+	if((newbuf=(char *)strdup(buf))==NULL)
+		return;
+
+	strip_splunk_query_terms(newbuf);
+
+	printf("<a href='%s?q=%s' target='_blank'>",splunk_url,url_encode(newbuf));
+	if(icon>0)
+		printf("<img src='%s%s' alt='Splunk It' title='Splunk It' border='0'>",url_images_path,(icon==1)?SPLUNK_SMALL_WHITE_ICON:SPLUNK_SMALL_BLACK_ICON);
+	printf("</a>\n");
+
+	free(newbuf);
+
+	return;
+	}
+
+
+/* strip quotes and from string */
+void strip_splunk_query_terms(char *buffer){
+	register int x;
+	register int y;
+	register int z;
+
+	if(buffer==NULL || buffer[0]=='\x0')
+		return;
+
+	/* remove all occurances in string */
+	z=(int)strlen(buffer);
+	for(x=0,y=0;x<z;x++){
+		if(buffer[x]=='\'' || buffer[x]=='\"' || buffer[x]==';' || buffer[x]==':' || buffer[x]==',' || buffer[x]=='-' || buffer[x]=='=')
+			buffer[y++]=' ';
+		else
+			buffer[y++]=buffer[x];
+	        }
+	buffer[y++]='\x0';
+
+	return;
+	}
+
+

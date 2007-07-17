@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 02-26-2007
+# Last Modified: 07-17-2007
 #
 #################################################################
 
@@ -272,4 +272,26 @@ refresh_rate=90
 #service_warning_sound=warning.wav
 #service_unknown_sound=warning.wav
 #normal_sound=noproblem.wav
+
+
+
+# SPLUNK INTEGRATION OPTIONS
+# These options allow you to enable integration with Splunk
+# in the web interface.  If enabled, you'll be presented with
+# "Splunk It" links in various places in the CGIs (log file,
+# alert history, host/service detail, etc).  Useful if you're
+# trying to research why a particular problem occurred.
+# For more information on Splunk, visit http://www.splunk.com/
+
+# This option determines whether the Splunk integration is enabled
+# Values: 0 = disable Splunk integration
+#         1 = enable Splunk integration
+
+#enable_splunk_integration=1
+
+
+# This option should be the URL used to access your instance of Splunk
+
+#splunk_url=http://127.0.0.1:8000/
+
 

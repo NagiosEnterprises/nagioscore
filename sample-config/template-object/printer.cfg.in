@@ -1,7 +1,7 @@
 ###############################################################################
 # PRINTER.CFG - SAMPLE CONFIG FILE FOR MONITORING A NETWORK PRINTER
 #
-# Last Modified: 05-31-2007
+# Last Modified: 07-17-2007
 #
 # NOTES: This config file assumes that you are using the sample configuration
 #	 files that get installed with the Nagios quickstart guide.
@@ -27,7 +27,7 @@ define host{
 	host_name	hplj2605dn		; The name we're giving to this printer
 	alias		HP LaserJet 2605dn	; A longer name associated with the printer
 	address		192.168.1.30		; IP address of the printer
-	hostgroups	allhosts		; Host groups this printer is associated with
+	hostgroups	allhosts,network-printers ; Host groups this printer is associated with
 	}
 
 
@@ -41,13 +41,11 @@ define host{
 ###############################################################################
 ###############################################################################
 
-# Define an optional hostgroup for printers
-# Change the members directive to match the name of the host you define above
+# A hostgroup for network printers
 
 define hostgroup{
-	hostgroup_name	laserjet-printers	; The name of the hostgroup
-	alias		HP LaserJet Printers	; Long name of the group
-	members		hplj2605dn		; Comma separated list of hosts that belong to this group
+	hostgroup_name	network-printers	; The name of the hostgroup
+	alias		Network Printers	; Long name of the group
 	}
 
 
@@ -74,3 +72,14 @@ define service{
 	retry_check_interval	1	; Re-check the service every minute until its final/hard state is determined
 	}
 
+
+# Create a service for "pinging" the printer occassionally.  Useful for monitoring RTA, packet loss, etc.
+
+define service{
+	use			generic-service
+	host_name		hplj2605dn
+	service_description	PING
+	check_command		check_ping!3000.0,80%!5000.0,100%
+	normal_check_interval	10
+	retry_check_interval	1
+        }

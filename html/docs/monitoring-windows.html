@@ -136,7 +136,9 @@ Remove the leading pound (#) sign from the following line in the main configurat
 </p>
 
 <p>
+<pre>
 #cfg_file=/usr/local/nagios/etc/objects/windows.cfg
+</pre>
 </p>
 
 <p>
@@ -144,7 +146,7 @@ Save the file and exit.
 </p>
 
 <p>
-What did you just do?  You told Nagios to look to the <i>/usr/local/nagios/etc/objects/windows.cfg</i> to find additional object definitions.  That's where you'll be adding Windows host and service definitions.  That configuration file already contains some sample host, hostgroup, and service definitions.  You can modify those sample host and service definitions to use for your first Windows host that you monitor.
+What did you just do?  You told Nagios to look to the <i>/usr/local/nagios/etc/objects/windows.cfg</i> to find additional object definitions.  That's where you'll be adding Windows host and service definitions.  That configuration file already contains some sample host, hostgroup, and service definitions.  For the *first* Windows machine you monitor, you can simply modify the sample host and service definitions in that file, rather than creating new ones.
 </p>
 
 
@@ -248,7 +250,7 @@ vi /usr/local/nagios/etc/objects/windows.cfg
 </p>
 
 <p>
-Add a new <a href="objectdefinitions.html#host">host</a> definition for the Windows machine that you're going to monitor.  Change the <i>host_name</i>, <i>alias</i>, and <i>address</i> fields to appropriate values for the Windows box.
+Add a new <a href="objectdefinitions.html#host">host</a> definition for the Windows machine that you're going to monitor.   If this is the *first* Windows machine you're monitoring, you can simply modify the sample host definition in <i>windows.cfg</i>. Change the <i>host_name</i>, <i>alias</i>, and <i>address</i> fields to appropriate values for the Windows box.
 </p>
 
 <p>
@@ -263,7 +265,7 @@ define host{
 </p>
 
 <p>
-Good. Now you can add some service definitions (to the same configuration file) in order to tell Nagios to monitor different aspects of the Windows machine. 
+Good. Now you can add some service definitions (to the same configuration file) in order to tell Nagios to monitor different aspects of the Windows machine.  If this is the *first* Windows machine you're monitoring, you can simply modify the sample service definitions in <i>windows.cfg</i>. 
 </p>
 
 <p>
@@ -426,10 +428,6 @@ You're done with modifying the Nagios configuration, so you'll need to <a href="
 
 <p>
 If the verification process produces any errors messages, fix your configuration file before continuing.  Make sure that you don't (re)start Nagios until the verification process completes without any errors!
-</p>
-
-<p>
-
 </p>
 
 

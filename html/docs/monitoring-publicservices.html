@@ -80,7 +80,7 @@ I'll walk you through monitoring some basic services that you'll probably use so
 </p>
 
 <p>
-Before you can monitor a service, you first need to define a <a href="objectdefinitions.html#host">host</a> that is associated with the service.  If you have already created a host definition, you can skip this step.
+Before you can monitor a service, you first need to define a <a href="objectdefinitions.html#host">host</a> that is associated with the service.  You can place host definitions in any object configuration file specified by a <a href="configmain.html#cfg_file">cfg_file</a> directive or placed in a directory specified by a <a href="configmain.html#cfg_dir">cfg_dir</a> directive.  If you have already created a host definition, you can skip this step.
 </p>
 
 <p>
@@ -103,6 +103,18 @@ define host{
 Now that a definition has been added for the host that will be monitored, we can start defining services that should be monitored.  As with host definitions, service definitions can be placed in any object configuration file.
 </p>
 
+
+<p>
+<strong><u>Creating Service Definitions</u></strong>
+</p>
+
+<p>
+For each service you want to monitor, you need to define a <a href="objectdefinitions.html#service">service</a> in Nagios that is associated with the host definition you just created.  You can place service definitions in any object configuration file specified by a <a href="configmain.html#cfg_file">cfg_file</a> directive or placed in a directory specified by a <a href="configmain.html#cfg_dir">cfg_dir</a> directive.
+</p>
+
+<p>
+Some example service definitions for monitoring common public service (HTTP, FTP, etc) are given below.
+</p>
 
 <p>
 <strong><u>Monitoring HTTP</u></strong>
@@ -423,6 +435,20 @@ define service{
 	}
 </pre>
 </p>
+
+
+<p>
+<strong><u>Restarting Nagios</u></strong>
+</p>
+
+<p>
+Once you've added the new host and service definitions to your object configuration file(s), you're ready to start monitoring them.  To do this, you'll need to <a href="verifyconfig.html">verify your configuration</a> and <a href="startstop.html">restart Nagios</a>.
+</p>
+
+<p>
+If the verification process produces any errors messages, fix your configuration file before continuing.  Make sure that you don't (re)start Nagios until the verification process completes without any errors!
+</p>
+
 
 <hr>
 

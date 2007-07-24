@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 07-17-2007
+# Last Modified: 07-23-2007
 #
 #################################################################
 
@@ -246,6 +246,16 @@ ping_syntax=/bin/ping -n -U -c 5 $HOSTADDRESS$
 # of various CGIs (status, statusmap, extinfo, and outages).  
 
 refresh_rate=90
+
+
+
+# ESCAPE HTML TAGS
+# This option determines whether HTML tags in host and service
+# status output is escaped in the web interface.  If enabled,
+# your plugin output will not be able to contain clickable links.
+
+escape_html_tags=1
+
 
 
 

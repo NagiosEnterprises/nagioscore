@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-08-2007
+ * Last Modified: 07-23-2007
  *
  * License:
  *
@@ -854,6 +854,7 @@ int event_execution_loop(void){
 	timed_event sleep_event;
 	time_t last_time=0L;
 	time_t current_time=0L;
+	time_t last_status_update=0L;
 	int run_event=TRUE;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
@@ -1117,6 +1118,12 @@ int event_execution_loop(void){
 			sleep((unsigned int)delay.tv_sec);
 #endif
 		        }
+
+		/* update status information occassionally - NagVis watches the NDOUtils DB to see if Nagios is alive */
+		if((unsigned long)(current_time-last_status_update)>5){
+			last_status_update=current_time;
+			update_program_status(FALSE);
+			}
 	        }
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"event_execution_loop() end\n");

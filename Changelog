@@ -11,6 +11,8 @@ Nagios 3.x Change Log
 * Fixed bug with incorrect output returned from embedded Perl plugins
 * Fixed bug where status data file was not read by CGIs using mmap()
 * Fix for CGI segfault
+* Program status now updated at least every 5 seconds for addons that watch NDOUtils DB
+* Added escape_html_tags option to CGI config file to escape HTML tags in plugin output
 * Added optional integration with Splunk into the CGIs
 
 

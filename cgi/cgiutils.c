@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 07-23-2007
  *
  * License:
  *
@@ -110,6 +110,8 @@ int             service_status_has_been_read=FALSE;
 int             program_status_has_been_read=FALSE;
 
 int             refresh_rate=DEFAULT_REFRESH_RATE;
+
+int             escape_html_tags=FALSE;
 
 int             default_statusmap_layout_method=0;
 int             default_statuswrl_layout_method=0;
@@ -264,8 +266,10 @@ char * get_cmd_file_location(void){
 /*read the CGI configuration file */
 int read_cgi_config_file(char *filename){
 	char *input=NULL;
-	char *temp_buffer;
+	char *temp_buffer=NULL;
 	mmapfile *thefile;
+	char *var=NULL;
+	char *val=NULL;
 
 
 	if((thefile=mmap_fopen(filename))==NULL)
@@ -282,58 +286,35 @@ int read_cgi_config_file(char *filename){
 
 		strip(input);
 
-		if(strstr(input,"main_config_file=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\x0");
-			if(temp_buffer!=NULL){
-				strncpy(main_config_file,temp_buffer,sizeof(main_config_file));
-				main_config_file[sizeof(main_config_file)-1]='\x0';
-				strip(main_config_file);
-			        }
+		var=strtok(input,"=");
+		val=strtok(NULL,"\n");
+
+		if(var==NULL || val==NULL)
+			continue;
+
+		if(!strcmp(var,"main_config_file")){
+			strncpy(main_config_file,val,sizeof(main_config_file));
+			main_config_file[sizeof(main_config_file)-1]='\x0';
+			strip(main_config_file);
 		        }
 
-		else if((strstr(input,"show_context_help=")==input)){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				show_context_help=TRUE;
-			else if(atoi(temp_buffer)==0)
-				show_context_help=FALSE;
-			else
-				show_context_help=TRUE;
+		else if(!strcmp(var,"show_context_help"))
+			show_context_help=(atoi(val)>0)?TRUE:FALSE;
+
+		else if(!strcmp(var,"use_authentication"))
+			use_authentication=(atoi(val)>0)?TRUE:FALSE;
+
+		else if(!strcmp(var,"nagios_check_command")){
+			strncpy(nagios_check_command,val,sizeof(nagios_check_command));
+			nagios_check_command[sizeof(nagios_check_command)-1]='\x0';
+			strip(nagios_check_command);
 		        }
 
-		else if((strstr(input,"use_authentication=")==input)){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				use_authentication=TRUE;
-			else if(atoi(temp_buffer)==0)
-				use_authentication=FALSE;
-			else
-				use_authentication=TRUE;
-		        }
+		else if(!strcmp(var,"refresh_rate"))
+			refresh_rate=atoi(val);
 
-		else if(strstr(input,"nagios_check_command=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\x0");
-			if(temp_buffer!=NULL){
-				strncpy(nagios_check_command,temp_buffer,sizeof(nagios_check_command));
-				nagios_check_command[sizeof(nagios_check_command)-1]='\x0';
-				strip(nagios_check_command);
-			        }
-		        }
-
-		else if(strstr(input,"refresh_rate=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\x0");
-			refresh_rate=atoi((temp_buffer==NULL)?"60":temp_buffer);
-		        }
-
-		else if(strstr(input,"physical_html_path=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			strncpy(physical_html_path,(temp_buffer==NULL)?"":temp_buffer,sizeof(physical_html_path));
+		else if(!strcmp(var,"physical_html_path")){
+			strncpy(physical_html_path,val,sizeof(physical_html_path));
 			physical_html_path[sizeof(physical_html_path)-1]='\x0';
 			strip(physical_html_path);
 			if(physical_html_path[strlen(physical_html_path)-1]!='/' && (strlen(physical_html_path) < sizeof(physical_html_path)-1))
@@ -346,11 +327,9 @@ int read_cgi_config_file(char *filename){
 			physical_ssi_path[sizeof(physical_ssi_path)-1]='\x0';
 		        }
 
-		else if(strstr(input,"url_html_path=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
+		else if(!strcmp(var,"url_html_path")){
 
-			strncpy(url_html_path,(temp_buffer==NULL)?"":temp_buffer,sizeof(url_html_path));
+			strncpy(url_html_path,val,sizeof(url_html_path));
 			url_html_path[sizeof(url_html_path)-1]='\x0';
 
 			strip(url_html_path);
@@ -376,107 +355,47 @@ int read_cgi_config_file(char *filename){
 			url_media_path[sizeof(url_media_path)-1]='\x0';
 		        }
 
-		else if(strstr(input,"service_critical_sound=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				continue;
-			service_critical_sound=strdup(temp_buffer);
-		        }
+		else if(!strcmp(var,"service_critical_sound"))
+			service_critical_sound=strdup(val);
 
-		else if(strstr(input,"service_warning_sound=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				continue;
-			service_warning_sound=strdup(temp_buffer);
-		        }
+		else if(!strcmp(var,"service_warning_sound"))
+			service_warning_sound=strdup(val);
 
-		else if(strstr(input,"service_unknown_sound=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				continue;
-			service_unknown_sound=strdup(temp_buffer);
-		        }
+		else if(!strcmp(var,"service_unknown_sound"))
+			service_unknown_sound=strdup(val);
 
-		else if(strstr(input,"host_down_sound=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				continue;
-			host_down_sound=strdup(temp_buffer);
-		        }
+		else if(!strcmp(var,"host_down_sound"))
+			host_down_sound=strdup(val);
 
-		else if(strstr(input,"host_unreachable_sound=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				continue;
-			host_unreachable_sound=strdup(temp_buffer);
-		        }
+		else if(!strcmp(var,"host_unreachable_sound"))
+			host_unreachable_sound=strdup(val);
 
-		else if(strstr(input,"normal_sound=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				continue;
-			normal_sound=strdup(temp_buffer);
-		        }
+		else if(!strcmp(var,"normal_sound"))
+			normal_sound=strdup(val);
 
-		else if(strstr(input,"statusmap_background_image=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				continue;
-			statusmap_background_image=strdup(temp_buffer);
-		        }
+		else if(!strcmp(var,"statusmap_background_image"))
+			statusmap_background_image=strdup(val);
 
-		else if(strstr(input,"default_statusmap_layout=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\x0");
-			default_statusmap_layout_method=atoi((temp_buffer==NULL)?"0":temp_buffer);
-		        }
+		else if(!strcmp(var,"default_statusmap_layout"))
+			default_statusmap_layout_method=atoi(val);
 
-		else if(strstr(input,"default_statuswrl_layout=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\x0");
-			default_statuswrl_layout_method=atoi((temp_buffer==NULL)?"0":temp_buffer);
-		        }
+		else if(!strcmp(var,"default_statuswrl_layout"))
+			default_statuswrl_layout_method=atoi(val);
 
-		else if(strstr(input,"statuswrl_include=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				continue;
-			statuswrl_include=strdup(temp_buffer);
-		        }
+		else if(!strcmp(var,"statuswrl_include"))
+			statuswrl_include=strdup(val);
 
-		else if(strstr(input,"ping_syntax=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				continue;
-			ping_syntax=strdup(temp_buffer);
-		        }
+		else if(!strcmp(var,"ping_syntax"))
+			ping_syntax=strdup(val);
 
-		else if((strstr(input,"enable_splunk_integration=")==input)){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				enable_splunk_integration=FALSE;
-			else 
-				enable_splunk_integration=(atoi(temp_buffer)>0)?TRUE:FALSE;
-		        }
+		else if(!strcmp(var,"enable_splunk_integration"))
+			enable_splunk_integration=(atoi(val)>0)?TRUE:FALSE;
 
-		else if(strstr(input,"splunk_url=")==input){
-			temp_buffer=strtok(input,"=");
-			temp_buffer=strtok(NULL,"\n");
-			if(temp_buffer==NULL)
-				continue;
-			splunk_url=strdup(temp_buffer);
-		        }
+		else if(!strcmp(var,"splunk_url"))
+			splunk_url=strdup(val);
 
+		else if(!strcmp(var,"escape_html_tags"))
+			escape_html_tags=(atoi(val)>0)?TRUE:FALSE;
  	        }
 
 	/* free memory and close the file */
@@ -1418,10 +1337,8 @@ char * html_encode(char *input, int escape_newlines){
 		        }
 
 		/* alpha-numeric characters and spaces don't get encoded */
-		else if(((char)input[x]==(char)' ') || ((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z')){
-			encoded_html_string[y]=input[x];
-			y++;
-		        }
+		else if(((char)input[x]==(char)' ') || ((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z'))
+			encoded_html_string[y++]=input[x];
 
 		/* newlines turn to <BR> tags */
 		else if(escape_newlines==TRUE && (char)input[x]==(char)'\n'){
@@ -1438,30 +1355,42 @@ char * html_encode(char *input, int escape_newlines){
 
 		else if((char)input[x]==(char)'<'){
 
-			encoded_html_string[y]='\x0';
-			if((int)strlen(encoded_html_string)<(output_len-4)){
-				strcat(encoded_html_string,"&lt;");
-				y+=4;
-			        }
+			if(escape_html_tags==FALSE)
+				encoded_html_string[y++]=input[x];
+			else{
+				encoded_html_string[y]='\x0';
+				if((int)strlen(encoded_html_string)<(output_len-4)){
+					strcat(encoded_html_string,"&lt;");
+					y+=4;
+					}
+				}
 		        }
 
 		else if((char)input[x]==(char)'>'){
 
-			encoded_html_string[y]='\x0';
-			if((int)strlen(encoded_html_string)<(output_len-4)){
-				strcat(encoded_html_string,"&gt;");
-				y+=4;
-			        }
+			if(escape_html_tags==FALSE)
+				encoded_html_string[y++]=input[x];
+			else{
+				encoded_html_string[y]='\x0';
+				if((int)strlen(encoded_html_string)<(output_len-4)){
+					strcat(encoded_html_string,"&gt;");
+					y+=4;
+					}
+				}
 		        }
 
 		/* for simplicity, all other chars represented by their numeric value */
 		else{
-			encoded_html_string[y]='\x0';
-			sprintf(temp_expansion,"&#%d;",(unsigned int)input[x]);
-			if((int)strlen(encoded_html_string)<(output_len-strlen(temp_expansion))){
-				strcat(encoded_html_string,temp_expansion);
-				y+=strlen(temp_expansion);
-			        }
+			if(escape_html_tags==FALSE)
+				encoded_html_string[y++]=input[x];
+			else{
+				encoded_html_string[y]='\x0';
+				sprintf(temp_expansion,"&#%d;",(unsigned int)input[x]);
+				if((int)strlen(encoded_html_string)<(output_len-strlen(temp_expansion))){
+					strcat(encoded_html_string,temp_expansion);
+					y+=strlen(temp_expansion);
+					}
+				}
 		        }
 	        }
 

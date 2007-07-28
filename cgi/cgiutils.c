@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-23-2007
+ * Last Modified: 07-28-2007
  *
  * License:
  *
@@ -53,6 +53,9 @@ char            *host_unreachable_sound=NULL;
 char            *normal_sound=NULL;
 char            *statusmap_background_image=NULL;
 char            *statuswrl_include=NULL;
+
+char            *notes_url_target=NULL;
+char            *action_url_target=NULL;
 
 char            *ping_syntax=NULL;
 
@@ -387,6 +390,12 @@ int read_cgi_config_file(char *filename){
 
 		else if(!strcmp(var,"ping_syntax"))
 			ping_syntax=strdup(val);
+
+		else if(!strcmp(var,"action_url_target"))
+			action_url_target=strdup(val);
+
+		else if(!strcmp(var,"notes_url_target"))
+			notes_url_target=strdup(val);
 
 		else if(!strcmp(var,"enable_splunk_integration"))
 			enable_splunk_integration=(atoi(val)>0)?TRUE:FALSE;

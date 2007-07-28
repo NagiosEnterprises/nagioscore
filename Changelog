@@ -14,6 +14,7 @@ Nagios 3.x Change Log
 * Program status now updated at least every 5 seconds for addons that watch NDOUtils DB
 * Added escape_html_tags option to CGI config file to escape HTML tags in plugin output
 * Added optional integration with Splunk into the CGIs
+* Added new action and notes URL target frame options to CGI config file
 
 
 

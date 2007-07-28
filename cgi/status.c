@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-17-2007
+ * Last Modified: 07-28-2007
  *
  * License:
  * 
@@ -49,6 +49,9 @@ extern char *service_unknown_sound;
 extern char *host_down_sound;
 extern char *host_unreachable_sound;
 extern char *normal_sound;
+
+extern char *notes_url_target;
+extern char *action_url_target;
 
 extern int suppress_alert_window;
 
@@ -1585,7 +1588,7 @@ void show_service_detail(void){
 					printf("<TD align=center valign=center>");
 					printf("<A HREF='");
 					print_extra_host_url(temp_host->name,temp_host->notes_url);
-					printf("' TARGET='_blank'>");
+					printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
 					printf("</A>");
 					printf("</TD>\n");
@@ -1594,7 +1597,7 @@ void show_service_detail(void){
 					printf("<TD align=center valign=center>");
 					printf("<A HREF='");
 					print_extra_host_url(temp_host->name,temp_host->action_url);
-					printf("' TARGET='_blank'>");
+					printf("' TARGET='%s'>",(action_url_target==NULL)?"_blank":action_url_target);
 					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
 					printf("</A>");
 					printf("</TD>\n");
@@ -1666,7 +1669,7 @@ void show_service_detail(void){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='");
 				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->notes_url);
-				printf("' TARGET='_blank'>");
+				printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Service Notes","View Extra Service Notes");
 				printf("</A>");
 				printf("</TD>\n");
@@ -1675,7 +1678,7 @@ void show_service_detail(void){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='");
 				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->action_url);
-				printf("' TARGET='_blank'>");
+				printf("' TARGET='%s'>",(action_url_target==NULL)?"_blank":action_url_target);
 				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Service Actions","Perform Extra Service Actions");
 				printf("</A>");
 				printf("</TD>\n");
@@ -2055,7 +2058,7 @@ void show_host_detail(void){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='");
 				print_extra_host_url(temp_host->name,temp_host->notes_url);
-				printf("' TARGET='_blank'>");
+				printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
 				printf("</A>");
 				printf("</TD>\n");
@@ -2064,7 +2067,7 @@ void show_host_detail(void){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='");
 				print_extra_host_url(temp_host->name,temp_host->action_url);
-				printf("' TARGET='_blank'>");
+				printf("' TARGET='%s'>",(action_url_target==NULL)?"_blank":action_url_target);
 				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
 				printf("</A>");
 				printf("</TD>\n");
@@ -3169,14 +3172,14 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 		if(temp_host->notes_url!=NULL){
 			printf("<A HREF='");
 			print_extra_host_url(temp_host->name,temp_host->notes_url);
-			printf("' TARGET='_blank'>");
+			printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
 			printf("</A>");
 		        }
 		if(temp_host->action_url!=NULL){
 			printf("<A HREF='");
 			print_extra_host_url(temp_host->name,temp_host->action_url);
-			printf("' TARGET='_blank'>");
+			printf("' TARGET='%s'>",(action_url_target==NULL)?"blank":action_url_target);
 			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
 			printf("</A>");
 		        }
@@ -3463,14 +3466,14 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 	if(temp_host->notes_url!=NULL){
 		printf("<A HREF='");
 		print_extra_host_url(temp_host->name,temp_host->notes_url);
-		printf("' TARGET='_blank'>");
+		printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
 		printf("</A>");
 	        }
 	if(temp_host->action_url!=NULL){
 		printf("<A HREF='");
 		print_extra_host_url(temp_host->name,temp_host->action_url);
-		printf("' TARGET='_blank'>");
+		printf("' TARGET='%s'>",(action_url_target==NULL)?"_blank":action_url_target);
 		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
 		printf("</A>");
 	        }
@@ -4375,14 +4378,14 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 		if(temp_host->notes_url!=NULL){
 			printf("<A HREF='");
 			print_extra_host_url(temp_host->name,temp_host->notes_url);
-			printf("' TARGET='_blank'>");
+			printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
 			printf("</A>");
 		        }
 		if(temp_host->action_url!=NULL){
 			printf("<A HREF='");
 			print_extra_host_url(temp_host->name,temp_host->action_url);
-			printf("' TARGET='_blank'>");
+			printf("' TARGET='%s'>",(action_url_target==NULL)?"_blank":action_url_target);
 			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
 			printf("</A>");
 		        }

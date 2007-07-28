@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-17-2007
+ * Last Modified: 07-28-2007
  *
  * License:
  * 
@@ -66,6 +66,9 @@ extern char url_logo_images_path[MAX_FILENAME_LENGTH];
 extern char log_file[MAX_FILENAME_LENGTH];
 
 extern int              enable_splunk_integration;
+
+extern char             *notes_url_target;
+extern char             *action_url_target;
 
 extern comment           *comment_list;
 extern scheduled_downtime  *scheduled_downtime_list;
@@ -395,7 +398,7 @@ int main(void){
 				printf("<TR><TD ALIGN='right'>\n");
 				printf("<A HREF='");
 				print_extra_host_url(temp_host->name,temp_host->action_url);
-				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Host' title='Perform Additional Actions On This Host'></A>\n",url_images_path,ACTION_ICON);
+				printf("' TARGET='%s'><img src='%s%s' border=0 alt='Perform Additional Actions On This Host' title='Perform Additional Actions On This Host'></A>\n",(action_url_target==NULL)?"_blank":action_url_target,url_images_path,ACTION_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Host Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 				printf("</TD></TR>\n");
 			        }
@@ -403,7 +406,7 @@ int main(void){
 				printf("<TR><TD ALIGN='right'>\n");
 				printf("<A HREF='");
 				print_extra_host_url(temp_host->name,temp_host->notes_url);
-				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Host' title='View Additional Notes For This Host'></A>\n",url_images_path,NOTES_ICON);
+				printf("' TARGET='%s'><img src='%s%s' border=0 alt='View Additional Notes For This Host' title='View Additional Notes For This Host'></A>\n",(notes_url_target==NULL)?"_blank":notes_url_target,url_images_path,NOTES_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Host Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 				printf("</TD></TR>\n");
 			        }
@@ -415,13 +418,13 @@ int main(void){
 			if(temp_service->action_url!=NULL && strcmp(temp_service->action_url,"")){
 				printf("<A HREF='");
 				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->action_url);
-				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Service' title='Perform Additional Actions On This Service'></A>\n",url_images_path,ACTION_ICON);
+				printf("' TARGET='%s'><img src='%s%s' border=0 alt='Perform Additional Actions On This Service' title='Perform Additional Actions On This Service'></A>\n",(action_url_target==NULL)?"_blank":action_url_target,url_images_path,ACTION_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Service Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 			        }
 			if(temp_service->notes_url!=NULL && strcmp(temp_service->notes_url,"")){
 				printf("<A HREF='");
 				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->notes_url);
-				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Service' title='View Additional Notes For This Service'></A>\n",url_images_path,NOTES_ICON);
+				printf("' TARGET='%s'><img src='%s%s' border=0 alt='View Additional Notes For This Service' title='View Additional Notes For This Service'></A>\n",(notes_url_target==NULL)?"_blank":notes_url_target,url_images_path,NOTES_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Service Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 			        }
 			printf("</TABLE>\n");
@@ -433,7 +436,7 @@ int main(void){
 				printf("<TR><TD ALIGN='right'>\n");
 				printf("<A HREF='");
 				print_extra_hostgroup_url(temp_hostgroup->group_name,temp_hostgroup->action_url);
-				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Hostgroup' title='Perform Additional Actions On This Hostgroup'></A>\n",url_images_path,ACTION_ICON);
+				printf("' TARGET='%s'><img src='%s%s' border=0 alt='Perform Additional Actions On This Hostgroup' title='Perform Additional Actions On This Hostgroup'></A>\n",(action_url_target==NULL)?"_blank":action_url_target,url_images_path,ACTION_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Hostgroup Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 				printf("</TD></TR>\n");
 			        }
@@ -441,7 +444,7 @@ int main(void){
 				printf("<TR><TD ALIGN='right'>\n");
 				printf("<A HREF='");
 				print_extra_hostgroup_url(temp_hostgroup->group_name,temp_hostgroup->notes_url);
-				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Hostgroup' title='View Additional Notes For This Hostgroup'></A>\n",url_images_path,NOTES_ICON);
+				printf("' TARGET='%s'><img src='%s%s' border=0 alt='View Additional Notes For This Hostgroup' title='View Additional Notes For This Hostgroup'></A>\n",(notes_url_target==NULL)?"_blank":notes_url_target,url_images_path,NOTES_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Hostgroup Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 				printf("</TD></TR>\n");
 			        }
@@ -453,13 +456,13 @@ int main(void){
 			if(temp_servicegroup->action_url!=NULL && strcmp(temp_servicegroup->action_url,"")){
 				printf("<A HREF='");
 				print_extra_servicegroup_url(temp_servicegroup->group_name,temp_servicegroup->action_url);
-				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Servicegroup' title='Perform Additional Actions On This Servicegroup'></A>\n",url_images_path,ACTION_ICON);
+				printf("' TARGET='%s'><img src='%s%s' border=0 alt='Perform Additional Actions On This Servicegroup' title='Perform Additional Actions On This Servicegroup'></A>\n",(action_url_target==NULL)?"_blank":action_url_target,url_images_path,ACTION_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Servicegroup Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 			        }
 			if(temp_servicegroup->notes_url!=NULL && strcmp(temp_servicegroup->notes_url,"")){
 				printf("<A HREF='");
 				print_extra_servicegroup_url(temp_servicegroup->group_name,temp_servicegroup->notes_url);
-				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Servicegroup' title='View Additional Notes For This Servicegroup'></A>\n",url_images_path,NOTES_ICON);
+				printf("' TARGET='%s'><img src='%s%s' border=0 alt='View Additional Notes For This Servicegroup' title='View Additional Notes For This Servicegroup'></A>\n",(notes_url_target==NULL)?"_blank":notes_url_target,url_images_path,NOTES_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Servicegroup Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 			        }
 			printf("</TABLE>\n");

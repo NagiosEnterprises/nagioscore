@@ -85,6 +85,11 @@ By default, Nagios expects the CGI configuration file to be named <b>cgi.cfg</b>
 <br>
 <a href="#ping_syntax">Ping syntax</a><br>
 <br>
+<a href="#escape_html_tags">Escape HTML tags option</a><br>
+<br>
+<a href="#notes_url_target">Notes URL target</a><br>
+<a href="#action_url_target">Action URL target</a><br>
+<br>
 <a href="#enable_splunk_integration">Splunk integration option</a><br>
 <a href="#splunk_url">Splunk URL</a><br>
 </p>
@@ -644,6 +649,87 @@ These options allow you to specify an audio file that should be played in your b
 <p>
 This option determines what syntax should be used when attempting to ping a host from the WAP interface (using
 the <a href="cgis.html#statuswml_cgi">statuswml CGI</a>.  You must include the full path to the ping binary, along with all required options.  The $HOSTADDRESS$ macro is substituted with the address of the host before the command is executed.
+</p>
+
+
+<p>
+<a name="escape_html_tags"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Escape HTML Tags Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>escape_html_tags=[0/1]</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>escape_html_tags=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines whether or not HTML tags in host and service (plugin) output is escaped in the CGIs.  If you enable this option, your plugin output will not be able to contain clickable hyperlinks.
+</p>
+
+
+<p>
+<a name="notes_url_target"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Notes URL Target</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>notes_url_target=[target]</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>notes_url_target=_blank</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines the name of the frame target that notes URLs should be displayed in.  Valid options include <i>_blank</i>, <i>_self</i>, <i>_top</i>, <i>_parent</i>, or any other valid target name.
+</p>
+
+
+<p>
+<a name="action_url_target"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Action URL Target</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>action_url_target=[target]</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>action_url_target=_blank</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines the name of the frame target that action URLs should be displayed in.  Valid options include <i>_blank</i>, <i>_self</i>, <i>_top</i>, <i>_parent</i>, or any other valid target name.
 </p>
 
 

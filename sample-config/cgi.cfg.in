@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 07-23-2007
+# Last Modified: 07-28-2007
 #
 #################################################################
 
@@ -282,6 +282,15 @@ escape_html_tags=1
 #service_warning_sound=warning.wav
 #service_unknown_sound=warning.wav
 #normal_sound=noproblem.wav
+
+
+
+# URL TARGET FRAMES
+# These options determine the target frames in which notes and 
+# action URLs will open.
+
+action_url_target=_blank
+notes_url_target=_blank
 
 
 

@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-10-2007
+ * Last Modified: 07-30-2007
  *
  * License:
  *
@@ -37,7 +37,7 @@
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        303     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        304     /* increment when changes are made to data structures... */
 	                                                /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -106,12 +106,21 @@ typedef struct daterange_struct{
 	}daterange;
 
 
+/* TIMEPERIODEXCLUSION structure */
+typedef struct timeperiodexclusion_struct{
+	char  *timeperiod_name;
+	struct timeperiod_struct *timeperiod_ptr;
+	struct timeperiodexclusion_struct *next;
+        }timeperiodexclusion;
+
+
 /* TIMEPERIOD structure */
 typedef struct timeperiod_struct{
 	char    *name;
 	char    *alias;
 	timerange *days[7];
 	daterange *exceptions[DATERANGE_TYPES];
+	timeperiodexclusion *exclusions;
 	struct 	timeperiod_struct *next;
 	struct 	timeperiod_struct *nexthash;
 	}timeperiod;
@@ -668,6 +677,7 @@ contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* add
 contactsmember *add_contact_to_host(host *,char *);                                                     /* adds a contact to a host definition */
 customvariablesmember *add_custom_variable_to_host(host *,char *,char *);                               /* adds a custom variable to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */
+timeperiodexclusion *add_exclusion_to_timeperiod(timeperiod *,char *);                                  /* adds an exclusion to a timeperiod */
 timerange *add_timerange_to_timeperiod(timeperiod *,int,unsigned long,unsigned long);			/* adds a timerange to a timeperiod definition */
 daterange *add_exception_to_timeperiod(timeperiod *,int,int,int,int,int,int,int,int,int,int,int,int);
 timerange *add_timerange_to_daterange(daterange *,unsigned long,unsigned long);

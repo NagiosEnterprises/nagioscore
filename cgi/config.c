@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-30-2007
+ * Last Modified: 07-30-2007
  *
  * This CGI program will display various configuration information.
  *
@@ -1410,11 +1410,13 @@ void display_services(void){
 
 
 void display_timeperiods(void){
-	timerange *temp_timerange;
-	daterange *temp_daterange;
-	timeperiod *temp_timeperiod;
+	timerange *temp_timerange=NULL;
+	daterange *temp_daterange=NULL;
+	timeperiod *temp_timeperiod=NULL;
+	timeperiodexclusion *temp_timeperiodexclusion=NULL;
 	char *months[12]={"january","february","march","april","may","june","july","august","september","october","november","december"};
 	char *days[7]={"sunday","monday","tuesday","wednesday","thursday","friday","saturday"};
+	char *temp_ptr=NULL;
 	int odd=0;
 	int day=0;
 	int x=0;
@@ -1424,6 +1426,7 @@ void display_timeperiods(void){
 	int minutes=0;
 	int seconds=0;
 	int line=0;
+	int item=0;
 
 	/* see if user is authorized to view time period information... */
 	if(is_authorized_for_configuration_information(&current_authdata)==FALSE){
@@ -1443,6 +1446,7 @@ void display_timeperiods(void){
 	printf("<TR>\n");
 	printf("<TH CLASS='data'>Name</TH>\n");
 	printf("<TH CLASS='data'>Alias/Description</TH>\n");
+	printf("<TH CLASS='data'>Exclusions</TH>\n");
 	printf("<TH CLASS='data'>Days/Dates</TH>\n");
 	printf("<TH CLASS='data'>Times</TH>\n");
 	printf("</TR>\n");
@@ -1463,6 +1467,15 @@ void display_timeperiods(void){
 
 		printf("<TD CLASS='%s'><A NAME='%s'>%s</A></TD>\n",bg_class,url_encode(temp_timeperiod->name),temp_timeperiod->name);
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_timeperiod->alias);
+
+		printf("<TD CLASS='%s'>",bg_class);
+		item=0;
+		for(temp_timeperiodexclusion=temp_timeperiod->exclusions;temp_timeperiodexclusion!=NULL;temp_timeperiodexclusion=temp_timeperiodexclusion->next){
+			item++;
+			printf("%s<A HREF='#%s'>%s</A>",(item==1)?"":",&nbsp;",url_encode(temp_timeperiodexclusion->timeperiod_name),temp_timeperiodexclusion->timeperiod_name);
+			}
+		printf("</TD>");
+
 		printf("<TD CLASS='%s'>",bg_class);
 
 		line=0;
@@ -1472,7 +1485,7 @@ void display_timeperiods(void){
 				line++;
 
 				if(line>1)
-					printf("<TR><TD COLSPAN='2'></TD><TD CLASS='%s'>\n",bg_class);
+					printf("<TR><TD COLSPAN='3'></TD><TD CLASS='%s'>\n",bg_class);
 
 				switch(temp_daterange->type){
 				case DATERANGE_CALENDAR_DATE:
@@ -1552,7 +1565,7 @@ void display_timeperiods(void){
 			line++;
 
 			if(line>1)
-				printf("<TR><TD COLSPAN='2'></TD><TD CLASS='%s'>\n",bg_class);
+				printf("<TR><TD COLSPAN='3'></TD><TD CLASS='%s'>\n",bg_class);
 
 			printf("%s",days[day]);
 

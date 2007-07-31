@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-10-2007
+ * Last Modified:   07-30-2007
  *
  * License:
  *
@@ -95,6 +95,7 @@ typedef struct xodtemplate_timeperiod_struct{
 	char       *alias;
 	char       *timeranges[7];
 	xodtemplate_daterange *exceptions[DATERANGE_TYPES];
+	char       *exclusions;
 
 	int        has_been_resolved;
 	int        register_object;

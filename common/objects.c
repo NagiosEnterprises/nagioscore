@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 07-30-2007
  *
  * License:
  *
@@ -679,6 +679,7 @@ timeperiod *add_timeperiod(char *name,char *alias){
 		new_timeperiod->exceptions[x]=NULL;
 	for(x=0;x<7;x++)
 		new_timeperiod->days[x]=NULL;
+	new_timeperiod->exclusions=NULL;
 	new_timeperiod->next=NULL;
 	new_timeperiod->nexthash=NULL;
 
@@ -720,6 +721,29 @@ timeperiod *add_timeperiod(char *name,char *alias){
 
 	return new_timeperiod;
         }
+
+
+
+
+/* adds a new exclusion to a timeperiod */
+timeperiodexclusion *add_exclusion_to_timeperiod(timeperiod *period, char *name){
+	timeperiodexclusion *new_timeperiodexclusion=NULL;
+
+	/* make sure we have enough data */
+	if(period==NULL || name==NULL)
+		return NULL;
+
+	if((new_timeperiodexclusion=(timeperiodexclusion *)malloc(sizeof(timeperiodexclusion)))==NULL)
+		return NULL;
+
+	new_timeperiodexclusion->timeperiod_name=(char *)strdup(name);
+
+	new_timeperiodexclusion->next=period->exclusions;
+	period->exclusions=new_timeperiodexclusion;
+
+	return new_timeperiodexclusion;
+	}
+
 
 
 
@@ -3843,6 +3867,8 @@ int free_object_data(void){
 	daterange *next_daterange=NULL;
 	timerange *this_timerange=NULL;
 	timerange *next_timerange=NULL;
+	timeperiodexclusion *this_timeperiodexclusion=NULL;
+	timeperiodexclusion *next_timeperiodexclusion=NULL;
 	host *this_host=NULL;
 	host *next_host=NULL;
 	hostsmember *this_hostsmember=NULL;
@@ -3910,6 +3936,13 @@ int free_object_data(void){
 				my_free((void **)&this_timerange);
 			        }
 		        }
+
+		/* free exclusions */
+		for(this_timeperiodexclusion=this_timeperiod->exclusions;this_timeperiodexclusion!=NULL;this_timeperiodexclusion=next_timeperiodexclusion){
+			next_timeperiodexclusion=this_timeperiodexclusion->next;
+			my_free((void **)&this_timeperiodexclusion->timeperiod_name);
+			my_free((void **)&this_timeperiodexclusion);
+			}
 
 		next_timeperiod=this_timeperiod->next;
 		my_free((void **)&this_timeperiod->name);

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-11-2007
+ * Last Modified:   07-30-2007
  *
  * License:
  *
@@ -2791,6 +2791,8 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int bu
 
 /* see if the specified time falls into a valid time range in the given time period */
 int check_time_against_period(time_t test_time, timeperiod *tperiod){
+	timeperiodexclusion *temp_timeperiodexclusion=NULL;
+	timeperiodexclusion *first_timeperiodexclusion=NULL;
 	daterange *temp_daterange=NULL;
 	timerange *temp_timerange=NULL;
 	unsigned long midnight=0L;
@@ -2813,6 +2815,18 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 	/* if no period was specified, assume the time is good */
 	if(tperiod==NULL)
 		return OK;
+
+	/* test exclusions first - if exclusions match current time, bail out with an error */
+	/* clear exclusions list before recursing (and restore afterwards) to prevent endless loops... */
+	first_timeperiodexclusion=tperiod->exclusions;
+	tperiod->exclusions=NULL;
+	for(temp_timeperiodexclusion=first_timeperiodexclusion;temp_timeperiodexclusion!=NULL;temp_timeperiodexclusion=temp_timeperiodexclusion->next){
+		if(check_time_against_period(test_time,temp_timeperiodexclusion->timeperiod_ptr)==OK){
+			tperiod->exclusions=first_timeperiodexclusion;
+			return ERROR;
+			}
+		}
+	tperiod->exclusions=first_timeperiodexclusion;
 
 	/* save values for later */
 	t=localtime((time_t *)&test_time);

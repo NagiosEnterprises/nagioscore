@@ -53,17 +53,28 @@ Publicly available services that are provided by Linux servers (HTTP, FTP, SSH, 
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample <i>commands.cfg</i> and <i>localhost.cfg</i> config files.
+<img src="images/note.gif" border="0" align="bottom"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample config files (<i>commands.cfg</i>, <i>templates.cfg</i>, etc.) that are installed if you follow the quickstart. 
 </p>
 
 <p>
-<strong><u>TODO</u></strong>
+<strong><u>Overview</u></strong>
 </p>
 
 <p>
-TODO...
+[Note: This document has not been completed.  I would recommend you read the documentation on the <a href="addons.html#nrpe">NRPE addon</a> for instructions on how to monitor a remote Linux/Unix server.]
 </p>
 
+<p>
+There are several different ways to monitor attributes or remote Linux/Unix servers.  One is by using shared SSH keys and the <i>check_by_ssh</i> plugin to execute plugins on remote servers.  This method will not be covered here, but can result in high load on your monitoring server if you are monitoring hundreds or thousands of services.  The overhead of setting up/destroying SSH connections is the cause of this.
+</p>
+
+<img src="images/nrpe.png" border="0" alt="NRPE" title="NRPE" style="float: right; clear: both;">
+
+<p>
+Another common method of monitoring remote Linux/Unix hosts is to use the <a href="addons.html#nrpe">NRPE addon</a>.  NRPE  allows you to execute plugins on remote Linux/Unix hosts.  This is useful if you need to monitor local resources/attributes like disk usage, CPU load, memory usage, etc. on a remote host. 
+</p>
+
+<br clear="all">
 
 <hr>
 

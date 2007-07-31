@@ -1271,6 +1271,7 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Required">alias</td><td class="Required"><i>alias</i></td></tr>
 <tr><td></td><td class="Optional">[weekday]</td><td class="Optional"><i>timeranges</i></td></tr>
 <tr><td></td><td class="Optional">[exception]</td><td class="Optional"><i>timeranges</i></td></tr>
+<tr><td></td><td class="Optional">exclude</td><td class="Optional">[<i>timeperiod1,timeperiod2,...,timeperiodn</i>]</td></tr>
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
@@ -1303,7 +1304,7 @@ define timeperiod{
 	thursday -1 november	00:00-24:00		; Last Thursday in November of every year
 	}
 	
-define timeperod{
+define timeperiod{
 	timeperiod_name		misc-date-ranges
 	alias			Misc Date Ranges
 	2007-01-01 - 2008-02-01	00:00-24:00		; January 1st, 2007 to February 1st, 2008
@@ -1315,7 +1316,7 @@ define timeperod{
 	tuesday 1 april - friday 2 may	00:00-24:00	; 1st Tuesday in April to 2nd Friday in May of every year
 	}
 
-define timeperod{
+define timeperiod{
 	timeperiod_name		misc-skip-ranges
 	alias			Misc Skip Ranges
 	2007-01-01 - 2008-02-01 / 3		00:00-24:00	; Every 3 days from January 1st, 2007 to February 1st, 2008
@@ -1353,11 +1354,14 @@ The weekday directives ("<i>sunday</i>" through "<i>saturday</i>")are comma-deli
 <td valign="top"><strong>[<i>exception</i>]</strong>:</td>
 <td>
 <p>
-You can specify several different types of exceptions to the standard rotating weekday schedule.  Exceptions can take a number of different forms including single days of a specific or generic month, single weekdays in a month, or single calendar dates.  You can also specify a range of days/dates and even specify skip intervals to obtain functionality described by "every 3 days between these dates".  Rather than list all the possible formats for exception strings, I'll let you look at the example timeperiod definitions above to see what's possible. :-)
+You can specify several different types of exceptions to the standard rotating weekday schedule.  Exceptions can take a number of different forms including single days of a specific or generic month, single weekdays in a month, or single calendar dates.  You can also specify a range of days/dates and even specify skip intervals to obtain functionality described by "every 3 days between these dates".  Rather than list all the possible formats for exception strings, I'll let you look at the example timeperiod definitions above to see what's possible. :-)  Weekdays and different types of exceptions all have different levels of precedence, so its important to understand how they can affect each other.  More information on this can be found in the documentation on <a href="timeperiods.html">timeperiods</a>.
 </p>
-<p>
-Weekdays and different types of exceptions all have different levels of precedence, so its important to understand how they can affect each other.  More information on this can be found in the documentation on <a href="timeperiods.html">timeperiods</a>.
-</p>
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>exclude</strong>:</td>
+<td>
+This directive is used to specify the short names of other timeperiod definitions whose time ranges should be excluded from this timeperiod.  Multiple timeperiod names should be separated with a comma.
 </td>
 </tr>
 </table>

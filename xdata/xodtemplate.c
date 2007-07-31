@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 07-30-2007
  *
  * Description:
  *
@@ -1021,6 +1021,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 			new_timeperiod->timeranges[x]=NULL;
 		for(x=0;x<DATERANGE_TYPES;x++)
 			new_timeperiod->exceptions[x]=NULL;
+		new_timeperiod->exclusions=NULL;
 		new_timeperiod->has_been_resolved=FALSE;
 		new_timeperiod->register_object=TRUE;
 
@@ -1935,6 +1936,10 @@ int xodtemplate_add_object_property(char *input, int options){
 				result=ERROR;
 		        }
 		*/
+		else if(!strcmp(variable,"exclude")){
+			if((temp_timeperiod->exclusions=(char *)strdup(value))==NULL)
+				result=ERROR;
+			}
 		else if(!strcmp(variable,"register"))
 			temp_timeperiod->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else if(xodtemplate_parse_timeperiod_directive(temp_timeperiod,variable,value)==OK)
@@ -6444,6 +6449,8 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			this_timeperiod->timeperiod_name=(char *)strdup(template_timeperiod->timeperiod_name);
 		if(this_timeperiod->alias==NULL && template_timeperiod->alias!=NULL)
 			this_timeperiod->alias=(char *)strdup(template_timeperiod->alias);
+		if(this_timeperiod->exclusions==NULL && template_timeperiod->exclusions!=NULL)
+			this_timeperiod->exclusions=(char *)strdup(template_timeperiod->exclusions);
 		for(x=0;x<7;x++){
 			if(this_timeperiod->timeranges[x]==NULL && template_timeperiod->timeranges[x]!=NULL){
 				this_timeperiod->timeranges[x]=(char *)strdup(template_timeperiod->timeranges[x]);
@@ -9067,11 +9074,13 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	timeperiod *new_timeperiod=NULL;
 	daterange *new_daterange=NULL;
 	timerange *new_timerange=NULL;
+	timeperiodexclusion *new_timeperiodexclusion=NULL;
 	int day=0;
 	int range=0;
 	int x=0;
 	char *day_range_ptr=NULL;
 	char *day_range_start_buffer=NULL;
+	char *temp_ptr=NULL;
 	unsigned long range_start_time=0L;
 	unsigned long range_end_time=0L;
 #ifdef NSCORE
@@ -9182,6 +9191,22 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 		        }
 		
 	        }
+
+	/* add timeperiod exclusions */
+	if(this_timeperiod->exclusions){
+		for(temp_ptr=strtok(this_timeperiod->exclusions,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+			strip(temp_ptr);
+			new_timeperiodexclusion=add_exclusion_to_timeperiod(new_timeperiod,temp_ptr);
+			if(new_timeperiodexclusion==NULL){
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Could not add excluded timeperiod '%s' to timeperiod (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				return ERROR;
+				}
+			}
+		}
 
 	return OK;
         }
@@ -10976,6 +11001,8 @@ int xodtemplate_cache_objects(char *cache_file){
 
 			fprintf(fp,"\t%s\t%s\n",days[x],temp_timeperiod->timeranges[x]);
 		        }
+		if(temp_timeperiod->exclusions)
+			fprintf(fp,"\texclude\t%s\n",temp_timeperiod->exclusions);
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -11579,6 +11606,7 @@ int xodtemplate_free_memory(void){
 				my_free((void **)&this_daterange);
 				}
 			}
+		my_free((void **)&this_timeperiod->exclusions);
 		my_free((void **)&this_timeperiod);
 	        }
 	xodtemplate_timeperiod_list=NULL;

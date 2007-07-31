@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0b1 - ??/??/2007
+3.0b1 - 07/31/2007
 ------------------
 * Fixed bug with processing epn directives in Perl plugins
 * Fixed bug with check_result_path config option being ignored
@@ -15,6 +15,7 @@ Nagios 3.x Change Log
 * Added escape_html_tags option to CGI config file to escape HTML tags in plugin output
 * Added optional integration with Splunk into the CGIs
 * Added new action and notes URL target frame options to CGI config file
+* Added new 'exclude' option to timeperiod definitions for easy on-call rotation definitions
 
 
 

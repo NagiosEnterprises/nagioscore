@@ -28,7 +28,7 @@ or...<br>
 
 <p>
 <img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="notifications.html">Notifications</a>, <a href="escalations.html">Notification Escalations</a>, <a href="dependencies.html">Dependencies</a>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="oncallrotation.html">On-Call Rotations</a>, <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="notifications.html">Notifications</a>, <a href="escalations.html">Notification Escalations</a>, <a href="dependencies.html">Dependencies</a>
 </p>
 
 <p>
@@ -115,6 +115,10 @@ By specifying a timeperiod in the <i>notification_period</i> directive of a host
 
 <p>
 You can also use timeperiods to control when notifications can be sent out to individual contacts.  By using the <i>service_notification_period</i> and <i>host_notification_period</i> directives in <a href="objectdefinitions.html#contact">contact definitions</a>, you're able to essentially define an "on call" period for each contact.  Contacts will only receive host and service notifications during the times you specify in the notification period directives.
+</p>
+
+<p>
+Examples of how to create timeperiod definitions for use for on-call rotations can be found <a href="oncallrotation.html">here</a>.
 </p>
 
 <p>

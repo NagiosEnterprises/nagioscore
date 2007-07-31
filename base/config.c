@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-11-2007
+ * Last Modified: 07-30-2007
  *
  * License:
  *
@@ -1693,6 +1693,8 @@ int pre_flight_object_check(int *w, int *e){
 	service *temp_service2=NULL;
 	command *temp_command=NULL;
 	timeperiod *temp_timeperiod=NULL;
+	timeperiod *temp_timeperiod2=NULL;
+	timeperiodexclusion *temp_timeperiodexclusion=NULL;
 	serviceescalation *temp_se=NULL;
 	hostescalation *temp_he=NULL;
 	servicedependency *temp_sd=NULL;
@@ -2586,6 +2588,21 @@ int pre_flight_object_check(int *w, int *e){
 			my_free((void **)&temp_buffer);
 			errors++;
 		        }
+
+		/* check for valid timeperiod names in exclusion list */
+		for(temp_timeperiodexclusion=temp_timeperiod->exclusions;temp_timeperiodexclusion!=NULL;temp_timeperiodexclusion=temp_timeperiodexclusion->next){
+
+		        temp_timeperiod2=find_timeperiod(temp_timeperiodexclusion->timeperiod_name);
+			if(temp_timeperiod2==NULL){
+				asprintf(&temp_buffer,"Error: Excluded time period '%s' specified in timeperiod '%s' is not defined anywhere!",temp_timeperiodexclusion->timeperiod_name,temp_timeperiod->name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the timeperiod pointer for later */
+			temp_timeperiodexclusion->timeperiod_ptr=temp_timeperiod2;
+			}
 	        }
 
 	if(verify_config==TRUE)

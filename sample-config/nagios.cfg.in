@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 05-31-2007
+# Last Modified: 08-02-2007
 #
 ##############################################################################
 
@@ -447,6 +447,9 @@ max_check_result_reaper_time=30
 # CHECK RESULT PATH
 # This is directory where Nagios stores the results of host and
 # service checks that have not yet been processed.
+#
+# Note: Make sure that only one instance of Nagios has access
+# to this directory!  
 
 check_result_path=@CHECKRESULTDIR@
 

@@ -1762,6 +1762,10 @@ This option allows you to control the maximum amount of time <i>in seconds</i> t
 This options determines which directory Nagios will use to temporarily store host and service check results before they are processed.  This directory should not be used to store any other files, as Nagios will periodically clean this directory of old file (see the <a href="#max_check_result_file_age">max_check_result_file_age</a> option for more information).
 </p>
 
+<p>
+Note: Make sure that only a single instance of Nagios has access to the check result path.  If multiple instances of Nagios have their check result path set to the same directory, you will run into problems with check results being processed (incorrectly) by the wrong instance of Nagios!
+</p>
+
 
 <p>
 <a name="max_check_result_file_age"></a>

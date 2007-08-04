@@ -3,6 +3,13 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0b2 - ??/??/2007
+------------------
+* Fix for some sample config files getting installed with .sample extension
+* Improvements to the host check logic performance (more use of cached and parallel checks)
+
+
+
 3.0b1 - 07/31/2007
 ------------------
 * Fixed bug with processing epn directives in Perl plugins

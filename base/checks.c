@@ -992,10 +992,10 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 			/* 08/04/07 EG launch an async (parallel) host check unless aggressive host checking is enabled */
 			/* previous logic was to simply run a sync (serial) host check */
+			/* do NOT allow cached check results to happen here - we need the host to be checked for real... */
 			if(use_aggressive_host_checking==TRUE)
-				perform_on_demand_host_check(temp_host,NULL,CHECK_OPTION_NONE,TRUE,cached_host_check_horizon);
+				perform_on_demand_host_check(temp_host,NULL,CHECK_OPTION_NONE,FALSE,0L);
 			else
-				/* do NOT allow cached check results to happen here - we need the host to be checked for real... */
 				run_async_host_check_3x(temp_host,CHECK_OPTION_NONE,0.0,FALSE,FALSE,NULL,NULL);
 			}
 	        }
@@ -2666,6 +2666,12 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	/* is the host check viable at this time? */
 	if(check_host_check_viability_3x(hst,check_options,time_is_valid,preferred_time)==ERROR)
 		return ERROR;
+
+	/* 08/04/07 EG don't execute a new host check if one is already running */
+	if(hst->is_executing==TRUE && !(check_options & CHECK_OPTION_FORCE_EXECUTION)){
+		log_debug_info(DEBUGL_CHECKS,1,"A check of this host is already being executed, so we'll pass for the moment...\n");
+		return ERROR;
+		}
 
 	/******** GOOD TO GO FOR A REAL HOST CHECK AT THIS POINT ********/
 

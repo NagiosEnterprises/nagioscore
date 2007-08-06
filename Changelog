@@ -7,6 +7,7 @@ Nagios 3.x Change Log
 ------------------
 * Fix for some sample config files getting installed with .sample extension
 * Improvements to the host check logic performance (more use of cached and parallel checks)
+* Minor bug fix with notification timeout error messages
 
 
 

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-26-2007
+ * Last Modified:   08-06-2007
  *
  * License:
  *
@@ -673,7 +673,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 
 			/* check to see if the notification command timed out */
 			if(early_timeout==TRUE){
-				asprintf(&temp_buffer,"Warning: Contact '%s' service notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,DEFAULT_NOTIFICATION_TIMEOUT);
+				asprintf(&temp_buffer,"Warning: Contact '%s' service notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,notification_timeout);
 				write_to_logs_and_console(temp_buffer,NSLOG_SERVICE_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE);
 				my_free((void **)&temp_buffer);
 			        }
@@ -1411,7 +1411,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 
 			/* check to see if the notification timed out */
 			if(early_timeout==TRUE){
-				asprintf(&temp_buffer,"Warning: Contact '%s' host notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,DEFAULT_NOTIFICATION_TIMEOUT);
+				asprintf(&temp_buffer,"Warning: Contact '%s' host notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,notification_timeout);
 				write_to_logs_and_console(temp_buffer,NSLOG_HOST_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE);
 				my_free((void **)&temp_buffer);
 			        }

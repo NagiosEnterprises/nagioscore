@@ -3,11 +3,13 @@ Nagios 2.x Change Log
 #####################
 
 
-2.9.1 - ??/??/2007
+2.10 - ??/??/2007
 ------------------
 * Added 'make install-webconf' command to install Apache web config file
 * Sample config files are now installed without a -sample extension
 * Fix for SIGTERMs being seen as SIGEXITs, non-logging of SIGTERMs/shutdowns
+* Minor fix for notification timeout log messages
+
 
 
 2.9 - 04/10/2007

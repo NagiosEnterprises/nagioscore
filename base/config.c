@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-30-2007
+ * Last Modified: 08-14-2007
  *
  * License:
  *
@@ -1689,6 +1689,7 @@ int pre_flight_object_check(int *w, int *e){
 	hostgroupmember *temp_hostgroupmember=NULL;
 	servicegroup *temp_servicegroup=NULL;
 	servicegroupmember *temp_servicegroupmember=NULL;
+	servicesmember *temp_servicesmember=NULL;
 	service *temp_service=NULL;
 	service *temp_service2=NULL;
 	command *temp_command=NULL;
@@ -1743,6 +1744,9 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* save the host pointer for later */
 		temp_service->host_ptr=temp_host;
+
+		/* add a reverse link from the host to the service for faster lookups later */
+		add_service_link_to_host(temp_host,temp_service);
 
 		/* check the event handler command */
 		if(temp_service->event_handler!=NULL){
@@ -2029,6 +2033,9 @@ int pre_flight_object_check(int *w, int *e){
 
 			/* save the parent host pointer for later */
 			temp_hostsmember->host_ptr=temp_host2;
+
+			/* add a reverse (child) link to make searches faster later on */
+			add_child_link_to_host(temp_host2,temp_host);
 		        }
 
 		/* check for sane recovery options */
@@ -2280,12 +2287,6 @@ int pre_flight_object_check(int *w, int *e){
 	/*****************************************/
 	if(verify_config==TRUE)
 		printf("Checking contact groups...\n");
-	if(contactgroup_list==NULL){
-		asprintf(&temp_buffer,"Error: There are no contact groups defined!\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
-		errors++;
-	        }
 	for(temp_contactgroup=contactgroup_list,total_objects=0;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next,total_objects++){
 
 		found=FALSE;

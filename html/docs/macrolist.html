@@ -241,6 +241,26 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
+<td class='MacroName'><a href="#totalhostservices">$TOTALHOSTSERVICES$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostservicesok">$TOTALHOSTSERVICESOK$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostserviceswarning">$TOTALHOSTSERVICESWARNING$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostservicesunknown">$TOTALHOSTSERVICESUNKNOWN$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostservicescritical">$TOTALHOSTSERVICESCRITICAL$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
 <td colspan='9' class='MacroType'>Service Macros:</td>
 </tr>
 <tr>
@@ -269,6 +289,10 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 <tr>
 <td class='MacroName'><a href="#maxserviceattempts">$MAXSERVICEATTEMPTS$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#serviceisvolatile">$SERVICEISVOLATILE$</a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
@@ -831,6 +855,36 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 
 <tr>
+<a name="totalhostservices"></a>
+<td class="MacroName">$TOTALHOSTSERVICES$</td>
+<td class="MacroDescription">The total number of services associated with the host.</td>
+</tr>
+
+<tr>
+<a name="totalhostservicesok"></a>
+<td class="MacroName">$TOTALHOSTSERVICESOK$</td>
+<td class="MacroDescription">The total number of services associated with the host that are in an OK state.</td>
+</tr>
+
+<tr>
+<a name="totalhostserviceswarning"></a>
+<td class="MacroName">$TOTALHOSTSERVICESWARNING$</td>
+<td class="MacroDescription">The total number of services associated with the host that are in a WARNING state.</td>
+</tr>
+
+<tr>
+<a name="totalhostservicesunknown"></a>
+<td class="MacroName">$TOTALHOSTSERVICESUNKNOWN$</td>
+<td class="MacroDescription">The total number of services associated with the host that are in an UNKNOWN state.</td>
+</tr>
+
+<tr>
+<a name="totalhostservicescritical"></a>
+<td class="MacroName">$TOTALHOSTSERVICESCRITICAL$</td>
+<td class="MacroDescription">The total number of services associated with the host that are in a CRITICAL state.</td>
+</tr>
+
+<tr>
 <td colspan='2' class='MacroType'>Service Macros:</td>
 </tr>
 
@@ -874,6 +928,12 @@ The tables below list all macros currently available in Nagios, along with a bri
 <a name="maxserviceattempts"></a>
 <td class="MacroName">$MAXSERVICEATTEMPTS$</td>
 <td class="MacroDescription">The max check attempts as defined for the current service. Useful when writing host event handlers for "soft" states that take a specific action based on the service retry number.</td>
+</tr>
+
+<tr>
+<a name="serviceisvolatile"></a>
+<td class="MacroName">$SERVICEISVOLATILE$</td>
+<td class="MacroDescription">Indicates whether the service is marked as being volatile or not: 0 = not volatile, 1 = volatile.</td>
 </tr>
 
 <tr>

@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-30-2007
+ * Last Modified: 08-14-2007
  *
  * License:
  *
@@ -37,7 +37,7 @@
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        304     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        305     /* increment when changes are made to data structures... */
 	                                                /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -237,6 +237,17 @@ typedef struct contactsmember_struct{
         }contactsmember;
 
 
+/* SERVICESMEMBER structure */
+typedef struct servicesmember_struct{
+	char    *host_name;
+	char    *service_description;
+#ifdef NSCORE
+	service *service_ptr;
+#endif
+	struct servicesmember_struct *next;
+        }servicesmember;
+
+
 /* HOSTSMEMBER structure */
 typedef struct hostsmember_struct{
 	char    *host_name;
@@ -277,6 +288,8 @@ struct host_struct{
 	char	*alias;
 	char    *address;
         hostsmember *parent_hosts;
+        hostsmember *child_hosts;
+	servicesmember *services;
 	char    *host_check_command;
 	int     initial_state;
 	double  check_interval;
@@ -673,6 +686,7 @@ commandsmember *add_host_notification_command_to_contact(contact *,char *);				/
 customvariablesmember *add_custom_variable_to_contact(contact *,char *,char *);                         /* adds a custom variable to a service definition */
 host *add_host(char *,char *,char *,char *,char *,int,double,double,int,int,int,int,int,int,double,double,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
+hostsmember *add_child_link_to_host(host *,host *);						        /* adds a child host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 contactsmember *add_contact_to_host(host *,char *);                                                     /* adds a contact to a host definition */
 customvariablesmember *add_custom_variable_to_host(host *,char *,char *);                               /* adds a custom variable to a host definition */
@@ -736,8 +750,6 @@ service * find_service(char *,char *);								/* finds a service object */
 /**** Object Traversal Functions ****/
 void move_first_service(void);									/* sets up the static memory area for get_next_service */
 service *get_next_service(void);								/* returns the next service, NULL at the end of the list */
-int find_all_services_by_host(char *);							        /* sets up the static memory area for get_next_service_by_host */
-service *get_next_service_by_host(void);							/* returns the next service for the host, NULL at the end of the list */
 void move_first_host(void);									/* sets up the static memory area for get_next_host */
 host *get_next_host(void);									/* returns the next host, NULL at the end of the list */
 void *get_host_cursor(void);					                                /* allocate memory for the host cursor */

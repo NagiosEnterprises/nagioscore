@@ -3,7 +3,7 @@
  * SHOWLOG.C - Nagios Log File CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-17-2007
+ * Last Modified: 08-14-2007
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -421,6 +421,14 @@ int display_log(void){
 			else if(strstr(input,"EXTERNAL COMMAND:")){
 				strcpy(image,EXTERNAL_COMMAND_ICON);
 				strcpy(image_alt,EXTERNAL_COMMAND_ICON_ALT);
+			        }
+			else if(strstr(input,"PASSIVE SERVICE CHECK:")){
+				strcpy(image,PASSIVE_ICON);
+				strcpy(image_alt,"Passive Service Check");
+			        }
+			else if(strstr(input,"PASSIVE HOST CHECK:")){
+				strcpy(image,PASSIVE_ICON);
+				strcpy(image_alt,"Passive Host Check");
 			        }
 			else if(strstr(input,"LOG ROTATION:")){
 				strcpy(image,LOG_ROTATION_ICON);

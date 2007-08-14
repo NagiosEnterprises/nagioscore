@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-20-2007
+ * Last Modified:   08-14-2007
  *
  * License:
  *
@@ -699,7 +699,8 @@ int process_external_command1(char *cmd){
 
 	/* log the external command */
 	asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s\n",command_id,args);
-	if(command_type==CMD_PROCESS_SERVICE_CHECK_RESULT){
+	if(command_type==CMD_PROCESS_SERVICE_CHECK_RESULT || command_type==CMD_PROCESS_HOST_CHECK_RESULT){
+		/* passive checks are logged in checks.c as well, as some my bypass external commands by getting dropped in checkresults dir */
 		if(log_passive_checks==TRUE)
 			write_to_all_logs(temp_buffer,NSLOG_PASSIVE_CHECK);
 	        }
@@ -1118,6 +1119,7 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 	char *host_name=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	servicesmember *temp_servicesmember=NULL;
 	char *str=NULL;
 	int intval=0;
 
@@ -1155,25 +1157,25 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 
 	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
 	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
-		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-			if(!strcmp(temp_service->host_name,host_name)){
-				if(cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)
-					enable_service_notifications(temp_service);
-				else
-					disable_service_notifications(temp_service);
-		                }
+		for(temp_servicesmember=temp_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+			if((temp_service=temp_servicesmember->service_ptr)==NULL)
+				continue;
+			if(cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)
+				enable_service_notifications(temp_service);
+			else
+				disable_service_notifications(temp_service);
 		        }
 		break;
 
 	case CMD_ENABLE_HOST_SVC_CHECKS:
 	case CMD_DISABLE_HOST_SVC_CHECKS:
-		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-			if(!strcmp(temp_service->host_name,host_name)){
-				if(cmd==CMD_ENABLE_HOST_SVC_CHECKS)
-					enable_service_checks(temp_service);
-				else
-					disable_service_checks(temp_service);
-		                }
+		for(temp_servicesmember=temp_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+			if((temp_service=temp_servicesmember->service_ptr)==NULL)
+				continue;
+			if(cmd==CMD_ENABLE_HOST_SVC_CHECKS)
+				enable_service_checks(temp_service);
+			else
+				disable_service_checks(temp_service);
 	                } 
 		break;
 
@@ -1239,6 +1241,7 @@ int process_hostgroup_command(int cmd, time_t entry_time, char *args){
 	hostgroupmember *temp_member=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	servicesmember *temp_servicesmember=NULL;
 
 	/* get the hostgroup name */
 	if((hostgroup_name=my_strtok(args,";"))==NULL)
@@ -1284,38 +1287,38 @@ int process_hostgroup_command(int cmd, time_t entry_time, char *args){
 		default:
 
 			/* loop through all services on the host */
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-				if(!strcmp(temp_service->host_name,temp_host->name)){
+			for(temp_servicesmember=temp_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+				if((temp_service=temp_servicesmember->service_ptr)==NULL)
+					continue;
 					
-					switch(cmd){
+				switch(cmd){
 
-					case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-						enable_service_notifications(temp_service);
-						break;
+				case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+					enable_service_notifications(temp_service);
+					break;
 
-					case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-						disable_service_notifications(temp_service);
-						break;
+				case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+					disable_service_notifications(temp_service);
+					break;
 
-					case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
-						enable_service_checks(temp_service);
-						break;
+				case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
+					enable_service_checks(temp_service);
+					break;
 
-					case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
-						disable_service_checks(temp_service);
-						break;
+				case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
+					disable_service_checks(temp_service);
+					break;
 
-					case CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
-						enable_passive_service_checks(temp_service);
-						break;
+				case CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
+					enable_passive_service_checks(temp_service);
+					break;
 
-					case CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
-						disable_passive_service_checks(temp_service);
-						break;
+				case CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
+					disable_passive_service_checks(temp_service);
+					break;
 
-					default:
-						break;
-					        }
+				default:
+					break;
 				        }
 			        }
 			
@@ -1814,6 +1817,7 @@ int cmd_schedule_check(int cmd,char *args){
 	char *temp_ptr=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	servicesmember *temp_servicesmember=NULL;
 	char *host_name=NULL;
 	char *svc_description=NULL;
 	time_t delay_time=0L;
@@ -1849,9 +1853,10 @@ int cmd_schedule_check(int cmd,char *args){
 	if(cmd==CMD_SCHEDULE_HOST_CHECK || cmd==CMD_SCHEDULE_FORCED_HOST_CHECK)
 		schedule_host_check(temp_host,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_CHECK)?TRUE:FALSE);
 	else if(cmd==CMD_SCHEDULE_HOST_SVC_CHECKS || cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS){
-		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-			if(!strcmp(temp_service->host_name,host_name))
-				schedule_service_check(temp_service,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS)?TRUE:FALSE);
+		for(temp_servicesmember=temp_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+			if((temp_service=temp_servicesmember->service_ptr)==NULL)
+				continue;
+			schedule_service_check(temp_service,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS)?TRUE:FALSE);
 		        }
 	        }
 	else
@@ -1866,6 +1871,8 @@ int cmd_schedule_check(int cmd,char *args){
 int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 	char *temp_ptr=NULL;
 	service *temp_service=NULL;
+	servicesmember *temp_servicesmember=NULL;
+	host *temp_host=NULL;
 	char *host_name=NULL;
 	time_t delay_time=0L;
 
@@ -1874,7 +1881,7 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 		return ERROR;
 
 	/* verify that the host is valid */
-	if(find_host(host_name)==NULL)
+	if((temp_host=find_host(host_name))==NULL)
 		return ERROR;
 
 	/* get the next check time */
@@ -1883,9 +1890,10 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 	delay_time=strtoul(temp_ptr,NULL,10);
 
 	/* reschedule all services on the specified host */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-		if(!strcmp(temp_service->host_name,host_name))
-			schedule_service_check(temp_service,delay_time,force);
+	for(temp_servicesmember=temp_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+		if((temp_service=temp_servicesmember->service_ptr)==NULL)
+			continue;
+		schedule_service_check(temp_service,delay_time,force);
 	        }
 
 	return OK;
@@ -2323,6 +2331,7 @@ int cmd_remove_acknowledgement(int cmd,char *args){
 
 /* schedules downtime for a specific host or service */
 int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
+	servicesmember *temp_servicesmember=NULL;
 	service *temp_service=NULL;
 	host *temp_host=NULL;
 	host *last_host=NULL;
@@ -2438,9 +2447,10 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 		break;
 
 	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
-		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-			if(!strcmp(temp_service->host_name,host_name))
-				schedule_downtime(SERVICE_DOWNTIME,host_name,temp_service->description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
+		for(temp_servicesmember=temp_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+			if((temp_service=temp_servicesmember->service_ptr)==NULL)
+				continue;
+			schedule_downtime(SERVICE_DOWNTIME,host_name,temp_service->description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 	                }
 		break;
 
@@ -2451,9 +2461,12 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 
 	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
 		for(temp_hgmember=temp_hostgroup->members;temp_hgmember!=NULL;temp_hgmember=temp_hgmember->next){
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-				if(!strcmp(temp_service->host_name,temp_hgmember->host_name))
-					schedule_downtime(SERVICE_DOWNTIME,temp_service->host_name,temp_service->description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
+			if((temp_host=temp_hgmember->host_ptr)==NULL)
+				continue;
+			for(temp_servicesmember=temp_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+				if((temp_service=temp_servicesmember->service_ptr)==NULL)
+					continue;
+				schedule_downtime(SERVICE_DOWNTIME,temp_service->host_name,temp_service->description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 		                }
 		        }
 		break;
@@ -3361,31 +3374,34 @@ void disable_host_notifications(host *hst){
 
 /* enables notifications for all hosts and services "beyond" a given host */
 void enable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services){
-	host *temp_host=NULL;
+	host *child_host=NULL;
 	service *temp_service=NULL;
+	servicesmember *temp_servicesmember=NULL;
+	hostsmember *temp_hostsmember=NULL;
 
 	/* enable notification for top level host */
 	if(affect_top_host==TRUE && level==0)
 		enable_host_notifications(hst);
 
 	/* check all child hosts... */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+	for(temp_hostsmember=hst->child_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
-		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
+		if((child_host=temp_hostsmember->host_ptr)==NULL)
+			continue;
 
-			/* recurse... */
-			enable_and_propagate_notifications(temp_host,level+1,affect_top_host,affect_hosts,affect_services);
+		/* recurse... */
+		enable_and_propagate_notifications(child_host,level+1,affect_top_host,affect_hosts,affect_services);
 
-			/* enable notifications for this host */
-			if(affect_hosts==TRUE)
-				enable_host_notifications(temp_host);
+		/* enable notifications for this host */
+		if(affect_hosts==TRUE)
+			enable_host_notifications(child_host);
 
-			/* enable notifications for all services on this host... */
-			if(affect_services==TRUE){
-				for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-					if(!strcmp(temp_service->host_name,temp_host->name))
-						enable_service_notifications(temp_service);
-				        }
+		/* enable notifications for all services on this host... */
+		if(affect_services==TRUE){
+			for(temp_servicesmember=child_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+				if((temp_service=temp_servicesmember->service_ptr)==NULL)
+					continue;
+				enable_service_notifications(temp_service);
 		                }
 	                }
 	        }
@@ -3396,8 +3412,10 @@ void enable_and_propagate_notifications(host *hst, int level, int affect_top_hos
 
 /* disables notifications for all hosts and services "beyond" a given host */
 void disable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services){
-	host *temp_host=NULL;
+	host *child_host=NULL;
 	service *temp_service=NULL;
+	servicesmember *temp_servicesmember=NULL;
+	hostsmember *temp_hostsmember=NULL;
 
 	if(hst==NULL)
 		return;
@@ -3407,23 +3425,24 @@ void disable_and_propagate_notifications(host *hst, int level, int affect_top_ho
 		disable_host_notifications(hst);
 
 	/* check all child hosts... */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+	for(temp_hostsmember=hst->child_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
-		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
+		if((child_host=temp_hostsmember->host_ptr)==NULL)
+			continue;
 
-			/* recurse... */
-			disable_and_propagate_notifications(temp_host,level+1,affect_top_host,affect_hosts,affect_services);
+		/* recurse... */
+		disable_and_propagate_notifications(child_host,level+1,affect_top_host,affect_hosts,affect_services);
 
-			/* disable notifications for this host */
-			if(affect_hosts==TRUE)
-				disable_host_notifications(temp_host);
+		/* disable notifications for this host */
+		if(affect_hosts==TRUE)
+			disable_host_notifications(child_host);
 
-			/* disable notifications for all services on this host... */
-			if(affect_services==TRUE){
-				for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-					if(!strcmp(temp_service->host_name,temp_host->name))
-						disable_service_notifications(temp_service);
-				        }
+		/* disable notifications for all services on this host... */
+		if(affect_services==TRUE){
+			for(temp_servicesmember=child_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+				if((temp_service=temp_servicesmember->service_ptr)==NULL)
+					continue;
+				disable_service_notifications(temp_service);
 	                        }
 	                }
 	        }
@@ -3543,19 +3562,20 @@ void disable_contact_service_notifications(contact *cntct){
 
 /* schedules downtime for all hosts "beyond" a given host */
 void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration){
-	host *this_host=NULL;
+	host *child_host=NULL;
+	hostsmember *temp_hostsmember=NULL;
 
 	/* check all child hosts... */
-	for(this_host=host_list;this_host!=NULL;this_host=this_host->next){
+	for(temp_hostsmember=temp_host->child_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
-		if(is_host_immediate_child_of_host(temp_host,this_host)==TRUE){
+		if((child_host=temp_hostsmember->host_ptr)==NULL)
+			continue;
 
-			/* recurse... */
-			schedule_and_propagate_downtime(this_host,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration);
+		/* recurse... */
+		schedule_and_propagate_downtime(child_host,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration);
 
-			/* schedule downtime for this host */
-			schedule_downtime(HOST_DOWNTIME,this_host->name,NULL,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,NULL);
-	                }
+		/* schedule downtime for this host */
+		schedule_downtime(HOST_DOWNTIME,child_host->name,NULL,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,NULL);
 	        }
 
 	return;

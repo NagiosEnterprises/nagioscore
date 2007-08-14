@@ -8,6 +8,9 @@ Nagios 3.x Change Log
 * Fix for some sample config files getting installed with .sample extension
 * Improvements to the host check logic performance (more use of cached and parallel checks)
 * Minor bug fix with notification timeout error messages
+* Fix bug with logging of passive host and service check results
+* Fixed bug with warning about no contactgroups being defined
+* New macros: $SERVICEISVOLATILE$, $TOTALHOSTSERVICES$, $TOTALHOSTSERVICESOK$, $TOTALHOSTSERVICESWARNING$, $TOTALHOSTSERVICESUNKNOWN$, $TOTALHOSTSERVICESCRITICAL$
 
 
 

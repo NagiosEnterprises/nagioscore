@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-30-2007
+ * Last Modified:   08-14-2007
  *
  * License:
  *
@@ -554,6 +554,10 @@ int grab_service_macros(service *svc){
 	else
 		macro_x[MACRO_SERVICESTATE]=(char *)strdup("UNKNOWN");
 
+	/* get the service volatility */
+	my_free((void **)&macro_x[MACRO_SERVICEISVOLATILE]);
+	asprintf(&macro_x[MACRO_SERVICEISVOLATILE],"%d",svc->is_volatile);
+
 	/* get the service state id */
 	my_free((void **)&macro_x[MACRO_SERVICESTATEID]);
 	asprintf(&macro_x[MACRO_SERVICESTATEID],"%d",svc->current_state);
@@ -720,6 +724,8 @@ int grab_service_macros(service *svc){
 int grab_host_macros(host *hst){
 	hostgroup *temp_hostgroup=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
+	servicesmember *temp_servicesmember=NULL;
+	service *temp_service=NULL;
 	objectlist *temp_objectlist=NULL;
 	char *customvarname=NULL;
 	time_t current_time=0L;
@@ -728,6 +734,11 @@ int grab_host_macros(host *hst){
 	int hours=0;
 	int minutes=0;
 	int seconds=0;
+	int total_host_services=0;
+	int total_host_services_ok=0;
+	int total_host_services_warning=0;
+	int total_host_services_unknown=0;
+	int total_host_services_critical=0;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
 	char *buf1=NULL;
 	char *buf2=NULL;
@@ -908,6 +919,41 @@ int grab_host_macros(host *hst){
 	my_free((void **)&macro_x[MACRO_HOSTNOTES]);
 	if(hst->notes)
 		macro_x[MACRO_HOSTNOTES]=(char *)strdup(hst->notes);
+
+	/* service summary macros */
+	for(temp_servicesmember=hst->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+		if((temp_service=temp_servicesmember->service_ptr)==NULL)
+			continue;
+
+		total_host_services++;
+
+		switch(temp_service->current_state){
+		case STATE_OK:
+			total_host_services_ok++;
+			break;
+		case STATE_WARNING:
+			total_host_services_warning++;
+			break;
+		case STATE_UNKNOWN:
+			total_host_services_unknown++;
+			break;
+		case STATE_CRITICAL:
+			total_host_services_critical++;
+			break;
+		default:
+			break;
+			}
+		}
+	my_free((void **)&macro_x[MACRO_TOTALHOSTSERVICES]);
+	asprintf(&macro_x[MACRO_TOTALHOSTSERVICES],"%lu",total_host_services);
+	my_free((void **)&macro_x[MACRO_TOTALHOSTSERVICESOK]);
+	asprintf(&macro_x[MACRO_TOTALHOSTSERVICESOK],"%lu",total_host_services_ok);
+	my_free((void **)&macro_x[MACRO_TOTALHOSTSERVICESWARNING]);
+	asprintf(&macro_x[MACRO_TOTALHOSTSERVICESWARNING],"%lu",total_host_services_warning);
+	my_free((void **)&macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN]);
+	asprintf(&macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN],"%lu",total_host_services_unknown);
+	my_free((void **)&macro_x[MACRO_TOTALHOSTSERVICESCRITICAL]);
+	asprintf(&macro_x[MACRO_TOTALHOSTSERVICESCRITICAL],"%lu",total_host_services_critical);
 
 	/* get custom variables */
 	for(temp_customvariablesmember=hst->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
@@ -1141,6 +1187,14 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	int hours=0;
 	int minutes=0;
 	int seconds=0;
+	int total_host_services=0;
+	int total_host_services_ok=0;
+	int total_host_services_warning=0;
+	int total_host_services_unknown=0;
+	int total_host_services_critical=0;
+	servicesmember *temp_servicesmember=NULL;
+	service *temp_service=NULL;
+
 
 	if(hst==NULL || macro==NULL)
 		return ERROR;
@@ -1321,7 +1375,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	        }
 
 	/* action url */
-	if(!strcmp(macro,"HOSTACTIONURL")){
+	else if(!strcmp(macro,"HOSTACTIONURL")){
 
 		if(hst->action_url)
 			macro_ondemand=(char *)strdup(hst->action_url);
@@ -1335,7 +1389,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	        }
 
 	/* notes url */
-	if(!strcmp(macro,"HOSTNOTESURL")){
+	else if(!strcmp(macro,"HOSTNOTESURL")){
 
 		if(hst->notes_url)
 			macro_ondemand=(char *)strdup(hst->notes_url);
@@ -1349,7 +1403,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	        }
 
 	/* notes */
-	if(!strcmp(macro,"HOSTNOTES")){
+	else if(!strcmp(macro,"HOSTNOTES")){
 		if(hst->notes)
 			macro_ondemand=(char *)strdup(hst->notes);
 
@@ -1360,6 +1414,49 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 			macro_ondemand=(char *)strdup(temp_buffer);
 		        }
 	        }
+
+	/* service summary macros */
+	/* NOTE: 08/14/07 These are not supported as "normal" host macros (only on-demand macros) at the moment */
+	else if(strstr(macro,"TOTALHOSTSERVICES")==macro){
+
+		for(temp_servicesmember=hst->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+			if((temp_service=temp_servicesmember->service_ptr)==NULL)
+				continue;
+
+			total_host_services++;
+
+			switch(temp_service->current_state){
+			case STATE_OK:
+				total_host_services_ok++;
+				break;
+			case STATE_WARNING:
+				total_host_services_warning++;
+				break;
+			case STATE_UNKNOWN:
+				total_host_services_unknown++;
+				break;
+			case STATE_CRITICAL:
+				total_host_services_critical++;
+				break;
+			default:
+				break;
+				}
+			}
+		
+		if(!strcmp(macro,"TOTALHOSTSERVICES"))
+			asprintf(&macro_ondemand,"%lu",total_host_services);
+		else if(!strcmp(macro,"TOTALHOSTSERVICESOK"))
+			asprintf(&macro_ondemand,"%lu",total_host_services_ok);
+		else if(!strcmp(macro,"TOTALHOSTSERVICESWARNING"))
+			asprintf(&macro_ondemand,"%lu",total_host_services_warning);
+		else if(!strcmp(macro,"TOTALHOSTSERVICESUNKNOWN"))
+			asprintf(&macro_ondemand,"%lu",total_host_services_unknown);
+		else if(!strcmp(macro,"TOTALHOSTSERVICESCRITICAL"))
+			asprintf(&macro_ondemand,"%lu",total_host_services_critical);
+		else
+			return ERROR;
+		}
+
 
 	/* custom variables */
 	else if(strstr(macro,"_HOST")==macro){
@@ -1461,6 +1558,10 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 		else
 			macro_ondemand=(char *)strdup("UNKNOWN");
 	        }
+
+	/* get the service volatility */
+	else if(!strcmp(macro,"SERVICEISVOLATILE"))
+		asprintf(&macro_ondemand,"%d",svc->is_volatile);
 
 	/* get the service state id */
 	else if(!strcmp(macro,"SERVICESTATEID"))
@@ -2074,6 +2175,7 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_SERVICESTATE,"SERVICESTATE");
 	add_macrox_name(MACRO_SERVICESTATEID,"SERVICESTATEID");
 	add_macrox_name(MACRO_SERVICEATTEMPT,"SERVICEATTEMPT");
+	add_macrox_name(MACRO_SERVICEISVOLATILE,"SERVICEISVOLATILE");
 	add_macrox_name(MACRO_LONGDATETIME,"LONGDATETIME");
 	add_macrox_name(MACRO_SHORTDATETIME,"SHORTDATETIME");
 	add_macrox_name(MACRO_DATE,"DATE");
@@ -2185,6 +2287,12 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_SERVICEACKAUTHORALIAS,"SERVICEACKAUTHORALIAS");
 	add_macrox_name(MACRO_MAXHOSTATTEMPTS,"MAXHOSTATTEMPTS");
 	add_macrox_name(MACRO_MAXSERVICEATTEMPTS,"MAXSERVICEATTEMPTS");
+	add_macrox_name(MACRO_SERVICEISVOLATILE,"SERVICEISVOLATILE");
+	add_macrox_name(MACRO_TOTALHOSTSERVICES,"TOTALHOSTSERVICES");
+	add_macrox_name(MACRO_TOTALHOSTSERVICESOK,"TOTALHOSTSERVICESOK");
+	add_macrox_name(MACRO_TOTALHOSTSERVICESWARNING,"TOTALHOSTSERVICESWARNING");
+	add_macrox_name(MACRO_TOTALHOSTSERVICESUNKNOWN,"TOTALHOSTSERVICESUNKNOWN");
+	add_macrox_name(MACRO_TOTALHOSTSERVICESCRITICAL,"TOTALHOSTSERVICESCRITICAL");
 
 	return OK;
         }

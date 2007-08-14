@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-30-2007
+ * Last Modified: 08-14-2007
  *
  * License:
  *
@@ -967,6 +967,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->failure_prediction_options=NULL;
 	new_host->display_name=NULL;
 	new_host->parent_hosts=NULL;
+	new_host->child_hosts=NULL;
+	new_host->services=NULL;
 	new_host->contact_groups=NULL;
 	new_host->contacts=NULL;
 	new_host->notes=NULL;
@@ -1245,6 +1247,61 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 	hst->parent_hosts=new_hostsmember;
 
 	return new_hostsmember;
+        }
+
+
+
+hostsmember *add_child_link_to_host(host *hst, host *child_ptr){
+	hostsmember *new_hostsmember=NULL;
+	int result=OK;
+
+	/* make sure we have the data we need */
+	if(hst==NULL || child_ptr==NULL)
+		return NULL;
+
+	/* allocate memory */
+	if((new_hostsmember=(hostsmember *)malloc(sizeof(hostsmember)))==NULL)
+		return NULL;
+
+	/* initialize values */
+	new_hostsmember->host_name=NULL;
+#ifdef NSCORE
+	new_hostsmember->host_ptr=child_ptr;
+#endif
+
+	/* add the child entry to the host definition */
+	new_hostsmember->next=hst->child_hosts;
+	hst->child_hosts=new_hostsmember;
+
+	return new_hostsmember;
+        }
+
+
+
+servicesmember *add_service_link_to_host(host *hst, service *service_ptr){
+	servicesmember *new_servicesmember=NULL;
+	int result=OK;
+
+	/* make sure we have the data we need */
+	if(hst==NULL || service_ptr==NULL)
+		return NULL;
+
+	/* allocate memory */
+	if((new_servicesmember=(servicesmember *)malloc(sizeof(servicesmember)))==NULL)
+		return NULL;
+
+	/* initialize values */
+	new_servicesmember->host_name=NULL;
+	new_servicesmember->service_description=NULL;
+#ifdef NSCORE
+	new_servicesmember->service_ptr=service_ptr;
+#endif
+
+	/* add the child entry to the host definition */
+	new_servicesmember->next=hst->services;
+	hst->services=new_servicesmember;
+
+	return new_servicesmember;
         }
 
 
@@ -3375,14 +3432,17 @@ int free_objectlist(objectlist **temp_list){
 int is_host_immediate_child_of_host(host *parent_host,host *child_host){
 	hostsmember *temp_hostsmember=NULL;
 
+	/* not enough data */
 	if(child_host==NULL)
 		return FALSE;
 
+	/* root/top-level hosts */
 	if(parent_host==NULL){
 		if(child_host->parent_hosts==NULL)
 			return TRUE;
 	        }
 
+	/* mid-level/bottom hosts */
 	else{
 
 		for(temp_hostsmember=child_host->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
@@ -3411,6 +3471,7 @@ int is_host_immediate_parent_of_host(host *child_host,host *parent_host){
 
 
 /* returns a count of the immediate children for a given host */
+/* NOTE: This function is only used by the CGIS */
 int number_of_immediate_child_hosts(host *hst){
 	int children=0;
 	host *temp_host=NULL;
@@ -3425,6 +3486,7 @@ int number_of_immediate_child_hosts(host *hst){
 
 
 /* returns a count of the total children for a given host */
+/* NOTE: This function is only used by the CGIS */
 int number_of_total_child_hosts(host *hst){
 	int children=0;
 	host *temp_host=NULL;
@@ -3439,6 +3501,7 @@ int number_of_total_child_hosts(host *hst){
 
 
 /* get the number of immediate parent hosts for a given host */
+/* NOTE: This function is only used by the CGIS */
 int number_of_immediate_parent_hosts(host *hst){
 	int parents=0;
 	host *temp_host=NULL;
@@ -3455,6 +3518,7 @@ int number_of_immediate_parent_hosts(host *hst){
 
 
 /* get the total number of parent hosts for a given host */
+/* NOTE: This function is only used by the CGIS */
 int number_of_total_parent_hosts(host *hst){
 	int parents=0;
 	host *temp_host=NULL;
@@ -3471,6 +3535,7 @@ int number_of_total_parent_hosts(host *hst){
 
 
 /*  tests whether a host is a member of a particular hostgroup */
+/* NOTE: This function is only used by the CGIS */
 int is_host_member_of_hostgroup(hostgroup *group, host *hst){
 	hostgroupmember *temp_hostgroupmember=NULL;
 
@@ -3492,6 +3557,7 @@ int is_host_member_of_hostgroup(hostgroup *group, host *hst){
 
 
 /*  tests whether a host is a member of a particular servicegroup */
+/* NOTE: This function is only used by the CGIS */
 int is_host_member_of_servicegroup(servicegroup *group, host *hst){
 	servicegroupmember *temp_servicegroupmember=NULL;
 
@@ -3513,6 +3579,7 @@ int is_host_member_of_servicegroup(servicegroup *group, host *hst){
 
 
 /*  tests whether a service is a member of a particular servicegroup */
+/* NOTE: This function is only used by the CGIS */
 int is_service_member_of_servicegroup(servicegroup *group, service *svc){
 	servicegroupmember *temp_servicegroupmember=NULL;
 
@@ -3534,6 +3601,7 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc){
 
 
 /*  tests whether a contact is a member of a particular contactgroup - used only by the CGIs */
+/* 08/14/07 EG NO LONGER USED */
 int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
 	contactgroupmember *temp_contactgroupmember=NULL;
 
@@ -3893,6 +3961,8 @@ int free_object_data(void){
 	contactsmember *next_contactsmember=NULL;
 	customvariablesmember *this_customvariablesmember=NULL;
 	customvariablesmember *next_customvariablesmember=NULL;
+	servicesmember *this_servicesmember=NULL;
+	servicesmember *next_servicesmember=NULL;
 	service *this_service=NULL;
 	service *next_service=NULL;
 	command *this_command=NULL;
@@ -3970,6 +4040,25 @@ int free_object_data(void){
 			my_free((void **)&this_hostsmember->host_name);
 			my_free((void **)&this_hostsmember);
 			this_hostsmember=next_hostsmember;
+			}
+
+		/* free memory for child host links */
+		this_hostsmember=this_host->child_hosts;
+		while(this_hostsmember!=NULL){
+			next_hostsmember=this_hostsmember->next;
+			my_free((void **)&this_hostsmember->host_name);
+			my_free((void **)&this_hostsmember);
+			this_hostsmember=next_hostsmember;
+			}
+
+		/* free memory for service links */
+		this_servicesmember=this_host->services;
+		while(this_servicesmember!=NULL){
+			next_servicesmember=this_servicesmember->next;
+			my_free((void **)&this_servicesmember->host_name);
+			my_free((void **)&this_servicesmember->service_description);
+			my_free((void **)&this_servicesmember);
+			this_servicesmember=next_servicesmember;
 			}
 
 		/* free memory for contact groups */

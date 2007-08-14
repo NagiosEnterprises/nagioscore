@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-04-2007
+ * Last Modified:   08-14-2007
  *
  * License:
  *
@@ -54,6 +54,7 @@ extern int      interval_length;
 extern int      command_check_interval;
 
 extern int      log_initial_states;
+extern int      log_passive_checks;
 
 extern int      service_check_timeout;
 extern int      host_check_timeout;
@@ -979,6 +980,14 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		break;
 	        }
 
+	/* log passive checks - we need to do this here, as some my bypass external commands by getting dropped in checkresults dir */
+	if(temp_service->check_type==SERVICE_CHECK_PASSIVE){
+		if(log_passive_checks==TRUE){
+			asprintf(&temp_buffer,"PASSIVE SERVICE CHECK: %s;%s;%d;%s\n",temp_service->host_name,temp_service->description,temp_service->current_state,temp_service->plugin_output);
+			write_to_all_logs(temp_buffer,NSLOG_PASSIVE_CHECK);
+			my_free((void **)&temp_buffer);
+			}
+	        }
 
 	/* get the host that this service runs on */
 	temp_host=find_host(temp_service->host_name);
@@ -3174,6 +3183,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	int run_async_check=TRUE;
+	char *temp_buffer=NULL;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"process_host_check_result_3x()\n");
@@ -3189,6 +3199,15 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 	/* we have to adjust current attempt # for passive checks, as it isn't done elsewhere */
 	if(hst->check_type==HOST_CHECK_PASSIVE && passive_host_checks_are_soft==TRUE)
 		adjust_host_check_attempt_3x(hst,FALSE);
+
+	/* log passive checks - we need to do this here, as some my bypass external commands by getting dropped in checkresults dir */
+	if(hst->check_type==HOST_CHECK_PASSIVE){
+		if(log_passive_checks==TRUE){
+			asprintf(&temp_buffer,"PASSIVE HOST CHECK: %s;%d;%s\n",hst->name,new_state,hst->plugin_output);
+			write_to_all_logs(temp_buffer,NSLOG_PASSIVE_CHECK);
+			my_free((void **)&temp_buffer);
+			}
+	        }
 
 
 	/******* HOST WAS DOWN/UNREACHABLE INITIALLY *******/
@@ -3233,12 +3252,14 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 			/* we do this because children may currently be UNREACHABLE, but may (as a result of this recovery) switch to UP or DOWN states */
 			log_debug_info(DEBUGL_CHECKS,1,"Propagating checks to child host(s)...\n");
 
-			for(child_host=host_list;child_host!=NULL;child_host=child_host->next){
-				if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP){
+			for(temp_hostsmember=hst->child_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
+				if((child_host=temp_hostsmember->host_ptr)==NULL)
+					continue;
+				if(child_host->current_state!=HOST_UP){
 					log_debug_info(DEBUGL_CHECKS,1,"Check of child host '%s' queued.\n",child_host->name);
 					add_object_to_objectlist(&check_hostlist,(void *)child_host);
 					}
-			        }
+				}
 		        }
 
 		/***** HOST IS STILL DOWN/UNREACHABLE *****/
@@ -3393,12 +3414,15 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				/* propagate checks to immediate children if they are not UNREACHABLE */
 				/* we do this because we may now be blocking the route to child hosts */
 				log_debug_info(DEBUGL_CHECKS,1,"Propagating check to immediate non-UNREACHABLE child hosts...\n");
-				for(child_host=host_list;child_host!=NULL;child_host=child_host->next){
-					if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UNREACHABLE){
+
+				for(temp_hostsmember=hst->child_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
+					if((child_host=temp_hostsmember->host_ptr)==NULL)
+						continue;
+					if(child_host->current_state!=HOST_UNREACHABLE){
 						log_debug_info(DEBUGL_CHECKS,1,"Check of child host '%s' queued.\n",child_host->name);
 						add_object_to_objectlist(&check_hostlist,(void *)child_host);
 						}
-				        }
+					}
 			        }
 
 			/***** MAX ATTEMPTS > 1 *****/
@@ -3442,6 +3466,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				/* we do this because a parent host (or grandparent) may have gone down and blocked our route */
 				/* checking the parents ASAP will allow us to better determine the final state (DOWN/UNREACHABLE) of this host later */
 				log_debug_info(DEBUGL_CHECKS,1,"Propagating checks to immediate parent hosts that are UP...\n");
+
 				for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 					if((parent_host=temp_hostsmember->host_ptr)==NULL)
 						continue;
@@ -3454,12 +3479,15 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				/* propagate checks to immediate children if they are not UNREACHABLE */
 				/* we do this because we may now be blocking the route to child hosts */
 				log_debug_info(DEBUGL_CHECKS,1,"Propagating checks to immediate non-UNREACHABLE child hosts...\n");
-				for(child_host=host_list;child_host!=NULL;child_host=child_host->next){
-					if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UNREACHABLE){
-						log_debug_info(DEBUGL_CHECKS,1,"Check of host '%s' queued.\n",child_host->name);
+
+				for(temp_hostsmember=hst->child_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
+					if((child_host=temp_hostsmember->host_ptr)==NULL)
+						continue;
+					if(child_host->current_state!=HOST_UNREACHABLE){
+						log_debug_info(DEBUGL_CHECKS,1,"Check of child host '%s' queued.\n",child_host->name);
 						add_object_to_objectlist(&check_hostlist,(void *)child_host);
 						}
-				        }
+					}
 
 				/* check dependencies on second to last host check */
 				if(enable_predictive_host_dependency_checks==TRUE && hst->current_attempt==(hst->max_attempts-1)){
@@ -3467,6 +3495,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 					/* propagate checks to hosts that THIS ONE depends on for notifications AND execution */
 					/* we do to help ensure that the dependency checks are accurate before it comes time to notify */
 					log_debug_info(DEBUGL_CHECKS,1,"Propagating predictive dependency checks to hosts this one depends on...\n");
+
 					for(temp_dependency=hostdependency_list;temp_dependency!=NULL;temp_dependency=temp_dependency->next){
 						if(temp_dependency->dependent_host_ptr==hst && temp_dependency->master_host_ptr!=NULL){
 							master_host=(host *)temp_dependency->master_host_ptr;

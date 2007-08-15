@@ -65,6 +65,7 @@ First, define a timeperiod that contains time ranges for holidays:
 <pre>
 define timeperiod{
 	name	holidays
+	timeperiod_name	holidays
 	january 1			00:00-24:00	; New Year's Day
 	2007-03-23		00:00-24:00	; Easter (2008)
 	2007-04-12		00:00-24:00	; Easter (2009)
@@ -85,13 +86,13 @@ Next, define a timeperiod for John's on-call times that include weekdays and wee
 <p>
 <pre>
 define timeperiod{
-	name		john-oncall
+	timeperiod_name		john-oncall
 	monday		00:00-24:00
 	tuesday		00:00-24:00
 	wednesday		00:00-24:00
 	thursday		00:00-24:00
 	friday		00:00-24:00
-	use		holiday		; Also include holiday dates/times defined elsewhere
+	exclude		holiday		; Also include holiday dates/times defined elsewhere
 	}
 </pre>
 </p>
@@ -103,7 +104,7 @@ You can now reference this timeperiod in John's contact definition:
 <p>
 <pre>
 define contact{
-	name		john
+	contact_name		john
 	...
 	host_notification_period		john-oncall
 	service_notification_period		john-oncall
@@ -118,10 +119,10 @@ Define a new timeperiod for Bob's on-call times that include weekends and the da
 <p>
 <pre>
 define timeperiod{
-	name		bob-oncall
+	timeperiod_name		bob-oncall
 	friday		00:00-24:00
 	saturday		00:00-24:00
-	exclude		holidays	; Exclude holiday date/times defined elsewhere
+	use		holidays	; Exclude holiday date/times defined elsewhere
 	}
 </pre>
 </p>
@@ -133,7 +134,7 @@ You can now reference this timeperiod in Bob's contact definition:
 <p>
 <pre>
 define contact{
-	name		bob
+	contact_name		bob
 	...
 	host_notification_period		bob-oncall
 	service_notification_period		bob-oncall
@@ -156,7 +157,7 @@ Define a timeperiod for when John should receive notifications.  Assuming today'
 <p>
 <pre>
 define timeperiod{
-	name		john-oncall
+	timeperiod_name		john-oncall
 	2007-08-01 / 2	00:00-24:00	; Every two days, starting August 1st, 2007
 	}
 </pre>
@@ -169,7 +170,7 @@ Now define a timeperiod for when Bob should receive notifications.  Bob gets not
 <p>
 <pre>
 define timeperiod{
-	name		bob-oncall
+	timeperiod_name		bob-oncall
 	2007-08-02 / 2	00:00-24:00	; Every two days, starting August 2nd, 2007
 	}
 </pre>
@@ -182,7 +183,7 @@ Now you need to reference these timeperiod definitions in the contact definition
 <p>
 <pre>
 define contact{
-	name		john
+	contact_name		john
 	...
 	host_notification_period		john-oncall
 	service_notification_period		john-oncall
@@ -193,7 +194,7 @@ define contact{
 <p>
 <pre>
 define contact{
-	name		bob
+	contact_name		bob
 	...
 	host_notification_period		bob-oncall
 	service_notification_period		bob-oncall
@@ -216,7 +217,7 @@ Define a timeperiod for when John should receive notifications.  Assuming today'
 <p>
 <pre>
 define timeperiod{
-	name		john-oncall
+	timeperiod_name		john-oncall
 	2007-07-29 / 14	00:00-24:00	; Every 14 days (two weeks), starting Sunday, July 29th, 2007
 	2007-07-30 / 14	00:00-24:00	; Every other Monday starting July 30th, 2007
 	2007-07-31 / 14	00:00-24:00	; Every other Tuesday starting July 31st, 2007
@@ -235,7 +236,7 @@ Now define a timeperiod for when Bob should receive notifications.  Bob gets not
 <p>
 <pre>
 define timeperiod{
-	name		bob-oncall
+	timeperiod_name		bob-oncall
 	2007-08-05 / 14	00:00-24:00	; Every 14 days (two weeks), starting Sunday, August 5th, 2007
 	2007-08-06 / 14	00:00-24:00	; Every other Monday starting August 6th, 2007
 	2007-08-07 / 14	00:00-24:00	; Every other Tuesday starting August 7th, 2007
@@ -254,7 +255,7 @@ Now you need to reference these timeperiod definitions in the contact definition
 <p>
 <pre>
 define contact{
-	name		john
+	contact_name		john
 	...
 	host_notification_period		john-oncall
 	service_notification_period		john-oncall
@@ -265,7 +266,7 @@ define contact{
 <p>
 <pre>
 define contact{
-	name		bob
+	contact_name		bob
 	...
 	host_notification_period		bob-oncall
 	service_notification_period		bob-oncall
@@ -289,6 +290,7 @@ First, define a timeperiod that contains time ranges for John's vacation days an
 <pre>
 define timeperiod{
 	name	john-out-of-office
+	timeperiod_name	john-out-of-office
 	day 15			00:00-24:00		; 15th day of each month
 	day -1			00:00-24:00		; Last day of each month (28th, 29th, 30th, or 31st)
 	day -2			00:00-24:00		; 2nd to last day of each month (27th, 28th, 29th, or 30th)
@@ -306,7 +308,7 @@ Next, define a timeperiod for John's on-call times that excludes the dates/times
 <p>
 <pre>
 define timeperiod{
-	name		john-oncall
+	timeperiod_name		john-oncall
 	monday		00:00-24:00
 	tuesday		00:00-24:00
 	wednesday		00:00-24:00
@@ -324,7 +326,7 @@ You can now reference this timeperiod in John's contact definition:
 <p>
 <pre>
 define contact{
-	name		john
+	contact_name		john
 	...
 	host_notification_period		john-oncall
 	service_notification_period		john-oncall
@@ -339,7 +341,7 @@ Define a new timeperiod for Bob's on-call times that include the dates/times tha
 <p>
 <pre>
 define timeperiod{
-	name		bob-oncall
+	timeperod_name		bob-oncall
 	use		john-out-of-office	; Include holiday date/times that John is out
 	}
 </pre>
@@ -352,7 +354,7 @@ You can now reference this timeperiod in Bob's contact definition:
 <p>
 <pre>
 define contact{
-	name		bob
+	contact_name		bob
 	...
 	host_notification_period		bob-oncall
 	service_notification_period		bob-oncall

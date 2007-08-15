@@ -1000,10 +1000,10 @@ int grab_on_demand_macro(char *str){
 	int delimiter_len=0;
 	host *temp_host=NULL;
 	hostgroup *temp_hostgroup=NULL;
-	hostgroupmember *temp_hostgroupmember=NULL;
+	hostsmember *temp_hostsmember=NULL;
 	service *temp_service=NULL;
 	servicegroup *temp_servicegroup=NULL;
-	servicegroupmember *temp_servicegroupmember=NULL;
+	servicesmember *temp_servicesmember=NULL;
 	char *ptr=NULL;
 	char *host_name=NULL;
 	int return_val=ERROR;
@@ -1056,13 +1056,14 @@ int grab_on_demand_macro(char *str){
 			delimiter_len=strlen(second_arg);
 
 			/* process each host in the hostgroup */
-			if((temp_hostgroupmember=temp_hostgroup->members)==NULL){
+			if((temp_hostsmember=temp_hostgroup->members)==NULL){
 				macro_ondemand=(char *)strdup("");
 				my_free((void **)&macro);
 				return OK;
 				}
 			while(1){
-				temp_host=find_host(temp_hostgroupmember->host_name);
+				if((temp_host=temp_hostsmember->host_ptr)==NULL)
+					continue;
 				if(grab_on_demand_host_macro(temp_host,macro)==OK){
 					strncat(result_buffer,macro_ondemand,sizeof(result_buffer)-result_buffer_len-1);
 					result_buffer_len+=strlen(macro_ondemand);
@@ -1070,7 +1071,7 @@ int grab_on_demand_macro(char *str){
 						return_val=ERROR;
 						break;
 						}
-					if((temp_hostgroupmember=temp_hostgroupmember->next)==NULL)
+					if((temp_hostsmember=temp_hostsmember->next)==NULL)
 						break;
 					strncat(result_buffer,second_arg,sizeof(result_buffer)-result_buffer_len-1);
 					result_buffer_len+=delimiter_len;
@@ -1081,7 +1082,7 @@ int grab_on_demand_macro(char *str){
 					}
 				else{
 					return_val=ERROR;
-					if((temp_hostgroupmember=temp_hostgroupmember->next)==NULL)
+					if((temp_hostsmember=temp_hostsmember->next)==NULL)
 						break;
 					}
 
@@ -1126,13 +1127,14 @@ int grab_on_demand_macro(char *str){
 			delimiter_len=strlen(second_arg);
 
 			/* process each service in the servicegroup */
-			if((temp_servicegroupmember=temp_servicegroup->members)==NULL){
+			if((temp_servicesmember=temp_servicegroup->members)==NULL){
 				macro_ondemand=(char *)strdup("");
 				my_free((void **)&macro);
 				return OK;
 				}
 			while(1){
-				temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
+				if((temp_service=temp_servicesmember->service_ptr)==NULL)
+					continue;
 				if(grab_on_demand_service_macro(temp_service,macro)==OK){
 					strncat(result_buffer,macro_ondemand,sizeof(result_buffer)-result_buffer_len-1);
 					result_buffer_len+=strlen(macro_ondemand);
@@ -1140,7 +1142,7 @@ int grab_on_demand_macro(char *str){
 						return_val=ERROR;
 						break;
 						}
-					if((temp_servicegroupmember=temp_servicegroupmember->next)==NULL)
+					if((temp_servicesmember=temp_servicesmember->next)==NULL)
 						break;
 					strncat(result_buffer,second_arg,sizeof(result_buffer)-result_buffer_len-1);
 					result_buffer_len+=delimiter_len;
@@ -1151,7 +1153,7 @@ int grab_on_demand_macro(char *str){
 					}
 				else{
 					return_val=ERROR;
-					if((temp_servicegroupmember=temp_servicegroupmember->next)==NULL)
+					if((temp_servicesmember=temp_servicesmember->next)==NULL)
 						break;
 					}
 

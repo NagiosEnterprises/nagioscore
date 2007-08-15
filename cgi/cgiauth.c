@@ -3,7 +3,7 @@
  * CGIAUTH.C - Authorization utilities for Nagios CGIs
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-27-2006
+ * Last Modified:   08-14-2006
  *
  * License:
  *
@@ -231,7 +231,7 @@ int is_authorized_for_host(host *hst, authdata *authinfo){
 
 /* check if user is authorized to view information about all hosts in a particular hostgroup */
 int is_authorized_for_hostgroup(hostgroup *hg, authdata *authinfo){
-	hostgroupmember *temp_hostgroupmember;
+	hostsmember *temp_hostsmember;
 	host *temp_host;
 
 	if(hg==NULL)
@@ -239,8 +239,8 @@ int is_authorized_for_hostgroup(hostgroup *hg, authdata *authinfo){
 
 	/* CHANGED in 2.0 - user must be authorized for ALL hosts in a hostgroup, not just one */
 	/* see if user is authorized for all hosts in the hostgroup */
-	for(temp_hostgroupmember=hg->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
-		temp_host=find_host(temp_hostgroupmember->host_name);
+	for(temp_hostsmember=hg->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
+		temp_host=find_host(temp_hostsmember->host_name);
 		if(is_authorized_for_host(temp_host,authinfo)==FALSE)
 			return FALSE;
 	        }
@@ -252,15 +252,15 @@ int is_authorized_for_hostgroup(hostgroup *hg, authdata *authinfo){
 
 /* check if user is authorized to view information about all services in a particular servicegroup */
 int is_authorized_for_servicegroup(servicegroup *sg, authdata *authinfo){
-	servicegroupmember *temp_servicegroupmember;
+	servicesmember *temp_servicesmember;
 	service *temp_service;
 
 	if(sg==NULL)
 		return FALSE;
 
 	/* see if user is authorized for all services in the servicegroup */
-	for(temp_servicegroupmember=sg->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
-		temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
+	for(temp_servicesmember=sg->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+		temp_service=find_service(temp_servicesmember->host_name,temp_servicesmember->service_description);
 		if(is_authorized_for_service(temp_service,authinfo)==FALSE)
 			return FALSE;
 	        }

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-30-2007
+ * Last Modified: 08-15-2007
  *
  * Description:
  *
@@ -8054,9 +8054,14 @@ int xodtemplate_recombobulate_contactgroups(void){
         }
 
 
-
+/* NOTE: this was originally implemented in the late alpha cycle of 3.0 development, but was removed in 3.0b2, as flattening */
+/*       contactgroups into a list of contacts makes it impossible for NDOUtils to create a reverse mapping */
 /* recombobulates contacts in various object definitions */
 int xodtemplate_recombobulate_object_contacts(void){
+
+	return OK;
+
+#ifdef REMOVED_08152007
 	xodtemplate_host *temp_host=NULL;
 	xodtemplate_service *temp_service=NULL;
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
@@ -8064,9 +8069,9 @@ int xodtemplate_recombobulate_object_contacts(void){
 	xodtemplate_memberlist *temp_memberlist=NULL;
 	xodtemplate_memberlist *this_memberlist=NULL;
 	char *new_contacts=NULL;
-#ifdef NSCORE
+/*#ifdef NSCORE*/
 	char *temp_buffer=NULL;
-#endif
+/*#endif*/
 
 	/* expand contacts in host definitions */
 	for(temp_host=xodtemplate_host_list;temp_host;temp_host=temp_host->next){
@@ -8078,11 +8083,11 @@ int xodtemplate_recombobulate_object_contacts(void){
 		/* get list of contacts for this host */
 		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_host->contact_groups,temp_host->contacts,temp_host->_config_file,temp_host->_start_line);
 		if(temp_memberlist==NULL){
-#ifdef NSCORE
+/*#ifdef NSCORE*/
 			asprintf(&temp_buffer,"Error: Could not expand contacts specified in host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
-#endif
+/*#endif*/
 			return ERROR;
 	                }
 
@@ -8119,11 +8124,11 @@ int xodtemplate_recombobulate_object_contacts(void){
 		/* get list of contacts for this service */
 		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_service->contact_groups,temp_service->contacts,temp_service->_config_file,temp_service->_start_line);
 		if(temp_memberlist==NULL){
-#ifdef NSCORE
+/*#ifdef NSCORE*/
 			asprintf(&temp_buffer,"Error: Could not expand contacts specified in service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
-#endif
+/*#endif*/
 			return ERROR;
 	                }
 
@@ -8160,11 +8165,11 @@ int xodtemplate_recombobulate_object_contacts(void){
 		/* get list of contacts for this host escalation */
 		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_hostescalation->contact_groups,temp_hostescalation->contacts,temp_hostescalation->_config_file,temp_hostescalation->_start_line);
 		if(temp_memberlist==NULL){
-#ifdef NSCORE
+/*#ifdef NSCORE*/
 			asprintf(&temp_buffer,"Error: Could not expand contacts specified in host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
-#endif
+/*#endif*/
 			return ERROR;
 	                }
 
@@ -8201,11 +8206,11 @@ int xodtemplate_recombobulate_object_contacts(void){
 		/* get list of contacts for this service escalation */
 		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_serviceescalation->contact_groups,temp_serviceescalation->contacts,temp_serviceescalation->_config_file,temp_serviceescalation->_start_line);
 		if(temp_memberlist==NULL){
-#ifdef NSCORE
+/*#ifdef NSCORE*/
 			asprintf(&temp_buffer,"Error: Could not expand contacts specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
-#endif
+/*#endif*/
 			return ERROR;
 	                }
 
@@ -8232,6 +8237,7 @@ int xodtemplate_recombobulate_object_contacts(void){
 	        }
 
 	return OK;
+#endif
         }
 
 
@@ -9298,7 +9304,7 @@ int xodtemplate_register_command(xodtemplate_command *this_command){
 /* registers a contactgroup definition */
 int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgroup){
 	contactgroup *new_contactgroup=NULL;
-	contactgroupmember *new_contactgroupmember=NULL;
+	contactsmember *new_contactsmember=NULL;
 	char *contact_name=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -9332,8 +9338,8 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 	        }
 	for(contact_name=strtok(this_contactgroup->members,",");contact_name!=NULL;contact_name=strtok(NULL,",")){
 		strip(contact_name);
-		new_contactgroupmember=add_contact_to_contactgroup(new_contactgroup,contact_name);
-		if(new_contactgroupmember==NULL){
+		new_contactsmember=add_contact_to_contactgroup(new_contactgroup,contact_name);
+		if(new_contactsmember==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not add contact '%s' to contactgroup (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -9351,7 +9357,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 /* registers a hostgroup definition */
 int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	hostgroup *new_hostgroup=NULL;
-	hostgroupmember *new_hostgroupmember=NULL;
+	hostsmember *new_hostsmember=NULL;
 	char *host_name=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -9385,8 +9391,8 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	        }
 	for(host_name=strtok(this_hostgroup->members,",");host_name!=NULL;host_name=strtok(NULL,",")){
 		strip(host_name);
-		new_hostgroupmember=add_host_to_hostgroup(new_hostgroup,host_name);
-		if(new_hostgroupmember==NULL){
+		new_hostsmember=add_host_to_hostgroup(new_hostgroup,host_name);
+		if(new_hostsmember==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not add host '%s' to hostgroup (config file '%s', starting on line %d)\n",host_name,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -9404,7 +9410,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 /* registers a servicegroup definition */
 int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegroup){
 	servicegroup *new_servicegroup=NULL;
-	servicegroupmember *new_servicegroupmember=NULL;
+	servicesmember *new_servicesmember=NULL;
 	char *host_name=NULL;
 	char *svc_description=NULL;
 #ifdef NSCORE
@@ -9450,8 +9456,8 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 	                }
 		strip(svc_description);
 
-		new_servicegroupmember=add_service_to_servicegroup(new_servicegroup,host_name,svc_description);
-		if(new_servicegroupmember==NULL){
+		new_servicesmember=add_service_to_servicegroup(new_servicegroup,host_name,svc_description);
+		if(new_servicesmember==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not add service '%s' on host '%s' to servicegroup (config file '%s', starting on line %d)\n",svc_description,host_name,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -9526,7 +9532,9 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_serviceescalation){
 	serviceescalation *new_serviceescalation=NULL;
 	contactsmember *new_contactsmember=NULL;
+	contactgroupsmember *new_contactgroupsmember=NULL;
 	char *contact_name=NULL;
+	char *contact_group=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
 #endif
@@ -9556,49 +9564,37 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 		return ERROR;
 	        }
 
-#ifdef REMOVED_07182006
 	/* add the contact groups */
-	if(this_serviceescalation->contact_groups==NULL){
+	if(this_serviceescalation->contact_groups!=NULL){
+
+		for(contact_group=strtok(this_serviceescalation->contact_groups,", ");contact_group!=NULL;contact_group=strtok(NULL,", ")){
+			new_contactgroupsmember=add_contactgroup_to_serviceescalation(new_serviceescalation,contact_group);
+			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Service escalation has no contact groups (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+				asprintf(&temp_buffer,"Error: Could not add contactgroup '%s' to service escalation (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 #endif
-		return ERROR;
-	        }
-	for(contact_group=strtok(this_serviceescalation->contact_groups,", ");contact_group!=NULL;contact_group=strtok(NULL,", ")){
-		new_contactgroupsmember=add_contactgroup_to_serviceescalation(new_serviceescalation,contact_group);
-		if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not add contactgroup '%s' to service escalation (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
-#endif
-			return ERROR;
-		        }
-	        }
-#endif
+				return ERROR;
+				}
+			}
+		}
 
 	/* add the contacts */
-	if(this_serviceescalation->contacts==NULL){
+	if(this_serviceescalation->contacts!=NULL){
+
+		for(contact_name=strtok(this_serviceescalation->contacts,", ");contact_name!=NULL;contact_name=strtok(NULL,", ")){
+			new_contactsmember=add_contact_to_serviceescalation(new_serviceescalation,contact_name);
+			if(new_contactsmember==NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Service escalation has no contacts (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+				asprintf(&temp_buffer,"Error: Could not add contact '%s' to service escalation (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 #endif
-		return ERROR;
-	        }
-	for(contact_name=strtok(this_serviceescalation->contacts,", ");contact_name!=NULL;contact_name=strtok(NULL,", ")){
-		new_contactsmember=add_contact_to_serviceescalation(new_serviceescalation,contact_name);
-		if(new_contactsmember==NULL){
-#ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not add contact '%s' to service escalation (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
-#endif
-			return ERROR;
-		        }
-	        }
+				return ERROR;
+				}
+			}
+		}
 
 	return OK;
         }
@@ -9687,7 +9683,9 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	char *parent_host=NULL;
 	hostsmember *new_hostsmember=NULL;
 	contactsmember *new_contactsmember=NULL;
+	contactgroupsmember *new_contactgroupsmember=NULL;
 	char *contact_name=NULL;
+	char *contact_group=NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -9734,7 +9732,6 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		        }
 	        }
 
-#ifdef REMOVED_07182006
 	/* add all contact groups to the host */
 	if(this_host->contact_groups!=NULL){
 
@@ -9752,7 +9749,6 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 			        }
 	                }
 	        }
-#endif
 
 	/* add all contacts to the host */
 	if(this_host->contacts!=NULL){
@@ -9793,7 +9789,9 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 int xodtemplate_register_service(xodtemplate_service *this_service){
 	service *new_service=NULL;
 	contactsmember *new_contactsmember=NULL;
+	contactgroupsmember *new_contactgroupsmember=NULL;
 	char *contact_name=NULL;
+	char *contact_group=NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -9814,6 +9812,24 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 		my_free((void **)&temp_buffer);
 #endif
 		return ERROR;
+	        }
+
+	/* add all contact groups to the service */
+	if(this_service->contact_groups!=NULL){
+
+		for(contact_group=strtok(this_service->contact_groups,",");contact_group!=NULL;contact_group=strtok(NULL,",")){
+
+			strip(contact_group);
+			new_contactgroupsmember=add_contactgroup_to_service(new_service,contact_group);
+			if(new_contactgroupsmember==NULL){
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Could not add contactgroup '%s' to service (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				return ERROR;
+			        }
+	                }
 	        }
 
 	/* add all the contacts to the service */
@@ -9906,7 +9922,9 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostescalation){
 	hostescalation *new_hostescalation=NULL;
 	contactsmember *new_contactsmember=NULL;
+	contactgroupsmember *new_contactgroupsmember=NULL;
 	char *contact_name=NULL;
+	char *contact_group=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
 #endif
@@ -9935,25 +9953,38 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 		return ERROR;
 	        }
 
-	/* add the contacts */
-	if(this_hostescalation->contacts==NULL){
+	/* add all contact groups*/
+	if(this_hostescalation->contact_groups!=NULL){
+
+		for(contact_group=strtok(this_hostescalation->contact_groups,",");contact_group!=NULL;contact_group=strtok(NULL,",")){
+
+			strip(contact_group);
+			new_contactgroupsmember=add_contactgroup_to_hostescalation(new_hostescalation,contact_group);
+			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Host escalation has no contacts (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+				asprintf(&temp_buffer,"Error: Could not add contactgroup '%s' to host escalation (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 #endif
-		return ERROR;
+				return ERROR;
+			        }
+	                }
 	        }
-	for(contact_name=strtok(this_hostescalation->contacts,", ");contact_name!=NULL;contact_name=strtok(NULL,", ")){
-		new_contactsmember=add_contact_to_hostescalation(new_hostescalation,contact_name);
-		if(new_contactsmember==NULL){
+
+	/* add the contacts */
+	if(this_hostescalation->contacts!=NULL){
+
+		for(contact_name=strtok(this_hostescalation->contacts,", ");contact_name!=NULL;contact_name=strtok(NULL,", ")){
+			new_contactsmember=add_contact_to_hostescalation(new_hostescalation,contact_name);
+			if(new_contactsmember==NULL){
 #ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not add contact '%s' to host escalation (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+				asprintf(&temp_buffer,"Error: Could not add contact '%s' to host escalation (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 #endif
-			return ERROR;
-		        }
+				return ERROR;
+				}
+			}
 	        }
 
 	return OK;
@@ -11168,6 +11199,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tevent_handler\t%s\n",temp_host->event_handler);
 		if(temp_host->contacts)
 			fprintf(fp,"\tcontacts\t%s\n",temp_host->contacts);
+		if(temp_host->contact_groups)
+			fprintf(fp,"\tcontact_groups\t%s\n",temp_host->contact_groups);
 		if(temp_host->notification_period)
 			fprintf(fp,"\tnotification_period\t%s\n",temp_host->notification_period);
 		if(temp_host->failure_prediction_options)
@@ -11283,6 +11316,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tevent_handler\t%s\n",temp_service->event_handler);
 		if(temp_service->contacts)
 			fprintf(fp,"\tcontacts\t%s\n",temp_service->contacts);
+		if(temp_service->contact_groups)
+			fprintf(fp,"\tcontact_groups\t%s\n",temp_service->contact_groups);
 		if(temp_service->notification_period)
 			fprintf(fp,"\tnotification_period\t%s\n",temp_service->notification_period);
 		if(temp_service->failure_prediction_options)
@@ -11464,6 +11499,8 @@ int xodtemplate_cache_objects(char *cache_file){
 		        }
 		if(temp_serviceescalation->contacts)
 			fprintf(fp,"\tcontacts\t%s\n",temp_serviceescalation->contacts);
+		if(temp_serviceescalation->contact_groups)
+			fprintf(fp,"\tcontact_groups\t%s\n",temp_serviceescalation->contact_groups);
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -11539,6 +11576,8 @@ int xodtemplate_cache_objects(char *cache_file){
 		        }
 		if(temp_hostescalation->contacts)
 			fprintf(fp,"\tcontacts\t%s\n",temp_hostescalation->contacts);
+		if(temp_hostescalation->contact_groups)
+			fprintf(fp,"\tcontact_groups\t%s\n",temp_hostescalation->contact_groups);
 		fprintf(fp,"\t}\n\n");
 	        }
 

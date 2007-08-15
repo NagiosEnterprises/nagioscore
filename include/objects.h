@@ -126,21 +126,21 @@ typedef struct timeperiod_struct{
 	}timeperiod;
 
 
-/* CONTACTGROUPMEMBER structure */
-typedef struct contactgroupmember_struct{
+/* CONTACTSMEMBER structure */
+typedef struct contactsmember_struct{
 	char    *contact_name;
 #ifdef NSCORE
 	contact *contact_ptr;
 #endif
-	struct  contactgroupmember_struct *next;
-        }contactgroupmember;
+	struct  contactsmember_struct *next;
+        }contactsmember;
 
 
 /* CONTACTGROUP structure */
 typedef struct contactgroup_struct{
 	char	*group_name;
 	char    *alias;
-	contactgroupmember *members;
+	contactsmember *members;
 	struct	contactgroup_struct *next;
 	struct	contactgroup_struct *nexthash;
 	}contactgroup;
@@ -227,16 +227,6 @@ struct contact_struct{
         };
 
 
-/* CONTACTSMEMBER structure */
-typedef struct contactsmember_struct{
-	char    *contact_name;
-#ifdef NSCORE
-	contact *contact_ptr;
-#endif
-	struct contactsmember_struct *next;
-        }contactsmember;
-
-
 /* SERVICESMEMBER structure */
 typedef struct servicesmember_struct{
 	char    *host_name;
@@ -258,21 +248,11 @@ typedef struct hostsmember_struct{
         }hostsmember;
 
 
-/* HOSTGROUPMEMBER structure */
-typedef struct hostgroupmember_struct{
-	char    *host_name;
-#ifdef NSCORE
-	host    *host_ptr;
-#endif
-	struct  hostgroupmember_struct *next;
-        }hostgroupmember;
-
-
 /* HOSTGROUP structure */
 typedef struct hostgroup_struct{
 	char 	*group_name;
 	char    *alias;
-	hostgroupmember *members;
+	hostsmember *members;
 	char    *notes;
 	char    *notes_url;
 	char    *action_url;
@@ -405,22 +385,11 @@ struct host_struct{
         };
 
 
-/* SERVICEGROUPMEMBER structure */
-typedef struct servicegroupmember_struct{
-	char    *host_name;
-	char    *service_description;
-#ifdef NSCORE
-	service *service_ptr;
-#endif
-	struct  servicegroupmember_struct *next;
-        }servicegroupmember;
-
-
 /* SERVICEGROUP structure */
 typedef struct servicegroup_struct{
 	char 	*group_name;
 	char    *alias;
-	servicegroupmember *members;
+	servicesmember *members;
 	char    *notes;
 	char    *notes_url;
 	char    *action_url;
@@ -655,29 +624,9 @@ typedef struct host_cursor_struct{
 
 /********************* FUNCTIONS **********************/
 
-/**** DEBUG functions ****/
-/* RMO: 9/25/01
-   Send debug output to stdout. Does nothing if 'level' is
-   not enabled by a corresponding 'DEBUGn' define.
-   Accepts format string (fmt) and variable-length arg list
-   (as printf does). Prints to stdout and, if NSCGI environment,
-   surrounded with HTML comment delimiters to be viewed through
-   browser's 'view source' option.
-
-   Use as: dbg_print((level,fmt,...)); [NOTE double parens]
- 
-   The macro def below causes dbg_print(()) calls to vaporize
-   if none of the DEBUGn levels are defined.
-*/
-#if defined(DEBUG0) || defined(DEBUG1) || defined(DEBUG2) || defined(DEBUG3) || defined(DEBUG4) || defined(DEBUG5) || defined(DEBUG6) || defined(DEBUG7) || defined(DEBUG8) || defined(DEBUG9) || defined(DEBUG10) || defined(DEBUG11)
-#define dbg_print(args) dbg_print_x args
-#else
-#define dbg_print(args)
-#endif
-
-
 /**** Top-level input functions ****/
 int read_object_config_data(char *,int,int,int);        /* reads all external configuration data of specific types */
+
 
 /**** Object Creation Functions ****/
 contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int);	/* adds a contact definition */
@@ -696,11 +645,11 @@ timerange *add_timerange_to_timeperiod(timeperiod *,int,unsigned long,unsigned l
 daterange *add_exception_to_timeperiod(timeperiod *,int,int,int,int,int,int,int,int,int,int,int,int);
 timerange *add_timerange_to_daterange(daterange *,unsigned long,unsigned long);
 hostgroup *add_hostgroup(char *,char *,char *,char *,char *);						/* adds a hostgroup definition */
-hostgroupmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host to a hostgroup definition */
+hostsmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host to a hostgroup definition */
 servicegroup *add_servicegroup(char *,char *,char *,char *,char *);                                     /* adds a servicegroup definition */
-servicegroupmember *add_service_to_servicegroup(servicegroup *,char *,char *);                          /* adds a service to a servicegroup definition */
+servicesmember *add_service_to_servicegroup(servicegroup *,char *,char *);                              /* adds a service to a servicegroup definition */
 contactgroup *add_contactgroup(char *,char *);								/* adds a contactgroup definition */
-contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group definition */
+contactsmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group definition */
 command *add_command(char *,char *);									/* adds a command definition */
 service *add_service(char *,char *,char *,char *,int,int,int,int,double,double,double,double,char *,int,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,int,int,int);	/* adds a service definition */
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
@@ -717,7 +666,6 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *)
 
 contactsmember *add_contact_to_object(contactsmember **,char *);                                        /* adds a contact to an object */ 
 customvariablesmember *add_custom_variable_to_object(customvariablesmember **,char *,char *);           /* adds a custom variable to an object */
-
 
 
 /**** Object Hash Functions ****/
@@ -742,7 +690,6 @@ hostgroup * find_hostgroup(char *);						                /* finds a hostgroup ob
 servicegroup * find_servicegroup(char *);					                /* finds a servicegroup object */
 contact * find_contact(char *);							                /* finds a contact object */
 contactgroup * find_contactgroup(char *);					                /* finds a contactgroup object */
-contactgroupmember *find_contactgroupmember(char *,contactgroup *);	                        /* finds a contactgroup member object */
 command * find_command(char *);							                /* finds a command object */
 service * find_service(char *,char *);								/* finds a service object */
 

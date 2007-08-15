@@ -1238,7 +1238,7 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 int process_hostgroup_command(int cmd, time_t entry_time, char *args){
 	char *hostgroup_name=NULL;
 	hostgroup *temp_hostgroup=NULL;
-	hostgroupmember *temp_member=NULL;
+	hostsmember *temp_member=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	servicesmember *temp_servicesmember=NULL;
@@ -1421,7 +1421,7 @@ int process_service_command(int cmd, time_t entry_time, char *args){
 int process_servicegroup_command(int cmd, time_t entry_time, char *args){
 	char *servicegroup_name=NULL;
 	servicegroup *temp_servicegroup=NULL;
-	servicegroupmember *temp_member=NULL;
+	servicesmember *temp_member=NULL;
 	host *temp_host=NULL;
 	host *last_host=NULL;
 	service *temp_service=NULL;
@@ -1588,7 +1588,7 @@ int process_contact_command(int cmd, time_t entry_time, char *args){
 int process_contactgroup_command(int cmd, time_t entry_time, char *args){
 	char *contactgroup_name=NULL;
 	contactgroup *temp_contactgroup=NULL;
-	contactgroupmember *temp_member=NULL;
+	contactsmember *temp_member=NULL;
 	contact *temp_contact=NULL;
 
 	/* get the contactgroup name */
@@ -2336,9 +2336,9 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	host *temp_host=NULL;
 	host *last_host=NULL;
 	hostgroup *temp_hostgroup=NULL;
-	hostgroupmember *temp_hgmember=NULL;
+	hostsmember *temp_hgmember=NULL;
 	servicegroup *temp_servicegroup=NULL;
-	servicegroupmember *temp_sgmember=NULL;
+	servicesmember *temp_sgmember=NULL;
 	char *host_name=NULL;
 	char *hostgroup_name=NULL;
 	char *servicegroup_name=NULL;

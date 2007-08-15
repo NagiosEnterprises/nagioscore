@@ -778,6 +778,8 @@ int create_notification_list_from_service(service *svc, int *escalated){
 	serviceescalation *temp_se=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
+	contactgroupsmember *temp_contactgroupsmember=NULL;
+	contactgroup *temp_contactgroup=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"create_notification_list_from_service()\n");
 
@@ -796,11 +798,22 @@ int create_notification_list_from_service(service *svc, int *escalated){
 
 			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from service escalation to notification list.\n");
 
-			/* find each contact in this escalation entry */
+			/* add all individual contacts for this escalation entry */
 			for(temp_contactsmember=temp_se->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 				if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
 					continue;
 				add_notification(temp_contact);
+				}
+
+			/* add all contacts that belong to contactgroups for this escalation */
+			for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+				if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
+					continue;
+				for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+					if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+						continue;
+					add_notification(temp_contact);
+					}
 				}
 		        }
 	        }
@@ -811,11 +824,22 @@ int create_notification_list_from_service(service *svc, int *escalated){
 		/* set the escalation flag */
 		*escalated=FALSE;
 
-		/* find all contacts for this service */
+		/* add all individual contacts for this service */
 		for(temp_contactsmember=svc->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 			if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
 				continue;
 			add_notification(temp_contact);
+			}
+
+		/* add all contacts that belong to contactgroups for this service */
+		for(temp_contactgroupsmember=svc->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+			if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
+				continue;
+			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+				if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+					continue;
+				add_notification(temp_contact);
+				}
 			}
 	        }
 
@@ -1513,6 +1537,8 @@ int create_notification_list_from_host(host *hst, int *escalated){
 	hostescalation *temp_he=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
+	contactgroupsmember *temp_contactgroupsmember=NULL;
+	contactgroup *temp_contactgroup=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"create_notification_list_from_host()\n");
 
@@ -1531,12 +1557,23 @@ int create_notification_list_from_host(host *hst, int *escalated){
 
 			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from host escalation to notification list.\n");
 
-			/* find each contact in this escalation entry */
+			/* add all individual contacts for this escalation */
 			for(temp_contactsmember=temp_he->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 				if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
 					continue;
 				add_notification(temp_contact);
 			        }
+
+			/* add all contacts that belong to contactgroups for this escalation */
+			for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+				if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
+					continue;
+				for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+					if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+						continue;
+					add_notification(temp_contact);
+					}
+				}
 		        }
 	        }
 
@@ -1546,11 +1583,22 @@ int create_notification_list_from_host(host *hst, int *escalated){
 		/* set the escalation flag */
 		*escalated=FALSE;
 
-		/* get all contacts for this host */
+		/* add all individual contacts for this host */
 		for(temp_contactsmember=hst->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 			if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
 				continue;
 			add_notification(temp_contact);
+			}
+
+		/* add all contacts that belong to contactgroups for this host */
+		for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+			if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
+				continue;
+			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+				if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+					continue;
+				add_notification(temp_contact);
+				}
 			}
 	        }
 

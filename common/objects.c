@@ -1465,10 +1465,10 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 
 
 /* add a new host to a host group */
-hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name){
-	hostgroupmember *new_member=NULL;
-	hostgroupmember *last_member=NULL;
-	hostgroupmember *temp_member=NULL;
+hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name){
+	hostsmember *new_member=NULL;
+	hostsmember *last_member=NULL;
+	hostsmember *temp_member=NULL;
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -1485,7 +1485,7 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_nam
 	        }
 
 	/* allocate memory for a new member */
-	if((new_member=malloc(sizeof(hostgroupmember)))==NULL)
+	if((new_member=malloc(sizeof(hostsmember)))==NULL)
 		return NULL;
 
 	/* initialize vars */
@@ -1627,10 +1627,10 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 
 
 /* add a new service to a service group */
-servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, char *host_name, char *svc_description){
-	servicegroupmember *new_member=NULL;
-	servicegroupmember *last_member=NULL;
-	servicegroupmember *temp_member=NULL;
+servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, char *host_name, char *svc_description){
+	servicesmember *new_member=NULL;
+	servicesmember *last_member=NULL;
+	servicesmember *temp_member=NULL;
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -1647,7 +1647,7 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup,
 	        }
 
 	/* allocate memory for a new member */
-	if((new_member=malloc(sizeof(servicegroupmember)))==NULL)
+	if((new_member=malloc(sizeof(servicesmember)))==NULL)
 		return NULL;
 
 	/* initialize vars */
@@ -2038,8 +2038,8 @@ contactgroup *add_contactgroup(char *name,char *alias){
 
 
 /* add a new member to a contact group */
-contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_name){
-	contactgroupmember *new_contactgroupmember=NULL;
+contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_name){
+	contactsmember *new_contactsmember=NULL;
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -2056,31 +2056,31 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 	        }
 
 	/* allocate memory for a new member */
-	if((new_contactgroupmember=malloc(sizeof(contactgroupmember)))==NULL)
+	if((new_contactsmember=malloc(sizeof(contactsmember)))==NULL)
 		return NULL;
 
 	/* initialize vars */
-	new_contactgroupmember->contact_name=NULL;
+	new_contactsmember->contact_name=NULL;
 #ifdef NSCORE
-	new_contactgroupmember->contact_ptr=NULL;
+	new_contactsmember->contact_ptr=NULL;
 #endif
 
 	/* duplicate vars */
-	if((new_contactgroupmember->contact_name=(char *)strdup(contact_name))==NULL)
+	if((new_contactsmember->contact_name=(char *)strdup(contact_name))==NULL)
 		result=ERROR;
 
 	/* handle errors */
 	if(result==ERROR){
-		my_free((void **)&new_contactgroupmember->contact_name);
-		my_free((void **)&new_contactgroupmember);
+		my_free((void **)&new_contactsmember->contact_name);
+		my_free((void **)&new_contactsmember);
 		return NULL;
 	        }
 	
 	/* add the new member to the head of the member list */
-	new_contactgroupmember->next=grp->members;
-	grp->members=new_contactgroupmember;
+	new_contactsmember->next=grp->members;
+	grp->members=new_contactsmember;
 
-	return new_contactgroupmember;
+	return new_contactsmember;
         }
 
 
@@ -3203,28 +3203,6 @@ contactgroup * find_contactgroup(char *name){
 	}
 
 
-/* find the corresponding member of a contact group */
-contactgroupmember * find_contactgroupmember(char *name,contactgroup *grp){
-	contactgroupmember *temp_member=NULL;
-
-	if(name==NULL || grp==NULL)
-		return NULL;
-
-	temp_member=grp->members;
-	while(temp_member!=NULL){
-
-		/* we found a match */
-		if(!strcmp(temp_member->contact_name,name))
-			return temp_member;
-
-		temp_member=temp_member->next;
-	        }
-
-	/* we couldn't find a matching member */
-	return NULL;
-        }
-
-
 /* given a command name, find a command from the list in memory */
 command * find_command(char *name){
 	command *temp_command=NULL;
@@ -3537,17 +3515,17 @@ int number_of_total_parent_hosts(host *hst){
 /*  tests whether a host is a member of a particular hostgroup */
 /* NOTE: This function is only used by the CGIS */
 int is_host_member_of_hostgroup(hostgroup *group, host *hst){
-	hostgroupmember *temp_hostgroupmember=NULL;
+	hostsmember *temp_hostsmember=NULL;
 
 	if(group==NULL || hst==NULL)
 		return FALSE;
 
-	for(temp_hostgroupmember=group->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
+	for(temp_hostsmember=group->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 #ifdef NSCORE
-		if(temp_hostgroupmember->host_ptr==hst)
+		if(temp_hostsmember->host_ptr==hst)
 			return TRUE;
 #else
-		if(!strcmp(temp_hostgroupmember->host_name,hst->name))
+		if(!strcmp(temp_hostsmember->host_name,hst->name))
 			return TRUE;
 #endif
 	        }
@@ -3559,17 +3537,17 @@ int is_host_member_of_hostgroup(hostgroup *group, host *hst){
 /*  tests whether a host is a member of a particular servicegroup */
 /* NOTE: This function is only used by the CGIS */
 int is_host_member_of_servicegroup(servicegroup *group, host *hst){
-	servicegroupmember *temp_servicegroupmember=NULL;
+	servicesmember *temp_servicesmember=NULL;
 
 	if(group==NULL || hst==NULL)
 		return FALSE;
 
-	for(temp_servicegroupmember=group->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+	for(temp_servicesmember=group->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
 #ifdef NSCORE
-		if(temp_servicegroupmember->service_ptr!=NULL && temp_servicegroupmember->service_ptr->host_ptr==hst)
+		if(temp_servicesmember->service_ptr!=NULL && temp_servicesmember->service_ptr->host_ptr==hst)
 			return TRUE;
 #else
-		if(!strcmp(temp_servicegroupmember->host_name,hst->name))
+		if(!strcmp(temp_servicesmember->host_name,hst->name))
 			return TRUE;
 #endif
 	        }
@@ -3581,17 +3559,17 @@ int is_host_member_of_servicegroup(servicegroup *group, host *hst){
 /*  tests whether a service is a member of a particular servicegroup */
 /* NOTE: This function is only used by the CGIS */
 int is_service_member_of_servicegroup(servicegroup *group, service *svc){
-	servicegroupmember *temp_servicegroupmember=NULL;
+	servicesmember *temp_servicesmember=NULL;
 
 	if(group==NULL || svc==NULL)
 		return FALSE;
 
-	for(temp_servicegroupmember=group->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+	for(temp_servicesmember=group->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
 #ifdef NSCORE
-		if(temp_servicegroupmember->service_ptr==svc)
+		if(temp_servicesmember->service_ptr==svc)
 			return TRUE;
 #else
-		if(!strcmp(temp_servicegroupmember->host_name,svc->host_name) && !strcmp(temp_servicegroupmember->service_description,svc->description))
+		if(!strcmp(temp_servicesmember->host_name,svc->host_name) && !strcmp(temp_servicesmember->service_description,svc->description))
 			return TRUE;
 #endif
 	        }
@@ -3603,19 +3581,19 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc){
 /*  tests whether a contact is a member of a particular contactgroup - used only by the CGIs */
 /* 08/14/07 EG NO LONGER USED */
 int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
-	contactgroupmember *temp_contactgroupmember=NULL;
+	contactsmember *temp_contactsmember=NULL;
 
 	if(group==NULL || cntct==NULL)
 		return FALSE;
 
 	/* search all contacts in this contact group */
-	for(temp_contactgroupmember=group->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
+	for(temp_contactsmember=group->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 
 #ifdef NSCORE
-		if(temp_contactgroupmember->contact_ptr==cntct)
+		if(temp_contactsmember->contact_ptr==cntct)
 			return TRUE;
 #else
-		if(!strcmp(temp_contactgroupmember->contact_name,cntct->name))
+		if(!strcmp(temp_contactsmember->contact_name,cntct->name))
 			return TRUE;
 #endif
                 }
@@ -3626,17 +3604,17 @@ int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
 
 /*  tests whether a contact is a member of a particular hostgroup - used only by the CGIs */
 int is_contact_for_hostgroup(hostgroup *group, contact *cntct){
-	hostgroupmember *temp_hostgroupmember=NULL;
+	hostsmember *temp_hostsmember=NULL;
 	host *temp_host=NULL;
 
 	if(group==NULL || cntct==NULL)
 		return FALSE;
 
-	for(temp_hostgroupmember=group->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
+	for(temp_hostsmember=group->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 #ifdef NSCORE
-		temp_host=temp_hostgroupmember->host_ptr;
+		temp_host=temp_hostsmember->host_ptr;
 #else
-		temp_host=find_host(temp_hostgroupmember->host_name);
+		temp_host=find_host(temp_hostsmember->host_name);
 #endif
 		if(temp_host==NULL)
 			continue;
@@ -3651,17 +3629,17 @@ int is_contact_for_hostgroup(hostgroup *group, contact *cntct){
 
 /*  tests whether a contact is a member of a particular servicegroup - used only by the CGIs */
 int is_contact_for_servicegroup(servicegroup *group, contact *cntct){
-	servicegroupmember *temp_servicegroupmember=NULL;
+	servicesmember *temp_servicesmember=NULL;
 	service *temp_service=NULL;
 
 	if(group==NULL || cntct==NULL)
 		return FALSE;
 
-	for(temp_servicegroupmember=group->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+	for(temp_servicesmember=group->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
 #ifdef NSCORE
-		temp_service=temp_servicegroupmember->service_ptr;
+		temp_service=temp_servicesmember->service_ptr;
 #else
-		temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
+		temp_service=find_service(temp_servicesmember->host_name,temp_servicesmember->service_description);
 #endif
 		if(temp_service==NULL)
 			continue;
@@ -3678,21 +3656,47 @@ int is_contact_for_servicegroup(servicegroup *group, contact *cntct){
 int is_contact_for_host(host *hst, contact *cntct){
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
+	contactgroupsmember *temp_contactgroupsmember=NULL;
+	contactgroup *temp_contactgroup=NULL;
 	
 	if(hst==NULL || cntct==NULL){
 		return FALSE;
 	        }
 
-	/* search all contacts of this host */
+	/* search all individual contacts of this host */
 	for(temp_contactsmember=hst->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 #ifdef NSCORE
 		temp_contact=temp_contactsmember->contact_ptr;
 #else
 		temp_contact=find_contact(temp_contactsmember->contact_name);
 #endif
-
+		if(temp_contact==NULL)
+			continue;
 		if(temp_contact==cntct)
 			return TRUE;
+		}
+
+	/* search all contactgroups of this host */
+	for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+#ifdef NSCORE
+		temp_contactgroup=temp_contactgroupsmember->group_ptr;
+#else
+		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+#endif
+		if(temp_contactgroup==NULL)
+			continue;
+
+		for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+#ifdef NSCORE
+			temp_contact=temp_contactsmember->contact_ptr;
+#else
+			temp_contact=find_contact(temp_contactsmember->contact_name);
+#endif
+			if(temp_contact==NULL)
+				continue;
+			if(temp_contact==cntct)
+				return TRUE;
+			}
 		}
 
 	return FALSE;
@@ -3705,6 +3709,8 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 	hostescalation *temp_hostescalation=NULL;
+	contactgroupsmember *temp_contactgroupsmember=NULL;
+	contactgroup *temp_contactgroup=NULL;
 
 
 	/* search all host escalations */
@@ -3717,11 +3723,34 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 #else
 			temp_contact=find_contact(temp_contactsmember->contact_name);
 #endif
-
+			if(temp_contact==NULL)
+				continue;
 			if(temp_contact==cntct)
 				return TRUE;
 			}
 		
+		/* search all contactgroups of this host escalation */
+		for(temp_contactgroupsmember=temp_hostescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+#ifdef NSCORE
+			temp_contactgroup=temp_contactgroupsmember->group_ptr;
+#else
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+#endif
+			if(temp_contactgroup==NULL)
+				continue;
+
+			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+#ifdef NSCORE
+				temp_contact=temp_contactsmember->contact_ptr;
+#else
+				temp_contact=find_contact(temp_contactsmember->contact_name);
+#endif
+				if(temp_contact==NULL)
+					continue;
+				if(temp_contact==cntct)
+					return TRUE;
+				}
+			}
 		}
 
 	return FALSE;
@@ -3732,11 +3761,13 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 int is_contact_for_service(service *svc, contact *cntct){
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
+	contactgroupsmember *temp_contactgroupsmember=NULL;
+	contactgroup *temp_contactgroup=NULL;
 
 	if(svc==NULL || cntct==NULL)
 		return FALSE;
 
-	/* search all contacts of this service */
+	/* search all individual contacts of this service */
 	for(temp_contactsmember=svc->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 #ifdef NSCORE
 		temp_contact=temp_contactsmember->contact_ptr;
@@ -3746,6 +3777,29 @@ int is_contact_for_service(service *svc, contact *cntct){
 		
 		if(temp_contact==cntct)
 			return TRUE;
+		}
+
+	/* search all contactgroups of this service */
+	for(temp_contactgroupsmember=svc->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+#ifdef NSCORE
+		temp_contactgroup=temp_contactgroupsmember->group_ptr;
+#else
+		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+#endif
+		if(temp_contactgroup==NULL)
+			continue;
+
+		for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+#ifdef NSCORE
+			temp_contact=temp_contactsmember->contact_ptr;
+#else
+			temp_contact=find_contact(temp_contactsmember->contact_name);
+#endif
+			if(temp_contact==NULL)
+				continue;
+			if(temp_contact==cntct)
+				return TRUE;
+			}
 		}
 
 	return FALSE;
@@ -3758,6 +3812,8 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 	serviceescalation *temp_serviceescalation=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
+	contactgroupsmember *temp_contactgroupsmember=NULL;
+	contactgroup *temp_contactgroup=NULL;
 
 	/* search all the service escalations */
 	for(temp_serviceescalation=get_first_serviceescalation_by_service(svc->host_name,svc->description);temp_serviceescalation!=NULL;temp_serviceescalation=get_next_serviceescalation_by_service(svc->host_name,svc->description,temp_serviceescalation)){
@@ -3769,11 +3825,34 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 #else
 			temp_contact=find_contact(temp_contactsmember->contact_name);
 #endif
-
+			if(temp_contact==NULL)
+				continue;
 			if(temp_contact==cntct)
 				return TRUE;
 			}
 		
+		/* search all contactgroups of this service escalation */
+		for(temp_contactgroupsmember=temp_serviceescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+#ifdef NSCORE
+			temp_contactgroup=temp_contactgroupsmember->group_ptr;
+#else
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+#endif
+			if(temp_contactgroup==NULL)
+				continue;
+
+			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+#ifdef NSCORE
+				temp_contact=temp_contactsmember->contact_ptr;
+#else
+				temp_contact=find_contact(temp_contactsmember->contact_name);
+#endif
+				if(temp_contact==NULL)
+					continue;
+				if(temp_contact==cntct)
+					return TRUE;
+				}
+			}
 	        }
 
 	return FALSE;
@@ -3943,26 +4022,20 @@ int free_object_data(void){
 	hostsmember *next_hostsmember=NULL;
 	hostgroup *this_hostgroup=NULL;
 	hostgroup *next_hostgroup=NULL;
-	hostgroupmember *this_hostgroupmember=NULL;
-	hostgroupmember *next_hostgroupmember=NULL;
 	servicegroup *this_servicegroup=NULL;
 	servicegroup *next_servicegroup=NULL;
-	servicegroupmember *this_servicegroupmember=NULL;
-	servicegroupmember *next_servicegroupmember=NULL;
+	servicesmember *this_servicesmember=NULL;
+	servicesmember *next_servicesmember=NULL;
 	contact	*this_contact=NULL;
 	contact *next_contact=NULL;
 	contactgroup *this_contactgroup=NULL;
 	contactgroup *next_contactgroup=NULL;
-	contactgroupmember *this_contactgroupmember=NULL;
-	contactgroupmember *next_contactgroupmember=NULL;
-	contactgroupsmember *this_contactgroupsmember=NULL;
-	contactgroupsmember *next_contactgroupsmember=NULL;
 	contactsmember *this_contactsmember=NULL;
 	contactsmember *next_contactsmember=NULL;
+	contactgroupsmember *this_contactgroupsmember=NULL;
+	contactgroupsmember *next_contactgroupsmember=NULL;
 	customvariablesmember *this_customvariablesmember=NULL;
 	customvariablesmember *next_customvariablesmember=NULL;
-	servicesmember *this_servicesmember=NULL;
-	servicesmember *next_servicesmember=NULL;
 	service *this_service=NULL;
 	service *next_service=NULL;
 	command *this_command=NULL;
@@ -4127,12 +4200,12 @@ int free_object_data(void){
 	while(this_hostgroup!=NULL){
 
 		/* free memory for the group members */
-		this_hostgroupmember=this_hostgroup->members;
-		while(this_hostgroupmember!=NULL){
-			next_hostgroupmember=this_hostgroupmember->next;
-			my_free((void **)&this_hostgroupmember->host_name);
-			my_free((void **)&this_hostgroupmember);
-			this_hostgroupmember=next_hostgroupmember;
+		this_hostsmember=this_hostgroup->members;
+		while(this_hostsmember!=NULL){
+			next_hostsmember=this_hostsmember->next;
+			my_free((void **)&this_hostsmember->host_name);
+			my_free((void **)&this_hostsmember);
+			this_hostsmember=next_hostsmember;
 		        }
 
 		next_hostgroup=this_hostgroup->next;
@@ -4156,13 +4229,13 @@ int free_object_data(void){
 	while(this_servicegroup!=NULL){
 
 		/* free memory for the group members */
-		this_servicegroupmember=this_servicegroup->members;
-		while(this_servicegroupmember!=NULL){
-			next_servicegroupmember=this_servicegroupmember->next;
-			my_free((void **)&this_servicegroupmember->host_name);
-			my_free((void **)&this_servicegroupmember->service_description);
-			my_free((void **)&this_servicegroupmember);
-			this_servicegroupmember=next_servicegroupmember;
+		this_servicesmember=this_servicegroup->members;
+		while(this_servicesmember!=NULL){
+			next_servicesmember=this_servicesmember->next;
+			my_free((void **)&this_servicesmember->host_name);
+			my_free((void **)&this_servicesmember->service_description);
+			my_free((void **)&this_servicesmember);
+			this_servicesmember=next_servicesmember;
 		        }
 
 		next_servicegroup=this_servicegroup->next;
@@ -4239,12 +4312,12 @@ int free_object_data(void){
 	while(this_contactgroup!=NULL){
 
 		/* free memory for the group members */
-		this_contactgroupmember=this_contactgroup->members;
-		while(this_contactgroupmember!=NULL){
-			next_contactgroupmember=this_contactgroupmember->next;
-			my_free((void **)&this_contactgroupmember->contact_name);
-			my_free((void **)&this_contactgroupmember);
-			this_contactgroupmember=next_contactgroupmember;
+		this_contactsmember=this_contactgroup->members;
+		while(this_contactsmember!=NULL){
+			next_contactsmember=this_contactsmember->next;
+			my_free((void **)&this_contactsmember->contact_name);
+			my_free((void **)&this_contactsmember);
+			this_contactsmember=next_contactsmember;
 		        }
 
 		next_contactgroup=this_contactgroup->next;

@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 08-14-2007
  *
  * License:
  * 
@@ -2467,9 +2467,9 @@ int convert_service_state_to_archived_state(int current_status){
 /* create list of subjects to collect availability data for */
 void create_subject_list(void){
 	hostgroup *temp_hostgroup;
-	hostgroupmember *temp_hgmember;
+	hostsmember *temp_hgmember;
 	servicegroup *temp_servicegroup;
-	servicegroupmember *temp_sgmember;
+	servicesmember *temp_sgmember;
 	host *temp_host;
 	service *temp_service;
 	char *last_host_name="";

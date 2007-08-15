@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2007
+ * Last Modified: 08-14-2007
  *
  * License:
  * 
@@ -2301,7 +2301,7 @@ void show_servicegroup_overviews(void){
 
 /* shows an overview of a specific servicegroup... */
 void show_servicegroup_overview(servicegroup *temp_servicegroup){
-	servicegroupmember *temp_member;
+	servicesmember *temp_member;
 	host *temp_host;
 	host *last_host;
 	hoststatus *temp_hoststatus=NULL;
@@ -2508,7 +2508,7 @@ void show_servicegroup_summary(servicegroup *temp_servicegroup,int odd){
 
 /* shows host total summary information for a specific servicegroup */
 void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup){
-	servicegroupmember *temp_member;
+	servicesmember *temp_member;
 	int hosts_up=0;
 	int hosts_down=0;
 	int hosts_unreachable=0;
@@ -2698,7 +2698,7 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup){
 	int services_critical_acknowledged=0;
 	int services_critical_disabled=0;
 	int services_critical_unacknowledged=0;
-	servicegroupmember *temp_member=NULL;
+	servicesmember *temp_member=NULL;
 	servicestatus *temp_servicestatus=NULL;
 	hoststatus *temp_hoststatus=NULL;
 	service *temp_service=NULL;
@@ -3036,8 +3036,8 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 	char *status_bg_class="";
 	char *host_status_class="";
 	char *service_status_class="";
-	servicegroupmember *temp_member;
-	servicegroupmember *temp_member2;
+	servicesmember *temp_member;
+	servicesmember *temp_member2;
 	host *temp_host;
 	host *last_host;
 	hoststatus *temp_hoststatus;
@@ -3343,7 +3343,7 @@ void show_hostgroup_overviews(void){
 
 /* shows an overview of a specific hostgroup... */
 void show_hostgroup_overview(hostgroup *hstgrp){
-	hostgroupmember *temp_member;
+	hostsmember *temp_member;
 	host *temp_host;
 	hoststatus *temp_hoststatus=NULL;
 	int odd=0;
@@ -3720,7 +3720,7 @@ void show_hostgroup_summary(hostgroup *temp_hostgroup,int odd){
 
 /* shows host total summary information for a specific hostgroup */
 void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup){
-	hostgroupmember *temp_member;
+	hostsmember *temp_member;
 	int hosts_up=0;
 	int hosts_down=0;
 	int hosts_unreachable=0;
@@ -4241,7 +4241,7 @@ void show_hostgroup_grids(void){
 
 /* displays status grid for a specific hostgroup */
 void show_hostgroup_grid(hostgroup *temp_hostgroup){
-	hostgroupmember *temp_member;
+	hostsmember *temp_member;
 	char *status_bg_class="";
 	char *host_status_class="";
 	char *service_status_class="";

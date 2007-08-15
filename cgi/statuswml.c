@@ -3,7 +3,7 @@
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 08-14-2007
  *
  * License:
  * 
@@ -597,7 +597,7 @@ void display_quick_stats(void){
 /* displays hostgroup status overview */
 void display_hostgroup_overview(void){
 	hostgroup *temp_hostgroup;
-	hostgroupmember *temp_member;
+	hostsmember *temp_member;
 	host *temp_host;
 	hoststatus *temp_hoststatus;
 
@@ -668,7 +668,7 @@ void display_hostgroup_overview(void){
 /* displays hostgroup status summary */
 void display_hostgroup_summary(void){
 	hostgroup *temp_hostgroup;
-	hostgroupmember *temp_member;
+	hostsmember *temp_member;
 	host *temp_host;
 	hoststatus *temp_hoststatus;
 	service *temp_service;

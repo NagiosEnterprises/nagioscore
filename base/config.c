@@ -1679,16 +1679,13 @@ int pre_flight_object_check(int *w, int *e){
 	contact *temp_contact=NULL;
 	commandsmember *temp_commandsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
-	contactgroupmember *temp_contactgroupmember=NULL;
-	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactsmember *temp_contactsmember=NULL;
+	contactgroupsmember *temp_contactgroupsmember=NULL;
 	host *temp_host=NULL;
 	host *temp_host2=NULL;
 	hostsmember *temp_hostsmember=NULL;
 	hostgroup *temp_hostgroup=NULL;
-	hostgroupmember *temp_hostgroupmember=NULL;
 	servicegroup *temp_servicegroup=NULL;
-	servicegroupmember *temp_servicegroupmember=NULL;
 	servicesmember *temp_servicesmember=NULL;
 	service *temp_service=NULL;
 	service *temp_service2=NULL;
@@ -1817,9 +1814,9 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contactsmember->contact_ptr=temp_contact;
 			}
 
-		/* check to see if there is at least one contact */
-		if(temp_service->contacts==NULL){
-			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s' has no default contact(s) defined!",temp_service->description,temp_service->host_name);
+		/* check to see if there is at least one contact/group */
+		if(temp_service->contacts==NULL && temp_service->contact_groups==NULL){
+			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s' has no default contacts or contactgroups defined!",temp_service->description,temp_service->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
 			my_free((void **)&temp_buffer);
 			warnings++;
@@ -1999,9 +1996,9 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contactsmember->contact_ptr=temp_contact;
 			}
 
-		/* check to see if there is at least one contact */
-		if(temp_host->contacts==NULL){
-			asprintf(&temp_buffer,"Warning: Host '%s' has no default contact(s) defined!",temp_host->name);
+		/* check to see if there is at least one contact/group */
+		if(temp_host->contacts==NULL && temp_host->contact_groups==NULL){
+			asprintf(&temp_buffer,"Warning: Host '%s' has no default contacts or contactgroups defined!",temp_host->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
 			my_free((void **)&temp_buffer);
 			warnings++;
@@ -2068,11 +2065,11 @@ int pre_flight_object_check(int *w, int *e){
 	for(temp_hostgroup=hostgroup_list,total_objects=0;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next,total_objects++){
 
 		/* check all group members */
-		for(temp_hostgroupmember=temp_hostgroup->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
+		for(temp_hostsmember=temp_hostgroup->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
-			temp_host=find_host(temp_hostgroupmember->host_name);
+			temp_host=find_host(temp_hostsmember->host_name);
 			if(temp_host==NULL){
-				asprintf(&temp_buffer,"Error: Host '%s' specified in host group '%s' is not defined anywhere!",temp_hostgroupmember->host_name,temp_hostgroup->group_name);
+				asprintf(&temp_buffer,"Error: Host '%s' specified in host group '%s' is not defined anywhere!",temp_hostsmember->host_name,temp_hostgroup->group_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 				my_free((void **)&temp_buffer);
 				errors++;
@@ -2083,7 +2080,7 @@ int pre_flight_object_check(int *w, int *e){
 				add_object_to_objectlist(&temp_host->hostgroups_ptr,(void *)temp_hostgroup);
 
 			/* save host pointer for later */
-			temp_hostgroupmember->host_ptr=temp_host;
+			temp_hostsmember->host_ptr=temp_host;
 		        }
 
 		/* check for illegal characters in hostgroup name */
@@ -2107,11 +2104,11 @@ int pre_flight_object_check(int *w, int *e){
 	for(temp_servicegroup=servicegroup_list,total_objects=0;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next,total_objects++){
 
 		/* check all group members */
-		for(temp_servicegroupmember=temp_servicegroup->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+		for(temp_servicesmember=temp_servicegroup->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
 
-			temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
+			temp_service=find_service(temp_servicesmember->host_name,temp_servicesmember->service_description);
 			if(temp_service==NULL){
-				asprintf(&temp_buffer,"Error: Service '%s' on host '%s' specified in service group '%s' is not defined anywhere!",temp_servicegroupmember->service_description,temp_servicegroupmember->host_name,temp_servicegroup->group_name);
+				asprintf(&temp_buffer,"Error: Service '%s' on host '%s' specified in service group '%s' is not defined anywhere!",temp_servicesmember->service_description,temp_servicesmember->host_name,temp_servicegroup->group_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 				my_free((void **)&temp_buffer);
 				errors++;
@@ -2122,7 +2119,7 @@ int pre_flight_object_check(int *w, int *e){
 				add_object_to_objectlist(&temp_service->servicegroups_ptr,(void *)temp_servicegroup);
 
 			/* save service pointer for later */
-			temp_servicegroupmember->service_ptr=temp_service;
+			temp_servicesmember->service_ptr=temp_service;
 		        }
 
 		/* check for illegal characters in servicegroup name */
@@ -2292,18 +2289,18 @@ int pre_flight_object_check(int *w, int *e){
 		found=FALSE;
 
 		/* check all the group members */
-		for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
+		for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 
-			temp_contact=find_contact(temp_contactgroupmember->contact_name);
+			temp_contact=find_contact(temp_contactsmember->contact_name);
 			if(temp_contact==NULL){
-				asprintf(&temp_buffer,"Error: Contact '%s' specified in contact group '%s' is not defined anywhere!",temp_contactgroupmember->contact_name,temp_contactgroup->group_name);
+				asprintf(&temp_buffer,"Error: Contact '%s' specified in contact group '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_contactgroup->group_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 
 			/* save the contact pointer for later */
-			temp_contactgroupmember->contact_ptr=temp_contact;
+			temp_contactsmember->contact_ptr=temp_contact;
 		        }
 
 		/* check for illegal characters in contactgroup name */

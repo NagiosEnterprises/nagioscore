@@ -10,6 +10,7 @@ Nagios 3.x Change Log
 * Minor bug fix with notification timeout error messages
 * Fix bug with logging of passive host and service check results
 * Fixed bug with warning about no contactgroups being defined
+* Internal data structure cleanups
 * New macros: $SERVICEISVOLATILE$, $TOTALHOSTSERVICES$, $TOTALHOSTSERVICESOK$, $TOTALHOSTSERVICESWARNING$, $TOTALHOSTSERVICESUNKNOWN$, $TOTALHOSTSERVICESCRITICAL$
 
 

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-06-2007
+ * Last Modified:   08-15-2007
  *
  * License:
  *
@@ -573,11 +573,11 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 
 /* notify a specific contact about a service problem or recovery */
 int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_author, char *ack_data, int escalated){
-	commandsmember *temp_commandsmember;
-	char command_name[MAX_INPUT_BUFFER];
+	commandsmember *temp_commandsmember=NULL;
+	char *command_name=NULL;
 	char *command_name_ptr=NULL;
-	char raw_command[MAX_COMMAND_BUFFER];
-	char processed_command[MAX_COMMAND_BUFFER];
+	char *raw_command=NULL;
+	char *processed_command=NULL;
 	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime;
@@ -619,54 +619,55 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 		broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,method_start_time,method_end_time,(void *)svc,cntct,temp_commandsmember->command,ack_author,ack_data,escalated,NULL);
 #endif
 
-		/* get the command name */
-		strncpy(command_name,temp_commandsmember->command,sizeof(command_name));
-		command_name[sizeof(command_name)-1]='\x0';
-		command_name_ptr=strtok(command_name,"!");
-
 		/* get the raw command line */
-		get_raw_command_line(temp_commandsmember->command_ptr,temp_commandsmember->command,raw_command,sizeof(raw_command),macro_options);
+		get_raw_command_line(temp_commandsmember->command_ptr,temp_commandsmember->command,&raw_command,macro_options);
+		if(raw_command==NULL)
+			continue;
 
 		/* process any macros contained in the argument */
-		process_macros(raw_command,processed_command,sizeof(processed_command),macro_options);
+		process_macros(raw_command,&processed_command,macro_options);
+		if(processed_command==NULL)
+			continue;
 
-		/* run the notification command */
-		if(strcmp(processed_command,"")){
+		/* get the command name */
+		command_name=(char *)strdup(temp_commandsmember->command);
+		command_name_ptr=strtok(command_name,"!");
 
-			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Raw notification command: %s\n",raw_command);
-			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Processed notification command: %s\n",processed_command);
+		/* run the notification command... */
 
-			/* log the notification to program log file */
-			if(log_notifications==TRUE){
-				switch(type){
-				case NOTIFICATION_ACKNOWLEDGEMENT:
-					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT],macro_x[MACRO_SERVICEACKAUTHOR],macro_x[MACRO_SERVICEACKCOMMENT]);
-					break;
-				case NOTIFICATION_FLAPPINGSTART:
-					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
-					break;
-				case NOTIFICATION_FLAPPINGSTOP:
-					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
-					break;
-				case NOTIFICATION_FLAPPINGDISABLED:
-					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGDISABLED (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
-					break;
-				case NOTIFICATION_DOWNTIMESTART:
-					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMESTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
-					break;
-				case NOTIFICATION_DOWNTIMEEND:
-					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMEEND (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
-					break;
-				case NOTIFICATION_DOWNTIMECANCELLED:
-					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMECANCELLED (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
-					break;
-				default:
-					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
-					break;
-				        }
-				write_to_all_logs(temp_buffer,NSLOG_SERVICE_NOTIFICATION);
-				my_free((void **)&temp_buffer);
-			        }
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Raw notification command: %s\n",raw_command);
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Processed notification command: %s\n",processed_command);
+
+		/* log the notification to program log file */
+		if(log_notifications==TRUE){
+			switch(type){
+			case NOTIFICATION_ACKNOWLEDGEMENT:
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT],macro_x[MACRO_SERVICEACKAUTHOR],macro_x[MACRO_SERVICEACKCOMMENT]);
+				break;
+			case NOTIFICATION_FLAPPINGSTART:
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				break;
+			case NOTIFICATION_FLAPPINGSTOP:
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				break;
+			case NOTIFICATION_FLAPPINGDISABLED:
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGDISABLED (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				break;
+			case NOTIFICATION_DOWNTIMESTART:
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMESTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				break;
+			case NOTIFICATION_DOWNTIMEEND:
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMEEND (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				break;
+			case NOTIFICATION_DOWNTIMECANCELLED:
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMECANCELLED (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				break;
+			default:
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				break;
+				}
+			write_to_all_logs(temp_buffer,NSLOG_SERVICE_NOTIFICATION);
+			my_free((void **)&temp_buffer);
 
 			/* run the command */
 			my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
@@ -677,6 +678,11 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 				write_to_logs_and_console(temp_buffer,NSLOG_SERVICE_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE);
 				my_free((void **)&temp_buffer);
 			        }
+
+			/* free memory */
+			my_free((void **)&command_name);
+			my_free((void **)&raw_command);
+			my_free((void **)&processed_command);
 		        }
 
 		/* get end time */
@@ -1333,12 +1339,12 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 
 /* notify a specific contact that an entire host is down or up */
 int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author, char *ack_data, int escalated){
-	commandsmember *temp_commandsmember;
-	char command_name[MAX_INPUT_BUFFER];
-	char *command_name_ptr;
+	commandsmember *temp_commandsmember=NULL;
+	char *command_name=NULL;
+	char *command_name_ptr=NULL;
 	char *temp_buffer=NULL;
-	char raw_command[MAX_COMMAND_BUFFER];
-	char processed_command[MAX_COMMAND_BUFFER];
+	char *raw_command=NULL;
+	char *processed_command=NULL;
 	int early_timeout=FALSE;
 	double exectime;
 	struct timeval start_time;
@@ -1381,54 +1387,55 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 		broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,method_start_time,method_end_time,(void *)hst,cntct,temp_commandsmember->command,ack_author,ack_data,escalated,NULL);
 #endif
 
-		/* get the command name */
-		strncpy(command_name,temp_commandsmember->command,sizeof(command_name));
-		command_name[sizeof(command_name)-1]='\x0';
-		command_name_ptr=strtok(command_name,"!");
-
 		/* get the raw command line */
-		get_raw_command_line(temp_commandsmember->command_ptr,temp_commandsmember->command,raw_command,sizeof(raw_command),macro_options);
+		get_raw_command_line(temp_commandsmember->command_ptr,temp_commandsmember->command,&raw_command,macro_options);
+		if(raw_command==NULL)
+			continue;
 
 		/* process any macros contained in the argument */
-		process_macros(raw_command,processed_command,sizeof(processed_command),macro_options);
+		process_macros(raw_command,&processed_command,macro_options);
+		if(processed_command==NULL)
+			continue;
 
-		/* run the notification command */
-		if(strcmp(processed_command,"")){
+		/* get the command name */
+		command_name=(char *)strdup(temp_commandsmember->command);
+		command_name_ptr=strtok(command_name,"!");
 
-			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Raw Command: %s\n",raw_command);
-			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Processed Command: %s\n",processed_command);
+		/* run the notification command... */
 
-			/* log the notification to program log file */
-			if(log_notifications==TRUE){
-				switch(type){
-				case NOTIFICATION_ACKNOWLEDGEMENT:
-					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT],macro_x[MACRO_HOSTACKAUTHOR],macro_x[MACRO_HOSTACKCOMMENT]);
-					break;
-				case NOTIFICATION_FLAPPINGSTART:
-					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
-					break;
-				case NOTIFICATION_FLAPPINGSTOP:
-					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
-					break;
-				case NOTIFICATION_FLAPPINGDISABLED:
-					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGDISABLED (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
-					break;
-				case NOTIFICATION_DOWNTIMESTART:
-					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMESTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
-					break;
-				case NOTIFICATION_DOWNTIMEEND:
-					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMEEND (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
-					break;
-				case NOTIFICATION_DOWNTIMECANCELLED:
-					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMECANCELLED (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
-					break;
-				default:
-					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
-					break;
-				        }
-				write_to_all_logs(temp_buffer,NSLOG_HOST_NOTIFICATION);
-				my_free((void **)&temp_buffer);
-			        }
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Raw Command: %s\n",raw_command);
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Processed Command: %s\n",processed_command);
+
+		/* log the notification to program log file */
+		if(log_notifications==TRUE){
+			switch(type){
+			case NOTIFICATION_ACKNOWLEDGEMENT:
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT],macro_x[MACRO_HOSTACKAUTHOR],macro_x[MACRO_HOSTACKCOMMENT]);
+				break;
+			case NOTIFICATION_FLAPPINGSTART:
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				break;
+			case NOTIFICATION_FLAPPINGSTOP:
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				break;
+			case NOTIFICATION_FLAPPINGDISABLED:
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGDISABLED (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				break;
+			case NOTIFICATION_DOWNTIMESTART:
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMESTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				break;
+			case NOTIFICATION_DOWNTIMEEND:
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMEEND (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				break;
+			case NOTIFICATION_DOWNTIMECANCELLED:
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMECANCELLED (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				break;
+			default:
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				break;
+				}
+			write_to_all_logs(temp_buffer,NSLOG_HOST_NOTIFICATION);
+			my_free((void **)&temp_buffer);
 
 			/* run the command */
 			my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
@@ -1439,6 +1446,11 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 				write_to_logs_and_console(temp_buffer,NSLOG_HOST_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE);
 				my_free((void **)&temp_buffer);
 			        }
+
+			/* free memory */
+			my_free((void **)&command_name);
+			my_free((void **)&raw_command);
+			my_free((void **)&processed_command);
 		        }
 
 		/* get end time */

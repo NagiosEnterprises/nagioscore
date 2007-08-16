@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2007
+ * Last Modified:   08-15-2007
  *
  * License:
  *
@@ -293,8 +293,8 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 
 /* forks a child process to run a service check, but does not wait for the service check result */
 int run_async_service_check(service *svc, int check_options, double latency, int scheduled_check, int reschedule_check, int *time_is_valid, time_t *preferred_time){
-	char raw_command[MAX_COMMAND_BUFFER]="";
-	char processed_command[MAX_COMMAND_BUFFER]="";
+	char *raw_command=NULL;
+	char *processed_command=NULL;
 	char output_buffer[MAX_INPUT_BUFFER]="";
 	char *temp_buffer=NULL;
 	int check_service=TRUE;
@@ -389,10 +389,14 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(svc->check_command_ptr,svc->service_check_command,raw_command,sizeof(raw_command),0);
+	get_raw_command_line(svc->check_command_ptr,svc->service_check_command,&raw_command,0);
+	if(raw_command==NULL)
+		return ERROR;
 
 	/* process any macros contained in the argument */
-	process_macros(raw_command,processed_command,sizeof(processed_command),0);
+	process_macros(raw_command,&processed_command,0);
+	if(processed_command==NULL)
+		return ERROR;
 
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
@@ -754,6 +758,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 			/* free memory */
 			dbuf_free(&checkresult_dbuf);
+			my_free((void **)&raw_command);
+			my_free((void **)&processed_command);
 
 			/* free check result memory */
 			free_check_result(&check_result_info);
@@ -792,6 +798,10 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		/* should this be done in first child process (after spawning grandchild) as well? */
 		/* free memory allocated for IPC functionality */
 		free_check_result(&check_result_info);
+
+		/* free memory */
+		my_free((void **)&raw_command);
+		my_free((void **)&processed_command);
 
 		/* wait for the first child to return */
 		/* don't do this if large install tweaks are enabled - we'll clean up children in event loop */
@@ -2432,8 +2442,8 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 int execute_sync_host_check_3x(host *hst){
 	int result=STATE_OK;
 	int return_result=HOST_UP;
-	char processed_command[MAX_COMMAND_BUFFER]="";
-	char raw_command[MAX_COMMAND_BUFFER]="";
+	char *processed_command=NULL;
+	char *raw_command=NULL;
 	char *temp_buffer=NULL;
 	time_t current_time;
 	struct timeval start_time;
@@ -2487,10 +2497,14 @@ int execute_sync_host_check_3x(host *hst){
 	time(&hst->last_check);
 
 	/* get the raw command line */
-	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,raw_command,sizeof(raw_command),0);
+	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,&raw_command,0);
+	if(raw_command==NULL)
+		return ERROR;
 
 	/* process any macros contained in the argument */
-	process_macros(raw_command,processed_command,sizeof(processed_command),0);
+	process_macros(raw_command,&processed_command,0);
+	if(processed_command==NULL)
+		return ERROR;
 			
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -2533,6 +2547,8 @@ int execute_sync_host_check_3x(host *hst){
 
 	/* free memory */
 	my_free((void **)&temp_plugin_output);
+	my_free((void **)&raw_command);
+	my_free((void **)&processed_command);
 
 	/* a NULL host check command means we should assume the host is UP */
 	if(hst->host_check_command==NULL){
@@ -2643,8 +2659,8 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency){
 /* perform an asynchronous check of a host */
 /* scheduled host checks will use this, as will some checks that result from on-demand checks... */
 int run_async_host_check_3x(host *hst, int check_options, double latency, int scheduled_check, int reschedule_check, int *time_is_valid, time_t *preferred_time){
-	char raw_command[MAX_COMMAND_BUFFER]="";
-	char processed_command[MAX_COMMAND_BUFFER]="";
+	char *raw_command=NULL;
+	char *processed_command=NULL;
 	char output_buffer[MAX_INPUT_BUFFER]="";
 	char *temp_buffer=NULL;
 	struct timeval start_time,end_time;
@@ -2734,10 +2750,14 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,raw_command,sizeof(raw_command),0);
+	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,&raw_command,0);
+	if(raw_command==NULL)
+		return ERROR;
 
 	/* process any macros contained in the argument */
-	process_macros(raw_command,processed_command,sizeof(processed_command),0);
+	process_macros(raw_command,&processed_command,0);
+	if(processed_command==NULL)
+		return ERROR;
 
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
@@ -2908,6 +2928,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 			/* free memory */
 			dbuf_free(&checkresult_dbuf);
+			my_free((void **)&raw_command);
+			my_free((void **)&processed_command);
 
 			/* free check result memory */
 			free_check_result(&check_result_info);
@@ -2946,6 +2968,10 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		/* should this be done in first child process (after spawning grandchild) as well? */
 		/* free memory allocated for IPC functionality */
 		free_check_result(&check_result_info);
+
+		/* free memory */
+		my_free((void **)&raw_command);
+		my_free((void **)&processed_command);
 
 		/* wait for the first child to return */
 		/* if large install tweaks are enabled, we'll clean up the zombie process later */

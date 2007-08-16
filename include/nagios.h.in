@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2007
+ * Last Modified: 08-15-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -757,7 +757,7 @@ int compare_strings(char *,char *);                     /* compares two strings 
 char *escape_newlines(char *);
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *,char *);                           /* renames a file - works across filesystems */
-int get_raw_command_line(command *,char *,char *,int,int);    	/* given a raw command line, determine the actual command to run */
+int get_raw_command_line(command *,char *,char **,int);    	/* given a raw command line, determine the actual command to run */
 int check_time_against_period(time_t,timeperiod *);	/* check to see if a specific time is covered by a time period */
 int is_daterange_single_day(daterange *);
 time_t calculate_time_from_weekday_of_month(int,int,int,int);	/* calculates midnight time of specific (3rd, last, etc.) weekday of a particular month */
@@ -774,7 +774,7 @@ int dbuf_strcat(dbuf *,char *);
 
 
 /**** Macro Functions ****/
-int process_macros(char *,char *,int,int);             	/* replace macros with their actual values */
+int process_macros(char *,char **,int);             	/* replace macros with their actual values */
 char *clean_macro_chars(char *,int);                    /* cleans macros characters before insertion into output string */
 int grab_service_macros(service *);                  	/* updates the service macro data */
 int grab_host_macros(host *);                        	/* updates the host macro data */

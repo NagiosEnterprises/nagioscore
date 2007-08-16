@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2007
+ * Last Modified:   08-15-2007
  *
  * License:
  *
@@ -269,7 +269,7 @@ extern int errno;
 /******************************************************************/
 
 /* replace macros in notification commands with their values */
-int process_macros(char *input_buffer, char *output_buffer, int buffer_length, int options){
+int process_macros(char *input_buffer, char **output_buffer, int options){
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *temp_buffer=NULL;
 	int in_macro=FALSE;
@@ -278,16 +278,17 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 	int user_index=0;
 	int address_index=0;
 	char *selected_macro=NULL;
+	char *cleaned_macro=NULL;
 	int clean_macro=FALSE;
 	int found_macro_x=FALSE;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"process_macros()\n");
 
-	if(output_buffer==NULL || buffer_length<=0)
+	if(output_buffer==NULL)
 		return ERROR;
 
-	strcpy(output_buffer,"");
+	*output_buffer=(char *)strdup("");
 
 	if(input_buffer==NULL)
 		return ERROR;
@@ -296,7 +297,6 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 	log_debug_info(DEBUGL_MACROS,1,"**** BEGIN MACRO PROCESSING ***********\n");
 	log_debug_info(DEBUGL_MACROS,1,"Processing: '%s'\n",input_buffer);
-	log_debug_info(DEBUGL_MACROS,2,"Buffer length: %d\n",buffer_length);
 
 	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
 
@@ -306,184 +306,199 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 		found_macro_x=FALSE;
 		clean_macro=FALSE;
 
+		/* we're in plain text... */
 		if(in_macro==FALSE){
-			if(strlen(output_buffer)+strlen(temp_buffer)<buffer_length-1){
-				strncat(output_buffer,temp_buffer,buffer_length-strlen(output_buffer)-1);
-				output_buffer[buffer_length-1]='\x0';
-			        }
-			log_debug_info(DEBUGL_MACROS,2,"  Not currently in macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
+
+			/* add the plain text to the end of the already processed buffer */
+			*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+strlen(temp_buffer)+1);
+			strcat(*output_buffer,temp_buffer);
+
+			log_debug_info(DEBUGL_MACROS,2,"  Not currently in macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
 
 			in_macro=TRUE;
 			}
+
+		/* looks like we're in a macro, so process it... */
 		else{
 
-			if(strlen(output_buffer)+strlen(temp_buffer)<buffer_length-1){
+			/* general macros */
+			for(x=0;x<MACRO_X_COUNT;x++){
+				if(macro_x_names[x]==NULL)
+					continue;
+				if(!strcmp(temp_buffer,macro_x_names[x])){
 
-				/* general macros */
-				for(x=0;x<MACRO_X_COUNT;x++){
-					if(macro_x_names[x]==NULL)
-						continue;
-					if(!strcmp(temp_buffer,macro_x_names[x])){
-
-						selected_macro=macro_x[x];
-						found_macro_x=TRUE;
+					selected_macro=macro_x[x];
+					found_macro_x=TRUE;
 						
-						/* host/service output/perfdata macros get cleaned */
-						if((x>=16 && x<=19) || (x>=99 && x<=100)){
-							clean_macro=TRUE;
-							options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-						        }
+					/* host/service output/perfdata macros get cleaned */
+					if((x>=16 && x<=19) || (x>=99 && x<=100)){
+						clean_macro=TRUE;
+						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+						}
 
+					break;
+					}
+				}
+
+			/* we already have a macro... */
+			if(found_macro_x==TRUE)
+				x=0;
+
+			/* argv macros */
+			else if(strstr(temp_buffer,"ARG")==temp_buffer){
+				arg_index=atoi(temp_buffer+3);
+				if(arg_index>=1 && arg_index<=MAX_COMMAND_ARGUMENTS)
+					selected_macro=macro_argv[arg_index-1];
+				else
+					selected_macro=NULL;
+				}
+
+			/* user macros */
+			else if(strstr(temp_buffer,"USER")==temp_buffer){
+				user_index=atoi(temp_buffer+4);
+				if(user_index>=1 && user_index<=MAX_USER_MACROS)
+					selected_macro=macro_user[user_index-1];
+				else
+					selected_macro=NULL;
+				}
+
+			/* custom host variable macros */
+			else if(strstr(temp_buffer,"_HOST")==temp_buffer){
+				selected_macro=NULL;
+				for(temp_customvariablesmember=macro_custom_host_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+					if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
+						selected_macro=temp_customvariablesmember->variable_value;
+						clean_macro=TRUE;
+						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 						break;
 						}
-				        }
+					}
+				}
 
-				/* we already have a macro... */
-				if(found_macro_x==TRUE)
-					x=0;
-
-				/* argv macros */
-				else if(strstr(temp_buffer,"ARG")==temp_buffer){
-					arg_index=atoi(temp_buffer+3);
-					if(arg_index>=1 && arg_index<=MAX_COMMAND_ARGUMENTS)
-						selected_macro=macro_argv[arg_index-1];
-					else
-						selected_macro=NULL;
-				        }
-
-				/* user macros */
-				else if(strstr(temp_buffer,"USER")==temp_buffer){
-					user_index=atoi(temp_buffer+4);
-					if(user_index>=1 && user_index<=MAX_USER_MACROS)
-						selected_macro=macro_user[user_index-1];
-					else
-						selected_macro=NULL;
-				        }
-
-				/* custom host variable macros */
-				else if(strstr(temp_buffer,"_HOST")==temp_buffer){
-					selected_macro=NULL;
-					for(temp_customvariablesmember=macro_custom_host_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-						if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
-							selected_macro=temp_customvariablesmember->variable_value;
-							clean_macro=TRUE;
-							options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-							break;
-						        }
-					        }
-				         }
-
-				/* custom service variable macros */
-				else if(strstr(temp_buffer,"_SERVICE")==temp_buffer){
-					selected_macro=NULL;
-					for(temp_customvariablesmember=macro_custom_service_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-						if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
-							selected_macro=temp_customvariablesmember->variable_value;
-							clean_macro=TRUE;
-							options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-							break;
-						        }
-					        }
-				         }
-
-				/* custom contact variable macros */
-				else if(strstr(temp_buffer,"_CONTACT")==temp_buffer){
-					selected_macro=NULL;
-					for(temp_customvariablesmember=macro_custom_contact_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-						if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
-							selected_macro=temp_customvariablesmember->variable_value;
-							clean_macro=TRUE;
-							options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-							break;
-						        }
-					        }
-				         }
-
-				/* contact address macros */
-				else if(strstr(temp_buffer,"CONTACTADDRESS")==temp_buffer){
-					address_index=atoi(temp_buffer+14);
-					if(address_index>=1 && address_index<=MAX_CONTACT_ADDRESSES)
-						selected_macro=macro_contactaddress[address_index-1];
-					else
-						selected_macro=NULL;
-				        }
-
-				/* on-demand host macros */
-				else if(strstr(temp_buffer,"HOST") && strstr(temp_buffer,":")){
-
-					grab_on_demand_macro(temp_buffer);
-					selected_macro=macro_ondemand;
-
-					/* output/perfdata macros get cleaned */
-					if(strstr(temp_buffer,"HOSTOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGHOSTOUTPUT:")==temp_buffer  || strstr(temp_buffer,"HOSTPERFDATA:")){
+			/* custom service variable macros */
+			else if(strstr(temp_buffer,"_SERVICE")==temp_buffer){
+				selected_macro=NULL;
+				for(temp_customvariablesmember=macro_custom_service_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+					if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
+						selected_macro=temp_customvariablesmember->variable_value;
 						clean_macro=TRUE;
 						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-					        }
-				        }
+						break;
+						}
+					}
+				}
 
-				/* on-demand service macros */
-				else if(strstr(temp_buffer,"SERVICE") && strstr(temp_buffer,":")){
-
-					grab_on_demand_macro(temp_buffer);
-					selected_macro=macro_ondemand;
-
-					/* output/perfdata macros get cleaned */
-					if(strstr(temp_buffer,"SERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGSERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"SERVICEPERFDATA:")){
+			/* custom contact variable macros */
+			else if(strstr(temp_buffer,"_CONTACT")==temp_buffer){
+				selected_macro=NULL;
+				for(temp_customvariablesmember=macro_custom_contact_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+					if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
+						selected_macro=temp_customvariablesmember->variable_value;
 						clean_macro=TRUE;
 						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-					        }
-				        }
+						break;
+						}
+					}
+				}
+
+			/* contact address macros */
+			else if(strstr(temp_buffer,"CONTACTADDRESS")==temp_buffer){
+				address_index=atoi(temp_buffer+14);
+				if(address_index>=1 && address_index<=MAX_CONTACT_ADDRESSES)
+					selected_macro=macro_contactaddress[address_index-1];
+				else
+					selected_macro=NULL;
+				}
+
+			/* on-demand host macros */
+			else if(strstr(temp_buffer,"HOST") && strstr(temp_buffer,":")){
 				
-				/* an escaped $ is done by specifying two $$ next to each other */
-				else if(!strcmp(temp_buffer,"")){
+				grab_on_demand_macro(temp_buffer);
+				selected_macro=macro_ondemand;
+				
+				/* output/perfdata macros get cleaned */
+				if(strstr(temp_buffer,"HOSTOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGHOSTOUTPUT:")==temp_buffer  || strstr(temp_buffer,"HOSTPERFDATA:")){
+					clean_macro=TRUE;
+					options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+					}
+				}
 
-					log_debug_info(DEBUGL_MACROS,2,"  Escaped $.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
+			/* on-demand service macros */
+			else if(strstr(temp_buffer,"SERVICE") && strstr(temp_buffer,":")){
 
-					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
-				        }
+				grab_on_demand_macro(temp_buffer);
+				selected_macro=macro_ondemand;
 
-				/* a non-macro, just some user-defined string between two $s */
+				/* output/perfdata macros get cleaned */
+				if(strstr(temp_buffer,"SERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGSERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"SERVICEPERFDATA:")){
+					clean_macro=TRUE;
+					options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+					}
+				}
+				
+			/* an escaped $ is done by specifying two $$ next to each other */
+			else if(!strcmp(temp_buffer,"")){
+
+				log_debug_info(DEBUGL_MACROS,2,"  Escaped $.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
+
+				*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+2);
+				strcat(*output_buffer,"$");
+				}
+
+			/* a non-macro, just some user-defined string between two $s */
+			else{
+
+				log_debug_info(DEBUGL_MACROS,2,"  Non-macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
+
+				/* add the plain text to the end of the already processed buffer */
+				*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+strlen(temp_buffer)+3);
+				strcat(*output_buffer,"$");
+				strcat(*output_buffer,temp_buffer);
+				strcat(*output_buffer,"$");
+				}
+
+			/* insert macro */
+			if(selected_macro!=NULL){
+
+				/* URL encode the macro if requested - this allocates new memory */
+				if(options & URL_ENCODE_MACRO_CHARS)
+					selected_macro=get_url_encoded_string(selected_macro);
+				
+				/* some macros are cleaned... */
+				if(clean_macro==TRUE || ((options & STRIP_ILLEGAL_MACRO_CHARS) || (options & ESCAPE_MACRO_CHARS))){
+
+					/* add the (cleaned) processed macro to the end of the already processed buffer */
+					if(selected_macro!=NULL && (cleaned_macro=clean_macro_chars(selected_macro,options))!=NULL){
+						*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+strlen(cleaned_macro)+1);
+						strcat(*output_buffer,cleaned_macro);
+
+						log_debug_info(DEBUGL_MACROS,2,"  Cleaned macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
+						}
+					}
+
+				/* others are not cleaned */
 				else{
+					/* add the processed macro to the end of the already processed buffer */
+					if(selected_macro!=NULL){
+						*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+strlen(selected_macro)+1);
+						strcat(*output_buffer,selected_macro);
 
-					log_debug_info(DEBUGL_MACROS,2,"  Non-macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
+						log_debug_info(DEBUGL_MACROS,2,"  Uncleaned macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
+						}
+					}
 
-					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
-					output_buffer[buffer_length-1]='\x0';
-					strncat(output_buffer,temp_buffer,buffer_length-strlen(output_buffer)-1);
-					output_buffer[buffer_length-1]='\x0';
-					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
-				        }
+				/* free memory if necessary (it was only allocated if we URL encoded the macro) */
+				if(options & URL_ENCODE_MACRO_CHARS)
+					my_free((void **)&selected_macro);
 
-				/* insert macro */
-				if(selected_macro!=NULL){
-
-					/* URL encode the macro */
-					if(options & URL_ENCODE_MACRO_CHARS)
-						selected_macro=get_url_encoded_string(selected_macro);
-				
-					/* some macros are cleaned... */
-					if(clean_macro==TRUE || ((options & STRIP_ILLEGAL_MACRO_CHARS) || (options & ESCAPE_MACRO_CHARS)))
-						strncat(output_buffer,(selected_macro==NULL)?"":clean_macro_chars(selected_macro,options),buffer_length-strlen(output_buffer)-1);
-
-					/* others are not cleaned */
-					else
-						strncat(output_buffer,(selected_macro==NULL)?"":selected_macro,buffer_length-strlen(output_buffer)-1);
-
-					/* free memory if necessary */
-					if(options & URL_ENCODE_MACRO_CHARS)
-						my_free((void **)&selected_macro);
-
-					log_debug_info(DEBUGL_MACROS,2,"  Just finished macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
-				        }
-
-				output_buffer[buffer_length-1]='\x0';
+				log_debug_info(DEBUGL_MACROS,2,"  Just finished macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
 				}
 
 			in_macro=FALSE;
 			}
 		}
 
-	log_debug_info(DEBUGL_MACROS,1,"  Done.  Final output: '%s'\n",output_buffer);
+	log_debug_info(DEBUGL_MACROS,1,"  Done.  Final output: '%s'\n",*output_buffer);
 	log_debug_info(DEBUGL_MACROS,1,"**** END MACRO PROCESSING *************\n");
 
 	return OK;
@@ -502,7 +517,7 @@ int grab_service_macros(service *svc){
 	int hours=0;
 	int minutes=0;
 	int seconds=0;
-	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char *temp_buffer=NULL;
 	char *buf1=NULL;
 	char *buf2=NULL;
 	
@@ -701,19 +716,19 @@ int grab_service_macros(service *svc){
 
 	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
 	if(macro_x[MACRO_SERVICEACTIONURL]!=NULL){
-		process_macros(macro_x[MACRO_SERVICEACTIONURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+		process_macros(macro_x[MACRO_SERVICEACTIONURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
 		my_free((void **)&macro_x[MACRO_SERVICEACTIONURL]);
-		macro_x[MACRO_SERVICEACTIONURL]=(char *)strdup(temp_buffer);
+		macro_x[MACRO_SERVICEACTIONURL]=temp_buffer;
 	        }
 	if(macro_x[MACRO_SERVICENOTESURL]!=NULL){
-		process_macros(macro_x[MACRO_SERVICENOTESURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+		process_macros(macro_x[MACRO_SERVICENOTESURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
 		my_free((void **)&macro_x[MACRO_SERVICENOTESURL]);
-		macro_x[MACRO_SERVICENOTESURL]=(char *)strdup(temp_buffer);
+		macro_x[MACRO_SERVICENOTESURL]=temp_buffer;
 	        }
 	if(macro_x[MACRO_SERVICENOTES]!=NULL){
-		process_macros(macro_x[MACRO_SERVICENOTES],temp_buffer,sizeof(temp_buffer),0);
+		process_macros(macro_x[MACRO_SERVICENOTES],&temp_buffer,0);
 		my_free((void **)&macro_x[MACRO_SERVICENOTES]);
-		macro_x[MACRO_SERVICENOTES]=(char *)strdup(temp_buffer);
+		macro_x[MACRO_SERVICENOTES]=temp_buffer;
 	        }
 
 	return OK;
@@ -739,7 +754,7 @@ int grab_host_macros(host *hst){
 	int total_host_services_warning=0;
 	int total_host_services_unknown=0;
 	int total_host_services_critical=0;
-	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char *temp_buffer=NULL;
 	char *buf1=NULL;
 	char *buf2=NULL;
 
@@ -971,19 +986,19 @@ int grab_host_macros(host *hst){
 
 	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
 	if(macro_x[MACRO_HOSTACTIONURL]!=NULL){
-		process_macros(macro_x[MACRO_HOSTACTIONURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+		process_macros(macro_x[MACRO_HOSTACTIONURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
 		my_free((void **)&macro_x[MACRO_HOSTACTIONURL]);
-		macro_x[MACRO_HOSTACTIONURL]=(char *)strdup(temp_buffer);
+		macro_x[MACRO_HOSTACTIONURL]=temp_buffer;
 	        }
 	if(macro_x[MACRO_HOSTNOTESURL]!=NULL){
-		process_macros(macro_x[MACRO_HOSTNOTESURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+		process_macros(macro_x[MACRO_HOSTNOTESURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
 		my_free((void **)&macro_x[MACRO_HOSTNOTESURL]);
-		macro_x[MACRO_HOSTNOTESURL]=(char *)strdup(temp_buffer);
+		macro_x[MACRO_HOSTNOTESURL]=temp_buffer;
 	        }
 	if(macro_x[MACRO_HOSTNOTES]!=NULL){
-		process_macros(macro_x[MACRO_HOSTNOTES],temp_buffer,sizeof(temp_buffer),0);
+		process_macros(macro_x[MACRO_HOSTNOTES],&temp_buffer,0);
 		my_free((void **)&macro_x[MACRO_HOSTNOTES]);
-		macro_x[MACRO_HOSTNOTES]=(char *)strdup(temp_buffer);
+		macro_x[MACRO_HOSTNOTES]=temp_buffer;
 	        }
 
 	return OK;
@@ -1180,7 +1195,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	customvariablesmember *temp_customvariablesmember=NULL;
 	objectlist *temp_objectlist=NULL;
 	char *customvarname=NULL;
-	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char *temp_buffer=NULL;
 	char *buf1=NULL;
 	char *buf2=NULL;
 	time_t current_time=0L;
@@ -1206,6 +1221,8 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 	time(&current_time);
 	duration=(unsigned long)(current_time-hst->last_state_change);
+
+	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for host '%s': %s\n",hst->name,macro);
 
 	/* get the host display name */
 	if(!strcmp(macro,"HOSTDISPLAYNAME")){
@@ -1384,9 +1401,9 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 		/* action URL macros may themselves contain macros, so process them... */
 		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
 			my_free((void **)&macro_ondemand);
-			macro_ondemand=(char *)strdup(temp_buffer);
+			macro_ondemand=temp_buffer;
 		        }
 	        }
 
@@ -1398,9 +1415,9 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 		/* action URL macros may themselves contain macros, so process them... */
 		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
 			my_free((void **)&macro_ondemand);
-			macro_ondemand=(char *)strdup(temp_buffer);
+			macro_ondemand=temp_buffer;
 		        }
 	        }
 
@@ -1411,9 +1428,9 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 		/* notes macros may themselves contain macros, so process them... */
 		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),0);
+			process_macros(macro_ondemand,&temp_buffer,0);
 			my_free((void **)&macro_ondemand);
-			macro_ondemand=(char *)strdup(temp_buffer);
+			macro_ondemand=temp_buffer;
 		        }
 	        }
 
@@ -1492,7 +1509,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	customvariablesmember *temp_customvariablesmember=NULL;
 	objectlist *temp_objectlist=NULL;
 	char *customvarname=NULL;
-	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char *temp_buffer=NULL;
 	char *buf1=NULL;
 	char *buf2=NULL;
 	time_t current_time=0L;
@@ -1510,6 +1527,8 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 	time(&current_time);
 	duration=(unsigned long)(current_time-svc->last_state_change);
+
+	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for service '%s' on host '%s': %s\n",svc->description,svc->host_name,macro);
 
 	/* get the service display name */
 	if(!strcmp(macro,"SERVICEDISPLAYNAME")){
@@ -1687,9 +1706,9 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 		/* action URL macros may themselves contain macros, so process them... */
 		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
 			my_free((void **)&macro_ondemand);
-			macro_ondemand=(char *)strdup(temp_buffer);
+			macro_ondemand=temp_buffer;
 		        }
 	        }
 
@@ -1701,9 +1720,9 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 		/* action URL macros may themselves contain macros, so process them... */
 		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
 			my_free((void **)&macro_ondemand);
-			macro_ondemand=(char *)strdup(temp_buffer);
+			macro_ondemand=temp_buffer;
 		        }
 	        }
 
@@ -1714,9 +1733,9 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 		/* notes macros may themselves contain macros, so process them... */
 		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),0);
+			process_macros(macro_ondemand,&temp_buffer,0);
 			my_free((void **)&macro_ondemand);
-			macro_ondemand=(char *)strdup(temp_buffer);
+			macro_ondemand=temp_buffer;
 		        }
 	        }
 
@@ -2808,9 +2827,9 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 
 /* given a "raw" command, return the "expanded" or "whole" command line */
-int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int buffer_length, int macro_options){
+int get_raw_command_line(command *cmd_ptr, char *cmd, char **full_command, int macro_options){
 	char temp_arg[MAX_COMMAND_BUFFER]="";
-	char arg_buffer[MAX_COMMAND_BUFFER]="";
+	char *arg_buffer=NULL;
 	register int x=0;
 	register int y=0;
 	register int arg_index=0;
@@ -2821,10 +2840,6 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int bu
 	/* clear the argv macros */
 	clear_argv_macros();
 
-	/* initialize the full command */
-	if(full_command)
-		full_command[0]='\x0';
-
 	/* make sure we've got all the requirements */
 	if(cmd_ptr==NULL || full_command==NULL)
 		return ERROR;
@@ -2832,10 +2847,7 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int bu
 	log_debug_info(DEBUGL_COMMANDS|DEBUGL_CHECKS|DEBUGL_MACROS,2,"Input: %s\n",cmd_ptr->command_line);
 
 	/* get the full command line */
-	if(cmd_ptr->command_line!=NULL){
-		strncpy(full_command,cmd_ptr->command_line,buffer_length);
-		full_command[buffer_length-1]='\x0';
-		}
+	*full_command=(char *)strdup((cmd_ptr->command_line==NULL)?"":cmd_ptr->command_line);
 
 	/* get the command arguments */
 	if(cmd!=NULL){
@@ -2878,9 +2890,9 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int bu
 
 			/* ADDED 01/29/04 EG */
 			/* process any macros we find in the argument */
-			process_macros(temp_arg,arg_buffer,sizeof(arg_buffer),macro_options);
+			process_macros(temp_arg,&arg_buffer,macro_options);
 
-			macro_argv[x]=(char *)strdup(arg_buffer);
+			macro_argv[x]=arg_buffer;
 			}
 		}
 

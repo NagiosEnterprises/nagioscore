@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-17-2007
+ * Last Modified:   08-15-2007
  *
  * License:
  *
@@ -67,8 +67,8 @@ extern time_t          program_start;
 
 /* handles service check results in an obsessive compulsive manner... */
 int obsessive_compulsive_service_check_processor(service *svc){
-	char raw_command_line[MAX_COMMAND_BUFFER]="";
-	char processed_command_line[MAX_COMMAND_BUFFER]="";
+	char *raw_command=NULL;
+	char *processed_command=NULL;
 	char *temp_buffer=NULL;
 	host *temp_host=NULL;
 	int early_timeout=FALSE;
@@ -101,24 +101,32 @@ int obsessive_compulsive_service_check_processor(service *svc){
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(ocsp_command_ptr,ocsp_command,raw_command_line,sizeof(raw_command_line),macro_options);
+	get_raw_command_line(ocsp_command_ptr,ocsp_command,&raw_command,macro_options);
+	if(raw_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_CHECKS,2,"Raw obsessive compulsive service processor command line: %s\n",raw_command_line);
+	log_debug_info(DEBUGL_CHECKS,2,"Raw obsessive compulsive service processor command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
+	process_macros(raw_command,&processed_command,macro_options);
+	if(processed_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_CHECKS,2,"Processed obsessive compulsive service processor command line: %s\n",processed_command_line);
+	log_debug_info(DEBUGL_CHECKS,2,"Processed obsessive compulsive service processor command line: %s\n",processed_command);
 
 	/* run the command */
-	my_system(processed_command_line,ocsp_timeout,&early_timeout,&exectime,NULL,0);
+	my_system(processed_command,ocsp_timeout,&early_timeout,&exectime,NULL,0);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: OCSP command '%s' for service '%s' on host '%s' timed out after %d seconds\n",processed_command_line,svc->description,svc->host_name,ocsp_timeout);
+		asprintf(&temp_buffer,"Warning: OCSP command '%s' for service '%s' on host '%s' timed out after %d seconds\n",processed_command,svc->description,svc->host_name,ocsp_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 	        }
+
+	/* free memory */
+	my_free((void **)&raw_command);
+	my_free((void **)&processed_command);
 	
 	return OK;
         }
@@ -127,8 +135,8 @@ int obsessive_compulsive_service_check_processor(service *svc){
 
 /* handles host check results in an obsessive compulsive manner... */
 int obsessive_compulsive_host_check_processor(host *hst){
-	char raw_command_line[MAX_COMMAND_BUFFER]="";
-	char processed_command_line[MAX_COMMAND_BUFFER]="";
+	char *raw_command=NULL;
+	char *processed_command=NULL;
 	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
@@ -156,24 +164,32 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(ochp_command_ptr,ochp_command,raw_command_line,sizeof(raw_command_line),macro_options);
+	get_raw_command_line(ochp_command_ptr,ochp_command,&raw_command,macro_options);
+	if(raw_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_CHECKS,2,"Raw obsessive compulsive host processor command line: %s\n",raw_command_line);
+	log_debug_info(DEBUGL_CHECKS,2,"Raw obsessive compulsive host processor command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
+	process_macros(raw_command,&processed_command,macro_options);
+	if(processed_command=NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_CHECKS,2,"Processed obsessive compulsive host processor command line: %s\n",processed_command_line);
+	log_debug_info(DEBUGL_CHECKS,2,"Processed obsessive compulsive host processor command line: %s\n",processed_command);
 
 	/* run the command */
-	my_system(processed_command_line,ochp_timeout,&early_timeout,&exectime,NULL,0);
+	my_system(processed_command,ochp_timeout,&early_timeout,&exectime,NULL,0);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: OCHP command '%s' for host '%s' timed out after %d seconds\n",processed_command_line,hst->name,ochp_timeout);
+		asprintf(&temp_buffer,"Warning: OCHP command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,ochp_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 	        }
+
+	/* free memory */
+	my_free((void **)&raw_command);
+	my_free((void **)&processed_command);
 
 	return OK;
         }
@@ -233,8 +249,8 @@ int handle_service_event(service *svc){
 
 /* runs the global service event handler */
 int run_global_service_event_handler(service *svc){
-	char raw_command_line[MAX_COMMAND_BUFFER]="";
-	char processed_command_line[MAX_COMMAND_BUFFER]="";
+	char *raw_command=NULL;
+	char *processed_command=NULL;
 	char *command_output=NULL;
 	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
@@ -271,14 +287,18 @@ int run_global_service_event_handler(service *svc){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(global_service_event_handler_ptr,global_service_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
+	get_raw_command_line(global_service_event_handler_ptr,global_service_event_handler,&raw_command,macro_options);
+	if(raw_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw global service event handler command line: %s\n",raw_command_line);
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw global service event handler command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
+	process_macros(raw_command,&processed_command,macro_options);
+	if(processed_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed global service event handler command line: %s\n",processed_command_line);
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed global service event handler command line: %s\n",processed_command);
 
 	if(log_event_handlers==TRUE){
 		asprintf(&temp_buffer,"GLOBAL SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],global_service_event_handler);
@@ -287,11 +307,11 @@ int run_global_service_event_handler(service *svc){
 	        }
 
 	/* run the command */
-	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
+	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: Global service event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
+		asprintf(&temp_buffer,"Warning: Global service event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 	        }
@@ -301,11 +321,13 @@ int run_global_service_event_handler(service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_END,NEBFLAG_NONE,NEBATTR_NONE,GLOBAL_SERVICE_EVENTHANDLER,(void *)svc,svc->current_state,svc->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,global_service_event_handler,processed_command_line,command_output,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_END,NEBFLAG_NONE,NEBATTR_NONE,GLOBAL_SERVICE_EVENTHANDLER,(void *)svc,svc->current_state,svc->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,global_service_event_handler,processed_command,command_output,NULL);
 #endif
 
 	/* free memory */
 	my_free((void **)&command_output);
+	my_free((void **)&raw_command);
+	my_free((void **)&processed_command);
 
 	return OK;
         }
@@ -314,8 +336,8 @@ int run_global_service_event_handler(service *svc){
 
 /* runs a service event handler command */
 int run_service_event_handler(service *svc){
-	char raw_command_line[MAX_COMMAND_BUFFER]="";
-	char processed_command_line[MAX_COMMAND_BUFFER]="";
+	char *raw_command=NULL;
+	char *processed_command=NULL;
 	char *command_output=NULL;
 	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
@@ -348,14 +370,18 @@ int run_service_event_handler(service *svc){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(svc->event_handler_ptr,svc->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
+	get_raw_command_line(svc->event_handler_ptr,svc->event_handler,&raw_command,macro_options);
+	if(raw_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw service event handler command line: %s\n",raw_command_line);
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw service event handler command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
+	process_macros(raw_command,&processed_command,macro_options);
+	if(processed_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed service event handler command line: %s\n",processed_command_line);
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed service event handler command line: %s\n",processed_command);
 
 	if(log_event_handlers==TRUE){
 		asprintf(&temp_buffer,"SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],svc->event_handler);
@@ -364,11 +390,11 @@ int run_service_event_handler(service *svc){
 	        }
 
 	/* run the command */
-	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
+	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: Service event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
+		asprintf(&temp_buffer,"Warning: Service event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 	        }
@@ -378,11 +404,13 @@ int run_service_event_handler(service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_END,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_EVENTHANDLER,(void *)svc,svc->current_state,svc->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,svc->event_handler,processed_command_line,command_output,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_END,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_EVENTHANDLER,(void *)svc,svc->current_state,svc->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,svc->event_handler,processed_command,command_output,NULL);
 #endif
 
 	/* free memory */
 	my_free((void **)&command_output);
+	my_free((void **)&raw_command);
+	my_free((void **)&processed_command);
 
 	return OK;
         }
@@ -436,8 +464,8 @@ int handle_host_event(host *hst){
 
 /* runs the global host event handler */
 int run_global_host_event_handler(host *hst){
-	char raw_command_line[MAX_COMMAND_BUFFER]="";
-	char processed_command_line[MAX_COMMAND_BUFFER]="";
+	char *raw_command=NULL;
+	char *processed_command=NULL;
 	char *command_output=NULL;
 	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
@@ -474,14 +502,18 @@ int run_global_host_event_handler(host *hst){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(global_host_event_handler_ptr,global_host_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
+	get_raw_command_line(global_host_event_handler_ptr,global_host_event_handler,&raw_command,macro_options);
+	if(raw_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw global host event handler command line: %s\n",raw_command_line);
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw global host event handler command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
+	process_macros(raw_command,&processed_command,macro_options);
+	if(processed_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed global host event handler command line: %s\n",processed_command_line);
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed global host event handler command line: %s\n",processed_command);
 
 	if(log_event_handlers==TRUE){
 		asprintf(&temp_buffer,"GLOBAL HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],global_host_event_handler);
@@ -490,11 +522,11 @@ int run_global_host_event_handler(host *hst){
 	        }
 
 	/* run the command */
-	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
+	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
 
 	/* check for a timeout in the execution of the event handler command */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: Global host event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
+		asprintf(&temp_buffer,"Warning: Global host event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 	        }
@@ -504,11 +536,13 @@ int run_global_host_event_handler(host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_END,NEBFLAG_NONE,NEBATTR_NONE,GLOBAL_HOST_EVENTHANDLER,(void *)hst,hst->current_state,hst->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,global_host_event_handler,processed_command_line,command_output,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_END,NEBFLAG_NONE,NEBATTR_NONE,GLOBAL_HOST_EVENTHANDLER,(void *)hst,hst->current_state,hst->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,global_host_event_handler,processed_command,command_output,NULL);
 #endif
 
 	/* free memory */
 	my_free((void **)&command_output);
+	my_free((void **)&raw_command);
+	my_free((void **)&processed_command);
 
 	return OK;
         }
@@ -516,8 +550,8 @@ int run_global_host_event_handler(host *hst){
 
 /* runs a host event handler command */
 int run_host_event_handler(host *hst){
-	char raw_command_line[MAX_COMMAND_BUFFER]="";
-	char processed_command_line[MAX_COMMAND_BUFFER]="";
+	char *raw_command=NULL;
+	char *processed_command=NULL;
 	char *command_output=NULL;
 	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
@@ -550,14 +584,18 @@ int run_host_event_handler(host *hst){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(hst->event_handler_ptr,hst->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
+	get_raw_command_line(hst->event_handler_ptr,hst->event_handler,&raw_command,macro_options);
+	if(raw_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw host event handler command line: %s\n",raw_command_line);
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw host event handler command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
+	process_macros(raw_command,&processed_command,macro_options);
+	if(processed_command==NULL)
+		return ERROR;
 
-	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed host event handler command line: %s\n",processed_command_line);
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed host event handler command line: %s\n",processed_command);
 
 	if(log_event_handlers==TRUE){
 		asprintf(&temp_buffer,"HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->event_handler);
@@ -566,11 +604,11 @@ int run_host_event_handler(host *hst){
 	        }
 
 	/* run the command */
-	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
+	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: Host event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
+		asprintf(&temp_buffer,"Warning: Host event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 	        }
@@ -580,11 +618,13 @@ int run_host_event_handler(host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_END,NEBFLAG_NONE,NEBATTR_NONE,HOST_EVENTHANDLER,(void *)hst,hst->current_state,hst->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,hst->event_handler,processed_command_line,command_output,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_END,NEBFLAG_NONE,NEBATTR_NONE,HOST_EVENTHANDLER,(void *)hst,hst->current_state,hst->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,hst->event_handler,processed_command,command_output,NULL);
 #endif
 
 	/* free memory */
 	my_free((void **)&command_output);
+	my_free((void **)&raw_command);
+	my_free((void **)&processed_command);
 
 	return OK;
         }

@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-17-2007
+ * Last Modified:   08-15-2007
  *
  * License:
  *
@@ -409,8 +409,8 @@ int xpddefault_update_host_performance_data(host *hst){
 
 /* runs the service performance data command */
 int xpddefault_run_service_performance_data_command(service *svc){
-	char raw_command_line[MAX_INPUT_BUFFER]="";
-	char processed_command_line[MAX_INPUT_BUFFER]="";
+	char *raw_command_line=NULL;
+	char *processed_command_line=NULL;
 	char *temp_buffer=NULL;
 	host *temp_host;
 	int early_timeout=FALSE;
@@ -438,12 +438,16 @@ int xpddefault_run_service_performance_data_command(service *svc){
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_service_perfdata_command_ptr,xpddefault_service_perfdata_command,raw_command_line,sizeof(raw_command_line),macro_options);
+	get_raw_command_line(xpddefault_service_perfdata_command_ptr,xpddefault_service_perfdata_command,&raw_command_line,macro_options);
+	if(raw_command_line==NULL)
+		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw service performance data command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
+	process_macros(raw_command_line,&processed_command_line,macro_options);
+	if(processed_command_line==NULL)
+		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Processed service performance data command line: %s\n",processed_command_line);
 
@@ -463,14 +467,18 @@ int xpddefault_run_service_performance_data_command(service *svc){
 		my_free((void **)&temp_buffer);
 	        }
 
+	/* free memory */
+	my_free((void **)&raw_command_line);
+	my_free((void **)&processed_command_line);
+
 	return result;
         }
 
 
 /* runs the host performance data command */
 int xpddefault_run_host_performance_data_command(host *hst){
-	char raw_command_line[MAX_INPUT_BUFFER]="";
-	char processed_command_line[MAX_INPUT_BUFFER]="";
+	char *raw_command_line=NULL;
+	char *processed_command_line=NULL;
 	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime;
@@ -493,12 +501,14 @@ int xpddefault_run_host_performance_data_command(host *hst){
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_host_perfdata_command_ptr,xpddefault_host_perfdata_command,raw_command_line,sizeof(raw_command_line),macro_options);
+	get_raw_command_line(xpddefault_host_perfdata_command_ptr,xpddefault_host_perfdata_command,&raw_command_line,macro_options);
+	if(raw_command_line==NULL)
+		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw host performance data command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
+	process_macros(raw_command_line,&processed_command_line,macro_options);
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Processed host performance data command line: %s\n",processed_command_line);
 
@@ -507,6 +517,8 @@ int xpddefault_run_host_performance_data_command(host *hst){
 
 	/* run the command */
 	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
+	if(processed_command_line==NULL)
+		return ERROR;
 
 	/* unset environment variables */
 	set_all_macro_environment_vars(FALSE);
@@ -517,6 +529,10 @@ int xpddefault_run_host_performance_data_command(host *hst){
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 	        }
+
+	/* free memory */
+	my_free((void **)&raw_command_line);
+	my_free((void **)&processed_command_line);
 
 	return result;
         }
@@ -653,7 +669,7 @@ int xpddefault_preprocess_file_templates(char *template){
 /* updates service performance data file */
 int xpddefault_update_service_performance_data_file(service *svc){
 	char *raw_output=NULL;
-	char processed_output[MAX_INPUT_BUFFER]="";
+	char *processed_output=NULL;
 	host *temp_host=NULL;
 	int result=OK;
 
@@ -682,7 +698,9 @@ int xpddefault_update_service_performance_data_file(service *svc){
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw service performance data file output: %s\n",raw_output);
 
 	/* process any macros in the raw output line */
-	process_macros(raw_output,processed_output,(int)sizeof(processed_output),0);
+	process_macros(raw_output,&processed_output,0);
+	if(processed_output==NULL)
+		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Processed service performance data file output: %s\n",processed_output);
 
@@ -701,7 +719,7 @@ int xpddefault_update_service_performance_data_file(service *svc){
 /* updates host performance data file */
 int xpddefault_update_host_performance_data_file(host *hst){
 	char *raw_output=NULL;
-	char processed_output[MAX_INPUT_BUFFER];
+	char *processed_output=NULL;
 	int result=OK;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"update_host_performance_data_file()\n");
@@ -725,7 +743,9 @@ int xpddefault_update_host_performance_data_file(host *hst){
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw host performance file output: %s\n",raw_output);
 
 	/* process any macros in the raw output */
-	process_macros(raw_output,processed_output,(int)sizeof(processed_output),0);
+	process_macros(raw_output,&processed_output,0);
+	if(processed_output==NULL)
+		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Processed host performance data file output: %s\n",processed_output);
 
@@ -743,8 +763,8 @@ int xpddefault_update_host_performance_data_file(host *hst){
 
 /* periodically process the host perf data file */
 int xpddefault_process_host_perfdata_file(void){
-	char raw_command_line[MAX_INPUT_BUFFER]="";
-	char processed_command_line[MAX_INPUT_BUFFER]="";
+	char *raw_command_line=NULL;
+	char *processed_command_line=NULL;
 	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
@@ -767,13 +787,16 @@ int xpddefault_process_host_perfdata_file(void){
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_host_perfdata_file_processing_command_ptr,xpddefault_host_perfdata_file_processing_command,raw_command_line,sizeof(raw_command_line),macro_options);
-	strip(raw_command_line);
+	get_raw_command_line(xpddefault_host_perfdata_file_processing_command_ptr,xpddefault_host_perfdata_file_processing_command,&raw_command_line,macro_options);
+	if(raw_command_line==NULL)
+		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw host performance data file processing command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
+	process_macros(raw_command_line,&processed_command_line,macro_options);
+	if(processed_command_line==NULL)
+		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Processed host performance data file processing command line: %s\n",processed_command_line);
 
@@ -790,14 +813,18 @@ int xpddefault_process_host_perfdata_file(void){
 	/* re-open the performance data file */
 	xpddefault_open_host_perfdata_file();
 
+	/* free memory */
+	my_free((void **)&raw_command_line);
+	my_free((void **)&processed_command_line);
+
 	return result;
         }
 
 
 /* periodically process the service perf data file */
 int xpddefault_process_service_perfdata_file(void){
-	char raw_command_line[MAX_INPUT_BUFFER]="";
-	char processed_command_line[MAX_INPUT_BUFFER]="";
+	char *raw_command_line=NULL;
+	char *processed_command_line=NULL;
 	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
@@ -820,13 +847,16 @@ int xpddefault_process_service_perfdata_file(void){
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_service_perfdata_file_processing_command_ptr,xpddefault_service_perfdata_file_processing_command,raw_command_line,sizeof(raw_command_line),macro_options);
-	strip(raw_command_line);
+	get_raw_command_line(xpddefault_service_perfdata_file_processing_command_ptr,xpddefault_service_perfdata_file_processing_command,&raw_command_line,macro_options);
+	if(raw_command_line==NULL)
+		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw service performance data file processing command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
+	process_macros(raw_command_line,&processed_command_line,macro_options);
+	if(processed_command_line==NULL)
+		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Processed service performance data file processing command line: %s\n",processed_command_line);
 
@@ -842,6 +872,10 @@ int xpddefault_process_service_perfdata_file(void){
 
 	/* re-open the performance data file */
 	xpddefault_open_service_perfdata_file();
+
+	/* free memory */
+	my_free((void **)&raw_command_line);
+	my_free((void **)&processed_command_line);
 
 	return result;
         }

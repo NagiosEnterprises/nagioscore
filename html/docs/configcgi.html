@@ -75,6 +75,8 @@ By default, Nagios expects the CGI configuration file to be named <b>cgi.cfg</b>
 <a href="#authorized_for_all_services">Global service information access</a><br>
 <a href="#authorized_for_all_service_commands">Global service command access</a><br>
 <br>
+<a href="#lock_author_names">Lock author names</a><br>
+<br>
 <a href="#statusmap_background_image">Statusmap CGI background image</a><br>
 <a href="#default_statusmap_layout">Default statusmap layout method</a><br>
 <a href="#statuswrl_include">Statuswrl CGI include world</a><br>
@@ -424,6 +426,40 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can vi
 
 <p>
 This is a comma-delimited list of names of <i>authenticated users</i> who can issue commands for all services via the <a href="cgis.html#cmd_cgi">command CGI</a>.  Users in this list are <i>not</i> automatically authorized to issue commands for all hosts.  Users in this list are <i>not</i> automatically authorized to view status or configuration information for all hosts.  If you want users able to view status and configuration information for all services as well, you must add them to the <a href="#authorized_for_all_services">authorized_for_all_services</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
+</p>
+
+
+
+<p>
+<a name="lock_author_names"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Lock Author Names</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>lock_author_names=[0/1]</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>lock_author_names=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option allows you to restrict users from changing the author name when submitting comments, acknowledgements, and scheduled downtime from the web interface.  If this option is enabled, users will be unable to change the author name associated with the command request.
+</p>
+<p>
+<ul>
+<li>0 = Allow users to change author names when submitting commands
+<li>1 = Prevent users from changing author names (default)
+</ul>
 </p>
 
 

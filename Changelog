@@ -12,6 +12,8 @@ Nagios 3.x Change Log
 * Fixed bug with warning about no contactgroups being defined
 * Internal data structure cleanups
 * New macros: $SERVICEISVOLATILE$, $TOTALHOSTSERVICES$, $TOTALHOSTSERVICESOK$, $TOTALHOSTSERVICESWARNING$, $TOTALHOSTSERVICESUNKNOWN$, $TOTALHOSTSERVICESCRITICAL$
+* Added 'lock_author_names' option to CGI config file to prevent alteration of author names
+  when submitting comments, scheduled downtime, etc.
 
 
 

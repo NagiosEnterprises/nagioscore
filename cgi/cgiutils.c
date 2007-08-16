@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2007
+ * Last Modified: 08-15-2007
  *
  * License:
  *
@@ -65,6 +65,7 @@ int             nagios_process_state=STATE_OK;
 
 int             enable_splunk_integration=FALSE;
 char            *splunk_url=NULL;
+int             lock_author_names=TRUE;
 
 extern time_t   program_start;
 extern int      nagios_pid;
@@ -405,6 +406,9 @@ int read_cgi_config_file(char *filename){
 
 		else if(!strcmp(var,"escape_html_tags"))
 			escape_html_tags=(atoi(val)>0)?TRUE:FALSE;
+
+		else if(!strcmp(var,"lock_author_names"))
+			lock_author_names=(atoi(val)>0)?TRUE:FALSE;
  	        }
 
 	/* free memory and close the file */

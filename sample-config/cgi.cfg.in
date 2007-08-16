@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 07-28-2007
+# Last Modified: 08-15-2007
 #
 #################################################################
 
@@ -291,6 +291,19 @@ escape_html_tags=1
 
 action_url_target=_blank
 notes_url_target=_blank
+
+
+
+
+# LOCK AUTHOR NAMES OPTION
+# This option determines whether users can change the author name 
+# when submitting comments, scheduling downtime.  If disabled, the 
+# author names will be locked into their contact name, as defined in Nagios.
+# Values: 0 = allow editing author names
+#         1 = lock author names (disallow editing)
+
+lock_author_names=1
+
 
 
 

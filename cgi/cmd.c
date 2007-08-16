@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 08-15-2007
  *
  * License:
  * 
@@ -42,6 +42,8 @@ extern int  nagios_process_state;
 extern int  check_external_commands;
 
 extern int  use_authentication;
+
+extern int  lock_author_names;
 
 extern scheduled_downtime *scheduled_downtime_list;
 extern comment *comment_list;
@@ -931,7 +933,7 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='checkbox' NAME='persistent' %s>",(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)?"":"CHECKED");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE'TEXT' NAME='com_author' VALUE='%s'>",comment_author);
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",comment_author,(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
@@ -957,7 +959,7 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='checkbox' NAME='persistent' %s",(cmd==CMD_ACKNOWLEDGE_SVC_PROBLEM)?"":"CHECKED");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",comment_author);
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",comment_author,(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
@@ -1140,7 +1142,7 @@ void request_command_data(int cmd){
 			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
 		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",comment_author);
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",comment_author,(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
@@ -1270,7 +1272,7 @@ void request_command_data(int cmd){
 			printf("</b></td></tr>\n");
 		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",comment_author);
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",comment_author,(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
@@ -1350,10 +1352,20 @@ void commit_command_data(int cmd){
 	comment *temp_comment;
 	scheduled_downtime *temp_downtime;
 	servicegroup *temp_servicegroup=NULL;
+	contact *temp_contact=NULL;
 
 
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
+
+	/* get name to use for author */
+	if(lock_author_names==TRUE){
+		temp_contact=find_contact(current_authdata.username);
+		if(temp_contact!=NULL && temp_contact->alias!=NULL)
+			comment_author=temp_contact->alias;
+		else
+			comment_author=current_authdata.username;
+		}
 
 	switch(cmd){
 	case CMD_ADD_HOST_COMMENT:

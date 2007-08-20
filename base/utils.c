@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-15-2007
+ * Last Modified:   08-19-2007
  *
  * License:
  *
@@ -4838,8 +4838,10 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 				else{
 
 					/* rest of the output is perf data */
-					if(in_perf_data==TRUE)
+					if(in_perf_data==TRUE){
 						dbuf_strcat(&db2,tempbuf);
+						dbuf_strcat(&db2," ");
+						}
 
 					/* we're still in long output */
 					else{
@@ -4856,8 +4858,10 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 								dbuf_strcat(&db1,ptr);
 
 								/* get the perf data */
-								if((ptr=my_strtok(NULL,"\n")))
+								if((ptr=my_strtok(NULL,"\n"))){
 									dbuf_strcat(&db2,ptr);
+									dbuf_strcat(&db2," ");
+									}
 							        }
 
 							/* set the perf data flag */

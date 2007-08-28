@@ -4798,6 +4798,12 @@ int passes_host_properties_filter(hoststatus *temp_hoststatus){
 	if((host_properties & HOST_ACTIVE_CHECK) && temp_hoststatus->check_type==HOST_CHECK_PASSIVE)
 		return FALSE;
 
+	if((host_properties & HOST_HARD_STATE) && temp_hoststatus->state_type==SOFT_STATE)
+		return FALSE;
+
+	if((host_properties & HOST_SOFT_STATE) && temp_hoststatus->state_type==HARD_STATE)
+		return FALSE;
+
 	return TRUE;
         }
 
@@ -4858,6 +4864,12 @@ int passes_service_properties_filter(servicestatus *temp_servicestatus){
 		return FALSE;
 
 	if((service_properties & SERVICE_ACTIVE_CHECK) && temp_servicestatus->check_type==SERVICE_CHECK_PASSIVE)
+		return FALSE;
+
+	if((service_properties & SERVICE_HARD_STATE) && temp_servicestatus->state_type==SOFT_STATE)
+		return FALSE;
+
+	if((service_properties & SERVICE_SOFT_STATE) && temp_servicestatus->state_type==HARD_STATE)
 		return FALSE;
 
 	return TRUE;
@@ -4978,6 +4990,14 @@ void show_filters(void){
 				printf("%s Active Checks",(found==1)?" &amp;":"");
 				found=1;
 		                }
+			if(host_properties & HOST_HARD_STATE){
+				printf("%s In Hard State",(found==1)?" &amp;":"");
+				found=1;
+		                }
+			if(host_properties & HOST_SOFT_STATE){
+				printf("%s In Soft State",(found==1)?" &amp;":"");
+				found=1;
+		                }
 	                }
 		printf("</td>");
 		printf("</tr>\n");
@@ -5089,6 +5109,14 @@ void show_filters(void){
 		                }
 			if(service_properties & SERVICE_ACTIVE_CHECK){
 				printf("%s Active Checks",(found==1)?" &amp;":"");
+				found=1;
+		                }
+			if(service_properties & SERVICE_HARD_STATE){
+				printf("%s In Hard State",(found==1)?" &amp;":"");
+				found=1;
+		                }
+			if(service_properties & SERVICE_SOFT_STATE){
+				printf("%s In Soft State",(found==1)?" &amp;":"");
 				found=1;
 		                }
 	                }

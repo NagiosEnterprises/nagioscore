@@ -15,6 +15,7 @@ Nagios 3.x Change Log
 * Added 'lock_author_names' option to CGI config file to prevent alteration of author names
   when submitting comments, scheduled downtime, etc.
 * Fix for concatentation of multiline plugin perfdata
+* Added status CGI host/service property filters for hard and soft states
 
 
 

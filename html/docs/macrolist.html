@@ -229,6 +229,22 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
 </tr>
 <tr>
+<td class='MacroName'><a href="#hostdowntimeauthor">$HOSTDOWNTIMEAUTHOR$</a></td>
+<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#hostdowntimeauthorname">$HOSTDOWNTIMEAUTHORNAME$</a></td>
+<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#hostdowntimeauthoralias">$HOSTDOWNTIMEAUTHORALIAS$</a></td>
+<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#hostdowntimecomment">$HOSTDOWNTIMECOMMENT$</a></td>
+<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
 <td class='MacroName'><a href="#hostactionurl">$HOSTACTIONURL$</a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
@@ -393,6 +409,22 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 <tr>
 <td class='MacroName'><a href="#serviceackcomment">$SERVICEACKCOMMENT$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#servicedowntimeauthor">$SERVICEDOWNTIMEAUTHOR$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#servicedowntimeauthorname">$SERVICEDOWNTIMEAUTHORNAME$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#servicedowntimeauthoralias">$SERVICEDOWNTIMEAUTHORALIAS$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#servicedowntimecomment">$SERVICEDOWNTIMECOMMENT$</a></td>
 <td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
 </tr>
 <tr>
@@ -837,6 +869,30 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 
 <tr>
+<a name="hostdowntimeauthor"></a>
+<td class="MacroName">$HOSTDOWNTIMEAUTHOR$</td>
+<td class="MacroDescription">A string containing the name of the user who scheduled downtime for the host.  This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED".</td>
+</tr>
+
+<tr>
+<a name="hostdowntimeauthorname"></a>
+<td class="MacroName">$HOSTDOWNTIMEAUTHORNAME$</td>
+<td class="MacroDescription">A string containing the short name of the contact (if applicable) who scheduled downtime for the host.  This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED".</td>
+</tr>
+
+<tr>
+<a name="hostdowntimeauthoralias"></a>
+<td class="MacroName">$HOSTDOWNTIMEAUTHORALIAS$</td>
+<td class="MacroDescription">A string containing the alias of the contact (if applicable) who scheduled downtime for the host.  This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED".</td>
+</tr>
+
+<tr>
+<a name="hostdowntimecomment"></a>
+<td class="MacroName">$HOSTDOWNTIMECOMMENT$</td>
+<td class="MacroDescription">A string containing the downtime comment that was entered by the user who scheduled downtime for the host.  This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED".</td>
+</tr>
+
+<tr>
 <a name="hostactionurl"></a>
 <td class="MacroName">$HOSTACTIONURL$</td>
 <td class="MacroDescription">Action URL for the host.  This macro may contain other macros (e.g. $HOSTNAME$), which can be useful when you want to pass the host name to a web page.</td>
@@ -1084,6 +1140,30 @@ The tables below list all macros currently available in Nagios, along with a bri
 <a name="serviceackcomment"></a>
 <td class="MacroName">$SERVICEACKCOMMENT$</td>
 <td class="MacroDescription">A string containing the acknowledgement comment that was entered by the user who acknowledged the service problem. This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "ACKNOWLEDGEMENT".</td>
+</tr>
+
+<tr>
+<a name="servicedowntimeauthor"></a>
+<td class="MacroName">$SERVICEDOWNTIMEAUTHOR$</td>
+<td class="MacroDescription">A string containing the name of the user who scheduled downtime for the service. This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED".</td>
+</tr>
+
+<tr>
+<a name="servicedowntimeauthorname"></a>
+<td class="MacroName">$SERVICEDOWNTIMEAUTHORNAME$</td>
+<td class="MacroDescription">A string containing the short name of the contact (if applicable) who scheduled downtime for the service. This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED".</td>
+</tr>
+
+<tr>
+<a name="servicedowntimeauthoralias"></a>
+<td class="MacroName">$SERVICEDOWNTIMEAUTHORALIAS$</td>
+<td class="MacroDescription">A string containing the alias of the contact (if applicable) who scheduled downtime for the service. This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED".</td>
+</tr>
+
+<tr>
+<a name="servicedowntimecomment"></a>
+<td class="MacroName">$SERVICEDOWNTIMECOMMENT$</td>
+<td class="MacroDescription">A string containing the downtime comment that was entered by the user who scheduled downtime for the service. This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED".</td>
 </tr>
 
 <tr>

@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0b2 - ??/??/2007
+3.0b2 - 08/29/2007
 ------------------
 * Fix for some sample config files getting installed with .sample extension
 * Improvements to the host check logic performance (more use of cached and parallel checks)
@@ -11,7 +11,7 @@ Nagios 3.x Change Log
 * Fix bug with logging of passive host and service check results
 * Fixed bug with warning about no contactgroups being defined
 * Internal data structure cleanups
-* New macros: $SERVICEISVOLATILE$, $TOTALHOSTSERVICES$, $TOTALHOSTSERVICESOK$, $TOTALHOSTSERVICESWARNING$, $TOTALHOSTSERVICESUNKNOWN$, $TOTALHOSTSERVICESCRITICAL$
+* New macros: $SERVICEISVOLATILE$, $TOTALHOSTSERVICES$, $TOTALHOSTSERVICESOK$, $TOTALHOSTSERVICESWARNING$, $TOTALHOSTSERVICESUNKNOWN$, $TOTALHOSTSERVICESCRITICAL$, $HOSTDOWNTIMEAUTHOR$, $HOSTDOWNTIMEAUTHORNAME$, $HOSTDOWNTIMEAUTHORALIAS$, $HOSTDOWNTIMECOMMENT$, $SERVICEDOWNTIMEAUTHOR$, $SERVICEDOWNTIMEAUTHORNAME$, $SERVICEDOWNTIMEAUTHORALIAS$, $SERVICEDOWNTIMECOMMENT$
 * Added 'lock_author_names' option to CGI config file to prevent alteration of author names
   when submitting comments, scheduled downtime, etc.
 * Fix for concatentation of multiline plugin perfdata

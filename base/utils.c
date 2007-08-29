@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2007
+ * Last Modified:   08-28-2007
  *
  * License:
  *
@@ -330,8 +330,8 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 					selected_macro=macro_x[x];
 					found_macro_x=TRUE;
 						
-					/* host/service output/perfdata macros get cleaned */
-					if((x>=16 && x<=19) || (x>=99 && x<=100)){
+					/* host/service output/perfdata and author/comment macros get cleaned */
+					if((x>=16 && x<=19) ||(x>=49 && x<=52) || (x>=99 && x<=100) || (x>=124 && x<=127)){
 						clean_macro=TRUE;
 						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 						}
@@ -2314,6 +2314,14 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_TOTALHOSTSERVICESWARNING,"TOTALHOSTSERVICESWARNING");
 	add_macrox_name(MACRO_TOTALHOSTSERVICESUNKNOWN,"TOTALHOSTSERVICESUNKNOWN");
 	add_macrox_name(MACRO_TOTALHOSTSERVICESCRITICAL,"TOTALHOSTSERVICESCRITICAL");
+	add_macrox_name(MACRO_HOSTDOWNTIMEAUTHOR,"HOSTDOWNTIMEAUTHOR");
+	add_macrox_name(MACRO_HOSTDOWNTIMEAUTHORNAME,"HOSTDOWNTIMEAUTHORNAME");
+	add_macrox_name(MACRO_HOSTDOWNTIMEAUTHORALIAS,"HOSTDOWNTIMEAUTHORALIAS");
+	add_macrox_name(MACRO_HOSTDOWNTIMECOMMENT,"HOSTDOWNTIMECOMMENT");
+	add_macrox_name(MACRO_SERVICEDOWNTIMEAUTHOR,"SERVICEDOWNTIMEAUTHOR");
+	add_macrox_name(MACRO_SERVICEDOWNTIMEAUTHORNAME,"SERVICEDOWNTIMEAUTHORNAME");
+	add_macrox_name(MACRO_SERVICEDOWNTIMEAUTHORALIAS,"SERVICEDOWNTIMEAUTHORALIAS");
+	add_macrox_name(MACRO_SERVICEDOWNTIMECOMMENT,"SERVICEDOWNTIMECOMMENT");
 
 	return OK;
         }

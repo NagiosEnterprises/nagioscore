@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-15-2007
+ * Last Modified:   08-28-2007
  *
  * License:
  *
@@ -55,7 +55,7 @@ extern char            *generic_summary;
 
 
 /* notify contacts about a service problem or recovery */
-int service_notification(service *svc, int type, char *ack_author, char *ack_data){
+int service_notification(service *svc, int type, char *not_author, char *not_data){
 	host *temp_host=NULL;
 	notification *temp_notification=NULL;
 	contact *temp_contact=NULL;
@@ -110,7 +110,7 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 	/* send data to event broker */
 	end_time.tv_sec=0L;
 	end_time.tv_usec=0L;
-	broker_notification_data(NEBTYPE_NOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,ack_author,ack_data,escalated,0,NULL);
+	broker_notification_data(NEBTYPE_NOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,not_author,not_data,escalated,0,NULL);
 #endif
 
 	/* we have contacts to notify... */
@@ -126,17 +126,17 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 
 			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHOR]);
-			if(ack_author)
-				macro_x[MACRO_SERVICEACKAUTHOR]=(char *)strdup(ack_author);
+			if(not_author)
+				macro_x[MACRO_SERVICEACKAUTHOR]=(char *)strdup(not_author);
 
 			my_free((void **)macro_x[MACRO_SERVICEACKCOMMENT]);
-			if(ack_data)
-				macro_x[MACRO_SERVICEACKCOMMENT]=(char *)strdup(ack_data);
+			if(not_data)
+				macro_x[MACRO_SERVICEACKCOMMENT]=(char *)strdup(not_data);
 
 			/* see if we can find the contact */
-			if((temp_contact=find_contact(ack_author))==NULL){
+			if((temp_contact=find_contact(not_author))==NULL){
 				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-					if(!strcmp(temp_contact->alias,ack_author))
+					if(!strcmp(temp_contact->alias,not_author))
 						break;
 					}
 				}
@@ -148,6 +148,33 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 				macro_x[MACRO_SERVICEACKAUTHORALIAS]=(char *)strdup(temp_contact->alias);
 				}
 	                }
+
+		/* if this is a downtime notifications, get the downtime macros */
+		else if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMECANCELLED){
+
+			my_free((void **)&macro_x[MACRO_SERVICEDOWNTIMEAUTHOR]);
+			if(not_author)
+				macro_x[MACRO_SERVICEDOWNTIMEAUTHOR]=(char *)strdup(not_author);
+
+			my_free((void **)macro_x[MACRO_SERVICEDOWNTIMECOMMENT]);
+			if(not_data)
+				macro_x[MACRO_SERVICEDOWNTIMECOMMENT]=(char *)strdup(not_data);
+
+			/* see if we can find the contact */
+			if((temp_contact=find_contact(not_author))==NULL){
+				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+					if(!strcmp(temp_contact->alias,not_author))
+						break;
+					}
+				}
+
+			my_free((void **)&macro_x[MACRO_SERVICEDOWNTIMEAUTHORNAME]);
+			my_free((void **)&macro_x[MACRO_SERVICEDOWNTIMEAUTHORALIAS]);
+			if(temp_contact!=NULL){
+				macro_x[MACRO_SERVICEDOWNTIMEAUTHORNAME]=(char *)strdup(temp_contact->name);
+				macro_x[MACRO_SERVICEDOWNTIMEAUTHORALIAS]=(char *)strdup(temp_contact->alias);
+				}
+			}
 
 		/* set the notification type macro */
 		my_free((void **)&macro_x[MACRO_NOTIFICATIONTYPE]);
@@ -192,7 +219,7 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 			grab_summary_macros(temp_notification->contact);
 
 			/* notify this contact */
-			result=notify_contact_of_service(temp_notification->contact,svc,type,ack_author,ack_data,escalated);
+			result=notify_contact_of_service(temp_notification->contact,svc,type,not_author,not_data,escalated);
 
 			/* keep track of how many contacts were notified */
 			if(result==OK)
@@ -247,7 +274,7 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_notification_data(NEBTYPE_NOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,ack_author,ack_data,escalated,contacts_notified,NULL);
+	broker_notification_data(NEBTYPE_NOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,not_author,not_data,escalated,contacts_notified,NULL);
 #endif
 
 	/* update the status log with the service information */
@@ -572,7 +599,7 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 
 
 /* notify a specific contact about a service problem or recovery */
-int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_author, char *ack_data, int escalated){
+int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_author, char *not_data, int escalated){
 	commandsmember *temp_commandsmember=NULL;
 	char *command_name=NULL;
 	char *command_name_ptr=NULL;
@@ -603,7 +630,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 	/* send data to event broker */
 	end_time.tv_sec=0L;
 	end_time.tv_usec=0L;
-	broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,cntct,ack_author,ack_data,escalated,NULL);
+	broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,cntct,not_author,not_data,escalated,NULL);
 #endif
 
 	/* process all the notification commands this user has */
@@ -616,7 +643,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 		/* send data to event broker */
 		method_end_time.tv_sec=0L;
 		method_end_time.tv_usec=0L;
-		broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,method_start_time,method_end_time,(void *)svc,cntct,temp_commandsmember->command,ack_author,ack_data,escalated,NULL);
+		broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,method_start_time,method_end_time,(void *)svc,cntct,temp_commandsmember->command,not_author,not_data,escalated,NULL);
 #endif
 
 		/* get the raw command line */
@@ -690,7 +717,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_END,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,method_start_time,method_end_time,(void *)svc,cntct,temp_commandsmember->command,ack_author,ack_data,escalated,NULL);
+		broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_END,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,method_start_time,method_end_time,(void *)svc,cntct,temp_commandsmember->command,not_author,not_data,escalated,NULL);
 #endif
 	        }
 
@@ -702,7 +729,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,cntct,ack_author,ack_data,escalated,NULL);
+	broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,cntct,not_author,not_data,escalated,NULL);
 #endif
 
 	return OK;
@@ -862,7 +889,7 @@ int create_notification_list_from_service(service *svc, int *escalated){
 
 
 /* notify all contacts for a host that the entire host is down or up */
-int host_notification(host *hst, int type, char *ack_author, char *ack_data){
+int host_notification(host *hst, int type, char *not_author, char *not_data){
 	notification *temp_notification=NULL;
 	contact *temp_contact=NULL;
 	time_t current_time;
@@ -909,7 +936,7 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 	/* send data to event broker */
 	end_time.tv_sec=0L;
 	end_time.tv_usec=0L;
-	broker_notification_data(NEBTYPE_NOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,ack_author,ack_data,escalated,0,NULL);
+	broker_notification_data(NEBTYPE_NOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,not_author,not_data,escalated,0,NULL);
 #endif
 
 	/* there are contacts to be notified... */
@@ -924,17 +951,17 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 
 			my_free((void **)&macro_x[MACRO_HOSTACKAUTHOR]);
-			if(ack_author)
-				macro_x[MACRO_HOSTACKAUTHOR]=(char *)strdup(ack_author);
+			if(not_author)
+				macro_x[MACRO_HOSTACKAUTHOR]=(char *)strdup(not_author);
 
 			my_free((void **)&macro_x[MACRO_HOSTACKCOMMENT]);
-			if(ack_data)
-				macro_x[MACRO_HOSTACKCOMMENT]=(char *)strdup(ack_data);
+			if(not_data)
+				macro_x[MACRO_HOSTACKCOMMENT]=(char *)strdup(not_data);
 
 			/* see if we can find the contact */
-			if((temp_contact=find_contact(ack_author))==NULL){
+			if((temp_contact=find_contact(not_author))==NULL){
 				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-					if(!strcmp(temp_contact->alias,ack_author))
+					if(!strcmp(temp_contact->alias,not_author))
 						break;
 					}
 				}
@@ -946,6 +973,33 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 				macro_x[MACRO_SERVICEACKAUTHORALIAS]=(char *)strdup(temp_contact->alias);
 				}
 	                }
+
+		/* if this is a downtime notifications, get the downtime macros */
+		else if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMECANCELLED){
+
+			my_free((void **)&macro_x[MACRO_HOSTDOWNTIMEAUTHOR]);
+			if(not_author)
+				macro_x[MACRO_HOSTDOWNTIMEAUTHOR]=(char *)strdup(not_author);
+
+			my_free((void **)macro_x[MACRO_HOSTDOWNTIMECOMMENT]);
+			if(not_data)
+				macro_x[MACRO_HOSTDOWNTIMECOMMENT]=(char *)strdup(not_data);
+
+			/* see if we can find the contact */
+			if((temp_contact=find_contact(not_author))==NULL){
+				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+					if(!strcmp(temp_contact->alias,not_author))
+						break;
+					}
+				}
+
+			my_free((void **)&macro_x[MACRO_HOSTDOWNTIMEAUTHORNAME]);
+			my_free((void **)&macro_x[MACRO_HOSTDOWNTIMEAUTHORALIAS]);
+			if(temp_contact!=NULL){
+				macro_x[MACRO_HOSTDOWNTIMEAUTHORNAME]=(char *)strdup(temp_contact->name);
+				macro_x[MACRO_HOSTDOWNTIMEAUTHORALIAS]=(char *)strdup(temp_contact->alias);
+				}
+			}
 
 		/* set the notification type macro */
 		my_free((void **)&macro_x[MACRO_NOTIFICATIONTYPE]);
@@ -990,7 +1044,7 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 			grab_summary_macros(temp_notification->contact);
 
 			/* notify this contact */
-			result=notify_contact_of_host(temp_notification->contact,hst,type,ack_author,ack_data,escalated);
+			result=notify_contact_of_host(temp_notification->contact,hst,type,not_author,not_data,escalated);
 
 			/* keep track of how many contacts were notified */
 			if(result==OK)
@@ -1043,7 +1097,7 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_notification_data(NEBTYPE_NOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,ack_author,ack_data,escalated,contacts_notified,NULL);
+	broker_notification_data(NEBTYPE_NOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,not_author,not_data,escalated,contacts_notified,NULL);
 #endif
 
 	/* update the status log with the host info */
@@ -1338,7 +1392,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 
 
 /* notify a specific contact that an entire host is down or up */
-int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author, char *ack_data, int escalated){
+int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author, char *not_data, int escalated){
 	commandsmember *temp_commandsmember=NULL;
 	char *command_name=NULL;
 	char *command_name_ptr=NULL;
@@ -1371,7 +1425,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 	/* send data to event broker */
 	end_time.tv_sec=0L;
 	end_time.tv_usec=0L;
-	broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,cntct,ack_author,ack_data,escalated,NULL);
+	broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,cntct,not_author,not_data,escalated,NULL);
 #endif
 
 	/* process all the notification commands this user has */
@@ -1384,7 +1438,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 		/* send data to event broker */
 		method_end_time.tv_sec=0L;
 		method_end_time.tv_usec=0L;
-		broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,method_start_time,method_end_time,(void *)hst,cntct,temp_commandsmember->command,ack_author,ack_data,escalated,NULL);
+		broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,method_start_time,method_end_time,(void *)hst,cntct,temp_commandsmember->command,not_author,not_data,escalated,NULL);
 #endif
 
 		/* get the raw command line */
@@ -1458,7 +1512,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_END,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,method_start_time,method_end_time,(void *)hst,cntct,temp_commandsmember->command,ack_author,ack_data,escalated,NULL);
+		broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_END,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,method_start_time,method_end_time,(void *)hst,cntct,temp_commandsmember->command,not_author,not_data,escalated,NULL);
 #endif
 	        }
 
@@ -1470,7 +1524,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,cntct,ack_author,ack_data,escalated,NULL);
+	broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,cntct,not_author,not_data,escalated,NULL);
 #endif
 
 	return OK;

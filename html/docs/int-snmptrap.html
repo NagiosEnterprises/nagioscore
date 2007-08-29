@@ -2,12 +2,12 @@
 
 <html>
 <head>
-<title>UCD-SNMP (NET-SNMP) Integration</title>
+<title>SNMP Trap Integration</title>
 
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,13 +17,16 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">UCD-SNMP (NET-SNMP) Integration</h2>
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+<h2 class="PageTitle">SNMP Trap Integration</h2>
 </div>
 </p>
+
 <hr>
 
 <p>
-<font color="red"><strong>Note:</strong></font> Nagios is not designed to be a replacement for a full-blown SNMP management application like HP OpenView or <a href="http://www.opennms.org/">OpenNMS</a>.  However, you can set things up so that SNMP traps received by a host on your network can generate alerts in Nagios.  Here's how...
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="integration.html">Integration Overview</a>, <a href="extcommands.html">External Commands</a>, <a href="passivechecks.html">Passive Checks</a>
 </p>
 
 <p>
@@ -31,230 +34,15 @@
 </p>
 
 <p>
-This example explains how to easily generate alerts in Nagios for SNMP traps that are received by the <a href="http://net-snmp.sourceforge.net">UCD-SNMP</a> <i>snmptrapd</i> daemon.  These directions assume that the host which is receiving SNMP traps is not the same host on which Nagios is running.  If your monitoring box is the same box that is receiving SNMP traps you will need to make a few modifications to the examples I provide.  Also, I am assuming that you having installed the <a href="addons.html#nsca">nsca daemon</a> on your monitoring server and the nsca client (<i>send_nsca</i>) on the machine that is receiving SNMP traps.
+<img src="images/note.gif" border="0" align="bottom"> Note: Nagios is not designed to be a replacement for a full-blown SNMP management application like HP OpenView or <a href="http://www.opennms.org/">OpenNMS</a>.  However, you can set things up so that SNMP traps received by a host on your network can generate alerts in Nagios.
 </p>
 
 <p>
-For the purposes of this example, I will be describing how I setup Nagios to generate alerts from SNMP traps received by the ArcServe backup jobs running on my Novell servers.  I wanted to get notified when backups failed, so this worked very nicely for me.  You'll have to tweak the examples in order to make it suit your needs.
+As if designed to make the Gods of Hypocrisy die of laughter, SNMP is anything but simple.  Translating SNMP traps and getting them into Nagios (as passive check results) can be a bit tedious.  To make this task easier, I suggest you check out Alex Burger's SNMP Trap Translator project located at <a href="http://www.snmptt.org">http://www.snmptt.org</a>. When combined with Net-SNMP, SNMPTT provides an enhanced trap handling system that can be integrated with Nagios.
 </p>
 
 <p>
-<strong><u>Additional Software</u></strong>
-</p>
-
-<p>
-Translating SNMP traps into Nagios events can be a bit tedious.  If you'd like to make it easier, you might want to check out Alex Burger's SNMP Trap Translator project located at <a href="http://www.snmptt.org">http://www.snmptt.org</a> which, combined with Net-SNMP, provides a more enhanced trap handling system. The snmptt documentation includes integration details for Nagios.
-</p>
-
-<p>
-<strong><u>Defining The Service</u></strong>
-</p>
-
-<p>
-First off you're going to have to define a service in your <a href="configobject.html">object configuration file</a> for the SNMP traps (in this example, I am defining a service for ArcServe backup jobs).  Assuming that the host that the alerts are originating from is called <b>novellserver</b>, a sample service definition might look something like this:
-</p>
-
-<p>
-<font color="red">
-<pre>
-define service{
-	host_name                       novellserver
-	service_description             ArcServe Backup
-	is_volatile                     1
-	active_checks_enabled		0
-	passive_checks_enabled		1
-	max_check_attempts              1
-	contact_groups                  novell-backup-admins
-	notification_interval           120
-	notification_period             24x7
-	notification_options            w,u,c,r
-	check_command                   check_none
-	}
-</pre>
-</font>
-</p>
-
-<p>
-Important things to note are the fact that this service has the <i>volatile</i> option enabled.  We want this option enabled because we want a notification to be generated for every alert that comes in.  Also of note is the fact that active checks are disabled for the service, while passive checks are enabled.  This means that the service will never be actively checked - all alert information will have to be sent in passively by the <i>nsca client</i> on the SNMP management host (in my example, it will be called <b>firestorm</b>).
-</p>
-
-<p>
-<strong><u>ArcServe and Novell SNMP Configuration</u></strong>
-</p>
-
-<p>
-In order to get ArcServe (and my Novell server) to send SNMP traps to my management host, I had to do the following:
-</p>
-
-<p>
-<ol>
-<li>Modify the ArcServe autopilot job to send SNMP traps on job failures, successes, etc.
-<li>Edit SYS:\ETC\TRAPTARG.CFG and add the IP address of my management host (the one receiving the SNMP traps)
-<li>Load SNMP.NLM
-<li>Load ALERT.NLM to facilitate the actual sending of the SNMP traps
-</ol>
-</p>
-
-<p>
-<strong><u>SNMP Management Host Configuration</u></strong>
-</p>
-
-<p>
-On my Linux SNMP management host (<b>firestorm</b>), I installed the <a href="http://net-snmp.sourceforge.net">UCD-SNMP</a> (NET-SNMP) software.  Once the software was installed I had to do the following:
-</p>
-
-<p>
-<ol>
-<li>Install the ArcServe MIBs (included on the ArcServe installation CD)
-<li>Edit the snmptrapd configuration file <i>(/etc/snmp/snmptrapd.conf)</i> to define a trap handler for ArcServe alerts.  This is detailed below.
-<li>Start the <i>snmptrapd</i> daemon to listen for incoming SNMP traps
-</ol>
-</p>
-
-<p>
-In order to have the <i>snmptrapd</i> daemon route ArcServe SNMP traps to our Nagios host, we've got to define a traphandler in the <i>/etc/snmp/snmptrapd.conf</i> file.  In my setup, the config file looked something like this:
-</p>
-
-<p>
-<font color="red">
-<pre>
-#############################
-# ArcServe SNMP Traps
-#############################
-
-# Tape format failures
-traphandle ARCserve-Alarm-MIB::arcServetrap9 /usr/local/nagios/libexec/eventhandlers/handle-arcserve-trap 9
-
-# Failure to read tape header
-traphandle ARCserve-Alarm-MIB::arcServetrap10 /usr/local/nagios/libexec/eventhandlers/handle-arcserve-trap 10
-
-# Failure to position tape
-traphandle ARCserve-Alarm-MIB::arcServetrap11 /usr/local/nagios/libexec/eventhandlers/handle-arcserve-trap 11
-
-# Cancelled jobs
-traphandle ARCserve-Alarm-MIB::arcServetrap12 /usr/local/nagios/libexec/eventhandlers/handle-arcserve-trap 12
-
-# Successful jobs
-traphandle ARCserve-Alarm-MIB::arcServetrap13 /usr/local/nagios/libexec/eventhandlers/handle-arcserve-trap 13
-
-# Imcomplete jobs
-traphandle ARCserve-Alarm-MIB::arcServetrap14 /usr/local/nagios/libexec/eventhandlers/handle-arcserve-trap 14
-
-# Job failures
-traphandle ARCserve-Alarm-MIB::arcServetrap15 /usr/local/nagios/libexec/eventhandlers/handle-arcserve-trap 15
-</pre>
-</font>
-</p>
-
-<p>
-This example assumes that you have a <i>/usr/local/nagios/libexec/eventhandlers/</i> directory on your SNMP mangement host and that the <i>handle-arcserve-trap</i> script exists there.  You can modify these to fit your setup.  Anyway, the <i>handle-arcserve-trap</i> script on my management host looked something like this:
-</p>
-
-<p>
-<font color="red">
-<pre>
-#!/bin/sh
-
-# Arguments:
-#  $1 = trap type
-
-	# First line passed from snmptrapd is FQDN of host that sent the trap
-     read host
-
-    # Given a FQDN, get the short name of the host as it is setup in Nagios
-    hostname="unknown"
-    case $host in
-        novellserver.mylocaldomain.com)
-            hostname="novellserver"
-            ;;
-        nt.mylocaldomain.com)
-            hostname="ntserver"
-            ;;
-	esac
-	
-    # Get severity level (OK, WARNING, UNKNOWN, or CRITICAL) and plugin output based on trape type
-    state=-1
-    output="No output"
-    case "$1" in
-
-        # failed to format tape - critical
-        11)
-            output="Critical: Failed to format tape"
-            state=2
-            ;;
-
-        # failed to read tape header - critical
-        10)
-            output="Critical: Failed to read tape header"
-            state=2
-            ;;
-
-        # failed to position tape - critical
-        11)
-            output="Critical: Failed to position tape"
-            state=2
-            ;;
-
-        # backup cancelled - warning
-        12)
-            output="Warning: ArcServe backup operation cancelled"
-            state=1
-            ;;
-
-        # backup success - ok
-        13)
-            output="Ok: ArcServe backup operation successful"
-            state=0
-            ;;
-
-        # backup incomplete - warning
-        14)
-            output="Warning: ArcServe backup operation incomplete"
-            state=1
-            ;;
-
-        # backup failure - critical
-        15)
-            output="Critical: ArcServe backup operation failed"
-            state=2
-            ;;
-    esac
-
-
-    # Submit passive check result to monitoring host
-    /usr/local/nagios/libexec/eventhandlers/submit_check_result $hostname "ArcServe Backup" $state "$output"
-
-exit 0
-</pre>
-</font>
-</p>
-
-<p>
-Notice that the <i>handle-arcserve-trap</i> script calls the <i>submit_check_result</i> script to actually send the alert back to the monitoring host.  Assuming your monitoring host is called <b>monitor</b>, the <i>submit check_result</i> script might look like this (you'll have to modify this to specify the proper location of the <i>send_nsca</i> program on your management host):
-</p>
-
-<p>
-<font color="red">
-<pre>
-#!/bin/sh
-
-# Arguments
-#	$1 = name of host in service definition
-#	$2 = name/description of service in service definition
-#	$3 = return code
-#	$4 = output
-
-/bin/echo -e "$1\t$2\t$3\t$4\n" | /usr/local/nagios/bin/send_nsca monitor -c /usr/local/nagios/etc/send_nsca.cfg
-</pre>
-</font>
-</p>
-
-<p>
-<strong><u>Finishing Up</u></strong>
-</p>
-
-<p>
-You've now configured everything you need to, so all you have to do is restart the Nagios on your monitoring server.  That's it!  You should be getting alerts in Nagios whenever ArcServe jobs fail, succeed, etc.
+Yep, that's all.
 </p>
 
 <hr>

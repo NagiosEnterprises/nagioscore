@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Notification Escalations</h1>
 </div>
-</p>
 
 <hr>
 
@@ -33,7 +31,7 @@
 <strong><u>Introduction</u></strong>
 </p>
 
-<img src="images/objects-contacts.png" border="0" style="float: right;">
+<img src="images/objects-contacts.png" border="0" style="float: right;" alt="Contacts" title="Contacts">
 
 <p>
 Nagios supports optional escalation of contact notifications for hosts and services.  Escalation of host and service notifications is accomplished by defining <a href="objectdefinitions.html#hostescalation">host escalations</a> and <a href="objectdefinitions.html#serviceescalation">service escalations</a> in your <a href="configobject.html">object configuration file(s)</a>.
@@ -70,7 +68,6 @@ define serviceescalation{
 	contact_groups		nt-admins,managers,everyone
 	}
 </pre>	
-</p>
 
 <p>
 Notice that there are "holes" in the notification escalation definitions.  In particular, notifications 1 and 2 are not handled by the escalations, nor are any notifications beyond 10.  For the first and second notification, as well as all notifications beyond the tenth one, the <i>default</i> contact groups specified in the service definition are used.  For all the examples I'll be using, I'll be assuming that the default contact groups for the service definition is called <i>nt-admins</i>.
@@ -103,7 +100,6 @@ define serviceescalation{
 	contact_groups		nt-admins,managers,everyone
 	}
 </pre>	
-</p>
 
 <p>
 The first (or "lowest") escalation level includes both the <i>nt-admins</i> and <i>managers</i> contact groups.  The last (or "highest") escalation level includes the <i>nt-admins</i>, <i>managers</i>, and <i>everyone</i> contact groups.  Notice that the <i>nt-admins</i> contact group is included in both escalation definitions.  This is done so that they continue to get paged if there are still problems after the first two service notifications are sent out.  The <i>managers</i> contact group first appears in the "lower" escalation definition - they are first notified when the third problem notification gets sent out.  We want the <i>managers</i> group to continue to be notified if the problem continues past five notifications, so they are also included in the "higher" escalation definition.
@@ -136,7 +132,6 @@ define serviceescalation{
 	contact_groups		on-call-support
 	}
 </pre>	
-</p>
 
 <p>
 In the example above:
@@ -175,7 +170,6 @@ define serviceescalation{
 	contact_groups		on-call-support
 	}
 </pre>	
-</p>
 
 <p>
 If, after three problem notifications, a recovery notification is sent out for the service, who gets notified?  The recovery is actually the fourth notification that gets sent out.  However, the escalation code is smart enough to realize that only those people who were notified about the problem on the third notification should be notified about the recovery.  In this case, the <i>nt-admins</i> and <i>managers</i> contact groups would be notified of the recovery.
@@ -208,7 +202,6 @@ define serviceescalation{
 	contact_groups		nt-admins,managers,everyone
 	}
 </pre>	
-</p>
 
 <p>
 In this example we see that the default notification interval for the services is 240 minutes (this is the value in the service definition).  When the service notification is escalated on the 3rd, 4th, and 5th notifications, an interval of 45 minutes will be used between notifications.  On the 6th and subsequent notifications, the notification interval will be 60 minutes, as specified in the second escalation definition.
@@ -237,7 +230,6 @@ define serviceescalation{
 	contact_groups		nt-admins,managers,everyone
 	}
 </pre>	
-</p>
 
 <p>
 We see that the two escalation definitions overlap on the 4th and 5th notifications.  For these notifications, Nagios will use a notification interval of 45 minutes, since it is the smallest interval present in any valid escalation definitions for those notifications.
@@ -275,7 +267,6 @@ define serviceescalation{
 	contact_groups		nt-admins,managers
 	}
 </pre>	
-</p>
 
 <p>
 In the example above, the maximum number of problem notifications that could be sent out about the service would be four.  This is because the notification interval of 0 in the second escalation definition indicates that only one notification should be sent out (starting with and including the 4th notification) and all subsequent notifications should be repressed.  Because of this, the third service escalation definition has no effect whatsoever, as there will never be more than four notifications.

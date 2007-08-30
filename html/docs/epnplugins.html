@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Developing Plugins For Use With Embedded Perl</h1>
 </div>
-</p>
 
 <hr>
 
@@ -86,7 +84,6 @@ It should be noted that "ePN", as used in this documentation, refers to embedded
 
 
 <li>&lt;DATA&gt; can not be used; use here documents instead e.g.<br><br>
-<dir>
 <pre>
 my $data = &lt;&lt;DATA;
 portmapper 100000
@@ -101,7 +98,6 @@ DATA
 
 %prognum = map { my($a, $b) = split; ($a, $b) } split(/\n/, $data) ;
 </pre>
-</dir>
 
 <li>BEGIN blocks will not work as you expect. May be best to avoid.<br><br>
 
@@ -115,11 +111,10 @@ DATA
 <br><br>
 
 <li>Avoid lexical variables (my) with global scope as a means of passing __variable__ data into subroutines. In fact this is __fatal__ if the subroutine is called by the plugin more than once when the check is run.  Such subroutines act as 'closures' that lock the global lexicals first value into subsequent calls of the subroutine. If however, your global
-is read-only (a complicated structure for example) this is not a problem. What Bekman <a href="http://perl.apache.org/guide/">recommends you do instead</a>, is any of the following:<br><br>
+is read-only (a complicated structure for example) this is not a problem. What Bekman <a href="http://perl.apache.org/docs/1.0/guide/">recommends you do instead</a>, is any of the following:<br><br>
 
 <ul>
 <li>make the subroutine anonymous and call it via a code ref e.g.<br><br>
-<dir>
 <pre>
 turn this                     into  
 
@@ -133,7 +128,6 @@ a ;                           &amp;$a_cr ;
 
 # anon closures __always__ rebind the current lexical value
 </pre>
-</dir>
 
 <li>put the global lexical and the subroutine using it in their own package (as an object or a module)
 
@@ -145,7 +139,7 @@ a ;                           &amp;$a_cr ;
 <br>
 
 <li>Be aware of where you can get more information.<br><br>
-<dir>
+
 <p>
 Useful information can be had from the usual suspects (the O'Reilly books, plus Damien Conways "Object Oriented Perl") but for the really useful stuff in the right context start at Stas Bekman's mod_perl guide at <a href="http://perl.apache.org/guide/">http://perl.apache.org/guide/</a>.
 </p>
@@ -158,7 +152,6 @@ The perlembed manpage is essential for context and encouragement.
 <p>
 On the basis that Lincoln Stein and Doug MacEachern know a thing or two about Perl and embedding Perl, their book 'Writing Apache Modules with Perl and C' is almost certainly worth looking at.
 </p>
-</dir>
 
 <li>Be aware that your plugin may return strange values with an ePN and that this is likely to be caused by the problem in item #4 above<br><br>
 
@@ -174,15 +167,14 @@ On the basis that Lincoln Stein and Doug MacEachern know a thing or two about Pe
 
 <br>
 
-<dir>
+<pre>
 perl -MO::Deparse &lt;your_program&gt;
-</dir>
+</pre>
 
 <br>
 
 <li>Be aware of what ePN is transforming your plugin too, and if all else fails try and debug the transformed version.<br><br>
 
-<dir>
 <p>
 As you can see below p1.pl rewrites your plugin as a subroutine called 'hndlr' in the package named 'Embed::&lt;something_related_to_your_plugin_file_name&gt;'.
 </p>
@@ -196,7 +188,6 @@ This in turn gets 'eval' ed and if the eval raises an error (any parse error and
 The following output shows how a test ePN transformed the <i>check_rpc</i> plugin before attempting to execute it. Most of the code from the actual plugin is not shown, as we are interested in only the transformations that the ePN has made to the plugin).  For clarity, transformations are shown in red:
 </p>
 
-<dir>
 <pre>
 <font color="red">
                 package main;
@@ -213,7 +204,7 @@ The following output shows how a test ePN transformed the <i>check_rpc</i> plugi
 #    check_rpc host service
 #
 # Check if an rpc serice is registered and running
-# using rpcinfo - $proto $host $prognum 2>&1 |";
+# using rpcinfo - $proto $host $prognum 2>&amp;1 |";
 #
 # Use these hosts.cfg entries as examples
 #
@@ -228,9 +219,7 @@ The following output shows how a test ePN transformed the <i>check_rpc</i> plugi
 <i>... rest of plugin code goes here (it was removed for brevity) ...</i>
 <font color="red">}</font>
 </pre>
-</dir>
 
-</dir>
 
 <br>
 

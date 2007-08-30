@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Detection and Handling of State Flapping</h1>
 </div>
-</p>
 
 <hr>
 
@@ -138,12 +136,12 @@ The flap detection logic for services works as described in the example above.
 <p>
 Host flap detection works in a similiar manner to service flap detection, with one important difference: Nagios will attempt to check to see if a host is flapping whenever:
 </p>
+
 <ul>
 <li>The host is checked (actively or passively)
 <li>Sometimes when a service associated with that host is checked.  More specifically, when at least <i>x</i> amount of time has passed since the flap detection was last performed, where <i>x</i> is equal to the average check interval of all services associated with the host.  
 </ul>
 
-</p>
 <p>
 Why is this done?  With services we know that the minimum amount of time between consecutive flap detection routines is going to be equal to the service check interval.  However, you might not be monitoring hosts on a regular basis, so there might not be a host check interval that can be used in the flap detection logic.  Also, it makes sense that checking a service should count towards the detection of host flapping.  Services are attributes of or things associated with host after all...  At any rate, that's the best method I could come up with for determining how often flap detection could be performed on a host, so there you have it.
 </p>
@@ -161,7 +159,6 @@ Nagios uses several variables to determine the percent state change thresholds i
 The table below shows the global and host- or service-specific variables that control the various thresholds used in flap detection.
 </p>
 
-<p>
 <table border="1" class="Default">
 <tr><th>Object Type</th><th>Global Variables</th><th>Object-Specific Variables</th></tr>
 <tr>
@@ -187,7 +184,6 @@ The table below shows the global and host- or service-specific variables that co
 </td>
 </tr>
 </table>
-</p>
 
 <p>
 <strong><u>States Used For Flap Detection</u></strong>

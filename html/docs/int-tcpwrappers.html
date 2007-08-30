@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">TCP Wrapper Integration</h1>
 </div>
-</p>
 
 <hr>
 
@@ -33,7 +31,7 @@
 <strong><u>Introduction</u></strong>
 </p>
 
-<img src="images/tcpwrappers.png" border="0" style="float: right;">
+<img src="images/tcpwrappers.png" border="0" style="float: right;" alt="TCP Wrappers" title="TCP Wrappers">
 
 <p>
 This document explains how to easily generate alerts in Nagios for connection attempts that are rejected by TCP wrappers.  For example, if an unauthorized host attempts to connect to your SSH server, you can receive an alert in Nagios that contains the name of the host that was rejected.  If you implement this on your Linux/Unix boxes, you'll be surprised how many port scans you can detect across your network.
@@ -111,22 +109,16 @@ This line assumes that there is a script called <i>handle_tcp_wrapper</i> in the
 The last thing you need to do is write the <i>handle_tcp_wrapper</i> script on <i>firestorm</i> that will send the alert back to the Nagios server.  It might look something like this:
 </p>
 
-<p>
-<dir>
 <pre>
 #!/bin/sh
 
 /usr/local/nagios/libexec/eventhandlers/submit_check_result firestorm "TCP Wrappers" 2 "Denied $2-$1" > /dev/null 2> /dev/null
 </pre>
-</dir>
-</p>
 
 <p>
 Notice that the <i>handle_tcp_wrapper</i> script calls the <i>submit_check_result</i> script to actually send the alert back to the monitoring host.  Assuming your Nagios server is called <i>monitor</i>, the <i>submit check_result</i> script might look like this:
 </p>
 
-<p>
-<dir>
 <pre>
 #!/bin/sh
 # Arguments
@@ -137,8 +129,6 @@ Notice that the <i>handle_tcp_wrapper</i> script calls the <i>submit_check_resul
 
 /bin/echo -e "$1\t$2\t$3\t$4\n" | /usr/local/nagios/bin/send_nsca monitor -c /usr/local/nagios/etc/send_nsca.cfg
 </pre>
-</dir>
-</p>
 
 <p>
 <strong><u>Finishing Up</u></strong>

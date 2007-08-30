@@ -1,3 +1,5 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
 <html>
 <head>
 <title>Passive Host State Translation</title>
@@ -13,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Passive Host State Translation</h1>
 </div>
-</p>
 
 <hr>
 
@@ -49,17 +49,17 @@ The image below shows a simplified view of a failover monitoring setup.
 <li>Both <i>Router-C</i> and <i>Router-D</i> have suffered failures and are offline.</li>
 </ul>
 
-<img src="images/passivehosttranslation.png" border="0">
+<img src="images/passivehosttranslation.png" border="0" alt="Passive State Translation" title="Passive State Translation">
 
 <p>
 What states are <i>Router-C</i> and <i>Router-D</i> currently in?  The answer depends on which Nagios instance you ask.
 </p>
 
-<p>
+<ul>
 <li><i>Nagios-A</i> sees <i>Router-D</i> as DOWN and <i>Router-C</i> as UNREACHABLE
 <li><i>Nagios-B</i> should see <i>Router-C</i> as DOWN and <i>Router-D</i> as UNREACHABLE
 <li><i>Nagios-C</i> should see both routers as being DOWN.
-</p>
+</ul>
 
 <p>
 Each Nagios instance has a different view of the network.  The backup monitoring servers should not blindly accept passive host states from the primary monitoring server, or they will have incorrect information on the current state of the network.

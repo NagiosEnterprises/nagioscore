@@ -15,14 +15,12 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Time-Saving Tricks For Object Definitions</h1>
 or...<br>
 <b>"How To Preserve Your Sanity"</b>
 </div>
-</p>
 
 <hr>
 
@@ -293,7 +291,7 @@ If you feel like being particularly adventurous, you can specify a wildcard in b
 		}
 </pre>
 
-<a name="#same_host_dependency"></a>
+<a name="same_host_dependency"></a>
 <p>
 <b>Same Host Dependencies:</b><br> If you want to create service dependencies for multiple services that are dependent on services on the same host, leave the <i>dependent_host_name</i> and <i>dependent_hostgroup_name</i> directives empty.  The example below assumes that hosts <i>HOST1</i> and <i>HOST2</i> have at least the following four services associated with them: <i>SERVICE1</i>, <i>SERVICE2</i>, <i>SERVICE3</i>, and <i>SERVICE4</i>.  In this example, <i>SERVICE3</i> and <i>SERVICE4</i> on <i>HOST1</i> will be dependent on both <i>SERVICE1</i> and <i>SERVICE2</i> on <i>HOST1</i>.  Similiarly, <i>SERVICE3</i> and <i>SERVICE4</i> on <i>HOST2</i> will be dependent on both <i>SERVICE1</i> and <i>SERVICE2</i> on <i>HOST2</i>.
 </p>

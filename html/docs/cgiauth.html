@@ -1,3 +1,5 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
 <html>
 <head>
 <title>Authentication And Authorization In The CGIs</title>
@@ -13,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Authentication And Authorization In The CGIs</h1>
 </div>
-</p>
 
 <hr>
 
@@ -33,6 +33,12 @@
 
 <p>
 This documentation describes how the Nagios CGIs decide who has access to view monitoring and configuration information, and who can submit commands to the Nagios daemon through the web interface. 
+</p>
+
+
+<a name="definitions"></a>
+<p>
+<strong><u>Definitions</u></strong>
 </p>
 
 <p>
@@ -89,7 +95,6 @@ Okay, you're now done with setting up basic authentication/authorization functio
 So what default permissions do users have in the CGIs by default when the authentication/authorization functionality is enabled?
 </p>
 
-<p>
 <table border="1" class="Default">
 <tr bgcolor="#cbcbcb">
 <td>CGI Data</td>
@@ -148,7 +153,7 @@ So what default permissions do users have in the CGIs by default when the authen
 </tr>
 <tr>
 <td>All Configuration Information</td>
-<td>No</td></td>
+<td>No</td>
 <td>No</td>
 </tr>
 <tr>
@@ -162,7 +167,8 @@ So what default permissions do users have in the CGIs by default when the authen
 <td>No</td>
 </tr>
 </table>
-</p>
+
+<br>
 
 <p>
 <i>Authenticated contacts<sup><a href="#definitions">*</a></sup></i> are granted the following permissions for each <b>service</b> for which they are contacts (but not for services for which they are not contacts)...

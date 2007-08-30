@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">CGI Configuration File Options</h1>
 </div>
-</p>
 
 <hr>
 
@@ -55,6 +53,15 @@ When creating and/or editing configuration files, keep the following in mind:
 By default, Nagios expects the CGI configuration file to be named <b>cgi.cfg</b> and located in the config file directory along with the <a href="configmain.html">main config file</a>.  If you need to change the name of the file or its location, you can configure Apache to pass an environment variable named NAGIOS_CGI_CONFIG (which points to the correct location) to the CGIs.  See the Apache documentation for information on how to do this. 
 </p>
 
+<p>
+<strong><u>Configuration File Variables</u></strong>
+</p>
+
+<p>
+Below you will find descriptions of each main Nagios configuration file option...
+</p>
+
+<!--
 <p>
 <strong><u>Index</u></strong>
 </p>
@@ -93,17 +100,16 @@ By default, Nagios expects the CGI configuration file to be named <b>cgi.cfg</b>
 <a href="#enable_splunk_integration">Splunk integration option</a><br>
 <a href="#splunk_url">Splunk URL</a><br>
 </p>
+//-->
 
-<p>
 <a name="main_cfg_file"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Main Configuration File Location</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -114,22 +120,19 @@ By default, Nagios expects the CGI configuration file to be named <b>cgi.cfg</b>
 <td><font color="red"><strong>main_config_file=/usr/local/nagios/etc/nagios.cfg</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This specifies the location of your <a href="configmain.html">main configuration file</a>.  The CGIs need to know where to find this file in order to get information about configuration information, current host and service status, etc.
 </p>
 
-<p>
 <a name="physical_html_path"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Physical HTML Path</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -140,7 +143,6 @@ This specifies the location of your <a href="configmain.html">main configuration
 <td><font color="red"><strong>physical_html_path=/usr/local/nagios/share</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This is the <i>physical</i> path where the HTML files for Nagios are kept on your workstation or server.  Nagios
@@ -148,16 +150,14 @@ assumes that the documentation and images files (used by the CGIs) are stored in
 </p>
 
 
-<p>
 <a name="url_html_path"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>URL HTML Path</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -168,7 +168,6 @@ assumes that the documentation and images files (used by the CGIs) are stored in
 <td><font color="red"><strong>url_html_path=/nagios</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 If, when accessing Nagios via a web browser, you point to an URL like <b>http://www.myhost.com/nagios</b>, this value
@@ -176,16 +175,14 @@ should be <i>/nagios</i>.  Basically, its the path portion of the URL that is us
 </p>
 
 
-<p>
 <a name="use_authentication"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Authentication Usage</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -196,10 +193,9 @@ should be <i>/nagios</i>.  Basically, its the path portion of the URL that is us
 <td><font color="red"><strong>use_authentication=1</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
-This option controls whether or not the CGIs will use the authentication and authorization functionality when determining what information and commands users have access to.  I would strongly suggest that you use the authentication functionality for the CGIs.  If you decide not to use authentication, make sure to remove the <a href="cgis.html#command_cgi">command CGI</a> to prevent unauthorized users from issuing commands to Nagios.  The CGI will not issue commands to Nagios if authentication is disabled, but I would suggest removing it altogether just to be on the safe side.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
+This option controls whether or not the CGIs will use the authentication and authorization functionality when determining what information and commands users have access to.  I would strongly suggest that you use the authentication functionality for the CGIs.  If you decide not to use authentication, make sure to remove the <a href="cgis.html#cmd_cgi">command CGI</a> to prevent unauthorized users from issuing commands to Nagios.  The CGI will not issue commands to Nagios if authentication is disabled, but I would suggest removing it altogether just to be on the safe side.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
 </p>
 <ul>
 <li>0 = Don't use authentication functionality
@@ -207,16 +203,14 @@ This option controls whether or not the CGIs will use the authentication and aut
 </ul>
 
 
-<p>
 <a name="default_user_name"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Default User Name</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -227,7 +221,6 @@ This option controls whether or not the CGIs will use the authentication and aut
 <td><font color="red"><strong>default_user_name=guest</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 Setting this variable will define a default username that can access the CGIs.  This allows people within a secure domain (i.e., behind a firewall) to access the CGIs without necessarily having to authenticate to the web server.   You may want to use this to avoid having to use basic authentication if you are not using a secure server, as basic authentication transmits passwords in clear text over the Internet.
@@ -236,16 +229,14 @@ Setting this variable will define a default username that can access the CGIs.  
 <strong>Important:</strong>  Do <i>not</i> define a default username unless you are running a secure web server and are sure that everyone who has access to the CGIs has been authenticated in some manner!  If you define this variable, anyone who has not authenticated to the web server will inherit all rights you assign to this user!
 </p>
 
-<p>
 <a name="authorized_for_system_information"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>System/Process Information Access</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -256,23 +247,20 @@ Setting this variable will define a default username that can access the CGIs.  
 <td><font color="red"><strong>authorized_for_system_information=nagiosadmin,theboss</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This is a comma-delimited list of names of <i>authenticated users</i> who can view system/process information in the <a href="cgis.html#extinfo_cgi">extended information CGI</a>.  Users in this list are <i>not</i> automatically authorized to issue system/process commands.  If you want users to be able to issue system/process commands as well, you must add them to the <a href="#authorized_for_system_commands">authorized_for_system_commands</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
 </p>
 
 
-<p>
 <a name="authorized_for_system_commands"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>System/Process Command Access</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -283,23 +271,20 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can vi
 <td><font color="red"><strong>authorized_for_system_commands=nagiosadmin</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This is a comma-delimited list of names of <i>authenticated users</i> who can issue system/process commands via the <a href="cgis.html#cmd_cgi">command CGI</a>.  Users in this list are <i>not</i> automatically authorized to view system/process information.  If you want users to be able to view system/process information as well, you must add them to the <a href="#authorized_for_system_information">authorized_for_system_information</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
 </p>
 
 
-<p>
 <a name="authorized_for_configuration_information"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Configuration Information Access</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -310,23 +295,20 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can is
 <td><font color="red"><strong>authorized_for_configuration_information=nagiosadmin</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This is a comma-delimited list of names of <i>authenticated users</i> who can view configuration information in the <a href="cgis.html#config_cgi">configuration CGI</a>.  Users in this list can view information on all configured hosts, host groups, services, contacts, contact groups, time periods, and commands.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
 </p>
 
 
-<p>
 <a name="authorized_for_all_hosts"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Global Host Information Access</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -337,23 +319,20 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can vi
 <td><font color="red"><strong>authorized_for_all_hosts=nagiosadmin,theboss</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This is a comma-delimited list of names of <i>authenticated users</i> who can view status and configuration information for all hosts.  Users in this list are also automatically authorized to view information for all services.  Users in this list are <i>not</i> automatically authorized to issue commands for all hosts or services.  If you want users able to issue commands for all hosts and services as well, you must add them to the <a href="#authorized_for_all_host_commands">authorized_for_all_host_commands</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
 </p>
 
 
-<p>
 <a name="authorized_for_all_host_commands"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Global Host Command Access</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -364,23 +343,20 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can vi
 <td><font color="red"><strong>authorized_for_all_host_commands=nagiosadmin</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This is a comma-delimited list of names of <i>authenticated users</i> who can issue commands for all hosts via the <a href="cgis.html#cmd_cgi">command CGI</a>.  Users in this list are also automatically authorized to issue commands for all services.  Users in this list are <i>not</i> automatically authorized to view status or configuration information for all hosts or services.  If you want users able to view status and configuration information for all hosts and services as well, you must add them to the <a href="#authorized_for_all_hosts">authorized_for_all_hosts</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
 </p>
 
 
-<p>
 <a name="authorized_for_all_services"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Global Service Information Access</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -391,23 +367,20 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can is
 <td><font color="red"><strong>authorized_for_all_services=nagiosadmin,theboss</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This is a comma-delimited list of names of <i>authenticated users</i> who can view status and configuration information for all services.  Users in this list are <i>not</i> automatically authorized to view information for all hosts.  Users in this list are <i>not</i> automatically authorized to issue commands for all services.  If you want users able to issue commands for all services as well, you must add them to the <a href="#authorized_for_all_service_commands">authorized_for_all_service_commands</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
 </p>
 
 
-<p>
 <a name="authorized_for_all_service_commands"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Global Service Command Access</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -418,7 +391,6 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can vi
 <td><font color="red"><strong>authorized_for_all_service_commands=nagiosadmin</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This is a comma-delimited list of names of <i>authenticated users</i> who can issue commands for all services via the <a href="cgis.html#cmd_cgi">command CGI</a>.  Users in this list are <i>not</i> automatically authorized to issue commands for all hosts.  Users in this list are <i>not</i> automatically authorized to view status or configuration information for all hosts.  If you want users able to view status and configuration information for all services as well, you must add them to the <a href="#authorized_for_all_services">authorized_for_all_services</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
@@ -426,16 +398,14 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can is
 
 
 
-<p>
 <a name="lock_author_names"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Lock Author Names</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -446,7 +416,6 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can is
 <td><font color="red"><strong>lock_author_names=1</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option allows you to restrict users from changing the author name when submitting comments, acknowledgements, and scheduled downtime from the web interface.  If this option is enabled, users will be unable to change the author name associated with the command request.
@@ -457,16 +426,14 @@ This option allows you to restrict users from changing the author name when subm
 </ul>
 
 
-<p>
 <a name="statusmap_background_image"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Statusmap CGI Background Image</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -477,23 +444,20 @@ This option allows you to restrict users from changing the author name when subm
 <td><font color="red"><strong>statusmap_background_image=smbackground.gd2</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option allows you to specify an image to be used as a background in the <a href="cgis.html#statusmap_cgi">statusmap CGI</a> if you use the user-supplied coordinates layout method.  The background image is not be available in any other layout methods.  It is assumed that the image resides in the HTML images path (i.e. /usr/local/nagios/share/images). This path is automatically determined by appending "/images" to the path specified by the <a href="#physical_html_path">physical_html_path</a> directive.  Note: The image file can be in GIF, JPEG, PNG, or GD2 format.  However, GD2 format (preferably in uncompressed format) is recommended, as it will reduce the CPU load when the CGI generates the map image.
 </p>
 
 
-<p>
 <a name="default_statusmap_layout"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Default Statusmap Layout Method</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -504,13 +468,11 @@ This option allows you to specify an image to be used as a background in the <a 
 <td><font color="red"><strong>default_statusmap_layout=4</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option allows you to specify the default layout method used by the <a href="cgis.html#statusmap_cgi">statusmap CGI</a>. Valid options are:
 </p>
 
-<p>
 <table border=1 cellspacing=0 cellpadding=5 class="Default">
 <tr><th>&lt;layout_number&gt; Value</th><th>Layout Method</th></tr>
 <tr><td>0</td><td>User-defined coordinates</td></tr>
@@ -521,19 +483,16 @@ This option allows you to specify the default layout method used by the <a href=
 <tr><td>5</td><td>Circular (Marked Up)</td></tr>
 <tr><td>6</td><td>Circular (Balloon)</td></tr>
 </table>
-</p>
 
 
-<p>
 <a name="statuswrl_include"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Statuswrl CGI Include World</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -544,7 +503,6 @@ This option allows you to specify the default layout method used by the <a href=
 <td><font color="red"><strong>statuswrl_include=myworld.wrl</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option allows you to include your own objects in the generated VRML world.  It is assumed that the file resides in the path specified by the <a href="#physical_html_path">physical_html_path</a> directive.  Note:  This file must be a fully qualified VRML world (i.e. you can view it by itself in a VRML browser).
@@ -552,16 +510,14 @@ This option allows you to include your own objects in the generated VRML world. 
 
 
 
-<p>
 <a name="default_statuswrl_layout"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Default Statuswrl Layout Method</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -572,13 +528,11 @@ This option allows you to include your own objects in the generated VRML world. 
 <td><font color="red"><strong>default_statuswrl_layout=4</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option allows you to specify the default layout method used by the <a href="cgis.html#statuswrl_cgi">statuswrl CGI</a>. Valid options are:
 </p>
 
-<p>
 <table border=1 cellspacing=0 cellpadding=5 class="Default">
 <tr><th>&lt;layout_number&gt; Value</th><th>Layout Method</th></tr>
 <tr><td>0</td><td>User-defined coordinates</td></tr>
@@ -586,19 +540,16 @@ This option allows you to specify the default layout method used by the <a href=
 <tr><td>3</td><td>Balanced tree</td></tr>
 <tr><td>4</td><td>Circular</td></tr>
 </table>
-</p>
 
 
-<p>
 <a name="refresh_rate"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>CGI Refresh Rate</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -609,23 +560,20 @@ This option allows you to specify the default layout method used by the <a href=
 <td><font color="red"><strong>refresh_rate=90</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option allows you to specify the number of seconds between page refreshes for the <a href="cgis.html#status_cgi">status</a>, <a href="cgis.html#statusmap_cgi">statusmap</a>, and <a href="cgis.html#extinfo_cgi">extinfo</a> CGIs.
 </p>
 
 
-<p>
 <a name="audio_alerts"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Audio Alerts</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Formats:</td>
@@ -648,22 +596,19 @@ This option allows you to specify the number of seconds between page refreshes f
 </td>
 </tr>
 </table>
-</p>
 
 <p>
 These options allow you to specify an audio file that should be played in your browser if there are problems when you are viewing the <a href="cgis.html#status_cgi">status CGI</a>.  If there are problems, the audio file for the most critical type of problem will be played.  The most critical type of problem is on or more unreachable hosts, while the least critical is one or more services in an unknown state (see the order in the example above).  Audio files are assumed to be in the <b>media/</b> subdirectory in your HTML directory (i.e. <i>/usr/local/nagios/share/media</i>).
 </p>
 
-<p>
 <a name="ping_syntax"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Ping Syntax</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -674,7 +619,6 @@ These options allow you to specify an audio file that should be played in your b
 <td><font color="red"><strong>ping_syntax=/bin/ping -n -U -c 5 $HOSTADDRESS$</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option determines what syntax should be used when attempting to ping a host from the WAP interface (using
@@ -682,16 +626,14 @@ the <a href="cgis.html#statuswml_cgi">statuswml CGI</a>.  You must include the f
 </p>
 
 
-<p>
 <a name="escape_html_tags"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Escape HTML Tags Option</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -702,23 +644,20 @@ the <a href="cgis.html#statuswml_cgi">statuswml CGI</a>.  You must include the f
 <td><font color="red"><strong>escape_html_tags=1</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option determines whether or not HTML tags in host and service (plugin) output is escaped in the CGIs.  If you enable this option, your plugin output will not be able to contain clickable hyperlinks.
 </p>
 
 
-<p>
 <a name="notes_url_target"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Notes URL Target</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -729,23 +668,20 @@ This option determines whether or not HTML tags in host and service (plugin) out
 <td><font color="red"><strong>notes_url_target=_blank</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option determines the name of the frame target that notes URLs should be displayed in.  Valid options include <i>_blank</i>, <i>_self</i>, <i>_top</i>, <i>_parent</i>, or any other valid target name.
 </p>
 
 
-<p>
 <a name="action_url_target"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Action URL Target</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -756,23 +692,20 @@ This option determines the name of the frame target that notes URLs should be di
 <td><font color="red"><strong>action_url_target=_blank</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option determines the name of the frame target that action URLs should be displayed in.  Valid options include <i>_blank</i>, <i>_self</i>, <i>_top</i>, <i>_parent</i>, or any other valid target name.
 </p>
 
 
-<p>
 <a name="enable_splunk_integration"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Splunk Integration Option</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -783,22 +716,19 @@ This option determines the name of the frame target that action URLs should be d
 <td><font color="red"><strong>enable_splunk_integration=1</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option determines whether integration functionality with Splunk is enabled in the web interface.  If enabled, you'll be presented with "Splunk It" links in various places in the CGIs (log file, alert history, host/service detail, etc).  Useful if you're trying to research why a particular problem occurred. For more information on Splunk, visit <a href="http://www.splunk.com/" target="_blank">http://www.splunk.com/</a>.
 </p>
 
-<p>
 <a name="splunk_url"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Splunk URL</strong></td>
 </tr>
 </table>
-</p>
+<br>
 
-<p>
 <table border="0" class="Default">
 <tr>
 <td valign=top>Format:</td>
@@ -809,7 +739,6 @@ This option determines whether integration functionality with Splunk is enabled 
 <td><font color="red"><strong>splunk_url=http://127.0.0.1:8000/</strong></font></td>
 </tr>
 </table>
-</p>
 
 <p>
 This option is used to define the base URL to your Splunk interface.  This URL is used by the CGIs when creating links if the <a href="#enable_splunk_integration">enable_splunk_integration</a> option is enabled.

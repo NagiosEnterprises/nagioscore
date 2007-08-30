@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Notifications</h1>
 </div>
-</p>
 
 <hr>
 
@@ -33,7 +31,7 @@
 <strong><u>Introduction</u></strong>
 </p>
 
-<img src="images/objects-contacts.png" border="0" style="float: right;">
+<img src="images/objects-contacts.png" border="0" style="float: right;" alt="Contacts" title="Contacts">
 
 <p>
 I've had a lot of questions as to exactly how notifications work.  This will attempt to explain exactly when and how host and service notifications are sent out, as well as who receives them.
@@ -114,19 +112,17 @@ The last set of host or service filters is conditional upon two things: (1) a no
 <strong><u>Contact Filters:</u></strong>
 </p>
 <p>
-At this point the notification has passed the program mode filter and all host or service filters and Nagios starts to notify <a href="#contacts">all the people it should</a>.  Does this mean that each contact is going to receive the notification?  No!  Each contact has their own set of filters that the notification must pass before they receive it.  Note: Contact filters are specific to each contact and do not affect whether or not other contacts receive notifications.
+At this point the notification has passed the program mode filter and all host or service filters and Nagios starts to notify <a href="objectdefinitions.html#contact">all the people it should</a>.  Does this mean that each contact is going to receive the notification?  No!  Each contact has their own set of filters that the notification must pass before they receive it.  Note: Contact filters are specific to each contact and do not affect whether or not other contacts receive notifications.
 </p>
 
 <p>
 The first filter that must be passed for each contact are the notification options.  Each contact definition contains options that determine whether or not service notifications can be sent out for warning states, critical states, and recoveries.  Each contact definition also contains options that determine whether or not host notifications can be sent out when the host goes down, becomes unreachable, or recovers.  If the host or service notification does not pass these options, <b>the contact will not be notified</b>.  If it does pass these options, the notification gets passed to the next filter... Note: Notifications about host or service recoveries are only sent out if a notification was sent out for the original problem.  It doesn't make sense to get a recovery notification for something you never knew was a problem...
 </p>
 
-
 <p>
 The last filter that must be passed for each contact is the time period test.  Each contact definition has a &lt;<i>notification_period</i>&gt; option that specifies which time period contains valid notification times for the contact.  If the time that the notification is being made does not fall within a valid time range in the specified time period, <b>the contact will not be notified</b>.  If it falls within a valid time range, the contact gets notified!
 </p>
 
-</dir>
 
 <p>
 <strong><u>Notification Methods</u></strong>
@@ -203,9 +199,6 @@ sending messages to pagers and mobile phones)
 
 <p>
 If you want to try out a non-traditional method of notification, you might want to mess around with audio alerts.  If you want to have audio alerts played on the monitoring server (with synthesized speech), check out <a href="http://www.cstr.ed.ac.uk/projects/festival/">Festival</a>.  If you'd rather leave the monitoring box alone and have audio alerts played on another box, check out the <a href="http://radscan.com/nas.html">Network Audio System (NAS)</a> and <a href="http://rplay.doit.org/">rplay</a> projects.
-</p>
-
-<p>
 </p>
 
 <hr>

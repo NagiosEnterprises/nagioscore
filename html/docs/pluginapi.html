@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Nagios Plugin API</h1>
 </div>
-</p>
 
 <hr>
 
@@ -36,6 +34,7 @@
 <p>
 If you're looking at writing your own plugins for Nagios, please make sure to visit these other resources:
 </p>
+
 <ul>
 <li>The official <a href="http://sourceforge.net/projects/nagiosplug/">Nagios plugin project website</a></li>
 <li>The official <a href="http://nagiosplug.sourceforge.net/developer-guidelines.html">Nagios plugin development guidelines</a></li>
@@ -66,7 +65,6 @@ The inner workings of your plugin are unimportant to Nagios.  Your plugin could 
 Nagios determines the status of a host or service by evaluating the return code from plugins.  The following tables shows a list of valid return codes, along with their corresponding service or host states.
 </p>
 
-<p>
 <table border="1" class="Default">
 <tr><th>Plugin Return Code</th><th>Service State</th><th>Host State</th></tr>
 <tr><td>0</td><td>OK</td><td>UP</td></tr>
@@ -74,7 +72,6 @@ Nagios determines the status of a host or service by evaluating the return code 
 <tr><td>2</td><td>CRITICAL</td><td>DOWN/UNREACHABLE</td></tr>
 <tr><td>3</td><td>UNKNOWN</td><td>DOWN/UNREACHABLE</td></tr>
 </table>
-</p>
 
 <p>
 <img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: If the <a href="configmain.html#use_aggressive_host_checking">use_aggressive_host_checking</a> option is enabled, return codes of 1 will result in a host state or DOWN or UNREACHABLE.  Otherwise return codes of 1 will result in a host state of UP.  The process by which Nagios determines whether or not a host is DOWN or UNREACHABLE is discussed <a href="networkreachability.html">here</a>.
@@ -90,18 +87,18 @@ At a minimum, plugins should return at least one of text output.  Beginning with
 </p>
 
 <p>
-<font color="red">TEXT OUTPUT</font> | <font color="orange">OPTIONAL PERFDATA</font><br>
+<font color="red">TEXT OUTPUT</font> | <font color="#FFA500">OPTIONAL PERFDATA</font><br>
 <font color="blue">LONG TEXT LINE 1<br>
 LONG TEXT LINE 2<br>
-…<br>
-LONG TEXT LINE N  </font>| <font color="orange">PERFDATA LINE 2</font><br>
-<font color="orange">PERFDATA LINE 3<br>
-…<br>
+...<br>
+LONG TEXT LINE N  </font>| <font color="#FFA500">PERFDATA LINE 2</font><br>
+<font color="#FFA500">PERFDATA LINE 3<br>
+...<br>
 PERFDATA LINE N</font>
 </p>
 
 <p>
-The performance data (shown in <font color="orange">orange</font>) is optional.  If a plugin returns performance data in its output, it must separate the performance data from the other text output using a pipe (|) symbol.  Additional lines of long text output (shown in <font color="blue">blue</font>) are also optional.
+The performance data (shown in <font color="#FFA500">orange</font>) is optional.  If a plugin returns performance data in its output, it must separate the performance data from the other text output using a pipe (|) symbol.  Additional lines of long text output (shown in <font color="blue">blue</font>) are also optional.
 </p>
 
 <p>
@@ -134,13 +131,11 @@ A plugin can return optional performance data for use by external applications. 
 <div style="display: inline; color: red;">DISK OK - free space: / 3326 MB (56%);</div><div style="display: inline;">&nbsp;|&nbsp;</div><div style="display: inline; color: orange;">/=2643MB;5948;5958;0;5968</div>
 </div>
 
-<p>
 <div style="float: left;">If this plugin was used to perform a service check, the</div>
 <div style="display: inline; color: red;">&nbsp;red&nbsp;</div>
 <div style="display: inline;">portion of output (left of the pipe separator) will be stored in the <a href="macrolist.html#serviceoutput">$SERVICEOUTPUT$</a> macro and the</div>
 <div style="color: orange; display: inline;">&nbsp;orange&nbsp;</div>
 <div style="display: inline;">portion of output (right of the pipe separator) will be stored in the <a href="macrolist.html#serviceperfdata">$SERVICEPERFDATA$</a> macro.</div>
-</p>
 
 <p>
 <strong>Case 3: Multiple lines of output (text and perfdata)</strong><br>
@@ -148,30 +143,28 @@ A plugin optionally return multiple lines of both text output and perfdata, like
 </p>
 
 <div style="padding: 0 0 0 25px;">
-<font color="red">DISK OK - free space: / 3326 MB (56%);</font>&nbsp;|&nbsp;<font color="orange">/=2643MB;5948;5958;0;5968</font><br>
+<font color="red">DISK OK - free space: / 3326 MB (56%);</font>&nbsp;|&nbsp;<font color="#FFA500">/=2643MB;5948;5958;0;5968</font><br>
 <font color="blue">/ 15272 MB (77%);</font><br>
 <font color="blue">/boot 68 MB (69%);</font><br>
 <font color="blue">/home 69357 MB (27%);</font><br>
-<font color="blue">/var/log 819 MB (84%);</font>&nbsp;|&nbsp;<font color="orange">/boot=68MB;88;93;0;98</font><br>
-<font color="orange">/home=69357MB;253404;253409;0;253414 </font><br>
-<font color="orange">/var/log=818MB;970;975;0;980</font><br>
+<font color="blue">/var/log 819 MB (84%);</font>&nbsp;|&nbsp;<font color="#FFA500">/boot=68MB;88;93;0;98</font><br>
+<font color="#FFA500">/home=69357MB;253404;253409;0;253414 </font><br>
+<font color="#FFA500">/var/log=818MB;970;975;0;980</font><br>
 </div>
 
 <p>
 If this plugin was used to perform a service check, the <font color="red">red</font> portion of first line of output (left of the pipe separator) will be stored in the <a href="macrolist.html#serviceoutput">$SERVICEOUTPUT$</a> macro.
-The <font color="orange">orange</font> portions of the first and subsequent lines are concatenated (with spaces) are stored in the <a href="macrolist.html#serviceperfdata">$SERVICEPERFDATA$</a> macro.  The <font color="blue">blue</font> portions of the 2nd - 5th lines of output will be concatenated (with escaped newlines) and stored in <a href="macrolist.html#longserviceoutput">$LONGSERVICEOUTPUT$</a> the macro.
+The <font color="#FFA500">orange</font> portions of the first and subsequent lines are concatenated (with spaces) are stored in the <a href="macrolist.html#serviceperfdata">$SERVICEPERFDATA$</a> macro.  The <font color="blue">blue</font> portions of the 2nd - 5th lines of output will be concatenated (with escaped newlines) and stored in <a href="macrolist.html#longserviceoutput">$LONGSERVICEOUTPUT$</a> the macro.
 </p>
 
 <p>The final contents of each macro are listed below:</p>
 
-<p>
 <table border="1" class="Default">
 <tr><th>Macro</th><th>Value</th></tr>
 <tr><td>$SERVICEOUTPUT$</td><td><font color="red">DISK OK - free space: / 3326 MB (56%);</font></td></tr>
-<tr><td>$SERVICEPERFDATA$</td><td><font color="orange">/=2643MB;5948;5958;0;5968&nbsp;/boot=68MB;88;93;0;98&nbsp;/home=69357MB;253404;253409;0;253414&nbsp;/var/log=818MB;970;975;0;980</font></td></tr>
+<tr><td>$SERVICEPERFDATA$</td><td><font color="#FFA500">/=2643MB;5948;5958;0;5968&nbsp;/boot=68MB;88;93;0;98&nbsp;/home=69357MB;253404;253409;0;253414&nbsp;/var/log=818MB;970;975;0;980</font></td></tr>
 <tr><td>$LONGSERVICEOUTPUT$</td><td><font color="blue">/ 15272 MB (77%);\n/boot 68 MB (69%);\n/var/log 819 MB (84%);</font></td></tr>
 </table>
-</p>
 
 <p>
 With regards to multiple lines of output, you have the following options for returning performance data:

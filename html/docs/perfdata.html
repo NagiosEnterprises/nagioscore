@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Performance Data</h1>
 </div>
-</p>
 
 <hr>
 
@@ -66,11 +64,9 @@ Plugin performance data is external data specific to the plugin used to perform 
 At a minimum, Nagios plugins must return a single line of human-readable text that indicates the status of some type of measurable data.  For example, the check_ping plugin might return a line of text like the following:
 </p>
 
-<p>
-<dir>
+<pre>
 PING ok - Packet loss = 0%, RTA = 0.80 ms 
-</dir>
-</p>
+</pre>
 
 <p>
 With this simple type of output, the entire line of text is available in the $HOSTOUTPUT$ or $SERVICEOUTPUT$ <a href="macros.html">macros</a> (depending on whether this plugin was used as a host check or service check).
@@ -80,11 +76,9 @@ With this simple type of output, the entire line of text is available in the $HO
 Plugins can return optional performance data in their output by sending the normal, human-readable text string that they usually would, followed by a pipe character (|), and then a string containing one or more performance data metrics.  Let's take the check_ping plugin as an example and assume that it has been enhanced to return percent packet loss and average round trip time as performance data metrics.  Sample output from the plugin might look like this:
 </p>
 
-<p>
-<dir>
+<pre>
 PING ok - Packet loss = 0%, RTA = 0.80 ms | percent_packet_loss=0, rta=0.80
-</dir>
-</p>
+</pre>
 
 <p>
 When Nagios sees this plugin output format it will split the output into two parts:

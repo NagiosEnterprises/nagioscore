@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Nagios Plugins</h1>
 </div>
-</p>
 
 <hr>
 
@@ -52,7 +50,7 @@ Nagios will execute a plugin whenever there is a need to check the status of a s
 <strong><u>Plugins As An Abstraction Layer</u></strong>
 </p>
 
-<img src="images/plugins.png" border="0" style="float: right; padding: 0 0 0 25px;">
+<img src="images/plugins.png" border="0" style="float: right; padding: 0 0 0 25px;" alt="Plugins">
 
 <p>
 Plugins act as an abstraction layer between the monitoring logic present in the Nagios daemon and the actual services and hosts that are being monitored.
@@ -107,13 +105,9 @@ Plugins are not distributed with Nagios, but you can download the official Nagio
 Most all plugins will display basic usage information when you execute them using '-h' or '--help' on the command line.  For example, if you want to know how the check_http plugin works or what options it accepts, you should try executing the following command:
 </p>
 
-<p>
-<dir>
-<strong>
+<pre>
 ./check_http --help
-</strong>
-</dir>
-</p>
+</pre>
 
 <a name="howto"></a>
 <p>

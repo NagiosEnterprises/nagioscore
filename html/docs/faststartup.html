@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Fast Startup Options</h1>
 </div>
-</p>
 
 <hr>
 
@@ -83,9 +81,7 @@ Before we get on to making things faster, we need to see what's possible and whe
 An example of the output (abbreviated to only show relevant portions) is shown below. For this example, I'm using a Nagios config that has 25 hosts defined and just over 10,000 services.
 </p>
 
-<p>
-<div style="padding: 0 0 0 50px;">
-<pre>
+<pre style="padding: 0 0 0 50px;">
 /usr/local/nagios/bin/nagios -s /usr/local/nagios/etc/nagios.cfg
 
 Nagios 3.0-prealpha
@@ -127,8 +123,6 @@ Misc:                 0.006924 sec
                       ============
 TOTAL:                56.084353 sec  * = 54.676622 sec (97.5%) estimated savings
 </pre>
-</div>
-</p>
 
 <p>
 Okay, lets see what happened.  Looking at the totals, it took roughly <b>11.6</b> seconds to process the configuration files and another <b>56</b> seconds to verify the config.  That means that every time I start or restart Nagios with this configuration, it will take nearly <b>68 seconds</b> of startup work before it can monitor anything!  That's not acceptable if I have to restart Nagios on a semi-regular basis.
@@ -163,11 +157,9 @@ When you run nagios with the <b>-p</b> command line option, Nagios will read you
 You must use the <b>-p</b> command line option along with either the <b>-v</b> or <b>-s</b> command line options, as shown below.  This ensures that your configuration is verified before the precached file is created.
 </p>
 
-<p>
-<div style="padding: 0 0 0 50px;">
+<pre style="padding: 0 0 0 50px;">
 /usr/local/nagios/bin/nagios -pv /usr/local/nagios/etc/nagios.cfg
-</div>
-</p>
+</pre>
 
 <p>
 The size of your precached config file will most likely be significantly larger than the sum of the sizes of your object config files.  This is normal and by design.
@@ -186,13 +178,11 @@ The size of your precached config file will most likely be significantly larger 
 Once the precached object configuration file have been created, you can start Nagios and tell it to use the precached config file instead of your object config file(s) by using the <b>-u</b> command line option.
 </p>
 
-<p>
-<div style="padding: 0 0 0 50px;">
+<pre style="padding: 0 0 0 50px;">
 /usr/local/nagios/bin/nagios -ud /usr/local/nagios/etc/nagios.cfg
-</div>
-</p>
+</pre>
 
-<p><img src="images/important.gif" border="0" align="bottom"> If you modify your configuration files, you will need to re-verify and re-cache your configuration files before restarting Nagios.  If you don't re-generate the precached object file, Nagios will continue to use your old confguration because it is now reading from the precached file, rather than your source configuration files.
+<p><img src="images/important.gif" border="0" align="bottom" alt="Important" title="Important"> If you modify your configuration files, you will need to re-verify and re-cache your configuration files before restarting Nagios.  If you don't re-generate the precached object file, Nagios will continue to use your old confguration because it is now reading from the precached file, rather than your source configuration files.
 </p>
 
 </td>
@@ -220,15 +210,11 @@ What is the circular path check and why does it take so long?  The circular patc
 If you want to skip the circular path check when Nagios starts, you can add the -x command line option like this:
 </p>
 
-<p>
-<div style="padding: 0 0 0 50px;">
-<pre>
+<pre style="padding: 0 0 0 50px;">
 /usr/local/nagios/bin/nagios -xd /usr/local/nagios/etc/nagios.cfg
 </pre>
-</div>
-</p>
 
-<p><img src="images/important.gif" border="0" align="bottom"> It is of utmost importance that you verify your configuration before starting/restarting Nagios when skipping circular path checks.  Failure to do so could lead to deadlocks in the Nagios logic.  You have been warned.
+<p><img src="images/important.gif" border="0" align="bottom" alt="Important" title="Important"> It is of utmost importance that you verify your configuration before starting/restarting Nagios when skipping circular path checks.  Failure to do so could lead to deadlocks in the Nagios logic.  You have been warned.
 </p>
 
 <p>
@@ -242,13 +228,10 @@ Follow these steps if you want to make use of potential speedups from pre-cachin
 <p>
 1. Verify your configuration and create the precache file with the following command:
 </p>
-<p>
-<div style="padding: 0 0 0 50px;">
-<pre>
+
+<pre style="padding: 0 0 0 50px;">
 /usr/local/nagios/bin/nagios -vp /usr/local/nagios/etc/nagios.cfg
 </pre>
-</div>
-</p>
 
 <p>
 2. Stop Nagios if it is currently running.
@@ -257,13 +240,11 @@ Follow these steps if you want to make use of potential speedups from pre-cachin
 <p>
 3. Start Nagios like so to use the precached config file and skip circular path checks:
 </p>
-<p>
-<div style="padding: 0 0 0 50px;">
-<pre>
+
+<pre style="padding: 0 0 0 50px;">
 /usr/local/nagios/bin/nagios -uxd /usr/local/nagios/etc/nagios.cfg
 </pre>
-</div>
-</p>
+
 
 <p>
 4. When you modify your original configuration files in the future and need to restart Nagios to make those changes take place, repeat step 1 to re-verify your config and regenerate your cached config file.  Once that is done you can restart Nagios through the web interface or by sending a SIGHUP signal.  If you don't re-generate the precached object file, Nagios will continue to use your old confguration because it is now reading from the precached file, rather than your source configuration files.

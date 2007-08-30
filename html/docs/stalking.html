@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">State Stalking</h1>
 </div>
-</p>
 
 <hr>
 
@@ -49,7 +47,6 @@ Under normal circumstances, the result of a host or service check is only logged
 If you enable stalking for one or more states of a particular host or service, Nagios will log the results of the host or service check if the output from the check differs from the output from the previous check.  Take the following example of eight consecutive checks of a service:
 </p>
 
-<p>
 <table border="1" class="Default">
 <tr><th>Service Check #:</th><th>Service State:</th><th>Service Check Output:</th><th>Logged Normally</th><th>Logged With Stalking</th></tr>
 <tr><td>x</td><td>OK</td><td>RAID array optimal</td><td>-</td><td>-</td></tr>
@@ -61,7 +58,6 @@ If you enable stalking for one or more states of a particular host or service, N
 <tr><td>x+6</td><td>CRITICAL</td><td>RAID array failed</td><td>-</td><td>-</td></tr>
 <tr><td>x+7</td><td>CRITICAL</td><td>RAID array failed</td><td>-</td><td>-</td></tr>
 </table>
-</p>
 
 <p>
 Given this sequence of checks, you would normally only see two log entries for this catastrophe.  The first one would occur at service check x+2 when the service changed from an OK state to a WARNING state.  The second log entry would occur at service check x+3 when the service changed from a WARNING state to a CRITICAL state.

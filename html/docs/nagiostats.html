@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Using The Nagiostats Utility</h1>
 </div>
-</p>
 
 <hr>
 
@@ -53,8 +51,7 @@ You can run the <i>nagiostats</i> utility with the <b>--help</b> option to get u
 To obtain human-readable information on the performance of a running Nagios process, run the <i>nagiostats</i> utility with the <b>-c</b> command line argument to specify your main configuration file location like such:
 </p>
 
-<p>
-<dir>
+
 <pre>
 [nagios@lanman ~]# /usr/local/nagios/bin/nagiostats -c /usr/local/nagios/etc/nagios.cfg
 
@@ -122,8 +119,6 @@ External Commands Last 1/5/15 min:      0 / 0 / 0
 
 [nagios@lanman ~]# 
 </pre>
-</dir>
-</p>
 
 <p>
 As you can see, the utility displays a number of different metrics pertaining to the Nagios process.  Metrics which have multiple values are (unless otherwise specified) min, max and average values for that partciular metric.

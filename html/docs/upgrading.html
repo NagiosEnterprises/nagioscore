@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Upgrading Nagios</h1>
 </div>
-</p>
 
 <hr>
 
@@ -31,13 +29,13 @@
 
 <p>
 <strong><u>Contents</u></strong><br><br>
-<a href="#3x">Upgrading from previous Nagios 3.x releases</a><br>
-<a href="#2x">Upgrading from Nagios 2.x</a><br>
+<a href="#nagios3x">Upgrading from previous Nagios 3.x releases</a><br>
+<a href="#nagios2x">Upgrading from Nagios 2.x</a><br>
 <a href="#rpm">Upgrading from an RPM installation</a><br>
 </p>
 
 <p>
-<a name="3x"></a>
+<a name="nagios3x"></a>
 <strong><u>Upgrading From Previous Nagios 3.x Releases</u></strong>
 </p>
 
@@ -113,7 +111,7 @@ That's it - you're done!
 
 
 <p>
-<a name="2x"></a>
+<a name="nagios2x"></a>
 <strong><u>Upgrading From Nagios 2.x</u></strong>
 </p>
 
@@ -127,8 +125,8 @@ It shouldn't be too difficult to upgrade from Nagios 2.x to Nagios 3.  The upgra
 <li>The old <i>parallelize</i> directive in service definitions is now deprecated and no longer used, as all service checks are run in parallel.</li>
 <li>The old <i>aggregate_status_updates</i> option has been removed.  All status file updates are now aggregated at a minimum interval of 1 second.</li>
 <li>Extended host and extended service definitions have been deprecated.  They are still read and processed by Nagios, but it is recommended that you move the directives found in these definitions to your host and service definitions, respectively.</li>
-<li>The old <i>downtime_file</i> file variable in the main config file is no longer supported, as scheduled downtime entries are now saved in the <a href="configmain.html#retention_file">retention file</a>.  To preserve existing downtime entries, stop Nagios 2.x and append the contents of your old downtime file to the retention file.</li>
-<li>The old <i>comment_file</i> file variable in the main config file is no longer supported, as comments are now saved in the <a href="configmain.html#retention_file">retention file</a>.  To preserve existing comments, stop Nagios 2.x and append the contents of your old comment file to the retention file.</li>
+<li>The old <i>downtime_file</i> file variable in the main config file is no longer supported, as scheduled downtime entries are now saved in the <a href="configmain.html#state_retention_file">retention file</a>.  To preserve existing downtime entries, stop Nagios 2.x and append the contents of your old downtime file to the retention file.</li>
+<li>The old <i>comment_file</i> file variable in the main config file is no longer supported, as comments are now saved in the <a href="configmain.html#state_retention_file">retention file</a>.  To preserve existing comments, stop Nagios 2.x and append the contents of your old comment file to the retention file.</li>
 </ul>
 
 <p>

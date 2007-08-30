@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Using The Embedded Perl Interpreter</h1>
 </div>
-</p>
 
 <hr>
 
@@ -58,7 +56,7 @@ Stephen Davies contributed the original embedded Perl interpreter code several y
 It should be noted that "ePN", as used in this documentation, refers to embedded Perl Nagios, or if you prefer, Nagios compiled with an embedded Perl interpreter.
 </p>
 </td>
-<td valign="top"><img src="images/epn.png" border="0"></td>
+<td valign="top"><img src="images/epn.png" border="0" alt="Embedded Perl Interpreter" title="Embedded Perl Interpreter"></td>
 </tr>
 </table>
 
@@ -116,10 +114,10 @@ If you want to use the embedded Perl interpreter to run your Perl plugins and sc
 </p>
 
 <ol>
-<li>Compile Nagios with support for the embedded Perl interpreter (see instructions below).</li><br><br>
-<li>Enable the <a href="configmain.html#enable_embedded_perl">enable_embedded_perl</a> option in the main configuration file.</li><br><br>
-<li>Set the <a href="configmain.html#use_embedded_perl_implicitly">use_embedded_perl_implicitly</a> option to fit your needs.  This option determines whether or not the Perl interpreter should be used by default for individual Perl plugins and scripts.</li><br><br>
-<li>Optionally enable or disable certain Perl plugins and scripts from being run using the embedded Perl interpreter.  This can be useful if certain Perl scripts have problems being running under the Perl interpreter. See instructions below for more information on doing this.</li>
+<li>Compile Nagios with support for the embedded Perl interpreter (see instructions below).<br><br></li>
+<li>Enable the <a href="configmain.html#enable_embedded_perl">enable_embedded_perl</a> option in the main configuration file.<br><br></li>
+<li>Set the <a href="configmain.html#use_embedded_perl_implicitly">use_embedded_perl_implicitly</a> option to fit your needs.  This option determines whether or not the Perl interpreter should be used by default for individual Perl plugins and scripts.<br><br></li>
+<li>Optionally enable or disable certain Perl plugins and scripts from being run using the embedded Perl interpreter.  This can be useful if certain Perl scripts have problems being running under the Perl interpreter. See instructions below for more information on doing this.<br><br></li>
 </ol>
 
 
@@ -156,21 +154,20 @@ To <i>explicitly</i> tell Nagios whether or not to use the embedded Perl interpr
 
 <p>
 To tell Nagios to use the Perl interpreter for a particular script, add this line to the Perl script:
-<dir>
+</p>
+
 <pre>
 # nagios: +epn
 </pre>
-</dir>
-</p>
 
 <p>
 To tell Nagios to NOT use the embedded Perl interpreter for a particular script, add this line to the Perl script:
-<dir>
+</p>
+
 <pre>
 # nagios: -epn
 </pre>
-</dir>
-</p>
+
 
 <p>
 Either line must be located within the first 10 lines of a script for Nagios to detect it.

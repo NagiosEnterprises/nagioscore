@@ -23,12 +23,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Understanding Macros and How They Work</h1>
 </div>
-</p>
 
 <hr>
 
@@ -110,7 +108,7 @@ define service{
 </pre>
 
 <p>
-In the example above, the service check command has two arguments (which can be referenced with <a href="#arg">$ARGn$</a> macros).  The $ARG1$ macro will be "<font color="red">200.0,80%</font>" and $ARG2$ will be "<font color="red">400.0,40%</font>" (both without quotes).  Assuming we are using the host definition given earlier and a <i>check_ping</i> command defined like this:
+In the example above, the service check command has two arguments (which can be referenced with <a href="macrolist.html#arg">$ARGn$</a> macros).  The $ARG1$ macro will be "<font color="red">200.0,80%</font>" and $ARG2$ will be "<font color="red">400.0,40%</font>" (both without quotes).  Assuming we are using the host definition given earlier and a <i>check_ping</i> command defined like this:
 </p>
 
 <pre>
@@ -129,7 +127,7 @@ the expanded/final command line to be executed for the service's check command w
 </pre>
 
 <p>
-<img src="images/tip.gif" border="0" align="absmiddle">Tip: If you need to pass bang (!) characters in your command arguments, you can do so by escaping them with a backslash (\).  If you need to include backslashes in your command arguments, they should also be escaped with a backslash.
+<img src="images/tip.gif" border="0" align="middle" alt="Tip" title="Tip">Tip: If you need to pass bang (!) characters in your command arguments, you can do so by escaping them with a backslash (\).  If you need to include backslashes in your command arguments, they should also be escaped with a backslash.
 </p>
 
 <p>
@@ -158,7 +156,7 @@ Note that the macro name is seperated from the host or service identifier by a c
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="absmiddle"> Tip: On-demand service macros can contain an empty host name field.  In this case the name of the host associated with the service will automatically be used.
+<img src="images/tip.gif" border="0" align="middle" alt="Tip" title="Tip"> Tip: On-demand service macros can contain an empty host name field.  In this case the name of the host associated with the service will automatically be used.
 </p>
 
 <p>

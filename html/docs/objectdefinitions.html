@@ -23,12 +23,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Object Definitions</h1>
 </div>
-</p>
 
 <hr>
 
@@ -101,18 +99,17 @@ One way to get around this problem is to disable the retention of non-status inf
 <td class="SectionHeader">Host Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 A host definition is used to define a physical server, workstation, device, etc. that resides on your network.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define host{</td></tr>
 
@@ -163,9 +160,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define host{
 	host_name			bogus-router
@@ -186,8 +182,8 @@ define host{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
@@ -457,7 +453,6 @@ This variable is used to define coordinates to use when drawing the host in the 
 </td>
 </tr>
 </table>
-</p>
 
 
 <p>
@@ -467,18 +462,17 @@ This variable is used to define coordinates to use when drawing the host in the 
 <td class="SectionHeader">Host Group Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 A host group definition is used to group one or more hosts together for simplifying configuration with <a href="objecttricks.html">object tricks</a> or display purposes in the <a href="cgis.html">CGIs</a>.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define hostgroup{</td></tr>
 
@@ -492,9 +486,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define hostgroup{
 	hostgroup_name		novell-servers
@@ -503,8 +496,8 @@ define hostgroup{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>hostgroup_name</strong>:</td>
@@ -549,7 +542,6 @@ This directive is used to define an optional URL that can be used to provide mor
 </td>
 </tr>
 </table>
-</p>
 
 
 <p>
@@ -559,18 +551,17 @@ This directive is used to define an optional URL that can be used to provide mor
 <td class="SectionHeader">Service Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 A service definition is used to identify a "service" that runs on a host.  The term "service" is used very loosely.  It can mean an actual service that runs on the host (POP, SMTP, HTTP, etc.) or some other type of metric associated with the host (response to a ping, number of logged in users, free disk space, etc.).  The different arguments to a service definition are outlined below.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define service{</td></tr>
 
@@ -617,9 +608,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define service{
 	host_name		linux-server
@@ -636,8 +626,8 @@ define service{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
@@ -877,7 +867,6 @@ This variable is used to define an optional string that is used in the ALT tag o
 </td>
 </tr>
 </table>
-</p>
 
 
 
@@ -889,18 +878,17 @@ This variable is used to define an optional string that is used in the ALT tag o
 <td class="SectionHeader">Service Group Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 A service group definition is used to group one or more services together for simplifying configuration with <a href="objecttricks.html">object tricks</a> or display purposes in the <a href="cgis.html">CGIs</a>.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define servicegroup{</td></tr>
 
@@ -914,9 +902,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define servicegroup{
 	servicegroup_name	dbservices
@@ -925,8 +912,8 @@ define servicegroup{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>servicegroup_name</strong>:</td>
@@ -976,7 +963,6 @@ This directive is used to define an optional URL that can be used to provide mor
 </td>
 </tr>
 </table>
-</p>
 
 
 
@@ -988,19 +974,18 @@ This directive is used to define an optional URL that can be used to provide mor
 <td class="SectionHeader">Contact Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 A contact definition is used to identify someone who should be contacted in the event of a problem on your network.
 The different arguments to a contact definition are described below.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define contact{</td></tr>
 
@@ -1024,9 +1009,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define contact{
 	contact_name                    jdoe
@@ -1047,8 +1031,8 @@ define contact{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>contact_name</strong>:</td>
@@ -1158,7 +1142,6 @@ This directive is used to determine whether or not non-status information about 
 </td>
 </tr>
 </table>
-</p>
 
 
 <p>
@@ -1168,18 +1151,17 @@ This directive is used to determine whether or not non-status information about 
 <td class="SectionHeader">Contact Group Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 A contact group definition is used to group one or more <a href="#contact">contacts</a> together for the purpose of sending out alert/recovery <a href="notifications.html">notifications</a>.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define contactgroup{</td></tr>
 
@@ -1190,9 +1172,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define contactgroup{
 	contactgroup_name		novell-admins
@@ -1201,8 +1182,8 @@ define contactgroup{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>contactgroup_name</strong>:</td>
@@ -1229,7 +1210,6 @@ This optional directive can be used to include contacts from other "sub" contact
 </td>
 </tr>
 </table>
-</p>
 
 
 
@@ -1240,19 +1220,18 @@ This optional directive can be used to include contacts from other "sub" contact
 <td class="SectionHeader">Time Period Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 A time period is a list of times during various days that are considered to be "valid" times for notifications and service checks. It consists of time ranges for each day of the week that "rotate" once the week has come to an end.  Different types of exceptions to the normal weekly time are supported, including: specific weekdays, days of generic months, days of specific months, and calendar dates.
 </p>
 
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define timeperiod{</td></tr>
 
@@ -1264,9 +1243,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definitions:</div></p>
+<p class="SectionTitle">Example Definitions:</p>
 <pre>
 define timeperiod{
 	timeperiod_name		nonworkhours
@@ -1316,8 +1294,8 @@ define timeperiod{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>timeperiod_name</strong>:</td>
@@ -1352,7 +1330,6 @@ This directive is used to specify the short names of other timeperiod definition
 </td>
 </tr>
 </table>
-</p>
 
 
 
@@ -1363,18 +1340,17 @@ This directive is used to specify the short names of other timeperiod definition
 <td class="SectionHeader">Command Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 A command definition is just that.  It defines a command.  Commands that can be defined include service checks, service notifications, service event handlers, host checks, host notifications, and host event handlers.  Command definitions can contain <a href="macros.html">macros</a>, but you must make sure that you include only those macros that are "valid" for the circumstances when the command will be used.  More information on what macros are available and when they are "valid" can be found <a href="macros.html">here</a>. The different arguments to a command definition are outlined below.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define command{</td></tr>
 
@@ -1383,9 +1359,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define command{
 	command_name	check_pop
@@ -1393,8 +1368,8 @@ define command{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>command_name</strong>:</td>
@@ -1408,7 +1383,7 @@ This directive is the short name used to identify the command.  It is referenced
 <p>
 This directive is used to define what is actually executed by Nagios when the command is used for service or host checks, notifications, or <a href="eventhandlers.html">event handlers</a>. Before the command line is executed, all valid <a href="macros.html">macros</a> are replaced with their respective values.  See the documentation on macros for determining when you can use different macros.  Note that the command line is <i>not</i> surrounded in quotes.  Also, if you want to pass a dollar sign ($) on the command line, you have to escape it with another dollar sign.
 </p>
-<p><strong>NOTE</strong>: You may not include a <b>semicolon</b> (;) in the <i>command_line</i> directive, because everything after it will be ignored as a config file comment.  You can work around this limitation by setting one of the <a href="macros.html#user"><b>$USER$</b> macros in your <a
+<p><strong>NOTE</strong>: You may not include a <b>semicolon</b> (;) in the <i>command_line</i> directive, because everything after it will be ignored as a config file comment.  You can work around this limitation by setting one of the <a href="macros.html#user"><b>$USER$</b></a> macros in your <a
 href="configmain.html#resource_file">resource file</a> to a semicolon and then referencing the appropriate $USER$ macro in the <i>command_line</i> directive in place of the semicolon.
 </p>
 <p>
@@ -1417,7 +1392,6 @@ If you want to pass arguments to commands during runtime, you can use <a href="m
 </td>
 </tr>
 </table>
-</p>
 
 
 
@@ -1428,18 +1402,17 @@ If you want to pass arguments to commands during runtime, you can use <a href="m
 <td class="SectionHeader">Service Dependency Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 Service dependencies are an advanced feature of Nagios that allow you to suppress notifications and active checks of services based on the status of one or more other services.  Service dependencies are optional and are mainly targeted at advanced users who have complicated monitoring setups.  More information on how service dependencies work (read this!) can be found <a href="dependencies.html">here</a>.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.  However, you must supply at least one type of criteria for the definition to be of much use.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define servicedependency{</td></tr>
 
@@ -1456,9 +1429,8 @@ Note:  Directives in red are required, while those in black are optional.  Howev
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define servicedependency{
 	host_name			WWW1
@@ -1470,8 +1442,8 @@ define servicedependency{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>dependent_host</strong>:</td>
@@ -1534,7 +1506,6 @@ This directive is used to specify the short name of the <a href="#timeperiod">ti
 </td>
 </tr>
 </table>
-</p>
 
 
 
@@ -1545,18 +1516,17 @@ This directive is used to specify the short name of the <a href="#timeperiod">ti
 <td class="SectionHeader">Service Escalation Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 Service escalations are <i>completely optional</i> and are used to escalate notifications for a particular service.  More information on how notification escalations work can be found <a href="escalations.html">here</a>.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define serviceescalation{</td></tr>
 
@@ -1573,9 +1543,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define serviceescalation{
 	host_name		nt-3
@@ -1587,8 +1556,8 @@ define serviceescalation{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
@@ -1651,7 +1620,6 @@ This directive is used to define the criteria that determine when this service e
 </td>
 </tr>
 </table>
-</p>
 
 
 <p>
@@ -1661,18 +1629,17 @@ This directive is used to define the criteria that determine when this service e
 <td class="SectionHeader">Host Dependency Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 Host dependencies are an advanced feature of Nagios that allow you to suppress notifications for hosts based on the status of one or more other hosts.  Host dependencies are optional and are mainly targeted at advanced users who have complicated monitoring setups.  More information on how host dependencies work (read this!) can be found <a href="dependencies.html">here</a>.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define hostdependency{</td></tr>
 
@@ -1687,9 +1654,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define hostdependency{
 	host_name			WWW1
@@ -1698,8 +1664,8 @@ define hostdependency{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>dependent_host_name</strong>:</td>
@@ -1750,7 +1716,6 @@ This directive is used to specify the short name of the <a href="#timeperiod">ti
 </td>
 </tr>
 </table>
-</p>
 
 
 
@@ -1761,18 +1726,17 @@ This directive is used to specify the short name of the <a href="#timeperiod">ti
 <td class="SectionHeader">Host Escalation Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 Host escalations are <i>completely optional</i> and are used to escalate notifications for a particular host.  More information on how notification escalations work can be found <a href="escalations.html">here</a>.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Directives in red are required, while those in black are optional.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define hostescalation{</td></tr>
 
@@ -1788,9 +1752,8 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define hostescalation{
 	host_name		router-34
@@ -1801,8 +1764,8 @@ define hostescalation{
 	}
 </pre>
 
-<p><div class="SectionTitle">Directive Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Directive Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
@@ -1859,7 +1822,6 @@ This directive is used to define the criteria that determine when this host esca
 </td>
 </tr>
 </table>
-</p>
 
 
 <p>
@@ -1869,9 +1831,8 @@ This directive is used to define the criteria that determine when this host esca
 <td class="SectionHeader">Extended Host Information Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 Extended host information entries are basically used to make the output from the <a href="cgis.html#status_cgi">status</a>, <a href="cgis.html#statusmap_cgi">statusmap</a>, <a href="cgis.html#statuswrl_cgi">statuswrl</a>, and <a href="cgis.html#extinfo_cgi">extinfo</a> CGIs look pretty.  They have no effect on monitoring and are completely optional.
 </p>
@@ -1880,12 +1841,12 @@ Extended host information entries are basically used to make the output from the
 <img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: As of Nagios 3.x, all directives contained in extended host information definitions are also available in <a href="#host">host definitions</a>.  Thus, you can choose to define the directives below in your host definitions if it makes your configuration simpler.  Separate extended host information definitions will continue to be supported for backward compatability.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Variables in red are required, while those in black are optional.  However, you need to supply at least one optional variable in each definition for it to be of much use.
 </p>
 
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define hostextinfo{</td></tr>
 
@@ -1902,9 +1863,8 @@ Note:  Variables in red are required, while those in black are optional.  Howeve
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define hostextinfo{
 	host_name	netware1
@@ -1919,8 +1879,8 @@ define hostextinfo{
 	}
 </pre>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Variable Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
@@ -1983,7 +1943,6 @@ This variable is used to define coordinates to use when drawing the host in the 
 </td>
 </tr>
 </table>
-</p>
 
 
 
@@ -1994,9 +1953,8 @@ This variable is used to define coordinates to use when drawing the host in the 
 <td class="SectionHeader">Extended Service Information Definition</td>
 </tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Description:</div></p>
+<p class="SectionTitle">Description:</p>
 <p>
 Extended service information entries are basically used to make the output from the <a href="cgis.html#status_cgi">status</a> and <a href="cgis.html#extinfo_cgi">extinfo</a> CGIs look pretty.  They have no effect on monitoring and are completely optional.
 </p>
@@ -2005,11 +1963,11 @@ Extended service information entries are basically used to make the output from 
 <img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: As of Nagios 3.x, all directives contained in extended service information definitions are also available in <a href="#service">service definitions</a>.  Thus, you can choose to define the directives below in your service definitions if it makes your configuration simpler.  Separate extended service information definitions will continue to be supported for backward compatability.
 </p>
 
-<p><div class="SectionTitle">Definition Format:</div></p>
+<p class="SectionTitle">Definition Format:</p>
 <p>
 Note:  Variables in red are required, while those in black are optional.  However, you need to supply at least one optional variable in each definition for it to be of much use.
 </p>
-<p>
+
 <table border="0" class="Default">
 <tr><td colspan=3 class="Definition">define serviceextinfo{</td></tr>
 
@@ -2023,9 +1981,8 @@ Note:  Variables in red are required, while those in black are optional.  Howeve
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
-</p>
 
-<p><div class="SectionTitle">Example Definition:</div></p>
+<p class="SectionTitle">Example Definition:</p>
 <pre>
 define serviceextinfo{
 	host_name		linux2
@@ -2037,8 +1994,8 @@ define serviceextinfo{
 	}
 </pre>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
-<p>
+<p class="SectionTitle">Variable Descriptions:</p>
+
 <table border="0" class="Default">
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
@@ -2083,7 +2040,6 @@ This variable is used to define an optional string that is used in the ALT tag o
 </td>
 </tr>
 </table>
-</p>
 
 
 <hr>

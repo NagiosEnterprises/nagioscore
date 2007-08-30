@@ -15,12 +15,10 @@
 
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
-<p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h1 class="PageTitle">Large Installation Tweaks</h1>
 </div>
-</p>
 
 <hr>
 
@@ -47,11 +45,11 @@ When you enable the <a href="configmain.html#use_large_installation_tweaks">use_
 
 <ol>
 
-<li><b>No Summary Macros</b> -  The <a href="macrolist.html#summary_macros">summary macros</a> will not be available to you.  Calculating the values of these macros can be quite time-intensive in large configurations, so they are not available when use this option.</li><br><br>
+<li><b>No Summary Macros</b> -  The <a href="macrolist.html#summary_macros">summary macros</a> will not be available to you.  Calculating the values of these macros can be quite time-intensive in large configurations, so they are not available when use this option.<br><br></li>
 
-<li><b>Different Memory Cleanup</b> - Normally Nagios will free all allocated memory in child processes before they exit.  This is probably best practice, but is likely unnecessary in most installations, as most OSes will take care of freeing allocated memory when processes exit.  The OS tends to free allocated memory faster than can be done within Nagios itself, so Nagios won't attempt to free memory in child processes if you enable this option.</li><br><br>
+<li><b>Different Memory Cleanup</b> - Normally Nagios will free all allocated memory in child processes before they exit.  This is probably best practice, but is likely unnecessary in most installations, as most OSes will take care of freeing allocated memory when processes exit.  The OS tends to free allocated memory faster than can be done within Nagios itself, so Nagios won't attempt to free memory in child processes if you enable this option.<br><br></li>
 
-<li><b>Checks fork() Less</b> - Normally Nagios will fork() twice when it executes host and service checks.  This is done to (1) ensure a high level of resistance against plugins that go awry and segfault and (2) make the OS deal with cleaning up the grandchild process once it exits.  The extra fork() is not really necessary, so it is skipped when you enable this option.  As a result, Nagios will itself clean up child processes that exit (instead of leaving that job to the OS).  This feature should result in significant load savings on your Nagios installation.</li>
+<li><b>Checks fork() Less</b> - Normally Nagios will fork() twice when it executes host and service checks.  This is done to (1) ensure a high level of resistance against plugins that go awry and segfault and (2) make the OS deal with cleaning up the grandchild process once it exits.  The extra fork() is not really necessary, so it is skipped when you enable this option.  As a result, Nagios will itself clean up child processes that exit (instead of leaving that job to the OS).  This feature should result in significant load savings on your Nagios installation.<br><br></li>
 
 </ol>
 

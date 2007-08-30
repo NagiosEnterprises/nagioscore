@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-28-2007
+ * Last Modified:   08-29-2007
  *
  * License:
  *
@@ -822,6 +822,8 @@ int create_notification_list_from_service(service *svc, int *escalated){
 		/* set the escalation flag */
 		*escalated=TRUE;
 
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from service escalation(s) to notification list.\n");
+
 		/* search all the escalation entries for valid matches */
 		for(temp_se=serviceescalation_list;temp_se!=NULL;temp_se=temp_se->next){
 
@@ -829,7 +831,7 @@ int create_notification_list_from_service(service *svc, int *escalated){
 			if(is_valid_escalation_for_service_notification(svc,temp_se)==FALSE)
 				continue;
 
-			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from service escalation to notification list.\n");
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding individual contacts from service escalation(s) to notification list.\n");
 
 			/* add all individual contacts for this escalation entry */
 			for(temp_contactsmember=temp_se->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -838,8 +840,11 @@ int create_notification_list_from_service(service *svc, int *escalated){
 				add_notification(temp_contact);
 				}
 
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding members of contact groups from service escalation(s) to notification list.\n");
+
 			/* add all contacts that belong to contactgroups for this escalation */
 			for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+				log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding members of contact group '%s' for service escalation to notification list.\n",temp_contactgroupsmember->group_name);
 				if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
 					continue;
 				for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -857,6 +862,8 @@ int create_notification_list_from_service(service *svc, int *escalated){
 		/* set the escalation flag */
 		*escalated=FALSE;
 
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding normal contacts for host to notification list.\n");
+
 		/* add all individual contacts for this service */
 		for(temp_contactsmember=svc->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 			if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
@@ -866,6 +873,7 @@ int create_notification_list_from_service(service *svc, int *escalated){
 
 		/* add all contacts that belong to contactgroups for this service */
 		for(temp_contactgroupsmember=svc->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding members of contact group '%s' for service to notification list.\n",temp_contactgroupsmember->group_name);
 			if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
 				continue;
 			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -1614,6 +1622,8 @@ int create_notification_list_from_host(host *hst, int *escalated){
 		/* set the escalation flag */
 		*escalated=TRUE;
 
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from host escalation(s) to notification list.\n");
+
 		/* check all the host escalation entries */
 		for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
 
@@ -1621,7 +1631,7 @@ int create_notification_list_from_host(host *hst, int *escalated){
 			if(is_valid_host_escalation_for_host_notification(hst,temp_he)==FALSE)
 				continue;
 
-			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from host escalation to notification list.\n");
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding individual contacts from host escalation(s) to notification list.\n");
 
 			/* add all individual contacts for this escalation */
 			for(temp_contactsmember=temp_he->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -1630,8 +1640,11 @@ int create_notification_list_from_host(host *hst, int *escalated){
 				add_notification(temp_contact);
 			        }
 
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding members of contact groups from host escalation(s) to notification list.\n");
+
 			/* add all contacts that belong to contactgroups for this escalation */
 			for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+				log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding members of contact group '%s' for host escalation to notification list.\n",temp_contactgroupsmember->group_name);
 				if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
 					continue;
 				for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -1649,6 +1662,10 @@ int create_notification_list_from_host(host *hst, int *escalated){
 		/* set the escalation flag */
 		*escalated=FALSE;
 
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding normal contacts for host to notification list.\n");
+
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding individual contacts for host to notification list.\n");
+
 		/* add all individual contacts for this host */
 		for(temp_contactsmember=hst->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 			if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
@@ -1656,8 +1673,12 @@ int create_notification_list_from_host(host *hst, int *escalated){
 			add_notification(temp_contact);
 			}
 
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding members of contact groups for host to notification list.\n");
+
 		/* add all contacts that belong to contactgroups for this host */
 		for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding members of contact group '%s' for host to notification list.\n",temp_contactgroupsmember->group_name);
+
 			if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
 				continue;
 			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){

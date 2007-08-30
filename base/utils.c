@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-28-2007
+ * Last Modified:   08-29-2007
  *
  * License:
  *
@@ -2904,7 +2904,7 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char **full_command, int m
 			}
 		}
 
-	log_debug_info(DEBUGL_COMMANDS|DEBUGL_CHECKS|DEBUGL_MACROS,2,"Output: %s\n",full_command);
+	log_debug_info(DEBUGL_COMMANDS|DEBUGL_CHECKS|DEBUGL_MACROS,2,"Output: %s\n",*full_command);
 
 	return OK;
         }

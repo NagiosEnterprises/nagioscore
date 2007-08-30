@@ -1617,7 +1617,7 @@ void display_info_table(char *title,int refresh, authdata *current_authdata){
 	if(refresh==TRUE)
 		printf("Updated every %d seconds<br>\n",refresh_rate);
 
-	printf("Nagios&reg; - <A HREF='http://www.nagios.org' TARGET='_new' CLASS='homepageURL'>www.nagios.org</A><BR>\n");
+	printf("Nagios&reg; %s - <A HREF='http://www.nagios.org' TARGET='_new' CLASS='homepageURL'>www.nagios.org</A><BR>\n",PROGRAM_VERSION);
 
 	if(current_authdata!=NULL)
 		printf("Logged in as <i>%s</i><BR>\n",(!strcmp(current_authdata->username,""))?"?":current_authdata->username);

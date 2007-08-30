@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2007
+ * Last Modified: 08-29-2007
  *
  * License:
  *
@@ -1814,6 +1814,22 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contactsmember->contact_ptr=temp_contact;
 			}
 
+		/* check all contact groupss */
+		for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+
+			if(temp_contactgroup==NULL){
+				asprintf(&temp_buffer,"Error: Contact group '%s' specified in service '%s' for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_service->description,temp_service->host_name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the contact group pointer for later */
+			temp_contactgroupsmember->group_ptr=temp_contactgroup;
+			}
+
 		/* check to see if there is at least one contact/group */
 		if(temp_service->contacts==NULL && temp_service->contact_groups==NULL){
 			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s' has no default contacts or contactgroups defined!",temp_service->description,temp_service->host_name);
@@ -1994,6 +2010,22 @@ int pre_flight_object_check(int *w, int *e){
 
 			/* save the contact pointer for later */
 			temp_contactsmember->contact_ptr=temp_contact;
+			}
+
+		/* check all contact groups */
+		for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+
+			if(temp_contactgroup==NULL){
+				asprintf(&temp_buffer,"Error: Contact group '%s' specified in host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_host->name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the contact group pointer for later */
+			temp_contactgroupsmember->group_ptr=temp_contactgroup;
 			}
 
 		/* check to see if there is at least one contact/group */
@@ -2366,6 +2398,22 @@ int pre_flight_object_check(int *w, int *e){
 			/* save the contact pointer for later */
 			temp_contactsmember->contact_ptr=temp_contact;
 		        }
+
+		/* check all contact groups */
+		for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+
+			if(temp_contactgroup==NULL){
+				asprintf(&temp_buffer,"Error: Contact group '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_se->description,temp_se->host_name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the contact group pointer for later */
+			temp_contactgroupsmember->group_ptr=temp_contactgroup;
+			}
 	        }
 
 	if(verify_config==TRUE)
@@ -2482,6 +2530,22 @@ int pre_flight_object_check(int *w, int *e){
 			/* save the contact pointer for later */
 			temp_contactsmember->contact_ptr=temp_contact;
 		        }
+
+		/* check all contact groups */
+		for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+
+			if(temp_contactgroup==NULL){
+				asprintf(&temp_buffer,"Error: Contact group '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_he->host_name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the contact group pointer for later */
+			temp_contactgroupsmember->group_ptr=temp_contactgroup;
+			}
 	        }
 
 	if(verify_config==TRUE)

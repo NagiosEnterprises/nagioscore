@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="dependencychecks.html">Predictive Dependency Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="hostchecks.html">Host Checks</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="dependencychecks.html">Predictive Dependency Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="hostchecks.html">Host Checks</a>
 </p>
 
 <p>
@@ -44,7 +44,6 @@ Service and host dependencies are an advanced feature of Nagios that allow you t
 <p>
 There are a few things you should know about service dependencies:
 </p>
-<p>
 <ol>
 <li>A service can be dependent on one or more other services
 <li>A service can be dependent on services which are not associated with the same host
@@ -52,7 +51,6 @@ There are a few things you should know about service dependencies:
 <li>Service dependencies can be used to cause service check execution and service notifications to be suppressed under different circumstances (OK, WARNING, UNKNOWN, and/or CRITICAL states)
 <li>Service dependencies might only be valid during specific <a href="timeperiods.html">timeperiods</a></li>
 </ol>
-</p>
 
 
 <p>
@@ -82,7 +80,6 @@ The image below shows an example logical layout of service notification and exec
 In this example, the dependency definitions for <i>Service F</i> on <i>Host C</i> would be defined as follows:
 </p>
 
-<p>
 <pre>
 define servicedependency{
 	host_name			Host B
@@ -111,14 +108,12 @@ define servicedependency{
 	notification_failure_criteria	c
 	}
 </pre>
-</p>
 
 
 <p>
 The other dependency definitions shown in the image above would be defined as follows:
 </p>
 
-<p>
 <pre>
 define servicedependency{
 	host_name			Host A
@@ -147,7 +142,6 @@ define servicedependency{
 	notification_failure_criteria	w,u,c
 	}
 </pre>
-</p>
 
 
 <p>
@@ -158,13 +152,11 @@ define servicedependency{
 Before Nagios executes a service check or sends notifications out for a service, it will check to see if the service has any dependencies.  If it doesn't have any dependencies, the check is executed or the notification is sent out as it normally would be.  If the service <i>does</i> have one or more dependencies, Nagios will check each dependency entry as follows:
 </p>
 
-<p>
 <ol>
 <li>Nagios gets the current status<sup><a href="#hard_dependencies">*</a></sup> of the service that is being <i>depended upon</i>.
 <li>Nagios compares the current status of the service that is being <i>depended upon</i> against either the execution or notification failure options in the dependency definition (whichever one is relevant at the time).
 <li>If the current status of the service that is being <i>depended upon</i> matches one of the failure options, the dependency is said to have failed and Nagios will break out of the dependency check loop.
 <li>If the current state of the service that is being <i>depended upon</i> does not match any of the failure options for the dependency entry, the dependency is said to have passed and Nagios will go on and check the next dependency entry.  </ol>
-</p>
 
 <p>
 This cycle continues until either all dependencies for the service have been checked or until one dependency check fails.
@@ -172,7 +164,7 @@ This cycle continues until either all dependencies for the service have been che
 
 <p>
 <a name="hard_dependencies"></a>
-<img src="images/note.gif" border="0" align="bottom"> Note: <sup>*</sup>One important thing to note is that by default, Nagios will use the most current <a href="statetypes.html">hard state</a> of the service(s) that is/are being depended upon when it does the dependeny checks.  If you want Nagios to use the most current state of the services (regardless of whether its a soft or hard state), enable the <a href="configmain.html#soft_service_dependencies">soft_service_dependencies</a> option.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: <sup>*</sup>One important thing to note is that by default, Nagios will use the most current <a href="statetypes.html">hard state</a> of the service(s) that is/are being depended upon when it does the dependeny checks.  If you want Nagios to use the most current state of the services (regardless of whether its a soft or hard state), enable the <a href="configmain.html#soft_service_dependencies">soft_service_dependencies</a> option.
 </p>
 
 <p>
@@ -219,7 +211,6 @@ If you <i>do</i> wish to make service dependencies inheritable, you must use the
 In the example above, imagine that you want to add a new dependency for service F to make it dependent on service A.  You could create a new dependency definition that specified service F as the <i>dependent</i> service and service A as being the <i>master</i> service (i.e. the service <i>that is being dependend on</i>).  You could alternatively modify the dependency definition for services D and F to look like this:
 </p>
 
-<p>
 <pre>
 define servicedependency{
 	host_name			Host B
@@ -232,7 +223,6 @@ define servicedependency{
 	}
 
 </pre>
-</p>
 
 <p>
 Since the <i>inherits_parent</i> directive is enabled, the dependency between services A and D will be tested when the dependency between services F and D are being tested.
@@ -251,20 +241,18 @@ As you'd probably expect, host dependencies work in a similiar fashion to servic
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip:  Do not confuse host dependencies with parent/child host relationships.  You should be using parent/child host relationships (defined with the <i>parents</i> directive in <a href="objectdefinitions.html#host">host</a> definitions) for most cases, rather than host dependencies.  A description of how parent/child host relationships work can be found in the documentation on <a href="networkreachability.html">network reachability</a>.
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip:  Do not confuse host dependencies with parent/child host relationships.  You should be using parent/child host relationships (defined with the <i>parents</i> directive in <a href="objectdefinitions.html#host">host</a> definitions) for most cases, rather than host dependencies.  A description of how parent/child host relationships work can be found in the documentation on <a href="networkreachability.html">network reachability</a>.
 </p>
 
 <p>
 Here are the basics about host dependencies:
 </p>
-<p>
 <ol>
 <li>A host can be dependent on one or more other host
 <li>Host dependencies are not inherited (unless specifically configured to)
 <li>Host dependencies can be used to cause host check execution and host notifications to be suppressed under different circumstances (UP, DOWN, and/or UNREACHABLE states)
 <li>Host dependencies might only be valid during specific <a href="timeperiods.html">timeperiods</a></li>
 </ol>
-</p>
 
 <p>
 <strong><u>Example Host Dependencies</u></strong>
@@ -280,7 +268,6 @@ The image below shows an example of the logical layout of host notification depe
 In the example above, the dependency definitions for <i>Host C</i> would be defined as follows:
 </p>
 
-<p>
 <pre>
 define hostdependency{
 	host_name			Host A
@@ -294,7 +281,6 @@ define hostdependency{
 	notification_failure_criteria	d,u
 	}
 </pre>
-</p>
 
 <p>
 As with service dependencies, host dependencies are not inherited.  In the example image you can see that Host C does not inherit the host dependencies of Host B.  In order for Host C to be dependent on Host A, a new host dependency definition must be defined.

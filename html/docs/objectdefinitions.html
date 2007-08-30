@@ -33,8 +33,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="configobject.html">Object Configuration Overview</a>, <a href="objecttricks.html">Object Tricks</a>, <a href="objectinheritance.html">Object Inheritance</a>, <a href="customobjectvars.html">Custom Object Variables</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="configobject.html">Object Configuration Overview</a>, <a href="objecttricks.html">Object Tricks</a>, <a href="objectinheritance.html">Object Inheritance</a>, <a href="customobjectvars.html">Custom Object Variables</a>
 </p>
 
 <p>
@@ -46,9 +46,8 @@ One of the features of Nagios' object configuration format is that you can creat
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom">When creating and/or editing configuration files, keep the following in mind:
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note">When creating and/or editing configuration files, keep the following in mind:
 </p>
-<p>
 <ol>
 <li>Lines that start with a '#' character are taken to be comments and are not processed
 <li>Directive names are case-sensitive
@@ -72,7 +71,7 @@ One way to get around this problem is to disable the retention of non-status inf
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: Sample object configuration files are installed in the <i>/usr/local/nagios/etc/</i> directory when you follow the <a href="quickstart.html">quickstart installation guide</a>.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: Sample object configuration files are installed in the <i>/usr/local/nagios/etc/</i> directory when you follow the <a href="quickstart.html">quickstart installation guide</a>.
 </p>
 
 <p>
@@ -167,7 +166,6 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define host{
 	host_name			bogus-router
@@ -187,7 +185,6 @@ define host{
 	notification_options		d,u,r
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -498,7 +495,6 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define hostgroup{
 	hostgroup_name		novell-servers
@@ -506,7 +502,6 @@ define hostgroup{
 	members			netware1,netware2,netware3,netware4
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -625,7 +620,6 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define service{
 	host_name		linux-server
@@ -641,7 +635,6 @@ define service{
 	contact_groups		linux-admins
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -924,7 +917,6 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define servicegroup{
 	servicegroup_name	dbservices
@@ -932,7 +924,6 @@ define servicegroup{
 	members			ms1,SQL Server,ms1,SQL Server Agent,ms1,SQL DTC
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -1036,7 +1027,6 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define contact{
 	contact_name                    jdoe
@@ -1056,7 +1046,6 @@ define contact{
 	can_submit_commands	1
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -1204,7 +1193,6 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define contactgroup{
 	contactgroup_name		novell-admins
@@ -1212,7 +1200,6 @@ define contactgroup{
 	members			jdoe,rtobert,tzach
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -1280,7 +1267,6 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definitions:</div></p>
-<p>
 <pre>
 define timeperiod{
 	timeperiod_name		nonworkhours
@@ -1329,7 +1315,6 @@ define timeperiod{
 	tuesday 1 april - friday 2 may / 6	00:00-24:00	; Every 6 days from the 1st Tuesday in April to the 2nd Friday in May of every year
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -1401,14 +1386,12 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define command{
 	command_name	check_pop
 	command_line	/usr/local/nagios/libexec/check_pop -H $HOSTADDRESS$	
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -1476,7 +1459,6 @@ Note:  Directives in red are required, while those in black are optional.  Howev
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define servicedependency{
 	host_name			WWW1
@@ -1487,7 +1469,6 @@ define servicedependency{
 	notification_failure_criteria	w,u,c
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -1595,7 +1576,6 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define serviceescalation{
 	host_name		nt-3
@@ -1606,7 +1586,6 @@ define serviceescalation{
 	contact_groups		all-nt-admins,themanagers
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -1711,7 +1690,6 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define hostdependency{
 	host_name			WWW1
@@ -1719,7 +1697,6 @@ define hostdependency{
 	notification_failure_criteria	d,u
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -1814,7 +1791,6 @@ Note:  Directives in red are required, while those in black are optional.
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define hostescalation{
 	host_name		router-34
@@ -1824,7 +1800,6 @@ define hostescalation{
 	contact_groups		all-router-admins
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
@@ -1902,7 +1877,7 @@ Extended host information entries are basically used to make the output from the
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: As of Nagios 3.x, all directives contained in extended host information definitions are also available in <a href="#host">host definitions</a>.  Thus, you can choose to define the directives below in your host definitions if it makes your configuration simpler.  Separate extended host information definitions will continue to be supported for backward compatability.
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: As of Nagios 3.x, all directives contained in extended host information definitions are also available in <a href="#host">host definitions</a>.  Thus, you can choose to define the directives below in your host definitions if it makes your configuration simpler.  Separate extended host information definitions will continue to be supported for backward compatability.
 </p>
 
 <p><div class="SectionTitle">Definition Format:</div></p>
@@ -1930,7 +1905,6 @@ Note:  Variables in red are required, while those in black are optional.  Howeve
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define hostextinfo{
 	host_name	netware1
@@ -1944,7 +1918,6 @@ define hostextinfo{
 	3d_coords	100.0,50.0,75.0
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Variable Descriptions:</div></p>
 <p>
@@ -2029,7 +2002,7 @@ Extended service information entries are basically used to make the output from 
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: As of Nagios 3.x, all directives contained in extended service information definitions are also available in <a href="#service">service definitions</a>.  Thus, you can choose to define the directives below in your service definitions if it makes your configuration simpler.  Separate extended service information definitions will continue to be supported for backward compatability.
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: As of Nagios 3.x, all directives contained in extended service information definitions are also available in <a href="#service">service definitions</a>.  Thus, you can choose to define the directives below in your service definitions if it makes your configuration simpler.  Separate extended service information definitions will continue to be supported for backward compatability.
 </p>
 
 <p><div class="SectionTitle">Definition Format:</div></p>
@@ -2053,7 +2026,6 @@ Note:  Variables in red are required, while those in black are optional.  Howeve
 </p>
 
 <p><div class="SectionTitle">Example Definition:</div></p>
-<p>
 <pre>
 define serviceextinfo{
 	host_name		linux2
@@ -2064,7 +2036,6 @@ define serviceextinfo{
 	icon_image_alt		Security-Related Alerts
 	}
 </pre>
-</p>
 
 <p><div class="SectionTitle">Variable Descriptions:</div></p>
 <p>

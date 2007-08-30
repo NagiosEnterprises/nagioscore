@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="notifications.html">Notifications</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="notifications.html">Notifications</a>
 </p>
 
 <p>
@@ -103,7 +103,6 @@ I like to refer to this as the "Oh crap, its not working" syndrome.  You know wh
 Let's take the following scenario:
 </p>
 
-<p>
 <ol>
 <li>You schedule downtime for host A from 7:30pm-9:30pm on a Monday
 <li>You bring the server down about 7:45pm Monday evening to start a hard drive upgrade
@@ -111,7 +110,6 @@ Let's take the following scenario:
 <li>At 9:15 you realize that one of your partitions is either hosed or doesn't seem to exist anywhere on the drive
 <li>Knowing you're in for a long night, you go back and schedule additional downtime for host A from 9:20pm Monday evening to 1:30am Tuesday Morning.
 </ol>
-</p>
 
 <p>
 If you schedule overlapping periods of downtime for a host or service (in this case the periods were 7:40pm-9:30pm and 9:20pm-1:30am), Nagios will wait until the last period of scheduled downtime is over before it allows notifications to be sent out for that host or service.  In this example notifications would be suppressed for host A until 1:30am Tuesday morning.

@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>, <a href="monitoring-publicservices.html">Monitoring Publicly Available Services</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>, <a href="monitoring-publicservices.html">Monitoring Publicly Available Services</a>
 </p>
 
 <p>
@@ -37,7 +37,6 @@
 This document describes how you can monitor "private" services and attributes of Windows machines, such as: 
 </p>
 
-<p>
 <ul>
 <li>Memory usage</li>
 <li>CPU load</li>
@@ -46,14 +45,13 @@ This document describes how you can monitor "private" services and attributes of
 <li>Running processes</li>
 <li>etc.</li>
 </ul>
-</p>
 
 <p>
 Publicly available services that are provided by Windows machines (HTTP, FTP, POP3, etc.) can be monitored easily by following the documentation on <a href="monitoring-publicservices.html">monitoring publicly available services</a>.
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.   The sample configuration entries below reference objects that are defined in the sample config files (<i>commands.cfg</i>, <i>templates.cfg</i>, etc.) that are installed if you follow the quickstart.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.   The sample configuration entries below reference objects that are defined in the sample config files (<i>commands.cfg</i>, <i>templates.cfg</i>, etc.) that are installed if you follow the quickstart.
 </p>
 
 
@@ -85,14 +83,12 @@ Other Windows agents (like <a href="http://sourceforge.net/projects/nc-net">NC_N
 There are several steps you'll need to follow in order to monitor a new Windows machine.  They are:
 </p>
 
-<p>
 <ol>
 <li>Perform first-time prerequisites</li>
 <li>Install a monitoring agent on the Windows machine</li>
 <li>Create new host and service definitions for monitoring the Windows machine</li>
 <li>Restart the Nagios daemon</li>
 </ol>
-</p>
 
 <p>
 <strong><u>What's Already Done For You</u></strong>
@@ -102,12 +98,10 @@ There are several steps you'll need to follow in order to monitor a new Windows 
 To make your life a bit easier, a few configuration tasks have already been done for you:
 </p>
 
-<p>
 <ul>
 <li>A <i>check_nt</i> command definition has been added to the <i>commands.cfg</i> file.  This allows you to use the <i>check_nt</i> plugin to monitor Window services.</li>
 <li>A Windows server host template (called <i>windows-server</i>) has already been created in the <i>templates.cfg</i> file.  This allows you to add new Windows host definitions in a simple manner.</li>
 </ul>
-</p>
 
 <p>
 The above-mentioned config files can be found in the <i>/usr/local/nagios/etc/objects/</i> directory.  You can modify the definitions in these and other definitions to suit your needs better if you'd like.  However, I'd recommend waiting until you're more familiar with configuring Nagios before doing so.  For the time being, just follow the directions outlined below and you'll be monitoring your Windows boxes in no time.
@@ -125,21 +119,17 @@ The first time you configure Nagios to monitor a Windows machine, you'll need to
 Edit the main Nagios config file.
 </p>
 
-<p>
 <pre>
 vi /usr/local/nagios/etc/nagios.cfg
 </pre>
-</p>
 
 <p>
 Remove the leading pound (#) sign from the following line in the main configuration file:
 </p>
 
-<p>
 <pre>
 #cfg_file=/usr/local/nagios/etc/objects/windows.cfg
 </pre>
-</p>
 
 <p>
 Save the file and exit.
@@ -174,21 +164,17 @@ Before you can begin monitoring private services and attributes of Windows machi
 4. Register the NSClient++ system service with the following command:
 </p>
 
-<p>
 <pre>
 	nsclient++ /install
 </pre>
-</p>
 
 <p>
 5. Install the NSClient++ systray with the following command ('SysTray' is case-sensitive):
 </p>
 
-<p>
 <pre>
 	nsclient++ SysTray
 </pre>
-</p>
 
 <p>
 6. Open the services manager and make sure the NSClientpp service is allowed to interact with the desktop (see the 'Log On' tab of the services manager).  If it isn't already allowed to interact with the desktop, check the box to allow it to.
@@ -202,25 +188,21 @@ Before you can begin monitoring private services and attributes of Windows machi
 7. Edit the NSC.INI file (located in the C:\NSClient++ directory) and make the following changes:
 </p>
 
-<p>
 <ul>
 <li>Uncomment all the modules listed in the [modules] section, except for CheckWMI.dll and RemoteConfiguration.dll</li>
 <li>Optionally require a password for clients by changing the 'password' option in the [Settings] section.</li>
 <li>Uncomment the 'allowed_hosts' option in the [Settings] section.  Add the IP address of the Nagios server to this line, or leave it blank to allow all hosts to connect.</li>
 <li>Make sure the 'port' option in the [NSClient] section is uncommented and set to '12489' (the default port).</li>
 </ul>
-</p>
 
 
 <p>
 8. Start the NSClient++ service with the following command:
 </p>
 
-<p>
 <pre>
 	nsclient++ /start
 </pre>
-</p>
 
 <p>
 9. If installed properly, a new icon should appear in your system tray.  It will be a yellow circle with a black 'M' inside.
@@ -243,17 +225,14 @@ Now it's time to define some <a href="objectdefinitions.html">object definitions
 Open the <i>windows.cfg</i> file for editing.
 </p>
 
-<p>
 <pre>
 vi /usr/local/nagios/etc/objects/windows.cfg
 </pre>
-</p>
 
 <p>
 Add a new <a href="objectdefinitions.html#host">host</a> definition for the Windows machine that you're going to monitor.   If this is the *first* Windows machine you're monitoring, you can simply modify the sample host definition in <i>windows.cfg</i>. Change the <i>host_name</i>, <i>alias</i>, and <i>address</i> fields to appropriate values for the Windows box.
 </p>
 
-<p>
 <pre>
 define host{
 	use		windows-server	; Inherit default values from a Windows server template (make sure you keep this line!)
@@ -262,21 +241,19 @@ define host{
 	address		192.168.1.2
 	}
 </pre>
-</p>
 
 <p>
 Good. Now you can add some service definitions (to the same configuration file) in order to tell Nagios to monitor different aspects of the Windows machine.  If this is the *first* Windows machine you're monitoring, you can simply modify the sample service definitions in <i>windows.cfg</i>. 
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: Replace "<i>winserver</i>" in the example definitions below with the name you specified in the <i>host_name</i> directive of the host definition you just added.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: Replace "<i>winserver</i>" in the example definitions below with the name you specified in the <i>host_name</i> directive of the host definition you just added.
 </p>
 
 <p>
 Add the following service definition to monitor the version of the NSClient++ addon that is running on the Windows server.  This is useful when it comes time to upgrade your Windows servers to a newer version of the addon, as you'll be able to tell which Windows machines still need to be upgraded to the latest version of NSClient++.
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service
@@ -285,13 +262,11 @@ define service{
 	check_command		check_nt!CLIENTVERSION
 	}
 </pre>
-</p>
 
 <p>
 Add the following service definition to monitor the uptime of the Windows server.
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service
@@ -300,14 +275,12 @@ define service{
 	check_command		check_nt!UPTIME
 	}
 </pre>
-</p>
 
 
 <p>
 Add the following service definition to monitor the CPU utilization on the Windows server and generate a CRITICAL alert if the 5-minute CPU load is 90% or more or a WARNING alert if the 5-minute load is 80% or greater.
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service
@@ -316,14 +289,12 @@ define service{
 	check_command		check_nt!CPULOAD!-l 5,80,90
 	}
 </pre>
-</p>
 
 
 <p>
 Add the following service definition to monitor memory usage on the Windows server and generate a CRITICAL alert if memory usage is 90% or more or a WARNING alert if memory usage is 80% or greater.
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service
@@ -332,14 +303,12 @@ define service{
 	check_command		check_nt!MEMUSE!-w 80 -c 90
 	}
 </pre>
-</p>
 
 
 <p>
 Add the following service definition to monitor usage of the C:\ drive on the Windows server and generate a CRITICAL alert if disk usage is 90% or more or a WARNING alert if disk usage is 80% or greater.
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service
@@ -348,14 +317,12 @@ define service{
 	check_command		check_nt!USEDDISKSPACE!-l c -w 80 -c 90
 	}
 </pre>
-</p>
 
 
 <p>
 Add the following service definition to monitor the W3SVC service state on the Windows machine and generate a CRITICAL alert if the service is stopped.
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service
@@ -364,14 +331,12 @@ define service{
 	check_command		check_nt!SERVICESTATE!-d SHOWALL -l W3SVC
 	}
 </pre>
-</p>
 
 
 <p>
 Add the following service definition to monitor the Explorer.exe process on the Windows machine and generate a CRITICAL alert if the process is not running.
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service
@@ -380,7 +345,6 @@ define service{
 	check_command		check_nt!PROCSTATE!-d SHOWALL -l Explorer.exe
 	}
 </pre>
-</p>
 
 <p>
 That's it for now.  You've added some basic services that should be monitored on the Windows box.  Save the configuration file.
@@ -395,24 +359,20 @@ That's it for now.  You've added some basic services that should be monitored on
 If you specified a password in the NSClient++ configuration file on the Windows machine, you'll need to modify the <i>check_nt</i> command definition to include the password.  Open the <i>commands.cfg</i> file for editing.
 </p>
 
-<p>
 <pre>
 vi /usr/local/nagios/etc/commands.cfg
 </pre>
-</p>
 
 <p>
 Change the definition of the <i>check_nt</i> command to include the "-s &lt;PASSWORD&gt;" argument (where PASSWORD is the password you specified on the Windows machine) like this:
 </p>
 
-<p>
 <pre>
 define command{
 	command_name	check_nt
 	command_line	$USER1$/check_nt -H $HOSTADDRESS$ -p 12489 -s PASSWORD -v $ARG1$ $ARG2$
 	}
 </pre>
-</p>
 
 <p>
 Save the file.

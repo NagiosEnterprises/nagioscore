@@ -23,8 +23,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="hostchecks.html">Host Checks</a>, <a href="networkreachability.html">Network Reachability</a>, <a href="passivechecks.html">Passive Checks</a>, <a href="distributed.html">Distributed Monitoring</a>, <a href="redundancy.html">Redundant/Failover Monitoring</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="hostchecks.html">Host Checks</a>, <a href="networkreachability.html">Network Reachability</a>, <a href="passivechecks.html">Passive Checks</a>, <a href="distributed.html">Distributed Monitoring</a>, <a href="redundancy.html">Redundant/Failover Monitoring</a>
 </p>
 
 <p>
@@ -43,13 +43,11 @@ When Nagios receives passive host checks from remote sources (i.e other Nagios i
 The image below shows a simplified view of a failover monitoring setup.
 </p> 
 
-<p>
 <ul>
 <li><i>Nagios-A</i> is the primary monitoring server, and is actively monitoring all switches and routers.</li>
 <li><i>Nagios-B</i> and <i>Nagios-C</i> are backup monitoring servers, and are receiving passive check results from <i>Nagios-A</i></li>
 <li>Both <i>Router-C</i> and <i>Router-D</i> have suffered failures and are offline.</li>
 </ul>
-</p>
 
 <img src="images/passivehosttranslation.png" border="0">
 
@@ -72,7 +70,7 @@ Without translating passive host check results from the primary monitoring serve
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note:  There may be some situations where you do not want Nagios to translate DOWN/UNREACHABLE states from remote sources to their "correct" state from the viewpoint of the local Nagios instance.  For example, in distributed monitoring environments you may want the central Nagios instance to know how distributed instances see their respective portions of the network.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note:  There may be some situations where you do not want Nagios to translate DOWN/UNREACHABLE states from remote sources to their "correct" state from the viewpoint of the local Nagios instance.  For example, in distributed monitoring environments you may want the central Nagios instance to know how distributed instances see their respective portions of the network.
 </p>
 
 <p>

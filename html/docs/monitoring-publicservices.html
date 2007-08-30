@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>
 </p>
 
 <p>
@@ -41,20 +41,18 @@ This document describes how you can monitor publicly available services, applica
 Private services, in contrast, cannot be monitored with Nagios without an intermediary agent of some kind.    Examples of private services associated with hosts are things like CPU load, memory usage, disk usage, current user count, process information, etc.  These private services or attributes of hosts are not usually exposed to external clients.  This situation requires that an intermediary monitoring agent be installed on any host that you need to monitor such information on.  More information on monitoring private services on different types of hosts can be found in the documentation on:
 </p>
 
-<p>
 <ul>
 <li><a href="monitoring-windows.html">Monitoring Windows machines</a></li>
 <li><a href="monitoring-netware.html">Monitoring Netware servers</a></li>
 <li><a href="monitoring-linux.html">Monitoring Linux/Unix machines</a></li>
 </ul>
+
+<p>
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: Occassionally you will find that information on private services and applications can be monitored with SNMP.  The SNMP agent allows you to remotely monitor otherwise private (and inaccessible) information about the host.  For more information about monitoring services using SNMP, check out the documentation on <a href="monitoring-routers.html">monitoring switches and routers</a>.
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: Occassionally you will find that information on private services and applications can be monitored with SNMP.  The SNMP agent allows you to remotely monitor otherwise private (and inaccessible) information about the host.  For more information about monitoring services using SNMP, check out the documentation on <a href="monitoring-routers.html">monitoring switches and routers</a>.
-</p>
-
-<p>
-<img src="images/note.gif" border="0" align="bottom"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample <i>commands.cfg</i> and <i>localhost.cfg</i> config files.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample <i>commands.cfg</i> and <i>localhost.cfg</i> config files.
 </p>
 
 
@@ -87,7 +85,6 @@ Before you can monitor a service, you first need to define a <a href="objectdefi
 For this example, lets say you want to monitor a variety of services on a remote host.  Let's call that host <i>remotehost</i>.  The host definition can be placed in its own file or added to an already exiting object configuration file.  Here's what the host definition for <i>remotehost</i> might look like:  
 </p>
 
-<p>
 <pre>
 define host{
 	use		generic-host		; Inherit default values from a template
@@ -97,7 +94,6 @@ define host{
 	hostgroups		allhosts		; Host groups this host is associated with
 	}
 </pre>
-</p>
 
 <p>
 Now that a definition has been added for the host that will be monitored, we can start defining services that should be monitored.  As with host definitions, service definitions can be placed in any object configuration file.
@@ -128,7 +124,6 @@ Chances are you're going to want to monitor web servers at some point - either y
 The <i>commands.cfg</i> file contains a command definition for using the <i>check_http</i> plugin.  It looks like this:
 </p>
 
-<p>
 <pre>
 define command{
 	name		check_http
@@ -136,13 +131,11 @@ define command{
 	command_line	$USER1$/check_http -I $HOSTADDRESS$ $ARG1$
 	}
 </pre>
-</p>
 
 <p>
 A simple service definition for monitoring the HTTP service on the <i>remotehost</i> machine might look like this:
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -151,21 +144,19 @@ define service{
 	check_command	check_http
 	}
 </pre>
-</p>
 
 <p>
 This simple service definition will monitor the HTTP service running on <i>remotehost</i>.  It will produce alerts if the web server doesn't respond within 10 seconds or if it returns HTTP errors codes (403, 404, etc.).  That's all you need for basic monitoring.  Pretty simple, huh?
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: For more advanced monitoring, run the <i>check_http</i> plugin manually with <i>--help</i> as a command-line argument to see all the options you can give the plugin.  This <i>--help</i> syntax works with all of the plugins I'll cover in this document.
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: For more advanced monitoring, run the <i>check_http</i> plugin manually with <i>--help</i> as a command-line argument to see all the options you can give the plugin.  This <i>--help</i> syntax works with all of the plugins I'll cover in this document.
 </p>
 
 <p>
 A more advanced definition for monitoring the HTTP service is shown below.  This service definition will check to see if the /download/index.php URI contains the string "latest-version.tar.gz". It will produce an error if the string isn't found, the URI isn't valid, or the web server takes longer than 5 seconds to respond.
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -174,7 +165,6 @@ define service{
 	check_command	check_http!-u /download/index.php -t 5 -s "latest-version.tar.gz"
 	}
 </pre>
-</p>
 
 
 <p>
@@ -185,20 +175,17 @@ define service{
 When you need to monitor FTP servers, you can use the <i>check_ftp</i> plugin.  The <i>commands.cfg</i> file contains a command definition for using the <i>check_ftp</i> plugin, which looks like this:
 </p>
 
-<p>
 <pre>
 define command{
 	command_name	check_ftp
 	command_line	$USER1$/check_ftp -H $HOSTADDRESS$ $ARG1$
 	}
 </pre>
-</p>
 
 <p>
 A simple service definition for monitoring the FTP server on <i>remotehost</i> would look like this:
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -207,7 +194,6 @@ define service{
 	check_command	check_ftp
 	}
 </pre>
-</p>
 
 <p>
 This service definition will monitor the FTP service and generate alerts if the FTP server doesn't respond within 10 seconds.
@@ -217,7 +203,6 @@ This service definition will monitor the FTP service and generate alerts if the 
 A more advanced service definition is shown below.  This service will check the FTP server running on port 1023 on <i>remotehost</i>.  It will generate an alert if the server doesn't respond within 5 seconds or if the server response doesn't contain the string "Pure-FTPd [TLS]".
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -226,7 +211,6 @@ define service{
 	check_command	check_ftp!-p 1023 -t 5 -e "Pure-FTPd [TLS]"
 	}
 </pre>
-</p>
 
 
 <p>
@@ -237,20 +221,17 @@ define service{
 When you need to monitor SSH servers, you can use the <i>check_ssh</i> plugin.  The <i>commands.cfg</i> file contains a command definition for using the <i>check_ssh</i> plugin, which looks like this:
 </p>
 
-<p>
 <pre>
 define command{
 	command_name	check_ssh
 	command_line	$USER1$/check_ssh $ARG1$ $HOSTADDRESS$
 	}
 </pre>
-</p>
 
 <p>
 A simple service definition for monitoring the SSH server on <i>remotehost</i> would look like this:
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -259,7 +240,6 @@ define service{
 	check_command	check_ssh
 	}
 </pre>
-</p>
 
 <p>
 This service definition will monitor the SSH service and generate alerts if the SSH server doesn't respond within 10 seconds.
@@ -269,7 +249,6 @@ This service definition will monitor the SSH service and generate alerts if the 
 A more advanced service definition is shown below.  This service will check the SSH server and generate an alert if the server doesn't respond within 5 seconds or if the server version string string doesn't match "OpenSSH_4.2".
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -278,7 +257,6 @@ define service{
 	check_command	check_ssh!-t 5 -r "OpenSSH_4.2"
 	}
 </pre>
-</p>
 
 
 <p>
@@ -289,20 +267,17 @@ define service{
 The <i>check_smtp</i> plugin can be using for monitoring your email servers.  The <i>commands.cfg</i> file contains a command definition for using the <i>check_smtp</i> plugin, which looks like this:
 </p>
 
-<p>
 <pre>
 define command{
 	command_name	check_smtp
 	command_line	$USER1$/check_smtp -H $HOSTADDRESS$ $ARG1$
 	}
 </pre>
-</p>
 
 <p>
 A simple service definition for monitoring the SMTP server on <i>remotehost</i> would look like this:
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -311,7 +286,6 @@ define service{
 	check_command	check_smtp
 	}
 </pre>
-</p>
 
 <p>
 This service definition will monitor the SMTP service and generate alerts if the SMTP server doesn't respond within 10 seconds.
@@ -321,7 +295,6 @@ This service definition will monitor the SMTP service and generate alerts if the
 A more advanced service definition is shown below.  This service will check the SMTP server and generate an alert if the server doesn't respond within 5 seconds or if the response from the server doesn't contain "mygreatmailserver.com".
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -330,7 +303,6 @@ define service{
 	check_command	check_smtp!-t 5 -e "mygreatmailserver.com"
 	}
 </pre>
-</p>
 
 
 <p>
@@ -341,20 +313,17 @@ define service{
 The <i>check_pop</i> plugin can be using for monitoring the POP3 service on your email servers.  The <i>commands.cfg</i> file contains a command definition for using the <i>check_pop</i> plugin, which looks like this:
 </p>
 
-<p>
 <pre>
 define command{
 	command_name	check_pop
 	command_line	$USER1$/check_pop -H $HOSTADDRESS$ $ARG1$
 	}
 </pre>
-</p>
 
 <p>
 A simple service definition for monitoring the POP3 service on <i>remotehost</i> would look like this:
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -363,7 +332,6 @@ define service{
 	check_command	check_pop
 	}
 </pre>
-</p>
 
 <p>
 This service definition will monitor the POP3 service and generate alerts if the POP3 server doesn't respond within 10 seconds.
@@ -373,7 +341,6 @@ This service definition will monitor the POP3 service and generate alerts if the
 A more advanced service definition is shown below.  This service will check the POP3 service and generate an alert if the server doesn't respond within 5 seconds or if the response from the server doesn't contain "mygreatmailserver.com".
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -382,7 +349,6 @@ define service{
 	check_command	check_pop!-t 5 -e "mygreatmailserver.com"
 	}
 </pre>
-</p>
 
 
 <p>
@@ -393,20 +359,17 @@ define service{
 The <i>check_imap</i> plugin can be using for monitoring IMAP4 service on your email servers.  The <i>commands.cfg</i> file contains a command definition for using the <i>check_imap</i> plugin, which looks like this:
 </p>
 
-<p>
 <pre>
 define command{
 	command_name	check_imap
 	command_line	$USER1$/check_imap -H $HOSTADDRESS$ $ARG1$
 	}
 </pre>
-</p>
 
 <p>
 A simple service definition for monitoring the IMAP4 service on <i>remotehost</i> would look like this:
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -415,7 +378,6 @@ define service{
 	check_command	check_imap
 	}
 </pre>
-</p>
 
 <p>
 This service definition will monitor the IMAP4 service and generate alerts if the IMAP server doesn't respond within 10 seconds.
@@ -425,7 +387,6 @@ This service definition will monitor the IMAP4 service and generate alerts if th
 A more advanced service definition is shown below.  This service will check the IAMP4 service and generate an alert if the server doesn't respond within 5 seconds or if the response from the server doesn't contain "mygreatmailserver.com".
 </p>
 
-<p>
 <pre>
 define service{
 	use		generic-service		; Inherit default values from a template
@@ -434,7 +395,6 @@ define service{
 	check_command	check_imap!-t 5 -e "mygreatmailserver.com"
 	}
 </pre>
-</p>
 
 
 <p>

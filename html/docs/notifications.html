@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="escalations.html">Escalations</a>, <a href="timeperiods.html">Timeperiods</a>, <a href="oncallrotation.html">On-Call Rotations</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="escalations.html">Escalations</a>, <a href="timeperiods.html">Timeperiods</a>, <a href="oncallrotation.html">On-Call Rotations</a>
 </p>
 
 <p>
@@ -52,12 +52,10 @@ Notification escalations are explained <a href="escalations.html">here</a>.
 The decision to send out notifications is made in the service check and host check logic.  Host and service notifications occur in the following instances...
 </p>
 
-<p>
 <ul>
 <li>When a hard state change occurs.  More information on state types and hard state changes can be found <a href="statetypes.html">here</a>.
 <li>When a host or service remains in a hard non-OK state and the time specified by the &lt;<i>notification_interval</i>&gt; option in the host or service definition has passed since the last notification was sent out (for that specified host or service).
 </ul>
-</p>
 
 
 <p>
@@ -139,7 +137,7 @@ You can have Nagios notify you of problems and recoveries pretty much anyway you
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: If you install Nagios according to the <a href="quickstart.html">quickstart guide</a>, it should be configured to send email notifications.  You can see the email notification commands that are used by viewing the contents of the following file: <i>/usr/local/nagios/etc/objects/commands.cfg</i>.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: If you install Nagios according to the <a href="quickstart.html">quickstart guide</a>, it should be configured to send email notifications.  You can see the email notification commands that are used by viewing the contents of the following file: <i>/usr/local/nagios/etc/objects/commands.cfg</i>.
 </p>
 
 <p>
@@ -175,7 +173,6 @@ When crafting your notification commands, you need to take into account what typ
 There are many ways you could configure Nagios to send notifications out.  Its up to you to decide which method(s) you want to use.  Once you do that you'll have to install any necessary software and configure notification commands in your config files before you can use them.  Here are just a few possible notification methods:
 </p>
 
-<p>
 <ul>
 <li>Email
 <li>Pager
@@ -185,7 +182,6 @@ There are many ways you could configure Nagios to send notifications out.  Its u
 <li>Audio alerts
 <li>etc...
 </ul>
-</p>
 
 <p>
 Basically anything you can do from a command line can be tailored for use as a notification command.
@@ -197,7 +193,6 @@ arises.  That way you don't have to rely on email to send notifications out (rem
 there are network problems).  I haven't actually tried these packages myself, but others have reported success
 using them...
 </p>
-<p>
 <ul>
 <li><a href="http://www.gnokii.org/">Gnokii</a> (SMS software for contacting Nokia phones via GSM network)
 <li><a href="http://www.qpage.org/" target="_top">QuickPage</a> (alphanumeric pager software)
@@ -205,7 +200,6 @@ using them...
 <li><a href="http://www.smsclient.org/" target="_top">SMS Client</a> (command line utility for 
 sending messages to pagers and mobile phones)
 </ul>
-</p>
 
 <p>
 If you want to try out a non-traditional method of notification, you might want to mess around with audio alerts.  If you want to have audio alerts played on the monitoring server (with synthesized speech), check out <a href="http://www.cstr.ed.ac.uk/projects/festival/">Festival</a>.  If you'd rather leave the monitoring box alone and have audio alerts played on another box, check out the <a href="http://radscan.com/nas.html">Network Audio System (NAS)</a> and <a href="http://rplay.doit.org/">rplay</a> projects.

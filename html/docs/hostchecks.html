@@ -23,8 +23,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="networkreachability.html">Network Reachability</a>, <a href="activechecks.html">Active Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="checkscheduling.html">Check Scheduling</a>, <a href="dependencychecks.html">Predictive Dependency Checks</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="networkreachability.html">Network Reachability</a>, <a href="activechecks.html">Active Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="checkscheduling.html">Check Scheduling</a>, <a href="dependencychecks.html">Predictive Dependency Checks</a>
 </p>
 
 <p>
@@ -43,14 +43,12 @@ The basic workings of host checks are described here...
 Hosts are checked by the Nagios daemon:
 </p>
 
-<p>
 <ul>
 <li>At regular intervals, as defined by the <i>check_interval</i> and <i>retry_interval</i> options in your <a href="objectdefinitions.html#host">host definitions</a>.</li>
 <li>On-demand when a service associated with the host changes state.</li>
 <li>On-demand as needed as part of the <a href="networkreachability.html">host reachability</a> logic.</li>
 <li>On-demand as needed for <a href="dependencychecks.html">predictive host dependency checks</a>.</li>
 </ul>
-</p>
 
 <p>
 Regularly scheduled host checks are optional.  If you set the <i>check_interval</i> option in your host definition to zero (0), Nagios will not perform checks of the hosts on a regular basis.  It will, however, still perform on-demand checks of the host as needed for other parts of the monitoring logic.
@@ -103,7 +101,7 @@ When Nagios processes the results of scheduled and on-demand host checks, it may
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Hosts which have their <i>max_check_attempts</i> value set to <b>1</b> can cause serious performance problems.  The reason?  If Nagios needs to determine their true state using the <a href="networkreachability.html">network reachability</a> logic (to see if they're DOWN or UNREACHABLE), it will have to launch <b>serial</b> checks of all of the host's immediate parents.   Just to reiterate, those checks are run <i>serially</i>, rather than in parallel, so it can cause a big performance hit.  For this reason, I would recommend that you always use a value greater than 1 for the <i>max_check_attempts</i> directives in your host definitions.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Hosts which have their <i>max_check_attempts</i> value set to <b>1</b> can cause serious performance problems.  The reason?  If Nagios needs to determine their true state using the <a href="networkreachability.html">network reachability</a> logic (to see if they're DOWN or UNREACHABLE), it will have to launch <b>serial</b> checks of all of the host's immediate parents.   Just to reiterate, those checks are run <i>serially</i>, rather than in parallel, so it can cause a big performance hit.  For this reason, I would recommend that you always use a value greater than 1 for the <i>max_check_attempts</i> directives in your host definitions.
 </p>
 
 <p>
@@ -114,13 +112,11 @@ When Nagios processes the results of scheduled and on-demand host checks, it may
 Hosts that are checked can be in one of three different states:
 </p>
 
-<p>
 <ul>
 <li>UP</li>
 <li>DOWN</li>
 <li>UNREACHABLE</li>
 </ul>
-</p>
 
 <p>
 <strong><u>Host State Determination</u></strong>
@@ -143,7 +139,7 @@ The table below shows how plugin return codes correspond with preliminary host s
 </table>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: WARNING results usually means the host is UP.  However, WARNING results are interpreted to mean the host is DOWN if the <a href="configmain.html#use_aggressive_host_checking">use_aggressive_host_checking</a> option is enabled.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: WARNING results usually means the host is UP.  However, WARNING results are interpreted to mean the host is DOWN if the <a href="configmain.html#use_aggressive_host_checking">use_aggressive_host_checking</a> option is enabled.
 </p>
 
 <p>

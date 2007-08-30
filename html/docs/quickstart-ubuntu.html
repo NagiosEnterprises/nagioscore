@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guides</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="quickstart.html">Quickstart Installation Guides</a>
 </p>
 
 <p>
@@ -49,13 +49,11 @@ These instructions were written based on an <b>Ubuntu 6.10</b> (desktop) install
 If you follow these instructions, here's what you'll end up with:
 </p>
 
-<p>
 <ul>
 <li>Nagios and the plugins will be installed underneath /usr/local/nagios</li>
 <li>Nagios will be configured to monitor a few aspects of your local system (CPU load, disk usage, etc.)</li>
 <li>The Nagios web interface will be accessible at http://localhost/nagios/</li>
 </ul>
-</p>
 
 <p>
 <strong><u>Required Packages</u></strong>
@@ -65,25 +63,21 @@ If you follow these instructions, here's what you'll end up with:
 Make sure you've installed the following packages on your Ubuntu installation before continuing. 
 </p>
 
-<p>
 <ul>
 <li>Apache 2</li>
 <li>GCC compiler and development libraries</li>
 <li>GD development libraries</li>
 </ul>
-</p>
 
 <p>
 You can use <i>apt-get</i> to install these packages by running the following commands:
 </p>
 
-<p>
 <pre>
 sudo apt-get install apache2
 sudo apt-get install build-essential
 sudo apt-get install libgd2-dev
 </pre>
-</p>
 
 <p>
 <strong><u>1) Create Account Information</u></strong>
@@ -93,45 +87,37 @@ sudo apt-get install libgd2-dev
 Become the root user.
 </p>
 
-<p>
 <pre>
 sudo -s
 </pre>
-</p>
 
 <p>
 Create a new <i>nagios</i> user account and give it a password.
 </p>
 
-<p>
 <pre>
 /usr/sbin/useradd nagios
 passwd nagios
 </pre>
-</p>
 
 <p>
 On Ubuntu server edition (6.01 and possible newer versions), you will need to also add a <i>nagios</i> group (it's not created by default).  You should be able to skip this step on desktop editions of Ubuntu.
 </p>
 
-<p>
 <pre>
 /usr/sbin/groupadd nagios
 /usr/sbin/usermod -G nagios nagios
 </pre>
-</p>
 
 <p>
 Create a new <i>nagcmd</i> group for allowing external commands to be submitted through the web interface. Add both the nagios user and the apache user to the group.
 </p>
 
-<p>
 <pre>
 /usr/sbin/groupadd nagcmd
 /usr/sbin/usermod -G nagcmd nagios
 /usr/sbin/usermod -G nagcmd www-data
 </pre>
-</p>
 
 <p>
 <strong><u>2) Download Nagios and the Plugins</u></strong>
@@ -141,23 +127,19 @@ Create a new <i>nagcmd</i> group for allowing external commands to be submitted 
 Create a directory for storing the downloads.
 </p>
 
-<p>
 <pre>
 mkdir ~/downloads
 cd ~/downloads
 </pre>
-</p>
 
 <p>
 Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).  At the time of writing, the latest versions of Nagios and the Nagios plugins were 3.0b2 and 1.4.7, respectively.
 </p>
 
-<p>
 <pre>
 wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0b2.tar.gz
 wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.7.tar.gz
 </pre>
-</p>
 
 <p>
 <strong><u>3) Compile and Install Nagios</u></strong>
@@ -167,46 +149,38 @@ wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.7.
 Extract the Nagios source code tarball.
 </p>
 
-<p>
 <pre>
 cd ~/downloads
 tar xzf nagios-3.0b2.tar.gz
 cd nagios-3.0b2
 </pre>
-</p>
 
 <p>
 Run the Nagios configure script, passing the name of the group you created earlier like so:
 </p>
 
-<p>
 <pre>
 ./configure --with-command-group=nagcmd
 </pre>
-</p>
 
 <p>
 Compile the Nagios source code.
 </p>
 
-<p>
 <pre>
 make all
 </pre>
-</p>
 
 <p>
 Install binaries, init script, sample config files and set permissions on the external command directory.
 </p>
 
-<p>
 <pre>
 make install
 make install-init
 make install-config
 make install-commandmode
 </pre>
-</p>
 
 <p>
 Don't start Nagios yet - there's still more that needs to be done...
@@ -224,11 +198,9 @@ Sample <a href="config.html">configuration files</a> have now been installed in 
 Edit the <i>/usr/local/nagios/etc/objects/contacts.cfg</i> config file with your favorite editor and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
 </p>
 
-<p>
 <pre>
 vi /usr/local/nagios/etc/objects/contacts.cfg
 </pre>
-</p>
 
 <p>
 <strong><u>5) Configure the Web Interface</u></strong>
@@ -238,31 +210,25 @@ vi /usr/local/nagios/etc/objects/contacts.cfg
 Install the Nagios web config file in the Apache conf.d directory.
 </p>
 
-<p>
 <pre>
 make install-webconf
 </pre>
-</p>
 
 <p>
 Create a <i>nagiosadmin</i> account for logging into the Nagios web interface.  Remember the password you assign to this account - you'll need it later.
 </p>
 
-<p>
 <pre>
 htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
 </pre>
-</p>
 
 <p>
 Restart Apache to make the new settings take effect.
 </p>
 
-<p>
 <pre>
 /etc/init.d/apache2 reload
 </pre>
-</p>
 
 <p>
 <strong><u>6) Compile and Install the Nagios Plugins</u></strong>
@@ -272,25 +238,21 @@ Restart Apache to make the new settings take effect.
 Extract the Nagios plugins source code tarball.
 </p>
 
-<p>
 <pre>
 cd ~/downloads
 tar xzf nagios-plugins-1.4.7.tar.gz
 cd nagios-plugins-1.4.7
 </pre>
-</p>
 
 <p>
 Compile and install the plugins.
 </p>
 
-<p>
 <pre>
 ./configure --with-nagios-user=nagios --with-nagios-group=nagios
 make
 make install
 </pre>
-</p>
 
 
 <p>
@@ -301,31 +263,25 @@ make install
 Configure Nagios to automatically start when the system boots.
 </p>
 
-<p>
 <pre>
 ln -s /etc/init.d/nagios /etc/rcS.d/S99nagios
 </pre>
-</p>
 
 <p>
 Verify the sample Nagios configuration files.
 </p>
 
-<p>
 <pre>
 /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
 </pre>
-</p>
 
 <p>
 If there are no errors, start Nagios.
 </p>
 
-<p>
 <pre>
 /etc/init.d/nagios start
 </pre>
-</p>
 
 <p>
 <strong><u>8) Login to the Web Interface</u></strong>
@@ -335,11 +291,9 @@ If there are no errors, start Nagios.
 You should now be able to access the Nagios web interface at the URL below.  You'll be prompted for the username (<i>nagiosadmin</i>) and password you specified earlier.
 </p>
 
-<p>
 <pre>
 http://localhost/nagios/
 </pre>
-</p>
 
 <p>
 Click on the "Service Detail" navbar link to see details of what's being monitored on your local machine.  It will take a few minutes for Nagios to check all the services associated with your machine, as the checks are spread out over time.
@@ -353,21 +307,17 @@ Click on the "Service Detail" navbar link to see details of what's being monitor
 If you want to receive email notifications for Nagios alerts, you need to install the mailx (Postfix) package.
 </p>
 
-<p>
 <pre>
 sudo apt-get install mailx
 </pre>
-</p>
 
 <p>
 You'll have to edit the Nagios email notification commands found in <i>/usr/local/nagios/etc/commands.cfg</i> and change any '/bin/mail' references to '/usr/bin/mail'.  Once you do that you'll need to restart Nagios to make the configuration changes live.
 </p>
 
-<p>
 <pre>
 sudo /etc/init.d/nagios restart
 </pre>
-</p>
 
 <p>
 Configuring email notifications is outside the scope of this documentation.  Refer to your system documentation, search the web, or look to the <a href="http://www.nagioscommunity.org/wiki">NagiosCommunity.org wiki</a> for specific instructions on configuring your Ubuntu system to send email messages to external addresses.

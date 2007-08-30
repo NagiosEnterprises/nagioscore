@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="eventhandlers.html">Event Handlers</a>, <a href="notifications.html">Notifications</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="eventhandlers.html">Event Handlers</a>, <a href="notifications.html">Notifications</a>
 </p>
 
 <p>
@@ -36,12 +36,10 @@
 The current state of monitored services and hosts is determined by two components:
 </p>
 
-<p>
 <ul>
 <li>The status of the service or host (i.e. OK, WARNING, UP, DOWN, etc.)</li>
 <li>Tye <i>type</i> of state the service or host is in</li>
 </ul>
-</p>
 
 
 <p>
@@ -68,23 +66,19 @@ In order to prevent false alarms from transient problems, Nagios allows you to d
 Soft states occur in the following situations...
 </p>
 
-<p>
 <ul>
 <li>When a service or host check results in a non-OK or non-UP state and the service check has not yet been (re)checked the number of times specified by the <i>max_check_attempts</i> directive in the service or host definition.  This is called a soft error.
 <li>When a service or host recovers from a soft error.  This is considered a soft recovery.
 </ul>
-</p>
 
 <p>
 The following things occur when hosts or services experience SOFT state changes:
 </p>
 
-<p>
 <ul>
 <li>The SOFT state is logged.
 <li>Event handlers are executed to handle the SOFT state.
 </ul>
-</p>
 
 <p>
 SOFT states are only logged if you enabled the <a href="configmain.html#log_service_retries">log_service_retries</a> or <a href="configmain.html#log_host_retries">log_host_retries</a> options in your main configuration file.
@@ -103,7 +97,6 @@ The <a href="macrolist.html#hoststatetype">$HOSTSTATETYPE$</a> or <a href="macro
 Hard states occur for hosts and services in the following situations:
 </p>
 
-<p>
 <ul>
 <li>When a host or service check results in a non-UP or non-OK state and it has been (re)checked the number of times specified by the <i>max_check_attempts</i> option in the host or service definition.  This is a hard error state.
 <li>When a host or service transitions from one hard error state to another error state (e.g. WARNING to CRITICAL).</li>
@@ -111,19 +104,16 @@ Hard states occur for hosts and services in the following situations:
 <li>When a host or service recovers from a hard error state.  This is considered to be a hard recovery.
 <li>When a <a href="passivechecks.html">passive host check</a> is received. Passive host checks are treated as HARD unless the <a href="configmain.html#passive_host_checks_are_soft">passive_host_checks_are_soft</a> option is enabled.</li>
 </ul>
-</p>
 
 <p>
 The following things occur when hosts or services experience HARD state changes:
 </p>
 
-<p>
 <ul>
 <li>The HARD state is logged.
 <li>Event handlers are executed to handle the HARD state.
 <li>Contacts are notifified of the host or service problem or recovery.
 </ul>
-</p>
 
 <p>
 The <a href="macrolist.html#hoststatetype">$HOSTSTATETYPE$</a> or <a href="macrolist.html#servicestatetype">$SERVICESTATETYPE$</a> macros will have a value of "<i>HARD</i>" when event handlers are executed, which allows your event handler scripts to know when they should take corrective action.  More information on event handlers can be found <a href="eventhandlers.html">here</a>.

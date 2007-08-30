@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="configcgi.html">CGI Configuration File Options</a>, <a href="cgiauth.html">Authentication And Authorization In The CGIs</a>, <a href="cgiincludes.html">CGI Footers and Headers</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="configcgi.html">CGI Configuration File Options</a>, <a href="cgiauth.html">Authentication And Authorization In The CGIs</a>, <a href="cgiincludes.html">CGI Footers and Headers</a>
 </p>
 
 <p>
@@ -99,7 +99,6 @@ This is the most important CGI included with Nagios.  It allows you to view the 
 <li>If you are <a href="configcgi.html#authorized_for_all_services"><i>authorized for all services</i></a> you can view all services.
 <li>If you are an <i>authenticated contact</i> you can view all hosts and services for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -189,7 +188,6 @@ This CGI serves as a WAP interface to network status information.  If you have a
 <li>If you are <a href="configcgi.html#authorized_for_all_services"><i>authorized for all services</i></a> you can view status data for all services.
 <li>If you are an <i>authenticated contact</i> you can view status data for all hosts and services for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -277,7 +275,6 @@ This CGI is designed to server as a "birds-eye view" of all network monitoring a
 <li>If you are <a href="configcgi.html#authorized_for_all_services"><i>authorized for all services</i></a> you can view all services.
 <li>If you are an <i>authenticated contact</i> you can view all hosts and services for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -320,7 +317,6 @@ This CGI will produce a listing of "problem" hosts on your network that are caus
 <li>If you are <a href="configcgi.html#authorized_for_all_hosts"><i>authorized for all hosts</i></a> you can view all hosts.
 <li>If you are an <i>authenticated contact</i> you can view hosts for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -360,7 +356,6 @@ This CGI allows you to view objects (i.e. hosts, host groups, contacts, contact 
 <ul class="Default">
 <li>You must be <a href="configcgi.html#authorized_for_configuration_information"><i>authorized for configuration information</i></a> in order to any kind of configuration information.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -403,14 +398,11 @@ This CGI allows you to send commands to the Nagios process.  Although this CGI h
 <li>If you are <a href="configcgi.html#authorized_for_all_service_commands"><i>authorized for all service commands</i></a> you can issue commands for all services.
 <li>If you are an <i>authenticated contact</i> you can issue commands for all hosts and services for which you are a contact.
 </ul>
-</p>
 <strong>Notes:</strong>
 </p>
-<p>
 <ul>
 <li>If you have chosen not to <a href="configcgi.html#use_authentication">use authentication</a> with the CGIs, this CGI will <i>not</i> allow anyone to issue commands to Nagios.  This is done for your own protection.  I would suggest removing this CGI altogether if you decide not to use authentication with the CGIs.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -456,7 +448,6 @@ This CGI allows you to view Nagios process information, host and service state s
 <li>If you are <a href="configcgi.html#authorized_for_all_services"><i>authorized for all services</i></a> you can view extended information for all services.
 <li>If you are an <i>authenticated contact</i> you can view extended information for all hosts and services for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -499,7 +490,6 @@ This CGI will display the <a href="configmain.html#log_file">log file</a>.  If y
 <ul class="Default">
 <li>You must be <a href="configcgi.html#authorized_for_system_information"><i>authorized for system information</i></a> in order to view the log file.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -542,7 +532,6 @@ This CGI is used to display the history of problems with either a particular hos
 <li>If you are <a href="configcgi.html#authorized_for_all_services"><i>authorized for all services</i></a> you can view history information for all services.
 <li>If you are an <i>authenticated contact</i> you can view history information for all services and hosts for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -585,7 +574,6 @@ This CGI is used to display host and service notifications that have been sent t
 <li>If you are <a href="configcgi.html#authorized_for_all_services"><i>authorized for all services</i></a> you can view notifications for all services.
 <li>If you are an <i>authenticated contact</i> you can view notifications for all services and hosts for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -629,7 +617,6 @@ This CGI is used to create a graph of host or service states over an arbitrary p
 <li>If you are <a href="configcgi.html#authorized_for_all_services"><i>authorized for all services</i></a> you can view trends for all services.
 <li>If you are an <i>authenticated contact</i> you can view trends for all services and hosts for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -674,7 +661,6 @@ This CGI is used to report on the availability of hosts and services over a user
 <li>If you are <a href="configcgi.html#authorized_for_all_services"><i>authorized for all services</i></a> you can view availability data for all services.
 <li>If you are an <i>authenticated contact</i> you can view availability data for all services and hosts for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -719,7 +705,6 @@ This CGI is used to report on the availability of hosts and services over a user
 <li>If you are <a href="configcgi.html#authorized_for_all_services"><i>authorized for all services</i></a> you can view histograms for all services.
 <li>If you are an <i>authenticated contact</i> you can view histograms for all services and hosts for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>
@@ -764,7 +749,6 @@ This CGI provides some generic reports about host and service alert data, includ
 <li>If you are <a href="configcgi.html#authorized_for_all_services"><i>authorized for all services</i></a> you can view summary information for all services.
 <li>If you are an <i>authenticated contact</i> you can view summary information for all services and hosts for which you are a contact.
 </ul>
-</p>
 </td>
 </tr>
 </table>

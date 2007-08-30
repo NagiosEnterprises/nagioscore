@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="activechecks.html">Active Checks</a>, <a href="macros.html">Macros</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="activechecks.html">Active Checks</a>, <a href="macros.html">Macros</a>
 </p>
 
 
@@ -54,12 +54,10 @@ If your organization has a group of hosts that provide a high-availability (clus
 There are several ways you could potentially monitor service or host clusters.  I'll describe the method that I believe to be the easiest.  Monitoring service or host clusters involves two things:
 </p>
 
-<p>
 <ul>
 <li>Monitoring individual cluster elements
 <li>Monitoring the cluster as a collective entity
 </ul>
-</p>
 
 <p>
 Monitoring individual host or service cluster elements is easier than you think.  In fact, you're probably already doing it.  For service clusters, just make sure that you are monitoring each service element of the cluster.  If you've got a cluster of five DNS servers, make sure you have five separate service definitions (probably using the <i>check_dns</i> plugin).  For host clusters, make sure you have configured appropriate host definitions for each member of the cluster (you'll also have to define at least one service to be monitored for each of the hosts).  <b>Important:</b>  You're going to want to disable notifications for the individual cluster elements (host or service definitions).  Even though no notifications will be sent about the individual elements, you'll still get a visual display of the individual host or service status in the <a href="cgis.html#status_cgi">status CGI</a>.  This will be useful for pinpointing the source of problems within the cluster in the future.
@@ -95,14 +93,12 @@ Let's say you have three DNS servers that provide redundant services on your net
 In order to monitor the services as a cluster, you'll need to create a new "cluster" service.  However, before you do that, make sure you have a service cluster check command configured.  Let's assume that you have a command called <i>check_service_cluster</i> defined as follows:
 </p>
 
-<p>
 <pre>
 define command{
 	command_name	check_service_cluster
 	command_line	/usr/local/nagios/libexec/check_cluster2 --service -l $ARG1$ -w $ARG2$ -c $ARG3$ -d $ARG4$ 
 	}
 </pre>
-</p>
 
 <p>
 Now you'll need to create the "cluster" service and use the <i>check_service_cluster</i> command you just created as the cluster's check command.  The example below gives an example of how to do this.  The example below will generate a CRITICAL alert if 2 or more services in the cluster are in a non-OK state, and a WARNING alert if only 1 of the services is in a non-OK state.  If all the individual service members of the cluster are OK, the cluster check will return an OK state as well.
@@ -134,20 +130,17 @@ Monitoring host clusters is very similiar to monitoring service clusters.  Obvio
 Anyway, let's assume that you have a <i>check_host_cluster</i> command defined as follows:
 </p>
 
-<p>
 <pre>
 define command{
 	command_name	check_host_cluster
 	command_line	/usr/local/nagios/libexec/check_cluster2 --host -l $ARG1$ -w $ARG2$ -c $ARG3$ -d $ARG4$ 
 	}
 </pre>
-</p>
 
 <p>
 Let's say you have three hosts (named "host1", "host2" and "host3") in the host cluster.  If you want Nagios to generate a warning alert if one host in the cluster is not UP or a critical alert if two or more hosts are not UP, the the service you define to monitor the host cluster might look something like this:
 </p>
 
-<p>
 <pre>
 define service{
 	...
@@ -155,7 +148,6 @@ define service{
 	...
 	}
 </pre>
-</p>
 
 <p>
 It is important to notice that we are passing a comma-delimited list of <i>on-demand</i> host state <a href="macros.html">macros</a> to the $ARG4$ macro in the cluster check command.  That's important!  Nagios will fill those on-demand macros in with the current host state IDs (numerical values, rather than text strings) of the individual members of the cluster.

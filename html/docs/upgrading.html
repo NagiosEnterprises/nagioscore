@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>
 </p>
 
 <p>
@@ -53,73 +53,59 @@ Make sure you have a good backup of your existing Nagios installation and config
 Become the nagios user.  Debian/Ubuntu users should use <i>sudo -s nagios</i>.
 </p>
 
-<p>
 <pre>
 su -l nagios
 </pre>
-</p>
 
 <p>
 Download the source code tarball of the latest version of Nagios (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for the link to the latest version).
 </p>
 
-<p>
 <pre>
 wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-<i>3.x</i>.tar.gz
 </pre>
-</p>
 
 <p>
 Extract the Nagios source code tarball.
 </p>
 
-<p>
 <pre>
 tar xzf nagios-<i>3.x</i>.tar.gz
 cd nagios-<i>3.x</i>
 </pre>
-</p>
 
 <p>
 Run the Nagios configure script, passing the name of the group used to control external command file permissions like so:
 </p>
 
-<p>
 <pre>
 ./configure --with-command-group=nagcmd
 </pre>
-</p>
 
 <p>
 Compile the Nagios source code.
 </p>
 
-<p>
 <pre>
 make all
 </pre>
-</p>
 
 <p>
 Install updated binaries, documentation, and web web interface.  Your existing configuration files will not be overwritten by this step.
 </p>
 
-<p>
 <pre>
 make install
 </pre>
-</p>
 
 <p>
 Verify your configuration files and restart Nagios.
 </p>
 
-<p>
 <pre>
 /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
 /sbin/service nagios restart
 </pre>
-</p>
 
 <p>
 That's it - you're done!
@@ -135,7 +121,6 @@ That's it - you're done!
 It shouldn't be too difficult to upgrade from Nagios 2.x to Nagios 3.  The upgrade is essentially the same as what is described above for upgrading to newer 3.x releases.  You will, however, have to change your configuration files a bit so they work with Nagios 3:
 </p>
 
-<p>
 <ul>
 <li>The old <i>service_reaper_frequency</i> variable in the main config file has been renamed to <a href="configmain.html#check_result_reaper_frequency">check_result_reaper_frequency</a>.</li>
 <li>The old <i>$NOTIFICATIONNUMBER$</i> macro has been deprecated in favor of new <a href="macrolist.html#hostnotificationnumber">$HOSTNOTIFICATIONNUMBER$</a> and <a href="macrolist.html#servicenotificationnumber">$SERVICENOTIFICATIONNUMBER$</a> macros.</li>
@@ -145,7 +130,6 @@ It shouldn't be too difficult to upgrade from Nagios 2.x to Nagios 3.  The upgra
 <li>The old <i>downtime_file</i> file variable in the main config file is no longer supported, as scheduled downtime entries are now saved in the <a href="configmain.html#retention_file">retention file</a>.  To preserve existing downtime entries, stop Nagios 2.x and append the contents of your old downtime file to the retention file.</li>
 <li>The old <i>comment_file</i> file variable in the main config file is no longer supported, as comments are now saved in the <a href="configmain.html#retention_file">retention file</a>.  To preserve existing comments, stop Nagios 2.x and append the contents of your old comment file to the retention file.</li>
 </ul>
-</p>
 
 <p>
 Also make sure to read the "<a href="whatsnew.html">What's New</a>" section of the documentation.  It describes all the changes that were made to the Nagios 3 code since the latest stable release of Nagios 2.x.  Quite a bit has changed, so make sure you read it over.
@@ -160,7 +144,6 @@ Also make sure to read the "<a href="whatsnew.html">What's New</a>" section of t
 If you currently have an RPM- or Debian/Ubuntu APT package-based installation of Nagios and you would like to transition to installing Nagios from the official source code distribution, here's the basic process you should follow:
 </p>
 
-<p>
 <ol>
 <li>Backup your existing Nagios installation</li>
 <ul>
@@ -180,7 +163,6 @@ If you currently have an RPM- or Debian/Ubuntu APT package-based installation of
 <li>Restore your original Nagios configuration files, retention file, and log files</li>
 <li><a href="verifyconfig.html">Verify</a> your configuration and <a href="startstop.html">start</a> Nagios</li>
 </ol>
-</p>
 
 <p>
 Note that different RPMs or APT packages may install Nagios in different ways and in different locations.  Make sure you've backed up all your critical Nagios files before removing the original RPM or APT package, so you can revert back if you encounter problems.

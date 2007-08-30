@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="epnplugins.html">Developing Plugins For Use With Embedded Perl</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="epnplugins.html">Developing Plugins For Use With Embedded Perl</a>
 </p>
 
 
@@ -46,7 +46,7 @@ Without the embedded Perl interpreter, Nagios executes Perl (and non-Perl) plugi
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: The embedded Perl interpreter works with all Perl scripts that Nagios executes - not just plugins.  This documentation discusses the embedded Perl interpreter in relation to plugins used for host and service checks, but it applies just the same to other types of Perl scripts you may be using for other types of commands (e.g. notification scripts, event handler scripts, etc.).
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: The embedded Perl interpreter works with all Perl scripts that Nagios executes - not just plugins.  This documentation discusses the embedded Perl interpreter in relation to plugins used for host and service checks, but it applies just the same to other types of Perl scripts you may be using for other types of commands (e.g. notification scripts, event handler scripts, etc.).
 </p>
 
 
@@ -70,7 +70,6 @@ It should be noted that "ePN", as used in this documentation, refers to embedded
 Some advantages of ePN (embedded Perl Nagios) include:
 </p>
 
-<p>
 <ul>
 
 <li>Nagios will spend much less time running your Perl plugins because it no longer forks to execute the plugin (each time loading the Perl interpreter). Instead, it executes your plugin by making a library call.<br><br>
@@ -82,7 +81,6 @@ Some advantages of ePN (embedded Perl Nagios) include:
 <li>Using the ePN is an excellent opportunity to learn more about Perl.<br><br>
 
 </ul>
-</p>
 
 <p>
 <strong><u>Disadvantages</u></strong>
@@ -92,7 +90,6 @@ Some advantages of ePN (embedded Perl Nagios) include:
 The disadvantages of ePN (embedded Perl Nagios) are much the same as Apache mod_perl (i.e. Apache with an embedded interpreter) compared to a plain Apache:
 </p>
 
-<p>
 <ul>
 
 <li>A Perl program that works <i>fine</i> with plain Nagios may <i>not</i> work with the ePN. You may have to modify your plugins to get them to work.<br><br>
@@ -108,7 +105,6 @@ The disadvantages of ePN (embedded Perl Nagios) are much the same as Apache mod_
 <li>You will need greater Perl knowledge (but nothing very esoteric or stuff about Perl internals - unless your plugin uses XSUBS).<br><br>
 
 </ul>
-</p>
 
 
 <p>
@@ -119,14 +115,12 @@ The disadvantages of ePN (embedded Perl Nagios) are much the same as Apache mod_
 If you want to use the embedded Perl interpreter to run your Perl plugins and scripts, here's what you'll need to do:
 </p>
 
-<p>
 <ol>
 <li>Compile Nagios with support for the embedded Perl interpreter (see instructions below).</li><br><br>
 <li>Enable the <a href="configmain.html#enable_embedded_perl">enable_embedded_perl</a> option in the main configuration file.</li><br><br>
 <li>Set the <a href="configmain.html#use_embedded_perl_implicitly">use_embedded_perl_implicitly</a> option to fit your needs.  This option determines whether or not the Perl interpreter should be used by default for individual Perl plugins and scripts.</li><br><br>
 <li>Optionally enable or disable certain Perl plugins and scripts from being run using the embedded Perl interpreter.  This can be useful if certain Perl scripts have problems being running under the Perl interpreter. See instructions below for more information on doing this.</li>
 </ol>
-</p>
 
 
 <p>
@@ -139,11 +133,9 @@ If you want to use the embedded Perl interpreter, you'll first need to compile N
 To do this, simply run the configure script with the addition of the <font color="red"><i>--enable-embedded-perl</i></font> option.  If you want the embedded interpreter to cache internally compiled scripts, add the <font color="red"><i>--with-perlcache</i></font> option as well.  Example:
 </p>
 
-<p>
 <pre>
 	./configure --enable-embedded-perl --with-perlcache <i>otheroptions...</i>
 </pre>
-</p>
 
 <p>
 Once you've rerun the configure script with the new options, make sure to recompile Nagios.
@@ -185,7 +177,7 @@ Either line must be located within the first 10 lines of a script for Nagios to 
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: If you do not <i>explicitly</i> use the method above to tell Nagios whether an individual plugin can be run under the Perl interpreter, Nagios will make will a decision for you.  This decision process is controlled by the <a href="configmain.html#use_embedded_perl_implicitly">use_embedded_perl_implicitly</a> variable.  If the value is set to 1, all Perl plugins/scripts (that do not explicitly enable/disable the ePN) will be run under the Perl interpreter.  If the value is 0, they will NOT be run under the Perl interpreter.
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: If you do not <i>explicitly</i> use the method above to tell Nagios whether an individual plugin can be run under the Perl interpreter, Nagios will make will a decision for you.  This decision process is controlled by the <a href="configmain.html#use_embedded_perl_implicitly">use_embedded_perl_implicitly</a> variable.  If the value is set to 1, all Perl plugins/scripts (that do not explicitly enable/disable the ePN) will be run under the Perl interpreter.  If the value is 0, they will NOT be run under the Perl interpreter.
 </p>
 
 

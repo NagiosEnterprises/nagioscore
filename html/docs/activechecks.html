@@ -23,8 +23,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="passivechecks.html">Passive Checks</a>, <a href="plugins.html">Plugins</a>, <a href="servicechecks.html">Service Checks</a>, <a href="hostchecks.html">Host Checks</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="passivechecks.html">Passive Checks</a>, <a href="plugins.html">Plugins</a>, <a href="servicechecks.html">Service Checks</a>, <a href="hostchecks.html">Host Checks</a>
 </p>
 
 <p>
@@ -35,12 +35,10 @@
 Nagios is capable of monitoring hosts and services in two ways: actively and passively.  Passive checks are described <a href="passivechecks.html">elsewhere</a>, so we'll focus on active checks here.  Active checks are the most common method for monitoring hosts and services.  The main features of actives checks as as follows:
 </p>
 
-<p>
 <ul>
 <li>Active checks are initiated by the Nagios process</li>
 <li>Active checks are run on a regularly scheduled basis</li>
 </ul>
-</p>
 
 <img src="images/activechecks.png" border="0" style="float: right;">
 
@@ -63,12 +61,10 @@ More information on how plugins work can be found <a href="plugins.html">here</a
 <p>
 Active check are executed:
 </p>
-<p>
 <ul>
 <li>At regular intervals, as defined by the <i>check_interval</i> and <i>retry_interval</i> options in your host and service definitions</li>
 <li>On-demand as needed</li>
 </ul>
-</p>
 
 <p>
 Regularly scheduled checks occur at intervals equaling either the <i>check_interval</i> or the <i>retry_interval</i> in your host or service definitions, depending on what <a href="statetypes.html">type of state</a> the host or service is in.   If a host or service is in a HARD state, it will be actively checked at intervals equal to the <i>check_interval</i> option.  If it is in a SOFT state, it will be checked at intervals equal to the <i>retry_interval</i> option.

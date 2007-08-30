@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guides</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="quickstart.html">Quickstart Installation Guides</a>
 </p>
 
 <p>
@@ -49,13 +49,11 @@ These instructions were written based on a standard <b>Fedora Core 6</b> Linux d
 If you follow these instructions, here's what you'll end up with:
 </p>
 
-<p>
 <ul>
 <li>Nagios and the plugins will be installed underneath /usr/local/nagios</li>
 <li>Nagios will be configured to monitor a few aspects of your local system (CPU load, disk usage, etc.)</li>
 <li>The Nagios web interface will be accessible at http://localhost/nagios/</li>
 </ul>
-</p>
 
 <p>
 <strong><u>Prerequisites</u></strong>
@@ -69,26 +67,22 @@ During portions of the installation you'll need to have <b>root</b> access to yo
 Make sure you've installed the following packages on your Fedora installation before continuing. 
 </p>
 
-<p>
 <ul>
 <li>Apache</li>
 <li>GCC compiler</li>
 <li><a href="http://www.boutell.com/gd/">GD</a> development libraries</li>
 </ul>
-</p>
 
 <p>
 You can use <i>yum</i> to install these packages by running the following commands (as root):
 </p>
 
-<p>
 <pre>
 yum install httpd
 yum install gcc
 yum install glibc glibc-common
 yum install gd gd-devel
 </pre>
-</p>
 
 <p>
 <strong><u>1) Create Account Information</u></strong>
@@ -98,34 +92,28 @@ yum install gd gd-devel
 Become the root user.
 </p>
 
-<p>
 <pre>
 su -l
 </pre>
-</p>
 
 <p>
 Create a new <i>nagios</i> user account and give it a password.
 </p>
 
-<p>
 <pre>
 /usr/sbin/useradd nagios
 passwd nagios
 </pre>
-</p>
 
 <p>
 Create a new <i>nagcmd</i> group for allowing external commands to be submitted through the web interface. Add both the nagios user and the apache user to the group.
 </p>
 
-<p>
 <pre>
 /usr/sbin/groupadd nagcmd
 /usr/sbin/usermod -G nagcmd nagios
 /usr/sbin/usermod -G nagcmd apache
 </pre>
-</p>
 
 <p>
 <strong><u>2) Download Nagios and the Plugins</u></strong>
@@ -135,23 +123,19 @@ Create a new <i>nagcmd</i> group for allowing external commands to be submitted 
 Create a directory for storing the downloads.
 </p>
 
-<p>
 <pre>
 mkdir ~/downloads
 cd ~/downloads
 </pre>
-</p>
 
 <p>
 Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).  At the time of writing, the latest versions of Nagios and the Nagios plugins were 3.0b2 and 1.4.7, respectively.
 </p>
 
-<p>
 <pre>
 wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0b2.tar.gz
 wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.7.tar.gz
 </pre>
-</p>
 
 <p>
 <strong><u>3) Compile and Install Nagios</u></strong>
@@ -161,46 +145,38 @@ wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.7.
 Extract the Nagios source code tarball.
 </p>
 
-<p>
 <pre>
 cd ~/downloads
 tar xzf nagios-3.0b2.tar.gz
 cd nagios-3.0b2
 </pre>
-</p>
 
 <p>
 Run the Nagios configure script, passing the name of the group you created earlier like so:
 </p>
 
-<p>
 <pre>
 ./configure --with-command-group=nagcmd
 </pre>
-</p>
 
 <p>
 Compile the Nagios source code.
 </p>
 
-<p>
 <pre>
 make all
 </pre>
-</p>
 
 <p>
 Install binaries, init script, sample config files and set permissions on the external command directory.
 </p>
 
-<p>
 <pre>
 make install
 make install-init
 make install-config
 make install-commandmode
 </pre>
-</p>
 
 <p>
 Don't start Nagios yet - there's still more that needs to be done...
@@ -218,11 +194,9 @@ Sample <a href="config.html">configuration files</a> have now been installed in 
 Edit the <i>/usr/local/nagios/etc/objects/contacts.cfg</i> config file with your favorite editor and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
 </p>
 
-<p>
 <pre>
 vi /usr/local/nagios/etc/objects/contacts.cfg
 </pre>
-</p>
 
 <p>
 <strong><u>5) Configure the Web Interface</u></strong>
@@ -232,31 +206,25 @@ vi /usr/local/nagios/etc/objects/contacts.cfg
 Install the Nagios web config file in the Apache conf.d directory.
 </p>
 
-<p>
 <pre>
 make install-webconf
 </pre>
-</p>
 
 <p>
 Create a <i>nagiosadmin</i> account for logging into the Nagios web interface.  Remember the password you assign to this account - you'll need it later.
 </p>
 
-<p>
 <pre>
 htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
 </pre>
-</p>
 
 <p>
 Restart Apache to make the new settings take effect.
 </p>
 
-<p>
 <pre>
 service httpd restart
 </pre>
-</p>
 
 
 
@@ -268,25 +236,21 @@ service httpd restart
 Extract the Nagios plugins source code tarball.
 </p>
 
-<p>
 <pre>
 cd ~/downloads
 tar xzf nagios-plugins-1.4.7.tar.gz
 cd nagios-plugins-1.4.7
 </pre>
-</p>
 
 <p>
 Compile and install the plugins.
 </p>
 
-<p>
 <pre>
 ./configure --with-nagios-user=nagios --with-nagios-group=nagios
 make
 make install
 </pre>
-</p>
 
 
 <p>
@@ -297,32 +261,26 @@ make install
 Add Nagios to the list of system services and have it automatically start when the system boots.
 </p>
 
-<p>
 <pre>
 chkconfig --add nagios
 chkconfig nagios on
 </pre>
-</p>
 
 <p>
 Verify the sample Nagios configuration files.
 </p>
 
-<p>
 <pre>
 /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
 </pre>
-</p>
 
 <p>
 If there are no errors, start Nagios.
 </p>
 
-<p>
 <pre>
 service nagios start
 </pre>
-</p>
 
 <p>
 <strong><u>8) Modify SELinux Settings</u></strong>
@@ -336,21 +294,17 @@ Fedora ships with SELinux (Security Enhanced Linux) installed and in Enforcing m
 See if SELinux is in Enforcing mode.
 </p>
 
-<p>
 <pre>
 getenforce
 </pre>
-</p>
 
 <p>
 Put SELinux into Permissive mode.
 </p>
 
-<p>
 <pre>
 setenforce 0
 </pre>
-</p>
 
 <p>
 To make this change permanent, you'll have to modify the settings in <i>/etc/selinux/config</i> and reboot. 
@@ -360,12 +314,10 @@ To make this change permanent, you'll have to modify the settings in <i>/etc/sel
 Instead of disabling SELinux or setting it to permissive mode, you can use the following command to run the CGIs under SELinux enforcing/targeted mode:
 </p>
 
-<p>
 <pre>
 chcon -R -t httpd_sys_content_t /usr/local/nagios/sbin/
 chcon -R -t httpd_sys_content_t /usr/local/nagios/share/
 </pre>
-</p>
 
 <p>
 For information on running the Nagios CGIs under Enforcing mode with a targeted policy, visit the NagiosCommunity.org wiki at <a href="http://www.nagioscommunity.org/wiki">http://www.nagioscommunity.org/wiki</a>.
@@ -379,11 +331,9 @@ For information on running the Nagios CGIs under Enforcing mode with a targeted 
 You should now be able to access the Nagios web interface at the URL below.  You'll be prompted for the username (<i>nagiosadmin</i>) and password you specified earlier.
 </p>
 
-<p>
 <pre>
 http://localhost/nagios/
 </pre>
-</p>
 
 <p>
 Click on the "Service Detail" navbar link to see details of what's being monitored on your local machine.  It will take a few minutes for Nagios to check all the services associated with your machine, as the checks are spread out over time.
@@ -409,7 +359,6 @@ Configuring email notifications is out of the scope of this documentation.  Whil
 Congratulations!  You sucessfully installed Nagios.  Your journey into monitoring is just beginning.  You'll no doubt want to monitor more than just your local machine, so check out the following docs...
 </p>
 
-<p>
 <ul>
 <li><a href="monitoring-windows.html">Monitoring Windows machines</a></li>
 <li><a href="monitoring-linux.html">Monitoring Linux/Unix machines</a></li>
@@ -417,7 +366,6 @@ Congratulations!  You sucessfully installed Nagios.  Your journey into monitorin
 <li><a href="monitoring-routers.html">Monitoring routers/switches</a></li>
 <li><a href="monitoring-publicservices.html">Monitoring publicly available services (HTTP, FTP, SSH, etc.)</a></li>
 </ul>
-</p>
 
 <hr>
 

@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="objectdefinitions.html">Object Configuration</a>, <a href="objecttricks.html">Object Tricks</a>, <a href="customobjectvars.html">Custom Object Variables</a>, <a href="faststartup.html">Fast Startup Options</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="objectdefinitions.html">Object Configuration</a>, <a href="objecttricks.html">Object Tricks</a>, <a href="customobjectvars.html">Custom Object Variables</a>, <a href="faststartup.html">Fast Startup Options</a>
 </p>
 
 <p>
@@ -49,7 +49,6 @@ If you are confused about how recursion and inheritance work after reading this,
 There are three variables affecting recursion and inheritance that are present in all object definitions.  They are indicated in red as follows...
 </p>
 
-<p>
 <pre>
 	define <i>someobjecttype</i>{
 		<i>object-specific variables</i> ...
@@ -58,7 +57,6 @@ There are three variables affecting recursion and inheritance that are present i
 		<font color="red">register	[0/1]</font>
 		}
 </pre>
-</p>
 
 <p>
 The first variable is <i>name</i>.  Its just a "template" name that can be referenced in other object definitions so they can inherit the objects properties/variables.  Template names must be unique amongst objects of the same type, so you can't have two or more host definitions that have "hosttemplate" as their template name.
@@ -80,7 +78,6 @@ The third variable is <i>register</i>.  This variable is used to indicate whethe
 One important thing to understand with inheritance is that "local" object variables always take precedence over variables defined in the template object.  Take a look at the following example of two host definitions (not all required variables have been supplied):
 </p>
 
-<p>
 <pre>
 	define host{
 		host_name		bighost1
@@ -96,13 +93,11 @@ One important thing to understand with inheritance is that "local" object variab
 		<font color="red">use			hosttemplate1</font>
 		}
 </pre>
-</p>
 
 <p>
 You'll note that the definition for host <i>bighost1</i> has been defined as having <i>hosttemplate1</i> as its template name.  The definition for host <i>bighost2</i> is using the definition of <i>bighost1</i> as its template object.  Once Nagios processes this data, the resulting definition of host <i>bighost2</i> would be equivalent to this definition:
 </p>
 
-<p>
 <pre>
 	define host{
 		host_name		bighost2
@@ -111,14 +106,13 @@ You'll note that the definition for host <i>bighost1</i> has been defined as hav
 		max_check_attempts	3
 		}
 </pre>
-</p>
 
 <p>
 You can see that the <i>check_command</i> and <i>notification_options</i> variables were inherited from the template object (where host <i>bighost1</i> was defined).  However, the <i>host_name</i> and <i>max_check_attempts</i> variables were not inherited from the template object because they were defined locally.  Remember, locally defined variables override variables that would normally be inherited from a template object.  That should be a fairly easy concept to understand.
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: If you would like local string variables to be appended to inherited string values, you can do so. Read more about how to accomplish this <a href="#add_string">below</a>.
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: If you would like local string variables to be appended to inherited string values, you can do so. Read more about how to accomplish this <a href="#add_string">below</a>.
 </p>
 
 <p>
@@ -129,7 +123,6 @@ You can see that the <i>check_command</i> and <i>notification_options</i> variab
 Objects can inherit properties/variables from multiple levels of template objects.  Take the following example:
 </p>
 
-<p>
 <pre>
 	define host{
 		host_name		bighost1
@@ -151,14 +144,12 @@ Objects can inherit properties/variables from multiple levels of template object
 		<font color="red">use			hosttemplate2</font>
 		}
 </pre>
-</p>
 
 <p>
 You'll notice that the definition of host <i>bighost3</i> inherits variables from the definition of host <i>bighost2</i>, which in turn inherits variables from the definition of host <i>bighost1</i>.  Once Nagios processes this configuration data, the resulting host definitions are equivalent to the following:
 </p>
 
 
-<p>
 <pre>
 	define host{
 		host_name		bighost1
@@ -181,7 +172,6 @@ You'll notice that the definition of host <i>bighost3</i> inherits variables fro
 		max_check_attempts	3
 		}
 </pre>
-</p>
 
 <p>
 There is no inherent limit on how "deep" inheritance can go, but you'll probably want to limit yourself to at most a few levels in order to maintain sanity.
@@ -195,7 +185,6 @@ There is no inherent limit on how "deep" inheritance can go, but you'll probably
 It is possible to use imcomplete object definitions as templates for use by other object definitions.  By "incomplete" definition, I mean that all required variables in the object have not been supplied in the object definition.  It may sound odd to use incomplete definitions as templates, but it is in fact recommended that you use them.  Why?  Well, they can serve as a set of defaults for use in all other object definitions.  Take the following example:
 </p>
 
-<p>
 <pre>
 	define host{
 		check_command		check-host-alive
@@ -217,7 +206,6 @@ It is possible to use imcomplete object definitions as templates for use by othe
 		<font color="red">use			generichosthosttemplate</font>
 		}
 </pre>
-</p>
 
 <p>
 Notice that the first host definition is incomplete because it is missing the required <i>host_name</i> variable.  We don't need to supply a host name because we just want to use this definition as a generic host template.  In order to prevent this definition from being registered with Nagios as a normal host, we set the <i>register</i> variable to 0.
@@ -227,7 +215,6 @@ Notice that the first host definition is incomplete because it is missing the re
 The definitions of hosts <i>bighost1</i> and <i>bighost2</i> inherit their values from the generic host definition.  The only variable we've chosed to override is the <i>address</i> variable.  This means that both hosts will have the exact same properties, except for their <i>host_name</i> and <i>address</i> variables.  Once Nagios processes the config data in the example, the resulting host definitions would be equivalent to specifying the following:
 </p>
 
-<p>
 <pre>
 	define host{
 		host_name		bighost1
@@ -245,7 +232,6 @@ The definitions of hosts <i>bighost1</i> and <i>bighost2</i> inherit their value
 		max_check_attempts	5
 		}
 </pre>
-</p>
 
 
 <p>
@@ -260,7 +246,6 @@ At the very least, using a template definition for default variables will save y
 Any <a href="customobjectvars.html">custom object variables</a> that you define in your host, service, or contact definition templates will be inherited just like other standard variables.  Take the following example:
 </p>
 
-<p>
 <pre>
 	define host{
 		_customvar1		somevalue  ; <-- Custom host variable
@@ -275,13 +260,11 @@ Any <a href="customobjectvars.html">custom object variables</a> that you define 
 		<font color="red">use			generichosthosttemplate</font>
 		}
 </pre>
-</p>
 
 <p>
 The host <i>bighost1</i> will inherit the custom host variables <i>_customvar1</i> and <i>_snmp_community</i>, as well as their respective values, from the <i>generichosttemplate</i> definition.  The effective result is a definition for <i>bighost1</i> that looks like this:
 </p>
 
-<p>
 <pre>
 	define host{
 		host_name		bighost1
@@ -290,7 +273,6 @@ The host <i>bighost1</i> will inherit the custom host variables <i>_customvar1</
 		_snmp_community		public
 		}
 </pre>
-</p>
 
 <a name="cancel_string"></a>
 <p>
@@ -301,7 +283,6 @@ The host <i>bighost1</i> will inherit the custom host variables <i>_customvar1</
 In some cases you may not want your host, service, or contact definitions to inherit values of string variables from the templates they reference.  If this is the case, you can specify "<b>null</b>" (without quotes) as the value of the variable that you do not want to inherit.  Take the following example:
 </p>
 
-<p>
 <pre>
 	define host{
 		event_handler		my-event-handler-command
@@ -316,20 +297,17 @@ In some cases you may not want your host, service, or contact definitions to inh
 		<font color="red">use			generichosthosttemplate</font>
 		}
 </pre>
-</p>
 
 <p>
 In this case, the host <i>bighost1</i> will not inherit the value of the <i>event_handler</i> variable that is defined in the <i>generichosttemplate</i>.  The resulting effective definition of <i>bighost1</i> is the following:
 </p>
 
-<p>
 <pre>
 	define host{
 		host_name		bighost1
 		address			192.168.1.3
 		}
 </pre>
-</p>
 
 <a name="add_string"></a>
 <p>
@@ -344,7 +322,6 @@ Nagios gives preference to local variables instead of values inherited from temp
 This "additive inheritance" can be accomplished by prepending the local variable value with a plus sign (<b>+</b>).  This features is only available for standard (non-custom) variables that contain string values.  Take the following example:
 </p>
 
-<p>
 <pre>
 	define host{
 		hostgroups		all-servers
@@ -358,20 +335,17 @@ This "additive inheritance" can be accomplished by prepending the local variable
 		<font color="red">use			generichosthosttemplate</font>
 		}
 </pre>
-</p>
 
 <p>
 In this case, the host <i>linuxserver1</i> will append the value of its local <i>hostgroups</i> variable to that from <i>generichosttemplate</i>.  The resulting effective definition of <i>linuxserver1</i> is the following:
 </p>
 
-<p>
 <pre>
 	define host{
 		host_name			linuxserver1
 		hostgroups		all-servers,linux-servers,web-servers
 		}
 </pre>
-</p>
 
 <a name="implied_inheritance"></a>
 <p>
@@ -445,7 +419,6 @@ Thus far, all examples of inheritance have shown object definitions inheriting v
 <table border="0" class="Default">
 <tr>
 <td>
-<p>
 <pre>
 # Generic host template
 define host{
@@ -472,7 +445,6 @@ define host{
 	...
 	}
 </pre>
-</p>
 </td>
 <td valign="top">
 <img src="images/multiple-templates1.png" border="0" alt="Multiple Inheritance Sources" title="Multiple Inheritance Sources" style="padding: 0 0 0 25px;">
@@ -484,7 +456,6 @@ define host{
 In the example above, <i>devweb1</i> is inheriting variables/values from two sources: <i>generic-host</i> and <i>development-server</i>.  You'll notice that a <i>check_interval</i> variable is defined in both sources.  Since <i>generic-host</i> was the first template specified in <i>devweb1</i>'s <i>use</i> directive, its value for the <i>check_interval</i> variable is inherited by the <i>devweb1</i> host.  After inheritance, the effective definition of <i>devweb1</i> would be as follows:
 </p>
 
-<p>
 <pre>
 # Development web server
 define host{
@@ -495,7 +466,6 @@ define host{
 	...
 	}
 </pre>
-</p>
 
 <p>
 <strong><u>Precedence With Multiple Inheritance Sources</u></strong>
@@ -511,7 +481,6 @@ When you use multiple inheritance sources, it is important to know how Nagios ha
 <p>
 Consider the following host definition that references three templates:
 </p>
-<p>
 <pre>
 # Development web server
 define host{
@@ -520,7 +489,6 @@ define host{
 	...
 	}
 </pre>
-</p>
 <p>
 If some of those referenced templates themselves inherit variables/values from one or more other templates, the precendence rules are shown to the right.
 </p>

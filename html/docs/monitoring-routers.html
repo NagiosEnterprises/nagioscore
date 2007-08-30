@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="monitoring-publicservices.html">Monitoring Publicly Available Services</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="monitoring-publicservices.html">Monitoring Publicly Available Services</a>
 </p>
 
 <p>
@@ -43,16 +43,14 @@ This document describes how you can monitor the status of network switches and r
 I'll describe how you can monitor the following things on managed switches, hubs, and routers:
 </p>
 
-<p>
 <ul>
 <li>Packet loss, round trip average</li>
 <li>SNMP status information</li>
 <li>Bandwith / traffic rate</li>
 </ul>
-</p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample config files (<i>commands.cfg</i>, <i>templates.cfg</i>, etc.) that are installed when you follow the quickstart.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample config files (<i>commands.cfg</i>, <i>templates.cfg</i>, etc.) that are installed when you follow the quickstart.
 </p>
 
 <p>
@@ -81,13 +79,11 @@ The <i>check_snmp</i> plugin will only get compiled and installed if you have th
 There are several steps you'll need to follow in order to monitor a new router or switch.  They are:
 </p>
 
-<p>
 <ol>
 <li>Perform first-time prerequisites</li>
 <li>Create new host and service definitions for monitoring the device</li>
 <li>Restart the Nagios daemon</li>
 </ol>
-</p>
 
 
 <p>
@@ -98,12 +94,10 @@ There are several steps you'll need to follow in order to monitor a new router o
 To make your life a bit easier, a few configuration tasks have already been done for you:
 </p>
 
-<p>
 <ul>
 <li>Two command definitions (<i>check_snmp</i> and <i>check_local_mrtgtraf</i>) have been added to the <i>commands.cfg</i> file.  These allows you to use the <i>check_snmp</i> and <i>check_mrtgtraf</i> plugins to monitor network printers.</li>
 <li>A switch host template (called <i>generic-switch</i>) has already been created in the <i>templates.cfg</i> file.  This allows you to add new router/switch host definitions in a simple manner.</li>
 </ul>
-</p>
 
 <p>
 The above-mentioned config files can be found in the <i>/usr/local/nagios/etc/objects/</i> directory.  You can modify the definitions in these and other definitions to suit your needs better if you'd like.  However, I'd recommend waiting until you're more familiar with configuring Nagios before doing so.  For the time being, just follow the directions outlined below and you'll be monitoring your network routers/switches in no time.
@@ -121,21 +115,17 @@ The first time you configure Nagios to monitor a network switch, you'll need to 
 Edit the main Nagios config file.
 </p>
 
-<p>
 <pre>
 vi /usr/local/nagios/etc/nagios.cfg
 </pre>
-</p>
 
 <p>
 Remove the leading pound (#) sign from the following line in the main configuration file:
 </p>
 
-<p>
 <pre>
 #cfg_file=/usr/local/nagios/etc/objects/switch.cfg
 </pre>
-</p>
 
 <p>
 Save the file and exit.
@@ -157,17 +147,14 @@ You'll need to create some <a href="objectdefinitions.html">object definitions</
 Open the <i>switch.cfg</i> file for editing.
 </p>
 
-<p>
 <pre>
 vi /usr/local/nagios/etc/objects/switch.cfg
 </pre>
-</p>
 
 <p>
 Add a new <a href="objectdefinitions.html#host">host</a> definition for the switch that you're going to monitor.  If this is the *first* switch you're monitoring, you can simply modify the sample host definition in <i>switch.cfg</i>.  Change the <i>host_name</i>, <i>alias</i>, and <i>address</i> fields to appropriate values for the switch.
 </p>
 
-<p>
 <pre>
 define host{
 	use		generic-switch		; Inherit default values from a template
@@ -177,7 +164,6 @@ define host{
 	hostgroups	allhosts,switches			; Host groups this switch is associated with
 	}
 </pre>
-</p>
 
 <p>
 <strong><u>Monitoring Services</u></strong>
@@ -188,7 +174,7 @@ Now you can add some service definitions (to the same configuration file) to mon
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: Replace "<i>linksys-srw224p</i>" in the example definitions below with the name you specified in the <i>host_name</i> directive of the host definition you just added.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: Replace "<i>linksys-srw224p</i>" in the example definitions below with the name you specified in the <i>host_name</i> directive of the host definition you just added.
 </p>
 
 
@@ -200,7 +186,6 @@ Now you can add some service definitions (to the same configuration file) to mon
 Add the following service definition in order to monitor packet loss and round trip average between the Nagios host and the switch every 5 minutes under normal conditions.
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service	; Inherit values from a template
@@ -211,19 +196,16 @@ define service{
 	retry_check_interval	1	; Re-check the service every minute until its final/hard state is determined
 	}
 </pre>
-</p>
 
 <p>
 This service will be:
 </p>
 
-<p>
 <ul>
 <li>CRITICAL if the round trip average (RTA) is greater than 600 milliseconds or the packet loss is 60% or more</li>
 <li>WARNING if the RTA is greater than 200 ms or the packet loss is 20% or more</li>
 <li>OK if the RTA is less than 200 ms and the packet loss is less than 20%</li>
 </ul>
-</p>
 
 <p>
 <strong><u>Monitoring SNMP Status Information</u></strong>
@@ -237,7 +219,6 @@ If your switch or router supports SNMP, you can monitor a lot of information by 
 Add the following service definition to monitor the uptime of the switch.
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service	; Inherit values from a template
@@ -246,7 +227,6 @@ define service{
 	check_command		check_snmp!-C public -o sysUpTime.0
 	}
 </pre>
-</p>
 
 <p>
 In the <i>check_command</i> directive of the service definition above, the "-C public" tells the plugin that the SNMP community name to be used is "public" and the "-o sysUpTime.0" indicates which OID should be checked.
@@ -256,7 +236,6 @@ In the <i>check_command</i> directive of the service definition above, the "-C p
 If you want to ensure that a specific port/interface on the switch is in an up state, you could add a service definition like this:
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service	; Inherit values from a template
@@ -265,7 +244,6 @@ define service{
 	check_command		check_snmp!-C public -o ifOperStatus.1 -r 1 -m RFC1213-MIB
 	}
 </pre>
-</p>
 
 <p>
 In the example above, the "-o ifOperStatus.1" refers to the OID for the operational status of port 1 on the switch.  The "-r 1" option tells the <i>check_snmp</i> plugin to return an OK state if "1" is found in the SNMP result (1 indicates an "up" state on the port) and CRITICAL if it isn't found.  The "-m RFC1213-MIB" is optional and tells the <i>check_snmp</i> plugin to only load the "RFC1213-MIB" instead of every single MIB that's installed on your system, which can help speed things up.
@@ -276,7 +254,7 @@ That's it for the SNMP monitoring example.  There are a million things that can 
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip:  You can usually find the OIDs that can be monitored on a switch by running the following command (replace <i>192.168.1.253</i> with the IP address of the switch):
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip:  You can usually find the OIDs that can be monitored on a switch by running the following command (replace <i>192.168.1.253</i> with the IP address of the switch):
 <i>snmpwalk -v1 -c public 192.168.1.253 -m ALL .1</i>
 </p>
 
@@ -292,7 +270,6 @@ If you're monitoring bandwidth usage on your switches or routers using <a href="
 You'll need to let the <i>check_mrtgtraf</i> plugin know what log file the MRTG data is being stored in, along with thresholds, etc.  In my example, I'm monitoring one of the ports on a Linksys switch.  The MRTG log file is stored in <i>/var/lib/mrtg/192.168.1.253_1.log</i>.  Here's the service definition I use to monitor the bandwidth data that's stored in the log file...
 </p>
 
-<p>
 <pre>
 define service{
 	use			generic-service	; Inherit values from a template
@@ -301,7 +278,6 @@ define service{
 	check_command		check_local_mrtgtraf!/var/lib/mrtg/192.168.1.253_1.log!AVG!1000000,2000000!5000000,5000000!10
 	}
 </pre>
-</p>
 
 <p>
 In the example above, the "/var/lib/mrtg/192.168.1.253_1.log" option that gets passed to the <i>check_local_mrtgtraf</i> command tells the plugin which MRTG log file to read from.  The "AVG" option tells it that it should use average bandwidth statistics.  The "1000000,200000" options are the warning thresholds (in bytes) for incoming traffic rates.  The "5000000,5000000" are critical thresholds (in bytes) for outgoing traffic rates.  The "10" option causes the plugin to return a CRITICAL state if the MRTG log file is older than 10 minutes (it should be updated every 5 minutes).

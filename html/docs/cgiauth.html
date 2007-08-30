@@ -23,8 +23,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="configcgi.html">CGI Configuration File Options</a>, <a href="cgis.html">Information on the CGIs</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="configcgi.html">CGI Configuration File Options</a>, <a href="cgis.html">Information on the CGIs</a>
 </p>
 
 <p>
@@ -39,12 +39,10 @@ This documentation describes how the Nagios CGIs decide who has access to view m
 Before continuing, it is important that you understand the meaning of and difference between authenticated users and authenticated contacts:
 </p>
 
-<p>
 <ul>
 <li>An <b>authenticated user</b> is an someone who has authenticated to the web server with a username and password and has been granted access to the Nagios web interface.
 <li>An <b>authenticated contact</b> is an authenticated user whose username matches the short name of a <a href="objectdefinitions.html#contact">contact definition</a>.
 </ul>
-</p>
 
 
 <p>
@@ -60,11 +58,9 @@ Assuming you configured your web server as described in the <a href="quickstart.
 As you define more <a href="objectdefinitions.html#contact">contacts</a> for receiving host and service notifications, you'll most likely want to let them access the Nagios web interface.  You can use the following command to add additional users who can authenticate to the CGIs.  Replace &lt;username&gt; with the actual username you want to add.  In most cases, the username should match the short name of a <a href="objectdefinitions.html#contact">contact</a> that has been defined.
 </p>
 
-<p>
 <pre>
 htpasswd /usr/local/nagios/etc/htpasswd.users &lt;username&gt;
 </pre>
-</p>
 
 <p>
 <a name="enable_cgi_auth"></a>
@@ -75,11 +71,9 @@ htpasswd /usr/local/nagios/etc/htpasswd.users &lt;username&gt;
 The next thing you need to do is make sure that the CGIs are configured to use the authentication and authorization functionality in determining what information and/or commands users have access to.  This is done be setting the <a href="configcgi.html#use_authentication">use_authentication</a> variable in the <a href="configcgi.html">CGI configuration file</a> to a non-zero value.  Example:
 </p>
 
-<p>
 <pre>
 use_authentication=1
 </pre>
-</p>
 
 <p>
 Okay, you're now done with setting up basic authentication/authorization functionality in the CGIs.
@@ -173,19 +167,16 @@ So what default permissions do users have in the CGIs by default when the authen
 <p>
 <i>Authenticated contacts<sup><a href="#definitions">*</a></sup></i> are granted the following permissions for each <b>service</b> for which they are contacts (but not for services for which they are not contacts)...
 </p>
-<p>
 <ul>
 <li>Authorization to view service status information
 <li>Authorization to view service configuration information
 <li>Authorization to view history and notifications for the service
 <li>Authorization to issue service commands
 </ul>
-</p>
 
 <p>
 <i>Authenticated contacts<sup><a href="#definitions">*</a></sup></i> are granted the following permissions for each <b>host</b> for which they are contacts (but not for hosts for which they are not contacts)...
 </p>
-<p>
 <ul>
 <li>Authorization to view host status information
 <li>Authorization to view host configuration information
@@ -196,19 +187,16 @@ So what default permissions do users have in the CGIs by default when the authen
 <li>Authorization to view history and notification information for all services on the host
 <li>Authorization to issue commands for all services on the host
 </ul>
-</p>
 
 <p>
 It is important to note that by default <b>no one</b> is authorized for the following...
 </p>
-<p>
 <ul>
 <li>Viewing the raw log file via the <a href="cgis.html#showlog_cgi">showlog CGI</a>
 <li>Viewing Nagios process information via the <a href="cgis.html#extinfo_cgi">extended information CGI</a>
 <li>Issuing Nagios process commands via the <a href="cgis.html#cmd_cgi">command CGI</a>
 <li>Viewing host group, contact, contact group, time period, and command definitions via the <a href="cgis.html#config_cgi">configuration CGI</a>
 </ul>
-</p>
 
 <p>
 You will undoubtably want to access this information, so you'll have to assign additional rights for yourself (and possibly other users) as described below...
@@ -226,7 +214,6 @@ You can grant <i>authenticated contacts</i> or other <i>authenticated users</i> 
 <p>
 Additional authorization can be given to users by adding them to the following variables in the CGI configuration file...
 </p>
-<p>
 <ul>
 <li><a href="configcgi.html#authorized_for_system_information">authorized_for_system_information</a>
 <li><a href="configcgi.html#authorized_for_system_commands">authorized_for_system_commands</a>
@@ -236,7 +223,6 @@ Additional authorization can be given to users by adding them to the following v
 <li><a href="configcgi.html#authorized_for_all_services">authorized_for_all_services</a>
 <li><a href="configcgi.html#authorized_for_all_service_commands">authorized_for_all_service_commands</a>
 </ul>
-</p>
 
 <p>
 <a name="cgi_auth_requirements"></a>

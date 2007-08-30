@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="notifications.html">Notifications</a>, <a href="timeperiods.html">Time Periods</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="notifications.html">Notifications</a>, <a href="timeperiods.html">Time Periods</a>
 </p>
 
 <p>
@@ -40,7 +40,7 @@ Nagios supports optional escalation of contact notifications for hosts and servi
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: The examples I provide below all make use of service escalation definitions, but host escalations work the same way.  Except, of course, that they're for hosts instead of services. :-)
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: The examples I provide below all make use of service escalation definitions, but host escalations work the same way.  Except, of course, that they're for hosts instead of services. :-)
 </p>
 
 <p>
@@ -51,7 +51,6 @@ Nagios supports optional escalation of contact notifications for hosts and servi
 Notifications are escalated <i>if and only if</i> one or more escalation definitions matches the current notification that is being sent out.  If a host or service notification <i>does not</i> have any valid escalation definitions that applies to it, the contact group(s) specified in either the host group or service definition will be used for the notification.  Look at the example below:
 </p>
 
-<p>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -85,7 +84,6 @@ Notice that there are "holes" in the notification escalation definitions.  In pa
 When defining notification escalations, it is important to keep in mind that any contact groups that were members of "lower" escalations (i.e. those with lower notification number ranges) should also be included in "higher" escalation definitions.  This should be done to ensure that anyone who gets notified of a problem <i>continues</i> to get notified as the problem is escalated.  Example:
 </p>
 
-<p>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -119,7 +117,6 @@ The first (or "lowest") escalation level includes both the <i>nt-admins</i> and 
 Notification escalation definitions can have notification ranges that overlap.  Take the following example:
 </p>
 
-<p>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -145,13 +142,11 @@ define serviceescalation{
 In the example above:
 </p>
 
-<p>
 <ul>
 <li>The <i>nt-admins</i> and <i>managers</i> contact groups get notified on the third notification
 <li>All three contact groups get notified on the fourth and fifth notifications
 <li>Only the <i>on-call-support</i> contact group gets notified on the sixth (or higher) notification
 </ul>
-</p>
 
 <p>
 <strong><u>Recovery Notifications</u></strong>
@@ -161,7 +156,6 @@ In the example above:
 Recovery notifications are slightly different than problem notifications when it comes to escalations.  Take the following example:
 </p>
 
-<p>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -195,7 +189,6 @@ If, after three problem notifications, a recovery notification is sent out for t
 You can change the frequency at which escalated notifications are sent out for a particular host or service by using the <i>notification_interval</i> option of the hostgroup or service escalation definition.  Example:
 </p>
 
-<p>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -225,7 +218,6 @@ In this example we see that the default notification interval for the services i
 Since it is possible to have overlapping escalation definitions for a particular hostgroup or service, and the fact that a host can be a member of multiple hostgroups, Nagios has to make a decision on what to do as far as the notification interval is concerned when escalation definitions overlap.  In any case where there are multiple valid escalation definitions for a particular notification, Nagios will choose the smallest notification interval.  Take the following example:
 </p>
 
-<p>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -255,7 +247,6 @@ We see that the two escalation definitions overlap on the 4th and 5th notificati
 One last note about notification intervals deals with intervals of 0.  An interval of 0 means that Nagios should only sent a notification out for the first valid notification during that escalation definition.  All subsequent notifications for the hostgroup or service will be suppressed.  Take this example:
 </p>
 
-<p>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -303,7 +294,7 @@ You can optionally restrict escalations so that they are only used during specif
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: Escalated notifications are still subject to the normal time restrictions imposed by the <i>notification_period</i> directive in a host or service definition, so the timeperiod you specify in an escalation definition should be a subset of that larger "notification time window".
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: Escalated notifications are still subject to the normal time restrictions imposed by the <i>notification_period</i> directive in a host or service definition, so the timeperiod you specify in an escalation definition should be a subset of that larger "notification time window".
 </p>
 
 <p>

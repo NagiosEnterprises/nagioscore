@@ -23,8 +23,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="activechecks.html">Active Checks</a>, <a href="hostchecks.html">Host Checks</a>, <a href="checkscheduling.html">Check Scheduling</a>, <a href="dependencychecks.html">Predictive Dependency Checks</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="activechecks.html">Active Checks</a>, <a href="hostchecks.html">Host Checks</a>, <a href="checkscheduling.html">Check Scheduling</a>, <a href="dependencychecks.html">Predictive Dependency Checks</a>
 </p>
 
 <p>
@@ -43,12 +43,10 @@ The basic workings of service checks are described here...
 Services are checked by the Nagios daemon:
 </p>
 
-<p>
 <ul>
 <li>At regular intervals, as defined by the <i>check_interval</i> and <i>retry_interval</i> options in your <a href="objectdefinitions.html#service">service definitions</a>.</li>
 <li>On-demand as needed for <a href="dependencychecks.html">predictive service dependency checks</a>.</li>
 </ul>
-</p>
 
 <p>
 On-demand checks are performed as part of the <a href="dependencychecks.html">predictive service dependency check</a> logic.  These checks help ensure that the dependency logic is as accurate as possible.  If you don't make use of <a href="objectdefinitions.html#servicedependency">service dependencies</a>, Nagios won't perform any on-demand service checks.
@@ -92,14 +90,12 @@ On-demand service checks are also run in parallel if needed.  As mentioned earli
 Services that are checked can be in one of four different states:
 </p>
 
-<p>
 <ul>
 <li>OK</li>
 <li>WARNING</li>
 <li>UNKNOWN</li>
 <li>CRITICAL</li>
 </ul>
-</p>
 
 <p>
 <strong><u>Service State Determination</u></strong>

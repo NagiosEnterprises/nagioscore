@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="activechecks.html">Active Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="hostchecks.html">Host Checks</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="activechecks.html">Active Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="hostchecks.html">Host Checks</a>
 </p>
 
 <p>
@@ -37,12 +37,10 @@
 In most cases you'll use Nagios to monitor your hosts and services using regularly scheduled <a href="activechecks.html">active checks</a>.  Active checks can be used to "poll" a device or service for status information every so often.  Nagios also supports a way to monitor hosts and services passively instead of actively.  They key features of passive checks are as follows:
 </p>
 
-<p>
 <ul>
 <li>Passive checks are initiated and performed external applications/processes</li>
 <li>Passive check results are submitted to Nagios for processing</li>
 </ul>
-</p>
 
 <p>
 The major difference between active and passive checks is that active checks are initiated and performed by Nagios, while passive checks are performed by external applications.
@@ -56,12 +54,10 @@ The major difference between active and passive checks is that active checks are
 Passive checks are useful for monitoring services that are:
 </p>
 
-<p>
 <ul>
 <li>Asynchronous in nature and cannot be monitored effectively by polling their status on a regularly scheduled basis
 <li>Located behind a firewall and cannot be checked actively from the monitoring host
 </ul>
-</p>
 
 <p>
 Examples of asynchronous services that lend themselves to being monitored passively include SNMP traps and security alerts.  You never know how many (if any) traps or alerts you'll receive in a given time frame, so it's not feasible to just monitor their status every few minutes.
@@ -81,14 +77,12 @@ Passive checks are also used when configuring <a href="distributed.html">distrib
 Here's how passive checks work in more detail...
 </p>
 
-<p>
 <ol>
 <li>An external application checks the status of a host or service.</li><br><br>
 <li>The external application writes the results of the check to the <a href="configmain.html#command_file">external command file</a>.</li><br><br>
 <li>The next time Nagios reads the external command file it will place the results of all passive checks into a queue for later processing.  The same queue that is used for storing results from active checks is also used to store the results from passive checks.</li><br><br>
 <li>Nagios will periodically execute a <a href="configmain.html#check_result_reaper_frequency">check result reaper event</a> and scan the check result queue.  Each service check result that is found in the queue is processed in the same manner - regardless of whether the check was active or passive.  Nagios may send out notifications, log alerts, etc. depending on the check result information.</li><br><br>
 </ol>
-</p>
 
 <p>
 The processing of active and passive check results is essentially identical.  This allows for seamless integration of status information from external applications with Nagios.
@@ -104,12 +98,10 @@ The processing of active and passive check results is essentially identical.  Th
 In order to enable passive checks in Nagios, you'll need to do the following:
 </p>
 
-<p>
 <ul>
 <li>Set <a href="configmain.html#accept_passive_service_checks">accept_passive_service_checks</a> directive is set to 1.</li>
 <li>Set the <i>passive_checks_enabled</i> directive in your host and service definitions is set to 1.</li>
 </ul>
-</p>
 
 <p>
 If you want to disable processing of passive checks on a global basis, set the <a href="configmain.html#accept_passive_service_checks">accept_passive_service_checks</a> directive to 0.
@@ -140,7 +132,6 @@ The format of the command is as follows:
 where...
 </p>
 
-<p>
 <ul>
 <li><i>timestamp</i> is the time in time_t format (seconds since the UNIX epoch) that the service check was perfomed (or submitted). Please note the single space after the right bracket. 
 <li><i>host_name</i> is the short name of the host associated with the service in the service definition
@@ -148,15 +139,14 @@ where...
 <li><i>return_code</i> is the return code of the check (0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN)
 <li><i>plugin_output</i> is the text output of the service check (i.e. the plugin output)
 </ul>
-</p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> 
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> 
 Note: A service must be defined in Nagios before you can submit passive check results for it!  Nagios will ignore all check results for services that had not been configured before it was last (re)started.
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> 
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> 
 An example shell script of how to submit passive service check results to Nagios can be found in the documentation on <a href="volatileservices.html">volatile services</a>.
 </p>
 
@@ -180,17 +170,15 @@ The format of the command is as follows:
 where...
 </p>
 
-<p>
 <ul>
 <li><i>timestamp</i> is the time in time_t format (seconds since the UNIX epoch) that the host check was perfomed (or submitted). Please note the single space after the right bracket. 
 <li><i>host_name</i> is the short name of the host (as defined in the host definition)
 <li><i>host_status</i> is the status of the host (0=UP, 1=DOWN, 2=UNREACHABLE)
 <li><i>plugin_output</i> is the text output of the host check
 </ul>
-</p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> 
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> 
 Note: A host must be defined in Nagios before you can submit passive check results for it!  Nagios will ignore all check results for hosts that had not been configured before it was last (re)started.
 </p>
 
@@ -207,7 +195,7 @@ You can tell Nagios to translate DOWN/UNREACHABLE passive check result states to
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: Passive host checks are normally treated as <a href="statetypes.html">HARD states</a>, unless the <a href="configmain.html#passive_host_checks_are_soft">passive_host_checks_are_soft</a> option is enabled.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: Passive host checks are normally treated as <a href="statetypes.html">HARD states</a>, unless the <a href="configmain.html#passive_host_checks_are_soft">passive_host_checks_are_soft</a> option is enabled.
 </p>
 
 

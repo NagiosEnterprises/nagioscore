@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="plugins.html">Plugin Overview</a>, <a href="epnplugins.html">Developing Plugins For Use With Embedded Perl</a>, <a href="perfdata.html">Performance Data</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="plugins.html">Plugin Overview</a>, <a href="epnplugins.html">Developing Plugins For Use With Embedded Perl</a>, <a href="perfdata.html">Performance Data</a>
 </p>
 
 <p>
@@ -36,12 +36,10 @@
 <p>
 If you're looking at writing your own plugins for Nagios, please make sure to visit these other resources:
 </p>
-<p>
 <ul>
 <li>The official <a href="http://sourceforge.net/projects/nagiosplug/">Nagios plugin project website</a></li>
 <li>The official <a href="http://nagiosplug.sourceforge.net/developer-guidelines.html">Nagios plugin development guidelines</a></li>
 </ul>
-</p>
 
 <p>
 <strong><u>Plugin Overview</u></strong>
@@ -51,12 +49,10 @@ If you're looking at writing your own plugins for Nagios, please make sure to vi
 Scripts and executables must do two things (at a minimum) in order to function as Nagios plugins:
 </p>
 
-<p>
 <ul>
 <li>Exit with one of several possible return values</li>
 <li>Return at least one line of text output to STDOUT</li>
 </ul>
-</p>
 
 <p>
 The inner workings of your plugin are unimportant to Nagios.  Your plugin could check the status of a TCP port, run a database query, check disk free space, or do whatever else it needs to check something.   The details will depend on what needs to be checked - that's up to you.
@@ -81,7 +77,7 @@ Nagios determines the status of a host or service by evaluating the return code 
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: If the <a href="configmain.html#use_aggressive_host_checking">use_aggressive_host_checking</a> option is enabled, return codes of 1 will result in a host state or DOWN or UNREACHABLE.  Otherwise return codes of 1 will result in a host state of UP.  The process by which Nagios determines whether or not a host is DOWN or UNREACHABLE is discussed <a href="networkreachability.html">here</a>.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: If the <a href="configmain.html#use_aggressive_host_checking">use_aggressive_host_checking</a> option is enabled, return codes of 1 will result in a host state or DOWN or UNREACHABLE.  Otherwise return codes of 1 will result in a host state of UP.  The process by which Nagios determines whether or not a host is DOWN or UNREACHABLE is discussed <a href="networkreachability.html">here</a>.
 </p>
 
 
@@ -181,14 +177,12 @@ The <font color="orange">orange</font> portions of the first and subsequent line
 With regards to multiple lines of output, you have the following options for returning performance data:
 </p>
 
-<p>
 <ul>
 <li>You can choose to return no performance data whatsoever</li>
 <li>You can return performance data on the first line only</li>
 <li>You can return performance data only in subsequent lines (after the first)</li>
 <li>You can return performance data in both the first line and subsequent lines (as shown above)</li>
 </ul>
-</p>
 
 <p>
 <strong><u>Plugin Output Length Restrictions</u></strong>

@@ -23,8 +23,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="dependencychecks.html">Predictive Dependency Checks</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="dependencychecks.html">Predictive Dependency Checks</a>
 </p>
 
 <p>
@@ -49,26 +49,22 @@ Regularly scheduled host and service checks will not see a performance improveme
 For reference, on-demand host checks occur...
 </p>
 
-<p>
 <ul>
 <li>When a service associated with the host changes state.</li>
 <li>As needed as part of the <a href="networkreachability.html">host reachability</a> logic.</li>
 <li>As needed for <a href="dependencychecks.html">predictive host dependency checks</a>.</li>
 </ul>
-</p>
 
 <p>
 And on-demand service checks occur...
 </p>
 
-<p>
 <ul>
 <li>As needed for <a href="dependencychecks.html">predictive service dependency checks</a>.</li>
 </ul>
-</p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: Unless you make use of service dependencies, Nagios will not be able to use cached check results to improve the performance of service checks.  Don't worry about that - its normal.  Cached host checks are where the big performance improvements lie, and everyone should see a benefit there.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: Unless you make use of service dependencies, Nagios will not be able to use cached check results to improve the performance of service checks.  Don't worry about that - its normal.  Cached host checks are where the big performance improvements lie, and everyone should see a benefit there.
 </p>
 
 
@@ -126,12 +122,10 @@ There is no standard cached check horizon or cache hit rate that will be accepta
 The following variables determine the timeframes in which a previous host or service check result may be used as a cached host or service check result:
 </p>
 
-<p>
 <ul>
 <li>The <a href="configmain.html#cached_host_check_horizon">cached_host_check_horizon</a> variable controls cached host checks.</li>
 <li>The <a href="configmain.html#cached_service_check_horizon">cached_service_check_horizon</a> variable controls cached service checks.</li>
 </ul>
-</p>
 
 <p>
 <strong><u>Optimizing Cache Effectiveness</u></strong>
@@ -141,13 +135,11 @@ The following variables determine the timeframes in which a previous host or ser
 In order to make the most effective use of cached checks, you should:
 </p>
 
-<p>
 <ul>
 <li>Schedule regular checks of your hosts</li>
 <li>Use MRTG to graph statistics for 1) on-demand checks and 2) cached checks</li>
 <li>Adjust cached check horizon variables to fit your needs</li>
 </ul>
-</p>
 
 <p>
 You can schedule regular checks of your hosts by specifying a value greater than 0 for <i>check_interval</i> option in your <a href="objectdefinitions.html#host">host definitions</a>.  If you do this, make sure that you set the <i>max_check_attempts</i> option to a value greater than 1, or it will cause a big performance hit.  This potential performance hit is describe in detail <a href="hostchecks.html">here</a>.
@@ -163,13 +155,11 @@ A good way to determine the proper value for the cached check horizon options is
 The monitoring installation which produced the graphs above had:
 </p>
 
-<p>
 <ul>
 <li>A total of 44 hosts, all of which were checked at regular intervals</li>
 <li>An average (regularly scheduled) host check interval of 5 minutes</li>
 <li>A <a href="configmain.html#cached_host_check_horizon">cached_host_check_horizon</a> of 15 seconds</li>
 </ul>
-</p>
 
 <p>
 The first MRTG graph shows how many regularly scheduled host checks compared to how many cached host checks have occured.  In this example, an average of 53 host checks occur every five minutes.  9 of these (17%) are on-demand checks.

@@ -23,8 +23,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="activechecks.html">Active Checks</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="activechecks.html">Active Checks</a>
 </p>
 
 
@@ -65,26 +65,22 @@ I've gotten a lot of questions regarding how service checks are scheduled in cer
 Before we begin, there are several configuration options that affect how service checks are scheduled, executed, and processed.  For starters, each service definition contains three options that determine when and how each specific service check is scheduled and executed.  Those three options include:
 </p>
 
-<p>
 <ul>
 <li><i>normal_check_interval</i>
 <li><i>retry_check_interval</i>
 <li><i>check_period</i>
 </ul>
-</p>
 
 <p>
 There are also four configuration options in the <a href="configmain.html">main configuration file</a> that affect service checks.  These include:
 </p>
 
-<p>
 <ul>
 <li><a href="configmain.html#service_inter_check_delay_method"><i>service_inter_check_delay_method</i></a>
 <li><a href="configmain.html#service_interleave_factor"><i>service_interleave_factor</i></a>
 <li><a href="configmain.html#max_concurrent_checks"><i>max_concurrent_checks</i></a>
 <li><a href="configmain.html#service_reaper_frequency"><i>service_reaper_frequency</i></a>
 </ul>
-</p>
 
 <p>
 We'll go into more detail on how all these options affect service check scheduling as we progress.  First off, let's see how services are initially scheduled when Nagios first starts or restarts...
@@ -194,13 +190,11 @@ The good thing about this setting is that you can regulate Nagios' CPU usage.  T
 First off, you need to know the following things...
 </p>
 
-<p>
 <ul>
 <li>The inter-check delay that Nagios uses to initially schedule service checks (use the <b>-s</b> command line argument to check this)
 <li>The frequency (in seconds) of service reaper events, as specified by the <a href="configmain.html#service_reaper_frequency">service_reaper_frequency</a> variable in the main config file.
 <li>A general idea of the average time that service checks actually take to execute (most plugins timeout after 10 seconds, so the average is probably going to be lower)
 </ul>
-</p>
 
 <p>
 Next, use the following calculation to determine a reasonable value for the maximum number of concurrent checks that are allowed...

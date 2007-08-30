@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="largeinstalltweaks.html">Large Installation Tweaks</a>, <a href="faststartup.html">Fast Startup Options</a>, <a href="mrtggraphs.html">Graphing Performance Info</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="largeinstalltweaks.html">Large Installation Tweaks</a>, <a href="faststartup.html">Fast Startup Options</a>, <a href="mrtggraphs.html">Graphing Performance Info</a>
 </p>
 
 <p>
@@ -45,7 +45,6 @@ So you've finally got Nagios up and running and you want to know how you can twe
 <strong><u>Optimization Tips:</u></strong>
 </p>
 
-<p>
 <ol>
 
 <li><b>Graph performance statistics with MRTG</b>.  In order to keep track of how well your Nagios installation handles load over time and how your configuration changes affect it, you should be graphing several important statistics with MRTG.  This is really, really, really useful when it comes to tuning the performance of a Nagios installation.  Really.  Information on how to do this can be found <a href="mrtggraphs.html">here</a>.</li><br><br>
@@ -82,7 +81,6 @@ So you've finally got Nagios up and running and you want to know how you can twe
 <li><b>Optimize hardware for maximum performance</b>.  NOTE: Hardware performance shouldn't be an issue unless: 1) you're monitoring thousands of services, 2) you're doing a lot of post-processing of performance data, etc.  Your system configuration and your hardware setup are going to directly affect how your operating system performs, so they'll affect how Nagios performs.  The most common hardware optimization you can make is with your hard drives.  CPU and memory speed are obviously factors that affect performance, but disk access is going to be your biggest bottlenck.  Don't store plugins, the status log, etc on slow drives (i.e. old IDE drives or NFS mounts).  If you've got them, use UltraSCSI drives or fast IDE drives.  An important note for IDE/Linux users is that many Linux installations do not attempt to optimize disk access.  If you don't change the disk access parameters (by using a utility like <b>hdparam</b>), you'll loose out on a <b>lot</b> of the speedy features of the new IDE drives.
 
 </ol>
-</p>
 
 
 <hr>

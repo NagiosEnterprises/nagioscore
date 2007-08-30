@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="statetypes.html">State Types</a>, <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="statetypes.html">State Types</a>, <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>
 </p>
 
 <p>
@@ -43,7 +43,6 @@ Event handlers are optional system commands (scripts or executables) that are ru
 An obvious use for event handlers is the ability for Nagios to proactively fix problems before anyone is notified.  Some other uses for event handlers include:
 </p>
 
-<p>
 <ul>
 <li>Restarting a failed service</li>
 <li>Entering a trouble ticket into a helpdesk system</li>
@@ -51,7 +50,6 @@ An obvious use for event handlers is the ability for Nagios to proactively fix p
 <li>Cycling power on a host*</li>
 <li>etc.</li>
 </ul>
-</p>
 
 <p>
 * Cycling power on a host that is experiencing problems with an auomated script should not be implemented lightly.  Consider the consequences of this carefully before implementing automatic reboots. :-)
@@ -63,13 +61,11 @@ An obvious use for event handlers is the ability for Nagios to proactively fix p
 <p>
 Event handlers are executed when a service or host:
 </p>
-<p>
 <ul>
 <li>Is in a SOFT problem state
 <li>Initially goes into a HARD problem state
 <li>Initially recovers from a SOFT or HARD problem state
 </ul>
-</p>
 <p>
 SOFT and HARD states are described in detail <a href="statetypes.html">here</a> .
 </p>
@@ -82,14 +78,12 @@ SOFT and HARD states are described in detail <a href="statetypes.html">here</a> 
 There are different types of optional event handlers that you can define to handle host and state changes:
 </p>
 
-<p>
 <ul>
 <li>Global host event handler</li>
 <li>Global service event handler</li>
 <li>Host-specific event handlers</li>
 <li>Service-specific event handlers</li>
 </ul>
-</p>
 
 <p>
 Global host and service event handlers are run for <i>every</i> host or service state change that occurs, immediately prior to any host- or service-specific event handler that may be run.  You can specify global event handler commands by using the <a href="configmain.html#global_host_event_handler">global_host_event_handler</a> and <a href="configmain.html#global_service_event_handler">global_service_event_handler</a> options in your main configuration file.
@@ -138,7 +132,7 @@ The scripts should examine the values of the arguments passed to it and take any
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: Additional sample event handler scripts can be found in the <i>contrib/eventhandlers/</i> subdirectory of the Nagios distribution.  Some of these sample scripts demonstrate the use of <a href="extcommands.html">external commands</a> to implement a <a href="redundancy.html">redundant</a> and <a href="distributed.html">distributed</a> monitoring environments.
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: Additional sample event handler scripts can be found in the <i>contrib/eventhandlers/</i> subdirectory of the Nagios distribution.  Some of these sample scripts demonstrate the use of <a href="extcommands.html">external commands</a> to implement a <a href="redundancy.html">redundant</a> and <a href="distributed.html">distributed</a> monitoring environments.
 </p>
 
 <p>
@@ -162,7 +156,6 @@ to the Nagios user for executing the necessary system commands.  You might want 
 The example below assumes that you are monitoring the HTTP server on the local machine and have specified <i>restart-httpd</i> as the event handler command for the HTTP service definition.  Also, I will be assuming that you have set the <i>max_check_attempts</i> option for the service to be a value of 4 or greater (i.e. the service is checked 4 times before it is considered to have a real problem).  An abbreviated example service definition might look like this...
 </p>
 
-<p>
 <pre>
 define service{
 	host_name			somehost
@@ -172,21 +165,18 @@ define service{
 	...
 	}
 </pre>
-</p>
 
 
 <p>
 Once the service has been defined with an event handler, we must define that event handler as a command.  An example command definition for <i>restart-httpd</i> is shown below.  Notice the macros in the command line that I am passing to the event handler script - these are important!
 </p>
 
-<p>
 <pre>
 define command{
 	command_name	restart-httpd
 	command_line	/usr/local/nagios/libexec/eventhandlers/restart-httpd  $SERVICESTATE$ $SERVICESTATETYPE$ $SERVICEATTEMPT$
 	}
 </pre>
-</p>
 
 <p>
 Now, let's actually write the event handler script (this is the <i>/usr/local/nagios/libexec/eventhandlers/restart-httpd</i> script).
@@ -194,7 +184,6 @@ Now, let's actually write the event handler script (this is the <i>/usr/local/na
 
 <br><br>
 
-<p>
 <pre>
 #!/bin/sh
 #
@@ -260,7 +249,6 @@ CRITICAL)
 esac
 exit 0
 </pre>
-</p>
 
 <br><br>
 
@@ -268,12 +256,10 @@ exit 0
 The sample script provided above will attempt to restart the web server on the local machine in two different instances:
 </p>
 
-<p>
 <ul>
 <li>After the service has been rechecked for the 3rd time and is in a SOFT CRITICAL state</li>
 <li>After the service first goes into a HARD CRITICAL state</li>
 </ul>
-</p>
 
 <p>
 The script should theoretically restart and web server and fix the problem before the service goes into a HARD problem state, but we include a fallback case in the event it doesn't work the first time.  It should be noted that the event handler will only be executed the first time that the service falls into a HARD problem state.  This prevents Nagios from continuously executing the script to restart the web server if the service remains in a HARD problem state.  You don't want that. :-)

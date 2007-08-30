@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="tuning.html">Performance Tuning</a>, <a href="largeinstalltweaks.html">Large Installation Tweaks</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="tuning.html">Performance Tuning</a>, <a href="largeinstalltweaks.html">Large Installation Tweaks</a>
 </p>
 
 <p>
@@ -41,13 +41,11 @@ There are a few things you can do that can decrease the amount of time it take N
 Using these techniques is particularly useful when you have one or more of the following:
 </p>
 
-<p>
 <ul>
 <li>Large configurations</li>
 <li>Complex configurations (heavy use of template features)</li>
 <li>Installations where frequest restarts are necessary</li>
 </ul>
-</p>
 
 <p>
 <strong><u>Background</u></strong>
@@ -57,7 +55,6 @@ Using these techniques is particularly useful when you have one or more of the f
 Whenever Nagios starts/restarts it has to process your configuration files before it can get down to the business of monitoring.  This configuration startup process involves a number of steps:
 </p>
 
-<p>
 <ul>
 <li>Reading the config files</li>
 <li>Resolving template definitions</li>
@@ -69,7 +66,6 @@ Whenever Nagios starts/restarts it has to process your configuration files befor
 <li>Checking for circular paths</li>
 <li>and more...</li>
 </ul>
-</p>
 
 <p>
 Some of these steps can be quite time-consuming when you have large or complex configurations.  Is there a way to speed any of these steps up?  Yes!

@@ -27,8 +27,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="cgis.html">Information on the CGIs</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="cgis.html">Information on the CGIs</a>
 </p>
 
 <p>
@@ -63,12 +63,10 @@ Custom headers are included immediately after the &lt;BODY&gt;> tag in the CGI o
 <p>There are two types of customer headers and footers:
 </p>
 
-<p>
 <ul>
 <li>Global headers/footers.  These files should be named <i>common-header.ssi</i> and <i>common-footer.ssi</i>, respectively.  If these files exist, they will be included in the output of all CGIs.<br><br>
 <li>CGI-specific headers/footers.  These files should be named in the format <i>CGINAME-header.ssi</i> and <i>CGINAME-footer.ssi</i>, where <i>CGINAME</i> is the physical name of the CGI without the .cgi extension.  For example, the header and footer files for the <a href="cgis.html#summary_cgi">alert summary CGI</a> (summary.cgi) would be named <i>summary-header.ssi</i> and <i>summary-footer.ssi</i>, respectively.
 </ul>
-</p>
 
 <p>
 You are not required to use any custom headers or footers.  You can use only a global header if you wish.  You can use only CGI-specific headers and a global footer if you wish.  Whatever you want.  Really.

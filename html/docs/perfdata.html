@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="plugins.html">Plugins</a>, <a href="pluginapi.html">Plugin API</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="plugins.html">Plugins</a>, <a href="pluginapi.html">Plugin API</a>
 </p>
 
 <p>
@@ -45,12 +45,10 @@ Nagios is designed to allow <a href="plugins.html">plugins</a> to return optiona
 There are two basic categories of performance data that can be obtained from Nagios:
 </p>
 
-<p>
 <ol>
 <li>Check performance data
 <li>Plugin performance data
 </ol>
-</p>
 
 <p>
 Check performance data is internal data that relates to the actual execution of a host or service check.  This might include things like service check latency (i.e. how "late" was the service check from its scheduled execution time) and the number of seconds a host or service check took to execute.  This type of performance data is available for all checks that are performed.  The <a href="macrolist.html#hostexecutiontime">$HOSTEXECUTIONTIME$</a> and <a href="macrolist.html#serviceexecutiontime">$SERVICEEXECUTIONTIME$</a> <a href="macros.html">macros</a> can be used to determine the number of seconds a host or service check was running and the <a href="macrolist.html#hostlatency">$HOSTLATENCY$</a> and <a href="macrolist.html#servicelatency">$SERVICELATENCY$</a> macros can be used to determine how "late" a regularly-scheduled host or service check was.
@@ -92,12 +90,10 @@ PING ok - Packet loss = 0%, RTA = 0.80 ms | percent_packet_loss=0, rta=0.80
 When Nagios sees this plugin output format it will split the output into two parts:
 </p>
 
-<p>
 <ol>
 <li>Everything before the pipe character is considered to be the "normal" plugin output and will be stored in either the $HOSTOUTPUT$ or $SERVICEOUTPUT$ macro</li>
 <li>Everything after the pipe character is considered to be the plugin-specific performance data and will be stored in the $HOSTPERFDATA$ or $SERVICEPERFDATA$ macro</li>
 </ol>
-</p>
 
 <p>
 In the example above, the $HOSTOUTPUT$ or $SERVICEOUTPUT$ macro would contain "<i>PING ok - Packet loss = 0%, RTA = 0.80 ms</i>" (without quotes) and the $HOSTPERFDATA$ or $SERVICEPERFDATA$ macro would contain "<i>percent_packet_loss=0, rta=0.80</i>" (without quotes).
@@ -108,7 +104,7 @@ Multiple lines of performace data (as well as normal text output) can be obtaine
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: The Nagios daemon doesn't directly process plugin performance data, so it doesn't really care what the performance data looks like.  There aren't really any inherent limitations on the format or content of the performance data.  However, if you are using an external addon to process the performance data (i.e. PerfParse), the addon may be expecting that the plugin returns performance data in a specific format.  Check the documentation that comes with the addon for more information.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: The Nagios daemon doesn't directly process plugin performance data, so it doesn't really care what the performance data looks like.  There aren't really any inherent limitations on the format or content of the performance data.  However, if you are using an external addon to process the performance data (i.e. PerfParse), the addon may be expecting that the plugin returns performance data in a specific format.  Check the documentation that comes with the addon for more information.
 </p>
 
 <p>
@@ -119,12 +115,10 @@ Multiple lines of performace data (as well as normal text output) can be obtaine
 If you want to process the performance data that is available from Nagios and the plugins, you'll need to do the following:
 </p>
 
-<p>
 <ol>
 <li>Enable the <a href="configmain.html#process_performance_data">process_performance_data</a> option.<br><br>
 <li>Configure Nagios so that performance data is either written to files and/or processed by executing commands.
 </ol>
-</p>
 
 <p>
 Read on for information on how to process performance data by writing to files or executing commands.
@@ -142,18 +136,16 @@ The most flexible way to process performance data is by having Nagios execute co
 An example command definition that redirects service check performance data to a text file for later processing by another application is shown below:
 </p>
 
-<p>
 <pre>
 define command{
 	command_name	store-service-perfdata
 	command_line	/bin/echo -e "$LASTSERVICECHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$SERVICESTATETYPE$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$" &gt;&gt; /usr/local/nagios/var/service-perfdata.dat
 	}
 </pre>
-</p>
 
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: This method, while flexible, comes with a relatively high CPU overhead.  If you're processing performance data for a large number of hosts and services, you'll probably want Nagios to write performance data to files instead.  This method is described in the next section.
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: This method, while flexible, comes with a relatively high CPU overhead.  If you're processing performance data for a large number of hosts and services, you'll probably want Nagios to write performance data to files instead.  This method is described in the next section.
 </p>
 
 <p>
@@ -168,11 +160,9 @@ You can have Nagios write all host and service performance data directly to text
 An example file format template for service performance data might look like this:
 </p>
 
-<p>
 <pre>
 service_perfdata_file_template=[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$
 </pre>
-</p>
 
 <p>
 By default, the text files will be opened in "append" mode. If you need to change the modes to "write" or "non-blocking read/write" (useful when writing to pipes), you can use the <a href="configmain.html#host_perfdata_file_mode">host_perfdata_file_mode</a> and <a href="configmain.html#service_perfdata_file_mode">service_perfdata_file_mode</a> options.

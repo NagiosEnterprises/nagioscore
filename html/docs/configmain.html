@@ -25,7 +25,7 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
 </p>
 
 <p>
@@ -34,19 +34,17 @@
 <p>
 When creating and/or editing configuration files, keep the following in mind:
 </p>
-<p>
 <ol>
 <li>Lines that start with a '#' character are taken to be comments and are not processed
 <li>Variables names must begin at the start of the line - no white space is allowed before the name
 <li>Variable names are case-sensitive
 </ol>
-</p>
 
 <p>
 <strong><u>Sample Configuration File</u></strong>
 </p>
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: A sample main configuration file (<i>/usr/local/nagios/etc/nagios.cfg</i>) is installed for you when you follow the <a href="quickstart.html">quickstart installation guide</a>.
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: A sample main configuration file (<i>/usr/local/nagios/etc/nagios.cfg</i>) is installed for you when you follow the <a href="quickstart.html">quickstart installation guide</a>.
 </p>
 
 <p>
@@ -566,12 +564,10 @@ This is used to set the effective group that the Nagios process should run as.  
 <p>
 This option determines whether or not Nagios will send out <a href="notifications.html">notifications</a> when it initially (re)starts.  If this option is disabled, Nagios will not send out notifications for any host or service.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
 </p>
-<p>
 <ul>
 <li>0 = Disable notifications
 <li>1 = Enable notifications (default)
 </ul>
-</p>
 
 
 <p>
@@ -599,12 +595,10 @@ This option determines whether or not Nagios will send out <a href="notification
 <p>
 This option determines whether or not Nagios will execute service checks when it initially (re)starts.  If this option is disabled, Nagios will not actively execute any service checks and will remain in a sort of "sleep" mode (it can still accept <a href="passivechecks.html">passive checks</a> unless you've <a href="#accept_passive_service_checks">disabled them</a>).   This option is most often used when configuring backup monitoring servers, as described in the documentation on <a href="redundancy.html">redundancy</a>, or when setting up a <a href="distributed.html">distributed</a> monitoring environment.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
 </p>
-<p>
 <ul>
 <li>0 = Don't execute service checks
 <li>1 = Execute service checks (default)
 </ul>
-</p>
 
 
 <p>
@@ -632,12 +626,10 @@ This option determines whether or not Nagios will execute service checks when it
 <p>
 This option determines whether or not Nagios will accept <a href="passivechecks.html">passive service checks</a> when it initially (re)starts.  If this option is disabled, Nagios will not accept any passive service checks.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
 </p>
-<p>
 <ul>
 <li>0 = Don't accept passive service checks
 <li>1 = Accept passive service checks (default)
 </ul>
-</p>
 
 
 <p>
@@ -665,12 +657,10 @@ This option determines whether or not Nagios will accept <a href="passivechecks.
 <p>
 This option determines whether or not Nagios will execute on-demand and regularly scheduled host checks when it initially (re)starts.  If this option is disabled, Nagios will not actively execute any host checks, although it can still accept <a href="passivechecks.html">passive host checks</a> unless you've <a href="#accept_passive_host_checks">disabled them</a>).   This option is most often used when configuring backup monitoring servers, as described in the documentation on <a href="redundancy.html">redundancy</a>, or when setting up a <a href="distributed.html">distributed</a> monitoring environment.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
 </p>
-<p>
 <ul>
 <li>0 = Don't execute host checks
 <li>1 = Execute host checks (default)
 </ul>
-</p>
 
 
 <p>
@@ -698,12 +688,10 @@ This option determines whether or not Nagios will execute on-demand and regularl
 <p>
 This option determines whether or not Nagios will accept <a href="passivechecks.html">passive host checks</a> when it initially (re)starts.  If this option is disabled, Nagios will not accept any passive host checks.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
 </p>
-<p>
 <ul>
 <li>0 = Don't accept passive host checks
 <li>1 = Accept passive host checks (default)
 </ul>
-</p>
 
 
 <p>
@@ -731,12 +719,10 @@ This option determines whether or not Nagios will accept <a href="passivechecks.
 <p>
 This option determines whether or not Nagios will run <a href="eventhandlers.html">event handlers</a> when it initially (re)starts.  If this option is disabled, Nagios will not run any host or service event handlers.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
 </p>
-<p>
 <ul>
 <li>0 = Disable event handlers
 <li>1 = Enable event handlers (default)
 </ul>
-</p>
 
 
 <p>
@@ -764,7 +750,6 @@ This option determines whether or not Nagios will run <a href="eventhandlers.htm
 <p>
 This is the rotation method that you would like Nagios to use for your log file.  Values are as follows:
 </p>
-<p>
 <ul>
 <li>n = None (don't rotate the log - this is the default)
 <li>h = Hourly (rotate the log at the top of each hour)
@@ -772,7 +757,6 @@ This is the rotation method that you would like Nagios to use for your log file.
 <li>w = Weekly (rotate the log at midnight on Saturday)
 <li>m = Monthly (rotate the log at midnight on the last day of the month)
 </ul>
-</p>
 
 
 <p>
@@ -827,12 +811,10 @@ This is the directory where Nagios should place log files that have been rotated
 <p>
 This option determines whether or not Nagios will check the <a href="#command_file">command file</a> for  commands that should be executed.  This option must be enabled if you plan on using the <a href="cgis.html#command_cgi">command CGI</a> to issue commands via the web interface. More information on external commands can be found <a href="extcommands.html">here</a>.
 </p>
-<p>
 <ul>
 <li>0 = Don't check external commands
 <li>1 = Check external commands (default)
 </ul>
-</p>
 
 
 <p>
@@ -972,12 +954,10 @@ This option specifies the location of the lock file that Nagios should create wh
 <p>
 This option determines whether or not Nagios will retain state information for hosts and services between program restarts.  If you enable this option, you should supply a value for the <a href="#state_retention_file">state_retention_file</a> variable.  When enabled, Nagios will save all state information for hosts and service before it shuts down (or restarts) and will read in previously saved state information when it starts up again.
 </p>
-<p>
 <ul>
 <li>0 = Don't retain state information
 <li>1 = Retain state information (default)
 </ul>
-</p>
 
 
 <p>
@@ -1059,12 +1039,10 @@ This setting determines how often (in minutes) that Nagios will automatically sa
 <p>
 This setting determines whether or not Nagios will set various program-wide state variables based on the values saved in the retention file.  Some of these program-wide state variables that are normally saved across program restarts if state retention is enabled include the <a href="#enable_notifications">enable_notifications</a>, <a href="#enable_flap_detection">enable_flap_detection</a>, <a href="#enable_event_handlers">enable_event_handlers</a>, <a href="#execute_service_checks">execute_service_checks</a>, and <a href="#accept_passive_service_checks">accept_passive_service_checks</a> options. If you do not have <a href="#retain_state_information">state retention</a> enabled, this option has no effect.
 </p>
-<p>
 <ul>
 <li>0 = Don't use retained program state
 <li>1 = Use retained program state (default)
 </ul>
-</p>
 
 
 <p>
@@ -1092,12 +1070,10 @@ This setting determines whether or not Nagios will set various program-wide stat
 <p>
 This setting determines whether or not Nagios will retain scheduling info (next check times) for hosts and services when it restarts.  If you are adding a large number (or percentage) of hosts and services, I would recommend disabling this option when you first restart Nagios, as it can adversely skew the spread of initial checks.  Otherwise you will probably want to  leave it enabled.
 </p>
-<p>
 <ul>
 <li>0 = Don't use retained scheduling info
 <li>1 = Use retained scheduling info (default)
 </ul>
-</p>
 
 
 <p>
@@ -1237,12 +1213,10 @@ These options determine which contact attributes are NOT retained across program
 This variable determines whether messages are logged to the syslog facility on your local host.  Values
 are as follows:
 </p>
-<p>
 <ul>
 <li>0 = Don't use syslog facility
 <li>1 = Use syslog facility
 </ul>
-</p>
 
 
 <p>
@@ -1272,12 +1246,10 @@ This variable determines whether or not notification messages are logged.  If yo
 or regular service failures your log file will grow relatively quickly.  Use this option to keep contact
 notifications from being logged.
 </p>
-<p>
 <ul>
 <li>0 = Don't log notifications
 <li>1 = Log notifications
 </ul>
-</p>
 
 
 <p>
@@ -1308,12 +1280,10 @@ service check results in a non-OK state, but you have configured Nagios to retry
 responding to the error.  Services in this situation are considered to be in "soft" states.  Logging service check retries
 is mostly useful when attempting to debug Nagios or test out service <a href="eventhandlers.html">event handlers</a>.
 </p>
-<p>
 <ul>
 <li>0 = Don't log service check retries
 <li>1 = Log service check retries
 </ul>
-</p>
 
 
 <p>
@@ -1342,12 +1312,10 @@ is mostly useful when attempting to debug Nagios or test out service <a href="ev
 This variable determines whether or not host check retries are logged.  Logging host check retries
 is mostly useful when attempting to debug Nagios or test out host <a href="eventhandlers.html">event handlers</a>.
 </p>
-<p>
 <ul>
 <li>0 = Don't log host check retries
 <li>1 = Log host check retries
 </ul>
-</p>
 
 
 <p>
@@ -1377,12 +1345,10 @@ This variable determines whether or not service and host <a href="eventhandlers.
 Event handlers are optional commands that can be run whenever a service or hosts changes state.  Logging event handlers
 is most useful when debugging Nagios or first trying out your event handler scripts.
 </p>
-<p>
 <ul>
 <li>0 = Don't log event handlers
 <li>1 = Log event handlers
 </ul>
-</p>
 
 
 <p>
@@ -1410,12 +1376,10 @@ is most useful when debugging Nagios or first trying out your event handler scri
 <p>
 This variable determines whether or not Nagios will force all initial host and service states to be logged, even if they result in an OK state.  Initial service and host states are normally only logged when there is a problem on the first check.  Enabling this option is useful if you are using an application that scans the log file to determine long-term state statistics for services and hosts.
 </p>
-<p>
 <ul>
 <li>0 = Don't log initial states (default)
 <li>1 = Log initial states
 </ul>
-</p>
 
 
 
@@ -1444,12 +1408,10 @@ This variable determines whether or not Nagios will force all initial host and s
 <p>
 This variable determines whether or not Nagios will log <a href="extcommands.html">external commands</a> that it receives from the <a href="#command_file">external command file</a>.  Note: This option does not control whether or not <a href="passivechecks.html">passive service checks</a> (which are a type of external command) get logged.  To enable or disable logging of passive checks, use the <a href="#log_passive_checks">log_passive_checks</a> option.
 </p>
-<p>
 <ul>
 <li>0 = Don't log external commands
 <li>1 = Log external commands (default)
 </ul>
-</p>
 
 
 
@@ -1479,12 +1441,10 @@ This variable determines whether or not Nagios will log <a href="extcommands.htm
 <p>
 This variable determines whether or not Nagios will log <a href="passivechecks.html">passive host and service checks</a> that it receives from the <a href="#command_file">external command file</a>.  If you are setting up a <a href="distributed.html">distributed monitoring environment</a> or plan on handling a large number of passive checks on a regular basis, you may wish to disable this option so your log file doesn't get too large.
 </p>
-<p>
 <ul>
 <li>0 = Don't log passive checks
 <li>1 = Log passive checks (default)
 </ul>
-</p>
 
 
 
@@ -1590,14 +1550,12 @@ This is the number of seconds that Nagios will sleep before checking to see if t
 </p>
 This option allows you to control how service checks are initially "spread out" in the event queue.  Using a "smart" delay calculation (the default) will cause Nagios to calculate an average check interval and spread initial checks of all services out over that interval, thereby helping to eliminate CPU load spikes.  Using no delay is generally <i>not</i> recommended, as it will cause all service checks to be scheduled for execution at the same time.  This means that you will generally have large CPU spikes when the services are all executed in parallel.   More information on how to estimate how the inter-check delay affects service check scheduling can be found <a href="checkscheduling.html#service_inter_check_delay">here</a>.  Values are as follows:
 </p>
-<p>
 <ul>
 <li>n = Don't use any delay - schedule all service checks to run immediately (i.e. at the same time!)
 <li>d = Use a "dumb" delay of 1 second between service checks
 <li>s = Use a "smart" delay calculation to spread service checks out evenly (default)
 <li>x.xx = Use a user-supplied inter-check delay of x.xx seconds
 </ul>
-</p>
 
 
 <p>
@@ -1653,7 +1611,6 @@ This variable determines how service checks are interleaved. Interleaving allows
 <li><i>x</i> = A number greater than or equal to 1 that specifies the interleave factor to use.  An interleave factor of 1 is equivalent to not interleaving the service checks.
 <li>s = Use a "smart" interleave factor calculation (default)
 </ul>
-</p>
 
 
 <p>
@@ -1816,14 +1773,12 @@ This options determines the maximum age in seconds that Nagios will consider che
 </p>
 This option allows you to control how host checks <i>that are scheduled to be checked on a regular basis</i> are initially "spread out" in the event queue.  Using a "smart" delay calculation (the default) will cause Nagios to calculate an average check interval and spread initial checks of all hosts out over that interval, thereby helping to eliminate CPU load spikes.  Using no delay is generally <i>not</i> recommended.  Using no delay will cause all host checks to be scheduled for execution at the same time.  More information on how to estimate how the inter-check delay affects host check scheduling can be found <a href="checkscheduling.html#host_inter_check_delay">here</a>.Values are as follows:
 </p>
-<p>
 <ul>
 <li>n = Don't use any delay - schedule all host checks to run immediately (i.e. at the same time!)
 <li>d = Use a "dumb" delay of 1 second between host checks
 <li>s = Use a "smart" delay calculation to spread host checks out evenly (default)
 <li>x.xx = Use a user-supplied inter-check delay of x.xx seconds
 </ul>
-</p>
 
 
 <p>
@@ -1988,12 +1943,10 @@ This option determines the "window" of time (in seconds) that Nagios will look a
 </p>
 Nagios tries to be smart about how and when it checks the status of hosts.  In general, disabling this option will allow Nagios to make some smarter decisions and check hosts a bit faster.  Enabling this option will increase the amount of time required to check hosts, but may improve reliability a bit.  Unless you have problems with Nagios not recognizing that a host recovered, I would suggest <b>not</b> enabling this option.
 </p>
-<p>
 <ul>
 <li>0 = Don't use aggressive host checking (default)
 <li>1 = Use aggressive host checking
 </ul>
-</p>
 
 
 
@@ -2021,12 +1974,10 @@ Nagios tries to be smart about how and when it checks the status of hosts.  In g
 </p>
 This option determines whether or not Nagios will DOWN/UNREACHABLE passive host check results to their "correct" state from the viewpoint of the local Nagios instance.  This can be very useful in distributed and failover monitoring installations.  More information on passive check state translation can be found <a href="passivestatetranslation.html">here</a>.
 </p>
-<p>
 <ul>
 <li>0 = Disable check translation (default)
 <li>1 = Enable check translation
 </ul>
-</p>
 
 
 
@@ -2054,12 +2005,10 @@ This option determines whether or not Nagios will DOWN/UNREACHABLE passive host 
 </p>
 This option determines whether or not Nagios will treat <a href="passivechecks.html">passive host checks</a> as HARD states or SOFT states.  By default, a passive host check result will put a host into a <a href="statetypes.html">HARD state type</a>.  You can change this behavior by enabling this option.
 </p>
-<p>
 <ul>
 <li>0 = Passive host checks are HARD (default)
 <li>1 = Passive host checks are SOFT
 </ul>
-</p>
 
 
 
@@ -2087,12 +2036,10 @@ This option determines whether or not Nagios will treat <a href="passivechecks.h
 </p>
 This option determines whether or not Nagios will execute predictive checks of hosts that are being dependended upon (as defined in <a href="objectdefinitions.html#hostdependency">host dependencies</a>) for a particular host when it changes state.  Predictive checks help ensure that the dependency logic is as accurate as possible.  More information on how predictive checks work can be found <a href="dependencychecks.html">here</a>.
 </p>
-<p>
 <ul>
 <li>0 = Disable predictive checks
 <li>1 = Enable predictive checks (default)
 </ul>
-</p>
 
 
 
@@ -2119,12 +2066,10 @@ This option determines whether or not Nagios will execute predictive checks of h
 </p>
 This option determines whether or not Nagios will execute predictive checks of services that are being dependended upon (as defined in <a href="objectdefinitions.html#servicedependency">service dependencies</a>) for a particular service when it changes state.  Predictive checks help ensure that the dependency logic is as accurate as possible.  More information on how predictive checks work can be found <a href="dependencychecks.html">here</a>.
 </p>
-<p>
 <ul>
 <li>0 = Disable predictive checks
 <li>1 = Enable predictive checks (default)
 </ul>
-</p>
 
 
 
@@ -2206,12 +2151,10 @@ This option determines the maximum amount of time (in seconds) that the state of
 </p>
 This option determines whether or not the Nagios daemon will take several shortcuts to improve performance.  These shortcuts result in the loss of a few features, but larger installations will likely see a lot of benefit from doing so.  More information on what optimizations are taken when you enable this option can be found <a href="largeinstalltweaks.html">here</a>.
 </p>
-<p>
 <ul>
 <li>0 = Don't use tweaks (default)
 <li>1 = Use tweaks
 </ul>
-</p>
 
 
 
@@ -2239,12 +2182,10 @@ This option determines whether or not the Nagios daemon will take several shortc
 </p>
 This option determines whether or not Nagios will try and detect hosts and services that are "flapping".  Flapping occurs when a host or service changes between states too frequently, resulting in a barrage of notifications being sent out.  When Nagios detects that a host or service is flapping, it will temporarily suppress notifications for that host/service until it stops flapping.  Flap detection is very experimental at this point, so use this feature with caution!  More information on how flap detection and handling works can be found <a href="flapping.html">here</a>.     Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.
 </p>
-<p>
 <ul>
 <li>0 = Don't enable flap detection (default)
 <li>1 = Enable flap detection
 </ul>
-</p>
 
 
 <p>
@@ -2370,12 +2311,10 @@ This option is used to set the low threshold for detection of host flapping.  Fo
 </p>
 This option determines whether or not Nagios will use soft service state information when checking <a href="dependencies.html">service dependencies</a>.  Normally Nagios will only use the latest hard service state when checking dependencies.  If you want it to use the latest state (regardless of whether its a soft or hard <a href="statetypes.html">state type</a>), enable this option.
 </p>
-<p>
 <ul>
 <li>0 = Don't use soft service state dependencies (default)
 <li>1 = Use soft service state dependencies
 </ul>
-</p>
 
 
 <p>
@@ -2588,12 +2527,10 @@ This is the maximum number of seconds that Nagios will allow a <a href="#host_pe
 </p>
 This value determines whether or not Nagios will "obsess" over service checks results and run the <a href="#ocsp_command">obsessive compulsive service processor command</a> you define.  I know - funny name, but it was all I could think of.  This option is useful for performing <a href="distributed.html">distributed monitoring</a>.  If you're not doing distributed monitoring, don't enable this option.
 </p>
-<p>
 <ul>
 <li>0 = Don't obsess over services (default)
 <li>1 = Obsess over services
 </ul>
-</p>
 
 
 <p>
@@ -2646,12 +2583,10 @@ This option allows you to specify a command to be run after <i>every</i> service
 </p>
 This value determines whether or not Nagios will "obsess" over host checks results and run the <a href="#ochp_command">obsessive compulsive host processor command</a> you define.  I know - funny name, but it was all I could think of.  This option is useful for performing <a href="distributed.html">distributed monitoring</a>.  If you're not doing distributed monitoring, don't enable this option.
 </p>
-<p>
 <ul>
 <li>0 = Don't obsess over hosts (default)
 <li>1 = Obsess over hosts
 </ul>
-</p>
 
 
 <p>
@@ -2704,12 +2639,10 @@ This option allows you to specify a command to be run after <i>every</i> host ch
 </p>
 This value determines whether or not Nagios will process host and service check <a href="perfdata.html">performance data</a>.
 </p>
-<p>
 <ul>
 <li>0 = Don't process performance data (default)
 <li>1 = Process performance data
 </ul>
-</p>
 
 
 <p>
@@ -2885,13 +2818,11 @@ This option determines what (and how) data is written to the <a href="#service_p
 </p>
 This option determines how the <a href="#host_perfdata_file">host performance data file</a> is opened.  Unless the file is a named pipe you'll probably want to use the default mode of append.
 </p>
-<p>
 <ul>
 <li>a = Open file in append mode (default)
 <li>w = Open file in write mode
 <li>p = Open in non-blocking read/write mode (useful when writing to pipes)
 </ul>
-</p>
 
 
 <p>
@@ -2917,13 +2848,11 @@ This option determines how the <a href="#host_perfdata_file">host performance da
 </p>
 This option determines how the <a href="#service_perfdata_file">service performance data file</a> is opened.  Unless the file is a named pipe you'll probably want to use the default mode of append.
 </p>
-<p>
 <ul>
 <li>a = Open file in append mode (default)
 <li>w = Open file in write mode
 <li>p = Open in non-blocking read/write mode (useful when writing to pipes)
 </ul>
-</p>
 
 
 <p>
@@ -3051,12 +2980,10 @@ This option allows you to specify the command that should be executed to process
 <p>
 This option allows you to enable or disable checks for orphaned service checks. Orphaned service checks are checks which have been executed and have been removed from the event queue, but have not had any results reported in a long time.  Since no results have come back in for the service, it is not rescheduled in the event queue.  This can cause service checks to stop being executed.  Normally it is very rare for this to happen - it might happen if an external user or process killed off the process that was being used to execute a service check.  If this option is enabled and Nagios finds that results for a particular service check have not come back, it will log an error message and reschedule the service check.  If you start seeing service checks that never seem to get rescheduled, enable this option and see if you notice any log messages about orphaned services.
 </p>
-<p>
 <ul>
 <li>0 = Don't check for orphaned service checks
 <li>1 = Check for orphaned service checks (default)
 </ul>
-</p>
 
 
 <p>
@@ -3084,12 +3011,10 @@ This option allows you to enable or disable checks for orphaned service checks. 
 <p>
 This option allows you to enable or disable checks for orphaned hoste checks. Orphaned host checks are checks which have been executed and have been removed from the event queue, but have not had any results reported in a long time.  Since no results have come back in for the host, it is not rescheduled in the event queue.  This can cause host checks to stop being executed.  Normally it is very rare for this to happen - it might happen if an external user or process killed off the process that was being used to execute a host check.  If this option is enabled and Nagios finds that results for a particular host check have not come back, it will log an error message and reschedule the host check.  If you start seeing host checks that never seem to get rescheduled, enable this option and see if you notice any log messages about orphaned hosts.
 </p>
-<p>
 <ul>
 <li>0 = Don't check for orphaned host checks
 <li>1 = Check for orphaned host checks (default)
 </ul>
-</p>
 
 
 <p>
@@ -3117,12 +3042,10 @@ This option allows you to enable or disable checks for orphaned hoste checks. Or
 <p>
 This option determines whether or not Nagios will periodically check the "freshness" of service checks.  Enabling this option is useful for helping to ensure that <a href="passivechecks.html">passive service checks</a> are received in a timely manner.  More information on freshness checking can be found <a href="freshness.html">here</a>.
 </p>
-<p>
 <ul>
 <li>0 = Don't check service freshness
 <li>1 = Check service freshness (default)
 </ul>
-</p>
 
 
 <p>
@@ -3177,12 +3100,10 @@ This setting determines how often (in seconds) Nagios will periodically check th
 <p>
 This option determines whether or not Nagios will periodically check the "freshness" of host checks.  Enabling this option is useful for helping to ensure that <a href="passivechecks.html">passive host checks</a> are received in a timely manner.  More information on freshness checking can be found <a href="freshness.html">here</a>.
 </p>
-<p>
 <ul>
 <li>0 = Don't check host freshness
 <li>1 = Check host freshness (default)
 </ul>
-</p>
 
 
 <p>
@@ -3381,12 +3302,10 @@ This option allows you to specify illegal characters that should be stripped fro
 <p>
 This option determines whether or not various directives in your <a href="configobject.html">object definitions</a> will be processed as regular expressions.  More information on how this works can be found <a href="objecttricks.html">here</a>.
 </p>
-<p>
 <ul>
 <li>0 = Don't use regular expression matching (default)
 <li>1 = Use regular expression matching
 </ul>
-</p>
 
 
 <p>
@@ -3414,12 +3333,10 @@ This option determines whether or not various directives in your <a href="config
 <p>
 If you've enabled regular expression matching of various object directives using the <a href="#use_regexp_matching">use_regexp_matching</a> option, this option will determine when object directives are treated as regular expressions.  If this option is disabled (the default), directives will only be treated as regular expressions if the contain <b>*</b>, <b>?</b>, <b>+</b>, or <b>\.</b>.  If this option is enabled, all appropriate directives will be treated as regular expression - be careful when enabling this!  More information on how this works can be found <a href="objecttricks.html">here</a>.
 </p>
-<p>
 <ul>
 <li>0 = Don't use true regular expression matching (default)
 <li>1 = Use true regular expression matching
 </ul>
-</p>
 
 
 <p>
@@ -3525,7 +3442,6 @@ This option determines where Nagios should write debugging information.  What (i
 <p>
 This option determines what type of information Nagios should write to the <a href="#debug_file">debug_file</a>.  This value is a logical OR of the values below.
 </p>
-<p>
 <ul>
 <li>-1 = Log everything
 <li>0 = Log nothing (default)
@@ -3537,7 +3453,6 @@ This option determines what type of information Nagios should write to the <a hr
 <li>32 = Notification information
 <li>64 = Event broker information
 </ul>
-</p>
 
 <p>
 <a name="debug_verbosity"></a>
@@ -3564,13 +3479,11 @@ This option determines what type of information Nagios should write to the <a hr
 <p>
 This option determines how much debugging information Nagios should write to the <a href="#debug_file">debug_file</a>.
 </p>
-<p>
 <ul>
 <li>0 = Basic information
 <li>1 = More detailed information (default)
 <li>2 = Highly detailed information
 </ul>
-</p>
 
 
 <p>

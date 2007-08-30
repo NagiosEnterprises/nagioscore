@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="config.html">Configuration Overview</a>, <a href="cgis.html">Information on the CGIs</a>, <a href="cgiauth.html">Authentication And Authorization In The CGIs</a>, <a href="cgiincludes.html">CGI Footers and Headers</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="config.html">Configuration Overview</a>, <a href="cgis.html">Information on the CGIs</a>, <a href="cgiauth.html">Authentication And Authorization In The CGIs</a>, <a href="cgiincludes.html">CGI Footers and Headers</a>
 </p>
 
 <p>
@@ -35,19 +35,17 @@
 <p>
 When creating and/or editing configuration files, keep the following in mind:
 </p>
-<p>
 <ol>
 <li>Lines that start with a '#' character are taken to be comments and are not processed
 <li>Variables names must begin at the start of the line - no white space is allowed before the name
 <li>Variable names are case-sensitive
 </ol>
-</p>
 
 <p>
 <strong><u>Sample Configuration</u></strong>
 </p>
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: A sample CGI configuration file (<i>/usr/local/nagios/etc/cgi.cfg</i>) is installed for you when you follow the <a href="quickstart.html">quickstart installation guide</a>.
+<img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: A sample CGI configuration file (<i>/usr/local/nagios/etc/cgi.cfg</i>) is installed for you when you follow the <a href="quickstart.html">quickstart installation guide</a>.
 </p>
 
 <p>
@@ -203,12 +201,10 @@ should be <i>/nagios</i>.  Basically, its the path portion of the URL that is us
 <p>
 This option controls whether or not the CGIs will use the authentication and authorization functionality when determining what information and commands users have access to.  I would strongly suggest that you use the authentication functionality for the CGIs.  If you decide not to use authentication, make sure to remove the <a href="cgis.html#command_cgi">command CGI</a> to prevent unauthorized users from issuing commands to Nagios.  The CGI will not issue commands to Nagios if authentication is disabled, but I would suggest removing it altogether just to be on the safe side.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
 </p>
-<p>
 <ul>
 <li>0 = Don't use authentication functionality
 <li>1 = Use authentication and authorization functionality (default)
 </ul>
-</p>
 
 
 <p>
@@ -455,12 +451,10 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can is
 <p>
 This option allows you to restrict users from changing the author name when submitting comments, acknowledgements, and scheduled downtime from the web interface.  If this option is enabled, users will be unable to change the author name associated with the command request.
 </p>
-<p>
 <ul>
 <li>0 = Allow users to change author names when submitting commands
 <li>1 = Prevent users from changing author names (default)
 </ul>
-</p>
 
 
 <p>

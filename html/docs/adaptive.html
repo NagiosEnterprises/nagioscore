@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="extcommands.html">External Commands</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="extcommands.html">External Commands</a>
 </p>
 
 <p>
@@ -45,7 +45,6 @@ Nagios allows you to change certain commands and host and service check attribut
 The following service check attributes can be changed during runtime:
 </p>
 
-<p>
 <ul class="Default">
 <li>Check command (and command arguments)</li>
 <li>Check interval</li>
@@ -53,13 +52,11 @@ The following service check attributes can be changed during runtime:
 <li>Check timeperiod</li>
 <li>Event handler command (and command arguments)</li>
 </ul>
-</p>
 
 <p>
 The following host check attributes can be changed during runtime:
 </p>
 
-<p>
 <ul class="Default">
 <li>Check command (and command arguments)</li>
 <li>Check interval</li>
@@ -67,18 +64,15 @@ The following host check attributes can be changed during runtime:
 <li>Check timeperiod</li>
 <li>Event handler command (and command arguments)</li>
 </ul>
-</p>
 
 <p>
 The following global attributes can be changed during runtime:
 </p>
 
-<p>
 <ul class="Default">
 <li>Global host event handler command (and command arguments)</li>
 <li>Global service event handler command (and command arguments)</li>
 </ul>
-</p>
 
 <p>
 <strong><u>External Commands For Adaptive Monitoring</u></strong>
@@ -93,15 +87,13 @@ A full listing of external commands that can be used for adaptive monitoring (al
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Notes:
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Notes:
 </p>
 
-<p>
 <ul>
 <li>When changing check commands, check timeperiods, or event handler commands, it is important to note that the new values for these options must have been defined before Nagios was started.  Any request to change a command or timeperiod to one which had not been defined when Nagios was started is ignored.</li><br><br>
 <li>You can specify command arguments along with the actual command name - just seperate individual arguments from the command name (and from each other) using bang (!) characters.  More information on how arguments in command definitions are processed during runtime can be found in the documentation on <a href="macros.html">macros</a>.</li>
 </ul>
-</p>
 
 
 <hr>

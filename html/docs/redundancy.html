@@ -56,14 +56,12 @@ This section describes a few scenarios for implementing redundant monitoring hos
 <p>
 Before you can even think about implementing redundancy with Nagios, you need to be familiar with the following...
 </p>
-<p>
 <ul>
 <li>Implementing <a href="eventhandlers.html">event handlers</a> for hosts and services
 <li>Issuing <a href="extcommands.html">external commands</a> to Nagios via shell scripts
 <li>Executing plugins on remote hosts using either the <a href="addons.html#nrpe">NRPE addon</a> or some other method
 <li>Checking the status of the Nagios process with the <a href="plugins.html#check_nagios">check_nagios</a> plugin
 </ul>
-</p>
 
 <p>
 <a name="samples"></a>
@@ -102,12 +100,10 @@ This is an easy (and naive) method of implementing redundant monitoring hosts on
 <p>
 The goal of this type of redundancy implementation is simple.  Both the "master" and "slave" hosts monitor the same hosts and service on the network.  Under normal circumstances only the "master" host will be sending out notifications to contacts about problems.  We want the "slave" host running Nagios to take over the job of notifying contacts about problems if:
 </p>
-<p>
 <ol>
 <li>The "master" host that runs Nagios is down or..
 <li>The Nagios process on the "master" host stops running for some reason
 </ol>
-</p>
 
 <p>
 <strong><u>Network Layout Diagram</u></strong>
@@ -145,13 +141,11 @@ Next we need to consider the differences between the <a href="configobject.html"
 I will assume that you have the master host (host A) setup to monitor services on all hosts shown in the diagram above.  The slave host (host E) should be setup to monitor the same services and hosts, with the following additions in the configuration file...
 </p>
 
-<p>
 <ul>
 <li>The host definition for host A (in the host E configuration file) should have a host <a href="eventhandlers.html">event handler</a> defined.  Lets say the name of the host event handler is <font color="red">handle-master-host-event</font>.
 <li>The configuration file on host E should have a service defined to check the status of the Nagios process on host A.  Lets assume that you define this service check to run the <i>check_nagios</i> plugin on host A.  This can be done by using one of the methods described in <b>this FAQ</b> (update this!).
 <li>The service definition for the Nagios process check on host A should have an <a href="eventhandlers.html">event handler</a> defined.  Lets say the name of the service event handler is <font color="red">handle-master-proc-event</font>.
 </ul>
-</p>
 
 <p>
 It is important to note that host A (the master host) has no knowledge of host E (the slave host).  In this scenario it simply doesn't need to.  Of course you may be monitoring services on host E from host A, but that has nothing to do with the implementation of redundancy...
@@ -198,7 +192,6 @@ Okay, now lets take a look at what the event handler scripts look like...
 <p>
 Host Event Handler (<font color="red">handle-master-host-event</font>):
 </p>
-<p>
 <pre>
 #!/bin/sh
 
@@ -225,13 +218,11 @@ HARD)
 esac
 exit 0
 </pre>
-</p>
 
 <p>
 Service Event Handler (<font color="red">handle-master-proc-event</font>):
 </p>
 
-<p>
 <pre>
 #!/bin/sh
 
@@ -265,7 +256,6 @@ HARD)
 esac
 exit 0
 </pre>
-</p>
 
 <p>
 <strong><u>What This Does For Us</u></strong>
@@ -278,12 +268,10 @@ The slave host (host E) initially has notifications disabled, so it won't send o
 <p>
 The Nagios process on the slave host (host E) becomes the master host when...
 </p>
-<p>
 <ul>
 <li>The master host (host A) goes down and the <i><font color="red">handle-master-host-event</font></i> host event handler is executed.  
 <li>The Nagios process on the master host (host A) stops running and the <i><font color="red">handle-master-proc-event</font></i> service event handler is executed.
 </ul>
-</p>
 
 <p>
 When the Nagios process on the slave host (host E) has notifications enabled, it will be able to send out notifications about any service or host problems or recoveries.  At this point host E has effectively taken over the responsibility of notifying contacts of host and service problems!
@@ -292,12 +280,10 @@ When the Nagios process on the slave host (host E) has notifications enabled, it
 <p>
 The Nagios process on host E returns to being the slave host when...
 </p>
-<p>
 <ul>
 <li>Host A recovers and the <i><font color="red">handle-master-host-event</font></i> host event handler is executed.
 <li>The Nagios process on host A recovers and the <i><font color="red">handle-master-proc-event</font></i> service event handler is executed.
 </ul>
-</p>
 
 <p>
 When the Nagios process on host E has notifications disabled, it will not send out notifications about any service or host problems or recoveries.  At this point host E has handed over the responsibilities of notifying contacts of problems to the Nagios process on host A.  Everything is now as it was when we first started!
@@ -311,35 +297,29 @@ When the Nagios process on host E has notifications disabled, it will not send o
 Redundancy in Nagios is by no means perfect.  One of the more obvious problems is the lag time between the master host failing and the slave host taking over.  This is affected by the following...
 </p>
 
-<p>
 <ul>
 <li>The time between a failure of the master host and the first time the slave host detects a problem
 <li>The time needed to verify that the master host really does have a problem (using service or host check retries on the slave host)
 <li>The time between the execution of the event handler and the next time that Nagios checks for external commands
 </ul>
-</p>
 
 <p>
 You can minimize this lag by...
 </p>
-<p>
 <ul>
 <li>Ensuring that the Nagios process on host E (re)checks one or more services at a high frequency.  This is done by using the <i>check_interval</i> and <i>retry_interval</i> arguments in each service definition.
 <li>Ensuring that the number of host rechecks for host A (on host E) allow for fast detection of host problems.  This is done by using the <i>max_check_attempts</i> argument in the host definition.
 <li>Increase the frequency of <a href="extcommands.html">external command</a> checks on host E.  This is done by modifying the <a href="configmain.html#command_check_interval">command_check_interval</a> option in the main configuration file.
 </ul>
-</p>
 
 <p>
 When Nagios recovers on the host A, there is also some lag time before host E returns to being a slave host.  This is affected by the following...
 </p>
 
-<p>
 <ul>
 <li>The time between a recovery of host A and the time the Nagios process on host E detects the recovery
 <li>The time between the execution of the event handler on host B and the next time the Nagios process on host E checks for external commands
 </ul>
-</p>
 
 <p>
 The exact lag times between the transfer of monitoring responsibilities will vary depending on how many services you have defined, the interval at which services are checked, and a lot of pure chance.  At any rate, its definitely better than nothing.

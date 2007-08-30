@@ -33,8 +33,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="macros.html">How Macros Work</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="macros.html">How Macros Work</a>
 </p>
 
 <p>
@@ -48,7 +48,6 @@ Standard macros that are available in Nagios are listed here.  On-demand macros 
 <p>
 Although macros can be used in all commands you define, not all macros may be "valid" in a particular type of command.  For example, some macros may only be valid during service notification commands, whereas other may only be valid during host check commands.  There are ten types of commands that Nagios recognizes and treats differently.  They are as follows:
 </p>
-<p>
 <ol>
 <li>Service checks
 <li>Service notifications
@@ -61,7 +60,6 @@ Although macros can be used in all commands you define, not all macros may be "v
 <li>Service <a href="perfdata.html">performance data</a> commands
 <li>Host <a href="perfdata.html">performance data</a> commands
 </ol>
-</p>
 
 <p>
 The tables below list all macros currently available in Nagios, along with a brief description of each and the types of commands in which they are valid.  If a macro is used in a command in which it is invalid, it is replaced with an empty string. It should be noted that macros consist of all uppercase characters and are enclosed in <b>$</b> characters.

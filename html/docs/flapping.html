@@ -25,8 +25,8 @@
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="statetypes.html">State Types</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="statetypes.html">State Types</a>
 </p>
 
 <p>
@@ -50,14 +50,12 @@ Before I get into this, let me say that flapping detection has been a little dif
 Whenever Nagios checks the status of a host or service, it will check to see if it has started or stopped flapping.  It does this by:
 </p>
 
-<p>
 <ul>
 <li>Storing the results of the last 21 checks of the host or service
 <li>Analyzing the historical check results and determine where state changes/transitions occur
 <li>Using the state transitions to determine a percent state change value (a measure of change) for the host or service
 <li>Comparing the percent state change value against low and high flapping thresholds
 </ul>
-</p>
 
 <p>
 A host or service is determined to have <i>started</i> flapping when its percent state change first exceeds a <i>high</i> flapping threshold.
@@ -113,12 +111,10 @@ Since the flap detection logic will give newer state changes a higher rate than 
 The calculated percent state change for the service (31%) will then be compared against flapping thresholds to see what should happen:
 </p>
 
-<p>
 <ul>
 <li>If the service was <i>not</i> previously flapping and 31% is <i>equal to or greater than</i> the high flap threshold, Nagios considers the service to have just started flapping.
 <li>If the service <i>was</i> previously flapping and 31% is <i>less than</i> the low flap threshold, Nagios considers the service to have just stopped flapping.
 </ul>
-</p>
 <p>
 If neither of those two conditions are met, the flap detection logic won't do anything else with the service, since it is either not currently flapping or it is still flapping.
 </p>
@@ -142,7 +138,6 @@ The flap detection logic for services works as described in the example above.
 <p>
 Host flap detection works in a similiar manner to service flap detection, with one important difference: Nagios will attempt to check to see if a host is flapping whenever:
 </p>
-<p>
 <ul>
 <li>The host is checked (actively or passively)
 <li>Sometimes when a service associated with that host is checked.  More specifically, when at least <i>x</i> amount of time has passed since the flap detection was last performed, where <i>x</i> is equal to the average check interval of all services associated with the host.  
@@ -202,7 +197,7 @@ The table below shows the global and host- or service-specific variables that co
 Normally Nagios will track the results of the last 21 checks of a host or service, regardless of the check result (host/service state), for use in the flap detection logic.
 </p>
 
-<p><img src="images/tip.gif" border="0" align="bottom"> Tip:  You can exclude certain host or service states from use in flap detection logic by using the <i>flap_detection_options</i> directive in your host or service definitions.  This directive allows you to specify what host or service states (i.e. "UP, "DOWN", "OK, "CRITICAL") you want to use for flap detection.  If you don't use this directive, all host or service states are used in flap detection.
+<p><img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip:  You can exclude certain host or service states from use in flap detection logic by using the <i>flap_detection_options</i> directive in your host or service definitions.  This directive allows you to specify what host or service states (i.e. "UP, "DOWN", "OK, "CRITICAL") you want to use for flap detection.  If you don't use this directive, all host or service states are used in flap detection.
 </p>
 
 <p>
@@ -213,28 +208,24 @@ Normally Nagios will track the results of the last 21 checks of a host or servic
 When a service or host is first detected as flapping, Nagios will:
 </p>
 
-<p>
 <ol>
 <li>Log a message indicating that the service or host is flapping.
 <li>Add a non-persistent comment to the host or service indicating that it is flapping.
 <li>Send a "flapping start" notification for the host or service to appropriate contacts.
 <li>Suppress other notifications for the service or host (this is one of the filters in the <a href="notifications.html">notification logic</a>).
 </ol>
-</p>
 
 
 <p>
 When a service or host stops flapping, Nagios will:
 </p>
 
-<p>
 <ol>
 <li>Log a message indicating that the service or host has stopped flapping.
 <li>Delete the comment that was originally added to the service or host when it started flapping.
 <li>Send a "flapping stop" notification for the host or service to appropriate contacts.
 <li>Remove the block on notifications for the service or host (notifications will still be bound to the normal <a href="notifications.html">notification logic</a>).
 </ol>
-</p>
 
 
 <p>
@@ -245,12 +236,10 @@ When a service or host stops flapping, Nagios will:
 In order to enable the flap detection features in Nagios, you'll need to:
 </p>
 
-<p>
 <ul>
 <li>Set <a href="configmain.html#enable_flap_detection">enable_flap_detection</a> directive is set to 1.</li>
 <li>Set the <i>flap_detection_enabled</i> directive in your host and service definitions is set to 1.</li>
 </ul>
-</p>
 
 <p>
 If you want to disable flap detection on a global basis, set the <a href="configmain.html#enable_flap_detection">enable_flap_detection</a> directive to 0.

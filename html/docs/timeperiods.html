@@ -27,8 +27,8 @@ or...<br>
 <hr>
 
 <p>
-<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="oncallrotation.html">On-Call Rotations</a>, <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="notifications.html">Notifications</a>, <a href="escalations.html">Notification Escalations</a>, <a href="dependencies.html">Dependencies</a>
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="oncallrotation.html">On-Call Rotations</a>, <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="notifications.html">Notifications</a>, <a href="escalations.html">Notification Escalations</a>, <a href="dependencies.html">Dependencies</a>
 </p>
 
 <p>
@@ -41,14 +41,12 @@ or...<br>
 <a href="objectdefinitions.html#timeperiod">Timeperiod</a> definitions allow you to control when various aspects of the monitoring and alerting logic can operate.  For instance, you can restrict:
 </p>
 
-<p>
 <ul>
 <li>When regularly scheduled host and service checks can be performed</li>
 <li>When notifications can be sent out</li>
 <li>When notification escalations can be used</li>
 <li>When dependencies are valid</li>
 </ul>
-</p>
 
 <p>
 <strong><u>Precedence in Time Periods</u></strong>
@@ -89,20 +87,18 @@ Specifying a timeperiod in the <i>check_period</i> directive allows you to restr
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: On-demand checks and passive checks are not restricted by the timeperiod you specify in the <i>check_period</i> directive.  Only regularly scheduled active checks are restricted.
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: On-demand checks and passive checks are not restricted by the timeperiod you specify in the <i>check_period</i> directive.  Only regularly scheduled active checks are restricted.
 </p>
 
 <p>
 Unless you have a good reason not to do so, I would recommend that you monitor all your hosts and services using timeperiods that cover a 24x7 time range.  If you don't do this, you can run into some problems during "blackout" times (times that are not valid in the timeperiod definition):
 </p>
 
-<p>
 <ol>
 <li>The status of the host or service will appear unchanged during the blackout time.
 <li>Contacts will mostly likely not get re-notified of problems with a host or service during blackout times.
 <li>If a host or service recovers during a blackout time, contacts will not be immediately notified of the recovery.
 </ol>
-</p>
 </p>
 
 <p>

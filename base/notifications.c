@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-29-2007
+ * Last Modified:   08-31-2007
  *
  * License:
  *
@@ -122,6 +122,19 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		grab_service_macros(svc);
 		grab_datetime_macros();
 
+		/* if this notification has an author, attempt to lookup the associated contact */
+		if(not_author!=NULL){
+
+			/* see if we can find the contact - first by name, then by alias */
+			if((temp_contact=find_contact(not_author))==NULL){
+				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+					if(!strcmp(temp_contact->alias,not_author))
+						break;
+					}
+				}
+
+			}
+
 		/* if this is an acknowledgement, get the acknowledgement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 
@@ -132,14 +145,6 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			my_free((void **)macro_x[MACRO_SERVICEACKCOMMENT]);
 			if(not_data)
 				macro_x[MACRO_SERVICEACKCOMMENT]=(char *)strdup(not_data);
-
-			/* see if we can find the contact */
-			if((temp_contact=find_contact(not_author))==NULL){
-				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-					if(!strcmp(temp_contact->alias,not_author))
-						break;
-					}
-				}
 
 			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHORNAME]);
 			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHORALIAS]);
@@ -159,14 +164,6 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			my_free((void **)macro_x[MACRO_SERVICEDOWNTIMECOMMENT]);
 			if(not_data)
 				macro_x[MACRO_SERVICEDOWNTIMECOMMENT]=(char *)strdup(not_data);
-
-			/* see if we can find the contact */
-			if((temp_contact=find_contact(not_author))==NULL){
-				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-					if(!strcmp(temp_contact->alias,not_author))
-						break;
-					}
-				}
 
 			my_free((void **)&macro_x[MACRO_SERVICEDOWNTIMEAUTHORNAME]);
 			my_free((void **)&macro_x[MACRO_SERVICEDOWNTIMEAUTHORALIAS]);
@@ -955,6 +952,19 @@ int host_notification(host *hst, int type, char *not_author, char *not_data){
 		grab_host_macros(hst);
 		grab_datetime_macros();
 
+		/* if this notification has an author, attempt to lookup the associated contact */
+		if(not_author!=NULL){
+
+			/* see if we can find the contact - first by name, then by alias */
+			if((temp_contact=find_contact(not_author))==NULL){
+				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+					if(!strcmp(temp_contact->alias,not_author))
+						break;
+					}
+				}
+
+			}
+
 		/* if this is an acknowledgement, get the acknowledgement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 
@@ -965,14 +975,6 @@ int host_notification(host *hst, int type, char *not_author, char *not_data){
 			my_free((void **)&macro_x[MACRO_HOSTACKCOMMENT]);
 			if(not_data)
 				macro_x[MACRO_HOSTACKCOMMENT]=(char *)strdup(not_data);
-
-			/* see if we can find the contact */
-			if((temp_contact=find_contact(not_author))==NULL){
-				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-					if(!strcmp(temp_contact->alias,not_author))
-						break;
-					}
-				}
 
 			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHORNAME]);
 			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHORALIAS]);
@@ -992,14 +994,6 @@ int host_notification(host *hst, int type, char *not_author, char *not_data){
 			my_free((void **)macro_x[MACRO_HOSTDOWNTIMECOMMENT]);
 			if(not_data)
 				macro_x[MACRO_HOSTDOWNTIMECOMMENT]=(char *)strdup(not_data);
-
-			/* see if we can find the contact */
-			if((temp_contact=find_contact(not_author))==NULL){
-				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-					if(!strcmp(temp_contact->alias,not_author))
-						break;
-					}
-				}
 
 			my_free((void **)&macro_x[MACRO_HOSTDOWNTIMEAUTHORNAME]);
 			my_free((void **)&macro_x[MACRO_HOSTDOWNTIMEAUTHORALIAS]);

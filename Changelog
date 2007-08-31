@@ -4,6 +4,12 @@ Nagios 3.x Change Log
 
 
 
+3.0b4 - 09/??/2007
+------------------
+* Fix for segfault when cancelling active scheduled host downtime
+
+
+
 3.0b3 - 08/30/2007
 ------------------
 * Minor bug fix for debug logging of macros

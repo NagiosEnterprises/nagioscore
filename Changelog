@@ -4,9 +4,11 @@ Nagios 3.x Change Log
 
 
 
-3.0b3 - ??/??/2007
+3.0b3 - 08/30/2007
 ------------------
 * Minor bug fix for debug logging of macros
+* Version number is now printed in CGI pages
+* HTML documentation cleanup (HTML Tidy, link checking, etc.) 
 * Fixed bug where notifications would not be sent out host/service contact group members
 
 

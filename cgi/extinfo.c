@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2007
+ * Last Modified: 08-30-2007
  *
  * License:
  * 
@@ -757,6 +757,9 @@ void show_process_info(void){
 	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0 CLASS='data'>\n");
 	printf("<TR><TD class='stateInfoTable1'>\n");
 	printf("<TABLE BORDER=0>\n");
+
+	/* program version */
+	printf("<TR><TD CLASS='dataVar'>Program Version:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",PROGRAM_VERSION);
 
 	/* program start time */
 	get_time_string(&program_start,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);

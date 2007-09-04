@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-03-2007
+ * Last Modified:   09-04-2007
  *
  * License:
  *
@@ -1816,6 +1816,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 int grab_on_demand_hostgroup_macro(hostgroup *hg, char *macro){
 	hostgroup *temp_hostgroup=NULL;
 	hostsmember *temp_hostsmember=NULL;
+	char *temp_buffer=NULL;
 
 	if(hg==NULL || macro==NULL)
 		return ERROR;
@@ -1844,6 +1845,47 @@ int grab_on_demand_hostgroup_macro(hostgroup *hg, char *macro){
 			macro_ondemand=(char *)strdup(hg->alias);
 		}
 
+	/* action url */
+	else if(!strcmp(macro,"HOSTGROUPACTIONURL")){
+
+		if(hg->action_url)
+			macro_ondemand=(char *)strdup(hg->action_url);
+
+		/* action URL macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=temp_buffer;
+		        }
+	        }
+
+	/* notes url */
+	else if(!strcmp(macro,"HOSTGROUPNOTESURL")){
+
+		if(hg->notes_url)
+			macro_ondemand=(char *)strdup(hg->notes_url);
+
+		/* action URL macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=temp_buffer;
+		        }
+	        }
+
+	/* notes */
+	else if(!strcmp(macro,"HOSTGROUPNOTES")){
+		if(hg->notes)
+			macro_ondemand=(char *)strdup(hg->notes);
+
+		/* notes macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,&temp_buffer,0);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=temp_buffer;
+		        }
+	        }
+
 	else
 		return ERROR;
 
@@ -1856,6 +1898,7 @@ int grab_on_demand_hostgroup_macro(hostgroup *hg, char *macro){
 int grab_on_demand_servicegroup_macro(servicegroup *sg, char *macro){
 	servicegroup *temp_servicegroup=NULL;
 	servicesmember *temp_servicesmember=NULL;
+	char *temp_buffer=NULL;
 
 	if(sg==NULL || macro==NULL)
 		return ERROR;
@@ -1888,6 +1931,47 @@ int grab_on_demand_servicegroup_macro(servicegroup *sg, char *macro){
 		if(sg->alias)
 			macro_ondemand=(char *)strdup(sg->alias);
 		}
+
+	/* action url */
+	else if(!strcmp(macro,"SERVICEGROUPACTIONURL")){
+
+		if(sg->action_url)
+			macro_ondemand=(char *)strdup(sg->action_url);
+
+		/* action URL macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=temp_buffer;
+		        }
+	        }
+
+	/* notes url */
+	else if(!strcmp(macro,"SERVICEGROUPNOTESURL")){
+
+		if(sg->notes_url)
+			macro_ondemand=(char *)strdup(sg->notes_url);
+
+		/* action URL macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=temp_buffer;
+		        }
+	        }
+
+	/* notes */
+	else if(!strcmp(macro,"SERVICEGROUPNOTES")){
+		if(sg->notes)
+			macro_ondemand=(char *)strdup(sg->notes);
+
+		/* notes macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,&temp_buffer,0);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=temp_buffer;
+		        }
+	        }
 
 	else
 		return ERROR;

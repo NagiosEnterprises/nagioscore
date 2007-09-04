@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-29-2007
+ * Last Modified:   09-03-2007
  *
  * License:
  *
@@ -410,6 +410,13 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 					selected_macro=NULL;
 				}
 
+			/* on-demand hostgroup macros */
+			else if(strstr(temp_buffer,"HOSTGROUP") && strstr(temp_buffer,":")){
+				
+				grab_on_demand_macro(temp_buffer);
+				selected_macro=macro_ondemand;
+				}
+
 			/* on-demand host macros */
 			else if(strstr(temp_buffer,"HOST") && strstr(temp_buffer,":")){
 				
@@ -421,6 +428,13 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 					clean_macro=TRUE;
 					options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 					}
+				}
+
+			/* on-demand servicegroup macros */
+			else if(strstr(temp_buffer,"SERVICEGROUP") && strstr(temp_buffer,":")){
+				
+				grab_on_demand_macro(temp_buffer);
+				selected_macro=macro_ondemand;
 				}
 
 			/* on-demand service macros */
@@ -436,6 +450,13 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 					}
 				}
 				
+			/* on-demand contactgroup macros */
+			else if(strstr(temp_buffer,"CONTACTGROUP") && strstr(temp_buffer,":")){
+				
+				grab_on_demand_macro(temp_buffer);
+				selected_macro=macro_ondemand;
+				}
+
 			/* an escaped $ is done by specifying two $$ next to each other */
 			else if(!strcmp(temp_buffer,"")){
 
@@ -1005,7 +1026,7 @@ int grab_host_macros(host *hst){
         }
 
 
-/* grab an on-demand host or service macro */
+/* grab an on-demand host(group) or service(group) macro */
 int grab_on_demand_macro(char *str){
 	char *macro=NULL;
 	char *first_arg=NULL;
@@ -1019,6 +1040,7 @@ int grab_on_demand_macro(char *str){
 	service *temp_service=NULL;
 	servicegroup *temp_servicegroup=NULL;
 	servicesmember *temp_servicesmember=NULL;
+	contactgroup *temp_contactgroup=NULL;
 	char *ptr=NULL;
 	char *host_name=NULL;
 	int return_val=ERROR;
@@ -1048,8 +1070,17 @@ int grab_on_demand_macro(char *str){
 		second_arg=ptr+1;
 	        }
 
-	/* process the macro */
-	if(strstr(macro,"HOST")){
+	/* process the macro... */
+
+	/* on-demand hostgroup macros */
+	if(strstr(macro,"HOSTGROUP")){
+
+		temp_hostgroup=find_hostgroup(first_arg);
+		return_val=grab_on_demand_hostgroup_macro(temp_hostgroup,macro);
+		}
+
+	/* on-demand host macros */
+	else if(strstr(macro,"HOST")){
 
 		/* process a host macro */
 		if(second_arg==NULL){
@@ -1109,6 +1140,14 @@ int grab_on_demand_macro(char *str){
 			}
 	        }
 
+	/* on-demand servicegroup macros */
+	else if(strstr(macro,"SERVICEGROUP")){
+
+		temp_servicegroup=find_servicegroup(first_arg);
+		return_val=grab_on_demand_servicegroup_macro(temp_servicegroup,macro);
+		}
+
+	/* on-demand service macros */
 	else if(strstr(macro,"SERVICE")){
 
 		/* second args will either be service description or delimiter */
@@ -1180,6 +1219,13 @@ int grab_on_demand_macro(char *str){
 			}
 	        }
 
+	/* on-demand contactgroup macros */
+	else if(strstr(macro,"CONTACTGROUP")){
+
+		temp_contactgroup=find_contactgroup(first_arg);
+		return_val=grab_on_demand_contactgroup_macro(temp_contactgroup,macro);
+		}
+
 	else
 		return_val=ERROR;
 
@@ -1231,7 +1277,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	        }
 
 	/* get the host alias */
-	if(!strcmp(macro,"HOSTALIAS"))
+	else if(!strcmp(macro,"HOSTALIAS"))
 		macro_ondemand=(char *)strdup(hst->alias);
 
 	/* get the host address */
@@ -1537,7 +1583,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	        }
 
 	/* get the plugin output */
-	if(!strcmp(macro,"SERVICEOUTPUT")){
+	else if(!strcmp(macro,"SERVICEOUTPUT")){
 		if(svc->plugin_output){
 			macro_ondemand=(char *)strdup(svc->plugin_output);
 			/*strip(macro_ondemand);*/
@@ -1545,7 +1591,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	        }
 
 	/* get the long plugin output */
-	if(!strcmp(macro,"LONGSERVICEOUTPUT")){
+	else if(!strcmp(macro,"LONGSERVICEOUTPUT")){
 		if(svc->long_plugin_output){
 			macro_ondemand=(char *)strdup(svc->long_plugin_output);
 			/*strip(macro_ondemand);*/
@@ -1763,6 +1809,132 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 	return OK;
         }
+
+
+
+/* grab an on-demand hostgroup macro */
+int grab_on_demand_hostgroup_macro(hostgroup *hg, char *macro){
+	hostgroup *temp_hostgroup=NULL;
+	hostsmember *temp_hostsmember=NULL;
+
+	if(hg==NULL || macro==NULL)
+		return ERROR;
+
+	/* initialize the macro */
+	macro_ondemand=NULL;
+
+	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for hostgroup '%s': %s\n",hg->group_name,macro);
+
+	/* get the member list */
+	if(!strcmp(macro,"HOSTGROUPMEMBERS")){
+
+		for(temp_hostsmember=hg->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
+			if(macro_ondemand==NULL)
+				macro_ondemand=(char *)strdup(temp_hostsmember->host_name);
+			else if((macro_ondemand=(char *)realloc(macro_ondemand,strlen(macro_ondemand)+strlen(temp_hostsmember->host_name)+2))){
+				strcat(macro_ondemand,",");
+				strcat(macro_ondemand,temp_hostsmember->host_name);
+				}
+			}
+	        }
+
+	/* get the group alias */
+	else if(!strcmp(macro,"HOSTGROUPALIAS")){
+		if(hg->alias)
+			macro_ondemand=(char *)strdup(hg->alias);
+		}
+
+	else
+		return ERROR;
+
+	return OK;
+	}
+
+
+
+/* grab an on-demand servicegroup macro */
+int grab_on_demand_servicegroup_macro(servicegroup *sg, char *macro){
+	servicegroup *temp_servicegroup=NULL;
+	servicesmember *temp_servicesmember=NULL;
+
+	if(sg==NULL || macro==NULL)
+		return ERROR;
+
+	/* initialize the macro */
+	macro_ondemand=NULL;
+
+	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for servicegroup '%s': %s\n",sg->group_name,macro);
+
+	/* get the member list */
+	if(!strcmp(macro,"SERVICEGROUPMEMBERS")){
+
+		for(temp_servicesmember=sg->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+			if(macro_ondemand==NULL){
+				if((macro_ondemand=(char *)malloc(strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+1))){
+					sprintf(macro_ondemand,"%s,%s",temp_servicesmember->host_name,temp_servicesmember->service_description);
+					}
+				}
+			else if((macro_ondemand=(char *)realloc(macro_ondemand,strlen(macro_ondemand)+strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+3))){
+				strcat(macro_ondemand,",");
+				strcat(macro_ondemand,temp_servicesmember->host_name);
+				strcat(macro_ondemand,",");
+				strcat(macro_ondemand,temp_servicesmember->service_description);
+				}
+			}
+	        }
+
+	/* get the group alias */
+	else if(!strcmp(macro,"SERVICEGROUPALIAS")){
+		if(sg->alias)
+			macro_ondemand=(char *)strdup(sg->alias);
+		}
+
+	else
+		return ERROR;
+
+	return OK;
+	}
+
+
+
+/* grab an on-demand contactgroup macro */
+int grab_on_demand_contactgroup_macro(contactgroup *cg, char *macro){
+	contactgroup *temp_contactgroup=NULL;
+	contactsmember *temp_contactsmember=NULL;
+
+	if(cg==NULL || macro==NULL)
+		return ERROR;
+
+	/* initialize the macro */
+	macro_ondemand=NULL;
+
+	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for contactgroup '%s': %s\n",cg->group_name,macro);
+
+	/* get the member list */
+	if(!strcmp(macro,"CONTACTGROUPMEMBERS")){
+
+		for(temp_contactsmember=cg->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+			if(macro_ondemand==NULL)
+				macro_ondemand=(char *)strdup(temp_contactsmember->contact_name);
+			else if((macro_ondemand=(char *)realloc(macro_ondemand,strlen(macro_ondemand)+strlen(temp_contactsmember->contact_name)+2))){
+				strcat(macro_ondemand,",");
+				strcat(macro_ondemand,temp_contactsmember->contact_name);
+				}
+			}
+	        }
+
+	/* get the group alias */
+	else if(!strcmp(macro,"CONTACTGROUPALIAS")){
+		if(cg->alias)
+			macro_ondemand=(char *)strdup(cg->alias);
+		}
+
+	else
+		return ERROR;
+
+	return OK;
+	}
+
 
 
 /* grab macros that are specific to a particular contact */

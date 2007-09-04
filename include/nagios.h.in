@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-28-2007
+ * Last Modified: 09-03-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -791,6 +791,9 @@ int grab_summary_macros(contact *);			/* updates summary macros */
 int grab_on_demand_macro(char *);                       /* fetches an on-demand macro */
 int grab_on_demand_host_macro(host *,char *);		/* fetches an on-demand host macro */
 int grab_on_demand_service_macro(service *,char *);     /* fetches an on-demand service macro */
+int grab_on_demand_hostgroup_macro(hostgroup *,char *);		/* fetches an on-demand hostgroup macro */
+int grab_on_demand_servicegroup_macro(servicegroup *,char *);   /* fetches an on-demand servicegroup macro */
+int grab_on_demand_contactgroup_macro(contactgroup *,char *);   /* fetches an on-demand contactgroup macro */
 int clear_argv_macros(void);                            /* clear all argv macros used in commands */
 int clear_volatile_macros(void);                     	/* clear all "volatile" macros that change between service/host checks */
 int clear_nonvolatile_macros(void);                  	/* clear all "nonvolatile" macros which remain relatively constant */

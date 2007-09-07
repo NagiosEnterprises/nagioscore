@@ -3,7 +3,7 @@
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-05-2007
+ * Last Modified:   09-04-2007
  *
  * License:
  *
@@ -29,6 +29,7 @@
 #include "../include/common.h"
 #include "../include/locations.h"
 #include "../include/downtime.h"
+#include "../include/macros.h"
 
 #ifdef NSCORE
 #include "../include/objects.h"

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2007
+ * Last Modified: 09-06-2007
  *
  * License:
  * 
@@ -25,6 +25,7 @@
 #include "../include/common.h"
 #include "../include/objects.h"
 #include "../include/comments.h"
+#include "../include/macros.h"
 #include "../include/statusdata.h"
 
 #include "../include/cgiutils.h"
@@ -230,6 +231,9 @@ int main(void){
 		free_memory();
 		return ERROR;
                 }
+
+	/* initialize macros */
+	init_macros();
 
 	document_header(TRUE);
 
@@ -1199,6 +1203,7 @@ void show_service_detail(void){
 	char status[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char temp_url[MAX_INPUT_BUFFER];
+	char *processed_string=NULL;
 	char *status_class="";
 	char *status_bg_class="";
 	char *host_status_bg_class="";
@@ -1533,6 +1538,9 @@ void show_service_detail(void){
 			/* host name column */
 			if(new_host==TRUE){
 
+				/* grab macros */
+				grab_host_macros(temp_host);
+
 				if(temp_hoststatus->status==HOST_DOWN){
 					if(temp_hoststatus->problem_has_been_acknowledged==TRUE)
 						host_status_bg_class="HOSTDOWNACK";
@@ -1587,7 +1595,9 @@ void show_service_detail(void){
 				if(temp_host->notes_url!=NULL){
 					printf("<TD align=center valign=center>");
 					printf("<A HREF='");
-					print_extra_host_url(temp_host->name,temp_host->notes_url);
+					process_macros(temp_host->notes_url,&processed_string,0);
+					printf("%s",processed_string);
+					free(processed_string);
 					printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
 					printf("</A>");
@@ -1596,7 +1606,9 @@ void show_service_detail(void){
 				if(temp_host->action_url!=NULL){
 					printf("<TD align=center valign=center>");
 					printf("<A HREF='");
-					print_extra_host_url(temp_host->name,temp_host->action_url);
+					process_macros(temp_host->action_url,&processed_string,0);
+					printf("%s",processed_string);
+					free(processed_string);
 					printf("' TARGET='%s'>",(action_url_target==NULL)?"_blank":action_url_target);
 					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
 					printf("</A>");
@@ -1606,7 +1618,9 @@ void show_service_detail(void){
 					printf("<TD align=center valign=center>");
 					printf("<A HREF='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name));
 					printf("<IMG SRC='%s",url_logo_images_path);
-					print_extra_host_url(temp_host->name,temp_host->icon_image);
+					process_macros(temp_host->icon_image,&processed_string,0);
+					printf("%s",processed_string);
+					free(processed_string);
 					printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
 					printf("</A>");
 					printf("</TD>\n");
@@ -1620,6 +1634,9 @@ void show_service_detail(void){
 			else
 				printf("<TD>");
 			printf("</TD>\n");
+
+			/* grab macros */
+			grab_service_macros(temp_service);
 
 			/* service name column */
 			printf("<TD CLASS='status%s'>",status_bg_class);
@@ -1668,7 +1685,9 @@ void show_service_detail(void){
 			if(temp_service->notes_url!=NULL){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='");
-				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->notes_url);
+				process_macros(temp_service->notes_url,&processed_string,0);
+				printf("%s",processed_string);
+				free(processed_string);
 				printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Service Notes","View Extra Service Notes");
 				printf("</A>");
@@ -1677,7 +1696,9 @@ void show_service_detail(void){
 			if(temp_service->action_url!=NULL){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='");
-				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->action_url);
+				process_macros(temp_service->action_url,&processed_string,0);
+				printf("%s",processed_string);
+				free(processed_string);
 				printf("' TARGET='%s'>",(action_url_target==NULL)?"_blank":action_url_target);
 				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Service Actions","Perform Extra Service Actions");
 				printf("</A>");
@@ -1688,7 +1709,9 @@ void show_service_detail(void){
 				printf("<A HREF='%s?type=%d&host=%s",EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_service->host_name));
 				printf("&service=%s'>",url_encode(temp_service->description));
 				printf("<IMG SRC='%s",url_logo_images_path);
-				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->icon_image);
+				process_macros(temp_service->icon_image,&processed_string,0);
+				printf("%s",processed_string);
+				free(processed_string);
 				printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt,(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt);
 				printf("</A>");
 				printf("</TD>\n");
@@ -1780,6 +1803,7 @@ void show_host_detail(void){
 	char status[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char temp_url[MAX_INPUT_BUFFER];
+	char *processed_string=NULL;
 	char *status_class="";
 	char *status_bg_class="";
 	hoststatus *temp_status=NULL;
@@ -1969,6 +1993,9 @@ void show_host_detail(void){
 	
 		total_entries++;
 
+		/* grab macros */
+		grab_host_macros(temp_host);
+
 
 		if(display_type==DISPLAY_HOSTGROUPS){
 
@@ -2057,7 +2084,9 @@ void show_host_detail(void){
 			if(temp_host->notes_url!=NULL){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='");
-				print_extra_host_url(temp_host->name,temp_host->notes_url);
+				process_macros(temp_host->notes_url,&processed_string,0);
+				printf("%s",processed_string);
+				free(processed_string);
 				printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
 				printf("</A>");
@@ -2066,7 +2095,9 @@ void show_host_detail(void){
 			if(temp_host->action_url!=NULL){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='");
-				print_extra_host_url(temp_host->name,temp_host->action_url);
+				process_macros(temp_host->action_url,&processed_string,0);
+				printf("%s",processed_string);
+				free(processed_string);
 				printf("' TARGET='%s'>",(action_url_target==NULL)?"_blank":action_url_target);
 				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
 				printf("</A>");
@@ -2076,7 +2107,9 @@ void show_host_detail(void){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name));
 				printf("<IMG SRC='%s",url_logo_images_path);
-				print_extra_host_url(temp_host->name,temp_host->icon_image);
+				process_macros(temp_host->icon_image,&processed_string,0);
+				printf("%s",processed_string);
+				free(processed_string);
 				printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
 				printf("</A>");
 				printf("</TD>\n");
@@ -3036,6 +3069,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 	char *status_bg_class="";
 	char *host_status_class="";
 	char *service_status_class="";
+	char *processed_string=NULL;
 	servicesmember *temp_member;
 	servicesmember *temp_member2;
 	host *temp_host;
@@ -3112,7 +3146,9 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 			printf("<TD align=center valign=center>");
 			printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
 			printf("<IMG SRC='%s",url_logo_images_path);
-			print_extra_host_url(temp_host->name,temp_host->icon_image);
+			process_macros(temp_host->icon_image,&processed_string,0);
+			printf("%s",processed_string);
+			free(processed_string);
 			printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
 			printf("</A>");
 			printf("<TD>\n");
@@ -3165,20 +3201,27 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 		/* actions */
 		printf("<TD CLASS='status%s'>",host_status_class);
 
+		/* grab macros */
+		grab_host_macros(temp_host);
+
 		printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
 		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,DETAIL_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extended Information For This Host","View Extended Information For This Host");
 		printf("</A>");
 
 		if(temp_host->notes_url!=NULL){
 			printf("<A HREF='");
-			print_extra_host_url(temp_host->name,temp_host->notes_url);
+			process_macros(temp_host->notes_url,&processed_string,0);
+			printf("%s",processed_string);
+			free(processed_string);
 			printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
 			printf("</A>");
 		        }
 		if(temp_host->action_url!=NULL){
 			printf("<A HREF='");
-			print_extra_host_url(temp_host->name,temp_host->action_url);
+			process_macros(temp_host->action_url,&processed_string,0);
+			printf("%s",processed_string);
+			free(processed_string);
 			printf("' TARGET='%s'>",(action_url_target==NULL)?"blank":action_url_target);
 			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
 			printf("</A>");
@@ -3343,8 +3386,8 @@ void show_hostgroup_overviews(void){
 
 /* shows an overview of a specific hostgroup... */
 void show_hostgroup_overview(hostgroup *hstgrp){
-	hostsmember *temp_member;
-	host *temp_host;
+	hostsmember *temp_member=NULL;
+	host *temp_host=NULL;
 	hoststatus *temp_hoststatus=NULL;
 	int odd=0;
 
@@ -3407,8 +3450,12 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 	char *status_bg_class="";
 	char *status_class="";
 	host *temp_host=NULL;
+	char *processed_string=NULL;
 
 	temp_host=find_host(hststatus->host_name);
+
+	/* grab macros */
+	grab_host_macros(temp_host);
 
 	if(hststatus->status==HOST_PENDING){
 		strncpy(status,"PENDING",sizeof(status));
@@ -3446,7 +3493,9 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 		printf("<TD CLASS='status%s' ALIGN=right>",status_bg_class);
 		printf("<a href='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(hststatus->host_name));
 		printf("<IMG SRC='%s",url_logo_images_path);
-		print_extra_host_url(temp_host->name,temp_host->icon_image);
+		process_macros(temp_host->icon_image,&processed_string,0);
+		printf("%s",processed_string);
+		free(processed_string);
 		printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
 		printf("</A>");
 		printf("</TD>\n");
@@ -3465,14 +3514,18 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 	printf("<a href='%s?type=%d&host=%s'><img src='%s%s' border=0 alt='View Extended Information For This Host' title='View Extended Information For This Host'></a>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(hststatus->host_name),url_images_path,DETAIL_ICON);
 	if(temp_host->notes_url!=NULL){
 		printf("<A HREF='");
-		print_extra_host_url(temp_host->name,temp_host->notes_url);
+		process_macros(temp_host->notes_url,&processed_string,0);
+		printf("%s",processed_string);
+		free(processed_string);
 		printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
 		printf("</A>");
 	        }
 	if(temp_host->action_url!=NULL){
 		printf("<A HREF='");
-		print_extra_host_url(temp_host->name,temp_host->action_url);
+		process_macros(temp_host->action_url,&processed_string,0);
+		printf("%s",processed_string);
+		free(processed_string);
 		printf("' TARGET='%s'>",(action_url_target==NULL)?"_blank":action_url_target);
 		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
 		printf("</A>");
@@ -4249,6 +4302,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 	service *temp_service;
 	hoststatus *temp_hoststatus;
 	servicestatus *temp_servicestatus;
+	char *processed_string=NULL;
 	int odd=0;
 	int current_item;
 
@@ -4269,6 +4323,9 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 		temp_host=find_host(temp_member->host_name);
 		if(temp_host==NULL)
 			continue;
+
+		/* grab macros */
+		grab_host_macros(temp_host);
 
 		/* find the host status */
 		temp_hoststatus=find_hoststatus(temp_host->name);
@@ -4315,7 +4372,9 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 			printf("<TD align=center valign=center>");
 			printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
 			printf("<IMG SRC='%s",url_logo_images_path);
-			print_extra_host_url(temp_host->name,temp_host->icon_image);
+			process_macros(temp_host->icon_image,&processed_string,0);
+			printf("%s",processed_string);
+			free(processed_string);
 			printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
 			printf("</A>");
 			printf("<TD>\n");
@@ -4344,6 +4403,9 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 				printf("<BR>\n");
 				current_item=1;
 			        }
+
+			/* grab macros */
+			grab_service_macros(temp_service);
 
 			/* get the status of the service */
 			temp_servicestatus=find_servicestatus(temp_service->host_name,temp_service->description);
@@ -4377,14 +4439,18 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 
 		if(temp_host->notes_url!=NULL){
 			printf("<A HREF='");
-			print_extra_host_url(temp_host->name,temp_host->notes_url);
+			process_macros(temp_host->notes_url,&processed_string,0);
+			printf("%s",processed_string);
+			free(processed_string);
 			printf("' TARGET='%s'>",(notes_url_target==NULL)?"_blank":notes_url_target);
 			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
 			printf("</A>");
 		        }
 		if(temp_host->action_url!=NULL){
 			printf("<A HREF='");
-			print_extra_host_url(temp_host->name,temp_host->action_url);
+			process_macros(temp_host->action_url,&processed_string,0);
+			printf("%s",processed_string);
+			free(processed_string);
 			printf("' TARGET='%s'>",(action_url_target==NULL)?"_blank":action_url_target);
 			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
 			printf("</A>");

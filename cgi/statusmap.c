@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 09-06-2007
  *
  * Description:
  *
@@ -277,6 +277,9 @@ int main(int argc, char **argv){
 		free_memory();
 		return ERROR;
                 }
+
+	/* initialize macros */
+	init_macros();
 
 
 	document_header(TRUE);
@@ -1895,9 +1898,10 @@ void draw_host_text(char *name,int x,int y){
 
 /* writes popup text for a specific host */
 void write_host_popup_text(host *hst){
-	host *temp_host;
-	hoststatus *temp_status;
-	hostsmember *temp_hostsmember;
+	host *temp_host=NULL;
+	hoststatus *temp_status=NULL;
+	hostsmember *temp_hostsmember=NULL;
+	char *processed_string=NULL;
 	int service_totals;
 	char date_time[48];
 	time_t current_time;
@@ -1920,12 +1924,23 @@ void write_host_popup_text(host *hst){
 		return;
 	        }
 
+	/* grab macros */
+	grab_host_macros(hst);
+
 	/* strip nasty stuff from plugin output */
 	sanitize_plugin_output(temp_status->plugin_output);
 
 	printf("<table border=0 cellpadding=0 cellspacing=5>");
 
-	printf("<tr><td><img src=%s%s border=0 width=40 height=40></td>",url_logo_images_path,(hst->icon_image==NULL)?UNKNOWN_ICON_IMAGE:hst->icon_image);
+	printf("<tr><td><img src=\\\"%s",url_logo_images_path);
+	if(hst->icon_image==NULL)
+		printf("%s",UNKNOWN_ICON_IMAGE);
+	else{
+		process_macros(hst->icon_image,&processed_string,0);
+		printf("%s",processed_string);
+		free(processed_string);
+		}
+	printf("\\\" border=0 width=40 height=40></td>");
 	printf("<td class=\\\"popupText\\\"><i>%s</i></td></tr>",(hst->icon_image_alt==NULL)?"":html_encode(hst->icon_image_alt,TRUE));
 
 	printf("<tr><td class=\\\"popupText\\\">Name:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->name,TRUE));

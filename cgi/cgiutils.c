@@ -54,6 +54,8 @@ char            *normal_sound=NULL;
 char            *statusmap_background_image=NULL;
 char            *statuswrl_include=NULL;
 
+char            *illegal_output_chars=NULL;
+
 char            *notes_url_target=NULL;
 char            *action_url_target=NULL;
 
@@ -394,6 +396,9 @@ int read_cgi_config_file(char *filename){
 
 		else if(!strcmp(var,"action_url_target"))
 			action_url_target=strdup(val);
+
+		else if(!strcmp(var,"illegal_macro_output_chars"))
+			illegal_output_chars=strdup(val);
 
 		else if(!strcmp(var,"notes_url_target"))
 			notes_url_target=strdup(val);
@@ -926,10 +931,11 @@ void sanitize_plugin_output(char *buffer){
 void get_time_string(time_t *raw_time,char *buffer,int buffer_length,int type){
 	time_t t;
 	struct tm *tm_ptr;
-	int day;
 	int hour;
 	int minute;
 	int second;
+	int month;
+	int day;
 	int year;
 	char *weekdays[7]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 	char *months[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
@@ -971,11 +977,96 @@ void get_time_string(time_t *raw_time,char *buffer,int buffer_length,int type){
 			snprintf(buffer,buffer_length,"%02d-%02d-%04d %02d:%02d:%02d",tm_ptr->tm_mon+1,tm_ptr->tm_mday,tm_ptr->tm_year+1900,tm_ptr->tm_hour,tm_ptr->tm_min,tm_ptr->tm_sec);
 	        }
 
+	/* short date */
+	else if(type==SHORT_DATE){
+		if(date_format==DATE_FORMAT_EURO)
+			snprintf(buffer,buffer_length,"%02d-%02d-%04d",day,month,year);
+		else if(date_format==DATE_FORMAT_ISO8601 || date_format==DATE_FORMAT_STRICT_ISO8601)
+			snprintf(buffer,buffer_length,"%04d-%02d-%02d",year,month,day);
+		else
+			snprintf(buffer,buffer_length,"%02d-%02d-%04d",month,day,year);
+	        }
+
 	/* expiration date/time for HTTP headers */
 	else if(type==HTTP_DATE_TIME)
 		snprintf(buffer,buffer_length,"%s, %02d %s %d %02d:%02d:%02d GMT",weekdays[tm_ptr->tm_wday],day,months[tm_ptr->tm_mon],year,hour,minute,second);
 
+	/* short time */
+	else
+		snprintf(buffer,buffer_length,"%02d:%02d:%02d",hour,minute,second);
+
 	buffer[buffer_length-1]='\x0';
+
+	return;
+        }
+
+
+
+/* given a date/time in time_t format, produce a corresponding date/time string, including timezone */
+void get_datetime_string(time_t *raw_time,char *buffer,int buffer_length, int type){
+	time_t t;
+	struct tm *tm_ptr;
+	int hour;
+	int minute;
+	int second;
+	int month;
+	int day;
+	int year;
+	char *weekdays[7]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+	char *months[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"};
+
+#ifdef HAVE_TM_ZONE
+# define tzone tm_ptr->tm_zone
+#else
+# define tzone (tm_ptr->tm_isdst)?tzname[1]:tzname[0]
+#endif
+
+	if(raw_time==NULL)
+		time(&t);
+	else 
+		t=*raw_time;
+
+	tm_ptr=localtime(&t);
+
+	hour=tm_ptr->tm_hour;
+	minute=tm_ptr->tm_min;
+	second=tm_ptr->tm_sec;
+	month=tm_ptr->tm_mon+1;
+	day=tm_ptr->tm_mday;
+	year=tm_ptr->tm_year+1900;
+
+	/* ctime() style date/time */
+	if(type==LONG_DATE_TIME)
+		snprintf(buffer,buffer_length,"%s %s %d %02d:%02d:%02d %s %d",weekdays[tm_ptr->tm_wday],months[tm_ptr->tm_mon],day,hour,minute,second,tzone,year);
+
+	/* short date/time */
+	else if(type==SHORT_DATE_TIME){
+		if(date_format==DATE_FORMAT_EURO)
+			snprintf(buffer,buffer_length,"%02d-%02d-%04d %02d:%02d:%02d",day,month,year,hour,minute,second);
+		else if(date_format==DATE_FORMAT_ISO8601 || date_format==DATE_FORMAT_STRICT_ISO8601)
+			snprintf(buffer,buffer_length,"%04d-%02d-%02d%c%02d:%02d:%02d",year,month,day,(date_format==DATE_FORMAT_STRICT_ISO8601)?'T':' ',hour,minute,second);
+		else
+			snprintf(buffer,buffer_length,"%02d-%02d-%04d %02d:%02d:%02d",month,day,year,hour,minute,second);
+	        }
+
+	/* short date */
+	else if(type==SHORT_DATE){
+		if(date_format==DATE_FORMAT_EURO)
+			snprintf(buffer,buffer_length,"%02d-%02d-%04d",day,month,year);
+		else if(date_format==DATE_FORMAT_ISO8601 || date_format==DATE_FORMAT_STRICT_ISO8601)
+			snprintf(buffer,buffer_length,"%04d-%02d-%02d",year,month,day);
+		else
+			snprintf(buffer,buffer_length,"%02d-%02d-%04d",month,day,year);
+	        }
+
+	/* short time */
+	else
+		snprintf(buffer,buffer_length,"%02d:%02d:%02d",hour,minute,second);
+
+	buffer[buffer_length-1]='\x0';
+
+	/* don't mess up other functions that might want to call a variable 'tzone' */
+#undef tzone
 
 	return;
         }
@@ -1714,113 +1805,6 @@ void display_nav_table(char *url,int archive){
 	return;
         }
 
-
-
-/* prints the additional notes or action url for a host (with macros substituted) */
-void print_extra_host_url(char *host_name, char *url){
-	char input_buffer[MAX_INPUT_BUFFER]="";
-	char output_buffer[MAX_INPUT_BUFFER]="";
-	char *temp_buffer;
-	int in_macro=FALSE;
-	host *temp_host;
-
-	if(host_name==NULL || url==NULL)
-		return;
-
-	temp_host=find_host(host_name);
-	if(temp_host==NULL){
-		printf("%s",url);
-		return;
-	        }
-
-	strncpy(input_buffer,url,sizeof(input_buffer)-1);
-	output_buffer[sizeof(input_buffer)-1]='\x0';
-
-	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
-
-		if(in_macro==FALSE){
-			if(strlen(output_buffer)+strlen(temp_buffer)<sizeof(output_buffer)-1){
-				strncat(output_buffer,temp_buffer,sizeof(output_buffer)-strlen(output_buffer)-1);
-				output_buffer[sizeof(output_buffer)-1]='\x0';
-			        }
-			in_macro=TRUE;
-			}
-		else{
-
-			if(strlen(output_buffer)+strlen(temp_buffer) < sizeof(output_buffer)-1){
-
-				if(!strcmp(temp_buffer,"HOSTNAME"))
-					strncat(output_buffer,url_encode(temp_host->name),sizeof(output_buffer)-strlen(output_buffer)-1);
-
-				else if(!strcmp(temp_buffer,"HOSTADDRESS"))
-					strncat(output_buffer,(temp_host->address==NULL)?"":url_encode(temp_host->address),sizeof(output_buffer)-strlen(output_buffer)-1);
-			        }
-
-			in_macro=FALSE;
-		        }
-	        }
-
-	printf("%s",output_buffer);
-
-	return;
-        }
-
-
-
-/* prints the additional notes or action url for a service (with macros substituted) */
-void print_extra_service_url(char *host_name, char *svc_description, char *url){
-	char input_buffer[MAX_INPUT_BUFFER]="";
-	char output_buffer[MAX_INPUT_BUFFER]="";
-	char *temp_buffer;
-	int in_macro=FALSE;
-	service *temp_service;
-	host *temp_host;
-
-	if(host_name==NULL || svc_description==NULL || url==NULL)
-		return;
-
-	temp_service=find_service(host_name,svc_description);
-	if(temp_service==NULL){
-		printf("%s",url);
-		return;
-	        }
-
-	temp_host=find_host(host_name);
-
-	strncpy(input_buffer,url,sizeof(input_buffer)-1);
-	input_buffer[sizeof(input_buffer)-1]='\x0';
-
-	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
-
-		if(in_macro==FALSE){
-			if(strlen(output_buffer)+strlen(temp_buffer)<sizeof(output_buffer)-1){
-				strncat(output_buffer,temp_buffer,sizeof(output_buffer)-strlen(output_buffer)-1);
-				output_buffer[sizeof(output_buffer)-1]='\x0';
-			        }
-			in_macro=TRUE;
-			}
-		else{
-
-			if(strlen(output_buffer)+strlen(temp_buffer) < sizeof(output_buffer)-1){
-
-				if(!strcmp(temp_buffer,"HOSTNAME"))
-					strncat(output_buffer,url_encode(temp_service->host_name),sizeof(output_buffer)-strlen(output_buffer)-1);
-
-				else if(!strcmp(temp_buffer,"HOSTADDRESS") && temp_host!=NULL)
-					strncat(output_buffer,(temp_host->address==NULL)?"":url_encode(temp_host->address),sizeof(output_buffer)-strlen(output_buffer)-1);
-
-				else if(!strcmp(temp_buffer,"SERVICEDESC"))
-					strncat(output_buffer,url_encode(temp_service->description),sizeof(output_buffer)-strlen(output_buffer)-1);
-			        }
-
-			in_macro=FALSE;
-		        }
-	        }
-
-	printf("%s",output_buffer);
-
-	return;
-        }
 
 
 /* prints the additional notes or action url for a hostgroup (with macros substituted) */

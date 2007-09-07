@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-16-2007
+ * Last Modified:   09-04-2007
  *
  * License:
  *
@@ -31,6 +31,7 @@
 #include "../include/statusdata.h"
 #include "../include/comments.h"
 #include "../include/downtime.h"
+#include "../include/macros.h"
 
 #ifdef NSCORE
 #include "../include/nagios.h"

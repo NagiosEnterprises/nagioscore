@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-15-2007
+ * Last Modified:   09-04-2007
  *
  * License:
  *
@@ -28,6 +28,7 @@
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/objects.h"
+#include "../include/macros.h"
 #include "../include/nagios.h"
 
 

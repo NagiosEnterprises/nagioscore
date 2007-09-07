@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   08-30-2007
+ * Last Modified:   09-04-2007
  *
  * Description:
  *
@@ -41,6 +41,7 @@
 #include "../include/comments.h"
 #include "../include/downtime.h"
 #include "../include/statusdata.h"
+#include "../include/macros.h"
 #include "../include/nagios.h"
 #include "../include/sretention.h"
 #include "../include/perfdata.h"
@@ -67,7 +68,8 @@ char            *auth_file=NULL;  /**** EMBEDDED PERL INTERPRETER AUTH FILE ****
 char            *nagios_user=NULL;
 char            *nagios_group=NULL;
 
-char            *macro_x[MACRO_X_COUNT];
+extern char     *macro_x[MACRO_X_COUNT];
+/*
 char            *macro_x_names[MACRO_X_COUNT];
 char            *macro_argv[MAX_COMMAND_ARGUMENTS];
 char            *macro_user[MAX_USER_MACROS];
@@ -76,6 +78,7 @@ char            *macro_ondemand=NULL;
 customvariablesmember *macro_custom_host_vars=NULL;
 customvariablesmember *macro_custom_service_vars=NULL;
 customvariablesmember *macro_custom_contact_vars=NULL;
+*/
 
 char            *global_host_event_handler=NULL;
 char            *global_service_event_handler=NULL;

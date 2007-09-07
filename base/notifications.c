@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-31-2007
+ * Last Modified:   09-04-2007
  *
  * License:
  *
@@ -26,6 +26,7 @@
 #include "../include/common.h"
 #include "../include/objects.h"
 #include "../include/statusdata.h"
+#include "../include/macros.h"
 #include "../include/nagios.h"
 #include "../include/broker.h"
 

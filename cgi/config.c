@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-15-2007
+ * Last Modified: 09-06-2007
  *
  * This CGI program will display various configuration information.
  *
@@ -130,6 +130,9 @@ int main(void){
 		document_footer();
 		return ERROR;
                 }
+
+	/* initialize macros */
+	init_macros();
 
 	document_header(TRUE);
 
@@ -404,6 +407,7 @@ void display_hosts(void){
 	hostsmember *temp_hostsmember=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
+	char *processed_string=NULL;
 	int options=0;
 	int odd=0;
 	char time_string[16];
@@ -464,6 +468,9 @@ void display_hosts(void){
 
 	/* check all the hosts... */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+		/* grab macros */
+		grab_host_macros(temp_host);
 
 		if(odd){
 			odd=0;
@@ -685,8 +692,11 @@ void display_hosts(void){
 
 		if(temp_host->icon_image==NULL)
 			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
-		else
-			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_host->icon_image,temp_host->icon_image);
+		else{
+			process_macros(temp_host->icon_image,&processed_string,0);
+			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,processed_string,temp_host->icon_image);
+			free(processed_string);
+			}
 
 		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->icon_image_alt==NULL)?"&nbsp;":temp_host->icon_image_alt);
 
@@ -1119,6 +1129,7 @@ void display_services(void){
 	service *temp_service=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
+	char *processed_string=NULL;
 	char command_line[MAX_INPUT_BUFFER];
 	char *command_name="";
 	int options;
@@ -1187,6 +1198,9 @@ void display_services(void){
 
 	/* check all the services... */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+		/* grab macros */
+		grab_service_macros(temp_service);
 
 		if(odd){
 			odd=0;
@@ -1397,8 +1411,11 @@ void display_services(void){
 
 		if(temp_service->icon_image==NULL)
 			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
-		else
-			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_service->icon_image,temp_service->icon_image);
+		else{
+			process_macros(temp_service->icon_image,&processed_string,0);
+			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,processed_string,temp_service->icon_image);
+			free(processed_string);
+			}
 
 		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->icon_image_alt==NULL)?"&nbsp;":temp_service->icon_image_alt);
 

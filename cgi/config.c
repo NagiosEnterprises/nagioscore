@@ -1802,6 +1802,7 @@ void display_serviceescalations(void){
 	serviceescalation *temp_se=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
+	char time_string[16]="";
 	int options=FALSE;
 	int odd=0;
 	char *bg_class="";
@@ -1882,11 +1883,12 @@ void display_serviceescalations(void){
 			printf("%d",temp_se->last_notification);
 		printf("</TD>\n");
 
+		get_interval_time_string(temp_se->notification_interval,time_string,sizeof(time_string));
 		printf("<TD CLASS='%s'>",bg_class);
-		if(temp_se->notification_interval==0)
+		if(temp_se->notification_interval==0.0)
 			printf("Notify Only Once (No Re-notification)");
 		else
-			printf("%d",temp_se->notification_interval);
+			printf("%s",time_string);
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
@@ -2022,6 +2024,7 @@ void display_hostescalations(void){
 	hostescalation *temp_he=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
+	char time_string[16]="";
 	int options=FALSE;
 	int odd=0;
 	char *bg_class="";
@@ -2095,11 +2098,12 @@ void display_hostescalations(void){
 			printf("%d",temp_he->last_notification);
 		printf("</TD>\n");
 
+		get_interval_time_string(temp_he->notification_interval,time_string,sizeof(time_string));
 		printf("<TD CLASS='%s'>",bg_class);
-		if(temp_he->notification_interval==0)
+		if(temp_he->notification_interval==0.0)
 			printf("Notify Only Once (No Re-notification)");
 		else
-			printf("%d",temp_he->notification_interval);
+			printf("%s",time_string);
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);

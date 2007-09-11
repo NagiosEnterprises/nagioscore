@@ -11,6 +11,7 @@ Nagios 3.x Change Log
 * Macro code cleanup 
 * Added on-demand contact and contactgroup macro support
 * More complete (but still partial) support for macros in CGIs ($xNOTES$, $xNOTESURL$, and $xACTIONURL$ macros)
+* Fixed bug in config CGI with displaying incorrect notification interval for escalations
 
 
 

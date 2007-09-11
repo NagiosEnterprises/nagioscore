@@ -988,13 +988,13 @@ int grab_contact_macros(contact *cntct){
 		macro_x[MACRO_CONTACTGROUPNAMES]=(char *)strdup(buf2);
 		my_free((void **)&buf2);
 		}
-#endif
 
 	/* get first/primary contactgroup macros */
 	if(cntct->contactgroups_ptr){
 		if((temp_contactgroup=(contactgroup *)cntct->contactgroups_ptr->object_ptr))
 			grab_contactgroup_macros(temp_contactgroup);
 		}
+#endif
 
 	/* get custom variables */
 	for(temp_customvariablesmember=cntct->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
@@ -1041,8 +1041,8 @@ int grab_contactgroup_macros(contactgroup *cg){
 			strcat(macro_x[MACRO_CONTACTGROUPMEMBERS],",");
 			strcat(macro_x[MACRO_CONTACTGROUPMEMBERS],temp_contactsmember->contact_name);
 			}
-#endif
 	        }
+#endif
 
 	return OK;
 	}

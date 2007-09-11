@@ -2,7 +2,7 @@
  *
  * MACROS.H - Common macro functions
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-06-2007
+ * Last Modified: 09-11-2007
  *
  * License:
  *
@@ -40,7 +40,7 @@
 
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
-#define MACRO_X_COUNT				140	/* size of macro_x[] array */
+#define MACRO_X_COUNT				144	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -182,6 +182,10 @@
 #define MACRO_SERVICEGROUPACTIONURL             137
 #define MACRO_HOSTGROUPMEMBERS                  138
 #define MACRO_SERVICEGROUPMEMBERS               139
+#define MACRO_CONTACTGROUPNAME                  140
+#define MACRO_CONTACTGROUPALIAS                 141
+#define MACRO_CONTACTGROUPMEMBERS               142
+#define MACRO_CONTACTGROUPNAMES                 143
 
 
 
@@ -197,16 +201,19 @@
 
 int process_macros(char *,char **,int);             	/* replace macros with their actual values */
 char *clean_macro_chars(char *,int);                    /* cleans macros characters before insertion into output string */
+
 int grab_service_macros(service *);                  	/* updates the service macro data */
 int grab_host_macros(host *);                        	/* updates the host macro data */
 int grab_servicegroup_macros(servicegroup *);           /* updates servicegroup macros */
 int grab_hostgroup_macros(hostgroup *);                 /* updates hostgroup macros */
 int grab_contact_macros(contact *);                  	/* updates the contact macro data */
+int grab_contactgroup_macros(contactgroup *);           /* updates contactgroup macros */
 int grab_datetime_macros(void);				/* updates date/time macros */
 int grab_summary_macros(contact *);			/* updates summary macros */
 int grab_on_demand_macro(char *);                       /* fetches an on-demand macro */
 int grab_on_demand_host_macro(host *,char *);		/* fetches an on-demand host macro */
 int grab_on_demand_service_macro(service *,char *);     /* fetches an on-demand service macro */
+int grab_on_demand_contact_macro(contact *,char *);     /* fetches an on-demand contact macro */
 int grab_on_demand_hostgroup_macro(hostgroup *,char *);		/* fetches an on-demand hostgroup macro */
 int grab_on_demand_servicegroup_macro(servicegroup *,char *);   /* fetches an on-demand servicegroup macro */
 int grab_on_demand_contactgroup_macro(contactgroup *,char *);   /* fetches an on-demand contactgroup macro */
@@ -217,6 +224,7 @@ int init_macros(void);
 int init_macrox_names(void);
 int add_macrox_name(int,char *);
 int free_macrox_names(void);
+
 int clear_argv_macros(void);
 int clear_volatile_macros(void);
 int clear_nonvolatile_macros(void);
@@ -225,6 +233,7 @@ int clear_service_macros(void);
 int clear_hostgroup_macros(void);
 int clear_servicegroup_macros(void);
 int clear_contact_macros(void);
+int clear_contactgroup_macros(void);
 
 #ifdef NSCORE
 int set_all_macro_environment_vars(int);

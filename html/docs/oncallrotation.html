@@ -87,7 +87,7 @@ define timeperiod{
 	wednesday		00:00-24:00
 	thursday		00:00-24:00
 	friday		00:00-24:00
-	exclude		holiday		; Also include holiday dates/times defined elsewhere
+	exclude		holidays		; Exclude holiday dates/times defined elsewhere
 	}
 </pre>
 
@@ -113,7 +113,7 @@ define timeperiod{
 	timeperiod_name		bob-oncall
 	friday		00:00-24:00
 	saturday		00:00-24:00
-	use		holidays	; Exclude holiday date/times defined elsewhere
+	use		holidays	; Also include holiday date/times defined elsewhere
 	}
 </pre>
 

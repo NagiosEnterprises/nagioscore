@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2007
+ * Last Modified: 09-11-2007
  *
  * License:
  *
@@ -1810,6 +1810,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 
 	new_contact->host_notification_period_ptr=NULL;
 	new_contact->service_notification_period_ptr=NULL;
+	new_contact->contactgroups_ptr=NULL;
 #endif
 
 	/* add new contact to contact chained hash list */
@@ -4297,6 +4298,11 @@ int free_object_data(void){
 			my_free((void **)&this_contact->address[i]);
 		my_free((void **)&this_contact->host_notification_period);
 		my_free((void **)&this_contact->service_notification_period);
+
+#ifdef NSCORE
+		free_objectlist(&this_contact->contactgroups_ptr);
+#endif
+
 		my_free((void **)&this_contact);
 		this_contact=next_contact;
 		}

@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2007
+ * Last Modified: 09-11-2007
  *
  * License:
  *
@@ -37,7 +37,7 @@
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        305     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        306     /* increment when changes are made to data structures... */
 	                                                /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -221,6 +221,7 @@ struct contact_struct{
 
 	timeperiod *host_notification_period_ptr;
 	timeperiod *service_notification_period_ptr;
+	objectlist *contactgroups_ptr;
 #endif
 	struct	contact_struct *next;
 	struct	contact_struct *nexthash;

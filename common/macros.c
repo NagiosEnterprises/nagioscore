@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-06-2007
+ * Last Modified:   09-11-2007
  *
  * License:
  *
@@ -928,6 +928,126 @@ int grab_hostgroup_macros(hostgroup *hg){
 	}
 
 
+/* grab macros that are specific to a particular contact */
+int grab_contact_macros(contact *cntct){
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char *customvarname=NULL;
+	contactgroup *temp_contactgroup=NULL;
+	objectlist *temp_objectlist=NULL;
+	char *buf1=NULL;
+	char *buf2=NULL;
+	int x=0;
+
+	/* clear contact-related macros */
+	clear_contact_macros();
+	clear_contactgroup_macros();
+
+	if(cntct==NULL)
+		return ERROR;
+
+	/* get the name */
+	my_free((void **)&macro_x[MACRO_CONTACTNAME]);
+	macro_x[MACRO_CONTACTNAME]=(char *)strdup(cntct->name);
+
+	/* get the alias */
+	my_free((void **)&macro_x[MACRO_CONTACTALIAS]);
+	macro_x[MACRO_CONTACTALIAS]=(char *)strdup(cntct->alias);
+
+	/* get the email address */
+	my_free((void **)&macro_x[MACRO_CONTACTEMAIL]);
+	if(cntct->email)
+		macro_x[MACRO_CONTACTEMAIL]=(char *)strdup(cntct->email);
+
+	/* get the pager number */
+	my_free((void **)&macro_x[MACRO_CONTACTPAGER]);
+	if(cntct->pager)
+		macro_x[MACRO_CONTACTPAGER]=(char *)strdup(cntct->pager);
+
+	/* get misc contact addresses */
+	for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
+		my_free((void **)&macro_contactaddress[x]);
+		if(cntct->address[x]){
+			macro_contactaddress[x]=(char *)strdup(cntct->address[x]);
+			/*strip(macro_contactaddress[x]);*/
+		        }
+	        }
+
+#ifdef NSCORE
+	/* get the contactgroup names */
+	/* find all contactgroups this contact is a member of */
+	for(temp_objectlist=cntct->contactgroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
+
+		if((temp_contactgroup=(contactgroup *)temp_objectlist->object_ptr)==NULL)
+			continue;
+
+		asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_contactgroup->group_name);
+		my_free((void **)&buf2);
+		buf2=buf1;
+		}
+	if(buf2){
+		macro_x[MACRO_CONTACTGROUPNAMES]=(char *)strdup(buf2);
+		my_free((void **)&buf2);
+		}
+#endif
+
+	/* get first/primary contactgroup macros */
+	if(cntct->contactgroups_ptr){
+		if((temp_contactgroup=(contactgroup *)cntct->contactgroups_ptr->object_ptr))
+			grab_contactgroup_macros(temp_contactgroup);
+		}
+
+	/* get custom variables */
+	for(temp_customvariablesmember=cntct->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+		asprintf(&customvarname,"_CONTACT%s",temp_customvariablesmember->variable_name);
+		add_custom_variable_to_object(&macro_custom_contact_vars,customvarname,temp_customvariablesmember->variable_value);
+		my_free((void **)&customvarname);
+	        }
+
+	/*
+	strip(macro_x[MACRO_CONTACTNAME]);
+	strip(macro_x[MACRO_CONTACTALIAS]);
+	strip(macro_x[MACRO_CONTACTEMAIL]);
+	strip(macro_x[MACRO_CONTACTPAGER]);
+	*/
+
+	return OK;
+        }
+
+
+
+/* grab contactgroup macros */
+int grab_contactgroup_macros(contactgroup *cg){
+	contactgroup *temp_contactgroup=NULL;
+	contactsmember *temp_contactsmember=NULL;
+
+	/* clear contactgroup macros */
+	clear_contactgroup_macros();
+
+	if(cg==NULL)
+		return ERROR;
+
+	/* get the group alias */
+	my_free((void **)&macro_x[MACRO_CONTACTGROUPALIAS]);
+	if(cg->alias)
+		macro_x[MACRO_CONTACTGROUPALIAS]=(char *)strdup(cg->alias);
+
+	/* get the member list */
+	my_free((void **)&macro_x[MACRO_CONTACTGROUPMEMBERS]);
+#ifdef NSCORE
+	for(temp_contactsmember=cg->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+		if(macro_x[MACRO_CONTACTGROUPMEMBERS]==NULL)
+			macro_x[MACRO_CONTACTGROUPMEMBERS]=(char *)strdup(temp_contactsmember->contact_name);
+		else if((macro_x[MACRO_CONTACTGROUPMEMBERS]=(char *)realloc(macro_x[MACRO_CONTACTGROUPMEMBERS],strlen(macro_x[MACRO_CONTACTGROUPMEMBERS])+strlen(temp_contactsmember->contact_name)+2))){
+			strcat(macro_x[MACRO_CONTACTGROUPMEMBERS],",");
+			strcat(macro_x[MACRO_CONTACTGROUPMEMBERS],temp_contactsmember->contact_name);
+			}
+#endif
+	        }
+
+	return OK;
+	}
+
+
 /* grab an on-demand host(group) or service(group) macro */
 int grab_on_demand_macro(char *str){
 	char *macro=NULL;
@@ -1735,6 +1855,114 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 
 
+/* grab an on-demand contact macro */
+int grab_on_demand_contact_macro(contact *cntct, char *macro){
+	contactgroup *temp_contactgroup=NULL;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	objectlist *temp_objectlist=NULL;
+	char *customvarname=NULL;
+	char *temp_buffer=NULL;
+	char *buf1=NULL;
+	char *buf2=NULL;
+	register int x=0;
+	register int address=0;
+
+	if(cntct==NULL || macro==NULL)
+		return ERROR;
+
+	/* initialize the macro */
+	macro_ondemand=NULL;
+
+#ifdef NSCORE
+	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for contact '%s'\n",cntct->name,macro);
+#endif
+
+	/* get the name */
+	my_free((void **)&macro_x[MACRO_CONTACTNAME]);
+	macro_x[MACRO_CONTACTNAME]=(char *)strdup(cntct->name);
+
+	/* get the alias */
+	if(!strcmp(macro,"CONTACTALIAS")){
+		if(cntct->alias)
+			macro_ondemand=(char *)strdup(cntct->alias);
+	        }
+
+	/* get the email address */
+	else if(!strcmp(macro,"CONTACTALIAS")){
+		if(cntct->email)
+			macro_ondemand=(char *)strdup(cntct->email);
+		}
+
+	/* get the pager number */
+	else if(!strcmp(macro,"CONTACTPAGER")){
+		if(cntct->pager)
+			macro_ondemand=(char *)strdup(cntct->pager);
+		}
+
+	/* get misc contact addresses */
+	else if(strstr(macro,"CONTACTADDRESS")==macro){
+		address=atoi(macro+14);
+		for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
+			if(x==address && cntct->address[x]){
+				macro_ondemand=(char *)strdup(cntct->address[x]);
+				}
+			}
+		}
+
+#ifdef NSCORE
+	/** NOTE: 09/06/07 other contactgroup macros are handled by grab_on_demand_contactgroup_macro(), and thus are not available in on-demand contact macros **/
+	/* get the contactgroup names */
+	/* find all contactgroups this contact is a member of */
+	else if(!strcmp(macro,"CONTACTGROUPNAMES")){
+
+		for(temp_objectlist=cntct->contactgroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
+
+			if((temp_contactgroup=(contactgroup *)temp_objectlist->object_ptr)==NULL)
+				continue;
+
+			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_contactgroup->group_name);
+			my_free((void **)&buf2);
+			buf2=buf1;
+			}
+		if(buf2){
+			macro_ondemand=(char *)strdup(buf2);
+			my_free((void **)&buf2);
+			}
+		}
+
+	/* get first/primary contactgroup macros */
+	else if(!strcmp(macro,"CONTACTGROUPNAME")){
+		if(cntct->contactgroups_ptr){
+			temp_contactgroup=(contactgroup *)cntct->contactgroups_ptr->object_ptr;
+			macro_ondemand=(char *)strdup(temp_contactgroup->group_name);
+			}
+		}
+#endif
+
+	/* custom variables */
+	else if(strstr(macro,"_CONTACT")==macro){
+		
+		/* get the variable name */
+		if((customvarname=(char *)strdup(macro+8))){
+
+			for(temp_customvariablesmember=cntct->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+
+				if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
+					macro_ondemand=(char *)strdup(temp_customvariablesmember->variable_value);
+					break;
+				        }
+			        }
+
+			/* free memory */
+			my_free((void **)&customvarname);
+		        }
+	        }
+
+	return OK;
+	}
+
+
+
 /* grab an on-demand hostgroup macro */
 int grab_on_demand_hostgroup_macro(hostgroup *hg, char *macro){
 	hostgroup *temp_hostgroup=NULL;
@@ -1925,8 +2153,14 @@ int grab_on_demand_contactgroup_macro(contactgroup *cg, char *macro){
 	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for contactgroup '%s': %s\n",cg->group_name,macro);
 #endif
 
+	/* get the group alias */
+	if(!strcmp(macro,"CONTACTGROUPALIAS")){
+		if(cg->alias)
+			macro_ondemand=(char *)strdup(cg->alias);
+		}
+
 	/* get the member list */
-	if(!strcmp(macro,"CONTACTGROUPMEMBERS")){
+	else if(!strcmp(macro,"CONTACTGROUPMEMBERS")){
 #ifdef NSCORE
 		for(temp_contactsmember=cg->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 			if(macro_ondemand==NULL)
@@ -1939,69 +2173,11 @@ int grab_on_demand_contactgroup_macro(contactgroup *cg, char *macro){
 #endif
 	        }
 
-	/* get the group alias */
-	else if(!strcmp(macro,"CONTACTGROUPALIAS")){
-		if(cg->alias)
-			macro_ondemand=(char *)strdup(cg->alias);
-		}
-
 	else
 		return ERROR;
 
 	return OK;
 	}
-
-
-
-/* grab macros that are specific to a particular contact */
-int grab_contact_macros(contact *cntct){
-	customvariablesmember *temp_customvariablesmember=NULL;
-	char *customvarname=NULL;
-	int x=0;
-
-	/* get the name */
-	my_free((void **)&macro_x[MACRO_CONTACTNAME]);
-	macro_x[MACRO_CONTACTNAME]=(char *)strdup(cntct->name);
-
-	/* get the alias */
-	my_free((void **)&macro_x[MACRO_CONTACTALIAS]);
-	macro_x[MACRO_CONTACTALIAS]=(char *)strdup(cntct->alias);
-
-	/* get the email address */
-	my_free((void **)&macro_x[MACRO_CONTACTEMAIL]);
-	if(cntct->email)
-		macro_x[MACRO_CONTACTEMAIL]=(char *)strdup(cntct->email);
-
-	/* get the pager number */
-	my_free((void **)&macro_x[MACRO_CONTACTPAGER]);
-	if(cntct->pager)
-		macro_x[MACRO_CONTACTPAGER]=(char *)strdup(cntct->pager);
-
-	/* get misc contact addresses */
-	for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
-		my_free((void **)&macro_contactaddress[x]);
-		if(cntct->address[x]){
-			macro_contactaddress[x]=(char *)strdup(cntct->address[x]);
-			/*strip(macro_contactaddress[x]);*/
-		        }
-	        }
-
-	/* get custom variables */
-	for(temp_customvariablesmember=cntct->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-		asprintf(&customvarname,"_CONTACT%s",temp_customvariablesmember->variable_name);
-		add_custom_variable_to_object(&macro_custom_contact_vars,customvarname,temp_customvariablesmember->variable_value);
-		my_free((void **)&customvarname);
-	        }
-
-	/*
-	strip(macro_x[MACRO_CONTACTNAME]);
-	strip(macro_x[MACRO_CONTACTALIAS]);
-	strip(macro_x[MACRO_CONTACTEMAIL]);
-	strip(macro_x[MACRO_CONTACTPAGER]);
-	*/
-
-	return OK;
-        }
 
 
 
@@ -2545,6 +2721,10 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_SERVICEGROUPACTIONURL,"SERVICEGROUPACTIONURL");
 	add_macrox_name(MACRO_HOSTGROUPMEMBERS,"HOSTGROUPMEMBERS");
 	add_macrox_name(MACRO_SERVICEGROUPMEMBERS,"SERVICEGROUPMEMBERS");
+	add_macrox_name(MACRO_CONTACTGROUPNAME,"CONTACTGROUPNAME");
+	add_macrox_name(MACRO_CONTACTGROUPALIAS,"CONTACTGROUPALIAS");
+	add_macrox_name(MACRO_CONTACTGROUPMEMBERS,"CONTACTGROUPMEMBERS");
+	add_macrox_name(MACRO_CONTACTGROUPNAMES,"CONTACTGROUPNAMES");
 
 	return OK;
         }
@@ -2877,6 +3057,7 @@ int clear_contact_macros(void){
 		case MACRO_CONTACTALIAS:
 		case MACRO_CONTACTEMAIL:
 		case MACRO_CONTACTPAGER:
+		case MACRO_CONTACTGROUPNAMES:
 			my_free((void **)&macro_x[x]);
 			break;
 		default:
@@ -2896,6 +3077,27 @@ int clear_contact_macros(void){
 		my_free((void **)&this_customvariablesmember);
 	        }
 	macro_custom_contact_vars=NULL;
+
+	return OK;
+	}
+
+
+
+/* clear contactgroup macros */
+int clear_contactgroup_macros(void){
+	register int x;
+	
+	for(x=0;x<MACRO_X_COUNT;x++){
+		switch(x){
+		case MACRO_CONTACTGROUPNAME:
+		case MACRO_CONTACTGROUPALIAS:
+		case MACRO_CONTACTGROUPMEMBERS:
+			my_free((void **)&macro_x[x]);
+			break;
+		default:
+			break;
+			}
+		}
 
 	return OK;
 	}

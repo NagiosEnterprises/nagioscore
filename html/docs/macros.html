@@ -169,6 +169,17 @@ $SERVICESTATEID:novellserver:DS Database$    <--- On-demand service macro
 $SERVICESTATEID::CPU Load$                   <--- On-demand service macro with blank host name field
 </pre>
 
+<p>
+On-demand macros are also available for hostgroup, servicegroup, contact, and contactgroup macros.  For example:
+</p>
+
+<pre>
+$CONTACTEMAIL:john$                          <--- On-demand contact macro
+$CONTACTGROUPMEMBERS:linux-admins$           <--- On-demand contactgroup macro
+$HOSTGROUPALIAS:linux-servers$               <--- On-demand hostgroup macro
+$SERVICEGROUPALIAS:DNS-Cluster$              <--- On-demand servicegroup macro
+</pre>
+
 
 <p>
 <strong><u>Custom Variable Macros</u></strong>

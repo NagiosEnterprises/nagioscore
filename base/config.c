@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-04-2007
+ * Last Modified: 09-11-2007
  *
  * License:
  *
@@ -2331,6 +2331,10 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save a pointer to this contactgroup for faster contact/group membership lookups later */
+			else
+				add_object_to_objectlist(&temp_contact->contactgroups_ptr,(void *)temp_contactgroup);
 
 			/* save the contact pointer for later */
 			temp_contactsmember->contact_ptr=temp_contact;

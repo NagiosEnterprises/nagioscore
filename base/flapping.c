@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-18-2007
+ * Last Modified: 09-11-2007
  *
  * License:
  *
@@ -356,7 +356,7 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 		svc->check_flapping_recovery_notification=FALSE;
 
 	/* send a notification */
-	service_notification(svc,NOTIFICATION_FLAPPINGSTART,NULL,NULL);
+	service_notification(svc,NOTIFICATION_FLAPPINGSTART,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 	return;
         }
@@ -392,11 +392,11 @@ void clear_service_flap(service *svc, double percent_change, double high_thresho
 #endif
 
 	/* send a notification */
-	service_notification(svc,NOTIFICATION_FLAPPINGSTOP,NULL,NULL);
+	service_notification(svc,NOTIFICATION_FLAPPINGSTOP,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 	/* should we send a recovery notification? */
 	if(svc->check_flapping_recovery_notification==TRUE && svc->current_state==STATE_OK)
-		service_notification(svc,NOTIFICATION_NORMAL,NULL,NULL);
+		service_notification(svc,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 	/* clear the recovery notification flag */
 	svc->check_flapping_recovery_notification=FALSE;
@@ -441,7 +441,7 @@ void set_host_flap(host *hst, double percent_change, double high_threshold, doub
 		hst->check_flapping_recovery_notification=FALSE;
 
 	/* send a notification */
-	host_notification(hst,NOTIFICATION_FLAPPINGSTART,NULL,NULL);
+	host_notification(hst,NOTIFICATION_FLAPPINGSTART,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 	return;
         }
@@ -477,11 +477,11 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 #endif
 
 	/* send a notification */
-	host_notification(hst,NOTIFICATION_FLAPPINGSTOP,NULL,NULL);
+	host_notification(hst,NOTIFICATION_FLAPPINGSTOP,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 	/* should we send a recovery notification? */
 	if(hst->check_flapping_recovery_notification==TRUE && hst->current_state==HOST_UP)
-		host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL);
+		host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 	/* clear the recovery notification flag */
 	hst->check_flapping_recovery_notification=FALSE;
@@ -671,11 +671,11 @@ void handle_host_flap_detection_disabled(host *hst){
 #endif
 
 		/* send a notification */
-		host_notification(hst,NOTIFICATION_FLAPPINGDISABLED,NULL,NULL);
+		host_notification(hst,NOTIFICATION_FLAPPINGDISABLED,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 		/* should we send a recovery notification? */
 		if(hst->check_flapping_recovery_notification==TRUE && hst->current_state==HOST_UP)
-			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL);
+			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 		/* clear the recovery notification flag */
 		hst->check_flapping_recovery_notification=FALSE;
@@ -788,11 +788,11 @@ void handle_service_flap_detection_disabled(service *svc){
 #endif
 
 		/* send a notification */
-		service_notification(svc,NOTIFICATION_FLAPPINGDISABLED,NULL,NULL);
+		service_notification(svc,NOTIFICATION_FLAPPINGDISABLED,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 		/* should we send a recovery notification? */
 		if(svc->check_flapping_recovery_notification==TRUE && svc->current_state==STATE_OK)
-			service_notification(svc,NOTIFICATION_NORMAL,NULL,NULL);
+			service_notification(svc,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 		/* clear the recovery notification flag */
 		svc->check_flapping_recovery_notification=FALSE;

@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-04-2007
+ * Last Modified: 09-11-2007
  *
  * License:
  *
@@ -227,7 +227,8 @@ int log_service_event(service *svc){
 		log_options=NSLOG_SERVICE_OK;
 
 	/* find the associated host */
-	temp_host=find_host(svc->host_name);
+	if((temp_host=svc->host_ptr)==NULL)
+		return ERROR;
 
 	/* grab service macros */
 	clear_volatile_macros();
@@ -317,7 +318,8 @@ int log_service_states(int type, time_t *timestamp){
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		/* find the associated host */
-		temp_host=find_host(temp_service->host_name);
+		if((temp_host=temp_service->host_ptr)==NULL)
+			continue;
 
 		/* grab service macros */
 		clear_volatile_macros();

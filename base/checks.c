@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-15-2007
+ * Last Modified:   09-11-2007
  *
  * License:
  *
@@ -1000,7 +1000,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	        }
 
 	/* get the host that this service runs on */
-	temp_host=find_host(temp_service->host_name);
+	temp_host=(host *)temp_service->host_ptr;
 
 	/* if the service check was okay... */
 	if(temp_service->current_state==STATE_OK){
@@ -1157,7 +1157,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			state_was_logged=TRUE;
 
 			/* notify contacts about the service recovery */
-			service_notification(temp_service,NOTIFICATION_NORMAL,NULL,NULL);
+			service_notification(temp_service,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 			/* run the service event handler to handle the hard state change */
 			handle_service_event(temp_service);
@@ -1283,7 +1283,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				route_result=temp_host->current_state;
 
 				/* possibly re-send host notifications... */
-				host_notification(temp_host,NOTIFICATION_NORMAL,NULL,NULL);
+				host_notification(temp_host,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 			        }
 		        }
 
@@ -1409,7 +1409,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				check_pending_flex_service_downtime(temp_service);
 
 			/* (re)send notifications out about this service problem if the host is up (and was at last check also) and the dependencies were okay... */
-			service_notification(temp_service,NOTIFICATION_NORMAL,NULL,NULL);
+			service_notification(temp_service,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 			/* run the service event handler if we changed state from the last hard state or if this service is flagged as being volatile */
 			if(hard_state_change==TRUE || temp_service->is_volatile==TRUE)
@@ -3392,7 +3392,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 
 					for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
-						if((parent_host=find_host(temp_hostsmember->host_name))==NULL)
+						if((parent_host=temp_hostsmember->host_ptr)==NULL)
 							continue;
 
 						log_debug_info(DEBUGL_CHECKS,1,"Running serial check parent host '%s'...\n",parent_host->name);
@@ -3742,7 +3742,7 @@ int determine_host_reachability(host *hst){
 
 		for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
-			if((parent_host=find_host(temp_hostsmember->host_name))==NULL)
+			if((parent_host=temp_hostsmember->host_ptr)==NULL)
 				continue;
 
 			/* bail out as soon as we find one parent host that is UP */

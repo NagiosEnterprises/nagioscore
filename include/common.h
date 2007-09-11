@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-25-2007
+ * Last Modified: 09-11-2007
  *
  * License:
  *
@@ -308,6 +308,13 @@
 #define SERVICE_DOWNTIME		1	/* service downtime */
 #define HOST_DOWNTIME			2	/* host downtime */
 #define ANY_DOWNTIME                    3       /* host or service downtime */
+
+
+/************************** NOTIFICATION OPTIONS *************************/
+
+#define NOTIFICATION_OPTION_NONE        0
+#define NOTIFICATION_OPTION_BROADCAST   1
+#define NOTIFICATION_OPTION_FORCED      2
 
 
 /************************** ACKNOWLEDGEMENT TYPES ************************/

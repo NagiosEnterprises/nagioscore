@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-28-2007
+ * Last Modified: 09-11-2007
  *
  * License:
  *
@@ -174,7 +174,7 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 				my_free((void **)&temp_buffer);
 
 				/* send a notification */
-				host_notification(hst,NOTIFICATION_DOWNTIMECANCELLED,NULL,NULL);
+				host_notification(hst,NOTIFICATION_DOWNTIMECANCELLED,NULL,NULL,NOTIFICATION_OPTION_NONE);
 			        }
 		        }
 
@@ -190,7 +190,7 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 				my_free((void **)&temp_buffer);
 
 				/* send a notification */
-				service_notification(svc,NOTIFICATION_DOWNTIMECANCELLED,NULL,NULL);
+				service_notification(svc,NOTIFICATION_DOWNTIMECANCELLED,NULL,NULL,NOTIFICATION_OPTION_NONE);
 			        }
 		        }
 	        }
@@ -410,7 +410,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			my_free((void **)&temp_buffer);
 
 			/* send a notification */
-			host_notification(hst,NOTIFICATION_DOWNTIMEEND,temp_downtime->author,temp_downtime->comment);
+			host_notification(hst,NOTIFICATION_DOWNTIMEEND,temp_downtime->author,temp_downtime->comment,NOTIFICATION_OPTION_NONE);
 		        }
 
 		else if(temp_downtime->type==SERVICE_DOWNTIME && svc->scheduled_downtime_depth==0){
@@ -423,7 +423,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			my_free((void **)&temp_buffer);
 
 			/* send a notification */
-			service_notification(svc,NOTIFICATION_DOWNTIMEEND,temp_downtime->author,temp_downtime->comment);
+			service_notification(svc,NOTIFICATION_DOWNTIMEEND,temp_downtime->author,temp_downtime->comment,NOTIFICATION_OPTION_NONE);
 		        }
 
 
@@ -485,7 +485,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			my_free((void **)&temp_buffer);
 
 			/* send a notification */
-			host_notification(hst,NOTIFICATION_DOWNTIMESTART,temp_downtime->author,temp_downtime->comment);
+			host_notification(hst,NOTIFICATION_DOWNTIMESTART,temp_downtime->author,temp_downtime->comment,NOTIFICATION_OPTION_NONE);
 		        }
 
 		else if(temp_downtime->type==SERVICE_DOWNTIME && svc->scheduled_downtime_depth==0){
@@ -498,7 +498,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			my_free((void **)&temp_buffer);
 
 			/* send a notification */
-			service_notification(svc,NOTIFICATION_DOWNTIMESTART,temp_downtime->author,temp_downtime->comment);
+			service_notification(svc,NOTIFICATION_DOWNTIMESTART,temp_downtime->author,temp_downtime->comment,NOTIFICATION_OPTION_NONE);
 		        }
 
 		/* increment the downtime depth variable */

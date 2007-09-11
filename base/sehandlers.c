@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-04-2007
+ * Last Modified:   09-11-2007
  *
  * License:
  *
@@ -92,7 +92,8 @@ int obsessive_compulsive_service_check_processor(service *svc){
 		return ERROR;
 
 	/* find the associated host */
-	temp_host=find_host(svc->host_name);
+	if((temp_host=(host *)svc->host_ptr)==NULL)
+		return ERROR;
 
 	/* update service macros */
 	clear_volatile_macros();
@@ -224,7 +225,8 @@ int handle_service_event(service *svc){
 		return OK;
 
 	/* find the host */
-	temp_host=find_host(svc->host_name);
+	if((temp_host=(host *)svc->host_ptr)==NULL)
+		return ERROR;
 
 	/* update service macros */
 	clear_volatile_macros();
@@ -722,7 +724,7 @@ int handle_host_state(host *hst){
 
 		/* notify contacts about the recovery or problem if its a "hard" state */
 		if(hst->state_type==HARD_STATE)
-			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL);
+			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 		/* handle the host state change */
 		handle_host_event(hst);
@@ -744,7 +746,7 @@ int handle_host_state(host *hst){
 
 		/* notify contacts if host is still down or unreachable */
 		if(hst->current_state!=HOST_UP && hst->state_type==HARD_STATE)
-			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL);
+			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
 		/* if we're in a soft state and we should log host retries, do so now... */
 		if(hst->state_type==SOFT_STATE && log_host_retries==TRUE)

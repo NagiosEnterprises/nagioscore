@@ -40,7 +40,7 @@
 
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
-#define MACRO_X_COUNT				144	/* size of macro_x[] array */
+#define MACRO_X_COUNT				146	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -186,6 +186,8 @@
 #define MACRO_CONTACTGROUPALIAS                 141
 #define MACRO_CONTACTGROUPMEMBERS               142
 #define MACRO_CONTACTGROUPNAMES                 143
+#define MACRO_NOTIFICATIONRECIPIENTS            144
+#define MACRO_NOTIFICATIONISESCALATED           145
 
 
 

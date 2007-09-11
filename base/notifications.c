@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-04-2007
+ * Last Modified:   09-11-2007
  *
  * License:
  *
@@ -56,7 +56,7 @@ extern char            *generic_summary;
 
 
 /* notify contacts about a service problem or recovery */
-int service_notification(service *svc, int type, char *not_author, char *not_data){
+int service_notification(service *svc, int type, char *not_author, char *not_data, int options){
 	host *temp_host=NULL;
 	notification *temp_notification=NULL;
 	contact *temp_contact=NULL;
@@ -68,6 +68,9 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	int contacts_notified=0;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"service_notification()\n");
+
+	/* clear volatile macros */
+	clear_volatile_macros();
 
 	/* get the current time */
 	time(&current_time);
@@ -82,7 +85,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	        }
 
 	/* check the viability of sending out a service notification */
-	if(check_service_notification_viability(svc,type)==ERROR){
+	if(check_service_notification_viability(svc,type,options)==ERROR){
 		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Notification viability test failed.  No notification will be sent out.\n");
 		return OK;
 	        }
@@ -105,7 +108,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Creating list of contacts to be notified.\n");
 
 	/* create the contact notification list for this service */
-	create_notification_list_from_service(svc,&escalated);
+	create_notification_list_from_service(svc,options,&escalated);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -118,7 +121,6 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	if(notification_list!=NULL){
 
 		/* grab the macro variables */
-		clear_volatile_macros();
 		grab_host_macros(temp_host);
 		grab_service_macros(svc);
 		grab_datetime_macros();
@@ -217,7 +219,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			grab_summary_macros(temp_notification->contact);
 
 			/* notify this contact */
-			result=notify_contact_of_service(temp_notification->contact,svc,type,not_author,not_data,escalated);
+			result=notify_contact_of_service(temp_notification->contact,svc,type,not_author,not_data,options,escalated);
 
 			/* keep track of how many contacts were notified */
 			if(result==OK)
@@ -284,12 +286,18 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 
 /* checks the viability of sending out a service alert (top level filters) */
-int check_service_notification_viability(service *svc, int type){
+int check_service_notification_viability(service *svc, int type, int options){
 	host *temp_host;
 	time_t current_time;
 	time_t timeperiod_start;
 	
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_service_notification_viability()\n");
+
+	/* forced notifications bust through everything */
+	if(options & NOTIFICATION_OPTION_FORCED){
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This is a forced service notification, so we'll send it out.\n");
+		return OK;
+		}
 
 	/* get current time */
 	time(&current_time);
@@ -301,7 +309,8 @@ int check_service_notification_viability(service *svc, int type){
 	        }
 
 	/* find the host this service is associated with */
-	temp_host=find_host(svc->host_name);
+	if((temp_host=(host *)svc->host_ptr)==NULL)
+		return ERROR;
 
 	/* if we couldn't find the host, return an error */
 	if(temp_host==NULL){
@@ -511,11 +520,17 @@ int check_service_notification_viability(service *svc, int type){
 
 
 /* check viability of sending out a service notification to a specific contact (contact-specific filters) */
-int check_contact_service_notification_viability(contact *cntct, service *svc, int type){
+int check_contact_service_notification_viability(contact *cntct, service *svc, int type, int options){
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_contact_service_notification_viability()\n");
 
 	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Checking service notification viability for contact '%s'...\n",cntct->name);
+
+	/* forced notifications bust through everything */
+	if(options & NOTIFICATION_OPTION_FORCED){
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This is a forced service notification, so we'll send it out to this contact.\n");
+		return OK;
+		}
 
 	/* are notifications enabled? */
 	if(cntct->service_notifications_enabled==FALSE){
@@ -596,8 +611,9 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
         }
 
 
+
 /* notify a specific contact about a service problem or recovery */
-int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_author, char *not_data, int escalated){
+int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_author, char *not_data, int options, int escalated){
 	commandsmember *temp_commandsmember=NULL;
 	char *command_name=NULL;
 	char *command_name_ptr=NULL;
@@ -616,7 +632,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 
 	/* check viability of notifying this user */
 	/* acknowledgements are no longer excluded from this test - added 8/19/02 Tom Bertelson */
-	if(check_contact_service_notification_viability(cntct,svc,type)==ERROR)
+	if(check_contact_service_notification_viability(cntct,svc,type,options)==ERROR)
 		return ERROR;
 
 	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Notifying contact '%s'\n",cntct->name);
@@ -735,7 +751,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 
 
 /* checks to see if a service escalation entry is a match for the current service notification */
-int is_valid_escalation_for_service_notification(service *svc,serviceescalation *se){
+int is_valid_escalation_for_service_notification(service *svc, serviceescalation *se){
 	int notification_number=0;
 	time_t current_time=0L;
 	service *temp_service=NULL;
@@ -805,20 +821,28 @@ int should_service_notification_be_escalated(service *svc){
 
 
 /* given a service, create a list of contacts to be notified, removing duplicates */
-int create_notification_list_from_service(service *svc, int *escalated){
+int create_notification_list_from_service(service *svc, int options, int *escalated){
 	serviceescalation *temp_se=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
+	int escalate_notification=FALSE;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"create_notification_list_from_service()\n");
 
-	/* should this notification be escalated? */
-	if(should_service_notification_be_escalated(svc)==TRUE){
+	/* see if this notification should be escalated */
+	escalate_notification=should_service_notification_be_escalated(svc);
+	
+	/* set the escalation flag */
+	*escalated=escalate_notification;
 
-		/* set the escalation flag */
-		*escalated=TRUE;
+	/* set the escalation macro */
+	my_free((void **)&macro_x[MACRO_NOTIFICATIONISESCALATED]);
+	asprintf(&macro_x[MACRO_NOTIFICATIONISESCALATED],"%d",escalate_notification);
+
+	/* use escalated contacts for this notification */
+	if(escalate_notification==TRUE || (options & NOTIFICATION_OPTION_BROADCAST)){
 
 		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from service escalation(s) to notification list.\n");
 
@@ -854,11 +878,8 @@ int create_notification_list_from_service(service *svc, int *escalated){
 		        }
 	        }
 
-	/* no escalation is necessary - just continue normally... */
-	else{
-
-		/* set the escalation flag */
-		*escalated=FALSE;
+	/* else use normal, non-escalated contacts */
+	if(escalate_notification==FALSE || (options & NOTIFICATION_OPTION_BROADCAST)){
 
 		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding normal contacts for host to notification list.\n");
 
@@ -895,7 +916,7 @@ int create_notification_list_from_service(service *svc, int *escalated){
 
 
 /* notify all contacts for a host that the entire host is down or up */
-int host_notification(host *hst, int type, char *not_author, char *not_data){
+int host_notification(host *hst, int type, char *not_author, char *not_data, int options){
 	notification *temp_notification=NULL;
 	contact *temp_contact=NULL;
 	time_t current_time;
@@ -905,6 +926,9 @@ int host_notification(host *hst, int type, char *not_author, char *not_data){
 	int result=OK;
 	int contacts_notified=0;
 
+	/* clear volatile macros */
+	clear_volatile_macros();
+
 	/* get the current time */
 	time(&current_time);
 	gettimeofday(&start_time,NULL);
@@ -913,7 +937,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data){
 
 
 	/* check viability of sending out a host notification */
-	if(check_host_notification_viability(hst,type)==ERROR){
+	if(check_host_notification_viability(hst,type,options)==ERROR){
 		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Notification viability test failed.  No notification will be sent out.\n");
 		return OK;
 	        }
@@ -936,7 +960,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data){
 	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Creating list of contacts to be notified.\n");
 
 	/* create the contact notification list for this host */
-	create_notification_list_from_host(hst,&escalated);
+	create_notification_list_from_host(hst,options,&escalated);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -949,7 +973,6 @@ int host_notification(host *hst, int type, char *not_author, char *not_data){
 	if(notification_list!=NULL){
 
 		/* grab the macro variables */
-		clear_volatile_macros();
 		grab_host_macros(hst);
 		grab_datetime_macros();
 
@@ -1047,7 +1070,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data){
 			grab_summary_macros(temp_notification->contact);
 
 			/* notify this contact */
-			result=notify_contact_of_host(temp_notification->contact,hst,type,not_author,not_data,escalated);
+			result=notify_contact_of_host(temp_notification->contact,hst,type,not_author,not_data,options,escalated);
 
 			/* keep track of how many contacts were notified */
 			if(result==OK)
@@ -1112,11 +1135,17 @@ int host_notification(host *hst, int type, char *not_author, char *not_data){
 
 
 /* checks viability of sending a host notification */
-int check_host_notification_viability(host *hst, int type){
+int check_host_notification_viability(host *hst, int type, int options){
 	time_t current_time;
 	time_t timeperiod_start;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_host_notification_viability()\n");
+
+	/* forced notifications bust through everything */
+	if(options & NOTIFICATION_OPTION_FORCED){
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This is a forced host notification, so we'll send it out.\n");
+		return OK;
+		}
 
 	/* get current time */
 	time(&current_time);
@@ -1309,11 +1338,17 @@ int check_host_notification_viability(host *hst, int type){
 
 
 /* checks the viability of notifying a specific contact about a host */
-int check_contact_host_notification_viability(contact *cntct, host *hst, int type){
+int check_contact_host_notification_viability(contact *cntct, host *hst, int type, int options){
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_contact_host_notification_viability()\n");
 
 	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Checking host notification viability for contact '%s'...\n",cntct->name);
+
+	/* forced notifications bust through everything */
+	if(options & NOTIFICATION_OPTION_FORCED){
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"This is a forced host notification, so we'll send it out for this contact.\n");
+		return OK;
+		}
 
 	/* are notifications enabled? */
 	if(cntct->host_notifications_enabled==FALSE){
@@ -1395,7 +1430,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 
 
 /* notify a specific contact that an entire host is down or up */
-int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author, char *not_data, int escalated){
+int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author, char *not_data, int options, int escalated){
 	commandsmember *temp_commandsmember=NULL;
 	char *command_name=NULL;
 	char *command_name_ptr=NULL;
@@ -1416,7 +1451,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 
 	/* check viability of notifying this user about the host */
 	/* acknowledgements are no longer excluded from this test - added 8/19/02 Tom Bertelson */
-	if(check_contact_host_notification_viability(cntct,hst,type)==ERROR)
+	if(check_contact_host_notification_viability(cntct,hst,type,options)==ERROR)
 		return ERROR;
 
 	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Notifying contact '%s'\n",cntct->name);
@@ -1602,20 +1637,28 @@ int should_host_notification_be_escalated(host *hst){
 
 
 /* given a host, create a list of contacts to be notified, removing duplicates */
-int create_notification_list_from_host(host *hst, int *escalated){
+int create_notification_list_from_host(host *hst, int options, int *escalated){
 	hostescalation *temp_he=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
+	int escalate_notification=FALSE;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"create_notification_list_from_host()\n");
 
 	/* see if this notification should be escalated */
-	if(should_host_notification_be_escalated(hst)==TRUE){
+	escalate_notification=should_host_notification_be_escalated(hst);
 
-		/* set the escalation flag */
-		*escalated=TRUE;
+	/* set the escalation flag */
+	*escalated=escalate_notification;
+
+	/* set the escalation macro */
+	my_free((void **)&macro_x[MACRO_NOTIFICATIONISESCALATED]);
+	asprintf(&macro_x[MACRO_NOTIFICATIONISESCALATED],"%d",escalate_notification);
+
+	/* use escalated contacts for this notification */
+	if(escalate_notification==TRUE || (options & NOTIFICATION_OPTION_BROADCAST)){
 
 		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from host escalation(s) to notification list.\n");
 
@@ -1651,11 +1694,8 @@ int create_notification_list_from_host(host *hst, int *escalated){
 		        }
 	        }
 
-	/* else we shouldn't escalate the notification, so continue as normal... */
-	else{
-
-		/* set the escalation flag */
-		*escalated=FALSE;
+	/* use normal, non-escalated contacts for this notification */
+	if(escalate_notification==FALSE  || (options & NOTIFICATION_OPTION_BROADCAST)){
 
 		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding normal contacts for host to notification list.\n");
 
@@ -1863,6 +1903,16 @@ int add_notification(contact *cntct){
 	/* add new notification to head of list */
 	new_notification->next=notification_list;
 	notification_list=new_notification;
+
+	/* add contact to notification recipients macro */
+	if(macro_x[MACRO_NOTIFICATIONRECIPIENTS]==NULL)
+		macro_x[MACRO_NOTIFICATIONRECIPIENTS]=(char *)strdup(cntct->name);
+	else{
+		if((macro_x[MACRO_NOTIFICATIONRECIPIENTS]=(char *)realloc(macro_x[MACRO_NOTIFICATIONRECIPIENTS],strlen(macro_x[MACRO_NOTIFICATIONRECIPIENTS])+strlen(cntct->name)+2))){
+			strcat(macro_x[MACRO_NOTIFICATIONRECIPIENTS],",");
+			strcat(macro_x[MACRO_NOTIFICATIONRECIPIENTS],cntct->name);
+			}
+		}
 
 	return OK;
         }

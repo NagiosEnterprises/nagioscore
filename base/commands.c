@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2007
+ * Last Modified:   09-11-2007
  *
  * License:
  *
@@ -1254,8 +1254,7 @@ int process_hostgroup_command(int cmd, time_t entry_time, char *args){
 	/* loop through all hosts in the hostgroup */
 	for(temp_member=temp_hostgroup->members;temp_member!=NULL;temp_member=temp_member->next){
 
-		temp_host=find_host(temp_member->host_name);
-		if(temp_host==NULL)
+		if((temp_host=(host *)temp_member->host_ptr)==NULL)
 			continue;
 
 		switch(cmd){
@@ -1494,8 +1493,7 @@ int process_servicegroup_command(int cmd, time_t entry_time, char *args){
 		last_host=NULL;
 		for(temp_member=temp_servicegroup->members;temp_member!=NULL;temp_member=temp_member->next){
 
-			temp_host=find_host(temp_member->host_name);
-			if(temp_host==NULL)
+			if((temp_host=find_host(temp_member->host_name))==NULL)
 				continue;
 
 			if(temp_host==last_host)
@@ -1609,7 +1607,7 @@ int process_contactgroup_command(int cmd, time_t entry_time, char *args){
 		/* loop through all contactgroup members */
 		for(temp_member=temp_contactgroup->members;temp_member!=NULL;temp_member=temp_member->next){
 
-			if((temp_contact=find_contact(temp_member->contact_name))==NULL)
+			if((temp_contact=temp_member->contact_ptr)==NULL)
 				continue;
 
 			switch(cmd){
@@ -3597,7 +3595,7 @@ void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int t
 
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)
-		host_notification(hst,NOTIFICATION_ACKNOWLEDGEMENT,ack_author,ack_data);
+		host_notification(hst,NOTIFICATION_ACKNOWLEDGEMENT,ack_author,ack_data,NOTIFICATION_OPTION_NONE);
 
 	/* set the acknowledgement flag */
 	hst->problem_has_been_acknowledged=TRUE;
@@ -3631,7 +3629,7 @@ void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data,
 
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)
-		service_notification(svc,NOTIFICATION_ACKNOWLEDGEMENT,ack_author,ack_data);
+		service_notification(svc,NOTIFICATION_ACKNOWLEDGEMENT,ack_author,ack_data,NOTIFICATION_OPTION_NONE);
 
 	/* set the acknowledgement flag */
 	svc->problem_has_been_acknowledged=TRUE;

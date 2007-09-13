@@ -174,6 +174,7 @@
 #define CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME             85
 #define CMD_SCHEDULE_HOST_SVC_DOWNTIME                  86
 
+/* new commands in Nagios 2.x found below... */
 #define CMD_PROCESS_HOST_CHECK_RESULT		        87
 
 #define CMD_START_EXECUTING_HOST_CHECKS			88
@@ -259,7 +260,8 @@
 #define CMD_SET_HOST_NOTIFICATION_NUMBER                142
 #define CMD_SET_SVC_NOTIFICATION_NUMBER                 143
 
-#define CMD_CHANGE_HOST_CHECK_TIMEPERIOD                144
+/* new commands in Nagios 3.x found below... */
+#define CMD_CHANGE_HOST_CHECK_TIMEPERIOD                144  
 #define CMD_CHANGE_SVC_CHECK_TIMEPERIOD                 145
 
 #define CMD_PROCESS_FILE                                146
@@ -280,7 +282,10 @@
 
 #define CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL            158
 
+#define CMD_SEND_CUSTOM_HOST_NOTIFICATION               159
+#define CMD_SEND_CUSTOM_SVC_NOTIFICATION                160
 
+/* custom command introduced in Nagios 3.x */
 #define CMD_CUSTOM_COMMAND                              999
 
 
@@ -315,6 +320,7 @@
 #define NOTIFICATION_OPTION_NONE        0
 #define NOTIFICATION_OPTION_BROADCAST   1
 #define NOTIFICATION_OPTION_FORCED      2
+#define NOTIFICATION_OPTION_INCREMENT   4
 
 
 /************************** ACKNOWLEDGEMENT TYPES ************************/

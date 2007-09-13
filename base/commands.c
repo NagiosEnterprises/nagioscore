@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-11-2007
+ * Last Modified:   09-12-2007
  *
  * License:
  *
@@ -462,6 +462,9 @@ int process_external_command1(char *cmd){
 	else if (!strcmp(command_id,"CHANGE_CUSTOM_HOST_VAR"))
 		command_type=CMD_CHANGE_CUSTOM_HOST_VAR;
 
+	else if (!strcmp(command_id,"SEND_CUSTOM_HOST_NOTIFICATION"))
+		command_type=CMD_SEND_CUSTOM_HOST_NOTIFICATION;
+
 
 	/************************************/
 	/**** HOSTGROUP-RELATED COMMANDS ****/
@@ -590,6 +593,9 @@ int process_external_command1(char *cmd){
 
 	else if (!strcmp(command_id,"CHANGE_CUSTOM_CONTACT_VAR"))
 		command_type=CMD_CHANGE_CUSTOM_CONTACT_VAR;
+
+	else if (!strcmp(command_id,"SEND_CUSTOM_SVC_NOTIFICATION"))
+		command_type=CMD_SEND_CUSTOM_SVC_NOTIFICATION;
 
 
 	/***************************************/
@@ -891,6 +897,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 	case CMD_START_OBSESSING_OVER_HOST:
 	case CMD_STOP_OBSESSING_OVER_HOST:
 	case CMD_SET_HOST_NOTIFICATION_NUMBER:
+	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
 		process_host_command(cmd,entry_time,args);
 		break;
 
@@ -932,6 +939,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 	case CMD_START_OBSESSING_OVER_SVC:
 	case CMD_STOP_OBSESSING_OVER_SVC:
 	case CMD_SET_SVC_NOTIFICATION_NUMBER:
+	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
 		process_service_command(cmd,entry_time,args);
 		break;
 
@@ -1121,7 +1129,10 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 	service *temp_service=NULL;
 	servicesmember *temp_servicesmember=NULL;
 	char *str=NULL;
+	char *buf[2]={NULL,NULL};
 	int intval=0;
+
+	printf("ARGS: %s\n",args);
 
 	/* get the host name */
 	if((host_name=my_strtok(args,";"))==NULL)
@@ -1224,6 +1235,19 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 			intval=atoi(str);
 			set_host_notification_number(temp_host,intval);
 		        }
+		break;
+
+	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
+		if((str=my_strtok(NULL,";")))
+			intval=atoi(str);
+		str=my_strtok(NULL,";");
+		if(str)
+			buf[0]=strdup(str);
+		str=my_strtok(NULL,";");
+		if(str)
+			buf[1]=strdup(str);
+		if(buf[0] && buf[1])
+			host_notification(temp_host,NOTIFICATION_CUSTOM,buf[0],buf[1],intval);
 		break;
 
 	default:
@@ -1337,6 +1361,7 @@ int process_service_command(int cmd, time_t entry_time, char *args){
 	char *svc_description=NULL;
 	service *temp_service=NULL;
 	char *str=NULL;
+	char *buf[2]={NULL,NULL};
 	int intval=0;
 
 	/* get the host name */
@@ -1406,6 +1431,19 @@ int process_service_command(int cmd, time_t entry_time, char *args){
 			intval=atoi(str);
 			set_service_notification_number(temp_service,intval);
 		        }
+		break;
+
+	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
+		if((str=my_strtok(NULL,";")))
+			intval=atoi(str);
+		str=my_strtok(NULL,";");
+		if(str)
+			buf[0]=strdup(str);
+		str=my_strtok(NULL,";");
+		if(str)
+			buf[1]=strdup(str);
+		if(buf[0] && buf[1])
+			service_notification(temp_service,NOTIFICATION_CUSTOM,buf[0],buf[1],intval);
 		break;
 
 	default:

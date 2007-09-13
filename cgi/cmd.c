@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-15-2007
+ * Last Modified: 09-13-2007
  *
  * License:
  * 
@@ -86,6 +86,8 @@ int fixed=FALSE;
 unsigned long duration=0L;
 unsigned long triggered_by=0L;
 int child_options=0;
+int force_notification=0;
+int broadcast_notification=0;
 
 int command_type=CMD_NONE;
 int command_mode=CMDMODE_REQUEST;
@@ -623,6 +625,15 @@ int process_cgivars(void){
 			else
 				content_type=HTML_CONTENT;
 		        }
+
+		/* we found the forced notification option */
+		else if(!strcmp(variables[x],"force_notification"))
+			force_notification=NOTIFICATION_OPTION_FORCED;
+
+		/* we found the broadcast notification option */
+		else if(!strcmp(variables[x],"broadcast_notification"))
+			broadcast_notification=NOTIFICATION_OPTION_BROADCAST;
+
                 }
 
 	/* free memory allocated to the CGI variables */
@@ -889,6 +900,11 @@ void request_command_data(int cmd){
 
 	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
 		printf("schedule downtime for all services in a particular servicegroup");
+		break;
+
+	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
+	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
+		printf("send a custom %s notification",(cmd==CMD_SEND_CUSTOM_HOST_NOTIFICATION)?"host":"service");
 		break;
 
 	default:
@@ -1309,6 +1325,34 @@ void request_command_data(int cmd){
 		        }
 		break;
 
+	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
+	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
+		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("</b></td></tr>\n");
+
+		if(cmd==CMD_SEND_CUSTOM_SVC_NOTIFICATION){
+			printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
+			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
+			printf("</b></td></tr>\n");
+			}
+
+		printf("<tr><td CLASS='optBoxItem'>Forced:</td><td><b>");
+		printf("<INPUT TYPE='checkbox' NAME='force_notification' ");
+		printf("</b></td></tr>\n");
+
+		printf("<tr><td CLASS='optBoxItem'>Broadcast:</td><td><b>");
+		printf("<INPUT TYPE='checkbox' NAME='broadcast_notification' ");
+		printf("</b></td></tr>\n");
+
+		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",comment_author,(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("</b></td></tr>\n");
+		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
+		printf("</b></td></tr>\n");
+		break;
+
 	default:
 		printf("<tr><td CLASS='optBoxItem'>This should not be happening... :-(</td><td></td></tr>\n");
 	        }
@@ -1726,6 +1770,32 @@ void commit_command_data(int cmd){
 
 		break;
 
+	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
+	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
+
+		/* make sure we have author and comment data */
+		if(!strcmp(comment_data,"")){
+			if(!error_string)
+				error_string=strdup("Comment was not entered");
+			}
+		else if(!strcmp(comment_author,"")){
+			if(!error_string)
+				error_string=strdup("Author was not entered");
+			}
+
+		/* see if the user is authorized to issue a command... */
+		if(cmd==CMD_SEND_CUSTOM_HOST_NOTIFICATION){
+			temp_host=find_host(host_name);
+			if(is_authorized_for_host_commands(temp_host,&current_authdata)==TRUE)
+				authorized=TRUE;
+		        }
+		else{
+			temp_service=find_service(host_name,service_desc);
+			if(is_authorized_for_service_commands(temp_service,&current_authdata)==TRUE)
+				authorized=TRUE;
+		        }
+		break;
+
 	default:
 		if(!error_string) error_string = strdup("An error occurred while processing your command!");
 	        }
@@ -2062,6 +2132,14 @@ int commit_command(int cmd){
 	case CMD_START_OBSESSING_OVER_HOST:
 	case CMD_STOP_OBSESSING_OVER_HOST:
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_HOST;%s\n",current_time,(cmd==CMD_START_OBSESSING_OVER_HOST)?"START":"STOP",host_name);
+		break;
+
+	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SEND_CUSTOM_HOST_NOTIFICATION;%s;%d;%s;%s\n",current_time,host_name,(force_notification | broadcast_notification),comment_author,comment_data);
+		break;
+
+	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
+			 snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SEND_CUSTOM_SVC_NOTIFICATION;%s;%s;%d;%s;%s\n",current_time,host_name,service_desc,(force_notification | broadcast_notification),comment_author,comment_data);
 		break;
 
 
@@ -2656,6 +2734,12 @@ void show_command_help(cmd){
 		printf("option, Nagios will treat this as \"flexible\" downtime.  Flexible downtime starts when a service enters a non-OK state (sometime between the\n");
 		printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed dowtime.\n");
 		printf("Note that scheduling downtime for services does not automatically schedule downtime for the hosts those services are associated with.  If you want to also schedule downtime for all hosts in the servicegroup, check the 'Schedule downtime for hosts too' option.\n");
+		break;
+
+	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
+	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
+		printf("This command is used to send a custom notification about the specified %s.  Useful in emergencies when you need to notify admins of an issue regarding a monitored system or service.\n",(cmd==CMD_SEND_CUSTOM_HOST_NOTIFICATION)?"host":"service");
+		printf("Custom notifications normally follow the regular notification logic in Nagios.  Selecting the <i>Forced</i> option will force the notification to be sent out, regardless of the time restrictions, whether or not notifications are enabled, etc.  Selecting the <i>Broadcast</i> option causes the notification to be sent out to all normal (non-escalated) and escalated contacts.  These options allow you to override the normal notification logic if you need to get an important message out.\n");
 		break;
 
 	default:

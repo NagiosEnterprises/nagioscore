@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-30-2007
+ * Last Modified: 09-13-2007
  *
  * License:
  * 
@@ -1244,6 +1244,9 @@ void show_host_info(void){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Notifications For This Host' TITLE='Disable Notifications For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Disable notifications for this host</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_HOST_NOTIFICATIONS,url_encode(host_name));
 		else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Notifications For This Host' TITLE='Enable Notifications For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Enable notifications for this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_HOST_NOTIFICATIONS,url_encode(host_name));
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Send Custom Notification' TITLE='Send Custom Notification'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Send custom host notification</a></td></tr>\n",url_images_path,NOTIFICATION_ICON,COMMAND_CGI,CMD_SEND_CUSTOM_HOST_NOTIFICATION,url_encode(host_name));
+
 		if(temp_hoststatus->status!=HOST_UP)
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Delay Next Host Notification' TITLE='Delay Next Host Notification'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Delay next host notification</a></td></tr>\n",url_images_path,DELAY_ICON,COMMAND_CGI,CMD_DELAY_HOST_NOTIFICATION,url_encode(host_name));
 
@@ -1581,6 +1584,9 @@ void show_service_info(void){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Notifications For This Service' TITLE='Enable Notifications For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_SVC_NOTIFICATIONS,url_encode(host_name));
 			printf("&service=%s'>Enable notifications for this service</a></td></tr>\n",url_encode(service_desc));
 		        }
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Send Custom Notification' TITLE='Send Custom Notification'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,NOTIFICATION_ICON,COMMAND_CGI,CMD_SEND_CUSTOM_SVC_NOTIFICATION,url_encode(host_name));
+		printf("&service=%s'>Send custom service notification</a></td></tr>\n",url_encode(service_desc));
 
 		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Schedule Downtime For This Service' TITLE='Schedule Downtime For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DOWNTIME_ICON,COMMAND_CGI,CMD_SCHEDULE_SVC_DOWNTIME,url_encode(host_name));
 		printf("&service=%s'>Schedule downtime for this service</a></td></tr>\n",url_encode(service_desc));

@@ -6,13 +6,15 @@ Nagios 3.x Change Log
 
 3.0b4 - 09/??/2007
 ------------------
-* New macros: $HOSTGROUPMEMBERS$, $HOSTGROUPNOTES$, $HOSTGROUPNOTESURL$, $HOSTGROUPACTIONURL$, $SERVICEGROUPMEMBERS$, $SERVICEGROUPNOTES$, $SERVICEGROUPNOTESURL$, $SERVICEGROUPACTIONURL$, $CONTACTGROUPALIAS$, $CONTACTGROUPMEMBERS$, $NOTIFICATIONRECIPIENTS$
+* New macros: $HOSTGROUPMEMBERS$, $HOSTGROUPNOTES$, $HOSTGROUPNOTESURL$, $HOSTGROUPACTIONURL$, $SERVICEGROUPMEMBERS$, $SERVICEGROUPNOTES$, $SERVICEGROUPNOTESURL$, $SERVICEGROUPACTIONURL$, $CONTACTGROUPALIAS$, $CONTACTGROUPMEMBERS$, $NOTIFICATIONRECIPIENTS$, $NOTIFICATIONAUTHOR$, $NOTIFICATIONAUTHORNAME$, $NOTIFICATIONAUTHORALIAS$, $NOTIFICATIONCOMMENT$
+* Removed host/service downtime author/comment macros introduced in 3.0b2 in favor of more generic $NOTIFICATION...$ macros
 * Fix for segfault when cancelling active scheduled host downtime
 * Macro code cleanup 
 * Added on-demand contact and contactgroup macro support
 * More complete (but still partial) support for macros in CGIs ($xNOTES$, $xNOTESURL$, and $xACTIONURL$ macros)
 * Fixed bug in config CGI with displaying incorrect notification interval for escalations
 * Added new 'check' option to init script to verify configuration
+* Added custom host and service notifications, with option to force the notifications and broadcast them to all contacts
 
 
 

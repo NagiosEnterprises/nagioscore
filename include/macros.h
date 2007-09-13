@@ -2,7 +2,7 @@
  *
  * MACROS.H - Common macro functions
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2007
+ * Last Modified: 09-13-2007
  *
  * License:
  *
@@ -40,7 +40,7 @@
 
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
-#define MACRO_X_COUNT				146	/* size of macro_x[] array */
+#define MACRO_X_COUNT				142	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -166,28 +166,24 @@
 #define MACRO_TOTALHOSTSERVICESWARNING		121
 #define MACRO_TOTALHOSTSERVICESUNKNOWN		122
 #define MACRO_TOTALHOSTSERVICESCRITICAL		123
-#define MACRO_HOSTDOWNTIMEAUTHOR		124
-#define MACRO_HOSTDOWNTIMECOMMENT		125
-#define MACRO_SERVICEDOWNTIMEAUTHOR		126
-#define MACRO_SERVICEDOWNTIMECOMMENT		127
-#define MACRO_HOSTDOWNTIMEAUTHORNAME		128
-#define MACRO_HOSTDOWNTIMEAUTHORALIAS		129
-#define MACRO_SERVICEDOWNTIMEAUTHORNAME		130
-#define MACRO_SERVICEDOWNTIMEAUTHORALIAS	131
-#define MACRO_HOSTGROUPNOTES                    132
-#define MACRO_HOSTGROUPNOTESURL                 133
-#define MACRO_HOSTGROUPACTIONURL                134
-#define MACRO_SERVICEGROUPNOTES                 135
-#define MACRO_SERVICEGROUPNOTESURL              136
-#define MACRO_SERVICEGROUPACTIONURL             137
-#define MACRO_HOSTGROUPMEMBERS                  138
-#define MACRO_SERVICEGROUPMEMBERS               139
-#define MACRO_CONTACTGROUPNAME                  140
-#define MACRO_CONTACTGROUPALIAS                 141
-#define MACRO_CONTACTGROUPMEMBERS               142
-#define MACRO_CONTACTGROUPNAMES                 143
-#define MACRO_NOTIFICATIONRECIPIENTS            144
-#define MACRO_NOTIFICATIONISESCALATED           145
+#define MACRO_HOSTGROUPNOTES                    124
+#define MACRO_HOSTGROUPNOTESURL                 125
+#define MACRO_HOSTGROUPACTIONURL                126
+#define MACRO_SERVICEGROUPNOTES                 127
+#define MACRO_SERVICEGROUPNOTESURL              128
+#define MACRO_SERVICEGROUPACTIONURL             129
+#define MACRO_HOSTGROUPMEMBERS                  130
+#define MACRO_SERVICEGROUPMEMBERS               131
+#define MACRO_CONTACTGROUPNAME                  132
+#define MACRO_CONTACTGROUPALIAS                 133
+#define MACRO_CONTACTGROUPMEMBERS               134
+#define MACRO_CONTACTGROUPNAMES                 135
+#define MACRO_NOTIFICATIONRECIPIENTS            136
+#define MACRO_NOTIFICATIONISESCALATED           137
+#define MACRO_NOTIFICATIONAUTHOR                138
+#define MACRO_NOTIFICATIONAUTHORNAME            139
+#define MACRO_NOTIFICATIONAUTHORALIAS           140
+#define MACRO_NOTIFICATIONCOMMENT               141
 
 
 

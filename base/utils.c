@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-06-2007
+ * Last Modified:   09-13-2007
  *
  * License:
  *
@@ -2956,6 +2956,9 @@ char *my_strtok(char *buffer,char *tokens){
 			return NULL;
 		original_my_strtok_buffer=my_strtok_buffer;
 	        }
+
+	if(my_strtok_buffer==NULL)
+		return NULL;
 	
 	sequence_head=my_strtok_buffer;
 

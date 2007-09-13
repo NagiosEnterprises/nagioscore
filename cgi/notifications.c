@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 09-13-2007
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -231,6 +231,7 @@ int main(void){
 			printf("<option value=%d %s>All service notifications\n",NOTIFICATION_SERVICE_ALL,(notification_options==NOTIFICATION_SERVICE_ALL)?"selected":"");
 			printf("<option value=%d %s>All host notifications\n",NOTIFICATION_HOST_ALL,(notification_options==NOTIFICATION_HOST_ALL)?"selected":"");
 	                }
+		printf("<option value=%d %s>Service custom\n",NOTIFICATION_SERVICE_CUSTOM,(notification_options==NOTIFICATION_SERVICE_CUSTOM)?"selected":"");
 		printf("<option value=%d %s>Service acknowledgements\n",NOTIFICATION_SERVICE_ACK,(notification_options==NOTIFICATION_SERVICE_ACK)?"selected":"");
 		printf("<option value=%d %s>Service warning\n",NOTIFICATION_SERVICE_WARNING,(notification_options==NOTIFICATION_SERVICE_WARNING)?"selected":"");
 		printf("<option value=%d %s>Service unknown\n",NOTIFICATION_SERVICE_UNKNOWN,(notification_options==NOTIFICATION_SERVICE_UNKNOWN)?"selected":"");
@@ -238,6 +239,7 @@ int main(void){
 		printf("<option value=%d %s>Service recovery\n",NOTIFICATION_SERVICE_RECOVERY,(notification_options==NOTIFICATION_SERVICE_RECOVERY)?"selected":"");
 		printf("<option value=%d %s>Service flapping\n",NOTIFICATION_SERVICE_FLAP,(notification_options==NOTIFICATION_SERVICE_FLAP)?"selected":"");
 		if(query_type!=FIND_SERVICE){
+			printf("<option value=%d %s>Host custom\n",NOTIFICATION_HOST_CUSTOM,(notification_options==NOTIFICATION_HOST_CUSTOM)?"selected":"");
 			printf("<option value=%d %s>Host acknowledgements\n",NOTIFICATION_HOST_ACK,(notification_options==NOTIFICATION_HOST_ACK)?"selected":"");
 			printf("<option value=%d %s>Host down\n",NOTIFICATION_HOST_DOWN,(notification_options==NOTIFICATION_HOST_DOWN)?"selected":"");
 			printf("<option value=%d %s>Host unreachable\n",NOTIFICATION_HOST_UNREACHABLE,(notification_options==NOTIFICATION_HOST_UNREACHABLE)?"selected":"");
@@ -582,6 +584,10 @@ void display_notifications(void){
 					notification_detail_type=NOTIFICATION_SERVICE_RECOVERY;
 					strcpy(alert_level_class,"OK");
 				        }
+				else if(strstr(alert_level,"CUSTOM (")){
+					notification_detail_type=NOTIFICATION_SERVICE_CUSTOM;
+					strcpy(alert_level_class,"CUSTOM");
+				        }
 				else if(strstr(alert_level,"ACKNOWLEDGEMENT (")){
 					notification_detail_type=NOTIFICATION_SERVICE_ACK;
 					strcpy(alert_level_class,"ACKNOWLEDGEMENT");
@@ -619,6 +625,10 @@ void display_notifications(void){
 					strncpy(alert_level,"HOST UP",sizeof(alert_level));
 					strcpy(alert_level_class,"HOSTUP");
 					notification_detail_type=NOTIFICATION_HOST_RECOVERY;
+				        }
+				else if(strstr(alert_level,"CUSTOM (")){
+					strcpy(alert_level_class,"HOSTCUSTOM");
+					notification_detail_type=NOTIFICATION_HOST_CUSTOM;
 				        }
 				else if(strstr(alert_level,"ACKNOWLEDGEMENT (")){
 					strcpy(alert_level_class,"HOSTACKNOWLEDGEMENT");

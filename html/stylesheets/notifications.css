@@ -32,9 +32,11 @@ TH.notifications { font-family: arial,serif;  font-size: 10pt;  background-color
 .notificationsWARNING { font-family: arial,serif;  font-size: 8pt;  background-color: #FFFF00; }
 .notificationsCRITICAL { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838; }
 .notificationsACKNOWLEDGEMENT { font-family: arial,serif;  font-size: 8pt;  background-color: #AAAAAA; }
+.notificationsCUSTOM { font-family: arial,serif;  font-size: 8pt;  background-color: #778899; }
 
 .notificationsHOSTUP { font-family: arial,serif;  font-size: 8pt;  background-color: #33FF00; }
 .notificationsHOSTDOWN { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838; }
 .notificationsHOSTUNREACHABLE { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838; }
 .notificationsHOSTACKNOWLEDGEMENT { font-family: arial,serif;  font-size: 8pt;  background-color: #AAAAAA; }
+.notificationsHOSTCUSTOM { font-family: arial,serif;  font-size: 8pt;  background-color: #778899; }
 

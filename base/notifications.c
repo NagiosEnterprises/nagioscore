@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-11-2007
+ * Last Modified:   09-13-2007
  *
  * License:
  *
@@ -66,6 +66,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	int escalated=FALSE;
 	int result=OK;
 	int contacts_notified=0;
+	int increment_notification_number=FALSE;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"service_notification()\n");
 
@@ -76,7 +77,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	time(&current_time);
 	gettimeofday(&start_time,NULL);
 
-	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Service Notification Attempt ** Host: '%s', Service: '%s', Type: %d, Current State: %d, Last Notification: %s",svc->host_name,svc->description,type,svc->current_state,ctime(&svc->last_notification));
+	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Service Notification Attempt ** Host: '%s', Service: '%s', Type: %d, Options: %d, Current State: %d, Last Notification: %s",svc->host_name,svc->description,type,options,svc->current_state,ctime(&svc->last_notification));
 
 	/* if we couldn't find the host, return an error */
 	if((temp_host=svc->host_ptr)==NULL){
@@ -92,14 +93,13 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 	log_debug_info(DEBUGL_NOTIFICATIONS,0,"Notification viability test passed.\n");
 
-	/* if this is just a normal notification... */
-	if(type==NOTIFICATION_NORMAL){
-
-		/* increase the current notification number */
+	/* should the notification number be increased? */
+	if(type==NOTIFICATION_NORMAL || (options & NOTIFICATION_OPTION_INCREMENT)){
 		svc->current_notification_number++;
+		increment_notification_number=TRUE;
+		}
 
-		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Current notification number: %d\n",svc->current_notification_number);
-	        }
+	log_debug_info(DEBUGL_NOTIFICATIONS,1,"Current notification number: %d (%s)\n",svc->current_notification_number,(increment_notification_number==TRUE)?"incremented":"unchanged");
 
 	/* save and increase the current notification id */
 	svc->current_notification_id=next_notification_id;
@@ -138,7 +138,22 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 			}
 
-		/* if this is an acknowledgement, get the acknowledgement macros */
+		/* get author and comment macros */
+		my_free((void **)&macro_x[MACRO_NOTIFICATIONAUTHOR]);
+		if(not_author)
+			macro_x[MACRO_NOTIFICATIONAUTHOR]=(char *)strdup(not_author);
+		my_free((void **)&macro_x[MACRO_NOTIFICATIONAUTHORNAME]);
+		my_free((void **)&macro_x[MACRO_NOTIFICATIONAUTHORALIAS]);
+		if(temp_contact!=NULL){
+			macro_x[MACRO_NOTIFICATIONAUTHORNAME]=(char *)strdup(temp_contact->name);
+			macro_x[MACRO_NOTIFICATIONAUTHORALIAS]=(char *)strdup(temp_contact->alias);
+			}
+		my_free((void **)macro_x[MACRO_NOTIFICATIONCOMMENT]);
+		if(not_data)
+			macro_x[MACRO_NOTIFICATIONCOMMENT]=(char *)strdup(not_data);
+
+		/* NOTE: these macros are deprecated and will likely disappear in Nagios 4.x */
+		/* if this is an acknowledgement, get author and comment macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 
 			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHOR]);
@@ -156,25 +171,6 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 				macro_x[MACRO_SERVICEACKAUTHORALIAS]=(char *)strdup(temp_contact->alias);
 				}
 	                }
-
-		/* if this is a downtime notifications, get the downtime macros */
-		else if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMECANCELLED){
-
-			my_free((void **)&macro_x[MACRO_SERVICEDOWNTIMEAUTHOR]);
-			if(not_author)
-				macro_x[MACRO_SERVICEDOWNTIMEAUTHOR]=(char *)strdup(not_author);
-
-			my_free((void **)macro_x[MACRO_SERVICEDOWNTIMECOMMENT]);
-			if(not_data)
-				macro_x[MACRO_SERVICEDOWNTIMECOMMENT]=(char *)strdup(not_data);
-
-			my_free((void **)&macro_x[MACRO_SERVICEDOWNTIMEAUTHORNAME]);
-			my_free((void **)&macro_x[MACRO_SERVICEDOWNTIMEAUTHORALIAS]);
-			if(temp_contact!=NULL){
-				macro_x[MACRO_SERVICEDOWNTIMEAUTHORNAME]=(char *)strdup(temp_contact->name);
-				macro_x[MACRO_SERVICEDOWNTIMEAUTHORALIAS]=(char *)strdup(temp_contact->alias);
-				}
-			}
 
 		/* set the notification type macro */
 		my_free((void **)&macro_x[MACRO_NOTIFICATIONTYPE]);
@@ -252,7 +248,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			        }
 
 			/* we didn't end up notifying anyone, so adjust current notification number */
-			else
+			else if(increment_notification_number==TRUE)
 				svc->current_notification_number--;
 		        }
 
@@ -263,7 +259,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	else{
 
 		/* readjust current notification number, since one didn't go out */
-		if(type==NOTIFICATION_NORMAL)
+		if(increment_notification_number==TRUE)
 			svc->current_notification_number--;
 
 		log_debug_info(DEBUGL_NOTIFICATIONS,0,"No contacts were found for notification purposes.  No notification was sent out.\n");
@@ -304,7 +300,7 @@ int check_service_notification_viability(service *svc, int type, int options){
 
 	/* are notifications enabled? */
 	if(enable_notifications==FALSE){
-		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are disabled, so service notifications (problems and acknowledments) will not be sent out.\n");
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are disabled, so service notifications will not be sent out.\n");
 		return ERROR;
 	        }
 
@@ -347,6 +343,15 @@ int check_service_notification_viability(service *svc, int type, int options){
 		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are temporarily disabled for this service, so we won't send one out.\n");
 		return ERROR;
 	        }
+
+
+	/*********************************************/
+	/*** SPECIAL CASE FOR CUSTOM NOTIFICATIONS ***/
+	/*********************************************/
+
+	/* custom notifications are good to go at this point... */
+	if(type==NOTIFICATION_CUSTOM)
+		return OK;
 
 
 	/****************************************/
@@ -544,6 +549,15 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 		return ERROR;
 	        }
 
+	/*********************************************/
+	/*** SPECIAL CASE FOR CUSTOM NOTIFICATIONS ***/
+	/*********************************************/
+
+	/* custom notifications are good to go at this point... */
+	if(type==NOTIFICATION_CUSTOM)
+		return OK;
+
+
 	/****************************************/
 	/*** SPECIAL CASE FOR FLAPPING ALERTS ***/
 	/****************************************/
@@ -682,8 +696,11 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 		/* log the notification to program log file */
 		if(log_notifications==TRUE){
 			switch(type){
+			case NOTIFICATION_CUSTOM:
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;CUSTOM (%s);%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT],macro_x[MACRO_NOTIFICATIONAUTHOR],macro_x[MACRO_NOTIFICATIONCOMMENT]);
+				break;
 			case NOTIFICATION_ACKNOWLEDGEMENT:
-				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT],macro_x[MACRO_SERVICEACKAUTHOR],macro_x[MACRO_SERVICEACKCOMMENT]);
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT],macro_x[MACRO_NOTIFICATIONAUTHOR],macro_x[MACRO_NOTIFICATIONCOMMENT]);
 				break;
 			case NOTIFICATION_FLAPPINGSTART:
 				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
@@ -751,7 +768,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 
 
 /* checks to see if a service escalation entry is a match for the current service notification */
-int is_valid_escalation_for_service_notification(service *svc, serviceescalation *se){
+int is_valid_escalation_for_service_notification(service *svc, serviceescalation *se, int options){
 	int notification_number=0;
 	time_t current_time=0L;
 	service *temp_service=NULL;
@@ -771,6 +788,11 @@ int is_valid_escalation_for_service_notification(service *svc, serviceescalation
 	temp_service=se->service_ptr;
 	if(temp_service==NULL || temp_service!=svc)
 		return FALSE;
+
+	/*** EXCEPTION ***/
+	/* broadcast options go to everyone, so this escalation is valid */
+	if(options & NOTIFICATION_OPTION_BROADCAST)
+		return TRUE;
 
 	/* skip this escalation if it happens later */
 	if(se->first_notification > notification_number)
@@ -808,7 +830,7 @@ int should_service_notification_be_escalated(service *svc){
 	for(temp_se=serviceescalation_list;temp_se!=NULL;temp_se=temp_se->next){
 
 		/* we found a matching entry, so escalate this notification! */
-		if(is_valid_escalation_for_service_notification(svc,temp_se)==TRUE){
+		if(is_valid_escalation_for_service_notification(svc,temp_se,NOTIFICATION_OPTION_NONE)==TRUE){
 			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Service notification WILL be escalated.\n");
 			return TRUE;
 		        }
@@ -841,6 +863,9 @@ int create_notification_list_from_service(service *svc, int options, int *escala
 	my_free((void **)&macro_x[MACRO_NOTIFICATIONISESCALATED]);
 	asprintf(&macro_x[MACRO_NOTIFICATIONISESCALATED],"%d",escalate_notification);
 
+	if(options & NOTIFICATION_OPTION_BROADCAST)
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This notification will be BROADCAST to all (escalated and normal) contacts...\n");
+
 	/* use escalated contacts for this notification */
 	if(escalate_notification==TRUE || (options & NOTIFICATION_OPTION_BROADCAST)){
 
@@ -850,7 +875,7 @@ int create_notification_list_from_service(service *svc, int options, int *escala
 		for(temp_se=serviceescalation_list;temp_se!=NULL;temp_se=temp_se->next){
 
 			/* skip this entry if it isn't appropriate */
-			if(is_valid_escalation_for_service_notification(svc,temp_se)==FALSE)
+			if(is_valid_escalation_for_service_notification(svc,temp_se,options)==FALSE)
 				continue;
 
 			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding individual contacts from service escalation(s) to notification list.\n");
@@ -925,6 +950,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	int escalated=FALSE;
 	int result=OK;
 	int contacts_notified=0;
+	int increment_notification_number=FALSE;
 
 	/* clear volatile macros */
 	clear_volatile_macros();
@@ -933,7 +959,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	time(&current_time);
 	gettimeofday(&start_time,NULL);
 
-	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Host Notification Attempt ** Host: '%s', Type: %d, Current State: %d, Last Notification: %s",hst->name,type,hst->current_state,ctime(&hst->last_host_notification));
+	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Host Notification Attempt ** Host: '%s', Type: %d, Options: %d, Current State: %d, Last Notification: %s",hst->name,type,options,hst->current_state,ctime(&hst->last_host_notification));
 
 
 	/* check viability of sending out a host notification */
@@ -944,14 +970,13 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 	log_debug_info(DEBUGL_NOTIFICATIONS,0,"Notification viability test passed.\n");
 
-	/* if this is just a normal notification... */
-	if(type==NOTIFICATION_NORMAL){
-
-		/* increment the current notification number */
+	/* should the notification number be increased? */
+	if(type==NOTIFICATION_NORMAL || (options & NOTIFICATION_OPTION_INCREMENT)){
 		hst->current_notification_number++;
+		increment_notification_number=TRUE;
+		}
 
-		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Current notification number: %d\n",hst->current_notification_number);
-	        }
+	log_debug_info(DEBUGL_NOTIFICATIONS,1,"Current notification number: %d (%s)\n",hst->current_notification_number,(increment_notification_number==TRUE)?"incremented":"unchanged");
 
 	/* save and increase the current notification id */
 	hst->current_notification_id=next_notification_id;
@@ -989,7 +1014,22 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 			}
 
-		/* if this is an acknowledgement, get the acknowledgement macros */
+		/* get author and comment macros */
+		my_free((void **)&macro_x[MACRO_NOTIFICATIONAUTHOR]);
+		if(not_author)
+			macro_x[MACRO_NOTIFICATIONAUTHOR]=(char *)strdup(not_author);
+		my_free((void **)&macro_x[MACRO_NOTIFICATIONAUTHORNAME]);
+		my_free((void **)&macro_x[MACRO_NOTIFICATIONAUTHORALIAS]);
+		if(temp_contact!=NULL){
+			macro_x[MACRO_NOTIFICATIONAUTHORNAME]=(char *)strdup(temp_contact->name);
+			macro_x[MACRO_NOTIFICATIONAUTHORALIAS]=(char *)strdup(temp_contact->alias);
+			}
+		my_free((void **)macro_x[MACRO_NOTIFICATIONCOMMENT]);
+		if(not_data)
+			macro_x[MACRO_NOTIFICATIONCOMMENT]=(char *)strdup(not_data);
+
+		/* NOTE: these macros are deprecated and will likely disappear in Nagios 4.x */
+		/* if this is an acknowledgement, get author and comment macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 
 			my_free((void **)&macro_x[MACRO_HOSTACKAUTHOR]);
@@ -1007,25 +1047,6 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 				macro_x[MACRO_SERVICEACKAUTHORALIAS]=(char *)strdup(temp_contact->alias);
 				}
 	                }
-
-		/* if this is a downtime notifications, get the downtime macros */
-		else if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMECANCELLED){
-
-			my_free((void **)&macro_x[MACRO_HOSTDOWNTIMEAUTHOR]);
-			if(not_author)
-				macro_x[MACRO_HOSTDOWNTIMEAUTHOR]=(char *)strdup(not_author);
-
-			my_free((void **)macro_x[MACRO_HOSTDOWNTIMECOMMENT]);
-			if(not_data)
-				macro_x[MACRO_HOSTDOWNTIMECOMMENT]=(char *)strdup(not_data);
-
-			my_free((void **)&macro_x[MACRO_HOSTDOWNTIMEAUTHORNAME]);
-			my_free((void **)&macro_x[MACRO_HOSTDOWNTIMEAUTHORALIAS]);
-			if(temp_contact!=NULL){
-				macro_x[MACRO_HOSTDOWNTIMEAUTHORNAME]=(char *)strdup(temp_contact->name);
-				macro_x[MACRO_HOSTDOWNTIMEAUTHORALIAS]=(char *)strdup(temp_contact->alias);
-				}
-			}
 
 		/* set the notification type macro */
 		my_free((void **)&macro_x[MACRO_NOTIFICATIONTYPE]);
@@ -1101,7 +1122,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 			        }
 
 			/* we didn't end up notifying anyone, so adjust current notification number */
-			else
+			else if(increment_notification_number==TRUE)
 				hst->current_notification_number--;
 		        }
 
@@ -1112,7 +1133,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	else{
 
 		/* adjust notification number, since no notification actually went out */
-		if(type==NOTIFICATION_NORMAL)
+		if(increment_notification_number==TRUE)
 			hst->current_notification_number--;
 
 		log_debug_info(DEBUGL_NOTIFICATIONS,0,"No contacts were found for notification purposes.  No notification was sent out.\n");
@@ -1152,7 +1173,7 @@ int check_host_notification_viability(host *hst, int type, int options){
 
 	/* are notifications enabled? */
 	if(enable_notifications==FALSE){
-		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are disabled, so host notifications (problems or acknowledgements) will not be sent out.\n");
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are disabled, so host notifications will not be sent out.\n");
 		return ERROR;
 	        }
 
@@ -1185,6 +1206,15 @@ int check_host_notification_viability(host *hst, int type, int options){
 		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are temporarily disabled for this host, so we won't send one out.\n");
 		return ERROR;
 	        }
+
+
+	/*********************************************/
+	/*** SPECIAL CASE FOR CUSTOM NOTIFICATIONS ***/
+	/*********************************************/
+
+	/* custom notifications are good to go at this point... */
+	if(type==NOTIFICATION_CUSTOM)
+		return OK;
 
 
 	/****************************************/
@@ -1363,6 +1393,15 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 	        }
 
 
+	/*********************************************/
+	/*** SPECIAL CASE FOR CUSTOM NOTIFICATIONS ***/
+	/*********************************************/
+
+	/* custom notifications are good to go at this point... */
+	if(type==NOTIFICATION_CUSTOM)
+		return OK;
+
+
 	/****************************************/
 	/*** SPECIAL CASE FOR FLAPPING ALERTS ***/
 	/****************************************/
@@ -1501,8 +1540,11 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 		/* log the notification to program log file */
 		if(log_notifications==TRUE){
 			switch(type){
+			case NOTIFICATION_CUSTOM:
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;CUSTOM (%s);%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT],macro_x[MACRO_NOTIFICATIONAUTHOR],macro_x[MACRO_NOTIFICATIONCOMMENT]);
+				break;
 			case NOTIFICATION_ACKNOWLEDGEMENT:
-				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT],macro_x[MACRO_HOSTACKAUTHOR],macro_x[MACRO_HOSTACKCOMMENT]);
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT],macro_x[MACRO_NOTIFICATIONAUTHOR],macro_x[MACRO_NOTIFICATIONCOMMENT]);
 				break;
 			case NOTIFICATION_FLAPPINGSTART:
 				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
@@ -1570,7 +1612,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 
 
 /* checks to see if a host escalation entry is a match for the current host notification */
-int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he){
+int is_valid_escalation_for_host_notification(host *hst, hostescalation *he, int options){
 	int notification_number=0;
 	time_t current_time=0L;
 	host *temp_host=NULL;
@@ -1590,6 +1632,11 @@ int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he
 	temp_host=he->host_ptr;
 	if(temp_host==NULL || temp_host!=hst)
 		return FALSE;
+
+	/*** EXCEPTION ***/
+	/* broadcast options go to everyone, so this escalation is valid */
+	if(options & NOTIFICATION_OPTION_BROADCAST)
+		return TRUE;
 
 	/* skip this escalation if it happens later */
 	if(he->first_notification > notification_number)
@@ -1626,7 +1673,7 @@ int should_host_notification_be_escalated(host *hst){
 	for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
 
 		/* we found a matching entry, so escalate this notification! */
-		if(is_valid_host_escalation_for_host_notification(hst,temp_he)==TRUE)
+		if(is_valid_escalation_for_host_notification(hst,temp_he,NOTIFICATION_OPTION_NONE)==TRUE)
 			return TRUE;
 	        }
 
@@ -1657,6 +1704,9 @@ int create_notification_list_from_host(host *hst, int options, int *escalated){
 	my_free((void **)&macro_x[MACRO_NOTIFICATIONISESCALATED]);
 	asprintf(&macro_x[MACRO_NOTIFICATIONISESCALATED],"%d",escalate_notification);
 
+	if(options & NOTIFICATION_OPTION_BROADCAST)
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This notification will be BROADCAST to all (escalated and normal) contacts...\n");
+
 	/* use escalated contacts for this notification */
 	if(escalate_notification==TRUE || (options & NOTIFICATION_OPTION_BROADCAST)){
 
@@ -1666,7 +1716,7 @@ int create_notification_list_from_host(host *hst, int options, int *escalated){
 		for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
 
 			/* see if this escalation if valid for this notification */
-			if(is_valid_host_escalation_for_host_notification(hst,temp_he)==FALSE)
+			if(is_valid_escalation_for_host_notification(hst,temp_he,options)==FALSE)
 				continue;
 
 			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding individual contacts from host escalation(s) to notification list.\n");
@@ -1759,7 +1809,7 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 			continue;
 
 		/* skip this entry if it isn't appropriate */
-		if(is_valid_escalation_for_service_notification(svc,temp_se)==FALSE)
+		if(is_valid_escalation_for_service_notification(svc,temp_se,NOTIFICATION_OPTION_NONE)==FALSE)
 			continue;
 
 		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Found a valid escalation w/ interval of %f\n",temp_se->notification_interval);
@@ -1818,7 +1868,7 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 			continue;
 
 		/* skip this entry if it isn't appropriate */
-		if(is_valid_host_escalation_for_host_notification(hst,temp_he)==FALSE)
+		if(is_valid_escalation_for_host_notification(hst,temp_he,NOTIFICATION_OPTION_NONE)==FALSE)
 			continue;
 
 		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Found a valid escalation w/ interval of %f\n",temp_he->notification_interval);

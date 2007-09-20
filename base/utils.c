@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-13-2007
+ * Last Modified:   09-19-2007
  *
  * License:
  *
@@ -1798,7 +1798,6 @@ void service_check_sighandler(int sig){
 
 		/* close the temp file */
 		fclose(check_result_info.output_file_fp);
-		close(check_result_info.output_file_fd);
 
 		/* move check result to queue directory */
 		move_check_result_to_queue(check_result_info.output_file);
@@ -1838,7 +1837,6 @@ void host_check_sighandler(int sig){
 
 		/* close the temp file */
 		fclose(check_result_info.output_file_fp);
-		close(check_result_info.output_file_fd);
 
 		/* move check result to queue directory */
 		move_check_result_to_queue(check_result_info.output_file);

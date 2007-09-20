@@ -572,7 +572,6 @@ int grab_servicegroup_macros(servicegroup *sg){
 		macro_x[MACRO_SERVICEGROUPALIAS]=(char *)strdup(sg->alias);
 
 	/* get the group members */
-#ifdef NSCORE
 	for(temp_servicesmember=sg->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
 		if(macro_x[MACRO_SERVICEGROUPMEMBERS]==NULL){
 			if((macro_x[MACRO_SERVICEGROUPMEMBERS]=(char *)malloc(strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+1))){
@@ -586,7 +585,6 @@ int grab_servicegroup_macros(servicegroup *sg){
 			strcat(macro_x[MACRO_SERVICEGROUPMEMBERS],temp_servicesmember->service_description);
 			}
 		}
-#endif
 
 	/* get the servicegroup action url */
 	if(sg->action_url)
@@ -884,7 +882,6 @@ int grab_hostgroup_macros(hostgroup *hg){
 		macro_x[MACRO_HOSTGROUPALIAS]=(char *)strdup(hg->alias);
 
 	/* get the group members */
-#ifdef NSCORE
 	for(temp_hostsmember=hg->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 		if(macro_x[MACRO_HOSTGROUPMEMBERS]==NULL)
 			macro_x[MACRO_HOSTGROUPMEMBERS]=(char *)strdup(temp_hostsmember->host_name);
@@ -893,7 +890,6 @@ int grab_hostgroup_macros(hostgroup *hg){
 			strcat(macro_x[MACRO_HOSTGROUPMEMBERS],temp_hostsmember->host_name);
 			}
 		}
-#endif
 
 	/* get the hostgroup action url */
 	if(hg->action_url)
@@ -1033,7 +1029,6 @@ int grab_contactgroup_macros(contactgroup *cg){
 
 	/* get the member list */
 	my_free((void **)&macro_x[MACRO_CONTACTGROUPMEMBERS]);
-#ifdef NSCORE
 	for(temp_contactsmember=cg->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 		if(macro_x[MACRO_CONTACTGROUPMEMBERS]==NULL)
 			macro_x[MACRO_CONTACTGROUPMEMBERS]=(char *)strdup(temp_contactsmember->contact_name);
@@ -1042,7 +1037,6 @@ int grab_contactgroup_macros(contactgroup *cg){
 			strcat(macro_x[MACRO_CONTACTGROUPMEMBERS],temp_contactsmember->contact_name);
 			}
 	        }
-#endif
 
 	return OK;
 	}
@@ -1062,7 +1056,9 @@ int grab_on_demand_macro(char *str){
 	service *temp_service=NULL;
 	servicegroup *temp_servicegroup=NULL;
 	servicesmember *temp_servicesmember=NULL;
+	contact *temp_contact=NULL;
 	contactgroup *temp_contactgroup=NULL;
+	contactsmember *temp_contactsmember=NULL;
 	char *ptr=NULL;
 	char *host_name=NULL;
 	int return_val=ERROR;
@@ -1110,7 +1106,6 @@ int grab_on_demand_macro(char *str){
 			return_val=grab_on_demand_host_macro(temp_host,macro);
 	                }
 
-#ifdef NSCORE
 		/* process a host macro containing a hostgroup */
 		else{
 			if((temp_hostgroup=find_hostgroup(first_arg))==NULL){
@@ -1131,8 +1126,13 @@ int grab_on_demand_macro(char *str){
 				return OK;
 				}
 			while(1){
+#ifdef NSCORE
 				if((temp_host=temp_hostsmember->host_ptr)==NULL)
 					continue;
+#else
+				if((temp_host=find_host(temp_hostsmember->host_name))==NULL)
+					continue;
+#endif
 				if(grab_on_demand_host_macro(temp_host,macro)==OK){
 					strncat(result_buffer,macro_ondemand,sizeof(result_buffer)-result_buffer_len-1);
 					result_buffer_len+=strlen(macro_ondemand);
@@ -1161,7 +1161,6 @@ int grab_on_demand_macro(char *str){
 			my_free((void **)&macro_ondemand);
 			macro_ondemand=(char *)strdup(result_buffer);
 			}
-#endif
 	        }
 
 	/* on-demand servicegroup macros */
@@ -1191,7 +1190,6 @@ int grab_on_demand_macro(char *str){
 		if(temp_service!=NULL)
 			return_val=grab_on_demand_service_macro(temp_service,macro);
 
-#ifdef NSCORE
 		/* process a service macro containing a servicegroup */
 		else{
 			if((temp_servicegroup=find_servicegroup(first_arg))==NULL){
@@ -1212,8 +1210,13 @@ int grab_on_demand_macro(char *str){
 				return OK;
 				}
 			while(1){
+#ifdef NSCORE
 				if((temp_service=temp_servicesmember->service_ptr)==NULL)
 					continue;
+#else
+				if((temp_service=find_service(temp_servicesmember->host_name,temp_servicesmember->service_description))==NULL)
+					continue;
+#endif
 				if(grab_on_demand_service_macro(temp_service,macro)==OK){
 					strncat(result_buffer,macro_ondemand,sizeof(result_buffer)-result_buffer_len-1);
 					result_buffer_len+=strlen(macro_ondemand);
@@ -1242,7 +1245,6 @@ int grab_on_demand_macro(char *str){
 			my_free((void **)&macro_ondemand);
 			macro_ondemand=(char *)strdup(result_buffer);
 			}
-#endif
 	        }
 
 	/* on-demand contactgroup macros */
@@ -1251,6 +1253,72 @@ int grab_on_demand_macro(char *str){
 		temp_contactgroup=find_contactgroup(first_arg);
 		return_val=grab_on_demand_contactgroup_macro(temp_contactgroup,macro);
 		}
+
+	/* on-demand contact macros */
+	else if(strstr(macro,"CONTACT")){
+
+		/* process a contact macro */
+		if(second_arg==NULL){
+			temp_contact=find_contact(first_arg);
+			return_val=grab_on_demand_contact_macro(temp_contact,macro);
+	                }
+
+		/* process a contact macro containing a contactgroup name */
+		else{
+			if((temp_contactgroup=find_contactgroup(first_arg))==NULL){
+				my_free((void **)&macro);
+				return ERROR;
+				}
+
+			return_val=OK;  /* start off assuming there's no error */
+			result_buffer[0]='\0';
+			result_buffer[sizeof(result_buffer)-1]='\0';
+			result_buffer_len=0;
+			delimiter_len=strlen(second_arg);
+
+			/* process each contact in the contactgroup */
+			if((temp_contactsmember=temp_contactgroup->members)==NULL){
+				macro_ondemand=(char *)strdup("");
+				my_free((void **)&macro);
+				return OK;
+				}
+			while(1){
+#ifdef NSCORE
+				if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+					continue;
+#else
+				if((temp_contact=find_contact(temp_contactsmember->contact_name))==NULL)
+					continue;
+#endif
+				if(grab_on_demand_contact_macro(temp_contact,macro)==OK){
+					strncat(result_buffer,macro_ondemand,sizeof(result_buffer)-result_buffer_len-1);
+					result_buffer_len+=strlen(macro_ondemand);
+					if(result_buffer_len>sizeof(result_buffer)-1){
+						return_val=ERROR;
+						break;
+						}
+					if((temp_hostsmember=temp_hostsmember->next)==NULL)
+						break;
+					strncat(result_buffer,second_arg,sizeof(result_buffer)-result_buffer_len-1);
+					result_buffer_len+=delimiter_len;
+					if(result_buffer_len>sizeof(result_buffer)-1){
+						return_val=ERROR;
+						break;
+						}
+					}
+				else{
+					return_val=ERROR;
+					if((temp_contactsmember=temp_contactsmember->next)==NULL)
+						break;
+					}
+
+				my_free((void **)&macro_ondemand);
+				}
+
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=(char *)strdup(result_buffer);
+			}
+	        }
 
 	else
 		return_val=ERROR;

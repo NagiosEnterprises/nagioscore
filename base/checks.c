@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-11-2007
+ * Last Modified:   09-20-2007
  *
  * License:
  *
@@ -355,8 +355,11 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	neb_result=broker_service_check(NEBTYPE_SERVICECHECK_ASYNC_PRECHECK,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,start_time,end_time,svc->service_check_command,svc->latency,0.0,0,FALSE,0,NULL,NULL);
 
 	/* neb module wants to cancel the service check - the check will be rescheduled for a later time by the scheduling logic */
-	if(neb_result==NEBERROR_CALLBACKCANCEL)
+	if(neb_result==NEBERROR_CALLBACKCANCEL){
+		if(preferred_time)
+			*preferred_time+=(svc->check_interval*interval_length);
 		return ERROR;
+		}
 
 	/* neb module wants to override the service check - perhaps it will check the service itself */
 	/* NOTE: if a module does this, it has to do a lot of the stuff found below to make sure things don't get whacked out of shape! */
@@ -366,6 +369,25 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 
 	log_debug_info(DEBUGL_CHECKS,0,"Checking service '%s' on host '%s'...\n",svc->description,svc->host_name);
+
+	/* NOTE: make sure command is non-NULL before setting any 'is_executing' variables, etc. */
+	/* get the raw command line */
+	get_raw_command_line(svc->check_command_ptr,svc->service_check_command,&raw_command,0);
+	if(raw_command==NULL){
+		log_debug_info(DEBUGL_CHECKS,0,"Raw check command for service '%s' on host '%s' was NULL - aborting.\n",svc->description,svc->host_name);
+		if(preferred_time)
+			*preferred_time+=(svc->check_interval*interval_length);
+		return ERROR;
+		}
+
+	/* process any macros contained in the argument */
+	process_macros(raw_command,&processed_command,0);
+	if(processed_command==NULL){
+		log_debug_info(DEBUGL_CHECKS,0,"Processed check command for service '%s' on host '%s' was NULL - aborting.\n",svc->description,svc->host_name);
+		if(preferred_time)
+			*preferred_time+=(svc->check_interval*interval_length);
+		return ERROR;
+		}
 
 	/* increment number of service checks that are currently running... */
 	currently_running_service_checks++;
@@ -387,16 +409,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	grab_service_macros(svc);
 	grab_datetime_macros();
 	grab_summary_macros(NULL);
-
-	/* get the raw command line */
-	get_raw_command_line(svc->check_command_ptr,svc->service_check_command,&raw_command,0);
-	if(raw_command==NULL)
-		return ERROR;
-
-	/* process any macros contained in the argument */
-	process_macros(raw_command,&processed_command,0);
-	if(processed_command==NULL)
-		return ERROR;
 
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
@@ -550,7 +562,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 				/* close the temp file */
 				fclose(check_result_info.output_file_fp);
-				close(check_result_info.output_file_fd);
 
 				/* move check result to queue directory */
 				move_check_result_to_queue(check_result_info.output_file);
@@ -679,7 +690,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 					/* close the temp file */
 					fclose(check_result_info.output_file_fp);
-					close(check_result_info.output_file_fd);
 					
 					/* move check result to queue directory */
 					move_check_result_to_queue(check_result_info.output_file);
@@ -750,7 +760,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 				/* close the temp file */
 				fclose(check_result_info.output_file_fp);
-				close(check_result_info.output_file_fd);
 
 				/* move check result to queue directory */
 				move_check_result_to_queue(check_result_info.output_file);
@@ -790,10 +799,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		log_debug_info(DEBUGL_CHECKS,2,"Service check is executing in child process (pid=%lu)\n",(unsigned long)pid);
 
 		/* parent should close output file */
-		if(check_result_info.output_file_fp){
+		if(check_result_info.output_file_fp)
 			fclose(check_result_info.output_file_fp);
-			close(check_result_info.output_file_fd);
-			}
 
 		/* should this be done in first child process (after spawning grandchild) as well? */
 		/* free memory allocated for IPC functionality */
@@ -1135,6 +1142,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				/* only use cached host state if no service state change has occurred */
 				if(state_change==FALSE && temp_host->has_been_checked==TRUE && ((current_time-temp_host->last_check) <= cached_host_check_horizon)){
 					log_debug_info(DEBUGL_CHECKS,1,"* Using cached host state: %d\n",temp_host->current_state);
+					update_check_stats(ACTIVE_ONDEMAND_HOST_CHECK_STATS,current_time);
 					update_check_stats(ACTIVE_CACHED_HOST_CHECK_STATS,current_time);
 					}
 
@@ -1233,6 +1241,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 					/* use current host state as route result */
 					route_result=temp_host->current_state;
 					log_debug_info(DEBUGL_CHECKS,1,"* Using cached host state: %d\n",temp_host->current_state);
+					update_check_stats(ACTIVE_ONDEMAND_HOST_CHECK_STATS,current_time);
 					update_check_stats(ACTIVE_CACHED_HOST_CHECK_STATS,current_time);
 					}
 
@@ -2359,6 +2368,7 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 			log_debug_info(DEBUGL_CHECKS,1,"* Using cached host state: %d\n",hst->current_state);
 
 			/* update check statistics */
+			update_check_stats(ACTIVE_ONDEMAND_HOST_CHECK_STATS,current_time);
 			update_check_stats(ACTIVE_CACHED_HOST_CHECK_STATS,current_time);
 
 			return OK;
@@ -2711,8 +2721,11 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	neb_result=broker_host_check(NEBTYPE_HOSTCHECK_ASYNC_PRECHECK,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,host_check_timeout,FALSE,0,NULL,NULL,NULL,NULL,NULL);
 
 	/* neb module wants to cancel the host check - the check will be rescheduled for a later time by the scheduling logic */
-	if(neb_result==NEBERROR_CALLBACKCANCEL)
+	if(neb_result==NEBERROR_CALLBACKCANCEL){
+		if(preferred_time)
+			*preferred_time+=(hst->check_interval*interval_length);
 		return ERROR;
+		}
 
 	/* neb module wants to override the host check - perhaps it will check the host itself */
 	/* NOTE: if a module does this, it has to do a lot of the stuff found below to make sure things don't get whacked out of shape! */
@@ -2721,6 +2734,25 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 #endif
 
 	log_debug_info(DEBUGL_CHECKS,0,"Checking host '%s'...\n",hst->name);
+
+	/* NOTE: make sure command is non-NULL before setting any 'is_executing' variables, etc. */
+	/* get the raw command line */
+	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,&raw_command,0);
+	if(raw_command==NULL){
+		log_debug_info(DEBUGL_CHECKS,0,"Raw check command for host '%s' was NULL - aborting.\n",hst->name);
+		if(preferred_time)
+			*preferred_time+=(hst->check_interval*interval_length);
+		return ERROR;
+		}
+
+	/* process any macros contained in the argument */
+	process_macros(raw_command,&processed_command,0);
+	if(processed_command==NULL){
+		log_debug_info(DEBUGL_CHECKS,0,"Processed check command for host '%s' was NULL - aborting.\n",hst->name);
+		if(preferred_time)
+			*preferred_time+=(hst->check_interval*interval_length);
+		return ERROR;
+		}
 
 	/* clear the force execution flag */
 	if((check_options & CHECK_OPTION_FORCE_EXECUTION) && (hst->check_options & CHECK_OPTION_FORCE_EXECUTION))
@@ -2748,16 +2780,6 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	grab_host_macros(hst);
 	grab_datetime_macros();
 	grab_summary_macros(NULL);
-
-	/* get the raw command line */
-	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,&raw_command,0);
-	if(raw_command==NULL)
-		return ERROR;
-
-	/* process any macros contained in the argument */
-	process_macros(raw_command,&processed_command,0);
-	if(processed_command==NULL)
-		return ERROR;
 
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
@@ -2920,7 +2942,6 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 				/* close the temp file */
 				fclose(check_result_info.output_file_fp);
-				close(check_result_info.output_file_fd);
 
 				/* move check result to queue directory */
 				move_check_result_to_queue(check_result_info.output_file);
@@ -2960,10 +2981,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		log_debug_info(DEBUGL_CHECKS,2,"Host check is executing in child process (pid=%lu)\n",(unsigned long)pid);
 
 		/* parent should close output file */
-		if(check_result_info.output_file_fp){
+		if(check_result_info.output_file_fp)
 			fclose(check_result_info.output_file_fp);
-			close(check_result_info.output_file_fd);
-			}
 
 		/* should this be done in first child process (after spawning grandchild) as well? */
 		/* free memory allocated for IPC functionality */

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2007
+ * Last Modified: 09-22-2007
  *
  * License:
  *
@@ -890,9 +890,9 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 #endif
 
 	/* make sure we have the data we need */
-	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,"")) || (address==NULL || !strcmp(address,""))){
+	if((name==NULL || !strcmp(name,"")) || (address==NULL || !strcmp(address,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Host name, alias, or address is NULL\n");
+		asprintf(&temp_buffer,"Error: Host name or address is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 		my_free((void **)&temp_buffer);
 #endif
@@ -999,7 +999,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		result=ERROR;
 	if((new_host->display_name=(char *)strdup((display_name==NULL)?name:display_name))==NULL)
 		result=ERROR;
-	if((new_host->alias=(char *)strdup(alias))==NULL)
+	if((new_host->alias=(char *)strdup((alias==NULL)?name:alias))==NULL)
 		result=ERROR;
 	if((new_host->address=(char *)strdup(address))==NULL)
 		result=ERROR;
@@ -1379,9 +1379,9 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 #endif
 
 	/* make sure we have the data we need */
-	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
+	if(name==NULL || !strcmp(name,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Hostgroup name and/or alias is NULL\n");
+		asprintf(&temp_buffer,"Error: Hostgroup name is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 		my_free((void **)&temp_buffer);
 #endif
@@ -1415,7 +1415,7 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 	/* duplicate vars */
 	if((new_hostgroup->group_name=(char *)strdup(name))==NULL)
 		result=ERROR;
-	if((new_hostgroup->alias=(char *)strdup(alias))==NULL)
+	if((new_hostgroup->alias=(char *)strdup((alias==NULL)?name:alias))==NULL)
 		result=ERROR;
 	if(notes){
 		if((new_hostgroup->notes=(char *)strdup(notes))==NULL)
@@ -1541,9 +1541,9 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 #endif
 
 	/* make sure we have the data we need */
-	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
+	if(name==NULL || !strcmp(name,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Servicegroup name and/or alias is NULL\n");
+		asprintf(&temp_buffer,"Error: Servicegroup name is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 		my_free((void **)&temp_buffer);
 #endif
@@ -1577,7 +1577,7 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 	/* duplicate vars */
 	if((new_servicegroup->group_name=(char *)strdup(name))==NULL)
 		result=ERROR;
-	if((new_servicegroup->alias=(char *)strdup(alias))==NULL)
+	if((new_servicegroup->alias=(char *)strdup((alias==NULL)?name:alias))==NULL)
 		result=ERROR;
 	if(notes){
 		if((new_servicegroup->notes=(char *)strdup(notes))==NULL)
@@ -1719,9 +1719,9 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 #endif
 
 	/* make sure we have the data we need */
-	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
+	if(name==NULL || !strcmp(name,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contact name or alias are NULL\n");
+		asprintf(&temp_buffer,"Error: Contact name is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 		my_free((void **)&temp_buffer);
 #endif
@@ -1758,7 +1758,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	/* duplicate vars */
 	if((new_contact->name=(char *)strdup(name))==NULL)
 		result=ERROR;
-	if((new_contact->alias=(char *)strdup(alias))==NULL)
+	if((new_contact->alias=(char *)strdup((alias==NULL)?name:alias))==NULL)
 		result=ERROR;
 	if(email){
 		if((new_contact->email=(char *)strdup(email))==NULL)
@@ -1967,9 +1967,9 @@ contactgroup *add_contactgroup(char *name,char *alias){
 #endif
 
 	/* make sure we have the data we need */
-	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
+	if(name==NULL || !strcmp(name,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contactgroup name or alias is NULL\n");
+		asprintf(&temp_buffer,"Error: Contactgroup name is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 		my_free((void **)&temp_buffer);
 #endif
@@ -2000,7 +2000,7 @@ contactgroup *add_contactgroup(char *name,char *alias){
 	/* duplicate vars */
 	if((new_contactgroup->group_name=(char *)strdup(name))==NULL)
 		result=ERROR;
-	if((new_contactgroup->alias=(char *)strdup(alias))==NULL)
+	if((new_contactgroup->alias=(char *)strdup((alias==NULL)?name:alias))==NULL)
 		result=ERROR;
 
 	/* add new contactgroup to contactgroup chained hash list */

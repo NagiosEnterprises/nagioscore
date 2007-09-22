@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-20-2007
+ * Last Modified:   09-22-2007
  *
  * License:
  *
@@ -235,6 +235,7 @@ int reap_check_results(void){
 /* executes a scheduled service check */
 int run_scheduled_service_check(service *svc, int check_options, double latency){
 	int result=OK;
+	time_t current_time=0L;
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	int time_is_valid=TRUE;
@@ -255,6 +256,14 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 
 		/* only attempt to (re)schedule checks that should get checked... */
 		if(svc->should_be_scheduled==TRUE){
+
+			/* get current time */
+			time(&current_time);
+
+			/* determine next time we should check the service if needed */
+			/* if service has no check interval, schedule it again for 5 minutes from now */
+			if(current_time>=preferred_time)
+				preferred_time=current_time+((svc->check_interval<=0)?300:(svc->check_interval*interval_length));
 
 			/* make sure we rescheduled the next service check at a valid time */
 			get_next_valid_time(preferred_time,&next_valid_time,svc->check_period_ptr);
@@ -370,7 +379,21 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 	log_debug_info(DEBUGL_CHECKS,0,"Checking service '%s' on host '%s'...\n",svc->description,svc->host_name);
 
-	/* NOTE: make sure command is non-NULL before setting any 'is_executing' variables, etc. */
+	/* clear the force execution flag */
+	if((check_options & CHECK_OPTION_FORCE_EXECUTION) && (svc->check_options & CHECK_OPTION_FORCE_EXECUTION))
+		svc->check_options-=CHECK_OPTION_FORCE_EXECUTION;
+
+	/* update latency for macros, event broker, save old value for later */
+	old_latency=svc->latency;
+	svc->latency=latency;
+
+	/* grab the host and service macro variables */
+	clear_volatile_macros();
+	grab_host_macros(temp_host);
+	grab_service_macros(svc);
+	grab_datetime_macros();
+	grab_summary_macros(NULL);
+
 	/* get the raw command line */
 	get_raw_command_line(svc->check_command_ptr,svc->service_check_command,&raw_command,0);
 	if(raw_command==NULL){
@@ -389,29 +412,14 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		return ERROR;
 		}
 
+	/* get the command start time */
+	gettimeofday(&start_time,NULL);
+
 	/* increment number of service checks that are currently running... */
 	currently_running_service_checks++;
 
 	/* set the execution flag */
 	svc->is_executing=TRUE;
-
-	/* clear the force execution flag */
-	if((check_options & CHECK_OPTION_FORCE_EXECUTION) && (svc->check_options & CHECK_OPTION_FORCE_EXECUTION))
-		svc->check_options-=CHECK_OPTION_FORCE_EXECUTION;
-
-	/* update latency for macros, event broker, save old value for later */
-	old_latency=svc->latency;
-	svc->latency=latency;
-
-	/* grab the host and service macro variables */
-	clear_volatile_macros();
-	grab_host_macros(temp_host);
-	grab_service_macros(svc);
-	grab_datetime_macros();
-	grab_summary_macros(NULL);
-
-	/* get the command start time */
-	gettimeofday(&start_time,NULL);
 
 	/* open a temp file for storing check output */
 	old_umask=umask(new_umask);
@@ -2607,6 +2615,7 @@ int execute_sync_host_check_3x(host *hst){
 /* run a scheduled host check asynchronously */
 int run_scheduled_host_check_3x(host *hst, int check_options, double latency){
 	int result=OK;
+	time_t current_time=0L;
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	int time_is_valid=TRUE;
@@ -2629,6 +2638,14 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency){
 
 		/* only attempt to (re)schedule checks that should get checked... */
 		if(hst->should_be_scheduled==TRUE){
+
+			/* get current time */
+			time(&current_time);
+
+			/* determine next time we should check the host if needed */
+			/* if host has no check interval, schedule it again for 5 minutes from now */
+			if(current_time>=preferred_time)
+				preferred_time=current_time+((hst->check_interval<=0)?300:(hst->check_interval*interval_length));
 
 			/* make sure we rescheduled the next host check at a valid time */
 			get_next_valid_time(preferred_time,&next_valid_time,hst->check_period_ptr);
@@ -2721,11 +2738,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	neb_result=broker_host_check(NEBTYPE_HOSTCHECK_ASYNC_PRECHECK,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,host_check_timeout,FALSE,0,NULL,NULL,NULL,NULL,NULL);
 
 	/* neb module wants to cancel the host check - the check will be rescheduled for a later time by the scheduling logic */
-	if(neb_result==NEBERROR_CALLBACKCANCEL){
-		if(preferred_time)
-			*preferred_time+=(hst->check_interval*interval_length);
+	if(neb_result==NEBERROR_CALLBACKCANCEL)
 		return ERROR;
-		}
 
 	/* neb module wants to override the host check - perhaps it will check the host itself */
 	/* NOTE: if a module does this, it has to do a lot of the stuff found below to make sure things don't get whacked out of shape! */
@@ -2735,37 +2749,12 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 	log_debug_info(DEBUGL_CHECKS,0,"Checking host '%s'...\n",hst->name);
 
-	/* NOTE: make sure command is non-NULL before setting any 'is_executing' variables, etc. */
-	/* get the raw command line */
-	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,&raw_command,0);
-	if(raw_command==NULL){
-		log_debug_info(DEBUGL_CHECKS,0,"Raw check command for host '%s' was NULL - aborting.\n",hst->name);
-		if(preferred_time)
-			*preferred_time+=(hst->check_interval*interval_length);
-		return ERROR;
-		}
-
-	/* process any macros contained in the argument */
-	process_macros(raw_command,&processed_command,0);
-	if(processed_command==NULL){
-		log_debug_info(DEBUGL_CHECKS,0,"Processed check command for host '%s' was NULL - aborting.\n",hst->name);
-		if(preferred_time)
-			*preferred_time+=(hst->check_interval*interval_length);
-		return ERROR;
-		}
-
 	/* clear the force execution flag */
 	if((check_options & CHECK_OPTION_FORCE_EXECUTION) && (hst->check_options & CHECK_OPTION_FORCE_EXECUTION))
 		hst->check_options-=CHECK_OPTION_FORCE_EXECUTION;
 
 	/* adjust host check attempt */
 	adjust_host_check_attempt_3x(hst,TRUE);
-
-	/* increment number of host checks that are currently running... */
-	currently_running_host_checks++;
-
-	/* set the execution flag */
-	hst->is_executing=TRUE;
 
 	/* clear the force execution flag */
 	if((check_options & CHECK_OPTION_FORCE_EXECUTION) && (hst->check_options & CHECK_OPTION_FORCE_EXECUTION))
@@ -2781,8 +2770,28 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
+	/* get the raw command line */
+	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,&raw_command,0);
+	if(raw_command==NULL){
+		log_debug_info(DEBUGL_CHECKS,0,"Raw check command for host '%s' was NULL - aborting.\n",hst->name);
+		return ERROR;
+		}
+
+	/* process any macros contained in the argument */
+	process_macros(raw_command,&processed_command,0);
+	if(processed_command==NULL){
+		log_debug_info(DEBUGL_CHECKS,0,"Processed check command for host '%s' was NULL - aborting.\n",hst->name);
+		return ERROR;
+		}
+
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
+
+	/* increment number of host checks that are currently running... */
+	currently_running_host_checks++;
+
+	/* set the execution flag */
+	hst->is_executing=TRUE;
 
 	/* open a temp file for storing check output */
 	old_umask=umask(new_umask);
@@ -3659,6 +3668,10 @@ int check_host_check_viability_3x(host *hst, int check_options, int *time_is_val
 		check_interval=(hst->retry_interval*interval_length);
 	else
 		check_interval=(hst->check_interval*interval_length);
+
+	/* make sure check interval is positive - otherwise use 5 minutes out for next check */
+	if(check_interval<=0)
+		check_interval=300;
 
 	/* get the current time */
 	time(&current_time);

@@ -17,6 +17,7 @@ Nagios 3.x Change Log
 * Added custom host and service notifications, with option to force the notifications and broadcast them to all contacts
 * Fix for on-demand/cached host check statistics
 * Fixed bug where null host check command would cause high CPU utilization
+* Alias, if not specified, now defaults to object name in host, hostgroup, servicegroup, contact, and contactgroup definitions
 
 
 

@@ -12019,20 +12019,20 @@ xodtemplate_memberlist *xodtemplate_expand_contactgroups_and_contacts(char *cont
 			xodtemplate_free_memberlist(&reject_list);
 			return NULL;
 		        }
-
-		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
-		/* NOTE: rejects from this list also affect contacts generated from processing contactgroup names (see above) */
-		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
-			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
-				if(!strcmp(reject_ptr->name1,list_ptr->name1)){
-					xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
-					break;
-			                }
-		                }
-	                }
-		xodtemplate_free_memberlist(&reject_list);
-		reject_list=NULL;
 	        }
+
+	/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+	/* NOTE: rejects from this list also affect contacts generated from processing contactgroup names (see above) */
+	for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+		for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+			if(!strcmp(reject_ptr->name1,list_ptr->name1)){
+				xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
+				break;
+				}
+			}
+		}
+	xodtemplate_free_memberlist(&reject_list);
+	reject_list=NULL;
 
 	return temp_list;
         }
@@ -12366,20 +12366,32 @@ xodtemplate_memberlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups
 			xodtemplate_free_memberlist(&reject_list);
 			return NULL;
 		        }
-
-		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
-		/* NOTE: rejects from this list also affect hosts generated from processing hostgroup names (see above) */
-		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
-			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
-				if(!strcmp(reject_ptr->name1,list_ptr->name1)){
-					xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
-					break;
-			                }
-		                }
-	                }
-		xodtemplate_free_memberlist(&reject_list);
-		reject_list=NULL;
 	        }
+
+#ifdef TESTING
+	printf("->PRIOR TO CLEANUP\n");
+	printf("   REJECT LIST:\n");
+	for(list_ptr=reject_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+		printf("      '%s'\n",list_ptr->name1);
+		}
+	printf("   ACCEPT LIST:\n");
+	for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+		printf("      '%s'\n",list_ptr->name1);
+		}
+#endif
+
+	/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+	/* NOTE: rejects from this list also affect hosts generated from processing hostgroup names (see above) */
+	for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+		for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+			if(!strcmp(reject_ptr->name1,list_ptr->name1)){
+				xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
+				break;
+				}
+			}
+		}
+	xodtemplate_free_memberlist(&reject_list);
+	reject_list=NULL;
 
 	return temp_list;
         }
@@ -12712,20 +12724,20 @@ xodtemplate_memberlist *xodtemplate_expand_servicegroups_and_services(char *serv
 			xodtemplate_free_memberlist(&reject_list);
 			return NULL;
 		        }
-
-		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
-		/* NOTE: rejects from this list also affect hosts generated from processing hostgroup names (see above) */
-		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
-			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
-				if(!strcmp(reject_ptr->name1,list_ptr->name1) && !strcmp(reject_ptr->name2,list_ptr->name2)){
-					xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
-					break;
-			                }
-		                }
-	                }
-		xodtemplate_free_memberlist(&reject_list);
-		reject_list=NULL;
 	        }
+
+	/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+	/* NOTE: rejects from this list also affect hosts generated from processing hostgroup names (see above) */
+	for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+		for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+			if(!strcmp(reject_ptr->name1,list_ptr->name1) && !strcmp(reject_ptr->name2,list_ptr->name2)){
+				xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
+				break;
+				}
+			}
+		}
+	xodtemplate_free_memberlist(&reject_list);
+	reject_list=NULL;
 
 	return temp_list;
         }

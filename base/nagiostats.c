@@ -3,11 +3,11 @@
  * NAGIOSTATS.C - Displays Nagios Statistics
  *
  * Program: Nagiostats
- * Version: 3.0b3
+ * Version: 3.0b4
  * License: GPL
  * Copyright (c) 2003-2007 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   08-30-2007
+ * Last Modified:   09-27-2007
  *
  * License:
  *
@@ -38,9 +38,10 @@
 #define STATUS_SERVICE_DATA        4
 
 
-char main_config_file[MAX_INPUT_BUFFER]=DEFAULT_CONFIG_FILE;
-char status_file[MAX_INPUT_BUFFER]=DEFAULT_STATUS_FILE;
+char *main_config_file=NULL;
+char *status_file=NULL;
 char *mrtg_variables=NULL;
+char *mrtg_delimiter="\n";
 
 int mrtg_mode=FALSE;
 
@@ -213,17 +214,22 @@ int main(int argc, char **argv){
 		{"config",required_argument,0,'c'},
 		{"mrtg",no_argument,0,'m'},
 		{"data",required_argument,0,'d'},
+		{"delimiter",required_argument,0,'D'},
 		{0,0,0,0}
 	};
 #endif
+
+	/* defaults */
+	main_config_file=strdup(DEFAULT_CONFIG_FILE);
+	status_file=strdup(DEFAULT_STATUS_FILE);
 
 	/* get all command line arguments */
 	while(1){
 
 #ifdef HAVE_GETOPT_H
-		c=getopt_long(argc,argv,"+hVLc:md:",long_options,&option_index);
+		c=getopt_long(argc,argv,"+hVLc:md:D:",long_options,&option_index);
 #else
-		c=getopt(argc,argv,"+hVLc:md:");
+		c=getopt(argc,argv,"+hVLc:md:D:");
 #endif
 
 		if(c==-1 || c==EOF)
@@ -242,14 +248,19 @@ int main(int argc, char **argv){
 			display_license=TRUE;
 			break;
 		case 'c':
-			strncpy(main_config_file,optarg,sizeof(main_config_file));
-			main_config_file[sizeof(main_config_file)-1]='\x0';
+			if(main_config_file)
+				free(main_config_file);
+			main_config_file=strdup(optarg);
+			printf("NEW VALUE: %s\n",main_config_file);
 			break;
 		case 'm':
 			mrtg_mode=TRUE;
 			break;
 		case 'd':
 			mrtg_variables=strdup(optarg);
+			break;
+		case 'D':
+			mrtg_delimiter=strdup(optarg);
 			break;
 
 		default:
@@ -300,6 +311,8 @@ int main(int argc, char **argv){
 		printf(" -d, --data=VARS    comma-seperated list of variables to output in MRTG\n");
 		printf("                    (or compatible) format.  See possible values below.\n");
 		printf("                    Percentages are rounded, times are in milliseconds.\n");
+		printf(" -D, --delimiter=C  character to use as delimiter in MRTG output mode.\n");
+		printf("                    Defaults to a newline.\n");
 		printf("\n");
 		printf("MRTG DATA VARIABLES (-d option):\n");
 		printf(" PROGRUNTIME          string with time Nagios process has been running.\n");
@@ -406,296 +419,303 @@ int display_mrtg_values(void){
 
 	time(&current_time);
 
+	if(mrtg_variables==NULL)
+		return OK;
+
 	/* process all variables */
 	for(temp_ptr=strtok(mrtg_variables,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
 
 		if(!strcmp(temp_ptr,"PROGRUNTIME")){
 			time_difference=(current_time-program_start);
 			get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
-			printf("%dd %dh %dm %ds\n",days,hours,minutes,seconds);
+			printf("%dd %dh %dm %ds%s",days,hours,minutes,seconds,mrtg_delimiter);
 			}
 		else if(!strcmp(temp_ptr,"PROGRUNTIMETT")){
 			time_difference=(current_time-program_start);
-			printf("%lu\n",time_difference);
+			printf("%lu%s",time_difference,mrtg_delimiter);
 			}
 		else if(!strcmp(temp_ptr,"STATUSFILEAGE")){
 			time_difference=(current_time-status_creation_date);
 			get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
-			printf("%dd %dh %dm %ds\n",days,hours,minutes,seconds);
+			printf("%dd %dh %dm %ds%s",days,hours,minutes,seconds,mrtg_delimiter);
 			}
 		else if(!strcmp(temp_ptr,"STATUSFILEAGETT")){
 			time_difference=(current_time-status_creation_date);
-			printf("%lu\n",time_difference);
+			printf("%lu%s",time_difference,mrtg_delimiter);
 			}
 		else if(!strcmp(temp_ptr,"NAGIOSVERSION"))
-			printf("%s\n",status_version);
+			printf("%s%s",status_version,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NAGIOSPID"))
-			printf("%lu\n",nagios_pid);
+			printf("%lu%s",nagios_pid,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NAGIOSVERPID"))
-			printf("Nagios %s (pid=%lu)\n",status_version,nagios_pid);
+			printf("Nagios %s (pid=%lu)%s",status_version,nagios_pid,mrtg_delimiter);
 
 
 		else if(!strcmp(temp_ptr,"TOTCMDBUF"))
-			printf("%d\n",total_external_command_buffer_slots);
+			printf("%d%s",total_external_command_buffer_slots,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"USEDCMDBUF"))
-			printf("%d\n",used_external_command_buffer_slots);
+			printf("%d%s",used_external_command_buffer_slots,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"HIGHCMDBUF"))
-			printf("%d\n",high_external_command_buffer_slots);
+			printf("%d%s",high_external_command_buffer_slots,mrtg_delimiter);
 
 		else if(!strcmp(temp_ptr,"NUMSERVICES"))
-			printf("%d\n",status_service_entries);
+			printf("%d%s",status_service_entries,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHOSTS"))
-			printf("%d\n",status_host_entries);
+			printf("%d%s",status_host_entries,mrtg_delimiter);
 
 		/* active service check latency */
 		else if(!strcmp(temp_ptr,"MINACTSVCLAT"))
-			printf("%d\n",(int)(min_active_service_latency*1000));
+			printf("%d%s",(int)(min_active_service_latency*1000),mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"MAXACTSVCLAT"))
-			printf("%d\n",(int)(max_active_service_latency*1000));
+			printf("%d%s",(int)(max_active_service_latency*1000),mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGACTSVCLAT"))
-			printf("%d\n",(int)(average_active_service_latency*1000));
+			printf("%d%s",(int)(average_active_service_latency*1000),mrtg_delimiter);
 
 		/* active service check execution time */
 		else if(!strcmp(temp_ptr,"MINACTSVCEXT"))
-			printf("%d\n",(int)(min_active_service_execution_time*1000));
+			printf("%d%s",(int)(min_active_service_execution_time*1000),mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"MAXACTSVCEXT"))
-			printf("%d\n",(int)(max_active_service_execution_time*1000));
+			printf("%d%s",(int)(max_active_service_execution_time*1000),mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGACTSVCEXT"))
-			printf("%d\n",(int)(average_active_service_execution_time*1000));
+			printf("%d%s",(int)(average_active_service_execution_time*1000),mrtg_delimiter);
 
 		/* active service check percent state change */
 		else if(!strcmp(temp_ptr,"MINACTSVCPSC"))
-			printf("%d\n",(int)min_active_service_state_change);
+			printf("%d%s",(int)min_active_service_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"MAXACTSVCPSC"))
-			printf("%d\n",(int)max_active_service_state_change);
+			printf("%d%s",(int)max_active_service_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGACTSVCPSC"))
-			printf("%d\n",(int)average_active_service_state_change);
+			printf("%d%s",(int)average_active_service_state_change,mrtg_delimiter);
 
 		/* passive service check percent state change */
 		else if(!strcmp(temp_ptr,"MINPSVSVCPSC"))
-			printf("%d\n",(int)min_passive_service_state_change);
+			printf("%d%s",(int)min_passive_service_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"MAXPSVSVCPSC"))
-			printf("%d\n",(int)max_passive_service_state_change);
+			printf("%d%s",(int)max_passive_service_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGPSVSVCPSC"))
-			printf("%d\n",(int)average_passive_service_state_change);
+			printf("%d%s",(int)average_passive_service_state_change,mrtg_delimiter);
 
 		/* service check percent state change */
 		else if(!strcmp(temp_ptr,"MINSVCPSC"))
-			printf("%d\n",(int)min_service_state_change);
+			printf("%d%s",(int)min_service_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"MAXSVCPSC"))
-			printf("%d\n",(int)max_service_state_change);
+			printf("%d%s",(int)max_service_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGSVCPSC"))
-			printf("%d\n",(int)average_service_state_change);
+			printf("%d%s",(int)average_service_state_change,mrtg_delimiter);
 
 		/* active host check latency */
 		else if(!strcmp(temp_ptr,"MINACTHSTLAT"))
-			printf("%d\n",(int)(min_active_host_latency*1000));
+			printf("%d%s",(int)(min_active_host_latency*1000),mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"MAXACTHSTLAT"))
-			printf("%d\n",(int)(max_active_host_latency*1000));
+			printf("%d%s",(int)(max_active_host_latency*1000),mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGACTHSTLAT"))
-			printf("%d\n",(int)(average_active_host_latency*1000));
+			printf("%d%s",(int)(average_active_host_latency*1000),mrtg_delimiter);
 
 		/* active host check execution time */
 		else if(!strcmp(temp_ptr,"MINACTHSTEXT"))
-			printf("%d\n",(int)(min_active_host_execution_time*1000));
+			printf("%d%s",(int)(min_active_host_execution_time*1000),mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"MAXACTHSTEXT"))
-			printf("%d\n",(int)(max_active_host_execution_time*1000));
+			printf("%d%s",(int)(max_active_host_execution_time*1000),mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGACTHSTEXT"))
-			printf("%d\n",(int)(average_active_host_execution_time*1000));
+			printf("%d%s",(int)(average_active_host_execution_time*1000),mrtg_delimiter);
 
 		/* active host check percent state change */
 		else if(!strcmp(temp_ptr,"MINACTHSTPSC"))
-			printf("%d\n",(int)min_active_host_state_change);
+			printf("%d%s",(int)min_active_host_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"MAXACTHSTPSC"))
-			printf("%d\n",(int)max_active_host_state_change);
+			printf("%d%s",(int)max_active_host_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGACTHSTPSC"))
-			printf("%d\n",(int)average_active_host_state_change);
+			printf("%d%s",(int)average_active_host_state_change,mrtg_delimiter);
 
 		/* passive host check percent state change */
 		else if(!strcmp(temp_ptr,"MINPSVHSTPSC"))
-			printf("%d\n",(int)min_passive_host_state_change);
+			printf("%d%s",(int)min_passive_host_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"MAXPSVHSTPSC"))
-			printf("%d\n",(int)max_passive_host_state_change);
+			printf("%d%s",(int)max_passive_host_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGPSVHSTPSC"))
-			printf("%d\n",(int)average_passive_host_state_change);
+			printf("%d%s",(int)average_passive_host_state_change,mrtg_delimiter);
 
 		/* host check percent state change */
 		else if(!strcmp(temp_ptr,"MINHSTPSC"))
-			printf("%d\n",(int)min_host_state_change);
+			printf("%d%s",(int)min_host_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"MAXHSTPSC"))
-			printf("%d\n",(int)max_host_state_change);
+			printf("%d%s",(int)max_host_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGHSTPSC"))
-			printf("%d\n",(int)average_host_state_change);
+			printf("%d%s",(int)average_host_state_change,mrtg_delimiter);
 
 		/* active host checks over time */
 		else if(!strcmp(temp_ptr,"NUMHSTACTCHK1M"))
-			printf("%d\n",active_hosts_checked_last_1min);
+			printf("%d%s",active_hosts_checked_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTACTCHK5M"))
-			printf("%d\n",active_hosts_checked_last_5min);
+			printf("%d%s",active_hosts_checked_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTACTCHK15M"))
-			printf("%d\n",active_hosts_checked_last_15min);
+			printf("%d%s",active_hosts_checked_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTACTCHK60M"))
-			printf("%d\n",active_hosts_checked_last_1hour);
+			printf("%d%s",active_hosts_checked_last_1hour,mrtg_delimiter);
 
 		/* passive host checks over time */
 		else if(!strcmp(temp_ptr,"NUMHSTPSVCHK1M"))
-			printf("%d\n",passive_hosts_checked_last_1min);
+			printf("%d%s",passive_hosts_checked_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTPSVCHK5M"))
-			printf("%d\n",passive_hosts_checked_last_5min);
+			printf("%d%s",passive_hosts_checked_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTPSVCHK15M"))
-			printf("%d\n",passive_hosts_checked_last_15min);
+			printf("%d%s",passive_hosts_checked_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTPSVCHK60M"))
-			printf("%d\n",passive_hosts_checked_last_1hour);
+			printf("%d%s",passive_hosts_checked_last_1hour,mrtg_delimiter);
 
 		/* active service checks over time */
 		else if(!strcmp(temp_ptr,"NUMSVCACTCHK1M"))
-			printf("%d\n",active_services_checked_last_1min);
+			printf("%d%s",active_services_checked_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCACTCHK5M"))
-			printf("%d\n",active_services_checked_last_5min);
+			printf("%d%s",active_services_checked_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCACTCHK15M"))
-			printf("%d\n",active_services_checked_last_15min);
+			printf("%d%s",active_services_checked_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCACTCHK60M"))
-			printf("%d\n",active_services_checked_last_1hour);
+			printf("%d%s",active_services_checked_last_1hour,mrtg_delimiter);
 
 		/* passive service checks over time */
 		else if(!strcmp(temp_ptr,"NUMSVCPSVCHK1M"))
-			printf("%d\n",passive_services_checked_last_1min);
+			printf("%d%s",passive_services_checked_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCPSVCHK5M"))
-			printf("%d\n",passive_services_checked_last_5min);
+			printf("%d%s",passive_services_checked_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCPSVCHK15M"))
-			printf("%d\n",passive_services_checked_last_15min);
+			printf("%d%s",passive_services_checked_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCPSVCHK60M"))
-			printf("%d\n",passive_services_checked_last_1hour);
+			printf("%d%s",passive_services_checked_last_1hour,mrtg_delimiter);
 
 		/* host check statistics */
 		else if(!strcmp(temp_ptr,"NUMACTHSTCHECKS1M"))
-			printf("%d\n",active_host_checks_last_1min);
+			printf("%d%s",active_host_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMACTHSTCHECKS5M"))
-			printf("%d\n",active_host_checks_last_5min);
+			printf("%d%s",active_host_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMACTHSTCHECKS15M"))
-			printf("%d\n",active_host_checks_last_15min);
+			printf("%d%s",active_host_checks_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMOACTHSTCHECKS1M"))
-			printf("%d\n",active_ondemand_host_checks_last_1min);
+			printf("%d%s",active_ondemand_host_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMOACTHSTCHECKS5M"))
-			printf("%d\n",active_ondemand_host_checks_last_5min);
+			printf("%d%s",active_ondemand_host_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMOACTHSTCHECKS15M"))
-			printf("%d\n",active_ondemand_host_checks_last_15min);
+			printf("%d%s",active_ondemand_host_checks_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSACTHSTCHECKS1M"))
-			printf("%d\n",active_scheduled_host_checks_last_1min);
+			printf("%d%s",active_scheduled_host_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSACTHSTCHECKS5M"))
-			printf("%d\n",active_scheduled_host_checks_last_5min);
+			printf("%d%s",active_scheduled_host_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSACTHSTCHECKS15M"))
-			printf("%d\n",active_scheduled_host_checks_last_15min);
+			printf("%d%s",active_scheduled_host_checks_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMPARHSTCHECKS1M"))
-			printf("%d\n",parallel_host_checks_last_1min);
+			printf("%d%s",parallel_host_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMPARHSTCHECKS5M"))
-			printf("%d\n",parallel_host_checks_last_5min);
+			printf("%d%s",parallel_host_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMPARHSTCHECKS15M"))
-			printf("%d\n",parallel_host_checks_last_15min);
+			printf("%d%s",parallel_host_checks_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSERHSTCHECKS1M"))
-			printf("%d\n",serial_host_checks_last_1min);
+			printf("%d%s",serial_host_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSERHSTCHECKS5M"))
-			printf("%d\n",serial_host_checks_last_5min);
+			printf("%d%s",serial_host_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSERHSTCHECKS15M"))
-			printf("%d\n",serial_host_checks_last_15min);
+			printf("%d%s",serial_host_checks_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMPSVHSTCHECKS1M"))
-			printf("%d\n",passive_host_checks_last_1min);
+			printf("%d%s",passive_host_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMPSVHSTCHECKS5M"))
-			printf("%d\n",passive_host_checks_last_5min);
+			printf("%d%s",passive_host_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMPSVHSTCHECKS15M"))
-			printf("%d\n",passive_host_checks_last_15min);
+			printf("%d%s",passive_host_checks_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMCACHEDHSTCHECKS1M"))
-			printf("%d\n",active_cached_host_checks_last_1min);
+			printf("%d%s",active_cached_host_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMCACHEDHSTCHECKS5M"))
-			printf("%d\n",active_cached_host_checks_last_5min);
+			printf("%d%s",active_cached_host_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMCACHEDHSTCHECKS15M"))
-			printf("%d\n",active_cached_host_checks_last_15min);
+			printf("%d%s",active_cached_host_checks_last_15min,mrtg_delimiter);
 
 		/* service check statistics */
 		else if(!strcmp(temp_ptr,"NUMACTSVCCHECKS1M"))
-			printf("%d\n",active_service_checks_last_1min);
+			printf("%d%s",active_service_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMACTSVCCHECKS5M"))
-			printf("%d\n",active_service_checks_last_5min);
+			printf("%d%s",active_service_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMACTSVCCHECKS15M"))
-			printf("%d\n",active_service_checks_last_15min);
+			printf("%d%s",active_service_checks_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMOACTSVCCHECKS1M"))
-			printf("%d\n",active_ondemand_service_checks_last_1min);
+			printf("%d%s",active_ondemand_service_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMOACTSVCCHECKS5M"))
-			printf("%d\n",active_ondemand_service_checks_last_5min);
+			printf("%d%s",active_ondemand_service_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMOACTSVCCHECKS15M"))
-			printf("%d\n",active_ondemand_service_checks_last_15min);
+			printf("%d%s",active_ondemand_service_checks_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSACTSVCCHECKS1M"))
-			printf("%d\n",active_scheduled_service_checks_last_1min);
+			printf("%d%s",active_scheduled_service_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSACTSVCCHECKS5M"))
-			printf("%d\n",active_scheduled_service_checks_last_5min);
+			printf("%d%s",active_scheduled_service_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSACTSVCCHECKS15M"))
-			printf("%d\n",active_scheduled_service_checks_last_15min);
+			printf("%d%s",active_scheduled_service_checks_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMPSVSVCCHECKS1M"))
-			printf("%d\n",passive_service_checks_last_1min);
+			printf("%d%s",passive_service_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMPSVSVCCHECKS5M"))
-			printf("%d\n",passive_service_checks_last_5min);
+			printf("%d%s",passive_service_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMPSVSVCCHECKS15M"))
-			printf("%d\n",passive_service_checks_last_15min);
+			printf("%d%s",passive_service_checks_last_15min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMCACHEDSVCCHECKS1M"))
-			printf("%d\n",active_cached_service_checks_last_1min);
+			printf("%d%s",active_cached_service_checks_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMCACHEDSVCCHECKS5M"))
-			printf("%d\n",active_cached_service_checks_last_5min);
+			printf("%d%s",active_cached_service_checks_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMCACHEDSVCCHECKS15M"))
-			printf("%d\n",active_cached_service_checks_last_15min);
+			printf("%d%s",active_cached_service_checks_last_15min,mrtg_delimiter);
 
 		/* external command stats */
 		else if(!strcmp(temp_ptr,"NUMEXTCMDS1M"))
-			printf("%d\n",external_commands_last_1min);
+			printf("%d%s",external_commands_last_1min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMEXTCMDS5M"))
-			printf("%d\n",external_commands_last_5min);
+			printf("%d%s",external_commands_last_5min,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMEXTCMDS15M"))
-			printf("%d\n",external_commands_last_15min);
+			printf("%d%s",external_commands_last_15min,mrtg_delimiter);
 
 		/* service states */
 		else if(!strcmp(temp_ptr,"NUMSVCOK"))
-			printf("%d\n",services_ok);
+			printf("%d%s",services_ok,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCWARN"))
-			printf("%d\n",services_warning);
+			printf("%d%s",services_warning,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCUNKN"))
-			printf("%d\n",services_unknown);
+			printf("%d%s",services_unknown,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCCRIT"))
-			printf("%d\n",services_critical);
+			printf("%d%s",services_critical,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCPROB"))
-			printf("%d\n",services_warning+services_unknown+services_critical);
+			printf("%d%s",services_warning+services_unknown+services_critical,mrtg_delimiter);
 
 		/* misc service info */
 		else if(!strcmp(temp_ptr,"NUMSVCCHECKED"))
-			printf("%d\n",services_checked);
+			printf("%d%s",services_checked,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCSCHEDULED"))
-			printf("%d\n",services_scheduled);
+			printf("%d%s",services_scheduled,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCFLAPPING"))
-			printf("%d\n",services_flapping);
+			printf("%d%s",services_flapping,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMSVCDOWNTIME"))
-			printf("%d\n",services_in_downtime);
+			printf("%d%s",services_in_downtime,mrtg_delimiter);
 
 		/* host states */
 		else if(!strcmp(temp_ptr,"NUMHSTUP"))
-			printf("%d\n",hosts_up);
+			printf("%d%s",hosts_up,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTDOWN"))
-			printf("%d\n",hosts_down);
+			printf("%d%s",hosts_down,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTUNR"))
-			printf("%d\n",hosts_unreachable);
+			printf("%d%s",hosts_unreachable,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTPROB"))
-			printf("%d\n",hosts_down+hosts_unreachable);
+			printf("%d%s",hosts_down+hosts_unreachable,mrtg_delimiter);
 
 		/* misc host info */
 		else if(!strcmp(temp_ptr,"NUMHSTCHECKED"))
-			printf("%d\n",hosts_checked);
+			printf("%d%s",hosts_checked,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTSCHEDULED"))
-			printf("%d\n",hosts_scheduled);
+			printf("%d%s",hosts_scheduled,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTFLAPPING"))
-			printf("%d\n",hosts_flapping);
+			printf("%d%s",hosts_flapping,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"NUMHSTDOWNTIME"))
-			printf("%d\n",hosts_in_downtime);
+			printf("%d%s",hosts_in_downtime,mrtg_delimiter);
 
 		else
-			printf("%s\n",temp_ptr);
+			printf("%s%s",temp_ptr,mrtg_delimiter);
 	        }
+
+	/* add a newline if necessary */
+	if(strcmp(mrtg_delimiter,"\n"))
+		printf("\n");
 
 	return OK;
         }
@@ -817,8 +837,9 @@ int read_config_file(void){
 			continue;
 
 		if(!strcmp(var,"status_file") || !strcmp(var,"status_log") || !strcmp(var,"xsddefault_status_log")){
-			strncpy(status_file,val,sizeof(status_file));
-			status_file[sizeof(status_file)-1]='\x0';
+			if(status_file)
+				free(status_file);
+			status_file=strdup(val);
 		        }
 			
 	        }

@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2007
+ * Last Modified: 09-24-2007
  *
  * License:
  *
@@ -50,7 +50,7 @@
 
 /***************** CHAINED HASH LIMITS ****************/
 
-#define SERVICE_HASHSLOTS                      1024
+#define SERVICE_HASHSLOTS                      4096     /* 09/24/07 increased from 1024 */
 #define HOST_HASHSLOTS                         1024
 #define COMMAND_HASHSLOTS                      256
 #define TIMEPERIOD_HASHSLOTS                   64
@@ -60,7 +60,7 @@
 #define SERVICEGROUP_HASHSLOTS                 128
 
 #define HOSTDEPENDENCY_HASHSLOTS               1024
-#define SERVICEDEPENDENCY_HASHSLOTS            1024
+#define SERVICEDEPENDENCY_HASHSLOTS            2048     /* 09/24/07 increased frm 1024 */
 #define HOSTESCALATION_HASHSLOTS               1024
 #define SERVICEESCALATION_HASHSLOTS            1024
 

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-19-2007
+ * Last Modified:   09-26-2007
  *
  * License:
  *
@@ -2921,8 +2921,11 @@ int contains_illegal_object_chars(char *name){
 		ch=(int)name[x];
 
 		/* illegal ASCII characters */
+		/* REMOVED 09/26/07 to allow for multi-byte asian characters */
+		/*
 		if(ch<32 || ch==127)
 			return TRUE;
+		*/
 
 		/* REMOVED 3/11/05 to allow for non-english spellings, etc. */
 		/* illegal extended ASCII characters */

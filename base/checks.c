@@ -859,6 +859,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	char *temp_buffer=NULL;
 	int state_change=FALSE;
 	int hard_state_change=FALSE;
+	int first_host_check_initiated=FALSE;
 	int route_result=HOST_UP;
 	int dependency_result=DEPENDENCIES_OK;
 	time_t current_time=0L;
@@ -872,6 +873,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	objectlist *servicelist_item=NULL;
 	service *master_service=NULL;
 	int run_async_check=TRUE;
+	int state_changes_use_cached_state=TRUE;  /* TODO - 09/23/07 move this to a global variable */
 	struct timeval tv;
 
 
@@ -1020,9 +1022,12 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* if the service check was okay... */
 	if(temp_service->current_state==STATE_OK){
 
-		/* if the host has never been checked before... */
-		/* verify the host status */
-		if(temp_host->has_been_checked==FALSE){
+		/* if the host has never been checked before, verify its status */
+		/* only do this if 1) the initial state was set to non-UP or 2) the host is not scheduled to be checked soon (next 5 minutes) */
+		if(temp_host->has_been_checked==FALSE && (temp_host->initial_state!=HOST_UP || (unsigned long)temp_host->next_check==0L || (unsigned long)(temp_host->next_check-current_time)>300)){
+
+			/* set a flag to remember that we launched a check */
+			first_host_check_initiated=TRUE;
 
 			/* 08/04/07 EG launch an async (parallel) host check unless aggressive host checking is enabled */
 			/* previous logic was to simply run a sync (serial) host check */
@@ -1145,10 +1150,13 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			/* previous logic was to simply run a sync (serial) host check */
 			if(use_aggressive_host_checking==TRUE)
 				perform_on_demand_host_check(temp_host,NULL,CHECK_OPTION_NONE,TRUE,cached_host_check_horizon);
+			/* 09/23/07 EG don't launch a new host check if we already did so earlier */
+			else if(first_host_check_initiated==TRUE)
+				log_debug_info(DEBUGL_CHECKS,1,"First host check was already initiated, so we'll skip a new host check.\n");
 			else{
 				/* can we use the last cached host state? */
-				/* only use cached host state if no service state change has occurred */
-				if(state_change==FALSE && temp_host->has_been_checked==TRUE && ((current_time-temp_host->last_check) <= cached_host_check_horizon)){
+				/* usually only use cached host state if no service state change has occurred */
+				if((state_change==FALSE || state_changes_use_cached_state==TRUE) && temp_host->has_been_checked==TRUE && ((current_time-temp_host->last_check) <= cached_host_check_horizon)){
 					log_debug_info(DEBUGL_CHECKS,1,"* Using cached host state: %d\n",temp_host->current_state);
 					update_check_stats(ACTIVE_ONDEMAND_HOST_CHECK_STATS,current_time);
 					update_check_stats(ACTIVE_CACHED_HOST_CHECK_STATS,current_time);
@@ -1245,7 +1253,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			else{
 				/* can we use the last cached host state? */
 				/* only use cached host state if no service state change has occurred */
-				if(state_change==FALSE && temp_host->has_been_checked==TRUE && ((current_time-temp_host->last_check) <= cached_host_check_horizon)){
+				if((state_change==FALSE || state_changes_use_cached_state==TRUE) && temp_host->has_been_checked==TRUE && ((current_time-temp_host->last_check) <= cached_host_check_horizon)){
 					/* use current host state as route result */
 					route_result=temp_host->current_state;
 					log_debug_info(DEBUGL_CHECKS,1,"* Using cached host state: %d\n",temp_host->current_state);
@@ -1274,7 +1282,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				}
 
 			/* the service wobbled between non-OK states, so check the host... */
-			else if(state_change==TRUE && temp_service->last_hard_state!=STATE_OK){
+			else if((state_change==TRUE && state_changes_use_cached_state==FALSE) && temp_service->last_hard_state!=STATE_OK){
 				log_debug_info(DEBUGL_CHECKS,1,"Service wobbled between non-OK states, so we'll recheck the host state...\n");
 				/* 08/04/07 EG launch an async (parallel) host check unless aggressive host checking is enabled */
 				/* previous logic was to simply run a sync (serial) host check */

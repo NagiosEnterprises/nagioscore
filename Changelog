@@ -4,7 +4,7 @@ Nagios 3.x Change Log
 
 
 
-3.0b4 - 09/??/2007
+3.0b4 - 09/27/2007
 ------------------
 * New macros: $HOSTGROUPMEMBERS$, $HOSTGROUPNOTES$, $HOSTGROUPNOTESURL$, $HOSTGROUPACTIONURL$, $SERVICEGROUPMEMBERS$, $SERVICEGROUPNOTES$, $SERVICEGROUPNOTESURL$, $SERVICEGROUPACTIONURL$, $CONTACTGROUPALIAS$, $CONTACTGROUPMEMBERS$, $NOTIFICATIONRECIPIENTS$, $NOTIFICATIONAUTHOR$, $NOTIFICATIONAUTHORNAME$, $NOTIFICATIONAUTHORALIAS$, $NOTIFICATIONCOMMENT$
 * Removed host/service downtime author/comment macros introduced in 3.0b2 in favor of more generic $NOTIFICATION...$ macros
@@ -19,6 +19,8 @@ Nagios 3.x Change Log
 * Fixed bug where null host check command would cause high CPU utilization
 * Alias, if not specified, now defaults to object name in host, hostgroup, servicegroup, contact, and contactgroup definitions
 * Fixed bug with excluding hosts, services, and contacts with bang (!) in object definitions
+* Fixed bug in nagiostats with NULL mrtg data arguments printing bogus string
+* Added custom delimiter option in nagiostats output (useful for CSV output)
 
 
 

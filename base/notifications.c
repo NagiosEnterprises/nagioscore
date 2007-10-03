@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-13-2007
+ * Last Modified:   10-02-2007
  *
  * License:
  *
@@ -34,6 +34,8 @@ extern notification    *notification_list;
 extern contact         *contact_list;
 extern serviceescalation *serviceescalation_list;
 extern hostescalation  *hostescalation_list;
+
+extern time_t          program_start;
 
 extern int             interval_length;
 extern int             log_notifications;
@@ -473,8 +475,10 @@ int check_service_notification_viability(service *svc, int type, int options){
 	        }
 
 	/* see if enough time has elapsed for first notification (Mathias Sundman) */
-	if(current_time < (time_t)(svc->last_hard_state_change + (svc->first_notification_delay*interval_length))){
-		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Enough time has not elapsed since the host since the service changed state, so we should not notify about this yet\n");
+	/* 10/02/07 don't place restrictions on recoveries or non-normal notifications, must use last time ok (or program start) in calculation */
+	/* it is reasonable to assume that if the host was never up, the program start time should be used in this calculation */
+	if(type==NOTIFICATION_NORMAL && svc->current_notification_number==0 && svc->current_state!=STATE_OK && (current_time < (time_t)((svc->last_time_ok==(time_t)0L)?program_start:svc->last_time_ok + (svc->first_notification_delay*interval_length)))){
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Not enough time has elapsed since the service changed to a non-OK state, so we should not notify about this problem yet\n");
 		return ERROR;
 	        }
 
@@ -906,7 +910,7 @@ int create_notification_list_from_service(service *svc, int options, int *escala
 	/* else use normal, non-escalated contacts */
 	if(escalate_notification==FALSE || (options & NOTIFICATION_OPTION_BROADCAST)){
 
-		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding normal contacts for host to notification list.\n");
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding normal contacts for service to notification list.\n");
 
 		/* add all individual contacts for this service */
 		for(temp_contactsmember=svc->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -1328,8 +1332,10 @@ int check_host_notification_viability(host *hst, int type, int options){
 	        }
 
 	/* see if enough time has elapsed for first notification (Mathias Sundman) */
-	if(current_time < (time_t)(hst->last_hard_state_change + (hst->first_notification_delay*interval_length))){
-		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Not enough time has elapsed since the host since the host changed state, so we shouldn't notify about this yet.\n");
+	/* 10/02/07 don't place restrictions on recoveries or non-normal notifications, must use last time up (or program start) in calculation */
+	/* it is reasonable to assume that if the host was never up, the program start time should be used in this calculation */
+	if(type==NOTIFICATION_NORMAL && hst->current_notification_number==0 && hst->current_state!=HOST_UP && (current_time < (time_t)((hst->last_time_up==(time_t)0L)?program_start:hst->last_time_up + (hst->first_notification_delay*interval_length)))){
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Not enough time has elapsed since the host changed to a non-UP state (or since program start), so we shouldn't notify about this problem yet.\n");
 		return ERROR;
 	        }
 

@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-19-2007
+ * Last Modified:   09-29-2007
  *
  * License:
  *
@@ -73,10 +73,6 @@ extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
 extern command  *global_host_event_handler_ptr;
 extern command  *global_service_event_handler_ptr;
-
-extern timed_event      *event_list_high;
-extern timed_event      *event_list_low;
-extern timed_event      *event_list_low_tail;
 
 extern host     *host_list;
 extern service  *service_list;
@@ -3178,18 +3174,6 @@ void disable_service_checks(service *svc){
 	svc->checks_enabled=FALSE;
 	svc->should_be_scheduled=FALSE;
 
-	/* remove scheduled checks of this service from the event queue */
-	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
-		if(temp_event->event_type==EVENT_SERVICE_CHECK && svc==(service *)temp_event->event_data)
-			break;
-	        }
-
-	/* we found a check event to remove */
-	if(temp_event!=NULL){
-		remove_event(temp_event,&event_list_low,&event_list_low_tail);
-		my_free((void **)&temp_event);
-	        }
-
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
@@ -4217,18 +4201,6 @@ void disable_host_checks(host *hst){
 	/* set the host check flag */
 	hst->checks_enabled=FALSE;
 	hst->should_be_scheduled=FALSE;
-
-	/* remove scheduled checks of this host from the event queue */
-	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
-		if(temp_event->event_type==EVENT_HOST_CHECK && hst==(host *)temp_event->event_data)
-			break;
-	        }
-
-	/* we found a check event to remove */
-	if(temp_event!=NULL){
-		remove_event(temp_event,&event_list_low,&event_list_low_tail);
-		my_free((void **)&temp_event);
-	        }
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */

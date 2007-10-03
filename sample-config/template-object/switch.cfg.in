@@ -1,7 +1,7 @@
 ###############################################################################
 # SWITCH.CFG - SAMPLE CONFIG FILE FOR MONITORING A SWITCH
 #
-# Last Modified: 07-17-2007
+# Last Modified: 10-03-2007
 #
 # NOTES: This config file assumes that you are using the sample configuration
 #	 files that get installed with the Nagios quickstart guide.
@@ -26,7 +26,7 @@ define host{
 	host_name	linksys-srw224p		; The name we're giving to this switch
 	alias		Linksys SRW224P Switch	; A longer name associated with the switch
 	address		192.168.1.253		; IP address of the switch
-	hostgroups	allhosts,switches		; Host groups this switch is associated with
+	hostgroups	switches		; Host groups this switch is associated with
 	}
 
 

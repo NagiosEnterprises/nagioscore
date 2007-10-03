@@ -7,6 +7,7 @@ Nagios 3.x Change Log
 ------------------
 * Minor bug fix in CSS files
 * Fix for recovery notifications not being sent out when first_notification_delay option used in host/service definitions
+* Fix for ochp commands not running properly
 
 
 

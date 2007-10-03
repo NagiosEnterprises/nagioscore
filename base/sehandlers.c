@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-11-2007
+ * Last Modified:   10-04-2007
  *
  * License:
  *
@@ -174,7 +174,7 @@ int obsessive_compulsive_host_check_processor(host *hst){
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command,&processed_command,macro_options);
-	if(processed_command=NULL)
+	if(processed_command==NULL)
 		return ERROR;
 
 	log_debug_info(DEBUGL_CHECKS,2,"Processed obsessive compulsive host processor command line: %s\n",processed_command);

@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-13-2007
+ * Last Modified:   10-04-2007
  *
  * License:
  *
@@ -572,6 +572,7 @@ int grab_servicegroup_macros(servicegroup *sg){
 		macro_x[MACRO_SERVICEGROUPALIAS]=(char *)strdup(sg->alias);
 
 	/* get the group members */
+#ifdef THIS_CAUSES_A_SIGABRT
 	for(temp_servicesmember=sg->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
 		if(macro_x[MACRO_SERVICEGROUPMEMBERS]==NULL){
 			if((macro_x[MACRO_SERVICEGROUPMEMBERS]=(char *)malloc(strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+1))){
@@ -585,6 +586,7 @@ int grab_servicegroup_macros(servicegroup *sg){
 			strcat(macro_x[MACRO_SERVICEGROUPMEMBERS],temp_servicesmember->service_description);
 			}
 		}
+#endif
 
 	/* get the servicegroup action url */
 	if(sg->action_url)

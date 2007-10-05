@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2007
+ * Last Modified: 10-04-2007
  *
  * Description:
  *
@@ -6230,11 +6230,19 @@ int xodtemplate_inherit_object_properties(void){
 			temp_serviceescalation->have_contact_groups=TRUE;
 			}
 
+		/* SPECIAL RULE 10/04/07 - additive inheritance from service's contactgroup(s) */
+		if(temp_serviceescalation->contact_groups!=NULL && temp_serviceescalation->contact_groups[0]=='+')
+			xodtemplate_get_inherited_string(&temp_service->have_contact_groups,&temp_service->contact_groups,&temp_serviceescalation->have_contact_groups,&temp_serviceescalation->contact_groups);
+
 		/* service escalations inherit contacts from service if not already specified */
 		if(temp_serviceescalation->have_contacts==FALSE && temp_service->have_contacts==TRUE && temp_service->contacts!=NULL){
 			temp_serviceescalation->contacts=(char *)strdup(temp_service->contacts);
 			temp_serviceescalation->have_contacts=TRUE;
 			}
+
+		/* SPECIAL RULE 10/04/07 - additive inheritance from service's contact(s) */
+		if(temp_serviceescalation->contacts!=NULL && temp_serviceescalation->contacts[0]=='+')
+			xodtemplate_get_inherited_string(&temp_service->have_contacts,&temp_service->contacts,&temp_serviceescalation->have_contacts,&temp_serviceescalation->contacts);
 
 		/* service escalations inherit notification interval from service if not already defined */
 		if(temp_serviceescalation->have_notification_interval==FALSE && temp_service->have_notification_interval==TRUE){
@@ -6262,11 +6270,19 @@ int xodtemplate_inherit_object_properties(void){
 			temp_hostescalation->have_contact_groups=TRUE;
 			}
 
+		/* SPECIAL RULE 10/04/07 - additive inheritance from host's contactgroup(s) */
+		if(temp_hostescalation->contact_groups!=NULL && temp_hostescalation->contact_groups[0]=='+')
+			xodtemplate_get_inherited_string(&temp_host->have_contact_groups,&temp_host->contact_groups,&temp_hostescalation->have_contact_groups,&temp_hostescalation->contact_groups);
+
 		/* host escalations inherit contacts from service if not already specified */
 		if(temp_hostescalation->have_contacts==FALSE && temp_host->have_contacts==TRUE && temp_host->contacts!=NULL){
 			temp_hostescalation->contacts=(char *)strdup(temp_host->contacts);
 			temp_hostescalation->have_contacts=TRUE;
 			}
+
+		/* SPECIAL RULE 10/04/07 - additive inheritance from host's contact(s) */
+		if(temp_hostescalation->contacts!=NULL && temp_hostescalation->contacts[0]=='+')
+			xodtemplate_get_inherited_string(&temp_host->have_contacts,&temp_host->contacts,&temp_hostescalation->have_contacts,&temp_hostescalation->contacts);
 
 		/* host escalations inherit notification interval from host if not already defined */
 		if(temp_hostescalation->have_notification_interval==FALSE && temp_host->have_notification_interval==TRUE){

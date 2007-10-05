@@ -405,6 +405,46 @@ The following table lists the object variables that will be implicitly inherited
 
 </table>
 
+<a name="impliedescalations"></a>
+<p>
+<strong><u>Implied/Additive Inheritance in Escalations</u></strong>
+</p>
+
+<p>
+Service and host escalation definitions can make use of a special rule that combines the features of implied and additive inheritance.  If escalations 1) do not inherit the values of their <i>contact_groups</i> or <i>contacts</i> directives from another escalation template and 2) their <i>contact_groups</i> or <i>contacts</i> directives begin with a plus sign (+), then the values of their corresponding host or service definition's <i>contact_groups</i> or <i>contacts</i> directives will be used in the additive inheritance logic.
+</p>
+
+<p>
+Confused?  Here's an example:
+</p>
+
+<pre>
+define host{
+	name 		linux-server
+	contact_groups	linux-admins
+	...
+	}
+
+define hostescalation{
+	host_name		linux-server
+	contact_groups	+management
+	...
+	}
+</pre>
+
+<p>
+This is a much simpler equivalent to:
+</p>
+
+<pre>
+define hostescalation{
+	host_name		linux-server
+	contact_groups	linux-admins,management
+	...
+	}
+</pre>
+
+
 <a name="multiple_templates"></a>
 <p>
 <strong><u>Multiple Inheritance Sources</u></strong>

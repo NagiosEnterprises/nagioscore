@@ -9,6 +9,7 @@ Nagios 3.x Change Log
 * Bug fix in sample config files
 * Fix for recovery notifications not being sent out when first_notification_delay option used in host/service definitions
 * Fix for ochp commands not running properly
+* Special additive inheritance rule: escalation contact(group)(s) that begin with '+' will  now inherit from associated host/service definition if not inheriting from another escalation template
 
 
 

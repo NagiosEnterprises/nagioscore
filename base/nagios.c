@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   09-27-2007
+ * Last Modified:   10-05-2007
  *
  * Description:
  *
@@ -746,8 +746,9 @@ int main(int argc, char **argv){
 				exit(ERROR);
 		                }
 
-		        /* initialize status data */
-			initialize_status_data(config_file);
+		        /* initialize status data unless we're starting */
+			if(sigrestart==FALSE)
+				initialize_status_data(config_file);
 
 			/* read initial service and host state information  */
 			initialize_retention_data(config_file);
@@ -823,8 +824,9 @@ int main(int argc, char **argv){
 			/* clean up the comment data */
 			cleanup_comment_data(config_file);
 
-			/* clean up the status data */
-			cleanup_status_data(config_file,TRUE);
+			/* clean up the status data unless we're restarting */
+			if(sigrestart==FALSE)
+				cleanup_status_data(config_file,TRUE);
 
 			/* close and delete the external command file FIFO unless we're restarting */
 			if(sigrestart==FALSE)

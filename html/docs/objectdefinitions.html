@@ -145,7 +145,7 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Required">notification_interval</td><td class="Required">#</td></tr>
 <tr><td></td><td class="Optional">first_notification_delay</td><td class="Optional">#</td></tr>
 <tr><td></td><td class="Required">notification_period</td><td class="Required"><i>timeperiod_name</i></td></tr>
-<tr><td></td><td class="Required">notification_options</td><td class="Required">[d,u,r,f,s]</td></tr>
+<tr><td></td><td class="Optional">notification_options</td><td class="Optional">[d,u,r,f,s]</td></tr>
 <tr><td></td><td class="Optional">notifications_enabled</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Optional">stalking_options</td><td class="Optional">[o,d,u]</td></tr>
 <tr><td></td><td class="Optional">notes</td><td class="Optional"><i>note_string</i></td></tr>
@@ -383,7 +383,7 @@ This directive is used to specify the short name of the <a href="#timeperiod">ti
 <tr>
 <td valign="top"><strong>notification_options</strong>:</td>
 <td>
-This directive is used to determine when notifications for the host should be sent out.  Valid options are a combination of one or more of the following: <b>d</b> = send notifications on a DOWN state, <b>u</b> = send notifications on an UNREACHABLE state, <b>r</b> = send notifications on recoveries (OK state), <b>f</b> = send notifications when the host starts and stops <a href="flapping.html">flapping</a>, and <b>s</b> = send notifications when <a href="downtime.html">scheduled downtime</a> starts and ends.  If you specify <b>n</b> (none) as an option, no host notifications will be sent out.  Example: If you specify <b>d,r</b> in this field, notifications will only be sent out when the host goes DOWN and when it recovers from a DOWN state.
+This directive is used to determine when notifications for the host should be sent out.  Valid options are a combination of one or more of the following: <b>d</b> = send notifications on a DOWN state, <b>u</b> = send notifications on an UNREACHABLE state, <b>r</b> = send notifications on recoveries (OK state), <b>f</b> = send notifications when the host starts and stops <a href="flapping.html">flapping</a>, and <b>s</b> = send notifications when <a href="downtime.html">scheduled downtime</a> starts and ends.  If you specify <b>n</b> (none) as an option, no host notifications will be sent out.  If you do not specify any notification options, Nagios will assume that you want notifications to be sent out for all possible states.  Example: If you specify <b>d,r</b> in this field, notifications will only be sent out when the host goes DOWN and when it recovers from a DOWN state.
 </td>
 </tr>
 <tr>
@@ -595,7 +595,7 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Required">notification_interval</td><td class="Required">#</td></tr>
 <tr><td></td><td class="Optional">first_notification_delay</td><td class="Optional">#</td></tr>
 <tr><td></td><td class="Required">notification_period</td><td class="Required"><i>timeperiod_name</i></td></tr>
-<tr><td></td><td class="Required">notification_options</td><td class="Required">[w,u,c,r,f,s]</td></tr>
+<tr><td></td><td class="Optional">notification_options</td><td class="Optional">[w,u,c,r,f,s]</td></tr>
 <tr><td></td><td class="Optional">notifications_enabled</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Required">contacts</td><td class="Required"><i>contacts</i></td></tr>
 <tr><td></td><td class="Required">contact_groups</td><td class="Required"><i>contact_groups</i></td></tr>
@@ -809,7 +809,7 @@ This directive is used to specify the short name of the <a href="#timeperiod">ti
 <tr>
 <td valign="top"><strong>notification_options</strong>:</td>
 <td>
-This directive is used to determine when notifications for the service should be sent out.  Valid options are a combination of one or more of the following: <b>w</b> = send notifications on a WARNING state, <b>u</b> = send notifications on an UNKNOWN state, <b>c</b> = send notifications on a CRITICAL state, <b>r</b> = send notifications on recoveries (OK state), <b>f</b> = send notifications when the service starts and stops <a href="flapping.html">flapping</a>, and <b>s</b> = send notifications when <a href="downtime.html">scheduled downtime</a> starts and ends.  If you specify <b>n</b> (none) as an option, no service notifications will be sent out.  Example: If you specify <b>w,r</b> in this field, notifications will only be sent out when the service goes into a WARNING state and when it recovers from a WARNING state.
+This directive is used to determine when notifications for the service should be sent out.  Valid options are a combination of one or more of the following: <b>w</b> = send notifications on a WARNING state, <b>u</b> = send notifications on an UNKNOWN state, <b>c</b> = send notifications on a CRITICAL state, <b>r</b> = send notifications on recoveries (OK state), <b>f</b> = send notifications when the service starts and stops <a href="flapping.html">flapping</a>, and <b>s</b> = send notifications when <a href="downtime.html">scheduled downtime</a> starts and ends.  If you specify <b>n</b> (none) as an option, no service notifications will be sent out.  If you do not specify any notification options, Nagios will assume that you want notifications to be sent out for all possible states.  Example: If you specify <b>w,r</b> in this field, notifications will only be sent out when the service goes into a WARNING state and when it recovers from a WARNING state.
 </td>
 </tr>
 <tr>

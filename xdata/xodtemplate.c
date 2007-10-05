@@ -280,6 +280,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 		if(test_scheduling==TRUE)
 			gettimeofday(&tv[7],NULL);
 
+		/* NOTE: some missing defaults (notification options, etc.) are also applied here */
 		if(result==OK)
 			result=xodtemplate_inherit_object_properties();
 		if(test_scheduling==TRUE)
@@ -6178,6 +6179,7 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 #ifdef NSCORE
 
 /* inherit object properties */
+/* some missing defaults (notification options, etc.) are also applied here */
 int xodtemplate_inherit_object_properties(void){
 	xodtemplate_host *temp_host=NULL;
 	xodtemplate_service *temp_service=NULL;
@@ -6185,6 +6187,20 @@ int xodtemplate_inherit_object_properties(void){
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
 
 
+	/* fill in missing defaults for hosts... */
+	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+		/* if notification options are missing, assume all */
+		if(temp_host->have_notification_options==FALSE){
+			temp_host->notify_on_down=TRUE;
+			temp_host->notify_on_unreachable=TRUE;
+			temp_host->notify_on_recovery=TRUE;
+			temp_host->notify_on_flapping=TRUE;
+			temp_host->notify_on_downtime=TRUE;
+			temp_host->have_notification_options=TRUE;
+			}
+		}
+		
 	/* services inherit some properties from their associated host... */
 	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 		
@@ -6214,6 +6230,17 @@ int xodtemplate_inherit_object_properties(void){
 		if(temp_service->have_notification_period==FALSE && temp_host->have_notification_period==TRUE && temp_host->notification_period!=NULL){
 			temp_service->notification_period=(char *)strdup(temp_host->notification_period);
 			temp_service->have_notification_period=TRUE;
+			}
+
+		/* if notification options are missing, assume all */
+		if(temp_service->have_notification_options==FALSE){
+			temp_service->notify_on_unknown=TRUE;
+			temp_service->notify_on_warning=TRUE;
+			temp_service->notify_on_critical=TRUE;
+			temp_service->notify_on_recovery=TRUE;
+			temp_service->notify_on_flapping=TRUE;
+			temp_service->notify_on_downtime=TRUE;
+			temp_service->have_notification_options=TRUE;
 			}
 		}
 
@@ -6255,6 +6282,15 @@ int xodtemplate_inherit_object_properties(void){
 			temp_serviceescalation->escalation_period=(char *)strdup(temp_service->notification_period);
 			temp_serviceescalation->have_escalation_period=TRUE;
 			}
+
+		/* if escalation options are missing, assume all */
+		if(temp_serviceescalation->have_escalation_options==FALSE){
+			temp_serviceescalation->escalate_on_unknown=TRUE;
+			temp_serviceescalation->escalate_on_warning=TRUE;
+			temp_serviceescalation->escalate_on_critical=TRUE;
+			temp_serviceescalation->escalate_on_recovery=TRUE;
+			temp_serviceescalation->have_escalation_options=TRUE;
+			}
 		}
 
 	/* host escalations inherit some properties from their associated host... */
@@ -6294,6 +6330,14 @@ int xodtemplate_inherit_object_properties(void){
 		if(temp_hostescalation->have_escalation_period==FALSE && temp_host->have_notification_period==TRUE && temp_host->notification_period!=NULL){
 			temp_hostescalation->escalation_period=(char *)strdup(temp_host->notification_period);
 			temp_hostescalation->have_escalation_period=TRUE;
+			}
+
+		/* if escalation options are missing, assume all */
+		if(temp_hostescalation->have_escalation_options==FALSE){
+			temp_hostescalation->escalate_on_down=TRUE;
+			temp_hostescalation->escalate_on_unreachable=TRUE;
+			temp_hostescalation->escalate_on_recovery=TRUE;
+			temp_hostescalation->have_escalation_options=TRUE;
 			}
 		}
 

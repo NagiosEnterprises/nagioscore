@@ -875,6 +875,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	int run_async_check=TRUE;
 	int state_changes_use_cached_state=TRUE;  /* TODO - 09/23/07 move this to a global variable */
 	struct timeval tv;
+	int flapping_check_done=FALSE;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_async_service_check_result()\n");
@@ -1180,6 +1181,12 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			log_service_event(temp_service);
 			state_was_logged=TRUE;
 
+			/* 10/04/07 check to see if the service and/or associate host is flapping */
+			/* this should be done before a notification is sent out to ensure the host didn't just start flapping */
+			check_for_service_flapping(temp_service,TRUE);
+			check_for_host_flapping(temp_host,TRUE,FALSE);
+			flapping_check_done=TRUE;
+
 			/* notify contacts about the service recovery */
 			service_notification(temp_service,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
@@ -1433,6 +1440,12 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			if(hard_state_change==TRUE && temp_service->pending_flex_downtime>0)
 				check_pending_flex_service_downtime(temp_service);
 
+			/* 10/04/07 check to see if the service and/or associate host is flapping */
+			/* this should be done before a notification is sent out to ensure the host didn't just start flapping */
+			check_for_service_flapping(temp_service,TRUE);
+			check_for_host_flapping(temp_host,TRUE,FALSE);
+			flapping_check_done=TRUE;
+
 			/* (re)send notifications out about this service problem if the host is up (and was at last check also) and the dependencies were okay... */
 			service_notification(temp_service,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
 
@@ -1514,11 +1527,11 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* update the current service status log */
 	update_service_status(temp_service,FALSE);
 
-	/* check to see if the service is flapping */
-	check_for_service_flapping(temp_service,TRUE);
-
-	/* check to see if the associated host is flapping */
-	check_for_host_flapping(temp_host,TRUE,FALSE);
+	/* check to see if the service and/or associate host is flapping */
+	if(flapping_check_done==FALSE){
+		check_for_service_flapping(temp_service,TRUE);
+		check_for_host_flapping(temp_host,TRUE,FALSE);
+		}
 
 	/* update service performance info */
 	update_service_performance_data(temp_service);

@@ -11,6 +11,7 @@ Nagios 3.x Change Log
 * Fix for ochp commands not running properly
 * Special additive inheritance rule: escalation contact(group)(s) that begin with '+' will  now inherit from associated host/service definition if not inheriting from another escalation template
 * Status file is no longer deleted during restarts due to a SIGHUP or external command
+* Improvement in service flap detection logic
 
 
 

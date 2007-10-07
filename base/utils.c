@@ -1645,6 +1645,34 @@ void get_datetime_string(time_t *raw_time, char *buffer, int buffer_length, int 
 
 
 
+/* get days, hours, minutes, and seconds from a raw time_t format or total seconds */
+void get_time_breakdown(unsigned long raw_time, int *days, int *hours, int *minutes, int *seconds){
+	unsigned long temp_time=0;
+	int temp_days=0;
+	int temp_hours=0;
+	int temp_minutes=0;
+	int temp_seconds=0;
+
+	temp_time=raw_time;
+
+	temp_days=temp_time/86400;
+	temp_time-=(temp_days * 86400);
+	temp_hours=temp_time/3600;
+	temp_time-=(temp_hours * 3600);
+	temp_minutes=temp_time/60;
+	temp_time-=(temp_minutes * 60);
+	temp_seconds=(int)temp_time;
+
+	*days=temp_days;
+	*hours=temp_hours;
+	*minutes=temp_minutes;
+	*seconds=temp_seconds;
+
+	return;
+	}
+
+
+
 /* get the next time to schedule a log rotation */
 time_t get_next_log_rotation_time(void){
 	time_t current_time;

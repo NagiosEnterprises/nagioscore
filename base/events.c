@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-23-2007
+ * Last Modified: 10-07-2007
  *
  * License:
  *
@@ -35,6 +35,7 @@
 extern char	*config_file;
 
 extern time_t   program_start;
+extern time_t   event_start;
 extern time_t   last_command_check;
 
 extern int      sigshutdown;
@@ -1542,12 +1543,16 @@ void adjust_check_scheduling(void){
 
 
 /* attempts to compensate for a change in the system time */
-void compensate_for_system_time_change(unsigned long last_time,unsigned long current_time){
+void compensate_for_system_time_change(unsigned long last_time, unsigned long current_time){
 	char *temp_buffer=NULL;
 	unsigned long time_difference=0L;
 	timed_event *temp_event=NULL;
 	service *temp_service=NULL;
 	host *temp_host=NULL;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
 	time_t (*timingfunc)(void);
 
 
@@ -1556,17 +1561,19 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	/* we moved back in time... */
 	if(last_time>current_time){
 		time_difference=last_time-current_time;
-		log_debug_info(DEBUGL_EVENTS,0,"Detected a backwards time change of %lu seconds.\n",time_difference);
+		get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
+		log_debug_info(DEBUGL_EVENTS,0,"Detected a backwards time change of %dd %dh %dm %ds.\n",days,hours,minutes,seconds);
 		}
 
 	/* we moved into the future... */
 	else{
 		time_difference=current_time-last_time;
-		log_debug_info(DEBUGL_EVENTS,0,"Detected a forwards time change of %lu seconds.\n",time_difference);
+		get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
+		log_debug_info(DEBUGL_EVENTS,0,"Detected a forwards time change of %dd %dh %dm %ds.\n",days,hours,minutes,seconds);
 		}
 
 	/* log the time change */
-	asprintf(&temp_buffer,"Warning: A system time change of %lu seconds (%s in time) has been detected.  Compensating...\n",time_difference,(last_time>current_time)?"backwards":"forwards");
+	asprintf(&temp_buffer,"Warning: A system time change of %dd %dh %dm %ds (%s in time) has been detected.  Compensating...\n",days,hours,minutes,seconds,(last_time>current_time)?"backwards":"forwards");
 	write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_WARNING,TRUE);
 	my_free((void **)&temp_buffer);
 
@@ -1647,6 +1654,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 
 	/* adjust program timestamps */
 	adjust_timestamp_for_time_change(last_time,current_time,time_difference,&program_start);
+	adjust_timestamp_for_time_change(last_time,current_time,time_difference,&event_start);
 	adjust_timestamp_for_time_change(last_time,current_time,time_difference,&last_command_check);
 
 	/* update the status data */

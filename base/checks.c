@@ -1886,6 +1886,14 @@ void check_service_result_freshness(void){
 	time_t expiration_time=0L;
 	int freshness_threshold=0;
 	char *temp_buffer=NULL;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
+	int tdays=0;
+	int thours=0;
+	int tminutes=0;
+	int tseconds=0;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_service_result_freshness()\n");
@@ -1960,12 +1968,15 @@ void check_service_result_freshness(void){
 		/* the results for the last check of this service are stale */
 		if(expiration_time<current_time){
 
+			get_time_breakdown((current_time-expiration_time),&days,&hours,&minutes,&seconds);
+			get_time_breakdown(freshness_threshold,&tdays,&thours,&tminutes,&tseconds);
+
 			/* log a warning */
-			asprintf(&temp_buffer,"Warning: The results of service '%s' on host '%s' are stale by %lu seconds (threshold=%d seconds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,(current_time-expiration_time),freshness_threshold);
+			asprintf(&temp_buffer,"Warning: The results of service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			my_free((void **)&temp_buffer);
 
-			log_debug_info(DEBUGL_CHECKS,1,"Check results for service '%s' on host '%s' are stale by %lu seconds (threshold=%d seconds).  Forcing an immediate check of the service...\n",temp_service->description,temp_service->host_name,(current_time-expiration_time),freshness_threshold);
+			log_debug_info(DEBUGL_CHECKS,1,"Check results for service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the service...\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
 
 			/* set the freshen flag */
 			temp_service->is_being_freshened=TRUE;
@@ -2250,6 +2261,14 @@ void check_host_result_freshness(void){
 	time_t current_time=0L;
 	time_t expiration_time=0L;
 	int freshness_threshold=0;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
+	int tdays=0;
+	int thours=0;
+	int tminutes=0;
+	int tseconds=0;
 	char *temp_buffer=NULL;
 
 
@@ -2314,12 +2333,15 @@ void check_host_result_freshness(void){
 		/* the results for the last check of this host are stale */
 		if(expiration_time<current_time){
 
+			get_time_breakdown((current_time-expiration_time),&days,&hours,&minutes,&seconds);
+			get_time_breakdown(freshness_threshold,&tdays,&thours,&tminutes,&tseconds);
+
 			/* log a warning */
-			asprintf(&temp_buffer,"Warning: The results of host '%s' are stale by %lu seconds (threshold=%d seconds).  I'm forcing an immediate check of the host.\n",temp_host->name,(current_time-expiration_time),freshness_threshold);
+			asprintf(&temp_buffer,"Warning: The results of host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the host.\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			my_free((void **)&temp_buffer);
 
-			log_debug_info(DEBUGL_CHECKS,1,"Check results for host '%s' are stale by %lu seconds (threshold=%d seconds).  Forcing an immediate check of the host...\n",temp_host->name,(current_time-expiration_time),freshness_threshold);
+			log_debug_info(DEBUGL_CHECKS,1,"Check results for host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the host...\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
 
 			/* set the freshen flag */
 			temp_host->is_being_freshened=TRUE;

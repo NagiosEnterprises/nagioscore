@@ -114,16 +114,21 @@ char *xodtemplate_precache_file=NULL;
 /* process all config files - both core and CGIs pass in name of main config file */
 int xodtemplate_read_config_data(char *main_config_file, int options, int cache, int precache){
 #ifdef NSCORE
-	char *config_file=NULL;;
+	char *config_file=NULL;
+	char *config_base_dir=NULL;
 	char *input=NULL;
 	char *var=NULL;
 	char *val=NULL;
+	char *temp_buffer=NULL;
 	struct timeval tv[14];
 	double runtime[14];
 #endif
 	mmapfile *thefile=NULL;
 	int result=OK;
 
+
+	if(main_config_file==NULL)
+		return ERROR;
 
 	/* get variables from main config file */
 	xodtemplate_grab_config_info(main_config_file);
@@ -164,6 +169,14 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	/* process object config files normally... */
 	else{
 
+		/* determine the directory of the main config file */
+		if((config_file=(char *)strdup(main_config_file))==NULL){
+			my_free((void **)&xodtemplate_config_files);
+			return ERROR;
+			}
+		config_base_dir=(char *)strdup(dirname(config_file));
+		my_free((void **)&config_file);
+
 		/* open the main config file for reading (we need to find all the config files to read) */
 		if((thefile=mmap_fopen(main_config_file))==NULL){
 			my_free((void **)&xodtemplate_config_files);
@@ -197,7 +210,11 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 			/* process a single config file */
 			if(!strcmp(var,"xodtemplate_config_file") || !strcmp(var,"cfg_file")){
 
-				config_file=(char *)strdup(val);
+				temp_buffer=(char *)strdup(val);
+				if(config_base_dir!=NULL && val[0]!='/')
+					asprintf(&config_file,"%s/%s",config_base_dir,temp_buffer);
+				else
+					config_file=temp_buffer;
 
 				/* process the config file... */
 				result=xodtemplate_process_config_file(config_file,options);
@@ -212,7 +229,11 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 			/* process all files in a config directory */
 			else if(!strcmp(var,"xodtemplate_config_dir") || !strcmp(var,"cfg_dir")){
 				
-				config_file=(char *)strdup(val);
+				temp_buffer=(char *)strdup(val);
+				if(config_base_dir!=NULL && val[0]!='/')
+					asprintf(&config_file,"%s/%s",config_base_dir,temp_buffer);
+				else
+					config_file=temp_buffer;
 
 				/* strip trailing / if necessary */
 				if(config_file!=NULL && config_file[strlen(config_file)-1]=='/')

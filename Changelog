@@ -20,6 +20,7 @@ Nagios 3.x Change Log
 * Workaround to prevent browsers from incorrectly using cached statusmap image on page refresh
 * Fix for incorrect latency calculations for passive host/service checks
 * Added passive check latency stats to nagiostats
+* Added support for relative paths in config_file and config_dir directives
 
 
 

@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-08-2007
+ * Last Modified: 10-07-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -281,6 +281,11 @@
 #undef HAVE_NETDB_H
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
+
+#undef HAVE_LIBGEN_H
+#ifdef HAVE_LIBGEN_H
+#include <libgen.h>
 #endif
 
 #undef HAVE_SYS_UN_H

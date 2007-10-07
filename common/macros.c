@@ -34,7 +34,9 @@
 #include "../include/cgiutils.h"
 #endif
 
+#ifdef NSCORE
 extern int      use_large_installation_tweaks;
+#endif
 
 extern char     *illegal_output_chars;
 
@@ -2274,11 +2276,11 @@ int grab_summary_macros(contact *temp_contact){
 	int service_problems=0;
 	int service_problems_unhandled=0;
 
+#ifdef NSCORE
 	/* this func seems to take up quite a bit of CPU, so skip it if we have a large install... */
 	if(use_large_installation_tweaks==TRUE)
 		return OK;
 
-#ifdef NSCORE
 	/* get host totals */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 

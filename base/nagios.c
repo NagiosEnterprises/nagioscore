@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   10-05-2007
+ * Last Modified:   10-07-2007
  *
  * Description:
  *
@@ -138,6 +138,8 @@ int             check_host_freshness=DEFAULT_CHECK_HOST_FRESHNESS;
 int             auto_reschedule_checks=DEFAULT_AUTO_RESCHEDULE_CHECKS;
 int             auto_rescheduling_window=DEFAULT_AUTO_RESCHEDULING_WINDOW;
 
+int             additional_freshness_latency=DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
+
 time_t          last_command_check=0L;
 time_t          last_command_status_update=0L;
 time_t          last_log_rotation=0L;
@@ -194,6 +196,7 @@ int             currently_running_service_checks=0;
 int             currently_running_host_checks=0;
 
 time_t          program_start=0L;
+time_t          event_start=0L;
 int             nagios_pid=0;
 int             enable_notifications=TRUE;
 int             execute_service_checks=TRUE;
@@ -783,6 +786,11 @@ int main(int argc, char **argv){
 			/* send program data to broker */
 			broker_program_state(NEBTYPE_PROCESS_EVENTLOOPSTART,NEBFLAG_NONE,NEBATTR_NONE,NULL);
 #endif
+
+			/* get event start time and save as macro */
+			event_start=time(NULL);
+			my_free((void **)&macro_x[MACRO_EVENTSTARTTIME]);
+			asprintf(&macro_x[MACRO_EVENTSTARTTIME],"%lu",(unsigned long)event_start);
 
 		        /***** start monitoring all services *****/
 			/* (doesn't return until a restart or shutdown signal is encountered) */

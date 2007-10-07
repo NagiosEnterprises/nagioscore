@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-13-2007
+ * Last Modified: 10-07-2007
  *
  * License:
  * 
@@ -1216,10 +1216,10 @@ void show_host_info(void){
 #endif
 		if(temp_hoststatus->checks_enabled==TRUE){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Active Checks Of This Host' TITLE='Disable Active Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Disable active checks of this host</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_HOST_CHECK,url_encode(host_name));
-			printf("<tr CLASS='data'><td><img src='%s%s' border=0 ALT='Re-schedule Next Host Check' TITLE='Re-schedule Next Host Check'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Re-schedule the next check of this host</a></td></tr>\n",url_images_path,DELAY_ICON,COMMAND_CGI,CMD_SCHEDULE_HOST_CHECK,url_encode(host_name));
 		        }
 		else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Active Checks Of This Host' TITLE='Enable Active Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Enable active checks of this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_HOST_CHECK,url_encode(host_name));
+		printf("<tr CLASS='data'><td><img src='%s%s' border=0 ALT='Re-schedule Next Host Check' TITLE='Re-schedule Next Host Check'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s%s'>Re-schedule the next check of this host</a></td></tr>\n",url_images_path,DELAY_ICON,COMMAND_CGI,CMD_SCHEDULE_HOST_CHECK,url_encode(host_name),(temp_hoststatus->checks_enabled==TRUE)?"&force_check":"");
 
 		if(temp_hoststatus->accept_passive_host_checks==TRUE){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Submit Passive Check Result For This Host' TITLE='Submit Passive Check Result For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Submit passive check result for this host</a></td></tr>\n",url_images_path,PASSIVE_ICON,COMMAND_CGI,CMD_PROCESS_HOST_CHECK_RESULT,url_encode(host_name));
@@ -1532,14 +1532,13 @@ void show_service_info(void){
 
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Active Checks Of This Service' TITLE='Disable Active Checks Of This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SVC_CHECK,url_encode(host_name));
 			printf("&service=%s'>Disable active checks of this service</a></td></tr>\n",url_encode(service_desc));
-
-			printf("<tr CLASS='data'><td><img src='%s%s' border=0 ALT='Re-schedule Next Service Check' TITLE='Re-schedule Next Service Check'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DELAY_ICON,COMMAND_CGI,CMD_SCHEDULE_SVC_CHECK,url_encode(host_name));
-			printf("&service=%s'>Re-schedule the next check of this service</a></td></tr>\n",url_encode(service_desc));
 	                }
 		else{
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Active Checks Of This Service' TITLE='Enable Active Checks Of This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_SVC_CHECK,url_encode(host_name));
 			printf("&service=%s'>Enable active checks of this service</a></td></tr>\n",url_encode(service_desc));
 	                }
+		printf("<tr CLASS='data'><td><img src='%s%s' border=0 ALT='Re-schedule Next Service Check' TITLE='Re-schedule Next Service Check'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DELAY_ICON,COMMAND_CGI,CMD_SCHEDULE_SVC_CHECK,url_encode(host_name));
+		printf("&service=%s%s'>Re-schedule the next check of this service</a></td></tr>\n",url_encode(service_desc),(temp_svcstatus->checks_enabled==TRUE)?"&force_check":"");
 
 		if(temp_svcstatus->accept_passive_service_checks==TRUE){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Submit Passive Check Result For This Service' TITLE='Submit Passive Check Result For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,PASSIVE_ICON,COMMAND_CGI,CMD_PROCESS_SERVICE_CHECK_RESULT,url_encode(host_name));
@@ -2895,7 +2894,7 @@ void show_scheduling_queue(void){
 				printf("&service=%s'><img src='%s%s' border=0 ALT='Enable Active Checks Of This Service' TITLE='Enable Active Checks Of This Service'></a>\n",url_encode(temp_svcstatus->description),url_images_path,ENABLED_ICON);
 		                }
 			printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_SCHEDULE_SVC_CHECK,url_encode(temp_svcstatus->host_name));
-			printf("&service=%s'><img src='%s%s' border=0 ALT='Re-schedule This Service Check' TITLE='Re-schedule This Service Check'></a>\n",url_encode(temp_svcstatus->description),url_images_path,DELAY_ICON);
+			printf("&service=%s%s'><img src='%s%s' border=0 ALT='Re-schedule This Service Check' TITLE='Re-schedule This Service Check'></a>\n",url_encode(temp_svcstatus->description),(temp_svcstatus->checks_enabled==TRUE)?"&force_check":"",url_images_path,DELAY_ICON);
 			printf("</TD>\n");
 		        }
 
@@ -2923,7 +2922,7 @@ void show_scheduling_queue(void){
 				printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_ENABLE_HOST_CHECK,url_encode(temp_hststatus->host_name));
 				printf("'><img src='%s%s' border=0 ALT='Enable Active Checks Of This Host' TITLE='Enable Active Checks Of This Host'></a>\n",url_images_path,ENABLED_ICON);
 		                }
-			printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_SCHEDULE_HOST_CHECK,url_encode(temp_hststatus->host_name));
+			printf("<a href='%s?cmd_typ=%d&host=%s%s",COMMAND_CGI,CMD_SCHEDULE_HOST_CHECK,url_encode(temp_hststatus->host_name),(temp_hststatus->checks_enabled==TRUE)?"&force_check":"");
 			printf("'><img src='%s%s' border=0 ALT='Re-schedule This Host Check' TITLE='Re-schedule This Host Check'></a>\n",url_images_path,DELAY_ICON);
 			printf("</TD>\n");
 		        }

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-26-2007
+ * Last Modified:   10-07-2007
  *
  * License:
  *
@@ -135,6 +135,8 @@ extern int      check_orphaned_hosts;
 extern int      check_service_freshness;
 extern int      check_host_freshness;
 extern int      auto_reschedule_checks;
+
+extern int      additional_freshness_latency;
 
 extern int      use_aggressive_host_checking;
 extern unsigned long cached_host_check_horizon;
@@ -4352,6 +4354,8 @@ int reset_variables(void){
 	passive_host_checks_are_soft=DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 
 	use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
+
+	additional_freshness_latency=DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
 
         enable_embedded_perl=DEFAULT_ENABLE_EMBEDDED_PERL;
 	use_embedded_perl_implicitly=DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY;

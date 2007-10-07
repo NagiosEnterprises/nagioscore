@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-04-2006
+ * Last Modified:   10-07-2006
  *
  * License:
  *
@@ -56,6 +56,8 @@ servicestatus   *servicestatus_list_tail=NULL;
 
 hoststatus      **hoststatus_hashlist=NULL;
 servicestatus   **servicestatus_hashlist=NULL;
+
+extern int      use_pending_states;
 #endif
 
 
@@ -344,7 +346,8 @@ int add_host_status(hoststatus *new_hoststatus){
 			break;
 		        }
 		if(new_hoststatus->has_been_checked==FALSE){
-			new_hoststatus->status=HOST_PENDING;
+			if(use_pending_states==TRUE)
+				new_hoststatus->status=HOST_PENDING;
 			my_free((void **)&new_hoststatus->plugin_output);
 			if(new_hoststatus->should_be_scheduled==TRUE){
 				get_time_string(&new_hoststatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);
@@ -407,7 +410,8 @@ int add_service_status(servicestatus *new_svcstatus){
 			break;
 		        }
 		if(new_svcstatus->has_been_checked==FALSE){
-			new_svcstatus->status=SERVICE_PENDING;
+			if(use_pending_states==TRUE)
+				new_svcstatus->status=SERVICE_PENDING;
 			my_free((void **)&new_svcstatus->plugin_output);
 			if(new_svcstatus->should_be_scheduled==TRUE){
 				get_time_string(&new_svcstatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);

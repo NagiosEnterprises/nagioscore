@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-22-2007
+ * Last Modified:   10-07-2007
  *
  * License:
  *
@@ -85,10 +85,15 @@ extern int      passive_host_checks_are_soft;
 
 extern int      check_service_freshness;
 extern int      check_host_freshness;
+extern int      additional_freshness_latency;
+
+extern int      max_host_check_spread;
+extern int      max_service_check_spread;
 
 extern int      use_large_installation_tweaks;
 
 extern time_t   program_start;
+extern time_t   event_start;
 
 extern timed_event       *event_list_low;
 extern timed_event       *event_list_low_tail;
@@ -1928,9 +1933,9 @@ void check_service_result_freshness(void){
 		/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
 		if(temp_service->freshness_threshold==0){
 			if(temp_service->state_type==HARD_STATE || temp_service->current_state==STATE_OK)
-				freshness_threshold=(temp_service->check_interval*interval_length)+temp_service->latency+15;
+				freshness_threshold=(temp_service->check_interval*interval_length)+temp_service->latency+additional_freshness_latency;
 			else
-				freshness_threshold=(temp_service->retry_interval*interval_length)+temp_service->latency+15;
+				freshness_threshold=(temp_service->retry_interval*interval_length)+temp_service->latency+additional_freshness_latency;
 		        }
 		else
 			freshness_threshold=temp_service->freshness_threshold;
@@ -1941,14 +1946,16 @@ void check_service_result_freshness(void){
 		/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
 		/* CHANGED 02/25/06 SG - passive checks also become stale, so remove dependence on active check logic */
 		if(temp_service->has_been_checked==FALSE)
-			expiration_time=(time_t)(program_start+freshness_threshold);
+			expiration_time=(time_t)(event_start+freshness_threshold);
 		/* CHANGED 06/19/07 EG - Per Ton's suggestion (and user requests), only use program start time over last check if no specific threshold has been set by user.  Otheriwse use it.  Problems can occur if Nagios is restarted more frequently that freshness threshold intervals (services never go stale). */
-		else if(program_start>temp_service->last_check && temp_service->freshness_threshold==0)
-			expiration_time=(time_t)(program_start+freshness_threshold);
+		/* CHANGED 10/07/07 EG - Only match next condition for services that have active checks enabled... */
+		/* CHANGED 10/07/07 EG - Added max_service_check_spread to expiration time as suggested by Altinity */
+		else if(temp_service->checks_enabled==TRUE && event_start>temp_service->last_check && temp_service->freshness_threshold==0)
+			expiration_time=(time_t)(event_start+freshness_threshold+(max_service_check_spread*interval_length));
 		else
 			expiration_time=(time_t)(temp_service->last_check+freshness_threshold);
 
-		log_debug_info(DEBUGL_CHECKS,2,"HBC: %d, PS: %lu, LC: %lu, CT: %lu, ET: %lu\n",temp_service->has_been_checked,(unsigned long)program_start,(unsigned long)temp_service->last_check,(unsigned long)current_time,(unsigned long)expiration_time);
+		log_debug_info(DEBUGL_CHECKS,2,"HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n",temp_service->has_been_checked,(unsigned long)program_start,(unsigned long)event_start,(unsigned long)temp_service->last_check,(unsigned long)current_time,(unsigned long)expiration_time);
 
 		/* the results for the last check of this service are stale */
 		if(expiration_time<current_time){
@@ -2285,7 +2292,7 @@ void check_host_result_freshness(void){
 
 		/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
 		if(temp_host->freshness_threshold==0)
-			freshness_threshold=(temp_host->check_interval*interval_length)+temp_host->latency+15;
+			freshness_threshold=(temp_host->check_interval*interval_length)+temp_host->latency+additional_freshness_latency;
 		else
 			freshness_threshold=temp_host->freshness_threshold;
 
@@ -2294,14 +2301,15 @@ void check_host_result_freshness(void){
 		/* calculate expiration time */
 		/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
 		if(temp_host->has_been_checked==FALSE)
-			expiration_time=(time_t)(program_start+freshness_threshold);
+			expiration_time=(time_t)(event_start+freshness_threshold);
 		/* CHANGED 06/19/07 EG - Per Ton's suggestion (and user requests), only use program start time over last check if no specific threshold has been set by user.  Otheriwse use it.  Problems can occur if Nagios is restarted more frequently that freshness threshold intervals (hosts never go stale). */
-		else if(temp_host->checks_enabled==TRUE && program_start>temp_host->last_check && temp_host->freshness_threshold==0)
-			expiration_time=(time_t)(program_start+freshness_threshold);
+		/* CHANGED 10/07/07 EG - Added max_host_check_spread to expiration time as suggested by Altinity */
+		else if(temp_host->checks_enabled==TRUE && event_start>temp_host->last_check && temp_host->freshness_threshold==0)
+			expiration_time=(time_t)(event_start+freshness_threshold+(max_host_check_spread*interval_length));
 		else
 			expiration_time=(time_t)(temp_host->last_check+freshness_threshold);
 
-		log_debug_info(DEBUGL_CHECKS,2,"HBC: %d, PS: %lu, LC: %lu, CT: %lu, ET: %lu\n",temp_host->has_been_checked,(unsigned long)program_start,(unsigned long)temp_host->last_check,(unsigned long)current_time,(unsigned long)expiration_time);
+		log_debug_info(DEBUGL_CHECKS,2,"HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n",temp_host->has_been_checked,(unsigned long)program_start,(unsigned long)event_start,(unsigned long)temp_host->last_check,(unsigned long)current_time,(unsigned long)expiration_time);
 
 		/* the results for the last check of this host are stale */
 		if(expiration_time<current_time){

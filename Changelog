@@ -12,6 +12,14 @@ Nagios 3.x Change Log
 * Special additive inheritance rule: escalation contact(group)(s) that begin with '+' will  now inherit from associated host/service definition if not inheriting from another escalation template
 * Status file is no longer deleted during restarts due to a SIGHUP or external command
 * Improvement in service flap detection logic
+* Added additional_freshness_latency config file directive
+* Improvements in freshness check logic
+* Temporarily removed $SERVICEGROUPMEMBERS$ macro, as it was causing crashes for some users (this need further investigation)
+* Added $EVENTSTARTTIME$ macro to indicate time Nagios started processing events (checks, etc.)
+* Added use_pending_states option to CGI config file to determine displayed state of hosts/services that have not been checked
+* Workaround to prevent browsers from incorrectly using cached statusmap image on page refresh
+* Fix for incorrect latency calculations for passive host/service checks
+* Added passive check latency stats to nagiostats
 
 
 

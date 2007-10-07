@@ -3023,6 +3023,31 @@ This setting determines how often (in seconds) Nagios will periodically check th
 </p>
 
 
+<a name="additional_freshness_latency"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Additional Freshness Threshold Latency Option</strong></td>
+</tr>
+</table>
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>additional_freshness_latency=&lt;#&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>additional_freshness_latency=15</strong></font></td>
+</tr>
+</table>
+
+<p>
+This option determines the number of seconds Nagios will add to any host or services freshness threshold it automatically calculates (e.g. those not specified explicity by the user).  More information on freshness checking can be found <a href="freshness.html">here</a>.
+</p>
+
+
 <a name="enable_embedded_perl"></a>
 <table border="0" width="100%" class="Default">
 <tr>

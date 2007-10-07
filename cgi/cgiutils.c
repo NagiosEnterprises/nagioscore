@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-15-2007
+ * Last Modified: 10-07-2007
  *
  * License:
  *
@@ -97,6 +97,8 @@ int             use_authentication=TRUE;
 int             interval_length=60;
 
 int             show_context_help=FALSE;
+
+int             use_pending_states=TRUE;
 
 int             hosts_have_been_read=FALSE;
 int             hostgroups_have_been_read=FALSE;
@@ -306,6 +308,9 @@ int read_cgi_config_file(char *filename){
 
 		else if(!strcmp(var,"show_context_help"))
 			show_context_help=(atoi(val)>0)?TRUE:FALSE;
+
+		else if(!strcmp(var,"use_pending_states"))
+			use_pending_states=(atoi(val)>0)?TRUE:FALSE;
 
 		else if(!strcmp(var,"use_authentication"))
 			use_authentication=(atoi(val)>0)?TRUE:FALSE;

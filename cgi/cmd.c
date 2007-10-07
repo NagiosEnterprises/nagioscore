@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-13-2007
+ * Last Modified: 10-07-2007
  *
  * License:
  * 
@@ -1026,7 +1026,7 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='TEXT' NAME='start_time' VALUE='%s'>",buffer);
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxItem'>Force Check:</td><td><b>");
-		printf("<INPUT TYPE='checkbox' NAME='force_check' CHECKED>");
+		printf("<INPUT TYPE='checkbox' NAME='force_check' %s>",(force_check==TRUE)?"CHECKED":"");
 		printf("</b></td></tr>\n");
 		break;
 

@@ -56,7 +56,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 
 <li><b>Macros</b>:<br>
 	<ul>
-	<li><b>New macros</b> - New macros have been added, including: $TEMPPATH$, $LONGHOSTOUTPUT$, $LONGSERVICEOUTPUT$, $HOSTNOTIFICATIONID$, $SERVICENOTIFICATIONID$, $HOSTEVENTID$, $SERVICEEVENTID$, $SERVICEISVOLATILE$, $LASTHOSTEVENTID$, $LASTSERVICEEVENTID$, $HOSTDISPLAYNAME$, $SERVICEDISPLAYNAME$, $MAXHOSTATTEMPTS$, $MAXSERVICEATTEMPTS$, $TOTALHOSTSERVICES$, $TOTALHOSTSERVICESOK$, $TOTALHOSTSERVICESWARNING$, $TOTALHOSTSERVICESUNKNOWN$, $TOTALHOSTSERVICESCRITICAL$, $CONTACTGROUPNAME$, $CONTACTGROUPNAMES$, $CONTACTGROUPALIAS$, $CONTACTGROUPMEMBERS$, $NOTIFICATIONRECIPIENTS$, $NOTIFICATIONISESCALATED$, $NOTIFICATIONAUTHOR$, $NOTIFICATIONAUTHORNAME$, $NOTIFICATIONAUTHORALIAS$, $NOTIFICATIONCOMMENT$.</li>
+	<li><b>New macros</b> - New macros have been added, including: $TEMPPATH$, $LONGHOSTOUTPUT$, $LONGSERVICEOUTPUT$, $HOSTNOTIFICATIONID$, $SERVICENOTIFICATIONID$, $HOSTEVENTID$, $SERVICEEVENTID$, $SERVICEISVOLATILE$, $LASTHOSTEVENTID$, $LASTSERVICEEVENTID$, $HOSTDISPLAYNAME$, $SERVICEDISPLAYNAME$, $MAXHOSTATTEMPTS$, $MAXSERVICEATTEMPTS$, $TOTALHOSTSERVICES$, $TOTALHOSTSERVICESOK$, $TOTALHOSTSERVICESWARNING$, $TOTALHOSTSERVICESUNKNOWN$, $TOTALHOSTSERVICESCRITICAL$, $CONTACTGROUPNAME$, $CONTACTGROUPNAMES$, $CONTACTGROUPALIAS$, $CONTACTGROUPMEMBERS$, $NOTIFICATIONRECIPIENTS$, $NOTIFICATIONISESCALATED$, $NOTIFICATIONAUTHOR$, $NOTIFICATIONAUTHORNAME$, $NOTIFICATIONAUTHORALIAS$, $NOTIFICATIONCOMMENT$, $EVENTSTARTTIME$.</li>
 	<li><b>Removed macros</b> - The old $NOTIFICATIONNUMBER$ macro has been deprecated in favor of new $HOSTNOTIFICATIONNUMBER$ and $SERVICENOTIFICATIONNUMBER$ macros.</li>
 	<li><b>Changes</b> - The $HOSTNOTES$ and $SERVICENOTES$ macros may now contain macros themselves, just like the $HOSTNOTESURL$, $HOSTACTIONURL$, $SERVICENOTESURL$ and $SERVICEACTIONURL$ macros.</li>
 	<li>Macro information can be found <a href="macros.html">here</a>.</li>
@@ -208,6 +208,13 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 	<li>A new cached host check feature has been implemented that can significantly improve performance for many people Instead of executing a plugin to check the status of a host, Nagios can often use a cached host check result instead.  More information on this can be found <a href="cachedchecks.html">here</a>.</li>
 	<li>Passive host checks that have a DOWN or UNREACHABLE result can now be automatically translated to their proper state from the point of view of the Nagios instance that receives them.  This is very useful in failover and distributed monitoring setups.  More information on passive host check state translation can be found <a href="passivestatetranslation.html">here</a>.</li>
 	<li>Passive host checks normally put a host into a HARD state.  This can now be changed by enabling the <a href="configmain.html#passive_host_checks_are_soft">passive_host_checks_are_soft</a> option.</li>
+	</ul>
+</li>
+<br>
+
+<li><b>Freshness checks</b>:<br>
+	<ul>
+	<li>A new <a href="configmain.html#freshness_threshold_latency">freshness_threshold_latency</a> option has been added to allow to you specify the number of seconds that should be added to any host or service freshness threshold that is automatically calculated by Nagios.</li>
 	</ul>
 </li>
 <br>

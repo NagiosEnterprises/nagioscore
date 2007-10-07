@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-29-2007
+ * Last Modified:   10-07-2007
  *
  * License:
  *
@@ -2092,7 +2092,7 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 
 	/* calculate latency */
 	gettimeofday(&tv,NULL);
-	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_usec/1000.0));
+	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_usec/1000.0)/1000.0);
 	if(new_pcr->latency<0.0)
 		new_pcr->latency=0.0;
 
@@ -2228,7 +2228,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 
 	/* calculate latency */
 	gettimeofday(&tv,NULL);
-	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_usec/1000.0));
+	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_usec/1000.0)/1000.0);
 	if(new_pcr->latency<0.0)
 		new_pcr->latency=0.0;
 

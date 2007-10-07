@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2007 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   09-27-2007
+ * Last Modified:   10-07-2007
  *
  * License:
  *
@@ -77,6 +77,11 @@ int have_min_passive_service_state_change=FALSE;
 double max_passive_service_state_change=0.0;
 int have_max_passive_service_state_change=FALSE;
 double average_passive_service_state_change=0.0;
+double min_passive_service_latency=0.0;
+int have_min_passive_service_latency=FALSE;
+double max_passive_service_latency=0.0;
+int have_max_passive_service_latency=FALSE;
+double average_passive_service_latency=0.0;
 
 int have_min_host_state_change=FALSE;
 double min_host_state_change=0.0;
@@ -98,6 +103,11 @@ double min_active_host_execution_time=0.0;
 int have_max_active_host_execution_time=FALSE;
 double max_active_host_execution_time=0.0;
 double average_active_host_execution_time=0.0;
+int have_min_passive_host_latency=FALSE;
+double min_passive_host_latency=0.0;
+int have_max_passive_host_latency=FALSE;
+double max_passive_host_latency=0.0;
+double average_passive_host_latency=0.0;
 double min_passive_host_state_change=0.0;
 int have_min_passive_host_state_change=FALSE;
 double max_passive_host_state_change=0.0;
@@ -354,11 +364,13 @@ int main(int argc, char **argv){
 		printf(" xxxACTSVCLAT         MIN/MAX/AVG active service check latency (ms).\n");
 		printf(" xxxACTSVCEXT         MIN/MAX/AVG active service check execution time (ms).\n");
 		printf(" xxxACTSVCPSC         MIN/MAX/AVG active service check %% state change.\n");
+		printf(" xxxPSVSVCLAT         MIN/MAX/AVG passive service check latency (ms).\n");
 		printf(" xxxPSVSVCPSC         MIN/MAX/AVG passive service check %% state change.\n");
 		printf(" xxxSVCPSC            MIN/MAX/AVG service check %% state change.\n");
 		printf(" xxxACTHSTLAT         MIN/MAX/AVG active host check latency (ms).\n");
 		printf(" xxxACTHSTEXT         MIN/MAX/AVG active host check execution time (ms).\n");
 		printf(" xxxACTHSTPSC         MIN/MAX/AVG active host check %% state change.\n");
+		printf(" xxxPSVHSTLAT         MIN/MAX/AVG passive host check latency (ms).\n");
 		printf(" xxxPSVHSTPSC         MIN/MAX/AVG passive host check %% state change.\n");
 		printf(" xxxHSTPSC            MIN/MAX/AVG host check %% state change.\n");
 		printf(" NUMACTHSTCHECKSxM    number of total active host checks occuring in last 1/5/15 minutes.\n");
@@ -487,6 +499,14 @@ int display_mrtg_values(void){
 		else if(!strcmp(temp_ptr,"AVGACTSVCPSC"))
 			printf("%d%s",(int)average_active_service_state_change,mrtg_delimiter);
 
+		/* passive service check latency */
+		else if(!strcmp(temp_ptr,"PSVACTSVCLAT"))
+			printf("%d%s",(int)(min_passive_service_latency*1000),mrtg_delimiter);
+		else if(!strcmp(temp_ptr,"PSVACTSVCLAT"))
+			printf("%d%s",(int)(max_passive_service_latency*1000),mrtg_delimiter);
+		else if(!strcmp(temp_ptr,"PSVACTSVCLAT"))
+			printf("%d%s",(int)(average_passive_service_latency*1000),mrtg_delimiter);
+
 		/* passive service check percent state change */
 		else if(!strcmp(temp_ptr,"MINPSVSVCPSC"))
 			printf("%d%s",(int)min_passive_service_state_change,mrtg_delimiter);
@@ -526,6 +546,14 @@ int display_mrtg_values(void){
 			printf("%d%s",(int)max_active_host_state_change,mrtg_delimiter);
 		else if(!strcmp(temp_ptr,"AVGACTHSTPSC"))
 			printf("%d%s",(int)average_active_host_state_change,mrtg_delimiter);
+
+		/* passive host check latency */
+		else if(!strcmp(temp_ptr,"MINPSVHSTLAT"))
+			printf("%d%s",(int)(min_passive_host_latency*1000),mrtg_delimiter);
+		else if(!strcmp(temp_ptr,"MAXPSVHSTLAT"))
+			printf("%d%s",(int)(max_passive_host_latency*1000),mrtg_delimiter);
+		else if(!strcmp(temp_ptr,"AVGPSVHSTLAT"))
+			printf("%d%s",(int)(average_passive_host_latency*1000),mrtg_delimiter);
 
 		/* passive host check percent state change */
 		else if(!strcmp(temp_ptr,"MINPSVHSTPSC"))
@@ -755,6 +783,7 @@ int display_stats(void){
 	printf("Active Service Execution Time:          %.3f / %.3f / %.3f sec\n",min_active_service_execution_time,max_active_service_execution_time,average_active_service_execution_time);
 	printf("Active Service State Change:            %.3f / %.3f / %.3f %%\n",min_active_service_state_change,max_active_service_state_change,average_active_service_state_change);
 	printf("Active Services Last 1/5/15/60 min:     %d / %d / %d / %d\n",active_services_checked_last_1min,active_services_checked_last_5min,active_services_checked_last_15min,active_services_checked_last_1hour);
+	printf("Passive Service Latency:                %.3f / %.3f / %.3f sec\n",min_passive_service_latency,max_passive_service_latency,average_passive_service_latency);
 	printf("Passive Service State Change:           %.3f / %.3f / %.3f %%\n",min_passive_service_state_change,max_passive_service_state_change,average_passive_service_state_change);
 	printf("Passive Services Last 1/5/15/60 min:    %d / %d / %d / %d\n",passive_services_checked_last_1min,passive_services_checked_last_5min,passive_services_checked_last_15min,passive_services_checked_last_1hour);
 	printf("Services Ok/Warn/Unk/Crit:              %d / %d / %d / %d\n",services_ok,services_warning,services_unknown,services_critical);
@@ -771,6 +800,7 @@ int display_stats(void){
 	printf("Active Host Execution Time:             %.3f / %.3f / %.3f sec\n",min_active_host_execution_time,max_active_host_execution_time,average_active_host_execution_time);
 	printf("Active Host State Change:               %.3f / %.3f / %.3f %%\n",min_active_host_state_change,max_active_host_state_change,average_active_host_state_change);
 	printf("Active Hosts Last 1/5/15/60 min:        %d / %d / %d / %d\n",active_hosts_checked_last_1min,active_hosts_checked_last_5min,active_hosts_checked_last_15min,active_hosts_checked_last_1hour);
+	printf("Passive Host Latency:                   %.3f / %.3f / %.3f sec\n",min_passive_host_latency,max_passive_host_latency,average_passive_host_latency);
 	printf("Passive Host State Change:              %.3f / %.3f / %.3f %%\n",min_passive_host_state_change,max_passive_host_state_change,average_passive_host_state_change);
 	printf("Passive Hosts Last 1/5/15/60 min:       %d / %d / %d / %d\n",passive_hosts_checked_last_1min,passive_hosts_checked_last_5min,passive_hosts_checked_last_15min,passive_hosts_checked_last_1hour);
 	printf("Hosts Up/Down/Unreach:                  %d / %d / %d\n",hosts_up,hosts_down,hosts_unreachable);
@@ -968,6 +998,15 @@ int read_status_file(void){
 				        }
 				else{
 					passive_host_checks++;
+					average_passive_host_latency=(((average_passive_host_latency*((double)passive_host_checks-1.0))+latency)/(double)passive_host_checks);
+					if(have_min_passive_host_latency==FALSE || min_passive_host_latency>latency){
+						have_min_passive_host_latency=TRUE;
+						min_passive_host_latency=latency;
+					        }
+					if(have_max_passive_host_latency==FALSE || max_passive_host_latency<latency){
+						have_max_passive_host_latency=TRUE;
+						max_passive_host_latency=latency;
+					        }
 					average_passive_host_state_change=(((average_passive_host_state_change*((double)passive_host_checks-1.0))+state_change)/(double)passive_host_checks);
 					if(have_min_passive_host_state_change==FALSE || min_passive_host_state_change>state_change){
 						have_min_passive_host_state_change=TRUE;
@@ -1061,6 +1100,15 @@ int read_status_file(void){
 				        }
 				else{
 					passive_service_checks++;
+					average_passive_service_latency=(((average_passive_service_latency*((double)passive_service_checks-1.0))+latency)/(double)passive_service_checks);
+					if(have_min_passive_service_latency==FALSE || min_passive_service_latency>latency){
+						have_min_passive_service_latency=TRUE;
+						min_passive_service_latency=latency;
+					        }
+					if(have_max_passive_service_latency==FALSE || max_passive_service_latency<latency){
+						have_max_passive_service_latency=TRUE;
+						max_passive_service_latency=latency;
+					        }
 					average_passive_service_state_change=(((average_passive_service_state_change*((double)passive_service_checks-1.0))+state_change)/(double)passive_service_checks);
 					if(have_min_passive_service_state_change==FALSE || min_passive_service_state_change>state_change){
 						have_min_passive_service_state_change=TRUE;

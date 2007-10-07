@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 08-15-2007
+# Last Modified: 10-07-2007
 #
 #################################################################
 
@@ -47,22 +47,14 @@ show_context_help=0
 
 
 
-# NAGIOS PROCESS CHECK COMMAND
-# This is the full path and filename of the program used to check
-# the status of the Nagios process.  It is used only by the CGIs
-# and is completely optional.  However, if you don't use it, you'll
-# see warning messages in the CGIs about the Nagios process
-# not running and you won't be able to execute any commands from
-# the web interface.  The program should follow the same rules
-# as plugins; the return codes are the same as for the plugins,
-# it should have timeout protection, it should output something
-# to STDIO, etc.
-#
-# Note: The command line for the check_nagios plugin below may
-# have to be tweaked a bit, as different versions of the plugin
-# use different command line arguments/syntaxes.
+# PENDING STATES OPTION
+# This option determines what states should be displayed in the web
+# interface for hosts/services that have not yet been checked.
+# Values: 0 = leave hosts/services that have not been check yet in their original state
+#         1 = mark hosts/services that have not been checked yet as PENDING
 
-#nagios_check_command=@libexecdir@/check_nagios @localstatedir@/status.dat 5 '@bindir@/nagios'
+use_pending_states=1
+
 
 
 

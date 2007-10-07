@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 08-03-2007
+# Last Modified: 10-07-2007
 #
 ##############################################################################
 
@@ -975,6 +975,17 @@ check_host_freshness=0
 # disabled host freshness checking, this option has no effect.
 
 host_freshness_check_interval=60
+
+
+
+
+# ADDITIONAL FRESHNESS THRESHOLD LATENCY
+# This setting determines the number of seconds that Nagios
+# will add to any host and service freshness thresholds that
+# it calculates (those not explicitly specified by the user).
+
+additional_freshness_latency=15
+
 
 
 

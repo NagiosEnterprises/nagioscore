@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-06-2007
+ * Last Modified: 10-07-2007
  *
  * Description:
  *
@@ -695,9 +695,9 @@ void display_page_header(void){
 		/* right hand column of top row */
 		printf("<td align=right valign=top>\n");
 
+		printf("<form method=\"POST\" action=\"%s\">\n",STATUSMAP_CGI);
 		printf("<table border=0 CLASS='optBox'>\n");
 		printf("<tr><td valign=top>\n");
-		printf("<form method=\"POST\" action=\"%s\">\n",STATUSMAP_CGI);
 		printf("<input type='hidden' name='host' value='%s'>\n",host_name);
 		printf("<input type='hidden' name='layout' value='%d'>\n",layout_method);
 
@@ -783,9 +783,9 @@ void display_page_header(void){
 
 		printf("</table>\n");
 
-		printf("</form>\n");
 		printf("</td></tr>\n");
 		printf("</table>\n");
+		printf("</form>\n");
 
 		printf("</td>\n");
 	
@@ -833,7 +833,7 @@ void display_map(void){
 	/* write the URL location for the image we just generated - the web browser will come and get it... */
 	if(create_type==CREATE_HTML){
 		printf("<P><DIV ALIGN=center>\n");
-		printf("<img src='%s?host=%s&createimage",STATUSMAP_CGI,url_encode(host_name));
+		printf("<img src='%s?host=%s&createimage&time=%lu",STATUSMAP_CGI,url_encode(host_name),(unsigned long)time(NULL));
 		printf("&canvas_x=%d&canvas_y=%d&canvas_width=%d&canvas_height=%d&max_width=%d&max_height=%d&layout=%d%s%s%s",canvas_x,canvas_y,canvas_width,canvas_height,max_image_width,max_image_height,layout_method,(use_links==FALSE)?"&nolinks":"",(use_text==FALSE)?"&notext":"",(use_highlights==FALSE)?"&nohighlights":"");
 		print_layer_url(TRUE);
 		printf("' width=%d height=%d border=0 name='statusimage' useMap='#statusmap'>\n",(int)(canvas_width*scaling_factor),(int)(canvas_height*scaling_factor));

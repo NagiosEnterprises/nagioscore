@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2007
+ * Last Modified: 10-07-2007
  *
  * License:
  *
@@ -118,6 +118,8 @@ extern int      check_orphaned_hosts;
 extern int      check_service_freshness;
 extern int      check_host_freshness;
 extern int      auto_reschedule_checks;
+
+extern int      additional_freshness_latency;
 
 extern int      use_aggressive_host_checking;
 extern unsigned long cached_host_check_horizon;
@@ -647,6 +649,9 @@ int read_main_config_file(char *main_config_file){
 				break;
 			        }
 		        }
+
+		else if(!strcmp(variable,"additional_freshness_latency"))
+			additional_freshness_latency=atoi(value);
 
 		else if(!strcmp(variable,"retained_host_attribute_mask"))
 			retained_host_attribute_mask=strtoul(value,NULL,0);

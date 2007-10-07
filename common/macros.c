@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-04-2007
+ * Last Modified:   10-07-2007
  *
  * License:
  *
@@ -2792,6 +2792,7 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_NOTIFICATIONAUTHORNAME,"NOTIFICATIONAUTHORNAME");
 	add_macrox_name(MACRO_NOTIFICATIONAUTHORALIAS,"NOTIFICATIONAUTHORALIAS");
 	add_macrox_name(MACRO_NOTIFICATIONCOMMENT,"NOTIFICATIONCOMMENT");
+	add_macrox_name(MACRO_EVENTSTARTTIME,"EVENTSTARTTIME");
 
 	return OK;
         }
@@ -2923,6 +2924,7 @@ int clear_nonvolatile_macros(void){
 		case MACRO_SERVICEPERFDATAFILE:
 		case MACRO_PROCESSSTARTTIME:
 		case MACRO_TEMPPATH:
+		case MACRO_EVENTSTARTTIME:
 			my_free((void **)&macro_x[x]);
 			break;
 		default:

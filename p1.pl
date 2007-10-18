@@ -1,6 +1,6 @@
  package Embed::Persistent;
 
-# p1.pl for Nagios 2.0
+# p1.pl for Nagios
 
 use strict ;
 
@@ -200,6 +200,13 @@ EOSUB
 							unless $delete ;
 								# Suppress warning display.
 	local $SIG{__WARN__}			= \&throw_exception ;
+
+
+                                                                # Following 3 lines added 10/18/07 by Larry Low to fix problem where
+                                                                # modified Perl plugins didn't get recached by the epn
+        no strict 'refs';
+        undef %{$package.'::'};
+        use strict 'refs';
 
 								# Compile &$package::hndlr. Since non executable code is being eval'd
 								# there is no need to protect lexicals in this scope.

@@ -9,6 +9,7 @@ Nagios 3.x Change Log
 * Misc internal performance improvements
 * Bug fix with attempting to access an uninitalized mutex if external commands are disabled
 * Updates to .cvsignore files
+* Fix for embedded Perl interpreter to recache scripts when they're modified
 
 
 

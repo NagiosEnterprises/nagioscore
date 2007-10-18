@@ -776,11 +776,11 @@ int delete_downtime(int type,unsigned long downtime_id){
 			last_downtime->next=next_downtime;
 		
 		/* free memory */
-		my_free((void **)&this_downtime->host_name);
-		my_free((void **)&this_downtime->service_description);
-		my_free((void **)&this_downtime->author);
-		my_free((void **)&this_downtime->comment);
-		my_free((void **)&this_downtime);
+		my_free(this_downtime->host_name);
+		my_free(this_downtime->service_description);
+		my_free(this_downtime->author);
+		my_free(this_downtime->comment);
+		my_free(this_downtime);
 
 		result=OK;
 	        }
@@ -895,11 +895,11 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 
 	/* handle errors */
 	if(result==ERROR){
-		my_free((void **)&new_downtime->comment);
-		my_free((void **)&new_downtime->author);
-		my_free((void **)&new_downtime->service_description);
-		my_free((void **)&new_downtime->host_name);
-		my_free((void **)&new_downtime);
+		my_free(new_downtime->comment);
+		my_free(new_downtime->author);
+		my_free(new_downtime->service_description);
+		my_free(new_downtime->host_name);
+		my_free(new_downtime);
 		return ERROR;
 	        }
 
@@ -1000,11 +1000,11 @@ void free_downtime_data(void){
 	/* free memory for the scheduled_downtime list */
 	for(this_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=next_downtime){
 		next_downtime=this_downtime->next;
-		my_free((void **)&this_downtime->host_name);
-		my_free((void **)&this_downtime->service_description);
-		my_free((void **)&this_downtime->author);
-		my_free((void **)&this_downtime->comment);
-		my_free((void **)&this_downtime);
+		my_free(this_downtime->host_name);
+		my_free(this_downtime->service_description);
+		my_free(this_downtime->author);
+		my_free(this_downtime->comment);
+		my_free(this_downtime);
 	        }
 
 	/* reset list pointer */

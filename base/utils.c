@@ -363,7 +363,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 			logit(NSLOG_RUNTIME_WARNING,TRUE,"%s\n",temp_buffer);
 
-			my_free((void **)&temp_buffer);
+			my_free(temp_buffer);
 
 			return STATE_UNKNOWN;
 			}
@@ -2141,7 +2141,7 @@ int move_check_result_to_queue(char *checkresult_file){
 		asprintf(&temp_buffer,"%s.ok",output_file);
 		if((output_file_fd=open(temp_buffer,O_CREAT|O_WRONLY|O_TRUNC,S_IRUSR|S_IWUSR))>0)
 			close(output_file_fd);
-		my_free((void **)&temp_buffer);
+		my_free(temp_buffer);
 
 		/* delete the original file */
 		if(result==0)
@@ -2158,7 +2158,7 @@ int move_check_result_to_queue(char *checkresult_file){
 		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Unable to move file '%s' to check results queue.\n",checkresult_file);
 
 	/* free memory */
-	my_free((void **)&output_file);
+	my_free(output_file);
 
 	return OK;
 	}
@@ -2212,7 +2212,7 @@ int process_check_result_queue(char *dirname){
 			/* is there an ok-to-go file? */
 			asprintf(&temp_buffer,"%s.ok",file);
 			result=stat(temp_buffer,&ok_stat_buf);
-			my_free((void *)&temp_buffer);
+			my_free(temp_buffer);
 			if(result==-1)
 				continue;
 
@@ -2264,7 +2264,7 @@ int process_check_result_file(char *fname){
 	while(1){
 
 		/* free memory */
-		my_free((void **)&input);
+		my_free(input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -2387,12 +2387,12 @@ int process_check_result_file(char *fname){
 		/* free memory for current check result record */
 		else{
 			free_check_result(new_cr);
-			my_free((void **)&new_cr);
+			my_free(new_cr);
 			}
 		}
 
 	/* free memory and close file */
-	my_free((void **)&input);
+	my_free(input);
 	mmap_fclose(thefile);
 
 	/* delete the file (as well its ok-to-go file) if it's too old */
@@ -2401,7 +2401,7 @@ int process_check_result_file(char *fname){
 		unlink(fname);
 		asprintf(&temp_buffer,"%s.ok",fname);
 		unlink(temp_buffer);
-		my_free((void **)&temp_buffer);
+		my_free(temp_buffer);
 		}
 
 	return OK;
@@ -2505,7 +2505,7 @@ int free_check_result_list(void){
 	for(this_cr=check_result_list;this_cr!=NULL;this_cr=next_cr){
 		next_cr=this_cr->next;
 		free_check_result(this_cr);
-		my_free((void **)&this_cr);
+		my_free(this_cr);
 		}
 
 	check_result_list=NULL;
@@ -2522,10 +2522,10 @@ int free_check_result(check_result *info){
 	if(info==NULL)
 		return OK;
 
-	my_free((void **)&info->host_name);
-	my_free((void **)&info->service_description);
-	my_free((void **)&info->output_file);
-	my_free((void **)&info->output);
+	my_free(info->host_name);
+	my_free(info->service_description);
+	my_free(info->output_file);
+	my_free(info->output);
 
 	return OK;
         }
@@ -2648,7 +2648,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 					        }
 				        }
 
-				my_free((void **)&tempbuf);
+				my_free(tempbuf);
 				tempbuf=NULL;
 			        }
 		
@@ -2688,7 +2688,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 
 				tempbuf[y]='\x0';
 				*long_output=(char *)strdup(tempbuf);
-				my_free((void **)&tempbuf);
+				my_free(tempbuf);
 			        }
 		        }
 	        }
@@ -2901,7 +2901,7 @@ char *my_strtok(char *buffer,char *tokens){
 	char *sequence_head=NULL;
 
 	if(buffer!=NULL){
-		my_free((void **)&original_my_strtok_buffer);
+		my_free(original_my_strtok_buffer);
 		if((my_strtok_buffer=(char *)strdup(buffer))==NULL)
 			return NULL;
 		original_my_strtok_buffer=my_strtok_buffer;
@@ -2974,7 +2974,7 @@ char *my_strsep (char **stringp, const char *delim){
 	}
 
 
-
+#ifdef REMOVED_10182007
 /* my wrapper for free() */
 int my_free(void **ptr){
 
@@ -2989,7 +2989,7 @@ int my_free(void **ptr){
 
 	return OK;
         }
-
+#endif
 
 
 /* escapes newlines in a string */
@@ -3170,14 +3170,14 @@ mmapfile *mmap_fopen(char *filename){
 
 	/* open the file */
 	if((fd=open(filename,mode))==-1){
-		my_free((void **)&new_mmapfile);
+		my_free(new_mmapfile);
 		return NULL;
 	        }
 
 	/* get file info */
 	if((fstat(fd,&statbuf))==-1){
 		close(fd);
-		my_free((void **)&new_mmapfile);
+		my_free(new_mmapfile);
 		return NULL;
 	        }
 
@@ -3190,7 +3190,7 @@ mmapfile *mmap_fopen(char *filename){
 		/* mmap() the file - allocate one extra byte for processing zero-byte files */
 		if((mmap_buf=(void *)mmap(0,file_size,PROT_READ,MAP_PRIVATE,fd,0))==MAP_FAILED){
 			close(fd);
-			my_free((void **)&new_mmapfile);
+			my_free(new_mmapfile);
 			return NULL;
 			}
 		}
@@ -3223,8 +3223,8 @@ int mmap_fclose(mmapfile *temp_mmapfile){
 	close(temp_mmapfile->fd);
 
 	/* free memory */
-	my_free((void **)&temp_mmapfile->path);
-	my_free((void **)&temp_mmapfile);
+	my_free(temp_mmapfile->path);
+	my_free(temp_mmapfile);
 	
 	return OK;
         }
@@ -3289,7 +3289,7 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 
 	while(1){
 
-		my_free((void **)&tempbuf);
+		my_free(tempbuf);
 
 		if((tempbuf=mmap_fgets(temp_mmapfile))==NULL)
 			break;
@@ -3316,7 +3316,7 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 			break;
 	        }
 
-	my_free((void **)&tempbuf);
+	my_free(tempbuf);
 
 	return buf;
         }
@@ -3350,7 +3350,7 @@ int dbuf_free(dbuf *db){
 		return ERROR;
 
 	if(db->buf!=NULL)
-		my_free((void **)&db->buf);
+		my_free(db->buf);
 	db->buf=NULL;
 	db->used_size=0L;
 	db->allocated_size=0L;
@@ -3604,10 +3604,9 @@ void cleanup_command_file_worker_thread(void *arg){
 
 	/* release memory allocated to circular buffer */
 	for(x=external_command_buffer.tail;x!=external_command_buffer.head;x=(x+1) % external_command_buffer_slots){
-		my_free((void **)&((char **)external_command_buffer.buffer)[x]);
-		((char **)external_command_buffer.buffer)[x]=NULL;
+		my_free(((char **)external_command_buffer.buffer)[x]);
 	        }
-	my_free((void **)&external_command_buffer.buffer);
+	my_free(external_command_buffer.buffer);
 
 	return;
         }
@@ -3761,7 +3760,7 @@ int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items){
 	result=submit_external_command(newcmd,buffer_items);
 
 	/* free allocated memory */
-	my_free((void **)&newcmd);
+	my_free(newcmd);
 
 	return result;
         }
@@ -4076,7 +4075,7 @@ void free_memory(void){
 	this_event=event_list_high;
 	while(this_event!=NULL){
 		next_event=this_event->next;
-		my_free((void **)&this_event);
+		my_free(this_event);
 		this_event=next_event;
 	        }
 
@@ -4087,7 +4086,7 @@ void free_memory(void){
 	this_event=event_list_low;
 	while(this_event!=NULL){
 		next_event=this_event->next;
-		my_free((void **)&this_event);
+		my_free(this_event);
 		this_event=next_event;
 	        }
 
@@ -4095,51 +4094,51 @@ void free_memory(void){
 	event_list_low=NULL;
 
 	/* free memory used by my_strtok() function and reset the my_strtok() buffers */
-	my_free((void **)&original_my_strtok_buffer);
+	my_free(original_my_strtok_buffer);
 	my_strtok_buffer=NULL;
 
 	/* free memory for global event handlers */
-	my_free((void **)&global_host_event_handler);
-	my_free((void **)&global_service_event_handler);
+	my_free(global_host_event_handler);
+	my_free(global_service_event_handler);
 
 	/* free any notification list that may have been overlooked */
 	free_notification_list();
 
 	/* free obsessive compulsive commands */
-	my_free((void **)&ocsp_command);
-	my_free((void **)&ochp_command);
+	my_free(ocsp_command);
+	my_free(ochp_command);
 
 	/* free memory associated with macros */
 	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
-		my_free((void **)&macro_argv[x]);
+		my_free(macro_argv[x]);
 
 	for(x=0;x<MAX_USER_MACROS;x++)
-		my_free((void **)&macro_user[x]);
+		my_free(macro_user[x]);
 
 	for(x=0;x<MACRO_X_COUNT;x++)
-		my_free((void **)&macro_x[x]);
+		my_free(macro_x[x]);
 
 	free_macrox_names();
 
 	/* free illegal char strings */
-	my_free((void **)&illegal_object_chars);
-	my_free((void **)&illegal_output_chars);
+	my_free(illegal_object_chars);
+	my_free(illegal_output_chars);
 
 	/* free nagios user and group */
-	my_free((void **)&nagios_user);
-	my_free((void **)&nagios_group);
+	my_free(nagios_user);
+	my_free(nagios_group);
 
 	/* free file/path variables */
-	my_free((void **)&log_file);
-	my_free((void **)&debug_file);
-	my_free((void **)&temp_file);
-	my_free((void **)&temp_path);
-	my_free((void **)&check_result_path);
-	my_free((void **)&command_file);
-	my_free((void **)&lock_file);
-	my_free((void **)&auth_file);
-	my_free((void **)&p1_file);
-	my_free((void **)&log_archive_path);
+	my_free(log_file);
+	my_free(debug_file);
+	my_free(temp_file);
+	my_free(temp_path);
+	my_free(check_result_path);
+	my_free(command_file);
+	my_free(lock_file);
+	my_free(auth_file);
+	my_free(p1_file);
+	my_free(log_archive_path);
 
 	return;
 	}
@@ -4153,7 +4152,7 @@ void free_notification_list(void){
 	temp_notification=notification_list;
 	while(temp_notification!=NULL){
 		next_notification=temp_notification->next;
-		my_free((void **)&temp_notification);
+		my_free(temp_notification);
 		temp_notification=next_notification;
 	        }
 

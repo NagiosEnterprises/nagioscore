@@ -221,7 +221,7 @@ int write_to_syslog(char *buffer, unsigned long data_type){
 		return OK;
 
 	/* write the buffer to the syslog facility */
-	syslog(LOG_USER|LOG_INFO,TRUE,"%s",buffer);
+	syslog(LOG_USER|LOG_INFO,"%s",buffer);
 
 	return OK;
 	}
@@ -260,7 +260,7 @@ int log_service_event(service *svc){
 
 	asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],(svc->plugin_output==NULL)?"":svc->plugin_output);
 	write_to_all_logs(temp_buffer,log_options);
-	my_free((void **)&temp_buffer);
+	my_free(temp_buffer);
 
 	return OK;
 	}
@@ -288,7 +288,7 @@ int log_host_event(host *hst){
 
 	asprintf(&temp_buffer,"HOST ALERT: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],(hst->plugin_output==NULL)?"":hst->plugin_output);
 	write_to_all_logs(temp_buffer,log_options);
-	my_free((void **)&temp_buffer);
+	my_free(temp_buffer);
 
 	return OK;
         }
@@ -315,7 +315,7 @@ int log_host_states(int type, time_t *timestamp){
 
 		asprintf(&temp_buffer,"%s HOST STATE: %s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
 		write_to_all_logs_with_timestamp(temp_buffer,NSLOG_INFO_MESSAGE,timestamp);
-		my_free((void **)&temp_buffer);
+		my_free(temp_buffer);
 	        }
 
 	return OK;
@@ -349,7 +349,7 @@ int log_service_states(int type, time_t *timestamp){
 
 		asprintf(&temp_buffer,"%s SERVICE STATE: %s;%s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],temp_service->plugin_output);
 		write_to_all_logs_with_timestamp(temp_buffer,NSLOG_INFO_MESSAGE,timestamp);
-		my_free((void **)&temp_buffer);
+		my_free(temp_buffer);
 	        }
 
 	return OK;
@@ -391,7 +391,7 @@ int rotate_log_file(time_t rotation_time){
 	rename_result=my_rename(log_file,log_archive);
 
 	if(rename_result){
-		my_free((void **)&log_archive);
+		my_free(log_archive);
 		return ERROR;
 	        }
 
@@ -406,7 +406,7 @@ int rotate_log_file(time_t rotation_time){
 	/* record the log rotation after it has been done... */
 	asprintf(&temp_buffer,"LOG ROTATION: %s\n",method_string);
 	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,&rotation_time);
-	my_free((void **)&temp_buffer);
+	my_free(temp_buffer);
 
 	/* record log file version format */
 	write_log_file_info(&rotation_time);
@@ -416,7 +416,7 @@ int rotate_log_file(time_t rotation_time){
 	log_service_states(CURRENT_STATES,&rotation_time);
 
 	/* free memory */
-	my_free((void **)&log_archive);
+	my_free(log_archive);
 
 	return OK;
         }
@@ -429,7 +429,7 @@ int write_log_file_info(time_t *timestamp){
 	/* write log version */
 	asprintf(&temp_buffer,"LOG VERSION: %s\n",LOG_VERSION_2);
 	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,timestamp);
-	my_free((void **)&temp_buffer);
+	my_free(temp_buffer);
 
 	return OK;
         }
@@ -509,7 +509,7 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...){
 			my_rename(debug_file,temp_path);
 
 			/* free memory */
-			my_free((void **)&temp_path);
+			my_free(temp_path);
 			}
 
 		/* open a new file */

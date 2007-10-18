@@ -123,8 +123,8 @@ int obsessive_compulsive_service_check_processor(service *svc){
 		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: OCSP command '%s' for service '%s' on host '%s' timed out after %d seconds\n",processed_command,svc->description,svc->host_name,ocsp_timeout);
 
 	/* free memory */
-	my_free((void **)&raw_command);
-	my_free((void **)&processed_command);
+	my_free(raw_command);
+	my_free(processed_command);
 	
 	return OK;
         }
@@ -182,8 +182,8 @@ int obsessive_compulsive_host_check_processor(host *hst){
 		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: OCHP command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,ochp_timeout);
 
 	/* free memory */
-	my_free((void **)&raw_command);
-	my_free((void **)&processed_command);
+	my_free(raw_command);
+	my_free(processed_command);
 
 	return OK;
         }
@@ -313,9 +313,9 @@ int run_global_service_event_handler(service *svc){
 #endif
 
 	/* free memory */
-	my_free((void **)&command_output);
-	my_free((void **)&raw_command);
-	my_free((void **)&processed_command);
+	my_free(command_output);
+	my_free(raw_command);
+	my_free(processed_command);
 
 	return OK;
         }
@@ -389,9 +389,9 @@ int run_service_event_handler(service *svc){
 #endif
 
 	/* free memory */
-	my_free((void **)&command_output);
-	my_free((void **)&raw_command);
-	my_free((void **)&processed_command);
+	my_free(command_output);
+	my_free(raw_command);
+	my_free(processed_command);
 
 	return OK;
         }
@@ -514,9 +514,9 @@ int run_global_host_event_handler(host *hst){
 #endif
 
 	/* free memory */
-	my_free((void **)&command_output);
-	my_free((void **)&raw_command);
-	my_free((void **)&processed_command);
+	my_free(command_output);
+	my_free(raw_command);
+	my_free(processed_command);
 
 	return OK;
         }
@@ -589,9 +589,9 @@ int run_host_event_handler(host *hst){
 #endif
 
 	/* free memory */
-	my_free((void **)&command_output);
-	my_free((void **)&raw_command);
-	my_free((void **)&processed_command);
+	my_free(command_output);
+	my_free(raw_command);
+	my_free(processed_command);
 
 	return OK;
         }

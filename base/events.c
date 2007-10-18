@@ -939,7 +939,7 @@ int event_execution_loop(void){
 
 			/* else free memory associated with the event */
 			else
-				my_free((void **)&temp_event);
+				my_free(temp_event);
 		        }
 
 		/* handle low priority events */
@@ -1058,7 +1058,7 @@ int event_execution_loop(void){
 
 				/* else free memory associated with the event */
 				else
-					my_free((void **)&temp_event);
+					my_free(temp_event);
 			        }
 
 			/* wait a while so we don't hog the CPU... */

@@ -139,7 +139,7 @@ int check_for_external_commands(void){
 			buffer=strdup(((char **)external_command_buffer.buffer)[external_command_buffer.tail]);
 
 		/* free memory allocated for buffer slot */
-		my_free((void **)&((char **)external_command_buffer.buffer)[external_command_buffer.tail]);
+		my_free(((char **)external_command_buffer.buffer)[external_command_buffer.tail]);
 
 		/* adjust tail counter and number of items */
 		external_command_buffer.tail=(external_command_buffer.tail + 1) % external_command_buffer_slots;
@@ -152,7 +152,7 @@ int check_for_external_commands(void){
 		process_external_command1(buffer);
 
 		/* free memory */
-		my_free((void **)&buffer);
+		my_free(buffer);
 	        }
 
 	/**** PROCESS ALL PASSIVE HOST AND SERVICE CHECK RESULTS AT ONE TIME ****/
@@ -187,7 +187,7 @@ int process_external_commands_from_file(char *fname, int delete_file){
 	while(1){
 
 		/* free memory */
-		my_free((void **)&input);
+		my_free(input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -247,7 +247,7 @@ int process_external_command1(char *cmd){
 	else
 		args=(char *)strdup(temp_ptr);
 	if(args==NULL){
-		my_free((void **)&command_id);
+		my_free(command_id);
 		return ERROR;
 	        }
 
@@ -685,8 +685,8 @@ int process_external_command1(char *cmd){
 		logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING,TRUE,"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
 
 		/* free memory */
-		my_free((void **)&command_id);
-		my_free((void **)&args);
+		my_free(command_id);
+		my_free(args);
 
 		return ERROR;
 	        }
@@ -705,7 +705,7 @@ int process_external_command1(char *cmd){
 		if(log_external_commands==TRUE)
 			write_to_all_logs(temp_buffer,NSLOG_EXTERNAL_COMMAND);
 	        }
-	my_free((void **)&temp_buffer);
+	my_free(temp_buffer);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -721,8 +721,8 @@ int process_external_command1(char *cmd){
 #endif
 
 	/* free memory */
-	my_free((void **)&command_id);
-	my_free((void **)&args);
+	my_free(command_id);
+	my_free(args);
 
 	return OK;
         }
@@ -1965,15 +1965,15 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 
 	/* get the service description */
 	if((temp_ptr=my_strtok(NULL,";"))==NULL){
-		my_free((void **)&host_name);
+		my_free(host_name);
 		return ERROR;
 	        }
 	svc_description=(char *)strdup(temp_ptr);
 
 	/* get the service check return code */
 	if((temp_ptr=my_strtok(NULL,";"))==NULL){
-		my_free((void **)&host_name);
-		my_free((void **)&svc_description);
+		my_free(host_name);
+		my_free(svc_description);
 		return ERROR;
 	        }
 	return_code=atoi(temp_ptr);
@@ -1988,9 +1988,9 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	result=process_passive_service_check(check_time,host_name,svc_description,return_code,output);
 
 	/* free memory */
-	my_free((void **)&host_name);
-	my_free((void **)&svc_description);
-	my_free((void **)&output);
+	my_free(host_name);
+	my_free(svc_description);
+	my_free(output);
 
 	return result;
         }
@@ -2064,10 +2064,10 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 
 	/* handle errors */
 	if(result==ERROR){
-		my_free((void **)&new_pcr->output);
-		my_free((void **)&new_pcr->service_description);
-		my_free((void **)&new_pcr->host_name);
-		my_free((void **)&new_pcr);
+		my_free(new_pcr->output);
+		my_free(new_pcr->service_description);
+		my_free(new_pcr->host_name);
+		my_free(new_pcr);
 		return ERROR;
 	        }
 
@@ -2113,7 +2113,7 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 	/* get the host check return code */
 	if((temp_ptr=my_strtok(NULL,";"))==NULL){
-		my_free((void **)&host_name);
+		my_free(host_name);
 		return ERROR;
 	        }
 	return_code=atoi(temp_ptr);
@@ -2128,8 +2128,8 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	result=process_passive_host_check(check_time,host_name,return_code,output);
 
 	/* free memory */
-	my_free((void **)&host_name);
-	my_free((void **)&output);
+	my_free(host_name);
+	my_free(output);
 
 	return result;
         }
@@ -2197,10 +2197,10 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 
 	/* handle errors */
 	if(result==ERROR){
-		my_free((void **)&new_pcr->output);
-		my_free((void **)&new_pcr->service_description);
-		my_free((void **)&new_pcr->host_name);
-		my_free((void **)&new_pcr);
+		my_free(new_pcr->output);
+		my_free(new_pcr->service_description);
+		my_free(new_pcr->host_name);
+		my_free(new_pcr);
 		return ERROR;
 	        }
 
@@ -2286,7 +2286,7 @@ int cmd_acknowledge_problem(int cmd,char *args){
 	
 	/* get the acknowledgement data */
 	if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
-		my_free((void **)&ack_author);
+		my_free(ack_author);
 		return ERROR;
 	        }
 	ack_data=(char *)strdup(temp_ptr);
@@ -2300,8 +2300,8 @@ int cmd_acknowledge_problem(int cmd,char *args){
 		acknowledge_service_problem(temp_service,ack_author,ack_data,type,notify,persistent);
 
 	/* free memory */
-	my_free((void **)&ack_author);
-	my_free((void **)&ack_data);
+	my_free(ack_author);
+	my_free(ack_data);
 
 	return OK;
         }
@@ -2819,7 +2819,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		/* make sure the timeperiod is valid */
 		if((temp_timeperiod=find_timeperiod(temp_ptr))==NULL){
-			my_free((void **)&temp_ptr);
+			my_free(temp_ptr);
 			return ERROR;
 		        }
 
@@ -2830,11 +2830,11 @@ int cmd_change_object_char_var(int cmd,char *args){
 		/* make sure the command exists */
 		temp_ptr2=my_strtok(temp_ptr,"!");
 		if((temp_command=find_command(temp_ptr2))==NULL){
-			my_free((void **)&temp_ptr);
+			my_free(temp_ptr);
 			return ERROR;
 		        }
 
-		my_free((void **)&temp_ptr);
+		my_free(temp_ptr);
 		if((temp_ptr=(char *)strdup(charval))==NULL)
 			return ERROR;
 
@@ -2847,7 +2847,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
 
-		my_free((void **)&global_host_event_handler);
+		my_free(global_host_event_handler);
 		global_host_event_handler=temp_ptr;
 		global_host_event_handler_ptr=temp_command;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
@@ -2855,7 +2855,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
 
-		my_free((void **)&global_service_event_handler);
+		my_free(global_service_event_handler);
 		global_service_event_handler=temp_ptr;
 		global_service_event_handler_ptr=temp_command;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
@@ -2863,7 +2863,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	case CMD_CHANGE_HOST_EVENT_HANDLER:
 
-		my_free((void **)&temp_host->event_handler);
+		my_free(temp_host->event_handler);
 		temp_host->event_handler=temp_ptr;
 		temp_host->event_handler_ptr=temp_command;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
@@ -2871,7 +2871,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	case CMD_CHANGE_HOST_CHECK_COMMAND:
 
-		my_free((void **)&temp_host->host_check_command);
+		my_free(temp_host->host_check_command);
 		temp_host->host_check_command=temp_ptr;
 		temp_host->check_command_ptr=temp_command;
 		attr=MODATTR_CHECK_COMMAND;
@@ -2879,7 +2879,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
 
-		my_free((void **)&temp_host->check_period);
+		my_free(temp_host->check_period);
 		temp_host->check_period=temp_ptr;
 		temp_host->check_period_ptr=temp_timeperiod;
 		attr=MODATTR_CHECK_TIMEPERIOD;
@@ -2887,7 +2887,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	case CMD_CHANGE_SVC_EVENT_HANDLER:
 
-		my_free((void **)&temp_service->event_handler);
+		my_free(temp_service->event_handler);
 		temp_service->event_handler=temp_ptr;
 		temp_service->event_handler_ptr=temp_command;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
@@ -2895,7 +2895,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	case CMD_CHANGE_SVC_CHECK_COMMAND:
 
-		my_free((void **)&temp_service->service_check_command);
+		my_free(temp_service->service_check_command);
 		temp_service->service_check_command=temp_ptr;
 		temp_service->check_command_ptr=temp_command;
 		attr=MODATTR_CHECK_COMMAND;
@@ -2903,7 +2903,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
 
-		my_free((void **)&temp_service->check_period);
+		my_free(temp_service->check_period);
 		temp_service->check_period=temp_ptr;
 		temp_service->check_period_ptr=temp_timeperiod;
 		attr=MODATTR_CHECK_TIMEPERIOD;
@@ -3006,38 +3006,38 @@ int cmd_change_object_custom_var(int cmd, char *args){
 	/* get the service description if necessary */
 	if(cmd==CMD_CHANGE_CUSTOM_SVC_VAR){
 		if((temp_ptr=my_strtok(NULL,";"))==NULL){
-			my_free((void **)&name1);
+			my_free(name1);
 			return ERROR;
 		        }
 		if((name2=(char *)strdup(temp_ptr))==NULL){
-			my_free((void **)&name1);
+			my_free(name1);
 			return ERROR;
 		        }
 	        }
 
 	/* get the custom variable name */
 	if((temp_ptr=my_strtok(NULL,";"))==NULL){
-		my_free((void **)&name1);
-		my_free((void **)&name2);
+		my_free(name1);
+		my_free(name2);
 		return ERROR;
 	        }
 	if((varname=(char *)strdup(temp_ptr))==NULL){
-		my_free((void **)&name1);
-		my_free((void **)&name2);
+		my_free(name1);
+		my_free(name2);
 		return ERROR;
 	        }
 
 	/* get the custom variable value */
 	if((temp_ptr=my_strtok(NULL,";"))==NULL){
-		my_free((void **)&name1);
-		my_free((void **)&name2);
-		my_free((void **)&varname);
+		my_free(name1);
+		my_free(name2);
+		my_free(varname);
 		return ERROR;
 	        }
 	if((varvalue=(char *)strdup(temp_ptr))==NULL){
-		my_free((void **)&name1);
-		my_free((void **)&name2);
-		my_free((void **)&varname);
+		my_free(name1);
+		my_free(name2);
+		my_free(varname);
 		return ERROR;
 	        }
 
@@ -3071,7 +3071,7 @@ int cmd_change_object_custom_var(int cmd, char *args){
 
 			/* update the value */
 			if(temp_customvariablesmember->variable_value)
-				my_free((void **)&temp_customvariablesmember->variable_value);
+				my_free(temp_customvariablesmember->variable_value);
 			temp_customvariablesmember->variable_value=(char *)strdup(varvalue);
 
 			/* mark the variable value as having been changed */
@@ -3082,10 +3082,10 @@ int cmd_change_object_custom_var(int cmd, char *args){
 	        }
 
 	/* free memory */
-	my_free((void **)&name1);
-	my_free((void **)&name2);
-	my_free((void **)&varname);
-	my_free((void **)&varvalue);
+	my_free(name1);
+	my_free(name2);
+	my_free(varname);
+	my_free(varvalue);
 
 	/* set the modified attributes and update the status of the object */
 	switch(cmd){
@@ -3123,7 +3123,7 @@ int cmd_process_external_commands_from_file(int cmd, char *args){
 
 	/* find the deletion option */
 	if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
-		my_free((void **)&fname);
+		my_free(fname);
 		return ERROR;
 	        }
 	if(atoi(temp_ptr)==0)
@@ -3135,7 +3135,7 @@ int cmd_process_external_commands_from_file(int cmd, char *args){
 	process_external_commands_from_file(fname,delete_file);
 
 	/* free memory */
-	my_free((void **)&fname);
+	my_free(fname);
 
 	return OK;
         }
@@ -4765,16 +4765,16 @@ void process_passive_checks(void){
 	move_check_result_to_queue(checkresult_file);
 
 	/* free memory */
-	my_free((void **)&checkresult_file);
+	my_free(checkresult_file);
 
 	/* free memory for the passive check result list */
 	this_pcr=passive_check_result_list;
 	while(this_pcr!=NULL){
 		next_pcr=this_pcr->next;
-		my_free((void **)&this_pcr->host_name);
-		my_free((void **)&this_pcr->service_description);
-		my_free((void **)&this_pcr->output);
-		my_free((void **)&this_pcr);
+		my_free(this_pcr->host_name);
+		my_free(this_pcr->service_description);
+		my_free(this_pcr->output);
+		my_free(this_pcr);
 		this_pcr=next_pcr;
 	        }
 	passive_check_result_list=NULL;

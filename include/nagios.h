@@ -614,7 +614,9 @@ void file_lock_sighandler(int);				/* handles timeouts while waiting for file lo
 void strip(char *);                                  	/* strips whitespace from string */  
 char *my_strtok(char *,char *);                      	/* my replacement for strtok() function (doesn't skip consecutive tokens) */
 char *my_strsep(char **,const char *);		     	/* Solaris doesn't have strsep(), so I took this from the glibc source code */
+#ifdef REMOVED_10182007
 int my_free(void **);                                   /* my wrapper for free() */
+#endif
 int compare_strings(char *,char *);                     /* compares two strings for equality */
 char *escape_newlines(char *);
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */

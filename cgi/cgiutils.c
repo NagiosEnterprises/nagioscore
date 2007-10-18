@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-07-2007
+ * Last Modified: 10-18-2007
  *
  * License:
  *
@@ -1175,7 +1175,7 @@ char *my_strsep (char **stringp, const char *delim){
 	}
 
 
-
+#ifdef REMOVED_10182007
 /* my wrapper for free() */
 int my_free(void **ptr){
 
@@ -1190,7 +1190,7 @@ int my_free(void **ptr){
 
 	return OK;
         }
-
+#endif
 
 
 /* open a file read-only via mmap() */

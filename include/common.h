@@ -42,6 +42,9 @@
 /* Experimental performance tweaks - use with caution */
 #undef USE_MEMORY_PERFORMANCE_TWEAKS
 
+/* macro funcs */
+#define my_free(ptr) { if(ptr) { free(ptr); ptr = NULL; } }
+
 
 
 /***************************** COMMANDS *********************************/

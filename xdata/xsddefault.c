@@ -90,6 +90,7 @@ extern int enable_flap_detection;
 extern int enable_failure_prediction;
 extern int process_performance_data;
 extern int aggregate_status_updates;
+extern int check_external_commands;
 
 extern int external_command_buffer_slots;
 extern circular_buffer external_command_buffer;
@@ -369,10 +370,16 @@ int xsddefault_save_status_data(void){
 	        }
 
 	/* get number of items in the command buffer */
-	pthread_mutex_lock(&external_command_buffer.buffer_lock);
-	used_external_command_buffer_slots=external_command_buffer.items;
-	high_external_command_buffer_slots=external_command_buffer.high;
-	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
+	if(check_external_commands==TRUE){
+		pthread_mutex_lock(&external_command_buffer.buffer_lock);
+		used_external_command_buffer_slots=external_command_buffer.items;
+		high_external_command_buffer_slots=external_command_buffer.high;
+		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
+		}
+	else{
+		used_external_command_buffer_slots=0;
+		high_external_command_buffer_slots=0;
+		}
 
 	/* generate check statistics */
 	generate_check_stats();

@@ -1302,7 +1302,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-                                        ac_config_headers="$ac_config_headers include/config.h include/snprintf.h include/nagios.h include/cgiutils.h"
+                              ac_config_headers="$ac_config_headers include/config.h include/snprintf.h include/cgiutils.h"
 
 
 
@@ -7061,7 +7061,7 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-                                                                                                                                            ac_config_files="$ac_config_files Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile include/Makefile xdata/Makefile daemon-init html/index.html html/side.html"
+                                                                                                                                  ac_config_files="$ac_config_files Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init html/index.html html/side.html"
 
 
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
@@ -7543,14 +7543,12 @@ do
   "cgi/Makefile" ) CONFIG_FILES="$CONFIG_FILES cgi/Makefile" ;;
   "html/Makefile" ) CONFIG_FILES="$CONFIG_FILES html/Makefile" ;;
   "module/Makefile" ) CONFIG_FILES="$CONFIG_FILES module/Makefile" ;;
-  "include/Makefile" ) CONFIG_FILES="$CONFIG_FILES include/Makefile" ;;
   "xdata/Makefile" ) CONFIG_FILES="$CONFIG_FILES xdata/Makefile" ;;
   "daemon-init" ) CONFIG_FILES="$CONFIG_FILES daemon-init" ;;
   "html/index.html" ) CONFIG_FILES="$CONFIG_FILES html/index.html" ;;
   "html/side.html" ) CONFIG_FILES="$CONFIG_FILES html/side.html" ;;
   "include/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
   "include/snprintf.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/snprintf.h" ;;
-  "include/nagios.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/nagios.h" ;;
   "include/cgiutils.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/cgiutils.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -8206,7 +8204,6 @@ fi
 
 
 perl subst include/locations.h
-perl subst include/nagios.h
 
 echo ""
 echo "Creating sample config files in sample-config/ ..."

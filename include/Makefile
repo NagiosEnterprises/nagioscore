@@ -1,13 +1,13 @@
 ###############################
 # Makefile for Include Files
 #
-# Last Modified: 08-14-2003
+# Last Modified: 10-18-2007
 ###############################
 
 clean:
 	rm -f *~
 
 distclean: clean
-	rm -f Makefile cgiutils.h config.h locations.h nagios.h snprintf.h
+	rm -f cgiutils.h config.h locations.h snprintf.h
 
 devclean: distclean

@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-19-2007
+ * Last Modified: 08-14-2007
  *
  * License:
  * 
@@ -943,7 +943,7 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='checkbox' NAME='persistent' CHECKED>");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE'TEXT' NAME='com_author' VALUE='%s'>",comment_author);
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",comment_author);
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);

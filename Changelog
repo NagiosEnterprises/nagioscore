@@ -9,6 +9,11 @@ Nagios 2.x Change Log
 * Sample config files are now installed without a -sample extension
 * Fix for SIGTERMs being seen as SIGEXITs, non-logging of SIGTERMs/shutdowns
 * Minor fix for notification timeout log messages
+* Fix for not logging passive host check results
+* Minor bug fixes in CGIs
+* Possible fix for a segfault when processing passive host check results with empty output/perfdata
+* Fix for incorrect latency calculation for passive service checks
+* Bug fix with attempting to access an uninitalized mutex if external commands are disabled
 
 
 

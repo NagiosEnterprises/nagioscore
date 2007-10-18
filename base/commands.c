@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-05-2007
+ * Last Modified:   10-07-2007
  *
  * License:
  *
@@ -563,7 +563,7 @@ void check_for_external_commands(void){
 		/* log the external command */
 		snprintf(buffer,sizeof(buffer),"EXTERNAL COMMAND: %s;%s\n",command_id,args);
 		buffer[sizeof(buffer)-1]='\x0';
-		if(command_type==CMD_PROCESS_SERVICE_CHECK_RESULT){
+		if(command_type==CMD_PROCESS_SERVICE_CHECK_RESULT || command_type==CMD_PROCESS_HOST_CHECK_RESULT){
 			if(log_passive_checks==TRUE)
 				write_to_all_logs(buffer,NSLOG_PASSIVE_CHECK);
 		        }
@@ -1950,12 +1950,12 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 /* process passive host check result */
 /* this function is a bit more involved than for passive service checks, as we need to replicate most functions performed by check_route_to_host() */
 int process_passive_host_check(time_t check_time, char *host_name, int return_code, char *output){
-	host *temp_host;
+	host *temp_host=NULL;
 	char *real_host_name="";
 	struct timeval tv;
 	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
 	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
-	char *temp_ptr;
+	char *temp_ptr=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
 
 #ifdef DEBUG0
@@ -2075,16 +2075,16 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 			strncpy(temp_host->plugin_output,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
 			temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
                         }
-	        }
 
-	/* second part of plugin output (after pipe) is performance data (which may or may not exist) */
-	temp_ptr=strtok(NULL,"\n");
+		/* second part of plugin output (after pipe) is performance data (which may or may not exist) */
+		temp_ptr=strtok(NULL,"\n");
 
-	/* grab performance data if we found it available */
-	if(temp_ptr!=NULL){
-		strip(temp_ptr);
-		strncpy(temp_host->perf_data,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
-		temp_host->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+		/* grab performance data if we found it available */
+		if(temp_ptr!=NULL){
+			strip(temp_ptr);
+			strncpy(temp_host->perf_data,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
+			temp_host->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+			}
 	        }
 
 	/* replace semicolons in plugin output (but not performance data) with colons */

@@ -679,7 +679,7 @@ void reap_service_checks(void){
 		/* calculate passive check latency */
 		if(queued_svc_msg.check_type==SERVICE_CHECK_PASSIVE){
 			gettimeofday(&tv,NULL);
-			temp_service->latency=(double)((double)(tv.tv_sec-queued_svc_msg.finish_time.tv_sec)+(double)((tv.tv_usec-queued_svc_msg.finish_time.tv_usec)/1000.0));
+			temp_service->latency=(double)((double)(tv.tv_sec-queued_svc_msg.finish_time.tv_sec)+(double)((tv.tv_usec-queued_svc_msg.finish_time.tv_usec)/1000.0/1000.0));
 			if(temp_service->latency<0.0)
 				temp_service->latency=0.0;
 		        }

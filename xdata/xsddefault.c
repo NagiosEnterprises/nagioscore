@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-02-2007
+ * Last Modified:   10-19-2007
  *
  * License:
  *
@@ -85,6 +85,7 @@ extern int enable_flap_detection;
 extern int enable_failure_prediction;
 extern int process_performance_data;
 extern int aggregate_status_updates;
+extern int check_external_commands;
 
 extern int external_command_buffer_slots;
 extern int check_result_buffer_slots;
@@ -338,10 +339,16 @@ int xsddefault_save_status_data(void){
 	pthread_mutex_unlock(&service_result_buffer.buffer_lock);
 
 	/* get number of items in the command buffer */
-	pthread_mutex_lock(&external_command_buffer.buffer_lock);
-	used_external_command_buffer_slots=external_command_buffer.items;
-	high_external_command_buffer_slots=external_command_buffer.high;
-	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
+	if(check_external_commands==TRUE){
+		pthread_mutex_lock(&external_command_buffer.buffer_lock);
+		used_external_command_buffer_slots=external_command_buffer.items;
+		high_external_command_buffer_slots=external_command_buffer.high;
+		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
+		}
+	else{
+		used_external_command_buffer_slots=0;
+		high_external_command_buffer_slots=0;
+		}
 
 	/* write version info to status file */
 	fprintf(fp,"########################################\n");

@@ -148,7 +148,7 @@ int xsddefault_grab_config_info(char *config_file){
 	while(1){
 
 		/* free memory */
-		my_free(input);
+		my_free(&input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -176,7 +176,7 @@ int xsddefault_grab_config_info(char *config_file){
 			while(1){
 
 				/* free memory */
-				my_free(input2);
+				my_free(&input2);
 
 				/* read the next line */
 				if((input2=mmap_fgets(thefile2))==NULL)
@@ -192,7 +192,7 @@ int xsddefault_grab_config_info(char *config_file){
 			        }
 
 			/* free memory and close the file */
-			my_free(input2);
+			my_free(&input2);
 			mmap_fclose(thefile2);
 		        }
 #endif
@@ -204,7 +204,7 @@ int xsddefault_grab_config_info(char *config_file){
 	        }
 
 	/* free memory and close the file */
-	my_free(input);
+	my_free(&input);
 	mmap_fclose(thefile);
 
 	/* initialize locations if necessary */
@@ -221,7 +221,7 @@ int xsddefault_grab_config_info(char *config_file){
 
 #ifdef NSCORE
 	/* save the status file macro */
-	my_free(macro_x[MACRO_STATUSDATAFILE]);
+	my_free(&macro_x[MACRO_STATUSDATAFILE]);
 	if((macro_x[MACRO_STATUSDATAFILE]=(char *)strdup(xsddefault_status_log)))
 		strip(macro_x[MACRO_STATUSDATAFILE]);
 #endif
@@ -244,11 +244,11 @@ int xsddefault_grab_config_directives(char *input){
 
 	/* get the variable value */
 	if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
-		my_free(varname);
+		my_free(&varname);
 		return ERROR;
 	        }
 	if((varvalue=(char *)strdup(temp_ptr))==NULL){
-		my_free(varname);
+		my_free(&varname);
 		return ERROR;
 	        }
 
@@ -261,8 +261,8 @@ int xsddefault_grab_config_directives(char *input){
 		xsddefault_temp_file=(char *)strdup(temp_ptr);
 
 	/* free memory */
-	my_free(varname);
-	my_free(varvalue);
+	my_free(&varname);
+	my_free(&varvalue);
 
 	return OK;
         }
@@ -303,8 +303,8 @@ int xsddefault_cleanup_status_data(char *config_file, int delete_status_data){
 	        }
 
 	/* free memory */
-	my_free(xsddefault_status_log);
-	my_free(xsddefault_temp_file);
+	my_free(&xsddefault_status_log);
+	my_free(&xsddefault_temp_file);
 
 	return OK;
         }
@@ -348,7 +348,7 @@ int xsddefault_save_status_data(void){
 #endif
 
 		/* free memory */
-		my_free(temp_file);
+		my_free(&temp_file);
 
 		return ERROR;
 	        }
@@ -364,7 +364,7 @@ int xsddefault_save_status_data(void){
 #endif
 
 		/* free memory */
-		my_free(temp_file);
+		my_free(&temp_file);
 
 		return ERROR;
 	        }
@@ -660,13 +660,13 @@ int xsddefault_save_status_data(void){
 #endif
 
 		/* free memory */
-		my_free(temp_file);
+		my_free(&temp_file);
 
 		return ERROR;
 	        }
 
 	/* free memory */
-	my_free(temp_file);
+	my_free(&temp_file);
 
 	return OK;
         }
@@ -748,7 +748,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 			break;
 #else
 		/* free memory */
-		my_free(input);
+		my_free(&input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -830,10 +830,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 				add_comment((data_type==XSDDEFAULT_HOSTCOMMENT_DATA)?HOST_COMMENT:SERVICE_COMMENT,entry_type,host_name,service_description,entry_time,author,comment_data,comment_id,persistent,expires,expire_time,source);
 
 				/* free temp memory */
-				my_free(host_name);
-				my_free(service_description);
-				my_free(author);
-				my_free(comment_data);
+				my_free(&host_name);
+				my_free(&service_description);
+				my_free(&author);
+				my_free(&comment_data);
 
 				/* reset defaults */
 				entry_type=USER_COMMENT;
@@ -856,10 +856,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 					add_service_downtime(host_name,service_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 
 				/* free temp memory */
-				my_free(host_name);
-				my_free(service_description);
-				my_free(author);
-				my_free(comment_data);
+				my_free(&host_name);
+				my_free(&service_description);
+				my_free(&author);
+				my_free(&comment_data);
 
 				/* reset defaults */
 				downtime_id=0;
@@ -1242,13 +1242,13 @@ int xsddefault_read_status_data(char *config_file,int options){
 #ifdef NO_MMAP
 	fclose(fp);
 #else
-	my_free(input);
+	my_free(&input);
 	mmap_fclose(thefile);
 #endif
 
 	/* free memory */
-	my_free(xsddefault_status_log);
-	my_free(xsddefault_temp_file);
+	my_free(&xsddefault_status_log);
+	my_free(&xsddefault_temp_file);
 
 	return OK;
         }

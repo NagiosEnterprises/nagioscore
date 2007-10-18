@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2007
+ * Last Modified: 10-18-2007
  *
  * License:
  *
@@ -43,7 +43,7 @@
 #undef USE_MEMORY_PERFORMANCE_TWEAKS
 
 /* macro funcs */
-#define my_free(ptr) { if(ptr) { free(ptr); ptr = NULL; } }
+#define my_free(ptr) { if(ptr && *ptr) { free(*ptr); *ptr = NULL; } }
 
 
 

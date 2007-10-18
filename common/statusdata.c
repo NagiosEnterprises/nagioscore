@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-07-2006
+ * Last Modified:   10-18-2006
  *
  * License:
  *
@@ -348,7 +348,7 @@ int add_host_status(hoststatus *new_hoststatus){
 		if(new_hoststatus->has_been_checked==FALSE){
 			if(use_pending_states==TRUE)
 				new_hoststatus->status=HOST_PENDING;
-			my_free(new_hoststatus->plugin_output);
+			my_free(&new_hoststatus->plugin_output);
 			if(new_hoststatus->should_be_scheduled==TRUE){
 				get_time_string(&new_hoststatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);
 				asprintf(&new_hoststatus->plugin_output,"Host check scheduled for %s",date_string);
@@ -412,7 +412,7 @@ int add_service_status(servicestatus *new_svcstatus){
 		if(new_svcstatus->has_been_checked==FALSE){
 			if(use_pending_states==TRUE)
 				new_svcstatus->status=SERVICE_PENDING;
-			my_free(new_svcstatus->plugin_output);
+			my_free(&new_svcstatus->plugin_output);
 			if(new_svcstatus->should_be_scheduled==TRUE){
 				get_time_string(&new_svcstatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);
 				asprintf(&new_svcstatus->plugin_output,"Service check scheduled for %s",date_string);
@@ -461,27 +461,27 @@ void free_status_data(void){
 	/* free memory for the host status list */
 	for(this_hoststatus=hoststatus_list;this_hoststatus!=NULL;this_hoststatus=next_hoststatus){
 		next_hoststatus=this_hoststatus->next;
-		my_free(this_hoststatus->host_name);
-		my_free(this_hoststatus->plugin_output);
-		my_free(this_hoststatus->long_plugin_output);
-		my_free(this_hoststatus->perf_data);
-		my_free(this_hoststatus);
+		my_free(&this_hoststatus->host_name);
+		my_free(&this_hoststatus->plugin_output);
+		my_free(&this_hoststatus->long_plugin_output);
+		my_free(&this_hoststatus->perf_data);
+		my_free(&this_hoststatus);
 	        }
 
 	/* free memory for the service status list */
 	for(this_svcstatus=servicestatus_list;this_svcstatus!=NULL;this_svcstatus=next_svcstatus){
 		next_svcstatus=this_svcstatus->next;
-		my_free(this_svcstatus->host_name);
-		my_free(this_svcstatus->description);
-		my_free(this_svcstatus->plugin_output);
-		my_free(this_svcstatus->long_plugin_output);
-		my_free(this_svcstatus->perf_data);
-		my_free(this_svcstatus);
+		my_free(&this_svcstatus->host_name);
+		my_free(&this_svcstatus->description);
+		my_free(&this_svcstatus->plugin_output);
+		my_free(&this_svcstatus->long_plugin_output);
+		my_free(&this_svcstatus->perf_data);
+		my_free(&this_svcstatus);
 	        }
 
 	/* free hash lists reset list pointers */
-	my_free(hoststatus_hashlist);
-	my_free(servicestatus_hashlist);
+	my_free(&hoststatus_hashlist);
+	my_free(&servicestatus_hashlist);
 	hoststatus_list=NULL;
 	servicestatus_list=NULL;
 

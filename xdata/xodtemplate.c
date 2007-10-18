@@ -511,7 +511,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 	dirp=opendir(dirname);
         if(dirp==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not open config directory '%s' for reading.\n",dirname);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not open config directory '%s' for reading.\n",dirname);
 #endif
 		return ERROR;
 	        }
@@ -577,7 +577,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 				/* Handle special case with maxxed out buffer */
 				if(readlink_count==MAX_FILENAME_LENGTH){
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Cannot follow symlink '%s' - Too big!\n",file);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Cannot follow symlink '%s' - Too big!\n",file);
 #endif
 					return ERROR;
 				        }
@@ -585,7 +585,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 				/* Check if reading symlink failed */
 				if(readlink_count==-1){
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Cannot read symlink '%s': %s!\n",file, strerror(errno));
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Cannot read symlink '%s': %s!\n",file, strerror(errno));
 #endif
 					return ERROR;
 				        }
@@ -617,13 +617,13 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 					/* non-existent symlink - bomb out */
 					if(errno==ENOENT){
 #ifdef NSCORE
-						logit(NSLOG_CONFIG_ERROR, "Error: symlink '%s' points to non-existent '%s'!\n",file,link_buffer);
+						logit(NSLOG_CONFIG_ERROR,TRUE,"Error: symlink '%s' points to non-existent '%s'!\n",file,link_buffer);
 #endif
 						return ERROR;
 					        }
 
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Cannot stat symlinked from '%s' to %s!\n",file,link_buffer);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Cannot stat symlinked from '%s' to %s!\n",file,link_buffer);
 #endif
 					return ERROR;
 				        }
@@ -677,7 +677,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 	/* open the config file for reading */
 	if((thefile=mmap_fopen(filename))==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Cannot open config file '%s' for reading: %s\n",filename,strerror(errno));
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Cannot open config file '%s' for reading: %s\n",filename,strerror(errno));
 #endif
 		return ERROR;
 	        }
@@ -730,7 +730,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 			/* make sure an object type is specified... */
 			if(input[0]=='\x0'){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: No object type specified in file '%s' on line %d.\n",filename,current_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: No object type specified in file '%s' on line %d.\n",filename,current_line);
 #endif
 				result=ERROR;
 				break;
@@ -739,7 +739,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 			/* check validity of object type */
 			if(strcmp(input,"timeperiod") && strcmp(input,"command") && strcmp(input,"contact") && strcmp(input,"contactgroup") && strcmp(input,"host") && strcmp(input,"hostgroup") && strcmp(input,"servicegroup") && strcmp(input,"service") && strcmp(input,"servicedependency") && strcmp(input,"serviceescalation") && strcmp(input,"hostgroupescalation") && strcmp(input,"hostdependency") && strcmp(input,"hostescalation") && strcmp(input,"hostextinfo") && strcmp(input,"serviceextinfo")){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid object definition type '%s' in file '%s' on line %d.\n",input,filename,current_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid object definition type '%s' in file '%s' on line %d.\n",input,filename,current_line);
 #endif
 				result=ERROR;
 				break;
@@ -748,7 +748,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 			/* we're already in an object definition... */
 			if(in_definition==TRUE){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Unexpected start of object definition in file '%s' on line %d.  Make sure you close preceding objects before starting a new one.\n",filename,current_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Unexpected start of object definition in file '%s' on line %d.  Make sure you close preceding objects before starting a new one.\n",filename,current_line);
 #endif
 				result=ERROR;
 				break;
@@ -757,7 +757,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 			/* start a new definition */
 			if(xodtemplate_begin_object_definition(input,options,xodtemplate_current_config_file,current_line)==ERROR){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add object definition in file '%s' on line %d.\n",filename,current_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add object definition in file '%s' on line %d.\n",filename,current_line);
 #endif
 				result=ERROR;
 				break;
@@ -774,7 +774,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 			/* close out current definition */
 			if(xodtemplate_end_object_definition(options)==ERROR){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not complete object definition in file '%s' on line %d.\n",filename,current_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not complete object definition in file '%s' on line %d.\n",filename,current_line);
 #endif
 				result=ERROR;
 				break;
@@ -792,7 +792,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 				/* close out current definition */
 				if(xodtemplate_end_object_definition(options)==ERROR){
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Could not complete object definition in file '%s' on line %d.\n",filename,current_line);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not complete object definition in file '%s' on line %d.\n",filename,current_line);
 #endif
 					result=ERROR;
 					break;
@@ -805,7 +805,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 				/* add directive to object definition */
 				if(xodtemplate_add_object_property(input,options)==ERROR){
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Could not add object property in file '%s' on line %d.\n",filename,current_line);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add object property in file '%s' on line %d.\n",filename,current_line);
 #endif
 					result=ERROR;
 					break;
@@ -842,7 +842,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 		/* unexpected token or statement */
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Unexpected token or statement in file '%s' on line %d.\n",filename,current_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Unexpected token or statement in file '%s' on line %d.\n",filename,current_line);
 #endif
 			result=ERROR;
 			break;
@@ -856,7 +856,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 	/* whoops - EOF while we were in the middle of an object definition... */
 	if(in_definition==TRUE && result==OK){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Unexpected EOF in file '%s' on line %d - check for a missing closing bracket.\n",filename,current_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Unexpected EOF in file '%s' on line %d - check for a missing closing bracket.\n",filename,current_line);
 #endif
 		result=ERROR;
 	        }
@@ -1884,7 +1884,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_timeperiod(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for timeperiod '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_timeperiod->_config_file),temp_timeperiod->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for timeperiod '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_timeperiod->_config_file),temp_timeperiod->_start_line);
 #endif
 			        }
 #endif
@@ -1930,7 +1930,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			result=OK;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid timeperiod object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid timeperiod object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -1952,7 +1952,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_command(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for command '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_command->_config_file),temp_command->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for command '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_command->_config_file),temp_command->_start_line);
 #endif
 			        }
 #endif
@@ -1972,7 +1972,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_command->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid command object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid command object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -1993,7 +1993,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_contactgroup(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for contactgroup '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_contactgroup->_config_file),temp_contactgroup->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for contactgroup '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_contactgroup->_config_file),temp_contactgroup->_start_line);
 #endif
 			        }
 #endif
@@ -2045,7 +2045,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_contactgroup->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid contactgroup object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid contactgroup object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -2066,7 +2066,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_hostgroup(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for hostgroup '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for hostgroup '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
 #endif
 			        }
 #endif
@@ -2139,7 +2139,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_hostgroup->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid hostgroup object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid hostgroup object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -2161,7 +2161,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_servicegroup(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for servicegroup '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for servicegroup '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
 #endif
 			        }
 #endif
@@ -2234,7 +2234,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_servicegroup->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid servicegroup object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid servicegroup object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -2256,7 +2256,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_servicedependency(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for service dependency '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for service dependency '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 #endif
 			        }
 #endif
@@ -2357,7 +2357,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid execution dependency option '%s' in servicedependency definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid execution dependency option '%s' in servicedependency definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -2392,7 +2392,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid notification dependency option '%s' in servicedependency definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid notification dependency option '%s' in servicedependency definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -2403,7 +2403,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_servicedependency->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid servicedependency object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid servicedependency object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -2425,7 +2425,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_serviceescalation(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for service escalation '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for service escalation '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 #endif
 			        }
 #endif
@@ -2518,7 +2518,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid escalation option '%s' in serviceescalation definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid escalation option '%s' in serviceescalation definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -2529,7 +2529,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_serviceescalation->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid serviceescalation object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid serviceescalation object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -2551,7 +2551,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_contact(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for contact '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_contact->_config_file),temp_contact->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for contact '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_contact->_config_file),temp_contact->_start_line);
 #endif
 			        }
 #endif
@@ -2655,7 +2655,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid host notification option '%s' in contact definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid host notification option '%s' in contact definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -2694,7 +2694,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid service notification option '%s' in contact definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid service notification option '%s' in contact definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -2731,7 +2731,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* make sure we have a variable name */
 			if(customvarname==NULL || !strcmp(customvarname,"")){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Null custom variable name.\n");
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Null custom variable name.\n");
 #endif
 				my_free((void **)&customvarname);
 				return ERROR;
@@ -2756,7 +2756,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid contact object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid contact object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -2778,7 +2778,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_host(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for host '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for host '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
 #endif
 			        }
 #endif
@@ -2932,7 +2932,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				temp_host->initial_state=2; /* HOST_UNREACHABLE */
 			else{
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid initial state '%s' in host definition.\n",value);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid initial state '%s' in host definition.\n",value);
 #endif
 				result=ERROR;
 				}
@@ -3008,7 +3008,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid flap detection option '%s' in host definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid flap detection option '%s' in host definition.\n",temp_ptr);
 #endif
 					result=ERROR;
 				        }
@@ -3043,7 +3043,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid notification option '%s' in host definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid notification option '%s' in host definition.\n",temp_ptr);
 #endif
 					result=ERROR;
 				        }
@@ -3082,7 +3082,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid stalking option '%s' in host definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid stalking option '%s' in host definition.\n",temp_ptr);
 #endif
 					result=ERROR;
 				        }
@@ -3100,14 +3100,14 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"2d_coords")){
 			if((temp_ptr=strtok(value,", "))==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid 2d_coords value '%s' in host definition.\n",temp_ptr);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid 2d_coords value '%s' in host definition.\n",temp_ptr);
 #endif
 				return ERROR;
 			        }
 			temp_host->x_2d=atoi(temp_ptr);
 			if((temp_ptr=strtok(NULL,", "))==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid 2d_coords value '%s' in host definition.\n",temp_ptr);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid 2d_coords value '%s' in host definition.\n",temp_ptr);
 #endif
 				return ERROR;
 			        }
@@ -3117,21 +3117,21 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"3d_coords")){
 			if((temp_ptr=strtok(value,", "))==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid 3d_coords value '%s' in host definition.\n",temp_ptr);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid 3d_coords value '%s' in host definition.\n",temp_ptr);
 #endif
 				return ERROR;
 			        }
 			temp_host->x_3d=strtod(temp_ptr,NULL);
 			if((temp_ptr=strtok(NULL,", "))==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid 3d_coords value '%s' in host definition.\n",temp_ptr);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid 3d_coords value '%s' in host definition.\n",temp_ptr);
 #endif
 				return ERROR;
 			        }
 			temp_host->y_3d=strtod(temp_ptr,NULL);
 			if((temp_ptr=strtok(NULL,", "))==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid 3d_coords value '%s' in host definition.\n",temp_ptr);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid 3d_coords value '%s' in host definition.\n",temp_ptr);
 #endif
 				return ERROR;
 			        }
@@ -3160,7 +3160,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* make sure we have a variable name */
 			if(customvarname==NULL || !strcmp(customvarname,"")){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Null custom variable name.\n");
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Null custom variable name.\n");
 #endif
 				my_free((void **)&customvarname);
 				return ERROR;
@@ -3184,7 +3184,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid host object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid host object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -3205,7 +3205,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_service(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for service '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for service '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 #endif
 			        }
 #endif
@@ -3350,7 +3350,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				temp_service->initial_state=STATE_CRITICAL;
 			else{
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid initial state '%s' in service definition.\n",value);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid initial state '%s' in service definition.\n",value);
 #endif
 				result=ERROR;
 				}
@@ -3443,7 +3443,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid flap detection option '%s' in service definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid flap detection option '%s' in service definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -3482,7 +3482,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid notification option '%s' in service definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid notification option '%s' in service definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -3525,7 +3525,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid stalking option '%s' in service definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid stalking option '%s' in service definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -3558,7 +3558,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* make sure we have a variable name */
 			if(customvarname==NULL || !strcmp(customvarname,"")){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Null custom variable name.\n");
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Null custom variable name.\n");
 #endif
 				my_free((void **)&customvarname);
 				return ERROR;
@@ -3583,7 +3583,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid service object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid service object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -3604,7 +3604,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_hostdependency(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for host dependency '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for host dependency '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
 #endif
 			        }
 #endif
@@ -3675,7 +3675,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid notification dependency option '%s' in hostdependency definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid notification dependency option '%s' in hostdependency definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -3706,7 +3706,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid execution dependency option '%s' in hostdependency definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid execution dependency option '%s' in hostdependency definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -3717,7 +3717,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_hostdependency->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid hostdependency object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid hostdependency object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -3739,7 +3739,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_hostescalation(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for host escalation '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for host escalation '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
 #endif
 			        }
 #endif
@@ -3814,7 +3814,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 				else{
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Invalid escalation option '%s' in hostescalation definition.\n",temp_ptr);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid escalation option '%s' in hostescalation definition.\n",temp_ptr);
 #endif
 					return ERROR;
 				        }
@@ -3825,7 +3825,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_hostescalation->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid hostescalation object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid hostescalation object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -3846,7 +3846,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_hostextinfo(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for extended host info '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostextinfo->_config_file),temp_hostextinfo->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for extended host info '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostextinfo->_config_file),temp_hostextinfo->_start_line);
 #endif
 			        }
 #endif
@@ -3921,7 +3921,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_ptr=strtok(value,", ");
 			if(temp_ptr==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid 2d_coords value '%s' in extended host info definition.\n",temp_ptr);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid 2d_coords value '%s' in extended host info definition.\n",temp_ptr);
 #endif
 				return ERROR;
 			        }
@@ -3929,7 +3929,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_ptr=strtok(NULL,", ");
 			if(temp_ptr==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid 2d_coords value '%s' in extended host info definition.\n",temp_ptr);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid 2d_coords value '%s' in extended host info definition.\n",temp_ptr);
 #endif
 				return ERROR;
 			        }
@@ -3940,7 +3940,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_ptr=strtok(value,", ");
 			if(temp_ptr==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid 3d_coords value '%s' in extended host info definition.\n",temp_ptr);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid 3d_coords value '%s' in extended host info definition.\n",temp_ptr);
 #endif
 				return ERROR;
 			        }
@@ -3948,7 +3948,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_ptr=strtok(NULL,", ");
 			if(temp_ptr==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid 3d_coords value '%s' in extended host info definition.\n",temp_ptr);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid 3d_coords value '%s' in extended host info definition.\n",temp_ptr);
 #endif
 				return ERROR;
 			        }
@@ -3956,7 +3956,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_ptr=strtok(NULL,", ");
 			if(temp_ptr==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Invalid 3d_coords value '%s' in extended host info definition.\n",temp_ptr);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid 3d_coords value '%s' in extended host info definition.\n",temp_ptr);
 #endif
 				return ERROR;
 			        }
@@ -3967,7 +3967,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_hostextinfo->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid hostextinfo object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid hostextinfo object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -3988,7 +3988,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* check for duplicates */
 			if(xodtemplate_find_serviceextinfo(value)!=NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_WARNING, "Warning: Duplicate definition found for extended service info '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_serviceextinfo->_config_file),temp_serviceextinfo->_start_line);
+				logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for extended service info '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_serviceextinfo->_config_file),temp_serviceextinfo->_start_line);
 #endif
 			        }
 #endif
@@ -4056,7 +4056,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_serviceextinfo->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Invalid serviceextinfo object directive '%s'.\n",variable);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid serviceextinfo object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -4530,7 +4530,7 @@ int xodtemplate_duplicate_services(void){
 		temp_memberlist=xodtemplate_expand_hostgroups_and_hosts(temp_service->hostgroup_name,temp_service->host_name,temp_service->_config_file,temp_service->_start_line);
 		if(temp_memberlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand hostgroups and/or hosts specified in service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand hostgroups and/or hosts specified in service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -4608,7 +4608,7 @@ int xodtemplate_duplicate_objects(void){
 		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostescalation->hostgroup_name,temp_hostescalation->host_name,temp_hostescalation->_config_file,temp_hostescalation->_start_line);
 		if(master_hostlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand hostgroups and/or hosts specified in host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand hostgroups and/or hosts specified in host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -4657,7 +4657,7 @@ int xodtemplate_duplicate_objects(void){
 		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_serviceescalation->hostgroup_name,temp_serviceescalation->host_name,temp_serviceescalation->_config_file,temp_serviceescalation->_start_line);
 		if(master_hostlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand hostgroups and/or hosts specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand hostgroups and/or hosts specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -4707,7 +4707,7 @@ int xodtemplate_duplicate_objects(void){
 		master_servicelist=xodtemplate_expand_servicegroups_and_services(NULL,temp_serviceescalation->host_name,temp_serviceescalation->service_description,temp_serviceescalation->_config_file,temp_serviceescalation->_start_line);
 		if(master_servicelist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand services specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand services specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -4758,7 +4758,7 @@ int xodtemplate_duplicate_objects(void){
 		master_servicelist=xodtemplate_expand_servicegroups_and_services(temp_serviceescalation->servicegroup_name,NULL,NULL,temp_serviceescalation->_config_file,temp_serviceescalation->_start_line);
 		if(master_servicelist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand servicegroups specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand servicegroups specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -4811,7 +4811,7 @@ int xodtemplate_duplicate_objects(void){
 		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->hostgroup_name,temp_hostdependency->host_name,temp_hostdependency->_config_file,temp_hostdependency->_start_line);
 		if(master_hostlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand master hostgroups and/or hosts specified in host dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand master hostgroups and/or hosts specified in host dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -4820,7 +4820,7 @@ int xodtemplate_duplicate_objects(void){
 		dependent_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->dependent_hostgroup_name,temp_hostdependency->dependent_host_name,temp_hostdependency->_config_file,temp_hostdependency->_start_line);
 		if(dependent_hostlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand dependent hostgroups and/or hosts specified in host dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand dependent hostgroups and/or hosts specified in host dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
 #endif
 			xodtemplate_free_memberlist(&master_hostlist);
 			return ERROR;
@@ -4874,7 +4874,7 @@ int xodtemplate_duplicate_objects(void){
 			master_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->servicegroup_name,NULL,NULL,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
 			if(master_servicelist==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not expand master servicegroups specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand master servicegroups specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 #endif
 				return ERROR;
 				}
@@ -4957,7 +4957,7 @@ int xodtemplate_duplicate_objects(void){
 			master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->hostgroup_name,temp_servicedependency->host_name,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
 			if(master_hostlist==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not expand master hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand master hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 #endif
 				return ERROR;
 				}
@@ -4973,7 +4973,7 @@ int xodtemplate_duplicate_objects(void){
 				master_servicelist=xodtemplate_expand_servicegroups_and_services(NULL,temp_masterhost->name1,service_descriptions,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
 				if(master_servicelist==NULL){
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Could not expand master services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand master services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 #endif
 					return ERROR;
 					}
@@ -5049,7 +5049,7 @@ int xodtemplate_duplicate_objects(void){
 			dependent_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->dependent_servicegroup_name,NULL,NULL,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
 			if(dependent_servicelist==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not expand dependent servicegroups specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand dependent servicegroups specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 #endif
 				return ERROR;
 				}
@@ -5142,7 +5142,7 @@ int xodtemplate_duplicate_objects(void){
 			dependent_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->dependent_hostgroup_name,temp_servicedependency->dependent_host_name,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
 			if(dependent_hostlist==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not expand dependent hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand dependent hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 #endif
 				return ERROR;
 				}
@@ -5158,7 +5158,7 @@ int xodtemplate_duplicate_objects(void){
 				dependent_servicelist=xodtemplate_expand_servicegroups_and_services(NULL,temp_dependenthost->name1,service_descriptions,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
 				if(dependent_servicelist==NULL){
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Could not expand dependent services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand dependent services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 #endif
 					return ERROR;
 					}
@@ -5232,7 +5232,7 @@ int xodtemplate_duplicate_objects(void){
 		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostextinfo->hostgroup_name,temp_hostextinfo->host_name,temp_hostextinfo->_config_file,temp_hostextinfo->_start_line);
 		if(master_hostlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand hostgroups and/or hosts specified in extended host info (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostextinfo->_config_file),temp_hostextinfo->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand hostgroups and/or hosts specified in extended host info (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostextinfo->_config_file),temp_hostextinfo->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -5280,7 +5280,7 @@ int xodtemplate_duplicate_objects(void){
 		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_serviceextinfo->hostgroup_name,temp_serviceextinfo->host_name,temp_serviceextinfo->_config_file,temp_serviceextinfo->_start_line);
 		if(master_hostlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceextinfo->_config_file),temp_serviceextinfo->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceextinfo->_config_file),temp_serviceextinfo->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -6353,7 +6353,7 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 		template_timeperiod=xodtemplate_find_timeperiod(temp_ptr);
 		if(template_timeperiod==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in timeperiod definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in timeperiod definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -6450,7 +6450,7 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command){
 		template_command=xodtemplate_find_command(temp_ptr);
 		if(template_command==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in command definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in command definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -6502,7 +6502,7 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 		template_contactgroup=xodtemplate_find_contactgroup(temp_ptr);
 		if(template_contactgroup==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in contactgroup definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in contactgroup definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -6558,7 +6558,7 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		template_hostgroup=xodtemplate_find_hostgroup(temp_ptr);
 		if(template_hostgroup==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in hostgroup definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in hostgroup definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -6629,7 +6629,7 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 		template_servicegroup=xodtemplate_find_servicegroup(temp_ptr);
 		if(template_servicegroup==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in servicegroup definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in servicegroup definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -6698,7 +6698,7 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 		template_servicedependency=xodtemplate_find_servicedependency(temp_ptr);
 		if(template_servicedependency==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in service dependency definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in service dependency definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -6778,7 +6778,7 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 		template_serviceescalation=xodtemplate_find_serviceescalation(temp_ptr);
 		if(template_serviceescalation==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in service escalation definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in service escalation definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -6859,7 +6859,7 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 		template_contact=xodtemplate_find_contact(temp_ptr);
 		if(template_contact==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in contact definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in contact definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -6996,7 +6996,7 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		template_host=xodtemplate_find_host(temp_ptr);
 		if(template_host==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in host definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in host definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -7247,7 +7247,7 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 		template_service=xodtemplate_find_service(temp_ptr);
 		if(template_service==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in service definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in service definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -7485,7 +7485,7 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 		template_hostdependency=xodtemplate_find_hostdependency(temp_ptr);
 		if(template_hostdependency==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in host dependency definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in host dependency definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -7560,7 +7560,7 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 		template_hostescalation=xodtemplate_find_hostescalation(temp_ptr);
 		if(template_hostescalation==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in host escalation definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in host escalation definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -7635,7 +7635,7 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 		template_hostextinfo=xodtemplate_find_hostextinfo(temp_ptr);
 		if(template_hostextinfo==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in extended host info definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in extended host info definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -7738,7 +7738,7 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 		template_serviceextinfo=xodtemplate_find_serviceextinfo(temp_ptr);
 		if(template_serviceextinfo==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Template '%s' specified in extended service info definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in extended service info definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
 #endif
 			my_free((void **)&template_names);
 			return ERROR;
@@ -7838,7 +7838,7 @@ int xodtemplate_recombobulate_contactgroups(void){
 			temp_contactgroup=xodtemplate_find_real_contactgroup(temp_ptr);
 			if(temp_contactgroup==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not find contactgroup '%s' specified in contact '%s' definition (config file '%s', starting on line %d)\n",temp_ptr,temp_contact->contact_name,xodtemplate_config_file_name(temp_contact->_config_file),temp_contact->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find contactgroup '%s' specified in contact '%s' definition (config file '%s', starting on line %d)\n",temp_ptr,temp_contact->contact_name,xodtemplate_config_file_name(temp_contact->_config_file),temp_contact->_start_line);
 #endif
 				my_free((void **)&contactgroup_names);
 				return ERROR;
@@ -7874,7 +7874,7 @@ int xodtemplate_recombobulate_contactgroups(void){
 		/* add all members to the contact group */
 		if(temp_memberlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand member contacts specified in contactgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_contactgroup->_config_file),temp_contactgroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand member contacts specified in contactgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_contactgroup->_config_file),temp_contactgroup->_start_line);
 #endif
 			return ERROR;
 	                }
@@ -7930,7 +7930,7 @@ int xodtemplate_recombobulate_object_contacts(void){
 		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_host->contact_groups,temp_host->contacts,temp_host->_config_file,temp_host->_start_line);
 		if(temp_memberlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand contacts specified in host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand contacts specified in host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
 #endif
 			return ERROR;
 	                }
@@ -7969,7 +7969,7 @@ int xodtemplate_recombobulate_object_contacts(void){
 		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_service->contact_groups,temp_service->contacts,temp_service->_config_file,temp_service->_start_line);
 		if(temp_memberlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand contacts specified in service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand contacts specified in service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 #endif
 			return ERROR;
 	                }
@@ -8008,7 +8008,7 @@ int xodtemplate_recombobulate_object_contacts(void){
 		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_hostescalation->contact_groups,temp_hostescalation->contacts,temp_hostescalation->_config_file,temp_hostescalation->_start_line);
 		if(temp_memberlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand contacts specified in host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand contacts specified in host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
 #endif
 			return ERROR;
 	                }
@@ -8047,7 +8047,7 @@ int xodtemplate_recombobulate_object_contacts(void){
 		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_serviceescalation->contact_groups,temp_serviceescalation->contacts,temp_serviceescalation->_config_file,temp_serviceescalation->_start_line);
 		if(temp_memberlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand contacts specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand contacts specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 #endif
 			return ERROR;
 	                }
@@ -8116,7 +8116,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not find hostgroup '%s' specified in host '%s' definition (config file '%s', starting on line %d)\n",temp_ptr,temp_host->host_name,xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find hostgroup '%s' specified in host '%s' definition (config file '%s', starting on line %d)\n",temp_ptr,temp_host->host_name,xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
 #endif
 				my_free((void **)&hostgroup_names);
 				return ERROR;
@@ -8156,7 +8156,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 		/* add all members to the host group */
 		if(temp_memberlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand member hosts specified in hostgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand member hosts specified in hostgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
 #endif
 			return ERROR;
 	                }
@@ -8223,7 +8223,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 			temp_servicegroup=xodtemplate_find_real_servicegroup(temp_ptr);
 			if(temp_servicegroup==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not find servicegroup '%s' specified in service '%s' on host '%s' definition (config file '%s', starting on line %d)\n",temp_ptr,temp_service->service_description,temp_service->host_name,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find servicegroup '%s' specified in service '%s' on host '%s' definition (config file '%s', starting on line %d)\n",temp_ptr,temp_service->service_description,temp_service->host_name,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 #endif
 				my_free((void **)&servicegroup_names);
 				return ERROR;
@@ -8296,7 +8296,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 				/* add all members to the service group */
 				if(temp_memberlist==NULL){
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Could not expand member services specified in servicegroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand member services specified in servicegroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
 #endif
 					my_free((void **)&member_names);
 					my_free((void **)&host_name);
@@ -8338,7 +8338,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 		/* error if there were an odd number of items specified (unmatched host/service pair) */
 		if(host_name!=NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Servicegroup members must be specified in <host_name>,<service_description> pairs (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Servicegroup members must be specified in <host_name>,<service_description> pairs (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
 #endif
 			my_free((void **)&host_name);
 			return ERROR;
@@ -8361,7 +8361,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 		/* add all members to the service group */
 		if(temp_memberlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not expand member servicegroups specified in servicegroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand member servicegroups specified in servicegroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -8921,7 +8921,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	/* return with an error if we couldn't add the timeperiod */
 	if(new_timeperiod==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not register timeperiod (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register timeperiod (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -8938,7 +8938,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			new_daterange=add_exception_to_timeperiod(new_timeperiod,temp_daterange->type,temp_daterange->syear,temp_daterange->smon,temp_daterange->smday,temp_daterange->swday,temp_daterange->swday_offset,temp_daterange->eyear,temp_daterange->emon,temp_daterange->emday,temp_daterange->ewday,temp_daterange->ewday_offset,temp_daterange->skip_interval);
 			if(new_daterange==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add date exception to timeperiod (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add date exception to timeperiod (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -8953,7 +8953,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 				/* get time ranges */
 				if(xodtemplate_get_time_ranges(day_range_start_buffer,&range_start_time,&range_end_time)==ERROR){
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Could not parse timerange #%d of timeperiod (config file '%s', starting on line %d)\n",range,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not parse timerange #%d of timeperiod (config file '%s', starting on line %d)\n",range,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 					return ERROR;
 					}
@@ -8962,7 +8962,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 				new_timerange=add_timerange_to_daterange(new_daterange,range_start_time,range_end_time);
 				if(new_timerange==NULL){
 #ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR, "Error: Could not add timerange #%d to timeperiod (config file '%s', starting on line %d)\n",range,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add timerange #%d to timeperiod (config file '%s', starting on line %d)\n",range,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 					return ERROR;
 					}
@@ -8986,7 +8986,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			/* get time ranges */
 			if(xodtemplate_get_time_ranges(day_range_start_buffer,&range_start_time,&range_end_time)==ERROR){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not parse timerange #%d for day %d of timeperiod (config file '%s', starting on line %d)\n",range,day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not parse timerange #%d for day %d of timeperiod (config file '%s', starting on line %d)\n",range,day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 				}
@@ -8995,7 +8995,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			new_timerange=add_timerange_to_timeperiod(new_timeperiod,day,range_start_time,range_end_time);
 			if(new_timerange==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add timerange #%d for day %d to timeperiod (config file '%s', starting on line %d)\n",range,day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add timerange #%d for day %d to timeperiod (config file '%s', starting on line %d)\n",range,day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -9010,7 +9010,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			new_timeperiodexclusion=add_exclusion_to_timeperiod(new_timeperiod,temp_ptr);
 			if(new_timeperiodexclusion==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add excluded timeperiod '%s' to timeperiod (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add excluded timeperiod '%s' to timeperiod (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 				}
@@ -9090,7 +9090,7 @@ int xodtemplate_register_command(xodtemplate_command *this_command){
 	/* return with an error if we couldn't add the command */
 	if(new_command==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not register command (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register command (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9116,7 +9116,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 	/* return with an error if we couldn't add the contactgroup */
 	if(new_contactgroup==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not register contactgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register contactgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9124,7 +9124,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 	/* add all members to the contact group */
 	if(this_contactgroup->members==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Contactgroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contactgroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9133,7 +9133,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 		new_contactsmember=add_contact_to_contactgroup(new_contactgroup,contact_name);
 		if(new_contactsmember==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not add contact '%s' to contactgroup (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contact '%s' to contactgroup (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -9160,7 +9160,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	/* return with an error if we couldn't add the hostgroup */
 	if(new_hostgroup==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not register hostgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register hostgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9168,7 +9168,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	/* add all members to hostgroup */
 	if(this_hostgroup->members==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Hostgroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Hostgroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9177,7 +9177,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		new_hostsmember=add_host_to_hostgroup(new_hostgroup,host_name);
 		if(new_hostsmember==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not add host '%s' to hostgroup (config file '%s', starting on line %d)\n",host_name,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add host '%s' to hostgroup (config file '%s', starting on line %d)\n",host_name,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -9205,7 +9205,7 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 	/* return with an error if we couldn't add the servicegroup */
 	if(new_servicegroup==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not register servicegroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register servicegroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9213,7 +9213,7 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 	/* add all members to servicegroup */
 	if(this_servicegroup->members==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Servicegroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Servicegroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9222,7 +9222,7 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 		svc_description=strtok(NULL,",");
 		if(svc_description==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Missing service name in servicegroup definition (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Missing service name in servicegroup definition (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 #endif
 			return ERROR;
 	                }
@@ -9231,7 +9231,7 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 		new_servicesmember=add_service_to_servicegroup(new_servicegroup,host_name,svc_description);
 		if(new_servicesmember==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not add service '%s' on host '%s' to servicegroup (config file '%s', starting on line %d)\n",svc_description,host_name,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add service '%s' on host '%s' to servicegroup (config file '%s', starting on line %d)\n",svc_description,host_name,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -9253,7 +9253,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 	/* throw a warning on servicedeps that have no options */
 	if(this_servicedependency->have_notification_dependency_options==FALSE && this_servicedependency->have_execution_dependency_options==FALSE){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_WARNING, "Warning: Ignoring lame service dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
+		logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Ignoring lame service dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
 #endif
 		return OK;
 	        }
@@ -9266,7 +9266,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 		/* return with an error if we couldn't add the servicedependency */
 		if(new_servicedependency==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not register service execution dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register service execution dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -9278,7 +9278,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 		/* return with an error if we couldn't add the servicedependency */
 		if(new_servicedependency==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not register service notification dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register service notification dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -9315,7 +9315,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 	/* return with an error if we couldn't add the serviceescalation */
 	if(new_serviceescalation==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not register service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9327,7 +9327,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 			new_contactgroupsmember=add_contactgroup_to_serviceescalation(new_serviceescalation,contact_group);
 			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add contactgroup '%s' to service escalation (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contactgroup '%s' to service escalation (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 #endif
 				return ERROR;
 				}
@@ -9341,7 +9341,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 			new_contactsmember=add_contact_to_serviceescalation(new_serviceescalation,contact_name);
 			if(new_contactsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add contact '%s' to service escalation (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contact '%s' to service escalation (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 #endif
 				return ERROR;
 				}
@@ -9370,7 +9370,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 	/* return with an error if we couldn't add the contact */
 	if(new_contact==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not register contact (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register contact (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9382,7 +9382,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 			new_commandsmember=add_host_notification_command_to_contact(new_contact,command_name);
 			if(new_commandsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add host notification command '%s' to contact (config file '%s', starting on line %d)\n",command_name,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add host notification command '%s' to contact (config file '%s', starting on line %d)\n",command_name,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -9396,7 +9396,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 			new_commandsmember=add_service_notification_command_to_contact(new_contact,command_name);
 			if(new_commandsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add service notification command '%s' to contact (config file '%s', starting on line %d)\n",command_name,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add service notification command '%s' to contact (config file '%s', starting on line %d)\n",command_name,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -9407,7 +9407,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 	for(temp_customvariablesmember=this_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 		if((add_custom_variable_to_contact(new_contact,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value))==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not custom variable to contact (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not custom variable to contact (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -9446,7 +9446,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	/* return with an error if we couldn't add the host */
 	if(new_host==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not register host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9459,7 +9459,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 			new_hostsmember=add_parent_host_to_host(new_host,parent_host);
 			if(new_hostsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add parent host '%s' to host (config file '%s', starting on line %d)\n",parent_host,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add parent host '%s' to host (config file '%s', starting on line %d)\n",parent_host,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -9475,7 +9475,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 			new_contactgroupsmember=add_contactgroup_to_host(new_host,contact_group);
 			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add contactgroup '%s' to host (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contactgroup '%s' to host (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -9491,7 +9491,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 			new_contactsmember=add_contact_to_host(new_host,contact_name);
 			if(new_contactsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add contact '%s' to host (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contact '%s' to host (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -9502,7 +9502,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	for(temp_customvariablesmember=this_host->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 		if((add_custom_variable_to_host(new_host,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value))==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not custom variable to host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not custom variable to host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -9532,7 +9532,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 	/* return with an error if we couldn't add the service */
 	if(new_service==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not register service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9546,7 +9546,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 			new_contactgroupsmember=add_contactgroup_to_service(new_service,contact_group);
 			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add contactgroup '%s' to service (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contactgroup '%s' to service (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -9565,7 +9565,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 			/* stop adding contacts if we ran into an error */
 			if(new_contactsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add contact '%s' to service (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contact '%s' to service (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
 #endif
 				return ERROR;
 		                }
@@ -9576,7 +9576,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 	for(temp_customvariablesmember=this_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 		if((add_custom_variable_to_service(new_service,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value))==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not custom variable to service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not custom variable to service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -9603,7 +9603,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 		/* return with an error if we couldn't add the hostdependency */
 		if(new_hostdependency==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not register host execution dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register host execution dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
 #endif
 			return ERROR;
                         }
@@ -9617,7 +9617,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 		/* return with an error if we couldn't add the hostdependency */
 		if(new_hostdependency==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not register host notification dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register host notification dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
 #endif
 			return ERROR;
                         }
@@ -9653,7 +9653,7 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 	/* return with an error if we couldn't add the hostescalation */
 	if(new_hostescalation==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not register host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -9667,7 +9667,7 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 			new_contactgroupsmember=add_contactgroup_to_hostescalation(new_hostescalation,contact_group);
 			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add contactgroup '%s' to host escalation (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contactgroup '%s' to host escalation (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -9681,7 +9681,7 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 			new_contactsmember=add_contact_to_hostescalation(new_hostescalation,contact_name);
 			if(new_contactsmember==NULL){
 #ifdef NSCORE
-				logit(NSLOG_CONFIG_ERROR, "Error: Could not add contact '%s' to host escalation (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contact '%s' to host escalation (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 #endif
 				return ERROR;
 				}
@@ -10511,7 +10511,7 @@ int xodtemplate_merge_extinfo_ojects(void){
 	/*
 	if(xodtemplate_serviceextinfo_list!=NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_WARNING, "Warning: Extended service information (serviceextinfo) definitions are deprecated in Nagios 3.x and will not be supported in future versions.  Please merge variables in these definitions with your service definitions.");
+		logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Extended service information (serviceextinfo) definitions are deprecated in Nagios 3.x and will not be supported in future versions.  Please merge variables in these definitions with your service definitions.");
 #endif
 	        }
 	*/
@@ -10537,7 +10537,7 @@ int xodtemplate_merge_extinfo_ojects(void){
 	/*
 	if(xodtemplate_serviceextinfo_list!=NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_WARNING, "Warning: Extended host information (hostextinfo) definitions are deprecated in Nagios 3.x and will not be supported in future versions.  Please merge variables in these definitions with your host definitions.");
+		logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Extended host information (hostextinfo) definitions are deprecated in Nagios 3.x and will not be supported in future versions.  Please merge variables in these definitions with your host definitions.");
 #endif
 	        }
 	*/
@@ -10643,7 +10643,7 @@ int xodtemplate_cache_objects(char *cache_file){
 	fp=fopen(cache_file,"w");
 	if(fp==NULL){
 #ifdef NSCORE
-		logit(NSLOG_CONFIG_WARNING, "Warning: Could not open object cache file '%s' for writing!\n",cache_file);
+		logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Could not open object cache file '%s' for writing!\n",cache_file);
 #endif
 		return ERROR;
 	        }
@@ -11841,7 +11841,7 @@ int xodtemplate_expand_contactgroups(xodtemplate_memberlist **list, xodtemplate_
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not find any contactgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find any contactgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 #endif
 			break;
 	                }
@@ -11965,7 +11965,7 @@ int xodtemplate_expand_contacts(xodtemplate_memberlist **list, xodtemplate_membe
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not find any contact matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find any contact matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 #endif
 			break;
 	                }
@@ -12190,7 +12190,7 @@ int xodtemplate_expand_hostgroups(xodtemplate_memberlist **list, xodtemplate_mem
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not find any hostgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find any hostgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 #endif
 			break;
 	                }
@@ -12314,7 +12314,7 @@ int xodtemplate_expand_hosts(xodtemplate_memberlist **list, xodtemplate_memberli
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not find any host matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find any host matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 #endif
 			break;
 	                }
@@ -12528,7 +12528,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_memberlist **list, xodtemplate_
 		/* we didn't find a matching servicegroup */
 		if(found_match==FALSE){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not find any servicegroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find any servicegroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 #endif
 			break;
 		        }
@@ -12694,7 +12694,7 @@ int xodtemplate_expand_services(xodtemplate_memberlist **list, xodtemplate_membe
 		/* we didn't find a match */
 		if(found_match==FALSE){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not find a service matching host name '%s' and description '%s' (config file '%s', starting on line %d)\n",host_name,temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find a service matching host name '%s' and description '%s' (config file '%s', starting on line %d)\n",host_name,temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 #endif
 			break;
 	                }
@@ -12928,7 +12928,7 @@ int xodtemplate_get_hostgroup_names(xodtemplate_memberlist **list, xodtemplate_m
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not find any hostgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find any hostgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 #endif
 			break;
 	                }
@@ -13106,7 +13106,7 @@ int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **list, xodtemplat
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not find any contactgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find any contactgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 #endif
 			break;
 	                }
@@ -13284,7 +13284,7 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplat
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR, "Error: Could not find any servicegroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find any servicegroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 #endif
 			break;
 	                }

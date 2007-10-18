@@ -84,9 +84,7 @@ int xpddefault_grab_config_info(char *config_file){
 
 	/* open the config file for reading */
 	if((thefile=mmap_fopen(config_file))==NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not open main config file '%s' for reading performance variables!\n",config_file);
-#endif
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not open main config file '%s' for reading performance variables!\n",config_file);
 		return ERROR;
 	        }
 
@@ -247,9 +245,9 @@ int xpddefault_initialize_performance_data(char *config_file){
 		temp_command_name=my_strtok(temp_buffer,"!");
 
 		if((temp_command=find_command(temp_command_name))==NULL){
-#ifdef NSCORE
-			logit(NSLOG_RUNTIME_WARNING, "Warning: Host performance command '%s' was not found - host performance data will not be processed!\n",temp_command_name);
-#endif
+
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Host performance command '%s' was not found - host performance data will not be processed!\n",temp_command_name);
+
 			my_free((void **)&xpddefault_host_perfdata_command);
 		        }
 
@@ -266,9 +264,9 @@ int xpddefault_initialize_performance_data(char *config_file){
 		temp_command_name=my_strtok(temp_buffer,"!");
 
 		if((temp_command=find_command(temp_command_name))==NULL){
-#ifdef NSCORE
-			logit(NSLOG_RUNTIME_WARNING, "Warning: Service performance command '%s' was not found - service performance data will not be processed!\n",temp_command_name);
-#endif
+
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Service performance command '%s' was not found - service performance data will not be processed!\n",temp_command_name);
+
 			my_free((void **)&xpddefault_service_perfdata_command);
 		        }
 
@@ -286,9 +284,9 @@ int xpddefault_initialize_performance_data(char *config_file){
 		temp_command_name=my_strtok(temp_buffer,"!");
 
 		if((temp_command=find_command(temp_command_name))==NULL){
-#ifdef NSCORE
-			logit(NSLOG_RUNTIME_WARNING, "Warning: Host performance file processing command '%s' was not found - host performance data file will not be processed!\n",temp_command_name);
-#endif
+
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Host performance file processing command '%s' was not found - host performance data file will not be processed!\n",temp_command_name);
+
 			my_free((void **)&xpddefault_host_perfdata_file_processing_command);
 		        }
 
@@ -306,9 +304,9 @@ int xpddefault_initialize_performance_data(char *config_file){
 		temp_command_name=my_strtok(temp_buffer,"!");
 
 		if((temp_command=find_command(temp_command_name))==NULL){
-#ifdef NSCORE
-			logit(NSLOG_RUNTIME_WARNING, "Warning: Service performance file processing command '%s' was not found - service performance data file will not be processed!\n",temp_command_name);
-#endif
+
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Service performance file processing command '%s' was not found - service performance data file will not be processed!\n",temp_command_name);
+
 			my_free((void **)&xpddefault_service_perfdata_file_processing_command);
 		        }
 
@@ -460,11 +458,8 @@ int xpddefault_run_service_performance_data_command(service *svc){
 	set_all_macro_environment_vars(FALSE);
 
 	/* check to see if the command timed out */
-	if(early_timeout==TRUE){
-#ifdef NSCORE
-		logit(NSLOG_RUNTIME_WARNING, "Warning: Service performance data command '%s' for service '%s' on host '%s' timed out after %d seconds\n",processed_command_line,svc->description,svc->host_name,xpddefault_perfdata_timeout);
-#endif
-	        }
+	if(early_timeout==TRUE)
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Service performance data command '%s' for service '%s' on host '%s' timed out after %d seconds\n",processed_command_line,svc->description,svc->host_name,xpddefault_perfdata_timeout);
 
 	/* free memory */
 	my_free((void **)&raw_command_line);
@@ -523,9 +518,7 @@ int xpddefault_run_host_performance_data_command(host *hst){
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
-#ifdef NSCORE
-		logit(NSLOG_RUNTIME_WARNING, "Warning: Host performance data command '%s' for host '%s' timed out after %d seconds\n",processed_command_line,hst->name,xpddefault_perfdata_timeout);
-#endif
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Host performance data command '%s' for host '%s' timed out after %d seconds\n",processed_command_line,hst->name,xpddefault_perfdata_timeout);
 
 	/* free memory */
 	my_free((void **)&raw_command_line);
@@ -555,9 +548,9 @@ int xpddefault_open_host_perfdata_file(void){
 			xpddefault_host_perfdata_fp=fopen(xpddefault_host_perfdata_file,(xpddefault_host_perfdata_file_append==TRUE)?"a":"w");
 
 		if(xpddefault_host_perfdata_fp==NULL){
-#ifdef NSCORE
-			logit(NSLOG_RUNTIME_WARNING, "Warning: File '%s' could not be opened - host performance data will not be written to file!\n",xpddefault_host_perfdata_file);
-#endif
+
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: File '%s' could not be opened - host performance data will not be written to file!\n",xpddefault_host_perfdata_file);
+
 			return ERROR;
 		        }
 	        }
@@ -580,9 +573,9 @@ int xpddefault_open_service_perfdata_file(void){
 			xpddefault_service_perfdata_fp=fopen(xpddefault_service_perfdata_file,(xpddefault_service_perfdata_file_append==TRUE)?"a":"w");
 
 		if(xpddefault_service_perfdata_fp==NULL){
-#ifdef NSCORE
-			logit(NSLOG_RUNTIME_WARNING, "Warning: File '%s' could not be opened - service performance data will not be written to file!\n",xpddefault_service_perfdata_file);
-#endif
+
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: File '%s' could not be opened - service performance data will not be written to file!\n",xpddefault_service_perfdata_file);
+
 			return ERROR;
 		        }
 	        }
@@ -801,9 +794,7 @@ int xpddefault_process_host_perfdata_file(void){
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
-#ifdef NSCORE
-		logit(NSLOG_RUNTIME_WARNING, "Warning: Host performance data file processing command '%s' timed out after %d seconds\n",processed_command_line,xpddefault_perfdata_timeout);
-#endif
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Host performance data file processing command '%s' timed out after %d seconds\n",processed_command_line,xpddefault_perfdata_timeout);
 
 	/* re-open the performance data file */
 	xpddefault_open_host_perfdata_file();
@@ -859,9 +850,7 @@ int xpddefault_process_service_perfdata_file(void){
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
-#ifdef NSCORE
-		logit(NSLOG_RUNTIME_WARNING, "Warning: Service performance data file processing command '%s' timed out after %d seconds\n",processed_command_line,xpddefault_perfdata_timeout);
-#endif
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Service performance data file processing command '%s' timed out after %d seconds\n",processed_command_line,xpddefault_perfdata_timeout);
 
 	/* re-open the performance data file */
 	xpddefault_open_service_perfdata_file();

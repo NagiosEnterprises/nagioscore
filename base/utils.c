@@ -361,7 +361,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 			log_debug_info(DEBUGL_COMMANDS,0,"Embedded perl failed to compile %s, compile error %s\n",fname,temp_buffer);
 
-			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"%s\n",temp_buffer);
+
 			my_free((void **)&temp_buffer);
 
 			return STATE_UNKNOWN;
@@ -400,7 +401,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 	/* return an error if we couldn't fork */
 	if(pid==-1){
-		logit(NSLOG_RUNTIME_WARNING, "Warning: fork() in my_system() failed for command \"%s\"\n",cmd);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: fork() in my_system() failed for command \"%s\"\n",cmd);
 
 		/* close both ends of the pipe */
 		close(fd[0]);
@@ -553,7 +554,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 		/* check for possibly missing scripts/binaries/etc */
 		if(result==126 || result==127){
 			temp_buffer="\163\157\151\147\141\156\040\145\144\151\163\156\151";
-			logit(NSLOG_RUNTIME_WARNING, "Warning: Attempting to execute the command \"%s\" resulted in a return code of %d.  Make sure the script or binary you are trying to execute actually exists...\n",cmd,result);
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Attempting to execute the command \"%s\" resulted in a return code of %d.  Make sure the script or binary you are trying to execute actually exists...\n",cmd,result);
 		        }
 
 		/* check bounds on the return value */
@@ -1759,7 +1760,6 @@ void reset_sighandler(void){
 
 /* handle signals */
 void sighandler(int sig){
-	char *buffer=NULL;
 	int x=0;
 
 	/* if shutdown is already true, we're in a signal trap loop! */
@@ -1779,11 +1779,8 @@ void sighandler(int sig){
 
 	/* log errors about segfaults now, as we might not get a chance to later */
 	/* all other signals are logged at a later point in main() to prevent problems with NPTL */
-	if(sig==SIGSEGV){
-		asprintf(&buffer,"Caught SIG%s, shutting down...\n",sigs[sig]);
-		write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
-		my_free((void **)&buffer);
-		}
+	if(sig==SIGSEGV)
+		logit(NSLOG_PROCESS_INFO,TRUE,"Caught SIG%s, shutting down...\n",sigs[sig]);
 
 	/* we received a SIGHUP, so restart... */
 	if(sig==SIGHUP)
@@ -1918,8 +1915,8 @@ int daemon_init(void){
 	lockfile=open(lock_file,O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
 	if(lockfile<0){
-		logit(NSLOG_RUNTIME_ERROR, "Failed to obtain lock on file %s: %s\n", lock_file, strerror(errno));
-		logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR, "Bailing out due to errors encountered while attempting to daemonize... (PID=%d)",(int)getpid());
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Failed to obtain lock on file %s: %s\n", lock_file, strerror(errno));
+		logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,"Bailing out due to errors encountered while attempting to daemonize... (PID=%d)",(int)getpid());
 
 		cleanup();
 		exit(ERROR);
@@ -1927,7 +1924,7 @@ int daemon_init(void){
 
 	/* see if we can read the contents of the lockfile */
 	if((val=read(lockfile,buf,(size_t)10))<0){
-		logit(NSLOG_RUNTIME_ERROR, "Lockfile exists but cannot be read");
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Lockfile exists but cannot be read");
 		cleanup();
 		exit(ERROR);
 	        }
@@ -1935,7 +1932,7 @@ int daemon_init(void){
 	/* we read something - check the PID */
 	if(val>0){
 		if((val=sscanf(buf,"%d",&pidno))<1){
-			logit(NSLOG_RUNTIME_ERROR, "Lockfile '%s' does not contain a valid PID (%s)",lock_file,buf);
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Lockfile '%s' does not contain a valid PID (%s)",lock_file,buf);
 			cleanup();
 			exit(ERROR);
 		        }
@@ -1968,10 +1965,10 @@ int daemon_init(void){
 	if(fcntl(lockfile,F_SETLK,&lock)<0){
 		if(errno==EACCES || errno==EAGAIN){
 			fcntl(lockfile,F_GETLK,&lock);
-			logit(NSLOG_RUNTIME_ERROR, "Lockfile '%s' looks like its already held by another instance of Nagios (PID %d).  Bailing out...",lock_file,(int)lock.l_pid);
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Lockfile '%s' looks like its already held by another instance of Nagios (PID %d).  Bailing out...",lock_file,(int)lock.l_pid);
 		        }
 		else
-			logit(NSLOG_RUNTIME_ERROR, "Cannot lock lockfile '%s': %s. Bailing out...",lock_file,strerror(errno));
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Cannot lock lockfile '%s': %s. Bailing out...",lock_file,strerror(errno));
 
 		cleanup();
 		exit(ERROR);
@@ -2045,9 +2042,8 @@ int drop_privileges(char *user, char *group){
 			grp=(struct group *)getgrnam(group);
 			if(grp!=NULL)
 				gid=(gid_t)(grp->gr_gid);
-			else{
-				logit(NSLOG_RUNTIME_WARNING, "Warning: Could not get group entry for '%s'",group);
-		                }
+			else
+				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Could not get group entry for '%s'",group);
 		        }
 
 		/* else we were passed the GID */
@@ -2058,7 +2054,7 @@ int drop_privileges(char *user, char *group){
 		if(gid!=getegid()){
 
 			if(setgid(gid)==-1){
-				logit(NSLOG_RUNTIME_WARNING, "Warning: Could not set effective GID=%d",(int)gid);
+				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Could not set effective GID=%d",(int)gid);
 				result=ERROR;
 			        }
 		        }
@@ -2073,9 +2069,8 @@ int drop_privileges(char *user, char *group){
 			pw=(struct passwd *)getpwnam(user);
 			if(pw!=NULL)
 				uid=(uid_t)(pw->pw_uid);
-			else{
-				logit(NSLOG_RUNTIME_WARNING, "Warning: Could not get passwd entry for '%s'",user);
-			        }
+			else
+				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Could not get passwd entry for '%s'",user);
 		        }
 
 		/* else we were passed the UID */
@@ -2088,18 +2083,17 @@ int drop_privileges(char *user, char *group){
 
 			/* initialize supplementary groups */
 			if(initgroups(user,gid)==-1){
-				if(errno==EPERM){
-					logit(NSLOG_RUNTIME_WARNING, "Warning: Unable to change supplementary groups using initgroups() -- I hope you know what you're doing");
-		                        }
+				if(errno==EPERM)
+					logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Unable to change supplementary groups using initgroups() -- I hope you know what you're doing");
 				else{
-					logit(NSLOG_RUNTIME_WARNING, "Warning: Possibly root user failed dropping privileges with initgroups()");
+					logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Possibly root user failed dropping privileges with initgroups()");
 					return ERROR;
 			                }
 	                        }
 		        }
 #endif
 		if(setuid(uid)==-1){
-			logit(NSLOG_RUNTIME_WARNING, "Warning: Could not set effective UID=%d",(int)uid);
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Could not set effective UID=%d",(int)uid);
 			result=ERROR;
 		        }
 	        }
@@ -2160,9 +2154,8 @@ int move_check_result_to_queue(char *checkresult_file){
 	umask(old_umask);
 
 	/* log a warning on errors */
-	if(result!=0){
-		logit(NSLOG_RUNTIME_WARNING, "Warning: Unable to move file '%s' to check results queue.\n",checkresult_file);
-		}
+	if(result!=0)
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Unable to move file '%s' to check results queue.\n",checkresult_file);
 
 	/* free memory */
 	my_free((void **)&output_file);
@@ -2186,7 +2179,7 @@ int process_check_result_queue(char *dirname){
 	/* open the directory for reading */
 	dirp=opendir(dirname);
         if(dirp==NULL){
-		logit(NSLOG_CONFIG_ERROR, "Error: Could not open check result queue directory '%s' for reading.\n",dirname);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not open check result queue directory '%s' for reading.\n",dirname);
 		return ERROR;
 	        }
 
@@ -2741,7 +2734,7 @@ int open_command_file(void){
 		/* create the external command file as a named pipe (FIFO) */
 		if((result=mkfifo(command_file,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP))!=0){
 
-			logit(NSLOG_RUNTIME_ERROR, "Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n",command_file,errno,strerror(errno));
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n",command_file,errno,strerror(errno));
 			return ERROR;
 		        }
 	        }
@@ -2749,7 +2742,7 @@ int open_command_file(void){
 	/* open the command file for reading (non-blocked) - O_TRUNC flag cannot be used due to errors on some systems */
 	if((command_file_fd=open(command_file,O_RDONLY | O_NONBLOCK))<0){
 
-		logit(NSLOG_RUNTIME_ERROR, "Error: Could not open external command file for reading via open(): (%d) -> %s\n",errno,strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Could not open external command file for reading via open(): (%d) -> %s\n",errno,strerror(errno));
 
 		return ERROR;
 	        }
@@ -2757,7 +2750,7 @@ int open_command_file(void){
 	/* re-open the FIFO for use with fgets() */
 	if((command_file_fp=(FILE *)fdopen(command_file_fd,"r"))==NULL){
 
-		logit(NSLOG_RUNTIME_ERROR, "Error: Could not open external command file for reading via fdopen(): (%d) -> %s\n",errno,strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Could not open external command file for reading via fdopen(): (%d) -> %s\n",errno,strerror(errno));
 
 		return ERROR;
 	        }
@@ -2765,7 +2758,7 @@ int open_command_file(void){
 	/* initialize worker thread */
 	if(init_command_file_worker_thread()==ERROR){
 
-		logit(NSLOG_RUNTIME_ERROR, "Error: Could not initialize command file worker thread.\n");
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Could not initialize command file worker thread.\n");
 
 		/* close the command file */
 		fclose(command_file_fp);
@@ -3428,7 +3421,7 @@ int init_embedded_perl(char **env){
 
 		use_embedded_perl=FALSE;
 
-		logit(NSLOG_RUNTIME_ERROR, "Error: p1.pl file required for embedded Perl interpreter is missing!\n");
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: p1.pl file required for embedded Perl interpreter is missing!\n");
 		}
 
 	else{
@@ -3441,14 +3434,14 @@ int init_embedded_perl(char **env){
 
 		if((my_perl=perl_alloc())==NULL){
 			use_embedded_perl=FALSE;
-			logit(NSLOG_RUNTIME_ERROR, "Error: Could not allocate memory for embedded Perl interpreter!\n");
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Could not allocate memory for embedded Perl interpreter!\n");
 			}
 		}
 
 	/* a fatal error occurred... */
 	if(use_embedded_perl==FALSE){
 
-		logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR, "Bailing out due to errors encountered while initializing the embedded Perl interpreter. (PID=%d)\n",(int)getpid());
+		logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,"Bailing out due to errors encountered while initializing the embedded Perl interpreter. (PID=%d)\n",(int)getpid());
 
 		cleanup();
 		exit(ERROR);

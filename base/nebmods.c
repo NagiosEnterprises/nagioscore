@@ -3,7 +3,7 @@
  * NEBMODS.C - Event Broker Module Functions
  *
  * Copyright (c) 2002-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-20-2007
+ * Last Modified:   10-18-2007
  *
  * License:
  *
@@ -162,7 +162,6 @@ int neb_load_all_modules(void){
 
 /* load a particular module */
 int neb_load_module(nebmodule *mod){
-	char *temp_buffer=NULL;
 	int (*initfunc)(int,char *,void *);
 	int *module_version_ptr=NULL;
 	int result=OK;
@@ -187,12 +186,10 @@ int neb_load_module(nebmodule *mod){
 	if(mod->module_handle==NULL){
 
 #ifdef USE_LTDL
-		asprintf(&temp_buffer,"Error: Could not load module '%s' -> %s\n",mod->filename,lt_dlerror());
+		logit(NSLOG_RUNTIME_ERROR,FALSE,"Error: Could not load module '%s' -> %s\n",mod->filename,lt_dlerror());
 #else
-		asprintf(&temp_buffer,"Error: Could not load module '%s' -> %s\n",mod->filename,dlerror());
+		logit(NSLOG_RUNTIME_ERROR,FALSE,"Error: Could not load module '%s' -> %s\n",mod->filename,dlerror());
 #endif
-		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
-		my_free((void **)&temp_buffer);
 
 		return ERROR;
 	        }
@@ -210,9 +207,7 @@ int neb_load_module(nebmodule *mod){
 	/* check the module API version */
 	if(module_version_ptr==NULL || ((*module_version_ptr)!=CURRENT_NEB_API_VERSION)){
 
-		asprintf(&temp_buffer,"Error: Module '%s' is using an old or unspecified version of the event broker API.  Module will be unloaded.\n",mod->filename);
-		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_RUNTIME_ERROR,FALSE,"Error: Module '%s' is using an old or unspecified version of the event broker API.  Module will be unloaded.\n",mod->filename);
 
 		neb_unload_module(mod,NEBMODULE_FORCE_UNLOAD,NEBMODULE_ERROR_API_VERSION);
 
@@ -229,9 +224,7 @@ int neb_load_module(nebmodule *mod){
 	/* if the init function could not be located, unload the module */
 	if(mod->init_func==NULL){
 
-		asprintf(&temp_buffer,"Error: Could not locate nebmodule_init() in module '%s'.  Module will be unloaded.\n",mod->filename);
-		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_RUNTIME_ERROR,FALSE,"Error: Could not locate nebmodule_init() in module '%s'.  Module will be unloaded.\n",mod->filename);
 
 		neb_unload_module(mod,NEBMODULE_FORCE_UNLOAD,NEBMODULE_ERROR_NO_INIT);
 
@@ -245,18 +238,14 @@ int neb_load_module(nebmodule *mod){
 	/* if the init function returned an error, unload the module */
 	if(result!=OK){
 
-		asprintf(&temp_buffer,"Error: Function nebmodule_init() in module '%s' returned an error.  Module will be unloaded.\n",mod->filename);
-		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_RUNTIME_ERROR,FALSE,"Error: Function nebmodule_init() in module '%s' returned an error.  Module will be unloaded.\n",mod->filename);
 
 		neb_unload_module(mod,NEBMODULE_FORCE_UNLOAD,NEBMODULE_ERROR_BAD_INIT);
 
 		return ERROR;
 	        }
 
-	asprintf(&temp_buffer,"Event broker module '%s' initialized successfully.\n",mod->filename);
-	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_INFO_MESSAGE,FALSE,"Event broker module '%s' initialized successfully.\n",mod->filename);
 
 	/* locate the de-initialization function (may or may not be present) */
 #ifdef USE_LTDL
@@ -298,7 +287,6 @@ int neb_unload_all_modules(int flags, int reason){
 
 /* close (unload) a particular module */
 int neb_unload_module(nebmodule *mod, int flags, int reason){
-	char *temp_buffer=NULL;
 	int (*deinitfunc)(int,int);
 	int result=OK;
 
@@ -335,9 +323,7 @@ int neb_unload_module(nebmodule *mod, int flags, int reason){
 
 	log_debug_info(DEBUGL_EVENTBROKER,0,"Module '%s' unloaded successfully.\n",mod->filename);
 
-	asprintf(&temp_buffer,"Event broker module '%s' deinitialized successfully.\n",mod->filename);
-	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_INFO_MESSAGE,FALSE,"Event broker module '%s' deinitialized successfully.\n",mod->filename);
 
 	return OK;
         }

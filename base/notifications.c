@@ -736,8 +736,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 
 			/* check to see if the notification command timed out */
 			if(early_timeout==TRUE){
-				logit(NSLOG_SERVICE_NOTIFICATION | NSLOG_RUNTIME_WARNING,
-				      "Warning: Contact '%s' service notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,notification_timeout);
+				logit(NSLOG_SERVICE_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE,"Warning: Contact '%s' service notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,notification_timeout);
 			        }
 
 			/* free memory */
@@ -1581,7 +1580,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 
 			/* check to see if the notification timed out */
 			if(early_timeout==TRUE){
-				logit(NSLOG_HOST_NOTIFICATION | NSLOG_RUNTIME_WARNING, "Warning: Contact '%s' host notification command '%s' timed out after %d seconds\n", cntct->name,processed_command,notification_timeout);
+				logit(NSLOG_HOST_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE,"Warning: Contact '%s' host notification command '%s' timed out after %d seconds\n", cntct->name,processed_command,notification_timeout);
 			        }
 
 			/* free memory */

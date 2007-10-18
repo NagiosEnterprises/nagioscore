@@ -166,7 +166,6 @@ int check_for_external_commands(void){
 
 /* processes all external commands in a (regular) file */
 int process_external_commands_from_file(char *fname, int delete_file){
-	char *temp_buffer=NULL;
 	mmapfile *thefile=NULL;
 	char *input=NULL;
 
@@ -180,9 +179,7 @@ int process_external_commands_from_file(char *fname, int delete_file){
 
 	/* open the config file for reading */
 	if((thefile=mmap_fopen(fname))==NULL){
-		asprintf(&temp_buffer,"Error: Cannot open file '%s' to process external commands!",fname);
-		write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_INFO_MESSAGE,FALSE,"Error: Cannot open file '%s' to process external commands!",fname);
 		return ERROR;
 		}
 
@@ -685,8 +682,7 @@ int process_external_command1(char *cmd){
 	/**** UNKNOWN COMMAND ****/
 	else{
 		/* log the bad external command */
-		logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING,
-		      "Warning: Unrecognized external command -> %s;%s\n",command_id,args);
+		logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING,TRUE,"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
 
 		/* free memory */
 		my_free((void **)&command_id);
@@ -2032,13 +2028,13 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 
 	/* we couldn't find the host */
 	if(real_host_name==NULL){
-		logit(NSLOG_RUNTIME_WARNING, "Warning:  Passive check result was received for service '%s' on host '%s', but the host could not be found!\n",svc_description,host_name);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning:  Passive check result was received for service '%s' on host '%s', but the host could not be found!\n",svc_description,host_name);
 		return ERROR;
 		}
 
 	/* make sure the service exists */
 	if((temp_service=find_service(real_host_name,svc_description))==NULL){
-		logit(NSLOG_RUNTIME_WARNING, "Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n",svc_description,host_name);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n",svc_description,host_name);
 		return ERROR;
 		}
 
@@ -2173,7 +2169,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 
 	/* we couldn't find the host */
 	if(temp_host==NULL){
-		logit(NSLOG_RUNTIME_WARNING, "Warning:  Passive check result was received for host '%s', but the host could not be found!\n",host_name);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning:  Passive check result was received for host '%s', but the host could not be found!\n",host_name);
 		return ERROR;
 		}
 

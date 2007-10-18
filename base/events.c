@@ -958,7 +958,7 @@ int event_execution_loop(void){
 
 					log_debug_info(DEBUGL_EVENTS|DEBUGL_CHECKS,0,"**WARNING** Max concurrent service checks (%d) has been reached!  Delaying further service checks until previous checks are complete...\n",max_parallel_service_checks);
 
-					logit(NSLOG_RUNTIME_WARNING, "\tMax concurrent service checks (%d) has been reached.  Delaying further checks until previous checks are complete...\n",max_parallel_service_checks);
+					logit(NSLOG_RUNTIME_WARNING,TRUE,"\tMax concurrent service checks (%d) has been reached.  Delaying further checks until previous checks are complete...\n",max_parallel_service_checks);
 					run_event=FALSE;
 					}
 
@@ -1206,7 +1206,7 @@ int handle_timed_event(timed_event *event){
 		sigshutdown=TRUE;
 
 		/* log the shutdown */
-		logit(NSLOG_PROCESS_INFO, "PROGRAM_SHUTDOWN event encountered, shutting down...\n");
+		logit(NSLOG_PROCESS_INFO,TRUE,"PROGRAM_SHUTDOWN event encountered, shutting down...\n");
 		break;
 
 	case EVENT_PROGRAM_RESTART:
@@ -1217,7 +1217,7 @@ int handle_timed_event(timed_event *event){
 		sigrestart=TRUE;
 
 		/* log the restart */
-		logit(NSLOG_PROCESS_INFO, "PROGRAM_RESTART event encountered, restarting...\n");
+		logit(NSLOG_PROCESS_INFO,TRUE,"PROGRAM_RESTART event encountered, restarting...\n");
 		break;
 
 	case EVENT_CHECK_REAPER:
@@ -1564,7 +1564,7 @@ void compensate_for_system_time_change(unsigned long last_time, unsigned long cu
 		}
 
 	/* log the time change */
-	logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_WARNING, "Warning: A system time change of %dd %dh %dm %ds (%s in time) has been detected.  Compensating...\n",days,hours,minutes,seconds,(last_time>current_time)?"backwards":"forwards");
+	logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_WARNING,TRUE,"Warning: A system time change of %dd %dh %dm %ds (%s in time) has been detected.  Compensating...\n",days,hours,minutes,seconds,(last_time>current_time)?"backwards":"forwards");
 
 	/* adjust the next run time for all high priority timed events */
 	for(temp_event=event_list_high;temp_event!=NULL;temp_event=temp_event->next){

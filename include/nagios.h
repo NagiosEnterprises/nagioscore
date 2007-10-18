@@ -573,8 +573,8 @@ time_t get_next_service_notification_time(service *,time_t);			/* calculates nex
 
 
 /**** Logging Functions ****/
-void logit(int data_type, const char *fmt, ...)
-	__attribute__((__format__(__printf__, 2, 3)));
+void logit(int,int,const char *, ...)
+	__attribute__((__format__(__printf__, 3, 4)));
 int write_to_logs_and_console(char *,unsigned long,int);	/* writes a string to screen and logs */
 int write_to_console(char *);                           /* writes a string to screen */
 int write_to_all_logs(char *,unsigned long);            /* writes a string to main log file and syslog facility */

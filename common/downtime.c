@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2007
+ * Last Modified: 10-18-2007
  *
  * License:
  *
@@ -124,7 +124,6 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 	host *hst=NULL;
 	service *svc=NULL;
 	timed_event *temp_event=NULL;
-	char *temp_buffer=NULL;
 #ifdef USE_EVENT_BROKER
 	int attr=0;
 #endif
@@ -169,9 +168,8 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 
 			/* log a notice - this is parsed by the history CGI */
 			if(hst->scheduled_downtime_depth==0){
-				asprintf(&temp_buffer,"HOST DOWNTIME ALERT: %s;CANCELLED; Scheduled downtime for host has been cancelled.\n",hst->name);
-				write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-				my_free((void **)&temp_buffer);
+
+				logit(NSLOG_INFO_MESSAGE,FALSE,"HOST DOWNTIME ALERT: %s;CANCELLED; Scheduled downtime for host has been cancelled.\n",hst->name);
 
 				/* send a notification */
 				host_notification(hst,NOTIFICATION_DOWNTIMECANCELLED,NULL,NULL,NOTIFICATION_OPTION_NONE);
@@ -185,9 +183,8 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 
 			/* log a notice - this is parsed by the history CGI */
 			if(svc->scheduled_downtime_depth==0){
-				asprintf(&temp_buffer,"SERVICE DOWNTIME ALERT: %s;%s;CANCELLED; Scheduled downtime for service has been cancelled.\n",svc->host_name,svc->description);
-				write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-				my_free((void **)&temp_buffer);
+
+				logit(NSLOG_INFO_MESSAGE,FALSE,"SERVICE DOWNTIME ALERT: %s;%s;CANCELLED; Scheduled downtime for service has been cancelled.\n",svc->host_name,svc->description);
 
 				/* send a notification */
 				service_notification(svc,NOTIFICATION_DOWNTIMECANCELLED,NULL,NULL,NOTIFICATION_OPTION_NONE);
@@ -333,7 +330,6 @@ int handle_scheduled_downtime_by_id(unsigned long downtime_id){
 
 /* handles scheduled host or service downtime */
 int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
- 	char *temp_buffer=NULL;
 	scheduled_downtime *this_downtime=NULL;
 	host *hst=NULL;
 	service *svc=NULL;
@@ -405,9 +401,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			log_debug_info(DEBUGL_DOWNTIME,0,"Host '%s' has exited from a period of scheduled downtime (id=%lu).\n",hst->name,temp_downtime->downtime_id);
 
 			/* log a notice - this one is parsed by the history CGI */
-			asprintf(&temp_buffer,"HOST DOWNTIME ALERT: %s;STOPPED; Host has exited from a period of scheduled downtime",hst->name);
-			write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_INFO_MESSAGE,FALSE,"HOST DOWNTIME ALERT: %s;STOPPED; Host has exited from a period of scheduled downtime",hst->name);
 
 			/* send a notification */
 			host_notification(hst,NOTIFICATION_DOWNTIMEEND,temp_downtime->author,temp_downtime->comment,NOTIFICATION_OPTION_NONE);
@@ -418,9 +412,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			log_debug_info(DEBUGL_DOWNTIME,0,"Service '%s' on host '%s' has exited from a period of scheduled downtime (id=%lu).\n",svc->description,svc->host_name,temp_downtime->downtime_id);
 
 			/* log a notice - this one is parsed by the history CGI */
-			asprintf(&temp_buffer,"SERVICE DOWNTIME ALERT: %s;%s;STOPPED; Service has exited from a period of scheduled downtime",svc->host_name,svc->description);
-			write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_INFO_MESSAGE,FALSE,"SERVICE DOWNTIME ALERT: %s;%s;STOPPED; Service has exited from a period of scheduled downtime",svc->host_name,svc->description);
 
 			/* send a notification */
 			service_notification(svc,NOTIFICATION_DOWNTIMEEND,temp_downtime->author,temp_downtime->comment,NOTIFICATION_OPTION_NONE);
@@ -480,9 +472,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			log_debug_info(DEBUGL_DOWNTIME,0,"Host '%s' has entered a period of scheduled downtime (id=%lu).\n",hst->name,temp_downtime->downtime_id);
 
 			/* log a notice - this one is parsed by the history CGI */
-			asprintf(&temp_buffer,"HOST DOWNTIME ALERT: %s;STARTED; Host has entered a period of scheduled downtime",hst->name);
-			write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_INFO_MESSAGE,FALSE,"HOST DOWNTIME ALERT: %s;STARTED; Host has entered a period of scheduled downtime",hst->name);
 
 			/* send a notification */
 			host_notification(hst,NOTIFICATION_DOWNTIMESTART,temp_downtime->author,temp_downtime->comment,NOTIFICATION_OPTION_NONE);
@@ -493,9 +483,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			log_debug_info(DEBUGL_DOWNTIME,0,"Service '%s' on host '%s' has entered a period of scheduled downtime (id=%lu).\n",svc->description,svc->host_name,temp_downtime->downtime_id);
 
 			/* log a notice - this one is parsed by the history CGI */
-			asprintf(&temp_buffer,"SERVICE DOWNTIME ALERT: %s;%s;STARTED; Service has entered a period of scheduled downtime",svc->host_name,svc->description);
-			write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_INFO_MESSAGE,FALSE,"SERVICE DOWNTIME ALERT: %s;%s;STARTED; Service has entered a period of scheduled downtime",svc->host_name,svc->description);
 
 			/* send a notification */
 			service_notification(svc,NOTIFICATION_DOWNTIMESTART,temp_downtime->author,temp_downtime->comment,NOTIFICATION_OPTION_NONE);

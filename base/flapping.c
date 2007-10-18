@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2007
+ * Last Modified: 10-18-2007
  *
  * License:
  *
@@ -332,9 +332,7 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 	log_debug_info(DEBUGL_FLAPPING,1,"Service '%s' on host '%s' started flapping!\n",svc->description,svc->host_name);
 
 	/* log a notice - this one is parsed by the history CGI */
-	asprintf(&temp_buffer,"SERVICE FLAPPING ALERT: %s;%s;STARTED; Service appears to have started flapping (%2.1f%% change >= %2.1f%% threshold)\n",svc->host_name,svc->description,percent_change,high_threshold);
-	write_to_all_logs(temp_buffer,NSLOG_RUNTIME_WARNING);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_RUNTIME_WARNING,FALSE,"SERVICE FLAPPING ALERT: %s;%s;STARTED; Service appears to have started flapping (%2.1f%% change >= %2.1f%% threshold)\n",svc->host_name,svc->description,percent_change,high_threshold);
 
 	/* add a non-persistent comment to the service */
 	asprintf(&temp_buffer,"Notifications for this service are being suppressed because it was detected as having been flapping between different states (%2.1f%% change >= %2.1f%% threshold).  When the service state stabilizes and the flapping stops, notifications will be re-enabled.",percent_change,high_threshold);
@@ -364,7 +362,6 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 
 /* handles a service that has stopped flapping */
 void clear_service_flap(service *svc, double percent_change, double high_threshold, double low_threshold){
-	char *temp_buffer=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"clear_service_flap()\n");
 
@@ -374,9 +371,7 @@ void clear_service_flap(service *svc, double percent_change, double high_thresho
 	log_debug_info(DEBUGL_FLAPPING,1,"Service '%s' on host '%s' stopped flapping.\n",svc->description,svc->host_name);
 
 	/* log a notice - this one is parsed by the history CGI */
-	asprintf(&temp_buffer,"SERVICE FLAPPING ALERT: %s;%s;STOPPED; Service appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n",svc->host_name,svc->description,percent_change,low_threshold);
-	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_INFO_MESSAGE,FALSE,"SERVICE FLAPPING ALERT: %s;%s;STOPPED; Service appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n",svc->host_name,svc->description,percent_change,low_threshold);
 
 	/* delete the comment we added earlier */
 	if(svc->flapping_comment_id!=0)
@@ -417,9 +412,7 @@ void set_host_flap(host *hst, double percent_change, double high_threshold, doub
 	log_debug_info(DEBUGL_FLAPPING,1,"Host '%s' started flapping!\n",hst->name);
 
 	/* log a notice - this one is parsed by the history CGI */
-	asprintf(&temp_buffer,"HOST FLAPPING ALERT: %s;STARTED; Host appears to have started flapping (%2.1f%% change > %2.1f%% threshold)\n",hst->name,percent_change,high_threshold);
-	write_to_all_logs(temp_buffer,NSLOG_RUNTIME_WARNING);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_RUNTIME_WARNING,FALSE,"HOST FLAPPING ALERT: %s;STARTED; Host appears to have started flapping (%2.1f%% change > %2.1f%% threshold)\n",hst->name,percent_change,high_threshold);
 
 	/* add a non-persistent comment to the host */
 	asprintf(&temp_buffer,"Notifications for this host are being suppressed because it was detected as having been flapping between different states (%2.1f%% change > %2.1f%% threshold).  When the host state stabilizes and the flapping stops, notifications will be re-enabled.",percent_change,high_threshold);
@@ -449,7 +442,6 @@ void set_host_flap(host *hst, double percent_change, double high_threshold, doub
 
 /* handles a host that has stopped flapping */
 void clear_host_flap(host *hst, double percent_change, double high_threshold, double low_threshold){
-	char *temp_buffer=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"clear_host_flap()\n");
 
@@ -459,9 +451,7 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 	log_debug_info(DEBUGL_FLAPPING,1,"Host '%s' stopped flapping.\n",hst->name);
 
 	/* log a notice - this one is parsed by the history CGI */
-	asprintf(&temp_buffer,"HOST FLAPPING ALERT: %s;STOPPED; Host appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n",hst->name,percent_change,low_threshold);
-	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_INFO_MESSAGE,FALSE,"HOST FLAPPING ALERT: %s;STOPPED; Host appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n",hst->name,percent_change,low_threshold);
 
 	/* delete the comment we added earlier */
 	if(hst->flapping_comment_id!=0)
@@ -643,7 +633,6 @@ void disable_host_flap_detection(host *hst){
 
 /* handles the details for a host when flap detection is disabled (globally or per-host) */
 void handle_host_flap_detection_disabled(host *hst){
-	char *temp_buffer=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_host_flap_detection_disabled()\n");
 
@@ -661,9 +650,7 @@ void handle_host_flap_detection_disabled(host *hst){
 		hst->flapping_comment_id=0;
 
 		/* log a notice - this one is parsed by the history CGI */
-		asprintf(&temp_buffer,"HOST FLAPPING ALERT: %s;DISABLED; Flap detection has been disabled\n",hst->name);
-		write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_INFO_MESSAGE,FALSE,"HOST FLAPPING ALERT: %s;DISABLED; Flap detection has been disabled\n",hst->name);
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
@@ -760,7 +747,6 @@ void disable_service_flap_detection(service *svc){
 
 /* handles the details for a service when flap detection is disabled (globally or per-service) */
 void handle_service_flap_detection_disabled(service *svc){
-	char *temp_buffer=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_service_flap_detection_disabled()\n");
 
@@ -778,9 +764,7 @@ void handle_service_flap_detection_disabled(service *svc){
 		svc->flapping_comment_id=0;
 
 		/* log a notice - this one is parsed by the history CGI */
-		asprintf(&temp_buffer,"SERVICE FLAPPING ALERT: %s;%s;DISABLED; Flap detection has been disabled\n",svc->host_name,svc->description);
-		write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_INFO_MESSAGE,FALSE,"SERVICE FLAPPING ALERT: %s;%s;DISABLED; Flap detection has been disabled\n",svc->host_name,svc->description);
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */

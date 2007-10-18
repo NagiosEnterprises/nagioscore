@@ -156,7 +156,7 @@ int reap_check_results(void){
 			/* make sure the service exists */
 			if((temp_service=find_service(queued_check_result->host_name,queued_check_result->service_description))==NULL){
 
-				logit(NSLOG_RUNTIME_WARNING, "Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n",queued_check_result->service_description,queued_check_result->host_name);
+				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n",queued_check_result->service_description,queued_check_result->host_name);
 
 				free_check_result(queued_check_result);
 				my_free((void **)&queued_check_result);
@@ -177,7 +177,7 @@ int reap_check_results(void){
 			if((temp_host=find_host(queued_check_result->host_name))==NULL){
 
 				/* make sure the host exists */
-				logit(NSLOG_RUNTIME_WARNING, "Warning: Check result queue contained results for host '%s', but the host could not be found!  Perhaps you forgot to define the host in your config files?\n",queued_check_result->host_name);
+				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Check result queue contained results for host '%s', but the host could not be found!  Perhaps you forgot to define the host in your config files?\n",queued_check_result->host_name);
 
 				free_check_result(queued_check_result);
 				my_free((void **)&queued_check_result);
@@ -836,7 +836,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	if(fork_error==TRUE){
 
 		/* log an error */
-		logit(NSLOG_RUNTIME_WARNING, "Warning: The check of service '%s' on host '%s' could not be performed due to a fork() error.  The check will be rescheduled.\n",svc->description,svc->host_name);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The check of service '%s' on host '%s' could not be performed due to a fork() error.  The check will be rescheduled.\n",svc->description,svc->host_name);
 
 		log_debug_info(DEBUGL_CHECKS,0,"Check of service '%s' on host '%s' could not be performed due to a fork() error!\n",svc->description,svc->host_name);
 
@@ -855,7 +855,6 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	int reschedule_check=FALSE;
-	char *temp_buffer=NULL;
 	int state_change=FALSE;
 	int hard_state_change=FALSE;
 	int first_host_check_initiated=FALSE;
@@ -940,7 +939,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* if there was some error running the command, just skip it (this shouldn't be happening) */
 	if(queued_check_result->exited_ok==FALSE){
 
-		logit(NSLOG_RUNTIME_WARNING, "Warning:  Check of service '%s' on host '%s' did not exit properly!\n",temp_service->description,temp_service->host_name);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning:  Check of service '%s' on host '%s' did not exit properly!\n",temp_service->description,temp_service->host_name);
 
 		temp_service->plugin_output=(char *)strdup("(Service check did not exit properly)");
 
@@ -950,7 +949,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* make sure the return code is within bounds */
 	else if(queued_check_result->return_code<0 || queued_check_result->return_code>3){
 
-		logit(NSLOG_RUNTIME_WARNING, "Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n",queued_check_result->return_code,temp_service->description,temp_service->host_name,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n",queued_check_result->return_code,temp_service->description,temp_service->host_name,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
 
 		asprintf(&temp_plugin_output,"\x73\x6f\x69\x67\x61\x6e\x20\x74\x68\x67\x69\x72\x79\x70\x6f\x63\x20\x6e\x61\x68\x74\x65\x20\x64\x61\x74\x73\x6c\x61\x67");
 		my_free((void **)&temp_plugin_output);
@@ -1005,11 +1004,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 	/* log passive checks - we need to do this here, as some my bypass external commands by getting dropped in checkresults dir */
 	if(temp_service->check_type==SERVICE_CHECK_PASSIVE){
-		if(log_passive_checks==TRUE){
-			asprintf(&temp_buffer,"PASSIVE SERVICE CHECK: %s;%s;%d;%s\n",temp_service->host_name,temp_service->description,temp_service->current_state,temp_service->plugin_output);
-			write_to_all_logs(temp_buffer,NSLOG_PASSIVE_CHECK);
-			my_free((void **)&temp_buffer);
-			}
+		if(log_passive_checks==TRUE)
+			logit(NSLOG_PASSIVE_CHECK,FALSE,"PASSIVE SERVICE CHECK: %s;%s;%d;%s\n",temp_service->host_name,temp_service->description,temp_service->current_state,temp_service->plugin_output);
 	        }
 
 	/* get the host that this service runs on */
@@ -1587,7 +1583,7 @@ void schedule_service_check(service *svc, time_t check_time, int forced){
 	new_event=(timed_event *)malloc(sizeof(timed_event));
 	if(new_event==NULL){
 
-		logit(NSLOG_RUNTIME_WARNING, "Warning: Could not reschedule check of service '%s' on host '%s'!\n",svc->description,svc->host_name);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Could not reschedule check of service '%s' on host '%s'!\n",svc->description,svc->host_name);
 
 		return;
 	        }
@@ -1841,7 +1837,7 @@ void check_for_orphaned_services(void){
 		if(expected_time<current_time){
 
 			/* log a warning */
-			logit(NSLOG_RUNTIME_WARNING, "Warning: The check of service '%s' on host '%s' looks like it was orphaned (results never came back).  I'm scheduling an immediate check of the service...\n",temp_service->description,temp_service->host_name);
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The check of service '%s' on host '%s' looks like it was orphaned (results never came back).  I'm scheduling an immediate check of the service...\n",temp_service->description,temp_service->host_name);
 
 			log_debug_info(DEBUGL_CHECKS,1,"Service '%s' on host '%s' was orphaned, so we're scheduling an immediate check...\n",temp_service->description,temp_service->host_name);
 
@@ -1955,7 +1951,7 @@ void check_service_result_freshness(void){
 			get_time_breakdown(freshness_threshold,&tdays,&thours,&tminutes,&tseconds);
 
 			/* log a warning */
-			logit(NSLOG_RUNTIME_WARNING, "Warning: The results of service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The results of service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
 
 			log_debug_info(DEBUGL_CHECKS,1,"Check results for service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the service...\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
 
@@ -2025,7 +2021,7 @@ void schedule_host_check(host *hst, time_t check_time, int forced){
 	/* allocate memory for a new event item */
 	if((new_event=(timed_event *)malloc(sizeof(timed_event)))==NULL){
 
-		logit(NSLOG_RUNTIME_WARNING, "Warning: Could not reschedule check of host '%s'!\n",hst->name);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Could not reschedule check of host '%s'!\n",hst->name);
 
 		return;
 	        }
@@ -2208,7 +2204,7 @@ void check_for_orphaned_hosts(void){
 		if(expected_time<current_time){
 
 			/* log a warning */
-			logit(NSLOG_RUNTIME_WARNING, "Warning: The check of host '%s' looks like it was orphaned (results never came back).  I'm scheduling an immediate check of the host...\n",temp_host->name);
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The check of host '%s' looks like it was orphaned (results never came back).  I'm scheduling an immediate check of the host...\n",temp_host->name);
 
 			log_debug_info(DEBUGL_CHECKS,1,"Host '%s' was orphaned, so we're scheduling an immediate check...\n",temp_host->name);
 
@@ -2311,7 +2307,7 @@ void check_host_result_freshness(void){
 			get_time_breakdown(freshness_threshold,&tdays,&thours,&tminutes,&tseconds);
 
 			/* log a warning */
-			logit(NSLOG_RUNTIME_WARNING, "Warning: The results of host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the host.\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The results of host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the host.\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
 
 			log_debug_info(DEBUGL_CHECKS,1,"Check results for host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the host...\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
 
@@ -2571,7 +2567,7 @@ int execute_sync_host_check_3x(host *hst){
 		asprintf(&temp_plugin_output,"Host check timed out after %d seconds\n",host_check_timeout);
 
 		/* log the timeout */
-		logit(NSLOG_RUNTIME_WARNING, "Warning: Host check command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,host_check_timeout);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Host check command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,host_check_timeout);
 	        }
 
 	/* calculate total execution time */
@@ -3031,7 +3027,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	if(fork_error==TRUE){
 
 		/* log an error */
-		logit(NSLOG_RUNTIME_WARNING, "Warning: The check of host '%s' could not be performed due to a fork() error.\n",hst->name);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The check of host '%s' could not be performed due to a fork() error.\n",hst->name);
 
 		log_debug_info(DEBUGL_CHECKS,0,"Check of host '%s' could not be performed due to a fork() error!\n",hst->name);
 
@@ -3156,7 +3152,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 		/* if there was some error running the command, just skip it (this shouldn't be happening) */
 		if(queued_check_result->exited_ok==FALSE){
 
-			logit(NSLOG_RUNTIME_WARNING, "Warning:  Check of host '%s' did not exit properly!\n",temp_host->name);
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning:  Check of host '%s' did not exit properly!\n",temp_host->name);
 
 			my_free((void **)&temp_host->plugin_output);
 			my_free((void **)&temp_host->long_plugin_output);
@@ -3170,7 +3166,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 		/* make sure the return code is within bounds */
 		else if(queued_check_result->return_code<0 || queued_check_result->return_code>3){
 
-			logit(NSLOG_RUNTIME_WARNING, "Warning: Return code of %d for check of host '%s' was out of bounds.%s\n",queued_check_result->return_code,temp_host->name,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Return code of %d for check of host '%s' was out of bounds.%s\n",queued_check_result->return_code,temp_host->name,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
 
 			my_free((void **)&temp_host->plugin_output);
 			my_free((void **)&temp_host->long_plugin_output);
@@ -3250,7 +3246,6 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	int run_async_check=TRUE;
-	char *temp_buffer=NULL;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"process_host_check_result_3x()\n");
@@ -3269,11 +3264,8 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 
 	/* log passive checks - we need to do this here, as some my bypass external commands by getting dropped in checkresults dir */
 	if(hst->check_type==HOST_CHECK_PASSIVE){
-		if(log_passive_checks==TRUE){
-			asprintf(&temp_buffer,"PASSIVE HOST CHECK: %s;%d;%s\n",hst->name,new_state,hst->plugin_output);
-			write_to_all_logs(temp_buffer,NSLOG_PASSIVE_CHECK);
-			my_free((void **)&temp_buffer);
-			}
+		if(log_passive_checks==TRUE)
+			logit(NSLOG_PASSIVE_CHECK,FALSE,"PASSIVE HOST CHECK: %s;%d;%s\n",hst->name,new_state,hst->plugin_output);
 	        }
 
 

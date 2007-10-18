@@ -624,7 +624,7 @@ int main(int argc, char **argv){
 			/* drop privileges */
 			if(drop_privileges(nagios_user,nagios_group)==ERROR){
 
-				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR, "Failed to drop privileges.  Aborting.");
+				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE,"Failed to drop privileges.  Aborting.");
 
 				cleanup();
 				exit(ERROR);
@@ -637,7 +637,7 @@ int main(int argc, char **argv){
 #endif
 
 			/* this must be logged after we read config data, as user may have changed location of main log file */
-			logit(NSLOG_PROCESS_INFO, "Nagios %s starting... (PID=%d)\n",PROGRAM_VERSION,(int)getpid());
+			logit(NSLOG_PROCESS_INFO,TRUE,"Nagios %s starting... (PID=%d)\n",PROGRAM_VERSION,(int)getpid());
 
 			/* write log version/info */
 			write_log_file_info(NULL);
@@ -657,8 +657,7 @@ int main(int argc, char **argv){
 			/* there was a problem reading the config files */
 			if(result!=OK){
 
-				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,
-				      "Bailing out due to one or more errors encountered in the configuration files. Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)", (int)getpid());
+				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE,"Bailing out due to one or more errors encountered in the configuration files. Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)",(int)getpid());
 
 				/* close and delete the external command file if we were restarting */
 				if(sigrestart==TRUE)
@@ -678,8 +677,7 @@ int main(int argc, char **argv){
 			/* there was a problem running the pre-flight check */
 			if(result!=OK){
 
-				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_VERIFICATION_ERROR,
-				      "Bailing out due to errors encountered while running the pre-flight check.  Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)\n",(int)getpid());
+				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_VERIFICATION_ERROR,TRUE,"Bailing out due to errors encountered while running the pre-flight check.  Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)\n",(int)getpid());
 
 				/* close and delete the external command file if we were restarting */
 				if(sigrestart==TRUE)
@@ -731,8 +729,7 @@ int main(int argc, char **argv){
 			result=open_command_file();
 			if(result!=OK){
 
-				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,
-				      "Bailing out due to errors encountered while trying to initialize the external command file... (PID=%d)\n",(int)getpid());
+				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,"Bailing out due to errors encountered while trying to initialize the external command file... (PID=%d)\n",(int)getpid());
 
 #ifdef USE_EVENT_BROKER
 				/* send program data to broker */
@@ -845,7 +842,7 @@ int main(int argc, char **argv){
 					unlink(lock_file);
 
 				/* log a shutdown message */
-				logit(NSLOG_PROCESS_INFO, "Successfully shutdown... (PID=%d)\n",(int)getpid());
+				logit(NSLOG_PROCESS_INFO,TRUE,"Successfully shutdown... (PID=%d)\n",(int)getpid());
  			        }
 
 			/* clean up after ourselves */

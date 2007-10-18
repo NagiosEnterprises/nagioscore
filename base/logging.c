@@ -67,6 +67,27 @@ FILE            *debug_file_fp=NULL;
 /************************ LOGGING FUNCTIONS ***********************/
 /******************************************************************/
 
+/* This needs to be a function rather than a macro. C99 introduces
+ * variadic macros, but we need to support compilers that aren't
+ * C99 compliant in that area, so a function it is. Hopefully most
+ * compilers will just optimize this call away, as it's easily
+ * recognizable as not doing anything at all */
+void logit(int data_type, int display, const char *fmt, ...){
+	int len;
+	va_list ap;
+	char *buffer=NULL;
+
+	va_start(ap,fmt);
+	if((len=vasprintf(&buffer,fmt,ap))>0){
+		write_to_logs_and_console(buffer,data_type,display);
+		free(buffer);
+		}
+	va_end(ap);
+
+	return;
+	}
+
+
 /* write something to the log file, syslog, and possibly the console */
 int write_to_logs_and_console(char *buffer, unsigned long data_type, int display){
 	register int len=0;
@@ -97,26 +118,6 @@ int write_to_logs_and_console(char *buffer, unsigned long data_type, int display
 	return OK;
         }
 
-/* This needs to be a function rather than a macro. C99 introduces
- * variadic macros, but we need to support compilers that aren't
- * C99 compliant in that area, so a function it is. Hopefully most
- * compilers will just optimize this call away, as it's easily
- * recognizable as not doing anything at all */
-void logit(int data_type, const char *fmt, ...)
-{
-#ifdef NSCORE
-	int len;
-	va_list ap;
-	char *buffer = NULL;
-
-	va_start(ap, fmt);
-	if ((len = vasprintf(&buffer, fmt, ap)) > 0) {
-		write_to_logs_and_console(buffer, data_type, TRUE);
-		free(buffer);
-	}
-	va_end(ap);
-#endif
-}
 
 /* write something to the console */
 int write_to_console(char *buffer){
@@ -220,7 +221,7 @@ int write_to_syslog(char *buffer, unsigned long data_type){
 		return OK;
 
 	/* write the buffer to the syslog facility */
-	syslog(LOG_USER|LOG_INFO,"%s",buffer);
+	syslog(LOG_USER|LOG_INFO,TRUE,"%s",buffer);
 
 	return OK;
 	}

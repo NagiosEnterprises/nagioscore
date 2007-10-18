@@ -343,7 +343,7 @@ int xsddefault_save_status_data(void){
 
 		/* log an error */
 #ifdef NSCORE
-		logit(NSLOG_RUNTIME_ERROR, "Error: Unable to create temp file for writing status data!\n");
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to create temp file for writing status data!\n");
 #endif
 
 		/* free memory */
@@ -359,7 +359,7 @@ int xsddefault_save_status_data(void){
 
 		/* log an error */
 #ifdef NSCORE
-		logit(NSLOG_RUNTIME_ERROR, "Error: Unable to open temp file '%s' for writing status data!\n",temp_file);
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to open temp file '%s' for writing status data!\n",temp_file);
 #endif
 
 		/* free memory */
@@ -649,7 +649,7 @@ int xsddefault_save_status_data(void){
 
 		/* log an error */
 #ifdef NSCORE
-		logit(NSLOG_RUNTIME_ERROR, "Error: Unable to update status data file '%s'!\n",xsddefault_status_log);
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to update status data file '%s'!\n",xsddefault_status_log);
 #endif
 
 		/* free memory */

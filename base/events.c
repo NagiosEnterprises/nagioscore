@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-07-2007
+ * Last Modified: 10-18-2007
  *
  * License:
  *
@@ -859,7 +859,6 @@ int event_execution_loop(void){
 	int run_event=TRUE;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	char *temp_buffer=NULL;
 	struct timespec delay;
 	struct timeval tv;
 	pid_t wait_result;
@@ -959,9 +958,7 @@ int event_execution_loop(void){
 
 					log_debug_info(DEBUGL_EVENTS|DEBUGL_CHECKS,0,"**WARNING** Max concurrent service checks (%d) has been reached!  Delaying further service checks until previous checks are complete...\n",max_parallel_service_checks);
 
-					asprintf(&temp_buffer,"\tMax concurrent service checks (%d) has been reached.  Delaying further checks until previous checks are complete...\n",max_parallel_service_checks);
-					write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-					my_free((void **)&temp_buffer);
+					logit(NSLOG_RUNTIME_WARNING, "\tMax concurrent service checks (%d) has been reached.  Delaying further checks until previous checks are complete...\n",max_parallel_service_checks);
 					run_event=FALSE;
 					}
 
@@ -1138,7 +1135,6 @@ int event_execution_loop(void){
 int handle_timed_event(timed_event *event){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	char *temp_buffer=NULL;
 	void (*userfunc)(void *);
 	struct timeval tv;
 	double latency=0.0;
@@ -1210,9 +1206,7 @@ int handle_timed_event(timed_event *event){
 		sigshutdown=TRUE;
 
 		/* log the shutdown */
-		asprintf(&temp_buffer,"PROGRAM_SHUTDOWN event encountered, shutting down...\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_PROCESS_INFO, "PROGRAM_SHUTDOWN event encountered, shutting down...\n");
 		break;
 
 	case EVENT_PROGRAM_RESTART:
@@ -1223,9 +1217,7 @@ int handle_timed_event(timed_event *event){
 		sigrestart=TRUE;
 
 		/* log the restart */
-		asprintf(&temp_buffer,"PROGRAM_RESTART event encountered, restarting...\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_PROCESS_INFO, "PROGRAM_RESTART event encountered, restarting...\n");
 		break;
 
 	case EVENT_CHECK_REAPER:
@@ -1544,7 +1536,6 @@ void adjust_check_scheduling(void){
 
 /* attempts to compensate for a change in the system time */
 void compensate_for_system_time_change(unsigned long last_time, unsigned long current_time){
-	char *temp_buffer=NULL;
 	unsigned long time_difference=0L;
 	timed_event *temp_event=NULL;
 	service *temp_service=NULL;
@@ -1573,9 +1564,7 @@ void compensate_for_system_time_change(unsigned long last_time, unsigned long cu
 		}
 
 	/* log the time change */
-	asprintf(&temp_buffer,"Warning: A system time change of %dd %dh %dm %ds (%s in time) has been detected.  Compensating...\n",days,hours,minutes,seconds,(last_time>current_time)?"backwards":"forwards");
-	write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_WARNING,TRUE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_WARNING, "Warning: A system time change of %dd %dh %dm %ds (%s in time) has been detected.  Compensating...\n",days,hours,minutes,seconds,(last_time>current_time)?"backwards":"forwards");
 
 	/* adjust the next run time for all high priority timed events */
 	for(temp_event=event_list_high;temp_event!=NULL;temp_event=temp_event->next){

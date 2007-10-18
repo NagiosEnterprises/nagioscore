@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-04-2007
+ * Last Modified: 10-18-2007
  *
  * License:
  *
@@ -317,7 +317,6 @@ int xsddefault_cleanup_status_data(char *config_file, int delete_status_data){
 int xsddefault_save_status_data(void){
 	char *temp_file=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
-	char *temp_buffer=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	contact *temp_contact=NULL;
@@ -343,9 +342,9 @@ int xsddefault_save_status_data(void){
 	if((fd=mkstemp(temp_file))==-1){
 
 		/* log an error */
-		asprintf(&temp_buffer,"Error: Unable to create temp file for writing status data!\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+#ifdef NSCORE
+		logit(NSLOG_RUNTIME_ERROR, "Error: Unable to create temp file for writing status data!\n");
+#endif
 
 		/* free memory */
 		my_free((void **)&temp_file);
@@ -359,9 +358,9 @@ int xsddefault_save_status_data(void){
 		unlink(temp_file);
 
 		/* log an error */
-		asprintf(&temp_buffer,"Error: Unable to open temp file '%s' for writing status data!\n",temp_file);
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+#ifdef NSCORE
+		logit(NSLOG_RUNTIME_ERROR, "Error: Unable to open temp file '%s' for writing status data!\n",temp_file);
+#endif
 
 		/* free memory */
 		my_free((void **)&temp_file);
@@ -649,9 +648,9 @@ int xsddefault_save_status_data(void){
 	if(my_rename(temp_file,xsddefault_status_log)){
 
 		/* log an error */
-		asprintf(&temp_buffer,"Error: Unable to update status data file '%s'!\n",xsddefault_status_log);
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+#ifdef NSCORE
+		logit(NSLOG_RUNTIME_ERROR, "Error: Unable to update status data file '%s'!\n",xsddefault_status_log);
+#endif
 
 		/* free memory */
 		my_free((void **)&temp_file);

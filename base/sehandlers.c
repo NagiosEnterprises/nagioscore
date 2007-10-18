@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-04-2007
+ * Last Modified:   10-18-2007
  *
  * License:
  *
@@ -70,7 +70,6 @@ extern time_t          program_start;
 int obsessive_compulsive_service_check_processor(service *svc){
 	char *raw_command=NULL;
 	char *processed_command=NULL;
-	char *temp_buffer=NULL;
 	host *temp_host=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
@@ -121,9 +120,7 @@ int obsessive_compulsive_service_check_processor(service *svc){
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: OCSP command '%s' for service '%s' on host '%s' timed out after %d seconds\n",processed_command,svc->description,svc->host_name,ocsp_timeout);
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_RUNTIME_WARNING, "Warning: OCSP command '%s' for service '%s' on host '%s' timed out after %d seconds\n",processed_command,svc->description,svc->host_name,ocsp_timeout);
 	        }
 
 	/* free memory */
@@ -139,7 +136,6 @@ int obsessive_compulsive_service_check_processor(service *svc){
 int obsessive_compulsive_host_check_processor(host *hst){
 	char *raw_command=NULL;
 	char *processed_command=NULL;
-	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
@@ -184,9 +180,7 @@ int obsessive_compulsive_host_check_processor(host *hst){
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: OCHP command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,ochp_timeout);
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_RUNTIME_WARNING, "Warning: OCHP command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,ochp_timeout);
 	        }
 
 	/* free memory */
@@ -314,9 +308,7 @@ int run_global_service_event_handler(service *svc){
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: Global service event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
-		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING, "Warning: Global service event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
 	        }
 
 	/* get end time */
@@ -397,9 +389,7 @@ int run_service_event_handler(service *svc){
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: Service event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
-		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING, "Warning: Service event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
 	        }
 
 	/* get end time */
@@ -529,9 +519,7 @@ int run_global_host_event_handler(host *hst){
 
 	/* check for a timeout in the execution of the event handler command */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: Global host event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
-		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING, "Warning: Global host event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
 	        }
 
 	/* get end time */
@@ -611,9 +599,7 @@ int run_host_event_handler(host *hst){
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
-		asprintf(&temp_buffer,"Warning: Host event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
-		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING, "Warning: Host event handler command '%s' timed out after %d seconds\n",processed_command,event_handler_timeout);
 	        }
 
 	/* get end time */

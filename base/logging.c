@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2007
+ * Last Modified: 10-18-2007
  *
  * License:
  *
@@ -97,6 +97,26 @@ int write_to_logs_and_console(char *buffer, unsigned long data_type, int display
 	return OK;
         }
 
+/* This needs to be a function rather than a macro. C99 introduces
+ * variadic macros, but we need to support compilers that aren't
+ * C99 compliant in that area, so a function it is. Hopefully most
+ * compilers will just optimize this call away, as it's easily
+ * recognizable as not doing anything at all */
+void logit(int data_type, const char *fmt, ...)
+{
+#ifdef NSCORE
+	int len;
+	va_list ap;
+	char *buffer = NULL;
+
+	va_start(ap, fmt);
+	if ((len = vasprintf(&buffer, fmt, ap)) > 0) {
+		write_to_logs_and_console(buffer, data_type, TRUE);
+		free(buffer);
+	}
+	va_end(ap);
+#endif
+}
 
 /* write something to the console */
 int write_to_console(char *buffer){

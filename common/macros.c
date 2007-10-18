@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-07-2007
+ * Last Modified:   10-18-2007
  *
  * License:
  *
@@ -1933,7 +1933,6 @@ int grab_on_demand_contact_macro(contact *cntct, char *macro){
 	customvariablesmember *temp_customvariablesmember=NULL;
 	objectlist *temp_objectlist=NULL;
 	char *customvarname=NULL;
-	char *temp_buffer=NULL;
 	char *buf1=NULL;
 	char *buf2=NULL;
 	register int x=0;

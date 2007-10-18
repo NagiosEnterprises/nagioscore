@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-04-2007
+ * Last Modified: 10-18-2007
  *
  * License:
  *
@@ -230,7 +230,6 @@ int xrddefault_cleanup_retention_data(char *config_file){
 /******************************************************************/
 
 int xrddefault_save_state_information(void){
-	char *temp_buffer=NULL;
 	char *temp_file=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
 	time_t current_time=0L;
@@ -257,9 +256,9 @@ int xrddefault_save_state_information(void){
 	/* make sure we have everything */
 	if(xrddefault_retention_file==NULL || xrddefault_temp_file==NULL){
 
-		asprintf(&temp_buffer,"Error: We don't have the required file names to store retention data!\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+#ifdef NSCORE
+		logit(NSLOG_RUNTIME_ERROR, "Error: We don't have the required file names to store retention data!\n");
+#endif
 
 		return ERROR;
 	        }
@@ -279,9 +278,9 @@ int xrddefault_save_state_information(void){
 		close(fd);
 		unlink(temp_file);
 
-		asprintf(&temp_buffer,"Error: Could not open temp state retention file '%s' for writing!\n",temp_file);
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+#ifdef NSCORE
+		logit(NSLOG_RUNTIME_ERROR, "Error: Could not open temp state retention file '%s' for writing!\n",temp_file);
+#endif
 
 		my_free((void **)&temp_file);
 
@@ -557,7 +556,6 @@ int xrddefault_save_state_information(void){
 /******************************************************************/
 
 int xrddefault_read_state_information(void){
-	char *temp_buffer=NULL;
 	char *input=NULL;
 	char *temp_ptr=NULL;
 	mmapfile *thefile;
@@ -611,9 +609,9 @@ int xrddefault_read_state_information(void){
 	/* make sure we have what we need */
 	if(xrddefault_retention_file==NULL){
 
-		asprintf(&temp_buffer,"Error: We don't have a filename for retention data!\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+#ifdef NSCORE
+		logit(NSLOG_RUNTIME_ERROR, "Error: We don't have a filename for retention data!\n");
+#endif
 
 		return ERROR;
 	        }

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-07-2007
+ * Last Modified: 10-18-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -20,6 +20,10 @@
 
 #ifndef _NAGIOS_H
 #define _NAGIOS_H
+
+#ifndef __GNUC__
+# define __attribute__(x) /* nothing */
+#endif
 
 #include "config.h"
 #include "common.h"
@@ -569,6 +573,8 @@ time_t get_next_service_notification_time(service *,time_t);			/* calculates nex
 
 
 /**** Logging Functions ****/
+void logit(int data_type, const char *fmt, ...)
+	__attribute__((__format__(__printf__, 2, 3)));
 int write_to_logs_and_console(char *,unsigned long,int);	/* writes a string to screen and logs */
 int write_to_console(char *);                           /* writes a string to screen */
 int write_to_all_logs(char *,unsigned long);            /* writes a string to main log file and syslog facility */
@@ -582,7 +588,8 @@ int log_service_states(int,time_t *);                   /* logs initial/current 
 int rotate_log_file(time_t);			     	/* rotates the main log file */
 int write_log_file_info(time_t *); 			/* records log file/version info */
 int open_debug_log(void);
-int log_debug_info(int,int,const char *,...);
+int log_debug_info(int,int,const char *,...)
+	__attribute__((__format__(__printf__, 3, 4)));
 int close_debug_log(void);
 
 

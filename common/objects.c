@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-22-2007
+ * Last Modified: 10-18-2007
  *
  * License:
  *
@@ -105,9 +105,6 @@ int add_host_to_hashlist(host *new_host){
 	host *temp_host=NULL;
 	host *lastpointer=NULL;
 	int hashslot=0;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* initialize hash list */
 	if(host_hashlist==NULL){
@@ -141,9 +138,7 @@ int add_host_to_hashlist(host *new_host){
 
 	/* else already exists */
 #ifdef NSCORE
-	asprintf(&temp_buffer,"Error: Could not add duplicate host '%s'.\n",new_host->name);
-	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_CONFIG_ERROR, "Error: Could not add duplicate host '%s'.\n",new_host->name);
 #endif
 	return 0;
         }
@@ -153,9 +148,6 @@ int add_service_to_hashlist(service *new_service){
 	service *temp_service=NULL;
 	service *lastpointer=NULL;
 	int hashslot=0;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* initialize hash list */
 	if(service_hashlist==NULL){
@@ -190,9 +182,7 @@ int add_service_to_hashlist(service *new_service){
 
 	/* else already exists */
 #ifdef NSCORE
-	asprintf(&temp_buffer,"Error: Could not add duplicate service '%s' on host '%s'.\n",new_service->description,new_service->host_name);
-	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_CONFIG_ERROR, "Error: Could not add duplicate service '%s' on host '%s'.\n",new_service->description,new_service->host_name);
 #endif
 	return 0;
         }
@@ -202,9 +192,6 @@ int add_command_to_hashlist(command *new_command){
 	command *temp_command=NULL;
 	command *lastpointer=NULL;
 	int hashslot=0;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* initialize hash list */
 	if(command_hashlist==NULL){
@@ -238,9 +225,7 @@ int add_command_to_hashlist(command *new_command){
 
 	/* else already exists */
 #ifdef NSCORE
-	asprintf(&temp_buffer,"Error: Could not add duplicate command '%s'.\n",new_command->name);
-	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_CONFIG_ERROR, "Error: Could not add duplicate command '%s'.\n",new_command->name);
 #endif
 	return 0;
         }
@@ -250,9 +235,6 @@ int add_timeperiod_to_hashlist(timeperiod *new_timeperiod){
 	timeperiod *temp_timeperiod=NULL;
 	timeperiod *lastpointer=NULL;
 	int hashslot=0;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* initialize hash list */
 	if(timeperiod_hashlist==NULL){
@@ -286,9 +268,7 @@ int add_timeperiod_to_hashlist(timeperiod *new_timeperiod){
 
 	/* else already exists */
 #ifdef NSCORE
-	asprintf(&temp_buffer,"Error: Could not add duplicate timeperiod '%s'.\n",new_timeperiod->name);
-	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_CONFIG_ERROR, "Error: Could not add duplicate timeperiod '%s'.\n",new_timeperiod->name);
 #endif
 	return 0;
         }
@@ -298,9 +278,6 @@ int add_contact_to_hashlist(contact *new_contact){
 	contact *temp_contact=NULL;
 	contact *lastpointer=NULL;
 	int hashslot=0;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* initialize hash list */
 	if(contact_hashlist==NULL){
@@ -334,9 +311,7 @@ int add_contact_to_hashlist(contact *new_contact){
 
 	/* else already exists */
 #ifdef NSCORE
-	asprintf(&temp_buffer,"Error: Could not add duplicate contact '%s'.\n",new_contact->name);
-	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_CONFIG_ERROR, "Error: Could not add duplicate contact '%s'.\n",new_contact->name);
 #endif
 	return 0;
         }
@@ -346,9 +321,6 @@ int add_contactgroup_to_hashlist(contactgroup *new_contactgroup){
 	contactgroup *temp_contactgroup=NULL;
 	contactgroup *lastpointer=NULL;
 	int hashslot=0;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* initialize hash list */
 	if(contactgroup_hashlist==NULL){
@@ -382,9 +354,7 @@ int add_contactgroup_to_hashlist(contactgroup *new_contactgroup){
 
 	/* else already exists */
 #ifdef NSCORE
-	asprintf(&temp_buffer,"Error: Could not add duplicate contactgroup '%s'.\n",new_contactgroup->group_name);
-	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_CONFIG_ERROR, "Error: Could not add duplicate contactgroup '%s'.\n",new_contactgroup->group_name);
 #endif
 	return 0;
         }
@@ -394,9 +364,6 @@ int add_hostgroup_to_hashlist(hostgroup *new_hostgroup){
 	hostgroup *temp_hostgroup=NULL;
 	hostgroup *lastpointer=NULL;
 	int hashslot=0;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* initialize hash list */
 	if(hostgroup_hashlist==NULL){
@@ -430,9 +397,7 @@ int add_hostgroup_to_hashlist(hostgroup *new_hostgroup){
 
 	/* else already exists */
 #ifdef NSCORE
-	asprintf(&temp_buffer,"Error: Could not add duplicate hostgroup '%s'.\n",new_hostgroup->group_name);
-	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_CONFIG_ERROR, "Error: Could not add duplicate hostgroup '%s'.\n",new_hostgroup->group_name);
 #endif
 	return 0;
         }
@@ -442,9 +407,6 @@ int add_servicegroup_to_hashlist(servicegroup *new_servicegroup){
 	servicegroup *temp_servicegroup=NULL;
 	servicegroup *lastpointer=NULL;
 	int hashslot=0;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* initialize hash list */
 	if(servicegroup_hashlist==NULL){
@@ -478,9 +440,7 @@ int add_servicegroup_to_hashlist(servicegroup *new_servicegroup){
 
 	/* else already exists */
 #ifdef NSCORE
-	asprintf(&temp_buffer,"Error: Could not add duplicate servicegroup '%s'.\n",new_servicegroup->group_name);
-	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-	my_free((void **)&temp_buffer);
+	logit(NSLOG_CONFIG_ERROR, "Error: Could not add duplicate servicegroup '%s'.\n",new_servicegroup->group_name);
 #endif
 	return 0;
         }
@@ -644,16 +604,11 @@ timeperiod *add_timeperiod(char *name,char *alias){
 	timeperiod *new_timeperiod=NULL;
 	int x=0;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Name or alias for timeperiod is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Name or alias for timeperiod is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -661,9 +616,7 @@ timeperiod *add_timeperiod(char *name,char *alias){
 	/* make sure there isn't a timeperiod by this name added already */
 	if(find_timeperiod(name)!=NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Timeperiod '%s' has already been defined\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Timeperiod '%s' has already been defined\n",name);
 #endif
 		return NULL;
 	        }
@@ -750,9 +703,6 @@ timeperiodexclusion *add_exclusion_to_timeperiod(timeperiod *period, char *name)
 /* add a new timerange to a timeperiod */
 timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned long start_time, unsigned long end_time){
 	timerange *new_timerange=NULL;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(period==NULL)
@@ -760,25 +710,19 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 	if(day<0 || day>6){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Day %d is not valid for timeperiod '%s'\n",day,period->name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Day %d is not valid for timeperiod '%s'\n",day,period->name);
 #endif
 		return NULL;
 	        }
 	if(start_time<0 || start_time>86400){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Start time %lu on day %d is not valid for timeperiod '%s'\n",start_time,day,period->name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Start time %lu on day %d is not valid for timeperiod '%s'\n",start_time,day,period->name);
 #endif
 		return NULL;
 	        }
 	if(end_time<0 || end_time>86400){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: End time %lu on day %d is not value for timeperiod '%s'\n",end_time,day,period->name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: End time %lu on day %d is not value for timeperiod '%s'\n",end_time,day,period->name);
 #endif
 		return NULL;
 	        }
@@ -838,9 +782,6 @@ daterange *add_exception_to_timeperiod(timeperiod *period, int type, int syear, 
 /* add a new timerange to a daterange */
 timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_time, unsigned long end_time){
 	timerange *new_timerange=NULL;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(drange==NULL)
@@ -848,17 +789,13 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 	if(start_time<0 || start_time>86400){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Start time %lu is not valid for timeperiod\n",start_time);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Start time %lu is not valid for timeperiod\n",start_time);
 #endif
 		return NULL;
 	        }
 	if(end_time<0 || end_time>86400){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: End time %lu is not value for timeperiod\n",end_time);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: End time %lu is not value for timeperiod\n",end_time);
 #endif
 		return NULL;
 	        }
@@ -885,16 +822,13 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	host *new_host=NULL;
 	int result=OK;
 #ifdef NSCORE
-	char *temp_buffer=NULL;
 	int x=0;
 #endif
 
 	/* make sure we have the data we need */
 	if((name==NULL || !strcmp(name,"")) || (address==NULL || !strcmp(address,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Host name or address is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Host name or address is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -902,9 +836,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	/* make sure there isn't a host by this name already added */
 	if(find_host(name)!=NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Host '%s' has already been defined\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Host '%s' has already been defined\n",name);
 #endif
 		return NULL;
 	        }
@@ -912,41 +844,31 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	/* check values */
 	if(max_attempts<=0){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Invalid max_check_attempts value for host '%s'\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Invalid max_check_attempts value for host '%s'\n",name);
 #endif
 		return NULL;
 	        }
 	if(check_interval<0){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Invalid check_interval value for host '%s'\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Invalid check_interval value for host '%s'\n",name);
 #endif
 		return NULL;
 	        }
 	if(notification_interval<0){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Invalid notification_interval value for host '%s'\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Invalid notification_interval value for host '%s'\n",name);
 #endif
 		return NULL;
 	        }
 	if(first_notification_delay<0){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Invalid first_notification_delay value for host '%s'\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Invalid first_notification_delay value for host '%s'\n",name);
 #endif
 		return NULL;
 	        }
 	if(freshness_threshold<0){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Invalid freshness_threshold value for host '%s'\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Invalid freshness_threshold value for host '%s'\n",name);
 #endif
 		return NULL;
 	        }
@@ -1197,16 +1119,11 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 	hostsmember *new_hostsmember=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(hst==NULL || host_name==NULL || !strcmp(host_name,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Host is NULL or parent host name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Host is NULL or parent host name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -1214,9 +1131,7 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 	/* a host cannot be a parent/child of itself */
 	if(!strcmp(host_name,hst->name)){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Host '%s' cannot be a child/parent of itself\n",hst->name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Host '%s' cannot be a child/parent of itself\n",hst->name);
 #endif
 		return NULL;
 	        }
@@ -1310,16 +1225,11 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr){
 contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 	contactgroupsmember *new_contactgroupsmember=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(hst==NULL || (group_name==NULL || !strcmp(group_name,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Host or contactgroup member is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Host or contactgroup member is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -1374,16 +1284,11 @@ customvariablesmember *add_custom_variable_to_host(host *hst, char *varname, cha
 hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, char *action_url){
 	hostgroup *new_hostgroup=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(name==NULL || !strcmp(name,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Hostgroup name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Hostgroup name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -1391,9 +1296,7 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 	/* make sure a hostgroup by this name hasn't been added already */
 	if(find_hostgroup(name)!=NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Hostgroup '%s' has already been defined\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Hostgroup '%s' has already been defined\n",name);
 #endif
 		return NULL;
 	        }
@@ -1470,16 +1373,11 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name){
 	hostsmember *last_member=NULL;
 	hostsmember *temp_member=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(temp_hostgroup==NULL || (host_name==NULL || !strcmp(host_name,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Hostgroup or group member is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Hostgroup or group member is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -1536,16 +1434,11 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name){
 servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes_url, char *action_url){
 	servicegroup *new_servicegroup=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(name==NULL || !strcmp(name,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Servicegroup name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Servicegroup name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -1553,9 +1446,7 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 	/* make sure a servicegroup by this name hasn't been added already */
 	if(find_servicegroup(name)!=NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Servicegroup '%s' has already been defined\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Servicegroup '%s' has already been defined\n",name);
 #endif
 		return NULL;
 	        }
@@ -1632,16 +1523,11 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 	servicesmember *last_member=NULL;
 	servicesmember *temp_member=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(temp_servicegroup==NULL || (host_name==NULL || !strcmp(host_name,"")) || (svc_description==NULL || !strcmp(svc_description,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Servicegroup or group member is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Servicegroup or group member is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -1714,16 +1600,11 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	contact *new_contact=NULL;
 	int x=0;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(name==NULL || !strcmp(name,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contact name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Contact name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -1731,9 +1612,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	/* make sure there isn't a contact by this name already added */
 	if(find_contact(name)!=NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contact '%s' has already been defined\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Contact '%s' has already been defined\n",name);
 #endif
 		return NULL;
 	        }
@@ -1858,16 +1737,11 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 commandsmember *add_host_notification_command_to_contact(contact *cntct,char *command_name){
 	commandsmember *new_commandsmember=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(cntct==NULL || (command_name==NULL || !strcmp(command_name,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contact or host notification command is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Contact or host notification command is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -1906,16 +1780,11 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct,char *co
 commandsmember *add_service_notification_command_to_contact(contact *cntct,char *command_name){
 	commandsmember *new_commandsmember=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(cntct==NULL || (command_name==NULL || !strcmp(command_name,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contact or service notification command is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Contact or service notification command is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -1962,16 +1831,11 @@ customvariablesmember *add_custom_variable_to_contact(contact *cntct, char *varn
 contactgroup *add_contactgroup(char *name,char *alias){
 	contactgroup *new_contactgroup=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(name==NULL || !strcmp(name,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contactgroup name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Contactgroup name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -1979,9 +1843,7 @@ contactgroup *add_contactgroup(char *name,char *alias){
 	/* make sure there isn't a contactgroup by this name added already */
 	if(find_contactgroup(name)!=NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contactgroup '%s' has already been defined\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Contactgroup '%s' has already been defined\n",name);
 #endif
 		return NULL;
 	        }
@@ -2042,16 +1904,11 @@ contactgroup *add_contactgroup(char *name,char *alias){
 contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_name){
 	contactsmember *new_contactsmember=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(grp==NULL || (contact_name==NULL || !strcmp(contact_name,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contactgroup or contact name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Contactgroup or contact name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -2091,16 +1948,13 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	service *new_service=NULL;
 	int result=OK;
 #ifdef NSCORE
-	char *temp_buffer=NULL;
 	int x=0;
 #endif
 
 	/* make sure we have everything we need */
 	if((host_name==NULL || !strcmp(host_name,"")) || (description==NULL || !strcmp(description,"")) || (check_command==NULL || !strcmp(check_command,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Service description, host name, or check command is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Service description, host name, or check command is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -2108,9 +1962,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	/* make sure there isn't a service by this name added already */
 	if(find_service(host_name,description)!=NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Service '%s' on host '%s' has already been defined\n",description,host_name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Service '%s' on host '%s' has already been defined\n",description,host_name);
 #endif
 		return NULL;
 	        }
@@ -2118,18 +1970,14 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	/* check values */
 	if(max_attempts<=0 || check_interval<0 || retry_interval<=0 || notification_interval<0){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Invalid max_attempts, check_interval, retry_interval, or notification_interval value for service '%s' on host '%s'\n",description,host_name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Invalid max_attempts, check_interval, retry_interval, or notification_interval value for service '%s' on host '%s'\n",description,host_name);
 #endif
 		return NULL;
 	        }
 
 	if(first_notification_delay<0){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Invalid first_notification_delay value for service '%s' on host '%s'\n",description,host_name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Invalid first_notification_delay value for service '%s' on host '%s'\n",description,host_name);
 #endif
 		return NULL;
 	        }
@@ -2347,16 +2195,11 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 	contactgroupsmember *new_contactgroupsmember=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* bail out if we weren't given the data we need */
 	if(svc==NULL || (group_name==NULL || !strcmp(group_name,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Service or contactgroup name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Service or contactgroup name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -2410,16 +2253,11 @@ customvariablesmember *add_custom_variable_to_service(service *svc, char *varnam
 command *add_command(char *name,char *value){
 	command *new_command=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if((name==NULL || !strcmp(name,"")) || (value==NULL || !strcmp(value,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Command name of command line is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Command name of command line is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -2427,9 +2265,7 @@ command *add_command(char *name,char *value){
 	/* make sure there isn't a command by this name added already */
 	if(find_command(name)!=NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Command '%s' has already been defined\n",name);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Command '%s' has already been defined\n",name);
 #endif
 		return NULL;
 	        }
@@ -2489,16 +2325,11 @@ command *add_command(char *name,char *value){
 serviceescalation *add_serviceescalation(char *host_name,char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_recovery){
 	serviceescalation *new_serviceescalation=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if((host_name==NULL || !strcmp(host_name,"")) || (description==NULL || !strcmp(description,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Service escalation host name or description is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Service escalation host name or description is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -2578,16 +2409,11 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se,char *group_name){
 	contactgroupsmember *new_contactgroupsmember=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* bail out if we weren't given the data we need */
 	if(se==NULL || (group_name==NULL || !strcmp(group_name,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Service escalation or contactgroup name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Service escalation or contactgroup name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -2634,24 +2460,17 @@ contactsmember *add_contact_to_serviceescalation(serviceescalation *se, char *co
 servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical, int fail_on_pending, char *dependency_period){
 	servicedependency *new_servicedependency=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have what we need */
 	if((host_name==NULL || !strcmp(host_name,"")) || (service_description==NULL || !strcmp(service_description,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: NULL master service description/host name in service dependency definition\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: NULL master service description/host name in service dependency definition\n");
 #endif
 		return NULL;
 	        }
 	if((dependent_host_name==NULL || !strcmp(dependent_host_name,"")) || (dependent_service_description==NULL || !strcmp(dependent_service_description,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: NULL dependent service description/host name in service dependency definition\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: NULL dependent service description/host name in service dependency definition\n");
 #endif
 		return NULL;
 	        }
@@ -2740,16 +2559,11 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable, int fail_on_pending, char *dependency_period){
 	hostdependency *new_hostdependency=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have what we need */
 	if((dependent_host_name==NULL || !strcmp(dependent_host_name,"")) || (host_name==NULL || !strcmp(host_name,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: NULL host name in host dependency definition\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: NULL host name in host dependency definition\n");
 #endif
 		return NULL;
 	        }
@@ -2830,16 +2644,11 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 hostescalation *add_hostescalation(char *host_name,int first_notification,int last_notification, double notification_interval, char *escalation_period, int escalate_on_down, int escalate_on_unreachable, int escalate_on_recovery){
 	hostescalation *new_hostescalation=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(host_name==NULL || !strcmp(host_name,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Host escalation host name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Host escalation host name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -2914,16 +2723,11 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char *group_name){
 	contactgroupsmember *new_contactgroupsmember=NULL;
 	int result=OK;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* bail out if we weren't given the data we need */
 	if(he==NULL || (group_name==NULL || !strcmp(group_name,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Host escalation or contactgroup name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Host escalation or contactgroup name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -2969,25 +2773,18 @@ contactsmember *add_contact_to_hostescalation(hostescalation *he, char *contact_
 /* adds a contact to an object */
 contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contactname){
 	contactsmember *new_contactsmember=NULL;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(object_ptr==NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contact object is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Contact object is NULL\n");
 #endif
 		return NULL;
 	        }
 
 	if(contactname==NULL || !strcmp(contactname,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Contact name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Contact name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -2995,17 +2792,13 @@ contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contact
 	/* allocate memory for a new member */
 	if((new_contactsmember=malloc(sizeof(contactsmember)))==NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Could not allocate memory for contact\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Could not allocate memory for contact\n");
 #endif
 		return NULL;
 	        }
 	if((new_contactsmember->contact_name=(char *)strdup(contactname))==NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Could not allocate memory for contact name\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Could not allocate memory for contact name\n");
 #endif
 		my_free((void **)&new_contactsmember);
 		return NULL;
@@ -3028,25 +2821,18 @@ contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contact
 /* adds a custom variable to an object */
 customvariablesmember *add_custom_variable_to_object(customvariablesmember **object_ptr, char *varname, char *varvalue){
 	customvariablesmember *new_customvariablesmember=NULL;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
 
 	/* make sure we have the data we need */
 	if(object_ptr==NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Custom variable object is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Custom variable object is NULL\n");
 #endif
 		return NULL;
 	        }
 
 	if(varname==NULL || !strcmp(varname,"")){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Custom variable name is NULL\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Custom variable name is NULL\n");
 #endif
 		return NULL;
 	        }
@@ -3054,17 +2840,13 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 	/* allocate memory for a new member */
 	if((new_customvariablesmember=malloc(sizeof(customvariablesmember)))==NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Could not allocate memory for custom variable\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Could not allocate memory for custom variable\n");
 #endif
 		return NULL;
 	        }
 	if((new_customvariablesmember->variable_name=(char *)strdup(varname))==NULL){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Could not allocate memory for custom variable name\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Could not allocate memory for custom variable name\n");
 #endif
 		my_free((void **)&new_customvariablesmember);
 		return NULL;
@@ -3072,9 +2854,7 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 	if(varvalue){
 		if((new_customvariablesmember->variable_value=(char *)strdup(varvalue))==NULL){
 #ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not allocate memory for custom variable value\n");
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_CONFIG_ERROR, "Error: Could not allocate memory for custom variable value\n");
 #endif
 			my_free((void **)&new_customvariablesmember->variable_name);
 			my_free((void **)&new_customvariablesmember);

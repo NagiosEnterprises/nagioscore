@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-07-2007
+ * Last Modified:   10-18-2007
  *
  * License:
  *
@@ -685,9 +685,8 @@ int process_external_command1(char *cmd){
 	/**** UNKNOWN COMMAND ****/
 	else{
 		/* log the bad external command */
-		asprintf(&temp_buffer,"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
-		write_to_all_logs(temp_buffer,NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING,
+		      "Warning: Unrecognized external command -> %s;%s\n",command_id,args);
 
 		/* free memory */
 		my_free((void **)&command_id);
@@ -2010,7 +2009,6 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	char *real_host_name=NULL;
 	struct timeval tv;
 	int result=OK;
-	char *temp_buffer=NULL;
 
 	/* skip this service check result if we aren't accepting passive service checks */
 	if(accept_passive_service_checks==FALSE)
@@ -2034,17 +2032,13 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 
 	/* we couldn't find the host */
 	if(real_host_name==NULL){
-		asprintf(&temp_buffer,"Warning:  Passive check result was received for service '%s' on host '%s', but the host could not be found!\n",svc_description,host_name);
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_RUNTIME_WARNING, "Warning:  Passive check result was received for service '%s' on host '%s', but the host could not be found!\n",svc_description,host_name);
 		return ERROR;
 		}
 
 	/* make sure the service exists */
 	if((temp_service=find_service(real_host_name,svc_description))==NULL){
-		asprintf(&temp_buffer,"Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n",svc_description,host_name);
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_RUNTIME_WARNING, "Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n",svc_description,host_name);
 		return ERROR;
 		}
 
@@ -2152,7 +2146,6 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	char *real_host_name=NULL;
 	struct timeval tv;
 	int result=OK;
-	char *temp_buffer=NULL;
 
 	/* skip this host check result if we aren't accepting passive host checks */
 	if(accept_passive_service_checks==FALSE)
@@ -2180,9 +2173,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 
 	/* we couldn't find the host */
 	if(temp_host==NULL){
-		asprintf(&temp_buffer,"Warning:  Passive check result was received for host '%s', but the host could not be found!\n",host_name);
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_RUNTIME_WARNING, "Warning:  Passive check result was received for host '%s', but the host could not be found!\n",host_name);
 		return ERROR;
 		}
 

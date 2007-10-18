@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-07-2007
+ * Last Modified: 10-18-2007
  *
  * License:
  *
@@ -242,7 +242,6 @@ int read_main_config_file(char *main_config_file){
 	char *input=NULL;
 	char *variable=NULL;
 	char *value=NULL;
-	char *temp_buffer=NULL;
 	char error_message[MAX_INPUT_BUFFER];
 	char *temp_ptr=NULL;
 	mmapfile *thefile=NULL;
@@ -256,9 +255,7 @@ int read_main_config_file(char *main_config_file){
 
 	/* open the config file for reading */
 	if((thefile=mmap_fopen(main_config_file))==NULL){
-		asprintf(&temp_buffer,"Error: Cannot open main configuration file '%s' for reading!",main_config_file);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Cannot open main configuration file '%s' for reading!",main_config_file);
 		return ERROR;
 		}
 
@@ -1093,9 +1090,7 @@ int read_main_config_file(char *main_config_file){
 			/* DEPRECATED - ALL UPDATED ARE AGGREGATED AS OF NAGIOS 3.X */
 			/*aggregate_status_updates=(atoi(value)>0)?TRUE:FALSE;*/
 
-			asprintf(&temp_buffer,"Warning: aggregate_status_updates directive ignored.  All status file updates are now aggregated.");
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_CONFIG_WARNING, "Warning: aggregate_status_updates directive ignored.  All status file updates are now aggregated.");
 		        }
 
 		else if(!strcmp(variable,"status_update_interval")){
@@ -1283,14 +1278,10 @@ int read_main_config_file(char *main_config_file){
 
 		/* warn about old variables */
 		else if(!strcmp(variable,"comment_file") || !strcmp(variable,"xcddefault_comment_file")){
-			asprintf(&temp_buffer,"Warning: comment_file variable ignored.  Comments are now stored in the status and retention files.");
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_CONFIG_WARNING, "Warning: comment_file variable ignored.  Comments are now stored in the status and retention files.");
 		        }
 		else if(!strcmp(variable,"downtime_file") || !strcmp(variable,"xdddefault_downtime_file")){
-			asprintf(&temp_buffer,"Warning: downtime_file variable ignored.  Downtime entries are now stored in the status and retention files.");
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_CONFIG_WARNING, "Warning: downtime_file variable ignored.  Downtime entries are now stored in the status and retention files.");
 		        }
 
 		/* skip external data directives */
@@ -1329,9 +1320,7 @@ int read_main_config_file(char *main_config_file){
 		command_check_interval*=interval_length;
 
 	if(error==TRUE){
-		asprintf(&temp_buffer,"Error in configuration file '%s' - Line %d (%s)",main_config_file,current_line,error_message);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error in configuration file '%s' - Line %d (%s)",main_config_file,current_line,error_message);
 		return ERROR;
 	        }
 
@@ -1359,7 +1348,6 @@ int read_main_config_file(char *main_config_file){
 
 /* processes macros in resource file */
 int read_resource_file(char *resource_file){
-	char *temp_buffer=NULL;
 	char *input=NULL;
 	char *variable=NULL;
 	char *value=NULL;
@@ -1370,9 +1358,7 @@ int read_resource_file(char *resource_file){
 	int user_index=0;
 
 	if((thefile=mmap_fopen(resource_file))==NULL){
-		asprintf(&temp_buffer,"Error: Cannot open resource file '%s' for reading!",resource_file);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_CONFIG_ERROR, "Error: Cannot open resource file '%s' for reading!",resource_file);
 		return ERROR;
 		}
 
@@ -1398,9 +1384,7 @@ int read_resource_file(char *resource_file){
 
 		/* get the variable name */
 		if((temp_ptr=my_strtok(input,"="))==NULL){
-			asprintf(&temp_buffer,"Error: NULL variable - Line %d of resource file '%s'",current_line,resource_file);
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_CONFIG_ERROR, "Error: NULL variable - Line %d of resource file '%s'",current_line,resource_file);
 			error=TRUE;
 			break;
 			}
@@ -1411,9 +1395,7 @@ int read_resource_file(char *resource_file){
 
 		/* get the value */
 		if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
-			asprintf(&temp_buffer,"Error: NULL variable value - Line %d of resource file '%s'",current_line,resource_file);
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_CONFIG_ERROR, "Error: NULL variable value - Line %d of resource file '%s'",current_line,resource_file);
 			error=TRUE;
 			break;
 			}
@@ -1463,7 +1445,6 @@ int read_resource_file(char *resource_file){
 
 /* do a pre-flight check to make sure object relationships, etc. make sense */
 int pre_flight_check(void){
-	char *temp_buffer=NULL;
 	host *temp_host=NULL;
 	char *buf=NULL;
 	service *temp_service=NULL;
@@ -1510,9 +1491,7 @@ int pre_flight_check(void){
 
 		temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
-			asprintf(&temp_buffer,"Error: Global host event handler command '%s' is not defined anywhere!",temp_command_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Global host event handler command '%s' is not defined anywhere!",temp_command_name);
 			errors++;
 		        }
 
@@ -1531,9 +1510,7 @@ int pre_flight_check(void){
 
 		temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
-			asprintf(&temp_buffer,"Error: Global service event handler command '%s' is not defined anywhere!",temp_command_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Global service event handler command '%s' is not defined anywhere!",temp_command_name);
 			errors++;
 		        }
 
@@ -1558,9 +1535,7 @@ int pre_flight_check(void){
 
 	        temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
-			asprintf(&temp_buffer,"Error: Obsessive compulsive service processor command '%s' is not defined anywhere!",temp_command_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Obsessive compulsive service processor command '%s' is not defined anywhere!",temp_command_name);
 			errors++;
 		        }
 
@@ -1578,9 +1553,7 @@ int pre_flight_check(void){
 
 	        temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
-			asprintf(&temp_buffer,"Error: Obsessive compulsive host processor command '%s' is not defined anywhere!",temp_command_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Obsessive compulsive host processor command '%s' is not defined anywhere!",temp_command_name);
 			errors++;
 		        }
 
@@ -1600,10 +1573,8 @@ int pre_flight_check(void){
 	/* check if we can write to temp_path */
        	asprintf(&buf,"%s/nagiosXXXXXX",temp_path);
        	if((temp_path_fd=mkstemp(buf))==-1){
-       		asprintf(&temp_buffer,"\tError: Unable to write to temp_path ('%s') - %s\n",temp_path,strerror(errno));
-		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+		logit(NSLOG_VERIFICATION_ERROR, "\tError: Unable to write to temp_path ('%s') - %s\n",temp_path,strerror(errno));
 		errors++;
-		my_free((void **)&temp_buffer);
 		}
 	else{
 		close(temp_path_fd);
@@ -1614,10 +1585,8 @@ int pre_flight_check(void){
 	/* check if we can write to check_result_path */
        	asprintf(&buf,"%s/nagiosXXXXXX",check_result_path);
        	if((temp_path_fd=mkstemp(buf))==-1){
-       		asprintf(&temp_buffer,"\tError: Unable to write to check_result_path ('%s') - %s\n",check_result_path,strerror(errno));
-		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+		logit(NSLOG_VERIFICATION_WARNING, "\tError: Unable to write to check_result_path ('%s') - %s\n",check_result_path,strerror(errno));
 		errors++;
-		my_free((void **)&temp_buffer);
 		}
 	else{
 		close(temp_path_fd);
@@ -1627,9 +1596,7 @@ int pre_flight_check(void){
 
 	/* warn if user didn't specify any illegal macro output chars */
 	if(illegal_output_chars==NULL){
-		asprintf(&temp_buffer,"%s","Warning: Nothing specified for illegal_macro_output_chars variable!\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_VERIFICATION_WARNING, "%s","Warning: Nothing specified for illegal_macro_output_chars variable!\n");
 		warnings++;
 	        }
 
@@ -1703,7 +1670,6 @@ int pre_flight_object_check(int *w, int *e){
 	hostescalation *temp_he=NULL;
 	servicedependency *temp_sd=NULL;
 	hostdependency *temp_hd=NULL;
-	char *temp_buffer=NULL;
 	char *buf=NULL;
 	char *temp_command_name="";
 	int found=FALSE;
@@ -1723,9 +1689,7 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("Checking services...\n");
 	if(service_hashlist==NULL){
-		asprintf(&temp_buffer,"Error: There are no services defined!");
-		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_VERIFICATION_ERROR, "Error: There are no services defined!");
 		errors++;
 	        }
 	total_objects=0;
@@ -1739,9 +1703,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* we couldn't find an associated host! */
 		if(!temp_host){
-			asprintf(&temp_buffer,"Error: Host '%s' specified in service '%s' not defined anywhere!",temp_service->host_name,temp_service->description);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Host '%s' specified in service '%s' not defined anywhere!",temp_service->host_name,temp_service->description);
 			errors++;
 			}
 
@@ -1762,9 +1724,7 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
-				asprintf(&temp_buffer,"Error: Event handler command '%s' specified in service '%s' for host '%s' not defined anywhere",temp_command_name,temp_service->description,temp_service->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Event handler command '%s' specified in service '%s' for host '%s' not defined anywhere",temp_command_name,temp_service->description,temp_service->host_name);
 				errors++;
 			        }
 
@@ -1782,9 +1742,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
-			asprintf(&temp_buffer,"Error: Service check command '%s' specified in service '%s' for host '%s' not defined anywhere!",temp_command_name,temp_service->description,temp_service->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Service check command '%s' specified in service '%s' for host '%s' not defined anywhere!",temp_command_name,temp_service->description,temp_service->host_name);
 			errors++;
 		        }
 
@@ -1795,9 +1753,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for sane recovery options */
 		if(temp_service->notify_on_recovery==TRUE && temp_service->notify_on_warning==FALSE && temp_service->notify_on_critical==FALSE){
-			asprintf(&temp_buffer,"Warning: Recovery notification option in service '%s' for host '%s' doesn't make any sense - specify warning and/or critical options as well",temp_service->description,temp_service->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Recovery notification option in service '%s' for host '%s' doesn't make any sense - specify warning and/or critical options as well",temp_service->description,temp_service->host_name);
 			warnings++;
 		        }
 
@@ -1810,9 +1766,7 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contact=find_contact(temp_contactsmember->contact_name);
 
 			if(temp_contact==NULL){
-				asprintf(&temp_buffer,"Error: Contact '%s' specified in service '%s' for host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_service->description,temp_service->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Contact '%s' specified in service '%s' for host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_service->description,temp_service->host_name);
 				errors++;
 			        }
 
@@ -1826,9 +1780,7 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 
 			if(temp_contactgroup==NULL){
-				asprintf(&temp_buffer,"Error: Contact group '%s' specified in service '%s' for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_service->description,temp_service->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Contact group '%s' specified in service '%s' for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_service->description,temp_service->host_name);
 				errors++;
 			        }
 
@@ -1838,25 +1790,19 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check to see if there is at least one contact/group */
 		if(temp_service->contacts==NULL && temp_service->contact_groups==NULL){
-			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s' has no default contacts or contactgroups defined!",temp_service->description,temp_service->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Service '%s' on host '%s' has no default contacts or contactgroups defined!",temp_service->description,temp_service->host_name);
 			warnings++;
 		        }
 
 		/* verify service check timeperiod */
 		if(temp_service->check_period==NULL){
-			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s' has no check time period defined!",temp_service->description,temp_service->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Service '%s' on host '%s' has no check time period defined!",temp_service->description,temp_service->host_name);
 			warnings++;
 		        }
 		else{
 		        temp_timeperiod=find_timeperiod(temp_service->check_period);
 			if(temp_timeperiod==NULL){
-				asprintf(&temp_buffer,"Error: Check period '%s' specified for service '%s' on host '%s' is not defined anywhere!",temp_service->check_period,temp_service->description,temp_service->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Check period '%s' specified for service '%s' on host '%s' is not defined anywhere!",temp_service->check_period,temp_service->description,temp_service->host_name);
 				errors++;
 			        }
 
@@ -1866,18 +1812,14 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check service notification timeperiod */
 		if(temp_service->notification_period==NULL){
-			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s' has no notification time period defined!",temp_service->description,temp_service->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Service '%s' on host '%s' has no notification time period defined!",temp_service->description,temp_service->host_name);
 			warnings++;
 		        }
 
 		else{
 		        temp_timeperiod=find_timeperiod(temp_service->notification_period);
 			if(temp_timeperiod==NULL){
-				asprintf(&temp_buffer,"Error: Notification period '%s' specified for service '%s' on host '%s' is not defined anywhere!",temp_service->notification_period,temp_service->description,temp_service->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Notification period '%s' specified for service '%s' on host '%s' is not defined anywhere!",temp_service->notification_period,temp_service->description,temp_service->host_name);
 				errors++;
 			        }
 
@@ -1887,17 +1829,13 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* see if the notification interval is less than the check interval */
 		if(temp_service->notification_interval<temp_service->check_interval && temp_service->notification_interval!=0){
-			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s'  has a notification interval less than its check interval!  Notifications are only re-sent after checks are made, so the effective notification interval will be that of the check interval.",temp_service->description,temp_service->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Service '%s' on host '%s'  has a notification interval less than its check interval!  Notifications are only re-sent after checks are made, so the effective notification interval will be that of the check interval.",temp_service->description,temp_service->host_name);
 			warnings++;
 		        }
 
 		/* check for illegal characters in service description */
 		if(contains_illegal_object_chars(temp_service->description)==TRUE){
-			asprintf(&temp_buffer,"Error: The description string for service '%s' on host '%s' contains one or more illegal characters.",temp_service->description,temp_service->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: The description string for service '%s' on host '%s' contains one or more illegal characters.",temp_service->description,temp_service->host_name);
 			errors++;
 		        }
 	        }
@@ -1913,9 +1851,7 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("Checking hosts...\n");
 	if(host_hashlist==NULL){
-		asprintf(&temp_buffer,"Error: There are no hosts defined!");
-		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_VERIFICATION_ERROR, "Error: There are no hosts defined!");
 		errors++;
 	        }
 	total_objects=0;
@@ -1934,9 +1870,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* we couldn't find a service associated with this host! */
 		if(found==FALSE){
-			asprintf(&temp_buffer,"Warning: Host '%s' has no services associated with it!",temp_host->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Host '%s' has no services associated with it!",temp_host->name);
 			warnings++;
 			}
 
@@ -1953,9 +1887,7 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
-				asprintf(&temp_buffer,"Error: Event handler command '%s' specified for host '%s' not defined anywhere",temp_command_name,temp_host->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Event handler command '%s' specified for host '%s' not defined anywhere",temp_command_name,temp_host->name);
 				errors++;
 			        }
 
@@ -1976,9 +1908,7 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
-				asprintf(&temp_buffer,"Error: Host check command '%s' specified for host '%s' is not defined anywhere!",temp_command_name,temp_host->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Host check command '%s' specified for host '%s' is not defined anywhere!",temp_command_name,temp_host->name);
 				errors++;
 		                }
 
@@ -1992,9 +1922,7 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_host->check_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_host->check_period);
 			if(temp_timeperiod==NULL){
-				asprintf(&temp_buffer,"Error: Check period '%s' specified for host '%s' is not defined anywhere!",temp_host->check_period,temp_host->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Check period '%s' specified for host '%s' is not defined anywhere!",temp_host->check_period,temp_host->name);
 				errors++;
 			        }
 
@@ -2008,9 +1936,7 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contact=find_contact(temp_contactsmember->contact_name);
 
 			if(temp_contact==NULL){
-				asprintf(&temp_buffer,"Error: Contact '%s' specified in host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_host->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Contact '%s' specified in host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_host->name);
 				errors++;
 			        }
 
@@ -2024,9 +1950,7 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 
 			if(temp_contactgroup==NULL){
-				asprintf(&temp_buffer,"Error: Contact group '%s' specified in host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_host->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Contact group '%s' specified in host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_host->name);
 				errors++;
 			        }
 
@@ -2036,9 +1960,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check to see if there is at least one contact/group */
 		if(temp_host->contacts==NULL && temp_host->contact_groups==NULL){
-			asprintf(&temp_buffer,"Warning: Host '%s' has no default contacts or contactgroups defined!",temp_host->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Host '%s' has no default contacts or contactgroups defined!",temp_host->name);
 			warnings++;
 		        }
 
@@ -2046,9 +1968,7 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_host->notification_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_host->notification_period);
 			if(temp_timeperiod==NULL){
-				asprintf(&temp_buffer,"Error: Notification period '%s' specified for host '%s' is not defined anywhere!",temp_host->notification_period,temp_host->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Notification period '%s' specified for host '%s' is not defined anywhere!",temp_host->notification_period,temp_host->name);
 				errors++;
 			        }
 
@@ -2060,9 +1980,7 @@ int pre_flight_object_check(int *w, int *e){
 		for(temp_hostsmember=temp_host->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
 			if((temp_host2=find_host(temp_hostsmember->host_name))==NULL){
-				asprintf(&temp_buffer,"Error: '%s' is not a valid parent for host '%s'!",temp_hostsmember->host_name,temp_host->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: '%s' is not a valid parent for host '%s'!",temp_hostsmember->host_name,temp_host->name);
 				errors++;
 		                }
 
@@ -2075,17 +1993,13 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for sane recovery options */
 		if(temp_host->notify_on_recovery==TRUE && temp_host->notify_on_down==FALSE && temp_host->notify_on_unreachable==FALSE){
-			asprintf(&temp_buffer,"Warning: Recovery notification option in host '%s' definition doesn't make any sense - specify down and/or unreachable options as well",temp_host->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Recovery notification option in host '%s' definition doesn't make any sense - specify down and/or unreachable options as well",temp_host->name);
 			warnings++;
 		        }
 
 		/* check for illegal characters in host name */
 		if(contains_illegal_object_chars(temp_host->name)==TRUE){
-			asprintf(&temp_buffer,"Error: The name of host '%s' contains one or more illegal characters.",temp_host->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: The name of host '%s' contains one or more illegal characters.",temp_host->name);
 			errors++;
 		        }
 	        }
@@ -2107,9 +2021,7 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_host=find_host(temp_hostsmember->host_name);
 			if(temp_host==NULL){
-				asprintf(&temp_buffer,"Error: Host '%s' specified in host group '%s' is not defined anywhere!",temp_hostsmember->host_name,temp_hostgroup->group_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Host '%s' specified in host group '%s' is not defined anywhere!",temp_hostsmember->host_name,temp_hostgroup->group_name);
 				errors++;
 			        }
 
@@ -2123,9 +2035,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for illegal characters in hostgroup name */
 		if(contains_illegal_object_chars(temp_hostgroup->group_name)==TRUE){
-			asprintf(&temp_buffer,"Error: The name of hostgroup '%s' contains one or more illegal characters.",temp_hostgroup->group_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: The name of hostgroup '%s' contains one or more illegal characters.",temp_hostgroup->group_name);
 			errors++;
 		        }
 		}
@@ -2146,9 +2056,7 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_service=find_service(temp_servicesmember->host_name,temp_servicesmember->service_description);
 			if(temp_service==NULL){
-				asprintf(&temp_buffer,"Error: Service '%s' on host '%s' specified in service group '%s' is not defined anywhere!",temp_servicesmember->service_description,temp_servicesmember->host_name,temp_servicegroup->group_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Service '%s' on host '%s' specified in service group '%s' is not defined anywhere!",temp_servicesmember->service_description,temp_servicesmember->host_name,temp_servicegroup->group_name);
 				errors++;
 			        }
 
@@ -2162,9 +2070,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for illegal characters in servicegroup name */
 		if(contains_illegal_object_chars(temp_servicegroup->group_name)==TRUE){
-			asprintf(&temp_buffer,"Error: The name of servicegroup '%s' contains one or more illegal characters.",temp_servicegroup->group_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: The name of servicegroup '%s' contains one or more illegal characters.",temp_servicegroup->group_name);
 			errors++;
 		        }
 		}
@@ -2180,18 +2086,14 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("Checking contacts...\n");
 	if(contact_list==NULL){
-		asprintf(&temp_buffer,"Error: There are no contacts defined!");
-		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
+		logit(NSLOG_VERIFICATION_ERROR, "Error: There are no contacts defined!");
 		errors++;
 	        }
 	for(temp_contact=contact_list,total_objects=0;temp_contact!=NULL;temp_contact=temp_contact->next,total_objects++){
 
 		/* check service notification commands */
 		if(temp_contact->service_notification_commands==NULL){
-			asprintf(&temp_buffer,"Error: Contact '%s' has no service notification commands defined!",temp_contact->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Contact '%s' has no service notification commands defined!",temp_contact->name);
 			errors++;
 		        }
 		else for(temp_commandsmember=temp_contact->service_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
@@ -2204,9 +2106,7 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
-				asprintf(&temp_buffer,"Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
 				errors++;
 			        }
 
@@ -2218,9 +2118,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check host notification commands */
 		if(temp_contact->host_notification_commands==NULL){
-			asprintf(&temp_buffer,"Error: Contact '%s' has no host notification commands defined!",temp_contact->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Contact '%s' has no host notification commands defined!",temp_contact->name);
 			errors++;
 		        }
 		else for(temp_commandsmember=temp_contact->host_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
@@ -2233,9 +2131,7 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
-				asprintf(&temp_buffer,"Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
 				errors++;
 			        }
 
@@ -2247,18 +2143,14 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check service notification timeperiod */
 		if(temp_contact->service_notification_period==NULL){
-			asprintf(&temp_buffer,"Warning: Contact '%s' has no service notification time period defined!",temp_contact->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Contact '%s' has no service notification time period defined!",temp_contact->name);
 			warnings++;
 		        }
 
 		else{
 		        temp_timeperiod=find_timeperiod(temp_contact->service_notification_period);
 			if(temp_timeperiod==NULL){
-				asprintf(&temp_buffer,"Error: Service notification period '%s' specified for contact '%s' is not defined anywhere!",temp_contact->service_notification_period,temp_contact->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Service notification period '%s' specified for contact '%s' is not defined anywhere!",temp_contact->service_notification_period,temp_contact->name);
 				errors++;
 			        }
 
@@ -2268,18 +2160,14 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check host notification timeperiod */
 		if(temp_contact->host_notification_period==NULL){
-			asprintf(&temp_buffer,"Warning: Contact '%s' has no host notification time period defined!",temp_contact->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Contact '%s' has no host notification time period defined!",temp_contact->name);
 			warnings++;
 		        }
 
 		else{
 		        temp_timeperiod=find_timeperiod(temp_contact->host_notification_period);
 			if(temp_timeperiod==NULL){
-				asprintf(&temp_buffer,"Error: Host notification period '%s' specified for contact '%s' is not defined anywhere!",temp_contact->host_notification_period,temp_contact->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Host notification period '%s' specified for contact '%s' is not defined anywhere!",temp_contact->host_notification_period,temp_contact->name);
 				errors++;
 			        }
 
@@ -2289,25 +2177,19 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for sane host recovery options */
 		if(temp_contact->notify_on_host_recovery==TRUE && temp_contact->notify_on_host_down==FALSE && temp_contact->notify_on_host_unreachable==FALSE){
-			asprintf(&temp_buffer,"Warning: Host recovery notification option for contact '%s' doesn't make any sense - specify down and/or unreachable options as well",temp_contact->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Host recovery notification option for contact '%s' doesn't make any sense - specify down and/or unreachable options as well",temp_contact->name);
 			warnings++;
 		        }
 
 		/* check for sane service recovery options */
 		if(temp_contact->notify_on_service_recovery==TRUE && temp_contact->notify_on_service_critical==FALSE && temp_contact->notify_on_service_warning==FALSE){
-			asprintf(&temp_buffer,"Warning: Service recovery notification option for contact '%s' doesn't make any sense - specify critical and/or warning options as well",temp_contact->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_WARNING, "Warning: Service recovery notification option for contact '%s' doesn't make any sense - specify critical and/or warning options as well",temp_contact->name);
 			warnings++;
 		        }
 
 		/* check for illegal characters in contact name */
 		if(contains_illegal_object_chars(temp_contact->name)==TRUE){
-			asprintf(&temp_buffer,"Error: The name of contact '%s' contains one or more illegal characters.",temp_contact->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: The name of contact '%s' contains one or more illegal characters.",temp_contact->name);
 			errors++;
 		        }
 	        }
@@ -2331,9 +2213,7 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_contact=find_contact(temp_contactsmember->contact_name);
 			if(temp_contact==NULL){
-				asprintf(&temp_buffer,"Error: Contact '%s' specified in contact group '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_contactgroup->group_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Contact '%s' specified in contact group '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_contactgroup->group_name);
 				errors++;
 			        }
 
@@ -2347,9 +2227,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for illegal characters in contactgroup name */
 		if(contains_illegal_object_chars(temp_contactgroup->group_name)==TRUE){
-			asprintf(&temp_buffer,"Error: The name of contact group '%s' contains one or more illegal characters.",temp_contactgroup->group_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: The name of contact group '%s' contains one or more illegal characters.",temp_contactgroup->group_name);
 			errors++;
 		        }
 		}
@@ -2370,9 +2248,7 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the service */
 		temp_service=find_service(temp_se->host_name,temp_se->description);
 		if(temp_service==NULL){
-			asprintf(&temp_buffer,"Error: Service '%s' on host '%s' specified in service escalation is not defined anywhere!",temp_se->description,temp_se->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Service '%s' on host '%s' specified in service escalation is not defined anywhere!",temp_se->description,temp_se->host_name);
 			errors++;
 		        }
 
@@ -2383,9 +2259,7 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_se->escalation_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_se->escalation_period);
 			if(temp_timeperiod==NULL){
-				asprintf(&temp_buffer,"Error: Escalation period '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_se->escalation_period,temp_se->description,temp_se->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Escalation period '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_se->escalation_period,temp_se->description,temp_se->host_name);
 				errors++;
 			        }
 
@@ -2399,9 +2273,7 @@ int pre_flight_object_check(int *w, int *e){
 			/* find the contact */
 			temp_contact=find_contact(temp_contactsmember->contact_name);
 			if(temp_contact==NULL){
-				asprintf(&temp_buffer,"Error: Contact '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_se->description,temp_se->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Contact '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_se->description,temp_se->host_name);
 				errors++;
 			        }
 
@@ -2415,9 +2287,7 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 
 			if(temp_contactgroup==NULL){
-				asprintf(&temp_buffer,"Error: Contact group '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_se->description,temp_se->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Contact group '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_se->description,temp_se->host_name);
 				errors++;
 			        }
 
@@ -2442,9 +2312,7 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the dependent service */
 		temp_service=find_service(temp_sd->dependent_host_name,temp_sd->dependent_service_description);
 		if(temp_service==NULL){
-			asprintf(&temp_buffer,"Error: Dependent service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependent_service_description,temp_sd->dependent_host_name,temp_sd->service_description,temp_sd->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Dependent service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependent_service_description,temp_sd->dependent_host_name,temp_sd->service_description,temp_sd->host_name);
 			errors++;
 		        }
 
@@ -2454,9 +2322,7 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the service we're depending on */
 		temp_service2=find_service(temp_sd->host_name,temp_sd->service_description);
 		if(temp_service2==NULL){
-			asprintf(&temp_buffer,"Error: Service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->service_description,temp_sd->host_name,temp_sd->dependent_service_description,temp_sd->dependent_host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->service_description,temp_sd->host_name,temp_sd->dependent_service_description,temp_sd->dependent_host_name);
 			errors++;
 		        }
 
@@ -2465,9 +2331,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* make sure they're not the same service */
 		if(temp_service==temp_service2){
-			asprintf(&temp_buffer,"Error: Service dependency definition for service '%s' on host '%s' is circular (it depends on itself)!",temp_sd->dependent_service_description,temp_sd->dependent_host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Service dependency definition for service '%s' on host '%s' is circular (it depends on itself)!",temp_sd->dependent_service_description,temp_sd->dependent_host_name);
 			errors++;
 		        }
 
@@ -2475,9 +2339,7 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_sd->dependency_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_sd->dependency_period);
 			if(temp_timeperiod==NULL){
-				asprintf(&temp_buffer,"Error: Dependency period '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependency_period,temp_sd->dependent_service_description,temp_sd->dependent_host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Dependency period '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependency_period,temp_sd->dependent_service_description,temp_sd->dependent_host_name);
 				errors++;
 			        }
 
@@ -2502,9 +2364,7 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the host */
 		temp_host=find_host(temp_he->host_name);
 		if(temp_host==NULL){
-			asprintf(&temp_buffer,"Error: Host '%s' specified in host escalation is not defined anywhere!",temp_he->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Host '%s' specified in host escalation is not defined anywhere!",temp_he->host_name);
 			errors++;
 		        }
 
@@ -2515,9 +2375,7 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_he->escalation_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_he->escalation_period);
 			if(temp_timeperiod==NULL){
-				asprintf(&temp_buffer,"Error: Escalation period '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_he->escalation_period,temp_he->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Escalation period '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_he->escalation_period,temp_he->host_name);
 				errors++;
 			        }
 
@@ -2531,9 +2389,7 @@ int pre_flight_object_check(int *w, int *e){
 			/* find the contact*/
 			temp_contact=find_contact(temp_contactsmember->contact_name);
 			if(temp_contact==NULL){
-				asprintf(&temp_buffer,"Error: Contact '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_he->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Contact '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_he->host_name);
 				errors++;
 			        }
 
@@ -2547,9 +2403,7 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 
 			if(temp_contactgroup==NULL){
-				asprintf(&temp_buffer,"Error: Contact group '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_he->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Contact group '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_he->host_name);
 				errors++;
 			        }
 
@@ -2574,9 +2428,7 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the dependent host */
 		temp_host=find_host(temp_hd->dependent_host_name);
 		if(temp_host==NULL){
-			asprintf(&temp_buffer,"Error: Dependent host specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependent_host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Dependent host specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependent_host_name);
 			errors++;
 		        }
 
@@ -2586,9 +2438,7 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the host we're depending on */
 		temp_host2=find_host(temp_hd->host_name);
 		if(temp_host2==NULL){
-			asprintf(&temp_buffer,"Error: Host specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependent_host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Host specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependent_host_name);
 			errors++;
 		        }
 
@@ -2597,9 +2447,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* make sure they're not the same host */
 		if(temp_host==temp_host2){
-			asprintf(&temp_buffer,"Error: Host dependency definition for host '%s' is circular (it depends on itself)!",temp_hd->dependent_host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: Host dependency definition for host '%s' is circular (it depends on itself)!",temp_hd->dependent_host_name);
 			errors++;
 		        }
 
@@ -2607,9 +2455,7 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_hd->dependency_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_hd->dependency_period);
 			if(temp_timeperiod==NULL){
-				asprintf(&temp_buffer,"Error: Dependency period '%s' specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependency_period,temp_hd->dependent_host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Dependency period '%s' specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependency_period,temp_hd->dependent_host_name);
 				errors++;
 			        }
 
@@ -2633,9 +2479,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for illegal characters in command name */
 		if(contains_illegal_object_chars(temp_command->name)==TRUE){
-			asprintf(&temp_buffer,"Error: The name of command '%s' contains one or more illegal characters.",temp_command->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: The name of command '%s' contains one or more illegal characters.",temp_command->name);
 			errors++;
 		        }
 	        }
@@ -2655,9 +2499,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for illegal characters in timeperiod name */
 		if(contains_illegal_object_chars(temp_timeperiod->name)==TRUE){
-			asprintf(&temp_buffer,"Error: The name of time period '%s' contains one or more illegal characters.",temp_timeperiod->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: The name of time period '%s' contains one or more illegal characters.",temp_timeperiod->name);
 			errors++;
 		        }
 
@@ -2666,9 +2508,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		        temp_timeperiod2=find_timeperiod(temp_timeperiodexclusion->timeperiod_name);
 			if(temp_timeperiod2==NULL){
-				asprintf(&temp_buffer,"Error: Excluded time period '%s' specified in timeperiod '%s' is not defined anywhere!",temp_timeperiodexclusion->timeperiod_name,temp_timeperiod->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
+				logit(NSLOG_VERIFICATION_ERROR, "Error: Excluded time period '%s' specified in timeperiod '%s' is not defined anywhere!",temp_timeperiodexclusion->timeperiod_name,temp_timeperiod->name);
 				errors++;
 			        }
 
@@ -2698,7 +2538,6 @@ int pre_flight_circular_check(int *w, int *e){
 	servicedependency *temp_sd2=NULL;
 	hostdependency *temp_hd=NULL;
 	hostdependency *temp_hd2=NULL;
-	char *temp_buffer=NULL;
 	int found=FALSE;
 	int result=OK;
 	int warnings=0;
@@ -2727,9 +2566,7 @@ int pre_flight_circular_check(int *w, int *e){
 
 		found=check_for_circular_host_path(temp_host,temp_host);
 		if(found==TRUE){
-			asprintf(&temp_buffer,"Error: There is a circular parent/child path that exists for host '%s'!",temp_host->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: There is a circular parent/child path that exists for host '%s'!",temp_host->name);
 			result=ERROR;
 		        }
 	        }
@@ -2753,9 +2590,7 @@ int pre_flight_circular_check(int *w, int *e){
 
 		found=check_for_circular_servicedependency_path(temp_sd,temp_sd,EXECUTION_DEPENDENCY);
 		if(found==TRUE){
-			asprintf(&temp_buffer,"Error: A circular execution dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: A circular execution dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
 			errors++;
 		        }
 	        }
@@ -2769,9 +2604,7 @@ int pre_flight_circular_check(int *w, int *e){
 
 		found=check_for_circular_servicedependency_path(temp_sd,temp_sd,NOTIFICATION_DEPENDENCY);
 		if(found==TRUE){
-			asprintf(&temp_buffer,"Error: A circular notification dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: A circular notification dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
 			errors++;
 		        }
 	        }
@@ -2785,9 +2618,7 @@ int pre_flight_circular_check(int *w, int *e){
 
 		found=check_for_circular_hostdependency_path(temp_hd,temp_hd,EXECUTION_DEPENDENCY);
 		if(found==TRUE){
-			asprintf(&temp_buffer,"Error: A circular execution dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: A circular execution dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
 			errors++;
 		        }
 	        }
@@ -2801,9 +2632,7 @@ int pre_flight_circular_check(int *w, int *e){
 
 		found=check_for_circular_hostdependency_path(temp_hd,temp_hd,NOTIFICATION_DEPENDENCY);
 		if(found==TRUE){
-			asprintf(&temp_buffer,"Error: A circular notification dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+			logit(NSLOG_VERIFICATION_ERROR, "Error: A circular notification dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
 			errors++;
 		        }
 	        }

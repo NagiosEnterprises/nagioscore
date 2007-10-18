@@ -7018,6 +7018,9 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		if(this_host->address==NULL && template_host->address!=NULL)
 			this_host->address=(char *)strdup(template_host->address);
 
+		if(this_host->host_name!=NULL && !strcmp(this_host->host_name,"dwsoms1"))
+			printf("TEMP-HP: %d, TEMP-PARENTS: %s, THIS-HP: %d, THIS-PARENTS: %s\n",template_host->have_parents,template_host->parents,this_host->have_parents,this_host->parents);
+
 		xodtemplate_get_inherited_string(&template_host->have_parents,&template_host->parents,&this_host->have_parents,&this_host->parents);
 		xodtemplate_get_inherited_string(&template_host->have_host_groups,&template_host->host_groups,&this_host->have_host_groups,&this_host->host_groups);
 		xodtemplate_get_inherited_string(&template_host->have_contact_groups,&template_host->contact_groups,&this_host->have_contact_groups,&this_host->contact_groups);
@@ -13378,9 +13381,13 @@ int xodtemplate_get_inherited_string(int *have_template_value, char **template_v
 		/* template has a non-NULL value */
 		if(*template_value!=NULL){
 
-			/* we have no value, so use the template value */
-			if(*this_value==NULL)
-				*this_value=(char *)strdup(*template_value);
+			/* we have no value... */
+			if(*this_value==NULL){
+
+				/* use the template value only if we need a value - otherwise stay NULL */
+				if(*have_this_value==FALSE)
+					*this_value=(char *)strdup(*template_value);
+				}
 
 			/* we already have a value... */
 			else{

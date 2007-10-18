@@ -8,6 +8,7 @@ Nagios 3.x Change Log
 * Logging API revamp, cleanup
 * Misc internal performance improvements
 * Bug fix with attempting to access an uninitalized mutex if external commands are disabled
+* Updates to .cvsignore files
 
 
 

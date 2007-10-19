@@ -14,6 +14,7 @@ Nagios 3.x Change Log
 * Additional functionality of additive inheritance feature
 * Fixed bug where missing host/servicegroups in object definitions didn't always generate errors
 * Increased max plugin output length cap from 4kb to 8kb
+* Caching of Perl scripts now enabled by default if embedded Perl interpreter is compiled in
 
 
 

@@ -3294,6 +3294,75 @@ This is the pager number (or pager email gateway) for the administrator of the l
 </p>
 
 
+<a name="event_broker_options"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Event Broker Options</strong></td>
+</tr>
+</table>
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>event_broker_options=&lt;#&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>event_broker_options=-1</strong></font></td>
+</tr>
+</table>
+
+<p>
+This option controls what (if any) data gets sent to the event broker and, in turn, to any loaded event broker modules.   This is an advanced option.  When in doubt, either broker nothing (if not using event broker modules) or broker everything (if using event broker modules). Possible values are shown below.
+</p>
+<ul>
+<li>0 = Broker nothing
+<li>-1 = Broker everything
+<li># = See BROKER_* definitions in source code (include/broker.h) for other values that can be OR'ed together
+</ul>
+
+
+
+<a name="broker_module"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Event Broker Modules</strong></td>
+</tr>
+</table>
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>broker_module=&lt;modulepath&gt; [moduleargs]</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>broker_module=/usr/local/nagios/bin/ndomod.o cfg_file=/usr/local/nagios/etc/ndomod.cfg</strong></font></td>
+</tr>
+</table>
+
+<p>
+This directive is used to specify an event broker module that should by loaded by Nagios at startup.  Use multiple directives if you want to load more than one module.  Arguments that should be passed to the module at startup are seperated from the module path by a space.
+</p>
+<p>
+!!! WARNING !!!
+</p>
+<p>
+Do NOT overwrite modules while they are being used by Nagios or Nagios will crash in a fiery display of SEGFAULT glory.  This is a bug/limitation either in dlopen(), the kernel, and/or the filesystem.  And maybe Nagios...
+</p>
+<p>
+The correct/safe way of updating a module is by using one of these methods:
+</p>
+<ol>
+<li>Shutdown Nagios, replace the module file, restart Nagios</li>
+<li>While Nagios is running... delete the original module file, move the new module file into place, restart Nagios</li>
+</ol>
+
+
 <a name="debug_file"></a>
 <table border="0" width="100%" class="Default">
 <tr>

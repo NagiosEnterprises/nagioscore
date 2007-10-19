@@ -6817,7 +6817,7 @@ else
   USEPERL=no
 fi;
 
-PERLCACHE=no;
+PERLCACHE=yes;
 
 # Check whether --with-perlcache or --without-perlcache was given.
 if test "${with_perlcache+set}" = set; then
@@ -6832,7 +6832,7 @@ else
 #define DO_CLEAN "1"
 _ACEOF
 
-	PERLCACHE=no;
+	PERLCACHE=yes;
 
 fi;
 

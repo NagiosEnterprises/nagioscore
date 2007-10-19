@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-18-2007
+ * Last Modified:   10-19-2007
  *
  * License:
  *
@@ -291,8 +291,9 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 		update_service_status(svc,FALSE);
 
 		/* reschedule the next service check - unless we couldn't find a valid next check time */
+		/* 10/19/07 EG - keep original check options */
 		if(svc->should_be_scheduled==TRUE)
-			schedule_service_check(svc,svc->next_check,FALSE);
+			schedule_service_check(svc,svc->next_check,check_options);
 
 		return ERROR;
 	        }
@@ -380,10 +381,11 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 	log_debug_info(DEBUGL_CHECKS,0,"Checking service '%s' on host '%s'...\n",svc->description,svc->host_name);
 
-	/* clear the force execution flag */
-	if((check_options & CHECK_OPTION_FORCE_EXECUTION) && (svc->check_options & CHECK_OPTION_FORCE_EXECUTION))
-		svc->check_options-=CHECK_OPTION_FORCE_EXECUTION;
-
+	/* clear check options - we don't want old check options retained */
+	/* only clear check options for scheduled checks - ondemand checks shouldn't affected retained check options */
+	if(scheduled_check==TRUE)
+		svc->check_options=CHECK_OPTION_NONE;
+	
 	/* update latency for macros, event broker, save old value for later */
 	old_latency=svc->latency;
 	svc->latency=latency;
@@ -442,6 +444,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	check_result_info.host_name=(char *)strdup(svc->host_name);
 	check_result_info.service_description=(char *)strdup(svc->description);
 	check_result_info.check_type=SERVICE_CHECK_ACTIVE;
+	check_result_info.check_options=0;
 	check_result_info.scheduled_check=scheduled_check;
 	check_result_info.reschedule_check=reschedule_check;
 	check_result_info.output_file=(check_result_info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
@@ -468,6 +471,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		fprintf(check_result_info.output_file_fp,"host_name=%s\n",check_result_info.host_name);
 		fprintf(check_result_info.output_file_fp,"service_description=%s\n",check_result_info.service_description);
 		fprintf(check_result_info.output_file_fp,"check_type=%d\n",check_result_info.check_type);
+		fprintf(check_result_info.output_file_fp,"check_options=%d\n",check_result_info.check_options);
 		fprintf(check_result_info.output_file_fp,"scheduled_check=%d\n",check_result_info.scheduled_check);
 		fprintf(check_result_info.output_file_fp,"reschedule_check=%d\n",check_result_info.reschedule_check);
 		fprintf(check_result_info.output_file_fp,"latency=%f\n",svc->latency);
@@ -1488,7 +1492,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 		/* schedule a non-forced check if we can */
 		if(temp_service->should_be_scheduled==TRUE)
-			schedule_service_check(temp_service,temp_service->next_check,FALSE);
+			schedule_service_check(temp_service,temp_service->next_check,CHECK_OPTION_NONE);
 	        }
 
 	/* if we're stalking this state type and state was not already logged AND the plugin output changed since last check, log it now.. */
@@ -1560,7 +1564,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 
 /* schedules an immediate or delayed service check */
-void schedule_service_check(service *svc, time_t check_time, int forced){
+void schedule_service_check(service *svc, time_t check_time, int options){
 	timed_event *temp_event=NULL;
 	timed_event *new_event=NULL;
 	int found=FALSE;
@@ -1571,10 +1575,10 @@ void schedule_service_check(service *svc, time_t check_time, int forced){
 	if(svc==NULL)
 		return;
 
-	log_debug_info(DEBUGL_CHECKS,0,"Scheduling a %s, active check of service '%s' on host '%s' @ %s",(forced==TRUE)?"forced":"non-forced",svc->description,svc->host_name,ctime(&check_time));
+	log_debug_info(DEBUGL_CHECKS,0,"Scheduling a %s, active check of service '%s' on host '%s' @ %s",(options & CHECK_OPTION_FORCE_EXECUTION)?"forced":"non-forced",svc->description,svc->host_name,ctime(&check_time));
 
 	/* don't schedule a check if active checks of this service are disabled */
-	if(svc->checks_enabled==FALSE && forced==FALSE){
+	if(svc->checks_enabled==FALSE && !(options & CHECK_OPTION_FORCE_EXECUTION)){
 		log_debug_info(DEBUGL_CHECKS,0,"Active checks of this service are disabled.\n");
 		return;
 		}
@@ -1615,10 +1619,10 @@ void schedule_service_check(service *svc, time_t check_time, int forced){
 		use_original_event=TRUE;
 
 		/* the original event is a forced check... */
-		if(svc->check_options & CHECK_OPTION_FORCE_EXECUTION){
+		if((temp_event->event_options & CHECK_OPTION_FORCE_EXECUTION)){
 			
 			/* the new event is also forced and its execution time is earlier than the original, so use it instead */
-			if(forced==TRUE && check_time < svc->next_check){
+			if((options & CHECK_OPTION_FORCE_EXECUTION) && (check_time < svc->next_check)){
 				use_original_event=FALSE;
 				log_debug_info(DEBUGL_CHECKS,2,"New service check event is forced and occurs before the older event, so that will be used instead.\n");
 				}
@@ -1628,7 +1632,7 @@ void schedule_service_check(service *svc, time_t check_time, int forced){
 		else{
 
 			/* the new event is a forced check, so use it instead */
-			if(forced==TRUE){
+			if((options & CHECK_OPTION_FORCE_EXECUTION)){
 				use_original_event=FALSE;
 				log_debug_info(DEBUGL_CHECKS,2,"New service check event is forced, so it will be used instead of the older event.\n");
 				}
@@ -1652,9 +1656,8 @@ void schedule_service_check(service *svc, time_t check_time, int forced){
 			}
 	        }
 
-	/* set the force service check option */
-	if(forced==TRUE)
-		svc->check_options|=CHECK_OPTION_FORCE_EXECUTION;
+	/* save check options for retention purposes */
+	svc->check_options=options;
 
 	/* schedule a new event */
 	if(use_original_event==FALSE){
@@ -1668,6 +1671,7 @@ void schedule_service_check(service *svc, time_t check_time, int forced){
 		new_event->event_type=EVENT_SERVICE_CHECK;
 		new_event->event_data=(void *)svc;
 		new_event->event_args=(void *)NULL;
+		new_event->event_options=options;
 		new_event->run_time=svc->next_check;
 		new_event->recurring=FALSE;
 		new_event->event_interval=0L;
@@ -1850,7 +1854,7 @@ void check_for_orphaned_services(void){
 			temp_service->is_executing=FALSE;
 
 			/* schedule an immediate check of the service */
-			schedule_service_check(temp_service,current_time,FALSE);
+			schedule_service_check(temp_service,current_time,CHECK_OPTION_ORPHAN_CHECK);
 		        }
 			
 	        }
@@ -1960,7 +1964,7 @@ void check_service_result_freshness(void){
 			temp_service->is_being_freshened=TRUE;
 
 			/* schedule an immediate forced check of the service */
-			schedule_service_check(temp_service,current_time,TRUE);
+			schedule_service_check(temp_service,current_time,CHECK_OPTION_FORCE_EXECUTION | CHECK_OPTION_FRESHNESS_CHECK);
 		        }
 	        }
 
@@ -1987,11 +1991,11 @@ int perform_on_demand_host_check(host *hst, int *check_result, int check_options
 
 
 /* execute a scheduled host check using either the 2.x or 3.x logic */
-int perform_scheduled_host_check(host *hst, double latency){
+int perform_scheduled_host_check(host *hst, int check_options, double latency){
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"perform_scheduled_host_check()\n");
 
-	run_scheduled_host_check_3x(hst,hst->check_options,latency);
+	run_scheduled_host_check_3x(hst,check_options,latency);
 
 	return OK;
         }
@@ -1999,7 +2003,7 @@ int perform_scheduled_host_check(host *hst, double latency){
 
 
 /* schedules an immediate or delayed host check */
-void schedule_host_check(host *hst, time_t check_time, int forced){
+void schedule_host_check(host *hst, time_t check_time, int options){
 	timed_event *temp_event=NULL;
 	timed_event *new_event=NULL;
 	int found=FALSE;
@@ -2011,10 +2015,10 @@ void schedule_host_check(host *hst, time_t check_time, int forced){
 	if(hst==NULL)
 		return;
 
-	log_debug_info(DEBUGL_CHECKS,0,"Scheduling a %s, active check of host '%s' @ %s",(forced==TRUE)?"forced":"non-forced",hst->name,ctime(&check_time));
+	log_debug_info(DEBUGL_CHECKS,0,"Scheduling a %s, active check of host '%s' @ %s",(options & CHECK_OPTION_FORCE_EXECUTION)?"forced":"non-forced",hst->name,ctime(&check_time));
 
 	/* don't schedule a check if active checks of this host are disabled */
-	if(hst->checks_enabled==FALSE && forced==FALSE){
+	if(hst->checks_enabled==FALSE && !(options & CHECK_OPTION_FORCE_EXECUTION)){
 		log_debug_info(DEBUGL_CHECKS,0,"Active checks are disabled for this host.\n");
 		return;
 		}
@@ -2053,10 +2057,10 @@ void schedule_host_check(host *hst, time_t check_time, int forced){
 		use_original_event=TRUE;
 
 		/* the original event is a forced check... */
-		if(hst->check_options & CHECK_OPTION_FORCE_EXECUTION){
+		if((temp_event->event_options & CHECK_OPTION_FORCE_EXECUTION)){
 			
 			/* the new event is also forced and its execution time is earlier than the original, so use it instead */
-			if(forced==TRUE && check_time < hst->next_check){
+			if((options & CHECK_OPTION_FORCE_EXECUTION) && (check_time < hst->next_check)){
 				log_debug_info(DEBUGL_CHECKS,2,"New host check event is forced and occurs before the older event, so that will be used instead.\n");
 				use_original_event=FALSE;
 				}
@@ -2066,7 +2070,7 @@ void schedule_host_check(host *hst, time_t check_time, int forced){
 		else{
 
 			/* the new event is a forced check, so use it instead */
-			if(forced==TRUE){
+			if((options & CHECK_OPTION_FORCE_EXECUTION)){
 				use_original_event=FALSE;
 				log_debug_info(DEBUGL_CHECKS,2,"New host check event is forced, so it will be used instead of the older event.\n");
 				}
@@ -2090,9 +2094,8 @@ void schedule_host_check(host *hst, time_t check_time, int forced){
 			}
 	        }
 
-	/* set the force service check option */
-	if(forced==TRUE)
-		hst->check_options|=CHECK_OPTION_FORCE_EXECUTION;
+	/* save check options for retention purposes */
+	hst->check_options=options;
 
 	/* use the new event */
 	if(use_original_event==FALSE){
@@ -2106,6 +2109,7 @@ void schedule_host_check(host *hst, time_t check_time, int forced){
 		new_event->event_type=EVENT_HOST_CHECK;
 		new_event->event_data=(void *)hst;
 		new_event->event_args=(void *)NULL;
+		new_event->event_options=options;
 		new_event->run_time=hst->next_check;
 		new_event->recurring=FALSE;
 		new_event->event_interval=0L;
@@ -2218,7 +2222,7 @@ void check_for_orphaned_hosts(void){
 			temp_host->is_executing=FALSE;
 
 			/* schedule an immediate check of the host */
-			schedule_host_check(temp_host,current_time,FALSE);
+			schedule_host_check(temp_host,current_time,CHECK_OPTION_ORPHAN_CHECK);
 		        }
 			
 	        }
@@ -2317,7 +2321,7 @@ void check_host_result_freshness(void){
 			temp_host->is_being_freshened=TRUE;
 
 			/* schedule an immediate forced check of the host */
-			schedule_host_check(temp_host,current_time,TRUE);
+			schedule_host_check(temp_host,current_time,CHECK_OPTION_FORCE_EXECUTION | CHECK_OPTION_FRESHNESS_CHECK);
 		        }
 	        }
 
@@ -2435,10 +2439,9 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 	/* clear the freshness flag */
 	hst->is_being_freshened=FALSE;
 
-	/* clear the force execution flag */
-	if((check_options & CHECK_OPTION_FORCE_EXECUTION) && (hst->check_options & CHECK_OPTION_FORCE_EXECUTION))
-		hst->check_options-=CHECK_OPTION_FORCE_EXECUTION;
-
+	/* clear check options - we don't want old check options retained */
+	hst->check_options=CHECK_OPTION_NONE;
+	
 	/* set the check type */
 	hst->check_type=HOST_CHECK_ACTIVE;
 
@@ -2690,8 +2693,9 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency){
 		update_host_status(hst,FALSE);
 
 		/* reschedule the next host check - unless we couldn't find a valid next check time */
+		/* 10/19/07 EG - keep original check options */
 		if(hst->should_be_scheduled==TRUE)
-			schedule_host_check(hst,hst->next_check,FALSE);
+			schedule_host_check(hst,hst->next_check,check_options);
 
 		return ERROR;
 	        }
@@ -2767,16 +2771,13 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 	log_debug_info(DEBUGL_CHECKS,0,"Checking host '%s'...\n",hst->name);
 
-	/* clear the force execution flag */
-	if((check_options & CHECK_OPTION_FORCE_EXECUTION) && (hst->check_options & CHECK_OPTION_FORCE_EXECUTION))
-		hst->check_options-=CHECK_OPTION_FORCE_EXECUTION;
+	/* clear check options - we don't want old check options retained */
+	/* only clear options if this was a scheduled check - on demand check options shouldn't affect retained info */
+	if(scheduled_check==TRUE)
+		hst->check_options=CHECK_OPTION_NONE;
 
 	/* adjust host check attempt */
 	adjust_host_check_attempt_3x(hst,TRUE);
-
-	/* clear the force execution flag */
-	if((check_options & CHECK_OPTION_FORCE_EXECUTION) && (hst->check_options & CHECK_OPTION_FORCE_EXECUTION))
-		hst->check_options-=CHECK_OPTION_FORCE_EXECUTION;
 
 	/* set latency (temporarily) for macros and event broker */
 	old_latency=hst->latency;
@@ -2830,6 +2831,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	check_result_info.host_name=(char *)strdup(hst->name);
 	check_result_info.service_description=NULL;
 	check_result_info.check_type=HOST_CHECK_ACTIVE;
+	check_result_info.check_options=check_options;
 	check_result_info.scheduled_check=scheduled_check;
 	check_result_info.reschedule_check=reschedule_check;
 	check_result_info.output_file=(check_result_info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
@@ -2856,6 +2858,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		fprintf(check_result_info.output_file_fp,"# Time: %s",ctime(&check_result_info.start_time.tv_sec));
 		fprintf(check_result_info.output_file_fp,"host_name=%s\n",check_result_info.host_name);
 		fprintf(check_result_info.output_file_fp,"check_type=%d\n",check_result_info.check_type);
+		fprintf(check_result_info.output_file_fp,"check_options=%d\n",check_result_info.check_options);
 		fprintf(check_result_info.output_file_fp,"scheduled_check=%d\n",check_result_info.scheduled_check);
 		fprintf(check_result_info.output_file_fp,"reschedule_check=%d\n",check_result_info.reschedule_check);
 		fprintf(check_result_info.output_file_fp,"latency=%f\n",hst->latency);
@@ -3627,7 +3630,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 
 		/* schedule a non-forced check if we can */
 		if(hst->should_be_scheduled==TRUE){
-			schedule_host_check(hst,hst->next_check,FALSE);
+			schedule_host_check(hst,hst->next_check,CHECK_OPTION_NONE);
 		        }
 
 		/* update host status */

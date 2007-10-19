@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-07-2007
+ * Last Modified: 10-19-2007
  *
  * License:
  * 
@@ -2839,7 +2839,7 @@ void show_scheduling_queue(void){
 	printf("<TH CLASS='queue'>Next Check&nbsp;<A HREF='%s&sorttype=%d&sortoption=%d'><IMG SRC='%s%s' BORDER=0 ALT='Sort by next check time (ascending)' TITLE='Sort by next check time (ascending)'></A><A HREF='%s&sorttype=%d&sortoption=%d'><IMG SRC='%s%s' BORDER=0 ALT='Sort by next check time (descending)' TITLE='Sort by next check time (descending)'></A></TH>",temp_url,SORT_ASCENDING,SORT_NEXTCHECKTIME,url_images_path,UP_ARROW_ICON,temp_url,SORT_DESCENDING,SORT_NEXTCHECKTIME,url_images_path,DOWN_ARROW_ICON);
 
 
-	printf("<TH CLASS='queue'>Active Checks</TH><TH CLASS='queue'>Actions</TH></TR>\n");
+	printf("<TH CLASS='queue'>Type</TH><TH CLASS='queue'>Active Checks</TH><TH CLASS='queue'>Actions</TH></TR>\n");
 
 
 	/* display all services and hosts */
@@ -2848,13 +2848,19 @@ void show_scheduling_queue(void){
 		/* skip hosts and services that shouldn't be scheduled */
 		if(temp_sortdata->is_service==TRUE){
 			temp_svcstatus=temp_sortdata->svcstatus;
-			if(temp_svcstatus->should_be_scheduled==FALSE)
-				continue;
+			if(temp_svcstatus->should_be_scheduled==FALSE){
+				/* passive-only checks should appear if they're being forced */
+				if(!(temp_svcstatus->checks_enabled==FALSE && temp_svcstatus->next_check!=(time_t)0L && (temp_svcstatus->check_options & CHECK_OPTION_FORCE_EXECUTION)))
+					continue;
+				}
 		        }
 		else{
 			temp_hststatus=temp_sortdata->hststatus;
-			if(temp_hststatus->should_be_scheduled==FALSE)
-				continue;
+			if(temp_hststatus->should_be_scheduled==FALSE){
+				/* passive-only checks should appear if they're being forced */
+				if(!(temp_hststatus->checks_enabled==FALSE && temp_hststatus->next_check!=(time_t)0L && (temp_hststatus->check_options & CHECK_OPTION_FORCE_EXECUTION)))
+					continue;
+				}
 		        }
 		
 		if(odd){
@@ -2881,6 +2887,19 @@ void show_scheduling_queue(void){
 
 			get_time_string(&temp_svcstatus->next_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 			printf("<TD CLASS='queue%s'>%s</TD>",bgclass,(temp_svcstatus->next_check==(time_t)0)?"N/A":date_time);
+
+			printf("<TD CLASS='queue%s'>",bgclass);
+			if(temp_svcstatus->check_options==CHECK_OPTION_NONE)
+				printf("Normal ");
+			else{
+				if(temp_svcstatus->check_options & CHECK_OPTION_FORCE_EXECUTION)
+					printf("Forced ");
+				if(temp_svcstatus->check_options & CHECK_OPTION_FRESHNESS_CHECK)
+					printf("Freshness ");
+				if(temp_svcstatus->check_options & CHECK_OPTION_ORPHAN_CHECK)
+					printf("Orphan ");
+				}
+			printf("</TD>");
 
 			printf("<TD CLASS='queue%s'>%s</TD>",(temp_svcstatus->checks_enabled==TRUE)?"ENABLED":"DISABLED",(temp_svcstatus->checks_enabled==TRUE)?"ENABLED":"DISABLED");
 
@@ -2910,6 +2929,19 @@ void show_scheduling_queue(void){
 
 			get_time_string(&temp_hststatus->next_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 			printf("<TD CLASS='queue%s'>%s</TD>",bgclass,(temp_hststatus->next_check==(time_t)0)?"N/A":date_time);
+
+			printf("<TD CLASS='queue%s'>",bgclass);
+			if(temp_hststatus->check_options==CHECK_OPTION_NONE)
+				printf("Normal ");
+			else{
+				if(temp_hststatus->check_options & CHECK_OPTION_FORCE_EXECUTION)
+					printf("Forced ");
+				if(temp_hststatus->check_options & CHECK_OPTION_FRESHNESS_CHECK)
+					printf("Freshness ");
+				if(temp_hststatus->check_options & CHECK_OPTION_ORPHAN_CHECK)
+					printf("Orphan ");
+				}
+			printf("</TD>");
 
 			printf("<TD CLASS='queue%s'>%s</TD>",(temp_hststatus->checks_enabled==TRUE)?"ENABLED":"DISABLED",(temp_hststatus->checks_enabled==TRUE)?"ENABLED":"DISABLED");
 

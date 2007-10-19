@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 10-19-2007
  *
  * License:
  *
@@ -469,6 +469,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_host->last_check);
 		fprintf(fp,"\tnext_check=%lu\n",temp_host->next_check);
+		fprintf(fp,"\tcheck_options=%d\n",temp_host->check_options);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_host->current_attempt);
 		fprintf(fp,"\tmax_attempts=%d\n",temp_host->max_attempts);
 		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_host->current_event_id);
@@ -547,6 +548,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tperformance_data=%s\n",(temp_service->perf_data==NULL)?"":temp_service->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_service->last_check);
 		fprintf(fp,"\tnext_check=%lu\n",temp_service->next_check);
+		fprintf(fp,"\tcheck_options=%d\n",temp_service->check_options);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_service->current_notification_number);
 		fprintf(fp,"\tcurrent_notification_id=%lu\n",temp_service->current_notification_id);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_service->last_notification);
@@ -773,6 +775,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 				temp_hoststatus->plugin_output=NULL;
 				temp_hoststatus->long_plugin_output=NULL;
 				temp_hoststatus->perf_data=NULL;
+				temp_hoststatus->check_options=0;
 			        }
 		        }
 		else if(!strcmp(input,"servicestatus {")){
@@ -784,6 +787,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 				temp_servicestatus->plugin_output=NULL;
 				temp_servicestatus->long_plugin_output=NULL;
 				temp_servicestatus->perf_data=NULL;
+				temp_servicestatus->check_options=0;
 			        }
 		        }
 		else if(!strcmp(input,"contactstatus {")){
@@ -1014,6 +1018,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->last_check=strtoul(val,NULL,10);
 					else if(!strcmp(var,"next_check"))
 						temp_hoststatus->next_check=strtoul(val,NULL,10);
+					else if(!strcmp(var,"check_options"))
+						temp_hoststatus->check_options=atoi(val);
 					else if(!strcmp(var,"current_attempt"))
 						temp_hoststatus->current_attempt=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"state_type"))
@@ -1128,6 +1134,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_servicestatus->last_check=strtoul(val,NULL,10);
 					else if(!strcmp(var,"next_check"))
 						temp_servicestatus->next_check=strtoul(val,NULL,10);
+					else if(!strcmp(var,"check_options"))
+						temp_servicestatus->check_options=atoi(val);
 					else if(!strcmp(var,"current_notification_number"))
 						temp_servicestatus->current_notification_number=atoi(val);
 					else if(!strcmp(var,"last_notification"))

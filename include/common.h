@@ -342,6 +342,15 @@
 #define EXECUTION_DEPENDENCY		2
 
 
+
+/********************** HOST/SERVICE CHECK OPTIONS ***********************/
+
+#define CHECK_OPTION_NONE		0	/* no check options */
+#define CHECK_OPTION_FORCE_EXECUTION	1	/* force execution of a check (ignores disabled services/hosts, invalid timeperiods) */
+#define CHECK_OPTION_FRESHNESS_CHECK    2       /* this is a freshness check */
+#define CHECK_OPTION_ORPHAN_CHECK       4       /* this is an orphan check */
+
+
 /**************************** PROGRAM MODES ******************************/
 
 #define STANDBY_MODE		0	

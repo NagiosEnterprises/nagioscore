@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 10-19-2007
  *
  * License:
  *
@@ -373,12 +373,16 @@ void init_timing_loop(void){
 	/* add scheduled service checks to event queue */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
-		/* skip services that shouldn't be scheduled */
-		if(temp_service->should_be_scheduled==FALSE)
-			continue;
+		/* skip most services that shouldn't be scheduled */
+		if(temp_service->should_be_scheduled==FALSE){
+
+			/* passive checks are an exception if a forced check was scheduled before Nagios was restarted */
+			if(!(temp_service->checks_enabled==FALSE && temp_service->next_check!=(time_t)0L && (temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)))
+				continue;
+			}
 
 		/* create a new service check event */
-		schedule_new_event(EVENT_SERVICE_CHECK,FALSE,temp_service->next_check,FALSE,0,NULL,TRUE,(void *)temp_service,NULL);
+		schedule_new_event(EVENT_SERVICE_CHECK,FALSE,temp_service->next_check,FALSE,0,NULL,TRUE,(void *)temp_service,NULL,temp_service->check_options);
 	        }
 
 
@@ -492,12 +496,16 @@ void init_timing_loop(void){
 	/* add scheduled host checks to event queue */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-		/* skip hosts that shouldn't be scheduled */
-		if(temp_host->should_be_scheduled==FALSE)
-			continue;
+		/* skip most hosts that shouldn't be scheduled */
+		if(temp_host->should_be_scheduled==FALSE){
+
+			/* passive checks are an exception if a forced check was scheduled before Nagios was restarted */
+			if(!(temp_host->checks_enabled==FALSE && temp_host->next_check!=(time_t)0L && (temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)))
+				continue;
+			}
 
 		/* schedule a new host check event */
-		schedule_new_event(EVENT_HOST_CHECK,FALSE,temp_host->next_check,FALSE,0,NULL,TRUE,(void *)temp_host,NULL);
+		schedule_new_event(EVENT_HOST_CHECK,FALSE,temp_host->next_check,FALSE,0,NULL,TRUE,(void *)temp_host,NULL,temp_host->check_options);
 	        }
 
 
@@ -505,26 +513,26 @@ void init_timing_loop(void){
 
 	/* add a host and service check rescheduling event */
 	if(auto_reschedule_checks==TRUE)
-		schedule_new_event(EVENT_RESCHEDULE_CHECKS,TRUE,current_time+auto_rescheduling_interval,TRUE,auto_rescheduling_interval,NULL,TRUE,NULL,NULL);
+		schedule_new_event(EVENT_RESCHEDULE_CHECKS,TRUE,current_time+auto_rescheduling_interval,TRUE,auto_rescheduling_interval,NULL,TRUE,NULL,NULL,0);
 
 	/* add a check result reaper event */
-	schedule_new_event(EVENT_CHECK_REAPER,TRUE,current_time+check_reaper_interval,TRUE,check_reaper_interval,NULL,TRUE,NULL,NULL);
+	schedule_new_event(EVENT_CHECK_REAPER,TRUE,current_time+check_reaper_interval,TRUE,check_reaper_interval,NULL,TRUE,NULL,NULL,0);
 
 	/* add an orphaned check event */
 	if(check_orphaned_services==TRUE || check_orphaned_hosts==TRUE)
-		schedule_new_event(EVENT_ORPHAN_CHECK,TRUE,current_time+DEFAULT_ORPHAN_CHECK_INTERVAL,TRUE,DEFAULT_ORPHAN_CHECK_INTERVAL,NULL,TRUE,NULL,NULL);
+		schedule_new_event(EVENT_ORPHAN_CHECK,TRUE,current_time+DEFAULT_ORPHAN_CHECK_INTERVAL,TRUE,DEFAULT_ORPHAN_CHECK_INTERVAL,NULL,TRUE,NULL,NULL,0);
 
 	/* add a service result "freshness" check event */
 	if(check_service_freshness==TRUE)
-		schedule_new_event(EVENT_SFRESHNESS_CHECK,TRUE,current_time+service_freshness_check_interval,TRUE,service_freshness_check_interval,NULL,TRUE,NULL,NULL);
+		schedule_new_event(EVENT_SFRESHNESS_CHECK,TRUE,current_time+service_freshness_check_interval,TRUE,service_freshness_check_interval,NULL,TRUE,NULL,NULL,0);
 
 	/* add a host result "freshness" check event */
 	if(check_host_freshness==TRUE)
-		schedule_new_event(EVENT_HFRESHNESS_CHECK,TRUE,current_time+host_freshness_check_interval,TRUE,host_freshness_check_interval,NULL,TRUE,NULL,NULL);
+		schedule_new_event(EVENT_HFRESHNESS_CHECK,TRUE,current_time+host_freshness_check_interval,TRUE,host_freshness_check_interval,NULL,TRUE,NULL,NULL,0);
 
 	/* add a status save event */
 	if(aggregate_status_updates==TRUE)
-		schedule_new_event(EVENT_STATUS_SAVE,TRUE,current_time+status_update_interval,TRUE,status_update_interval,NULL,TRUE,NULL,NULL);
+		schedule_new_event(EVENT_STATUS_SAVE,TRUE,current_time+status_update_interval,TRUE,status_update_interval,NULL,TRUE,NULL,NULL,0);
 
 	/* add an external command check event if needed */
 	if(check_external_commands==TRUE){
@@ -532,16 +540,16 @@ void init_timing_loop(void){
 			interval_to_use=(unsigned long)60;
 		else
 			interval_to_use=(unsigned long)command_check_interval;
-		schedule_new_event(EVENT_COMMAND_CHECK,TRUE,current_time+interval_to_use,TRUE,interval_to_use,NULL,TRUE,NULL,NULL);
+		schedule_new_event(EVENT_COMMAND_CHECK,TRUE,current_time+interval_to_use,TRUE,interval_to_use,NULL,TRUE,NULL,NULL,0);
 	        }
 
 	/* add a log rotation event if necessary */
 	if(log_rotation_method!=LOG_ROTATION_NONE)
-		schedule_new_event(EVENT_LOG_ROTATION,TRUE,get_next_log_rotation_time(),TRUE,0,get_next_log_rotation_time,TRUE,NULL,NULL);
+		schedule_new_event(EVENT_LOG_ROTATION,TRUE,get_next_log_rotation_time(),TRUE,0,get_next_log_rotation_time,TRUE,NULL,NULL,0);
 
 	/* add a retention data save event if needed */
 	if(retain_state_information==TRUE && retention_update_interval>0)
-		schedule_new_event(EVENT_RETENTION_SAVE,TRUE,current_time+(retention_update_interval*60),TRUE,(retention_update_interval*60),NULL,TRUE,NULL,NULL);
+		schedule_new_event(EVENT_RETENTION_SAVE,TRUE,current_time+(retention_update_interval*60),TRUE,(retention_update_interval*60),NULL,TRUE,NULL,NULL,0);
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"init_timing_loop() end\n");
 
@@ -676,7 +684,7 @@ void display_scheduling_info(void){
 
 
 /* schedule a new timed event */
-int schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args){
+int schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args, int event_options){
 	timed_event **event_list=NULL;
 	timed_event **event_list_tail=NULL;
 	timed_event *new_event=NULL;
@@ -697,6 +705,7 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 		new_event->event_type=event_type;
 		new_event->event_data=event_data;
 		new_event->event_args=event_args;
+		new_event->event_options=event_options;
 		new_event->run_time=run_time;
 		new_event->recurring=recurring;
 		new_event->event_interval=event_interval;
@@ -877,6 +886,7 @@ int event_execution_loop(void){
 	sleep_event.timing_func=NULL;
 	sleep_event.event_data=NULL;
 	sleep_event.event_args=NULL;
+	sleep_event.event_options=0;
 	sleep_event.next=NULL;
 	sleep_event.prev=NULL;
 
@@ -1160,11 +1170,11 @@ int handle_timed_event(timed_event *event){
 		gettimeofday(&tv,NULL);
 		latency=(double)((double)(tv.tv_sec-event->run_time)+(double)(tv.tv_usec/1000)/1000.0);
 
-		log_debug_info(DEBUGL_EVENTS,0,"** Service Check Event ==> Host: '%s', Service: '%s', Latency: %f sec\n",temp_service->host_name,temp_service->description,latency);
+		log_debug_info(DEBUGL_EVENTS,0,"** Service Check Event ==> Host: '%s', Service: '%s', Options: %d, Latency: %f sec\n",temp_service->host_name,temp_service->description,event->event_options,latency);
 
 		/* run the service check */
 		temp_service=(service *)event->event_data;
-		run_scheduled_service_check(temp_service,temp_service->check_options,latency);
+		run_scheduled_service_check(temp_service,event->event_options,latency);
 		break;
 
 	case EVENT_HOST_CHECK:
@@ -1175,11 +1185,11 @@ int handle_timed_event(timed_event *event){
 		gettimeofday(&tv,NULL);
 		latency=(double)((double)(tv.tv_sec-event->run_time)+(double)(tv.tv_usec/1000)/1000.0);
 
-		log_debug_info(DEBUGL_EVENTS,0,"** Host Check Event ==> Host: '%s', Latency: %f sec\n",temp_host->name,latency);
+		log_debug_info(DEBUGL_EVENTS,0,"** Host Check Event ==> Host: '%s', Options: %d, Latency: %f sec\n",temp_host->name,event->event_options,latency);
 
 		/* run the host check */
 		temp_host=(host *)event->event_data;
-		perform_scheduled_host_check(temp_host,latency);
+		perform_scheduled_host_check(temp_host,event->event_options,latency);
 		break;
 
 	case EVENT_COMMAND_CHECK:

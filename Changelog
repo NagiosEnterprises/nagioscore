@@ -16,6 +16,7 @@ Nagios 3.x Change Log
 * Increased max plugin output length cap from 4kb to 8kb
 * Caching of Perl scripts now enabled by default if embedded Perl interpreter is compiled in
 * Fix for segfault when contact definitions had no notification timeperiods defined
+* Retention of host/service check scheduling options
 
 
 

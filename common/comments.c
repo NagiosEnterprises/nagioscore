@@ -3,7 +3,7 @@
  * COMMENTS.C - Comment functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 10-19-2007
  *
  * License:
  *
@@ -100,7 +100,7 @@ int add_new_comment(int type, int entry_type, char *host_name, char *svc_descrip
 
 	/* add an event to expire comment data if necessary... */
 	if(expires==TRUE)
-		schedule_new_event(EVENT_EXPIRE_COMMENT,FALSE,expire_time,FALSE,0,NULL,TRUE,(void *)new_comment_id,NULL);
+		schedule_new_event(EVENT_EXPIRE_COMMENT,FALSE,expire_time,FALSE,0,NULL,TRUE,(void *)new_comment_id,NULL,0);
 
 	/* save comment id */
 	if(comment_id!=NULL)

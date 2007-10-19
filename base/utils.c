@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-18-2007
+ * Last Modified:   10-19-2007
  *
  * License:
  *
@@ -2337,6 +2337,8 @@ int process_check_result_file(char *fname){
 				}
 			else if(!strcmp(var,"check_type"))
 				new_cr->check_type=atoi(val);
+			else if(!strcmp(var,"check_options"))
+				new_cr->check_options=atoi(val);
 			else if(!strcmp(var,"scheduled_check"))
 				new_cr->scheduled_check=atoi(val);
 			else if(!strcmp(var,"reschedule_check"))
@@ -2436,6 +2438,7 @@ int init_check_result(check_result *info){
 	info->host_name=NULL;
 	info->service_description=NULL;
 	info->check_type=HOST_CHECK_ACTIVE;
+	info->check_options=CHECK_OPTION_NONE;
 	info->scheduled_check=FALSE;
 	info->reschedule_check=FALSE;
 	info->output_file_fp=NULL;

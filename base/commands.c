@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-18-2007
+ * Last Modified:   10-19-2007
  *
  * License:
  *
@@ -1876,18 +1876,20 @@ int cmd_schedule_check(int cmd,char *args){
 		return ERROR;
 	delay_time=strtoul(temp_ptr,NULL,10);
 
-	/* schedule the check */
+	/* schedule the host check */
 	if(cmd==CMD_SCHEDULE_HOST_CHECK || cmd==CMD_SCHEDULE_FORCED_HOST_CHECK)
-		schedule_host_check(temp_host,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_CHECK)?TRUE:FALSE);
+		schedule_host_check(temp_host,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_CHECK)?CHECK_OPTION_FORCE_EXECUTION:CHECK_OPTION_NONE);
+
+	/* schedule service checks */
 	else if(cmd==CMD_SCHEDULE_HOST_SVC_CHECKS || cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS){
 		for(temp_servicesmember=temp_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
 			if((temp_service=temp_servicesmember->service_ptr)==NULL)
 				continue;
-			schedule_service_check(temp_service,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS)?TRUE:FALSE);
+			schedule_service_check(temp_service,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS)?CHECK_OPTION_FORCE_EXECUTION:CHECK_OPTION_NONE);
 		        }
 	        }
 	else
-		schedule_service_check(temp_service,delay_time,(cmd==CMD_SCHEDULE_FORCED_SVC_CHECK)?TRUE:FALSE);
+		schedule_service_check(temp_service,delay_time,(cmd==CMD_SCHEDULE_FORCED_SVC_CHECK)?CHECK_OPTION_FORCE_EXECUTION:CHECK_OPTION_NONE);
 
 	return OK;
         }
@@ -1920,7 +1922,7 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 	for(temp_servicesmember=temp_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
 		if((temp_service=temp_servicesmember->service_ptr)==NULL)
 			continue;
-		schedule_service_check(temp_service,delay_time,force);
+		schedule_service_check(temp_service,delay_time,(force==TRUE)?CHECK_OPTION_FORCE_EXECUTION:CHECK_OPTION_NONE);
 	        }
 
 	return OK;
@@ -1942,7 +1944,7 @@ int cmd_signal_process(int cmd, char *args){
 		scheduled_time=strtoul(temp_ptr,NULL,10);
 
 	/* add a scheduled program shutdown or restart to the event list */
-	result=schedule_new_event((cmd==CMD_SHUTDOWN_PROCESS)?EVENT_PROGRAM_SHUTDOWN:EVENT_PROGRAM_RESTART,TRUE,scheduled_time,FALSE,0,NULL,FALSE,NULL,NULL);
+	result=schedule_new_event((cmd==CMD_SHUTDOWN_PROCESS)?EVENT_PROGRAM_SHUTDOWN:EVENT_PROGRAM_RESTART,TRUE,scheduled_time,FALSE,0,NULL,FALSE,NULL,NULL,0);
 
 	return result;
         }
@@ -2632,7 +2634,7 @@ int cmd_change_object_int_var(int cmd,char *args){
 
 			/* schedule a check if we should */
 			if(temp_host->should_be_scheduled==TRUE)
-				schedule_host_check(temp_host,temp_host->next_check,FALSE);
+				schedule_host_check(temp_host,temp_host->next_check,CHECK_OPTION_NONE);
 		        }
 
 		break;
@@ -2681,7 +2683,7 @@ int cmd_change_object_int_var(int cmd,char *args){
 
 			/* schedule a check if we should */
 			if(temp_service->should_be_scheduled==TRUE)
-				schedule_service_check(temp_service,temp_service->next_check,FALSE);
+				schedule_service_check(temp_service,temp_service->next_check,CHECK_OPTION_NONE);
 		        }
 
 		break;
@@ -3206,7 +3208,7 @@ void enable_service_checks(service *svc){
 
 	/* schedule a check if we should */
 	if(svc->should_be_scheduled==TRUE)
-		schedule_service_check(svc,svc->next_check,FALSE);
+		schedule_service_check(svc,svc->next_check,CHECK_OPTION_NONE);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -4233,7 +4235,7 @@ void enable_host_checks(host *hst){
 
 	/* schedule a check if we should */
 	if(hst->should_be_scheduled==TRUE)
-		schedule_host_check(hst,hst->next_check,FALSE);
+		schedule_host_check(hst,hst->next_check,CHECK_OPTION_NONE);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */

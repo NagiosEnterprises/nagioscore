@@ -2,9 +2,9 @@
  *
  * HELLOWORLD.C - Example of a simple NEB module
  *
- * Copyright (c) 2003-2005 Ethan Galstad (http://www.nagios.org)
+ * Copyright (c) 2003-2007 Ethan Galstad (http://www.nagios.org)
  *
- * Last Modified: 08-02-2005
+ * Last Modified: 10-19-2007
  *
  * Description:
  *
@@ -65,7 +65,7 @@ int nebmodule_init(int flags, char *args, nebmodule *handle){
 	/* log a reminder message every 15 minutes (how's that for annoying? :-)) */
 	time(&current_time);
 	interval=900;
-	schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+interval,TRUE,interval,NULL,TRUE,helloworld_reminder_message,"How about you?");
+	schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+interval,TRUE,interval,NULL,TRUE,helloworld_reminder_message,"How about you?",0);
 
 	/* register to be notified of certain events... */
 	neb_register_callback(NEBCALLBACK_AGGREGATED_STATUS_DATA,helloworld_module_handle,0,helloworld_handle_data);

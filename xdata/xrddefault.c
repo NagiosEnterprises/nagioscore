@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 10-19-2007
  *
  * License:
  *
@@ -358,6 +358,7 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_host->last_check);
 		fprintf(fp,"\tnext_check=%lu\n",temp_host->next_check);
+		fprintf(fp,"\tcheck_options=%d\n",temp_host->check_options);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_host->current_attempt);
 		fprintf(fp,"\tmax_attempts=%d\n",temp_host->max_attempts);
 		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_host->current_event_id);
@@ -437,6 +438,7 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\tperformance_data=%s\n",(temp_service->perf_data==NULL)?"":temp_service->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_service->last_check);
 		fprintf(fp,"\tnext_check=%lu\n",temp_service->next_check);
+		fprintf(fp,"\tcheck_options=%d\n",temp_service->check_options);
 		fprintf(fp,"\tnotified_on_unknown=%d\n",temp_service->notified_on_unknown);
 		fprintf(fp,"\tnotified_on_warning=%d\n",temp_service->notified_on_warning);
 		fprintf(fp,"\tnotified_on_critical=%d\n",temp_service->notified_on_critical);
@@ -1051,6 +1053,10 @@ int xrddefault_read_state_information(void){
 							if(use_retained_scheduling_info==TRUE && scheduling_info_is_ok==TRUE)
 								temp_host->next_check=strtoul(val,NULL,10);
 						        }
+						else if(!strcmp(var,"check_options")){
+							if(use_retained_scheduling_info==TRUE && scheduling_info_is_ok==TRUE)
+								temp_host->check_options=atoi(val);
+						        }
 						else if(!strcmp(var,"current_attempt"))
 							temp_host->current_attempt=(atoi(val)>0)?TRUE:FALSE;
 						else if(!strcmp(var,"current_event_id"))
@@ -1296,6 +1302,10 @@ int xrddefault_read_state_information(void){
 						else if(!strcmp(var,"next_check")){
 							if(use_retained_scheduling_info==TRUE && scheduling_info_is_ok==TRUE)
 								temp_service->next_check=strtoul(val,NULL,10);
+						        }
+						else if(!strcmp(var,"check_options")){
+							if(use_retained_scheduling_info==TRUE && scheduling_info_is_ok==TRUE)
+								temp_service->check_options=atoi(val);
 						        }
 						else if(!strcmp(var,"notified_on_unknown"))
 							temp_service->notified_on_unknown=(atoi(val)>0)?TRUE:FALSE;

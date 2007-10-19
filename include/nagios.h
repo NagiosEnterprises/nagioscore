@@ -315,13 +315,6 @@ extern "C" {
 
 
 
-/************** SERVICE CHECK OPTIONS *****************/
-
-#define CHECK_OPTION_NONE		0	/* no check options */
-#define CHECK_OPTION_FORCE_EXECUTION	1	/* force execution of a service check (ignores disabled services, invalid timeperiods) */
-
-
-
 /************ SCHEDULED DOWNTIME TYPES ****************/
 
 #define ACTIVE_DOWNTIME                 0       /* active downtime - currently in effect */
@@ -341,6 +334,7 @@ typedef struct timed_event_struct{
 	void *timing_func;
 	void *event_data;
 	void *event_args;
+	int event_options;
         struct timed_event_struct *next;
         struct timed_event_struct *prev;
         }timed_event;
@@ -359,6 +353,7 @@ typedef struct check_result_struct{
 	char *host_name;                                /* host name */
 	char *service_description;                      /* service description */
 	int check_type;					/* was this an active or passive service check? */
+	int check_options;         
 	int scheduled_check;                            /* was this a scheduled or an on-demand check? */
 	int reschedule_check;                           /* should we reschedule the next check */
 	char *output_file;                              /* what file is the output stored in? */
@@ -507,7 +502,7 @@ int close_command_file(void);					/* closes and deletes the external command fil
 
 
 /**** Monitoring/Event Handler Functions ****/
-int schedule_new_event(int,int,time_t,int,unsigned long,void *,int,void *,void *);	/* schedules a new timed event */
+int schedule_new_event(int,int,time_t,int,unsigned long,void *,int,void *,void *,int);	/* schedules a new timed event */
 void reschedule_event(timed_event *,timed_event **,timed_event **);   		/* reschedules an event */
 void add_event(timed_event *,timed_event **,timed_event **);     		/* adds an event to the execution queue */
 void remove_event(timed_event *,timed_event **,timed_event **);     		/* remove an event from the execution queue */
@@ -785,7 +780,7 @@ int handle_async_host_check_result_3x(host *,check_result *);
 
 /***** COMMON HOST CHECK FUNCTIONS FOR 2.X and 3.X *****/
 int perform_on_demand_host_check(host *,int *,int,int,unsigned long);
-int perform_scheduled_host_check(host *,double);
+int perform_scheduled_host_check(host *,int,double);
 
 
 /***** COMMON FUNCTIONS *****/

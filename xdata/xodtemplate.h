@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-30-2007
+ * Last Modified:   10-18-2007
  *
  * License:
  *
@@ -890,6 +890,8 @@ xodtemplate_hostextinfo *xodtemplate_find_hostextinfo(char *);
 xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *);
 
 int xodtemplate_get_inherited_string(int *,char **,int *,char **);
+int xodtemplate_clean_additive_string(char **);
+int xodtemplate_clean_additive_strings(void);
 #endif
 
 int xodtemplate_register_timeperiod(xodtemplate_timeperiod *);

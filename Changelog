@@ -11,6 +11,7 @@ Nagios 3.x Change Log
 * Updates to .cvsignore files
 * Fix for embedded Perl interpreter to recache scripts when they're modified
 * Fix for cancelling inheritance with 'null' in various object directives
+* Additional functionality of additive inheritance feature
 
 
 

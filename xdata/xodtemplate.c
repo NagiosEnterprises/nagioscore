@@ -275,6 +275,9 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 		if(test_scheduling==TRUE)
 			gettimeofday(&tv[2],NULL);
 
+		/* cleanup some additive inheritance stuff... */
+		xodtemplate_clean_additive_strings();
+
 		/* do the meat and potatoes stuff... */
 		if(result==OK)
 			result=xodtemplate_recombobulate_contactgroups();
@@ -7018,9 +7021,6 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		if(this_host->address==NULL && template_host->address!=NULL)
 			this_host->address=(char *)strdup(template_host->address);
 
-		if(this_host->host_name!=NULL && !strcmp(this_host->host_name,"dwsoms1"))
-			printf("TEMP-HP: %d, TEMP-PARENTS: %s, THIS-HP: %d, THIS-PARENTS: %s\n",template_host->have_parents,template_host->parents,this_host->have_parents,this_host->parents);
-
 		xodtemplate_get_inherited_string(&template_host->have_parents,&template_host->parents,&this_host->have_parents,&this_host->parents);
 		xodtemplate_get_inherited_string(&template_host->have_host_groups,&template_host->host_groups,&this_host->have_host_groups,&this_host->host_groups);
 		xodtemplate_get_inherited_string(&template_host->have_contact_groups,&template_host->contact_groups,&this_host->have_contact_groups,&this_host->contact_groups);
@@ -13371,6 +13371,11 @@ char *xodtemplate_config_file_name(int config_file){
 
 
 #ifdef NSCORE
+
+/******************************************************************/
+/****************** ADDITIVE INHERITANCE STUFF ********************/
+/******************************************************************/
+
 /* determines the value of an inherited string */
 int xodtemplate_get_inherited_string(int *have_template_value, char **template_value, int *have_this_value, char **this_value){
 	char *buf=NULL;
@@ -13385,8 +13390,10 @@ int xodtemplate_get_inherited_string(int *have_template_value, char **template_v
 			if(*this_value==NULL){
 
 				/* use the template value only if we need a value - otherwise stay NULL */
-				if(*have_this_value==FALSE)
+				if(*have_this_value==FALSE){
+					/* NOTE: leave leading + sign if present, as it needed during object resolution and will get stripped later */
 					*this_value=(char *)strdup(*template_value);
+					}
 				}
 
 			/* we already have a value... */
@@ -13411,15 +13418,125 @@ int xodtemplate_get_inherited_string(int *have_template_value, char **template_v
 		*have_this_value=TRUE;
 		}
 
+	return OK;
+	}
+
+
+/* removes leading + sign from various directives */
+int xodtemplate_clean_additive_string(char **str){
+	char *buf=NULL;
+
 	/* remove the additive symbol if present */
-	if(*this_value!=NULL && *this_value[0]=='+'){
-		buf=(char *)strdup(*this_value+1);
-		my_free(this_value);
-		*this_value=buf;
+	if(*str!=NULL && *str[0]=='+'){
+		buf=(char *)strdup(*str+1);
+		my_free(str);
+		*str=buf;
 		}
 
 	return OK;
 	}
+
+
+/* cleans strings which may contain additive inheritance directives */
+/* NOTE: this must be done after objects are resolved */
+int xodtemplate_clean_additive_strings(void){
+	xodtemplate_contactgroup *temp_contactgroup=NULL;
+	xodtemplate_hostgroup *temp_hostgroup=NULL;
+	xodtemplate_servicegroup *temp_servicegroup=NULL;
+	xodtemplate_servicedependency *temp_servicedependency=NULL;
+	xodtemplate_serviceescalation *temp_serviceescalation=NULL;
+	xodtemplate_contact *temp_contact=NULL;
+	xodtemplate_host *temp_host=NULL;
+	xodtemplate_service *temp_service=NULL;
+	xodtemplate_hostdependency *temp_hostdependency=NULL;
+	xodtemplate_hostescalation *temp_hostescalation=NULL;
+
+	/* resolve all contactgroup objects */
+	for(temp_contactgroup=xodtemplate_contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){
+		xodtemplate_clean_additive_string(&temp_contactgroup->members);
+		xodtemplate_clean_additive_string(&temp_contactgroup->contactgroup_members);
+		}
+
+	/* resolve all hostgroup objects */
+	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+		xodtemplate_clean_additive_string(&temp_hostgroup->members);
+		xodtemplate_clean_additive_string(&temp_hostgroup->hostgroup_members);
+	        }
+
+	/* resolve all servicegroup objects */
+	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+		xodtemplate_clean_additive_string(&temp_servicegroup->members);
+		xodtemplate_clean_additive_string(&temp_servicegroup->servicegroup_members);
+	        }
+
+	/* resolve all servicedependency objects */
+	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
+		xodtemplate_clean_additive_string(&temp_servicedependency->servicegroup_name);
+		xodtemplate_clean_additive_string(&temp_servicedependency->hostgroup_name);
+		xodtemplate_clean_additive_string(&temp_servicedependency->host_name);
+		xodtemplate_clean_additive_string(&temp_servicedependency->service_description);
+		xodtemplate_clean_additive_string(&temp_servicedependency->dependent_servicegroup_name);
+		xodtemplate_clean_additive_string(&temp_servicedependency->dependent_hostgroup_name);
+		xodtemplate_clean_additive_string(&temp_servicedependency->dependent_host_name);
+		xodtemplate_clean_additive_string(&temp_servicedependency->dependent_service_description);
+	        }
+
+	/* resolve all serviceescalation objects */
+	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
+		xodtemplate_clean_additive_string(&temp_serviceescalation->contact_groups);
+		xodtemplate_clean_additive_string(&temp_serviceescalation->contacts);
+		xodtemplate_clean_additive_string(&temp_serviceescalation->servicegroup_name);
+		xodtemplate_clean_additive_string(&temp_serviceescalation->hostgroup_name);
+		xodtemplate_clean_additive_string(&temp_serviceescalation->host_name);
+		xodtemplate_clean_additive_string(&temp_serviceescalation->service_description);
+		xodtemplate_clean_additive_string(&temp_serviceescalation->contact_groups);
+		xodtemplate_clean_additive_string(&temp_serviceescalation->contacts);
+	        }
+
+	/* resolve all contact objects */
+	for(temp_contact=xodtemplate_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+		xodtemplate_clean_additive_string(&temp_contact->contact_groups);
+		xodtemplate_clean_additive_string(&temp_contact->host_notification_commands);
+		xodtemplate_clean_additive_string(&temp_contact->service_notification_commands);
+	        }
+
+	/* clean all host objects */
+	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
+		xodtemplate_clean_additive_string(&temp_host->contact_groups);
+		xodtemplate_clean_additive_string(&temp_host->contacts);
+		xodtemplate_clean_additive_string(&temp_host->parents);
+		xodtemplate_clean_additive_string(&temp_host->host_groups);
+	        }
+
+	/* clean all service objects */
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
+		xodtemplate_clean_additive_string(&temp_service->contact_groups);
+		xodtemplate_clean_additive_string(&temp_service->contacts);
+		xodtemplate_clean_additive_string(&temp_service->host_name);
+		xodtemplate_clean_additive_string(&temp_service->hostgroup_name);
+		xodtemplate_clean_additive_string(&temp_service->service_groups);
+	        }
+
+	/* resolve all hostdependency objects */
+	for(temp_hostdependency=xodtemplate_hostdependency_list;temp_hostdependency!=NULL;temp_hostdependency=temp_hostdependency->next){
+		xodtemplate_clean_additive_string(&temp_hostdependency->host_name);
+		xodtemplate_clean_additive_string(&temp_hostdependency->dependent_host_name);
+		xodtemplate_clean_additive_string(&temp_hostdependency->hostgroup_name);
+		xodtemplate_clean_additive_string(&temp_hostdependency->dependent_hostgroup_name);
+	        }
+
+	/* resolve all hostescalation objects */
+	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
+		xodtemplate_clean_additive_string(&temp_hostescalation->contact_groups);
+		xodtemplate_clean_additive_string(&temp_hostescalation->contacts);
+		xodtemplate_clean_additive_string(&temp_hostescalation->host_name);
+		xodtemplate_clean_additive_string(&temp_hostescalation->hostgroup_name);
+		xodtemplate_clean_additive_string(&temp_hostescalation->contact_groups);
+		xodtemplate_clean_additive_string(&temp_hostescalation->contacts);
+	        }
+
+	return OK;
+        }
 #endif
 
 #endif

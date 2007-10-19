@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 10-19-2007
  *
  * License:
  *
@@ -1630,6 +1630,8 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 		new_contact->address[x]=NULL;
 	new_contact->host_notification_commands=NULL;
 	new_contact->service_notification_commands=NULL;
+	new_contact->host_notification_period=NULL;
+	new_contact->service_notification_period=NULL;
 	new_contact->custom_variables=NULL;
 	new_contact->next=NULL;
 	new_contact->nexthash=NULL;

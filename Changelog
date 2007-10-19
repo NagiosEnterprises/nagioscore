@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0b5 - 10/18/2007
+3.0b6 - ??/??/2007
 ------------------
 * Logging API revamp, cleanup
 * Misc internal performance improvements
@@ -12,6 +12,8 @@ Nagios 3.x Change Log
 * Fix for embedded Perl interpreter to recache scripts when they're modified
 * Fix for cancelling inheritance with 'null' in various object directives
 * Additional functionality of additive inheritance feature
+* Fixed bug where missing host/servicegroups in object definitions didn't always generate errors
+* Increased max plugin output length cap from 4kb to 8kb
 
 
 

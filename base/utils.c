@@ -3615,7 +3615,7 @@ void cleanup_command_file_worker_thread(void *arg){
 
 /* worker thread - artificially increases buffer of named pipe */
 void * command_file_worker_thread(void *arg){
-	char input_buffer[MAX_INPUT_BUFFER];
+	char input_buffer[MAX_EXTERNAL_COMMAND_LENGTH];
 	struct timeval tv;
 	int buffer_items=0;
 	int result=0;

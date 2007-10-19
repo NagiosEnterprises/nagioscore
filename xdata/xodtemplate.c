@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 10-19-2007
  *
  * Description:
  *
@@ -8106,8 +8106,9 @@ int xodtemplate_recombobulate_hostgroups(void){
 			continue;
 
 		/* preprocess the hostgroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
+		/* 10/18/07 EG an empty return value means an error occured */
 		if((hostgroup_names=xodtemplate_process_hostgroup_names(temp_host->host_groups,temp_host->_config_file,temp_host->_start_line))==NULL)
-			continue;
+			return ERROR;
 
 		/* process the list of hostgroups */
 		for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
@@ -8213,8 +8214,9 @@ int xodtemplate_recombobulate_servicegroups(void){
 			continue;
 
 		/* preprocess the servicegroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
+		/* 10/19/07 EG an empry return value means an error occured */
 		if((servicegroup_names=xodtemplate_process_servicegroup_names(temp_service->service_groups,temp_service->_config_file,temp_service->_start_line))==NULL)
-			continue;
+			return ERROR;
 
 		/* process the list of servicegroups */
 		for(temp_ptr=strtok(servicegroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
@@ -12384,7 +12386,7 @@ xodtemplate_memberlist *xodtemplate_expand_servicegroups_and_services(char *serv
 	/* process list of servicegroups... */
 	if(servicegroups!=NULL){
 
-		/* expand services */
+		/* expand servicegroups */
 		result=xodtemplate_expand_servicegroups(&temp_list,&reject_list,servicegroups,_config_file,_start_line);
 		if(result!=OK){
 			xodtemplate_free_memberlist(&temp_list);

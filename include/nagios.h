@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 10-19-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -37,7 +37,13 @@ extern "C" {
 
 /************* MISC LENGTH/SIZE DEFINITIONS ***********/
 
-#define MAX_PLUGIN_OUTPUT_LENGTH                4096    /* max length of plugin output (including perf data) */
+/* 
+   NOTE: Plugin length is artificially capped at 8k to prevent runaway plugins from returning MBs/GBs of data
+   back to Nagios.  If you increase the 8k cap by modifying this value, make sure you also increase the value
+   of MAX_EXTERNAL_COMMAND_LENGTH in common.h to allow for passive checks results received through the external
+   command file. EG 10/19/07
+*/
+#define MAX_PLUGIN_OUTPUT_LENGTH                8192    /* max length of plugin output (including perf data) */
 
 
 

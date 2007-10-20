@@ -444,7 +444,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	check_result_info.host_name=(char *)strdup(svc->host_name);
 	check_result_info.service_description=(char *)strdup(svc->description);
 	check_result_info.check_type=SERVICE_CHECK_ACTIVE;
-	check_result_info.check_options=0;
+	check_result_info.check_options=check_options;
 	check_result_info.scheduled_check=scheduled_check;
 	check_result_info.reschedule_check=reschedule_check;
 	check_result_info.output_file=(check_result_info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
@@ -890,15 +890,40 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	time(&current_time);
 
 	log_debug_info(DEBUGL_CHECKS,0,"** Handling check result for service '%s' on host '%s'...\n",temp_service->description,temp_service->host_name);
-	log_debug_info(DEBUGL_CHECKS,1,"HOST: %s, SERVICE: %s, CHECK TYPE: %s, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT: %s\n",temp_service->description,temp_service->host_name,(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",(queued_check_result->scheduled_check==TRUE)?"Yes":"No",(queued_check_result->reschedule_check==TRUE)?"Yes":"No",(queued_check_result->exited_ok==TRUE)?"Yes":"No",queued_check_result->return_code,queued_check_result->output);
+	log_debug_info(DEBUGL_CHECKS,1,"HOST: %s, SERVICE: %s, CHECK TYPE: %s, OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT: %s\n",temp_service->host_name,temp_service->description,(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)?"Active":"Passive",queued_check_result->check_options,(queued_check_result->scheduled_check==TRUE)?"Yes":"No",(queued_check_result->reschedule_check==TRUE)?"Yes":"No",(queued_check_result->exited_ok==TRUE)?"Yes":"No",queued_check_result->return_code,queued_check_result->output);
 	
 	/* decrement the number of service checks still out there... */
 	if(queued_check_result->check_type==SERVICE_CHECK_ACTIVE && currently_running_service_checks>0)
 		currently_running_service_checks--;
 
 	/* skip this service check results if its passive and we aren't accepting passive check results */
-	if(accept_passive_service_checks==FALSE && queued_check_result->check_type==SERVICE_CHECK_PASSIVE)
-		return ERROR;
+	if(queued_check_result->check_type==SERVICE_CHECK_PASSIVE){
+		if(accept_passive_service_checks==FALSE){
+			log_debug_info(DEBUGL_CHECKS,0,"Discarding passive service check result because passive service checks are disabled globally.\n");
+			return ERROR;
+			}
+		if(temp_service->accept_passive_service_checks==FALSE){
+			log_debug_info(DEBUGL_CHECKS,0,"Discarding passive service check result because passive checks are disabled for this service.\n");
+			return ERROR;
+			}
+		}
+
+	/* clear the freshening flag (it would have been set if this service was determined to be stale) */
+	if(queued_check_result->check_options & CHECK_OPTION_FRESHNESS_CHECK)
+		temp_service->is_being_freshened=FALSE;
+
+	/* clear the execution flag if this was an active check */
+	if(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)
+		temp_service->is_executing=FALSE;
+
+	/* DISCARD INVALID FRESHNESS CHECK RESULTS */
+	/* If a services goes stale, Nagios will initiate a forced check in order to freshen it.  There is a race condition whereby a passive check
+	   could arrive between the 1) initiation of the forced check and 2) the time when the forced check result is processed here.  This would 
+	   make the service fresh again, so we do a quick check to make sure the service is still stale before we accept the check result. */
+	if((queued_check_result->check_options & CHECK_OPTION_FRESHNESS_CHECK) && is_service_result_fresh(temp_service,current_time,FALSE)==TRUE){
+		log_debug_info(DEBUGL_CHECKS,0,"Discarding service freshness check result because the service is currently fresh (race condition avoided).\n");
+		return OK;
+		}
 
 	/* check latency is passed to us */
 	temp_service->latency=queued_check_result->latency;
@@ -908,15 +933,10 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	if(temp_service->execution_time<0.0)
 		temp_service->execution_time=0.0;
 
-	/* clear the freshening flag (it would have been set if this service was determined to be stale) */
-	temp_service->is_being_freshened=FALSE;
-
-	/* clear the execution flag if this was an active check */
-	if(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)
-		temp_service->is_executing=FALSE;
-
 	/* get the last check time */
 	temp_service->last_check=queued_check_result->start_time.tv_sec;
+
+	log_debug_info(DEBUGL_CHECKS,2,"LAST CHECK TIME UPDATED: %lu\n",temp_service->last_check);
 
 	/* was this check passive or active? */
 	temp_service->check_type=(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)?SERVICE_CHECK_ACTIVE:SERVICE_CHECK_PASSIVE;
@@ -1868,24 +1888,14 @@ void check_for_orphaned_services(void){
 void check_service_result_freshness(void){
 	service *temp_service=NULL;
 	time_t current_time=0L;
-	time_t expiration_time=0L;
-	int freshness_threshold=0;
-	int days=0;
-	int hours=0;
-	int minutes=0;
-	int seconds=0;
-	int tdays=0;
-	int thours=0;
-	int tminutes=0;
-	int tseconds=0;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_service_result_freshness()\n");
-	log_debug_info(DEBUGL_CHECKS,2,"Attempting to check the freshness of service check results...\n");
+	log_debug_info(DEBUGL_CHECKS,1,"Checking the freshness of service check results...\n");
 
 	/* bail out if we're not supposed to be checking freshness */
 	if(check_service_freshness==FALSE){
-		log_debug_info(DEBUGL_CHECKS,2,"Service freshness checking is disabled.\n");
+		log_debug_info(DEBUGL_CHECKS,1,"Service freshness checking is disabled.\n");
 		return;
 		}
 
@@ -1894,8 +1904,6 @@ void check_service_result_freshness(void){
 
 	/* check all services... */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
-		log_debug_info(DEBUGL_CHECKS,2,"Checking freshness of service '%s' on host '%s'...\n",temp_service->description,temp_service->host_name);
 
 		/* skip services we shouldn't be checking for freshness */
 		if(temp_service->check_freshness==FALSE)
@@ -1922,43 +1930,8 @@ void check_service_result_freshness(void){
 		if(temp_service->check_interval==0 && temp_service->freshness_threshold==0)
 			continue;
 
-		/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
-		if(temp_service->freshness_threshold==0){
-			if(temp_service->state_type==HARD_STATE || temp_service->current_state==STATE_OK)
-				freshness_threshold=(temp_service->check_interval*interval_length)+temp_service->latency+additional_freshness_latency;
-			else
-				freshness_threshold=(temp_service->retry_interval*interval_length)+temp_service->latency+additional_freshness_latency;
-		        }
-		else
-			freshness_threshold=temp_service->freshness_threshold;
-
-		log_debug_info(DEBUGL_CHECKS,2,"Freshness thresholds: service=%d, use=%d\n",temp_service->freshness_threshold,freshness_threshold);
-
-		/* calculate expiration time */
-		/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
-		/* CHANGED 02/25/06 SG - passive checks also become stale, so remove dependence on active check logic */
-		if(temp_service->has_been_checked==FALSE)
-			expiration_time=(time_t)(event_start+freshness_threshold);
-		/* CHANGED 06/19/07 EG - Per Ton's suggestion (and user requests), only use program start time over last check if no specific threshold has been set by user.  Otheriwse use it.  Problems can occur if Nagios is restarted more frequently that freshness threshold intervals (services never go stale). */
-		/* CHANGED 10/07/07 EG - Only match next condition for services that have active checks enabled... */
-		/* CHANGED 10/07/07 EG - Added max_service_check_spread to expiration time as suggested by Altinity */
-		else if(temp_service->checks_enabled==TRUE && event_start>temp_service->last_check && temp_service->freshness_threshold==0)
-			expiration_time=(time_t)(event_start+freshness_threshold+(max_service_check_spread*interval_length));
-		else
-			expiration_time=(time_t)(temp_service->last_check+freshness_threshold);
-
-		log_debug_info(DEBUGL_CHECKS,2,"HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n",temp_service->has_been_checked,(unsigned long)program_start,(unsigned long)event_start,(unsigned long)temp_service->last_check,(unsigned long)current_time,(unsigned long)expiration_time);
-
-		/* the results for the last check of this service are stale */
-		if(expiration_time<current_time){
-
-			get_time_breakdown((current_time-expiration_time),&days,&hours,&minutes,&seconds);
-			get_time_breakdown(freshness_threshold,&tdays,&thours,&tminutes,&tseconds);
-
-			/* log a warning */
-			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The results of service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
-
-			log_debug_info(DEBUGL_CHECKS,1,"Check results for service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the service...\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
+		/* the results for the last check of this service are stale! */
+		if(is_service_result_fresh(temp_service,current_time,TRUE)==FALSE){
 
 			/* set the freshen flag */
 			temp_service->is_being_freshened=TRUE;
@@ -1966,10 +1939,75 @@ void check_service_result_freshness(void){
 			/* schedule an immediate forced check of the service */
 			schedule_service_check(temp_service,current_time,CHECK_OPTION_FORCE_EXECUTION | CHECK_OPTION_FRESHNESS_CHECK);
 		        }
+
 	        }
 
 	return;
         }
+
+
+
+/* tests whether or not a service's check results are fresh */
+int is_service_result_fresh(service *temp_service, time_t current_time, int write_to_log){
+	int freshness_threshold=0;
+	time_t expiration_time=0L;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
+	int tdays=0;
+	int thours=0;
+	int tminutes=0;
+	int tseconds=0;
+
+	log_debug_info(DEBUGL_CHECKS,2,"Checking freshness of service '%s' on host '%s'...\n",temp_service->description,temp_service->host_name);
+
+	/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
+	if(temp_service->freshness_threshold==0){
+		if(temp_service->state_type==HARD_STATE || temp_service->current_state==STATE_OK)
+			freshness_threshold=(temp_service->check_interval*interval_length)+temp_service->latency+additional_freshness_latency;
+		else
+			freshness_threshold=(temp_service->retry_interval*interval_length)+temp_service->latency+additional_freshness_latency;
+		}
+	else
+		freshness_threshold=temp_service->freshness_threshold;
+
+	log_debug_info(DEBUGL_CHECKS,2,"Freshness thresholds: service=%d, use=%d\n",temp_service->freshness_threshold,freshness_threshold);
+
+	/* calculate expiration time */
+	/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
+	/* CHANGED 02/25/06 SG - passive checks also become stale, so remove dependence on active check logic */
+	if(temp_service->has_been_checked==FALSE)
+		expiration_time=(time_t)(event_start+freshness_threshold);
+	/* CHANGED 06/19/07 EG - Per Ton's suggestion (and user requests), only use program start time over last check if no specific threshold has been set by user.  Otheriwse use it.  Problems can occur if Nagios is restarted more frequently that freshness threshold intervals (services never go stale). */
+	/* CHANGED 10/07/07 EG - Only match next condition for services that have active checks enabled... */
+	/* CHANGED 10/07/07 EG - Added max_service_check_spread to expiration time as suggested by Altinity */
+	else if(temp_service->checks_enabled==TRUE && event_start>temp_service->last_check && temp_service->freshness_threshold==0)
+		expiration_time=(time_t)(event_start+freshness_threshold+(max_service_check_spread*interval_length));
+	else
+		expiration_time=(time_t)(temp_service->last_check+freshness_threshold);
+
+	log_debug_info(DEBUGL_CHECKS,2,"HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n",temp_service->has_been_checked,(unsigned long)program_start,(unsigned long)event_start,(unsigned long)temp_service->last_check,(unsigned long)current_time,(unsigned long)expiration_time);
+
+	/* the results for the last check of this service are stale */
+	if(expiration_time<current_time){
+
+		get_time_breakdown((current_time-expiration_time),&days,&hours,&minutes,&seconds);
+		get_time_breakdown(freshness_threshold,&tdays,&thours,&tminutes,&tseconds);
+
+		/* log a warning */
+		if(write_to_log==TRUE)
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The results of service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
+
+		log_debug_info(DEBUGL_CHECKS,1,"Check results for service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the service...\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
+
+		return FALSE;
+		}
+
+	log_debug_info(DEBUGL_CHECKS,1,"Check results for service '%s' on host '%s' are fresh.\n",temp_service->description,temp_service->host_name);
+
+	return TRUE;
+	}
 
 
 
@@ -2236,16 +2274,6 @@ void check_for_orphaned_hosts(void){
 void check_host_result_freshness(void){
 	host *temp_host=NULL;
 	time_t current_time=0L;
-	time_t expiration_time=0L;
-	int freshness_threshold=0;
-	int days=0;
-	int hours=0;
-	int minutes=0;
-	int seconds=0;
-	int tdays=0;
-	int thours=0;
-	int tminutes=0;
-	int tseconds=0;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_host_result_freshness()\n");
@@ -2262,8 +2290,6 @@ void check_host_result_freshness(void){
 
 	/* check all hosts... */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
-		log_debug_info(DEBUGL_CHECKS,2,"Checking freshness of host '%s'...\n",temp_host->name);
 
 		/* skip hosts we shouldn't be checking for freshness */
 		if(temp_host->check_freshness==FALSE)
@@ -2285,37 +2311,8 @@ void check_host_result_freshness(void){
 		if(check_time_against_period(current_time,temp_host->check_period_ptr)==ERROR)
 			continue;
 
-		/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
-		if(temp_host->freshness_threshold==0)
-			freshness_threshold=(temp_host->check_interval*interval_length)+temp_host->latency+additional_freshness_latency;
-		else
-			freshness_threshold=temp_host->freshness_threshold;
-
-		log_debug_info(DEBUGL_CHECKS,2,"Freshness thresholds: host=%d, use=%d\n",temp_host->freshness_threshold,freshness_threshold);
-
-		/* calculate expiration time */
-		/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
-		if(temp_host->has_been_checked==FALSE)
-			expiration_time=(time_t)(event_start+freshness_threshold);
-		/* CHANGED 06/19/07 EG - Per Ton's suggestion (and user requests), only use program start time over last check if no specific threshold has been set by user.  Otheriwse use it.  Problems can occur if Nagios is restarted more frequently that freshness threshold intervals (hosts never go stale). */
-		/* CHANGED 10/07/07 EG - Added max_host_check_spread to expiration time as suggested by Altinity */
-		else if(temp_host->checks_enabled==TRUE && event_start>temp_host->last_check && temp_host->freshness_threshold==0)
-			expiration_time=(time_t)(event_start+freshness_threshold+(max_host_check_spread*interval_length));
-		else
-			expiration_time=(time_t)(temp_host->last_check+freshness_threshold);
-
-		log_debug_info(DEBUGL_CHECKS,2,"HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n",temp_host->has_been_checked,(unsigned long)program_start,(unsigned long)event_start,(unsigned long)temp_host->last_check,(unsigned long)current_time,(unsigned long)expiration_time);
-
 		/* the results for the last check of this host are stale */
-		if(expiration_time<current_time){
-
-			get_time_breakdown((current_time-expiration_time),&days,&hours,&minutes,&seconds);
-			get_time_breakdown(freshness_threshold,&tdays,&thours,&tminutes,&tseconds);
-
-			/* log a warning */
-			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The results of host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the host.\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
-
-			log_debug_info(DEBUGL_CHECKS,1,"Check results for host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the host...\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
+		if(is_host_result_fresh(temp_host,current_time,TRUE)==FALSE){
 
 			/* set the freshen flag */
 			temp_host->is_being_freshened=TRUE;
@@ -2327,6 +2324,64 @@ void check_host_result_freshness(void){
 
 	return;
         }
+
+
+
+/* checks to see if a hosts's check results are fresh */
+int is_host_result_fresh(host *temp_host, time_t current_time, int write_to_log){
+	time_t expiration_time=0L;
+	int freshness_threshold=0;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
+	int tdays=0;
+	int thours=0;
+	int tminutes=0;
+	int tseconds=0;
+
+	log_debug_info(DEBUGL_CHECKS,2,"Checking freshness of host '%s'...\n",temp_host->name);
+
+	/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
+	if(temp_host->freshness_threshold==0)
+		freshness_threshold=(temp_host->check_interval*interval_length)+temp_host->latency+additional_freshness_latency;
+	else
+		freshness_threshold=temp_host->freshness_threshold;
+
+	log_debug_info(DEBUGL_CHECKS,2,"Freshness thresholds: host=%d, use=%d\n",temp_host->freshness_threshold,freshness_threshold);
+
+	/* calculate expiration time */
+	/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
+	if(temp_host->has_been_checked==FALSE)
+		expiration_time=(time_t)(event_start+freshness_threshold);
+	/* CHANGED 06/19/07 EG - Per Ton's suggestion (and user requests), only use program start time over last check if no specific threshold has been set by user.  Otheriwse use it.  Problems can occur if Nagios is restarted more frequently that freshness threshold intervals (hosts never go stale). */
+	/* CHANGED 10/07/07 EG - Added max_host_check_spread to expiration time as suggested by Altinity */
+	else if(temp_host->checks_enabled==TRUE && event_start>temp_host->last_check && temp_host->freshness_threshold==0)
+		expiration_time=(time_t)(event_start+freshness_threshold+(max_host_check_spread*interval_length));
+	else
+		expiration_time=(time_t)(temp_host->last_check+freshness_threshold);
+
+	log_debug_info(DEBUGL_CHECKS,2,"HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n",temp_host->has_been_checked,(unsigned long)program_start,(unsigned long)event_start,(unsigned long)temp_host->last_check,(unsigned long)current_time,(unsigned long)expiration_time);
+
+	/* the results for the last check of this host are stale */
+	if(expiration_time<current_time){
+
+		get_time_breakdown((current_time-expiration_time),&days,&hours,&minutes,&seconds);
+		get_time_breakdown(freshness_threshold,&tdays,&thours,&tminutes,&tseconds);
+
+		/* log a warning */
+		if(write_to_log==TRUE)
+			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The results of host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the host.\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
+
+		log_debug_info(DEBUGL_CHECKS,1,"Check results for host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the host...\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
+
+		return FALSE;
+		}
+	else
+		log_debug_info(DEBUGL_CHECKS,1,"Check results for host '%s' are fresh.\n",temp_host->name);
+
+	return TRUE;
+	}
 
 
 
@@ -3046,6 +3101,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 /* process results of an asynchronous host check */
 int handle_async_host_check_result_3x(host *temp_host, check_result *queued_check_result){
+	time_t current_time;
 	struct timeval tv;
 	int result=STATE_OK;
 	int reschedule_check=FALSE;
@@ -3059,10 +3115,13 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	/* make sure we have what we need */
 	if(temp_host==NULL || queued_check_result==NULL)
 		return ERROR;
+
+	time(&current_time);
 	
 	log_debug_info(DEBUGL_CHECKS,1,"** Handling async check result for host '%s'...\n",temp_host->name);
 
-	log_debug_info(DEBUGL_CHECKS,2,"\tCheck Type:         %s\n",(queued_check_result->check_type==HOST_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
+	log_debug_info(DEBUGL_CHECKS,2,"\tCheck Type:         %s\n",(queued_check_result->check_type==HOST_CHECK_ACTIVE)?"Active":"Passive");
+	log_debug_info(DEBUGL_CHECKS,2,"\tCheck Options:      %d\n",queued_check_result->check_options);
 	log_debug_info(DEBUGL_CHECKS,2,"\tScheduled Check?:   %s\n",(queued_check_result->scheduled_check==TRUE)?"Yes":"No");
 	log_debug_info(DEBUGL_CHECKS,2,"\tReschedule Check?:  %s\n",(queued_check_result->reschedule_check==TRUE)?"Yes":"No");
 	log_debug_info(DEBUGL_CHECKS,2,"\tExited OK?:         %s\n",(queued_check_result->exited_ok==TRUE)?"Yes":"No");
@@ -3076,8 +3135,29 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 		currently_running_host_checks--;
 
 	/* skip this host check results if its passive and we aren't accepting passive check results */
-	if(accept_passive_host_checks==FALSE && queued_check_result->check_type==HOST_CHECK_PASSIVE)
-		return ERROR;
+	if(queued_check_result->check_type==HOST_CHECK_PASSIVE){
+		if(accept_passive_host_checks==FALSE){
+			log_debug_info(DEBUGL_CHECKS,0,"Discarding passive host check result because passive host checks are disabled globally.\n");
+			return ERROR;
+			}
+		if(temp_host->accept_passive_host_checks==FALSE){
+			log_debug_info(DEBUGL_CHECKS,0,"Discarding passive host check result because passive checks are disabled for this host.\n");
+			return ERROR;
+			}
+		}
+
+	/* clear the freshening flag (it would have been set if this host was determined to be stale) */
+	if(queued_check_result->check_options & CHECK_OPTION_FRESHNESS_CHECK)
+		temp_host->is_being_freshened=FALSE;
+
+	/* DISCARD INVALID FRESHNESS CHECK RESULTS */
+	/* If a host goes stale, Nagios will initiate a forced check in order to freshen it.  There is a race condition whereby a passive check
+	   could arrive between the 1) initiation of the forced check and 2) the time when the forced check result is processed here.  This would 
+	   make the host fresh again, so we do a quick check to make sure the host is still stale before we accept the check result. */
+	if((queued_check_result->check_options & CHECK_OPTION_FRESHNESS_CHECK) && is_host_result_fresh(temp_host,current_time,FALSE)==TRUE){
+		log_debug_info(DEBUGL_CHECKS,0,"Discarding host freshness check result because the host is currently fresh (race condition avoided).\n");
+		return OK;
+		}
 
 	/* was this check passive or active? */
 	temp_host->check_type=(queued_check_result->check_type==HOST_CHECK_ACTIVE)?HOST_CHECK_ACTIVE:HOST_CHECK_PASSIVE;
@@ -3099,9 +3179,6 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 	/* set the checked flag */
 	temp_host->has_been_checked=TRUE;
-
-	/* clear the freshening flag (it would have been set if this host was determined to be stale) */
-	temp_host->is_being_freshened=FALSE;
 
 	/* clear the execution flag if this was an active check */
 	if(queued_check_result->check_type==HOST_CHECK_ACTIVE)

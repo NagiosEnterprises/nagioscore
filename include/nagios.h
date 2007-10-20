@@ -513,7 +513,9 @@ int check_host_dependencies(host *,int);                	/* checks host dependen
 void check_for_orphaned_services(void);				/* checks for orphaned services */
 void check_for_orphaned_hosts(void);				/* checks for orphaned hosts */
 void check_service_result_freshness(void);              	/* checks the "freshness" of service check results */
+int is_service_result_fresh(service *,time_t,int);              /* determines if a service's check results are fresh */
 void check_host_result_freshness(void);                 	/* checks the "freshness" of host check results */
+int is_host_result_fresh(host *,time_t,int);                    /* determines if a host's check results are fresh */
 void adjust_check_scheduling(void);		        	/* auto-adjusts scheduling of host and service checks */
 int my_system(char *,int,int *,double *,char **,int);         	/* executes a command via popen(), but also protects against timeouts */
 void compensate_for_system_time_change(unsigned long,unsigned long);	/* attempts to compensate for a change in the system time */

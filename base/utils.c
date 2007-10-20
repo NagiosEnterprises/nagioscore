@@ -648,7 +648,7 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char **full_command, int m
 	if(cmd_ptr==NULL || full_command==NULL)
 		return ERROR;
 
-	log_debug_info(DEBUGL_COMMANDS|DEBUGL_CHECKS|DEBUGL_MACROS,2,"Input: %s\n",cmd_ptr->command_line);
+	log_debug_info(DEBUGL_COMMANDS|DEBUGL_CHECKS|DEBUGL_MACROS,2,"Raw Command Input: %s\n",cmd_ptr->command_line);
 
 	/* get the full command line */
 	*full_command=(char *)strdup((cmd_ptr->command_line==NULL)?"":cmd_ptr->command_line);
@@ -700,7 +700,7 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char **full_command, int m
 			}
 		}
 
-	log_debug_info(DEBUGL_COMMANDS|DEBUGL_CHECKS|DEBUGL_MACROS,2,"Output: %s\n",*full_command);
+	log_debug_info(DEBUGL_COMMANDS|DEBUGL_CHECKS|DEBUGL_MACROS,2,"Expanded Command Output: %s\n",*full_command);
 
 	return OK;
         }

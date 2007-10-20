@@ -17,6 +17,8 @@ Nagios 3.x Change Log
 * Caching of Perl scripts now enabled by default if embedded Perl interpreter is compiled in
 * Fix for segfault when contact definitions had no notification timeperiods defined
 * Retention of host/service check scheduling options
+* Fix for race condition when freshening host and service check results
+* Added null -b option to install-sh for Solaris so install scripts don't break
 
 
 

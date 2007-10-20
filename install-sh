@@ -83,6 +83,12 @@ while [ x"$1" != x ]; do
 	    shift
 	    continue;;
 
+	-b) shift
+	    # ADDED 10/20/07 EG
+	    # This script doesn't understand how to make backups, so make this a noop in case the option is used
+	    echo "!!! WARNING !!!  This install-sh script doesn't understand how to make backups (-b option), so none will be made"
+	    continue;;
+
 	-t=*) transformarg=`echo $1 | sed 's/-t=//'`
 	    shift
 	    continue;;

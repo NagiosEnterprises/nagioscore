@@ -11,9 +11,10 @@ Nagios 2.x Change Log
 * Minor fix for notification timeout log messages
 * Fix for not logging passive host check results
 * Minor bug fixes in CGIs
-* Possible fix for a segfault when processing passive host check results with empty output/perfdata
+* Fix for a segfault when processing passive host check results with empty output/perfdata
 * Fix for incorrect latency calculation for passive service checks
 * Bug fix with attempting to access an uninitalized mutex if external commands are disabled
+* Fix for keeping service checks in the event queue when active service checks are disabled globally
 
 
 

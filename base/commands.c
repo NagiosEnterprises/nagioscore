@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-07-2007
+ * Last Modified:   10-20-2007
  *
  * License:
  *
@@ -1957,6 +1957,8 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
 	char *temp_ptr=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char *output_ptr=NULL;
+	char *perf_ptr=NULL;
 
 #ifdef DEBUG0
 	printf("process_passive_host_check() start\n");
@@ -2051,41 +2053,27 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	if(temp_host->latency<0.0)
 		temp_host->latency=0.0;
 
-	/* check for empty plugin output */
-	if(!strcmp(temp_plugin_output,""))
-		strcpy(temp_plugin_output,"(No Information Returned From Host Check)");
+	/* first part of plugin output (up to pipe) is status info, perfdata comes after pipe */
+	/* don't use strtok() as it can cause problems if external commands are called recursively */
+	/* adaptation of patch submitted by Altinity 9/17/07 */
+	output_ptr=temp_plugin_output;
+	perf_ptr=strchr(temp_plugin_output,'|');
+	if(perf_ptr){
+		perf_ptr[0]='\x0';
+		perf_ptr++;
+		}
 
-	/* first part of plugin output (up to pipe) is status info */
-	temp_ptr=strtok(temp_plugin_output,"|\n");
+	/* save plugin output */
+	strip(output_ptr);
+	strncpy(temp_host->plugin_output,(!strcmp(output_ptr,""))?"(No output returned from host check)":output_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
+	temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
 
-	/* make sure the plugin output isn't NULL */
-	if(temp_ptr==NULL){
-		strncpy(temp_host->plugin_output,"(No output returned from host check)",MAX_PLUGINOUTPUT_LENGTH-1);
-		temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-	        }
-
-	else{
-
-		strip(temp_ptr);
-		if(!strcmp(temp_ptr,"")){
-			strncpy(temp_host->plugin_output,"(No output returned from host check)",MAX_PLUGINOUTPUT_LENGTH-1);
-			temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-                        }
-		else{
-			strncpy(temp_host->plugin_output,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
-			temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-                        }
-
-		/* second part of plugin output (after pipe) is performance data (which may or may not exist) */
-		temp_ptr=strtok(NULL,"\n");
-
-		/* grab performance data if we found it available */
-		if(temp_ptr!=NULL){
-			strip(temp_ptr);
-			strncpy(temp_host->perf_data,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
-			temp_host->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-			}
-	        }
+	/* save perfdata if present */
+	if(perf_ptr){
+		strip(perf_ptr);
+		strncpy(temp_host->perf_data,perf_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
+		temp_host->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+		}
 
 	/* replace semicolons in plugin output (but not performance data) with colons */
 	temp_ptr=temp_host->plugin_output;

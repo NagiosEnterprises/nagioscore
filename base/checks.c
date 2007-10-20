@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-10-2006
+ * Last Modified:   10-19-2007
  *
  * License:
  *
@@ -1442,7 +1442,9 @@ void schedule_service_check(service *svc,time_t check_time,int forced){
 #endif
 
 	/* don't schedule a check if active checks are disabled */
-	if((execute_service_checks==FALSE || svc->checks_enabled==FALSE) && forced==FALSE)
+	/* 10/19/07 EG - schedule service checks even if they're disabled on a program-wide basis */
+	/*if((execute_service_checks==FALSE || svc->checks_enabled==FALSE) && forced==FALSE)*/
+	if(svc->checks_enabled==FALSE && forced==FALSE)
 		return;
 
 	/* allocate memory for a new event item */

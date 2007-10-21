@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-19-2007
+ * Last Modified:   10-21-2007
  *
  * License:
  *
@@ -458,6 +458,9 @@ int process_external_command1(char *cmd){
 	else if (!strcmp(command_id,"SEND_CUSTOM_HOST_NOTIFICATION"))
 		command_type=CMD_SEND_CUSTOM_HOST_NOTIFICATION;
 
+	else if(!strcmp(command_id,"CHANGE_HOST_NOTIFICATION_TIMEPERIOD"))
+		command_type=CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD;
+
 
 	/************************************/
 	/**** HOSTGROUP-RELATED COMMANDS ****/
@@ -590,6 +593,9 @@ int process_external_command1(char *cmd){
 	else if (!strcmp(command_id,"SEND_CUSTOM_SVC_NOTIFICATION"))
 		command_type=CMD_SEND_CUSTOM_SVC_NOTIFICATION;
 
+	else if(!strcmp(command_id,"CHANGE_SVC_NOTIFICATION_TIMEPERIOD"))
+		command_type=CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD;
+
 
 	/***************************************/
 	/**** SERVICEGROUP-RELATED COMMANDS ****/
@@ -644,6 +650,12 @@ int process_external_command1(char *cmd){
 		command_type=CMD_ENABLE_CONTACT_SVC_NOTIFICATIONS;
 	else if(!strcmp(command_id,"DISABLE_CONTACT_SVC_NOTIFICATIONS"))
 		command_type=CMD_DISABLE_CONTACT_SVC_NOTIFICATIONS;
+
+	else if(!strcmp(command_id,"CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD"))
+		command_type=CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD;
+
+	else if(!strcmp(command_id,"CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD"))
+		command_type=CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD;
 
 
 	/***************************************/
@@ -1066,6 +1078,10 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 	case CMD_CHANGE_SVC_CHECK_COMMAND:
 	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
 	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
 		cmd_change_object_char_var(cmd,args);
 		break;
 
@@ -2755,14 +2771,18 @@ int cmd_change_object_int_var(int cmd,char *args){
 int cmd_change_object_char_var(int cmd,char *args){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
+	contact *temp_contact=NULL;
 	timeperiod *temp_timeperiod=NULL;
 	command *temp_command=NULL;
 	char *host_name=NULL;
 	char *svc_description=NULL;
+	char *contact_name=NULL;
 	char *charval=NULL;
 	char *temp_ptr=NULL;
 	char *temp_ptr2=NULL;
 	unsigned long attr=MODATTR_NONE;
+	unsigned long hattr=MODATTR_NONE;
+	unsigned long sattr=MODATTR_NONE;
 
 	/* get the command arguments */
 	switch(cmd){
@@ -2775,38 +2795,68 @@ int cmd_change_object_char_var(int cmd,char *args){
 		
 		break;
 
-	default:
-		
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+
 		/* get the host name */
 		if((host_name=my_strtok(args,";"))==NULL)
 			return ERROR;
 
-		switch(cmd){
-
-		case CMD_CHANGE_SVC_EVENT_HANDLER:
-		case CMD_CHANGE_SVC_CHECK_COMMAND:
-
-			/* get the service name */
-			if((svc_description=my_strtok(NULL,";"))==NULL)
-				return ERROR;
-
-			/* verify that the service is valid */
-			if((temp_service=find_service(host_name,svc_description))==NULL)
-				return ERROR;
-
-			break;
-
-		default:
-
-			/* verify that the host is valid */
-			if((temp_host=find_host(host_name))==NULL)
-				return ERROR;
-
-			break;
-		        }
+		/* verify that the host is valid */
+		if((temp_host=find_host(host_name))==NULL)
+			return ERROR;
 
 		if((charval=my_strtok(NULL,"\n"))==NULL)
 			return ERROR;
+
+		break;
+
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
+	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+
+		/* get the host name */
+		if((host_name=my_strtok(args,";"))==NULL)
+			return ERROR;
+
+		/* get the service name */
+		if((svc_description=my_strtok(NULL,";"))==NULL)
+			return ERROR;
+
+		/* verify that the service is valid */
+		if((temp_service=find_service(host_name,svc_description))==NULL)
+			return ERROR;
+
+		if((charval=my_strtok(NULL,"\n"))==NULL)
+			return ERROR;
+
+		break;
+
+
+	case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+
+		/* get the contact name */
+		if((contact_name=my_strtok(args,";"))==NULL)
+			return ERROR;
+
+		/* verify that the contact is valid */
+		if((temp_contact=find_contact(contact_name))==NULL)
+			return ERROR;
+
+		if((charval=my_strtok(NULL,"\n"))==NULL)
+			return ERROR;
+
+		break;
+
+	default:
+		/* invalid command */
+		return ERROR;
+		break;
+
 	        }
 
 	if((temp_ptr=(char *)strdup(charval))==NULL)
@@ -2818,6 +2868,10 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
 	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
 
 		/* make sure the timeperiod is valid */
 		if((temp_timeperiod=find_timeperiod(temp_ptr))==NULL){
@@ -2827,7 +2881,12 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		break;
 
-	default:
+	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
 
 		/* make sure the command exists */
 		temp_ptr2=my_strtok(temp_ptr,"!");
@@ -2840,6 +2899,9 @@ int cmd_change_object_char_var(int cmd,char *args){
 		if((temp_ptr=(char *)strdup(charval))==NULL)
 			return ERROR;
 
+		break;
+
+	default:
 		break;
 	        }
 
@@ -2887,6 +2949,14 @@ int cmd_change_object_char_var(int cmd,char *args){
 		attr=MODATTR_CHECK_TIMEPERIOD;
 		break;
 
+	case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+
+		my_free(&temp_host->notification_period);
+		temp_host->notification_period=temp_ptr;
+		temp_host->notification_period_ptr=temp_timeperiod;
+		attr=MODATTR_NOTIFICATION_TIMEPERIOD;
+		break;
+
 	case CMD_CHANGE_SVC_EVENT_HANDLER:
 
 		my_free(&temp_service->event_handler);
@@ -2909,6 +2979,30 @@ int cmd_change_object_char_var(int cmd,char *args){
 		temp_service->check_period=temp_ptr;
 		temp_service->check_period_ptr=temp_timeperiod;
 		attr=MODATTR_CHECK_TIMEPERIOD;
+		break;
+
+	case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+
+		my_free(&temp_service->notification_period);
+		temp_service->notification_period=temp_ptr;
+		temp_service->notification_period_ptr=temp_timeperiod;
+		attr=MODATTR_NOTIFICATION_TIMEPERIOD;
+		break;
+
+	case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
+
+		my_free(&temp_contact->host_notification_period);
+		temp_contact->host_notification_period=temp_ptr;
+		temp_contact->host_notification_period_ptr=temp_timeperiod;
+		hattr=MODATTR_NOTIFICATION_TIMEPERIOD;
+		break;
+
+	case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+
+		my_free(&temp_contact->service_notification_period);
+		temp_contact->service_notification_period=temp_ptr;
+		temp_contact->service_notification_period_ptr=temp_timeperiod;
+		sattr=MODATTR_NOTIFICATION_TIMEPERIOD;
 		break;
 
 	default:
@@ -2952,6 +3046,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 	case CMD_CHANGE_SVC_EVENT_HANDLER:
 	case CMD_CHANGE_SVC_CHECK_COMMAND:
 	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
 
 		/* set the modified service attribute */
 		temp_service->modified_attributes|=attr;
@@ -2966,7 +3061,10 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		break;
 
-	default:
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
 
 		/* set the modified host attribute */
 		temp_host->modified_attributes|=attr;
@@ -2978,6 +3076,25 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		/* update the status log with the host info */
 		update_host_status(temp_host,FALSE);
+		break;
+
+	case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+
+		/* set the modified attributes */
+		temp_contact->modified_host_attributes|=hattr;
+		temp_contact->modified_service_attributes|=sattr;
+
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_adaptive_contact_data(NEBTYPE_ADAPTIVECONTACT_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,temp_contact,cmd,attr,temp_contact->modified_attributes,hattr,temp_contact->modified_host_attributes,sattr,temp_contact->modified_service_attributes,NULL);
+#endif
+
+		/* update the status log with the contact info */
+		update_contact_status(temp_contact,FALSE);
+		break;
+
+	default:
 		break;
 	        }
 

@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-19-2007
+ * Last Modified: 10-21-2007
  *
  * License:
  *
@@ -288,6 +288,11 @@
 #define CMD_SEND_CUSTOM_HOST_NOTIFICATION               159
 #define CMD_SEND_CUSTOM_SVC_NOTIFICATION                160
 
+#define CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD         161
+#define CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD          162
+#define CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD 163
+#define CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD  164
+
 /* custom command introduced in Nagios 3.x */
 #define CMD_CUSTOM_COMMAND                              999
 
@@ -484,5 +489,6 @@
 #define MODATTR_FRESHNESS_CHECKS_ENABLED        8192
 #define MODATTR_CHECK_TIMEPERIOD                16384
 #define MODATTR_CUSTOM_VARIABLE                 32768
+#define MODATTR_NOTIFICATION_TIMEPERIOD         65536
 
 	

@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-10-2007
+ * Last Modified: 10-21-2007
  *
  * License:
  *
@@ -1424,6 +1424,29 @@ char * strip_plugin_html(char *input){
 
 
 
+/* strip > and < from string */
+void strip_html_brackets(char *buffer){
+	register int x;
+	register int y;
+	register int z;
+
+	if(buffer==NULL || buffer[0]=='\x0')
+		return;
+
+	/* remove all occurances in string */
+	z=(int)strlen(buffer);
+	for(x=0,y=0;x<z;x++){
+		if(buffer[x]=='<' || buffer[x]=='>')
+			continue;
+		buffer[y++]=buffer[x];
+	        }
+	buffer[y++]='\x0';
+
+	return;
+	}
+
+
+
 /* determines the log file we should use (from current time) */
 void get_log_archive_to_use(int archive,char *buffer,int buffer_length){
 	struct tm *t;
@@ -1604,7 +1627,7 @@ void display_info_table(char *title,int refresh, authdata *current_authdata){
 	if(refresh==TRUE)
 		printf("Updated every %d seconds<br>\n",refresh_rate);
 
-	printf("Nagios&reg; - <A HREF='http://www.nagios.org' TARGET='_new' CLASS='homepageURL'>www.nagios.org</A><BR>\n");
+	printf("Nagios&reg; %s - <A HREF='http://www.nagios.org' TARGET='_new' CLASS='homepageURL'>www.nagios.org</A><BR>\n",PROGRAM_VERSION);
 
 	if(current_authdata!=NULL)
 		printf("Logged in as <i>%s</i><BR>\n",(!strcmp(current_authdata->username,""))?"?":current_authdata->username);

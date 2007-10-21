@@ -15,6 +15,8 @@ Nagios 2.x Change Log
 * Fix for incorrect latency calculation for passive service checks
 * Bug fix with attempting to access an uninitalized mutex if external commands are disabled
 * Fix for keeping service checks in the event queue when active service checks are disabled globally
+* Fix for a potential cross site scripting vulnerability in the CGIs
+* Program version is now displayed in CGIs
 
 
 

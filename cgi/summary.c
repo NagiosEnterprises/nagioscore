@@ -2,8 +2,8 @@
  *
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
- * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Copyright (c) 2002-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-21-2007
  *
  * License:
  * 
@@ -1135,6 +1135,7 @@ int process_cgivars(void){
 				target_hostgroup_name="";
 			else
 				strcpy(target_hostgroup_name,variables[x]);
+			strip_html_brackets(target_hostgroup_name);
 
 			if(!strcmp(target_hostgroup_name,"all"))
 				show_all_hostgroups=TRUE;
@@ -1157,6 +1158,7 @@ int process_cgivars(void){
 				target_servicegroup_name="";
 			else
 				strcpy(target_servicegroup_name,variables[x]);
+			strip_html_brackets(target_servicegroup_name);
 
 			if(!strcmp(target_servicegroup_name,"all"))
 				show_all_servicegroups=TRUE;
@@ -1179,6 +1181,7 @@ int process_cgivars(void){
 				target_host_name="";
 			else
 				strcpy(target_host_name,variables[x]);
+			strip_html_brackets(target_host_name);
 
 			if(!strcmp(target_host_name,"all"))
 				show_all_hosts=TRUE;

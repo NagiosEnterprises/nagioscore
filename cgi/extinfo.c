@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-10-2007
+ * Last Modified: 10-21-2007
  *
  * License:
  * 
@@ -604,6 +604,7 @@ int process_cgivars(void){
 			host_name=strdup(variables[x]);
 			if(host_name==NULL)
 				host_name="";
+			strip_html_brackets(host_name);
 			}
 
 		/* we found the hostgroup name */
@@ -617,6 +618,7 @@ int process_cgivars(void){
 			hostgroup_name=strdup(variables[x]);
 			if(hostgroup_name==NULL)
 				hostgroup_name="";
+			strip_html_brackets(hostgroup_name);
 			}
 
 		/* we found the service name */
@@ -630,6 +632,7 @@ int process_cgivars(void){
 			service_desc=strdup(variables[x]);
 			if(service_desc==NULL)
 				service_desc="";
+			strip_html_brackets(service_desc);
 			}
 
 		/* we found the servicegroup name */
@@ -643,6 +646,7 @@ int process_cgivars(void){
 			servicegroup_name=strdup(variables[x]);
 			if(servicegroup_name==NULL)
 				servicegroup_name="";
+			strip_html_brackets(servicegroup_name);
 			}
 
 		/* we found the sort type argument */
@@ -715,6 +719,9 @@ void show_process_info(void){
 	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0 CLASS='data'>\n");
 	printf("<TR><TD class='stateInfoTable1'>\n");
 	printf("<TABLE BORDER=0>\n");
+
+	/* program version */
+	printf("<TR><TD CLASS='dataVar'>Program Version:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",PROGRAM_VERSION);
 
 	/* program start time */
 	get_time_string(&program_start,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);

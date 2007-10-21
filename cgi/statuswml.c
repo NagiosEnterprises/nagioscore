@@ -3,7 +3,7 @@
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-18-2007
+ * Last Modified: 10-21-2007
  *
  * License:
  * 
@@ -239,6 +239,7 @@ int process_cgivars(void){
 				hostgroup_name="";
 			else
 				strcpy(hostgroup_name,variables[x]);
+			strip_html_brackets(hostgroup_name);
 
 			if(!strcmp(hostgroup_name,"all"))
 				show_all_hostgroups=TRUE;
@@ -260,6 +261,7 @@ int process_cgivars(void){
 				host_name="";
 			else
 				strcpy(host_name,variables[x]);
+			strip_html_brackets(host_name);
 		        }
 
 		/* we found the service argument */
@@ -276,6 +278,7 @@ int process_cgivars(void){
 				service_desc="";
 			else
 				strcpy(service_desc,variables[x]);
+			strip_html_brackets(service_desc);
 		        }
 
 
@@ -317,6 +320,7 @@ int process_cgivars(void){
 				ping_address="";
 			else
 				strcpy(ping_address,variables[x]);
+			strip_html_brackets(ping_address);
 		        }
 
 		/* we found the traceroute argument */
@@ -333,6 +337,7 @@ int process_cgivars(void){
 				traceroute_address="";
 			else
 				strcpy(traceroute_address,variables[x]);
+			strip_html_brackets(traceroute_address);
 		        }
 
 	        }

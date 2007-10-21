@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-08-2007
+ * Last Modified: 10-21-2007
  *
  * License:
  * 
@@ -1157,6 +1157,7 @@ int process_cgivars(void){
 				hostgroup_name="";
 			else
 				strcpy(hostgroup_name,variables[x]);
+			strip_html_brackets(hostgroup_name);
 			display_type=DISPLAY_HOSTGROUP_AVAIL;
 			show_all_hostgroups=(strcmp(hostgroup_name,"all"))?FALSE:TRUE;
 		        }
@@ -1174,6 +1175,7 @@ int process_cgivars(void){
 				servicegroup_name="";
 			else
 				strcpy(servicegroup_name,variables[x]);
+			strip_html_brackets(servicegroup_name);
 			display_type=DISPLAY_SERVICEGROUP_AVAIL;
 			show_all_servicegroups=(strcmp(servicegroup_name,"all"))?FALSE:TRUE;
 		        }
@@ -1191,6 +1193,7 @@ int process_cgivars(void){
 				host_name="";
 			else
 				strcpy(host_name,variables[x]);
+			strip_html_brackets(host_name);
 			display_type=DISPLAY_HOST_AVAIL;
 			show_all_hosts=(strcmp(host_name,"all"))?FALSE:TRUE;
 		        }
@@ -1208,6 +1211,7 @@ int process_cgivars(void){
 				svc_description="";
 			else
 				strcpy(svc_description,variables[x]);
+			strip_html_brackets(svc_description);
 			display_type=DISPLAY_SERVICE_AVAIL;
 			show_all_services=(strcmp(svc_description,"all"))?FALSE:TRUE;
 		        }

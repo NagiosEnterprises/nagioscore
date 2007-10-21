@@ -2,8 +2,8 @@
  *
  * TRENDS.C -  Nagios State Trends CGI
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-21-2007
  *
  * License:
  * 
@@ -1207,6 +1207,7 @@ int process_cgivars(void){
 				host_name="";
 			else
 				strcpy(host_name,variables[x]);
+			strip_html_brackets(host_name);
 
 			display_type=DISPLAY_HOST_TRENDS;
 		        }
@@ -1224,6 +1225,7 @@ int process_cgivars(void){
 				svc_description="";
 			else
 				strcpy(svc_description,variables[x]);
+			strip_html_brackets(svc_description);
 
 			display_type=DISPLAY_SERVICE_TRENDS;
 		        }

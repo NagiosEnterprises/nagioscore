@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2007
+ * Last Modified: 10-21-2007
  *
  * License:
  * 
@@ -380,6 +380,7 @@ int process_cgivars(void){
 				comment_author="";
 			else
 				strcpy(comment_author,variables[x]);
+			strip_html_brackets(comment_author);
 			}
 
 		/* we found the comment data */
@@ -395,6 +396,7 @@ int process_cgivars(void){
 				comment_data="";
 			else
 				strcpy(comment_data,variables[x]);
+			strip_html_brackets(comment_data);
 			}
 
 		/* we found the host name */
@@ -410,6 +412,7 @@ int process_cgivars(void){
 				host_name="";
 			else
 				strcpy(host_name,variables[x]);
+			strip_html_brackets(host_name);
 			}
 
 		/* we found the hostgroup name */
@@ -425,6 +428,7 @@ int process_cgivars(void){
 				hostgroup_name="";
 			else
 				strcpy(hostgroup_name,variables[x]);
+			strip_html_brackets(hostgroup_name);
 			}
 
 		/* we found the service name */
@@ -440,6 +444,7 @@ int process_cgivars(void){
 				service_desc="";
 			else
 				strcpy(service_desc,variables[x]);
+			strip_html_brackets(service_desc);
 			}
 
 		/* we found the servicegroup name */
@@ -455,6 +460,7 @@ int process_cgivars(void){
 				servicegroup_name="";
 			else
 				strcpy(servicegroup_name,variables[x]);
+			strip_html_brackets(servicegroup_name);
 			}
 
 		/* we got the persistence option for a comment */

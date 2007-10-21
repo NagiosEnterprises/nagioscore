@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-18-2007
+ * Last Modified:   10-21-2007
  *
  * License:
  *
@@ -259,6 +259,13 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 			/* on-demand contactgroup macros */
 			else if(strstr(temp_buffer,"CONTACTGROUP") && strstr(temp_buffer,":")){
 				
+				grab_on_demand_macro(temp_buffer);
+				selected_macro=macro_ondemand;
+				}
+
+			/* on-demand time macros */
+			else if(strstr(temp_buffer,"ISVALIDTIME:") || strstr(temp_buffer,"NEXTVALIDTIME:")){
+
 				grab_on_demand_macro(temp_buffer);
 				selected_macro=macro_ondemand;
 				}
@@ -1046,7 +1053,7 @@ int grab_contactgroup_macros(contactgroup *cg){
 	}
 
 
-/* grab an on-demand host(group) or service(group) macro */
+/* grab an on-demand macro */
 int grab_on_demand_macro(char *str){
 	char *macro=NULL;
 	char *first_arg=NULL;
@@ -1074,7 +1081,7 @@ int grab_on_demand_macro(char *str){
 	if((macro=(char *)strdup(str))==NULL)
 		return ERROR;
 
-	/* get the first argument (host name) */
+	/* get the first argument (e.g. host name) */
 	if((ptr=strchr(macro,':'))==NULL){
 		my_free(&macro);
 		return ERROR;
@@ -1323,6 +1330,10 @@ int grab_on_demand_macro(char *str){
 			macro_ondemand=(char *)strdup(result_buffer);
 			}
 	        }
+
+	/* on-demand time macros */
+	else if(!strcmp(macro,"ISVALIDTIME") || !strcmp(macro,"NEXTVALIDTIME"))
+		return_val=grab_on_demand_time_macro(macro,first_arg,second_arg);
 
 	else
 		return_val=ERROR;
@@ -2246,6 +2257,52 @@ int grab_on_demand_contactgroup_macro(contactgroup *cg, char *macro){
 
 	else
 		return ERROR;
+
+	return OK;
+	}
+
+
+
+/* grab an on-demand time macro */
+int grab_on_demand_time_macro(char *macro, char *tp, char *ts){
+	timeperiod *temp_timeperiod=NULL;
+	time_t test_time=0L;
+	time_t next_valid_time=0L;
+	char *temp_buffer=NULL;
+
+	if(macro==NULL || tp==NULL)
+		return ERROR;
+
+	/* initialize the macro */
+	macro_ondemand=NULL;
+
+#ifdef NSCORE
+	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand time macro '%s'\n",macro);
+#endif
+
+#ifdef NSCORE
+	/* find the timeperiod */
+	if((temp_timeperiod=find_timeperiod(tp))==NULL)
+		return ERROR;
+
+	/* what timestamp should we use? */
+	if(ts)
+		test_time=(time_t)strtoul(ts,NULL,0);
+	else
+		time(&test_time);
+
+	/* is valid time? */
+	if(!strcmp(macro,"ISVALIDTIME"))
+		asprintf(&macro_ondemand,"%d",(check_time_against_period(test_time,temp_timeperiod)==OK)?1:0);
+	
+	/* get next valid time */
+	else if(!strcmp(macro,"NEXTVALIDTIME")){
+		get_next_valid_time(test_time,&next_valid_time,temp_timeperiod);
+		if(next_valid_time==test_time && check_time_against_period(test_time,temp_timeperiod)==ERROR)
+			next_valid_time=(time_t)0L;
+		asprintf(&macro_ondemand,"%lu",(unsigned long)next_valid_time);
+		}
+#endif
 
 	return OK;
 	}

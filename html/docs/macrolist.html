@@ -693,7 +693,7 @@ The tables below list all macros currently available in Nagios, along with a bri
 <th class="Macros">Host Perf Data</th>
 </tr>
 <tr>
-<td colspan='9' class='MacroType'>Date Macros:</td>
+<td colspan='9' class='MacroType'>Date/Time Macros:</td>
 </tr>
 <tr>
 <td class='MacroName'><a href="#longdatetime">$LONGDATETIME$</a></td>
@@ -713,6 +713,14 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 <tr>
 <td class='MacroName'><a href="#timet">$TIMET$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#isvalidtime">$ISVALIDTIME:$</a> <a href="#note9"><sup>9</sup></a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#nextvalidtime">$NEXTVALIDTIME:$</a> <a href="#note9"><sup>9</sup></a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 
@@ -741,7 +749,7 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 <tr>
 <td class='MacroName'><a href="#commentdatafile">$COMMENTDATAFILE$</a></td>
-<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes< <a href="#note5"><sup>5</sup></a>/td>
 </tr>
 <tr>
 <td class='MacroName'><a href="#downtimedatafile">$DOWNTIMEDATAFILE$</a></td>
@@ -1482,7 +1490,7 @@ The tables below list all macros currently available in Nagios, along with a bri
 
 <tr><td colspan='2'><br></td></tr>
 <tr>
-<td colspan='2' class='MacroType'>Date Macros:</td>
+<td colspan='2' class='MacroType'>Date/Time Macros:</td>
 </tr>
 
 <tr>
@@ -1508,6 +1516,35 @@ The tables below list all macros currently available in Nagios, along with a bri
 <tr>
 <td class="MacroName"><a name="timet">$TIMET$</a></td>
 <td class="MacroDescription">Current time stamp in time_t format (seconds since the UNIX epoch).</td>
+</tr>
+
+<tr>
+<td class="MacroName"><a name="isvalidtime">$ISVALIDTIME:$</a> <a href="#note9"><sup>9</sup></a></td>
+<td class="MacroDescription">
+<p>
+This is a special on-demand macro that returns a 1 or 0 depending on whether or not a particular time is valid within a specified timeperiod.  There are two ways of using this macro:
+</p>
+<ol>
+<li><strong>$ISVALIDTIME:24x7$</strong> will be set to "1" if the current time is valid within the "24x7" timeperiod.  If not, it will be set to "0".</li>
+<li><strong>$ISVALIDTIME:24x7:<i>timestamp</i>$</strong> will be set to "1" if the time specified by the "timestamp" argument (which must be in time_t format) is valid within the "24x7" timeperiod.  If not, it will be set to "0".</li>
+</ol>
+</td>
+</tr>
+
+<tr>
+<td class="MacroName"><a name="nextvalidtime">$NEXTVALIDTIME:$</a> <a href="#note9"><sup>9</sup></a></td>
+<td class="MacroDescription">
+<p>
+This is a special on-demand macro that returns the next valid time (in time_t format) for a specified timeperiod.  There are two ways of using this macro:
+</p>
+<ol>
+<li><strong>$NEXTVALIDTIME:24x7$</strong> will return the next valid time - from and including the current time - in the "24x7" timeperiod.</li>
+<li><strong>$NEXTVALIDTIME:24x7:<i>timestamp</i>$</strong> will return the next valid time - from and including the time specified by the "timestamp" argument (which must be specified in time_t format) - in the "24x7" timeperiod.</li>
+</ol>
+<p>
+If a next valid time cannot be found in the specified timeperiod, the macro will be set to "0".
+</p>
+</td>
 </tr>
 
 <tr><td colspan='2'><br></td></tr>
@@ -1661,6 +1698,11 @@ The tables below list all macros currently available in Nagios, along with a bri
 <a name="note8"></a>
 <p>
 <sup><b>8</b></sup>  These acknowledgement macros are deprecated.  Use the more generic $NOTIFICATIONAUTHOR$, $NOTIFICATIONAUTHORNAME$, $NOTIFICATIONAUTHORALIAS$ or $NOTIFICATIONAUTHORCOMMENT$ macros instead.
+</p>
+
+<a name="note9"></a>
+<p>
+<sup><b>9</b></sup>  These macro are only available as on-demand macros - e.g. you must supply an additional argument with them in order to use them.  These macros are not available as environment variables.
 </p>
 
 <hr>

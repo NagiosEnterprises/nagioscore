@@ -2,7 +2,7 @@
  *
  * MACROS.H - Common macro functions
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-07-2007
+ * Last Modified: 10-21-2007
  *
  * License:
  *
@@ -216,6 +216,7 @@ int grab_on_demand_contact_macro(contact *,char *);     /* fetches an on-demand 
 int grab_on_demand_hostgroup_macro(hostgroup *,char *);		/* fetches an on-demand hostgroup macro */
 int grab_on_demand_servicegroup_macro(servicegroup *,char *);   /* fetches an on-demand servicegroup macro */
 int grab_on_demand_contactgroup_macro(contactgroup *,char *);   /* fetches an on-demand contactgroup macro */
+int grab_on_demand_time_macro(char *,char *,char *);    /* calculates an on-demand time macro */
 
 char *get_url_encoded_string(char *);			/* URL encode a string */
 

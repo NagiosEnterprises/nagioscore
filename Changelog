@@ -22,6 +22,7 @@ Nagios 3.x Change Log
 * Added .gitignore files for git users
 * Added new external commands to change notification period for host, services, and contact on-the-fly
 * Added new external commands to change modified object attributes (affecting data retention logic)
+* Added $ISVALIDTIME:$ and $NEXTVALIDTIME:$ on-demand macros
 
 
 

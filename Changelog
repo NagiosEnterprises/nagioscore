@@ -20,7 +20,8 @@ Nagios 3.x Change Log
 * Fix for race condition when freshening host and service check results
 * Added null -b option to install-sh for Solaris so install scripts don't break
 * Added .gitignore files for git users
-* Added new external command to change notification period for host, services, and contact on-the-fly
+* Added new external commands to change notification period for host, services, and contact on-the-fly
+* Added new external commands to change modified object attributes (affecting data retention logic)
 
 
 

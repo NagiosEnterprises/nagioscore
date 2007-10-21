@@ -293,6 +293,12 @@
 #define CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD 163
 #define CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD  164
 
+#define CMD_CHANGE_HOST_MODATTR                         165
+#define CMD_CHANGE_SVC_MODATTR                          166
+#define CMD_CHANGE_CONTACT_MODATTR                      167
+#define CMD_CHANGE_CONTACT_MODHATTR                     168
+#define CMD_CHANGE_CONTACT_MODSATTR                     169
+
 /* custom command introduced in Nagios 3.x */
 #define CMD_CUSTOM_COMMAND                              999
 

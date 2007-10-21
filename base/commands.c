@@ -461,6 +461,9 @@ int process_external_command1(char *cmd){
 	else if(!strcmp(command_id,"CHANGE_HOST_NOTIFICATION_TIMEPERIOD"))
 		command_type=CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD;
 
+	else if(!strcmp(command_id,"CHANGE_HOST_MODATTR"))
+		command_type=CMD_CHANGE_HOST_MODATTR;
+
 
 	/************************************/
 	/**** HOSTGROUP-RELATED COMMANDS ****/
@@ -596,6 +599,9 @@ int process_external_command1(char *cmd){
 	else if(!strcmp(command_id,"CHANGE_SVC_NOTIFICATION_TIMEPERIOD"))
 		command_type=CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD;
 
+	else if(!strcmp(command_id,"CHANGE_SVC_MODATTR"))
+		command_type=CMD_CHANGE_SVC_MODATTR;
+
 
 	/***************************************/
 	/**** SERVICEGROUP-RELATED COMMANDS ****/
@@ -657,6 +663,12 @@ int process_external_command1(char *cmd){
 	else if(!strcmp(command_id,"CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD"))
 		command_type=CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD;
 
+	else if(!strcmp(command_id,"CHANGE_CONTACT_MODATTR"))
+		command_type=CMD_CHANGE_CONTACT_MODATTR;
+	else if(!strcmp(command_id,"CHANGE_CONTACT_MODHATTR"))
+		command_type=CMD_CHANGE_CONTACT_MODHATTR;
+	else if(!strcmp(command_id,"CHANGE_CONTACT_MODSATTR"))
+		command_type=CMD_CHANGE_CONTACT_MODSATTR;
 
 	/***************************************/
 	/**** CONTACTGROUP-RELATED COMMANDS ****/
@@ -967,9 +979,9 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 		break;
 
 
-	/**********************************/
-	/**** CONTACT-RELATED COMMANDS ****/
-	/**********************************/
+		/**********************************/
+		/**** CONTACT-RELATED COMMANDS ****/
+		/**********************************/
 
 	case CMD_ENABLE_CONTACT_HOST_NOTIFICATIONS:
 	case CMD_DISABLE_CONTACT_HOST_NOTIFICATIONS:
@@ -979,9 +991,9 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 		break;
 
 
-	/***************************************/
-	/**** CONTACTGROUP-RELATED COMMANDS ****/
-	/***************************************/
+		/***************************************/
+		/**** CONTACTGROUP-RELATED COMMANDS ****/
+		/***************************************/
 
 	case CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
 	case CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
@@ -1091,6 +1103,11 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
 	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
 	case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
+	case CMD_CHANGE_HOST_MODATTR:
+	case CMD_CHANGE_SVC_MODATTR:
+	case CMD_CHANGE_CONTACT_MODATTR:
+	case CMD_CHANGE_CONTACT_MODHATTR:
+	case CMD_CHANGE_CONTACT_MODSATTR:
 		cmd_change_object_int_var(cmd,args);
 		break;
 
@@ -2577,25 +2594,31 @@ int cmd_delete_downtime(int cmd, char *args){
 int cmd_change_object_int_var(int cmd,char *args){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
+	contact *temp_contact=NULL;
 	char *host_name=NULL;
 	char *svc_description=NULL;
+	char *contact_name=NULL;
 	char *temp_ptr=NULL;
 	int intval=0;
 	double dval=0.0;
 	double old_dval=0.0;
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
-	unsigned long attr=0L;
-
-	/* get the host name */
-	if((host_name=my_strtok(args,";"))==NULL)
-		return ERROR;
+	unsigned long attr=MODATTR_NONE;
+	unsigned long hattr=MODATTR_NONE;
+	unsigned long sattr=MODATTR_NONE;
 
 	switch(cmd){
 
 	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
 	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
+	case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
+	case CMD_CHANGE_SVC_MODATTR:
 		
+		/* get the host name */
+		if((host_name=my_strtok(args,";"))==NULL)
+			return ERROR;
+
 		/* get the service name */
 		if((svc_description=my_strtok(NULL,";"))==NULL)
 			return ERROR;
@@ -2606,11 +2629,36 @@ int cmd_change_object_int_var(int cmd,char *args){
 
 		break;
 
-	default:
+	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
+	case CMD_CHANGE_HOST_MODATTR:
+
+		/* get the host name */
+		if((host_name=my_strtok(args,";"))==NULL)
+			return ERROR;
 
 		/* verify that the host is valid */
 		if((temp_host=find_host(host_name))==NULL)
 			return ERROR;
+		break;
+
+	case CMD_CHANGE_CONTACT_MODATTR:
+	case CMD_CHANGE_CONTACT_MODHATTR:
+	case CMD_CHANGE_CONTACT_MODSATTR:
+
+		/* get the contact name */
+		if((contact_name=my_strtok(args,";"))==NULL)
+			return ERROR;
+
+		/* verify that the contact is valid */
+		if((temp_contact=find_contact(contact_name))==NULL)
+			return ERROR;
+		break;
+
+	default:
+		/* unknown command */
+		return ERROR;
 		break;
 	        }
 
@@ -2722,6 +2770,24 @@ int cmd_change_object_int_var(int cmd,char *args){
 
 		break;
 
+	case CMD_CHANGE_HOST_MODATTR:
+	case CMD_CHANGE_SVC_MODATTR:
+	case CMD_CHANGE_CONTACT_MODATTR:
+
+		attr=intval;
+		break;
+
+	case CMD_CHANGE_CONTACT_MODHATTR:
+
+		hattr=intval;
+		break;
+
+	case CMD_CHANGE_CONTACT_MODSATTR:
+
+		sattr=intval;
+		break;
+		
+
 	default:
 		break;
 	        }
@@ -2733,9 +2799,13 @@ int cmd_change_object_int_var(int cmd,char *args){
 	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
 	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
 	case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
+	case CMD_CHANGE_SVC_MODATTR:
 
 		/* set the modified service attribute */
-		temp_service->modified_attributes|=attr;
+		if(cmd==CMD_CHANGE_SVC_MODATTR)
+			temp_service->modified_attributes=attr;
+		else
+			temp_service->modified_attributes|=attr;
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
@@ -2747,10 +2817,16 @@ int cmd_change_object_int_var(int cmd,char *args){
 
 		break;
 
-	default:
+	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
+	case CMD_CHANGE_HOST_MODATTR:
 
 		/* set the modified host attribute */
-		temp_host->modified_attributes|=attr;
+		if(cmd==CMD_CHANGE_HOST_MODATTR)
+			temp_host->modified_attributes=attr;
+		else
+			temp_host->modified_attributes|=attr;
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
@@ -2759,6 +2835,37 @@ int cmd_change_object_int_var(int cmd,char *args){
 
 		/* update the status log with the host info */
 		update_host_status(temp_host,FALSE);
+		break;
+
+	case CMD_CHANGE_CONTACT_MODATTR:
+	case CMD_CHANGE_CONTACT_MODHATTR:
+	case CMD_CHANGE_CONTACT_MODSATTR:
+
+		/* set the modified attribute */
+		switch(cmd){
+		case CMD_CHANGE_CONTACT_MODATTR:
+			temp_contact->modified_attributes=attr;
+			break;
+		case CMD_CHANGE_CONTACT_MODHATTR:
+			temp_contact->modified_host_attributes=hattr;
+			break;
+		case CMD_CHANGE_CONTACT_MODSATTR:
+			temp_contact->modified_service_attributes=sattr;
+			break;
+		default:
+			break;
+			}
+
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_adaptive_contact_data(NEBTYPE_ADAPTIVECONTACT_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,temp_contact,cmd,attr,temp_contact->modified_attributes,hattr,temp_contact->modified_host_attributes,sattr,temp_contact->modified_service_attributes,NULL);
+#endif
+
+		/* update the status log with the contact info */
+		update_contact_status(temp_contact,FALSE);
+		break;
+
+	default:
 		break;
 	        }
 

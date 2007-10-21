@@ -1,0 +1,11 @@
+pkg
+subst
+pkginfo
+Prototype
+nagios.SPARC.pkg.tar.gz
+autom4te.cache
+
+config.log
+config.status
+daemon-init
+/Makefile

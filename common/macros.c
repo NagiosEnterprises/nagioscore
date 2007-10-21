@@ -36,6 +36,7 @@
 
 #ifdef NSCORE
 extern int      use_large_installation_tweaks;
+extern int      enable_environment_macros;
 #endif
 
 extern char     *illegal_output_chars;
@@ -3234,6 +3235,9 @@ int clear_contactgroup_macros(void){
 
 /* sets or unsets all macro environment variables */
 int set_all_macro_environment_vars(int set){
+
+	if(enable_environment_macros==FALSE)
+		return ERROR;
 
 	set_macrox_environment_vars(set);
 	set_argv_macro_environment_vars(set);

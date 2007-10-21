@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 10-21-2007
  *
  * License:
  *
@@ -173,6 +173,7 @@ extern double   low_host_flap_threshold;
 extern double   high_host_flap_threshold;
 
 extern int      use_large_installation_tweaks;
+extern int      enable_environment_macros;
 
 extern int      enable_embedded_perl;
 extern int      use_embedded_perl_implicitly;
@@ -1237,6 +1238,9 @@ int read_main_config_file(char *main_config_file){
 
 			use_large_installation_tweaks=(atoi(value)>0)?TRUE:FALSE;
 		        }
+
+		else if(!strcmp(variable,"enable_environment_macros"))
+			enable_environment_macros=(atoi(value)>0)?TRUE:FALSE;
 
 		else if(!strcmp(variable,"enable_embedded_perl")){
 

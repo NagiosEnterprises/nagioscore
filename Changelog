@@ -23,6 +23,7 @@ Nagios 3.x Change Log
 * Added new external commands to change notification period for host, services, and contact on-the-fly
 * Added new external commands to change modified object attributes (affecting data retention logic)
 * Added $ISVALIDTIME:$ and $NEXTVALIDTIME:$ on-demand macros
+* Added enable_environment_macros option to determine whether or not macros are set as environment vars
 
 
 

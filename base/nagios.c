@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   10-18-2007
+ * Last Modified:   10-21-2007
  *
  * Description:
  *
@@ -69,16 +69,6 @@ char            *nagios_user=NULL;
 char            *nagios_group=NULL;
 
 extern char     *macro_x[MACRO_X_COUNT];
-/*
-char            *macro_x_names[MACRO_X_COUNT];
-char            *macro_argv[MAX_COMMAND_ARGUMENTS];
-char            *macro_user[MAX_USER_MACROS];
-char            *macro_contactaddress[MAX_CONTACT_ADDRESSES];
-char            *macro_ondemand=NULL;
-customvariablesmember *macro_custom_host_vars=NULL;
-customvariablesmember *macro_custom_service_vars=NULL;
-customvariablesmember *macro_custom_contact_vars=NULL;
-*/
 
 char            *global_host_event_handler=NULL;
 char            *global_service_event_handler=NULL;
@@ -228,6 +218,7 @@ double          low_host_flap_threshold=DEFAULT_LOW_HOST_FLAP_THRESHOLD;
 double          high_host_flap_threshold=DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
 
 int             use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
+int             enable_environment_macros=TRUE;
 
 int             enable_embedded_perl=DEFAULT_ENABLE_EMBEDDED_PERL;
 int             use_embedded_perl_implicitly=DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY;

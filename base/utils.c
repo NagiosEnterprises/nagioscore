@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-19-2007
+ * Last Modified:   10-21-2007
  *
  * License:
  *
@@ -212,6 +212,7 @@ extern double   low_host_flap_threshold;
 extern double   high_host_flap_threshold;
 
 extern int      use_large_installation_tweaks;
+extern int      enable_environment_macros;
 
 extern int      enable_embedded_perl;
 extern int      use_embedded_perl_implicitly;
@@ -4297,6 +4298,7 @@ int reset_variables(void){
 	passive_host_checks_are_soft=DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 
 	use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
+	enable_environment_macros=TRUE;
 
 	additional_freshness_latency=DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
 

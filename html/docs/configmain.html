@@ -2070,6 +2070,37 @@ This option determines whether or not the Nagios daemon will take several shortc
 
 
 
+<a name="enable_environment_macros"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Environment Macros Option</strong></td>
+</tr>
+</table>
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>enable_environment_macros=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>enable_environment_macros=0</strong></font></td>
+</tr>
+</table>
+
+<p>
+This option determines whether or not the Nagios daemon will make all standard <a href="macrolist.html">macros</a> available as environment variables to your check, notification, event hander, etc. commands.  In large Nagios installations this can be problematic because it takes additional memory and (more importantly) CPU to compute the values of all macros and make them available to the environment.
+</p>
+<ul>
+<li>0 = Don't make macros available as environment variables
+<li>1 = Make macros available as environment variables (default)
+</ul>
+
+
+
+
 <a name="enable_flap_detection"></a>
 <table border="0" width="100%" class="Default">
 <tr>

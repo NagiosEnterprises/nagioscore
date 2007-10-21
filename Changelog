@@ -3,7 +3,7 @@ Nagios 2.x Change Log
 #####################
 
 
-2.10 - ??/??/2007
+2.10 - 10/21/2007
 ------------------
 * Added 'make install-webconf' command to install Apache web config file
 * Sample config files are now installed without a -sample extension

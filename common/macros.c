@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-21-2007
+ * Last Modified:   10-22-2007
  *
  * License:
  *
@@ -488,6 +488,12 @@ int grab_service_macros(service *svc){
 
 	/* get the last event id macro */
 	asprintf(&macro_x[MACRO_LASTSERVICEEVENTID],"%lu",svc->last_event_id);
+
+	/* get the problem id macro */
+	asprintf(&macro_x[MACRO_SERVICEPROBLEMID],"%lu",svc->current_problem_id);
+
+	/* get the last problem id macro */
+	asprintf(&macro_x[MACRO_LASTSERVICEPROBLEMID],"%lu",svc->last_problem_id);
 #endif
 
 	/* get the action url */
@@ -771,6 +777,12 @@ int grab_host_macros(host *hst){
 
 	/* get the last event id macro */
 	asprintf(&macro_x[MACRO_LASTHOSTEVENTID],"%lu",hst->last_event_id);
+
+	/* get the problem id macro */
+	asprintf(&macro_x[MACRO_HOSTPROBLEMID],"%lu",hst->current_problem_id);
+
+	/* get the last problem id macro */
+	asprintf(&macro_x[MACRO_LASTHOSTPROBLEMID],"%lu",hst->last_problem_id);
 #endif
 
 	/* get the action url */
@@ -1527,6 +1539,14 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"LASTHOSTEVENTID"))
 		asprintf(&macro_ondemand,"%lu",hst->last_event_id);
 
+	/* get the problem id macro */
+	else if(!strcmp(macro,"HOSTPROBLEMID"))
+		asprintf(&macro_ondemand,"%lu",hst->current_problem_id);
+
+	/* get the last problem id macro */
+	else if(!strcmp(macro,"LASTHOSTPROBLEMID"))
+		asprintf(&macro_ondemand,"%lu",hst->last_problem_id);
+
 	/* get the hostgroup names */
 	else if(!strcmp(macro,"HOSTGROUPNAMES")){
 
@@ -1842,6 +1862,14 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	/* get the event id macro */
 	else if(!strcmp(macro,"LASTSERVICEEVENTID"))
 		asprintf(&macro_ondemand,"%lu",svc->last_event_id);
+
+	/* get the problem id macro */
+	else if(!strcmp(macro,"SERVICEPROBLEMID"))
+		asprintf(&macro_ondemand,"%lu",svc->current_problem_id);
+
+	/* get the problem id macro */
+	else if(!strcmp(macro,"LASTSERVICEPROBLEMID"))
+		asprintf(&macro_ondemand,"%lu",svc->last_problem_id);
 
 	/* get the servicegroup names */
 	else if(!strcmp(macro,"SERVICEGROUPNAMES")){
@@ -2852,6 +2880,10 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_NOTIFICATIONAUTHORALIAS,"NOTIFICATIONAUTHORALIAS");
 	add_macrox_name(MACRO_NOTIFICATIONCOMMENT,"NOTIFICATIONCOMMENT");
 	add_macrox_name(MACRO_EVENTSTARTTIME,"EVENTSTARTTIME");
+	add_macrox_name(MACRO_HOSTPROBLEMID,"HOSTPROBLEMID");
+	add_macrox_name(MACRO_LASTHOSTPROBLEMID,"LASTHOSTPROBLEMID");
+	add_macrox_name(MACRO_SERVICEPROBLEMID,"SERVICEPROBLEMID");
+	add_macrox_name(MACRO_LASTSERVICEPROBLEMID,"LASTSERVICEPROBLEMID");
 
 	return OK;
         }

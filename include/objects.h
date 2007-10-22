@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-24-2007
+ * Last Modified: 10-22-2007
  *
  * License:
  *
@@ -37,7 +37,7 @@
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        306     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        307     /* increment when changes are made to data structures... */
 	                                                /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -338,6 +338,8 @@ struct host_struct{
 	int     current_attempt;
 	unsigned long current_event_id;
 	unsigned long last_event_id;
+	unsigned long current_problem_id;
+	unsigned long last_problem_id;
 	double  latency;
 	double  execution_time;
 	int     is_executing;
@@ -471,6 +473,8 @@ struct service_struct{
 	int	current_attempt;
 	unsigned long current_event_id;
 	unsigned long last_event_id;
+	unsigned long current_problem_id;
+	unsigned long last_problem_id;
 	time_t	last_notification;
 	time_t  next_notification;
 	int     no_more_notifications;

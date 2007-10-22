@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   10-21-2007
+ * Last Modified:   10-22-2007
  *
  * Description:
  *
@@ -159,6 +159,7 @@ unsigned long   retained_process_service_attribute_mask=0L;
 unsigned long   next_comment_id=0L;
 unsigned long   next_downtime_id=0L;
 unsigned long   next_event_id=0L;
+unsigned long   next_problem_id=0L;
 unsigned long   next_notification_id=0L;
 
 int             log_rotation_method=LOG_ROTATION_NONE;

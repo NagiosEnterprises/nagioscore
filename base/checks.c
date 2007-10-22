@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-19-2007
+ * Last Modified:   10-22-2007
  *
  * License:
  *
@@ -104,6 +104,7 @@ extern servicedependency *servicedependency_list;
 extern hostdependency    *hostdependency_list;
 
 extern unsigned long   next_event_id;
+extern unsigned long   next_problem_id;
 
 extern check_result    check_result_info;
 extern check_result    *check_result_list;
@@ -1136,11 +1137,27 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	if(hard_state_change==TRUE)
 		temp_service->last_hard_state_change=temp_service->last_check;
 
-	/* update the event id */
+	/* update the event and problem ids */
 	if(state_change==TRUE){
+
+		/* always update the event id on a state change */
 		temp_service->last_event_id=temp_service->current_event_id;
 		temp_service->current_event_id=next_event_id;
 		next_event_id++;
+
+		/* update the problem id when transitioning to a problem state */
+		if(temp_service->last_state==STATE_OK){
+			/* don't reset last problem id, or it will be zero the next time a problem is encountered */
+			/* temp_service->last_problem_id=temp_service->current_problem_id;*/
+			temp_service->current_problem_id=next_problem_id;
+			next_problem_id++;
+			}
+
+		/* clear the problem id when transitioning from a problem state to an OK state */
+		if(temp_service->current_state==STATE_OK){
+			temp_service->last_problem_id=temp_service->current_problem_id;
+			temp_service->current_problem_id=0L;
+			}
 	        }
 
 

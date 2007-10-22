@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-18-2007
+ * Last Modified:   10-22-2007
  *
  * License:
  *
@@ -40,6 +40,7 @@ extern int             log_event_handlers;
 extern int             log_host_retries;
 
 extern unsigned long   next_event_id;
+extern unsigned long   next_problem_id;
 
 extern int             event_handler_timeout;
 extern int             ocsp_timeout;
@@ -652,6 +653,20 @@ int handle_host_state(host *hst){
 		hst->last_event_id=hst->current_event_id;
 		hst->current_event_id=next_event_id;
 		next_event_id++;
+
+		/* update the problem id when transitioning to a problem state */
+		if(hst->last_state==HOST_UP){
+			/* don't reset last problem id, or it will be zero the next time a problem is encountered */
+			/*hst->last_problem_id=hst->current_problem_id;*/
+			hst->current_problem_id=next_problem_id;
+			next_problem_id++;
+			}
+
+		/* clear the problem id when transitioning from a problem state to an UP state */
+		if(hst->current_state==HOST_UP){
+			hst->last_problem_id=hst->current_problem_id;
+			hst->current_problem_id=0L;
+			}
 
 		/* reset the acknowledgement flag if necessary */
 		if(hst->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL){

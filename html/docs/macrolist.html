@@ -132,7 +132,15 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#hosteventid">$LASTHOSTEVENTID$</a></td>
+<td class='MacroName'><a href="#lasthosteventid">$LASTHOSTEVENTID$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#hostproblemid">$HOSTPROBLEMID$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lasthostproblemid">$LASTHOSTPROBLEMID$</a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
@@ -341,6 +349,14 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 <tr>
 <td class='MacroName'><a href="#lastserviceeventid">$LASTSERVICEEVENTID$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#serviceproblemid">$SERVICEPROBLEMID$</a></td>
+<td class="MacroYes">Yes </td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lastserviceproblemid">$LASTSERVICEPROBLEMID$</a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
@@ -900,7 +916,17 @@ The tables below list all macros currently available in Nagios, along with a bri
 
 <tr>
 <td class="MacroName"><a name="lasthosteventid">$LASTHOSTEVENTID$</a></td>
-<td class="MacroDescription">The previous (globally unique) event number that given to the host.</td>
+<td class="MacroDescription">The previous (globally unique) event number that was given to the host.</td>
+</tr>
+
+<tr>
+<td class="MacroName"><a name="hostproblemid">$HOSTPROBLEMID$</a></td>
+<td class="MacroDescription">A globally unique number associated with the host's current problem state.  Every time a host (or service) transitions from an UP or OK state to a problem state, a global problem ID number is incremented by one (1).  This macro will be non-zero if the host is currently a non-UP state.  State transitions between non-UP states (e.g. DOWN to UNREACHABLE) do not cause this problem id to increase.  If the host is currently in an UP state, this macro will be set to zero (0).  Combined with event handlers, this macro could be used to automatically open trouble tickets when hosts first enter a problem state.</td>
+</tr>
+
+<tr>
+<td class="MacroName"><a name="lasthostproblemid">$LASTHOSTPROBLEMID$</a></td>
+<td class="MacroDescription">The previous (globally unique) problem number that was given to the host.  Combined with event handlers, this macro could be used for automatically closing trouble tickets, etc. when a host recovers to an UP state.</td>
 </tr>
 
 <tr>
@@ -1131,6 +1157,16 @@ The tables below list all macros currently available in Nagios, along with a bri
 <tr>
 <td class="MacroName"><a name="lastserviceeventid">$LASTSERVICEEVENTID$</a></td>
 <td class="MacroDescription">The previous (globally unique) event number that given to the service.</td>
+</tr>
+
+<tr>
+<td class="MacroName"><a name="serviceproblemid">$SERVICEPROBLEMID$</a></td>
+<td class="MacroDescription">A globally unique number associated with the service's current problem state.  Every time a service (or host) transitions from an OK or UP state to a problem state, a global problem ID number is incremented by one (1).  This macro will be non-zero if the service is currently a non-OK state.  State transitions between non-OK states (e.g. WARNING to CRITICAL) do not cause this problem id to increase.  If the service is currently in an OK state, this macro will be set to zero (0).  Combined with event handlers, this macro could be used to automatically open trouble tickets when services first enter a problem state.</td>
+</tr>
+
+<tr>
+<td class="MacroName"><a name="lastserviceproblemid">$LASTSERVICEPROBLEMID$</a></td>
+<td class="MacroDescription">The previous (globally unique) problem number that was given to the service.  Combined with event handlers, this macro could be used for automatically closing trouble tickets, etc. when a service recovers to an OK state.</td>
 </tr>
 
 <tr>

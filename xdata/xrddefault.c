@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-21-2007
+ * Last Modified: 10-22-2007
  *
  * License:
  *
@@ -72,6 +72,7 @@ extern int            retention_scheduling_horizon;
 extern unsigned long  next_comment_id;
 extern unsigned long  next_downtime_id;
 extern unsigned long  next_event_id;
+extern unsigned long  next_problem_id;
 extern unsigned long  next_notification_id;
 
 extern unsigned long  modified_host_process_attributes;
@@ -334,6 +335,7 @@ int xrddefault_save_state_information(void){
 	fprintf(fp,"\tnext_comment_id=%lu\n",next_comment_id);
 	fprintf(fp,"\tnext_downtime_id=%lu\n",next_downtime_id);
 	fprintf(fp,"\tnext_event_id=%lu\n",next_event_id);
+	fprintf(fp,"\tnext_problem_id=%lu\n",next_problem_id);
 	fprintf(fp,"\tnext_notification_id=%lu\n",next_notification_id);
 	fprintf(fp,"\t}\n\n");
 
@@ -354,6 +356,10 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\tcurrent_state=%d\n",temp_host->current_state);
 		fprintf(fp,"\tlast_state=%d\n",temp_host->last_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_host->last_hard_state);
+		fprintf(fp,"\tlast_event_id=%d\n",temp_host->last_event_id);
+		fprintf(fp,"\tcurrent_event_id=%d\n",temp_host->current_event_id);
+		fprintf(fp,"\tcurrent_problem_id=%d\n",temp_host->current_problem_id);
+		fprintf(fp,"\tlast_problem_id=%d\n",temp_host->last_problem_id);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
 		fprintf(fp,"\tlong_plugin_output=%s\n",(temp_host->long_plugin_output==NULL)?"":temp_host->long_plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
@@ -422,6 +428,10 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\tcurrent_state=%d\n",temp_service->current_state);
 		fprintf(fp,"\tlast_state=%d\n",temp_service->last_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_service->last_hard_state);
+		fprintf(fp,"\tlast_event_id=%d\n",temp_service->last_event_id);
+		fprintf(fp,"\tcurrent_event_id=%d\n",temp_service->current_event_id);
+		fprintf(fp,"\tcurrent_problem_id=%d\n",temp_service->current_problem_id);
+		fprintf(fp,"\tlast_problem_id=%d\n",temp_service->last_problem_id);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_service->current_attempt);
 		fprintf(fp,"\tmax_attempts=%d\n",temp_service->max_attempts);
 		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_service->current_event_id);
@@ -1006,6 +1016,8 @@ int xrddefault_read_state_information(void){
 						next_downtime_id=strtoul(val,NULL,10);
 					else if(!strcmp(var,"next_event_id"))
 						next_event_id=strtoul(val,NULL,10);
+					else if(!strcmp(var,"next_problem_id"))
+						next_problem_id=strtoul(val,NULL,10);
 					else if(!strcmp(var,"next_notification_id"))
 						next_notification_id=strtoul(val,NULL,10);
 				        }
@@ -1067,6 +1079,10 @@ int xrddefault_read_state_information(void){
 							temp_host->current_event_id=strtoul(val,NULL,10);
 						else if(!strcmp(var,"last_event_id"))
 							temp_host->last_event_id=strtoul(val,NULL,10);
+						else if(!strcmp(var,"current_problem_id"))
+							temp_host->current_problem_id=strtoul(val,NULL,10);
+						else if(!strcmp(var,"last_problem_id"))
+							temp_host->last_problem_id=strtoul(val,NULL,10);
 						else if(!strcmp(var,"state_type"))
 							temp_host->state_type=atoi(val);
 						else if(!strcmp(var,"last_state_change"))
@@ -1290,6 +1306,10 @@ int xrddefault_read_state_information(void){
 							temp_service->current_event_id=strtoul(val,NULL,10);
 						else if(!strcmp(var,"last_event_id"))
 							temp_service->last_event_id=strtoul(val,NULL,10);
+						else if(!strcmp(var,"current_problem_id"))
+							temp_service->current_problem_id=strtoul(val,NULL,10);
+						else if(!strcmp(var,"last_problem_id"))
+							temp_service->last_problem_id=strtoul(val,NULL,10);
 						else if(!strcmp(var,"state_type"))
 							temp_service->state_type=atoi(val);
 						else if(!strcmp(var,"last_state_change"))

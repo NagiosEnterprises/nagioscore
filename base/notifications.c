@@ -141,16 +141,16 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			}
 
 		/* get author and comment macros */
-		my_free(&macro_x[MACRO_NOTIFICATIONAUTHOR]);
+		my_free(macro_x[MACRO_NOTIFICATIONAUTHOR]);
 		if(not_author)
 			macro_x[MACRO_NOTIFICATIONAUTHOR]=(char *)strdup(not_author);
-		my_free(&macro_x[MACRO_NOTIFICATIONAUTHORNAME]);
-		my_free(&macro_x[MACRO_NOTIFICATIONAUTHORALIAS]);
+		my_free(macro_x[MACRO_NOTIFICATIONAUTHORNAME]);
+		my_free(macro_x[MACRO_NOTIFICATIONAUTHORALIAS]);
 		if(temp_contact!=NULL){
 			macro_x[MACRO_NOTIFICATIONAUTHORNAME]=(char *)strdup(temp_contact->name);
 			macro_x[MACRO_NOTIFICATIONAUTHORALIAS]=(char *)strdup(temp_contact->alias);
 			}
-		my_free(&macro_x[MACRO_NOTIFICATIONCOMMENT]);
+		my_free(macro_x[MACRO_NOTIFICATIONCOMMENT]);
 		if(not_data)
 			macro_x[MACRO_NOTIFICATIONCOMMENT]=(char *)strdup(not_data);
 
@@ -158,16 +158,16 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		/* if this is an acknowledgement, get author and comment macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 
-			my_free(&macro_x[MACRO_SERVICEACKAUTHOR]);
+			my_free(macro_x[MACRO_SERVICEACKAUTHOR]);
 			if(not_author)
 				macro_x[MACRO_SERVICEACKAUTHOR]=(char *)strdup(not_author);
 
-			my_free(&macro_x[MACRO_SERVICEACKCOMMENT]);
+			my_free(macro_x[MACRO_SERVICEACKCOMMENT]);
 			if(not_data)
 				macro_x[MACRO_SERVICEACKCOMMENT]=(char *)strdup(not_data);
 
-			my_free(&macro_x[MACRO_SERVICEACKAUTHORNAME]);
-			my_free(&macro_x[MACRO_SERVICEACKAUTHORALIAS]);
+			my_free(macro_x[MACRO_SERVICEACKAUTHORNAME]);
+			my_free(macro_x[MACRO_SERVICEACKAUTHORALIAS]);
 			if(temp_contact!=NULL){
 				macro_x[MACRO_SERVICEACKAUTHORNAME]=(char *)strdup(temp_contact->name);
 				macro_x[MACRO_SERVICEACKAUTHORALIAS]=(char *)strdup(temp_contact->alias);
@@ -175,7 +175,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	                }
 
 		/* set the notification type macro */
-		my_free(&macro_x[MACRO_NOTIFICATIONTYPE]);
+		my_free(macro_x[MACRO_NOTIFICATIONTYPE]);
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT)
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("ACKNOWLEDGEMENT");
 		else if(type==NOTIFICATION_FLAPPINGSTART)
@@ -196,15 +196,15 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("PROBLEM");
 
 		/* set the notification number macro */
-		my_free(&macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
+		my_free(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
 		asprintf(&macro_x[MACRO_SERVICENOTIFICATIONNUMBER],"%d",svc->current_notification_number);
 
 		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatability */
-		my_free(&macro_x[MACRO_NOTIFICATIONNUMBER]);
+		my_free(macro_x[MACRO_NOTIFICATIONNUMBER]);
 		macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)strdup((macro_x[MACRO_SERVICENOTIFICATIONNUMBER]==NULL)?"":macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
 
 		/* set the notification id macro */
-		my_free(&macro_x[MACRO_SERVICENOTIFICATIONID]);
+		my_free(macro_x[MACRO_SERVICENOTIFICATIONID]);
 		asprintf(&macro_x[MACRO_SERVICENOTIFICATIONID],"%lu",svc->current_notification_id);
 
 		/* notify each contact (duplicates have been removed) */
@@ -729,7 +729,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 				break;
 				}
 			write_to_all_logs(temp_buffer,NSLOG_SERVICE_NOTIFICATION);
-			my_free(&temp_buffer);
+			my_free(temp_buffer);
 
 			/* run the command */
 			my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
@@ -740,9 +740,9 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 			        }
 
 			/* free memory */
-			my_free(&command_name);
-			my_free(&raw_command);
-			my_free(&processed_command);
+			my_free(command_name);
+			my_free(raw_command);
+			my_free(processed_command);
 		        }
 
 		/* get end time */
@@ -862,7 +862,7 @@ int create_notification_list_from_service(service *svc, int options, int *escala
 	*escalated=escalate_notification;
 
 	/* set the escalation macro */
-	my_free(&macro_x[MACRO_NOTIFICATIONISESCALATED]);
+	my_free(macro_x[MACRO_NOTIFICATIONISESCALATED]);
 	asprintf(&macro_x[MACRO_NOTIFICATIONISESCALATED],"%d",escalate_notification);
 
 	if(options & NOTIFICATION_OPTION_BROADCAST)
@@ -1017,16 +1017,16 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 			}
 
 		/* get author and comment macros */
-		my_free(&macro_x[MACRO_NOTIFICATIONAUTHOR]);
+		my_free(macro_x[MACRO_NOTIFICATIONAUTHOR]);
 		if(not_author)
 			macro_x[MACRO_NOTIFICATIONAUTHOR]=(char *)strdup(not_author);
-		my_free(&macro_x[MACRO_NOTIFICATIONAUTHORNAME]);
-		my_free(&macro_x[MACRO_NOTIFICATIONAUTHORALIAS]);
+		my_free(macro_x[MACRO_NOTIFICATIONAUTHORNAME]);
+		my_free(macro_x[MACRO_NOTIFICATIONAUTHORALIAS]);
 		if(temp_contact!=NULL){
 			macro_x[MACRO_NOTIFICATIONAUTHORNAME]=(char *)strdup(temp_contact->name);
 			macro_x[MACRO_NOTIFICATIONAUTHORALIAS]=(char *)strdup(temp_contact->alias);
 			}
-		my_free(&macro_x[MACRO_NOTIFICATIONCOMMENT]);
+		my_free(macro_x[MACRO_NOTIFICATIONCOMMENT]);
 		if(not_data)
 			macro_x[MACRO_NOTIFICATIONCOMMENT]=(char *)strdup(not_data);
 
@@ -1034,16 +1034,16 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		/* if this is an acknowledgement, get author and comment macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 
-			my_free(&macro_x[MACRO_HOSTACKAUTHOR]);
+			my_free(macro_x[MACRO_HOSTACKAUTHOR]);
 			if(not_author)
 				macro_x[MACRO_HOSTACKAUTHOR]=(char *)strdup(not_author);
 
-			my_free(&macro_x[MACRO_HOSTACKCOMMENT]);
+			my_free(macro_x[MACRO_HOSTACKCOMMENT]);
 			if(not_data)
 				macro_x[MACRO_HOSTACKCOMMENT]=(char *)strdup(not_data);
 
-			my_free(&macro_x[MACRO_SERVICEACKAUTHORNAME]);
-			my_free(&macro_x[MACRO_SERVICEACKAUTHORALIAS]);
+			my_free(macro_x[MACRO_SERVICEACKAUTHORNAME]);
+			my_free(macro_x[MACRO_SERVICEACKAUTHORALIAS]);
 			if(temp_contact!=NULL){
 				macro_x[MACRO_SERVICEACKAUTHORNAME]=(char *)strdup(temp_contact->name);
 				macro_x[MACRO_SERVICEACKAUTHORALIAS]=(char *)strdup(temp_contact->alias);
@@ -1051,7 +1051,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	                }
 
 		/* set the notification type macro */
-		my_free(&macro_x[MACRO_NOTIFICATIONTYPE]);
+		my_free(macro_x[MACRO_NOTIFICATIONTYPE]);
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT)
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("ACKNOWLEDGEMENT");
 		else if(type==NOTIFICATION_FLAPPINGSTART)
@@ -1072,15 +1072,15 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("PROBLEM");
 
 		/* set the notification number macro */
-		my_free(&macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
+		my_free(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
 		asprintf(&macro_x[MACRO_HOSTNOTIFICATIONNUMBER],"%d",hst->current_notification_number);
 
 		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatability */
-		my_free(&macro_x[MACRO_NOTIFICATIONNUMBER]);
+		my_free(macro_x[MACRO_NOTIFICATIONNUMBER]);
 		macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)strdup((macro_x[MACRO_HOSTNOTIFICATIONNUMBER]==NULL)?"":macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
 
 		/* set the notification id macro */
-		my_free(&macro_x[MACRO_HOSTNOTIFICATIONID]);
+		my_free(macro_x[MACRO_HOSTNOTIFICATIONID]);
 		asprintf(&macro_x[MACRO_HOSTNOTIFICATIONID],"%lu",hst->current_notification_id);
 
 		/* notify each contact (duplicates have been removed) */
@@ -1573,7 +1573,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 				break;
 				}
 			write_to_all_logs(temp_buffer,NSLOG_HOST_NOTIFICATION);
-			my_free(&temp_buffer);
+			my_free(temp_buffer);
 
 			/* run the command */
 			my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
@@ -1584,9 +1584,9 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 			        }
 
 			/* free memory */
-			my_free(&command_name);
-			my_free(&raw_command);
-			my_free(&processed_command);
+			my_free(command_name);
+			my_free(raw_command);
+			my_free(processed_command);
 		        }
 
 		/* get end time */
@@ -1703,7 +1703,7 @@ int create_notification_list_from_host(host *hst, int options, int *escalated){
 	*escalated=escalate_notification;
 
 	/* set the escalation macro */
-	my_free(&macro_x[MACRO_NOTIFICATIONISESCALATED]);
+	my_free(macro_x[MACRO_NOTIFICATIONISESCALATED]);
 	asprintf(&macro_x[MACRO_NOTIFICATIONISESCALATED],"%d",escalate_notification);
 
 	if(options & NOTIFICATION_OPTION_BROADCAST)

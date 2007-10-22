@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-21-2007
+ * Last Modified: 10-22-2007
  *
  * License:
  *
@@ -42,8 +42,8 @@
 /* Experimental performance tweaks - use with caution */
 #undef USE_MEMORY_PERFORMANCE_TWEAKS
 
-/* macro funcs */
-#define my_free(ptr) { if(ptr && *ptr) { free(*ptr); *ptr = NULL; } }
+/* my_free has been freed from bondage as a function */
+#define my_free(ptr) { if(ptr) { free(ptr); ptr = NULL; } }
 
 
 

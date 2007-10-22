@@ -261,7 +261,7 @@ int read_main_config_file(char *main_config_file){
 		}
 
 	/* save the main config file macro */
-	my_free(&macro_x[MACRO_MAINCONFIGFILE]);
+	my_free(macro_x[MACRO_MAINCONFIGFILE]);
 	if((macro_x[MACRO_MAINCONFIGFILE]=(char *)strdup(main_config_file)))
 		strip(macro_x[MACRO_MAINCONFIGFILE]);
 
@@ -269,9 +269,9 @@ int read_main_config_file(char *main_config_file){
 	while(1){
 
 		/* free memory */
-		my_free(&input);
-		my_free(&variable);
-		my_free(&value);
+		my_free(input);
+		my_free(variable);
+		my_free(value);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -316,7 +316,7 @@ int read_main_config_file(char *main_config_file){
 		if(!strcmp(variable,"resource_file")){
 
 			/* save the macro */
-			my_free(&macro_x[MACRO_RESOURCEFILE]);
+			my_free(macro_x[MACRO_RESOURCEFILE]);
 			macro_x[MACRO_RESOURCEFILE]=(char *)strdup(value);
 
 			/* process the resource file */
@@ -331,11 +331,11 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			my_free(&log_file);
+			my_free(log_file);
 			log_file=(char *)strdup(value);
 
 			/* save the macro */
-			my_free(&macro_x[MACRO_LOGFILE]);
+			my_free(macro_x[MACRO_LOGFILE]);
 			macro_x[MACRO_LOGFILE]=(char *)strdup(log_file);
 			}
 
@@ -353,7 +353,7 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			my_free(&debug_file);
+			my_free(debug_file);
 			debug_file=(char *)strdup(value);
 			}
 
@@ -368,11 +368,11 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			my_free(&command_file);
+			my_free(command_file);
 			command_file=(char *)strdup(value);
 
 			/* save the macro */
-			my_free(&macro_x[MACRO_COMMANDFILE]);
+			my_free(macro_x[MACRO_COMMANDFILE]);
 			macro_x[MACRO_COMMANDFILE]=(char *)strdup(value);
 			}
 
@@ -384,11 +384,11 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			my_free(&temp_file);
+			my_free(temp_file);
 			temp_file=(char *)strdup(value);
 
 			/* save the macro */
-			my_free(&macro_x[MACRO_TEMPFILE]);
+			my_free(macro_x[MACRO_TEMPFILE]);
 			macro_x[MACRO_TEMPFILE]=(char *)strdup(temp_file);
 			}
 
@@ -407,7 +407,7 @@ int read_main_config_file(char *main_config_file){
 				}
 			closedir(tmpdir);
 
-			my_free(&temp_path);
+			my_free(temp_path);
 			if((temp_path=(char *)strdup(value))){
 				strip(temp_path);
 				/* make sure we don't have a trailing slash */
@@ -416,7 +416,7 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			/* save the macro */
-			my_free(&macro_x[MACRO_TEMPPATH]);
+			my_free(macro_x[MACRO_TEMPPATH]);
 			macro_x[MACRO_TEMPPATH]=(char *)strdup(temp_path);
 			}
 
@@ -435,7 +435,7 @@ int read_main_config_file(char *main_config_file){
 				}
 			closedir(tmpdir);
 
-			my_free(&temp_path);
+			my_free(temp_path);
 			if((temp_path=(char *)strdup(value))){
 				strip(temp_path);
 				/* make sure we don't have a trailing slash */
@@ -443,7 +443,7 @@ int read_main_config_file(char *main_config_file){
 					temp_path[strlen(temp_path)-1]='\x0';
 			        }
 
-			my_free(&check_result_path);
+			my_free(check_result_path);
 			check_result_path=(char *)strdup(temp_path);
 			}
 
@@ -458,51 +458,51 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			my_free(&lock_file);
+			my_free(lock_file);
 			lock_file=(char *)strdup(value);
 			}
 
 		else if(!strcmp(variable,"global_host_event_handler")){
-			my_free(&global_host_event_handler);
+			my_free(global_host_event_handler);
 			global_host_event_handler=(char *)strdup(value);
 		        }
 
 		else if(!strcmp(variable,"global_service_event_handler")){
-			my_free(&global_service_event_handler);
+			my_free(global_service_event_handler);
 			global_service_event_handler=(char *)strdup(value);
 		        }
 
 		else if(!strcmp(variable,"ocsp_command")){
-			my_free(&ocsp_command);
+			my_free(ocsp_command);
 			ocsp_command=(char *)strdup(value);
 		        }
 
 		else if(!strcmp(variable,"ochp_command")){
-			my_free(&ochp_command);
+			my_free(ochp_command);
 			ochp_command=(char *)strdup(value);
 		        }
 
 		else if(!strcmp(variable,"nagios_user")){
-			my_free(&nagios_user);
+			my_free(nagios_user);
 			nagios_user=(char *)strdup(value);
 		        }
 
 		else if(!strcmp(variable,"nagios_group")){
-			my_free(&nagios_group);
+			my_free(nagios_group);
 			nagios_group=(char *)strdup(value);
 		        }
 
 		else if(!strcmp(variable,"admin_email")){
 
 			/* save the macro */
-			my_free(&macro_x[MACRO_ADMINEMAIL]);
+			my_free(macro_x[MACRO_ADMINEMAIL]);
 			macro_x[MACRO_ADMINEMAIL]=(char *)strdup(value);
 		        }
 
 		else if(!strcmp(variable,"admin_pager")){
 
 			/* save the macro */
-			my_free(&macro_x[MACRO_ADMINPAGER]);
+			my_free(macro_x[MACRO_ADMINPAGER]);
 			macro_x[MACRO_ADMINPAGER]=(char *)strdup(value);
 		        }
 
@@ -830,7 +830,7 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			my_free(&log_archive_path);
+			my_free(log_archive_path);
 			log_archive_path=(char *)strdup(value);
 			}
 
@@ -1184,7 +1184,7 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			my_free(&p1_file);
+			my_free(p1_file);
 			p1_file=(char *)strdup(value);
 			}
 
@@ -1276,7 +1276,7 @@ int read_main_config_file(char *main_config_file){
 				break;
 			        }
 
-			my_free(&auth_file);
+			my_free(auth_file);
 			auth_file=(char *)strdup(value);
 		        }
 
@@ -1329,14 +1329,14 @@ int read_main_config_file(char *main_config_file){
 	        }
 
 	/* free leftover memory and close the file */
-	my_free(&input);
+	my_free(input);
 	mmap_fclose(thefile);
 
 	/* free memory */
-	my_free(&error_message);
-	my_free(&input);
-	my_free(&variable);
-	my_free(&value);
+	my_free(error_message);
+	my_free(input);
+	my_free(variable);
+	my_free(value);
 
 	/* make sure a log file has been specified */
 	strip(log_file);
@@ -1371,9 +1371,9 @@ int read_resource_file(char *resource_file){
 	while(1){
 
 		/* free memory */
-		my_free(&input);
-		my_free(&variable);
-		my_free(&value);
+		my_free(input);
+		my_free(variable);
+		my_free(value);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -1418,7 +1418,7 @@ int read_resource_file(char *resource_file){
 			if(strstr(variable,"$USER")==variable  && strlen(variable)>5){
 				user_index=atoi(variable+5)-1;
 				if(user_index>=0 && user_index<MAX_USER_MACROS){
-					my_free(&macro_user[user_index]);
+					my_free(macro_user[user_index]);
 					macro_user[user_index]=(char *)strdup(value);
 				        }
 			        }
@@ -1426,12 +1426,12 @@ int read_resource_file(char *resource_file){
 	        }
 
 	/* free leftover memory and close the file */
-	my_free(&input);
+	my_free(input);
 	mmap_fclose(thefile);
 
 	/* free memory */
-	my_free(&variable);
-	my_free(&value);
+	my_free(variable);
+	my_free(value);
 
 	if(error==TRUE)
 		return ERROR;
@@ -1503,7 +1503,7 @@ int pre_flight_check(void){
 		/* save the pointer to the command for later */
 		global_host_event_handler_ptr=temp_command;
 
-		my_free(&buf);
+		my_free(buf);
 	        }
 	if(global_service_event_handler!=NULL){
 
@@ -1522,7 +1522,7 @@ int pre_flight_check(void){
 		/* save the pointer to the command for later */
 		global_service_event_handler_ptr=temp_command;
 
-		my_free(&buf);
+		my_free(buf);
 	        }
 
 
@@ -1547,7 +1547,7 @@ int pre_flight_check(void){
 		/* save the pointer to the command for later */
 		ocsp_command_ptr=temp_command;
 
-		my_free(&buf);
+		my_free(buf);
 	        }
 	if(ochp_command!=NULL){
 
@@ -1565,7 +1565,7 @@ int pre_flight_check(void){
 		/* save the pointer to the command for later */
 		ochp_command_ptr=temp_command;
 
-		my_free(&buf);
+		my_free(buf);
 	        }
 
 
@@ -1585,7 +1585,7 @@ int pre_flight_check(void){
 		close(temp_path_fd);
 		remove(buf);
 		}
-	my_free(&buf);
+	my_free(buf);
 
 	/* check if we can write to check_result_path */
        	asprintf(&buf,"%s/nagiosXXXXXX",check_result_path);
@@ -1597,7 +1597,7 @@ int pre_flight_check(void){
 		close(temp_path_fd);
 		remove(buf);
 		}
-	my_free(&buf);
+	my_free(buf);
 
 	/* warn if user didn't specify any illegal macro output chars */
 	if(illegal_output_chars==NULL){
@@ -1733,7 +1733,7 @@ int pre_flight_object_check(int *w, int *e){
 				errors++;
 			        }
 
-			my_free(&buf);
+			my_free(buf);
 
 			/* save the pointer to the event handler for later */
 			temp_service->event_handler_ptr=temp_command;
@@ -1751,7 +1751,7 @@ int pre_flight_object_check(int *w, int *e){
 			errors++;
 		        }
 
-		my_free(&buf);
+		my_free(buf);
 
 		/* save the pointer to the check command for later */
 		temp_service->check_command_ptr=temp_command;
@@ -1896,7 +1896,7 @@ int pre_flight_object_check(int *w, int *e){
 				errors++;
 			        }
 
-			my_free(&buf);
+			my_free(buf);
 
 			/* save the pointer to the event handler command for later */
 			temp_host->event_handler_ptr=temp_command;
@@ -1920,7 +1920,7 @@ int pre_flight_object_check(int *w, int *e){
 			/* save the pointer to the check command for later */
 			temp_host->check_command_ptr=temp_command;
 
-			my_free(&buf);
+			my_free(buf);
 		        }
 
 		/* check host check timeperiod */
@@ -2118,7 +2118,7 @@ int pre_flight_object_check(int *w, int *e){
 			/* save pointer to the command for later */
 			temp_commandsmember->command_ptr=temp_command;
 
-			my_free(&buf);
+			my_free(buf);
 		        }
 
 		/* check host notification commands */
@@ -2143,7 +2143,7 @@ int pre_flight_object_check(int *w, int *e){
 			/* save pointer to the command for later */
 			temp_commandsmember->command_ptr=temp_command;
 
-			my_free(&buf);
+			my_free(buf);
 	                }
 
 		/* check service notification timeperiod */

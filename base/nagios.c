@@ -453,7 +453,7 @@ int main(int argc, char **argv){
 		strncat(config_file,buffer,MAX_FILENAME_LENGTH-strlen(config_file)-1);
 		config_file[MAX_FILENAME_LENGTH-1]='\x0';
 
-		my_free(&buffer);
+		my_free(buffer);
 	        }
 
 
@@ -524,7 +524,7 @@ int main(int argc, char **argv){
 		cleanup();
 
 		/* free config_file */
-		my_free(&config_file);
+		my_free(config_file);
 
 		/* exit */
 		exit(result);
@@ -600,7 +600,7 @@ int main(int argc, char **argv){
 
 			/* get program (re)start time and save as macro */
 			program_start=time(NULL);
-			my_free(&macro_x[MACRO_PROCESSSTARTTIME]);
+			my_free(macro_x[MACRO_PROCESSSTARTTIME]);
 			asprintf(&macro_x[MACRO_PROCESSSTARTTIME],"%lu",(unsigned long)program_start);
 
 			/* get PID */
@@ -710,7 +710,7 @@ int main(int argc, char **argv){
 
 				asprintf(&buffer,"Finished daemonizing... (New PID=%d)\n",(int)getpid());
 				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
-				my_free(&buffer);
+				my_free(buffer);
 
 				/* get new PID */
 				nagios_pid=(int)getpid();
@@ -770,7 +770,7 @@ int main(int argc, char **argv){
 
 			/* get event start time and save as macro */
 			event_start=time(NULL);
-			my_free(&macro_x[MACRO_EVENTSTARTTIME]);
+			my_free(macro_x[MACRO_EVENTSTARTTIME]);
 			asprintf(&macro_x[MACRO_EVENTSTARTTIME],"%lu",(unsigned long)event_start);
 
 		        /***** start monitoring all services *****/
@@ -788,7 +788,7 @@ int main(int argc, char **argv){
 					asprintf(&buffer,"Caught SIG%s, shutting down...\n",sigs[sig_id]);
 
 				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
-				my_free(&buffer);
+				my_free(buffer);
 				}
 
 #ifdef USE_EVENT_BROKER
@@ -845,7 +845,7 @@ int main(int argc, char **argv){
 	                }while(sigrestart==TRUE && sigshutdown==FALSE);
 
 		/* free misc memory */
-		my_free(&config_file);
+		my_free(config_file);
 	        }
 
 	return OK;

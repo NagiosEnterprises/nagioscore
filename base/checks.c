@@ -159,7 +159,7 @@ int reap_check_results(void){
 				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n",queued_check_result->service_description,queued_check_result->host_name);
 
 				free_check_result(queued_check_result);
-				my_free(&queued_check_result);
+				my_free(queued_check_result);
 
 				/* TODO - add new service definition automatically */
 
@@ -180,7 +180,7 @@ int reap_check_results(void){
 				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Check result queue contained results for host '%s', but the host could not be found!  Perhaps you forgot to define the host in your config files?\n",queued_check_result->host_name);
 
 				free_check_result(queued_check_result);
-				my_free(&queued_check_result);
+				my_free(queued_check_result);
 
 				/* TODO - add new host definition automatically */
 
@@ -198,13 +198,13 @@ int reap_check_results(void){
 		unlink(queued_check_result->output_file);
 		asprintf(&temp_buffer,"%s.ok",queued_check_result->output_file);
 		unlink(temp_buffer);
-		my_free(&temp_buffer);
+		my_free(temp_buffer);
 
 		log_debug_info(DEBUGL_CHECKS|DEBUGL_IPC,1,"Deleted check result file '%s'\n",queued_check_result->output_file);
 
 		/* free allocated memory */
 		free_check_result(queued_check_result);
-		my_free(&queued_check_result);
+		my_free(queued_check_result);
 
 		/* break out if we've been here too long (max_check_reaper_time seconds) */
 		time(&current_time);
@@ -456,7 +456,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	check_result_info.output=NULL;
 
 	/* free memory */
-	my_free(&output_file);
+	my_free(output_file);
 
 	/* write start of check result file */
 	/* if things go really bad later on down the line, the user will at least have a partial file to help debug missing output results */
@@ -553,7 +553,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			if(perl_plugin_output!=NULL){
 				temp_buffer=escape_newlines(perl_plugin_output);
 				dbuf_strcat(&checkresult_dbuf,temp_buffer);
-				my_free(&temp_buffer);
+				my_free(temp_buffer);
 				}
 
 			/* get the check finish time */
@@ -673,7 +673,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 				if(perl_plugin_output!=NULL){
 					temp_buffer=escape_newlines(perl_plugin_output);
 					dbuf_strcat(&checkresult_dbuf,temp_buffer);
-					my_free(&temp_buffer);
+					my_free(temp_buffer);
 					}
 
 				PUTBACK;
@@ -733,7 +733,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			while(fgets(output_buffer,sizeof(output_buffer)-1,fp)){
 				temp_buffer=escape_newlines(output_buffer);
 				dbuf_strcat(&checkresult_dbuf,temp_buffer);
-				my_free(&temp_buffer);
+				my_free(temp_buffer);
 				}
 
 			/* close the process */
@@ -780,8 +780,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 			/* free memory */
 			dbuf_free(&checkresult_dbuf);
-			my_free(&raw_command);
-			my_free(&processed_command);
+			my_free(raw_command);
+			my_free(processed_command);
 
 			/* free check result memory */
 			free_check_result(&check_result_info);
@@ -820,8 +820,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		free_check_result(&check_result_info);
 
 		/* free memory */
-		my_free(&raw_command);
-		my_free(&processed_command);
+		my_free(raw_command);
+		my_free(processed_command);
 
 		/* wait for the first child to return */
 		/* don't do this if large install tweaks are enabled - we'll clean up children in event loop */
@@ -956,9 +956,9 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		old_plugin_output=(char *)strdup(temp_service->plugin_output);
 
 	/* clear the old plugin output and perf data buffers */
-	my_free(&temp_service->plugin_output);
-	my_free(&temp_service->long_plugin_output);
-	my_free(&temp_service->perf_data);
+	my_free(temp_service->plugin_output);
+	my_free(temp_service->long_plugin_output);
+	my_free(temp_service->perf_data);
 
 	/* if there was some error running the command, just skip it (this shouldn't be happening) */
 	if(queued_check_result->exited_ok==FALSE){
@@ -976,7 +976,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n",queued_check_result->return_code,temp_service->description,temp_service->host_name,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
 
 		asprintf(&temp_plugin_output,"\x73\x6f\x69\x67\x61\x6e\x20\x74\x68\x67\x69\x72\x79\x70\x6f\x63\x20\x6e\x61\x68\x74\x65\x20\x64\x61\x74\x73\x6c\x61\x67");
-		my_free(&temp_plugin_output);
+		my_free(temp_plugin_output);
 		asprintf(&temp_service->plugin_output,"(Return code of %d is out of bounds%s)",queued_check_result->return_code,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" - plugin may be missing":"");
 
 		temp_service->current_state=STATE_CRITICAL;
@@ -1552,8 +1552,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	update_service_performance_data(temp_service);
 
 	/* free allocated memory */
-	my_free(&temp_plugin_output);
-	my_free(&old_plugin_output);
+	my_free(temp_plugin_output);
+	my_free(old_plugin_output);
 
 
 	/* run async checks of all services we added above */
@@ -1666,13 +1666,13 @@ void schedule_service_check(service *svc, time_t check_time, int options){
 
 		/* the originally queued event won the battle, so keep it */
 		if(use_original_event==TRUE){
-			my_free(&new_event);
+			my_free(new_event);
 			}
 
 		/* else we're using the new event, so remove the old one */
 		else{
 			remove_event(temp_event,&event_list_low,&event_list_low_tail);
-			my_free(&temp_event);
+			my_free(temp_event);
 			}
 	        }
 
@@ -2122,13 +2122,13 @@ void schedule_host_check(host *hst, time_t check_time, int options){
 
 		/* the originally queued event won the battle, so keep it */
 		if(use_original_event==TRUE){
-			my_free(&new_event);
+			my_free(new_event);
 			}
 
 		/* else use the new event, so remove the old */
 		else{
 			remove_event(temp_event,&event_list_low,&event_list_low_tail);
-			my_free(&temp_event);
+			my_free(temp_event);
 			}
 	        }
 
@@ -2517,7 +2517,7 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 	process_host_check_result_3x(hst,host_result,old_plugin_output,check_options,FALSE,use_cached_result,check_timestamp_horizon);
 
 	/* free memory */
-	my_free(&old_plugin_output);
+	my_free(old_plugin_output);
 
 	log_debug_info(DEBUGL_CHECKS,1,"* Sync host check done: new state=%d\n",hst->current_state);
 
@@ -2613,9 +2613,9 @@ int execute_sync_host_check_3x(host *hst){
 	log_debug_info(DEBUGL_COMMANDS,0,"Processed host check ommand: %s\n",processed_command);
 
 	/* clear plugin output and performance data buffers */
-	my_free(&hst->plugin_output);
-	my_free(&hst->long_plugin_output);
-	my_free(&hst->perf_data);
+	my_free(hst->plugin_output);
+	my_free(hst->long_plugin_output);
+	my_free(hst->perf_data);
 
 	/* run the host check command */
 	result=my_system(processed_command,host_check_timeout,&early_timeout,&exectime,&temp_plugin_output,MAX_PLUGIN_OUTPUT_LENGTH);
@@ -2623,7 +2623,7 @@ int execute_sync_host_check_3x(host *hst){
 	/* if the check timed out, report an error */
 	if(early_timeout==TRUE){
 
-		my_free(&temp_plugin_output);
+		my_free(temp_plugin_output);
 		asprintf(&temp_plugin_output,"Host check timed out after %d seconds\n",host_check_timeout);
 
 		/* log the timeout */
@@ -2640,20 +2640,20 @@ int execute_sync_host_check_3x(host *hst){
 	parse_check_output(temp_plugin_output,&hst->plugin_output,&hst->long_plugin_output,&hst->perf_data,TRUE,TRUE);
 
 	/* free memory */
-	my_free(&temp_plugin_output);
-	my_free(&raw_command);
-	my_free(&processed_command);
+	my_free(temp_plugin_output);
+	my_free(raw_command);
+	my_free(processed_command);
 
 	/* a NULL host check command means we should assume the host is UP */
 	if(hst->host_check_command==NULL){
-		my_free(&hst->plugin_output);
+		my_free(hst->plugin_output);
 		hst->plugin_output=(char *)strdup("(Host assumed to be UP)");
 		result=STATE_OK;
 	        }
 
 	/* make sure we have some data */
 	if(hst->plugin_output==NULL || !strcmp(hst->plugin_output,"")){
-		my_free(&hst->plugin_output);
+		my_free(hst->plugin_output);
 		hst->plugin_output=(char *)strdup("(No output returned from host check)");
 	        }
 
@@ -2899,7 +2899,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	check_result_info.output=NULL;
 
 	/* free memory */
-	my_free(&output_file);
+	my_free(output_file);
 
 	/* write initial check info to file */
 	/* if things go bad later on, the user will at least have something to go on when debugging... */
@@ -2990,7 +2990,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 			while(fgets(output_buffer,sizeof(output_buffer)-1,fp)){
 				temp_buffer=escape_newlines(output_buffer);
 				dbuf_strcat(&checkresult_dbuf,temp_buffer);
-				my_free(&temp_buffer);
+				my_free(temp_buffer);
 				}
 
 			/* close the process */
@@ -3034,8 +3034,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 			/* free memory */
 			dbuf_free(&checkresult_dbuf);
-			my_free(&raw_command);
-			my_free(&processed_command);
+			my_free(raw_command);
+			my_free(processed_command);
 
 			/* free check result memory */
 			free_check_result(&check_result_info);
@@ -3074,8 +3074,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		free_check_result(&check_result_info);
 
 		/* free memory */
-		my_free(&raw_command);
-		my_free(&processed_command);
+		my_free(raw_command);
+		my_free(processed_command);
 
 		/* wait for the first child to return */
 		/* if large install tweaks are enabled, we'll clean up the zombie process later */
@@ -3200,16 +3200,16 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 		old_plugin_output=(char *)strdup(temp_host->plugin_output);
 
 	/* clear the old plugin output and perf data buffers */
-	my_free(&temp_host->plugin_output);
-	my_free(&temp_host->long_plugin_output);
-	my_free(&temp_host->perf_data);
+	my_free(temp_host->plugin_output);
+	my_free(temp_host->long_plugin_output);
+	my_free(temp_host->perf_data);
 
 	/* parse check output to get: (1) short output, (2) long output, (3) perf data */
 	parse_check_output(queued_check_result->output,&temp_host->plugin_output,&temp_host->long_plugin_output,&temp_host->perf_data,FALSE,TRUE);
 
 	/* make sure we have some data */
 	if(temp_host->plugin_output==NULL || !strcmp(temp_host->plugin_output,"")){
-		my_free(&temp_host->plugin_output);
+		my_free(temp_host->plugin_output);
 		temp_host->plugin_output=(char *)strdup("(No output returned from host check)");
 	        }
 
@@ -3236,9 +3236,9 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning:  Check of host '%s' did not exit properly!\n",temp_host->name);
 
-			my_free(&temp_host->plugin_output);
-			my_free(&temp_host->long_plugin_output);
-			my_free(&temp_host->perf_data);
+			my_free(temp_host->plugin_output);
+			my_free(temp_host->long_plugin_output);
+			my_free(temp_host->perf_data);
 
 			temp_host->plugin_output=(char *)strdup("(Host check did not exit properly)");
 
@@ -3250,9 +3250,9 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Return code of %d for check of host '%s' was out of bounds.%s\n",queued_check_result->return_code,temp_host->name,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
 
-			my_free(&temp_host->plugin_output);
-			my_free(&temp_host->long_plugin_output);
-			my_free(&temp_host->perf_data);
+			my_free(temp_host->plugin_output);
+			my_free(temp_host->long_plugin_output);
+			my_free(temp_host->perf_data);
 
 			asprintf(&temp_host->plugin_output,"(Return code of %d is out of bounds%s)",queued_check_result->return_code,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" - plugin may be missing":"");
 			
@@ -3261,7 +3261,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 		/* a NULL host check command means we should assume the host is UP */
 		if(temp_host->host_check_command==NULL){
-			my_free(&temp_host->plugin_output);
+			my_free(temp_host->plugin_output);
 			temp_host->plugin_output=(char *)strdup("(Host assumed to be UP)");
 			result=STATE_OK;
 			}
@@ -3291,7 +3291,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	process_host_check_result_3x(temp_host,result,old_plugin_output,CHECK_OPTION_NONE,reschedule_check,TRUE,cached_host_check_horizon);
 
 	/* free memory */
-	my_free(&old_plugin_output);
+	my_free(old_plugin_output);
 
 	log_debug_info(DEBUGL_CHECKS,1,"** Async check result for host '%s' handled: new state=%d\n",temp_host->name,temp_host->current_state);
 

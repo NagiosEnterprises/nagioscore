@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-22-2007
+ * Last Modified:   10-23-2007
  *
  * License:
  *
@@ -67,6 +67,13 @@ extern char     *macro_ondemand;
 extern customvariablesmember *macro_custom_host_vars;
 extern customvariablesmember *macro_custom_service_vars;
 extern customvariablesmember *macro_custom_contact_vars;
+
+extern host         *macro_host_ptr;
+extern hostgroup    *macro_hostgroup_ptr;
+extern service      *macro_service_ptr;
+extern servicegroup *macro_servicegroup_ptr;
+extern contact      *macro_contact_ptr;
+extern contactgroup *macro_contactgroup_ptr;
 
 extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
@@ -4331,3 +4338,4 @@ int reset_variables(void){
 
 	return OK;
         }
+

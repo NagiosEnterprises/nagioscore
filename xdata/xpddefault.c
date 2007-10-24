@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-19-2007
+ * Last Modified: 10-23-2007
  *
  * License:
  *
@@ -431,7 +431,6 @@ int xpddefault_run_service_performance_data_command(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
-	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
@@ -490,7 +489,6 @@ int xpddefault_run_host_performance_data_command(host *hst){
 	/* update host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
@@ -679,7 +677,6 @@ int xpddefault_update_service_performance_data_file(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
-	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw line to write */
@@ -724,7 +721,6 @@ int xpddefault_update_host_performance_data_file(host *hst){
 	/* update host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw output */
@@ -772,7 +768,6 @@ int xpddefault_process_host_perfdata_file(void){
 
 	/* update macros */
 	clear_volatile_macros();
-	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
@@ -828,7 +823,6 @@ int xpddefault_process_service_perfdata_file(void){
 
 	/* update macros */
 	clear_volatile_macros();
-	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */

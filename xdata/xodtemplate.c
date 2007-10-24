@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-22-2007
+ * Last Modified: 10-23-2007
  *
  * Description:
  *
@@ -179,6 +179,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 
 		/* open the main config file for reading (we need to find all the config files to read) */
 		if((thefile=mmap_fopen(main_config_file))==NULL){
+			my_free(config_base_dir);
 			my_free(xodtemplate_config_files);
 			return ERROR;
 	                }
@@ -251,6 +252,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	                }
 
 		/* free memory and close the file */
+		my_free(config_base_dir);
 		my_free(input);
 		mmap_fclose(thefile);
 	        }
@@ -4412,6 +4414,9 @@ int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *tperiod, char
 
 	else
 		result=ERROR;
+
+	/* free memory */
+	my_free(input);
 
 	if(result==ERROR){
 #ifdef NSCORE

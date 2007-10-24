@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 10-23-2007
  *
  * License:
  *
@@ -255,7 +255,6 @@ int log_service_event(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
-	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],(svc->plugin_output==NULL)?"":svc->plugin_output);
@@ -274,7 +273,6 @@ int log_host_event(host *hst){
 	/* grab the host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the log options */

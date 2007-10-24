@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-22-2007
+ * Last Modified:   10-23-2007
  *
  * License:
  *
@@ -61,6 +61,13 @@ customvariablesmember *macro_custom_host_vars=NULL;
 customvariablesmember *macro_custom_service_vars=NULL;
 customvariablesmember *macro_custom_contact_vars=NULL;
 
+host            *macro_host_ptr=NULL;
+hostgroup       *macro_hostgroup_ptr=NULL;
+service         *macro_service_ptr=NULL;
+servicegroup    *macro_servicegroup_ptr=NULL;
+contact         *macro_contact_ptr=NULL;
+contactgroup    *macro_contactgroup_ptr=NULL;
+
 
 
 /******************************************************************/
@@ -77,9 +84,13 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 	int user_index=0;
 	int address_index=0;
 	char *selected_macro=NULL;
+	char *original_macro=NULL;
 	char *cleaned_macro=NULL;
 	int clean_macro=FALSE;
 	int found_macro_x=FALSE;
+	int result=OK;
+	int clean_options=0;
+	int free_macro=FALSE;
 
 
 #ifdef NSCORE
@@ -128,148 +139,17 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 		/* looks like we're in a macro, so process it... */
 		else{
 
-			/* general macros */
-			for(x=0;x<MACRO_X_COUNT;x++){
-				if(macro_x_names[x]==NULL)
-					continue;
-				if(!strcmp(temp_buffer,macro_x_names[x])){
+			/* grab the macro value */
+			result=grab_macro_value(temp_buffer,&selected_macro,&clean_options,&free_macro);
 
-					selected_macro=macro_x[x];
-					found_macro_x=TRUE;
-						
-					/* host/service output/perfdata and author/comment macros get cleaned */
-					if((x>=16 && x<=19) ||(x>=49 && x<=52) || (x>=99 && x<=100) || (x>=124 && x<=127)){
-						clean_macro=TRUE;
-						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-						}
-
-					break;
-					}
+			/* an error occurred - we couldn't parse the macro, so continue on */
+			if(result==ERROR){
+				my_free(selected_macro);
 				}
 
 			/* we already have a macro... */
-			if(found_macro_x==TRUE)
+			if(result==OK)
 				x=0;
-
-			/* argv macros */
-			else if(strstr(temp_buffer,"ARG")==temp_buffer){
-				arg_index=atoi(temp_buffer+3);
-				if(arg_index>=1 && arg_index<=MAX_COMMAND_ARGUMENTS)
-					selected_macro=macro_argv[arg_index-1];
-				else
-					selected_macro=NULL;
-				}
-
-			/* user macros */
-			else if(strstr(temp_buffer,"USER")==temp_buffer){
-				user_index=atoi(temp_buffer+4);
-				if(user_index>=1 && user_index<=MAX_USER_MACROS)
-					selected_macro=macro_user[user_index-1];
-				else
-					selected_macro=NULL;
-				}
-
-			/* custom host variable macros */
-			else if(strstr(temp_buffer,"_HOST")==temp_buffer){
-				selected_macro=NULL;
-				for(temp_customvariablesmember=macro_custom_host_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-					if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
-						selected_macro=temp_customvariablesmember->variable_value;
-						clean_macro=TRUE;
-						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-						break;
-						}
-					}
-				}
-
-			/* custom service variable macros */
-			else if(strstr(temp_buffer,"_SERVICE")==temp_buffer){
-				selected_macro=NULL;
-				for(temp_customvariablesmember=macro_custom_service_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-					if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
-						selected_macro=temp_customvariablesmember->variable_value;
-						clean_macro=TRUE;
-						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-						break;
-						}
-					}
-				}
-
-			/* custom contact variable macros */
-			else if(strstr(temp_buffer,"_CONTACT")==temp_buffer){
-				selected_macro=NULL;
-				for(temp_customvariablesmember=macro_custom_contact_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-					if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
-						selected_macro=temp_customvariablesmember->variable_value;
-						clean_macro=TRUE;
-						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-						break;
-						}
-					}
-				}
-
-			/* contact address macros */
-			else if(strstr(temp_buffer,"CONTACTADDRESS")==temp_buffer){
-				address_index=atoi(temp_buffer+14);
-				if(address_index>=1 && address_index<=MAX_CONTACT_ADDRESSES)
-					selected_macro=macro_contactaddress[address_index-1];
-				else
-					selected_macro=NULL;
-				}
-
-			/* on-demand hostgroup macros */
-			else if(strstr(temp_buffer,"HOSTGROUP") && strstr(temp_buffer,":")){
-				
-				grab_on_demand_macro(temp_buffer);
-				selected_macro=macro_ondemand;
-				}
-
-			/* on-demand host macros */
-			else if(strstr(temp_buffer,"HOST") && strstr(temp_buffer,":")){
-				
-				grab_on_demand_macro(temp_buffer);
-				selected_macro=macro_ondemand;
-				
-				/* output/perfdata macros get cleaned */
-				if(strstr(temp_buffer,"HOSTOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGHOSTOUTPUT:")==temp_buffer  || strstr(temp_buffer,"HOSTPERFDATA:")){
-					clean_macro=TRUE;
-					options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-					}
-				}
-
-			/* on-demand servicegroup macros */
-			else if(strstr(temp_buffer,"SERVICEGROUP") && strstr(temp_buffer,":")){
-				
-				grab_on_demand_macro(temp_buffer);
-				selected_macro=macro_ondemand;
-				}
-
-			/* on-demand service macros */
-			else if(strstr(temp_buffer,"SERVICE") && strstr(temp_buffer,":")){
-
-				grab_on_demand_macro(temp_buffer);
-				selected_macro=macro_ondemand;
-
-				/* output/perfdata macros get cleaned */
-				if(strstr(temp_buffer,"SERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGSERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"SERVICEPERFDATA:")){
-					clean_macro=TRUE;
-					options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-					}
-				}
-				
-			/* on-demand contactgroup macros */
-			else if(strstr(temp_buffer,"CONTACTGROUP") && strstr(temp_buffer,":")){
-				
-				grab_on_demand_macro(temp_buffer);
-				selected_macro=macro_ondemand;
-				}
-
-			/* on-demand time macros */
-			else if(strstr(temp_buffer,"ISVALIDTIME:") || strstr(temp_buffer,"NEXTVALIDTIME:")){
-
-				grab_on_demand_macro(temp_buffer);
-				selected_macro=macro_ondemand;
-				}
 
 			/* an escaped $ is done by specifying two $$ next to each other */
 			else if(!strcmp(temp_buffer,"")){
@@ -299,9 +179,18 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 			/* insert macro */
 			if(selected_macro!=NULL){
 
+				/* include any cleaning options passed back to us */
+				options&=clean_options;
+
 				/* URL encode the macro if requested - this allocates new memory */
-				if(options & URL_ENCODE_MACRO_CHARS)
+				if(options & URL_ENCODE_MACRO_CHARS){
+					original_macro=selected_macro;
 					selected_macro=get_url_encoded_string(selected_macro);
+					if(free_macro==TRUE){
+						my_free(original_macro);
+						}
+					free_macro=TRUE;
+					}
 				
 				/* some macros are cleaned... */
 				if(clean_macro==TRUE || ((options & STRIP_ILLEGAL_MACRO_CHARS) || (options & ESCAPE_MACRO_CHARS))){
@@ -330,8 +219,8 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 						}
 					}
 
-				/* free memory if necessary (it was only allocated if we URL encoded the macro) */
-				if(options & URL_ENCODE_MACRO_CHARS)
+				/* free memory if necessary (if we URL encoded the macro or we were told to do so by grab_macro_value()) */
+				if(free_macro==TRUE)
 					my_free(selected_macro);
 
 #ifdef NSCORE
@@ -352,217 +241,65 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 	}
 
 
+/* grab macros that are specific to a particular host */
+int grab_host_macros(host *hst){
+
+	/* clear host-related macros */
+	clear_host_macros();
+	clear_hostgroup_macros();
+
+	/* save pointer to host */
+	macro_host_ptr=hst;
+	macro_hostgroup_ptr=NULL;
+
+	if(hst==NULL)
+		return ERROR;
+
+#ifdef NSCORE
+	/* save pointer to host's first/primary hostgroup */
+	if(hst->hostgroups_ptr)
+		macro_hostgroup_ptr=(hostgroup *)hst->hostgroups_ptr->object_ptr;
+#endif
+
+	return OK;
+        }
+
+
+/* grab hostgroup macros */
+int grab_hostgroup_macros(hostgroup *hg){
+
+	/* clear hostgroup macros */
+	clear_hostgroup_macros();
+
+	/* save the hostgroup pointer for later */
+	macro_hostgroup_ptr=hg;
+
+	if(hg==NULL)
+		return ERROR;
+
+	return OK;
+	}
+
+
 /* grab macros that are specific to a particular service */
 int grab_service_macros(service *svc){
-	servicegroup *temp_servicegroup=NULL;
-	customvariablesmember *temp_customvariablesmember=NULL;
-	objectlist *temp_objectlist=NULL;
-	char *customvarname=NULL;
-	time_t current_time=0L;
-	unsigned long duration=0L;
-	int days=0;
-	int hours=0;
-	int minutes=0;
-	int seconds=0;
-	char *temp_buffer=NULL;
-	char *buf1=NULL;
-	char *buf2=NULL;
 
 	/* clear service-related macros */
 	clear_service_macros();
 	clear_servicegroup_macros();
+
+	/* save pointer for later */
+	macro_service_ptr=svc;
+	macro_servicegroup_ptr=NULL;
 	
 	if(svc==NULL)
 		return ERROR;
 
-	/* get the service description */
-	macro_x[MACRO_SERVICEDESC]=(char *)strdup(svc->description);
-
-	/* get the service display name */
-	if(svc->display_name)
-		macro_x[MACRO_SERVICEDISPLAYNAME]=(char *)strdup(svc->display_name);
-
 #ifdef NSCORE
-	/* get the plugin output */
-	if(svc->plugin_output)
-		macro_x[MACRO_SERVICEOUTPUT]=(char *)strdup(svc->plugin_output);
-
-	/* get the long plugin output */
-	if(svc->long_plugin_output)
-		macro_x[MACRO_LONGSERVICEOUTPUT]=(char *)strdup(svc->long_plugin_output);
-
-	/* get the performance data */
-	if(svc->perf_data)
-		macro_x[MACRO_SERVICEPERFDATA]=(char *)strdup(svc->perf_data);
+	/* save first/primary servicegroup pointer for later */
+	if(svc->servicegroups_ptr)
+		macro_servicegroup_ptr=(servicegroup *)svc->servicegroups_ptr->object_ptr;
 #endif
-
-	/* get the service check command */
-	if(svc->service_check_command)
-		macro_x[MACRO_SERVICECHECKCOMMAND]=(char *)strdup(svc->service_check_command);
-
-#ifdef NSCORE
-	/* grab the service check type */
-	macro_x[MACRO_SERVICECHECKTYPE]=(char *)strdup((svc->check_type==SERVICE_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
-
-	/* grab the service state type macro (this is usually overridden later on) */
-	macro_x[MACRO_SERVICESTATETYPE]=(char *)strdup((svc->state_type==HARD_STATE)?"HARD":"SOFT");
-
-	/* get the service state */
-	if(svc->current_state==STATE_OK)
-		macro_x[MACRO_SERVICESTATE]=(char *)strdup("OK");
-	else if(svc->current_state==STATE_WARNING)
-		macro_x[MACRO_SERVICESTATE]=(char *)strdup("WARNING");
-	else if(svc->current_state==STATE_CRITICAL)
-		macro_x[MACRO_SERVICESTATE]=(char *)strdup("CRITICAL");
-	else
-		macro_x[MACRO_SERVICESTATE]=(char *)strdup("UNKNOWN");
-#endif
-
-	/* get the service volatility */
-	asprintf(&macro_x[MACRO_SERVICEISVOLATILE],"%d",svc->is_volatile);
-
-#ifdef NSCORE
-	/* get the service state id */
-	asprintf(&macro_x[MACRO_SERVICESTATEID],"%d",svc->current_state);
-
-	/* get the current service check attempt macro */
-	asprintf(&macro_x[MACRO_SERVICEATTEMPT],"%d",svc->current_attempt);
-
-	/* get the max service check attempts macro */
-	asprintf(&macro_x[MACRO_MAXSERVICEATTEMPTS],"%d",svc->max_attempts);
-
-	/* get the execution time macro */
-	asprintf(&macro_x[MACRO_SERVICEEXECUTIONTIME],"%.3f",svc->execution_time);
-
-	/* get the latency macro */
-	asprintf(&macro_x[MACRO_SERVICELATENCY],"%.3f",svc->latency);
-
-	/* get the last check time macro */
-	asprintf(&macro_x[MACRO_LASTSERVICECHECK],"%lu",(unsigned long)svc->last_check);
-
-	/* get the last state change time macro */
-	asprintf(&macro_x[MACRO_LASTSERVICESTATECHANGE],"%lu",(unsigned long)svc->last_state_change);
-
-	/* get the last time ok macro */
-	asprintf(&macro_x[MACRO_LASTSERVICEOK],"%lu",(unsigned long)svc->last_time_ok);
-
-	/* get the last time warning macro */
-	asprintf(&macro_x[MACRO_LASTSERVICEWARNING],"%lu",(unsigned long)svc->last_time_warning);
-
-	/* get the last time unknown macro */
-	asprintf(&macro_x[MACRO_LASTSERVICEUNKNOWN],"%lu",(unsigned long)svc->last_time_unknown);
-
-	/* get the last time critical macro */
-	asprintf(&macro_x[MACRO_LASTSERVICECRITICAL],"%lu",(unsigned long)svc->last_time_critical);
-
-	/* get the service downtime depth */
-	asprintf(&macro_x[MACRO_SERVICEDOWNTIME],"%d",svc->scheduled_downtime_depth);
-
-	/* get the percent state change */
-	asprintf(&macro_x[MACRO_SERVICEPERCENTCHANGE],"%.2f",svc->percent_state_change);
-
-	time(&current_time);
-	duration=(unsigned long)(current_time-svc->last_state_change);
-
-	/* get the state duration in seconds */
-	asprintf(&macro_x[MACRO_SERVICEDURATIONSEC],"%lu",duration);
-
-	/* get the state duration */
-	days=duration/86400;
-	duration-=(days*86400);
-	hours=duration/3600;
-	duration-=(hours*3600);
-	minutes=duration/60;
-	duration-=(minutes*60);
-	seconds=duration;
-	asprintf(&macro_x[MACRO_SERVICEDURATION],"%dd %dh %dm %ds",days,hours,minutes,seconds);
-
-	/* get the notification number macro */
-	asprintf(&macro_x[MACRO_SERVICENOTIFICATIONNUMBER],"%d",svc->current_notification_number);
-
-	/* get the notification id macro */
-	asprintf(&macro_x[MACRO_SERVICENOTIFICATIONID],"%lu",svc->current_notification_id);
-
-	/* get the event id macro */
-	asprintf(&macro_x[MACRO_SERVICEEVENTID],"%lu",svc->current_event_id);
-
-	/* get the last event id macro */
-	asprintf(&macro_x[MACRO_LASTSERVICEEVENTID],"%lu",svc->last_event_id);
-
-	/* get the problem id macro */
-	asprintf(&macro_x[MACRO_SERVICEPROBLEMID],"%lu",svc->current_problem_id);
-
-	/* get the last problem id macro */
-	asprintf(&macro_x[MACRO_LASTSERVICEPROBLEMID],"%lu",svc->last_problem_id);
-#endif
-
-	/* get the action url */
-	if(svc->action_url)
-		macro_x[MACRO_SERVICEACTIONURL]=(char *)strdup(svc->action_url);
-
-	/* get the notes url */
-	if(svc->notes_url)
-		macro_x[MACRO_SERVICENOTESURL]=(char *)strdup(svc->notes_url);
-
-	/* get the notes */
-	if(svc->notes)
-		macro_x[MACRO_SERVICENOTES]=(char *)strdup(svc->notes);
-
-
-#ifdef NSCORE
-	/* find all servicegroups this service is associated with */
-	for(temp_objectlist=svc->servicegroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
-
-		if((temp_servicegroup=(servicegroup *)temp_objectlist->object_ptr)==NULL)
-			continue;
-
-		asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_servicegroup->group_name);
-		my_free(buf2);
-		buf2=buf1;
-		}
-	if(buf2){
-		macro_x[MACRO_SERVICEGROUPNAMES]=(char *)strdup(buf2);
-		my_free(buf2);
-		}
-
-	/* get first/primary servicegroup macros */
-	if(svc->servicegroups_ptr){
-		if((temp_servicegroup=(servicegroup *)svc->servicegroups_ptr->object_ptr))
-			grab_servicegroup_macros(temp_servicegroup);
-		}
-#endif
-
-
-	/* get custom variables */
-	for(temp_customvariablesmember=svc->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-		asprintf(&customvarname,"_SERVICE%s",temp_customvariablesmember->variable_name);
-		add_custom_variable_to_object(&macro_custom_service_vars,customvarname,temp_customvariablesmember->variable_value);
-		my_free(customvarname);
-	        }
-
-	/*
-	strip(macro_x[MACRO_SERVICEOUTPUT]);
-	strip(macro_x[MACRO_SERVICEPERFDATA]);
-	strip(macro_x[MACRO_SERVICECHECKCOMMAND]);
-	strip(macro_x[MACRO_SERVICENOTES]);
-	*/
-
-	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
-	if(macro_x[MACRO_SERVICEACTIONURL]!=NULL){
-		process_macros(macro_x[MACRO_SERVICEACTIONURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
-		my_free(macro_x[MACRO_SERVICEACTIONURL]);
-		macro_x[MACRO_SERVICEACTIONURL]=temp_buffer;
-	        }
-	if(macro_x[MACRO_SERVICENOTESURL]!=NULL){
-		process_macros(macro_x[MACRO_SERVICENOTESURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
-		my_free(macro_x[MACRO_SERVICENOTESURL]);
-		macro_x[MACRO_SERVICENOTESURL]=temp_buffer;
-	        }
-	if(macro_x[MACRO_SERVICENOTES]!=NULL){
-		process_macros(macro_x[MACRO_SERVICENOTES],&temp_buffer,0);
-		my_free(macro_x[MACRO_SERVICENOTES]);
-		macro_x[MACRO_SERVICENOTES]=temp_buffer;
-	        }
 
 	return OK;
         }
@@ -571,1767 +308,57 @@ int grab_service_macros(service *svc){
 
 /* grab macros that are specific to a particular servicegroup */
 int grab_servicegroup_macros(servicegroup *sg){
-	servicesmember *temp_servicesmember=NULL;
-	char *temp_buffer=NULL;
 
 	/* clear servicegroup macros */
 	clear_servicegroup_macros();
 
+	/* save the pointer for later */
+	macro_servicegroup_ptr=sg;
+
 	if(sg==NULL)
 		return ERROR;
 
-	/* get the servicegroup name */
-	macro_x[MACRO_SERVICEGROUPNAME]=(char *)strdup(sg->group_name);
-	
-	/* get the servicegroup alias */
-	if(sg->alias)
-		macro_x[MACRO_SERVICEGROUPALIAS]=(char *)strdup(sg->alias);
-
-	/* get the group members */
-#ifdef THIS_CAUSES_A_SIGABRT
-	for(temp_servicesmember=sg->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
-		if(macro_x[MACRO_SERVICEGROUPMEMBERS]==NULL){
-			if((macro_x[MACRO_SERVICEGROUPMEMBERS]=(char *)malloc(strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+1))){
-				sprintf(macro_x[MACRO_SERVICEGROUPMEMBERS],"%s,%s",temp_servicesmember->host_name,temp_servicesmember->service_description);
-				}
-			}
-		else if((macro_x[MACRO_SERVICEGROUPMEMBERS]=(char *)realloc(macro_x[MACRO_SERVICEGROUPMEMBERS],strlen(macro_x[MACRO_SERVICEGROUPMEMBERS])+strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+3))){
-			strcat(macro_x[MACRO_SERVICEGROUPMEMBERS],",");
-			strcat(macro_x[MACRO_SERVICEGROUPMEMBERS],temp_servicesmember->host_name);
-			strcat(macro_x[MACRO_SERVICEGROUPMEMBERS],",");
-			strcat(macro_x[MACRO_SERVICEGROUPMEMBERS],temp_servicesmember->service_description);
-			}
-		}
-#endif
-
-	/* get the servicegroup action url */
-	if(sg->action_url)
-		macro_x[MACRO_SERVICEGROUPACTIONURL]=(char *)strdup(sg->action_url);
-
-	/* get the servicegroup notes url */
-	if(sg->notes_url)
-		macro_x[MACRO_SERVICEGROUPNOTESURL]=(char *)strdup(sg->notes_url);
-
-	/* get the servicegroup notes */
-	if(sg->notes)
-		macro_x[MACRO_SERVICEGROUPNOTES]=(char *)strdup(sg->notes);
-
-	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
-	if(macro_x[MACRO_SERVICEGROUPACTIONURL]!=NULL){
-		process_macros(macro_x[MACRO_SERVICEGROUPACTIONURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
-		my_free(macro_x[MACRO_SERVICEGROUPACTIONURL]);
-		macro_x[MACRO_SERVICEGROUPACTIONURL]=temp_buffer;
-	        }
-	if(macro_x[MACRO_SERVICEGROUPNOTESURL]!=NULL){
-		process_macros(macro_x[MACRO_SERVICEGROUPNOTESURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
-		my_free(macro_x[MACRO_SERVICEGROUPNOTESURL]);
-		macro_x[MACRO_SERVICEGROUPNOTESURL]=temp_buffer;
-	        }
-	if(macro_x[MACRO_SERVICEGROUPNOTES]!=NULL){
-		process_macros(macro_x[MACRO_SERVICEGROUPNOTES],&temp_buffer,0);
-		my_free(macro_x[MACRO_SERVICEGROUPNOTES]);
-		macro_x[MACRO_SERVICEGROUPNOTES]=temp_buffer;
-	        }
-
 	return OK;
 	}
 
-
-
-/* grab macros that are specific to a particular host */
-int grab_host_macros(host *hst){
-	hostgroup *temp_hostgroup=NULL;
-	customvariablesmember *temp_customvariablesmember=NULL;
-	servicesmember *temp_servicesmember=NULL;
-	service *temp_service=NULL;
-	objectlist *temp_objectlist=NULL;
-	char *customvarname=NULL;
-	time_t current_time=0L;
-	unsigned long duration=0L;
-	int days=0;
-	int hours=0;
-	int minutes=0;
-	int seconds=0;
-	int total_host_services=0;
-	int total_host_services_ok=0;
-	int total_host_services_warning=0;
-	int total_host_services_unknown=0;
-	int total_host_services_critical=0;
-	char *temp_buffer=NULL;
-	char *buf1=NULL;
-	char *buf2=NULL;
-
-	/* clear host-related macros */
-	clear_host_macros();
-	clear_hostgroup_macros();
-
-	if(hst==NULL)
-		return ERROR;
-
-	/* get the host name */
-	macro_x[MACRO_HOSTNAME]=(char *)strdup(hst->name);
-	
-	/* get the host display name */
-	if(hst->display_name)
-		macro_x[MACRO_HOSTDISPLAYNAME]=(char *)strdup(hst->display_name);
-
-	/* get the host alias */
-	macro_x[MACRO_HOSTALIAS]=(char *)strdup(hst->alias);
-
-	/* get the host address */
-	macro_x[MACRO_HOSTADDRESS]=(char *)strdup(hst->address);
-
-#ifdef NSCORE
-	/* get the host state */
-	if(hst->current_state==HOST_DOWN)
-		macro_x[MACRO_HOSTSTATE]=(char *)strdup("DOWN");
-	else if(hst->current_state==HOST_UNREACHABLE)
-		macro_x[MACRO_HOSTSTATE]=(char *)strdup("UNREACHABLE");
-	else
-		macro_x[MACRO_HOSTSTATE]=(char *)strdup("UP");
-
-	/* get the host state id */
-	asprintf(&macro_x[MACRO_HOSTSTATEID],"%d",hst->current_state);
-
-	/* grab the host check type */
-	asprintf(&macro_x[MACRO_HOSTCHECKTYPE],"%s",(hst->check_type==HOST_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
-
-	/* get the host state type macro */
-	asprintf(&macro_x[MACRO_HOSTSTATETYPE],"%s",(hst->state_type==HARD_STATE)?"HARD":"SOFT");
-
-	/* get the plugin output */
-	if(hst->plugin_output)
-		macro_x[MACRO_HOSTOUTPUT]=(char *)strdup(hst->plugin_output);
-
-	/* get the long plugin output */
-	if(hst->long_plugin_output)
-		macro_x[MACRO_LONGHOSTOUTPUT]=(char *)strdup(hst->long_plugin_output);
-
-	/* get the performance data */
-	if(hst->perf_data)
-		macro_x[MACRO_HOSTPERFDATA]=(char *)strdup(hst->perf_data);
-#endif
-
-	/* get the host check command */
-	if(hst->host_check_command)
-		macro_x[MACRO_HOSTCHECKCOMMAND]=(char *)strdup(hst->host_check_command);
-
-#ifdef NSCORE
-	/* get the host current attempt */
-	asprintf(&macro_x[MACRO_HOSTATTEMPT],"%d",hst->current_attempt);
-
-	/* get the max host attempts */
-	asprintf(&macro_x[MACRO_MAXHOSTATTEMPTS],"%d",hst->max_attempts);
-
-	/* get the host downtime depth */
-	asprintf(&macro_x[MACRO_HOSTDOWNTIME],"%d",hst->scheduled_downtime_depth);
-
-	/* get the percent state change */
-	asprintf(&macro_x[MACRO_HOSTPERCENTCHANGE],"%.2f",hst->percent_state_change);
-
-	time(&current_time);
-	duration=(unsigned long)(current_time-hst->last_state_change);
-
-	/* get the state duration in seconds */
-	asprintf(&macro_x[MACRO_HOSTDURATIONSEC],"%lu",duration);
-
-	/* get the state duration */
-	days=duration/86400;
-	duration-=(days*86400);
-	hours=duration/3600;
-	duration-=(hours*3600);
-	minutes=duration/60;
-	duration-=(minutes*60);
-	seconds=duration;
-	asprintf(&macro_x[MACRO_HOSTDURATION],"%dd %dh %dm %ds",days,hours,minutes,seconds);
-
-	/* get the execution time macro */
-	asprintf(&macro_x[MACRO_HOSTEXECUTIONTIME],"%.3f",hst->execution_time);
-
-	/* get the latency macro */
-	asprintf(&macro_x[MACRO_HOSTLATENCY],"%.3f",hst->latency);
-
-	/* get the last check time macro */
-	asprintf(&macro_x[MACRO_LASTHOSTCHECK],"%lu",(unsigned long)hst->last_check);
-
-	/* get the last state change time macro */
-	asprintf(&macro_x[MACRO_LASTHOSTSTATECHANGE],"%lu",(unsigned long)hst->last_state_change);
-
-	/* get the last time up macro */
-	asprintf(&macro_x[MACRO_LASTHOSTUP],"%lu",(unsigned long)hst->last_time_up);
-
-	/* get the last time down macro */
-	asprintf(&macro_x[MACRO_LASTHOSTDOWN],"%lu",(unsigned long)hst->last_time_down);
-
-	/* get the last time unreachable macro */
-	asprintf(&macro_x[MACRO_LASTHOSTUNREACHABLE],"%lu",(unsigned long)hst->last_time_unreachable);
-
-	/* get the notification number macro */
-	asprintf(&macro_x[MACRO_HOSTNOTIFICATIONNUMBER],"%d",hst->current_notification_number);
-
-	/* get the notification id macro */
-	asprintf(&macro_x[MACRO_HOSTNOTIFICATIONID],"%lu",hst->current_notification_id);
-
-	/* get the event id macro */
-	asprintf(&macro_x[MACRO_HOSTEVENTID],"%lu",hst->current_event_id);
-
-	/* get the last event id macro */
-	asprintf(&macro_x[MACRO_LASTHOSTEVENTID],"%lu",hst->last_event_id);
-
-	/* get the problem id macro */
-	asprintf(&macro_x[MACRO_HOSTPROBLEMID],"%lu",hst->current_problem_id);
-
-	/* get the last problem id macro */
-	asprintf(&macro_x[MACRO_LASTHOSTPROBLEMID],"%lu",hst->last_problem_id);
-#endif
-
-	/* get the action url */
-	if(hst->action_url)
-		macro_x[MACRO_HOSTACTIONURL]=(char *)strdup(hst->action_url);
-
-	/* get the notes url */
-	if(hst->notes_url)
-		macro_x[MACRO_HOSTNOTESURL]=(char *)strdup(hst->notes_url);
-
-	/* get the notes */
-	if(hst->notes)
-		macro_x[MACRO_HOSTNOTES]=(char *)strdup(hst->notes);
-
-
-#ifdef NSCORE
-	/* find all hostgroups this host is associated with */
-	for(temp_objectlist=hst->hostgroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
-
-		if((temp_hostgroup=(hostgroup *)temp_objectlist->object_ptr)==NULL)
-			continue;
-
-		asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_hostgroup->group_name);
-		my_free(buf2);
-		buf2=buf1;
-		}
-	if(buf2){
-		macro_x[MACRO_HOSTGROUPNAMES]=(char *)strdup(buf2);
-		my_free(buf2);
-		}
-
-	/* get first/primary hostgroup macros */
-	if(hst->hostgroups_ptr){
-		if((temp_hostgroup=(hostgroup *)hst->hostgroups_ptr->object_ptr))
-			grab_hostgroup_macros(temp_hostgroup);
-		}
-
-
-	/* service summary macros */
-	for(temp_servicesmember=hst->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
-		if((temp_service=temp_servicesmember->service_ptr)==NULL)
-			continue;
-
-		total_host_services++;
-
-		switch(temp_service->current_state){
-		case STATE_OK:
-			total_host_services_ok++;
-			break;
-		case STATE_WARNING:
-			total_host_services_warning++;
-			break;
-		case STATE_UNKNOWN:
-			total_host_services_unknown++;
-			break;
-		case STATE_CRITICAL:
-			total_host_services_critical++;
-			break;
-		default:
-			break;
-			}
-		}
-	asprintf(&macro_x[MACRO_TOTALHOSTSERVICES],"%lu",total_host_services);
-	asprintf(&macro_x[MACRO_TOTALHOSTSERVICESOK],"%lu",total_host_services_ok);
-	asprintf(&macro_x[MACRO_TOTALHOSTSERVICESWARNING],"%lu",total_host_services_warning);
-	asprintf(&macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN],"%lu",total_host_services_unknown);
-	asprintf(&macro_x[MACRO_TOTALHOSTSERVICESCRITICAL],"%lu",total_host_services_critical);
-#endif
-
-	/* get custom variables */
-	for(temp_customvariablesmember=hst->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-		asprintf(&customvarname,"_HOST%s",temp_customvariablesmember->variable_name);
-		add_custom_variable_to_object(&macro_custom_host_vars,customvarname,temp_customvariablesmember->variable_value);
-		my_free(customvarname);
-	        }
-
-	/*
-	strip(macro_x[MACRO_HOSTOUTPUT]);
-	strip(macro_x[MACRO_HOSTPERFDATA]);
-	strip(macro_x[MACRO_HOSTCHECKCOMMAND]);
-	strip(macro_x[MACRO_HOSTNOTES]);
-	*/
-
-	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
-	if(macro_x[MACRO_HOSTACTIONURL]!=NULL){
-		process_macros(macro_x[MACRO_HOSTACTIONURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
-		my_free(macro_x[MACRO_HOSTACTIONURL]);
-		macro_x[MACRO_HOSTACTIONURL]=temp_buffer;
-	        }
-	if(macro_x[MACRO_HOSTNOTESURL]!=NULL){
-		process_macros(macro_x[MACRO_HOSTNOTESURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
-		my_free(macro_x[MACRO_HOSTNOTESURL]);
-		macro_x[MACRO_HOSTNOTESURL]=temp_buffer;
-	        }
-	if(macro_x[MACRO_HOSTNOTES]!=NULL){
-		process_macros(macro_x[MACRO_HOSTNOTES],&temp_buffer,0);
-		my_free(macro_x[MACRO_HOSTNOTES]);
-		macro_x[MACRO_HOSTNOTES]=temp_buffer;
-	        }
-
-	return OK;
-        }
-
-
-/* grab hostgroup macros */
-int grab_hostgroup_macros(hostgroup *hg){
-	hostsmember *temp_hostsmember=NULL;
-	char *temp_buffer=NULL;
-
-	/* clear hostgroup macros */
-	clear_hostgroup_macros();
-
-	if(hg==NULL)
-		return ERROR;
-
-	/* get the hostgroup name */
-	macro_x[MACRO_HOSTGROUPNAME]=(char *)strdup(hg->group_name);
-	
-	/* get the hostgroup alias */
-	if(hg->alias)
-		macro_x[MACRO_HOSTGROUPALIAS]=(char *)strdup(hg->alias);
-
-	/* get the group members */
-	for(temp_hostsmember=hg->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
-		if(macro_x[MACRO_HOSTGROUPMEMBERS]==NULL)
-			macro_x[MACRO_HOSTGROUPMEMBERS]=(char *)strdup(temp_hostsmember->host_name);
-		else if((macro_x[MACRO_HOSTGROUPMEMBERS]=(char *)realloc(macro_x[MACRO_HOSTGROUPMEMBERS],strlen(macro_x[MACRO_HOSTGROUPMEMBERS])+strlen(temp_hostsmember->host_name)+2))){
-			strcat(macro_x[MACRO_HOSTGROUPMEMBERS],",");
-			strcat(macro_x[MACRO_HOSTGROUPMEMBERS],temp_hostsmember->host_name);
-			}
-		}
-
-	/* get the hostgroup action url */
-	if(hg->action_url)
-		macro_x[MACRO_HOSTGROUPACTIONURL]=(char *)strdup(hg->action_url);
-
-	/* get the hostgroup notes url */
-	if(hg->notes_url)
-		macro_x[MACRO_HOSTGROUPNOTESURL]=(char *)strdup(hg->notes_url);
-
-	/* get the hostgroup notes */
-	if(hg->notes)
-		macro_x[MACRO_HOSTGROUPNOTES]=(char *)strdup(hg->notes);
-
-	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
-	if(macro_x[MACRO_HOSTGROUPACTIONURL]!=NULL){
-		process_macros(macro_x[MACRO_HOSTGROUPACTIONURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
-		my_free(macro_x[MACRO_HOSTGROUPACTIONURL]);
-		macro_x[MACRO_HOSTGROUPACTIONURL]=temp_buffer;
-	        }
-	if(macro_x[MACRO_HOSTGROUPNOTESURL]!=NULL){
-		process_macros(macro_x[MACRO_HOSTGROUPNOTESURL],&temp_buffer,URL_ENCODE_MACRO_CHARS);
-		my_free(macro_x[MACRO_HOSTGROUPNOTESURL]);
-		macro_x[MACRO_HOSTGROUPNOTESURL]=temp_buffer;
-	        }
-	if(macro_x[MACRO_HOSTGROUPNOTES]!=NULL){
-		process_macros(macro_x[MACRO_HOSTGROUPNOTES],&temp_buffer,0);
-		my_free(macro_x[MACRO_HOSTGROUPNOTES]);
-		macro_x[MACRO_HOSTGROUPNOTES]=temp_buffer;
-	        }
-
-	return OK;
-	}
 
 
 /* grab macros that are specific to a particular contact */
 int grab_contact_macros(contact *cntct){
-	customvariablesmember *temp_customvariablesmember=NULL;
-	char *customvarname=NULL;
-	contactgroup *temp_contactgroup=NULL;
-	objectlist *temp_objectlist=NULL;
-	char *buf1=NULL;
-	char *buf2=NULL;
-	int x=0;
 
 	/* clear contact-related macros */
 	clear_contact_macros();
 	clear_contactgroup_macros();
 
+	/* save pointer to contact for later */
+	macro_contact_ptr=cntct;
+	macro_contactgroup_ptr=NULL;
+
 	if(cntct==NULL)
 		return ERROR;
 
-	/* get the name */
-	my_free(macro_x[MACRO_CONTACTNAME]);
-	macro_x[MACRO_CONTACTNAME]=(char *)strdup(cntct->name);
-
-	/* get the alias */
-	my_free(macro_x[MACRO_CONTACTALIAS]);
-	macro_x[MACRO_CONTACTALIAS]=(char *)strdup(cntct->alias);
-
-	/* get the email address */
-	my_free(macro_x[MACRO_CONTACTEMAIL]);
-	if(cntct->email)
-		macro_x[MACRO_CONTACTEMAIL]=(char *)strdup(cntct->email);
-
-	/* get the pager number */
-	my_free(macro_x[MACRO_CONTACTPAGER]);
-	if(cntct->pager)
-		macro_x[MACRO_CONTACTPAGER]=(char *)strdup(cntct->pager);
-
-	/* get misc contact addresses */
-	for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
-		my_free(macro_contactaddress[x]);
-		if(cntct->address[x]){
-			macro_contactaddress[x]=(char *)strdup(cntct->address[x]);
-			/*strip(macro_contactaddress[x]);*/
-		        }
-	        }
-
 #ifdef NSCORE
-	/* get the contactgroup names */
-	/* find all contactgroups this contact is a member of */
-	for(temp_objectlist=cntct->contactgroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
-
-		if((temp_contactgroup=(contactgroup *)temp_objectlist->object_ptr)==NULL)
-			continue;
-
-		asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_contactgroup->group_name);
-		my_free(buf2);
-		buf2=buf1;
-		}
-	if(buf2){
-		macro_x[MACRO_CONTACTGROUPNAMES]=(char *)strdup(buf2);
-		my_free(buf2);
-		}
-
-	/* get first/primary contactgroup macros */
-	if(cntct->contactgroups_ptr){
-		if((temp_contactgroup=(contactgroup *)cntct->contactgroups_ptr->object_ptr))
-			grab_contactgroup_macros(temp_contactgroup);
-		}
+	/* save pointer to first/primary contactgroup for later */
+	if(cntct->contactgroups_ptr)
+		macro_contactgroup_ptr=(contactgroup *)cntct->contactgroups_ptr->object_ptr;
 #endif
 
-	/* get custom variables */
-	for(temp_customvariablesmember=cntct->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-		asprintf(&customvarname,"_CONTACT%s",temp_customvariablesmember->variable_name);
-		add_custom_variable_to_object(&macro_custom_contact_vars,customvarname,temp_customvariablesmember->variable_value);
-		my_free(customvarname);
-	        }
-
-	/*
-	strip(macro_x[MACRO_CONTACTNAME]);
-	strip(macro_x[MACRO_CONTACTALIAS]);
-	strip(macro_x[MACRO_CONTACTEMAIL]);
-	strip(macro_x[MACRO_CONTACTPAGER]);
-	*/
-
 	return OK;
-        }
+	}
 
 
 
 /* grab contactgroup macros */
 int grab_contactgroup_macros(contactgroup *cg){
-	contactgroup *temp_contactgroup=NULL;
-	contactsmember *temp_contactsmember=NULL;
 
 	/* clear contactgroup macros */
 	clear_contactgroup_macros();
 
+	/* save pointer to contactgroup for later */
+	macro_contactgroup_ptr=cg;
+
 	if(cg==NULL)
 		return ERROR;
-
-	/* get the group alias */
-	my_free(macro_x[MACRO_CONTACTGROUPALIAS]);
-	if(cg->alias)
-		macro_x[MACRO_CONTACTGROUPALIAS]=(char *)strdup(cg->alias);
-
-	/* get the member list */
-	my_free(macro_x[MACRO_CONTACTGROUPMEMBERS]);
-	for(temp_contactsmember=cg->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
-		if(macro_x[MACRO_CONTACTGROUPMEMBERS]==NULL)
-			macro_x[MACRO_CONTACTGROUPMEMBERS]=(char *)strdup(temp_contactsmember->contact_name);
-		else if((macro_x[MACRO_CONTACTGROUPMEMBERS]=(char *)realloc(macro_x[MACRO_CONTACTGROUPMEMBERS],strlen(macro_x[MACRO_CONTACTGROUPMEMBERS])+strlen(temp_contactsmember->contact_name)+2))){
-			strcat(macro_x[MACRO_CONTACTGROUPMEMBERS],",");
-			strcat(macro_x[MACRO_CONTACTGROUPMEMBERS],temp_contactsmember->contact_name);
-			}
-	        }
-
-	return OK;
-	}
-
-
-/* grab an on-demand macro */
-int grab_on_demand_macro(char *str){
-	char *macro=NULL;
-	char *first_arg=NULL;
-	char *second_arg=NULL;
-	char result_buffer[MAX_INPUT_BUFFER]="";
-	int result_buffer_len=0;
-	int delimiter_len=0;
-	host *temp_host=NULL;
-	hostgroup *temp_hostgroup=NULL;
-	hostsmember *temp_hostsmember=NULL;
-	service *temp_service=NULL;
-	servicegroup *temp_servicegroup=NULL;
-	servicesmember *temp_servicesmember=NULL;
-	contact *temp_contact=NULL;
-	contactgroup *temp_contactgroup=NULL;
-	contactsmember *temp_contactsmember=NULL;
-	char *ptr=NULL;
-	char *host_name=NULL;
-	int return_val=ERROR;
-
-	/* clear the on-demand macro */
-	my_free(macro_ondemand);
-
-	/* save a copy of the macro */
-	if((macro=(char *)strdup(str))==NULL)
-		return ERROR;
-
-	/* get the first argument (e.g. host name) */
-	if((ptr=strchr(macro,':'))==NULL){
-		my_free(macro);
-		return ERROR;
-	        }
-
-	/* terminate the macro name at the first arg's delimiter */
-	ptr[0]='\x0';
-	first_arg=ptr+1;
-
-	/* get the second argument (if present) */
-	ptr=strchr(first_arg,':');
-	if(ptr!=NULL){
-		/* terminate the first arg at the second arg's delimiter */
-		ptr[0]='\x0';
-		second_arg=ptr+1;
-	        }
-
-	/* process the macro... */
-
-	/* on-demand hostgroup macros */
-	if(strstr(macro,"HOSTGROUP")){
-
-		temp_hostgroup=find_hostgroup(first_arg);
-		return_val=grab_on_demand_hostgroup_macro(temp_hostgroup,macro);
-		}
-
-	/* on-demand host macros */
-	else if(strstr(macro,"HOST")){
-
-		/* process a host macro */
-		if(second_arg==NULL){
-			temp_host=find_host(first_arg);
-			return_val=grab_on_demand_host_macro(temp_host,macro);
-	                }
-
-		/* process a host macro containing a hostgroup */
-		else{
-			if((temp_hostgroup=find_hostgroup(first_arg))==NULL){
-				my_free(macro);
-				return ERROR;
-				}
-
-			return_val=OK;  /* start off assuming there's no error */
-			result_buffer[0]='\0';
-			result_buffer[sizeof(result_buffer)-1]='\0';
-			result_buffer_len=0;
-			delimiter_len=strlen(second_arg);
-
-			/* process each host in the hostgroup */
-			if((temp_hostsmember=temp_hostgroup->members)==NULL){
-				macro_ondemand=(char *)strdup("");
-				my_free(macro);
-				return OK;
-				}
-			while(1){
-#ifdef NSCORE
-				if((temp_host=temp_hostsmember->host_ptr)==NULL)
-					continue;
-#else
-				if((temp_host=find_host(temp_hostsmember->host_name))==NULL)
-					continue;
-#endif
-				if(grab_on_demand_host_macro(temp_host,macro)==OK){
-					strncat(result_buffer,macro_ondemand,sizeof(result_buffer)-result_buffer_len-1);
-					result_buffer_len+=strlen(macro_ondemand);
-					if(result_buffer_len>sizeof(result_buffer)-1){
-						return_val=ERROR;
-						break;
-						}
-					if((temp_hostsmember=temp_hostsmember->next)==NULL)
-						break;
-					strncat(result_buffer,second_arg,sizeof(result_buffer)-result_buffer_len-1);
-					result_buffer_len+=delimiter_len;
-					if(result_buffer_len>sizeof(result_buffer)-1){
-						return_val=ERROR;
-						break;
-						}
-					}
-				else{
-					return_val=ERROR;
-					if((temp_hostsmember=temp_hostsmember->next)==NULL)
-						break;
-					}
-
-				my_free(macro_ondemand);
-				}
-
-			my_free(macro_ondemand);
-			macro_ondemand=(char *)strdup(result_buffer);
-			}
-	        }
-
-	/* on-demand servicegroup macros */
-	else if(strstr(macro,"SERVICEGROUP")){
-
-		temp_servicegroup=find_servicegroup(first_arg);
-		return_val=grab_on_demand_servicegroup_macro(temp_servicegroup,macro);
-		}
-
-	/* on-demand service macros */
-	else if(strstr(macro,"SERVICE")){
-
-		/* second args will either be service description or delimiter */
-		if(second_arg==NULL){
-			my_free(macro);
-			return ERROR;
-	                }
-
-		/* if first arg (host name) is blank, it means refer to the "current" host, so look to other macros for help... */
-		if(!strcmp(first_arg,""))
-			host_name=macro_x[MACRO_HOSTNAME];
-		else
-			host_name=first_arg;
-
-		/* process a service macro */
-		temp_service=find_service(host_name,second_arg);
-		if(temp_service!=NULL)
-			return_val=grab_on_demand_service_macro(temp_service,macro);
-
-		/* process a service macro containing a servicegroup */
-		else{
-			if((temp_servicegroup=find_servicegroup(first_arg))==NULL){
-				my_free(macro);
-				return ERROR;
-				}
-
-			return_val=OK;  /* start off assuming there's no error */
-			result_buffer[0]='\0';
-			result_buffer[sizeof(result_buffer)-1]='\0';
-			result_buffer_len=0;
-			delimiter_len=strlen(second_arg);
-
-			/* process each service in the servicegroup */
-			if((temp_servicesmember=temp_servicegroup->members)==NULL){
-				macro_ondemand=(char *)strdup("");
-				my_free(macro);
-				return OK;
-				}
-			while(1){
-#ifdef NSCORE
-				if((temp_service=temp_servicesmember->service_ptr)==NULL)
-					continue;
-#else
-				if((temp_service=find_service(temp_servicesmember->host_name,temp_servicesmember->service_description))==NULL)
-					continue;
-#endif
-				if(grab_on_demand_service_macro(temp_service,macro)==OK){
-					strncat(result_buffer,macro_ondemand,sizeof(result_buffer)-result_buffer_len-1);
-					result_buffer_len+=strlen(macro_ondemand);
-					if(result_buffer_len>sizeof(result_buffer)-1){
-						return_val=ERROR;
-						break;
-						}
-					if((temp_servicesmember=temp_servicesmember->next)==NULL)
-						break;
-					strncat(result_buffer,second_arg,sizeof(result_buffer)-result_buffer_len-1);
-					result_buffer_len+=delimiter_len;
-					if(result_buffer_len>sizeof(result_buffer)-1){
-						return_val=ERROR;
-						break;
-						}
-					}
-				else{
-					return_val=ERROR;
-					if((temp_servicesmember=temp_servicesmember->next)==NULL)
-						break;
-					}
-
-				my_free(macro_ondemand);
-				}
-
-			my_free(macro_ondemand);
-			macro_ondemand=(char *)strdup(result_buffer);
-			}
-	        }
-
-	/* on-demand contactgroup macros */
-	else if(strstr(macro,"CONTACTGROUP")){
-
-		temp_contactgroup=find_contactgroup(first_arg);
-		return_val=grab_on_demand_contactgroup_macro(temp_contactgroup,macro);
-		}
-
-	/* on-demand contact macros */
-	else if(strstr(macro,"CONTACT")){
-
-		/* process a contact macro */
-		if(second_arg==NULL){
-			temp_contact=find_contact(first_arg);
-			return_val=grab_on_demand_contact_macro(temp_contact,macro);
-	                }
-
-		/* process a contact macro containing a contactgroup name */
-		else{
-			if((temp_contactgroup=find_contactgroup(first_arg))==NULL){
-				my_free(macro);
-				return ERROR;
-				}
-
-			return_val=OK;  /* start off assuming there's no error */
-			result_buffer[0]='\0';
-			result_buffer[sizeof(result_buffer)-1]='\0';
-			result_buffer_len=0;
-			delimiter_len=strlen(second_arg);
-
-			/* process each contact in the contactgroup */
-			if((temp_contactsmember=temp_contactgroup->members)==NULL){
-				macro_ondemand=(char *)strdup("");
-				my_free(macro);
-				return OK;
-				}
-			while(1){
-#ifdef NSCORE
-				if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
-					continue;
-#else
-				if((temp_contact=find_contact(temp_contactsmember->contact_name))==NULL)
-					continue;
-#endif
-				if(grab_on_demand_contact_macro(temp_contact,macro)==OK){
-					strncat(result_buffer,macro_ondemand,sizeof(result_buffer)-result_buffer_len-1);
-					result_buffer_len+=strlen(macro_ondemand);
-					if(result_buffer_len>sizeof(result_buffer)-1){
-						return_val=ERROR;
-						break;
-						}
-					if((temp_hostsmember=temp_hostsmember->next)==NULL)
-						break;
-					strncat(result_buffer,second_arg,sizeof(result_buffer)-result_buffer_len-1);
-					result_buffer_len+=delimiter_len;
-					if(result_buffer_len>sizeof(result_buffer)-1){
-						return_val=ERROR;
-						break;
-						}
-					}
-				else{
-					return_val=ERROR;
-					if((temp_contactsmember=temp_contactsmember->next)==NULL)
-						break;
-					}
-
-				my_free(macro_ondemand);
-				}
-
-			my_free(macro_ondemand);
-			macro_ondemand=(char *)strdup(result_buffer);
-			}
-	        }
-
-	/* on-demand time macros */
-	else if(!strcmp(macro,"ISVALIDTIME") || !strcmp(macro,"NEXTVALIDTIME"))
-		return_val=grab_on_demand_time_macro(macro,first_arg,second_arg);
-
-	else
-		return_val=ERROR;
-
-	my_free(macro);
-
-	return return_val;
-        }
-
-
-/* grab an on-demand host macro */
-int grab_on_demand_host_macro(host *hst, char *macro){
-	hostgroup *temp_hostgroup=NULL;
-	customvariablesmember *temp_customvariablesmember=NULL;
-	objectlist *temp_objectlist=NULL;
-	char *customvarname=NULL;
-	char *temp_buffer=NULL;
-	char *buf1=NULL;
-	char *buf2=NULL;
-	time_t current_time=0L;
-	unsigned long duration=0L;
-	int days=0;
-	int hours=0;
-	int minutes=0;
-	int seconds=0;
-	int total_host_services=0;
-	int total_host_services_ok=0;
-	int total_host_services_warning=0;
-	int total_host_services_unknown=0;
-	int total_host_services_critical=0;
-	servicesmember *temp_servicesmember=NULL;
-	service *temp_service=NULL;
-
-
-	if(hst==NULL || macro==NULL)
-		return ERROR;
-
-	/* initialize the macro */
-	macro_ondemand=NULL;
-
-#ifdef NSCORE
-	time(&current_time);
-	duration=(unsigned long)(current_time-hst->last_state_change);
-#endif
-
-#ifdef NSCORE
-	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for host '%s': %s\n",hst->name,macro);
-#endif
-
-	/* get the host display name */
-	if(!strcmp(macro,"HOSTDISPLAYNAME")){
-		if(hst->display_name)
-			macro_ondemand=(char *)strdup(hst->display_name);
-	        }
-
-	/* get the host alias */
-	else if(!strcmp(macro,"HOSTALIAS"))
-		macro_ondemand=(char *)strdup(hst->alias);
-
-	/* get the host address */
-	else if(!strcmp(macro,"HOSTADDRESS"))
-		macro_ondemand=(char *)strdup(hst->address);
-
-	/* get the host check command */
-	else if(!strcmp(macro,"HOSTCHECKCOMMAND"))
-		macro_ondemand=(char *)strdup(hst->host_check_command);
-
-#ifdef NSCORE
-	/* get the host state */
-	else if(!strcmp(macro,"HOSTSTATE")){
-		if(hst->current_state==HOST_DOWN)
-			macro_ondemand=(char *)strdup("DOWN");
-		else if(hst->current_state==HOST_UNREACHABLE)
-			macro_ondemand=(char *)strdup("UNREACHABLE");
-		else
-			macro_ondemand=(char *)strdup("UP");
-	        }
-
-	/* get the host state id */
-	else if(!strcmp(macro,"HOSTSTATEID"))
-		asprintf(&macro_ondemand,"%d",hst->current_state);
-
-	/* grab the host check type */
-	else if(!strcmp(macro,"HOSTCHECKTYPE"))
-		asprintf(&macro_ondemand,"%s",(hst->check_type==HOST_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
-
-	/* get the host state type macro */
-	else if(!strcmp(macro,"HOSTSTATETYPE"))
-		asprintf(&macro_ondemand,"%s",(hst->state_type==HARD_STATE)?"HARD":"SOFT");
-
-	/* get the plugin output */
-	else if(!strcmp(macro,"HOSTOUTPUT")){
-		if(hst->plugin_output){
-			macro_ondemand=(char *)strdup(hst->plugin_output);
-			/*strip(macro_ondemand);*/
-		        }
-	        }
-
-	/* get the long plugin output */
-	else if(!strcmp(macro,"LONGHOSTOUTPUT")){
-		if(hst->long_plugin_output==NULL)
-			macro_ondemand=NULL;
-		else{
-			macro_ondemand=(char *)strdup(hst->long_plugin_output);
-			/*strip(macro_ondemand);*/
-		        }
-	        }
-
-	/* get the performance data */
-	else if(!strcmp(macro,"HOSTPERFDATA")){
-		if(hst->perf_data){
-			macro_ondemand=(char *)strdup(hst->perf_data);
-			/*strip(macro_ondemand);*/
-		        }
-	        }
-
-	/* get the host current attempt */
-	else if(!strcmp(macro,"HOSTATTEMPT"))
-		asprintf(&macro_ondemand,"%d",hst->current_attempt);
-
-	/* get the max host attempts */
-	else if(!strcmp(macro,"MAXHOSTATTEMPTS"))
-		asprintf(&macro_ondemand,"%d",hst->max_attempts);
-
-	/* get the host downtime depth */
-	else if(!strcmp(macro,"HOSTDOWNTIME"))
-		asprintf(&macro_ondemand,"%d",hst->scheduled_downtime_depth);
-
-	/* get the percent state change */
-	else if(!strcmp(macro,"HOSTPERCENTCHANGE"))
-		asprintf(&macro_ondemand,"%.2f",hst->percent_state_change);
-
-	/* get the state duration in seconds */
-	else if(!strcmp(macro,"HOSTDURATIONSEC"))
-		asprintf(&macro_ondemand,"%lu",duration);
-
-	/* get the state duration */
-	else if(!strcmp(macro,"HOSTDURATION")){
-		days=duration/86400;
-		duration-=(days*86400);
-		hours=duration/3600;
-		duration-=(hours*3600);
-		minutes=duration/60;
-		duration-=(minutes*60);
-		seconds=duration;
-		asprintf(&macro_ondemand,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-	        }
-
-	/* get the execution time macro */
-	else if(!strcmp(macro,"HOSTEXECUTIONTIME"))
-		asprintf(&macro_ondemand,"%.3f",hst->execution_time);
-
-	/* get the latency macro */
-	else if(!strcmp(macro,"HOSTLATENCY"))
-		asprintf(&macro_ondemand,"%.3f",hst->latency);
-
-	/* get the last check time macro */
-	else if(!strcmp(macro,"LASTHOSTCHECK"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)hst->last_check);
-
-	/* get the last state change time macro */
-	else if(!strcmp(macro,"LASTHOSTSTATECHANGE"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)hst->last_state_change);
-
-	/* get the last time up macro */
-	else if(!strcmp(macro,"LASTHOSTUP"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)hst->last_time_up);
-
-	/* get the last time down macro */
-	else if(!strcmp(macro,"LASTHOSTDOWN"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)hst->last_time_down);
-
-	/* get the last time unreachable macro */
-	else if(!strcmp(macro,"LASTHOSTUNREACHABLE"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)hst->last_time_unreachable);
-
-	/* get the notification number macro */
-	else if(!strcmp(macro,"HOSTNOTIFICATIONNUMBER"))
-		asprintf(&macro_ondemand,"%d",hst->current_notification_number);
-
-	/* get the notification id macro */
-	else if(!strcmp(macro,"HOSTNOTIFICATIONID"))
-		asprintf(&macro_ondemand,"%lu",hst->current_notification_id);
-
-	/* get the event id macro */
-	else if(!strcmp(macro,"HOSTEVENTID"))
-		asprintf(&macro_ondemand,"%lu",hst->current_event_id);
-
-	/* get the last event id macro */
-	else if(!strcmp(macro,"LASTHOSTEVENTID"))
-		asprintf(&macro_ondemand,"%lu",hst->last_event_id);
-
-	/* get the problem id macro */
-	else if(!strcmp(macro,"HOSTPROBLEMID"))
-		asprintf(&macro_ondemand,"%lu",hst->current_problem_id);
-
-	/* get the last problem id macro */
-	else if(!strcmp(macro,"LASTHOSTPROBLEMID"))
-		asprintf(&macro_ondemand,"%lu",hst->last_problem_id);
-
-	/* get the hostgroup names */
-	else if(!strcmp(macro,"HOSTGROUPNAMES")){
-
-		/* find all hostgroups this host is associated with */
-		for(temp_objectlist=hst->hostgroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
-
-			if((temp_hostgroup=(hostgroup *)temp_objectlist->object_ptr)==NULL)
-				continue;
-
-			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_hostgroup->group_name);
-			my_free(buf2);
-			buf2=buf1;
-			}
-		if(buf2){
-			macro_ondemand=(char *)strdup(buf2);
-			my_free(buf2);
-			}
-		}
-
-	/** NOTE: 09/06/07 other hostgroup macros are handled by grab_on_demand_hostgroup_macro(), and thus are not available in on-demand host macros **/
-	/* get the hostgroup name */
-	else if(!strcmp(macro,"HOSTGROUPNAME")){
-		if(hst->hostgroups_ptr){
-			temp_hostgroup=(hostgroup *)hst->hostgroups_ptr->object_ptr;
-			macro_ondemand=(char *)strdup(temp_hostgroup->group_name);
-			}
-	        }
-#endif
-
-	/* action url */
-	else if(!strcmp(macro,"HOSTACTIONURL")){
-
-		if(hst->action_url)
-			macro_ondemand=(char *)strdup(hst->action_url);
-
-		/* action URL macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	/* notes url */
-	else if(!strcmp(macro,"HOSTNOTESURL")){
-
-		if(hst->notes_url)
-			macro_ondemand=(char *)strdup(hst->notes_url);
-
-		/* action URL macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	/* notes */
-	else if(!strcmp(macro,"HOSTNOTES")){
-		if(hst->notes)
-			macro_ondemand=(char *)strdup(hst->notes);
-
-		/* notes macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,0);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-#ifdef NSCORE
-	/* service summary macros */
-	/* NOTE: 08/14/07 These are not supported as "normal" host macros (only on-demand macros) at the moment */
-	else if(strstr(macro,"TOTALHOSTSERVICES")==macro){
-
-		for(temp_servicesmember=hst->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
-			if((temp_service=temp_servicesmember->service_ptr)==NULL)
-				continue;
-
-			total_host_services++;
-
-			switch(temp_service->current_state){
-			case STATE_OK:
-				total_host_services_ok++;
-				break;
-			case STATE_WARNING:
-				total_host_services_warning++;
-				break;
-			case STATE_UNKNOWN:
-				total_host_services_unknown++;
-				break;
-			case STATE_CRITICAL:
-				total_host_services_critical++;
-				break;
-			default:
-				break;
-				}
-			}
-		
-		if(!strcmp(macro,"TOTALHOSTSERVICES"))
-			asprintf(&macro_ondemand,"%lu",total_host_services);
-		else if(!strcmp(macro,"TOTALHOSTSERVICESOK"))
-			asprintf(&macro_ondemand,"%lu",total_host_services_ok);
-		else if(!strcmp(macro,"TOTALHOSTSERVICESWARNING"))
-			asprintf(&macro_ondemand,"%lu",total_host_services_warning);
-		else if(!strcmp(macro,"TOTALHOSTSERVICESUNKNOWN"))
-			asprintf(&macro_ondemand,"%lu",total_host_services_unknown);
-		else if(!strcmp(macro,"TOTALHOSTSERVICESCRITICAL"))
-			asprintf(&macro_ondemand,"%lu",total_host_services_critical);
-		else
-			return ERROR;
-		}
-#endif
-
-	/* custom variables */
-	else if(strstr(macro,"_HOST")==macro){
-		
-		/* get the variable name */
-		if((customvarname=(char *)strdup(macro+5))){
-
-			for(temp_customvariablesmember=hst->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-
-				if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
-					macro_ondemand=(char *)strdup(temp_customvariablesmember->variable_value);
-					break;
-				        }
-			        }
-
-			/* free memory */
-			my_free(customvarname);
-		        }
-	        }
-
-	else
-		return ERROR;
-
-	return OK;
-        }
-
-
-/* grab an on-demand service macro */
-int grab_on_demand_service_macro(service *svc, char *macro){
-	servicegroup *temp_servicegroup=NULL;
-	customvariablesmember *temp_customvariablesmember=NULL;
-	objectlist *temp_objectlist=NULL;
-	char *customvarname=NULL;
-	char *temp_buffer=NULL;
-	char *buf1=NULL;
-	char *buf2=NULL;
-	time_t current_time=0L;
-	unsigned long duration=0L;
-	int days=0;
-	int hours=0;
-	int minutes=0;
-	int seconds=0;
-
-	if(svc==NULL || macro==NULL)
-		return ERROR;
-
-	/* initialize the macro */
-	macro_ondemand=NULL;
-
-#ifdef NSCORE
-	time(&current_time);
-	duration=(unsigned long)(current_time-svc->last_state_change);
-#endif
-
-#ifdef NSCORE
-	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for service '%s' on host '%s': %s\n",svc->description,svc->host_name,macro);
-#endif
-
-	/* get the service display name */
-	if(!strcmp(macro,"SERVICEDISPLAYNAME")){
-		if(svc->display_name)
-			macro_ondemand=(char *)strdup(svc->display_name);
-	        }
-
-	/* get the service check command */
-	else if(!strcmp(macro,"SERVICECHECKCOMMAND"))
-		macro_ondemand=(char *)strdup(svc->service_check_command);
-
-#ifdef NSCORE
-	/* get the plugin output */
-	else if(!strcmp(macro,"SERVICEOUTPUT")){
-		if(svc->plugin_output){
-			macro_ondemand=(char *)strdup(svc->plugin_output);
-			/*strip(macro_ondemand);*/
-		        }
-	        }
-
-	/* get the long plugin output */
-	else if(!strcmp(macro,"LONGSERVICEOUTPUT")){
-		if(svc->long_plugin_output){
-			macro_ondemand=(char *)strdup(svc->long_plugin_output);
-			/*strip(macro_ondemand);*/
-		        }
-	        }
-
-	/* get the performance data */
-	else if(!strcmp(macro,"SERVICEPERFDATA")){
-		if(svc->perf_data==NULL){
-			macro_ondemand=(char *)strdup(svc->perf_data);
-			/*strip(macro_ondemand);*/
-		        }
-	        }
-
-	/* grab the servuce check type */
-	else if(!strcmp(macro,"SERVICECHECKTYPE"))
-		macro_ondemand=(char *)strdup((svc->check_type==SERVICE_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
-
-	/* grab the service state type macro (this is usually overridden later on) */
-	else if(!strcmp(macro,"SERVICESTATETYPE"))
-		macro_ondemand=(char *)strdup((svc->state_type==HARD_STATE)?"HARD":"SOFT");
-
-	/* get the service state */
-	else if(!strcmp(macro,"SERVICESTATE")){
-		if(svc->current_state==STATE_OK)
-			macro_ondemand=(char *)strdup("OK");
-		else if(svc->current_state==STATE_WARNING)
-			macro_ondemand=(char *)strdup("WARNING");
-		else if(svc->current_state==STATE_CRITICAL)
-			macro_ondemand=(char *)strdup("CRITICAL");
-		else
-			macro_ondemand=(char *)strdup("UNKNOWN");
-	        }
-#endif
-
-	/* get the service volatility */
-	else if(!strcmp(macro,"SERVICEISVOLATILE"))
-		asprintf(&macro_ondemand,"%d",svc->is_volatile);
-
-#ifdef NSCORE
-	/* get the service state id */
-	else if(!strcmp(macro,"SERVICESTATEID"))
-		asprintf(&macro_ondemand,"%d",svc->current_state);
-
-	/* get the current service check attempt macro */
-	else if(!strcmp(macro,"SERVICEATTEMPT"))
-		asprintf(&macro_ondemand,"%d",svc->current_attempt);
-
-	/* get the max service check attempts macro */
-	else if(!strcmp(macro,"MAXSERVICEATTEMPTS"))
-		asprintf(&macro_ondemand,"%d",svc->max_attempts);
-
-	/* get the execution time macro */
-	else if(!strcmp(macro,"SERVICEEXECUTIONTIME"))
-		asprintf(&macro_ondemand,"%.3f",svc->execution_time);
-
-	/* get the latency macro */
-	else if(!strcmp(macro,"SERVICELATENCY"))
-		asprintf(&macro_ondemand,"%.3f",svc->latency);
-
-	/* get the last check time macro */
-	else if(!strcmp(macro,"LASTSERVICECHECK"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_check);
-
-	/* get the last state change time macro */
-	else if(!strcmp(macro,"LASTSERVICESTATECHANGE"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_state_change);
-
-	/* get the last time ok macro */
-	else if(!strcmp(macro,"LASTSERVICEOK"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_time_ok);
-
-	/* get the last time warning macro */
-	else if(!strcmp(macro,"LASTSERVICEWARNING"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_time_warning);
-
-	/* get the last time unknown macro */
-	else if(!strcmp(macro,"LASTSERVICEUNKNOWN"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_time_unknown);
-
-	/* get the last time critical macro */
-	else if(!strcmp(macro,"LASTSERVICECRITICAL"))
-		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_time_critical);
-
-	/* get the service downtime depth */
-	else if(!strcmp(macro,"SERVICEDOWNTIME"))
-		asprintf(&macro_ondemand,"%d",svc->scheduled_downtime_depth);
-
-	/* get the percent state change */
-	else if(!strcmp(macro,"SERVICEPERCENTCHANGE"))
-		asprintf(&macro_ondemand,"%.2f",svc->percent_state_change);
-
-	/* get the state duration in seconds */
-	else if(!strcmp(macro,"SERVICEDURATIONSEC"))
-		asprintf(&macro_ondemand,"%lu",duration);
-
-	/* get the state duration */
-	else if(!strcmp(macro,"SERVICEDURATION")){
-		days=duration/86400;
-		duration-=(days*86400);
-		hours=duration/3600;
-		duration-=(hours*3600);
-		minutes=duration/60;
-		duration-=(minutes*60);
-		seconds=duration;
-		asprintf(&macro_ondemand,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-	        }
-
-	/* get the notification number macro */
-	else if(!strcmp(macro,"SERVICENOTIFICATIONNUMBER"))
-		asprintf(&macro_ondemand,"%d",svc->current_notification_number);
-
-	/* get the notification id macro */
-	else if(!strcmp(macro,"SERVICENOTIFICATIONID"))
-		asprintf(&macro_ondemand,"%lu",svc->current_notification_id);
-
-	/* get the event id macro */
-	else if(!strcmp(macro,"SERVICEEVENTID"))
-		asprintf(&macro_ondemand,"%lu",svc->current_event_id);
-
-	/* get the event id macro */
-	else if(!strcmp(macro,"LASTSERVICEEVENTID"))
-		asprintf(&macro_ondemand,"%lu",svc->last_event_id);
-
-	/* get the problem id macro */
-	else if(!strcmp(macro,"SERVICEPROBLEMID"))
-		asprintf(&macro_ondemand,"%lu",svc->current_problem_id);
-
-	/* get the problem id macro */
-	else if(!strcmp(macro,"LASTSERVICEPROBLEMID"))
-		asprintf(&macro_ondemand,"%lu",svc->last_problem_id);
-
-	/* get the servicegroup names */
-	else if(!strcmp(macro,"SERVICEGROUPNAMES")){
-
-		/* find all servicegroups this service is associated with */
-		for(temp_objectlist=svc->servicegroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
-
-			if((temp_servicegroup=(servicegroup *)temp_objectlist->object_ptr)==NULL)
-				continue;
-
-			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_servicegroup->group_name);
-			my_free(buf2);
-			buf2=buf1;
-			}
-		if(buf2){
-			macro_ondemand=(char *)strdup(buf2);
-			my_free(buf2);
-			}
-		}
-
-	/** NOTE: 09/06/07 other servicegroup macros are handled by grab_on_demand_servicegroup_macro(), and thus are not available in on-demand service macros **/
-	/* get the servicegroup name */
-	else if(!strcmp(macro,"SERVICEGROUPNAME")){
-		if(svc->servicegroups_ptr){
-			temp_servicegroup=(servicegroup *)svc->servicegroups_ptr->object_ptr;
-			macro_ondemand=(char *)strdup(temp_servicegroup->group_name);
-			}
-	        }
-#endif
-
-	/* action url */
-	else if(!strcmp(macro,"SERVICEACTIONURL")){
-		if(svc->action_url)
-			macro_ondemand=(char *)strdup(svc->action_url);
-
-		/* action URL macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	/* notes url */
-	else if(!strcmp(macro,"SERVICENOTESURL")){
-
-		if(svc->notes_url)
-			macro_ondemand=(char *)strdup(svc->notes_url);
-
-		/* action URL macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	/* notes */
-	else if(!strcmp(macro,"SERVICENOTES")){
-		if(svc->notes)
-			macro_ondemand=(char *)strdup(svc->notes);
-
-		/* notes macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,0);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	/* custom variables */
-	else if(strstr(macro,"_SERVICE")==macro){
-		
-		/* get the variable name */
-		if((customvarname=(char *)strdup(macro+8))){
-
-			for(temp_customvariablesmember=svc->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-
-				if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
-					macro_ondemand=(char *)strdup(temp_customvariablesmember->variable_value);
-					break;
-				        }
-			        }
-
-			/* free memory */
-			my_free(customvarname);
-		        }
-	        }
-
-	else
-		return ERROR;
-
-	return OK;
-        }
-
-
-
-/* grab an on-demand contact macro */
-int grab_on_demand_contact_macro(contact *cntct, char *macro){
-	contactgroup *temp_contactgroup=NULL;
-	customvariablesmember *temp_customvariablesmember=NULL;
-	objectlist *temp_objectlist=NULL;
-	char *customvarname=NULL;
-	char *buf1=NULL;
-	char *buf2=NULL;
-	register int x=0;
-	register int address=0;
-
-	if(cntct==NULL || macro==NULL)
-		return ERROR;
-
-	/* initialize the macro */
-	macro_ondemand=NULL;
-
-#ifdef NSCORE
-	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for contact '%s'\n",cntct->name,macro);
-#endif
-
-	/* get the name */
-	my_free(macro_x[MACRO_CONTACTNAME]);
-	macro_x[MACRO_CONTACTNAME]=(char *)strdup(cntct->name);
-
-	/* get the alias */
-	if(!strcmp(macro,"CONTACTALIAS")){
-		if(cntct->alias)
-			macro_ondemand=(char *)strdup(cntct->alias);
-	        }
-
-	/* get the email address */
-	else if(!strcmp(macro,"CONTACTALIAS")){
-		if(cntct->email)
-			macro_ondemand=(char *)strdup(cntct->email);
-		}
-
-	/* get the pager number */
-	else if(!strcmp(macro,"CONTACTPAGER")){
-		if(cntct->pager)
-			macro_ondemand=(char *)strdup(cntct->pager);
-		}
-
-	/* get misc contact addresses */
-	else if(strstr(macro,"CONTACTADDRESS")==macro){
-		address=atoi(macro+14);
-		for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
-			if(x==address && cntct->address[x]){
-				macro_ondemand=(char *)strdup(cntct->address[x]);
-				}
-			}
-		}
-
-#ifdef NSCORE
-	/** NOTE: 09/06/07 other contactgroup macros are handled by grab_on_demand_contactgroup_macro(), and thus are not available in on-demand contact macros **/
-	/* get the contactgroup names */
-	/* find all contactgroups this contact is a member of */
-	else if(!strcmp(macro,"CONTACTGROUPNAMES")){
-
-		for(temp_objectlist=cntct->contactgroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
-
-			if((temp_contactgroup=(contactgroup *)temp_objectlist->object_ptr)==NULL)
-				continue;
-
-			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_contactgroup->group_name);
-			my_free(buf2);
-			buf2=buf1;
-			}
-		if(buf2){
-			macro_ondemand=(char *)strdup(buf2);
-			my_free(buf2);
-			}
-		}
-
-	/* get first/primary contactgroup macros */
-	else if(!strcmp(macro,"CONTACTGROUPNAME")){
-		if(cntct->contactgroups_ptr){
-			temp_contactgroup=(contactgroup *)cntct->contactgroups_ptr->object_ptr;
-			macro_ondemand=(char *)strdup(temp_contactgroup->group_name);
-			}
-		}
-#endif
-
-	/* custom variables */
-	else if(strstr(macro,"_CONTACT")==macro){
-		
-		/* get the variable name */
-		if((customvarname=(char *)strdup(macro+8))){
-
-			for(temp_customvariablesmember=cntct->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
-
-				if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
-					macro_ondemand=(char *)strdup(temp_customvariablesmember->variable_value);
-					break;
-				        }
-			        }
-
-			/* free memory */
-			my_free(customvarname);
-		        }
-	        }
-
-	return OK;
-	}
-
-
-
-/* grab an on-demand hostgroup macro */
-int grab_on_demand_hostgroup_macro(hostgroup *hg, char *macro){
-	hostgroup *temp_hostgroup=NULL;
-	hostsmember *temp_hostsmember=NULL;
-	char *temp_buffer=NULL;
-
-	if(hg==NULL || macro==NULL)
-		return ERROR;
-
-	/* initialize the macro */
-	macro_ondemand=NULL;
-
-#ifdef NSCORE
-	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for hostgroup '%s': %s\n",hg->group_name,macro);
-#endif
-
-	/* get the group alias */
-	if(!strcmp(macro,"HOSTGROUPALIAS")){
-		if(hg->alias)
-			macro_ondemand=(char *)strdup(hg->alias);
-		}
-
-	/* get the member list */
-	else if(!strcmp(macro,"HOSTGROUPMEMBERS")){
-#ifdef NSCORE
-		for(temp_hostsmember=hg->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
-			if(macro_ondemand==NULL)
-				macro_ondemand=(char *)strdup(temp_hostsmember->host_name);
-			else if((macro_ondemand=(char *)realloc(macro_ondemand,strlen(macro_ondemand)+strlen(temp_hostsmember->host_name)+2))){
-				strcat(macro_ondemand,",");
-				strcat(macro_ondemand,temp_hostsmember->host_name);
-				}
-			}
-#endif
-	        }
-
-	/* action url */
-	else if(!strcmp(macro,"HOSTGROUPACTIONURL")){
-
-		if(hg->action_url)
-			macro_ondemand=(char *)strdup(hg->action_url);
-
-		/* action URL macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	/* notes url */
-	else if(!strcmp(macro,"HOSTGROUPNOTESURL")){
-
-		if(hg->notes_url)
-			macro_ondemand=(char *)strdup(hg->notes_url);
-
-		/* action URL macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	/* notes */
-	else if(!strcmp(macro,"HOSTGROUPNOTES")){
-		if(hg->notes)
-			macro_ondemand=(char *)strdup(hg->notes);
-
-		/* notes macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,0);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	else
-		return ERROR;
-
-	return OK;
-	}
-
-
-
-/* grab an on-demand servicegroup macro */
-int grab_on_demand_servicegroup_macro(servicegroup *sg, char *macro){
-	servicegroup *temp_servicegroup=NULL;
-	servicesmember *temp_servicesmember=NULL;
-	char *temp_buffer=NULL;
-
-	if(sg==NULL || macro==NULL)
-		return ERROR;
-
-	/* initialize the macro */
-	macro_ondemand=NULL;
-
-#ifdef NSCORE
-	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for servicegroup '%s': %s\n",sg->group_name,macro);
-#endif
-
-	/* get the group alias */
-	if(!strcmp(macro,"SERVICEGROUPALIAS")){
-		if(sg->alias)
-			macro_ondemand=(char *)strdup(sg->alias);
-		}
-
-	/* get the member list */
-	else if(!strcmp(macro,"SERVICEGROUPMEMBERS")){
-#ifdef NSCORE
-		for(temp_servicesmember=sg->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
-			if(macro_ondemand==NULL){
-				if((macro_ondemand=(char *)malloc(strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+1))){
-					sprintf(macro_ondemand,"%s,%s",temp_servicesmember->host_name,temp_servicesmember->service_description);
-					}
-				}
-			else if((macro_ondemand=(char *)realloc(macro_ondemand,strlen(macro_ondemand)+strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+3))){
-				strcat(macro_ondemand,",");
-				strcat(macro_ondemand,temp_servicesmember->host_name);
-				strcat(macro_ondemand,",");
-				strcat(macro_ondemand,temp_servicesmember->service_description);
-				}
-			}
-#endif
-	        }
-
-	/* action url */
-	else if(!strcmp(macro,"SERVICEGROUPACTIONURL")){
-
-		if(sg->action_url)
-			macro_ondemand=(char *)strdup(sg->action_url);
-
-		/* action URL macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	/* notes url */
-	else if(!strcmp(macro,"SERVICEGROUPNOTESURL")){
-
-		if(sg->notes_url)
-			macro_ondemand=(char *)strdup(sg->notes_url);
-
-		/* action URL macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,URL_ENCODE_MACRO_CHARS);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	/* notes */
-	else if(!strcmp(macro,"SERVICEGROUPNOTES")){
-		if(sg->notes)
-			macro_ondemand=(char *)strdup(sg->notes);
-
-		/* notes macros may themselves contain macros, so process them... */
-		if(macro_ondemand!=NULL){
-			process_macros(macro_ondemand,&temp_buffer,0);
-			my_free(macro_ondemand);
-			macro_ondemand=temp_buffer;
-		        }
-	        }
-
-	else
-		return ERROR;
-
-	return OK;
-	}
-
-
-
-/* grab an on-demand contactgroup macro */
-int grab_on_demand_contactgroup_macro(contactgroup *cg, char *macro){
-	contactgroup *temp_contactgroup=NULL;
-	contactsmember *temp_contactsmember=NULL;
-
-	if(cg==NULL || macro==NULL)
-		return ERROR;
-
-	/* initialize the macro */
-	macro_ondemand=NULL;
-
-#ifdef NSCORE
-	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand macro for contactgroup '%s': %s\n",cg->group_name,macro);
-#endif
-
-	/* get the group alias */
-	if(!strcmp(macro,"CONTACTGROUPALIAS")){
-		if(cg->alias)
-			macro_ondemand=(char *)strdup(cg->alias);
-		}
-
-	/* get the member list */
-	else if(!strcmp(macro,"CONTACTGROUPMEMBERS")){
-#ifdef NSCORE
-		for(temp_contactsmember=cg->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
-			if(macro_ondemand==NULL)
-				macro_ondemand=(char *)strdup(temp_contactsmember->contact_name);
-			else if((macro_ondemand=(char *)realloc(macro_ondemand,strlen(macro_ondemand)+strlen(temp_contactsmember->contact_name)+2))){
-				strcat(macro_ondemand,",");
-				strcat(macro_ondemand,temp_contactsmember->contact_name);
-				}
-			}
-#endif
-	        }
-
-	else
-		return ERROR;
-
-	return OK;
-	}
-
-
-
-/* grab an on-demand time macro */
-int grab_on_demand_time_macro(char *macro, char *tp, char *ts){
-	timeperiod *temp_timeperiod=NULL;
-	time_t test_time=0L;
-	time_t next_valid_time=0L;
-	char *temp_buffer=NULL;
-
-	if(macro==NULL || tp==NULL)
-		return ERROR;
-
-	/* initialize the macro */
-	macro_ondemand=NULL;
-
-#ifdef NSCORE
-	log_debug_info(DEBUGL_MACROS,2,"  Getting on-demand time macro '%s'\n",macro);
-#endif
-
-#ifdef NSCORE
-	/* find the timeperiod */
-	if((temp_timeperiod=find_timeperiod(tp))==NULL)
-		return ERROR;
-
-	/* what timestamp should we use? */
-	if(ts)
-		test_time=(time_t)strtoul(ts,NULL,0);
-	else
-		time(&test_time);
-
-	/* is valid time? */
-	if(!strcmp(macro,"ISVALIDTIME"))
-		asprintf(&macro_ondemand,"%d",(check_time_against_period(test_time,temp_timeperiod)==OK)?1:0);
-	
-	/* get next valid time */
-	else if(!strcmp(macro,"NEXTVALIDTIME")){
-		get_next_valid_time(test_time,&next_valid_time,temp_timeperiod);
-		if(next_valid_time==test_time && check_time_against_period(test_time,temp_timeperiod)==ERROR)
-			next_valid_time=(time_t)0L;
-		asprintf(&macro_ondemand,"%lu",(unsigned long)next_valid_time);
-		}
-#endif
 
 	return OK;
 	}
@@ -2537,57 +564,1683 @@ int grab_summary_macros(contact *temp_contact){
 
 
 
-/* updates date/time macros */
-int grab_datetime_macros(void){
-	time_t t=0L;
+
+/* this is the big one */
+int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int *free_macro){
+	char *buf=NULL;
+	char *ptr=NULL;
+	char *macro_name=NULL;
+	char *arg[2]={NULL,NULL};
+	contact *temp_contact=NULL;
+	contactgroup *temp_contactgroup=NULL;
+	contactsmember *temp_contactsmember=NULL;
+	char *temp_buffer=NULL;
+	int delimiter_len=0;
+	register int x;
+	int result=OK;
+
+	if(output==NULL)
+		return ERROR;
+
+	/* clear the old macro value */
+	my_free(*output);
+
+	if(macro_buffer==NULL || clean_options==NULL || free_macro==NULL)
+		return ERROR;
+
+	/* work with a copy of the original buffer */
+	if((buf=(char *)strdup(macro_buffer))==NULL)
+		return ERROR;
+
+	/* BY DEFAULT, TELL CALLER TO FREE MACRO BUFFER WHEN DONE */
+	*free_macro=TRUE;
+
+	/* macro name is at start of buffer */
+	macro_name=buf;
+
+	/* see if there's an argument - if so, this is most likely an on-demand macro */
+	if((ptr=strchr(buf,':'))){
+
+		ptr[0]='\x0';
+		ptr++;
+
+		/* save the first argument - host name, hostgroup name, etc. */
+		arg[0]=ptr;
+
+		/* try and find a second argument */
+		if((ptr=strchr(ptr,':'))){
+
+			ptr[0]='\x0';
+			ptr++;
+
+			/* save second argument - service description or delimiter */
+			arg[1]=ptr;
+			}
+		}
+
+	/***** X MACROS *****/
+	/* see if this is an x macro */
+	for(x=0;x<MACRO_X_COUNT;x++){
+
+		if(macro_x_names[x]==NULL)
+			continue;
+
+		if(!strcmp(macro_name,macro_x_names[x])){
+
+			/* get the macro value */
+			result=grab_macrox_value(x,arg[0],arg[1],output,free_macro);
+
+			/* post-processing */
+			/* host/service output/perfdata and author/comment macros should get cleaned */
+			if((x>=16 && x<=19) ||(x>=49 && x<=52) || (x>=99 && x<=100) || (x>=124 && x<=127))
+				*clean_options&=(STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+
+			break;
+			}
+		}
+
+	/* we already found the macro... */
+	if(x<MACRO_X_COUNT)
+		x=x;
+
+	/***** ARGV MACROS *****/
+	else if(strstr(macro_name,"ARG")==macro_name){
+
+		/* which arg do we want? */
+		x=atoi(macro_name+3);
+
+		if(x<=0 || x>MAX_COMMAND_ARGUMENTS){
+			my_free(buf);
+			return ERROR;
+			}
+
+		/* use a pre-computed macro value */
+		*output=macro_argv[x-1];
+		*free_macro=FALSE;
+		}
+
+	/***** USER MACROS *****/
+	else if(strstr(macro_name,"USER")==macro_name){
+
+		/* which macro do we want? */
+		x=atoi(macro_name+4);
+
+		if(x<=0 || x>MAX_USER_MACROS){
+			my_free(buf);
+			return ERROR;
+			}
+
+		/* use a pre-computed macro value */
+		*output=macro_user[x-1];
+		*free_macro=FALSE;
+		}
+
+	/***** CONTACT ADDRESS MACROS *****/
+	else if(strstr(macro_name,"CONTACTADDRESS")==macro_name){
+
+		/* which address do we want? */
+		x=atoi(macro_name+14);
+
+		/* regular macro */
+		if(arg[0]==NULL){
+			
+			/* use the saved pointer */
+			if((temp_contact=macro_contact_ptr)==NULL){
+				my_free(buf);
+				return ERROR;
+				}
+
+			/* get the macro value */
+			result=grab_contact_address_macro(x,temp_contact,output);
+			}
+
+		/* on-demand macro */
+		else{
+
+			/* on-demand contact macro with a contactgroup and a delimiter */
+			if(arg[1]!=NULL){
+
+				if((temp_contactgroup=find_contactgroup(arg[0]))==NULL)
+					return ERROR;
+
+				delimiter_len=strlen(arg[1]);
+				
+				/* concatenate macro values for all contactgroup members */
+				for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+
+#ifdef NSCORE
+					if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+						continue;
+					if((temp_contact=find_contact(temp_contactsmember->contact_name))==NULL)
+						continue;
+#endif
+
+					/* get the macro value for this contact */
+					grab_contact_address_macro(x,temp_contact,&temp_buffer);
+
+					if(temp_buffer==NULL)
+						continue;
+				
+					/* add macro value to already running macro */
+					if(*output==NULL)
+						*output=(char *)strdup(temp_buffer);
+					else{
+						if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_buffer)+delimiter_len+1))==NULL)
+							continue;
+						strcat(*output,arg[1]);
+						strcat(*output,temp_buffer);
+						}
+					my_free(temp_buffer);
+					}
+				}
+
+			/* else on-demand contact macro */
+			else{
+
+				/* find the contact */
+				if((temp_contact=find_contact(arg[0]))==NULL){
+					my_free(buf);
+					return ERROR;
+					}
+
+				/* get the macro value */
+				result=grab_contact_address_macro(x,temp_contact,output);
+				}
+			}
+		}
+
+	/***** CUSTOM VARIABLE MACROS *****/
+	else if(macro_name[0]=='_'){
+
+		/* get the macro value */
+		result=grab_custom_macro_value(macro_name,arg[0],arg[1],output);
+
+		/* custom variable values get cleaned */
+		if(result==OK)
+			*clean_options&=(STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+		}
+
+	/* no macro matched... */
+	else
+		result=ERROR;
+	
+	/* free memory */
+	my_free(buf);
+
+	return result;
+	}
+	
+
+
+int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int *free_macro){
+	host *temp_host=NULL;
+	hostgroup *temp_hostgroup=NULL;
+	hostsmember *temp_hostsmember=NULL;
+	service *temp_service=NULL;
+	servicegroup *temp_servicegroup=NULL;
+	servicesmember *temp_servicesmember=NULL;
+	contact *temp_contact=NULL;
+	contactgroup *temp_contactgroup=NULL;
+	contactsmember *temp_contactsmember=NULL;
+	char *temp_buffer=NULL;
+	int result=OK;
+	int delimiter_len=0;
+	int free_sub_macro=FALSE;
+
+
+	if(output==NULL || free_macro==NULL)
+		return ERROR;
+
+	/* BY DEFAULT, TELL CALLER TO FREE MACRO BUFFER WHEN DONE */
+	*free_macro=TRUE;
+
+	/* handle the macro */
+	switch(macro_type){
+
+		/***************/
+		/* HOST MACROS */
+		/***************/
+	case MACRO_HOSTNAME:
+	case MACRO_HOSTALIAS:
+	case MACRO_HOSTADDRESS:
+	case MACRO_LASTHOSTCHECK:
+	case MACRO_LASTHOSTSTATECHANGE:
+	case MACRO_HOSTOUTPUT:
+	case MACRO_HOSTPERFDATA:
+	case MACRO_HOSTSTATE:
+	case MACRO_HOSTSTATEID:
+	case MACRO_HOSTATTEMPT:
+	case MACRO_HOSTEXECUTIONTIME:
+	case MACRO_HOSTLATENCY:
+	case MACRO_HOSTDURATION:
+	case MACRO_HOSTDURATIONSEC:
+	case MACRO_HOSTDOWNTIME:
+	case MACRO_HOSTSTATETYPE:
+	case MACRO_HOSTPERCENTCHANGE:
+	case MACRO_HOSTACKAUTHOR:
+	case MACRO_HOSTACKCOMMENT:
+	case MACRO_LASTHOSTUP:
+	case MACRO_LASTHOSTDOWN:
+	case MACRO_LASTHOSTUNREACHABLE:
+	case MACRO_HOSTCHECKCOMMAND:
+	case MACRO_HOSTDISPLAYNAME:
+	case MACRO_HOSTACTIONURL:
+	case MACRO_HOSTNOTESURL:
+	case MACRO_HOSTNOTES:
+	case MACRO_HOSTCHECKTYPE:
+	case MACRO_LONGHOSTOUTPUT:
+	case MACRO_HOSTNOTIFICATIONNUMBER:
+	case MACRO_HOSTNOTIFICATIONID:
+	case MACRO_HOSTEVENTID:
+	case MACRO_LASTHOSTEVENTID:
+	case MACRO_HOSTGROUPNAMES:
+	case MACRO_HOSTACKAUTHORNAME:
+	case MACRO_HOSTACKAUTHORALIAS:
+	case MACRO_MAXHOSTATTEMPTS:
+	case MACRO_TOTALHOSTSERVICES:
+	case MACRO_TOTALHOSTSERVICESOK:
+	case MACRO_TOTALHOSTSERVICESWARNING:
+	case MACRO_TOTALHOSTSERVICESUNKNOWN:
+	case MACRO_TOTALHOSTSERVICESCRITICAL:
+	case MACRO_HOSTPROBLEMID:
+	case MACRO_LASTHOSTPROBLEMID:
+
+		/* a standard host macro */
+		if(arg2==NULL){
+
+			/* find the host for on-demand macros */
+			if(arg1){
+				if((temp_host=find_host(arg1))==NULL)
+					return ERROR;
+				}
+
+			/* else use saved host pointer */
+			else if((temp_host=macro_host_ptr)==NULL)
+				return ERROR;
+
+			/* get the host macro value */
+			result=grab_standard_host_macro(macro_type,temp_host,output,free_macro);
+			}
+
+		/* a host macro with a hostgroup name and delimiter */
+		else{
+
+			if((temp_hostgroup=find_hostgroup(arg1))==NULL)
+				return ERROR;
+
+			delimiter_len=strlen(arg2);
+
+			/* concatenate macro values for all hostgroup members */
+			for(temp_hostsmember=temp_hostgroup->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
+
+#ifdef NSCORE
+				if((temp_host=temp_hostsmember->host_ptr)==NULL)
+					continue;
+#else
+				if((temp_host=find_host(temp_hostsmember->host_name))==NULL)
+					continue;
+#endif
+
+				/* get the macro value for this host */
+				grab_standard_host_macro(macro_type,temp_host,&temp_buffer,&free_sub_macro);
+
+				if(temp_buffer==NULL)
+					continue;
+				
+				/* add macro value to already running macro */
+				if(*output==NULL)
+					*output=(char *)strdup(temp_buffer);
+				else{
+					if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_buffer)+delimiter_len+1))==NULL)
+						continue;
+					strcat(*output,arg2);
+					strcat(*output,temp_buffer);
+					}
+				if(free_sub_macro==TRUE)
+					my_free(temp_buffer);
+				}
+			}
+		break;
+
+		/********************/
+		/* HOSTGROUP MACROS */
+		/********************/
+	case MACRO_HOSTGROUPNAME:
+	case MACRO_HOSTGROUPALIAS:
+	case MACRO_HOSTGROUPNOTES:
+	case MACRO_HOSTGROUPNOTESURL:
+	case MACRO_HOSTGROUPACTIONURL:
+	case MACRO_HOSTGROUPMEMBERS:
+
+		/* a standard hostgroup macro */
+		/* use the saved hostgroup pointer */
+		if(arg1==NULL){
+			if((temp_hostgroup=macro_hostgroup_ptr)==NULL)
+				return ERROR;
+			}
+
+		/* else find the hostgroup for on-demand macros */
+		else{
+			if((temp_hostgroup=find_hostgroup(arg1))==NULL)
+				return ERROR;
+			}
+
+		/* get the hostgroup macro value */
+		result=grab_standard_hostgroup_macro(macro_type,temp_hostgroup,output);
+		break;
+
+		/******************/
+		/* SERVICE MACROS */
+		/******************/
+	case MACRO_SERVICEDESC:
+	case MACRO_SERVICESTATE:
+	case MACRO_SERVICESTATEID:
+	case MACRO_SERVICEATTEMPT:
+	case MACRO_LASTSERVICECHECK:
+	case MACRO_LASTSERVICESTATECHANGE:
+	case MACRO_SERVICEOUTPUT:
+	case MACRO_SERVICEPERFDATA:
+	case MACRO_SERVICEEXECUTIONTIME:
+	case MACRO_SERVICELATENCY:
+	case MACRO_SERVICEDURATION:
+	case MACRO_SERVICEDURATIONSEC:
+	case MACRO_SERVICEDOWNTIME:
+	case MACRO_SERVICESTATETYPE:
+	case MACRO_SERVICEPERCENTCHANGE:
+	case MACRO_SERVICEACKAUTHOR:
+	case MACRO_SERVICEACKCOMMENT:
+	case MACRO_LASTSERVICEOK:
+	case MACRO_LASTSERVICEWARNING:
+	case MACRO_LASTSERVICEUNKNOWN:
+	case MACRO_LASTSERVICECRITICAL:
+	case MACRO_SERVICECHECKCOMMAND:
+	case MACRO_SERVICEDISPLAYNAME:
+	case MACRO_SERVICEACTIONURL:
+	case MACRO_SERVICENOTESURL:
+	case MACRO_SERVICENOTES:
+	case MACRO_SERVICECHECKTYPE:
+	case MACRO_LONGSERVICEOUTPUT:
+	case MACRO_SERVICENOTIFICATIONNUMBER:
+	case MACRO_SERVICENOTIFICATIONID:
+	case MACRO_SERVICEEVENTID:
+	case MACRO_LASTSERVICEEVENTID:
+	case MACRO_SERVICEGROUPNAMES:
+	case MACRO_SERVICEACKAUTHORNAME:
+	case MACRO_SERVICEACKAUTHORALIAS:
+	case MACRO_MAXSERVICEATTEMPTS:
+	case MACRO_SERVICEISVOLATILE:
+	case MACRO_SERVICEPROBLEMID:
+	case MACRO_LASTSERVICEPROBLEMID:
+
+		/* use saved service pointer */
+		if(arg1==NULL && arg2==NULL){
+
+			if((temp_service=macro_service_ptr)==NULL)
+				return ERROR;
+
+			result=grab_standard_service_macro(macro_type,temp_service,output,free_macro);
+			}
+
+		/* else and ondemand macro... */
+		else{
+
+			/* if first arg is blank, it means use the current host name */
+			if(macro_host_ptr==NULL)
+				return ERROR;
+			if((temp_service=find_service((macro_host_ptr)?macro_host_ptr->name:NULL,arg2))){
+
+				/* get the service macro value */
+				result=grab_standard_service_macro(macro_type,temp_service,output,free_macro);
+				}
+
+			/* else we have a service macro with a servicegroup name and a delimiter... */
+			else if(arg1 && arg2){
+
+				if((temp_servicegroup=find_servicegroup(arg1))==NULL)
+					return ERROR;
+
+				delimiter_len=strlen(arg2);
+
+				/* concatenate macro values for all servicegroup members */
+				for(temp_servicesmember=temp_servicegroup->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+
+#ifdef NSCORE
+					if((temp_service=temp_servicesmember->service_ptr)==NULL)
+						continue;
+#else
+					if((temp_service=find_service(temp_servicesmember->host_name,temp_servicesmember->service_description))==NULL)
+						continue;
+#endif
+
+					/* get the macro value for this service */
+					grab_standard_service_macro(macro_type,temp_service,&temp_buffer,&free_sub_macro);
+
+					if(temp_buffer==NULL)
+						continue;
+				
+					/* add macro value to already running macro */
+					if(*output==NULL)
+						*output=(char *)strdup(temp_buffer);
+					else{
+						if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_buffer)+delimiter_len+1))==NULL)
+							continue;
+						strcat(*output,arg2);
+						strcat(*output,temp_buffer);
+						}
+					if(free_sub_macro==TRUE)
+						my_free(temp_buffer);
+					}
+				}
+			else
+				return ERROR;
+			}
+		break;
+
+		/***********************/
+		/* SERVICEGROUP MACROS */
+		/***********************/
+	case MACRO_SERVICEGROUPNAME:
+	case MACRO_SERVICEGROUPALIAS:
+	case MACRO_SERVICEGROUPNOTES:
+	case MACRO_SERVICEGROUPNOTESURL:
+	case MACRO_SERVICEGROUPACTIONURL:
+	case MACRO_SERVICEGROUPMEMBERS:
+		/* a standard servicegroup macro */
+		/* use the saved servicegroup pointer */
+		if(arg1==NULL){
+			if((temp_servicegroup=macro_servicegroup_ptr)==NULL)
+				return ERROR;
+			}
+
+		/* else find the servicegroup for on-demand macros */
+		else{
+			if((temp_servicegroup=find_servicegroup(arg1))==NULL)
+				return ERROR;
+			}
+
+		/* get the servicegroup macro value */
+		result=grab_standard_servicegroup_macro(macro_type,temp_servicegroup,output);
+		break;
+
+		/******************/
+		/* CONTACT MACROS */
+		/******************/
+	case MACRO_CONTACTNAME:
+	case MACRO_CONTACTALIAS:
+	case MACRO_CONTACTEMAIL:
+	case MACRO_CONTACTPAGER:
+		/* a standard contact macro */
+		if(arg2==NULL){
+
+			/* find the contact for on-demand macros */
+			if(arg1){
+				if((temp_contact=find_contact(arg1))==NULL)
+					return ERROR;
+				}
+
+			/* else use saved contact pointer */
+			else if((temp_contact=macro_contact_ptr)==NULL)
+				return ERROR;
+
+			/* get the contact macro value */
+			result=grab_standard_contact_macro(macro_type,temp_contact,output);
+			}
+
+		/* a contact macro with a contactgroup name and delimiter */
+		else{
+
+			if((temp_contactgroup=find_contactgroup(arg1))==NULL)
+				return ERROR;
+
+			delimiter_len=strlen(arg2);
+
+			/* concatenate macro values for all contactgroup members */
+			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+
+#ifdef NSCORE
+				if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+					continue;
+#else
+				if((temp_contact=find_contact(temp_contactsmember->contact_name))==NULL)
+					continue;
+#endif
+
+				/* get the macro value for this contact */
+				grab_standard_contact_macro(macro_type,temp_contact,&temp_buffer);
+
+				if(temp_buffer==NULL)
+					continue;
+				
+				/* add macro value to already running macro */
+				if(*output==NULL)
+					*output=(char *)strdup(temp_buffer);
+				else{
+					if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_buffer)+delimiter_len+1))==NULL)
+						continue;
+					strcat(*output,arg2);
+					strcat(*output,temp_buffer);
+					}
+				my_free(temp_buffer);
+				}
+			}
+		break;
+
+		/***********************/
+		/* CONTACTGROUP MACROS */
+		/***********************/
+	case MACRO_CONTACTGROUPNAME:
+	case MACRO_CONTACTGROUPALIAS:
+	case MACRO_CONTACTGROUPMEMBERS:
+	case MACRO_CONTACTGROUPNAMES:
+		/* a standard contactgroup macro */
+		/* use the saved contactgroup pointer */
+		if(arg1==NULL)
+			if((temp_contactgroup=macro_contactgroup_ptr)==NULL)
+				return ERROR;
+
+		/* else find the contactgroup for on-demand macros */
+		else{
+			if((temp_contactgroup=find_contactgroup(arg1))==NULL)
+				return ERROR;
+			}
+
+		/* get the contactgroup macro value */
+		result=grab_standard_contactgroup_macro(macro_type,temp_contactgroup,output);
+		break;
+
+		/***********************/
+		/* NOTIFICATION MACROS */
+		/***********************/
+	case MACRO_NOTIFICATIONTYPE:
+	case MACRO_NOTIFICATIONNUMBER:
+	case MACRO_NOTIFICATIONRECIPIENTS:
+	case MACRO_NOTIFICATIONISESCALATED:
+	case MACRO_NOTIFICATIONAUTHOR:
+	case MACRO_NOTIFICATIONAUTHORNAME:
+	case MACRO_NOTIFICATIONAUTHORALIAS:
+	case MACRO_NOTIFICATIONCOMMENT:
+
+		/* notification macros have already been pre-computed */
+		*output=macro_x[macro_type];
+		*free_macro=FALSE;
+		break;
+
+		/********************/
+		/* DATE/TIME MACROS */
+		/********************/
+	case MACRO_LONGDATETIME:
+	case MACRO_SHORTDATETIME:
+	case MACRO_DATE:
+	case MACRO_TIME:
+	case MACRO_TIMET:
+	case MACRO_ISVALIDTIME:
+	case MACRO_NEXTVALIDTIME:
+
+		/* calculate macros */
+		result=grab_datetime_macro(macro_type,arg1,arg2,output);
+		break;
+
+		/******************/
+		/* SUMMARY MACROS */
+		/******************/
+	case MACRO_TOTALHOSTSUP:
+	case MACRO_TOTALHOSTSDOWN:
+	case MACRO_TOTALHOSTSUNREACHABLE:
+	case MACRO_TOTALHOSTSDOWNUNHANDLED:
+	case MACRO_TOTALHOSTSUNREACHABLEUNHANDLED:
+	case MACRO_TOTALHOSTPROBLEMS:
+	case MACRO_TOTALHOSTPROBLEMSUNHANDLED:
+	case MACRO_TOTALSERVICESOK:
+	case MACRO_TOTALSERVICESWARNING:
+	case MACRO_TOTALSERVICESCRITICAL:
+	case MACRO_TOTALSERVICESUNKNOWN:
+	case MACRO_TOTALSERVICESWARNINGUNHANDLED:
+	case MACRO_TOTALSERVICESCRITICALUNHANDLED:
+	case MACRO_TOTALSERVICESUNKNOWNUNHANDLED:
+	case MACRO_TOTALSERVICEPROBLEMS:
+	case MACRO_TOTALSERVICEPROBLEMSUNHANDLED:
+
+		/* summary macros have already been computed (if they're enabled) */
+		*output=macro_x[macro_type];
+		*free_macro=FALSE;
+		break;
+
+		/*****************/
+		/* STATIC MACROS */
+		/*****************/
+	case MACRO_ADMINEMAIL:
+	case MACRO_ADMINPAGER:
+	case MACRO_MAINCONFIGFILE:
+	case MACRO_STATUSDATAFILE:
+	case MACRO_RETENTIONDATAFILE:
+	case MACRO_OBJECTCACHEFILE:
+	case MACRO_TEMPFILE:
+	case MACRO_LOGFILE:
+	case MACRO_RESOURCEFILE:
+	case MACRO_COMMANDFILE:
+	case MACRO_HOSTPERFDATAFILE:
+	case MACRO_SERVICEPERFDATAFILE:
+	case MACRO_PROCESSSTARTTIME:
+	case MACRO_TEMPPATH:
+	case MACRO_EVENTSTARTTIME:
+
+		/* no need to do any more work - these are already precomputed for us */
+		*output=macro_x[macro_type];
+		*free_macro=FALSE;
+		break;
+
+	default:
+		printf("UNHANDLED MACRO! ETHAN MISSED MACRO #%d\n",macro_type);
+		return ERROR;
+		break;
+		}
+
+	return result;
+	}
+
+
+
+/* calculates the value of a custom macro */
+int grab_custom_macro_value(char *macro_name, char *arg1, char *arg2, char **output){
+	host *temp_host=NULL;
+	hostgroup *temp_hostgroup=NULL;
+	service *temp_service=NULL;
+	servicegroup *temp_servicegroup=NULL;
+	contact *temp_contact=NULL;
+	contactgroup *temp_contactgroup=NULL;
+	int result=OK;
+
+	if(macro_name==NULL || output==NULL)
+		return ERROR;
+
+	/* custom host variable macros */
+	if(strstr(macro_name,"_HOST")==macro_name){
+
+		/* a standard host macro */
+		if(arg2==NULL){
+
+			/* find the host for on-demand macros */
+			if(arg1){
+				if((temp_host=find_host(arg1))==NULL)
+					return ERROR;
+				}
+
+			/* else use saved host pointer */
+			else if((temp_host=macro_host_ptr)==NULL)
+				return ERROR;
+
+			/* get the host macro value */
+			result=grab_custom_object_macro(macro_name+5,temp_host->custom_variables,output);
+			}
+
+		/* a host macro with a hostgroup name and delimiter */
+		else{
+			}
+		}
+
+	/* custom service variable macros */
+	else if(strstr(macro_name,"_SERVICE")==macro_name){
+
+		/* use saved service pointer */
+		if(arg1==NULL && arg2==NULL){
+
+			if((temp_service=macro_service_ptr)==NULL)
+				return ERROR;
+
+			/* get the service macro value */
+			result=grab_custom_object_macro(macro_name+8,temp_service->custom_variables,output);
+			}
+
+		/* else and ondemand macro... */
+		else{
+
+			/* if first arg is blank, it means use the current host name */
+			if(macro_host_ptr==NULL)
+				return ERROR;
+			if((temp_service=find_service((macro_host_ptr)?macro_host_ptr->name:NULL,arg2))){
+
+				/* get the service macro value */
+				result=grab_custom_object_macro(macro_name+8,temp_service->custom_variables,output);
+				}
+
+			/* else we have a service macro with a servicegroup name and a delimiter... */
+			else{
+				}
+			}
+		}
+
+	/* custom contact variable macros */
+	else if(strstr(macro_name,"_CONTACT")==macro_name){
+
+		/* a standard contact macro */
+		if(arg2==NULL){
+
+			/* find the contact for on-demand macros */
+			if(arg1){
+				if((temp_contact=find_contact(arg1))==NULL)
+					return ERROR;
+				}
+
+			/* else use saved contact pointer */
+			else if((temp_contact=macro_contact_ptr)==NULL)
+				return ERROR;
+
+			/* get the contact macro value */
+			result=grab_custom_object_macro(macro_name+8,temp_contact->custom_variables,output);
+			}
+
+		/* a contact macro with a contactgroup name and delimiter */
+		else{
+			}
+		}
+
+	else
+		return ERROR;
+
+	return result;
+	}
+
+
+
+/* calculates a date/time macro */
+int grab_datetime_macro(int macro_type, char *arg1, char *arg2, char **output){
+	time_t current_time=0L;
+	timeperiod *temp_timeperiod=NULL;
+	time_t test_time=0L;
+	time_t next_valid_time=0L;
+
+	if(output==NULL)
+		return ERROR;
 
 	/* get the current time */
-	time(&t);
+	time(&current_time);
 
-	/* get the current date/time (long format macro) */
-	if(macro_x[MACRO_LONGDATETIME]==NULL)
-		macro_x[MACRO_LONGDATETIME]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LONGDATETIME]!=NULL)
-		get_datetime_string(&t,macro_x[MACRO_LONGDATETIME],MAX_DATETIME_LENGTH,LONG_DATE_TIME);
+	/* parse args, do prep work */
+	switch(macro_type){
 
-	/* get the current date/time (short format macro) */
-	if(macro_x[MACRO_SHORTDATETIME]==NULL)
-		macro_x[MACRO_SHORTDATETIME]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_SHORTDATETIME]!=NULL)
-		get_datetime_string(&t,macro_x[MACRO_SHORTDATETIME],MAX_DATETIME_LENGTH,SHORT_DATE_TIME);
+	case MACRO_ISVALIDTIME:
+	case MACRO_NEXTVALIDTIME:
 
-	/* get the short format date macro */
-	if(macro_x[MACRO_DATE]==NULL)
-		macro_x[MACRO_DATE]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_DATE]!=NULL)
-		get_datetime_string(&t,macro_x[MACRO_DATE],MAX_DATETIME_LENGTH,SHORT_DATE);
+		/* find the timeperiod */
+		if((temp_timeperiod=find_timeperiod(arg1))==NULL)
+			return ERROR;
 
-	/* get the short format time macro */
-	if(macro_x[MACRO_TIME]==NULL)
-		macro_x[MACRO_TIME]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_TIME]!=NULL)
-		get_datetime_string(&t,macro_x[MACRO_TIME],MAX_DATETIME_LENGTH,SHORT_TIME);
+		/* what timestamp should we use? */
+		if(arg2)
+			test_time=(time_t)strtoul(arg2,NULL,0);
+		else
+			test_time=current_time;
+		break;
 
-	/* get the time_t format time macro */
-	if(macro_x[MACRO_TIMET]==NULL)
-		macro_x[MACRO_TIMET]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_TIMET]!=NULL){
-		snprintf(macro_x[MACRO_TIMET],MAX_DATETIME_LENGTH,"%lu",(unsigned long)t);
-		macro_x[MACRO_TIMET][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	default:
+		break;
+		}
 
-	/*
-	strip(macro_x[MACRO_LONGDATETIME]);
-	strip(macro_x[MACRO_SHORTDATETIME]);
-	strip(macro_x[MACRO_DATE]);
-	strip(macro_x[MACRO_TIME]);
-	strip(macro_x[MACRO_TIMET]);
-	*/
+	/* calculate the value */
+	switch(macro_type){
+
+	case MACRO_LONGDATETIME:
+		if(*output==NULL)
+			*output=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(*output)
+			get_datetime_string(&current_time,*output,MAX_DATETIME_LENGTH,LONG_DATE_TIME);
+		break;
+
+	case MACRO_SHORTDATETIME:
+		if(*output==NULL)
+			*output=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(*output)
+			get_datetime_string(&current_time,*output,MAX_DATETIME_LENGTH,SHORT_DATE_TIME);
+		break;
+
+	case MACRO_DATE:
+		if(*output==NULL)
+			*output=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(*output)
+			get_datetime_string(&current_time,*output,MAX_DATETIME_LENGTH,SHORT_DATE);
+		break;
+
+	case MACRO_TIME:
+		if(*output==NULL)
+			*output=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(*output)
+			get_datetime_string(&current_time,*output,MAX_DATETIME_LENGTH,SHORT_TIME);
+		break;
+
+	case MACRO_TIMET:
+		if(*output==NULL)
+			*output=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(*output){
+			snprintf(*output,MAX_DATETIME_LENGTH,"%lu",(unsigned long)current_time);
+			output[MAX_DATETIME_LENGTH-1]='\x0';
+			}
+		break;
+
+#ifdef NSCORE
+	case MACRO_ISVALIDTIME:
+		asprintf(output,"%d",(check_time_against_period(test_time,temp_timeperiod)==OK)?1:0);
+		break;
+
+	case MACRO_NEXTVALIDTIME:
+		get_next_valid_time(test_time,&next_valid_time,temp_timeperiod);
+		if(next_valid_time==test_time && check_time_against_period(test_time,temp_timeperiod)==ERROR)
+			next_valid_time=(time_t)0L;
+		asprintf(output,"%lu",(unsigned long)next_valid_time);
+		break;
+#endif
+
+	default:
+		return ERROR;
+		break;
+		}
 
 	return OK;
         }
 
 
+
+/* calculates a host macro */
+int grab_standard_host_macro(int macro_type, host *temp_host, char **output, int *free_macro){
+	hostgroup *temp_hostgroup=NULL;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	servicesmember *temp_servicesmember=NULL;
+	service *temp_service=NULL;
+	objectlist *temp_objectlist=NULL;
+	char *customvarname=NULL;
+	time_t current_time=0L;
+	unsigned long duration=0L;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
+	char *temp_buffer=NULL;
+	char *buf1=NULL;
+	char *buf2=NULL;
+	int total_host_services=0;
+	int total_host_services_ok=0;
+	int total_host_services_warning=0;
+	int total_host_services_unknown=0;
+	int total_host_services_critical=0;
+
+	if(temp_host==NULL || output==NULL || free_macro==NULL)
+		return ERROR;
+
+	/* BY DEFAULT TELL CALLER TO FREE MACRO BUFFER WHEN DONE */
+	*free_macro=TRUE;
+
+	/* get the macro */
+	switch(macro_type){
+
+	case MACRO_HOSTNAME:
+		*output=(char *)strdup(temp_host->name);
+		break;
+	case MACRO_HOSTDISPLAYNAME:
+		if(temp_host->display_name)
+			*output=(char *)strdup(temp_host->display_name);
+		break;
+	case MACRO_HOSTALIAS:
+		*output=(char *)strdup(temp_host->alias);
+		break;
+	case MACRO_HOSTADDRESS:
+		*output=(char *)strdup(temp_host->address);
+		break;
+#ifdef NSCORE
+	case MACRO_HOSTSTATE:
+		if(temp_host->current_state==HOST_DOWN)
+			*output=(char *)strdup("DOWN");
+		else if(temp_host->current_state==HOST_UNREACHABLE)
+			*output=(char *)strdup("UNREACHABLE");
+		else
+			*output=(char *)strdup("UP");
+		break;
+	case MACRO_HOSTSTATEID:
+		asprintf(output,"%d",temp_host->current_state);
+		break;
+	case MACRO_HOSTCHECKTYPE:
+		asprintf(output,"%s",(temp_host->check_type==HOST_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
+		break;
+	case MACRO_HOSTSTATETYPE:
+		asprintf(output,"%s",(temp_host->state_type==HARD_STATE)?"HARD":"SOFT");
+		break;
+	case MACRO_HOSTOUTPUT:
+		if(temp_host->plugin_output)
+			*output=(char *)strdup(temp_host->plugin_output);
+		break;
+	case MACRO_LONGHOSTOUTPUT:
+		if(temp_host->long_plugin_output)
+			*output=(char *)strdup(temp_host->long_plugin_output);
+		break;
+	case MACRO_HOSTPERFDATA:
+		if(temp_host->perf_data)
+			*output=(char *)strdup(temp_host->perf_data);
+		break;
+#endif
+	case MACRO_HOSTCHECKCOMMAND:
+		if(temp_host->host_check_command)
+			*output=(char *)strdup(temp_host->host_check_command);
+		break;
+#ifdef NSCORE
+	case MACRO_HOSTATTEMPT:
+		asprintf(output,"%d",temp_host->current_attempt);
+		break;
+	case MACRO_MAXHOSTATTEMPTS:
+		asprintf(output,"%d",temp_host->max_attempts);
+		break;
+	case MACRO_HOSTDOWNTIME:
+		asprintf(output,"%d",temp_host->scheduled_downtime_depth);
+		break;
+	case MACRO_HOSTPERCENTCHANGE:
+		asprintf(output,"%.2f",temp_host->percent_state_change);
+		break;
+	case MACRO_HOSTDURATIONSEC:
+	case MACRO_HOSTDURATION:
+		time(&current_time);
+		duration=(unsigned long)(current_time-temp_host->last_state_change);
+
+		if(macro_type==MACRO_HOSTDURATIONSEC)
+			asprintf(output,"%lu",duration);
+		else{
+
+			days=duration/86400;
+			duration-=(days*86400);
+			hours=duration/3600;
+			duration-=(hours*3600);
+			minutes=duration/60;
+			duration-=(minutes*60);
+			seconds=duration;
+			asprintf(output,"%dd %dh %dm %ds",days,hours,minutes,seconds);
+			}
+		break;
+	case MACRO_HOSTEXECUTIONTIME:
+		asprintf(output,"%.3f",temp_host->execution_time);
+		break;
+	case MACRO_HOSTLATENCY:
+		asprintf(output,"%.3f",temp_host->latency);
+		break;
+	case MACRO_LASTHOSTCHECK:
+		asprintf(output,"%lu",(unsigned long)temp_host->last_check);
+		break;
+	case MACRO_LASTHOSTSTATECHANGE:
+		asprintf(output,"%lu",(unsigned long)temp_host->last_state_change);
+		break;
+	case MACRO_LASTHOSTUP:
+		asprintf(output,"%lu",(unsigned long)temp_host->last_time_up);
+		break;
+	case MACRO_LASTHOSTDOWN:
+		asprintf(output,"%lu",(unsigned long)temp_host->last_time_down);
+		break;
+	case MACRO_LASTHOSTUNREACHABLE:
+		asprintf(output,"%lu",(unsigned long)temp_host->last_time_unreachable);
+		break;
+	case MACRO_HOSTNOTIFICATIONNUMBER:
+		asprintf(output,"%d",temp_host->current_notification_number);
+		break;
+	case MACRO_HOSTNOTIFICATIONID:
+		asprintf(output,"%lu",temp_host->current_notification_id);
+		break;
+	case MACRO_HOSTEVENTID:
+		asprintf(output,"%lu",temp_host->current_event_id);
+		break;
+	case MACRO_LASTHOSTEVENTID:
+		asprintf(output,"%lu",temp_host->last_event_id);
+		break;
+	case MACRO_HOSTPROBLEMID:
+		asprintf(output,"%lu",temp_host->current_problem_id);
+		break;
+	case MACRO_LASTHOSTPROBLEMID:
+		asprintf(output,"%lu",temp_host->last_problem_id);
+		break;
+#endif
+	case MACRO_HOSTACTIONURL:
+		if(temp_host->action_url)
+			*output=(char *)strdup(temp_host->action_url);
+		break;
+	case MACRO_HOSTNOTESURL:
+		if(temp_host->notes_url)
+			*output=(char *)strdup(temp_host->notes_url);
+		break;
+	case MACRO_HOSTNOTES:
+		if(temp_host->notes)
+			*output=(char *)strdup(temp_host->notes);
+		break;
+#ifdef NSCORE
+	case MACRO_HOSTGROUPNAMES:
+		/* find all hostgroups this host is associated with */
+		for(temp_objectlist=temp_host->hostgroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
+
+			if((temp_hostgroup=(hostgroup *)temp_objectlist->object_ptr)==NULL)
+				continue;
+
+			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_hostgroup->group_name);
+			my_free(buf2);
+			buf2=buf1;
+			}
+		if(buf2){
+			*output=(char *)strdup(buf2);
+			my_free(buf2);
+			}
+		break;
+	case MACRO_TOTALHOSTSERVICES:
+	case MACRO_TOTALHOSTSERVICESOK:
+	case MACRO_TOTALHOSTSERVICESWARNING:
+	case MACRO_TOTALHOSTSERVICESUNKNOWN:
+	case MACRO_TOTALHOSTSERVICESCRITICAL:
+
+		/* generate host service summary macros (if they haven't already been computed) */
+		if(macro_x[MACRO_TOTALHOSTSERVICES]==NULL){
+
+			for(temp_servicesmember=temp_host->services;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+				if((temp_service=temp_servicesmember->service_ptr)==NULL)
+					continue;
+
+				total_host_services++;
+
+				switch(temp_service->current_state){
+				case STATE_OK:
+					total_host_services_ok++;
+					break;
+				case STATE_WARNING:
+					total_host_services_warning++;
+					break;
+				case STATE_UNKNOWN:
+					total_host_services_unknown++;
+					break;
+				case STATE_CRITICAL:
+					total_host_services_critical++;
+					break;
+				default:
+					break;
+					}
+				}
+
+			/* these macros are time-intensive to compute, and will likely be used together, so save them all for future use */
+			asprintf(&macro_x[MACRO_TOTALHOSTSERVICES],"%lu",total_host_services);
+			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESOK],"%lu",total_host_services_ok);
+			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESWARNING],"%lu",total_host_services_warning);
+			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN],"%lu",total_host_services_unknown);
+			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESCRITICAL],"%lu",total_host_services_critical);
+			}
+
+		/* return only the macro the user requested */
+		switch(macro_type){
+		case MACRO_TOTALHOSTSERVICES:
+			*output=macro_x[MACRO_TOTALHOSTSERVICES];
+			break;
+		case MACRO_TOTALHOSTSERVICESOK:
+			*output=macro_x[MACRO_TOTALHOSTSERVICESOK];
+			break;
+		case MACRO_TOTALHOSTSERVICESWARNING:
+			*output=macro_x[MACRO_TOTALHOSTSERVICESWARNING];
+			break;
+		case MACRO_TOTALHOSTSERVICESUNKNOWN:
+			*output=macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN];
+			break;
+		case MACRO_TOTALHOSTSERVICESCRITICAL:
+			*output=macro_x[MACRO_TOTALHOSTSERVICESCRITICAL];
+			break;
+		default:
+			break;
+			}
+		/* tell caller to NOT free memory when done */
+		*free_macro=FALSE;
+		break;
+#endif
+		/***************/
+		/* MISC MACROS */
+		/***************/
+	case MACRO_HOSTACKAUTHOR:
+	case MACRO_HOSTACKAUTHORNAME:
+	case MACRO_HOSTACKAUTHORALIAS:
+	case MACRO_HOSTACKCOMMENT:
+		/* no need to do any more work - these are already precomputed elsewhere */
+		/* NOTE: these macros won't work as on-demand macros */
+		*output=macro_x[macro_type];
+		*free_macro=FALSE;
+		break;
+
+	default:
+		printf("UNHANDLED HOST MACRO! #%d\n",macro_type);
+		return ERROR;
+		break;
+		}
+
+	/* post-processing */
+	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
+	switch(macro_type){
+	case MACRO_HOSTACTIONURL:
+	case MACRO_HOSTNOTESURL:
+		process_macros(*output,&temp_buffer,URL_ENCODE_MACRO_CHARS);
+		my_free(*output);
+		*output=temp_buffer;
+		break;
+	case MACRO_HOSTNOTES:
+		process_macros(*output,&temp_buffer,0);
+		my_free(*output);
+		*output=temp_buffer;
+		break;
+	default:
+		break;
+		}
+
+	return OK;
+	}
+
+
+
+/* computes a hostgroup macro */
+int grab_standard_hostgroup_macro(int macro_type, hostgroup *temp_hostgroup, char **output){
+	hostsmember *temp_hostsmember=NULL;
+	char *temp_buffer=NULL;
+
+	if(temp_hostgroup==NULL || output==NULL)
+		return ERROR;
+
+	/* get the macro value */
+	switch(macro_type){
+	case MACRO_HOSTGROUPNAME:
+		*output=(char *)strdup(temp_hostgroup->group_name);
+		break;
+	case MACRO_HOSTGROUPALIAS:
+		if(temp_hostgroup->alias)
+			*output=(char *)strdup(temp_hostgroup->alias);
+		break;
+	case MACRO_HOSTGROUPMEMBERS:
+		/* get the group members */
+		for(temp_hostsmember=temp_hostgroup->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
+			if(temp_hostsmember->host_name==NULL)
+				continue;
+			if(*output==NULL)
+				*output=(char *)strdup(temp_hostsmember->host_name);
+			else if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_hostsmember->host_name)+2))){
+				strcat(*output,",");
+				strcat(*output,temp_hostsmember->host_name);
+				}
+			}
+		break;
+	case MACRO_HOSTGROUPACTIONURL:
+		if(temp_hostgroup->action_url)
+			*output=(char *)strdup(temp_hostgroup->action_url);
+		break;
+	case MACRO_HOSTGROUPNOTESURL:
+		if(temp_hostgroup->notes_url)
+			*output=(char *)strdup(temp_hostgroup->notes_url);
+		break;
+	case MACRO_HOSTGROUPNOTES:
+		if(temp_hostgroup->notes)
+			*output=(char *)strdup(temp_hostgroup->notes);
+		break;
+	default:
+		printf("UNHANDLED HOSTGROUP MACRO! #%d\n",macro_type);
+		return ERROR;
+		break;
+		}
+
+	/* post-processing */
+	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
+	switch(macro_type){
+	case MACRO_HOSTGROUPACTIONURL:
+	case MACRO_HOSTGROUPNOTESURL:
+		process_macros(*output,&temp_buffer,URL_ENCODE_MACRO_CHARS);
+		my_free(*output);
+		*output=temp_buffer;
+		break;
+	case MACRO_HOSTGROUPNOTES:
+		process_macros(*output,&temp_buffer,0);
+		my_free(*output);
+		*output=temp_buffer;
+		break;
+	default:
+		break;
+		}
+
+	return OK;
+	}
+
+
+
+/* computes a service macro */
+int grab_standard_service_macro(int macro_type, service *temp_service, char **output, int *free_macro){
+	servicegroup *temp_servicegroup=NULL;
+	objectlist *temp_objectlist=NULL;
+	time_t current_time=0L;
+	unsigned long duration=0L;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
+	char *temp_buffer=NULL;
+	char *buf1=NULL;
+	char *buf2=NULL;
+
+	if(temp_service==NULL || output==NULL)
+		return ERROR;
+
+	/* BY DEFAULT TELL CALLER TO FREE MACRO BUFFER WHEN DONE */
+	*free_macro=TRUE;
+
+	/* get the macro value */
+	switch(macro_type){
+	case MACRO_SERVICEDESC:
+		*output=(char *)strdup(temp_service->description);
+		break;
+	case MACRO_SERVICEDISPLAYNAME:
+		if(temp_service->display_name)
+			*output=(char *)strdup(temp_service->display_name);
+		break;
+#ifdef NSCORE
+	case MACRO_SERVICEOUTPUT:
+		if(temp_service->plugin_output)
+			*output=(char *)strdup(temp_service->plugin_output);
+		break;
+	case MACRO_LONGSERVICEOUTPUT:
+		if(temp_service->long_plugin_output)
+			*output=(char *)strdup(temp_service->long_plugin_output);
+		break;
+	case MACRO_SERVICEPERFDATA:
+		if(temp_service->perf_data)
+			*output=(char *)strdup(temp_service->perf_data);
+		break;
+#endif
+	case MACRO_SERVICECHECKCOMMAND:
+		if(temp_service->service_check_command)
+			*output=(char *)strdup(temp_service->service_check_command);
+		break;
+#ifdef NSCORE
+	case MACRO_SERVICECHECKTYPE:
+		*output=(char *)strdup((temp_service->check_type==SERVICE_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
+		break;
+	case MACRO_SERVICESTATETYPE:
+		*output=(char *)strdup((temp_service->state_type==HARD_STATE)?"HARD":"SOFT");
+		break;
+	case MACRO_SERVICESTATE:
+		if(temp_service->current_state==STATE_OK)
+			*output=(char *)strdup("OK");
+		else if(temp_service->current_state==STATE_WARNING)
+			*output=(char *)strdup("WARNING");
+		else if(temp_service->current_state==STATE_CRITICAL)
+			*output=(char *)strdup("CRITICAL");
+		else
+			*output=(char *)strdup("UNKNOWN");
+		break;
+#endif
+	case MACRO_SERVICEISVOLATILE:
+		asprintf(output,"%d",temp_service->is_volatile);
+		break;
+#ifdef NSCORE
+	case MACRO_SERVICESTATEID:
+		asprintf(output,"%d",temp_service->current_state);
+		break;
+	case MACRO_SERVICEATTEMPT:
+		asprintf(output,"%d",temp_service->current_attempt);
+		break;
+	case MACRO_MAXSERVICEATTEMPTS:
+		asprintf(output,"%d",temp_service->max_attempts);
+		break;
+	case MACRO_SERVICEEXECUTIONTIME:
+		asprintf(output,"%.3f",temp_service->execution_time);
+		break;
+	case MACRO_SERVICELATENCY:
+		asprintf(output,"%.3f",temp_service->latency);
+		break;
+	case MACRO_LASTSERVICECHECK:
+		asprintf(output,"%lu",(unsigned long)temp_service->last_check);
+		break;
+	case MACRO_LASTSERVICESTATECHANGE:
+		asprintf(output,"%lu",(unsigned long)temp_service->last_state_change);
+		break;
+	case MACRO_LASTSERVICEOK:
+		asprintf(output,"%lu",(unsigned long)temp_service->last_time_ok);
+		break;
+	case MACRO_LASTSERVICEWARNING:
+		asprintf(output,"%lu",(unsigned long)temp_service->last_time_warning);
+		break;
+	case MACRO_LASTSERVICEUNKNOWN:
+		asprintf(output,"%lu",(unsigned long)temp_service->last_time_unknown);
+		break;
+	case MACRO_LASTSERVICECRITICAL:
+		asprintf(output,"%lu",(unsigned long)temp_service->last_time_critical);
+		break;
+	case MACRO_SERVICEDOWNTIME:
+		asprintf(output,"%d",temp_service->scheduled_downtime_depth);
+		break;
+	case MACRO_SERVICEPERCENTCHANGE:
+		asprintf(output,"%.2f",temp_service->percent_state_change);
+		break;
+	case MACRO_SERVICEDURATIONSEC:
+	case MACRO_SERVICEDURATION:
+
+		time(&current_time);
+		duration=(unsigned long)(current_time-temp_service->last_state_change);
+
+		/* get the state duration in seconds */
+		if(macro_type==MACRO_SERVICEDURATIONSEC)
+			asprintf(output,"%lu",duration);
+
+		/* get the state duration */
+		else{
+			days=duration/86400;
+			duration-=(days*86400);
+			hours=duration/3600;
+			duration-=(hours*3600);
+			minutes=duration/60;
+			duration-=(minutes*60);
+			seconds=duration;
+			asprintf(output,"%dd %dh %dm %ds",days,hours,minutes,seconds);
+			}
+		break;
+	case MACRO_SERVICENOTIFICATIONNUMBER:
+		asprintf(output,"%d",temp_service->current_notification_number);
+		break;
+	case MACRO_SERVICENOTIFICATIONID:
+		asprintf(output,"%lu",temp_service->current_notification_id);
+		break;
+	case MACRO_SERVICEEVENTID:
+		asprintf(output,"%lu",temp_service->current_event_id);
+		break;
+	case MACRO_LASTSERVICEEVENTID:
+		asprintf(output,"%lu",temp_service->last_event_id);
+		break;
+	case MACRO_SERVICEPROBLEMID:
+		asprintf(output,"%lu",temp_service->current_problem_id);
+		break;
+	case MACRO_LASTSERVICEPROBLEMID:
+		asprintf(output,"%lu",temp_service->last_problem_id);
+		break;
+#endif
+	case MACRO_SERVICEACTIONURL:
+		if(temp_service->action_url)
+			*output=(char *)strdup(temp_service->action_url);
+		break;
+	case MACRO_SERVICENOTESURL:
+		if(temp_service->notes_url)
+			*output=(char *)strdup(temp_service->notes_url);
+		break;
+	case MACRO_SERVICENOTES:
+		if(temp_service->notes)
+			*output=(char *)strdup(temp_service->notes);
+		break;
+#ifdef NSCORE
+	case MACRO_SERVICEGROUPNAMES:
+		/* find all servicegroups this service is associated with */
+		for(temp_objectlist=temp_service->servicegroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
+
+			if((temp_servicegroup=(servicegroup *)temp_objectlist->object_ptr)==NULL)
+				continue;
+
+			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_servicegroup->group_name);
+			my_free(buf2);
+			buf2=buf1;
+			}
+		if(buf2){
+			*output=(char *)strdup(buf2);
+			my_free(buf2);
+			}
+		break;
+#endif
+		/***************/
+		/* MISC MACROS */
+		/***************/
+	case MACRO_SERVICEACKAUTHOR:
+	case MACRO_SERVICEACKAUTHORNAME:
+	case MACRO_SERVICEACKAUTHORALIAS:
+	case MACRO_SERVICEACKCOMMENT:
+		/* no need to do any more work - these are already precomputed elsewhere */
+		/* NOTE: these macros won't work as on-demand macros */
+		*output=macro_x[macro_type];
+		*free_macro=FALSE;
+		break;
+
+	default:
+		printf("UNHANDLED SERVICE MACRO! #%d\n",macro_type);
+		return ERROR;
+		break;
+		}
+
+	/* post-processing */
+	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
+	switch(macro_type){
+	case MACRO_SERVICEACTIONURL:
+	case MACRO_SERVICENOTESURL:
+		process_macros(*output,&temp_buffer,URL_ENCODE_MACRO_CHARS);
+		my_free(*output);
+		*output=temp_buffer;
+		break;
+	case MACRO_SERVICENOTES:
+		process_macros(*output,&temp_buffer,0);
+		my_free(*output);
+		*output=temp_buffer;
+		break;
+	default:
+		break;
+		}
+
+	return OK;
+	}
+
+
+
+/* computes a servicegroup macro */
+int grab_standard_servicegroup_macro(int macro_type, servicegroup *temp_servicegroup, char **output){
+	servicesmember *temp_servicesmember=NULL;
+	char *temp_buffer=NULL;
+
+	if(temp_servicegroup==NULL || output==NULL)
+		return ERROR;
+
+	/* get the macro value */
+	switch(macro_type){
+	case MACRO_SERVICEGROUPNAME:
+		*output=(char *)strdup(temp_servicegroup->group_name);
+		break;
+	case MACRO_SERVICEGROUPALIAS:
+		if(temp_servicegroup->alias)
+			*output=(char *)strdup(temp_servicegroup->alias);
+		break;
+	case MACRO_SERVICEGROUPMEMBERS:
+		/* get the group members */
+		for(temp_servicesmember=temp_servicegroup->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+			if(temp_servicesmember->host_name==NULL || temp_servicesmember->service_description==NULL)
+				continue;
+			if(*output==NULL){
+				if((*output=(char *)malloc(strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+2))){
+					sprintf(*output,"%s,%s",temp_servicesmember->host_name,temp_servicesmember->service_description);
+					}
+				}
+			else if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+3))){
+				strcat(*output,",");
+				strcat(*output,temp_servicesmember->host_name);
+				strcat(*output,",");
+				strcat(*output,temp_servicesmember->service_description);
+				}
+			}
+		break;
+	case MACRO_SERVICEGROUPACTIONURL:
+		if(temp_servicegroup->action_url)
+			*output=(char *)strdup(temp_servicegroup->action_url);
+		break;
+	case MACRO_SERVICEGROUPNOTESURL:
+		if(temp_servicegroup->notes_url)
+			*output=(char *)strdup(temp_servicegroup->notes_url);
+		break;
+	case MACRO_SERVICEGROUPNOTES:
+		if(temp_servicegroup->notes)
+			*output=(char *)strdup(temp_servicegroup->notes);
+		break;
+	default:
+		printf("UNHANDLED SERVICEGROUP MACRO! #%d\n",macro_type);
+		return ERROR;
+		break;
+		}
+
+	/* post-processing */
+	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
+	switch(macro_type){
+	case MACRO_SERVICEGROUPACTIONURL:
+	case MACRO_SERVICEGROUPNOTESURL:
+		process_macros(*output,&temp_buffer,URL_ENCODE_MACRO_CHARS);
+		my_free(*output);
+		*output=temp_buffer;
+		break;
+	case MACRO_SERVICEGROUPNOTES:
+		process_macros(*output,&temp_buffer,0);
+		my_free(*output);
+		*output=temp_buffer;
+		break;
+	default:
+		break;
+		}
+
+	return OK;
+	}
+
+
+
+/* computes a contact macro */
+int grab_standard_contact_macro(int macro_type, contact *temp_contact, char **output){
+	contactgroup *temp_contactgroup=NULL;
+	objectlist *temp_objectlist=NULL;
+	char *buf1=NULL;
+	char *buf2=NULL;
+
+	if(temp_contact==NULL || output==NULL)
+		return ERROR;
+
+	/* get the macro value */
+	switch(macro_type){
+	case MACRO_CONTACTNAME:
+		*output=(char *)strdup(temp_contact->name);
+		break;
+	case MACRO_CONTACTALIAS:
+		*output=(char *)strdup(temp_contact->alias);
+		break;
+	case MACRO_CONTACTEMAIL:
+		if(temp_contact->email)
+			*output=(char *)strdup(temp_contact->email);
+		break;
+	case MACRO_CONTACTPAGER:
+		if(temp_contact->pager)
+			*output=(char *)strdup(temp_contact->pager);
+		break;
+#ifdef NSCORE
+	case MACRO_CONTACTGROUPNAMES:
+		/* get the contactgroup names */
+		/* find all contactgroups this contact is a member of */
+		for(temp_objectlist=temp_contact->contactgroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
+
+			if((temp_contactgroup=(contactgroup *)temp_objectlist->object_ptr)==NULL)
+				continue;
+
+			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_contactgroup->group_name);
+			my_free(buf2);
+			buf2=buf1;
+			}
+		if(buf2){
+			*output=(char *)strdup(buf2);
+			my_free(buf2);
+			}
+		break;
+#endif
+	default:
+		printf("UNHANDLED CONTACT MACRO! #%d\n",macro_type);
+		return ERROR;
+		break;
+		}
+
+	return OK;
+	}
+
+
+
+/* computes a contact address macro */
+int grab_contact_address_macro(int macro_num, contact *temp_contact, char **output){
+	register int x;
+
+	if(macro_num<0 || macro_num>=MAX_CONTACT_ADDRESSES)
+		return ERROR;
+
+	if(temp_contact==NULL || output==NULL)
+		return ERROR;
+
+	/* get the macro */
+	if(temp_contact->address[x])
+		*output=(char *)strdup(temp_contact->address[x]);
+
+	return OK;
+	}
+
+
+
+/* computes a contactgroup macro */
+int grab_standard_contactgroup_macro(int macro_type, contactgroup *temp_contactgroup, char **output){
+	contactsmember *temp_contactsmember=NULL;
+
+	if(temp_contactgroup==NULL || output==NULL)
+		return ERROR;
+
+	/* get the macro value */
+	switch(macro_type){
+	case MACRO_CONTACTGROUPNAME:
+		*output=(char *)strdup(temp_contactgroup->group_name);
+		break;
+	case MACRO_CONTACTGROUPALIAS:
+		if(temp_contactgroup->alias)
+			*output=(char *)strdup(temp_contactgroup->alias);
+		break;
+	case MACRO_CONTACTGROUPMEMBERS:
+		/* get the member list */
+		for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+			if(temp_contactsmember->contact_name==NULL)
+				continue;
+			if(*output==NULL)
+				*output=(char *)strdup(temp_contactsmember->contact_name);
+			else if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_contactsmember->contact_name)+2))){
+				strcat(*output,",");
+				strcat(*output,temp_contactsmember->contact_name);
+				}
+			}
+		break;
+	default:
+		printf("UNHANDLED CONTACTGROUP MACRO! #%d\n",macro_type);
+		return ERROR;
+		break;
+		}
+
+	return OK;
+	}
+
+
+
+/* computes a custom object macro */
+int grab_custom_object_macro(char *macro_name, customvariablesmember *vars, char **output){
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char *customvarname=NULL;
+	int result=ERROR;
+
+	if(macro_name==NULL || vars==NULL || output==NULL)
+		return ERROR;
+
+	/* get the custom variable */
+	for(temp_customvariablesmember=vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+
+		if(temp_customvariablesmember->variable_name==NULL)
+			continue;
+
+		if(!strcmp(macro_name,temp_customvariablesmember->variable_name)){
+			if(temp_customvariablesmember->variable_value)
+				*output=(char *)strdup(temp_customvariablesmember->variable_value);
+			result=OK;
+			break;
+			}
+	        }
+
+	return result;
+	}
+
+
+
+/******************************************************************/
+/********************* MACRO STRING FUNCTIONS *********************/
+/******************************************************************/
 
 /* cleans illegal characters in macros before output */
 char *clean_macro_chars(char *macro,int options){
@@ -2724,6 +2377,14 @@ int init_macros(void){
 	macro_custom_host_vars=NULL;
 	macro_custom_service_vars=NULL;
 	macro_custom_contact_vars=NULL;
+
+	/* macro object pointers */
+	macro_host_ptr=NULL;
+	macro_hostgroup_ptr=NULL;
+	macro_service_ptr=NULL;
+	macro_servicegroup_ptr=NULL;
+	macro_contact_ptr=NULL;
+	macro_contactgroup_ptr=NULL;
 	}
 
 
@@ -2856,7 +2517,6 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_SERVICEACKAUTHORALIAS,"SERVICEACKAUTHORALIAS");
 	add_macrox_name(MACRO_MAXHOSTATTEMPTS,"MAXHOSTATTEMPTS");
 	add_macrox_name(MACRO_MAXSERVICEATTEMPTS,"MAXSERVICEATTEMPTS");
-	add_macrox_name(MACRO_SERVICEISVOLATILE,"SERVICEISVOLATILE");
 	add_macrox_name(MACRO_TOTALHOSTSERVICES,"TOTALHOSTSERVICES");
 	add_macrox_name(MACRO_TOTALHOSTSERVICESOK,"TOTALHOSTSERVICESOK");
 	add_macrox_name(MACRO_TOTALHOSTSERVICESWARNING,"TOTALHOSTSERVICESWARNING");
@@ -2884,6 +2544,8 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_LASTHOSTPROBLEMID,"LASTHOSTPROBLEMID");
 	add_macrox_name(MACRO_SERVICEPROBLEMID,"SERVICEPROBLEMID");
 	add_macrox_name(MACRO_LASTSERVICEPROBLEMID,"LASTSERVICEPROBLEMID");
+	add_macrox_name(MACRO_ISVALIDTIME,"ISVALIDTIME");
+	add_macrox_name(MACRO_NEXTVALIDTIME,"NEXTVALIDTIME");
 
 	return OK;
         }
@@ -2933,6 +2595,7 @@ int clear_volatile_macros(void){
 
 	for(x=0;x<MACRO_X_COUNT;x++){
 		switch(x){
+
 		case MACRO_ADMINEMAIL:
 		case MACRO_ADMINPAGER:
 		case MACRO_MAINCONFIGFILE:
@@ -2947,6 +2610,8 @@ int clear_volatile_macros(void){
 		case MACRO_SERVICEPERFDATAFILE:
 		case MACRO_PROCESSSTARTTIME:
 		case MACRO_TEMPPATH:
+		case MACRO_EVENTSTARTTIME:
+			/* these don't change during the course of monitoring, so no need to free them */
 			break;
 		default:
 			my_free(macro_x[x]);
@@ -2995,37 +2660,6 @@ int clear_volatile_macros(void){
         }
 
 
-/* clear macros that are constant (i.e. they do NOT change during monitoring) */
-int clear_nonvolatile_macros(void){
-	register int x=0;
-
-	for(x=0;x<MACRO_X_COUNT;x++){
-		switch(x){
-		case MACRO_ADMINEMAIL:
-		case MACRO_ADMINPAGER:
-		case MACRO_MAINCONFIGFILE:
-		case MACRO_STATUSDATAFILE:
-		case MACRO_RETENTIONDATAFILE:
-		case MACRO_OBJECTCACHEFILE:
-		case MACRO_TEMPFILE:
-		case MACRO_LOGFILE:
-		case MACRO_RESOURCEFILE:
-		case MACRO_COMMANDFILE:
-		case MACRO_HOSTPERFDATAFILE:
-		case MACRO_SERVICEPERFDATAFILE:
-		case MACRO_PROCESSSTARTTIME:
-		case MACRO_TEMPPATH:
-		case MACRO_EVENTSTARTTIME:
-			my_free(macro_x[x]);
-			break;
-		default:
-			break;
-		        }
-	        }
-
-	return OK;
-        }
-
 
 /* clear service macros */
 int clear_service_macros(void){
@@ -3067,8 +2701,9 @@ int clear_service_macros(void){
 		case MACRO_SERVICEACTIONURL:
 		case MACRO_SERVICENOTESURL:
 		case MACRO_SERVICENOTES:
-
 		case MACRO_SERVICEGROUPNAMES:
+		case MACRO_SERVICEPROBLEMID:
+		case MACRO_LASTSERVICEPROBLEMID:
 
 			my_free(macro_x[x]);
 			break;
@@ -3130,14 +2765,14 @@ int clear_host_macros(void){
 		case MACRO_HOSTACTIONURL:
 		case MACRO_HOSTNOTESURL:
 		case MACRO_HOSTNOTES:
-
 		case MACRO_HOSTGROUPNAMES:
-
 		case MACRO_TOTALHOSTSERVICES:
 		case MACRO_TOTALHOSTSERVICESOK:
 		case MACRO_TOTALHOSTSERVICESWARNING:
 		case MACRO_TOTALHOSTSERVICESUNKNOWN:
 		case MACRO_TOTALHOSTSERVICESCRITICAL:
+		case MACRO_HOSTPROBLEMID:
+		case MACRO_LASTHOSTPROBLEMID:
 
 			my_free(macro_x[x]);
 			break;
@@ -3282,17 +2917,18 @@ int set_all_macro_environment_vars(int set){
 /* sets or unsets macrox environment variables */
 int set_macrox_environment_vars(int set){
 	register int x=0;
+	int free_macro;
 
 	/* set each of the macrox environment variables */
 	for(x=0;x<MACRO_X_COUNT;x++){
 
-		/* host/service output/perfdata macros get cleaned */
-		if(x>=16 && x<=19)
-			set_macro_environment_var(macro_x_names[x],clean_macro_chars(macro_x[x],STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
+		/* generate the macro value if it hasn't already been done */
+		/* THIS IS EXPENSIVE */
+		if(macro_x[x]==NULL)
+			grab_macrox_value(x,NULL,NULL,&macro_x[x],&free_macro);
 
-		/* others don't */
-		else
-			set_macro_environment_var(macro_x_names[x],macro_x[x],set);
+		/* set the value */
+		set_macro_environment_var(macro_x_names[x],macro_x[x],set);
 		}
 
 	return OK;
@@ -3318,17 +2954,48 @@ int set_argv_macro_environment_vars(int set){
 /* sets or unsets custom host/service/contact macro environment variables */
 int set_custom_macro_environment_vars(int set){
 	customvariablesmember *temp_customvariablesmember=NULL;
+	host *temp_host=NULL;
+	service *temp_service=NULL;
+	contact *temp_contact=NULL;
+	char *customvarname=NULL;
 
-	/* set each of the custom host environment variables */
+	/***** CUSTOM HOST VARIABLES *****/
+	/* generate variables and save them for later */
+	if((temp_host=macro_host_ptr) && set==TRUE){
+		for(temp_customvariablesmember=temp_host->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			asprintf(&customvarname,"_HOST%s",temp_customvariablesmember->variable_name);
+			add_custom_variable_to_object(&macro_custom_host_vars,customvarname,temp_customvariablesmember->variable_value);
+			my_free(customvarname);
+			}
+		}
+	/* set variables */
 	for(temp_customvariablesmember=macro_custom_host_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 		set_macro_environment_var(temp_customvariablesmember->variable_name,clean_macro_chars(temp_customvariablesmember->variable_value,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
 		}
 
-	/* set each of the custom service environment variables */
+	/***** CUSTOM HOST VARIABLES *****/
+	/* generate variables and save them for later */
+	if((temp_service=macro_service_ptr) && set==TRUE){
+		for(temp_customvariablesmember=temp_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			asprintf(&customvarname,"_SERVICE%s",temp_customvariablesmember->variable_name);
+			add_custom_variable_to_object(&macro_custom_host_vars,customvarname,temp_customvariablesmember->variable_value);
+			my_free(customvarname);
+			}
+		}
+	/* set variables */
 	for(temp_customvariablesmember=macro_custom_service_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next)
 		set_macro_environment_var(temp_customvariablesmember->variable_name,clean_macro_chars(temp_customvariablesmember->variable_value,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
 
-	/* set each of the custom contact environment variables */
+	/***** CUSTOM CONTACT VARIABLES *****/
+	/* generate variables and save them for later */
+	if((temp_contact=macro_contact_ptr) && set==TRUE){
+		for(temp_customvariablesmember=temp_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			asprintf(&customvarname,"_CONTACT%s",temp_customvariablesmember->variable_name);
+			add_custom_variable_to_object(&macro_custom_host_vars,customvarname,temp_customvariablesmember->variable_value);
+			my_free(customvarname);
+			}
+		}
+	/* set variables */
 	for(temp_customvariablesmember=macro_custom_contact_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next)
 		set_macro_environment_var(temp_customvariablesmember->variable_name,clean_macro_chars(temp_customvariablesmember->variable_value,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
 

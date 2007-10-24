@@ -802,7 +802,6 @@ int update_check_stats(int,time_t);
 int generate_check_stats(void);
 
 
-
 #ifdef __cplusplus
 }
 #endif

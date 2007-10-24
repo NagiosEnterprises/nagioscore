@@ -676,6 +676,7 @@ int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int 
 		}
 
 	/***** CONTACT ADDRESS MACROS *****/
+	/* NOTE: the code below should be broken out into a separate function */
 	else if(strstr(macro_name,"CONTACTADDRESS")==macro_name){
 
 		/* which address do we want? */
@@ -1244,16 +1245,21 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 int grab_custom_macro_value(char *macro_name, char *arg1, char *arg2, char **output){
 	host *temp_host=NULL;
 	hostgroup *temp_hostgroup=NULL;
+	hostsmember *temp_hostsmember=NULL;
 	service *temp_service=NULL;
 	servicegroup *temp_servicegroup=NULL;
+	servicesmember *temp_servicesmember=NULL;
 	contact *temp_contact=NULL;
 	contactgroup *temp_contactgroup=NULL;
+	contactsmember *temp_contactsmember=NULL;
+	int delimiter_len=0;
+	char *temp_buffer=NULL;
 	int result=OK;
 
 	if(macro_name==NULL || output==NULL)
 		return ERROR;
 
-	/* custom host variable macros */
+	/***** CUSTOM HOST MACRO *****/
 	if(strstr(macro_name,"_HOST")==macro_name){
 
 		/* a standard host macro */
@@ -1275,10 +1281,43 @@ int grab_custom_macro_value(char *macro_name, char *arg1, char *arg2, char **out
 
 		/* a host macro with a hostgroup name and delimiter */
 		else{
+			if((temp_hostgroup=find_hostgroup(arg1))==NULL)
+				return ERROR;
+
+			delimiter_len=strlen(arg2);
+
+			/* concatenate macro values for all hostgroup members */
+			for(temp_hostsmember=temp_hostgroup->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
+
+#ifdef NSCORE
+				if((temp_host=temp_hostsmember->host_ptr)==NULL)
+					continue;
+#else
+				if((temp_host=find_host(temp_hostsmember->host_name))==NULL)
+					continue;
+#endif
+
+				/* get the macro value for this host */
+				grab_custom_macro_value(macro_name,temp_host->name,NULL,&temp_buffer);
+
+				if(temp_buffer==NULL)
+					continue;
+				
+				/* add macro value to already running macro */
+				if(*output==NULL)
+					*output=(char *)strdup(temp_buffer);
+				else{
+					if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_buffer)+delimiter_len+1))==NULL)
+						continue;
+					strcat(*output,arg2);
+					strcat(*output,temp_buffer);
+					}
+				my_free(temp_buffer);
+				}
 			}
 		}
 
-	/* custom service variable macros */
+	/***** CUSTOM SERVICE MACRO *****/
 	else if(strstr(macro_name,"_SERVICE")==macro_name){
 
 		/* use saved service pointer */
@@ -1305,11 +1344,45 @@ int grab_custom_macro_value(char *macro_name, char *arg1, char *arg2, char **out
 
 			/* else we have a service macro with a servicegroup name and a delimiter... */
 			else{
+
+				if((temp_servicegroup=find_servicegroup(arg1))==NULL)
+					return ERROR;
+
+				delimiter_len=strlen(arg2);
+
+				/* concatenate macro values for all servicegroup members */
+				for(temp_servicesmember=temp_servicegroup->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+
+#ifdef NSCORE
+					if((temp_service=temp_servicesmember->service_ptr)==NULL)
+						continue;
+#else
+					if((temp_service=find_service(temp_servicesmember->host_name,temp_servicesmember->service_description))==NULL)
+						continue;
+#endif
+
+					/* get the macro value for this service */
+					grab_custom_macro_value(macro_name,temp_service->host_name,temp_service->description,&temp_buffer);
+
+					if(temp_buffer==NULL)
+						continue;
+				
+					/* add macro value to already running macro */
+					if(*output==NULL)
+						*output=(char *)strdup(temp_buffer);
+					else{
+						if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_buffer)+delimiter_len+1))==NULL)
+							continue;
+						strcat(*output,arg2);
+						strcat(*output,temp_buffer);
+						}
+					my_free(temp_buffer);
+					}
 				}
 			}
 		}
 
-	/* custom contact variable macros */
+	/***** CUSTOM CONTACT VARIABLE *****/
 	else if(strstr(macro_name,"_CONTACT")==macro_name){
 
 		/* a standard contact macro */
@@ -1331,6 +1404,40 @@ int grab_custom_macro_value(char *macro_name, char *arg1, char *arg2, char **out
 
 		/* a contact macro with a contactgroup name and delimiter */
 		else{
+
+			if((temp_contactgroup=find_contactgroup(arg1))==NULL)
+				return ERROR;
+
+			delimiter_len=strlen(arg2);
+
+			/* concatenate macro values for all contactgroup members */
+			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+
+#ifdef NSCORE
+				if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+					continue;
+#else
+				if((temp_contact=find_contact(temp_contactsmember->contact_name))==NULL)
+					continue;
+#endif
+
+				/* get the macro value for this contact */
+				grab_custom_macro_value(macro_name,temp_contact->name,NULL,&temp_buffer);
+
+				if(temp_buffer==NULL)
+					continue;
+				
+				/* add macro value to already running macro */
+				if(*output==NULL)
+					*output=(char *)strdup(temp_buffer);
+				else{
+					if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_buffer)+delimiter_len+1))==NULL)
+						continue;
+					strcat(*output,arg2);
+					strcat(*output,temp_buffer);
+					}
+				my_free(temp_buffer);
+				}
 			}
 		}
 

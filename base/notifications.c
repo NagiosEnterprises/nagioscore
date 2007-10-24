@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-23-2007
+ * Last Modified:   10-24-2007
  *
  * License:
  *
@@ -212,8 +212,8 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			/* grab the macro variables for this contact */
 			grab_contact_macros(temp_notification->contact);
 
-			/* grab summary macros (customized for this contact) */
-			grab_summary_macros(temp_notification->contact);
+			/* clear summary macros (they are customized for each contact) */
+			clear_summary_macros();
 
 			/* notify this contact */
 			result=notify_contact_of_service(temp_notification->contact,svc,type,not_author,not_data,options,escalated);
@@ -225,6 +225,9 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 		/* free memory allocated to the notification list */
 		free_notification_list();
+
+		/* clear summary macros so they will be regenerated without contact filters when needed next */
+		clear_summary_macros();
 
 		if(type==NOTIFICATION_NORMAL){
 
@@ -1087,8 +1090,8 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 			/* grab the macro variables for this contact */
 			grab_contact_macros(temp_notification->contact);
 
-			/* grab summary macros (customized for this contact) */
-			grab_summary_macros(temp_notification->contact);
+			/* clear summary macros (they are customized for each contact) */
+			clear_summary_macros();
 
 			/* notify this contact */
 			result=notify_contact_of_host(temp_notification->contact,hst,type,not_author,not_data,options,escalated);
@@ -1100,6 +1103,9 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 		/* free memory allocated to the notification list */
 		free_notification_list();
+
+		/* clear summary macros so they will be regenerated without contact filters when needednext */
+		clear_summary_macros();
 
 		if(type==NOTIFICATION_NORMAL){
 

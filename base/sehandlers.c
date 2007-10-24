@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-23-2007
+ * Last Modified:   10-24-2007
  *
  * License:
  *
@@ -99,7 +99,6 @@ int obsessive_compulsive_service_check_processor(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
-	grab_summary_macros(NULL);
 
 	/* get the raw command line */
 	get_raw_command_line(ocsp_command_ptr,ocsp_command,&raw_command,macro_options);
@@ -157,7 +156,6 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	/* update macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-	grab_summary_macros(NULL);
 
 	/* get the raw command line */
 	get_raw_command_line(ochp_command_ptr,ochp_command,&raw_command,macro_options);
@@ -223,7 +221,6 @@ int handle_service_event(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
-	grab_summary_macros(NULL);
 
 	/* run the global service event handler */
 	run_global_service_event_handler(svc);
@@ -424,7 +421,6 @@ int handle_host_event(host *hst){
 	/* update host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-	grab_summary_macros(NULL);
 
 	/* run the global host event handler */
 	run_global_host_event_handler(hst);

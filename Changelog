@@ -25,6 +25,7 @@ Nagios 3.x Change Log
 * Added $ISVALIDTIME:$ and $NEXTVALIDTIME:$ on-demand macros
 * Added enable_environment_macros option to determine whether or not macros are set as environment vars
 * Major overhaul (read: complete rewrite) of macro code, so macros are now only computed when found
+* Summary macros are now available as regular (non-environment) macros if requested when large installation tweaks are enabled
 
 
 

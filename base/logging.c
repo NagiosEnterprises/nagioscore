@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-23-2007
+ * Last Modified: 10-24-2007
  *
  * License:
  *
@@ -255,7 +255,6 @@ int log_service_event(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
-	grab_summary_macros(NULL);
 
 	asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],(svc->plugin_output==NULL)?"":svc->plugin_output);
 	write_to_all_logs(temp_buffer,log_options);
@@ -273,7 +272,6 @@ int log_host_event(host *hst){
 	/* grab the host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-	grab_summary_macros(NULL);
 
 	/* get the log options */
 	if(hst->current_state==HOST_DOWN)
@@ -301,10 +299,6 @@ int log_host_states(int type, time_t *timestamp){
 	if(type==INITIAL_STATES && log_initial_states==FALSE)
 		return OK;
 
-	/* grab summary macros */
-	/* REMOVED 03/26/06 EG why was this here? */
-	/*grab_summary_macros(NULL);*/
-
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		/* grab the host macros */
@@ -329,10 +323,6 @@ int log_service_states(int type, time_t *timestamp){
 	/* bail if we shouldn't be logging initial states */
 	if(type==INITIAL_STATES && log_initial_states==FALSE)
 		return OK;
-
-	/* grab summary macros */
-	/* REMOVED 03/26/06 EG why was this here? */
-	/*grab_summary_macros(NULL);*/
 
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 

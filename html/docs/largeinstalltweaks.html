@@ -45,7 +45,7 @@ When you enable the <a href="configmain.html#use_large_installation_tweaks">use_
 
 <ol>
 
-<li><b>No Summary Macros</b> -  The <a href="macrolist.html#summary_macros">summary macros</a> will not be available to you.  Calculating the values of these macros can be quite time-intensive in large configurations, so they are not available when use this option.<br><br></li>
+<li><b>No Summary Macros In Environment Variables</b> -  The <a href="macrolist.html#summary_macros">summary macros</a> will not be available to you as environment variables.  Calculating the values of these macros can be quite time-intensive in large configurations, so they are not available as environment variables when use this option.  Summary macros will still be available as regular macros if you pass them to to your scripts as arguments.<br><br></li>
 
 <li><b>Different Memory Cleanup</b> - Normally Nagios will free all allocated memory in child processes before they exit.  This is probably best practice, but is likely unnecessary in most installations, as most OSes will take care of freeing allocated memory when processes exit.  The OS tends to free allocated memory faster than can be done within Nagios itself, so Nagios won't attempt to free memory in child processes if you enable this option.<br><br></li>
 

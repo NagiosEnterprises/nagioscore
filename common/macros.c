@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-23-2007
+ * Last Modified:   10-24-2007
  *
  * License:
  *
@@ -241,6 +241,11 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 	}
 
 
+
+/******************************************************************/
+/********************** MACRO GRAB FUNCTIONS **********************/
+/******************************************************************/
+
 /* grab macros that are specific to a particular host */
 int grab_host_macros(host *hst){
 
@@ -365,205 +370,10 @@ int grab_contactgroup_macros(contactgroup *cg){
 
 
 
-/* grab summary macros (filtered for a specific contact) */
-int grab_summary_macros(contact *temp_contact){
-	host *temp_host=NULL;
-	service  *temp_service=NULL;
-	int authorized=TRUE;
-	int problem=TRUE;
-	int hosts_up=0;
-	int hosts_down=0;
-	int hosts_unreachable=0;
-	int hosts_down_unhandled=0;
-	int hosts_unreachable_unhandled=0;
-	int host_problems=0;
-	int host_problems_unhandled=0;
-	int services_ok=0;
-	int services_warning=0;
-	int services_unknown=0;
-	int services_critical=0;
-	int services_warning_unhandled=0;
-	int services_unknown_unhandled=0;
-	int services_critical_unhandled=0;
-	int service_problems=0;
-	int service_problems_unhandled=0;
 
-#ifdef NSCORE
-	/* this func seems to take up quite a bit of CPU, so skip it if we have a large install... */
-	if(use_large_installation_tweaks==TRUE)
-		return OK;
-
-	/* get host totals */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
-		/* filter totals based on contact if necessary */
-		if(temp_contact!=NULL)
-			authorized=is_contact_for_host(temp_host,temp_contact);
-
-		if(authorized==TRUE){
-			problem=TRUE;
-			
-			if(temp_host->current_state==HOST_UP && temp_host->has_been_checked==TRUE)
-				hosts_up++;
-			else if(temp_host->current_state==HOST_DOWN){
-				if(temp_host->scheduled_downtime_depth>0)
-					problem=FALSE;
-				if(temp_host->problem_has_been_acknowledged==TRUE)
-					problem=FALSE;
-				if(temp_host->checks_enabled==FALSE)
-					problem=FALSE;
-				if(problem==TRUE)
-					hosts_down_unhandled++;
-				hosts_down++;
-				}
-			else if(temp_host->current_state==HOST_UNREACHABLE){
-				if(temp_host->scheduled_downtime_depth>0)
-					problem=FALSE;
-				if(temp_host->problem_has_been_acknowledged==TRUE)
-					problem=FALSE;
-				if(temp_host->checks_enabled==FALSE)
-					problem=FALSE;
-				if(problem==TRUE)
-					hosts_down_unhandled++;
-				hosts_unreachable++;
-				}
-			}
-		}
-
-	host_problems=hosts_down+hosts_unreachable;
-	host_problems_unhandled=hosts_down_unhandled+hosts_unreachable_unhandled;
-
-	/* get service totals */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
-		/* filter totals based on contact if necessary */
-		if(temp_contact!=NULL)
-			authorized=is_contact_for_service(temp_service,temp_contact);
-
-		if(authorized==TRUE){
-			problem=TRUE;
-			
-			if(temp_service->current_state==STATE_OK && temp_service->has_been_checked==TRUE)
-				services_ok++;
-			else if(temp_service->current_state==STATE_WARNING){
-				temp_host=find_host(temp_service->host_name);
-				if(temp_host!=NULL && (temp_host->current_state==HOST_DOWN || temp_host->current_state==HOST_UNREACHABLE))
-					problem=FALSE;
-				if(temp_service->scheduled_downtime_depth>0)
-					problem=FALSE;
-				if(temp_service->problem_has_been_acknowledged==TRUE)
-					problem=FALSE;
-				if(temp_service->checks_enabled==FALSE)
-					problem=FALSE;
-				if(problem==TRUE)
-					services_warning_unhandled++;
-				services_warning++;
-		        	}
-			else if(temp_service->current_state==STATE_UNKNOWN){
-				temp_host=find_host(temp_service->host_name);
-				if(temp_host!=NULL && (temp_host->current_state==HOST_DOWN || temp_host->current_state==HOST_UNREACHABLE))
-					problem=FALSE;
-				if(temp_service->scheduled_downtime_depth>0)
-					problem=FALSE;
-				if(temp_service->problem_has_been_acknowledged==TRUE)
-					problem=FALSE;
-				if(temp_service->checks_enabled==FALSE)
-					problem=FALSE;
-				if(problem==TRUE)
-					services_unknown_unhandled++;
-				services_unknown++;
-				}
-			else if(temp_service->current_state==STATE_CRITICAL){
-				temp_host=find_host(temp_service->host_name);
-				if(temp_host!=NULL && (temp_host->current_state==HOST_DOWN || temp_host->current_state==HOST_UNREACHABLE))
-					problem=FALSE;
-				if(temp_service->scheduled_downtime_depth>0)
-					problem=FALSE;
-				if(temp_service->problem_has_been_acknowledged==TRUE)
-					problem=FALSE;
-				if(temp_service->checks_enabled==FALSE)
-					problem=FALSE;
-				if(problem==TRUE)
-					services_critical_unhandled++;
-				services_critical++;
-				}
-			}
-		}
-
-	service_problems=services_warning+services_critical+services_unknown;
-	service_problems_unhandled=services_warning_unhandled+services_critical_unhandled+services_unknown_unhandled;
-
-
-	/* get total hosts up */
-	my_free(macro_x[MACRO_TOTALHOSTSUP]);
-	asprintf(&macro_x[MACRO_TOTALHOSTSUP],"%d",hosts_up);
-
-	/* get total hosts down */
-	my_free(macro_x[MACRO_TOTALHOSTSDOWN]);
-	asprintf(&macro_x[MACRO_TOTALHOSTSDOWN],"%d",hosts_down);
-
-	/* get total hosts unreachable */
-	my_free(macro_x[MACRO_TOTALHOSTSUNREACHABLE]);
-	asprintf(&macro_x[MACRO_TOTALHOSTSUNREACHABLE],"%d",hosts_unreachable);
-
-	/* get total unhandled hosts down */
-	my_free(macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED]);
-	asprintf(&macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED],"%d",hosts_down_unhandled);
-
-	/* get total unhandled hosts unreachable */
-	my_free(macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED]);
-	asprintf(&macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED],"%d",hosts_unreachable_unhandled);
-
-	/* get total host problems */
-	my_free(macro_x[MACRO_TOTALHOSTPROBLEMS]);
-	asprintf(&macro_x[MACRO_TOTALHOSTPROBLEMS],"%d",host_problems);
-
-	/* get total unhandled host problems */
-	my_free(macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED]);
-	asprintf(&macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED],"%d",host_problems_unhandled);
-
-	/* get total services ok */
-	my_free(macro_x[MACRO_TOTALSERVICESOK]);
-	asprintf(&macro_x[MACRO_TOTALSERVICESOK],"%d",services_ok);
-
-	/* get total services warning */
-	my_free(macro_x[MACRO_TOTALSERVICESWARNING]);
-	asprintf(&macro_x[MACRO_TOTALSERVICESWARNING],"%d",services_warning);
-
-	/* get total services critical */
-	my_free(macro_x[MACRO_TOTALSERVICESCRITICAL]);
-	asprintf(&macro_x[MACRO_TOTALSERVICESCRITICAL],"%d",services_critical);
-
-	/* get total services unknown */
-	my_free(macro_x[MACRO_TOTALSERVICESUNKNOWN]);
-	asprintf(&macro_x[MACRO_TOTALSERVICESUNKNOWN],"%d",services_unknown);
-
-	/* get total unhandled services warning */
-	my_free(macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED]);
-	asprintf(&macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED],"%d",services_warning_unhandled);
-
-	/* get total unhandled services critical */
-	my_free(macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED]);
-	asprintf(&macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED],"%d",services_critical_unhandled);
-
-	/* get total unhandled services unknown */
-	my_free(macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED]);
-	asprintf(&macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED],"%d",services_unknown_unhandled);
-
-	/* get total service problems */
-	my_free(macro_x[MACRO_TOTALSERVICEPROBLEMS]);
-	asprintf(&macro_x[MACRO_TOTALSERVICEPROBLEMS],"%d",service_problems);
-
-	/* get total unhandled service problems */
-	my_free(macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]);
-	asprintf(&macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED],"%d",service_problems_unhandled);
-#endif
-
-	return OK;
-        }
-
-
-
+/******************************************************************/
+/******************* MACRO GENERATION FUNCTIONS *******************/
+/******************************************************************/
 
 /* this is the big one */
 int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int *free_macro){
@@ -785,8 +595,27 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 	contactsmember *temp_contactsmember=NULL;
 	char *temp_buffer=NULL;
 	int result=OK;
+	register int x;
 	int delimiter_len=0;
 	int free_sub_macro=FALSE;
+	int authorized=TRUE;
+	int problem=TRUE;
+	int hosts_up=0;
+	int hosts_down=0;
+	int hosts_unreachable=0;
+	int hosts_down_unhandled=0;
+	int hosts_unreachable_unhandled=0;
+	int host_problems=0;
+	int host_problems_unhandled=0;
+	int services_ok=0;
+	int services_warning=0;
+	int services_unknown=0;
+	int services_critical=0;
+	int services_warning_unhandled=0;
+	int services_unknown_unhandled=0;
+	int services_critical_unhandled=0;
+	int service_problems=0;
+	int service_problems_unhandled=0;
 
 
 	if(output==NULL || free_macro==NULL)
@@ -1181,31 +1010,6 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 		result=grab_datetime_macro(macro_type,arg1,arg2,output);
 		break;
 
-		/******************/
-		/* SUMMARY MACROS */
-		/******************/
-	case MACRO_TOTALHOSTSUP:
-	case MACRO_TOTALHOSTSDOWN:
-	case MACRO_TOTALHOSTSUNREACHABLE:
-	case MACRO_TOTALHOSTSDOWNUNHANDLED:
-	case MACRO_TOTALHOSTSUNREACHABLEUNHANDLED:
-	case MACRO_TOTALHOSTPROBLEMS:
-	case MACRO_TOTALHOSTPROBLEMSUNHANDLED:
-	case MACRO_TOTALSERVICESOK:
-	case MACRO_TOTALSERVICESWARNING:
-	case MACRO_TOTALSERVICESCRITICAL:
-	case MACRO_TOTALSERVICESUNKNOWN:
-	case MACRO_TOTALSERVICESWARNINGUNHANDLED:
-	case MACRO_TOTALSERVICESCRITICALUNHANDLED:
-	case MACRO_TOTALSERVICESUNKNOWNUNHANDLED:
-	case MACRO_TOTALSERVICEPROBLEMS:
-	case MACRO_TOTALSERVICEPROBLEMSUNHANDLED:
-
-		/* summary macros have already been computed (if they're enabled) */
-		*output=macro_x[macro_type];
-		*free_macro=FALSE;
-		break;
-
 		/*****************/
 		/* STATIC MACROS */
 		/*****************/
@@ -1230,8 +1034,163 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 		*free_macro=FALSE;
 		break;
 
+		/******************/
+		/* SUMMARY MACROS */
+		/******************/
+	case MACRO_TOTALHOSTSUP:
+	case MACRO_TOTALHOSTSDOWN:
+	case MACRO_TOTALHOSTSUNREACHABLE:
+	case MACRO_TOTALHOSTSDOWNUNHANDLED:
+	case MACRO_TOTALHOSTSUNREACHABLEUNHANDLED:
+	case MACRO_TOTALHOSTPROBLEMS:
+	case MACRO_TOTALHOSTPROBLEMSUNHANDLED:
+	case MACRO_TOTALSERVICESOK:
+	case MACRO_TOTALSERVICESWARNING:
+	case MACRO_TOTALSERVICESCRITICAL:
+	case MACRO_TOTALSERVICESUNKNOWN:
+	case MACRO_TOTALSERVICESWARNINGUNHANDLED:
+	case MACRO_TOTALSERVICESCRITICALUNHANDLED:
+	case MACRO_TOTALSERVICESUNKNOWNUNHANDLED:
+	case MACRO_TOTALSERVICEPROBLEMS:
+	case MACRO_TOTALSERVICEPROBLEMSUNHANDLED:
+
+#ifdef NSCORE
+		/* generate summary macros if needed */
+		if(macro_x[MACRO_TOTALHOSTSUP]==NULL){
+
+			/* get host totals */
+			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+				/* filter totals based on contact if necessary */
+				if(macro_contact_ptr!=NULL)
+					authorized=is_contact_for_host(temp_host,macro_contact_ptr);
+
+				if(authorized==TRUE){
+					problem=TRUE;
+			
+					if(temp_host->current_state==HOST_UP && temp_host->has_been_checked==TRUE)
+						hosts_up++;
+					else if(temp_host->current_state==HOST_DOWN){
+						if(temp_host->scheduled_downtime_depth>0)
+							problem=FALSE;
+						if(temp_host->problem_has_been_acknowledged==TRUE)
+							problem=FALSE;
+						if(temp_host->checks_enabled==FALSE)
+							problem=FALSE;
+						if(problem==TRUE)
+							hosts_down_unhandled++;
+						hosts_down++;
+						}
+					else if(temp_host->current_state==HOST_UNREACHABLE){
+						if(temp_host->scheduled_downtime_depth>0)
+							problem=FALSE;
+						if(temp_host->problem_has_been_acknowledged==TRUE)
+							problem=FALSE;
+						if(temp_host->checks_enabled==FALSE)
+							problem=FALSE;
+						if(problem==TRUE)
+							hosts_down_unhandled++;
+						hosts_unreachable++;
+						}
+					}
+				}
+
+			host_problems=hosts_down+hosts_unreachable;
+			host_problems_unhandled=hosts_down_unhandled+hosts_unreachable_unhandled;
+
+			/* get service totals */
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+				/* filter totals based on contact if necessary */
+				if(macro_contact_ptr!=NULL)
+					authorized=is_contact_for_service(temp_service,macro_contact_ptr);
+
+				if(authorized==TRUE){
+					problem=TRUE;
+			
+					if(temp_service->current_state==STATE_OK && temp_service->has_been_checked==TRUE)
+						services_ok++;
+					else if(temp_service->current_state==STATE_WARNING){
+						temp_host=find_host(temp_service->host_name);
+						if(temp_host!=NULL && (temp_host->current_state==HOST_DOWN || temp_host->current_state==HOST_UNREACHABLE))
+							problem=FALSE;
+						if(temp_service->scheduled_downtime_depth>0)
+							problem=FALSE;
+						if(temp_service->problem_has_been_acknowledged==TRUE)
+							problem=FALSE;
+						if(temp_service->checks_enabled==FALSE)
+							problem=FALSE;
+						if(problem==TRUE)
+							services_warning_unhandled++;
+						services_warning++;
+						}
+					else if(temp_service->current_state==STATE_UNKNOWN){
+						temp_host=find_host(temp_service->host_name);
+						if(temp_host!=NULL && (temp_host->current_state==HOST_DOWN || temp_host->current_state==HOST_UNREACHABLE))
+							problem=FALSE;
+						if(temp_service->scheduled_downtime_depth>0)
+							problem=FALSE;
+						if(temp_service->problem_has_been_acknowledged==TRUE)
+							problem=FALSE;
+						if(temp_service->checks_enabled==FALSE)
+							problem=FALSE;
+						if(problem==TRUE)
+							services_unknown_unhandled++;
+						services_unknown++;
+						}
+					else if(temp_service->current_state==STATE_CRITICAL){
+						temp_host=find_host(temp_service->host_name);
+						if(temp_host!=NULL && (temp_host->current_state==HOST_DOWN || temp_host->current_state==HOST_UNREACHABLE))
+							problem=FALSE;
+						if(temp_service->scheduled_downtime_depth>0)
+							problem=FALSE;
+						if(temp_service->problem_has_been_acknowledged==TRUE)
+							problem=FALSE;
+						if(temp_service->checks_enabled==FALSE)
+							problem=FALSE;
+						if(problem==TRUE)
+							services_critical_unhandled++;
+						services_critical++;
+						}
+					}
+				}
+
+			service_problems=services_warning+services_critical+services_unknown;
+			service_problems_unhandled=services_warning_unhandled+services_critical_unhandled+services_unknown_unhandled;
+
+			/* these macros are time-intensive to compute, and will likely be used together, so save them all for future use */
+			for(x=MACRO_TOTALHOSTSUP;x<=MACRO_TOTALSERVICEPROBLEMSUNHANDLED;x++)
+				my_free(macro_x[x]);
+			asprintf(&macro_x[MACRO_TOTALHOSTSUP],"%d",hosts_up);
+			asprintf(&macro_x[MACRO_TOTALHOSTSDOWN],"%d",hosts_down);
+			asprintf(&macro_x[MACRO_TOTALHOSTSUNREACHABLE],"%d",hosts_unreachable);
+			asprintf(&macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED],"%d",hosts_down_unhandled);
+			asprintf(&macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED],"%d",hosts_unreachable_unhandled);
+			asprintf(&macro_x[MACRO_TOTALHOSTPROBLEMS],"%d",host_problems);
+			asprintf(&macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED],"%d",host_problems_unhandled);
+			asprintf(&macro_x[MACRO_TOTALSERVICESOK],"%d",services_ok);
+			asprintf(&macro_x[MACRO_TOTALSERVICESWARNING],"%d",services_warning);
+			asprintf(&macro_x[MACRO_TOTALSERVICESCRITICAL],"%d",services_critical);
+			asprintf(&macro_x[MACRO_TOTALSERVICESUNKNOWN],"%d",services_unknown);
+			asprintf(&macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED],"%d",services_warning_unhandled);
+			asprintf(&macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED],"%d",services_critical_unhandled);
+			asprintf(&macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED],"%d",services_unknown_unhandled);
+			asprintf(&macro_x[MACRO_TOTALSERVICEPROBLEMS],"%d",service_problems);
+			asprintf(&macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED],"%d",service_problems_unhandled);
+			}
+
+		/* return only the macro the user requested */
+		*output=macro_x[macro_type];
+
+		/* tell caller to NOT free memory when done */
+		*free_macro=FALSE;
+#endif
+		break;
+
 	default:
-		printf("UNHANDLED MACRO! ETHAN MISSED MACRO #%d\n",macro_type);
+#ifdef NSCORE
+		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED MACRO #%d! THIS IS A BUG!\n",macro_type);
+#endif
 		return ERROR;
 		break;
 		}
@@ -1517,10 +1476,8 @@ int grab_datetime_macro(int macro_type, char *arg1, char *arg2, char **output){
 	case MACRO_TIMET:
 		if(*output==NULL)
 			*output=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(*output){
-			snprintf(*output,MAX_DATETIME_LENGTH,"%lu",(unsigned long)current_time);
-			output[MAX_DATETIME_LENGTH-1]='\x0';
-			}
+		if(*output)
+			asprintf(output,"%lu",(unsigned long)current_time);
 		break;
 
 #ifdef NSCORE
@@ -1761,33 +1718,21 @@ int grab_standard_host_macro(int macro_type, host *temp_host, char **output, int
 				}
 
 			/* these macros are time-intensive to compute, and will likely be used together, so save them all for future use */
+			my_free(macro_x[MACRO_TOTALHOSTSERVICES]);
 			asprintf(&macro_x[MACRO_TOTALHOSTSERVICES],"%lu",total_host_services);
+			my_free(macro_x[MACRO_TOTALHOSTSERVICESOK]);
 			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESOK],"%lu",total_host_services_ok);
+			my_free(macro_x[MACRO_TOTALHOSTSERVICESWARNING]);
 			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESWARNING],"%lu",total_host_services_warning);
+			my_free(macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN]);
 			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN],"%lu",total_host_services_unknown);
+			my_free(macro_x[MACRO_TOTALHOSTSERVICESCRITICAL]);
 			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESCRITICAL],"%lu",total_host_services_critical);
 			}
 
 		/* return only the macro the user requested */
-		switch(macro_type){
-		case MACRO_TOTALHOSTSERVICES:
-			*output=macro_x[MACRO_TOTALHOSTSERVICES];
-			break;
-		case MACRO_TOTALHOSTSERVICESOK:
-			*output=macro_x[MACRO_TOTALHOSTSERVICESOK];
-			break;
-		case MACRO_TOTALHOSTSERVICESWARNING:
-			*output=macro_x[MACRO_TOTALHOSTSERVICESWARNING];
-			break;
-		case MACRO_TOTALHOSTSERVICESUNKNOWN:
-			*output=macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN];
-			break;
-		case MACRO_TOTALHOSTSERVICESCRITICAL:
-			*output=macro_x[MACRO_TOTALHOSTSERVICESCRITICAL];
-			break;
-		default:
-			break;
-			}
+		*output=macro_x[macro_type];
+
 		/* tell caller to NOT free memory when done */
 		*free_macro=FALSE;
 		break;
@@ -1806,7 +1751,9 @@ int grab_standard_host_macro(int macro_type, host *temp_host, char **output, int
 		break;
 
 	default:
-		printf("UNHANDLED HOST MACRO! #%d\n",macro_type);
+#ifdef NSCORE
+		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED HOST MACRO #%d! THIS IS A BUG!\n",macro_type);
+#endif
 		return ERROR;
 		break;
 		}
@@ -1877,7 +1824,9 @@ int grab_standard_hostgroup_macro(int macro_type, hostgroup *temp_hostgroup, cha
 			*output=(char *)strdup(temp_hostgroup->notes);
 		break;
 	default:
-		printf("UNHANDLED HOSTGROUP MACRO! #%d\n",macro_type);
+#ifdef NSCORE
+		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED HOSTGROUP MACRO #%d! THIS IS A BUG!\n",macro_type);
+#endif
 		return ERROR;
 		break;
 		}
@@ -2098,7 +2047,9 @@ int grab_standard_service_macro(int macro_type, service *temp_service, char **ou
 		break;
 
 	default:
-		printf("UNHANDLED SERVICE MACRO! #%d\n",macro_type);
+#ifdef NSCORE
+		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED SERVICE MACRO #%d! THIS IS A BUG!\n",macro_type);
+#endif
 		return ERROR;
 		break;
 		}
@@ -2174,7 +2125,9 @@ int grab_standard_servicegroup_macro(int macro_type, servicegroup *temp_serviceg
 			*output=(char *)strdup(temp_servicegroup->notes);
 		break;
 	default:
-		printf("UNHANDLED SERVICEGROUP MACRO! #%d\n",macro_type);
+#ifdef NSCORE
+		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED SERVICEGROUP MACRO #%d! THIS IS A BUG!\n",macro_type);
+#endif
 		return ERROR;
 		break;
 		}
@@ -2248,7 +2201,9 @@ int grab_standard_contact_macro(int macro_type, contact *temp_contact, char **ou
 		break;
 #endif
 	default:
-		printf("UNHANDLED CONTACT MACRO! #%d\n",macro_type);
+#ifdef NSCORE
+		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED CONTACT MACRO #%d! THIS IS A BUG!\n",macro_type);
+#endif
 		return ERROR;
 		break;
 		}
@@ -2307,7 +2262,9 @@ int grab_standard_contactgroup_macro(int macro_type, contactgroup *temp_contactg
 			}
 		break;
 	default:
-		printf("UNHANDLED CONTACTGROUP MACRO! #%d\n",macro_type);
+#ifdef NSCORE
+		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED CONTACTGROUP MACRO #%d! THIS IS A BUG!\n",macro_type);
+#endif
 		return ERROR;
 		break;
 		}
@@ -2459,7 +2416,7 @@ char *get_url_encoded_string(char *input){
 
 
 /******************************************************************/
-/********************* DAEMON MACRO FUNCTIONS *********************/
+/***************** MACRO INITIALIZATION FUNCTIONS *****************/
 /******************************************************************/
 
 /* initializes macros */
@@ -2668,6 +2625,11 @@ int add_macrox_name(int i, char *name){
         }
 
 
+
+/******************************************************************/
+/********************* MACRO CLEANUP FUNCTIONS ********************/
+/******************************************************************/
+
 /* free memory associated with the macrox names */
 int free_macrox_names(void){
 	register int x=0;
@@ -2729,6 +2691,14 @@ int clear_volatile_macros(void){
 	/* contact address macros */
 	for(x=0;x<MAX_CONTACT_ADDRESSES;x++)
 		my_free(macro_contactaddress[x]);
+
+	/* clear macro pointers */
+	macro_host_ptr=NULL;
+	macro_hostgroup_ptr=NULL;
+	macro_service_ptr=NULL;
+	macro_servicegroup_ptr=NULL;
+	macro_contact_ptr=NULL;
+	macro_contactgroup_ptr=NULL;
 
 	/* clear on-demand macro */
 	my_free(macro_ondemand);
@@ -2828,6 +2798,9 @@ int clear_service_macros(void){
 	        }
 	macro_custom_service_vars=NULL;
 
+	/* clear pointers */
+	macro_service_ptr=NULL;
+
 	return OK;
 	}
 
@@ -2897,6 +2870,9 @@ int clear_host_macros(void){
 	        }
 	macro_custom_host_vars=NULL;
 
+	/* clear pointers */
+	macro_host_ptr=NULL;
+
 	return OK;
 	}
 
@@ -2920,6 +2896,9 @@ int clear_hostgroup_macros(void){
 			}
 		}
 
+	/* clear pointers */
+	macro_hostgroup_ptr=NULL;
+
 	return OK;
 	}
 
@@ -2942,6 +2921,9 @@ int clear_servicegroup_macros(void){
 			break;
 			}
 		}
+
+	/* clear pointers */
+	macro_servicegroup_ptr=NULL;
 
 	return OK;
 	}
@@ -2980,6 +2962,9 @@ int clear_contact_macros(void){
 	        }
 	macro_custom_contact_vars=NULL;
 
+	/* clear pointers */
+	macro_contact_ptr=NULL;
+
 	return OK;
 	}
 
@@ -3001,9 +2986,29 @@ int clear_contactgroup_macros(void){
 			}
 		}
 
+	/* clear pointers */
+	macro_contactgroup_ptr=NULL;
+
 	return OK;
 	}
 
+
+
+/* clear summary macros */
+int clear_summary_macros(void){
+	register int x;
+
+	for(x=MACRO_TOTALHOSTSUP;x<=MACRO_TOTALSERVICEPROBLEMSUNHANDLED;x++)
+		my_free(macro_x[x]);
+
+	return OK;
+	}
+
+
+
+/******************************************************************/
+/****************** ENVIRONMENT MACRO FUNCTIONS *******************/
+/******************************************************************/
 
 #ifdef NSCORE
 
@@ -3016,23 +3021,35 @@ int set_all_macro_environment_vars(int set){
 	set_macrox_environment_vars(set);
 	set_argv_macro_environment_vars(set);
 	set_custom_macro_environment_vars(set);
+	set_contact_address_environment_vars(set);
 
 	return OK;
         }
 
 
+
 /* sets or unsets macrox environment variables */
 int set_macrox_environment_vars(int set){
 	register int x=0;
-	int free_macro;
+	int free_macro=TRUE;
+	int generate_macro=TRUE;
 
 	/* set each of the macrox environment variables */
 	for(x=0;x<MACRO_X_COUNT;x++){
 
 		/* generate the macro value if it hasn't already been done */
 		/* THIS IS EXPENSIVE */
-		if(macro_x[x]==NULL)
-			grab_macrox_value(x,NULL,NULL,&macro_x[x],&free_macro);
+		if(set==TRUE){
+
+			generate_macro=TRUE;
+
+			/* skip summary macro generation if lage installation tweaks are enabled */
+			if((x>=MACRO_TOTALHOSTSUP && x<=MACRO_TOTALSERVICEPROBLEMSUNHANDLED) && use_large_installation_tweaks==TRUE)
+				generate_macro=FALSE;
+
+			if(macro_x[x]==NULL && generate_macro==TRUE)
+				grab_macrox_value(x,NULL,NULL,&macro_x[x],&free_macro);
+			}
 
 		/* set the value */
 		set_macro_environment_var(macro_x_names[x],macro_x[x],set);
@@ -3040,6 +3057,7 @@ int set_macrox_environment_vars(int set){
 
 	return OK;
         }
+
 
 
 /* sets or unsets argv macro environment variables */
@@ -3056,6 +3074,7 @@ int set_argv_macro_environment_vars(int set){
 
 	return OK;
         }
+
 
 
 /* sets or unsets custom host/service/contact macro environment variables */
@@ -3108,6 +3127,27 @@ int set_custom_macro_environment_vars(int set){
 
 	return OK;
         }
+
+
+
+/* sets or unsets contact address environment variables */
+int set_contact_address_environment_vars(int set){
+	char *varname=NULL;
+	register int x;
+
+	/* these only get set during notifications */
+	if(macro_contact_ptr==NULL)
+		return OK;
+
+	for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
+		asprintf(&varname,"CONTACTADDRESS%d",x);
+		set_macro_environment_var(varname,macro_contact_ptr->address[x],set);
+		my_free(varname);
+		}
+
+	return OK;
+        }
+
 
 
 /* sets or unsets a macro environment variable */

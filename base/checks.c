@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-23-2007
+ * Last Modified:   10-24-2007
  *
  * License:
  *
@@ -395,7 +395,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
-	grab_summary_macros(NULL);
 
 	/* get the raw command line */
 	get_raw_command_line(svc->check_command_ptr,svc->service_check_command,&raw_command,0);
@@ -2599,7 +2598,6 @@ int execute_sync_host_check_3x(host *hst){
 	/* grab the host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-	grab_summary_macros(NULL);
 
 	/* high resolution start time for event broker */
 	gettimeofday(&start_time,NULL);
@@ -2856,7 +2854,6 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	/* grab the host macro variables */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-	grab_summary_macros(NULL);
 
 	/* get the raw command line */
 	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,&raw_command,0);

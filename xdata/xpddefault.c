@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-23-2007
+ * Last Modified: 10-24-2007
  *
  * License:
  *
@@ -431,7 +431,6 @@ int xpddefault_run_service_performance_data_command(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
-	grab_summary_macros(NULL);
 
 	/* get the raw command line */
 	get_raw_command_line(xpddefault_service_perfdata_command_ptr,xpddefault_service_perfdata_command,&raw_command_line,macro_options);
@@ -489,7 +488,6 @@ int xpddefault_run_host_performance_data_command(host *hst){
 	/* update host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-	grab_summary_macros(NULL);
 
 	/* get the raw command line */
 	get_raw_command_line(xpddefault_host_perfdata_command_ptr,xpddefault_host_perfdata_command,&raw_command_line,macro_options);
@@ -677,7 +675,6 @@ int xpddefault_update_service_performance_data_file(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
-	grab_summary_macros(NULL);
 
 	/* get the raw line to write */
 	raw_output=(char *)strdup(xpddefault_service_perfdata_file_template);
@@ -721,7 +718,6 @@ int xpddefault_update_host_performance_data_file(host *hst){
 	/* update host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-	grab_summary_macros(NULL);
 
 	/* get the raw output */
 	raw_output=(char *)strdup(xpddefault_host_perfdata_file_template);
@@ -768,7 +764,6 @@ int xpddefault_process_host_perfdata_file(void){
 
 	/* update macros */
 	clear_volatile_macros();
-	grab_summary_macros(NULL);
 
 	/* get the raw command line */
 	get_raw_command_line(xpddefault_host_perfdata_file_processing_command_ptr,xpddefault_host_perfdata_file_processing_command,&raw_command_line,macro_options);
@@ -823,7 +818,6 @@ int xpddefault_process_service_perfdata_file(void){
 
 	/* update macros */
 	clear_volatile_macros();
-	grab_summary_macros(NULL);
 
 	/* get the raw command line */
 	get_raw_command_line(xpddefault_service_perfdata_file_processing_command_ptr,xpddefault_service_perfdata_file_processing_command,&raw_command_line,macro_options);

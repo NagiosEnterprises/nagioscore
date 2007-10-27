@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-07-2007
+ * Last Modified: 10-27-2007
  *
  * License:
  * 
@@ -2174,7 +2174,7 @@ int commit_command(int cmd){
 		if(affect_host_and_services==FALSE)
 			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
 		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data,current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data,current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
 		break;
 
 

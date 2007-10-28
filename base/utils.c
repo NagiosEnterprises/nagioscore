@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-23-2007
+ * Last Modified:   10-27-2007
  *
  * License:
  *
@@ -3127,36 +3127,43 @@ int my_rename(char *source, char *dest){
 	/* first see if we can rename file with standard function */
 	rename_result=rename(source,dest);
 
-	/* an error occurred because the source and dest files are on different filesystems */
-	if(rename_result==-1 && errno==EXDEV){
+	/* handle any errors... */
+	if(rename_result==-1){
 
-		/* open destination file for writing */
-		if((dest_fd=open(dest,O_WRONLY|O_TRUNC|O_CREAT|O_APPEND,0644))>0){
+		/* an error occurred because the source and dest files are on different filesystems */
+		if(errno==EXDEV){
 
-			/* open source file for reading */
-			if((source_fd=open(source,O_RDONLY,0644))>0){
+			/* open destination file for writing */
+			if((dest_fd=open(dest,O_WRONLY|O_TRUNC|O_CREAT|O_APPEND,0644))>0){
 
-				while((bytes_read=read(source_fd,buffer,sizeof(buffer)))>0)
-					write(dest_fd,buffer,bytes_read);
+				/* open source file for reading */
+				if((source_fd=open(source,O_RDONLY,0644))>0){
 
-				close(source_fd);
-				close(dest_fd);
+					while((bytes_read=read(source_fd,buffer,sizeof(buffer)))>0)
+						write(dest_fd,buffer,bytes_read);
+
+					close(source_fd);
+					close(dest_fd);
 				
-				/* delete the original file */
-				unlink(source);
+					/* delete the original file */
+					unlink(source);
 
-				/* reset result since we successfully copied file */
-				rename_result=0;
-			        }
+					/* reset result since we successfully copied file */
+					rename_result=0;
+					}
 
-			else{
-				close(dest_fd);
-				return rename_result;
-			        }
-		        }
+				else{
+					close(dest_fd);
+					logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to move file '%s' to '%s': %s\n",source,dest,strerror(errno));
+					return rename_result;
+					}
+				}
+			}
 
-		else
+		else{
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to rename file '%s' to '%s': %s\n",source,dest,strerror(errno));
 			return rename_result;
+			}
 	        }
 
 	return rename_result;

@@ -27,6 +27,7 @@ Nagios 3.x Change Log
 * Major overhaul (read: complete rewrite) of macro code, so macros are now only computed when found
 * Summary macros are now available as regular (non-environment) macros if requested when large installation tweaks are enabled
 * Bug fix for scheduling hostgroup host downtime through web interface
+* Better error logging when failing to rename/move files
 
 
 

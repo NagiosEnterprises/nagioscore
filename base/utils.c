@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-30-2007
+ * Last Modified:   10-28-2007
  *
  * License:
  *
@@ -4325,6 +4325,7 @@ int compare_hashdata2(const char *val1a, const char *val1b, const char *val2a, c
 /* renames a file - works across filesystems (Mike Wiacek) */
 int my_rename(char *source, char *dest){
 	char buffer[MAX_INPUT_BUFFER]={0};
+	char temp_buffer[MAX_INPUT_BUFFER]={0};
 	int rename_result;
 	int source_fd;
 	int dest_fd;
@@ -4338,40 +4339,50 @@ int my_rename(char *source, char *dest){
 	/* first see if we can rename file with standard function */
 	rename_result=rename(source,dest);
 
-	/* an error occurred because the source and dest files are on different filesystems */
-	if(rename_result==-1 && errno==EXDEV){
+	/* an error occurred... */
+	if(rename_result==-1){
 
+		/* source and dest files are on different filesystems, so try moving it */
+		if(errno==EXDEV){
 #ifdef DEBUG2
-		printf("\tMoving file across file systems.\n");
+			printf("\tMoving file across file systems.\n");
 #endif
 
-		/* open destination file for writing */
-		if((dest_fd=open(dest,O_WRONLY|O_TRUNC|O_CREAT|O_APPEND,0644))>0){
+			/* open destination file for writing */
+			if((dest_fd=open(dest,O_WRONLY|O_TRUNC|O_CREAT|O_APPEND,0644))>0){
 
-			/* open source file for reading */
-			if((source_fd=open(source,O_RDONLY,0644))>0){
+				/* open source file for reading */
+				if((source_fd=open(source,O_RDONLY,0644))>0){
 
-				while((bytes_read=read(source_fd,buffer,sizeof(buffer)))>0)
-					write(dest_fd,buffer,bytes_read);
+					while((bytes_read=read(source_fd,buffer,sizeof(buffer)))>0)
+						write(dest_fd,buffer,bytes_read);
 
-				close(source_fd);
-				close(dest_fd);
+					close(source_fd);
+					close(dest_fd);
 				
-				/* delete the original file */
-				unlink(source);
+					/* delete the original file */
+					unlink(source);
 
-				/* reset result since we successfully copied file */
-				rename_result=0;
-			        }
+					/* reset result since we successfully copied file */
+					rename_result=0;
+					}
 
-			else{
-				close(dest_fd);
-				return rename_result;
-			        }
+				else{
+					close(dest_fd);
+					snprintf(temp_buffer,sizeof(temp_buffer),"Error: Unable to move file '%s' to '%s': %s\n",source,dest,strerror(errno));
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
+					return rename_result;
+					}
+				}
 		        }
 
-		else
+		else{
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Unable to rename file '%s' to '%s': %s\n",source,dest,strerror(errno));
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
 			return rename_result;
+			}
 	        }
 
 	return rename_result;

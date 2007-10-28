@@ -3,6 +3,12 @@ Nagios 2.x Change Log
 #####################
 
 
+2.11 - ??/??/2007
+-----------------
+* Better error logging when failing to rename/move files
+
+
+
 2.10 - 10/21/2007
 ------------------
 * Added 'make install-webconf' command to install Apache web config file

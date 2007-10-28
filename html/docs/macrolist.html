@@ -116,6 +116,14 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note1"><sup>1</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
+<td class='MacroName'><a href="#lasthoststate">$LASTHOSTSTATE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lasthoststateid">$LASTHOSTSTATEID$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
 <td class='MacroName'><a href="#hoststatetype">$HOSTSTATETYPE$</a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note1"><sup>1</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
@@ -326,6 +334,14 @@ The tables below list all macros currently available in Nagios, along with a bri
 <tr>
 <td class='MacroName'><a href="#servicestateid">$SERVICESTATEID$</a></td>
 <td class="MacroYes">Yes <a href="#note2"><sup>2</sup></a></td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lastservicestate">$LASTSERVICESTATE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lastservicestateid">$LASTSERVICESTATEID$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
 <td class='MacroName'><a href="#servicestatetype">$SERVICESTATETYPE$</a></td>
@@ -572,67 +588,67 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td colspan='9' class='MacroType'><a name="summary_macros"></a>Summary Macros:</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalhostsup">$TOTALHOSTSUP$</a></td>
+<td class='MacroName'><a href="#totalhostsup">$TOTALHOSTSUP$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalhostsdown">$TOTALHOSTSDOWN$</a></td>
+<td class='MacroName'><a href="#totalhostsdown">$TOTALHOSTSDOWN$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalhostsunreachable">$TOTALHOSTSUNREACHABLE$</a></td>
+<td class='MacroName'><a href="#totalhostsunreachable">$TOTALHOSTSUNREACHABLE$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalhostsdownunhandled">$TOTALHOSTSDOWNUNHANDLED$</a></td>
+<td class='MacroName'><a href="#totalhostsdownunhandled">$TOTALHOSTSDOWNUNHANDLED$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalhostsunreachableunhandled">$TOTALHOSTSUNREACHABLEUNHANDLED$</a></td>
+<td class='MacroName'><a href="#totalhostsunreachableunhandled">$TOTALHOSTSUNREACHABLEUNHANDLED$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalhostproblems">$TOTALHOSTPROBLEMS$</a></td>
+<td class='MacroName'><a href="#totalhostproblems">$TOTALHOSTPROBLEMS$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalhostproblemsunhandled">$TOTALHOSTPROBLEMSUNHANDLED$</a></td>
+<td class='MacroName'><a href="#totalhostproblemsunhandled">$TOTALHOSTPROBLEMSUNHANDLED$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalservicesok">$TOTALSERVICESOK$</a></td>
+<td class='MacroName'><a href="#totalservicesok">$TOTALSERVICESOK$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalserviceswarning">$TOTALSERVICESWARNING$</a></td>
+<td class='MacroName'><a href="#totalserviceswarning">$TOTALSERVICESWARNING$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalservicescritical">$TOTALSERVICESCRITICAL$</a></td>
+<td class='MacroName'><a href="#totalservicescritical">$TOTALSERVICESCRITICAL$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalservicesunknown">$TOTALSERVICESUNKNOWN$</a></td>
+<td class='MacroName'><a href="#totalservicesunknown">$TOTALSERVICESUNKNOWN$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalserviceswarningunhandled">$TOTALSERVICESWARNINGUNHANDLED$</a></td>
+<td class='MacroName'><a href="#totalserviceswarningunhandled">$TOTALSERVICESWARNINGUNHANDLED$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalservicescriticalunhandled">$TOTALSERVICESCRITICALUNHANDLED$</a></td>
+<td class='MacroName'><a href="#totalservicescriticalunhandled">$TOTALSERVICESCRITICALUNHANDLED$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalservicesunknownunhandled">$TOTALSERVICESUNKNOWNUNHANDLED$</a></td>
+<td class='MacroName'><a href="#totalservicesunknownunhandled">$TOTALSERVICESUNKNOWNUNHANDLED$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalserviceproblems">$TOTALSERVICEPROBLEMS$</a></td>
+<td class='MacroName'><a href="#totalserviceproblems">$TOTALSERVICEPROBLEMS$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#totalserviceproblemsunhandled">$TOTALSERVICEPROBLEMSUNHANDLED$</a></td>
+<td class='MacroName'><a href="#totalserviceproblemsunhandled">$TOTALSERVICEPROBLEMSUNHANDLED$</a> <a href="#note10"><sup>10</sup></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 
@@ -895,6 +911,16 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 
 <tr>
+<td class="MacroName"><a name="lasthoststate">$LASTHOSTSTATE$</a></td>
+<td class="MacroDescription">A string indicating the last state of the host ("UP", "DOWN", or "UNREACHABLE").</td>
+</tr>
+
+<tr>
+<td class="MacroName"><a name="lasthoststateid">$LASTHOSTSTATEID$</a></td>
+<td class="MacroDescription">A number that corresponds to the last state of the host: 0=UP, 1=DOWN, 2=UNREACHABLE.</td>
+</tr>
+
+<tr>
 <td class="MacroName"><a name="hoststatetype">$HOSTSTATETYPE$</a></td>
 <td class="MacroDescription">A string indicating the <a href="statetypes.html">state type</a> for the current host check ("HARD" or "SOFT"). Soft states occur when host checks return a non-OK (non-UP) state and are in the process of being retried. Hard states result when host checks have been checked a specified maximum number of times.</td>
 </tr>
@@ -1127,6 +1153,16 @@ The tables below list all macros currently available in Nagios, along with a bri
 <tr>
 <td class="MacroName"><a name="servicestateid">$SERVICESTATEID$</a></td>
 <td class="MacroDescription">A number that corresponds to the current state of the service: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN.</td>
+</tr>
+
+<tr>
+<td class="MacroName"><a name="lastservicestate">$LASTSERVICESTATE$</a></td>
+<td class="MacroDescription">A string indicating the last state of the service ("OK", "WARNING", "UNKNOWN", or "CRITICAL").</td>
+</tr>
+
+<tr>
+<td class="MacroName"><a name="lastservicestateid">$LASTSERVICESTATEID$</a></td>
+<td class="MacroDescription">A number that corresponds to the last state of the service: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN.</td>
 </tr>
 
 <tr>
@@ -1739,6 +1775,11 @@ If a next valid time cannot be found in the specified timeperiod, the macro will
 <a name="note9"></a>
 <p>
 <sup><b>9</b></sup>  These macro are only available as on-demand macros - e.g. you must supply an additional argument with them in order to use them.  These macros are not available as environment variables.
+</p>
+
+<a name="note10"></a>
+<p>
+<sup><b>10</b></sup>  Summary macros are not available as environment variables if the <a href="configmain.html#use_large_installation_tweaks">use_large_installation_tweaks</a> option is enabled, as they are quite CPU-intensive to calculate.
 </p>
 
 <hr>

@@ -2,7 +2,7 @@
  *
  * MACROS.H - Common macro functions
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2007
+ * Last Modified: 10-28-2007
  *
  * License:
  *
@@ -40,7 +40,7 @@
 
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
-#define MACRO_X_COUNT				149	/* size of macro_x[] array */
+#define MACRO_X_COUNT				153	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -191,6 +191,10 @@
 #define MACRO_LASTSERVICEPROBLEMID              146
 #define MACRO_ISVALIDTIME                       147
 #define MACRO_NEXTVALIDTIME                     148
+#define MACRO_LASTHOSTSTATE                     149
+#define MACRO_LASTHOSTSTATEID                   150
+#define MACRO_LASTSERVICESTATE                  151
+#define MACRO_LASTSERVICESTATEID                152
 
 
 

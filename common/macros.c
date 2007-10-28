@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2007
+ * Last Modified:   10-28-2007
  *
  * License:
  *
@@ -1560,6 +1560,17 @@ int grab_standard_host_macro(int macro_type, host *temp_host, char **output, int
 	case MACRO_HOSTSTATEID:
 		asprintf(output,"%d",temp_host->current_state);
 		break;
+	case MACRO_LASTHOSTSTATE:
+		if(temp_host->last_state==HOST_DOWN)
+			*output=(char *)strdup("DOWN");
+		else if(temp_host->last_state==HOST_UNREACHABLE)
+			*output=(char *)strdup("UNREACHABLE");
+		else
+			*output=(char *)strdup("UP");
+		break;
+	case MACRO_LASTHOSTSTATEID:
+		asprintf(output,"%d",temp_host->last_state);
+		break;
 	case MACRO_HOSTCHECKTYPE:
 		asprintf(output,"%s",(temp_host->check_type==HOST_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
 		break;
@@ -1918,14 +1929,27 @@ int grab_standard_service_macro(int macro_type, service *temp_service, char **ou
 		else
 			*output=(char *)strdup("UNKNOWN");
 		break;
+	case MACRO_SERVICESTATEID:
+		asprintf(output,"%d",temp_service->current_state);
+		break;
+	case MACRO_LASTSERVICESTATE:
+		if(temp_service->last_state==STATE_OK)
+			*output=(char *)strdup("OK");
+		else if(temp_service->last_state==STATE_WARNING)
+			*output=(char *)strdup("WARNING");
+		else if(temp_service->last_state==STATE_CRITICAL)
+			*output=(char *)strdup("CRITICAL");
+		else
+			*output=(char *)strdup("UNKNOWN");
+		break;
+	case MACRO_LASTSERVICESTATEID:
+		asprintf(output,"%d",temp_service->last_state);
+		break;
 #endif
 	case MACRO_SERVICEISVOLATILE:
 		asprintf(output,"%d",temp_service->is_volatile);
 		break;
 #ifdef NSCORE
-	case MACRO_SERVICESTATEID:
-		asprintf(output,"%d",temp_service->current_state);
-		break;
 	case MACRO_SERVICEATTEMPT:
 		asprintf(output,"%d",temp_service->current_attempt);
 		break;
@@ -2610,6 +2634,10 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_LASTSERVICEPROBLEMID,"LASTSERVICEPROBLEMID");
 	add_macrox_name(MACRO_ISVALIDTIME,"ISVALIDTIME");
 	add_macrox_name(MACRO_NEXTVALIDTIME,"NEXTVALIDTIME");
+	add_macrox_name(MACRO_LASTHOSTSTATE,"LASTHOSTSTATE");
+	add_macrox_name(MACRO_LASTHOSTSTATEID,"LASTHOSTSTATEID");
+	add_macrox_name(MACRO_LASTSERVICESTATE,"LASTSERVICESTATE");
+	add_macrox_name(MACRO_LASTSERVICESTATEID,"LASTSERVICESTATEID");
 
 	return OK;
         }

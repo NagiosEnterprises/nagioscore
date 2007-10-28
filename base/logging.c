@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2007
+ * Last Modified: 10-28-2007
  *
  * License:
  *
@@ -230,6 +230,7 @@ int write_to_syslog(char *buffer, unsigned long data_type){
 /* write a service problem/recovery to the nagios log file */
 int log_service_event(service *svc){
 	char *temp_buffer=NULL;
+	char *processed_buffer=NULL;
 	unsigned long log_options=0L;
 	host *temp_host=NULL;
 
@@ -256,9 +257,13 @@ int log_service_event(service *svc){
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
 
-	asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],(svc->plugin_output==NULL)?"":svc->plugin_output);
-	write_to_all_logs(temp_buffer,log_options);
+	asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,(svc->plugin_output==NULL)?"":svc->plugin_output);
+	process_macros(temp_buffer,&processed_buffer,0);
+
+	write_to_all_logs(processed_buffer,log_options);
+
 	my_free(temp_buffer);
+	my_free(processed_buffer);
 
 	return OK;
 	}
@@ -267,6 +272,7 @@ int log_service_event(service *svc){
 /* write a host problem/recovery to the log file */
 int log_host_event(host *hst){
 	char *temp_buffer=NULL;
+	char *processed_buffer=NULL;
 	unsigned long log_options=0L;
 
 	/* grab the host macros */
@@ -282,9 +288,13 @@ int log_host_event(host *hst){
 		log_options=NSLOG_HOST_UP;
 
 
-	asprintf(&temp_buffer,"HOST ALERT: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],(hst->plugin_output==NULL)?"":hst->plugin_output);
-	write_to_all_logs(temp_buffer,log_options);
+	asprintf(&temp_buffer,"HOST ALERT: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,(hst->plugin_output==NULL)?"":hst->plugin_output);
+	process_macros(temp_buffer,&processed_buffer,0);
+
+	write_to_all_logs(processed_buffer,log_options);
+
 	my_free(temp_buffer);
+	my_free(processed_buffer);
 
 	return OK;
         }
@@ -293,6 +303,7 @@ int log_host_event(host *hst){
 /* logs host states */
 int log_host_states(int type, time_t *timestamp){
 	char *temp_buffer=NULL;
+	char *processed_buffer=NULL;
 	host *temp_host=NULL;;
 
 	/* bail if we shouldn't be logging initial states */
@@ -305,9 +316,13 @@ int log_host_states(int type, time_t *timestamp){
 		clear_volatile_macros();
 		grab_host_macros(temp_host);
 
-		asprintf(&temp_buffer,"%s HOST STATE: %s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
-		write_to_all_logs_with_timestamp(temp_buffer,NSLOG_INFO_MESSAGE,timestamp);
+		asprintf(&temp_buffer,"%s HOST STATE: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
+		process_macros(temp_buffer,&processed_buffer,0);
+		
+		write_to_all_logs_with_timestamp(processed_buffer,NSLOG_INFO_MESSAGE,timestamp);
+
 		my_free(temp_buffer);
+		my_free(processed_buffer);
 	        }
 
 	return OK;
@@ -317,6 +332,7 @@ int log_host_states(int type, time_t *timestamp){
 /* logs service states */
 int log_service_states(int type, time_t *timestamp){
 	char *temp_buffer=NULL;
+	char *processed_buffer=NULL;
 	service *temp_service=NULL;
 	host *temp_host=NULL;;
 
@@ -335,9 +351,13 @@ int log_service_states(int type, time_t *timestamp){
 		grab_host_macros(temp_host);
 		grab_service_macros(temp_service);
 
-		asprintf(&temp_buffer,"%s SERVICE STATE: %s;%s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],temp_service->plugin_output);
-		write_to_all_logs_with_timestamp(temp_buffer,NSLOG_INFO_MESSAGE,timestamp);
+		asprintf(&temp_buffer,"%s SERVICE STATE: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,temp_service->plugin_output);
+		process_macros(temp_buffer,&processed_buffer,0);
+
+		write_to_all_logs_with_timestamp(processed_buffer,NSLOG_INFO_MESSAGE,timestamp);
+
 		my_free(temp_buffer);
+		my_free(processed_buffer);
 	        }
 
 	return OK;

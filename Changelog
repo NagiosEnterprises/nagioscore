@@ -29,6 +29,7 @@ Nagios 3.x Change Log
 * Bug fix for scheduling hostgroup host downtime through web interface
 * Better error logging when failing to rename/move files
 * Added $LASTHOSTSTATE$, $LASTHOSTSTATEID$, $LASTSERVICESTATE$, and $LASTSERVICESTATEID$ macros
+* Addition of object pointers to event broker module data structures (may require event broker module rebuilds)
 
 
 

@@ -2,8 +2,8 @@
  *
  * NEBSTRUCTS.H - Event broker includes for Nagios
  *
- * Copyright (c) 2003-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-25-2006
+ * Copyright (c) 2003-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-28-2007
  *
  * License:
  *
@@ -55,6 +55,8 @@ typedef struct nebstruct_timed_event_struct{
 	int             recurring;
 	time_t          run_time;
 	void            *event_data;
+
+	void            *event_ptr;
         }nebstruct_timed_event_data;
 
 
@@ -111,6 +113,8 @@ typedef struct nebstruct_event_handler_struct{
 	double          execution_time;
 	int             return_code;
 	char            *output;
+
+	void            *object_ptr;
         }nebstruct_event_handler_data;
 
 
@@ -140,6 +144,8 @@ typedef struct nebstruct_host_check_struct{
 	char            *output;
 	char            *long_output;
 	char            *perf_data;
+
+	void            *object_ptr;
         }nebstruct_host_check_data;
 
 
@@ -170,6 +176,8 @@ typedef struct nebstruct_service_check_struct{
 	char            *output;
 	char            *long_output;
 	char            *perf_data;
+
+	void            *object_ptr;
         }nebstruct_service_check_data;
 
 
@@ -192,6 +200,8 @@ typedef struct nebstruct_comment_struct{
 	int             expires;
 	time_t          expire_time;
 	unsigned long   comment_id;
+
+	void            *object_ptr; /* not implemented yet */
         }nebstruct_comment_data;
 
 
@@ -214,6 +224,8 @@ typedef struct nebstruct_downtime_struct{
 	unsigned long   duration;
 	unsigned long   triggered_by;
 	unsigned long   downtime_id;
+
+	void            *object_ptr; /* not implemented yet */
         }nebstruct_downtime_data;
 
 
@@ -231,6 +243,8 @@ typedef struct nebstruct_flapping_struct{
 	double          high_threshold;
 	double          low_threshold;
 	unsigned long   comment_id;
+
+	void            *object_ptr;
         }nebstruct_flapping_data;
 
 
@@ -316,6 +330,8 @@ typedef struct nebstruct_notification_struct{
 	char            *ack_data;
 	int             escalated;
 	int             contacts_notified;
+
+	void            *object_ptr;
         }nebstruct_notification_data;
 
 
@@ -338,6 +354,9 @@ typedef struct nebstruct_contact_notification_struct{
 	char            *ack_author;
 	char            *ack_data;
 	int             escalated;
+
+	void            *object_ptr;
+	void            *contact_ptr;
         }nebstruct_contact_notification_data;
 
 
@@ -362,6 +381,9 @@ typedef struct nebstruct_contact_notification_method_struct{
 	char            *ack_author;
 	char            *ack_data;
 	int             escalated;
+
+	void            *object_ptr;
+	void            *contact_ptr;
         }nebstruct_contact_notification_method_data;
 
 
@@ -390,6 +412,7 @@ typedef struct nebstruct_adaptive_host_data_struct{
 	int             command_type;
 	unsigned long   modified_attribute;
 	unsigned long   modified_attributes;
+
 	void            *object_ptr;
         }nebstruct_adaptive_host_data;
 
@@ -404,6 +427,7 @@ typedef struct nebstruct_adaptive_service_data_struct{
 	int             command_type;
 	unsigned long   modified_attribute;
 	unsigned long   modified_attributes;
+
 	void            *object_ptr;
         }nebstruct_adaptive_service_data;
 
@@ -422,6 +446,7 @@ typedef struct nebstruct_adaptive_contact_data_struct{
 	unsigned long   modified_host_attributes;
 	unsigned long   modified_service_attribute;
 	unsigned long   modified_service_attributes;
+
 	void            *object_ptr;
         }nebstruct_adaptive_contact_data;
 
@@ -476,6 +501,8 @@ typedef struct nebstruct_acknowledgement_struct{
 	int             is_sticky;
 	int             persistent_comment;
 	int             notify_contacts;
+
+	void            *object_ptr;
         }nebstruct_acknowledgement_data;
 
 
@@ -494,6 +521,8 @@ typedef struct nebstruct_statechange_struct{
 	int             current_attempt;
 	int             max_attempts;
 	char            *output;
+
+	void            *object_ptr;
         }nebstruct_statechange_data;
 
 #ifdef __cplusplus

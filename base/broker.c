@@ -105,6 +105,7 @@ void broker_timed_event(int type, int flags, int attr, timed_event *event, struc
 	ds.recurring=event->recurring;
 	ds.run_time=event->run_time;
 	ds.event_data=event->event_data;
+	ds.event_ptr=(void *)event;
 
 	/* make callbacks */
 	neb_make_callbacks(NEBCALLBACK_TIMED_EVENT_DATA,(void *)&ds);
@@ -211,6 +212,7 @@ void broker_event_handler(int type, int flags, int attr, int eventhandler_type, 
 		ds.host_name=temp_host->name;
 		ds.service_description=NULL;
 	        }
+	ds.object_ptr=data;
 	ds.state=state;
 	ds.state_type=state_type;
 	ds.start_time=start_time;
@@ -264,6 +266,7 @@ int broker_host_check(int type, int flags, int attr, host *hst, int check_type, 
 	ds.timestamp=get_broker_timestamp(timestamp);
 
 	ds.host_name=hst->name;
+	ds.object_ptr=(void *)hst;
 	ds.check_type=check_type;
 	ds.current_attempt=hst->current_attempt;
 	ds.max_attempts=hst->max_attempts;
@@ -323,6 +326,7 @@ int broker_service_check(int type, int flags, int attr, service *svc, int check_
 
 	ds.host_name=svc->host_name;
 	ds.service_description=svc->description;
+	ds.object_ptr=(void *)svc;
 	ds.check_type=check_type;
 	ds.current_attempt=svc->current_attempt;
 	ds.max_attempts=svc->max_attempts;
@@ -370,6 +374,7 @@ void broker_comment_data(int type, int flags, int attr, int comment_type, int en
 	ds.entry_type=entry_type;
 	ds.host_name=host_name;
 	ds.service_description=svc_description;
+	ds.object_ptr=NULL; /* not implemented yet */
 	ds.entry_time=entry_time;
 	ds.author_name=author_name;
 	ds.comment_data=comment_data;
@@ -403,6 +408,7 @@ void broker_downtime_data(int type, int flags, int attr, int downtime_type, char
 	ds.downtime_type=downtime_type;
 	ds.host_name=host_name;
 	ds.service_description=svc_description;
+	ds.object_ptr=NULL; /* not implemented yet */
 	ds.entry_time=entry_time;
 	ds.author_name=author_name;
 	ds.comment_data=comment_data;
@@ -452,6 +458,7 @@ void broker_flapping_data(int type, int flags, int attr, int flapping_type, void
 		ds.service_description=NULL;
 		ds.comment_id=temp_host->flapping_comment_id;
 	        }
+	ds.object_ptr=data;
 	ds.percent_change=percent_change;
 	ds.high_threshold=high_threshold;
 	ds.low_threshold=low_threshold;
@@ -607,6 +614,7 @@ void broker_notification_data(int type, int flags, int attr, int notification_ty
 		ds.state=temp_host->current_state;
 		ds.output=temp_host->plugin_output;
 	        }
+	ds.object_ptr=data;
 	ds.ack_author=ack_author;
 	ds.ack_data=ack_data;
 	ds.escalated=escalated;
@@ -654,6 +662,8 @@ void broker_contact_notification_data(int type, int flags, int attr, int notific
 		ds.state=temp_host->current_state;
 		ds.output=temp_host->plugin_output;
 	        }
+	ds.object_ptr=data;
+	ds.contact_ptr=(void *)cntct;
 	ds.ack_author=ack_author;
 	ds.ack_data=ack_data;
 	ds.escalated=escalated;
@@ -711,6 +721,8 @@ void broker_contact_notification_method_data(int type, int flags, int attr, int 
 		ds.state=temp_host->current_state;
 		ds.output=temp_host->plugin_output;
 	        }
+	ds.object_ptr=data;
+	ds.contact_ptr=(void *)cntct;
 	ds.ack_author=ack_author;
 	ds.ack_data=ack_data;
 	ds.escalated=escalated;
@@ -923,6 +935,7 @@ void broker_acknowledgement_data(int type, int flags, int attr, int acknowledgem
 		ds.service_description=NULL;
 		ds.state=temp_host->current_state;
 	        }
+	ds.object_ptr=data;
 	ds.author_name=ack_author;
 	ds.comment_data=ack_data;
 	ds.is_sticky=(subtype==ACKNOWLEDGEMENT_STICKY)?TRUE:FALSE;
@@ -964,6 +977,7 @@ void broker_statechange_data(int type, int flags, int attr, int statechange_type
 		ds.service_description=NULL;
 		ds.output=temp_host->plugin_output;
 	        }
+	ds.object_ptr=data;
 	ds.state=state;
 	ds.state_type=state_type;
 	ds.current_attempt=current_attempt;

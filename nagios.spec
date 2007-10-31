@@ -272,7 +272,7 @@ cp sample-config/httpd.conf ${RPM_BUILD_ROOT}/etc/httpd/conf.d/nagios.conf
 
 # install CGIs
 cd contrib
-make INSTALL=install DESTDIR=${RPM_BUILD_ROOT} INSTALL_OPTS="" COMMAND_OPTS="" CGIDIR=%{_libdir}/nagios/cgi install
+make INSTALL=install DESTDIR=${RPM_BUILD_ROOT} INSTALL_OPTS="" COMMAND_OPTS="" CGIDIR=%{_prefix}/lib/nagios/cgi install
 #mv ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/cgi/convertcfg ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/
 #mv ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/cgi/mini_epn ${RPM_BUILD_ROOT}%{_prefix}/sbin/
 cd ..
@@ -321,7 +321,7 @@ rm -rf $RPM_BUILD_ROOT
 %files www
 %defattr(755,root,root)
 %dir %{_prefix}/lib/nagios/cgi
-%{_libdir}/nagios/cgi/*
+%{_prefix}/lib/nagios/cgi/*
 %dir %{_prefix}/share/nagios
 %defattr(-,root,root)
 %{_prefix}/share/nagios/*

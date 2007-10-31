@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 10-31-2007
  *
  * License:
  *
@@ -1427,7 +1427,7 @@ char * url_encode(char *input){
 char * html_encode(char *input, int escape_newlines){
 	int len,output_len;
 	int x,y;
-	char temp_expansion[7];
+	char temp_expansion[10];
 
 	/* we need up to six times the space to do the conversion */
 	len=(int)strlen(input);

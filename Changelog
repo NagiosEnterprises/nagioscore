@@ -30,6 +30,7 @@ Nagios 3.x Change Log
 * Better error logging when failing to rename/move files
 * Added $LASTHOSTSTATE$, $LASTHOSTSTATEID$, $LASTSERVICESTATE$, and $LASTSERVICESTATEID$ macros
 * Addition of object pointers to event broker module data structures (may require event broker module rebuilds)
+* Spec file changes to better support RPM builds on 64-bit systems
 
 
 

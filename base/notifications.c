@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2007
+ * Last Modified:   10-31-2007
  *
  * License:
  *
@@ -640,6 +640,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 	char *raw_command=NULL;
 	char *processed_command=NULL;
 	char *temp_buffer=NULL;
+	char *processed_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime;
 	struct timeval start_time,end_time;
@@ -703,35 +704,39 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 		if(log_notifications==TRUE){
 			switch(type){
 			case NOTIFICATION_CUSTOM:
-				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;CUSTOM (%s);%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT],macro_x[MACRO_NOTIFICATIONAUTHOR],macro_x[MACRO_NOTIFICATIONCOMMENT]);
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;CUSTOM ($SERVICESTATE$);%s;$SERVICEOUTPUT$;$NOTIFICATIONAUTHOR$;$NOTIFICATIONCOMMENT$\n",cntct->name,svc->host_name,svc->description,command_name_ptr);
 				break;
 			case NOTIFICATION_ACKNOWLEDGEMENT:
-				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT],macro_x[MACRO_NOTIFICATIONAUTHOR],macro_x[MACRO_NOTIFICATIONCOMMENT]);
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT ($SERVICESTATE$);%s;$SERVICEOUTPUT$;$NOTIFICATIONAUTHOR$;$NOTIFICATIONCOMMENT$\n",cntct->name,svc->host_name,svc->description,command_name_ptr);
 				break;
 			case NOTIFICATION_FLAPPINGSTART:
-				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART ($SERVICESTATE$);%s;$SERVICEOUTPUT$\n",cntct->name,svc->host_name,svc->description,command_name_ptr);
 				break;
 			case NOTIFICATION_FLAPPINGSTOP:
-				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTOP ($SERVICESTATE$);%s;$SERVICEOUTPUT$\n",cntct->name,svc->host_name,svc->description,command_name_ptr);
 				break;
 			case NOTIFICATION_FLAPPINGDISABLED:
-				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGDISABLED (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGDISABLED ($SERVICESTATE$);%s;$SERVICEOUTPUT$\n",cntct->name,svc->host_name,svc->description,command_name_ptr);
 				break;
 			case NOTIFICATION_DOWNTIMESTART:
-				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMESTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMESTART ($SERVICESTATE$);%s;$SERVICEOUTPUT$\n",cntct->name,svc->host_name,svc->description,command_name_ptr);
 				break;
 			case NOTIFICATION_DOWNTIMEEND:
-				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMEEND (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMEEND ($SERVICESTATE$);%s;$SERVICEOUTPUT$\n",cntct->name,svc->host_name,svc->description,command_name_ptr);
 				break;
 			case NOTIFICATION_DOWNTIMECANCELLED:
-				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMECANCELLED (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMECANCELLED ($SERVICESTATE$);%s;$SERVICEOUTPUT$\n",cntct->name,svc->host_name,svc->description,command_name_ptr);
 				break;
 			default:
-				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+				asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;$SERVICESTATE$;%s;$SERVICEOUTPUT$\n",cntct->name,svc->host_name,svc->description,command_name_ptr);
 				break;
 				}
-			write_to_all_logs(temp_buffer,NSLOG_SERVICE_NOTIFICATION);
+
+			process_macros(temp_buffer,&processed_buffer,0);
+			write_to_all_logs(processed_buffer,NSLOG_SERVICE_NOTIFICATION);
+
 			my_free(temp_buffer);
+			my_free(processed_buffer);
 
 			/* run the command */
 			my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
@@ -1482,6 +1487,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 	char *command_name=NULL;
 	char *command_name_ptr=NULL;
 	char *temp_buffer=NULL;
+	char *processed_buffer=NULL;
 	char *raw_command=NULL;
 	char *processed_command=NULL;
 	int early_timeout=FALSE;
@@ -1549,35 +1555,39 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 		if(log_notifications==TRUE){
 			switch(type){
 			case NOTIFICATION_CUSTOM:
-				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;CUSTOM (%s);%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT],macro_x[MACRO_NOTIFICATIONAUTHOR],macro_x[MACRO_NOTIFICATIONCOMMENT]);
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;CUSTOM ($HOSTSTATE$);%s;$HOSTOUTPUT$;$NOTIFICATIONAUTHOR$;$NOTIFICATIONCOMMENT$\n",cntct->name,hst->name,command_name_ptr);
 				break;
 			case NOTIFICATION_ACKNOWLEDGEMENT:
-				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT],macro_x[MACRO_NOTIFICATIONAUTHOR],macro_x[MACRO_NOTIFICATIONCOMMENT]);
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT ($HOSTSTATE$);%s;$HOSTOUTPUT$;$NOTIFICATIONAUTHOR$;$NOTIFICATIONCOMMENT$\n",cntct->name,hst->name,command_name_ptr);
 				break;
 			case NOTIFICATION_FLAPPINGSTART:
-				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTART ($HOSTSTATE$);%s;$HOSTOUTPUT$\n",cntct->name,hst->name,command_name_ptr);
 				break;
 			case NOTIFICATION_FLAPPINGSTOP:
-				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP ($HOSTSTATE$);%s;$HOSTOUTPUT$\n",cntct->name,hst->name,command_name_ptr);
 				break;
 			case NOTIFICATION_FLAPPINGDISABLED:
-				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGDISABLED (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGDISABLED ($HOSTSTATE$);%s;$HOSTOUTPUT$\n",cntct->name,hst->name,command_name_ptr);
 				break;
 			case NOTIFICATION_DOWNTIMESTART:
-				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMESTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMESTART ($HOSTSTATE$);%s;$HOSTOUTPUT$\n",cntct->name,hst->name,command_name_ptr);
 				break;
 			case NOTIFICATION_DOWNTIMEEND:
-				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMEEND (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMEEND ($HOSTSTATE$);%s;$HOSTOUTPUT$\n",cntct->name,hst->name,command_name_ptr);
 				break;
 			case NOTIFICATION_DOWNTIMECANCELLED:
-				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMECANCELLED (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMECANCELLED ($HOSTSTATE$);%s;$HOSTOUTPUT$\n",cntct->name,hst->name,command_name_ptr);
 				break;
 			default:
-				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+				asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;$HOSTSTATE$;%s;$HOSTOUTPUT$\n",cntct->name,hst->name,command_name_ptr);
 				break;
 				}
-			write_to_all_logs(temp_buffer,NSLOG_HOST_NOTIFICATION);
+
+			process_macros(temp_buffer,&processed_buffer,0);
+			write_to_all_logs(processed_buffer,NSLOG_HOST_NOTIFICATION);
+
 			my_free(temp_buffer);
+			my_free(processed_buffer);
 
 			/* run the command */
 			my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);

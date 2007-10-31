@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0b6 - ??/??/2007
+3.0b6 - 10/31/2007
 ------------------
 * Logging API revamp, cleanup
 * Misc internal performance improvements
@@ -31,6 +31,7 @@ Nagios 3.x Change Log
 * Added $LASTHOSTSTATE$, $LASTHOSTSTATEID$, $LASTSERVICESTATE$, and $LASTSERVICESTATEID$ macros
 * Addition of object pointers to event broker module data structures (may require event broker module rebuilds)
 * Spec file changes to better support RPM builds on 64-bit systems
+* Possible fix for Unicode html encoding errors in CGIs
 
 
 

@@ -674,6 +674,8 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 	case MACRO_TOTALHOSTSERVICESCRITICAL:
 	case MACRO_HOSTPROBLEMID:
 	case MACRO_LASTHOSTPROBLEMID:
+	case MACRO_LASTHOSTSTATE:
+	case MACRO_LASTHOSTSTATEID:
 
 		/* a standard host macro */
 		if(arg2==NULL){
@@ -801,6 +803,8 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 	case MACRO_SERVICEISVOLATILE:
 	case MACRO_SERVICEPROBLEMID:
 	case MACRO_LASTSERVICEPROBLEMID:
+	case MACRO_LASTSERVICESTATE:
+	case MACRO_LASTSERVICESTATEID:
 
 		/* use saved service pointer */
 		if(arg1==NULL && arg2==NULL){

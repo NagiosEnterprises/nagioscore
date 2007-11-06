@@ -3188,7 +3188,7 @@ int set_macro_environment_var(char *name, char *value, int set){
 		return ERROR;
 
 	/* create environment var name */
-	asprintf(env_macro_name,"%s%s",MACRO_ENV_VAR_PREFIX,name);
+	asprintf(&env_macro_name,"%s%s",MACRO_ENV_VAR_PREFIX,name);
 
 	/* set or unset the environment variable */
 	set_environment_var(env_macro_name,value,set);

@@ -2225,9 +2225,14 @@ int process_check_result_queue(char *dirname){
 	char *temp_buffer=NULL;
 	int result=OK;
 
+	/* make sure we have what we need */
+	if(dirname==NULL){
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: No check result queue directory specified.\n");
+		return ERROR;
+		}
+
 	/* open the directory for reading */
-	dirp=opendir(dirname);
-        if(dirp==NULL){
+	if((dirp=opendir(dirname))==NULL){
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not open check result queue directory '%s' for reading.\n",dirname);
 		return ERROR;
 	        }

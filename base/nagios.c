@@ -226,6 +226,7 @@ int             use_embedded_perl_implicitly=DEFAULT_USE_EMBEDDED_PERL_IMPLICITL
 int             embedded_perl_initialized=FALSE;
 
 int             date_format=DATE_FORMAT_US;
+char            *use_timezone=NULL;
 
 int             command_file_fd;
 FILE            *command_file_fp;
@@ -276,6 +277,10 @@ int main(int argc, char **argv){
 	int display_license=FALSE;
 	int display_help=FALSE;
 	int c=0;
+	struct tm *tm;
+	time_t now;
+	char datestring[256];
+
 
 
 #ifdef HAVE_GETOPT_H
@@ -599,16 +604,17 @@ int main(int argc, char **argv){
 			/* reset program variables */
 			reset_variables();
 
-			/* get program (re)start time and save as macro */
-			program_start=time(NULL);
-			my_free(macro_x[MACRO_PROCESSSTARTTIME]);
-			asprintf(&macro_x[MACRO_PROCESSSTARTTIME],"%lu",(unsigned long)program_start);
-
 			/* get PID */
 			nagios_pid=(int)getpid();
 
 			/* read in the configuration files (main and resource config files) */
 			result=read_main_config_file(config_file);
+
+			/* NOTE 11/06/07 EG moved to after we read config files, as user may have overridden timezone offset */
+			/* get program (re)start time and save as macro */
+			program_start=time(NULL);
+			my_free(macro_x[MACRO_PROCESSSTARTTIME]);
+			asprintf(&macro_x[MACRO_PROCESSSTARTTIME],"%lu",(unsigned long)program_start);
 
 			/* open debug log */
 			open_debug_log();
@@ -630,6 +636,14 @@ int main(int argc, char **argv){
 
 			/* this must be logged after we read config data, as user may have changed location of main log file */
 			logit(NSLOG_PROCESS_INFO,TRUE,"Nagios %s starting... (PID=%d)\n",PROGRAM_VERSION,(int)getpid());
+
+			/* log the local time - may be different than clock time due to timezone offset */
+			now=time(NULL);
+			tm=localtime(&now);
+			strftime(datestring,sizeof(datestring),"%a %b %d %H:%M:%S %Z %Y",tm);
+			asprintf(&buffer,"Local time is %s\n",datestring);
+			write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO,TRUE);
+			my_free(buffer);
 
 			/* write log version/info */
 			write_log_file_info(NULL);

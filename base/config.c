@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-21-2007
+ * Last Modified: 11-06-2007
  *
  * License:
  *
@@ -179,6 +179,7 @@ extern int      enable_embedded_perl;
 extern int      use_embedded_perl_implicitly;
 
 extern int      date_format;
+extern char     *use_timezone;
 
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
@@ -1176,6 +1177,11 @@ int read_main_config_file(char *main_config_file){
 				date_format=DATE_FORMAT_US;
 		        }
 
+		else if(!strcmp(variable,"use_timezone")){
+			my_free(use_timezone);
+			use_timezone=(char *)strdup(value);
+			}
+
 		else if(!strcmp(variable,"p1_file")){
 
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
@@ -1319,7 +1325,11 @@ int read_main_config_file(char *main_config_file){
 
 		}
 
-	/* adjust values */
+	/* adjust timezone values */
+	if(use_timezone!=NULL)
+		set_environment_var("TZ",use_timezone,1);
+	tzset();
+
 	if(command_check_interval_is_seconds==FALSE && command_check_interval!=-1)
 		command_check_interval*=interval_length;
 

@@ -6,6 +6,7 @@ Nagios 3.x Change Log
 3.0b7 - 11/??/2007
 ------------------
 * Memory leak fix in macro code
+* Added use_timezone option to allow Nagios instances to run in non-native timezones
 
 
 

@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-28-2007
+ * Last Modified:   11-06-2007
  *
  * License:
  *
@@ -3178,43 +3178,16 @@ int set_contact_address_environment_vars(int set){
 /* sets or unsets a macro environment variable */
 int set_macro_environment_var(char *name, char *value, int set){
 	char *env_macro_name=NULL;
-#ifndef HAVE_SETENV
-	char *env_macro_string=NULL;
-#endif
 
 	/* we won't mess with null variable names */
 	if(name==NULL)
 		return ERROR;
 
-	/* allocate memory */
-	if((env_macro_name=(char *)malloc(strlen(MACRO_ENV_VAR_PREFIX)+strlen(name)+1))==NULL)
-		return ERROR;
-
-	/* create the name */
-	strcpy(env_macro_name,"");
-	strcpy(env_macro_name,MACRO_ENV_VAR_PREFIX);
-	strcat(env_macro_name,name);
+	/* create environment var name */
+	asprintf(env_macro_name,"%s%s",MACRO_ENV_VAR_PREFIX,name);
 
 	/* set or unset the environment variable */
-	if(set==TRUE){
-
-#ifdef HAVE_SETENV
-		setenv(env_macro_name,(value==NULL)?"":value,1);
-#else
-		/* needed for Solaris and systems that don't have setenv() */
-		/* this will leak memory, but in a "controlled" way, since lost memory should be freed when the child process exits */
-		env_macro_string=(char *)malloc(strlen(env_macro_name)+strlen((value==NULL)?"":value)+2);
-		if(env_macro_string!=NULL){
-			sprintf(env_macro_string,"%s=%s",env_macro_name,(value==NULL)?"":value);
-			putenv(env_macro_string);
-		        }
-#endif
-	        }
-	else{
-#ifdef HAVE_UNSETENV
-		unsetenv(env_macro_name);
-#endif
-	        }
+	set_environment_var(env_macro_name,value,set);
 
 	/* free allocated memory */
 	my_free(env_macro_name);

@@ -3163,6 +3163,41 @@ This option allows you to specify what kind of date/time format Nagios should us
 <br>
 
 
+<a name="use_timezone"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Timezone Option</strong></td>
+</tr>
+</table>
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>use_timezone=&lt;tz&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>use_timezone=US/Mountain</strong></font></td>
+</tr>
+</table>
+
+<p>
+This option allows you to override the default timezone that this instance of Nagios runs in.  Useful if you have multiple instances of Nagios that need to run from the same server, but have different local times associated with them.  If not specified, Nagios will use the system configured timezone.
+</p>
+<p>
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: If you use this option to specify a custom timezone, you will also need to alter the Apache configuration directives for the CGIs to specify the timezone you want.  Example:
+</p>
+<div style="margin: 0 0 0 15px;">
+&lt;Directory "/usr/local/nagios/sbin/"&gt;<br>
+SetEnv TZ "US/Mountain"<br>
+...<br>
+&lt;/Directory&gt;
+</div>
+<br>
+
+
 <a name="illegal_object_name_chars"></a>
 <table border="0" width="100%" class="Default">
 <tr>

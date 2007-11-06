@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-19-2007
+ * Last Modified: 11-06-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -639,6 +639,7 @@ int file_uses_embedded_perl(char *);			/* tests whether or not the embedded perl
 int dbuf_init(dbuf *,int);
 int dbuf_free(dbuf *);
 int dbuf_strcat(dbuf *,char *);
+int set_environment_var(char *,char *,int);             /* sets/clears and environment variable */
 
 
 /**** External Command Functions ****/

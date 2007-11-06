@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 10-21-2007
+# Last Modified: 11-06-2007
 #
 ##############################################################################
 
@@ -1039,6 +1039,27 @@ high_host_flap_threshold=20.0
 #
 
 date_format=us
+
+
+
+
+# TIMEZONE OFFSET
+# This option is used to override the default timezone that this
+# instance of Nagios runs in.  If not specified, Nagios will use
+# the system configured timezone.
+#
+# NOTE: In order to display the correct timezone in the CGIs, you
+# will also need to alter the Apache directives for the CGI path 
+# to include your timezone.  Example:
+#
+#   <Directory "/usr/local/nagios/sbin/">
+#      SetEnv TZ "Australia/Brisbane"
+#      ...
+#   </Directory>
+
+#use_timezone=US/Mountain
+#use_timezone=Australia/Brisbane
+
 
 
 

@@ -716,6 +716,47 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char **full_command, int m
 
 
 
+
+/******************************************************************/
+/******************** ENVIRONMENT FUNCTIONS ***********************/
+/******************************************************************/
+
+/* sets or unsets an environment variable */
+int set_environment_var(char *name, char *value, int set){
+#ifndef HAVE_SETENV
+	char *env_string=NULL;
+#endif
+
+	/* we won't mess with null variable names */
+	if(name==NULL)
+		return ERROR;
+
+	/* set the environment variable */
+	if(set==TRUE){
+
+#ifdef HAVE_SETENV
+		setenv(name,(value==NULL)?"":value,1);
+#else
+		/* needed for Solaris and systems that don't have setenv() */
+		/* this will leak memory, but in a "controlled" way, since lost memory should be freed when the child process exits */
+		asprintf(&env_string,"%s=%s",name,(value==NULL)?"":value);
+		if(env_string)
+			putenv(env_macro_string);
+#endif
+	        }
+	/* clear the variable */
+	else{
+#ifdef HAVE_UNSETENV
+		unsetenv(name);
+#endif
+	        }
+
+	return OK;
+        }
+
+
+
+
 /******************************************************************/
 /************************* TIME FUNCTIONS *************************/
 /******************************************************************/

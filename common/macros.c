@@ -1474,10 +1474,7 @@ int grab_datetime_macro(int macro_type, char *arg1, char *arg2, char **output){
 		break;
 
 	case MACRO_TIMET:
-		if(*output==NULL)
-			*output=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(*output)
-			asprintf(output,"%lu",(unsigned long)current_time);
+		asprintf(output,"%lu",(unsigned long)current_time);
 		break;
 
 #ifdef NSCORE

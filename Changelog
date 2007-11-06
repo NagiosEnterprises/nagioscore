@@ -3,6 +3,12 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0b7 - 11/??/2007
+------------------
+* Memory leak fix in macro code
+
+
+
 3.0b6 - 10/31/2007
 ------------------
 * Logging API revamp, cleanup

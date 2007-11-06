@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-31-2007
+ * Last Modified: 11-06-2007
  *
  * License:
  *
@@ -1399,7 +1399,7 @@ char * html_encode(char *input){
 		/* for simplicity, everything else gets represented by its numeric value */
 		else{
 			encoded_html_string[y]='\x0';
-			sprintf(temp_expansion,"&#%d;",(unsigned int)input[x]);
+			sprintf(temp_expansion,"&#%d;",(unsigned char)input[x]);
 			if((int)strlen(encoded_html_string)<(output_len-strlen(temp_expansion))){
 				strcat(encoded_html_string,temp_expansion);
 				y+=strlen(temp_expansion);

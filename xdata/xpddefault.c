@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2007
+ * Last Modified: 11-10-2007
  *
  * License:
  *
@@ -695,6 +695,7 @@ int xpddefault_update_service_performance_data_file(service *svc){
 
 	/* free memory */
 	my_free(raw_output);
+	my_free(processed_output);
 
 	return result;
         }
@@ -738,6 +739,7 @@ int xpddefault_update_host_performance_data_file(host *hst){
 
 	/* free memory */
 	my_free(raw_output);
+	my_free(processed_output);
 
 	return result;
         }

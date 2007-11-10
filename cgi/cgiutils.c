@@ -274,7 +274,6 @@ char * get_cmd_file_location(void){
 /*read the CGI configuration file */
 int read_cgi_config_file(char *filename){
 	char *input=NULL;
-	char *temp_buffer=NULL;
 	mmapfile *thefile;
 	char *var=NULL;
 	char *val=NULL;
@@ -935,13 +934,13 @@ void sanitize_plugin_output(char *buffer){
 /* get date/time string */
 void get_time_string(time_t *raw_time,char *buffer,int buffer_length,int type){
 	time_t t;
-	struct tm *tm_ptr;
-	int hour;
-	int minute;
-	int second;
-	int month;
-	int day;
-	int year;
+	struct tm *tm_ptr=NULL;
+	int hour=0;
+	int minute=0;
+	int second=0;
+	int month=0;
+	int day=0;
+	int year=0;
 	char *weekdays[7]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 	char *months[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 	char *tzone="";
@@ -959,6 +958,7 @@ void get_time_string(time_t *raw_time,char *buffer,int buffer_length,int type){
 	hour=tm_ptr->tm_hour;
 	minute=tm_ptr->tm_min;
 	second=tm_ptr->tm_sec;
+	month=tm_ptr->tm_mon+1;
 	day=tm_ptr->tm_mday;
 	year=tm_ptr->tm_year+1900;
 
@@ -1010,13 +1010,13 @@ void get_time_string(time_t *raw_time,char *buffer,int buffer_length,int type){
 /* given a date/time in time_t format, produce a corresponding date/time string, including timezone */
 void get_datetime_string(time_t *raw_time,char *buffer,int buffer_length, int type){
 	time_t t;
-	struct tm *tm_ptr;
-	int hour;
-	int minute;
-	int second;
-	int month;
-	int day;
-	int year;
+	struct tm *tm_ptr=NULL;
+	int hour=0;
+	int minute=0;
+	int second=0;
+	int month=0;
+	int day=0;
+	int year=0;
 	char *weekdays[7]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 	char *months[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"};
 

@@ -788,11 +788,11 @@ int xodtemplate_get_hostgroup_names(xodtemplate_memberlist **,xodtemplate_member
 char *xodtemplate_process_servicegroup_names(char *,int,int);
 int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
 
+int xodtemplate_add_member_to_memberlist(xodtemplate_memberlist **,char *,char *);
 int xodtemplate_free_memberlist(xodtemplate_memberlist **);
 void xodtemplate_remove_memberlist_item(xodtemplate_memberlist *,xodtemplate_memberlist **);
-
-int xodtemplate_add_member_to_memberlist(xodtemplate_memberlist **,char *,char *);
 #endif
+
 
 int xodtemplate_begin_object_definition(char *,int,int,int);
 int xodtemplate_add_object_property(char *,int);

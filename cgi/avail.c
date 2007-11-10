@@ -2257,10 +2257,8 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 	archived_state *temp_as=NULL;
 	time_t part_start_time=0L;
 	time_t part_subject_state=0L;
-	int save_status=0;
 	int saved_status=0;
 	int saved_stamp=0;
-	int calc_temp=0;
 	int count=0;
 	archived_state *temp_before=NULL;
 	archived_state *last=NULL;
@@ -2884,12 +2882,12 @@ void scan_log_file_for_archived_state_data(char *filename){
 	char *input2=NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
 	char entry_svc_description[MAX_INPUT_BUFFER];
-	char *plugin_output;
-	char *temp_buffer;
+	char *plugin_output=NULL;
+	char *temp_buffer=NULL;
 	time_t time_stamp;
-	mmapfile *thefile;
-	avail_subject *temp_subject;
-	int state_type;
+	mmapfile *thefile=NULL;
+	avail_subject *temp_subject=NULL;
+	int state_type=0;
 
 	if((thefile=mmap_fopen(filename))==NULL)
 		return;

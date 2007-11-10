@@ -3,7 +3,7 @@
  * HISTORY.C - Nagios History CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-17-2007
+ * Last Modified: 11-10-2007
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -483,7 +483,7 @@ int process_cgivars(void){
 
 
 void get_history(void){
-	mmapfile *thefile;
+	mmapfile *thefile=NULL;
 	char image[MAX_INPUT_BUFFER];
 	char image_alt[MAX_INPUT_BUFFER];
 	char *input=NULL;
@@ -506,7 +506,7 @@ void get_history(void){
 
 	char last_message_date[MAX_INPUT_BUFFER]="";
 	char current_message_date[MAX_INPUT_BUFFER]="";
-	struct tm *time_ptr;
+	struct tm *time_ptr=NULL;
 
 
 	if(use_lifo==TRUE){

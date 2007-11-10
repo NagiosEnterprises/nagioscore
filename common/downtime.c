@@ -282,7 +282,7 @@ int register_downtime(int type, unsigned long downtime_id){
 	else{
 		log_debug_info(DEBUGL_DOWNTIME,0," Type:        Service Downtime\n");
 		log_debug_info(DEBUGL_DOWNTIME,0," Host:        %s\n",svc->host_name);
-		log_debug_info(DEBUGL_DOWNTIME,0," Service:     %sn",svc->description);
+		log_debug_info(DEBUGL_DOWNTIME,0," Service:     %s\n",svc->description);
 		}
 	log_debug_info(DEBUGL_DOWNTIME,0," Fixed/Flex:  %s\n",(temp_downtime->fixed==TRUE)?"Fixed":"Flexible");
 	log_debug_info(DEBUGL_DOWNTIME,0," Start:       %lu\n",temp_downtime->downtime_id);

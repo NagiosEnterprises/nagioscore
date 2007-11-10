@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-19-2007
+ * Last Modified: 11-10-2007
  *
  * License:
  * 
@@ -24,6 +24,7 @@
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/objects.h"
+#include "../include/macros.h"
 #include "../include/comments.h"
 #include "../include/downtime.h"
 #include "../include/statusdata.h"

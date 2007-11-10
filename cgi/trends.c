@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2007
+ * Last Modified: 11-10-2007
  *
  * License:
  * 
@@ -2403,11 +2403,11 @@ void scan_log_file_for_archived_state_data(char *filename){
 	char *input2=NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
 	char entry_svc_description[MAX_INPUT_BUFFER];
-	char *plugin_output;
-	char *temp_buffer;
+	char *plugin_output=NULL;
+	char *temp_buffer=NULL;
 	time_t time_stamp;
-	mmapfile *thefile;
-	int state_type;
+	mmapfile *thefile=NULL;
+	int state_type=0;
 
 	/* print something so browser doesn't time out */
 	if(mode==CREATE_HTML){

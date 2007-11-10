@@ -591,9 +591,10 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 	contactsmember *temp_contactsmember=NULL;
 	char *temp_buffer=NULL;
 	int result=OK;
-	register int x;
 	int delimiter_len=0;
 	int free_sub_macro=FALSE;
+#ifdef NSCORE
+	register int x;
 	int authorized=TRUE;
 	int problem=TRUE;
 	int hosts_up=0;
@@ -612,6 +613,7 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 	int services_critical_unhandled=0;
 	int service_problems=0;
 	int service_problems_unhandled=0;
+#endif
 
 
 	if(output==NULL || free_macro==NULL)
@@ -1414,7 +1416,9 @@ int grab_datetime_macro(int macro_type, char *arg1, char *arg2, char **output){
 	time_t current_time=0L;
 	timeperiod *temp_timeperiod=NULL;
 	time_t test_time=0L;
+#ifdef NSCORE
 	time_t next_valid_time=0L;
+#endif
 
 	if(output==NULL)
 		return ERROR;
@@ -1503,6 +1507,8 @@ int grab_datetime_macro(int macro_type, char *arg1, char *arg2, char **output){
 
 /* calculates a host macro */
 int grab_standard_host_macro(int macro_type, host *temp_host, char **output, int *free_macro){
+	char *temp_buffer=NULL;
+#ifdef NSCORE
 	hostgroup *temp_hostgroup=NULL;
 	servicesmember *temp_servicesmember=NULL;
 	service *temp_service=NULL;
@@ -1513,7 +1519,6 @@ int grab_standard_host_macro(int macro_type, host *temp_host, char **output, int
 	int hours=0;
 	int minutes=0;
 	int seconds=0;
-	char *temp_buffer=NULL;
 	char *buf1=NULL;
 	char *buf2=NULL;
 	int total_host_services=0;
@@ -1521,6 +1526,7 @@ int grab_standard_host_macro(int macro_type, host *temp_host, char **output, int
 	int total_host_services_warning=0;
 	int total_host_services_unknown=0;
 	int total_host_services_critical=0;
+#endif
 
 	if(temp_host==NULL || output==NULL || free_macro==NULL)
 		return ERROR;
@@ -1863,6 +1869,8 @@ int grab_standard_hostgroup_macro(int macro_type, hostgroup *temp_hostgroup, cha
 
 /* computes a service macro */
 int grab_standard_service_macro(int macro_type, service *temp_service, char **output, int *free_macro){
+	char *temp_buffer=NULL;
+#ifdef NSCORE
 	servicegroup *temp_servicegroup=NULL;
 	objectlist *temp_objectlist=NULL;
 	time_t current_time=0L;
@@ -1871,9 +1879,9 @@ int grab_standard_service_macro(int macro_type, service *temp_service, char **ou
 	int hours=0;
 	int minutes=0;
 	int seconds=0;
-	char *temp_buffer=NULL;
 	char *buf1=NULL;
 	char *buf2=NULL;
+#endif
 
 	if(temp_service==NULL || output==NULL)
 		return ERROR;
@@ -2177,10 +2185,12 @@ int grab_standard_servicegroup_macro(int macro_type, servicegroup *temp_serviceg
 
 /* computes a contact macro */
 int grab_standard_contact_macro(int macro_type, contact *temp_contact, char **output){
+#ifdef NSCORE
 	contactgroup *temp_contactgroup=NULL;
 	objectlist *temp_objectlist=NULL;
 	char *buf1=NULL;
 	char *buf2=NULL;
+#endif
 
 	if(temp_contact==NULL || output==NULL)
 		return ERROR;

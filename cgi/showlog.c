@@ -3,7 +3,7 @@
  * SHOWLOG.C - Nagios Log File CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2007
+ * Last Modified: 11-10-2007
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -296,13 +296,13 @@ int display_log(void){
 	char image[MAX_INPUT_BUFFER];
 	char image_alt[MAX_INPUT_BUFFER];
 	time_t t;
-	char *temp_buffer;
+	char *temp_buffer=NULL;
 	char date_time[MAX_DATETIME_LENGTH];
-	int error;
-	mmapfile *thefile;
+	int error=FALSE;
+	mmapfile *thefile=NULL;
 	char last_message_date[MAX_INPUT_BUFFER]="";
 	char current_message_date[MAX_INPUT_BUFFER]="";
-	struct tm *time_ptr;
+	struct tm *time_ptr=NULL;
 
 
 	/* check to see if the user is authorized to view the log file */

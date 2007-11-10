@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-06-2007
+ * Last Modified: 11-10-2007
  *
  * This CGI program will display various configuration information.
  *
@@ -25,7 +25,7 @@
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/objects.h"
-
+#include "../include/macros.h"
 #include "../include/cgiutils.h"
 #include "../include/cgiauth.h"
 #include "../include/getcgi.h"
@@ -1452,7 +1452,6 @@ void display_timeperiods(void){
 	timeperiodexclusion *temp_timeperiodexclusion=NULL;
 	char *months[12]={"january","february","march","april","may","june","july","august","september","october","november","december"};
 	char *days[7]={"sunday","monday","tuesday","wednesday","thursday","friday","saturday"};
-	char *temp_ptr=NULL;
 	int odd=0;
 	int day=0;
 	int x=0;

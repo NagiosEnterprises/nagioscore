@@ -3131,7 +3131,7 @@ servicedependency *get_next_servicedependency_by_dependent_service(char *host_na
         }
 
 
-
+#ifdef NSCORE
 /* adds a object to a list of objects */
 int add_object_to_objectlist(objectlist **list, void *object_ptr){
 	objectlist *temp_item=NULL;
@@ -3182,7 +3182,7 @@ int free_objectlist(objectlist **temp_list){
 
 	return OK;
         }
-
+#endif
 
 
 

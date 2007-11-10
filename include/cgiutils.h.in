@@ -463,7 +463,7 @@ int read_all_object_configuration_data(char *,int);
 int read_all_status_data(char *,int);
 
 int hashfunc(const char *name1, const char *name2, int hashslots);
-int compare_hashdata2(const char *,const char *,const char *,const char *);
+int compare_hashdata(const char *,const char *,const char *,const char *);
 
 void strip(char *);                                		/* strips newlines, carriage returns, and spaces from end of buffer */
 char *unescape_newlines(char *);
@@ -472,6 +472,7 @@ void strip_html_brackets(char *);				/* strips > and < from string */
 int process_macros(char *,char **,int);				/* processes macros in a string */
 
 void get_time_string(time_t *,char *,int,int);			/* gets a date/time string */
+void get_datetime_string(time_t *,char *,int,int);
 void get_interval_time_string(double,char *,int);		/* gets a time string for an interval of time */
 void get_expire_time_string(time_t *,char *,int);		/* gets a date/time string in the format used for Expire: tags*/
 

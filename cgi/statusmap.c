@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-07-2007
+ * Last Modified: 11-10-2007
  *
  * Description:
  *
@@ -30,8 +30,8 @@
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/objects.h"
+#include "../include/macros.h"
 #include "../include/statusdata.h"
-
 #include "../include/cgiutils.h"
 #include "../include/getcgi.h"
 #include "../include/cgiauth.h"
@@ -1898,7 +1898,6 @@ void draw_host_text(char *name,int x,int y){
 
 /* writes popup text for a specific host */
 void write_host_popup_text(host *hst){
-	host *temp_host=NULL;
 	hoststatus *temp_status=NULL;
 	hostsmember *temp_hostsmember=NULL;
 	char *processed_string=NULL;

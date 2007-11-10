@@ -122,8 +122,8 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	char *temp_buffer=NULL;
 	struct timeval tv[14];
 	double runtime[14];
-#endif
 	mmapfile *thefile=NULL;
+#endif
 	int result=OK;
 
 
@@ -11637,6 +11637,63 @@ int xodtemplate_free_memory(void){
 
 
 
+#ifdef NSCORE
+/* adds a member to a list */
+int xodtemplate_add_member_to_memberlist(xodtemplate_memberlist **list, char *name1, char *name2){
+	xodtemplate_memberlist *temp_item=NULL;
+	xodtemplate_memberlist *new_item=NULL;
+	int error=FALSE;
+
+	if(list==NULL)
+		return ERROR;
+	if(name1==NULL)
+		return ERROR;
+
+	/* skip this member if its already in the list */
+	for(temp_item=*list;temp_item;temp_item=temp_item->next){
+		if(!strcmp(temp_item->name1,name1)){
+			if(temp_item->name2==NULL){
+				if(name2==NULL)
+					break;
+				}
+			else if(name2!=NULL && !strcmp(temp_item->name2,name2))
+				break;
+			}
+		}
+	if(temp_item)
+		return OK;
+
+	/* allocate memory for a new list item */
+	if((new_item=(xodtemplate_memberlist *)malloc(sizeof(xodtemplate_memberlist)))==NULL)
+		return ERROR;
+
+	/* save the member name(s) */
+	new_item->name1=NULL;
+	new_item->name2=NULL;
+	if(name1){
+		if((new_item->name1=(char *)strdup(name1))==NULL)
+			error=TRUE;
+		}
+	if(name2){
+		if((new_item->name2=(char *)strdup(name2))==NULL)
+			error=TRUE;
+		}
+
+	if(error==TRUE){
+		my_free(new_item->name1);
+		my_free(new_item->name2);
+		my_free(new_item);
+		return ERROR;
+	        }
+
+	/* add new item to head of list */
+	new_item->next=*list;
+	*list=new_item;
+
+	return OK;
+        }
+
+
 /* frees memory allocated to a temporary member list */
 int xodtemplate_free_memberlist(xodtemplate_memberlist **temp_list){
 	xodtemplate_memberlist *this_memberlist=NULL;
@@ -11685,7 +11742,7 @@ void xodtemplate_remove_memberlist_item(xodtemplate_memberlist *item,xodtemplate
 
 	return;
         }
-
+#endif
 
 
 /******************************************************************/
@@ -13308,62 +13365,6 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplat
 	return OK;
         }
 
-
-
-/* adds a member to a list */
-int xodtemplate_add_member_to_memberlist(xodtemplate_memberlist **list, char *name1, char *name2){
-	xodtemplate_memberlist *temp_item=NULL;
-	xodtemplate_memberlist *new_item=NULL;
-	int error=FALSE;
-
-	if(list==NULL)
-		return ERROR;
-	if(name1==NULL)
-		return ERROR;
-
-	/* skip this member if its already in the list */
-	for(temp_item=*list;temp_item;temp_item=temp_item->next){
-		if(!strcmp(temp_item->name1,name1)){
-			if(temp_item->name2==NULL){
-				if(name2==NULL)
-					break;
-				}
-			else if(name2!=NULL && !strcmp(temp_item->name2,name2))
-				break;
-			}
-		}
-	if(temp_item)
-		return OK;
-
-	/* allocate memory for a new list item */
-	if((new_item=(xodtemplate_memberlist *)malloc(sizeof(xodtemplate_memberlist)))==NULL)
-		return ERROR;
-
-	/* save the member name(s) */
-	new_item->name1=NULL;
-	new_item->name2=NULL;
-	if(name1){
-		if((new_item->name1=(char *)strdup(name1))==NULL)
-			error=TRUE;
-		}
-	if(name2){
-		if((new_item->name2=(char *)strdup(name2))==NULL)
-			error=TRUE;
-		}
-
-	if(error==TRUE){
-		my_free(new_item->name1);
-		my_free(new_item->name2);
-		my_free(new_item);
-		return ERROR;
-	        }
-
-	/* add new item to head of list */
-	new_item->next=*list;
-	*list=new_item;
-
-	return OK;
-        }
 
 
 /* returns the name of a numbered config file */

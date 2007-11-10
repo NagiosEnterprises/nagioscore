@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-13-2007
+ * Last Modified: 11-10-2007
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -459,7 +459,7 @@ int process_cgivars(void){
 
 
 void display_notifications(void){
-	mmapfile *thefile;
+	mmapfile *thefile=NULL;
 	char *input=NULL;
 	char *temp_buffer;
 	char date_time[MAX_DATETIME_LENGTH];

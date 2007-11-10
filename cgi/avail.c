@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2007
+ * Last Modified: 11-10-2007
  *
  * License:
  * 
@@ -2475,7 +2475,7 @@ void create_subject_list(void){
 	char *last_host_name="";
 
 	/* we're displaying one or more hosts */
-	if(display_type==DISPLAY_HOST_AVAIL && host_name!=""){
+	if(display_type==DISPLAY_HOST_AVAIL && host_name && strcmp(host_name,"")){
 
 		/* we're only displaying a specific host (and summaries for all services associated with it) */
 		if(show_all_hosts==FALSE){
@@ -2494,7 +2494,7 @@ void create_subject_list(void){
 	        }
 
 	/* we're displaying a specific service */
-	else if(display_type==DISPLAY_SERVICE_AVAIL && svc_description!=""){
+	else if(display_type==DISPLAY_SERVICE_AVAIL && svc_description && strcmp(svc_description,"")){
 
 		/* we're only displaying a specific service */
 		if(show_all_services==FALSE)
@@ -2508,7 +2508,7 @@ void create_subject_list(void){
 	        }
 
 	/* we're displaying one or more hostgroups (the host members of the groups) */
-	else if(display_type==DISPLAY_HOSTGROUP_AVAIL && hostgroup_name!=""){
+	else if(display_type==DISPLAY_HOSTGROUP_AVAIL && hostgroup_name && strcmp(hostgroup_name,"")){
 
 		/* we're displaying all hostgroups */
 		if(show_all_hostgroups==TRUE){
@@ -2528,7 +2528,7 @@ void create_subject_list(void){
 	        }
 
 	/* we're displaying one or more servicegroups (the host and service members of the groups) */
-	else if(display_type==DISPLAY_SERVICEGROUP_AVAIL && servicegroup_name!=""){
+	else if(display_type==DISPLAY_SERVICEGROUP_AVAIL && servicegroup_name && strcmp(servicegroup_name,"")){
 
 		/* we're displaying all servicegroups */
 		if(show_all_servicegroups==TRUE){

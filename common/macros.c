@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-06-2007
+ * Last Modified:   11-10-2007
  *
  * License:
  *
@@ -76,13 +76,9 @@ contactgroup    *macro_contactgroup_ptr=NULL;
 
 /* replace macros in notification commands with their values */
 int process_macros(char *input_buffer, char **output_buffer, int options){
-	customvariablesmember *temp_customvariablesmember=NULL;
 	char *temp_buffer=NULL;
 	int in_macro=FALSE;
 	int x=0;
-	int arg_index=0;
-	int user_index=0;
-	int address_index=0;
 	char *selected_macro=NULL;
 	char *original_macro=NULL;
 	char *cleaned_macro=NULL;
@@ -968,9 +964,10 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 	case MACRO_CONTACTGROUPNAMES:
 		/* a standard contactgroup macro */
 		/* use the saved contactgroup pointer */
-		if(arg1==NULL)
+		if(arg1==NULL){
 			if((temp_contactgroup=macro_contactgroup_ptr)==NULL)
 				return ERROR;
+			}
 
 		/* else find the contactgroup for on-demand macros */
 		else{
@@ -1507,11 +1504,9 @@ int grab_datetime_macro(int macro_type, char *arg1, char *arg2, char **output){
 /* calculates a host macro */
 int grab_standard_host_macro(int macro_type, host *temp_host, char **output, int *free_macro){
 	hostgroup *temp_hostgroup=NULL;
-	customvariablesmember *temp_customvariablesmember=NULL;
 	servicesmember *temp_servicesmember=NULL;
 	service *temp_service=NULL;
 	objectlist *temp_objectlist=NULL;
-	char *customvarname=NULL;
 	time_t current_time=0L;
 	unsigned long duration=0L;
 	int days=0;
@@ -1731,15 +1726,15 @@ int grab_standard_host_macro(int macro_type, host *temp_host, char **output, int
 
 			/* these macros are time-intensive to compute, and will likely be used together, so save them all for future use */
 			my_free(macro_x[MACRO_TOTALHOSTSERVICES]);
-			asprintf(&macro_x[MACRO_TOTALHOSTSERVICES],"%lu",total_host_services);
+			asprintf(&macro_x[MACRO_TOTALHOSTSERVICES],"%d",total_host_services);
 			my_free(macro_x[MACRO_TOTALHOSTSERVICESOK]);
-			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESOK],"%lu",total_host_services_ok);
+			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESOK],"%d",total_host_services_ok);
 			my_free(macro_x[MACRO_TOTALHOSTSERVICESWARNING]);
-			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESWARNING],"%lu",total_host_services_warning);
+			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESWARNING],"%d",total_host_services_warning);
 			my_free(macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN]);
-			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN],"%lu",total_host_services_unknown);
+			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESUNKNOWN],"%d",total_host_services_unknown);
 			my_free(macro_x[MACRO_TOTALHOSTSERVICESCRITICAL]);
-			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESCRITICAL],"%lu",total_host_services_critical);
+			asprintf(&macro_x[MACRO_TOTALHOSTSERVICESCRITICAL],"%d",total_host_services_critical);
 			}
 
 		/* return only the macro the user requested */
@@ -2240,7 +2235,6 @@ int grab_standard_contact_macro(int macro_type, contact *temp_contact, char **ou
 
 /* computes a contact address macro */
 int grab_contact_address_macro(int macro_num, contact *temp_contact, char **output){
-	register int x;
 
 	if(macro_num<0 || macro_num>=MAX_CONTACT_ADDRESSES)
 		return ERROR;
@@ -2249,8 +2243,8 @@ int grab_contact_address_macro(int macro_num, contact *temp_contact, char **outp
 		return ERROR;
 
 	/* get the macro */
-	if(temp_contact->address[x])
-		*output=(char *)strdup(temp_contact->address[x]);
+	if(temp_contact->address[macro_num])
+		*output=(char *)strdup(temp_contact->address[macro_num]);
 
 	return OK;
 	}
@@ -2302,7 +2296,6 @@ int grab_standard_contactgroup_macro(int macro_type, contactgroup *temp_contactg
 /* computes a custom object macro */
 int grab_custom_object_macro(char *macro_name, customvariablesmember *vars, char **output){
 	customvariablesmember *temp_customvariablesmember=NULL;
-	char *customvarname=NULL;
 	int result=ERROR;
 
 	if(macro_name==NULL || vars==NULL || output==NULL)
@@ -2474,6 +2467,8 @@ int init_macros(void){
 	macro_servicegroup_ptr=NULL;
 	macro_contact_ptr=NULL;
 	macro_contactgroup_ptr=NULL;
+
+	return OK;
 	}
 
 

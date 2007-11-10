@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-07-2007
+ * Last Modified: 11-10-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -23,6 +23,9 @@
 
 #define DEFAULT_NAGIOS_USER nagios
 #define DEFAULT_NAGIOS_GROUP nagios
+
+/* stop gcc from bitching about implicit asprintf declarations */
+#define _GNU_SOURCE 1
 
 /* Event broker integration */
 #undef USE_EVENT_BROKER

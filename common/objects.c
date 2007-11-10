@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-22-2007
+ * Last Modified: 11-10-2007
  *
  * License:
  *
@@ -818,7 +818,6 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 /* add a new host definition */
 host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
-	host *temp_host=NULL;
 	host *new_host=NULL;
 	int result=OK;
 #ifdef NSCORE
@@ -1170,7 +1169,6 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 
 hostsmember *add_child_link_to_host(host *hst, host *child_ptr){
 	hostsmember *new_hostsmember=NULL;
-	int result=OK;
 
 	/* make sure we have the data we need */
 	if(hst==NULL || child_ptr==NULL)
@@ -1197,7 +1195,6 @@ hostsmember *add_child_link_to_host(host *hst, host *child_ptr){
 
 servicesmember *add_service_link_to_host(host *hst, service *service_ptr){
 	servicesmember *new_servicesmember=NULL;
-	int result=OK;
 
 	/* make sure we have the data we need */
 	if(hst==NULL || service_ptr==NULL)

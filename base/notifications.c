@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-31-2007
+ * Last Modified:   11-10-2007
  *
  * License:
  *
@@ -1815,7 +1815,7 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 	/* default notification interval */
 	interval_to_use=svc->notification_interval;
 
-	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Default interval: %d\n",interval_to_use);
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Default interval: %f\n",interval_to_use);
 
 	/* search all the escalation entries for valid matches for this service (at its current notification number) */
 	for(temp_se=serviceescalation_list;temp_se!=NULL;temp_se=temp_se->next){
@@ -1874,7 +1874,7 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 	/* default notification interval */
 	interval_to_use=hst->notification_interval;
 
-	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Default interval: %d\n",interval_to_use);
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Default interval: %f\n",interval_to_use);
 
 	/* check all the host escalation entries for valid matches for this host (at its current notification number) */
 	for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){

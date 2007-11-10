@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-22-2007
+ * Last Modified: 11-10-2007
  *
  * License:
  *
@@ -671,6 +671,9 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *)
 
 contactsmember *add_contact_to_object(contactsmember **,char *);                                        /* adds a contact to an object */ 
 customvariablesmember *add_custom_variable_to_object(customvariablesmember **,char *,char *);           /* adds a custom variable to an object */
+
+
+servicesmember *add_service_link_to_host(host *,service *);
 
 
 /**** Object Hash Functions ****/

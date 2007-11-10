@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-18-2007
+ * Last Modified:   11-10-2007
  *
  * License:
  *
@@ -790,6 +790,8 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **,xodtemplate_mem
 
 int xodtemplate_free_memberlist(xodtemplate_memberlist **);
 void xodtemplate_remove_memberlist_item(xodtemplate_memberlist *,xodtemplate_memberlist **);
+
+int xodtemplate_add_member_to_memberlist(xodtemplate_memberlist **,char *,char *);
 #endif
 
 int xodtemplate_begin_object_definition(char *,int,int,int);
@@ -806,12 +808,15 @@ xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_service(xo
 xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_contact(xodtemplate_contact *,char *,char *);
 xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_object(xodtemplate_customvariablesmember **,char *,char *);
 
+
 int xodtemplate_register_objects(void);
 int xodtemplate_free_memory(void);
 
 #ifdef NSCORE
 int xodtemplate_duplicate_objects(void);
 int xodtemplate_duplicate_services(void);
+
+int xodtemplate_inherit_object_properties(void);
 
 int xodtemplate_resolve_objects(void);
 

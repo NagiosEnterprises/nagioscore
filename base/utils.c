@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-27-2007
+ * Last Modified:   11-10-2007
  *
  * License:
  *
@@ -622,7 +622,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 			kill((pid_t)(-pid),SIGKILL);
 		        }
 
-		log_debug_info(DEBUGL_COMMANDS,1,"Execution time=%.3f sec\n, early timeout=%d, result=%d",exectime,early_timeout,result);
+		log_debug_info(DEBUGL_COMMANDS,1,"Execution time=%.3f sec\n, early timeout=%d, result=%d",*exectime,*early_timeout,result);
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
@@ -1055,13 +1055,10 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 	time_t earliest_day=(time_t)0L;
 	time_t potential_time=(time_t)0L;
 	int weekday=0;
-	unsigned long earliest_next_valid_time=0L;
-	time_t this_time_range_start=(time_t)0L;
 	int has_looped=FALSE;
 	int days_into_the_future=0;
 	int daterange_type=0;
 	unsigned long days=0L;
-	int day_diff=0;
 	unsigned long advance_interval=0L;
 	int year=0; /* new */
 	int month=0; /* new */
@@ -1643,7 +1640,7 @@ void get_datetime_string(time_t *raw_time, char *buffer, int buffer_length, int 
 	year=tm_ptr->tm_year+1900;
 
 #ifdef HAVE_TM_ZONE
-	tzone=(char *)tm_ptr->tm_zone;
+	tzone=(char *)(tm_ptr->tm_zone);
 #else
 	tzone=(tm_ptr->tm_isdst)?tzname[1]:tzname[0];
 #endif
@@ -2590,7 +2587,7 @@ int free_check_result(check_result *info){
 
 
 /* parse raw plugin output and return: short and long output, perf data */
-int parse_check_output(char *buf, char **short_output, char **long_output, char **perf_data, int escape_newlines, int newlines_are_escaped){
+int parse_check_output(char *buf, char **short_output, char **long_output, char **perf_data, int escape_newlines_please, int newlines_are_escaped){
 	int current_line=0;
 	int found_newline=FALSE;
 	int eof=FALSE;
@@ -4229,7 +4226,6 @@ void free_notification_list(void){
 
 /* reset all system-wide variables, so when we've receive a SIGHUP we can restart cleanly */
 int reset_variables(void){
-	register int x=0;
 
 	log_file=(char *)strdup(DEFAULT_LOG_FILE);
 	temp_file=(char *)strdup(DEFAULT_TEMP_FILE);

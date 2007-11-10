@@ -20,7 +20,7 @@ CFLAGS=@CFLAGS@ @DEFS@ @GLIB_INCLUDE@ -DNSCORE
 #CFLAGS=-O0 -g -DHAVE_CONFIG_H @GLIB_INCLUDE@ -DNSCORE
 
 # Compiler flags for optimization (overrides default)
-#CFLAGS=-O3 -Wall -fno-strict-aliasing -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
+#CFLAGS=-O3 -Wall -fno-strict-aliasing -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H  @GLIB_INCLUDE@ -DNSCORE
 
 # Compiler flags for optimization (complements default)
 #CFLAGS_WARN=-Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs

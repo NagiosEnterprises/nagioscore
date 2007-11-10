@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-22-2007
+ * Last Modified: 11-10-2007
  *
  * License:
  *
@@ -356,10 +356,10 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\tcurrent_state=%d\n",temp_host->current_state);
 		fprintf(fp,"\tlast_state=%d\n",temp_host->last_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_host->last_hard_state);
-		fprintf(fp,"\tlast_event_id=%d\n",temp_host->last_event_id);
-		fprintf(fp,"\tcurrent_event_id=%d\n",temp_host->current_event_id);
-		fprintf(fp,"\tcurrent_problem_id=%d\n",temp_host->current_problem_id);
-		fprintf(fp,"\tlast_problem_id=%d\n",temp_host->last_problem_id);
+		fprintf(fp,"\tlast_event_id=%lu\n",temp_host->last_event_id);
+		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_host->current_event_id);
+		fprintf(fp,"\tcurrent_problem_id=%lu\n",temp_host->current_problem_id);
+		fprintf(fp,"\tlast_problem_id=%lu\n",temp_host->last_problem_id);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
 		fprintf(fp,"\tlong_plugin_output=%s\n",(temp_host->long_plugin_output==NULL)?"":temp_host->long_plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
@@ -428,10 +428,10 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\tcurrent_state=%d\n",temp_service->current_state);
 		fprintf(fp,"\tlast_state=%d\n",temp_service->last_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_service->last_hard_state);
-		fprintf(fp,"\tlast_event_id=%d\n",temp_service->last_event_id);
-		fprintf(fp,"\tcurrent_event_id=%d\n",temp_service->current_event_id);
-		fprintf(fp,"\tcurrent_problem_id=%d\n",temp_service->current_problem_id);
-		fprintf(fp,"\tlast_problem_id=%d\n",temp_service->last_problem_id);
+		fprintf(fp,"\tlast_event_id=%lu\n",temp_service->last_event_id);
+		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_service->current_event_id);
+		fprintf(fp,"\tcurrent_problem_id=%lu\n",temp_service->current_problem_id);
+		fprintf(fp,"\tlast_problem_id=%lu\n",temp_service->last_problem_id);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_service->current_attempt);
 		fprintf(fp,"\tmax_attempts=%d\n",temp_service->max_attempts);
 		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_service->current_event_id);

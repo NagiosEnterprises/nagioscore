@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2007
+ * Last Modified:   11-10-2007
  *
  * License:
  *
@@ -23,9 +23,11 @@
  *****************************************************************************/
 
 #include "../include/config.h"
+#include "../include/comments.h"
 #include "../include/common.h"
 #include "../include/statusdata.h"
 #include "../include/downtime.h"
+#include "../include/macros.h"
 #include "../include/nagios.h"
 #include "../include/broker.h"
 #include "../include/perfdata.h"
@@ -309,7 +311,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	char *processed_command=NULL;
 	char output_buffer[MAX_INPUT_BUFFER]="";
 	char *temp_buffer=NULL;
-	int check_service=TRUE;
 	struct timeval start_time,end_time;
 	pid_t pid=0;
 	int fork_error=FALSE;
@@ -862,9 +863,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	int hard_state_change=FALSE;
 	int first_host_check_initiated=FALSE;
 	int route_result=HOST_UP;
-	int dependency_result=DEPENDENCIES_OK;
 	time_t current_time=0L;
-	int first_check=FALSE;
 	int state_was_logged=FALSE;
 	char *old_plugin_output=NULL;
 	char *temp_plugin_output=NULL;
@@ -875,7 +874,6 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	service *master_service=NULL;
 	int run_async_check=TRUE;
 	int state_changes_use_cached_state=TRUE;  /* TODO - 09/23/07 move this to a global variable */
-	struct timeval tv;
 	int flapping_check_done=FALSE;
 
 
@@ -1593,7 +1591,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	        }
 	free_objectlist(&check_servicelist);
 
-	return;
+	return OK;
         }
 
 
@@ -1963,7 +1961,7 @@ void check_service_result_freshness(void){
 
 
 /* tests whether or not a service's check results are fresh */
-int is_service_result_fresh(service *temp_service, time_t current_time, int write_to_log){
+int is_service_result_fresh(service *temp_service, time_t current_time, int log_this){
 	int freshness_threshold=0;
 	time_t expiration_time=0L;
 	int days=0;
@@ -2011,7 +2009,7 @@ int is_service_result_fresh(service *temp_service, time_t current_time, int writ
 		get_time_breakdown(freshness_threshold,&tdays,&thours,&tminutes,&tseconds);
 
 		/* log a warning */
-		if(write_to_log==TRUE)
+		if(log_this==TRUE)
 			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The results of service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
 
 		log_debug_info(DEBUGL_CHECKS,1,"Check results for service '%s' on host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the service...\n",temp_service->description,temp_service->host_name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
@@ -2032,11 +2030,11 @@ int is_service_result_fresh(service *temp_service, time_t current_time, int writ
 /******************************************************************/
 
 /* execute an on-demand check  */
-int perform_on_demand_host_check(host *hst, int *check_result, int check_options, int use_cached_result, unsigned long check_timestamp_horizon){
+int perform_on_demand_host_check(host *hst, int *check_return_code, int check_options, int use_cached_result, unsigned long check_timestamp_horizon){
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"perform_on_demand_host_check()\n");
 
-	perform_on_demand_host_check_3x(hst,check_result,check_options,use_cached_result,check_timestamp_horizon);
+	perform_on_demand_host_check_3x(hst,check_return_code,check_options,use_cached_result,check_timestamp_horizon);
 
 	return OK;
         }
@@ -2343,7 +2341,7 @@ void check_host_result_freshness(void){
 
 
 /* checks to see if a hosts's check results are fresh */
-int is_host_result_fresh(host *temp_host, time_t current_time, int write_to_log){
+int is_host_result_fresh(host *temp_host, time_t current_time, int log_this){
 	time_t expiration_time=0L;
 	int freshness_threshold=0;
 	int days=0;
@@ -2385,7 +2383,7 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int write_to_log)
 		get_time_breakdown(freshness_threshold,&tdays,&thours,&tminutes,&tseconds);
 
 		/* log a warning */
-		if(write_to_log==TRUE)
+		if(log_this==TRUE)
 			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The results of host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the host.\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
 
 		log_debug_info(DEBUGL_CHECKS,1,"Check results for host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the host...\n",temp_host->name,days,hours,minutes,seconds,tdays,thours,tminutes,tseconds);
@@ -2407,7 +2405,7 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int write_to_log)
 
 /*** ON-DEMAND HOST CHECKS USE THIS FUNCTION ***/
 /* check to see if we can reach the host */
-int perform_on_demand_host_check_3x(host *hst, int *check_result, int check_options, int use_cached_result, unsigned long check_timestamp_horizon){
+int perform_on_demand_host_check_3x(host *hst, int *check_result_code, int check_options, int use_cached_result, unsigned long check_timestamp_horizon){
 	int result=OK;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"perform_on_demand_host_check_3x()\n");
@@ -2419,7 +2417,7 @@ int perform_on_demand_host_check_3x(host *hst, int *check_result, int check_opti
 	log_debug_info(DEBUGL_CHECKS,0,"** On-demand check for host '%s'...\n",hst->name);
 
 	/* check the status of the host */
-	result=run_sync_host_check_3x(hst,check_result,check_options,use_cached_result,check_timestamp_horizon);
+	result=run_sync_host_check_3x(hst,check_result_code,check_options,use_cached_result,check_timestamp_horizon);
 
 	return result;
         }
@@ -2428,7 +2426,7 @@ int perform_on_demand_host_check_3x(host *hst, int *check_result, int check_opti
 
 /* perform a synchronous check of a host */
 /* on-demand host checks will use this... */
-int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int use_cached_result, unsigned long check_timestamp_horizon){
+int run_sync_host_check_3x(host *hst, int *check_result_code, int check_options, int use_cached_result, unsigned long check_timestamp_horizon){
 	int result=OK;
 	time_t current_time=0L;
 	int host_result=HOST_UP;
@@ -2448,8 +2446,8 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 	/* is the host check viable at this time? */
 	/* if not, return current state and bail out */
 	if(check_host_check_viability_3x(hst,check_options,NULL,NULL)==ERROR){
-		if(check_result)
-			*check_result=hst->current_state;
+		if(check_result_code)
+			*check_result_code=hst->current_state;
 		log_debug_info(DEBUGL_CHECKS,0,"Host check is not viable at this time.\n");
 		return OK;
 	        }
@@ -2465,8 +2463,8 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 
 		/* we can used the cached result, so return it and get out of here... */
 		if(hst->has_been_checked==TRUE && ((current_time-hst->last_check) <= check_timestamp_horizon)){
-			if(check_result)
-				*check_result=hst->current_state;
+			if(check_result_code)
+				*check_result_code=hst->current_state;
 
 			log_debug_info(DEBUGL_CHECKS,1,"* Using cached host state: %d\n",hst->current_state);
 
@@ -2556,7 +2554,6 @@ int execute_sync_host_check_3x(host *hst){
 	int return_result=HOST_UP;
 	char *processed_command=NULL;
 	char *raw_command=NULL;
-	time_t current_time;
 	struct timeval start_time;
 	struct timeval end_time;
 	char *temp_ptr;
@@ -2790,7 +2787,6 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	mode_t old_umask;
 	char *output_file=NULL;
 	double old_latency=0.0;
-	int result=OK;
 	dbuf checkresult_dbuf;
 	int dbuf_chunk=1024;
 #ifdef USE_EVENT_BROKER
@@ -3113,7 +3109,6 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 /* process results of an asynchronous host check */
 int handle_async_host_check_result_3x(host *temp_host, check_result *queued_check_result){
 	time_t current_time;
-	struct timeval tv;
 	int result=STATE_OK;
 	int reschedule_check=FALSE;
 	char *old_plugin_output=NULL;
@@ -3327,7 +3322,6 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 	hostsmember *temp_hostsmember=NULL;
 	host *child_host=NULL;
 	host *parent_host=NULL;
-	host *dependent_host=NULL;
 	host *master_host=NULL;
 	host *temp_host=NULL;
 	hostdependency *temp_dependency=NULL;

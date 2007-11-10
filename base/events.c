@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-19-2007
+ * Last Modified: 11-10-2007
  *
  * License:
  *
@@ -113,7 +113,6 @@ void init_timing_loop(void){
 	time_t next_valid_time=0L;
 	int schedule_check=0;
 	double max_inter_check_delay=0.0;
-	int use_interval=0;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"init_timing_loop() start\n");
@@ -758,7 +757,6 @@ void reschedule_event(timed_event *event, timed_event **event_list, timed_event 
 void add_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail){
 	timed_event *temp_event=NULL;
 	timed_event *first_event=NULL;
-	int count=0;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"add_event()\n");
 
@@ -869,7 +867,6 @@ int event_execution_loop(void){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	struct timespec delay;
-	struct timeval tv;
 	pid_t wait_result;
 
 

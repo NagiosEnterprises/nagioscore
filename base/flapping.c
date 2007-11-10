@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-18-2007
+ * Last Modified: 11-10-2007
  *
  * License:
  *
@@ -137,7 +137,7 @@ void check_for_service_flapping(service *svc, int update){
 
 	svc->percent_state_change=curved_percent_change;
 
-	log_debug_info(DEBUGL_FLAPPING,2,"LFT=%.2f, HFT=%.2f, PSC=%.2f%%\n",low_threshold,high_threshold,curved_percent_change,curved_percent_change);
+	log_debug_info(DEBUGL_FLAPPING,2,"LFT=%.2f, HFT=%.2f, CPC=%.2f, PSC=%.2f%%\n",low_threshold,high_threshold,curved_percent_change,curved_percent_change);
 
 
 	/* are we flapping, undecided, or what?... */
@@ -274,7 +274,7 @@ void check_for_host_flapping(host *hst, int update, int actual_check){
 
 	hst->percent_state_change=curved_percent_change;
 
-	log_debug_info(DEBUGL_FLAPPING,2,"LFT=%.2f, HFT=%.2f, PSC=%.2f%%\n",low_threshold,high_threshold,curved_percent_change,curved_percent_change);
+	log_debug_info(DEBUGL_FLAPPING,2,"LFT=%.2f, HFT=%.2f, CPC=%.2f, PSC=%.2f%%\n",low_threshold,high_threshold,curved_percent_change,curved_percent_change);
 
 
 	/* are we flapping, undecided, or what?... */

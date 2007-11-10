@@ -10,6 +10,8 @@ Nagios 3.x Change Log
 * Fix for encoding HTML characters in CGIs
 * Fix for unimplemented $LASTHOSTSTATE$, $LASTHOSTSTATEID$, $LASTSERVICESTATE$, and $LASTSERVICESTATEID$ macros
 * Fixes for memory leaks with passive check, performance data routines
+* Makefile fixes
+* Code cleanup, fixes for compiler warnings
 
 
 

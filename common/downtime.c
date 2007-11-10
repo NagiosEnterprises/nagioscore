@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-19-2007
+ * Last Modified: 11-10-2007
  *
  * License:
  *
@@ -277,12 +277,12 @@ int register_downtime(int type, unsigned long downtime_id){
 	log_debug_info(DEBUGL_DOWNTIME,0,"Scheduled Downtime Details:\n");
 	if(temp_downtime->type==HOST_DOWNTIME){
 		log_debug_info(DEBUGL_DOWNTIME,0," Type:        Host Downtime\n");
-		log_debug_info(DEBUGL_DOWNTIME,0," Host:        %lu\n",hst->name);
+		log_debug_info(DEBUGL_DOWNTIME,0," Host:        %s\n",hst->name);
 		}
 	else{
 		log_debug_info(DEBUGL_DOWNTIME,0," Type:        Service Downtime\n");
-		log_debug_info(DEBUGL_DOWNTIME,0," Host:        %lu\n",svc->host_name);
-		log_debug_info(DEBUGL_DOWNTIME,0," Service:     %lu\n",svc->description);
+		log_debug_info(DEBUGL_DOWNTIME,0," Host:        %s\n",svc->host_name);
+		log_debug_info(DEBUGL_DOWNTIME,0," Service:     %sn",svc->description);
 		}
 	log_debug_info(DEBUGL_DOWNTIME,0," Fixed/Flex:  %s\n",(temp_downtime->fixed==TRUE)?"Fixed":"Flexible");
 	log_debug_info(DEBUGL_DOWNTIME,0," Start:       %lu\n",temp_downtime->downtime_id);

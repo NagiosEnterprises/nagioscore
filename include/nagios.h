@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-06-2007
+ * Last Modified: 11-10-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -487,6 +487,19 @@ int drop_privileges(char *,char *);				/* drops privileges before startup */
 void display_scheduling_info(void);				/* displays service check scheduling information */
 
 
+/**** Event Queue Functions ****/
+int schedule_new_event(int,int,time_t,int,unsigned long,void *,int,void *,void *,int);	/* schedules a new timed event */
+void reschedule_event(timed_event *,timed_event **,timed_event **);   		/* reschedules an event */
+void add_event(timed_event *,timed_event **,timed_event **);     		/* adds an event to the execution queue */
+void remove_event(timed_event *,timed_event **,timed_event **);     		/* remove an event from the execution queue */
+int event_execution_loop(void);                      		/* main monitoring/event handler loop */
+int handle_timed_event(timed_event *);		     		/* top level handler for timed events */
+void adjust_check_scheduling(void);		        	/* auto-adjusts scheduling of host and service checks */
+void compensate_for_system_time_change(unsigned long,unsigned long);	/* attempts to compensate for a change in the system time */
+void adjust_timestamp_for_time_change(time_t,time_t,unsigned long,time_t *); /* adjusts a timestamp variable for a system time change */
+void resort_event_list(timed_event **,timed_event **);                 	/* resorts event list by event run time for system time changes */
+
+
 /**** IPC Functions ****/
 int move_check_result_to_queue(char *);
 int process_check_result_queue(char *);
@@ -502,12 +515,6 @@ int close_command_file(void);					/* closes and deletes the external command fil
 
 
 /**** Monitoring/Event Handler Functions ****/
-int schedule_new_event(int,int,time_t,int,unsigned long,void *,int,void *,void *,int);	/* schedules a new timed event */
-void reschedule_event(timed_event *,timed_event **,timed_event **);   		/* reschedules an event */
-void add_event(timed_event *,timed_event **,timed_event **);     		/* adds an event to the execution queue */
-void remove_event(timed_event *,timed_event **,timed_event **);     		/* remove an event from the execution queue */
-int event_execution_loop(void);                      		/* main monitoring/event handler loop */
-int handle_timed_event(timed_event *);		     		/* top level handler for timed events */
 int check_service_dependencies(service *,int);          	/* checks service dependencies */
 int check_host_dependencies(host *,int);                	/* checks host dependencies */
 void check_for_orphaned_services(void);				/* checks for orphaned services */
@@ -516,11 +523,7 @@ void check_service_result_freshness(void);              	/* checks the "freshnes
 int is_service_result_fresh(service *,time_t,int);              /* determines if a service's check results are fresh */
 void check_host_result_freshness(void);                 	/* checks the "freshness" of host check results */
 int is_host_result_fresh(host *,time_t,int);                    /* determines if a host's check results are fresh */
-void adjust_check_scheduling(void);		        	/* auto-adjusts scheduling of host and service checks */
 int my_system(char *,int,int *,double *,char **,int);         	/* executes a command via popen(), but also protects against timeouts */
-void compensate_for_system_time_change(unsigned long,unsigned long);	/* attempts to compensate for a change in the system time */
-void adjust_timestamp_for_time_change(time_t,time_t,unsigned long,time_t *); /* adjusts a timestamp variable for a system time change */
-void resort_event_list(timed_event **,timed_event **);                 	/* resorts event list by event run time for system time changes */
 
 
 /**** Flap Detection Functions ****/
@@ -541,6 +544,41 @@ void handle_service_flap_detection_disabled(service *);		/* handles the details 
 
 
 /**** Route/Host Check Functions ****/
+int perform_on_demand_host_check(host *,int *,int,int,unsigned long);
+int perform_scheduled_host_check(host *,int,double);
+int check_host_check_viability_3x(host *,int,int *,time_t *);
+int adjust_host_check_attempt_3x(host *,int);
+int determine_host_reachability(host *);
+int process_host_check_result_3x(host *,int,char *,int,int,int,unsigned long);
+int perform_on_demand_host_check_3x(host *,int *,int,int,unsigned long);
+int run_sync_host_check_3x(host *,int *,int,int,unsigned long);
+int execute_sync_host_check_3x(host *);
+int run_scheduled_host_check_3x(host *,int,double);
+int run_async_host_check_3x(host *,int,double,int,int,int *,time_t *);
+int handle_async_host_check_result_3x(host *,check_result *);
+
+
+/**** Service Check Functions ****/
+int check_service_check_viability(service *,int,int *,time_t *);
+int run_scheduled_service_check(service *,int,double);
+int run_async_service_check(service *,int,double,int,int,int *,time_t *);
+int handle_async_service_check_result(service *,check_result *);
+
+
+/**** Event Handler Functions ****/
+int handle_host_state(host *);               			/* top level host state handler */
+
+
+
+/**** Common Check Fucntions *****/
+int reap_check_results(void);
+
+
+/**** Check Statistics Functions ****/
+int init_check_stats(void);
+int update_check_stats(int,time_t);
+int generate_check_stats(void);
+
 
 
 /**** Event Handler Functions ****/
@@ -761,46 +799,6 @@ mmapfile *mmap_fopen(char *);				/* open a file read-only via mmap() */
 int mmap_fclose(mmapfile *);
 char *mmap_fgets(mmapfile *);
 char *mmap_fgets_multiline(mmapfile *);
-
-
-/***** HOST CHECK FUNCTIONS FOR 2.X *****/
-int handle_host_state(host *);               			/* top level host state handler */
-
-
-/***** NEW HOST CHECK FUNCTIONS FOR 3.X *****/
-int check_host_check_viability_3x(host *,int,int *,time_t *);
-int adjust_host_check_attempt_3x(host *,int);
-int determine_host_reachability(host *);
-int process_host_check_result_3x(host *,int,char *,int,int,int,unsigned long);
-
-int perform_on_demand_host_check_3x(host *,int *,int,int,unsigned long);
-int run_sync_host_check_3x(host *,int *,int,int,unsigned long);
-int execute_sync_host_check_3x(host *);
-int run_scheduled_host_check_3x(host *,int,double);
-int run_async_host_check_3x(host *,int,double,int,int,int *,time_t *);
-int handle_async_host_check_result_3x(host *,check_result *);
-
-
-/***** COMMON HOST CHECK FUNCTIONS FOR 2.X and 3.X *****/
-int perform_on_demand_host_check(host *,int *,int,int,unsigned long);
-int perform_scheduled_host_check(host *,int,double);
-
-
-/***** COMMON FUNCTIONS *****/
-int reap_check_results(void);
-
-
-/***** SERVICE CHECK FUNCTIONS *****/
-int check_service_check_viability_3x(service *,int,int *,time_t *);
-int run_scheduled_service_check(service *,int,double);
-int run_async_service_check(service *,int,double,int,int,int *,time_t *);
-int handle_async_service_check_result(service *,check_result *);
-
-
-/***** CHECK STATISTICS FUNCTIONS *****/
-int init_check_stats(void);
-int update_check_stats(int,time_t);
-int generate_check_stats(void);
 
 
 #ifdef __cplusplus

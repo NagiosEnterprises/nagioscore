@@ -3373,7 +3373,6 @@ int cmd_process_external_commands_from_file(int cmd, char *args){
 
 /* temporarily disables a service check */
 void disable_service_checks(service *svc){
-	timed_event *temp_event=NULL;
 	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* checks are already disabled */
@@ -4401,7 +4400,6 @@ void disable_host_event_handler(host *hst){
 
 /* disables checks of a particular host */
 void disable_host_checks(host *hst){
-	timed_event *temp_event=NULL;
 	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* checks are already disabled */

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-23-2007
+ * Last Modified: 11-10-2007
  *
  * Description:
  *
@@ -4166,9 +4166,6 @@ int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *tperiod, char
 	char *input=NULL;
 	char temp_buffer[5][MAX_INPUT_BUFFER]={"","","","",""};
 	int items=0;
-	int x=0;
-	int daterange_type=-1;
-	int error=FALSE;
 	int result=OK;
 
 	int syear=0;
@@ -4182,7 +4179,6 @@ int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *tperiod, char
 	int ewday=0;
 	int ewday_offset=0;
 	int skip_interval=0;
-	int wday=0;
 
 	/* make sure we've got the reqs */
 	if(tperiod==NULL || var==NULL || val==NULL)
@@ -4595,7 +4591,6 @@ int xodtemplate_duplicate_objects(void){
 	xodtemplate_memberlist *temp_masterhost=NULL,*temp_dependenthost=NULL;
 	xodtemplate_memberlist *temp_masterservice=NULL,*temp_dependentservice=NULL;
 
-	char *host_name=NULL;
 	char *service_descriptions=NULL;
 	int first_item=FALSE;
 
@@ -8640,7 +8635,9 @@ xodtemplate_contact *xodtemplate_find_real_contact(char *name){
 
 /* finds a specific host object */
 xodtemplate_host *xodtemplate_find_host(char *name){
+#ifndef HAVE_GLIB
 	xodtemplate_host *temp_host=NULL;
+#endif
 
 	if(name==NULL)
 		return NULL;
@@ -8760,7 +8757,9 @@ xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *name){
 
 /* finds a specific service object */
 xodtemplate_service *xodtemplate_find_service(char *name){
+#ifndef HAVE_GLIB
 	xodtemplate_service *temp_service=NULL;
+#endif
 
 #ifdef HAVE_GLIB
 	/* do a hashtable lookup */
@@ -9041,7 +9040,7 @@ int xodtemplate_get_time_ranges(char *buf, unsigned long *range_start, unsigned 
 	int hours=0;
 	int minutes=0;
 
-	if(buf==NULL | range_start==NULL || range_end==NULL)
+	if(buf==NULL || range_start==NULL || range_end==NULL)
 		return ERROR;
 
 	range_ptr=buf;

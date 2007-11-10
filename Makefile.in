@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 10-18-2007
+# Last Modified: 11-10-2007
 ###############################
 
 
@@ -235,7 +235,7 @@ install-config:
 	@echo ""
 
 install-webconf:
-	$(INSTALL) -m 644 sample-config/httpd.conf $(HTTPD_CONF)/nagios.conf
+	$(INSTALL) -m 644 sample-config/httpd.conf $(DESTDIR)$(HTTPD_CONF)/nagios.conf
 
 	@echo ""
 	@echo "*** Nagios/Apache conf file installed ***"

@@ -531,7 +531,6 @@ int xpddefault_run_host_performance_data_command(host *hst){
 
 /* open the host performance data file for writing */
 int xpddefault_open_host_perfdata_file(void){
-	char *buffer=NULL;
 
 	if(xpddefault_host_perfdata_file!=NULL){
 
@@ -557,7 +556,6 @@ int xpddefault_open_host_perfdata_file(void){
 
 /* open the service performance data file for writing */
 int xpddefault_open_service_perfdata_file(void){
-	char *buffer=NULL;
 
 	if(xpddefault_service_perfdata_file!=NULL){
 		if(xpddefault_service_perfdata_file_pipe==TRUE) {

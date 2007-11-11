@@ -62,19 +62,19 @@ Monitoring individual host or service cluster elements is easier than you think.
 </p>
 
 <p>
-Monitoring the overall cluster can be done by using the previously cached results of cluster elements.  Although you could re-check all elements of the cluster to determine the cluster's status, why waste bandwidth and resources when you already have the results cached?  Where are the results cached?  Cached results for cluster elements can be found in the <a href="configmain.html#status_file">status file</a> (assuming you are monitoring each element).  The <i>check_cluster2</i> plugin is designed specifically for checking cached host and service states in the status file.  <b>Important:</b> Although you didn't enable notifications for individual elements of the cluster, you will want them enabled for the overall cluster status check.
+Monitoring the overall cluster can be done by using the previously cached results of cluster elements.  Although you could re-check all elements of the cluster to determine the cluster's status, why waste bandwidth and resources when you already have the results cached?  Where are the results cached?  Cached results for cluster elements can be found in the <a href="configmain.html#status_file">status file</a> (assuming you are monitoring each element).  The <i>check_cluster</i> plugin is designed specifically for checking cached host and service states in the status file.  <b>Important:</b> Although you didn't enable notifications for individual elements of the cluster, you will want them enabled for the overall cluster status check.
 </p>
 
 <p>
-<strong><u>Using the <i>check_cluster2</i> Plugin</u></strong>
+<strong><u>Using the <i>check_cluster</i> Plugin</u></strong>
 </p>
 
 <p>
-The check_cluster2 plugin is designed to report the overall status of a host or service cluster by checking the status information of each individual host or service cluster elements.
+The check_cluster plugin is designed to report the overall status of a host or service cluster by checking the status information of each individual host or service cluster elements.
 </p>
 
 <p>
-More to come...  The <i>check_cluster2</i> plugin can be found in the contrib directory of the Nagios Plugins release at <a 
+More to come...  The <i>check_cluster</i> plugin can be found in the contrib directory of the Nagios Plugins release at <a 
 href="http://sourceforge.net/projects/nagiosplug/">http://sourceforge.net/projects/nagiosplug/</a>.
 
 </p>
@@ -94,7 +94,7 @@ In order to monitor the services as a cluster, you'll need to create a new "clus
 <pre>
 define command{
 	command_name	check_service_cluster
-	command_line	/usr/local/nagios/libexec/check_cluster2 --service -l $ARG1$ -w $ARG2$ -c $ARG3$ -d $ARG4$ 
+	command_line	/usr/local/nagios/libexec/check_cluster --service -l $ARG1$ -w $ARG2$ -c $ARG3$ -d $ARG4$ 
 	}
 </pre>
 
@@ -121,7 +121,7 @@ It is important to notice that we are passing a comma-delimited list of <i>on-de
 </p>
 
 <p>
-Monitoring host clusters is very similiar to monitoring service clusters.  Obviously, the main difference is that the cluster members are hosts and not services.  In order to monitor the status of a host cluster, you must define a service that uses the <i>check_cluster2</i> plugin.  The service should <i>not</i> be associated with any of the hosts in the cluster, as this will cause problems with notifications for the cluster if that host goes down.  A good idea might be to associate the service with the host that Nagios is running on.  After all, if the host that Nagios is running on goes down, then Nagios isn't running anymore, so there isn't anything you can do as far as monitoring (unless you've setup <a href="redundancy.html">redundant monitoring hosts</a>)...
+Monitoring host clusters is very similiar to monitoring service clusters.  Obviously, the main difference is that the cluster members are hosts and not services.  In order to monitor the status of a host cluster, you must define a service that uses the <i>check_cluster</i> plugin.  The service should <i>not</i> be associated with any of the hosts in the cluster, as this will cause problems with notifications for the cluster if that host goes down.  A good idea might be to associate the service with the host that Nagios is running on.  After all, if the host that Nagios is running on goes down, then Nagios isn't running anymore, so there isn't anything you can do as far as monitoring (unless you've setup <a href="redundancy.html">redundant monitoring hosts</a>)...
 </p>
 
 <p>
@@ -131,7 +131,7 @@ Anyway, let's assume that you have a <i>check_host_cluster</i> command defined a
 <pre>
 define command{
 	command_name	check_host_cluster
-	command_line	/usr/local/nagios/libexec/check_cluster2 --host -l $ARG1$ -w $ARG2$ -c $ARG3$ -d $ARG4$ 
+	command_line	/usr/local/nagios/libexec/check_cluster --host -l $ARG1$ -w $ARG2$ -c $ARG3$ -d $ARG4$ 
 	}
 </pre>
 

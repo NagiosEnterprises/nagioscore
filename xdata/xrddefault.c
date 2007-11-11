@@ -395,6 +395,7 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\tobsess_over_host=%d\n",temp_host->obsess_over_host);
 		fprintf(fp,"\tis_flapping=%d\n",temp_host->is_flapping);
 		fprintf(fp,"\tpercent_state_change=%.2f\n",temp_host->percent_state_change);
+		fprintf(fp,"\tcheck_flapping_recovery_notification=%d\n",temp_host->check_flapping_recovery_notification);
 
 		fprintf(fp,"\tstate_history=");
 		for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
@@ -469,6 +470,7 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\tobsess_over_service=%d\n",temp_service->obsess_over_service);
 		fprintf(fp,"\tis_flapping=%d\n",temp_service->is_flapping);
 		fprintf(fp,"\tpercent_state_change=%.2f\n",temp_service->percent_state_change);
+		fprintf(fp,"\tcheck_flapping_recovery_notification=%d\n",temp_service->check_flapping_recovery_notification);
 
 		fprintf(fp,"\tstate_history=");
 		for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
@@ -618,6 +620,8 @@ int xrddefault_read_state_information(void){
 	unsigned long process_service_attribute_mask=0L;
 	int remove_comment=FALSE;
 	int ack=FALSE;
+	int was_flapping=FALSE;
+	int allow_flapstart_notification=TRUE;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"xrddefault_read_state_information() start\n");
@@ -722,13 +726,29 @@ int xrddefault_read_state_information(void){
 					/* update host status */
 					update_host_status(temp_host,FALSE);
 
-					/* check for flapping */
-					check_for_host_flapping(temp_host,FALSE,FALSE);
+					/* host was flapping before program started */
+					/* 11/10/07 don't allow flapping notifications to go out */
+					if(was_flapping==TRUE)
+						allow_flapstart_notification=FALSE;
+					else
+						/* flapstart notifications are okay */
+						allow_flapstart_notification=FALSE;
 
+					/* check for flapping */
+					check_for_host_flapping(temp_host,FALSE,FALSE,allow_flapstart_notification);
+
+					/* host was flapping before and isn't now, so clear recovery check variable if host isn't flapping now */
+					if(was_flapping==TRUE && temp_host->is_flapping==FALSE)
+						temp_host->check_flapping_recovery_notification=FALSE;
+					
 					/* handle new vars added in 2.x */
 					if(temp_host->last_hard_state_change==(time_t)0)
 						temp_host->last_hard_state_change=temp_host->last_state_change;
 				        }
+
+				/* reset vars */
+				was_flapping=FALSE;
+				allow_flapstart_notification=TRUE;
 
 				my_free(host_name);
 				host_name=NULL;
@@ -765,13 +785,29 @@ int xrddefault_read_state_information(void){
 					/* update service status */
 					update_service_status(temp_service,FALSE);
 
+					/* service was flapping before program started */
+					/* 11/10/07 don't allow flapping notifications to go out */
+					if(was_flapping==TRUE)
+						allow_flapstart_notification=FALSE;
+					else
+						/* flapstart notifications are okay */
+						allow_flapstart_notification=FALSE;
+
 					/* check for flapping */
-					check_for_service_flapping(temp_service,FALSE);
+					check_for_service_flapping(temp_service,FALSE,allow_flapstart_notification);
+
+					/* service was flapping before and isn't now, so clear recovery check variable if service isn't flapping now */
+					if(was_flapping==TRUE && temp_service->is_flapping==FALSE)
+						temp_service->check_flapping_recovery_notification=FALSE;
 					
 					/* handle new vars added in 2.x */
 					if(temp_service->last_hard_state_change==(time_t)0)
 						temp_service->last_hard_state_change=temp_service->last_state_change;
 				        }
+
+				/* reset vars */
+				was_flapping=FALSE;
+				allow_flapstart_notification=TRUE;
 
 				my_free(host_name);
 				my_free(service_description);
@@ -1105,6 +1141,10 @@ int xrddefault_read_state_information(void){
 							temp_host->current_notification_number=atoi(val);
 						else if(!strcmp(var,"current_notification_id"))
 							temp_host->current_notification_id=strtoul(val,NULL,10);
+						else if(!strcmp(var,"is_flapping"))
+							was_flapping=atoi(val);
+						else if(!strcmp(var,"check_flapping_recovery_notification"))
+							temp_host->check_flapping_recovery_notification=atoi(val);
 						else if(!strcmp(var,"state_history")){
 							temp_ptr=val;
 							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++){
@@ -1358,7 +1398,10 @@ int xrddefault_read_state_information(void){
 							temp_service->current_notification_id=strtoul(val,NULL,10);
 						else if(!strcmp(var,"last_notification"))
 							temp_service->last_notification=strtoul(val,NULL,10);
-
+						else if(!strcmp(var,"is_flapping"))
+							was_flapping=atoi(val);
+						else if(!strcmp(var,"check_flapping_recovery_notification"))
+							temp_service->check_flapping_recovery_notification=atoi(val);
 						else if(!strcmp(var,"state_history")){
 							temp_ptr=val;
 							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++){

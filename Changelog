@@ -12,6 +12,7 @@ Nagios 3.x Change Log
 * Fixes for memory leaks with passive check, performance data routines
 * Makefile fixes
 * Code cleanup, fixes for compiler warnings
+* Fix to prevent FLAPPINGSTART notifications from incorrectly being resent after program restarts
 
 
 

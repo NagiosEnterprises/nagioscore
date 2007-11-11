@@ -527,11 +527,11 @@ int my_system(char *,int,int *,double *,char **,int);         	/* executes a com
 
 
 /**** Flap Detection Functions ****/
-void check_for_service_flapping(service *,int);			/* determines whether or not a service is "flapping" between states */
-void check_for_host_flapping(host *,int,int);			/* determines whether or not a host is "flapping" between states */
-void set_service_flap(service *,double,double,double);		/* handles a service that is flapping */
+void check_for_service_flapping(service *,int,int);	        /* determines whether or not a service is "flapping" between states */
+void check_for_host_flapping(host *,int,int,int);		/* determines whether or not a host is "flapping" between states */
+void set_service_flap(service *,double,double,double,int);	/* handles a service that is flapping */
 void clear_service_flap(service *,double,double,double);	/* handles a service that has stopped flapping */
-void set_host_flap(host *,double,double,double);		/* handles a host that is flapping */
+void set_host_flap(host *,double,double,double,int);		/* handles a host that is flapping */
 void clear_host_flap(host *,double,double,double);		/* handles a host that has stopped flapping */
 void enable_flap_detection_routines(void);			/* enables flap detection on a program-wide basis */
 void disable_flap_detection_routines(void);			/* disables flap detection on a program-wide basis */

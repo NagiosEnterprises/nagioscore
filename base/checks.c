@@ -1211,8 +1211,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 			/* 10/04/07 check to see if the service and/or associate host is flapping */
 			/* this should be done before a notification is sent out to ensure the host didn't just start flapping */
-			check_for_service_flapping(temp_service,TRUE);
-			check_for_host_flapping(temp_host,TRUE,FALSE);
+			check_for_service_flapping(temp_service,TRUE,TRUE);
+			check_for_host_flapping(temp_host,TRUE,FALSE,TRUE);
 			flapping_check_done=TRUE;
 
 			/* notify contacts about the service recovery */
@@ -1470,8 +1470,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 			/* 10/04/07 check to see if the service and/or associate host is flapping */
 			/* this should be done before a notification is sent out to ensure the host didn't just start flapping */
-			check_for_service_flapping(temp_service,TRUE);
-			check_for_host_flapping(temp_host,TRUE,FALSE);
+			check_for_service_flapping(temp_service,TRUE,TRUE);
+			check_for_host_flapping(temp_host,TRUE,FALSE,TRUE);
 			flapping_check_done=TRUE;
 
 			/* (re)send notifications out about this service problem if the host is up (and was at last check also) and the dependencies were okay... */
@@ -1557,8 +1557,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 	/* check to see if the service and/or associate host is flapping */
 	if(flapping_check_done==FALSE){
-		check_for_service_flapping(temp_service,TRUE);
-		check_for_host_flapping(temp_host,TRUE,FALSE);
+		check_for_service_flapping(temp_service,TRUE,TRUE);
+		check_for_host_flapping(temp_host,TRUE,FALSE,TRUE);
 		}
 
 	/* update service performance info */
@@ -3678,7 +3678,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 	        }
 
 	/* check to see if the associated host is flapping */
-	check_for_host_flapping(hst,TRUE,TRUE);
+	check_for_host_flapping(hst,TRUE,TRUE,TRUE);
 
 	/* reschedule the next check of the host (usually ONLY for scheduled, active checks, unless overridden above) */
 	if(reschedule_check==TRUE){

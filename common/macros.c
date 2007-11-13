@@ -817,9 +817,20 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 		else{
 
 			/* if first arg is blank, it means use the current host name */
-			if(macro_host_ptr==NULL)
-				return ERROR;
-			if((temp_service=find_service((macro_host_ptr)?macro_host_ptr->name:NULL,arg2))){
+			if(arg1==NULL){
+
+				if(macro_host_ptr==NULL)
+					return ERROR;
+
+				if((temp_service=find_service(macro_host_ptr->name,arg2))){
+
+					/* get the service macro value */
+					result=grab_standard_service_macro(macro_type,temp_service,output,free_macro);
+					}
+				}
+
+			/* on-demand macro with both host and service name */
+			else if((temp_service=find_service(arg1,arg2))){
 
 				/* get the service macro value */
 				result=grab_standard_service_macro(macro_type,temp_service,output,free_macro);
@@ -3049,6 +3060,7 @@ int clear_summary_macros(void){
 /* sets or unsets all macro environment variables */
 int set_all_macro_environment_vars(int set){
 
+
 	if(enable_environment_macros==FALSE)
 		return ERROR;
 
@@ -3065,11 +3077,13 @@ int set_all_macro_environment_vars(int set){
 /* sets or unsets macrox environment variables */
 int set_macrox_environment_vars(int set){
 	register int x=0;
-	int free_macro=TRUE;
+	int free_macro=FALSE;
 	int generate_macro=TRUE;
 
 	/* set each of the macrox environment variables */
 	for(x=0;x<MACRO_X_COUNT;x++){
+
+		free_macro=FALSE;
 
 		/* generate the macro value if it hasn't already been done */
 		/* THIS IS EXPENSIVE */

@@ -14,6 +14,7 @@ Nagios 3.x Change Log
 * Code cleanup, fixes for compiler warnings
 * Fix to prevent FLAPPINGSTART notifications from incorrectly being resent after program restarts
 * Added free_child_process_memory and child_processes_fork_twice options for performance tweaks
+* Fix for bug in processing of on-demand service macros
 
 
 

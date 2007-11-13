@@ -1196,6 +1196,33 @@ enable_environment_macros=1
 
 
 
+# CHILD PROCESS MEMORY OPTION
+# This option determines whether or not Nagios will free memory in
+# child processes (processed used to execute system commands and host/
+# service checks).  If you specify a value here, it will override
+# program defaults.
+# Value: 1 - Free memory in child processes
+#        0 - Do not free memory in child processes
+
+#free_child_process_memory=1
+
+
+
+# CHILD PROCESS FORKING BEHAVIOR
+# This option determines how Nagios will fork child processes
+# (used to execute system commands and host/service checks).  Normally
+# child processes are fork()ed twice, which provides a very high level
+# of isolation from problems.  Fork()ing once is probably enough and will
+# save a great deal on CPU usage (in large installs), so you might
+# want to consider using this.  If you specify a value here, it will
+# program defaults.
+# Value: 1 - Child processes fork() twice
+#        0 - Child processes fork() just once
+
+#child_processes_fork_twice=1
+
+
+
 # DEBUG LEVEL
 # This option determines how much (if any) debugging information will
 # be written to the debug file.  OR values together to log multiple

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-06-2007
+ * Last Modified: 11-12-2007
  *
  * License:
  *
@@ -174,6 +174,8 @@ extern double   high_host_flap_threshold;
 
 extern int      use_large_installation_tweaks;
 extern int      enable_environment_macros;
+extern int      free_child_process_memory;
+extern int      child_processes_fork_twice;
 
 extern int      enable_embedded_perl;
 extern int      use_embedded_perl_implicitly;
@@ -1248,6 +1250,12 @@ int read_main_config_file(char *main_config_file){
 		else if(!strcmp(variable,"enable_environment_macros"))
 			enable_environment_macros=(atoi(value)>0)?TRUE:FALSE;
 
+		else if(!strcmp(variable,"free_child_process_memory"))
+			free_child_process_memory=(atoi(value)>0)?TRUE:FALSE;
+
+		else if(!strcmp(variable,"child_processes_fork_twice"))
+			child_processes_fork_twice=(atoi(value)>0)?TRUE:FALSE;
+
 		else if(!strcmp(variable,"enable_embedded_perl")){
 
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
@@ -1330,9 +1338,18 @@ int read_main_config_file(char *main_config_file){
 		set_environment_var("TZ",use_timezone,1);
 	tzset();
 
+	/* adjust command check interval */
 	if(command_check_interval_is_seconds==FALSE && command_check_interval!=-1)
 		command_check_interval*=interval_length;
 
+	/* adjust tweaks */
+	if(free_child_process_memory==-1)
+		free_child_process_memory=(use_large_installation_tweaks==TRUE)?FALSE:TRUE;
+	if(child_processes_fork_twice==-1)
+		child_processes_fork_twice=(use_large_installation_tweaks==TRUE)?FALSE:TRUE;
+
+
+	/* handle errors */
 	if(error==TRUE){
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error in configuration file '%s' - Line %d (%s)",main_config_file,current_line,(error_message==NULL)?"NULL":error_message);
 		return ERROR;

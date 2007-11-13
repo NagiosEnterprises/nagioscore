@@ -2070,6 +2070,67 @@ This option determines whether or not the Nagios daemon will take several shortc
 
 
 
+<a name="free_child_process_memory"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Child Process Memory Option</strong></td>
+</tr>
+</table>
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>free_child_process_memory=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>free_child_process_memory=0</strong></font></td>
+</tr>
+</table>
+
+<p>
+This option determines whether or not Nagios will free memory in child processes when they are fork()ed off from the main process.  By default, Nagios frees memory.  However, if the <a href="#use_large_installation_tweaks">use_large_installation_tweaks</a> option is enabled, it will not.  By defining this option in your configuration file, you are able to override things to get the behavior you want.
+</p>
+<ul>
+<li>0 = Don't free memory
+<li>1 = Free memory
+</ul>
+
+
+
+
+<a name="child_processes_fork_twice"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Child Processes Fork Twice</strong></td>
+</tr>
+</table>
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>child_processes_fork_twice=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>child_processes_fork_twice=0</strong></font></td>
+</tr>
+</table>
+
+<p>
+This option determines whether or not Nagios will fork() child processes twice when it executes host and service checks.  By default, Nagios fork()s twice.  However, if the <a href="#use_large_installation_tweaks">use_large_installation_tweaks</a> option is enabled, it will only fork() once.  By defining this option in your configuration file, you are able to override things to get the behavior you want.
+</p>
+<ul>
+<li>0 = Fork() just once
+<li>1 = Fork() twice
+</ul>
+
+
+
 <a name="enable_environment_macros"></a>
 <table border="0" width="100%" class="Default">
 <tr>

@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   10-31-2007
+ * Last Modified:   11-12-2007
  *
  * Description:
  *
@@ -220,6 +220,8 @@ double          high_host_flap_threshold=DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
 
 int             use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
 int             enable_environment_macros=TRUE;
+int             free_child_process_memory=-1;
+int             child_processes_fork_twice=-1;
 
 int             enable_embedded_perl=DEFAULT_ENABLE_EMBEDDED_PERL;
 int             use_embedded_perl_implicitly=DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY;

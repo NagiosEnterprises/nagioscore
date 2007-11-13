@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-10-2007
+ * Last Modified:   11-12-2007
  *
  * License:
  *
@@ -93,6 +93,8 @@ extern int      max_host_check_spread;
 extern int      max_service_check_spread;
 
 extern int      use_large_installation_tweaks;
+extern int      free_child_process_memory;
+extern int      child_processes_fork_twice;
 
 extern time_t   program_start;
 extern time_t   event_start;
@@ -616,8 +618,12 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		/* set environment variables */
 		set_all_macro_environment_vars(TRUE);
 
+		/* ADDED 11/12/07 EG */
+		/* close external command file and shut down worker thread */
+		close_command_file();
+
 		/* fork again if we're not in a large installation */
-		if(use_large_installation_tweaks==FALSE){
+		if(child_processes_fork_twice==TRUE){
 
 			/* fork again... */
 			pid=fork();
@@ -628,7 +634,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			}
 
 		/* the grandchild (or child if large install tweaks are enabled) process should run the service check... */
-		if(pid==0 || use_large_installation_tweaks==TRUE){
+		if(pid==0 || child_processes_fork_twice==FALSE){
 
 			/* reset signal handling */
 			reset_sighandler();
@@ -795,12 +801,10 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		/* unset environment variables */
 		set_all_macro_environment_vars(FALSE);
 
-#ifndef DONT_USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
-		if(use_large_installation_tweaks==FALSE)
+		if(free_child_process_memory==TRUE)
 			free_memory();
-#endif
 
 		/* parent exits immediately - grandchild process is inherited by the INIT process, so we have no zombie problem... */
 		_exit(STATE_OK);
@@ -825,7 +829,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 		/* wait for the first child to return */
 		/* don't do this if large install tweaks are enabled - we'll clean up children in event loop */
-		if(use_large_installation_tweaks==FALSE)
+		if(child_processes_fork_twice==TRUE)
 			wait_result=waitpid(pid,NULL,0);
 
 		/* removed 06/28/2000 - caused problems under AIX */
@@ -2958,8 +2962,12 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		/* set environment variables */
 		set_all_macro_environment_vars(TRUE);
 
+		/* ADDED 11/12/07 EG */
+		/* close external command file and shut down worker thread */
+		close_command_file();
+
 		/* fork again if we're not in a large installation */
-		if(use_large_installation_tweaks==FALSE){
+		if(child_processes_fork_twice==TRUE){
 
 			/* fork again... */
 			pid=fork();
@@ -2970,7 +2978,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 			}
 
 		/* the grandchild (or child if large install tweaks are enabled) process should run the host check... */
-		if(pid==0 || use_large_installation_tweaks==TRUE){
+		if(pid==0 || child_processes_fork_twice==FALSE){
 
 			/* reset signal handling */
 			reset_sighandler();
@@ -3056,12 +3064,10 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		/* unset environment variables */
 		set_all_macro_environment_vars(FALSE);
 
-#ifndef DONT_USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
-		if(use_large_installation_tweaks==FALSE)
+		if(free_child_process_memory==TRUE)
 			free_memory();
-#endif
 
 		/* parent exits immediately - grandchild process is inherited by the INIT process, so we have no zombie problem... */
 		_exit(STATE_OK);
@@ -3086,7 +3092,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 		/* wait for the first child to return */
 		/* if large install tweaks are enabled, we'll clean up the zombie process later */
-		if(use_large_installation_tweaks==FALSE)
+		if(child_processes_fork_twice==TRUE)
 			wait_result=waitpid(pid,NULL,0);
 	        }
 

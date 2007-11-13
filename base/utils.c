@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-10-2007
+ * Last Modified:   11-12-2007
  *
  * License:
  *
@@ -220,6 +220,8 @@ extern double   high_host_flap_threshold;
 
 extern int      use_large_installation_tweaks;
 extern int      enable_environment_macros;
+extern int      free_child_process_memory;
+extern int      child_processes_fork_twice;
 
 extern int      enable_embedded_perl;
 extern int      use_embedded_perl_implicitly;
@@ -427,6 +429,10 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 		/* set environment variables */
 		set_all_macro_environment_vars(TRUE);
 
+		/* ADDED 11/12/07 EG */
+		/* close external command file and shut down worker thread */
+		close_command_file();
+
 		/* reset signal handling */
 		reset_sighandler();
 
@@ -532,7 +538,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 #ifndef DONT_USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
-		if(use_large_installation_tweaks==FALSE)
+		if(free_child_process_memory==TRUE)
 			free_memory();
 #endif
 
@@ -3648,12 +3654,23 @@ int init_command_file_worker_thread(void){
 
 /* shutdown command file worker thread */
 int shutdown_command_file_worker_thread(void){
+	int result=0;
+
+	/* CHANGED 11/12/07 EG */
+	/* cancel/join worker thread only if we're the main (parent) process */
 
 	/* tell the worker thread to exit */
-	pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
+	result=pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
 
 	/* wait for the worker thread to exit */
-	pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
+	if(result==0){
+		result=pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
+		}
+
+	/* we're being called from a fork()'ed child process - can't cancel thread, so just cleanup memory */
+	else{
+		cleanup_command_file_worker_thread(NULL);
+		}
 
 	return OK;
         }
@@ -4355,6 +4372,8 @@ int reset_variables(void){
 
 	use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
 	enable_environment_macros=TRUE;
+	free_child_process_memory=-1;
+	child_processes_fork_twice=-1;
 
 	additional_freshness_latency=DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
 

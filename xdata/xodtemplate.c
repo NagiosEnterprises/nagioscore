@@ -4114,6 +4114,11 @@ int xodtemplate_duplicate_objects(void){
 	/****** DUPLICATE SERVICE DEPENDENCY DEFINITIONS WITH MULTIPLE HOSTGROUP AND/OR HOST NAMES (MASTER AND DEPENDENT) ******/
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
 
+		/* ADDED 11/16/07 */
+		/* skip templates */
+		if(temp_servicedependency->register_object==0)
+			continue;
+
 		/* skip service dependencies without enough data */
 		if(temp_servicedependency->hostgroup_name==NULL && temp_servicedependency->dependent_hostgroup_name==NULL && temp_servicedependency->host_name==NULL && temp_servicedependency->dependent_host_name==NULL)
 			continue;

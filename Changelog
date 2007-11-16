@@ -9,6 +9,7 @@ Nagios 2.x Change Log
 * Possible fix for Unicode html encoding errors in CGIs
 * Fix for encoding HTML characters in CGIs
 * Fix for a potential cross site scripting vulnerability in the CGIs
+* Fix for a bug with processing service dependency templates with null master host(group) names
 
 
 

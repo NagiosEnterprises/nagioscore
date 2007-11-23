@@ -1363,7 +1363,7 @@ void adjust_check_scheduling(void){
 	log_debug_info(DEBUGL_FUNCTIONS,0,"adjust_check_scheduling() start\n");
 
 	/* TODO:
-	   - Track host check overhead on a per-host bases
+	   - Track host check overhead on a per-host basis
 	   - Figure out how to calculate service check overhead 
 	*/
 
@@ -1383,8 +1383,7 @@ void adjust_check_scheduling(void){
 
 		if(temp_event->event_type==EVENT_HOST_CHECK){
 
-			temp_host=(host *)temp_event->event_data;
-			if(temp_host==NULL)
+			if((temp_host=(host *)temp_event->event_data)==NULL)
 				continue;
 
 			/* ignore forced checks */
@@ -1405,8 +1404,7 @@ void adjust_check_scheduling(void){
 
 		else if(temp_event->event_type==EVENT_SERVICE_CHECK){
 
-			temp_service=(service *)temp_event->event_data;
-			if(temp_service==NULL)
+			if((temp_service=(service *)temp_event->event_data)==NULL)
 				continue;
 
 			/* ignore forced checks */
@@ -1476,8 +1474,7 @@ void adjust_check_scheduling(void){
 
 		if(temp_event->event_type==EVENT_HOST_CHECK){
 
-			temp_host=(host *)temp_event->event_data;
-			if(temp_host==NULL)
+			if((temp_host=(host *)temp_event->event_data)==NULL)
 				continue;
 
 			/* ignore forced checks */
@@ -1489,8 +1486,7 @@ void adjust_check_scheduling(void){
 
 		else if(temp_event->event_type==EVENT_SERVICE_CHECK){
 
-			temp_service=(service *)temp_event->event_data;
-			if(temp_service==NULL)
+			if((temp_service=(service *)temp_event->event_data)==NULL)
 				continue;
 
 			/* ignore forced checks */

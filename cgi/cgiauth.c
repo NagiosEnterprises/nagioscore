@@ -3,7 +3,7 @@
  * CGIAUTH.C - Authorization utilities for Nagios CGIs
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2006
+ * Last Modified:   12-08-2006
  *
  * License:
  *
@@ -111,7 +111,7 @@ int get_authentication_information(authdata *authinfo){
 			free(input);
 
 			/* read the next line */
-			if((input=mmap_fgets(thefile))==NULL)
+			if((input=mmap_fgets_multiline(thefile))==NULL)
 				break;
 
 			strip(input);

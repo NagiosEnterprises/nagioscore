@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-12-2007
+ * Last Modified: 12-08-2007
  *
  * License:
  *
@@ -277,7 +277,7 @@ int read_main_config_file(char *main_config_file){
 		my_free(value);
 
 		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
+		if((input=mmap_fgets_multiline(thefile))==NULL)
 			break;
 
 		current_line=thefile->current_line;
@@ -1403,7 +1403,7 @@ int read_resource_file(char *resource_file){
 		my_free(value);
 
 		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
+		if((input=mmap_fgets_multiline(thefile))==NULL)
 			break;
 
 		current_line=thefile->current_line;

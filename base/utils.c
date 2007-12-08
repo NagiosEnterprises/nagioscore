@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-12-2007
+ * Last Modified:   12-08-2007
  *
  * License:
  *
@@ -747,7 +747,7 @@ int set_environment_var(char *name, char *value, int set){
 		/* this will leak memory, but in a "controlled" way, since lost memory should be freed when the child process exits */
 		asprintf(&env_string,"%s=%s",name,(value==NULL)?"":value);
 		if(env_string)
-			putenv(env_macro_string);
+			putenv(env_string);
 #endif
 	        }
 	/* clear the variable */
@@ -2324,7 +2324,7 @@ int process_check_result_file(char *fname){
 		my_free(input);
 
 		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
+		if((input=mmap_fgets_multiline(thefile))==NULL)
 			break;
 
 		/* skip comments */
@@ -3378,8 +3378,12 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 			buf[len]='\x0';
 		        }
 
-		/* we shouldn't continue to the next line... */
-		if(!(len>0 && buf[len-1]=='\\' && (len==1 || buf[len-2]!='\\')))
+		/* two backslashes found, so we should continue reading the next line */
+		if(len>=3 && buf[len-3]=='\\' && buf[len-2]=='\\')
+			buf[len-3]='\x0';
+
+		/* else no continuation marker was found, so break */
+		else
 			break;
 	        }
 

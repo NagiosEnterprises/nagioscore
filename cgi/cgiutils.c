@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-06-2007
+ * Last Modified: 12-08-2007
  *
  * License:
  *
@@ -288,7 +288,7 @@ int read_cgi_config_file(char *filename){
 		free(input);
 
 		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
+		if((input=mmap_fgets_multiline(thefile))==NULL)
 			break;
 
 		strip(input);
@@ -448,7 +448,7 @@ int read_main_config_file(char *filename){
 		free(input);
 
 		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
+		if((input=mmap_fgets_multiline(thefile))==NULL)
 			break;
 
 		strip(input);
@@ -1332,8 +1332,12 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 			buf[len]='\x0';
 		        }
 
-		/* we shouldn't continue to the next line... */
-		if(!(len>0 && buf[len-1]=='\\' && (len==1 || buf[len-2]!='\\')))
+		/* two backslashes found, so we should continue reading the next line */
+		if(len>=3 && buf[len-3]=='\\' && buf[len-2]=='\\')
+			buf[len-3]='\x0';
+
+		/* else no continuation marker was found, so break */
+		else
 			break;
 	        }
 

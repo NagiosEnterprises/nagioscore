@@ -663,33 +663,31 @@ int main(int argc, char **argv){
 				result=read_all_object_data(config_file);
 
 			/* there was a problem reading the config files */
-			if(result!=OK){
-
+			if(result!=OK)
 				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE,"Bailing out due to one or more errors encountered in the configuration files. Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)",(int)getpid());
 
-				/* close and delete the external command file if we were restarting */
-				if(sigrestart==TRUE)
-					close_command_file();
+			else{
 
-#ifdef USE_EVENT_BROKER
-				/* send program data to broker */
-				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-#endif
-				cleanup();
-				exit(ERROR);
-		                }
+				/* run the pre-flight check to make sure everything looks okay*/
+				if((result=pre_flight_check())!=OK)
+					logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_VERIFICATION_ERROR,TRUE,"Bailing out due to errors encountered while running the pre-flight check.  Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)\n",(int)getpid());
+				}
 
-			/* run the pre-flight check to make sure everything looks okay*/
-			result=pre_flight_check();
-
-			/* there was a problem running the pre-flight check */
+			/* an error occurred that prevented us from (re)starting */
 			if(result!=OK){
+				
+				/* if we were restarting, we need to cleanup from the previous run */
+				if(sigrestart==TRUE){
 
-				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_VERIFICATION_ERROR,TRUE,"Bailing out due to errors encountered while running the pre-flight check.  Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)\n",(int)getpid());
+					/* clean up the status data */
+					cleanup_status_data(config_file,TRUE);
 
-				/* close and delete the external command file if we were restarting */
-				if(sigrestart==TRUE)
+					/* close and delete the external command file FIFO */
 					close_command_file();
+
+					/* cleanup embedded perl interpreter */
+					deinit_embedded_perl();
+					}
 
 #ifdef USE_EVENT_BROKER
 				/* send program data to broker */
@@ -697,7 +695,9 @@ int main(int argc, char **argv){
 #endif
 				cleanup();
 				exit(ERROR);
-			        }
+				}
+
+
 
 			/* initialize embedded Perl interpreter */
 			if(embedded_perl_initialized==FALSE){

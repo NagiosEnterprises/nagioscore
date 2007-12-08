@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Last Modified: 12-08-2007
  *
  * License:
  *
@@ -152,7 +152,7 @@ int xsddefault_grab_config_info(char *config_file){
 		my_free(input);
 
 		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
+		if((input=mmap_fgets_multiline(thefile))==NULL)
 			break;
 
 		strip(input);
@@ -180,7 +180,7 @@ int xsddefault_grab_config_info(char *config_file){
 				my_free(input2);
 
 				/* read the next line */
-				if((input2=mmap_fgets(thefile2))==NULL)
+				if((input2=mmap_fgets_multiline(thefile2))==NULL)
 					break;
 
 				strip(input2);

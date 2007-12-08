@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Last Modified: 12-08-2007
  *
  * Description:
  *
@@ -192,7 +192,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 			my_free(input);
 
 			/* get the next line */
-			if((input=mmap_fgets(thefile))==NULL)
+			if((input=mmap_fgets_multiline(thefile))==NULL)
 				break;
 
 			/* strip input */
@@ -450,7 +450,7 @@ int xodtemplate_grab_config_info(char *main_config_file){
 		my_free(input);
 
 		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
+		if((input=mmap_fgets_multiline(thefile))==NULL)
 			break;
 
 		/* strip input */
@@ -694,10 +694,10 @@ int xodtemplate_process_config_file(char *filename, int options){
 		my_free(input);
 
 		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
+		if((input=mmap_fgets_multiline(thefile))==NULL)
 			break;
 
-		current_line++;
+		current_line=thefile->current_line;
 
 		/* grab data before comment delimiter - faster than a strtok() and strncpy()... */
 		for(x=0;input[x]!='\x0';x++){

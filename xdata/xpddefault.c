@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-13-2007
+ * Last Modified: 12-08-2007
  *
  * License:
  *
@@ -95,7 +95,7 @@ int xpddefault_grab_config_info(char *config_file){
 		my_free(input);
 
 		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
+		if((input=mmap_fgets_multiline(thefile))==NULL)
 			break;
 
 		/* skip blank lines and comments */

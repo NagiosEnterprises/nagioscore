@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-12-2007
+ * Last Modified:   12-12-2007
  *
  * License:
  *
@@ -163,6 +163,10 @@ int reap_check_results(void){
 
 				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n",queued_check_result->service_description,queued_check_result->host_name);
 
+				/* delete the file that contains the check results, as well as the ok-to-go file */
+				delete_check_result_file(queued_check_result->output_file);
+
+				/* free memory */
 				free_check_result(queued_check_result);
 				my_free(queued_check_result);
 
@@ -184,6 +188,10 @@ int reap_check_results(void){
 				/* make sure the host exists */
 				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Check result queue contained results for host '%s', but the host could not be found!  Perhaps you forgot to define the host in your config files?\n",queued_check_result->host_name);
 
+				/* delete the file that contains the check results, as well as the ok-to-go file */
+				delete_check_result_file(queued_check_result->output_file);
+
+				/* free memory */
 				free_check_result(queued_check_result);
 				my_free(queued_check_result);
 
@@ -200,10 +208,7 @@ int reap_check_results(void){
 
 		/* delete the file that contains the check results, as well as the ok-to-go file */
 		/* files can contain multiple check results - in this case, the file will be removed when the first check result is processed */
-		unlink(queued_check_result->output_file);
-		asprintf(&temp_buffer,"%s.ok",queued_check_result->output_file);
-		unlink(temp_buffer);
-		my_free(temp_buffer);
+		delete_check_result_file(queued_check_result->output_file);
 
 		log_debug_info(DEBUGL_CHECKS|DEBUGL_IPC,1,"Deleted check result file '%s'\n",queued_check_result->output_file);
 

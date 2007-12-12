@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Last Modified: 12-12-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -506,6 +506,7 @@ int process_check_result_queue(char *);
 int process_check_result_file(char *);
 int add_check_result_to_list(check_result *);
 check_result *read_check_result(void);                  	/* reads a host/service check result from the list in memory */
+int delete_check_result_file(char *);
 int free_check_result_list(void);
 int init_check_result(check_result *);
 int free_check_result(check_result *);                  	/* frees memory associated with a host/service check result */

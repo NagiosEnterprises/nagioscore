@@ -2456,12 +2456,25 @@ int process_check_result_file(char *fname){
 
 	/* delete the file (as well its ok-to-go file) if it's too old */
 	/* other (current) files are deleted later (when results are processed) */
-	if(delete_file==TRUE){
-		unlink(fname);
-		asprintf(&temp_buffer,"%s.ok",fname);
-		unlink(temp_buffer);
-		my_free(temp_buffer);
-		}
+	delete_check_result_file(fname);
+
+	return OK;
+	}
+
+
+
+
+/* deletes as check result file, as well as its ok-to-go file */
+int delete_check_result_file(char *fname){
+	char *temp_buffer=NULL;
+
+	/* delete the result file */
+	unlink(fname);
+
+	/* delete the ok-to-go file */
+	asprintf(&temp_buffer,"%s.ok",fname);
+	unlink(temp_buffer);
+	my_free(temp_buffer);
 
 	return OK;
 	}

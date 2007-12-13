@@ -173,13 +173,11 @@ case "$1" in
 		printstatus_nagios nagios
 		;;
 
-	check)
-		echo "Running configuration check..."
-		$NagiosBin -v $NagiosCfgFile;
+	checkconfig)
+		printf "Running configuration check..."
+		$NagiosBin -v $NagiosCfgFile > /dev/null 2>&1;
 		if [ $? -eq 0 ]; then
-			echo "done."
-			$0 stop
-			$0 start
+			echo " OK."
 		else
 			echo " CONFIG ERROR!  Check your Nagios configuration."
 			exit 1
@@ -224,7 +222,7 @@ case "$1" in
 		;;
 
 	*)
-		echo "Usage: nagios {start|stop|restart|reload|force-reload|status|check}"
+		echo "Usage: nagios {start|stop|restart|reload|force-reload|status|checkconfig}"
 		exit 1
 		;;
 

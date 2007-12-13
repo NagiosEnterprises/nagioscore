@@ -9,6 +9,7 @@ Nagios 3.x Change Log
 * Fix for compilation bug on systems that don't support setenv() (e.g. Solaris)
 * Support for line continuation/breaks in config files - end lines with one backslash (\) to continue on next line
 * Fixed bug with not deleting old check result files that contained results for invalid host/service
+* Fixed bug with init script option to check Nagios config 
 
 
 

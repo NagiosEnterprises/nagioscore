@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-08-2007
+ * Last Modified: 12-13-2007
  *
  * License:
  *
@@ -1332,9 +1332,16 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 			buf[len]='\x0';
 		        }
 
-		/* two backslashes found, so we should continue reading the next line */
-		if(len>=3 && buf[len-3]=='\\' && buf[len-2]=='\\')
-			buf[len-3]='\x0';
+		/* two backslashes found, so unescape first backslash first and break */
+		if(len>=3 && buf[len-3]=='\\' && buf[len-2]=='\\'){
+			buf[len-2]='\n';
+			buf[len-1]='\x0';
+			break;
+			}
+
+		/* one backslash found, so we should continue reading the next line */
+		else if(len>=2 && buf[len-2]=='\\')
+			buf[len-2]='\x0';
 
 		/* else no continuation marker was found, so break */
 		else

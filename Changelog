@@ -7,7 +7,7 @@ Nagios 3.x Change Log
 -------------------
 * Fixed bug where status log was left after a restart with faulty config
 * Fix for compilation bug on systems that don't support setenv() (e.g. Solaris)
-* Support for line continuation/breaks in config files - end lines with two backslashes (\\) to continue on next line
+* Support for line continuation/breaks in config files - end lines with one backslash (\) to continue on next line
 * Fixed bug with not deleting old check result files that contained results for invalid host/service
 
 

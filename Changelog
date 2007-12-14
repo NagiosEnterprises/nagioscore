@@ -13,6 +13,7 @@ Nagios 3.x Change Log
 * Auto-filled comment/author fields for acknowledging problems through WAP interface
 * Fixed bug with processing of CONTACTGROUPNAMES, NOTES, NOTESURL, and ACTIONURL macros
 * Doc fix regarding soft state dependencies
+* Fix for segfault in event broker module code
 
 
 

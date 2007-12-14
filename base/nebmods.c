@@ -3,7 +3,7 @@
  * NEBMODS.C - Event Broker Module Functions
  *
  * Copyright (c) 2002-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-18-2007
+ * Last Modified:   12-14-2007
  *
  * License:
  *
@@ -339,7 +339,7 @@ int neb_unload_module(nebmodule *mod, int flags, int reason){
 
 /* sets module information */
 int neb_set_module_info(void *handle, int type, char *data){
-	nebmodule *mod=NULL;
+	nebmodule *temp_module=NULL;
 
 	if(handle==NULL)
 		return NEBERROR_NOMODULE;
@@ -348,14 +348,19 @@ int neb_set_module_info(void *handle, int type, char *data){
 	if(type<0 || type>=NEBMODULE_MODINFO_NUMITEMS)
 		return NEBERROR_MODINFOBOUNDS;
 
-	/* get the module */
-	mod=(nebmodule *)handle;
+	/* find the module */
+	for(temp_module=neb_module_list;temp_module!=NULL;temp_module=temp_module->next){
+		if((void *)temp_module->module_handle==(void *)handle)
+			break;
+		}
+	if(temp_module==NULL)
+		return NEBERROR_BADMODULEHANDLE;
 
 	/* free any previously allocated memory */
-	my_free(mod->info[type]);
+	my_free(temp_module->info[type]);
 
 	/* allocate memory for the new data */
-	if((mod->info[type]=(char *)strdup(data))==NULL)
+	if((temp_module->info[type]=(char *)strdup(data))==NULL)
 		return NEBERROR_NOMEM;
 
 	return OK;

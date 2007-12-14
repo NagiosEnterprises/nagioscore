@@ -3,7 +3,7 @@
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2007
+ * Last Modified: 12-13-2007
  *
  * License:
  * 
@@ -961,9 +961,9 @@ void display_host(void){
 
 	printf("<p align='center' mode='wrap'>\n");
 	printf("<b>Your Name:</b><br/>\n");
-	printf("<input name='name'/><br/>\n");
+	printf("<input name='name' value='%s' /><br/>\n",getenv("REMOTE_USER"));
 	printf("<b>Comment:</b><br/>\n");
-	printf("<input name='comment'/>\n");
+	printf("<input name='comment' value='acknowledged by WAP'/>\n");
 
 	printf("<do type='accept'>\n");
 	printf("<go href='%s' method='post'><postfield name='host' value='%s'/><postfield name='com_author' value='$(name)'/><postfield name='com_data' value='$(comment)'/><postfield name='persistent' value=''/><postfield name='send_notification' value=''/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go>\n",COMMAND_CGI,host_name,CMD_ACKNOWLEDGE_HOST_PROBLEM,CMDMODE_COMMIT);
@@ -1167,9 +1167,9 @@ void display_service(void){
 
 	printf("<p align='center' mode='wrap'>\n");
 	printf("<b>Your Name:</b><br/>\n");
-	printf("<input name='name'/><br/>\n");
+	printf("<input name='name' value='%s' /><br/>\n",getenv("REMOTE_USER"));
 	printf("<b>Comment:</b><br/>\n");
-	printf("<input name='comment'/>\n");
+	printf("<input name='comment' value='acknowledged by WAP'/>\n");
 
 	printf("<do type='accept'>\n");
 	printf("<go href='%s' method='post'><postfield name='host' value='%s'/><postfield name='service' value='%s'/><postfield name='com_author' value='$(name)'/><postfield name='com_data' value='$(comment)'/><postfield name='persistent' value=''/><postfield name='send_notification' value=''/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go>\n",COMMAND_CGI,host_name,service_desc,CMD_ACKNOWLEDGE_SVC_PROBLEM,CMDMODE_COMMIT);

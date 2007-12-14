@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 11-06-2007
+# Last Modified: 12-14-2007
 #
 ##############################################################################
 
@@ -528,6 +528,20 @@ enable_predictive_host_dependency_checks=1
 #  1 = Enable predictive checks (default)
 
 enable_predictive_service_dependency_checks=1
+
+
+
+# SOFT STATE DEPENDENCIES
+# This option determines whether or not Nagios will use soft state 
+# information when checking host and service dependencies. Normally 
+# Nagios will only use the latest hard host or service state when 
+# checking dependencies. If you want it to use the latest state (regardless
+# of whether its a soft or hard state type), enable this option. 
+# Values:
+#  0 = Don't use soft state dependencies (default) 
+#  1 = Use soft state dependencies 
+
+soft_state_dependencies=0
 
 
 

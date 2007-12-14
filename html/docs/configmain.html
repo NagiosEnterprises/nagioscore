@@ -2291,10 +2291,10 @@ This option is used to set the low threshold for detection of host flapping.  Fo
 </p>
 
 
-<a name="soft_service_dependencies"></a>
+<a name="soft_state_dependencies"></a>
 <table border="0" width="100%" class="Default">
 <tr>
-<td bgcolor="#cbcbcb"><strong>Soft Service Dependencies Option</strong></td>
+<td bgcolor="#cbcbcb"><strong>Soft State Dependencies Option</strong></td>
 </tr>
 </table>
 <br>
@@ -2312,11 +2312,11 @@ This option is used to set the low threshold for detection of host flapping.  Fo
 </table>
 
 <p>
-This option determines whether or not Nagios will use soft service state information when checking <a href="dependencies.html">service dependencies</a>.  Normally Nagios will only use the latest hard service state when checking dependencies.  If you want it to use the latest state (regardless of whether its a soft or hard <a href="statetypes.html">state type</a>), enable this option.
+This option determines whether or not Nagios will use soft state information when checking <a href="dependencies.html">host and service dependencies</a>.  Normally Nagios will only use the latest hard host or service state when checking dependencies.  If you want it to use the latest state (regardless of whether its a soft or hard <a href="statetypes.html">state type</a>), enable this option.
 </p>
 <ul>
-<li>0 = Don't use soft service state dependencies (default)
-<li>1 = Use soft service state dependencies
+<li>0 = Don't use soft state dependencies (default)
+<li>1 = Use soft state dependencies
 </ul>
 
 

@@ -224,7 +224,7 @@ This directive is used to identify the <i>short name(s)</i> of the <a href="#hos
 <tr>
 <td valign="top"><strong>check_command</strong>:</td>
 <td>
-This directive is used to specify the <i>short name</i> of the <a href="#command">command</a> that should be used to check if the host is up or down.  Typically, this command would try and ping the host to see if it is "alive".  The command must return a status of OK (0) or Nagios will assume the host is down.  If you leave this argument blank, the host will <i>not</i> be checked - Nagios will always assume the host is up.  This is useful if you are monitoring printers or other devices that are frequently turned off.  The maximum amount of time that the notification command can run is controlled by the <a href="configmain.html#host_check_timeout">host_check_timeout</a> option.
+This directive is used to specify the <i>short name</i> of the <a href="#command">command</a> that should be used to check if the host is up or down.  Typically, this command would try and ping the host to see if it is "alive".  The command must return a status of OK (0) or Nagios will assume the host is down.  If you leave this argument blank, the host will <i>not</i> be actively checked.  Thus, Nagios will likely always assume the host is up (it may show up as being in a "PENDING" state in the web interface).  This is useful if you are monitoring printers or other devices that are frequently turned off.  The maximum amount of time that the notification command can run is controlled by the <a href="configmain.html#host_check_timeout">host_check_timeout</a> option.
 </td>
 </tr>
 <tr>

@@ -11,6 +11,7 @@ Nagios 3.x Change Log
 * Fixed bug with not deleting old check result files that contained results for invalid host/service
 * Fixed bug with init script option to check Nagios config 
 * Auto-filled comment/author fields for acknowledging problems through WAP interface
+* Fixed bug with processing of CONTACTGROUPNAMES, NOTES, NOTESURL, and ACTIONURL macros
 
 
 

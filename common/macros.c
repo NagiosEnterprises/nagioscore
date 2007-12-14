@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-10-2007
+ * Last Modified:   12-14-2007
  *
  * License:
  *
@@ -77,6 +77,8 @@ contactgroup    *macro_contactgroup_ptr=NULL;
 /* replace macros in notification commands with their values */
 int process_macros(char *input_buffer, char **output_buffer, int options){
 	char *temp_buffer=NULL;
+	char *buf_ptr=NULL;
+	char *delim_ptr=NULL;
 	int in_macro=FALSE;
 	int x=0;
 	char *selected_macro=NULL;
@@ -108,7 +110,20 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 	log_debug_info(DEBUGL_MACROS,1,"Processing: '%s'\n",input_buffer);
 #endif
 
-	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
+	buf_ptr=input_buffer;
+	while(buf_ptr){
+
+		/* save pointer to this working part of buffer */
+		temp_buffer=buf_ptr;
+
+		/* find the next delimiter - terminate preceding string and advance buffer pointer for next run */
+		if((delim_ptr=strchr(buf_ptr,'$'))){
+			   delim_ptr[0]='\x0';
+			   buf_ptr=(char *)delim_ptr+1;
+			   }
+		/* no delimiter found - we already have the last of the buffer */
+		else
+			buf_ptr=NULL;
 
 #ifdef NSCORE
 		log_debug_info(DEBUGL_MACROS,2,"  Processing part: '%s'\n",temp_buffer);
@@ -140,6 +155,9 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 
 			/* an error occurred - we couldn't parse the macro, so continue on */
 			if(result==ERROR){
+#ifdef NSCORE
+				log_debug_info(DEBUGL_MACROS,0," WARNING: An error occurred processing macro '%s'!\n",temp_buffer);
+#endif
 				my_free(selected_macro);
 				}
 
@@ -568,8 +586,12 @@ int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int 
 		}
 
 	/* no macro matched... */
-	else
+	else{
+#ifdef NSCORE
+		log_debug_info(DEBUGL_MACROS,0," WARNING: Could not find a macro matching '%s'!\n",macro_name);
+#endif
 		result=ERROR;
+		}
 	
 	/* free memory */
 	my_free(buf);
@@ -912,6 +934,7 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 	case MACRO_CONTACTALIAS:
 	case MACRO_CONTACTEMAIL:
 	case MACRO_CONTACTPAGER:
+	case MACRO_CONTACTGROUPNAMES:
 		/* a standard contact macro */
 		if(arg2==NULL){
 
@@ -974,7 +997,6 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 	case MACRO_CONTACTGROUPNAME:
 	case MACRO_CONTACTGROUPALIAS:
 	case MACRO_CONTACTGROUPMEMBERS:
-	case MACRO_CONTACTGROUPNAMES:
 		/* a standard contactgroup macro */
 		/* use the saved contactgroup pointer */
 		if(arg1==NULL){

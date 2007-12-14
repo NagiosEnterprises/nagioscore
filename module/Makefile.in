@@ -1,7 +1,7 @@
 ###################################
 # Makefile for NEB examples
 #
-# Last Modified: 03-13-2007
+# Last Modified: 12-14-2007
 ###################################
 
 
@@ -9,8 +9,10 @@
 SRC_INCLUDE=../include
 
 CC=@CC@
-CFLAGS=@CFLAGS@ @DEFS@ @MOD_CFLAGS@
-LDFLAGS=@LDFLAGS@ @MOD_LDFLAGS@
+MOD_CFLAGS=@MOD_CFLAGS@
+CFLAGS=@CFLAGS@ @DEFS@
+MOD_LDFLAGS=@MOD_LDFLAGS@
+LDFLAGS=@LDFLAGS@
 LIBS=@LIBS@
 
 prefix=@prefix@
@@ -26,7 +28,7 @@ CP=@CP@
 all:	helloworld.o
 
 helloworld.o: helloworld.c
-	$(CC) $(CFLAGS) -o helloworld.o -c helloworld.c $(LDFLAGS) $(LIBS)
+	$(CC) $(MOD_CFLAGS) $(CFLAGS) -o helloworld.o helloworld.c $(MOD_LDFLAGS) $(LDFLAGS) $(LIBS)
 
 clean:
 	rm -f helloworld.o
@@ -39,4 +41,3 @@ distclean: clean
 devclean: distclean
 
 install:
-

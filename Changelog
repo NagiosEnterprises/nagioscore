@@ -3,13 +3,15 @@ Nagios 2.x Change Log
 #####################
 
 
-2.11 - 11/??/2007
+2.11 - 12/??/2007
 -----------------
 * Better error logging when failing to rename/move files
 * Possible fix for Unicode html encoding errors in CGIs
 * Fix for encoding HTML characters in CGIs
 * Fix for a potential cross site scripting vulnerability in the CGIs
 * Fix for a bug with processing service dependency templates with null master host(group) names
+* Fix for a possible memory leak in situations where overflow occurs in check result buffer
+* Fix for segfault in event broker module code
 
 
 

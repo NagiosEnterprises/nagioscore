@@ -4898,6 +4898,9 @@ void * service_result_worker_thread(void *arg){
 					/* record overflow */
 					service_result_buffer.overflow++;
 
+					/* PATCHED 12/14/07 - free memory from oldest result, to make room for newer.  This prevents a memory leak... */
+					free(((service_message **)service_result_buffer.buffer)[service_result_buffer.tail]);
+
 					/* update tail pointer */
 					service_result_buffer.tail=(service_result_buffer.tail + 1) % check_result_buffer_slots;
 				        }

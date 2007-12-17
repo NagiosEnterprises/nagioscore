@@ -3,12 +3,12 @@
  * NAGIOS.C - Core Program Code For Nagios
  *
  * Program: Nagios
- * Version: 3.0b7
+ * Version: 3.0rc1
  * License: GPL
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   11-23-2007
+ * Last Modified:   12-17-2007
  *
  * Description:
  *

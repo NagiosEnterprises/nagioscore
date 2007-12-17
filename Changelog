@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0rc1 - 12/??/2007
+3.0rc1 - 12/17/2007
 -------------------
 * Fixed bug where status log was left after a restart with faulty config
 * Fix for compilation bug on systems that don't support setenv() (e.g. Solaris)

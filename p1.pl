@@ -88,10 +88,14 @@ sub PRINTF {
 
 sub READLINE {
 	my $self = shift;
+
+# CHANGED 12/26/07 EG Following two statements didn't allow for multi-line output or output > 256 chars
 								# Omit all lines after the first, per the nagios plugin guidelines
-        $$self = (split /\n/, $$self)[0];
+#        $$self = (split /\n/, $$self)[0];
 								# Perl code other than plugins may print nothing; in this case return "(No output!)\n".
-	return $$self ? substr($$self, 0, 256) : "(No output!)\n" ;
+#	return $$self ? substr($$self, 0, 256) : "(No output!)\n" ;
+
+	return $$self;
 }
 
 sub CLOSE {

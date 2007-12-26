@@ -3,6 +3,13 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0rc2 - ??/??/????
+-------------------
+* Changed embedded audio MIME types in CGIs to "application/wav"
+* Fixed bug in sample helloworld NEB module
+
+
+
 3.0rc1 - 12/17/2007
 -------------------
 * Fixed bug where status log was left after a restart with faulty config

@@ -990,7 +990,7 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td colspan=3 class="Definition">define contact{</td></tr>
 
 <tr><td></td><td class="Required">contact_name</td><td class="Required"><i>contact_name</i></td></tr>
-<tr><td></td><td class="Required">alias</td><td class="Required"><i>alias</i></td></tr>
+<tr><td></td><td class="Optional">alias</td><td class="Optional"><i>alias</i></td></tr>
 <tr><td></td><td class="Optional">contactgroups</td><td class="Optional"><i>contactgroup_names</i></td></tr>
 <tr><td></td><td class="Required">host_notifications_enabled</td><td class="Required">[0/1]</td></tr>
 <tr><td></td><td class="Required">service_notifications_enabled</td><td class="Required">[0/1]</td></tr>
@@ -1044,7 +1044,7 @@ value.
 <tr>
 <td valign="top"><strong>alias</strong>:</td>
 <td>
-This directive is used to define a longer name or description for the contact.  Under the rights circumstances, the $CONTACTALIAS$ <a href="macros.html">macro</a> will contain this value.
+This directive is used to define a longer name or description for the contact.  Under the rights circumstances, the $CONTACTALIAS$ <a href="macros.html">macro</a> will contain this value.  If not specified, the <i>contact_name</i> will be used as the alias.
 </td>
 </tr>
 <tr>

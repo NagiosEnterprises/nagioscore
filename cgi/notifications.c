@@ -2,8 +2,8 @@
  *
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2008
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -310,6 +310,7 @@ void document_header(int use_stylesheet){
 
 	printf("<html>\n");
 	printf("<head>\n");
+	printf("<link rel=\"shortcut icon\" href=\"%sfavicon.ico\" type=\"image/ico\">\n",url_images_path);
 	printf("<title>\n");
 	printf("Alert Notifications\n");
 	printf("</title>\n");

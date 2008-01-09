@@ -36,7 +36,7 @@ This guide is intended to provide you with simple instructions on how to install
 </p>
 
 <p>
-These instructions were written based on an <b>Ubuntu 6.10</b> (desktop) installation.
+These instructions were written based on an <b>Ubuntu 6.10</b> (desktop) installation.  They should work for an <b>Ubuntu 7.10</b> install as well.
 </p>
 
 <p>
@@ -74,7 +74,21 @@ You can use <i>apt-get</i> to install these packages by running the following co
 <pre>
 sudo apt-get install apache2
 sudo apt-get install build-essential
+</pre>
+
+<p>
+With Ubuntu 6.10, install the gd2 library with this command:
+</p>
+
+<pre>
 sudo apt-get install libgd2-dev
+</pre>
+<p>
+With Ubuntu 7.10, the gd2 library name has changed, so you'll need to use the following:
+</p>
+
+<pre>
+sudo apt-get install libgd2-xpm-dev
 </pre>
 
 <p>

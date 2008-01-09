@@ -2,8 +2,8 @@
  *
  * HISTORY.C - Nagios History CGI
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2008
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -53,6 +53,7 @@ void document_footer(void);
 int process_cgivars(void);
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
+extern char url_html_path[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 
@@ -321,6 +322,7 @@ void document_header(int use_stylesheet){
 
 	printf("<html>\n");
 	printf("<head>\n");
+	printf("<link rel=\"shortcut icon\" href=\"%sfavicon.ico\" type=\"image/ico\">\n",url_images_path);
 	printf("<title>\n");
 	printf("Nagios History\n");
 	printf("</title>\n");

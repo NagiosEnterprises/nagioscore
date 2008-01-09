@@ -2,8 +2,8 @@
  *
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
- * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2006
+ * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2008
  *
  * License:
  * 
@@ -125,6 +125,7 @@
 
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
+extern char url_html_path[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern char physical_images_path[MAX_FILENAME_LENGTH];
@@ -1000,6 +1001,7 @@ void document_header(int use_stylesheet){
 
 		printf("<html>\n");
 		printf("<head>\n");
+		printf("<link rel=\"shortcut icon\" href=\"%sfavicon.ico\" type=\"image/ico\">\n",url_images_path);
 		printf("<title>\n");
 		printf("Nagios Histogram\n");
 		printf("</title>\n");

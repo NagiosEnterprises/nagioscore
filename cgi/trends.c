@@ -2,8 +2,8 @@
  *
  * TRENDS.C -  Nagios State Trends CGI
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2008
  *
  * License:
  * 
@@ -39,6 +39,7 @@
 
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
+extern char url_html_path[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern char physical_images_path[MAX_FILENAME_LENGTH];
@@ -1117,6 +1118,7 @@ void document_header(int use_stylesheet){
 
 		printf("<html>\n");
 		printf("<head>\n");
+		printf("<link rel=\"shortcut icon\" href=\"%sfavicon.ico\" type=\"image/ico\">\n",url_images_path);
 		printf("<title>\n");
 		printf("Nagios Trends\n");
 		printf("</title>\n");

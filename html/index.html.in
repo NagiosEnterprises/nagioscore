@@ -4,6 +4,7 @@
 <HEAD>
 <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
 <TITLE>Nagios</TITLE>
+<link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
 </HEAD>
 <FRAMESET BORDER="0" FRAMEBORDER="0" FRAMESPACING="0" COLS="180,*">
 <FRAME SRC="side.html" NAME="side" TARGET="main">
@@ -15,8 +16,8 @@
 <p>
 <center>
 <h2>Nagios</h2>
-<a href="http://www.nagios.org" alt="Nagios Home">www.nagios.org</a><br>
-Copyright (c) 1999-2001 Ethan A. Galstad<br>
+<a href="http://www.nagios.org/" alt="Nagios Home">www.nagios.org</a><br>
+Copyright (c) 1999-2007 Ethan Galstad<br>
 </center>
 </p>
 <p>

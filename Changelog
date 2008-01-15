@@ -8,6 +8,7 @@ Nagios 3.x Change Log
 * Changed embedded audio MIME types in CGIs to "application/wav"
 * Fixed bug in sample helloworld NEB module
 * Modified p1.pl to allow for multiline-line output of Perl plugins under embedded Perl interpreter (epn)
+* Fix for incorrect environment variables names for custom host and contact macros
 
 
 

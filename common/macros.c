@@ -2,8 +2,8 @@
  *
  * MACROS.C - Common macro functions for Nagios
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-14-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-15-2008
  *
  * License:
  *
@@ -3169,12 +3169,12 @@ int set_custom_macro_environment_vars(int set){
 		set_macro_environment_var(temp_customvariablesmember->variable_name,clean_macro_chars(temp_customvariablesmember->variable_value,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
 		}
 
-	/***** CUSTOM HOST VARIABLES *****/
+	/***** CUSTOM SERVICE VARIABLES *****/
 	/* generate variables and save them for later */
 	if((temp_service=macro_service_ptr) && set==TRUE){
 		for(temp_customvariablesmember=temp_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 			asprintf(&customvarname,"_SERVICE%s",temp_customvariablesmember->variable_name);
-			add_custom_variable_to_object(&macro_custom_host_vars,customvarname,temp_customvariablesmember->variable_value);
+			add_custom_variable_to_object(&macro_custom_service_vars,customvarname,temp_customvariablesmember->variable_value);
 			my_free(customvarname);
 			}
 		}
@@ -3187,7 +3187,7 @@ int set_custom_macro_environment_vars(int set){
 	if((temp_contact=macro_contact_ptr) && set==TRUE){
 		for(temp_customvariablesmember=temp_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 			asprintf(&customvarname,"_CONTACT%s",temp_customvariablesmember->variable_name);
-			add_custom_variable_to_object(&macro_custom_host_vars,customvarname,temp_customvariablesmember->variable_value);
+			add_custom_variable_to_object(&macro_custom_contact_vars,customvarname,temp_customvariablesmember->variable_value);
 			my_free(customvarname);
 			}
 		}

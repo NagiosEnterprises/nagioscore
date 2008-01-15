@@ -2,8 +2,8 @@
  *
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-13-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-15-2008
  *
  * License:
  *
@@ -2813,7 +2813,8 @@ int open_command_file(void){
 	        }
 
 	/* open the command file for reading (non-blocked) - O_TRUNC flag cannot be used due to errors on some systems */
-	if((command_file_fd=open(command_file,O_RDONLY | O_NONBLOCK))<0){
+	/* NOTE: file must be opened read-write for poll() to work */
+	if((command_file_fd=open(command_file,O_RDWR | O_NONBLOCK))<0){
 
 		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Could not open external command file for reading via open(): (%d) -> %s\n",errno,strerror(errno));
 
@@ -3718,6 +3719,8 @@ void cleanup_command_file_worker_thread(void *arg){
 /* worker thread - artificially increases buffer of named pipe */
 void * command_file_worker_thread(void *arg){
 	char input_buffer[MAX_EXTERNAL_COMMAND_LENGTH];
+ 	struct pollfd pfd;
+ 	int pollval;
 	struct timeval tv;
 	int buffer_items=0;
 	int result=0;
@@ -3734,14 +3737,45 @@ void * command_file_worker_thread(void *arg){
 		/* should we shutdown? */
 		pthread_testcancel();
 
-		/**** POLL() AND SELECT() DON'T SEEM TO WORK ****/
-		/* wait a bit */
-		tv.tv_sec=0;
-		tv.tv_usec=500000;
-		select(0,NULL,NULL,NULL,&tv);
+		/* wait for data to arrive */
+		/* select seems to not work, so we have to use poll instead */
+		pfd.fd=command_file_fd;
+		pfd.events=POLLIN;
+		pollval=poll(&pfd,1,500);
 
-		/* should we shutdown? */
-		pthread_testcancel();
+ 		/* loop if no data */
+ 		if(pollval==0)
+ 			continue;
+
+ 		/* check for errors */
+ 		if(pollval==-1){
+ 
+ 			switch(errno){
+ 			case EBADF:
+ 				write_to_log("command_file_worker_thread(): poll(): EBADF",logging_options,NULL);
+ 				break;
+ 			case ENOMEM:
+ 				write_to_log("command_file_worker_thread(): poll(): ENOMEM",logging_options,NULL);
+ 				break;
+ 			case EFAULT:
+ 				write_to_log("command_file_worker_thread(): poll(): EFAULT",logging_options,NULL);
+ 				break;
+ 			case EINTR:
+ 				/* this can happen when running under a debugger like gdb */
+ 				/*
+ 				write_to_log("command_file_worker_thread(): poll(): EINTR (impossible)",logging_options,NULL);
+ 				*/
+ 				break;
+ 			default:
+ 				write_to_log("command_file_worker_thread(): poll(): Unknown errno value.",logging_options,NULL);
+ 				break;
+ 			        }
+ 
+ 			continue;
+ 		        }
+ 
+ 		/* should we shutdown? */
+ 		pthread_testcancel();
 
 		/* get number of items in the buffer */
 		pthread_mutex_lock(&external_command_buffer.buffer_lock);
@@ -3756,6 +3790,7 @@ void * command_file_worker_thread(void *arg){
 		if(buffer_items<external_command_buffer_slots){
 
 			/* clear EOF condition from prior run (FreeBSD fix) */
+			/* FIXME: use_poll_on_cmd_pipe: Still needed? */
 			clearerr(command_file_fp);
 
 			/* read and process the next command in the file */

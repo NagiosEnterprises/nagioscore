@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-15-2008
+ * Last Modified: 01-23-2008
  *
  * License:
  *
@@ -2251,22 +2251,28 @@ int process_check_result_queue(char *dirname){
 		x=strlen(dirfile->d_name);
 		if(x==7 && dirfile->d_name[0]=='c'){
 
-#ifdef _DIRENT_HAVE_D_TYPE
-			/* only process normal files (not symlinks) */
-			if(dirfile->d_type==DT_UNKNOWN){
-				x=stat(file,&stat_buf);
-				if(x==0){
-					if(!S_ISREG(stat_buf.st_mode))
-						continue;
-				        }
-			        }
-			else{
-				if(dirfile->d_type!=DT_REG)
-					continue;
-			        }
-#endif
+			if(stat(file,&stat_buf)==-1){
+				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Could not stat() check result file '%s'.\n",file);
+				continue;
+				}
 
-			/* is there an ok-to-go file? */
+			switch(stat_buf.st_mode & S_IFMT){
+
+			case S_IFREG:
+				/* don't process symlinked files */
+				if(!S_ISREG(stat_buf.st_mode))
+					continue;
+				break;
+
+			default:
+				/* everything else we ignore */
+				continue;
+				break;
+				}
+
+			/* at this point we have a regular file... */
+
+			/* can we find the associated ok-to-go file ? */
 			asprintf(&temp_buffer,"%s.ok",file);
 			result=stat(temp_buffer,&ok_stat_buf);
 			my_free(temp_buffer);

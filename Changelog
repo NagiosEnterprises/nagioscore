@@ -10,6 +10,7 @@ Nagios 3.x Change Log
 * Modified p1.pl to allow for multiline-line output of Perl plugins under embedded Perl interpreter (epn)
 * Fix for incorrect environment variables names for custom host and contact macros
 * Fix for external command file thread polling code
+* Fix for cfg_dir directive not working on Solaris
 
 
 

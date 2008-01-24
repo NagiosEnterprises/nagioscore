@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
- * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-08-2007
+ * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-23-2008
  *
  * Description:
  *
@@ -507,10 +507,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 	struct dirent *dirfile=NULL;
 	int result=OK;
 	register int x=0;
-	char link_buffer[MAX_FILENAME_LENGTH];
-	char linked_to_buffer[MAX_FILENAME_LENGTH];
 	struct stat stat_buf;
-	ssize_t readlink_count;
 
 	/* open the directory for reading */
 	dirp=opendir(dirname);
@@ -524,131 +521,55 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 	/* process all files in the directory... */
 	while((dirfile=readdir(dirp))!=NULL){
 
+		/* skip hidden files and directories, and current and parent dir */
+		if(dirfile->d_name[0]=='.')
+			continue;
+
 		/* create /path/to/file */
 		snprintf(file,sizeof(file),"%s/%s",dirname,dirfile->d_name);
 		file[sizeof(file)-1]='\x0';
 
-		/* process this if it's a config file... */
-		x=strlen(dirfile->d_name);
-		if(x>4 && dirfile->d_name[0]!='.' && !strcmp(dirfile->d_name+(x-4),".cfg")){
-
-#ifdef _DIRENT_HAVE_D_TYPE
-			/* only process normal files and symlinks */
-			if(dirfile->d_type==DT_UNKNOWN){
-				x=stat(file,&stat_buf);
-				if(x==0){
-					if(!S_ISREG(stat_buf.st_mode) && !S_ISLNK(stat_buf.st_mode))
-						continue;
-				        }
-			        }
-			else{
-				if(dirfile->d_type!=DT_REG && dirfile->d_type!=DT_LNK)
-					continue;
-			        }
+		/* process this if it's a non-hidden config file... */
+		if(stat(file,&stat_buf)==-1){
+#ifdef NSCORE
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Could not open config directory member '%s' for reading.\n",file);
 #endif
+			closedir(dirp);
+			return ERROR;
+			}
+
+		switch(stat_buf.st_mode & S_IFMT){
+
+		case S_IFREG:
+			x=strlen(dirfile->d_name);
+			if(x<=4 || strcmp(dirfile->d_name+(x-4),".cfg"))
+				break;
 
 			/* process the config file */
 			result=xodtemplate_process_config_file(file,options);
 
-			/* break out if we encountered an error */
-			if(result==ERROR)
-				break;
-		        }
+			if(result==ERROR){
+				closedir(dirp);
+				return ERROR;
+				}
 
-#ifdef _DIRENT_HAVE_D_TYPE
-		/* recurse into subdirectories... */
-		if(dirfile->d_type==DT_UNKNOWN || dirfile->d_type==DT_DIR || dirfile->d_type==DT_LNK){
+			break;
 
-			if(dirfile->d_type==DT_UNKNOWN){
-				x=stat(file,&stat_buf);
-				if(x==0){
-					if(!S_ISDIR(stat_buf.st_mode) && !S_ISLNK(stat_buf.st_mode))
-						continue;
-				        }
-				else
-					continue;
-			        }
-
-			/* ignore current, parent and hidden directory entries */
-			if(dirfile->d_name[0]=='.')
-				continue;
-
-			/* check that a symlink points to a dir */
-
-			if(dirfile->d_type==DT_LNK || (dirfile->d_type==DT_UNKNOWN && S_ISLNK(stat_buf.st_mode))){
-
-				readlink_count=readlink(file,link_buffer,MAX_FILENAME_LENGTH);
-
-				/* Handle special case with maxxed out buffer */
-				if(readlink_count==MAX_FILENAME_LENGTH){
-#ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Cannot follow symlink '%s' - Too big!\n",file);
-#endif
-					return ERROR;
-				        }
-
-				/* Check if reading symlink failed */
-				if(readlink_count==-1){
-#ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Cannot read symlink '%s': %s!\n",file, strerror(errno));
-#endif
-					return ERROR;
-				        }
-
-				/* terminate string */
-				link_buffer[readlink_count]='\x0';
-			
-				/* create new symlink buffer name */
-				if(link_buffer[0]=='/'){
-					/* full path */
-					snprintf(linked_to_buffer,sizeof(linked_to_buffer)-1,"%s",link_buffer);
-					linked_to_buffer[sizeof(linked_to_buffer)-1]='\x0';
-				        }
-				else{
-					/* relative path */
-					snprintf(linked_to_buffer,sizeof(linked_to_buffer)-1,"%s/%s",dirname,link_buffer);
-					linked_to_buffer[sizeof(linked_to_buffer)-1]='\x0';
-				        }
-
-				/* 
-				 * At this point, we know it's a symlink -
-				 * now check for whether it points to a 
-				 * directory or not
-				 */
-
-				x=stat(linked_to_buffer,&stat_buf);
-				if(x!=0){
-
-					/* non-existent symlink - bomb out */
-					if(errno==ENOENT){
-#ifdef NSCORE
-						logit(NSLOG_CONFIG_ERROR,TRUE,"Error: symlink '%s' points to non-existent '%s'!\n",file,link_buffer);
-#endif
-						return ERROR;
-					        }
-
-#ifdef NSCORE
-					logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Cannot stat symlinked from '%s' to %s!\n",file,link_buffer);
-#endif
-					return ERROR;
-				        }
-
-				if(!S_ISDIR(stat_buf.st_mode)){
-					/* Not a symlink to a dir - skip */
-					continue;
-				        }
-
-				/* Otherwise, we may proceed! */
-			        }
-
-			/* process the config directory */
+		case S_IFDIR:
+			/* recurse into subdirectories... */
 			result=xodtemplate_process_config_dir(file,options);
 
-			/* break out if we encountered an error */
-			if(result==ERROR)
-				break;
-		        }
-#endif
+			if(result==ERROR){
+				closedir(dirp);
+				return ERROR;
+				}
+
+			break;
+
+		default:
+			/* everything else we ignore */
+			break;
+			}
 		}
 
 	closedir(dirp);

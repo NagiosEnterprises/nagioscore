@@ -2,8 +2,8 @@
  *
  * CHECKS.C - Service and host check functions for Nagios
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-12-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-24-2008
  *
  * License:
  *
@@ -297,13 +297,13 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 			        }
 		        }
 
-		/* update the status log */
-		update_service_status(svc,FALSE);
-
 		/* reschedule the next service check - unless we couldn't find a valid next check time */
 		/* 10/19/07 EG - keep original check options */
 		if(svc->should_be_scheduled==TRUE)
 			schedule_service_check(svc,svc->next_check,check_options);
+
+		/* update the status log */
+		update_service_status(svc,FALSE);
 
 		return ERROR;
 	        }
@@ -941,8 +941,6 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 	/* get the last check time */
 	temp_service->last_check=queued_check_result->start_time.tv_sec;
-
-	log_debug_info(DEBUGL_CHECKS,2,"LAST CHECK TIME UPDATED: %lu\n",temp_service->last_check);
 
 	/* was this check passive or active? */
 	temp_service->check_type=(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)?SERVICE_CHECK_ACTIVE:SERVICE_CHECK_PASSIVE;
@@ -1655,7 +1653,7 @@ void schedule_service_check(service *svc, time_t check_time, int options){
 	/* we found another service check event for this service in the queue - what should we do? */
 	if(found==TRUE && temp_event!=NULL){
 
-		log_debug_info(DEBUGL_CHECKS,2,"Found another service check event for this service...\n");
+		log_debug_info(DEBUGL_CHECKS,2,"Found another service check event for this service @ %s",ctime(&temp_event->run_time));
 
 		/* use the originally scheduled check unless we decide otherwise */
 		use_original_event=TRUE;
@@ -1664,9 +1662,9 @@ void schedule_service_check(service *svc, time_t check_time, int options){
 		if((temp_event->event_options & CHECK_OPTION_FORCE_EXECUTION)){
 			
 			/* the new event is also forced and its execution time is earlier than the original, so use it instead */
-			if((options & CHECK_OPTION_FORCE_EXECUTION) && (check_time < svc->next_check)){
+			if((options & CHECK_OPTION_FORCE_EXECUTION) && (check_time < temp_event->run_time)){
 				use_original_event=FALSE;
-				log_debug_info(DEBUGL_CHECKS,2,"New service check event is forced and occurs before the older event, so that will be used instead.\n");
+				log_debug_info(DEBUGL_CHECKS,2,"New service check event is forced and occurs before the existing event, so the new event will be used instead.\n");
 				}
 		        }
 
@@ -1676,13 +1674,18 @@ void schedule_service_check(service *svc, time_t check_time, int options){
 			/* the new event is a forced check, so use it instead */
 			if((options & CHECK_OPTION_FORCE_EXECUTION)){
 				use_original_event=FALSE;
-				log_debug_info(DEBUGL_CHECKS,2,"New service check event is forced, so it will be used instead of the older event.\n");
+				log_debug_info(DEBUGL_CHECKS,2,"New service check event is forced, so it will be used instead of the existing event.\n");
 				}
 
 			/* the new event is not forced either and its execution time is earlier than the original, so use it instead */
-			else if(check_time < svc->next_check){
+			else if(check_time < temp_event->run_time){
 				use_original_event=FALSE;
-				log_debug_info(DEBUGL_CHECKS,2,"New service check event occurs before the older event, so it will be used instead.\n");
+				log_debug_info(DEBUGL_CHECKS,2,"New service check event occurs before the existing (older) event, so it will be used instead.\n");
+				}
+
+			/* the new event is older, so override the existing one */
+			else{
+				log_debug_info(DEBUGL_CHECKS,2,"New service check event occurs after the existing event, so we'll ignore it.\n");
 				}
 		        }
 
@@ -1723,6 +1726,10 @@ void schedule_service_check(service *svc, time_t check_time, int options){
 		}
 
 	else{
+		/* reset the next check time (it may be out of sync) */
+		if(temp_event!=NULL)
+			svc->next_check=temp_event->run_time;
+
 		log_debug_info(DEBUGL_CHECKS,2,"Keeping original service check event (ignoring the new one).\n");
 		}
 
@@ -2111,7 +2118,7 @@ void schedule_host_check(host *hst, time_t check_time, int options){
 	/* we found another host check event for this host in the queue - what should we do? */
 	if(found==TRUE && temp_event!=NULL){
 
-		log_debug_info(DEBUGL_CHECKS,2,"Found another host check event for this host...\n");
+		log_debug_info(DEBUGL_CHECKS,2,"Found another host check event for this host @ %s",ctime(&temp_event->run_time));
 
 		/* use the originally scheduled check unless we decide otherwise */
 		use_original_event=TRUE;
@@ -2120,8 +2127,8 @@ void schedule_host_check(host *hst, time_t check_time, int options){
 		if((temp_event->event_options & CHECK_OPTION_FORCE_EXECUTION)){
 			
 			/* the new event is also forced and its execution time is earlier than the original, so use it instead */
-			if((options & CHECK_OPTION_FORCE_EXECUTION) && (check_time < hst->next_check)){
-				log_debug_info(DEBUGL_CHECKS,2,"New host check event is forced and occurs before the older event, so that will be used instead.\n");
+			if((options & CHECK_OPTION_FORCE_EXECUTION) && (check_time < temp_event->run_time)){
+				log_debug_info(DEBUGL_CHECKS,2,"New host check event is forced and occurs before the existing event, so the new event be used instead.\n");
 				use_original_event=FALSE;
 				}
 		        }
@@ -2132,13 +2139,18 @@ void schedule_host_check(host *hst, time_t check_time, int options){
 			/* the new event is a forced check, so use it instead */
 			if((options & CHECK_OPTION_FORCE_EXECUTION)){
 				use_original_event=FALSE;
-				log_debug_info(DEBUGL_CHECKS,2,"New host check event is forced, so it will be used instead of the older event.\n");
+				log_debug_info(DEBUGL_CHECKS,2,"New host check event is forced, so it will be used instead of the existing event.\n");
 				}
 
 			/* the new event is not forced either and its execution time is earlier than the original, so use it instead */
-			else if(check_time < hst->next_check){
+			else if(check_time < temp_event->run_time){
 				use_original_event=FALSE;
-				log_debug_info(DEBUGL_CHECKS,2,"New host check event occurs before the older event, so it will be used instead.\n");
+				log_debug_info(DEBUGL_CHECKS,2,"New host check event occurs before the existing (older) event, so it will be used instead.\n");
+				}
+
+			/* the new event is older, so override the existing one */
+			else{
+				log_debug_info(DEBUGL_CHECKS,2,"New host check event occurs after the existing event, so we'll ignore it.\n");
 				}
 		        }
 
@@ -2179,6 +2191,10 @@ void schedule_host_check(host *hst, time_t check_time, int options){
 		}
 
 	else{
+		/* reset the next check time (it may be out of sync) */
+		if(temp_event!=NULL)
+			hst->next_check=temp_event->run_time;
+
 		log_debug_info(DEBUGL_CHECKS,2,"Keeping original host check event (ignoring the new one).\n");
 		}
 

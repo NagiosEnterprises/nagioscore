@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0rc2 - ??/??/????
+3.0rc2 - ??/??/2008
 -------------------
 * Changed embedded audio MIME types in CGIs to "application/wav"
 * Fixed bug in sample helloworld NEB module
@@ -17,6 +17,8 @@ Nagios 3.x Change Log
 * Fix for not building sample helloworld.o event broker module if event broker is disabled by configure script
 * Fix to sample event handler scripts
 * Fix for handling plugin output with escaped newlines and backslashes
+* Fix for bug in service and host event scheduling logic
+
 
 
 3.0rc1 - 12/17/2007

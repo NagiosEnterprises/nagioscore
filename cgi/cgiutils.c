@@ -2,8 +2,8 @@
  *
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-13-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-24-2008
  *
  * License:
  *
@@ -1298,19 +1298,21 @@ char *mmap_fgets(mmapfile *temp_mmapfile){
         }
 
 
+
 /* gets one line of input from an mmap()'ed file (may be contained on more than one line in the source file) */
 char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 	char *buf=NULL;
 	char *tempbuf=NULL;
-	int len;
-	int len2;
+	int len=0;
+	int len2=0;
+	int end=0;
 
 	if(temp_mmapfile==NULL)
 		return NULL;
 
 	while(1){
 
-		free(tempbuf);
+		my_free(tempbuf);
 
 		if((tempbuf=mmap_fgets(temp_mmapfile))==NULL)
 			break;
@@ -1332,23 +1334,35 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 			buf[len]='\x0';
 		        }
 
+		if(len==0)
+			break;
+
+		/* handle Windows/DOS CR/LF */
+		if(len>=2 && buf[len-2]=='\r')
+			end=len-3;
+		/* normal Unix LF */
+		else if(len>=1 && buf[len-1]=='\n')
+			end=len-2;
+		else
+			end=len-1;
+
 		/* two backslashes found, so unescape first backslash first and break */
-		if(len>=3 && buf[len-3]=='\\' && buf[len-2]=='\\'){
-			buf[len-2]='\n';
-			buf[len-1]='\x0';
+		if(end>=2 && buf[end-2]=='\\' && buf[end-1]=='\\'){
+			buf[end-1]='\n';
+			buf[end]='\x0';
 			break;
 			}
 
 		/* one backslash found, so we should continue reading the next line */
-		else if(len>=2 && buf[len-2]=='\\')
-			buf[len-2]='\x0';
+		else if(end>=1 && buf[end-1]=='\\')
+			buf[end-1]='\x0';
 
 		/* else no continuation marker was found, so break */
 		else
 			break;
 	        }
 
-	free(tempbuf);
+	my_free(tempbuf);
 
 	return buf;
         }

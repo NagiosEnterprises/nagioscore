@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-23-2008
+ * Last Modified: 01-24-2008
  *
  * License:
  *
@@ -2651,6 +2651,23 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 	/* initialize dynamic buffers (1KB chunk size) */
 	dbuf_init(&db1,dbuf_chunk);
 	dbuf_init(&db2,dbuf_chunk);
+
+	/* unescape newlines and escaped backslashes first */
+	if(newlines_are_escaped==TRUE){
+		for(x=0,y=0;buf[x]!='\x0';x++){
+			if(buf[x]=='\\' && buf[x+1]=='\\'){
+				x++;
+				buf[y++]=buf[x];
+				}
+			else if(buf[x]=='\\' && buf[x+1]=='n'){
+				x++;
+				buf[y++]='\n';
+				}
+			else
+				buf[y++]=buf[x];
+			}
+		buf[y]='\x0';
+		}
 
 	/* process each line of input */
 	for(x=0;eof==FALSE;x++){

@@ -11,7 +11,8 @@ Nagios 3.x Change Log
 * Fix for incorrect environment variables names for custom host and contact macros
 * Fix for external command file thread polling code
 * Fix for cfg_dir directive not working on Solaris
-
+* Fixed segfault in extinfo CGI when passed an invalid service description/name
+* Fixed bug in summary CGI with reports on specific hosts
 
 
 3.0rc1 - 12/17/2007

@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2008
+ * Last Modified: 01-23-2008
  *
  * License:
  * 
@@ -264,7 +264,7 @@ int main(void){
 			grab_servicegroup_macros(temp_servicegroup);
 			}
 
-		if(((display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO) && temp_host!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL) || (display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL)){
+		if((display_type==DISPLAY_HOST_INFO && temp_host!=NULL) || (display_type==DISPLAY_SERVICE_INFO && temp_host!=NULL && temp_service!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL) || (display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL)){
 			printf("<TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 CLASS='linkBox'>\n");
 			printf("<TR><TD CLASS='linkBox'>\n");
 			if(display_type==DISPLAY_SERVICE_INFO)
@@ -319,7 +319,7 @@ int main(void){
 		/* middle column of top row */
 		printf("<td align=center valign=center width=33%%>\n");
 
-		if(((display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO) && temp_host!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL) || (display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL)){
+		if((display_type==DISPLAY_HOST_INFO && temp_host!=NULL) || (display_type==DISPLAY_SERVICE_INFO && temp_host!=NULL && temp_service!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL) || (display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL)){
 
 			if(display_type==DISPLAY_HOST_INFO){
 				printf("<DIV CLASS='data'>Host</DIV>\n");
@@ -421,7 +421,7 @@ int main(void){
 		/* right column of top row */
 		printf("<td align=right valign=bottom width=33%%>\n");
 
-		if(display_type==DISPLAY_HOST_INFO){
+		if(display_type==DISPLAY_HOST_INFO && temp_host!=NULL){
 			printf("<TABLE BORDER='0'>\n");
 			if(temp_host->action_url!=NULL && strcmp(temp_host->action_url,"")){
 				printf("<TR><TD ALIGN='right'>\n");
@@ -447,7 +447,7 @@ int main(void){
 			printf("</TABLE>\n");
 	                }
 
-		else if(display_type==DISPLAY_SERVICE_INFO){
+		else if(display_type==DISPLAY_SERVICE_INFO && temp_service!=NULL){
 			printf("<TABLE BORDER='0'>\n");
 			if(temp_service->action_url!=NULL && strcmp(temp_service->action_url,"")){
 				printf("<A HREF='");
@@ -468,7 +468,7 @@ int main(void){
 			printf("</TABLE>\n");
 	                }
 
-		if(display_type==DISPLAY_HOSTGROUP_INFO){
+		if(display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL){
 			printf("<TABLE BORDER='0'>\n");
 			if(temp_hostgroup->action_url!=NULL && strcmp(temp_hostgroup->action_url,"")){
 				printf("<TR><TD ALIGN='right'>\n");
@@ -489,7 +489,7 @@ int main(void){
 			printf("</TABLE>\n");
 	                }
 
-		else if(display_type==DISPLAY_SERVICEGROUP_INFO){
+		else if(display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL){
 			printf("<TABLE BORDER='0'>\n");
 			if(temp_servicegroup->action_url!=NULL && strcmp(temp_servicegroup->action_url,"")){
 				printf("<A HREF='");

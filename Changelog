@@ -13,6 +13,7 @@ Nagios 3.x Change Log
 * Fix for cfg_dir directive not working on Solaris
 * Fixed segfault in extinfo CGI when passed an invalid service description/name
 * Fixed bug in summary CGI with reports on specific hosts
+* Fix for writing check result files under Cygwin
 
 
 3.0rc1 - 12/17/2007

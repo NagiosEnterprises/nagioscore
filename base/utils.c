@@ -2183,11 +2183,19 @@ int move_check_result_to_queue(char *checkresult_file){
 
 		log_debug_info(DEBUGL_CHECKS,2,"Moving temp check result file '%s' to queue file '%s'...\n",checkresult_file,output_file);
 
+#ifdef __CYGWIN__
+		/* Cygwin cannot rename open files - gives Permission Denied */
+		/* close the file */
+		close(output_file_fd);
+#endif
+
 		/* move the original file */
 		result=my_rename(checkresult_file,output_file);
 
+#ifndef __CYGWIN__
 		/* close the file */
 		close(output_file_fd);
+#endif
 
 		/* create an ok-to-go indicator file */
 		asprintf(&temp_buffer,"%s.ok",output_file);

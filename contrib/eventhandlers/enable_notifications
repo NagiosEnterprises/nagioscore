@@ -12,18 +12,15 @@
 #    the check_external_commands option in the main
 #    configuration file.
 
-echocmd="/bin/echo"
+printfcmd="/bin/printf"
 
 CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
 
 # get the current date/time in seconds since UNIX epoch
 datetime=`date +%s`
 
-# create the command line to add to the command file
-cmdline="[$datetime] ENABLE_NOTIFICATIONS;$datetime"
-
-# append the command to the end of the command file
-`$echocmd $cmdline >> $CommandFile`
+# pipe the command to the command file
+`printfcmd "[%i] ENABLE_NOTIFICATIONS;%i\n" $datetime $datetime >> $CommandFile`
 
 
 

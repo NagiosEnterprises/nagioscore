@@ -15,6 +15,7 @@ Nagios 3.x Change Log
 * Fixed bug in summary CGI with reports on specific hosts
 * Fix for writing check result files under Cygwin
 * Fix for not building sample helloworld.o event broker module if event broker is disabled by configure script
+* Fix to sample event handler scripts
 
 
 3.0rc1 - 12/17/2007

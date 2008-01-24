@@ -108,8 +108,7 @@ status_file=@localstatedir@/status.dat
 
 
 # STATUS FILE UPDATE INTERVAL
-# Combined with the aggregate_status_updates option,
-# this option determines the frequency (in seconds) that
+# This option determines the frequency (in seconds) that
 # Nagios will periodically dump program, host, and 
 # service status data.
 

@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 11-10-2007
+# Last Modified: 01-24-2008
 ###############################
 
 
@@ -231,7 +231,7 @@ install-config:
 	$(INSTALL) -b -m 664 $(INSTALL_OPTS) sample-config/template-object/switch.cfg $(DESTDIR)$(CFGDIR)/objects/switch.cfg
 
 	@echo ""
-	@echo "*** Sample config files installed ***"
+	@echo "*** Config files installed ***"
 	@echo ""
 	@echo "Remember, these are *SAMPLE* config files.  You'll need to read"
 	@echo "the documentation for more information on how to actually define"

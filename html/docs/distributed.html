@@ -267,37 +267,16 @@ If you are unable to define commands to actively check a service from the centra
 <pre>
 define command{
 	command_name	service-is-stale
-	command_line	/usr/local/nagios/libexec/staleservice.sh
+	command_line	/usr/local/nagios/libexec/check_dummy 2 "CRITICAL: Service results are stale"
 	}
 </pre>
 </font>
 </strong>
 </p>
 
-<p>
-The <b>staleservice.sh</b> script in your <i>/usr/local/nagios/libexec</i> directory might look something like this:
-</p>
 
 <p>
-<dir>
-<table border=1>
-<tr>
-<td>
-<pre>
-#!/bin/sh
-
-/bin/echo "CRITICAL: Service results are stale!"
-
-exit 2
-</pre>
-</td>
-</tr>
-</table>
-</dir>
-</p>
-
-<p>
-When Nagios detects that the service results are stale and runs the <b>service-is-stale</b> command, the <i>/usr/local/nagios/libexec/staleservice.sh</i> script is executed and the service will go into a critical state.  This would likely cause notifications to be sent out, so you'll know that there's a problem.
+When Nagios detects that the service results are stale and runs the <b>service-is-stale</b> command, the <i>check_dummy</i> plugin is executed and the service will go into a critical state.  This would likely cause notifications to be sent out, so you'll know that there's a problem.
 </p>
 
 <p>

@@ -119,23 +119,12 @@ Notice that active checks are disabled for the service.  This is because the res
 <pre>
 define command{
 	command_name	no-backup-report
-	command_line	/usr/local/nagios/libexec/nobackupreport.sh
+	command_line	usr/local/nagios/libexec/check_dummy 2 "CRITICAL: Results of backup job were not reported!"
 	}
 </pre>
 
 <p>
-The <i>nobackupreport.sh</i> script in your <i>/usr/local/nagios/libexec</i> directory might look something like this:
-</p>
-
-<pre>
-#!/bin/sh
-/bin/echo "CRITICAL: Results of backup job were not reported!"
-exit 2
-</pre>
-
-
-<p>
-If Nagios detects that the service results are stale, it will run the <i>no-backup-report</i> command as an active service check.  This causes the <i>/usr/local/nagios/libexec/nobackupreport.sh</i> script to be executed, which returns a critical state to Nagios.  The service will then go into to a critical state (if it isn't already there) and someone will probably get notified of the problem.
+If Nagios detects that the service results are stale, it will run the <i>no-backup-report</i> command as an active service check.  This causes the <i>check_dummy</i> plugin to be executed, which returns a critical state to Nagios.  The service will then go into to a critical state (if it isn't already there) and someone will probably get notified of the problem.
 </p>
 
 <hr>

@@ -756,6 +756,7 @@ AC_SUBST(PERLXSI_O)
 AC_SUBST(BASEEXTRALIBS)
 AC_SUBST(INITDIR)
 AC_SUBST(INSTALLPERLSTUFF)
+AC_SUBST(USE_EVENTBROKER)
 
 AC_PATH_PROG(PERL,perl)
 AC_OUTPUT(Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init html/index.html html/side.html)

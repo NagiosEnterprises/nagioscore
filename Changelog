@@ -14,6 +14,7 @@ Nagios 3.x Change Log
 * Fixed segfault in extinfo CGI when passed an invalid service description/name
 * Fixed bug in summary CGI with reports on specific hosts
 * Fix for writing check result files under Cygwin
+* Fix for not building sample helloworld.o event broker module if event broker is disabled by configure script
 
 
 3.0rc1 - 12/17/2007

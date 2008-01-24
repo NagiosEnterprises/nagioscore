@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA INSTALL build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT SET_MAKE STRIP CPP EGREP SNPRINTF_O SOCKETLIBS THREADLIBS nagios_user nagios_grp INSTALL_OPTS command_user command_grp COMMAND_OPTS MAIL_PROG HTTPD_CONF CHECKRESULTDIR TMPDIR init_dir lockfile XSDC XSDH XCDC XCDH XRDC XRDH XODC XODH XPDC XPDH XDDC XDDH GLIB_INCLUDE GLIB_LIBS htmurl cgiurl BROKER_LDFLAGS BROKERLIBS MOD_CFLAGS MOD_LDFLAGS BROKER_O BROKER_H nagios_name nagiostats_name PATH_TO_TRACEROUTE PACKDIR VERSION CGIEXTRAS GDLIBS PERLLIBS PERLDIR PERLXSI_O BASEEXTRALIBS INITDIR INSTALLPERLSTUFF PERL LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA INSTALL build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT SET_MAKE STRIP CPP EGREP SNPRINTF_O SOCKETLIBS THREADLIBS nagios_user nagios_grp INSTALL_OPTS command_user command_grp COMMAND_OPTS MAIL_PROG HTTPD_CONF CHECKRESULTDIR TMPDIR init_dir lockfile XSDC XSDH XCDC XCDH XRDC XRDH XODC XODH XPDC XPDH XDDC XDDH GLIB_INCLUDE GLIB_LIBS htmurl cgiurl BROKER_LDFLAGS BROKERLIBS MOD_CFLAGS MOD_LDFLAGS BROKER_O BROKER_H nagios_name nagiostats_name PATH_TO_TRACEROUTE PACKDIR VERSION CGIEXTRAS GDLIBS PERLLIBS PERLDIR PERLXSI_O BASEEXTRALIBS INITDIR INSTALLPERLSTUFF USE_EVENTBROKER PERL LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -7022,6 +7022,7 @@ rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 
+
 # Extract the first word of "perl", so it can be a program name with args.
 set dummy perl; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -7707,6 +7708,7 @@ s,@PERLXSI_O@,$PERLXSI_O,;t t
 s,@BASEEXTRALIBS@,$BASEEXTRALIBS,;t t
 s,@INITDIR@,$INITDIR,;t t
 s,@INSTALLPERLSTUFF@,$INSTALLPERLSTUFF,;t t
+s,@USE_EVENTBROKER@,$USE_EVENTBROKER,;t t
 s,@PERL@,$PERL,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t

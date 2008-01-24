@@ -37,6 +37,8 @@ INIT_OPTS=-o root -g root
 CGICFGDIR=$(CGIDIR)
 PERLDIR=@PERLDIR@
 
+USE_EVENTBROKER=@USE_EVENTBROKER@
+
 INSTALLPERLSTUFF=@INSTALLPERLSTUFF@
 
 CGIEXTRAS=@CGIEXTRAS@
@@ -60,7 +62,9 @@ all:
 	cd $(SRC_BASE) && $(MAKE)
 	cd $(SRC_CGI) && $(MAKE)
 	cd $(SRC_HTM) && $(MAKE)
-	cd $(SRC_MODULE) && $(MAKE)
+	if [ x$(USE_EVENTBROKER) = xyes ]; then \
+		cd $(SRC_MODULE) && $(MAKE); \
+	fi
 
 	@echo ""
 	@echo "*** Compile finished ***"

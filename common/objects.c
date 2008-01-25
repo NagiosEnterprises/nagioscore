@@ -2,8 +2,8 @@
  *
  * OBJECTS.C - Object addition and search functions for Nagios
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-24-2008
  *
  * License:
  *
@@ -70,6 +70,7 @@ serviceescalation **serviceescalation_hashlist=NULL;
 
 #ifdef NSCORE
 int __nagios_object_structure_version=CURRENT_OBJECT_STRUCTURE_VERSION;
+extern int use_precached_objects;
 #endif
 
 
@@ -656,8 +657,8 @@ timeperiod *add_timeperiod(char *name,char *alias){
 		return NULL;
 	        }
 
-#ifdef NSCORE
 	/* timeperiods are sorted alphabetically for daemon, so add new items to tail of list */
+#ifdef NSCORE
 	if(timeperiod_list==NULL){
 		timeperiod_list=new_timeperiod;
 		timeperiod_list_tail=timeperiod_list;

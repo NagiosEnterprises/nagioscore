@@ -18,6 +18,7 @@ Nagios 3.x Change Log
 * Fix to sample event handler scripts
 * Fix for handling plugin output with escaped newlines and backslashes
 * Fix for bug in service and host event scheduling logic
+* Fix for reversed object sort order when using fast startup options
 
 
 

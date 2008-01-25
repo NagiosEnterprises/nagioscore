@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-23-2008
+ * Last Modified: 01-25-2008
  *
  * Description:
  *
@@ -97,6 +97,21 @@ xodtemplate_hostescalation *xodtemplate_hostescalation_list=NULL;
 xodtemplate_hostextinfo *xodtemplate_hostextinfo_list=NULL;
 xodtemplate_serviceextinfo *xodtemplate_serviceextinfo_list=NULL;
 
+xodtemplate_timeperiod *xodtemplate_timeperiod_list_tail=NULL;
+xodtemplate_command *xodtemplate_command_list_tail=NULL;
+xodtemplate_contactgroup *xodtemplate_contactgroup_list_tail=NULL;
+xodtemplate_hostgroup *xodtemplate_hostgroup_list_tail=NULL;
+xodtemplate_servicegroup *xodtemplate_servicegroup_list_tail=NULL;
+xodtemplate_servicedependency *xodtemplate_servicedependency_list_tail=NULL;
+xodtemplate_serviceescalation *xodtemplate_serviceescalation_list_tail=NULL;
+xodtemplate_contact *xodtemplate_contact_list_tail=NULL;
+xodtemplate_host *xodtemplate_host_list_tail=NULL;
+xodtemplate_service *xodtemplate_service_list_tail=NULL;
+xodtemplate_hostdependency *xodtemplate_hostdependency_list_tail=NULL;
+xodtemplate_hostescalation *xodtemplate_hostescalation_list_tail=NULL;
+xodtemplate_hostextinfo *xodtemplate_hostextinfo_list_tail=NULL;
+xodtemplate_serviceextinfo *xodtemplate_serviceextinfo_list_tail=NULL;
+
 void *xodtemplate_current_object=NULL;
 int xodtemplate_current_object_type=XODTEMPLATE_NONE;
 
@@ -105,6 +120,8 @@ char **xodtemplate_config_files=NULL;
 
 char *xodtemplate_cache_file=NULL;
 char *xodtemplate_precache_file=NULL;
+
+int presorted_objects=FALSE;
 
 
 /******************************************************************/
@@ -157,6 +174,12 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	xodtemplate_config_files=(char **)malloc(256*sizeof(char **));
 	if(xodtemplate_config_files==NULL)
 		return ERROR;
+
+	/* are the objects we're reading already pre-sorted? */
+	presorted_objects=FALSE;
+#ifdef NSCORE
+	presorted_objects=(use_precached_objects==TRUE)?TRUE:FALSE;
+#endif
 
 #ifdef NSCORE
 	if(test_scheduling==TRUE)
@@ -940,13 +963,32 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_timeperiod->_config_file=config_file;
 		new_timeperiod->_start_line=start_line;
+		new_timeperiod->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_timeperiod_list==NULL){
+				xodtemplate_timeperiod_list=new_timeperiod;
+				xodtemplate_timeperiod_list_tail=xodtemplate_timeperiod_list;
+				}
+			else{
+				xodtemplate_timeperiod_list_tail->next=new_timeperiod;
+				xodtemplate_timeperiod_list_tail=new_timeperiod;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_timeperiod_list_tail;
+			}
 
 		/* add new timeperiod to head of list in memory */
-		new_timeperiod->next=xodtemplate_timeperiod_list;
-		xodtemplate_timeperiod_list=new_timeperiod;
+		else{
+			new_timeperiod->next=xodtemplate_timeperiod_list;
+			xodtemplate_timeperiod_list=new_timeperiod;
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_timeperiod_list;
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_timeperiod_list;
+			}
 
 		break;
 
@@ -968,12 +1010,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_command->_config_file=config_file;
 		new_command->_start_line=start_line;
 
-		/* add new command to head of list in memory */
-		new_command->next=xodtemplate_command_list;
-		xodtemplate_command_list=new_command;
+		new_command->next=NULL;
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_command_list;
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_command_list==NULL){
+				xodtemplate_command_list=new_command;
+				xodtemplate_command_list_tail=xodtemplate_command_list;
+				}
+			else{
+				xodtemplate_command_list_tail->next=new_command;
+				xodtemplate_command_list_tail=new_command;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_command_list_tail;
+			}
+
+		/* add new command to head of list in memory */
+		else{
+
+			new_command->next=xodtemplate_command_list;
+			xodtemplate_command_list=new_command;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_command_list;
+			}
 
 		break;
 
@@ -998,13 +1061,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_contactgroup->_config_file=config_file;
 		new_contactgroup->_start_line=start_line;
+		new_contactgroup->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_contactgroup_list==NULL){
+				xodtemplate_contactgroup_list=new_contactgroup;
+				xodtemplate_contactgroup_list_tail=xodtemplate_contactgroup_list;
+				}
+			else{
+				xodtemplate_contactgroup_list_tail->next=new_contactgroup;
+				xodtemplate_contactgroup_list_tail=new_contactgroup;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_contactgroup_list_tail;
+			}
 
 		/* add new contactgroup to head of list in memory */
-		new_contactgroup->next=xodtemplate_contactgroup_list;
-		xodtemplate_contactgroup_list=new_contactgroup;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_contactgroup_list;
+			new_contactgroup->next=xodtemplate_contactgroup_list;
+			xodtemplate_contactgroup_list=new_contactgroup;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_contactgroup_list;
+			}
 		break;
 
 
@@ -1035,13 +1118,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_hostgroup->_config_file=config_file;
 		new_hostgroup->_start_line=start_line;
+		new_hostgroup->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_hostgroup_list==NULL){
+				xodtemplate_hostgroup_list=new_hostgroup;
+				xodtemplate_hostgroup_list_tail=xodtemplate_hostgroup_list;
+				}
+			else{
+				xodtemplate_hostgroup_list_tail->next=new_hostgroup;
+				xodtemplate_hostgroup_list_tail=new_hostgroup;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_hostgroup_list_tail;
+			}
 
 		/* add new hostgroup to head of list in memory */
-		new_hostgroup->next=xodtemplate_hostgroup_list;
-		xodtemplate_hostgroup_list=new_hostgroup;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_hostgroup_list;
+			new_hostgroup->next=xodtemplate_hostgroup_list;
+			xodtemplate_hostgroup_list=new_hostgroup;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_hostgroup_list;
+			}
 		break;
 
 	case XODTEMPLATE_SERVICEGROUP:
@@ -1071,13 +1174,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_servicegroup->_config_file=config_file;
 		new_servicegroup->_start_line=start_line;
+		new_servicegroup->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_servicegroup_list==NULL){
+				xodtemplate_servicegroup_list=new_servicegroup;
+				xodtemplate_servicegroup_list_tail=xodtemplate_servicegroup_list;
+				}
+			else{
+				xodtemplate_servicegroup_list_tail->next=new_servicegroup;
+				xodtemplate_servicegroup_list_tail=new_servicegroup;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_servicegroup_list_tail;
+			}
 
 		/* add new servicegroup to head of list in memory */
-		new_servicegroup->next=xodtemplate_servicegroup_list;
-		xodtemplate_servicegroup_list=new_servicegroup;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_servicegroup_list;
+			new_servicegroup->next=xodtemplate_servicegroup_list;
+			xodtemplate_servicegroup_list=new_servicegroup;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_servicegroup_list;
+			}
 
 		break;
 
@@ -1128,13 +1251,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_servicedependency->_config_file=config_file;
 		new_servicedependency->_start_line=start_line;
+		new_servicedependency->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_servicedependency_list==NULL){
+				xodtemplate_servicedependency_list=new_servicedependency;
+				xodtemplate_servicedependency_list_tail=xodtemplate_servicedependency_list;
+				}
+			else{
+				xodtemplate_servicedependency_list_tail->next=new_servicedependency;
+				xodtemplate_servicedependency_list_tail=new_servicedependency;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_servicedependency_list_tail;
+			}
 
 		/* add new servicedependency to head of list in memory */
-		new_servicedependency->next=xodtemplate_servicedependency_list;
-		xodtemplate_servicedependency_list=new_servicedependency;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_servicedependency_list;
+			new_servicedependency->next=xodtemplate_servicedependency_list;
+			xodtemplate_servicedependency_list=new_servicedependency;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_servicedependency_list;
+			}
 		break;
 
 	case XODTEMPLATE_SERVICEESCALATION:
@@ -1177,13 +1320,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_serviceescalation->_config_file=config_file;
 		new_serviceescalation->_start_line=start_line;
+		new_serviceescalation->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_serviceescalation_list==NULL){
+				xodtemplate_serviceescalation_list=new_serviceescalation;
+				xodtemplate_serviceescalation_list_tail=xodtemplate_serviceescalation_list;
+				}
+			else{
+				xodtemplate_serviceescalation_list_tail->next=new_serviceescalation;
+				xodtemplate_serviceescalation_list_tail=new_serviceescalation;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_serviceescalation_list_tail;
+			}
 
 		/* add new serviceescalation to head of list in memory */
-		new_serviceescalation->next=xodtemplate_serviceescalation_list;
-		xodtemplate_serviceescalation_list=new_serviceescalation;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_serviceescalation_list;
+			new_serviceescalation->next=xodtemplate_serviceescalation_list;
+			xodtemplate_serviceescalation_list=new_serviceescalation;
+			
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_serviceescalation_list;
+			}
 		break;
 
 	case XODTEMPLATE_CONTACT:
@@ -1245,13 +1408,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_contact->_config_file=config_file;
 		new_contact->_start_line=start_line;
+		new_contact->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_contact_list==NULL){
+				xodtemplate_contact_list=new_contact;
+				xodtemplate_contact_list_tail=xodtemplate_contact_list;
+				}
+			else{
+				xodtemplate_contact_list_tail->next=new_contact;
+				xodtemplate_contact_list_tail=new_contact;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_contact_list_tail;
+			}
 
 		/* add new contact to head of list in memory */
-		new_contact->next=xodtemplate_contact_list;
-		xodtemplate_contact_list=new_contact;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_contact_list;
+			new_contact->next=xodtemplate_contact_list;
+			xodtemplate_contact_list=new_contact;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_contact_list;
+			}
 		break;
 
 	case XODTEMPLATE_HOST:
@@ -1368,13 +1551,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_host->_config_file=config_file;
 		new_host->_start_line=start_line;
+		new_host->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_host_list==NULL){
+				xodtemplate_host_list=new_host;
+				xodtemplate_host_list_tail=xodtemplate_host_list;
+				}
+			else{
+				xodtemplate_host_list_tail->next=new_host;
+				xodtemplate_host_list_tail=new_host;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_host_list_tail;
+			}
 
 		/* add new host to head of list in memory */
-		new_host->next=xodtemplate_host_list;
-		xodtemplate_host_list=new_host;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_host_list;
+			new_host->next=xodtemplate_host_list;
+			xodtemplate_host_list=new_host;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_host_list;
+			}
 		break;
 
 	case XODTEMPLATE_SERVICE:
@@ -1488,13 +1691,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_service->_config_file=config_file;
 		new_service->_start_line=start_line;
+		new_service->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_service_list==NULL){
+				xodtemplate_service_list=new_service;
+				xodtemplate_service_list_tail=xodtemplate_service_list;
+				}
+			else{
+				xodtemplate_service_list_tail->next=new_service;
+				xodtemplate_service_list_tail=new_service;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_service_list_tail;
+			}
 
 		/* add new service to head of list in memory */
-		new_service->next=xodtemplate_service_list;
-		xodtemplate_service_list=new_service;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=new_service;
+			new_service->next=xodtemplate_service_list;
+			xodtemplate_service_list=new_service;
+
+			/* update current object pointer */
+			xodtemplate_current_object=new_service;
+			}
 		break;
 
 	case XODTEMPLATE_HOSTDEPENDENCY:
@@ -1534,13 +1757,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_hostdependency->_config_file=config_file;
 		new_hostdependency->_start_line=start_line;
+		new_hostdependency->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_hostdependency_list==NULL){
+				xodtemplate_hostdependency_list=new_hostdependency;
+				xodtemplate_hostdependency_list_tail=xodtemplate_hostdependency_list;
+				}
+			else{
+				xodtemplate_hostdependency_list_tail->next=new_hostdependency;
+				xodtemplate_hostdependency_list_tail=new_hostdependency;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_hostdependency_list_tail;
+			}
 
 		/* add new hostdependency to head of list in memory */
-		new_hostdependency->next=xodtemplate_hostdependency_list;
-		xodtemplate_hostdependency_list=new_hostdependency;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_hostdependency_list;
+			new_hostdependency->next=xodtemplate_hostdependency_list;
+			xodtemplate_hostdependency_list=new_hostdependency;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_hostdependency_list;
+			}
 		break;
 
 	case XODTEMPLATE_HOSTESCALATION:
@@ -1578,13 +1821,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_hostescalation->_config_file=config_file;
 		new_hostescalation->_start_line=start_line;
+		new_hostescalation->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_hostescalation_list==NULL){
+				xodtemplate_hostescalation_list=new_hostescalation;
+				xodtemplate_hostescalation_list_tail=xodtemplate_hostescalation_list;
+				}
+			else{
+				xodtemplate_hostescalation_list_tail->next=new_hostescalation;
+				xodtemplate_hostescalation_list_tail=new_hostescalation;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_hostescalation_list_tail;
+			}
 
 		/* add new hostescalation to head of list in memory */
-		new_hostescalation->next=xodtemplate_hostescalation_list;
-		xodtemplate_hostescalation_list=new_hostescalation;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_hostescalation_list;
+			new_hostescalation->next=xodtemplate_hostescalation_list;
+			xodtemplate_hostescalation_list=new_hostescalation;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_hostescalation_list;
+			}
 		break;
 
 	case XODTEMPLATE_HOSTEXTINFO:
@@ -1627,13 +1890,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_hostextinfo->_config_file=config_file;
 		new_hostextinfo->_start_line=start_line;
+		new_hostextinfo->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_hostextinfo_list==NULL){
+				xodtemplate_hostextinfo_list=new_hostextinfo;
+				xodtemplate_hostextinfo_list_tail=xodtemplate_hostextinfo_list;
+				}
+			else{
+				xodtemplate_hostextinfo_list_tail->next=new_hostextinfo;
+				xodtemplate_hostextinfo_list_tail=new_hostextinfo;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_hostextinfo_list_tail;
+			}
 
 		/* add new extended host info to head of list in memory */
-		new_hostextinfo->next=xodtemplate_hostextinfo_list;
-		xodtemplate_hostextinfo_list=new_hostextinfo;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_hostextinfo_list;
+			new_hostextinfo->next=xodtemplate_hostextinfo_list;
+			xodtemplate_hostextinfo_list=new_hostextinfo;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_hostextinfo_list;
+			}
 		break;
 
 	case XODTEMPLATE_SERVICEEXTINFO:
@@ -1667,13 +1950,33 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_serviceextinfo->_config_file=config_file;
 		new_serviceextinfo->_start_line=start_line;
+		new_serviceextinfo->next=NULL;
+
+		/* precached object files are already sorted, so add to tail of list */
+		if(presorted_objects==TRUE){
+
+			if(xodtemplate_serviceextinfo_list==NULL){
+				xodtemplate_serviceextinfo_list=new_serviceextinfo;
+				xodtemplate_serviceextinfo_list_tail=xodtemplate_serviceextinfo_list;
+				}
+			else{
+				xodtemplate_serviceextinfo_list_tail->next=new_serviceextinfo;
+				xodtemplate_serviceextinfo_list_tail=new_serviceextinfo;
+				}
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_serviceextinfo_list_tail;
+			}
 
 		/* add new extended service info to head of list in memory */
-		new_serviceextinfo->next=xodtemplate_serviceextinfo_list;
-		xodtemplate_serviceextinfo_list=new_serviceextinfo;
+		else{
 
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_serviceextinfo_list;
+			new_serviceextinfo->next=xodtemplate_serviceextinfo_list;
+			xodtemplate_serviceextinfo_list=new_serviceextinfo;
+
+			/* update current object pointer */
+			xodtemplate_current_object=xodtemplate_serviceextinfo_list;
+			}
 		break;
 
 	default:
@@ -11276,6 +11579,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_timeperiod);
 	        }
 	xodtemplate_timeperiod_list=NULL;
+	xodtemplate_timeperiod_list_tail=NULL;
 
 	/* free memory allocated to command list */
 	for(this_command=xodtemplate_command_list;this_command!=NULL;this_command=next_command){
@@ -11287,6 +11591,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_command);
 	        }
 	xodtemplate_command_list=NULL;
+	xodtemplate_command_list_tail=NULL;
 
 	/* free memory allocated to contactgroup list */
 	for(this_contactgroup=xodtemplate_contactgroup_list;this_contactgroup!=NULL;this_contactgroup=next_contactgroup){
@@ -11300,6 +11605,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_contactgroup);
 	        }
 	xodtemplate_contactgroup_list=NULL;
+	xodtemplate_contactgroup_list_tail=NULL;
 
 	/* free memory allocated to hostgroup list */
 	for(this_hostgroup=xodtemplate_hostgroup_list;this_hostgroup!=NULL;this_hostgroup=next_hostgroup){
@@ -11316,6 +11622,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_hostgroup);
 	        }
 	xodtemplate_hostgroup_list=NULL;
+	xodtemplate_hostgroup_list_tail=NULL;
 
 	/* free memory allocated to servicegroup list */
 	for(this_servicegroup=xodtemplate_servicegroup_list;this_servicegroup!=NULL;this_servicegroup=next_servicegroup){
@@ -11332,6 +11639,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_servicegroup);
 	        }
 	xodtemplate_servicegroup_list=NULL;
+	xodtemplate_servicegroup_list_tail=NULL;
 
 	/* free memory allocated to servicedependency list */
 	for(this_servicedependency=xodtemplate_servicedependency_list;this_servicedependency!=NULL;this_servicedependency=next_servicedependency){
@@ -11350,6 +11658,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_servicedependency);
 	        }
 	xodtemplate_servicedependency_list=NULL;
+	xodtemplate_servicedependency_list_tail=NULL;
 
 	/* free memory allocated to serviceescalation list */
 	for(this_serviceescalation=xodtemplate_serviceescalation_list;this_serviceescalation!=NULL;this_serviceescalation=next_serviceescalation){
@@ -11366,6 +11675,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_serviceescalation);
 	        }
 	xodtemplate_serviceescalation_list=NULL;
+	xodtemplate_serviceescalation_list_tail=NULL;
 
 	/* free memory allocated to contact list */
 	for(this_contact=xodtemplate_contact_list;this_contact!=NULL;this_contact=next_contact){
@@ -11397,6 +11707,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_contact);
 	        }
 	xodtemplate_contact_list=NULL;
+	xodtemplate_contact_list_tail=NULL;
 
 	/* free memory allocated to host list */
 	for(this_host=xodtemplate_host_list;this_host!=NULL;this_host=next_host){
@@ -11436,6 +11747,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_host);
 	        }
 	xodtemplate_host_list=NULL;
+	xodtemplate_host_list_tail=NULL;
 
 	/* free memory allocated to service list */
 	for(this_service=xodtemplate_service_list;this_service!=NULL;this_service=next_service){
@@ -11472,6 +11784,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_service);
 	        }
 	xodtemplate_service_list=NULL;
+	xodtemplate_service_list_tail=NULL;
 
 	/* free memory allocated to hostdependency list */
 	for(this_hostdependency=xodtemplate_hostdependency_list;this_hostdependency!=NULL;this_hostdependency=next_hostdependency){
@@ -11486,6 +11799,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_hostdependency);
 	        }
 	xodtemplate_hostdependency_list=NULL;
+	xodtemplate_hostdependency_list_tail=NULL;
 
 	/* free memory allocated to hostescalation list */
 	for(this_hostescalation=xodtemplate_hostescalation_list;this_hostescalation!=NULL;this_hostescalation=next_hostescalation){
@@ -11500,6 +11814,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_hostescalation);
 	        }
 	xodtemplate_hostescalation_list=NULL;
+	xodtemplate_hostescalation_list_tail=NULL;
 
 	/* free memory allocated to hostextinfo list */
 	for(this_hostextinfo=xodtemplate_hostextinfo_list;this_hostextinfo!=NULL;this_hostextinfo=next_hostextinfo){
@@ -11518,6 +11833,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_hostextinfo);
 	        }
 	xodtemplate_hostextinfo_list=NULL;
+	xodtemplate_hostextinfo_list_tail=NULL;
 
 	/* free memory allocated to serviceextinfo list */
 	for(this_serviceextinfo=xodtemplate_serviceextinfo_list;this_serviceextinfo!=NULL;this_serviceextinfo=next_serviceextinfo){
@@ -11535,6 +11851,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_serviceextinfo);
 	        }
 	xodtemplate_serviceextinfo_list=NULL;
+	xodtemplate_serviceextinfo_list_tail=NULL;
 
 	/* free memory for the config file names */
 	for(x=0;x<xodtemplate_current_config_file;x++)

@@ -2,8 +2,8 @@
  *
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
- * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-18-2005
+ * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-28-2008
  *
  * License:
  *
@@ -41,6 +41,8 @@ extern double   high_service_flap_threshold;
 extern double   low_host_flap_threshold;
 extern double   high_host_flap_threshold;
 
+extern unsigned long    modified_host_process_attributes;
+extern unsigned long    modified_service_process_attributes;
 
 /******************************************************************/
 /******************** FLAP DETECTION FUNCTIONS ********************/
@@ -457,6 +459,10 @@ void enable_flap_detection_routines(void){
 	printf("enable_flap_detection() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_FLAP_DETECTION_ENABLED;
+	modified_service_process_attributes|=MODATTR_FLAP_DETECTION_ENABLED;
+
 	/* set flap detection flag */
 	enable_flap_detection=TRUE;
 
@@ -478,6 +484,11 @@ void disable_flap_detection_routines(void){
 #ifdef DEBUG0
 	printf("disable_flap_detection() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_FLAP_DETECTION_ENABLED;
+	modified_service_process_attributes|=MODATTR_FLAP_DETECTION_ENABLED;
+
 
 	/* set flap detection flag */
 	enable_flap_detection=FALSE;
@@ -501,6 +512,9 @@ void enable_host_flap_detection(host *hst){
 #ifdef DEBUG0
 	printf("enable_host_flap_detection() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_FLAP_DETECTION_ENABLED;
 
 	/* nothing to do... */
 	if(hst->flap_detection_enabled==TRUE)
@@ -535,6 +549,9 @@ void disable_host_flap_detection(host *hst){
 #ifdef DEBUG0
 	printf("disable_host_flap_detection() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_FLAP_DETECTION_ENABLED;
 
 	/* nothing to do... */
 	if(hst->flap_detection_enabled==FALSE)
@@ -586,6 +603,9 @@ void enable_service_flap_detection(service *svc){
 	printf("enable_service_flap_detection() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_FLAP_DETECTION_ENABLED;
+
 	/* nothing to do... */
 	if(svc->flap_detection_enabled==TRUE)
 		return;
@@ -619,6 +639,9 @@ void disable_service_flap_detection(service *svc){
 #ifdef DEBUG0
 	printf("disable_service_flap_detection() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_FLAP_DETECTION_ENABLED;
 
 	/* nothing to do... */
 	if(svc->flap_detection_enabled==FALSE)
@@ -660,9 +683,3 @@ void disable_service_flap_detection(service *svc){
 
 	return;
         }
-
-
-
-
-
-

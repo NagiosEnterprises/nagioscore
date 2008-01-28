@@ -13,6 +13,7 @@ Nagios 2.x Change Log
 * Fix for a possible memory leak in situations where overflow occurs in check result buffer
 * Fix for segfault in event broker module code
 * Fix for cfg_dir directive not working on Solaris
+* Fix for flap detection information not be retained across restarts
 
 
 

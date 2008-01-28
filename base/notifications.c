@@ -2,8 +2,8 @@
  *
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-10-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-28-2008
  *
  * License:
  *
@@ -737,20 +737,20 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 
 			my_free(temp_buffer);
 			my_free(processed_buffer);
+			}
 
-			/* run the command */
-			my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
+		/* run the notification command */
+		my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
 
-			/* check to see if the notification command timed out */
-			if(early_timeout==TRUE){
-				logit(NSLOG_SERVICE_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE,"Warning: Contact '%s' service notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,notification_timeout);
-			        }
+		/* check to see if the notification command timed out */
+		if(early_timeout==TRUE){
+			logit(NSLOG_SERVICE_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE,"Warning: Contact '%s' service notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,notification_timeout);
+			}
 
-			/* free memory */
-			my_free(command_name);
-			my_free(raw_command);
-			my_free(processed_command);
-		        }
+		/* free memory */
+		my_free(command_name);
+		my_free(raw_command);
+		my_free(processed_command);
 
 		/* get end time */
 		gettimeofday(&method_end_time,NULL);
@@ -1588,20 +1588,20 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 
 			my_free(temp_buffer);
 			my_free(processed_buffer);
+			}
 
-			/* run the command */
-			my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
+		/* run the notification command */
+		my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
 
-			/* check to see if the notification timed out */
-			if(early_timeout==TRUE){
-				logit(NSLOG_HOST_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE,"Warning: Contact '%s' host notification command '%s' timed out after %d seconds\n", cntct->name,processed_command,notification_timeout);
-			        }
+		/* check to see if the notification timed out */
+		if(early_timeout==TRUE){
+			logit(NSLOG_HOST_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE,"Warning: Contact '%s' host notification command '%s' timed out after %d seconds\n", cntct->name,processed_command,notification_timeout);
+			}
 
-			/* free memory */
-			my_free(command_name);
-			my_free(raw_command);
-			my_free(processed_command);
-		        }
+		/* free memory */
+		my_free(command_name);
+		my_free(raw_command);
+		my_free(processed_command);
 
 		/* get end time */
 		gettimeofday(&method_end_time,NULL);

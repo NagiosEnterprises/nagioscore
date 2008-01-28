@@ -119,7 +119,7 @@ Notice that active checks are disabled for the service.  This is because the res
 <pre>
 define command{
 	command_name	no-backup-report
-	command_line	usr/local/nagios/libexec/check_dummy 2 "CRITICAL: Results of backup job were not reported!"
+	command_line	/usr/local/nagios/libexec/check_dummy 2 "CRITICAL: Results of backup job were not reported!"
 	}
 </pre>
 

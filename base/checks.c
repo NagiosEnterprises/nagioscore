@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-24-2008
+ * Last Modified: 01-28-2008
  *
  * License:
  *
@@ -381,8 +381,9 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		return ERROR;
 		}
 
-	/* neb module wants to override the service check - perhaps it will check the service itself */
+	/* neb module wants to override (or cancel) the service check - perhaps it will check the service itself */
 	/* NOTE: if a module does this, it has to do a lot of the stuff found below to make sure things don't get whacked out of shape! */
+	/* NOTE: if would be easier for modules to override checks when the NEBTYPE_SERVICECHECK_INITIATE event is called (later) */
 	if(neb_result==NEBERROR_CALLBACKOVERRIDE)
 		return OK;
 #endif
@@ -410,6 +411,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		log_debug_info(DEBUGL_CHECKS,0,"Raw check command for service '%s' on host '%s' was NULL - aborting.\n",svc->description,svc->host_name);
 		if(preferred_time)
 			*preferred_time+=(svc->check_interval*interval_length);
+		svc->latency=old_latency;
 		return ERROR;
 		}
 
@@ -419,6 +421,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		log_debug_info(DEBUGL_CHECKS,0,"Processed check command for service '%s' on host '%s' was NULL - aborting.\n",svc->description,svc->host_name);
 		if(preferred_time)
 			*preferred_time+=(svc->check_interval*interval_length);
+		svc->latency=old_latency;
+		my_free(raw_command);
 		return ERROR;
 		}
 

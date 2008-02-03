@@ -3,6 +3,12 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0rc3 - ??/??/2008
+-------------------
+* Fix for bugs in nagiostats utility
+
+
+
 3.0rc2 - 01/29/2008
 -------------------
 * Changed embedded audio MIME types in CGIs to "application/wav"

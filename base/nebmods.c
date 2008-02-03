@@ -2,8 +2,8 @@
  *
  * NEBMODS.C - Event Broker Module Functions
  *
- * Copyright (c) 2002-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-14-2007
+ * Copyright (c) 2002-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-29-2008
  *
  * License:
  *
@@ -181,7 +181,7 @@ int neb_load_module(nebmodule *mod){
 #ifdef USE_LTDL
 	mod->module_handle=lt_dlopen(mod->filename);
 #else
-	mod->module_handle=dlopen(mod->filename,RTLD_NOW|RTLD_GLOBAL);
+	mod->module_handle=(void *)dlopen(mod->filename,RTLD_NOW|RTLD_GLOBAL);
 #endif
 	if(mod->module_handle==NULL){
 
@@ -218,7 +218,7 @@ int neb_load_module(nebmodule *mod){
 #ifdef USE_LTDL
 	mod->init_func=lt_dlsym(mod->module_handle,"nebmodule_init");
 #else
-	mod->init_func=dlsym(mod->module_handle,"nebmodule_init");
+	mod->init_func=(void *)dlsym(mod->module_handle,"nebmodule_init");
 #endif
 
 	/* if the init function could not be located, unload the module */
@@ -251,7 +251,7 @@ int neb_load_module(nebmodule *mod){
 #ifdef USE_LTDL
 	mod->deinit_func=lt_dlsym(mod->module_handle,"nebmodule_deinit");
 #else
-	mod->deinit_func=dlsym(mod->module_handle,"nebmodule_deinit");
+	mod->deinit_func=(void *)dlsym(mod->module_handle,"nebmodule_deinit");
 #endif
 
 	log_debug_info(DEBUGL_EVENTBROKER,0,"Module '%s' loaded with return code of '%d'\n",mod->filename,result);

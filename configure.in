@@ -623,8 +623,12 @@ if test x$USE_EVENTBROKER = xyes; then
 			MOD_LDFLAGS="-bundle -flat_namespace -undefined suppress"
 			MOD_CFLAGS="$MOD_CFLAGS -fno-common"
 		;;
-		linux*)
+		linux* | k*bsd*-gnu*)
 			# assume GNU linker and ELF
+			MOD_LDFLAGS="-shared"
+			MOD_CFLAGS="-fPIC"
+		;;
+		freebsd*)
 			MOD_LDFLAGS="-shared"
 			MOD_CFLAGS="-fPIC"
 		;;

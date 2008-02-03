@@ -5,9 +5,9 @@
  * Program: Nagiostats
  * Version: 3.0rc2
  * License: GPL
- * Copyright (c) 2003-2007 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2003-2008 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   01-29-2008
+ * Last Modified:   02-02-2008
  *
  * License:
  *
@@ -281,7 +281,7 @@ int main(int argc, char **argv){
 
 	if(mrtg_mode==FALSE){
 		printf("\nNagios Stats %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 2003-2007 Ethan Galstad (www.nagios.org)\n");
+		printf("Copyright (c) 2003-2008 Ethan Galstad (www.nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }
@@ -335,9 +335,6 @@ int main(int argc, char **argv){
 		printf(" TOTCMDBUF            total number of external command buffer slots available.\n");
 		printf(" USEDCMDBUF           number of external command buffer slots currently in use.\n");
 		printf(" HIGHCMDBUF           highest number of external command buffer slots ever in use.\n");
-		printf(" TOTCHKBUF            total number of check result buffer slots available.\n");
-		printf(" USEDCHKBUF           number of check result buffer slots currently in use.\n");
-		printf(" HIGHCHKBUF           highest number of check result buffer slots ever in use.\n");
 		printf(" NUMSERVICES          total number of services.\n");
 		printf(" NUMHOSTS             total number of hosts.\n");
 		printf(" NUMSVCOK             number of services OK.\n");
@@ -500,11 +497,11 @@ int display_mrtg_values(void){
 			printf("%d%s",(int)average_active_service_state_change,mrtg_delimiter);
 
 		/* passive service check latency */
-		else if(!strcmp(temp_ptr,"PSVACTSVCLAT"))
+		else if(!strcmp(temp_ptr,"MINPSVSVCLAT"))
 			printf("%d%s",(int)(min_passive_service_latency*1000),mrtg_delimiter);
-		else if(!strcmp(temp_ptr,"PSVACTSVCLAT"))
+		else if(!strcmp(temp_ptr,"MAXPSVSVCLAT"))
 			printf("%d%s",(int)(max_passive_service_latency*1000),mrtg_delimiter);
-		else if(!strcmp(temp_ptr,"PSVACTSVCLAT"))
+		else if(!strcmp(temp_ptr,"AVGPSVSVCLAT"))
 			printf("%d%s",(int)(average_passive_service_latency*1000),mrtg_delimiter);
 
 		/* passive service check percent state change */

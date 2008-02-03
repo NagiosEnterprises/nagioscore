@@ -5,7 +5,10 @@ Nagios 3.x Change Log
 
 3.0rc3 - ??/??/2008
 -------------------
-* Fix for bugs in nagiostats utility
+* Fix for passive service check stats bugs in nagiostats
+* Nagios no longer warns or errors when encountering host/contact/service groups with empty memberships
+* Debugging info fix in notification logic
+* Fix for multiline support in config files (again)
 
 
 

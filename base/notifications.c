@@ -686,6 +686,8 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 		if(raw_command==NULL)
 			continue;
 
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Raw notification command: %s\n",raw_command);
+
 		/* process any macros contained in the argument */
 		process_macros(raw_command,&processed_command,macro_options);
 		if(processed_command==NULL)
@@ -697,7 +699,6 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *not_
 
 		/* run the notification command... */
 
-		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Raw notification command: %s\n",raw_command);
 		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Processed notification command: %s\n",processed_command);
 
 		/* log the notification to program log file */
@@ -1537,6 +1538,8 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 		if(raw_command==NULL)
 			continue;
 
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Raw notification command: %s\n",raw_command);
+
 		/* process any macros contained in the argument */
 		process_macros(raw_command,&processed_command,macro_options);
 		if(processed_command==NULL)
@@ -1548,8 +1551,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *not_author
 
 		/* run the notification command... */
 
-		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Raw Command: %s\n",raw_command);
-		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Processed Command: %s\n",processed_command);
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Processed notification command: %s\n",processed_command);
 
 		/* log the notification to program log file */
 		if(log_notifications==TRUE){

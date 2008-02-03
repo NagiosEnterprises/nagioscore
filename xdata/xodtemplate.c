@@ -9355,12 +9355,14 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 	        }
 
 	/* add all members to the contact group */
+#ifdef REMOVED_02032008
 	if(this_contactgroup->members==NULL){
 #ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contactgroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 #endif
 		return ERROR;
 	        }
+#endif
 	for(contact_name=strtok(this_contactgroup->members,",");contact_name!=NULL;contact_name=strtok(NULL,",")){
 		strip(contact_name);
 		new_contactsmember=add_contact_to_contactgroup(new_contactgroup,contact_name);
@@ -9399,12 +9401,14 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	        }
 
 	/* add all members to hostgroup */
+#ifdef REMOVED_02032008
 	if(this_hostgroup->members==NULL){
 #ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Hostgroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 #endif
 		return ERROR;
 	        }
+#endif
 	for(host_name=strtok(this_hostgroup->members,",");host_name!=NULL;host_name=strtok(NULL,",")){
 		strip(host_name);
 		new_hostsmember=add_host_to_hostgroup(new_hostgroup,host_name);
@@ -9444,12 +9448,14 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 	        }
 
 	/* add all members to servicegroup */
+#ifdef REMOVED_03022008
 	if(this_servicegroup->members==NULL){
 #ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Servicegroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 #endif
 		return ERROR;
 	        }
+#endif
 	for(host_name=strtok(this_servicegroup->members,",");host_name!=NULL;host_name=strtok(NULL,",")){
 		strip(host_name);
 		svc_description=strtok(NULL,",");
@@ -12298,7 +12304,9 @@ int xodtemplate_add_contactgroup_members_to_memberlist(xodtemplate_memberlist **
 	/* skip contactgroups with no defined members */
 	if(temp_contactgroup->members==NULL){
 #ifdef NSCORE
+#ifdef REMOVED_02032008
 		printf("Warning: Specified contactgroup '%s' has no members (config file '%s', starting on line %d)\n",temp_contactgroup->contactgroup_name,xodtemplate_config_file_name(_config_file),_start_line);
+#endif
 #endif
 		return OK;
 		}
@@ -12646,7 +12654,9 @@ int xodtemplate_add_hostgroup_members_to_memberlist(xodtemplate_memberlist **lis
 	/* skip hostgroups with no defined members */
 	if(temp_hostgroup->members==NULL){
 #ifdef NSCORE
+#ifdef REMOVED_02032008
 		printf("Warning: Specified hostgroup '%s' has no members (config file '%s', starting on line %d)\n",temp_hostgroup->hostgroup_name,xodtemplate_config_file_name(_config_file),_start_line);
+#endif
 #endif
 		return OK;
 		}
@@ -13028,7 +13038,9 @@ int xodtemplate_add_servicegroup_members_to_memberlist(xodtemplate_memberlist **
 	/* skip servicegroups with no defined members */
 	if(temp_servicegroup->members==NULL){
 #ifdef NSCORE
+#ifdef REMOVED_02032008
 		printf("Warning: Specified servicegroup '%s' has no members (config file '%s', starting on line %d)\n",temp_servicegroup->servicegroup_name,xodtemplate_config_file_name(_config_file),_start_line);
+#endif
 #endif
 		return OK;
 		}

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-24-2008
+ * Last Modified: 02-03-2008
  *
  * License:
  *
@@ -3427,6 +3427,7 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 		if(len==0)
 			break;
 
+
 		/* handle Windows/DOS CR/LF */
 		if(len>=2 && buf[len-2]=='\r')
 			end=len-3;
@@ -3436,21 +3437,29 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 		else
 			end=len-1;
 
+#ifdef DEBUG
+		printf("LEN: %d, END: %d, BUF=%s",len,end,buf);
+#endif
+
 		/* two backslashes found, so unescape first backslash first and break */
-		if(end>=2 && buf[end-2]=='\\' && buf[end-1]=='\\'){
-			buf[end-1]='\n';
-			buf[end]='\x0';
+		if(end>=1 && buf[end-1]=='\\' && buf[end]=='\\'){
+			buf[end]='\n';
+			buf[end+1]='\x0';
 			break;
 			}
 
 		/* one backslash found, so we should continue reading the next line */
-		else if(end>=1 && buf[end-1]=='\\')
-			buf[end-1]='\x0';
+		else if(buf[end]=='\\')
+			buf[end]='\x0';
 
 		/* else no continuation marker was found, so break */
 		else
 			break;
 	        }
+
+#ifdef DEBUG
+	printf("BUFNOW: %s",buf);
+#endif
 
 	my_free(tempbuf);
 

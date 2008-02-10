@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-15-2008
+ * Last Modified: 02-10-2008
  *
  * License:
  *
@@ -89,6 +89,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 	int result=OK;
 	int clean_options=0;
 	int free_macro=FALSE;
+	int macro_options=0;
 
 
 #ifdef NSCORE
@@ -150,15 +151,22 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 		/* looks like we're in a macro, so process it... */
 		else{
 
+			/* reset clean options */
+			clean_options=0;
+
 			/* grab the macro value */
 			result=grab_macro_value(temp_buffer,&selected_macro,&clean_options,&free_macro);
+#ifdef NSCORE
+			log_debug_info(DEBUGL_MACROS,2,"  Processed '%s', Clean Options: %d, Free: %d\n",temp_buffer,clean_options,free_macro);
+#endif
 
 			/* an error occurred - we couldn't parse the macro, so continue on */
 			if(result==ERROR){
 #ifdef NSCORE
 				log_debug_info(DEBUGL_MACROS,0," WARNING: An error occurred processing macro '%s'!\n",temp_buffer);
 #endif
-				my_free(selected_macro);
+				if(free_macro==TRUE)
+					my_free(selected_macro);
 				}
 
 			/* we already have a macro... */
@@ -193,11 +201,19 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 			/* insert macro */
 			if(selected_macro!=NULL){
 
+#ifdef NSCORE
+				log_debug_info(DEBUGL_MACROS,2,"  Processed '%s', Clean Options: %d, Free: %d\n",temp_buffer,clean_options,free_macro);
+#endif
+
 				/* include any cleaning options passed back to us */
-				options&=clean_options;
+				macro_options=(options & clean_options);
+
+#ifdef NSCORE
+				log_debug_info(DEBUGL_MACROS,2,"  Cleaning options: global=%d, local=%d, effective=%d\n",options,clean_options,macro_options);
+#endif
 
 				/* URL encode the macro if requested - this allocates new memory */
-				if(options & URL_ENCODE_MACRO_CHARS){
+				if(macro_options & URL_ENCODE_MACRO_CHARS){
 					original_macro=selected_macro;
 					selected_macro=get_url_encoded_string(selected_macro);
 					if(free_macro==TRUE){
@@ -207,10 +223,10 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 					}
 				
 				/* some macros are cleaned... */
-				if(clean_macro==TRUE || ((options & STRIP_ILLEGAL_MACRO_CHARS) || (options & ESCAPE_MACRO_CHARS))){
+				if(clean_macro==TRUE || ((macro_options & STRIP_ILLEGAL_MACRO_CHARS) || (macro_options & ESCAPE_MACRO_CHARS))){
 
 					/* add the (cleaned) processed macro to the end of the already processed buffer */
-					if(selected_macro!=NULL && (cleaned_macro=clean_macro_chars(selected_macro,options))!=NULL){
+					if(selected_macro!=NULL && (cleaned_macro=clean_macro_chars(selected_macro,macro_options))!=NULL){
 						*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+strlen(cleaned_macro)+1);
 						strcat(*output_buffer,cleaned_macro);
 
@@ -451,13 +467,31 @@ int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int 
 
 		if(!strcmp(macro_name,macro_x_names[x])){
 
+#ifdef NSCORE
+			log_debug_info(DEBUGL_MACROS,2,"  macro_x[%d] (%s) match.\n",x,macro_x_names[x]);
+#endif
+
 			/* get the macro value */
 			result=grab_macrox_value(x,arg[0],arg[1],output,free_macro);
 
 			/* post-processing */
 			/* host/service output/perfdata and author/comment macros should get cleaned */
-			if((x>=16 && x<=19) ||(x>=49 && x<=52) || (x>=99 && x<=100) || (x>=124 && x<=127))
-				*clean_options&=(STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+			if((x>=16 && x<=19) ||(x>=49 && x<=52) || (x>=99 && x<=100) || (x>=124 && x<=127)){
+				*clean_options|=(STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+#ifdef NSCORE
+				log_debug_info(DEBUGL_MACROS,2,"  New clean options: %d\n",*clean_options);
+#endif
+				}
+			/* url macros should get cleaned */
+			if((x>=125 && x<=126) ||(x>=128 && x<=129) || (x>=77 && x<=78) || (x>=74 && x<=75)){
+				*clean_options|=URL_ENCODE_MACRO_CHARS;
+#ifdef NSCORE
+				log_debug_info(DEBUGL_MACROS,2,"  New clean options: %d\n",*clean_options);
+#endif
+				}
+
+
+
 
 			break;
 			}
@@ -582,7 +616,7 @@ int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int 
 
 		/* custom variable values get cleaned */
 		if(result==OK)
-			*clean_options&=(STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+			*clean_options|=(STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 		}
 
 	/* no macro matched... */
@@ -2386,7 +2420,9 @@ char *clean_macro_chars(char *macro,int options){
 
 		for(y=0,x=0;x<len;x++){
 			
-			ch=(int)macro[x];
+			/*ch=(int)macro[x];*/
+			/* allow non-ASCII characters (Japanese, etc) */
+			ch=macro[x] & 0xff;
 
 			/* illegal ASCII characters */
 			if(ch<32 || ch==127)

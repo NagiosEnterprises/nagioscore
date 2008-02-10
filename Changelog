@@ -9,6 +9,8 @@ Nagios 3.x Change Log
 * Nagios no longer warns or errors when encountering host/contact/service groups with empty memberships
 * Debugging info fix in notification logic
 * Fix for multiline support in config files (again)
+* Fix for stripping illegal chars in output, perfdata macros
+* Patch to allow non-ASCII characters in notifications, etc.
 
 
 

@@ -261,7 +261,6 @@ int main(int argc, char **argv){
 			if(main_config_file)
 				free(main_config_file);
 			main_config_file=strdup(optarg);
-			printf("NEW VALUE: %s\n",main_config_file);
 			break;
 		case 'm':
 			mrtg_mode=TRUE;

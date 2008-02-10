@@ -182,6 +182,40 @@ $SERVICEGROUPALIAS:DNS-Cluster$              <--- On-demand servicegroup macro
 
 
 <p>
+<strong><u>On-Demand Group Macros</u></strong>
+</p>
+
+<p>
+You can obtain the values of a macro across all contacts, hosts, or services in a specific group by using a special format for your on-demand macro declaration. You do this by referencing a specific host group, service group, or contact group name in an on-demand macro, like so:
+</p>
+
+<ul>
+<li>$<i>HOSTMACRONAME</i>:<i>hostgroup_name</i>:<i>delimiter</i>$</li>
+<li>$<i>SERVICEMACRONAME</i>:<i>servicegroup_name</i>:<i>delimiter</i>$</li>
+<li>$<i>CONTACTMACRONAME</i>:<i>contactgroup_name</i>:<i>delimiter</i>$</li>
+</ul>
+
+<p>
+Replace <i>HOSTMACRONAME</i>, <i>SERVICEMACRONAME</i>, and <i>CONTACTMACRONAME</i> with the name of one of the standard host, service, or contact macros found <a href="macrolist.html">here</a>.  The delimiter you specify is used to separate macro values for each group member.
+</p>
+
+<p>
+For example, the following macro will return a comma-separated list of host state ids for hosts that are members of the <i>hg1</i> hostgroup:
+</p>
+
+<pre>
+$HOSTSTATEID:hg1:,$
+</pre>
+
+<p>
+This macro definition will return something that looks like this:
+</p>
+
+<pre>
+0,2,1,1,0,0,2
+</pre>
+
+<p>
 <strong><u>Custom Variable Macros</u></strong>
 </p>
 

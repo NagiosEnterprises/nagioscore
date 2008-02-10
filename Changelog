@@ -11,6 +11,7 @@ Nagios 3.x Change Log
 * Fix for multiline support in config files (again)
 * Fix for stripping illegal chars in output, perfdata macros
 * Patch to allow non-ASCII characters in notifications, etc.
+* Fix for bug in on-demand service macros with blank/null host names
 
 
 

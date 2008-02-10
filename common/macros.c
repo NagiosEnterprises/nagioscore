@@ -873,7 +873,7 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 		else{
 
 			/* if first arg is blank, it means use the current host name */
-			if(arg1==NULL){
+			if(arg1==NULL || arg1[0]=='\x0'){
 
 				if(macro_host_ptr==NULL)
 					return ERROR;

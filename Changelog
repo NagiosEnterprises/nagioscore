@@ -14,6 +14,7 @@ Nagios 2.x Change Log
 * Fix for segfault in event broker module code
 * Fix for cfg_dir directive not working on Solaris
 * Fix for flap detection information not be retained across restarts
+* Patch to allow non-ASCII characters in notifications, etc.
 
 
 

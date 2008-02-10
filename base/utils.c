@@ -2,8 +2,8 @@
  *
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-28-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-10-2008
  *
  * License:
  *
@@ -4090,7 +4090,9 @@ char *clean_macro_chars(char *macro,int options){
 
 		for(y=0,x=0;x<len;x++){
 			
-			ch=(int)macro[x];
+			/*ch=(int)macro[x];*/
+			/* allows non-ASCII characters */
+			ch=macro[x] & 0xff;
 
 			/* illegal ASCII characters */
 			if(ch<32 || ch==127)

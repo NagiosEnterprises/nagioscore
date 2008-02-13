@@ -8317,6 +8317,16 @@ int xodtemplate_recombobulate_hostgroups(void){
 	char *temp_ptr=NULL;
 	char *new_members=NULL;
 
+#ifdef DEBUG
+	printf("** PRE-EXPANSION 1\n");
+	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup;temp_hostgroup=temp_hostgroup->next){
+		printf("HOSTGROUP [%s]\n",temp_hostgroup->hostgroup_name);
+		printf("H MEMBERS: %s\n",temp_hostgroup->members);
+		printf("G MEMBERS: %s\n",temp_hostgroup->hostgroup_members);
+		printf("\n");
+		}
+#endif
+
 	/* This should happen before we expand hostgroup members, to avoid duplicate host memberships 01/07/2006 EG */
 	/* process all hosts that have hostgroup directives */
 	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
@@ -8367,6 +8377,15 @@ int xodtemplate_recombobulate_hostgroups(void){
 		my_free(hostgroup_names);
 	        }
 
+#ifdef DEBUG
+	printf("** POST-EXPANSION 1\n");
+	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup;temp_hostgroup=temp_hostgroup->next){
+		printf("HOSTGROUP [%s]\n",temp_hostgroup->hostgroup_name);
+		printf("H MEMBERS: %s\n",temp_hostgroup->members);
+		printf("G MEMBERS: %s\n",temp_hostgroup->hostgroup_members);
+		printf("\n");
+		}
+#endif
 
 	/* expand members of all hostgroups - this could be done in xodtemplate_register_hostgroup(), but we can save the CGIs some work if we do it here */
 	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup;temp_hostgroup=temp_hostgroup->next){
@@ -8384,7 +8403,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 		/* add all members to the host group */
 		if(temp_memberlist==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand member hosts specified in hostgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand members specified in hostgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
 #endif
 			return ERROR;
 	                }
@@ -8405,6 +8424,16 @@ int xodtemplate_recombobulate_hostgroups(void){
 	                }
 		xodtemplate_free_memberlist(&temp_memberlist);
 	        }
+
+#ifdef DEBUG
+	printf("** POST-EXPANSION 2\n");
+	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup;temp_hostgroup=temp_hostgroup->next){
+		printf("HOSTGROUP [%s]\n",temp_hostgroup->hostgroup_name);
+		printf("H MEMBERS: %s\n",temp_hostgroup->members);
+		printf("G MEMBERS: %s\n",temp_hostgroup->hostgroup_members);
+		printf("\n");
+		}
+#endif
 
 	return OK;
         }

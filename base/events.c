@@ -2,8 +2,8 @@
  *
  * EVENTS.C - Timed event functions for Nagios
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-12-2008
  *
  * License:
  *
@@ -79,7 +79,7 @@ extern int      service_check_timeout;
 extern int      execute_service_checks;
 extern int      execute_host_checks;
 
-extern int      use_large_installation_tweaks;
+extern int      child_processes_fork_twice;
 
 extern int      time_change_threshold;
 
@@ -925,7 +925,7 @@ int event_execution_loop(void){
 		log_debug_info(DEBUGL_EVENTS,1,"Current/Max Service Checks: %d/%d\n",currently_running_service_checks,max_parallel_service_checks);
 
 		/* get rid of terminated child processes (zombies) */
-		if(use_large_installation_tweaks==TRUE){
+		if(child_processes_fork_twice==FALSE){
 			while((wait_result=waitpid(-1,NULL,WNOHANG))>0);
 			}
 

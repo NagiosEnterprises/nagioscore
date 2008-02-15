@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2008 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   02-02-2008
+ * Last Modified:   02-15-2008
  *
  * License:
  *
@@ -934,13 +934,15 @@ int read_status_file(void){
 				break;
 
 			case STATUS_PROGRAM_DATA:
-				active_host_checks_last_1min=active_scheduled_host_checks_last_1min+active_ondemand_host_checks_last_1min+active_cached_host_checks_last_1min;
-				active_host_checks_last_5min=active_scheduled_host_checks_last_5min+active_ondemand_host_checks_last_5min+active_cached_host_checks_last_5min;
-				active_host_checks_last_15min=active_scheduled_host_checks_last_15min+active_ondemand_host_checks_last_15min+active_cached_host_checks_last_15min;
+				/* 02-15-2008 exclude cached host checks from total (they are a subset of ondemand checks) */
+				active_host_checks_last_1min=active_scheduled_host_checks_last_1min+active_ondemand_host_checks_last_1min;
+				active_host_checks_last_5min=active_scheduled_host_checks_last_5min+active_ondemand_host_checks_last_5min;
+				active_host_checks_last_15min=active_scheduled_host_checks_last_15min+active_ondemand_host_checks_last_15min;
 
-				active_service_checks_last_1min=active_scheduled_service_checks_last_1min+active_ondemand_service_checks_last_1min+active_cached_service_checks_last_1min;
-				active_service_checks_last_5min=active_scheduled_service_checks_last_5min+active_ondemand_service_checks_last_5min+active_cached_service_checks_last_5min;
-				active_service_checks_last_15min=active_scheduled_service_checks_last_15min+active_ondemand_service_checks_last_15min+active_cached_service_checks_last_15min;
+				/* 02-15-2008 exclude cached service checks from total (they are a subset of ondemand checks) */
+				active_service_checks_last_1min=active_scheduled_service_checks_last_1min+active_ondemand_service_checks_last_1min;
+				active_service_checks_last_5min=active_scheduled_service_checks_last_5min+active_ondemand_service_checks_last_5min;
+				active_service_checks_last_15min=active_scheduled_service_checks_last_15min+active_ondemand_service_checks_last_15min;
 				break;
 
 			case STATUS_HOST_DATA:

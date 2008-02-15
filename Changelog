@@ -13,6 +13,7 @@ Nagios 3.x Change Log
 * Patch to allow non-ASCII characters in notifications, etc.
 * Fix for bug in on-demand service macros with blank/null host names
 * Fix for cleaning up zombie child processes if large installation tweaks disabled and fork twice option disabled
+* Fix for incorrect total checks counts in nagiostats
 
 
 

@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   01-29-2008
+ * Last Modified:   02-15-2008
  *
  * Description:
  *
@@ -686,7 +686,8 @@ int main(int argc, char **argv){
 					close_command_file();
 
 					/* cleanup embedded perl interpreter */
-					deinit_embedded_perl();
+					if(embedded_perl_initialized==TRUE)
+						deinit_embedded_perl();
 					}
 
 #ifdef USE_EVENT_BROKER
@@ -700,15 +701,17 @@ int main(int argc, char **argv){
 
 
 			/* initialize embedded Perl interpreter */
+			/* NOTE 02/15/08 embedded Perl must be initialized if compiled in, regardless of whether or not its enabled in the config file */
+			/* It compiled it, but not initialized, Nagios will segfault in readdir() calls, as libperl takes this function over */
 			if(embedded_perl_initialized==FALSE){
-				if(enable_embedded_perl==TRUE){
+/*				if(enable_embedded_perl==TRUE){*/
 #ifdef EMBEDDEDPERL
-					init_embedded_perl(env);
+				init_embedded_perl(env);
 #else
-					init_embedded_perl(NULL);
+				init_embedded_perl(NULL);
 #endif
-					embedded_perl_initialized=TRUE;
-					}
+				embedded_perl_initialized=TRUE;
+/*					}*/
 			        }
 
 		        /* handle signals (interrupts) */

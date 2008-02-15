@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-28-2008
+ * Last Modified: 02-15-2008
  *
  * License:
  *
@@ -1308,10 +1308,20 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 					}
 
 				/* else launch an async (parallel) check of the host */
-				else{
+				/* CHANGED 02/15/08 only if service changed state since service was last checked */
+				else if(state_change==TRUE){
 					/* use current host state as route result */
 					route_result=temp_host->current_state;
 					run_async_host_check_3x(temp_host,CHECK_OPTION_NONE,0.0,FALSE,FALSE,NULL,NULL);
+					}
+
+				/* ADDED 02/15/08 */
+				/* else assume same host state */
+				else{
+					route_result=temp_host->current_state;
+					log_debug_info(DEBUGL_CHECKS,1,"* Using last known host state: %d\n",temp_host->current_state);
+					update_check_stats(ACTIVE_ONDEMAND_HOST_CHECK_STATS,current_time);
+					update_check_stats(ACTIVE_CACHED_HOST_CHECK_STATS,current_time);
 					}
 				}
 			}

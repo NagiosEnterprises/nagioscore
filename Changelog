@@ -15,6 +15,7 @@ Nagios 3.x Change Log
 * Fix for cleaning up zombie child processes if large installation tweaks disabled and fork twice option disabled
 * Fix for incorrect total checks counts in nagiostats
 * Fix for segfault if embedded Perl support compiled in, but disabled by config file option
+* Smarter host check logic to reduce (uncached) on-demand host checks during "stable" service problems
 
 
 

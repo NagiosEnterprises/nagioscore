@@ -16,6 +16,7 @@ Nagios 3.x Change Log
 * Fix for incorrect total checks counts in nagiostats
 * Fix for segfault if embedded Perl support compiled in, but disabled by config file option
 * Smarter host check logic to reduce (uncached) on-demand host checks during "stable" service problems
+* Fix for recursive subgroup membership for host/service/contact groups
 
 
 

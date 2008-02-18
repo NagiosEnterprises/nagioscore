@@ -2,8 +2,8 @@
  *
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
- * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Copyright (c) 2000-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-17-2008
  *
  * License:
  *
@@ -308,6 +308,19 @@ int register_downtime(int type, unsigned long downtime_id){
 			schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,temp_downtime->start_time,FALSE,0,NULL,FALSE,(void *)new_downtime_id,NULL,0);
 			}
 		}
+
+#ifdef PROBABLY_NOT_NEEDED
+	/*** FLEXIBLE DOWNTIME SANITY CHECK - ADDED 02/17/2008 ****/
+
+	/* if host/service is in a non-OK/UP state right now, see if we should start flexible time immediately */
+	/* this is new logic added in 3.0rc3 */
+	if(temp_downtime->fixed==FALSE){
+		if(temp_downtime->type==HOST_DOWNTIME)
+			check_pending_flex_host_downtime(hst);
+		else
+			check_pending_flex_service_downtime(svc);
+		}
+#endif
 
 	return OK;
         }

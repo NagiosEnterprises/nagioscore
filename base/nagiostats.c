@@ -848,7 +848,7 @@ int read_config_file(void){
 	if(fp==NULL)
 		return ERROR;
 
-	/* read all lines in the status file */
+	/* read all lines from the main nagios config file */
 	while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
 
 		strip(temp_buffer);
@@ -934,15 +934,15 @@ int read_status_file(void){
 				break;
 
 			case STATUS_PROGRAM_DATA:
-				/* 02-15-2008 exclude cached host checks from total (they are a subset of ondemand checks) */
-				active_host_checks_last_1min=active_scheduled_host_checks_last_1min+active_ondemand_host_checks_last_1min;
-				active_host_checks_last_5min=active_scheduled_host_checks_last_5min+active_ondemand_host_checks_last_5min;
-				active_host_checks_last_15min=active_scheduled_host_checks_last_15min+active_ondemand_host_checks_last_15min;
+				/* 02-15-2008 subtract cached host checks from total (they were ondemand checks that never actually executed) */
+				active_host_checks_last_1min=active_scheduled_host_checks_last_1min+active_ondemand_host_checks_last_1min-active_cached_host_checks_last_1min;
+				active_host_checks_last_5min=active_scheduled_host_checks_last_5min+active_ondemand_host_checks_last_5min-active_cached_host_checks_last_5min;
+				active_host_checks_last_15min=active_scheduled_host_checks_last_15min+active_ondemand_host_checks_last_15min-active_cached_host_checks_last_15min;
 
-				/* 02-15-2008 exclude cached service checks from total (they are a subset of ondemand checks) */
-				active_service_checks_last_1min=active_scheduled_service_checks_last_1min+active_ondemand_service_checks_last_1min;
-				active_service_checks_last_5min=active_scheduled_service_checks_last_5min+active_ondemand_service_checks_last_5min;
-				active_service_checks_last_15min=active_scheduled_service_checks_last_15min+active_ondemand_service_checks_last_15min;
+				/* 02-15-2008 subtract cached service checks from total (they were ondemand checks that never actually executed) */
+				active_service_checks_last_1min=active_scheduled_service_checks_last_1min+active_ondemand_service_checks_last_1min-active_cached_service_checks_last_1min;
+				active_service_checks_last_5min=active_scheduled_service_checks_last_5min+active_ondemand_service_checks_last_5min-active_cached_service_checks_last_5min;
+				active_service_checks_last_15min=active_scheduled_service_checks_last_15min+active_ondemand_service_checks_last_15min-active_cached_service_checks_last_15min;
 				break;
 
 			case STATUS_HOST_DATA:

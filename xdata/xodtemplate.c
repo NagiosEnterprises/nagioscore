@@ -8089,6 +8089,11 @@ int xodtemplate_recombobulate_contactgroups(void){
 	        }
 
 
+	/* expand subgroup membership recursively */
+	for(temp_contactgroup=xodtemplate_contactgroup_list;temp_contactgroup;temp_contactgroup=temp_contactgroup->next)
+		xodtemplate_recombobulate_contactgroup_subgroups(temp_contactgroup,NULL);
+
+
 	/* expand members of all contactgroups - this could be done in xodtemplate_register_contactgroup(), but we can save the CGIs some work if we do it here */
 	for(temp_contactgroup=xodtemplate_contactgroup_list;temp_contactgroup;temp_contactgroup=temp_contactgroup->next){
 
@@ -8125,6 +8130,76 @@ int xodtemplate_recombobulate_contactgroups(void){
 
 	return OK;
         }
+
+
+
+int xodtemplate_recombobulate_contactgroup_subgroups(xodtemplate_contactgroup *temp_contactgroup, char **members){
+	xodtemplate_contactgroup *sub_group=NULL;
+	char *orig_cgmembers=NULL;
+	char *cgmembers=NULL;
+	char *newmembers=NULL;
+	char *buf=NULL;
+	char *ptr=NULL;
+
+	if(temp_contactgroup==NULL)
+		return ERROR;
+
+	/* resolve subgroup memberships first */
+	if(temp_contactgroup->contactgroup_members!=NULL){
+
+		/* save members, null pointer so we don't recurse into infinite hell */
+		orig_cgmembers=temp_contactgroup->contactgroup_members;
+		temp_contactgroup->contactgroup_members=NULL;
+
+		/* make new working copy of members */
+		cgmembers=(char *)strdup(orig_cgmembers);
+
+		ptr=cgmembers;
+		while((buf=ptr)!=NULL){
+
+			/* get next member for next run*/
+			ptr=strchr(ptr,',');
+			if(ptr){
+				ptr[0]='\x0';
+				ptr++;
+				}
+
+			strip(buf);
+
+			/* find subgroup and recurse */
+			if((sub_group=xodtemplate_find_real_contactgroup(buf))==NULL){
+#ifdef NSCORE
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find member group '%s' specified in contactgroup (config file '%s', starting on line %d)\n",buf,xodtemplate_config_file_name(temp_contactgroup->_config_file),temp_contactgroup->_start_line);
+#endif
+				return ERROR;
+				}
+			xodtemplate_recombobulate_contactgroup_subgroups(sub_group,&newmembers);
+
+			/* add new (sub) members */
+			if(newmembers!=NULL){
+				if(temp_contactgroup->members==NULL)
+					temp_contactgroup->members=(char *)strdup(newmembers);
+				else if((temp_contactgroup->members=realloc(temp_contactgroup->members,strlen(temp_contactgroup->members)+strlen(newmembers)+2))){
+					strcat(temp_contactgroup->members,",");
+					strcat(temp_contactgroup->members,newmembers);
+					}
+				}
+			}
+
+		/* free memory */
+		my_free(cgmembers);
+
+		/* restore group members */
+		temp_contactgroup->contactgroup_members=orig_cgmembers;
+		}
+
+	/* return contact members */
+	if(members!=NULL)
+		*members=temp_contactgroup->members;
+
+	return OK;
+	}
+
 
 
 /* NOTE: this was originally implemented in the late alpha cycle of 3.0 development, but was removed in 3.0b2, as flattening */
@@ -8387,6 +8462,10 @@ int xodtemplate_recombobulate_hostgroups(void){
 		}
 #endif
 
+	/* expand subgroup membership recursively */
+	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup;temp_hostgroup=temp_hostgroup->next)
+		xodtemplate_recombobulate_hostgroup_subgroups(temp_hostgroup,NULL);
+
 	/* expand members of all hostgroups - this could be done in xodtemplate_register_hostgroup(), but we can save the CGIs some work if we do it here */
 	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup;temp_hostgroup=temp_hostgroup->next){
 
@@ -8398,7 +8477,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 			continue;
 
 		/* get list of hosts in the hostgroup */
-		temp_memberlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostgroup->hostgroup_members,temp_hostgroup->members,temp_hostgroup->_config_file,temp_hostgroup->_start_line);
+		temp_memberlist=xodtemplate_expand_hostgroups_and_hosts(NULL,temp_hostgroup->members,temp_hostgroup->_config_file,temp_hostgroup->_start_line);
 
 		/* add all members to the host group */
 		if(temp_memberlist==NULL){
@@ -8437,6 +8516,77 @@ int xodtemplate_recombobulate_hostgroups(void){
 
 	return OK;
         }
+
+
+
+
+int xodtemplate_recombobulate_hostgroup_subgroups(xodtemplate_hostgroup *temp_hostgroup, char **members){
+	xodtemplate_hostgroup *sub_group=NULL;
+	char *orig_hgmembers=NULL;
+	char *hgmembers=NULL;
+	char *newmembers=NULL;
+	char *buf=NULL;
+	char *ptr=NULL;
+
+	if(temp_hostgroup==NULL)
+		return ERROR;
+
+	/* resolve subgroup memberships first */
+	if(temp_hostgroup->hostgroup_members!=NULL){
+
+		/* save members, null pointer so we don't recurse into infinite hell */
+		orig_hgmembers=temp_hostgroup->hostgroup_members;
+		temp_hostgroup->hostgroup_members=NULL;
+
+		/* make new working copy of members */
+		hgmembers=(char *)strdup(orig_hgmembers);
+
+		ptr=hgmembers;
+		while((buf=ptr)!=NULL){
+
+			/* get next member for next run*/
+			ptr=strchr(ptr,',');
+			if(ptr){
+				ptr[0]='\x0';
+				ptr++;
+				}
+
+			strip(buf);
+
+			/* find subgroup and recurse */
+			if((sub_group=xodtemplate_find_real_hostgroup(buf))==NULL){
+#ifdef NSCORE
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find member group '%s' specified in hostgroup (config file '%s', starting on line %d)\n",buf,xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
+#endif
+				return ERROR;
+				}
+			xodtemplate_recombobulate_hostgroup_subgroups(sub_group,&newmembers);
+
+			/* add new (sub) members */
+			if(newmembers!=NULL){
+				if(temp_hostgroup->members==NULL)
+					temp_hostgroup->members=(char *)strdup(newmembers);
+				else if((temp_hostgroup->members=realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(newmembers)+2))){
+					strcat(temp_hostgroup->members,",");
+					strcat(temp_hostgroup->members,newmembers);
+					}
+				}
+			}
+
+		/* free memory */
+		my_free(hgmembers);
+
+		/* restore group members */
+		temp_hostgroup->hostgroup_members=orig_hgmembers;
+		}
+
+	/* return host members */
+	if(members!=NULL)
+		*members=temp_hostgroup->members;
+
+	return OK;
+	}
+
 
 
 /* recombobulates servicegroup definitions */
@@ -8512,6 +8662,10 @@ int xodtemplate_recombobulate_servicegroups(void){
 		my_free(servicegroup_names);
 	        }
 
+
+	/* expand subgroup membership recursively */
+	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup;temp_servicegroup=temp_servicegroup->next)
+		xodtemplate_recombobulate_servicegroup_subgroups(temp_servicegroup,NULL);
 
 	/* expand members of all servicegroups - this could be done in xodtemplate_register_servicegroup(), but we can save the CGIs some work if we do it here */
 	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup;temp_servicegroup=temp_servicegroup->next){
@@ -8603,6 +8757,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 		        }
 	        }
 
+#ifdef REMOVED_02172008
 	/* expand members of (sub)servicegroups */
 	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup;temp_servicegroup=temp_servicegroup->next){
 
@@ -8649,9 +8804,80 @@ int xodtemplate_recombobulate_servicegroups(void){
 
 		xodtemplate_free_memberlist(&temp_memberlist);
 	        }
+#endif
 
 	return OK;
         }
+
+
+
+
+int xodtemplate_recombobulate_servicegroup_subgroups(xodtemplate_servicegroup *temp_servicegroup, char **members){
+	xodtemplate_servicegroup *sub_group=NULL;
+	char *orig_sgmembers=NULL;
+	char *sgmembers=NULL;
+	char *newmembers=NULL;
+	char *buf=NULL;
+	char *ptr=NULL;
+
+	if(temp_servicegroup==NULL)
+		return ERROR;
+
+	/* resolve subgroup memberships first */
+	if(temp_servicegroup->servicegroup_members!=NULL){
+
+		/* save members, null pointer so we don't recurse into infinite hell */
+		orig_sgmembers=temp_servicegroup->servicegroup_members;
+		temp_servicegroup->servicegroup_members=NULL;
+
+		/* make new working copy of members */
+		sgmembers=(char *)strdup(orig_sgmembers);
+
+		ptr=sgmembers;
+		while((buf=ptr)!=NULL){
+
+			/* get next member for next run*/
+			ptr=strchr(ptr,',');
+			if(ptr){
+				ptr[0]='\x0';
+				ptr++;
+				}
+
+			strip(buf);
+
+			/* find subgroup and recurse */
+			if((sub_group=xodtemplate_find_real_servicegroup(buf))==NULL){
+#ifdef NSCORE
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find member group '%s' specified in servicegroup (config file '%s', starting on line %d)\n",buf,xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
+#endif
+				return ERROR;
+				}
+			xodtemplate_recombobulate_servicegroup_subgroups(sub_group,&newmembers);
+
+			/* add new (sub) members */
+			if(newmembers!=NULL){
+				if(temp_servicegroup->members==NULL)
+					temp_servicegroup->members=(char *)strdup(newmembers);
+				else if((temp_servicegroup->members=realloc(temp_servicegroup->members,strlen(temp_servicegroup->members)+strlen(newmembers)+2))){
+					strcat(temp_servicegroup->members,",");
+					strcat(temp_servicegroup->members,newmembers);
+					}
+				}
+			}
+
+		/* free memory */
+		my_free(sgmembers);
+
+		/* restore group members */
+		temp_servicegroup->servicegroup_members=orig_sgmembers;
+		}
+
+	/* return service members */
+	if(members!=NULL)
+		*members=temp_servicegroup->members;
+
+	return OK;
+	}
 
 #endif
 

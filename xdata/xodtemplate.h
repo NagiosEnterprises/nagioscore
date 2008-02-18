@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
- * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-10-2007
+ * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-17-2008
  *
  * License:
  *
@@ -835,9 +835,12 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *,char *);
 int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *,char *);
 
 int xodtemplate_recombobulate_contactgroups(void);
+int xodtemplate_recombobulate_contactgroup_subgroups(xodtemplate_contactgroup *,char **);
 int xodtemplate_recombobulate_object_contacts(void);
 int xodtemplate_recombobulate_hostgroups(void);
+int xodtemplate_recombobulate_hostgroup_subgroups(xodtemplate_hostgroup *, char **);
 int xodtemplate_recombobulate_servicegroups(void);
+int xodtemplate_recombobulate_servicegroup_subgroups(xodtemplate_servicegroup *,char **);
 
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_resolve_command(xodtemplate_command *);

@@ -187,11 +187,19 @@ int services_critical_unacknowledged=0;
 int services_critical=0;
 
 
+/*efine DEBUG 1*/
 
 int main(void){
 	int result=OK;
 	char *sound=NULL;
+#ifdef DEBUG
+	time_t t1,t2,t3,t4,t5,t6,t7,t8,t9;
+#endif
 
+
+#ifdef DEBUG
+	time(&t1);
+#endif
 
 	/* get the CGI variables passed in the URL */
 	process_cgivars();
@@ -208,6 +216,10 @@ int main(void){
 		return ERROR;
 	        }
 
+#ifdef DEBUG
+	time(&t2);
+#endif
+
 	/* read the main configuration file */
 	result=read_main_config_file(main_config_file);
 	if(result==ERROR){
@@ -216,6 +228,10 @@ int main(void){
 		document_footer();
 		return ERROR;
 	        }
+
+#ifdef DEBUG
+	time(&t3);
+#endif
 
 	/* read all object configuration data */
 	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
@@ -226,6 +242,10 @@ int main(void){
 		return ERROR;
                 }
 
+#ifdef DEBUG
+	time(&t4);
+#endif
+
 	/* read all status data */
 	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
 	if(result==ERROR){
@@ -235,6 +255,10 @@ int main(void){
 		free_memory();
 		return ERROR;
                 }
+
+#ifdef DEBUG
+	time(&t5);
+#endif
 
 	document_header(TRUE);
 
@@ -268,12 +292,24 @@ int main(void){
 	        }
 
 
+#ifdef DEBUG
+	time(&t6);
+#endif
+
 	/* analyze current host and service status data for tac overview */
 	analyze_status_data();
+
+#ifdef DEBUG
+	time(&t7);
+#endif
 
 	/* find all hosts that are causing network outages */
 	find_hosts_causing_outages();
 
+
+#ifdef DEBUG
+	time(&t8);
+#endif
 
         /* embed sound tag if necessary... */
 	if(hosts_unreachable_unacknowledged > 0 && host_unreachable_sound!=NULL)
@@ -298,6 +334,10 @@ int main(void){
 	/**** display main tac screen ****/
 	display_tac_overview();
 
+#ifdef DEBUG
+	time(&t9);
+#endif
+
 	document_footer();
 
 	/* free memory allocated to the host outage list */
@@ -305,6 +345,18 @@ int main(void){
 
 	/* free allocated memory */
 	free_memory();
+
+#ifdef DEBUG
+	printf("T1: %lu\n",(unsigned long)t1);
+	printf("T2: %lu\n",(unsigned long)t2);
+	printf("T3: %lu\n",(unsigned long)t3);
+	printf("T4: %lu\n",(unsigned long)t4);
+	printf("T5: %lu\n",(unsigned long)t5);
+	printf("T6: %lu\n",(unsigned long)t6);
+	printf("T7: %lu\n",(unsigned long)t7);
+	printf("T8: %lu\n",(unsigned long)t8);
+	printf("T9: %lu\n",(unsigned long)t9);
+#endif
 	
 	return OK;
         }

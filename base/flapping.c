@@ -2,8 +2,8 @@
  *
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
- * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-20-2008
  *
  * License:
  *
@@ -66,6 +66,8 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 	double high_threshold=0.0;
 	double low_curve_value=0.75;
 	double high_curve_value=1.25;
+
+	/* large install tweaks skips all flap detection logic - including state change calculation */
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_for_service_flapping()\n");
@@ -140,6 +142,14 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 	log_debug_info(DEBUGL_FLAPPING,2,"LFT=%.2f, HFT=%.2f, CPC=%.2f, PSC=%.2f%%\n",low_threshold,high_threshold,curved_percent_change,curved_percent_change);
 
 
+	/* don't do anything if we don't have flap detection enabled on a program-wide basis */
+	if(enable_flap_detection==FALSE)
+		return;
+
+	/* don't do anything if we don't have flap detection enabled for this service */
+	if(svc->flap_detection_enabled==FALSE)
+		return;
+
 	/* are we flapping, undecided, or what?... */
 
 	/* we're undecided, so don't change the current flap state */
@@ -155,16 +165,6 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 		is_flapping=TRUE;
 
 	log_debug_info(DEBUGL_FLAPPING,1,"Service %s flapping (%.2f%% state change).\n",(is_flapping==TRUE)?"is":"is not",curved_percent_change);
-
-	/* so what should we do (if anything)? */
-
-	/* don't do anything if we don't have flap detection enabled on a program-wide basis */
-	if(enable_flap_detection==FALSE)
-		return;
-
-	/* don't do anything if we don't have flap detection enabled for this service */
-	if(svc->flap_detection_enabled==FALSE)
-		return;
 
 	/* did the service just start flapping? */
 	if(is_flapping==TRUE && svc->is_flapping==FALSE)
@@ -277,6 +277,14 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 	log_debug_info(DEBUGL_FLAPPING,2,"LFT=%.2f, HFT=%.2f, CPC=%.2f, PSC=%.2f%%\n",low_threshold,high_threshold,curved_percent_change,curved_percent_change);
 
 
+	/* don't do anything if we don't have flap detection enabled on a program-wide basis */
+	if(enable_flap_detection==FALSE)
+		return;
+
+	/* don't do anything if we don't have flap detection enabled for this host */
+	if(hst->flap_detection_enabled==FALSE)
+		return;
+
 	/* are we flapping, undecided, or what?... */
 
 	/* we're undecided, so don't change the current flap state */
@@ -292,16 +300,6 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 		is_flapping=TRUE;
 
 	log_debug_info(DEBUGL_FLAPPING,1,"Host %s flapping (%.2f%% state change).\n",(is_flapping==TRUE)?"is":"is not",curved_percent_change);
-
-	/* so what should we do (if anything)? */
-
-	/* don't do anything if we don't have flap detection enabled on a program-wide basis */
-	if(enable_flap_detection==FALSE)
-		return;
-
-	/* don't do anything if we don't have flap detection enabled for this host */
-	if(hst->flap_detection_enabled==FALSE)
-		return;
 
 	/* did the host just start flapping? */
 	if(is_flapping==TRUE && hst->is_flapping==FALSE)

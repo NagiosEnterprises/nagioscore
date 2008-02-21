@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-03-2008
+ * Last Modified: 02-20-2008
  *
  * License:
  *
@@ -2938,6 +2938,7 @@ void strip(char *buffer){
 	z=x;
 
 	/* strip beginning of string (by shifting) */
+	/* NOTE: this is very expensive to do, so avoid it whenever possible */
 	for(x=0;;x++){
 		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
 			continue;
@@ -3227,6 +3228,9 @@ int my_rename(char *source, char *dest){
 		/* an error occurred because the source and dest files are on different filesystems */
 		if(errno==EXDEV){
 
+			/* unlink destination file first (not doing so causes problems on network file systems like CIFS) */
+			unlink(dest);
+
 			/* open destination file for writing */
 			if((dest_fd=open(dest,O_WRONLY|O_TRUNC|O_CREAT|O_APPEND,0644))>0){
 
@@ -3251,6 +3255,11 @@ int my_rename(char *source, char *dest){
 					logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to move file '%s' to '%s': %s\n",source,dest,strerror(errno));
 					return rename_result;
 					}
+				}
+			else{
+				close(dest_fd);
+				logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to open file '%s' for writing: %s\n",dest,strerror(errno));
+				return rename_result;
 				}
 			}
 

@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2008 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   02-15-2008
+ * Last Modified:   02-19-2008
  *
  * License:
  *
@@ -907,25 +907,28 @@ int read_status_file(void){
 	/* read all lines in the status file */
 	while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
 
-		strip(temp_buffer);
-
 		/* skip blank lines and comments */
 		if(temp_buffer[0]=='#' || temp_buffer[0]=='\x0')
 			continue;
 
-		else if(!strcmp(temp_buffer,"info {"))
-			data_type=STATUS_INFO_DATA;
-		else if(!strcmp(temp_buffer,"programstatus {"))
-			data_type=STATUS_PROGRAM_DATA;
+		strip(temp_buffer);
+
+		/* start of definition */
+		if(!strcmp(temp_buffer,"servicestatus {")){
+			data_type=STATUS_SERVICE_DATA;
+			status_service_entries++;
+		        }
 		else if(!strcmp(temp_buffer,"hoststatus {")){
 			data_type=STATUS_HOST_DATA;
 			status_host_entries++;
 		        }
-		else if(!strcmp(temp_buffer,"servicestatus {")){
-			data_type=STATUS_SERVICE_DATA;
-			status_service_entries++;
-		        }
+		else if(!strcmp(temp_buffer,"info {"))
+			data_type=STATUS_INFO_DATA;
+		else if(!strcmp(temp_buffer,"programstatus {"))
+			data_type=STATUS_PROGRAM_DATA;
 
+
+		/* end of definition */
 		else if(!strcmp(temp_buffer,"}")){
 
 			switch(data_type){
@@ -934,15 +937,15 @@ int read_status_file(void){
 				break;
 
 			case STATUS_PROGRAM_DATA:
-				/* 02-15-2008 subtract cached host checks from total (they were ondemand checks that never actually executed) */
-				active_host_checks_last_1min=active_scheduled_host_checks_last_1min+active_ondemand_host_checks_last_1min-active_cached_host_checks_last_1min;
-				active_host_checks_last_5min=active_scheduled_host_checks_last_5min+active_ondemand_host_checks_last_5min-active_cached_host_checks_last_5min;
-				active_host_checks_last_15min=active_scheduled_host_checks_last_15min+active_ondemand_host_checks_last_15min-active_cached_host_checks_last_15min;
+				/* 02-15-2008 exclude cached host checks from total (they were ondemand checks that never actually executed) */
+				active_host_checks_last_1min=active_scheduled_host_checks_last_1min+active_ondemand_host_checks_last_1min;
+				active_host_checks_last_5min=active_scheduled_host_checks_last_5min+active_ondemand_host_checks_last_5min;
+				active_host_checks_last_15min=active_scheduled_host_checks_last_15min+active_ondemand_host_checks_last_15min;
 
-				/* 02-15-2008 subtract cached service checks from total (they were ondemand checks that never actually executed) */
-				active_service_checks_last_1min=active_scheduled_service_checks_last_1min+active_ondemand_service_checks_last_1min-active_cached_service_checks_last_1min;
-				active_service_checks_last_5min=active_scheduled_service_checks_last_5min+active_ondemand_service_checks_last_5min-active_cached_service_checks_last_5min;
-				active_service_checks_last_15min=active_scheduled_service_checks_last_15min+active_ondemand_service_checks_last_15min-active_cached_service_checks_last_15min;
+				/* 02-15-2008 exclude cached service checks from total (they were ondemand checks that never actually executed) */
+				active_service_checks_last_1min=active_scheduled_service_checks_last_1min+active_ondemand_service_checks_last_1min;
+				active_service_checks_last_5min=active_scheduled_service_checks_last_5min+active_ondemand_service_checks_last_5min;
+				active_service_checks_last_15min=active_scheduled_service_checks_last_15min+active_ondemand_service_checks_last_15min;
 				break;
 
 			case STATUS_HOST_DATA:
@@ -1170,6 +1173,8 @@ int read_status_file(void){
 			should_be_scheduled=FALSE;
 		        }
 
+
+		/* inside definition */
 		else if(data_type!=STATUS_NO_DATA){
 
 			var=strtok(temp_buffer,"=");

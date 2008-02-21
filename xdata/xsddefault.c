@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
- * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-08-2007
+ * Copyright (c) 2000-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 12-20-2008
  *
  * License:
  *
@@ -453,6 +453,7 @@ int xsddefault_save_status_data(void){
 
 		fprintf(fp,"hoststatus {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
+
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_host->modified_attributes);
 		fprintf(fp,"\tcheck_command=%s\n",(temp_host->host_check_command==NULL)?"":temp_host->host_check_command);
 		fprintf(fp,"\tcheck_period=%s\n",(temp_host->check_period==NULL)?"":temp_host->check_period);
@@ -460,6 +461,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tcheck_interval=%f\n",temp_host->check_interval);
 		fprintf(fp,"\tretry_interval=%f\n",temp_host->retry_interval);
 		fprintf(fp,"\tevent_handler=%s\n",(temp_host->event_handler==NULL)?"":temp_host->event_handler);
+
 		fprintf(fp,"\thas_been_checked=%d\n",temp_host->has_been_checked);
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_host->should_be_scheduled);
 		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_host->execution_time);
@@ -525,6 +527,7 @@ int xsddefault_save_status_data(void){
 
 		fprintf(fp,"servicestatus {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_service->host_name);
+
 		fprintf(fp,"\tservice_description=%s\n",temp_service->description);
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_service->modified_attributes);
 		fprintf(fp,"\tcheck_command=%s\n",(temp_service->service_check_command==NULL)?"":temp_service->service_check_command);
@@ -533,6 +536,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tcheck_interval=%f\n",temp_service->check_interval);
 		fprintf(fp,"\tretry_interval=%f\n",temp_service->retry_interval);
 		fprintf(fp,"\tevent_handler=%s\n",(temp_service->event_handler==NULL)?"":temp_service->event_handler);
+
 		fprintf(fp,"\thas_been_checked=%d\n",temp_service->has_been_checked);
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_service->should_be_scheduled);
 		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_service->execution_time);
@@ -599,11 +603,13 @@ int xsddefault_save_status_data(void){
 
 		fprintf(fp,"contactstatus {\n");
 		fprintf(fp,"\tcontact_name=%s\n",temp_contact->name);
+
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_contact->modified_attributes);
 		fprintf(fp,"\tmodified_host_attributes=%lu\n",temp_contact->modified_host_attributes);
 		fprintf(fp,"\tmodified_service_attributes=%lu\n",temp_contact->modified_service_attributes);
 		fprintf(fp,"\thost_notification_period=%s\n",(temp_contact->host_notification_period==NULL)?"":temp_contact->host_notification_period);
 		fprintf(fp,"\tservice_notification_period=%s\n",(temp_contact->service_notification_period==NULL)?"":temp_contact->service_notification_period);
+
 		fprintf(fp,"\tlast_host_notification=%lu\n",temp_contact->last_host_notification);
 		fprintf(fp,"\tlast_service_notification=%lu\n",temp_contact->last_service_notification);
 		fprintf(fp,"\thost_notifications_enabled=%d\n",temp_contact->host_notifications_enabled);

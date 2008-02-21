@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-24-2008
+ * Last Modified: 02-20-2008
  *
  * License:
  *
@@ -89,6 +89,7 @@ extern int      verify_object_relationships;
 extern int      verify_circular_paths;
 extern int      test_scheduling;
 extern int      precache_objects;
+extern int      use_precached_objects;
 
 extern double   sleep_time;
 extern int      interval_length;
@@ -1866,10 +1867,12 @@ int pre_flight_object_check(int *w, int *e){
 		        }
 
 		/* check for illegal characters in service description */
-		if(contains_illegal_object_chars(temp_service->description)==TRUE){
-			logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The description string for service '%s' on host '%s' contains one or more illegal characters.",temp_service->description,temp_service->host_name);
-			errors++;
-		        }
+		if(use_precached_objects==FALSE){
+			if(contains_illegal_object_chars(temp_service->description)==TRUE){
+				logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The description string for service '%s' on host '%s' contains one or more illegal characters.",temp_service->description,temp_service->host_name);
+				errors++;
+				}
+			}
 	        }
 
 	if(verify_config==TRUE)
@@ -1893,20 +1896,22 @@ int pre_flight_object_check(int *w, int *e){
 		found=FALSE;
 
 		/* make sure each host has at least one service associated with it */
-		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-			if(!strcmp(temp_service->host_name,temp_host->name)){
-				found=TRUE;
-				break;
-			        }
-			}
+		if(use_precached_objects==FALSE){
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+				if(!strcmp(temp_service->host_name,temp_host->name)){
+					found=TRUE;
+					break;
+					}
+				}
 
-		/* we couldn't find a service associated with this host! */
-		if(found==FALSE){
-			logit(NSLOG_VERIFICATION_WARNING,TRUE,"Warning: Host '%s' has no services associated with it!",temp_host->name);
-			warnings++;
-			}
+			/* we couldn't find a service associated with this host! */
+			if(found==FALSE){
+				logit(NSLOG_VERIFICATION_WARNING,TRUE,"Warning: Host '%s' has no services associated with it!",temp_host->name);
+				warnings++;
+				}
 
-		found=FALSE;
+			found=FALSE;
+			}
 
 		/* check the event handler command */
 		if(temp_host->event_handler!=NULL){
@@ -2030,10 +2035,12 @@ int pre_flight_object_check(int *w, int *e){
 		        }
 
 		/* check for illegal characters in host name */
-		if(contains_illegal_object_chars(temp_host->name)==TRUE){
-			logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of host '%s' contains one or more illegal characters.",temp_host->name);
-			errors++;
-		        }
+		if(use_precached_objects==FALSE){
+			if(contains_illegal_object_chars(temp_host->name)==TRUE){
+				logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of host '%s' contains one or more illegal characters.",temp_host->name);
+				errors++;
+				}
+			}
 	        }
 
 
@@ -2066,10 +2073,12 @@ int pre_flight_object_check(int *w, int *e){
 		        }
 
 		/* check for illegal characters in hostgroup name */
-		if(contains_illegal_object_chars(temp_hostgroup->group_name)==TRUE){
-			logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of hostgroup '%s' contains one or more illegal characters.",temp_hostgroup->group_name);
-			errors++;
-		        }
+		if(use_precached_objects==FALSE){
+			if(contains_illegal_object_chars(temp_hostgroup->group_name)==TRUE){
+				logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of hostgroup '%s' contains one or more illegal characters.",temp_hostgroup->group_name);
+				errors++;
+				}
+			}
 		}
 
 	if(verify_config==TRUE)
@@ -2101,10 +2110,12 @@ int pre_flight_object_check(int *w, int *e){
 		        }
 
 		/* check for illegal characters in servicegroup name */
-		if(contains_illegal_object_chars(temp_servicegroup->group_name)==TRUE){
-			logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of servicegroup '%s' contains one or more illegal characters.",temp_servicegroup->group_name);
-			errors++;
-		        }
+		if(use_precached_objects==FALSE){
+			if(contains_illegal_object_chars(temp_servicegroup->group_name)==TRUE){
+				logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of servicegroup '%s' contains one or more illegal characters.",temp_servicegroup->group_name);
+				errors++;
+				}
+			}
 		}
 
 	if(verify_config==TRUE)
@@ -2220,10 +2231,12 @@ int pre_flight_object_check(int *w, int *e){
 		        }
 
 		/* check for illegal characters in contact name */
-		if(contains_illegal_object_chars(temp_contact->name)==TRUE){
-			logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of contact '%s' contains one or more illegal characters.",temp_contact->name);
-			errors++;
-		        }
+		if(use_precached_objects==FALSE){
+			if(contains_illegal_object_chars(temp_contact->name)==TRUE){
+				logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of contact '%s' contains one or more illegal characters.",temp_contact->name);
+				errors++;
+				}
+			}
 	        }
 
 	if(verify_config==TRUE)
@@ -2258,10 +2271,12 @@ int pre_flight_object_check(int *w, int *e){
 		        }
 
 		/* check for illegal characters in contactgroup name */
-		if(contains_illegal_object_chars(temp_contactgroup->group_name)==TRUE){
-			logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of contact group '%s' contains one or more illegal characters.",temp_contactgroup->group_name);
-			errors++;
-		        }
+		if(use_precached_objects==FALSE){
+			if(contains_illegal_object_chars(temp_contactgroup->group_name)==TRUE){
+				logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of contact group '%s' contains one or more illegal characters.",temp_contactgroup->group_name);
+				errors++;
+				}
+			}
 		}
 
 	if(verify_config==TRUE)
@@ -2510,10 +2525,12 @@ int pre_flight_object_check(int *w, int *e){
 	for(temp_command=command_list,total_objects=0;temp_command!=NULL;temp_command=temp_command->next,total_objects++){
 
 		/* check for illegal characters in command name */
-		if(contains_illegal_object_chars(temp_command->name)==TRUE){
-			logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of command '%s' contains one or more illegal characters.",temp_command->name);
-			errors++;
-		        }
+		if(use_precached_objects==FALSE){
+			if(contains_illegal_object_chars(temp_command->name)==TRUE){
+				logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of command '%s' contains one or more illegal characters.",temp_command->name);
+				errors++;
+				}
+			}
 	        }
 
 	if(verify_config==TRUE)
@@ -2530,10 +2547,12 @@ int pre_flight_object_check(int *w, int *e){
 	for(temp_timeperiod=timeperiod_list,total_objects=0;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next,total_objects++){
 
 		/* check for illegal characters in timeperiod name */
-		if(contains_illegal_object_chars(temp_timeperiod->name)==TRUE){
-			logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of time period '%s' contains one or more illegal characters.",temp_timeperiod->name);
-			errors++;
-		        }
+		if(use_precached_objects==FALSE){
+			if(contains_illegal_object_chars(temp_timeperiod->name)==TRUE){
+				logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The name of time period '%s' contains one or more illegal characters.",temp_timeperiod->name);
+				errors++;
+				}
+			}
 
 		/* check for valid timeperiod names in exclusion list */
 		for(temp_timeperiodexclusion=temp_timeperiod->exclusions;temp_timeperiodexclusion!=NULL;temp_timeperiodexclusion=temp_timeperiodexclusion->next){

@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-03-2008
+ * Last Modified: 02-18-2008
  *
  * License:
  *
@@ -2105,7 +2105,6 @@ void object_data_error(void){
 
 	printf("<LI>Verify configuration options using the <b>-v</b> command-line option to check for errors.\n");
 	printf("<LI>Check the Nagios log file for messages relating to startup or status data errors.\n");
-	printf("<LI>Make sure you've compiled the main program and the CGIs to use the same object data storage options (i.e. default text file or template-based file).\n");
 
 	printf("</OL>\n");
 	printf("</P>\n");
@@ -2138,7 +2137,6 @@ void status_data_error(void){
 
 	printf("<LI>Check the Nagios log file for messages relating to startup or status data errors.\n");
 	printf("<LI>Always verify configuration options using the <b>-v</b> command-line option before starting or restarting Nagios!\n");
-	printf("<LI>Make sure you've compiled the main program and the CGIs to use the same status data storage options (i.e. text file or database).  If the main program is storing status data in a text file and the CGIs are trying to read status data from a database, you'll have problems.\n");
 
 	printf("</OL>\n");
 	printf("</P>\n");

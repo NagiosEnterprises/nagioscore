@@ -17,6 +17,9 @@ Nagios 3.x Change Log
 * Fix for segfault if embedded Perl support compiled in, but disabled by config file option
 * Smarter host check logic to reduce (uncached) on-demand host checks during "stable" service problems
 * Fix for recursive subgroup membership for host/service/contact groups
+* Fix for renaming/moving files on network file systems
+* New flap detection startup logic speedups when large installations tweaks enabled
+* Speed improvements during startup routines when using precached config
 
 
 

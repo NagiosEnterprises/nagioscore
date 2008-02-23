@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-12-2007
+ * Last Modified: 02-23-2008
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -663,6 +663,7 @@ int compare_strings(char *,char *);                     /* compares two strings 
 char *escape_newlines(char *);
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *,char *);                           /* renames a file - works across filesystems */
+int my_fcopy(char *,char *);                            /* copies a file - works across filesystems */
 int get_raw_command_line(command *,char *,char **,int);    	/* given a raw command line, determine the actual command to run */
 int check_time_against_period(time_t,timeperiod *);	/* check to see if a specific time is covered by a time period */
 int is_daterange_single_day(daterange *);

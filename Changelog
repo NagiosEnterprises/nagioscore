@@ -20,6 +20,8 @@ Nagios 3.x Change Log
 * Fix for renaming/moving files on network file systems
 * New flap detection startup logic speedups when large installations tweaks enabled
 * Speed improvements during startup routines when using precached config
+* Speed improvements in reading retention data during startup
+* Safer loading mechanism for NEB modules to prevent segfaults in Nagios
 
 
 

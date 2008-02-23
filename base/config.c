@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-20-2008
+ * Last Modified: 02-21-2008
  *
  * License:
  *
@@ -1896,7 +1896,9 @@ int pre_flight_object_check(int *w, int *e){
 		found=FALSE;
 
 		/* make sure each host has at least one service associated with it */
-		if(use_precached_objects==FALSE){
+		/* 02/21/08 NOTE: this is extremely inefficient */
+		if(use_precached_objects==FALSE && use_large_installation_tweaks==FALSE){
+
 			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 				if(!strcmp(temp_service->host_name,temp_host->name)){
 					found=TRUE;

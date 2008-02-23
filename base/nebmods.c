@@ -3,7 +3,7 @@
  * NEBMODS.C - Event Broker Module Functions
  *
  * Copyright (c) 2002-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-29-2008
+ * Last Modified: 02-23-2008
  *
  * License:
  *
@@ -34,6 +34,8 @@
 
 nebmodule *neb_module_list=NULL;
 nebcallback **neb_callback_list=NULL;
+
+extern char     *temp_path;
 
 
 /*#define DEBUG*/
@@ -164,11 +166,16 @@ int neb_load_all_modules(void){
 int neb_load_module(nebmodule *mod){
 	int (*initfunc)(int,char *,void *);
 	int *module_version_ptr=NULL;
+	char *output_file=NULL;
+	int dest_fd=-1;
+	int source_fd=-1;
+	char buffer[MAX_INPUT_BUFFER]={0};
+	int bytes_read=0;
 	int result=OK;
 
 	if(mod==NULL || mod->filename==NULL)
 		return ERROR;
-
+	
 	/* don't reopen the module */
 	if(mod->is_currently_loaded==TRUE)
 		return OK;
@@ -177,11 +184,43 @@ int neb_load_module(nebmodule *mod){
 	if(mod->should_be_loaded==FALSE)
 		return ERROR;
 
-	/* load the module */
+	/********** 
+	   Using dlopen() is great, but a real danger as-is.  The problem with loaded modules is that if you overwrite the original file (e.g. using 'mv'),
+	   you do not alter the inode of the original file.  Since the original file/module is memory-mapped in some fashion, Nagios will segfault the next
+	   time an event broker call is directed to one of the module's callback functions.  This is extremely problematic when it comes to upgrading NEB
+	   modules while Nagios is running.  A workaround is to (1) 'mv' the original/loaded module file to another name (on the same filesystem)
+	   and (2) copy the new module file to the location of the original one (using the original filename).  In this scenario, dlopen() will keep referencing
+	   the original file/inode for callbacks.  This is not an ideal solution.   A better one is to delete the module file once it is loaded by dlopen().
+	   This prevents other processed from unintentially overwriting the original file, which would cause Nagios to crash.  However, if we delete the file
+	   before anyone else can muck with it, things should be good.  'lsof' shows that a deleted file is still referenced by the kernel and callback
+	   functions continue to work once the module has been loaded.  Long story, but this took quite a while to figure out, as there isn't much 
+	   of anything I could find on the subject other than some sketchy info on similar problems on HP-UX.  Hopefully this will save future coders some time.
+	   So... the trick is to (1) copy the module to a temp file, (2) dlopen() the temp file, and (3) immediately delete the temp file. 
+	************/
+
+	/* open a temp file for copying the module */
+	asprintf(&output_file,"%s/nebmodXXXXXX",temp_path);
+	if((dest_fd=mkstemp(output_file))==-1){
+		logit(NSLOG_RUNTIME_ERROR,FALSE,"Error: Could not safely copy module '%s'.  The module will not be loaded: %s\n",mod->filename,strerror(errno));
+		return ERROR;
+		}
+	/* open module file for reading and copy it */
+	if((source_fd=open(mod->filename,O_RDONLY,0644))>0){
+		while((bytes_read=read(source_fd,buffer,sizeof(buffer)))>0)
+			write(dest_fd,buffer,bytes_read);
+		close(source_fd);
+		close(dest_fd);
+		}
+	else{
+		logit(NSLOG_RUNTIME_ERROR,FALSE,"Error: Could not safely copy module '%s'.  The module will not be loaded: %s\n",mod->filename,strerror(errno));
+		return ERROR;
+		}
+
+	/* load the module (use the temp copy we just made) */
 #ifdef USE_LTDL
-	mod->module_handle=lt_dlopen(mod->filename);
+	mod->module_handle=lt_dlopen(output_file);
 #else
-	mod->module_handle=(void *)dlopen(mod->filename,RTLD_NOW|RTLD_GLOBAL);
+	mod->module_handle=(void *)dlopen(output_file,RTLD_NOW|RTLD_GLOBAL);
 #endif
 	if(mod->module_handle==NULL){
 
@@ -196,6 +235,17 @@ int neb_load_module(nebmodule *mod){
 
 	/* mark the module as being loaded */
 	mod->is_currently_loaded=TRUE;
+
+	/* delete the temp copy of the module we just created and loaded */
+	/* this will prevent other processes from overwriting the file (using the same inode), which would cause Nagios to crash */
+	/* the kernel will keep the deleted file in memory until we unload it */
+	/* NOTE: This *should* be portable to most Unices, but I've only tested it on Linux */
+	if(unlink(output_file)==-1){
+		logit(NSLOG_RUNTIME_ERROR,FALSE,"Error: Could not delete temporary file '%s' used for module '%s'.  The module will be unloaded: %s\n",output_file,mod->filename,strerror(errno));
+		neb_unload_module(mod,NEBMODULE_FORCE_UNLOAD,NEBMODULE_ERROR_API_VERSION);
+
+		return ERROR;
+		}
 
 	/* find module API version */
 #ifdef USE_LTDL

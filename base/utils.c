@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-20-2008
+ * Last Modified: 02-23-2008
  *
  * License:
  *
@@ -3228,41 +3228,20 @@ int my_rename(char *source, char *dest){
 		/* an error occurred because the source and dest files are on different filesystems */
 		if(errno==EXDEV){
 
-			/* unlink destination file first (not doing so causes problems on network file systems like CIFS) */
-			unlink(dest);
-
-			/* open destination file for writing */
-			if((dest_fd=open(dest,O_WRONLY|O_TRUNC|O_CREAT|O_APPEND,0644))>0){
-
-				/* open source file for reading */
-				if((source_fd=open(source,O_RDONLY,0644))>0){
-
-					while((bytes_read=read(source_fd,buffer,sizeof(buffer)))>0)
-						write(dest_fd,buffer,bytes_read);
-
-					close(source_fd);
-					close(dest_fd);
-				
-					/* delete the original file */
-					unlink(source);
-
-					/* reset result since we successfully copied file */
-					rename_result=0;
-					}
-
-				else{
-					close(dest_fd);
-					logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to move file '%s' to '%s': %s\n",source,dest,strerror(errno));
-					return rename_result;
-					}
+			/* try copying the file */
+			if(my_fcopy(source,dest)==ERROR){
+				logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to rename file '%s' to '%s': %s\n",source,dest,strerror(errno));
+				return -1;
 				}
-			else{
-				close(dest_fd);
-				logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to open file '%s' for writing: %s\n",dest,strerror(errno));
-				return rename_result;
-				}
+
+			/* delete the original file */
+			unlink(source);
+
+			/* reset result since we successfully copied file */
+			rename_result=0;
 			}
 
+		/* some other error occurred */
 		else{
 			logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to rename file '%s' to '%s': %s\n",source,dest,strerror(errno));
 			return rename_result;
@@ -3271,6 +3250,56 @@ int my_rename(char *source, char *dest){
 
 	return rename_result;
         }
+
+
+
+/* copies a file */
+int my_fcopy(char *source, char *dest){
+	char buffer[MAX_INPUT_BUFFER]={0};
+	int source_fd=-1;
+	int dest_fd=-1;
+	int bytes_read=0;
+
+
+	/* make sure we have something */
+	if(source==NULL || dest==NULL)
+		return ERROR;
+
+	/* unlink destination file first (not doing so can cause problems on network file systems like CIFS) */
+	unlink(dest);
+
+	/* open destination file for writing */
+	if((dest_fd=open(dest,O_WRONLY|O_TRUNC|O_CREAT|O_APPEND,0644))>0){
+
+		/* open source file for reading */
+		if((source_fd=open(source,O_RDONLY,0644))>0){
+			
+			/* copy file contents */
+			while((bytes_read=read(source_fd,buffer,sizeof(buffer)))>0)
+				write(dest_fd,buffer,bytes_read);
+
+			close(source_fd);
+			close(dest_fd);
+			}
+
+		/* error opening the source file */
+		else{
+			close(dest_fd);
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to open file '%s' for reading: %s\n",source,strerror(errno));
+			return ERROR;
+			}
+		}
+
+	/* error opening destination file */
+	else{
+		close(dest_fd);
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to open file '%s' for writing: %s\n",dest,strerror(errno));
+		return ERROR;
+		}
+
+	return OK;
+        }
+
 
 
 /* open a file read-only via mmap() */

@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-20-2008
+ * Last Modified: 02-23-2008
  *
  * License:
  *
@@ -629,6 +629,7 @@ int xrddefault_read_state_information(void){
 	int allow_flapstart_notification=TRUE;
 	struct timeval tv[2];
 	double runtime[2];
+	int found_directive=FALSE;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"xrddefault_read_state_information() start\n");
@@ -973,6 +974,8 @@ int xrddefault_read_state_information(void){
 			val[0]='\x0';
 			val++;
 
+			found_directive=TRUE;
+
 			switch(data_type){
 
 			case XRDDEFAULT_INFO_DATA:
@@ -1100,17 +1103,23 @@ int xrddefault_read_state_information(void){
 				break;
 
 			case XRDDEFAULT_HOSTSTATUS_DATA:
-				if(!strcmp(var,"host_name")){
-					host_name=(char *)strdup(val);
-					temp_host=find_host(host_name);
-				        }
-				else if(temp_host!=NULL){
+
+				if(temp_host==NULL){
+					if(!strcmp(var,"host_name")){
+						host_name=(char *)strdup(val);
+						temp_host=find_host(host_name);
+						}
+					}
+				else{
 					if(!strcmp(var,"modified_attributes")){
 
 						temp_host->modified_attributes=strtoul(val,NULL,10);
 
 						/* mask out attributes we don't want to retain */
 						temp_host->modified_attributes&=~host_attribute_mask;
+
+						/* break out */
+						break;
 						}
 					if(temp_host->retain_status_information==TRUE){
 						if(!strcmp(var,"has_been_checked"))
@@ -1197,9 +1206,14 @@ int xrddefault_read_state_information(void){
 							        }
 							temp_host->state_history_index=0;
 						        }
+						else
+							found_directive=FALSE;
 					        }
 					if(temp_host->retain_nonstatus_information==TRUE){
-						if(!strcmp(var,"problem_has_been_acknowledged"))
+						/* null-op speeds up logic */
+						if(found_directive==TRUE);
+
+						else if(!strcmp(var,"problem_has_been_acknowledged"))
 							temp_host->problem_has_been_acknowledged=(atoi(val)>0)?TRUE:FALSE;
 						else if(!strcmp(var,"acknowledgement_type"))
 							temp_host->acknowledgement_type=atoi(val);
@@ -1348,18 +1362,29 @@ int xrddefault_read_state_information(void){
 					        }
 
 				        }
+
 				break;
 
 			case XRDDEFAULT_SERVICESTATUS_DATA:
-				if(!strcmp(var,"host_name")){
-					host_name=(char *)strdup(val);
-					temp_service=find_service(host_name,service_description);
-				        }
-				else if(!strcmp(var,"service_description")){
-					service_description=(char *)strdup(val);
-					temp_service=find_service(host_name,service_description);
-				        }
-				else if(temp_service!=NULL){
+
+				if(temp_service==NULL){
+					if(!strcmp(var,"host_name")){
+						host_name=(char *)strdup(val);
+
+						/*temp_service=find_service(host_name,service_description);*/
+
+						/* break out */
+						break;
+						}
+					else if(!strcmp(var,"service_description")){
+						service_description=(char *)strdup(val);
+						temp_service=find_service(host_name,service_description);
+
+						/* break out */
+						break;
+						}
+					}
+				else{
 					if(!strcmp(var,"modified_attributes")){
 
 						temp_service->modified_attributes=strtoul(val,NULL,10);
@@ -1456,9 +1481,14 @@ int xrddefault_read_state_information(void){
 							        }
 							temp_service->state_history_index=0;
 						        }
+						else
+							found_directive=FALSE;
 					        }
 					if(temp_service->retain_nonstatus_information==TRUE){
-						if(!strcmp(var,"problem_has_been_acknowledged"))
+						/* null-op speeds up logic */
+						if(found_directive==TRUE);
+
+						else if(!strcmp(var,"problem_has_been_acknowledged"))
 							temp_service->problem_has_been_acknowledged=(atoi(val)>0)?TRUE:FALSE;
 						else if(!strcmp(var,"acknowledgement_type"))
 							temp_service->acknowledgement_type=atoi(val);
@@ -1606,14 +1636,17 @@ int xrddefault_read_state_information(void){
 						        }
 					        }
 				        }
+
 				break;
 
 			case XRDDEFAULT_CONTACTSTATUS_DATA:
-				if(!strcmp(var,"contact_name")){
-					contact_name=(char *)strdup(val);
-					temp_contact=find_contact(contact_name);
-				        }
-				else if(temp_contact!=NULL){
+				if(temp_contact==NULL){
+					if(!strcmp(var,"contact_name")){
+						contact_name=(char *)strdup(val);
+						temp_contact=find_contact(contact_name);
+						}
+					}
+				else{
 					if(!strcmp(var,"modified_attributes")){
 
 						temp_contact->modified_attributes=strtoul(val,NULL,10);
@@ -1621,27 +1654,32 @@ int xrddefault_read_state_information(void){
 						/* mask out attributes we don't want to retain */
 						temp_contact->modified_attributes&=~contact_attribute_mask;
 						}
-					if(!strcmp(var,"modified_host_attributes")){
+					else if(!strcmp(var,"modified_host_attributes")){
 
 						temp_contact->modified_host_attributes=strtoul(val,NULL,10);
 
 						/* mask out attributes we don't want to retain */
 						temp_contact->modified_host_attributes&=~contact_host_attribute_mask;
 						}
-					if(!strcmp(var,"modified_service_attributes")){
+					else if(!strcmp(var,"modified_service_attributes")){
 						temp_contact->modified_service_attributes=strtoul(val,NULL,10);
 
 						/* mask out attributes we don't want to retain */
 						temp_contact->modified_service_attributes&=~contact_service_attribute_mask;
 						}
-					if(temp_contact->retain_status_information==TRUE){
+					else if(temp_contact->retain_status_information==TRUE){
 						if(!strcmp(var,"last_host_notification"))
 							temp_contact->last_host_notification=strtoul(val,NULL,10);
-						if(!strcmp(var,"last_service_notification"))
+						else if(!strcmp(var,"last_service_notification"))
 							temp_contact->last_service_notification=strtoul(val,NULL,10);
+						else
+							found_directive=FALSE;
 					        }
 					if(temp_contact->retain_nonstatus_information==TRUE){
-						if(!strcmp(var,"host_notification_period")){
+						/* null-op speeds up logic */
+						if(found_directive==TRUE);
+
+						else if(!strcmp(var,"host_notification_period")){
 							if(temp_contact->modified_host_attributes & MODATTR_NOTIFICATION_TIMEPERIOD){
 
 								/* make sure the timeperiod still exists... */
@@ -1762,7 +1800,6 @@ int xrddefault_read_state_information(void){
 			default:
 				break;
 			        }
-
 		        }
 	        }
 
@@ -1780,7 +1817,7 @@ int xrddefault_read_state_information(void){
 
 		printf("RETENTION DATA TIMES\n");
 		printf("----------------------------------\n");
-		printf("Read:                 %.6lf sec\n",runtime[0]);
+		printf("Read and Process:     %.6lf sec\n",runtime[0]);
 		printf("                      ============\n");
 		printf("TOTAL:                %.6lf sec\n",runtime[1]);
 		printf("\n\n");

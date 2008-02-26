@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-10-2008
+ * Last Modified: 02-26-2008
  *
  * License:
  *
@@ -2469,7 +2469,7 @@ char *get_url_encoded_string(char *input){
 	register int x=0;
 	register int y=0;
 	char *encoded_url_string=NULL;
-	char temp_expansion[4]="";
+	char temp_expansion[6]="";
 
 
 	/* bail if no input */
@@ -2498,7 +2498,7 @@ char *get_url_encoded_string(char *input){
 		/* anything else gets represented by its hex value */
 		else{
 			encoded_url_string[y]='\x0';
-			sprintf(temp_expansion,"%%%02X",(unsigned int)input[x]);
+			sprintf(temp_expansion,"%%%02X",(unsigned int)(input[x] & 0xFF));
 			strcat(encoded_url_string,temp_expansion);
 			y+=3;
 		        }

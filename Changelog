@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0rc3 - ??/??/2008
+3.0rc3 - 02/26/2008
 -------------------
 * Fix for passive service check stats bugs in nagiostats
 * Nagios no longer warns or errors when encountering host/contact/service groups with empty memberships
@@ -22,6 +22,7 @@ Nagios 3.x Change Log
 * Speed improvements during startup routines when using precached config
 * Speed improvements in reading retention data during startup
 * Safer loading mechanism for NEB modules to prevent segfaults in Nagios
+* Fix for segfault in CGIs when converting object names with extended ASCII characters to URLs
 
 
 

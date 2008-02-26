@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-18-2008
+ * Last Modified: 02-26-2008
  *
  * License:
  *
@@ -1402,6 +1402,7 @@ char * url_encode(char *input){
 	int len,output_len;
 	int x,y;
 	char temp_expansion[4];
+	int expansion_len=0;
 
 	len=(int)strlen(input);
 	output_len=(int)sizeof(encoded_url_string);
@@ -1433,10 +1434,11 @@ char * url_encode(char *input){
 		/* anything else gets represented by its hex value */
 		else{
 			encoded_url_string[y]='\x0';
-			if((int)strlen(encoded_url_string)<(output_len-3)){
-				sprintf(temp_expansion,"%%%02X",(unsigned int)input[x]);
+			sprintf(temp_expansion,"%%%02X",(unsigned int)(input[x] & 0xFF));
+			expansion_len=strlen(temp_expansion);
+			if((int)strlen(encoded_url_string)<(output_len-expansion_len)){
 				strcat(encoded_url_string,temp_expansion);
-				y+=3;
+				y+=expansion_len;
 			        }
 		        }
 	        }

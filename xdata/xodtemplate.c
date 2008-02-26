@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-25-2008
+ * Last Modified: 02-24-2008
  *
  * Description:
  *
@@ -52,6 +52,7 @@
 #include "../include/objects.h"
 #include "../include/locations.h"
 #include "../include/macros.h"
+/*#include "../include/skiplist.h"*/
 
 /**** CORE OR CGI SPECIFIC HEADER FILES ****/
 
@@ -111,6 +112,11 @@ xodtemplate_hostdependency *xodtemplate_hostdependency_list_tail=NULL;
 xodtemplate_hostescalation *xodtemplate_hostescalation_list_tail=NULL;
 xodtemplate_hostextinfo *xodtemplate_hostextinfo_list_tail=NULL;
 xodtemplate_serviceextinfo *xodtemplate_serviceextinfo_list_tail=NULL;
+
+/*
+skiplist *xodtemplate_host_skiplist=NULL;
+skiplist *xodtemplate_service_skiplist=NULL;
+*/
 
 void *xodtemplate_current_object=NULL;
 int xodtemplate_current_object_type=XODTEMPLATE_NONE;
@@ -339,7 +345,6 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 			result=xodtemplate_recombobulate_object_contacts();
 		if(test_scheduling==TRUE)
 			gettimeofday(&tv[9],NULL);
-
 
 		/* sort objects */
 		if(result==OK)
@@ -10576,8 +10581,46 @@ int xodtemplate_sort_contacts(){
 	}
 
 
+int xodtemplate_compare_host(void *arg1, void *arg2){
+	xodtemplate_host *h1=NULL;
+	xodtemplate_host *h2=NULL;
+	int x=0;
+
+	h1=(xodtemplate_host *)arg1;
+	h2=(xodtemplate_host *)arg2;
+
+	if(h1==NULL && h2==NULL)
+		return 0;
+	if(h1==NULL)
+		return 1;
+	if(h2==NULL)
+		return -1;
+
+	x=strcmp((h1->host_name==NULL)?"":h1->host_name,(h2->host_name==NULL)?"":h2->host_name);
+
+	return x;
+	}
+
+
+
 /* sort hosts by name */
 int xodtemplate_sort_hosts(){
+#ifdef NEWSTUFF
+	xodtemplate_host *temp_host=NULL;
+	
+	/* initialize a new skip list */
+	if((xodtemplate_host_skiplist=skiplist_new(15,0.5,FALSE,xodtemplate_compare_host))==NULL)
+		return ERROR;
+
+	/* add all hosts to skip list */
+	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next)
+		skiplist_insert(xodtemplate_host_skiplist,temp_host);
+	/*printf("SKIPLIST ITEMS: %lu\n",xodtemplate_host_skiplist->items);*/
+
+	/* now move items from skiplist to linked list... */
+	/* TODO */
+#endif
+
 	xodtemplate_host *new_host_list=NULL;
 	xodtemplate_host *temp_host=NULL;
 	xodtemplate_host *last_host=NULL;
@@ -10625,8 +10668,47 @@ int xodtemplate_sort_hosts(){
 	}
 
 
+int xodtemplate_compare_service(void *arg1, void *arg2){
+	xodtemplate_service *s1=NULL;
+	xodtemplate_service *s2=NULL;
+	int x=0;
+
+	s1=(xodtemplate_service *)arg1;
+	s2=(xodtemplate_service *)arg2;
+
+	if(s1==NULL && s2==NULL)
+		return 0;
+	if(s1==NULL)
+		return 1;
+	if(s2==NULL)
+		return -1;
+
+	x=strcmp((s1->host_name==NULL)?"":s1->host_name,(s2->host_name==NULL)?"":s2->host_name);
+	if(x==0)
+		x=strcmp((s1->service_description==NULL)?"":s1->service_description,(s2->service_description==NULL)?"":s2->service_description);
+
+	return x;
+	}
+
+
 /* sort services by name */
 int xodtemplate_sort_services(){
+#ifdef NEWSTUFF
+	xodtemplate_service *temp_service=NULL;
+	
+	/* initialize a new skip list */
+	if((xodtemplate_service_skiplist=skiplist_new(15,0.5,FALSE,xodtemplate_compare_service))==NULL)
+		return ERROR;
+
+	/* add all services to skip list */
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next)
+		skiplist_insert(xodtemplate_service_skiplist,temp_service);
+	/*printf("SKIPLIST ITEMS: %lu\n",xodtemplate_service_skiplist->items);*/
+
+	/* now move items to linked list... */
+	/* TODO */
+#endif
+
 	xodtemplate_service *new_service_list=NULL;
 	xodtemplate_service *temp_service=NULL;
 	xodtemplate_service *last_service=NULL;
@@ -10682,7 +10764,7 @@ int xodtemplate_sort_servicedependencies(){
 	xodtemplate_servicedependency *temp_servicedependency_orig=NULL;
 	xodtemplate_servicedependency *next_servicedependency_orig=NULL;
 
-#	/* sort all existing servicedependencies */
+	/* sort all existing servicedependencies */
 	for(temp_servicedependency_orig=xodtemplate_servicedependency_list;temp_servicedependency_orig!=NULL;temp_servicedependency_orig=next_servicedependency_orig){
 
 		next_servicedependency_orig=temp_servicedependency_orig->next;
@@ -12128,6 +12210,14 @@ int xodtemplate_free_memory(void){
 	if(service_hashtable)
 		g_hash_table_destroy(service_hashtable);
 	service_hashtable=NULL;
+#endif
+
+#ifdef NSCORE
+	/* free skiplists */
+	/*
+	skiplist_free(&xodtemplate_host_skiplist);
+	skiplist_free(&xodtemplate_service_skiplist);
+	*/
 #endif
 
 	return OK;

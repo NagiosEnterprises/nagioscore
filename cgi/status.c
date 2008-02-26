@@ -1647,7 +1647,8 @@ void show_service_detail(void){
 			printf("<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0>\n");
 			printf("<TR>\n");
 			printf("<TD ALIGN=LEFT valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s",status_bg_class,EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_status->host_name));
-			printf("&service=%s'>%s</A></TD>",url_encode(temp_status->description),temp_status->description);
+			printf("&service=%s'>",url_encode(temp_status->description));
+			printf("%s</A></TD>",temp_status->description);
 			printf("</TR>\n");
 			printf("</TABLE>\n");
 			printf("</TD>\n");

@@ -104,7 +104,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 
 <li><b>External Commands</b>:<br>
 	<ul>
-	<li>Added a new PROCESS_FILE external command to allow processing of external commands found in an eternal (regular) file.  Useful for processing large amounts of passive checks with long output, or for scripting regular commands.  More information can be found <a href="http://www.nagios.org/developerinfo/externalcommands/commandinfo.php?command_id=131">here</a>.</li>
+	<li>Added a new PROCESS_FILE external command to allow processing of external commands found in an external (regular) file.  Useful for processing large amounts of passive checks with long output, or for scripting regular commands.  More information can be found <a href="http://www.nagios.org/developerinfo/externalcommands/commandinfo.php?command_id=131">here</a>.</li>
 	<li>Custom commands may now be submitted to Nagios.  Custom command names are prefixed with an underscore and are not processed internally by the Nagios daemon.  They may, however, be processed by a loaded NEB module.</li>
 	<li>The <a href="configmain.html#check_external_commands">check_external_commands</a> option is now enabled by default, which means Nagios is configured to check for external "commands out of the box".  All 2.x and earlier versions of Nagios had this option disabled by default.</li>
 	</ul>
@@ -122,7 +122,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 	<ul>
 	<li>Added new <a href="configmain.html#enable_embedded_perl">enable_embedded_perl</a> and <a href="configmain.html#use_embedded_perl_implicitly">use_embedded_perl_implicitly</a> variables to control use of the embedded Perl interpreter.</li>
 	<li>Perl scripts/plugins can now explicitly tell Nagios whether or not they should be run under the embedded Pel interpreter.  This is useful if you have troublesome scripts that don't function well under the ePN.</li>
-	<li>More information about these new optios can be found <a href="embeddedperl.html">here</a>.</li>
+	<li>More information about these new options can be found <a href="embeddedperl.html">here</a>.</li>
 	</ul>
 </li>
 <br>
@@ -138,7 +138,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 	<ul>
 	<li>A <i>first_notification_delay</i> option has been added to host and service definitions to (what else) introduce a delay between when a host/service problem first occurs and when the first problem notification goes out.  In previous versions you had to use some mighty config-fu with escalations to accomplish this.  Now this feature is available to normal mortals.</li>
 	<li>Notifications are now sent out for hosts/services that are flapping when flap detection is disabled on a host- or service-specific basis or on a program-wide basis.  The $NOTIFICATIONTYPE$ macro will be set to "FLAPPINGDISABLED" in this situation.</li>
-	<li>Notifications can now be sent out when scheduled downtime start, ends, and is cancelled for hosts and services.  The $NOTIFICATIONTYPE$ macro will be set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED", respectively.  In order to received notifications on scheduled downtime events, specify "s" or "downtime" in your contact, host, and/or service notification options.</li>
+	<li>Notifications can now be sent out when scheduled downtime start, ends, and is cancelled for hosts and services.  The $NOTIFICATIONTYPE$ macro will be set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED", respectively.  In order to receive notifications on scheduled downtime events, specify "s" or "downtime" in your contact, host, and/or service notification options.</li>
 	<li>More information on notifications can be found <a href="notifications.html">here</a>.</li>
 	</ul>
 </li>
@@ -164,7 +164,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 	<ul>
 	<li>You can now inherit object variables/values from multiple templates by specifying more than one template name in the <i>use</i> directive of object definitions.  This can allow for some very powerful (and complex) inheritance setups.  (<a href="objectinheritance.html#multiple_templates">Read more</a>)</li>
 	<li>Services now inherit contact groups, notification interval, and notification period from their associated host if not otherwise specified. (<a href="objectinheritance.html#implied_inheritance">Read more</a>)</li>
-	<li>Host and service escalations now inherit contact groups, notification interval, and escalation timeperiod fro their associated host or service if not otherwise specified. (<a href="objectinheritance.html#implied_inheritance">Read more</a>)</li>
+	<li>Host and service escalations now inherit contact groups, notification interval, and escalation timeperiod from their associated host or service if not otherwise specified. (<a href="objectinheritance.html#implied_inheritance">Read more</a>)</li>
 	<li>String variables in host, service, and contact definitions can now be prevented from being inherited by specifying a value of "null" (without quotes) for the value of the variable. (<a href="objectinheritance.html#cancel_string">Read more</a>)</li>
 	<li>Most string variables in local object definitions can now be appended to the string values that are inherited.  This is quite handy in large configurations. (<a href="objectinheritance.html#add_string">Read more</a>)</li>
 	</ul>

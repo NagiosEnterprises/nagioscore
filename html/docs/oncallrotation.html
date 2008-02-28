@@ -63,12 +63,12 @@ First, define a timeperiod that contains time ranges for holidays:
 define timeperiod{
 	name	holidays
 	timeperiod_name	holidays
-	january 1			00:00-24:00	; New Year's Day
-	2007-03-23		00:00-24:00	; Easter (2008)
-	2007-04-12		00:00-24:00	; Easter (2009)
+	january 1		00:00-24:00	; New Year's Day
+	2008-03-23		00:00-24:00	; Easter (2008)
+	2009-04-12		00:00-24:00	; Easter (2009)
 	monday -1 may		00:00-24:00	; Memorial Day (Last Monday in May)
 	july 4			00:00-24:00	; Independence Day
-	monday 1 september		00:00-24:00	; Labor Day (1st Monday in September)
+	monday 1 september	00:00-24:00	; Labor Day (1st Monday in September)
 	thursday 4 november	00:00-24:00	; Thanksgiving (4th Thursday in November)
 	december 25		00:00-24:00	; Christmas
 	december 31		17:00-24:00	; New Year's Eve (5pm onwards)
@@ -208,7 +208,7 @@ define timeperiod{
 </pre>
 
 <p>
-Now define a timeperiod for when Bob should receive notifications.  Bob gets notifications on the weeks that John doesn't, so his first on-call day starts next Sunday (August 8th, 2007).
+Now define a timeperiod for when Bob should receive notifications.  Bob gets notifications on the weeks that John doesn't, so his first on-call day starts next Sunday (August 5th, 2007).
 </p>
 
 <pre>

@@ -1581,7 +1581,6 @@ This option allows you to control the frequency <i>in seconds</i> of check resul
 
 
 
-<a href="#max_check_result_reaper_time">Maximum check result reaper time</a><br>
 <a name="max_check_result_reaper_time"></a>
 <table border="0" width="100%" class="Default">
 <tr>
@@ -1738,7 +1737,7 @@ This option determines the maximum number of minutes from when Nagios starts tha
 </table>
 
 <p>
-This is the number of seconds per "unit interval" used for timing in the scheduling queue, re-notifications, etc. "Units intervals" are used in the object configuration file to determine how often to run a service check, how often of re-notify a contact, etc.
+This is the number of seconds per "unit interval" used for timing in the scheduling queue, re-notifications, etc. "Units intervals" are used in the object configuration file to determine how often to run a service check, how often to re-notify a contact, etc.
 </p>
 <p>
 <strong>Important:</strong>  The default value for this is set to 60, which means that a "unit value" of 1 in the object configuration file will mean 60 seconds (1 minute).  I have not really tested other values for this variable, so proceed at your own risk if you decide to do so!
@@ -1883,7 +1882,7 @@ Nagios tries to be smart about how and when it checks the status of hosts.  In g
 </table>
 
 <p>
-This option determines whether or not Nagios will DOWN/UNREACHABLE passive host check results to their "correct" state from the viewpoint of the local Nagios instance.  This can be very useful in distributed and failover monitoring installations.  More information on passive check state translation can be found <a href="passivestatetranslation.html">here</a>.
+This option determines whether or not Nagios will translate DOWN/UNREACHABLE passive host check results to their "correct" state from the viewpoint of the local Nagios instance.  This can be very useful in distributed and failover monitoring installations.  More information on passive check state translation can be found <a href="passivestatetranslation.html">here</a>.
 </p>
 <ul>
 <li>0 = Disable check translation (default)
@@ -1945,7 +1944,7 @@ This option determines whether or not Nagios will treat <a href="passivechecks.h
 </table>
 
 <p>
-This option determines whether or not Nagios will execute predictive checks of hosts that are being dependended upon (as defined in <a href="objectdefinitions.html#hostdependency">host dependencies</a>) for a particular host when it changes state.  Predictive checks help ensure that the dependency logic is as accurate as possible.  More information on how predictive checks work can be found <a href="dependencychecks.html">here</a>.
+This option determines whether or not Nagios will execute predictive checks of hosts that are being depended upon (as defined in <a href="objectdefinitions.html#hostdependency">host dependencies</a>) for a particular host when it changes state.  Predictive checks help ensure that the dependency logic is as accurate as possible.  More information on how predictive checks work can be found <a href="dependencychecks.html">here</a>.
 </p>
 <ul>
 <li>0 = Disable predictive checks
@@ -1975,7 +1974,7 @@ This option determines whether or not Nagios will execute predictive checks of h
 </table>
 
 <p>
-This option determines whether or not Nagios will execute predictive checks of services that are being dependended upon (as defined in <a href="objectdefinitions.html#servicedependency">service dependencies</a>) for a particular service when it changes state.  Predictive checks help ensure that the dependency logic is as accurate as possible.  More information on how predictive checks work can be found <a href="dependencychecks.html">here</a>.
+This option determines whether or not Nagios will execute predictive checks of services that are being depended upon (as defined in <a href="objectdefinitions.html#servicedependency">service dependencies</a>) for a particular service when it changes state.  Predictive checks help ensure that the dependency logic is as accurate as possible.  More information on how predictive checks work can be found <a href="dependencychecks.html">here</a>.
 </p>
 <ul>
 <li>0 = Disable predictive checks
@@ -2237,7 +2236,7 @@ This option is used to set the low threshold for detection of service flapping. 
 </table>
 
 <p>
-This option is used to set the low threshold for detection of service flapping.  For more information on how flap detection and handling works (and how this option affects things) read <a href="flapping.html">this</a>.
+This option is used to set the high threshold for detection of service flapping.  For more information on how flap detection and handling works (and how this option affects things) read <a href="flapping.html">this</a>.
 </p>
 
 
@@ -2287,7 +2286,7 @@ This option is used to set the low threshold for detection of host flapping.  Fo
 </table>
 
 <p>
-This option is used to set the low threshold for detection of host flapping.  For more information on how flap detection and handling works (and how this option affects things) read <a href="flapping.html">this</a>.
+This option is used to set the high threshold for detection of host flapping.  For more information on how flap detection and handling works (and how this option affects things) read <a href="flapping.html">this</a>.
 </p>
 
 
@@ -3362,7 +3361,7 @@ This option determines whether or not various directives in your <a href="config
 </table>
 
 <p>
-If you've enabled regular expression matching of various object directives using the <a href="#use_regexp_matching">use_regexp_matching</a> option, this option will determine when object directives are treated as regular expressions.  If this option is disabled (the default), directives will only be treated as regular expressions if the contain <b>*</b>, <b>?</b>, <b>+</b>, or <b>\.</b>.  If this option is enabled, all appropriate directives will be treated as regular expression - be careful when enabling this!  More information on how this works can be found <a href="objecttricks.html">here</a>.
+If you've enabled regular expression matching of various object directives using the <a href="#use_regexp_matching">use_regexp_matching</a> option, this option will determine when object directives are treated as regular expressions.  If this option is disabled (the default), directives will only be treated as regular expressions if they contain <b>*</b>, <b>?</b>, <b>+</b>, or <b>\.</b>.  If this option is enabled, all appropriate directives will be treated as regular expression - be careful when enabling this!  More information on how this works can be found <a href="objecttricks.html">here</a>.
 </p>
 <ul>
 <li>0 = Don't use true regular expression matching (default)

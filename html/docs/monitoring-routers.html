@@ -44,7 +44,7 @@ I'll describe how you can monitor the following things on managed switches, hubs
 <ul>
 <li>Packet loss, round trip average</li>
 <li>SNMP status information</li>
-<li>Bandwith / traffic rate</li>
+<li>Bandwidth / traffic rate</li>
 </ul>
 
 <p>
@@ -93,7 +93,7 @@ To make your life a bit easier, a few configuration tasks have already been done
 </p>
 
 <ul>
-<li>Two command definitions (<i>check_snmp</i> and <i>check_local_mrtgtraf</i>) have been added to the <i>commands.cfg</i> file.  These allows you to use the <i>check_snmp</i> and <i>check_mrtgtraf</i> plugins to monitor network printers.</li>
+<li>Two command definitions (<i>check_snmp</i> and <i>check_local_mrtgtraf</i>) have been added to the <i>commands.cfg</i> file.  These allows you to use the <i>check_snmp</i> and <i>check_mrtgtraf</i> plugins to monitor network routers.</li>
 <li>A switch host template (called <i>generic-switch</i>) has already been created in the <i>templates.cfg</i> file.  This allows you to add new router/switch host definitions in a simple manner.</li>
 </ul>
 
@@ -278,7 +278,7 @@ define service{
 </pre>
 
 <p>
-In the example above, the "/var/lib/mrtg/192.168.1.253_1.log" option that gets passed to the <i>check_local_mrtgtraf</i> command tells the plugin which MRTG log file to read from.  The "AVG" option tells it that it should use average bandwidth statistics.  The "1000000,200000" options are the warning thresholds (in bytes) for incoming traffic rates.  The "5000000,5000000" are critical thresholds (in bytes) for outgoing traffic rates.  The "10" option causes the plugin to return a CRITICAL state if the MRTG log file is older than 10 minutes (it should be updated every 5 minutes).
+In the example above, the "/var/lib/mrtg/192.168.1.253_1.log" option that gets passed to the <i>check_local_mrtgtraf</i> command tells the plugin which MRTG log file to read from.  The "AVG" option tells it that it should use average bandwidth statistics.  The "1000000,2000000" options are the warning thresholds (in bytes) for incoming traffic rates.  The "5000000,5000000" are critical thresholds (in bytes) for outgoing traffic rates.  The "10" option causes the plugin to return a CRITICAL state if the MRTG log file is older than 10 minutes (it should be updated every 5 minutes).
 </p>
 
 

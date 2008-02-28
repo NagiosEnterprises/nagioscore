@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-15-2008
+ * Last Modified: 02-27-2008
  *
  * License:
  *
@@ -888,6 +888,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	int run_async_check=TRUE;
 	int state_changes_use_cached_state=TRUE;  /* TODO - 09/23/07 move this to a global variable */
 	int flapping_check_done=FALSE;
+	void *ptr=NULL;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_async_service_check_result()\n");
@@ -1452,7 +1453,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 				/* check services that THIS ONE depends on for notification AND execution */
 				/* we do this because we might be sending out a notification soon and we want the dependency logic to be accurate */
-				for(temp_dependency=servicedependency_list;temp_dependency!=NULL;temp_dependency=temp_dependency->next){
+				for(temp_dependency=get_first_servicedependency_by_dependent_service(temp_service->host_name,temp_service->description,&ptr);temp_dependency!=NULL;temp_dependency=get_next_servicedependency_by_dependent_service(temp_service->host_name,temp_service->description,&ptr)){
 					if(temp_dependency->dependent_service_ptr==temp_service && temp_dependency->master_service_ptr!=NULL){
 						master_service=(service *)temp_dependency->master_service_ptr;
 						log_debug_info(DEBUGL_CHECKS,2,"Predictive check of service '%s' on host '%s' queued.\n",master_service->description,master_service->host_name);
@@ -1829,12 +1830,13 @@ int check_service_dependencies(service *svc,int dependency_type){
 	service *temp_service=NULL;
 	int state=STATE_OK;
 	time_t current_time=0L;
+	void *ptr=NULL;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_service_dependencies()\n");
 
 	/* check all dependencies... */
-	for(temp_dependency=get_first_servicedependency_by_dependent_service(svc->host_name,svc->description);temp_dependency!=NULL;temp_dependency=get_next_servicedependency_by_dependent_service(svc->host_name,svc->description,temp_dependency)){
+	for(temp_dependency=get_first_servicedependency_by_dependent_service(svc->host_name,svc->description,&ptr);temp_dependency!=NULL;temp_dependency=get_next_servicedependency_by_dependent_service(svc->host_name,svc->description,&ptr)){
 
 		/* only check dependencies of the desired type (notification or execution) */
 		if(temp_dependency->dependency_type!=dependency_type)
@@ -2226,12 +2228,13 @@ int check_host_dependencies(host *hst,int dependency_type){
 	host *temp_host=NULL;
 	int state=HOST_UP;
 	time_t current_time=0L;
+	void *ptr=NULL;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_host_dependencies()\n");
 
 	/* check all dependencies... */
-	for(temp_dependency=get_first_hostdependency_by_dependent_host(hst->name);temp_dependency!=NULL;temp_dependency=get_next_hostdependency_by_dependent_host(hst->name,temp_dependency)){
+	for(temp_dependency=get_first_hostdependency_by_dependent_host(hst->name,&ptr);temp_dependency!=NULL;temp_dependency=get_next_hostdependency_by_dependent_host(hst->name,&ptr)){
 
 		/* only check dependencies of the desired type (notification or execution) */
 		if(temp_dependency->dependency_type!=dependency_type)
@@ -3374,6 +3377,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	int run_async_check=TRUE;
+	void *ptr=NULL;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"process_host_check_result_3x()\n");
@@ -3683,7 +3687,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 					/* we do to help ensure that the dependency checks are accurate before it comes time to notify */
 					log_debug_info(DEBUGL_CHECKS,1,"Propagating predictive dependency checks to hosts this one depends on...\n");
 
-					for(temp_dependency=hostdependency_list;temp_dependency!=NULL;temp_dependency=temp_dependency->next){
+					for(temp_dependency=get_first_hostdependency_by_dependent_host(hst->name,&ptr);temp_dependency!=NULL;temp_dependency=get_next_hostdependency_by_dependent_host(hst->name,&ptr)){
 						if(temp_dependency->dependent_host_ptr==hst && temp_dependency->master_host_ptr!=NULL){
 							master_host=(host *)temp_dependency->master_host_ptr;
 							log_debug_info(DEBUGL_CHECKS,1,"Check of host '%s' queued.\n",master_host->name);

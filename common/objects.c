@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-24-2008
+ * Last Modified: 02-27-2008
  *
  * License:
  *
@@ -25,6 +25,7 @@
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/objects.h"
+#include "../include/skiplist.h"
 
 #ifdef NSCORE
 #include "../include/nagios.h"
@@ -54,18 +55,7 @@ servicedependency *servicedependency_list=NULL,*servicedependency_list_tail=NULL
 hostdependency  *hostdependency_list=NULL,*hostdependency_list_tail=NULL;
 hostescalation  *hostescalation_list=NULL,*hostescalation_list_tail=NULL;
 
-host		**host_hashlist=NULL;
-service		**service_hashlist=NULL;
-command         **command_hashlist=NULL;
-timeperiod      **timeperiod_hashlist=NULL;
-contact         **contact_hashlist=NULL;
-contactgroup    **contactgroup_hashlist=NULL;
-hostgroup       **hostgroup_hashlist=NULL;
-servicegroup    **servicegroup_hashlist=NULL;
-hostdependency  **hostdependency_hashlist=NULL;
-servicedependency **servicedependency_hashlist=NULL;
-hostescalation  **hostescalation_hashlist=NULL;
-serviceescalation **serviceescalation_hashlist=NULL;
+skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 
 
 #ifdef NSCORE
@@ -84,6 +74,9 @@ extern int use_precached_objects;
 int read_object_config_data(char *main_config_file, int options, int cache, int precache){
 	int result=OK;
 
+	/* initialize object skiplists */
+	init_object_skiplists();
+
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XODTEMPLATE
 	/* read in data from all text host config files (template-based) */
@@ -98,499 +91,310 @@ int read_object_config_data(char *main_config_file, int options, int cache, int 
 
 
 /******************************************************************/
-/****************** CHAINED HASH FUNCTIONS ************************/
+/******************** SKIPLIST FUNCTIONS **************************/
 /******************************************************************/
 
-/* adds host to hash list in memory */
-int add_host_to_hashlist(host *new_host){
-	host *temp_host=NULL;
-	host *lastpointer=NULL;
-	int hashslot=0;
+int init_object_skiplists(void){
+	int x=0;
 
-	/* initialize hash list */
-	if(host_hashlist==NULL){
-		int i;
+	for(x=0;x<NUM_OBJECT_SKIPLISTS;x++)
+		object_skiplists[x]=NULL;
 
-		host_hashlist=(host **)malloc(sizeof(host *)*HOST_HASHSLOTS);
-		if(host_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i<HOST_HASHSLOTS;i++)
-			host_hashlist[i]=NULL;
-	        }
+	object_skiplists[HOST_SKIPLIST]=skiplist_new(15,0.5,FALSE,FALSE,skiplist_compare_host);
+	object_skiplists[SERVICE_SKIPLIST]=skiplist_new(15,0.5,FALSE,FALSE,skiplist_compare_service);
 
-	if(!new_host)
-		return 0;
+	object_skiplists[COMMAND_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,skiplist_compare_command);
+	object_skiplists[TIMEPERIOD_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,skiplist_compare_timeperiod);
+	object_skiplists[CONTACT_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,skiplist_compare_contact);
+	object_skiplists[CONTACTGROUP_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,skiplist_compare_contactgroup);
+	object_skiplists[HOSTGROUP_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,skiplist_compare_hostgroup);
+	object_skiplists[SERVICEGROUP_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,skiplist_compare_servicegroup);
 
-	hashslot=hashfunc(new_host->name,NULL,HOST_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_host=host_hashlist[hashslot];temp_host && compare_hashdata(temp_host->name,NULL,new_host->name,NULL)<0;temp_host=temp_host->nexthash)
-		lastpointer=temp_host;
+	object_skiplists[HOSTESCALATION_SKIPLIST]=skiplist_new(15,0.5,TRUE,FALSE,skiplist_compare_hostescalation);
+	object_skiplists[SERVICEESCALATION_SKIPLIST]=skiplist_new(15,0.5,TRUE,FALSE,skiplist_compare_serviceescalation);
+	object_skiplists[HOSTDEPENDENCY_SKIPLIST]=skiplist_new(15,0.5,TRUE,FALSE,skiplist_compare_hostdependency);
+	object_skiplists[SERVICEDEPENDENCY_SKIPLIST]=skiplist_new(15,0.5,TRUE,FALSE,skiplist_compare_servicedependency);
 
-	if(!temp_host || (compare_hashdata(temp_host->name,NULL,new_host->name,NULL)!=0)){
-		if(lastpointer)
-			lastpointer->nexthash=new_host;
-		else
-			host_hashlist[hashslot]=new_host;
-		new_host->nexthash=temp_host;
+	return OK;
+	}
 
-		return 1;
-	        }
 
-	/* else already exists */
-#ifdef NSCORE
-	logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add duplicate host '%s'.\n",new_host->name);
-#endif
-	return 0;
-        }
 
+int free_object_skiplists(void){
+	int x=0;
 
-int add_service_to_hashlist(service *new_service){
-	service *temp_service=NULL;
-	service *lastpointer=NULL;
-	int hashslot=0;
+	for(x=0;x<NUM_OBJECT_SKIPLISTS;x++)
+		skiplist_free(&object_skiplists[x]);
 
-	/* initialize hash list */
-	if(service_hashlist==NULL){
-		int i;
+	return OK;
+	}
 
-		service_hashlist=(service **)malloc(sizeof(service *)*SERVICE_HASHSLOTS);
-		if(service_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i< SERVICE_HASHSLOTS;i++)
-			service_hashlist[i]=NULL;
-	        }
 
-	if(!new_service)
-		return 0;
+int skiplist_compare_text(const char *val1a, const char *val1b, const char *val2a, const char *val2b){
+	int result=0;
 
-	hashslot=hashfunc(new_service->host_name,new_service->description,SERVICE_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_service=service_hashlist[hashslot];temp_service && compare_hashdata(temp_service->host_name,temp_service->description,new_service->host_name,new_service->description)<0;temp_service=temp_service->nexthash)
-		lastpointer=temp_service;
-
-	if(!temp_service || (compare_hashdata(temp_service->host_name,temp_service->description,new_service->host_name,new_service->description)!=0)){
-		if(lastpointer)
-			lastpointer->nexthash=new_service;
-		else
-			service_hashlist[hashslot]=new_service;
-		new_service->nexthash=temp_service;
-
-
-		return 1;
-	        }
-
-	/* else already exists */
-#ifdef NSCORE
-	logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add duplicate service '%s' on host '%s'.\n",new_service->description,new_service->host_name);
-#endif
-	return 0;
-        }
-
-
-int add_command_to_hashlist(command *new_command){
-	command *temp_command=NULL;
-	command *lastpointer=NULL;
-	int hashslot=0;
-
-	/* initialize hash list */
-	if(command_hashlist==NULL){
-		int i;
-
-		command_hashlist=(command **)malloc(sizeof(command *)*COMMAND_HASHSLOTS);
-		if(command_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i<COMMAND_HASHSLOTS;i++)
-			command_hashlist[i]=NULL;
-	        }
-
-	if(!new_command)
-		return 0;
-
-	hashslot=hashfunc(new_command->name,NULL,COMMAND_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_command=command_hashlist[hashslot];temp_command && compare_hashdata(temp_command->name,NULL,new_command->name,NULL)<0;temp_command=temp_command->nexthash)
-		lastpointer=temp_command;
-
-	if(!temp_command || (compare_hashdata(temp_command->name,NULL,new_command->name,NULL)!=0)){
-		if(lastpointer)
-			lastpointer->nexthash=new_command;
-		else
-			command_hashlist[hashslot]=new_command;
-		new_command->nexthash=temp_command;
-
-		return 1;
-	        }
-
-	/* else already exists */
-#ifdef NSCORE
-	logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add duplicate command '%s'.\n",new_command->name);
-#endif
-	return 0;
-        }
-
-
-int add_timeperiod_to_hashlist(timeperiod *new_timeperiod){
-	timeperiod *temp_timeperiod=NULL;
-	timeperiod *lastpointer=NULL;
-	int hashslot=0;
-
-	/* initialize hash list */
-	if(timeperiod_hashlist==NULL){
-		int i;
-
-		timeperiod_hashlist=(timeperiod **)malloc(sizeof(timeperiod *)*TIMEPERIOD_HASHSLOTS);
-		if(timeperiod_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i<TIMEPERIOD_HASHSLOTS;i++)
-			timeperiod_hashlist[i]=NULL;
-	        }
-
-	if(!new_timeperiod)
-		return 0;
-
-	hashslot=hashfunc(new_timeperiod->name,NULL,TIMEPERIOD_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_timeperiod=timeperiod_hashlist[hashslot];temp_timeperiod && compare_hashdata(temp_timeperiod->name,NULL,new_timeperiod->name,NULL)<0;temp_timeperiod=temp_timeperiod->nexthash)
-		lastpointer=temp_timeperiod;
-
-	if(!temp_timeperiod || (compare_hashdata(temp_timeperiod->name,NULL,new_timeperiod->name,NULL)!=0)){
-		if(lastpointer)
-			lastpointer->nexthash=new_timeperiod;
-		else
-			timeperiod_hashlist[hashslot]=new_timeperiod;
-		new_timeperiod->nexthash=temp_timeperiod;
-
-		return 1;
-	        }
-
-	/* else already exists */
-#ifdef NSCORE
-	logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add duplicate timeperiod '%s'.\n",new_timeperiod->name);
-#endif
-	return 0;
-        }
-
-
-int add_contact_to_hashlist(contact *new_contact){
-	contact *temp_contact=NULL;
-	contact *lastpointer=NULL;
-	int hashslot=0;
-
-	/* initialize hash list */
-	if(contact_hashlist==NULL){
-		int i;
-
-		contact_hashlist=(contact **)malloc(sizeof(contact *)*CONTACT_HASHSLOTS);
-		if(contact_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i<CONTACT_HASHSLOTS;i++)
-			contact_hashlist[i]=NULL;
-	        }
-
-	if(!new_contact)
-		return 0;
-
-	hashslot=hashfunc(new_contact->name,NULL,CONTACT_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_contact=contact_hashlist[hashslot];temp_contact && compare_hashdata(temp_contact->name,NULL,new_contact->name,NULL)<0;temp_contact=temp_contact->nexthash)
-		lastpointer=temp_contact;
-
-	if(!temp_contact || (compare_hashdata(temp_contact->name,NULL,new_contact->name,NULL)!=0)){
-		if(lastpointer)
-			lastpointer->nexthash=new_contact;
-		else
-			contact_hashlist[hashslot]=new_contact;
-		new_contact->nexthash=temp_contact;
-
-		return 1;
-	        }
-
-	/* else already exists */
-#ifdef NSCORE
-	logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add duplicate contact '%s'.\n",new_contact->name);
-#endif
-	return 0;
-        }
-
-
-int add_contactgroup_to_hashlist(contactgroup *new_contactgroup){
-	contactgroup *temp_contactgroup=NULL;
-	contactgroup *lastpointer=NULL;
-	int hashslot=0;
-
-	/* initialize hash list */
-	if(contactgroup_hashlist==NULL){
-		int i;
-
-		contactgroup_hashlist=(contactgroup **)malloc(sizeof(contactgroup *)*CONTACTGROUP_HASHSLOTS);
-		if(contactgroup_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i<CONTACTGROUP_HASHSLOTS;i++)
-			contactgroup_hashlist[i]=NULL;
-	        }
-
-	if(!new_contactgroup)
-		return 0;
-
-	hashslot=hashfunc(new_contactgroup->group_name,NULL,CONTACTGROUP_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_contactgroup=contactgroup_hashlist[hashslot];temp_contactgroup && compare_hashdata(temp_contactgroup->group_name,NULL,new_contactgroup->group_name,NULL)<0;temp_contactgroup=temp_contactgroup->nexthash)
-		lastpointer=temp_contactgroup;
-
-	if(!temp_contactgroup || (compare_hashdata(temp_contactgroup->group_name,NULL,new_contactgroup->group_name,NULL)!=0)){
-		if(lastpointer)
-			lastpointer->nexthash=new_contactgroup;
-		else
-			contactgroup_hashlist[hashslot]=new_contactgroup;
-		new_contactgroup->nexthash=temp_contactgroup;
-
-		return 1;
-	        }
-
-	/* else already exists */
-#ifdef NSCORE
-	logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add duplicate contactgroup '%s'.\n",new_contactgroup->group_name);
-#endif
-	return 0;
-        }
-
-
-int add_hostgroup_to_hashlist(hostgroup *new_hostgroup){
-	hostgroup *temp_hostgroup=NULL;
-	hostgroup *lastpointer=NULL;
-	int hashslot=0;
-
-	/* initialize hash list */
-	if(hostgroup_hashlist==NULL){
-		int i;
-
-		hostgroup_hashlist=(hostgroup **)malloc(sizeof(hostgroup *)*HOSTGROUP_HASHSLOTS);
-		if(hostgroup_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i<HOSTGROUP_HASHSLOTS;i++)
-			hostgroup_hashlist[i]=NULL;
-	        }
-
-	if(!new_hostgroup)
-		return 0;
-
-	hashslot=hashfunc(new_hostgroup->group_name,NULL,HOSTGROUP_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_hostgroup=hostgroup_hashlist[hashslot];temp_hostgroup && compare_hashdata(temp_hostgroup->group_name,NULL,new_hostgroup->group_name,NULL)<0;temp_hostgroup=temp_hostgroup->nexthash)
-		lastpointer=temp_hostgroup;
-
-	if(!temp_hostgroup || (compare_hashdata(temp_hostgroup->group_name,NULL,new_hostgroup->group_name,NULL)!=0)){
-		if(lastpointer)
-			lastpointer->nexthash=new_hostgroup;
-		else
-			hostgroup_hashlist[hashslot]=new_hostgroup;
-		new_hostgroup->nexthash=temp_hostgroup;
-
-		return 1;
-	        }
-
-	/* else already exists */
-#ifdef NSCORE
-	logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add duplicate hostgroup '%s'.\n",new_hostgroup->group_name);
-#endif
-	return 0;
-        }
-
-
-int add_servicegroup_to_hashlist(servicegroup *new_servicegroup){
-	servicegroup *temp_servicegroup=NULL;
-	servicegroup *lastpointer=NULL;
-	int hashslot=0;
-
-	/* initialize hash list */
-	if(servicegroup_hashlist==NULL){
-		int i;
-
-		servicegroup_hashlist=(servicegroup **)malloc(sizeof(servicegroup *)*SERVICEGROUP_HASHSLOTS);
-		if(servicegroup_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i<SERVICEGROUP_HASHSLOTS;i++)
-			servicegroup_hashlist[i]=NULL;
-	        }
-
-	if(!new_servicegroup)
-		return 0;
-
-	hashslot=hashfunc(new_servicegroup->group_name,NULL,SERVICEGROUP_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_servicegroup=servicegroup_hashlist[hashslot];temp_servicegroup && compare_hashdata(temp_servicegroup->group_name,NULL,new_servicegroup->group_name,NULL)<0;temp_servicegroup=temp_servicegroup->nexthash)
-		lastpointer=temp_servicegroup;
-
-	if(!temp_servicegroup || (compare_hashdata(temp_servicegroup->group_name,NULL,new_servicegroup->group_name,NULL)!=0)){
-		if(lastpointer)
-			lastpointer->nexthash=new_servicegroup;
-		else
-			servicegroup_hashlist[hashslot]=new_servicegroup;
-		new_servicegroup->nexthash=temp_servicegroup;
-
-		return 1;
-	        }
-
-	/* else already exists */
-#ifdef NSCORE
-	logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add duplicate servicegroup '%s'.\n",new_servicegroup->group_name);
-#endif
-	return 0;
-        }
-
-
-/* adds hostdependency to hash list in memory */
-int add_hostdependency_to_hashlist(hostdependency *new_hostdependency){
-	hostdependency *temp_hostdependency=NULL;
-	hostdependency *lastpointer=NULL;
-	int hashslot=0;
-
-	/* initialize hash list */
-	if(hostdependency_hashlist==NULL){
-		int i;
-
-		hostdependency_hashlist=(hostdependency **)malloc(sizeof(hostdependency *)*HOSTDEPENDENCY_HASHSLOTS);
-		if(hostdependency_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i<HOSTDEPENDENCY_HASHSLOTS;i++)
-			hostdependency_hashlist[i]=NULL;
-	        }
-
-	if(!new_hostdependency)
-		return 0;
-
-	hashslot=hashfunc(new_hostdependency->dependent_host_name,NULL,HOSTDEPENDENCY_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_hostdependency=hostdependency_hashlist[hashslot];temp_hostdependency && compare_hashdata(temp_hostdependency->dependent_host_name,NULL,new_hostdependency->dependent_host_name,NULL)<0;temp_hostdependency=temp_hostdependency->nexthash)
-		lastpointer=temp_hostdependency;
-
-	/* duplicates are allowed */
-	if(lastpointer)
-		lastpointer->nexthash=new_hostdependency;
+	/* check first name */
+	if(val1a==NULL && val2a==NULL)
+		result=0;
+	else if(val1a==NULL)
+		result=1;
+	else if(val2a==NULL)
+		result=-1;
 	else
-		hostdependency_hashlist[hashslot]=new_hostdependency;
-	new_hostdependency->nexthash=temp_hostdependency;
+		result=strcmp(val1a,val2a);
 
-	return 1;
-        }
-
-
-int add_servicedependency_to_hashlist(servicedependency *new_servicedependency){
-	servicedependency *temp_servicedependency=NULL;
-	servicedependency *lastpointer=NULL;
-	int hashslot=0;
-
-	/* initialize hash list */
-	if(servicedependency_hashlist==NULL){
-		int i;
-
-		servicedependency_hashlist=(servicedependency **)malloc(sizeof(servicedependency *)*SERVICEDEPENDENCY_HASHSLOTS);
-		if(servicedependency_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i< SERVICEDEPENDENCY_HASHSLOTS;i++)
-			servicedependency_hashlist[i]=NULL;
+	/* check second name if necessary */
+	if(result==0){
+		if(val1b==NULL && val2b==NULL)
+			result=0;
+		else if(val1b==NULL)
+			result=1;
+		else if(val2b==NULL)
+			result=-1;
+		else
+			result=strcmp(val1b,val2b);
 	        }
 
-	if(!new_servicedependency)
-		return 0;
-
-	hashslot=hashfunc(new_servicedependency->dependent_host_name,new_servicedependency->dependent_service_description,SERVICEDEPENDENCY_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_servicedependency=servicedependency_hashlist[hashslot];temp_servicedependency && compare_hashdata(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,new_servicedependency->dependent_host_name,new_servicedependency->dependent_service_description)<0;temp_servicedependency=temp_servicedependency->nexthash)
-		lastpointer=temp_servicedependency;
-
-	/* duplicates are allowed */
-	if(lastpointer)
-		lastpointer->nexthash=new_servicedependency;
-	else
-		servicedependency_hashlist[hashslot]=new_servicedependency;
-	new_servicedependency->nexthash=temp_servicedependency;
-
-	return 1;
+	return result;
         }
 
 
-/* adds hostescalation to hash list in memory */
-int add_hostescalation_to_hashlist(hostescalation *new_hostescalation){
-	hostescalation *temp_hostescalation=NULL;
-	hostescalation *lastpointer=NULL;
-	int hashslot=0;
+int skiplist_compare_host(void *a, void *b){
+	host *oa=NULL;
+	host *ob=NULL;
 
-	/* initialize hash list */
-	if(hostescalation_hashlist==NULL){
-		int i;
+	oa=(host *)a;
+	ob=(host *)b;
 
-		hostescalation_hashlist=(hostescalation **)malloc(sizeof(hostescalation *)*HOSTESCALATION_HASHSLOTS);
-		if(hostescalation_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i<HOSTESCALATION_HASHSLOTS;i++)
-			hostescalation_hashlist[i]=NULL;
-	        }
-
-	if(!new_hostescalation)
+	if(oa==NULL && ob==NULL)
 		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
 
-	hashslot=hashfunc(new_hostescalation->host_name,NULL,HOSTESCALATION_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_hostescalation=hostescalation_hashlist[hashslot];temp_hostescalation && compare_hashdata(temp_hostescalation->host_name,NULL,new_hostescalation->host_name,NULL)<0;temp_hostescalation=temp_hostescalation->nexthash)
-		lastpointer=temp_hostescalation;
-
-	/* duplicates are allowed */
-	if(lastpointer)
-		lastpointer->nexthash=new_hostescalation;
-	else
-		hostescalation_hashlist[hashslot]=new_hostescalation;
-	new_hostescalation->nexthash=temp_hostescalation;
-
-	return 1;
-        }
+	return skiplist_compare_text(oa->name,NULL,ob->name,NULL);
+	}
 
 
-int add_serviceescalation_to_hashlist(serviceescalation *new_serviceescalation){
-	serviceescalation *temp_serviceescalation=NULL;
-	serviceescalation *lastpointer=NULL;
-	int hashslot=0;
+int skiplist_compare_service(void *a, void *b){
+	service *oa=NULL;
+	service *ob=NULL;
+	int result=0;
 
-	/* initialize hash list */
-	if(serviceescalation_hashlist==NULL){
-		int i;
+	oa=(service *)a;
+	ob=(service *)b;
 
-		serviceescalation_hashlist=(serviceescalation **)malloc(sizeof(serviceescalation *)*SERVICEESCALATION_HASHSLOTS);
-		if(serviceescalation_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i< SERVICEESCALATION_HASHSLOTS;i++)
-			serviceescalation_hashlist[i]=NULL;
-	        }
-
-	if(!new_serviceescalation)
+	if(oa==NULL && ob==NULL)
 		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
 
-	hashslot=hashfunc(new_serviceescalation->host_name,new_serviceescalation->description,SERVICEESCALATION_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_serviceescalation=serviceescalation_hashlist[hashslot];temp_serviceescalation && compare_hashdata(temp_serviceescalation->host_name,temp_serviceescalation->description,new_serviceescalation->host_name,new_serviceescalation->description)<0;temp_serviceescalation=temp_serviceescalation->nexthash)
-		lastpointer=temp_serviceescalation;
+	return skiplist_compare_text(oa->host_name,oa->description,ob->host_name,ob->description);
+	}
 
-	/* duplicates are allowed */
-	if(lastpointer)
-		lastpointer->nexthash=new_serviceescalation;
-	else
-		serviceescalation_hashlist[hashslot]=new_serviceescalation;
-	new_serviceescalation->nexthash=temp_serviceescalation;
 
-	return 1;
-        }
+int skiplist_compare_command(void *a, void *b){
+	command *oa=NULL;
+	command *ob=NULL;
+
+	oa=(command *)a;
+	ob=(command *)b;
+
+	if(oa==NULL && ob==NULL)
+		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
+
+	return skiplist_compare_text(oa->name,NULL,ob->name,NULL);
+	}
+
+
+int skiplist_compare_timeperiod(void *a, void *b){
+	timeperiod *oa=NULL;
+	timeperiod *ob=NULL;
+
+	oa=(timeperiod *)a;
+	ob=(timeperiod *)b;
+
+	if(oa==NULL && ob==NULL)
+		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
+
+	return skiplist_compare_text(oa->name,NULL,ob->name,NULL);
+	}
+
+
+int skiplist_compare_contact(void *a, void *b){
+	contact *oa=NULL;
+	contact *ob=NULL;
+
+	oa=(contact *)a;
+	ob=(contact *)b;
+
+	if(oa==NULL && ob==NULL)
+		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
+
+	return skiplist_compare_text(oa->name,NULL,ob->name,NULL);
+	}
+
+
+int skiplist_compare_contactgroup(void *a, void *b){
+	contactgroup *oa=NULL;
+	contactgroup *ob=NULL;
+
+	oa=(contactgroup *)a;
+	ob=(contactgroup *)b;
+
+	if(oa==NULL && ob==NULL)
+		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
+
+	return skiplist_compare_text(oa->group_name,NULL,ob->group_name,NULL);
+	}
+
+
+int skiplist_compare_hostgroup(void *a, void *b){
+	hostgroup *oa=NULL;
+	hostgroup *ob=NULL;
+
+	oa=(hostgroup *)a;
+	ob=(hostgroup *)b;
+
+	if(oa==NULL && ob==NULL)
+		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
+
+	return skiplist_compare_text(oa->group_name,NULL,ob->group_name,NULL);
+	}
+
+
+int skiplist_compare_servicegroup(void *a, void *b){
+	servicegroup *oa=NULL;
+	servicegroup *ob=NULL;
+
+	oa=(servicegroup *)a;
+	ob=(servicegroup *)b;
+
+	if(oa==NULL && ob==NULL)
+		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
+
+	return skiplist_compare_text(oa->group_name,NULL,ob->group_name,NULL);
+	}
+
+
+int skiplist_compare_hostescalation(void *a, void *b){
+	hostescalation *oa=NULL;
+	hostescalation *ob=NULL;
+
+	oa=(hostescalation *)a;
+	ob=(hostescalation *)b;
+
+	if(oa==NULL && ob==NULL)
+		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
+
+	return skiplist_compare_text(oa->host_name,NULL,ob->host_name,NULL);
+	}
+
+
+int skiplist_compare_serviceescalation(void *a, void *b){
+	serviceescalation *oa=NULL;
+	serviceescalation *ob=NULL;
+	int result=0;
+
+	oa=(serviceescalation *)a;
+	ob=(serviceescalation *)b;
+
+	if(oa==NULL && ob==NULL)
+		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
+
+	return skiplist_compare_text(oa->host_name,oa->description,ob->host_name,ob->description);
+	}
+
+
+int skiplist_compare_hostdependency(void *a, void *b){
+	hostdependency *oa=NULL;
+	hostdependency *ob=NULL;
+
+	oa=(hostdependency *)a;
+	ob=(hostdependency *)b;
+
+	if(oa==NULL && ob==NULL)
+		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
+
+	return skiplist_compare_text(oa->dependent_host_name,NULL,ob->dependent_host_name,NULL);
+	}
+
+
+int skiplist_compare_servicedependency(void *a, void *b){
+	servicedependency *oa=NULL;
+	servicedependency *ob=NULL;
+	int result=0;
+
+	oa=(servicedependency *)a;
+	ob=(servicedependency *)b;
+
+	if(oa==NULL && ob==NULL)
+		return 0;
+	if(oa==NULL)
+		return 1;
+	if(ob==NULL)
+		return -1;
+
+	return skiplist_compare_text(oa->dependent_host_name,oa->dependent_service_description,ob->dependent_host_name,ob->dependent_service_description);
+	}
+
+
+int get_host_count(void){
+
+	if(object_skiplists[HOST_SKIPLIST])
+		return object_skiplists[HOST_SKIPLIST]->items;
+
+	return 0;
+	}
+
+
+int get_service_count(void){
+
+	if(object_skiplists[SERVICE_SKIPLIST])
+		return object_skiplists[SERVICE_SKIPLIST]->items;
+
+	return 0;
+	}
+
 
 
 
@@ -610,14 +414,6 @@ timeperiod *add_timeperiod(char *name,char *alias){
 	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
 #ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Name or alias for timeperiod is NULL\n");
-#endif
-		return NULL;
-	        }
-
-	/* make sure there isn't a timeperiod by this name added already */
-	if(find_timeperiod(name)!=NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Timeperiod '%s' has already been defined\n",name);
 #endif
 		return NULL;
 	        }
@@ -643,11 +439,27 @@ timeperiod *add_timeperiod(char *name,char *alias){
 	if((new_timeperiod->alias=(char *)strdup(alias))==NULL)
 		result=ERROR;
 
-	/* add new timeperiod to timeperiod chained hash list */
+	/* add new timeperiod to skiplist */
 	if(result==OK){
-		if(!add_timeperiod_to_hashlist(new_timeperiod))
+		result=skiplist_insert(object_skiplists[TIMEPERIOD_SKIPLIST],(void *)new_timeperiod);
+		switch(result){
+		case SKIPLIST_ERROR_DUPLICATE:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Timeperiod '%s' has already been defined\n",name);
+#endif
 			result=ERROR;
-	        }
+			break;
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add timeperiod '%s' to skiplist\n",name);
+#endif
+			result=ERROR;
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -657,8 +469,7 @@ timeperiod *add_timeperiod(char *name,char *alias){
 		return NULL;
 	        }
 
-	/* timeperiods are sorted alphabetically for daemon, so add new items to tail of list */
-#ifdef NSCORE
+	/* timeperiods are registered alphabetically, so add new items to tail of list */
 	if(timeperiod_list==NULL){
 		timeperiod_list=new_timeperiod;
 		timeperiod_list_tail=timeperiod_list;
@@ -667,11 +478,6 @@ timeperiod *add_timeperiod(char *name,char *alias){
 		timeperiod_list_tail->next=new_timeperiod;
 		timeperiod_list_tail=new_timeperiod;
 		}
-#else
-	/* timeperiods are sorted in reverse for CGIs, so add new items to head of list */
-	new_timeperiod->next=timeperiod_list;
-	timeperiod_list=new_timeperiod;
-#endif
 
 	return new_timeperiod;
         }
@@ -829,14 +635,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	if((name==NULL || !strcmp(name,"")) || (address==NULL || !strcmp(address,""))){
 #ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Host name or address is NULL\n");
-#endif
-		return NULL;
-	        }
-
-	/* make sure there isn't a host by this name already added */
-	if(find_host(name)!=NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Host '%s' has already been defined\n",name);
 #endif
 		return NULL;
 	        }
@@ -1064,11 +862,27 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->contains_circular_path=FALSE;
 #endif
 
-	/* add new host to host chained hash list */
+	/* add new host to skiplist */
 	if(result==OK){
-		if(!add_host_to_hashlist(new_host))
+		result=skiplist_insert(object_skiplists[HOST_SKIPLIST],(void *)new_host);
+		switch(result){
+		case SKIPLIST_ERROR_DUPLICATE:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Host '%s' has already been defined\n",name);
+#endif
 			result=ERROR;
-	        }
+			break;
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add host '%s' to skiplist\n",name);
+#endif
+			result=ERROR;
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -1097,8 +911,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* hosts are sorted alphabetically for daemon, so add new items to tail of list */
+	/* hosts are sorted alphabetically, so add new items to tail of list */
 	if(host_list==NULL){
 		host_list=new_host;
 		host_list_tail=host_list;
@@ -1107,11 +920,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		host_list_tail->next=new_host;
 		host_list_tail=new_host;
 		}
-#else
-	/* hosts are sorted in reverse for CGIs, so add new items to head of list */
-	new_host->next=host_list;
-	host_list=new_host;
-#endif
 
 	return new_host;
 	}
@@ -1293,14 +1101,6 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 		return NULL;
 	        }
 
-	/* make sure a hostgroup by this name hasn't been added already */
-	if(find_hostgroup(name)!=NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Hostgroup '%s' has already been defined\n",name);
-#endif
-		return NULL;
-	        }
-
 	/* allocate memory */
 	if((new_hostgroup=(hostgroup *)malloc(sizeof(hostgroup)))==NULL)
 		return NULL;
@@ -1333,11 +1133,27 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 			result=ERROR;
 		}
 
-	/* add new hostgroup to hostgroup chained hash list */
+	/* add new host group to skiplist */
 	if(result==OK){
-		if(!add_hostgroup_to_hashlist(new_hostgroup))
+		result=skiplist_insert(object_skiplists[HOSTGROUP_SKIPLIST],(void *)new_hostgroup);
+		switch(result){
+		case SKIPLIST_ERROR_DUPLICATE:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Hostgroup '%s' has already been defined\n",name);
+#endif
 			result=ERROR;
-	        }
+			break;
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add hostgroup '%s' to skiplist\n",name);
+#endif
+			result=ERROR;
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -1347,8 +1163,7 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* hostgroups are sorted alphabetically for daemon, so add new items to tail of list */
+	/* hostgroups are sorted alphabetically, so add new items to tail of list */
 	if(hostgroup_list==NULL){
 		hostgroup_list=new_hostgroup;
 		hostgroup_list_tail=hostgroup_list;
@@ -1357,12 +1172,7 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 		hostgroup_list_tail->next=new_hostgroup;
 		hostgroup_list_tail=new_hostgroup;
 		}
-#else
-	/* hostgroups are sorted in reverse for CGIs, so add new items to head of list */
-	new_hostgroup->next=hostgroup_list;
-	hostgroup_list=new_hostgroup;
-#endif
-		
+
 	return new_hostgroup;
 	}
 
@@ -1443,14 +1253,6 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 		return NULL;
 	        }
 
-	/* make sure a servicegroup by this name hasn't been added already */
-	if(find_servicegroup(name)!=NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Servicegroup '%s' has already been defined\n",name);
-#endif
-		return NULL;
-	        }
-
 	/* allocate memory */
 	if((new_servicegroup=(servicegroup *)malloc(sizeof(servicegroup)))==NULL)
 		return NULL;
@@ -1483,11 +1285,27 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 			result=ERROR;
 		}
 
-	/* add new servicegroup to servicegroup chained hash list */
+	/* add new service group to skiplist */
 	if(result==OK){
-		if(!add_servicegroup_to_hashlist(new_servicegroup))
+		result=skiplist_insert(object_skiplists[SERVICEGROUP_SKIPLIST],(void *)new_servicegroup);
+		switch(result){
+		case SKIPLIST_ERROR_DUPLICATE:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Servicegroup '%s' has already been defined\n",name);
+#endif
 			result=ERROR;
-	        }
+			break;
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add servicegroup '%s' to skiplist\n",name);
+#endif
+			result=ERROR;
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -1497,8 +1315,7 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* servicegroups are sorted alphabetically for daemon, so add new items to tail of list */
+	/* servicegroups are sorted alphabetically, so add new items to tail of list */
 	if(servicegroup_list==NULL){
 		servicegroup_list=new_servicegroup;
 		servicegroup_list_tail=servicegroup_list;
@@ -1507,12 +1324,7 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 		servicegroup_list_tail->next=new_servicegroup;
 		servicegroup_list_tail=new_servicegroup;
 		}
-#else
-	/* servicegroups are sorted in reverse for CGIs, so add new items to head of list */
-	new_servicegroup->next=servicegroup_list;
-	servicegroup_list=new_servicegroup;
-#endif
-		
+
 	return new_servicegroup;
 	}
 
@@ -1609,14 +1421,6 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 		return NULL;
 	        }
 
-	/* make sure there isn't a contact by this name already added */
-	if(find_contact(name)!=NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contact '%s' has already been defined\n",name);
-#endif
-		return NULL;
-	        }
-
 	/* allocate memory for a new contact */
 	if((new_contact=(contact *)malloc(sizeof(contact)))==NULL)
 		return NULL;
@@ -1694,11 +1498,27 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	new_contact->contactgroups_ptr=NULL;
 #endif
 
-	/* add new contact to contact chained hash list */
+	/* add new contact to skiplist */
 	if(result==OK){
-		if(!add_contact_to_hashlist(new_contact))
+		result=skiplist_insert(object_skiplists[CONTACT_SKIPLIST],(void *)new_contact);
+		switch(result){
+		case SKIPLIST_ERROR_DUPLICATE:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contact '%s' has already been defined\n",name);
+#endif
 			result=ERROR;
-	        }
+			break;
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contact '%s' to skiplist\n",name);
+#endif
+			result=ERROR;
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -1714,8 +1534,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* contacts are sorted alphabetically for daemon, so add new items to tail of list */
+	/* contacts are sorted alphabetically, so add new items to tail of list */
 	if(contact_list==NULL){
 		contact_list=new_contact;
 		contact_list_tail=contact_list;
@@ -1724,12 +1543,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 		contact_list_tail->next=new_contact;
 		contact_list_tail=new_contact;
 		}
-#else
-	/* contacts are sorted in reverse for CGIs, so add new items to head of list */
-	new_contact->next=contact_list;
-	contact_list=new_contact;
-#endif
-		
+
 	return new_contact;
 	}
 
@@ -1842,14 +1656,6 @@ contactgroup *add_contactgroup(char *name,char *alias){
 		return NULL;
 	        }
 
-	/* make sure there isn't a contactgroup by this name added already */
-	if(find_contactgroup(name)!=NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contactgroup '%s' has already been defined\n",name);
-#endif
-		return NULL;
-	        }
-
 	/* allocate memory for a new contactgroup entry */
 	if((new_contactgroup=malloc(sizeof(contactgroup)))==NULL)
 		return NULL;
@@ -1867,11 +1673,27 @@ contactgroup *add_contactgroup(char *name,char *alias){
 	if((new_contactgroup->alias=(char *)strdup((alias==NULL)?name:alias))==NULL)
 		result=ERROR;
 
-	/* add new contactgroup to contactgroup chained hash list */
+	/* add new contact group to skiplist */
 	if(result==OK){
-		if(!add_contactgroup_to_hashlist(new_contactgroup))
+		result=skiplist_insert(object_skiplists[CONTACTGROUP_SKIPLIST],(void *)new_contactgroup);
+		switch(result){
+		case SKIPLIST_ERROR_DUPLICATE:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contactgroup '%s' has already been defined\n",name);
+#endif
 			result=ERROR;
-	        }
+			break;
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contactgroup '%s' to skiplist\n",name);
+#endif
+			result=ERROR;
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -1881,8 +1703,7 @@ contactgroup *add_contactgroup(char *name,char *alias){
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* contactgroups are sorted alphabetically for daemon, so add new items to tail of list */
+	/* contactgroups are sorted alphabetically, so add new items to tail of list */
 	if(contactgroup_list==NULL){
 		contactgroup_list=new_contactgroup;
 		contactgroup_list_tail=contactgroup_list;
@@ -1891,11 +1712,6 @@ contactgroup *add_contactgroup(char *name,char *alias){
 		contactgroup_list_tail->next=new_contactgroup;
 		contactgroup_list_tail=new_contactgroup;
 		}
-#else
-	/* contactgroups are sorted in reverse for CGIs, so add new items to head of list */
-	new_contactgroup->next=contactgroup_list;
-	contactgroup_list=new_contactgroup;
-#endif		
 
 	return new_contactgroup;
 	}
@@ -1957,14 +1773,6 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	if((host_name==NULL || !strcmp(host_name,"")) || (description==NULL || !strcmp(description,"")) || (check_command==NULL || !strcmp(check_command,""))){
 #ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Service description, host name, or check command is NULL\n");
-#endif
-		return NULL;
-	        }
-
-	/* make sure there isn't a service by this name added already */
-	if(find_service(host_name,description)!=NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Service '%s' on host '%s' has already been defined\n",description,host_name);
 #endif
 		return NULL;
 	        }
@@ -2151,11 +1959,27 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->modified_attributes=MODATTR_NONE;
 #endif
 
-	/* add new service to service chained hash list */
+	/* add new service to skiplist */
 	if(result==OK){
-		if(!add_service_to_hashlist(new_service))
+		result=skiplist_insert(object_skiplists[SERVICE_SKIPLIST],(void *)new_service);
+		switch(result){
+		case SKIPLIST_ERROR_DUPLICATE:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Service '%s' on host '%s' has already been defined\n",description,host_name);
+#endif
 			result=ERROR;
-	        }
+			break;
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add service '%s' on host '%s' to skiplist\n",description,host_name);
+#endif
+			result=ERROR;
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -2174,8 +1998,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* services are sorted alphabetically for daemon, so add new items to tail of list */
+	/* services are sorted alphabetically, so add new items to tail of list */
 	if(service_list==NULL){
 		service_list=new_service;
 		service_list_tail=service_list;
@@ -2184,11 +2007,6 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		service_list_tail->next=new_service;
 		service_list_tail=new_service;
 		}
-#else
-	/* services are sorted in reverse for CGIs, so add new items to head of list */
-	new_service->next=service_list;
-	service_list=new_service;
-#endif
 
 	return new_service;
 	}
@@ -2266,14 +2084,6 @@ command *add_command(char *name,char *value){
 		return NULL;
 	        }
 
-	/* make sure there isn't a command by this name added already */
-	if(find_command(name)!=NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Command '%s' has already been defined\n",name);
-#endif
-		return NULL;
-	        }
-
 	/* allocate memory for the new command */
 	if((new_command=(command *)malloc(sizeof(command)))==NULL)
 		return NULL;
@@ -2290,11 +2100,27 @@ command *add_command(char *name,char *value){
 	if((new_command->command_line=(char *)strdup(value))==NULL)
 		result=ERROR;
 
-	/* add new command to command chained hash list */
+	/* add new command to skiplist */
 	if(result==OK){
-		if(!add_command_to_hashlist(new_command))
+		result=skiplist_insert(object_skiplists[COMMAND_SKIPLIST],(void *)new_command);
+		switch(result){
+		case SKIPLIST_ERROR_DUPLICATE:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Command '%s' has already been defined\n",name);
+#endif
 			result=ERROR;
-	        }
+			break;
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add command '%s' to skiplist\n",name);
+#endif
+			result=ERROR;
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -2304,8 +2130,7 @@ command *add_command(char *name,char *value){
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* commands are sorted alphabetically for daemon, so add new items to tail of list */
+	/* commands are sorted alphabetically, so add new items to tail of list */
 	if(command_list==NULL){
 		command_list=new_command;
 		command_list_tail=command_list;
@@ -2314,11 +2139,6 @@ command *add_command(char *name,char *value){
 		command_list_tail->next=new_command;
 		command_list_tail=new_command;
 		}
-#else
-	/* commands are sorted in reverse for CGIs, so add new items to head of list */
-	new_command->next=command_list;
-	command_list=new_command;
-#endif		
 
 	return new_command;
         }
@@ -2337,6 +2157,10 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 #endif
 		return NULL;
 	        }
+
+#ifdef TEST
+	printf("NEW SVC ESCALATION: %s/%s = %d/%d/%.3f\n",host_name,description,first_notification,last_notification,notification_interval);
+#endif
 
 	/* allocate memory for a new service escalation entry */
 	if((new_serviceescalation=malloc(sizeof(serviceescalation)))==NULL)
@@ -2373,11 +2197,21 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 	new_serviceescalation->escalate_on_unknown=(escalate_on_unknown>0)?TRUE:FALSE;
 	new_serviceescalation->escalate_on_critical=(escalate_on_critical>0)?TRUE:FALSE;
 
-	/* add new serviceescalation to serviceescalation chained hash list */
+	/* add new serviceescalation to skiplist */
 	if(result==OK){
-		if(!add_serviceescalation_to_hashlist(new_serviceescalation))
+		result=skiplist_insert(object_skiplists[SERVICEESCALATION_SKIPLIST],(void *)new_serviceescalation);
+		switch(result){
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add escalation for service '%s' on host '%s' to skiplist\n",description,host_name);
+#endif
 			result=ERROR;
-	        }
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -2388,8 +2222,7 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* service escalations are sorted alphabetically for daemon, so add new items to tail of list */
+	/* service escalations are sorted alphabetically, so add new items to tail of list */
 	if(serviceescalation_list==NULL){
 		serviceescalation_list=new_serviceescalation;
 		serviceescalation_list_tail=serviceescalation_list;
@@ -2398,11 +2231,6 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 		serviceescalation_list_tail->next=new_serviceescalation;
 		serviceescalation_list_tail=new_serviceescalation;
 		}
-#else
-	/* service escalations are sorted in reverse for CGIs, so add new items to head of list */
-	new_serviceescalation->next=serviceescalation_list;
-	serviceescalation_list=new_serviceescalation;
-#endif		
 
 	return new_serviceescalation;
 	}
@@ -2523,11 +2351,21 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->contains_circular_path=FALSE;
 #endif
 
-	/* add new servicedependency to servicedependency chained hash list */
+	/* add new service dependency to skiplist */
 	if(result==OK){
-		if(!add_servicedependency_to_hashlist(new_servicedependency))
+		result=skiplist_insert(object_skiplists[SERVICEDEPENDENCY_SKIPLIST],(void *)new_servicedependency);
+		switch(result){
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add service dependency to skiplist\n");
+#endif
 			result=ERROR;
-	        }
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -2539,8 +2377,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* service dependencies are sorted alphabetically for daemon, so add new items to tail of list */
+	/* service dependencies are sorted alphabetically, so add new items to tail of list */
 	if(servicedependency_list==NULL){
 		servicedependency_list=new_servicedependency;
 		servicedependency_list_tail=servicedependency_list;
@@ -2549,11 +2386,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		servicedependency_list_tail->next=new_servicedependency;
 		servicedependency_list_tail=new_servicedependency;
 		}
-#else
-	/* service dependencies are sorted in reverse for CGIs, so add new items to head of list */
-	new_servicedependency->next=servicedependency_list;
-	servicedependency_list=new_servicedependency;
-#endif		
 
 	return new_servicedependency;
         }
@@ -2609,11 +2441,21 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency->contains_circular_path=FALSE;
 #endif
 
-	/* add new hostdependency to hostdependency chained hash list */
+	/* add new host dependency to skiplist */
 	if(result==OK){
-		if(!add_hostdependency_to_hashlist(new_hostdependency))
+		result=skiplist_insert(object_skiplists[HOSTDEPENDENCY_SKIPLIST],(void *)new_hostdependency);
+		switch(result){
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add host dependency to skiplist\n");
+#endif
 			result=ERROR;
-	        }
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -2623,8 +2465,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* host dependencies are sorted alphabetically for daemon, so add new items to tail of list */
+	/* host dependencies are sorted alphabetically, so add new items to tail of list */
 	if(hostdependency_list==NULL){
 		hostdependency_list=new_hostdependency;
 		hostdependency_list_tail=hostdependency_list;
@@ -2633,11 +2474,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		hostdependency_list_tail->next=new_hostdependency;
 		hostdependency_list_tail=new_hostdependency;
 		}
-#else
-	/* host dependencies are sorted in reverse for CGIs, so add new items to head of list */
-	new_hostdependency->next=hostdependency_list;
-	hostdependency_list=new_hostdependency;
-#endif		
 
 	return new_hostdependency;
         }
@@ -2656,6 +2492,10 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 #endif
 		return NULL;
 	        }
+
+#ifdef TEST
+	printf("NEW HST ESCALATION: %s = %d/%d/%.3f\n",host_name,first_notification,last_notification,notification_interval);
+#endif
 
 	/* allocate memory for a new host escalation entry */
 	if((new_hostescalation=malloc(sizeof(hostescalation)))==NULL)
@@ -2688,11 +2528,21 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 	new_hostescalation->escalate_on_down=(escalate_on_down>0)?TRUE:FALSE;
 	new_hostescalation->escalate_on_unreachable=(escalate_on_unreachable>0)?TRUE:FALSE;
 
-	/* add new hostescalation to hostescalation chained hash list */
+	/* add new hostescalation to skiplist */
 	if(result==OK){
-		if(!add_hostescalation_to_hashlist(new_hostescalation))
+		result=skiplist_insert(object_skiplists[HOSTESCALATION_SKIPLIST],(void *)new_hostescalation);
+		switch(result){
+		case SKIPLIST_OK:
+			result=OK;
+			break;
+		default:
+#ifdef NSCORE
+			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add hostescalation '%s' to skiplist\n",host_name);
+#endif
 			result=ERROR;
-	        }
+			break;
+			}
+		}
 
 	/* handle errors */
 	if(result==ERROR){
@@ -2702,8 +2552,7 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 		return NULL;
 	        }
 
-#ifdef NSCORE
-	/* host escalations are sorted alphabetically for daemon, so add new items to tail of list */
+	/* host escalations are sorted alphabetically, so add new items to tail of list */
 	if(hostescalation_list==NULL){
 		hostescalation_list=new_hostescalation;
 		hostescalation_list_tail=hostescalation_list;
@@ -2712,11 +2561,6 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 		hostescalation_list_tail->next=new_hostescalation;
 		hostescalation_list_tail=new_hostescalation;
 		}
-#else
-	/* host escalations are sorted in reverse for CGIs, so add new items to head of list */
-	new_hostescalation->next=hostescalation_list;
-	hostescalation_list=new_hostescalation;
-#endif		
 
 	return new_hostescalation;
 	}
@@ -2887,138 +2731,106 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 
 /* given a timeperiod name and a starting point, find a timeperiod from the list in memory */
 timeperiod * find_timeperiod(char *name){
-	timeperiod *temp_timeperiod=NULL;
+	timeperiod temp_timeperiod;
 
-	if(name==NULL || timeperiod_hashlist==NULL)
+	if(name==NULL)
 		return NULL;
 
-	for(temp_timeperiod=timeperiod_hashlist[hashfunc(name,NULL,TIMEPERIOD_HASHSLOTS)];temp_timeperiod && compare_hashdata(temp_timeperiod->name,NULL,name,NULL)<0;temp_timeperiod=temp_timeperiod->nexthash);
+	temp_timeperiod.name=name;
 
-	if(temp_timeperiod && (compare_hashdata(temp_timeperiod->name,NULL,name,NULL)==0))
-		return temp_timeperiod;
-
-	/* we couldn't find a matching timeperiod */
-	return NULL;
+	return skiplist_find_first(object_skiplists[TIMEPERIOD_SKIPLIST],&temp_timeperiod,NULL);
 	}
 
 
 /* given a host name, find it in the list in memory */
 host * find_host(char *name){
-	host *temp_host=NULL;
+	host temp_host;
 
-	if(name==NULL || host_hashlist==NULL)
+	if(name==NULL)
 		return NULL;
 
-	for(temp_host=host_hashlist[hashfunc(name,NULL,HOST_HASHSLOTS)];temp_host && compare_hashdata(temp_host->name,NULL,name,NULL)<0;temp_host=temp_host->nexthash);
+	temp_host.name=name;
 
-	if(temp_host && (compare_hashdata(temp_host->name,NULL,name,NULL)==0))
-		return temp_host;
-
-	/* Couldn't find matching host */
-	return NULL;
-        }
+	return skiplist_find_first(object_skiplists[HOST_SKIPLIST],&temp_host,NULL);
+	}
 
 
 /* find a hostgroup from the list in memory */
 hostgroup * find_hostgroup(char *name){
-	hostgroup *temp_hostgroup=NULL;
+	hostgroup temp_hostgroup;
 
-	if(name==NULL || hostgroup_hashlist==NULL)
+	if(name==NULL)
 		return NULL;
 
-	for(temp_hostgroup=hostgroup_hashlist[hashfunc(name,NULL,HOSTGROUP_HASHSLOTS)];temp_hostgroup && compare_hashdata(temp_hostgroup->group_name,NULL,name,NULL)<0;temp_hostgroup=temp_hostgroup->nexthash);
+	temp_hostgroup.group_name=name;
 
-	if(temp_hostgroup && (compare_hashdata(temp_hostgroup->group_name,NULL,name,NULL)==0))
-		return temp_hostgroup;
-
-	/* we couldn't find a matching hostgroup */
-	return NULL;
+	return skiplist_find_first(object_skiplists[HOSTGROUP_SKIPLIST],&temp_hostgroup,NULL);
 	}
 
 
 /* find a servicegroup from the list in memory */
 servicegroup * find_servicegroup(char *name){
-	servicegroup *temp_servicegroup=NULL;
+	servicegroup temp_servicegroup;
 
-	if(name==NULL || servicegroup_hashlist==NULL)
+	if(name==NULL)
 		return NULL;
 
-	for(temp_servicegroup=servicegroup_hashlist[hashfunc(name,NULL,SERVICEGROUP_HASHSLOTS)];temp_servicegroup && compare_hashdata(temp_servicegroup->group_name,NULL,name,NULL)<0;temp_servicegroup=temp_servicegroup->nexthash);
+	temp_servicegroup.group_name=name;
 
-	if(temp_servicegroup && (compare_hashdata(temp_servicegroup->group_name,NULL,name,NULL)==0))
-		return temp_servicegroup;
-
-
-	/* we couldn't find a matching servicegroup */
-	return NULL;
+	return skiplist_find_first(object_skiplists[SERVICEGROUP_SKIPLIST],&temp_servicegroup,NULL);
 	}
 
 
 /* find a contact from the list in memory */
 contact * find_contact(char *name){
-	contact *temp_contact=NULL;
+	contact temp_contact;
 
-	if(name==NULL || contact_hashlist==NULL)
+	if(name==NULL)
 		return NULL;
 
-	for(temp_contact=contact_hashlist[hashfunc(name,NULL,CONTACT_HASHSLOTS)];temp_contact && compare_hashdata(temp_contact->name,NULL,name,NULL)<0;temp_contact=temp_contact->nexthash);
+	temp_contact.name=name;
 
-	if(temp_contact && (compare_hashdata(temp_contact->name,NULL,name,NULL)==0))
-		return temp_contact;
-
-	/* we couldn't find a matching contact */
-	return NULL;
+	return skiplist_find_first(object_skiplists[CONTACT_SKIPLIST],&temp_contact,NULL);
 	}
 
 
 /* find a contact group from the list in memory */
 contactgroup * find_contactgroup(char *name){
-	contactgroup *temp_contactgroup=NULL;
+	contactgroup temp_contactgroup;
 
-	if(name==NULL || contactgroup_hashlist==NULL)
+	if(name==NULL)
 		return NULL;
 
-	for(temp_contactgroup=contactgroup_hashlist[hashfunc(name,NULL,CONTACTGROUP_HASHSLOTS)];temp_contactgroup && compare_hashdata(temp_contactgroup->group_name,NULL,name,NULL)<0;temp_contactgroup=temp_contactgroup->nexthash);
+	temp_contactgroup.group_name=name;
 
-	if(temp_contactgroup && (compare_hashdata(temp_contactgroup->group_name,NULL,name,NULL)==0))
-		return temp_contactgroup;
-
-	/* we couldn't find a matching contactgroup */
-	return NULL;
+	return skiplist_find_first(object_skiplists[CONTACTGROUP_SKIPLIST],&temp_contactgroup,NULL);
 	}
 
 
 /* given a command name, find a command from the list in memory */
 command * find_command(char *name){
-	command *temp_command=NULL;
+	command temp_command;
 
-	if(name==NULL || command_hashlist==NULL)
+	if(name==NULL)
 		return NULL;
 
-	for(temp_command=command_hashlist[hashfunc(name,NULL,COMMAND_HASHSLOTS)];temp_command && compare_hashdata(temp_command->name,NULL,name,NULL)<0;temp_command=temp_command->nexthash);
+	temp_command.name=name;
 
-	if(temp_command && (compare_hashdata(temp_command->name,NULL,name,NULL)==0))
-		return temp_command;
-
-	/* we couldn't find a matching command */
-	return NULL;
+	return skiplist_find_first(object_skiplists[COMMAND_SKIPLIST],&temp_command,NULL);
         }
 
 
 /* given a host/service name, find the service in the list in memory */
 service * find_service(char *host_name,char *svc_desc){
-	service *temp_service=NULL;
+	service temp_service;
 
-	if(host_name==NULL || svc_desc==NULL || service_hashlist==NULL)
+	if(host_name==NULL || svc_desc==NULL)
 		return NULL;
 
-	for(temp_service=service_hashlist[hashfunc(host_name,svc_desc,SERVICE_HASHSLOTS)];temp_service && compare_hashdata(temp_service->host_name,temp_service->description,host_name,svc_desc)<0;temp_service=temp_service->nexthash);
+	temp_service.host_name=host_name;
+	temp_service.description=svc_desc;
 
-	if(temp_service && (compare_hashdata(temp_service->host_name,temp_service->description,host_name,svc_desc)==0))
-		return temp_service;
-
-	/* we couldn't find a matching service */
-	return NULL;
+	return skiplist_find_first(object_skiplists[SERVICE_SKIPLIST],&temp_service,NULL);
         }
 
 
@@ -3028,105 +2840,103 @@ service * find_service(char *host_name,char *svc_desc){
 /******************* OBJECT TRAVERSAL FUNCTIONS *******************/
 /******************************************************************/
 
-hostescalation *get_first_hostescalation_by_host(char *host_name){
+hostescalation *get_first_hostescalation_by_host(char *host_name, void **ptr){
+	hostescalation temp_hostescalation;
 
-	return get_next_hostescalation_by_host(host_name,NULL);
-        }
-
-
-hostescalation *get_next_hostescalation_by_host(char *host_name, hostescalation *start){
-	hostescalation *temp_hostescalation=NULL;
-
-	if(host_name==NULL || hostescalation_hashlist==NULL)
+	if(host_name==NULL)
 		return NULL;
 
-	if(start==NULL)
-		temp_hostescalation=hostescalation_hashlist[hashfunc(host_name,NULL,HOSTESCALATION_HASHSLOTS)];
-	else
-		temp_hostescalation=start->nexthash;
+	temp_hostescalation.host_name=host_name;
 
-	for(;temp_hostescalation && compare_hashdata(temp_hostescalation->host_name,NULL,host_name,NULL)<0;temp_hostescalation=temp_hostescalation->nexthash);
-
-	if(temp_hostescalation && compare_hashdata(temp_hostescalation->host_name,NULL,host_name,NULL)==0)
-		return temp_hostescalation;
-
-	return NULL;
+	return skiplist_find_first(object_skiplists[HOSTESCALATION_SKIPLIST],&temp_hostescalation,ptr);
         }
 
 
-serviceescalation *get_first_serviceescalation_by_service(char *host_name, char *svc_description){
+hostescalation *get_next_hostescalation_by_host(char *host_name, void **ptr){
+	hostescalation temp_hostescalation;
 
-	return get_next_serviceescalation_by_service(host_name,svc_description,NULL);
-        }
-
-
-serviceescalation *get_next_serviceescalation_by_service(char *host_name, char *svc_description, serviceescalation *start){
-	serviceescalation *temp_serviceescalation=NULL;
-
-	if(host_name==NULL || svc_description==NULL || serviceescalation_hashlist==NULL)
+	if(host_name==NULL)
 		return NULL;
 
-	if(start==NULL)
-		temp_serviceescalation=serviceescalation_hashlist[hashfunc(host_name,svc_description,SERVICEESCALATION_HASHSLOTS)];
-	else
-		temp_serviceescalation=start->nexthash;
+	temp_hostescalation.host_name=host_name;
 
-	for(;temp_serviceescalation && compare_hashdata(temp_serviceescalation->host_name,temp_serviceescalation->description,host_name,svc_description)<0;temp_serviceescalation=temp_serviceescalation->nexthash);
-
-	if(temp_serviceescalation && compare_hashdata(temp_serviceescalation->host_name,temp_serviceescalation->description,host_name,svc_description)==0)
-		return temp_serviceescalation;
-
-	return NULL;
+	return skiplist_find_next(object_skiplists[HOSTESCALATION_SKIPLIST],&temp_hostescalation,ptr);
         }
 
 
-hostdependency *get_first_hostdependency_by_dependent_host(char *host_name){
+serviceescalation *get_first_serviceescalation_by_service(char *host_name, char *svc_description, void **ptr){
+	serviceescalation temp_serviceescalation;
 
-	return get_next_hostdependency_by_dependent_host(host_name,NULL);
-        }
-
-
-hostdependency *get_next_hostdependency_by_dependent_host(char *host_name, hostdependency *start){
-	hostdependency *temp_hostdependency=NULL;
-
-	if(host_name==NULL || hostdependency_hashlist==NULL)
+	if(host_name==NULL || svc_description==NULL)
 		return NULL;
 
-	if(start==NULL)
-		temp_hostdependency=hostdependency_hashlist[hashfunc(host_name,NULL,HOSTDEPENDENCY_HASHSLOTS)];
-	else
-		temp_hostdependency=start->nexthash;
+	temp_serviceescalation.host_name=host_name;
+	temp_serviceescalation.description=svc_description;
 
-	for(;temp_hostdependency && compare_hashdata(temp_hostdependency->dependent_host_name,NULL,host_name,NULL)<0;temp_hostdependency=temp_hostdependency->nexthash);
-
-	if(temp_hostdependency && compare_hashdata(temp_hostdependency->dependent_host_name,NULL,host_name,NULL)==0)
-		return temp_hostdependency;
-
-	return NULL;
-        }
+	return skiplist_find_first(object_skiplists[SERVICEESCALATION_SKIPLIST],&temp_serviceescalation,ptr);
+	}
 
 
-servicedependency *get_first_servicedependency_by_dependent_service(char *host_name, char *svc_description){
+serviceescalation *get_next_serviceescalation_by_service(char *host_name, char *svc_description, void **ptr){
+	serviceescalation temp_serviceescalation;
 
-	return get_next_servicedependency_by_dependent_service(host_name,svc_description,NULL);
-        }
-
-
-servicedependency *get_next_servicedependency_by_dependent_service(char *host_name, char *svc_description, servicedependency *start){
-	servicedependency *temp_servicedependency=NULL;
-
-	if(host_name==NULL || svc_description==NULL || servicedependency_hashlist==NULL)
+	if(host_name==NULL || svc_description==NULL)
 		return NULL;
 
-	if(start==NULL)
-		temp_servicedependency=servicedependency_hashlist[hashfunc(host_name,svc_description,SERVICEDEPENDENCY_HASHSLOTS)];
-	else
-		temp_servicedependency=start->nexthash;
+	temp_serviceescalation.host_name=host_name;
+	temp_serviceescalation.description=svc_description;
 
-	for(;temp_servicedependency && compare_hashdata(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,host_name,svc_description)<0;temp_servicedependency=temp_servicedependency->nexthash);
+	return skiplist_find_next(object_skiplists[SERVICEESCALATION_SKIPLIST],&temp_serviceescalation,ptr);
+        }
 
-	if(temp_servicedependency && compare_hashdata(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,host_name,svc_description)==0)
-		return temp_servicedependency;
+
+hostdependency *get_first_hostdependency_by_dependent_host(char *host_name, void **ptr){
+	hostdependency temp_hostdependency;
+
+	if(host_name==NULL)
+		return NULL;
+
+	temp_hostdependency.dependent_host_name=host_name;
+
+	return skiplist_find_first(object_skiplists[HOSTDEPENDENCY_SKIPLIST],&temp_hostdependency,ptr);
+        }
+
+
+hostdependency *get_next_hostdependency_by_dependent_host(char *host_name, void **ptr){
+	hostdependency temp_hostdependency;
+
+	if(host_name==NULL || ptr==NULL)
+		return NULL;
+
+	temp_hostdependency.dependent_host_name=host_name;
+
+	return skiplist_find_next(object_skiplists[HOSTDEPENDENCY_SKIPLIST],&temp_hostdependency,ptr);
+        }
+
+
+servicedependency *get_first_servicedependency_by_dependent_service(char *host_name, char *svc_description, void **ptr){
+	servicedependency temp_servicedependency;
+
+	if(host_name==NULL || svc_description==NULL)
+		return NULL;
+
+	temp_servicedependency.dependent_host_name=host_name;
+	temp_servicedependency.dependent_service_description=svc_description;
+
+	return skiplist_find_first(object_skiplists[SERVICEDEPENDENCY_SKIPLIST],&temp_servicedependency,ptr);
+        }
+
+
+servicedependency *get_next_servicedependency_by_dependent_service(char *host_name, char *svc_description, void **ptr){
+	servicedependency temp_servicedependency;
+
+	if(host_name==NULL || svc_description==NULL || ptr==NULL)
+		return NULL;
+
+	temp_servicedependency.dependent_host_name=host_name;
+	temp_servicedependency.dependent_service_description=svc_description;
+
+	return skiplist_find_next(object_skiplists[SERVICEDEPENDENCY_SKIPLIST],&temp_servicedependency,ptr);
 
 	return NULL;
         }
@@ -3496,10 +3306,11 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 	hostescalation *temp_hostescalation=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
+	void *ptr=NULL;
 
 
 	/* search all host escalations */
-	for(temp_hostescalation=get_first_hostescalation_by_host(hst->name);temp_hostescalation!=NULL;temp_hostescalation=get_next_hostescalation_by_host(hst->name,temp_hostescalation)){
+	for(temp_hostescalation=get_first_hostescalation_by_host(hst->name,&ptr);temp_hostescalation!=NULL;temp_hostescalation=get_next_hostescalation_by_host(hst->name,&ptr)){
 
 		/* search all contacts of this host escalation */
 		for(temp_contactsmember=temp_hostescalation->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -3599,9 +3410,10 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 	contact *temp_contact=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
+	void *ptr=NULL;
 
 	/* search all the service escalations */
-	for(temp_serviceescalation=get_first_serviceescalation_by_service(svc->host_name,svc->description);temp_serviceescalation!=NULL;temp_serviceescalation=get_next_serviceescalation_by_service(svc->host_name,svc->description,temp_serviceescalation)){
+	for(temp_serviceescalation=get_first_serviceescalation_by_service(svc->host_name,svc->description,&ptr);temp_serviceescalation!=NULL;temp_serviceescalation=get_next_serviceescalation_by_service(svc->host_name,svc->description,&ptr)){
 
 		/* search all contacts of this service escalation */
 		for(temp_contactsmember=temp_serviceescalation->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -3879,9 +3691,7 @@ int free_object_data(void){
 		this_timeperiod=next_timeperiod;
 		}
 
-	/* free hashlist and reset pointers */
-	my_free(timeperiod_hashlist);
-	timeperiod_hashlist=NULL;
+	/* reset pointers */
 	timeperiod_list=NULL;
 
 
@@ -3974,9 +3784,7 @@ int free_object_data(void){
 		this_host=next_host;
 	        }
 
-	/* free hashlist and reset pointers */
-	my_free(host_hashlist);
-	host_hashlist=NULL;
+	/* reset pointers */
 	host_list=NULL;
 
 
@@ -4003,9 +3811,7 @@ int free_object_data(void){
 		this_hostgroup=next_hostgroup;
 		}
 
-	/* free hashlist and reset pointers */
-	my_free(hostgroup_hashlist);
-	hostgroup_hashlist=NULL;
+	/* reset pointers */
 	hostgroup_list=NULL;
 
 
@@ -4033,9 +3839,7 @@ int free_object_data(void){
 		this_servicegroup=next_servicegroup;
 		}
 
-	/* free hashlist and reset pointers */
-	my_free(servicegroup_hashlist);
-	servicegroup_hashlist=NULL;
+	/* reset pointers */
 	servicegroup_list=NULL;
 
 
@@ -4091,9 +3895,7 @@ int free_object_data(void){
 		this_contact=next_contact;
 		}
 
-	/* free hashlist and reset pointers */
-	my_free(contact_hashlist);
-	contact_hashlist=NULL;
+	/* reset pointers */
 	contact_list=NULL;
 
 
@@ -4117,9 +3919,7 @@ int free_object_data(void){
 		this_contactgroup=next_contactgroup;
 		}
 
-	/* free hashlist and reset pointers */
-	my_free(contactgroup_hashlist);
-	contactgroup_hashlist=NULL;
+	/* reset pointers */
 	contactgroup_list=NULL;
 
 
@@ -4184,9 +3984,7 @@ int free_object_data(void){
 		this_service=next_service;
 	        }
 
-	/* free hashlist and reset pointers */
-	my_free(service_hashlist);
-	service_hashlist=NULL;
+	/* reset pointers */
 	service_list=NULL;
 
 
@@ -4200,9 +3998,7 @@ int free_object_data(void){
 		this_command=next_command;
 	        }
 
-	/* free hashlist and reset pointers */
-	my_free(command_hashlist);
-	command_hashlist=NULL;
+	/* reset pointers */
 	command_list=NULL;
 
 
@@ -4236,9 +4032,7 @@ int free_object_data(void){
 		this_serviceescalation=next_serviceescalation;
 	        }
 
-	/* free hashlist and reset pointers */
-	my_free(serviceescalation_hashlist);
-	serviceescalation_hashlist=NULL;
+	/* reset pointers */
 	serviceescalation_list=NULL;
 
 
@@ -4255,9 +4049,7 @@ int free_object_data(void){
 		this_servicedependency=next_servicedependency;
 	        }
 
-	/* free hashlist and reset pointers */
-	my_free(servicedependency_hashlist);
-	servicedependency_hashlist=NULL;
+	/* reset pointers */
 	servicedependency_list=NULL;
 
 
@@ -4272,9 +4064,7 @@ int free_object_data(void){
 		this_hostdependency=next_hostdependency;
 	        }
 
-	/* free hashlist and reset pointers */
-	my_free(hostdependency_hashlist);
-	hostdependency_hashlist=NULL;
+	/* reset pointers */
 	hostdependency_list=NULL;
 
 
@@ -4307,10 +4097,11 @@ int free_object_data(void){
 		this_hostescalation=next_hostescalation;
 	        }
 
-	/* free hashlist and reset pointers */
-	my_free(hostescalation_hashlist);
-	hostescalation_hashlist=NULL;
+	/* reset pointers */
 	hostescalation_list=NULL;
+
+	/* free object skiplists */
+	free_object_skiplists();
 
 	return OK;
         }

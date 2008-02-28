@@ -1711,6 +1711,20 @@ int pre_flight_object_check(int *w, int *e){
 	int errors=0;
 
 
+#ifdef TEST
+	void *ptr=NULL;
+	char *buf1="";
+	char *buf2="";
+	buf1="temptraxe1";
+	buf2="Probe 2";
+	for(temp_se=get_first_serviceescalation_by_service(buf1,buf2,&ptr);temp_se!=NULL;temp_se=get_next_serviceescalation_by_service(buf1,buf2,&ptr)){
+		printf("FOUND ESCALATION FOR SVC '%s'/'%s': %d-%d/%.3f, PTR=%p\n",buf1,buf2,temp_se->first_notification,temp_se->last_notification,temp_se->notification_interval,ptr);
+		}
+	for(temp_he=get_first_hostescalation_by_host(buf1,&ptr);temp_he!=NULL;temp_he=get_next_hostescalation_by_host(buf1,&ptr)){
+		printf("FOUND ESCALATION FOR HOST '%s': %d-%d/%d, PTR=%p\n",buf1,temp_he->first_notification,temp_he->last_notification,temp_he->notification_interval,ptr);
+		}
+#endif
+
 	/* bail out if we aren't supposed to verify object relationships */
 	if(verify_object_relationships==FALSE)
 		return OK;
@@ -1721,7 +1735,7 @@ int pre_flight_object_check(int *w, int *e){
 	/*****************************************/
 	if(verify_config==TRUE)
 		printf("Checking services...\n");
-	if(service_hashlist==NULL){
+	if(get_host_count()==0){
 		logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: There are no services defined!");
 		errors++;
 	        }
@@ -1885,10 +1899,12 @@ int pre_flight_object_check(int *w, int *e){
 	/*****************************************/
 	if(verify_config==TRUE)
 		printf("Checking hosts...\n");
-	if(host_hashlist==NULL){
+
+	if(get_host_count()==0){
 		logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: There are no hosts defined!");
 		errors++;
 	        }
+
 	total_objects=0;
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 

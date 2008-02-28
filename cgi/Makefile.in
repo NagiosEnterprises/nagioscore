@@ -75,7 +75,7 @@ DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 # Common CGI functions (includes object and status functions)
-CGILIBS=getcgi.o cgiutils.o cgiauth.o macros-cgi.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS)
+CGILIBS=getcgi.o cgiutils.o cgiauth.o macros-cgi.o skiplist.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS)
 CGIHDRS=$(SRC_INCLUDE)/config.h $(SRC_INCLUDE)/common.h $(SRC_INCLUDE)/locations.h
 CGIDEPS=$(CGILIBS) $(ODATADEPS) $(SDATADEPS)
 
@@ -90,6 +90,9 @@ $(CGILIBS): $(CGIHDRS)
 
 
 ######## REQUIRED LIBRARIES ##########
+
+skiplist.o: $(SRC_COMMON)/skiplist.c $(SRC_INCLUDE)/skiplist.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/skiplist.c
 
 macros-cgi.o: $(SRC_COMMON)/macros.c $(SRC_INCLUDE)/macros.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/macros.c

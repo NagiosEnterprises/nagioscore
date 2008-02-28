@@ -122,7 +122,7 @@ DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 
-OBJS=$(BROKER_O) checks.o config.o commands.o events.o flapping.o logging.o macros-base.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O) $(PERLXSI_O)
+OBJS=$(BROKER_O) checks.o config.o commands.o events.o flapping.o logging.o macros-base.o notifications.o sehandlers.o skiplist.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O) $(PERLXSI_O)
 OBJDEPS=$(ODATADEPS) $(ODATADEPS) $(RDATADEPS) $(CDATADEPS) $(SDATADEPS) $(PDATADEPS) $(DDATADEPS) $(BROKER_H)
 
 all: nagios nagiostats
@@ -132,6 +132,9 @@ all: nagios nagiostats
 
 macros-base.o: $(SRC_COMMON)/macros.c $(SRC_INCLUDE)/macros.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/macros.c
+
+skiplist.o: $(SRC_COMMON)/skiplist.c $(SRC_INCLUDE)/skiplist.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/skiplist.c
 
 objects-base.o: $(SRC_COMMON)/objects.c $(SRC_INCLUDE)/objects.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/objects.c

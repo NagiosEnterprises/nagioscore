@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-23-2008
+ * Last Modified: 02-27-2008
  *
  * License:
  *
@@ -2248,6 +2248,8 @@ int process_check_result_queue(char *dirname){
 		return ERROR;
 	        }
 
+	log_debug_info(DEBUGL_CHECKS,1,"Starting to read check result queue '%s'...\n",dirname);
+
 	/* process all files in the directory... */
 	while((dirfile=readdir(dirp))!=NULL){
 
@@ -2321,6 +2323,8 @@ int process_check_result_file(char *fname){
 		return ERROR;
 
 	time(&current_time);
+
+	log_debug_info(DEBUGL_CHECKS,1,"Processing check result file: '%s'\n",fname);
 
 	/* open the file for reading */
 	if((thefile=mmap_fopen(fname))==NULL){

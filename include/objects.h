@@ -48,22 +48,23 @@
 #define MAX_CONTACT_ADDRESSES                   6       /* max number of custom addresses a contact can have */
 
 
-/***************** CHAINED HASH LIMITS ****************/
 
-#define SERVICE_HASHSLOTS                      4096     /* 09/24/07 increased from 1024 */
-#define HOST_HASHSLOTS                         1024
-#define COMMAND_HASHSLOTS                      256
-#define TIMEPERIOD_HASHSLOTS                   64
-#define CONTACT_HASHSLOTS                      128
-#define CONTACTGROUP_HASHSLOTS                 64
-#define HOSTGROUP_HASHSLOTS                    128
-#define SERVICEGROUP_HASHSLOTS                 128
+/***************** SKIP LISTS ****************/
 
-#define HOSTDEPENDENCY_HASHSLOTS               1024
-#define SERVICEDEPENDENCY_HASHSLOTS            2048     /* 09/24/07 increased frm 1024 */
-#define HOSTESCALATION_HASHSLOTS               1024
-#define SERVICEESCALATION_HASHSLOTS            1024
+#define NUM_OBJECT_SKIPLISTS                   13
 
+#define HOST_SKIPLIST                          1
+#define SERVICE_SKIPLIST                       2
+#define COMMAND_SKIPLIST                       3
+#define TIMEPERIOD_SKIPLIST                    4
+#define CONTACT_SKIPLIST                       5
+#define CONTACTGROUP_SKIPLIST                  6
+#define HOSTGROUP_SKIPLIST                     7
+#define SERVICEGROUP_SKIPLIST                  8
+#define HOSTDEPENDENCY_SKIPLIST                9
+#define SERVICEDEPENDENCY_SKIPLIST             10
+#define HOSTESCALATION_SKIPLIST                11
+#define SERVICEESCALATION_SKIPLIST             12
 
 
 /****************** DATA STRUCTURES *******************/
@@ -676,19 +677,30 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **,ch
 servicesmember *add_service_link_to_host(host *,service *);
 
 
+/*** Object Skiplist Functions ****/
+int init_object_skiplists(void);
+int free_object_skiplists(void);
+int skiplist_compare_text(const char *val1a, const char *val1b, const char *val2a, const char *val2b);
+int skiplist_compare_host(void *a, void *b);
+int skiplist_compare_service(void *a, void *b);
+int skiplist_compare_command(void *a, void *b);
+int skiplist_compare_timeperiod(void *a, void *b);
+int skiplist_compare_contact(void *a, void *b);
+int skiplist_compare_contactgroup(void *a, void *b);
+int skiplist_compare_hostgroup(void *a, void *b);
+int skiplist_compare_servicegroup(void *a, void *b);
+int skiplist_compare_hostescalation(void *a, void *b);
+int skiplist_compare_serviceescalation(void *a, void *b);
+int skiplist_compare_hostdependency(void *a, void *b);
+int skiplist_compare_servicedependency(void *a, void *b);
+
+int get_host_count(void);
+int get_service_count(void);
+
+
+
 /**** Object Hash Functions ****/
-int add_host_to_hashlist(host *);
-int add_service_to_hashlist(service *);
-int add_command_to_hashlist(command *);
-int add_timeperiod_to_hashlist(timeperiod *);
-int add_contact_to_hashlist(contact *);
-int add_contactgroup_to_hashlist(contactgroup *);
-int add_hostgroup_to_hashlist(hostgroup *);
-int add_servicegroup_to_hashlist(servicegroup *);
-int add_hostdependency_to_hashlist(hostdependency *);
 int add_servicedependency_to_hashlist(servicedependency *);
-int add_hostescalation_to_hashlist(hostescalation *);
-int add_serviceescalation_to_hashlist(serviceescalation *);
 
 
 /**** Object Search Functions ****/
@@ -703,23 +715,14 @@ service * find_service(char *,char *);								/* finds a service object */
 
 
 /**** Object Traversal Functions ****/
-void move_first_service(void);									/* sets up the static memory area for get_next_service */
-service *get_next_service(void);								/* returns the next service, NULL at the end of the list */
-void move_first_host(void);									/* sets up the static memory area for get_next_host */
-host *get_next_host(void);									/* returns the next host, NULL at the end of the list */
-void *get_host_cursor(void);					                                /* allocate memory for the host cursor */
-host *get_next_host_cursor(void *v_cursor);							/* return the next host, NULL at the end of the list */
-void free_host_cursor(void *cursor);								/* free allocated cursor memory */
-void *get_next_N(void **hashchain, int hashslots, int *iterator, void *current, void *next);
-
-hostescalation *get_first_hostescalation_by_host(char *);
-hostescalation *get_next_hostescalation_by_host(char *,hostescalation *);
-serviceescalation *get_first_serviceescalation_by_service(char *,char *);
-serviceescalation *get_next_serviceescalation_by_service(char *,char *,serviceescalation *);
-hostdependency *get_first_hostdependency_by_dependent_host(char *);
-hostdependency *get_next_hostdependency_by_dependent_host(char *,hostdependency *);
-servicedependency *get_first_servicedependency_by_dependent_service(char *,char *);
-servicedependency *get_next_servicedependency_by_dependent_service(char *,char *,servicedependency *);
+hostescalation *get_first_hostescalation_by_host(char *, void **);
+hostescalation *get_next_hostescalation_by_host(char *,void **);
+serviceescalation *get_first_serviceescalation_by_service(char *,char *, void **);
+serviceescalation *get_next_serviceescalation_by_service(char *,char *,void **);
+hostdependency *get_first_hostdependency_by_dependent_host(char *, void **);
+hostdependency *get_next_hostdependency_by_dependent_host(char *, void **);
+servicedependency *get_first_servicedependency_by_dependent_service(char *,char *, void **);
+servicedependency *get_next_servicedependency_by_dependent_service(char *,char *,void **);
 
 #ifdef NSCORE
 int add_object_to_objectlist(objectlist **,void *);
@@ -757,6 +760,9 @@ int check_for_circular_hostdependency_path(hostdependency *,hostdependency *,int
 
 /**** Object Cleanup Functions ****/
 int free_object_data(void);                             /* frees all allocated memory for the object definitions */
+
+
+
 
 #ifdef __cplusplus
   }

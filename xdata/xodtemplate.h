@@ -55,6 +55,26 @@
 
 
 
+/***************** SKIP LISTS ****************/
+
+#define NUM_XOBJECT_SKIPLISTS                  15
+
+#define X_HOST_SKIPLIST                        1
+#define X_SERVICE_SKIPLIST                     2
+#define X_COMMAND_SKIPLIST                     3
+#define X_TIMEPERIOD_SKIPLIST                  4
+#define X_CONTACT_SKIPLIST                     5
+#define X_CONTACTGROUP_SKIPLIST                6
+#define X_HOSTGROUP_SKIPLIST                   7
+#define X_SERVICEGROUP_SKIPLIST                8
+#define X_HOSTDEPENDENCY_SKIPLIST              9
+#define X_SERVICEDEPENDENCY_SKIPLIST           10
+#define X_HOSTESCALATION_SKIPLIST              11
+#define X_SERVICEESCALATION_SKIPLIST           12
+#define X_HOSTEXTINFO_SKIPLIST                 13
+#define X_SERVICEEXTINFO_SKIPLIST              14
+
+
 /********** STRUCTURE DEFINITIONS **********/
 
 /* CUSTOMVARIABLESMEMBER structure */
@@ -869,8 +889,6 @@ int xodtemplate_sort_servicedependencies(void);
 int xodtemplate_sort_serviceescalations(void);
 int xodtemplate_sort_hostdependencies(void);
 int xodtemplate_sort_hostescalations(void);
-int xodtemplate_sort_hostextinfo(void);
-int xodtemplate_sort_serviceextinfo(void);
 
 int xodtemplate_merge_extinfo_ojects(void);
 int xodtemplate_merge_host_extinfo_object(xodtemplate_host *,xodtemplate_hostextinfo *);
@@ -915,6 +933,40 @@ int xodtemplate_register_host(xodtemplate_host *);
 int xodtemplate_register_service(xodtemplate_service *);
 int xodtemplate_register_hostdependency(xodtemplate_hostdependency *);
 int xodtemplate_register_hostescalation(xodtemplate_hostescalation *);
+
+
+int xodtemplate_init_xobject_skiplists(void);
+int xodtemplate_free_xobject_skiplists(void);
+
+int xodtemplate_skiplist_compare_text(const char *val1a, const char *val1b, const char *val2a, const char *val2b);
+int xodtemplate_skiplist_compare_host_template(void *a, void *b);
+int xodtemplate_skiplist_compare_service_template(void *a, void *b);
+int xodtemplate_skiplist_compare_command_template(void *a, void *b);
+int xodtemplate_skiplist_compare_timeperiod_template(void *a, void *b);
+int xodtemplate_skiplist_compare_contact_template(void *a, void *b);
+int xodtemplate_skiplist_compare_contactgroup_template(void *a, void *b);
+int xodtemplate_skiplist_compare_hostgroup_template(void *a, void *b);
+int xodtemplate_skiplist_compare_servicegroup_template(void *a, void *b);
+int xodtemplate_skiplist_compare_hostdependency_template(void *a, void *b);
+int xodtemplate_skiplist_compare_servicedependency_template(void *a, void *b);
+int xodtemplate_skiplist_compare_hostescalation_template(void *a, void *b);
+int xodtemplate_skiplist_compare_serviceescalation_template(void *a, void *b);
+int xodtemplate_skiplist_compare_hostextinfo_template(void *a, void *b);
+int xodtemplate_skiplist_compare_serviceextinfo_template(void *a, void *b);
+
+int xodtemplate_skiplist_compare_host(void *a, void *b);
+int xodtemplate_skiplist_compare_service(void *a, void *b);
+int xodtemplate_skiplist_compare_contact(void *a, void *b);
+int xodtemplate_skiplist_compare_contactgroup(void *a, void *b);
+int xodtemplate_skiplist_compare_hostgroup(void *a, void *b);
+int xodtemplate_skiplist_compare_servicegroup(void *a, void *b);
+int xodtemplate_skiplist_compare_command(void *a, void *b);
+int xodtemplate_skiplist_compare_timeperiod(void *a, void *b);
+int xodtemplate_skiplist_compare_hostdependency(void *a, void *b);
+int xodtemplate_skiplist_compare_servicedependency(void *a, void *b);
+int xodtemplate_skiplist_compare_hostescalation(void *a, void *b);
+int xodtemplate_skiplist_compare_serviceescalation(void *a, void *b);
+
 
 #endif
 

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-28-2008
+ * Last Modified: 02-26-2008
  *
  * License:
  *
@@ -833,11 +833,12 @@ int is_valid_escalation_for_service_notification(service *svc, serviceescalation
 /* checks to see whether a service notification should be escalation */
 int should_service_notification_be_escalated(service *svc){
 	serviceescalation *temp_se=NULL;
+	void *ptr=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"should_service_notification_be_escalated()\n");
 
 	/* search the service escalation list */
-	for(temp_se=serviceescalation_list;temp_se!=NULL;temp_se=temp_se->next){
+	for(temp_se=get_first_serviceescalation_by_service(svc->host_name,svc->description,&ptr);temp_se!=NULL;temp_se=get_next_serviceescalation_by_service(svc->host_name,svc->description,&ptr)){
 
 		/* we found a matching entry, so escalate this notification! */
 		if(is_valid_escalation_for_service_notification(svc,temp_se,NOTIFICATION_OPTION_NONE)==TRUE){
@@ -860,6 +861,7 @@ int create_notification_list_from_service(service *svc, int options, int *escala
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
 	int escalate_notification=FALSE;
+	void *ptr=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"create_notification_list_from_service()\n");
 
@@ -882,7 +884,7 @@ int create_notification_list_from_service(service *svc, int options, int *escala
 		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from service escalation(s) to notification list.\n");
 
 		/* search all the escalation entries for valid matches */
-		for(temp_se=serviceescalation_list;temp_se!=NULL;temp_se=temp_se->next){
+		for(temp_se=get_first_serviceescalation_by_service(svc->host_name,svc->description,&ptr);temp_se!=NULL;temp_se=get_next_serviceescalation_by_service(svc->host_name,svc->description,&ptr)){
 
 			/* skip this entry if it isn't appropriate */
 			if(is_valid_escalation_for_service_notification(svc,temp_se,options)==FALSE)
@@ -1683,12 +1685,16 @@ int is_valid_escalation_for_host_notification(host *hst, hostescalation *he, int
 
 /* checks to see whether a host notification should be escalation */
 int should_host_notification_be_escalated(host *hst){
-	hostescalation *temp_he;
+	hostescalation *temp_he=NULL;
+	void *ptr=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"should_host_notification_be_escalated()\n");
 
+	if(hst==NULL)
+		return FALSE;
+
 	/* search the host escalation list */
-	for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
+	for(temp_he=get_first_hostescalation_by_host(hst->name,&ptr);temp_he!=NULL;temp_he=get_next_hostescalation_by_host(hst->name,&ptr)){
 
 		/* we found a matching entry, so escalate this notification! */
 		if(is_valid_escalation_for_host_notification(hst,temp_he,NOTIFICATION_OPTION_NONE)==TRUE)
@@ -1709,6 +1715,7 @@ int create_notification_list_from_host(host *hst, int options, int *escalated){
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
 	int escalate_notification=FALSE;
+	void *ptr=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"create_notification_list_from_host()\n");
 
@@ -1731,7 +1738,7 @@ int create_notification_list_from_host(host *hst, int options, int *escalated){
 		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from host escalation(s) to notification list.\n");
 
 		/* check all the host escalation entries */
-		for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
+		for(temp_he=get_first_hostescalation_by_host(hst->name,&ptr);temp_he!=NULL;temp_he=get_next_hostescalation_by_host(hst->name,&ptr)){
 
 			/* see if this escalation if valid for this notification */
 			if(is_valid_escalation_for_host_notification(hst,temp_he,options)==FALSE)

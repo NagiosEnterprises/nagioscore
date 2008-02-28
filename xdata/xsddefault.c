@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-20-2008
+ * Last Modified: 02-28-2008
  *
  * License:
  *
@@ -32,6 +32,7 @@
 #include "../include/comments.h"
 #include "../include/downtime.h"
 #include "../include/macros.h"
+#include "../include/skiplist.h"
 
 #ifdef NSCORE
 #include "../include/nagios.h"
@@ -103,6 +104,7 @@ extern contact *contact_list;
 extern comment *comment_list;
 extern scheduled_downtime *scheduled_downtime_list;
 
+extern skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 
 extern unsigned long  next_comment_id;
 extern unsigned long  next_downtime_id;
@@ -329,6 +331,7 @@ int xsddefault_save_status_data(void){
 	FILE *fp=NULL;
 	int used_external_command_buffer_slots=0;
 	int high_external_command_buffer_slots=0;
+	void *ptr=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"save_status_data()\n");
 

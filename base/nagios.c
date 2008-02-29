@@ -238,8 +238,6 @@ int             command_file_created=FALSE;
 extern contact	       *contact_list;
 extern contactgroup    *contactgroup_list;
 extern hostgroup       *hostgroup_list;
-extern timed_event     *event_list_high;
-extern timed_event     *event_list_low;
 extern command         *command_list;
 extern timeperiod      *timeperiod_list;
 extern serviceescalation *serviceescalation_list;

@@ -3,7 +3,7 @@
  * SKIPLIST.C - Skiplist functions for use in Nagios event/object lists
  *
  * Copyright (c) 2008 Ethan Galstad
- * Last Modified: 02-24-2008
+ * Last Modified: 02-28-2008
  *
  * Notes:
  * 
@@ -521,7 +521,7 @@ int skiplist_delete_node(skiplist *list, void *node_ptr){
 		}
 
 	/* we found a match! (value + pointers match) */
-	if(list->compare_function(nextnode->data,data)==0 && nextnode==thenode){
+	if(nextnode && list->compare_function(nextnode->data,data)==0 && nextnode==thenode){
 
 		/* adjust level pointers to bypass (soon to be) removed node */
 		for(level=0;level<=top_level;level++){

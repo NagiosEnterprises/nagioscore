@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-28-2008
+ * Last Modified: 03-05-2008
  *
  * Description:
  *
@@ -6909,6 +6909,10 @@ int xodtemplate_inherit_object_properties(void){
 			temp_serviceescalation->escalate_on_recovery=TRUE;
 			temp_serviceescalation->have_escalation_options=TRUE;
 			}
+
+		/* 03/05/08 clear additive string chars - not done in xodtemplate_clean_additive_strings() anymore */
+		xodtemplate_clean_additive_string(&temp_serviceescalation->contact_groups);
+		xodtemplate_clean_additive_string(&temp_serviceescalation->contacts);
 		}
 
 	/* host escalations inherit some properties from their associated host... */
@@ -6957,6 +6961,10 @@ int xodtemplate_inherit_object_properties(void){
 			temp_hostescalation->escalate_on_recovery=TRUE;
 			temp_hostescalation->have_escalation_options=TRUE;
 			}
+
+		/* 03/05/08 clear additive string chars - not done in xodtemplate_clean_additive_strings() anymore */
+		xodtemplate_clean_additive_string(&temp_hostescalation->contact_groups);
+		xodtemplate_clean_additive_string(&temp_hostescalation->contacts);
 		}
 
 	return OK;
@@ -15001,14 +15009,15 @@ int xodtemplate_clean_additive_strings(void){
 
 	/* resolve all serviceescalation objects */
 	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
+		/* 03/05/08 some vars are now handled in xodtemplate_inherit_object_properties() */
+		/*
 		xodtemplate_clean_additive_string(&temp_serviceescalation->contact_groups);
 		xodtemplate_clean_additive_string(&temp_serviceescalation->contacts);
+		*/
 		xodtemplate_clean_additive_string(&temp_serviceescalation->servicegroup_name);
 		xodtemplate_clean_additive_string(&temp_serviceescalation->hostgroup_name);
 		xodtemplate_clean_additive_string(&temp_serviceescalation->host_name);
 		xodtemplate_clean_additive_string(&temp_serviceescalation->service_description);
-		xodtemplate_clean_additive_string(&temp_serviceescalation->contact_groups);
-		xodtemplate_clean_additive_string(&temp_serviceescalation->contacts);
 	        }
 
 	/* resolve all contact objects */
@@ -15045,12 +15054,13 @@ int xodtemplate_clean_additive_strings(void){
 
 	/* resolve all hostescalation objects */
 	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
+		/* 03/05/08 some vars are now handled in xodtemplate_inherit_object_properties() */
+		/*
 		xodtemplate_clean_additive_string(&temp_hostescalation->contact_groups);
 		xodtemplate_clean_additive_string(&temp_hostescalation->contacts);
+		*/
 		xodtemplate_clean_additive_string(&temp_hostescalation->host_name);
 		xodtemplate_clean_additive_string(&temp_hostescalation->hostgroup_name);
-		xodtemplate_clean_additive_string(&temp_hostescalation->contact_groups);
-		xodtemplate_clean_additive_string(&temp_hostescalation->contacts);
 	        }
 
 	return OK;

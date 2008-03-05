@@ -6,6 +6,7 @@ Nagios 3.x Change Log
 3.0rc4 - ??/??/2008
 -------------------
 * Faster program startup times (especially in large installs) with new object lookup code
+* Fix for special contact inheritance rules in host and service escalations
 * Documentation fixes
 
 

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-27-2008
+ * Last Modified: 03-10-2008
  *
  * License:
  *
@@ -2899,18 +2899,9 @@ int close_command_file(void){
 	/* reset our flag */
 	command_file_created=FALSE;
 
-	/* shutdown the worker thread */
-	shutdown_command_file_worker_thread();
-
 	/* close the command file */
 	fclose(command_file_fp);
 	
-	/* delete the named pipe */
-	/*
-	if(unlink(command_file)!=0)
-		return ERROR;
-	*/
-
 	return OK;
         }
 

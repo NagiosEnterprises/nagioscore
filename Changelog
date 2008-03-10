@@ -7,6 +7,8 @@ Nagios 3.x Change Log
 -------------------
 * Faster program startup times (especially in large installs) with new object lookup code
 * Fix for special contact inheritance rules in host and service escalations
+* Fix for threading-related bugs that resulted in checks failing under NetBSD
+* Configure script fix
 * Documentation fixes
 
 

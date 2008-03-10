@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   02-26-2008
+ * Last Modified:   03-10-2008
  *
  * Description:
  *
@@ -680,6 +680,9 @@ int main(int argc, char **argv){
 					/* clean up the status data */
 					cleanup_status_data(config_file,TRUE);
 
+					/* shutdown the external command worker thread */
+					shutdown_command_file_worker_thread();
+
 					/* close and delete the external command file FIFO */
 					close_command_file();
 
@@ -836,8 +839,10 @@ int main(int argc, char **argv){
 				cleanup_status_data(config_file,TRUE);
 
 			/* close and delete the external command file FIFO unless we're restarting */
-			if(sigrestart==FALSE)
+			if(sigrestart==FALSE){
+				shutdown_command_file_worker_thread();
 				close_command_file();
+				}
 
 			/* cleanup embedded perl interpreter */
 			if(sigrestart==FALSE)

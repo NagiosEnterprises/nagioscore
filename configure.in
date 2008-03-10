@@ -524,7 +524,7 @@ GLIB_INCLUDE=`pkg-config --cflags glib-2.0`
 AC_SUBST(GLIB_INCLUDE)
 GLIB_LIBS=`pkg-config --libs glib-2.0`
 AC_SUBST(GLIB_LIBS)
-if test x$GLIB_LIBS != x; then
+if test "x$GLIB_LIBS" != x; then
 	AC_DEFINE_UNQUOTED(HAVE_GLIB)
 	AC_DEFINE_UNQUOTED(HAVE_GLIB_H)
 fi

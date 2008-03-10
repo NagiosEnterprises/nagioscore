@@ -9,6 +9,7 @@ Nagios 3.x Change Log
 * Fix for special contact inheritance rules in host and service escalations
 * Fix for threading-related bugs that resulted in checks failing under NetBSD
 * Configure script fix
+* Fix for bug in processing $CONTACTADDRESSx$ macros
 * Documentation fixes
 
 

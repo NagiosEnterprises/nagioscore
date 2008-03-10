@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-26-2008
+ * Last Modified: 03-10-2008
  *
  * License:
  *
@@ -538,7 +538,7 @@ int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int 
 	else if(strstr(macro_name,"CONTACTADDRESS")==macro_name){
 
 		/* which address do we want? */
-		x=atoi(macro_name+14);
+		x=atoi(macro_name+14)-1;
 
 		/* regular macro */
 		if(arg[0]==NULL){

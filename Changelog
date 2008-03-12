@@ -3,7 +3,7 @@ Nagios 2.x Change Log
 #####################
 
 
-2.11 - ??/??/2008
+2.11 - 03/12/2008
 -----------------
 * Better error logging when failing to rename/move files
 * Possible fix for Unicode html encoding errors in CGIs

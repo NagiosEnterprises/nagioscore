@@ -3,6 +3,12 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0.1 - ??/??/2008
+-------------------
+* Fixed bug in trends CGI with user not being authorized for hosts/services
+
+
+
 3.0 - 03/13/2008
 -------------------
 * Faster program startup times (especially in large installs) with new object lookup code

@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2008
+ * Last Modified: 03-31-2008
  *
  * License:
  * 
@@ -49,6 +49,8 @@ extern int     log_rotation_method;
 extern host *host_list;
 extern service *service_list;
 
+#include "../include/skiplist.h"
+extern skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 
 /* archived state types */
 #define AS_CURRENT_STATE        -1   /* special case for initial assumed state */
@@ -289,6 +291,7 @@ int main(int argc, char **argv){
 		return ERROR;
 	        }
 
+
 	/* initialize time period to last 24 hours */
 	time(&current_time);
 	t2=current_time;
@@ -319,7 +322,6 @@ int main(int argc, char **argv){
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
 
-	/* read all object configuration data */
 	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		if(mode==CREATE_HTML){
@@ -556,6 +558,7 @@ int main(int argc, char **argv){
 
 
 #ifndef DEBUG
+
 	/* check authorization... */
 	if(display_type==DISPLAY_HOST_TRENDS){
 		temp_host=find_host(host_name);

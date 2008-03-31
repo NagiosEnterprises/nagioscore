@@ -51,20 +51,20 @@
 
 /***************** SKIP LISTS ****************/
 
-#define NUM_OBJECT_SKIPLISTS                   13
+#define NUM_OBJECT_SKIPLISTS                   12
 
-#define HOST_SKIPLIST                          1
-#define SERVICE_SKIPLIST                       2
-#define COMMAND_SKIPLIST                       3
-#define TIMEPERIOD_SKIPLIST                    4
-#define CONTACT_SKIPLIST                       5
-#define CONTACTGROUP_SKIPLIST                  6
-#define HOSTGROUP_SKIPLIST                     7
-#define SERVICEGROUP_SKIPLIST                  8
-#define HOSTDEPENDENCY_SKIPLIST                9
-#define SERVICEDEPENDENCY_SKIPLIST             10
-#define HOSTESCALATION_SKIPLIST                11
-#define SERVICEESCALATION_SKIPLIST             12
+#define HOST_SKIPLIST                          0
+#define SERVICE_SKIPLIST                       1
+#define COMMAND_SKIPLIST                       2
+#define TIMEPERIOD_SKIPLIST                    3
+#define CONTACT_SKIPLIST                       4
+#define CONTACTGROUP_SKIPLIST                  5
+#define HOSTGROUP_SKIPLIST                     6
+#define SERVICEGROUP_SKIPLIST                  7
+#define HOSTDEPENDENCY_SKIPLIST                8
+#define SERVICEDEPENDENCY_SKIPLIST             9
+#define HOSTESCALATION_SKIPLIST                10
+#define SERVICEESCALATION_SKIPLIST             11
 
 
 /****************** DATA STRUCTURES *******************/

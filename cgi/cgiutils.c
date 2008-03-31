@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-26-2008
+ * Last Modified: 03-31-2008
  *
  * License:
  *
@@ -99,19 +99,6 @@ int             interval_length=60;
 int             show_context_help=FALSE;
 
 int             use_pending_states=TRUE;
-
-int             hosts_have_been_read=FALSE;
-int             hostgroups_have_been_read=FALSE;
-int             servicegroups_have_been_read=FALSE;
-int             contacts_have_been_read=FALSE;
-int             contactgroups_have_been_read=FALSE;
-int             services_have_been_read=FALSE;
-int             timeperiods_have_been_read=FALSE;
-int             commands_have_been_read=FALSE;
-int             servicedependencies_have_been_read=FALSE;
-int             serviceescalations_have_been_read=FALSE;
-int             hostdependencies_have_been_read=FALSE;
-int             hostescalations_have_been_read=FALSE;
 
 int             host_status_has_been_read=FALSE;
 int             service_status_has_been_read=FALSE;
@@ -535,64 +522,8 @@ int read_main_config_file(char *filename){
 int read_all_object_configuration_data(char *config_file,int options){
 	int result=OK;
 
-	/* don't duplicate things we've already read in */
-	if(hosts_have_been_read==TRUE && (options & READ_HOSTS))
-		options-=READ_HOSTS;
-	if(hostgroups_have_been_read==TRUE && (options & READ_HOSTGROUPS))
-		options-=READ_HOSTGROUPS;
-	if(contacts_have_been_read==TRUE && (options & READ_CONTACTS))
-		options-=READ_CONTACTS;
-	if(contactgroups_have_been_read==TRUE && (options & READ_CONTACTGROUPS))
-		options-=READ_CONTACTGROUPS;
-	if(services_have_been_read==TRUE && (options & READ_SERVICES))
-		options-=READ_SERVICES;
-	if(timeperiods_have_been_read==TRUE && (options & READ_TIMEPERIODS))
-		options-=READ_TIMEPERIODS;
-	if(commands_have_been_read==TRUE && (options & READ_COMMANDS))
-		options-=READ_COMMANDS;
-	if(servicedependencies_have_been_read==TRUE && (options & READ_SERVICEDEPENDENCIES))
-		options-=READ_SERVICEDEPENDENCIES;
-	if(serviceescalations_have_been_read==TRUE && (options & READ_SERVICEESCALATIONS))
-		options-=READ_SERVICEESCALATIONS;
-	if(hostdependencies_have_been_read==TRUE && (options & READ_HOSTDEPENDENCIES))
-		options-=READ_HOSTDEPENDENCIES;
-	if(hostescalations_have_been_read==TRUE && (options & READ_HOSTESCALATIONS))
-		options-=READ_HOSTESCALATIONS;
-	if(servicegroups_have_been_read==TRUE && (options & READ_SERVICEGROUPS))
-		options-=READ_SERVICEGROUPS;
-
-	/* bail out if we've already read what we need */
-	if(options<=0)
-		return OK;
-
 	/* read in all external config data of the desired type(s) */
 	result=read_object_config_data(config_file,options,FALSE,FALSE);
-
-	/* mark what items we've read in... */
-	if(options & READ_HOSTS)
-		hosts_have_been_read=TRUE;
-	if(options & READ_HOSTGROUPS)
-		hostgroups_have_been_read=TRUE;
-	if(options & READ_CONTACTS)
-		contacts_have_been_read=TRUE;
-	if(options & READ_CONTACTGROUPS)
-		contactgroups_have_been_read=TRUE;
-	if(options & READ_SERVICES)
-		services_have_been_read=TRUE;
-	if(options & READ_TIMEPERIODS)
-		timeperiods_have_been_read=TRUE;
-	if(options & READ_COMMANDS)
-		commands_have_been_read=TRUE;
-	if(options & READ_SERVICEDEPENDENCIES)
-		servicedependencies_have_been_read=TRUE;
-	if(options & READ_SERVICEESCALATIONS)
-		serviceescalations_have_been_read=TRUE;
-	if(options & READ_HOSTDEPENDENCIES)
-		hostdependencies_have_been_read=TRUE;
-	if(options & READ_HOSTESCALATIONS)
-		hostescalations_have_been_read=TRUE;
-	if(options & READ_SERVICEGROUPS)
-		servicegroups_have_been_read=TRUE;
 
 	return result;
         }

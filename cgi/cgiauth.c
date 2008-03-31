@@ -2,8 +2,8 @@
  *
  * CGIAUTH.C - Authorization utilities for Nagios CGIs
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-08-2006
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-31-2008
  *
  * License:
  *
@@ -36,14 +36,6 @@ extern servicegroup    *servicegroup_list;
 
 extern int             use_authentication;
 
-extern int             hosts_have_been_read;
-extern int             hostgroups_have_been_read;
-extern int             contactgroups_have_been_read;
-extern int             contacts_have_been_read;
-extern int             services_have_been_read;
-extern int             serviceescalations_have_been_read;
-extern int             hostescalations_have_been_read;
-
 
 
 /* get current authentication information */
@@ -55,25 +47,6 @@ int get_authentication_information(authdata *authinfo){
 
 	if(authinfo==NULL)
 		return ERROR;
-
-	/* make sure we have read in all the configuration information we need for the authentication routines... */
-	needed_options=0;
-	if(hosts_have_been_read==FALSE)
-		needed_options|=READ_HOSTS;
-	if(hostgroups_have_been_read==FALSE)
-		needed_options|=READ_HOSTGROUPS;
-	if(contactgroups_have_been_read==FALSE)
-		needed_options|=READ_CONTACTGROUPS;
-	if(contacts_have_been_read==FALSE)
-		needed_options|=READ_CONTACTS;
-	if(services_have_been_read==FALSE)
-		needed_options|=READ_SERVICES;
-	if(serviceescalations_have_been_read==FALSE)
-		needed_options|=READ_SERVICEESCALATIONS;
-	if(hostescalations_have_been_read==FALSE)
-		needed_options|=READ_HOSTESCALATIONS;
-	if(needed_options>0)
-		read_all_object_configuration_data(main_config_file,needed_options);
 
 	/* initial values... */
 	authinfo->authorized_for_all_hosts=FALSE;

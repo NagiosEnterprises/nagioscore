@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2008
+ * Last Modified: 03-31-2008
  *
  * This CGI program will display various configuration information.
  *
@@ -139,6 +139,8 @@ int main(void){
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
 
+	/* read all object definitions... */
+	read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 
 	/* begin top table */
 	printf("<table border=0 width=100%%>\n");
@@ -891,9 +893,6 @@ void display_contacts(void){
 		return;
 	        }
 
-	/* read in contact definitions... */
-	read_all_object_configuration_data(main_config_file,READ_CONTACTS);
-
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Contacts</DIV></P>\n");
 
 	printf("<P>\n");
@@ -1145,9 +1144,6 @@ void display_services(void){
 		unauthorized_message();
 		return;
 	        }
-
-	/* read in service definitions... */
-	read_all_object_configuration_data(main_config_file,READ_SERVICES);
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Services</DIV></P>\n");
 
@@ -1470,9 +1466,6 @@ void display_timeperiods(void){
 		return;
 	        }
 
-	/* read in time period definitions... */
-	read_all_object_configuration_data(main_config_file,READ_TIMEPERIODS);
-
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Time Periods</DIV></P>\n");
 
 	printf("<P>\n");
@@ -1657,9 +1650,6 @@ void display_commands(void){
 		return;
 	        }
 
-	/* read in command definitions... */
-	read_all_object_configuration_data(main_config_file,READ_COMMANDS);
-
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Commands</DIV></P>\n");
 
 	printf("<P><DIV ALIGN=CENTER>\n");
@@ -1705,9 +1695,6 @@ void display_servicedependencies(void){
 		unauthorized_message();
 		return;
 	        }
-
-	/* read in command definitions... */
-	read_all_object_configuration_data(main_config_file,READ_SERVICEDEPENDENCIES);
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service Dependencies</DIV></P>\n");
 
@@ -1813,9 +1800,6 @@ void display_serviceescalations(void){
 		unauthorized_message();
 		return;
 	        }
-
-	/* read in command definitions... */
-	read_all_object_configuration_data(main_config_file,READ_SERVICEESCALATIONS);
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service Escalations</DIV></P>\n");
 
@@ -1944,9 +1928,6 @@ void display_hostdependencies(void){
 		return;
 	        }
 
-	/* read in command definitions... */
-	read_all_object_configuration_data(main_config_file,READ_HOSTDEPENDENCIES);
-
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Host Dependencies</DIV></P>\n");
 
 	printf("<P>\n");
@@ -2035,9 +2016,6 @@ void display_hostescalations(void){
 		unauthorized_message();
 		return;
 	        }
-
-	/* read in command definitions... */
-	read_all_object_configuration_data(main_config_file,READ_HOSTESCALATIONS);
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Host Escalations</DIV></P>\n");
 

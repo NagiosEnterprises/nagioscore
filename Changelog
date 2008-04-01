@@ -3,9 +3,10 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0.1 - ??/??/2008
+3.0.1 - 04/01/2008
 -------------------
 * Fixed bug in trends CGI with user not being authorized for hosts/services
+* Fixed bug in status CGI with page layout messing up when sounds enabled
 
 
 

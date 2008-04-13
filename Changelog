@@ -3,6 +3,12 @@ Nagios 2.x Change Log
 #####################
 
 
+2.12 - ??/??/2008
+-----------------
+* Minor bug fixes in CGIs to ensure extra host/servicegroup url strings are terminated properly
+
+
+
 2.11 - 03/12/2008
 -----------------
 * Better error logging when failing to rename/move files

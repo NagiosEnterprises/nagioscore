@@ -2,8 +2,8 @@
  *
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 04-13-2008
  *
  * License:
  *
@@ -1735,7 +1735,7 @@ void print_extra_host_url(char *host_name, char *url){
 	        }
 
 	strncpy(input_buffer,url,sizeof(input_buffer)-1);
-	output_buffer[sizeof(input_buffer)-1]='\x0';
+	input_buffer[sizeof(input_buffer)-1]='\x0';
 
 	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
 

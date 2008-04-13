@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-21-2008
+ * Last Modified: 04-13-2008
  *
  * License:
  *
@@ -2498,7 +2498,7 @@ int pre_flight_object_check(int *w, int *e){
 		        }
 
 		/* save pointer for later */
-		temp_hd->dependent_host_ptr=temp_host2;
+		temp_hd->dependent_host_ptr=temp_host;
 
 		/* find the host we're depending on */
 		temp_host2=find_host(temp_hd->host_name);

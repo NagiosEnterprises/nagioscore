@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-01-2008
+ * Last Modified: 04-13-2008
  *
  * License:
  * 
@@ -793,17 +793,17 @@ void show_service_status_totals(void){
 
 			if(temp_servicestatus->status==SERVICE_CRITICAL){
 				total_critical++;
-				if(temp_servicestatus->problem_has_been_acknowledged==FALSE && temp_servicestatus->checks_enabled==TRUE && temp_servicestatus->notifications_enabled==TRUE && temp_servicestatus->scheduled_downtime_depth==0)
+				if(temp_servicestatus->problem_has_been_acknowledged==FALSE && (temp_servicestatus->checks_enabled==TRUE || temp_servicestatus->accept_passive_service_checks==TRUE) && temp_servicestatus->notifications_enabled==TRUE && temp_servicestatus->scheduled_downtime_depth==0)
 					problem_services_critical++;
 			        }
 			else if(temp_servicestatus->status==SERVICE_WARNING){
 				total_warning++;
-				if(temp_servicestatus->problem_has_been_acknowledged==FALSE && temp_servicestatus->checks_enabled==TRUE && temp_servicestatus->notifications_enabled==TRUE && temp_servicestatus->scheduled_downtime_depth==0)
+				if(temp_servicestatus->problem_has_been_acknowledged==FALSE && (temp_servicestatus->checks_enabled==TRUE || temp_servicestatus->accept_passive_service_checks==TRUE) && temp_servicestatus->notifications_enabled==TRUE && temp_servicestatus->scheduled_downtime_depth==0)
 					problem_services_warning++;
 			        }
 			else if(temp_servicestatus->status==SERVICE_UNKNOWN){
 				total_unknown++;
-				if(temp_servicestatus->problem_has_been_acknowledged==FALSE && temp_servicestatus->checks_enabled==TRUE && temp_servicestatus->notifications_enabled==TRUE && temp_servicestatus->scheduled_downtime_depth==0)
+				if(temp_servicestatus->problem_has_been_acknowledged==FALSE && (temp_servicestatus->checks_enabled==TRUE || temp_servicestatus->accept_passive_service_checks==TRUE) && temp_servicestatus->notifications_enabled==TRUE && temp_servicestatus->scheduled_downtime_depth==0)
 					problem_services_unknown++;
 			        }
 			else if(temp_servicestatus->status==SERVICE_OK)

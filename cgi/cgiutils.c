@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-31-2008
+ * Last Modified: 04-13-2008
  *
  * License:
  *
@@ -1788,7 +1788,7 @@ void print_extra_hostgroup_url(char *group_name, char *url){
 	        }
 
 	strncpy(input_buffer,url,sizeof(input_buffer)-1);
-	output_buffer[sizeof(input_buffer)-1]='\x0';
+	input_buffer[sizeof(input_buffer)-1]='\x0';
 
 	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
 
@@ -1836,7 +1836,7 @@ void print_extra_servicegroup_url(char *group_name, char *url){
 	        }
 
 	strncpy(input_buffer,url,sizeof(input_buffer)-1);
-	output_buffer[sizeof(input_buffer)-1]='\x0';
+	input_buffer[sizeof(input_buffer)-1]='\x0';
 
 	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
 

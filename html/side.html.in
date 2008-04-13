@@ -146,7 +146,7 @@ function switchdot(name,on){
   </tr>
   <tr> 
     <td width=13></td>
-    <td nowrap><img src="images/greendot.gif" width="13" height="14" name="svcproblemsu-dot" align="absmiddle"><a href="@cgiurl@/status.cgi?host=all&type=detail&servicestatustypes=16&hoststatustypes=3&serviceprops=42&servicestatustypes=28" target="main" onMouseOver="switchdot('svcproblemsu-dot',1)" onMouseOut="switchdot('svcproblemsu-dot',0)" class="NavBarItem">Unhandled</a></td>
+    <td nowrap><img src="images/greendot.gif" width="13" height="14" name="svcproblemsu-dot" align="absmiddle"><a href="@cgiurl@/status.cgi?host=all&type=detail&hoststatustypes=3&serviceprops=42&servicestatustypes=28" target="main" onMouseOver="switchdot('svcproblemsu-dot',1)" onMouseOut="switchdot('svcproblemsu-dot',0)" class="NavBarItem">Unhandled</a></td>
   </tr>
   <tr> 
     <td width=13><img src="images/greendot.gif" width="13" height="14" name="hostproblems-dot"></td>

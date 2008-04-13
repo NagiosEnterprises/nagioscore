@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-31-2008
+ * Last Modified: 04-13-2008
  *
  * This CGI program will display various configuration information.
  *
@@ -138,9 +138,6 @@ int main(void){
 
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
-
-	/* read all object definitions... */
-	read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 
 	/* begin top table */
 	printf("<table border=0 width=100%%>\n");

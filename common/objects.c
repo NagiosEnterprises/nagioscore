@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-27-2008
+ * Last Modified: 04-13-2008
  *
  * License:
  *
@@ -671,7 +671,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		return NULL;
 	        }
 
-
 	/* allocate memory for a new host */
 	if((new_host=(host *)malloc(sizeof(host)))==NULL)
 		return NULL;
@@ -772,6 +771,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 			result=ERROR;
 	        }
 
+
 	/* duplicate non-string vars */
 	new_host->max_attempts=max_attempts;
 	new_host->check_interval=check_interval;
@@ -795,6 +795,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->process_performance_data=(process_perfdata>0)?TRUE:FALSE;
 	new_host->check_freshness=(check_freshness>0)?TRUE:FALSE;
 	new_host->freshness_threshold=freshness_threshold;
+	new_host->checks_enabled=(checks_enabled>0)?TRUE:FALSE;
 	new_host->accept_passive_host_checks=(accept_passive_checks>0)?TRUE:FALSE;
 	new_host->event_handler_enabled=(event_handler_enabled>0)?TRUE:FALSE;
 	new_host->failure_prediction_enabled=(failure_prediction_enabled>0)?TRUE:FALSE;
@@ -837,14 +838,13 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->is_being_freshened=FALSE;
 	new_host->problem_has_been_acknowledged=FALSE;
 	new_host->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+	new_host->notifications_enabled=(notifications_enabled>0)?TRUE:FALSE;
 	new_host->notified_on_down=FALSE;
 	new_host->notified_on_unreachable=FALSE;
 	new_host->current_notification_number=0;
 	new_host->current_notification_id=0L;
 	new_host->no_more_notifications=FALSE;
 	new_host->check_flapping_recovery_notification=FALSE;
-	new_host->checks_enabled=(checks_enabled>0)?TRUE:FALSE;
-	new_host->notifications_enabled=(notifications_enabled>0)?TRUE:FALSE;
 	new_host->scheduled_downtime_depth=0;
 	new_host->check_options=CHECK_OPTION_NONE;
 	new_host->pending_flex_downtime=0;

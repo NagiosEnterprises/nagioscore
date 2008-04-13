@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 01-24-2008
+# Last Modified: 04-13-2008
 ###############################
 
 
@@ -90,6 +90,10 @@ all:
 	@echo "       on doing this.  Pay particular attention to the docs on"
 	@echo "       object configuration files, as they determine what/how"
 	@echo "       things get monitored!"
+	@echo ""
+	@echo "  make install-webconf"
+	@echo "     - This installs the Apache config file for the Nagios"
+	@echo "       web interface"
 	@echo ""
 	@echo ""
 	@echo "*** Support Notes *******************************************"

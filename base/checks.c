@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-27-2008
+ * Last Modified: 04-13-2008
  *
  * License:
  *
@@ -618,8 +618,14 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	pid=fork();
 
 	/* an error occurred while trying to fork */
-	if(pid==-1)
+	if(pid==-1){
+
 		fork_error=TRUE;
+
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The check of service '%s' on host '%s' could not be performed due to a fork() error: '%s'.  The check will be rescheduled.\n",svc->description,svc->host_name,strerror(errno));
+
+		log_debug_info(DEBUGL_CHECKS,0,"Check of service '%s' on host '%s' could not be performed due to a fork() error: '%s'!\n",svc->description,svc->host_name,strerror(errno));
+	        }
 
 	/* if we are in the child process... */
 	else if(pid==0){
@@ -849,16 +855,9 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		*/
 	        }
 
-	/* see if we could run the check... */
-	if(fork_error==TRUE){
-
-		/* log an error */
-		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The check of service '%s' on host '%s' could not be performed due to a fork() error.  The check will be rescheduled.\n",svc->description,svc->host_name);
-
-		log_debug_info(DEBUGL_CHECKS,0,"Check of service '%s' on host '%s' could not be performed due to a fork() error!\n",svc->description,svc->host_name);
-
+	/* see if we were able to run the check... */
+	if(fork_error==TRUE)
 		return ERROR;
-	        }
 	
 	return OK;
         }
@@ -2991,8 +2990,15 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	pid=fork();
 
 	/* an error occurred while trying to fork */
-	if(pid==-1)
+	if(pid==-1){
+
 		fork_error=TRUE;
+
+		/* log an error */
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The check of host '%s' could not be performed due to a fork() error: '%s'.\n",hst->name,strerror(errno));
+
+		log_debug_info(DEBUGL_CHECKS,0,"Check of host '%s' could not be performed due to a fork() error: '%s'!\n",hst->name,strerror(errno));
+	        }
 
 	/* if we are in the child process... */
 	else if(pid==0){
@@ -3134,17 +3140,10 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 			wait_result=waitpid(pid,NULL,0);
 	        }
 
-	/* see if we could run the check... */
-	if(fork_error==TRUE){
-
-		/* log an error */
-		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: The check of host '%s' could not be performed due to a fork() error.\n",hst->name);
-
-		log_debug_info(DEBUGL_CHECKS,0,"Check of host '%s' could not be performed due to a fork() error!\n",hst->name);
-
+	/* see if we were able to run the check... */
+	if(fork_error==TRUE)
 		return ERROR;
-	        }
-	
+
 	return OK;
         }
 

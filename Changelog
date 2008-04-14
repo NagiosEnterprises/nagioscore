@@ -13,6 +13,7 @@ Nagios 3.x Change Log
 * Added note to Makefile about 'make install-webconf' option
 * Fixed bug in config CGI where active host check attributes were not displayed properly
 * Fixed bug in status CGI where sounds were not played for passive service problems
+* Fixed sample script for distributed monitoring
 
 
 

@@ -2,7 +2,7 @@
 
 # SUBMIT_CHECK_RESULT_VIA_NSCA
 # Written by Ethan Galstad (nagios@nagios.org)
-# Last Modified: 02-19-2004
+# Last Modified: 04-13-2008
 #
 # This script will send passive check results to the
 # nsca daemon that runs on the central Nagios server.
@@ -33,7 +33,7 @@ NscaCfg="/usr/local/nagios/etc/send_nsca.cfg"
 NagiosHost="nagioshost"
 
 # Fire the data off to the NSCA daemon using the send_nsca script 
-$printfcmd "%s\t%s\t%s\t%s\n" "$1" "$2" "$3" "$4" | $NscaBin $NagiosHost -c $NscaCfg
+$printfcmd "%s\t%s\t%s\t%s\n" "$1" "$2" "$3" "$4" | $NscaBin -H $NagiosHost -c $NscaCfg
 
 # EOF
 

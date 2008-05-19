@@ -949,10 +949,10 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='checkbox' NAME='persistent' CHECKED>");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",comment_author);
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",url_encode(comment_author));
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
 		printf("</b></td></tr>\n");
 		break;
 		
@@ -975,10 +975,10 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='checkbox' NAME='persistent' CHECKED>");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",comment_author);
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",url_encode(comment_author));
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
 		printf("</b></td></tr>\n");
 		break;
 
@@ -1158,10 +1158,10 @@ void request_command_data(int cmd){
 			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
 		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",comment_author);
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",url_encode(comment_author));
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
 		printf("</b></td></tr>\n");
 
 		printf("<tr><td CLASS='optBoxItem'><br></td></tr>\n");
@@ -1290,10 +1290,10 @@ void request_command_data(int cmd){
 			printf("</b></td></tr>\n");
 		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",comment_author);
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",url_encode(comment_author));
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
 		printf("</b></td></tr>\n");
 		time(&t);
 		get_time_string(&t,buffer,sizeof(buffer)-1,SHORT_DATE_TIME);

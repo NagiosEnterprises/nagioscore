@@ -201,9 +201,9 @@ int main(void){
 
 		printf("<table border=0 CLASS='optBox'>\n");
 		printf("<form method=\"GET\" action=\"%s\">\n",HISTORY_CGI);
-		printf("<input type='hidden' name='host' value='%s'>\n",(show_all_hosts==TRUE)?"all":host_name);
+		printf("<input type='hidden' name='host' value='%s'>\n",(show_all_hosts==TRUE)?"all":url_encode(host_name));
 		if(display_type==DISPLAY_SERVICES)
-			printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
+			printf("<input type='hidden' name='service' value='%s'>\n",url_encode(svc_description));
 		printf("<input type='hidden' name='archive' value='%d'>\n",log_archive);
 
 		printf("<tr>\n");

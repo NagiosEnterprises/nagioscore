@@ -128,7 +128,7 @@ lifo            *lifo_list=NULL;
 char            *my_strtok_buffer=NULL;
 char            *original_my_strtok_buffer=NULL;
 
-char encoded_url_string[MAX_INPUT_BUFFER];
+char encoded_url_string[2][MAX_INPUT_BUFFER]; // 2 to be able use url_encode twice
 char encoded_html_string[MAX_INPUT_BUFFER];
 
 #ifdef HAVE_TZNAME
@@ -1297,46 +1297,48 @@ char * url_encode(char *input){
 	int len,output_len;
 	int x,y;
 	char temp_expansion[4];
+	static int i = 0;
+	char* str = encoded_url_string[i];
 
 	len=(int)strlen(input);
-	output_len=(int)sizeof(encoded_url_string);
+	output_len=(int)sizeof(encoded_url_string[0]);
 
-	encoded_url_string[0]='\x0';
+	str[0]='\x0';
 
 	for(x=0,y=0;x<=len && y<output_len-1;x++){
 
 		/* end of string */
 		if((char)input[x]==(char)'\x0'){
-			encoded_url_string[y]='\x0';
+			str[y]='\x0';
 			break;
 		        }
 
 		/* alpha-numeric characters and a few other characters don't get encoded */
 		else if(((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z') || (char)input[x]==(char)'.' || (char)input[x]==(char)'-' || (char)input[x]==(char)'_'){
-			encoded_url_string[y]=input[x];
+			str[y]=input[x];
 			y++;
 		        }
 
 		/* spaces are pluses */
 		else if((char)input[x]<=(char)' '){
-			encoded_url_string[y]='+';
+			str[y]='+';
 			y++;
 		        }
 
 		/* anything else gets represented by its hex value */
 		else{
-			encoded_url_string[y]='\x0';
-			if((int)strlen(encoded_url_string)<(output_len-3)){
+			str[y]='\x0';
+			if((int)strlen(str)<(output_len-3)){
 				sprintf(temp_expansion,"%%%02X",(unsigned int)input[x]);
-				strcat(encoded_url_string,temp_expansion);
+				strcat(str,temp_expansion);
 				y+=3;
 			        }
 		        }
 	        }
 
-	encoded_url_string[sizeof(encoded_url_string)-1]='\x0';
+	str[sizeof(encoded_url_string[0])-1]='\x0';
 
-	return &encoded_url_string[0];
+	return str;
         }
 
 

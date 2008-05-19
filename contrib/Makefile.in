@@ -1,7 +1,7 @@
 ###############################
 # Makefile for contrib software
 #
-# Last Modified: 11-14-2004
+# Last Modified: 05-19-2008
 ###############################
 
 CC=@CC@
@@ -16,6 +16,9 @@ SRC_CGI=../cgi
 SNPRINTF_O=@SNPRINTF_O@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
 CGIDIR=@sbindir@
 BINDIR=@bindir@
 

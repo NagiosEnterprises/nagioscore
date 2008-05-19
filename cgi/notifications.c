@@ -212,11 +212,11 @@ int main(void){
 		printf("<table border=0 CLASS='optBox'>\n");
 		printf("<form method='GET' action='%s'>\n",NOTIFICATIONS_CGI);
 		if(query_type==FIND_SERVICE){
-			printf("<input type='hidden' name='host' value='%s'>\n",query_host_name);
-			printf("<input type='hidden' name='service' value='%s'>\n",query_svc_description);
+			printf("<input type='hidden' name='host' value='%s'>\n",url_encode(query_host_name));
+			printf("<input type='hidden' name='service' value='%s'>\n",url_encode(query_svc_description));
 	                }
 		else
-			printf("<input type='hidden' name='%s' value='%s'>\n",(query_type==FIND_HOST)?"host":"contact",(query_type==FIND_HOST)?query_host_name:query_contact_name);
+			printf("<input type='hidden' name='%s' value='%s'>\n",(query_type==FIND_HOST)?"host":"contact",url_encode((query_type==FIND_HOST)?query_host_name:query_contact_name));
 		printf("<input type='hidden' name='archive' value='%d'>\n",log_archive);
 		printf("<tr>\n");
 		if(query_type==FIND_SERVICE)

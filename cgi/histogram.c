@@ -406,9 +406,9 @@ int main(int argc, char **argv){
 			printf("<form method=\"GET\" action=\"%s\">\n",HISTOGRAM_CGI);
 			printf("<input type='hidden' name='t1' value='%lu'>\n",(unsigned long)t1);
 			printf("<input type='hidden' name='t2' value='%lu'>\n",(unsigned long)t2);
-			printf("<input type='hidden' name='host' value='%s'>\n",host_name);
+			printf("<input type='hidden' name='host' value='%s'>\n",url_encode(host_name));
 			if(display_type==DISPLAY_SERVICE_HISTOGRAM)
-				printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
+				printf("<input type='hidden' name='service' value='%s'>\n",url_encode(svc_description));
 
 
 			printf("<tr><td CLASS='optBoxItem' valign=top align=left>Report period:</td><td CLASS='optBoxItem' valign=top align=left>Assume state retention:</td></tr>\n");
@@ -788,9 +788,9 @@ int main(int argc, char **argv){
 
 			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",HISTOGRAM_CGI);
-			printf("<input type='hidden' name='host' value='%s'>\n",host_name);
+			printf("<input type='hidden' name='host' value='%s'>\n",url_encode(host_name));
 			if(display_type==DISPLAY_SERVICE_HISTOGRAM)
-				printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
+				printf("<input type='hidden' name='service' value='%s'>\n",url_encode(svc_description));
 
 			printf("<tr><td class='reportSelectSubTitle' align=right>Report Period:</td>\n");
 			printf("<td class='reportSelectItem'>\n");

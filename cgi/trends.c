@@ -451,9 +451,9 @@ int main(int argc, char **argv){
 				printf("<input type='hidden' name='nomap' value=''>\n");
 			printf("<input type='hidden' name='t1' value='%lu'>\n",(unsigned long)t1);
 			printf("<input type='hidden' name='t2' value='%lu'>\n",(unsigned long)t2);
-			printf("<input type='hidden' name='host' value='%s'>\n",host_name);
+			printf("<input type='hidden' name='host' value='%s'>\n",url_encode(host_name));
 			if(display_type==DISPLAY_SERVICE_TRENDS)
-				printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
+				printf("<input type='hidden' name='service' value='%s'>\n",url_encode(svc_description));
 
 			printf("<input type='hidden' name='assumeinitialstates' value='%s'>\n",(assume_initial_states==TRUE)?"yes":"no");
 			printf("<input type='hidden' name='assumestateretention' value='%s'>\n",(assume_state_retention==TRUE)?"yes":"no");
@@ -897,9 +897,9 @@ int main(int argc, char **argv){
 
 			printf("<TABLE BORDER=0 CELLPADDING=5>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",TRENDS_CGI);
-			printf("<input type='hidden' name='host' value='%s'>\n",host_name);
+			printf("<input type='hidden' name='host' value='%s'>\n",url_encode(host_name));
 			if(display_type==DISPLAY_SERVICE_TRENDS)
-				printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
+				printf("<input type='hidden' name='service' value='%s'>\n",url_encode(svc_description));
 
 			printf("<tr><td class='reportSelectSubTitle' align=right>Report period:</td>\n");
 			printf("<td class='reportSelectItem'>\n");

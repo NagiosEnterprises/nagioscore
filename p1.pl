@@ -65,7 +65,7 @@ package OutputTrap;
 
 								# Methods for use by tied STDOUT in embedded PERL module.
 								# Simply ties STDOUT to a scalar and caches values written to it.
-								# NB No more than 256 characters per line are kept.
+								# NB No more than 4KB characters per line are kept.
  
 sub TIEHANDLE {
 	my ($class) = @_;
@@ -76,14 +76,14 @@ sub TIEHANDLE {
 sub PRINT {
 	my $self = shift;
 	# $$self = substr(join('',@_), 0, 256) ;
-	$$self .= substr(join('',@_), 0, 256) ;
+	$$self .= substr(join('',@_), 0, 4096) ;
 }
 
 sub PRINTF {
 	my $self = shift;
 	my $fmt = shift;
 	# $$self = substr(sprintf($fmt,@_), 0, 256) ;
-	$$self .= substr(sprintf($fmt,@_), 0, 256) ;
+	$$self .= substr(sprintf($fmt,@_), 0, 4096) ;
 }
 
 sub READLINE {
@@ -239,8 +239,8 @@ EOSUB
 			print PH qq($ts eval_file: transformed plugin "$filename" to ==>\n$_\n) ;
 		}
 
-		$@ = substr($@, 0, 256)
-			if length($@) > 256 ;
+		$@ = substr($@, 0, 4096)
+			if length($@) > 4096 ;
 
 		$Cache{$filename}[PLUGIN_ERROR] = $@ ;
 								# If the compilation fails, leave nothing behind that may affect subsequent

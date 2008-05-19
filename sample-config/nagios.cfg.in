@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 12-14-2007
+# Last Modified: 05-19-2008
 #
 ##############################################################################
 
@@ -1240,7 +1240,8 @@ enable_environment_macros=1
 # This option determines how much (if any) debugging information will
 # be written to the debug file.  OR values together to log multiple
 # types of information.
-# Values: -1 = Everything
+# Values: 
+#          -1 = Everything
 #          0 = Nothing
 #	   1 = Functions
 #          2 = Configuration
@@ -1249,7 +1250,11 @@ enable_environment_macros=1
 #          16 = Host/service checks
 #          32 = Notifications
 #          64 = Event broker
-#          128 = Check IPC
+#          128 = External commands
+#          256 = Commands
+#          512 = Scheduled downtime
+#          1024 = Comments
+#          2048 = Macros
 
 debug_level=0
 

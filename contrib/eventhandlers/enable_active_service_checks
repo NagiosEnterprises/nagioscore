@@ -22,5 +22,5 @@ CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
 datetime=`date +%s`
 
 # pipe the command to the command file
-`printfcmd "[%i] START_EXECUTING_SERVICE_CHECKS\n" $datetime >> $CommandFile`
+`$printfcmd "[%i] START_EXECUTING_SERVICE_CHECKS\n" $datetime >> $CommandFile`
 

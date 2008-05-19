@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-12-2008
+ * Last Modified: 05-19-2008
  *
  * License:
  *
@@ -1299,8 +1299,10 @@ int handle_timed_event(timed_event *event){
 		log_debug_info(DEBUGL_EVENTS,0,"** Orphaned Host and Service Check Event\n");
 
 		/* check for orphaned hosts and services */
-		check_for_orphaned_hosts();
-		check_for_orphaned_services();
+		if(check_orphaned_hosts==TRUE)
+			check_for_orphaned_hosts();
+		if(check_orphaned_services==TRUE)
+			check_for_orphaned_services();
 		break;
 
 	case EVENT_RETENTION_SAVE:

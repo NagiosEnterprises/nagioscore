@@ -2,8 +2,8 @@
  *
  * MACROS.C - Common macro functions for Nagios
  *
- * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-10-2008
+ * Copyright (c) 1999-2009 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 05-19-2008
  *
  * License:
  *
@@ -206,7 +206,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 #endif
 
 				/* include any cleaning options passed back to us */
-				macro_options=(options & clean_options);
+				macro_options=(options | clean_options);
 
 #ifdef NSCORE
 				log_debug_info(DEBUGL_MACROS,2,"  Cleaning options: global=%d, local=%d, effective=%d\n",options,clean_options,macro_options);

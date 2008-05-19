@@ -2,8 +2,8 @@
  *
  * COMMANDS.C - External command functions for Nagios
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-10-2007
+ * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   05-10-2008
  *
  * License:
  *
@@ -3770,7 +3770,7 @@ void disable_contact_service_notifications(contact *cntct){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
-	if(cntct->service_notifications_enabled==TRUE)
+	if(cntct->service_notifications_enabled==FALSE)
 		return;
 
 	/* set the attribute modified flag */

@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0.2 - ??/??/2008
+3.0.2 - 05/19/2008
 ------------------
 * Minor bug fixes in CGIs to ensure extra host/servicegroup url strings are terminated properly
 * Minor bug fix in navigation frame link for unhandled service problems
@@ -14,6 +14,12 @@ Nagios 3.x Change Log
 * Fixed bug in config CGI where active host check attributes were not displayed properly
 * Fixed bug in status CGI where sounds were not played for passive service problems
 * Fixed sample script for distributed monitoring
+* Updated p1.pl to allow for 4KB lines in Perl plugin output under epn
+* Fixed bug in command for disabling contact notifications
+* Fix for bugs in host and service orphan check logic
+* Fix for 'make install' functionality for contrib directory
+* Fix for host problem links in CGI status summary view
+* Fix for properly escaping macros containing URLs
 
 
 

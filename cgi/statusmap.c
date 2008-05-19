@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2008
+ * Last Modified: 05-19-2008
  *
  * Description:
  *
@@ -700,7 +700,7 @@ void display_page_header(void){
 		printf("<form method=\"POST\" action=\"%s\">\n",STATUSMAP_CGI);
 		printf("<table border=0 CLASS='optBox'>\n");
 		printf("<tr><td valign=top>\n");
-		printf("<input type='hidden' name='host' value='%s'>\n",host_name);
+		printf("<input type='hidden' name='host' value='%s'>\n",url_encode(host_name));
 		printf("<input type='hidden' name='layout' value='%d'>\n",layout_method);
 
 		printf("</td><td valign=top>\n");

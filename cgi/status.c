@@ -830,11 +830,11 @@ void show_service_status_totals(void){
 	printf("<TH CLASS='serviceTotals'>");
 	printf("<A CLASS='serviceTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s&style=detail",servicegroup_name);
+		printf("servicegroup=%s&style=detail",url_encode(servicegroup_name));
 	else
-		printf("hostgroup=%s&style=detail",hostgroup_name);
+		printf("hostgroup=%s&style=detail",url_encode(hostgroup_name));
 	printf("&servicestatustypes=%d",SERVICE_OK);
 	printf("&hoststatustypes=%d'>",host_status_types);
 	printf("Ok</A></TH>\n");
@@ -842,11 +842,11 @@ void show_service_status_totals(void){
 	printf("<TH CLASS='serviceTotals'>");
 	printf("<A CLASS='serviceTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s&style=detail",servicegroup_name);
+		printf("servicegroup=%s&style=detail",url_encode(servicegroup_name));
 	else
-		printf("hostgroup=%s&style=detail",hostgroup_name);
+		printf("hostgroup=%s&style=detail",url_encode(hostgroup_name));
 	printf("&servicestatustypes=%d",SERVICE_WARNING);
 	printf("&hoststatustypes=%d'>",host_status_types);
 	printf("Warning</A></TH>\n");
@@ -854,11 +854,11 @@ void show_service_status_totals(void){
 	printf("<TH CLASS='serviceTotals'>");
 	printf("<A CLASS='serviceTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s&style=detail",servicegroup_name);
+		printf("servicegroup=%s&style=detail",url_encode(servicegroup_name));
 	else
-		printf("hostgroup=%s&style=detail",hostgroup_name);
+		printf("hostgroup=%s&style=detail",url_encode(hostgroup_name));
 	printf("&servicestatustypes=%d",SERVICE_UNKNOWN);
 	printf("&hoststatustypes=%d'>",host_status_types);
 	printf("Unknown</A></TH>\n");
@@ -866,11 +866,11 @@ void show_service_status_totals(void){
 	printf("<TH CLASS='serviceTotals'>");
 	printf("<A CLASS='serviceTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s&style=detail",servicegroup_name);
+		printf("servicegroup=%s&style=detail",url_encode(servicegroup_name));
 	else
-		printf("hostgroup=%s&style=detail",hostgroup_name);
+		printf("hostgroup=%s&style=detail",url_encode(hostgroup_name));
 	printf("&servicestatustypes=%d",SERVICE_CRITICAL);
 	printf("&hoststatustypes=%d'>",host_status_types);
 	printf("Critical</A></TH>\n");
@@ -878,11 +878,11 @@ void show_service_status_totals(void){
 	printf("<TH CLASS='serviceTotals'>");
 	printf("<A CLASS='serviceTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s&style=detail",servicegroup_name);
+		printf("servicegroup=%s&style=detail",url_encode(servicegroup_name));
 	else
-		printf("hostgroup=%s&style=detail",hostgroup_name);
+		printf("hostgroup=%s&style=detail",url_encode(hostgroup_name));
 	printf("&servicestatustypes=%d",SERVICE_PENDING);
 	printf("&hoststatustypes=%d'>",host_status_types);
 	printf("Pending</A></TH>\n");
@@ -919,11 +919,11 @@ void show_service_status_totals(void){
 	printf("<TH CLASS='serviceTotals'>");
 	printf("<A CLASS='serviceTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s&style=detail",servicegroup_name);
+		printf("servicegroup=%s&style=detail",url_encode(servicegroup_name));
 	else
-		printf("hostgroup=%s&style=detail",hostgroup_name);
+		printf("hostgroup=%s&style=detail",url_encode(hostgroup_name));
 	printf("&servicestatustypes=%d",SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL);
 	printf("&hoststatustypes=%d'>",host_status_types);
 	printf("<I>All Problems</I></A></TH>\n");
@@ -931,11 +931,11 @@ void show_service_status_totals(void){
 	printf("<TH CLASS='serviceTotals'>");
 	printf("<A CLASS='serviceTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s&style=detail",servicegroup_name);
+		printf("servicegroup=%s&style=detail",url_encode(servicegroup_name));
 	else
-		printf("hostgroup=%s&style=detail",hostgroup_name);
+		printf("hostgroup=%s&style=detail",url_encode(hostgroup_name));
 	printf("&hoststatustypes=%d'>",host_status_types);
 	printf("<I>All Types</I></A></TH>\n");
 
@@ -1044,11 +1044,11 @@ void show_host_status_totals(void){
 	printf("<TH CLASS='hostTotals'>");
 	printf("<A CLASS='hostTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s",servicegroup_name);
+		printf("servicegroup=%s",url_encode(servicegroup_name));
 	else{
-		printf("hostgroup=%s",hostgroup_name);
+		printf("hostgroup=%s",url_encode(hostgroup_name));
 		if((service_status_types!=all_service_status_types) || group_style_type==STYLE_DETAIL)
 			printf("&style=detail");
 		else if(group_style_type==STYLE_HOST_DETAIL)
@@ -1062,11 +1062,11 @@ void show_host_status_totals(void){
 	printf("<TH CLASS='hostTotals'>");
 	printf("<A CLASS='hostTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s",servicegroup_name);
+		printf("servicegroup=%s",url_encode(servicegroup_name));
 	else{
-		printf("hostgroup=%s",hostgroup_name);
+		printf("hostgroup=%s",url_encode(hostgroup_name));
 		if((service_status_types!=all_service_status_types) || group_style_type==STYLE_DETAIL)
 			printf("&style=detail");
 		else if(group_style_type==STYLE_HOST_DETAIL)
@@ -1080,11 +1080,11 @@ void show_host_status_totals(void){
 	printf("<TH CLASS='hostTotals'>");
 	printf("<A CLASS='hostTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s",servicegroup_name);
+		printf("servicegroup=%s",url_encode(servicegroup_name));
 	else{
-		printf("hostgroup=%s",hostgroup_name);
+		printf("hostgroup=%s",url_encode(hostgroup_name));
 		if((service_status_types!=all_service_status_types) || group_style_type==STYLE_DETAIL)
 			printf("&style=detail");
 		else if(group_style_type==STYLE_HOST_DETAIL)
@@ -1098,11 +1098,11 @@ void show_host_status_totals(void){
 	printf("<TH CLASS='hostTotals'>");
 	printf("<A CLASS='hostTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s",servicegroup_name);
+		printf("servicegroup=%s",url_encode(servicegroup_name));
 	else{
-		printf("hostgroup=%s",hostgroup_name);
+		printf("hostgroup=%s",url_encode(hostgroup_name));
 		if((service_status_types!=all_service_status_types) || group_style_type==STYLE_DETAIL)
 			printf("&style=detail");
 		else if(group_style_type==STYLE_HOST_DETAIL)
@@ -1141,11 +1141,11 @@ void show_host_status_totals(void){
 	printf("<TH CLASS='hostTotals'>");
 	printf("<A CLASS='hostTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s",servicegroup_name);
+		printf("servicegroup=%s",url_encode(servicegroup_name));
 	else{
-		printf("hostgroup=%s",hostgroup_name);
+		printf("hostgroup=%s",url_encode(hostgroup_name));
 		if((service_status_types!=all_service_status_types) || group_style_type==STYLE_DETAIL)
 			printf("&style=detail");
 		else if(group_style_type==STYLE_HOST_DETAIL)
@@ -1159,11 +1159,11 @@ void show_host_status_totals(void){
 	printf("<TH CLASS='hostTotals'>");
 	printf("<A CLASS='hostTotals' HREF='%s?",STATUS_CGI);
 	if(display_type==DISPLAY_HOSTS)
-		printf("host=%s",host_name);
+		printf("host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		printf("servicegroup=%s",servicegroup_name);
+		printf("servicegroup=%s",url_encode(servicegroup_name));
 	else{
-		printf("hostgroup=%s",hostgroup_name);
+		printf("hostgroup=%s",url_encode(hostgroup_name));
 		if((service_status_types!=all_service_status_types) || group_style_type==STYLE_DETAIL)
 			printf("&style=detail");
 		else if(group_style_type==STYLE_HOST_DETAIL)
@@ -1269,7 +1269,7 @@ void show_service_detail(void){
 		if(show_all_servicegroups==TRUE)
 			printf("All Service Groups");
 		else
-			printf("Service Group '%s'",servicegroup_name);
+			printf("Service Group '%s'",url_encode(servicegroup_name));
 	        }
 	else{
 		if(show_all_hostgroups==TRUE)
@@ -1316,11 +1316,11 @@ void show_service_detail(void){
 	snprintf(temp_url,sizeof(temp_url)-1,"%s?",STATUS_CGI);
 	temp_url[sizeof(temp_url)-1]='\x0';
 	if(display_type==DISPLAY_HOSTS)
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"host=%s",host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"host=%s",url_encode(host_name));
 	else if(display_type==DISPLAY_SERVICEGROUPS)
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"servicegroup=%s&style=detail",servicegroup_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"servicegroup=%s&style=detail",url_encode(servicegroup_name));
 	else
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"hostgroup=%s&style=detail",hostgroup_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"hostgroup=%s&style=detail",url_encode(hostgroup_name));
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	strncat(temp_url,temp_buffer,sizeof(temp_url)-strlen(temp_url)-1);
 	temp_url[sizeof(temp_url)-1]='\x0';
@@ -1889,7 +1889,7 @@ void show_host_detail(void){
 
 	snprintf(temp_url,sizeof(temp_url)-1,"%s?",STATUS_CGI);
 	temp_url[sizeof(temp_url)-1]='\x0';
-	snprintf(temp_buffer,sizeof(temp_buffer)-1,"hostgroup=%s&style=hostdetail",hostgroup_name);
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"hostgroup=%s&style=hostdetail",url_encode(hostgroup_name));
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	strncat(temp_url,temp_buffer,sizeof(temp_url)-strlen(temp_url)-1);
 	temp_url[sizeof(temp_url)-1]='\x0';

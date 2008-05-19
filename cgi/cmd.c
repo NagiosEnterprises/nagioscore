@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2008
+ * Last Modified: 05-19-2008
  *
  * License:
  * 
@@ -952,10 +952,10 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='checkbox' NAME='persistent' %s>",(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)?"":"CHECKED");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",comment_author,(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",url_encode(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
 		printf("</b></td></tr>\n");
 		break;
 		
@@ -978,10 +978,10 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='checkbox' NAME='persistent' %s",(cmd==CMD_ACKNOWLEDGE_SVC_PROBLEM)?"":"CHECKED");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",comment_author,(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",url_encode(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
 		printf("</b></td></tr>\n");
 		break;
 
@@ -1161,10 +1161,10 @@ void request_command_data(int cmd){
 			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
 		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",comment_author,(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",url_encode(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
 		printf("</b></td></tr>\n");
 
 		printf("<tr><td CLASS='optBoxItem'><br></td></tr>\n");
@@ -1291,10 +1291,10 @@ void request_command_data(int cmd){
 			printf("</b></td></tr>\n");
 		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",comment_author,(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",url_encode(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
 		printf("</b></td></tr>\n");
 		time(&t);
 		get_time_string(&t,buffer,sizeof(buffer)-1,SHORT_DATE_TIME);
@@ -1349,10 +1349,10 @@ void request_command_data(int cmd){
 		printf("</b></td></tr>\n");
 
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",comment_author,(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",url_encode(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
 		printf("</b></td></tr>\n");
 		break;
 

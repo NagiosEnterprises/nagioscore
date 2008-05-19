@@ -20,6 +20,7 @@ Nagios 3.x Change Log
 * Fix for 'make install' functionality for contrib directory
 * Fix for host problem links in CGI status summary view
 * Fix for properly escaping macros containing URLs
+* Patches for possible XSS vulnerability in CGIs (CVE-2007-5803) - SUSE Linux team
 
 
 

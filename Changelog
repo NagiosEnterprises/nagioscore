@@ -15,6 +15,7 @@ Nagios 3.x Change Log
 * Fix for spurious orphaned host check errors with non-scheduled hosts
 * Fix for url encoding null string in CGIs (caused status CGI segfault)
 * Fix for encoding URLs in macros
+* Fix for bug in handling of contact groups in escalation definitions
 * Changes to service check event broker logic (DNX patches)
 * Minor doc updates
 

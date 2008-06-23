@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-13-2008
+ * Last Modified: 06-23-2008
  *
  * License:
  * 
@@ -1845,7 +1845,8 @@ void show_host_detail(void){
 
 	printf("<td valign=top align=left width=33%%>\n");
 
-	show_filters();
+	if(display_header==TRUE)
+		show_filters();
 
 	printf("</td>");
 

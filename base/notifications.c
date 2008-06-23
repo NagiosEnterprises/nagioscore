@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-26-2008
+ * Last Modified: 06-23-2008
  *
  * License:
  *
@@ -237,7 +237,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 				/* calculate the next acceptable re-notification time */
 				svc->next_notification=get_next_service_notification_time(svc,current_time);
 
-				log_debug_info(DEBUGL_NOTIFICATIONS,0,"No contacts were notified.  Next possible notification time: %s",ctime(&svc->next_notification));
+				log_debug_info(DEBUGL_NOTIFICATIONS,0,"%d contacts were notified.  Next possible notification time: %s",contacts_notified,ctime(&svc->next_notification));
 
 				/* update the last notification time for this service (this is needed for rescheduling later notifications) */
 				svc->last_notification=current_time;
@@ -251,9 +251,15 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 					svc->notified_on_critical=TRUE;
 			        }
 
-			/* we didn't end up notifying anyone, so adjust current notification number */
-			else if(increment_notification_number==TRUE)
+			/* we didn't end up notifying anyone */
+			else if(increment_notification_number==TRUE){
+
+				/* adjust current notification number */
 				svc->current_notification_number--;
+
+				log_debug_info(DEBUGL_NOTIFICATIONS,0,"No contacts were notified.  Next possible notification time: %s",ctime(&svc->next_notification));
+				}
+
 		        }
 
 		log_debug_info(DEBUGL_NOTIFICATIONS,0,"%d contacts were notified.",contacts_notified);
@@ -1123,8 +1129,6 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 				/* calculate the next acceptable re-notification time */
 				hst->next_host_notification=get_next_host_notification_time(hst,current_time);
 
-				log_debug_info(DEBUGL_NOTIFICATIONS,0,"No contacts were notified.  Next possible notification time: %s",ctime(&hst->next_host_notification));
-
 				/* update the last notification time for this host (this is needed for scheduling the next problem notification) */
 				hst->last_host_notification=current_time;
 
@@ -1133,11 +1137,18 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 					hst->notified_on_down=TRUE;
 				else if(hst->current_state==HOST_UNREACHABLE)
 					hst->notified_on_unreachable=TRUE;
+
+				log_debug_info(DEBUGL_NOTIFICATIONS,0,"%d contacts were notified.  Next possible notification time: %s",contacts_notified,ctime(&hst->next_host_notification));
 			        }
 
-			/* we didn't end up notifying anyone, so adjust current notification number */
-			else if(increment_notification_number==TRUE)
+			/* we didn't end up notifying anyone */
+			else if(increment_notification_number==TRUE){
+
+				/* adjust current notification number */
 				hst->current_notification_number--;
+
+				log_debug_info(DEBUGL_NOTIFICATIONS,0,"No contacts were notified.  Next possible notification time: %s",ctime(&hst->next_host_notification));
+				}
 		        }
 
 		log_debug_info(DEBUGL_NOTIFICATIONS,0,"%d contacts were notified.",contacts_notified);

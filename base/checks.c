@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-13-2008
+ * Last Modified: 06-23-2008
  *
  * License:
  *
@@ -2291,6 +2291,10 @@ void check_for_orphaned_hosts(void){
 	/* check all hosts... */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
+		/* skip hosts that don't have a set check interval (on-demand checks are missed by the orphan logic) */
+		if(temp_host->next_check==(time_t)0L)
+			continue;
+
 		/* skip hosts that are not currently executing */
 		if(temp_host->is_executing==FALSE)
 			continue;
@@ -2909,6 +2913,11 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
 
+	/* set check time for on-demand checks, so they're not incorrectly detected as being orphaned - Luke Ross 5/16/08 */
+	/* NOTE: 06/23/08 EG not sure if there will be side effects to this or not.... */
+	if(scheduled_check==FALSE)
+		hst->next_check=start_time.tv_sec;
+
 	/* increment number of host checks that are currently running... */
 	currently_running_host_checks++;
 
@@ -3072,7 +3081,10 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 				check_result_info.exited_ok=FALSE;
 			        }
 			else{
-				check_result_info.return_code=WEXITSTATUS(pclose_result);
+				if(WEXITSTATUS(pclose_result)==0 && WIFSIGNALED(pclose_result))
+					check_result_info.return_code=128+WTERMSIG(pclose_result);
+				else
+					check_result_info.return_code=WEXITSTATUS(pclose_result);
 			        }
 
 			/* write check result to file */

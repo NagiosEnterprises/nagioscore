@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-31-2008
+ * Last Modified: 06-23-2008
  *
  * License:
  * 
@@ -901,9 +901,9 @@ int main(int argc, char **argv){
 
 			printf("<TABLE BORDER=0 CELLPADDING=5>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",TRENDS_CGI);
-			printf("<input type='hidden' name='host' value='%s'>\n",url_encode(host_name));
+			printf("<input type='hidden' name='host' value='%s'>\n",host_name);
 			if(display_type==DISPLAY_SERVICE_TRENDS)
-				printf("<input type='hidden' name='service' value='%s'>\n",url_encode(svc_description));
+				printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
 
 			printf("<tr><td class='reportSelectSubTitle' align=right>Report period:</td>\n");
 			printf("<td class='reportSelectItem'>\n");

@@ -3,7 +3,7 @@
  * MACROS.C - Common macro functions for Nagios
  *
  * Copyright (c) 1999-2009 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-19-2008
+ * Last Modified: 06-23-2008
  *
  * License:
  *
@@ -2484,7 +2484,7 @@ char *get_url_encoded_string(char *input){
 	for(x=0,y=0;input[x]!=(char)'\x0';x++){
 
 		/* alpha-numeric characters and a few other characters don't get encoded */
-		if(((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z') || (char)input[x]==(char)'.' || (char)input[x]==(char)'-' || (char)input[x]==(char)'_'){
+		if(((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z') || (char)input[x]==(char)'.' || (char)input[x]==(char)'-' || (char)input[x]==(char)'_' || (char)input[x]==(char)':' || (char)input[x]==(char)'/' || (char)input[x]==(char)'?' || (char)input[x]==(char)'=' || (char)input[x]==(char)'&'){
 			encoded_url_string[y]=input[x];
 			y++;
 		        }

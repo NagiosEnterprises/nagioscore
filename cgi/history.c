@@ -3,7 +3,7 @@
  * HISTORY.C - Nagios History CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2008
+ * Last Modified: 06-23-2008
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -489,7 +489,7 @@ void get_history(void){
 	char image[MAX_INPUT_BUFFER];
 	char image_alt[MAX_INPUT_BUFFER];
 	char *input=NULL;
-	char input_buffer2[MAX_INPUT_BUFFER];
+	char *input2=NULL;
 	char match1[MAX_INPUT_BUFFER];
 	char match2[MAX_INPUT_BUFFER];
 	int found_line=FALSE;
@@ -537,7 +537,8 @@ void get_history(void){
 
 	while(1){
 
-		free(input);
+		my_free(input);
+		my_free(input2);
 
 		if(use_lifo==TRUE){
 			if((input=pop_lifo())==NULL)
@@ -554,7 +555,8 @@ void get_history(void){
 		strcpy(image_alt,"");
 		system_message=FALSE;
 
-		strcpy(input_buffer2,input);
+		if((input2=(char *)strdup(input))==NULL)
+			continue;
 
 		/* service state alerts */
 		if(strstr(input,"SERVICE ALERT:")){
@@ -562,7 +564,7 @@ void get_history(void){
 			history_type=SERVICE_HISTORY;
 
 			/* get host and service names */
-			temp_buffer=my_strtok(input_buffer2,"]");
+			temp_buffer=my_strtok(input2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
 			if(temp_buffer)
@@ -606,7 +608,7 @@ void get_history(void){
 			history_type=SERVICE_FLAPPING_HISTORY;
 
 			/* get host and service names */
-			temp_buffer=my_strtok(input_buffer2,"]");
+			temp_buffer=my_strtok(input2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
 			if(temp_buffer)
@@ -638,7 +640,7 @@ void get_history(void){
 			history_type=SERVICE_DOWNTIME_HISTORY;
 
 			/* get host and service names */
-			temp_buffer=my_strtok(input_buffer2,"]");
+			temp_buffer=my_strtok(input2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
 			if(temp_buffer)
@@ -667,7 +669,7 @@ void get_history(void){
 			history_type=HOST_HISTORY;
 
 			/* get host name */
-			temp_buffer=my_strtok(input_buffer2,"]");
+			temp_buffer=my_strtok(input2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
 			if(temp_buffer)
@@ -701,7 +703,7 @@ void get_history(void){
 			history_type=HOST_FLAPPING_HISTORY;
 
 			/* get host name */
-			temp_buffer=my_strtok(input_buffer2,"]");
+			temp_buffer=my_strtok(input2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
 			if(temp_buffer)
@@ -728,7 +730,7 @@ void get_history(void){
 			history_type=HOST_DOWNTIME_HISTORY;
 
 			/* get host name */
-			temp_buffer=my_strtok(input_buffer2,"]");
+			temp_buffer=my_strtok(input2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
 			if(temp_buffer)
@@ -951,7 +953,8 @@ void get_history(void){
 
 	printf("<HR>\n");
 
-	free(input);
+	my_free(input);
+	my_free(input2);
 
 	if(use_lifo==TRUE)
 		free_lifo_memory();

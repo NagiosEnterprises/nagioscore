@@ -3,6 +3,22 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0.3 - 06/??/2008
+------------------
+* Typo fix in object config routines
+* Segfault fix in history CGI
+* Fix for bug in retention of contact notification options
+* Fix for bug in calculation of negative (month) days in timeperiod definitions
+* Fix for debug logging of notifications
+* Fix for encoding host and servicegroup names in trends and availability CGIs
+* Fix for checking for abnormal termination of host checks
+* Fix for spurious orphaned host check errors with non-scheduled hosts
+* Fix for url encoding null string in CGIs (caused status CGI segfault)
+* Fix for encoding URLs in macros
+* Minor doc updates
+
+
+
 3.0.2 - 05/19/2008
 ------------------
 * Minor bug fixes in CGIs to ensure extra host/servicegroup url strings are terminated properly
@@ -20,7 +36,7 @@ Nagios 3.x Change Log
 * Fix for 'make install' functionality for contrib directory
 * Fix for host problem links in CGI status summary view
 * Fix for properly escaping macros containing URLs
-* Patches for possible XSS vulnerability in CGIs (CVE-2007-5803) - SUSE Linux team
+* Patches for possible XSS vulnerability in CGIs (CVE-2007-5803) - Florian Weimer & SUSE Linux team
 
 
 

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-05-2008
+ * Last Modified: 06-23-2008
  *
  * Description:
  *
@@ -5212,7 +5212,7 @@ int xodtemplate_duplicate_services(void){
 		switch(result){
 		case SKIPLIST_ERROR_DUPLICATE:
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for service '%s' on host '%s' (config file '%s', starting on line %d)\n",temp_service->host_name,temp_service->service_description,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for service '%s' on host '%s' (config file '%s', starting on line %d)\n",temp_service->service_description,temp_service->host_name,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 #endif
 			result=ERROR;
 			break;

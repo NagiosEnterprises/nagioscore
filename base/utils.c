@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-10-2008
+ * Last Modified: 06-23-2008
  *
  * License:
  *
@@ -1523,7 +1523,8 @@ time_t calculate_time_from_day_of_month(int year, int month, int monthday){
 		/* make the new time */
 		t.tm_mon=month;
 		t.tm_year=year;
-		t.tm_mday+=(monthday<-30)?-30:monthday;
+		/* -1 means last day of month, so add one to to make this correct - Mike Bird */
+		t.tm_mday+=(monthday<-30)?-30:monthday+1;
 		midnight=mktime(&t);
 
 		/* if we rolled over to the previous month, time is invalid */

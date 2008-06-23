@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2008
+ * Last Modified: 06-23-2008
  *
  * License:
  * 
@@ -647,11 +647,11 @@ int main(int argc, char **argv){
 		if(display_type==DISPLAY_HOSTGROUP_AVAIL)
 			printf("<input type='hidden' name='hostgroup' value='%s'>\n",hostgroup_name);
 		if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_SERVICE_AVAIL)
-			printf("<input type='hidden' name='host' value='%s'>\n",url_encode(host_name));
+			printf("<input type='hidden' name='host' value='%s'>\n",host_name);
 		if(display_type==DISPLAY_SERVICE_AVAIL)
 			printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
 		if(display_type==DISPLAY_SERVICEGROUP_AVAIL)
-			printf("<input type='hidden' name='servicegroup' value='%s'>\n",url_encode(servicegroup_name));
+			printf("<input type='hidden' name='servicegroup' value='%s'>\n",servicegroup_name);
 
 		printf("<table border=0 cellpadding=5>\n");
 

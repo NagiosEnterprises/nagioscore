@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-23-2008
+ * Last Modified: 06-23-2008
  *
  * License:
  *
@@ -871,7 +871,7 @@ int xrddefault_read_state_information(void){
 				        }
 
 				my_free(contact_name);
-				temp_host=NULL;
+				temp_contact=NULL;
 				break;
 
 			case XRDDEFAULT_HOSTCOMMENT_DATA:

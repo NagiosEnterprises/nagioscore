@@ -435,6 +435,32 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* set the execution flag */
 	svc->is_executing=TRUE;
 
+	/* start save check info */
+	check_result_info.object_check_type=SERVICE_CHECK;
+	check_result_info.check_type=SERVICE_CHECK_ACTIVE;
+	check_result_info.check_options=check_options;
+	check_result_info.scheduled_check=scheduled_check;
+	check_result_info.reschedule_check=reschedule_check;
+	check_result_info.start_time=start_time;
+	check_result_info.finish_time=start_time;
+	check_result_info.early_timeout=FALSE;
+	check_result_info.exited_ok=TRUE;
+	check_result_info.return_code=STATE_OK;
+	check_result_info.output=NULL;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	neb_result=broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,start_time,end_time,svc->service_check_command,svc->latency,0.0,service_check_timeout,FALSE,0,processed_command,NULL);
+
+	/* neb module wants to override the service check - perhaps it will check the service itself */
+	if(neb_result==NEBERROR_CALLBACKOVERRIDE){
+		svc->latency=old_latency;
+		my_free(processed_command);
+		my_free(raw_command);
+		return OK;
+		}
+#endif
+
 	/* open a temp file for storing check output */
 	old_umask=umask(new_umask);
 	asprintf(&output_file,"%s/checkXXXXXX",temp_path);
@@ -450,21 +476,10 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	log_debug_info(DEBUGL_CHECKS|DEBUGL_IPC,1,"Check result output will be written to '%s' (fd=%d)\n",output_file,check_result_info.output_file_fd);
 
 
-	/* save check info */
-	check_result_info.object_check_type=SERVICE_CHECK;
+	/* finish save check info */
 	check_result_info.host_name=(char *)strdup(svc->host_name);
 	check_result_info.service_description=(char *)strdup(svc->description);
-	check_result_info.check_type=SERVICE_CHECK_ACTIVE;
-	check_result_info.check_options=check_options;
-	check_result_info.scheduled_check=scheduled_check;
-	check_result_info.reschedule_check=reschedule_check;
 	check_result_info.output_file=(check_result_info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
-	check_result_info.start_time=start_time;
-	check_result_info.finish_time=start_time;
-	check_result_info.early_timeout=FALSE;
-	check_result_info.exited_ok=TRUE;
-	check_result_info.return_code=STATE_OK;
-	check_result_info.output=NULL;
 
 	/* free memory */
 	my_free(output_file);
@@ -495,11 +510,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* initialize dynamic buffer for storing plugin output */
 	dbuf_init(&checkresult_dbuf,dbuf_chunk);
 
-
-#ifdef USE_EVENT_BROKER
-	/* send data to event broker */
-	broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,start_time,end_time,svc->service_check_command,svc->latency,0.0,service_check_timeout,FALSE,0,processed_command,NULL);
-#endif
 
 	/* reset latency (permanent value will be set later) */
 	svc->latency=old_latency;

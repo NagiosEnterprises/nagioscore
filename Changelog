@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0.3 - 06/??/2008
+3.0.3 - 06/25/2008
 ------------------
 * Typo fix in object config routines
 * Segfault fix in history CGI

@@ -20,7 +20,7 @@ CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
 datetime=`date +%s`
 
 # pipe the command to the command file
-`printfcmd "[%i] ENABLE_NOTIFICATIONS;%i\n" $datetime $datetime >> $CommandFile`
+`$printfcmd "[%i] ENABLE_NOTIFICATIONS;%i\n" $datetime $datetime >> $CommandFile`
 
 
 

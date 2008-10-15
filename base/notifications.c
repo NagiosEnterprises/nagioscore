@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-23-2008
+ * Last Modified: 10-15-2008
  *
  * License:
  *
@@ -262,7 +262,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 		        }
 
-		log_debug_info(DEBUGL_NOTIFICATIONS,0,"%d contacts were notified.",contacts_notified);
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"%d contacts were notified.\n",contacts_notified);
 	        }
 
 	/* there were no contacts, so no notification really occurred... */
@@ -1151,7 +1151,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 				}
 		        }
 
-		log_debug_info(DEBUGL_NOTIFICATIONS,0,"%d contacts were notified.",contacts_notified);
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"%d contacts were notified.\n",contacts_notified);
 	        }
 
 	/* there were no contacts, so no notification really occurred... */

@@ -10,6 +10,7 @@ Nagios 3.x Change Log
 * Fix for scheduling scheduling servicegroup downtime with 'hosts too' option in CGIs
 * Fix for segfault under Solaris with NULL plugin output
 * Fixes for bugs in sample event handlers - stop/start active service checks and enable notifications
+* Cosmetic fix for logging of notifications
 
 
 

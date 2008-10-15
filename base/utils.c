@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2008
+ * Last Modified: 10-15-2008
  *
  * License:
  *
@@ -3828,6 +3828,8 @@ void * command_file_worker_thread(void *arg){
 
 		/* wait for data to arrive */
 		/* select seems to not work, so we have to use poll instead */
+		/* 10-15-08 EG check into implementing William's patch @ http://blog.netways.de/2008/08/15/nagios-unter-mac-os-x-installieren/ */
+		/* 10-15-08 EG poll() seems broken on OSX - see Jonathan's patch a few lines down */
 		pfd.fd=command_file_fd;
 		pfd.events=POLLIN;
 		pollval=poll(&pfd,1,500);
@@ -3874,6 +3876,15 @@ void * command_file_worker_thread(void *arg){
 #ifdef DEBUG_CFWT
 		printf("(CFWT) BUFFER ITEMS: %d/%d\n",buffer_items,external_command_buffer_slots);
 #endif
+
+		/* 10-15-08 Fix for OS X by Jonathan Saggau - see http://www.jonathansaggau.com/blog/2008/09/using_shark_and_custom_dtrace.html */
+		/* Not sure if this would have negative effects on other OSes... */
+		if(buffer_items==0){
+			/* pause a bit so OS X doesn't go nuts with CPU overload */
+			tv.tv_sec=0;
+			tv.tv_usec=500;
+			select(0,NULL,NULL,NULL,&tv);
+			}
 
 		/* process all commands in the file (named pipe) if there's some space in the buffer */
 		if(buffer_items<external_command_buffer_slots){

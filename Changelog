@@ -8,6 +8,7 @@ Nagios 3.x Change Log
 * Fix for properly terminating plugins when parent processes get killed (e.g. using 'killall nagios' with check_timeout plugins running)
 * Fix for event broker callback when service notifications are disabled
 * Fix for scheduling scheduling servicegroup downtime with 'hosts too' option in CGIs
+* Fix for segfault under Solaris with NULL plugin output
 
 
 

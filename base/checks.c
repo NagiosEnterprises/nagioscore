@@ -667,6 +667,9 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			/* become the process group leader */
 			setpgid(0,0);
 
+			/* catch term signals at this process level */
+			signal(SIGTERM,service_check_sighandler);
+
 			/* catch plugins that don't finish in a timely manner */
 			signal(SIGALRM,service_check_sighandler);
 			alarm(service_check_timeout);
@@ -3048,6 +3051,9 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 			/* become the process group leader */
 			setpgid(0,0);
+
+			/* catch term signals at this process level */
+			signal(SIGTERM,host_check_sighandler);
 
 			/* catch plugins that don't finish in a timely manner */
 			signal(SIGALRM,host_check_sighandler);

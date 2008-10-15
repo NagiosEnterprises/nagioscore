@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-10-2008
+ * Last Modified:   10-15-2008
  *
  * License:
  *
@@ -3537,13 +3537,13 @@ void disable_service_notifications(service *svc){
 	/* set the attribute modified flag */
 	svc->modified_attributes|=attr;
 
+	/* disable the service notifications... */
+	svc->notifications_enabled=FALSE;
+
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
 #endif
-
-	/* disable the service notifications... */
-	svc->notifications_enabled=FALSE;
 
 	/* update the status log to reflect the new service state */
 	update_service_status(svc,FALSE);

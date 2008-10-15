@@ -3,6 +3,13 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0.4 - ??/??/2008
+------------------
+* Fix for properly terminating plugins when parent processes get killed (e.g. using 'killall nagios' with check_timeout plugins running)
+* Fix for event broker callback when service notifications are disabled
+
+
+
 3.0.3 - 06/25/2008
 ------------------
 * Typo fix in object config routines

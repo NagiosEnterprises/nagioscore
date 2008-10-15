@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-23-2008
+ * Last Modified: 07-16-2008
  *
  * License:
  *
@@ -1848,6 +1848,7 @@ void sighandler(int sig){
 
 
 /* handle timeouts when executing service checks */
+/* 07/16/08 EG also called when parent process gets a TERM signal */
 void service_check_sighandler(int sig){
 	struct timeval end_time;
 
@@ -1891,6 +1892,7 @@ void service_check_sighandler(int sig){
 
 
 /* handle timeouts when executing host checks */
+/* 07/16/08 EG also called when parent process gets a TERM signal */
 void host_check_sighandler(int sig){
 	struct timeval end_time;
 

@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-23-2008
+ * Last Modified: 10-15-2008
  *
  * License:
  * 
@@ -510,13 +510,13 @@ int main(int argc, char **argv){
 			if(full_log_entries==TRUE)
 				printf("<input type='hidden' name='full_log_entries' value=''>\n");
 			if(display_type==DISPLAY_HOSTGROUP_AVAIL)
-				printf("<input type='hidden' name='hostgroup' value='%s'>\n",hostgroup_name);
+				printf("<input type='hidden' name='hostgroup' value='%s'>\n",escape_string(hostgroup_name));
 			if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_SERVICE_AVAIL)
-				printf("<input type='hidden' name='host' value='%s'>\n",url_encode(host_name));
+				printf("<input type='hidden' name='host' value='%s'>\n",escape_string(host_name));
 			if(display_type==DISPLAY_SERVICE_AVAIL)
-				printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
+				printf("<input type='hidden' name='service' value='%s'>\n",escape_string(svc_description));
 			if(display_type==DISPLAY_SERVICEGROUP_AVAIL)
-				printf("<input type='hidden' name='servicegroup' value='%s'>\n",url_encode(servicegroup_name));
+				printf("<input type='hidden' name='servicegroup' value='%s'>\n",escape_string(servicegroup_name));
 
 			printf("<input type='hidden' name='assumeinitialstates' value='%s'>\n",(assume_initial_states==TRUE)?"yes":"no");
 			printf("<input type='hidden' name='assumestateretention' value='%s'>\n",(assume_state_retention==TRUE)?"yes":"no");
@@ -645,13 +645,13 @@ int main(int argc, char **argv){
 	        printf("<form method=\"get\" action=\"%s\">\n",AVAIL_CGI);
 		printf("<input type='hidden' name='show_log_entries' value=''>\n");
 		if(display_type==DISPLAY_HOSTGROUP_AVAIL)
-			printf("<input type='hidden' name='hostgroup' value='%s'>\n",hostgroup_name);
+			printf("<input type='hidden' name='hostgroup' value='%s'>\n",escape_string(hostgroup_name));
 		if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_SERVICE_AVAIL)
-			printf("<input type='hidden' name='host' value='%s'>\n",host_name);
+			printf("<input type='hidden' name='host' value='%s'>\n",escape_string(host_name));
 		if(display_type==DISPLAY_SERVICE_AVAIL)
-			printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
+			printf("<input type='hidden' name='service' value='%s'>\n",escape_string(svc_description));
 		if(display_type==DISPLAY_SERVICEGROUP_AVAIL)
-			printf("<input type='hidden' name='servicegroup' value='%s'>\n",servicegroup_name);
+			printf("<input type='hidden' name='servicegroup' value='%s'>\n",escape_string(servicegroup_name));
 
 		printf("<table border=0 cellpadding=5>\n");
 
@@ -736,7 +736,7 @@ int main(int argc, char **argv){
 		printf("<option value=\"\">None\n");
 		/* check all the time periods... */
 		for(temp_timeperiod=timeperiod_list;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next)
-			printf("<option value=%s>%s\n",url_encode(temp_timeperiod->name),temp_timeperiod->name);
+			printf("<option value=%s>%s\n",escape_string(temp_timeperiod->name),temp_timeperiod->name);
 		printf("</select>\n");
 		printf("</td>\n");
 		printf("</tr>\n");
@@ -838,7 +838,7 @@ int main(int argc, char **argv){
 		printf("<option value='all'>** ALL HOSTGROUPS **\n");
 		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
 			if(is_authorized_for_hostgroup(temp_hostgroup,&current_authdata)==TRUE)
-				printf("<option value='%s'>%s\n",temp_hostgroup->group_name,temp_hostgroup->group_name);
+				printf("<option value='%s'>%s\n",escape_string(temp_hostgroup->group_name),temp_hostgroup->group_name);
 		        }
 		printf("</select>\n");
 		printf("</td></tr>\n");
@@ -868,7 +868,7 @@ int main(int argc, char **argv){
 		printf("<option value='all'>** ALL HOSTS **\n");
 		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			if(is_authorized_for_host(temp_host,&current_authdata)==TRUE)
-				printf("<option value='%s'>%s\n",temp_host->name,temp_host->name);
+				printf("<option value='%s'>%s\n",escape_string(temp_host->name),temp_host->name);
 		        }
 		printf("</select>\n");
 		printf("</td></tr>\n");
@@ -900,7 +900,7 @@ int main(int argc, char **argv){
 		printf("<option value='all'>** ALL SERVICEGROUPS **\n");
 		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
 			if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==TRUE)
-				printf("<option value='%s'>%s\n",temp_servicegroup->group_name,temp_servicegroup->group_name);
+				printf("<option value='%s'>%s\n",escape_string(temp_servicegroup->group_name),temp_servicegroup->group_name);
 		        }
 		printf("</select>\n");
 		printf("</td></tr>\n");
@@ -941,7 +941,7 @@ int main(int argc, char **argv){
 
 	        printf("<form method=\"get\" action=\"%s\" name='serviceform'>\n",AVAIL_CGI);
 		printf("<input type='hidden' name='get_date_parts'>\n");
-		printf("<input type='hidden' name='host' value='%s'>\n",(firsthostpointer==NULL)?"unknown":firsthostpointer);
+		printf("<input type='hidden' name='host' value='%s'>\n",(firsthostpointer==NULL)?"unknown":(char *)escape_string(firsthostpointer));
 
 		printf("<table border=0 cellpadding=5>\n");
 
@@ -950,7 +950,7 @@ int main(int argc, char **argv){
 		printf("<option value='all'>** ALL SERVICES **\n");
 		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 			if(is_authorized_for_service(temp_service,&current_authdata)==TRUE)
-				printf("<option value='%s'>%s;%s\n",temp_service->description,temp_service->host_name,temp_service->description);
+				printf("<option value='%s'>%s;%s\n",escape_string(temp_service->description),temp_service->host_name,temp_service->description);
 		        }
 
 		printf("</select>\n");

@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-23-2008
+ * Last Modified: 10-15-2008
  *
  * License:
  * 
@@ -454,9 +454,9 @@ int main(int argc, char **argv){
 				printf("<input type='hidden' name='nomap' value=''>\n");
 			printf("<input type='hidden' name='t1' value='%lu'>\n",(unsigned long)t1);
 			printf("<input type='hidden' name='t2' value='%lu'>\n",(unsigned long)t2);
-			printf("<input type='hidden' name='host' value='%s'>\n",url_encode(host_name));
+			printf("<input type='hidden' name='host' value='%s'>\n",escape_string(host_name));
 			if(display_type==DISPLAY_SERVICE_TRENDS)
-				printf("<input type='hidden' name='service' value='%s'>\n",url_encode(svc_description));
+				printf("<input type='hidden' name='service' value='%s'>\n",escape_string(svc_description));
 
 			printf("<input type='hidden' name='assumeinitialstates' value='%s'>\n",(assume_initial_states==TRUE)?"yes":"no");
 			printf("<input type='hidden' name='assumestateretention' value='%s'>\n",(assume_state_retention==TRUE)?"yes":"no");
@@ -809,7 +809,7 @@ int main(int argc, char **argv){
 
 			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 				if(is_authorized_for_host(temp_host,&current_authdata)==TRUE)
-					printf("<option value='%s'>%s\n",temp_host->name,temp_host->name);
+					printf("<option value='%s'>%s\n",escape_string(temp_host->name),temp_host->name);
 			        }
 
 			printf("</select>\n");
@@ -858,7 +858,7 @@ int main(int argc, char **argv){
 			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<form method=\"GET\" action=\"%s\" name=\"serviceform\">\n",TRENDS_CGI);
 			printf("<input type='hidden' name='input' value='getoptions'>\n");
-			printf("<input type='hidden' name='host' value='%s'>\n",(first_service==NULL)?"unknown":first_service);
+			printf("<input type='hidden' name='host' value='%s'>\n",(first_service==NULL)?"unknown":(char *)escape_string(first_service));
 
 			printf("<tr><td class='reportSelectSubTitle'>Service:</td>\n");
 			printf("<td class='reportSelectItem'>\n");
@@ -866,7 +866,7 @@ int main(int argc, char **argv){
 
 			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 				if(is_authorized_for_service(temp_service,&current_authdata)==TRUE)
-					printf("<option value='%s'>%s;%s\n",temp_service->description,temp_service->host_name,temp_service->description);
+					printf("<option value='%s'>%s;%s\n",escape_string(temp_service->description),temp_service->host_name,temp_service->description);
 		                }
 
 			printf("</select>\n");
@@ -901,9 +901,9 @@ int main(int argc, char **argv){
 
 			printf("<TABLE BORDER=0 CELLPADDING=5>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",TRENDS_CGI);
-			printf("<input type='hidden' name='host' value='%s'>\n",host_name);
+			printf("<input type='hidden' name='host' value='%s'>\n",escape_string(host_name));
 			if(display_type==DISPLAY_SERVICE_TRENDS)
-				printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
+				printf("<input type='hidden' name='service' value='%s'>\n",escape_string(svc_description));
 
 			printf("<tr><td class='reportSelectSubTitle' align=right>Report period:</td>\n");
 			printf("<td class='reportSelectItem'>\n");

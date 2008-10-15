@@ -12,6 +12,7 @@ Nagios 3.x Change Log
 * Fixes for bugs in sample event handlers - stop/start active service checks and enable notifications
 * Cosmetic fix for logging of notifications
 * Fix for high CPU utilization under OS X
+* Fix for host/service name encoding in CGIs (trends and availability reports, etc.)
 
 
 

@@ -938,7 +938,7 @@ void request_command_data(int cmd){
 	case CMD_ADD_HOST_COMMENT:
 	case CMD_ACKNOWLEDGE_HOST_PROBLEM:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",escape_string(host_name));
 		printf("</b></td></tr>\n");
 		if(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM){
 			printf("<tr><td CLASS='optBoxItem'>Sticky Acknowledgement:</td><td><b>");
@@ -952,20 +952,20 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='checkbox' NAME='persistent' %s>",(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)?"":"CHECKED");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",url_encode(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",escape_string(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",escape_string(comment_data));
 		printf("</b></td></tr>\n");
 		break;
 		
 	case CMD_ADD_SVC_COMMENT:
 	case CMD_ACKNOWLEDGE_SVC_PROBLEM:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",escape_string(host_name));
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
+		printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",escape_string(service_desc));
 		if(cmd==CMD_ACKNOWLEDGE_SVC_PROBLEM){
 			printf("<tr><td CLASS='optBoxItem'>Sticky Acknowledgement:</td><td><b>");
 			printf("<INPUT TYPE='checkbox' NAME='sticky_ack' CHECKED>");
@@ -978,10 +978,10 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='checkbox' NAME='persistent' %s",(cmd==CMD_ACKNOWLEDGE_SVC_PROBLEM)?"":"CHECKED");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",url_encode(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",escape_string(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",escape_string(comment_data));
 		printf("</b></td></tr>\n");
 		break;
 
@@ -994,7 +994,7 @@ void request_command_data(int cmd){
 		
 	case CMD_DELAY_HOST_NOTIFICATION:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",escape_string(host_name));
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Notification Delay (minutes from now):</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='not_dly' VALUE='%d'>",notification_delay);
@@ -1003,10 +1003,10 @@ void request_command_data(int cmd){
 
 	case CMD_DELAY_SVC_NOTIFICATION:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",escape_string(host_name));
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
+		printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",escape_string(service_desc));
 		printf("<tr><td CLASS='optBoxRequiredItem'>Notification Delay (minutes from now):</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='not_dly' VALUE='%d'>",notification_delay);
 		printf("</b></td></tr>\n");
@@ -1016,11 +1016,11 @@ void request_command_data(int cmd){
 	case CMD_SCHEDULE_HOST_CHECK:
 	case CMD_SCHEDULE_HOST_SVC_CHECKS:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",escape_string(host_name));
 		printf("</b></td></tr>\n");
 		if(cmd==CMD_SCHEDULE_SVC_CHECK){
 			printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
-			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
+			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",escape_string(service_desc));
 			printf("</b></td></tr>\n");
 		        }
 		time(&t);
@@ -1048,10 +1048,10 @@ void request_command_data(int cmd){
 	case CMD_START_OBSESSING_OVER_SVC:
 	case CMD_STOP_OBSESSING_OVER_SVC:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",escape_string(host_name));
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
+		printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",escape_string(service_desc));
 		printf("</b></td></tr>\n");
 		break;
 		
@@ -1076,7 +1076,7 @@ void request_command_data(int cmd){
 	case CMD_START_OBSESSING_OVER_HOST:
 	case CMD_STOP_OBSESSING_OVER_HOST:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",escape_string(host_name));
 		printf("</b></td></tr>\n");
 		if(cmd==CMD_ENABLE_HOST_SVC_CHECKS || cmd==CMD_DISABLE_HOST_SVC_CHECKS || cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS || cmd==CMD_DISABLE_HOST_SVC_NOTIFICATIONS){
 			printf("<tr><td CLASS='optBoxItem'>%s For Host Too:</td><td><b>",(cmd==CMD_ENABLE_HOST_SVC_CHECKS || cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)?"Enable":"Disable");
@@ -1120,11 +1120,11 @@ void request_command_data(int cmd){
 	case CMD_PROCESS_HOST_CHECK_RESULT:
 	case CMD_PROCESS_SERVICE_CHECK_RESULT:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",escape_string(host_name));
 		printf("</b></td></tr>\n");
 		if(cmd==CMD_PROCESS_SERVICE_CHECK_RESULT){
 			printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
-			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
+			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",escape_string(service_desc));
 			printf("</b></td></tr>\n");
 		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Check Result:</td><td><b>");
@@ -1154,17 +1154,17 @@ void request_command_data(int cmd){
 	case CMD_SCHEDULE_SVC_DOWNTIME:
 
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",escape_string(host_name));
 		printf("</b></td></tr>\n");
 		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME){
 			printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
-			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
+			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",escape_string(service_desc));
 		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",url_encode(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",escape_string(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",escape_string(comment_data));
 		printf("</b></td></tr>\n");
 
 		printf("<tr><td CLASS='optBoxItem'><br></td></tr>\n");
@@ -1242,7 +1242,7 @@ void request_command_data(int cmd){
 	case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
 	case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Hostgroup Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='hostgroup' VALUE='%s'>",hostgroup_name);
+		printf("<INPUT TYPE='TEXT' NAME='hostgroup' VALUE='%s'>",escape_string(hostgroup_name));
 		printf("</b></td></tr>\n");
 		if(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS || cmd==CMD_DISABLE_HOSTGROUP_SVC_CHECKS || cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS || cmd==CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS){
 			printf("<tr><td CLASS='optBoxItem'>%s For Hosts Too:</td><td><b>",(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS || cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"Enable":"Disable");
@@ -1258,7 +1258,7 @@ void request_command_data(int cmd){
 	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
 	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Servicegroup Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='servicegroup' VALUE='%s'>",servicegroup_name);
+		printf("<INPUT TYPE='TEXT' NAME='servicegroup' VALUE='%s'>",escape_string(servicegroup_name));
 		printf("</b></td></tr>\n");
 		if(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS || cmd==CMD_DISABLE_SERVICEGROUP_SVC_CHECKS || cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS || cmd==CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS){
 			printf("<tr><td CLASS='optBoxItem'>%s For Hosts Too:</td><td><b>",(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS || cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS)?"Enable":"Disable");
@@ -1282,19 +1282,19 @@ void request_command_data(int cmd){
 
 		if(cmd==CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME){
 			printf("<tr><td CLASS='optBoxRequiredItem'>Hostgroup Name:</td><td><b>");
-			printf("<INPUT TYPE='TEXT' NAME='hostgroup' VALUE='%s'>",hostgroup_name);
+			printf("<INPUT TYPE='TEXT' NAME='hostgroup' VALUE='%s'>",escape_string(hostgroup_name));
 			printf("</b></td></tr>\n");
 		        }
 		else{
 			printf("<tr><td CLASS='optBoxRequiredItem'>Servicegroup Name:</td><td><b>");
-			printf("<INPUT TYPE='TEXT' NAME='servicegroup' VALUE='%s'>",servicegroup_name);
+			printf("<INPUT TYPE='TEXT' NAME='servicegroup' VALUE='%s'>",escape_string(servicegroup_name));
 			printf("</b></td></tr>\n");
 		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",url_encode(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",escape_string(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",escape_string(comment_data));
 		printf("</b></td></tr>\n");
 		time(&t);
 		get_time_string(&t,buffer,sizeof(buffer)-1,SHORT_DATE_TIME);
@@ -1331,12 +1331,12 @@ void request_command_data(int cmd){
 	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
 	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",escape_string(host_name));
 		printf("</b></td></tr>\n");
 
 		if(cmd==CMD_SEND_CUSTOM_SVC_NOTIFICATION){
 			printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
-			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
+			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",escape_string(service_desc));
 			printf("</b></td></tr>\n");
 			}
 
@@ -1349,10 +1349,10 @@ void request_command_data(int cmd){
 		printf("</b></td></tr>\n");
 
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",url_encode(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
+		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>",escape_string(comment_author),(lock_author_names==TRUE)?"READONLY DISABLED":"");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",url_encode(comment_data));
+		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",escape_string(comment_data));
 		printf("</b></td></tr>\n");
 		break;
 

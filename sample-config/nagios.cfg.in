@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 05-19-2008
+# Last Modified: 10-15-2008
 #
 ##############################################################################
 
@@ -541,6 +541,14 @@ enable_predictive_service_dependency_checks=1
 #  1 = Use soft state dependencies 
 
 soft_state_dependencies=0
+
+
+
+# TIME CHANGE ADJUSTMENT THRESHOLDS
+# These options determine when Nagios will react to detected changes
+# in system time (either forward or backwards).
+
+time_change_threshold=
 
 
 

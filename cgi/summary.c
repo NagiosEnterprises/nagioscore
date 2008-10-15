@@ -588,7 +588,7 @@ int main(int argc, char **argv){
 		printf("<option value='all'>** ALL HOSTGROUPS **\n");
 		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
 			if(is_authorized_for_hostgroup(temp_hostgroup,&current_authdata)==TRUE)
-				printf("<option value='%s'>%s\n",temp_hostgroup->group_name,temp_hostgroup->group_name);
+				printf("<option value='%s'>%s\n",escape_string(temp_hostgroup->group_name),temp_hostgroup->group_name);
 		        }
 		printf("</select>\n");
 		printf("</td></tr>\n");
@@ -598,7 +598,7 @@ int main(int argc, char **argv){
 		printf("<option value='all'>** ALL SERVICEGROUPS **\n");
 		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
 			if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==TRUE)
-				printf("<option value='%s'>%s\n",temp_servicegroup->group_name,temp_servicegroup->group_name);
+				printf("<option value='%s'>%s\n",escape_string(temp_servicegroup->group_name),temp_servicegroup->group_name);
 		        }
 		printf("</select>\n");
 		printf("</td></tr>\n");
@@ -609,7 +609,7 @@ int main(int argc, char **argv){
 
 		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			if(is_authorized_for_host(temp_host,&current_authdata)==TRUE)
-				printf("<option value='%s'>%s\n",temp_host->name,temp_host->name);
+				printf("<option value='%s'>%s\n",escape_string(temp_host->name),temp_host->name);
 		        }
 		printf("</select>\n");
 		printf("</td></tr>\n");

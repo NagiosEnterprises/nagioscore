@@ -1196,6 +1196,10 @@ char *mmap_fgets(mmapfile *temp_mmapfile){
 	if(temp_mmapfile==NULL)
 		return NULL;
 
+	/* size of file is 0 bytes */
+	if(temp_mmapfile->file_size==0L)
+		return NULL;
+
 	/* we've reached the end of the file */
 	if(temp_mmapfile->current_position>=temp_mmapfile->file_size)
 		return NULL;
@@ -1489,6 +1493,54 @@ void strip_html_brackets(char *buffer){
 
 	return;
 	}
+
+
+
+/* escape string for html form usage */
+char * escape_string(char *input){
+	int len,output_len;
+	int x,y;
+	char temp_expansion[10];
+
+	/* we need up to six times the space to do the conversion */
+	len=(int)strlen(input);
+	output_len=len*6;
+	if((encoded_html_string=(char *)malloc(output_len+1))==NULL)
+		return "";
+
+	strcpy(encoded_html_string,"");
+
+	for(x=0,y=0;x<=len;x++){
+
+		/* end of string */
+		if((char)input[x]==(char)'\x0'){
+			encoded_html_string[y]='\x0';
+			break;
+			}
+
+		/* alpha-numeric characters don't get encoded */
+		else if(((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z'))
+			encoded_html_string[y++]=input[x];
+
+		/* spaces, hyphens, periods, underscores and colons don't get encoded */
+		else if(((char)input[x]==(char)' ') || ((char)input[x]==(char)'-') || ((char)input[x]==(char)'.') || ((char)input[x]==(char)'_') || ((char)input[x]==(char)':'))
+			encoded_html_string[y++]=input[x];
+
+		/* for simplicity, all other chars represented by their numeric value */
+		else{
+			encoded_html_string[y]='\x0';
+			sprintf(temp_expansion,"&#%d;",(unsigned char)input[x]);
+			if((int)strlen(encoded_html_string)<(output_len-strlen(temp_expansion))){
+				strcat(encoded_html_string,temp_expansion);
+				y+=strlen(temp_expansion);
+				}
+			}
+	        }
+
+	encoded_html_string[y++]='\x0';
+
+	return encoded_html_string;
+        }
 
 
 

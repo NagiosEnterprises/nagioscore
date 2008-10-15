@@ -700,7 +700,7 @@ void display_page_header(void){
 		printf("<form method=\"POST\" action=\"%s\">\n",STATUSMAP_CGI);
 		printf("<table border=0 CLASS='optBox'>\n");
 		printf("<tr><td valign=top>\n");
-		printf("<input type='hidden' name='host' value='%s'>\n",url_encode(host_name));
+		printf("<input type='hidden' name='host' value='%s'>\n",escape_string(host_name));
 		printf("<input type='hidden' name='layout' value='%d'>\n",layout_method);
 
 		printf("</td><td valign=top>\n");
@@ -763,7 +763,7 @@ void display_page_header(void){
 					break;
 				        }
 			        }
-			printf("<option value='%s' %s>%s\n",temp_hostgroup->group_name,(found==1)?"SELECTED":"",temp_hostgroup->alias);
+			printf("<option value='%s' %s>%s\n",escape_string(temp_hostgroup->group_name),(found==1)?"SELECTED":"",temp_hostgroup->alias);
 		        }
 		printf("</select>\n");
 		printf("</td><td CLASS='optBoxItem' valign=top>Layer mode:<br>");
@@ -1944,8 +1944,8 @@ void write_host_popup_text(host *hst){
 	printf("\\\" border=0 width=40 height=40></td>");
 	printf("<td class=\\\"popupText\\\"><i>%s</i></td></tr>",(hst->icon_image_alt==NULL)?"":html_encode(hst->icon_image_alt,TRUE));
 
-	printf("<tr><td class=\\\"popupText\\\">Name:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->name,TRUE));
-	printf("<tr><td class=\\\"popupText\\\">Alias:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->alias,TRUE));
+	printf("<tr><td class=\\\"popupText\\\">Name:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",escape_string(hst->name));
+	printf("<tr><td class=\\\"popupText\\\">Alias:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",escape_string(hst->alias));
 	printf("<tr><td class=\\\"popupText\\\">Address:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->address,TRUE));
 	printf("<tr><td class=\\\"popupText\\\">State:</td><td class=\\\"popupText\\\"><b>");
 
@@ -2390,7 +2390,7 @@ void print_layer_url(int get_method){
 		if(get_method==TRUE)
 			printf("&layer=%s",temp_layer->layer_name);
 		else
-			printf("<input type='hidden' name='layer' value='%s'>\n",temp_layer->layer_name);
+			printf("<input type='hidden' name='layer' value='%s'>\n",escape_string(temp_layer->layer_name));
 	        }
 
 	if(get_method==TRUE)

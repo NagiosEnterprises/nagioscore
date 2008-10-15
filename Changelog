@@ -9,7 +9,7 @@ Nagios 3.x Change Log
 * Fix for event broker callback when service notifications are disabled
 * Fix for scheduling scheduling servicegroup downtime with 'hosts too' option in CGIs
 * Fix for segfault under Solaris with NULL plugin output
-* Fix for bug in sample enable_notifications event handler
+* Fixes for bugs in sample event handlers - stop/start active service checks and enable notifications
 
 
 

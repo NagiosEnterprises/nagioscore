@@ -12,7 +12,7 @@
 #    the check_external_commands option in the main
 #    configuration file.
 
-printfcmd="/bin/printf"
+printfcmd="/usr/bin/printf"
 
 CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
 

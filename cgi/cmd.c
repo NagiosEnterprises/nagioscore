@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-15-2008
+ * Last Modified: 10-30-2008
  *
  * License:
  * 
@@ -30,6 +30,8 @@
 #include "../include/cgiutils.h"
 #include "../include/cgiauth.h"
 #include "../include/getcgi.h"
+
+extern const char *extcmd_get_name(int id);
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char url_html_path[MAX_FILENAME_LENGTH];
@@ -1883,6 +1885,34 @@ void commit_command_data(int cmd){
 	return;
         }
 
+static int cmd_submitf(int id, const char *fmt, ...)
+{
+	char cmd[MAX_EXTERNAL_COMMAND_LENGTH];
+	const char *command;
+	int len, len2;
+	va_list ap;
+
+	command = extcmd_get_name(id);
+	/*
+	 * We disallow sending 'CHANGE' commands from the cgi's
+	 * until we do proper session handling to prevent cross-site
+	 * request forgery
+	 */
+	if (!command || (strlen(command) > 6 && !memcmp("CHANGE", command, 6)))
+		return ERROR;
+
+	len = snprintf(cmd, sizeof(cmd) - 1, "[%lu] %s;", time(NULL), command);
+	if (len < 0)
+		return ERROR;
+
+	va_start(ap, fmt);
+	len2 = vsnprintf(&cmd[len], sizeof(cmd) - len - 1, fmt, ap);
+	va_end(ap);
+	if (len2 < 0)
+		return ERROR;
+
+	return write_command_to_file(cmd);
+}
 
 /* commits a command for processing */
 int commit_command(int cmd){
@@ -1901,248 +1931,195 @@ int commit_command(int cmd){
 	/* get the notification time */
 	notification_time=current_time+(notification_delay*60);
 
+	/*
+	 * these are supposed to be implanted inside the
+	 * completed commands shipped off to nagios and
+	 * must therefore never contain ';'
+	 */
+	if (host_name && strchr(host_name, ';'))
+		return ERROR;
+	if (service_desc && strchr(service_desc, ';'))
+		return ERROR;
+	if (comment_author && strchr(comment_author, ';'))
+		return ERROR;
+	if (hostgroup_name && strchr(hostgroup_name, ';'))
+		return ERROR;
+	if (servicegroup_name && strchr(servicegroup_name, ';'))
+		return ERROR;
+
 	/* decide how to form the command line... */
 	switch(cmd){
 
-	case CMD_ADD_HOST_COMMENT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ADD_HOST_COMMENT;%s;%d;%s;%s\n",current_time,host_name,(persistent_comment==TRUE)?1:0,comment_author,comment_data);
+		/* commands without arguments */
+	case CMD_START_EXECUTING_SVC_CHECKS:
+	case CMD_STOP_EXECUTING_SVC_CHECKS:
+	case CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS:
+	case CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS:
+	case CMD_ENABLE_EVENT_HANDLERS:
+	case CMD_DISABLE_EVENT_HANDLERS:
+	case CMD_START_OBSESSING_OVER_SVC_CHECKS:
+	case CMD_STOP_OBSESSING_OVER_SVC_CHECKS:
+	case CMD_ENABLE_FLAP_DETECTION:
+	case CMD_DISABLE_FLAP_DETECTION:
+	case CMD_ENABLE_FAILURE_PREDICTION:
+	case CMD_DISABLE_FAILURE_PREDICTION:
+	case CMD_ENABLE_PERFORMANCE_DATA:
+	case CMD_DISABLE_PERFORMANCE_DATA:
+	case CMD_START_EXECUTING_HOST_CHECKS:
+	case CMD_STOP_EXECUTING_HOST_CHECKS:
+	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
+	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
+	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
+	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
+		result = cmd_submitf(cmd,"");
+		break;
+
+		/** simple host commands **/
+	case CMD_ENABLE_HOST_FLAP_DETECTION:
+	case CMD_DISABLE_HOST_FLAP_DETECTION:
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+	case CMD_START_OBSESSING_OVER_HOST:
+	case CMD_STOP_OBSESSING_OVER_HOST:
+	case CMD_DEL_ALL_HOST_COMMENTS:
+	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+	case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+	case CMD_ENABLE_HOST_EVENT_HANDLER:
+	case CMD_DISABLE_HOST_EVENT_HANDLER:
+	case CMD_ENABLE_HOST_CHECK:
+	case CMD_DISABLE_HOST_CHECK:
+	case CMD_REMOVE_HOST_ACKNOWLEDGEMENT:
+		result = cmd_submitf(cmd,"%s",host_name);
+		break;
+
+		/** simple service commands **/
+	case CMD_ENABLE_SVC_FLAP_DETECTION:
+	case CMD_DISABLE_SVC_FLAP_DETECTION:
+	case CMD_ENABLE_PASSIVE_SVC_CHECKS:
+	case CMD_DISABLE_PASSIVE_SVC_CHECKS:
+	case CMD_START_OBSESSING_OVER_SVC:
+	case CMD_STOP_OBSESSING_OVER_SVC:
+	case CMD_DEL_ALL_SVC_COMMENTS:
+	case CMD_ENABLE_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_SVC_EVENT_HANDLER:
+	case CMD_DISABLE_SVC_EVENT_HANDLER:
+	case CMD_ENABLE_SVC_CHECK:
+	case CMD_DISABLE_SVC_CHECK:
+	case CMD_REMOVE_SVC_ACKNOWLEDGEMENT:
+		result = cmd_submitf(cmd,"%s;%s",host_name,service_desc);
 		break;
 		
+	case CMD_ADD_HOST_COMMENT:
+		result = cmd_submitf(cmd,"%s;%d;%s;%s",host_name,persistent_comment,comment_author,comment_data);
+		break;
+
 	case CMD_ADD_SVC_COMMENT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ADD_SVC_COMMENT;%s;%s;%d;%s;%s\n",current_time,host_name,service_desc,(persistent_comment==TRUE)?1:0,comment_author,comment_data);
+		result = cmd_submitf(cmd,"%s;%s;%d;%s;%s",current_time,host_name,service_desc,persistent_comment,comment_author,comment_data);
 		break;
 
 	case CMD_DEL_HOST_COMMENT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_HOST_COMMENT;%lu\n",current_time,comment_id);
-		break;
-		
 	case CMD_DEL_SVC_COMMENT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_SVC_COMMENT;%lu\n",current_time,comment_id);
+		result = cmd_submitf(cmd,"%lu",comment_id);
 		break;
 		
 	case CMD_DELAY_HOST_NOTIFICATION:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DELAY_HOST_NOTIFICATION;%s;%lu\n",current_time,host_name,notification_time);
+		result = cmd_submitf(cmd,"%s;%lu",host_name,notification_time);
 		break;
 
 	case CMD_DELAY_SVC_NOTIFICATION:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DELAY_SVC_NOTIFICATION;%s;%s;%lu\n",current_time,host_name,service_desc,notification_time);
+		result = cmd_submitf(cmd,"%s;%s;%lu",host_name,service_desc,notification_time);
 		break;
 
 	case CMD_SCHEDULE_SVC_CHECK:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sSVC_CHECK;%s;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,service_desc,start_time);
+	case CMD_SCHEDULE_FORCED_SVC_CHECK:
+		result = cmd_submitf(cmd,"%s;%s;%lu",host_name,service_desc,start_time);
 		break;
 
-	case CMD_ENABLE_SVC_CHECK:
-	case CMD_DISABLE_SVC_CHECK:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SVC_CHECK;%s;%s\n",current_time,(cmd==CMD_ENABLE_SVC_CHECK)?"ENABLE":"DISABLE",host_name,service_desc);
-		break;
-		
 	case CMD_DISABLE_NOTIFICATIONS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DISABLE_NOTIFICATIONS;%lu\n",current_time,scheduled_time);
-		break;
-		
 	case CMD_ENABLE_NOTIFICATIONS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ENABLE_NOTIFICATIONS;%lu\n",current_time,scheduled_time);
-		break;
-		
 	case CMD_SHUTDOWN_PROCESS:
 	case CMD_RESTART_PROCESS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_PROGRAM;%lu\n",current_time,(cmd==CMD_SHUTDOWN_PROCESS)?"SHUTDOWN":"RESTART",scheduled_time);
+		result = cmd_submitf(cmd,"%lu",scheduled_time);
 		break;
 
 	case CMD_ENABLE_HOST_SVC_CHECKS:
 	case CMD_DISABLE_HOST_SVC_CHECKS:
-		if(affect_host_and_services==FALSE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_SVC_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_HOST_SVC_CHECKS)?"ENABLE":"DISABLE",host_name);
-		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_SVC_CHECKS;%s\n[%lu] %s_HOST_CHECK;%s\n",current_time,(cmd==CMD_ENABLE_HOST_SVC_CHECKS)?"ENABLE":"DISABLE",host_name,current_time,(cmd==CMD_ENABLE_HOST_SVC_CHECKS)?"ENABLE":"DISABLE",host_name);
+		result = cmd_submitf(cmd,"%s",host_name);
+		if(affect_host_and_services==TRUE) {
+			cmd = (cmd == CMD_ENABLE_HOST_SVC_CHECKS) ? CMD_ENABLE_HOST_CHECK : CMD_DISABLE_HOST_CHECK;
+			result |= cmd_submitf(cmd,"%s",host_name);
+		}
 		break;
 		
 	case CMD_SCHEDULE_HOST_SVC_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sHOST_SVC_CHECKS;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,scheduled_time);
+		if (force_check == TRUE)
+			cmd = CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS;
+		result = cmd_submitf(cmd,"%s;%lu",host_name,scheduled_time);
 		break;
 
-	case CMD_DEL_ALL_HOST_COMMENTS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_ALL_HOST_COMMENTS;%s\n",current_time,host_name);
-		break;
-		
-	case CMD_DEL_ALL_SVC_COMMENTS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_ALL_SVC_COMMENTS;%s;%s\n",current_time,host_name,service_desc);
-		break;
-
-	case CMD_ENABLE_SVC_NOTIFICATIONS:
-	case CMD_DISABLE_SVC_NOTIFICATIONS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SVC_NOTIFICATIONS;%s;%s\n",current_time,(cmd==CMD_ENABLE_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",host_name,service_desc);
-		break;
-		
 	case CMD_ENABLE_HOST_NOTIFICATIONS:
 	case CMD_DISABLE_HOST_NOTIFICATIONS:
 		if(propagate_to_children==TRUE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_AND_CHILD_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOST_NOTIFICATIONS)?"ENABLE":"DISABLE",host_name);
-		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOST_NOTIFICATIONS)?"ENABLE":"DISABLE",host_name);
-		break;
-		
-	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
-	case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_ALL_NOTIFICATIONS_BEYOND_HOST;%s\n",current_time,(cmd==CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST)?"ENABLE":"DISABLE",host_name);
+			cmd = (cmd == CMD_ENABLE_HOST_NOTIFICATIONS) ? CMD_ENABLE_HOST_AND_CHILD_NOTIFICATIONS : CMD_DISABLE_HOST_AND_CHILD_NOTIFICATIONS;
+		result = cmd_submitf(cmd,"%s",host_name);
 		break;
 		
 	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
 	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
-		if(affect_host_and_services==FALSE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_SVC_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",host_name);
-		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_SVC_NOTIFICATIONS;%s\n[%lu] %s_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",host_name,current_time,(cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",host_name);
+		result = cmd_submitf(cmd,"%s",host_name);
+		if(affect_host_and_services==TRUE) {
+			cmd = (cmd == CMD_ENABLE_HOST_SVC_NOTIFICATIONS) ? CMD_ENABLE_HOST_NOTIFICATIONS : CMD_DISABLE_HOST_NOTIFICATIONS;
+			result |= cmd_submitf(cmd,"%s",host_name);
+		}
 		break;
 		
 	case CMD_ACKNOWLEDGE_HOST_PROBLEM:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ACKNOWLEDGE_HOST_PROBLEM;%s;%d;%d;%d;%s;%s\n",current_time,host_name,(sticky_ack==TRUE)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL,(send_notification==TRUE)?1:0,(persistent_comment==TRUE)?1:0,comment_author,comment_data);
+		result = cmd_submitf(cmd,"%s;%d;%d;%d;%s;%s",host_name,(sticky_ack==TRUE)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL,send_notification,persistent_comment,comment_author,comment_data);
 		break;
 		
 	case CMD_ACKNOWLEDGE_SVC_PROBLEM:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ACKNOWLEDGE_SVC_PROBLEM;%s;%s;%d;%d;%d;%s;%s\n",current_time,host_name,service_desc,(sticky_ack==TRUE)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL,(send_notification==TRUE)?1:0,(persistent_comment==TRUE)?1:0,comment_author,comment_data);
+		result = cmd_submitf(cmd,"%s;%s;%d;%d;%d;%s;%s",host_name,service_desc,(sticky_ack==TRUE)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL,send_notification,persistent_comment,comment_author,comment_data);
 		break;
 
-	case CMD_START_EXECUTING_SVC_CHECKS:
-	case CMD_STOP_EXECUTING_SVC_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_EXECUTING_SVC_CHECKS;\n",current_time,(cmd==CMD_START_EXECUTING_SVC_CHECKS)?"START":"STOP");
-		break;
-
-	case CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS:
-	case CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_ACCEPTING_PASSIVE_SVC_CHECKS;\n",current_time,(cmd==CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS)?"START":"STOP");
-		break;
-
-	case CMD_ENABLE_PASSIVE_SVC_CHECKS:
-	case CMD_DISABLE_PASSIVE_SVC_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_PASSIVE_SVC_CHECKS;%s;%s\n",current_time,(cmd==CMD_ENABLE_PASSIVE_SVC_CHECKS)?"ENABLE":"DISABLE",host_name,service_desc);
-		break;
-		
-	case CMD_ENABLE_EVENT_HANDLERS:
-	case CMD_DISABLE_EVENT_HANDLERS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_EVENT_HANDLERS;\n",current_time,(cmd==CMD_ENABLE_EVENT_HANDLERS)?"ENABLE":"DISABLE");
-		break;
-
-	case CMD_ENABLE_SVC_EVENT_HANDLER:
-	case CMD_DISABLE_SVC_EVENT_HANDLER:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SVC_EVENT_HANDLER;%s;%s\n",current_time,(cmd==CMD_ENABLE_SVC_EVENT_HANDLER)?"ENABLE":"DISABLE",host_name,service_desc);
-		break;
-		
-	case CMD_ENABLE_HOST_EVENT_HANDLER:
-	case CMD_DISABLE_HOST_EVENT_HANDLER:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_EVENT_HANDLER;%s\n",current_time,(cmd==CMD_ENABLE_HOST_EVENT_HANDLER)?"ENABLE":"DISABLE",host_name);
-		break;
-		
-	case CMD_ENABLE_HOST_CHECK:
-	case CMD_DISABLE_HOST_CHECK:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_CHECK;%s\n",current_time,(cmd==CMD_ENABLE_HOST_CHECK)?"ENABLE":"DISABLE",host_name);
-		break;
-		
-	case CMD_START_OBSESSING_OVER_SVC_CHECKS:
-	case CMD_STOP_OBSESSING_OVER_SVC_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_SVC_CHECKS;\n",current_time,(cmd==CMD_START_OBSESSING_OVER_SVC_CHECKS)?"START":"STOP");
-		break;
-		
-	case CMD_REMOVE_HOST_ACKNOWLEDGEMENT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] REMOVE_HOST_ACKNOWLEDGEMENT;%s\n",current_time,host_name);
-		break;
-		
-	case CMD_REMOVE_SVC_ACKNOWLEDGEMENT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] REMOVE_SVC_ACKNOWLEDGEMENT;%s;%s\n",current_time,host_name,service_desc);
-		break;
-		
 	case CMD_PROCESS_SERVICE_CHECK_RESULT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] PROCESS_SERVICE_CHECK_RESULT;%s;%s;%d;%s|%s\n",current_time,host_name,service_desc,plugin_state,plugin_output,performance_data);
+		result = cmd_submitf(cmd,"%s;%s;%d;%s|%s",host_name,service_desc,plugin_state,plugin_output,performance_data);
 		break;
 		
 	case CMD_PROCESS_HOST_CHECK_RESULT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] PROCESS_HOST_CHECK_RESULT;%s;%d;%s|%s\n",current_time,host_name,plugin_state,plugin_output,performance_data);
+		result = cmd_submitf(cmd,"%s;%d;%s|%s",host_name,plugin_state,plugin_output,performance_data);
 		break;
 		
 	case CMD_SCHEDULE_HOST_DOWNTIME:
 		if(child_options==1)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,triggered_by,duration,comment_author,comment_data);
-		else if(child_options==2)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,triggered_by,duration,comment_author,comment_data);
-		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,triggered_by,duration,comment_author,comment_data);
+			cmd = CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME;
+		else if (child_options == 2)
+			cmd = CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME;
+		
+		result = cmd_submitf(cmd,"%s;%lu;%lu;%d;%lu;%lu;%s;%s",host_name,start_time,end_time,fixed,triggered_by,duration,comment_author,comment_data);
 		break;
 		
 	case CMD_SCHEDULE_SVC_DOWNTIME:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SVC_DOWNTIME;%s;%s;%lu;%lu;%d;%lu;%lu;%s;%s\n",current_time,host_name,service_desc,start_time,end_time,(fixed==TRUE)?1:0,triggered_by,duration,comment_author,comment_data);
-		break;
-		
-	case CMD_ENABLE_HOST_FLAP_DETECTION:
-	case CMD_DISABLE_HOST_FLAP_DETECTION:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_FLAP_DETECTION;%s\n",current_time,(cmd==CMD_ENABLE_HOST_FLAP_DETECTION)?"ENABLE":"DISABLE",host_name);
-		break;
-		
-	case CMD_ENABLE_SVC_FLAP_DETECTION:
-	case CMD_DISABLE_SVC_FLAP_DETECTION:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SVC_FLAP_DETECTION;%s;%s\n",current_time,(cmd==CMD_ENABLE_SVC_FLAP_DETECTION)?"ENABLE":"DISABLE",host_name,service_desc);
-		break;
-		
-	case CMD_ENABLE_FLAP_DETECTION:
-	case CMD_DISABLE_FLAP_DETECTION:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_FLAP_DETECTION\n",current_time,(cmd==CMD_ENABLE_FLAP_DETECTION)?"ENABLE":"DISABLE");
+		result = cmd_submitf(cmd,"%s;%s;%lu;%lu;%d;%lu;%lu;%s;%s",host_name,service_desc,start_time,end_time,fixed,triggered_by,duration,comment_author,comment_data);
 		break;
 		
 	case CMD_DEL_HOST_DOWNTIME:
 	case CMD_DEL_SVC_DOWNTIME:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_%s_DOWNTIME;%lu\n",current_time,(cmd==CMD_DEL_HOST_DOWNTIME)?"HOST":"SVC",downtime_id);
-		break;
-
-	case CMD_ENABLE_FAILURE_PREDICTION:
-	case CMD_DISABLE_FAILURE_PREDICTION:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_FAILURE_PREDICTION\n",current_time,(cmd==CMD_ENABLE_FAILURE_PREDICTION)?"ENABLE":"DISABLE");
-		break;
-		
-	case CMD_ENABLE_PERFORMANCE_DATA:
-	case CMD_DISABLE_PERFORMANCE_DATA:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_PERFORMANCE_DATA\n",current_time,(cmd==CMD_ENABLE_PERFORMANCE_DATA)?"ENABLE":"DISABLE");
-		break;
-		
-	case CMD_START_EXECUTING_HOST_CHECKS:
-	case CMD_STOP_EXECUTING_HOST_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_EXECUTING_HOST_CHECKS;\n",current_time,(cmd==CMD_START_EXECUTING_HOST_CHECKS)?"START":"STOP");
-		break;
-
-	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
-	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_ACCEPTING_PASSIVE_HOST_CHECKS;\n",current_time,(cmd==CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS)?"START":"STOP");
-		break;
-
-	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
-	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_PASSIVE_HOST_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_PASSIVE_HOST_CHECKS)?"ENABLE":"DISABLE",host_name);
-		break;
-
-	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
-	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_HOST_CHECKS;\n",current_time,(cmd==CMD_START_OBSESSING_OVER_HOST_CHECKS)?"START":"STOP");
+		result = cmd_submitf(cmd,"%lu",downtime_id);
 		break;
 
 	case CMD_SCHEDULE_HOST_CHECK:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sHOST_CHECK;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,start_time);
-		break;
-
-	case CMD_START_OBSESSING_OVER_SVC:
-	case CMD_STOP_OBSESSING_OVER_SVC:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_SVC;%s;%s\n",current_time,(cmd==CMD_START_OBSESSING_OVER_SVC)?"START":"STOP",host_name,service_desc);
-		break;
-
-	case CMD_START_OBSESSING_OVER_HOST:
-	case CMD_STOP_OBSESSING_OVER_HOST:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_HOST;%s\n",current_time,(cmd==CMD_START_OBSESSING_OVER_HOST)?"START":"STOP",host_name);
+		if (force_check == TRUE)
+			cmd = CMD_SCHEDULE_FORCED_HOST_CHECK;
+		result = cmd_submitf(cmd,"%s;%lu",host_name,start_time);
 		break;
 
 	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SEND_CUSTOM_HOST_NOTIFICATION;%s;%d;%s;%s\n",current_time,host_name,(force_notification | broadcast_notification),comment_author,comment_data);
+		result = cmd_submitf(cmd,"%s;%d;%s;%s",host_name,(force_notification | broadcast_notification),comment_author,comment_data);
 		break;
 
 	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
-			 snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SEND_CUSTOM_SVC_NOTIFICATION;%s;%s;%d;%s;%s\n",current_time,host_name,service_desc,(force_notification | broadcast_notification),comment_author,comment_data);
+		result = cmd_submitf(cmd,"%s;%s;%d;%s;%s",host_name,service_desc,(force_notification | broadcast_notification),comment_author,comment_data);
 		break;
 
 
@@ -2150,34 +2127,35 @@ int commit_command(int cmd){
 
 	case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
 	case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-		if(affect_host_and_services==FALSE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOSTGROUP_SVC_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",hostgroup_name);
-		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOSTGROUP_SVC_NOTIFICATIONS;%s\n[%lu] %s_HOSTGROUP_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",hostgroup_name,current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",hostgroup_name);
+		result = cmd_submitf(cmd,"%s",hostgroup_name);
+		if(affect_host_and_services==TRUE) {
+			cmd = (cmd == CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS) ? CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS : CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS;
+			result |= cmd_submitf(cmd,"%s",hostgroup_name);
+		}
 		break;
 
 	case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
 	case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOSTGROUP_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS)?"ENABLE":"DISABLE",hostgroup_name);
+		result = cmd_submitf(cmd,"%s",hostgroup_name);
 		break;
 
 	case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
 	case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
-		if(affect_host_and_services==FALSE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOSTGROUP_SVC_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",hostgroup_name);
-		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOSTGROUP_SVC_CHECKS;%s\n[%lu] %s_HOSTGROUP_HOST_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",hostgroup_name,current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",hostgroup_name);
+		result = cmd_submitf(cmd,"%s",hostgroup_name);
+		if(affect_host_and_services==TRUE) {
+			cmd = (cmd == CMD_ENABLE_HOSTGROUP_SVC_CHECKS) ? CMD_ENABLE_HOSTGROUP_HOST_CHECKS : CMD_DISABLE_HOSTGROUP_HOST_CHECKS;
+			result |= cmd_submitf(cmd,"%s",hostgroup_name);
+		}
 		break;
 
 	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		result = cmd_submitf(cmd,"%s;%lu;%lu;%d;0;%lu;%s;%s",hostgroup_name,start_time,end_time,fixed,duration,comment_author,comment_data);
 		break;
 
 	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
-		if(affect_host_and_services==FALSE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
-		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data,current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		result = cmd_submitf(cmd,"%s;%lu;%lu;%d;0;%lu;%s;%s",hostgroup_name,start_time,end_time,fixed,duration,comment_author,comment_data);
+		if(affect_host_and_services==TRUE)
+			result |= cmd_submitf(CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME,"%s;%lu;%lu;%d;0;%lu;%s;%s",hostgroup_name,start_time,end_time,fixed,duration,comment_author,comment_data);
 		break;
 
 
@@ -2185,46 +2163,41 @@ int commit_command(int cmd){
 
 	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
 	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
-		if(affect_host_and_services==FALSE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SERVICEGROUP_SVC_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",servicegroup_name);
-		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SERVICEGROUP_SVC_NOTIFICATIONS;%s\n[%lu] %s_SERVICEGROUP_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",servicegroup_name,current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",servicegroup_name);
+		result = cmd_submitf(cmd,"%s",servicegroup_name);
+		if(affect_host_and_services==TRUE) {
+			cmd = (cmd == CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS) ? CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS : CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS;
+			result |= cmd_submitf(cmd,"%s",servicegroup_name);
+		}
 		break;
 
 	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
 	case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SERVICEGROUP_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS)?"ENABLE":"DISABLE",servicegroup_name);
+		result = cmd_submitf(cmd,"%s",servicegroup_name);
 		break;
 
 	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
 	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
-		if(affect_host_and_services==FALSE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SERVICEGROUP_SVC_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",servicegroup_name);
-		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SERVICEGROUP_SVC_CHECKS;%s\n[%lu] %s_SERVICEGROUP_HOST_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",servicegroup_name,current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",servicegroup_name);
+		result = cmd_submitf(cmd,"%s",servicegroup_name);
+		if(affect_host_and_services==TRUE) {
+			cmd = (cmd == CMD_ENABLE_SERVICEGROUP_SVC_CHECKS) ? CMD_ENABLE_SERVICEGROUP_HOST_CHECKS : CMD_DISABLE_SERVICEGROUP_HOST_CHECKS;
+			result |= cmd_submitf(cmd,"%s",servicegroup_name);
+		}
 		break;
 
 	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SERVICEGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,servicegroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		result = cmd_submitf(cmd,"%s;%lu;%lu;%d;0;%lu;%s;%s",servicegroup_name,start_time,end_time,fixed,duration,comment_author,comment_data);
 		break;
 
 	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
-		if(affect_host_and_services==FALSE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SERVICEGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,servicegroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
-		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SERVICEGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n[%lu] SCHEDULE_SERVICEGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,servicegroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data,current_time,servicegroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		result = cmd_submitf(cmd,"%s;%lu;%lu;%d;0;%lu;%s;%s",servicegroup_name,start_time,end_time,fixed,duration,comment_author,comment_data);
+		if(affect_host_and_services==TRUE)
+			result |= cmd_submitf(CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME, "%s;%lu;%lu;%d;0;%lu;%s;%s",servicegroup_name,start_time,end_time,fixed,duration,comment_author,comment_data);
 		break;
 
 	default:
 		return ERROR;
 		break;
 	        }
-
-	/* make sure command buffer is terminated */
-	command_buffer[sizeof(command_buffer)-1]='\x0';
-
-	/* write the command to the command file */
-	result=write_command_to_file(command_buffer);
 
 	return result;
         }
@@ -2235,6 +2208,14 @@ int commit_command(int cmd){
 int write_command_to_file(char *cmd){
 	FILE *fp;
 	struct stat statbuf;
+
+	/*
+	 * Commands are not allowed to have newlines in them, as
+	 * that allows malicious users to hand-craft requests that
+	 * bypass the access-restrictions.
+	 */
+	if (!cmd || !*cmd || strchr(cmd, '\n'))
+		return ERROR;
 
 	/* bail out if the external command file doesn't exist */
 	if(stat(command_file,&statbuf)){

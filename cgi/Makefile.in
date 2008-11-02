@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios CGIs
 #
-# Last Modified: 09-04-2007
+# Last Modified: 10-30-2008
 ###############################
 
 
@@ -130,8 +130,8 @@ avail.cgi: avail.c $(CGIDEPS)
 checksanity.cgi: checksanity.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ checksanity.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
 
-cmd.cgi: cmd.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ cmd.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
+cmd.cgi: cmd.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS) extcmd_list.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ cmd.c extcmd_list.o $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
 
 config.cgi: config.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ config.c  $(CGILIBS) $(LIBS)

@@ -3,6 +3,13 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0.5 - ??/??/2008
+------------------
+* Security fix for Cross Site Request Forgery (CSRF) bug reported by Tim Starling. 
+* Sample audio files for CGIs removed from distribution
+
+
+
 3.0.4 - 10/15/2008
 ------------------
 * Fix for properly terminating plugins when parent processes get killed (e.g. using 'killall nagios' with check_timeout plugins running)

@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   10-30-2008
+ * Last Modified:   11-01-2008
  *
  * Description:
  *
@@ -452,7 +452,7 @@ int main(int argc, char **argv){
 		getcwd(config_file,MAX_FILENAME_LENGTH);
 
 		/* append a forward slash */
-		strncat(config_file,"/",MAX_FILENAME_LENGTH-2);
+		strncat(config_file,"/",1);
 		config_file[MAX_FILENAME_LENGTH-1]='\x0';
 
 		/* append the config file to the path */

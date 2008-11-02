@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-23-2008
+ * Last Modified: 11-02-2008
  *
  * License:
  *
@@ -1078,7 +1078,7 @@ char *my_strsep (char **stringp, const char *delim){
 	if(delim[0]=='\0' || delim[1]=='\0'){
 		char ch = delim[0];
 
-		if(ch=='\0')
+		if(ch=='\0' || begin[0]=='\0')
 			end=NULL;
 		else{
 			if(*begin==ch)
@@ -1289,7 +1289,7 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 			}
 
 		/* one backslash found, so we should continue reading the next line */
-		else if(buf[end]=='\\')
+		else if(end>0 && buf[end]=='\\')
 			buf[end]='\x0';
 
 		/* else no continuation marker was found, so break */

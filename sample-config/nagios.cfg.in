@@ -548,7 +548,7 @@ soft_state_dependencies=0
 # These options determine when Nagios will react to detected changes
 # in system time (either forward or backwards).
 
-time_change_threshold=
+#time_change_threshold=900
 
 
 

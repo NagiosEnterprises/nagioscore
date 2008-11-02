@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-19-2008
+ * Last Modified: 11-02-2008
  *
  * License:
  *
@@ -575,7 +575,7 @@ void init_timing_loop(void){
 
 	/* add a log rotation event if necessary */
 	if(log_rotation_method!=LOG_ROTATION_NONE)
-		schedule_new_event(EVENT_LOG_ROTATION,TRUE,get_next_log_rotation_time(),TRUE,0,get_next_log_rotation_time,TRUE,NULL,NULL,0);
+		schedule_new_event(EVENT_LOG_ROTATION,TRUE,get_next_log_rotation_time(),TRUE,0,(void *)get_next_log_rotation_time,TRUE,NULL,NULL,0);
 
 	/* add a retention data save event if needed */
 	if(retain_state_information==TRUE && retention_update_interval>0)

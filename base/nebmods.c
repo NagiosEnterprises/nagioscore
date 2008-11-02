@@ -3,7 +3,7 @@
  * NEBMODS.C - Event Broker Module Functions
  *
  * Copyright (c) 2002-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-23-2008
+ * Last Modified: 11-02-2008
  *
  * License:
  *
@@ -505,7 +505,7 @@ int neb_deregister_module_callbacks(nebmodule *mod){
 		for(temp_callback=neb_callback_list[callback_type];temp_callback!=NULL;temp_callback=next_callback){
 			next_callback=temp_callback->next;
 			if((void *)temp_callback->module_handle==(void *)mod->module_handle)
-				neb_deregister_callback(callback_type,temp_callback->callback_func);
+				neb_deregister_callback(callback_type,(int(*)(int,void*))temp_callback->callback_func);
 		        }
 
 	        }
@@ -535,7 +535,7 @@ int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *))
 		next_callback=temp_callback->next;
 
 		/* we found it */
-		if(temp_callback->callback_func==callback_func)
+		if(temp_callback->callback_func==(void *)callback_func)
 			break;
 
 		last_callback=temp_callback;

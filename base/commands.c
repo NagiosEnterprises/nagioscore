@@ -262,9 +262,9 @@ int process_external_command1(char *cmd){
 	else if(!strcmp(command_id,"ENTER_ACTIVE_MODE") || !strcmp(command_id,"ENABLE_NOTIFICATIONS"))
 		command_type=CMD_ENABLE_NOTIFICATIONS;
 
-	else if(!strcmp(command_id,"SHUTDOWN_PROGRAM"))
+	else if(!strcmp(command_id,"SHUTDOWN_PROGRAM") || !strcmp(command_id,"SHUTDOWN_PROCESS"))
 		command_type=CMD_SHUTDOWN_PROCESS;
-	else if(!strcmp(command_id,"RESTART_PROGRAM"))
+	else if(!strcmp(command_id,"RESTART_PROGRAM") || !strcmp(command_id,"RESTART_PROCESS"))
 		command_type=CMD_RESTART_PROCESS;
 
 	else if(!strcmp(command_id,"SAVE_STATE_INFORMATION"))

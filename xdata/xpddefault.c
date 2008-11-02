@@ -2,8 +2,8 @@
  *
  * XPDDEFAULT.C - Default performance data routines
  *
- * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-08-2007
+ * Copyright (c) 2000-2008 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 11-02-2008
  *
  * License:
  *
@@ -316,11 +316,11 @@ int xpddefault_initialize_performance_data(char *config_file){
 
 	/* periodically process the host perfdata file */
 	if(xpddefault_host_perfdata_file_processing_interval>0 && xpddefault_host_perfdata_file_processing_command!=NULL)
-		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_host_perfdata_file_processing_interval,TRUE,xpddefault_host_perfdata_file_processing_interval,NULL,TRUE,xpddefault_process_host_perfdata_file,NULL,0);
+		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_host_perfdata_file_processing_interval,TRUE,xpddefault_host_perfdata_file_processing_interval,NULL,TRUE,(void *)xpddefault_process_host_perfdata_file,NULL,0);
 
 	/* periodically process the service perfdata file */
 	if(xpddefault_service_perfdata_file_processing_interval>0 && xpddefault_service_perfdata_file_processing_command!=NULL)
-		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_service_perfdata_file_processing_interval,TRUE,xpddefault_service_perfdata_file_processing_interval,NULL,TRUE,xpddefault_process_service_perfdata_file,NULL,0);
+		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_service_perfdata_file_processing_interval,TRUE,xpddefault_service_perfdata_file_processing_interval,NULL,TRUE,(void *)xpddefault_process_service_perfdata_file,NULL,0);
 
 	/* save the host perf data file macro */
 	my_free(macro_x[MACRO_HOSTPERFDATAFILE]);

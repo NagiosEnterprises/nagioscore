@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0.5 - ??/??/2008
+3.0.5 - 11/04/2008
 ------------------
 * Security fix for Cross Site Request Forgery (CSRF) bug reported by Tim Starling. 
 * Sample audio files for CGIs removed from distribution
@@ -11,6 +11,7 @@ Nagios 3.x Change Log
 * Minor fix to RPM spec file
 * Fix for AIX compiler warnings
 * Minor sample config file fix
+* Added documentation on CGI security issues
 
 
 

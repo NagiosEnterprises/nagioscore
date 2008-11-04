@@ -24,7 +24,7 @@
 
 <p>
 <img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="quickstart.html">Quickstart Installation Guides</a>
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="quickstart.html">Quickstart Installation Guides</a>, <a href="security.html">Security Considerations</a>
 </p>
 
 <p>
@@ -88,8 +88,8 @@ Create a new <i>nagcmd</i> group for allowing external commands to be submitted 
 
 <pre>
 /usr/sbin/groupadd nagcmd
-/usr/sbin/usermod -G nagcmd nagios
-/usr/sbin/usermod -G nagcmd wwwrun
+/usr/sbin/usermod -a -G nagcmd nagios
+/usr/sbin/usermod -a -G nagcmd wwwrun
 </pre>
 
 <p>
@@ -106,11 +106,11 @@ cd ~/downloads
 </pre>
 
 <p>
-Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).    At the time of writing, the latest versions of Nagios and the Nagios plugins were 3.0.3 and 1.4.11, respectively.
+Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).    At the time of writing, the latest versions of Nagios and the Nagios plugins were 3.0.5 and 1.4.11, respectively.
 </p>
 
 <pre>
-wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0.4.tar.gz
+wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0.5.tar.gz
 wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.11.tar.gz
 </pre>
 
@@ -124,8 +124,8 @@ Extract the Nagios source code tarball.
 
 <pre>
 cd ~/downloads
-tar xzf nagios-3.0.2.tar.gz
-cd nagios-3.0.2
+tar xzf nagios-3.0.5.tar.gz
+cd nagios-3.0.5
 </pre>
 
 <p>
@@ -202,6 +202,10 @@ Restart Apache to make the new settings take effect.
 <pre>
 service apache2 restart
 </pre>
+
+<p>
+<img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: Consider implementing the ehanced CGI security measures described <a href="cgisecurity.html">here</a> to ensure that your web authentication credentials are not compromised.
+</p>
 
 <p>
 <strong><u>6) Compile and Install the Nagios Plugins</u></strong>

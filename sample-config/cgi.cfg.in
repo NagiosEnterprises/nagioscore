@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 10-07-2007
+# Last Modified: 11-30-2008
 #
 #################################################################
 
@@ -76,6 +76,17 @@ use_pending_states=1
 # use the authentication functions (the default).
 
 use_authentication=1
+
+
+
+
+# x509 CERT AUTHENTICATION
+# When enabled, this option allows you to use x509 cert (SSL)
+# authentication in the CGIs.  This is an advanced option and should
+# not be enabled unless you know what you're doing.
+
+use_ssl_authentication=0
+
 
 
 

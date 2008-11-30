@@ -40,6 +40,7 @@ extern service *service_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 
+extern int	use_ssl_authentication;
 extern int      enable_notifications;
 extern int      execute_service_checks;
 extern int      nagios_process_state;
@@ -961,7 +962,7 @@ void display_host(void){
 
 	printf("<p align='center' mode='wrap'>\n");
 	printf("<b>Your Name:</b><br/>\n");
-	printf("<input name='name' value='%s' /><br/>\n",getenv("REMOTE_USER"));
+	printf("<input name='name' value='%s' /><br/>\n",((use_ssl_authentication)?(getenv("SSL_CLIENT_S_DN_CN")):(getenv("REMOTE_USER"))));
 	printf("<b>Comment:</b><br/>\n");
 	printf("<input name='comment' value='acknowledged by WAP'/>\n");
 
@@ -1177,7 +1178,7 @@ void display_service(void){
 
 	printf("<p align='center' mode='wrap'>\n");
 	printf("<b>Your Name:</b><br/>\n");
-	printf("<input name='name' value='%s' /><br/>\n",getenv("REMOTE_USER"));
+	printf("<input name='name' value='%s' /><br/>\n",((use_ssl_authentication)?(getenv("SSL_CLIENT_S_DN_CN")):(getenv("REMOTE_USER"))));
 	printf("<b>Comment:</b><br/>\n");
 	printf("<input name='comment' value='acknowledged by WAP'/>\n");
 

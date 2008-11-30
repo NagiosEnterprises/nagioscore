@@ -3,7 +3,7 @@
  * CGIAUTH.C - Authorization utilities for Nagios CGIs
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   03-31-2008
+ * Last Modified:   11-30-2008
  *
  * License:
  *
@@ -35,6 +35,7 @@ extern hostgroup       *hostgroup_list;
 extern servicegroup    *servicegroup_list;
 
 extern int             use_authentication;
+extern int             use_ssl_authentication;
 
 
 
@@ -58,7 +59,13 @@ int get_authentication_information(authdata *authinfo){
 	authinfo->authorized_for_configuration_information=FALSE;
 
 	/* grab username from the environment... */
-	temp_ptr=getenv("REMOTE_USER");
+	if(use_ssl_authentication) {
+		/* patch by Pawl Zuzelski - 7/22/08 */
+		temp_ptr=getenv("SSL_CLIENT_S_DN_CN");
+		}
+	else{
+		temp_ptr=getenv("REMOTE_USER");
+		}
 	if(temp_ptr==NULL){
 		authinfo->username="";
 		authinfo->authenticated=FALSE;

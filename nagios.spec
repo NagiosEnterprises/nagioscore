@@ -159,7 +159,7 @@ else
 	# filter apache primary group from secondary groups
 	sgrps=`/usr/bin/id -Gn $wwwusr 2>/dev/null | /bin/sed "s/^$pgrp //;s/ $pgrp //;s/^$pgrp$//;s/ /,/g;"`
 	if [ "z" == "z$sgrps" ] ; then
-		sgrps=%{nsgrp}
+		sgrps=%{cmdgrp}
 	else
 		sgrps=$sgrps,%{cmdgrp}
 	fi

@@ -12,6 +12,7 @@ Nagios 3.x Change Log
 * Disabled adaptive check and eventhandler commands for security reasons
 * Fix for reading output from system commands (event handlers, etc) that have timed out
 * Added wildcard host matching in CGIs
+* Fixes for playing audio alerts in CGIs
 
 
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # REDUNDANCY EVENT HANDLER SCRIPT
-# Written By: Ethan Galstad (nagios@nagios.org)
+# Written By: Ethan Galstad (egalstad@nagios.org)
 # Last Modified: 05-30-2006
 #
 # This is an example script for implementing redundancy.

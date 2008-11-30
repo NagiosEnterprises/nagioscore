@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # SUBMIT_CHECK_RESULT_VIA_NSCA
-# Written by Ethan Galstad (nagios@nagios.org)
+# Written by Ethan Galstad (egalstad@nagios.org)
 # Last Modified: 10-15-2008
 #
 # This script will send passive check results to the

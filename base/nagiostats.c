@@ -5,7 +5,7 @@
  * Program: Nagiostats
  * Version: 3.0.5
  * License: GPL
- * Copyright (c) 2003-2008 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2003-2008 Ethan Galstad (egalstad@nagios.org)
  *
  * Last Modified:   11-04-2008
  *

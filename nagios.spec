@@ -367,11 +367,11 @@ rm -rf $RPM_BUILD_ROOT
 - p1.pl script included in package
 - web server restarted because Red Hat 7.3 init does not do 'reload'
 
-* Fri Jun 14 2002 Ethan Galstad <nagios@nagios.org) (1.0b4)
+* Fri Jun 14 2002 Ethan Galstad <egalstad@nagios.org) (1.0b4)
 - Modified requirements to work when installed using KickStart (Jeff Frost)
 - Changed method used for checking for user/group existence (Jeff Frost)
 
-* Tue May 15 2002 Ethan Galstad <nagios@nagios.org) (1.0b1)
+* Tue May 15 2002 Ethan Galstad <egalstad@nagios.org) (1.0b1)
 - Updated to work with new sample template-based config files (Darren Gamble)
 
 * Sun Feb 17 2002 Ole Gjerde <gjerde@ignus.com> (1.0a4)

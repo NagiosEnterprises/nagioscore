@@ -2,7 +2,7 @@
  *
  * CONVERTCFG.C - Config File Convertor
  *
- * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2001-2005 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 08-12-2005
  *
  * License:
@@ -48,7 +48,7 @@ int main(int argc, char **argv){
 
 	if(argc!=3){
 		printf("Nagios Config File Converter\n");
-		printf("Written by Ethan Galstad (nagios@nagios.org)\n");
+		printf("Written by Ethan Galstad (egalstad@nagios.org)\n");
 		printf("Last Modified: 08-12-2005\n");
 		printf("\n");
 		printf("Usage: %s <config file> <object type>\n",argv[0]);

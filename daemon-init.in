@@ -12,17 +12,17 @@
 # 1999-07-09 Karl DeBisschop <kdebisschop@infoplease.com>
 #  - setup for autoconf
 #  - add reload function
-# 1999-08-06 Ethan Galstad <nagios@nagios.org>
+# 1999-08-06 Ethan Galstad <egalstad@nagios.org>
 #  - Added configuration info for use with RedHat's chkconfig tool
 #    per Fran Boon's suggestion
 # 1999-08-13 Jim Popovitch <jimpop@rocketship.com>
 #  - added variable for nagios/var directory
 #  - cd into nagios/var directory before creating tmp files on startup
-# 1999-08-16 Ethan Galstad <nagios@nagios.org>
+# 1999-08-16 Ethan Galstad <egalstad@nagios.org>
 #  - Added test for rc.d directory as suggested by Karl DeBisschop
 # 2000-07-23 Karl DeBisschop <kdebisschop@users.sourceforge.net>
 #  - Clean out redhat macros and other dependencies
-# 2003-01-11 Ethan Galstad <nagios@nagios.org>
+# 2003-01-11 Ethan Galstad <egalstad@nagios.org>
 #  - Updated su syntax (Gary Miller)
 #
 # Description: Starts and stops the Nagios monitor

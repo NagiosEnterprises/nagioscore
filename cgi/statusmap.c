@@ -2,7 +2,7 @@
  *
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
- * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 05-19-2008
  *
  * Description:

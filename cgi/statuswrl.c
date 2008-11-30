@@ -2,7 +2,7 @@
  *
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2007 Ethan Galstad (egalstad@nagios.org)
  * Last Modified:   07-16-2007
  *
  * Description:
@@ -792,7 +792,7 @@ void write_global_vrml_data(void){
 	printf("WorldInfo{\n");
 	printf("title \"Nagios 3-D Network Status View\"\n");
 	printf("info [\"Copyright (c) 1999-2002 Ethan Galstad\"\n");
-        printf("\"nagios@nagios.org\"]\n");
+        printf("\"egalstad@nagios.org\"]\n");
 	printf("}\n");
 
 	/* background color */

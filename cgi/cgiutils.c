@@ -2,7 +2,7 @@
  *
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
- * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 11-02-2008
  *
  * License:

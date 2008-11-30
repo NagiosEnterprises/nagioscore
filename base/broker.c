@@ -2,7 +2,7 @@
  *
  * BROKER.C - Event broker routines for Nagios
  *
- * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2002-2006 Ethan Galstad (egalstad@nagios.org)
  * Last Modified:   10-18-2007
  *
  * License:

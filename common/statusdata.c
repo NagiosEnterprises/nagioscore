@@ -2,7 +2,7 @@
  *
  * STATUSDATA.C - External status data for Nagios CGIs
  *
- * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2000-2006 Ethan Galstad (egalstad@nagios.org)
  * Last Modified:   10-19-2006
  *
  * License:

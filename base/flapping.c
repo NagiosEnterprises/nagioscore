@@ -2,7 +2,7 @@
  *
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
- * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2001-2008 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 02-20-2008
  *
  * License:

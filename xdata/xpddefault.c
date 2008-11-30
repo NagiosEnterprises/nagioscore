@@ -2,7 +2,7 @@
  *
  * XPDDEFAULT.C - Default performance data routines
  *
- * Copyright (c) 2000-2008 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2000-2008 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 11-02-2008
  *
  * License:

@@ -2,7 +2,7 @@
  *
  * MACROS.C - Common macro functions for Nagios
  *
- * Copyright (c) 1999-2009 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 06-23-2008
  *
  * License:

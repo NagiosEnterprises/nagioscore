@@ -2,7 +2,7 @@
  *
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
- * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 04-13-2008
  *
  * This CGI program will display various configuration information.

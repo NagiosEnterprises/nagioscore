@@ -2,7 +2,7 @@
  *
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
- * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2001-2007 Ethan Galstad (egalstad@nagios.org)
  * Last Modified:   09-04-2007
  *
  * License:

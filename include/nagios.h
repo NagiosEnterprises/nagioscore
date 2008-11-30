@@ -1,7 +1,7 @@
 /************************************************************************
  *
  * Nagios Main Header File
- * Written By: Ethan Galstad (nagios@nagios.org)
+ * Written By: Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 04-13-2008
  *
  * This program is free software; you can redistribute it and/or modify

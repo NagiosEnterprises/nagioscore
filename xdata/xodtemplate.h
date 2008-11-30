@@ -2,7 +2,7 @@
  *
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
- * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2001-2008 Ethan Galstad (egalstad@nagios.org)
  * Last Modified:   02-17-2008
  *
  * License:

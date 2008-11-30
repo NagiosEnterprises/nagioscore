@@ -2,7 +2,7 @@
  *
  * XCDDEFAULT.H - Header file for default comment data routines
  *
- * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2000-2006 Ethan Galstad (egalstad@nagios.org)
  * Last Modified:   12-26-2006
  *
  * License:

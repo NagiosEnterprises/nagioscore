@@ -2,7 +2,7 @@
  *
  * COMMENTS.H - Header file for comment functions
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2006 Ethan Galstad (egalstad@nagios.org)
  * Last Modified:   12-26-2006
  *
  * License:

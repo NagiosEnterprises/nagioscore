@@ -2,7 +2,7 @@
  *
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
- * Copyright (c) 2001-2008 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2001-2008 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 06-23-2008
  *
  * Description:

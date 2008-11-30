@@ -2,7 +2,7 @@
  *
  * PERFDATA.C - Performance data routines for Nagios
  *
- * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2000-2004 Ethan Galstad (egalstad@nagios.org)
  * Last Modified:   11-29-2004
  *
  * License:

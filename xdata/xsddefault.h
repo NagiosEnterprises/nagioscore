@@ -2,7 +2,7 @@
  *
  * XSDDEFAULT.H - Header file for default status data routines
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2006 Ethan Galstad (egalstad@nagios.org)
  * Last Modified:   03-01-2006
  *
  * License:

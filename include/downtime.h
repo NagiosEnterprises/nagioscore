@@ -2,7 +2,7 @@
  *
  * DOWNTIME.H - Header file for scheduled downtime functions
  *
- * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2001-2005 Ethan Galstad (egalstad@nagios.org)
  * Last Modified:   11-25-2005
  *
  * License:

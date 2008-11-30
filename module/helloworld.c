@@ -63,7 +63,7 @@ int nebmodule_init(int flags, char *args, nebmodule *handle){
 	neb_set_module_info(helloworld_module_handle,NEBMODULE_MODINFO_DESC,"A simple example to get you started with Nagios Event Broker (NEB) modules.");
 
 	/* log module info to the Nagios log file */
-	write_to_all_logs("helloworld: Copyright (c) 2003-2007 Ethan Galstad (nagios@nagios.org)",NSLOG_INFO_MESSAGE);
+	write_to_all_logs("helloworld: Copyright (c) 2003-2007 Ethan Galstad (egalstad@nagios.org)",NSLOG_INFO_MESSAGE);
 	
 	/* log a message to the Nagios log file */
 	snprintf(temp_buffer,sizeof(temp_buffer)-1,"helloworld: Hello world!\n");

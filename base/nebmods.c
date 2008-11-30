@@ -2,7 +2,7 @@
  *
  * NEBMODS.C - Event Broker Module Functions
  *
- * Copyright (c) 2002-2008 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2002-2008 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 11-02-2008
  *
  * License:

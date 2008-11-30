@@ -2,7 +2,7 @@
  *
  * LOGGING.C - Log file functions for use with Nagios
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2007 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 10-28-2007
  *
  * License:

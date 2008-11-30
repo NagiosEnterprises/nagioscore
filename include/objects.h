@@ -2,7 +2,7 @@
  *
  * OBJECTS.H - Header file for object addition/search functions
  *
- * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2007 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 11-10-2007
  *
  * License:

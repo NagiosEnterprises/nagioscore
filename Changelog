@@ -13,6 +13,7 @@ Nagios 3.x Change Log
 * Fix for reading output from system commands (event handlers, etc) that have timed out
 * Added wildcard host matching in CGIs
 * Fixes for playing audio alerts in CGIs
+* Fix for incorrect host status links in status CGI when viewing hostgroup summary 
 
 
 

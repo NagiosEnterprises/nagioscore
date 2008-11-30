@@ -3886,7 +3886,7 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup){
 
 	if(hosts_up>0){
 		printf("<TR>");
-		printf("<TD CLASS='miniStatusUP'><A HREF='%s?hostgroup=%s&style=detail&&hoststatustypes=%d&hostprops=%lu'>%d UP</A></TD>",STATUS_CGI,url_encode(temp_hostgroup->group_name),HOST_UP,host_properties,hosts_up);
+		printf("<TD CLASS='miniStatusUP'><A HREF='%s?hostgroup=%s&style=hostdetail&&hoststatustypes=%d&hostprops=%lu'>%d UP</A></TD>",STATUS_CGI,url_encode(temp_hostgroup->group_name),HOST_UP,host_properties,hosts_up);
 		printf("</TR>\n");
 		}
 
@@ -3895,7 +3895,7 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup){
 		printf("<TD CLASS='miniStatusDOWN'><TABLE BORDER='0'>\n");
 		printf("<TR>\n");
 
-		printf("<TD CLASS='miniStatusDOWN'><A HREF='%s?hostgroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d DOWN</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),HOST_DOWN,host_properties,hosts_down);
+		printf("<TD CLASS='miniStatusDOWN'><A HREF='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%lu'>%d DOWN</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),HOST_DOWN,host_properties,hosts_down);
 
 		printf("<TD><TABLE BORDER='0'>\n");
 
@@ -3923,7 +3923,7 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup){
 		printf("<TD CLASS='miniStatusUNREACHABLE'><TABLE BORDER='0'>\n");
 		printf("<TR>\n");
 
-		printf("<TD CLASS='miniStatusUNREACHABLE'><A HREF='%s?hostgroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d UNREACHABLE</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),HOST_UNREACHABLE,host_properties,hosts_unreachable);
+		printf("<TD CLASS='miniStatusUNREACHABLE'><A HREF='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%lu'>%d UNREACHABLE</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),HOST_UNREACHABLE,host_properties,hosts_unreachable);
 
 		printf("<TD><TABLE BORDER='0'>\n");
 
@@ -3947,7 +3947,7 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup){
 		}
 
 	if(hosts_pending>0)
-		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?hostgroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),HOST_PENDING,host_properties,hosts_pending);
+		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),HOST_PENDING,host_properties,hosts_pending);
 
 	printf("</TABLE>\n");
 

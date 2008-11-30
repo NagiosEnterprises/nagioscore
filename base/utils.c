@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-02-2008
+ * Last Modified: 11-30-2008
  *
  * License:
  *
@@ -575,49 +575,12 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 		if(result<-1 || result>3)
 			result=STATE_UNKNOWN;
 
-		/* initialize output */
-		strcpy(buffer,"");
-
 		/* initialize dynamic buffer */
 		dbuf_init(&output_dbuf,dbuf_chunk);
 
-		/* try and read the results from the command output (retry if we encountered a signal) */
-		do{
-			bytes_read=read(fd[0],buffer,sizeof(buffer)-1);
-
-			/* append data we just read to dynamic buffer */
-			if(bytes_read>0){
-				buffer[bytes_read]='\x0';
-				dbuf_strcat(&output_dbuf,buffer);
-			        }
-
-			/* handle errors */
-			if(bytes_read==-1){
-				/* we encountered a recoverable error, so try again */
-				if(errno==EINTR || errno==EAGAIN)
-					continue;
-				else
-					break;
-			        }
-
-			/* we're done */
-			if(bytes_read==0)
-				break;
-
-  		        }while(1);
-
-		/* cap output length - this isn't necessary, but it keeps runaway plugin output from causing problems */
-		if(max_output_length>0  && output_dbuf.used_size>max_output_length)
-			output_dbuf.buf[max_output_length]='\x0';
-
-		if(output!=NULL && output_dbuf.buf)
-			*output=(char *)strdup(output_dbuf.buf);
-
-		/* free memory */
-		dbuf_free(&output_dbuf);
-
-		/* if there was a critical return code and no output AND the command time exceeded the timeout thresholds, assume a timeout */
-		if(result==STATE_CRITICAL && bytes_read==-1 && (end_time.tv_sec-start_time.tv_sec)>=timeout){
+		/* Opsera patch to check timeout before attempting to read output via pipe. Originally by Sven Nierlein */
+		/* if there was a critical return code AND the command time exceeded the timeout thresholds, assume a timeout */
+		if(result==STATE_CRITICAL && (end_time.tv_sec-start_time.tv_sec)>=timeout){
 
 			/* set the early timeout flag */
 			*early_timeout=TRUE;
@@ -628,12 +591,55 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 			kill((pid_t)(-pid),SIGKILL);
 		        }
 
-		log_debug_info(DEBUGL_COMMANDS,1,"Execution time=%.3f sec\n, early timeout=%d, result=%d",*exectime,*early_timeout,result);
+		/* read output if timeout has not occurred */
+		else{
+
+			/* initialize output */
+			strcpy(buffer,"");
+
+			/* try and read the results from the command output (retry if we encountered a signal) */
+			do{
+				bytes_read=read(fd[0],buffer,sizeof(buffer)-1);
+
+				/* append data we just read to dynamic buffer */
+				if(bytes_read>0){
+					buffer[bytes_read]='\x0';
+					dbuf_strcat(&output_dbuf,buffer);
+					}
+
+				/* handle errors */
+				if(bytes_read==-1){
+					/* we encountered a recoverable error, so try again */
+					if(errno==EINTR || errno==EAGAIN)
+						continue;
+					else
+						break;
+					}
+
+				/* we're done */
+				if(bytes_read==0)
+					break;
+
+				}while(1);
+
+			/* cap output length - this isn't necessary, but it keeps runaway plugin output from causing problems */
+			if(max_output_length>0  && output_dbuf.used_size>max_output_length)
+				output_dbuf.buf[max_output_length]='\x0';
+
+			if(output!=NULL && output_dbuf.buf)
+				*output=(char *)strdup(output_dbuf.buf);
+
+			}
+
+		log_debug_info(DEBUGL_COMMANDS,1,"Execution time=%.3f sec, early timeout=%d, result=%d, output=%s\n",*exectime,*early_timeout,result,(output_dbuf.buf==NULL)?"(null)":output_dbuf.buf);
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_system_command(NEBTYPE_SYSTEM_COMMAND_END,NEBFLAG_NONE,NEBATTR_NONE,start_time,end_time,*exectime,timeout,*early_timeout,result,cmd,(output==NULL)?NULL:*output,NULL);
+		broker_system_command(NEBTYPE_SYSTEM_COMMAND_END,NEBFLAG_NONE,NEBATTR_NONE,start_time,end_time,*exectime,timeout,*early_timeout,result,cmd,(output_dbuf.buf==NULL)?NULL:output_dbuf.buf,NULL);
 #endif
+
+		/* free memory */
+		dbuf_free(&output_dbuf);
 
 		/* close the pipe for reading */
 		close(fd[0]);

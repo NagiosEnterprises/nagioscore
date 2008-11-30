@@ -9,6 +9,7 @@ Nagios 3.x Change Log
 * Fix for Apache group membership in RPM spec file
 * Fix for improper notification propagation command processing
 * Better out-of-disk-space error handling when writing retention and status files
+* Disabled adaptive check and eventhandler commands for security reasons
 
 
 

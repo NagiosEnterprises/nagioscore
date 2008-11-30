@@ -2893,6 +2893,19 @@ int cmd_change_object_char_var(int cmd,char *args){
 	unsigned long hattr=MODATTR_NONE;
 	unsigned long sattr=MODATTR_NONE;
 
+	
+	/* SECURITY PATCH - disable these for the time being */
+	switch(cmd){
+	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
+		return ERROR;
+		}
+
+
 	/* get the command arguments */
 	switch(cmd){
 

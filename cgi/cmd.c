@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2008
+ * Last Modified: 11-30-2008
  *
  * License:
  * 
@@ -1885,6 +1885,7 @@ void commit_command_data(int cmd){
 	return;
         }
 
+__attribute__((format(printf, 2, 3)))
 static int cmd_submitf(int id, const char *fmt, ...)
 {
 	char cmd[MAX_EXTERNAL_COMMAND_LENGTH];
@@ -2015,7 +2016,7 @@ int commit_command(int cmd){
 		break;
 
 	case CMD_ADD_SVC_COMMENT:
-		result = cmd_submitf(cmd,"%s;%s;%d;%s;%s",current_time,host_name,service_desc,persistent_comment,comment_author,comment_data);
+		result = cmd_submitf(cmd,"%s;%s;%d;%s;%s",host_name,service_desc,persistent_comment,comment_author,comment_data);
 		break;
 
 	case CMD_DEL_HOST_COMMENT:
@@ -2249,7 +2250,7 @@ int write_command_to_file(char *cmd){
 	        }
 
 	/* write the command to file */
-	fputs(cmd,fp);
+	fprintf(fp, "%s\n", cmd);
 
 	/* flush buffer */
 	fflush(fp);

@@ -3,6 +3,12 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0.6 - ??/??/2008
+------------------
+* Fix for CGI submission of external commands (writing newlines and submitting service comments)
+
+
+
 3.0.5 - 11/04/2008
 ------------------
 * Security fix for Cross Site Request Forgery (CSRF) bug reported by Tim Starling. 

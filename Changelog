@@ -7,7 +7,7 @@ Nagios 3.x Change Log
 ------------------
 * Fix for CGI submission of external commands (writing newlines and submitting service comments)
 * Fix for Apache group membership in RPM spec file
-
+* Fix for improper notification propagation command processing
 
 
 3.0.5 - 11/04/2008

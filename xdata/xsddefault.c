@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-28-2008
+ * Last Modified: 11-30-2008
  *
  * License:
  *
@@ -332,6 +332,7 @@ int xsddefault_save_status_data(void){
 	int used_external_command_buffer_slots=0;
 	int high_external_command_buffer_slots=0;
 	void *ptr=NULL;
+	int result=OK;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"save_status_data()\n");
 
@@ -674,26 +675,37 @@ int xsddefault_save_status_data(void){
 	fchmod(fd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 
 	/* close the temp file */
-	fclose(fp);
+	result=fclose(fp);
 
-	/* move the temp file to the status log (overwrite the old status log) */
-	if(my_rename(temp_file,xsddefault_status_log)){
+	/* save/close was successful */
+	if(result==0){
 
-		/* log an error */
+		result=OK;
+
+		/* move the temp file to the status log (overwrite the old status log) */
+		if(my_rename(temp_file,xsddefault_status_log)){
+			unlink(temp_file);
 #ifdef NSCORE
-		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to update status data file '%s'!\n",xsddefault_status_log);
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to update status data file '%s': %s",xsddefault_status_log,strerror(errno));
 #endif
+			result=ERROR;
+			}
+		}
 
-		/* free memory */
-		my_free(temp_file);
+	/* a problem occurred saving the file */
+	else{
 
-		return ERROR;
+		result=ERROR;
+
+		/* remove temp file and log an error */
+		unlink(temp_file);
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to save status file: %s",strerror(errno));
 	        }
 
 	/* free memory */
 	my_free(temp_file);
 
-	return OK;
+	return result;
         }
 
 #endif

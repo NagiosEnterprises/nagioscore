@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-23-2008
+ * Last Modified: 11-30-2008
  *
  * License:
  *
@@ -558,11 +558,30 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"}\n");
 	        }
 
-	fclose(fp);
+	result=fclose(fp);
 
-	/* move the temp file to the retention file (overwrite the old retention file) */
-	if(my_rename(temp_file,xrddefault_retention_file))
+	/* save/close was successful */
+	if(result==0){
+
+		result=OK;
+
+		/* move the temp file to the retention file (overwrite the old retention file) */
+		if(my_rename(temp_file,xrddefault_retention_file)){
+			unlink(temp_file);
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to update retention file '%s': %s",xrddefault_retention_file,strerror(errno));
+			result=ERROR;
+			}
+		}
+
+	/* a problem occurred saving the file */
+	else{
+		
 		result=ERROR;
+
+		/* remove temp file and log an error */
+		unlink(temp_file);
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to save retention file: %s",strerror(errno));
+		}
 
 	/* free memory */
 	my_free(temp_file);

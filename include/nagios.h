@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 04-13-2008
+ * Last Modified: 12-04-2008
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -125,6 +125,12 @@ extern "C" {
 
 #define DEFAULT_ADDITIONAL_FRESHNESS_LATENCY			15	/* seconds to be added to freshness thresholds when automatically calculated by Nagios */
 
+#define DEFAULT_CHECK_FOR_UPDATES                               1       /* should we check for new Nagios releases? */
+#define MINIMUM_UPDATE_CHECK_INTERVAL                           60*60*22 /* 22 hours minimum between checks - please be kind to our servers! */
+#define BASE_UPDATE_CHECK_INTERVAL                              60*60*22 /* 22 hours base interval */
+#define UPDATE_CHECK_INTERVAL_WOBBLE                            60*60*4  /* 4 hour wobble on top of base interval */
+#define BASE_UPDATE_CHECK_RETRY_INTERVAL                        60*60*1  /* 1 hour base retry interval */
+#define UPDATE_CHECK_RETRY_INTERVAL_WOBBLE                      60*60*3  /* 3 hour wobble on top of base retry interval */
 
 
 /******************* LOGGING TYPES ********************/
@@ -294,6 +300,7 @@ extern "C" {
 #define EVENT_HFRESHNESS_CHECK          13      /* checks host result "freshness" */
 #define EVENT_RESCHEDULE_CHECKS		14      /* adjust scheduling of host and service checks */
 #define EVENT_EXPIRE_COMMENT            15      /* removes expired comments */
+#define EVENT_CHECK_PROGRAM_UPDATE      16      /* checks for new version of Nagios */
 #define EVENT_SLEEP                     98      /* asynchronous sleep event that occurs when event queues are empty */
 #define EVENT_USER_FUNCTION             99      /* USER-defined function (modules) */
 
@@ -659,6 +666,7 @@ char *my_strsep(char **,const char *);		     	/* Solaris doesn't have strsep(), 
 #ifdef REMOVED_10182007
 int my_free(void **);                                   /* my wrapper for free() */
 #endif
+char *get_next_string_from_buf(char *buf, int *start_index, int bufsize);
 int compare_strings(char *,char *);                     /* compares two strings for equality */
 char *escape_newlines(char *);
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
@@ -680,6 +688,8 @@ int dbuf_init(dbuf *,int);
 int dbuf_free(dbuf *);
 int dbuf_strcat(dbuf *,char *);
 int set_environment_var(char *,char *,int);             /* sets/clears and environment variable */
+int check_for_nagios_updates(int,int);                  /* checks to see if new version of Nagios are available */
+int query_update_api(void);                             /* checks to see if new version of Nagios are available */
 
 
 /**** External Command Functions ****/

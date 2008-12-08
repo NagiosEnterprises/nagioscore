@@ -130,6 +130,12 @@ int             auto_rescheduling_window=DEFAULT_AUTO_RESCHEDULING_WINDOW;
 
 int             additional_freshness_latency=DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
 
+int             check_for_updates=DEFAULT_CHECK_FOR_UPDATES;
+time_t          last_update_check=0L;
+int             update_available=FALSE;
+char            *last_program_version=NULL;
+char            *new_program_version=NULL;
+
 time_t          last_command_check=0L;
 time_t          last_command_status_update=0L;
 time_t          last_log_rotation=0L;
@@ -773,6 +779,9 @@ int main(int argc, char **argv){
 			
 			/* initialize check statistics */
 			init_check_stats();
+
+			/* check for updates */
+			check_for_nagios_updates(FALSE,TRUE);
 
 			/* update all status data (with retained information) */
 			update_all_status_data();

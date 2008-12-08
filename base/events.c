@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 11-02-2008
+ * Last Modified: 12-04-2008
  *
  * License:
  *
@@ -1371,6 +1371,14 @@ int handle_timed_event(timed_event *event){
 
 		/* check for expired comment */
 		check_for_expired_comment((unsigned long)event->event_data);
+		break;
+
+	case EVENT_CHECK_PROGRAM_UPDATE:
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Check For Program Update\n");
+
+		/* check for new versions of Nagios */
+		check_for_nagios_updates(FALSE,TRUE);
 		break;
 
 	case EVENT_USER_FUNCTION:

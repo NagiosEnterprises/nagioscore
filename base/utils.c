@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 11-30-2008
+ * Last Modified: 12-04-2008
  *
  * License:
  *
@@ -29,6 +29,7 @@
 #include "../include/comments.h"
 #include "../include/macros.h"
 #include "../include/nagios.h"
+#include "../include/netutils.h"
 #include "../include/broker.h"
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
@@ -100,6 +101,8 @@ extern int      sig_id;
 extern int      daemon_mode;
 extern int      daemon_dumps_core;
 
+extern int      nagios_pid;
+
 extern int	use_syslog;
 extern int      log_notifications;
 extern int      log_service_retries;
@@ -144,6 +147,13 @@ extern int      check_host_freshness;
 extern int      auto_reschedule_checks;
 
 extern int      additional_freshness_latency;
+
+extern int      check_for_updates;
+extern time_t   last_update_check;
+extern char     *last_program_version;
+extern int      update_available;
+extern char     *last_program_version;
+extern char     *new_program_version;
 
 extern int      use_aggressive_host_checking;
 extern unsigned long cached_host_check_horizon;
@@ -2964,6 +2974,35 @@ void strip(char *buffer){
 
 
 
+/* gets the next string from a buffer in memory - strings are terminated by newlines, which are removed */
+char *get_next_string_from_buf(char *buf, int *start_index, int bufsize){
+	char *sptr=NULL;
+	char *nl="\n";
+	int x;
+
+	if(buf==NULL || start_index==NULL)
+		return NULL;
+	if(bufsize<0)
+		return NULL;
+	if(*start_index >= (bufsize-1))
+		return NULL;
+
+	sptr=buf+*start_index;
+
+	/* end of buffer */
+	if(sptr[0]=='\x0')
+		return NULL;
+
+	x=strcspn(sptr,nl);
+	sptr[x]='\x0';
+
+	*start_index+=x+1;
+	
+	return sptr;
+	}
+
+
+
 /* determines whether or not an object name (host, service, etc) contains illegal characters */
 int contains_illegal_object_chars(char *name){
 	register int x=0;
@@ -4256,6 +4295,225 @@ int generate_check_stats(void){
 	}
 
 
+
+
+/******************************************************************/
+/************************ UPDATE FUNCTIONS ************************/
+/******************************************************************/
+
+/* check for new releases of Nagios */
+int check_for_nagios_updates(int force, int reschedule){
+	time_t current_time;
+	int result=OK;
+	int api_result=OK;
+	int do_check=TRUE;
+	time_t next_check=0L;
+	unsigned int rand_seed=0;
+
+	time(&current_time);
+
+	/*
+	printf("NOW: %s",ctime(&current_time));
+	printf("LAST CHECK: %s",ctime(&last_update_check));
+	*/
+
+	/* seed the random generator */
+	rand_seed=(unsigned int)(current_time+nagios_pid);
+	srand(rand_seed);
+
+	/* update chekcs are disabled */
+	if(check_for_updates==FALSE)
+		do_check=FALSE;
+	/* we checked for updates recently, so don't do it again */
+	if((current_time-last_update_check)<MINIMUM_UPDATE_CHECK_INTERVAL)
+		do_check=FALSE;
+	/* the check is being forced */
+	if(force==TRUE)
+		do_check=TRUE;
+
+	/* do a check */
+	if(do_check==TRUE){
+
+		/*printf("RUNNING QUERY...\n");*/
+
+		/* query api */
+		api_result=query_update_api();
+		}
+
+	/* should we reschedule the update check? */
+	if(reschedule==TRUE){
+
+		/*printf("RESCHEDULING...\n");*/
+
+		/* we didn't do an update, so calculate next possible update time */
+		if(do_check==FALSE){
+			next_check=last_update_check+BASE_UPDATE_CHECK_INTERVAL;
+			next_check+=(unsigned long)((rand()*UPDATE_CHECK_INTERVAL_WOBBLE) / RAND_MAX);
+			}
+
+		/* we tried to check for an update */
+		else{
+
+			/* api query was okay */
+			if(api_result==OK){
+				next_check=current_time+BASE_UPDATE_CHECK_INTERVAL;
+				next_check+=(unsigned long)((rand()*UPDATE_CHECK_INTERVAL_WOBBLE) / RAND_MAX);
+				}
+			
+			/* query resulted in an error - retry at a shorter interval */
+			else{
+				next_check=current_time+BASE_UPDATE_CHECK_RETRY_INTERVAL;
+				next_check+=(unsigned long)((rand()*UPDATE_CHECK_RETRY_INTERVAL_WOBBLE) / RAND_MAX);
+				}
+			}
+
+		/* make sure next check isn't in the past - if it is, schedule a check in 1 minutes */
+		if(next_check<current_time)
+			next_check=current_time+60;
+
+		/*printf("NEXT CHECK: %s",ctime(&next_check));*/
+
+		/* schedule the next update event */
+		schedule_new_event(EVENT_CHECK_PROGRAM_UPDATE,TRUE,next_check,FALSE,BASE_UPDATE_CHECK_INTERVAL,NULL,TRUE,NULL,NULL,0);
+		}
+
+	return result;
+	}
+
+
+
+/* checks for updates at api.nagios.org */
+int query_update_api(void){
+	char *api_server="api.nagios.org";
+	char *api_path="/versioncheck/";
+	char *api_query=NULL;
+	char *api_query_opts=NULL;
+	char *buf=NULL;
+	char recv_buf[1024];
+	int report_install=FALSE;
+	int result=OK;
+	char *ptr=NULL;
+	int current_line=0;
+	int buf_index=0;
+	int in_header=TRUE;
+	char *var=NULL;
+	char *val=NULL;
+	int sd=0;
+	int send_len=0;
+	int recv_len=0;
+	int update_check_succeeded=FALSE;
+
+	/* report a new install, upgrade, or rollback */
+	/* Nagios monitors the world and we monitor Nagios taking over the world. :-) */
+	if(last_update_check==(time_t)0L)
+		report_install=TRUE;
+	if(last_program_version==NULL || strcmp(PROGRAM_VERSION,last_program_version))
+		report_install=TRUE;
+	if(report_install==TRUE){
+		asprintf(&api_query_opts,"&firstcheck=1");
+		if(last_program_version!=NULL)
+			asprintf(&api_query_opts,"%s&last_version=%s",api_query_opts,last_program_version);
+		}
+
+	/* generate the query */
+	asprintf(&api_query,"v=1&product=nagios&tinycheck=1&stableonly=1&version=%s%s",PROGRAM_VERSION,(api_query_opts==NULL)?"":api_query_opts);
+
+	/* generate the HTTP request */
+	asprintf(&buf,"POST %s HTTP/1.0\r\n",api_path);
+	asprintf(&buf,"%sUser-Agent: Nagios/%s\r\n",buf,PROGRAM_VERSION);
+	asprintf(&buf,"%sConnection: close\r\n",buf);
+	asprintf(&buf,"%sHost: %s\r\n",buf,api_server);
+	asprintf(&buf,"%sContent-Type: application/x-www-form-urlencoded\r\n",buf);
+	asprintf(&buf,"%sContent-Length: %d\r\n",buf,strlen(api_query));
+	asprintf(&buf,"%s\r\n",buf);
+	asprintf(&buf,"%s%s\r\n",buf,api_query);
+
+	/*
+	printf("SENDING...\n");
+	printf("==========\n");
+	printf("%s",buf);
+	printf("\n");
+	*/
+
+	result=my_tcp_connect(api_server,80,&sd,2);
+	/*printf("CONN RESULT: %d, SD: %d\n",result,sd);*/
+	if(sd>0){
+
+		/* send request */
+		send_len=strlen(buf);
+		result=my_sendall(sd,buf,&send_len,2);
+		/*printf("SEND RESULT: %d, SENT: %d\n",result,send_len);*/
+
+		/* get response */
+		recv_len=sizeof(recv_buf);
+		result=my_recvall(sd,recv_buf,&recv_len,2);
+		recv_buf[sizeof(recv_buf)]='\x0';
+		/*printf("RECV RESULT: %d, RECEIVED: %d\n",result,recv_len);*/
+
+		/*
+		printf("\n");
+		printf("RECEIVED...\n");
+		printf("===========\n");
+		printf("%s",recv_buf);
+		printf("\n");
+		*/
+		
+		/* close connection */
+		close(sd);
+
+		/* parse the result */
+		in_header=TRUE;
+		while((ptr=get_next_string_from_buf(recv_buf,&buf_index,sizeof(recv_buf)))){
+
+			strip(ptr);
+			current_line++;
+
+			if(!strcmp(ptr,"")){
+				in_header=FALSE;
+				continue;
+				}
+			if(in_header==TRUE)
+				continue;
+
+			var=strtok(ptr,"=");
+			val=strtok(NULL,"\n");
+			/*printf("VAR: %s, VAL: %s\n",var,val);*/
+
+			if(!strcmp(var,"UPDATE_AVAILABLE")){
+				update_available=atoi(val);
+				/* we were successful */
+				update_check_succeeded=TRUE;
+				}
+			else if(!strcmp(var,"UPDATE_VERSION")){
+				if(new_program_version)
+					my_free(new_program_version);
+				new_program_version=strdup(val);
+				}
+			else if(!strcmp(var,"UPDATE_RELEASEDATE")){
+				}
+			}
+		}
+
+	/* cleanup */
+	my_free(buf);
+	my_free(api_query);
+	my_free(api_query_opts);
+
+	/* we were successful! */
+	if(update_check_succeeded==TRUE){
+
+		time(&last_update_check);
+		if(last_program_version)
+			free(last_program_version);
+		last_program_version=(char *)strdup(PROGRAM_VERSION);
+		}
+
+	return OK;
+	}
+
+
+
+
 /******************************************************************/
 /************************* MISC FUNCTIONS *************************/
 /******************************************************************/
@@ -4370,6 +4628,10 @@ void free_memory(void){
 	/* free nagios user and group */
 	my_free(nagios_user);
 	my_free(nagios_group);
+
+	/* free version strings */
+	my_free(last_program_version);
+	my_free(new_program_version);
 
 	/* free file/path variables */
 	my_free(log_file);

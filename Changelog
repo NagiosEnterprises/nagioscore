@@ -3,6 +3,12 @@ Nagios 3.x Change Log
 #####################
 
 
+3.1.0 - ??/??/2008
+------------------
+* Added automatic update check functionality - runs once a day to check for new Nagios releases
+
+
+
 3.0.6 - 12/01/2008
 ------------------
 * Fix for CGI submission of external commands (writing newlines and submitting service comments)

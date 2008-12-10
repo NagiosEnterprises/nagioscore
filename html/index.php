@@ -7,8 +7,8 @@
 <link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
 </HEAD>
 <FRAMESET BORDER="0" FRAMEBORDER="0" FRAMESPACING="0" COLS="180,*">
-<FRAME SRC="side.html" NAME="side" TARGET="main">
-<FRAME SRC="main.html" NAME="main">
+<FRAME SRC="side.php" NAME="side" TARGET="main">
+<FRAME SRC="main.php" NAME="main">
 </FRAMESET>
 
 <NOFRAMES>
@@ -17,7 +17,7 @@
 <center>
 <h2>Nagios</h2>
 <a href="http://www.nagios.org/" alt="Nagios Home">www.nagios.org</a><br>
-Copyright (c) 1999-2007 Ethan Galstad<br>
+Copyright (c) 1999-2008 Ethan Galstad<br>
 </center>
 </p>
 <p>

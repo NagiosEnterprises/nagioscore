@@ -1309,7 +1309,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 PKG_NAME=nagios
 PKG_VERSION="3.0.6"
 PKG_HOME_URL="http://www.nagios.org/"
-PKG_REL_DATE="12-01-2008"
+PKG_REL_DATE="12-10-2008"
 
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
@@ -7066,7 +7066,7 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-                                                                                                                                  ac_config_files="$ac_config_files Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init html/index.html html/side.html"
+                                                                                                                        ac_config_files="$ac_config_files Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init html/side.php"
 
 
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
@@ -7550,8 +7550,7 @@ do
   "module/Makefile" ) CONFIG_FILES="$CONFIG_FILES module/Makefile" ;;
   "xdata/Makefile" ) CONFIG_FILES="$CONFIG_FILES xdata/Makefile" ;;
   "daemon-init" ) CONFIG_FILES="$CONFIG_FILES daemon-init" ;;
-  "html/index.html" ) CONFIG_FILES="$CONFIG_FILES html/index.html" ;;
-  "html/side.html" ) CONFIG_FILES="$CONFIG_FILES html/side.html" ;;
+  "html/side.php" ) CONFIG_FILES="$CONFIG_FILES html/side.php" ;;
   "include/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
   "include/snprintf.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/snprintf.h" ;;
   "include/cgiutils.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/cgiutils.h" ;;

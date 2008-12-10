@@ -11,7 +11,7 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 PKG_NAME=nagios
 PKG_VERSION="3.0.6"
 PKG_HOME_URL="http://www.nagios.org/"
-PKG_REL_DATE="12-01-2008"
+PKG_REL_DATE="12-10-2008"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
@@ -763,7 +763,7 @@ AC_SUBST(INSTALLPERLSTUFF)
 AC_SUBST(USE_EVENTBROKER)
 
 AC_PATH_PROG(PERL,perl)
-AC_OUTPUT(Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init html/index.html html/side.html)
+AC_OUTPUT(Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init html/side.php)
 
 
 perl subst include/locations.h

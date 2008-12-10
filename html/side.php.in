@@ -69,7 +69,7 @@ function switchdot(name,on){
 <table width=150 border="0" cellpadding=0 cellspacing=0>
   <tr> 
     <td width=13><img src="images/greendot.gif" width="13" height="14" name="home-dot"></td>
-    <td nowrap width=134><a href="main.html" target="main" onMouseOver="switchdot('home-dot',1)" onMouseOut="switchdot('home-dot',0)" class="NavBarItem">Home</a></td>
+    <td nowrap width=134><a href="main.php" target="main" onMouseOver="switchdot('home-dot',1)" onMouseOut="switchdot('home-dot',0)" class="NavBarItem">Home</a></td>
   </tr>
   <tr> 
     <td width=13><img src="images/greendot.gif" width="13" height="14" name="docs-dot"></td>

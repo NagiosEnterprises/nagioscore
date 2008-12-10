@@ -6,6 +6,7 @@ Nagios 3.x Change Log
 3.1.0 - ??/??/2008
 ------------------
 * Added automatic update check functionality - runs once a day to check for new Nagios releases
+* Splash screen on web UI now indicates whether a new update is available (requires that update checks are enabled)
 
 
 

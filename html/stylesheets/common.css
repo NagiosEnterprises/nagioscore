@@ -1,0 +1,72 @@
+body {
+	font-family: arial, verdana;
+	font-weight: normal;
+	font-size: 10pt;
+	}
+	
+	
+	
+/* main page */
+#splashpage{
+	text-align: center;
+	}
+	
+#mainbrandsplash{
+	font-size: 12pt;
+	font-weight: bold;
+	margin: 0 0 35px 0;
+	}
+	
+#currentversioninfo{
+	font-size: 12pt;
+	}
+#currentversioninfo .version{
+	font-size: 14pt;
+	font-weight: bold;
+	}
+#currentversioninfo .releasedate{
+	font-size: 11pt;
+	margin: 5px 0 0 0;
+	}
+#currentversioninfo .whatsnew{
+	font-size: 11pt;
+	font-weight: bold;
+	margin: 10px 0 0 0;
+	}
+
+#updateversioninfo{
+	margin: 15px auto 50px auto;
+	width: 400px;
+	}
+.updatechecksdisabled{
+	background-color: #FF9F9F;
+	border: 1px solid red;
+	padding: 10px;
+	}
+.updatechecksdisabled div.warningmessage{
+	font-weight: bold;
+	}
+#updateversioninfo div.submessage{
+	clear: left;
+	}
+.updateavailable{
+	background-color: #9FD4FF;
+	border: 1px solid blue;
+	padding: 10px;
+	}
+.updateavailable div.updatemessage{
+	font-size: 12pt;
+	font-weight: bold;
+	}
+	
+#splashpage #mainfooter{
+	margin: 25px 0 0 0;
+	font-size: 8pt;
+	}
+#splashpage #mainfooter .disclaimer{
+	width: 80%;
+	margin: auto;
+	}
+#splashpage #mainfooter .logos{
+	margin: 15px 0 0 0;
+	}

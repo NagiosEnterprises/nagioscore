@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 12-04-2008
+ * Last Modified: 12-12-2008
  *
  * License:
  *
@@ -4309,6 +4309,7 @@ int check_for_nagios_updates(int force, int reschedule){
 	int do_check=TRUE;
 	time_t next_check=0L;
 	unsigned int rand_seed=0;
+	int randnum=0;
 
 	time(&current_time);
 
@@ -4345,10 +4346,20 @@ int check_for_nagios_updates(int force, int reschedule){
 
 		/*printf("RESCHEDULING...\n");*/
 
+		randnum=rand();
+		/*
+		printf("RAND: %d\n",randnum);
+		printf("RANDMAX: %d\n",RAND_MAX);
+		printf("UCIW: %d\n",UPDATE_CHECK_INTERVAL_WOBBLE);
+		printf("MULT: %f\n",(float)randnum/RAND_MAX);
+		*/
+		
+
+
 		/* we didn't do an update, so calculate next possible update time */
 		if(do_check==FALSE){
 			next_check=last_update_check+BASE_UPDATE_CHECK_INTERVAL;
-			next_check+=(unsigned long)((rand()*UPDATE_CHECK_INTERVAL_WOBBLE) / RAND_MAX);
+			next_check=next_check+(unsigned long)( ((float)randnum/RAND_MAX) * UPDATE_CHECK_INTERVAL_WOBBLE);
 			}
 
 		/* we tried to check for an update */
@@ -4357,17 +4368,17 @@ int check_for_nagios_updates(int force, int reschedule){
 			/* api query was okay */
 			if(api_result==OK){
 				next_check=current_time+BASE_UPDATE_CHECK_INTERVAL;
-				next_check+=(unsigned long)((rand()*UPDATE_CHECK_INTERVAL_WOBBLE) / RAND_MAX);
+				next_check+=(unsigned long)( ((float)randnum/RAND_MAX) * UPDATE_CHECK_INTERVAL_WOBBLE);
 				}
 			
 			/* query resulted in an error - retry at a shorter interval */
 			else{
 				next_check=current_time+BASE_UPDATE_CHECK_RETRY_INTERVAL;
-				next_check+=(unsigned long)((rand()*UPDATE_CHECK_RETRY_INTERVAL_WOBBLE) / RAND_MAX);
+				next_check+=(unsigned long)( ((float)randnum/RAND_MAX) * UPDATE_CHECK_RETRY_INTERVAL_WOBBLE);
 				}
 			}
 
-		/* make sure next check isn't in the past - if it is, schedule a check in 1 minutes */
+		/* make sure next check isn't in the past - if it is, schedule a check in 1 minute */
 		if(next_check<current_time)
 			next_check=current_time+60;
 

@@ -1,11 +1,108 @@
 body {
-	font-family: arial, verdana;
+	font-family: arial, verdana, serif;
 	font-weight: normal;
 	font-size: 10pt;
 	}
+
+
+/* navbar */
+body.navbar {
+	background-color: black;
+	color: white;
+	font-family: verdana,arial,serif;
+	}
+
+.navbarlogo {
+	margin: 0 0 10px 0;
+	}
+
+.navsection {
+	margin: 5px 0 10px 0;
+	color: #DEE7C6;
+	}
 	
+.navsectiontitle {
+	font-size: 10pt;
+	font-weight: bold;
+	border:1px solid #DEE7C6;
+	padding: 2px;
+	}
+
+div.navsectionlinks {
+	margin: 3px 0 0 0;
+	}
+
+ul.navsectionlinks {
+	margin: 0px;
+	padding: 0px;
+	list-style: none;
+	}
+
+ul.navsectionlinks li {
+	}
+
+ul.navsectionlinks li a {
+	color: #DEE7C6;
+	font-weight: bold;
+	font-size: 8pt;
+	text-decoration: none;	
+
+	padding: 0 0 0 15px;
+	background: transparent url(../images/greendot.gif) no-repeat scroll 0 0
+	}
+
+ul.navsectionlinks li ul {
+	margin: 0px;
+	padding: 0 0 0 30px;
+	list-style: disc;
+	}
+
+ul.navsectionlinks li ul li {
+	}
+
+ul.navsectionlinks li a:hover {
+	color: #FFC47F;
+	background: transparent url(../images/orangedot.gif) no-repeat scroll 0 0
+	}
+
+ul.navsectionlinks li ul li a {
+	color: #DEE7C6;
+	background: none;
+	padding: 0;
+	}
+
+ul.navsectionlinks li ul li a:hover {
+	color: #FFC47F;
+	background: none;
+	}
+
+ul.navsectionlinks li ul li ul {
+	margin: 0px;
+	padding: 0 0 0 15px;
+	list-style: circle;
+	}
+
+
+.navbarsearch {
+	margin: 5px 0 0 0;
+	}
+
+.navbarsearch fieldset {
+	border: none;
+	}
+
+.navbarsearch fieldset legend {
+	font-size: 8pt;
+	}
+
+.navbarsearch input{
+	font-size: 8pt;
+	color: black;
+	background-color: white;
+	}
+
 	
-	
+
 /* main page */
 #splashpage{
 	text-align: center;
@@ -70,3 +167,9 @@ body {
 #splashpage #mainfooter .logos{
 	margin: 15px 0 0 0;
 	}
+
+
+a img {
+	border: none;
+	}
+

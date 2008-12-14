@@ -1,11 +1,14 @@
 <?php
 //
-// AUTO
 
 
 $cfg['cgi_config_file']='@sysconfdir@/cgi.cfg';  // location of the CGI config file
-$cfg['main_config_file']='@sysconfdir@/nagios.cfg';  // default location of the main Nagios config file
 
+$cfg['cgi_base_url']='@cgiurl@';
+
+
+// FILE LOCATION DEFAULTS
+$cfg['main_config_file']='@sysconfdir@/nagios.cfg';  // default location of the main Nagios config file
 $cfg['status_file']='@localstatedir@/status.dat'; // default location of Nagios status file
 $cfg['state_retention_file']='@localstatedir@/retention.dat'; // default location of Nagios retention file
 

@@ -7066,7 +7066,7 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-                                                                                                                        ac_config_files="$ac_config_files Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init html/side.php"
+                                                                                                              ac_config_files="$ac_config_files Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init"
 
 
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
@@ -7550,7 +7550,6 @@ do
   "module/Makefile" ) CONFIG_FILES="$CONFIG_FILES module/Makefile" ;;
   "xdata/Makefile" ) CONFIG_FILES="$CONFIG_FILES xdata/Makefile" ;;
   "daemon-init" ) CONFIG_FILES="$CONFIG_FILES daemon-init" ;;
-  "html/side.php" ) CONFIG_FILES="$CONFIG_FILES html/side.php" ;;
   "include/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
   "include/snprintf.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/snprintf.h" ;;
   "include/cgiutils.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/cgiutils.h" ;;

@@ -26,7 +26,7 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
 <div id="currentversioninfo">
 <div class="version">Version 3.0.6</div>
-<div class="releasedate">December 10, 2008</div>
+<div class="releasedate">December 14, 2008</div>
 <div class="whatsnew"><a href="docs/whatsnew.html">Read what's new in Nagios 3</a></div>
 </div>
 

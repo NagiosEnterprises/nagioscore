@@ -1309,7 +1309,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 PKG_NAME=nagios
 PKG_VERSION="3.0.6"
 PKG_HOME_URL="http://www.nagios.org/"
-PKG_REL_DATE="12-10-2008"
+PKG_REL_DATE="12-14-2008"
 
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
@@ -8209,6 +8209,8 @@ fi
 
 
 perl subst include/locations.h
+perl subst html/config.inc.php
+
 
 echo ""
 echo "Creating sample config files in sample-config/ ..."

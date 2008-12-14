@@ -58,148 +58,7 @@ The main configuration file is usually named <i>nagios.cfg</i> and located in th
 <strong><u>Configuration File Variables</u></strong>
 </p>
 
-<!--
-<a href="#log_file">Log file</a><br>
-<a href="#cfg_file">Object configuration file</a><br>
-<a href="#cfg_dir">Object configuration directory</a><br>
-<a href="#object_cache_file">Object cache file</a><br>
-<a href="#precached_object_file">Precached object file</a><br>
-<a href="#resource_file">Resource file</a><br>
-<a href="#temp_file">Temp file</a><br>
-<a href="#temp_path">Temp path</a><br>
-<br>
-<a href="#status_file">Status file</a><br>
-<a href="#status_update_interval">Status file update interval</a><br>
-<br>
-<a href="#nagios_user">Nagios user</a><br>
-<a href="#nagios_group">Nagios group</a><br>
-<br>
-<a href="#enable_notifications">Notifications option</a><br>
-<a href="#execute_service_checks">Service check execution option</a><br>
-<a href="#accept_passive_service_checks">Passive service check acceptance option</a><br>
-<a href="#execute_host_checks">Host check execution option</a><br>
-<a href="#accept_passive_host_checks">Passive host check acceptance option</a><br>
-<a href="#enable_event_handlers">Event handler option</a><br>
-<br>
-<a href="#log_rotation_method">Log rotation method</a><br>
-<a href="#log_archive_path">Log archive path</a><br>
-<br>
-<a href="#check_external_commands">External command check option</a><br>
-<a href="#command_check_interval">External command check interval</a><br>
-<a href="#command_file">External command file</a><br>
-<a href="#external_command_buffer_slots">External command buffer slots option</a><br>
-<br>
-<a href="#lock_file">Lock file</a><br>
-<br>
-<a href="#retain_state_information">State retention option</a><br>
-<a href="#state_retention_file">State retention file</a><br>
-<a href="#retention_update_interval">Automatic state retention update interval</a><br>
-<a href="#use_retained_program_state">Use retained program state option</a><br>
-<a href="#use_retained_scheduling_info">Use retained scheduling info option</a><br>
-<a href="#retained_host_attribute_mask">Retained host/service attribute masks</a><br>
-<a href="#retained_process_host_attribute_mask">Retained process attribute masks</a><br>
-<a href="#retained_contact_host_attribute_mask">Retained contact attribute masks</a><br>
-<br>
-<a href="#use_syslog">Syslog logging option</a><br>
-<a href="#log_notifications">Notification logging option</a><br>
-<a href="#log_service_retries">Service check retry logging option</a><br>
-<a href="#log_host_retries">Host retry logging option</a><br>
-<a href="#log_event_handlers">Event handler logging option</a><br>
-<a href="#log_initial_states">Initial state logging option</a><br>
-<a href="#log_external_commands">External command logging option</a><br>
-<a href="#log_passive_checks">Passive check logging option</a><br>
-<br>
-<a href="#global_host_event_handler">Global host event handler</a><br>
-<a href="#global_service_event_handler">Global service event handler</a><br>
-<br>
-<a href="#sleep_time">Inter-check sleep time</a><br>
-<a href="#service_inter_check_delay_method">Service inter-check delay method</a><br>
-<a href="#max_service_check_spread">Maximum service check spread</a><br>
-<a href="#service_interleave_factor">Service interleave factor</a><br>
-<a href="#max_concurrent_checks">Maximum concurrent service checks</a><br>
-<a href="#check_result_reaper_frequency">Check result reaper frequency</a><br>
-<a href="#max_check_result_reaper_time">Maximum check result reaper time</a><br>
-<a href="#check_result_path">Check result path</a><br>
-<a href="#max_check_result_file_age">Maximum check result file age</a><br>
-<a href="#host_inter_check_delay_method">Host inter-check delay method</a><br>
-<a href="#max_host_check_spread">Maximum host check spread</a><br>
-<a href="#interval_length">Timing interval length</a><br>
-<a href="#auto_reschedule_checks">Auto-rescheduling option</a><br>
-<a href="#auto_rescheduling_interval">Auto-rescheduling interval</a><br>
-<a href="#auto_rescheduling_window">Auto-rescheduling window</a><br>
-<br>
-<a href="#use_aggressive_host_checking">Aggressive host checking option</a><br>
-<a href="#translate_passive_host_checks">Translate passive host checks option</a><br>
-<a href="#passive_host_checks_are_soft">Passive host checks are SOFT option</a><br>
-<a href="#enable_predictive_host_dependency_checks">Predictive host dependency checks option</a><br>
-<a href="#enable_predictive_service_dependency_checks">Predictive service dependency checks option</a><br>
-<a href="#cached_host_check_horizon">Cached host check horizon</a><br>
-<a href="#cached_service_check_horizon">Cached service check horizon</a><br>
-<br>
-<a href="#use_large_installation_tweaks">Large installation tweaks option</a><br>
-<br>
-<a href="#enable_flap_detection">Flap detection option</a><br>
-<a href="#low_service_flap_threshold">Low service flap threshold</a><br>
-<a href="#high_service_flap_threshold">High service flap threshold</a><br>
-<a href="#low_host_flap_threshold">Low host flap threshold</a><br>
-<a href="#high_host_flap_threshold">High host flap threshold</a><br>
-<br>
-<a href="#soft_service_dependencies">Soft service dependencies option</a><br>
-<br>
-<a href="#service_check_timeout">Service check timeout</a><br>
-<a href="#host_check_timeout">Host check timeout</a><br>
-<a href="#event_handler_timeout">Event handler timeout</a><br>
-<a href="#notification_timeout">Notification timeout</a><br>
-<a href="#ocsp_timeout">Obsessive compulsive service processor timeout</a><br>
-<a href="#ochp_timeout">Obsessive compulsive host processor timeout</a><br>
-<a href="#perfdata_timeout">Performance data processor command timeout</a><br>
-<br>
-<a href="#obsess_over_services">Obsess over services option</a><br>
-<a href="#ocsp_command">Obsessive compulsive service processor command</a><br>
-<a href="#obsess_over_hosts">Obsess over hosts option</a><br>
-<a href="#ochp_command">Obsessive compulsive host processor command</a><br>
-<br>
-<a href="#process_performance_data">Performance data processing option</a><br>
-<a href="#host_perfdata_command">Host performance data processing command</a><br>
-<a href="#service_perfdata_command">Service performance data processing command</a><br>
-<a href="#host_perfdata_file">Host performance data file</a><br>
-<a href="#service_perfdata_file">Service performance data file</a><br>
-<a href="#host_perfdata_file_template">Host performance data file template</a><br>
-<a href="#service_perfdata_file_template">Service performance data file template</a><br>
-<a href="#host_perfdata_file_mode">Host performance data file mode</a><br>
-<a href="#service_perfdata_file_mode">Service performance data file mode</a><br>
-<a href="#host_perfdata_file_processing_interval">Host performance data file processing interval</a><br>
-<a href="#service_perfdata_file_processing_interval">Service performance data file processing interval</a><br>
-<a href="#host_perfdata_file_processing_command">Host performance data file processing command</a><br>
-<a href="#service_perfdata_file_processing_command">Service performance data file processing command</a><br>
-<br>
-<a href="#check_for_orphaned_services">Orphaned service check option</a><br>
-<a href="#check_for_orphaned_host">Orphaned host check option</a><br>
-<br>
-<a href="#check_service_freshness">Service freshness checking option</a><br>
-<a href="#service_freshness_check_interval">Service freshness check interval</a><br>
-<a href="#check_host_freshness">Host freshness checking option</a><br>
-<a href="#host_freshness_check_interval">Host freshness check interval</a><br>
-<br>
-<a href="#enable_embedded_perl">Embedded Perl interpreter option</a><br>
-<a href="#use_embedded_perl_implicitly">Embedded Perl implicit use option</a><br>
-<br>
-<a href="#date_format">Date format</a><br>
-<br>
-<a href="#illegal_object_name_chars">Illegal object name characters</a><br>
-<a href="#illegal_macro_output_chars">Illegal macro output characters</a><br>
-<br>
-<a href="#use_regexp_matching">Regular expression matching option</a><br>
-<a href="#use_true_regexp_matching">True regular expression matching option</a><br>
-<br>
-<a href="#admin_email">Administrator email address</a><br>
-<a href="#admin_pager">Administrator pager</a><br>
-<br>
-<a href="#debug_file">Debug file</a><br>
-<a href="#debug_level">Debug level</a><br>
-<a href="#debug_verbosity">Debug verbosity</a><br>
-<a href="#max_debug_file_size">Maximum debug file size option</a><br>
-//-->
+
 
 <p>
 Below you will find descriptions of each main Nagios configuration file option...
@@ -856,6 +715,56 @@ This is the file that Nagios will check for external commands to process.  The <
 
 <p>
 Note: This is an advanced feature. This option determines how many buffer slots Nagios will reserve for caching external commands that have been read from the external command file by a worker thread, but have not yet been processed by the main thread of the Nagios deamon.  Each slot can hold one external command, so this option essentially determines how many commands can be buffered.  For installations where you process a large number of passive checks (e.g. <a href="distributed.html">distributed setups</a>), you may need to increase this number.  You should consider using MRTG to graph Nagios' usage of external command buffers.  You can read more on how to configure graphing <a href="mrtggraphs.html">here</a>.
+</p>
+
+
+<a name="check_for_updates"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Update Checks</strong></td>
+</tr>
+</table>
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>check_for_updates=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>check_for_updates=1</strong></font></td>
+</tr>
+</table>
+
+<p>
+This option determines whether Nagios will automatically check to see if new updates (releases) are available.  It is recommend that you enable this option to ensure that you stay on top of the latest critical patches to Nagios.  Nagios is critical to you - make sure you keep it in good shape.  Nagios will check once a day for new updates. Data collected by Nagios Enterprises from the update check is processed in accordance  with our privacy policy - see <a href="http://api.nagios.org">http://api.nagios.org</a> for details.
+</p>
+
+
+<a name="bare_update_checks"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Bare Update Checks</strong></td>
+</tr>
+</table>
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>bare_update_checks=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>bare_update_checks</strong></font></td>
+</tr>
+</table>
+
+<p>
+This option deterines what data Nagios will send to api.nagios.org when it checks for updates.  By default, Nagios will send information on the current version of Nagios you have installed, as well as an indicator as to whether this was a new installation or not.  Nagios Enterprises uses this data to determine the number of users running specific version of Nagios.  Enable this option if you do not wish for this information to be sent.
 </p>
 
 

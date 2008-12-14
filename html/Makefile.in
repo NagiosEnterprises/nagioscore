@@ -28,7 +28,7 @@ clean:
 	rm -f stylesheets/*~
 
 distclean: clean
-	rm -f Makefile side.php
+	rm -f Makefile config.inc.php side.php
 
 devclean: distclean
 

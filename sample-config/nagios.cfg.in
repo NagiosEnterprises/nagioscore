@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 12-04-2008
+# Last Modified: 12-14-2008
 #
 ##############################################################################
 
@@ -720,13 +720,27 @@ interval_length=60
 
 
 # CHECK FOR UPDATES
-# This options determines whether Nagios will automatically check to
+# This option determines whether Nagios will automatically check to
 # see if new updates (releases) are available.  It is recommend that you
 # enable this option to ensure that you stay on top of the latest critical
 # patches to Nagios.  Nagios is critical to you - make sure you keep it in
-# good shape.  Nagios will check once a day for new updates.
+# good shape.  Nagios will check once a day for new updates. Data collected
+# by Nagios Enterprises from the update check is processed in accordance 
+# with our privacy policy - see http://api.nagios.org for details.
 
 check_for_updates=1
+
+
+
+# BARE UPDATE CHECK
+# This option deterines what data Nagios will send to api.nagios.org when
+# it checks for updates.  By default, Nagios will send information on the 
+# current version of Nagios you have installed, as well as an indicator as
+# to whether this was a new installation or not.  Nagios Enterprises uses
+# this data to determine the number of users running specific version of 
+# Nagios.  Enable this option if you do not want this information to be sent.
+
+bare_update_check=0
 
 
 

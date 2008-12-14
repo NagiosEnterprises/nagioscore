@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 12-12-2008
+ * Last Modified: 12-14-2008
  *
  * License:
  *
@@ -149,6 +149,7 @@ extern int      auto_reschedule_checks;
 extern int      additional_freshness_latency;
 
 extern int      check_for_updates;
+extern int      bare_update_check;
 extern time_t   last_update_check;
 extern char     *last_program_version;
 extern int      update_available;
@@ -4427,7 +4428,9 @@ int query_update_api(void){
 		}
 
 	/* generate the query */
-	asprintf(&api_query,"v=1&product=nagios&tinycheck=1&stableonly=1&version=%s%s",PROGRAM_VERSION,(api_query_opts==NULL)?"":api_query_opts);
+	asprintf(&api_query,"v=1&product=nagios&tinycheck=1&stableonly=1");
+	if(bare_update_check==FALSE)
+		asprintf(&api_query,"&version=%s%s",api_query,PROGRAM_VERSION,(api_query_opts==NULL)?"":api_query_opts);
 
 	/* generate the HTTP request */
 	asprintf(&buf,"POST %s HTTP/1.0\r\n",api_path);

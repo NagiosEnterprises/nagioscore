@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-10-2008
+ * Last Modified:   12-14-2008
  *
  * Description:
  *
@@ -131,6 +131,7 @@ int             auto_rescheduling_window=DEFAULT_AUTO_RESCHEDULING_WINDOW;
 int             additional_freshness_latency=DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
 
 int             check_for_updates=DEFAULT_CHECK_FOR_UPDATES;
+int             bare_update_check=DEFAULT_BARE_UPDATE_CHECK;
 time_t          last_update_check=0L;
 int             update_available=FALSE;
 char            *last_program_version=NULL;

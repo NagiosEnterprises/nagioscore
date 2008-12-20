@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2008 Ethan Galstad (egalstad@nagios.org)
  *
- * Last Modified:   12-14-2008
+ * Last Modified: 12-20-2008
  *
  * License:
  *
@@ -319,6 +319,8 @@ int main(int argc, char **argv){
 		printf("\n");
 		printf("Input file:\n");
 		printf(" -c, --config=FILE  specifies location of main Nagios config file.\n");
+		printf(" -s, --statsfile=FILE  specifies alternate location of file to read Nagios\n");
+		printf("                       performance data from.\n");
 		printf("\n");
 		printf("Output:\n");
 		printf(" -m, --mrtg         display output in MRTG compatible format.\n");
@@ -396,27 +398,28 @@ int main(int argc, char **argv){
 		exit(ERROR);
 		}
 
-	/* read main config file */
-	result=read_config_file();
-	if(result==ERROR && mrtg_mode==FALSE){
-		printf("Error processing config file '%s'\n",main_config_file);
-		return ERROR;
-	        }
-
 	/* read pre-processed stats file */
 	if(nagiostats_file){
 		result=read_nagiostats_file();
 		if(result==ERROR && mrtg_mode==FALSE){
-			printf("Error reading status file '%s'\n",status_file);
+			printf("Error reading stats file '%s': %s\n",nagiostats_file,strerror(errno));
 			return ERROR;
 			}
 		}
 
-	/* else read the Nagios status file */
+	/* else read the normal status file */
 	else{
+		/* read main config file */
+		result=read_config_file();
+		if(result==ERROR && mrtg_mode==FALSE){
+			printf("Error processing config file '%s'\n",main_config_file);
+			return ERROR;
+			}
+
+		/* read status file */
 		result=read_status_file();
 		if(result==ERROR && mrtg_mode==FALSE){
-			printf("Error reading status file '%s'\n",status_file);
+			printf("Error reading status file '%s': %s\n",status_file,strerror(errno));
 			return ERROR;
 			}
 		}

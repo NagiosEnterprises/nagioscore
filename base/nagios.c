@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-14-2008
+ * Last Modified:   12-30-2008
  *
  * Description:
  *
@@ -476,18 +476,28 @@ int main(int argc, char **argv){
 		/* reset program variables */
 		reset_variables();
 
-		printf("Reading configuration data...\n\n");
+		printf("Reading configuration data...\n");
 
 		/* read in the configuration files (main config file, resource and object config files) */
 		if((result=read_main_config_file(config_file))==OK){
 
+			printf("   Read main config file okay...\n");
+
 			/* drop privileges */
 			if((result=drop_privileges(nagios_user,nagios_group))==ERROR)
-				printf("Failed to drop privileges.  Aborting.");
-			else
+				printf("   Failed to drop privileges.  Aborting.");
+			else{
 				/* read object config files */
-				result=read_all_object_data(config_file);
+				if((result=read_all_object_data(config_file))==OK)
+					printf("   Read object config files okay...\n");
+				else
+					printf("   Error processing object config files!\n");
+				}
 		        }
+		else
+			printf("   Error processing main config file!\n\n");
+
+		printf("\n");
 
 		/* there was a problem reading the config files */
 		if(result!=OK){

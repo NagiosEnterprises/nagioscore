@@ -3,12 +3,13 @@ Nagios 3.x Change Log
 #####################
 
 
-3.1.0 - ??/??/2008
+3.1.0 - ??/??/2009
 ------------------
 * Added automatic update check functionality - runs once a day to check for new Nagios releases
 * Splash screen on web UI now indicates whether a new update is available (requires that update checks are enabled)
 * Updates to nagiostats utility for faster execution if using external stats file
 * Added a bit more verbosity to config verification
+* Fixed bug in logging event handlers
 
 
 

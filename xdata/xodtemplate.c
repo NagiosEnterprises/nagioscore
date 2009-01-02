@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
- * Copyright (c) 2001-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 06-23-2008
+ * Copyright (c) 2001-2009 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 01-01-2009
  *
  * Description:
  *
@@ -550,7 +550,8 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 	struct stat stat_buf;
 
 #ifdef NSCORE
-	printf("Processing object config directory '%s'...\n",dirname);
+	if(verify_config==TRUE)
+		printf("Processing object config directory '%s'...\n",dirname);
 #endif
 
 	/* open the directory for reading */
@@ -635,7 +636,8 @@ int xodtemplate_process_config_file(char *filename, int options){
 
 
 #ifdef NSCORE
-	printf("Processing object config file '%s'...\n",filename);
+	if(verify_config==TRUE)
+		printf("Processing object config file '%s'...\n",filename);
 #endif
 
 	/* save config file name */

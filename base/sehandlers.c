@@ -2,8 +2,8 @@
  *
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
- * Copyright (c) 1999-2007 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   11-10-2007
+ * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified:   01-02-2009
  *
  * License:
  *
@@ -242,6 +242,8 @@ int handle_service_event(service *svc){
 int run_global_service_event_handler(service *svc){
 	char *raw_command=NULL;
 	char *processed_command=NULL;
+	char *raw_logentry=NULL;
+	char *processed_logentry=NULL;
 	char *command_output=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
@@ -294,8 +296,11 @@ int run_global_service_event_handler(service *svc){
 
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed global service event handler command line: %s\n",processed_command);
 
-	if(log_event_handlers==TRUE)
-		logit(NSLOG_EVENT_HANDLER,FALSE,"GLOBAL SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],global_service_event_handler);
+	if(log_event_handlers==TRUE){
+		asprintf(&raw_logentry,"GLOBAL SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,global_service_event_handler);
+		process_macros(raw_logentry,&processed_logentry,macro_options);
+		logit(NSLOG_EVENT_HANDLER,FALSE,processed_logentry);
+		}
 
 	/* run the command */
 	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
@@ -318,6 +323,8 @@ int run_global_service_event_handler(service *svc){
 	my_free(command_output);
 	my_free(raw_command);
 	my_free(processed_command);
+	my_free(raw_logentry);
+	my_free(processed_logentry);
 
 	return OK;
         }
@@ -328,6 +335,8 @@ int run_global_service_event_handler(service *svc){
 int run_service_event_handler(service *svc){
 	char *raw_command=NULL;
 	char *processed_command=NULL;
+	char *raw_logentry=NULL;
+	char *processed_logentry=NULL;
 	char *command_output=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
@@ -376,8 +385,11 @@ int run_service_event_handler(service *svc){
 
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed service event handler command line: %s\n",processed_command);
 
-	if(log_event_handlers==TRUE)
-		logit(NSLOG_EVENT_HANDLER,FALSE,"SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],svc->event_handler);
+	if(log_event_handlers==TRUE){
+		asprintf(&raw_logentry,"SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,svc->event_handler);
+		process_macros(raw_logentry,&processed_logentry,macro_options);
+		logit(NSLOG_EVENT_HANDLER,FALSE,processed_logentry);
+		}
 
 	/* run the command */
 	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
@@ -400,6 +412,8 @@ int run_service_event_handler(service *svc){
 	my_free(command_output);
 	my_free(raw_command);
 	my_free(processed_command);
+	my_free(raw_logentry);
+	my_free(processed_logentry);
 
 	return OK;
         }
@@ -453,6 +467,8 @@ int handle_host_event(host *hst){
 int run_global_host_event_handler(host *hst){
 	char *raw_command=NULL;
 	char *processed_command=NULL;
+	char *raw_logentry=NULL;
+	char *processed_logentry=NULL;
 	char *command_output=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
@@ -505,8 +521,11 @@ int run_global_host_event_handler(host *hst){
 
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed global host event handler command line: %s\n",processed_command);
 
-	if(log_event_handlers==TRUE)
-		logit(NSLOG_EVENT_HANDLER,FALSE,"GLOBAL HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],global_host_event_handler);
+	if(log_event_handlers==TRUE){
+		asprintf(&raw_logentry,"GLOBAL HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,global_host_event_handler);
+		process_macros(raw_logentry,&processed_logentry,macro_options);
+		logit(NSLOG_EVENT_HANDLER,FALSE,processed_logentry);
+		}
 
 	/* run the command */
 	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
@@ -529,6 +548,8 @@ int run_global_host_event_handler(host *hst){
 	my_free(command_output);
 	my_free(raw_command);
 	my_free(processed_command);
+	my_free(raw_logentry);
+	my_free(processed_logentry);
 
 	return OK;
         }
@@ -538,6 +559,8 @@ int run_global_host_event_handler(host *hst){
 int run_host_event_handler(host *hst){
 	char *raw_command=NULL;
 	char *processed_command=NULL;
+	char *raw_logentry=NULL;
+	char *processed_logentry=NULL;
 	char *command_output=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
@@ -586,8 +609,11 @@ int run_host_event_handler(host *hst){
 
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed host event handler command line: %s\n",processed_command);
 
-	if(log_event_handlers==TRUE)
-		logit(NSLOG_EVENT_HANDLER,FALSE,"HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->event_handler);
+	if(log_event_handlers==TRUE){
+		asprintf(&raw_logentry,"HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,hst->event_handler);
+		process_macros(raw_logentry,&processed_logentry,macro_options);
+		logit(NSLOG_EVENT_HANDLER,FALSE,processed_logentry);
+		}
 
 	/* run the command */
 	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
@@ -610,6 +636,8 @@ int run_host_event_handler(host *hst){
 	my_free(command_output);
 	my_free(raw_command);
 	my_free(processed_command);
+	my_free(raw_logentry);
+	my_free(processed_logentry);
 
 	return OK;
         }

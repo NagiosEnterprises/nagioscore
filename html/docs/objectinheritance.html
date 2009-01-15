@@ -195,13 +195,13 @@ It is possible to use imcomplete object definitions as templates for use by othe
 	define host{
 		host_name		bighost1
 		address			192.168.1.3
-		<font color="red">use			generichosthosttemplate</font>
+		<font color="red">use			generichosttemplate</font>
 		}
 
 	define host{
 		host_name		bighost2
 		address			192.168.1.4
-		<font color="red">use			generichosthosttemplate</font>
+		<font color="red">use			generichosttemplate</font>
 		}
 </pre>
 
@@ -255,7 +255,7 @@ Any <a href="customobjectvars.html">custom object variables</a> that you define 
 	define host{
 		host_name		bighost1
 		address			192.168.1.3
-		<font color="red">use			generichosthosttemplate</font>
+		<font color="red">use			generichosttemplate</font>
 		}
 </pre>
 
@@ -292,7 +292,7 @@ In some cases you may not want your host, service, or contact definitions to inh
 		host_name		bighost1
 		address			192.168.1.3
 		event_handler	null
-		<font color="red">use			generichosthosttemplate</font>
+		<font color="red">use			generichosttemplate</font>
 		}
 </pre>
 
@@ -330,7 +330,7 @@ This "additive inheritance" can be accomplished by prepending the local variable
 	define host{
 		host_name			linuxserver1
 		hostgroups		+linux-servers,web-servers
-		<font color="red">use			generichosthosttemplate</font>
+		<font color="red">use			generichosttemplate</font>
 		}
 </pre>
 

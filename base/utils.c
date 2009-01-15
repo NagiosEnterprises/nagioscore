@@ -2,8 +2,8 @@
  *
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 12-14-2008
+ * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 01-15-2009
  *
  * License:
  *
@@ -621,8 +621,17 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 				/* handle errors */
 				if(bytes_read==-1){
 					/* we encountered a recoverable error, so try again */
-					if(errno==EINTR || errno==EAGAIN)
+					if(errno==EINTR)
 						continue;
+					/* patch by Henning Brauer to prevent CPU hogging */
+					else if (errno==EAGAIN){
+						struct pollfd pfd;
+
+						pfd.fd = fd[0];
+						pfd.events = POLLIN;
+						poll(&pfd, 1, -1);
+						continue;
+						}
 					else
 						break;
 					}

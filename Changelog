@@ -10,6 +10,7 @@ Nagios 3.x Change Log
 * Updates to nagiostats utility for faster execution if using external stats file
 * Added a bit more verbosity to config verification
 * Fixed bug in logging event handlers
+* Fix to prevent debug output from being shown when Nagios is compiled with embedded Perl interpreter
 
 
 

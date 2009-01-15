@@ -1,7 +1,7 @@
 /************************************************************************
  *
  * Embedded Perl Header File
- * Last Modified: 12-08-2004
+ * Last Modified: 01-15-2009
  *
  ************************************************************************/
 
@@ -12,6 +12,7 @@
 #include <perl.h>
 
 #include <fcntl.h>
+#undef DEBUG /* epn-compiled Nagios spews just - this has a side effect of potentially disabling debug output on epn systems */
 #undef ctime    /* don't need perl's threaded version */
 #undef printf   /* can't use perl's printf until initialized */
 

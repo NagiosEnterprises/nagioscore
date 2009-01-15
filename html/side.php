@@ -76,19 +76,13 @@ function switchdot(name,on){
 </ul>
 </li>
 <li>
-<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?servicegroup=all&style=overview" target="<?php echo $link_target;?>">Problems</a>
+<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&servicestatustypes=28" target="<?php echo $link_target;?>">Problems</a>
 <ul>
 <li>
-<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&servicestatustypes=28" target="<?php echo $link_target;?>">Services</a>
-<ul>
-<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&type=detail&hoststatustypes=3&serviceprops=42&servicestatustypes=28" target="<?php echo $link_target;?>">Unhandled</a></li>
-</ul>
+<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&servicestatustypes=28" target="<?php echo $link_target;?>">Services</a> (<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&type=detail&hoststatustypes=3&serviceprops=42&servicestatustypes=28" target="<?php echo $link_target;?>">Unhandled</a>)
 </li>
 <li>
-<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12" target="<?php echo $link_target;?>">Hosts</a>
-<ul>
-<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12&hostprops=42" target="<?php echo $link_target;?>">Unhandled</a></li>
-</ul>
+<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12" target="<?php echo $link_target;?>">Hosts</a> (<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12&hostprops=42" target="<?php echo $link_target;?>">Unhandled</a>)
 </li>
 <li><a href="<?php echo $cfg["cgi_base_url"];?>/outages.cgi" target="<?php echo $link_target;?>">Network Outages</a></li>
 </ul>

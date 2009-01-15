@@ -2024,6 +2024,7 @@ void compute_subject_availability_times(int first_state,int last_state,time_t re
 		t->tm_sec=0;
 		t->tm_min=0;
 		t->tm_hour=0;
+                t->tm_isdst=-1;
 		midnight_today=(unsigned long)mktime(t);
 		weekday=t->tm_wday;
 
@@ -3123,6 +3124,7 @@ void convert_timeperiod_to_times(int type){
 	t->tm_sec=0;
 	t->tm_min=0;
 	t->tm_hour=0;
+        t->tm_isdst=-1;
 
 	switch(type){
 	case TIMEPERIOD_LAST24HOURS:
@@ -4831,6 +4833,7 @@ unsigned long calculate_total_time(time_t start_time, time_t end_time){
 		t->tm_sec=0;
 		t->tm_min=0;
 		t->tm_hour=0;
+                t->tm_isdst=-1;
 		midnight_today=(unsigned long)mktime(t);
 		weekday=t->tm_wday;
 

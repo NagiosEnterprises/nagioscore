@@ -21,7 +21,6 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 <div id="mainlogo">
 <a href="http://www.nagios.org/" target="_blank"><img src="images/logofullsize.png" border="0" alt="Nagios" title="Nagios"></a>
 </div>
-<div id="maincopy">Copyright (c) 1999-2008 Ethan Galstad</div>
 </div>
 
 <div id="currentversioninfo">
@@ -58,8 +57,9 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
 
 <div id="mainfooter">
+<div id="maincopy">Copyright &copy; 1999-2009 Ethan Galstad.<br>Portions copyright by Nagios community members  - see the THANKS file for more information.</div>
 <div CLASS="disclaimer">
-Nagios is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE.  Nagios and the Nagios logo are trademarks, servicemarks, registered trademarks or registered servicemarks owned by Nagios Enterprises, LLC.  Usage of the Nagios marks are governed by our <A href="http://www.nagios.org/legal/trademarkpolicy/">trademark policy</a>.
+Nagios is licensed under the GNU General Public License and is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE.  Nagios and the Nagios logo are trademarks, servicemarks, registered trademarks or registered servicemarks owned by Nagios Enterprises, LLC.  Usage of the Nagios marks are governed by our <A href="http://www.nagios.org/legal/trademarkpolicy/">trademark policy</a>.
 </div>
 <div class="logos">
 <a href="http://www.nagios.com/" target="_blank"><img src="images/NagiosEnterprises-whitebg-112x46.png" width="112" height="46" border="0" style="padding: 0 20px 0 0;" title="Nagios Enterprises"></a>  

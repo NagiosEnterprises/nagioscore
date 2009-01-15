@@ -113,6 +113,10 @@ ul.navsectionlinks li ul li ul {
 	font-weight: bold;
 	margin: 0 0 35px 0;
 	}
+
+#maincopy{
+	margin: 0 0 15px 0;
+	}
 	
 #currentversioninfo{
 	font-size: 12pt;

@@ -2,8 +2,8 @@
  *
  * CMD.C -  Nagios Command CGI
  *
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 11-30-2008
+ * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 01-15-2009
  *
  * License:
  * 
@@ -2034,6 +2034,8 @@ int commit_command(int cmd){
 
 	case CMD_SCHEDULE_SVC_CHECK:
 	case CMD_SCHEDULE_FORCED_SVC_CHECK:
+		if(force_check==TRUE)
+			cmd=CMD_SCHEDULE_FORCED_SVC_CHECK;
 		result = cmd_submitf(cmd,"%s;%s;%lu",host_name,service_desc,start_time);
 		break;
 

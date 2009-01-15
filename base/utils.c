@@ -846,6 +846,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 	t->tm_sec=0;
 	t->tm_min=0;
 	t->tm_hour=0;
+        t->tm_isdst=-1;
 	midnight=(unsigned long)mktime(t);
 
 	/**** check exceptions first ****/
@@ -869,6 +870,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 				t->tm_mday=temp_daterange->smday;
 				t->tm_mon=temp_daterange->smon;
 				t->tm_year=(temp_daterange->syear-1900);
+                                t->tm_isdst=-1;
 				start_time=mktime(t);
 				break;
 			case DATERANGE_MONTH_DATE:
@@ -898,6 +900,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 				t->tm_mday=temp_daterange->emday;
 				t->tm_mon=temp_daterange->emon;
 				t->tm_year=(temp_daterange->eyear-1900);
+                                t->tm_isdst=-1;
 				end_time=mktime(t);
 				break;
 			case DATERANGE_MONTH_DATE:
@@ -1133,6 +1136,7 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 	t->tm_sec=0;
 	t->tm_min=0;
 	t->tm_hour=0;
+        t->tm_isdst=-1;
 	midnight=(unsigned long)mktime(t);
 
 	/* save pref time values for later */
@@ -1173,6 +1177,7 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 				t->tm_mday=temp_daterange->smday;
 				t->tm_mon=temp_daterange->smon;
 				t->tm_year=(temp_daterange->syear-1900);
+                                t->tm_isdst=-1;
 				start_time=mktime(t);
 				break;
 			case DATERANGE_MONTH_DATE:
@@ -1241,6 +1246,7 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 				t->tm_mday=temp_daterange->emday;
 				t->tm_mon=temp_daterange->emon;
 				t->tm_year=(temp_daterange->eyear-1900);
+                                t->tm_isdst=-1;
 				end_time=mktime(t);
 				break;
 			case DATERANGE_MONTH_DATE:
@@ -1516,6 +1522,7 @@ time_t calculate_time_from_day_of_month(int year, int month, int monthday){
 		t.tm_year=year;
 		t.tm_mon=month;
 		t.tm_mday=monthday;
+                t.tm_isdst=-1;
 
 		midnight=mktime(&t);
 
@@ -1541,6 +1548,7 @@ time_t calculate_time_from_day_of_month(int year, int month, int monthday){
 			t.tm_mon=month;
 			t.tm_year=year;
 			t.tm_mday=day;
+                        t.tm_isdst=-1;
 			midnight=mktime(&t);
 
 			}while(t.tm_mon!=month);
@@ -1551,6 +1559,7 @@ time_t calculate_time_from_day_of_month(int year, int month, int monthday){
 		t.tm_year=year;
 		/* -1 means last day of month, so add one to to make this correct - Mike Bird */
 		t.tm_mday+=(monthday<-30)?-30:monthday+1;
+                t.tm_isdst=-1;
 		midnight=mktime(&t);
 
 		/* if we rolled over to the previous month, time is invalid */
@@ -1577,6 +1586,7 @@ time_t calculate_time_from_weekday_of_month(int year, int month, int weekday, in
 	t.tm_year=year;
 	t.tm_mon=month;
 	t.tm_mday=1;
+        t.tm_isdst=-1;
 
 	midnight=mktime(&t);
 
@@ -1596,6 +1606,7 @@ time_t calculate_time_from_weekday_of_month(int year, int month, int weekday, in
 		t.tm_mon=month;
 		t.tm_year=year;
 		t.tm_mday=days+1;
+                t.tm_isdst=-1;
 		midnight=mktime(&t);
 
 		/* if we rolled over to the next month, time is invalid */
@@ -1616,6 +1627,7 @@ time_t calculate_time_from_weekday_of_month(int year, int month, int weekday, in
 			t.tm_mon=month;
 			t.tm_year=year;
 			t.tm_mday=days+1;
+                        t.tm_isdst=-1;
 			midnight=mktime(&t);
 
 			}while(t.tm_mon!=month);
@@ -1628,6 +1640,7 @@ time_t calculate_time_from_weekday_of_month(int year, int month, int weekday, in
 		t.tm_mon=month;
 		t.tm_year=year;
 		t.tm_mday+=days;
+                t.tm_isdst=-1;
 		midnight=mktime(&t);
 
 		/* if we rolled over to the previous month, time is invalid */

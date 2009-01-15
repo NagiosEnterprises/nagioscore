@@ -1363,6 +1363,7 @@ void convert_timeperiod_to_times(int type){
 	t->tm_sec=0;
 	t->tm_min=0;
 	t->tm_hour=0;
+        t->tm_isdst=-1;
 
 	switch(type){
 	case TIMEPERIOD_LAST24HOURS:

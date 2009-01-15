@@ -39,7 +39,7 @@ function switchdot(name,on){
 
 
 <div class="navbarlogo">
-<a href="http://www.nagios.org" target="_blank"><img src="images/sblogo.jpg" border="0" alt="Nagios"></a>
+<a href="http://www.nagios.org" target="_blank"><img src="images/sblogo.png" border="0" alt="Nagios"></a>
 </div>
 
 <div class="navsection">

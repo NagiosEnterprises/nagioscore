@@ -4452,7 +4452,7 @@ int query_update_api(void){
 	/* generate the query */
 	asprintf(&api_query,"v=1&product=nagios&tinycheck=1&stableonly=1");
 	if(bare_update_check==FALSE)
-		asprintf(&api_query,"&version=%s%s",api_query,PROGRAM_VERSION,(api_query_opts==NULL)?"":api_query_opts);
+		asprintf(&api_query,"%s&version=%s%s",api_query,PROGRAM_VERSION,(api_query_opts==NULL)?"":api_query_opts);
 
 	/* generate the HTTP request */
 	asprintf(&buf,"POST %s HTTP/1.0\r\n",api_path);
@@ -4470,6 +4470,7 @@ int query_update_api(void){
 	printf("%s",buf);
 	printf("\n");
 	*/
+	
 
 	result=my_tcp_connect(api_server,80,&sd,2);
 	/*printf("CONN RESULT: %d, SD: %d\n",result,sd);*/

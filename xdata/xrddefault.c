@@ -2,8 +2,8 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 12-04-2008
+ * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 01-23-2009
  *
  * License:
  *
@@ -771,8 +771,10 @@ int xrddefault_read_state_information(void){
 					if(temp_host->current_state!=HOST_UP && temp_host->last_host_notification!=(time_t)0)
 						temp_host->next_host_notification=get_next_host_notification_time(temp_host,temp_host->last_host_notification);
 
-					/* update host status */
-					update_host_status(temp_host,FALSE);
+					/* ADDED 01/23/2009 adjust current check attempts if host in hard problem state (max attempts may have changed in config since restart) */
+					if(temp_host->current_state!=HOST_UP && temp_host->state_type==HARD_STATE)
+						temp_host->current_attempt=temp_host->max_attempts;
+					   
 
 					/* ADDED 02/20/08 assume same flapping state if large install tweaks enabled */
 					if(use_large_installation_tweaks==TRUE){
@@ -799,6 +801,9 @@ int xrddefault_read_state_information(void){
 					/* handle new vars added in 2.x */
 					if(temp_host->last_hard_state_change==(time_t)0)
 						temp_host->last_hard_state_change=temp_host->last_state_change;
+
+					/* update host status */
+					update_host_status(temp_host,FALSE);
 				        }
 
 				/* reset vars */
@@ -837,8 +842,10 @@ int xrddefault_read_state_information(void){
 					if(temp_service->has_been_checked==FALSE && temp_service->state_type==SOFT_STATE)
 						temp_service->state_type=HARD_STATE;
 
-					/* update service status */
-					update_service_status(temp_service,FALSE);
+					/* ADDED 01/23/2009 adjust current check attempt if service is in hard problem state (max attempts may have changed in config since restart) */
+					if(temp_service->current_state!=STATE_OK && temp_service->state_type==HARD_STATE)
+						temp_service->current_attempt=temp_service->max_attempts;
+					   
 
 					/* ADDED 02/20/08 assume same flapping state if large install tweaks enabled */
 					if(use_large_installation_tweaks==TRUE){
@@ -865,6 +872,9 @@ int xrddefault_read_state_information(void){
 					/* handle new vars added in 2.x */
 					if(temp_service->last_hard_state_change==(time_t)0)
 						temp_service->last_hard_state_change=temp_service->last_state_change;
+
+					/* update service status */
+					update_service_status(temp_service,FALSE);
 				        }
 
 				/* reset vars */

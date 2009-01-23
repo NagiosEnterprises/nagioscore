@@ -16,6 +16,7 @@ Nagios 3.x Change Log
 * Fix for bug in time calculation routines that could cause notification, reporting, and check scheduling anomalies
 * Fix for scheduling forced service checks from web interface
 * Minor mods for frameset base for HTML compliance (more fixes coming soon)
+* Fix for bug in handling of hard host and service problem states during restarts that could incorrectly set current check attempt and adversely affect notifications, etc.
 
 
 3.0.6 - 12/01/2008

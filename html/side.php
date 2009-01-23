@@ -6,35 +6,15 @@ $link_target="main";
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
-<HTML>
+<html>
 
-<HEAD>
-<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+<head>
+<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
 <TITLE>Nagios</TITLE>
 <link href="/nagios/stylesheets/common.css" type="text/css" rel="stylesheet">
-</HEAD>
+</head>
 
-<BODY class='navbar'>
-
-<SCRIPT LANGUAGE="JavaScript">
-<!--
-
-if(parseInt(navigator.appVersion.substring(0,1))>=3){
-  doton = new Image(13,14);
-  doton.src = "images/orangedot.gif";
-  dotoff = new Image(13,14);
-  dotoff.src = "images/greendot.gif";
-  }
-
-function switchdot(name,on){
-  if(parseInt(navigator.appVersion.substring(0,1))>=3){
-    image = eval("" + (on == 1 ? "doton.src" : "dotoff.src"));
-    document[name].src=image;
-    }
-  }
-
-//-->
-</SCRIPT>
+<body class='navbar'>
 
 
 
@@ -59,30 +39,30 @@ function switchdot(name,on){
 <ul class="navsectionlinks">
 <li><a href="<?php echo $cfg["cgi_base_url"];?>/tac.cgi" target="<?php echo $link_target;?>">Tactical Overview</a></li>
 <li><a href="<?php echo $cfg["cgi_base_url"];?>/statusmap.cgi?host=all" target="<?php echo $link_target;?>">Map</a></li>
-<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&style=hostdetail" target="<?php echo $link_target;?>">Hosts</a></li>
+<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&amp;style=hostdetail" target="<?php echo $link_target;?>">Hosts</a></li>
 <li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all" target="<?php echo $link_target;?>">Services</a></li>
 <li>
-<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&style=overview" target="<?php echo $link_target;?>">Host Groups</a>
+<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&amp;style=overview" target="<?php echo $link_target;?>">Host Groups</a>
 <ul>
-<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&style=summary" target="<?php echo $link_target;?>">Summary</a></li>
-<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&style=grid" target="<?php echo $link_target;?>">Grid</a></li>
+<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&amp;style=summary" target="<?php echo $link_target;?>">Summary</a></li>
+<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&amp;style=grid" target="<?php echo $link_target;?>">Grid</a></li>
 </ul>
 </li>
 <li>
-<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?servicegroup=all&style=overview" target="<?php echo $link_target;?>">Service Groups</a>
+<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?servicegroup=all&amp;style=overview" target="<?php echo $link_target;?>">Service Groups</a>
 <ul>
-<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?servicegroup=all&style=summary" target="<?php echo $link_target;?>">Summary</a></li>
-<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?servicegroup=all&style=grid" target="<?php echo $link_target;?>">Grid</a></li>
+<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?servicegroup=all&amp;style=summary" target="<?php echo $link_target;?>">Summary</a></li>
+<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?servicegroup=all&amp;style=grid" target="<?php echo $link_target;?>">Grid</a></li>
 </ul>
 </li>
 <li>
-<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&servicestatustypes=28" target="<?php echo $link_target;?>">Problems</a>
+<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&amp;servicestatustypes=28" target="<?php echo $link_target;?>">Problems</a>
 <ul>
 <li>
-<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&servicestatustypes=28" target="<?php echo $link_target;?>">Services</a> (<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&type=detail&hoststatustypes=3&serviceprops=42&servicestatustypes=28" target="<?php echo $link_target;?>">Unhandled</a>)
+<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&amp;servicestatustypes=28" target="<?php echo $link_target;?>">Services</a> (<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&amp;type=detail&amp;hoststatustypes=3&amp;serviceprops=42&amp;servicestatustypes=28" target="<?php echo $link_target;?>">Unhandled</a>)
 </li>
 <li>
-<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12" target="<?php echo $link_target;?>">Hosts</a> (<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12&hostprops=42" target="<?php echo $link_target;?>">Unhandled</a>)
+<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&amp;style=hostdetail&amp;hoststatustypes=12" target="<?php echo $link_target;?>">Hosts</a> (<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&amp;style=hostdetail&amp;hoststatustypes=12&amp;hostprops=42" target="<?php echo $link_target;?>">Unhandled</a>)
 </li>
 <li><a href="<?php echo $cfg["cgi_base_url"];?>/outages.cgi" target="<?php echo $link_target;?>">Network Outages</a></li>
 </ul>
@@ -121,7 +101,6 @@ function switchdot(name,on){
 </li>
 <li><a href="<?php echo $cfg["cgi_base_url"];?>/notifications.cgi?contact=all" target="<?php echo $link_target;?>">Notifications</a></li>
 <li><a href="<?php echo $cfg["cgi_base_url"];?>/showlog.cgi" target="<?php echo $link_target;?>">Event Log</a></li>
-</li>
 </ul>
 </div>
 </div>

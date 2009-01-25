@@ -1515,9 +1515,9 @@ void display_timeperiods(void){
 
 				switch(temp_daterange->type){
 				case DATERANGE_CALENDAR_DATE:
-					printf("%d-%02d-%02d",temp_daterange->syear,temp_daterange->smon,temp_daterange->smday);
+					printf("%d-%02d-%02d",temp_daterange->syear,temp_daterange->smon+1,temp_daterange->smday);
 					if((temp_daterange->smday!=temp_daterange->emday) || (temp_daterange->smon!=temp_daterange->emon) || (temp_daterange->syear!=temp_daterange->eyear))
-						printf(" - %d-%02d-%02d",temp_daterange->eyear,temp_daterange->emon,temp_daterange->emday);
+						printf(" - %d-%02d-%02d",temp_daterange->eyear,temp_daterange->emon+1,temp_daterange->emday);
 					if(temp_daterange->skip_interval>1)
 						printf(" / %d",temp_daterange->skip_interval);
 					break;

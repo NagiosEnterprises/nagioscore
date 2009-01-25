@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 01-15-2009
+ * Last Modified: 01-25-2009
  *
  * License:
  *
@@ -1195,7 +1195,8 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 				month=current_time_mon;
 				/* advance an additional month (and possibly the year) if we already passed the end day of month */
 				if(temp_daterange->emday < current_time_mday){
-					if(month==1){
+					/*if(month==1){*/
+					if(month==11){
 						month=0;
 						year++;
 						}

@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.1.0 - ??/??/2009
+3.1.0 - 01/25/2009
 ------------------
 * Added automatic update check functionality - runs once a day to check for new Nagios releases
 * Splash screen on web UI now indicates whether a new update is available (requires that update checks are enabled)
@@ -17,6 +17,8 @@ Nagios 3.x Change Log
 * Fix for scheduling forced service checks from web interface
 * Minor mods for frameset base for HTML compliance (more fixes coming soon)
 * Fix for bug in handling of hard host and service problem states during restarts that could incorrectly set current check attempt and adversely affect notifications, etc.
+* Fix for bug in timeperiod calculation of year/month rollovers and display of fixed calendar dates in web interface
+
 
 
 3.0.6 - 12/01/2008

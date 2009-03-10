@@ -11,7 +11,7 @@ $link_target="main";
 <head>
 <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
 <TITLE>Nagios</TITLE>
-<link href="/nagios/stylesheets/common.css" type="text/css" rel="stylesheet">
+<link href="stylesheets/common.css" type="text/css" rel="stylesheet">
 </head>
 
 <body class='navbar'>

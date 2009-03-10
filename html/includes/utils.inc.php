@@ -155,8 +155,8 @@ function read_main_config_file($thefile=""){
 			if(isset($v[0]) && isset($v[1])){
 
 				// trim var/val pairs
-				$v[0]=ltrim(rtrim($v[0]));
-				$v[1]=ltrim(rtrim($v[1]));
+				$v[0]=trim($v[0]);
+				$v[1]=trim($v[1]);
 
 				// allow for multiple values for some variables...
 				$arr=false;

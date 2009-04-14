@@ -201,7 +201,7 @@ This directive is used to define a longer name or description used to identify t
 <tr>
 <td valign="top"><strong>address</strong>:</td>
 <td>
-This directive is used to define the address of the host.  Normally, this is an IP address, although it could really be anything you want (so long as it can be used to check the status of the host).  You can use a FQDN to identify the host instead of an IP address, but if DNS services are not availble this could cause problems. When used properly, the $HOSTADDRESS$ <a href="macros.html">macro</a> will contain this address.  <b>Note:</b> If you do not specify an address directive in a host definition, the name of the host will be used as its address.  A word of caution about doing this, however - if DNS fails, most of your service checks will fail because the plugins will be unable to resolve the host name.
+This directive is used to define the address of the host.  Normally, this is an IP address, although it could really be anything you want (so long as it can be used to check the status of the host).  You can use a FQDN to identify the host instead of an IP address, but if DNS services are not 3333cc le this could cause problems. When used properly, the $HOSTADDRESS$ <a href="macros.html">macro</a> will contain this address.  <b>Note:</b> If you do not specify an address directive in a host definition, the name of the host will be used as its address.  A word of caution about doing this, however - if DNS fails, most of your service checks will fail because the plugins will be unable to resolve the host name.
 </td>
 </tr>
 <tr>
@@ -231,13 +231,13 @@ This directive is used to specify the <i>short name</i> of the <a href="#command
 <tr>
 <td valign="top"><strong>initial_state</strong>:</td>
 <td>
-By default Nagios will assume that all hosts are in UP states when in starts.  You can override the initial state for a host by using this directive.  Valid options are: <b>o</b> = UP, <b>d</b> = DOWN, and <b>u</b> = UNREACHABLE.
+By default Nagios will assume that all hosts are in UP states when it starts.  You can override the initial state for a host by using this directive.  Valid options are: <b>o</b> = UP, <b>d</b> = DOWN, and <b>u</b> = UNREACHABLE.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>max_check_attempts</strong>:</td>
 <td>
-This directive is used to define the number of times that Nagios will retry the host check command if it returns any state other than an OK state.  Setting this value to 1 will cause Nagios to generate an alert without retrying the host check again.  Note: If you do not want to check the status of the host, you must still set this to a minimum value of 1.  To bypass the host check, just leave the <i>check_command</i> option blank.
+This directive is used to define the number of times that Nagios will retry the host check command if it returns any state other than an OK state.  Setting this value to 1 will cause Nagios to generate an alert without retrying the host check.  Note: If you do not want to check the status of the host, you must still set this to a minimum value of 1.  To bypass the host check, just leave the <i>check_command</i> option blank.
 </td>
 </tr>
 <tr>
@@ -255,13 +255,13 @@ This directive is used to define the number of "time units" to wait before sched
 <tr>
 <td valign="top"><strong>active_checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
-This directive is used to determine whether or not active checks (either regularly scheduled or on-demand) of this host are enabled. Values: 0 = disable active host checks, 1 = enable active host checks.
+This directive is used to determine whether or not active checks (either regularly scheduled or on-demand) of this host are enabled. Values: 0 = disable active host checks, 1 = enable active host checks (default). 
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>passive_checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
-This directive is used to determine whether or not passive checks are enabled for this host. Values: 0 = disable passive host checks, 1 = enable passive host checks.
+This directive is used to determine whether or not passive checks are enabled for this host. Values: 0 = disable passive host checks, 1 = enable passive host checks (default).
 </td>
 </tr>
 <tr>
@@ -279,7 +279,7 @@ This directive determines whether or not checks for the host will be "obsessed" 
 <tr>
 <td valign="top"><strong>check_freshness <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
-This directive is used to determine whether or not <a href="freshness.html">freshness checks</a> are enabled for this host. Values: 0 = disable freshness checks, 1 = enable freshness checks.
+This directive is used to determine whether or not <a href="freshness.html">freshness checks</a> are enabled for this host. Values: 0 = disable freshness checks, 1 = enable freshness checks (default).
 </td>
 </tr>
 <tr>
@@ -676,7 +676,7 @@ This directive is used to specify the <i>short name</i> of the <a href="#command
 <tr>
 <td valign="top"><strong>initial_state</strong>:</td>
 <td>
-By default Nagios will assume that all services are in OK states when in starts.  You can override the initial state for a service by using this directive.  Valid options are: <b>o</b> = OK, <b>w</b> = WARNING, <b>u</b> = UNKNOWN, and <b>c</b> = CRITICAL.
+By default Nagios will assume that all services are in OK states when it starts.  You can override the initial state for a service by using this directive.  Valid options are: <b>o</b> = OK, <b>w</b> = WARNING, <b>u</b> = UNKNOWN, and <b>c</b> = CRITICAL.
 </td>
 </tr>
 <tr>
@@ -700,13 +700,13 @@ This directive is used to define the number of "time units" to wait before sched
 <tr>
 <td valign="top"><strong>active_checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
-This directive is used to determine whether or not active checks of this service are enabled. Values: 0 = disable active service checks, 1 = enable active service checks.
+This directive is used to determine whether or not active checks of this service are enabled. Values: 0 = disable active service checks, 1 = enable active service checks (default).
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>passive_checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
-This directive is used to determine whether or not passive checks of this service are enabled. Values: 0 = disable passive service checks, 1 = enable passive service checks.
+This directive is used to determine whether or not passive checks of this service are enabled. Values: 0 = disable passive service checks, 1 = enable passive service checks (default).
 </td>
 </tr>
 <tr>
@@ -724,7 +724,7 @@ This directive determines whether or not checks for the service will be "obsesse
 <tr>
 <td valign="top"><strong>check_freshness <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
-This directive is used to determine whether or not <a href="freshness.html">freshness checks</a> are enabled for this service. Values: 0 = disable freshness checks, 1 = enable freshness checks.
+This directive is used to determine whether or not <a href="freshness.html">freshness checks</a> are enabled for this service. Values: 0 = disable freshness checks, 1 = enable freshness checks (default).
 </td>
 </tr>
 <tr>

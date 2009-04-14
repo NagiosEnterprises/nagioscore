@@ -223,7 +223,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 <li><b>IPC</b>:<br>
 	<ul>
 	<li>The IPC mechanism that is used to transfer host/service check results back to the Nagios daemon from (grand)child processes has changed!  This should help to reduce load/latency issues related to processing large numbers of passive checks in distributed monitoring environments.</li>
-	<li>Check results are now transferred by writing check results to files in directory specified by the <a href="configmain.html#check_result_path">check_result_path</a> option.  Files that are older that the <a href="configmain.html#max_check_result_file_age">max_check_result_file_age</a> option will be mercilessly deleted without further processing.</li>
+	<li>Check results are now transferred by writing check results to files in directory specified by the <a href="configmain.html#check_result_path">check_result_path</a> option.  Files that are older than the <a href="configmain.html#max_check_result_file_age">max_check_result_file_age</a> option will be mercilessly deleted without further processing.</li>
 	</ul>
 </li>
 <br>
@@ -248,10 +248,10 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 
 <li><b>Web Interface</b>:<br>
 	<ul>
-	<li>Hostgroup and servicegroup summaries now show important/unimportant problem breakdowns liek the TAC CGI.</li>
+	<li>Hostgroup and servicegroup summaries now show important/unimportant problem breakdowns like the TAC CGI.</li>
 	<li>Minor layout changes to host and service detail views in extinfo CGI.</li>
 	<li>New check statistics and have been added to the "Performance Info" screen.</li>
-	<li>Added <a href="http://www.splunk.com/" target="_blank">Splunk</a></li> integration options to various CGIs.  Integration is controlled by the <a href="configcgi.html#enable_splunk_integration">enable_splunk_integration</a> and <a href="configcgi.html#splunk_url">splunk_url</a> options in the CGI config file.
+	<li>Added <a href="http://www.splunk.com/" target="_blank">Splunk</a> integration options to various CGIs.  Integration is controlled by the <a href="configcgi.html#enable_splunk_integration">enable_splunk_integration</a> and <a href="configcgi.html#splunk_url">splunk_url</a> options in the CGI config file.
 	<li>Added new <a href="configcgi.html#notes_url_target">notes_url_target</a> and <a href="configcgi.html#action_url_target">action_url_target</a> options to control what frame notes and action URLs are opened in.</li>
 	<li>Added new <a href="configcgi.html#lock_author_names">lock_author_names</a> option to prevent alteration of author names when users submit comments, acknowledgements, and scheduled downtime.</li>
 	</ul>
@@ -260,8 +260,8 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 
 <li><b>Debugging Info</b>:<br>
 	<ul>
-	<li>The DEBUGx compile options available in the configure script for have been removed.</li>
-	<li>Debugging information can now be written to a separate debug file, which is automatically rotated when it reaches a user-defined size.  This should make debugging problems much easier, as you don't need to recompiled Nagios.  Full support for writing debugging information to file is being added during the alpha development phase, so it may not be complete when you try it.</li>
+	<li>The DEBUGx compile options available in the configure script have been removed.</li>
+	<li>Debugging information can now be written to a separate debug file, which is automatically rotated when it reaches a user-defined size.  This should make debugging problems much easier, as you don't need to recompile Nagios.  Full support for writing debugging information to file is being added during the alpha development phase, so it may not be complete when you try it.</li>
 	<li>Variables that affect the debug log are <a href="configmain.html#debug_file">debug_file</a>, <a href="configmain.html#debug_level">debug_level</a>, <a href="configmain.html#debug_verbosity">debug_verbosity</a>, and <a href="configmain.html#max_debug_file_size">max_debug_file_size</a>.</li>
 	</ul>
 </li>

@@ -97,11 +97,18 @@ make install
 </pre>
 
 <p>
-Verify your configuration files and restart Nagios.
+Verify your configuration files.  Correct any errors shown here before proceeding with the next step.
 </p>
 
 <pre>
 /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+</pre>
+
+<p>
+Restart Nagios.  Debian/Ubuntu users should use <i>/etc/init.d/nagios restart</i>.
+</p>
+
+<pre>
 /sbin/service nagios restart
 </pre>
 
@@ -143,6 +150,7 @@ If you currently have an RPM- or Debian/Ubuntu APT package-based installation of
 </p>
 
 <ol>
+<li>Stop Nagios</li>
 <li>Backup your existing Nagios installation</li>
 <ul>
 <li>Configuration files</li>

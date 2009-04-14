@@ -1,3519 +1,7038 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
+
+
 <html>
+
 <head>
+
 <title>Main Configuration File Options</title>
 
+
+
 <STYLE type="text/css">
+
 <!--
+
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+
         .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
+
 -->      
+
 </STYLE>
+
+
 
 </head>
 
+
+
 <body bgcolor="#FFFFFF" text="black" class="Default">
 
+
+
 <div align="center">
+
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+
 <h1 class="PageTitle">Main Configuration File Options</h1>
+
 </div>
+
+
 
 <hr>
 
+
+
 <p>
+
 <img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+
+</p>
+
+
+
+<p>
+
+<strong><u>Notes</u></strong>
+
 </p>
 
 <p>
-<strong><u>Notes</u></strong>
-</p>
-<p>
+
 When creating and/or editing configuration files, keep the following in mind:
+
 </p>
+
 <ol>
+
 <li>Lines that start with a '#' character are taken to be comments and are not processed
+
 <li>Variables names must begin at the start of the line - no white space is allowed before the name
+
 <li>Variable names are case-sensitive
+
 </ol>
 
+
+
 <p>
+
 <strong><u>Sample Configuration File</u></strong>
+
 </p>
+
 <p>
+
 <img src="images/tip.gif" border="0" align="bottom" alt="Tip" title="Tip"> Tip: A sample main configuration file (<i>/usr/local/nagios/etc/nagios.cfg</i>) is installed for you when you follow the <a href="quickstart.html">quickstart installation guide</a>.
+
 </p>
 
+
+
 <p>
+
 <strong><u>Config File Location</u></strong>
+
 </p>
 
+
+
 <p>
+
 The main configuration file is usually named <i>nagios.cfg</i> and located in the <i>/usr/local/nagios/etc/</i> directory.
+
 </p>
 
 
+
+
+
 <p>
+
 <strong><u>Configuration File Variables</u></strong>
+
 </p>
+
+
+
+
 
 
 
 <p>
+
 Below you will find descriptions of each main Nagios configuration file option...
+
 </p>
+
+
+
 
 
 <a name="log_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Log File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>log_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>log_file=/usr/local/nagios/var/nagios.log</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This variable specifies where Nagios should create its main log file.  This should be the first
+
 variable that you define in your configuration file, as Nagios will try to write errors that it
+
 finds in the rest of your configuration data to this file.  If you have <a href="#log_rotation_method">log rotation</a> enabled, this file will automatically be rotated every hour, day, week, or month.
+
 </p>
+
+
+
 
 
 <a name="cfg_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Object Configuration File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>cfg_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td>
+
 <font color="red"><strong>cfg_file=/usr/local/nagios/etc/hosts.cfg</strong></font><br>
+
 <font color="red"><strong>cfg_file=/usr/local/nagios/etc/services.cfg</strong></font><br>
+
 <font color="red"><strong>cfg_file=/usr/local/nagios/etc/commands.cfg</strong></font>
+
 </td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This directive is used to specify an <a href="configobject.html">object configuration file</a> containing object definitions that Nagios should use for monitoring.  Object configuration files contain definitions for hosts, host groups, contacts, contact groups, services, commands, etc.  You can seperate your configuration information into several files and specify multiple <i>cfg_file=</i> statements to have each of them processed.
+
 </p>
+
+
+
 
 
 <a name="cfg_dir"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Object Configuration Directory</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>cfg_dir=&lt;directory_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td>
+
 <font color="red"><strong>cfg_dir=/usr/local/nagios/etc/commands</strong></font><br>
+
 <font color="red"><strong>cfg_dir=/usr/local/nagios/etc/services</strong></font><br>
+
 <font color="red"><strong>cfg_dir=/usr/local/nagios/etc/hosts</strong></font>
+
 </td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This directive is used to specify a directory which contains <a href="configobject.html">object configuration files</a> that Nagios should use for monitoring.  All files in the directory with a <i>.cfg</i> extension are processed as object config files.  Additionally, Nagios will recursively process all config files in subdirectories of the directory you specify here.  You can seperate your configuration files into different directories and specify multiple <i>cfg_dir=</i> statements to have all config files in each directory processed.
+
 </p>
+
+
+
+
 
 
 
 <a name="object_cache_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Object Cache File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>object_cache_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td>
+
 <font color="red"><strong>object_cache_file=/usr/local/nagios/var/objects.cache</strong></font>
+
 </td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This directive is used to specify a file in which a cached copy of <a href="configobject.html">object definitions</a> should be stored.  The cache file is (re)created every time Nagios is (re)started and is used by the CGIs.   It is intended to speed up config file caching in the CGIs and allow you to edit the source <a href="#cfg_file">object config files</a> while Nagios is running without affecting the output displayed in the CGIs.
+
 </p>
+
+
+
 
 
 <a name="precached_object_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Precached Object File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>precached_object_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td>
+
 <font color="red"><strong>precached_object_file=/usr/local/nagios/var/objects.precache</strong></font>
+
 </td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This directive is used to specify a file in which a pre-processed, pre-cached copy of <a href="configobject.html">object definitions</a> should be stored.  This file can be used to drastically improve startup times in large/complex Nagios installations.  Read more information on how to speed up start times <a href="faststartup.html">here</a>.
+
 </p>
+
+
+
 
 
 <a name="resource_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Resource File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>resource_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>resource_file=/usr/local/nagios/etc/resource.cfg</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is used to specify an optional resource file that can contain $USERn$ <a href="macros.html">macro</a> definitions.  $USERn$ macros are useful for storing usernames, passwords, and items commonly used in command definitions (like directory paths).  The CGIs will <i>not</i> attempt to read resource files, so you can set restrictive permissions (600 or 660) on them to protect sensitive information.  You can include multiple resource files by adding multiple resource_file statements to the main config file - Nagios will process them all.  See the sample resource.cfg file in the <i>sample-config/</i> subdirectory of the Nagios distribution for an example of how to define $USERn$ macros.
+
 </p>
+
+
+
 
 
 <a name="temp_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Temp File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>temp_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>temp_file=/usr/local/nagios/var/nagios.tmp</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is a temporary file that Nagios periodically creates to use when updating comment data, status data, etc.  The file is deleted when it is no longer needed.
+
 </p>
+
+
 
 <a name="temp_path"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Temp Path</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>temp_path=&lt;dir_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>temp_path=/tmp</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is a directory that Nagios can use as scratch space for creating temporary files used during the monitoring process.  You should run <i>tmpwatch</i>, or a similiar utility, on this directory occassionally to delete files older than 24 hours.
+
 </p>
+
+
 
 <a name="status_file"></a>
+
 <a name="status_log"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Status File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>status_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>status_file=/usr/local/nagios/var/status.dat</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the file that Nagios uses to store the current status, comment, and downtime information.  This file is used by the CGIs so that current monitoring status can be reported via a web interface.  The CGIs must have read access to this file in order to function properly.  This file is deleted every time Nagios stops and recreated when it starts.
+
 </p>
+
+
+
 
 
 <a name="status_update_interval"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Status File Update Interval</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>status_update_interval=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>status_update_interval=15</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This setting determines how often (in seconds) that Nagios will update status data in the <a href="#status_file">status file</a>.  The minimum update interval is 1 second.
+
 </p>
+
+
+
 
 
 <a name="nagios_user"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Nagios User</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>nagios_user=&lt;username/UID&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>nagios_user=nagios</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is used to set the effective user that the Nagios process should run as.  After initial program startup and before starting to monitor anything, Nagios will drop its effective privileges and run as this user.  You may specify either a username or a UID.
+
 </p>
+
+
+
 
 
 <a name="nagios_group"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Nagios Group</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>nagios_group=&lt;groupname/GID&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>nagios_group=nagios</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is used to set the effective group that the Nagios process should run as.  After initial program startup and before starting to monitor anything, Nagios will drop its effective privileges and run as this group.  You may specify either a groupname or a GID.
+
 </p>
+
+
+
 
 
 <a name="enable_notifications"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Notifications Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>enable_notifications=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>enable_notifications=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will send out <a href="notifications.html">notifications</a> when it initially (re)starts.  If this option is disabled, Nagios will not send out notifications for any host or service.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
+
 </p>
+
 <ul>
+
 <li>0 = Disable notifications
+
 <li>1 = Enable notifications (default)
+
 </ul>
+
+
+
 
 
 <a name="execute_service_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Check Execution Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>execute_service_checks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>execute_service_checks=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will execute service checks when it initially (re)starts.  If this option is disabled, Nagios will not actively execute any service checks and will remain in a sort of "sleep" mode (it can still accept <a href="passivechecks.html">passive checks</a> unless you've <a href="#accept_passive_service_checks">disabled them</a>).   This option is most often used when configuring backup monitoring servers, as described in the documentation on <a href="redundancy.html">redundancy</a>, or when setting up a <a href="distributed.html">distributed</a> monitoring environment.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
+
 </p>
+
 <ul>
+
 <li>0 = Don't execute service checks
+
 <li>1 = Execute service checks (default)
+
 </ul>
+
+
+
 
 
 <a name="accept_passive_service_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Passive Service Check Acceptance Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>accept_passive_service_checks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>accept_passive_service_checks=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will accept <a href="passivechecks.html">passive service checks</a> when it initially (re)starts.  If this option is disabled, Nagios will not accept any passive service checks.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
+
 </p>
+
 <ul>
+
 <li>0 = Don't accept passive service checks
+
 <li>1 = Accept passive service checks (default)
+
 </ul>
+
+
+
 
 
 <a name="execute_host_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Check Execution Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>execute_host_checks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>execute_host_checks=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will execute on-demand and regularly scheduled host checks when it initially (re)starts.  If this option is disabled, Nagios will not actively execute any host checks, although it can still accept <a href="passivechecks.html">passive host checks</a> unless you've <a href="#accept_passive_host_checks">disabled them</a>).   This option is most often used when configuring backup monitoring servers, as described in the documentation on <a href="redundancy.html">redundancy</a>, or when setting up a <a href="distributed.html">distributed</a> monitoring environment.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
+
 </p>
+
 <ul>
+
 <li>0 = Don't execute host checks
+
 <li>1 = Execute host checks (default)
+
 </ul>
+
+
+
 
 
 <a name="accept_passive_host_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Passive Host Check Acceptance Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>accept_passive_host_checks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>accept_passive_host_checks=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will accept <a href="passivechecks.html">passive host checks</a> when it initially (re)starts.  If this option is disabled, Nagios will not accept any passive host checks.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
+
 </p>
+
 <ul>
+
 <li>0 = Don't accept passive host checks
+
 <li>1 = Accept passive host checks (default)
+
 </ul>
+
+
+
 
 
 <a name="enable_event_handlers"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Event Handler Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>enable_event_handlers=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>enable_event_handlers=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will run <a href="eventhandlers.html">event handlers</a> when it initially (re)starts.  If this option is disabled, Nagios will not run any host or service event handlers.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
+
 </p>
+
 <ul>
+
 <li>0 = Disable event handlers
+
 <li>1 = Enable event handlers (default)
+
 </ul>
+
+
+
 
 
 <a name="log_rotation_method"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Log Rotation Method</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>log_rotation_method=&lt;n/h/d/w/m&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>log_rotation_method=d</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the rotation method that you would like Nagios to use for your log file.  Values are as follows:
+
 </p>
+
 <ul>
+
 <li>n = None (don't rotate the log - this is the default)
+
 <li>h = Hourly (rotate the log at the top of each hour)
+
 <li>d = Daily (rotate the log at midnight each day)
+
 <li>w = Weekly (rotate the log at midnight on Saturday)
+
 <li>m = Monthly (rotate the log at midnight on the last day of the month)
+
 </ul>
+
+
+
 
 
 <a name="log_archive_path"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Log Archive Path</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>log_archive_path=&lt;path&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>log_archive_path=/usr/local/nagios/var/archives/</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the directory where Nagios should place log files that have been rotated.  This option is ignored if you choose to not use the <a href="#log_rotation_method">log rotation</a> functionality.
+
 </p>
+
+
+
 
 
 <a name="check_external_commands"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>External Command Check Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>check_external_commands=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>check_external_commands=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will check the <a href="#command_file">command file</a> for  commands that should be executed.  This option must be enabled if you plan on using the <a href="cgis.html#cmd_cgi">command CGI</a> to issue commands via the web interface. More information on external commands can be found <a href="extcommands.html">here</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Don't check external commands
+
 <li>1 = Check external commands (default)
+
 </ul>
+
+
+
 
 
 <a name="command_check_interval"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>External Command Check Interval</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>command_check_interval=&lt;xxx&gt;[s]</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>command_check_interval=1</strong></font></td>
+
 </tr>
+
 </table>
 
-<p>
-If you specify a number with an "s" appended to it (i.e. 30s), this is the number of <i>seconds</i> to wait between external command checks.  If you leave off the "s", this is the number of "time units" to wait between external command checks. Unless you've changed the <a href="#interval_length">interval_length</a> value (as defined below) from the default value of 60, this number will mean minutes.  
-</p>
+
 
 <p>
-Note: By setting this value to <b>-1</b>, Nagios will check for external commands as often as possible.  Each time Nagios checks for external commands it will read and process all commands present in the <a href="#command_file">command file</a> before continuing on with its other duties.  More information on external commands can be found <a href="extcommands.html">here</a>.
+
+If you specify a number with an "s" appended to it (i.e. 30s), this is the number of <i>seconds</i> to wait between external command checks.  If you leave off the "s", this is the number of "time units" to wait between external command checks. Unless you've changed the <a href="#interval_length">interval_length</a> value (as defined below) from the default value of 60, this number will mean minutes.  
+
 </p>
+
+
+
+<p>
+
+Note: By setting this value to <b>-1</b>, Nagios will check for external commands as often as possible.  Each time Nagios checks for external commands it will read and process all commands present in the <a href="#command_file">command file</a> before continuing on with its other duties.  More information on external commands can be found <a href="extcommands.html">here</a>.
+
+</p>
+
+
+
 
 
 <a name="command_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>External Command File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>command_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>command_file=/usr/local/nagios/var/rw/nagios.cmd</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the file that Nagios will check for external commands to process.  The <a href="cgis.html#cmd_cgi">command CGI</a> writes commands to this file.  The external command file is implemented as a named pipe (FIFO), which is created when Nagios starts and removed when it shuts down.  If the file exists when Nagios starts, the Nagios process will terminate with an error message.  More information on external commands can be found <a href="extcommands.html">here</a>.
+
 </p>
+
+
+
 
 
 <a name="external_command_buffer_slots"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>External Command Buffer Slots</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>external_command_buffer_slots=&lt;#&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>external_command_buffer_slots=512</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 Note: This is an advanced feature. This option determines how many buffer slots Nagios will reserve for caching external commands that have been read from the external command file by a worker thread, but have not yet been processed by the main thread of the Nagios deamon.  Each slot can hold one external command, so this option essentially determines how many commands can be buffered.  For installations where you process a large number of passive checks (e.g. <a href="distributed.html">distributed setups</a>), you may need to increase this number.  You should consider using MRTG to graph Nagios' usage of external command buffers.  You can read more on how to configure graphing <a href="mrtggraphs.html">here</a>.
+
 </p>
+
+
+
 
 
 <a name="check_for_updates"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Update Checks</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>check_for_updates=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>check_for_updates=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether Nagios will automatically check to see if new updates (releases) are available.  It is recommend that you enable this option to ensure that you stay on top of the latest critical patches to Nagios.  Nagios is critical to you - make sure you keep it in good shape.  Nagios will check once a day for new updates. Data collected by Nagios Enterprises from the update check is processed in accordance  with our privacy policy - see <a href="http://api.nagios.org">http://api.nagios.org</a> for details.
+
 </p>
+
+
+
 
 
 <a name="bare_update_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Bare Update Checks</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>bare_update_checks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>bare_update_checks</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option deterines what data Nagios will send to api.nagios.org when it checks for updates.  By default, Nagios will send information on the current version of Nagios you have installed, as well as an indicator as to whether this was a new installation or not.  Nagios Enterprises uses this data to determine the number of users running specific version of Nagios.  Enable this option if you do not wish for this information to be sent.
+
 </p>
+
+
+
 
 
 <a name="lock_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Lock File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>lock_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>lock_file=/tmp/nagios.lock</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option specifies the location of the lock file that Nagios should create when it runs as a daemon (when started with the -d command line argument).  This file contains the process id (PID) number of the running Nagios process.
+
 </p>
+
+
+
 
 
 <a name="retain_state_information"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>State Retention Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>retain_state_information=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>retain_state_information=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will retain state information for hosts and services between program restarts.  If you enable this option, you should supply a value for the <a href="#state_retention_file">state_retention_file</a> variable.  When enabled, Nagios will save all state information for hosts and service before it shuts down (or restarts) and will read in previously saved state information when it starts up again.
+
 </p>
+
 <ul>
+
 <li>0 = Don't retain state information
+
 <li>1 = Retain state information (default)
+
 </ul>
+
+
+
 
 
 <a name="state_retention_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>State Retention File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>state_retention_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>state_retention_file=/usr/local/nagios/var/retention.dat</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the file that Nagios will use for storing status, downtime, and comment information before it shuts down.  When Nagios is restarted it will use the information stored in this file for setting the initial states of services and hosts before it starts monitoring anything.   In order to make Nagios retain state information between program restarts, you must enable the <a href="#retain_state_information">retain_state_information</a> option.
+
 </p>
+
+
+
 
 
 <a name="retention_update_interval"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Automatic State Retention Update Interval</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>retention_update_interval=&lt;minutes&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>retention_update_interval=60</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This setting determines how often (in minutes) that Nagios will automatically save retention data during normal operation.  If you set this value to 0, Nagios will not save retention data at regular intervals, but it will still save retention data before shutting down or restarting.  If you have disabled state retention (with the <a href="#retain_state_information">retain_state_information</a> option), this option has no effect.
+
 </p>
+
+
+
 
 
 <a name="use_retained_program_state"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Use Retained Program State Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>use_retained_program_state=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>use_retained_program_state=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This setting determines whether or not Nagios will set various program-wide state variables based on the values saved in the retention file.  Some of these program-wide state variables that are normally saved across program restarts if state retention is enabled include the <a href="#enable_notifications">enable_notifications</a>, <a href="#enable_flap_detection">enable_flap_detection</a>, <a href="#enable_event_handlers">enable_event_handlers</a>, <a href="#execute_service_checks">execute_service_checks</a>, and <a href="#accept_passive_service_checks">accept_passive_service_checks</a> options. If you do not have <a href="#retain_state_information">state retention</a> enabled, this option has no effect.
+
 </p>
+
 <ul>
+
 <li>0 = Don't use retained program state
+
 <li>1 = Use retained program state (default)
+
 </ul>
+
+
+
 
 
 <a name="use_retained_scheduling_info"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Use Retained Scheduling Info Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>use_retained_scheduling_info=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>use_retained_scheduling_info=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This setting determines whether or not Nagios will retain scheduling info (next check times) for hosts and services when it restarts.  If you are adding a large number (or percentage) of hosts and services, I would recommend disabling this option when you first restart Nagios, as it can adversely skew the spread of initial checks.  Otherwise you will probably want to  leave it enabled.
+
 </p>
+
 <ul>
+
 <li>0 = Don't use retained scheduling info
+
 <li>1 = Use retained scheduling info (default)
+
 </ul>
+
+
+
 
 
 <a name="retained_host_attribute_mask"></a>
+
 <a name="retained_service_attribute_mask"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Retained Host and Service Attribute Masks</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td>
+
 <strong>retained_host_attribute_mask=&lt;number&gt;</strong><br>
+
 <strong>retained_service_attribute_mask=&lt;number&gt;</strong>
+
 </td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td>
+
 <font color="red"><strong>retained_host_attribute_mask=0</strong></font><br>
+
 <font color="red"><strong>retained_service_attribute_mask=0</strong></font>
+
 </td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 WARNING: This is an advanced feature.  You'll need to read the Nagios source code to use this option effectively.
+
 </p>
+
 <p>
+
 These options determine which host or service attributes are NOT retained across program restarts.  The values for these options are a bitwise AND of values specified by the "MODATTR_" definitions in the include/common.h source code file.  By default, all host and service attributes are retained.
+
 </p>
+
+
+
 
 
 <a name="retained_process_host_attribute_mask"></a>
+
 <a name="retained_process_service_attribute_mask"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Retained Process Attribute Masks</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td>
+
 <strong>retained_process_host_attribute_mask=&lt;number&gt;</strong><br>
+
 <strong>retained_process_service_attribute_mask=&lt;number&gt;</strong>
+
 </td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td>
+
 <font color="red"><strong>retained_process_host_attribute_mask=0</strong></font><br>
+
 <font color="red"><strong>retained_process_service_attribute_mask=0</strong></font>
+
 </td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 WARNING: This is an advanced feature.  You'll need to read the Nagios source code to use this option effectively.
+
 </p>
+
 <p>
+
 These options determine which process attributes are NOT retained across program restarts.  There are two masks because there are often separate host and service process attributes that can be changed.  For example, host checks can be disabled at the program level, while service checks are still enabled.  The values for these options are a bitwise AND of values specified by the "MODATTR_" definitions in the include/common.h source code file.  By default, all process attributes are retained.
+
 </p>
+
+
+
 
 
 <a name="retained_contact_host_attribute_mask"></a>
+
 <a name="retained_contact_service_attribute_mask"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Retained Contact Attribute Masks</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td>
+
 <strong>retained_contact_host_attribute_mask=&lt;number&gt;</strong><br>
+
 <strong>retained_contact_service_attribute_mask=&lt;number&gt;</strong>
+
 </td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td>
+
 <font color="red"><strong>retained_contact_host_attribute_mask=0</strong></font><br>
+
 <font color="red"><strong>retained_contact_service_attribute_mask=0</strong></font>
+
 </td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 WARNING: This is an advanced feature.  You'll need to read the Nagios source code to use this option effectively.
+
 </p>
+
 <p>
+
 These options determine which contact attributes are NOT retained across program restarts.  There are two masks because there are often separate host and service contact attributes that can be changed.  The values for these options are a bitwise AND of values specified by the "MODATTR_" definitions in the include/common.h source code file.  By default, all process attributes are retained.
+
 </p>
+
+
+
 
 
 <a name="use_syslog"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Syslog Logging Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>use_syslog=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>use_syslog=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This variable determines whether messages are logged to the syslog facility on your local host.  Values
+
 are as follows:
+
 </p>
+
 <ul>
+
 <li>0 = Don't use syslog facility
+
 <li>1 = Use syslog facility
+
 </ul>
+
+
+
 
 
 <a name="log_notifications"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Notification Logging Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>log_notifications=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>log_notifications=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This variable determines whether or not notification messages are logged.  If you have a lot of contacts
+
 or regular service failures your log file will grow relatively quickly.  Use this option to keep contact
+
 notifications from being logged.
+
 </p>
+
 <ul>
+
 <li>0 = Don't log notifications
+
 <li>1 = Log notifications
+
 </ul>
+
+
+
 
 
 <a name="log_service_retries"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Check Retry Logging Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>log_service_retries=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>log_service_retries=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This variable determines whether or not service check retries are logged.  Service check retries occur when a
+
 service check results in a non-OK state, but you have configured Nagios to retry the service more than once before
+
 responding to the error.  Services in this situation are considered to be in "soft" states.  Logging service check retries
+
 is mostly useful when attempting to debug Nagios or test out service <a href="eventhandlers.html">event handlers</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Don't log service check retries
+
 <li>1 = Log service check retries
+
 </ul>
+
+
+
 
 
 <a name="log_host_retries"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Check Retry Logging Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>log_host_retries=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>log_host_retries=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This variable determines whether or not host check retries are logged.  Logging host check retries
+
 is mostly useful when attempting to debug Nagios or test out host <a href="eventhandlers.html">event handlers</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Don't log host check retries
+
 <li>1 = Log host check retries
+
 </ul>
+
+
+
 
 
 <a name="log_event_handlers"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Event Handler Logging Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>log_event_handlers=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>log_event_handlers=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This variable determines whether or not service and host <a href="eventhandlers.html">event handlers</a> are logged.
+
 Event handlers are optional commands that can be run whenever a service or hosts changes state.  Logging event handlers
+
 is most useful when debugging Nagios or first trying out your event handler scripts.
+
 </p>
+
 <ul>
+
 <li>0 = Don't log event handlers
+
 <li>1 = Log event handlers
+
 </ul>
+
+
+
 
 
 <a name="log_initial_states"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Initial States Logging Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>log_initial_states=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>log_initial_states=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This variable determines whether or not Nagios will force all initial host and service states to be logged, even if they result in an OK state.  Initial service and host states are normally only logged when there is a problem on the first check.  Enabling this option is useful if you are using an application that scans the log file to determine long-term state statistics for services and hosts.
+
 </p>
+
 <ul>
+
 <li>0 = Don't log initial states (default)
+
 <li>1 = Log initial states
+
 </ul>
+
+
+
+
 
 
 
 <a name="log_external_commands"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>External Command Logging Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>log_external_commands=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>log_external_commands=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This variable determines whether or not Nagios will log <a href="extcommands.html">external commands</a> that it receives from the <a href="#command_file">external command file</a>.  Note: This option does not control whether or not <a href="passivechecks.html">passive service checks</a> (which are a type of external command) get logged.  To enable or disable logging of passive checks, use the <a href="#log_passive_checks">log_passive_checks</a> option.
+
 </p>
+
 <ul>
+
 <li>0 = Don't log external commands
+
 <li>1 = Log external commands (default)
+
 </ul>
+
+
+
+
+
 
 
 
 
 <a name="log_passive_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Passive Check Logging Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>log_passive_checks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>log_passive_checks=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This variable determines whether or not Nagios will log <a href="passivechecks.html">passive host and service checks</a> that it receives from the <a href="#command_file">external command file</a>.  If you are setting up a <a href="distributed.html">distributed monitoring environment</a> or plan on handling a large number of passive checks on a regular basis, you may wish to disable this option so your log file doesn't get too large.
+
 </p>
+
 <ul>
+
 <li>0 = Don't log passive checks
+
 <li>1 = Log passive checks (default)
+
 </ul>
+
+
+
+
 
 
 
 <a name="global_host_event_handler"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Global Host Event Handler Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>global_host_event_handler=&lt;command&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>global_host_event_handler=log-host-event-to-db</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify a host event handler command that is to be run for every host state change.  The global event handler is executed immediately prior to the event handler that you have optionally specified in each host definition.  The <i>command</i> argument is the short name of a command that you define in your <a href="configobject.html">object configuration file</a>.  The maximum amount of time that this command can run is controlled by the <a href="#event_handler_timeout">event_handler_timeout</a> option.  More information on event handlers can be found <a href="eventhandlers.html">here</a>.
+
 </p>
+
+
+
 
 
 <a name="global_service_event_handler"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Global Service Event Handler Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>global_service_event_handler=&lt;command&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>global_service_event_handler=log-service-event-to-db</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify a service event handler command that is to be run for every service state change.  The global event handler is executed immediately prior to the event handler that you have optionally specified in each service definition.  The <i>command</i> argument is the short name of a command that you define in your <a href="configobject.html">object configuration file</a>.  The maximum amount of time that this command can run is controlled by the <a href="#event_handler_timeout">event_handler_timeout</a> option.  More information on event handlers can be found <a href="eventhandlers.html">here</a>.
+
 </p>
+
+
+
 
 
 <a name="sleep_time"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Inter-Check Sleep Time</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>sleep_time=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>sleep_time=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the number of seconds that Nagios will sleep before checking to see if the next service or host check in the scheduling queue should be executed.  Note that Nagios will only sleep after it "catches up" with queued service checks that have fallen behind.
+
 </p>
+
+
+
 
 
 <a name="service_inter_check_delay_method"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Inter-Check Delay Method</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>service_inter_check_delay_method=&lt;n/d/s/x.xx&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>service_inter_check_delay_method=s</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to control how service checks are initially "spread out" in the event queue.  Using a "smart" delay calculation (the default) will cause Nagios to calculate an average check interval and spread initial checks of all services out over that interval, thereby helping to eliminate CPU load spikes.  Using no delay is generally <i>not</i> recommended, as it will cause all service checks to be scheduled for execution at the same time.  This means that you will generally have large CPU spikes when the services are all executed in parallel.   More information on how to estimate how the inter-check delay affects service check scheduling can be found <a href="checkscheduling.html#service_inter_check_delay">here</a>.  Values are as follows:
+
 </p>
+
 <ul>
+
 <li>n = Don't use any delay - schedule all service checks to run immediately (i.e. at the same time!)
+
 <li>d = Use a "dumb" delay of 1 second between service checks
+
 <li>s = Use a "smart" delay calculation to spread service checks out evenly (default)
+
 <li>x.xx = Use a user-supplied inter-check delay of x.xx seconds
+
 </ul>
+
+
+
 
 
 <a name="max_service_check_spread"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Maximum Service Check Spread</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>max_service_check_spread=&lt;minutes&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>max_service_check_spread=30</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines the maximum number of minutes from when Nagios starts that all services (that are scheduled to be regularly checked) are checked.  This option will automatically adjust the <a href="#service_inter_check_delay_method">service inter-check delay method</a> (if necessary) to ensure that the initial checks of all services occur within the timeframe you specify.  In general, this option will not have an affect on service check scheduling if scheduling information is being retained using the <a href="#use_retained_scheduling_info">use_retained_scheduling_info</a> option.  Default value is <b>30</b> (minutes).
+
 </p>
+
+
+
 
 
 <a name="service_interleave_factor"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Interleave Factor</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>service_interleave_factor=&lt;s|<i>x</i>&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>service_interleave_factor=s</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This variable determines how service checks are interleaved. Interleaving allows for a more even distribution of service checks, reduced load on remote hosts, and faster overall detection of host problems.  Setting this value to 1 is equivalent to not interleaving the service checks (this is how versions of Nagios previous to 0.0.5 worked).  Set this value to <b>s</b> (smart) for automatic calculation of the interleave factor unless you have a specific reason to change it.  The best way to understand how interleaving works is to watch the <a href="cgis.html#status_cgi">status CGI</a> (detailed view) when Nagios is just starting.  You should see that the service check results are spread out as they begin to appear.  More information on how interleaving works can be found <a href="checkscheduling.html#service_interleaving">here</a>.
+
 <ul>
+
 <li><i>x</i> = A number greater than or equal to 1 that specifies the interleave factor to use.  An interleave factor of 1 is equivalent to not interleaving the service checks.
+
 <li>s = Use a "smart" interleave factor calculation (default)
+
 </ul>
 
 
+
+
+
 <a name="max_concurrent_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Maximum Concurrent Service Checks</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>max_concurrent_checks=&lt;max_checks&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>max_concurrent_checks=20</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify the maximum number of service checks that can be run in parallel at any given time.  Specifying a value of 1 for this variable essentially prevents any service checks from being run in parallel.  Specifying a value of 0 (the default) does not place any restrictions on the number of concurrent checks.  You'll have to modify this value based on the system resources you have available on the machine that runs Nagios, as it directly affects the maximum load that will be imposed on the system (processor utilization, memory, etc.).  More information on how to estimate how many concurrent checks you should allow can be found <a href="checkscheduling.html#max_concurrent_checks">here</a>.
+
 </p>
+
+
+
 
 
 <a name="check_result_reaper_frequency"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Check Result Reaper Frequency</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>check_result_reaper_frequency=&lt;frequency_in_seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>check_result_reaper_frequency=5</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to control the frequency <i>in seconds</i> of check result "reaper" events.  "Reaper" events process the results from host and service checks that have finished executing.  These events consitute the core of the monitoring logic in Nagios.
+
 </p>
+
+
+
+
 
 
 
 <a name="max_check_result_reaper_time"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Maximum Check Result Reaper Time</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>max_check_result_reaper_time=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>max_check_result_reaper_time=30</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to control the maximum amount of time <i>in seconds</i> that host and service check result "reaper" events are allowed to run.  "Reaper" events process the results from host and service checks that have finished executing.  If there are a lot of results to process, reaper events may take a long time to finish, which might delay timely execution of new host and service checks.  This variable allows you to limit the amount of time that an individual reaper event will run before it hands control back over to Nagios for other portions of the monitoring logic.
+
 </p>
+
+
+
+
 
 
 
 <a name="check_result_path"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Check Result Path</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>check_result_path=&lt;path&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>check_result_path=/var/spool/nagios/checkresults</strong></font></td>
+
 </tr>
+
 </table>
 
-<p>
-This options determines which directory Nagios will use to temporarily store host and service check results before they are processed.  This directory should not be used to store any other files, as Nagios will periodically clean this directory of old file (see the <a href="#max_check_result_file_age">max_check_result_file_age</a> option for more information).
-</p>
+
 
 <p>
-Note: Make sure that only a single instance of Nagios has access to the check result path.  If multiple instances of Nagios have their check result path set to the same directory, you will run into problems with check results being processed (incorrectly) by the wrong instance of Nagios!
+
+This options determines which directory Nagios will use to temporarily store host and service check results before they are processed.  This directory should not be used to store any other files, as Nagios will periodically clean this directory of old file (see the <a href="#max_check_result_file_age">max_check_result_file_age</a> option for more information).
+
 </p>
+
+
+
+<p>
+
+Note: Make sure that only a single instance of Nagios has access to the check result path.  If multiple instances of Nagios have their check result path set to the same directory, you will run into problems with check results being processed (incorrectly) by the wrong instance of Nagios!
+
+</p>
+
+
+
 
 
 <a name="max_check_result_file_age"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Max Check Result File Age</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>max_check_result_file_age=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>max_check_result_file_age=3600</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This options determines the maximum age in seconds that Nagios will consider check result files found in the <a href="#check_result_path">check_result_path</a> directory to be valid.  Check result files that are older that this threshold will be deleted by Nagios and the check results they contain will not be processed.  By using a value of zero (0) with this option, Nagios will process all check result files - even if they're older than your hardware :-).
+
 </p>
+
+
 
 <a name="host_inter_check_delay_method"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Inter-Check Delay Method</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>host_inter_check_delay_method=&lt;n/d/s/x.xx&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>host_inter_check_delay_method=s</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to control how host checks <i>that are scheduled to be checked on a regular basis</i> are initially "spread out" in the event queue.  Using a "smart" delay calculation (the default) will cause Nagios to calculate an average check interval and spread initial checks of all hosts out over that interval, thereby helping to eliminate CPU load spikes.  Using no delay is generally <i>not</i> recommended.  Using no delay will cause all host checks to be scheduled for execution at the same time.  More information on how to estimate how the inter-check delay affects host check scheduling can be found <a href="checkscheduling.html#host_inter_check_delay">here</a>.Values are as follows:
+
 </p>
+
 <ul>
+
 <li>n = Don't use any delay - schedule all host checks to run immediately (i.e. at the same time!)
+
 <li>d = Use a "dumb" delay of 1 second between host checks
+
 <li>s = Use a "smart" delay calculation to spread host checks out evenly (default)
+
 <li>x.xx = Use a user-supplied inter-check delay of x.xx seconds
+
 </ul>
+
+
+
 
 
 <a name="max_host_check_spread"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Maximum Host Check Spread</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>max_host_check_spread=&lt;minutes&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>max_host_check_spread=30</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines the maximum number of minutes from when Nagios starts that all hosts (that are scheduled to be regularly checked) are checked.  This option will automatically adjust the <a href="#host_inter_check_delay_method">host inter-check delay method</a> (if necessary) to ensure that the initial checks of all hosts occur within the timeframe you specify.  In general, this option will not have an affect on host check scheduling if scheduling information is being retained using the <a href="#use_retained_scheduling_info">use_retained_scheduling_info</a> option.  Default value is <b>30</b> (minutes).
+
 </p>
+
+
+
 
 
 <a name="interval_length"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Timing Interval Length</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>interval_length=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>interval_length=60</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the number of seconds per "unit interval" used for timing in the scheduling queue, re-notifications, etc. "Units intervals" are used in the object configuration file to determine how often to run a service check, how often to re-notify a contact, etc.
+
 </p>
+
 <p>
+
 <strong>Important:</strong>  The default value for this is set to 60, which means that a "unit value" of 1 in the object configuration file will mean 60 seconds (1 minute).  I have not really tested other values for this variable, so proceed at your own risk if you decide to do so!
+
 </p>
+
+
+
 
 
 <a name="auto_reschedule_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Auto-Rescheduling Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>auto_reschedule_checks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>auto_reschedule_checks=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will attempt to automatically reschedule active host and service checks to
+
  "smooth" them out over time.  This can help to balance the load on the monitoring server, as it will attempt to keep the time between consecutive checks consistent, at the expense of executing checks on a more rigid schedule.
+
 </p>
+
 <p>
+
 <strong>WARNING:</strong>  THIS IS AN EXPERIMENTAL FEATURE AND MAY BE REMOVED IN FUTURE VERSIONS.  ENABLING THIS OPTION CAN DEGRADE PERFORMANCE - RATHER THAN INCREASE IT - IF USED IMPROPERLY!
+
 </p>
+
+
+
 
 
 <a name="auto_rescheduling_interval"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Auto-Rescheduling Interval</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>auto_rescheduling_interval=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>auto_rescheduling_interval=30</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines how often (in seconds) Nagios will attempt to automatically reschedule checks.  This option only has an effect if the <a href="#auto_reschedule_checks">auto_reschedule_checks</a> option is enabled.  Default is 30 seconds.
+
 </p>
+
 <p>
+
 <strong>WARNING:</strong>  THIS IS AN EXPERIMENTAL FEATURE AND MAY BE REMOVED IN FUTURE VERSIONS.  ENABLING THE AUTO-RESCHEDULING OPTION CAN DEGRADE PERFORMANCE - RATHER THAN INCREASE IT - IF USED IMPROPERLY!
+
 </p>
+
+
+
 
 
 <a name="auto_rescheduling_window"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Auto-Rescheduling Window</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>auto_rescheduling_window=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>auto_rescheduling_window=180</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines the "window" of time (in seconds) that Nagios will look at when automatically rescheduling checks. Only host and service checks that occur in the next X seconds (determined by this variable) will be rescheduled.  This option only has an effect if the <a href="#auto_reschedule_checks">auto_reschedule_checks</a> option is enabled.  Default is 180 seconds (3 minutes).
+
 </p>
+
 <p>
+
 <strong>WARNING:</strong>  THIS IS AN EXPERIMENTAL FEATURE AND MAY BE REMOVED IN FUTURE VERSIONS.  ENABLING THE AUTO-RESCHEDULING OPTION CAN DEGRADE PERFORMANCE - RATHER THAN INCREASE IT - IF USED IMPROPERLY!
+
 </p>
+
+
+
 
 
 <a name="use_agressive_host_checking"></a>
+
 <a name="use_aggressive_host_checking"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Aggressive Host Checking Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>use_aggressive_host_checking=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>use_aggressive_host_checking=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 Nagios tries to be smart about how and when it checks the status of hosts.  In general, disabling this option will allow Nagios to make some smarter decisions and check hosts a bit faster.  Enabling this option will increase the amount of time required to check hosts, but may improve reliability a bit.  Unless you have problems with Nagios not recognizing that a host recovered, I would suggest <b>not</b> enabling this option.
+
 </p>
+
 <ul>
+
 <li>0 = Don't use aggressive host checking (default)
+
 <li>1 = Use aggressive host checking
+
 </ul>
+
+
+
+
+
 
 
 
 
 <a name="translate_passive_host_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Translate Passive Host Checks Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>translate_passive_host_checks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>translate_passive_host_checks=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will translate DOWN/UNREACHABLE passive host check results to their "correct" state from the viewpoint of the local Nagios instance.  This can be very useful in distributed and failover monitoring installations.  More information on passive check state translation can be found <a href="passivestatetranslation.html">here</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Disable check translation (default)
+
 <li>1 = Enable check translation
+
 </ul>
+
+
+
+
+
 
 
 
 
 <a name="passive_host_checks_are_soft"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Passive Host Checks Are SOFT Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>passive_host_checks_are_soft=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>passive_host_checks_are_soft=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will treat <a href="passivechecks.html">passive host checks</a> as HARD states or SOFT states.  By default, a passive host check result will put a host into a <a href="statetypes.html">HARD state type</a>.  You can change this behavior by enabling this option.
+
 </p>
+
 <ul>
+
 <li>0 = Passive host checks are HARD (default)
+
 <li>1 = Passive host checks are SOFT
+
 </ul>
+
+
+
+
+
 
 
 
 
 <a name="enable_predictive_host_dependency_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Predictive Host Dependency Checks Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>enable_predictive_host_dependency_checks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>enable_predictive_host_dependency_checks=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will execute predictive checks of hosts that are being depended upon (as defined in <a href="objectdefinitions.html#hostdependency">host dependencies</a>) for a particular host when it changes state.  Predictive checks help ensure that the dependency logic is as accurate as possible.  More information on how predictive checks work can be found <a href="dependencychecks.html">here</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Disable predictive checks
+
 <li>1 = Enable predictive checks (default)
+
 </ul>
+
+
+
+
 
 
 
 <a name="enable_predictive_service_dependency_checks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Predictive Service Dependency Checks Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>enable_predictive_service_dependency_checks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>enable_predictive_service_dependency_checks=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will execute predictive checks of services that are being depended upon (as defined in <a href="objectdefinitions.html#servicedependency">service dependencies</a>) for a particular service when it changes state.  Predictive checks help ensure that the dependency logic is as accurate as possible.  More information on how predictive checks work can be found <a href="dependencychecks.html">here</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Disable predictive checks
+
 <li>1 = Enable predictive checks (default)
+
 </ul>
+
+
+
+
+
 
 
 
 
 <a name="cached_host_check_horizon"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Cached Host Check Horizon</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>cached_host_check_horizon=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>cached_host_check_horizon=15</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines the maximum amount of time (in seconds) that the state of a previous host check is considered current.  Cached host states (from host checks that were performed more recently than the time specified by this value) can improve host check performance immensely.  Too high of a value for this option may result in (temporarily) inaccurate host states, while a low value may result in a performance hit for host checks.  Use a value of 0 if you want to disable host check caching.  More information on cached checks can be found <a href="cachedchecks.html">here</a>.
+
 </p>
+
+
+
+
+
 
 
 
 
 <a name="cached_service_check_horizon"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Cached Service Check Horizon</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>cached_service_check_horizon=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>cached_service_check_horizon=15</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines the maximum amount of time (in seconds) that the state of a previous service check is considered current.  Cached service states (from service checks that were performed more recently than the time specified by this value) can improve service check performance when a lot of <a href="objectdefinitions.html#servicedependency">service dependencies</a> are used.  Too high of a value for this option may result in inaccuracies in the service dependency logic.  Use a value of 0 if you want to disable service check caching.  More information on cached checks can be found <a href="cachedchecks.html">here</a>.
+
 </p>
+
+
+
+
+
 
 
 
 
 <a name="use_large_installation_tweaks"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Large Installation Tweaks Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>use_large_installation_tweaks=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>use_large_installation_tweaks=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not the Nagios daemon will take several shortcuts to improve performance.  These shortcuts result in the loss of a few features, but larger installations will likely see a lot of benefit from doing so.  More information on what optimizations are taken when you enable this option can be found <a href="largeinstalltweaks.html">here</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Don't use tweaks (default)
+
 <li>1 = Use tweaks
+
 </ul>
+
+
+
+
+
 
 
 
 
 <a name="free_child_process_memory"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Child Process Memory Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>free_child_process_memory=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>free_child_process_memory=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will free memory in child processes when they are fork()ed off from the main process.  By default, Nagios frees memory.  However, if the <a href="#use_large_installation_tweaks">use_large_installation_tweaks</a> option is enabled, it will not.  By defining this option in your configuration file, you are able to override things to get the behavior you want.
+
 </p>
+
 <ul>
+
 <li>0 = Don't free memory
+
 <li>1 = Free memory
+
 </ul>
+
+
+
+
+
 
 
 
 
 <a name="child_processes_fork_twice"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Child Processes Fork Twice</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>child_processes_fork_twice=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>child_processes_fork_twice=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will fork() child processes twice when it executes host and service checks.  By default, Nagios fork()s twice.  However, if the <a href="#use_large_installation_tweaks">use_large_installation_tweaks</a> option is enabled, it will only fork() once.  By defining this option in your configuration file, you are able to override things to get the behavior you want.
+
 </p>
+
 <ul>
+
 <li>0 = Fork() just once
+
 <li>1 = Fork() twice
+
 </ul>
+
+
+
+
 
 
 
 <a name="enable_environment_macros"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Environment Macros Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>enable_environment_macros=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>enable_environment_macros=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not the Nagios daemon will make all standard <a href="macrolist.html">macros</a> available as environment variables to your check, notification, event hander, etc. commands.  In large Nagios installations this can be problematic because it takes additional memory and (more importantly) CPU to compute the values of all macros and make them available to the environment.
+
 </p>
+
 <ul>
+
 <li>0 = Don't make macros available as environment variables
+
 <li>1 = Make macros available as environment variables (default)
+
 </ul>
+
+
+
+
+
 
 
 
 
 <a name="enable_flap_detection"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Flap Detection Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>enable_flap_detection=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>enable_flap_detection=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will try and detect hosts and services that are "flapping".  Flapping occurs when a host or service changes between states too frequently, resulting in a barrage of notifications being sent out.  When Nagios detects that a host or service is flapping, it will temporarily suppress notifications for that host/service until it stops flapping.  Flap detection is very experimental at this point, so use this feature with caution!  More information on how flap detection and handling works can be found <a href="flapping.html">here</a>.     Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.
+
 </p>
+
 <ul>
+
 <li>0 = Don't enable flap detection (default)
+
 <li>1 = Enable flap detection
+
 </ul>
+
+
+
 
 
 <a name="low_service_flap_threshold"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Low Service Flap Threshold</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>low_service_flap_threshold=&lt;percent&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>low_service_flap_threshold=25.0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option is used to set the low threshold for detection of service flapping.  For more information on how flap detection and handling works (and how this option affects things) read <a href="flapping.html">this</a>.
+
 </p>
+
+
+
 
 
 <a name="high_service_flap_threshold"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>High Service Flap Threshold</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>high_service_flap_threshold=&lt;percent&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>high_service_flap_threshold=50.0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option is used to set the high threshold for detection of service flapping.  For more information on how flap detection and handling works (and how this option affects things) read <a href="flapping.html">this</a>.
+
 </p>
+
+
+
 
 
 <a name="low_host_flap_threshold"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Low Host Flap Threshold</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>low_host_flap_threshold=&lt;percent&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>low_host_flap_threshold=25.0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option is used to set the low threshold for detection of host flapping.  For more information on how flap detection and handling works (and how this option affects things) read <a href="flapping.html">this</a>.
+
 </p>
+
+
+
 
 
 <a name="high_host_flap_threshold"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>High Host Flap Threshold</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>high_host_flap_threshold=&lt;percent&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>high_host_flap_threshold=50.0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option is used to set the high threshold for detection of host flapping.  For more information on how flap detection and handling works (and how this option affects things) read <a href="flapping.html">this</a>.
+
 </p>
+
+
+
 
 
 <a name="soft_state_dependencies"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Soft State Dependencies Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>soft_state_dependencies=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>soft_state_dependencies=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will use soft state information when checking <a href="dependencies.html">host and service dependencies</a>.  Normally Nagios will only use the latest hard host or service state when checking dependencies.  If you want it to use the latest state (regardless of whether its a soft or hard <a href="statetypes.html">state type</a>), enable this option.
+
 </p>
+
 <ul>
+
 <li>0 = Don't use soft state dependencies (default)
+
 <li>1 = Use soft state dependencies
+
 </ul>
+
+
+
 
 
 <a name="service_check_timeout"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Check Timeout</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>service_check_timeout=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>service_check_timeout=60</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the maximum number of seconds that Nagios will allow service checks to run.  If checks exceed this limit, they are killed and a CRITICAL state is returned.   A timeout error will also be logged.
+
 </p>
+
 <p>
+
 There is often widespread confusion as to what this option really does.  It is meant to be used as a last ditch mechanism to kill off plugins which are misbehaving and not exiting in a timely manner.  It should be set to something high (like 60 seconds or more), so that each service check normally finishes executing within this time limit.  If a service check runs longer than this limit, Nagios will kill it off thinking it is a runaway processes.
+
 </p>
+
+
+
 
 
 <a name="host_check_timeout"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Check Timeout</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>host_check_timeout=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>host_check_timeout=60</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the maximum number of seconds that Nagios will allow host checks to run.  If checks exceed this limit, they are killed and a CRITICAL state is returned and the host will be assumed to be DOWN.  A timeout error will also be logged.
+
 </p>
+
 <p>
+
 There is often widespread confusion as to what this option really does.  It is meant to be used as a last ditch mechanism to kill off plugins which are misbehaving and not exiting in a timely manner.  It should be set to something high (like 60 seconds or more), so that each host check normally finishes executing within this time limit.  If a host check runs longer than this limit, Nagios will kill it off thinking it is a runaway processes.
+
 </p>
+
+
+
 
 
 <a name="event_handler_timeout"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Event Handler Timeout</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>event_handler_timeout=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>event_handler_timeout=60</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the maximum number of seconds that Nagios will allow <a href="eventhandlers.html">event handlers</a> to be run.  If an event handler exceeds this time limit it will be killed and a warning will be logged.
+
 </p>
+
 <p>
+
 There is often widespread confusion as to what this option really does.  It is meant to be used as a last ditch mechanism to kill off commands which are misbehaving and not exiting in a timely manner.  It should be set to something high (like 60 seconds or more), so that each event handler command normally finishes executing within this time limit.  If an event handler runs longer than this limit, Nagios will kill it off thinking it is a runaway processes.
+
 </p>
+
+
+
 
 
 <a name="notification_timeout"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Notification Timeout</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>notification_timeout=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>notification_timeout=60</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the maximum number of seconds that Nagios will allow notification commands to be run.  If a notification command exceeds this time limit it will be killed and a warning will be logged.
+
 </p>
+
 <p>
+
 There is often widespread confusion as to what this option really does.  It is meant to be used as a last ditch mechanism to kill off commands which are misbehaving and not exiting in a timely manner.  It should be set to something high (like 60 seconds or more), so that each notification command finishes executing within this time limit.  If a notification command runs longer than this limit, Nagios will kill it off thinking it is a runaway processes.
+
 </p>
+
+
+
 
 
 <a name="ocsp_timeout"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Obsessive Compulsive Service Processor Timeout</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>ocsp_timeout=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>ocsp_timeout=5</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the maximum number of seconds that Nagios will allow an <a href="#ocsp_command">obsessive compulsive service processor command</a> to be run.  If a command exceeds this time limit it will be killed and a warning will be logged.
+
 </p>
+
+
+
 
 
 <a name="ochp_timeout"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Obsessive Compulsive Host Processor Timeout</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>ochp_timeout=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>ochp_timeout=5</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the maximum number of seconds that Nagios will allow an <a href="#ochp_command">obsessive compulsive host processor command</a> to be run.  If a command exceeds this time limit it will be killed and a warning will be logged.
+
 </p>
+
+
+
 
 
 <a name="perfdata_timeout"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Performance Data Processor Command Timeout</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>perfdata_timeout=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>perfdata_timeout=5</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the maximum number of seconds that Nagios will allow a <a href="#host_perfdata_command">host performance data processor command</a> or <a href="#service_perfdata_command">service performance data processor command</a> to be run.  If a command exceeds this time limit it will be killed and a warning will be logged.
+
 </p>
+
+
+
 
 
 <a name="obsess_over_services"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Obsess Over Services Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>obsess_over_services=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>obsess_over_services=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This value determines whether or not Nagios will "obsess" over service checks results and run the <a href="#ocsp_command">obsessive compulsive service processor command</a> you define.  I know - funny name, but it was all I could think of.  This option is useful for performing <a href="distributed.html">distributed monitoring</a>.  If you're not doing distributed monitoring, don't enable this option.
+
 </p>
+
 <ul>
+
 <li>0 = Don't obsess over services (default)
+
 <li>1 = Obsess over services
+
 </ul>
+
+
+
 
 
 <a name="ocsp_command"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Obsessive Compulsive Service Processor Command</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>ocsp_command=&lt;command&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>ocsp_command=obsessive_service_handler</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify a command to be run after <i>every</i> service check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ocsp_timeout">ocsp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_services">obsess_over_services</a> option is enabled globally and if the <i>obsess_over_service</i> directive in the <a href="objectdefinitions.html#service">service definition</a> is enabled.
+
 </p>
+
+
+
 
 
 <a name="obsess_over_hosts"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Obsess Over Hosts Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>obsess_over_hosts=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>obsess_over_hosts=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This value determines whether or not Nagios will "obsess" over host checks results and run the <a href="#ochp_command">obsessive compulsive host processor command</a> you define.  I know - funny name, but it was all I could think of.  This option is useful for performing <a href="distributed.html">distributed monitoring</a>.  If you're not doing distributed monitoring, don't enable this option.
+
 </p>
+
 <ul>
+
 <li>0 = Don't obsess over hosts (default)
+
 <li>1 = Obsess over hosts
+
 </ul>
+
+
+
 
 
 <a name="ochp_command"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Obsessive Compulsive Host Processor Command</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>ochp_command=&lt;command&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>ochp_command=obsessive_host_handler</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify a command to be run after <i>every</i> host check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ochp_timeout">ochp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_hosts">obsess_over_hosts</a> option is enabled globally and if the <i>obsess_over_host</i> directive in the <a href="objectdefinitions.html#host">host definition</a> is enabled.
+
 </p>
+
+
+
 
 
 <a name="process_performance_data"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Performance Data Processing Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>process_performance_data=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>process_performance_data=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This value determines whether or not Nagios will process host and service check <a href="perfdata.html">performance data</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Don't process performance data (default)
+
 <li>1 = Process performance data
+
 </ul>
+
+
+
 
 
 <a name="host_perfdata_command"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Performance Data Processing Command</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>host_perfdata_command=&lt;command&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>host_perfdata_command=process-host-perfdata</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify a command to be run after <i>every</i> host check to process host <a href="perfdata.html">performance data</a> that may be returned from the check.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  This command is only executed if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="objectdefinitions.html#host">host definition</a> is enabled.
+
 </p>
+
+
+
 
 
 <a name="service_perfdata_command"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Performance Data Processing Command</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>service_perfdata_command=&lt;command&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>service_perfdata_command=process-service-perfdata</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify a command to be run after <i>every</i> service check to process service <a href="perfdata.html">performance data</a> that may be returned from the check.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  This command is only executed if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="objectdefinitions.html#service">service definition</a> is enabled.
+
 </p>
+
+
+
 
 
 <a name="host_perfdata_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Performance Data File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>host_perfdata_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>host_perfdata_file=/usr/local/nagios/var/host-perfdata.dat</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify a file to which host <a href="perfdata.html">performance data</a> will be written after every host check.  Data will be written to the performance file as specified by the <a href="#host_perfdata_file_template">host_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="objectdefinitions.html#host">host definition</a> is enabled.
+
 </p>
+
+
+
 
 
 <a name="service_perfdata_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Performance Data File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>service_perfdata_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>service_perfdata_file=/usr/local/nagios/var/service-perfdata.dat</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify a file to which service <a href="perfdata.html">performance data</a> will be written after every service check.  Data will be written to the performance file as specified by the <a href="#service_perfdata_file_template">service_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="objectdefinitions.html#service">service definition</a> is enabled.
+
 </p>
+
+
+
 
 
 <a name="host_perfdata_file_template"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Performance Data File Template</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>host_perfdata_file_template=&lt;template&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>host_perfdata_file_template=[HOSTPERFDATA]\t$TIMET$\t$HOSTNAME$\t$HOSTEXECUTIONTIME$\t$HOSTOUTPUT$\t$HOSTPERFDATA$</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines what (and how) data is written to the <a href="#host_perfdata_file">host performance data file</a>.  The template may contain <a href="macros.html">macros</a>, special characters (\t for tab, \r for carriage return, \n for newline) and plain text.  A newline is automatically added after each write to the performance data file.
+
 </p>
+
+
+
 
 
 <a name="service_perfdata_file_template"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Performance Data File Template</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>service_perfdata_file_template=&lt;template&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>service_perfdata_file_template=[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines what (and how) data is written to the <a href="#service_perfdata_file">service performance data file</a>.  The template may contain <a href="macros.html">macros</a>, special characters (\t for tab, \r for carriage return, \n for newline) and plain text.  A newline is automatically added after each write to the performance data file.
+
 </p>
+
+
+
 
 
 <a name="host_perfdata_file_mode"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Performance Data File Mode</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>host_perfdata_file_mode=&lt;mode&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>host_perfdata_file_mode=a</strong></font></td>
+
 </tr>
+
 </table>
+
 <p>
+
 This option determines how the <a href="#host_perfdata_file">host performance data file</a> is opened.  Unless the file is a named pipe you'll probably want to use the default mode of append.
+
 </p>
+
 <ul>
+
 <li>a = Open file in append mode (default)
+
 <li>w = Open file in write mode
+
 <li>p = Open in non-blocking read/write mode (useful when writing to pipes)
+
 </ul>
+
+
+
 
 
 <a name="service_perfdata_file_mode"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Performance Data File Mode</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>service_perfdata_file_mode=&lt;mode&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>service_perfdata_file_mode=a</strong></font></td>
+
 </tr>
+
 </table>
+
 <p>
+
 This option determines how the <a href="#service_perfdata_file">service performance data file</a> is opened.  Unless the file is a named pipe you'll probably want to use the default mode of append.
+
 </p>
+
 <ul>
+
 <li>a = Open file in append mode (default)
+
 <li>w = Open file in write mode
+
 <li>p = Open in non-blocking read/write mode (useful when writing to pipes)
+
 </ul>
+
+
+
 
 
 <a name="host_perfdata_file_processing_interval"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Performance Data File Processing Interval</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>host_perfdata_file_processing_interval=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>host_perfdata_file_processing_interval=0</strong></font></td>
+
 </tr>
+
 </table>
+
 <p>
+
 This option allows you to specify the interval (in seconds) at which the <a href="#host_perfdata_file">host performance data file</a> is processed using the <a href="#host_perfdata_file_processing_command">host performance data file processing command</a>.  A value of 0 indicates that the performance data file should not be processed at regular intervals.
+
 </p>
+
+
+
 
 
 <a name="service_perfdata_file_processing_interval"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Performance Data File Processing Interval</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>service_perfdata_file_processing_interval=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>service_perfdata_file_processing_interval=0</strong></font></td>
+
 </tr>
+
 </table>
+
 <p>
+
 This option allows you to specify the interval (in seconds) at which the <a href="#service_perfdata_file">service performance data file</a> is processed using the <a href="#service_perfdata_file_processing_command">service performance data file processing command</a>.  A value of 0 indicates that the performance data file should not be processed at regular intervals.
+
 </p>
+
+
+
 
 
 <a name="host_perfdata_file_processing_command"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Performance Data File Processing Command</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>host_perfdata_file_processing_command=&lt;command&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>host_perfdata_file_processing_command=process-host-perfdata-file</strong></font></td>
+
 </tr>
+
 </table>
+
 <p>
+
 This option allows you to specify the command that should be executed to process the <a href="#host_perfdata_file">host performance data file</a>.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  The interval at which this command is executed is determined by the <a href="#host_perfdata_file_processing_interval">host_perfdata_file_processing_interval</a> directive.
+
 </p>
+
+
+
 
 
 <a name="service_perfdata_file_processing_command"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Performance Data File Processing Command</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>service_perfdata_file_processing_command=&lt;command&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>service_perfdata_file_processing_command=process-service-perfdata-file</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify the command that should be executed to process the <a href="#service_perfdata_file">service performance data file</a>.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  The interval at which this command is executed is determined by the <a href="#service_perfdata_file_processing_interval">service_perfdata_file_processing_interval</a> directive.
+
 </p>
+
+
+
 
 
 <a name="check_for_orphaned_services"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Orphaned Service Check Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>check_for_orphaned_services=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>check_for_orphaned_services=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to enable or disable checks for orphaned service checks. Orphaned service checks are checks which have been executed and have been removed from the event queue, but have not had any results reported in a long time.  Since no results have come back in for the service, it is not rescheduled in the event queue.  This can cause service checks to stop being executed.  Normally it is very rare for this to happen - it might happen if an external user or process killed off the process that was being used to execute a service check.  If this option is enabled and Nagios finds that results for a particular service check have not come back, it will log an error message and reschedule the service check.  If you start seeing service checks that never seem to get rescheduled, enable this option and see if you notice any log messages about orphaned services.
+
 </p>
+
 <ul>
+
 <li>0 = Don't check for orphaned service checks
+
 <li>1 = Check for orphaned service checks (default)
+
 </ul>
+
+
+
 
 
 <a name="check_for_orphaned_hosts"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Orphaned Host Check Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>check_for_orphaned_hosts=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>check_for_orphaned_hosts=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to enable or disable checks for orphaned hoste checks. Orphaned host checks are checks which have been executed and have been removed from the event queue, but have not had any results reported in a long time.  Since no results have come back in for the host, it is not rescheduled in the event queue.  This can cause host checks to stop being executed.  Normally it is very rare for this to happen - it might happen if an external user or process killed off the process that was being used to execute a host check.  If this option is enabled and Nagios finds that results for a particular host check have not come back, it will log an error message and reschedule the host check.  If you start seeing host checks that never seem to get rescheduled, enable this option and see if you notice any log messages about orphaned hosts.
+
 </p>
+
 <ul>
+
 <li>0 = Don't check for orphaned host checks
+
 <li>1 = Check for orphaned host checks (default)
+
 </ul>
+
+
+
 
 
 <a name="check_service_freshness"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Freshness Checking Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>check_service_freshness=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>check_service_freshness=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will periodically check the "freshness" of service checks.  Enabling this option is useful for helping to ensure that <a href="passivechecks.html">passive service checks</a> are received in a timely manner.  More information on freshness checking can be found <a href="freshness.html">here</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Don't check service freshness
+
 <li>1 = Check service freshness (default)
+
 </ul>
+
+
+
 
 
 <a name="service_freshness_check_interval"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Service Freshness Check Interval</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>service_freshness_check_interval=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>service_freshness_check_interval=60</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This setting determines how often (in seconds) Nagios will periodically check the "freshness" of service check results.  If you have disabled service freshness checking (with the <a href="#check_service_freshness">check_service_freshness</a> option), this option has no effect.  More information on freshness checking can be found <a href="freshness.html">here</a>.
+
 </p>
+
+
+
 
 
 <a name="check_host_freshness"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Freshness Checking Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>check_host_freshness=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>check_host_freshness=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not Nagios will periodically check the "freshness" of host checks.  Enabling this option is useful for helping to ensure that <a href="passivechecks.html">passive host checks</a> are received in a timely manner.  More information on freshness checking can be found <a href="freshness.html">here</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Don't check host freshness
+
 <li>1 = Check host freshness (default)
+
 </ul>
+
+
+
 
 
 <a name="host_freshness_check_interval"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Host Freshness Check Interval</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>host_freshness_check_interval=&lt;seconds&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>host_freshness_check_interval=60</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This setting determines how often (in seconds) Nagios will periodically check the "freshness" of host check results.  If you have disabled host freshness checking (with the <a href="#check_host_freshness">check_host_freshness</a> option), this option has no effect.  More information on freshness checking can be found <a href="freshness.html">here</a>.
+
 </p>
+
+
+
 
 
 <a name="additional_freshness_latency"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Additional Freshness Threshold Latency Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>additional_freshness_latency=&lt;#&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>additional_freshness_latency=15</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines the number of seconds Nagios will add to any host or services freshness threshold it automatically calculates (e.g. those not specified explicity by the user).  More information on freshness checking can be found <a href="freshness.html">here</a>.
+
 </p>
+
+
+
 
 
 <a name="enable_embedded_perl"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Embedded Perl Interpreter Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>enable_embedded_perl=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>enable_embedded_perl=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This setting determines whether or not the embedded Perl interpreter is enabled on a program-wide basis.  Nagios must be compiled with support for embedded Perl for this option to have an effect.  More information on the embedded Perl interpreter can be found <a href="embeddedperl.html">here</a>.
+
 </p>
+
+
+
 
 
 <a name="use_embedded_perl_implicitly"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Embedded Perl Implicit Use Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>use_embedded_perl_implicitly=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>use_embedded_perl_implicitly=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This setting determines whether or not the embedded Perl interpreter should be used for Perl plugins/scripts that do not explicitly enable/disable it.  Nagios must be compiled with support for embedded Perl for this option to have an effect.  More information on the embedded Perl interpreter and the effect of this setting can be found <a href="embeddedperl.html">here</a>.
+
 </p>
+
+
+
 
 
 <a name="date_format"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Date Format</strong></td>
+
 </tr>
+
 </table>
+
 <br>
+
+
+
 
 
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>date_format=&lt;option&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>date_format=us</strong></font></td>
+
 </tr>
+
 </table>
+
+
 
 <p>
+
 This option allows you to specify what kind of date/time format Nagios should use in the web interface and date/time <a href="macros.html">macros</a>.  Possible options (along with example output) include:
+
 </p>
 
+
+
 <table border="1" class="Default">
+
 <tr><th>Option</th><th>Output Format</th><th>Sample Output</th></tr>
+
 <tr><td>us</td><td>MM/DD/YYYY HH:MM:SS</td><td>06/30/2002 03:15:00</td></tr>
+
 <tr><td>euro</td><td>DD/MM/YYYY HH:MM:SS</td><td>30/06/2002 03:15:00</td></tr>
+
 <tr><td>iso8601</td><td>YYYY-MM-DD HH:MM:SS</td><td>2002-06-30 03:15:00</td></tr>
+
 <tr><td>strict-iso8601</td><td>YYYY-MM-DDTHH:MM:SS</td><td>2002-06-30T03:15:00</td></tr>
+
 </table>
+
 <br>
+
+
+
 
 
 <a name="use_timezone"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Timezone Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
+
+
+
 
 
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>use_timezone=&lt;tz&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>use_timezone=US/Mountain</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to override the default timezone that this instance of Nagios runs in.  Useful if you have multiple instances of Nagios that need to run from the same server, but have different local times associated with them.  If not specified, Nagios will use the system configured timezone.
+
 </p>
+
 <p>
+
 <img src="images/note.gif" border="0" align="bottom" alt="Note" title="Note"> Note: If you use this option to specify a custom timezone, you will also need to alter the Apache configuration directives for the CGIs to specify the timezone you want.  Example:
+
 </p>
+
 <div style="margin: 0 0 0 15px;">
+
 &lt;Directory "/usr/local/nagios/sbin/"&gt;<br>
+
 SetEnv TZ "US/Mountain"<br>
+
 ...<br>
+
 &lt;/Directory&gt;
+
 </div>
+
 <br>
+
+
+
 
 
 <a name="illegal_object_name_chars"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Illegal Object Name Characters</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>illegal_object_name_chars=&lt;chars...&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>illegal_object_name_chars=`~!$%^&amp;*"|'&lt;&gt;?,()=</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify illegal characters that cannot be used in host names, service descriptions, or names of other object types.  Nagios will allow you to use most characters in object definitions, but I recommend not using the characters shown in the example above.  Doing may give you problems in the web interface, notification commands, etc.
+
 </p>
+
+
+
 
 
 <a name="illegal_macro_output_chars"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Illegal Macro Output Characters</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>illegal_macro_output_chars=&lt;chars...&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>illegal_macro_output_chars=`~$^&amp;"|'&lt;&gt;</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option allows you to specify illegal characters that should be stripped from <a href="macros.html">macros</a> before being used in notifications, event handlers, and other commands.  This DOES NOT affect macros used in service or host check commands.  You can choose to not strip out the characters shown in the example above, but I recommend you do not do this.  Some of these characters are interpreted by the shell (i.e. the backtick) and can lead to security problems.  The following macros are stripped of the characters you specify: 
+
 </p>
+
 <p>
+
 <b>$HOSTOUTPUT$</b>, <b>$HOSTPERFDATA$</b>, <b>$HOSTACKAUTHOR$</b>, <b>$HOSTACKCOMMENT$</b>, <b>$SERVICEOUTPUT$</b>, <b>$SERVICEPERFDATA$</b>, <b>$SERVICEACKAUTHOR$</b>, and <b>$SERVICEACKCOMMENT$</b>
+
 </p>
+
+
+
 
 
 <a name="use_regexp_matching"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Regular Expression Matching Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>use_regexp_matching=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>use_regexp_matching=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines whether or not various directives in your <a href="configobject.html">object definitions</a> will be processed as regular expressions.  More information on how this works can be found <a href="objecttricks.html">here</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Don't use regular expression matching (default)
+
 <li>1 = Use regular expression matching
+
 </ul>
+
+
+
 
 
 <a name="use_true_regexp_matching"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>True Regular Expression Matching Option</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>use_true_regexp_matching=&lt;0/1&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>use_true_regexp_matching=0</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 If you've enabled regular expression matching of various object directives using the <a href="#use_regexp_matching">use_regexp_matching</a> option, this option will determine when object directives are treated as regular expressions.  If this option is disabled (the default), directives will only be treated as regular expressions if they contain <b>*</b>, <b>?</b>, <b>+</b>, or <b>\.</b>.  If this option is enabled, all appropriate directives will be treated as regular expression - be careful when enabling this!  More information on how this works can be found <a href="objecttricks.html">here</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Don't use true regular expression matching (default)
+
 <li>1 = Use true regular expression matching
+
 </ul>
+
+
+
 
 
 <a name="admin_email"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Administrator Email Address</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>admin_email=&lt;email_address&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>admin_email=root@localhost.localdomain</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the email address for the administrator of the local machine (i.e. the one that Nagios is running on).
+
 This value can be used in notification commands by using the <b>$ADMINEMAIL$</b> <a href="macros.html">macro</a>.
+
 </p>
+
+
+
 
 
 <a name="admin_pager"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Administrator Pager</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>admin_pager=&lt;pager_number_or_pager_email_gateway&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>admin_pager=pageroot@localhost.localdomain</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This is the pager number (or pager email gateway) for the administrator of the local machine (i.e. the one that Nagios is running on). The pager number/address can be used in notification commands by using the <b>$ADMINPAGER$</b> <a href="macros.html">macro</a>.
+
 </p>
+
+
+
 
 
 <a name="event_broker_options"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Event Broker Options</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>event_broker_options=&lt;#&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>event_broker_options=-1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option controls what (if any) data gets sent to the event broker and, in turn, to any loaded event broker modules.   This is an advanced option.  When in doubt, either broker nothing (if not using event broker modules) or broker everything (if using event broker modules). Possible values are shown below.
+
 </p>
+
 <ul>
+
 <li>0 = Broker nothing
+
 <li>-1 = Broker everything
+
 <li># = See BROKER_* definitions in source code (include/broker.h) for other values that can be OR'ed together
+
 </ul>
+
+
+
+
 
 
 
 <a name="broker_module"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Event Broker Modules</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>broker_module=&lt;modulepath&gt; [moduleargs]</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>broker_module=/usr/local/nagios/bin/ndomod.o cfg_file=/usr/local/nagios/etc/ndomod.cfg</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This directive is used to specify an event broker module that should by loaded by Nagios at startup.  Use multiple directives if you want to load more than one module.  Arguments that should be passed to the module at startup are seperated from the module path by a space.
+
 </p>
+
 <p>
+
 !!! WARNING !!!
+
 </p>
+
 <p>
+
 Do NOT overwrite modules while they are being used by Nagios or Nagios will crash in a fiery display of SEGFAULT glory.  This is a bug/limitation either in dlopen(), the kernel, and/or the filesystem.  And maybe Nagios...
+
 </p>
+
 <p>
+
 The correct/safe way of updating a module is by using one of these methods:
+
 </p>
+
 <ol>
+
 <li>Shutdown Nagios, replace the module file, restart Nagios</li>
+
 <li>While Nagios is running... delete the original module file, move the new module file into place, restart Nagios</li>
+
 </ol>
 
 
+
+
+
 <a name="debug_file"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Debug File</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>debug_file=&lt;file_name&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>debug_file=/usr/local/nagios/var/nagios.debug</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines where Nagios should write debugging information.  What (if any) information is written is determined by the <a href="#debug_level">debug_level</a> and <a href="#debug_verbosity">debug_verbosity</a> options.  You can have Nagios automaticaly rotate the debug file when it reaches a certain size by using the <a href="#max_debug_file_size">max_debug_file_size</a> option.
+
 </p>
+
+
+
 
 
 <a name="debug_level"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Debug Level</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>debug_level=&lt;#&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>debug_level=24</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines what type of information Nagios should write to the <a href="#debug_file">debug_file</a>.  This value is a logical OR of the values below.
+
 </p>
+
 <ul>
+
 <li>-1 = Log everything
+
 <li>0 = Log nothing (default)
+
 <li>1 = Function enter/exit information
+
 <li>2 = Config information
+
 <li>4 = Process information
+
 <li>8 = Scheduled event information
+
 <li>16 = Host/service check information
+
 <li>32 = Notification information
+
 <li>64 = Event broker information
+
 </ul>
+
+
 
 <a name="debug_verbosity"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Debug Verbosity</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>debug_verbosity=&lt;#&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>debug_verbosity=1</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines how much debugging information Nagios should write to the <a href="#debug_file">debug_file</a>.
+
 </p>
+
 <ul>
+
 <li>0 = Basic information
+
 <li>1 = More detailed information (default)
+
 <li>2 = Highly detailed information
+
 </ul>
+
+
+
 
 
 <a name="max_debug_file_size"></a>
+
 <table border="0" width="100%" class="Default">
+
 <tr>
+
 <td bgcolor="#cbcbcb"><strong>Maximum Debug File Size</strong></td>
+
 </tr>
+
 </table>
+
 <br>
 
 
+
+
+
 <table border="0" class="Default">
+
 <tr>
+
 <td>Format:</td>
+
 <td><strong>max_debug_file_size=&lt;#&gt;</strong></td>
+
 </tr>
+
 <tr>
+
 <td>Example:</td>
+
 <td><font color="red"><strong>max_debug_file_size=1000000</strong></font></td>
+
 </tr>
+
 </table>
 
+
+
 <p>
+
 This option determines the maximum size (in bytes) of the <a href="#debug_file">debug file</a>.  If the file grows larger than this size, it will be renamed with a .old  extension.  If a file already exists with a .old extension it will automatically be deleted.  This helps ensure your disk space usage doesn't get out of control when debugging Nagios.
+
 </p>
+
+
+
 
 
 <hr>
 
+
+
 </body>
+
 </html>
+

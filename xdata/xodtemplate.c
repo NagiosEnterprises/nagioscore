@@ -10073,16 +10073,19 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 		return ERROR;
 	        }
 #endif
-	for(contact_name=strtok(this_contactgroup->members,",");contact_name!=NULL;contact_name=strtok(NULL,",")){
-		strip(contact_name);
-		new_contactsmember=add_contact_to_contactgroup(new_contactgroup,contact_name);
-		if(new_contactsmember==NULL){
+	/* Need to check for NULL because strtok could use a NULL value to check the previous string's token value */
+	if(this_contactgroup->members!=NULL){
+		for(contact_name=strtok(this_contactgroup->members,",");contact_name!=NULL;contact_name=strtok(NULL,",")){
+			strip(contact_name);
+			new_contactsmember=add_contact_to_contactgroup(new_contactgroup,contact_name);
+			if(new_contactsmember==NULL){
 #ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contact '%s' to contactgroup (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
+				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contact '%s' to contactgroup (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 #endif
-			return ERROR;
-		        }
-	        }
+				return ERROR;
+				}
+			}
+		}
 
 	return OK;
         }

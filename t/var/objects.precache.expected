@@ -21,8 +21,34 @@ define command {
 	command_line	/usr/local/nagios/notifications/notify-none
 	}
 
+define contactgroup {
+	contactgroup_name	causetestfailure
+	alias	This causes a test failure by having a comma separated list before the empty contactgroup
+	members	second,nagiosadmin
+	}
+
+define contactgroup {
+	contactgroup_name	empty
+	alias	No members defined - this should pass validation
+	}
+
 define contact {
 	contact_name	nagiosadmin
+	service_notification_period	none
+	host_notification_period	none
+	service_notification_options	w,u,c,r,f,s
+	host_notification_options	d,u,r,f,s
+	service_notification_commands	notify-none
+	host_notification_commands	notify-none
+	host_notifications_enabled	0
+	service_notifications_enabled	0
+	can_submit_commands	1
+	retain_status_information	1
+	retain_nonstatus_information	1
+	}
+
+define contact {
+	contact_name	second
 	service_notification_period	none
 	host_notification_period	none
 	service_notification_options	w,u,c,r,f,s

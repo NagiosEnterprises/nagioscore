@@ -216,7 +216,7 @@ int main(void){
 			printf("<input type='hidden' name='service' value='%s'>\n",escape_string(query_svc_description));
 	                }
 		else
-			printf("<input type='hidden' name='%s' value='%s'>\n",(query_type==FIND_HOST)?"host":"contact",(query_type==FIND_HOST)?escape_string(query_host_name):escape_string(query_contact_name));
+			printf("<input type='hidden' name='%s' value='%s'>\n",(query_type==FIND_HOST)?"host":"contact",(query_type==FIND_HOST)?(find_all==TRUE)?"all":escape_string(query_host_name):escape_string(query_contact_name));
 		printf("<input type='hidden' name='archive' value='%d'>\n",log_archive);
 		printf("<tr>\n");
 		if(query_type==FIND_SERVICE)

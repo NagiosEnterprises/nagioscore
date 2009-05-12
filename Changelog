@@ -7,8 +7,9 @@ Nagios 3.x Change Log
 3.1.1 - 02/??/2009
 ------------------
 * Fix for stylesheet link
-* Added t/ directory for tests. Use make test to run. Requires perl on development server
 * Fixed extinfo.cgi error message when cgi.cfg doesn't exist
+* Fixed notifications.cgi where Update button on right didn't retain host information when no host= was in query parameters
+* Added t/ directory for tests. Use make test to run. Requires perl on development server
 
 
 

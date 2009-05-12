@@ -151,7 +151,7 @@ int main(void){
 	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(FALSE);
-		cgi_config_file_error(main_config_file);
+		cgi_config_file_error(get_cgi_config_location());
 		document_footer();
 		return ERROR;
 	        }

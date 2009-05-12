@@ -8,6 +8,7 @@ Nagios 3.x Change Log
 ------------------
 * Fix for stylesheet link
 * Added t/ directory for tests. Use make test to run. Requires perl on development server
+* Fixed extinfo.cgi error message when cgi.cfg doesn't exist
 
 
 

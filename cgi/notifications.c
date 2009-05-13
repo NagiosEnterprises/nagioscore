@@ -216,7 +216,7 @@ int main(void){
 			printf("<input type='hidden' name='service' value='%s'>\n",escape_string(query_svc_description));
 	                }
 		else
-			printf("<input type='hidden' name='%s' value='%s'>\n",(query_type==FIND_HOST)?"host":"contact",(query_type==FIND_HOST)?(find_all==TRUE)?"all":escape_string(query_host_name):escape_string(query_contact_name));
+			printf("<input type='hidden' name='%s' value='%s'>\n",(query_type==FIND_HOST)?"host":"contact",(query_type==FIND_HOST)?escape_string(query_host_name):escape_string(query_contact_name));
 		printf("<input type='hidden' name='archive' value='%d'>\n",log_archive);
 		printf("<tr>\n");
 		if(query_type==FIND_SERVICE)
@@ -450,6 +450,22 @@ int process_cgivars(void){
 		else if(!strcmp(variables[x],"noheader"))
 			display_header=FALSE;
                 }
+
+	/* 
+	 * Set some default values if not already set.
+	 * Done here as they won't be set if variable
+	 * not provided via cgi parameters 
+	 * Only required for hosts & contacts, not services 
+	 * as there is no service_name=all option
+	 */
+	if(query_type == FIND_HOST && strlen(query_host_name) == 0) {
+		query_host_name="all";
+		find_all=TRUE;
+		}
+	if(query_type == FIND_CONTACT && strlen(query_contact_name) == 0) {
+		query_contact_name="all";
+		find_all=TRUE;
+		}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);

@@ -10,6 +10,7 @@ Nagios 3.x Change Log
 * Fixed extinfo.cgi error message when cgi.cfg doesn't exist
 * Fixed notifications.cgi where Update button on right didn't retain host information when no host= was in query parameters
 * Fixed potential bug where a contactgroup with no members could cause parsing errors
+* Fixed W3 validation for history.cgi
 * Added t/ directory for tests. Use make test to run. Requires perl on development server
 
 

@@ -151,8 +151,8 @@ int main(void){
 		printf("<TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 CLASS='linkBox'>\n");
 		printf("<TR><TD CLASS='linkBox'>\n");
 		if(display_type==DISPLAY_HOSTS){
-			printf("<A HREF='%s?host=%s'>View Status Detail For %s</A><BR>\n",STATUS_CGI,(show_all_hosts==TRUE)?"all":url_encode(host_name),(show_all_hosts==TRUE)?"All Hosts":"This Host");
-			printf("<A HREF='%s?host=%s'>View Notifications For %s</A><BR>\n",NOTIFICATIONS_CGI,(show_all_hosts==TRUE)?"all":url_encode(host_name),(show_all_hosts==TRUE)?"All Hosts":"This Host");
+			printf("<A HREF='%s?host=%s'>View Status Detail For %s</A><BR />\n",STATUS_CGI,(show_all_hosts==TRUE)?"all":url_encode(host_name),(show_all_hosts==TRUE)?"All Hosts":"This Host");
+			printf("<A HREF='%s?host=%s'>View Notifications For %s</A><BR />\n",NOTIFICATIONS_CGI,(show_all_hosts==TRUE)?"all":url_encode(host_name),(show_all_hosts==TRUE)?"All Hosts":"This Host");
 #ifdef USE_TRENDS
 			if(show_all_hosts==FALSE)
 				printf("<A HREF='%s?host=%s'>View Trends For This Host</A>\n",TRENDS_CGI,url_encode(host_name));
@@ -160,10 +160,10 @@ int main(void){
 	                }
 		else{
 			printf("<A HREF='%s?host=%s&",NOTIFICATIONS_CGI,url_encode(host_name));
-			printf("service=%s'>View Notifications For This Service</A><BR>\n",url_encode(svc_description));
+			printf("service=%s'>View Notifications For This Service</A><BR />\n",url_encode(svc_description));
 #ifdef USE_TRENDS
 			printf("<A HREF='%s?host=%s&",TRENDS_CGI,url_encode(host_name));
-			printf("service=%s'>View Trends For This Service</A><BR>\n",url_encode(svc_description));
+			printf("service=%s'>View Trends For This Service</A><BR />\n",url_encode(svc_description));
 #endif
 			printf("<A HREF='%s?host=%s'>View History For This Host</A>\n",HISTORY_CGI,url_encode(host_name));
 	                }
@@ -184,7 +184,7 @@ int main(void){
 		else
 			printf("Host '%s'",host_name);
 		printf("</DIV>\n");
-		printf("<BR>\n");
+		printf("<BR />\n");
 
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s?%shost=%s&type=%d&statetype=%d&",HISTORY_CGI,(use_lifo==FALSE)?"oldestfirst&":"",url_encode(host_name),history_options,state_options);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -202,8 +202,8 @@ int main(void){
 		/* right hand column of top row */
 		printf("<td align=right valign=top width=33%%>\n");
 
-		printf("<table border=0 CLASS='optBox'>\n");
 		printf("<form method=\"GET\" action=\"%s\">\n",HISTORY_CGI);
+		printf("<table border=0 CLASS='optBox'>\n");
 		printf("<input type='hidden' name='host' value='%s'>\n",(show_all_hosts==TRUE)?"all":escape_string(host_name));
 		if(display_type==DISPLAY_SERVICES)
 			printf("<input type='hidden' name='service' value='%s'>\n",escape_string(svc_description));
@@ -215,9 +215,9 @@ int main(void){
 
 		printf("<tr>\n");
 		printf("<td align=left CLASS='optBoxItem'><select name='statetype'>\n");
-		printf("<option value=%d %s>All state types\n",STATE_ALL,(state_options==STATE_ALL)?"selected":"");
-		printf("<option value=%d %s>Soft states\n",STATE_SOFT,(state_options==STATE_SOFT)?"selected":"");
-		printf("<option value=%d %s>Hard states\n",STATE_HARD,(state_options==STATE_HARD)?"selected":"");
+		printf("<option value=%d %s>All state types</option>\n",STATE_ALL,(state_options==STATE_ALL)?"selected":"");
+		printf("<option value=%d %s>Soft states</option>\n",STATE_SOFT,(state_options==STATE_SOFT)?"selected":"");
+		printf("<option value=%d %s>Hard states</option>\n",STATE_HARD,(state_options==STATE_HARD)?"selected":"");
 		printf("</select></td>\n");
 		printf("</tr>\n");
 
@@ -233,18 +233,18 @@ int main(void){
 		printf("<tr>\n");
 		printf("<td align=left CLASS='optBoxItem'><select name='type'>\n");
 		if(display_type==DISPLAY_HOSTS)
-			printf("<option value=%d %s>All alerts\n",HISTORY_ALL,(history_options==HISTORY_ALL)?"selected":"");
-		printf("<option value=%d %s>All service alerts\n",HISTORY_SERVICE_ALL,(history_options==HISTORY_SERVICE_ALL)?"selected":"");
+			printf("<option value=%d %s>All alerts</option>\n",HISTORY_ALL,(history_options==HISTORY_ALL)?"selected":"");
+		printf("<option value=%d %s>All service alerts</option>\n",HISTORY_SERVICE_ALL,(history_options==HISTORY_SERVICE_ALL)?"selected":"");
 		if(display_type==DISPLAY_HOSTS)
-			printf("<option value=%d %s>All host alerts\n",HISTORY_HOST_ALL,(history_options==HISTORY_HOST_ALL)?"selected":"");
-		printf("<option value=%d %s>Service warning\n",HISTORY_SERVICE_WARNING,(history_options==HISTORY_SERVICE_WARNING)?"selected":"");
-		printf("<option value=%d %s>Service unknown\n",HISTORY_SERVICE_UNKNOWN,(history_options==HISTORY_SERVICE_UNKNOWN)?"selected":"");
-		printf("<option value=%d %s>Service critical\n",HISTORY_SERVICE_CRITICAL,(history_options==HISTORY_SERVICE_CRITICAL)?"selected":"");
-		printf("<option value=%d %s>Service recovery\n",HISTORY_SERVICE_RECOVERY,(history_options==HISTORY_SERVICE_RECOVERY)?"selected":"");
+			printf("<option value=%d %s>All host alerts</option>\n",HISTORY_HOST_ALL,(history_options==HISTORY_HOST_ALL)?"selected":"");
+		printf("<option value=%d %s>Service warning</option>\n",HISTORY_SERVICE_WARNING,(history_options==HISTORY_SERVICE_WARNING)?"selected":"");
+		printf("<option value=%d %s>Service unknown</option>\n",HISTORY_SERVICE_UNKNOWN,(history_options==HISTORY_SERVICE_UNKNOWN)?"selected":"");
+		printf("<option value=%d %s>Service critical</option>\n",HISTORY_SERVICE_CRITICAL,(history_options==HISTORY_SERVICE_CRITICAL)?"selected":"");
+		printf("<option value=%d %s>Service recovery</option>\n",HISTORY_SERVICE_RECOVERY,(history_options==HISTORY_SERVICE_RECOVERY)?"selected":"");
 		if(display_type==DISPLAY_HOSTS){
-			printf("<option value=%d %s>Host down\n",HISTORY_HOST_DOWN,(history_options==HISTORY_HOST_DOWN)?"selected":"");
-			printf("<option value=%d %s>Host unreachable\n",HISTORY_HOST_UNREACHABLE,(history_options==HISTORY_HOST_UNREACHABLE)?"selected":"");
-		        printf("<option value=%d %s>Host recovery\n",HISTORY_HOST_RECOVERY,(history_options==HISTORY_HOST_RECOVERY)?"selected":"");
+			printf("<option value=%d %s>Host down</option>\n",HISTORY_HOST_DOWN,(history_options==HISTORY_HOST_DOWN)?"selected":"");
+			printf("<option value=%d %s>Host unreachable</option>\n",HISTORY_HOST_UNREACHABLE,(history_options==HISTORY_HOST_UNREACHABLE)?"selected":"");
+		        printf("<option value=%d %s>Host recovery</option>\n",HISTORY_HOST_RECOVERY,(history_options==HISTORY_HOST_RECOVERY)?"selected":"");
 	                }
 		printf("</select></td>\n");
 		printf("</tr>\n");
@@ -274,8 +274,8 @@ int main(void){
 		printf("</td>\n");
 		printf("</tr>\n");
 
-		printf("</form>\n");
 		printf("</table>\n");
+		printf("</form>\n");
 
 		printf("</td>\n");
 
@@ -906,7 +906,7 @@ void get_history(void){
 			if(display_line==TRUE){
 
 				if(strcmp(last_message_date,current_message_date)!=0 && display_timebreaks==TRUE){
-					printf("<BR CLEAR='all'>\n");
+					printf("</DIV><BR CLEAR='all' />\n");
 					printf("<DIV CLASS='dateTimeBreak'>\n");
 					printf("<table border=0 width=95%%><tr>");
 					printf("<td width=40%%><hr width=100%%></td>");
@@ -914,19 +914,19 @@ void get_history(void){
 					printf("<td width=40%%><hr width=100%%></td>");
 					printf("</tr></table>\n");
 					printf("</DIV>\n");
-					printf("<BR CLEAR='all'><DIV CLASS='logEntries'>\n");
+					printf("<BR CLEAR='all' /><DIV CLASS='logEntries'>\n");
 					strncpy(last_message_date,current_message_date,sizeof(last_message_date));
 					last_message_date[sizeof(last_message_date)-1]='\x0';
 				        }
 
 				if(display_frills==TRUE)
-					printf("<img align='left' src='%s%s' alt='%s' title='%s'>",url_images_path,image,image_alt,image_alt);
+					printf("<img align='left' src='%s%s' alt='%s' title='%s' />",url_images_path,image,image_alt,image_alt);
 				printf("[%s] %s",date_time,html_encode(temp_buffer,FALSE));
 				if(enable_splunk_integration==TRUE){
 					printf("&nbsp;&nbsp;&nbsp;");
 					display_splunk_generic_url(temp_buffer,2);
 					}
-				printf("<br clear='all'>\n");
+				printf("<br clear='all' />\n");
 
 				found_line=TRUE;
 			        }
@@ -939,7 +939,7 @@ void get_history(void){
 		entry_service_desc=NULL;
                 }
 
-	printf("</P>\n");
+	printf("</DIV></P>\n");
 	
 	if(found_line==FALSE){
 		printf("<HR>\n");
@@ -947,7 +947,7 @@ void get_history(void){
 		if(display_type==DISPLAY_HOSTS)
 			printf("%s",(show_all_hosts==TRUE)?"":"for this host ");
 		else
-			printf("for this this service ");
+			printf("for this service ");
 		printf("in %s log file</DIV></P>",(log_archive==0)?"the current":"this archived");
 	        }
 

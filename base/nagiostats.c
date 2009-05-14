@@ -433,7 +433,11 @@ int main(int argc, char **argv){
 	if(nagiostats_file);
 		free(nagiostats_file);
 
-	return OK;
+	/* Opsera patch - return based on error, because mrtg_mode was always returning OK */
+	if(result==ERROR)
+		return ERROR;
+	else
+		return OK;
         }
 
 

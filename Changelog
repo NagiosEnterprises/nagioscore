@@ -13,6 +13,7 @@ Nagios 3.x Change Log
 * Fix for potential bug where a contactgroup with no members could cause parsing errors
 * Fix for W3 validation for history.cgi
 * Fix for W3 validation for extinfo.cgi
+* Fix for nagiostats to return non-zero with failures in MRTG mode
 * Added t/ directory for tests. Use make test to run. Requires perl on development server
 
 

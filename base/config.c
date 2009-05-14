@@ -1744,7 +1744,7 @@ int pre_flight_object_check(int *w, int *e){
 	/*****************************************/
 	if(verify_config==TRUE)
 		printf("Checking services...\n");
-	if(get_host_count()==0){
+	if(get_service_count()==0){
 		logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: There are no services defined!");
 		errors++;
 	        }

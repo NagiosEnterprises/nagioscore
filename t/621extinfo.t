@@ -28,12 +28,13 @@ my $cgi_dir = "$topdir/cgi";
 
 my $mech = Test::WWW::Mechanize::CGI->new;
 
+$mech->env( REMOTE_USER => "nagiosadmin" );
 $mech->env( NAGIOS_CGI_CONFIG => "etc/cgi.cfg" );
-$mech->cgi_application("$cgi_dir/history.cgi");
+$mech->cgi_application("$cgi_dir/extinfo.cgi");
 
 $mech->get_ok("http://localhost/");
 
-$mech->title_is("Nagios History");
+$mech->title_is("Extended Information");
 
 html_ok( $lint, $mech->content, "HTML correct" );
 

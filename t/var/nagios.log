@@ -1,0 +1,8 @@
+[1242341771] Nagios 3.1.0 starting... (PID=48448)
+[1242341771] Local time is Thu May 14 23:56:11 BST 2009
+[1242341771] LOG VERSION: 2.0
+[1242341771] Error: Could not create external command file 'var/rw/nagios.cmd' as named pipe: (2) -> No such file or directory.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.
+[1242341771] Bailing out due to errors encountered while trying to initialize the external command file... (PID=48448)
+[1242341791] Nagios 3.1.0 starting... (PID=48451)
+[1242341791] Local time is Thu May 14 23:56:31 BST 2009
+[1242341791] LOG VERSION: 2.0

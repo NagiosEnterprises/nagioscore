@@ -280,7 +280,7 @@ int main(void){
 				printf("<A HREF='%s?host=%s'>View Alert Histogram For This Host</A><BR>\n",HISTOGRAM_CGI,url_encode(host_name));
 #endif
 				printf("<A HREF='%s?host=%s&show_log_entries'>View Availability Report For This Host</A><BR>\n",AVAIL_CGI,url_encode(host_name));
-				printf("<A HREF='%s?host=%s'>View Notifications This Host</A>\n",NOTIFICATIONS_CGI,url_encode(host_name));
+				printf("<A HREF='%s?host=%s'>View Notifications For This Host</A>\n",NOTIFICATIONS_CGI,url_encode(host_name));
 		                }
 			else if(display_type==DISPLAY_SERVICE_INFO){
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
@@ -317,7 +317,7 @@ int main(void){
 		printf("</td>\n");
 
 		/* middle column of top row */
-		printf("<td align=center valign=center width=33%%>\n");
+		printf("<td align=center valign=middle width=33%%>\n");
 
 		if((display_type==DISPLAY_HOST_INFO && temp_host!=NULL) || (display_type==DISPLAY_SERVICE_INFO && temp_host!=NULL && temp_service!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL) || (display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL)){
 
@@ -390,7 +390,7 @@ int main(void){
 					printf("' border=0 alt='%s' title='%s'><BR CLEAR=ALL>",(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt,(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt);
 					}
 				if(temp_service->icon_image_alt!=NULL)
-					printf("<font size=-1><i>( %s )</i><font>\n",temp_service->icon_image_alt);
+					printf("<font size=-1><i>( %s )</i></font>\n",temp_service->icon_image_alt);
 				if(temp_service->notes!=NULL){
 					process_macros(temp_service->notes,&processed_string,0);
 					printf("<p>%s</p>\n",processed_string);
@@ -448,7 +448,7 @@ int main(void){
 	                }
 
 		else if(display_type==DISPLAY_SERVICE_INFO && temp_service!=NULL){
-			printf("<TABLE BORDER='0'>\n");
+			printf("<TABLE BORDER='0'><TR><TD ALIGN='right'>\n");
 			if(temp_service->action_url!=NULL && strcmp(temp_service->action_url,"")){
 				printf("<A HREF='");
 				process_macros(temp_service->action_url,&processed_string,0);
@@ -465,7 +465,7 @@ int main(void){
 				printf("' TARGET='%s'><img src='%s%s' border=0 alt='View Additional Notes For This Service' title='View Additional Notes For This Service'></A>\n",(notes_url_target==NULL)?"_blank":notes_url_target,url_images_path,NOTES_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 			        }
-			printf("</TABLE>\n");
+			printf("</TD></TR></TABLE>\n");
 	                }
 
 		if(display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL){
@@ -785,7 +785,7 @@ void show_process_info(void){
 		return;
 	        }
 
-	printf("<P>\n");
+	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
 
 	printf("<TABLE BORDER=0 CELLPADDING=20>\n");
@@ -954,6 +954,7 @@ void show_process_info(void){
 	printf("</TABLE>\n");
 
 	printf("</TD></TR></TABLE>\n");
+	printf("</DIV>\n");
 
 #ifdef REMOVED_081203
 	printf("<P>");
@@ -1847,9 +1848,9 @@ void show_all_comments(void){
 	char expire_time[MAX_DATETIME_LENGTH];
 
 
-	printf("<P>\n");
+	printf("<BR />\n");
 	printf("<DIV CLASS='commentNav'>[&nbsp;<A HREF='#HOSTCOMMENTS' CLASS='commentNav'>Host Comments</A>&nbsp;|&nbsp;<A HREF='#SERVICECOMMENTS' CLASS='commentNav'>Service Comments</A>&nbsp;]</DIV>\n");
-	printf("</P>\n");
+	printf("<BR />\n");
 
 	printf("<A NAME=HOSTCOMMENTS></A>\n");
 	printf("<DIV CLASS='commentTitle'>Host Comments</DIV>\n");
@@ -1858,7 +1859,7 @@ void show_all_comments(void){
 	printf("<a href='%s?cmd_typ=%d'>",COMMAND_CGI,CMD_ADD_HOST_COMMENT);
 	printf("Add a new host comment</a></div>\n");
 
-	printf("<P>\n");
+	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
 	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH></TR>\n");
@@ -1915,10 +1916,10 @@ void show_all_comments(void){
 	if(total_comments==0)
 		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=9>There are no host comments</TD></TR>");
 
-	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
+	printf("</DIV>\n");
 
-	printf("<P><BR></P>\n");
+	printf("<BR /><BR /><BR />\n");
 
 
 	printf("<A NAME=SERVICECOMMENTS></A>\n");
@@ -1928,7 +1929,7 @@ void show_all_comments(void){
 	printf("<a href='%s?cmd_typ=%d'>",COMMAND_CGI,CMD_ADD_SVC_COMMENT);
 	printf("Add a new service comment</a></div>\n");
 
-	printf("<P>\n");
+	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
 	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Service</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH></TR>\n");
@@ -1987,8 +1988,8 @@ void show_all_comments(void){
 	if(total_comments==0)
 		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=10>There are no service comments</TD></TR>");
 
-	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
+	printf("</DIV>\n");
 
 	return;
         }
@@ -2259,7 +2260,7 @@ void show_performance_data(void){
 	/***** ACTIVE SERVICE CHECKS *****/
 
 	printf("<tr>\n");
-	printf("<td valign=center><div class='perfTypeTitle'>Services Actively Checked:</div></td>\n");
+	printf("<td valign=middle><div class='perfTypeTitle'>Services Actively Checked:</div></td>\n");
 	printf("<td valign=top>\n");
 
 	/* fake this so we don't divide by zero for just showing the table */
@@ -2307,7 +2308,7 @@ void show_performance_data(void){
 	/***** PASSIVE SERVICE CHECKS *****/
 
 	printf("<tr>\n");
-	printf("<td valign=center><div class='perfTypeTitle'>Services Passively Checked:</div></td>\n");
+	printf("<td valign=middle><div class='perfTypeTitle'>Services Passively Checked:</div></td>\n");
 	printf("<td valign=top>\n");
 	
 
@@ -2350,7 +2351,7 @@ void show_performance_data(void){
 	/***** ACTIVE HOST CHECKS *****/
 
 	printf("<tr>\n");
-	printf("<td valign=center><div class='perfTypeTitle'>Hosts Actively Checked:</div></td>\n");
+	printf("<td valign=middle><div class='perfTypeTitle'>Hosts Actively Checked:</div></td>\n");
 	printf("<td valign=top>\n");
 
 	/* fake this so we don't divide by zero for just showing the table */
@@ -2398,7 +2399,7 @@ void show_performance_data(void){
 	/***** PASSIVE HOST CHECKS *****/
 
 	printf("<tr>\n");
-	printf("<td valign=center><div class='perfTypeTitle'>Hosts Passively Checked:</div></td>\n");
+	printf("<td valign=middle><div class='perfTypeTitle'>Hosts Passively Checked:</div></td>\n");
 	printf("<td valign=top>\n");
 	
 
@@ -2538,7 +2539,7 @@ void display_comments(int type){
 	printf("<TABLE BORDER=0>\n");
 
 	printf("<tr>\n");
-	printf("<td valign=center><img src='%s%s' border=0 align=center></td><td CLASS='comment'>",url_images_path,COMMENT_ICON);
+	printf("<td valign=middle><img src='%s%s' border=0 align=center></td><td CLASS='comment'>",url_images_path,COMMENT_ICON);
 	if(type==HOST_COMMENT)
 		printf("<a href='%s?cmd_typ=%d&host=%s' CLASS='comment'>",COMMAND_CGI,CMD_ADD_HOST_COMMENT,url_encode(host_name));
 	else{
@@ -2547,7 +2548,7 @@ void display_comments(int type){
 	        }
 	printf("Add a new comment</a></td>\n");
 
-	printf("<td valign=center><img src='%s%s' border=0 align=center></td><td CLASS='comment'>",url_images_path,DELETE_ICON);
+	printf("<td valign=middle><img src='%s%s' border=0 align=center></td><td CLASS='comment'>",url_images_path,DELETE_ICON);
 	if(type==HOST_COMMENT)
 		printf("<a href='%s?cmd_typ=%d&host=%s' CLASS='comment'>",COMMAND_CGI,CMD_DEL_ALL_HOST_COMMENTS,url_encode(host_name));
 	else{
@@ -2558,7 +2559,7 @@ void display_comments(int type){
 	printf("</tr>\n");
 
 	printf("</TABLE>\n");
-	printf("</DIV>\n");
+	//printf("</DIV>\n");
 
 
 	printf("<DIV ALIGN=CENTER>\n");
@@ -2619,7 +2620,7 @@ void display_comments(int type){
 	if(total_comments==0)
 		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN='%d'>This %s has no comments associated with it</TD></TR>",(type==HOST_COMMENT)?9:10,(type==HOST_COMMENT)?"host":"service");
 
-	printf("</TABLE>\n");
+	printf("</TABLE></DIV>\n");
 
 	return;
         }
@@ -2642,9 +2643,9 @@ void show_all_downtime(void){
 	int seconds;
 
 
-	printf("<P>\n");
+	printf("<BR />\n");
 	printf("<DIV CLASS='downtimeNav'>[&nbsp;<A HREF='#HOSTDOWNTIME' CLASS='downtimeNav'>Host Downtime</A>&nbsp;|&nbsp;<A HREF='#SERVICEDOWNTIME' CLASS='downtimeNav'>Service Downtime</A>&nbsp;]</DIV>\n");
-	printf("</P>\n");
+	printf("<BR />\n");
 
 	printf("<A NAME=HOSTDOWNTIME></A>\n");
 	printf("<DIV CLASS='downtimeTitle'>Scheduled Host Downtime</DIV>\n");
@@ -2653,7 +2654,7 @@ void show_all_downtime(void){
 	printf("<a href='%s?cmd_typ=%d'>",COMMAND_CGI,CMD_SCHEDULE_HOST_DOWNTIME);
 	printf("Schedule host downtime</a></div>\n");
 
-	printf("<P>\n");
+	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='downtime'>\n");
 	printf("<TR CLASS='downtime'><TH CLASS='downtime'>Host Name</TH><TH CLASS='downtime'>Entry Time</TH><TH CLASS='downtime'>Author</TH><TH CLASS='downtime'>Comment</TH><TH CLASS='downtime'>Start Time</TH><TH CLASS='downtime'>End Time</TH><TH CLASS='downtime'>Type</TH><TH CLASS='downtime'>Duration</TH><TH CLASS='downtime'>Downtime ID</TH><TH CLASS='downtime'>Trigger ID</TH><TH CLASS='downtime'>Actions</TH></TR>\n");
@@ -2708,10 +2709,10 @@ void show_all_downtime(void){
 	if(total_downtime==0)
 		printf("<TR CLASS='downtimeOdd'><TD CLASS='downtimeOdd' COLSPAN=11>There are no hosts with scheduled downtime</TD></TR>");
 
-	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
+	printf("</DIV>\n");
 
-	printf("<P><BR></P>\n");
+	printf("<BR /><BR /><BR />\n");
 
 
 	printf("<A NAME=SERVICEDOWNTIME></A>\n");
@@ -2721,7 +2722,7 @@ void show_all_downtime(void){
 	printf("<a href='%s?cmd_typ=%d'>",COMMAND_CGI,CMD_SCHEDULE_SVC_DOWNTIME);
 	printf("Schedule service downtime</a></div>\n");
 
-	printf("<P>\n");
+	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='downtime'>\n");
 	printf("<TR CLASS='downtime'><TH CLASS='downtime'>Host Name</TH><TH CLASS='downtime'>Service</TH><TH CLASS='downtime'>Entry Time</TH><TH CLASS='downtime'>Author</TH><TH CLASS='downtime'>Comment</TH><TH CLASS='downtime'>Start Time</TH><TH CLASS='downtime'>End Time</TH><TH CLASS='downtime'>Type</TH><TH CLASS='downtime'>Duration</TH><TH CLASS='downtime'>Downtime ID</TH><TH CLASS='downtime'>Trigger ID</TH><TH CLASS='downtime'>Actions</TH></TR>\n");
@@ -2778,8 +2779,8 @@ void show_all_downtime(void){
 	if(total_downtime==0)
 		printf("<TR CLASS='downtimeOdd'><TD CLASS='downtimeOdd' COLSPAN=12>There are no services with scheduled downtime</TD></TR>");
 
-	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
+	printf("</DIV>\n");
 
 	return;
         }

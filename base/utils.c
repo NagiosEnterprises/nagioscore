@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 05-13-2009
+ * Last Modified: 05-15-2009
  *
  * License:
  *
@@ -3660,7 +3660,7 @@ int dbuf_strcat(dbuf *db, char *buf){
 /* initializes embedded perl interpreter */
 int init_embedded_perl(char **env){
 #ifdef EMBEDDEDPERL
-	char *embedding[]={ "", "" };
+	void **embedding;
 	int exitstatus=0;
 	char *temp_buffer=NULL;
 	int argc=2;
@@ -3676,7 +3676,11 @@ int init_embedded_perl(char **env){
 
 	else{
 
-		embedding[1]=p1_file;
+		embedding=(void **)malloc(2*sizeof(char *));
+		if(embedding==NULL)
+			return ERROR;
+		*embedding=strdup("");
+		*(embedding+1)=strdup(p1_file);
 
 		use_embedded_perl=TRUE;
 
@@ -3698,7 +3702,7 @@ int init_embedded_perl(char **env){
 		}
 
 	perl_construct(my_perl);
-	exitstatus=perl_parse(my_perl,xs_init,2,embedding,env);
+	exitstatus=perl_parse(my_perl,xs_init,2,(char **)embedding,env);
 	if(!exitstatus)
 		exitstatus=perl_run(my_perl);
 

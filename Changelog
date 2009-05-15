@@ -19,6 +19,7 @@ Nagios 3.x Change Log
 * Fix for duplicate unlink() during check processing
 * Added missing check period column to host config display (CGI)
 * Fix for embedded Perl initialization under FreeBSD
+* Fix for incorrect re-initialization of mutext after program restart
 
 
 

@@ -3819,8 +3819,9 @@ int init_command_file_worker_thread(void){
 	if(external_command_buffer.buffer==NULL)
 		return ERROR;
 
-	/* initialize mutex */
-	pthread_mutex_init(&external_command_buffer.buffer_lock,NULL);
+	/* initialize mutex (only on cold startup) */
+	if(sigrestart==FALSE)
+		pthread_mutex_init(&external_command_buffer.buffer_lock,NULL);
 
 	/* new thread should block all signals */
 	sigfillset(&newmask);

@@ -20,6 +20,7 @@ Nagios 3.x Change Log
 * Added missing check period column to host config display (CGI)
 * Fix for embedded Perl initialization under FreeBSD
 * Fix for incorrect re-initialization of mutext after program restart
+* Fix for incorrect weighting in host flap detection logic
 
 
 

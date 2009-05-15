@@ -2,8 +2,8 @@
  *
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
- * Copyright (c) 2001-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 02-20-2008
+ * Copyright (c) 2001-2009 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 05-15-2009
  *
  * License:
  *
@@ -183,6 +183,7 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 	int update_history=TRUE;
 	int is_flapping=FALSE;
 	register int x=0;
+	register int y=0;
 	int last_state_history_value=HOST_UP;
 	unsigned long wait_threshold=0L;
 	double curved_changes=0.0;
@@ -256,17 +257,24 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 	        }
 
 	/* calculate overall changes in state */
-	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++){
+	for(x=0,y=hst->state_history_index;x<MAX_STATE_HISTORY_ENTRIES;x++){
 
 		if(x==0){
-			last_state_history_value=hst->state_history[x];
+			last_state_history_value=hst->state_history[y];
+			y++;
+			if(y>=MAX_STATE_HISTORY_ENTRIES)
+				y=0;
 			continue;
 		        }
 
-		if(last_state_history_value!=hst->state_history[x])
+		if(last_state_history_value!=hst->state_history[y])
 			curved_changes+=(((double)(x-1)*(high_curve_value-low_curve_value))/((double)(MAX_STATE_HISTORY_ENTRIES-2)))+low_curve_value;
 
-		last_state_history_value=hst->state_history[x];
+		last_state_history_value=hst->state_history[y];
+
+		y++;
+		if(y>=MAX_STATE_HISTORY_ENTRIES)
+			y=0;
 	        }
 
 	/* calculate overall percent change in state */

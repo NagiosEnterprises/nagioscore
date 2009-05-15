@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 01-25-2009
+ * Last Modified: 05-13-2009
  *
  * License:
  *
@@ -2246,8 +2246,8 @@ int move_check_result_to_queue(char *checkresult_file){
 			close(output_file_fd);
 		my_free(temp_buffer);
 
-		/* delete the original file */
-		if(result==0)
+		/* delete the original file if it couldn't be moved */
+		if(result!=0)
 			unlink(checkresult_file);
 		}
 	else

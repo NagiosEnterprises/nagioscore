@@ -16,6 +16,7 @@ Nagios 3.x Change Log
 * Fix for nagiostats to return non-zero with failures in MRTG mode
 * Added t/ directory for tests. Use make test to run. Requires perl on development server
 * Fix for duplicate event_id attributes in status and retention data
+* Fix for duplicate unlink() during check processing
 
 
 

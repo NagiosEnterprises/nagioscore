@@ -17,6 +17,7 @@ Nagios 3.x Change Log
 * Added t/ directory for tests. Use make test to run. Requires perl on development server
 * Fix for duplicate event_id attributes in status and retention data
 * Fix for duplicate unlink() during check processing
+* Added missing check period column to host config display (CGI)
 
 
 

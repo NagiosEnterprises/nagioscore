@@ -2,8 +2,8 @@
  *
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 04-13-2008
+ * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 05-15-2009
  *
  * This CGI program will display various configuration information.
  *
@@ -434,6 +434,7 @@ void display_hosts(void){
 	printf("<TH CLASS='data'>Check Interval</TH>\n");
 	printf("<TH CLASS='data'>Retry Interval</TH>\n");
 	printf("<TH CLASS='data'>Host Check Command</TH>");
+	printf("<TH CLASS='data'>Check Period</TH>");
 	printf("<TH CLASS='data'>Obsess Over</TH>\n");
 	printf("<TH CLASS='data'>Enable Active Checks</TH>\n");
 	printf("<TH CLASS='data'>Enable Passive Checks</TH>\n");
@@ -512,6 +513,13 @@ void display_hosts(void){
 			printf("&nbsp;");
 		else
 			printf("<a href='%s?type=commands#%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(temp_host->host_check_command),html_encode(temp_host->host_check_command,FALSE));
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_host->check_period==NULL)
+			printf("&nbsp;");
+		else
+			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_host->check_period),temp_host->check_period);
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->obsess_over_host==TRUE)?"Yes":"No");

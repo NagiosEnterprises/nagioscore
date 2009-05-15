@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
- * Copyright (c) 2000-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 12-04-2008
+ * Copyright (c) 2000-2009 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 05-15-2009
  *
  * License:
  *
@@ -495,8 +495,6 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tcheck_options=%d\n",temp_host->check_options);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_host->current_attempt);
 		fprintf(fp,"\tmax_attempts=%d\n",temp_host->max_attempts);
-		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_host->current_event_id);
-		fprintf(fp,"\tlast_event_id=%lu\n",temp_host->last_event_id);
 		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
 		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_host->last_hard_state_change);
@@ -564,8 +562,6 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tlast_problem_id=%lu\n",temp_service->last_problem_id);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_service->current_attempt);
 		fprintf(fp,"\tmax_attempts=%d\n",temp_service->max_attempts);
-		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_service->current_event_id);
-		fprintf(fp,"\tlast_event_id=%lu\n",temp_service->last_event_id);
 		fprintf(fp,"\tstate_type=%d\n",temp_service->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_service->last_state_change);
 		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_service->last_hard_state_change);

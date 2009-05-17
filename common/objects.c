@@ -3456,40 +3456,6 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 
 #ifdef NSCORE
 
-/* checks to see if there exists a circular parent/child path for a host */
-int check_for_circular_host_path(host *root_hst, host *hst){
-	host *temp_host=NULL;
-
-	/* don't go into a loop, don't bother checking anymore if we know this host already has a loop */
-	if(root_hst->contains_circular_path==TRUE)
-		return TRUE;
-
-	/* host has already been checked - there is a path somewhere, but it may not be for this particular host... */
-	/* this should speed up detection for some loops */
-	if(hst->circular_path_checked==TRUE)
-		return FALSE;
-
-	/* set the check flag so we don't get into an infinite loop */
-	hst->circular_path_checked=TRUE;
-
-	/* check this hosts' parents to see if a circular path exists */
-	if(is_host_immediate_parent_of_host(root_hst,hst)==TRUE){
-		root_hst->contains_circular_path=TRUE;
-		hst->contains_circular_path=TRUE;
-		return TRUE;
-	        }
-
-	/* check all immediate children for a circular path */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE)
-			if(check_for_circular_host_path(root_hst,temp_host)==TRUE)
-				return TRUE;
-	        }
-
-	return FALSE;
-        }
-
-
 /* checks to see if there exists a circular dependency for a service */
 int check_for_circular_servicedependency_path(servicedependency *root_dep, servicedependency *dep, int dependency_type){
 	servicedependency *temp_sd=NULL;

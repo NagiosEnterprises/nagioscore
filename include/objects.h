@@ -752,7 +752,6 @@ int number_of_immediate_parent_hosts(host *);				/* counts the number of immedia
 int number_of_total_parent_hosts(host *);				/* counts the number of total parents hosts for a particular host */
 
 #ifdef NSCORE
-int check_for_circular_host_path(host *,host *);                             /* checks if a circular path exists for a given host */
 int check_for_circular_servicedependency_path(servicedependency *,servicedependency *,int);   /* checks if a circular dependency exists for a given service */
 int check_for_circular_hostdependency_path(hostdependency *,hostdependency *,int);   /* checks if a circular dependency exists for a given host */
 #endif

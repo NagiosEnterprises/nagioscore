@@ -2608,10 +2608,75 @@ int pre_flight_object_check(int *w, int *e){
 	}
 
 
+/* dfs status values */
+#define DFS_UNCHECKED                    0  /* default value */
+#define DFS_TEMP_CHECKED                 1  /* check just one time */
+#define DFS_OK                           2  /* no problem */
+#define DFS_NEAR_LOOP                    3  /* has trouble sons */
+#define DFS_LOOPY                        4  /* is a part of a loop */
+
+#define dfs_get_status(h) h->circular_path_checked
+#define dfs_unset_status(h) h->circular_path_checked = 0
+#define dfs_set_status(h, flag) h->circular_path_checked = (flag)
+#define dfs_host_status(h) (h ? dfs_get_status(h) : DFS_OK)
+
+/**
+ * Modified version of Depth-first Search
+ * http://en.wikipedia.org/wiki/Depth-first_search
+ */
+static int dfs_host_path(host *root)
+{
+	hostsmember *child = NULL;
+
+	if (!root)
+		return DFS_NEAR_LOOP;
+
+	if (dfs_get_status(root) != DFS_UNCHECKED)
+		return dfs_get_status(root);
+
+	/* Mark the root temporary checked */
+	dfs_set_status(root, DFS_TEMP_CHECKED);
+
+	/* We are scanning the children */
+	for (child = root->child_hosts; child!=NULL; child=child->next){
+		int child_status = dfs_get_status(child->host_ptr);
+
+		/* If a child is not checked, check it */
+		if (child_status == DFS_UNCHECKED)
+			child_status = dfs_host_path(child->host_ptr);
+
+		/* If a child already temporary checked, its a problem,
+		 * loop inside, and its a acked status */
+		if (child_status == DFS_TEMP_CHECKED) {
+			dfs_set_status(child->host_ptr, DFS_LOOPY);
+			dfs_set_status(root, DFS_LOOPY);
+		}
+
+		/* If a child already temporary checked, its a problem, loop inside */
+		if (child_status == DFS_NEAR_LOOP || child_status == DFS_LOOPY) {
+			/* if a node is know to be part of a loop, do not let it be less */
+			if (dfs_get_status(root) != DFS_LOOPY)
+				dfs_set_status(root, DFS_NEAR_LOOP);
+
+			/* we already saw this child, it's a problem */
+			dfs_set_status(child->host_ptr, DFS_LOOPY);
+		}
+	}
+
+	/*
+	 * If root have been modified, do not set it OK
+	 * A node is OK if and only if all of his children are OK
+	 * If it does not have child, goes ok
+	 */
+	if(dfs_get_status(root) == DFS_TEMP_CHECKED)
+		dfs_set_status(root, DFS_OK);
+	return dfs_get_status(root);
+}
+
+
 /* check for circular paths and dependencies */
 int pre_flight_circular_check(int *w, int *e){
 	host *temp_host=NULL;
-	host *temp_host2=NULL;
 	servicedependency *temp_sd=NULL;
 	servicedependency *temp_sd2=NULL;
 	hostdependency *temp_hd=NULL;
@@ -2636,21 +2701,24 @@ int pre_flight_circular_check(int *w, int *e){
 	/* check routes between all hosts */
 	found=FALSE;
 	result=OK;
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-		/* clear checked flag for all hosts */
-		for(temp_host2=host_list;temp_host2!=NULL;temp_host2=temp_host2->next)
-			temp_host2->circular_path_checked=FALSE;
 
-		found=check_for_circular_host_path(temp_host,temp_host);
-		if(found==TRUE){
-			logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: There is a circular parent/child path that exists for host '%s'!",temp_host->name);
-			result=ERROR;
-		        }
-	        }
-	if(result==ERROR)
-		errors++;
+	/* We clean the dsf status from previous check */
+	for (temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
+		dfs_set_status(temp_host, DFS_UNCHECKED);
+	}
 
+	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
+		if (dfs_host_path(temp_host) == DFS_LOOPY)
+			errors = 1;
+	}
+
+	for (temp_host = host_list; temp_host != NULL; temp_host = temp_host->next){
+		if (dfs_get_status(temp_host) == DFS_LOOPY)
+			logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: The host '%s' is part of a circular parent/child chain!", temp_host->name);
+		/* clean DFS status */
+		dfs_set_status(temp_host, DFS_UNCHECKED);
+	}
 
 
 	/********************************************/

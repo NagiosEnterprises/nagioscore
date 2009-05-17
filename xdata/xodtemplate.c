@@ -1715,6 +1715,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->custom_variables=NULL;
 		new_service->has_been_resolved=FALSE;
 		new_service->register_object=TRUE;
+		/* true service, so is not from host group, must be set AFTER have_initial_state*/
+		xodtemplate_unset_service_is_from_hostgroup(new_service);
 
 		new_service->_config_file=config_file;
 		new_service->_start_line=start_line;
@@ -5153,6 +5155,18 @@ int xodtemplate_get_weekday_from_string(char *str, int *weekday){
 
 #ifdef NSCORE
 
+/*
+ * Macro magic used to determine if a service is assigned
+ * via hostgroup_name or host_name. Those assigned via host_name
+ * take precedence.
+ */
+#define X_SERVICE_IS_FROM_HOSTGROUP      (1 << 1)  /* flag to know if service come from a hostgroup def, apply on srv->have_initial_state */
+#define xodtemplate_set_service_is_from_hostgroup(srv) \
+	srv->have_initial_state |= X_SERVICE_IS_FROM_HOSTGROUP
+#define xodtemplate_unset_service_is_from_hostgroup(srv) \
+	srv->have_initial_state &= ~X_SERVICE_IS_FROM_HOSTGROUP
+#define xodtemplate_is_service_is_from_hostgroup(srv) \
+	((srv->have_initial_state & X_SERVICE_IS_FROM_HOSTGROUP) != 0)
 
 /* duplicates service definitions */
 int xodtemplate_duplicate_services(void){
@@ -5221,6 +5235,41 @@ int xodtemplate_duplicate_services(void){
 	/* SKIPLIST STUFF FOR FAST SORT/SEARCH */
 	/***************************************/
 
+	/* First loop for single host service definition*/
+        for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+                /* skip services that shouldn't be registered */
+                if(temp_service->register_object==FALSE)
+                        continue;
+
+                /* skip service definitions without enough data */
+                if(temp_service->host_name==NULL || temp_service->service_description==NULL)
+                        continue;
+
+		if(xodtemplate_is_service_is_from_hostgroup(temp_service)){
+			continue;
+		}
+
+
+                result=skiplist_insert(xobject_skiplists[X_SERVICE_SKIPLIST],(void *)temp_service);
+                switch(result){
+                case SKIPLIST_ERROR_DUPLICATE:
+#ifdef NSCORE
+                        logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for service '%s' on host '%s' (config file '%s', starting on line %d)\n",temp_service->service_description,temp_service->host_name,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+#endif
+                        result=ERROR;
+                        break;
+                case SKIPLIST_OK:
+                        result=OK;
+                        break;
+                default:
+                        result=ERROR;
+                        break;
+                        }
+                }
+
+
+	/* second loop for host group service definition*/
 	/* add services to skiplist for fast searches */
 	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 
@@ -5231,6 +5280,12 @@ int xodtemplate_duplicate_services(void){
 		/* skip service definitions without enough data */
 		if(temp_service->host_name==NULL || temp_service->service_description==NULL)
 			continue;
+
+	        if(!xodtemplate_is_service_is_from_hostgroup(temp_service)){
+                        continue;
+                }
+		/*The flag X_SERVICE_IS_FROM_HOSTGROUP is set, unset it*/
+		xodtemplate_unset_service_is_from_hostgroup(temp_service);
 
 		result=skiplist_insert(xobject_skiplists[X_SERVICE_SKIPLIST],(void *)temp_service);
 		switch(result){
@@ -6119,6 +6174,8 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service->register_object=temp_service->register_object;
 	new_service->_config_file=temp_service->_config_file;
 	new_service->_start_line=temp_service->_start_line;
+	/*tag service apply on host group*/
+	xodtemplate_set_service_is_from_hostgroup(new_service);
 
 	/* string defaults */
 	new_service->hostgroup_name=NULL;

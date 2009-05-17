@@ -11,16 +11,16 @@ SRC_INCLUDE=../include
 SRC_XDATA=../xdata
 
 CC=@CC@
-CFLAGS=@CFLAGS@ @DEFS@ @GLIB_INCLUDE@ -DNSCORE
+CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE
 
 # Compiler flags for use with gprof
-#CFLAGS=-pg -DHAVE_CONFIG_H @GLIB_INCLUDE@ -DNSCORE
+#CFLAGS=-pg -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for use with Valgrind
-#CFLAGS=-O0 -g -DHAVE_CONFIG_H @GLIB_INCLUDE@ -DNSCORE
+#CFLAGS=-O0 -g -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for optimization (overrides default)
-#CFLAGS=-O3 -Wall -fno-strict-aliasing -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H  @GLIB_INCLUDE@ -DNSCORE
+#CFLAGS=-O3 -Wall -fno-strict-aliasing -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for optimization (complements default)
 #CFLAGS_WARN=-Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs
@@ -29,7 +29,7 @@ CFLAGS=@CFLAGS@ @DEFS@ @GLIB_INCLUDE@ -DNSCORE
 #CFLAGS+=$(CFLAGS_WARN) $(CFLAGS_DEBUG) $(CFLAGS_GPROF)
 
 LDFLAGS=@LDFLAGS@
-LIBS=@LIBS@ @GLIB_LIBS@
+LIBS=@LIBS@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@

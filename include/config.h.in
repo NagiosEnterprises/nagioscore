@@ -75,7 +75,6 @@
 #undef HAVE_STRTOUL
 #undef HAVE_INITGROUPS
 #undef HAVE_GETLOADAVG
-#undef HAVE_GLIB
 
 
 
@@ -182,16 +181,6 @@
 #undef HAVE_FCNTL_H
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-
-#ifdef NSCORE
-#undef HAVE_GLIB_H
-#endif
-#ifdef NSCGI
-#undef HAVE_GLIB_H
-#endif
-#ifdef HAVE_GLIB_H
-#include <glib.h>
 #endif
 
 #undef HAVE_STDARG_H

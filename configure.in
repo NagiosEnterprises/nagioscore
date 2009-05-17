@@ -519,17 +519,6 @@ if test x$TRYGD = xyep; then
 	fi
 fi
 
-dnl Try and locate glib
-GLIB_INCLUDE=`pkg-config --cflags glib-2.0`
-AC_SUBST(GLIB_INCLUDE)
-GLIB_LIBS=`pkg-config --libs glib-2.0`
-AC_SUBST(GLIB_LIBS)
-if test "x$GLIB_LIBS" != x; then
-	AC_DEFINE_UNQUOTED(HAVE_GLIB)
-	AC_DEFINE_UNQUOTED(HAVE_GLIB_H)
-fi
-
-
 AC_ARG_WITH(cgiurl,--with-cgiurl=<local-url> sets URL for cgi programs (do not use a trailing slash),cgiurl=$withval,cgiurl=/nagios/cgi-bin)
 AC_ARG_WITH(htmurl,--with-htmurl=<local-url> sets URL for public html,htmurl=$withval,htmurl=/nagios)
 AC_SUBST(htmurl)

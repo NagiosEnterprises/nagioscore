@@ -892,6 +892,48 @@ define hostescalation{
 
 
 
+<a name="importantvalues"></a>
+<p>
+<strong><u>Important values</u></strong>
+</p>
+
+<p>
+Service templates can make use of a special rule which gives precedence to their check_command value. If the check_command is prefixed with an exclamation mark (!), then the template's check_command is marked as important and will be used over the check_command defined for the service (this is styled after CSS syntax, which uses ! as an important attribute).
+</p>
+
+<p>
+Why is this useful? It is mainly useful when setting a different check_command for distributed systems. You may want to set a freshness threshold and a check_command that forces the service into a failed state, but this doesn't work with the normal templating system. Using this <i>important</i> flag allows the custom check_command to be written, but a general distributed template can be used to overrule the check_command when used on a central Nagios server.
+</p>
+
+<p>
+For instance:
+</p>
+
+<pre>
+# On master
+define service {
+	name			service-distributed
+	register		0
+	active_checks_enabled	0
+	check_freshness		1
+	check_command		<font color="red">!set_to_stale</font>
+	}
+# On slave
+define service {
+	name			service-distributed
+	register		0
+	active_checks_enabled	1
+	}
+# Service definition, used by master and slave
+define service {
+	host_name 		host1
+	service_description	serviceA
+	check_command		check_http...
+	use			service-distributed
+	...
+	}
+</pre>
+
 <a name="multiple_templates"></a>
 
 <p>

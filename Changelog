@@ -6,6 +6,7 @@ Nagios 3.x Change Log
 
 3.1.1 - 02/??/2009
 ------------------
+* New "important check command" flag for use in service templates, to aid configuration in distributed environments
 * Fix for nagios validation error when no services defined
 * Fix for stylesheet link
 * Fix for extinfo.cgi error message when cgi.cfg doesn't exist

@@ -428,6 +428,7 @@ typedef struct xodtemplate_service_struct{
 	int        have_hostgroup_name;
 	int        have_service_groups;
 	int        have_check_command;
+	int        have_important_check_command;
 	int        have_check_period;
 	int        have_event_handler;
 	int        have_notification_period;

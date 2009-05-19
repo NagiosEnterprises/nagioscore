@@ -1629,6 +1629,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_service_groups=FALSE;
 		new_service->check_command=NULL;
 		new_service->have_check_command=FALSE;
+		new_service->have_important_check_command=FALSE;
 		new_service->check_period=NULL;
 		new_service->have_check_period=FALSE;
 		new_service->event_handler=NULL;
@@ -3841,7 +3842,13 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"check_command")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				if((temp_service->check_command=(char *)strdup(value))==NULL)
+				if(value[0] == '!') {
+					temp_service->have_important_check_command=TRUE;
+					temp_ptr=value+1;
+					}
+				else
+					temp_ptr=value;
+				if((temp_service->check_command=(char *)strdup(temp_ptr))==NULL)
 					result=ERROR;
 			        }
 			temp_service->have_check_command=TRUE;
@@ -8119,11 +8126,17 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 		xodtemplate_get_inherited_string(&template_service->have_contact_groups,&template_service->contact_groups,&this_service->have_contact_groups,&this_service->contact_groups);
 		xodtemplate_get_inherited_string(&template_service->have_contacts,&template_service->contacts,&this_service->have_contacts,&this_service->contacts);
 
-		if(this_service->have_check_command==FALSE && template_service->have_check_command==TRUE){
-			if(this_service->check_command==NULL && template_service->check_command!=NULL)
-				this_service->check_command=(char *)strdup(template_service->check_command);
-			this_service->have_check_command=TRUE;
-		        }
+		if(template_service->have_check_command==TRUE){
+			if(template_service->have_important_check_command==TRUE){
+				my_free(this_service->check_command);
+				this_service->have_check_command=FALSE;
+				}
+			if(this_service->have_check_command==FALSE){
+				if(this_service->check_command==NULL && template_service->check_command!=NULL)
+					this_service->check_command=(char *)strdup(template_service->check_command);
+				this_service->have_check_command=TRUE;
+				}
+			}
 		if(this_service->have_check_period==FALSE && template_service->have_check_period==TRUE){
 			if(this_service->check_period==NULL && template_service->check_period!=NULL)
 				this_service->check_period=(char *)strdup(template_service->check_period);

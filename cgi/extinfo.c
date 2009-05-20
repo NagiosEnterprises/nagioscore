@@ -136,6 +136,7 @@ int main(void){
 	char temp_buffer[MAX_INPUT_BUFFER]="";
 	char *processed_string=NULL;
 	host *temp_host=NULL;
+	hostsmember *temp_parenthost=NULL;
 	hostgroup *temp_hostgroup=NULL;
 	service *temp_service=NULL;
 	servicegroup *temp_servicegroup=NULL;
@@ -325,6 +326,15 @@ int main(void){
 				printf("<DIV CLASS='data'>Host</DIV>\n");
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n",temp_host->alias);
 				printf("<DIV CLASS='dataTitle'>(%s)</DIV><BR>\n",temp_host->name);
+
+				if (temp_host->parent_hosts != NULL) {
+					/* print all parent hosts */
+					printf("<DIV CLASS='data'>Parents:</DIV>\n");
+					for(temp_parenthost=temp_host->parent_hosts;temp_parenthost!=NULL;temp_parenthost=temp_parenthost->next)
+						printf("<DIV CLASS='dataTitle'><A HREF='%s?host=%s'>%s</A></DIV>\n",STATUS_CGI, url_encode(temp_parenthost->host_name),temp_parenthost->host_name);
+					printf("<BR>");
+				}
+
 				printf("<DIV CLASS='data'>Member of</DIV><DIV CLASS='dataTitle'>");
 				for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
 					if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==TRUE){

@@ -1,0 +1,11 @@
+NAME
+     tap -- write tests that implement the Test Anything Protocol
+
+SYNOPSIS
+     #include <tap.h>
+
+DESCRIPTION
+     The tap library provides functions for writing test scripts that produce
+     output consistent with the Test Anything Protocol.  A test harness that
+     parses this protocol can run these tests and produce useful reports indi-
+     cating their success or failure.

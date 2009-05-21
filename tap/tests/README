@@ -1,0 +1,12 @@
+Most of the tests follow the same pattern.
+
+ * test.pl that uses Test::More, and demonstrates whatever functionality 
+   that we're trying to test.  This is the reference code.
+
+ * test.c, which tests the libtap reimplementation of the same functionality.
+
+ * test.t, which compiles the .c program, runs both test scripts, and then 
+   diffs their output to make sure it's identical.
+
+   Right now, test.t is identical in every directory.  This sucks somewhat.
+   It should either be a symlink to a common script

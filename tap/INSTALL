@@ -1,0 +1,8 @@
+Quick Installation
+
+    ./configure
+    make
+    make check
+    make install
+
+Run "configure --help" for additional options.

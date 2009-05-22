@@ -1,0 +1,89 @@
+# Makefile for Nagios tests using libtap
+
+
+# Source code directories
+SRC_COMMON=../common
+SRC_INCLUDE=../include
+SRC_XDATA=../xdata
+SRC_BASE=../base
+
+CC=@CC@
+CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src
+TAPOBJ=../tap/src/tap.o
+
+TESTS = test_logging
+
+LDFLAGS=@LDFLAGS@
+LIBS=@LIBS@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+LOGDIR=@localstatedir@
+CFGDIR=@sysconfdir@
+BINDIR=@bindir@
+CGIDIR=@sbindir@
+HTMLDIR=@datadir@
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+COMMAND_OPTS=@COMMAND_OPTS@
+STRIP=@STRIP@
+
+CGIURL=@cgiurl@
+HTMURL=@htmurl@
+
+MATHLIBS=-lm
+PERLLIBS=@PERLLIBS@
+PERLXSI_O=@PERLXSI_O@
+SOCKETLIBS=@SOCKETLIBS@
+THREADLIBS=@THREADLIBS@
+BROKERLIBS=@BROKERLIBS@
+
+BROKER_LDFLAGS=@BROKER_LDFLAGS@ 
+
+CP=@CP@
+
+# External data I/O code and headers
+XSDC=@XSDC@
+XSDH=@XSDH@
+XCDC=@XCDC@
+XCDH=@XCDH@
+XRDC=@XRDC@
+XRDH=@XRDH@
+XODC=@XODC@
+XODH=@XODH@
+XPDC=@XPDC@
+XPDH=@XPDH@
+XDDC=@XDDC@
+XDDH=@XDDH@
+
+# Extra base code
+BASEEXTRALIBS=@BASEEXTRALIBS@
+
+# Generated automatically from configure script
+SNPRINTF_O=@SNPRINTF_O@
+BROKER_O=@BROKER_O@
+BROKER_H=@BROKER_H@
+
+all: $(TESTS)
+
+########## TESTS ##########
+
+test_logging: test_logging.c $(SRC_BASE)/logging.o
+	$(CC) $(CFLAGS) -o $@ test_logging.c $(SRC_BASE)/logging.o $(TAPOBJ) $(LDFLAGS)
+
+test_freshness: test_freshness.o $(SRC_BASE)/freshness.o
+	$(CC) $(CFLAGS) -o $@ test_freshness.c $(SRC_BASE)/freshness.o
+
+test:
+	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(@ARGV)' $(TESTS)
+
+clean:
+	rm -f nagios nagiostats core *.o gmon.out
+	rm -f *~ *.*~
+
+distclean: clean
+	rm -f perlxsi.c
+	rm -f Makefile
+
+devclean: distclean
+

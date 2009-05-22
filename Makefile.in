@@ -171,7 +171,17 @@ distclean: clean
 
 devclean: distclean
 
+tap:
+	cd tap && $(MAKE)
+
 test:
+	$(MAKE) test-tap
+	$(MAKE) test-perl
+
+test-tap:
+	cd t-tap && $(MAKE) test
+
+test-perl:
 	prove t/*.t
 
 install-html:

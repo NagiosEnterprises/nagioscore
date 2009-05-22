@@ -277,7 +277,7 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 				preferred_time=current_time+((svc->check_interval<=0)?300:(svc->check_interval*interval_length));
 
 			/* make sure we rescheduled the next service check at a valid time */
-			get_next_valid_time(preferred_time,&next_valid_time,svc->check_period_ptr);
+			get_next_valid_time(current_time,&next_valid_time,svc->check_period_ptr);
 
 			/* the service could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */
 			if(time_is_valid==FALSE && next_valid_time==preferred_time){
@@ -2792,7 +2792,7 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency){
 				preferred_time=current_time+((hst->check_interval<=0)?300:(hst->check_interval*interval_length));
 
 			/* make sure we rescheduled the next host check at a valid time */
-			get_next_valid_time(preferred_time,&next_valid_time,hst->check_period_ptr);
+			get_next_valid_time(current_time,&next_valid_time,hst->check_period_ptr);
 
 			/* the host could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */
 			if(time_is_valid==FALSE && next_valid_time==preferred_time){

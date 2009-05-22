@@ -124,6 +124,19 @@ char *xodtemplate_precache_file=NULL;
 
 int presorted_objects=FALSE;
 
+/*
+ * Macro magic used to determine if a service is assigned
+ * via hostgroup_name or host_name. Those assigned via host_name
+ * take precedence.
+ */
+#define X_SERVICE_IS_FROM_HOSTGROUP      (1 << 1)  /* flag to know if service come from a hostgroup def, apply on srv->have_initial_state */
+#define xodtemplate_set_service_is_from_hostgroup(srv) \
+	srv->have_initial_state |= X_SERVICE_IS_FROM_HOSTGROUP
+#define xodtemplate_unset_service_is_from_hostgroup(srv) \
+	srv->have_initial_state &= ~X_SERVICE_IS_FROM_HOSTGROUP
+#define xodtemplate_is_service_is_from_hostgroup(srv) \
+	((srv->have_initial_state & X_SERVICE_IS_FROM_HOSTGROUP) != 0)
+
 
 /******************************************************************/
 /************* TOP-LEVEL CONFIG DATA INPUT FUNCTION ***************/
@@ -5161,19 +5174,6 @@ int xodtemplate_get_weekday_from_string(char *str, int *weekday){
 /******************************************************************/
 
 #ifdef NSCORE
-
-/*
- * Macro magic used to determine if a service is assigned
- * via hostgroup_name or host_name. Those assigned via host_name
- * take precedence.
- */
-#define X_SERVICE_IS_FROM_HOSTGROUP      (1 << 1)  /* flag to know if service come from a hostgroup def, apply on srv->have_initial_state */
-#define xodtemplate_set_service_is_from_hostgroup(srv) \
-	srv->have_initial_state |= X_SERVICE_IS_FROM_HOSTGROUP
-#define xodtemplate_unset_service_is_from_hostgroup(srv) \
-	srv->have_initial_state &= ~X_SERVICE_IS_FROM_HOSTGROUP
-#define xodtemplate_is_service_is_from_hostgroup(srv) \
-	((srv->have_initial_state & X_SERVICE_IS_FROM_HOSTGROUP) != 0)
 
 /* duplicates service definitions */
 int xodtemplate_duplicate_services(void){

@@ -74,7 +74,7 @@ test_logging: test_logging.c $(SRC_BASE)/logging.o
 test_freshness: test_freshness.o $(SRC_BASE)/freshness.o
 	$(CC) $(CFLAGS) -o $@ test_freshness.c $(SRC_BASE)/freshness.o
 
-test:
+test: $(TESTS)
 	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(@ARGV)' $(TESTS)
 
 clean:

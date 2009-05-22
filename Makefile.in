@@ -171,15 +171,15 @@ distclean: clean
 
 devclean: distclean
 
-tap:
-	cd tap && $(MAKE)
-
 test:
 	$(MAKE) test-tap
 	$(MAKE) test-perl
 
-test-tap:
+test-tap: tap/src/tap.o
 	cd t-tap && $(MAKE) test
+
+tap/src/tap.o:
+	cd tap && $(MAKE)
 
 test-perl:
 	prove t/*.t

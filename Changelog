@@ -22,6 +22,8 @@ Nagios 3.x Change Log
 * Fix for embedded Perl initialization under FreeBSD
 * Fix for incorrect re-initialization of mutext after program restart
 * Fix for incorrect weighting in host flap detection logic
+* Added libtap to distribution. Use ./configure --enable-libtap to compile
+* nagios.log permissions are now kept after log rotation
 
 
 

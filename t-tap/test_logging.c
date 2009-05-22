@@ -103,7 +103,7 @@ main (int argc, char **argv)
 	ok( stat_info.st_mode == stat_new.st_mode, "Mode for archived file same as original log file" );
 
 	ok( stat("var/nagios.log", &stat_new) == 0, "Got new stat info for new log file" );
-	ok( stat_info.st_mode == stat_new.st_mode, "Mode for new log file same as original log file" );
+	ok( stat_info.st_mode == stat_new.st_mode, "Mode for new log file kept same as original log file" );
 
 	return exit_status ();
 }

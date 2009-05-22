@@ -371,6 +371,8 @@ int rotate_log_file(time_t rotation_time){
 	char *log_archive=NULL;
 	struct tm *t;
 	int rename_result=0;
+	int stat_result=-1;
+	struct stat log_file_stat;
 
 	if(log_rotation_method==LOG_ROTATION_NONE){
 		return OK;
@@ -391,6 +393,8 @@ int rotate_log_file(time_t rotation_time){
 	update_program_status(FALSE);
 
 	t=localtime(&rotation_time);
+
+	stat_result = stat(log_file, &log_file_stat);
 
 	/* get the archived filename to use */
 	asprintf(&log_archive,"%s%snagios-%02d-%02d-%d-%02d.log",log_archive_path,(log_archive_path[strlen(log_archive_path)-1]=='/')?"":"/",t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour);
@@ -418,6 +422,11 @@ int rotate_log_file(time_t rotation_time){
 
 	/* record log file version format */
 	write_log_file_info(&rotation_time);
+
+	if(stat_result==0){
+		chmod(log_file, log_file_stat.st_mode);
+		chown(log_file, log_file_stat.st_uid, log_file_stat.st_gid);
+		}
 
 	/* log current host and service state */
 	log_host_states(CURRENT_STATES,&rotation_time);

@@ -741,7 +741,7 @@ AC_TRY_COMPILE([#ifdef __STDC__
 [AC_MSG_RESULT(yes)],
 [AC_DEFINE(NEED_VA_LIST) AC_MSG_RESULT(no)])
 
-dnl Check if we buils local libtap
+dnl Check if we should build local libtap
 dnl From Nagios Plugins
 dnl Have disabled autodetection of system library until later
 AC_ARG_ENABLE(libtap,
@@ -764,9 +764,13 @@ AC_ARG_ENABLE(libtap,
 # Finally, define tests if we use libtap
 if test "$enable_libtap" = "yes" ; then
 	AC_CONFIG_SUBDIRS([tap])
+	USE_LIBTAP=yes
+else
+	USE_LIBTAP=no
 fi
 
 
+AC_SUBST(USE_LIBTAP)
 AC_SUBST(CGIEXTRAS)
 AC_SUBST(GDLIBS)
 AC_SUBST(PERLLIBS)

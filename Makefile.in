@@ -14,6 +14,7 @@ SRC_INCLUDE=@srcdir@/include
 SRC_COMMON=@srcdir@/common
 SRC_XDATA=@srcdir@/xdata
 SRC_CONTRIB=@srcdir@/contrib
+SRC_TTAP=@srcdir@/t-tap
 
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@
@@ -38,6 +39,7 @@ CGICFGDIR=$(CGIDIR)
 PERLDIR=@PERLDIR@
 
 USE_EVENTBROKER=@USE_EVENTBROKER@
+USE_LIBTAP=@USE_LIBTAP@
 
 INSTALLPERLSTUFF=@INSTALLPERLSTUFF@
 
@@ -152,6 +154,7 @@ clean:
 	cd $(SRC_INCLUDE) && $(MAKE) $@
 	cd $(SRC_CONTRIB) && $(MAKE) $@
 	cd $(SRC_MODULE) && $(MAKE) $@
+	cd $(SRC_TTAP) && $(MAKE) $@
 	rm -f *.cfg core
 	rm -f *~ *.*~ */*~ */*.*~ */*/*.*~
 
@@ -164,6 +167,7 @@ distclean: clean
 	cd $(SRC_INCLUDE) && $(MAKE) $@
 	cd $(SRC_CONTRIB) && $(MAKE) $@
 	cd $(SRC_MODULE) && $(MAKE) $@
+	cd $(SRC_TTAP) && $(MAKE) $@
 	rm -f sample-config/*.cfg  sample-config/*.conf sample-config/template-object/*.cfg
 	rm -f daemon-init pkginfo
 	rm -f Makefile subst
@@ -172,11 +176,15 @@ distclean: clean
 devclean: distclean
 
 test:
-	$(MAKE) test-tap
 	$(MAKE) test-perl
+	$(MAKE) test-tap
 
 test-tap: tap/src/tap.o
-	cd t-tap && $(MAKE) test
+	@if [ x$(USE_LIBTAP) = xyes ]; then \
+		cd $(SRC_TTAP) && $(MAKE) test; \
+	else \
+		echo "NOTE: You must run configure with --enable-libtap to run the C tap tests"; \
+	fi
 
 tap/src/tap.o:
 	cd tap && $(MAKE)

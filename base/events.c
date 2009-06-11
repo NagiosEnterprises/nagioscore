@@ -923,6 +923,7 @@ int event_execution_loop(void){
 	time_t current_time=0L;
 	time_t last_status_update=0L;
 	int run_event=TRUE;
+	int nudge_seconds;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	struct timespec delay;
@@ -1013,6 +1014,7 @@ int event_execution_loop(void){
 
 			/* default action is to execute the event */
 			run_event=TRUE;
+			nudge_seconds=0;
 
 			/* run a few checks before executing a service check... */
 			if(event_list_low->event_type==EVENT_SERVICE_CHECK){
@@ -1022,9 +1024,11 @@ int event_execution_loop(void){
 				/* don't run a service check if we're already maxed out on the number of parallel service checks...  */
 				if(max_parallel_service_checks!=0 && (currently_running_service_checks >= max_parallel_service_checks)){
 
-					log_debug_info(DEBUGL_EVENTS|DEBUGL_CHECKS,0,"**WARNING** Max concurrent service checks (%d) has been reached!  Delaying further service checks until previous checks are complete...\n",max_parallel_service_checks);
+					/* Move it at least 5 seconds (to overcome the current peak), with a random 10 seconds (to spread the load) */
+					nudge_seconds=5+(rand() % 10);
+					log_debug_info(DEBUGL_EVENTS|DEBUGL_CHECKS,0,"**WARNING** Max concurrent service checks (%d) has been reached!  Nudging %s:%s by %d seconds...\n",max_parallel_service_checks, temp_service->host_name, temp_service->description, nudge_seconds);
 
-					logit(NSLOG_RUNTIME_WARNING,TRUE,"\tMax concurrent service checks (%d) has been reached.  Delaying further checks until previous checks are complete...\n",max_parallel_service_checks);
+					logit(NSLOG_RUNTIME_WARNING,TRUE,"\tMax concurrent service checks (%d) has been reached.  Nudging %s:%s by %d seconds...\n",max_parallel_service_checks, temp_service->host_name, temp_service->description, nudge_seconds);
 					run_event=FALSE;
 					}
 
@@ -1050,10 +1054,18 @@ int event_execution_loop(void){
 					/*
 					event_list_low=event_list_low->next;
 					*/
-					if(temp_service->state_type==SOFT_STATE && temp_service->current_state!=STATE_OK)
-						temp_service->next_check=(time_t)(temp_service->next_check+(temp_service->retry_interval*interval_length));
-					else
-						temp_service->next_check=(time_t)(temp_service->next_check+(temp_service->check_interval*interval_length));
+					if(nudge_seconds) {
+						/* We nudge the next check time when it is due to too many concurrent service checks */
+						temp_service->next_check=(time_t)(temp_service->next_check+nudge_seconds);
+						}
+					else {
+						/* Otherwise reschedule (TODO: This should be smarter as it doesn't consider its timeperiod) */
+						if(temp_service->state_type==SOFT_STATE && temp_service->current_state!=STATE_OK)
+							temp_service->next_check=(time_t)(temp_service->next_check+(temp_service->retry_interval*interval_length));
+						else
+							temp_service->next_check=(time_t)(temp_service->next_check+(temp_service->check_interval*interval_length));
+						}
+
 					temp_event->run_time=temp_service->next_check;
 					reschedule_event(temp_event,&event_list_low,&event_list_low_tail);
 					update_service_status(temp_service,FALSE);

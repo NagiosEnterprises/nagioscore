@@ -11,7 +11,7 @@ CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src
 TAPOBJ=../tap/src/tap.o
 
-TESTS = test_logging
+TESTS = test_logging test_events
 
 LDFLAGS=@LDFLAGS@
 LIBS=@LIBS@
@@ -70,6 +70,9 @@ all: $(TESTS)
 
 test_logging: test_logging.c $(SRC_BASE)/logging.o
 	$(CC) $(CFLAGS) -o $@ test_logging.c $(SRC_BASE)/logging.o $(TAPOBJ) $(LDFLAGS)
+
+test_events: test_events.c $(SRC_BASE)/events.o
+	$(CC) $(CFLAGS) -o $@ test_events.c $(SRC_BASE)/events.o $(TAPOBJ) $(LDFLAGS)
 
 test_freshness: test_freshness.o $(SRC_BASE)/freshness.o
 	$(CC) $(CFLAGS) -o $@ test_freshness.c $(SRC_BASE)/freshness.o

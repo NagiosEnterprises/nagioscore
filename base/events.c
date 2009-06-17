@@ -2,8 +2,8 @@
  *
  * EVENTS.C - Timed event functions for Nagios
  *
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 12-04-2008
+ * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 06-16-2009
  *
  * License:
  *
@@ -715,7 +715,8 @@ void display_scheduling_info(void){
 	/* first method (old) - assume a 100% (2x) service check burst for max concurrent checks */
 	if(scheduling_info.service_inter_check_delay==0.0)
 		minimum_concurrent_checks1=ceil(check_reaper_interval*2.0);
-	minimum_concurrent_checks1=ceil((check_reaper_interval*2.0)/scheduling_info.service_inter_check_delay);
+	else
+		minimum_concurrent_checks1=ceil((check_reaper_interval*2.0)/scheduling_info.service_inter_check_delay);
 
 	/* second method (new) - assume a 25% (1.25x) service check burst for max concurrent checks */
 	minimum_concurrent_checks2=ceil((((double)scheduling_info.total_scheduled_services)/scheduling_info.average_service_check_interval) * 1.25 * check_reaper_interval * scheduling_info.average_service_execution_time);

@@ -31,7 +31,7 @@
 /* connect to a TCP socket in nonblocking fashion */
 int my_tcp_connect(char *host_name, int port, int *sd, int timeout){
 	struct addrinfo hints;
-	struct addrinfo *r,*res;
+	struct addrinfo *res;
 	int result;
 	char *port_str=NULL;
 	int flags=0;
@@ -52,29 +52,19 @@ int my_tcp_connect(char *host_name, int port, int *sd, int timeout){
 		return ERROR;
 		}
 
-	/* attempt to create a socket */
-	r=res;
-	while(r){
-
-		*sd=socket(r->ai_family,SOCK_STREAM,r->ai_protocol);
-		if(*sd<0){
-			freeaddrinfo(r);
-			return ERROR;
-			}
-		if(sd>0)
-			break;
-
-		close(*sd);
-		r=r->ai_next;
+	/* create a socket */
+	*sd=socket(res->ai_family,SOCK_STREAM,res->ai_protocol);
+	if(*sd<0){
+		freeaddrinfo(res);
+		return ERROR;
 		}
-
 
 	/* make socket non-blocking */
 	flags=fcntl(*sd,F_GETFL,0);
 	fcntl(*sd,F_SETFL,flags|O_NONBLOCK);
 
 	/* attempt to connect */
-	result=connect(*sd,r->ai_addr,r->ai_addrlen);
+	result=connect(*sd,res->ai_addr,res->ai_addrlen);
 
 	/* immediately successful connect */
 	if(result==0){

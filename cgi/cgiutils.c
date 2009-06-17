@@ -113,6 +113,10 @@ int             use_ssl_authentication=FALSE;
 int             default_statusmap_layout_method=0;
 int             default_statuswrl_layout_method=0;
 
+int		color_transparency_index_r=255;
+int		color_transparency_index_g=255;
+int		color_transparency_index_b=255;
+
 extern hostgroup       *hostgroup_list;
 extern contactgroup    *contactgroup_list;
 extern command         *command_list;
@@ -191,6 +195,9 @@ void reset_cgi_vars(void){
 	normal_sound=NULL;
 
 	statusmap_background_image=NULL;
+	color_transparency_index_r=255;
+	color_transparency_index_g=255;
+	color_transparency_index_b=255;
 	statuswrl_include=NULL;
 
 	ping_syntax=NULL;
@@ -374,6 +381,15 @@ int read_cgi_config_file(char *filename){
 
 		else if(!strcmp(var,"statusmap_background_image"))
 			statusmap_background_image=strdup(val);
+
+		else if(!strcmp(var,"color_transparency_index_r"))
+			color_transparency_index_r=atoi(val);
+                
+		else if(!strcmp(var,"color_transparency_index_g"))
+			color_transparency_index_g=atoi(val);
+
+		else if(!strcmp(var,"color_transparency_index_b"))
+			color_transparency_index_b=atoi(val);
 
 		else if(!strcmp(var,"default_statusmap_layout"))
 			default_statusmap_layout_method=atoi(val);

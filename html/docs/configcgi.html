@@ -124,86 +124,6 @@ Below you will find descriptions of each main Nagios configuration file option..
 
 
 
-<!--
-
-<p>
-
-<strong><u>Index</u></strong>
-
-</p>
-
-<p>
-
-<a href="#main_cfg_file">Main configuration file location</a><br>
-
-<a href="#physical_html_path">Physical HTML path</a><br>
-
-<a href="#url_html_path">URL HTML path</a><br>
-
-<br>
-
-<a href="#use_authentication">Authentication usage</a><br>
-
-<a href="#default_user_name">Default user name</a><br>
-
-<a href="#authorized_for_system_information">System/process information access</a><br>
-
-<a href="#authorized_for_system_commands">System/process command access</a><br>
-
-<a href="#authorized_for_configuration_information">Configuration information access</a><br>
-
-<a href="#authorized_for_all_hosts">Global host information access</a><br>
-
-<a href="#authorized_for_all_host_commands">Global host command access</a><br>
-
-<a href="#authorized_for_all_services">Global service information access</a><br>
-
-<a href="#authorized_for_all_service_commands">Global service command access</a><br>
-
-<br>
-
-<a href="#lock_author_names">Lock author names</a><br>
-
-<br>
-
-<a href="#statusmap_background_image">Statusmap CGI background image</a><br>
-
-<a href="#default_statusmap_layout">Default statusmap layout method</a><br>
-
-<a href="#statuswrl_include">Statuswrl CGI include world</a><br>
-
-<a href="#default_statuswrl_layout">Default statuswrl layout method</a><br>
-
-<br>
-
-<a href="#refresh_rate">CGI refresh rate</a><br>
-
-<a href="#audio_alerts">Audio alerts</a><br>
-
-<br>
-
-<a href="#ping_syntax">Ping syntax</a><br>
-
-<br>
-
-<a href="#escape_html_tags">Escape HTML tags option</a><br>
-
-<br>
-
-<a href="#notes_url_target">Notes URL target</a><br>
-
-<a href="#action_url_target">Action URL target</a><br>
-
-<br>
-
-<a href="#enable_splunk_integration">Splunk integration option</a><br>
-
-<a href="#splunk_url">Splunk URL</a><br>
-
-</p>
-
-//-->
-
 
 
 <a name="main_cfg_file"></a>
@@ -1487,6 +1407,54 @@ This option determines whether integration functionality with Splunk is enabled 
 This option is used to define the base URL to your Splunk interface.  This URL is used by the CGIs when creating links if the <a href="#enable_splunk_integration">enable_splunk_integration</a> option is enabled.
 
 </p>
+<br>
+
+
+
+<a name="color_transparency_index"></a>
+
+<table border="0" width="100%" class="Default">
+
+<tr>
+
+<td bgcolor="#cbcbcb"><strong>Color Transparency Indexes</strong></td>
+
+</tr>
+
+</table>
+
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>
+color_transparency_index_r=&lt;0-255&gt;<br>
+color_transparency_index_g=&lt;0-255&gt;<br>
+color_transparency_index_b=&lt;0-255&gt;<br>
+</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+
+<td><font color="red"><strong>
+color_transparency_index_r=255<br>
+color_transparency_index_g=255<br>
+color_transparency_index_b=255<br>
+</strong></font></td>
+
+</tr>
+
+</table>
+
+
+
+<p>
+These options set the r,g,b values of the background color used the statusmap CGI,
+so normal browsers that can't show real png transparency set the desired color as a background color instead (to make it look pretty).  Defaults to white: (R,G,B) = (255,255,255).
+</p>
+
 
 
 

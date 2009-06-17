@@ -169,6 +169,10 @@ int color_yellow=0;
 int color_orange=0;
 int color_grey=0;
 int color_lightgrey=0;
+int color_transparency_index=0;
+extern int color_transparency_index_r;
+extern int color_transparency_index_g;
+extern int color_transparency_index_b;
 
 int show_all_hosts=TRUE;
 char *host_name="all";
@@ -2104,7 +2108,7 @@ int initialize_graphics(void){
 		return ERROR;
 
 	/* allocate buffer for storing image */
-	map_image=gdImageCreate(canvas_width,canvas_height);
+	map_image=gdImageCreateTrueColor(canvas_width,canvas_height);
 	if(map_image==NULL)
 		return ERROR;
 
@@ -2120,9 +2124,13 @@ int initialize_graphics(void){
 	color_blue=gdImageColorAllocate(map_image,0,0,255);
 	color_yellow=gdImageColorAllocate(map_image,255,255,0);
 	color_orange=gdImageColorAllocate(map_image,255,100,25);
+	color_transparency_index=gdImageColorAllocate(map_image,color_transparency_index_r,color_transparency_index_g,color_transparency_index_b);		
 
 	/* set transparency index */
-	gdImageColorTransparent(map_image,color_white);
+	gdImageColorTransparent(map_image,color_transparency_index);
+	
+	/* set background */
+	gdImageFill(map_image, 0, 0, color_transparency_index);
 
 	/* make sure the graphic is interlaced */
 	gdImageInterlace(map_image,1);

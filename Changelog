@@ -35,6 +35,7 @@ Nagios 3.x Change Log
 * Fix for bug where pipe (used by IPC) file descriptors get inherited by child processed (e.g. event handlers) (bug #0000026)
 * Fix for failure to daemonize - Nagios now bails (bug #0000011)
 * Fix for notifications about flapping starting not processed properly by retention data
+* Patch to add transparency to statusmap icons for truecolor images
 
 
 

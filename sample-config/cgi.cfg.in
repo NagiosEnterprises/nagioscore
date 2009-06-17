@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 11-30-2008
+# Last Modified: 06-17-2009
 #
 #################################################################
 
@@ -328,5 +328,18 @@ lock_author_names=1
 # This option should be the URL used to access your instance of Splunk
 
 #splunk_url=http://127.0.0.1:8000/
+
+
+
+
+# STATUSMAP TRANSPARENCY INDEX COLOR
+# These options set the r,g,b values of the background color used the statusmap CGI,
+# so normal browsers that can't show real png transparency set the desired color as
+# a background color instead (to make it look pretty).  
+# Defaults to white: (R,G,B) = (255,255,255).
+
+#color_transparency_index_r=255
+#color_transparency_index_g=255
+#color_transparency_index_b=255
 
 

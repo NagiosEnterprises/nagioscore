@@ -26,6 +26,7 @@ Nagios 3.x Change Log
 * nagios.log permissions are now kept after log rotation
 * Fix for "Max concurrent service checks (X) has been reached" messages - will now push services 5 + random(10) seconds ahead for retry
 * Fix for removing old HTML files for web frontend that are now replaced with PHP equivalents (index/main/side.html)
+* Fix for incorrect service history link text in CGIs
 
 
 

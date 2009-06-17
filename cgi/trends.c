@@ -401,7 +401,7 @@ int main(int argc, char **argv){
 				printf("<a href='%s?host=%s",HISTOGRAM_CGI,url_encode(host_name));
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
-				printf("service=%s'>View Alert History This Service</A><BR>\n",url_encode(svc_description));
+				printf("service=%s'>View Alert History For This Service</A><BR>\n",url_encode(svc_description));
 				printf("<A HREF='%s?host=%s&",NOTIFICATIONS_CGI,url_encode(host_name));
 				printf("service=%s'>View Notifications For This Service</A><BR>\n",url_encode(svc_description));
 		                }

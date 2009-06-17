@@ -306,6 +306,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 	struct timeval start_time,end_time;
 	dbuf output_dbuf;
 	int dbuf_chunk=1024;
+	int flags;
 #ifdef EMBEDDEDPERL
 	char fname[512]="";
 	char *args[5]={"",DO_CLEAN, "", "", NULL };
@@ -449,6 +450,11 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 		/* close pipe for reading */
 		close(fd[0]);
+
+		/* prevent fd from being inherited by child processed */
+		flags=fcntl(fd[1],F_GETFD,0);
+		flags|=FD_CLOEXEC;
+		fcntl(fd[1],F_SETFD,flags);
 
 		/* trap commands that timeout */
 		signal(SIGALRM,my_system_sighandler);

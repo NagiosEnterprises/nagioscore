@@ -784,7 +784,7 @@ int xrddefault_read_state_information(void){
 							allow_flapstart_notification=FALSE;
 						else
 							/* flapstart notifications are okay */
-							allow_flapstart_notification=FALSE;
+							allow_flapstart_notification=TRUE;
 
 						/* check for flapping */
 						check_for_host_flapping(temp_host,FALSE,FALSE,allow_flapstart_notification);
@@ -855,7 +855,7 @@ int xrddefault_read_state_information(void){
 							allow_flapstart_notification=FALSE;
 						else
 							/* flapstart notifications are okay */
-							allow_flapstart_notification=FALSE;
+							allow_flapstart_notification=TRUE;
 
 						/* check for flapping */
 						check_for_service_flapping(temp_service,FALSE,allow_flapstart_notification);

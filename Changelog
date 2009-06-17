@@ -33,6 +33,7 @@ Nagios 3.x Change Log
 * Fix for bug that could affect host/service scheduling during clock time skew or changes to timeperod definitions between restarts
 * Leading whitespace from continuation lines in configuration files is now stripped out
 * Fix for bug where pipe (used by IPC) file descriptors get inherited by child processed (e.g. event handlers) (bug #0000026)
+* Fix for failure to daemonize - Nagios now bails (bug #0000011)
 
 
 

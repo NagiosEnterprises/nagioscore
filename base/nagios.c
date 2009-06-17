@@ -744,7 +744,19 @@ int main(int argc, char **argv){
 			/* enter daemon mode (unless we're restarting...) */
 			if(daemon_mode==TRUE && sigrestart==FALSE){
 
-				daemon_init();
+				result=daemon_init();
+
+				/* we had an error daemonizing, so bail... */
+				if(result==ERROR){
+					logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,"Bailing out due to failure to daemonize. (PID=%d)",(int)getpid());
+
+#ifdef USE_EVENT_BROKER
+					/* send program data to broker */
+					broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
+#endif
+					cleanup();
+					exit(ERROR);
+					}
 
 				asprintf(&buffer,"Finished daemonizing... (New PID=%d)\n",(int)getpid());
 				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);

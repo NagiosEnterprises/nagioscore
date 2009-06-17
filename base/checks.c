@@ -2,8 +2,8 @@
  *
  * CHECKS.C - Service and host check functions for Nagios
  *
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 10-15-2008
+ * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 06-16-2009
  *
  * License:
  *
@@ -279,11 +279,17 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 			/* make sure we rescheduled the next service check at a valid time */
 			get_next_valid_time(current_time,&next_valid_time,svc->check_period_ptr);
 
-			/* the service could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */
+			/* the service could not be rescheduled properly - set the next check time for next week */
 			if(time_is_valid==FALSE && next_valid_time==preferred_time){
 
+				/*
 				svc->next_check=(time_t)(next_valid_time+(60*60*24*365));
 				svc->should_be_scheduled=FALSE;
+				*/
+
+				svc->next_check=(time_t)(next_valid_time+(60*60*24*7));
+
+				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Check of service '%s' on host '%s' could not be rescheduled properly.  Scheduling check for next week...\n",svc->description,svc->host_name);
 
 				log_debug_info(DEBUGL_CHECKS,1,"Unable to find any valid times to reschedule the next service check!\n");
 		                }
@@ -2794,11 +2800,17 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency){
 			/* make sure we rescheduled the next host check at a valid time */
 			get_next_valid_time(current_time,&next_valid_time,hst->check_period_ptr);
 
-			/* the host could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */
+			/* the host could not be rescheduled properly - set the next check time for next week */
 			if(time_is_valid==FALSE && next_valid_time==preferred_time){
 
+				/*
 				hst->next_check=(time_t)(next_valid_time+(60*60*24*365));
 				hst->should_be_scheduled=FALSE;
+				*/
+
+				hst->next_check=(time_t)(next_valid_time+(60*60*24*7));
+
+				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Check of host '%s' could not be rescheduled properly.  Scheduling check for next week...\n",hst->name);
 
 				log_debug_info(DEBUGL_CHECKS,1,"Unable to find any valid times to reschedule the next host check!\n");
 		                }

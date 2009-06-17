@@ -30,6 +30,7 @@ Nagios 3.x Change Log
 * Fix for useless code loop in netutils.c
 * Fix for potential divide by zero in event scheduling code
 * Fix for trailing backslash in plugin output causing memory corruption in CGIs
+* Fix for bug that could affect host/service scheduling during clock time skew or changes to timeperod definitions between restarts
 
 
 

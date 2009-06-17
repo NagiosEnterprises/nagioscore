@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 05-15-2009
+ * Last Modified: 06-16-2009
  *
  * License:
  *
@@ -4490,7 +4490,7 @@ int query_update_api(void){
 		/* get response */
 		recv_len=sizeof(recv_buf);
 		result=my_recvall(sd,recv_buf,&recv_len,2);
-		recv_buf[sizeof(recv_buf)]='\x0';
+		recv_buf[sizeof(recv_buf)-1]='\x0';
 		/*printf("RECV RESULT: %d, RECEIVED: %d\n",result,recv_len);*/
 
 		/*

@@ -3498,6 +3498,7 @@ char *mmap_fgets(mmapfile *temp_mmapfile){
 char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 	char *buf=NULL;
 	char *tempbuf=NULL;
+	char *stripped=NULL;
 	int len=0;
 	int len2=0;
 	int end=0;
@@ -3520,11 +3521,15 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 			buf[len]='\x0';
 		        }
 		else{
-			len=strlen(tempbuf);
+			/* strip leading white space from continuation lines */
+			stripped=tempbuf;
+			while(*stripped==' ' || *stripped=='\t')
+				stripped++;
+			len=strlen(stripped);
 			len2=strlen(buf);
 			if((buf=(char *)realloc(buf,len+len2+1))==NULL)
 				break;
-			strcat(buf,tempbuf);
+			strcat(buf,stripped);
 			len+=len2;
 			buf[len]='\x0';
 		        }

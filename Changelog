@@ -29,6 +29,7 @@ Nagios 3.x Change Log
 * Fix for incorrect service history link text in CGIs
 * Fix for useless code loop in netutils.c
 * Fix for potential divide by zero in event scheduling code
+* Fix for trailing backslash in plugin output causing memory corruption in CGIs
 
 
 

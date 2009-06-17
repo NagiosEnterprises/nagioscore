@@ -28,7 +28,7 @@ while ($f = shift @ARGV) {
 		s|\@sysconfdir\@|@sysconfdir@|g;
 		s|\@TMPDIR\@|@TMPDIR@|g;
 		s|\@CHECKRESULTDIR\@|@CHECKRESULTDIR@|g;
-		s|\@datadir\@|@datadir@|g;
+		s|\@datadir\@|@datarootdir@|g;
 		s|\@sbindir\@|@sbindir@|g;
 		s|\@bindir\@|@bindir@|g;
 		s|\@htmurl\@|@htmurl@|g;

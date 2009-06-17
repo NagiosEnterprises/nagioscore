@@ -194,7 +194,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	xodtemplate_current_config_file=0;
 	xodtemplate_config_files=(char **)malloc(256*sizeof(char **));
 	if(xodtemplate_config_files==NULL){
-#ifdef NSOCRE
+#ifdef NSCORE
 		printf("Unable to allocate memory!\n");
 #endif
 		return ERROR;

@@ -41,6 +41,7 @@ typedef struct authdata_struct{
 	int authorized_for_system_information;
 	int authorized_for_system_commands;
 	int authorized_for_configuration_information;
+	int authorized_for_read_only;
 	int authenticated;
         }authdata;
 
@@ -64,6 +65,7 @@ int is_authorized_for_servicegroup(servicegroup *,authdata *);
 
 int is_authorized_for_configuration_information(authdata *);
 
+int is_authorized_for_read_only(authdata *);
 #ifdef __cplusplus
   }
 #endif

@@ -716,6 +716,55 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can is
 
 
 
+<a name="authorized_for_read_only"></a>
+
+<table border="0" width="100%" class="Default">
+
+<tr>
+
+<td bgcolor="#cbcbcb"><strong>Read-Only Users</strong></td>
+
+</tr>
+
+</table>
+
+<br>
+
+
+
+<table border="0" class="Default">
+
+<tr>
+
+<td valign=top>Format:</td>
+
+<td><strong>authorized_for_read_only=&lt;user1&gt;,&lt;user2&gt;,&lt;user3&gt;,...&lt;user<i>n</i>&gt;</strong></td>
+
+</tr>
+
+<tr>
+
+<td valign=top>Example:</td>
+
+<td><font color="red"><strong>authorized_for_read_only=john,mark</strong></font></td>
+
+</tr>
+
+</table>
+
+
+
+<p>
+
+A comma-delimited list of usernames that have read-only rights in the CGIs.  This will block any service or host commands normally shown on the extinfo CGI pages.  It will also block comments from being shown to read-only users.
+
+</p>
+
+
+
+
+
+
 
 
 <a name="lock_author_names"></a>
@@ -821,6 +870,53 @@ This option allows you to specify an image to be used as a background in the <a 
 
 
 
+
+
+
+<a name="color_transparency_index"></a>
+
+<table border="0" width="100%" class="Default">
+
+<tr>
+
+<td bgcolor="#cbcbcb"><strong>Statusmap CGI Color Transparency Indexes</strong></td>
+
+</tr>
+
+</table>
+
+<br>
+
+
+<table border="0" class="Default">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>
+color_transparency_index_r=&lt;0-255&gt;<br>
+color_transparency_index_g=&lt;0-255&gt;<br>
+color_transparency_index_b=&lt;0-255&gt;<br>
+</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+
+<td><font color="red"><strong>
+color_transparency_index_r=255<br>
+color_transparency_index_g=255<br>
+color_transparency_index_b=255<br>
+</strong></font></td>
+
+</tr>
+
+</table>
+
+
+
+<p>
+These options set the r,g,b values of the background color used the statusmap CGI,
+so normal browsers that can't show real png transparency set the desired color as a background color instead (to make it look pretty).  Defaults to white: (R,G,B) = (255,255,255).
+</p>
+<br>
 
 <a name="default_statusmap_layout"></a>
 
@@ -1408,53 +1504,6 @@ This option is used to define the base URL to your Splunk interface.  This URL i
 
 </p>
 <br>
-
-
-
-<a name="color_transparency_index"></a>
-
-<table border="0" width="100%" class="Default">
-
-<tr>
-
-<td bgcolor="#cbcbcb"><strong>Color Transparency Indexes</strong></td>
-
-</tr>
-
-</table>
-
-<br>
-
-
-<table border="0" class="Default">
-<tr>
-<td valign=top>Format:</td>
-<td><strong>
-color_transparency_index_r=&lt;0-255&gt;<br>
-color_transparency_index_g=&lt;0-255&gt;<br>
-color_transparency_index_b=&lt;0-255&gt;<br>
-</strong></td>
-</tr>
-<tr>
-<td valign=top>Example:</td>
-
-<td><font color="red"><strong>
-color_transparency_index_r=255<br>
-color_transparency_index_g=255<br>
-color_transparency_index_b=255<br>
-</strong></font></td>
-
-</tr>
-
-</table>
-
-
-
-<p>
-These options set the r,g,b values of the background color used the statusmap CGI,
-so normal browsers that can't show real png transparency set the desired color as a background color instead (to make it look pretty).  Defaults to white: (R,G,B) = (255,255,255).
-</p>
-
 
 
 

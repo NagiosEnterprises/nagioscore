@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 05-15-2009
+ * Last Modified: 06-17-2009
  *
  * License:
  * 
@@ -207,7 +207,7 @@ int main(void){
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Host Information");
 		else if(display_type==DISPLAY_SERVICE_INFO)
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Service Information");
-		else if(display_type==DISPLAY_COMMENTS)
+		else if(display_type==DISPLAY_COMMENTS && is_authorized_for_read_only==FALSE)
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"All Host and Service Comments");
 		else if(display_type==DISPLAY_PERFORMANCE)
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Performance Information");
@@ -550,7 +550,7 @@ int main(void){
 		show_host_info();
 	else if(display_type==DISPLAY_SERVICE_INFO)
 		show_service_info();
-	else if(display_type==DISPLAY_COMMENTS)
+	else if(display_type==DISPLAY_COMMENTS && is_authorized_for_read_only==FALSE)
 		show_all_comments();
 	else if(display_type==DISPLAY_PERFORMANCE)
 		show_performance_data();
@@ -1221,7 +1221,7 @@ void show_host_info(void){
 
 	printf("<TABLE BORDER='1' CELLPADDING=0 CELLSPACING=0><TR><TD>\n");
 
-	if(nagios_process_state==STATE_OK){
+	if(nagios_process_state==STATE_OK && is_authorized_for_read_only(&current_authdata)==FALSE){
 
 		printf("<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 CLASS='command'>\n");
 #ifdef USE_STATUSMAP
@@ -1289,7 +1289,10 @@ void show_host_info(void){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Flap Detection For This Host' TITLE='Enable Flap Detection For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Enable flap detection for this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_HOST_FLAP_DETECTION,url_encode(host_name));
 
 		printf("</TABLE>\n");
-	        }
+		}
+        else if ( is_authorized_for_read_only(&current_authdata)==TRUE){
+                printf("<DIV ALIGN=CENTER CLASS='infoMessage'>Your account does not have permissions to execute commands.<br>\n");
+		}
 	else{
 		printf("<DIV ALIGN=CENTER CLASS='infoMessage'>It appears as though Nagios is not running, so commands are temporarily unavailable...<br>\n");
 		printf("Click <a href='%s?type=%d'>here</a> to view Nagios process information</DIV>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO);
@@ -1305,9 +1308,10 @@ void show_host_info(void){
 
 	printf("<TD COLSPAN=2 ALIGN=CENTER VALIGN=TOP CLASS='commentPanel'>\n");
 
-	/* display comments */
-	display_comments(HOST_COMMENT);
-
+	if(is_authorized_for_read_only(&current_authdata)==FALSE){
+		/* display comments */
+		display_comments(HOST_COMMENT);
+		}
 	printf("</TD>\n");
 
 	printf("</TR>\n");
@@ -1538,7 +1542,7 @@ void show_service_info(void){
 	printf("<TABLE BORDER='1' CELLSPACING=0 CELLPADDING=0>\n");
 	printf("<TR><TD>\n");
 
-	if(nagios_process_state==STATE_OK){
+	if(nagios_process_state==STATE_OK &&  is_authorized_for_read_only(&current_authdata)==FALSE){
 		printf("<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 CLASS='command'>\n");
 
 		if(temp_svcstatus->checks_enabled){
@@ -1627,7 +1631,10 @@ void show_service_info(void){
 		        }
 
 		printf("</table>\n");
-	        }
+		}
+        else if (is_authorized_for_read_only(&current_authdata)==TRUE){
+                printf("<DIV ALIGN=CENTER CLASS='infoMessage'>Your account does not have permissions to execute commands.<br>\n");
+                }
 	else{
 		printf("<DIV CLASS='infoMessage'>It appears as though Nagios is not running, so commands are temporarily unavailable...<br>\n");
 		printf("Click <a href='%s?type=%d'>here</a> to view Nagios process information</DIV>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO);
@@ -1646,9 +1653,10 @@ void show_service_info(void){
 	printf("<TR>\n");
 	printf("<TD COLSPAN=2 ALIGN=CENTER VALIGN=TOP CLASS='commentPanel'>\n");
 
-	/* display comments */
-	display_comments(SERVICE_COMMENT);
-
+	if (is_authorized_for_read_only(&current_authdata)==FALSE) {
+		/* display comments */
+		display_comments(SERVICE_COMMENT);
+		}
 	printf("</TD>\n");
 	printf("</TR>\n");
 
@@ -1698,7 +1706,7 @@ void show_hostgroup_info(void){
 
 	printf("<DIV CLASS='dataTitle'>Hostgroup Commands</DIV>\n");
 
-	if(nagios_process_state==STATE_OK){
+	if(nagios_process_state==STATE_OK && is_authorized_for_read_only(&current_authdata)==FALSE){
 
 		printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0 CLASS='command'>\n");
 		printf("<TR><TD>\n");
@@ -1725,6 +1733,9 @@ void show_hostgroup_info(void){
 
 		printf("</TD></TR>\n");
 		printf("</TABLE>\n");
+		}
+        else if (is_authorized_for_read_only(&current_authdata)==TRUE){
+                printf("<DIV ALIGN=CENTER CLASS='infoMessage'>Your account does not have permissions to execute commands.<br>\n");
 	        }
 	else{
 		printf("<DIV CLASS='infoMessage'>It appears as though Nagios is not running, so commands are temporarily unavailable...<br>\n");

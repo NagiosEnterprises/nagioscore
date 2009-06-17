@@ -57,6 +57,7 @@ int get_authentication_information(authdata *authinfo){
 	authinfo->authorized_for_system_information=FALSE;
 	authinfo->authorized_for_system_commands=FALSE;
 	authinfo->authorized_for_configuration_information=FALSE;
+	authinfo->authorized_for_read_only=FALSE;
 
 	/* grab username from the environment... */
 	if(use_ssl_authentication) {
@@ -160,6 +161,13 @@ int get_authentication_information(authdata *authinfo){
 						authinfo->authorized_for_system_commands=TRUE;
 				        }
 			        }
+			else if(strstr(input,"authorized_for_read_only=")==input){
+                                temp_ptr=strtok(input,"=");
+                                while((temp_ptr=strtok(NULL,","))){
+                                        if(!strcmp(temp_ptr,authinfo->username) || !strcmp(temp_ptr,"*"))
+                                                authinfo->authorized_for_read_only=TRUE;
+                                        }
+                                }
 		        }
 
 		/* free memory and close the file */
@@ -248,6 +256,19 @@ int is_authorized_for_servicegroup(servicegroup *sg, authdata *authinfo){
 	return TRUE;
         }
 
+/* check if current user is restricted to read only */
+int is_authorized_for_read_only(authdata *authinfo){
+
+        /* if we're not using authentication, fake it */
+        if(use_authentication==FALSE)
+                return FALSE;
+
+        /* if this user has not authenticated return error */
+        if(authinfo->authenticated==FALSE)
+                return FALSE;
+
+        return authinfo->authorized_for_read_only;
+        }
 
 /* check if user is authorized to view information about a particular service */
 int is_authorized_for_service(service *svc, authdata *authinfo){

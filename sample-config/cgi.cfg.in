@@ -173,6 +173,16 @@ authorized_for_all_host_commands=nagiosadmin
 
 
 
+# READ-ONLY USERS
+# A comma-delimited list of usernames that have read-only rights in
+# the CGIs.  This will block any service or host commands normally shown
+# on the extinfo CGI pages.  It will also block comments from being shown
+# to read-only users.
+
+#authorized_for_read_only=user1,user2
+
+
+
 
 # STATUSMAP BACKGROUND IMAGE
 # This option allows you to specify an image to be used as a 
@@ -186,6 +196,20 @@ authorized_for_all_host_commands=nagiosadmin
 # generates the image.
 
 #statusmap_background_image=smbackground.gd2
+
+
+
+
+# STATUSMAP TRANSPARENCY INDEX COLOR
+# These options set the r,g,b values of the background color used the statusmap CGI,
+# so normal browsers that can't show real png transparency set the desired color as
+# a background color instead (to make it look pretty).  
+# Defaults to white: (R,G,B) = (255,255,255).
+
+#color_transparency_index_r=255
+#color_transparency_index_g=255
+#color_transparency_index_b=255
+
 
 
 
@@ -329,17 +353,5 @@ lock_author_names=1
 
 #splunk_url=http://127.0.0.1:8000/
 
-
-
-
-# STATUSMAP TRANSPARENCY INDEX COLOR
-# These options set the r,g,b values of the background color used the statusmap CGI,
-# so normal browsers that can't show real png transparency set the desired color as
-# a background color instead (to make it look pretty).  
-# Defaults to white: (R,G,B) = (255,255,255).
-
-#color_transparency_index_r=255
-#color_transparency_index_g=255
-#color_transparency_index_b=255
 
 

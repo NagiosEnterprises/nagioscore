@@ -17,6 +17,11 @@ define command {
 	}
 
 define command {
+	command_name	multiple_continuation_lines_with_spaces_intermingled
+	command_line	check_nrpe_arg!30!check_fs_ping!/mnt/account-p,/mnt/prepro-p,/mnt/webapp-ssl,/mnt/rollout-p
+	}
+
+define command {
 	command_name	notify-none
 	command_line	/usr/local/nagios/notifications/notify-none
 	}
@@ -24,6 +29,11 @@ define command {
 define command {
 	command_name	set_to_stale
 	command_line	/usr/local/nagios/libexec/set_to_stale
+	}
+
+define command {
+	command_name	with_continuation_lines
+	command_line	$USER1$/check_foo onetwo
 	}
 
 define contactgroup {

@@ -37,6 +37,7 @@ Nagios 3.x Change Log
 * Fix for notifications about flapping starting not processed properly by retention data
 * Patch to add transparency to statusmap icons for truecolor images
 * Patch to add read-only permissions to extinfo CGI
+* Security fix for statuswml.cgi where arbitrary shell injection was possible
 
 
 

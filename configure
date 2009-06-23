@@ -1759,9 +1759,9 @@ ac_config_headers="$ac_config_headers include/config.h include/snprintf.h includ
 
 
 PKG_NAME=nagios
-PKG_VERSION="3.1.1"
+PKG_VERSION="3.1.2"
 PKG_HOME_URL="http://www.nagios.org/"
-PKG_REL_DATE="06-22-2009"
+PKG_REL_DATE="06-23-2009"
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do

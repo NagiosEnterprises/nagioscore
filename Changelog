@@ -4,7 +4,7 @@ Nagios 3.x Change Log
 
 
 
-3.1.1 - 06/??/2009
+3.1.1 - 06/22/2009
 ------------------
 * New "important check command" flag for use in service templates, to aid configuration in distributed environments
 * Fix for nagios validation error when no services defined

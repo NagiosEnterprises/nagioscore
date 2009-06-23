@@ -222,17 +222,16 @@ Create a new <i>nagios</i> user account and give it a password.
 
 <pre>
 
-/usr/sbin/useradd -m nagios
+/usr/sbin/useradd -m -s /bin/bash nagios
 
 passwd nagios
 
 </pre>
 
 
-
 <p>
 
-On Ubuntu server edition (6.01 and possible newer versions), you will need to also add a <i>nagios</i> group (it's not created by default).  You should be able to skip this step on desktop editions of Ubuntu.
+On older Ubuntu server editions (6.01 and earlier), you will need to also add a <i>nagios</i> group (it's not created by default).  You should be able to skip this step on desktop, or newer server editions of Ubuntu.
 
 </p>
 
@@ -296,7 +295,7 @@ cd ~/downloads
 
 <p>
 
-Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).  These directions were tested with Nagios 3.1.0 and Nagios Plugins 1.4.11.
+Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).  These directions were tested with Nagios 3.1.1 and Nagios Plugins 1.4.11.
 
 </p>
 
@@ -304,7 +303,7 @@ Download the source code tarballs of both Nagios and the Nagios plugins (visit <
 
 <pre>
 
-wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.1.0.tar.gz
+wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.1.1.tar.gz
 
 wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.11.tar.gz
 
@@ -332,9 +331,9 @@ Extract the Nagios source code tarball.
 
 cd ~/downloads
 
-tar xzf nagios-3.1.0.tar.gz
+tar xzf nagios-3.1.1.tar.gz
 
-cd nagios-3.1.0
+cd nagios-3.1.1
 
 </pre>
 

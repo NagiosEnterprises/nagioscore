@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 06-16-2009
+ * Last Modified: 06-23-2009
  *
  * License:
  *
@@ -277,7 +277,7 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 				preferred_time=current_time+((svc->check_interval<=0)?300:(svc->check_interval*interval_length));
 
 			/* make sure we rescheduled the next service check at a valid time */
-			get_next_valid_time(current_time,&next_valid_time,svc->check_period_ptr);
+			get_next_valid_time(preferred_time,&next_valid_time,svc->check_period_ptr);
 
 			/* the service could not be rescheduled properly - set the next check time for next week */
 			if(time_is_valid==FALSE && next_valid_time==preferred_time){
@@ -2798,7 +2798,7 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency){
 				preferred_time=current_time+((hst->check_interval<=0)?300:(hst->check_interval*interval_length));
 
 			/* make sure we rescheduled the next host check at a valid time */
-			get_next_valid_time(current_time,&next_valid_time,hst->check_period_ptr);
+			get_next_valid_time(preferred_time,&next_valid_time,hst->check_period_ptr);
 
 			/* the host could not be rescheduled properly - set the next check time for next week */
 			if(time_is_valid==FALSE && next_valid_time==preferred_time){

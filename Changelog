@@ -3,6 +3,11 @@ Nagios 3.x Change Log
 #####################
 
 
+3.1.2 - 06/23/2009
+------------------
+* Fix for CPU hogging in service and host check scheduling logic
+
+
 
 3.1.1 - 06/22/2009
 ------------------

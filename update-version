@@ -30,9 +30,14 @@ then
 	exit 1
 fi
 
+# Keep track of last version, as it is needed to update quickstart guide pages
+lastversion=$CURRENTVERSION
+
+# What's the new version number (if any)?
 newversion=$1
 if [ "x$newversion" = "xnewdate" ]
 then
+    # No new version number, just a new version date
     newversion=$CURRENTVERSION
 fi
 
@@ -58,6 +63,11 @@ perl -i -p -e "s/PKG_REL_DATE=.*\"/PKG_REL_DATE=\"$SHORTDATE\"/;" configure.in
 
 # Update RPM spec file with version number
 perl -i -p -e "s/%define version .*/%define version $newversion/;" nagios.spec
+
+# Update quickstart guides with new version number
+perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-fedora.html
+perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-opensuse.html
+perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-ubuntu.html
 
 # Update this file with version number and last date
 perl -i -p -e "s/^CURRENTVERSION=.*/CURRENTVERSION=$newversion/;" update-version

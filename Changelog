@@ -3,6 +3,12 @@ Nagios 3.x Change Log
 #####################
 
 
+3.2.0 - 07/03/2009
+------------------
+* Fix for read-only permissions bug in CGIs that caused problems viewing comments (bug #0000029)
+
+
+
 3.1.2 - 06/23/2009
 ------------------
 * Fix for CPU hogging in service and host check scheduling logic

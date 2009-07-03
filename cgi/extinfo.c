@@ -207,7 +207,7 @@ int main(void){
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Host Information");
 		else if(display_type==DISPLAY_SERVICE_INFO)
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Service Information");
-		else if(display_type==DISPLAY_COMMENTS && is_authorized_for_read_only==FALSE)
+		else if(display_type==DISPLAY_COMMENTS)
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"All Host and Service Comments");
 		else if(display_type==DISPLAY_PERFORMANCE)
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Performance Information");
@@ -550,7 +550,7 @@ int main(void){
 		show_host_info();
 	else if(display_type==DISPLAY_SERVICE_INFO)
 		show_service_info();
-	else if(display_type==DISPLAY_COMMENTS && is_authorized_for_read_only==FALSE)
+	else if(display_type==DISPLAY_COMMENTS)
 		show_all_comments();
 	else if(display_type==DISPLAY_PERFORMANCE)
 		show_performance_data();
@@ -1290,7 +1290,7 @@ void show_host_info(void){
 
 		printf("</TABLE>\n");
 		}
-        else if ( is_authorized_for_read_only(&current_authdata)==TRUE){
+        else if (is_authorized_for_read_only(&current_authdata)==TRUE){
                 printf("<DIV ALIGN=CENTER CLASS='infoMessage'>Your account does not have permissions to execute commands.<br>\n");
 		}
 	else{
@@ -1867,6 +1867,12 @@ void show_all_comments(void){
 	service *temp_service;
 	char *comment_type;
 	char expire_time[MAX_DATETIME_LENGTH];
+
+
+        if(is_authorized_for_read_only(&current_authdata)==TRUE){
+                printf("<DIV ALIGN=CENTER CLASS='infoMessage'>Your account does not have permissions to view comments.<br>\n");
+		return;
+		}
 
 
 	printf("<BR />\n");

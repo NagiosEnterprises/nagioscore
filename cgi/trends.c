@@ -2906,6 +2906,7 @@ void compute_report_times(void){
 	st->tm_mday=start_day;
 	st->tm_mon=start_month-1;
 	st->tm_year=start_year-1900;
+	st->tm_isdst=-1;
 
 	t1=mktime(st);
 
@@ -2917,6 +2918,7 @@ void compute_report_times(void){
 	et->tm_mday=end_day;
 	et->tm_mon=end_month-1;
 	et->tm_year=end_year-1900;
+	et->tm_isdst=-1;
 
 	t2=mktime(et);
         }

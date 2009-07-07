@@ -8,6 +8,7 @@ Nagios 3.x Change Log
 * Fix for read-only permissions bug in CGIs that caused problems viewing comments (bug #0000029)
 * Fix for incorrect CGI reports (availability, trends, etc.) when reporting period spans Daylight Savings Time (bug #0000046)
 * Fix for detection of truecolor support in GD library (Lars Hecking)
+* Reverted to use --datadir configure script option instead of the more recently introduced --datarootdir option
 
 
 

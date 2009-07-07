@@ -507,6 +507,9 @@ if test x$TRYGD = xyep; then
 		if test x$TRYSTATUSMAP = xyep; then
 			AC_DEFINE_UNQUOTED(USE_STATUSMAP)
 			CGIEXTRAS="$CGIEXTRAS statusmap.cgi"
+			AC_CHECK_LIB(gd,gdImageCreateTrueColor,
+				AC_DEFINE(HAVE_GDIMAGECREATETRUECOLOR,1,
+					[Define if your gd library has gdImageCreateTrueColor])) 
 		fi
 
 		dnl compile trends CGI

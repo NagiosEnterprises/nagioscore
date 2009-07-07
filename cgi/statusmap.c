@@ -2108,7 +2108,11 @@ int initialize_graphics(void){
 		return ERROR;
 
 	/* allocate buffer for storing image */
+#ifndef HAVE_GDIMAGECREATETRUECOLOR
+	map_image=gdImageCreate(canvas_width,canvas_height);
+#else
 	map_image=gdImageCreateTrueColor(canvas_width,canvas_height);
+#endif
 	if(map_image==NULL)
 		return ERROR;
 
@@ -2127,10 +2131,14 @@ int initialize_graphics(void){
 	color_transparency_index=gdImageColorAllocate(map_image,color_transparency_index_r,color_transparency_index_g,color_transparency_index_b);		
 
 	/* set transparency index */
+#ifndef HAVE_GDIMAGECREATETRUECOLOR
+	gdImageColorTransparent(map_image,color_white);
+#else
 	gdImageColorTransparent(map_image,color_transparency_index);
 	
 	/* set background */
 	gdImageFill(map_image, 0, 0, color_transparency_index);
+#endif
 
 	/* make sure the graphic is interlaced */
 	gdImageInterlace(map_image,1);

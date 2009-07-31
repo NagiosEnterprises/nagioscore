@@ -22,7 +22,7 @@ body.navbar {
 	}
 	
 .navsectiontitle {
-	font-size: 10pt;
+	font-size: 9pt;
 	font-weight: bold;
 	border:1px solid #DEE7C6;
 	padding: 2px;
@@ -69,6 +69,7 @@ ul.navsectionlinks li ul li a {
 	color: #DEE7C6;
 	background: none;
 	padding: 0;
+	font-weight: normal;
 	}
 
 ul.navsectionlinks li ul li a:hover {
@@ -121,6 +122,10 @@ ul.navsectionlinks li ul li ul {
 #currentversioninfo{
 	font-size: 12pt;
 	}
+#currentversioninfo .product{
+	font-size: 14pt;
+	font-weight: bold;
+	}
 #currentversioninfo .version{
 	font-size: 14pt;
 	font-weight: bold;
@@ -132,7 +137,7 @@ ul.navsectionlinks li ul li ul {
 #currentversioninfo .whatsnew{
 	font-size: 11pt;
 	font-weight: bold;
-	margin: 10px 0 0 0;
+	margin: 50px 0 0 0;
 	}
 
 #updateversioninfo{
@@ -161,7 +166,7 @@ ul.navsectionlinks li ul li ul {
 	}
 	
 #splashpage #mainfooter{
-	margin: 25px 0 0 0;
+	margin: 100px 0 0 0;
 	font-size: 8pt;
 	}
 #splashpage #mainfooter .disclaimer{

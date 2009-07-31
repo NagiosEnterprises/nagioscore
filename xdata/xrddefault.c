@@ -2,8 +2,9 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
+ * Copyright (c) 2009 Nagios Core Development Team and Community Contributors
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 05-13-2009
+ * Last Modified: 07-31-2009
  *
  * License:
  *
@@ -564,7 +565,9 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"}\n");
 	        }
 
+	fflush(fp);
 	result=fclose(fp);
+	fsync(fd);
 
 	/* save/close was successful */
 	if(result==0){

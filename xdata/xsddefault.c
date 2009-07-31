@@ -2,8 +2,9 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
+ * Copyright (c) 2009 Nagios Core Development Team and Community Contributors
  * Copyright (c) 2000-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 05-15-2009
+ * Last Modified: 07-31-2009
  *
  * License:
  *
@@ -680,8 +681,14 @@ int xsddefault_save_status_data(void){
 	/* reset file permissions */
 	fchmod(fd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 
+	/* flush the file to disk */
+	fflush(fp);
+
 	/* close the temp file */
 	result=fclose(fp);
+
+	/* fsync the file so that it is completely written out before moving it */
+	fsync(fd);
 
 	/* save/close was successful */
 	if(result==0){

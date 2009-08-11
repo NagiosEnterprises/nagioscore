@@ -134,6 +134,10 @@ ul.navsectionlinks li ul li ul {
 	font-size: 11pt;
 	margin: 5px 0 0 0;
 	}
+#currentversioninfo .checkforupdates{
+	font-size: 11pt;
+	font-weight: bold;
+	}
 #currentversioninfo .whatsnew{
 	font-size: 11pt;
 	font-weight: bold;

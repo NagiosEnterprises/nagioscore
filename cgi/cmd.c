@@ -1885,9 +1885,9 @@ void commit_command_data(int cmd){
 	return;
         }
 
+
 __attribute__((format(printf, 2, 3)))
-static int cmd_submitf(int id, const char *fmt, ...)
-{
+static int cmd_submitf(int id, const char *fmt, ...){
 	char cmd[MAX_EXTERNAL_COMMAND_LENGTH];
 	const char *command;
 	int len, len2;
@@ -1913,7 +1913,9 @@ static int cmd_submitf(int id, const char *fmt, ...)
 		return ERROR;
 
 	return write_command_to_file(cmd);
-}
+	}
+
+
 
 /* commits a command for processing */
 int commit_command(int cmd){
@@ -2049,10 +2051,10 @@ int commit_command(int cmd){
 	case CMD_ENABLE_HOST_SVC_CHECKS:
 	case CMD_DISABLE_HOST_SVC_CHECKS:
 		result = cmd_submitf(cmd,"%s",host_name);
-		if(affect_host_and_services==TRUE) {
+		if(affect_host_and_services==TRUE){
 			cmd = (cmd == CMD_ENABLE_HOST_SVC_CHECKS) ? CMD_ENABLE_HOST_CHECK : CMD_DISABLE_HOST_CHECK;
 			result |= cmd_submitf(cmd,"%s",host_name);
-		}
+			}
 		break;
 		
 	case CMD_SCHEDULE_HOST_SVC_CHECKS:
@@ -2071,10 +2073,10 @@ int commit_command(int cmd){
 	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
 	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
 		result = cmd_submitf(cmd,"%s",host_name);
-		if(affect_host_and_services==TRUE) {
+		if(affect_host_and_services==TRUE){
 			cmd = (cmd == CMD_ENABLE_HOST_SVC_NOTIFICATIONS) ? CMD_ENABLE_HOST_NOTIFICATIONS : CMD_DISABLE_HOST_NOTIFICATIONS;
 			result |= cmd_submitf(cmd,"%s",host_name);
-		}
+			}
 		break;
 		
 	case CMD_ACKNOWLEDGE_HOST_PROBLEM:
@@ -2131,10 +2133,10 @@ int commit_command(int cmd){
 	case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
 	case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
 		result = cmd_submitf(cmd,"%s",hostgroup_name);
-		if(affect_host_and_services==TRUE) {
+		if(affect_host_and_services==TRUE){
 			cmd = (cmd == CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS) ? CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS : CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS;
 			result |= cmd_submitf(cmd,"%s",hostgroup_name);
-		}
+			}
 		break;
 
 	case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
@@ -2145,10 +2147,10 @@ int commit_command(int cmd){
 	case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
 	case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
 		result = cmd_submitf(cmd,"%s",hostgroup_name);
-		if(affect_host_and_services==TRUE) {
+		if(affect_host_and_services==TRUE){
 			cmd = (cmd == CMD_ENABLE_HOSTGROUP_SVC_CHECKS) ? CMD_ENABLE_HOSTGROUP_HOST_CHECKS : CMD_DISABLE_HOSTGROUP_HOST_CHECKS;
 			result |= cmd_submitf(cmd,"%s",hostgroup_name);
-		}
+			}
 		break;
 
 	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
@@ -2167,10 +2169,10 @@ int commit_command(int cmd){
 	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
 	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
 		result = cmd_submitf(cmd,"%s",servicegroup_name);
-		if(affect_host_and_services==TRUE) {
+		if(affect_host_and_services==TRUE){
 			cmd = (cmd == CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS) ? CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS : CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS;
 			result |= cmd_submitf(cmd,"%s",servicegroup_name);
-		}
+			}
 		break;
 
 	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
@@ -2181,10 +2183,10 @@ int commit_command(int cmd){
 	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
 	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
 		result = cmd_submitf(cmd,"%s",servicegroup_name);
-		if(affect_host_and_services==TRUE) {
+		if(affect_host_and_services==TRUE){
 			cmd = (cmd == CMD_ENABLE_SERVICEGROUP_SVC_CHECKS) ? CMD_ENABLE_SERVICEGROUP_HOST_CHECKS : CMD_DISABLE_SERVICEGROUP_HOST_CHECKS;
 			result |= cmd_submitf(cmd,"%s",servicegroup_name);
-		}
+			}
 		break;
 
 	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:

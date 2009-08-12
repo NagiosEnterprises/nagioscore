@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+
+
+<html>
+
+<head>
+
+<title>Known Issues</title>
+
+
+
+<STYLE type="text/css">
+
+<!--
+
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
+
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+
+-->      
+
+</STYLE>
+
+
+
+</head>
+
+
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+
+
+<div align="center">
+
+<h1 class="PageTitle">Known Issues</h1>
+
+</div>
+
+
+
+<hr>
+
+
+
+<p>
+
+<img src="images/upto.gif" border="0" align="middle" alt="Up To" title="Up To">Up To: <a href="toc.html">Contents</a><br>
+
+<img src="images/seealso.gif" border="0" align="middle" alt="See Also" title="See Also"> See Also: <a href="whatsnew.html">What's New</a>
+</p>
+
+
+
+
+
+<p>
+
+<strong><u>Known Issues</u></strong>
+
+</p>
+
+
+
+<ol>
+
+
+
+<li><font color="red"><b>Timeperiods</b></font>:<br>
+
+	<ul>
+
+	<li><b>Exclusions and Host/Service Checks</b> - There is a bug in the service/host check scheduling logic that rears its head when you use timeperiod definitions that use the <i>exclude</i> directive.  The problem occurs when Nagios Core tries to re-schedule the next check.  In this case, the scheduling logic may incorrectly schedule the next check further out in the future than it should.  In essence, it skips over the (missing) logic where it could determine an earlier possible time using the exception times.  Imperfect Solution: Don't use timeperiod definitions that exclude other timeperods for your host/service check periods.  A fix is being worked on, and will hopefully make it into a 3.4.x release.</li>
+
+	</ul>
+
+</li>
+
+<br>
+
+
+
+</ol>
+
+
+
+<hr>
+
+
+
+</body>
+
+</html> 
+

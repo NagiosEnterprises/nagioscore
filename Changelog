@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.2.0 - 08/??/2009
+3.2.0 - 08/12/2009
 ------------------
 * Fix for read-only permissions bug in CGIs that caused problems viewing comments (bug #0000029)
 * Fix for incorrect CGI reports (availability, trends, etc.) when reporting period spans Daylight Savings Time (bug #0000046)
@@ -12,7 +12,7 @@ Nagios 3.x Change Log
 * Status and retention files are now flushed/synced to disk to prevent incomplete information being displayed in CGIs
 * Fix for incorrect next service check time calculation when Nagios is reloaded with different timeperiod ranges
 * Updated Fedora quickstart guide to indicate PHP requirements
-* Known issue: Service checks that are defined with timeperiods that contain "exclude" directives are incorrect re-scheduled.  Don't use these for now - we'll get this fixed for 3.4
+* Known issue: Service checks that are defined with timeperiods that contain "exclude" directives are incorrectly re-scheduled.  Don't use these for now - we'll get this fixed for 3.4
 
 
 

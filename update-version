@@ -10,10 +10,10 @@ else
 fi
 
 # Current version number
-CURRENTVERSION=3.1.2
+CURRENTVERSION=3.2.0
 
 # Last date
-LASTDATE=06-23-2009
+LASTDATE=08-12-2009
 
 if [ "x$1" = "x" ]
 then
@@ -44,7 +44,7 @@ fi
 # Update version number and release date in main HTML page
 perl -i -p -e "s/>Version .*</>Version $newversion</;" html/main.php
 perl -i -p -e "s/releasedate\">.*<\//releasedate\">$LONGDATE<\//;" html/main.php
-perl -i -p -e "s/?version=.*&product=/?version=$newversion&product=/;" html/main.php
+perl -i -p -e "s/\?version=.*&product=/\?version=$newversion&product=/;" html/main.php
 
 # Update version number and release date in common code
 perl -i -p -e "s/VERSION \".*\"/VERSION \"$newversion\"/;" include/common.h

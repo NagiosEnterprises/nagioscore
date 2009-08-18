@@ -1,0 +1,291 @@
+#!/usr/bin/perl
+# tinderbox_build.pl
+# This script builds the nagios code and then sends
+# logs back to the master tinderbox server
+#
+# This script is based on mozilla-unix.pl which comes with tinderbox2
+#
+# See http://tinderbox.nagios.org for more details
+
+require 5.000;
+
+use strict;
+use Sys::Hostname;
+use Cwd;
+use Time::Local;
+
+my $Version = "1.0";
+
+my $myhost = hostname;
+chomp($myhost);
+my ($host, $junk) = split(/\./, $myhost);
+	
+my $BuildAdministrator = $ENV{TINDERBOX_BUILD_ADMIN} || "$ENV{'USER'}\@$myhost";
+my $TmpDir = $ENV{TMPDIR} || "/tmp";
+
+#Default values of cmdline opts
+my $ReportStatus = 0;  # Do not send results to server
+
+# Set these to what makes sense for your system
+
+# Set these proper values for your tinderbox server
+# Have the StrictHostKeyChecking=no so that a new host will automatically add hostkey without
+# prompting. If host key changes, then will get error, so this should still be secure
+my $Tinderbox_user = "tinderbox2";
+my $Tinderbox_server = 'tinderbox.nagios.org';
+my $Tinderbox_ssh_args = "-o StrictHostKeyChecking=no $Tinderbox_user\@$Tinderbox_server";
+
+# These shouldn't really need to be changed
+my $BuildTree = 'nagios';
+my $BuildName = '';
+my $ConfigureArgs = $ENV{CONFIGURE_ARGS};
+
+my $OS = `uname -s`;
+my $OSVer = `uname -r`;
+    
+chop($OS, $OSVer);
+    
+if ( $OS eq 'AIX' ) {
+	$OSVer = `uname -v`;
+	chop($OSVer);
+	$OSVer = $OSVer . "." . `uname -r`;
+	chop($OSVer);
+}
+        
+if ( $OS eq 'IRIX64' ) {
+	$OS = 'IRIX';
+}
+    
+if ( $OS eq 'SCO_SV' ) {
+	$OS = 'SCOOS';
+	$OSVer = '5.0';
+}
+    
+if ( "$host" ne "" ) {
+	$BuildName = $host . ' ';
+}
+$BuildName .= $OS . ' ' . $OSVer;
+$_ = $BuildName;
+s/ /_/g;
+
+my $logfile = "$_.log";
+
+sub BuildIt {
+	my ($fe, @felist, $EarlyExit, $LastTime);
+
+	my $StartDir = getcwd();
+	$LastTime = 0;
+
+	print "Starting dir is : $StartDir\n";
+
+	my $EarlyExit = 0;
+
+	chdir("$StartDir");
+
+	my $StartTime = time;
+	if (-e (my $file = "nagios-plugins.spec")) {
+		open F, $file;
+		while (<F>) {
+			if (/^Version: trunk-(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$/) {
+				$StartTime = timegm(0, $5, $4, $3, ($2 - 1), ($1 - 1900));
+				last;
+			}
+		}
+	}
+
+	print "Start time is $StartTime",$/;
+
+	my $CurrentDir = getcwd();
+	if ( $CurrentDir ne $StartDir ) {
+		print "startdir: $StartDir, curdir $CurrentDir\n";
+		die "curdir != startdir";
+	}
+
+	unlink( "$logfile" );
+	
+	print "opening $logfile\n";
+	open( LOG, ">$logfile" ) || print "can't open $?\n";
+	print LOG "current dir is -- $host:$CurrentDir\n";
+	print LOG "Build Administrator is $BuildAdministrator\n";
+	&PrintEnv;
+	
+	my $BuildStatus;
+	if (&configure) {
+		if (&make) {
+			if (&maketest) {
+				$BuildStatus = "success";
+			} else {	
+				$BuildStatus = "test_failed";
+			}
+		} else {
+			$BuildStatus = "build_failed";
+		}
+	} else {
+		$BuildStatus = "busted";
+	}
+
+	print LOG "\nBuild Status = $BuildStatus\n";
+
+	close(LOG);
+	chdir("$StartDir");
+	
+# TV: Leaving this in, because process mail program probably has some
+# limitation retained
+
+# this fun line added on 2/5/98. do not remove. Translated to english,
+# that's "take any line longer than 1000 characters, and split it into less
+# than 1000 char lines.  If any of the resulting lines is
+# a dot on a line by itself, replace that with a blank line."  
+# This is to prevent cases where a <cr>.<cr> occurs in the log file.  Sendmail
+# interprets that as the end of the mail, and truncates the log before
+# it gets to Tinderbox.  (terry weismann, chris yeh)
+#
+# This was replaced by a perl 'port' of the above, writen by 
+# preed@netscape.com; good things: no need for system() call, and now it's
+# all in perl, so we don't have to do OS checking like before.
+
+	open(LOG, "$logfile") || die "Couldn't open logfile: $!\n";
+	open(OUTLOG, ">${logfile}.last") || die "Couldn't open logfile: $!\n";
+	    
+	print OUTLOG $/;
+	print OUTLOG "tinderbox: tree: $BuildTree\n";
+	print OUTLOG "tinderbox: builddate: $StartTime\n";
+	print OUTLOG "tinderbox: status: $BuildStatus\n";
+	print OUTLOG "tinderbox: build: $BuildName $fe\n";
+	print OUTLOG "tinderbox: errorparser: unix\n";
+	print OUTLOG "tinderbox: buildfamily: unix\n";
+	print OUTLOG "tinderbox: END\n";	    
+	print OUTLOG $/;
+
+	while (<LOG>) {
+	    my $q = 0;
+	    
+	    for (;;) {
+		my $val = $q * 1000;
+		my $Output = substr($_, $val, 1000);
+		
+		last if $Output eq undef;
+		
+		$Output =~ s/^\.$//g;
+		$Output =~ s/\n//g;
+		print OUTLOG "$Output\n";
+		$q++;
+	    } #EndFor
+		
+	} #EndWhile
+	    
+	close(LOG);
+	close(OUTLOG);
+
+	if ($ReportStatus) {
+		system( "ssh $Tinderbox_ssh_args tinderbox_receive < ${logfile}.last" )
+	} else {
+		print <<"EOF"
+Not sending logs to http://$Tinderbox_server
+If you have SSH keys setup on the tinderbox server, you can manually send
+with 'ssh $Tinderbox_ssh_args tinderbox_receive < ${logfile}.last'
+EOF
+	}
+	
+	unlink("$logfile");
+	print "Finished building for tinderbox",$/;
+
+} #EndSub-BuildIt
+
+sub ParseArgs {
+    my($i);
+
+    $i = 0;
+    while( $i < @ARGV ) {
+	if ($ARGV[$i] eq '--version' || $ARGV[$i] eq '-v') {
+	    die "$0: version $Version\n";
+	} elsif ($ARGV[$i] eq '-y') {
+		$ReportStatus = 1;
+	} else {
+	    &PrintUsage;
+	}
+
+	$i++;
+    } #EndWhile
+
+} #EndSub-ParseArgs
+
+sub PrintUsage {
+    die "usage: $0 [-v | --version ] [-t do not send report to tinderbox server]\n";
+}
+
+sub PrintEnv {
+    my ($key);
+    foreach $key (keys %ENV) {
+	print LOG "$key = $ENV{$key}\n";
+	print "$key = $ENV{$key}\n";
+    }
+
+	# Print the NPTest variables
+	if (-e "/var/tmp/NPTest.cache") {
+		open F, "/var/tmp/NPTest.cache";
+		print LOG "NPTest variables:\n";
+		print LOG <F>;
+		close F;
+	}
+		
+} #EndSub-PrintEnv
+
+sub SetupPath {
+    my($Path);
+    $Path = $ENV{PATH};
+    print "Path before: $Path\n";
+
+    # Don't alter path if we're building off a repository tree;
+    # SunOS make will be used only for snapshots and releases.
+    if ( $OS eq 'SunOS' && !( -e '.svn' || -e '.git' )) {
+        $ENV{'PATH'} = '/usr/ccs/bin:' . $ENV{'PATH'};
+    }
+
+    $Path = $ENV{PATH};
+    print "Path After: $Path\n";
+} #EndSub-SetupPath
+
+sub configure {
+	# Configure
+        print LOG "./configure --enable-libtap $ConfigureArgs 2>&1\n";
+        open (CONFIGURE, "./configure --enable-libtap $ConfigureArgs 2>&1 |") || die "../configure: $!\n";
+        while (<CONFIGURE>) {
+            print $_;
+            print LOG $_;
+        }
+        close(CONFIGURE);
+	return ! $?;
+}
+	
+sub make {
+        # Building
+        print LOG "make nagios && make cgis 2>&1\n";
+        open( MAKE, "make nagios && make cgis 2>&1 |");
+	while ( <MAKE> ) {
+		print $_;
+		print LOG $_;
+	}
+	close( MAKE);
+	return ! $?;
+}
+
+sub maketest {
+        # Tests
+        print LOG "LANG=C make test 2>&1\n";
+        open( MAKE, "LANG=C make test 2>&1 |");
+	while ( <MAKE> ) {
+		print $_;
+		print LOG $_;
+	}
+	close( MAKE);
+	my $rc = $?;
+	return ! $rc;
+}
+
+# Main function
+&ParseArgs;
+&SetupPath;
+&BuildIt;
+
+1;

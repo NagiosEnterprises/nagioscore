@@ -72,7 +72,7 @@ test_logging: test_logging.c $(SRC_BASE)/logging.o
 	$(CC) $(CFLAGS) -o $@ test_logging.c $(SRC_BASE)/logging.o $(TAPOBJ) $(LDFLAGS)
 
 test_events: test_events.c $(SRC_BASE)/events.o
-	$(CC) $(CFLAGS) -o $@ test_events.c $(SRC_BASE)/events.o $(TAPOBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ test_events.c $(SRC_BASE)/events.o $(TAPOBJ) $(LDFLAGS) $(MATHLIBS)
 
 test_freshness: test_freshness.o $(SRC_BASE)/freshness.o
 	$(CC) $(CFLAGS) -o $@ test_freshness.c $(SRC_BASE)/freshness.o

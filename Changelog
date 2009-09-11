@@ -5,7 +5,8 @@ Nagios 3.x Change Log
 
 3.2.1 ????
 -----------------
-* Fix for logging test, which was not timezone aware (bug #0000077 - Allen Clark)
+* Fix for logging test, which was not timezone aware (bug #0000077 - Allan Clark)
+* Trivial cleanups for autoconf (Allan Clark)
 
 3.2.0 - 08/12/2009
 ------------------

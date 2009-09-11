@@ -112,8 +112,8 @@ AC_TRY_COMPILE([#include <stdlib.h>
 #include <sys/socket.h>
 ],
 [int a = send(1, (const void *) 0, (size_t) 0, (int) 0);],
-[AC_DEFINE(SOCKET_SIZE_TYPE, size_t) AC_MSG_RESULT(size_t)],
-[AC_DEFINE(SOCKET_SIZE_TYPE, int) AC_MSG_RESULT(int)])
+[AC_DEFINE(SOCKET_SIZE_TYPE, size_t, [typedef for socket size]) AC_MSG_RESULT(size_t)],
+[AC_DEFINE(SOCKET_SIZE_TYPE, int, [typedef for socket size]) AC_MSG_RESULT(int)])
 
 
 dnl Test for pthreads support - taken from ICU FreeBSD Port configure script
@@ -122,7 +122,7 @@ have_pthreads="no"
 
 dnl FreeBSD: Try ports/linuxthreads first - Mammad Zadeh <mammad@yahoo-inc.com>
 dnl FreeBSD -pthread check - Jonathan McDowell <noodles@earth.li>
-AC_DEFUN(AC_PTHREAD_FREEBSD,[
+AC_DEFUN([AC_PTHREAD_FREEBSD],[
 	AC_CHECK_LIB(lthread,pthread_create,[
 		CFLAGS="-D_THREAD_SAFE -I/usr/local/include/pthread/linuxthreads -I/usr/include $CFLAGS"
 		THREADLIBS="-L/usr/local/lib -llthread -llgcc_r"
@@ -189,18 +189,17 @@ AC_SEARCH_LIBS(nanosleep,[rt posix4],,[
 	exit 1
 	])
 
-
-AC_ARG_WITH(nagios_user,--with-nagios-user=<user> sets user name to run nagios,nagios_user=$withval,nagios_user=nagios)
-AC_ARG_WITH(nagios_group,--with-nagios-group=<grp> sets group name to run nagios,nagios_grp=$withval,nagios_grp=nagios)
+AC_ARG_WITH(nagios_user,AC_HELP_STRING([--with-nagios-user=<user>],[sets user name to run nagios]),nagios_user=$withval,nagios_user=nagios)
+AC_ARG_WITH(nagios_group,AC_HELP_STRING([--with-nagios-group=<grp>],[sets group name to run nagios]),nagios_grp=$withval,nagios_grp=nagios)
 AC_SUBST(nagios_user)
 AC_SUBST(nagios_grp)
-AC_DEFINE_UNQUOTED(DEFAULT_NAGIOS_USER,"$nagios_user")
-AC_DEFINE_UNQUOTED(DEFAULT_NAGIOS_GROUP,"$nagios_grp")
+AC_DEFINE_UNQUOTED(DEFAULT_NAGIOS_USER,"$nagios_user",[user name to run nagios])
+AC_DEFINE_UNQUOTED(DEFAULT_NAGIOS_GROUP,"$nagios_grp",[group name to run nagios])
 INSTALL_OPTS="-o $nagios_user -g $nagios_grp"
 AC_SUBST(INSTALL_OPTS)
 
-AC_ARG_WITH(command_user,--with-command-user=<user> sets user name for command access,command_user=$withval,command_user=$nagios_user)
-AC_ARG_WITH(command_group,--with-command-group=<grp> sets group name for command access,command_grp=$withval,command_grp=$nagios_grp)
+AC_ARG_WITH(command_user,AC_HELP_STRING([--with-command-user=<user>],[sets user name for command access]),command_user=$withval,command_user=$nagios_user)
+AC_ARG_WITH(command_group,AC_HELP_STRING([--with-command-group=<grp>],[sets group name for command access]),command_grp=$withval,command_grp=$nagios_grp)
 AC_SUBST(command_user)
 AC_SUBST(command_grp)
 COMMAND_OPTS="-o $command_user -g $command_grp"
@@ -293,7 +292,7 @@ USE_MYSQL=no
 USE_PGSQL=no
 
 dnl Status data
-AC_DEFINE_UNQUOTED(USE_XSDDEFAULT)
+AC_DEFINE_UNQUOTED(USE_XSDDEFAULT,,[use default routines (in xdata/xsddefault.*) for status data I/O...])
 XSDC="xsddefault.c"
 XSDH="xsddefault.h"
 XSDCOMMENT="Default (text file)"
@@ -303,7 +302,7 @@ AC_SUBST(XSDH)
 
 
 dnl Comment data
-AC_DEFINE_UNQUOTED(USE_XCDDEFAULT)
+AC_DEFINE_UNQUOTED(USE_XCDDEFAULT,,[use default routines (in xdata/xcddefault.*) for comment data I/O...])
 XCDC="xcddefault.c"
 XCDH="xcddefault.h"
 XCDCOMMENT="Default (text file)"
@@ -313,7 +312,7 @@ AC_SUBST(XCDH)
 
 
 dnl Retention data
-AC_DEFINE_UNQUOTED(USE_XRDDEFAULT)
+AC_DEFINE_UNQUOTED(USE_XRDDEFAULT,,[use default routines (in xdata/xrddefault.*) for retention data I/O...])
 XRDC="xrddefault.c"
 XRDH="xrddefault.h"
 XRDCOMMENT="Default (text file)"
@@ -323,7 +322,7 @@ AC_SUBST(XRDH)
 
 
 dnl Object data
-AC_DEFINE_UNQUOTED(USE_XODTEMPLATE)
+AC_DEFINE_UNQUOTED(USE_XODTEMPLATE,,[use template-based routines (in xdata/xodtemplate.*) for object data I/O...])
 XODC="xodtemplate.c"
 XODH="xodtemplate.h"
 XODCOMMENT="Template-based (text file)"
@@ -334,7 +333,7 @@ AC_SUBST(XODH)
 
 
 dnl Performance data
-AC_DEFINE_UNQUOTED(USE_XPDDEFAULT)
+AC_DEFINE_UNQUOTED(USE_XPDDEFAULT,,[use default routines (in xdata/xpddefault.*) for performance data I/O...])
 XPDC="xpddefault.c"
 XPDH="xpddefault.h"
 XPDCOMMENT="Default (external commands)"
@@ -344,7 +343,7 @@ AC_SUBST(XPDH)
 
 
 dnl Downtime data
-AC_DEFINE_UNQUOTED(USE_XDDDEFAULT)
+AC_DEFINE_UNQUOTED(USE_XDDDEFAULT,,[use default routines (in xdata/xdddefault.*) for scheduled downtime data I/O...])
 XDDC="xdddefault.c"
 XDDH="xdddefault.h"
 XDDCOMMENT="Default (text file)"
@@ -375,14 +374,14 @@ TRYSTATUSWRL=yep
 AC_ARG_ENABLE(statuswrl,--disable-statuswrl=disables compilation of statuswrl (VRML) CGI,TRYSTATUSWRL=nope)
 
 if test x$TRYSTATUSWRL = xyep; then
-	AC_DEFINE_UNQUOTED(USE_STATUSWRL)
+	AC_DEFINE_UNQUOTED(USE_STATUSWRL,,[statuswrl CGI enabled by default, unless users chooses not to use it])
 	CGIEXTRAS="$CGIEXTRAS statuswrl.cgi"
 fi
 
 
 dnl JMD_CHECK_LIB_ORDER(LIBRARY, FUNCTION, ORDER [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND
 dnl              [, OTHER-LIBRARIES]]])
-	AC_DEFUN(JMD_CHECK_LIB_ORDER,
+	AC_DEFUN([JMD_CHECK_LIB_ORDER],
 	[AC_MSG_CHECKING([for $2 in -l$1 (order $3)])
 	dnl Use a cache variable name containing both the library and function name,
 	dnl because the test really is for library $1 defining function $2, not
@@ -505,7 +504,7 @@ if test x$TRYGD = xyep; then
 	else
 		echo "GD library was found!"
 		if test x$TRYSTATUSMAP = xyep; then
-			AC_DEFINE_UNQUOTED(USE_STATUSMAP)
+			AC_DEFINE_UNQUOTED(USE_STATUSMAP,,[defined if the user chose to include status map])
 			CGIEXTRAS="$CGIEXTRAS statusmap.cgi"
 			AC_CHECK_LIB(gd,gdImageCreateTrueColor,
 				AC_DEFINE(HAVE_GDIMAGECREATETRUECOLOR,1,
@@ -513,11 +512,11 @@ if test x$TRYGD = xyep; then
 		fi
 
 		dnl compile trends CGI
-		AC_DEFINE_UNQUOTED(USE_TRENDS)
+		AC_DEFINE_UNQUOTED(USE_TRENDS,,[compile trends CGI])
 		CGIEXTRAS="$CGIEXTRAS trends.cgi"
 	
 		dnl compile histogram CGI
-		AC_DEFINE_UNQUOTED(USE_HISTOGRAM)
+		AC_DEFINE_UNQUOTED(USE_HISTOGRAM,,[compile histogram CGI])
 	        CGIEXTRAS="$CGIEXTRAS histogram.cgi"
 	fi
 fi
@@ -528,9 +527,9 @@ AC_SUBST(htmurl)
 AC_SUBST(cgiurl)
 
 USE_NANOSLEEP=yes
-AC_ARG_ENABLE(nanosleep,--enable-nanosleep enables use of nanosleep (instead sleep) in event timing,USE_NANOSLEEP=$enableval,USE_NANOSLEEP=yes)
+AC_ARG_ENABLE(nanosleep,--enable-nanosleep enables use of nanosleep (instead of sleep) in event timing,USE_NANOSLEEP=$enableval,USE_NANOSLEEP=yes)
 if test x$USE_NANOSLEEP = xyes; then
-	AC_DEFINE_UNQUOTED(USE_NANOSLEEP)
+	AC_DEFINE_UNQUOTED(USE_NANOSLEEP,,[enables use of nanosleep (instead of sleep)])
 fi
 
 USE_EVENTBROKER=yes
@@ -545,7 +544,7 @@ if test x$USE_EVENTBROKER = xyes; then
 	dnl Hopefully this will be portable and not give us headaches...
 	AC_CHECK_HEADER(ltdl.h,[
 		AC_CHECK_LIB(ltdl,lt_dlinit,[
-			AC_DEFINE(HAVE_LTDL_H)
+			AC_DEFINE(HAVE_LTDL_H,,[Which loader library should we use? libtdl or dl?])
 			some_dl_found="yes"
 			BROKERLIBS="$BROKERLIBS -lltdl"
 			])
@@ -553,7 +552,7 @@ if test x$USE_EVENTBROKER = xyes; then
 	if test "x$some_dl_found" != xyes; then
 	AC_CHECK_HEADER(dlfcn.h,[
 		AC_CHECK_LIB(dl,dlopen,[
-			AC_DEFINE(HAVE_DLFCN_H)
+			AC_DEFINE(HAVE_DLFCN_H,,[Which loader library should we use? libtdl or dl?])
 			some_dl_found="yes"
 			BROKERLIBS="$BROKERLIBS -ldl"
 			])
@@ -634,7 +633,7 @@ if test x$USE_EVENTBROKER = xyes; then
 	AC_SUBST(MOD_LDFLAGS)
 
 
-	AC_DEFINE_UNQUOTED(USE_EVENT_BROKER)
+	AC_DEFINE_UNQUOTED(USE_EVENT_BROKER,,[defined to bring in the event broker objects])
 	BROKER_O="broker.o nebmods.o"
 	AC_SUBST(BROKER_O)
 	BROKER_H="../include/broker.h ../include/nebmods.h ../include/nebmodules.h ../include/nebcallbacks.h ../include/neberrors.h"
@@ -654,14 +653,14 @@ AC_ARG_WITH(perlcache,--with-perlcache turns on cacheing of internally compiled 
 	PERLCACHE=$withval
 	]
 	,[
-	AC_DEFINE(DO_CLEAN,"1")
+	AC_DEFINE(DO_CLEAN,"1",[whether to clean cached compiled perl])
 	PERLCACHE=yes;
 	])
 
 dnl Is embedded Perl being compiled in?
 if test x$USEPERL = xyes; then
 
-	AC_DEFINE_UNQUOTED(EMBEDDEDPERL)
+	AC_DEFINE_UNQUOTED(EMBEDDEDPERL,,[Is embedded Perl being compiled in?])
 	PERLLIBS="`perl -MExtUtils::Embed -e ldopts`" 
 	PERLDIR="`perl -MConfig -e 'print $Config{installsitearch}'`" 
 	CFLAGS="${CFLAGS} `perl -MExtUtils::Embed -e ccopts`" 
@@ -676,11 +675,11 @@ if test x$USEPERL = xyes; then
 
 	dnl Is caching enabled?
 	if test x$PERLCACHE = xyes; then
-		AC_DEFINE(DO_CLEAN,"0")
+		AC_DEFINE(DO_CLEAN,"0",[whether to clean cached compiled perl])
 		PERLCACHE=yes;
 		echo "Internally compiled Perl scripts will be cached..."
 	else
-		AC_DEFINE(DO_CLEAN,"1")
+		AC_DEFINE(DO_CLEAN,"1",[whether to clean cached compiled perl])
 		echo "Internally compiled Perl scripts will NOT be cached..."
 	fi
 fi
@@ -689,7 +688,7 @@ dnl Test if we're using threaded Perl (patch by Chip Ach)
 if test x$USEPERL = xyes; then
 	if (perl -e 'use Config;exit -1 unless ($Config{'usethreads'});'); then
 		echo "Using threaded perl"
-		AC_DEFINE_UNQUOTED(THREADEDPERL)
+		AC_DEFINE_UNQUOTED(THREADEDPERL,,[defined if we're using threaded Perl])
 	fi
 fi
 
@@ -719,7 +718,7 @@ dnl	])
 
 dnl Find traceroute
 AC_PATH_PROG(PATH_TO_TRACEROUTE,traceroute)
-AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE")
+AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE",[traceroute command to use])
 
 
 
@@ -742,7 +741,7 @@ AC_TRY_COMPILE([#ifdef __STDC__
 #endif],
 [va_list args;],
 [AC_MSG_RESULT(yes)],
-[AC_DEFINE(NEED_VA_LIST) AC_MSG_RESULT(no)])
+[AC_DEFINE(NEED_VA_LIST,,[defined if va_list fails to compile]) AC_MSG_RESULT(no)])
 
 dnl Check if we should build local libtap
 dnl From Nagios Plugins

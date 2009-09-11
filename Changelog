@@ -3,6 +3,10 @@ Nagios 3.x Change Log
 #####################
 
 
+3.2.1 ????
+-----------------
+* Fix for logging test, which was not timezone aware (bug #0000077 - Allen Clark)
+
 3.2.0 - 08/12/2009
 ------------------
 * Fix for read-only permissions bug in CGIs that caused problems viewing comments (bug #0000029)

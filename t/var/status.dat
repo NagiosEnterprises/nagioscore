@@ -200,3 +200,30 @@ contactstatus {
 	service_notifications_enabled=0
 	}
 
+hostcomment {
+       host_name=host1
+       entry_type=1
+       comment_id=1
+       source=1
+       persistent=1
+       entry_time=1253110703
+       expires=0
+       expire_time=0
+       author=Nagios Admin
+       comment_data=Test Comment
+       }
+
+servicecomment {
+       host_name=host1
+       service_description=Dummy service
+       entry_type=1
+       comment_id=2
+       source=1
+       persistent=1
+       entry_time=1253108952
+       expires=0
+       expire_time=0
+       author=Nagios Admin
+       comment_data=Test Comment
+       }
+

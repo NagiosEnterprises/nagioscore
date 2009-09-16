@@ -792,6 +792,10 @@ void request_command_data(int cmd){
 		printf("schedule downtime for a particular %s",(cmd==CMD_SCHEDULE_HOST_DOWNTIME)?"host":"service");
 		break;
 
+	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
+		printf("schedule downtime for all services for a particular host");
+		break;
+
 	case CMD_PROCESS_HOST_CHECK_RESULT:
 	case CMD_PROCESS_SERVICE_CHECK_RESULT:
 		printf("submit a passive check result for a particular %s",(cmd==CMD_PROCESS_HOST_CHECK_RESULT)?"host":"service");
@@ -1153,6 +1157,7 @@ void request_command_data(int cmd){
 		break;
 		
 	case CMD_SCHEDULE_HOST_DOWNTIME:
+	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
 	case CMD_SCHEDULE_SVC_DOWNTIME:
 
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
@@ -1641,6 +1646,7 @@ void commit_command_data(int cmd){
 	case CMD_DISABLE_HOST_CHECK:
 	case CMD_REMOVE_HOST_ACKNOWLEDGEMENT:
 	case CMD_SCHEDULE_HOST_DOWNTIME:
+	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
 	case CMD_DELAY_HOST_NOTIFICATION:
 	case CMD_ENABLE_HOST_FLAP_DETECTION:
 	case CMD_DISABLE_HOST_FLAP_DETECTION:
@@ -1652,7 +1658,7 @@ void commit_command_data(int cmd){
 	case CMD_STOP_OBSESSING_OVER_HOST:
 
 		/* make sure we have author name and comment data... */
-		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME){
+		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME||cmd==CMD_SCHEDULE_HOST_SVC_DOWNTIME){
 			if(!strcmp(comment_data,"")){
 				if(!error_string)
 					error_string=strdup("Comment was not entered");
@@ -1669,7 +1675,7 @@ void commit_command_data(int cmd){
 			authorized=TRUE;
 
 		/* clean up the comment data if scheduling downtime */
-		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME){
+		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME||cmd==CMD_SCHEDULE_HOST_SVC_DOWNTIME){
 			clean_comment_data(comment_author);
 			clean_comment_data(comment_data);
 		        }
@@ -1681,7 +1687,7 @@ void commit_command_data(int cmd){
 			}
 
 		/* make sure we have start/end times for downtime (if necessary) */
-		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time)){
+		if((cmd==CMD_SCHEDULE_HOST_DOWNTIME||cmd==CMD_SCHEDULE_HOST_SVC_DOWNTIME) && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time)){
 			if(!error_string)
 				error_string=strdup("Start or end time not valid");
 			}
@@ -2104,6 +2110,10 @@ int commit_command(int cmd){
 		result = cmd_submitf(cmd,"%s;%lu;%lu;%d;%lu;%lu;%s;%s",host_name,start_time,end_time,fixed,triggered_by,duration,comment_author,comment_data);
 		break;
 		
+        case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
+		result = cmd_submitf(cmd,"%s;%lu;%lu;%d;%lu;%lu;%s;%s",host_name,start_time,end_time,fixed,triggered_by,duration,comment_author,comment_data);
+                break;
+
 	case CMD_SCHEDULE_SVC_DOWNTIME:
 		result = cmd_submitf(cmd,"%s;%s;%lu;%lu;%d;%lu;%lu;%s;%s",host_name,service_desc,start_time,end_time,fixed,triggered_by,duration,comment_author,comment_data);
 		break;
@@ -2515,6 +2525,16 @@ void show_command_help(cmd){
 
 	case CMD_SCHEDULE_HOST_DOWNTIME:
 		printf("This command is used to schedule downtime for a particular host.  During the specified downtime, Nagios will not send notifications out about the host.\n");
+		printf("When the scheduled downtime expires, Nagios will send out notifications for this host as it normally would.  Scheduled downtimes are preserved\n");
+		printf("across program shutdowns and restarts.  Both the start and end times should be specified in the following format:  <b>mm/dd/yyyy hh:mm:ss</b>.\n");
+		printf("If you select the <i>fixed</i> option, the downtime will be in effect between the start and end times you specify.  If you do not select the <i>fixed</i>\n");
+		printf("option, Nagios will treat this as \"flexible\" downtime.  Flexible downtime starts when the host goes down or becomes unreachable (sometime between the\n");
+		printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed downtime.\n");
+		break;
+
+	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
+		printf("This command is used to schedule downtime for a particular host and all of his services.  During the specified downtime, Nagios will not send notifications out about the host.\n");
+		printf("Normally, a host in downtime will not send alerts about any services in a failed state. This option will explicitly set downtime for all services for this host.\n");
 		printf("When the scheduled downtime expires, Nagios will send out notifications for this host as it normally would.  Scheduled downtimes are preserved\n");
 		printf("across program shutdowns and restarts.  Both the start and end times should be specified in the following format:  <b>mm/dd/yyyy hh:mm:ss</b>.\n");
 		printf("If you select the <i>fixed</i> option, the downtime will be in effect between the start and end times you specify.  If you do not select the <i>fixed</i>\n");

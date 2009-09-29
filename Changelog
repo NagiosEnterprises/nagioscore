@@ -10,6 +10,7 @@ ENHANCEMENTS
 
 FIXES
 * Fix for compile on Fedora Core 3 (bug #0000082)
+* Fix for compile on Solaris
 * Fix for logging test, which was not timezone aware (bug #0000077 - Allan Clark)
 * Trivial cleanups for autoconf (Allan Clark)
 

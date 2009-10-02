@@ -101,8 +101,14 @@ AC_SUBST(SNPRINTF_O)
 
 
 dnl Checks for library functions.
-AC_SEARCH_LIBS([getservbyname],[nsl],[SOCKETLIBS="$SOCKETLIBS -lnsl"])
-AC_SEARCH_LIBS([connect],[socket],[SOCKETLIBS="$SOCKETLIBS -lsocket"])
+AC_SEARCH_LIBS([getservbyname],[nsl],
+	[if test "$ac_cv_search_getservbyname" != "none required"; then
+		SOCKETLIBS="$SOCKETLIBS -lnsl"
+	fi])
+AC_SEARCH_LIBS([connect],[socket],
+	[if test "$ac_cv_search_connect" != "none required"; then
+		SOCKETLIBS="$SOCKETLIBS -lsocket"
+	fi])
 AC_SUBST(SOCKETLIBS)
 AC_CHECK_FUNCS(initgroups setenv strdup strstr strtoul unsetenv)
 

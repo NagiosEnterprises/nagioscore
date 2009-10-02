@@ -5335,7 +5335,9 @@ echo "${ECHO_T}$ac_cv_search_getservbyname" >&6; }
 ac_res=$ac_cv_search_getservbyname
 if test "$ac_res" != no; then
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  SOCKETLIBS="$SOCKETLIBS -lnsl"
+  if test "$ac_cv_search_getservbyname" != "none required"; then
+		SOCKETLIBS="$SOCKETLIBS -lnsl"
+	fi
 fi
 
 { echo "$as_me:$LINENO: checking for library containing connect" >&5
@@ -5418,7 +5420,9 @@ echo "${ECHO_T}$ac_cv_search_connect" >&6; }
 ac_res=$ac_cv_search_connect
 if test "$ac_res" != no; then
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  SOCKETLIBS="$SOCKETLIBS -lsocket"
+  if test "$ac_cv_search_connect" != "none required"; then
+		SOCKETLIBS="$SOCKETLIBS -lsocket"
+	fi
 fi
 
 

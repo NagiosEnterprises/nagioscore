@@ -852,7 +852,9 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 	t->tm_sec=0;
 	t->tm_min=0;
 	t->tm_hour=0;
-        t->tm_isdst=-1;
+        /* Removed for the moment. This fixes a bug where the timeperiod is incorrectly calculated */
+	/* See t-tap/test_timeperiods for a test failure */
+	/* t->tm_isdst=-1; */
 	midnight=(unsigned long)mktime(t);
 
 	/**** check exceptions first ****/

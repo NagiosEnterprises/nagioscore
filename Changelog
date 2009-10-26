@@ -9,6 +9,7 @@ ENHANCEMENTS
 * Link to allow scheduling downtime for all services on a host (Hendrik Baecker)
 
 FIXES
+* Fix for incorrect scheduling when time has gone back an hour (partial fix for 24x7)
 * Fix for compile on Fedora Core 3 (bug #0000082)
 * Fix for compile on Solaris
 * Fix for logging test, which was not timezone aware (bug #0000077 - Allan Clark)

@@ -11,7 +11,7 @@ CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src
 TAPOBJ=../tap/src/tap.o
 
-TESTS = test_logging test_events
+TESTS = test_logging test_events test_timeperiods test_nagios_config
 
 LDFLAGS=@LDFLAGS@
 LIBS=@LIBS@
@@ -76,6 +76,12 @@ test_events: test_events.c $(SRC_BASE)/events.o
 
 test_freshness: test_freshness.o $(SRC_BASE)/freshness.o
 	$(CC) $(CFLAGS) -o $@ test_freshness.c $(SRC_BASE)/freshness.o
+
+test_nagios_config: test_nagios_config.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o
+	$(CC) $(CFLAGS) -o $@ test_nagios_config.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o $(TAPOBJ) $(LDFLAGS)
+
+test_timeperiods: test_timeperiods.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o 
+	$(CC) $(CFLAGS) -o $@ test_timeperiods.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o $(TAPOBJ) $(LDFLAGS)
 
 test: $(TESTS)
 	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(@ARGV)' $(TESTS)

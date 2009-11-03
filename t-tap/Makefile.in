@@ -78,10 +78,10 @@ test_freshness: test_freshness.o $(SRC_BASE)/freshness.o
 	$(CC) $(CFLAGS) -o $@ test_freshness.c $(SRC_BASE)/freshness.o
 
 test_nagios_config: test_nagios_config.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o
-	$(CC) $(CFLAGS) -o $@ test_nagios_config.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o $(TAPOBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ test_nagios_config.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o $(TAPOBJ) $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS)
 
 test_timeperiods: test_timeperiods.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o 
-	$(CC) $(CFLAGS) -o $@ test_timeperiods.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o $(TAPOBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ test_timeperiods.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o $(TAPOBJ) $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS)
 
 test: $(TESTS)
 	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(@ARGV)' $(TESTS)

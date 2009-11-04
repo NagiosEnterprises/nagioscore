@@ -340,7 +340,7 @@ int main(int argc, char **argv){
 
 	my_free(config_file);
 
-	return OK;
+	return exit_status();
 	}
 
 

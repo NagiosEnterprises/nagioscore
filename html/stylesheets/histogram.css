@@ -7,12 +7,12 @@
 
 .helpfulHints { font-family: arial,serif;  text-align: center;  font-size: 10pt; }
 
-.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2; }
+.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2px; }
 .infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
 .infoBoxBadProcStatus { color: red; }
 A.homepageURL:Hover { font-family: arial,serif;  color: red; }
 
-.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1; }
+.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1px; }
 
 .dataTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 

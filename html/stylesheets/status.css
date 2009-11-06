@@ -6,12 +6,12 @@
 .warningMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
 .infoMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold; }
 
-.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2; }
+.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2px; }
 .infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
 .infoBoxBadProcStatus { font-family: arial,serif;  color: red; }
 A.homepageURL:Hover { font-family: arial,serif;  color: red; }
 
-.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1; }
+.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1px; }
 
 .filter { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB; }
 .filterTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold;  background-color: #DBDBDB; }
@@ -23,7 +23,7 @@ A.homepageURL:Hover { font-family: arial,serif;  color: red; }
 .statusTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 .statusSort { font-family: arial,serif;  font-size: 8pt; }
 
-TABLE.status { font-family: arial,serif;  font-size: 8pt;  background-color: white;  padding: 2; }
+TABLE.status { font-family: arial,serif;  font-size: 8pt;  background-color: white;  padding: 2px; }
 TH.status { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
 DIV.status { font-family: arial,serif;  font-size: 10pt;  text-align: center; }
 .statusOdd { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB; }
@@ -62,7 +62,7 @@ DIV.status { font-family: arial,serif;  font-size: 10pt;  text-align: center; }
 .statusBGUNREACHABLESCHED { font-family: arial,serif;  font-size: 8pt;  background-color: #FFBBBB; }
 
 DIV.serviceTotals { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 10pt; }
-TABLE.serviceTotals { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2; }
+TABLE.serviceTotals { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2px; }
 TH.serviceTotals,A.serviceTotals { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: center;  background-color: #999797;  color: #DCE5C1; }
 TD.serviceTotals { font-family: arial,serif;  font-size: 8pt;  text-align: center;  background-color: #e9e9e9; }
 
@@ -75,7 +75,7 @@ TD.serviceTotals { font-family: arial,serif;  font-size: 8pt;  text-align: cente
 
 
 DIV.hostTotals { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 10pt; }
-TABLE.hostTotals { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2; }
+TABLE.hostTotals { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2px; }
 TH.hostTotals,A.hostTotals { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: center;  background-color: #999797;  color: #DCE5C1; }
 TD.hostTotals { font-family: arial,serif;  font-size: 8pt;  text-align: center;  background-color: #e9e9e9; }
 

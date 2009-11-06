@@ -5,12 +5,12 @@
 .errorDescription { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 .warningMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
 
-.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2; }
+.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2px; }
 .infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
 .infoBoxBadProcStatus { color: red; }
 A.homepageURL:Hover { font-family: arial,serif;  color: red; }
 
-.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1; }
+.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1px; }
 
 .dataTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 
@@ -22,7 +22,7 @@ A.homepageURL:Hover { font-family: arial,serif;  color: red; }
 .optBox { font-family: arial narrow,serif;  font-size: 10pt;  font-weight: bold; }
 .optBoxItem { font-family: arial,serif;  font-size: 8pt;  font-weight: bold;  color: red; }
 
-TABLE.notifications { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 5; }
+TABLE.notifications { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 5px; }
 TH.notifications { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
 .notificationsOdd { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB; }
 .notificationsEven { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2; }

@@ -5,36 +5,36 @@
 .errorDescription { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 .warningMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
 
-.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2; }
+.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2px; }
 .infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
 .infoBoxBadProcStatus { font-family: arial,serif;  color: red; }
 A.homepageURL:Hover { font-family: arial,serif;  color: red; }
 
-.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1; }
+.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1px; }
 
 DIV.dataTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 DIV.data { font-family: arial,serif;  text-align: center;  font-size: 12pt; }
 
 DIV.perfTypeTitle { font-family: arial,serif;  text-align: right;  font-weight: bold;  font-size: 10pt; }
 
-TABLE.data { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2; }
+TABLE.data { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2px; }
 TH.data { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
 .dataOdd { font-family: arial,serif;  font-size: 10pt;  background-color: #DBDBDB; }
 .dataEven { font-family: arial,serif;  font-size: 10pt;  background-color: #C4C2C2; }
 
 .optionBoxTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 10pt; }
-.optionBox { font-family: arial,serif;  font-size: 10pt;  background-color: #DBDBDB;  padding: 2; }
+.optionBox { font-family: arial,serif;  font-size: 10pt;  background-color: #DBDBDB;  padding: 2px; }
 
 .commandTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 
-TABLE.command { font-family: arial,serif;  font-size: 10pt;  background-color: #DBDBDB; padding: 3; }
-.command { font-family: arial,serif;  font-size: 10pt; padding: 2; }
+TABLE.command { font-family: arial,serif;  font-size: 10pt;  background-color: #DBDBDB; padding: 3px; }
+.command { font-family: arial,serif;  font-size: 10pt; padding: 2px; }
 
 .commentTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 DIV.commentNav { font-family: arial,serif;  font-size: 10pt;  text-align: center; }
 A.commentNav { font-family: arial,serif;  font-size: 10pt; }
 
-TABLE.comment { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2; }
+TABLE.comment { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2px; }
 TH.comment { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
 .commentOdd { font-family: arial,serif;  font-size: 9pt;  background-color: #DBDBDB; }
 .commentEven { font-family: arial,serif;  font-size: 9pt;  background-color: #C4C2C2; }
@@ -44,7 +44,7 @@ DIV.comment,A.comment { font-family: arial,serif;  font-size: 10pt;  background-
 DIV.downtimeNav { font-family: arial,serif;  font-size: 10pt;  text-align: center; }
 A.downtimeNav { font-family: arial,serif;  font-size: 10pt; }
 
-TABLE.downtime { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2; }
+TABLE.downtime { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2px; }
 TH.downtime { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
 .downtimeOdd { font-family: arial,serif;  font-size: 9pt;  background-color: #DBDBDB; }
 .downtimeEven { font-family: arial,serif;  font-size: 9pt;  background-color: #C4C2C2; }
@@ -97,7 +97,7 @@ TH.downtime { font-family: arial,serif;  font-size: 10pt;  background-color: whi
 
 .queueTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 
-TABLE.queue { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2; }
+TABLE.queue { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2px; }
 TH.queue { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
 .queueOdd { font-family: arial,serif;  font-size: 9pt;  background-color: #DBDBDB; }
 .queueEven { font-family: arial,serif;  font-size: 9pt;  background-color: #C4C2C2; }

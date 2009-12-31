@@ -1,0 +1,71 @@
+#!/usr/bin/perl
+# Prints to stdout lots of host and service downtimes
+
+use warnings;
+use strict;
+
+my $max_iterations = shift @ARGV || 1000;
+
+my $hostname = "host1";
+my $servicename = "Dummy service";
+
+my $downtime_id = 2596;
+my $starttime = 9000000000;
+my $downtime_template = <<EOF;
+servicecomment {
+    host_name=$hostname
+    service_description=$servicename
+    entry_type=1
+    comment_id=%DOWNTIMEID%
+    source=1
+    persistent=1
+    entry_time=1262254781
+    expires=0
+    expire_time=0
+    author=Nagios Admin
+    comment_data=Test Comment
+    }
+
+hostdowntime {
+    host_name=$hostname
+    downtime_id=%DOWNTIMEID1%
+    entry_time=1262254781
+    start_time=%STARTTIME%
+    end_time=%ENDTIME%
+    triggered_by=0
+    fixed=1
+    duration=7200
+    author=nagiosadmin
+    comment=Future host downtime
+    }
+
+servicedowntime {
+    host_name=$hostname
+    service_description=$servicename
+    downtime_id=%DOWNTIMEID2%
+    entry_time=1262254781
+    start_time=%STARTTIME%
+    end_time=%ENDTIME%
+    triggered_by=0
+    fixed=1
+    duration=7200
+    author=nagiosadmin
+    comment=Future service downtime
+    }
+
+EOF
+
+for(my $i=0; $i < $max_iterations; $i++ ) {
+	my $downtime = $downtime_template;
+	$downtime =~ s/%DOWNTIMEID1%/$downtime_id/g;
+	$downtime_id++;
+	$downtime =~ s/%DOWNTIMEID2%/$downtime_id/g;
+	$downtime_id++;
+
+	my $endtime = $starttime + 7200;
+	$downtime =~ s/%STARTTIME%/$starttime/g;
+	$downtime =~ s/%ENDTIME%/$endtime/g;
+	$starttime += 60;
+
+	print $downtime;
+}

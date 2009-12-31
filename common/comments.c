@@ -44,6 +44,8 @@
 
 
 comment     *comment_list=NULL;
+int	    defer_comment_sorting = 0;
+static int  unsorted_comments = 0;
 comment     **comment_hashlist=NULL;
 
 
@@ -503,28 +505,35 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 		return ERROR;
 	        }
 
-	/* add new comment to comment list, sorted by comment id */
-	last_comment=comment_list;
-	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
-		if(new_comment->comment_id<temp_comment->comment_id){
-			new_comment->next=temp_comment;
-			if(temp_comment==comment_list)
-				comment_list=new_comment;
-			else
-				last_comment->next=new_comment;
-			break;
-		        }
-		else
-			last_comment=temp_comment;
-	        }
-	if(comment_list==NULL){
-		new_comment->next=NULL;
+	if(defer_comment_sorting){
+		new_comment->next=comment_list;
 		comment_list=new_comment;
-	        }
-	else if(temp_comment==NULL){
-		new_comment->next=NULL;
-		last_comment->next=new_comment;
-	        }
+		unsorted_comments++;
+		}
+	else{
+		/* add new comment to comment list, sorted by comment id */
+		last_comment=comment_list;
+		for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
+			if(new_comment->comment_id<temp_comment->comment_id){
+				new_comment->next=temp_comment;
+				if(temp_comment==comment_list)
+					comment_list=new_comment;
+				else
+					last_comment->next=new_comment;
+				break;
+				}
+			else
+				last_comment=temp_comment;
+			}
+		if(comment_list==NULL){
+			new_comment->next=NULL;
+			comment_list=new_comment;
+			}
+		else if(temp_comment==NULL){
+			new_comment->next=NULL;
+			last_comment->next=new_comment;
+			}
+		}
 
 #ifdef NSCORE
 #ifdef USE_EVENT_BROKER
@@ -536,8 +545,43 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 	return OK;
         }
 
+static int comment_compar(const void *p1, const void *p2){
+	comment *c1 = (comment *)p1;
+	comment *c2 = (comment *)p2;
+	return (c1->comment_id < c2->comment_id) ? -1 : (c1->comment_id - c2->comment_id);
+	}
 
+int sort_comments(void){
+	comment **array, *last_comment;
+	int i = 0;
 
+	if(!defer_comment_sorting)
+		return OK;
+	defer_comment_sorting=0;
+
+	if(!unsorted_comments)
+		return OK;
+
+	if(!(array=malloc(sizeof(*array)*unsorted_comments)))
+		return ERROR;
+	while(comment_list && i<unsorted_comments){
+		array[i++]=comment_list;
+		comment_list=comment_list->next;
+	}
+	if (comment_list || i<unsorted_comments)
+		return ERROR;
+
+	qsort((void *)array, i, sizeof(*array), comment_compar);
+	last_comment = array[0];
+	for (i=1; i<unsorted_comments;i++){
+		last_comment->next = array[i];
+		last_comment = last_comment->next;
+		}
+	last_comment->next = NULL;
+	my_free(array);
+	unsorted_comments = 0;
+	return OK;
+	}
 
 /******************************************************************/
 /********************* CLEANUP FUNCTIONS **************************/

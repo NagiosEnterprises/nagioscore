@@ -789,6 +789,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 		return ERROR;
 #endif
 
+	/* Big speedup when reading status.dat in bulk */
+	defer_downtime_sorting=1;
+	defer_comment_sorting=1;
+
 	/* read all lines in the status file */
 	while(1){
 
@@ -1305,6 +1309,11 @@ int xsddefault_read_status_data(char *config_file,int options){
 	/* free memory */
 	my_free(xsddefault_status_log);
 	my_free(xsddefault_temp_file);
+
+	if(sort_downtime()!=OK)
+		return ERROR;
+	if(sort_comments()!=OK)
+		return ERROR;
 
 	return OK;
         }

@@ -7,6 +7,7 @@ Nagios 3.x Change Log
 -----------------
 ENHANCEMENTS
 * Link to allow scheduling downtime for all services on a host (Hendrik Baecker)
+* Speedup to CGIs when lots of comments or downtimes in status.dat file (Jonathan Kamens)
 
 FIXES
 * Fix for incorrect scheduling when time has gone back an hour (partial fix for 24x7)

@@ -46,6 +46,8 @@
 
 
 scheduled_downtime *scheduled_downtime_list=NULL;
+int		   defer_downtime_sorting = 0;
+static int	   unsorted_downtime = 0;
 
 #ifdef NSCORE
 extern timed_event *event_list_high;
@@ -931,29 +933,35 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	new_downtime->incremented_pending_downtime=FALSE;
 #endif
 
-	/* add new downtime to downtime list, sorted by start time */
-	last_downtime=scheduled_downtime_list;
-	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
-		if(new_downtime->start_time<temp_downtime->start_time){
-			new_downtime->next=temp_downtime;
-			if(temp_downtime==scheduled_downtime_list)
-				scheduled_downtime_list=new_downtime;
-			else
-				last_downtime->next=new_downtime;
-			break;
-		        }
-		else
-			last_downtime=temp_downtime;
-	        }
-	if(scheduled_downtime_list==NULL){
-		new_downtime->next=NULL;
+	if(defer_downtime_sorting){
+		new_downtime->next=scheduled_downtime_list;
 		scheduled_downtime_list=new_downtime;
-	        }
-	else if(temp_downtime==NULL){
-		new_downtime->next=NULL;
-		last_downtime->next=new_downtime;
-	        }
-
+		unsorted_downtime++;
+	}
+	else{
+		/* add new downtime to downtime list, sorted by start time */
+		last_downtime=scheduled_downtime_list;
+		for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+			if(new_downtime->start_time<temp_downtime->start_time){
+				new_downtime->next=temp_downtime;
+				if(temp_downtime==scheduled_downtime_list)
+					scheduled_downtime_list=new_downtime;
+				else
+					last_downtime->next=new_downtime;
+				break;
+				}
+			else
+				last_downtime=temp_downtime;
+			}
+		if(scheduled_downtime_list==NULL){
+			new_downtime->next=NULL;
+			scheduled_downtime_list=new_downtime;
+			}
+		else if(temp_downtime==NULL){
+			new_downtime->next=NULL;
+			last_downtime->next=new_downtime;
+			}
+		}
 #ifdef NSCORE
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -964,6 +972,43 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	return OK;
         }
 
+static int downtime_compar(const void *p1, const void *p2){
+	scheduled_downtime *d1 = (scheduled_downtime *)p1;
+	scheduled_downtime *d2 = (scheduled_downtime *)p2;
+	return (d1->start_time < d2->start_time) ? -1 : (d1->start_time - d2->start_time);
+	}
+
+int sort_downtime(void){
+	scheduled_downtime **array, *last_downtime;
+	int i = 0;
+
+	if(!defer_downtime_sorting)
+		return OK;
+	defer_downtime_sorting=0;
+
+	if(!unsorted_downtime)
+		return OK;
+
+	if(!(array=malloc(sizeof(*array)*unsorted_downtime)))
+		return ERROR;
+	while(scheduled_downtime_list && i<unsorted_downtime){
+		array[i++]=scheduled_downtime_list;
+		scheduled_downtime_list=scheduled_downtime_list->next;
+	}
+	if (scheduled_downtime_list || i<unsorted_downtime)
+		return ERROR;
+
+	qsort((void *)array, i, sizeof(*array), downtime_compar);
+	last_downtime = array[0];
+	for (i=1; i<unsorted_downtime;i++){
+		last_downtime->next = array[i];
+		last_downtime = last_downtime->next;
+		}
+	last_downtime->next = NULL;
+	my_free(array);
+	unsorted_downtime = 0;
+	return OK;
+	}
 
 
 

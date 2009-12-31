@@ -7848,7 +7848,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init t-tap/Makefile"
+ac_config_files="$ac_config_files Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile"
 
 
 
@@ -8345,6 +8345,7 @@ do
     "module/Makefile") CONFIG_FILES="$CONFIG_FILES module/Makefile" ;;
     "xdata/Makefile") CONFIG_FILES="$CONFIG_FILES xdata/Makefile" ;;
     "daemon-init") CONFIG_FILES="$CONFIG_FILES daemon-init" ;;
+    "t/Makefile") CONFIG_FILES="$CONFIG_FILES t/Makefile" ;;
     "t-tap/Makefile") CONFIG_FILES="$CONFIG_FILES t-tap/Makefile" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5

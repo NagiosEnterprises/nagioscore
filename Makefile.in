@@ -190,7 +190,7 @@ tap/src/tap.o:
 	cd tap && $(MAKE)
 
 test-perl:
-	prove t/*.t
+	cd t && $(MAKE) test
 
 install-html:
 	cd $(SRC_HTM) && $(MAKE) install

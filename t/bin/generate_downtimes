@@ -9,6 +9,9 @@ my $max_iterations = shift @ARGV || 1000;
 my $hostname = "host1";
 my $servicename = "Dummy service";
 
+my $servicecomment_id_start=1024;
+my $servicecomment_ids = {};
+
 my $downtime_id = 2596;
 my $starttime = 9000000000;
 my $downtime_template = <<EOF;
@@ -57,6 +60,8 @@ EOF
 
 for(my $i=0; $i < $max_iterations; $i++ ) {
 	my $downtime = $downtime_template;
+	my $service_comment_id = get_random_servicecomment_id();
+	$downtime =~ s/%DOWNTIMEID%/$service_comment_id/g;
 	$downtime =~ s/%DOWNTIMEID1%/$downtime_id/g;
 	$downtime_id++;
 	$downtime =~ s/%DOWNTIMEID2%/$downtime_id/g;
@@ -68,4 +73,12 @@ for(my $i=0; $i < $max_iterations; $i++ ) {
 	$starttime += 60;
 
 	print $downtime;
+}
+
+sub get_random_servicecomment_id {
+NEXT_ID:
+	my $id = $servicecomment_id_start + int(rand(100*$max_iterations));
+	goto NEXT_ID if exists $servicecomment_ids->{ $id };
+	$servicecomment_ids->{ $id } = 1;
+	return $id;
 }

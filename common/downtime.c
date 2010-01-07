@@ -973,8 +973,8 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
         }
 
 static int downtime_compar(const void *p1, const void *p2){
-	scheduled_downtime *d1 = (scheduled_downtime *)p1;
-	scheduled_downtime *d2 = (scheduled_downtime *)p2;
+	scheduled_downtime *d1 = *(scheduled_downtime **)p1;
+	scheduled_downtime *d2 = *(scheduled_downtime **)p2;
 	return (d1->start_time < d2->start_time) ? -1 : (d1->start_time - d2->start_time);
 	}
 
@@ -999,7 +999,7 @@ int sort_downtime(void){
 		return ERROR;
 
 	qsort((void *)array, i, sizeof(*array), downtime_compar);
-	last_downtime = array[0];
+	scheduled_downtime_list = last_downtime = array[0];
 	for (i=1; i<unsorted_downtime;i++){
 		last_downtime->next = array[i];
 		last_downtime = last_downtime->next;

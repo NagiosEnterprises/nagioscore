@@ -13,7 +13,7 @@ my $servicecomment_id_start=1024;
 my $servicecomment_ids = {};
 
 my $downtime_id = 2596;
-my $starttime = 9000000000;
+my $starttime = 1920000000;
 my $downtime_template = <<EOF;
 servicecomment {
     host_name=$hostname

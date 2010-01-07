@@ -2596,6 +2596,7 @@ void display_comments(int type){
 	printf("<TR CLASS='comment'><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH></TR>\n");
 
 	/* check all the comments to see if they apply to this host or service */
+	/* Comments are displayed in the order they are read from the status.dat file */
 	for(temp_comment=get_first_comment_by_host(host_name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(host_name,temp_comment)){
 
 		display_comment=FALSE;

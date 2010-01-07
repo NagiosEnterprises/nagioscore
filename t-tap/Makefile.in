@@ -6,12 +6,15 @@ SRC_COMMON=../common
 SRC_INCLUDE=../include
 SRC_XDATA=../xdata
 SRC_BASE=../base
+SRC_CGI=../cgi
 
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src
 TAPOBJ=../tap/src/tap.o
 
-TESTS = test_logging test_events test_timeperiods test_nagios_config
+TESTS = test_logging test_events test_timeperiods test_nagios_config test_xsddefault
+
+test_xsddefault_OBJS = ${SRC_CGI}/xstatusdata-cgi.o ${SRC_CGI}/cgiutils.o ${SRC_CGI}/comments-cgi.o ${SRC_CGI}/objects-cgi.o ${SRC_CGI}/skiplist.o ${SRC_CGI}/statusdata-cgi.o ${SRC_CGI}/downtime-cgi.o ${SRC_CGI}/xobjects-cgi.o
 
 LDFLAGS=@LDFLAGS@
 LIBS=@LIBS@
@@ -82,6 +85,9 @@ test_nagios_config: test_nagios_config.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.
 
 test_timeperiods: test_timeperiods.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o 
 	$(CC) $(CFLAGS) -o $@ test_timeperiods.c $(SRC_BASE)/utils.o ${SRC_BASE}/config.o ${SRC_BASE}/macros-base.o ${SRC_BASE}/objects-base.o ${SRC_BASE}/skiplist.o ${SRC_BASE}/xobjects-base.o $(TAPOBJ) $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS)
+
+test_xsddefault: test_xsddefault.c ${test_xsddefault_OBJS}
+	$(CC) $(CFLAGS) -o $@ test_xsddefault.c $(TAPOBJ) ${test_xsddefault_OBJS}
 
 test: $(TESTS)
 	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(@ARGV)' $(TESTS)

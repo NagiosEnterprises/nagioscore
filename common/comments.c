@@ -546,8 +546,8 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
         }
 
 static int comment_compar(const void *p1, const void *p2){
-	comment *c1 = (comment *)p1;
-	comment *c2 = (comment *)p2;
+	comment *c1 = *(comment **)p1;
+	comment *c2 = *(comment **)p2;
 	return (c1->comment_id < c2->comment_id) ? -1 : (c1->comment_id - c2->comment_id);
 	}
 
@@ -572,7 +572,7 @@ int sort_comments(void){
 		return ERROR;
 
 	qsort((void *)array, i, sizeof(*array), comment_compar);
-	last_comment = array[0];
+	comment_list = last_comment = array[0];
 	for (i=1; i<unsorted_comments;i++){
 		last_comment->next = array[i];
 		last_comment = last_comment->next;

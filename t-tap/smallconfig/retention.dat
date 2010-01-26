@@ -1,0 +1,170 @@
+########################################
+#      NAGIOS STATE RETENTION FILE
+#
+# This is a test retention.dat file
+########################################
+info {
+created=1264459160
+version=3.2.0
+last_update_check=0
+update_available=0
+last_version=3.0.6
+new_version=
+}
+program {
+modified_host_attributes=0
+modified_service_attributes=0
+enable_notifications=1
+active_service_checks_enabled=1
+passive_service_checks_enabled=1
+active_host_checks_enabled=1
+passive_host_checks_enabled=1
+enable_event_handlers=1
+obsess_over_services=0
+obsess_over_hosts=0
+check_service_freshness=1
+check_host_freshness=1
+enable_flap_detection=1
+enable_failure_prediction=1
+process_performance_data=1
+global_host_event_handler=
+global_service_event_handler=
+next_comment_id=417
+next_downtime_id=183
+next_event_id=1288
+next_problem_id=218
+next_notification_id=13494
+}
+host {
+host_name=host1
+modified_attributes=1
+check_command=check_host!-H $HOSTADDRESS$ -w 3000.0,80% -c 5000.0,100% -p 1
+check_period=24x7
+notification_period=24x7
+event_handler=
+has_been_checked=1
+check_execution_time=10.030
+check_latency=0.000
+check_type=0
+current_state=1
+last_state=2
+last_hard_state=2
+last_event_id=1204
+current_event_id=1275
+current_problem_id=41
+last_problem_id=0
+plugin_output=PING CRITICAL - Packet loss = 100%
+long_plugin_output=
+performance_data=rta=5000.000000ms;3000.000000;5000.000000;0.000000 pl=100%;80;100;0
+last_check=1264456433
+next_check=1264456444
+check_options=0
+current_attempt=1
+max_attempts=2
+normal_check_interval=0.000000
+retry_check_interval=0.000000
+state_type=1
+last_state_change=1264456444
+last_hard_state_change=1264456444
+last_time_up=1247509815
+last_time_down=1264456444
+last_time_unreachable=1264456432
+notified_on_down=1
+notified_on_unreachable=1
+last_notification=0
+current_notification_number=52
+current_notification_id=13392
+notifications_enabled=1
+problem_has_been_acknowledged=0
+acknowledgement_type=0
+active_checks_enabled=1
+passive_checks_enabled=1
+event_handler_enabled=0
+flap_detection_enabled=1
+failure_prediction_enabled=1
+process_performance_data=1
+obsess_over_host=0
+is_flapping=1
+percent_state_change=29.87
+check_flapping_recovery_notification=1
+state_history=1,1,1,1,2,2,1,2,2,1,1,1,1,1,1,1,2,2,2,2,1
+}
+host {
+host_name=doesnotexist
+modified_attributes=1
+check_command=check_host!-H $HOSTADDRESS$ -w 3000.0,80% -c 5000.0,100% -p 1
+check_period=24x7
+notification_period=24x7
+event_handler=
+has_been_checked=1
+check_execution_time=10.030
+check_latency=0.000
+check_type=0
+current_state=1
+last_state=2
+last_hard_state=2
+last_event_id=1204
+current_event_id=1275
+current_problem_id=41
+last_problem_id=0
+plugin_output=PING CRITICAL - Packet loss = 100%
+long_plugin_output=
+performance_data=rta=5000.000000ms;3000.000000;5000.000000;0.000000 pl=100%;80;100;0
+last_check=1264456433
+next_check=1264456444
+check_options=0
+current_attempt=1
+max_attempts=2
+normal_check_interval=0.000000
+retry_check_interval=0.000000
+state_type=1
+last_state_change=1264456444
+last_hard_state_change=1264456444
+last_time_up=1247509815
+last_time_down=1264456444
+last_time_unreachable=1264456432
+notified_on_down=1
+notified_on_unreachable=1
+last_notification=0
+current_notification_number=52
+current_notification_id=13392
+notifications_enabled=1
+problem_has_been_acknowledged=0
+acknowledgement_type=0
+active_checks_enabled=1
+passive_checks_enabled=1
+event_handler_enabled=0
+flap_detection_enabled=1
+failure_prediction_enabled=1
+process_performance_data=1
+obsess_over_host=0
+is_flapping=1
+percent_state_change=29.87
+check_flapping_recovery_notification=1
+state_history=1,1,1,1,2,2,1,2,2,1,1,1,1,1,1,1,2,2,2,2,1
+}
+hostcomment {
+host_name=host1
+entry_type=3
+comment_id=418
+source=0
+persistent=0
+entry_time=1264451960
+expires=0
+expire_time=0
+author=(Nagios Process)
+comment_data=Notifications for this host are being suppressed because it was detected as having been flapping between different states (34.5% change > 20.0% threshold).  When the host state stabilizes and the flapping stops, notifications will be re-enabled.
+}
+servicecomment {
+host_name=host1
+service_description=Dummy service
+entry_type=3
+comment_id=419
+source=0
+persistent=0
+entry_time=1264451960
+expires=0
+expire_time=0
+author=(Nagios Process)
+comment_data=Notifications for this service are being suppressed because it was detected as having been flapping between different states (40.3% change >= 20.0% threshold).  When the service state stabilizes and the flapping stops, notifications will be re-enabled.
+}

@@ -240,6 +240,7 @@ extern command         *command_list;
 extern timeperiod      *timeperiod_list;
 extern serviceescalation *serviceescalation_list;
 extern host 		*host_list;
+extern char	*xrddefault_retention_file;
 
 notification    *notification_list;
 
@@ -266,13 +267,19 @@ unsigned long   max_debug_file_size=DEFAULT_MAX_DEBUG_FILE_SIZE;
 sched_info scheduling_info;
 timed_event event_list_low;
 timed_event event_list_high;
+timed_event *event_list_high_tail=NULL;
+
 
 /* Dummy functions */
 void logit(int data_type, int display, const char *fmt, ...) {}
 int my_sendall(int s, char *buf, int *len, int timeout) {}
-void free_comment_data(void) {}
 int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) {}
-int log_debug_info(int level,int verbosity,const char *fmt, ...) {}
+int log_debug_info(int level,int verbosity,const char *fmt, ...) {
+        va_list ap;
+        va_start(ap, fmt);
+        /* vprintf( fmt, ap ); */
+        va_end(ap);
+}
 
 int neb_free_callback_list(void) {}
 void broker_program_status(int type, int flags, int attr, struct timeval *timestamp){}
@@ -287,6 +294,19 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 int my_tcp_connect(char *host_name, int port, int *sd, int timeout){}
 int my_recvall(int s, char *buf, int *len, int timeout){}
 int neb_free_module_list(void){}
+void remove_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail){}
+void check_for_service_flapping(service *svc, int update, int allow_flapstart_notification){}
+int update_host_status(host *hst,int aggregated_dump){}
+int update_contact_status(contact *cntct,int aggregated_dump){}
+time_t get_next_service_notification_time(service *temp_service, time_t time_t1) {}
+void broker_retention_data(int type, int flags, int attr, struct timeval *timestamp){}
+int host_notification(host *hst, int type, char *not_author, char *not_data, int options){}
+void broker_downtime_data(int type, int flags, int attr, int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, struct timeval *timestamp){}
+int update_service_status(service *svc,int aggregated_dump){}
+time_t get_next_host_notification_time(host *temp_host,time_t time_t1) {}
+void check_for_host_flapping(host *hst, int update, int actual_check, int allow_flapstart_notification){}
+int service_notification(service *svc, int type, char *not_author, char *not_data, int options){}
+
 
 int main(int argc, char **argv){
 	int result;
@@ -302,7 +322,7 @@ int main(int argc, char **argv){
 	hostgroup *temp_hostgroup=NULL;
 	hostsmember *temp_member=NULL;
 
-	plan_tests(4);
+	plan_tests(7);
 
 	/* reset program variables */
 	reset_variables();
@@ -335,6 +355,14 @@ int main(int argc, char **argv){
 	for(temp_member=temp_hostgroup->members;temp_member!=NULL;temp_member=temp_member->next) {
 		//printf("host pointer=%d\n", temp_member->host_ptr);
 	}
+
+	temp_host=find_host("host1");
+	ok( temp_host->current_state==0, "State is assumed OK on initial load" );
+
+	xrddefault_retention_file=strdup("smallconfig/retention.dat");
+	ok( xrddefault_read_state_information() == OK, "Reading retention data" );
+
+	ok( temp_host->current_state==1, "State changed due to retention file settings");
 
 	cleanup();
 

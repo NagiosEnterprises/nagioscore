@@ -690,7 +690,7 @@ void request_command_data(int cmd){
 
 	case CMD_ENABLE_SVC_CHECK:
 	case CMD_DISABLE_SVC_CHECK:
-		printf("%s actice checks of a particular service",(cmd==CMD_ENABLE_SVC_CHECK)?"enable":"disable");
+		printf("%s active checks of a particular service",(cmd==CMD_ENABLE_SVC_CHECK)?"enable":"disable");
 		break;
 		
 	case CMD_ENABLE_NOTIFICATIONS:

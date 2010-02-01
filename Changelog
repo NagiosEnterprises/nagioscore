@@ -17,6 +17,7 @@ FIXES
 * Trivial cleanups for autoconf (Allan Clark)
 * Fix for CSS validation of padding: X
 * Fix for documentation re: case-insensitive nature of custom variables (Marc Powell)
+* Fix for template configurations which use negated wildcards (Tim Wilde)
 
 WARNINGS
 

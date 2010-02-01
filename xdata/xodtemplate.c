@@ -14378,7 +14378,7 @@ int xodtemplate_expand_services(xodtemplate_memberlist **list, xodtemplate_membe
 		        }
 
 		/* we didn't find a match */
-		if(found_match==FALSE){
+		if(found_match==FALSE && reject_item==FALSE){
 #ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find a service matching host name '%s' and description '%s' (config file '%s', starting on line %d)\n",host_name,temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 #endif
@@ -14390,7 +14390,7 @@ int xodtemplate_expand_services(xodtemplate_memberlist **list, xodtemplate_membe
 		regfree(&preg2);
 	my_free(service_names);
 
-	if(found_match==FALSE)
+	if(found_match==FALSE && reject_item==FALSE)
 		return ERROR;
 
 	return OK;

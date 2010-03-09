@@ -3,11 +3,12 @@ Nagios 3.x Change Log
 #####################
 
 
-3.2.1 ????
------------------
+3.2.1 - 03/09/2010
+------------------
 ENHANCEMENTS
 * Link to allow scheduling downtime for all services on a host (Hendrik Baecker)
 * Speedup to CGIs when lots of comments or downtimes in status.dat file (Jonathan Kamens)
+* Patch for new_mini_epn to allow for any command line length without breaking extra trailing or leading whitespace (Ray Bengen)
 
 FIXES
 * Fix for incorrect scheduling when time has gone back an hour (partial fix for 24x7)
@@ -20,6 +21,9 @@ FIXES
 * Fix for template configurations which use negated wildcards (Tim Wilde)
 
 WARNINGS
+* N/A
+
+
 
 3.2.0 - 08/12/2009
 ------------------

@@ -360,7 +360,7 @@ int main(int argc, char **argv){
 	c=0;
 	while( c < 1000 ) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
-		ok( is_valid_time==OK, "Always OK for 24x7 with TZ=UTC" );
+		ok( is_valid_time==OK, "Always OK for 24x7 with TZ=UTC, time_t=%lu", test_time );
 		test_time+=1800;
 		c++;
 	}
@@ -371,7 +371,7 @@ int main(int argc, char **argv){
 	c=0;
 	while( c < 1000 ) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
-		ok( is_valid_time==OK, "Always OK for 24x7 with TZ=Europe/London" );
+		ok( is_valid_time==OK, "Always OK for 24x7 with TZ=Europe/London, time_t=%lu", test_time );
 		test_time+=1800;
 		c++;
 	}
@@ -387,7 +387,7 @@ int main(int argc, char **argv){
 	c=0;
 	while( c < 1000 ) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
-		ok( is_valid_time==OK, "Always OK for 24x7 with TZ=America/New_York" );
+		ok( is_valid_time==OK, "Always OK for 24x7 with TZ=America/New_York, time_t=%lu", test_time );
 		test_time+=1800;
 		c++;
 	}

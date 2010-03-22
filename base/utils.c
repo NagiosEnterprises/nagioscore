@@ -852,9 +852,6 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 	t->tm_sec=0;
 	t->tm_min=0;
 	t->tm_hour=0;
-        /* Removed for the moment. This fixes a bug where the timeperiod is incorrectly calculated */
-	/* See t-tap/test_timeperiods for a test failure */
-	/* t->tm_isdst=-1; */
 	midnight=(unsigned long)mktime(t);
 
 	/**** check exceptions first ****/
@@ -1080,14 +1077,13 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 
 /*#define TEST_TIMEPERIODS_B 1*/
 
-/* given a preferred time, get the next valid time within a time period */ 
-void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod){
+/* Separate this out from public get_next_valid_time for testing, so we can mock current_time */
+void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod){
 	time_t preferred_time=(time_t)0L;
 	timerange *temp_timerange;
 	daterange *temp_daterange;
 	unsigned long midnight=0L;
 	struct tm *t;
-	time_t current_time=(time_t)0L;
 	time_t day_start=(time_t)0L;
 	time_t day_range_start=(time_t)0L;
 	time_t day_range_end=(time_t)0L;
@@ -1115,11 +1111,7 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 	int current_time_mday=0;
 	int current_time_wday=0;
 
-
-	log_debug_info(DEBUGL_FUNCTIONS,0,"get_next_valid_time()\n");
-
-	/* get time right now, preferred time must be now or in the future */
-	time(&current_time);
+	/* preferred time must be now or in the future */
 	preferred_time=(pref_time<current_time)?current_time:pref_time;
 
 	/* if no timeperiod, go with preferred time */
@@ -1144,7 +1136,6 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 	t->tm_sec=0;
 	t->tm_min=0;
 	t->tm_hour=0;
-        t->tm_isdst=-1;
 	midnight=(unsigned long)mktime(t);
 
 	/* save pref time values for later */
@@ -1492,6 +1483,18 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 	return;
         }
 
+
+/* given a preferred time, get the next valid time within a time period */ 
+void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod){
+	time_t current_time=(time_t)0L;
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"get_next_valid_time()\n");
+
+	/* get time right now, preferred time must be now or in the future */
+	time(&current_time);
+
+	_get_next_valid_time(pref_time, current_time, valid_time, tperiod);
+}
 
 
 /* tests if a date range covers just a single day */

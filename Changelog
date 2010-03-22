@@ -3,6 +3,12 @@ Nagios 3.x Change Log
 #####################
 
 
+3.2.2 - ????
+ENHANCEMENTS
+FIXES
+* Fix for choosing next valid time on day of DST change when clocks go one hour backwards
+WARNINGS
+
 3.2.1 - 03/09/2010
 ------------------
 ENHANCEMENTS

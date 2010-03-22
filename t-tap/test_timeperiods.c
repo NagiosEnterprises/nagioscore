@@ -300,14 +300,16 @@ int main(int argc, char **argv){
 	time_t test_time;
 	time_t saved_test_time;
 	time_t next_valid_time=0L;
+	time_t chosen_valid_time=0L;
 	char datestring[256];
 	host *temp_host=NULL;
 	hostgroup *temp_hostgroup=NULL;
 	hostsmember *temp_member=NULL;
 	timeperiod *temp_timeperiod=NULL;
 	int is_valid_time=0;
+	int iterations=1000;
 
-	plan_tests(3006);
+	plan_tests(6031);
 
 	/* reset program variables */
 	reset_variables();
@@ -328,25 +330,22 @@ int main(int argc, char **argv){
 	time(&current_time);
 	test_time = current_time;
 	saved_test_time = current_time;
-	printf("test_time=%d\n", test_time);
-	printf("saved_test_time=%d\n", saved_test_time);
 
 	temp_timeperiod = find_timeperiod("none");
-	printf("timperiod=%d\n", temp_timeperiod);
 
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok( is_valid_time==ERROR, "No valid time because time period is empty");
-	printf("test_time=%d\n", test_time);
 
 	get_next_valid_time( current_time, &next_valid_time, temp_timeperiod);
 	ok( current_time == next_valid_time, "There is no valid time due to timeperiod" );
 
 	temp_timeperiod = find_timeperiod("24x7");
-	printf("timperiod=%d\n", temp_timeperiod);
 
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok( is_valid_time==OK, "Fine because 24x7" );
-	printf("test_time=%d\n", test_time);
+
+	get_next_valid_time( current_time, &next_valid_time, temp_timeperiod);
+	ok( current_time == next_valid_time, "Current time should be the next valid time");
 
 
 	/* 2009-10-25 is the day when clocks go back an hour in Europe. Bug happens during 23:00 to 00:00 */
@@ -358,9 +357,12 @@ int main(int argc, char **argv){
 	tzset();
 	test_time = saved_test_time;
 	c=0;
-	while( c < 1000 ) {
+	while( c < iterations ) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 		ok( is_valid_time==OK, "Always OK for 24x7 with TZ=UTC, time_t=%lu", test_time );
+		chosen_valid_time=0L;
+		_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+		ok( test_time==chosen_valid_time, "get_next_valid_time always returns same time" );
 		test_time+=1800;
 		c++;
 	}
@@ -369,9 +371,11 @@ int main(int argc, char **argv){
 	tzset();
 	test_time = saved_test_time;
 	c=0;
-	while( c < 1000 ) {
+	while( c < iterations ) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 		ok( is_valid_time==OK, "Always OK for 24x7 with TZ=Europe/London, time_t=%lu", test_time );
+		_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+		ok( test_time==chosen_valid_time, "get_next_valid_time always returns same time, time_t=%lu", test_time );
 		test_time+=1800;
 		c++;
 	}
@@ -385,12 +389,101 @@ int main(int argc, char **argv){
 	tzset();
 	test_time = saved_test_time;
 	c=0;
-	while( c < 1000 ) {
+	while( c < iterations ) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 		ok( is_valid_time==OK, "Always OK for 24x7 with TZ=America/New_York, time_t=%lu", test_time );
+		_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+		ok( test_time==chosen_valid_time, "get_next_valid_time always returns same time, time_t=%lu", test_time );
 		test_time+=1800;
 		c++;
 	}
+
+	/* Tests around clock change going back for TZ=Europe/London. 1256511661 = Sun Oct  
+25 23:01:01 2009 */
+	temp_timeperiod = find_timeperiod("sunday_only");
+	ok(temp_timeperiod!=NULL, "Testing Sunday 00:00-01:15,03:15-22:00");
+	putenv("TZ=Europe/London");
+	tzset();
+
+	test_time=1256421000;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==ERROR, "Sat Oct 24 22:50:00 2009 - false" );
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	ok( chosen_valid_time==1256425200, "Next valid time=Sun Oct 25 00:00:00 2009");
+
+	test_time=1256421661;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==ERROR, "Sat Oct 24 23:01:01 2009 - false" );
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	ok( chosen_valid_time==1256425200, "Next valid time=Sun Oct 25 00:00:00 2009");
+
+	test_time=1256425400;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==OK, "Sun Oct 25 00:03:20 2009 - true" );
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	ok( chosen_valid_time==test_time, "Next valid time=Sun Oct 25 00:03:20 2009");
+
+	test_time=1256429700;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==OK, "Sun Oct 25 01:15:00 2009 - true" );
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	ok( chosen_valid_time==test_time, "Next valid time=Sun Oct 25 01:15:00 2009");
+
+	test_time=1256430400;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==ERROR, "Sun Oct 25 01:26:40 2009 - false" );
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	todo_start("Is a bug in get_next_valid_time for a time that falls in the DST change hour period");
+	ok( chosen_valid_time==1256440500, "Next valid time=Sun Oct 25 03:15:00 2009") || printf("chosen_valid_time=%lu\n", chosen_valid_time);
+	todo_end();
+
+	test_time=1256440500;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==OK, "Sun Oct 25 03:15:00 2009 - true");
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	ok( chosen_valid_time==test_time, "Next valid time=Sun Oct 25 03:15:00 2009");
+	
+	test_time=1256500000;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==OK, "Sun Oct 25 19:46:40 2009 - true" );
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	ok( chosen_valid_time==1256500000, "Next valid time=Sun Oct 25 19:46:40 2009");
+
+	test_time=1256508000;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==OK, "Sun Oct 25 22:00:00 2009 - true" );
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	ok( chosen_valid_time==1256508000, "Next valid time=Sun Oct 25 22:00:00 2009");
+
+	test_time=1256508001;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==ERROR, "Sun Oct 25 22:00:01 2009 - false" );
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	ok( chosen_valid_time==1257033600, "Next valid time=Sun Nov 1 00:00:00 2009");
+
+	test_time=1256513000;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==ERROR, "Sun Oct 25 23:23:20 2009 - false" );
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	ok( chosen_valid_time==1257033600, "Next valid time=Sun Nov 1 00:00:00 2009");
+
+
+
+
+	temp_timeperiod = find_timeperiod("weekly_complex");
+	ok(temp_timeperiod!=NULL, "Testing complex weekly timeperiod definition");
+	putenv("TZ=America/New_York");
+	tzset();
+
+	test_time=1268109420;
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok( is_valid_time==ERROR, "Mon Mar  8 23:37:00 2010 - false");
+	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	ok( chosen_valid_time==1268115300, "Next valid time=Tue Mar  9 01:15:00 2010" );
+
+
+
+
 
 	cleanup();
 

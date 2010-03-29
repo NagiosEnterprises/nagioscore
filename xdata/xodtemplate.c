@@ -8684,7 +8684,7 @@ int xodtemplate_recombobulate_contactgroups(void){
 
 		/* preprocess the contactgroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
 		if((contactgroup_names=xodtemplate_process_contactgroup_names(temp_contact->contact_groups,temp_contact->_config_file,temp_contact->_start_line))==NULL)
-			continue;
+			return ERROR;
 
 		/* process the list of contactgroups */
 		for(temp_ptr=strtok(contactgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
@@ -13524,6 +13524,7 @@ int xodtemplate_expand_contactgroups(xodtemplate_memberlist **list, xodtemplate_
 		if(found_match==FALSE){
 #ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find any contactgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			return ERROR;
 #endif
 			break;
 	                }
@@ -14795,6 +14796,7 @@ int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **list, xodtemplat
 		if(found_match==FALSE){
 #ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not find any contactgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			return ERROR;
 #endif
 			break;
 	                }

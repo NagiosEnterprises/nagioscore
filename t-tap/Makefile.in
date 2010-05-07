@@ -10,7 +10,6 @@ SRC_CGI=../cgi
 
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src
-TAPOBJ=../tap/src/tap.o
 
 TESTS = test_logging test_events test_timeperiods test_nagios_config test_xsddefault
 
@@ -68,6 +67,8 @@ SNPRINTF_O=@SNPRINTF_O@
 BROKER_O=@BROKER_O@
 BROKER_H=@BROKER_H@
 
+TAPOBJ=../tap/src/tap.o $(SNPRINTF_O)
+
 all: $(TESTS)
 
 ########## TESTS ##########
@@ -76,7 +77,7 @@ test_logging: test_logging.c $(SRC_BASE)/logging.o
 	$(CC) $(CFLAGS) -o $@ test_logging.c $(SRC_BASE)/logging.o $(TAPOBJ) $(LDFLAGS)
 
 test_events: test_events.c $(SRC_BASE)/events.o
-	$(CC) $(CFLAGS) -o $@ test_events.c $(SRC_BASE)/events.o $(TAPOBJ) $(LDFLAGS) $(MATHLIBS)
+	$(CC) $(CFLAGS) -o $@ test_events.c $(SRC_BASE)/events.o $(TAPOBJ) $(LDFLAGS) $(MATHLIBS) $(LIBS)
 
 test_freshness: test_freshness.o $(SRC_BASE)/freshness.o
 	$(CC) $(CFLAGS) -o $@ test_freshness.c $(SRC_BASE)/freshness.o
@@ -91,7 +92,7 @@ test_xsddefault: test_xsddefault.c ${test_xsddefault_OBJS}
 	$(CC) $(CFLAGS) -o $@ test_xsddefault.c $(TAPOBJ) ${test_xsddefault_OBJS}
 
 test: $(TESTS)
-	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(@ARGV)' $(TESTS)
+	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(map { "./$$_" } @ARGV)' $(TESTS)
 
 clean:
 	rm -f nagios nagiostats core *.o gmon.out

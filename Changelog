@@ -3,13 +3,16 @@ Nagios 3.x Change Log
 #####################
 
 
-3.2.2 - ????
+3.2.2 - 06/??/2010
+------------------
 ENHANCEMENTS
 FIXES
 * Fix for choosing next valid time on day of DST change when clocks go one hour backwards
 * Fix for nagios now erroring when "Error: Could not find any contactgroup matching..." displayed
 * Fix tap tests for Solaris 10 and newer versions of Test::Harness
+* Fix for notifications not being sent out when scheduled downtime is cancelled (Daniel Pouzzner)
 WARNINGS
+
 
 3.2.1 - 03/09/2010
 ------------------

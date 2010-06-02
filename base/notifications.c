@@ -411,7 +411,7 @@ int check_service_notification_viability(service *svc, int type, int options){
 	/****************************************/
 
 	/* downtime notifications only have to pass three general filters */
-	if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMEEND){
+	if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMECANCELLED){
 
 		/* don't send a notification if we're not supposed to... */
 		if(svc->notify_on_downtime==FALSE){

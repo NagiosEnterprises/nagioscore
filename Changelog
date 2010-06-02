@@ -11,6 +11,7 @@ FIXES
 * Fix for nagios now erroring when "Error: Could not find any contactgroup matching..." displayed
 * Fix tap tests for Solaris 10 and newer versions of Test::Harness
 * Fix for notifications not being sent out when scheduled downtime is cancelled (Daniel Pouzzner)
+* Fix for first notification delay being calculated incorrectly, and notifications potentially going out early (Pawel Malachowski)
 WARNINGS
 
 

@@ -22,5 +22,5 @@ $output = `NAGIOS_CGI_CONFIG=etc/cgi.cfg REQUEST_METHOD=GET $remote_user $extinf
 like( $output, "/Process Information/", "extinfo.cgi without params show the process information" );
 
 $output = `NAGIOS_CGI_CONFIG=etc/cgi.cfg REQUEST_METHOD=GET $remote_user QUERY_STRING='&type=1&host=host1' $extinfo_cgi`;
-like( $output, "/Schedule downtime for this host and all services/", "extinfo.cgi allows us to set downtime for a host and all of his services" );
+like( $output, "/Schedule downtime for all services on this host/", "extinfo.cgi allows us to set downtime for a host and all of his services" );
 

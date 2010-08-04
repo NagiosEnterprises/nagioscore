@@ -688,6 +688,10 @@ int xrddefault_read_state_information(void){
 	contact_host_attribute_mask=retained_contact_host_attribute_mask;
 	contact_service_attribute_mask=retained_contact_service_attribute_mask;
 
+	/* Big speedup when reading retention.dat in bulk */
+	defer_downtime_sorting=1;
+	defer_comment_sorting=1;
+
 	/* read all lines in the retention file */
 	while(1){
 
@@ -1860,6 +1864,11 @@ int xrddefault_read_state_information(void){
 	/* free memory and close the file */
 	my_free(inputbuf);
 	mmap_fclose(thefile);
+
+	if(sort_downtime()!=OK)
+		return ERROR;
+	if(sort_comments()!=OK)
+		return ERROR;
 
 	if(test_scheduling==TRUE)
 		gettimeofday(&tv[1],NULL);

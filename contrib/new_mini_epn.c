@@ -217,27 +217,38 @@ void deinit_embedded_perl(void){
 
 int main(int argc, char **argv, char **env) {
 
-	char command_line[128];
+        init_embedded_perl();
+                                                                                /* Calls Perl to load and construct a new
+                                                                                 * Term::ReadLine object.
+                                                                                 */
 
-	init_embedded_perl();
-										/* Calls Perl to load and construct a new 
-										 * Term::ReadLine object.
-										 */
+        init_term_readline();
 
-	init_term_readline();
+        while (1) {
+                                                                                /*
+                                                                                 * get_command_line calls Perl to get a scalar from stdin
+                                                                                 */
 
-	while (1) {
-										/*
-										 * get_command_line calls Perl to get a scalar from stdin
-										 */
+                                                                                /* Perl Term::ReadLine::readline() method chomps the "\n"
+                                                                                 * from the end of the input.
+                                                                                 */
+                char *cmd,*end;
+                /* Allow any length command line */
+                cmd = (get_command_line ()) ;
 
-		strncpy(command_line, get_command_line(), 128) ;
+                // Trim leading whitespace
+                while (isspace (*cmd)) cmd++;
 
-										/* Perl Term::ReadLine::readline() method chomps the "\n"
-										 * from the end of the input.
-										 */
-		run_plugin(command_line) ;
-	}
+                // Trim trailing whitespace
+                end = cmd + strlen (cmd) - 1;
+                while (end > cmd && isspace (*end)) end--;
 
-	deinit_embedded_perl();
+                // Write new null terminator
+                *(end+1) = 0;
+
+                run_plugin (cmd) ;
+        }
+
+        deinit_embedded_perl();
 }
+

@@ -3,9 +3,10 @@ Nagios 3.x Change Log
 #####################
 
 
-3.2.2 - 06/??/2010
+3.2.2 - ??/??/2010
 ------------------
 ENHANCEMENTS
+* Patch to mini_epn to allow any command line length without breaking on extra trailing or leading whitespace (Ray Bengen)
 FIXES
 * Fix for choosing next valid time on day of DST change when clocks go one hour backwards
 * Fix for nagios now erroring when "Error: Could not find any contactgroup matching..." displayed

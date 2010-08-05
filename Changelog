@@ -18,6 +18,7 @@ FIXES
 * Fix for text of scheduling downtime of all services on a host (Holger Weiss)
 * Fix for services inheriting notification period from hosts if not defined (Gordon Messmer)
 * Fix for incorrect service states on host failures (bug #130 Petya Kohts)
+* Fix for incorrect service state attributes being set on host failures (bug #128 Petya Kohts)
 
 WARNINGS
 

@@ -1412,9 +1412,12 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 			/* put service into a hard state without attempting check retries and don't send out notifications about it */
 			temp_service->host_problem_at_last_check=TRUE;
+			/* Below removed 08/04/2010 EG - http://tracker.nagios.org/view.php?id=128 */
+			/*
 			temp_service->state_type=HARD_STATE;
 			temp_service->last_hard_state=temp_service->current_state;
 			temp_service->current_attempt=1;
+			*/
 		        }
 
 		/* the host is up - it recovered since the last time the service was checked... */

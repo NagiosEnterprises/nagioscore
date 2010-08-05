@@ -8,6 +8,7 @@ Nagios 3.x Change Log
 ENHANCEMENTS
 * Patch to mini_epn to allow any command line length without breaking on extra trailing or leading whitespace (Ray Bengen)
 * Patch to speed up loading of state retention data (Matthieu Kermagoret)
+
 FIXES
 * Fix for choosing next valid time on day of DST change when clocks go one hour backwards
 * Fix for nagios now erroring when "Error: Could not find any contactgroup matching..." displayed
@@ -15,7 +16,10 @@ FIXES
 * Fix for notifications not being sent out when scheduled downtime is cancelled (Daniel Pouzzner)
 * Fix for first notification delay being calculated incorrectly, and notifications potentially going out early (Pawel Malachowski)
 * Fix for text of scheduling downtime of all services on a host (Holger Weiss)
+* Fix for services inheriting notification period from hosts if not defined (Gordon Messmer)
+
 WARNINGS
+
 
 
 3.2.1 - 03/09/2010

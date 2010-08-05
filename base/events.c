@@ -2,8 +2,8 @@
  *
  * EVENTS.C - Timed event functions for Nagios
  *
- * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 06-16-2009
+ * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 08-05-2010
  *
  * License:
  *
@@ -391,6 +391,10 @@ void init_timing_loop(void){
 	/* add scheduled service checks to event queue */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
+		/* Nagios XI/NDOUtils MOD */
+		/* update status of all services (scheduled or not) */
+		update_service_status(temp_service,FALSE);
+
 		/* skip most services that shouldn't be scheduled */
 		if(temp_service->should_be_scheduled==FALSE){
 
@@ -522,6 +526,10 @@ void init_timing_loop(void){
 
 	/* add scheduled host checks to event queue */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+	
+		/* Nagios XI/NDOUtils Mod */
+		/* update status of all hosts (scheduled or not) */
+		update_host_status(temp_host,FALSE);
 
 		/* skip most hosts that shouldn't be scheduled */
 		if(temp_host->should_be_scheduled==FALSE){

@@ -20,6 +20,7 @@ FIXES
 * Fix for services inheriting notification period from hosts if not defined (Gordon Messmer)
 * Fix for incorrect service states on host failures (bug #130 Petya Kohts)
 * Fix for incorrect service state attributes being set on host failures (bug #128 Petya Kohts)
+* Fix for non-scheduled hosts and services not being updated in NDOUtils
 
 WARNINGS
 

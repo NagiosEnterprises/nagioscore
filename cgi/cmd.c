@@ -2,8 +2,8 @@
  *
  * CMD.C -  Nagios Command CGI
  *
- * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 01-15-2009
+ * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 08-05-2010
  *
  * License:
  * 
@@ -2546,6 +2546,7 @@ void show_command_help(cmd){
 		printf("This command is used to schedule downtime for a particular service.  During the specified downtime, Nagios will not send notifications out about the service.\n");
 		printf("When the scheduled downtime expires, Nagios will send out notifications for this service as it normally would.  Scheduled downtimes are preserved\n");
 		printf("across program shutdowns and restarts.  Both the start and end times should be specified in the following format:  <b>mm/dd/yyyy hh:mm:ss</b>.\n");
+		printf("If you select the <i>fixed</i> option, the downtime will be in effect between the start and end times you specify.  If you do not select the <i>fixed</i>\n");
 		printf("option, Nagios will treat this as \"flexible\" downtime.  Flexible downtime starts when the service enters a non-OK state (sometime between the\n");
 		printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed downtime.\n");
 		break;

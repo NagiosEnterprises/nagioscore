@@ -369,8 +369,14 @@ int check_service_notification_viability(service *svc, int type, int options){
 	/*********************************************/
 
 	/* custom notifications are good to go at this point... */
-	if(type==NOTIFICATION_CUSTOM)
+	if(type==NOTIFICATION_CUSTOM){
+		if(svc->scheduled_downtime_depth>0 || temp_host->scheduled_downtime_depth>0){
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't send custom notification during scheduled downtime.\n");
+			return ERROR;
+			}
 		return OK;
+		}
+
 
 
 	/****************************************/
@@ -1260,8 +1266,14 @@ int check_host_notification_viability(host *hst, int type, int options){
 	/*********************************************/
 
 	/* custom notifications are good to go at this point... */
-	if(type==NOTIFICATION_CUSTOM)
+	if(type==NOTIFICATION_CUSTOM){
+		if(hst->scheduled_downtime_depth>0){
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't send custom notification during scheduled downtime.\n");
+			return ERROR;
+			}
 		return OK;
+		}
+
 
 
 	/****************************************/

@@ -8,6 +8,7 @@ Nagios 3.x Change Log
 ENHANCEMENTS
 * Patch to mini_epn to allow any command line length without breaking on extra trailing or leading whitespace (Ray Bengen)
 * Patch to speed up loading of state retention data (Matthieu Kermagoret)
+* Custom notifications are now suppressed during scheduled downtime (Sven Nierlein)
 
 FIXES
 * Fix for choosing next valid time on day of DST change when clocks go one hour backwards

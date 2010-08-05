@@ -17,6 +17,7 @@ FIXES
 * Fix for first notification delay being calculated incorrectly, and notifications potentially going out early (Pawel Malachowski)
 * Fix for text of scheduling downtime of all services on a host (Holger Weiss)
 * Fix for services inheriting notification period from hosts if not defined (Gordon Messmer)
+* Fix for incorrect service states on host failures (bug #130 Petya Kohts)
 
 WARNINGS
 

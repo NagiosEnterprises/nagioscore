@@ -2,8 +2,8 @@
  *
  * CHECKS.C - Service and host check functions for Nagios
  *
- * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 06-23-2009
+ * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 08-04-2010
  *
  * License:
  *
@@ -1451,6 +1451,9 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				if(hard_state_change==TRUE){
 					log_service_event(temp_service);
 					state_was_logged=TRUE;
+
+					/* run the service event handler to handle the hard state */
+					handle_service_event(temp_service);
 				        }
 			        }
 

@@ -2533,7 +2533,7 @@ void show_command_help(cmd){
 		break;
 
 	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
-		printf("This command is used to schedule downtime for a particular host and all of his services.  During the specified downtime, Nagios will not send notifications out about the host.\n");
+		printf("This command is used to schedule downtime for all services on a particular host.  During the specified downtime, Nagios will not send notifications out about the host.\n");
 		printf("Normally, a host in downtime will not send alerts about any services in a failed state. This option will explicitly set downtime for all services for this host.\n");
 		printf("When the scheduled downtime expires, Nagios will send out notifications for this host as it normally would.  Scheduled downtimes are preserved\n");
 		printf("across program shutdowns and restarts.  Both the start and end times should be specified in the following format:  <b>mm/dd/yyyy hh:mm:ss</b>.\n");

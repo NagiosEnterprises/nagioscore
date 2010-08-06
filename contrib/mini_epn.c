@@ -7,6 +7,8 @@
 #include <perl.h>
 #include "epn_nagios.h"
 
+#define MAX_INPUT_CHARS 1024
+
 static PerlInterpreter *my_perl = NULL;
 
 int main(int argc, char **argv, char **env) {
@@ -19,9 +21,9 @@ int main(int argc, char **argv, char **env) {
 
 	char *embedding[] = { "", "p1.pl" };
 	char *plugin_output ;
-	char fname[64];
+	char fname[MAX_INPUT_CHARS];
 	char *args[] = {"","0", "", "", NULL };
-	char command_line[80];
+	char command_line[MAX_INPUT_CHARS];
 	int exitstatus;
 	int pclose_result;
 
@@ -35,7 +37,7 @@ int main(int argc, char **argv, char **env) {
 
 		exitstatus=perl_run(my_perl);
 
-	        while(printf("Enter file name: ") && fgets(command_line, 80, stdin)) {
+	        while(printf("Enter file name: ") && fgets(command_line, MAX_INPUT_CHARS-1, stdin)) {
 			SV *plugin_hndlr_cr;
 		        STRLEN n_a;
 			int count = 0 ;

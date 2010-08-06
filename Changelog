@@ -6,7 +6,8 @@ Nagios 3.x Change Log
 3.2.2 - ??/??/2010
 ------------------
 ENHANCEMENTS
-* Patch to mini_epn to allow any command line length without breaking on extra trailing or leading whitespace (Ray Bengen)
+* Patch to new_mini_epn to allow any command line length without breaking on extra trailing or leading whitespace (Ray Bengen)
+* Patch to mini_epn to allow any command line length (Thomas Guyot-Sionnest)
 * Patch to speed up loading of state retention data (Matthieu Kermagoret)
 * Custom notifications are now suppressed during scheduled downtime (Sven Nierlein)
 * Added code to warn user about exit code of 126 meaning plugin is not executable (bug #153)

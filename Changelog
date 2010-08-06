@@ -29,6 +29,7 @@ FIXES
 * Fix for incorrect host state counts in status CGI when viewing servicegroups (bug #72)
 * Fix for new Splunk integration query parameters (bug #136)
 * Fix for extra field header in availability CSV export (bug #113)
+* Fix for macro processing code modifying input string (Jochen Bern)
 
 WARNINGS
 

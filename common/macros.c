@@ -2,8 +2,8 @@
  *
  * MACROS.C - Common macro functions for Nagios
  *
- * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 06-23-2008
+ * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 08-06-2010
  *
  * License:
  *
@@ -77,6 +77,7 @@ contactgroup    *macro_contactgroup_ptr=NULL;
 /* replace macros in notification commands with their values */
 int process_macros(char *input_buffer, char **output_buffer, int options){
 	char *temp_buffer=NULL;
+	char *save_buffer=NULL;
 	char *buf_ptr=NULL;
 	char *delim_ptr=NULL;
 	int in_macro=FALSE;
@@ -111,7 +112,9 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 	log_debug_info(DEBUGL_MACROS,1,"Processing: '%s'\n",input_buffer);
 #endif
 
-	buf_ptr=input_buffer;
+	/* use a duplicate of original buffer, so we don't modify the original */
+	save_buffer=buf_ptr=(input_buffer?strdup(input_buffer):NULL);
+
 	while(buf_ptr){
 
 		/* save pointer to this working part of buffer */
@@ -261,6 +264,9 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 			in_macro=FALSE;
 			}
 		}
+
+	/* free copy of input buffer */
+	my_free(save_buffer);
 
 #ifdef NSCORE
 	log_debug_info(DEBUGL_MACROS,1,"  Done.  Final output: '%s'\n",*output_buffer);

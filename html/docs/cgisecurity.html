@@ -182,7 +182,7 @@ ScriptAlias /nagios/cgi-bin "/usr/local/nagios/sbin"
 
    AuthName "Nagios Access"
 
-   AuthUserFile /usr/local/nagios/etc/.digest_pw
+   AuthDigestFile /usr/local/nagios/etc/.digest_pw
 
    Require valid-user
 
@@ -206,7 +206,7 @@ Alias /nagios "/usr/local/nagios/share"
 
    AuthName "Nagios Access"
 
-   AuthUserFile /usr/local/nagios/etc/.digest_pw
+   AuthDigestFile /usr/local/nagios/etc/.digest_pw
 
    Require valid-user
 

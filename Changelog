@@ -27,6 +27,7 @@ FIXES
 * Fix for types in documentation (bugs #145, #105)
 * Fix for incorrect host state counts in status CGI when viewing servicegroups (bug #72)
 * Fix for new Splunk integration query parameters (bug #136)
+* Fix for extra field header in availability CSV export (bug #113)
 
 WARNINGS
 

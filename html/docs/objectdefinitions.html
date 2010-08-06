@@ -404,7 +404,7 @@ This directive is used to define a longer name or description used to identify t
 
 <td>
 
-This directive is used to define the address of the host.  Normally, this is an IP address, although it could really be anything you want (so long as it can be used to check the status of the host).  You can use a FQDN to identify the host instead of an IP address, but if DNS services are not 3333cc le this could cause problems. When used properly, the $HOSTADDRESS$ <a href="macros.html">macro</a> will contain this address.  <b>Note:</b> If you do not specify an address directive in a host definition, the name of the host will be used as its address.  A word of caution about doing this, however - if DNS fails, most of your service checks will fail because the plugins will be unable to resolve the host name.
+This directive is used to define the address of the host.  Normally, this is an IP address, although it could really be anything you want (so long as it can be used to check the status of the host).  You can use a FQDN to identify the host instead of an IP address, but if DNS services are not available this could cause problems. When used properly, the $HOSTADDRESS$ <a href="macros.html">macro</a> will contain this address.  <b>Note:</b> If you do not specify an address directive in a host definition, the name of the host will be used as its address.  A word of caution about doing this, however - if DNS fails, most of your service checks will fail because the plugins will be unable to resolve the host name.
 
 </td>
 

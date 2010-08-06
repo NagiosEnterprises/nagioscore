@@ -3,8 +3,8 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 2009 Nagios Core Development Team and Community Contributors
- * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 07-31-2009
+ * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 08-06-2010
  *
  * License:
  *
@@ -75,6 +75,7 @@ extern int            use_retained_scheduling_info;
 extern int            retention_scheduling_horizon;
 
 extern time_t         last_update_check;
+extern unsigned long  update_uid;
 extern char           *last_program_version;
 extern int            update_available;
 extern char           *last_program_version;
@@ -324,6 +325,7 @@ int xrddefault_save_state_information(void){
 	fprintf(fp,"version=%s\n",PROGRAM_VERSION);
 	fprintf(fp,"last_update_check=%lu\n",last_update_check);
 	fprintf(fp,"update_available=%d\n",update_available);
+	fprintf(fp,"update_uid=%lu\n",update_uid);
 	fprintf(fp,"last_version=%s\n",(last_program_version==NULL)?"":last_program_version);
 	fprintf(fp,"new_version=%s\n",(new_program_version==NULL)?"":new_program_version);
 	fprintf(fp,"}\n");
@@ -1038,6 +1040,8 @@ int xrddefault_read_state_information(void){
 					last_update_check=strtoul(val,NULL,10);
 				else if(!strcmp(var,"update_available"))
 					update_available=atoi(val);
+				else if(!strcmp(var,"update_uid"))
+					update_uid=strtoul(val,NULL,10);
 				else if(!strcmp(var,"last_version")){
 					if(last_program_version)
 						my_free(last_program_version);

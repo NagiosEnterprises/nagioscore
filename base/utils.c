@@ -151,6 +151,7 @@ extern int      additional_freshness_latency;
 extern int      check_for_updates;
 extern int      bare_update_check;
 extern time_t   last_update_check;
+extern unsigned long update_uid;
 extern char     *last_program_version;
 extern int      update_available;
 extern char     *last_program_version;
@@ -4371,6 +4372,11 @@ int check_for_nagios_updates(int force, int reschedule){
 	rand_seed=(unsigned int)(current_time+nagios_pid);
 	srand(rand_seed);
 
+	/* generate a (probably) unique ID for this nagios install */
+	/* the server api currently sees thousands of nagios installs behind single ip addresses, so this help determine if there are really thousands of servers out there, or if some nagios installs are misbehaving */
+	if(update_uid==0L)
+		update_uid=current_time;
+
 	/* update chekcs are disabled */
 	if(check_for_updates==FALSE)
 		do_check=FALSE;
@@ -4476,7 +4482,7 @@ int query_update_api(void){
 		}
 
 	/* generate the query */
-	asprintf(&api_query,"v=1&product=nagios&tinycheck=1&stableonly=1");
+	asprintf(&api_query,"v=1&product=nagios&tinycheck=1&stableonly=1&uid=%lu",update_uid);
 	if(bare_update_check==FALSE)
 		asprintf(&api_query,"%s&version=%s%s",api_query,PROGRAM_VERSION,(api_query_opts==NULL)?"":api_query_opts);
 

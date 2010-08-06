@@ -9,7 +9,7 @@
  * Copyright (c) 1999-2009 Ethan Galstad
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   03-09-2010
+ * Last Modified:   08-05-2010
  *
  * Description:
  *
@@ -134,6 +134,7 @@ int             additional_freshness_latency=DEFAULT_ADDITIONAL_FRESHNESS_LATENC
 int             check_for_updates=DEFAULT_CHECK_FOR_UPDATES;
 int             bare_update_check=DEFAULT_BARE_UPDATE_CHECK;
 time_t          last_update_check=0L;
+unsigned long   update_uid=0L;
 int             update_available=FALSE;
 char            *last_program_version=NULL;
 char            *new_program_version=NULL;

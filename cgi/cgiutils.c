@@ -2,9 +2,9 @@
  *
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
- * Copyright (c) 2009 Nagios Core Development Team and Community Contributors
- * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 07-31-2009
+ * Copyright (c) 2010 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified: 08-05-2010
  *
  * License:
  *
@@ -2189,7 +2189,7 @@ void display_splunk_host_url(host *hst){
 	if(hst==NULL)
 		return;
 
-	printf("<a href='%s?q=%s' target='_blank'><img src='%s%s' alt='Splunk It' title='Splunk It' border='0'></a>\n",splunk_url,url_encode(hst->name),url_images_path,SPLUNK_SMALL_WHITE_ICON);
+	printf("<a href='%s?q=search %s' target='_blank'><img src='%s%s' alt='Splunk It' title='Splunk It' border='0'></a>\n",splunk_url,url_encode(hst->name),url_images_path,SPLUNK_SMALL_WHITE_ICON);
 
 	return;
 	}
@@ -2203,7 +2203,7 @@ void display_splunk_service_url(service *svc){
 	if(svc==NULL)
 		return;
 
-	printf("<a href='%s?q=%s%%20",splunk_url,url_encode(svc->host_name));
+	printf("<a href='%s?q=search %s%%20",splunk_url,url_encode(svc->host_name));
 	printf("%s' target='_blank'><img src='%s%s' alt='Splunk It' title='Splunk It' border='0'></a>\n",url_encode(svc->description),url_images_path,SPLUNK_SMALL_WHITE_ICON);
 
 	return;
@@ -2224,7 +2224,7 @@ void display_splunk_generic_url(char *buf, int icon){
 
 	strip_splunk_query_terms(newbuf);
 
-	printf("<a href='%s?q=%s' target='_blank'>",splunk_url,url_encode(newbuf));
+	printf("<a href='%s?q=search %s' target='_blank'>",splunk_url,url_encode(newbuf));
 	if(icon>0)
 		printf("<img src='%s%s' alt='Splunk It' title='Splunk It' border='0'>",url_images_path,(icon==1)?SPLUNK_SMALL_WHITE_ICON:SPLUNK_SMALL_BLACK_ICON);
 	printf("</a>\n");

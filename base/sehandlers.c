@@ -2,8 +2,8 @@
  *
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
- * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   01-02-2009
+ * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
+ * Last Modified:   08-05-2010
  *
  * License:
  *
@@ -743,8 +743,9 @@ int handle_host_state(host *hst){
 			log_host_event(hst);
 
 		/* check for start of flexible (non-fixed) scheduled downtime */
-		if(hst->state_type==HARD_STATE)
-			check_pending_flex_host_downtime(hst);
+		/* CHANGED 08-05-2010 EG flex downtime can now start on soft states */
+		/*if(hst->state_type==HARD_STATE)*/
+		check_pending_flex_host_downtime(hst);
 
 		/* notify contacts about the recovery or problem if its a "hard" state */
 		if(hst->state_type==HARD_STATE)

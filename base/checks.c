@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 08-04-2010
+ * Last Modified: 08-05-2010
  *
  * License:
  *
@@ -1520,7 +1520,9 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			        }
 
 			/* check for start of flexible (non-fixed) scheduled downtime if we just had a hard error */
-			if(hard_state_change==TRUE && temp_service->pending_flex_downtime>0)
+			/* CHANGED 08/05/2010 EG - flex downtime can now start on soft errors */
+			/*if(hard_state_change==TRUE && temp_service->pending_flex_downtime>0)*/
+			if(state_change==TRUE && temp_service->pending_flex_downtime>0)
 				check_pending_flex_service_downtime(temp_service);
 
 			/* 10/04/07 check to see if the service and/or associate host is flapping */

@@ -231,6 +231,7 @@ char            *use_timezone=NULL;
 int             command_file_fd;
 FILE            *command_file_fp;
 int             command_file_created=FALSE;
+unsigned long   update_uid=0L;
 
 
 extern contact	       *contact_list;

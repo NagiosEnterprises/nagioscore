@@ -29,8 +29,8 @@ enable_failure_prediction=1
 process_performance_data=1
 global_host_event_handler=
 global_service_event_handler=
-next_comment_id=417
-next_downtime_id=183
+next_comment_id=100420
+next_downtime_id=100183
 next_event_id=1288
 next_problem_id=218
 next_notification_id=13494
@@ -148,7 +148,7 @@ host_name=host1
 entry_type=3
 comment_id=418
 source=0
-persistent=0
+persistent=1
 entry_time=1264451960
 expires=0
 expire_time=0
@@ -161,10 +161,48 @@ service_description=Dummy service
 entry_type=3
 comment_id=419
 source=0
-persistent=0
+persistent=1
 entry_time=1264451960
 expires=0
 expire_time=0
 author=(Nagios Process)
 comment_data=Notifications for this service are being suppressed because it was detected as having been flapping between different states (40.3% change >= 20.0% threshold).  When the service state stabilizes and the flapping stops, notifications will be re-enabled.
+}
+servicecomment {
+host_name=host1
+service_description=Dummy service
+entry_type=3
+comment_id=420
+source=0
+persistent=0
+entry_time=1264451960
+expires=0
+expire_time=0
+author=(Nagios Process)
+comment_data=This is a non-persistent comment, to check is read correctly
+}
+hostdowntime {
+host_name=host1
+downtime_id=1102
+entry_time=1280488503
+start_time=1980913033
+end_time=1980913033
+triggered_by=0
+fixed=1
+duration=7
+author=dferguson
+comment=Test host downtime
+}
+servicedowntime {
+host_name=host1
+service_description=Dummy service
+downtime_id=1110
+entry_time=1280913033
+start_time=1980913033
+end_time=1980913041
+triggered_by=0
+fixed=1
+duration=8
+author=dferguson
+comment=Test service downtime
 }

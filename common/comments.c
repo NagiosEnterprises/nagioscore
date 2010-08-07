@@ -45,7 +45,6 @@
 
 comment     *comment_list=NULL;
 int	    defer_comment_sorting = 0;
-static int  unsorted_comments = 0;
 comment     **comment_hashlist=NULL;
 
 
@@ -508,7 +507,6 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 	if(defer_comment_sorting){
 		new_comment->next=comment_list;
 		comment_list=new_comment;
-		unsorted_comments++;
 		}
 	else{
 		/* add new comment to comment list, sorted by comment id */
@@ -552,24 +550,29 @@ static int comment_compar(const void *p1, const void *p2){
 	}
 
 int sort_comments(void){
-	comment **array, *last_comment;
+	comment **array, *last_comment, *temp_comment;
+	unsigned long unsorted_comments=0;
 	int i = 0;
 
 	if(!defer_comment_sorting)
 		return OK;
 	defer_comment_sorting=0;
 
+	temp_comment = comment_list;
+	while(temp_comment!=NULL) {
+		temp_comment = temp_comment->next;
+		unsorted_comments++;
+		}
+
 	if(!unsorted_comments)
 		return OK;
 
 	if(!(array=malloc(sizeof(*array)*unsorted_comments)))
 		return ERROR;
-	while(comment_list && i<unsorted_comments){
+	while(comment_list){
 		array[i++]=comment_list;
 		comment_list=comment_list->next;
 	}
-	if (comment_list || i<unsorted_comments)
-		return ERROR;
 
 	qsort((void *)array, i, sizeof(*array), comment_compar);
 	comment_list = last_comment = array[0];
@@ -579,7 +582,6 @@ int sort_comments(void){
 		}
 	last_comment->next = NULL;
 	my_free(array);
-	unsorted_comments = 0;
 	return OK;
 	}
 

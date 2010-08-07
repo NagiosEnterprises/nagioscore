@@ -231,6 +231,7 @@ char            *use_timezone=NULL;
 int             command_file_fd;
 FILE            *command_file_fp;
 int             command_file_created=FALSE;
+unsigned long   update_uid=0L;
 
 
 extern contact	       *contact_list;
@@ -322,7 +323,7 @@ int main(int argc, char **argv){
 	hostgroup *temp_hostgroup=NULL;
 	hostsmember *temp_member=NULL;
 
-	plan_tests(7);
+	plan_tests(14);
 
 	/* reset program variables */
 	reset_variables();
@@ -363,6 +364,15 @@ int main(int argc, char **argv){
 	ok( xrddefault_read_state_information() == OK, "Reading retention data" );
 
 	ok( temp_host->current_state==1, "State changed due to retention file settings");
+
+	ok( find_host_comment(418) != NULL, "Found host comment id 418" );
+	ok( find_service_comment(419) != NULL, "Found service comment id 419" );
+	ok( find_service_comment(420) == NULL, "Did not find service comment id 420 as not persistent" );
+	ok( find_host_comment(1234567888) == NULL, "No such host comment" );
+
+	ok( find_host_downtime(1102) != NULL, "Found host downtime id 1102" );
+	ok( find_service_downtime(1110) != NULL, "Found service downtime 1110" );
+	ok( find_host_downtime(1234567888) == NULL, "No such host downtime" );
 
 	cleanup();
 

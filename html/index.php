@@ -7,9 +7,17 @@
 <link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
 </head>
 
+<?php
+ // allow specifying main window URL for permalinks, etc.
+$corewindow="main.php";
+if(isset($_GET['corewindow']))
+	$corewindow=$_GET['corewindow'];
+?>
+
+
 <frameset cols="180,*">
 <frame src="side.php" name="side" frameborder="0">
-<frame src="main.php" name="main" frameborder="0">
+<frame src="<?php echo $corewindow;?>" name="main" frameborder="0">
 
 <noframes>
 <!-- This page requires a web browser which supports frames. --> 

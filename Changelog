@@ -12,6 +12,7 @@ ENHANCEMENTS
 * Custom notifications are now suppressed during scheduled downtime (Sven Nierlein)
 * Added code to warn user about exit code of 126 meaning plugin is not executable (bug #153)
 * Scheduled downtime can now start on SOFT error states (bug #47)
+* Main window frame URL can now be specify with a "corewindow=" parameter
 
 FIXES
 * Fix for choosing next valid time on day of DST change when clocks go one hour backwards

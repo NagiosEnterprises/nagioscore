@@ -550,9 +550,8 @@ static int comment_compar(const void *p1, const void *p2){
 	}
 
 int sort_comments(void){
-	comment **array, *last_comment, *temp_comment;
-	unsigned long unsorted_comments=0;
-	int i = 0;
+	comment **array, *temp_comment;
+	unsigned long i=0, unsorted_comments=0;
 
 	if(!defer_comment_sorting)
 		return OK;
@@ -575,12 +574,12 @@ int sort_comments(void){
 	}
 
 	qsort((void *)array, i, sizeof(*array), comment_compar);
-	comment_list = last_comment = array[0];
+	comment_list = temp_comment = array[0];
 	for (i=1; i<unsorted_comments;i++){
-		last_comment->next = array[i];
-		last_comment = last_comment->next;
+		temp_comment->next = array[i];
+		temp_comment = temp_comment->next;
 		}
-	last_comment->next = NULL;
+	temp_comment->next = NULL;
 	my_free(array);
 	return OK;
 	}

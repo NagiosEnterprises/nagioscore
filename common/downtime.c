@@ -47,7 +47,6 @@
 
 scheduled_downtime *scheduled_downtime_list=NULL;
 int		   defer_downtime_sorting = 0;
-static int	   unsorted_downtime = 0;
 
 #ifdef NSCORE
 extern timed_event *event_list_high;
@@ -936,7 +935,6 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	if(defer_downtime_sorting){
 		new_downtime->next=scheduled_downtime_list;
 		scheduled_downtime_list=new_downtime;
-		unsorted_downtime++;
 	}
 	else{
 		/* add new downtime to downtime list, sorted by start time */
@@ -979,34 +977,37 @@ static int downtime_compar(const void *p1, const void *p2){
 	}
 
 int sort_downtime(void){
-	scheduled_downtime **array, *last_downtime;
-	int i = 0;
+	scheduled_downtime **array, *temp_downtime;
+	unsigned long i=0, unsorted_downtimes=0;
 
 	if(!defer_downtime_sorting)
 		return OK;
 	defer_downtime_sorting=0;
 
-	if(!unsorted_downtime)
+	temp_downtime = scheduled_downtime_list;
+	while(temp_downtime!=NULL) {
+		temp_downtime = temp_downtime->next;
+		unsorted_downtimes++;
+		}
+
+	if(!unsorted_downtimes)
 		return OK;
 
-	if(!(array=malloc(sizeof(*array)*unsorted_downtime)))
+	if(!(array=malloc(sizeof(*array)*unsorted_downtimes)))
 		return ERROR;
-	while(scheduled_downtime_list && i<unsorted_downtime){
+	while(scheduled_downtime_list){
 		array[i++]=scheduled_downtime_list;
 		scheduled_downtime_list=scheduled_downtime_list->next;
 	}
-	if (scheduled_downtime_list || i<unsorted_downtime)
-		return ERROR;
 
 	qsort((void *)array, i, sizeof(*array), downtime_compar);
-	scheduled_downtime_list = last_downtime = array[0];
-	for (i=1; i<unsorted_downtime;i++){
-		last_downtime->next = array[i];
-		last_downtime = last_downtime->next;
+	scheduled_downtime_list = temp_downtime = array[0];
+	for (i=1; i<unsorted_downtimes;i++){
+		temp_downtime->next = array[i];
+		temp_downtime = temp_downtime->next;
 		}
-	last_downtime->next = NULL;
+	temp_downtime->next = NULL;
 	my_free(array);
-	unsorted_downtime = 0;
 	return OK;
 	}
 

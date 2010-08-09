@@ -32,7 +32,6 @@ FIXES
 * Fix for extra field header in availability CSV export (bug #113)
 * Fix for macro processing code modifying input string (Jochen Bern)
 * Fix for update check API
-* Fix for CGI speedup when persistent=0 for comments
 
 WARNINGS
 

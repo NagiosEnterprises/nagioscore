@@ -10,7 +10,7 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
 <HEAD>
 <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
-<TITLE>Nagios</TITLE>
+<TITLE>Nagios Core</TITLE>
 <LINK REL='stylesheet' TYPE='text/css' HREF='stylesheets/common.css'>
 </HEAD>
 

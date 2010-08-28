@@ -3,15 +3,41 @@
 <html>
 <head>
 <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
-<title>Nagios</title>
+<title>Nagios Core</title>
 <link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
 </head>
 
 <?php
  // allow specifying main window URL for permalinks, etc.
 $corewindow="main.php";
-if(isset($_GET['corewindow']))
-	$corewindow=$_GET['corewindow'];
+if(isset($_GET['corewindow'])){
+	
+	// default window url may have been overridden with a permalink...
+	$rawurl=$_GET['corewindow'];
+	
+	// parse url and remove permalink option from base
+	$a=parse_url($rawurl);
+
+	// build base url
+	if(isset($a["host"]))
+		$windowurl=$a["scheme"]."://".$a["host"].$a["path"]."?";
+	else
+		$windowurl=$a["path"]."?";
+	
+	$q="";
+	if(isset($a["query"]))
+		$q=$a["query"];
+		
+	$pairs=explode("&",$q);
+	foreach($pairs as $pair){
+		$v=explode("=",$pair);
+		if(is_array($v))
+			$windowurl.="&".urlencode($v[0])."=".urlencode(isset($v[1])?$v[1]:"");
+		}
+	
+
+	$corewindow=$windowurl;
+	}
 ?>
 
 
@@ -24,7 +50,7 @@ if(isset($_GET['corewindow']))
 <h2>Nagios</h2>
 <p align="center">
 <a href="http://www.nagios.org/">www.nagios.org</a><br>
-Copyright (c) 1999-2009 Ethan Galstad<br>
+Copyright (c) 1999-2010 Ethan Galstad<br>
 </p>
 <p>
 <i>Note: These pages require a browser which supports frames</i>

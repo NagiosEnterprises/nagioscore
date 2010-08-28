@@ -28,7 +28,7 @@ FIXES
 * Fix for incorrect service state attributes being set on host failures (bug #128 Petya Kohts)
 * Fix for non-scheduled hosts and services not being updated in NDOUtils
 * Fix for typos in TAC, CMD CGIs (bugs #150, #144, #148)
-* Fix for types in documentation (bugs #145, #105)
+* Fix for types in documentation (bugs #145, #105, #106)
 * Fix for incorrect host state counts in status CGI when viewing servicegroups (bug #72)
 * Fix for new Splunk integration query parameters (bug #136)
 * Fix for extra field header in availability CSV export (bug #113)

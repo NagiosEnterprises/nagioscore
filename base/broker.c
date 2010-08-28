@@ -174,13 +174,14 @@ void broker_system_command(int type, int flags, int attr, struct timeval start_t
 
 
 /* send event handler data to broker */
-void broker_event_handler(int type, int flags, int attr, int eventhandler_type, void *data, int state, int state_type, struct timeval start_time, struct timeval end_time, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *cmdline, char *output, struct timeval *timestamp){
+int broker_event_handler(int type, int flags, int attr, int eventhandler_type, void *data, int state, int state_type, struct timeval start_time, struct timeval end_time, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *cmdline, char *output, struct timeval *timestamp){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
 	char *command_buf=NULL;
 	char *command_name=NULL;
 	char *command_args=NULL;
 	nebstruct_event_handler_data ds;
+	int return_code=OK;
 
 	if(!(event_broker_options & BROKER_EVENT_HANDLERS))
 		return;
@@ -227,12 +228,12 @@ void broker_event_handler(int type, int flags, int attr, int eventhandler_type, 
 	ds.output=output;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_EVENT_HANDLER_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_EVENT_HANDLER_DATA,(void *)&ds);
 
 	/* free memory */
 	my_free(command_buf);
 
-	return;
+	return return_code;
         }
 
 
@@ -1010,4 +1011,3 @@ struct timeval get_broker_timestamp(struct timeval *timestamp){
 
 
 #endif
-

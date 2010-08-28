@@ -25,9 +25,9 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
 <div id="currentversioninfo">
 <div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
-<div class="version">Version 3.2.1</div>
-<div class="releasedate">March 09, 2010</div>
-<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=3.2.1&product=nagioscore" target="_blank">Check for updates</a></div>
+<div class="version">Version 3.2.2</div>
+<div class="releasedate">August 16, 2010</div>
+<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=3.2.2&product=nagioscore" target="_blank">Check for updates</a></div>
 <div class="whatsnew"><a href="docs/whatsnew.html">Read what's new in Nagios Core 3</a></div>
 </div>
 

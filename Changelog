@@ -34,6 +34,8 @@ FIXES
 * Fix for update check API
 * Fix for CGI speedup when persistent=0 for comments
 * Fix for event execution loop re-scheduling host checks instead of executing them if service checks are disabled (bug #152)
+* Fix for segfaults on Solaris (Torsten Huebler)
+* Fix for incorrect comment expiration times being passed to event broker (Mattieu Kermagot)
 
 WARNINGS
 

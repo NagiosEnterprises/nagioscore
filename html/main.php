@@ -49,8 +49,8 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 	else if($updateinfo['update_available']==true){
 ?>
 		<div class="updateavailable">
-		<div class="updatemessage">A new version of Nagios is available!</div>
-		<div class="submessage">Visit <a href="http://www.nagios.org/" target="_blank">nagios.org</a> to download Nagios <?php echo $updateinfo['update_version'];?>.</div>
+		<div class="updatemessage">A new version of Nagios Core is available!</div>
+		<div class="submessage">Visit <a href="http://www.nagios.org/download/" target="_blank">nagios.org</a> to download Nagios <?php echo $updateinfo['update_version'];?>.</div>
 		</div>
 <?php
 		}

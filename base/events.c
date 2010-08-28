@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 08-05-2010
+ * Last Modified: 08-28-2010
  *
  * License:
  *
@@ -1083,6 +1083,9 @@ int event_execution_loop(void){
 				        }
 
 			        }
+
+			/* reset flag */
+			run_event=TRUE;
 
 			/* run a few checks before executing a host check... */
 			if(event_list_low->event_type==EVENT_HOST_CHECK){

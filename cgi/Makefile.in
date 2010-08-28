@@ -172,6 +172,9 @@ summary.cgi: summary.c $(CGIDEPS)
 tac.cgi: tac.c $(CGIDEPS) $(CDATADEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ tac.c $(CGILIBS) $(CDATALIBS) $(LIBS)
 
+tac-xml.cgi: tac-xml.c $(CGIDEPS) $(CDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ tac-xml.c $(CGILIBS) $(CDATALIBS) $(LIBS)
+
 trends.cgi: trends.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ trends.c $(CGILIBS) $(GDLIBS) $(LIBS)
 

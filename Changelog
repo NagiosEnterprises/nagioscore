@@ -13,6 +13,7 @@ ENHANCEMENTS
 * Added code to warn user about exit code of 126 meaning plugin is not executable (bug #153)
 * Scheduled downtime can now start on SOFT error states (bug #47)
 * Main window frame URL can now be specify with a "corewindow=" parameter
+* Improved config CGI shows commands, command args in an easier to use manner (Jochen Bern)
 
 FIXES
 * Fix for choosing next valid time on day of DST change when clocks go one hour backwards

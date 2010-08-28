@@ -39,6 +39,7 @@ FIXES
 * Fix for segfaults on Solaris (Torsten Huebler)
 * Fix for incorrect comment expiration times being passed to event broker (Mattieu Kermagot)
 * Doc updates related to cleaning of custom macros (Peter Valdemar Morch)
+* Fix to sample notify-service-by-email command (bug #62)
 
 WARNINGS
 

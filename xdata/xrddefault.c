@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2009 Nagios Core Development Team and Community Contributors
  * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 08-06-2010
+ * Last Modified: 09-01-2010
  *
  * License:
  *
@@ -361,6 +361,8 @@ int xrddefault_save_state_information(void){
 
 		fprintf(fp,"host {\n");
 		fprintf(fp,"host_name=%s\n",temp_host->name);
+		fprintf(fp,"alias=%s\n",temp_host->alias);
+		fprintf(fp,"display_name=%s\n",temp_host->display_name);
 		fprintf(fp,"modified_attributes=%lu\n",(temp_host->modified_attributes & ~host_attribute_mask));
 		fprintf(fp,"check_command=%s\n",(temp_host->host_check_command==NULL)?"":temp_host->host_check_command);
 		fprintf(fp,"check_period=%s\n",(temp_host->check_period==NULL)?"":temp_host->check_period);
@@ -431,6 +433,7 @@ int xrddefault_save_state_information(void){
 
 		fprintf(fp,"service {\n");
 		fprintf(fp,"host_name=%s\n",temp_service->host_name);
+		fprintf(fp,"display_name=%s\n",temp_service->display_name);
 		fprintf(fp,"service_description=%s\n",temp_service->description);
 		fprintf(fp,"modified_attributes=%lu\n",(temp_service->modified_attributes & ~service_attribute_mask));
 		fprintf(fp,"check_command=%s\n",(temp_service->service_check_command==NULL)?"":temp_service->service_check_command);
@@ -1198,6 +1201,14 @@ int xrddefault_read_state_information(void){
 							temp_host->last_state=atoi(val);
 						else if(!strcmp(var,"last_hard_state"))
 							temp_host->last_hard_state=atoi(val);
+						else if(!strcmp(var,"alias")){
+							my_free(temp_host->alias);
+							temp_host->alias=(char *)strdup(val);
+							}
+						else if(!strcmp(var,"display_name")){
+							my_free(temp_host->display_name);
+							temp_host->display_name=(char *)strdup(val);
+							}
 						else if(!strcmp(var,"plugin_output")){
 							my_free(temp_host->plugin_output);
 							temp_host->plugin_output=(char *)strdup(val);
@@ -1469,6 +1480,10 @@ int xrddefault_read_state_information(void){
 							temp_service->last_state=atoi(val);
 						else if(!strcmp(var,"last_hard_state"))
 							temp_service->last_hard_state=atoi(val);
+						else if(!strcmp(var,"display_name")){
+							my_free(temp_service->display_name);
+							temp_service->display_name=(char *)strdup(val);
+							}
 						else if(!strcmp(var,"current_attempt"))
 							temp_service->current_attempt=atoi(val);
 						else if(!strcmp(var,"current_event_id"))

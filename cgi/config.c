@@ -94,7 +94,6 @@ authdata current_authdata;
 
 int display_type=DISPLAY_NONE;
 char to_expand[MAX_COMMAND_BUFFER];
-char *command_args[MAX_COMMAND_ARGUMENTS];
 char hashed_color[8];
 
 int embedded=FALSE;
@@ -530,9 +529,9 @@ void display_hosts(void){
 		printf("<TR CLASS='%s'>\n",bg_class);
 
 		printf("<TD CLASS='%s'><a name='%s'><a href='%s?type=services&expand=%s'>%s</a></a></TD>\n",bg_class,
-			url_encode(temp_host->name),CONFIG_CGI,url_encode(temp_host->name),temp_host->name);
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_host->alias);
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_host->address);
+			url_encode(temp_host->name),CONFIG_CGI,url_encode(temp_host->name),html_encode(temp_host->name,FALSE));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_host->alias,FALSE));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_host->address,FALSE));
 
 		printf("<TD CLASS='%s'>",bg_class);
 		for(temp_hostsmember=temp_host->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
@@ -540,7 +539,7 @@ void display_hosts(void){
 			if(temp_hostsmember!=temp_host->parent_hosts)
 				printf(", ");
 
-			printf("<a href='%s?type=hosts&expand=%s'>%s</a>\n",CONFIG_CGI,url_encode(temp_hostsmember->host_name),temp_hostsmember->host_name);
+			printf("<a href='%s?type=hosts&expand=%s'>%s</a>\n",CONFIG_CGI,url_encode(temp_hostsmember->host_name),html_encode(temp_hostsmember->host_name,FALSE));
 		        }
 		if(temp_host->parent_hosts==NULL)
 			printf("&nbsp;");
@@ -566,7 +565,7 @@ void display_hosts(void){
 		if(temp_host->check_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_host->check_period),temp_host->check_period);
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_host->check_period),html_encode(temp_host->check_period,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->obsess_over_host==TRUE)?"Yes":"No");
@@ -593,20 +592,20 @@ void display_hosts(void){
 			if(contact>1)
 				printf(", ");
 
-			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),temp_contactsmember->contact_name);
+			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),html_encode(temp_contactsmember->contact_name,FALSE));
 		        }
 		for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			contact++;
 			if(contact>1)
 				printf(", ");
-			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
+			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),html_encode(temp_contactgroupsmember->group_name,FALSE));
 			}
 		if(contact==0)
 			printf("&nbsp;");
 		printf("</TD>\n");
 
 		get_interval_time_string(temp_host->notification_interval,time_string,sizeof(time_string));
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->notification_interval==0)?"<i>No Re-notification</I>":time_string);
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->notification_interval==0)?"<i>No Re-notification</I>":html_encode(time_string,FALSE));
 
 		get_interval_time_string(temp_host->first_notification_delay,time_string,sizeof(time_string));
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
@@ -641,15 +640,15 @@ void display_hosts(void){
 		if(temp_host->notification_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<a href='%s?type=timeperiods&expand=%s'>%s</a>",CONFIG_CGI,url_encode(temp_host->notification_period),temp_host->notification_period);
+			printf("<a href='%s?type=timeperiods&expand=%s'>%s</a>",CONFIG_CGI,url_encode(temp_host->notification_period),html_encode(temp_host->notification_period,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
 		if(temp_host->event_handler==NULL)
 			printf("&nbsp");
 		else
-			/* printf("<a href='%s?type=commands&expand=%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(strtok(temp_host->event_handler,"!")),temp_host->event_handler); */
-			printf("<a href='%s?type=command&expand=%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(temp_host->event_handler),temp_host->event_handler);
+			/* printf("<a href='%s?type=commands&expand=%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(strtok(temp_host->event_handler,"!")),html_encode(temp_host->event_handler,FALSE)); */
+			printf("<a href='%s?type=command&expand=%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(temp_host->event_handler),html_encode(temp_host->event_handler,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
@@ -718,13 +717,13 @@ void display_hosts(void){
 		printf("%s\n",(temp_host->failure_prediction_enabled==TRUE)?"Yes":"No");
 		printf("</TD>\n");
 
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->failure_prediction_options==NULL)?"&nbsp;":temp_host->failure_prediction_options);
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->failure_prediction_options==NULL)?"&nbsp;":html_encode(temp_host->failure_prediction_options,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->notes==NULL)?"&nbsp;":temp_host->notes);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->notes==NULL)?"&nbsp;":html_encode(temp_host->notes,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->notes_url==NULL)?"&nbsp;":temp_host->notes_url);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->notes_url==NULL)?"&nbsp;":html_encode(temp_host->notes_url,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->action_url==NULL)?"&nbsp;":temp_host->action_url);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->action_url==NULL)?"&nbsp;":html_encode(temp_host->action_url,FALSE));
 
 		if(temp_host->have_2d_coords==FALSE)
 			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
@@ -739,22 +738,22 @@ void display_hosts(void){
 		if(temp_host->statusmap_image==NULL)
 			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
 		else
-			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_host->statusmap_image,temp_host->statusmap_image);
+			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_host->statusmap_image,html_encode(temp_host->statusmap_image,FALSE));
 
 		if(temp_host->vrml_image==NULL)
 			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
 		else
-			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_host->vrml_image,temp_host->vrml_image);
+			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_host->vrml_image,html_encode(temp_host->vrml_image,FALSE));
 
 		if(temp_host->icon_image==NULL)
 			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
 		else{
 			process_macros(temp_host->icon_image,&processed_string,0);
-			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,processed_string,temp_host->icon_image);
+			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,processed_string,html_encode(temp_host->icon_image,FALSE));
 			free(processed_string);
 			}
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->icon_image_alt==NULL)?"&nbsp;":temp_host->icon_image_alt);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->icon_image_alt==NULL)?"&nbsp;":html_encode(temp_host->icon_image_alt,FALSE));
 
 		printf("<TD CLASS='%s'>",bg_class);
 		options=0;
@@ -824,9 +823,9 @@ void display_hostgroups(void){
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,temp_hostgroup->group_name);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,html_encode(temp_hostgroup->group_name,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_hostgroup->alias);
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_hostgroup->alias,FALSE));
 
 		printf("<TD CLASS='%s'>",bg_class);
 
@@ -835,15 +834,15 @@ void display_hostgroups(void){
 
 			if(temp_hostsmember!=temp_hostgroup->members)
 				printf(", ");
-			printf("<A HREF='%s?type=hosts&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_hostsmember->host_name),temp_hostsmember->host_name);
+			printf("<A HREF='%s?type=hosts&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_hostsmember->host_name),html_encode(temp_hostsmember->host_name,FALSE));
 		        }
 		printf("</TD>\n");
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostgroup->notes==NULL)?"&nbsp;":temp_hostgroup->notes);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostgroup->notes==NULL)?"&nbsp;":html_encode(temp_hostgroup->notes,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostgroup->notes_url==NULL)?"&nbsp;":temp_hostgroup->notes_url);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostgroup->notes_url==NULL)?"&nbsp;":html_encode(temp_hostgroup->notes_url,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostgroup->action_url==NULL)?"&nbsp;":temp_hostgroup->action_url);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostgroup->action_url==NULL)?"&nbsp;":html_encode(temp_hostgroup->action_url,FALSE));
 
 		printf("</TR>\n");
 	        }
@@ -899,28 +898,28 @@ void display_servicegroups(void){
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,temp_servicegroup->group_name);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,html_encode(temp_servicegroup->group_name,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_servicegroup->alias);
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_servicegroup->alias,FALSE));
 
 		printf("<TD CLASS='%s'>",bg_class);
 
 		/* find all the services that are members of this servicegroup... */
 		for(temp_servicesmember=temp_servicegroup->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
 
-			printf("%s<A HREF='%s?type=hosts&expand=%s'>%s</A> / ",(temp_servicesmember==temp_servicegroup->members)?"":", ",CONFIG_CGI,url_encode(temp_servicesmember->host_name),temp_servicesmember->host_name);
+			printf("%s<A HREF='%s?type=hosts&expand=%s'>%s</A> / ",(temp_servicesmember==temp_servicegroup->members)?"":", ",CONFIG_CGI,url_encode(temp_servicesmember->host_name),html_encode(temp_servicesmember->host_name,FALSE));
 
 			printf("<A HREF='%s?type=services&expand=%s#%s;",CONFIG_CGI,url_encode(temp_servicesmember->host_name),url_encode(temp_servicesmember->host_name));
-			printf("%s'>%s</A>\n",url_encode(temp_servicesmember->service_description),temp_servicesmember->service_description);
+			printf("%s'>%s</A>\n",url_encode(temp_servicesmember->service_description),html_encode(temp_servicesmember->service_description,FALSE));
 		        }
 
 		printf("</TD>\n");
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_servicegroup->notes==NULL)?"&nbsp;":temp_servicegroup->notes);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_servicegroup->notes==NULL)?"&nbsp;":html_encode(temp_servicegroup->notes,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_servicegroup->notes_url==NULL)?"&nbsp;":temp_servicegroup->notes_url);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_servicegroup->notes_url==NULL)?"&nbsp;":html_encode(temp_servicegroup->notes_url,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_servicegroup->action_url==NULL)?"&nbsp;":temp_servicegroup->action_url);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_servicegroup->action_url==NULL)?"&nbsp;":html_encode(temp_servicegroup->action_url,FALSE));
 
 		printf("</TR>\n");
 	        }
@@ -984,10 +983,10 @@ void display_contacts(void){
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
-		printf("<TD CLASS='%s'><A NAME='%s'>%s</a></TD>\n",bg_class,url_encode(temp_contact->name),temp_contact->name);
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_contact->alias);
-		printf("<TD CLASS='%s'><A HREF='mailto:%s'>%s</A></TD>\n",bg_class,(temp_contact->email==NULL)?"&nbsp;":temp_contact->email,(temp_contact->email==NULL)?"&nbsp;":temp_contact->email);
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_contact->pager==NULL)?"&nbsp;":temp_contact->pager);
+		printf("<TD CLASS='%s'><A NAME='%s'>%s</a></TD>\n",bg_class,url_encode(temp_contact->name),html_encode(temp_contact->name,FALSE));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_contact->alias,FALSE));
+		printf("<TD CLASS='%s'><A HREF='mailto:%s'>%s</A></TD>\n",bg_class,(temp_contact->email==NULL)?"&nbsp;":url_encode(temp_contact->email),(temp_contact->email==NULL)?"&nbsp;":html_encode(temp_contact->email,FALSE));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_contact->pager==NULL)?"&nbsp;":html_encode(temp_contact->pager,FALSE));
 
 		printf("<TD CLASS='%s'>",bg_class);
 		options=0;
@@ -1049,14 +1048,14 @@ void display_contacts(void){
 		if(temp_contact->service_notification_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_contact->service_notification_period),temp_contact->service_notification_period);
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_contact->service_notification_period),html_encode(temp_contact->service_notification_period,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>\n",bg_class);
 		if(temp_contact->host_notification_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_contact->host_notification_period),temp_contact->host_notification_period);
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_contact->host_notification_period),html_encode(temp_contact->host_notification_period,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
@@ -1066,8 +1065,8 @@ void display_contacts(void){
 			if(temp_commandsmember!=temp_contact->service_notification_commands)
 				printf(", ");
 
-			/* printf("<A HREF='%s?type=commands&expand=%s'>%s</A>",CONFIG_CGI,url_encode(strtok(temp_commandsmember->command,"!")),temp_commandsmember->command); */
-			printf("<A HREF='%s?type=command&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_commandsmember->command),temp_commandsmember->command);
+			/* printf("<A HREF='%s?type=commands&expand=%s'>%s</A>",CONFIG_CGI,url_encode(strtok(temp_commandsmember->command,"!")),html_encode(temp_commandsmember->command,FALSE)); */
+			printf("<A HREF='%s?type=command&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_commandsmember->command),html_encode(temp_commandsmember->command,FALSE));
 
 			found=TRUE;
 		        }
@@ -1082,8 +1081,8 @@ void display_contacts(void){
 			if(temp_commandsmember!=temp_contact->host_notification_commands)
 				printf(", ");
 
-			/* printf("<A HREF='%s?type=commands&expand=%s'>%s</A>",CONFIG_CGI,url_encode(strtok(temp_commandsmember->command,"!")),temp_commandsmember->command); */
-			printf("<A HREF='%s?type=command&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_commandsmember->command),temp_commandsmember->command);
+			/* printf("<A HREF='%s?type=commands&expand=%s'>%s</A>",CONFIG_CGI,url_encode(strtok(temp_commandsmember->command,"!")),html_encode(temp_commandsmember->command,FALSE)); */
+			printf("<A HREF='%s?type=command&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_commandsmember->command),html_encode(temp_commandsmember->command,FALSE));
 
 			found=TRUE;
 		        }
@@ -1158,8 +1157,8 @@ void display_contactgroups(void){
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
-		printf("<TD CLASS='%s'><A NAME='%s'></A>%s</TD>\n",bg_class,url_encode(temp_contactgroup->group_name),temp_contactgroup->group_name);
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_contactgroup->alias);
+		printf("<TD CLASS='%s'><A NAME='%s'></A>%s</TD>\n",bg_class,url_encode(temp_contactgroup->group_name),html_encode(temp_contactgroup->group_name,FALSE));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_contactgroup->alias,FALSE));
 
 		/* find all the contact who are members of this contact group... */
 		printf("<TD CLASS='%s'>",bg_class);
@@ -1168,7 +1167,7 @@ void display_contactgroups(void){
 			if(temp_contactsmember!=temp_contactgroup->members)
 				printf(", ");
 
-			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),temp_contactsmember->contact_name);
+			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),html_encode(temp_contactsmember->contact_name,FALSE));
 		        }
 		printf("</TD>\n");
 
@@ -1273,9 +1272,9 @@ void display_services(void){
 
 		printf("<TD CLASS='%s'><A NAME='%s;",bg_class,url_encode(temp_service->host_name));
 		printf("%s'></A>",url_encode(temp_service->description));
-		printf("<A HREF='%s?type=hosts&expand=%s'>%s</A></TD>\n",CONFIG_CGI,url_encode(temp_service->host_name),temp_service->host_name);
+		printf("<A HREF='%s?type=hosts&expand=%s'>%s</A></TD>\n",CONFIG_CGI,url_encode(temp_service->host_name),html_encode(temp_service->host_name,FALSE));
 		
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_service->description);
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_service->description,FALSE));
 		
 		printf("<TD CLASS='%s'>%d</TD>\n",bg_class,temp_service->max_attempts);
 
@@ -1286,15 +1285,16 @@ void display_services(void){
 
 		strncpy(command_line,temp_service->service_check_command,sizeof(command_line));
 		command_line[sizeof(command_line)-1]='\x0';
-		command_name=strtok(command_line,"!");
+		command_name=strtok(strdup(command_line),"!");
 
-		/* printf("<TD CLASS='%s'><A HREF='%s?type=commands&expand=%s'>%s</A></TD>\n",bg_class,CONFIG_CGI,url_encode(command_name),html_encode(temp_service->service_check_command,FALSE)); */
-		printf("<TD CLASS='%s'><A HREF='%s?type=command&expand=%s'>%s</A></TD>\n",bg_class,CONFIG_CGI,url_encode(temp_service->service_check_command),html_encode(temp_service->service_check_command,FALSE));
+		/* printf("<TD CLASS='%s'><A HREF='%s?type=commands&expand=%s'>%s</A></TD>\n",bg_class,CONFIG_CGI,url_encode(command_name),html_encode(command_line,FALSE)); */
+		printf("<TD CLASS='%s'><A HREF='%s?type=command&expand=%s'>%s</A></TD>\n",bg_class,CONFIG_CGI,url_encode(command_line),html_encode(command_line,FALSE));
+		free(command_name);
 		printf("<TD CLASS='%s'>",bg_class);
 		if(temp_service->check_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->check_period),temp_service->check_period);
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->check_period),html_encode(temp_service->check_period,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->parallelize==TRUE)?"Yes":"No");
@@ -1322,13 +1322,13 @@ void display_services(void){
 			contact++;
 			if(contact>1)
 				printf(", ");
-			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),temp_contactsmember->contact_name);
+			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),html_encode(temp_contactsmember->contact_name,FALSE));
 	                }
 		for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			contact++;
 			if(contact>1)
 				printf(", ");
-			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
+			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),html_encode(temp_contactgroupsmember->group_name,FALSE));
 			}
 		if(contact==0)
 			printf("&nbsp;");
@@ -1339,7 +1339,7 @@ void display_services(void){
 		printf("</TD>\n");
 
 		get_interval_time_string(temp_service->notification_interval,time_string,sizeof(time_string));
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->notification_interval==0)?"<i>No Re-notification</i>":time_string);
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->notification_interval==0)?"<i>No Re-notification</i>":html_encode(time_string,FALSE));
 
 		get_interval_time_string(temp_service->first_notification_delay,time_string,sizeof(time_string));
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
@@ -1377,14 +1377,14 @@ void display_services(void){
 		if(temp_service->notification_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->notification_period),temp_service->notification_period);
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->notification_period),html_encode(temp_service->notification_period,FALSE));
 		printf("</TD>\n");
 		printf("<TD CLASS='%s'>",bg_class);
 		if(temp_service->event_handler==NULL)
 			printf("&nbsp;");
 		else
-			/* printf("<A HREF='%s?type=commands&expand=%s'>%s</A>",CONFIG_CGI,url_encode(strtok(temp_service->event_handler,"!")),temp_service->event_handler); */
-			printf("<A HREF='%s?type=command&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->event_handler),temp_service->event_handler);
+			/* printf("<A HREF='%s?type=commands&expand=%s'>%s</A>",CONFIG_CGI,url_encode(strtok(temp_service->event_handler,"!")),html_encode(temp_service->event_handler,FALSE)); */
+			printf("<A HREF='%s?type=command&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->event_handler),html_encode(temp_service->event_handler,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
@@ -1461,23 +1461,23 @@ void display_services(void){
 		printf("%s\n",(temp_service->failure_prediction_enabled==TRUE)?"Yes":"No");
 		printf("</TD>\n");
 
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->failure_prediction_options==NULL)?"&nbsp;":temp_service->failure_prediction_options);
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->failure_prediction_options==NULL)?"&nbsp;":html_encode(temp_service->failure_prediction_options,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->notes==NULL)?"&nbsp;":temp_service->notes);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->notes==NULL)?"&nbsp;":html_encode(temp_service->notes,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->notes_url==NULL)?"&nbsp;":temp_service->notes_url);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->notes_url==NULL)?"&nbsp;":html_encode(temp_service->notes_url,FALSE));
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->action_url==NULL)?"&nbsp;":temp_service->action_url);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->action_url==NULL)?"&nbsp;":html_encode(temp_service->action_url,FALSE));
 
 		if(temp_service->icon_image==NULL)
 			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
 		else{
 			process_macros(temp_service->icon_image,&processed_string,0);
-			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,processed_string,temp_service->icon_image);
+			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,processed_string,html_encode(temp_service->icon_image,FALSE));
 			free(processed_string);
 			}
 
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->icon_image_alt==NULL)?"&nbsp;":temp_service->icon_image_alt);
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->icon_image_alt==NULL)?"&nbsp;":html_encode(temp_service->icon_image_alt,FALSE));
 
 		printf("<TD CLASS='%s'>",bg_class);
 		options=0;
@@ -1558,14 +1558,14 @@ void display_timeperiods(void){
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
-		printf("<TD CLASS='%s'><A NAME='%s'>%s</A></TD>\n",bg_class,url_encode(temp_timeperiod->name),temp_timeperiod->name);
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_timeperiod->alias);
+		printf("<TD CLASS='%s'><A NAME='%s'>%s</A></TD>\n",bg_class,url_encode(temp_timeperiod->name),html_encode(temp_timeperiod->name,FALSE));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_timeperiod->alias,FALSE));
 
 		printf("<TD CLASS='%s'>",bg_class);
 		item=0;
 		for(temp_timeperiodexclusion=temp_timeperiod->exclusions;temp_timeperiodexclusion!=NULL;temp_timeperiodexclusion=temp_timeperiodexclusion->next){
 			item++;
-			printf("%s<A HREF='#%s'>%s</A>",(item==1)?"":",&nbsp;",url_encode(temp_timeperiodexclusion->timeperiod_name),temp_timeperiodexclusion->timeperiod_name);
+			printf("%s<A HREF='#%s'>%s</A>",(item==1)?"":",&nbsp;",url_encode(temp_timeperiodexclusion->timeperiod_name),html_encode(temp_timeperiodexclusion->timeperiod_name,FALSE));
 			}
 		printf("</TD>");
 
@@ -1735,7 +1735,7 @@ void display_commands(void){
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
-		printf("<TD CLASS='%s'><A NAME='%s'></A>%s</TD>\n",bg_class,url_encode(temp_command->name),temp_command->name);
+		printf("<TD CLASS='%s'><A NAME='%s'></A>%s</TD>\n",bg_class,url_encode(temp_command->name),html_encode(temp_command->name,FALSE));
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_command->command_line,FALSE));
 
 		printf("</TR>\n");
@@ -1797,15 +1797,15 @@ void display_servicedependencies(void){
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
-		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_sd->dependent_host_name),temp_sd->dependent_host_name);
+		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_sd->dependent_host_name),html_encode(temp_sd->dependent_host_name,FALSE));
 
 		printf("<TD CLASS='%s'><A HREF='%s?type=services&expand=%s#%s;",bg_class,CONFIG_CGI,url_encode(temp_sd->dependent_host_name),url_encode(temp_sd->dependent_host_name));
-		printf("%s'>%s</A></TD>\n",url_encode(temp_sd->dependent_service_description),temp_sd->dependent_service_description);
+		printf("%s'>%s</A></TD>\n",url_encode(temp_sd->dependent_service_description),html_encode(temp_sd->dependent_service_description,FALSE));
 
-		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_sd->host_name),temp_sd->host_name);
+		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_sd->host_name),html_encode(temp_sd->host_name,FALSE));
 
 		printf("<TD CLASS='%s'><A HREF='%s?type=services&expand=%s#%s;",bg_class,CONFIG_CGI,url_encode(temp_sd->host_name),url_encode(temp_sd->host_name));
-		printf("%s'>%s</A></TD>\n",url_encode(temp_sd->service_description),temp_sd->service_description);
+		printf("%s'>%s</A></TD>\n",url_encode(temp_sd->service_description),html_encode(temp_sd->service_description,FALSE));
 
 		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_sd->dependency_type==NOTIFICATION_DEPENDENCY)?"Notification":"Check Execution");
 
@@ -1813,7 +1813,7 @@ void display_servicedependencies(void){
 		if(temp_sd->dependency_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_sd->dependency_period),temp_sd->dependency_period);
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_sd->dependency_period),html_encode(temp_sd->dependency_period,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
@@ -1903,10 +1903,10 @@ void display_serviceescalations(void){
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
-		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_se->host_name),temp_se->host_name);
+		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_se->host_name),html_encode(temp_se->host_name,FALSE));
 
 		printf("<TD CLASS='%s'><A HREF='%s?type=services&expand=%s#%s;",bg_class,CONFIG_CGI,url_encode(temp_se->host_name),url_encode(temp_se->host_name));
-		printf("%s'>%s</A></TD>\n",url_encode(temp_se->description),temp_se->description);
+		printf("%s'>%s</A></TD>\n",url_encode(temp_se->description),html_encode(temp_se->description,FALSE));
 
 		printf("<TD CLASS='%s'>",bg_class);
 		contact=0;
@@ -1914,13 +1914,13 @@ void display_serviceescalations(void){
 			contact++;
 			if(contact>1)
 				printf(", ");
-			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),temp_contactsmember->contact_name);
+			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),html_encode(temp_contactsmember->contact_name,FALSE));
 		        }
 		for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			contact++;
 			if(contact>1)
 				printf(", ");
-			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
+			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),html_encode(temp_contactgroupsmember->group_name,FALSE));
 			}
 		if(contact==0)
 			printf("&nbsp;");
@@ -1947,7 +1947,7 @@ void display_serviceescalations(void){
 		if(temp_se->escalation_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_se->escalation_period),temp_se->escalation_period);
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_se->escalation_period),html_encode(temp_se->escalation_period,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
@@ -2026,9 +2026,9 @@ void display_hostdependencies(void){
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
-		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_hd->dependent_host_name),temp_hd->dependent_host_name);
+		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_hd->dependent_host_name),html_encode(temp_hd->dependent_host_name,FALSE));
 
-		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_hd->host_name),temp_hd->host_name);
+		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_hd->host_name),html_encode(temp_hd->host_name,FALSE));
 
 		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hd->dependency_type==NOTIFICATION_DEPENDENCY)?"Notification":"Check Execution");
 
@@ -2036,7 +2036,7 @@ void display_hostdependencies(void){
 		if(temp_hd->dependency_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_hd->dependency_period),temp_hd->dependency_period);
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_hd->dependency_period),html_encode(temp_hd->dependency_period,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
@@ -2118,7 +2118,7 @@ void display_hostescalations(void){
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
-		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_he->host_name),temp_he->host_name);
+		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_he->host_name),html_encode(temp_he->host_name,FALSE));
 
 		printf("<TD CLASS='%s'>",bg_class);
 		contact=0;
@@ -2126,13 +2126,13 @@ void display_hostescalations(void){
 			contact++;
 			if(contact>1)
 				printf(", ");
-			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),temp_contactsmember->contact_name);
+			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),html_encode(temp_contactsmember->contact_name,FALSE));
 		        }
 		for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			contact++;
 			if(contact>1)
 				printf(", ");
-			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
+			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),html_encode(temp_contactgroupsmember->group_name,FALSE));
 			}
 		if(contact==0)
 			printf("&nbsp;");
@@ -2159,7 +2159,7 @@ void display_hostescalations(void){
 		if(temp_he->escalation_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_he->escalation_period),temp_he->escalation_period);
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>",CONFIG_CGI,url_encode(temp_he->escalation_period),html_encode(temp_he->escalation_period,FALSE));
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
@@ -2233,10 +2233,13 @@ void display_command_expansion(void){
 	command *temp_command;
 	int odd=0;
 	char *bg_class="";
-	int i;
+	int i, j;
 	char *c, *cc;
 	char commandline[MAX_COMMAND_BUFFER];
-	int arg_count[MAX_COMMAND_ARGUMENTS];
+	char *command_args[MAX_COMMAND_ARGUMENTS];
+	int arg_count[MAX_COMMAND_ARGUMENTS],
+		lead_space[MAX_COMMAND_ARGUMENTS],
+		trail_space[MAX_COMMAND_ARGUMENTS];
 
 	/* see if user is authorized to view command information... */
 	if(is_authorized_for_configuration_information(&current_authdata)==FALSE){
@@ -2247,7 +2250,23 @@ void display_command_expansion(void){
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Command Expansion</DIV></P>\n");
 
 	/* Parse to_expand into parts */
-	for (i=0,c=strdup(to_expand);i<MAX_COMMAND_ARGUMENTS;i++,c=NULL) command_args[i]=strtok(c,"!");
+	for (i=0;i<MAX_COMMAND_ARGUMENTS;i++) command_args[i]=NULL;
+	for (i=0,command_args[0]=cc=c=strdup(to_expand);c&&((*c)!='\0')&&(i<MAX_COMMAND_ARGUMENTS);c++,cc++){
+		if ((*c)=='\\') c++;
+		else if ((*c)=='!'){
+			(*cc)='\0';
+			cc=c++;
+			command_args[++i]=(c--);
+			}
+		(*cc)=(*c);
+		}
+	if ((*c)=='\0') (*cc)='\0';
+	/* Precompute indexes of dangling whitespace */
+	for (i=0;i<MAX_COMMAND_ARGUMENTS;i++){
+		for (cc=command_args[i],lead_space[i]=0;cc&&isspace(*cc);cc++,lead_space[i]++) ;
+		trail_space[i]=0;
+		for (;cc&&((*cc)!='\0');cc++) if (isspace(*cc)) trail_space[i]++; else trail_space[i]=0;
+		}
 
 	printf("<P><DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='data'>\n");
@@ -2279,7 +2298,7 @@ void display_command_expansion(void){
 	
 				printf("<TR CLASS='%s'>\n",bg_class);
 	
-				printf("<TD CLASS='%s'><A NAME='%s'></A>%s</TD>\n",bg_class,url_encode(temp_command->name),temp_command->name);
+				printf("<TD CLASS='%s'><A NAME='%s'></A>%s</TD>\n",bg_class,url_encode(temp_command->name),html_encode(temp_command->name,FALSE));
 				printf("<TD CLASS='%s'>%s</TD>\n",bg_class,html_encode(temp_command->command_line,FALSE));
 	
 				printf("</TR>\n<TR CLASS='%s'>\n",bg_class);
@@ -2313,8 +2332,13 @@ void display_command_expansion(void){
 							i=atoi(cc);
 							if ((i>0)&&(i<=MAX_COMMAND_ARGUMENTS)){
 								arg_count[i]++;
-								if (command_args[i]) printf("<FONT COLOR='%s'><B>%s</B></FONT>",hash_color(i),html_encode(command_args[i],FALSE));
-								else printf("<FONT COLOR='#0000FF'>(undefined/empty)</FONT>");
+								if (command_args[i]){
+									if (*(command_args[i])!='\0') printf("<FONT COLOR='%s'><B>%s%s%s</B></FONT>",
+										hash_color(i),((lead_space[i]>0)||(trail_space[i]>0)?"<U>&zwj;":""),
+										html_encode(command_args[i],FALSE),((lead_space[i]>0)||(trail_space[i]>0)?"&zwj;</U>":""));
+									else printf("<FONT COLOR='#0000FF'>(empty)</FONT>");
+									}
+								else printf("<FONT COLOR='#0000FF'>(undefined)</FONT>");
 								}
 							else printf("<FONT COLOR='#FF0000'>(not a valid $ARGn$ index: %u)</FONT>",i);
 							if ((*c)!='\0') c++;
@@ -2332,15 +2356,50 @@ void display_command_expansion(void){
 
 				printf("</TD></TR>\n");
 
-				for (i=1;(i<MAX_COMMAND_ARGUMENTS)&&(command_args[i]);i++)
+				for (i=1;(i<MAX_COMMAND_ARGUMENTS)&&(command_args[i]);i++){
 					if (arg_count[i]==0){
 						printf("<TR CLASS='%s'><TD CLASS='%s' ALIGN='right'><FONT COLOR='#FF0000'>unused:</FONT></TD>\n",bg_class,bg_class);
-						printf("<TD CLASS='%s'>$ARG%u$=<FONT COLOR='%s'><B>%s</B></FONT></TD></TR>\n",bg_class,i,hash_color(i),html_encode(command_args[i],FALSE));
+						printf("<TD CLASS='%s'>$ARG%u$=<FONT COLOR='%s'>%s%s%s</FONT></TD></TR>\n",bg_class,i,hash_color(i),
+							((lead_space[i]>0)||(trail_space[i]>0)?"<U>&zwj;":""),html_encode(command_args[i],FALSE),
+							((lead_space[i]>0)||(trail_space[i]>0)?"&zwj;</U>":""));
 						}
 					else if (arg_count[i]>1){
 						printf("<TR CLASS='%s'><TD CLASS='%s' ALIGN='right'>used %u x:</TD>\n",bg_class,bg_class,i);
-						printf("<TD CLASS='%s'>$ARG%u$=<FONT COLOR='%s'>%s</FONT></TD></TR>\n",bg_class,i,hash_color(i),html_encode(command_args[i],FALSE));
+						printf("<TD CLASS='%s'>$ARG%u$=<FONT COLOR='%s'>%s%s%s</FONT></TD></TR>\n",bg_class,i,hash_color(i),
+							((lead_space[i]>0)||(trail_space[i]>0)?"<U>&zwj;":""),html_encode(command_args[i],FALSE),
+							((lead_space[i]>0)||(trail_space[i]>0)?"&zwj;</U>":""));
 						}
+					if ((lead_space[i]>0)||(trail_space[i]>0)){
+						printf("<TR CLASS='%s'><TD CLASS='%s' ALIGN='right'><FONT COLOR='#0000FF'>dangling whitespace:</FONT></TD>\n",bg_class,bg_class);
+						printf("<TD CLASS='%s'>$ARG%u$=<FONT COLOR='#0000FF'>",bg_class,i);
+						for (c=command_args[i],j=0;c&&isspace(*c);c++,j++)
+							/* TODO: As long as the hyperlinks change all whitespace into actual spaces,
+							   we'll output "[WS]" (whitespace) instead of "[SP]"(ace). */
+							/* if ((*c)==' ')		printf("[SP]"); */
+							if ((*c)==' ')		printf("[WS]");
+							else if ((*c)=='\f')	printf("[FF]");
+							else if ((*c)=='\n')	printf("[LF]");
+							else if ((*c)=='\r')	printf("[CR]");
+							else if ((*c)=='\t')	printf("[HT]");
+							else if ((*c)=='\v')	printf("[VT]");
+							else			printf("[0x%x]",*c);
+						printf("</FONT><FONT COLOR='%s'>",hash_color(i));
+						for (;c&&((*c)!='\0')&&(j<strlen(command_args[i])-trail_space[i]);c++,j++) putchar(*c);
+						printf("</FONT><FONT COLOR='#0000FF'>");
+						for (;c&&((*c)!='\0');c++)
+							/* TODO: As long as the hyperlinks change all whitespace into actual spaces,
+							   we'll output "[WS]" (whitespace) instead of "[SP]"(ace). */
+							/* if ((*c)==' ')		printf("[SP]"); */
+							if ((*c)==' ')		printf("[WS]");
+							else if ((*c)=='\f')	printf("[FF]");
+							else if ((*c)=='\n')	printf("[LF]");
+							else if ((*c)=='\r')	printf("[CR]");
+							else if ((*c)=='\t')	printf("[HT]");
+							else if ((*c)=='\v')	printf("[VT]");
+							else			printf("[0x%x]",*c);
+						printf("</FONT></TD></TR>\n");
+						}
+					}
 			        }
 
 			}

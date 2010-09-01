@@ -15,6 +15,7 @@ ENHANCEMENTS
 * Main window frame URL can now be specify with a "corewindow=" parameter
 * Improved config CGI shows commands, command args in an easier to use manner (Jochen Bern)
 * Added ability for NEB modules to override execution of event handlers (Sven Nierlein)
+* Custom macros are no longer cleaned/stripped as they are user-defined and should be trusted (Peter Morch)
 
 FIXES
 * Fix for choosing next valid time on day of DST change when clocks go one hour backwards

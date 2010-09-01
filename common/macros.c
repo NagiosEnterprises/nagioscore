@@ -621,8 +621,11 @@ int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int 
 		result=grab_custom_macro_value(macro_name,arg[0],arg[1],output);
 
 		/* custom variable values get cleaned */
+		/* CHANGED 09/01/10 EG as per discussion on -devel list.  Custom macros as user-defined, so they should be trusted and not cleaned */
+		/*
 		if(result==OK)
 			*clean_options|=(STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+		*/
 		}
 
 	/* no macro matched... */

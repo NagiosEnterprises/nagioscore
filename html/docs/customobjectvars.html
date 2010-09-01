@@ -182,7 +182,7 @@ define contact{
 
 <p>
 
-Custom variable values can be referenced in scripts and executables that Nagios runs for checks, notifications, etc. by using <a href="macros.html">macros</a> or environment variables.  Custom variable macros are cleaned/sanitized before they are made available to scripts.
+Custom variable values can be referenced in scripts and executables that Nagios runs for checks, notifications, etc. by using <a href="macros.html">macros</a> or environment variables.  Custom variable macros are trusted (because you define them) and therefore not cleaned/sanitized before they are made available to scripts.
 
 </p>
 

@@ -9,7 +9,7 @@
  * Copyright (c) 1999-2009 Ethan Galstad
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   08-16-2010
+ * Last Modified:   09-01-2010
  *
  * Description:
  *

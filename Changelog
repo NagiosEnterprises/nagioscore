@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.2.2 - ??/??/2010
+3.2.2 - 09/01/2010
 ------------------
 ENHANCEMENTS
 * Patch to new_mini_epn to allow any command line length without breaking on extra trailing or leading whitespace (Ray Bengen)

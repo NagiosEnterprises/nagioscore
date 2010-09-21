@@ -145,7 +145,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 			strcat(*output_buffer,temp_buffer);
 
 #ifdef NSCORE
-			log_debug_info(DEBUGL_MACROS,2,"  Not currently in macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
+			log_debug_info(DEBUGL_MACROS,2,"  Not currently in macro.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
 #endif
 
 			in_macro=TRUE;
@@ -180,7 +180,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 			else if(!strcmp(temp_buffer,"")){
 
 #ifdef NSCORE
-				log_debug_info(DEBUGL_MACROS,2,"  Escaped $.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
+				log_debug_info(DEBUGL_MACROS,2,"  Escaped $.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
 #endif
 
 				*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+2);
@@ -191,7 +191,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 			else{
 
 #ifdef NSCORE
-				log_debug_info(DEBUGL_MACROS,2,"  Non-macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
+				log_debug_info(DEBUGL_MACROS,2,"  Non-macro.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
 #endif
 
 				/* add the plain text to the end of the already processed buffer */
@@ -234,7 +234,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 						strcat(*output_buffer,cleaned_macro);
 
 #ifdef NSCORE
-						log_debug_info(DEBUGL_MACROS,2,"  Cleaned macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
+						log_debug_info(DEBUGL_MACROS,2,"  Cleaned macro.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
 #endif
 						}
 					}
@@ -247,7 +247,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 						strcat(*output_buffer,selected_macro);
 
 #ifdef NSCORE
-						log_debug_info(DEBUGL_MACROS,2,"  Uncleaned macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
+						log_debug_info(DEBUGL_MACROS,2,"  Uncleaned macro.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
 #endif
 						}
 					}
@@ -257,7 +257,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 					my_free(selected_macro);
 
 #ifdef NSCORE
-				log_debug_info(DEBUGL_MACROS,2,"  Just finished macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
+				log_debug_info(DEBUGL_MACROS,2,"  Just finished macro.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
 #endif
 				}
 

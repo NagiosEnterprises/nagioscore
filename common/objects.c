@@ -180,7 +180,6 @@ int skiplist_compare_host(void *a, void *b){
 int skiplist_compare_service(void *a, void *b){
 	service *oa=NULL;
 	service *ob=NULL;
-	int result=0;
 
 	oa=(service *)a;
 	ob=(service *)b;
@@ -325,7 +324,6 @@ int skiplist_compare_hostescalation(void *a, void *b){
 int skiplist_compare_serviceescalation(void *a, void *b){
 	serviceescalation *oa=NULL;
 	serviceescalation *ob=NULL;
-	int result=0;
 
 	oa=(serviceescalation *)a;
 	ob=(serviceescalation *)b;
@@ -362,7 +360,6 @@ int skiplist_compare_hostdependency(void *a, void *b){
 int skiplist_compare_servicedependency(void *a, void *b){
 	servicedependency *oa=NULL;
 	servicedependency *ob=NULL;
-	int result=0;
 
 	oa=(servicedependency *)a;
 	ob=(servicedependency *)b;

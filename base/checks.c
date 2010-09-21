@@ -134,7 +134,6 @@ int reap_check_results(void){
 	check_result *queued_check_result=NULL;
 	service *temp_service=NULL;
 	host *temp_host=NULL;
-	char *temp_buffer=NULL;
 	time_t current_time=0L;
 	time_t reaper_start_time=0L;
 	int reaped_checks=0;

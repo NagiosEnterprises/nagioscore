@@ -191,7 +191,6 @@ struct nagios_extcmd in_core_commands[] =
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
-static int extcmd_entries, extcmd_slots;
 
 const char *extcmd_get_name(int id)
 {

@@ -338,7 +338,6 @@ int xsddefault_save_status_data(void){
 	FILE *fp=NULL;
 	int used_external_command_buffer_slots=0;
 	int high_external_command_buffer_slots=0;
-	void *ptr=NULL;
 	int result=OK;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"save_status_data()\n");

@@ -2369,7 +2369,6 @@ int process_check_result_queue(char *dirname){
 /* reads check result(s) from a file */
 int process_check_result_file(char *fname){
 	mmapfile *thefile=NULL;
-	char *temp_buffer=NULL;
 	char *input=NULL;
 	char *var=NULL;
 	char *val=NULL;
@@ -2831,7 +2830,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 	/* save long output */
 	if(long_output && (db1.buf && strcmp(db1.buf,""))){
 
-		if(escape_newlines==FALSE)
+		if(escape_newlines_please==FALSE)
 			*long_output=(char *)strdup(db1.buf);
 
 		else{
@@ -3291,11 +3290,7 @@ int compare_hashdata(const char *val1a, const char *val1b, const char *val2a, co
 
 /* renames a file - works across filesystems (Mike Wiacek) */
 int my_rename(char *source, char *dest){
-	char buffer[MAX_INPUT_BUFFER]={0};
 	int rename_result=0;
-	int source_fd=-1;
-	int dest_fd=-1;
-	int bytes_read=0;
 
 
 	/* make sure we have something */
@@ -4492,7 +4487,7 @@ int query_update_api(void){
 	asprintf(&buf,"%sConnection: close\r\n",buf);
 	asprintf(&buf,"%sHost: %s\r\n",buf,api_server);
 	asprintf(&buf,"%sContent-Type: application/x-www-form-urlencoded\r\n",buf);
-	asprintf(&buf,"%sContent-Length: %d\r\n",buf,strlen(api_query));
+	asprintf(&buf,"%sContent-Length: %zd\r\n",buf,strlen(api_query));
 	asprintf(&buf,"%s\r\n",buf);
 	asprintf(&buf,"%s%s\r\n",buf,api_query);
 

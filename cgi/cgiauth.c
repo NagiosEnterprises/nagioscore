@@ -44,7 +44,6 @@ int get_authentication_information(authdata *authinfo){
 	mmapfile *thefile;
 	char *input=NULL;
 	char *temp_ptr;
-	int needed_options;
 
 	if(authinfo==NULL)
 		return ERROR;

@@ -92,7 +92,11 @@ service  *service_list;
 
 int check_for_expired_comment(unsigned long temp_long) {}
 void broker_timed_event(int int1, int int2, int int3, timed_event *timed_event1, struct timeval *timeval1) {}
-int perform_scheduled_host_check(host *temp_host,int int1,double double1) {}
+int perform_scheduled_host_check(host *temp_host,int int1,double double1) {
+	time_t now=0L;
+	time(&now);
+	temp_host->last_check = now;
+}
 int check_for_expired_downtime(void) {}
 int reap_check_results(void) {}
 void check_host_result_freshness() {}
@@ -108,6 +112,9 @@ time_t get_next_log_rotation_time(void) {}
 void check_for_orphaned_services() {}
 int run_scheduled_service_check(service *service1, int int1, double double1) {
 	currently_running_service_checks++;
+	time_t now=0L;
+	time(&now);
+	service1->last_check = now;
 	/* printf("Currently running service checks: %d\n", currently_running_service_checks); */
 }
 int handle_scheduled_downtime_by_id(unsigned long long1) {}
@@ -138,7 +145,8 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...){
 int update_host_status(host *hst,int aggregated_dump){}
 
 /* Test variables */
-service *svc1=NULL, *svc2=NULL;
+service *svc1=NULL, *svc2=NULL, *svc3=NULL;
+host *host1=NULL;
 
 void
 setup_events(time_t time) {
@@ -191,12 +199,65 @@ setup_events(time_t time) {
 	reschedule_event(new_event,&event_list_low,&event_list_low_tail);
 }
 
+void
+setup_events_with_host(time_t time) {
+	timed_event *new_event=NULL;
+
+	/* First service is a normal one */
+	if(svc3==NULL)
+		svc3=(service *)malloc(sizeof(service));
+	svc3->host_name=strdup("Host0");
+	svc3->description=strdup("Normal service");
+	svc3->check_options=0;
+	svc3->next_check=time;
+	svc3->state_type=SOFT_STATE;
+	svc3->current_state=STATE_OK;
+	svc3->retry_interval=1;
+	svc3->check_interval=5;
+
+	new_event=(timed_event *)malloc(sizeof(timed_event));
+	new_event->event_type=EVENT_SERVICE_CHECK;
+	new_event->event_data=(void *)svc3;
+	new_event->event_args=(void *)NULL;
+	new_event->event_options=0;
+	new_event->run_time=0L;				/* Straight away */
+	new_event->recurring=FALSE;
+	new_event->event_interval=0L;
+	new_event->timing_func=NULL;
+	new_event->compensate_for_time_change=TRUE;
+	reschedule_event(new_event,&event_list_low,&event_list_low_tail);
+
+	if (host1==NULL)
+		host1=(host *)malloc(sizeof(host));
+	host1->name=strdup("Host1");
+	host1->address=strdup("127.0.0.1");
+	host1->retry_interval=1;
+	host1->check_interval=5;
+	host1->check_options=0;
+	host1->next_check=time;
+	new_event->recurring=TRUE;
+	host1->state_type=SOFT_STATE;
+	host1->current_state=STATE_OK;
+
+	new_event=(timed_event *)malloc(sizeof(timed_event));
+	new_event->event_type=EVENT_HOST_CHECK;
+	new_event->event_data=(void *)host1;
+	new_event->event_args=(void *)NULL;
+	new_event->event_options=0;
+	new_event->run_time=0L;				/* Straight away */
+	new_event->recurring=TRUE;
+	new_event->event_interval=0L;
+	new_event->timing_func=NULL;
+	new_event->compensate_for_time_change=TRUE;
+	reschedule_event(new_event,&event_list_low,&event_list_low_tail);
+}
+
 int
 main (int argc, char **argv)
 {
 	time_t now=0L;
 
-	plan_tests(6);
+	plan_tests(10);
 
 	time(&now);
 
@@ -225,13 +286,34 @@ main (int argc, char **argv)
 	execute_service_checks=0;
 	sigshutdown=FALSE;
 	currently_running_service_checks=0;
-	max_parallel_service_checks=1;
+	max_parallel_service_checks=2;
 	setup_events(now);
 	svc2->current_state=STATE_CRITICAL;
 	event_execution_loop();
 	ok(svc1->next_check == now+300, "svc1 rescheduled ahead - normal interval" );
 	ok(svc2->next_check == now+60,  "svc2 rescheduled ahead - retry interval" );
 
+
+	/* Checking that a host check immediately following a service check
+	 * correctly checks the host
+	*/
+	timed_event *temp_event=NULL;
+	while ((temp_event = event_list_low) != NULL) {
+		remove_event(temp_event,&event_list_low,&event_list_low_tail);
+	}
+
+	sigshutdown=FALSE;
+	currently_running_service_checks=0;
+	max_parallel_service_checks=2;
+	execute_service_checks=0;
+	execute_host_checks=1;
+	setup_events_with_host(now);
+	event_execution_loop();
+
+	ok(host1->last_check == now,  "host1 was checked" );
+	ok(svc3->last_check == 0, "svc3 was skipped" );
+	ok(host1->next_check == now,  "host1 rescheduled ahead - normal interval" );
+	ok(svc3->next_check == now+300, "svc3 rescheduled ahead - normal interval" );
 
 	return exit_status ();
 }

@@ -1082,14 +1082,7 @@ int event_execution_loop(void){
 
 					run_event=FALSE;
 				        }
-
-			        }
-
-			/* Removed. Reports that if you disable all service checks, service checks continue to be run. Also
-			   t-tap/test_events will fail if this flag is set - TV
-			*/
-			/* reset flag */
-			/* run_event=TRUE; */
+				}
 
 			/* run a few checks before executing a host check... */
 			else if(event_list_low->event_type==EVENT_HOST_CHECK){

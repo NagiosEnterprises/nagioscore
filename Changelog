@@ -10,6 +10,7 @@ ENHANCEMENTS
 FIXES
 * Fixes problem where disabling all active hosts/services was not taking effect
 * Fixes for compiler warnings (code cleanup by Stephen Gran)
+* Fixes for format errors in event handler logging (Guillaume Rousse)
 
 WARNINGS
 

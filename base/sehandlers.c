@@ -296,7 +296,7 @@ int run_global_service_event_handler(service *svc){
 	if(log_event_handlers==TRUE){
 		asprintf(&raw_logentry,"GLOBAL SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,global_service_event_handler);
 		process_macros(raw_logentry,&processed_logentry,macro_options);
-		logit(NSLOG_EVENT_HANDLER,FALSE,processed_logentry);
+		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
 
 #ifdef USE_EVENT_BROKER
@@ -396,7 +396,7 @@ int run_service_event_handler(service *svc){
 	if(log_event_handlers==TRUE){
 		asprintf(&raw_logentry,"SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,svc->event_handler);
 		process_macros(raw_logentry,&processed_logentry,macro_options);
-		logit(NSLOG_EVENT_HANDLER,FALSE,processed_logentry);
+		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
 
 #ifdef USE_EVENT_BROKER
@@ -542,7 +542,7 @@ int run_global_host_event_handler(host *hst){
 	if(log_event_handlers==TRUE){
 		asprintf(&raw_logentry,"GLOBAL HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,global_host_event_handler);
 		process_macros(raw_logentry,&processed_logentry,macro_options);
-		logit(NSLOG_EVENT_HANDLER,FALSE,processed_logentry);
+		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
 
 #ifdef USE_EVENT_BROKER
@@ -640,7 +640,7 @@ int run_host_event_handler(host *hst){
 	if(log_event_handlers==TRUE){
 		asprintf(&raw_logentry,"HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,hst->event_handler);
 		process_macros(raw_logentry,&processed_logentry,macro_options);
-		logit(NSLOG_EVENT_HANDLER,FALSE,processed_logentry);
+		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
 
 #ifdef USE_EVENT_BROKER

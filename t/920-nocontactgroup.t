@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # 
-# Check that no service gives the correct message
+# Check that no contactgroup gives the correct message
 
 use warnings;
 use strict;
@@ -16,5 +16,5 @@ my $precache = "$Bin/var/objects.precache";
 
 
 my $output = `$nagios -v "$etc/nagios-no-contactgroup.cfg"`;
-like( $output, "/Error: Could not find any contactgroup matching 'nonexistantone'/", "Correct error for no services" );
+like( $output, "/Error: Could not find any contactgroup matching 'nonexistantone'/", "Correct error for no contactgroup" );
 isnt($?, 0, "And get return code error" );

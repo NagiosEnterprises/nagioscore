@@ -12,6 +12,7 @@ FIXES
 * Fixes for compiler warnings (code cleanup by Stephen Gran)
 * Fixes for format errors in event handler logging (Guillaume Rousse)
 * Fixed incorrect info in sample nagios.cfg file for state_retention_file (Michael Friedrich)
+* Fixed broker_event_handler() to return ERR if data is NULL (Michael Friedrich)
 
 WARNINGS
 

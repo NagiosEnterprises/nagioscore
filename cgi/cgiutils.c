@@ -1360,15 +1360,18 @@ void get_time_breakdown(unsigned long raw_time,int *days,int *hours,int *minutes
 
 
 /* encodes a string in proper URL format */
-char * url_encode(char *input){
+char *url_encode(char *input){
 	int len,output_len;
 	int x,y;
 	char temp_expansion[4];
 	static int i = 0;
 	char* str = encoded_url_string[i];
 
+	/* initialize return string */
+	strcpy(encoded_url_string,"");
+
 	if(input==NULL)
-		return '\x0';
+		return str;
 
 	len=(int)strlen(input);
 	output_len=(int)sizeof(encoded_url_string[0]);

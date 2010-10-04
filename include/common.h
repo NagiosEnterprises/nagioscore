@@ -21,8 +21,8 @@
  ************************************************************************/
 
 
-#define PROGRAM_VERSION "3.2.2"
-#define PROGRAM_MODIFICATION_DATE "09-01-2010"
+#define PROGRAM_VERSION "3.2.3"
+#define PROGRAM_MODIFICATION_DATE "10-03-2010"
 
 /*#define DEBUG_CHECK_IPC 1 */
 /*#define DEBUG_CHECK_IPC2 1*/

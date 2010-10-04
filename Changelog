@@ -11,6 +11,7 @@ FIXES
 * Fixes problem where disabling all active hosts/services was not taking effect
 * Fixes for compiler warnings (code cleanup by Stephen Gran)
 * Fixes for format errors in event handler logging (Guillaume Rousse)
+* Fixed incorrect info in sample nagios.cfg file for state_retention_file (Michael Friedrich)
 
 WARNINGS
 

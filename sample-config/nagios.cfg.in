@@ -634,7 +634,7 @@ retain_state_information=1
 # service state information before it shuts down.  The state 
 # information in this file is also read immediately prior to
 # starting to monitor the network when Nagios is restarted.
-# This file is used only if the preserve_state_information
+# This file is used only if the retain_state_information
 # variable is set to 1.
 
 state_retention_file=@localstatedir@/retention.dat

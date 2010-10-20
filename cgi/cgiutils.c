@@ -1368,7 +1368,7 @@ char *url_encode(char *input){
 	char* str = encoded_url_string[i];
 
 	/* initialize return string */
-	strcpy(encoded_url_string,"");
+	strcpy(str,"");
 
 	if(input==NULL)
 		return str;

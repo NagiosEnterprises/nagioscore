@@ -2,6 +2,15 @@
 Nagios 3.x Change Log
 #####################
 
+3.2.4 - ?????
+------------------
+ENHANCEMENTS
+
+FIXES
+* Fixes status.cgi when called with no parameters, where host should be set to all if none specified (Michael Friedrich)
+
+WARNINGS
+
 
 3.2.3 - 10/03/2010
 ------------------

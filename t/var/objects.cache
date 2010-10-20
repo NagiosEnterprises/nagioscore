@@ -95,8 +95,74 @@ define host {
 	retain_nonstatus_information	1
 	}
 
+define host {
+	host_name	host2
+	alias	host2 test
+	address	192.168.1.2
+	check_period	none
+	contacts	nagiosadmin
+	notification_period	none
+	initial_state	o
+	check_interval	5.000000
+	retry_interval	1.000000
+	max_check_attempts	2
+	active_checks_enabled	1
+	passive_checks_enabled	1
+	obsess_over_host	1
+	event_handler_enabled	1
+	low_flap_threshold	0.000000
+	high_flap_threshold	0.000000
+	flap_detection_enabled	1
+	flap_detection_options	o,d,u
+	freshness_threshold	0
+	check_freshness	0
+	notification_options	d,u,r,f,s
+	notifications_enabled	1
+	notification_interval	60.000000
+	first_notification_delay	0.000000
+	stalking_options	n
+	process_perf_data	1
+	failure_prediction_enabled	1
+	retain_status_information	1
+	retain_nonstatus_information	1
+	}
+
 define service {
 	host_name	host1
+	service_description	Dummy service
+	check_period	none
+	check_command	check_me
+	contacts	nagiosadmin
+	notification_period	none
+	initial_state	o
+	check_interval	32.000000
+	retry_interval	1.000000
+	max_check_attempts	3
+	is_volatile	0
+	parallelize_check	1
+	active_checks_enabled	1
+	passive_checks_enabled	1
+	obsess_over_service	1
+	event_handler_enabled	1
+	low_flap_threshold	0.000000
+	high_flap_threshold	0.000000
+	flap_detection_enabled	1
+	flap_detection_options	o,w,u,c
+	freshness_threshold	0
+	check_freshness	0
+	notification_options	u,w,c,r,f,s
+	notifications_enabled	1
+	notification_interval	60.000000
+	first_notification_delay	0.000000
+	stalking_options	n
+	process_perf_data	1
+	failure_prediction_enabled	1
+	retain_status_information	1
+	retain_nonstatus_information	1
+	}
+
+define service {
+	host_name	host2
 	service_description	Dummy service
 	check_period	none
 	check_command	check_me

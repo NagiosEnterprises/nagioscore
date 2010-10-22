@@ -257,7 +257,7 @@ main (int argc, char **argv)
     check_result *tmp_check_result;
 
 
-	plan_tests(5);
+	plan_tests(4);
 
 	time(&now);
 
@@ -291,7 +291,9 @@ main (int argc, char **argv)
 
     handle_async_service_check_result( svc1, tmp_check_result );
 
+    /* This has been taken out because it is not required
     ok( svc1->notified_on_critical==FALSE, "notified_on_critical reset" );
+    */
     ok( svc1->last_notification==(time_t)0, "last notification reset due to state change" );
     ok( svc1->next_notification==(time_t)0, "next notification reset due to state change" );
     ok( svc1->no_more_notifications==FALSE, "no_more_notifications reset due to state change" );

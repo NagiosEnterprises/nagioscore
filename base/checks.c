@@ -1150,11 +1150,6 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			delete_service_acknowledgement_comments(temp_service);
 		        }
 
-		/* Reset the notified_on_critical flag if state is WARNING. This allows a transition of */
-		/* OK->WARNING->CRITICAL->WARNING->CRITICAL to notify on the 2nd critical */
-		if(temp_service->current_state==STATE_WARNING)
-			temp_service->notified_on_critical=FALSE;
-
 		/* do NOT reset current notification number!!! */
 		/* hard changes between non-OK states should continue to be escalated, so don't reset current notification number */
 		/*temp_service->current_notification_number=0;*/

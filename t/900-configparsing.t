@@ -27,10 +27,11 @@ system("$nagios -vp '$etc/nagios.cfg' > /dev/null") == 0 or die "Cannot create p
 system("grep -v 'Created:' $precache > '$precache.generated'");
 
 my $diff = "diff -u $precache.expected $precache.generated";
-system("$diff > /dev/null");
+my @output = `$diff`;
 if ($? == 0) {
 	pass( "Nagios precached objects file matches expected" );
 } else {
 	fail( "Nagios precached objects discrepency!!!\nTest with: $diff\nCopy with: cp $precache.generated $precache.expected" );
+	print "#$_" foreach @output;
 }	
 

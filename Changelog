@@ -5,6 +5,7 @@ Nagios 3.x Change Log
 3.2.4 - ?????
 ------------------
 ENHANCEMENTS
+* If a service transitions from OK->WARNING->CRITICAL->WARNING->CRITICAL, the 2nd critical will now have a notification sent
 
 FIXES
 * Fixes status.cgi when called with no parameters, where host should be set to all if none specified (Michael Friedrich)

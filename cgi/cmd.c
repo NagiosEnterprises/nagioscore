@@ -1891,27 +1891,6 @@ void commit_command_data(int cmd){
 	return;
         }
 
-static int cmd_submit(int id){
-	char cmd[MAX_EXTERNAL_COMMAND_LENGTH];
-	const char *command;
-	int len;
-
-	command = extcmd_get_name(id);
-	/*
-	 * We disallow sending 'CHANGE' commands from the cgi's
-	 * until we do proper session handling to prevent cross-site
-	 * request forgery
-	 */
-	if (!command || (strlen(command) > 6 && !memcmp("CHANGE", command, 6)))
-		return ERROR;
-
-	len = snprintf(cmd, sizeof(cmd) - 1, "[%lu] %s;", time(NULL), command);
-	if (len < 0)
-		return ERROR;
-
-	return write_command_to_file(cmd);
-	}
-
 __attribute__((format(printf, 2, 3)))
 static int cmd_submitf(int id, const char *fmt, ...){
 	char cmd[MAX_EXTERNAL_COMMAND_LENGTH];
@@ -1932,11 +1911,13 @@ static int cmd_submitf(int id, const char *fmt, ...){
 	if (len < 0)
 		return ERROR;
 
-	va_start(ap, fmt);
-	len2 = vsnprintf(&cmd[len], sizeof(cmd) - len - 1, fmt, ap);
-	va_end(ap);
-	if (len2 < 0)
-		return ERROR;
+	if (fmt) {
+		va_start(ap, fmt);
+		len2 = vsnprintf(&cmd[len], sizeof(cmd) - len - 1, fmt, ap);
+		va_end(ap);
+		if (len2 < 0)
+			return ERROR;
+	}
 
 	return write_command_to_file(cmd);
 	}
@@ -1999,7 +1980,7 @@ int commit_command(int cmd){
 	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
 	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
 	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
-		result = cmd_submit(cmd);
+		result = cmd_submitf(cmd,NULL);
 		break;
 
 		/** simple host commands **/

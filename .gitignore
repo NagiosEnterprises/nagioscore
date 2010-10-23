@@ -9,3 +9,4 @@ config.log
 config.status
 daemon-init
 /Makefile
+*.o

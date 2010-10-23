@@ -753,19 +753,6 @@ int xodtemplate_process_config_file(char *filename, int options){
 			in_definition=TRUE;
 		        }
 
-		/* this is the close of an object definition */
-		else if(!strcmp(input,"}") && in_definition==TRUE){
-
-			in_definition=FALSE;
-
-			/* close out current definition */
-			if(xodtemplate_end_object_definition(options)==ERROR){
-				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not complete object definition in file '%s' on line %d.\n",filename,current_line);
-				result=ERROR;
-				break;
-			        }
-		        }
-
 		/* we're currently inside an object definition */
 		else if(in_definition==TRUE){
 

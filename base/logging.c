@@ -67,29 +67,18 @@ FILE            *debug_file_fp=NULL;
 /************************ LOGGING FUNCTIONS ***********************/
 /******************************************************************/
 
-/* This needs to be a function rather than a macro. C99 introduces
- * variadic macros, but we need to support compilers that aren't
- * C99 compliant in that area, so a function it is. Hopefully most
- * compilers will just optimize this call away, as it's easily
- * recognizable as not doing anything at all */
-void logit(int data_type, int display, const char *fmt, ...){
-	int len;
-	va_list ap;
-	char *buffer=NULL;
-
-	va_start(ap,fmt);
-	if((len=vasprintf(&buffer,fmt,ap))>0){
-		write_to_logs_and_console(buffer,data_type,display);
-		free(buffer);
-		}
-	va_end(ap);
-
-	return;
-	}
+/* write something to the console */
+static void write_to_console(char *buffer)
+{
+	/* should we print to the console? */
+	if(daemon_mode==FALSE)
+		printf("%s\n",buffer);
+}
 
 
 /* write something to the log file, syslog, and possibly the console */
-int write_to_logs_and_console(char *buffer, unsigned long data_type, int display){
+static void write_to_logs_and_console(char *buffer, unsigned long data_type, int display)
+{
 	register int len=0;
 	register int x=0;
 
@@ -110,24 +99,26 @@ int write_to_logs_and_console(char *buffer, unsigned long data_type, int display
 
 		/* don't display warnings if we're just testing scheduling */
 		if(test_scheduling==TRUE && data_type==NSLOG_VERIFICATION_WARNING)
-			return OK;
+			return;
 
 		write_to_console(buffer);
-	        }
-
-	return OK;
-        }
+	}
+}
 
 
-/* write something to the console */
-int write_to_console(char *buffer){
+/* The main logging function */
+void logit(int data_type, int display, const char *fmt, ...)
+{
+	va_list ap;
+	char *buffer=NULL;
 
-	/* should we print to the console? */
-	if(daemon_mode==FALSE)
-		printf("%s\n",buffer);
-
-	return OK;
-        }
+	va_start(ap,fmt);
+	if (vasprintf(&buffer, fmt, ap) > 0) {
+		write_to_logs_and_console(buffer,data_type,display);
+		free(buffer);
+	}
+	va_end(ap);
+}
 
 
 /* write something to the log file and syslog facility */
@@ -144,16 +135,14 @@ int write_to_all_logs(char *buffer, unsigned long data_type){
 
 
 /* write something to the log file and syslog facility */
-int write_to_all_logs_with_timestamp(char *buffer, unsigned long data_type, time_t *timestamp){
-
+static void write_to_all_logs_with_timestamp(char *buffer, unsigned long data_type, time_t *timestamp)
+{
 	/* write to syslog */
 	write_to_syslog(buffer,data_type);
 
 	/* write to main log */
 	write_to_log(buffer,data_type,timestamp);
-
-	return OK;
-        }
+}
 
 
 /* write something to the nagios log file */

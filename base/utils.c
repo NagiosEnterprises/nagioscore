@@ -1735,7 +1735,7 @@ void setup_sighandler(void){
 	signal(SIGQUIT,sighandler);
 	signal(SIGTERM,sighandler);
 	signal(SIGHUP,sighandler);
-	if(daemon_dumps_core==FALSE || daemon_mode==FALSE)
+	if(daemon_dumps_core==FALSE && daemon_mode==TRUE)
 		signal(SIGSEGV,sighandler);
 
 	return;

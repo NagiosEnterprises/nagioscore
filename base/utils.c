@@ -3002,15 +3002,98 @@ int my_rename(char *source, char *dest){
 	return rename_result;
         }
 
+/*
+ * copy a file from the path at source to the already opened
+ * destination file dest.
+ * This is handy when creating tempfiles with mkstemp()
+ */
+int my_fdcopy(char *source, char *dest, int dest_fd)
+{
+	int source_fd, rd_result = 0, wr_result = 0;
+	off_t tot_written = 0, tot_read = 0, buf_size = 0;
+	struct stat st;
+	char *buf;
 
+	/* open source file for reading */
+	if((source_fd=open(source,O_RDONLY,0644)) < 0){
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to open file '%s' for reading: %s\n",source,strerror(errno));
+		return ERROR;
+	}
+
+	/*
+	 * find out how large the source-file is so we can be sure
+	 * we've written all of it
+	 */
+	if (fstat(source_fd, &st) < 0) {
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to stat source file '%s' for my_fcopy(): %s\n", source, strerror(errno));
+		close(source_fd);
+		return ERROR;
+	}
+
+	/*
+	 * If the file is huge, read it and write it in chunks.
+	 * This value (128K) is the result of "pick-one-at-random"
+	 * with some minimal testing and may not be optimal for all
+	 * hardware setups, but it should work ok for most. It's
+	 * faster than 1K buffers and 1M buffers, so change at your
+	 * own peril. Note that it's useful to make it fit in the L2
+	 * cache, so larger isn't necessarily better.
+	 */
+	buf_size = st.st_size > 128 << 10 ? 128 << 10 : st.st_size;
+	buf = malloc(buf_size);
+	if (!buf) {
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to malloc(%ld) bytes: %s\n", buf_size, strerror(errno));
+		close(source_fd);
+		return ERROR;
+	}
+	/* most of the times, this loop will be gone through once */
+	while (tot_written < st.st_size) {
+		int loop_wr = 0;
+
+		rd_result = read(source_fd, buf, buf_size);
+		if (rd_result < 0) {
+			if (errno == EAGAIN || errno == EINTR)
+				continue;
+			logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: my_fcopy() failed to read from '%s': %s\n", source, strerror(errno));
+			break;
+		}
+		tot_read += rd_result;
+
+		while (loop_wr < rd_result) {
+			wr_result = write(dest_fd, buf + loop_wr, rd_result - loop_wr);
+
+			if (wr_result < 0) {
+				if (errno == EAGAIN || errno == EINTR)
+					continue;
+				logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: my_fcopy() failed to write to '%s': %s\n", dest, strerror(errno));
+				break;
+			}
+			loop_wr += wr_result;
+		}
+		if (wr_result < 0)
+			break;
+		tot_written += loop_wr;
+	}
+
+	/*
+	 * clean up irregardless of how things went. dest_fd comes from
+	 * our caller, so we mustn't close it.
+	 */
+	close(source_fd);
+	free(buf);
+
+	if (rd_result < 0 || wr_result < 0) {
+		/* don't leave half-written files around */
+		unlink(dest);
+		return ERROR;
+	}
+
+	return OK;
+}
 
 /* copies a file */
 int my_fcopy(char *source, char *dest){
-	char buffer[MAX_INPUT_BUFFER]={0};
-	int source_fd=-1;
-	int dest_fd=-1;
-	int bytes_read=0;
-
+	int dest_fd, result;
 
 	/* make sure we have something */
 	if(source==NULL || dest==NULL)
@@ -3020,36 +3103,15 @@ int my_fcopy(char *source, char *dest){
 	unlink(dest);
 
 	/* open destination file for writing */
-	if((dest_fd=open(dest,O_WRONLY|O_TRUNC|O_CREAT|O_APPEND,0644))>0){
-
-		/* open source file for reading */
-		if((source_fd=open(source,O_RDONLY,0644))>0){
-			
-			/* copy file contents */
-			while((bytes_read=read(source_fd,buffer,sizeof(buffer)))>0)
-				write(dest_fd,buffer,bytes_read);
-
-			close(source_fd);
-			close(dest_fd);
-			}
-
-		/* error opening the source file */
-		else{
-			close(dest_fd);
-			logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to open file '%s' for reading: %s\n",source,strerror(errno));
-			return ERROR;
-			}
-		}
-
-	/* error opening destination file */
-	else{
-		close(dest_fd);
+	if((dest_fd=open(dest,O_WRONLY|O_TRUNC|O_CREAT|O_APPEND,0644)) < 0){
 		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to open file '%s' for writing: %s\n",dest,strerror(errno));
 		return ERROR;
-		}
+	}
 
-	return OK;
-        }
+	result = my_fdcopy(source, dest, dest_fd);
+	close(dest_fd);
+	return result;
+}
 
 /******************************************************************/
 /******************** DYNAMIC BUFFER FUNCTIONS ********************/

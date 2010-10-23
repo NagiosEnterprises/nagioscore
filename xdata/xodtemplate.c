@@ -1295,26 +1295,6 @@ int xodtemplate_add_object_property(char *input, int options){
 			if((temp_timeperiod->alias=(char *)strdup(value))==NULL)
 				result=ERROR;
 		        }
-		/*
-		else if(!strcmp(variable,"monday") || !strcmp(variable,"tuesday") || !strcmp(variable,"wednesday") || !strcmp(variable,"thursday") || !strcmp(variable,"friday") || !strcmp(variable,"saturday") || !strcmp(variable,"sunday")){
-			if(!strcmp(variable,"monday"))
-				x=1;
-			else if(!strcmp(variable,"tuesday"))
-				x=2;
-			else if(!strcmp(variable,"wednesday"))
-				x=3;
-			else if(!strcmp(variable,"thursday"))
-				x=4;
-			else if(!strcmp(variable,"friday"))
-				x=5;
-			else if(!strcmp(variable,"saturday"))
-				x=6;
-			else
-				x=0;
-			if((temp_timeperiod->timeranges[x]=(char *)strdup(value))==NULL)
-				result=ERROR;
-		        }
-		*/
 		else if(!strcmp(variable,"exclude")){
 			if((temp_timeperiod->exclusions=(char *)strdup(value))==NULL)
 				result=ERROR;

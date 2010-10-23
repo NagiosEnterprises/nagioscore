@@ -28,7 +28,12 @@
 # Description: Starts and stops the Nagios monitor
 #              used to provide network services status.
 #
-  
+
+# Load any extra environment variables for Nagios and its plugins
+if test -f /etc/sysconfig/nagios; then
+	. /etc/sysconfig/nagios
+fi
+
 status_nagios ()
 {
 

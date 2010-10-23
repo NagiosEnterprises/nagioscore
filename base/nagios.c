@@ -275,11 +275,7 @@ unsigned long   max_debug_file_size=DEFAULT_MAX_DEBUG_FILE_SIZE;
 
 
 /* Following main() declaration required by older versions of Perl ut 5.00503 */
-#ifdef EMBEDDEDPERL
 int main(int argc, char **argv, char **env){
-#else
-int main(int argc, char **argv){
-#endif
 	int result;
 	int error=FALSE;
 	char *buffer=NULL;

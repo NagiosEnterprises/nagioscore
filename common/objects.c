@@ -404,7 +404,6 @@ int get_service_count(void){
 /* add a new timeperiod to the list in memory */
 timeperiod *add_timeperiod(char *name,char *alias){
 	timeperiod *new_timeperiod=NULL;
-	int x=0;
 	int result=OK;
 
 	/* make sure we have the data we need */
@@ -414,19 +413,8 @@ timeperiod *add_timeperiod(char *name,char *alias){
 	        }
 
 	/* allocate memory for the new timeperiod */
-	if((new_timeperiod=malloc(sizeof(timeperiod)))==NULL)
+	if((new_timeperiod=calloc(1, sizeof(timeperiod)))==NULL)
 		return NULL;
-
-	/* initialize values */
-	new_timeperiod->name=NULL;
-	new_timeperiod->alias=NULL;
-	for(x=0;x<DATERANGE_TYPES;x++)
-		new_timeperiod->exceptions[x]=NULL;
-	for(x=0;x<7;x++)
-		new_timeperiod->days[x]=NULL;
-	new_timeperiod->exclusions=NULL;
-	new_timeperiod->next=NULL;
-	new_timeperiod->nexthash=NULL;
 
 	/* copy string vars */
 	if((new_timeperiod->name=(char *)strdup(name))==NULL)
@@ -641,46 +629,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	        }
 
 	/* allocate memory for a new host */
-	if((new_host=(host *)malloc(sizeof(host)))==NULL)
+	if((new_host=(host *)calloc(1, sizeof(host)))==NULL)
 		return NULL;
-
-	/* initialize values */
-	new_host->name=NULL;
-	new_host->alias=NULL;
-	new_host->address=NULL;
-	new_host->check_period=NULL;
-	new_host->notification_period=NULL;
-	new_host->host_check_command=NULL;
-	new_host->event_handler=NULL;
-	new_host->failure_prediction_options=NULL;
-	new_host->display_name=NULL;
-	new_host->parent_hosts=NULL;
-	new_host->child_hosts=NULL;
-	new_host->services=NULL;
-	new_host->contact_groups=NULL;
-	new_host->contacts=NULL;
-	new_host->notes=NULL;
-	new_host->notes_url=NULL;
-	new_host->action_url=NULL;
-	new_host->icon_image=NULL;
-	new_host->icon_image_alt=NULL;
-	new_host->vrml_image=NULL;
-	new_host->statusmap_image=NULL;
-	new_host->custom_variables=NULL;
-#ifdef NSCORE
-	new_host->plugin_output=NULL;
-	new_host->long_plugin_output=NULL;
-	new_host->perf_data=NULL;
-
-	new_host->event_handler_ptr=NULL;
-	new_host->check_command_ptr=NULL;
-	new_host->check_period_ptr=NULL;
-	new_host->notification_period_ptr=NULL;
-	new_host->hostgroups_ptr=NULL;
-#endif
-	new_host->next=NULL;
-	new_host->nexthash=NULL;
-
 
 	/* duplicate string vars */
 	if((new_host->name=(char *)strdup(name))==NULL)
@@ -908,14 +858,8 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 	        }
 
 	/* allocate memory */
-	if((new_hostsmember=(hostsmember *)malloc(sizeof(hostsmember)))==NULL)
+	if((new_hostsmember=(hostsmember *)calloc(1, sizeof(hostsmember)))==NULL)
 		return NULL;
-
-	/* initialize values */
-	new_hostsmember->host_name=NULL;
-#ifdef NSCORE
-	new_hostsmember->host_ptr=NULL;
-#endif
 
 	/* duplicate string vars */
 	if((new_hostsmember->host_name=(char *)strdup(host_name))==NULL)
@@ -971,12 +915,10 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr){
 		return NULL;
 
 	/* allocate memory */
-	if((new_servicesmember=(servicesmember *)malloc(sizeof(servicesmember)))==NULL)
+	if((new_servicesmember=(servicesmember *)calloc(1, sizeof(servicesmember)))==NULL)
 		return NULL;
 
 	/* initialize values */
-	new_servicesmember->host_name=NULL;
-	new_servicesmember->service_description=NULL;
 #ifdef NSCORE
 	new_servicesmember->service_ptr=service_ptr;
 #endif
@@ -1002,14 +944,8 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 	        }
 
 	/* allocate memory for a new member */
-	if((new_contactgroupsmember=malloc(sizeof(contactgroupsmember)))==NULL)
+	if((new_contactgroupsmember=calloc(1, sizeof(contactgroupsmember)))==NULL)
 		return NULL;
-	
-	/* initialize vars */
-	new_contactgroupsmember->group_name=NULL;
-#ifdef NSCORE
-	new_contactgroupsmember->group_ptr=NULL;
-#endif
 
 	/* duplicate string vars */
 	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
@@ -1059,18 +995,8 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 	        }
 
 	/* allocate memory */
-	if((new_hostgroup=(hostgroup *)malloc(sizeof(hostgroup)))==NULL)
+	if((new_hostgroup=(hostgroup *)calloc(1, sizeof(hostgroup)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_hostgroup->group_name=NULL;
-	new_hostgroup->alias=NULL;
-	new_hostgroup->members=NULL;
-	new_hostgroup->notes=NULL;
-	new_hostgroup->notes_url=NULL;
-	new_hostgroup->action_url=NULL;
-	new_hostgroup->next=NULL;
-	new_hostgroup->nexthash=NULL;
 
 	/* duplicate vars */
 	if((new_hostgroup->group_name=(char *)strdup(name))==NULL)
@@ -1144,14 +1070,8 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name){
 	        }
 
 	/* allocate memory for a new member */
-	if((new_member=malloc(sizeof(hostsmember)))==NULL)
+	if((new_member=calloc(1, sizeof(hostsmember)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_member->host_name=NULL;
-#ifdef NSCORE
-	new_member->host_ptr=NULL;
-#endif
 
 	/* duplicate vars */
 	if((new_member->host_name=(char *)strdup(host_name))==NULL)
@@ -1203,18 +1123,8 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 	        }
 
 	/* allocate memory */
-	if((new_servicegroup=(servicegroup *)malloc(sizeof(servicegroup)))==NULL)
+	if((new_servicegroup=(servicegroup *)calloc(1, sizeof(servicegroup)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_servicegroup->group_name=NULL;
-	new_servicegroup->alias=NULL;
-	new_servicegroup->members=NULL;
-	new_servicegroup->notes=NULL;
-	new_servicegroup->notes_url=NULL;
-	new_servicegroup->action_url=NULL;
-	new_servicegroup->next=NULL;
-	new_servicegroup->nexthash=NULL;
 
 	/* duplicate vars */
 	if((new_servicegroup->group_name=(char *)strdup(name))==NULL)
@@ -1288,15 +1198,8 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 	        }
 
 	/* allocate memory for a new member */
-	if((new_member=malloc(sizeof(servicesmember)))==NULL)
+	if((new_member=calloc(1, sizeof(servicesmember)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_member->host_name=NULL;
-	new_member->service_description=NULL;
-#ifdef NSCORE
-	new_member->service_ptr=NULL;
-#endif
 
 	/* duplicate vars */
 	if((new_member->host_name=(char *)strdup(host_name))==NULL)
@@ -1363,23 +1266,8 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	        }
 
 	/* allocate memory for a new contact */
-	if((new_contact=(contact *)malloc(sizeof(contact)))==NULL)
+	if((new_contact=(contact *)calloc(1, sizeof(contact)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_contact->name=NULL;
-	new_contact->alias=NULL;
-	new_contact->email=NULL;
-	new_contact->pager=NULL;
-	for(x=0;x<MAX_CONTACT_ADDRESSES;x++)
-		new_contact->address[x]=NULL;
-	new_contact->host_notification_commands=NULL;
-	new_contact->service_notification_commands=NULL;
-	new_contact->host_notification_period=NULL;
-	new_contact->service_notification_period=NULL;
-	new_contact->custom_variables=NULL;
-	new_contact->next=NULL;
-	new_contact->nexthash=NULL;
 
 	/* duplicate vars */
 	if((new_contact->name=(char *)strdup(name))==NULL)
@@ -1498,14 +1386,8 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct,char *co
 	        }
 
 	/* allocate memory */
-	if((new_commandsmember=malloc(sizeof(commandsmember)))==NULL)
+	if((new_commandsmember=calloc(1, sizeof(commandsmember)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_commandsmember->command=NULL;
-#ifdef NSCORE
-	new_commandsmember->command_ptr=NULL;
-#endif
 
 	/* duplicate vars */
 	if((new_commandsmember->command=(char *)strdup(command_name))==NULL)
@@ -1539,14 +1421,8 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct,char 
 	        }
 
 	/* allocate memory */
-	if((new_commandsmember=malloc(sizeof(commandsmember)))==NULL)
+	if((new_commandsmember=calloc(1, sizeof(commandsmember)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_commandsmember->command=NULL;
-#ifdef NSCORE
-	new_commandsmember->command_ptr=NULL;
-#endif
 
 	/* duplicate vars */
 	if((new_commandsmember->command=(char *)strdup(command_name))==NULL)
@@ -1588,15 +1464,8 @@ contactgroup *add_contactgroup(char *name,char *alias){
 	        }
 
 	/* allocate memory for a new contactgroup entry */
-	if((new_contactgroup=malloc(sizeof(contactgroup)))==NULL)
+	if((new_contactgroup=calloc(1, sizeof(contactgroup)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_contactgroup->group_name=NULL;
-	new_contactgroup->alias=NULL;
-	new_contactgroup->members=NULL;
-	new_contactgroup->next=NULL;
-	new_contactgroup->nexthash=NULL;
 
 	/* duplicate vars */
 	if((new_contactgroup->group_name=(char *)strdup(name))==NULL)
@@ -1657,14 +1526,8 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 	        }
 
 	/* allocate memory for a new member */
-	if((new_contactsmember=malloc(sizeof(contactsmember)))==NULL)
+	if((new_contactsmember=calloc(1, sizeof(contactsmember)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_contactsmember->contact_name=NULL;
-#ifdef NSCORE
-	new_contactsmember->contact_ptr=NULL;
-#endif
 
 	/* duplicate vars */
 	if((new_contactsmember->contact_name=(char *)strdup(contact_name))==NULL)
@@ -1712,41 +1575,8 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	        }
 
 	/* allocate memory */
-	if((new_service=(service *)malloc(sizeof(service)))==NULL)
+	if((new_service=(service *)calloc(1, sizeof(service)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_service->host_name=NULL;
-	new_service->description=NULL;
-	new_service->display_name=NULL;
-	new_service->event_handler=NULL;
-	new_service->notification_period=NULL;
-	new_service->check_period=NULL;
-	new_service->failure_prediction_options=NULL;
-	new_service->notes=NULL;
-	new_service->notes_url=NULL;
-	new_service->action_url=NULL;
-	new_service->icon_image=NULL;
-	new_service->icon_image_alt=NULL;
-	new_service->contact_groups=NULL;
-	new_service->contacts=NULL;
-	new_service->custom_variables=NULL;
-#ifdef NSCORE
-	new_service->plugin_output=NULL;
-	new_service->long_plugin_output=NULL;
-	new_service->perf_data=NULL;
-
-	new_service->host_ptr=NULL;
-	new_service->event_handler_ptr=NULL;
-	new_service->event_handler_args=NULL;
-	new_service->check_command_ptr=NULL;
-	new_service->check_command_args=NULL;
-	new_service->check_period_ptr=NULL;
-	new_service->notification_period_ptr=NULL;
-	new_service->servicegroups_ptr=NULL;
-#endif
-	new_service->next=NULL;
-	new_service->nexthash=NULL;
 
 	/* duplicate vars */
 	if((new_service->host_name=(char *)strdup(host_name))==NULL)
@@ -1940,15 +1770,9 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 	        }
 
 	/* allocate memory for the contactgroups member */
-	if((new_contactgroupsmember=malloc(sizeof(contactgroupsmember)))==NULL)
+	if((new_contactgroupsmember=calloc(1, sizeof(contactgroupsmember)))==NULL)
 		return NULL;
 
-	/* initialize vars */
-	new_contactgroupsmember->group_name=NULL;
-#ifdef NSCORE
-	new_contactgroupsmember->group_ptr=NULL;
-#endif
-	
 	/* duplicate vars */
 	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
 		result=ERROR;
@@ -1996,14 +1820,8 @@ command *add_command(char *name,char *value){
 	        }
 
 	/* allocate memory for the new command */
-	if((new_command=(command *)malloc(sizeof(command)))==NULL)
+	if((new_command=(command *)calloc(1, sizeof(command)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_command->name=NULL;
-	new_command->command_line=NULL;
-	new_command->next=NULL;
-	new_command->nexthash=NULL;
 
 	/* duplicate vars */
 	if((new_command->name=(char *)strdup(name))==NULL)
@@ -2068,21 +1886,8 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 #endif
 
 	/* allocate memory for a new service escalation entry */
-	if((new_serviceescalation=malloc(sizeof(serviceescalation)))==NULL)
+	if((new_serviceescalation=calloc(1, sizeof(serviceescalation)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_serviceescalation->host_name=NULL;
-	new_serviceescalation->description=NULL;
-	new_serviceescalation->escalation_period=NULL;
-	new_serviceescalation->contact_groups=NULL;
-	new_serviceescalation->contacts=NULL;
-	new_serviceescalation->next=NULL;
-	new_serviceescalation->nexthash=NULL;
-#ifdef NSCORE
-	new_serviceescalation->service_ptr=NULL;
-	new_serviceescalation->escalation_period_ptr=NULL;
-#endif
 
 	/* duplicate vars */
 	if((new_serviceescalation->host_name=(char *)strdup(host_name))==NULL)
@@ -2152,14 +1957,8 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 	        }
 
 	/* allocate memory for the contactgroups member */
-	if((new_contactgroupsmember=(contactgroupsmember *)malloc(sizeof(contactgroupsmember)))==NULL)
+	if((new_contactgroupsmember=(contactgroupsmember *)calloc(1, sizeof(contactgroupsmember)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_contactgroupsmember->group_name=NULL;
-#ifdef NSCORE
-	new_contactgroupsmember->group_ptr=NULL;
-#endif
 
 	/* duplicate vars */
 	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
@@ -2205,22 +2004,8 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	        }
 
 	/* allocate memory for a new service dependency entry */
-	if((new_servicedependency=(servicedependency *)malloc(sizeof(servicedependency)))==NULL)
+	if((new_servicedependency=(servicedependency *)calloc(1, sizeof(servicedependency)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_servicedependency->dependent_host_name=NULL;
-	new_servicedependency->dependent_service_description=NULL;
-	new_servicedependency->host_name=NULL;
-	new_servicedependency->service_description=NULL;
-	new_servicedependency->dependency_period=NULL;
-	new_servicedependency->next=NULL;
-	new_servicedependency->nexthash=NULL;
-#ifdef NSCORE
-	new_servicedependency->master_service_ptr=NULL;
-	new_servicedependency->dependent_service_ptr=NULL;
-#endif
-
 
 	/* duplicate vars */
 	if((new_servicedependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
@@ -2298,20 +2083,8 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	        }
 
 	/* allocate memory for a new host dependency entry */
-	if((new_hostdependency=(hostdependency *)malloc(sizeof(hostdependency)))==NULL)
+	if((new_hostdependency=(hostdependency *)calloc(1, sizeof(hostdependency)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_hostdependency->dependent_host_name=NULL;
-	new_hostdependency->host_name=NULL;
-	new_hostdependency->dependency_period=NULL;
-	new_hostdependency->next=NULL;
-	new_hostdependency->nexthash=NULL;
-#ifdef NSCORE
-	new_hostdependency->master_host_ptr=NULL;
-	new_hostdependency->dependent_host_ptr=NULL;
-	new_hostdependency->dependency_period_ptr=NULL;
-#endif
 
 	/* duplicate vars */
 	if((new_hostdependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
@@ -2387,20 +2160,8 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 #endif
 
 	/* allocate memory for a new host escalation entry */
-	if((new_hostescalation=malloc(sizeof(hostescalation)))==NULL)
+	if((new_hostescalation=calloc(1, sizeof(hostescalation)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_hostescalation->host_name=NULL;
-	new_hostescalation->escalation_period=NULL;
-	new_hostescalation->contact_groups=NULL;
-	new_hostescalation->contacts=NULL;
-	new_hostescalation->next=NULL;
-	new_hostescalation->nexthash=NULL;
-#ifdef NSCORE
-	new_hostescalation->host_ptr=NULL;
-	new_hostescalation->escalation_period_ptr=NULL;
-#endif
 
 	/* duplicate vars */
 	if((new_hostescalation->host_name=(char *)strdup(host_name))==NULL)
@@ -2466,14 +2227,8 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 	        }
 
 	/* allocate memory for the contactgroups member */
-	if((new_contactgroupsmember=(contactgroupsmember *)malloc(sizeof(contactgroupsmember)))==NULL)
+	if((new_contactgroupsmember=(contactgroupsmember *)calloc(1, sizeof(contactgroupsmember)))==NULL)
 		return NULL;
-
-	/* initialize vars */
-	new_contactgroupsmember->group_name=NULL;
-#ifdef NSCORE
-	new_contactgroupsmember->group_ptr=NULL;
-#endif
 
 	/* duplicate vars */
 	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)

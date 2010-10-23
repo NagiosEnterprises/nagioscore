@@ -96,7 +96,12 @@ Notification escalations are explained <a href="escalations.html">here</a>.
 
 <p>
 
-The decision to send out notifications is made in the service check and host check logic.  Host and service notifications occur in the following instances...
+The decision to send out notifications is made in the service check and host
+check logic. The calculations for whether a notification is to be sent are
+only triggered when processing a host or service check corresponding to that
+notification; they are not triggered simply because the
+&lt;notification_interval&gt; has passed since a previous notification was
+sent.  Host and service notifications occur in the following instances...
 
 </p>
 

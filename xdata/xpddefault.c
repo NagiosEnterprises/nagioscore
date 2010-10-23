@@ -571,7 +571,7 @@ int xpddefault_close_host_perfdata_file(void){
 
 	if(xpddefault_host_perfdata_fp!=NULL)
 		fclose(xpddefault_host_perfdata_fp);
-	if(xpddefault_host_perfdata_fd>0){
+	if(xpddefault_host_perfdata_fd>=0){
 		close(xpddefault_host_perfdata_fd);
 		xpddefault_host_perfdata_fd=-1;
 		}
@@ -585,7 +585,7 @@ int xpddefault_close_service_perfdata_file(void){
 
 	if(xpddefault_service_perfdata_fp!=NULL)
 		fclose(xpddefault_service_perfdata_fp);
-	if(xpddefault_service_perfdata_fd>0){
+	if(xpddefault_service_perfdata_fd>=0){
 		close(xpddefault_service_perfdata_fd);
 		xpddefault_service_perfdata_fd=-1;
 		}

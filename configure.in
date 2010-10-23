@@ -5,7 +5,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 AC_INIT(base/nagios.c)
-AC_CONFIG_HEADER(include/config.h include/snprintf.h include/cgiutils.h)
+AC_CONFIG_HEADER(include/config.h include/snprintf.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios

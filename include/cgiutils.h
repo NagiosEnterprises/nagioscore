@@ -5,7 +5,7 @@
  * Last Modified: 10-15-2008
  *
  * License:
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
@@ -23,22 +23,13 @@
 #ifndef _CGIUTILS_H
 #define _CGIUTILS_H
 
+#include "config.h"
 #include "objects.h"
 #include "cgiauth.h"
 
 #ifdef __cplusplus
-extern "C" { 
+extern "C" {
 #endif
-
-/* should we compile and use the statusmap CGI? */
-#undef USE_STATUSMAP
-/* should we compile and use the statuswrl CGI? */
-#undef USE_STATUSWRL
-/* should we compile and use the trends CGI? */
-#undef USE_TRENDS
-/* should we compile and use the histogram CGI? */
-#undef USE_HISTOGRAM
-
 
 /**************************** CGI REFRESH RATE ******************************/
 
@@ -101,21 +92,21 @@ extern "C" {
 #define START_ICON_ALT			"Program Start"
 #define STOP_ICON			"stop.gif"
 #define STOP_ICON_ALT			"Program End"
-#define RESTART_ICON			"restart.gif" 
+#define RESTART_ICON			"restart.gif"
 #define RESTART_ICON_ALT		"Program Restart"
-#define OK_ICON				"recovery.png" 
+#define OK_ICON				"recovery.png"
 #define OK_ICON_ALT			"Service Ok"
-#define CRITICAL_ICON			"critical.png" 
+#define CRITICAL_ICON			"critical.png"
 #define CRITICAL_ICON_ALT		"Service Critical"
-#define WARNING_ICON			"warning.png" 
+#define WARNING_ICON			"warning.png"
 #define WARNING_ICON_ALT		"Service Warning"
-#define UNKNOWN_ICON			"unknown.png" 
+#define UNKNOWN_ICON			"unknown.png"
 #define UNKNOWN_ICON_ALT		"Service Unknown"
-#define NOTIFICATION_ICON		"notify.gif" 
+#define NOTIFICATION_ICON		"notify.gif"
 #define NOTIFICATION_ICON_ALT		"Service Notification"
-#define LOG_ROTATION_ICON		"logrotate.png" 
+#define LOG_ROTATION_ICON		"logrotate.png"
 #define LOG_ROTATION_ICON_ALT		"Log Rotation"
-#define EXTERNAL_COMMAND_ICON		"command.png" 
+#define EXTERNAL_COMMAND_ICON		"command.png"
 #define EXTERNAL_COMMAND_ICON_ALT	"External Command"
 
 #define STATUS_DETAIL_ICON		"status2.gif"
@@ -496,4 +487,3 @@ char *pop_lifo(void);
 #endif
 
 #endif
-

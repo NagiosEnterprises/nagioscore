@@ -8,6 +8,6 @@ clean:
 	rm -f *~
 
 distclean: clean
-	rm -f cgiutils.h config.h locations.h snprintf.h
+	rm -f config.h locations.h snprintf.h
 
 devclean: distclean

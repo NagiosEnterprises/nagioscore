@@ -64,6 +64,17 @@
 #undef USE_XDDDEFAULT
 
 
+/***** CGI COMPILE OPTIONS *****/
+/* should we compile and use the statusmap CGI? */
+#undef USE_STATUSMAP
+/* should we compile and use the statuswrl CGI? */
+#undef USE_STATUSWRL
+/* should we compile and use the trends CGI? */
+#undef USE_TRENDS
+/* should we compile and use the histogram CGI? */
+#undef USE_HISTOGRAM
+
+
 
 /***** FUNCTION DEFINITIONS *****/
 

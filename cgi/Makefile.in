@@ -75,7 +75,7 @@ DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 # Common CGI functions (includes object and status functions)
-CGILIBS=getcgi.o cgiutils.o cgiauth.o macros-cgi.o skiplist.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS)
+CGILIBS=$(SRC_COMMON)/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o skiplist.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS)
 CGIHDRS=$(SRC_INCLUDE)/config.h $(SRC_INCLUDE)/common.h $(SRC_INCLUDE)/locations.h
 CGIDEPS=$(CGILIBS) $(ODATADEPS) $(SDATADEPS)
 
@@ -121,6 +121,8 @@ downtime-cgi.o: $(SRC_COMMON)/downtime.c $(SRC_INCLUDE)/downtime.h
 xdowntime-cgi.o: $(SRC_XDATA)/$(XDDC) $(SRC_XDATA)/$(XDDH)
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XDDC)
 
+$(SRC_COMMON)/shared.o: $(SRC_COMMON)/shared.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 ########## CGIS ##########
 

@@ -22,8 +22,8 @@
  *
  *****************************************************************************/
 
-#include "../include/common.h"
 #include "../include/config.h"
+#include "../include/common.h"
 #include "../include/objects.h"
 
 #include "../include/cgiutils.h"

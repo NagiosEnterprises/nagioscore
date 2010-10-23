@@ -430,18 +430,6 @@ typedef struct circular_buffer_struct{
         }circular_buffer;
 
 
-/* MMAPFILE structure - used for reading files via mmap() */
-typedef struct mmapfile_struct{
-	char *path;
-	int mode;
-	int fd;
-	unsigned long file_size;
-	unsigned long current_position;
-	unsigned long current_line;
-	void *mmap_buf;
-        }mmapfile;
-
-
 /* DBUF structure - dynamic string storage */
 typedef struct dbuf_struct{
 	char *buf;
@@ -650,20 +638,12 @@ int reset_variables(void);                           	/* reset all global variab
 void free_notification_list(void);		     	/* frees all memory allocated to the notification list */
 
 
-/**** Hash Functions ****/
-int hashfunc(const char *name1, const char *name2, int hashslots);
-int compare_hashdata(const char *,const char *,const char *,const char *);
-
-
 /**** Miscellaneous Functions ****/
 void sighandler(int);                                	/* handles signals */
 void service_check_sighandler(int);                     /* handles timeouts when executing service checks */
 void host_check_sighandler(int);                        /* handles timeouts when executing host checks */
 void my_system_sighandler(int);				/* handles timeouts when executing commands via my_system() */
 void file_lock_sighandler(int);				/* handles timeouts while waiting for file locks */
-void strip(char *);                                  	/* strips whitespace from string */  
-char *my_strtok(char *,char *);                      	/* my replacement for strtok() function (doesn't skip consecutive tokens) */
-char *my_strsep(char **,const char *);		     	/* Solaris doesn't have strsep(), so I took this from the glibc source code */
 char *get_next_string_from_buf(char *buf, int *start_index, int bufsize);
 int compare_strings(char *,char *);                     /* compares two strings for equality */
 char *escape_newlines(char *);
@@ -676,8 +656,6 @@ int is_daterange_single_day(daterange *);
 time_t calculate_time_from_weekday_of_month(int,int,int,int);	/* calculates midnight time of specific (3rd, last, etc.) weekday of a particular month */
 time_t calculate_time_from_day_of_month(int,int,int);	/* calculates midnight time of specific (1st, last, etc.) day of a particular month */
 void get_next_valid_time(time_t, time_t *,timeperiod *);	/* get the next valid time in a time period */
-void get_datetime_string(time_t *,char *,int,int);	/* get a date/time string for use in output */
-void get_time_breakdown(unsigned long,int *,int *,int *, int *);
 time_t get_next_log_rotation_time(void);	     	/* determine the next time to schedule a log rotation */
 int init_embedded_perl(char **);			/* initialized embedded perl interpreter */
 int deinit_embedded_perl(void);				/* cleans up embedded perl */
@@ -804,12 +782,6 @@ int submit_raw_external_command(char *,time_t *,int *);
 
 char *get_program_version(void);
 char *get_program_modification_date(void);
-
-mmapfile *mmap_fopen(char *);				/* open a file read-only via mmap() */
-int mmap_fclose(mmapfile *);
-char *mmap_fgets(mmapfile *);
-char *mmap_fgets_multiline(mmapfile *);
-
 
 #ifdef __cplusplus
 }

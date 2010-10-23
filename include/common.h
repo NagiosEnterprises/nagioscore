@@ -20,6 +20,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************/
 
+#include "shared.h"
 
 #define PROGRAM_VERSION "3.2.3"
 #define PROGRAM_MODIFICATION_DATE "10-03-2010"

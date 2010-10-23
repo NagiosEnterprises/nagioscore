@@ -849,6 +849,42 @@ int xodtemplate_process_config_file(char *filename, int options){
 /***************** OBJECT DEFINITION FUNCTIONS ********************/
 /******************************************************************/
 
+/*
+ * all objects start the same way, so we can get rid of quite
+ * a lot of code with this struct-offset-insensitive macro
+ */
+#define xod_begin_def(type) \
+	do { \
+		new_##type = (xodtemplate_##type *)calloc(1, sizeof(*new_##type)); \
+		if (new_##type == NULL) \
+			return ERROR; \
+		new_##type->register_object=TRUE; \
+		new_##type->_config_file=config_file; \
+		new_##type->_start_line=start_line; \
+	\
+		/* precached object files are already sorted, so add to tail */ \
+		if(presorted_objects==TRUE){ \
+			\
+			if(xodtemplate_##type##_list==NULL){ \
+				xodtemplate_##type##_list=new_##type; \
+				xodtemplate_##type##_list_tail=xodtemplate_##type##_list; \
+			} else { \
+				xodtemplate_##type##_list_tail->next=new_##type; \
+				xodtemplate_##type##_list_tail=new_##type; \
+			} \
+	\
+			/* update current object pointer */ \
+			xodtemplate_current_object=xodtemplate_##type##_list_tail; \
+		} else { \
+			/* add new object to head of list in memory */ \
+			new_##type->next=xodtemplate_##type##_list; \
+			xodtemplate_##type##_list=new_##type; \
+	\
+			/* update current object pointer */ \
+			xodtemplate_current_object=xodtemplate_##type##_list; \
+		} \
+	} while (0)
+
 /* starts a new object definition */
 int xodtemplate_begin_object_definition(char *input, int options, int config_file, int start_line){
 	int result=OK;
@@ -970,1044 +1006,111 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 	switch(xodtemplate_current_object_type){
 
 	case XODTEMPLATE_TIMEPERIOD:
-
-		/* allocate memory */
-		new_timeperiod=(xodtemplate_timeperiod *)malloc(sizeof(xodtemplate_timeperiod));
-		if(new_timeperiod==NULL)
-			return ERROR;
-
-		new_timeperiod->template=NULL;
-		new_timeperiod->name=NULL;
-
-		new_timeperiod->timeperiod_name=NULL;
-		new_timeperiod->alias=NULL;
-		for(x=0;x<7;x++)
-			new_timeperiod->timeranges[x]=NULL;
-		for(x=0;x<DATERANGE_TYPES;x++)
-			new_timeperiod->exceptions[x]=NULL;
-		new_timeperiod->exclusions=NULL;
-		new_timeperiod->has_been_resolved=FALSE;
-		new_timeperiod->register_object=TRUE;
-
-		new_timeperiod->_config_file=config_file;
-		new_timeperiod->_start_line=start_line;
-		new_timeperiod->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_timeperiod_list==NULL){
-				xodtemplate_timeperiod_list=new_timeperiod;
-				xodtemplate_timeperiod_list_tail=xodtemplate_timeperiod_list;
-				}
-			else{
-				xodtemplate_timeperiod_list_tail->next=new_timeperiod;
-				xodtemplate_timeperiod_list_tail=new_timeperiod;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_timeperiod_list_tail;
-			}
-
-		/* add new timeperiod to head of list in memory */
-		else{
-			new_timeperiod->next=xodtemplate_timeperiod_list;
-			xodtemplate_timeperiod_list=new_timeperiod;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_timeperiod_list;
-			}
-
+		xod_begin_def(timeperiod);
 		break;
 
 	case XODTEMPLATE_COMMAND:
-
-		/* allocate memory */
-		new_command=(xodtemplate_command *)malloc(sizeof(xodtemplate_command));
-		if(new_command==NULL)
-			return ERROR;
-		
-		new_command->template=NULL;
-		new_command->name=NULL;
-
-		new_command->command_name=NULL;
-		new_command->command_line=NULL;
-		new_command->has_been_resolved=FALSE;
-		new_command->register_object=TRUE;
-
-		new_command->_config_file=config_file;
-		new_command->_start_line=start_line;
-
-		new_command->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_command_list==NULL){
-				xodtemplate_command_list=new_command;
-				xodtemplate_command_list_tail=xodtemplate_command_list;
-				}
-			else{
-				xodtemplate_command_list_tail->next=new_command;
-				xodtemplate_command_list_tail=new_command;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_command_list_tail;
-			}
-
-		/* add new command to head of list in memory */
-		else{
-
-			new_command->next=xodtemplate_command_list;
-			xodtemplate_command_list=new_command;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_command_list;
-			}
-
+		xod_begin_def(command);
 		break;
 
 	case XODTEMPLATE_CONTACTGROUP:
-
-		/* allocate memory */
-		new_contactgroup=(xodtemplate_contactgroup *)malloc(sizeof(xodtemplate_contactgroup));
-		if(new_contactgroup==NULL)
-			return ERROR;
-		
-		new_contactgroup->template=NULL;
-		new_contactgroup->name=NULL;
-
-		new_contactgroup->contactgroup_name=NULL;
-		new_contactgroup->alias=NULL;
-		new_contactgroup->members=NULL;
-		new_contactgroup->have_members=FALSE;
-		new_contactgroup->contactgroup_members=NULL;
-		new_contactgroup->have_contactgroup_members=FALSE;
-		new_contactgroup->has_been_resolved=FALSE;
-		new_contactgroup->register_object=TRUE;
-
-		new_contactgroup->_config_file=config_file;
-		new_contactgroup->_start_line=start_line;
-		new_contactgroup->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_contactgroup_list==NULL){
-				xodtemplate_contactgroup_list=new_contactgroup;
-				xodtemplate_contactgroup_list_tail=xodtemplate_contactgroup_list;
-				}
-			else{
-				xodtemplate_contactgroup_list_tail->next=new_contactgroup;
-				xodtemplate_contactgroup_list_tail=new_contactgroup;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_contactgroup_list_tail;
-			}
-
-		/* add new contactgroup to head of list in memory */
-		else{
-
-			new_contactgroup->next=xodtemplate_contactgroup_list;
-			xodtemplate_contactgroup_list=new_contactgroup;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_contactgroup_list;
-			}
+		xod_begin_def(contactgroup);
 		break;
 
-
 	case XODTEMPLATE_HOSTGROUP:
-
-		/* allocate memory */
-		new_hostgroup=(xodtemplate_hostgroup *)malloc(sizeof(xodtemplate_hostgroup));
-		if(new_hostgroup==NULL)
-			return ERROR;
-		
-		new_hostgroup->template=NULL;
-		new_hostgroup->name=NULL;
-
-		new_hostgroup->hostgroup_name=NULL;
-		new_hostgroup->alias=NULL;
-		new_hostgroup->members=NULL;
-		new_hostgroup->notes=NULL;
-		new_hostgroup->notes_url=NULL;
-		new_hostgroup->action_url=NULL;
-		new_hostgroup->have_members=FALSE;
-		new_hostgroup->hostgroup_members=NULL;
-		new_hostgroup->have_hostgroup_members=FALSE;
-		new_hostgroup->have_notes=FALSE;
-		new_hostgroup->have_notes_url=FALSE;
-		new_hostgroup->have_action_url=FALSE;
-		new_hostgroup->has_been_resolved=FALSE;
-		new_hostgroup->register_object=TRUE;
-
-		new_hostgroup->_config_file=config_file;
-		new_hostgroup->_start_line=start_line;
-		new_hostgroup->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_hostgroup_list==NULL){
-				xodtemplate_hostgroup_list=new_hostgroup;
-				xodtemplate_hostgroup_list_tail=xodtemplate_hostgroup_list;
-				}
-			else{
-				xodtemplate_hostgroup_list_tail->next=new_hostgroup;
-				xodtemplate_hostgroup_list_tail=new_hostgroup;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_hostgroup_list_tail;
-			}
-
-		/* add new hostgroup to head of list in memory */
-		else{
-
-			new_hostgroup->next=xodtemplate_hostgroup_list;
-			xodtemplate_hostgroup_list=new_hostgroup;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_hostgroup_list;
-			}
+		xod_begin_def(hostgroup);
 		break;
 
 	case XODTEMPLATE_SERVICEGROUP:
-
-		/* allocate memory */
-		new_servicegroup=(xodtemplate_servicegroup *)malloc(sizeof(xodtemplate_servicegroup));
-		if(new_servicegroup==NULL)
-			return ERROR;
-		
-		new_servicegroup->template=NULL;
-		new_servicegroup->name=NULL;
-
-		new_servicegroup->servicegroup_name=NULL;
-		new_servicegroup->alias=NULL;
-		new_servicegroup->members=NULL;
-		new_servicegroup->notes=NULL;
-		new_servicegroup->notes_url=NULL;
-		new_servicegroup->action_url=NULL;
-		new_servicegroup->have_members=FALSE;
-		new_servicegroup->servicegroup_members=NULL;
-		new_servicegroup->have_servicegroup_members=FALSE;
-		new_servicegroup->have_notes=FALSE;
-		new_servicegroup->have_notes_url=FALSE;
-		new_servicegroup->have_action_url=FALSE;
-		new_servicegroup->has_been_resolved=FALSE;
-		new_servicegroup->register_object=TRUE;
-
-		new_servicegroup->_config_file=config_file;
-		new_servicegroup->_start_line=start_line;
-		new_servicegroup->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_servicegroup_list==NULL){
-				xodtemplate_servicegroup_list=new_servicegroup;
-				xodtemplate_servicegroup_list_tail=xodtemplate_servicegroup_list;
-				}
-			else{
-				xodtemplate_servicegroup_list_tail->next=new_servicegroup;
-				xodtemplate_servicegroup_list_tail=new_servicegroup;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_servicegroup_list_tail;
-			}
-
-		/* add new servicegroup to head of list in memory */
-		else{
-
-			new_servicegroup->next=xodtemplate_servicegroup_list;
-			xodtemplate_servicegroup_list=new_servicegroup;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_servicegroup_list;
-			}
-
+		xod_begin_def(servicegroup);
 		break;
 
 	case XODTEMPLATE_SERVICEDEPENDENCY:
-
-		/* allocate memory */
-		new_servicedependency=(xodtemplate_servicedependency *)malloc(sizeof(xodtemplate_servicedependency));
-		if(new_servicedependency==NULL)
-			return ERROR;
-		
-		new_servicedependency->template=NULL;
-		new_servicedependency->name=NULL;
-
-		new_servicedependency->host_name=NULL;
-		new_servicedependency->have_host_name=FALSE;
-		new_servicedependency->service_description=NULL;
-		new_servicedependency->have_service_description=FALSE;
-		new_servicedependency->dependent_host_name=NULL;
-		new_servicedependency->have_dependent_host_name=FALSE;
-		new_servicedependency->dependent_service_description=NULL;
-		new_servicedependency->have_dependent_service_description=FALSE;
-		new_servicedependency->servicegroup_name=NULL;
-		new_servicedependency->have_servicegroup_name=FALSE;
-		new_servicedependency->hostgroup_name=NULL;
-		new_servicedependency->have_hostgroup_name=FALSE;
-		new_servicedependency->dependent_servicegroup_name=NULL;
-		new_servicedependency->have_dependent_servicegroup_name=FALSE;
-		new_servicedependency->dependent_hostgroup_name=NULL;
-		new_servicedependency->have_dependent_hostgroup_name=FALSE;
-		new_servicedependency->dependency_period=NULL;
-		new_servicedependency->have_dependency_period=FALSE;
-		new_servicedependency->inherits_parent=FALSE;
-		new_servicedependency->fail_execute_on_ok=FALSE;
-		new_servicedependency->fail_execute_on_unknown=FALSE;
-		new_servicedependency->fail_execute_on_warning=FALSE;
-		new_servicedependency->fail_execute_on_critical=FALSE;
-		new_servicedependency->fail_execute_on_pending=FALSE;
-		new_servicedependency->fail_notify_on_ok=FALSE;
-		new_servicedependency->fail_notify_on_unknown=FALSE;
-		new_servicedependency->fail_notify_on_warning=FALSE;
-		new_servicedependency->fail_notify_on_critical=FALSE;
-		new_servicedependency->fail_notify_on_pending=FALSE;
-		new_servicedependency->have_inherits_parent=FALSE;
-		new_servicedependency->have_execution_dependency_options=FALSE;
-		new_servicedependency->have_notification_dependency_options=FALSE;
-		new_servicedependency->has_been_resolved=FALSE;
-		new_servicedependency->register_object=TRUE;
-
-		new_servicedependency->_config_file=config_file;
-		new_servicedependency->_start_line=start_line;
-		new_servicedependency->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_servicedependency_list==NULL){
-				xodtemplate_servicedependency_list=new_servicedependency;
-				xodtemplate_servicedependency_list_tail=xodtemplate_servicedependency_list;
-				}
-			else{
-				xodtemplate_servicedependency_list_tail->next=new_servicedependency;
-				xodtemplate_servicedependency_list_tail=new_servicedependency;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_servicedependency_list_tail;
-			}
-
-		/* add new servicedependency to head of list in memory */
-		else{
-
-			new_servicedependency->next=xodtemplate_servicedependency_list;
-			xodtemplate_servicedependency_list=new_servicedependency;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_servicedependency_list;
-			}
+		xod_begin_def(servicedependency);
 		break;
 
 	case XODTEMPLATE_SERVICEESCALATION:
-
-		/* allocate memory */
-		new_serviceescalation=(xodtemplate_serviceescalation *)malloc(sizeof(xodtemplate_serviceescalation));
-		if(new_serviceescalation==NULL)
-			return ERROR;
-		
-		new_serviceescalation->template=NULL;
-		new_serviceescalation->name=NULL;
-
-		new_serviceescalation->host_name=NULL;
-		new_serviceescalation->have_host_name=FALSE;
-		new_serviceescalation->service_description=NULL;
-		new_serviceescalation->have_service_description=FALSE;
-		new_serviceescalation->servicegroup_name=NULL;
-		new_serviceescalation->have_servicegroup_name=FALSE;
-		new_serviceescalation->hostgroup_name=NULL;
-		new_serviceescalation->have_hostgroup_name=FALSE;
-		new_serviceescalation->escalation_period=NULL;
-		new_serviceescalation->have_escalation_period=FALSE;
-		new_serviceescalation->contact_groups=NULL;
-		new_serviceescalation->have_contact_groups=FALSE;
-		new_serviceescalation->contacts=NULL;
-		new_serviceescalation->have_contacts=FALSE;
-		new_serviceescalation->first_notification=-2;
-		new_serviceescalation->last_notification=-2;
-		new_serviceescalation->notification_interval=-2.0;
-		new_serviceescalation->escalate_on_warning=FALSE;
-		new_serviceescalation->escalate_on_unknown=FALSE;
-		new_serviceescalation->escalate_on_critical=FALSE;
-		new_serviceescalation->escalate_on_recovery=FALSE;
-		new_serviceescalation->have_first_notification=FALSE;
-		new_serviceescalation->have_last_notification=FALSE;
-		new_serviceescalation->have_notification_interval=FALSE;
-		new_serviceescalation->have_escalation_options=FALSE;
-		new_serviceescalation->has_been_resolved=FALSE;
-		new_serviceescalation->register_object=TRUE;
-
-		new_serviceescalation->_config_file=config_file;
-		new_serviceescalation->_start_line=start_line;
-		new_serviceescalation->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_serviceescalation_list==NULL){
-				xodtemplate_serviceescalation_list=new_serviceescalation;
-				xodtemplate_serviceescalation_list_tail=xodtemplate_serviceescalation_list;
-				}
-			else{
-				xodtemplate_serviceescalation_list_tail->next=new_serviceescalation;
-				xodtemplate_serviceescalation_list_tail=new_serviceescalation;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_serviceescalation_list_tail;
-			}
-
-		/* add new serviceescalation to head of list in memory */
-		else{
-
-			new_serviceescalation->next=xodtemplate_serviceescalation_list;
-			xodtemplate_serviceescalation_list=new_serviceescalation;
-			
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_serviceescalation_list;
-			}
+		xod_begin_def(serviceescalation);
 		break;
 
 	case XODTEMPLATE_CONTACT:
+		xod_begin_def(contact);
 
-		/* allocate memory */
-		new_contact=(xodtemplate_contact *)malloc(sizeof(xodtemplate_contact));
-		if(new_contact==NULL)
-			return ERROR;
-		
-		new_contact->template=NULL;
-		new_contact->name=NULL;
-
-		new_contact->contact_name=NULL;
-		new_contact->alias=NULL;
-		new_contact->contact_groups=NULL;
-		new_contact->have_contact_groups=FALSE;
-		new_contact->email=NULL;
-		new_contact->have_email=FALSE;
-		new_contact->pager=NULL;
-		new_contact->have_pager=FALSE;
-		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++){
-			new_contact->address[x]=NULL;
-			new_contact->have_address[x]=FALSE;
-		        }
-		new_contact->host_notification_period=NULL;
-		new_contact->have_host_notification_period=FALSE;
-		new_contact->host_notification_commands=NULL;
-		new_contact->have_host_notification_commands=FALSE;
-		new_contact->service_notification_period=NULL;
-		new_contact->have_service_notification_period=FALSE;
-		new_contact->service_notification_commands=NULL;
-		new_contact->have_service_notification_commands=FALSE;
-		new_contact->notify_on_host_down=FALSE;
-		new_contact->notify_on_host_unreachable=FALSE;
-		new_contact->notify_on_host_recovery=FALSE;
-		new_contact->notify_on_host_flapping=FALSE;
-		new_contact->notify_on_host_downtime=FALSE;
-		new_contact->notify_on_service_unknown=FALSE;
-		new_contact->notify_on_service_warning=FALSE;
-		new_contact->notify_on_service_critical=FALSE;
-		new_contact->notify_on_service_recovery=FALSE;
-		new_contact->notify_on_service_flapping=FALSE;
-		new_contact->notify_on_service_downtime=FALSE;
-		new_contact->have_host_notification_options=FALSE;
-		new_contact->have_service_notification_options=FALSE;
 		new_contact->host_notifications_enabled=TRUE;
-		new_contact->have_host_notifications_enabled=FALSE;
 		new_contact->service_notifications_enabled=TRUE;
-		new_contact->have_service_notifications_enabled=FALSE;
 		new_contact->can_submit_commands=TRUE;
-		new_contact->have_can_submit_commands=FALSE;
 		new_contact->retain_status_information=TRUE;
-		new_contact->have_retain_status_information=FALSE;
 		new_contact->retain_nonstatus_information=TRUE;
-		new_contact->have_retain_nonstatus_information=FALSE;
-		new_contact->custom_variables=NULL;
-		new_contact->has_been_resolved=FALSE;
-		new_contact->register_object=TRUE;
-
-		new_contact->_config_file=config_file;
-		new_contact->_start_line=start_line;
-		new_contact->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_contact_list==NULL){
-				xodtemplate_contact_list=new_contact;
-				xodtemplate_contact_list_tail=xodtemplate_contact_list;
-				}
-			else{
-				xodtemplate_contact_list_tail->next=new_contact;
-				xodtemplate_contact_list_tail=new_contact;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_contact_list_tail;
-			}
-
-		/* add new contact to head of list in memory */
-		else{
-
-			new_contact->next=xodtemplate_contact_list;
-			xodtemplate_contact_list=new_contact;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_contact_list;
-			}
 		break;
 
 	case XODTEMPLATE_HOST:
-
-		/* allocate memory */
-		new_host=(xodtemplate_host *)malloc(sizeof(xodtemplate_host));
-		if(new_host==NULL)
-			return ERROR;
-		
-		new_host->template=NULL;
-		new_host->name=NULL;
-
-		new_host->host_name=NULL;
-		new_host->display_name=NULL;
-		new_host->have_display_name=FALSE;
-		new_host->alias=NULL;
-		new_host->address=NULL;
-		new_host->parents=NULL;
-		new_host->have_parents=FALSE;
-		new_host->host_groups=NULL;
-		new_host->have_host_groups=FALSE;
-		new_host->check_command=NULL;
-		new_host->have_check_command=FALSE;
-		new_host->check_period=NULL;
-		new_host->have_check_period=FALSE;
-		new_host->event_handler=NULL;
-		new_host->have_event_handler=FALSE;
-		new_host->contact_groups=NULL;
-		new_host->have_contact_groups=FALSE;
-		new_host->contacts=NULL;
-		new_host->have_contacts=FALSE;
-		new_host->notification_period=NULL;
-		new_host->have_notification_period=FALSE;
-		new_host->failure_prediction_options=NULL;
-		new_host->have_failure_prediction_options=FALSE;
-		new_host->notes=NULL;
-		new_host->have_notes=FALSE;
-		new_host->notes_url=NULL;
-		new_host->have_notes_url=FALSE;
-		new_host->action_url=NULL;
-		new_host->have_action_url=FALSE;
-		new_host->icon_image=NULL;
-		new_host->have_icon_image=FALSE;
-		new_host->icon_image_alt=NULL;
-		new_host->have_icon_image_alt=FALSE;
-		new_host->vrml_image=NULL;
-		new_host->have_vrml_image=FALSE;
-		new_host->statusmap_image=NULL;
-		new_host->have_statusmap_image=FALSE;
-		new_host->initial_state=0; /* HOST_UP */
-		new_host->have_initial_state=FALSE;
+		xod_begin_def(host);
 		new_host->check_interval=5.0;
-		new_host->have_check_interval=FALSE;
 		new_host->retry_interval=1.0;
-		new_host->have_retry_interval=FALSE;
 		new_host->active_checks_enabled=TRUE;
-		new_host->have_active_checks_enabled=FALSE;
 		new_host->passive_checks_enabled=TRUE;
-		new_host->have_passive_checks_enabled=FALSE;
 		new_host->obsess_over_host=TRUE;
-		new_host->have_obsess_over_host=FALSE;
 		new_host->max_check_attempts=-2;
-		new_host->have_max_check_attempts=FALSE;
 		new_host->event_handler_enabled=TRUE;
-		new_host->have_event_handler_enabled=FALSE;
-		new_host->check_freshness=FALSE;
-		new_host->have_check_freshness=FALSE;
-		new_host->freshness_threshold=0;
-		new_host->have_freshness_threshold=0;
 		new_host->flap_detection_enabled=TRUE;
-		new_host->have_flap_detection_enabled=FALSE;
-		new_host->low_flap_threshold=0.0;
-		new_host->have_low_flap_threshold=FALSE;
-		new_host->high_flap_threshold=0.0;
-		new_host->have_high_flap_threshold=FALSE;
 		new_host->flap_detection_on_up=TRUE;
 		new_host->flap_detection_on_down=TRUE;
 		new_host->flap_detection_on_unreachable=TRUE;
-		new_host->have_flap_detection_options=FALSE;
-		new_host->notify_on_down=FALSE;
-		new_host->notify_on_unreachable=FALSE;
-		new_host->notify_on_recovery=FALSE;
-		new_host->notify_on_flapping=FALSE;
-		new_host->notify_on_downtime=FALSE;
-		new_host->have_notification_options=FALSE;
 		new_host->notifications_enabled=TRUE;
-		new_host->have_notifications_enabled=FALSE;
 		new_host->notification_interval=30.0;
-		new_host->have_notification_interval=FALSE;
-		new_host->first_notification_delay=0;
-		new_host->have_first_notification_delay=FALSE;
-		new_host->stalk_on_up=FALSE;
-		new_host->stalk_on_down=FALSE;
-		new_host->stalk_on_unreachable=FALSE;
-		new_host->have_stalking_options=FALSE;
 		new_host->process_perf_data=TRUE;
-		new_host->have_process_perf_data=FALSE;
 		new_host->failure_prediction_enabled=TRUE;
-		new_host->have_failure_prediction_enabled=FALSE;
 		new_host->x_2d=-1;
 		new_host->y_2d=-1;
-		new_host->x_3d=0.0;
-		new_host->y_3d=0.0;
-		new_host->z_3d=0.0;
-		new_host->have_2d_coords=FALSE;
-		new_host->have_3d_coords=FALSE;
 		new_host->retain_status_information=TRUE;
-		new_host->have_retain_status_information=FALSE;
 		new_host->retain_nonstatus_information=TRUE;
-		new_host->have_retain_nonstatus_information=FALSE;
-		new_host->custom_variables=NULL;
-		new_host->has_been_resolved=FALSE;
-		new_host->register_object=TRUE;
-
-		new_host->_config_file=config_file;
-		new_host->_start_line=start_line;
-		new_host->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_host_list==NULL){
-				xodtemplate_host_list=new_host;
-				xodtemplate_host_list_tail=xodtemplate_host_list;
-				}
-			else{
-				xodtemplate_host_list_tail->next=new_host;
-				xodtemplate_host_list_tail=new_host;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_host_list_tail;
-			}
-
-		/* add new host to head of list in memory */
-		else{
-
-			new_host->next=xodtemplate_host_list;
-			xodtemplate_host_list=new_host;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_host_list;
-			}
 		break;
 
 	case XODTEMPLATE_SERVICE:
+		xod_begin_def(service);
 
-		/* allocate memory */
-		new_service=(xodtemplate_service *)malloc(sizeof(xodtemplate_service));
-		if(new_service==NULL)
-			return ERROR;
-		
-		new_service->template=NULL;
-		new_service->name=NULL;
-
-		new_service->host_name=NULL;
-		new_service->have_host_name=FALSE;
-		new_service->service_description=NULL;
-		new_service->have_service_description=FALSE;
-		new_service->display_name=NULL;
-		new_service->have_display_name=FALSE;
-		new_service->hostgroup_name=NULL;
-		new_service->have_hostgroup_name=FALSE;
-		new_service->service_groups=NULL;
-		new_service->have_service_groups=FALSE;
-		new_service->check_command=NULL;
-		new_service->have_check_command=FALSE;
-		new_service->have_important_check_command=FALSE;
-		new_service->check_period=NULL;
-		new_service->have_check_period=FALSE;
-		new_service->event_handler=NULL;
-		new_service->have_event_handler=FALSE;
-		new_service->notification_period=NULL;
-		new_service->have_notification_period=FALSE;
-		new_service->contact_groups=NULL;
-		new_service->have_contact_groups=FALSE;
-		new_service->contacts=NULL;
-		new_service->have_contacts=FALSE;
-		new_service->failure_prediction_options=NULL;
-		new_service->have_failure_prediction_options=FALSE;
 		new_service->initial_state=STATE_OK;
-		new_service->have_initial_state=FALSE;
 		new_service->max_check_attempts=-2;
-		new_service->have_max_check_attempts=FALSE;
 		new_service->check_interval=5.0;
-		new_service->have_check_interval=FALSE;
 		new_service->retry_interval=1.0;
-		new_service->have_retry_interval=FALSE;
 		new_service->active_checks_enabled=TRUE;
-		new_service->have_active_checks_enabled=FALSE;
 		new_service->passive_checks_enabled=TRUE;
-		new_service->have_passive_checks_enabled=FALSE;
 		new_service->parallelize_check=TRUE;
-		new_service->have_parallelize_check=FALSE;
-		new_service->is_volatile=FALSE;
-		new_service->have_is_volatile=FALSE;
 		new_service->obsess_over_service=TRUE;
-		new_service->have_obsess_over_service=FALSE;
 		new_service->event_handler_enabled=TRUE;
-		new_service->have_event_handler_enabled=FALSE;
-		new_service->check_freshness=FALSE;
-		new_service->have_check_freshness=FALSE;
-		new_service->freshness_threshold=0;
-		new_service->have_freshness_threshold=FALSE;
 		new_service->flap_detection_enabled=TRUE;
-		new_service->have_flap_detection_enabled=FALSE;
-		new_service->low_flap_threshold=0.0;
-		new_service->have_low_flap_threshold=FALSE;
-		new_service->high_flap_threshold=0.0;
-		new_service->have_high_flap_threshold=FALSE;
 		new_service->flap_detection_on_ok=TRUE;
 		new_service->flap_detection_on_warning=TRUE;
 		new_service->flap_detection_on_unknown=TRUE;
 		new_service->flap_detection_on_critical=TRUE;
-		new_service->have_flap_detection_options=FALSE;
-		new_service->notify_on_unknown=FALSE;
-		new_service->notify_on_warning=FALSE;
-		new_service->notify_on_critical=FALSE;
-		new_service->notify_on_recovery=FALSE;
-		new_service->notify_on_flapping=FALSE;
-		new_service->notify_on_downtime=FALSE;
-		new_service->have_notification_options=FALSE;
 		new_service->notifications_enabled=TRUE;
-		new_service->have_notifications_enabled=FALSE;
 		new_service->notification_interval=30.0;
-		new_service->have_notification_interval=FALSE;
-		new_service->first_notification_delay=0;
-		new_service->have_first_notification_delay=FALSE;
-		new_service->stalk_on_ok=FALSE;
-		new_service->stalk_on_unknown=FALSE;
-		new_service->stalk_on_warning=FALSE;
-		new_service->stalk_on_critical=FALSE;
-		new_service->have_stalking_options=FALSE;
 		new_service->process_perf_data=TRUE;
-		new_service->have_process_perf_data=FALSE;
 		new_service->failure_prediction_enabled=TRUE;
-		new_service->have_failure_prediction_enabled=FALSE;
-		new_service->notes=NULL;
-		new_service->have_notes=FALSE;
-		new_service->notes_url=NULL;
-		new_service->have_notes_url=FALSE;
-		new_service->action_url=NULL;
-		new_service->have_action_url=FALSE;
-		new_service->icon_image=NULL;
-		new_service->have_icon_image=FALSE;
-		new_service->icon_image_alt=NULL;
-		new_service->have_icon_image_alt=FALSE;
 		new_service->retain_status_information=TRUE;
-		new_service->have_retain_status_information=FALSE;
 		new_service->retain_nonstatus_information=TRUE;
-		new_service->have_retain_nonstatus_information=FALSE;
-		new_service->custom_variables=NULL;
-		new_service->has_been_resolved=FALSE;
-		new_service->register_object=TRUE;
+
 		/* true service, so is not from host group, must be set AFTER have_initial_state*/
 		xodtemplate_unset_service_is_from_hostgroup(new_service);
-
-		new_service->_config_file=config_file;
-		new_service->_start_line=start_line;
-		new_service->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_service_list==NULL){
-				xodtemplate_service_list=new_service;
-				xodtemplate_service_list_tail=xodtemplate_service_list;
-				}
-			else{
-				xodtemplate_service_list_tail->next=new_service;
-				xodtemplate_service_list_tail=new_service;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_service_list_tail;
-			}
-
-		/* add new service to head of list in memory */
-		else{
-
-			new_service->next=xodtemplate_service_list;
-			xodtemplate_service_list=new_service;
-
-			/* update current object pointer */
-			xodtemplate_current_object=new_service;
-			}
 		break;
 
 	case XODTEMPLATE_HOSTDEPENDENCY:
-
-		/* allocate memory */
-		new_hostdependency=(xodtemplate_hostdependency *)malloc(sizeof(xodtemplate_hostdependency));
-		if(new_hostdependency==NULL)
-			return ERROR;
-		
-		new_hostdependency->template=NULL;
-		new_hostdependency->name=NULL;
-
-		new_hostdependency->host_name=NULL;
-		new_hostdependency->have_host_name=FALSE;
-		new_hostdependency->dependent_host_name=NULL;
-		new_hostdependency->have_dependent_host_name=FALSE;
-		new_hostdependency->hostgroup_name=NULL;
-		new_hostdependency->have_hostgroup_name=FALSE;
-		new_hostdependency->dependent_hostgroup_name=NULL;
-		new_hostdependency->have_dependent_hostgroup_name=FALSE;
-		new_hostdependency->dependency_period=NULL;
-		new_hostdependency->have_dependency_period=FALSE;
-		new_hostdependency->inherits_parent=FALSE;
-		new_hostdependency->fail_notify_on_up=FALSE;
-		new_hostdependency->fail_notify_on_down=FALSE;
-		new_hostdependency->fail_notify_on_unreachable=FALSE;
-		new_hostdependency->fail_notify_on_pending=FALSE;
-		new_hostdependency->fail_execute_on_up=FALSE;
-		new_hostdependency->fail_execute_on_down=FALSE;
-		new_hostdependency->fail_execute_on_unreachable=FALSE;
-		new_hostdependency->fail_execute_on_pending=FALSE;
-		new_hostdependency->have_inherits_parent=FALSE;
-		new_hostdependency->have_notification_dependency_options=FALSE;
-		new_hostdependency->have_execution_dependency_options=FALSE;
-		new_hostdependency->has_been_resolved=FALSE;
-		new_hostdependency->register_object=TRUE;
-
-		new_hostdependency->_config_file=config_file;
-		new_hostdependency->_start_line=start_line;
-		new_hostdependency->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_hostdependency_list==NULL){
-				xodtemplate_hostdependency_list=new_hostdependency;
-				xodtemplate_hostdependency_list_tail=xodtemplate_hostdependency_list;
-				}
-			else{
-				xodtemplate_hostdependency_list_tail->next=new_hostdependency;
-				xodtemplate_hostdependency_list_tail=new_hostdependency;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_hostdependency_list_tail;
-			}
-
-		/* add new hostdependency to head of list in memory */
-		else{
-
-			new_hostdependency->next=xodtemplate_hostdependency_list;
-			xodtemplate_hostdependency_list=new_hostdependency;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_hostdependency_list;
-			}
+		xod_begin_def(hostdependency);
 		break;
 
 	case XODTEMPLATE_HOSTESCALATION:
-
-		/* allocate memory */
-		new_hostescalation=(xodtemplate_hostescalation *)malloc(sizeof(xodtemplate_hostescalation));
-		if(new_hostescalation==NULL)
-			return ERROR;
-		
-		new_hostescalation->template=NULL;
-		new_hostescalation->name=NULL;
-
-		new_hostescalation->hostgroup_name=NULL;
-		new_hostescalation->have_hostgroup_name=FALSE;
-		new_hostescalation->host_name=NULL;
-		new_hostescalation->have_host_name=FALSE;
-		new_hostescalation->escalation_period=NULL;
-		new_hostescalation->have_escalation_period=FALSE;
-		new_hostescalation->contact_groups=NULL;
-		new_hostescalation->have_contact_groups=FALSE;
-		new_hostescalation->contacts=NULL;
-		new_hostescalation->have_contacts=FALSE;
-		new_hostescalation->first_notification=-2;
-		new_hostescalation->last_notification=-2;
-		new_hostescalation->notification_interval=-2.0;
-		new_hostescalation->escalate_on_down=FALSE;
-		new_hostescalation->escalate_on_unreachable=FALSE;
-		new_hostescalation->escalate_on_recovery=FALSE;
-		new_hostescalation->have_first_notification=FALSE;
-		new_hostescalation->have_last_notification=FALSE;
-		new_hostescalation->have_notification_interval=FALSE;
-		new_hostescalation->have_escalation_options=FALSE;
-		new_hostescalation->has_been_resolved=FALSE;
-		new_hostescalation->register_object=TRUE;
-
-		new_hostescalation->_config_file=config_file;
-		new_hostescalation->_start_line=start_line;
-		new_hostescalation->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_hostescalation_list==NULL){
-				xodtemplate_hostescalation_list=new_hostescalation;
-				xodtemplate_hostescalation_list_tail=xodtemplate_hostescalation_list;
-				}
-			else{
-				xodtemplate_hostescalation_list_tail->next=new_hostescalation;
-				xodtemplate_hostescalation_list_tail=new_hostescalation;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_hostescalation_list_tail;
-			}
-
-		/* add new hostescalation to head of list in memory */
-		else{
-
-			new_hostescalation->next=xodtemplate_hostescalation_list;
-			xodtemplate_hostescalation_list=new_hostescalation;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_hostescalation_list;
-			}
+		xod_begin_def(hostescalation);
 		break;
 
 	case XODTEMPLATE_HOSTEXTINFO:
+		xod_begin_def(hostextinfo);
 
-		/* allocate memory */
-		new_hostextinfo=(xodtemplate_hostextinfo *)malloc(sizeof(xodtemplate_hostextinfo));
-		if(new_hostextinfo==NULL)
-			return ERROR;
-
-		new_hostextinfo->template=NULL;
-		new_hostextinfo->name=NULL;
-
-		new_hostextinfo->host_name=NULL;
-		new_hostextinfo->have_host_name=FALSE;
-		new_hostextinfo->hostgroup_name=NULL;
-		new_hostextinfo->have_hostgroup_name=FALSE;
-		new_hostextinfo->notes=NULL;
-		new_hostextinfo->have_notes=FALSE;
-		new_hostextinfo->notes_url=NULL;
-		new_hostextinfo->have_notes_url=FALSE;
-		new_hostextinfo->action_url=NULL;
-		new_hostextinfo->have_action_url=FALSE;
-		new_hostextinfo->icon_image=NULL;
-		new_hostextinfo->have_icon_image=FALSE;
-		new_hostextinfo->icon_image_alt=NULL;
-		new_hostextinfo->have_icon_image_alt=FALSE;
-		new_hostextinfo->vrml_image=NULL;
-		new_hostextinfo->have_vrml_image=FALSE;
-		new_hostextinfo->statusmap_image=NULL;
-		new_hostextinfo->have_statusmap_image=FALSE;
 		new_hostextinfo->x_2d=-1;
 		new_hostextinfo->y_2d=-1;
-		new_hostextinfo->x_3d=0.0;
-		new_hostextinfo->y_3d=0.0;
-		new_hostextinfo->z_3d=0.0;
-		new_hostextinfo->have_2d_coords=FALSE;
-		new_hostextinfo->have_3d_coords=FALSE;
-		new_hostextinfo->has_been_resolved=FALSE;
-		new_hostextinfo->register_object=TRUE;
-
-		new_hostextinfo->_config_file=config_file;
-		new_hostextinfo->_start_line=start_line;
-		new_hostextinfo->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_hostextinfo_list==NULL){
-				xodtemplate_hostextinfo_list=new_hostextinfo;
-				xodtemplate_hostextinfo_list_tail=xodtemplate_hostextinfo_list;
-				}
-			else{
-				xodtemplate_hostextinfo_list_tail->next=new_hostextinfo;
-				xodtemplate_hostextinfo_list_tail=new_hostextinfo;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_hostextinfo_list_tail;
-			}
-
-		/* add new extended host info to head of list in memory */
-		else{
-
-			new_hostextinfo->next=xodtemplate_hostextinfo_list;
-			xodtemplate_hostextinfo_list=new_hostextinfo;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_hostextinfo_list;
-			}
 		break;
 
 	case XODTEMPLATE_SERVICEEXTINFO:
-
-		/* allocate memory */
-		new_serviceextinfo=(xodtemplate_serviceextinfo *)malloc(sizeof(xodtemplate_serviceextinfo));
-		if(new_serviceextinfo==NULL)
-			return ERROR;
-
-		new_serviceextinfo->template=NULL;
-		new_serviceextinfo->name=NULL;
-
-		new_serviceextinfo->host_name=NULL;
-		new_serviceextinfo->have_host_name=FALSE;
-		new_serviceextinfo->hostgroup_name=NULL;
-		new_serviceextinfo->have_hostgroup_name=FALSE;
-		new_serviceextinfo->service_description=NULL;
-		new_serviceextinfo->have_service_description=FALSE;
-		new_serviceextinfo->notes=NULL;
-		new_serviceextinfo->have_notes=FALSE;
-		new_serviceextinfo->notes_url=NULL;
-		new_serviceextinfo->have_notes_url=FALSE;
-		new_serviceextinfo->action_url=NULL;
-		new_serviceextinfo->have_action_url=FALSE;
-		new_serviceextinfo->icon_image=NULL;
-		new_serviceextinfo->have_icon_image=FALSE;
-		new_serviceextinfo->icon_image_alt=NULL;
-		new_serviceextinfo->have_icon_image_alt=FALSE;
-		new_serviceextinfo->has_been_resolved=FALSE;
-		new_serviceextinfo->register_object=TRUE;
-
-		new_serviceextinfo->_config_file=config_file;
-		new_serviceextinfo->_start_line=start_line;
-		new_serviceextinfo->next=NULL;
-
-		/* precached object files are already sorted, so add to tail of list */
-		if(presorted_objects==TRUE){
-
-			if(xodtemplate_serviceextinfo_list==NULL){
-				xodtemplate_serviceextinfo_list=new_serviceextinfo;
-				xodtemplate_serviceextinfo_list_tail=xodtemplate_serviceextinfo_list;
-				}
-			else{
-				xodtemplate_serviceextinfo_list_tail->next=new_serviceextinfo;
-				xodtemplate_serviceextinfo_list_tail=new_serviceextinfo;
-				}
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_serviceextinfo_list_tail;
-			}
-
-		/* add new extended service info to head of list in memory */
-		else{
-
-			new_serviceextinfo->next=xodtemplate_serviceextinfo_list;
-			xodtemplate_serviceextinfo_list=new_serviceextinfo;
-
-			/* update current object pointer */
-			xodtemplate_current_object=xodtemplate_serviceextinfo_list;
-			}
+		xod_begin_def(serviceextinfo);
 		break;
 
 	default:
@@ -2017,7 +1120,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 	return result;
         }
-
+#undef xod_begin_def /* we don't need this anymore */
 
 
 /* adds a property to an object definition */

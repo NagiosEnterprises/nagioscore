@@ -2147,7 +2147,7 @@ int move_check_result_to_queue(char *checkresult_file){
 
 		/* create an ok-to-go indicator file */
 		asprintf(&temp_buffer,"%s.ok",output_file);
-		if((output_file_fd=open(temp_buffer,O_CREAT|O_WRONLY|O_TRUNC,S_IRUSR|S_IWUSR))>0)
+		if((output_file_fd=open(temp_buffer,O_CREAT|O_WRONLY|O_TRUNC,S_IRUSR|S_IWUSR))>=0)
 			close(output_file_fd);
 		my_free(temp_buffer);
 

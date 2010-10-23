@@ -143,6 +143,15 @@ extern char     *tzname[2];
 
 
 
+/*
+ * These function stubs allow us to compile a lot of the
+ * source-files common to cgi's and daemon without adding
+ * a whole bunch of #ifdef's everywhere. Note that we can't
+ * have them as macros, since the goal is to compile the
+ * source-files once. A decent linker will make the call
+ * a no-op anyway, so it's not a big issue
+ */
+void logit(int data_type, int display, const char *fmt, ...) { return; }
 
 /**********************************************************
  ***************** CLEANUP FUNCTIONS **********************

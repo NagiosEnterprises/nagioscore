@@ -268,11 +268,7 @@ int xrddefault_save_state_information(void){
 
 	/* make sure we have everything */
 	if(xrddefault_retention_file==NULL || xrddefault_temp_file==NULL){
-
-#ifdef NSCORE
 		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: We don't have the required file names to store retention data!\n");
-#endif
-
 		return ERROR;
 	        }
 
@@ -291,9 +287,7 @@ int xrddefault_save_state_information(void){
 		close(fd);
 		unlink(temp_file);
 
-#ifdef NSCORE
 		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Could not open temp state retention file '%s' for writing!\n",temp_file);
-#endif
 
 		my_free(temp_file);
 
@@ -670,9 +664,7 @@ int xrddefault_read_state_information(void){
 	/* make sure we have what we need */
 	if(xrddefault_retention_file==NULL){
 
-#ifdef NSCORE
 		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: We don't have a filename for retention data!\n");
-#endif
 
 		return ERROR;
 	        }

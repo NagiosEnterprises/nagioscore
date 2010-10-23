@@ -24,6 +24,7 @@
 #define _CGIUTILS_H
 
 #include "config.h"
+#include "logging.h"
 #include "objects.h"
 #include "cgiauth.h"
 

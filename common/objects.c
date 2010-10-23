@@ -409,9 +409,7 @@ timeperiod *add_timeperiod(char *name,char *alias){
 
 	/* make sure we have the data we need */
 	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Name or alias for timeperiod is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -441,18 +439,14 @@ timeperiod *add_timeperiod(char *name,char *alias){
 		result=skiplist_insert(object_skiplists[TIMEPERIOD_SKIPLIST],(void *)new_timeperiod);
 		switch(result){
 		case SKIPLIST_ERROR_DUPLICATE:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Timeperiod '%s' has already been defined\n",name);
-#endif
 			result=ERROR;
 			break;
 		case SKIPLIST_OK:
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add timeperiod '%s' to skiplist\n",name);
-#endif
 			result=ERROR;
 			break;
 			}
@@ -513,21 +507,15 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 		return NULL;
 
 	if(day<0 || day>6){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Day %d is not valid for timeperiod '%s'\n",day,period->name);
-#endif
 		return NULL;
 	        }
 	if(start_time<0 || start_time>86400){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Start time %lu on day %d is not valid for timeperiod '%s'\n",start_time,day,period->name);
-#endif
 		return NULL;
 	        }
 	if(end_time<0 || end_time>86400){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: End time %lu on day %d is not value for timeperiod '%s'\n",end_time,day,period->name);
-#endif
 		return NULL;
 	        }
 
@@ -592,15 +580,11 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 		return NULL;
 
 	if(start_time<0 || start_time>86400){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Start time %lu is not valid for timeperiod\n",start_time);
-#endif
 		return NULL;
 	        }
 	if(end_time<0 || end_time>86400){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: End time %lu is not value for timeperiod\n",end_time);
-#endif
 		return NULL;
 	        }
 
@@ -630,41 +614,29 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 
 	/* make sure we have the data we need */
 	if((name==NULL || !strcmp(name,"")) || (address==NULL || !strcmp(address,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Host name or address is NULL\n");
-#endif
 		return NULL;
 	        }
 
 	/* check values */
 	if(max_attempts<=0){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid max_check_attempts value for host '%s'\n",name);
-#endif
 		return NULL;
 	        }
 	if(check_interval<0){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid check_interval value for host '%s'\n",name);
-#endif
 		return NULL;
 	        }
 	if(notification_interval<0){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid notification_interval value for host '%s'\n",name);
-#endif
 		return NULL;
 	        }
 	if(first_notification_delay<0){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid first_notification_delay value for host '%s'\n",name);
-#endif
 		return NULL;
 	        }
 	if(freshness_threshold<0){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid freshness_threshold value for host '%s'\n",name);
-#endif
 		return NULL;
 	        }
 
@@ -864,18 +836,14 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		result=skiplist_insert(object_skiplists[HOST_SKIPLIST],(void *)new_host);
 		switch(result){
 		case SKIPLIST_ERROR_DUPLICATE:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Host '%s' has already been defined\n",name);
-#endif
 			result=ERROR;
 			break;
 		case SKIPLIST_OK:
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add host '%s' to skiplist\n",name);
-#endif
 			result=ERROR;
 			break;
 			}
@@ -929,17 +897,13 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 
 	/* make sure we have the data we need */
 	if(hst==NULL || host_name==NULL || !strcmp(host_name,"")){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Host is NULL or parent host name is NULL\n");
-#endif
 		return NULL;
 	        }
 
 	/* a host cannot be a parent/child of itself */
 	if(!strcmp(host_name,hst->name)){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Host '%s' cannot be a child/parent of itself\n",hst->name);
-#endif
 		return NULL;
 	        }
 
@@ -1033,9 +997,7 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 
 	/* make sure we have the data we need */
 	if(hst==NULL || (group_name==NULL || !strcmp(group_name,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Host or contactgroup member is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -1092,9 +1054,7 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 
 	/* make sure we have the data we need */
 	if(name==NULL || !strcmp(name,"")){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Hostgroup name is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -1135,18 +1095,14 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 		result=skiplist_insert(object_skiplists[HOSTGROUP_SKIPLIST],(void *)new_hostgroup);
 		switch(result){
 		case SKIPLIST_ERROR_DUPLICATE:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Hostgroup '%s' has already been defined\n",name);
-#endif
 			result=ERROR;
 			break;
 		case SKIPLIST_OK:
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add hostgroup '%s' to skiplist\n",name);
-#endif
 			result=ERROR;
 			break;
 			}
@@ -1183,9 +1139,7 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name){
 
 	/* make sure we have the data we need */
 	if(temp_hostgroup==NULL || (host_name==NULL || !strcmp(host_name,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Hostgroup or group member is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -1244,9 +1198,7 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 
 	/* make sure we have the data we need */
 	if(name==NULL || !strcmp(name,"")){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Servicegroup name is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -1287,18 +1239,14 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 		result=skiplist_insert(object_skiplists[SERVICEGROUP_SKIPLIST],(void *)new_servicegroup);
 		switch(result){
 		case SKIPLIST_ERROR_DUPLICATE:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Servicegroup '%s' has already been defined\n",name);
-#endif
 			result=ERROR;
 			break;
 		case SKIPLIST_OK:
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add servicegroup '%s' to skiplist\n",name);
-#endif
 			result=ERROR;
 			break;
 			}
@@ -1335,9 +1283,7 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 
 	/* make sure we have the data we need */
 	if(temp_servicegroup==NULL || (host_name==NULL || !strcmp(host_name,"")) || (svc_description==NULL || !strcmp(svc_description,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Servicegroup or group member is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -1412,9 +1358,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 
 	/* make sure we have the data we need */
 	if(name==NULL || !strcmp(name,"")){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contact name is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -1500,18 +1444,14 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 		result=skiplist_insert(object_skiplists[CONTACT_SKIPLIST],(void *)new_contact);
 		switch(result){
 		case SKIPLIST_ERROR_DUPLICATE:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contact '%s' has already been defined\n",name);
-#endif
 			result=ERROR;
 			break;
 		case SKIPLIST_OK:
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contact '%s' to skiplist\n",name);
-#endif
 			result=ERROR;
 			break;
 			}
@@ -1553,9 +1493,7 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct,char *co
 
 	/* make sure we have the data we need */
 	if(cntct==NULL || (command_name==NULL || !strcmp(command_name,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contact or host notification command is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -1596,9 +1534,7 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct,char 
 
 	/* make sure we have the data we need */
 	if(cntct==NULL || (command_name==NULL || !strcmp(command_name,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contact or service notification command is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -1647,9 +1583,7 @@ contactgroup *add_contactgroup(char *name,char *alias){
 
 	/* make sure we have the data we need */
 	if(name==NULL || !strcmp(name,"")){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contactgroup name is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -1675,18 +1609,14 @@ contactgroup *add_contactgroup(char *name,char *alias){
 		result=skiplist_insert(object_skiplists[CONTACTGROUP_SKIPLIST],(void *)new_contactgroup);
 		switch(result){
 		case SKIPLIST_ERROR_DUPLICATE:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contactgroup '%s' has already been defined\n",name);
-#endif
 			result=ERROR;
 			break;
 		case SKIPLIST_OK:
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add contactgroup '%s' to skiplist\n",name);
-#endif
 			result=ERROR;
 			break;
 			}
@@ -1722,9 +1652,7 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 
 	/* make sure we have the data we need */
 	if(grp==NULL || (contact_name==NULL || !strcmp(contact_name,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contactgroup or contact name is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -1768,24 +1696,18 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 
 	/* make sure we have everything we need */
 	if((host_name==NULL || !strcmp(host_name,"")) || (description==NULL || !strcmp(description,"")) || (check_command==NULL || !strcmp(check_command,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Service description, host name, or check command is NULL\n");
-#endif
 		return NULL;
 	        }
 
 	/* check values */
 	if(max_attempts<=0 || check_interval<0 || retry_interval<=0 || notification_interval<0){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid max_attempts, check_interval, retry_interval, or notification_interval value for service '%s' on host '%s'\n",description,host_name);
-#endif
 		return NULL;
 	        }
 
 	if(first_notification_delay<0){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid first_notification_delay value for service '%s' on host '%s'\n",description,host_name);
-#endif
 		return NULL;
 	        }
 
@@ -1961,18 +1883,14 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		result=skiplist_insert(object_skiplists[SERVICE_SKIPLIST],(void *)new_service);
 		switch(result){
 		case SKIPLIST_ERROR_DUPLICATE:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Service '%s' on host '%s' has already been defined\n",description,host_name);
-#endif
 			result=ERROR;
 			break;
 		case SKIPLIST_OK:
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add service '%s' on host '%s' to skiplist\n",description,host_name);
-#endif
 			result=ERROR;
 			break;
 			}
@@ -2017,9 +1935,7 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 
 	/* bail out if we weren't given the data we need */
 	if(svc==NULL || (group_name==NULL || !strcmp(group_name,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Service or contactgroup name is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -2075,9 +1991,7 @@ command *add_command(char *name,char *value){
 
 	/* make sure we have the data we need */
 	if((name==NULL || !strcmp(name,"")) || (value==NULL || !strcmp(value,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Command name of command line is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -2102,18 +2016,14 @@ command *add_command(char *name,char *value){
 		result=skiplist_insert(object_skiplists[COMMAND_SKIPLIST],(void *)new_command);
 		switch(result){
 		case SKIPLIST_ERROR_DUPLICATE:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Command '%s' has already been defined\n",name);
-#endif
 			result=ERROR;
 			break;
 		case SKIPLIST_OK:
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add command '%s' to skiplist\n",name);
-#endif
 			result=ERROR;
 			break;
 			}
@@ -2149,9 +2059,7 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 
 	/* make sure we have the data we need */
 	if((host_name==NULL || !strcmp(host_name,"")) || (description==NULL || !strcmp(description,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Service escalation host name or description is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -2202,9 +2110,7 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add escalation for service '%s' on host '%s' to skiplist\n",description,host_name);
-#endif
 			result=ERROR;
 			break;
 			}
@@ -2241,9 +2147,7 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 
 	/* bail out if we weren't given the data we need */
 	if(se==NULL || (group_name==NULL || !strcmp(group_name,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Service escalation or contactgroup name is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -2292,15 +2196,11 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 
 	/* make sure we have what we need */
 	if((host_name==NULL || !strcmp(host_name,"")) || (service_description==NULL || !strcmp(service_description,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: NULL master service description/host name in service dependency definition\n");
-#endif
 		return NULL;
 	        }
 	if((dependent_host_name==NULL || !strcmp(dependent_host_name,"")) || (dependent_service_description==NULL || !strcmp(dependent_service_description,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: NULL dependent service description/host name in service dependency definition\n");
-#endif
 		return NULL;
 	        }
 
@@ -2356,9 +2256,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add service dependency to skiplist\n");
-#endif
 			result=ERROR;
 			break;
 			}
@@ -2395,9 +2293,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 
 	/* make sure we have what we need */
 	if((dependent_host_name==NULL || !strcmp(dependent_host_name,"")) || (host_name==NULL || !strcmp(host_name,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: NULL host name in host dependency definition\n");
-#endif
 		return NULL;
 	        }
 
@@ -2446,9 +2342,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add host dependency to skiplist\n");
-#endif
 			result=ERROR;
 			break;
 			}
@@ -2484,9 +2378,7 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 
 	/* make sure we have the data we need */
 	if(host_name==NULL || !strcmp(host_name,"")){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Host escalation host name is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -2533,9 +2425,7 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 			result=OK;
 			break;
 		default:
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add hostescalation '%s' to skiplist\n",host_name);
-#endif
 			result=ERROR;
 			break;
 			}
@@ -2571,9 +2461,7 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 
 	/* bail out if we weren't given the data we need */
 	if(he==NULL || (group_name==NULL || !strcmp(group_name,""))){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Host escalation or contactgroup name is NULL\n");
-#endif
 		return NULL;
 	        }
 
@@ -2621,30 +2509,22 @@ contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contact
 
 	/* make sure we have the data we need */
 	if(object_ptr==NULL){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contact object is NULL\n");
-#endif
 		return NULL;
 	        }
 
 	if(contactname==NULL || !strcmp(contactname,"")){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contact name is NULL\n");
-#endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new member */
 	if((new_contactsmember=malloc(sizeof(contactsmember)))==NULL){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not allocate memory for contact\n");
-#endif
 		return NULL;
 	        }
 	if((new_contactsmember->contact_name=(char *)strdup(contactname))==NULL){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not allocate memory for contact name\n");
-#endif
 		my_free(new_contactsmember);
 		return NULL;
 	        }
@@ -2669,38 +2549,28 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 
 	/* make sure we have the data we need */
 	if(object_ptr==NULL){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Custom variable object is NULL\n");
-#endif
 		return NULL;
 	        }
 
 	if(varname==NULL || !strcmp(varname,"")){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Custom variable name is NULL\n");
-#endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new member */
 	if((new_customvariablesmember=malloc(sizeof(customvariablesmember)))==NULL){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not allocate memory for custom variable\n");
-#endif
 		return NULL;
 	        }
 	if((new_customvariablesmember->variable_name=(char *)strdup(varname))==NULL){
-#ifdef NSCORE
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not allocate memory for custom variable name\n");
-#endif
 		my_free(new_customvariablesmember);
 		return NULL;
 	        }
 	if(varvalue){
 		if((new_customvariablesmember->variable_value=(char *)strdup(varvalue))==NULL){
-#ifdef NSCORE
 			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not allocate memory for custom variable value\n");
-#endif
 			my_free(new_customvariablesmember->variable_name);
 			my_free(new_customvariablesmember);
 			return NULL;

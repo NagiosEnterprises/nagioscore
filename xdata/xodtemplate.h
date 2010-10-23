@@ -783,8 +783,6 @@ int xodtemplate_process_config_file(char *,int);            /* process data in a
 int xodtemplate_process_config_dir(char *,int);             /* process all files in a specific config directory */
 
 #ifdef NSCORE
-char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
-
 xodtemplate_memberlist *xodtemplate_expand_contactgroups_and_contacts(char *,char *,int,int);
 int xodtemplate_expand_contactgroups(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
 int xodtemplate_expand_contacts(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);

@@ -882,14 +882,8 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 		return ERROR;
 
 	/* allocate memory for the downtime */
-	if((new_downtime=(scheduled_downtime *)malloc(sizeof(scheduled_downtime)))==NULL)
+	if((new_downtime=(scheduled_downtime *)calloc(1, sizeof(scheduled_downtime)))==NULL)
 		return ERROR;
-
-	/* initialize vars */
-	new_downtime->host_name=NULL;
-	new_downtime->service_description=NULL;
-	new_downtime->author=NULL;
-	new_downtime->comment=NULL;
 
 	/* duplicate vars */
 	if((new_downtime->host_name=(char *)strdup(host_name))==NULL)
@@ -925,12 +919,6 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	new_downtime->triggered_by=triggered_by;
 	new_downtime->duration=duration;
 	new_downtime->downtime_id=downtime_id;
-#ifdef NSCORE
-	new_downtime->comment_id=0;
-	new_downtime->is_in_effect=FALSE;
-	new_downtime->start_flex_downtime=FALSE;
-	new_downtime->incremented_pending_downtime=FALSE;
-#endif
 
 	if(defer_downtime_sorting){
 		new_downtime->next=scheduled_downtime_list;

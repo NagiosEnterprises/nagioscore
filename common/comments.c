@@ -460,16 +460,8 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 		return ERROR;
 
 	/* allocate memory for the comment */
-	if((new_comment=(comment *)malloc(sizeof(comment)))==NULL)
+	if((new_comment=(comment *)calloc(1, sizeof(comment)))==NULL)
 		return ERROR;
-
-	/* initialize vars */
-	new_comment->host_name=NULL;
-	new_comment->service_description=NULL;
-	new_comment->author=NULL;
-	new_comment->comment_data=NULL;
-	new_comment->next=NULL;
-	new_comment->nexthash=NULL;
 
 	/* duplicate vars */
 	if((new_comment->host_name=(char *)strdup(host_name))==NULL)

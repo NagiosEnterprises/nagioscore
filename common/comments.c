@@ -199,8 +199,12 @@ int delete_comment(int type, unsigned long comment_id){
 			if(this_hash==this_comment){
 				if(last_hash)
 					last_hash->nexthash=this_hash->nexthash;
-				else
-					comment_hashlist[hashslot]=NULL;
+				else {
+					if (this_hash->nexthash)
+						comment_hashlist[hashslot]=this_hash->nexthash;
+					else
+						comment_hashlist[hashslot]=NULL;
+				}
 				break;
 			        }
 			last_hash=this_hash;

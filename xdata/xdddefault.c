@@ -252,11 +252,6 @@ int xdddefault_delete_downtime(int type, unsigned long downtime_id){
 int xdddefault_save_downtime_data(void){
 
 	/* don't update the status file now (too inefficent), let aggregated status updates do it */
-#ifdef REMOVED_03052007
-	/* update the main status log */
-	update_all_status_data();
-#endif
-
 	return OK;
         }
 

@@ -8833,184 +8833,15 @@ int xodtemplate_recombobulate_contactgroup_subgroups(xodtemplate_contactgroup *t
 
 
 
-/* NOTE: this was originally implemented in the late alpha cycle of 3.0 development, but was removed in 3.0b2, as flattening */
-/*       contactgroups into a list of contacts makes it impossible for NDOUtils to create a reverse mapping */
+/* NOTE: this was originally implemented in the late alpha cycle of
+ * 3.0 development, but was removed in 3.0b2, as flattening
+ * contactgroups into a list of contacts makes it impossible for
+ * NDOUtils to create a reverse mapping */
 /* recombobulates contacts in various object definitions */
-int xodtemplate_recombobulate_object_contacts(void){
-
+int xodtemplate_recombobulate_object_contacts(void)
+{
 	return OK;
-
-#ifdef REMOVED_08152007
-	xodtemplate_host *temp_host=NULL;
-	xodtemplate_service *temp_service=NULL;
-	xodtemplate_hostescalation *temp_hostescalation=NULL;
-	xodtemplate_serviceescalation *temp_serviceescalation=NULL;
-	xodtemplate_memberlist *temp_memberlist=NULL;
-	xodtemplate_memberlist *this_memberlist=NULL;
-	char *new_contacts=NULL;
-/*#ifdef NSCORE*/
-	char *temp_buffer=NULL;
-/*#endif*/
-
-	/* expand contacts in host definitions */
-	for(temp_host=xodtemplate_host_list;temp_host;temp_host=temp_host->next){
-
-		/* skip this host if not contacts or contactgroups specified */
-		if(temp_host->contact_groups==NULL && temp_host->contacts==NULL)
-			continue;
-
-		/* get list of contacts for this host */
-		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_host->contact_groups,temp_host->contacts,temp_host->_config_file,temp_host->_start_line);
-		if(temp_memberlist==NULL){
-#ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand contacts specified in host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
-#endif
-			return ERROR;
-	                }
-
-		/* add all contacts */
-		my_free(temp_host->contacts);
-		for(this_memberlist=temp_memberlist;this_memberlist;this_memberlist=this_memberlist->next){
-
-			/* add this contact */
-			if(temp_host->contacts==NULL)
-				temp_host->contacts=(char *)strdup(this_memberlist->name1);
-			else{
-				new_contacts=(char *)realloc(temp_host->contacts,strlen(temp_host->contacts)+strlen(this_memberlist->name1)+2);
-				if(new_contacts!=NULL){
-					temp_host->contacts=new_contacts;
-					strcat(temp_host->contacts,",");
-					strcat(temp_host->contacts,this_memberlist->name1);
-				        }
-			        }
-	                }
-		xodtemplate_free_memberlist(&temp_memberlist);
-
-		/* null out contactgroups member - we don't use it from here on out */
-		my_free(temp_host->contact_groups);
-	        }
-
-
-	/* expand contacts in service definitions */
-	for(temp_service=xodtemplate_service_list;temp_service;temp_service=temp_service->next){
-
-		/* skip this service if not contacts or contactgroups specified */
-		if(temp_service->contact_groups==NULL && temp_service->contacts==NULL)
-			continue;
-
-		/* get list of contacts for this service */
-		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_service->contact_groups,temp_service->contacts,temp_service->_config_file,temp_service->_start_line);
-		if(temp_memberlist==NULL){
-#ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand contacts specified in service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
-#endif
-			return ERROR;
-	                }
-
-		/* add all contacts */
-		my_free(temp_service->contacts);
-		for(this_memberlist=temp_memberlist;this_memberlist;this_memberlist=this_memberlist->next){
-
-			/* add this contact */
-			if(temp_service->contacts==NULL)
-				temp_service->contacts=(char *)strdup(this_memberlist->name1);
-			else{
-				new_contacts=(char *)realloc(temp_service->contacts,strlen(temp_service->contacts)+strlen(this_memberlist->name1)+2);
-				if(new_contacts!=NULL){
-					temp_service->contacts=new_contacts;
-					strcat(temp_service->contacts,",");
-					strcat(temp_service->contacts,this_memberlist->name1);
-				        }
-			        }
-	                }
-		xodtemplate_free_memberlist(&temp_memberlist);
-
-		/* null out contactgroups member - we don't use it from here on out */
-		my_free(temp_service->contact_groups);
-	        }
-
-
-	/* expand contacts in host escalation definitions */
-	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation;temp_hostescalation=temp_hostescalation->next){
-
-		/* skip this host escalation if not contacts or contactgroups specified */
-		if(temp_hostescalation->contact_groups==NULL && temp_hostescalation->contacts==NULL)
-			continue;
-
-		/* get list of contacts for this host escalation */
-		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_hostescalation->contact_groups,temp_hostescalation->contacts,temp_hostescalation->_config_file,temp_hostescalation->_start_line);
-		if(temp_memberlist==NULL){
-#ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand contacts specified in host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
-#endif
-			return ERROR;
-	                }
-
-		/* add all contacts */
-		my_free(temp_hostescalation->contacts);
-		for(this_memberlist=temp_memberlist;this_memberlist;this_memberlist=this_memberlist->next){
-
-			/* add this contact */
-			if(temp_hostescalation->contacts==NULL)
-				temp_hostescalation->contacts=(char *)strdup(this_memberlist->name1);
-			else{
-				new_contacts=(char *)realloc(temp_hostescalation->contacts,strlen(temp_hostescalation->contacts)+strlen(this_memberlist->name1)+2);
-				if(new_contacts!=NULL){
-					temp_hostescalation->contacts=new_contacts;
-					strcat(temp_hostescalation->contacts,",");
-					strcat(temp_hostescalation->contacts,this_memberlist->name1);
-				        }
-			        }
-	                }
-		xodtemplate_free_memberlist(&temp_memberlist);
-
-		/* null out contactgroups member - we don't use it from here on out */
-		my_free(temp_hostescalation->contact_groups);
-	        }
-
-
-	/* expand contacts in service escalation definitions */
-	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation;temp_serviceescalation=temp_serviceescalation->next){
-
-		/* skip this service escalation if not contacts or contactgroups specified */
-		if(temp_serviceescalation->contact_groups==NULL && temp_serviceescalation->contacts==NULL)
-			continue;
-
-		/* get list of contacts for this service escalation */
-		temp_memberlist=xodtemplate_expand_contactgroups_and_contacts(temp_serviceescalation->contact_groups,temp_serviceescalation->contacts,temp_serviceescalation->_config_file,temp_serviceescalation->_start_line);
-		if(temp_memberlist==NULL){
-#ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand contacts specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
-#endif
-			return ERROR;
-	                }
-
-		/* add all contacts */
-		my_free(temp_serviceescalation->contacts);
-		for(this_memberlist=temp_memberlist;this_memberlist;this_memberlist=this_memberlist->next){
-
-			/* add this contact */
-			if(temp_serviceescalation->contacts==NULL)
-				temp_serviceescalation->contacts=(char *)strdup(this_memberlist->name1);
-			else{
-				new_contacts=(char *)realloc(temp_serviceescalation->contacts,strlen(temp_serviceescalation->contacts)+strlen(this_memberlist->name1)+2);
-				if(new_contacts!=NULL){
-					temp_serviceescalation->contacts=new_contacts;
-					strcat(temp_serviceescalation->contacts,",");
-					strcat(temp_serviceescalation->contacts,this_memberlist->name1);
-				        }
-			        }
-	                }
-		xodtemplate_free_memberlist(&temp_memberlist);
-
-		/* null out contactgroups member - we don't use it from here on out */
-		my_free(temp_serviceescalation->contact_groups);
-	        }
-
-	return OK;
-#endif
-        }
-
+}
 
 
 /* recombobulates hostgroup definitions */
@@ -9387,55 +9218,6 @@ int xodtemplate_recombobulate_servicegroups(void){
 			return ERROR;
 		        }
 	        }
-
-#ifdef REMOVED_02172008
-	/* expand members of (sub)servicegroups */
-	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup;temp_servicegroup=temp_servicegroup->next){
-
-		if(temp_servicegroup->servicegroup_members==NULL)
-			continue;
-
-		/* skip servicegroups that shouldn't be registered */
-		if(temp_servicegroup->register_object==FALSE)
-			continue;
-
-		/* get list of services in the servicegroup */
-		temp_memberlist=xodtemplate_expand_servicegroups_and_services(temp_servicegroup->servicegroup_members,NULL,NULL,temp_servicegroup->_config_file,temp_servicegroup->_start_line);
-
-		/* add all members to the service group */
-		if(temp_memberlist==NULL){
-#ifdef NSCORE
-			logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not expand member servicegroups specified in servicegroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
-#endif
-			return ERROR;
-		        }
-
-		for(this_memberlist=temp_memberlist;this_memberlist;this_memberlist=this_memberlist->next){
-
-			/* add this service to the servicegroup members directive */
-			if(temp_servicegroup->members==NULL){
-				temp_servicegroup->members=(char *)malloc(strlen(this_memberlist->name1)+strlen(this_memberlist->name2)+2);
-				if(temp_servicegroup!=NULL){
-					strcpy(temp_servicegroup->members,this_memberlist->name1);
-					strcat(temp_servicegroup->members,",");
-					strcat(temp_servicegroup->members,this_memberlist->name2);
-				        }
-			        }
-			else{
-				new_members=(char *)realloc(temp_servicegroup->members,strlen(temp_servicegroup->members)+strlen(this_memberlist->name1)+strlen(this_memberlist->name2)+3);
-				if(new_members!=NULL){
-					temp_servicegroup->members=new_members;
-					strcat(temp_servicegroup->members,",");
-					strcat(temp_servicegroup->members,this_memberlist->name1);
-					strcat(temp_servicegroup->members,",");
-					strcat(temp_servicegroup->members,this_memberlist->name2);
-				        }
-			        }
-		        }
-
-		xodtemplate_free_memberlist(&temp_memberlist);
-	        }
-#endif
 
 	return OK;
         }
@@ -10134,15 +9916,6 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 		return ERROR;
 	        }
 
-	/* add all members to the contact group */
-#ifdef REMOVED_02032008
-	if(this_contactgroup->members==NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Contactgroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
-#endif
-		return ERROR;
-	        }
-#endif
 	/* Need to check for NULL because strtok could use a NULL value to check the previous string's token value */
 	if(this_contactgroup->members!=NULL){
 		for(contact_name=strtok(this_contactgroup->members,",");contact_name!=NULL;contact_name=strtok(NULL,",")){
@@ -10183,15 +9956,6 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		return ERROR;
 	        }
 
-	/* add all members to hostgroup */
-#ifdef REMOVED_02032008
-	if(this_hostgroup->members==NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Hostgroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
-#endif
-		return ERROR;
-	        }
-#endif
 	for(host_name=strtok(this_hostgroup->members,",");host_name!=NULL;host_name=strtok(NULL,",")){
 		strip(host_name);
 		new_hostsmember=add_host_to_hostgroup(new_hostgroup,host_name);
@@ -10230,15 +9994,6 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 		return ERROR;
 	        }
 
-	/* add all members to servicegroup */
-#ifdef REMOVED_03022008
-	if(this_servicegroup->members==NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Servicegroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
-#endif
-		return ERROR;
-	        }
-#endif
 	for(host_name=strtok(this_servicegroup->members,",");host_name!=NULL;host_name=strtok(NULL,",")){
 		strip(host_name);
 		svc_description=strtok(NULL,",");
@@ -11514,17 +11269,6 @@ int xodtemplate_merge_extinfo_ojects(void){
 		xodtemplate_merge_service_extinfo_object(temp_service,temp_serviceextinfo);
 	        }
 
-#ifdef NSCORE
-	/* REMOVED 07/16/07 EG - mabye they'll stay in future versions? */
-	/*
-	if(xodtemplate_serviceextinfo_list!=NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Extended service information (serviceextinfo) definitions are deprecated in Nagios 3.x and will not be supported in future versions.  Please merge variables in these definitions with your service definitions.");
-#endif
-	        }
-	*/
-#endif
-
 	/* merge host extinfo definitions */
 	for(temp_hostextinfo=xodtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
 
@@ -11539,17 +11283,6 @@ int xodtemplate_merge_extinfo_ojects(void){
 		/* merge the definitions */
 		xodtemplate_merge_host_extinfo_object(temp_host,temp_hostextinfo);
 	        }
-
-#ifdef NSCORE
-	/* REMOVED 07/16/07 EG - mabye they'll stay in future versions? */
-	/*
-	if(xodtemplate_serviceextinfo_list!=NULL){
-#ifdef NSCORE
-		logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Extended host information (hostextinfo) definitions are deprecated in Nagios 3.x and will not be supported in future versions.  Please merge variables in these definitions with your host definitions.");
-#endif
-	        }
-	*/
-#endif
 
 	return OK;
         }
@@ -13674,13 +13407,8 @@ int xodtemplate_add_contactgroup_members_to_memberlist(xodtemplate_memberlist **
 	if(list==NULL || temp_contactgroup==NULL)
 		return ERROR;
 
-	/* skip contactgroups with no defined members */
+	/* if we have no members, just return. Empty contactgroups are ok */
 	if(temp_contactgroup->members==NULL){
-#ifdef NSCORE
-#ifdef REMOVED_02032008
-		printf("Warning: Specified contactgroup '%s' has no members (config file '%s', starting on line %d)\n",temp_contactgroup->contactgroup_name,xodtemplate_config_file_name(_config_file),_start_line);
-#endif
-#endif
 		return OK;
 		}
 
@@ -14024,13 +13752,8 @@ int xodtemplate_add_hostgroup_members_to_memberlist(xodtemplate_memberlist **lis
 	if(list==NULL || temp_hostgroup==NULL)
 		return ERROR;
 
-	/* skip hostgroups with no defined members */
+	/* if we have no members, just return. Empty hostgroups are ok */
 	if(temp_hostgroup->members==NULL){
-#ifdef NSCORE
-#ifdef REMOVED_02032008
-		printf("Warning: Specified hostgroup '%s' has no members (config file '%s', starting on line %d)\n",temp_hostgroup->hostgroup_name,xodtemplate_config_file_name(_config_file),_start_line);
-#endif
-#endif
 		return OK;
 		}
 
@@ -14408,13 +14131,8 @@ int xodtemplate_add_servicegroup_members_to_memberlist(xodtemplate_memberlist **
 	if(list==NULL || temp_servicegroup==NULL)
 		return ERROR;
 
-	/* skip servicegroups with no defined members */
+	/* if we have no members, just return. Empty servicegroups are ok */
 	if(temp_servicegroup->members==NULL){
-#ifdef NSCORE
-#ifdef REMOVED_02032008
-		printf("Warning: Specified servicegroup '%s' has no members (config file '%s', starting on line %d)\n",temp_servicegroup->servicegroup_name,xodtemplate_config_file_name(_config_file),_start_line);
-#endif
-#endif
 		return OK;
 		}
 

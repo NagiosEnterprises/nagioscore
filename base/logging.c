@@ -407,14 +407,6 @@ int rotate_log_file(time_t rotation_time){
 		return ERROR;
 	        }
 
-#ifdef USE_EVENT_BROKER
-	/* REMOVED - log rotation events are already handled by NEBTYPE_TIMEDEVENT_EXECUTE... */
-	/* send data to the event broker */
-        /*
-	broker_log_data(NEBTYPE_LOG_ROTATION,NEBFLAG_NONE,NEBATTR_NONE,log_archive,log_rotation_method,0,NULL);
-	*/
-#endif
-
 	/* record the log rotation after it has been done... */
 	asprintf(&temp_buffer,"LOG ROTATION: %s\n",method_string);
 	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,&rotation_time);

@@ -965,49 +965,6 @@ void show_process_info(void){
 
 	printf("</TD></TR></TABLE>\n");
 	printf("</DIV>\n");
-
-#ifdef REMOVED_081203
-	printf("<P>");
-	printf("<DIV ALIGN=CENTER>\n");
-
-	printf("<DIV CLASS='dataTitle'>Process Status Information</DIV>\n");
-
-	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0 CLASS='data'>\n");
-	printf("<TR><TD class='stateInfoTable2'>\n");
-	printf("<TABLE BORDER=0>\n");
-
-	if(nagios_process_state==STATE_OK){
-		strcpy(state_string,"OK");
-		state_class="processOK";
-		}
-	else if(nagios_process_state==STATE_WARNING){
-		strcpy(state_string,"WARNING");
-		state_class="processWARNING";
-		}
-	else if(nagios_process_state==STATE_CRITICAL){
-		strcpy(state_string,"CRITICAL");
-		state_class="processCRITICAL";
-		}
-	else{
-		strcpy(state_string,"UNKNOWN");
-		state_class="processUNKNOWN";
-		}
-
-	/* process state */
-	printf("<TR><TD CLASS='dataVar'>Process Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",state_class,state_string);
-
-	/* process check command result */
-	printf("<TR><TD CLASS='dataVar'>Check Command Output:&nbsp;</TD><TD CLASS='dataVal'>%s&nbsp;</TD></TR>\n",nagios_process_info);
-
-	printf("</TABLE>\n");
-	printf("</TD></TR>\n");
-	printf("</TABLE>\n");
-
-	printf("</DIV>\n");
-	printf("</P>\n");
-#endif
-
-	return;
 	}
 
 
@@ -1266,10 +1223,6 @@ void show_host_info(void){
 		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Schedule Downtime For This Host' TITLE='Schedule Downtime For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Schedule downtime for this host</a></td></tr>\n",url_images_path,DOWNTIME_ICON,COMMAND_CGI,CMD_SCHEDULE_HOST_DOWNTIME,url_encode(host_name));
 		
 		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Schedule Downtime For All Services On This Host' TITLE='Schedule Downtime For All Services On This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Schedule downtime for all services on this host</a></td></tr>\n",url_images_path,DOWNTIME_ICON,COMMAND_CGI,CMD_SCHEDULE_HOST_SVC_DOWNTIME,url_encode(host_name));
-
-		/*
-		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Cancel Scheduled Downtime For This Host' TITLE='Cancel Scheduled Downtime For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Cancel scheduled downtime for this host</a></td></tr>\n",url_images_path,SCHEDULED_DOWNTIME_ICON,COMMAND_CGI,CMD_CANCEL_HOST_DOWNTIME,url_encode(host_name));
-		*/
 
 		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Notifications For All Services On This Host' TITLE='Disable Notifications For All Services On This Host'></td><td CLASS='command' NOWRAP><a href='%s?cmd_typ=%d&host=%s'>Disable notifications for all services on this host</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_HOST_SVC_NOTIFICATIONS,url_encode(host_name));
 

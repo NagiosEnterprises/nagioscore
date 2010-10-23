@@ -3057,20 +3057,6 @@ int contains_illegal_object_chars(char *name){
 
 		ch=(int)name[x];
 
-		/* illegal ASCII characters */
-		/* REMOVED 09/26/07 to allow for multi-byte asian characters */
-		/*
-		if(ch<32 || ch==127)
-			return TRUE;
-		*/
-
-		/* REMOVED 3/11/05 to allow for non-english spellings, etc. */
-		/* illegal extended ASCII characters */
-		/*
-		if(ch>=166)
-			return TRUE;
-		*/
-
 		/* illegal user-specified characters */
 		if(illegal_object_chars!=NULL)
 			for(y=0;illegal_object_chars[y];y++)

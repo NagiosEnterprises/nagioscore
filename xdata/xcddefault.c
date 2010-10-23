@@ -180,11 +180,6 @@ int xcddefault_delete_service_comment(unsigned long comment_id){
 int xcddefault_save_comment_data(void){
 
 	/* don't update the status file now (too inefficent), let aggregated status updates do it */
-#ifdef REMOVED_03052007
-	/* update the main status log */
-	update_all_status_data();
-#endif
-
 	return OK;
         }
 

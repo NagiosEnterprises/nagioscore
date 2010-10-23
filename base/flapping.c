@@ -228,17 +228,6 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 
 		update_history=FALSE;
 
-#ifdef REMOVED_05152009
-		/* get the last recorded state */
-		last_state_history_value=hst->state_history[(hst->state_history_index==0)?MAX_STATE_HISTORY_ENTRIES-1:hst->state_history_index-1];
-#endif
-
-		/* NOTE TO SELF 01/23/07 - does this ever evaluate to false?  I don't think so, which probably makes this code pointless... */
-		/* if we haven't had a state change since our last recorded state, bail out */
-#ifdef REMOVED_01232007
-		if(last_state_history_value==hst->current_state)
-			return;
-#endif
 	        }
 
 	/* what thresholds should we use (global or host-specific)? */

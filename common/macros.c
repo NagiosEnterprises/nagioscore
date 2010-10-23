@@ -356,24 +356,6 @@ int grab_contact_macros(contact *cntct){
 
 
 
-/* grab contactgroup macros */
-int grab_contactgroup_macros(contactgroup *cg){
-
-	/* clear contactgroup macros */
-	clear_contactgroup_macros();
-
-	/* save pointer to contactgroup for later */
-	macro_contactgroup_ptr=cg;
-
-	if(cg==NULL)
-		return ERROR;
-
-	return OK;
-	}
-
-
-
-
 /******************************************************************/
 /******************* MACRO GENERATION FUNCTIONS *******************/
 /******************************************************************/

@@ -479,7 +479,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	old_umask=umask(new_umask);
 	asprintf(&output_file,"%s/checkXXXXXX",temp_path);
 	check_result_info.output_file_fd=mkstemp(output_file);
-	if(check_result_info.output_file_fd>0)
+	if(check_result_info.output_file_fd>=0)
 		check_result_info.output_file_fp=fdopen(check_result_info.output_file_fd,"w");
 	else{
 		check_result_info.output_file_fp=NULL;
@@ -2969,7 +2969,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	old_umask=umask(new_umask);
 	asprintf(&output_file,"%s/checkXXXXXX",temp_path);
 	check_result_info.output_file_fd=mkstemp(output_file);
-	if(check_result_info.output_file_fd>0)
+	if(check_result_info.output_file_fd>=0)
 		check_result_info.output_file_fp=fdopen(check_result_info.output_file_fd,"w");
 	else{
 		check_result_info.output_file_fp=NULL;

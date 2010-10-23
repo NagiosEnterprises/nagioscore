@@ -2127,7 +2127,7 @@ int move_check_result_to_queue(char *checkresult_file){
 	output_file_fd=mkstemp(output_file);
 
 	/* file created okay */
-	if(output_file_fd>0){
+	if(output_file_fd>=0){
 
 		log_debug_info(DEBUGL_CHECKS,2,"Moving temp check result file '%s' to queue file '%s'...\n",checkresult_file,output_file);
 

@@ -1128,24 +1128,6 @@ char *my_strsep (char **stringp, const char *delim){
 	}
 
 
-#ifdef REMOVED_10182007
-/* my wrapper for free() */
-int my_free(void **ptr){
-
-	if(ptr==NULL)
-		return ERROR;
-
-	/* I hate calling free() and then resetting the pointer to NULL, so lets do it together */
-	if(*ptr){
-		free(*ptr);
-		*ptr=NULL;
-	        }
-
-	return OK;
-        }
-#endif
-
-
 /* open a file read-only via mmap() */
 mmapfile *mmap_fopen(char *filename){
 	mmapfile *new_mmapfile;

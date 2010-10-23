@@ -478,9 +478,6 @@ void get_expire_time_string(time_t *,char *,int);		/* gets a date/time string in
 
 char * my_strtok(char *,char *);				/* replacement for strtok() function - doesn't skip multiple tokens */
 char * my_strsep (char **, const char *);
-#ifdef REMOVED_10182007
-int my_free(void **);                                   	/* my wrapper for free() */
-#endif
 
 char * url_encode(char *);		        		/* encodes a string in proper URL format */
 char * html_encode(char *,int);					/* encodes a string in HTML format (for what the user sees) */

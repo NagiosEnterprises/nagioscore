@@ -673,9 +673,7 @@ int main(int argc, char **argv, char **env){
 			now=time(NULL);
 			tm=localtime(&now);
 			strftime(datestring,sizeof(datestring),"%a %b %d %H:%M:%S %Z %Y",tm);
-			asprintf(&buffer,"Local time is %s\n",datestring);
-			write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO,TRUE);
-			my_free(buffer);
+			logit(NSLOG_PROCESS_INFO,TRUE,"Local time is %s",datestring);
 
 			/* write log version/info */
 			write_log_file_info(NULL);

@@ -224,7 +224,6 @@ char *get_url_encoded_string(char *);			/* URL encode a string */
 
 int init_macros(void);
 int init_macrox_names(void);
-int add_macrox_name(int,char *);
 int free_macrox_names(void);
 
 int clear_argv_macros(void);

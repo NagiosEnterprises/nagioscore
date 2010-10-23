@@ -902,8 +902,6 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 	xodtemplate_hostescalation *new_hostescalation=NULL;
 	xodtemplate_hostextinfo *new_hostextinfo=NULL;
 	xodtemplate_serviceextinfo *new_serviceextinfo=NULL;
-	register int x=0;
-
 
 	if(!strcmp(input,"service"))
 		xodtemplate_current_object_type=XODTEMPLATE_SERVICE;

@@ -4964,10 +4964,13 @@ void process_passive_checks(void){
 	asprintf(&checkresult_file,"%s/checkXXXXXX",temp_path);
 	checkresult_file_fd=mkstemp(checkresult_file);
 	umask(old_umask);
-	if(checkresult_file_fd>0)
-		checkresult_file_fp=fdopen(checkresult_file_fd,"w");
-	else
+	if(checkresult_file_fd < 0) {
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Failed to open checkresult file '%s': %s\n", checkresult_file, strerror(errno));
+		free(checkresult_file);
 		return;
+	}
+
+	checkresult_file_fp=fdopen(checkresult_file_fd,"w");
 	
 	time(&current_time);
 	fprintf(checkresult_file_fp,"### Passive Check Result File ###\n");

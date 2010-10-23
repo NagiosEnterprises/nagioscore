@@ -429,7 +429,6 @@ typedef struct lifo_struct{
 /******************************** FUNCTIONS *******************************/
 
 void reset_cgi_vars(void);
-void free_cgi_vars(void);
 void free_memory(void);
 
 char * get_cgi_config_location(void);				/* gets location of the CGI config file to read */
@@ -447,7 +446,6 @@ int process_macros(char *,char **,int);				/* processes macros in a string */
 
 void get_time_string(time_t *,char *,int,int);			/* gets a date/time string */
 void get_interval_time_string(double,char *,int);		/* gets a time string for an interval of time */
-void get_expire_time_string(time_t *,char *,int);		/* gets a date/time string in the format used for Expire: tags*/
 
 char * url_encode(char *);		        		/* encodes a string in proper URL format */
 char * html_encode(char *,int);					/* encodes a string in HTML format (for what the user sees) */

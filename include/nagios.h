@@ -562,7 +562,6 @@ void sighandler(int);                                	/* handles signals */
 void service_check_sighandler(int);                     /* handles timeouts when executing service checks */
 void host_check_sighandler(int);                        /* handles timeouts when executing host checks */
 void my_system_sighandler(int);				/* handles timeouts when executing commands via my_system() */
-void file_lock_sighandler(int);				/* handles timeouts while waiting for file locks */
 char *get_next_string_from_buf(char *buf, int *start_index, int bufsize);
 int compare_strings(char *,char *);                     /* compares two strings for equality */
 char *escape_newlines(char *);
@@ -605,7 +604,6 @@ int cmd_add_comment(int,time_t,char *);				/* add a service or host comment */
 int cmd_delete_comment(int,char *);				/* delete a service or host comment */
 int cmd_delete_all_comments(int,char *);			/* delete all comments associated with a host or service */
 int cmd_delay_notification(int,char *);				/* delay a service or host notification */
-int cmd_schedule_service_check(int,char *,int);			/* schedule an immediate or delayed service check */
 int cmd_schedule_check(int,char *);				/* schedule an immediate or delayed host check */
 int cmd_schedule_host_service_checks(int,char *,int);		/* schedule an immediate or delayed checks of all services on a host */
 int cmd_signal_process(int,char *);				/* schedules a program shutdown or restart */
@@ -685,11 +683,6 @@ void enable_contact_host_notifications(contact *);      /* enables host notifica
 void disable_contact_host_notifications(contact *);     /* disables host notifications for a specific contact */
 void enable_contact_service_notifications(contact *);   /* enables service notifications for a specific contact */
 void disable_contact_service_notifications(contact *);  /* disables service notifications for a specific contact */
-
-int init_check_result_worker_thread(void);
-int shutdown_check_result_worker_thread(void);
-void * check_result_worker_thread(void *);
-void cleanup_check_result_worker_thread(void *);
 
 int init_command_file_worker_thread(void);
 int shutdown_command_file_worker_thread(void);

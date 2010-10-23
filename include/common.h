@@ -44,7 +44,7 @@
 #undef USE_MEMORY_PERFORMANCE_TWEAKS
 
 /* my_free has been freed from bondage as a function */
-#define my_free(ptr) { if(ptr) { free(ptr); ptr = NULL; } }
+#define my_free(ptr) do { if(ptr) { free(ptr); ptr = NULL; } } while(0)
 
 
 

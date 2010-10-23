@@ -152,6 +152,7 @@ extern char     *tzname[2];
  * a no-op anyway, so it's not a big issue
  */
 void logit(int data_type, int display, const char *fmt, ...) { return; }
+int log_debug_info(int leve, int verbosity, const char *fmt, ...) { return 0; }
 
 /**********************************************************
  ***************** CLEANUP FUNCTIONS **********************

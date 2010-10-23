@@ -35,8 +35,38 @@
 #define NSLOG_HOST_NOTIFICATION		524288
 #define NSLOG_SERVICE_NOTIFICATION	1048576
 
+/***************** DEBUGGING LEVELS *******************/
+
+#define DEBUGL_ALL                      -1
+#define DEBUGL_NONE                     0
+#define DEBUGL_FUNCTIONS                1
+#define DEBUGL_CONFIG			2
+#define DEBUGL_PROCESS                  4
+#define DEBUGL_STATUSDATA               4
+#define DEBUGL_RETENTIONDATA            4
+#define DEBUGL_EVENTS                   8
+#define DEBUGL_CHECKS                   16
+#define DEBUGL_IPC                      16
+#define DEBUGL_FLAPPING                 16
+#define DEBUGL_EVENTHANDLERS            16
+#define DEBUGL_PERFDATA                 16
+#define DEBUGL_NOTIFICATIONS            32
+#define DEBUGL_EVENTBROKER              64
+#define DEBUGL_EXTERNALCOMMANDS         128
+#define DEBUGL_COMMANDS                 256
+#define DEBUGL_DOWNTIME                 512
+#define DEBUGL_COMMENTS                 1024
+#define DEBUGL_MACROS                   2048
+
+#define DEBUGV_BASIC                    0
+#define DEBUGV_MORE			1
+#define DEBUGV_MOST                     2
+
+
 /**** Logging Functions ****/
 void logit(int,int,const char *, ...)
+	__attribute__((__format__(__printf__, 3, 4)));
+int log_debug_info(int,int,const char *,...)
 	__attribute__((__format__(__printf__, 3, 4)));
 
 #ifndef NSCGI
@@ -50,10 +80,7 @@ int log_service_states(int,time_t *);                   /* logs initial/current 
 int rotate_log_file(time_t);			     	/* rotates the main log file */
 int write_log_file_info(time_t *); 			/* records log file/version info */
 int open_debug_log(void);
-int log_debug_info(int,int,const char *,...)
-	__attribute__((__format__(__printf__, 3, 4)));
 int close_debug_log(void);
-
 #endif /* !NSCGI */
 
 #endif

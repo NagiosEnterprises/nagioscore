@@ -93,9 +93,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 	int macro_options=0;
 
 
-#ifdef NSCORE
 	log_debug_info(DEBUGL_FUNCTIONS,0,"process_macros()\n");
-#endif
 
 	if(output_buffer==NULL)
 		return ERROR;
@@ -107,10 +105,8 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 
 	in_macro=FALSE;
 
-#ifdef NSCORE
 	log_debug_info(DEBUGL_MACROS,1,"**** BEGIN MACRO PROCESSING ***********\n");
 	log_debug_info(DEBUGL_MACROS,1,"Processing: '%s'\n",input_buffer);
-#endif
 
 	/* use a duplicate of original buffer, so we don't modify the original */
 	save_buffer=buf_ptr=(input_buffer?strdup(input_buffer):NULL);
@@ -129,9 +125,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 		else
 			buf_ptr=NULL;
 
-#ifdef NSCORE
 		log_debug_info(DEBUGL_MACROS,2,"  Processing part: '%s'\n",temp_buffer);
-#endif
 
 		selected_macro=NULL;
 		found_macro_x=FALSE;
@@ -144,10 +138,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 			*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+strlen(temp_buffer)+1);
 			strcat(*output_buffer,temp_buffer);
 
-#ifdef NSCORE
-			log_debug_info(DEBUGL_MACROS,2,"  Not currently in macro.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
-#endif
-
+			log_debug_info(DEBUGL_MACROS,2,"  Not currently in macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
 			in_macro=TRUE;
 			}
 
@@ -159,15 +150,11 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 
 			/* grab the macro value */
 			result=grab_macro_value(temp_buffer,&selected_macro,&clean_options,&free_macro);
-#ifdef NSCORE
 			log_debug_info(DEBUGL_MACROS,2,"  Processed '%s', Clean Options: %d, Free: %d\n",temp_buffer,clean_options,free_macro);
-#endif
 
 			/* an error occurred - we couldn't parse the macro, so continue on */
 			if(result==ERROR){
-#ifdef NSCORE
 				log_debug_info(DEBUGL_MACROS,0," WARNING: An error occurred processing macro '%s'!\n",temp_buffer);
-#endif
 				if(free_macro==TRUE)
 					my_free(selected_macro);
 				}
@@ -178,21 +165,14 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 
 			/* an escaped $ is done by specifying two $$ next to each other */
 			else if(!strcmp(temp_buffer,"")){
-
-#ifdef NSCORE
-				log_debug_info(DEBUGL_MACROS,2,"  Escaped $.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
-#endif
-
+				log_debug_info(DEBUGL_MACROS,2,"  Escaped $.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
 				*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+2);
 				strcat(*output_buffer,"$");
 				}
 
 			/* a non-macro, just some user-defined string between two $s */
 			else{
-
-#ifdef NSCORE
-				log_debug_info(DEBUGL_MACROS,2,"  Non-macro.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
-#endif
+				log_debug_info(DEBUGL_MACROS,2,"  Non-macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
 
 				/* add the plain text to the end of the already processed buffer */
 				*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+strlen(temp_buffer)+3);
@@ -203,17 +183,12 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 
 			/* insert macro */
 			if(selected_macro!=NULL){
-
-#ifdef NSCORE
 				log_debug_info(DEBUGL_MACROS,2,"  Processed '%s', Clean Options: %d, Free: %d\n",temp_buffer,clean_options,free_macro);
-#endif
 
 				/* include any cleaning options passed back to us */
 				macro_options=(options | clean_options);
 
-#ifdef NSCORE
 				log_debug_info(DEBUGL_MACROS,2,"  Cleaning options: global=%d, local=%d, effective=%d\n",options,clean_options,macro_options);
-#endif
 
 				/* URL encode the macro if requested - this allocates new memory */
 				if(macro_options & URL_ENCODE_MACRO_CHARS){
@@ -233,9 +208,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 						*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+strlen(cleaned_macro)+1);
 						strcat(*output_buffer,cleaned_macro);
 
-#ifdef NSCORE
-						log_debug_info(DEBUGL_MACROS,2,"  Cleaned macro.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
-#endif
+						log_debug_info(DEBUGL_MACROS,2,"  Cleaned macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
 						}
 					}
 
@@ -246,9 +219,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 						*output_buffer=(char *)realloc(*output_buffer,strlen(*output_buffer)+strlen(selected_macro)+1);
 						strcat(*output_buffer,selected_macro);
 
-#ifdef NSCORE
-						log_debug_info(DEBUGL_MACROS,2,"  Uncleaned macro.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
-#endif
+						log_debug_info(DEBUGL_MACROS,2,"  Uncleaned macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
 						}
 					}
 
@@ -256,9 +227,7 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 				if(free_macro==TRUE)
 					my_free(selected_macro);
 
-#ifdef NSCORE
-				log_debug_info(DEBUGL_MACROS,2,"  Just finished macro.  Running output (%zd): '%s'\n",strlen(*output_buffer),*output_buffer);
-#endif
+				log_debug_info(DEBUGL_MACROS,2,"  Just finished macro.  Running output (%d): '%s'\n",strlen(*output_buffer),*output_buffer);
 				}
 
 			in_macro=FALSE;
@@ -268,10 +237,8 @@ int process_macros(char *input_buffer, char **output_buffer, int options){
 	/* free copy of input buffer */
 	my_free(save_buffer);
 
-#ifdef NSCORE
 	log_debug_info(DEBUGL_MACROS,1,"  Done.  Final output: '%s'\n",*output_buffer);
 	log_debug_info(DEBUGL_MACROS,1,"**** END MACRO PROCESSING *************\n");
-#endif
 
 	return OK;
 	}
@@ -473,9 +440,7 @@ int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int 
 
 		if(!strcmp(macro_name,macro_x_names[x])){
 
-#ifdef NSCORE
 			log_debug_info(DEBUGL_MACROS,2,"  macro_x[%d] (%s) match.\n",x,macro_x_names[x]);
-#endif
 
 			/* get the macro value */
 			result=grab_macrox_value(x,arg[0],arg[1],output,free_macro);
@@ -484,16 +449,12 @@ int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int 
 			/* host/service output/perfdata and author/comment macros should get cleaned */
 			if((x>=16 && x<=19) ||(x>=49 && x<=52) || (x>=99 && x<=100) || (x>=124 && x<=127)){
 				*clean_options|=(STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
-#ifdef NSCORE
 				log_debug_info(DEBUGL_MACROS,2,"  New clean options: %d\n",*clean_options);
-#endif
 				}
 			/* url macros should get cleaned */
 			if((x>=125 && x<=126) ||(x>=128 && x<=129) || (x>=77 && x<=78) || (x>=74 && x<=75)){
 				*clean_options|=URL_ENCODE_MACRO_CHARS;
-#ifdef NSCORE
 				log_debug_info(DEBUGL_MACROS,2,"  New clean options: %d\n",*clean_options);
-#endif
 				}
 
 
@@ -630,9 +591,7 @@ int grab_macro_value(char *macro_buffer, char **output, int *clean_options, int 
 
 	/* no macro matched... */
 	else{
-#ifdef NSCORE
 		log_debug_info(DEBUGL_MACROS,0," WARNING: Could not find a macro matching '%s'!\n",macro_name);
-#endif
 		result=ERROR;
 		}
 	
@@ -1267,9 +1226,7 @@ int grab_macrox_value(int macro_type, char *arg1, char *arg2, char **output, int
 		break;
 
 	default:
-#ifdef NSCORE
 		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED MACRO #%d! THIS IS A BUG!\n",macro_type);
-#endif
 		return ERROR;
 		break;
 		}
@@ -1840,9 +1797,7 @@ int grab_standard_host_macro(int macro_type, host *temp_host, char **output, int
 		break;
 
 	default:
-#ifdef NSCORE
 		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED HOST MACRO #%d! THIS IS A BUG!\n",macro_type);
-#endif
 		return ERROR;
 		break;
 		}
@@ -1913,9 +1868,7 @@ int grab_standard_hostgroup_macro(int macro_type, hostgroup *temp_hostgroup, cha
 			*output=(char *)strdup(temp_hostgroup->notes);
 		break;
 	default:
-#ifdef NSCORE
 		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED HOSTGROUP MACRO #%d! THIS IS A BUG!\n",macro_type);
-#endif
 		return ERROR;
 		break;
 		}
@@ -2151,9 +2104,7 @@ int grab_standard_service_macro(int macro_type, service *temp_service, char **ou
 		break;
 
 	default:
-#ifdef NSCORE
 		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED SERVICE MACRO #%d! THIS IS A BUG!\n",macro_type);
-#endif
 		return ERROR;
 		break;
 		}
@@ -2229,11 +2180,8 @@ int grab_standard_servicegroup_macro(int macro_type, servicegroup *temp_serviceg
 			*output=(char *)strdup(temp_servicegroup->notes);
 		break;
 	default:
-#ifdef NSCORE
 		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED SERVICEGROUP MACRO #%d! THIS IS A BUG!\n",macro_type);
-#endif
 		return ERROR;
-		break;
 		}
 
 	/* post-processing */
@@ -2307,11 +2255,8 @@ int grab_standard_contact_macro(int macro_type, contact *temp_contact, char **ou
 		break;
 #endif
 	default:
-#ifdef NSCORE
 		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED CONTACT MACRO #%d! THIS IS A BUG!\n",macro_type);
-#endif
 		return ERROR;
-		break;
 		}
 
 	return OK;
@@ -2367,11 +2312,8 @@ int grab_standard_contactgroup_macro(int macro_type, contactgroup *temp_contactg
 			}
 		break;
 	default:
-#ifdef NSCORE
 		log_debug_info(DEBUGL_MACROS,0,"UNHANDLED CONTACTGROUP MACRO #%d! THIS IS A BUG!\n",macro_type);
-#endif
 		return ERROR;
-		break;
 		}
 
 	return OK;

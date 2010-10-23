@@ -135,34 +135,6 @@ extern "C" {
 #define UPDATE_CHECK_RETRY_INTERVAL_WOBBLE                      60*60*3  /* 3 hour wobble on top of base retry interval */
 
 
-/***************** DEBUGGING LEVELS *******************/
-
-#define DEBUGL_ALL                      -1
-#define DEBUGL_NONE                     0
-#define DEBUGL_FUNCTIONS                1
-#define DEBUGL_CONFIG			2
-#define DEBUGL_PROCESS                  4
-#define DEBUGL_STATUSDATA               4
-#define DEBUGL_RETENTIONDATA            4
-#define DEBUGL_EVENTS                   8
-#define DEBUGL_CHECKS                   16
-#define DEBUGL_IPC                      16
-#define DEBUGL_FLAPPING                 16
-#define DEBUGL_EVENTHANDLERS            16
-#define DEBUGL_PERFDATA                 16
-#define DEBUGL_NOTIFICATIONS            32
-#define DEBUGL_EVENTBROKER              64
-#define DEBUGL_EXTERNALCOMMANDS         128
-#define DEBUGL_COMMANDS                 256
-#define DEBUGL_DOWNTIME                 512
-#define DEBUGL_COMMENTS                 1024
-#define DEBUGL_MACROS                   2048
-
-#define DEBUGV_BASIC                    0
-#define DEBUGV_MORE			1
-#define DEBUGV_MOST                     2
-
-
 /******************** HOST STATUS *********************/
 
 #define HOST_UP				0

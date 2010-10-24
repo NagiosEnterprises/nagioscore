@@ -218,13 +218,13 @@ void
 setup_objects(time_t time) {
     timed_event *new_event=NULL;
 
-    host1=(host *)malloc(sizeof(host));
+    host1=(host *)calloc(1, sizeof(host));
     host1->current_state=HOST_DOWN;
     host1->has_been_checked=TRUE;
     host1->last_check=time;
 
     /* First service is a normal one */
-    svc1=(service *)malloc(sizeof(service));
+    svc1=(service *)calloc(1, sizeof(service));
     svc1->host_name=strdup("Host1");
     svc1->host_ptr=host1;
     svc1->description=strdup("Normal service");
@@ -238,7 +238,7 @@ setup_objects(time_t time) {
     svc1->last_state_change=0;
 
     /* Second service .... to be configured! */
-    svc2=(service *)malloc(sizeof(service));
+    svc2=(service *)calloc(1, sizeof(service));
     svc2->host_name=strdup("Host1");
     svc2->description=strdup("To be nudged");
     svc2->check_options=0;
@@ -263,7 +263,7 @@ main (int argc, char **argv)
 
     
     /* Test to confirm that if a service is warning, the notified_on_critical is reset */
-    tmp_check_result=(check_result *)malloc(sizeof(check_result));
+    tmp_check_result=(check_result *)calloc(1, sizeof(check_result));
     tmp_check_result->host_name=strdup("host1");
     tmp_check_result->service_description=strdup("Normal service");
     tmp_check_result->object_check_type=SERVICE_CHECK;

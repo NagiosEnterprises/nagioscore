@@ -1,0 +1,7 @@
+test_events
+test_logging
+test_checks
+test_nagios_config
+test_timeperiods
+test_xsddefault
+*.dSYM

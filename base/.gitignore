@@ -1,4 +1,3 @@
 *.o
-Makefile
 nagios
 nagiostats

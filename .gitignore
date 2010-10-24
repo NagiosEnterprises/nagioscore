@@ -8,5 +8,9 @@ autom4te.cache
 config.log
 config.status
 daemon-init
-/Makefile
+Makefile
+.deps/
+.libs/
 *.o
+*.la
+*.lo

@@ -17,7 +17,15 @@
 *****************************************************************************/
 
 #define NSCORE 1
-#include "../base/checks.c"
+#include "config.h"
+#include "comments.h"
+#include "common.h"
+#include "statusdata.h"
+#include "downtime.h"
+#include "macros.h"
+#include "nagios.h"
+#include "broker.h"
+#include "perfdata.h"
 #include "tap.h"
 
 /* Test specific functions + variables */

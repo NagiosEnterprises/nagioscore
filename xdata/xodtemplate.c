@@ -1016,6 +1016,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 	case XODTEMPLATE_SERVICEESCALATION:
 		xod_begin_def(serviceescalation);
+		new_serviceescalation->first_notification = -2;
+		new_serviceescalation->last_notification = -2;
 		break;
 
 	case XODTEMPLATE_CONTACT:
@@ -1085,6 +1087,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 	case XODTEMPLATE_HOSTESCALATION:
 		xod_begin_def(hostescalation);
+		new_hostescalation->first_notification = -2;
+		new_hostescalation->last_notification = -2;
 		break;
 
 	case XODTEMPLATE_HOSTEXTINFO:

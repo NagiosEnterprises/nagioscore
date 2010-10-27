@@ -2361,13 +2361,6 @@ char *clean_macro_chars(char *macro,int options){
 			if(ch<32 || ch==127)
 				continue;
 
-			/* REMOVED 3/11/05 to allow for non-english spellings, etc. */
-			/* illegal extended ASCII characters */
-			/*
-			if(ch>=166)
-				continue;
-			*/
-
 			/* illegal user-specified characters */
 			illegal_char=FALSE;
 			if(illegal_output_chars!=NULL){

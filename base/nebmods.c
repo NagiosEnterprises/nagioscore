@@ -554,7 +554,7 @@ int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *))
 
 /* make callbacks to modules */
 int neb_make_callbacks(int callback_type, void *data){
-	nebcallback *temp_callback=NULL;
+	nebcallback *temp_callback, *next_callback;
 	int (*callbackfunc)(int,void *);
 	register int cbresult=0;
 	int total_callbacks=0;
@@ -570,9 +570,11 @@ int neb_make_callbacks(int callback_type, void *data){
 	log_debug_info(DEBUGL_EVENTBROKER,1,"Making callbacks (type %d)...\n",callback_type);
 
 	/* make the callbacks... */
-	for(temp_callback=neb_callback_list[callback_type];temp_callback!=NULL;temp_callback=temp_callback->next){
+	for(temp_callback = neb_callback_list[callback_type];temp_callback;temp_callback=next_callback) {
+		next_callback = temp_callback->next;
 		callbackfunc=temp_callback->callback_func;
 		cbresult=callbackfunc(callback_type,data);
+		temp_callback = next_callback;
 
 		total_callbacks++;
 		log_debug_info(DEBUGL_EVENTBROKER,2,"Callback #%d (type %d) return code = %d\n",total_callbacks,callback_type,cbresult);

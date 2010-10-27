@@ -991,7 +991,6 @@ void show_host_status_totals(void){
 	int total_problems=0;
 	hoststatus *temp_hoststatus;
 	host *temp_host;
-	servicestatus *temp_servicestatus;
 	int count_host;
 
 

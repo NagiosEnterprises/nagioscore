@@ -1013,17 +1013,10 @@ void show_host_status_totals(void){
 			if(show_all_servicegroups==TRUE){
 				count_host=1;
 				}
-			else{
-
-				for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
-					if(is_host_member_of_servicegroup(find_servicegroup(servicegroup_name),temp_host)==TRUE){
-						count_host=1;
-						break;
-						}
-				        }
-
-			        }
-		        }
+			else if(is_host_member_of_servicegroup(find_servicegroup(servicegroup_name),temp_host)==TRUE){
+				count_host=1;
+			}
+		}
 		else if(display_type==DISPLAY_HOSTGROUPS && (show_all_hostgroups==TRUE || (is_host_member_of_hostgroup(find_hostgroup(hostgroup_name),temp_host)==TRUE)))
 			count_host=1;
 

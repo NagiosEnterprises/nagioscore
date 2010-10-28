@@ -2411,7 +2411,7 @@ void show_command_help(cmd){
 
 	case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
 		printf("This command is used to temporarily prevent notifications from being sent out for all hosts and services that lie\n");
-		printf("\"beyone\" the specified host (from the view of Nagios).\n");
+		printf("\"beyond\" the specified host (from the view of Nagios).\n");
 		break;
 		
 	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:

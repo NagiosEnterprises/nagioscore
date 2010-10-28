@@ -162,11 +162,15 @@ int neb_load_all_modules(void){
         }
 
 
+#ifndef PATH_MAX
+# define PATH_MAX 4096
+#endif
 /* load a particular module */
-int neb_load_module(nebmodule *mod){
+int neb_load_module(nebmodule *mod)
+{
 	int (*initfunc)(int,char *,void *);
 	int *module_version_ptr=NULL;
-	char *output_file=NULL;
+	char output_file[PATH_MAX];
 	int dest_fd, result=OK;
 
 	if(mod==NULL || mod->filename==NULL)
@@ -199,13 +203,12 @@ int neb_load_module(nebmodule *mod){
 	 * we re-use the destination file descriptor returned by mkstemp(3),
 	 * which we have to close ourselves.
 	 */
-	asprintf(&output_file,"%s/nebmodXXXXXX",temp_path);
+	snprintf(output_file, sizeof(output_file) - 1, "%s/nebmodXXXXXX",temp_path);
 	dest_fd = mkstemp(output_file);
 	result = my_fdcopy(mod->filename, output_file, dest_fd);
 	close(dest_fd);
 	if (result == ERROR) {
 		logit(NSLOG_RUNTIME_ERROR,FALSE,"Error: Failed to safely copy module '%s'. The module will not be loaded\n", mod->filename);
-		free(output_file);
 		return ERROR;
 	}
 

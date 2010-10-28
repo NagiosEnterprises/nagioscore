@@ -48,7 +48,6 @@
 #ifdef NSCORE
 extern unsigned long next_comment_id;
 extern comment *comment_list;
-extern char *macro_x[MACRO_X_COUNT];
 #endif
 
 

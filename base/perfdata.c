@@ -29,7 +29,7 @@
 #include "../include/common.h"
 #include "../include/objects.h"
 #include "../include/perfdata.h"
-
+#include "../include/macros.h"
 
 /***** IMPLEMENTATION-SPECIFIC HEADER FILES *****/
 

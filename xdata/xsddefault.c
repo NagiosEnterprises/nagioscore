@@ -103,8 +103,6 @@ extern char           *new_program_version;
 extern int external_command_buffer_slots;
 extern circular_buffer external_command_buffer;
 
-extern char *macro_x[MACRO_X_COUNT];
-
 extern host *host_list;
 extern service *service_list;
 extern contact *contact_list;
@@ -138,13 +136,16 @@ char *xsddefault_temp_file=NULL;
 /******************************************************************/
 
 /* grab configuration information */
-int xsddefault_grab_config_info(char *config_file){
+int xsddefault_grab_config_info(char *config_file)
+{
 	char *input=NULL;
 	mmapfile *thefile;
 #ifdef NSCGI
 	char *input2=NULL;
 	mmapfile *thefile2;
 	char *temp_buffer;
+#else
+	nagios_macros *mac;
 #endif
 
 
@@ -230,14 +231,15 @@ int xsddefault_grab_config_info(char *config_file){
 		return ERROR;
 
 #ifdef NSCORE
+	mac = get_global_macros();
 	/* save the status file macro */
-	my_free(macro_x[MACRO_STATUSDATAFILE]);
-	if((macro_x[MACRO_STATUSDATAFILE]=(char *)strdup(xsddefault_status_log)))
-		strip(macro_x[MACRO_STATUSDATAFILE]);
+	my_free(mac->x[MACRO_STATUSDATAFILE]);
+	if((mac->x[MACRO_STATUSDATAFILE]=(char *)strdup(xsddefault_status_log)))
+		strip(mac->x[MACRO_STATUSDATAFILE]);
 #endif
 
 	return OK;
-        }
+}
 
 
 /* processes a single directive */

@@ -50,8 +50,6 @@ extern int             event_handler_timeout;
 extern int             ocsp_timeout;
 extern int             ochp_timeout;
 
-extern char            *macro_x[MACRO_X_COUNT];
-
 extern char            *global_host_event_handler;
 extern char            *global_service_event_handler;
 extern command         *global_host_event_handler_ptr;
@@ -72,13 +70,15 @@ extern time_t          program_start;
 
 
 /* handles service check results in an obsessive compulsive manner... */
-int obsessive_compulsive_service_check_processor(service *svc){
+int obsessive_compulsive_service_check_processor(service *svc)
+{
 	char *raw_command=NULL;
 	char *processed_command=NULL;
 	host *temp_host=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+	nagios_macros mac;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"obsessive_compulsive_service_check_processor()\n");
 
@@ -100,26 +100,32 @@ int obsessive_compulsive_service_check_processor(service *svc){
 		return ERROR;
 
 	/* update service macros */
-	clear_volatile_macros();
-	grab_host_macros(temp_host);
-	grab_service_macros(svc);
+	memset(&mac, 0, sizeof(mac));
+	grab_host_macros(&mac, temp_host);
+	grab_service_macros(&mac, svc);
 
 	/* get the raw command line */
-	get_raw_command_line(ocsp_command_ptr,ocsp_command,&raw_command,macro_options);
-	if(raw_command==NULL)
+	get_raw_command_line_r(&mac, ocsp_command_ptr,ocsp_command,&raw_command,macro_options);
+	if(raw_command==NULL) {
+		clear_volatile_macros(&mac);
 		return ERROR;
+	}
 
 	log_debug_info(DEBUGL_CHECKS,2,"Raw obsessive compulsive service processor command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command,&processed_command,macro_options);
-	if(processed_command==NULL)
+	process_macros_r(&mac, raw_command,&processed_command,macro_options);
+	if(processed_command==NULL) {
+		clear_volatile_macros(&mac);
 		return ERROR;
+	}
 
 	log_debug_info(DEBUGL_CHECKS,2,"Processed obsessive compulsive service processor command line: %s\n",processed_command);
 
 	/* run the command */
-	my_system(processed_command,ocsp_timeout,&early_timeout,&exectime,NULL,0);
+	my_system(&mac, processed_command,ocsp_timeout,&early_timeout,&exectime,NULL,0);
+
+	clear_volatile_macros(&mac);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
@@ -135,12 +141,14 @@ int obsessive_compulsive_service_check_processor(service *svc){
 
 
 /* handles host check results in an obsessive compulsive manner... */
-int obsessive_compulsive_host_check_processor(host *hst){
+int obsessive_compulsive_host_check_processor(host *hst)
+{
 	char *raw_command=NULL;
 	char *processed_command=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+	nagios_macros mac;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"obsessive_compulsive_host_check_processor()\n");
 
@@ -158,25 +166,30 @@ int obsessive_compulsive_host_check_processor(host *hst){
 		return ERROR;
 
 	/* update macros */
-	clear_volatile_macros();
-	grab_host_macros(hst);
+	memset(&mac, 0, sizeof(mac));
+	grab_host_macros(&mac, hst);
 
 	/* get the raw command line */
-	get_raw_command_line(ochp_command_ptr,ochp_command,&raw_command,macro_options);
-	if(raw_command==NULL)
+	get_raw_command_line_r(&mac, ochp_command_ptr,ochp_command,&raw_command,macro_options);
+	if(raw_command==NULL) {
+		clear_volatile_macros(&mac);
 		return ERROR;
+	}
 
 	log_debug_info(DEBUGL_CHECKS,2,"Raw obsessive compulsive host processor command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command,&processed_command,macro_options);
-	if(processed_command==NULL)
+	process_macros_r(&mac, raw_command,&processed_command,macro_options);
+	if(processed_command==NULL) {
+		clear_volatile_macros(&mac);
 		return ERROR;
+	}
 
 	log_debug_info(DEBUGL_CHECKS,2,"Processed obsessive compulsive host processor command line: %s\n",processed_command);
 
 	/* run the command */
-	my_system(processed_command,ochp_timeout,&early_timeout,&exectime,NULL,0);
+	my_system(&mac, processed_command,ochp_timeout,&early_timeout,&exectime,NULL,0);
+	clear_volatile_macros(&mac);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
@@ -187,7 +200,7 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	my_free(processed_command);
 
 	return OK;
-        }
+}
 
 
 
@@ -198,8 +211,10 @@ int obsessive_compulsive_host_check_processor(host *hst){
 
 
 /* handles changes in the state of a service */
-int handle_service_event(service *svc){
+int handle_service_event(service *svc)
+{
 	host *temp_host=NULL;
+	nagios_macros mac;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_service_event()\n");
 
@@ -222,27 +237,29 @@ int handle_service_event(service *svc){
 		return ERROR;
 
 	/* update service macros */
-	clear_volatile_macros();
-	grab_host_macros(temp_host);
-	grab_service_macros(svc);
+	memset(&mac, 0, sizeof(mac));
+	grab_host_macros(&mac, temp_host);
+	grab_service_macros(&mac, svc);
 
 	/* run the global service event handler */
-	run_global_service_event_handler(svc);
+	run_global_service_event_handler(&mac, svc);
 
 	/* run the event handler command if there is one */
 	if(svc->event_handler!=NULL)
-		run_service_event_handler(svc);
+		run_service_event_handler(&mac, svc);
+	clear_volatile_macros(&mac);
 
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
 
 	return OK;
-        }
+}
 
 
 
 /* runs the global service event handler */
-int run_global_service_event_handler(service *svc){
+int run_global_service_event_handler(nagios_macros *mac, service *svc)
+{
 	char *raw_command=NULL;
 	char *processed_command=NULL;
 	char *raw_logentry=NULL;
@@ -280,14 +297,15 @@ int run_global_service_event_handler(service *svc){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(global_service_event_handler_ptr,global_service_event_handler,&raw_command,macro_options);
-	if(raw_command==NULL)
+	get_raw_command_line_r(mac, global_service_event_handler_ptr,global_service_event_handler,&raw_command,macro_options);
+	if(raw_command==NULL) {
 		return ERROR;
+	}
 
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw global service event handler command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command,&processed_command,macro_options);
+	process_macros_r(mac, raw_command,&processed_command,macro_options);
 	if(processed_command==NULL)
 		return ERROR;
 
@@ -295,7 +313,7 @@ int run_global_service_event_handler(service *svc){
 
 	if(log_event_handlers==TRUE){
 		asprintf(&raw_logentry,"GLOBAL SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,global_service_event_handler);
-		process_macros(raw_logentry,&processed_logentry,macro_options);
+		process_macros_r(mac, raw_logentry,&processed_logentry,macro_options);
 		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
 
@@ -316,7 +334,7 @@ int run_global_service_event_handler(service *svc){
 #endif
 
 	/* run the command */
-	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
+	result=my_system(mac, processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE)
@@ -340,12 +358,13 @@ int run_global_service_event_handler(service *svc){
 	my_free(processed_logentry);
 
 	return OK;
-        }
+}
 
 
 
 /* runs a service event handler command */
-int run_service_event_handler(service *svc){
+int run_service_event_handler(nagios_macros *mac, service *svc)
+{
 	char *raw_command=NULL;
 	char *processed_command=NULL;
 	char *raw_logentry=NULL;
@@ -380,14 +399,14 @@ int run_service_event_handler(service *svc){
 
 
 	/* get the raw command line */
-	get_raw_command_line(svc->event_handler_ptr,svc->event_handler,&raw_command,macro_options);
+	get_raw_command_line_r(mac, svc->event_handler_ptr,svc->event_handler,&raw_command,macro_options);
 	if(raw_command==NULL)
 		return ERROR;
 
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw service event handler command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command,&processed_command,macro_options);
+	process_macros_r(mac, raw_command,&processed_command,macro_options);
 	if(processed_command==NULL)
 		return ERROR;
 
@@ -395,7 +414,7 @@ int run_service_event_handler(service *svc){
 
 	if(log_event_handlers==TRUE){
 		asprintf(&raw_logentry,"SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,svc->event_handler);
-		process_macros(raw_logentry,&processed_logentry,macro_options);
+		process_macros_r(mac, raw_logentry,&processed_logentry,macro_options);
 		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
 
@@ -416,7 +435,7 @@ int run_service_event_handler(service *svc){
 #endif
 
 	/* run the command */
-	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
+	result=my_system(mac, processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE)
@@ -440,7 +459,7 @@ int run_service_event_handler(service *svc){
 	my_free(processed_logentry);
 
 	return OK;
-        }
+}
 
 
 
@@ -451,7 +470,9 @@ int run_service_event_handler(service *svc){
 
 
 /* handles a change in the status of a host */
-int handle_host_event(host *hst){
+int handle_host_event(host *hst)
+{
+	nagios_macros mac;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_host_event()\n");
 
@@ -470,25 +491,26 @@ int handle_host_event(host *hst){
 		return OK;
 
 	/* update host macros */
-	clear_volatile_macros();
-	grab_host_macros(hst);
+	memset(&mac, 0, sizeof(mac));
+	grab_host_macros(&mac, hst);
 
 	/* run the global host event handler */
-	run_global_host_event_handler(hst);
+	run_global_host_event_handler(&mac, hst);
 
 	/* run the event handler command if there is one */
 	if(hst->event_handler!=NULL)
-		run_host_event_handler(hst);
+		run_host_event_handler(&mac, hst);
 
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
 
 	return OK;
-        }
+}
 
 
 /* runs the global host event handler */
-int run_global_host_event_handler(host *hst){
+int run_global_host_event_handler(nagios_macros *mac, host *hst)
+{
 	char *raw_command=NULL;
 	char *processed_command=NULL;
 	char *raw_logentry=NULL;
@@ -526,14 +548,14 @@ int run_global_host_event_handler(host *hst){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(global_host_event_handler_ptr,global_host_event_handler,&raw_command,macro_options);
+	get_raw_command_line_r(mac, global_host_event_handler_ptr,global_host_event_handler,&raw_command,macro_options);
 	if(raw_command==NULL)
 		return ERROR;
 
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw global host event handler command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command,&processed_command,macro_options);
+	process_macros_r(mac, raw_command,&processed_command,macro_options);
 	if(processed_command==NULL)
 		return ERROR;
 
@@ -541,7 +563,7 @@ int run_global_host_event_handler(host *hst){
 
 	if(log_event_handlers==TRUE){
 		asprintf(&raw_logentry,"GLOBAL HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,global_host_event_handler);
-		process_macros(raw_logentry,&processed_logentry,macro_options);
+		process_macros_r(mac, raw_logentry,&processed_logentry,macro_options);
 		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
 
@@ -562,7 +584,7 @@ int run_global_host_event_handler(host *hst){
 #endif
 
 	/* run the command */
-	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
+	result=my_system(mac, processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
 
 	/* check for a timeout in the execution of the event handler command */
 	if(early_timeout==TRUE)
@@ -590,7 +612,8 @@ int run_global_host_event_handler(host *hst){
 
 
 /* runs a host event handler command */
-int run_host_event_handler(host *hst){
+int run_host_event_handler(nagios_macros *mac, host *hst)
+{
 	char *raw_command=NULL;
 	char *processed_command=NULL;
 	char *raw_logentry=NULL;
@@ -624,14 +647,14 @@ int run_host_event_handler(host *hst){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(hst->event_handler_ptr,hst->event_handler,&raw_command,macro_options);
+	get_raw_command_line_r(mac, hst->event_handler_ptr,hst->event_handler,&raw_command,macro_options);
 	if(raw_command==NULL)
 		return ERROR;
 
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw host event handler command line: %s\n",raw_command);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command,&processed_command,macro_options);
+	process_macros_r(mac, raw_command,&processed_command,macro_options);
 	if(processed_command==NULL)
 		return ERROR;
 
@@ -639,7 +662,7 @@ int run_host_event_handler(host *hst){
 
 	if(log_event_handlers==TRUE){
 		asprintf(&raw_logentry,"HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,hst->event_handler);
-		process_macros(raw_logentry,&processed_logentry,macro_options);
+		process_macros_r(mac, raw_logentry,&processed_logentry,macro_options);
 		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
 
@@ -660,7 +683,7 @@ int run_host_event_handler(host *hst){
 #endif
 
 	/* run the command */
-	result=my_system(processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
+	result=my_system(mac, processed_command,event_handler_timeout,&early_timeout,&exectime,&command_output,0);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE)

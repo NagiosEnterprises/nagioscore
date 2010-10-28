@@ -68,9 +68,6 @@ FILE    *xpddefault_service_perfdata_fp=NULL;
 int     xpddefault_host_perfdata_fd=-1;
 int     xpddefault_service_perfdata_fd=-1;
 
-extern char *macro_x[MACRO_X_COUNT];
-
-
 
 
 /******************************************************************/
@@ -204,13 +201,16 @@ int xpddefault_grab_config_directives(char *input){
 /******************************************************************/
 
 /* initializes performance data */
-int xpddefault_initialize_performance_data(char *config_file){
+int xpddefault_initialize_performance_data(char *config_file)
+{
 	char *buffer=NULL;
 	char *temp_buffer=NULL;
 	char *temp_command_name=NULL;
 	command *temp_command=NULL;
 	time_t current_time;
+	nagios_macros *mac;
 
+	mac = get_global_macros();
 	time(&current_time);
 
 	/* reset vars */
@@ -323,17 +323,17 @@ int xpddefault_initialize_performance_data(char *config_file){
 		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_service_perfdata_file_processing_interval,TRUE,xpddefault_service_perfdata_file_processing_interval,NULL,TRUE,(void *)xpddefault_process_service_perfdata_file,NULL,0);
 
 	/* save the host perf data file macro */
-	my_free(macro_x[MACRO_HOSTPERFDATAFILE]);
+	my_free(mac->x[MACRO_HOSTPERFDATAFILE]);
 	if(xpddefault_host_perfdata_file!=NULL){
-		if((macro_x[MACRO_HOSTPERFDATAFILE]=(char *)strdup(xpddefault_host_perfdata_file)))
-			strip(macro_x[MACRO_HOSTPERFDATAFILE]);
+		if((mac->x[MACRO_HOSTPERFDATAFILE]=(char *)strdup(xpddefault_host_perfdata_file)))
+			strip(mac->x[MACRO_HOSTPERFDATAFILE]);
 	        }
 
 	/* save the service perf data file macro */
-	my_free(macro_x[MACRO_SERVICEPERFDATAFILE]);
+	my_free(mac->x[MACRO_SERVICEPERFDATAFILE]);
 	if(xpddefault_service_perfdata_file!=NULL){
-		if((macro_x[MACRO_SERVICEPERFDATAFILE]=(char *)strdup(xpddefault_service_perfdata_file)))
-			strip(macro_x[MACRO_SERVICEPERFDATAFILE]);
+		if((mac->x[MACRO_SERVICEPERFDATAFILE]=(char *)strdup(xpddefault_service_perfdata_file)))
+			strip(mac->x[MACRO_SERVICEPERFDATAFILE]);
 	        }
 
 	/* free memory */
@@ -341,7 +341,7 @@ int xpddefault_initialize_performance_data(char *config_file){
 	my_free(buffer);
 
 	return OK;
-        }
+}
 
 
 
@@ -373,29 +373,72 @@ int xpddefault_cleanup_performance_data(char *config_file){
 
 
 /* updates service performance data */
-int xpddefault_update_service_performance_data(service *svc){
+int xpddefault_update_service_performance_data(service *svc)
+{
+	nagios_macros mac;
+	host *hst;
+
+	/*
+	 * bail early if we've got nothing to do so we don't spend a lot
+	 * of time calculating macros that never get used
+	 */
+	if (!svc || !svc->perf_data || !*svc->perf_data) {
+		return OK;
+	}
+	if ((!xpddefault_service_perfdata_fp || !xpddefault_service_perfdata_file_template) && !xpddefault_service_perfdata_command)
+	{
+		return OK;
+	}
+
+	/*
+	 * we know we've got some work to do, so grab the necessary
+	 * macros and get busy
+	 */
+	memset(&mac, 0, sizeof(mac));
+	hst = find_host(svc->host_name);
+	grab_host_macros(&mac, hst);
+	grab_service_macros(&mac, svc);
 
 	/* run the performance data command */
-	xpddefault_run_service_performance_data_command(svc);
+	xpddefault_run_service_performance_data_command(&mac, svc);
 
 	/* update the performance data file */
-	xpddefault_update_service_performance_data_file(svc);
+	xpddefault_update_service_performance_data_file(&mac, svc);
 
 	return OK;
-        }
+}
 
 
 /* updates host performance data */
-int xpddefault_update_host_performance_data(host *hst){
+int xpddefault_update_host_performance_data(host *hst)
+{
+	nagios_macros mac;
+
+
+	/*
+	 * bail early if we've got nothing to do so we don't spend a lot
+	 * of time calculating macros that never get used
+	 */
+	if (!hst || !hst->perf_data || !*hst->perf_data) {
+		return OK;
+	}
+	if ((!xpddefault_host_perfdata_fp || !xpddefault_host_perfdata_file_template) && !xpddefault_host_perfdata_command)
+	{
+		return OK;
+	}
+
+	/* set up macros and get to work */
+	memset(&mac, 0, sizeof(mac));
+	grab_host_macros(&mac, hst);
 
 	/* run the performance data command */
-	xpddefault_run_host_performance_data_command(hst);
+	xpddefault_run_host_performance_data_command(&mac, hst);
 
 	/* update the performance data file */
-	xpddefault_update_host_performance_data_file(hst);
+	xpddefault_update_host_performance_data_file(&mac, hst);
 
 	return OK;
-        }
+}
 
 
 
@@ -406,10 +449,10 @@ int xpddefault_update_host_performance_data(host *hst){
 
 
 /* runs the service performance data command */
-int xpddefault_run_service_performance_data_command(service *svc){
+int xpddefault_run_service_performance_data_command(nagios_macros *mac, service *svc)
+{
 	char *raw_command_line=NULL;
 	char *processed_command_line=NULL;
-	host *temp_host;
 	int early_timeout=FALSE;
 	double exectime;
 	int result=OK;
@@ -424,30 +467,22 @@ int xpddefault_run_service_performance_data_command(service *svc){
 	if(xpddefault_service_perfdata_command==NULL)
 		return OK;
 
-	/* find the associated host */
-	temp_host=find_host(svc->host_name);
-
-	/* update service macros */
-	clear_volatile_macros();
-	grab_host_macros(temp_host);
-	grab_service_macros(svc);
-
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_service_perfdata_command_ptr,xpddefault_service_perfdata_command,&raw_command_line,macro_options);
+	get_raw_command_line_r(mac, xpddefault_service_perfdata_command_ptr,xpddefault_service_perfdata_command,&raw_command_line,macro_options);
 	if(raw_command_line==NULL)
 		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw service performance data command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,&processed_command_line,macro_options);
+	process_macros_r(mac, raw_command_line,&processed_command_line,macro_options);
 	if(processed_command_line==NULL)
 		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Processed service performance data command line: %s\n",processed_command_line);
 
 	/* run the command */
-	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
+	my_system(mac, processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
@@ -458,11 +493,11 @@ int xpddefault_run_service_performance_data_command(service *svc){
 	my_free(processed_command_line);
 
 	return result;
-        }
+}
 
 
 /* runs the host performance data command */
-int xpddefault_run_host_performance_data_command(host *hst){
+int xpddefault_run_host_performance_data_command(nagios_macros *mac, host *hst){
 	char *raw_command_line=NULL;
 	char *processed_command_line=NULL;
 	int early_timeout=FALSE;
@@ -479,24 +514,20 @@ int xpddefault_run_host_performance_data_command(host *hst){
 	if(xpddefault_host_perfdata_command==NULL)
 		return OK;
 
-	/* update host macros */
-	clear_volatile_macros();
-	grab_host_macros(hst);
-
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_host_perfdata_command_ptr,xpddefault_host_perfdata_command,&raw_command_line,macro_options);
+	get_raw_command_line_r(mac, xpddefault_host_perfdata_command_ptr,xpddefault_host_perfdata_command,&raw_command_line,macro_options);
 	if(raw_command_line==NULL)
 		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw host performance data command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,&processed_command_line,macro_options);
+	process_macros_r(mac, raw_command_line,&processed_command_line,macro_options);
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Processed host performance data command line: %s\n",processed_command_line);
 
 	/* run the command */
-	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
+	my_system(mac, processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
 	if(processed_command_line==NULL)
 		return ERROR;
 
@@ -639,10 +670,10 @@ int xpddefault_preprocess_file_templates(char *template){
 
 
 /* updates service performance data file */
-int xpddefault_update_service_performance_data_file(service *svc){
+int xpddefault_update_service_performance_data_file(nagios_macros *mac, service *svc)
+{
 	char *raw_output=NULL;
 	char *processed_output=NULL;
-	host *temp_host=NULL;
 	int result=OK;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"update_service_performance_data_file()\n");
@@ -654,21 +685,13 @@ int xpddefault_update_service_performance_data_file(service *svc){
 	if(xpddefault_service_perfdata_fp==NULL || xpddefault_service_perfdata_file_template==NULL)
 		return OK;
 
-	/* find the associated host */
-	temp_host=find_host(svc->host_name);
-
-	/* update service macros */
-	clear_volatile_macros();
-	grab_host_macros(temp_host);
-	grab_service_macros(svc);
-
 	/* get the raw line to write */
 	raw_output=(char *)strdup(xpddefault_service_perfdata_file_template);
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw service performance data file output: %s\n",raw_output);
 
 	/* process any macros in the raw output line */
-	process_macros(raw_output,&processed_output,0);
+	process_macros_r(mac, raw_output, &processed_output, 0);
 	if(processed_output==NULL)
 		return ERROR;
 
@@ -684,11 +707,12 @@ int xpddefault_update_service_performance_data_file(service *svc){
 	my_free(processed_output);
 
 	return result;
-        }
+}
 
 
 /* updates host performance data file */
-int xpddefault_update_host_performance_data_file(host *hst){
+int xpddefault_update_host_performance_data_file(nagios_macros *mac, host *hst)
+{
 	char *raw_output=NULL;
 	char *processed_output=NULL;
 	int result=OK;
@@ -702,17 +726,13 @@ int xpddefault_update_host_performance_data_file(host *hst){
 	if(xpddefault_host_perfdata_fp==NULL || xpddefault_host_perfdata_file_template==NULL)
 		return OK;
 
-	/* update host macros */
-	clear_volatile_macros();
-	grab_host_macros(hst);
-
 	/* get the raw output */
 	raw_output=(char *)strdup(xpddefault_host_perfdata_file_template);
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw host performance file output: %s\n",raw_output);
 
 	/* process any macros in the raw output */
-	process_macros(raw_output,&processed_output,0);
+	process_macros_r(mac, raw_output,&processed_output,0);
 	if(processed_output==NULL)
 		return ERROR;
 
@@ -732,14 +752,15 @@ int xpddefault_update_host_performance_data_file(host *hst){
 
 
 /* periodically process the host perf data file */
-int xpddefault_process_host_perfdata_file(void){
+int xpddefault_process_host_perfdata_file(void)
+{
 	char *raw_command_line=NULL;
 	char *processed_command_line=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
 	int result=OK;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-
+	nagios_macros mac;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"process_host_perfdata_file()\n");
 
@@ -750,25 +771,30 @@ int xpddefault_process_host_perfdata_file(void){
 	/* close the performance data file */
 	xpddefault_close_host_perfdata_file();
 
-	/* update macros */
-	clear_volatile_macros();
+	/* init macros */
+	memset(&mac, 0, sizeof(mac));
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_host_perfdata_file_processing_command_ptr,xpddefault_host_perfdata_file_processing_command,&raw_command_line,macro_options);
-	if(raw_command_line==NULL)
+	get_raw_command_line_r(&mac, xpddefault_host_perfdata_file_processing_command_ptr,xpddefault_host_perfdata_file_processing_command,&raw_command_line,macro_options);
+	if(raw_command_line==NULL) {
+		clear_volatile_macros(&mac);
 		return ERROR;
+	}
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw host performance data file processing command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,&processed_command_line,macro_options);
-	if(processed_command_line==NULL)
+	process_macros_r(&mac, raw_command_line,&processed_command_line,macro_options);
+	if(processed_command_line==NULL) {
+		clear_volatile_macros(&mac);
 		return ERROR;
+	}
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Processed host performance data file processing command line: %s\n",processed_command_line);
 
 	/* run the command */
-	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
+	my_system(&mac, processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
+	clear_volatile_macros(&mac);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
@@ -782,7 +808,7 @@ int xpddefault_process_host_perfdata_file(void){
 	my_free(processed_command_line);
 
 	return result;
-        }
+}
 
 
 /* periodically process the service perf data file */
@@ -793,7 +819,7 @@ int xpddefault_process_service_perfdata_file(void){
 	double exectime=0.0;
 	int result=OK;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-
+	nagios_macros mac;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"process_service_perfdata_file()\n");
 
@@ -804,25 +830,30 @@ int xpddefault_process_service_perfdata_file(void){
 	/* close the performance data file */
 	xpddefault_close_service_perfdata_file();
 
-	/* update macros */
-	clear_volatile_macros();
+	/* init macros */
+	memset(&mac, 0, sizeof(mac));
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_service_perfdata_file_processing_command_ptr,xpddefault_service_perfdata_file_processing_command,&raw_command_line,macro_options);
-	if(raw_command_line==NULL)
+	get_raw_command_line_r(&mac, xpddefault_service_perfdata_file_processing_command_ptr,xpddefault_service_perfdata_file_processing_command,&raw_command_line,macro_options);
+	if(raw_command_line==NULL) {
+		clear_volatile_macros(&mac);
 		return ERROR;
+	}
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Raw service performance data file processing command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,&processed_command_line,macro_options);
-	if(processed_command_line==NULL)
+	process_macros_r(&mac, raw_command_line,&processed_command_line,macro_options);
+	if(processed_command_line==NULL) {
+		clear_volatile_macros(&mac);
 		return ERROR;
+	}
 
 	log_debug_info(DEBUGL_PERFDATA,2,"Processed service performance data file processing command line: %s\n",processed_command_line);
 
 	/* run the command */
-	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
+	my_system(&mac, processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
+	clear_volatile_macros(&mac);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
@@ -836,5 +867,5 @@ int xpddefault_process_service_perfdata_file(void){
 	my_free(processed_command_line);
 
 	return result;
-        }
+}
 

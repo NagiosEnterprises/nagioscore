@@ -69,8 +69,6 @@ char            *auth_file=NULL;  /**** EMBEDDED PERL INTERPRETER AUTH FILE ****
 char            *nagios_user=NULL;
 char            *nagios_group=NULL;
 
-extern char     *macro_x[MACRO_X_COUNT];
-
 char            *global_host_event_handler=NULL;
 char            *global_service_event_handler=NULL;
 command         *global_host_event_handler_ptr=NULL;
@@ -285,6 +283,9 @@ int main(int argc, char **argv, char **env){
 	struct tm *tm;
 	time_t now;
 	char datestring[256];
+	nagios_macros *mac;
+
+	mac = get_global_macros();
 
 
 
@@ -645,8 +646,8 @@ int main(int argc, char **argv, char **env){
 			/* NOTE 11/06/07 EG moved to after we read config files, as user may have overridden timezone offset */
 			/* get program (re)start time and save as macro */
 			program_start=time(NULL);
-			my_free(macro_x[MACRO_PROCESSSTARTTIME]);
-			asprintf(&macro_x[MACRO_PROCESSSTARTTIME],"%lu",(unsigned long)program_start);
+			my_free(mac->x[MACRO_PROCESSSTARTTIME]);
+			asprintf(&mac->x[MACRO_PROCESSSTARTTIME],"%lu",(unsigned long)program_start);
 
 			/* open debug log */
 			open_debug_log();
@@ -836,8 +837,8 @@ int main(int argc, char **argv, char **env){
 
 			/* get event start time and save as macro */
 			event_start=time(NULL);
-			my_free(macro_x[MACRO_EVENTSTARTTIME]);
-			asprintf(&macro_x[MACRO_EVENTSTARTTIME],"%lu",(unsigned long)event_start);
+			my_free(mac->x[MACRO_EVENTSTARTTIME]);
+			asprintf(&mac->x[MACRO_EVENTSTARTTIME],"%lu",(unsigned long)event_start);
 
 		        /***** start monitoring all services *****/
 			/* (doesn't return until a restart or shutdown signal is encountered) */

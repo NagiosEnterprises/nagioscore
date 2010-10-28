@@ -22,38 +22,8 @@
 #include "objects.h"
 #include "tap.h"
 
-char *log_file="var/nagios.log";
-char *temp_file="";
-char *log_archive_path="var";
-char *macro_x[1];
-host *host_list=NULL;
-service *service_list=NULL;
-int use_syslog=0;
-int log_service_retries;
-int log_initial_states;
-unsigned long logging_options=NSLOG_PROCESS_INFO;
-unsigned long syslog_options;
-int verify_config;
-int test_scheduling;
-time_t last_log_rotation;
-int log_rotation_method;
-int daemon_mode=TRUE;
-char *debug_file="";
-int debug_level;
-int debug_verbosity;
-unsigned long max_debug_file_size;
-
-void grab_host_macros(host *hst) {}
-
-void grab_service_macros(service *svc) {}
-
-void broker_log_data() {}
-
-void clear_volatile_macros() {}
-
-void process_macros() {}
-
-void strip(char *s) {}
+#define TEST_LOGGING 1
+#include "test-stubs.c"
 
 char *saved_source;
 char *saved_dest;

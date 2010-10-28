@@ -50,8 +50,6 @@ extern scheduled_downtime *scheduled_downtime_list;
 extern char           *global_host_event_handler;
 extern char           *global_service_event_handler;
 
-extern char           *macro_x[MACRO_X_COUNT];
-
 extern int            enable_notifications;
 extern int            execute_service_checks;
 extern int            accept_passive_service_checks;
@@ -108,9 +106,13 @@ char *xrddefault_temp_file=NULL;
 /********************* CONFIG INITIALIZATION  *********************/
 /******************************************************************/
 
-int xrddefault_grab_config_info(char *main_config_file){
+int xrddefault_grab_config_info(char *main_config_file)
+{
 	char *input=NULL;
 	mmapfile *thefile=NULL;
+	nagios_macros *mac;
+
+	mac = get_global_macros();
 							      
 
 	/* open the main config file for reading */
@@ -160,12 +162,12 @@ int xrddefault_grab_config_info(char *main_config_file){
 		return ERROR;
 
 	/* save the retention file macro */
-	my_free(macro_x[MACRO_RETENTIONDATAFILE]);
-	if((macro_x[MACRO_RETENTIONDATAFILE]=(char *)strdup(xrddefault_retention_file)))
-		strip(macro_x[MACRO_RETENTIONDATAFILE]);
+	my_free(mac->x[MACRO_RETENTIONDATAFILE]);
+	if((mac->x[MACRO_RETENTIONDATAFILE]=(char *)strdup(xrddefault_retention_file)))
+		strip(mac->x[MACRO_RETENTIONDATAFILE]);
 
 	return OK;
-        }
+}
 
 
 

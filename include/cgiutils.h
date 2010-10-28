@@ -442,7 +442,6 @@ int read_all_status_data(char *,int);
 char *unescape_newlines(char *);
 void sanitize_plugin_output(char *);                            /* strips HTML and bad characters from plugin output */
 void strip_html_brackets(char *);				/* strips > and < from string */
-int process_macros(char *,char **,int);				/* processes macros in a string */
 
 void get_time_string(time_t *,char *,int,int);			/* gets a date/time string */
 void get_interval_time_string(double,char *,int);		/* gets a time string for an interval of time */

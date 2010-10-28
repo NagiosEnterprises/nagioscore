@@ -72,7 +72,6 @@
 #ifdef NSCORE
 extern int use_regexp_matches;
 extern int use_true_regexp_matching;
-extern char *macro_x[MACRO_X_COUNT];
 extern int verify_config;
 extern int test_scheduling;
 extern int use_precached_objects;
@@ -498,11 +497,15 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 
 
 /* grab config variable from main config file */
-int xodtemplate_grab_config_info(char *main_config_file){
+int xodtemplate_grab_config_info(char *main_config_file)
+{
 	char *input=NULL;
 	char *var=NULL;
 	char *val=NULL;
 	mmapfile *thefile=NULL;
+#ifdef NSCORE
+	nagios_macros *mac;
+#endif
 	
 	/* open the main config file for reading */
 	if((thefile=mmap_fopen(main_config_file))==NULL)
@@ -554,10 +557,11 @@ int xodtemplate_grab_config_info(char *main_config_file){
 		return ERROR;
 
 #ifdef NSCORE
+	mac = get_global_macros();
 	/* save the object cache file macro */
-	my_free(macro_x[MACRO_OBJECTCACHEFILE]);
-	if((macro_x[MACRO_OBJECTCACHEFILE]=(char *)strdup(xodtemplate_cache_file)))
-		strip(macro_x[MACRO_OBJECTCACHEFILE]);
+	my_free(mac->x[MACRO_OBJECTCACHEFILE]);
+	if((mac->x[MACRO_OBJECTCACHEFILE]=(char *)strdup(xodtemplate_cache_file)))
+		strip(mac->x[MACRO_OBJECTCACHEFILE]);
 #endif
 
 	return OK;

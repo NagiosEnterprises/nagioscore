@@ -39,6 +39,8 @@
 #include <gd.h>			/* Boutell's GD library function */
 #include <gdfonts.h>		/* GD library small font definition */
 
+static nagios_macros *mac;
+
 extern int             refresh_rate;
 
 /*#define DEBUG*/
@@ -232,6 +234,8 @@ int all_layers=FALSE;
 
 int main(int argc, char **argv){
 	int result;
+
+	mac = get_global_macros();
 
 	/* reset internal variables */
 	reset_cgi_vars();
@@ -1930,7 +1934,7 @@ void write_host_popup_text(host *hst){
 	        }
 
 	/* grab macros */
-	grab_host_macros(hst);
+	grab_host_macros(mac, hst);
 
 	/* strip nasty stuff from plugin output */
 	sanitize_plugin_output(temp_status->plugin_output);
@@ -1941,7 +1945,7 @@ void write_host_popup_text(host *hst){
 	if(hst->icon_image==NULL)
 		printf("%s",UNKNOWN_ICON_IMAGE);
 	else{
-		process_macros(hst->icon_image,&processed_string,0);
+		process_macros_r(mac, hst->icon_image,&processed_string,0);
 		printf("%s",processed_string);
 		free(processed_string);
 		}

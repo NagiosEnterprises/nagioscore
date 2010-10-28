@@ -49,7 +49,6 @@
 #ifdef NSCORE
 extern unsigned long next_downtime_id;
 extern scheduled_downtime *scheduled_downtime_list;
-extern char *macro_x[MACRO_X_COUNT];
 #endif
 
 

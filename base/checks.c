@@ -424,6 +424,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* get the raw command line */
 	get_raw_command_line_r(&mac, svc->check_command_ptr,svc->service_check_command,&raw_command,0);
 	if(raw_command==NULL){
+		clear_volatile_macros(&mac);
 		log_debug_info(DEBUGL_CHECKS,0,"Raw check command for service '%s' on host '%s' was NULL - aborting.\n",svc->description,svc->host_name);
 		if(preferred_time)
 			*preferred_time+=(svc->check_interval*interval_length);
@@ -434,6 +435,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* process any macros contained in the argument */
 	process_macros_r(&mac, raw_command,&processed_command,0);
 	if(processed_command==NULL){
+		clear_volatile_macros();
 		log_debug_info(DEBUGL_CHECKS,0,"Processed check command for service '%s' on host '%s' was NULL - aborting.\n",svc->description,svc->host_name);
 		if(preferred_time)
 			*preferred_time+=(svc->check_interval*interval_length);
@@ -470,6 +472,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 	/* neb module wants to override the service check - perhaps it will check the service itself */
 	if(neb_result==NEBERROR_CALLBACKOVERRIDE){
+		clear_volatile_macros();
 		svc->latency=old_latency;
 		my_free(processed_command);
 		my_free(raw_command);
@@ -856,6 +859,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 	/* else the parent should wait for the first child to return... */
 	else if(pid>0){
+		clear_volatile_macros(&mac);
 
 		log_debug_info(DEBUGL_CHECKS,2,"Service check is executing in child process (pid=%lu)\n",(unsigned long)pid);
 

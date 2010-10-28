@@ -879,13 +879,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		/* don't do this if large install tweaks are enabled - we'll clean up children in event loop */
 		if(child_processes_fork_twice==TRUE)
 			wait_result=waitpid(pid,NULL,0);
-
-		/* removed 06/28/2000 - caused problems under AIX */
-		/*
-		result=WEXITSTATUS(wait_result);
-		if(result==STATE_UNKNOWN)
-			fork_error=TRUE;
-		*/
 	        }
 
 	/* see if we were able to run the check... */

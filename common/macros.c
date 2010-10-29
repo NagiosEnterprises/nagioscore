@@ -2462,8 +2462,19 @@ char *get_url_encoded_string(char *input)
 int init_macros(void)
 {
 	init_macrox_names();
-	memset(&global_macros, 0, sizeof(global_macros));
+
+	/*
+	 * non-volatile macros are free()'d when they're set.
+	 * We must do this in order to not lose the constant
+	 * ones when we get SIGHUP or a RESTART_PROGRAM event
+	 * from the command fifo. Otherwise a memset() would
+	 * have been better.
+	 */
+	clear_volatile_macros(&global_macros);
+
+	/* backwards compatibility hack */
 	macro_x = global_macros.x;
+
 	return OK;
 }
 

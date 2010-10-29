@@ -4202,15 +4202,15 @@ void free_memory(nagios_macros *mac)
 	my_free(ocsp_command);
 	my_free(ochp_command);
 
-	/* free memory associated with macros */
-	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
-		my_free(mac->argv[x]);
-
-	for(x=0;x<MAX_USER_MACROS;x++)
-		my_free(macro_user[x]);
-
-	for(x=0;x<MACRO_X_COUNT;x++)
-		my_free(mac->x[x]);
+	/*
+	 * free memory associated with macros.
+	 * It's ok to only free the volatile ones, as the non-volatile
+	 * are always free()'d before assignment if they're set.
+	 * Doing a full free of them here means we'll wipe the constant
+	 * macros when we get a reload or restart request through the
+	 * command pipe, or when we receive a SIGHUP.
+	 */
+	clear_volatile_macros(mac);
 
 	free_macrox_names();
 

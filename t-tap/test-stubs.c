@@ -2,6 +2,18 @@
 #define NAGIOS_TEST_STUBS__
 #include "macros.h"
 
+/* give up the (fake) lock after 3 tries at getting it */
+int pthread_mutex_trylock(pthread_mutex_t *mutex)
+{
+	static int loops = 0;
+	if (loops < 3) {
+		loops++;
+		return -1;
+	}
+	loops = 0;
+	return 0;
+}
+
 /* Loads of variables + stubbed functions */
 char *config_file="etc/nagios.cfg";
 int      test_scheduling;
@@ -73,6 +85,8 @@ int check_time_against_period(time_t time_t1, timeperiod *timeperiod) {}
 time_t get_next_log_rotation_time(void) {}
 int handle_scheduled_downtime_by_id(unsigned long long1) {}
 #ifndef TEST_LOGGING
+int log_host_event(host *hst) {}
+int log_service_event(service *svc) {}
 int rotate_log_file(time_t time_t1) {}
 void logit(int int1,int int2,const char *fmt, ...) {}
 #endif
@@ -110,7 +124,8 @@ int clear_volatile_macros(nagios_macros *mac) {}
 int clear_service_macros(nagios_macros *mac) {}
 int clear_host_macros(nagios_macros *mac) {}
 
-int process_macros(nagios_macros *mac, char *a, char **b, int c) {}
+int process_macros(char *a, char **b, int c) {}
+int process_macros_r(nagios_macros *mac, char *a, char **b, int c) {}
 
 void strip(char *s) {}
 int update_host_status(host *hst,int aggregated_dump){}
@@ -125,7 +140,8 @@ host * find_host(char *name){}
 int             max_check_reaper_time=DEFAULT_MAX_REAPER_TIME;
 check_result *read_check_result(void){}
 int broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, struct timeval *timestamp){}
-int get_raw_command_line(nagios_macros *mac, command *a, char *b, char **c, int d){}
+int get_raw_command_line(command *a, char *b, char **c, int d){}
+int get_raw_command_line_r(nagios_macros *mac, command *a, char *b, char **c, int d){}
 check_result    check_result_info;
 char *temp_path;
 int dbuf_init(dbuf *db, int chunk_size){}
@@ -152,7 +168,6 @@ int use_aggressive_host_checking=FALSE;
 int handle_service_event(service *svc){}
 int delete_service_acknowledgement_comments(service *svc){}
 unsigned long cached_host_check_horizon=DEFAULT_CACHED_HOST_CHECK_HORIZON;
-int log_service_event(service *svc){}
 void check_for_service_flapping(service *svc, int update, int allow_flapstart_notification){}
 void check_for_host_flapping(host *hst, int update, int actual_check, int allow_flapstart_notification){}
 int service_notification(service *svc, int type, char *not_author, char *not_data, int options){}
@@ -188,7 +203,6 @@ int             accept_passive_host_checks=TRUE;
 int             passive_host_checks_are_soft=DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 int             translate_passive_host_checks=DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
 int             enable_predictive_host_dependency_checks=DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
-int log_host_event(host *hst){}
 int handle_host_state(host *hst){}
 
 

@@ -819,7 +819,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 	time_t start_time=(time_t)0L;
 	time_t end_time=(time_t)0L;
 	int found_match=FALSE;
-	struct tm *t;
+	struct tm *t, tm_s;
 	int daterange_type=0;
 	unsigned long days=0L;
 	time_t day_range_start=(time_t)0L;
@@ -849,7 +849,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 	tperiod->exclusions=first_timeperiodexclusion;
 
 	/* save values for later */
-	t=localtime((time_t *)&test_time);
+	t = localtime_r((time_t *)&test_time, &tm_s);
 	test_time_year=t->tm_year;
 	test_time_mon=t->tm_mon;
 	test_time_mday=t->tm_mday;
@@ -1090,7 +1090,7 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 	timerange *temp_timerange;
 	daterange *temp_daterange;
 	unsigned long midnight=0L;
-	struct tm *t;
+	struct tm *t, tm_s;
 	time_t day_start=(time_t)0L;
 	time_t day_range_start=(time_t)0L;
 	time_t day_range_end=(time_t)0L;
@@ -1139,7 +1139,7 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 		}
 
 	/* calculate the start of the day (midnight, 00:00 hours) of preferred time */
-	t=localtime((time_t *)&preferred_time);
+	t = localtime_r(&preferred_time, &tm_s);
 	t->tm_sec=0;
 	t->tm_min=0;
 	t->tm_hour=0;
@@ -1152,7 +1152,7 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 	pref_time_wday=t->tm_wday;
 	
 	/* save current time values for later */
-	t=localtime((time_t *)&current_time);
+	t = localtime_r(&current_time, &tm_s);
 	current_time_year=t->tm_year;
 	current_time_mon=t->tm_mon;
 	current_time_mday=t->tm_mday;
@@ -1679,12 +1679,12 @@ time_t calculate_time_from_weekday_of_month(int year, int month, int weekday, in
 /* get the next time to schedule a log rotation */
 time_t get_next_log_rotation_time(void){
 	time_t current_time;
-	struct tm *t;
+	struct tm *t, tm_s;
 	int is_dst_now=FALSE;
 	time_t run_time;
 
 	time(&current_time);
-	t=localtime(&current_time);
+	t = localtime_r(&current_time, &tm_s);
 	t->tm_min=0;
 	t->tm_sec=0;
 	is_dst_now=(t->tm_isdst>0)?TRUE:FALSE;
@@ -4158,7 +4158,6 @@ void free_memory(nagios_macros *mac)
 {
 	timed_event *this_event=NULL;
 	timed_event *next_event=NULL;
-	register int x=0;
 
 	/* free all allocated memory for the object definitions */
 	free_object_data();

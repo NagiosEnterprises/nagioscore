@@ -405,7 +405,7 @@ int rotate_log_file(time_t rotation_time){
 	char *temp_buffer=NULL;
 	char method_string[16]="";
 	char *log_archive=NULL;
-	struct tm *t;
+	struct tm *t, tm_s;
 	int rename_result=0;
 	int stat_result=-1;
 	struct stat log_file_stat;
@@ -428,7 +428,7 @@ int rotate_log_file(time_t rotation_time){
 	last_log_rotation=time(NULL);
 	update_program_status(FALSE);
 
-	t=localtime(&rotation_time);
+	t = localtime_r(&rotation_time, &tm_s);
 
 	stat_result = stat(log_file, &log_file_stat);
 

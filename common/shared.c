@@ -393,7 +393,7 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 			 int type)
 {
 	time_t t;
-	struct tm *tm_ptr;
+	struct tm *tm_ptr, tm_s;
 	int hour;
 	int minute;
 	int second;
@@ -412,9 +412,9 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 		t = *raw_time;
 
 	if (type == HTTP_DATE_TIME)
-		tm_ptr = gmtime(&t);
+		tm_ptr = gmtime_r(&t, &tm_s);
 	else
-		tm_ptr = localtime(&t);
+		tm_ptr = localtime_r(&t, &tm_s);
 
 	hour = tm_ptr->tm_hour;
 	minute = tm_ptr->tm_min;

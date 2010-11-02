@@ -86,13 +86,13 @@ all: $(TESTS)
 
 ########## TESTS ##########
 
-test_logging: test_logging.o $(SRC_BASE)/logging.o $(TAPOBJ) test-stubs.c
+test_logging: test_logging.o $(SRC_BASE)/logging.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 test_events: test_events.o $(SRC_BASE)/events.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(MATHLIBS) $(LIBS)
 
-test_checks: test_checks.o $(SRC_BASE)/checks.o $(TAPOBJ) test-stubs.c
+test_checks: test_checks.o $(SRC_BASE)/checks.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(MATHLIBS) $(LIBS)
 
 test_freshness: test_freshness.o $(SRC_BASE)/freshness.o $(TAPOBJ)

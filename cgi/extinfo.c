@@ -833,7 +833,7 @@ void show_process_info(void){
 	printf("<TR><TD CLASS='dataVar'>Last Log File Rotation:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(last_log_rotation==(time_t)0)?"N/A":date_time);
 
 	/* PID */
-	printf("<TR><TD CLASS='dataVar'>Nagios PID</TD><TD CLASS='dataval'>%d</TD></TR>\n",nagios_pid);
+	printf("<TR><TD CLASS='dataVar'>Nagios PID</TD><TD CLASS='dataVal'>%d</TD></TR>\n",nagios_pid);
 
 	/* notifications enabled */
 	printf("<TR><TD CLASS='dataVar'>Notifications Enabled?</TD><TD CLASS='dataVal'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(enable_notifications==TRUE)?"ENABLED":"DISABLED",(enable_notifications==TRUE)?"YES":"NO");

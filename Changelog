@@ -8,6 +8,7 @@ ENHANCEMENTS
 
 FIXES
 * Fixes status.cgi when called with no parameters, where host should be set to all if none specified (Michael Friedrich)
+* Fixes possible validation error with empty hostgroups/servicegroups (Sven-Göran Bergh)
 
 WARNINGS
 

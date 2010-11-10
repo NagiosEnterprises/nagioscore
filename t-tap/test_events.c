@@ -310,7 +310,7 @@ main (int argc, char **argv)
 	setup_events_with_host(now);
 	event_execution_loop();
 
-	ok(host1->last_check == now,  "host1 was checked" ) || diag("Last check: %d, Now: %d", host1->last_check, now);
+	ok(host1->last_check-now <= 2,  "host1 was checked (within 2 seconds tolerance)" ) || diag("last_check:%lu now:%lu", host1->last_check, now);
 	ok(svc3->last_check == 0, "svc3 was skipped" );
 	ok(host1->next_check == now,  "host1 rescheduled ahead - normal interval" );
 	ok(svc3->next_check == now+300, "svc3 rescheduled ahead - normal interval" );

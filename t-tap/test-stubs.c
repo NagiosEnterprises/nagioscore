@@ -197,7 +197,7 @@ hostdependency *get_first_hostdependency_by_dependent_host(char *host_name, void
 }
 hostdependency *get_next_hostdependency_by_dependent_host(char *host_name, void **ptr){}
 int             currently_running_host_checks=0;
-int my_system(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,double *exectime,char **output,int max_output_length){}
+int my_system_r(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,double *exectime,char **output,int max_output_length){}
 void host_check_sighandler(int sig){}
 int             accept_passive_host_checks=TRUE;
 int             passive_host_checks_are_soft=DEFAULT_PASSIVE_HOST_CHECKS_SOFT;

@@ -2793,6 +2793,31 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc){
         }
 
 
+/*
+ * tests whether a contact is a member of a particular contactgroup.
+ * The mk-livestatus eventbroker module uses this, so it must hang
+ * around until 4.0 to prevent api breakage.
+ * The cgi's stopped using it quite long ago though, so we need only
+ * compile it if we're building the core
+ */
+#ifdef NSCORE
+int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct)
+{
+	contactsmember *member;
+
+	if (!group || !cntct)
+		return FALSE;
+
+	/* search all contacts in this contact group */
+	for (member = group->members; member; member = member->next) {
+		if (member->contact_ptr == cntct)
+			return TRUE;
+	}
+
+	return FALSE;
+}
+#endif /* NSCORE */
+
 /*  tests whether a contact is a contact for a particular host */
 int is_contact_for_host(host *hst, contact *cntct){
 	contactsmember *temp_contactsmember=NULL;

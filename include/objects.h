@@ -733,6 +733,7 @@ int is_host_immediate_parent_of_host(host *,host *);	                /* checks i
 int is_host_member_of_hostgroup(hostgroup *,host *);		        /* tests whether or not a host is a member of a specific hostgroup */
 int is_host_member_of_servicegroup(servicegroup *,host *);	        /* tests whether or not a service is a member of a specific servicegroup */
 int is_service_member_of_servicegroup(servicegroup *,service *);	/* tests whether or not a service is a member of a specific servicegroup */
+int is_contact_member_of_contactgroup(contactgroup *, contact *);	/* tests whether or not a contact is a member of a specific contact group */
 int is_contact_for_host(host *,contact *);			        /* tests whether or not a contact is a contact member for a specific host */
 int is_escalated_contact_for_host(host *,contact *);                    /* checks whether or not a contact is an escalated contact for a specific host */
 int is_contact_for_service(service *,contact *);		        /* tests whether or not a contact is a contact member for a specific service */

@@ -775,7 +775,7 @@ int notify_contact_of_service(nagios_macros *mac, contact *cntct, service *svc, 
 			}
 
 		/* run the notification command */
-		my_system(mac, processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
+		my_system_r(mac, processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
 
 		/* check to see if the notification command timed out */
 		if(early_timeout==TRUE){
@@ -1658,7 +1658,7 @@ int notify_contact_of_host(nagios_macros *mac, contact *cntct, host *hst, int ty
 			}
 
 		/* run the notification command */
-		my_system(mac, processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
+		my_system_r(mac, processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
 
 		/* check to see if the notification timed out */
 		if(early_timeout==TRUE){

@@ -2713,7 +2713,7 @@ int execute_sync_host_check_3x(host *hst)
 	my_free(hst->perf_data);
 
 	/* run the host check command */
-	result=my_system(&mac, processed_command,host_check_timeout,&early_timeout,&exectime,&temp_plugin_output,MAX_PLUGIN_OUTPUT_LENGTH);
+	result=my_system_r(&mac, processed_command,host_check_timeout,&early_timeout,&exectime,&temp_plugin_output,MAX_PLUGIN_OUTPUT_LENGTH);
 	clear_volatile_macros(&mac);
 
 	/* if the check timed out, report an error */

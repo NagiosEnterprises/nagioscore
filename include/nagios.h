@@ -464,7 +464,8 @@ void check_service_result_freshness(void);              	/* checks the "freshnes
 int is_service_result_fresh(service *,time_t,int);              /* determines if a service's check results are fresh */
 void check_host_result_freshness(void);                 	/* checks the "freshness" of host check results */
 int is_host_result_fresh(host *,time_t,int);                    /* determines if a host's check results are fresh */
-int my_system(nagios_macros *mac, char *,int,int *,double *,char **,int);         	/* executes a command via popen(), but also protects against timeouts */
+int my_system(char *,int,int *,double *,char **,int);         	/* executes a command via popen(), but also protects against timeouts */
+int my_system_r(nagios_macros *mac, char *,int,int *,double *,char **,int); /* thread-safe version of the above */
 
 
 /**** Flap Detection Functions ****/

@@ -288,7 +288,7 @@ extern int errno;
 
 
 /* executes a system command - used for notifications, event handlers, etc. */
-int my_system(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,double *exectime,char **output,int max_output_length)
+int my_system_r(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,double *exectime,char **output,int max_output_length)
 {
 	pid_t pid=0;
 	int status=0;
@@ -317,7 +317,7 @@ int my_system(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,doubl
 #endif
 
 
-	log_debug_info(DEBUGL_FUNCTIONS,0,"my_system()\n");
+	log_debug_info(DEBUGL_FUNCTIONS,0,"my_system_r()\n");
 
 	/* initialize return variables */
 	if(output!=NULL)
@@ -418,7 +418,7 @@ int my_system(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,doubl
 
 	/* return an error if we couldn't fork */
 	if(pid==-1){
-		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: fork() in my_system() failed for command \"%s\"\n",cmd);
+		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: fork() in my_system_r() failed for command \"%s\"\n",cmd);
 
 		/* close both ends of the pipe */
 		close(fd[0]);
@@ -667,8 +667,17 @@ int my_system(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,doubl
 	        }
 
 	return result;
-        }
+}
 
+/*
+ * For API compatibility, we must include a my_system() whose
+ * signature doesn't include the nagios_macros variable.
+ * NDOUtils uses this. Possibly other modules as well.
+ */
+int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **output,int max_output_length)
+{
+	return my_system_r(get_global_macros(), cmd, timeout, early_timeout, exectime, output, max_output_length);
+}
 
 
 /* given a "raw" command, return the "expanded" or "whole" command line */
@@ -1885,7 +1894,7 @@ void host_check_sighandler(int sig){
         }
 
 
-/* handle timeouts when executing commands via my_system() */
+/* handle timeouts when executing commands via my_system_r() */
 void my_system_sighandler(int sig){
 
 	/* force the child process to exit... */

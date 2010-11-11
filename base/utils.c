@@ -305,8 +305,7 @@ int my_system_r(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 #ifdef EMBEDDEDPERL
 	char fname[512]="";
 	char *args[5]={"",DO_CLEAN, "", "", NULL };
-	SV *plugin_hndlr_cr;
-	STRLEN n_a ;
+	SV *plugin_hndlr_cr = NULL;
 	char *perl_output=NULL;
 	int count;
 	int use_epn=FALSE;
@@ -3028,7 +3027,7 @@ int my_rename(char *source, char *dest){
 int my_fdcopy(char *source, char *dest, int dest_fd)
 {
 	int source_fd, rd_result = 0, wr_result = 0;
-	off_t tot_written = 0, tot_read = 0, buf_size = 0;
+	unsigned long tot_written = 0, tot_read = 0, buf_size = 0;
 	struct stat st;
 	char *buf;
 
@@ -3060,7 +3059,7 @@ int my_fdcopy(char *source, char *dest, int dest_fd)
 	buf_size = st.st_size > 128 << 10 ? 128 << 10 : st.st_size;
 	buf = malloc(buf_size);
 	if (!buf) {
-		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to malloc(%ld) bytes: %s\n", buf_size, strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to malloc(%lu) bytes: %s\n", buf_size, strerror(errno));
 		close(source_fd);
 		return ERROR;
 	}
@@ -3217,9 +3216,8 @@ int dbuf_strcat(dbuf *db, char *buf){
 /* initializes embedded perl interpreter */
 int init_embedded_perl(char **env){
 #ifdef EMBEDDEDPERL
-	void **embedding;
+	char **embedding;
 	int exitstatus=0;
-	char *temp_buffer=NULL;
 	int argc=2;
 	struct stat stat_buf;
 
@@ -3233,7 +3231,7 @@ int init_embedded_perl(char **env){
 
 	else{
 
-		embedding=(void **)malloc(2*sizeof(char *));
+		embedding=malloc(2*sizeof(char *));
 		if(embedding==NULL)
 			return ERROR;
 		*embedding=strdup("");

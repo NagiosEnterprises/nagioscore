@@ -354,8 +354,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	char fname[512]="";
 	char *args[5]={"",DO_CLEAN, "", "", NULL };
 	char *perl_plugin_output=NULL;
-	SV *plugin_hndlr_cr;
-	STRLEN n_a ;
+	SV *plugin_hndlr_cr = NULL;
 	int count ;
 	int use_epn=FALSE;
 #ifdef aTHX
@@ -626,7 +625,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			/* free check result memory */
 			free_check_result(&check_result_info);
 
-			return;
+			return OK;
 			}
 		else{
 

@@ -179,7 +179,7 @@ test:
 	$(MAKE) test-perl
 	$(MAKE) test-tap
 
-test-tap: tap/src/tap.o
+test-tap: tap/src/tap.o nagios cgis
 	@if [ x$(USE_LIBTAP) = xyes ]; then \
 		cd $(SRC_TTAP) && $(MAKE) test; \
 	else \
@@ -189,7 +189,7 @@ test-tap: tap/src/tap.o
 tap/src/tap.o:
 	cd tap && $(MAKE)
 
-test-perl:
+test-perl: cgis
 	cd t && $(MAKE) test
 
 install-html:

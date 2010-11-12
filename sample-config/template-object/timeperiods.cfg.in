@@ -70,7 +70,7 @@ define timeperiod{
         monday -1 may           00:00-00:00     ; Memorial Day (last Monday in May)
         july 4                  00:00-00:00     ; Independence Day
         monday 1 september      00:00-00:00     ; Labor Day (first Monday in September)
-        thursday -1 november    00:00-00:00     ; Thanksgiving (last Thursday in November)
+        thursday 4 november     00:00-00:00     ; Thanksgiving (4th Thursday in November)
         december 25             00:00-00:00     ; Christmas
         }
 

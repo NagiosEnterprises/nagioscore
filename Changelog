@@ -5,6 +5,7 @@ Nagios 3.x Change Log
 3.2.4 - ?????
 ------------------
 ENHANCEMENTS
+* Added support for same host service dependencies with servicegroups (Mathieu Gagné)
 
 FIXES
 * Fixes status.cgi when called with no parameters, where host should be set to all if none specified (Michael Friedrich)

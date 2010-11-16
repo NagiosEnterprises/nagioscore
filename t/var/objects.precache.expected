@@ -47,6 +47,18 @@ define contactgroup {
 	alias	No members defined - this should pass validation
 	}
 
+define hostgroup {
+	hostgroup_name	hosts-with-master-service
+	alias	Hosts running a master service
+	members	host3
+	}
+
+define servicegroup {
+	servicegroup_name	services-depending-on-master-service
+	alias	Servicegroup for services depending on a "master" service on the same host
+	members	host3,dependent-service
+	}
+
 define contact {
 	contact_name	nagiosadmin
 	service_notification_period	none
@@ -113,6 +125,38 @@ define host {
 	host_name	host2
 	alias	host2 test
 	address	192.168.2.2
+	check_period	none
+	contacts	nagiosadmin
+	notification_period	none
+	initial_state	o
+	check_interval	5.000000
+	retry_interval	1.000000
+	max_check_attempts	2
+	active_checks_enabled	1
+	passive_checks_enabled	1
+	obsess_over_host	1
+	event_handler_enabled	1
+	low_flap_threshold	0.000000
+	high_flap_threshold	0.000000
+	flap_detection_enabled	1
+	flap_detection_options	o,d,u
+	freshness_threshold	0
+	check_freshness	0
+	notification_options	d,u,r,f,s
+	notifications_enabled	1
+	notification_interval	60.000000
+	first_notification_delay	0.000000
+	stalking_options	n
+	process_perf_data	1
+	failure_prediction_enabled	1
+	retain_status_information	1
+	retain_nonstatus_information	1
+	}
+
+define host {
+	host_name	host3
+	alias	host3 test
+	address	192.168.2.3
 	check_period	none
 	contacts	nagiosadmin
 	notification_period	none
@@ -243,6 +287,84 @@ define service {
 	retain_nonstatus_information	1
 	}
 
+define service {
+	host_name	host3
+	service_description	dependent-service
+	check_period	none
+	check_command	check_me!dependent service
+	contacts	nagiosadmin
+	notification_period	none
+	initial_state	o
+	check_interval	15.000000
+	retry_interval	1.000000
+	max_check_attempts	5
+	is_volatile	0
+	parallelize_check	1
+	active_checks_enabled	1
+	passive_checks_enabled	1
+	obsess_over_service	1
+	event_handler_enabled	1
+	low_flap_threshold	0.000000
+	high_flap_threshold	0.000000
+	flap_detection_enabled	1
+	flap_detection_options	o,w,u,c
+	freshness_threshold	0
+	check_freshness	0
+	notification_options	u,w,c,r,f,s
+	notifications_enabled	1
+	notification_interval	65.000000
+	first_notification_delay	0.000000
+	stalking_options	n
+	process_perf_data	1
+	failure_prediction_enabled	1
+	retain_status_information	1
+	retain_nonstatus_information	1
+	}
+
+define service {
+	host_name	host3
+	service_description	master-service
+	check_period	none
+	check_command	check_me!master service
+	contacts	nagiosadmin
+	notification_period	none
+	initial_state	o
+	check_interval	15.000000
+	retry_interval	1.000000
+	max_check_attempts	5
+	is_volatile	0
+	parallelize_check	1
+	active_checks_enabled	1
+	passive_checks_enabled	1
+	obsess_over_service	1
+	event_handler_enabled	1
+	low_flap_threshold	0.000000
+	high_flap_threshold	0.000000
+	flap_detection_enabled	1
+	flap_detection_options	o,w,u,c
+	freshness_threshold	0
+	check_freshness	0
+	notification_options	u,w,c,r,f,s
+	notifications_enabled	1
+	notification_interval	65.000000
+	first_notification_delay	0.000000
+	stalking_options	n
+	process_perf_data	1
+	failure_prediction_enabled	1
+	retain_status_information	1
+	retain_nonstatus_information	1
+	}
+
+define servicedependency {
+	host_name	host3
+	service_description	master-service
+	dependent_host_name	host3
+	dependent_service_description	dependent-service
+	inherits_parent	0
+	notification_failure_options	u,c
+	execution_failure_options	n
+	}
+
 define serviceescalation {
 	host_name	host1
 	service_description	Uses important check command
@@ -265,3 +387,24 @@ define serviceescalation {
 	contacts	nagiosadmin
 	}
 
+define serviceescalation {
+	host_name	host3
+	service_description	dependent-service
+	first_notification	-2
+	last_notification	-2
+	notification_interval	65.000000
+	escalation_period	none
+	escalation_options	w,u,c,r
+	contacts	nagiosadmin
+	}
+
+define serviceescalation {
+	host_name	host3
+	service_description	master-service
+	first_notification	-2
+	last_notification	-2
+	notification_interval	65.000000
+	escalation_period	none
+	escalation_options	w,u,c,r
+	contacts	nagiosadmin
+	}

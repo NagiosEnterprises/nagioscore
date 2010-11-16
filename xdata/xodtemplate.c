@@ -4259,6 +4259,7 @@ int xodtemplate_duplicate_objects(void){
 
 	char *service_descriptions=NULL;
 	int first_item=FALSE;
+	int same_host_servicedependency=FALSE;
 
 
 	/*************************************/
@@ -4718,6 +4719,11 @@ int xodtemplate_duplicate_objects(void){
 				my_free(temp_servicedependency->dependent_hostgroup_name);
 				}
 
+			/* Detected same host servicegroups dependencies */
+			same_host_servicedependency=FALSE;
+			if(temp_servicedependency->host_name==NULL && temp_servicedependency->hostgroup_name==NULL)
+				same_host_servicedependency=TRUE;
+
 			/* duplicate service dependency entries */
 			first_item=TRUE;
 			for(temp_dependentservice=dependent_servicelist;temp_dependentservice!=NULL;temp_dependentservice=temp_dependentservice->next){
@@ -4735,6 +4741,10 @@ int xodtemplate_duplicate_objects(void){
 					my_free(temp_servicedependency->dependent_service_description);
 					temp_servicedependency->dependent_service_description=(char *)strdup(temp_dependentservice->name2);
 
+					/* Same host servicegroups dependencies: Use dependentservice host_name for master host_name */
+					if(same_host_servicedependency==TRUE)
+						temp_servicedependency->host_name=(char*)strdup(temp_dependentservice->name1);
+
 					/* clear the dependent servicegroup */
 					temp_servicedependency->have_dependent_servicegroup_name=FALSE;
 					my_free(temp_servicedependency->dependent_servicegroup_name);
@@ -4749,7 +4759,11 @@ int xodtemplate_duplicate_objects(void){
 					}
 
 				/* duplicate service dependency definition */
-				result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,temp_servicedependency->service_description,NULL,NULL,temp_dependentservice->name1,temp_dependentservice->name2,NULL,NULL);
+				/* Same host servicegroups dependencies: Use dependentservice host_name for master host_name instead of undefined (not yet) master host_name */
+				if(same_host_servicedependency==TRUE)
+					result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_dependentservice->name1,temp_servicedependency->service_description,NULL,NULL,temp_dependentservice->name1,temp_dependentservice->name2,NULL,NULL);
+				else
+					result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,temp_servicedependency->service_description,NULL,NULL,temp_dependentservice->name1,temp_dependentservice->name2,NULL,NULL);
 
 				/* exit on error */
 				if(result==ERROR){

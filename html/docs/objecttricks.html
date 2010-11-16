@@ -621,6 +621,32 @@ If you feel like being particularly adventurous, you can specify a wildcard in b
 </pre>
 
 
+<a name="same_host_dependency_with_servicegroups"></a>
+
+<p>
+
+<b>Same Host Dependencies With Servicegroups:</b><br> If you want to create service dependencies for all services that belong in one or more servicegroups on a service on the same host running the dependent service, leave the <i>host_name</i> and <i>hostgroup_name</i> directives empty.  The example below assumes that hosts running services that belong in <i>SERVICEGROUP1</i> and <i>SERVICEGROUP2</i> have the following service associated with them: <i>SERVICE1</i>.  In this example, all services that belong in <i>GROUPSERVICE1</i> and <i>SERVICEGROUP2</i> will be dependent on <i>SERVICE1</i> on the same host running the dependent service.
+
+</p>
+
+
+
+<pre>
+
+	define <i>servicedependency</i>{
+
+		<font color="red">service_description		<i>SERVICE1</i></font>
+
+		<font color="red">dependent_servicegroup_name	<i>SERVICEGROUP1,SERVICEGROUP2</i></font>
+
+		<i>other dependency directives</i> ...
+
+		}
+
+</pre>
+
+
+
 
 <br><br>
 

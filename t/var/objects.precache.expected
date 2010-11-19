@@ -408,3 +408,4 @@ define serviceescalation {
 	escalation_options	w,u,c,r
 	contacts	nagiosadmin
 	}
+

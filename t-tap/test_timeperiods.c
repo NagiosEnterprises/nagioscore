@@ -346,7 +346,7 @@ int main(int argc, char **argv){
 	ok( is_valid_time==OK, "Fine because 24x7" );
 
 	get_next_valid_time( current_time, &next_valid_time, temp_timeperiod);
-	ok( current_time == next_valid_time, "Current time should be the next valid time");
+	ok( (next_valid_time-current_time) <= 2, "Next valid time should be the current_time, but with a 2 second tolerance");
 
 
 	/* 2009-10-25 is the day when clocks go back an hour in Europe. Bug happens during 23:00 to 00:00 */

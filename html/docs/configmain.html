@@ -7024,9 +7024,51 @@ This option determines the maximum size (in bytes) of the <a href="#debug_file">
 
 </p>
 
+<a name="allow_empty_hostgroup_assignment"></a>
+
+<table border="0" width="100%" class="Default">
+
+<tr>
+
+<td bgcolor="#cbcbcb"><strong>Allow Empty Hostgroup Assignment</strong></td>
+
+</tr>
+
+</table>
+
+<br>
+
+<table border="0" class="Default">
+
+<tr>
+
+<td>Format:</td>
+
+<td><strong>allow_empty_hostgroup_assignment=[01]</strong></td>
+
+</tr>
+
+<tr>
+
+<td>Example:</td>
+
+<td><font color="red"><strong>allow_empty_hostgroup_assignment=1</strong></font></td>
+
+</tr>
+
+</table>
 
 
 
+<p>
+This boolean option determines whether services assigned to empty host groups (host groups with no host members) will cause Nagios to exit with error on start up (or during a configuration check) or not.  The default behavior if the option is not present in the main configuration file is for Nagios to exit with error if services are associated with host groups that have no hosts associated with them.  Enabling this option can be useful when:
+</p>
+
+<ul>
+  <li> Configuration files or pre-cached object files are distributed across many Nagios pollers. </li>
+  <li> Automation is used to generate a Nagios configuration file tree. </li>
+  <li> There is one set of services maintained by administrators that users may add to their hosts through host group membership for convenience (e.g. a suite of checks associated with a remote monitoring agent) but there is no guarantee that users will use the services associated with the host group (e.g. a remote agent that is being deprecated over time).</li>
+</ul>
 
 <hr>
 

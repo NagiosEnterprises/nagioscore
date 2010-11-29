@@ -237,6 +237,8 @@ int             embedded_perl_initialized=FALSE;
 int             date_format=DATE_FORMAT_US;
 char            *use_timezone=NULL;
 
+int             allow_empty_hostgroup_assignment=DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
+
 int             command_file_fd;
 FILE            *command_file_fp;
 int             command_file_created=FALSE;

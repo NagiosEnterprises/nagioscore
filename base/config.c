@@ -212,6 +212,8 @@ extern int              debug_level;
 extern int              debug_verbosity;
 extern unsigned long    max_debug_file_size;
 
+extern int              allow_empty_hostgroup_assignment;
+
 
 
 /******************************************************************/
@@ -1336,6 +1338,9 @@ int read_main_config_file(char *main_config_file)
 			continue;
 		else if(strstr(input,"precached_object_file=")==input)
 			continue;
+		else if(!strcmp(variable,"allow_empty_hostgroup_assignment")){
+			allow_empty_hostgroup_assignment=(atoi(value)>0)?TRUE:FALSE;
+                    }
 
 		/* we don't know what this variable is... */
 		else{

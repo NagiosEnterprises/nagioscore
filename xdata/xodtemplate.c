@@ -123,6 +123,8 @@ char *xodtemplate_precache_file=NULL;
 
 int presorted_objects=FALSE;
 
+extern int allow_empty_hostgroup_assignment;
+
 /*
  * Macro magic used to determine if a service is assigned
  * via hostgroup_name or host_name. Those assigned via host_name
@@ -4112,6 +4114,7 @@ int xodtemplate_duplicate_services(void){
 	int result=OK;
 	xodtemplate_service *temp_service=NULL;
 	xodtemplate_memberlist *temp_memberlist=NULL;
+	xodtemplate_memberlist *temp_rejectlist=NULL;
 	xodtemplate_memberlist *this_memberlist=NULL;
 	char *host_name=NULL;
 	int first_item=FALSE;
@@ -4123,6 +4126,26 @@ int xodtemplate_duplicate_services(void){
 		/* skip service definitions without enough data */
 		if(temp_service->hostgroup_name==NULL && temp_service->host_name==NULL)
 			continue;
+
+		/* If hostgroup is not null and hostgroup has no members, check to see if */
+		/* allow_empty_hostgroup_assignment is set to 1 - if it is, continue without error  */
+		if(temp_service->hostgroup_name!=NULL){
+			if(xodtemplate_expand_hostgroups(&temp_memberlist,&temp_rejectlist,temp_service->hostgroup_name,temp_service->_config_file,temp_service->_start_line)==ERROR){
+				return ERROR;
+				}
+			else{
+				xodtemplate_free_memberlist(&temp_rejectlist);
+				if (temp_memberlist!=NULL){
+					xodtemplate_free_memberlist(&temp_memberlist);
+					}
+				else{
+					/* User is ok with hostgroup -> service mappings with no hosts */
+					if(allow_empty_hostgroup_assignment==1){
+						continue;
+                                               }
+					}
+				}
+			}
 
 		/* skip services that shouldn't be registered */
 		if(temp_service->register_object==FALSE)

@@ -584,14 +584,15 @@ void broker_contact_status(int type, int flags, int attr, contact *cntct, struct
 
 
 /* send notification data to broker */
-void broker_notification_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, char *ack_author, char *ack_data, int escalated, int contacts_notified, struct timeval *timestamp){
+int broker_notification_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, char *ack_author, char *ack_data, int escalated, int contacts_notified, struct timeval *timestamp){
 	nebstruct_notification_data ds;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	int return_code=OK;
 
 	if(!(event_broker_options & BROKER_NOTIFICATIONS))
-		return;
-	
+		return return_code;
+
 	/* fill struct with relevant data */
 	ds.type=type;
 	ds.flags=flags;
@@ -623,22 +624,23 @@ void broker_notification_data(int type, int flags, int attr, int notification_ty
 	ds.contacts_notified=contacts_notified;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_NOTIFICATION_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_NOTIFICATION_DATA,(void *)&ds);
 
-	return;
+	return return_code;
         }
 
 
 
 /* send contact notification data to broker */
-void broker_contact_notification_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, contact *cntct, char *ack_author, char *ack_data, int escalated, struct timeval *timestamp){
+int broker_contact_notification_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, contact *cntct, char *ack_author, char *ack_data, int escalated, struct timeval *timestamp){
 	nebstruct_contact_notification_data ds;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	int return_code=OK;
 
 	if(!(event_broker_options & BROKER_NOTIFICATIONS))
-		return;
-	
+		return return_code;
+
 	/* fill struct with relevant data */
 	ds.type=type;
 	ds.flags=flags;
@@ -671,23 +673,24 @@ void broker_contact_notification_data(int type, int flags, int attr, int notific
 	ds.escalated=escalated;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_CONTACT_NOTIFICATION_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_CONTACT_NOTIFICATION_DATA,(void *)&ds);
 
-	return;
+	return return_code;
         }
 
 
 /* send contact notification data to broker */
-void broker_contact_notification_method_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, contact *cntct, char *cmd, char *ack_author, char *ack_data, int escalated, struct timeval *timestamp){
+int broker_contact_notification_method_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, contact *cntct, char *cmd, char *ack_author, char *ack_data, int escalated, struct timeval *timestamp){
 	nebstruct_contact_notification_method_data ds;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	char *command_buf=NULL;
 	char *command_name=NULL;
 	char *command_args=NULL;
+	int return_code=OK;
 
 	if(!(event_broker_options & BROKER_NOTIFICATIONS))
-		return;
+		return return_code;
 
 	/* get command name/args */
 	if(cmd!=NULL){
@@ -730,12 +733,12 @@ void broker_contact_notification_method_data(int type, int flags, int attr, int 
 	ds.escalated=escalated;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_CONTACT_NOTIFICATION_METHOD_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_CONTACT_NOTIFICATION_METHOD_DATA,(void *)&ds);
 
 	/* free memory */
 	my_free(command_buf);
 
-	return;
+	return return_code;
         }
 
 

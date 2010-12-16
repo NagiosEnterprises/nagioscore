@@ -9,6 +9,7 @@ CFLAGS=@CFLAGS@ @DEFS@
 LDFLAGS=@LDFLAGS@ @LIBS@
 
 # Source code directories
+SRC_INCLUDE=../include
 SRC_COMMON=../common
 SRC_CGI=../cgi
 
@@ -23,15 +24,15 @@ exec_prefix=@exec_prefix@
 CGIDIR=@sbindir@
 BINDIR=@bindir@
 
-CGIS=traceroute.cgi
+CGIS=traceroute.cgi daemonchk.cgi
 UTILS=mini_epn new_mini_epn convertcfg
 ALL=$(CGIS) $(UTILS)
 
 
 CGI_C=$(SRC_CGI)/getcgi.c
 CGI_O=$(SRC_CGI)/getcgi.o $(SNPRINTF_O)
-CGI_H=$(SRC_CGI)/getcgi.h
-COMMON_H=$(SRC_COMMON)/config.h $(SRC_COMMON)/common.h $(SRC_COMMON)/locations.h
+CGI_H=$(SRC_INCLUDE)/getcgi.h
+COMMON_H=$(SRC_INCLUDE)/config.h $(SRC_INCLUDE)/common.h $(SRC_INCLUDE)/locations.h
 
 ##############################################################################
 # standard targets (all, clean, distclean, devclean, install)
@@ -58,9 +59,11 @@ install:
 ##############################################################################
 # rules and dependencies for actual target programs
 
-daemonchk.cgi: 
-	@echo "This doesn't work with Nagios 2.x yet..."
-#	daemonchk.c $(CGI_O) $(CGI_H) $(COMMON_H)
+daemonchk.cgi: daemonchk.o $(CGI_O) $(CGI_H) $(COMMON_H)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< $(CGI_O)
+
+daemonchk.o: daemonchk.c
+	$(CC) $(CLFAGS) -c -o $@ $< -I$(SRC_INCLUDE)
 
 mini_epn: mini_epn.c
 	perl -MExtUtils::Embed -e xsinit

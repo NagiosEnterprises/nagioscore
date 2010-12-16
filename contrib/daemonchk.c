@@ -1,8 +1,8 @@
-#include "../common/config.h"
-#include "../common/common.h"
-#include "../common/locations.h"
-#include "../cgi/cgiutils.h"
-#include "../cgi/getcgi.h"
+#include "config.h"
+#include "common.h"
+#include "locations.h"
+#include "cgiutils.h"
+#include "getcgi.h"
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -11,13 +11,14 @@
 #define CHARLEN 256
 #define max(a,b) ((a)>(b))?(a):(b)
 
-void document_header(void);
-void document_footer(void);
-int process_cgivars(void);
+static void document_header(void);
+//static void document_footer(void);
+static int process_cgivars(void);
 
-char *strscpy(char *dest, const char *src);
-char *ssprintf(char *str, const char *fmt, ...);
-void terminate (int result, const char *fmt, ...);
+static char *strscpy(char *dest, const char *src);
+static char *ssprintf(char *str, const char *fmt, ...);
+static void terminate (int result, const char *fmt, ...);
+static void get_expire_time_string(time_t *raw_time,char *buffer,int buffer_length);
 
 int main (int argc, char **argv){
   FILE *fp;
@@ -138,7 +139,7 @@ int main (int argc, char **argv){
   
 }
 
-void document_header(void){
+static void document_header(void){
   char date_time[48];
   time_t current_time;
 
@@ -157,7 +158,7 @@ void document_header(void){
   return;
 }
 
-int process_cgivars(void){
+static int process_cgivars(void){
   char **variables;
   int error=FALSE;
   int x;
@@ -176,7 +177,7 @@ int process_cgivars(void){
 }
 
 /* get date/time string used in META tags for page expiration */
-void get_expire_time_string(time_t *raw_time,char *buffer,int buffer_length){
+static void get_expire_time_string(time_t *raw_time,char *buffer,int buffer_length){
   time_t t;
   struct tm *tm_ptr;
   int day;
@@ -206,7 +207,7 @@ void get_expire_time_string(time_t *raw_time,char *buffer,int buffer_length){
   return;
 }
 
-char *strscpy(char *dest, const char *src)
+static char *strscpy(char *dest, const char *src)
 {
 	int len;
 
@@ -225,7 +226,7 @@ char *strscpy(char *dest, const char *src)
 	return dest;
 }
 
-char *ssprintf(char *str, const char *fmt, ...)
+static char *ssprintf(char *str, const char *fmt, ...)
 {
 	va_list ap;
 	int nchars;
@@ -263,7 +264,7 @@ char *ssprintf(char *str, const char *fmt, ...)
 
 }
 
-void terminate (int result, const char *fmt, ...)
+static void terminate (int result, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap,fmt);

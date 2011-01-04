@@ -356,7 +356,7 @@ int xsddefault_save_status_data(void){
 	if((fd=mkstemp(temp_file))==-1){
 
 		/* log an error */
-		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to create temp file for writing status data!\n");
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to create temp file for writing status data: %s\n", strerror(errno));
 
 		/* free memory */
 		my_free(temp_file);
@@ -370,7 +370,7 @@ int xsddefault_save_status_data(void){
 		unlink(temp_file);
 
 		/* log an error */
-		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to open temp file '%s' for writing status data!\n",temp_file);
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to open temp file '%s' for writing status data: %s\n",temp_file, strerror(errno));
 
 		/* free memory */
 		my_free(temp_file);

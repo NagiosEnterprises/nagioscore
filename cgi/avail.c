@@ -497,11 +497,14 @@ int main(int argc, char **argv){
 		/* right hand column of top row */
 		printf("<td align=right valign=bottom width=33%%>\n");
 
+		printf("<form method=\"GET\" action=\"%s\">\n",AVAIL_CGI);
 		printf("<table border=0 CLASS='optBox'>\n");
 
 		if(display_type!=DISPLAY_NO_AVAIL && get_date_parts==FALSE){
 
-			printf("<form method=\"GET\" action=\"%s\">\n",AVAIL_CGI);
+			printf("<tr><td valign=top align=left class='optBoxItem'>First assumed %s state:</td><td valign=top align=left class='optBoxItem'>%s</td></tr>\n",(display_type==DISPLAY_SERVICE_AVAIL)?"service":"host",(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL)?"First assumed service state":"");
+			printf("<tr>\n");
+			printf("<td valign=top align=left class='optBoxItem'>\n");
 
 			printf("<input type='hidden' name='t1' value='%lu'>\n",(unsigned long)t1);
 			printf("<input type='hidden' name='t2' value='%lu'>\n",(unsigned long)t2);
@@ -523,9 +526,6 @@ int main(int argc, char **argv){
 			printf("<input type='hidden' name='assumestatesduringnotrunning' value='%s'>\n",(assume_states_during_notrunning==TRUE)?"yes":"no");
 			printf("<input type='hidden' name='includesoftstates' value='%s'>\n",(include_soft_states==TRUE)?"yes":"no");
 
-			printf("<tr><td valign=top align=left class='optBoxItem'>First assumed %s state:</td><td valign=top align=left class='optBoxItem'>%s</td></tr>\n",(display_type==DISPLAY_SERVICE_AVAIL)?"service":"host",(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL)?"First assumed service state":"");
-			printf("<tr>\n");
-			printf("<td valign=top align=left class='optBoxItem'>\n");
 			if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
 				printf("<select name='initialassumedhoststate'>\n");
 				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_host_state==AS_NO_DATA)?"SELECTED":"");
@@ -589,8 +589,6 @@ int main(int argc, char **argv){
 			printf("<input type='submit' value='Update'>\n");
 			printf("</td>\n");
 			printf("</tr>\n");
-
-			printf("</form>\n");
 		        }
 
 		/* display context-sensitive help */
@@ -616,6 +614,7 @@ int main(int argc, char **argv){
 		printf("</td></tr>\n");
 
 		printf("</table>\n");
+		printf("</form>\n");
 
 		printf("</td>\n");
 

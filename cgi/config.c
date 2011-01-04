@@ -174,8 +174,8 @@ int main(void)
 
 	if(display_type!=DISPLAY_NONE){
 
-		printf("<table border=0>\n");
 		printf("<form method=\"get\" action=\"%s\">\n",CONFIG_CGI);
+		printf("<table border=0>\n");
 
 		printf("<tr><td align=left class='reportSelectSubTitle'>Object Type:</td></tr>\n");
 		printf("<tr><td align=left class='reportSelectItem'>");
@@ -199,9 +199,8 @@ int main(void)
 		print_expand_input(display_type);
 
 		printf("<tr><td class='reportSelectItem'><input type='submit' value='Update'></td></tr>\n");
-		printf("</form>\n");
-
 		printf("</table>\n");
+		printf("</form>\n");
 	        }
 
 	/* display context-sensitive help */

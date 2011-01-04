@@ -1821,6 +1821,8 @@ int grab_standard_hostgroup_macro(nagios_macros *mac, int macro_type, hostgroup 
 {
 	hostsmember *temp_hostsmember=NULL;
 	char *temp_buffer=NULL;
+	unsigned int	temp_len=0;
+	unsigned int	init_len=0;
 
 	if(temp_hostgroup==NULL || output==NULL)
 		return ERROR;
@@ -1835,15 +1837,34 @@ int grab_standard_hostgroup_macro(nagios_macros *mac, int macro_type, hostgroup 
 			*output=(char *)strdup(temp_hostgroup->alias);
 		break;
 	case MACRO_HOSTGROUPMEMBERS:
-		/* get the group members */
+		/* make the calculations for total string length */
 		for(temp_hostsmember=temp_hostgroup->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 			if(temp_hostsmember->host_name==NULL)
 				continue;
-			if(*output==NULL)
-				*output=(char *)strdup(temp_hostsmember->host_name);
-			else if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_hostsmember->host_name)+2))){
-				strcat(*output,",");
-				strcat(*output,temp_hostsmember->host_name);
+			if (temp_len == 0) {
+				temp_len+=strlen(temp_hostsmember->host_name)+1;
+			} else {
+				temp_len+=strlen(temp_hostsmember->host_name)+2;
+				}
+			}
+		/* allocate or reallocate the memory buffer */
+		if (*output==NULL) {
+			*output=(char *)malloc(temp_len);
+		}
+		else {
+			init_len = strlen(*output);
+			temp_len += init_len;
+			*output=(char *)realloc(*output,temp_len);
+		}
+		/* now fill in the string with the member names */
+		for(temp_hostsmember=temp_hostgroup->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
+			if(temp_hostsmember->host_name==NULL)
+				continue;
+			temp_buffer = *output + init_len;
+			if (init_len == 0) { /* If our buffer didn't contain anything, we just need to write "%s,%s" */
+				init_len += sprintf(temp_buffer, "%s", temp_hostsmember->host_name);
+			} else {
+				init_len += sprintf(temp_buffer, ",%s", temp_hostsmember->host_name);
 				}
 			}
 		break;
@@ -2130,6 +2151,8 @@ int grab_standard_servicegroup_macro(nagios_macros *mac, int macro_type, service
 {
 	servicesmember *temp_servicesmember=NULL;
 	char *temp_buffer=NULL;
+	unsigned int	temp_len=0;
+	unsigned int	init_len=0;
 
 	if(temp_servicegroup==NULL || output==NULL)
 		return ERROR;
@@ -2144,20 +2167,34 @@ int grab_standard_servicegroup_macro(nagios_macros *mac, int macro_type, service
 			*output=(char *)strdup(temp_servicegroup->alias);
 		break;
 	case MACRO_SERVICEGROUPMEMBERS:
-		/* get the group members */
+		/* make the calculations for total string length */
 		for(temp_servicesmember=temp_servicegroup->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
 			if(temp_servicesmember->host_name==NULL || temp_servicesmember->service_description==NULL)
 				continue;
-			if(*output==NULL){
-				if((*output=(char *)malloc(strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+2))){
-					sprintf(*output,"%s,%s",temp_servicesmember->host_name,temp_servicesmember->service_description);
-					}
+			if (temp_len == 0) {
+				temp_len+=strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+2;
+			} else {
+				temp_len+=strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+3;
 				}
-			else if((*output=(char *)realloc(*output,strlen(*output)+strlen(temp_servicesmember->host_name)+strlen(temp_servicesmember->service_description)+3))){
-				strcat(*output,",");
-				strcat(*output,temp_servicesmember->host_name);
-				strcat(*output,",");
-				strcat(*output,temp_servicesmember->service_description);
+			}
+		/* allocate or reallocate the memory buffer */
+		if (*output==NULL) {
+			*output=(char *)malloc(temp_len);
+			}
+		else {
+			init_len = strlen(*output);
+			temp_len += init_len;
+			*output=(char *)realloc(*output,temp_len);
+			}
+		/* now fill in the string with the group members */
+		for(temp_servicesmember=temp_servicegroup->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
+			if(temp_servicesmember->host_name==NULL || temp_servicesmember->service_description==NULL)
+				continue;
+			temp_buffer = *output + init_len;
+			if (init_len == 0) { /* If our buffer didn't contain anything, we just need to write "%s,%s" */
+				init_len += sprintf(temp_buffer, "%s,%s",temp_servicesmember->host_name,temp_servicesmember->service_description);
+			} else { /* Now we need to write ",%s,%s" */
+				init_len += sprintf(temp_buffer, ",%s,%s",temp_servicesmember->host_name,temp_servicesmember->service_description);
 				}
 			}
 		break;

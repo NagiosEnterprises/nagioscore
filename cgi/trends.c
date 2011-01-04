@@ -98,7 +98,8 @@ extern skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 #define TIMEPERIOD_LASTYEAR	10
 #define TIMEPERIOD_LAST24HOURS	11
 #define TIMEPERIOD_LAST7DAYS	12
-#define TIMEPERIOD_LAST31DAYS   13
+#define TIMEPERIOD_LAST31DAYS	13
+#define TIMEPERIOD_NEXTPROBLEM	14
 
 #define MIN_TIMESTAMP_SPACING	10
 
@@ -192,7 +193,7 @@ int color_yellow=0;
 int color_orange=0;
 FILE *image_file=NULL;
 
-int image_width=600;
+int image_width=900;
 int image_height=300;
 
 #define HOST_DRAWING_WIDTH	498
@@ -242,6 +243,7 @@ unsigned long time_warning=0L;
 unsigned long time_unknown=0L;
 unsigned long time_critical=0L;
 
+int problem_found;
 
 
 
@@ -363,6 +365,7 @@ int main(int argc, char **argv){
 	        }
 			
 	if(mode==CREATE_HTML && display_header==TRUE){
+		time_t old_t1=t1, old_t2=t2;
 
 		/* begin top table */
 		printf("<table border=0 width=100%% cellspacing=0 cellpadding=0>\n");
@@ -379,6 +382,69 @@ int main(int argc, char **argv){
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Host and Service State Trends");
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		display_info_table(temp_buffer,FALSE,&current_authdata);
+
+		if (timeperiod_type==TIMEPERIOD_NEXTPROBLEM) {
+			archived_state *temp_as;
+			time_t problem_t1, problem_t2=0;
+
+			t1=t2;
+			t2=current_time;
+			read_archived_state_data();
+
+			problem_found=FALSE;
+			if(display_type==DISPLAY_HOST_TRENDS){
+				for(temp_as=as_list;temp_as!=NULL;temp_as=temp_as->next){
+					if((temp_as->entry_type==HOST_DOWN || temp_as->entry_type==HOST_UNREACHABLE) && temp_as->time_stamp>t1){
+						problem_t1=temp_as->time_stamp;
+						problem_found=TRUE;
+						break;
+				        }
+			        }
+				if(problem_found==TRUE){
+					for(;temp_as!=NULL;temp_as=temp_as->next){
+						if(temp_as->entry_type==AS_HOST_UP && temp_as->time_stamp>problem_t1){
+							problem_t2=temp_as->time_stamp;
+							break;
+					        }
+					}
+			        }
+			}
+			else{
+				for(temp_as=as_list;temp_as!=NULL;temp_as=temp_as->next){
+					if((temp_as->entry_type==AS_SVC_UNKNOWN || temp_as->entry_type==AS_SVC_CRITICAL || temp_as->entry_type==AS_SVC_WARNING) && temp_as->time_stamp>t1){
+						problem_t1=temp_as->time_stamp;
+						problem_found=TRUE;
+						break;
+				        }
+			        }
+				if(problem_found==TRUE){
+					for(;temp_as!=NULL;temp_as=temp_as->next){
+						if(temp_as->entry_type==AS_SVC_OK && temp_as->time_stamp>problem_t1){
+							problem_t2=temp_as->time_stamp;
+							break;
+					        }
+					}
+			        }
+			}
+			if(problem_found==TRUE) {
+				time_t margin;
+
+				if (problem_t2==0){
+					margin=12*60*60;
+					problem_t2=problem_t1;
+				}
+				else
+					margin=(problem_t2-problem_t1)/2;
+
+				t1=problem_t1-margin;
+				t2=problem_t2+margin;
+			}
+		}
+
+		if (timeperiod_type==TIMEPERIOD_NEXTPROBLEM && problem_found==FALSE){
+			t1=old_t1;
+			t2=old_t2;
+		}
 
 		if(display_type!=DISPLAY_NO_TRENDS && input_type==GET_INPUT_NONE){
 
@@ -504,6 +570,10 @@ int main(int argc, char **argv){
 			printf("<option value=lastmonth %s>Last Month\n",(timeperiod_type==TIMEPERIOD_LASTMONTH)?"SELECTED":"");
 			printf("<option value=thisyear %s>This Year\n",(timeperiod_type==TIMEPERIOD_THISYEAR)?"SELECTED":"");
 			printf("<option value=lastyear %s>Last Year\n",(timeperiod_type==TIMEPERIOD_LASTYEAR)?"SELECTED":"");
+			if(display_type==DISPLAY_HOST_TRENDS)
+				printf("<option value=nextproblem %s>Next Host Problem\n",(timeperiod_type==TIMEPERIOD_NEXTPROBLEM)?"SELECTED":"");
+			else
+				printf("<option value=nextproblem %s>Next Service Problem\n",(timeperiod_type==TIMEPERIOD_NEXTPROBLEM)?"SELECTED":"");
 			printf("</select>\n");
 			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<select name='zoom'>\n");
@@ -581,6 +651,13 @@ int main(int argc, char **argv){
 #endif
 
 
+	if(timeperiod_type==TIMEPERIOD_NEXTPROBLEM && problem_found==FALSE) {
+		printf("<P><DIV ALIGN=CENTER CLASS='errorMessage'>No problem found between end of display and end of recording</DIV></P>\n");
+
+		document_footer();
+		free_memory();
+		return ERROR;
+	}
 	/* set drawing parameters, etc */
 
 	if(small_image==TRUE){
@@ -589,7 +666,7 @@ int main(int argc, char **argv){
 	        }
 	else{
 		image_height=300;
-		image_width=600;
+		image_width=900;
 	        }
 
 	if(display_type==DISPLAY_HOST_TRENDS){
@@ -745,7 +822,7 @@ int main(int argc, char **argv){
 			if(backtrack_archives>0)
 				printf("&backtrack=%d",backtrack_archives);
 			printf("&zoom=%d",zoom_factor);
-			printf("' BORDER=0 name='trendsimage' useMap='#trendsmap' width=900>\n");
+			printf("' BORDER=0 name='trendsimage' useMap='#trendsmap' width=%d>\n", image_width);
 			printf("</DIV>\n");
 		        }
 
@@ -1391,6 +1468,8 @@ int process_cgivars(void){
 				timeperiod_type=TIMEPERIOD_THISYEAR;
 			else if(!strcmp(variables[x],"lastyear"))
 				timeperiod_type=TIMEPERIOD_LASTYEAR;
+			else if(!strcmp(variables[x],"nextproblem"))
+				timeperiod_type=TIMEPERIOD_NEXTPROBLEM;
 			else if(!strcmp(variables[x],"last24hours"))
 				timeperiod_type=TIMEPERIOD_LAST24HOURS;
 			else if(!strcmp(variables[x],"last7days"))
@@ -2872,6 +2951,9 @@ void convert_timeperiod_to_times(int type){
 		t2=mktime(t);
 		t->tm_year--;
 		t1=mktime(t);
+		break;
+	case TIMEPERIOD_NEXTPROBLEM:
+		/* Time period will be defined later */
 		break;
 	case TIMEPERIOD_LAST7DAYS:
 		t2=current_time;

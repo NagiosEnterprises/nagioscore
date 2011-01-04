@@ -3399,21 +3399,29 @@ int init_command_file_worker_thread(void){
 int shutdown_command_file_worker_thread(void){
 	int result=0;
 
-	/* CHANGED 11/12/07 EG */
-	/* cancel/join worker thread only if we're the main (parent) process */
+	/*
+	 * calling pthread_cancel(0) will cause segfaults with some
+	 * thread libraries. It's possible that will happen if the
+	 * user has a number of config files larger than the max
+	 * open file descriptor limit (ulimit -n) and some retarded
+	 * eventbroker module leaks filedescriptors, since we'll then
+	 * enter the cleanup() routine from main() before we've
+	 * spawned any threads.
+	 */
+	if (worker_threads[COMMAND_WORKER_THREAD]) {
+		/* tell the worker thread to exit */
+		result=pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
 
-	/* tell the worker thread to exit */
-	result=pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
-
-	/* wait for the worker thread to exit */
-	if(result==0){
-		result=pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
+		/* wait for the worker thread to exit */
+		if(result==0){
+			result=pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
 		}
 
-	/* we're being called from a fork()'ed child process - can't cancel thread, so just cleanup memory */
-	else{
-		cleanup_command_file_worker_thread(NULL);
+		/* we're being called from a fork()'ed child process - can't cancel thread, so just cleanup memory */
+		else{
+			cleanup_command_file_worker_thread(NULL);
 		}
+	}
 
 	return OK;
         }

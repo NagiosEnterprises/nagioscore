@@ -14,6 +14,7 @@ FIXES
 * Performance-data handling and checking is now thread-safe so long as embedded perl is not used.
 * Children should no longer hang on mutex locks held in parent for localtime() (and similar) calls.
 * Debug logging is now properly serialized, using soft-locking with a timeout of 150 milliseconds to avoid multiple threads competing for the privilege to write debug info.
+* Fixed extraneous alerts for services when host is down
 
 
 WARNINGS

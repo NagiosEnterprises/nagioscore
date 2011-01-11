@@ -12,7 +12,8 @@ CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src
 
 TESTS = test_logging test_events test_timeperiods test_nagios_config
-TESTS += test_xsddefault test_checks
+TESTS += test_xsddefault
+TESTS += test_checks
 
 XSD_OBJS = $(SRC_CGI)/statusdata-cgi.o $(SRC_CGI)/xstatusdata-cgi.o
 XSD_OBJS += $(SRC_CGI)/objects-cgi.o $(SRC_CGI)/xobjects-cgi.o

@@ -86,7 +86,10 @@ time_t get_next_log_rotation_time(void) {}
 int handle_scheduled_downtime_by_id(unsigned long long1) {}
 #ifndef TEST_LOGGING
 int log_host_event(host *hst) {}
-int log_service_event(service *svc) {}
+int log_service_event_flag=0;
+int log_service_event(service *svc) {
+	log_service_event_flag++;
+}
 int rotate_log_file(time_t time_t1) {}
 void logit(int int1,int int2,const char *fmt, ...) {}
 #endif

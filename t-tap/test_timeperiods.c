@@ -120,6 +120,7 @@ int             auto_reschedule_checks=DEFAULT_AUTO_RESCHEDULE_CHECKS;
 int             auto_rescheduling_window=DEFAULT_AUTO_RESCHEDULING_WINDOW;
 
 int             additional_freshness_latency=DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
+int             allow_empty_hostgroup_assignment=DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
 
 int             check_for_updates=DEFAULT_CHECK_FOR_UPDATES;
 int             bare_update_check=DEFAULT_BARE_UPDATE_CHECK;

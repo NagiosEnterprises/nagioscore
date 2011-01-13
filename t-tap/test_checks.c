@@ -43,7 +43,7 @@ void setup_check_result() {
 	finish_time.tv_sec=1234567891L;
 	finish_time.tv_usec=0L;
 
-	tmp_check_result=(check_result *)malloc(sizeof(tmp_check_result));
+	tmp_check_result=(check_result *)malloc(sizeof(check_result));
 	tmp_check_result->check_type=SERVICE_CHECK_ACTIVE;
 	tmp_check_result->check_options=0;
 	tmp_check_result->scheduled_check=TRUE;

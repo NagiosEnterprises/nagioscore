@@ -3325,7 +3325,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	my_free(temp_host->perf_data);
 
 	/* parse check output to get: (1) short output, (2) long output, (3) perf data */
-	parse_check_output(queued_check_result->output,&temp_host->plugin_output,&temp_host->long_plugin_output,&temp_host->perf_data,FALSE,TRUE);
+	parse_check_output(queued_check_result->output,&temp_host->plugin_output,&temp_host->long_plugin_output,&temp_host->perf_data,TRUE,TRUE);
 
 	/* make sure we have some data */
 	if(temp_host->plugin_output==NULL || !strcmp(temp_host->plugin_output,"")){

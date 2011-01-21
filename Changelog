@@ -16,6 +16,7 @@ FIXES
 * Debug logging is now properly serialized, using soft-locking with a timeout of 150 milliseconds to avoid multiple threads competing for the privilege to write debug info.
 * Fixed extraneous alerts for services when host is down
 * Fixed incorrect parsing of multi-line host check results (Jochen Bern)
+* Fixed bug with passive host checks being incorrectly sent to event brokers as active checks
 
 
 WARNINGS

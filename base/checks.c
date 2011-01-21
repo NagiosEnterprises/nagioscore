@@ -2,8 +2,9 @@
  *
  * CHECKS.C - Service and host check functions for Nagios
  *
+ * Copyright (c) 2011 Nagios Core Development Team
  * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 08-05-2010
+ * Last Modified: 01-20-2011
  *
  * License:
  *
@@ -3423,7 +3424,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_host,HOST_CHECK_ACTIVE,temp_host->current_state,temp_host->state_type,start_time_hires,end_time_hires,temp_host->host_check_command,temp_host->latency,temp_host->execution_time,host_check_timeout,queued_check_result->early_timeout,queued_check_result->return_code,NULL,temp_host->plugin_output,temp_host->long_plugin_output,temp_host->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_host,temp_host->check_type,temp_host->current_state,temp_host->state_type,start_time_hires,end_time_hires,temp_host->host_check_command,temp_host->latency,temp_host->execution_time,host_check_timeout,queued_check_result->early_timeout,queued_check_result->return_code,NULL,temp_host->plugin_output,temp_host->long_plugin_output,temp_host->perf_data,NULL);
 #endif
 
 	return OK;

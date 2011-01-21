@@ -17,6 +17,7 @@ FIXES
 * Fixed extraneous alerts for services when host is down
 * Fixed incorrect parsing of multi-line host check results (Jochen Bern)
 * Fixed bug with passive host checks being incorrectly sent to event brokers as active checks
+* Fixed bug where passive host check status updates were not being propagated to event brokers
 
 
 WARNINGS

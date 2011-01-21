@@ -3830,10 +3830,10 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 		if(hst->should_be_scheduled==TRUE){
 			schedule_host_check(hst,hst->next_check,CHECK_OPTION_NONE);
 		        }
-
-		/* update host status */
-		update_host_status(hst,FALSE);
 	        }
+
+	/* update host status - for both active (scheduled) and passive (non-scheduled) hosts */
+	update_host_status(hst,FALSE);
 
 	/* run async checks of all hosts we added above */
 	/* don't run a check if one is already executing or we can get by with a cached state */

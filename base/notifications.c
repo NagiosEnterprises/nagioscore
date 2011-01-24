@@ -517,7 +517,7 @@ int check_service_notification_viability(service *svc, int type, int options){
 		if((svc->last_time_critical < first_problem_time) && (svc->last_time_critical > svc->last_time_ok))
 			first_problem_time=svc->last_time_critical;
 	
-		if(current_time < (time_t)((first_problem_time==(time_t)0L)?program_start:first_problem_time + (svc->first_notification_delay*interval_length))){
+		if(current_time < (time_t)((first_problem_time==(time_t)0L)?program_start:first_problem_time) + (time_t)(svc->first_notification_delay*interval_length)){
 			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Not enough time has elapsed since the service changed to a non-OK state, so we should not notify about this problem yet\n");
 			return ERROR;
 			}
@@ -1425,7 +1425,7 @@ int check_host_notification_viability(host *hst, int type, int options){
 		if((hst->last_time_unreachable < first_problem_time) && (hst->last_time_unreachable > hst->last_time_unreachable))
 			first_problem_time=hst->last_time_unreachable;
 	
-		if(current_time < (time_t)((first_problem_time==(time_t)0L)?program_start:first_problem_time + (hst->first_notification_delay*interval_length))){
+		if(current_time < (time_t)((first_problem_time==(time_t)0L)?program_start:first_problem_time) + (time_t)(hst->first_notification_delay*interval_length)){
 			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Not enough time has elapsed since the host changed to a non-UP state (or since program start), so we shouldn't notify about this problem yet.\n");
 			return ERROR;
 			}

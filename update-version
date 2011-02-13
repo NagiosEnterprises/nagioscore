@@ -10,10 +10,10 @@ else
 fi
 
 # Current version number
-CURRENTVERSION=3.2.3
+CURRENTVERSION=3.3.1
 
 # Last date
-LASTDATE=10-03-2010
+LASTDATE=02-13-2011
 
 if [ "x$1" = "x" ]
 then
@@ -41,10 +41,11 @@ then
     newversion=$CURRENTVERSION
 fi
 
-# Update version number and release date in main HTML page
+# Update version number and release date in main PHP page
 perl -i -p -e "s/>Version .*</>Version $newversion</;" html/main.php
 perl -i -p -e "s/releasedate\">.*<\//releasedate\">$LONGDATE<\//;" html/main.php
 perl -i -p -e "s/\?version=.*&product=/\?version=$newversion&product=/;" html/main.php
+perl -i -p -e "s/$this_version=\".*\";/$this_version=\"$newversion\";/;" html/main.php
 
 # Update version number and release date in common code
 perl -i -p -e "s/VERSION \".*\"/VERSION \"$newversion\"/;" include/common.h
@@ -66,9 +67,9 @@ perl -i -p -e "s/PKG_REL_DATE=.*\"/PKG_REL_DATE=\"$SHORTDATE\"/;" configure.in
 perl -i -p -e "s/%define version .*/%define version $newversion/;" nagios.spec
 
 # Update quickstart guides with new version number
-perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-fedora.html
-perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-opensuse.html
-perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-ubuntu.html
+#perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-fedora.html
+#perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-opensuse.html
+#perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-ubuntu.html
 
 # Update this file with version number and last date
 perl -i -p -e "s/^CURRENTVERSION=.*/CURRENTVERSION=$newversion/;" update-version

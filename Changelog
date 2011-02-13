@@ -2,7 +2,7 @@
 Nagios 3.x Change Log
 #####################
 
-3.2.4 - ?????
+3.3.1 - ?????
 ------------------
 ENHANCEMENTS
 * Added support for same host service dependencies with servicegroups (Mathieu Gagné)
@@ -18,7 +18,6 @@ FIXES
 * Fixed incorrect parsing of multi-line host check results (Jochen Bern)
 * Fixed bug with passive host checks being incorrectly sent to event brokers as active checks
 * Fixed bug where passive host check status updates were not being propagated to event brokers
-
 
 WARNINGS
 

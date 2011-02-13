@@ -1,6 +1,8 @@
 <?php
 include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
+$this_version="3.3.1";
+
 ?>
 
 
@@ -25,9 +27,9 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
 <div id="currentversioninfo">
 <div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
-<div class="version">Version 3.2.3</div>
-<div class="releasedate">October 03, 2010</div>
-<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=3.2.3&product=nagioscore" target="_blank">Check for updates</a></div>
+<div class="version">Version 3.3.1</div>
+<div class="releasedate">February 13, 2011</div>
+<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=3.3.1&product=nagioscore" target="_blank">Check for updates</a></div>
 <div class="whatsnew"><a href="http://go.nagios.com/nagioscore/whatsnew">Read what's new in Nagios Core 3</a></div>
 </div>
 
@@ -38,7 +40,7 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 	//print_r($updateinfo);
 	//$updateinfo['update_checks_enabled']=false;
 	//$updateinfo['update_available']=true;
-	if($updateinfo['update_checks_enabled']==false){
+	if($updateinfo['update_checks_enabled']==false && $this_version!=$updateinfo['update_version']){
 ?>
 		<div class="updatechecksdisabled">
 		<div class="warningmessage">Warning: Automatic Update Checks are Disabled!</div>

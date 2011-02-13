@@ -10,7 +10,7 @@ $link_target="main";
 
 <head>
 <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
-<TITLE>Nagios</TITLE>
+<TITLE>Nagios Core</TITLE>
 <link href="stylesheets/common.css" type="text/css" rel="stylesheet">
 </head>
 

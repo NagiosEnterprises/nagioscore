@@ -1,0 +1,64 @@
+/* exfoliation: a nagios makeover                                          */
+/* Copyright 2010 Matthew Wall, all rights reserved                        */
+/*                                                                         */
+/* Permission to use, copy, modify, and distribute this software for any   */
+/* purpose with or without fee is hereby granted, provided that the above  */
+/* copyright notice and this permission notice appear in all copies.       */
+
+.status { }
+
+TABLE.status { font-size: 9pt; padding: 2; }
+TH.status    { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-bottom: 1px solid #777777; color: #333333; }
+DIV.status   { font-size: 10pt; text-align: center; }
+.statusOdd   { font-size: 9pt; background-color: #e7e7e7; }
+.statusEven  { font-size: 9pt; background-color: #f4f2f2; }
+
+.statusPENDING  { font-size: 9pt; background-color: #acacac; }
+.statusOK       { font-size: 9pt; background-color: #88d066; }
+.statusRECOVERY { font-size: 9pt; background-color: #88d066; }
+.statusUNKNOWN  { font-size: 9pt; background-color: #ffbb55; }
+.statusWARNING  { font-size: 9pt; background-color: #ffff00; }
+.statusCRITICAL { font-size: 9pt; background-color: #f88888; }
+
+.statusHOSTPENDING     { font-size: 9pt; background-color: #acacac; }
+.statusHOSTUP          { font-size: 9pt; background-color: #88d066; }
+.statusHOSTDOWN        { font-size: 9pt; background-color: #f88888; }
+.statusHOSTUNREACHABLE { font-size: 9pt; background-color: #ffbb55; }
+
+.statusBGUNKNOWN       { font-size: 9pt; background-color: #ffddaa; }
+.statusBGWARNING       { font-size: 9pt; background-color: #feffc1; }
+.statusBGCRITICAL      { font-size: 9pt; background-color: #ffdddd; }
+.statusBGDOWN          { font-size: 9pt; background-color: #ffdddd; }
+.statusBGUNREACHABLE   { font-size: 9pt; background-color: #ffbb55; }
+
+DIV.serviceTotals      { font-size: 10pt; text-align: center; font-weight: bold; }
+TABLE.serviceTotals    { font-size: 10pt; font-weight: bold; }
+TH.serviceTotals,A.serviceTotals { font-size: 9pt; }
+TD.serviceTotals       { font-size: 9pt; text-align: center; background-color: #e0e0e0; border: 1px solid #777777; padding: 2 4 2 4; }
+.serviceTotalsOK       { font-size: 9pt; text-align: center; background-color: #88d066; border: 1px solid #777777; padding: 2 4 2 4; }
+.serviceTotalsWARNING  { font-size: 9pt; text-align: center; background-color: #ffff00; border: 1px solid #777777; padding: 2 4 2 4; }
+.serviceTotalsUNKNOWN  { font-size: 9pt; text-align: center; background-color: #ffbb55; border: 1px solid #777777; padding: 2 4 2 4; }
+.serviceTotalsCRITICAL { font-size: 9pt; text-align: center; background-color: #f88888; border: 1px solid #777777; padding: 2 4 2 4; }
+.serviceTotalsPENDING  { font-size: 9pt; text-align: center; background-color: #acacac; border: 1px solid #777777; padding: 2 4 2 4; }
+.serviceTotalsPROBLEMS { font-size: 9pt; text-align: center; background-color: #aaccff; border: 1px solid #777777; padding: 2 4 2 4; }
+
+
+DIV.hostTotals         { font-size: 10pt; text-align: center; font-weight: bold; }
+TABLE.hostTotals       { font-size: 10pt; font-weight: bold; }
+TH.hostTotals,A.hostTotals { font-size: 9pt; }
+TD.hostTotals          { font-size: 9pt; text-align: center; background-color: #e4e4e4; }
+.hostTotalsUP          { font-size: 9pt; text-align: center; background-color: #88d066; }
+.hostTotalsDOWN        { font-size: 9pt; text-align: center; background-color: #f88888; }
+.hostTotalsUNREACHABLE { font-size: 9pt; text-align: center; background-color: #ffbb55; }
+.hostTotalsPENDING     { font-size: 9pt; text-align: center; background-color: #acacac; }
+.hostTotalsPROBLEMS    { font-size: 9pt; text-align: center; background-color: #aaccff; }
+
+.miniStatusPENDING  { font-size: 9pt; background-color: #acacac; text-align: center; }
+.miniStatusOK       { font-size: 9pt; background-color: #66ffee; text-align: center; }
+.miniStatusUNKNOWN  { font-size: 9pt; background-color: #ffbb55; text-align: center; }
+.miniStatusWARNING  { font-size: 9pt; background-color: #ffff00; text-align: center; }
+.miniStatusCRITICAL { font-size: 9pt; background-color: #f88888; text-align: center; }
+
+.miniStatusUP          { font-size: 9pt; background-color: #66ffee; text-align: center; }
+.miniStatusDOWN        { font-size: 9pt; background-color: #f88888; text-align: center; }
+.miniStatusUNREACHABLE { font-size: 9pt; background-color: #ffbb55; text-align: center; }

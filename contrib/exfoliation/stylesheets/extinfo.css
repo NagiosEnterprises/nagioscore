@@ -1,0 +1,84 @@
+/* exfoliation: a nagios makeover                                          */
+/* Copyright 2010 Matthew Wall, all rights reserved                        */
+/*                                                                         */
+/* Permission to use, copy, modify, and distribute this software for any   */
+/* purpose with or without fee is hereby granted, provided that the above  */
+/* copyright notice and this permission notice appear in all copies.       */
+
+.extinfo { }
+
+.perfTypeTitle { font-size: 10pt; text-align: right; font-weight: bold; }
+
+.stateInfoPanel { font-size: 9pt; }
+.stateStatisticsPanel { }
+.stateInfoTable1 { background-color: #f4f2f2; border: 1px solid #d0d0d0; }
+.stateInfoTable2 { background-color: #f4f2f2; border: 1px solid #d0d0d0; }
+
+.dataVar { font-size: 9pt; font-weight: bold; }
+.dataVal { font-size: 9pt; }
+
+/* FIXME: override the defaults until php/html is fixed */
+/* .data      { font-size: 10pt; font-weight: bold; } */
+div.data   { font-size: 10pt; font-weight: normal; }
+.dataTitle { font-size: 10pt; font-weight: bold; padding-bottom: 5; }
+
+.commandTitle { font-size: 10pt; text-align: center; font-weight: bold; padding-bottom: 5; }
+TABLE.command { background-color: #f4f2f2; border: 1px solid #d0d0d0; }
+.command      { font-size: 9pt; }
+.commandPanel { }
+.commentPanel { }
+
+.commentTitle  { font-size: 10pt; text-align: center; font-weight: bold; }
+DIV.commentNav { font-size: 10pt; text-align: center; }
+A.commentNav   { font-size: 10pt; }
+
+TABLE.comment { font-size: 10pt; background-color: white; padding: 2; }
+TH.comment    { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-bottom: 1px solid #777777; color: #333333; }
+.commentOdd   { font-size: 9pt; background-color: #e7e7e7; }
+.commentEven  { font-size: 9pt; background-color: #f4f2f2; }
+DIV.comment,A.comment { font-size: 10pt; background-color: white; text-align: center; }
+
+.downtimeTitle  { font-size: 12pt; text-align: center; font-weight: bold; }
+DIV.downtimeNav { font-size: 10pt; text-align: center; }
+A.downtimeNav   { font-size: 10pt; }
+
+TABLE.downtime { font-size: 10pt; background-color: white; padding: 2; }
+TH.downtime    { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-bottom: 1px solid #777777; color: #333333; }
+.downtimeOdd   { font-size: 9pt; background-color: #e7e7e7; }
+.downtimeEven  { font-size: 9pt; background-color: #f4f2f2; }
+
+.notflapping           { background-color: #88d066; border: 1px solid #777777; font-weight: bold; float: left; }
+.flapping              { background-color: #f88888; border: 1px solid #777777; font-weight: bold; float: left; }
+.notificationsENABLED  { background-color: #88d066; border: 1px solid #777777; font-weight: bold; }
+.notificationsDISABLED { background-color: #f88888; border: 1px solid #777777; font-weight: bold; }
+.checksENABLED         { background-color: #88d066; border: 1px solid #777777; font-weight: bold; }
+.checksDISABLED        { background-color: #f88888; border: 1px solid #777777; font-weight: bold; }
+.eventhandlersENABLED  { background-color: #88d066; border: 1px solid #777777; font-weight: bold; }
+.eventhandlersDISABLED { background-color: #f88888; border: 1px solid #777777; font-weight: bold; }
+.flapdetectionENABLED  { background-color: #88d066; border: 1px solid #777777; font-weight: bold; }
+.flapdetectionDISABLED { background-color: #f88888; border: 1px solid #777777; font-weight: bold; }
+.downtimeACTIVE        { background-color: #f88888; border: 1px solid #777777; font-weight: bold; float: left; }
+.downtimeINACTIVE      { background-color: #88d066; border: 1px solid #777777; font-weight: bold; float: left; }
+.processOK             { background-color: #88d066; border: 1px solid #777777; font-weight: bold; }
+.processUNKNOWN        { background-color: #ffbb55; border: 1px solid #777777; font-weight: bold; }
+.processWARNING        { background-color: #ffff00; border: 1px solid #777777; font-weight: bold; }
+.processCRITICAL       { background-color: #f88888; border: 1px solid #777777; font-weight: bold; }
+.modeACTIVE            { background-color: #88d066; border: 1px solid #777777; font-weight: bold; }
+.modeSTANDBY           { background-color: #ffff00; border: 1px solid #777777; font-weight: bold; }
+
+.hostUP           { background-color: #88d066; border: 1px solid #777777; font-weight: bold; float: left; }
+.hostDOWN         { background-color: #f88888; border: 1px solid #777777; font-weight: bold; float: left; }
+.hostUNREACHABLE  { background-color: #f88888; border: 1px solid #777777; font-weight: bold; float: left; }
+
+.serviceOK        { background-color: #88d066; border: 1px solid #777777; font-weight: bold; float: left; }
+.serviceWARNING   { background-color: #ffff00; border: 1px solid #777777; font-weight: bold; float: left; }
+.serviceUNKNOWN   { background-color: #ffbb55; border: 1px solid #777777; font-weight: bold; float: left; }
+.serviceCRITICAL  { background-color: #f88888; border: 1px solid #777777; font-weight: bold; float: left; }
+
+.queueTitle    { font-size: 12pt; text-align: center; font-weight: bold; }
+TABLE.queue    { font-size: 9pt; padding: 0; }
+TH.queue       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-bottom: 1px solid #777777; color: #333333; }
+.queueOdd      { font-size: 9pt; background-color: #e7e7e7; padding: 0 4 0 4; }
+.queueEven     { font-size: 9pt; background-color: #f4f2f2; padding: 0 4 0 4; }
+.queueENABLED  { font-size: 9pt; background-color: #88d066; border: 1px solid #777777; padding: 0 4 0 4; }
+.queueDISABLED { font-size: 9pt; background-color: #f88888; border: 1px solid #777777; padding: 0 4 0 4; }

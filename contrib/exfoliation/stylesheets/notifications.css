@@ -1,0 +1,29 @@
+/* exfoliation: a nagios makeover                                          */
+/* Copyright 2010 Matthew Wall, all rights reserved                        */
+/*                                                                         */
+/* Permission to use, copy, modify, and distribute this software for any   */
+/* purpose with or without fee is hereby granted, provided that the above  */
+/* copyright notice and this permission notice appear in all copies.       */
+
+.notifications { }
+
+TABLE.notifications { padding: 0; margin: 0; }
+TH.notifications    { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-bottom: 1px solid #777777; color: #333333; }
+.notificationsOdd   { font-size: 8pt; background-color: #e7e7e7; padding: 0 4 0 4; }
+.notificationsEven  { font-size: 8pt; background-color: #f4f2f2; padding: 0 4 0 4; }
+
+/* these are dark colors */
+.notificationsOK              { background-color: #88d066; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsUNKNOWN         { background-color: #ffbb55; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsWARNING         { background-color: #ffff00; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsCRITICAL        { background-color: #f88888; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsACKNOWLEDGEMENT { background-color: #aaaaaa; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsCUSTOM          { background-color: #778899; border: 1px solid #777777; padding: 0 4 0 4; }
+
+/* these are dark colors */
+.notificationsHOSTUP              { background-color: #88d066; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsHOSTDOWN            { background-color: #f88888; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsHOSTUNREACHABLE     { background-color: #ffbb55; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsHOSTACKNOWLEDGEMENT { background-color: #aaaaaa; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsHOSTCUSTOM          { background-color: #778899; border: 1px solid #777777; padding: 0 4 0 4; }
+

@@ -1,0 +1,35 @@
+/* exfoliation: a nagios makeover                                          */
+/* Copyright 2010 Matthew Wall, all rights reserved                        */
+/*                                                                         */
+/* Permission to use, copy, modify, and distribute this software for any   */
+/* purpose with or without fee is hereby granted, provided that the above  */
+/* copyright notice and this permission notice appear in all copies.       */
+
+.avail { }
+
+.data { font-size: 9pt; }
+
+.hostUP          { background-color: #cce8cc; padding: 0 4 0 4; }
+.hostDOWN        { background-color: #ffdddd; padding: 0 4 0 4; }
+.hostUNREACHABLE { background-color: #ffddaa; padding: 0 4 0 4; }
+
+.serviceOK       { background-color: #cce8cc; padding: 0 4 0 4; }
+.serviceWARNING  { background-color: #feffc1; padding: 0 4 0 4; }
+.serviceUNKNOWN  { background-color: #ffddaa; padding: 0 4 0 4; }
+.serviceCRITICAL { background-color: #ffdddd; padding: 0 4 0 4; }
+
+table.logEntries { font-size: 9pt; padding: 5 0 0 0; }
+th.logEntries    { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-bottom: 1px solid #777777; color: #333333; }
+.logEntriesOdd   { background-color: #e7e7e7; padding: 0 4 0 4; }
+.logEntriesEven  { background-color: #f4f2f2; padding: 0 4 0 4; }
+
+.logEntriesOK            { background-color: #cce8cc; padding: 0 4 0 4; }
+.logEntriesUNKNOWN       { background-color: #ffddaa; padding: 0 4 0 4; }
+.logEntriesWARNING       { background-color: #feffc1; padding: 0 4 0 4; }
+.logEntriesCRITICAL      { background-color: #ffdddd; padding: 0 4 0 4; }
+.logEntriesUP            { background-color: #cce8cc; padding: 0 4 0 4; }
+.logEntriesDOWN          { background-color: #ffdddd; padding: 0 4 0 4; }
+.logEntriesUNREACHABLE   { background-color: #ffddaa; padding: 0 4 0 4; }
+.logEntriesINDETERMINATE { background-color: #ddccff; padding: 0 4 0 4; }
+
+.infoMessage { font-size: 9pt; }

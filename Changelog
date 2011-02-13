@@ -7,6 +7,7 @@ Nagios 3.x Change Log
 ENHANCEMENTS
 * Added support for same host service dependencies with servicegroups (Mathieu Gagné)
 * Empty hostgroups referenced from services now optionally generate a warning instead of an error.
+* Documentation links now point to online resources
 
 FIXES
 * Fixes status.cgi when called with no parameters, where host should be set to all if none specified (Michael Friedrich)

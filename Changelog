@@ -9,6 +9,7 @@ ENHANCEMENTS
 * Empty hostgroups referenced from services now optionally generate a warning instead of an error.
 * Documentation links now point to online resources
 * Matt Wall's Exfoliation theme is now installed by default.  You can reinstall the classic theme with "make install-classicui"
+* Downtime delete commands made "distributable" by deleting by host group name, host name or start time/comment (Opsview team)
 
 FIXES
 * Fixes status.cgi when called with no parameters, where host should be set to all if none specified (Michael Friedrich)

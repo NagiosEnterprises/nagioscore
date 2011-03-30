@@ -87,12 +87,29 @@ int delete_downtime_by_start_time_comment(time_t start_time, char *comment){
     return deleted;
 }
 
+int delete_downtime_by_hostname_service_description_start_time_comment(char *hostname,char *service_description,time_t start_time,char *comment) {
+    test_hostname=hostname;
+    test_servicename=service_description;
+    test_start_time=start_time;
+    test_comment=comment;
+    return deleted;
+}
+
+void reset_vars() {
+    test_start_time=0L;
+    test_hostname=NULL;
+    test_servicename=NULL;
+    test_comment=NULL;
+}
+
+hostgroup *temp_hostgroup=NULL;
+
 int
-main (int argc, char **argv)
+main()
 {
 	time_t now=0L;
 
-    plan_tests(26);
+    plan_tests(62);
 
     ok( test_start_time==0L, "Start time is empty");
     ok( test_comment==NULL, "And test_comment is blank");
@@ -101,9 +118,7 @@ main (int argc, char **argv)
     ok( test_start_time==1234567890L, "Start time called correctly");
     ok( strcmp(test_comment,"This is a comment")==0, "comment set correctly");
 
-    ok( cmd_delete_downtime_by_start_time_comment(1,"") == OK, "cmd_delete_downtime_by_start_time_comment" );
-    ok( test_start_time==0L, "start time not parsed, so set to 0");
-    ok( test_comment==NULL, "And a null passed through for comment");
+    ok( cmd_delete_downtime_by_start_time_comment(1,"") == ERROR, "cmd_delete_downtime_by_start_time_comment errors if no args sent" );
 
     ok( cmd_delete_downtime_by_start_time_comment(1,"1234;Comment;") == OK, "cmd_delete_downtime_by_start_time_comment" );
     ok( test_start_time==1234, "Silly start time parsed but will get rejected lower down");
@@ -112,15 +127,11 @@ main (int argc, char **argv)
     ok( cmd_delete_downtime_by_start_time_comment(1,"1234;Comment with \n in it;") == OK, "cmd_delete_downtime_by_start_time_comment" );
     ok( strcmp(test_comment,"Comment with ")==0, "Comment truncated at \\n") || diag("comment=%s",test_comment);
 
-    ok( cmd_delete_downtime_by_start_time_comment(1,";") == OK, "cmd_delete_downtime_by_start_time_comment" );
-    ok( test_start_time==0L, "start time not parsed, so set to 0");
-    ok( test_comment==NULL, "And a null passed through for comment");
+    ok( cmd_delete_downtime_by_start_time_comment(1,";") == ERROR, "cmd_delete_downtime_by_start_time_comment error due to no args" );
 
     test_start_time=0L;
     test_comment="somethingelse";
-    ok( cmd_delete_downtime_by_start_time_comment(1,"badtime") == OK, "cmd_delete_downtime_by_start_time_comment" );
-    ok( test_start_time==0L, "bad start time not parsed, so set to 0");
-    ok( test_comment==NULL, "And a null passed through for comment");
+    ok( cmd_delete_downtime_by_start_time_comment(1,"badtime") == ERROR, "cmd_delete_downtime_by_start_time_comment error due to bad time value" );
 
     ok( cmd_delete_downtime_by_start_time_comment(1,"123badtime;comment") == OK, "cmd_delete_downtime_by_start_time_comment" );
     ok( test_start_time==123L, "Partly bad start time is parsed, but that's an input problem");
@@ -132,6 +143,70 @@ main (int argc, char **argv)
 
     deleted=0;
     ok( cmd_delete_downtime_by_start_time_comment(1,";commentonly") == ERROR, "Got an error here because no items deleted");
+
+
+    /* Test deletion of downtimes by name */
+    ok( cmd_delete_downtime_by_host_name(1,"") == ERROR, "cmd_delete_downtime_by_start_time_comment - errors if no args set" );
+
+    ok( cmd_delete_downtime_by_host_name(1,";svc;1234567890;Some comment") == ERROR, "cmd_delete_downtime_by_start_time_comment - errors if no host name set" );
+
+    reset_vars();
+    ok( cmd_delete_downtime_by_host_name(1,"host1") == ERROR, "cmd_delete_downtime_by_start_time_comment - errors if no host name set" );
+    ok( test_start_time==0, "start time right" );
+    ok( strcmp(test_hostname,"host1")==0, "hostname right");
+    ok( test_servicename==NULL, "servicename right");
+    ok( test_comment==NULL, "comment right" );
+
+    reset_vars();
+    ok( cmd_delete_downtime_by_host_name(1,"host1;svc1;;") == ERROR, "cmd_delete_downtime_by_start_time_comment - errors if no host name set" );
+    ok( test_start_time==0, "start time right" );
+    ok( strcmp(test_hostname,"host1")==0, "hostname right");
+    ok( strcmp(test_servicename,"svc1")==0, "servicename right");
+    ok( test_comment==NULL, "comment right" ) || diag("comment=%s", test_comment);
+
+    reset_vars();
+    ok( cmd_delete_downtime_by_host_name(1,"host1;svc1") == ERROR, "cmd_delete_downtime_by_start_time_comment - errors if no host name set" );
+    ok( test_start_time==0, "start time right" );
+    ok( strcmp(test_hostname,"host1")==0, "hostname right");
+    ok( strcmp(test_servicename,"svc1")==0, "servicename right");
+    ok( test_comment==NULL, "comment right" ) || diag("comment=%s", test_comment);
+
+    reset_vars();
+    ok( cmd_delete_downtime_by_host_name(1,"host1;svc1;1234567;") == ERROR, "cmd_delete_downtime_by_start_time_comment - errors if no host name set" );
+    ok( test_start_time==1234567L, "start time right" );
+    ok( strcmp(test_hostname,"host1")==0, "hostname right");
+    ok( strcmp(test_servicename,"svc1")==0, "servicename right");
+    ok( test_comment==NULL, "comment right" ) || diag("comment=%s", test_comment);
+
+    reset_vars();
+    ok( cmd_delete_downtime_by_host_name(1,"host1;svc1;12345678") == ERROR, "cmd_delete_downtime_by_start_time_comment - errors if no host name set" );
+    ok( test_start_time==12345678L, "start time right" );
+    ok( strcmp(test_hostname,"host1")==0, "hostname right");
+    ok( strcmp(test_servicename,"svc1")==0, "servicename right");
+    ok( test_comment==NULL, "comment right" ) || diag("comment=%s", test_comment);
+
+    reset_vars();
+    ok( cmd_delete_downtime_by_host_name(1,"host1;;12345678;comment too") == ERROR, "cmd_delete_downtime_by_start_time_comment - errors if no host name set" );
+    ok( test_start_time==12345678, "start time right" );
+    ok( strcmp(test_hostname,"host1")==0, "hostname right");
+    ok( test_servicename==NULL, "servicename right") || diag("servicename=%s", test_servicename);
+    ok( strcmp(test_comment,"comment too")==0, "comment right" ) || diag("comment=%s", test_comment);
+
+    reset_vars();
+    ok( cmd_delete_downtime_by_host_name(1,"host1;;12345678;") == ERROR, "cmd_delete_downtime_by_start_time_comment - errors if no host name set" );
+    ok( test_start_time==12345678, "start time right" );
+    ok( strcmp(test_hostname,"host1")==0, "hostname right");
+    ok( test_servicename==NULL, "servicename right") || diag("servicename=%s", test_servicename);
+    ok( test_comment==NULL, "comment right" ) || diag("comment=%s", test_comment);
+
+    reset_vars();
+    ok( cmd_delete_downtime_by_host_name(1,"host1;;;comment") == ERROR, "cmd_delete_downtime_by_start_time_comment - errors if no host name set" );
+    ok( test_start_time==0L, "start time right" );
+    ok( strcmp(test_hostname,"host1")==0, "hostname right");
+    ok( test_servicename==NULL, "servicename right") || diag("servicename=%s", test_servicename);
+    ok( strcmp(test_comment,"comment")==0, "comment right" ) || diag("comment=%s", test_comment);
+
+
 
 	return exit_status ();
 }

@@ -634,6 +634,8 @@ int cmd_change_object_char_var(int,char *);			/* changes host/svc (char) variabl
 int cmd_change_object_custom_var(int,char *);                   /* changes host/svc custom variable */
 int cmd_process_external_commands_from_file(int,char *);        /* process external commands from a file */
 int cmd_delete_downtime_by_start_time_comment(int,char *);
+int cmd_delete_downtime_by_host_name(int,char *);
+int cmd_delete_downtime_by_hostgroup_name(int,char *);
 
 int process_passive_service_check(time_t,char *,char *,int,char *);
 int process_passive_host_check(time_t,char *,int,char *);

@@ -77,7 +77,6 @@ FIXES
 * Fix for incorrect comment expiration times being passed to event broker (Mattieu Kermagot)
 * Doc updates related to cleaning of custom macros (Peter Valdemar Morch)
 * Fix to sample notify-service-by-email command (bug #62)
-* Fix for retaining host display name and alias, as well as service display name (Folkert van Heusden)
 
 
 

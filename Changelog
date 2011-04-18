@@ -21,6 +21,7 @@ FIXES
 * Fixed incorrect parsing of multi-line host check results (Jochen Bern)
 * Fixed bug with passive host checks being incorrectly sent to event brokers as active checks
 * Fixed bug where passive host check status updates were not being propagated to event brokers
+* Reverted 'Fix for retaining host display name and alias, as well as service display name' as configuration information stored incorrectly over a reload
 
 WARNINGS
 
@@ -77,6 +78,7 @@ FIXES
 * Fix for incorrect comment expiration times being passed to event broker (Mattieu Kermagot)
 * Doc updates related to cleaning of custom macros (Peter Valdemar Morch)
 * Fix to sample notify-service-by-email command (bug #62)
+* Fix for retaining host display name and alias, as well as service display name (Folkert van Heusden)
 
 
 

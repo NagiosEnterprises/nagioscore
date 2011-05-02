@@ -815,6 +815,25 @@ int set_environment_var(char *name, char *value, int set){
 /******************************************************************/
 
 
+/* Checks if the given time is in daylight time saving period */
+int is_dst_time(time_t *time) {
+	struct tm *bt = localtime(time);
+	return bt->tm_isdst;
+}
+
+/* Returns the shift in seconds if the given times are across the daylight time saving period change */
+int get_dst_shift(time_t *start, time_t *end) {
+	int shift = 0, dst_end, dst_start;
+	dst_start = is_dst_time(start);
+	dst_end = is_dst_time(end);
+	if (dst_start < dst_end) {
+		shift = 3600;
+	} else if (dst_start > dst_end) {
+		shift = -3600;
+	}
+	return shift;
+}
+
 /*#define TEST_TIMEPERIODS_A 1*/
 
 /* see if the specified time falls into a valid time range in the given time period */
@@ -837,6 +856,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 	int test_time_mday=0;
 	int test_time_wday=0;
 	int year=0;
+	int shift;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_time_against_period()\n");
 	
@@ -1014,8 +1034,11 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 				if(start_time>test_time)
 					continue;
 
+				/* check if interval is across dlst change and gets the compensation */
+				shift=get_dst_shift(&start_time,&midnight);
+
 				/* how many days have passed between skip start date and test time? */
-				days=(midnight-(unsigned long)start_time)/(3600*24);
+				days=(shift+midnight-(unsigned long)start_time)/(3600*24);
 
 				/* if test date doesn't fall on a skip interval day, bail out early */
 				if((days % temp_daterange->skip_interval)!=0)
@@ -1033,6 +1056,8 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 #ifdef TEST_TIMEPERIODS_A
 			printf("NEW START:    %lu = %s",(unsigned long)start_time,ctime(&start_time));
 			printf("NEW END:      %lu = %s",(unsigned long)end_time,ctime(&end_time));
+			printf("%d DAYS PASSED\n",days);
+			printf("DLST SHIFT:   %d",shift);
 #endif
 
 			/* time falls into the range of days */
@@ -1125,6 +1150,7 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 	int current_time_mon=0;
 	int current_time_mday=0;
 	int current_time_wday=0;
+	int shift;
 
 	/* preferred time must be now or in the future */
 	preferred_time=(pref_time<current_time)?current_time:pref_time;
@@ -1361,9 +1387,11 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 
 				/* advance to the next possible skip date */
 				if(start_time<preferred_time){
+					/* check if interval is across dlst change and gets the compensation */
+					shift=get_dst_shift(&start_time,&midnight);
 
 					/* how many days have passed between skip start date and preferred time? */
-					days=(midnight-(unsigned long)start_time)/(3600*24);
+					days=(shift+midnight-(unsigned long)start_time)/(3600*24);
 
 #ifdef TEST_TIMEPERIODS_B
 					printf("MIDNIGHT: %lu = %s",midnight,ctime(&midnight));
@@ -1371,6 +1399,7 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 					printf("%d DAYS PASSED\n",days);
 					printf("REMAINDER: %d\n",(days % temp_daterange->skip_interval));
 					printf("SKIP INTERVAL: %d\n",temp_daterange->skip_interval);
+					printf("DLST SHIFT: %d",shift);
 #endif
 
 					/* advance start date to next skip day */

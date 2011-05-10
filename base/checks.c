@@ -2440,8 +2440,16 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int log_this){
 	log_debug_info(DEBUGL_CHECKS,2,"Checking freshness of host '%s'...\n",temp_host->name);
 
 	/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
-	if(temp_host->freshness_threshold==0)
-		freshness_threshold=(temp_host->check_interval*interval_length)+temp_host->latency+additional_freshness_latency;
+	if(temp_host->freshness_threshold==0) {
+		double interval;
+
+		if(temp_host->state_type==HARD_STATE || temp_host->current_state==STATE_OK) {
+			interval=temp_host->check_interval;
+		} else {
+			interval=temp_host->retry_interval;
+		}
+		freshness_threshold=(interval*interval_length)+temp_host->latency+additional_freshness_latency;
+	}
 	else
 		freshness_threshold=temp_host->freshness_threshold;
 

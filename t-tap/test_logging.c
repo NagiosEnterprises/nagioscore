@@ -21,9 +21,12 @@
 #include "nagios.h"
 #include "objects.h"
 #include "tap.h"
+#include "../common/shared.c"
 
 #define TEST_LOGGING 1
 #include "test-stubs.c"
+
+int date_format;
 
 char *saved_source;
 char *saved_dest;

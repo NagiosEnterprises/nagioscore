@@ -58,6 +58,7 @@ extern int      command_check_interval;
 
 extern int      log_initial_states;
 extern int      log_passive_checks;
+extern int      log_host_retries;
 
 extern int      service_check_timeout;
 extern int      host_check_timeout;
@@ -1132,7 +1133,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		/* reset notification suppression option */
 		temp_service->no_more_notifications=FALSE;
 
-		if(temp_service->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL){
+		if(temp_service->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL && (state_change==TRUE || hard_state_change==FALSE)){
 
 			temp_service->problem_has_been_acknowledged=FALSE;
 			temp_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
@@ -4010,3 +4011,351 @@ int determine_host_reachability(host *hst){
 
 	return state;
         }
+
+
+
+/******************************************************************/
+/****************** HOST STATE HANDLER FUNCTIONS ******************/
+/******************************************************************/
+
+
+/* top level host state handler - occurs after every host check (soft/hard and active/passive) */
+int handle_host_state(host *hst){
+	int state_change=FALSE;
+	int hard_state_change=FALSE;
+	time_t current_time=0L;
+
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_host_state()\n");
+
+	/* get current time */
+	time(&current_time);
+
+	/* obsess over this host check */
+	obsessive_compulsive_host_check_processor(hst);
+
+	/* update performance data */
+	update_host_performance_data(hst);
+
+	/* record latest time for current state */
+	switch(hst->current_state){
+	case HOST_UP:
+		hst->last_time_up=current_time;
+		break;
+	case HOST_DOWN:
+		hst->last_time_down=current_time;
+		break;
+	case HOST_UNREACHABLE:
+		hst->last_time_unreachable=current_time;
+		break;
+	default:
+		break;
+	        }
+
+	/* has the host state changed? */
+	if(hst->last_state!=hst->current_state || (hst->current_state==HOST_UP && hst->state_type==SOFT_STATE))
+		state_change=TRUE;
+
+	if(hst->current_attempt>=hst->max_attempts && hst->last_hard_state!=hst->current_state)
+		hard_state_change=TRUE;
+
+	/* if the host state has changed... */
+	if(state_change==TRUE || hard_state_change==TRUE){
+
+		/* reset the next and last notification times */
+		hst->last_host_notification=(time_t)0;
+		hst->next_host_notification=(time_t)0;
+
+		/* reset notification suppression option */
+		hst->no_more_notifications=FALSE;
+
+		/* reset the acknowledgement flag if necessary */
+		if(hst->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL && (state_change==TRUE || hard_state_change==FALSE)){
+
+			hst->problem_has_been_acknowledged=FALSE;
+			hst->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+
+			/* remove any non-persistant comments associated with the ack */
+			delete_host_acknowledgement_comments(hst);
+		        }
+		else if(hst->acknowledgement_type==ACKNOWLEDGEMENT_STICKY && hst->current_state==HOST_UP){
+
+			hst->problem_has_been_acknowledged=FALSE;
+			hst->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+
+			/* remove any non-persistant comments associated with the ack */
+			delete_host_acknowledgement_comments(hst);
+		        }
+
+        }
+
+    /* Not sure about this, but is old behaviour */
+	if(hst->last_hard_state!=hst->current_state)
+		hard_state_change=TRUE;
+
+    if (state_change==TRUE || hard_state_change==TRUE) {
+
+		/* update last state change times */
+		hst->last_state_change=current_time;
+		if(hst->state_type==HARD_STATE)
+			hst->last_hard_state_change=current_time;
+
+		/* update the event id */
+		hst->last_event_id=hst->current_event_id;
+		hst->current_event_id=next_event_id;
+		next_event_id++;
+
+		/* update the problem id when transitioning to a problem state */
+		if(hst->last_state==HOST_UP){
+			/* don't reset last problem id, or it will be zero the next time a problem is encountered */
+			/*hst->last_problem_id=hst->current_problem_id;*/
+			hst->current_problem_id=next_problem_id;
+			next_problem_id++;
+			}
+
+		/* clear the problem id when transitioning from a problem state to an UP state */
+		if(hst->current_state==HOST_UP){
+			hst->last_problem_id=hst->current_problem_id;
+			hst->current_problem_id=0L;
+			}
+
+		/* write the host state change to the main log file */
+		if(hst->state_type==HARD_STATE || (hst->state_type==SOFT_STATE && log_host_retries==TRUE))
+			log_host_event(hst);
+
+		/* check for start of flexible (non-fixed) scheduled downtime */
+		/* CHANGED 08-05-2010 EG flex downtime can now start on soft states */
+		/*if(hst->state_type==HARD_STATE)*/
+		check_pending_flex_host_downtime(hst);
+
+		/* notify contacts about the recovery or problem if its a "hard" state */
+		if(hst->state_type==HARD_STATE)
+			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
+
+		/* handle the host state change */
+		handle_host_event(hst);
+
+		/* the host just recovered, so reset the current host attempt */
+		if(hst->current_state==HOST_UP)
+			hst->current_attempt=1;
+
+		/* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
+		if(hst->current_state==HOST_UP){
+			hst->current_notification_number=0;
+			hst->notified_on_down=FALSE;
+			hst->notified_on_unreachable=FALSE;
+		        }
+	        }
+
+	/* else the host state has not changed */
+	else{
+
+		/* notify contacts if host is still down or unreachable */
+		if(hst->current_state!=HOST_UP && hst->state_type==HARD_STATE)
+			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL,NOTIFICATION_OPTION_NONE);
+
+		/* if we're in a soft state and we should log host retries, do so now... */
+		if(hst->state_type==SOFT_STATE && log_host_retries==TRUE)
+			log_host_event(hst);
+	        }
+
+	return OK;
+        }
+
+
+/* parse raw plugin output and return: short and long output, perf data */
+int parse_check_output(char *buf, char **short_output, char **long_output, char **perf_data, int escape_newlines_please, int newlines_are_escaped){
+	int current_line=0;
+	int found_newline=FALSE;
+	int eof=FALSE;
+	int used_buf=0;
+	int dbuf_chunk=1024;
+	dbuf db1;
+	dbuf db2;
+	char *ptr=NULL;
+	int in_perf_data=FALSE;
+	char *tempbuf=NULL;
+	register int x=0;
+	register int y=0;
+
+	/* initialize values */
+	if(short_output)
+		*short_output=NULL;
+	if(long_output)
+		*long_output=NULL;
+	if(perf_data)
+		*perf_data=NULL;
+
+	/* nothing to do */
+	if(buf==NULL || !strcmp(buf,""))
+		return OK;
+
+	used_buf=strlen(buf)+1;
+
+	/* initialize dynamic buffers (1KB chunk size) */
+	dbuf_init(&db1,dbuf_chunk);
+	dbuf_init(&db2,dbuf_chunk);
+
+	/* unescape newlines and escaped backslashes first */
+	if(newlines_are_escaped==TRUE){
+		for(x=0,y=0;buf[x]!='\x0';x++){
+			if(buf[x]=='\\' && buf[x+1]=='\\'){
+				x++;
+				buf[y++]=buf[x];
+				}
+			else if(buf[x]=='\\' && buf[x+1]=='n'){
+				x++;
+				buf[y++]='\n';
+				}
+			else
+				buf[y++]=buf[x];
+			}
+		buf[y]='\x0';
+		}
+
+	/* process each line of input */
+	for(x=0;eof==FALSE;x++){
+
+		/* we found the end of a line */
+		if(buf[x]=='\n')
+			found_newline=TRUE;
+		else if(buf[x]=='\\' && buf[x+1]=='n' && newlines_are_escaped==TRUE){
+			found_newline=TRUE;
+			buf[x]='\x0';
+			x++;
+		        }
+		else if(buf[x]=='\x0'){
+			found_newline=TRUE;
+			eof=TRUE;
+		        }
+		else
+			found_newline=FALSE;
+
+		if(found_newline==TRUE){
+	
+			current_line++;
+
+			/* handle this line of input */
+			buf[x]='\x0';
+			if((tempbuf=(char *)strdup(buf))){
+
+				/* first line contains short plugin output and optional perf data */
+				if(current_line==1){
+
+					/* get the short plugin output */
+					if((ptr=strtok(tempbuf,"|"))){
+						if(short_output)
+							*short_output=(char *)strdup(ptr);
+
+						/* get the optional perf data */
+						if((ptr=strtok(NULL,"\n")))
+							dbuf_strcat(&db2,ptr);
+					        }
+				        }
+
+				/* additional lines contain long plugin output and optional perf data */
+				else{
+
+					/* rest of the output is perf data */
+					if(in_perf_data==TRUE){
+						dbuf_strcat(&db2,tempbuf);
+						dbuf_strcat(&db2," ");
+						}
+
+					/* we're still in long output */
+					else{
+
+						/* perf data separator has been found */
+						if(strstr(tempbuf,"|")){
+
+							/* NOTE: strtok() causes problems if first character of tempbuf='|', so use my_strtok() instead */
+							/* get the remaining long plugin output */
+							if((ptr=my_strtok(tempbuf,"|"))){
+
+								if(current_line>2)
+									dbuf_strcat(&db1,"\n");
+								dbuf_strcat(&db1,ptr);
+
+								/* get the perf data */
+								if((ptr=my_strtok(NULL,"\n"))){
+									dbuf_strcat(&db2,ptr);
+									dbuf_strcat(&db2," ");
+									}
+							        }
+
+							/* set the perf data flag */
+							in_perf_data=TRUE;
+						        }
+
+						/* just long output */
+						else{
+							if(current_line>2)
+								dbuf_strcat(&db1,"\n");
+							dbuf_strcat(&db1,tempbuf);
+						        }
+					        }
+				        }
+
+				my_free(tempbuf);
+				tempbuf=NULL;
+			        }
+		
+
+			/* shift data back to front of buffer and adjust counters */
+			memmove((void *)&buf[0],(void *)&buf[x+1],(size_t)((int)used_buf-x-1));
+			used_buf-=(x+1);
+			buf[used_buf]='\x0';
+			x=-1;
+		        }
+	        }
+
+	/* save long output */
+	if(long_output && (db1.buf && strcmp(db1.buf,""))){
+
+		if(escape_newlines_please==FALSE)
+			*long_output=(char *)strdup(db1.buf);
+
+		else{
+
+			/* escape newlines (and backslashes) in long output */
+			if((tempbuf=(char *)malloc((strlen(db1.buf)*2)+1))){
+
+				for(x=0,y=0;db1.buf[x]!='\x0';x++){
+
+					if(db1.buf[x]=='\n'){
+						tempbuf[y++]='\\';
+						tempbuf[y++]='n';
+					        }
+					else if(db1.buf[x]=='\\'){
+						tempbuf[y++]='\\';
+						tempbuf[y++]='\\';
+					        }
+					else
+						tempbuf[y++]=db1.buf[x];
+				        }
+
+				tempbuf[y]='\x0';
+				*long_output=(char *)strdup(tempbuf);
+				my_free(tempbuf);
+			        }
+		        }
+	        }
+
+	/* save perf data */
+	if(perf_data && (db2.buf && strcmp(db2.buf,"")))
+		*perf_data=(char *)strdup(db2.buf);
+
+	/* strip short output and perf data */
+	if(short_output)
+		strip(*short_output);
+	if(perf_data)
+		strip(*perf_data);
+
+	/* free dynamic buffers */
+	dbuf_free(&db1);
+	dbuf_free(&db2);
+
+	return OK;
+        }
+
+

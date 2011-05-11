@@ -24,6 +24,7 @@ FIXES
 * Fixed bug where passive host check status updates were not being propagated to event brokers
 * Reverted 'Fix for retaining host display name and alias, as well as service display name' as configuration information stored incorrectly over a reload
 * Fixed compile warnings for size_t (Michael Friedrich)
+* Fixed problem where acknowledgements were getting reset when a hard state change occurred
 
 WARNINGS
 

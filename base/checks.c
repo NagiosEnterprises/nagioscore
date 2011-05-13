@@ -164,9 +164,6 @@ int reap_check_results(void){
 
 				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n",queued_check_result->service_description,queued_check_result->host_name);
 
-				/* delete the file that contains the check results, as well as the ok-to-go file */
-				delete_check_result_file(queued_check_result->output_file);
-
 				/* free memory */
 				free_check_result(queued_check_result);
 				my_free(queued_check_result);
@@ -189,9 +186,6 @@ int reap_check_results(void){
 				/* make sure the host exists */
 				logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Check result queue contained results for host '%s', but the host could not be found!  Perhaps you forgot to define the host in your config files?\n",queued_check_result->host_name);
 
-				/* delete the file that contains the check results, as well as the ok-to-go file */
-				delete_check_result_file(queued_check_result->output_file);
-
 				/* free memory */
 				free_check_result(queued_check_result);
 				my_free(queued_check_result);
@@ -206,10 +200,6 @@ int reap_check_results(void){
 			/* process the check result */
 			handle_async_host_check_result_3x(temp_host,queued_check_result);
 		        }
-
-		/* delete the file that contains the check results, as well as the ok-to-go file */
-		/* files can contain multiple check results - in this case, the file will be removed when the first check result is processed */
-		delete_check_result_file(queued_check_result->output_file);
 
 		log_debug_info(DEBUGL_CHECKS|DEBUGL_IPC,1,"Deleted check result file '%s'\n",queued_check_result->output_file);
 

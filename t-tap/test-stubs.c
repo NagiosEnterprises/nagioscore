@@ -116,15 +116,15 @@ int debug_level;
 int debug_verbosity;
 unsigned long max_debug_file_size;
 
-int grab_host_macros(nagios_macros *mac, host *hst) {}
+int grab_host_macros_r(nagios_macros *mac, host *hst) {}
 
-int grab_service_macros(nagios_macros *mac, service *svc) {}
+int grab_service_macros_r(nagios_macros *mac, service *svc) {}
 
 void broker_log_data(int a, int b, int c, char *d, unsigned long e, time_t f, struct timeval *g) {}
 
-int clear_volatile_macros(nagios_macros *mac) {}
-int clear_service_macros(nagios_macros *mac) {}
-int clear_host_macros(nagios_macros *mac) {}
+int clear_volatile_macros_r(nagios_macros *mac) {}
+int clear_service_macros_r(nagios_macros *mac) {}
+int clear_host_macros_r(nagios_macros *mac) {}
 
 int process_macros(char *a, char **b, int c) {}
 int process_macros_r(nagios_macros *mac, char *a, char **b, int c) {}
@@ -147,7 +147,7 @@ check_result    check_result_info;
 char *temp_path;
 int dbuf_init(dbuf *db, int chunk_size){}
 int update_check_stats(int check_type, time_t check_time){}
-int set_all_macro_environment_vars(nagios_macros *mac, int set){}
+int set_all_macro_environment_vars_r(nagios_macros *mac, int set){}
 int close_command_file(void){}
 void reset_sighandler(void){}
 void service_check_sighandler(int sig){}

@@ -273,14 +273,14 @@ int log_service_event(service *svc)
 
 	/* grab service macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, temp_host);
-	grab_service_macros(&mac, svc);
+	grab_host_macros_r(&mac, temp_host);
+	grab_service_macros_r(&mac, svc);
 
 	/* XXX: replace the macro madness with some simple helpers instead */
 	asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,(svc->plugin_output==NULL)?"":svc->plugin_output);
 	process_macros_r(&mac, temp_buffer,&processed_buffer,0);
-	clear_host_macros(&mac);
-	clear_service_macros(&mac);
+	clear_host_macros_r(&mac);
+	clear_service_macros_r(&mac);
 
 	write_to_all_logs(processed_buffer,log_options);
 
@@ -301,7 +301,7 @@ int log_host_event(host *hst)
 
 	/* grab the host macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, hst);
+	grab_host_macros_r(&mac, hst);
 
 	/* get the log options */
 	if(hst->current_state==HOST_DOWN)
@@ -317,7 +317,7 @@ int log_host_event(host *hst)
 
 	write_to_all_logs(processed_buffer,log_options);
 
-	clear_host_macros(&mac);
+	clear_host_macros_r(&mac);
 	my_free(temp_buffer);
 	my_free(processed_buffer);
 
@@ -341,7 +341,7 @@ int log_host_states(int type, time_t *timestamp)
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		/* grab the host macros */
-		grab_host_macros(&mac, temp_host);
+		grab_host_macros_r(&mac, temp_host);
 
 		/* XXX: macro madness */
 		asprintf(&temp_buffer,"%s HOST STATE: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
@@ -349,7 +349,7 @@ int log_host_states(int type, time_t *timestamp)
 		
 		write_to_all_logs_with_timestamp(processed_buffer,NSLOG_INFO_MESSAGE,timestamp);
 
-		clear_host_macros(&mac);
+		clear_host_macros_r(&mac);
 
 		my_free(temp_buffer);
 		my_free(processed_buffer);
@@ -380,8 +380,8 @@ int log_service_states(int type, time_t *timestamp)
 			continue;
 
 		/* grab service macros */
-		grab_host_macros(&mac, temp_host);
-		grab_service_macros(&mac, temp_service);
+		grab_host_macros_r(&mac, temp_host);
+		grab_service_macros_r(&mac, temp_service);
 
 		/* XXX: macro madness */
 		asprintf(&temp_buffer,"%s SERVICE STATE: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,temp_service->plugin_output);
@@ -389,8 +389,8 @@ int log_service_states(int type, time_t *timestamp)
 
 		write_to_all_logs_with_timestamp(processed_buffer,NSLOG_INFO_MESSAGE,timestamp);
 
-		clear_host_macros(&mac);
-		clear_service_macros(&mac);
+		clear_host_macros_r(&mac);
+		clear_service_macros_r(&mac);
 
 		my_free(temp_buffer);
 		my_free(processed_buffer);

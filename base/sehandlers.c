@@ -100,13 +100,13 @@ int obsessive_compulsive_service_check_processor(service *svc)
 
 	/* update service macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, temp_host);
-	grab_service_macros(&mac, svc);
+	grab_host_macros_r(&mac, temp_host);
+	grab_service_macros_r(&mac, svc);
 
 	/* get the raw command line */
 	get_raw_command_line_r(&mac, ocsp_command_ptr,ocsp_command,&raw_command,macro_options);
 	if(raw_command==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -115,7 +115,7 @@ int obsessive_compulsive_service_check_processor(service *svc)
 	/* process any macros in the raw command line */
 	process_macros_r(&mac, raw_command,&processed_command,macro_options);
 	if(processed_command==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -124,7 +124,7 @@ int obsessive_compulsive_service_check_processor(service *svc)
 	/* run the command */
 	my_system_r(&mac, processed_command,ocsp_timeout,&early_timeout,&exectime,NULL,0);
 
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
@@ -166,12 +166,12 @@ int obsessive_compulsive_host_check_processor(host *hst)
 
 	/* update macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, hst);
+	grab_host_macros_r(&mac, hst);
 
 	/* get the raw command line */
 	get_raw_command_line_r(&mac, ochp_command_ptr,ochp_command,&raw_command,macro_options);
 	if(raw_command==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -180,7 +180,7 @@ int obsessive_compulsive_host_check_processor(host *hst)
 	/* process any macros in the raw command line */
 	process_macros_r(&mac, raw_command,&processed_command,macro_options);
 	if(processed_command==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -188,7 +188,7 @@ int obsessive_compulsive_host_check_processor(host *hst)
 
 	/* run the command */
 	my_system_r(&mac, processed_command,ochp_timeout,&early_timeout,&exectime,NULL,0);
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
@@ -237,8 +237,8 @@ int handle_service_event(service *svc)
 
 	/* update service macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, temp_host);
-	grab_service_macros(&mac, svc);
+	grab_host_macros_r(&mac, temp_host);
+	grab_service_macros_r(&mac, svc);
 
 	/* run the global service event handler */
 	run_global_service_event_handler(&mac, svc);
@@ -246,7 +246,7 @@ int handle_service_event(service *svc)
 	/* run the event handler command if there is one */
 	if(svc->event_handler!=NULL)
 		run_service_event_handler(&mac, svc);
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
@@ -491,7 +491,7 @@ int handle_host_event(host *hst)
 
 	/* update host macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, hst);
+	grab_host_macros_r(&mac, hst);
 
 	/* run the global host event handler */
 	run_global_host_event_handler(&mac, hst);

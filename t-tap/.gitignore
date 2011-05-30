@@ -4,4 +4,7 @@ test_checks
 test_nagios_config
 test_timeperiods
 test_xsddefault
+test_commands
+test_downtime
+test_strtoul
 *.dSYM

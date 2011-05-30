@@ -1559,7 +1559,7 @@ void show_service_detail(void){
 			if(new_host==TRUE){
 
 				/* grab macros */
-				grab_host_macros(mac, temp_host);
+				grab_host_macros_r(mac, temp_host);
 
 				if(temp_hoststatus->status==HOST_DOWN){
 					if(temp_hoststatus->problem_has_been_acknowledged==TRUE)
@@ -1659,7 +1659,7 @@ void show_service_detail(void){
 			printf("</TD>\n");
 
 			/* grab macros */
-			grab_service_macros(mac, temp_service);
+			grab_service_macros_r(mac, temp_service);
 
 			/* service name column */
 			printf("<TD CLASS='status%s'>",status_bg_class);
@@ -2023,7 +2023,7 @@ void show_host_detail(void){
 		total_entries++;
 
 		/* grab macros */
-		grab_host_macros(mac, temp_host);
+		grab_host_macros_r(mac, temp_host);
 
 
 		if(display_type==DISPLAY_HOSTGROUPS){
@@ -3231,7 +3231,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 		printf("<TD CLASS='status%s'>",host_status_class);
 
 		/* grab macros */
-		grab_host_macros(mac, temp_host);
+		grab_host_macros_r(mac, temp_host);
 
 		printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
 		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,DETAIL_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extended Information For This Host","View Extended Information For This Host");
@@ -3484,7 +3484,7 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 	temp_host=find_host(hststatus->host_name);
 
 	/* grab macros */
-	grab_host_macros(mac, temp_host);
+	grab_host_macros_r(mac, temp_host);
 
 	if(hststatus->status==HOST_PENDING){
 		strncpy(status,"PENDING",sizeof(status));
@@ -4354,7 +4354,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 			continue;
 
 		/* grab macros */
-		grab_host_macros(mac, temp_host);
+		grab_host_macros_r(mac, temp_host);
 
 		/* find the host status */
 		temp_hoststatus=find_hoststatus(temp_host->name);
@@ -4434,7 +4434,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 			        }
 
 			/* grab macros */
-			grab_service_macros(mac, temp_service);
+			grab_service_macros_r(mac, temp_service);
 
 			/* get the status of the service */
 			temp_servicestatus=find_servicestatus(temp_service->host_name,temp_service->description);

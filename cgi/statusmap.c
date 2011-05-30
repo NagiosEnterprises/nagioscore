@@ -1934,7 +1934,7 @@ void write_host_popup_text(host *hst){
 	        }
 
 	/* grab macros */
-	grab_host_macros(mac, hst);
+	grab_host_macros_r(mac, hst);
 
 	/* strip nasty stuff from plugin output */
 	sanitize_plugin_output(temp_status->plugin_output);

@@ -231,11 +231,11 @@ int main(void){
 		if(display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO){
 
 			temp_host=find_host(host_name);
-			grab_host_macros(mac, temp_host);
+			grab_host_macros_r(mac, temp_host);
 
 			if(display_type==DISPLAY_SERVICE_INFO){
 				temp_service=find_service(host_name,service_desc);
-				grab_service_macros(mac, temp_service);
+				grab_service_macros_r(mac, temp_service);
 				}
 
 			/* write some Javascript helper functions */
@@ -259,13 +259,13 @@ int main(void){
 		/* find the hostgroup */
 		else if(display_type==DISPLAY_HOSTGROUP_INFO){
 			temp_hostgroup=find_hostgroup(hostgroup_name);
-			grab_hostgroup_macros(mac, temp_hostgroup);
+			grab_hostgroup_macros_r(mac, temp_hostgroup);
 			}
 
 		/* find the servicegroup */
 		else if(display_type==DISPLAY_SERVICEGROUP_INFO){
 			temp_servicegroup=find_servicegroup(servicegroup_name);
-			grab_servicegroup_macros(mac, temp_servicegroup);
+			grab_servicegroup_macros_r(mac, temp_servicegroup);
 			}
 
 		if((display_type==DISPLAY_HOST_INFO && temp_host!=NULL) || (display_type==DISPLAY_SERVICE_INFO && temp_host!=NULL && temp_service!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL) || (display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL)){

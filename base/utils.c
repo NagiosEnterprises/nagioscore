@@ -433,7 +433,7 @@ int my_system_r(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 		setpgid(0,0);
 
 		/* set environment variables */
-		set_all_macro_environment_vars(mac, TRUE);
+		set_all_macro_environment_vars_r(mac, TRUE);
 
 		/* ADDED 11/12/07 EG */
 		/* close external command file and shut down worker thread */
@@ -544,7 +544,7 @@ int my_system_r(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 		alarm(0);
 		
 		/* clear environment variables */
-		set_all_macro_environment_vars(mac, FALSE);
+		set_all_macro_environment_vars_r(mac, FALSE);
 
 #ifndef DONT_USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
@@ -692,7 +692,7 @@ int get_raw_command_line_r(nagios_macros *mac, command *cmd_ptr, char *cmd, char
 	log_debug_info(DEBUGL_FUNCTIONS,0,"get_raw_command_line_r()\n");
 
 	/* clear the argv macros */
-	clear_argv_macros(mac);
+	clear_argv_macros_r(mac);
 
 	/* make sure we've got all the requirements */
 	if(cmd_ptr==NULL || full_command==NULL)
@@ -4057,7 +4057,7 @@ void free_memory(nagios_macros *mac)
 	 * macros when we get a reload or restart request through the
 	 * command pipe, or when we receive a SIGHUP.
 	 */
-	clear_volatile_macros(mac);
+	clear_volatile_macros_r(mac);
 
 	free_macrox_names();
 

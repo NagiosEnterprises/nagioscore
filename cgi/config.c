@@ -518,7 +518,7 @@ void display_hosts(void){
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next) if (((*to_expand)=='\0')||!strcmp(to_expand,temp_host->name)){
 
 		/* grab macros */
-		grab_host_macros(mac, temp_host);
+		grab_host_macros_r(mac, temp_host);
 
 		if(odd){
 			odd=0;
@@ -1260,7 +1260,7 @@ void display_services(void){
 		if (((*to_expand)=='\0')||(!strcmp(to_expand,temp_service->host_name))||(!strcmp(to_expand,temp_service->description))){
 
 		/* grab macros */
-		grab_service_macros(mac, temp_service);
+		grab_service_macros_r(mac, temp_service);
 
 		if(odd){
 			odd=0;

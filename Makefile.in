@@ -60,6 +60,12 @@ none:
 
 # FreeBSD make does not support -C option, so we'll use the Apache style... (patch by Stanley Hopcroft 12/27/1999)
 
+pretty: indent
+
+indent:
+	@astyle --indent=tab --unpad-paren --pad-oper --pad-header --suffix=none \
+		--brackets=linux $$(find . -type f -name "*.[ch]")
+
 all:
 	cd $(SRC_BASE) && $(MAKE)
 	cd $(SRC_CGI) && $(MAKE)
@@ -362,3 +368,6 @@ pkgset: nagios.SPARC.pkg.tar.gz
 
 pkgclean:
 	rm -rf pkg Prototype nagios.SPARC.pkg.tar.gz
+
+# Targets that always get built
+.PHONY:	indent clean clean distclean

@@ -63,8 +63,7 @@ none:
 pretty: indent
 
 indent:
-	@astyle --indent=tab --unpad-paren --pad-oper --pad-header --suffix=none \
-		--brackets=linux $$(find . -type f -name "*.[ch]")
+	@sh indent.sh
 
 all:
 	cd $(SRC_BASE) && $(MAKE)

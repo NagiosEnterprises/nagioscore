@@ -677,8 +677,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			/* become the process group leader */
 			setpgid(0,0);
 
-			/* catch term signals at this process level */
-			signal(SIGTERM,service_check_sighandler);
+			/* exit on term signals at this process level */
+			signal(SIGTERM, SIG_DFL);
 
 			/* catch plugins that don't finish in a timely manner */
 			signal(SIGALRM,service_check_sighandler);
@@ -783,7 +783,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			/* close the process */
 			pclose_result=pclose(fp);
 
-			/* reset the alarm */
+			/* reset the alarm and ignore SIGALRM */
+			signal(SIGALRM, SIG_IGN);
 			alarm(0);
 
 			/* get the check finish time */
@@ -808,15 +809,20 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 			/* write check result to file */
 			if(check_result_info.output_file_fp){
+				FILE *fp;
 
-				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
-				fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
-				fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
-				fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
-				fprintf(check_result_info.output_file_fp,"output=%s\n",(checkresult_dbuf.buf==NULL)?"(null)":checkresult_dbuf.buf);
+				/* avoid races with signal handling */
+				fp = check_result_info.output_file_fp;
+				check_result_info.output_file_fp = NULL;
+
+				fprintf(fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+				fprintf(fp,"early_timeout=%d\n",check_result_info.early_timeout);
+				fprintf(fp,"exited_ok=%d\n",check_result_info.exited_ok);
+				fprintf(fp,"return_code=%d\n",check_result_info.return_code);
+				fprintf(fp,"output=%s\n",(checkresult_dbuf.buf==NULL)?"(null)":checkresult_dbuf.buf);
 
 				/* close the temp file */
-				fclose(check_result_info.output_file_fp);
+				fclose(fp);
 
 				/* move check result to queue directory */
 				move_check_result_to_queue(check_result_info.output_file);
@@ -3092,8 +3098,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 			/* become the process group leader */
 			setpgid(0,0);
 
-			/* catch term signals at this process level */
-			signal(SIGTERM,host_check_sighandler);
+			/* exit on term signals at this process level */
+			signal(SIGTERM, SIG_DFL);
 
 			/* catch plugins that don't finish in a timely manner */
 			signal(SIGALRM,host_check_sighandler);
@@ -3120,7 +3126,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 			/* close the process */
 			pclose_result=pclose(fp);
 
-			/* reset the alarm */
+			/* reset the alarm and signal handling here */
+			signal(SIGALRM, SIG_IGN);
 			alarm(0);
 
 			/* get the check finish time */
@@ -3145,15 +3152,20 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 			/* write check result to file */
 			if(check_result_info.output_file_fp){
+				FILE *fp;
 
-				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
-				fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
-				fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
-				fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
-				fprintf(check_result_info.output_file_fp,"output=%s\n",(checkresult_dbuf.buf==NULL)?"(null)":checkresult_dbuf.buf);
+				/* protect against signal races */
+				fp = check_result_info.output_file_fp;
+				check_result_info.output_file_fp = NULL;
+
+				fprintf(fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+				fprintf(fp,"early_timeout=%d\n",check_result_info.early_timeout);
+				fprintf(fp,"exited_ok=%d\n",check_result_info.exited_ok);
+				fprintf(fp,"return_code=%d\n",check_result_info.return_code);
+				fprintf(fp,"output=%s\n",(checkresult_dbuf.buf==NULL)?"(null)":checkresult_dbuf.buf);
 
 				/* close the temp file */
-				fclose(check_result_info.output_file_fp);
+				fclose(fp);
 
 				/* move check result to queue directory */
 				move_check_result_to_queue(check_result_info.output_file);

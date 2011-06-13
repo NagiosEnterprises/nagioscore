@@ -576,7 +576,7 @@ void init_timing_loop(void){
 	/* add an external command check event if needed */
 	if(check_external_commands==TRUE){
 		if(command_check_interval==-1)
-			interval_to_use=(unsigned long)60;
+			interval_to_use=(unsigned long)5;
 		else
 			interval_to_use=(unsigned long)command_check_interval;
 		schedule_new_event(EVENT_COMMAND_CHECK,TRUE,current_time+interval_to_use,TRUE,interval_to_use,NULL,TRUE,NULL,NULL,0);

@@ -118,10 +118,14 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	end_time.tv_sec=0L;
 	end_time.tv_usec=0L;
 	neb_result=broker_notification_data(NEBTYPE_NOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,not_author,not_data,escalated,0,NULL);
-	if(NEBERROR_CALLBACKCANCEL==neb_result)
+	if(NEBERROR_CALLBACKCANCEL==neb_result){
+		free_notification_list();
 		return ERROR;
-	else if(NEBERROR_CALLBACKOVERRIDE==neb_result)
+		}
+	else if(NEBERROR_CALLBACKOVERRIDE==neb_result){
+		free_notification_list();
 		return OK;
+		}
 #endif
 
 	/* XXX: crazy indent */
@@ -921,6 +925,9 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
 	/* set the escalation flag */
 	*escalated=escalate_notification;
 
+	/* make sure there aren't any leftover contacts */
+	free_notification_list();
+
 	/* set the escalation macro */
 	my_free(mac->x[MACRO_NOTIFICATIONISESCALATED]);
 	asprintf(&mac->x[MACRO_NOTIFICATIONISESCALATED],"%d",escalate_notification);
@@ -1057,10 +1064,14 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	end_time.tv_sec=0L;
 	end_time.tv_usec=0L;
 	neb_result=broker_notification_data(NEBTYPE_NOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,not_author,not_data,escalated,0,NULL);
-	if(NEBERROR_CALLBACKCANCEL==neb_result)
+	if(NEBERROR_CALLBACKCANCEL==neb_result){
+		free_notification_list();
 		return ERROR;
-	else if(NEBERROR_CALLBACKOVERRIDE==neb_result)
+		}
+	else if(NEBERROR_CALLBACKOVERRIDE==neb_result){
+		free_notification_list();
 		return OK;
+	}
 #endif
 
 	/* XXX: crazy indent */
@@ -1815,6 +1826,9 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 
 	/* set the escalation flag */
 	*escalated=escalate_notification;
+
+	/* make sure there aren't any leftover contacts */
+	free_notification_list();
 
 	/* set the escalation macro */
 	my_free(mac->x[MACRO_NOTIFICATIONISESCALATED]);

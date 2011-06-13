@@ -2408,7 +2408,7 @@ void print_layer_url(int get_method){
 
 	for(temp_layer=layer_list;temp_layer!=NULL;temp_layer=temp_layer->next){
 		if(get_method==TRUE)
-			printf("&layer=%s",temp_layer->layer_name);
+			printf("&layer=%s",escape_string(temp_layer->layer_name));
 		else
 			printf("<input type='hidden' name='layer' value='%s'>\n",escape_string(temp_layer->layer_name));
 	        }

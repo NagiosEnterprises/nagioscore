@@ -28,6 +28,7 @@ FIXES
 * Removed duplicated unlinks for check result files with multiple results
 * Fixed race condition on flexible downtime commands when duration not set or zero (Michael Friedrich)
 * Fixed flexible downtime on service hard state change doesn't get triggered/activated (Michael Friedrich)
+* Fixed XSS vulnerability in config.cgi and statusmap.cgi (Stefan Schurtz)
 
 WARNINGS
 

@@ -2278,7 +2278,7 @@ void display_command_expansion(void){
 	if ((*to_expand)!='\0'){
 		arg_count[0]=0;
 
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>To expand:</TD><TD CLASS='dataEven'>%s",command_args[0]);
+		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>To expand:</TD><TD CLASS='dataEven'>%s",escape_string(command_args[0]));
 		for (i=1;(i<MAX_COMMAND_ARGUMENTS)&&command_args[i];i++)
 			printf("!<FONT\n   COLOR='%s'>%s</FONT>",hash_color(i),command_args[i]);
 		printf("\n</TD></TR>\n");

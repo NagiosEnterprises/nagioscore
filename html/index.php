@@ -47,10 +47,11 @@ if(isset($_GET['corewindow'])){
 
 <noframes>
 <!-- This page requires a web browser which supports frames. --> 
-<h2>Nagios core</h2>
+<h2>Nagios Core</h2>
 <p align="center">
 <a href="http://www.nagios.org/">www.nagios.org</a><br>
-Copyright (c) 1999-2010 Ethan Galstad<br>
+Copyright &copy; 2010-<?php echo date("Y");?> Nagios Core Development Team and Community Contributors.
+Copyright &copy; 1999-2010 Ethan Galstad<br>
 </p>
 <p>
 <i>Note: These pages require a browser which supports frames</i>

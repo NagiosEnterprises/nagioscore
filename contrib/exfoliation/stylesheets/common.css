@@ -188,10 +188,11 @@ ul.navsectionlinks li ul li ul {
   margin: 50px 0 0 0;
 }
 #updateversioninfo{
-  margin: 15px auto 50px auto;
+  margin: 15px auto 35px auto;
   width: 400px;
 }
 .updatechecksdisabled{
+  background-color: #FF9F9F;
   border: 1px solid red;
   padding: 10px;
 }
@@ -202,6 +203,7 @@ ul.navsectionlinks li ul li ul {
   clear: left;
 }
 .updateavailable{
+  background-color: #9FD4FF;
   border: 1px solid blue;
   padding: 10px;
 }
@@ -211,11 +213,12 @@ ul.navsectionlinks li ul li ul {
 }
 	
 #splashpage #mainfooter{
-  margin: 100px 0 0 0;
+  /*margin: 100px 0 0 0;*/
+  clear: both;
   font-size: 8pt;
 }
 #splashpage #mainfooter .disclaimer{
-  width: 80%;
+  /*width: 80%;*/
   margin: auto;
 }
 #splashpage #mainfooter .logos{
@@ -322,3 +325,40 @@ th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-b
 .NavBarSearchItem {
   font-size: 9pt;
 }
+
+
+	
+#splashboxes {
+	/*border: 1px solid blue;*/
+	margin: auto;
+    width: 90%;
+	}
+.splashbox{
+	padding: 5px;
+	margin: 5px 5px 5px;
+	border: 1px solid #AAAAAA;
+	float: left;
+	text-align: left;
+	}
+.splashbox h2{
+	margin: 0px;
+	font-size: 12pt;
+	}
+.splashbox ul{
+    margin: 0;
+    padding: 5px 5px 5px 15px;
+	}
+.splashbox ul li{
+	clear: both;
+	}
+#splashbox1 {
+	}
+#splashbox2 {
+	width: 50%;
+	}
+#splashbox3 {
+	width: 50%;
+	}
+#splashbox4 {
+	clear: both;
+	}

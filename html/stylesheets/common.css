@@ -145,7 +145,7 @@ ul.navsectionlinks li ul li ul {
 	}
 
 #updateversioninfo{
-	margin: 15px auto 50px auto;
+	margin: 15px auto 35px auto;
 	width: 400px;
 	}
 .updatechecksdisabled{
@@ -170,7 +170,8 @@ ul.navsectionlinks li ul li ul {
 	}
 	
 #splashpage #mainfooter{
-	margin: 100px 0 0 0;
+	/*margin: 100px 0 0 0;*/
+	clear: both;
 	font-size: 8pt;
 	}
 #splashpage #mainfooter .disclaimer{
@@ -185,4 +186,38 @@ ul.navsectionlinks li ul li ul {
 a img {
 	border: none;
 	}
-
+	
+#splashboxes {
+	/*border: 1px solid blue;*/
+	margin: auto;
+    width: 90%;
+	}
+.splashbox{
+	padding: 5px;
+	margin: 5px 5px 5px;
+	border: 1px solid #AAAAAA;
+	float: left;
+	text-align: left;
+	}
+.splashbox h2{
+	margin: 0px;
+	font-size: 12pt;
+	}
+.splashbox ul{
+    margin: 0;
+    padding: 5px 5px 5px 15px;
+	}
+.splashbox ul li{
+	clear: both;
+	}
+#splashbox1 {
+	}
+#splashbox2 {
+	width: 50%;
+	}
+#splashbox3 {
+	width: 50%;
+	}
+#splashbox4 {
+	clear: both;
+	}

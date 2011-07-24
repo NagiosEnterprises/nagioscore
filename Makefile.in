@@ -207,6 +207,7 @@ test-perl: cgis
 
 install-html:
 	cd $(SRC_HTM) && $(MAKE) install
+	make install-exfoliation
 
 install-base:
 	cd $(SRC_BASE) && $(MAKE) install
@@ -291,6 +292,7 @@ install-exfoliation:
 
 	@echo ""
 	@echo "*** Exfoliation theme installed ***"
+	@echo "NOTE: Use 'make install-classicui' to revert to classic Nagios theme";
 	@echo ""
 	
 install-classicui:
@@ -299,6 +301,7 @@ install-classicui:
 
 	@echo ""
 	@echo "*** Classic theme installed ***"
+	@echo "NOTE: Use 'make install-exfoliation' to use new Nagios theme";
 	@echo ""
 
 install-init: install-daemoninit

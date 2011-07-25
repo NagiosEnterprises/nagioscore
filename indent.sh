@@ -1,4 +1,4 @@
 #!/bin/sh
 
-astyle --indent=tab --unpad-paren --pad-oper --pad-header --suffix=none \
-		--brackets=linux $(find . -type f -name "*.[ch]")
+astyle --style=banner --indent=tab --unpad-paren --pad-oper --suffix=none \
+		$(find . -type f -name "*.[ch]")

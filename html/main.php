@@ -35,7 +35,7 @@ $this_version="3.3.1";
 <div id="currentversioninfo">
 <div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
 <div class="version">Version 3.3.1</div>
-<div class="releasedate">February 13, 2011</div>
+<div class="releasedate">July 25, 2011</div>
 <div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=3.3.1&product=nagioscore" target="_blank">Check for updates</a></div>
 <!--<div class="whatsnew"><a href="http://go.nagios.com/nagioscore/whatsnew">Read what's new in Nagios Core 3</a></div>-->
 </div>
@@ -84,7 +84,7 @@ $this_version="3.3.1";
 <h2>Don't Miss...</h2>
 <ul>
 <?php
-	$url="http://www.nagios.org/backend/feeds/corepromo/";
+	$url="http://www.nagios.org/backend/feeds/corepromo";
 	$rss=fetch_rss($url);
 	$x=0;
 	foreach ($rss->items as $item){

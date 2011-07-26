@@ -23,7 +23,7 @@
 #include "shared.h"
 
 #define PROGRAM_VERSION "3.3.1"
-#define PROGRAM_MODIFICATION_DATE "02-13-2011"
+#define PROGRAM_MODIFICATION_DATE "07-25-2011"
 
 /*#define DEBUG_CHECK_IPC 1 */
 /*#define DEBUG_CHECK_IPC2 1*/

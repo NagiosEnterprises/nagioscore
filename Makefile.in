@@ -63,7 +63,7 @@ none:
 pretty: indent
 
 indent:
-	@sh indent.sh
+	@sh indent-all.sh
 
 all:
 	cd $(SRC_BASE) && $(MAKE)

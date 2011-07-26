@@ -3,27 +3,26 @@
 #include "macros.h"
 
 /* give up the (fake) lock after 3 tries at getting it */
-int pthread_mutex_trylock(pthread_mutex_t *mutex)
-{
+int pthread_mutex_trylock(pthread_mutex_t *mutex) {
 	static int loops = 0;
-	if (loops < 3) {
+	if(loops < 3) {
 		loops++;
 		return -1;
-	}
+		}
 	loops = 0;
 	return 0;
-}
+	}
 
 /* Loads of variables + stubbed functions */
-char *config_file="etc/nagios.cfg";
+char *config_file = "etc/nagios.cfg";
 int      test_scheduling;
 
 time_t   program_start;
 time_t   event_start;
 time_t   last_command_check;
 
-int      sigshutdown=FALSE;
-int      sigrestart=FALSE;
+int      sigshutdown = FALSE;
+int      sigrestart = FALSE;
 
 double   sleep_time;
 int      interval_length = 60;
@@ -62,7 +61,7 @@ int      log_rotation_method;
 
 int      service_check_timeout;
 
-int      execute_service_checks=1;
+int      execute_service_checks = 1;
 int      execute_host_checks;
 
 int      child_processes_fork_twice;
@@ -85,33 +84,33 @@ time_t get_next_log_rotation_time(void) {}
 int handle_scheduled_downtime_by_id(unsigned long long1) {}
 #ifndef TEST_LOGGING
 int log_host_event(host *hst) {}
-int log_service_event_flag=0;
+int log_service_event_flag = 0;
 int log_service_event(service *svc) {
 	log_service_event_flag++;
-}
+	}
 int rotate_log_file(time_t time_t1) {}
-void logit(int int1,int int2,const char *fmt, ...) {}
+void logit(int int1, int int2, const char *fmt, ...) {}
 #endif
-time_t get_next_host_notification_time(host *temp_host,time_t time_t1) {}
-void get_next_valid_time(time_t time_t1, time_t *time_t2,timeperiod *temp_timeperiod) {}
+time_t get_next_host_notification_time(host *temp_host, time_t time_t1) {}
+void get_next_valid_time(time_t time_t1, time_t *time_t2, timeperiod *temp_timeperiod) {}
 
 
-char *log_file="var/nagios.log";
-char *temp_file="";
-char *log_archive_path="var";
-host *host_list=NULL;
-service *service_list=NULL;
-int use_syslog=0;
+char *log_file = "var/nagios.log";
+char *temp_file = "";
+char *log_archive_path = "var";
+host *host_list = NULL;
+service *service_list = NULL;
+int use_syslog = 0;
 int log_service_retries;
 int log_initial_states;
-unsigned long logging_options=NSLOG_PROCESS_INFO;
+unsigned long logging_options = NSLOG_PROCESS_INFO;
 unsigned long syslog_options;
 int verify_config;
 int test_scheduling;
 time_t last_log_rotation;
 int log_rotation_method;
-int daemon_mode=TRUE;
-char *debug_file="";
+int daemon_mode = TRUE;
+char *debug_file = "";
 int debug_level;
 int debug_verbosity;
 unsigned long max_debug_file_size;
@@ -129,79 +128,79 @@ int clear_host_macros_r(nagios_macros *mac) {}
 int process_macros(char *a, char **b, int c) {}
 int process_macros_r(nagios_macros *mac, char *a, char **b, int c) {}
 
-int update_host_status(host *hst,int aggregated_dump){}
-int update_service_status(service *svc,int aggregated_dump){}
-int update_all_status_data(void){}
-char    *check_result_path=NULL;
-int process_check_result_queue(char *dirname){}
-service * find_service(char *host_name,char *svc_desc){}
-int delete_check_result_file(char *fname){}
-int free_check_result(check_result *info){}
-host * find_host(char *name){}
-int             max_check_reaper_time=DEFAULT_MAX_REAPER_TIME;
-check_result *read_check_result(void){}
-int broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, struct timeval *timestamp){}
-int get_raw_command_line(command *a, char *b, char **c, int d){}
-int get_raw_command_line_r(nagios_macros *mac, command *a, char *b, char **c, int d){}
+int update_host_status(host *hst, int aggregated_dump) {}
+int update_service_status(service *svc, int aggregated_dump) {}
+int update_all_status_data(void) {}
+char    *check_result_path = NULL;
+int process_check_result_queue(char *dirname) {}
+service * find_service(char *host_name, char *svc_desc) {}
+int delete_check_result_file(char *fname) {}
+int free_check_result(check_result *info) {}
+host * find_host(char *name) {}
+int             max_check_reaper_time = DEFAULT_MAX_REAPER_TIME;
+check_result *read_check_result(void) {}
+int broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, struct timeval *timestamp) {}
+int get_raw_command_line(command *a, char *b, char **c, int d) {}
+int get_raw_command_line_r(nagios_macros *mac, command *a, char *b, char **c, int d) {}
 check_result    check_result_info;
 char *temp_path;
-int dbuf_init(dbuf *db, int chunk_size){}
-int update_check_stats(int check_type, time_t check_time){}
-int set_all_macro_environment_vars_r(nagios_macros *mac, int set){}
-int close_command_file(void){}
-void reset_sighandler(void){}
-void service_check_sighandler(int sig){}
-unsigned long   max_debug_file_size=DEFAULT_MAX_DEBUG_FILE_SIZE;
-int             host_check_timeout=DEFAULT_HOST_CHECK_TIMEOUT;
-int broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, char *output, char *long_output, char *perfdata, struct timeval *timestamp){}
-char *escape_newlines(char *rawbuf){}
-int dbuf_strcat(dbuf *db, char *buf){}
-int dbuf_free(dbuf *db){}
-unsigned long   next_event_id=0L;
-unsigned long   next_problem_id=0L;
-int move_check_result_to_queue(char *checkresult_file){}
-int             free_child_process_memory=-1;
-void free_memory(nagios_macros *mac){}
-int accept_passive_service_checks=TRUE;
-int log_passive_checks=TRUE;
-int use_aggressive_host_checking=FALSE;
-int handle_service_event(service *svc){}
-unsigned long cached_host_check_horizon=DEFAULT_CACHED_HOST_CHECK_HORIZON;
-void check_for_service_flapping(service *svc, int update, int allow_flapstart_notification){}
-void check_for_host_flapping(host *hst, int update, int actual_check, int allow_flapstart_notification){}
-int service_notification(service *svc, int type, char *not_author, char *not_data, int options){}
-int obsess_over_services=FALSE;
-int obsessive_compulsive_service_check_processor(service *svc){}
-int host_notification(host *hst, int type, char *not_author, char *not_data, int options){}
-int             enable_predictive_service_dependency_checks=DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS;
-servicedependency *get_first_servicedependency_by_dependent_service(char *host_name, char *svc_description, void **ptr){}
-servicedependency *get_next_servicedependency_by_dependent_service(char *host_name, char *svc_description, void **ptr){}
-int add_object_to_objectlist(objectlist **list, void *object_ptr){}
-int check_pending_flex_service_downtime(service *svc){}
-int compare_strings(char *val1a, char *val2a){}
-int update_service_performance_data(service *svc){}
-int free_objectlist(objectlist **temp_list){}
-unsigned long   cached_service_check_horizon=DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
-timed_event *event_list_low=NULL;
-timed_event *event_list_low_tail=NULL;
-void remove_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail){}
-void reschedule_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail){}
-int process_passive_service_check(time_t check_time, char *host_name, char *svc_description, int return_code, char *output){}
-void process_passive_checks(void){}
-int             soft_state_dependencies=FALSE;
-int             additional_freshness_latency=DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
-hostdependency *get_first_hostdependency_by_dependent_host(char *host_name, void **ptr){
-    /* Return NULL so check_host_dependencies returns back */
-    return NULL;
-}
-hostdependency *get_next_hostdependency_by_dependent_host(char *host_name, void **ptr){}
-int             currently_running_host_checks=0;
-int my_system_r(nagios_macros *mac, char *cmd,int timeout,int *early_timeout,double *exectime,char **output,int max_output_length){}
-void host_check_sighandler(int sig){}
-int             accept_passive_host_checks=TRUE;
-int             passive_host_checks_are_soft=DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
-int             translate_passive_host_checks=DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
-int             enable_predictive_host_dependency_checks=DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
+int dbuf_init(dbuf *db, int chunk_size) {}
+int update_check_stats(int check_type, time_t check_time) {}
+int set_all_macro_environment_vars_r(nagios_macros *mac, int set) {}
+int close_command_file(void) {}
+void reset_sighandler(void) {}
+void service_check_sighandler(int sig) {}
+unsigned long   max_debug_file_size = DEFAULT_MAX_DEBUG_FILE_SIZE;
+int             host_check_timeout = DEFAULT_HOST_CHECK_TIMEOUT;
+int broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, char *output, char *long_output, char *perfdata, struct timeval *timestamp) {}
+char *escape_newlines(char *rawbuf) {}
+int dbuf_strcat(dbuf *db, char *buf) {}
+int dbuf_free(dbuf *db) {}
+unsigned long   next_event_id = 0L;
+unsigned long   next_problem_id = 0L;
+int move_check_result_to_queue(char *checkresult_file) {}
+int             free_child_process_memory = -1;
+void free_memory(nagios_macros *mac) {}
+int accept_passive_service_checks = TRUE;
+int log_passive_checks = TRUE;
+int use_aggressive_host_checking = FALSE;
+int handle_service_event(service *svc) {}
+unsigned long cached_host_check_horizon = DEFAULT_CACHED_HOST_CHECK_HORIZON;
+void check_for_service_flapping(service *svc, int update, int allow_flapstart_notification) {}
+void check_for_host_flapping(host *hst, int update, int actual_check, int allow_flapstart_notification) {}
+int service_notification(service *svc, int type, char *not_author, char *not_data, int options) {}
+int obsess_over_services = FALSE;
+int obsessive_compulsive_service_check_processor(service *svc) {}
+int host_notification(host *hst, int type, char *not_author, char *not_data, int options) {}
+int             enable_predictive_service_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS;
+servicedependency *get_first_servicedependency_by_dependent_service(char *host_name, char *svc_description, void **ptr) {}
+servicedependency *get_next_servicedependency_by_dependent_service(char *host_name, char *svc_description, void **ptr) {}
+int add_object_to_objectlist(objectlist **list, void *object_ptr) {}
+int check_pending_flex_service_downtime(service *svc) {}
+int compare_strings(char *val1a, char *val2a) {}
+int update_service_performance_data(service *svc) {}
+int free_objectlist(objectlist **temp_list) {}
+unsigned long   cached_service_check_horizon = DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
+timed_event *event_list_low = NULL;
+timed_event *event_list_low_tail = NULL;
+void remove_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail) {}
+void reschedule_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail) {}
+int process_passive_service_check(time_t check_time, char *host_name, char *svc_description, int return_code, char *output) {}
+void process_passive_checks(void) {}
+int             soft_state_dependencies = FALSE;
+int             additional_freshness_latency = DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
+hostdependency *get_first_hostdependency_by_dependent_host(char *host_name, void **ptr) {
+	/* Return NULL so check_host_dependencies returns back */
+	return NULL;
+	}
+hostdependency *get_next_hostdependency_by_dependent_host(char *host_name, void **ptr) {}
+int             currently_running_host_checks = 0;
+int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, double *exectime, char **output, int max_output_length) {}
+void host_check_sighandler(int sig) {}
+int             accept_passive_host_checks = TRUE;
+int             passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
+int             translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
+int             enable_predictive_host_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
 
 
 #endif

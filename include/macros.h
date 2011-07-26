@@ -56,7 +56,7 @@ struct nagios_macros {
 	customvariablesmember *custom_host_vars;
 	customvariablesmember *custom_service_vars;
 	customvariablesmember *custom_contact_vars;
-};
+	};
 typedef struct nagios_macros nagios_macros;
 
 
@@ -237,10 +237,10 @@ nagios_macros *get_global_macros(void);
 int process_macros(char *, char **, int);
 
 /* thread-safe version of the above */
-int process_macros_r(nagios_macros *mac, char *,char **,int);
+int process_macros_r(nagios_macros *mac, char *, char **, int);
 
 /* cleans macros characters before insertion into output string */
-char *clean_macro_chars(char *,int);
+char *clean_macro_chars(char *, int);
 
 /*
  * These functions updates **macros with the values from
@@ -253,18 +253,18 @@ int grab_servicegroup_macros(servicegroup *);
 int grab_hostgroup_macros(hostgroup *);
 int grab_contact_macros(contact *);
 
-int grab_macro_value(char *,char **,int *,int *);
-int grab_macrox_value(int,char *,char *,char **,int *);
-int grab_custom_macro_value(char *,char *,char *,char **);
-int grab_datetime_macro(int,char *,char *,char **);
-int grab_standard_host_macro(int,host *,char **,int *);
-int grab_standard_hostgroup_macro(int,hostgroup *,char **);
-int grab_standard_service_macro(int,service *,char **,int *);
-int grab_standard_servicegroup_macro(int,servicegroup *,char **);
-int grab_standard_contact_macro(int,contact *,char **);
-int grab_contact_address_macro(int,contact *,char **);
-int grab_standard_contactgroup_macro(int,contactgroup *,char **);
-int grab_custom_object_macro(char *,customvariablesmember *,char **);
+int grab_macro_value(char *, char **, int *, int *);
+int grab_macrox_value(int, char *, char *, char **, int *);
+int grab_custom_macro_value(char *, char *, char *, char **);
+int grab_datetime_macro(int, char *, char *, char **);
+int grab_standard_host_macro(int, host *, char **, int *);
+int grab_standard_hostgroup_macro(int, hostgroup *, char **);
+int grab_standard_service_macro(int, service *, char **, int *);
+int grab_standard_servicegroup_macro(int, servicegroup *, char **);
+int grab_standard_contact_macro(int, contact *, char **);
+int grab_contact_address_macro(int, contact *, char **);
+int grab_standard_contactgroup_macro(int, contactgroup *, char **);
+int grab_custom_object_macro(char *, customvariablesmember *, char **);
 
 /* thread-safe version of the above */
 int grab_service_macros_r(nagios_macros *mac, service *);
@@ -273,16 +273,16 @@ int grab_servicegroup_macros_r(nagios_macros *mac, servicegroup *);
 int grab_hostgroup_macros_r(nagios_macros *mac, hostgroup *);
 int grab_contact_macros_r(nagios_macros *mac, contact *);
 
-int grab_macro_value_r(nagios_macros *mac, char *,char **,int *,int *);
-int grab_macrox_value_r(nagios_macros *mac, int,char *,char *,char **,int *);
-int grab_custom_macro_value_r(nagios_macros *mac, char *,char *,char *,char **);
-int grab_datetime_macro_r(nagios_macros *mac, int,char *,char *,char **);
-int grab_standard_host_macro_r(nagios_macros *mac, int,host *,char **,int *);
-int grab_standard_hostgroup_macro_r(nagios_macros *mac, int,hostgroup *,char **);
-int grab_standard_service_macro_r(nagios_macros *mac, int,service *,char **,int *);
-int grab_standard_servicegroup_macro_r(nagios_macros *mac, int,servicegroup *,char **);
-int grab_standard_contact_macro_r(nagios_macros *mac, int,contact *,char **);
-int grab_custom_object_macro_r(nagios_macros *mac, char *,customvariablesmember *,char **);
+int grab_macro_value_r(nagios_macros *mac, char *, char **, int *, int *);
+int grab_macrox_value_r(nagios_macros *mac, int, char *, char *, char **, int *);
+int grab_custom_macro_value_r(nagios_macros *mac, char *, char *, char *, char **);
+int grab_datetime_macro_r(nagios_macros *mac, int, char *, char *, char **);
+int grab_standard_host_macro_r(nagios_macros *mac, int, host *, char **, int *);
+int grab_standard_hostgroup_macro_r(nagios_macros *mac, int, hostgroup *, char **);
+int grab_standard_service_macro_r(nagios_macros *mac, int, service *, char **, int *);
+int grab_standard_servicegroup_macro_r(nagios_macros *mac, int, servicegroup *, char **);
+int grab_standard_contact_macro_r(nagios_macros *mac, int, contact *, char **);
+int grab_custom_object_macro_r(nagios_macros *mac, char *, customvariablesmember *, char **);
 
 
 char *get_url_encoded_string(char *);			/* URL encode a string */
@@ -322,7 +322,7 @@ int set_macrox_environment_vars(int);
 int set_argv_macro_environment_vars(int);
 int set_custom_macro_environment_vars(int);
 int set_contact_address_environment_vars(int);
-int set_macro_environment_var(char *,char *,int);
+int set_macro_environment_var(char *, char *, int);
 
 /* thread-safe version of the above */
 int set_all_macro_environment_vars_r(nagios_macros *mac, int);

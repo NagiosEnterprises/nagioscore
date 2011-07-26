@@ -7,15 +7,15 @@
  *****************************************************/
 
 #ifdef __cplusplus
-  extern "C" {
+extern "C" {
 #endif
 
-char **getcgivars(void);
-void free_cgivars(char **);
-void unescape_cgi_input(char *);
-void sanitize_cgi_input(char **);
-unsigned char hex_to_char(char *);
+	char **getcgivars(void);
+	void free_cgivars(char **);
+	void unescape_cgi_input(char *);
+	void sanitize_cgi_input(char **);
+	unsigned char hex_to_char(char *);
 
 #ifdef __cplusplus
-  }
+	}
 #endif

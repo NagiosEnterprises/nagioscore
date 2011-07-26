@@ -28,17 +28,17 @@
 #include "objects.h"
 
 #ifdef __cplusplus
-  extern "C" {
+extern "C" {
 #endif
 
-int initialize_performance_data(char *);	                /* initializes performance data */
-int cleanup_performance_data(char *);                           /* cleans up performance data */
+	int initialize_performance_data(char *);	                /* initializes performance data */
+	int cleanup_performance_data(char *);                           /* cleans up performance data */
 
-int update_host_performance_data(host *);       	        /* updates host performance data */
-int update_service_performance_data(service *);         	/* updates service performance data */
+	int update_host_performance_data(host *);       	        /* updates host performance data */
+	int update_service_performance_data(service *);         	/* updates service performance data */
 
 #ifdef __cplusplus
-  }
+	}
 #endif
 
 #endif

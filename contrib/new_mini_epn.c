@@ -7,9 +7,9 @@
 #include <perl.h>
 #include "epn_nagios.h"
 
-										/*
-										 * DO_CLEAN must be a pointer to a char string
-										 */
+/*
+ * DO_CLEAN must be a pointer to a char string
+ */
 
 #define DO_CLEAN "0"
 
@@ -65,24 +65,24 @@ void run_plugin(char *command_line) {
 
 	dSP;
 
-	strncpy(fname,command_line,strcspn(command_line," "));
-	fname[strcspn(command_line," ")] = '\0';
+	strncpy(fname, command_line, strcspn(command_line, " "));
+	fname[strcspn(command_line, " ")] = '\0';
 
-										/*
-										 * Arguments passsed to Perl sub Embed::Persistent::run_package
-										 */
+	/*
+	 * Arguments passsed to Perl sub Embed::Persistent::run_package
+	 */
 
-										/*
-										 * filename containing plugin
-										 */
+	/*
+	 * filename containing plugin
+	 */
 	args[0] = fname ;
-										/*
-										 * Do _not_ cache the compiled plugin
-										 */
+	/*
+	 * Do _not_ cache the compiled plugin
+	 */
 	args[1] = DO_CLEAN ;
-										/*
-										 * pointer to plugin arguments
-				 						 */
+	/*
+	 * pointer to plugin arguments
+	 */
 
 	args[3] = command_line + strlen(fname) + 1 ;
 
@@ -90,10 +90,10 @@ void run_plugin(char *command_line) {
 	SAVETMPS;
 	PUSHMARK(SP);
 
-	XPUSHs(sv_2mortal(newSVpv(args[0],0)));
-	XPUSHs(sv_2mortal(newSVpv(args[1],0)));
-	XPUSHs(sv_2mortal(newSVpv(args[2],0)));
-	XPUSHs(sv_2mortal(newSVpv(args[3],0)));
+	XPUSHs(sv_2mortal(newSVpv(args[0], 0)));
+	XPUSHs(sv_2mortal(newSVpv(args[1], 0)));
+	XPUSHs(sv_2mortal(newSVpv(args[2], 0)));
+	XPUSHs(sv_2mortal(newSVpv(args[3], 0)));
 
 	PUTBACK;
 
@@ -101,30 +101,31 @@ void run_plugin(char *command_line) {
 
 	SPAGAIN ;
 
-	if(SvTRUE(ERRSV)){
+	if(SvTRUE(ERRSV)) {
 		(void) POPs;
 
 		printf("embedded perl compiled plugin %s with error: %s - skipping plugin\n", fname, SvPVX(ERRSV));
 		return;
-	} else {
+		}
+	else {
 		plugin_hndlr_cr = newSVsv(POPs);
-                
+
 		PUTBACK ;
 		FREETMPS ;
 		LEAVE ;
-	}
-										/*
-										 * Push the arguments to Embed::Persistent::run_package onto
-										 * the Perl stack.
-										 */
-	ENTER; 
+		}
+	/*
+	 * Push the arguments to Embed::Persistent::run_package onto
+	 * the Perl stack.
+	 */
+	ENTER;
 	SAVETMPS;
 	PUSHMARK(SP);
 
-	XPUSHs(sv_2mortal(newSVpv(args[0],0)));
-	XPUSHs(sv_2mortal(newSVpv(args[1],0)));
+	XPUSHs(sv_2mortal(newSVpv(args[0], 0)));
+	XPUSHs(sv_2mortal(newSVpv(args[1], 0)));
 	XPUSHs(plugin_hndlr_cr);
-	XPUSHs(sv_2mortal(newSVpv(args[3],0)));
+	XPUSHs(sv_2mortal(newSVpv(args[3], 0)));
 
 	PUTBACK;
 
@@ -143,24 +144,24 @@ void run_plugin(char *command_line) {
 
 	return ;
 
-}
+	}
 
 SV * my_eval_pv(char *pv) {
 
 	SV* result;
 
-										/*
-										 * eval_pv(..., TRUE) means die if Perl traps an error
-										 */
+	/*
+	 * eval_pv(..., TRUE) means die if Perl traps an error
+	 */
 	result = eval_pv(pv, TRUE) ;
 	return result ;
-}
+	}
 
 char * get_command_line(void) {
 
-										/* debug 
-										 * printf("%s\n", INIT_TERM_READLINE) ;
-										 */
+	/* debug
+	 * printf("%s\n", INIT_TERM_READLINE) ;
+	 */
 	SV *cmd_line ;
 	char *command_line ;
 
@@ -168,87 +169,87 @@ char * get_command_line(void) {
 	command_line	= SvPVX(cmd_line) ;
 	/* command_line	= SvPV(cmd_line, n_a) ; */
 	return command_line ;
-}
+	}
 
 void init_term_readline(void) {
 	(void) my_eval_pv(INIT_TERM_READLINE) ;
-}
+	}
 
 void init_embedded_perl(void) {
 	char *embedding[] = { "", "p1.pl" };
-										/* embedding takes the place of argv[] ($argv[0] is the program name. 
-										 * - which is not given to Perl).
-										 * Note that the number of args (ie the number of elements in embedding
-										 * [argc] is the third argument of perl_parse().
-										 */
+	/* embedding takes the place of argv[] ($argv[0] is the program name.
+	 * - which is not given to Perl).
+	 * Note that the number of args (ie the number of elements in embedding
+	 * [argc] is the third argument of perl_parse().
+	 */
 	int exitstatus;
 	char buffer[132];
 
-	if((my_perl=perl_alloc())==NULL){
-		snprintf(buffer,sizeof(buffer),"Error: Could not allocate memory for embedded Perl interpreter!\n");
-		buffer[sizeof(buffer)-1]='\x0';
+	if((my_perl = perl_alloc()) == NULL) {
+		snprintf(buffer, sizeof(buffer), "Error: Could not allocate memory for embedded Perl interpreter!\n");
+		buffer[sizeof(buffer)-1] = '\x0';
 		printf("%s\n", buffer);
 		exit(1);
-	}
+		}
 
 	perl_construct(my_perl);
-	exitstatus=perl_parse(my_perl,xs_init,2,embedding,NULL);
+	exitstatus = perl_parse(my_perl, xs_init, 2, embedding, NULL);
 	PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
-										/* Why is perl_run() necessary ?
-										 * It is needed if the code parsed by perl_parse() has
-										 * any runtime semantics (eg code that gets eval'd, 
-										 * behaviour that depends on constants etc).
-										 */
-	exitstatus=perl_run(my_perl);
+	/* Why is perl_run() necessary ?
+	 * It is needed if the code parsed by perl_parse() has
+	 * any runtime semantics (eg code that gets eval'd,
+	 * behaviour that depends on constants etc).
+	 */
+	exitstatus = perl_run(my_perl);
 
-	if (exitstatus) {
+	if(exitstatus) {
 		printf("%s\n", "perl_run() failed.");
 		exit(1);
+		}
 	}
-}
 
-void deinit_embedded_perl(void){
+void deinit_embedded_perl(void) {
 
-	PL_perl_destruct_level=0;
+	PL_perl_destruct_level = 0;
 	perl_destruct(my_perl);
 	perl_free(my_perl);
-}
+	}
 
 
 int main(int argc, char **argv, char **env) {
 
 	init_embedded_perl();
-										/* Calls Perl to load and construct a new 
-										 * Term::ReadLine object.
-										 */
+	/* Calls Perl to load and construct a new
+	 * Term::ReadLine object.
+	 */
 
 	init_term_readline();
 
-	while (1) {
-										/*
-										 * get_command_line calls Perl to get a scalar from stdin
-										 */
+	while(1) {
+		/*
+		 * get_command_line calls Perl to get a scalar from stdin
+		 */
 
-										/* Perl Term::ReadLine::readline() method chomps the "\n"
-										 * from the end of the input.
-										 */
-		char *cmd,*end;
+		/* Perl Term::ReadLine::readline() method chomps the "\n"
+		 * from the end of the input.
+		 */
+		char *cmd, *end;
 		/* Allow any length command line */
-		cmd = (get_command_line ()) ;
+		cmd = (get_command_line()) ;
 
 		// Trim leading whitespace
-		while (isspace (*cmd)) cmd++;
+		while(isspace(*cmd)) cmd++;
 
 		// Trim trailing whitespace
-		end = cmd + strlen (cmd) - 1;
-		while (end > cmd && isspace (*end)) end--;
+		end = cmd + strlen(cmd) - 1;
+		while(end > cmd && isspace(*end)) end--;
 
 		// Write new null terminator
-		*(end+1) = 0;
+		*(end + 1) = 0;
 
-		run_plugin (cmd) ;
-	}
+		run_plugin(cmd) ;
+		}
 
 	deinit_embedded_perl();
-}
+	}
 

@@ -23,14 +23,14 @@
  *****************************************************************************/
 
 #ifdef __cplusplus
-  extern "C" {
+extern "C" {
 #endif
 
-int initialize_retention_data(char *);
-int cleanup_retention_data(char *);
-int save_state_information(int);                 /* saves all host and state information */
-int read_initial_state_information(void);        /* reads in initial host and state information */
+	int initialize_retention_data(char *);
+	int cleanup_retention_data(char *);
+	int save_state_information(int);                 /* saves all host and state information */
+	int read_initial_state_information(void);        /* reads in initial host and state information */
 
 #ifdef __cplusplus
-  }
+	}
 #endif

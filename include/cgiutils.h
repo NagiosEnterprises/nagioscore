@@ -32,12 +32,12 @@
 extern "C" {
 #endif
 
-/**************************** CGI REFRESH RATE ******************************/
+	/**************************** CGI REFRESH RATE ******************************/
 
 #define DEFAULT_REFRESH_RATE	60	/* 60 second refresh rate for CGIs */
 
 
-/******************************* CGI NAMES **********************************/
+	/******************************* CGI NAMES **********************************/
 
 #define STATUS_CGI		"status.cgi"
 #define STATUSMAP_CGI		"statusmap.cgi"
@@ -60,7 +60,7 @@ extern "C" {
 #define SUMMARY_CGI	        "summary.cgi"
 
 
-/**************************** STYLE SHEET NAMES ******************************/
+	/**************************** STYLE SHEET NAMES ******************************/
 
 #define COMMON_CSS		"common.css"
 
@@ -82,7 +82,7 @@ extern "C" {
 #define SUMMARY_CSS             "summary.css"
 
 
-/********************************* ICONS ************************************/
+	/********************************* ICONS ************************************/
 
 #define STATUS_ICON_WIDTH		20
 #define STATUS_ICON_HEIGHT		20
@@ -182,7 +182,7 @@ extern "C" {
 
 
 
-/************************** PLUGIN RETURN VALUES ****************************/
+	/************************** PLUGIN RETURN VALUES ****************************/
 
 #define STATE_OK		0
 #define STATE_WARNING		1
@@ -190,7 +190,7 @@ extern "C" {
 #define STATE_UNKNOWN		3       /* changed from -1 on 02/24/2001 */
 
 
-/********************* EXTENDED INFO CGI DISPLAY TYPES  *********************/
+	/********************* EXTENDED INFO CGI DISPLAY TYPES  *********************/
 
 #define DISPLAY_PROCESS_INFO		0
 #define DISPLAY_HOST_INFO		1
@@ -203,7 +203,7 @@ extern "C" {
 #define DISPLAY_SERVICEGROUP_INFO       8
 
 
-/************************ COMMAND CGI COMMAND MODES *************************/
+	/************************ COMMAND CGI COMMAND MODES *************************/
 
 #define CMDMODE_NONE            0
 #define CMDMODE_REQUEST         1
@@ -211,7 +211,7 @@ extern "C" {
 
 
 
-/******************** HOST AND SERVICE NOTIFICATION TYPES ******************/
+	/******************** HOST AND SERVICE NOTIFICATION TYPES ******************/
 
 #define NOTIFICATION_ALL		0	/* all service and host notifications */
 #define NOTIFICATION_SERVICE_ALL	1	/* all types of service notifications */
@@ -231,7 +231,7 @@ extern "C" {
 #define NOTIFICATION_HOST_CUSTOM        16384
 
 
-/********************** HOST AND SERVICE ALERT TYPES **********************/
+	/********************** HOST AND SERVICE ALERT TYPES **********************/
 
 #define HISTORY_ALL			0	/* all service and host alert */
 #define HISTORY_SERVICE_ALL		1	/* all types of service alerts */
@@ -245,14 +245,14 @@ extern "C" {
 #define HISTORY_HOST_RECOVERY		256
 
 
-/****************************** SORT TYPES  *******************************/
+	/****************************** SORT TYPES  *******************************/
 
 #define SORT_NONE			0
 #define SORT_ASCENDING			1
 #define SORT_DESCENDING			2
 
 
-/***************************** SORT OPTIONS  ******************************/
+	/***************************** SORT OPTIONS  ******************************/
 
 #define SORT_NOTHING			0
 #define SORT_HOSTNAME			1
@@ -266,7 +266,7 @@ extern "C" {
 #define SORT_HOSTURGENCY                9
 
 
-/****************** HOST AND SERVICE FILTER PROPERTIES  *******************/
+	/****************** HOST AND SERVICE FILTER PROPERTIES  *******************/
 
 #define HOST_SCHEDULED_DOWNTIME		1
 #define HOST_NO_SCHEDULED_DOWNTIME	2
@@ -312,14 +312,14 @@ extern "C" {
 #define SERVICE_SOFT_STATE		524288
 
 
-/****************************** SSI TYPES  ********************************/
+	/****************************** SSI TYPES  ********************************/
 
 #define SSI_HEADER                      0
 #define SSI_FOOTER                      1
 
 
 
-/************************ CONTEXT-SENSITIVE HELP  *************************/
+	/************************ CONTEXT-SENSITIVE HELP  *************************/
 
 #define CONTEXTHELP_STATUS_DETAIL	"A1"
 #define CONTEXTHELP_STATUS_HGOVERVIEW	"A2"
@@ -408,7 +408,7 @@ extern "C" {
 #define CONTEXTHELP_SUMMARY_SERVICEGROUP_ALERT_TOTALS "N8"
 
 
-/************************** LIFO RETURN CODES  ****************************/
+	/************************** LIFO RETURN CODES  ****************************/
 
 #define LIFO_OK			0
 #define LIFO_ERROR_MEMORY	1
@@ -419,70 +419,70 @@ extern "C" {
 
 
 
-/*************************** DATA STRUCTURES  *****************************/
+	/*************************** DATA STRUCTURES  *****************************/
 
-/* LIFO data structure */
-typedef struct lifo_struct{
-	char *data;
-	struct lifo_struct *next;
-        }lifo;
+	/* LIFO data structure */
+	typedef struct lifo_struct {
+		char *data;
+		struct lifo_struct *next;
+		} lifo;
 
-/******************************** FUNCTIONS *******************************/
+	/******************************** FUNCTIONS *******************************/
 
-void reset_cgi_vars(void);
-void free_memory(void);
+	void reset_cgi_vars(void);
+	void free_memory(void);
 
-char * get_cgi_config_location(void);				/* gets location of the CGI config file to read */
-char * get_cmd_file_location(void);				/* gets location of external command file to write to */
+	char * get_cgi_config_location(void);				/* gets location of the CGI config file to read */
+	char * get_cmd_file_location(void);				/* gets location of external command file to write to */
 
-int read_cgi_config_file(char *);
-int read_main_config_file(char *);
-int read_all_object_configuration_data(char *,int);
-int read_all_status_data(char *,int);
+	int read_cgi_config_file(char *);
+	int read_main_config_file(char *);
+	int read_all_object_configuration_data(char *, int);
+	int read_all_status_data(char *, int);
 
-char *unescape_newlines(char *);
-void sanitize_plugin_output(char *);                            /* strips HTML and bad characters from plugin output */
-void strip_html_brackets(char *);				/* strips > and < from string */
+	char *unescape_newlines(char *);
+	void sanitize_plugin_output(char *);                            /* strips HTML and bad characters from plugin output */
+	void strip_html_brackets(char *);				/* strips > and < from string */
 
-void get_time_string(time_t *,char *,int,int);			/* gets a date/time string */
-void get_interval_time_string(double,char *,int);		/* gets a time string for an interval of time */
+	void get_time_string(time_t *, char *, int, int);			/* gets a date/time string */
+	void get_interval_time_string(double, char *, int);		/* gets a time string for an interval of time */
 
-char * url_encode(char *);		        		/* encodes a string in proper URL format */
-char * html_encode(char *,int);					/* encodes a string in HTML format (for what the user sees) */
-char * escape_string(char *);					/* escape string for html form usage */
+	char * url_encode(char *);		        		/* encodes a string in proper URL format */
+	char * html_encode(char *, int);					/* encodes a string in HTML format (for what the user sees) */
+	char * escape_string(char *);					/* escape string for html form usage */
 
-void get_log_archive_to_use(int,char *,int);			/* determines the name of the log archive to use */
-void determine_log_rotation_times(int);
-int determine_archive_to_use_from_time(time_t);
+	void get_log_archive_to_use(int, char *, int);			/* determines the name of the log archive to use */
+	void determine_log_rotation_times(int);
+	int determine_archive_to_use_from_time(time_t);
 
-void print_extra_hostgroup_url(char *,char *);
-void print_extra_servicegroup_url(char *,char *);
+	void print_extra_hostgroup_url(char *, char *);
+	void print_extra_servicegroup_url(char *, char *);
 
-void display_info_table(char *,int,authdata *);
-void display_nav_table(char *,int);
+	void display_info_table(char *, int, authdata *);
+	void display_nav_table(char *, int);
 
-void display_splunk_host_url(host *);
-void display_splunk_service_url(service *);
-void display_splunk_generic_url(char *,int);
-void strip_splunk_query_terms(char *);
+	void display_splunk_host_url(host *);
+	void display_splunk_service_url(service *);
+	void display_splunk_generic_url(char *, int);
+	void strip_splunk_query_terms(char *);
 
-void include_ssi_files(char *,int);                             /* include user-defined SSI footers/headers */
-void include_ssi_file(char *);                                  /* include user-defined SSI footer/header */
+	void include_ssi_files(char *, int);                            /* include user-defined SSI footers/headers */
+	void include_ssi_file(char *);                                  /* include user-defined SSI footer/header */
 
-void cgi_config_file_error(char *);
-void main_config_file_error(char *);
-void object_data_error(void);
-void status_data_error(void);
+	void cgi_config_file_error(char *);
+	void main_config_file_error(char *);
+	void object_data_error(void);
+	void status_data_error(void);
 
-void display_context_help(char *);				/* displays context-sensitive help window */
+	void display_context_help(char *);				/* displays context-sensitive help window */
 
-int read_file_into_lifo(char *);				/* LIFO functions */
-void free_lifo_memory(void);
-int push_lifo(char *);
-char *pop_lifo(void);
+	int read_file_into_lifo(char *);				/* LIFO functions */
+	void free_lifo_memory(void);
+	int push_lifo(char *);
+	char *pop_lifo(void);
 
 #ifdef __cplusplus
-}
+	}
 #endif
 
 #endif

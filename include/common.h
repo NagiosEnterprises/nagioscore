@@ -265,7 +265,7 @@
 #define CMD_SET_SVC_NOTIFICATION_NUMBER                 143
 
 /* new commands in Nagios 3.x found below... */
-#define CMD_CHANGE_HOST_CHECK_TIMEPERIOD                144  
+#define CMD_CHANGE_HOST_CHECK_TIMEPERIOD                144
 #define CMD_CHANGE_SVC_CHECK_TIMEPERIOD                 145
 
 #define CMD_PROCESS_FILE                                146
@@ -323,7 +323,7 @@
 
 /************************ SERVICE STATE TYPES ****************************/
 
-#define SOFT_STATE			0	
+#define SOFT_STATE			0
 #define HARD_STATE			1
 
 
@@ -369,7 +369,7 @@
 
 /**************************** PROGRAM MODES ******************************/
 
-#define STANDBY_MODE		0	
+#define STANDBY_MODE		0
 #define ACTIVE_MODE		1
 
 
@@ -451,7 +451,7 @@
 #define DATERANGE_MONTH_DAY      2  /* day 21 (generic month) */
 #define DATERANGE_MONTH_WEEK_DAY 3  /* 3rd thursday (specific month) */
 #define DATERANGE_WEEK_DAY       4  /* 3rd thursday (generic month) */
-#define DATERANGE_TYPES          5 
+#define DATERANGE_TYPES          5
 
 
 /************************** DATE/TIME TYPES *****************************/
@@ -502,4 +502,4 @@
 #define MODATTR_CUSTOM_VARIABLE                 32768
 #define MODATTR_NOTIFICATION_TIMEPERIOD         65536
 
-	
+

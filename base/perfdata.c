@@ -47,26 +47,26 @@ extern int   process_performance_data;
 /******************************************************************/
 
 /* initializes performance data */
-int initialize_performance_data(char *config_file){
+int initialize_performance_data(char *config_file) {
 
 #ifdef USE_XPDDEFAULT
 	xpddefault_initialize_performance_data(config_file);
 #endif
 
 	return OK;
-        }
+	}
 
 
 
 /* cleans up performance data */
-int cleanup_performance_data(char *config_file){
+int cleanup_performance_data(char *config_file) {
 
 #ifdef USE_XPDDEFAULT
 	xpddefault_cleanup_performance_data(config_file);
 #endif
 
 	return OK;
-        }
+	}
 
 
 
@@ -76,14 +76,14 @@ int cleanup_performance_data(char *config_file){
 
 
 /* updates service performance data */
-int update_service_performance_data(service *svc){
+int update_service_performance_data(service *svc) {
 
 	/* should we be processing performance data for anything? */
-	if(process_performance_data==FALSE)
+	if(process_performance_data == FALSE)
 		return OK;
 
 	/* should we process performance data for this service? */
-	if(svc->process_performance_data==FALSE)
+	if(svc->process_performance_data == FALSE)
 		return OK;
 
 	/* process the performance data! */
@@ -92,19 +92,19 @@ int update_service_performance_data(service *svc){
 #endif
 
 	return OK;
-        }
+	}
 
 
 
 /* updates host performance data */
-int update_host_performance_data(host *hst){
+int update_host_performance_data(host *hst) {
 
 	/* should we be processing performance data for anything? */
-	if(process_performance_data==FALSE)
+	if(process_performance_data == FALSE)
 		return OK;
 
 	/* should we process performance data for this host? */
-	if(hst->process_performance_data==FALSE)
+	if(hst->process_performance_data == FALSE)
 		return OK;
 
 	/* process the performance data! */
@@ -113,4 +113,4 @@ int update_host_performance_data(host *hst){
 #endif
 
 	return OK;
-        }
+	}

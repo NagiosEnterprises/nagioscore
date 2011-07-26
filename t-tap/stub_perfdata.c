@@ -1,1 +1,1 @@
-int update_host_performance_data(host *hst){}
+int update_host_performance_data(host *hst) {}

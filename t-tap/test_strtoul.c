@@ -12,7 +12,7 @@
 *
 * Description:
 *
-* Tests system strtoul - to ensure that it works as expected as some systems 
+* Tests system strtoul - to ensure that it works as expected as some systems
 * may differ in usage
 *
 * License:
@@ -36,32 +36,32 @@
 #include <string.h>
 #include "tap.h"
 
-char *svr_hostname="hostname";
-char *svr_fqdn="hostname.domain.name";
-char *svr_ip="192.168.1.1";
-char *svr_downtime_id="1234";
-char *end_ptr=NULL;
-unsigned long downtime_id=0L;
+char *svr_hostname = "hostname";
+char *svr_fqdn = "hostname.domain.name";
+char *svr_ip = "192.168.1.1";
+char *svr_downtime_id = "1234";
+char *end_ptr = NULL;
+unsigned long downtime_id = 0L;
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
 
-    plan_tests(8);
+	plan_tests(8);
 
-    downtime_id=strtoul(svr_hostname,&end_ptr,10);
-    ok( downtime_id == 0, "hostname downtime_id is 0");
-    ok( strlen(end_ptr) == 8, "hostname end_ptr is 8 chars");
+	downtime_id = strtoul(svr_hostname, &end_ptr, 10);
+	ok(downtime_id == 0, "hostname downtime_id is 0");
+	ok(strlen(end_ptr) == 8, "hostname end_ptr is 8 chars");
 
-    downtime_id=strtoul(svr_fqdn,&end_ptr,10);
-    ok( downtime_id == 0, "fqdn downtime_id is 0");
-    ok( strlen(end_ptr) == 20, "fqdn end_ptr is 20 chars");
+	downtime_id = strtoul(svr_fqdn, &end_ptr, 10);
+	ok(downtime_id == 0, "fqdn downtime_id is 0");
+	ok(strlen(end_ptr) == 20, "fqdn end_ptr is 20 chars");
 
-    downtime_id=strtoul(svr_ip,&end_ptr,10);
-    ok( downtime_id == 192, "ip downtime_id is 192");
-    ok( strlen(end_ptr) == 8, "ip end_ptr is 8 chars");
+	downtime_id = strtoul(svr_ip, &end_ptr, 10);
+	ok(downtime_id == 192, "ip downtime_id is 192");
+	ok(strlen(end_ptr) == 8, "ip end_ptr is 8 chars");
 
-    downtime_id=strtoul(svr_downtime_id,&end_ptr,10);
-    ok( downtime_id == 1234, "svr_downtime_id downtime_id is 1234");
-    ok( strlen(end_ptr) == 0, "svr_downtime_id end_ptr is 0 chars");
+	downtime_id = strtoul(svr_downtime_id, &end_ptr, 10);
+	ok(downtime_id == 1234, "svr_downtime_id downtime_id is 1234");
+	ok(strlen(end_ptr) == 0, "svr_downtime_id end_ptr is 0 chars");
 
-    return exit_status();
-}
+	return exit_status();
+	}

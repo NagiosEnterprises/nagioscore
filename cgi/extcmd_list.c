@@ -6,18 +6,17 @@
 struct nagios_extcmd {
 	const char *name;
 	int id;
-/*	size_t namelen;
-	int min_args;
-	int (*handler)(struct nagios_extcmd *, int, char **);
-	struct nagios_extcmd *next_handler;
- */
-};
+	/*	size_t namelen;
+		int min_args;
+		int (*handler)(struct nagios_extcmd *, int, char **);
+		struct nagios_extcmd *next_handler;
+	 */
+	};
 
 #define CMD_DEF(name, min_args, handler) \
 	{ #name, CMD_ ## name }
 /*	{ #name, sizeof(#name) - 1, CMD_ ## name, min_args, handler, NULL } */
-struct nagios_extcmd in_core_commands[] =
-{
+struct nagios_extcmd in_core_commands[] = {
 	CMD_DEF(NONE, 0, NULL),
 	CMD_DEF(ADD_HOST_COMMENT, 0, NULL),
 	CMD_DEF(DEL_HOST_COMMENT, 0, NULL),
@@ -185,42 +184,40 @@ struct nagios_extcmd in_core_commands[] =
 	CMD_DEF(CHANGE_CONTACT_MODATTR, 0, NULL),
 	CMD_DEF(CHANGE_CONTACT_MODHATTR, 0, NULL),
 	CMD_DEF(CHANGE_CONTACT_MODSATTR, 0, NULL),
-};
+	};
 #undef CMD_DEF
 
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
-const char *extcmd_get_name(int id)
-{
+const char *extcmd_get_name(int id) {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
+	for(i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
 		struct nagios_extcmd *ecmd;
 		ecmd = &in_core_commands[i];
-		if (ecmd->id == id)
+		if(ecmd->id == id)
 			return ecmd->name;
-	}
+		}
 
 	return NULL;
-}
+	}
 
 #ifdef ECMD_LIST_TESTING
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	int i, no_handler = 0;
 
-	for (i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
+	for(i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
 		struct nagios_extcmd *cmd = &in_core_commands[i];
-		if (!cmd->handler) {
+		if(!cmd->handler) {
 			no_handler++;
 			printf("%s has no handler\n", extcmd_get_name(i));
+			}
 		}
-	}
 	printf("%d of %d commands have no handler\n",
 	       no_handler, ARRAY_SIZE(in_core_commands));
 
 	return 0;
-}
+	}
 #endif

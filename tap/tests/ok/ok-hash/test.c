@@ -29,8 +29,7 @@
 #include "tap.h"
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	unsigned int rc = 0;
 
 	rc = plan_tests(4);
@@ -42,11 +41,11 @@ main(int argc, char *argv[])
 	rc = ok(1, "Test with one # hash");
 	diag("Returned: %d", rc);
 
-        rc = ok(1, "Test with # two # hashes");
+	rc = ok(1, "Test with # two # hashes");
 	diag("Returned: %d", rc);
 
 	rc = ok(1, "Test with ## back to back hashes");
 	diag("Returned: %d", rc);
-	
+
 	return exit_status();
-}
+	}

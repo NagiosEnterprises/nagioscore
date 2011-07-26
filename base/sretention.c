@@ -52,94 +52,94 @@ extern int            retain_state_information;
 
 
 /* initializes retention data at program start */
-int initialize_retention_data(char *config_file){
-	int result=OK;
+int initialize_retention_data(char *config_file) {
+	int result = OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XRDDEFAULT
-	result=xrddefault_initialize_retention_data(config_file);
+	result = xrddefault_initialize_retention_data(config_file);
 #endif
 
 	return result;
-        }
+	}
 
 
 
 /* cleans up retention data before program termination */
-int cleanup_retention_data(char *config_file){
-	int result=OK;
+int cleanup_retention_data(char *config_file) {
+	int result = OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XRDDEFAULT
-	result=xrddefault_cleanup_retention_data(config_file);
+	result = xrddefault_cleanup_retention_data(config_file);
 #endif
 
 	return result;
-        }
+	}
 
 
 
 /* save all host and service state information */
-int save_state_information(int autosave){
-	int result=OK;
+int save_state_information(int autosave) {
+	int result = OK;
 
-	if(retain_state_information==FALSE)
+	if(retain_state_information == FALSE)
 		return OK;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_retention_data(NEBTYPE_RETENTIONDATA_STARTSAVE,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+	broker_retention_data(NEBTYPE_RETENTIONDATA_STARTSAVE, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
 	/********* IMPLEMENTATION-SPECIFIC OUTPUT FUNCTION ********/
 #ifdef USE_XRDDEFAULT
-	result=xrddefault_save_state_information();
+	result = xrddefault_save_state_information();
 #endif
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_retention_data(NEBTYPE_RETENTIONDATA_ENDSAVE,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+	broker_retention_data(NEBTYPE_RETENTIONDATA_ENDSAVE, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
-	if(result==ERROR)
+	if(result == ERROR)
 		return ERROR;
 
-	if(autosave==TRUE)
-		logit(NSLOG_PROCESS_INFO,FALSE,"Auto-save of retention data completed successfully.\n");
+	if(autosave == TRUE)
+		logit(NSLOG_PROCESS_INFO, FALSE, "Auto-save of retention data completed successfully.\n");
 
 	return OK;
-        }
+	}
 
 
 
 
 /* reads in initial host and state information */
-int read_initial_state_information(void){
-	int result=OK;
+int read_initial_state_information(void) {
+	int result = OK;
 
-	if(retain_state_information==FALSE)
+	if(retain_state_information == FALSE)
 		return OK;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_retention_data(NEBTYPE_RETENTIONDATA_STARTLOAD,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+	broker_retention_data(NEBTYPE_RETENTIONDATA_STARTLOAD, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XRDDEFAULT
-	result=xrddefault_read_state_information();
+	result = xrddefault_read_state_information();
 #endif
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_retention_data(NEBTYPE_RETENTIONDATA_ENDLOAD,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+	broker_retention_data(NEBTYPE_RETENTIONDATA_ENDLOAD, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
-	if(result==ERROR)
+	if(result == ERROR)
 		return ERROR;
 
 	return OK;
-        }
+	}
 
 
 

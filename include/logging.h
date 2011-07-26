@@ -64,19 +64,19 @@
 
 
 /**** Logging Functions ****/
-void logit(int,int,const char *, ...)
-	__attribute__((__format__(__printf__, 3, 4)));
-int log_debug_info(int,int,const char *,...)
-	__attribute__((__format__(__printf__, 3, 4)));
+void logit(int, int, const char *, ...)
+__attribute__((__format__(__printf__, 3, 4)));
+int log_debug_info(int, int, const char *, ...)
+__attribute__((__format__(__printf__, 3, 4)));
 
 #ifndef NSCGI
-int write_to_all_logs(char *,unsigned long);            /* writes a string to main log file and syslog facility */
-int write_to_log(char *,unsigned long,time_t *);       	/* write a string to the main log file */
-int write_to_syslog(char *,unsigned long);             	/* write a string to the syslog facility */
+int write_to_all_logs(char *, unsigned long);           /* writes a string to main log file and syslog facility */
+int write_to_log(char *, unsigned long, time_t *);       	/* write a string to the main log file */
+int write_to_syslog(char *, unsigned long);             	/* write a string to the syslog facility */
 int log_service_event(service *);			/* logs a service event */
 int log_host_event(host *);				/* logs a host event */
-int log_host_states(int,time_t *);	                /* logs initial/current host states */
-int log_service_states(int,time_t *);                   /* logs initial/current service states */
+int log_host_states(int, time_t *);	               /* logs initial/current host states */
+int log_service_states(int, time_t *);                  /* logs initial/current service states */
 int rotate_log_file(time_t);			     	/* rotates the main log file */
 int write_log_file_info(time_t *); 			/* records log file/version info */
 int open_debug_log(void);

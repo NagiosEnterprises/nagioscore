@@ -29,11 +29,11 @@
 #include "nebmodules.h"
 
 #ifdef __cplusplus
-  extern "C" {
+extern "C" {
 #endif
 
 
-/***** CALLBACK TYPES *****/
+	/***** CALLBACK TYPES *****/
 
 #define NEBCALLBACK_NUMITEMS                          33    /* total number of callback types we have */
 
@@ -74,14 +74,14 @@
 #define NEBCALLBACK_ADAPTIVE_CONTACT_DATA             32
 
 
-/***** CALLBACK FUNCTIONS *****/
+	/***** CALLBACK FUNCTIONS *****/
 
-int neb_register_callback(int callback_type, void *mod_handle, int priority, int (*callback_func)(int,void *));
-int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *));
-int neb_deregister_module_callbacks(nebmodule *);
+	int neb_register_callback(int callback_type, void *mod_handle, int priority, int (*callback_func)(int, void *));
+	int neb_deregister_callback(int callback_type, int (*callback_func)(int, void *));
+	int neb_deregister_module_callbacks(nebmodule *);
 
 #ifdef __cplusplus
-}
+	}
 #endif
 
 

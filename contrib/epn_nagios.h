@@ -11,7 +11,7 @@
 #undef sighandler
 
 
-                /* and we don't need perl's reentrant versions */
+/* and we don't need perl's reentrant versions */
 #undef localtime
 #undef getpwnam
 #undef getgrnam

@@ -1735,7 +1735,7 @@ void commit_command_data(int cmd) {
 
 			/* see if the user is authorized to issue a command... */
 			temp_hostgroup = find_hostgroup(hostgroup_name);
-			if(is_authorized_for_hostgroup_commands(temp_hostgroup,&current_authdata) == TRUE)
+			if(is_authorized_for_hostgroup_commands(temp_hostgroup, &current_authdata) == TRUE)
 				authorized = TRUE;
 
 			/* clean up the comment data if scheduling downtime */
@@ -1776,7 +1776,7 @@ void commit_command_data(int cmd) {
 			/* see if the user is authorized to issue a command... */
 
 			temp_servicegroup = find_servicegroup(servicegroup_name);
-			if(is_authorized_for_servicegroup_commands(temp_servicegroup,&current_authdata) == TRUE)
+			if(is_authorized_for_servicegroup_commands(temp_servicegroup, &current_authdata) == TRUE)
 				authorized = TRUE;
 
 			break;

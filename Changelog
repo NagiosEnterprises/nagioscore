@@ -2,7 +2,7 @@
 Nagios 3.x Change Log
 #####################
 
-3.3.1 - ?????
+3.3.1 - ???
 ------------------
 ENHANCEMENTS
 * Added support for same host service dependencies with servicegroups (Mathieu Gagné)
@@ -12,6 +12,7 @@ ENHANCEMENTS
 * Downtime delete commands made "distributable" by deleting by host group name, host name or start time/comment (Opsview team)
 * Allow status.cgi to order by "host urgency" (Jochen Bern)
 * Added news items and quick links to main splash page
+* Added ability to authenticate to CGIs using contactgroup name (Stephen Gran)
 
 FIXES
 * Fixes status.cgi when called with no parameters, where host should be set to all if none specified (Michael Friedrich)

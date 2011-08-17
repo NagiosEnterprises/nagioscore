@@ -439,7 +439,7 @@ int process_cgivars(void) {
 				break;
 				}
 			strncpy(to_expand, variables[x], MAX_COMMAND_BUFFER);
-			to_expand[MAX_COMMAND_BUFFER-1] = '\0';
+			to_expand[MAX_COMMAND_BUFFER - 1] = '\0';
 			}
 
 
@@ -1296,7 +1296,7 @@ void display_services(void) {
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, time_string);
 
 			strncpy(command_line, temp_service->service_check_command, sizeof(command_line));
-			command_line[sizeof(command_line)-1] = '\x0';
+			command_line[sizeof(command_line) - 1] = '\x0';
 			command_name = strtok(strdup(command_line), "!");
 
 			/* printf("<TD CLASS='%s'><A HREF='%s?type=commands&expand=%s'>%s</A></TD>\n",bg_class,CONFIG_CGI,url_encode(command_name),html_encode(command_line,FALSE)); */
@@ -1647,14 +1647,14 @@ void display_timeperiods(void) {
 						minutes = (temp_timerange->range_start - (hours * 3600)) / 60;
 						seconds = temp_timerange->range_start - (hours * 3600) - (minutes * 60);
 						snprintf(timestring, sizeof(timestring) - 1, "%02d:%02d:%02d", hours, minutes, seconds);
-						timestring[sizeof(timestring)-1] = '\x0';
+						timestring[sizeof(timestring) - 1] = '\x0';
 						printf("%s - ", timestring);
 
 						hours = temp_timerange->range_end / 3600;
 						minutes = (temp_timerange->range_end - (hours * 3600)) / 60;
 						seconds = temp_timerange->range_end - (hours * 3600) - (minutes * 60);
 						snprintf(timestring, sizeof(timestring) - 1, "%02d:%02d:%02d", hours, minutes, seconds);
-						timestring[sizeof(timestring)-1] = '\x0';
+						timestring[sizeof(timestring) - 1] = '\x0';
 						printf("%s", timestring);
 						}
 
@@ -1685,14 +1685,14 @@ void display_timeperiods(void) {
 					minutes = (temp_timerange->range_start - (hours * 3600)) / 60;
 					seconds = temp_timerange->range_start - (hours * 3600) - (minutes * 60);
 					snprintf(timestring, sizeof(timestring) - 1, "%02d:%02d:%02d", hours, minutes, seconds);
-					timestring[sizeof(timestring)-1] = '\x0';
+					timestring[sizeof(timestring) - 1] = '\x0';
 					printf("%s - ", timestring);
 
 					hours = temp_timerange->range_end / 3600;
 					minutes = (temp_timerange->range_end - (hours * 3600)) / 60;
 					seconds = temp_timerange->range_end - (hours * 3600) - (minutes * 60);
 					snprintf(timestring, sizeof(timestring) - 1, "%02d:%02d:%02d", hours, minutes, seconds);
-					timestring[sizeof(timestring)-1] = '\x0';
+					timestring[sizeof(timestring) - 1] = '\x0';
 					printf("%s", timestring);
 					}
 
@@ -2324,7 +2324,7 @@ void display_command_expansion(void) {
 				printf("<TD CLASS='%s' ALIGN='right'>-&gt;</TD>\n", bg_class);
 				printf("<TD CLASS='%s'>", bg_class);
 				strncpy(commandline, temp_command->command_line, MAX_COMMAND_BUFFER);
-				commandline[MAX_COMMAND_BUFFER-1] = '\0';
+				commandline[MAX_COMMAND_BUFFER - 1] = '\0';
 				for(c = commandline; c && (cc = strstr(c, "$"));) {
 					(*(cc++)) = '\0';
 					printf("%s", html_encode(c, FALSE));

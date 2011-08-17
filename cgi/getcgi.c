@@ -24,7 +24,7 @@ void sanitize_cgi_input(char **cgivars) {
 	/* don't strip for now... */
 	return;
 
-	for(strptr = cgivars[i=0]; strptr != NULL; strptr = cgivars[++i]) {
+	for(strptr = cgivars[i = 0]; strptr != NULL; strptr = cgivars[++i]) {
 
 		for(x = 0, y = 0; strptr[x] != '\x0'; x++) {
 
@@ -95,7 +95,7 @@ void unescape_cgi_input(char *input) {
 		if(input[x] == '\x0')
 			break;
 		else if(input[x] == '%') {
-			input[y] = hex_to_char(&input[x+1]);
+			input[y] = hex_to_char(&input[x + 1]);
 			x += 2;
 			}
 		else
@@ -245,17 +245,17 @@ char **getcgivars(void) {
 		/* get the variable name preceding the equal (=) sign */
 		if((eqpos = strchr(pairlist[i], '=')) != NULL) {
 			*eqpos = '\0';
-			unescape_cgi_input(cgivars[i*2+1] = strdup(eqpos + 1));
+			unescape_cgi_input(cgivars[i * 2 + 1] = strdup(eqpos + 1));
 			}
 		else
-			unescape_cgi_input(cgivars[i*2+1] = strdup(""));
+			unescape_cgi_input(cgivars[i * 2 + 1] = strdup(""));
 
 		/* get the variable value (or name/value of there was no real "pair" in the first place) */
-		unescape_cgi_input(cgivars[i*2] = strdup(pairlist[i]));
+		unescape_cgi_input(cgivars[i * 2] = strdup(pairlist[i]));
 		}
 
 	/* terminate the name-value list */
-	cgivars[paircount*2] = '\x0';
+	cgivars[paircount * 2] = '\x0';
 
 	/* free allocated memory */
 	free(cgiinput);

@@ -422,8 +422,8 @@ int read_main_config_file(char *main_config_file) {
 			if((temp_path = (char *)strdup(value))) {
 				strip(temp_path);
 				/* make sure we don't have a trailing slash */
-				if(temp_path[strlen(temp_path)-1] == '/')
-					temp_path[strlen(temp_path)-1] = '\x0';
+				if(temp_path[strlen(temp_path) - 1] == '/')
+					temp_path[strlen(temp_path) - 1] = '\x0';
 				}
 
 			/* save the macro */
@@ -450,8 +450,8 @@ int read_main_config_file(char *main_config_file) {
 			if((temp_path = (char *)strdup(value))) {
 				strip(temp_path);
 				/* make sure we don't have a trailing slash */
-				if(temp_path[strlen(temp_path)-1] == '/')
-					temp_path[strlen(temp_path)-1] = '\x0';
+				if(temp_path[strlen(temp_path) - 1] == '/')
+					temp_path[strlen(temp_path) - 1] = '\x0';
 				}
 
 			my_free(check_result_path);
@@ -1456,7 +1456,7 @@ int read_resource_file(char *resource_file) {
 		/* what should we do with the variable/value pair? */
 
 		/* check for macro declarations */
-		if(variable[0] == '$' && variable[strlen(variable)-1] == '$') {
+		if(variable[0] == '$' && variable[strlen(variable) - 1] == '$') {
 
 			/* $USERx$ macro declarations */
 			if(strstr(variable, "$USER") == variable  && strlen(variable) > 5) {

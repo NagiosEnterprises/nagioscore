@@ -479,7 +479,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 			perl_output = POPpx ;
 			strip(perl_output);
 			strncpy(buffer, (perl_output == NULL) ? "" : perl_output, sizeof(buffer));
-			buffer[sizeof(buffer)-1] = '\x0';
+			buffer[sizeof(buffer) - 1] = '\x0';
 			status = POPi ;
 
 			PUTBACK;
@@ -510,7 +510,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 		if(fp == NULL) {
 
 			strncpy(buffer, "(Error: Could not execute command)\n", sizeof(buffer) - 1);
-			buffer[sizeof(buffer)-1] = '\x0';
+			buffer[sizeof(buffer) - 1] = '\x0';
 
 			/* write the error back to the parent process */
 			write(fd[1], buffer, strlen(buffer) + 1);
@@ -2249,7 +2249,7 @@ int process_check_result_queue(char *dirname) {
 
 		/* create /path/to/file */
 		snprintf(file, sizeof(file), "%s/%s", dirname, dirfile->d_name);
-		file[sizeof(file)-1] = '\x0';
+		file[sizeof(file) - 1] = '\x0';
 
 		/* process this if it's a check result file... */
 		x = strlen(dirfile->d_name);
@@ -3890,7 +3890,7 @@ int query_update_api(void) {
 		/* get response */
 		recv_len = sizeof(recv_buf);
 		result = my_recvall(sd, recv_buf, &recv_len, 2);
-		recv_buf[sizeof(recv_buf)-1] = '\x0';
+		recv_buf[sizeof(recv_buf) - 1] = '\x0';
 		/*printf("RECV RESULT: %d, RECEIVED: %d\n",result,recv_len);*/
 
 		/*

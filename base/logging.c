@@ -424,7 +424,7 @@ int rotate_log_file(time_t rotation_time) {
 	stat_result = stat(log_file, &log_file_stat);
 
 	/* get the archived filename to use */
-	asprintf(&log_archive, "%s%snagios-%02d-%02d-%d-%02d.log", log_archive_path, (log_archive_path[strlen(log_archive_path)-1] == '/') ? "" : "/", t->tm_mon + 1, t->tm_mday, t->tm_year + 1900, t->tm_hour);
+	asprintf(&log_archive, "%s%snagios-%02d-%02d-%d-%02d.log", log_archive_path, (log_archive_path[strlen(log_archive_path) - 1] == '/') ? "" : "/", t->tm_mon + 1, t->tm_mday, t->tm_year + 1900, t->tm_hour);
 
 	/* rotate the log file */
 	rename_result = my_rename(log_file, log_archive);

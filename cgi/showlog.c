@@ -121,7 +121,7 @@ int main(void) {
 		/* middle column of top table - log file navigation options */
 		printf("<td align=center valign=top width=33%%>\n");
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%s?%s", SHOWLOG_CGI, (use_lifo == FALSE) ? "oldestfirst&" : "");
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		display_nav_table(temp_buffer, log_archive);
 		printf("</td>\n");
 
@@ -502,7 +502,7 @@ int display_log(void) {
 
 			time_ptr = localtime(&t);
 			strftime(current_message_date, sizeof(current_message_date), "%B %d, %Y %H:00\n", time_ptr);
-			current_message_date[sizeof(current_message_date)-1] = '\x0';
+			current_message_date[sizeof(current_message_date) - 1] = '\x0';
 
 			if(strcmp(last_message_date, current_message_date) != 0 && display_timebreaks == TRUE) {
 				printf("<BR CLEAR='all'>\n");
@@ -515,7 +515,7 @@ int display_log(void) {
 				printf("</DIV>\n");
 				printf("<BR CLEAR='all'><DIV CLASS='logEntries'>\n");
 				strncpy(last_message_date, current_message_date, sizeof(last_message_date));
-				last_message_date[sizeof(last_message_date)-1] = '\x0';
+				last_message_date[sizeof(last_message_date) - 1] = '\x0';
 				}
 
 			get_time_string(&t, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);

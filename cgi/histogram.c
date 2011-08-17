@@ -333,7 +333,7 @@ int main(int argc, char **argv) {
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Service Alert Histogram");
 		else
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Host and Service Alert Histogram");
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		display_info_table(temp_buffer, FALSE, &current_authdata);
 
 		if(display_type != DISPLAY_NO_HISTOGRAM && input_type == GET_INPUT_NONE) {
@@ -607,7 +607,7 @@ int main(int argc, char **argv) {
 
 			/* location of image template */
 			snprintf(image_template, sizeof(image_template) - 1, "%s/%s", physical_images_path, HISTOGRAM_IMAGE);
-			image_template[sizeof(image_template)-1] = '\x0';
+			image_template[sizeof(image_template) - 1] = '\x0';
 
 			/* allocate buffer for storing image */
 			image_file = fopen(image_template, "r");
@@ -1646,7 +1646,7 @@ void graph_all_histogram_data(void) {
 	if(max_value > 0) {
 		for(current_unit = 0; (current_unit * y_units * y_scaling_factor) <= DRAWING_HEIGHT; current_unit++) {
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%d", (int)(current_unit * y_units));
-			temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			string_width = gdFontSmall->w * strlen(temp_buffer);
 			gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET - string_width - 5, DRAWING_Y_OFFSET - (current_unit * y_units * y_scaling_factor) - (string_height / 2), (unsigned char *)temp_buffer, color_black);
 			}
@@ -1667,7 +1667,7 @@ void graph_all_histogram_data(void) {
 		else
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%02d:00", (actual_unit == 24) ? 0 : actual_unit);
 
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		string_width = gdFontSmall->w * strlen(temp_buffer);
 
 		gdImageStringUp(histogram_image, gdFontSmall, DRAWING_X_OFFSET + (current_unit * x_units) - (string_height / 2), DRAWING_Y_OFFSET + 5 + string_width, (unsigned char *)temp_buffer, color_black);
@@ -1675,7 +1675,7 @@ void graph_all_histogram_data(void) {
 
 	/* draw y unit measure */
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Number of Events");
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageStringUp(histogram_image, gdFontSmall, 0, DRAWING_Y_OFFSET - (DRAWING_HEIGHT / 2) + (string_width / 2), (unsigned char *)temp_buffer, color_black);
 
@@ -1688,28 +1688,28 @@ void graph_all_histogram_data(void) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Day of the Week");
 	else
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Hour of the Day (15 minute increments)");
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + (DRAWING_WIDTH / 2) - (string_width / 2), DRAWING_Y_OFFSET + 70, (unsigned char *)temp_buffer, color_black);
 
 	/* draw title */
 	snprintf(start_time, sizeof(start_time) - 1, "%s", ctime(&t1));
-	start_time[sizeof(start_time)-1] = '\x0';
-	start_time[strlen(start_time)-1] = '\x0';
+	start_time[sizeof(start_time) - 1] = '\x0';
+	start_time[strlen(start_time) - 1] = '\x0';
 	snprintf(end_time, sizeof(end_time) - 1, "%s", ctime(&t2));
-	end_time[sizeof(end_time)-1] = '\x0';
-	end_time[strlen(end_time)-1] = '\x0';
+	end_time[sizeof(end_time) - 1] = '\x0';
+	end_time[strlen(end_time) - 1] = '\x0';
 
 	if(display_type == DISPLAY_HOST_HISTOGRAM)
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Event History For Host '%s'", host_name);
 	else
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Event History For Service '%s' On Host '%s'", svc_description, host_name);
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + (DRAWING_WIDTH / 2) - (string_width / 2), 0, (unsigned char *)temp_buffer, color_black);
 
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%s to %s", start_time, end_time);
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + (DRAWING_WIDTH / 2) - (string_width / 2), string_height + 5, (unsigned char *)temp_buffer, color_black);
 
@@ -1962,60 +1962,60 @@ void graph_all_histogram_data(void) {
 
 	/* graph stats */
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "EVENT TYPE");
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 15, DRAWING_Y_OFFSET - DRAWING_HEIGHT, (unsigned char *)temp_buffer, color_black);
 
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "  MIN   MAX   SUM   AVG");
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 115, DRAWING_Y_OFFSET - DRAWING_HEIGHT, (unsigned char *)temp_buffer, color_black);
 
 	draw_line(DRAWING_X_OFFSET + DRAWING_WIDTH + 15, DRAWING_Y_OFFSET - DRAWING_HEIGHT + string_height + 2, DRAWING_X_OFFSET + DRAWING_WIDTH + 275, DRAWING_Y_OFFSET - DRAWING_HEIGHT + string_height + 2, color_black);
 
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Recovery (%s):", (display_type == DISPLAY_SERVICE_HISTOGRAM) ? "Ok" : "Up");
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 15, DRAWING_Y_OFFSET - DRAWING_HEIGHT + ((string_height + 5) * 1), (unsigned char *)temp_buffer, color_green);
 
 	state1_avg = (double)((double)state1_sum / (double)total_buckets);
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%5lu %5lu %5lu   %.2f", state1_min, state1_max, state1_sum, state1_avg);
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 115, DRAWING_Y_OFFSET - DRAWING_HEIGHT + ((string_height + 5) * 1), (unsigned char *)temp_buffer, color_black);
 
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%s:", (display_type == DISPLAY_SERVICE_HISTOGRAM) ? "Warning" : "Down");
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 15, DRAWING_Y_OFFSET - DRAWING_HEIGHT + ((string_height + 5) * 2), (unsigned char *)temp_buffer, (display_type == DISPLAY_SERVICE_HISTOGRAM) ? color_yellow : color_red);
 
 	state2_avg = (double)((double)state2_sum / (double)total_buckets);
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%5lu %5lu %5lu   %.2f", state2_min, state2_max, state2_sum, state2_avg);
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 115, DRAWING_Y_OFFSET - DRAWING_HEIGHT + ((string_height + 5) * 2), (unsigned char *)temp_buffer, color_black);
 
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%s:", (display_type == DISPLAY_SERVICE_HISTOGRAM) ? "Unknown" : "Unreachable");
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 15, DRAWING_Y_OFFSET - DRAWING_HEIGHT + ((string_height + 5) * 3), (unsigned char *)temp_buffer, (display_type == DISPLAY_SERVICE_HISTOGRAM) ? color_orange : color_darkred);
 
 	state3_avg = (double)((double)state3_sum / (double)total_buckets);
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%5lu %5lu %5lu   %.2f", state3_min, state3_max, state3_sum, state3_avg);
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	string_width = gdFontSmall->w * strlen(temp_buffer);
 	gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 115, DRAWING_Y_OFFSET - DRAWING_HEIGHT + ((string_height + 5) * 3), (unsigned char *)temp_buffer, color_black);
 
 	if(display_type == DISPLAY_SERVICE_HISTOGRAM) {
 
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Critical:");
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		string_width = gdFontSmall->w * strlen(temp_buffer);
 		gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 15, DRAWING_Y_OFFSET - DRAWING_HEIGHT + ((string_height + 5) * 4), (unsigned char *)temp_buffer, color_red);
 
 		state4_avg = (double)((double)state4_sum / (double)total_buckets);
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%5lu %5lu %5lu   %.2f", state4_min, state4_max, state4_sum, state4_avg);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		string_width = gdFontSmall->w * strlen(temp_buffer);
 		gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 115, DRAWING_Y_OFFSET - DRAWING_HEIGHT + ((string_height + 5) * 4), (unsigned char *)temp_buffer, color_black);
 		}
@@ -2251,7 +2251,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				temp_buffer = my_strtok(NULL, ":");
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+				entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 				if(strcmp(host_name, entry_host_name))
 					continue;
@@ -2279,7 +2279,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				temp_buffer = my_strtok(NULL, ":");
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+				entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 				if(strcmp(host_name, entry_host_name))
 					continue;
@@ -2287,7 +2287,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				/* get service description */
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_svc_description, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(entry_svc_description));
-				entry_svc_description[sizeof(entry_svc_description)-1] = '\x0';
+				entry_svc_description[sizeof(entry_svc_description) - 1] = '\x0';
 
 				if(strcmp(svc_description, entry_svc_description))
 					continue;

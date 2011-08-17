@@ -207,7 +207,7 @@ static void get_expire_time_string(time_t *raw_time, char *buffer, int buffer_le
 	year = tm_ptr->tm_year + 1900;
 
 	snprintf(buffer, buffer_length, "%s, %d %s %d %02d:%02d:%02d GMT", weekdays[tm_ptr->tm_wday], day, months[tm_ptr->tm_mon], year, hour, minute, second);
-	buffer[buffer_length-1] = '\x0';
+	buffer[buffer_length - 1] = '\x0';
 
 	return;
 	}

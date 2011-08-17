@@ -187,7 +187,7 @@ void init_embedded_perl(void) {
 
 	if((my_perl = perl_alloc()) == NULL) {
 		snprintf(buffer, sizeof(buffer), "Error: Could not allocate memory for embedded Perl interpreter!\n");
-		buffer[sizeof(buffer)-1] = '\x0';
+		buffer[sizeof(buffer) - 1] = '\x0';
 		printf("%s\n", buffer);
 		exit(1);
 		}

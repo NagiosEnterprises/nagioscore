@@ -1093,7 +1093,7 @@ void display_tac_overview(void) {
 		strncpy(host_health_image, THERM_WARNING_IMAGE, sizeof(host_health_image));
 	else
 		strncpy(host_health_image, THERM_OK_IMAGE, sizeof(host_health_image));
-	host_health_image[sizeof(host_health_image)-1] = '\x0';
+	host_health_image[sizeof(host_health_image) - 1] = '\x0';
 
 	if(percent_service_health < HEALTH_CRITICAL_PERCENTAGE)
 		strncpy(service_health_image, THERM_CRITICAL_IMAGE, sizeof(service_health_image));
@@ -1101,7 +1101,7 @@ void display_tac_overview(void) {
 		strncpy(service_health_image, THERM_WARNING_IMAGE, sizeof(service_health_image));
 	else
 		strncpy(service_health_image, THERM_OK_IMAGE, sizeof(service_health_image));
-	service_health_image[sizeof(service_health_image)-1] = '\x0';
+	service_health_image[sizeof(service_health_image) - 1] = '\x0';
 
 	printf("<table border=0 cellspacing=0 cellspadding=0>\n");
 	printf("<tr>\n");

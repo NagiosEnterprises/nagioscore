@@ -180,7 +180,7 @@ void reset_cgi_vars(void) {
 
 	strcpy(log_file, "");
 	strcpy(log_archive_path, DEFAULT_LOG_ARCHIVE_PATH);
-	if(log_archive_path[strlen(log_archive_path)-1] != '/' && strlen(log_archive_path) < sizeof(log_archive_path) - 2)
+	if(log_archive_path[strlen(log_archive_path) - 1] != '/' && strlen(log_archive_path) < sizeof(log_archive_path) - 2)
 		strcat(log_archive_path, "/");
 	strcpy(command_file, get_cmd_file_location());
 
@@ -306,7 +306,7 @@ int read_cgi_config_file(char *filename) {
 
 		if(!strcmp(var, "main_config_file")) {
 			strncpy(main_config_file, val, sizeof(main_config_file));
-			main_config_file[sizeof(main_config_file)-1] = '\x0';
+			main_config_file[sizeof(main_config_file) - 1] = '\x0';
 			strip(main_config_file);
 			}
 
@@ -321,7 +321,7 @@ int read_cgi_config_file(char *filename) {
 
 		else if(!strcmp(var, "nagios_check_command")) {
 			strncpy(nagios_check_command, val, sizeof(nagios_check_command));
-			nagios_check_command[sizeof(nagios_check_command)-1] = '\x0';
+			nagios_check_command[sizeof(nagios_check_command) - 1] = '\x0';
 			strip(nagios_check_command);
 			}
 
@@ -330,44 +330,44 @@ int read_cgi_config_file(char *filename) {
 
 		else if(!strcmp(var, "physical_html_path")) {
 			strncpy(physical_html_path, val, sizeof(physical_html_path));
-			physical_html_path[sizeof(physical_html_path)-1] = '\x0';
+			physical_html_path[sizeof(physical_html_path) - 1] = '\x0';
 			strip(physical_html_path);
-			if(physical_html_path[strlen(physical_html_path)-1] != '/' && (strlen(physical_html_path) < sizeof(physical_html_path) - 1))
+			if(physical_html_path[strlen(physical_html_path) - 1] != '/' && (strlen(physical_html_path) < sizeof(physical_html_path) - 1))
 				strcat(physical_html_path, "/");
 
 			snprintf(physical_images_path, sizeof(physical_images_path), "%simages/", physical_html_path);
-			physical_images_path[sizeof(physical_images_path)-1] = '\x0';
+			physical_images_path[sizeof(physical_images_path) - 1] = '\x0';
 
 			snprintf(physical_ssi_path, sizeof(physical_images_path), "%sssi/", physical_html_path);
-			physical_ssi_path[sizeof(physical_ssi_path)-1] = '\x0';
+			physical_ssi_path[sizeof(physical_ssi_path) - 1] = '\x0';
 			}
 
 		else if(!strcmp(var, "url_html_path")) {
 
 			strncpy(url_html_path, val, sizeof(url_html_path));
-			url_html_path[sizeof(url_html_path)-1] = '\x0';
+			url_html_path[sizeof(url_html_path) - 1] = '\x0';
 
 			strip(url_html_path);
-			if(url_html_path[strlen(url_html_path)-1] != '/' && (strlen(url_html_path) < sizeof(url_html_path) - 1))
+			if(url_html_path[strlen(url_html_path) - 1] != '/' && (strlen(url_html_path) < sizeof(url_html_path) - 1))
 				strcat(url_html_path, "/");
 
 			snprintf(url_docs_path, sizeof(url_docs_path), "%sdocs/", url_html_path);
-			url_docs_path[sizeof(url_docs_path)-1] = '\x0';
+			url_docs_path[sizeof(url_docs_path) - 1] = '\x0';
 
 			snprintf(url_context_help_path, sizeof(url_context_help_path), "%scontexthelp/", url_html_path);
-			url_context_help_path[sizeof(url_context_help_path)-1] = '\x0';
+			url_context_help_path[sizeof(url_context_help_path) - 1] = '\x0';
 
 			snprintf(url_images_path, sizeof(url_images_path), "%simages/", url_html_path);
-			url_images_path[sizeof(url_images_path)-1] = '\x0';
+			url_images_path[sizeof(url_images_path) - 1] = '\x0';
 
 			snprintf(url_logo_images_path, sizeof(url_logo_images_path), "%slogos/", url_images_path);
-			url_logo_images_path[sizeof(url_logo_images_path)-1] = '\x0';
+			url_logo_images_path[sizeof(url_logo_images_path) - 1] = '\x0';
 
 			snprintf(url_stylesheets_path, sizeof(url_stylesheets_path), "%sstylesheets/", url_html_path);
-			url_stylesheets_path[sizeof(url_stylesheets_path)-1] = '\x0';
+			url_stylesheets_path[sizeof(url_stylesheets_path) - 1] = '\x0';
 
 			snprintf(url_media_path, sizeof(url_media_path), "%smedia/", url_html_path);
-			url_media_path[sizeof(url_media_path)-1] = '\x0';
+			url_media_path[sizeof(url_media_path) - 1] = '\x0';
 			}
 
 		else if(!strcmp(var, "service_critical_sound"))
@@ -480,7 +480,7 @@ int read_main_config_file(char *filename) {
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\x0");
 			strncpy(log_file, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(log_file));
-			log_file[sizeof(log_file)-1] = '\x0';
+			log_file[sizeof(log_file) - 1] = '\x0';
 			strip(log_file);
 			}
 
@@ -488,9 +488,9 @@ int read_main_config_file(char *filename) {
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\n");
 			strncpy(log_archive_path, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(log_archive_path));
-			log_archive_path[sizeof(log_archive_path)-1] = '\x0';
+			log_archive_path[sizeof(log_archive_path) - 1] = '\x0';
 			strip(physical_html_path);
-			if(log_archive_path[strlen(log_archive_path)-1] != '/' && (strlen(log_archive_path) < sizeof(log_archive_path) - 1))
+			if(log_archive_path[strlen(log_archive_path) - 1] != '/' && (strlen(log_archive_path) < sizeof(log_archive_path) - 1))
 				strcat(log_archive_path, "/");
 			}
 
@@ -513,7 +513,7 @@ int read_main_config_file(char *filename) {
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\x0");
 			strncpy(command_file, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(command_file));
-			command_file[sizeof(command_file)-1] = '\x0';
+			command_file[sizeof(command_file) - 1] = '\x0';
 			strip(command_file);
 			}
 
@@ -710,14 +710,14 @@ char *unescape_newlines(char *rawbuf) {
 		if(rawbuf[x] == '\\') {
 
 			/* unescape newlines */
-			if(rawbuf[x+1] == 'n') {
+			if(rawbuf[x + 1] == 'n') {
 				rawbuf[y++] = '\n';
 				x++;
 				}
 
 			/* unescape backslashes and other stuff */
-			if(rawbuf[x+1] != '\x0') {
-				rawbuf[y++] = rawbuf[x+1];
+			if(rawbuf[x + 1] != '\x0') {
+				rawbuf[y++] = rawbuf[x + 1];
 				x++;
 				}
 
@@ -864,7 +864,7 @@ void get_time_string(time_t *raw_time, char *buffer, int buffer_length, int type
 	else
 		snprintf(buffer, buffer_length, "%02d:%02d:%02d", hour, minute, second);
 
-	buffer[buffer_length-1] = '\x0';
+	buffer[buffer_length - 1] = '\x0';
 
 	return;
 	}
@@ -884,7 +884,7 @@ void get_interval_time_string(double time_units, char *buffer, int buffer_length
 	total_seconds %= 60;
 	seconds = (int)total_seconds;
 	snprintf(buffer, buffer_length, "%dh %dm %ds", hours, minutes, seconds);
-	buffer[buffer_length-1] = '\x0';
+	buffer[buffer_length - 1] = '\x0';
 
 	return;
 	}
@@ -978,7 +978,7 @@ char * html_encode(char *input, int escape_newlines) {
 			strcpy(&encoded_html_string[y], "<BR>");
 			y += 4;
 			}
-		else if(escape_newlines == TRUE && (char)input[x] == (char)'\\' && (char)input[x+1] == (char)'n') {
+		else if(escape_newlines == TRUE && (char)input[x] == (char)'\\' && (char)input[x + 1] == (char)'n') {
 			strcpy(&encoded_html_string[y], "<BR>");
 			y += 4;
 			x++;
@@ -1115,7 +1115,7 @@ void get_log_archive_to_use(int archive, char *buffer, int buffer_length) {
 	/* if we're not rotating the logs or if we want the current log, use the main one... */
 	if(log_rotation_method == LOG_ROTATION_NONE || archive <= 0) {
 		strncpy(buffer, log_file, buffer_length);
-		buffer[buffer_length-1] = '\x0';
+		buffer[buffer_length - 1] = '\x0';
 		return;
 		}
 
@@ -1123,7 +1123,7 @@ void get_log_archive_to_use(int archive, char *buffer, int buffer_length) {
 
 	/* use the time that the log rotation occurred to figure out the name of the log file */
 	snprintf(buffer, buffer_length, "%snagios-%02d-%02d-%d-%02d.log", log_archive_path, t->tm_mon + 1, t->tm_mday, t->tm_year + 1900, t->tm_hour);
-	buffer[buffer_length-1] = '\x0';
+	buffer[buffer_length - 1] = '\x0';
 
 	return;
 	}
@@ -1402,14 +1402,14 @@ void print_extra_hostgroup_url(char *group_name, char *url) {
 		}
 
 	strncpy(input_buffer, url, sizeof(input_buffer) - 1);
-	input_buffer[sizeof(input_buffer)-1] = '\x0';
+	input_buffer[sizeof(input_buffer) - 1] = '\x0';
 
 	for(temp_buffer = my_strtok(input_buffer, "$"); temp_buffer != NULL; temp_buffer = my_strtok(NULL, "$")) {
 
 		if(in_macro == FALSE) {
 			if(strlen(output_buffer) + strlen(temp_buffer) < sizeof(output_buffer) - 1) {
 				strncat(output_buffer, temp_buffer, sizeof(output_buffer) - strlen(output_buffer) - 1);
-				output_buffer[sizeof(output_buffer)-1] = '\x0';
+				output_buffer[sizeof(output_buffer) - 1] = '\x0';
 				}
 			in_macro = TRUE;
 			}
@@ -1450,14 +1450,14 @@ void print_extra_servicegroup_url(char *group_name, char *url) {
 		}
 
 	strncpy(input_buffer, url, sizeof(input_buffer) - 1);
-	input_buffer[sizeof(input_buffer)-1] = '\x0';
+	input_buffer[sizeof(input_buffer) - 1] = '\x0';
 
 	for(temp_buffer = my_strtok(input_buffer, "$"); temp_buffer != NULL; temp_buffer = my_strtok(NULL, "$")) {
 
 		if(in_macro == FALSE) {
 			if(strlen(output_buffer) + strlen(temp_buffer) < sizeof(output_buffer) - 1) {
 				strncat(output_buffer, temp_buffer, sizeof(output_buffer) - strlen(output_buffer) - 1);
-				output_buffer[sizeof(output_buffer)-1] = '\x0';
+				output_buffer[sizeof(output_buffer) - 1] = '\x0';
 				}
 			in_macro = TRUE;
 			}
@@ -1490,14 +1490,14 @@ void include_ssi_files(char *cgi_name, int type) {
 
 	/* common header or footer */
 	snprintf(common_ssi_file, sizeof(common_ssi_file) - 1, "%scommon-%s.ssi", physical_ssi_path, (type == SSI_HEADER) ? "header" : "footer");
-	common_ssi_file[sizeof(common_ssi_file)-1] = '\x0';
+	common_ssi_file[sizeof(common_ssi_file) - 1] = '\x0';
 
 	/* CGI-specific header or footer */
 	strncpy(raw_cgi_name, cgi_name, sizeof(raw_cgi_name) - 1);
-	raw_cgi_name[sizeof(raw_cgi_name)-1] = '\x0';
+	raw_cgi_name[sizeof(raw_cgi_name) - 1] = '\x0';
 	stripped_cgi_name = strtok(raw_cgi_name, ".");
 	snprintf(cgi_ssi_file, sizeof(cgi_ssi_file) - 1, "%s%s-%s.ssi", physical_ssi_path, (stripped_cgi_name == NULL) ? "" : stripped_cgi_name, (type == SSI_HEADER) ? "header" : "footer");
-	cgi_ssi_file[sizeof(cgi_ssi_file)-1] = '\x0';
+	cgi_ssi_file[sizeof(cgi_ssi_file) - 1] = '\x0';
 	for(x = 0; x < strlen(cgi_ssi_file); x++)
 		cgi_ssi_file[x] = tolower(cgi_ssi_file[x]);
 

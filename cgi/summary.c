@@ -283,7 +283,7 @@ int main(int argc, char **argv) {
 		printf("<td align=left valign=top width=33%%>\n");
 
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Alert Summary Report");
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		display_info_table(temp_buffer, FALSE, &current_authdata);
 
 		printf("</td>\n");
@@ -1271,7 +1271,7 @@ void scan_log_file_for_archived_event_data(char *filename) {
 			temp_buffer = my_strtok(NULL, ":");
 			temp_buffer = my_strtok(NULL, ";");
 			strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-			entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+			entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 			/* state type */
 			if(strstr(input, ";SOFT;"))
@@ -1305,12 +1305,12 @@ void scan_log_file_for_archived_event_data(char *filename) {
 			temp_buffer = my_strtok(NULL, ":");
 			temp_buffer = my_strtok(NULL, ";");
 			strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-			entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+			entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 			/* get service description */
 			temp_buffer = my_strtok(NULL, ";");
 			strncpy(entry_svc_description, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(entry_svc_description));
-			entry_svc_description[sizeof(entry_svc_description)-1] = '\x0';
+			entry_svc_description[sizeof(entry_svc_description) - 1] = '\x0';
 
 			/* state type */
 			if(strstr(input, ";SOFT;"))

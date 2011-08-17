@@ -403,7 +403,7 @@ void display_network_outages(void) {
 		total_comments = number_of_host_comments(temp_hostoutage->hst->name);
 		if(total_comments > 0) {
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "This host has %d comment%s associated with it", total_comments, (total_comments == 1) ? "" : "s");
-			temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			printf("<TD CLASS='%s'><A HREF='%s?type=%d&host=%s#comments'><IMG SRC='%s%s' BORDER=0 ALT='%s' TITLE='%s'></A></TD>\n", bg_class, EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_hostoutage->hst->name), url_images_path, COMMENT_ICON, temp_buffer, temp_buffer);
 			}
 		else
@@ -418,7 +418,7 @@ void display_network_outages(void) {
 			t = current_time - temp_hoststatus->last_state_change;
 		get_time_breakdown((unsigned long)t, &days, &hours, &minutes, &seconds);
 		snprintf(state_duration, sizeof(state_duration) - 1, "%2dd %2dh %2dm %2ds%s", days, hours, minutes, seconds, (temp_hoststatus->last_state_change == (time_t)0) ? "+" : "");
-		state_duration[sizeof(state_duration)-1] = '\x0';
+		state_duration[sizeof(state_duration) - 1] = '\x0';
 		printf("<TD CLASS='%s'>%s</TD>\n", bg_class, state_duration);
 
 		printf("<TD CLASS='%s'>%d</TD>\n", bg_class, temp_hostoutage->affected_child_hosts);

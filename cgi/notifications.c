@@ -200,7 +200,7 @@ int main(void) {
 			}
 		else
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%s?%s%s=%s&type=%d&", NOTIFICATIONS_CGI, (use_lifo == FALSE) ? "oldestfirst&" : "", (query_type == FIND_HOST) ? "host" : "contact", (query_type == FIND_HOST) ? url_encode(query_host_name) : url_encode(query_contact_name), notification_options);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		display_nav_table(temp_buffer, log_archive);
 
 		printf("</td>\n");
@@ -567,24 +567,24 @@ void display_notifications(void) {
 			temp_buffer = (char *)strtok(NULL, ":");
 			temp_buffer = (char *)strtok(NULL, ";");
 			snprintf(contact_name, sizeof(contact_name), "%s", (temp_buffer == NULL) ? "" : temp_buffer + 1);
-			contact_name[sizeof(contact_name)-1] = '\x0';
+			contact_name[sizeof(contact_name) - 1] = '\x0';
 
 			/* get the host name */
 			temp_buffer = (char *)strtok(NULL, ";");
 			snprintf(host_name, sizeof(host_name), "%s", (temp_buffer == NULL) ? "" : temp_buffer);
-			host_name[sizeof(host_name)-1] = '\x0';
+			host_name[sizeof(host_name) - 1] = '\x0';
 
 			/* get the service name */
 			if(notification_type == SERVICE_NOTIFICATION) {
 				temp_buffer = (char *)strtok(NULL, ";");
 				snprintf(service_name, sizeof(service_name), "%s", (temp_buffer == NULL) ? "" : temp_buffer);
-				service_name[sizeof(service_name)-1] = '\x0';
+				service_name[sizeof(service_name) - 1] = '\x0';
 				}
 
 			/* get the alert level */
 			temp_buffer = (char *)strtok(NULL, ";");
 			snprintf(alert_level, sizeof(alert_level), "%s", (temp_buffer == NULL) ? "" : temp_buffer);
-			alert_level[sizeof(alert_level)-1] = '\x0';
+			alert_level[sizeof(alert_level) - 1] = '\x0';
 
 			if(notification_type == SERVICE_NOTIFICATION) {
 
@@ -666,7 +666,7 @@ void display_notifications(void) {
 			/* get the method name */
 			temp_buffer = (char *)strtok(NULL, ";");
 			snprintf(method_name, sizeof(method_name), "%s", (temp_buffer == NULL) ? "" : temp_buffer);
-			method_name[sizeof(method_name)-1] = '\x0';
+			method_name[sizeof(method_name) - 1] = '\x0';
 
 			/* move to the informational message */
 			temp_buffer = strtok(NULL, ";");

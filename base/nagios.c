@@ -462,11 +462,11 @@ int main(int argc, char **argv, char **env) {
 
 		/* append a forward slash */
 		strncat(config_file, "/", 1);
-		config_file[MAX_FILENAME_LENGTH-1] = '\x0';
+		config_file[MAX_FILENAME_LENGTH - 1] = '\x0';
 
 		/* append the config file to the path */
 		strncat(config_file, buffer, MAX_FILENAME_LENGTH - strlen(config_file) - 1);
-		config_file[MAX_FILENAME_LENGTH-1] = '\x0';
+		config_file[MAX_FILENAME_LENGTH - 1] = '\x0';
 
 		my_free(buffer);
 		}

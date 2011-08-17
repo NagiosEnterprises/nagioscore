@@ -409,7 +409,7 @@ int xrddefault_save_state_information(void) {
 
 		fprintf(fp, "state_history=");
 		for(x = 0; x < MAX_STATE_HISTORY_ENTRIES; x++)
-			fprintf(fp, "%s%d", (x > 0) ? "," : "", temp_host->state_history[(x+temp_host->state_history_index)%MAX_STATE_HISTORY_ENTRIES]);
+			fprintf(fp, "%s%d", (x > 0) ? "," : "", temp_host->state_history[(x + temp_host->state_history_index) % MAX_STATE_HISTORY_ENTRIES]);
 		fprintf(fp, "\n");
 
 		/* custom variables */
@@ -482,7 +482,7 @@ int xrddefault_save_state_information(void) {
 
 		fprintf(fp, "state_history=");
 		for(x = 0; x < MAX_STATE_HISTORY_ENTRIES; x++)
-			fprintf(fp, "%s%d", (x > 0) ? "," : "", temp_service->state_history[(x+temp_service->state_history_index)%MAX_STATE_HISTORY_ENTRIES]);
+			fprintf(fp, "%s%d", (x > 0) ? "," : "", temp_service->state_history[(x + temp_service->state_history_index) % MAX_STATE_HISTORY_ENTRIES]);
 		fprintf(fp, "\n");
 
 		/* custom variables */

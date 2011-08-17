@@ -650,15 +650,15 @@ int xpddefault_preprocess_file_templates(char *template) {
 
 	for(x = 0, y = 0; x < strlen(template); x++, y++) {
 		if(template[x] == '\\') {
-			if(template[x+1] == 't') {
+			if(template[x + 1] == 't') {
 				tempbuf[y] = '\t';
 				x++;
 				}
-			else if(template[x+1] == 'r') {
+			else if(template[x + 1] == 'r') {
 				tempbuf[y] = '\r';
 				x++;
 				}
-			else if(template[x+1] == 'n') {
+			else if(template[x + 1] == 'n') {
 				tempbuf[y] = '\n';
 				x++;
 				}

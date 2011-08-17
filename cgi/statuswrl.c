@@ -311,7 +311,7 @@ void display_world(void) {
 
 	/* get the url we will use to grab the logo images... */
 	snprintf(url_logo_images_path, sizeof(url_logo_images_path), "%slogos/", url_images_path);
-	url_logo_images_path[sizeof(url_logo_images_path)-1] = '\x0';
+	url_logo_images_path[sizeof(url_logo_images_path) - 1] = '\x0';
 
 	/* calculate host drawing coordinates */
 	calculate_host_coords();

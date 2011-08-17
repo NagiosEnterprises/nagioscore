@@ -143,7 +143,7 @@ extern int allow_empty_hostgroup_assignment;
 /* returns the name of a numbered config file */
 static char *xodtemplate_config_file_name(int config_file) {
 	if(config_file <= xodtemplate_current_config_file)
-		return xodtemplate_config_files[config_file-1];
+		return xodtemplate_config_files[config_file - 1];
 
 	return "?";
 	}
@@ -303,8 +303,8 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 					config_file = temp_buffer;
 
 				/* strip trailing / if necessary */
-				if(config_file != NULL && config_file[strlen(config_file)-1] == '/')
-					config_file[strlen(config_file)-1] = '\x0';
+				if(config_file != NULL && config_file[strlen(config_file) - 1] == '/')
+					config_file[strlen(config_file) - 1] = '\x0';
 
 				/* process the config directory... */
 				result = xodtemplate_process_config_dir(config_file, options);
@@ -599,7 +599,7 @@ int xodtemplate_process_config_dir(char *dirname, int options) {
 
 		/* create /path/to/file */
 		snprintf(file, sizeof(file), "%s/%s", dirname, dirfile->d_name);
-		file[sizeof(file)-1] = '\x0';
+		file[sizeof(file) - 1] = '\x0';
 
 		/* process this if it's a non-hidden config file... */
 		if(stat(file, &stat_buf) == -1) {
@@ -698,7 +698,7 @@ int xodtemplate_process_config_file(char *filename, int options) {
 			if(input[x] == ';') {
 				if(x == 0)
 					break;
-				else if(input[x-1] != '\\')
+				else if(input[x - 1] != '\\')
 					break;
 				}
 			}
@@ -2141,11 +2141,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				if(x < 1 || x > MAX_XODTEMPLATE_CONTACT_ADDRESSES)
 					result = ERROR;
 				else if(strcmp(value, XODTEMPLATE_NULL)) {
-					if((temp_contact->address[x-1] = (char *)strdup(value)) == NULL)
+					if((temp_contact->address[x - 1] = (char *)strdup(value)) == NULL)
 						result = ERROR;
 					}
 				if(result == OK)
-					temp_contact->have_address[x-1] = TRUE;
+					temp_contact->have_address[x - 1] = TRUE;
 				}
 			else if(!strcmp(variable, "host_notification_period")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {

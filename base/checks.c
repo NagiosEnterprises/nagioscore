@@ -4197,11 +4197,11 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 	/* unescape newlines and escaped backslashes first */
 	if(newlines_are_escaped == TRUE) {
 		for(x = 0, y = 0; buf[x] != '\x0'; x++) {
-			if(buf[x] == '\\' && buf[x+1] == '\\') {
+			if(buf[x] == '\\' && buf[x + 1] == '\\') {
 				x++;
 				buf[y++] = buf[x];
 				}
-			else if(buf[x] == '\\' && buf[x+1] == 'n') {
+			else if(buf[x] == '\\' && buf[x + 1] == 'n') {
 				x++;
 				buf[y++] = '\n';
 				}
@@ -4217,7 +4217,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 		/* we found the end of a line */
 		if(buf[x] == '\n')
 			found_newline = TRUE;
-		else if(buf[x] == '\\' && buf[x+1] == 'n' && newlines_are_escaped == TRUE) {
+		else if(buf[x] == '\\' && buf[x + 1] == 'n' && newlines_are_escaped == TRUE) {
 			found_newline = TRUE;
 			buf[x] = '\x0';
 			x++;
@@ -4300,7 +4300,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 
 
 			/* shift data back to front of buffer and adjust counters */
-			memmove((void *)&buf[0], (void *)&buf[x+1], (size_t)((int)used_buf - x - 1));
+			memmove((void *)&buf[0], (void *)&buf[x + 1], (size_t)((int)used_buf - x - 1));
 			used_buf -= (x + 1);
 			buf[used_buf] = '\x0';
 			x = -1;

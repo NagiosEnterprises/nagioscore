@@ -380,7 +380,7 @@ int main(int argc, char **argv) {
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Service State Trends");
 		else
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Host and Service State Trends");
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		display_info_table(temp_buffer, FALSE, &current_authdata);
 
 		if(timeperiod_type == TIMEPERIOD_NEXTPROBLEM) {
@@ -723,7 +723,7 @@ int main(int argc, char **argv) {
 				snprintf(image_template, sizeof(image_template) - 1, "%s/trendshost.png", physical_images_path);
 			else
 				snprintf(image_template, sizeof(image_template) - 1, "%s/trendssvc.png", physical_images_path);
-			image_template[sizeof(image_template)-1] = '\x0';
+			image_template[sizeof(image_template) - 1] = '\x0';
 
 			/* allocate buffer for storing image */
 			trends_image = NULL;
@@ -762,11 +762,11 @@ int main(int argc, char **argv) {
 
 			/* title */
 			snprintf(start_time, sizeof(start_time) - 1, "%s", ctime(&t1));
-			start_time[sizeof(start_time)-1] = '\x0';
-			start_time[strlen(start_time)-1] = '\x0';
+			start_time[sizeof(start_time) - 1] = '\x0';
+			start_time[strlen(start_time) - 1] = '\x0';
 			snprintf(end_time, sizeof(end_time) - 1, "%s", ctime(&t2));
-			end_time[sizeof(end_time)-1] = '\x0';
-			end_time[strlen(end_time)-1] = '\x0';
+			end_time[sizeof(end_time) - 1] = '\x0';
+			end_time[strlen(end_time) - 1] = '\x0';
 
 			string_height = gdFontSmall->h;
 
@@ -774,19 +774,19 @@ int main(int argc, char **argv) {
 				snprintf(temp_buffer, sizeof(temp_buffer) - 1, "State History For Host '%s'", host_name);
 			else
 				snprintf(temp_buffer, sizeof(temp_buffer) - 1, "State History For Service '%s' On Host '%s'", svc_description, host_name);
-			temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			string_width = gdFontSmall->w * strlen(temp_buffer);
 			gdImageString(trends_image, gdFontSmall, (drawing_width / 2) - (string_width / 2) + drawing_x_offset, string_height, (unsigned char *)temp_buffer, color_black);
 
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%s to %s", start_time, end_time);
-			temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			string_width = gdFontSmall->w * strlen(temp_buffer);
 			gdImageString(trends_image, gdFontSmall, (drawing_width / 2) - (string_width / 2) + drawing_x_offset, (string_height * 2) + 5, (unsigned char *)temp_buffer, color_black);
 
 
 			/* first time stamp */
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%s", start_time);
-			temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			string_width = gdFontSmall->w * strlen(temp_buffer);
 			gdImageStringUp(trends_image, gdFontSmall, drawing_x_offset - (string_height / 2), drawing_y_offset + drawing_height + string_width + 5, (unsigned char *)temp_buffer, color_black);
 			}
@@ -2272,12 +2272,12 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 		if(display_popups == TRUE) {
 
 			snprintf(start_timestring, sizeof(start_timestring) - 1, "%s", ctime(&real_start_time));
-			start_timestring[sizeof(start_timestring)-1] = '\x0';
-			start_timestring[strlen(start_timestring)-1] = '\x0';
+			start_timestring[sizeof(start_timestring) - 1] = '\x0';
+			start_timestring[strlen(start_timestring) - 1] = '\x0';
 
 			snprintf(end_timestring, sizeof(end_timestring) - 1, "%s", ctime(&end_time));
-			end_timestring[sizeof(end_timestring)-1] = '\x0';
-			end_timestring[strlen(end_timestring)-1] = '\x0';
+			end_timestring[sizeof(end_timestring) - 1] = '\x0';
+			end_timestring[strlen(end_timestring) - 1] = '\x0';
 
 			/* calculate total time in this state */
 			get_time_breakdown((time_t)(end_time - start_time), &days, &hours, &minutes, &seconds);
@@ -2287,7 +2287,7 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 
 			printf("onMouseOver='showPopup(\"");
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "<B><U>%s</U></B><BR><B>Time Range</B>: <I>%s</I> to <I>%s</I><BR><B>Duration</B>: <I>%dd %dh %dm %ds</I><BR><B>State Info</B>: <I>%s</I>", state_string, start_timestring, end_timestring, days, hours, minutes, seconds, (state_info == NULL) ? "N/A" : state_info);
-			temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			printf("%s", temp_buffer);
 			printf("\",event)' onMouseOut='hidePopup()'");
 			}
@@ -2553,7 +2553,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				temp_buffer = my_strtok(NULL, ":");
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+				entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 				if(strcmp(host_name, entry_host_name))
 					continue;
@@ -2595,7 +2595,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				temp_buffer = my_strtok(NULL, ":");
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+				entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 				if(strcmp(host_name, entry_host_name))
 					continue;
@@ -2603,7 +2603,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				/* get service description */
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_svc_description, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(entry_svc_description));
-				entry_svc_description[sizeof(entry_svc_description)-1] = '\x0';
+				entry_svc_description[sizeof(entry_svc_description) - 1] = '\x0';
 
 				if(strcmp(svc_description, entry_svc_description))
 					continue;
@@ -2775,8 +2775,8 @@ void draw_timestamp(int ts_pixel, time_t ts_time) {
 	int string_width;
 
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%s", ctime(&ts_time));
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
-	temp_buffer[strlen(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
+	temp_buffer[strlen(temp_buffer) - 1] = '\x0';
 
 	string_height = gdFontSmall->h;
 	string_width = gdFontSmall->w * strlen(temp_buffer);
@@ -2878,7 +2878,7 @@ void get_time_breakdown_string(unsigned long total_time, unsigned long state_tim
 	else
 		percent_time = ((double)state_time / total_time) * 100.0;
 	snprintf(buffer, buffer_length - 1, "%-13s: (%.3f%%) %dd %dh %dm %ds", state_string, percent_time, days, hours, minutes, seconds);
-	buffer[buffer_length-1] = '\x0';
+	buffer[buffer_length - 1] = '\x0';
 
 	return;
 	}

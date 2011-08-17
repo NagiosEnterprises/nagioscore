@@ -484,7 +484,7 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 			}
 
 		/* use a pre-computed macro value */
-		*output = mac->argv[x-1];
+		*output = mac->argv[x - 1];
 		*free_macro = FALSE;
 		}
 
@@ -500,7 +500,7 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 			}
 
 		/* use a pre-computed macro value */
-		*output = macro_user[x-1];
+		*output = macro_user[x - 1];
 		*free_macro = FALSE;
 		}
 

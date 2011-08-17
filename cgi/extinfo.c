@@ -224,7 +224,7 @@ int main(void) {
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Check Scheduling Queue");
 		else
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Nagios Process Information");
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		display_info_table(temp_buffer, TRUE, &current_authdata);
 
 		/* find the host */
@@ -1056,7 +1056,7 @@ void show_host_info(void) {
 			snprintf(state_duration, sizeof(state_duration) - 1, "???");
 		else
 			snprintf(state_duration, sizeof(state_duration) - 1, "%2dd %2dh %2dm %2ds%s", days, hours, minutes, seconds, (temp_hoststatus->last_state_change == (time_t)0) ? "+" : "");
-		state_duration[sizeof(state_duration)-1] = '\x0';
+		state_duration[sizeof(state_duration) - 1] = '\x0';
 
 		if(temp_hoststatus->status == HOST_UP) {
 			strcpy(state_string, "UP");
@@ -1134,7 +1134,7 @@ void show_host_info(void) {
 			snprintf(status_age, sizeof(status_age) - 1, "N/A");
 		else
 			snprintf(status_age, sizeof(status_age) - 1, "%2dd %2dh %2dm %2ds", days, hours, minutes, seconds);
-		status_age[sizeof(status_age)-1] = '\x0';
+		status_age[sizeof(status_age) - 1] = '\x0';
 
 		get_time_string(&temp_hoststatus->last_update, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
 		printf("<TR><TD CLASS='dataVar'>Last Update:</td><td CLASS='dataVal'>%s&nbsp;&nbsp;(%s ago)</td></tr>\n", (temp_hoststatus->last_update == (time_t)0) ? "N/A" : date_time, status_age);
@@ -1366,7 +1366,7 @@ void show_service_info(void) {
 			snprintf(state_duration, sizeof(state_duration) - 1, "???");
 		else
 			snprintf(state_duration, sizeof(state_duration) - 1, "%2dd %2dh %2dm %2ds%s", days, hours, minutes, seconds, (temp_svcstatus->last_state_change == (time_t)0) ? "+" : "");
-		state_duration[sizeof(state_duration)-1] = '\x0';
+		state_duration[sizeof(state_duration) - 1] = '\x0';
 
 		if(temp_svcstatus->status == SERVICE_OK) {
 			strcpy(state_string, "OK");
@@ -1447,7 +1447,7 @@ void show_service_info(void) {
 			snprintf(status_age, sizeof(status_age) - 1, "N/A");
 		else
 			snprintf(status_age, sizeof(status_age) - 1, "%2dd %2dh %2dm %2ds", days, hours, minutes, seconds);
-		status_age[sizeof(status_age)-1] = '\x0';
+		status_age[sizeof(status_age) - 1] = '\x0';
 
 		get_time_string(&temp_svcstatus->last_update, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
 		printf("<TR><TD CLASS='dataVar'>Last Update:</TD><TD CLASS='dataVal'>%s&nbsp;&nbsp;(%s ago)</TD></TR>\n", (temp_svcstatus->last_update == (time_t)0) ? "N/A" : date_time, status_age);
@@ -2817,7 +2817,7 @@ void show_scheduling_queue(void) {
 	printf("<TR CLASS='queue'>");
 
 	snprintf(temp_url, sizeof(temp_url) - 1, "%s?type=%d", EXTINFO_CGI, DISPLAY_SCHEDULING_QUEUE);
-	temp_url[sizeof(temp_url)-1] = '\x0';
+	temp_url[sizeof(temp_url) - 1] = '\x0';
 
 	printf("<TH CLASS='queue'>Host&nbsp;<A HREF='%s&sorttype=%d&sortoption=%d'><IMG SRC='%s%s' BORDER=0 ALT='Sort by host name (ascending)' TITLE='Sort by host name (ascending)'></A><A HREF='%s&sorttype=%d&sortoption=%d'><IMG SRC='%s%s' BORDER=0 ALT='Sort by host name (descending)' TITLE='Sort by host name (descending)'></A></TH>", temp_url, SORT_ASCENDING, SORT_HOSTNAME, url_images_path, UP_ARROW_ICON, temp_url, SORT_DESCENDING, SORT_HOSTNAME, url_images_path, DOWN_ARROW_ICON);
 

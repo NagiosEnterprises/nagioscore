@@ -400,7 +400,7 @@ int main(int argc, char **argv) {
 				snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Availability Report");
 				break;
 			}
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		display_info_table(temp_buffer, FALSE, &current_authdata);
 
 		if(((display_type == DISPLAY_HOST_AVAIL && show_all_hosts == FALSE) || (display_type == DISPLAY_SERVICE_AVAIL && show_all_services == FALSE)) && get_date_parts == FALSE) {
@@ -2935,7 +2935,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				temp_buffer = my_strtok(NULL, ":");
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+				entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 				/* see if there is a corresponding subject for this host */
 				temp_subject = find_subject(HOST_SUBJECT, entry_host_name, NULL);
@@ -2974,7 +2974,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				temp_buffer = my_strtok(NULL, ":");
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+				entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 				/* see if there is a corresponding subject for this host */
 				temp_subject = find_subject(HOST_SUBJECT, entry_host_name, NULL);
@@ -3001,12 +3001,12 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				temp_buffer = my_strtok(NULL, ":");
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+				entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 				/* get service description */
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_svc_description, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(entry_svc_description));
-				entry_svc_description[sizeof(entry_svc_description)-1] = '\x0';
+				entry_svc_description[sizeof(entry_svc_description) - 1] = '\x0';
 
 				/* see if there is a corresponding subject for this service */
 				temp_subject = find_subject(SERVICE_SUBJECT, entry_host_name, entry_svc_description);
@@ -3048,12 +3048,12 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				temp_buffer = my_strtok(NULL, ":");
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+				entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 				/* get service description */
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_svc_description, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(entry_svc_description));
-				entry_svc_description[sizeof(entry_svc_description)-1] = '\x0';
+				entry_svc_description[sizeof(entry_svc_description) - 1] = '\x0';
 
 				/* see if there is a corresponding subject for this service */
 				temp_subject = find_subject(SERVICE_SUBJECT, entry_host_name, entry_svc_description);
@@ -3076,7 +3076,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				temp_buffer = my_strtok(NULL, ":");
 				temp_buffer = my_strtok(NULL, ";");
 				strncpy(entry_host_name, (temp_buffer == NULL) ? "" : temp_buffer + 1, sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1] = '\x0';
+				entry_host_name[sizeof(entry_host_name) - 1] = '\x0';
 
 				/* this host downtime entry must be added to all service subjects associated with the host! */
 				for(temp_subject = subject_list; temp_subject != NULL; temp_subject = temp_subject->next) {
@@ -3802,7 +3802,7 @@ void display_specific_servicegroup_availability(servicegroup *sg) {
 		printf("</td><td CLASS='serviceOK'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceWARNING'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceUNKNOWN'>%2.3f%% (%2.3f%%)</td><td class='serviceCRITICAL'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n", percent_time_ok, percent_time_ok_known, percent_time_warning, percent_time_warning_known, percent_time_unknown, percent_time_unknown_known, percent_time_critical, percent_time_critical_known, bgclass, percent_time_indeterminate);
 
 		strncpy(last_host, temp_subject->host_name, sizeof(last_host) - 1);
-		last_host[sizeof(last_host)-1] = '\x0';
+		last_host[sizeof(last_host) - 1] = '\x0';
 
 		get_running_average(&average_percent_time_ok, percent_time_ok, current_subject);
 		get_running_average(&average_percent_time_ok_known, percent_time_ok_known, current_subject);
@@ -4717,7 +4717,7 @@ void display_service_availability(void) {
 				}
 
 			strncpy(last_host, temp_subject->host_name, sizeof(last_host) - 1);
-			last_host[sizeof(last_host)-1] = '\x0';
+			last_host[sizeof(last_host) - 1] = '\x0';
 
 			get_running_average(&average_percent_time_ok, percent_time_ok, current_subject);
 			get_running_average(&average_percent_time_ok_known, percent_time_ok_known, current_subject);

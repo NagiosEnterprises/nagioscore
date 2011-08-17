@@ -1329,39 +1329,39 @@ void show_service_detail(void) {
 
 
 	snprintf(temp_url, sizeof(temp_url) - 1, "%s?", STATUS_CGI);
-	temp_url[sizeof(temp_url)-1] = '\x0';
+	temp_url[sizeof(temp_url) - 1] = '\x0';
 	if(display_type == DISPLAY_HOSTS)
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "servicegroup=%s&style=detail", url_encode(servicegroup_name));
 	else
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "hostgroup=%s&style=detail", url_encode(hostgroup_name));
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
-	temp_url[sizeof(temp_url)-1] = '\x0';
+	temp_url[sizeof(temp_url) - 1] = '\x0';
 	if(service_status_types != all_service_status_types) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&servicestatustypes=%d", service_status_types);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
-		temp_url[sizeof(temp_url)-1] = '\x0';
+		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
 	if(host_status_types != all_host_status_types) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&hoststatustypes=%d", host_status_types);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
-		temp_url[sizeof(temp_url)-1] = '\x0';
+		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
 	if(service_properties != 0) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&serviceprops=%lu", service_properties);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
-		temp_url[sizeof(temp_url)-1] = '\x0';
+		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
 	if(host_properties != 0) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&hostprops=%lu", host_properties);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
-		temp_url[sizeof(temp_url)-1] = '\x0';
+		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
 
 	/* the main list of services */
@@ -1550,7 +1550,7 @@ void show_service_detail(void) {
 				else
 					status_bg_class = "BGCRITICAL";
 				}
-			status[sizeof(status)-1] = '\x0';
+			status[sizeof(status) - 1] = '\x0';
 
 
 			printf("<TR>\n");
@@ -1775,7 +1775,7 @@ void show_service_detail(void) {
 				snprintf(state_duration, sizeof(state_duration) - 1, "???");
 			else
 				snprintf(state_duration, sizeof(state_duration) - 1, "%2dd %2dh %2dm %2ds%s", days, hours, minutes, seconds, (temp_status->last_state_change == (time_t)0) ? "+" : "");
-			state_duration[sizeof(state_duration)-1] = '\x0';
+			state_duration[sizeof(state_duration) - 1] = '\x0';
 
 			/* the rest of the columns... */
 			printf("<TD CLASS='status%s'>%s</TD>\n", status_class, status);
@@ -1916,34 +1916,34 @@ void show_host_detail(void) {
 
 
 	snprintf(temp_url, sizeof(temp_url) - 1, "%s?", STATUS_CGI);
-	temp_url[sizeof(temp_url)-1] = '\x0';
+	temp_url[sizeof(temp_url) - 1] = '\x0';
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "hostgroup=%s&style=hostdetail", url_encode(hostgroup_name));
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 	strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
-	temp_url[sizeof(temp_url)-1] = '\x0';
+	temp_url[sizeof(temp_url) - 1] = '\x0';
 	if(service_status_types != all_service_status_types) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&servicestatustypes=%d", service_status_types);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
-		temp_url[sizeof(temp_url)-1] = '\x0';
+		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
 	if(host_status_types != all_host_status_types) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&hoststatustypes=%d", host_status_types);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
-		temp_url[sizeof(temp_url)-1] = '\x0';
+		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
 	if(service_properties != 0) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&serviceprops=%lu", service_properties);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
-		temp_url[sizeof(temp_url)-1] = '\x0';
+		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
 	if(host_properties != 0) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&hostprops=%lu", host_properties);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
-		temp_url[sizeof(temp_url)-1] = '\x0';
+		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
 
 
@@ -2070,7 +2070,7 @@ void show_host_detail(void) {
 				else
 					status_bg_class = "BGUNREACHABLE";
 				}
-			status[sizeof(status)-1] = '\x0';
+			status[sizeof(status) - 1] = '\x0';
 
 
 			printf("<TR>\n");
@@ -2180,7 +2180,7 @@ void show_host_detail(void) {
 				snprintf(state_duration, sizeof(state_duration) - 1, "???");
 			else
 				snprintf(state_duration, sizeof(state_duration) - 1, "%2dd %2dh %2dm %2ds%s", days, hours, minutes, seconds, (temp_status->last_state_change == (time_t)0) ? "+" : "");
-			state_duration[sizeof(state_duration)-1] = '\x0';
+			state_duration[sizeof(state_duration) - 1] = '\x0';
 
 			/* the rest of the columns... */
 			printf("<TD CLASS='status%s'>%s</TD>\n", status_class, status);
@@ -3507,7 +3507,7 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd,
 		status_bg_class = "HOSTUNREACHABLE";
 		}
 
-	status[sizeof(status)-1] = '\x0';
+	status[sizeof(status) - 1] = '\x0';
 
 	printf("<TR CLASS='status%s'>\n", status_bg_class);
 
@@ -3634,7 +3634,7 @@ void show_servicegroup_hostgroup_member_service_status_totals(char *host_name, v
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "servicegroup=%s&style=detail", url_encode(temp_servicegroup->group_name));
 	else
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "host=%s", url_encode(host_name));
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 
 	if(total_ok > 0)
 		printf("<TR><TD CLASS='miniStatusOK'><A HREF='%s?%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d OK</A></TD></TR>\n", STATUS_CGI, temp_buffer, SERVICE_OK, host_status_types, service_properties, host_properties, total_ok);

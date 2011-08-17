@@ -358,7 +358,7 @@ int validate_arguments(void) {
 
 int is_valid_hostip(char *hostip) {
 	char *valid_domain_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-";
-	if(strcmp(hostip, "") && strlen(hostip) == strspn(hostip, valid_domain_chars) && hostip[0] != '-' && hostip[strlen(hostip)-1] != '-')
+	if(strcmp(hostip, "") && strlen(hostip) == strspn(hostip, valid_domain_chars) && hostip[0] != '-' && hostip[strlen(hostip) - 1] != '-')
 		return TRUE;
 	return FALSE;
 	}
@@ -1265,13 +1265,13 @@ void display_ping(void) {
 			/* process macros in the ping syntax */
 			strcpy(buffer, "");
 			strncpy(input_buffer, ping_syntax, sizeof(input_buffer) - 1);
-			input_buffer[strlen(ping_syntax)-1] = '\x0';
+			input_buffer[strlen(ping_syntax) - 1] = '\x0';
 			for(temp_ptr = my_strtok(input_buffer, "$"); temp_ptr != NULL; temp_ptr = my_strtok(NULL, "$")) {
 
 				if(in_macro == FALSE) {
 					if(strlen(buffer) + strlen(temp_ptr) < sizeof(buffer) - 1) {
 						strncat(buffer, temp_ptr, sizeof(buffer) - strlen(buffer) - 1);
-						buffer[sizeof(buffer)-1] = '\x0';
+						buffer[sizeof(buffer) - 1] = '\x0';
 						}
 					in_macro = TRUE;
 					}
@@ -1355,7 +1355,7 @@ void display_traceroute(void) {
 		printf("<p mode='nowrap'>\n");
 
 		snprintf(buffer, sizeof(buffer) - 1, "%s %s", TRACEROUTE_COMMAND, traceroute_address);
-		buffer[sizeof(buffer)-1] = '\x0';
+		buffer[sizeof(buffer) - 1] = '\x0';
 
 		fp = popen(buffer, "r");
 		if(fp) {

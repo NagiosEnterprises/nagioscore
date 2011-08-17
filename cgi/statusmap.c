@@ -623,7 +623,7 @@ void display_page_header(void) {
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Network Map For All Hosts");
 		else
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Network Map For Host <I>%s</I>", host_name);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		display_info_table(temp_buffer, TRUE, &current_authdata);
 
 		printf("<TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 CLASS='linkBox'>\n");
@@ -1374,7 +1374,7 @@ void load_background_image(void) {
 		return;
 
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%s%s", physical_images_path, statusmap_background_image);
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 
 	/* read the background image into memory */
 	background_image = load_image_from_file(temp_buffer);
@@ -1611,7 +1611,7 @@ void draw_hosts(void) {
 
 		/* get the name of the image file to open for the logo */
 		snprintf(image_input_file, sizeof(image_input_file) - 1, "%s%s", physical_logo_images_path, NAGIOS_GD2_ICON);
-		image_input_file[sizeof(image_input_file)-1] = '\x0';
+		image_input_file[sizeof(image_input_file) - 1] = '\x0';
 
 		/* read in the image from file... */
 		logo_image = load_image_from_file(image_input_file);
@@ -1766,7 +1766,7 @@ void draw_hosts(void) {
 
 					/* get the name of the image file to open for the logo */
 					snprintf(image_input_file, sizeof(image_input_file) - 1, "%s%s", physical_logo_images_path, temp_host->statusmap_image);
-					image_input_file[sizeof(image_input_file)-1] = '\x0';
+					image_input_file[sizeof(image_input_file) - 1] = '\x0';
 
 					/* read in the logo image from file... */
 					logo_image = load_image_from_file(image_input_file);
@@ -1863,7 +1863,7 @@ void draw_host_text(char *name, int x, int y) {
 		return;
 
 	strncpy(temp_buffer, name, sizeof(temp_buffer) - 1);
-	temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 
 	/* write the host status string to the generated image... */
 	draw_text(temp_buffer, x, y, color_black);
@@ -1896,7 +1896,7 @@ void draw_host_text(char *name, int x, int y) {
 			status_color = color_orange;
 			}
 
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 
 		/* write the host status string to the generated image... */
 		draw_text(temp_buffer, x, y + gdFontSmall->h, status_color);
@@ -1988,7 +1988,7 @@ void write_host_popup_text(host *hst) {
 		t = current_time - temp_status->last_state_change;
 	get_time_breakdown((unsigned long)t, &days, &hours, &minutes, &seconds);
 	snprintf(state_duration, sizeof(state_duration) - 1, "%2dd %2dh %2dm %2ds%s", days, hours, minutes, seconds, (temp_status->last_state_change == (time_t)0) ? "+" : "");
-	state_duration[sizeof(state_duration)-1] = '\x0';
+	state_duration[sizeof(state_duration) - 1] = '\x0';
 	printf("<tr><td class=\\\"popupText\\\">State Duration:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>", state_duration);
 
 	get_time_string(&temp_status->last_check, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
@@ -2149,11 +2149,11 @@ int initialize_graphics(void) {
 
 	/* get the path where we will be reading logo images from (GD2 format)... */
 	snprintf(physical_logo_images_path, sizeof(physical_logo_images_path) - 1, "%slogos/", physical_images_path);
-	physical_logo_images_path[sizeof(physical_logo_images_path)-1] = '\x0';
+	physical_logo_images_path[sizeof(physical_logo_images_path) - 1] = '\x0';
 
 	/* load the unknown icon to use for hosts that don't have pretty images associated with them... */
 	snprintf(image_input_file, sizeof(image_input_file) - 1, "%s%s", physical_logo_images_path, UNKNOWN_GD2_ICON);
-	image_input_file[sizeof(image_input_file)-1] = '\x0';
+	image_input_file[sizeof(image_input_file) - 1] = '\x0';
 	unknown_logo_image = load_image_from_file(image_input_file);
 
 	return OK;

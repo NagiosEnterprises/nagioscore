@@ -1741,8 +1741,8 @@ void strip(char *buffer) {
 		}
 	if(x > 0) {
 		for(z = x; z < y; z++)
-			buffer[z-x] = buffer[z];
-		buffer[y-x] = '\x0';
+			buffer[z - x] = buffer[z];
+		buffer[y - x] = '\x0';
 		}
 
 	return;

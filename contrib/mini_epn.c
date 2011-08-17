@@ -44,7 +44,7 @@ int main(int argc, char **argv, char **env) {
 
 			dSP;
 
-			command_line[strlen(command_line) -1] = '\0';
+			command_line[strlen(command_line) - 1] = '\0';
 
 			strncpy(fname, command_line, strcspn(command_line, " "));
 			fname[strcspn(command_line, " ")] = '\x0';

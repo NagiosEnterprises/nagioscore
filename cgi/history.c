@@ -145,7 +145,7 @@ int main(void) {
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Alert History");
 		else
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Host Alert History");
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		display_info_table(temp_buffer, FALSE, &current_authdata);
 
 		printf("<TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 CLASS='linkBox'>\n");
@@ -187,12 +187,12 @@ int main(void) {
 		printf("<BR />\n");
 
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%s?%shost=%s&type=%d&statetype=%d&", HISTORY_CGI, (use_lifo == FALSE) ? "oldestfirst&" : "", url_encode(host_name), history_options, state_options);
-		temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		if(display_type == DISPLAY_SERVICES) {
 			snprintf(temp_buffer2, sizeof(temp_buffer2) - 1, "service=%s&", url_encode(svc_description));
-			temp_buffer2[sizeof(temp_buffer2)-1] = '\x0';
+			temp_buffer2[sizeof(temp_buffer2) - 1] = '\x0';
 			strncat(temp_buffer, temp_buffer2, sizeof(temp_buffer) - strlen(temp_buffer) - 1);
-			temp_buffer[sizeof(temp_buffer)-1] = '\x0';
+			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			}
 		display_nav_table(temp_buffer, log_archive);
 
@@ -779,8 +779,8 @@ void get_history(void) {
 			system_message = TRUE;
 			}
 
-		image[sizeof(image)-1] = '\x0';
-		image_alt[sizeof(image_alt)-1] = '\x0';
+		image[sizeof(image) - 1] = '\x0';
+		image_alt[sizeof(image_alt) - 1] = '\x0';
 
 		/* get the timestamp */
 		temp_buffer = strtok(input, "]");
@@ -788,7 +788,7 @@ void get_history(void) {
 
 		time_ptr = localtime(&t);
 		strftime(current_message_date, sizeof(current_message_date), "%B %d, %Y %H:00\n", time_ptr);
-		current_message_date[sizeof(current_message_date)-1] = '\x0';
+		current_message_date[sizeof(current_message_date) - 1] = '\x0';
 
 		get_time_string(&t, date_time, sizeof(date_time), SHORT_DATE_TIME);
 		strip(date_time);
@@ -916,7 +916,7 @@ void get_history(void) {
 					printf("</DIV>\n");
 					printf("<BR CLEAR='all' /><DIV CLASS='logEntries'>\n");
 					strncpy(last_message_date, current_message_date, sizeof(last_message_date));
-					last_message_date[sizeof(last_message_date)-1] = '\x0';
+					last_message_date[sizeof(last_message_date) - 1] = '\x0';
 					}
 
 				if(display_frills == TRUE)

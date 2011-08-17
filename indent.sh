@@ -1,4 +1,7 @@
 #!/bin/sh
+ARTISTIC_STYLE_OPTIONS=/dev/null
+
+export ARTISTIC_STYLE_OPTIONS
 
 f=$1
 

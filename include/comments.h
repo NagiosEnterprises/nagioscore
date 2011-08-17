@@ -25,15 +25,11 @@
 
 #ifndef _COMMENTS_H
 #define _COMMENTS_H
-
+#include "compat.h"
 #include "config.h"
 #include "common.h"
 #include "objects.h"
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 	/**************************** COMMENT SOURCES ******************************/
 
@@ -64,6 +60,7 @@ extern "C" {
 
 	/**************************** DATA STRUCTURES ******************************/
 
+NAGIOS_BEGIN_DECL
 
 	/* COMMENT structure */
 	typedef struct comment_struct {
@@ -126,8 +123,6 @@ extern "C" {
 
 	void free_comment_data(void);                                             /* frees memory allocated to the comment list */
 
-#ifdef __cplusplus
-	}
-#endif
+NAGIOS_BEGIN_DECL
 
 #endif

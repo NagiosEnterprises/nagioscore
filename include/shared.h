@@ -2,6 +2,10 @@
 #define INCLUDE__shared_h__
 
 #include <time.h>
+#include "compat.h"
+
+NAGIOS_BEGIN_DECL
+
 /* mmapfile structure - used for reading files via mmap() */
 typedef struct mmapfile_struct {
 	char *path;
@@ -30,4 +34,6 @@ extern void get_datetime_string(time_t *raw_time, char *buffer,
                                 int buffer_length, int type);
 extern void get_time_breakdown(unsigned long raw_time, int *days, int *hours,
                                int *minutes, int *seconds);
+
+NAGIOS_END_DECL
 #endif

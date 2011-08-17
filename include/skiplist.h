@@ -23,12 +23,14 @@
 
 #ifndef _SKIPLIST_H
 #define _SKIPLIST_H
+#include "compat.h"
 
 #define SKIPLIST_OK              0
 #define SKIPLIST_ERROR_ARGS      1
 #define SKIPLIST_ERROR_MEMORY    2
 #define SKIPLIST_ERROR_DUPLICATE 3
 
+NAGIOS_BEGIN_DECL
 
 typedef struct skiplistnode_struct {
 	void *data;
@@ -64,4 +66,5 @@ int skiplist_delete_first(skiplist *list, void *data);
 int skiplist_delete_all(skiplist *list, void *data);
 int skiplist_delete_node(skiplist *list, void *node_ptr);
 
+NAGIOS_END_DECL
 #endif

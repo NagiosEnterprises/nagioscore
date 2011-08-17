@@ -26,13 +26,11 @@
 #ifndef _OBJECTS_H
 #define _OBJECTS_H
 
+#include "compat.h"
 #include "config.h"
 #include "common.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+NAGIOS_BEGIN_DECL
 
 
 	/*************** CURRENT OBJECT REVISION **************/
@@ -755,10 +753,5 @@ extern "C" {
 	int free_object_data(void);                             /* frees all allocated memory for the object definitions */
 
 
-
-
-#ifdef __cplusplus
-	}
-#endif
-
+NAGIOS_END_DECL
 #endif

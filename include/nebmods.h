@@ -25,14 +25,12 @@
 #ifndef _NEBMODS_H
 #define _NEBMODS_H
 
+#include "compat.h"
 #include "config.h"
 #include "nebcallbacks.h"
 #include "nebmodules.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+NAGIOS_BEGIN_DECL
 
 	/***** MODULE STRUCTURES *****/
 
@@ -63,8 +61,5 @@ extern "C" {
 	int neb_free_callback_list(void);
 	int neb_make_callbacks(int, void *);
 
-#ifdef __cplusplus
-	}
-#endif
-
+NAGIOS_END_DECL
 #endif

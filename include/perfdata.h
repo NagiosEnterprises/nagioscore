@@ -25,11 +25,10 @@
 #ifndef _PERFDATA_H
 #define _PERFDATA_H
 
+#include "compat.h"
 #include "objects.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+NAGIOS_BEGIN_DECL
 
 	int initialize_performance_data(char *);	                /* initializes performance data */
 	int cleanup_performance_data(char *);                           /* cleans up performance data */
@@ -37,8 +36,5 @@ extern "C" {
 	int update_host_performance_data(host *);       	        /* updates host performance data */
 	int update_service_performance_data(service *);         	/* updates service performance data */
 
-#ifdef __cplusplus
-	}
-#endif
-
+NAGIOS_END_DECL
 #endif

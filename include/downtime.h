@@ -26,13 +26,12 @@
 #ifndef _DOWNTIME_H
 #define _DOWNTIME_H
 
+#include "compat.h"
 #include "config.h"
 #include "common.h"
 #include "objects.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+NAGIOS_BEGIN_DECL
 
 	/* SCHEDULED_DOWNTIME_ENTRY structure */
 	typedef struct scheduled_downtime_struct {
@@ -103,8 +102,5 @@ extern "C" {
 
 	int delete_downtime_by_hostname_service_description_start_time_comment(char *, char *, time_t, char *);
 
-#ifdef __cplusplus
-	}
-#endif
-
+NAGIOS_END_DECL
 #endif

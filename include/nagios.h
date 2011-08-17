@@ -28,17 +28,13 @@
 # define NSCORE
 #endif
 
+#include "compat.h"
 #include "config.h"
 #include "logging.h"
 #include "common.h"
 #include "locations.h"
 #include "objects.h"
 #include "macros.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 
 	/************* MISC LENGTH/SIZE DEFINITIONS ***********/
 
@@ -276,6 +272,8 @@ extern "C" {
 
 
 	/****************** DATA STRUCTURES *******************/
+
+NAGIOS_BEGIN_DECL
 
 	/* TIMED_EVENT structure */
 	typedef struct timed_event_struct {
@@ -714,8 +712,6 @@ extern "C" {
 	char *get_program_version(void);
 	char *get_program_modification_date(void);
 
-#ifdef __cplusplus
-	}
-#endif
+NAGIOS_END_DECL
 #endif
 

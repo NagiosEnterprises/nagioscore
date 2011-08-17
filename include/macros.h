@@ -23,6 +23,7 @@
 #ifndef _MACROS_H
 #define _MACROS_H
 
+#include "compat.h"
 #include "config.h"
 #include "common.h"
 #include "objects.h"
@@ -41,6 +42,8 @@
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
 #define MACRO_X_COUNT				153	/* size of macro_x[] array */
+
+NAGIOS_BEGIN_DECL
 
 struct nagios_macros {
 	char *x[MACRO_X_COUNT];
@@ -333,4 +336,5 @@ int set_contact_address_environment_vars_r(nagios_macros *mac, int);
 
 #endif
 
+NAGIOS_END_DECL
 #endif

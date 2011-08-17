@@ -25,12 +25,10 @@
 #ifndef _STATUSDATA_H
 #define _STATUSDATA_H
 
+#include "compat.h"
+
 #ifdef NSCORE
 #include "objects.h"
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 #ifdef NSCGI
@@ -52,6 +50,7 @@ extern "C" {
 
 	/**************************** DATA STRUCTURES ******************************/
 
+NAGIOS_BEGIN_DECL
 
 	/* HOST STATUS structure */
 	typedef struct hoststatus_struct {
@@ -204,8 +203,5 @@ extern "C" {
 	int update_contact_status(contact *, int);              /* updates contact status data */
 #endif
 
-#ifdef __cplusplus
-	}
-#endif
-
+NAGIOS_END_DECL
 #endif

@@ -25,9 +25,8 @@
 #ifndef _NEBMODULES_H
 #define _NEBMODULES_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "compat.h"
+NAGIOS_BEGIN_DECL
 
 	/***** MODULE VERSION INFORMATION *****/
 
@@ -95,8 +94,5 @@ extern "C" {
 	/***** MODULE FUNCTIONS *****/
 	int neb_set_module_info(void *, int, char *);
 
-#ifdef __cplusplus
-	}
-#endif
-
+NAGIOS_END_DECL
 #endif

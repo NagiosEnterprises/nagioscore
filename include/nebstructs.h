@@ -25,13 +25,12 @@
 #ifndef _NEBSTRUCTS_H
 #define _NEBSTRUCTS_H
 
+#include "compat.h"
 #include "config.h"
 #include "objects.h"
 #include "nagios.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+NAGIOS_BEGIN_DECL
 
 	/****** STRUCTURES *************************/
 
@@ -525,8 +524,5 @@ extern "C" {
 		void            *object_ptr;
 		} nebstruct_statechange_data;
 
-#ifdef __cplusplus
-	}
-#endif
-
+NAGIOS_END_DECL
 #endif

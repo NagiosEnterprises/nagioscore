@@ -1,6 +1,7 @@
 #ifndef INCLUDE_logging_h__
 #define INCLUDE_logging_h__
 
+#include "compat.h"
 #include "objects.h"
 
 /******************* LOGGING TYPES ********************/
@@ -62,7 +63,7 @@
 #define DEBUGV_MORE			1
 #define DEBUGV_MOST                     2
 
-
+NAGIOS_BEGIN_DECL
 /**** Logging Functions ****/
 void logit(int, int, const char *, ...)
 __attribute__((__format__(__printf__, 3, 4)));
@@ -83,4 +84,5 @@ int open_debug_log(void);
 int close_debug_log(void);
 #endif /* !NSCGI */
 
+NAGIOS_END_DECL
 #endif

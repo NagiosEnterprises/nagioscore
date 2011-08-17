@@ -28,9 +28,6 @@
 #include "config.h"
 #include "nagios.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 	/*************** EVENT BROKER OPTIONS *****************/
 
@@ -184,6 +181,8 @@ extern "C" {
 	/****** EVENT BROKER FUNCTIONS *************/
 
 #ifdef USE_EVENT_BROKER
+#include "compat.h"
+NAGIOS_BEGIN_DECL
 	struct timeval get_broker_timestamp(struct timeval *);
 	void broker_program_state(int, int, int, struct timeval *);
 	void broker_timed_event(int, int, int, timed_event *, struct timeval *);
@@ -211,11 +210,9 @@ extern "C" {
 	void broker_retention_data(int, int, int, struct timeval *);
 	void broker_acknowledgement_data(int, int, int, int, void *, char *, char *, int, int, int, struct timeval *);
 	void broker_statechange_data(int, int, int, int, void *, int, int, int, int, struct timeval *);
-#endif
 
 
-#ifdef __cplusplus
-	}
+NAGIOS_END_DECL
 #endif
 
 #endif

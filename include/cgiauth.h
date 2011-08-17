@@ -23,14 +23,11 @@
 
 #ifndef _AUTH_H
 #define _AUTH_H
-
+#include "compat.h"
 #include "common.h"
 #include "objects.h"
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+NAGIOS_BEGIN_DECL
 
 	typedef struct authdata_struct {
 		char *username;
@@ -69,8 +66,7 @@ extern "C" {
 	int is_authorized_for_configuration_information(authdata *);
 
 	int is_authorized_for_read_only(authdata *);
-#ifdef __cplusplus
-	}
-#endif
+
+NAGIOS_END_DECL
 
 #endif

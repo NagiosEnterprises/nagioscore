@@ -22,15 +22,13 @@
 
 #ifndef _CGIUTILS_H
 #define _CGIUTILS_H
-
+#include "compat.h"
 #include "config.h"
 #include "logging.h"
 #include "objects.h"
 #include "cgiauth.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+NAGIOS_BEGIN_DECL
 
 	/**************************** CGI REFRESH RATE ******************************/
 
@@ -481,8 +479,5 @@ extern "C" {
 	int push_lifo(char *);
 	char *pop_lifo(void);
 
-#ifdef __cplusplus
-	}
-#endif
-
+NAGIOS_END_DECL
 #endif

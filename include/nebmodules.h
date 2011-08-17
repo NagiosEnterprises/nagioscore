@@ -65,34 +65,33 @@ NAGIOS_BEGIN_DECL
 
 
 
-	/***** MODULE STRUCTURES *****/
+/***** MODULE STRUCTURES *****/
 
-	/* NEB module structure */
-	typedef struct nebmodule_struct {
-		char            *filename;
-		char            *args;
-		char            *info[NEBMODULE_MODINFO_NUMITEMS];
-		int             should_be_loaded;
-		int             is_currently_loaded;
+/* NEB module structure */
+typedef struct nebmodule_struct {
+	char            *filename;
+	char            *args;
+	char            *info[NEBMODULE_MODINFO_NUMITEMS];
+	int             should_be_loaded;
+	int             is_currently_loaded;
 #ifdef USE_LTDL
-		lt_dlhandle     module_handle;
-		lt_ptr          init_func;
-		lt_ptr          deinit_func;
+	lt_dlhandle     module_handle;
+	lt_ptr          init_func;
+	lt_ptr          deinit_func;
 #else
-		void            *module_handle;
-		void            *init_func;
-		void            *deinit_func;
+	void            *module_handle;
+	void            *init_func;
+	void            *deinit_func;
 #endif
 #ifdef HAVE_PTHREAD_H
-		pthread_t       thread_id;
+	pthread_t       thread_id;
 #endif
-		struct nebmodule_struct *next;
-		} nebmodule;
+	struct nebmodule_struct *next;
+	} nebmodule;
 
 
-
-	/***** MODULE FUNCTIONS *****/
-	int neb_set_module_info(void *, int, char *);
+/***** MODULE FUNCTIONS *****/
+int neb_set_module_info(void *, int, char *);
 
 NAGIOS_END_DECL
 #endif

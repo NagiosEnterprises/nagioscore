@@ -1,4 +1,3 @@
-
 #ifndef _NETUTILS_H
 #define _NETUTILS_H
 #include "compat.h"

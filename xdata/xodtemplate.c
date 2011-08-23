@@ -5101,15 +5101,12 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	xodtemplate_customvariablesmember *temp_customvariablesmember = NULL;
 	int error = FALSE;
 
-
-	/* allocate memory for a new service definition */
-	new_service = (xodtemplate_service *)malloc(sizeof(xodtemplate_service));
+	/* allocate zero'd out memory for a new service definition */
+	new_service = (xodtemplate_service *)calloc(1, sizeof(xodtemplate_service));
 	if(new_service == NULL)
 		return ERROR;
 
 	/* standard items */
-	new_service->template = NULL;
-	new_service->name = NULL;
 	new_service->has_been_resolved = temp_service->has_been_resolved;
 	new_service->register_object = temp_service->register_object;
 	new_service->_config_file = temp_service->_config_file;
@@ -5118,44 +5115,23 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	xodtemplate_set_service_is_from_hostgroup(new_service);
 
 	/* string defaults */
-	new_service->hostgroup_name = NULL;
 	new_service->have_hostgroup_name = temp_service->have_hostgroup_name;
-	new_service->host_name = NULL;
 	new_service->have_host_name = temp_service->have_host_name;
-	new_service->service_description = NULL;
 	new_service->have_service_description = temp_service->have_service_description;
-	new_service->display_name = NULL;
 	new_service->have_display_name = temp_service->have_display_name;
-	new_service->service_groups = NULL;
 	new_service->have_service_groups = temp_service->have_service_groups;
-	new_service->check_command = NULL;
 	new_service->have_check_command = temp_service->have_check_command;
-	new_service->check_period = NULL;
 	new_service->have_check_period = temp_service->have_check_period;
-	new_service->event_handler = NULL;
 	new_service->have_event_handler = temp_service->have_event_handler;
-	new_service->notification_period = NULL;
 	new_service->have_notification_period = temp_service->have_notification_period;
-	new_service->contact_groups = NULL;
 	new_service->have_contact_groups = temp_service->have_contact_groups;
-	new_service->contacts = NULL;
 	new_service->have_contacts = temp_service->have_contacts;
-	new_service->failure_prediction_options = NULL;
 	new_service->have_failure_prediction_options = temp_service->have_failure_prediction_options;
-	new_service->notes = NULL;
 	new_service->have_notes = temp_service->have_notes;
-	new_service->notes_url = NULL;
 	new_service->have_notes_url = temp_service->have_notes_url;
-	new_service->action_url = NULL;
 	new_service->have_action_url = temp_service->have_action_url;
-	new_service->icon_image = NULL;
 	new_service->have_icon_image = temp_service->have_icon_image;
-	new_service->icon_image_alt = NULL;
 	new_service->have_icon_image_alt = temp_service->have_icon_image_alt;
-	new_service->custom_variables = NULL;
-
-	/* make sure hostgroup member in new service definition is NULL */
-	new_service->hostgroup_name = NULL;
 
 	/* allocate memory for and copy string members of service definition (host name provided, DO NOT duplicate hostgroup member!)*/
 	if(temp_service->host_name != NULL && (new_service->host_name = (char *)strdup(host_name)) == NULL)
@@ -5300,29 +5276,22 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 	int error = FALSE;
 
 
-	/* allocate memory for a new host escalation definition */
-	new_hostescalation = (xodtemplate_hostescalation *)malloc(sizeof(xodtemplate_hostescalation));
+	/* allocate zero'd out memory for a new host escalation definition */
+	new_hostescalation = (xodtemplate_hostescalation *)calloc(1, sizeof(xodtemplate_hostescalation));
 	if(new_hostescalation == NULL)
 		return ERROR;
 
 	/* standard items */
-	new_hostescalation->template = NULL;
-	new_hostescalation->name = NULL;
 	new_hostescalation->has_been_resolved = temp_hostescalation->has_been_resolved;
 	new_hostescalation->register_object = temp_hostescalation->register_object;
 	new_hostescalation->_config_file = temp_hostescalation->_config_file;
 	new_hostescalation->_start_line = temp_hostescalation->_start_line;
 
 	/* string defaults */
-	new_hostescalation->hostgroup_name = NULL;
 	new_hostescalation->have_hostgroup_name = temp_hostescalation->have_hostgroup_name;
-	new_hostescalation->host_name = NULL;
 	new_hostescalation->have_host_name = (host_name) ? TRUE : FALSE;
-	new_hostescalation->contact_groups = NULL;
 	new_hostescalation->have_contact_groups = temp_hostescalation->have_contact_groups;
-	new_hostescalation->contacts = NULL;
 	new_hostescalation->have_contacts = temp_hostescalation->have_contacts;
-	new_hostescalation->escalation_period = NULL;
 	new_hostescalation->have_escalation_period = temp_hostescalation->have_escalation_period;
 
 	/* allocate memory for and copy string members of hostescalation definition */
@@ -5377,33 +5346,24 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	xodtemplate_serviceescalation *new_serviceescalation = NULL;
 	int error = FALSE;
 
-	/* allocate memory for a new service escalation definition */
-	new_serviceescalation = (xodtemplate_serviceescalation *)malloc(sizeof(xodtemplate_serviceescalation));
+	/* allocate zero'd out memory for a new service escalation definition */
+	new_serviceescalation = (xodtemplate_serviceescalation *)calloc(1, sizeof(xodtemplate_serviceescalation));
 	if(new_serviceescalation == NULL)
 		return ERROR;
 
 	/* standard items */
-	new_serviceescalation->template = NULL;
-	new_serviceescalation->name = NULL;
 	new_serviceescalation->has_been_resolved = temp_serviceescalation->has_been_resolved;
 	new_serviceescalation->register_object = temp_serviceescalation->register_object;
 	new_serviceescalation->_config_file = temp_serviceescalation->_config_file;
 	new_serviceescalation->_start_line = temp_serviceescalation->_start_line;
 
 	/* string defaults */
-	new_serviceescalation->servicegroup_name = NULL;
 	new_serviceescalation->have_servicegroup_name = FALSE;
-	new_serviceescalation->hostgroup_name = NULL;
 	new_serviceescalation->have_hostgroup_name = FALSE;
-	new_serviceescalation->host_name = NULL;
 	new_serviceescalation->have_host_name = (host_name) ? TRUE : FALSE;
-	new_serviceescalation->service_description = NULL;
 	new_serviceescalation->have_service_description = (svc_description) ? TRUE : FALSE;
-	new_serviceescalation->contact_groups = NULL;
 	new_serviceescalation->have_contact_groups = temp_serviceescalation->have_contact_groups;
-	new_serviceescalation->contacts = NULL;
 	new_serviceescalation->have_contacts = temp_serviceescalation->have_contacts;
-	new_serviceescalation->escalation_period = NULL;
 	new_serviceescalation->have_escalation_period = temp_serviceescalation->have_escalation_period;
 
 	/* allocate memory for and copy string members of serviceescalation definition */
@@ -5463,28 +5423,21 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 	int error = FALSE;
 
 	/* allocate memory for a new host dependency definition */
-	new_hostdependency = (xodtemplate_hostdependency *)malloc(sizeof(xodtemplate_hostdependency));
+	new_hostdependency = (xodtemplate_hostdependency *)calloc(1, sizeof(xodtemplate_hostdependency));
 	if(new_hostdependency == NULL)
 		return ERROR;
 
 	/* standard items */
-	new_hostdependency->template = NULL;
-	new_hostdependency->name = NULL;
 	new_hostdependency->has_been_resolved = temp_hostdependency->has_been_resolved;
 	new_hostdependency->register_object = temp_hostdependency->register_object;
 	new_hostdependency->_config_file = temp_hostdependency->_config_file;
 	new_hostdependency->_start_line = temp_hostdependency->_start_line;
 
 	/* string defaults */
-	new_hostdependency->hostgroup_name = NULL;
 	new_hostdependency->have_hostgroup_name = FALSE;
-	new_hostdependency->dependent_hostgroup_name = NULL;
 	new_hostdependency->have_dependent_hostgroup_name = FALSE;
-	new_hostdependency->host_name = NULL;
 	new_hostdependency->have_host_name = temp_hostdependency->have_host_name;
-	new_hostdependency->dependent_host_name = NULL;
 	new_hostdependency->have_dependent_host_name = temp_hostdependency->have_dependent_host_name;
-	new_hostdependency->dependency_period = NULL;
 	new_hostdependency->have_dependency_period = temp_hostdependency->have_dependency_period;
 
 	/* allocate memory for and copy string members of hostdependency definition */
@@ -5538,41 +5491,28 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	int error = FALSE;
 
 	/* allocate memory for a new service dependency definition */
-	new_servicedependency = (xodtemplate_servicedependency *)malloc(sizeof(xodtemplate_servicedependency));
+	new_servicedependency = (xodtemplate_servicedependency *)calloc(1, sizeof(xodtemplate_servicedependency));
 	if(new_servicedependency == NULL)
 		return ERROR;
 
 	/* standard items */
-	new_servicedependency->template = NULL;
-	new_servicedependency->name = NULL;
 	new_servicedependency->has_been_resolved = temp_servicedependency->has_been_resolved;
 	new_servicedependency->register_object = temp_servicedependency->register_object;
 	new_servicedependency->_config_file = temp_servicedependency->_config_file;
 	new_servicedependency->_start_line = temp_servicedependency->_start_line;
 
 	/* string defaults */
-	new_servicedependency->host_name = NULL;
 	new_servicedependency->have_host_name = (master_host_name) ? TRUE : FALSE;
-	new_servicedependency->service_description = NULL;
 	new_servicedependency->have_service_description = (master_service_description) ? TRUE : FALSE;
-	new_servicedependency->hostgroup_name = NULL;
 	new_servicedependency->have_hostgroup_name = (master_hostgroup_name) ? TRUE : FALSE;
-	new_servicedependency->servicegroup_name = NULL;
 	new_servicedependency->have_servicegroup_name = (master_servicegroup_name) ? TRUE : FALSE;
 
-	new_servicedependency->dependent_host_name = NULL;
 	new_servicedependency->have_dependent_host_name = (dependent_host_name) ? TRUE : FALSE;
-	new_servicedependency->dependent_service_description = NULL;
 	new_servicedependency->have_dependent_service_description = (dependent_service_description) ? TRUE : FALSE;
-	new_servicedependency->dependent_hostgroup_name = NULL;
 	new_servicedependency->have_dependent_hostgroup_name = (dependent_hostgroup_name) ? TRUE : FALSE;
-	new_servicedependency->dependent_servicegroup_name = NULL;
 	new_servicedependency->have_dependent_servicegroup_name = (dependent_servicegroup_name) ? TRUE : FALSE;
 
-	new_servicedependency->dependency_period = NULL;
 	new_servicedependency->have_dependency_period = temp_servicedependency->have_dependency_period;
-	new_servicedependency->service_description = NULL;
-	new_servicedependency->dependent_service_description = NULL;
 
 	/* duplicate strings */
 	if(master_host_name != NULL && (new_servicedependency->host_name = (char *)strdup(master_host_name)) == NULL)
@@ -5645,36 +5585,26 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 	xodtemplate_hostextinfo *new_hostextinfo = NULL;
 	int error = FALSE;
 
-	new_hostextinfo = (xodtemplate_hostextinfo *)malloc(sizeof(xodtemplate_hostextinfo));
+	/* allocate zero'd out memory for a new hostextinfo object */
+	new_hostextinfo = (xodtemplate_hostextinfo *)calloc(1, sizeof(xodtemplate_hostextinfo));
 	if(new_hostextinfo == NULL)
 		return ERROR;
 
 	/* standard items */
-	new_hostextinfo->template = NULL;
-	new_hostextinfo->name = NULL;
 	new_hostextinfo->has_been_resolved = this_hostextinfo->has_been_resolved;
 	new_hostextinfo->register_object = this_hostextinfo->register_object;
 	new_hostextinfo->_config_file = this_hostextinfo->_config_file;
 	new_hostextinfo->_start_line = this_hostextinfo->_start_line;
 
 	/* string defaults */
-	new_hostextinfo->host_name = NULL;
 	new_hostextinfo->have_host_name = this_hostextinfo->have_host_name;
-	new_hostextinfo->hostgroup_name = NULL;
 	new_hostextinfo->have_hostgroup_name = this_hostextinfo->have_hostgroup_name;
-	new_hostextinfo->notes = NULL;
 	new_hostextinfo->have_notes = this_hostextinfo->have_notes;
-	new_hostextinfo->notes_url = NULL;
 	new_hostextinfo->have_notes_url = this_hostextinfo->have_notes_url;
-	new_hostextinfo->action_url = NULL;
 	new_hostextinfo->have_action_url = this_hostextinfo->have_action_url;
-	new_hostextinfo->icon_image = NULL;
 	new_hostextinfo->have_icon_image = this_hostextinfo->have_icon_image;
-	new_hostextinfo->icon_image_alt = NULL;
 	new_hostextinfo->have_icon_image_alt = this_hostextinfo->have_icon_image_alt;
-	new_hostextinfo->vrml_image = NULL;
 	new_hostextinfo->have_vrml_image = this_hostextinfo->have_vrml_image;
-	new_hostextinfo->statusmap_image = NULL;
 	new_hostextinfo->have_statusmap_image = this_hostextinfo->have_statusmap_image;
 
 	/* duplicate strings (host_name member is passed in) */
@@ -5737,34 +5667,25 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 	xodtemplate_serviceextinfo *new_serviceextinfo = NULL;
 	int error = FALSE;
 
-	new_serviceextinfo = (xodtemplate_serviceextinfo *)malloc(sizeof(xodtemplate_serviceextinfo));
+	/* allocate zero'd out object for a new serviceextinfo object */
+	new_serviceextinfo = (xodtemplate_serviceextinfo *)calloc(1, sizeof(xodtemplate_serviceextinfo));
 	if(new_serviceextinfo == NULL)
 		return ERROR;
 
 	/* standard items */
-	new_serviceextinfo->template = NULL;
-	new_serviceextinfo->name = NULL;
 	new_serviceextinfo->has_been_resolved = this_serviceextinfo->has_been_resolved;
 	new_serviceextinfo->register_object = this_serviceextinfo->register_object;
 	new_serviceextinfo->_config_file = this_serviceextinfo->_config_file;
 	new_serviceextinfo->_start_line = this_serviceextinfo->_start_line;
 
 	/* string defaults */
-	new_serviceextinfo->host_name = NULL;
 	new_serviceextinfo->have_host_name = this_serviceextinfo->have_host_name;
-	new_serviceextinfo->service_description = NULL;
 	new_serviceextinfo->have_service_description = this_serviceextinfo->have_service_description;
-	new_serviceextinfo->hostgroup_name = NULL;
 	new_serviceextinfo->have_hostgroup_name = this_serviceextinfo->have_hostgroup_name;
-	new_serviceextinfo->notes = NULL;
 	new_serviceextinfo->have_notes = this_serviceextinfo->have_notes;
-	new_serviceextinfo->notes_url = NULL;
 	new_serviceextinfo->have_notes_url = this_serviceextinfo->have_notes_url;
-	new_serviceextinfo->action_url = NULL;
 	new_serviceextinfo->have_action_url = this_serviceextinfo->have_action_url;
-	new_serviceextinfo->icon_image = NULL;
 	new_serviceextinfo->have_icon_image = this_serviceextinfo->have_icon_image;
-	new_serviceextinfo->icon_image_alt = NULL;
 	new_serviceextinfo->have_icon_image_alt = this_serviceextinfo->have_icon_image_alt;
 
 	/* duplicate strings (host_name member is passed in) */
@@ -11820,13 +11741,11 @@ int xodtemplate_add_member_to_memberlist(xodtemplate_memberlist **list, char *na
 	if(temp_item)
 		return OK;
 
-	/* allocate memory for a new list item */
-	if((new_item = (xodtemplate_memberlist *)malloc(sizeof(xodtemplate_memberlist))) == NULL)
+	/* allocate zero'd out memory for a new list item */
+	if((new_item = (xodtemplate_memberlist *)calloc(1, sizeof(xodtemplate_memberlist))) == NULL)
 		return ERROR;
 
 	/* save the member name(s) */
-	new_item->name1 = NULL;
-	new_item->name2 = NULL;
 	if(name1) {
 		if((new_item->name1 = (char *)strdup(name1)) == NULL)
 			error = TRUE;

@@ -145,74 +145,60 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 						break;
 					}
 				}
-
 			}
 
 		/* get author and comment macros */
-		my_free(mac.x[MACRO_NOTIFICATIONAUTHOR]);
 		if(not_author)
-			mac.x[MACRO_NOTIFICATIONAUTHOR] = (char *)strdup(not_author);
-		my_free(mac.x[MACRO_NOTIFICATIONAUTHORNAME]);
-		my_free(mac.x[MACRO_NOTIFICATIONAUTHORALIAS]);
+			mac.x[MACRO_NOTIFICATIONAUTHOR] = not_author;
 		if(temp_contact != NULL) {
-			mac.x[MACRO_NOTIFICATIONAUTHORNAME] = (char *)strdup(temp_contact->name);
-			mac.x[MACRO_NOTIFICATIONAUTHORALIAS] = (char *)strdup(temp_contact->alias);
+			mac.x[MACRO_NOTIFICATIONAUTHORNAME] = temp_contact->name;
+			mac.x[MACRO_NOTIFICATIONAUTHORALIAS] = temp_contact->alias;
 			}
-		my_free(mac.x[MACRO_NOTIFICATIONCOMMENT]);
 		if(not_data)
-			mac.x[MACRO_NOTIFICATIONCOMMENT] = (char *)strdup(not_data);
+			mac.x[MACRO_NOTIFICATIONCOMMENT] = not_data;
 
 		/* NOTE: these macros are deprecated and will likely disappear in Nagios 4.x */
 		/* if this is an acknowledgement, get author and comment macros */
 		if(type == NOTIFICATION_ACKNOWLEDGEMENT) {
-
-			my_free(mac.x[MACRO_SERVICEACKAUTHOR]);
 			if(not_author)
-				mac.x[MACRO_SERVICEACKAUTHOR] = (char *)strdup(not_author);
+				mac.x[MACRO_SERVICEACKAUTHOR] = not_author;
 
-			my_free(mac.x[MACRO_SERVICEACKCOMMENT]);
 			if(not_data)
-				mac.x[MACRO_SERVICEACKCOMMENT] = (char *)strdup(not_data);
+				mac.x[MACRO_SERVICEACKCOMMENT] = not_data;
 
-			my_free(mac.x[MACRO_SERVICEACKAUTHORNAME]);
-			my_free(mac.x[MACRO_SERVICEACKAUTHORALIAS]);
 			if(temp_contact != NULL) {
-				mac.x[MACRO_SERVICEACKAUTHORNAME] = (char *)strdup(temp_contact->name);
-				mac.x[MACRO_SERVICEACKAUTHORALIAS] = (char *)strdup(temp_contact->alias);
+				mac.x[MACRO_SERVICEACKAUTHORNAME] = temp_contact->name;
+				mac.x[MACRO_SERVICEACKAUTHORALIAS] = temp_contact->alias;
 				}
 			}
 
 		/* set the notification type macro */
-		my_free(mac.x[MACRO_NOTIFICATIONTYPE]);
 		if(type == NOTIFICATION_ACKNOWLEDGEMENT)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("ACKNOWLEDGEMENT");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "ACKNOWLEDGEMENT";
 		else if(type == NOTIFICATION_FLAPPINGSTART)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("FLAPPINGSTART");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "FLAPPINGSTART";
 		else if(type == NOTIFICATION_FLAPPINGSTOP)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("FLAPPINGSTOP");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "FLAPPINGSTOP";
 		else if(type == NOTIFICATION_FLAPPINGDISABLED)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("FLAPPINGDISABLED");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "FLAPPINGDISABLED";
 		else if(type == NOTIFICATION_DOWNTIMESTART)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("DOWNTIMESTART");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMESTART";
 		else if(type == NOTIFICATION_DOWNTIMEEND)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("DOWNTIMEEND");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMEEND";
 		else if(type == NOTIFICATION_DOWNTIMECANCELLED)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("DOWNTIMECANCELLED");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMECANCELLED";
 		else if(svc->current_state == STATE_OK)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("RECOVERY");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "RECOVERY";
 		else
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("PROBLEM");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "PROBLEM";
 
 		/* set the notification number macro */
-		my_free(mac.x[MACRO_SERVICENOTIFICATIONNUMBER]);
 		asprintf(&mac.x[MACRO_SERVICENOTIFICATIONNUMBER], "%d", svc->current_notification_number);
 
 		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatability */
-		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
-		mac.x[MACRO_NOTIFICATIONNUMBER] = (char *)strdup((mac.x[MACRO_SERVICENOTIFICATIONNUMBER] == NULL) ? "" : mac.x[MACRO_SERVICENOTIFICATIONNUMBER]);
+		mac.x[MACRO_NOTIFICATIONNUMBER] = mac.x[MACRO_SERVICENOTIFICATIONNUMBER];
 
 		/* set the notification id macro */
-		my_free(mac.x[MACRO_SERVICENOTIFICATIONID]);
 		asprintf(&mac.x[MACRO_SERVICENOTIFICATIONID], "%lu", svc->current_notification_id);
 
 		/* notify each contact (duplicates have been removed) */
@@ -234,6 +220,15 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 		/* free memory allocated to the notification list */
 		free_notification_list();
+
+		/*
+		 * clear out all macros we just created. Just the numerical
+		 * ones really, as the string ones are passed by reference
+		 * and mustn't be free()'d.
+		 */
+		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
+		mac.x[MACRO_SERVICENOTIFICATIONNUMBER] = NULL;
+		my_free(mac.x[MACRO_SERVICENOTIFICATIONID]);
 
 		/* clear summary macros so they will be regenerated without contact filters when needed next */
 		clear_summary_macros_r(&mac);
@@ -1033,7 +1028,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		return OK;
 		}
 
-	/* allocate memory for local macro */
+	/* reset memory for local macro data */
 	memset(&mac, 0, sizeof(mac));
 
 	/* clear volatile macros */
@@ -1090,74 +1085,61 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 						break;
 					}
 				}
-
 			}
 
 		/* get author and comment macros */
-		my_free(mac.x[MACRO_NOTIFICATIONAUTHOR]);
 		if(not_author)
-			mac.x[MACRO_NOTIFICATIONAUTHOR] = (char *)strdup(not_author);
-		my_free(mac.x[MACRO_NOTIFICATIONAUTHORNAME]);
-		my_free(mac.x[MACRO_NOTIFICATIONAUTHORALIAS]);
+			mac.x[MACRO_NOTIFICATIONAUTHOR] = not_author;
 		if(temp_contact != NULL) {
-			mac.x[MACRO_NOTIFICATIONAUTHORNAME] = (char *)strdup(temp_contact->name);
-			mac.x[MACRO_NOTIFICATIONAUTHORALIAS] = (char *)strdup(temp_contact->alias);
+			mac.x[MACRO_NOTIFICATIONAUTHORNAME] = temp_contact->name;
+			mac.x[MACRO_NOTIFICATIONAUTHORALIAS] = temp_contact->alias;
 			}
-		my_free(mac.x[MACRO_NOTIFICATIONCOMMENT]);
 		if(not_data)
-			mac.x[MACRO_NOTIFICATIONCOMMENT] = (char *)strdup(not_data);
+			mac.x[MACRO_NOTIFICATIONCOMMENT] = not_data;
 
 		/* NOTE: these macros are deprecated and will likely disappear in Nagios 4.x */
 		/* if this is an acknowledgement, get author and comment macros */
 		if(type == NOTIFICATION_ACKNOWLEDGEMENT) {
 
-			my_free(mac.x[MACRO_HOSTACKAUTHOR]);
 			if(not_author)
-				mac.x[MACRO_HOSTACKAUTHOR] = (char *)strdup(not_author);
+				mac.x[MACRO_HOSTACKAUTHOR] = not_author;
 
-			my_free(mac.x[MACRO_HOSTACKCOMMENT]);
 			if(not_data)
-				mac.x[MACRO_HOSTACKCOMMENT] = (char *)strdup(not_data);
+				mac.x[MACRO_HOSTACKCOMMENT] = not_data;
 
-			my_free(mac.x[MACRO_SERVICEACKAUTHORNAME]);
-			my_free(mac.x[MACRO_SERVICEACKAUTHORALIAS]);
 			if(temp_contact != NULL) {
-				mac.x[MACRO_SERVICEACKAUTHORNAME] = (char *)strdup(temp_contact->name);
-				mac.x[MACRO_SERVICEACKAUTHORALIAS] = (char *)strdup(temp_contact->alias);
+				mac.x[MACRO_SERVICEACKAUTHORNAME] = temp_contact->name;
+				mac.x[MACRO_SERVICEACKAUTHORALIAS] = temp_contact->alias;
 				}
 			}
 
 		/* set the notification type macro */
-		my_free(mac.x[MACRO_NOTIFICATIONTYPE]);
 		if(type == NOTIFICATION_ACKNOWLEDGEMENT)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("ACKNOWLEDGEMENT");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "ACKNOWLEDGEMENT";
 		else if(type == NOTIFICATION_FLAPPINGSTART)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("FLAPPINGSTART");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "FLAPPINGSTART";
 		else if(type == NOTIFICATION_FLAPPINGSTOP)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("FLAPPINGSTOP");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "FLAPPINGSTOP";
 		else if(type == NOTIFICATION_FLAPPINGDISABLED)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("FLAPPINGDISABLED");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "FLAPPINGDISABLED";
 		else if(type == NOTIFICATION_DOWNTIMESTART)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("DOWNTIMESTART");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMESTART";
 		else if(type == NOTIFICATION_DOWNTIMEEND)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("DOWNTIMEEND");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMEEND";
 		else if(type == NOTIFICATION_DOWNTIMECANCELLED)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("DOWNTIMECANCELLED");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMECANCELLED";
 		else if(hst->current_state == HOST_UP)
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("RECOVERY");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "RECOVERY";
 		else
-			mac.x[MACRO_NOTIFICATIONTYPE] = (char *)strdup("PROBLEM");
+			mac.x[MACRO_NOTIFICATIONTYPE] = "PROBLEM";
 
 		/* set the notification number macro */
-		my_free(mac.x[MACRO_HOSTNOTIFICATIONNUMBER]);
 		asprintf(&mac.x[MACRO_HOSTNOTIFICATIONNUMBER], "%d", hst->current_notification_number);
 
 		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatability */
-		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
-		mac.x[MACRO_NOTIFICATIONNUMBER] = (char *)strdup((mac.x[MACRO_HOSTNOTIFICATIONNUMBER] == NULL) ? "" : mac.x[MACRO_HOSTNOTIFICATIONNUMBER]);
+		mac.x[MACRO_NOTIFICATIONNUMBER] = mac.x[MACRO_HOSTNOTIFICATIONNUMBER];
 
 		/* set the notification id macro */
-		my_free(mac.x[MACRO_HOSTNOTIFICATIONID]);
 		asprintf(&mac.x[MACRO_HOSTNOTIFICATIONID], "%lu", hst->current_notification_id);
 
 		/* notify each contact (duplicates have been removed) */
@@ -1179,6 +1161,15 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 		/* free memory allocated to the notification list */
 		free_notification_list();
+
+		/*
+		 * clear out all macros we just created. It's really just the
+		 * numerical ones, since the stringbased ones are passed by
+		 * reference instead of being copied.
+		 */
+		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
+		mac.x[MACRO_HOSTNOTIFICATIONNUMBER] = NULL;
+		my_free(mac.x[MACRO_HOSTNOTIFICATIONID]);
 
 		/* clear summary macros so they will be regenerated without contact filters when needednext */
 		clear_summary_macros_r(&mac);

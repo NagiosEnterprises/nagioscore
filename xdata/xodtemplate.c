@@ -11574,6 +11574,7 @@ int xodtemplate_free_memory(void) {
 		my_free(this_host->name);
 		my_free(this_host->host_name);
 		my_free(this_host->alias);
+		my_free(this_host->display_name);
 		my_free(this_host->address);
 		my_free(this_host->parents);
 		my_free(this_host->host_groups);
@@ -11612,6 +11613,7 @@ int xodtemplate_free_memory(void) {
 		next_service = this_service->next;
 		my_free(this_service->template);
 		my_free(this_service->name);
+		my_free(this_service->display_name);
 		my_free(this_service->hostgroup_name);
 		my_free(this_service->host_name);
 		my_free(this_service->service_description);

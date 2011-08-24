@@ -1739,6 +1739,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		my_free(new_service->service_check_command);
 		my_free(new_service->description);
 		my_free(new_service->host_name);
+		my_free(new_service->display_name);
 		my_free(new_service);
 		return NULL;
 		}

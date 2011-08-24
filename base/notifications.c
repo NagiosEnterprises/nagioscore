@@ -230,7 +230,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		mac.x[MACRO_SERVICENOTIFICATIONNUMBER] = NULL;
 		my_free(mac.x[MACRO_SERVICENOTIFICATIONID]);
 		/* this gets set in add_notification() */
-		my_free(mac->x[MACRO_NOTIFICATIONRECIPIENTS]);
+		my_free(mac.x[MACRO_NOTIFICATIONRECIPIENTS]);
 
 		/* clear summary macros so they will be regenerated without contact filters when needed next */
 		clear_summary_macros_r(&mac);
@@ -1169,7 +1169,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		mac.x[MACRO_HOSTNOTIFICATIONNUMBER] = NULL;
 		my_free(mac.x[MACRO_HOSTNOTIFICATIONID]);
 		/* this gets set in add_notification() */
-		my_free(mac->x[MACRO_NOTIFICATIONRECIPIENTS]);
+		my_free(mac.x[MACRO_NOTIFICATIONRECIPIENTS]);
 
 		/* clear summary macros so they will be regenerated without contact filters when needednext */
 		clear_summary_macros_r(&mac);

@@ -229,6 +229,8 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
 		mac.x[MACRO_SERVICENOTIFICATIONNUMBER] = NULL;
 		my_free(mac.x[MACRO_SERVICENOTIFICATIONID]);
+		/* this gets set in add_notification() */
+		my_free(mac->x[MACRO_NOTIFICATIONRECIPIENTS]);
 
 		/* clear summary macros so they will be regenerated without contact filters when needed next */
 		clear_summary_macros_r(&mac);
@@ -920,9 +922,8 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
 	/* make sure there aren't any leftover contacts */
 	free_notification_list();
 
-	/* set the escalation macro */
-	my_free(mac->x[MACRO_NOTIFICATIONISESCALATED]);
-	asprintf(&mac->x[MACRO_NOTIFICATIONISESCALATED], "%d", escalate_notification);
+	/* set the escalation macro (this never gets free()'d) */
+	mac->x[MACRO_NOTIFICATIONISESCALATED] = escalate_notification ? "1" : "0";
 
 	if(options & NOTIFICATION_OPTION_BROADCAST)
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This notification will be BROADCAST to all (escalated and normal) contacts...\n");
@@ -1030,9 +1031,6 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 	/* reset memory for local macro data */
 	memset(&mac, 0, sizeof(mac));
-
-	/* clear volatile macros */
-	clear_volatile_macros_r(&mac);
 
 	log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test passed.\n");
 
@@ -1170,6 +1168,8 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
 		mac.x[MACRO_HOSTNOTIFICATIONNUMBER] = NULL;
 		my_free(mac.x[MACRO_HOSTNOTIFICATIONID]);
+		/* this gets set in add_notification() */
+		my_free(mac->x[MACRO_NOTIFICATIONRECIPIENTS]);
 
 		/* clear summary macros so they will be regenerated without contact filters when needednext */
 		clear_summary_macros_r(&mac);
@@ -1818,9 +1818,8 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 	/* make sure there aren't any leftover contacts */
 	free_notification_list();
 
-	/* set the escalation macro */
-	my_free(mac->x[MACRO_NOTIFICATIONISESCALATED]);
-	asprintf(&mac->x[MACRO_NOTIFICATIONISESCALATED], "%d", escalate_notification);
+	/* set the escalation macro (this never gets free()'d) */
+	mac->x[MACRO_NOTIFICATIONISESCALATED] = escalate_notification ? "1" : "0";
 
 	if(options & NOTIFICATION_OPTION_BROADCAST)
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This notification will be BROADCAST to all (escalated and normal) contacts...\n");

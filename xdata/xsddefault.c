@@ -815,26 +815,11 @@ int xsddefault_read_status_data(char *config_file, int options) {
 			data_type = XSDDEFAULT_PROGRAMSTATUS_DATA;
 		else if(!strcmp(input, "hoststatus {")) {
 			data_type = XSDDEFAULT_HOSTSTATUS_DATA;
-			temp_hoststatus = (hoststatus *)malloc(sizeof(hoststatus));
-			if(temp_hoststatus) {
-				temp_hoststatus->host_name = NULL;
-				temp_hoststatus->plugin_output = NULL;
-				temp_hoststatus->long_plugin_output = NULL;
-				temp_hoststatus->perf_data = NULL;
-				temp_hoststatus->check_options = 0;
-				}
+			temp_hoststatus = (hoststatus *)calloc(1, sizeof(hoststatus));
 			}
 		else if(!strcmp(input, "servicestatus {")) {
 			data_type = XSDDEFAULT_SERVICESTATUS_DATA;
-			temp_servicestatus = (servicestatus *)malloc(sizeof(servicestatus));
-			if(temp_servicestatus) {
-				temp_servicestatus->host_name = NULL;
-				temp_servicestatus->description = NULL;
-				temp_servicestatus->plugin_output = NULL;
-				temp_servicestatus->long_plugin_output = NULL;
-				temp_servicestatus->perf_data = NULL;
-				temp_servicestatus->check_options = 0;
-				}
+			temp_servicestatus = (servicestatus *)calloc(1, sizeof(servicestatus));
 			}
 		else if(!strcmp(input, "contactstatus {")) {
 			data_type = XSDDEFAULT_CONTACTSTATUS_DATA;

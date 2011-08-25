@@ -33,7 +33,7 @@ int my_tcp_connect(char *host_name, int port, int *sd, int timeout) {
 	struct addrinfo hints;
 	struct addrinfo *res;
 	int result;
-	char *port_str = NULL;
+	char port_str[6];
 	int flags = 0;
 	fd_set rfds;
 	fd_set wfds;
@@ -45,7 +45,11 @@ int my_tcp_connect(char *host_name, int port, int *sd, int timeout) {
 	hints.ai_family = PF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 
-	asprintf(&port_str, "%d", port);
+	/* make sure our static port_str is long enough */
+	if(port > 65535)
+		return ERROR;
+
+	snprintf(port_str, sizeof(port_str), "%d", port);
 	result = getaddrinfo(host_name, port_str, &hints, &res);
 	if(result != 0) {
 		/*printf("GETADDRINFO: %s (%s) = %s\n",host_name,port_str,gai_strerror(result));*/

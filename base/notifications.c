@@ -155,7 +155,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			mac.x[MACRO_NOTIFICATIONAUTHORALIAS] = strdup(temp_contact->alias);
 			}
 		if(not_data)
-			mac.x[MACRO_NOTIFICATIONCOMMENT] = not_data;
+			mac.x[MACRO_NOTIFICATIONCOMMENT] = strdup(not_data);
 
 		/* NOTE: these macros are deprecated and will likely disappear in Nagios 4.x */
 		/* if this is an acknowledgement, get author and comment macros */
@@ -227,6 +227,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
 		my_free(mac.x[MACRO_SERVICENOTIFICATIONNUMBER]);
 		my_free(mac.x[MACRO_SERVICENOTIFICATIONID]);
+		my_free(mac.x[MACRO_NOTIFICATIONCOMMENT]);
 		my_free(mac.x[MACRO_NOTIFICATIONTYPE]);
 		my_free(mac.x[MACRO_NOTIFICATIONAUTHOR]);
 		my_free(mac.x[MACRO_NOTIFICATIONAUTHORNAME]);
@@ -930,7 +931,7 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
 	free_notification_list();
 
 	/* set the escalation macro (this never gets free()'d) */
-	mac->x[MACRO_NOTIFICATIONISESCALATED] = escalate_notification ? "1" : "0";
+	mac->x[MACRO_NOTIFICATIONISESCALATED] = strdup(escalate_notification ? "1" : "0");
 
 	if(options & NOTIFICATION_OPTION_BROADCAST)
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This notification will be BROADCAST to all (escalated and normal) contacts...\n");
@@ -1100,7 +1101,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 			mac.x[MACRO_NOTIFICATIONAUTHORALIAS] = strdup(temp_contact->alias);
 			}
 		if(not_data)
-			mac.x[MACRO_NOTIFICATIONCOMMENT] = not_data;
+			mac.x[MACRO_NOTIFICATIONCOMMENT] = strdup(not_data);
 
 		/* NOTE: these macros are deprecated and will likely disappear in Nagios 4.x */
 		/* if this is an acknowledgement, get author and comment macros */
@@ -1172,6 +1173,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		/* clear out all macros we created */
 		my_free(mac.x[MACRO_HOSTNOTIFICATIONID]);
 		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
+		my_free(mac.x[MACRO_NOTIFICATIONCOMMENT]);
 		my_free(mac.x[MACRO_HOSTNOTIFICATIONNUMBER]);
 		my_free(mac.x[MACRO_NOTIFICATIONTYPE]);
 		my_free(mac.x[MACRO_NOTIFICATIONAUTHOR]);
@@ -1832,7 +1834,7 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 	free_notification_list();
 
 	/* set the escalation macro (this never gets free()'d) */
-	mac->x[MACRO_NOTIFICATIONISESCALATED] = escalate_notification ? "1" : "0";
+	mac->x[MACRO_NOTIFICATIONISESCALATED] = strdup(escalate_notification ? "1" : "0");
 
 	if(options & NOTIFICATION_OPTION_BROADCAST)
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This notification will be BROADCAST to all (escalated and normal) contacts...\n");

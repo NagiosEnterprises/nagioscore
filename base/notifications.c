@@ -149,10 +149,10 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 		/* get author and comment macros */
 		if(not_author)
-			mac.x[MACRO_NOTIFICATIONAUTHOR] = not_author;
+			mac.x[MACRO_NOTIFICATIONAUTHOR] = strdup(not_author);
 		if(temp_contact != NULL) {
-			mac.x[MACRO_NOTIFICATIONAUTHORNAME] = temp_contact->name;
-			mac.x[MACRO_NOTIFICATIONAUTHORALIAS] = temp_contact->alias;
+			mac.x[MACRO_NOTIFICATIONAUTHORNAME] = strdup(temp_contact->name);
+			mac.x[MACRO_NOTIFICATIONAUTHORALIAS] = strdup(temp_contact->alias);
 			}
 		if(not_data)
 			mac.x[MACRO_NOTIFICATIONCOMMENT] = not_data;
@@ -161,14 +161,14 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		/* if this is an acknowledgement, get author and comment macros */
 		if(type == NOTIFICATION_ACKNOWLEDGEMENT) {
 			if(not_author)
-				mac.x[MACRO_SERVICEACKAUTHOR] = not_author;
+				mac.x[MACRO_SERVICEACKAUTHOR] = strdup(not_author);
 
 			if(not_data)
-				mac.x[MACRO_SERVICEACKCOMMENT] = not_data;
+				mac.x[MACRO_SERVICEACKCOMMENT] = strdup(not_data);
 
 			if(temp_contact != NULL) {
-				mac.x[MACRO_SERVICEACKAUTHORNAME] = temp_contact->name;
-				mac.x[MACRO_SERVICEACKAUTHORALIAS] = temp_contact->alias;
+				mac.x[MACRO_SERVICEACKAUTHORNAME] = strdup(temp_contact->name);
+				mac.x[MACRO_SERVICEACKAUTHORALIAS] = strdup(temp_contact->alias);
 				}
 			}
 
@@ -192,11 +192,13 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		else
 			mac.x[MACRO_NOTIFICATIONTYPE] = "PROBLEM";
 
+		mac.x[MACRO_NOTIFICATIONTYPE] = strdup(mac.x[MACRO_NOTIFICATIONTYPE]);
+
 		/* set the notification number macro */
 		asprintf(&mac.x[MACRO_SERVICENOTIFICATIONNUMBER], "%d", svc->current_notification_number);
 
 		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatability */
-		mac.x[MACRO_NOTIFICATIONNUMBER] = mac.x[MACRO_SERVICENOTIFICATIONNUMBER];
+		mac.x[MACRO_NOTIFICATIONNUMBER] = strdup(mac.x[MACRO_SERVICENOTIFICATIONNUMBER]);
 
 		/* set the notification id macro */
 		asprintf(&mac.x[MACRO_SERVICENOTIFICATIONID], "%lu", svc->current_notification_id);
@@ -221,14 +223,19 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		/* free memory allocated to the notification list */
 		free_notification_list();
 
-		/*
-		 * clear out all macros we just created. Just the numerical
-		 * ones really, as the string ones are passed by reference
-		 * and mustn't be free()'d.
-		 */
+		/* clear out all macros we created */
 		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
-		mac.x[MACRO_SERVICENOTIFICATIONNUMBER] = NULL;
+		my_free(mac.x[MACRO_SERVICENOTIFICATIONNUMBER]);
 		my_free(mac.x[MACRO_SERVICENOTIFICATIONID]);
+		my_free(mac.x[MACRO_NOTIFICATIONTYPE]);
+		my_free(mac.x[MACRO_NOTIFICATIONAUTHOR]);
+		my_free(mac.x[MACRO_NOTIFICATIONAUTHORNAME]);
+		my_free(mac.x[MACRO_NOTIFICATIONAUTHORALIAS]);
+		my_free(mac.x[MACRO_SERVICEACKAUTHORNAME]);
+		my_free(mac.x[MACRO_SERVICEACKAUTHORALIAS]);
+		my_free(mac.x[MACRO_SERVICEACKAUTHOR]);
+		my_free(mac.x[MACRO_SERVICEACKCOMMENT]);
+
 		/* this gets set in add_notification() */
 		my_free(mac.x[MACRO_NOTIFICATIONRECIPIENTS]);
 
@@ -1087,10 +1094,10 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 		/* get author and comment macros */
 		if(not_author)
-			mac.x[MACRO_NOTIFICATIONAUTHOR] = not_author;
+			mac.x[MACRO_NOTIFICATIONAUTHOR] = strdup(not_author);
 		if(temp_contact != NULL) {
-			mac.x[MACRO_NOTIFICATIONAUTHORNAME] = temp_contact->name;
-			mac.x[MACRO_NOTIFICATIONAUTHORALIAS] = temp_contact->alias;
+			mac.x[MACRO_NOTIFICATIONAUTHORNAME] = strdup(temp_contact->name);
+			mac.x[MACRO_NOTIFICATIONAUTHORALIAS] = strdup(temp_contact->alias);
 			}
 		if(not_data)
 			mac.x[MACRO_NOTIFICATIONCOMMENT] = not_data;
@@ -1100,14 +1107,14 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		if(type == NOTIFICATION_ACKNOWLEDGEMENT) {
 
 			if(not_author)
-				mac.x[MACRO_HOSTACKAUTHOR] = not_author;
+				mac.x[MACRO_HOSTACKAUTHOR] = strdup(not_author);
 
 			if(not_data)
-				mac.x[MACRO_HOSTACKCOMMENT] = not_data;
+				mac.x[MACRO_HOSTACKCOMMENT] = strdup(not_data);
 
 			if(temp_contact != NULL) {
-				mac.x[MACRO_SERVICEACKAUTHORNAME] = temp_contact->name;
-				mac.x[MACRO_SERVICEACKAUTHORALIAS] = temp_contact->alias;
+				mac.x[MACRO_SERVICEACKAUTHORNAME] = strdup(temp_contact->name);
+				mac.x[MACRO_SERVICEACKAUTHORALIAS] = strdup(temp_contact->alias);
 				}
 			}
 
@@ -1131,11 +1138,13 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		else
 			mac.x[MACRO_NOTIFICATIONTYPE] = "PROBLEM";
 
+		mac.x[MACRO_NOTIFICATIONTYPE] = strdup(mac.x[MACRO_NOTIFICATIONTYPE]);
+
 		/* set the notification number macro */
 		asprintf(&mac.x[MACRO_HOSTNOTIFICATIONNUMBER], "%d", hst->current_notification_number);
 
 		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatability */
-		mac.x[MACRO_NOTIFICATIONNUMBER] = mac.x[MACRO_HOSTNOTIFICATIONNUMBER];
+		mac.x[MACRO_NOTIFICATIONNUMBER] = strdup(mac.x[MACRO_HOSTNOTIFICATIONNUMBER]);
 
 		/* set the notification id macro */
 		asprintf(&mac.x[MACRO_HOSTNOTIFICATIONID], "%lu", hst->current_notification_id);
@@ -1160,14 +1169,18 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		/* free memory allocated to the notification list */
 		free_notification_list();
 
-		/*
-		 * clear out all macros we just created. It's really just the
-		 * numerical ones, since the stringbased ones are passed by
-		 * reference instead of being copied.
-		 */
-		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
-		mac.x[MACRO_HOSTNOTIFICATIONNUMBER] = NULL;
+		/* clear out all macros we created */
 		my_free(mac.x[MACRO_HOSTNOTIFICATIONID]);
+		my_free(mac.x[MACRO_NOTIFICATIONNUMBER]);
+		my_free(mac.x[MACRO_HOSTNOTIFICATIONNUMBER]);
+		my_free(mac.x[MACRO_NOTIFICATIONTYPE]);
+		my_free(mac.x[MACRO_NOTIFICATIONAUTHOR]);
+		my_free(mac.x[MACRO_NOTIFICATIONAUTHORNAME]);
+		my_free(mac.x[MACRO_NOTIFICATIONAUTHORALIAS]);
+		my_free(mac.x[MACRO_HOSTACKAUTHORNAME]);
+		my_free(mac.x[MACRO_HOSTACKAUTHORALIAS]);
+		my_free(mac.x[MACRO_HOSTACKAUTHOR]);
+		my_free(mac.x[MACRO_HOSTACKCOMMENT]);
 		/* this gets set in add_notification() */
 		my_free(mac.x[MACRO_NOTIFICATIONRECIPIENTS]);
 

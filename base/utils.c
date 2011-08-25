@@ -3851,24 +3851,31 @@ int query_update_api(void) {
 		report_install = TRUE;
 	if(report_install == TRUE) {
 		asprintf(&api_query_opts, "&firstcheck=1");
-		if(last_program_version != NULL)
-			asprintf(&api_query_opts, "%s&last_version=%s", api_query_opts, last_program_version);
+		if(last_program_version != NULL) {
+			char *qopts2 = NULL;
+			asprintf(&qopts2, "%s&last_version=%s", api_query_opts, last_program_version);
+			my_free(api_query_opts);
+			api_query_opts = qopts2;
+			}
 		}
 
 	/* generate the query */
 	asprintf(&api_query, "v=1&product=nagios&tinycheck=1&stableonly=1&uid=%lu", update_uid);
-	if(bare_update_check == FALSE)
-		asprintf(&api_query, "%s&version=%s%s", api_query, PROGRAM_VERSION, (api_query_opts == NULL) ? "" : api_query_opts);
+	if(bare_update_check == FALSE) {
+		char *api_query2 = NULL;
+		asprintf(&api_query2, "%s&version=%s%s", api_query, PROGRAM_VERSION, (api_query_opts == NULL) ? "" : api_query_opts);
+		my_free(api_query);
+		api_query = api_query2;
+		}
 
 	/* generate the HTTP request */
-	asprintf(&buf, "POST %s HTTP/1.0\r\n", api_path);
-	asprintf(&buf, "%sUser-Agent: Nagios/%s\r\n", buf, PROGRAM_VERSION);
-	asprintf(&buf, "%sConnection: close\r\n", buf);
-	asprintf(&buf, "%sHost: %s\r\n", buf, api_server);
-	asprintf(&buf, "%sContent-Type: application/x-www-form-urlencoded\r\n", buf);
-	asprintf(&buf, "%sContent-Length: %zd\r\n", buf, strlen(api_query));
-	asprintf(&buf, "%s\r\n", buf);
-	asprintf(&buf, "%s%s\r\n", buf, api_query);
+	asprintf(&buf,
+	         "POST %s HTTP/1.0\r\nUser-Agent: Nagios/%s\r\n"
+	         "Connection: close\r\nHost: %s\r\n"
+	         "Content-Type: application/x-www-form-urlencoded\r\n"
+	         "Content-Length: %zd\r\n\r\n%s",
+	         api_path, PROGRAM_VERSION, api_server,
+	         strlen(api_query), api_query);
 
 	/*
 	printf("SENDING...\n");

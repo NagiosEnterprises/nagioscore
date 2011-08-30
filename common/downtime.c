@@ -51,6 +51,7 @@ int		   defer_downtime_sorting = 0;
 #ifdef NSCORE
 extern timed_event *event_list_high;
 extern timed_event *event_list_high_tail;
+pthread_mutex_t nagios_downtime_lock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 
@@ -759,6 +760,9 @@ int delete_downtime(int type, unsigned long downtime_id) {
 	scheduled_downtime *last_downtime = NULL;
 	scheduled_downtime *next_downtime = NULL;
 
+#ifdef NSCORE
+	pthread_mutex_lock(&nagios_downtime_lock);
+#endif
 	/* find the downtime we should remove */
 	for(this_downtime = scheduled_downtime_list, last_downtime = scheduled_downtime_list; this_downtime != NULL; this_downtime = next_downtime) {
 		next_downtime = this_downtime->next;
@@ -789,6 +793,9 @@ int delete_downtime(int type, unsigned long downtime_id) {
 		else
 			last_downtime->next = next_downtime;
 
+#ifdef NSCORE
+	pthread_mutex_unlock(&nagios_downtime_lock);
+#endif
 		/* free memory */
 		my_free(this_downtime->host_name);
 		my_free(this_downtime->service_description);
@@ -964,7 +971,14 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 		scheduled_downtime_list = new_downtime;
 		}
 	else {
-		/* add new downtime to downtime list, sorted by start time */
+		/*
+		 * add new downtime to downtime list, sorted by start time,
+		 * but lock the lists first so broker modules fiddling
+		 * with them at the same time doesn't crash out.
+		 */
+#ifdef NSCORE
+		pthread_mutex_lock(&nagios_downtime_lock);
+#endif
 		last_downtime = scheduled_downtime_list;
 		for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
 			if(new_downtime->start_time < temp_downtime->start_time) {
@@ -986,6 +1000,9 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 			new_downtime->next = NULL;
 			last_downtime->next = new_downtime;
 			}
+#ifdef NSCORE
+		pthread_mutex_unlock(&nagios_downtime_lock);
+#endif
 		}
 #ifdef NSCORE
 #ifdef USE_EVENT_BROKER

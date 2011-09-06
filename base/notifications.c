@@ -1114,8 +1114,8 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 				mac.x[MACRO_HOSTACKCOMMENT] = strdup(not_data);
 
 			if(temp_contact != NULL) {
-				mac.x[MACRO_SERVICEACKAUTHORNAME] = strdup(temp_contact->name);
-				mac.x[MACRO_SERVICEACKAUTHORALIAS] = strdup(temp_contact->alias);
+				mac.x[MACRO_HOSTACKAUTHORNAME] = strdup(temp_contact->name);
+				mac.x[MACRO_HOSTACKAUTHORALIAS] = strdup(temp_contact->alias);
 				}
 			}
 

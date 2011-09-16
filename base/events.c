@@ -338,6 +338,7 @@ void init_timing_loop(void) {
 		log_debug_info(DEBUGL_EVENTS, 2, "Current Interleave Block: %d\n", current_interleave_block);
 
 		for(interleave_block_index = 0; interleave_block_index < scheduling_info.service_interleave_factor && temp_service != NULL; temp_service = temp_service->next) {
+			int check_delay = 0;
 
 			log_debug_info(DEBUGL_EVENTS, 2, "Service '%s' on host '%s'\n", temp_service->description, temp_service->host_name);
 			/* skip this service if it shouldn't be scheduled */
@@ -346,8 +347,17 @@ void init_timing_loop(void) {
 				continue;
 				}
 
-			/* skip services that are already scheduled for the future (from retention data), but reschedule ones that were supposed to happen while we weren't running... */
-			if(temp_service->next_check > current_time) {
+			/*
+			 * skip services that are already scheduled for the (near)
+			 * future from retention data, but reschedule ones that
+			 * were supposed to happen while we weren't running...
+			 * We check to make sure the check isn't scheduled to run
+			 * far in the future to make sure checks who've hade their
+			 * timeperiods changed during the restart aren't left
+			 * hanging too long without being run.
+			 */
+			check_delay = temp_service->next_check - current_time;
+			if(check_delay > 0 && check_delay < (temp_service->check_interval * interval_length)) {
 				log_debug_info(DEBUGL_EVENTS, 2, "Service is already scheduled to be checked in the future: %s\n", ctime(&temp_service->next_check));
 				continue;
 				}

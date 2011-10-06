@@ -72,6 +72,7 @@ extern int            use_retained_program_state;
 extern int            use_retained_scheduling_info;
 extern int            retention_scheduling_horizon;
 
+extern time_t         last_program_stop;
 extern time_t         last_update_check;
 extern unsigned long  update_uid;
 extern char           *last_program_version;
@@ -1011,6 +1012,7 @@ int xrddefault_read_state_information(void) {
 							scheduling_info_is_ok = TRUE;
 						else
 							scheduling_info_is_ok = FALSE;
+						last_program_stop = creation_time;
 						}
 					else if(!strcmp(var, "version")) {
 						/* initialize last version in case we're reading a pre-3.1.0 retention file */

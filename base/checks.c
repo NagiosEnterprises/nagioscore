@@ -2053,13 +2053,36 @@ int is_service_result_fresh(service *temp_service, time_t current_time, int log_
 	log_debug_info(DEBUGL_CHECKS, 2, "Freshness thresholds: service=%d, use=%d\n", temp_service->freshness_threshold, freshness_threshold);
 
 	/* calculate expiration time */
-	/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
-	/* CHANGED 02/25/06 SG - passive checks also become stale, so remove dependence on active check logic */
+	/*
+	 * CHANGED 11/10/05 EG -
+	 * program start is only used in expiration time calculation
+	 * if > last check AND active checks are enabled, so active checks
+	 * can become stale immediately upon program startup
+	 */
+	/*
+	 * CHANGED 02/25/06 SG -
+	 * passive checks also become stale, so remove dependence on active
+	 * check logic
+	 */
 	if(temp_service->has_been_checked == FALSE)
 		expiration_time = (time_t)(event_start + freshness_threshold);
-	/* CHANGED 06/19/07 EG - Per Ton's suggestion (and user requests), only use program start time over last check if no specific threshold has been set by user.  Otheriwse use it.  Problems can occur if Nagios is restarted more frequently that freshness threshold intervals (services never go stale). */
-	/* CHANGED 10/07/07 EG - Only match next condition for services that have active checks enabled... */
-	/* CHANGED 10/07/07 EG - Added max_service_check_spread to expiration time as suggested by Altinity */
+	/*
+	 * CHANGED 06/19/07 EG -
+	 * Per Ton's suggestion (and user requests), only use program start
+	 * time over last check if no specific threshold has been set by user.
+	 * Problems can occur if Nagios is restarted more frequently that
+	 * freshness threshold intervals (services never go stale).
+	 */
+	/*
+	 * CHANGED 10/07/07 EG:
+	 * Only match next condition for services that
+	 * have active checks enabled...
+	 */
+	/*
+	 * CHANGED 10/07/07 EG:
+	 * Added max_service_check_spread to expiration time as suggested
+	 * by Altinity
+	 */
 	else if(temp_service->checks_enabled == TRUE && event_start > temp_service->last_check && temp_service->freshness_threshold == 0)
 		expiration_time = (time_t)(event_start + freshness_threshold + (max_service_check_spread * interval_length));
 	else
@@ -2451,11 +2474,26 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int log_this) {
 	log_debug_info(DEBUGL_CHECKS, 2, "Freshness thresholds: host=%d, use=%d\n", temp_host->freshness_threshold, freshness_threshold);
 
 	/* calculate expiration time */
-	/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
+	/*
+	 * CHANGED 11/10/05 EG:
+	 * program start is only used in expiration time calculation
+	 * if > last check AND active checks are enabled, so active checks
+	 * can become stale immediately upon program startup
+	 */
 	if(temp_host->has_been_checked == FALSE)
 		expiration_time = (time_t)(event_start + freshness_threshold);
-	/* CHANGED 06/19/07 EG - Per Ton's suggestion (and user requests), only use program start time over last check if no specific threshold has been set by user.  Otheriwse use it.  Problems can occur if Nagios is restarted more frequently that freshness threshold intervals (hosts never go stale). */
-	/* CHANGED 10/07/07 EG - Added max_host_check_spread to expiration time as suggested by Altinity */
+	/*
+	 * CHANGED 06/19/07 EG:
+	 * Per Ton's suggestion (and user requests), only use program start
+	 * time over last check if no specific threshold has been set by user.
+	 * Problems can occur if Nagios is restarted more frequently that
+	 * freshness threshold intervals (hosts never go stale).
+	 */
+	/*
+	 * CHANGED 10/07/07 EG:
+	 * Added max_host_check_spread to expiration time as suggested by
+	 * Altinity
+	 */
 	else if(temp_host->checks_enabled == TRUE && event_start > temp_host->last_check && temp_host->freshness_threshold == 0)
 		expiration_time = (time_t)(event_start + freshness_threshold + (max_host_check_spread * interval_length));
 	else

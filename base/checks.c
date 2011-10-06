@@ -98,6 +98,7 @@ extern int      use_large_installation_tweaks;
 extern int      free_child_process_memory;
 extern int      child_processes_fork_twice;
 
+extern time_t   last_program_stop;
 extern time_t   program_start;
 extern time_t   event_start;
 
@@ -2088,6 +2089,23 @@ int is_service_result_fresh(service *temp_service, time_t current_time, int log_
 	else
 		expiration_time = (time_t)(temp_service->last_check + freshness_threshold);
 
+	/*
+	 * If the check was last done passively, we assume it's going
+	 * to continue that way and we need to handle the fact that
+	 * Nagios might have been shut off for quite a long time. If so,
+	 * we mustn't spam freshness notifications but use program_start_time
+	 * instead of last_check to determine freshness expiration time.
+	 * The threshold for "long time" is determined as 61.8% of the normal
+	 * freshness threshold based on vast heuristical research (ie, "some
+	 * guy once told me the golden ratio is good for loads of stuff").
+	 */
+	if (temp_service->check_type == SERVICE_CHECK_PASSIVE) {
+		if (event_start < program_start + 60 &&
+			event_start - last_program_stop < (freshness_threshold * 0.618))
+		{
+			expiration_time = event_start + freshness_threshold;
+		}
+	}
 	log_debug_info(DEBUGL_CHECKS, 2, "HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n", temp_service->has_been_checked, (unsigned long)program_start, (unsigned long)event_start, (unsigned long)temp_service->last_check, (unsigned long)current_time, (unsigned long)expiration_time);
 
 	/* the results for the last check of this service are stale */
@@ -2498,6 +2516,24 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int log_this) {
 		expiration_time = (time_t)(event_start + freshness_threshold + (max_host_check_spread * interval_length));
 	else
 		expiration_time = (time_t)(temp_host->last_check + freshness_threshold);
+
+	/*
+	 * If the check was last done passively, we assume it's going
+	 * to continue that way and we need to handle the fact that
+	 * Nagios might have been shut off for quite a long time. If so,
+	 * we mustn't spam freshness notifications but use program_start_time
+	 * instead of last_check to determine freshness expiration time.
+	 * The threshold for "long time" is determined as 61.8% of the normal
+	 * freshness threshold based on vast heuristical research (ie, "some
+	 * guy once told me the golden ratio is good for loads of stuff").
+	 */
+	if (temp_host->check_type == HOST_CHECK_PASSIVE) {
+		if (event_start < program_start + 60 &&
+			event_start - last_program_stop < (freshness_threshold * 0.618))
+		{
+			expiration_time = event_start + freshness_threshold;
+		}
+	}
 
 	log_debug_info(DEBUGL_CHECKS, 2, "HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n", temp_host->has_been_checked, (unsigned long)program_start, (unsigned long)event_start, (unsigned long)temp_host->last_check, (unsigned long)current_time, (unsigned long)expiration_time);
 

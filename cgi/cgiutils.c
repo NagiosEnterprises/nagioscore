@@ -924,7 +924,7 @@ char *url_encode(char *input) {
 			}
 
 		/* spaces are pluses */
-		else if((char)input[x] <= (char)' ') {
+		else if(input[x] == ' ') {
 			str[y] = '+';
 			y++;
 			}

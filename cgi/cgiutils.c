@@ -1498,8 +1498,6 @@ void include_ssi_files(char *cgi_name, int type) {
 	stripped_cgi_name = strtok(raw_cgi_name, ".");
 	snprintf(cgi_ssi_file, sizeof(cgi_ssi_file) - 1, "%s%s-%s.ssi", physical_ssi_path, (stripped_cgi_name == NULL) ? "" : stripped_cgi_name, (type == SSI_HEADER) ? "header" : "footer");
 	cgi_ssi_file[sizeof(cgi_ssi_file) - 1] = '\x0';
-	for(x = 0; x < strlen(cgi_ssi_file); x++)
-		cgi_ssi_file[x] = tolower(cgi_ssi_file[x]);
 
 	if(type == SSI_HEADER) {
 		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2007 Ethan Galstad. -->\n");

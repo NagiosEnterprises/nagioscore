@@ -91,8 +91,8 @@ $this_version="3.3.1";
 		$x++;
 		if($x>3)
 			break;
-		$href = $item['link'];
-		$title = $item['title'];	
+		#$href = $item['link'];
+		#$title = $item['title'];	
 		$desc = $item['description'];
 		//echo "<li><a href='$href' target='_blank'>$title</a></li>";
 		echo "<li>$desc</li>";

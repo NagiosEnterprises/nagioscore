@@ -209,9 +209,6 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			/* grab the macro variables for this contact */
 			grab_contact_macros_r(&mac, temp_notification->contact);
 
-			/* clear summary macros (they are customized for each contact) */
-			clear_summary_macros_r(&mac);
-
 			/* notify this contact */
 			result = notify_contact_of_service(&mac, temp_notification->contact, svc, type, not_author, not_data, options, escalated);
 
@@ -240,8 +237,17 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		/* this gets set in add_notification() */
 		my_free(mac.x[MACRO_NOTIFICATIONRECIPIENTS]);
 
-		/* clear summary macros so they will be regenerated without contact filters when needed next */
+		/*
+		 * Clear all macros customized per contact that will
+		 * otherwise linger in memory now that we're done with
+		 * the notifications.
+		 */
 		clear_summary_macros_r(&mac);
+		clear_contact_macros_r(&mac);
+		clear_argv_macros_r(&mac);
+
+		/* this gets set in create_notification_list_from_service() */
+		my_free(mac.x[MACRO_NOTIFICATIONISESCALATED]);
 
 		if(type == NOTIFICATION_NORMAL) {
 
@@ -1184,8 +1190,17 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		/* this gets set in add_notification() */
 		my_free(mac.x[MACRO_NOTIFICATIONRECIPIENTS]);
 
-		/* clear summary macros so they will be regenerated without contact filters when needednext */
+		/*
+		 * Clear all macros customized per contact that will
+		 * otherwise linger in memory now that we're done with
+		 * the notifications.
+		 */
 		clear_summary_macros_r(&mac);
+		clear_contact_macros_r(&mac);
+		clear_argv_macros_r(&mac);
+
+		/* this gets set in create_notification_list_from_service() */
+		my_free(mac.x[MACRO_NOTIFICATIONISESCALATED]);
 
 		if(type == NOTIFICATION_NORMAL) {
 

@@ -310,14 +310,17 @@ int delete_all_host_comments(char *host_name) {
 int delete_host_acknowledgement_comments(host *hst) {
 	int result = OK;
 	comment *temp_comment = NULL;
+	comment *next_comment = NULL;
 
 	if(hst == NULL)
 		return ERROR;
 
 	/* delete comments from memory */
-	for(temp_comment = get_first_comment_by_host(hst->name); temp_comment != NULL; temp_comment = get_next_comment_by_host(hst->name, temp_comment)) {
-		if(temp_comment->comment_type == HOST_COMMENT && temp_comment->entry_type == ACKNOWLEDGEMENT_COMMENT && temp_comment->persistent == FALSE)
+	for(temp_comment = get_first_comment_by_host(hst->name); temp_comment != NULL; temp_comment = next_comment) {
+		if(temp_comment->comment_type == HOST_COMMENT && temp_comment->entry_type == ACKNOWLEDGEMENT_COMMENT && temp_comment->persistent == FALSE) {
+			next_comment = get_next_comment_by_host(hst->name, temp_comment);
 			delete_comment(HOST_COMMENT, temp_comment->comment_id);
+			}
 		}
 
 	return result;

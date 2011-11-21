@@ -108,10 +108,6 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 	log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Creating list of contacts to be notified.\n");
 
-	/* create the contact notification list for this service */
-	memset(&mac, 0, sizeof(mac));
-	create_notification_list_from_service(&mac, svc, options, &escalated);
-
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	end_time.tv_sec = 0L;
@@ -126,6 +122,10 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		return OK;
 		}
 #endif
+
+	/* create the contact notification list for this service */
+	memset(&mac, 0, sizeof(mac));
+	create_notification_list_from_service(&mac, svc, options, &escalated);
 
 	/* XXX: crazy indent */
 	/* we have contacts to notify... */
@@ -1037,9 +1037,6 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		return OK;
 		}
 
-	/* reset memory for local macro data */
-	memset(&mac, 0, sizeof(mac));
-
 	log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test passed.\n");
 
 	/* should the notification number be increased? */
@@ -1056,9 +1053,6 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 	log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Creating list of contacts to be notified.\n");
 
-	/* create the contact notification list for this host */
-	create_notification_list_from_host(&mac, hst, options, &escalated);
-
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	end_time.tv_sec = 0L;
@@ -1073,6 +1067,10 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		return OK;
 		}
 #endif
+
+	/* reset memory for local macro data */
+	memset(&mac, 0, sizeof(mac));
+	create_notification_list_from_host(&mac, hst, options, &escalated);
 
 	/* XXX: crazy indent */
 	/* there are contacts to be notified... */

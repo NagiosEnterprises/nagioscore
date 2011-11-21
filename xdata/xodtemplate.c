@@ -277,11 +277,11 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 			/* process a single config file */
 			if(!strcmp(var, "xodtemplate_config_file") || !strcmp(var, "cfg_file")) {
 
-				temp_buffer = (char *)strdup(val);
-				if(config_base_dir != NULL && val[0] != '/')
-					asprintf(&config_file, "%s/%s", config_base_dir, temp_buffer);
+				if(config_base_dir != NULL && val[0] != '/') {
+					asprintf(&config_file, "%s/%s", config_base_dir, val);
+					}
 				else
-					config_file = temp_buffer;
+					config_file = strdup(val);
 
 				/* process the config file... */
 				result = xodtemplate_process_config_file(config_file, options);
@@ -296,11 +296,11 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 			/* process all files in a config directory */
 			else if(!strcmp(var, "xodtemplate_config_dir") || !strcmp(var, "cfg_dir")) {
 
-				temp_buffer = (char *)strdup(val);
-				if(config_base_dir != NULL && val[0] != '/')
-					asprintf(&config_file, "%s/%s", config_base_dir, temp_buffer);
+				if(config_base_dir != NULL && val[0] != '/') {
+					asprintf(&config_file, "%s/%s", config_base_dir, val);
+					}
 				else
-					config_file = temp_buffer;
+					config_file = strdup(val);
 
 				/* strip trailing / if necessary */
 				if(config_file != NULL && config_file[strlen(config_file) - 1] == '/')

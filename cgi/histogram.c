@@ -810,7 +810,7 @@ int main(int argc, char **argv) {
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
-			printf("<tr><td valign=top calss='reportSelectSubTitle'>If Custom Report Period...</td></tr>\n");
+			printf("<tr><td valign=top class='reportSelectSubTitle'>If Custom Report Period...</td></tr>\n");
 
 			printf("<tr>");
 			printf("<td valign=top class='reportSelectSubTitle'>Start Date (Inclusive):</td>\n");

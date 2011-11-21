@@ -796,9 +796,6 @@ int delete_downtime(int type, unsigned long downtime_id) {
 		else
 			last_downtime->next = next_downtime;
 
-#ifdef NSCORE
-		pthread_mutex_unlock(&nagios_downtime_lock);
-#endif
 		/* free memory */
 		my_free(this_downtime->host_name);
 		my_free(this_downtime->service_description);
@@ -810,6 +807,10 @@ int delete_downtime(int type, unsigned long downtime_id) {
 		}
 	else
 		result = ERROR;
+
+#ifdef NSCORE
+	pthread_mutex_unlock(&nagios_downtime_lock);
+#endif
 
 	return result;
 	}

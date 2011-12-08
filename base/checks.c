@@ -2093,15 +2093,15 @@ int is_service_result_fresh(service *temp_service, time_t current_time, int log_
 	 * If the check was last done passively, we assume it's going
 	 * to continue that way and we need to handle the fact that
 	 * Nagios might have been shut off for quite a long time. If so,
-	 * we mustn't spam freshness notifications but use program_start_time
+	 * we mustn't spam freshness notifications but use event_start
 	 * instead of last_check to determine freshness expiration time.
 	 * The threshold for "long time" is determined as 61.8% of the normal
 	 * freshness threshold based on vast heuristical research (ie, "some
 	 * guy once told me the golden ratio is good for loads of stuff").
 	 */
 	if (temp_service->check_type == SERVICE_CHECK_PASSIVE) {
-		if (event_start < program_start + 60 &&
-			event_start - last_program_stop < (freshness_threshold * 0.618))
+		if (temp_service->last_check < event_start &&
+			event_start - last_program_stop < freshness_threshold * 0.618)
 		{
 			expiration_time = event_start + freshness_threshold;
 		}
@@ -2521,15 +2521,15 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int log_this) {
 	 * If the check was last done passively, we assume it's going
 	 * to continue that way and we need to handle the fact that
 	 * Nagios might have been shut off for quite a long time. If so,
-	 * we mustn't spam freshness notifications but use program_start_time
+	 * we mustn't spam freshness notifications but use event_start
 	 * instead of last_check to determine freshness expiration time.
 	 * The threshold for "long time" is determined as 61.8% of the normal
 	 * freshness threshold based on vast heuristical research (ie, "some
 	 * guy once told me the golden ratio is good for loads of stuff").
 	 */
 	if (temp_host->check_type == HOST_CHECK_PASSIVE) {
-		if (event_start < program_start + 60 &&
-			event_start - last_program_stop < (freshness_threshold * 0.618))
+		if (temp_host->last_check < event_start &&
+			event_start - last_program_stop > freshness_threshold * 0.618)
 		{
 			expiration_time = event_start + freshness_threshold;
 		}

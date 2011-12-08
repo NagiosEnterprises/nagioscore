@@ -316,11 +316,13 @@ int delete_host_acknowledgement_comments(host *hst) {
 		return ERROR;
 
 	/* delete comments from memory */
-	for(temp_comment = get_first_comment_by_host(hst->name); temp_comment != NULL; temp_comment = next_comment) {
+	temp_comment = get_first_comment_by_host(hst->name);
+	while (temp_comment) {
+		next_comment = get_next_comment_by_host(hst->name, temp_comment);
 		if(temp_comment->comment_type == HOST_COMMENT && temp_comment->entry_type == ACKNOWLEDGEMENT_COMMENT && temp_comment->persistent == FALSE) {
-			next_comment = get_next_comment_by_host(hst->name, temp_comment);
 			delete_comment(HOST_COMMENT, temp_comment->comment_id);
 			}
+		temp_comment = next_comment;
 		}
 
 	return result;

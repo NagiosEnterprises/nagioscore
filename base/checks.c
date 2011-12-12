@@ -249,6 +249,12 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "run_scheduled_service_check() start\n");
 	log_debug_info(DEBUGL_CHECKS, 0, "Attempting to run scheduled check of service '%s' on host '%s': check options=%d, latency=%lf\n", svc->description, svc->host_name, check_options, latency);
 
+	/*
+	 * reset the next_check_event so we know it's
+	 * no longer in the scheduling queue
+	 */
+	svc->next_check_event = NULL;
+
 	/* attempt to run the check */
 	result = run_async_service_check(svc, check_options, latency, TRUE, TRUE, &time_is_valid, &preferred_time);
 
@@ -1656,7 +1662,6 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 void schedule_service_check(service *svc, time_t check_time, int options) {
 	timed_event *temp_event = NULL;
 	timed_event *new_event = NULL;
-	int found = FALSE;
 	int use_original_event = TRUE;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "schedule_service_check()\n");
@@ -1683,24 +1688,14 @@ void schedule_service_check(service *svc, time_t check_time, int options) {
 
 	/* default is to use the new event */
 	use_original_event = FALSE;
-	found = FALSE;
 
-#ifdef PERFORMANCE_INCREASE_BUT_VERY_BAD_IDEA_INDEED
-	/* WARNING! 1/19/07 on-demand async service checks will end up causing mutliple scheduled checks of a service to appear in the queue if the code below is skipped */
-	/* if(use_large_installation_tweaks==FALSE)... skip code below */
-#endif
+	temp_event = (timed_event *)svc->next_check_event;
 
-	/* see if there are any other scheduled checks of this service in the queue */
-	for(temp_event = event_list_low; temp_event != NULL; temp_event = temp_event->next) {
-
-		if(temp_event->event_type == EVENT_SERVICE_CHECK && svc == (service *)temp_event->event_data) {
-			found = TRUE;
-			break;
-			}
-		}
-
-	/* we found another service check event for this service in the queue - what should we do? */
-	if(found == TRUE && temp_event != NULL) {
+	/*
+	 * If the service already has a check scheduled,
+	 * we need to decide which of the events to use
+	 */
+	if(temp_event != NULL) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Found another service check event for this service @ %s", ctime(&temp_event->run_time));
 
@@ -1747,6 +1742,7 @@ void schedule_service_check(service *svc, time_t check_time, int options) {
 		else {
 			remove_event(temp_event, &event_list_low, &event_list_low_tail);
 			my_free(temp_event);
+			svc->next_check_event = new_event;
 			}
 		}
 
@@ -2163,7 +2159,6 @@ int perform_scheduled_host_check(host *hst, int check_options, double latency) {
 void schedule_host_check(host *hst, time_t check_time, int options) {
 	timed_event *temp_event = NULL;
 	timed_event *new_event = NULL;
-	int found = FALSE;
 	int use_original_event = TRUE;
 
 
@@ -2190,23 +2185,14 @@ void schedule_host_check(host *hst, time_t check_time, int options) {
 
 	/* default is to use the new event */
 	use_original_event = FALSE;
-	found = FALSE;
 
-#ifdef PERFORMANCE_INCREASE_BUT_VERY_BAD_IDEA_INDEED
-	/* WARNING! 1/19/07 on-demand async host checks will end up causing mutliple scheduled checks of a host to appear in the queue if the code below is skipped */
-	/* if(use_large_installation_tweaks==FALSE)... skip code below */
-#endif
+	temp_event = (timed_event *)hst->next_check_event;
 
-	/* see if there are any other scheduled checks of this host in the queue */
-	for(temp_event = event_list_low; temp_event != NULL; temp_event = temp_event->next) {
-		if(temp_event->event_type == EVENT_HOST_CHECK && hst == (host *)temp_event->event_data) {
-			found = TRUE;
-			break;
-			}
-		}
-
-	/* we found another host check event for this host in the queue - what should we do? */
-	if(found == TRUE && temp_event != NULL) {
+	/*
+	 * If the host already had a check scheduled we need
+	 * to decide which check event to use
+	 */
+	if(temp_event != NULL) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Found another host check event for this host @ %s", ctime(&temp_event->run_time));
 
@@ -2253,6 +2239,7 @@ void schedule_host_check(host *hst, time_t check_time, int options) {
 		else {
 			remove_event(temp_event, &event_list_low, &event_list_low_tail);
 			my_free(temp_event);
+			hst->next_check_event = new_event;
 			}
 		}
 
@@ -2880,6 +2867,12 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency) {
 		return ERROR;
 
 	log_debug_info(DEBUGL_CHECKS, 0, "Attempting to run scheduled check of host '%s': check options=%d, latency=%lf\n", hst->name, check_options, latency);
+
+	/*
+	 * reset the next_check_event so we know this host
+	 * check is no longer in the scheduling queue
+	 */
+	hst->next_check_event = NULL;
 
 	/* attempt to run the check */
 	result = run_async_host_check_3x(hst, check_options, latency, TRUE, TRUE, &time_is_valid, &preferred_time);

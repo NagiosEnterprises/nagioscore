@@ -383,7 +383,7 @@ struct host_struct {
 	objectlist *hostgroups_ptr;
 #endif
 	struct  host_struct *next;
-	struct  host_struct *nexthash;
+	void *next_check_event;
 	};
 
 
@@ -514,7 +514,7 @@ struct service_struct {
 	objectlist *servicegroups_ptr;
 #endif
 	struct service_struct *next;
-	struct service_struct *nexthash;
+	void *next_check_event;
 	};
 
 

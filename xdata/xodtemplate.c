@@ -162,7 +162,6 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	char *input = NULL;
 	char *var = NULL;
 	char *val = NULL;
-	char *temp_buffer = NULL;
 	struct timeval tv[14];
 	double runtime[14];
 	mmapfile *thefile = NULL;

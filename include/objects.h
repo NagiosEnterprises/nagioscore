@@ -262,7 +262,7 @@ typedef struct hostgroup_struct {
 
 
 /* HOST structure */
-	struct host_struct {
+struct host_struct {
 	char    *name;
 	char    *display_name;
 	char	*alias;
@@ -401,7 +401,7 @@ typedef struct servicegroup_struct {
 
 
 /* SERVICE structure */
-	struct service_struct {
+struct service_struct {
 	char	*host_name;
 	char	*description;
 	char    *display_name;

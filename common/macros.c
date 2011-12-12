@@ -2863,54 +2863,48 @@ int clear_volatile_macros(void) {
 
 /* clear service macros */
 int clear_service_macros_r(nagios_macros *mac) {
-	register int x;
 	customvariablesmember *this_customvariablesmember = NULL;
 	customvariablesmember *next_customvariablesmember = NULL;
 
-	for(x = 0; x < MACRO_X_COUNT; x++) {
-		switch(x) {
-			case MACRO_SERVICEDESC:
-			case MACRO_SERVICEDISPLAYNAME:
-			case MACRO_SERVICEOUTPUT:
-			case MACRO_LONGSERVICEOUTPUT:
-			case MACRO_SERVICEPERFDATA:
-			case MACRO_SERVICECHECKCOMMAND:
-			case MACRO_SERVICECHECKTYPE:
-			case MACRO_SERVICESTATETYPE:
-			case MACRO_SERVICESTATE:
-			case MACRO_SERVICEISVOLATILE:
-			case MACRO_SERVICESTATEID:
-			case MACRO_SERVICEATTEMPT:
-			case MACRO_MAXSERVICEATTEMPTS:
-			case MACRO_SERVICEEXECUTIONTIME:
-			case MACRO_SERVICELATENCY:
-			case MACRO_LASTSERVICECHECK:
-			case MACRO_LASTSERVICESTATECHANGE:
-			case MACRO_LASTSERVICEOK:
-			case MACRO_LASTSERVICEWARNING:
-			case MACRO_LASTSERVICEUNKNOWN:
-			case MACRO_LASTSERVICECRITICAL:
-			case MACRO_SERVICEDOWNTIME:
-			case MACRO_SERVICEPERCENTCHANGE:
-			case MACRO_SERVICEDURATIONSEC:
-			case MACRO_SERVICEDURATION:
-			case MACRO_SERVICENOTIFICATIONNUMBER:
-			case MACRO_SERVICENOTIFICATIONID:
-			case MACRO_SERVICEEVENTID:
-			case MACRO_LASTSERVICEEVENTID:
-			case MACRO_SERVICEACTIONURL:
-			case MACRO_SERVICENOTESURL:
-			case MACRO_SERVICENOTES:
-			case MACRO_SERVICEGROUPNAMES:
-			case MACRO_SERVICEPROBLEMID:
-			case MACRO_LASTSERVICEPROBLEMID:
+	/* FIXME: strings. make these not be strdup()'s anymore */
+	my_free(mac->x[MACRO_SERVICEDESC]);
+	my_free(mac->x[MACRO_SERVICEDISPLAYNAME]);
+	my_free(mac->x[MACRO_SERVICEOUTPUT]);
+	my_free(mac->x[MACRO_LONGSERVICEOUTPUT]);
+	my_free(mac->x[MACRO_SERVICEPERFDATA]);
 
-				my_free(mac->x[x]);
-				break;
-			default:
-				break;
-			}
-		}
+	/* these are recursive but persistent. what to do? */
+	my_free(mac->x[MACRO_SERVICECHECKCOMMAND]);
+	my_free(mac->x[MACRO_SERVICEACTIONURL]);
+	my_free(mac->x[MACRO_SERVICENOTESURL]);
+	my_free(mac->x[MACRO_SERVICENOTES]);
+
+	my_free(mac->x[MACRO_SERVICECHECKTYPE]);
+	my_free(mac->x[MACRO_SERVICESTATETYPE]);
+	my_free(mac->x[MACRO_SERVICESTATE]);
+	my_free(mac->x[MACRO_SERVICEISVOLATILE]);
+	my_free(mac->x[MACRO_SERVICESTATEID]);
+	my_free(mac->x[MACRO_SERVICEATTEMPT]);
+	my_free(mac->x[MACRO_MAXSERVICEATTEMPTS]);
+	my_free(mac->x[MACRO_SERVICEEXECUTIONTIME]);
+	my_free(mac->x[MACRO_SERVICELATENCY]);
+	my_free(mac->x[MACRO_LASTSERVICECHECK]);
+	my_free(mac->x[MACRO_LASTSERVICESTATECHANGE]);
+	my_free(mac->x[MACRO_LASTSERVICEOK]);
+	my_free(mac->x[MACRO_LASTSERVICEWARNING]);
+	my_free(mac->x[MACRO_LASTSERVICEUNKNOWN]);
+	my_free(mac->x[MACRO_LASTSERVICECRITICAL]);
+	my_free(mac->x[MACRO_SERVICEDOWNTIME]);
+	my_free(mac->x[MACRO_SERVICEPERCENTCHANGE]);
+	my_free(mac->x[MACRO_SERVICEDURATIONSEC]);
+	my_free(mac->x[MACRO_SERVICEDURATION]);
+	my_free(mac->x[MACRO_SERVICENOTIFICATIONNUMBER]);
+	my_free(mac->x[MACRO_SERVICENOTIFICATIONID]);
+	my_free(mac->x[MACRO_SERVICEEVENTID]);
+	my_free(mac->x[MACRO_LASTSERVICEEVENTID]);
+	my_free(mac->x[MACRO_SERVICEGROUPNAMES]);
+	my_free(mac->x[MACRO_SERVICEPROBLEMID]);
+	my_free(mac->x[MACRO_LASTSERVICEPROBLEMID]);
 
 	/* clear custom service variables */
 	for(this_customvariablesmember = mac->custom_service_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
@@ -2931,62 +2925,57 @@ int clear_service_macros(void) {
 	return clear_service_macros_r(&global_macros);
 	}
 
-
 /* clear host macros */
 int clear_host_macros_r(nagios_macros *mac) {
-	register int x;
 	customvariablesmember *this_customvariablesmember = NULL;
 	customvariablesmember *next_customvariablesmember = NULL;
 
-	for(x = 0; x < MACRO_X_COUNT; x++) {
-		switch(x) {
-			case MACRO_HOSTNAME:
-			case MACRO_HOSTDISPLAYNAME:
-			case MACRO_HOSTALIAS:
-			case MACRO_HOSTADDRESS:
-			case MACRO_HOSTSTATE:
-			case MACRO_HOSTSTATEID:
-			case MACRO_HOSTCHECKTYPE:
-			case MACRO_HOSTSTATETYPE:
-			case MACRO_HOSTOUTPUT:
-			case MACRO_LONGHOSTOUTPUT:
-			case MACRO_HOSTPERFDATA:
-			case MACRO_HOSTCHECKCOMMAND:
-			case MACRO_HOSTATTEMPT:
-			case MACRO_MAXHOSTATTEMPTS:
-			case MACRO_HOSTDOWNTIME:
-			case MACRO_HOSTPERCENTCHANGE:
-			case MACRO_HOSTDURATIONSEC:
-			case MACRO_HOSTDURATION:
-			case MACRO_HOSTEXECUTIONTIME:
-			case MACRO_HOSTLATENCY:
-			case MACRO_LASTHOSTCHECK:
-			case MACRO_LASTHOSTSTATECHANGE:
-			case MACRO_LASTHOSTUP:
-			case MACRO_LASTHOSTDOWN:
-			case MACRO_LASTHOSTUNREACHABLE:
-			case MACRO_HOSTNOTIFICATIONNUMBER:
-			case MACRO_HOSTNOTIFICATIONID:
-			case MACRO_HOSTEVENTID:
-			case MACRO_LASTHOSTEVENTID:
-			case MACRO_HOSTACTIONURL:
-			case MACRO_HOSTNOTESURL:
-			case MACRO_HOSTNOTES:
-			case MACRO_HOSTGROUPNAMES:
-			case MACRO_TOTALHOSTSERVICES:
-			case MACRO_TOTALHOSTSERVICESOK:
-			case MACRO_TOTALHOSTSERVICESWARNING:
-			case MACRO_TOTALHOSTSERVICESUNKNOWN:
-			case MACRO_TOTALHOSTSERVICESCRITICAL:
-			case MACRO_HOSTPROBLEMID:
-			case MACRO_LASTHOSTPROBLEMID:
+	/* FIXME: strings; Fix these to not be strdup()'s anymore */
+	my_free(mac->x[MACRO_HOSTNAME]);
+	my_free(mac->x[MACRO_HOSTDISPLAYNAME]);
+	my_free(mac->x[MACRO_HOSTALIAS]);
+	my_free(mac->x[MACRO_HOSTADDRESS]);
+	my_free(mac->x[MACRO_HOSTOUTPUT]);
+	my_free(mac->x[MACRO_LONGHOSTOUTPUT]);
+	my_free(mac->x[MACRO_HOSTPERFDATA]);
 
-				my_free(mac->x[x]);
-				break;
-			default:
-				break;
-			}
-		}
+	/* these are recursive but persistent. what to do? */
+	my_free(mac->x[MACRO_HOSTCHECKCOMMAND]);
+	my_free(mac->x[MACRO_HOSTACTIONURL]);
+	my_free(mac->x[MACRO_HOSTNOTESURL]);
+	my_free(mac->x[MACRO_HOSTNOTES]);
+
+	/* numbers or by necessity autogenerated strings */
+	my_free(mac->x[MACRO_HOSTSTATE]);
+	my_free(mac->x[MACRO_HOSTSTATEID]);
+	my_free(mac->x[MACRO_HOSTCHECKTYPE]);
+	my_free(mac->x[MACRO_HOSTSTATETYPE]);
+	my_free(mac->x[MACRO_HOSTATTEMPT]);
+	my_free(mac->x[MACRO_MAXHOSTATTEMPTS]);
+	my_free(mac->x[MACRO_HOSTDOWNTIME]);
+	my_free(mac->x[MACRO_HOSTPERCENTCHANGE]);
+	my_free(mac->x[MACRO_HOSTDURATIONSEC]);
+	my_free(mac->x[MACRO_HOSTDURATION]);
+	my_free(mac->x[MACRO_HOSTEXECUTIONTIME]);
+	my_free(mac->x[MACRO_HOSTLATENCY]);
+	my_free(mac->x[MACRO_LASTHOSTCHECK]);
+	my_free(mac->x[MACRO_LASTHOSTSTATECHANGE]);
+	my_free(mac->x[MACRO_LASTHOSTUP]);
+	my_free(mac->x[MACRO_LASTHOSTDOWN]);
+	my_free(mac->x[MACRO_LASTHOSTUNREACHABLE]);
+	my_free(mac->x[MACRO_HOSTNOTIFICATIONNUMBER]);
+	my_free(mac->x[MACRO_HOSTNOTIFICATIONID]);
+	my_free(mac->x[MACRO_HOSTEVENTID]);
+	my_free(mac->x[MACRO_LASTHOSTEVENTID]);
+	my_free(mac->x[MACRO_HOSTGROUPNAMES]);
+	my_free(mac->x[MACRO_TOTALHOSTSERVICES]);
+	my_free(mac->x[MACRO_TOTALHOSTSERVICESOK]);
+	my_free(mac->x[MACRO_TOTALHOSTSERVICESWARNING]);
+	my_free(mac->x[MACRO_TOTALHOSTSERVICESUNKNOWN]);
+	my_free(mac->x[MACRO_TOTALHOSTSERVICESCRITICAL]);
+	my_free(mac->x[MACRO_HOSTPROBLEMID]);
+	my_free(mac->x[MACRO_LASTHOSTPROBLEMID]);
+
 
 	/* clear custom host variables */
 	for(this_customvariablesmember = mac->custom_host_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
@@ -3010,22 +2999,17 @@ int clear_host_macros(void) {
 
 /* clear hostgroup macros */
 int clear_hostgroup_macros_r(nagios_macros *mac) {
-	register int x;
+	/* FIXME: make these not strdup()'s */
+	my_free(mac->x[MACRO_HOSTGROUPNAME]);
+	my_free(mac->x[MACRO_HOSTGROUPALIAS]);
 
-	for(x = 0; x < MACRO_X_COUNT; x++) {
-		switch(x) {
-			case MACRO_HOSTGROUPNAME:
-			case MACRO_HOSTGROUPALIAS:
-			case MACRO_HOSTGROUPMEMBERS:
-			case MACRO_HOSTGROUPACTIONURL:
-			case MACRO_HOSTGROUPNOTESURL:
-			case MACRO_HOSTGROUPNOTES:
-				my_free(mac->x[x]);
-				break;
-			default:
-				break;
-			}
-		}
+	/* generated but persistent. what to do? */
+	my_free(mac->x[MACRO_HOSTGROUPACTIONURL]);
+	my_free(mac->x[MACRO_HOSTGROUPNOTESURL]);
+	my_free(mac->x[MACRO_HOSTGROUPNOTES]);
+
+	/* generated */
+	my_free(mac->x[MACRO_HOSTGROUPMEMBERS]);
 
 	/* clear pointers */
 	mac->hostgroup_ptr = NULL;
@@ -3040,22 +3024,17 @@ int clear_hostgroup_macros(void) {
 
 /* clear servicegroup macros */
 int clear_servicegroup_macros_r(nagios_macros *mac) {
-	register int x;
+	/* FIXME: these should not be strdup()'s */
+	my_free(mac->x[MACRO_SERVICEGROUPNAME]);
+	my_free(mac->x[MACRO_SERVICEGROUPALIAS]);
 
-	for(x = 0; x < MACRO_X_COUNT; x++) {
-		switch(x) {
-			case MACRO_SERVICEGROUPNAME:
-			case MACRO_SERVICEGROUPALIAS:
-			case MACRO_SERVICEGROUPMEMBERS:
-			case MACRO_SERVICEGROUPACTIONURL:
-			case MACRO_SERVICEGROUPNOTESURL:
-			case MACRO_SERVICEGROUPNOTES:
-				my_free(mac->x[x]);
-				break;
-			default:
-				break;
-			}
-		}
+	/* generated but persistent. what to do? */
+	my_free(mac->x[MACRO_SERVICEGROUPACTIONURL]);
+	my_free(mac->x[MACRO_SERVICEGROUPNOTESURL]);
+	my_free(mac->x[MACRO_SERVICEGROUPNOTES]);
+
+	/* generated */
+	my_free(mac->x[MACRO_SERVICEGROUPMEMBERS]);
 
 	/* clear pointers */
 	mac->servicegroup_ptr = NULL;
@@ -3074,19 +3053,14 @@ int clear_contact_macros_r(nagios_macros *mac) {
 	customvariablesmember *this_customvariablesmember = NULL;
 	customvariablesmember *next_customvariablesmember = NULL;
 
-	for(x = 0; x < MACRO_X_COUNT; x++) {
-		switch(x) {
-			case MACRO_CONTACTNAME:
-			case MACRO_CONTACTALIAS:
-			case MACRO_CONTACTEMAIL:
-			case MACRO_CONTACTPAGER:
-			case MACRO_CONTACTGROUPNAMES:
-				my_free(mac->x[x]);
-				break;
-			default:
-				break;
-			}
-		}
+	/* FIXME: these should not be strdup()'d */
+	my_free(mac->x[MACRO_CONTACTNAME]);
+	my_free(mac->x[MACRO_CONTACTALIAS]);
+	my_free(mac->x[MACRO_CONTACTEMAIL]);
+	my_free(mac->x[MACRO_CONTACTPAGER]);
+
+	/* generated per contact */
+	my_free(mac->x[MACRO_CONTACTGROUPNAMES]);
 
 	/* clear contact addresses */
 	for(x = 0; x < MAX_CONTACT_ADDRESSES; x++)
@@ -3114,19 +3088,9 @@ int clear_contact_macros(void) {
 
 /* clear contactgroup macros */
 int clear_contactgroup_macros_r(nagios_macros *mac) {
-	register int x;
-
-	for(x = 0; x < MACRO_X_COUNT; x++) {
-		switch(x) {
-			case MACRO_CONTACTGROUPNAME:
-			case MACRO_CONTACTGROUPALIAS:
-			case MACRO_CONTACTGROUPMEMBERS:
-				my_free(mac->x[x]);
-				break;
-			default:
-				break;
-			}
-		}
+	my_free(mac->x[MACRO_CONTACTGROUPNAME]);
+	my_free(mac->x[MACRO_CONTACTGROUPALIAS]);
+	my_free(mac->x[MACRO_CONTACTGROUPMEMBERS]);
 
 	/* clear pointers */
 	mac->contactgroup_ptr = NULL;

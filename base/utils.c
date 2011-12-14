@@ -2011,7 +2011,7 @@ int daemon_init(void) {
 	if(fcntl(lockfile, F_SETLK, &lock) < 0) {
 		if(errno == EACCES || errno == EAGAIN) {
 			fcntl(lockfile, F_GETLK, &lock);
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' looks like its already held by another instance of Nagios (PID %d).  Bailing out...", lock_file, (int)lock.l_pid);
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' looks like its already held by another instance of op5 Monitor (PID %d).  Bailing out...", lock_file, (int)lock.l_pid);
 			}
 		else
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Cannot lock lockfile '%s': %s. Bailing out...", lock_file, strerror(errno));
@@ -2615,8 +2615,6 @@ int free_check_result(check_result *info) {
 	}
 
 
-
-
 /* creates external command file as a named pipe (FIFO) and opens it for reading (non-blocked mode) */
 int open_command_file(void) {
 	struct stat st;
@@ -2639,7 +2637,7 @@ int open_command_file(void) {
 		/* create the external command file as a named pipe (FIFO) */
 		if((result = mkfifo(command_file, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) != 0) {
 
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n", command_file, errno, strerror(errno));
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of op5 Monitor is not running, you should delete this file.\n", command_file, errno, strerror(errno));
 			return ERROR;
 			}
 		}
@@ -3114,73 +3112,55 @@ int deinit_embedded_perl(void) {
 
 /* checks to see if we should run a script using the embedded Perl interpreter */
 int file_uses_embedded_perl(char *fname) {
-	int use_epn = FALSE;
-#ifdef EMBEDDEDPERL
+#ifndef EMBEDDEDPERL
+	return FALSE;
+#else
+	int line, use_epn = FALSE;
 	FILE *fp = NULL;
-	char line1[80] = "";
-	char linen[80] = "";
-	int line = 0;
-	char *ptr = NULL;
-	int found_epn_directive = FALSE;
+	char buf[256] = "";
 
-	if(enable_embedded_perl == TRUE) {
+	if(enable_embedded_perl != TRUE)
+		return FALSE;
 
-		/* open the file, check if its a Perl script and see if we can use epn  */
-		fp = fopen(fname, "r");
-		if(fp != NULL) {
+	/* open the file, check if its a Perl script and see if we can use epn  */
+	fp = fopen(fname, "r");
+	if(fp == NULL)
+		return FALSE;
 
-			/* grab the first line - we should see Perl */
-			fgets(line1, 80, fp);
+	/* grab the first line - we should see Perl. go home if not */
+	if (fgets(buf, 80, fp) == NULL || strstr(buf, "/bin/perl") == NULL) {
+		fclose(fp);
+		return FALSE;
+	}
 
-			/* yep, its a Perl script... */
-			if(strstr(line1, "/bin/perl") != NULL) {
+	/* epn directives must be found in first ten lines of plugin */
+	for(line = 1; line < 10; line++) {
+		if(fgets(buf, sizeof(buf) - 1, fp) == NULL)
+			break;
 
-				/* epn directives must be found in first ten lines of plugin */
-				for(line = 1; line < 10; line++) {
+		buf[sizeof(buf) - 1] = '\0';
 
-					if(fgets(linen, 80, fp)) {
+		/* skip lines not containing nagios 'epn' directives */
+		if(strstr(buf, "# nagios:")) {
+			char *p;
+			p = strstr(buf + 8, "epn");
+			if (!p)
+				continue;
 
-						/* line contains Nagios directives */
-						if(strstr(linen, "# nagios:")) {
-
-							ptr = strtok(linen, ":");
-
-							/* process each directive */
-							for(ptr = strtok(NULL, ","); ptr != NULL; ptr = strtok(NULL, ",")) {
-
-								strip(ptr);
-
-								if(!strcmp(ptr, "+epn")) {
-									use_epn = TRUE;
-									found_epn_directive = TRUE;
-									}
-								else if(!strcmp(ptr, "-epn")) {
-									use_epn = FALSE;
-									found_epn_directive = TRUE;
-									}
-								}
-							}
-
-						if(found_epn_directive == TRUE)
-							break;
-						}
-
-					/* EOF */
-					else
-						break;
-					}
-
-				/* if the plugin didn't tell us whether or not to use embedded Perl, use implicit value */
-				if(found_epn_directive == FALSE)
-					use_epn = (use_embedded_perl_implicitly == TRUE) ? TRUE : FALSE;
-				}
-
+			/*
+			 * we found it, so close the file and return
+			 * whatever it shows. '+epn' means yes. everything
+			 * else means no
+			 */
 			fclose(fp);
+			return *(p - 1) == '+' ? TRUE : FALSE;
 			}
 		}
-#endif
 
-	return use_epn;
+	fclose(fp);
+
+	return use_embedded_perl_implicitly;
+#endif
 	}
 
 
@@ -3735,6 +3715,8 @@ int check_for_nagios_updates(int force, int reschedule) {
 	unsigned int rand_seed = 0;
 	int randnum = 0;
 
+	return 0; /* op5 users get their updates elsewhere */
+
 	time(&current_time);
 
 	/*
@@ -4243,9 +4225,9 @@ int reset_variables(void) {
 	passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 
 	use_large_installation_tweaks = DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
-	enable_environment_macros = TRUE;
-	free_child_process_memory = -1;
-	child_processes_fork_twice = -1;
+	enable_environment_macros = FALSE;
+	free_child_process_memory = FALSE;
+	child_processes_fork_twice = FALSE;
 
 	additional_freshness_latency = DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
 

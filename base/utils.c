@@ -2011,7 +2011,7 @@ int daemon_init(void) {
 	if(fcntl(lockfile, F_SETLK, &lock) < 0) {
 		if(errno == EACCES || errno == EAGAIN) {
 			fcntl(lockfile, F_GETLK, &lock);
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' looks like its already held by another instance of op5 Monitor (PID %d).  Bailing out...", lock_file, (int)lock.l_pid);
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' looks like its already held by another instance of Nagios (PID %d).  Bailing out...", lock_file, (int)lock.l_pid);
 			}
 		else
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Cannot lock lockfile '%s': %s. Bailing out...", lock_file, strerror(errno));
@@ -2637,7 +2637,7 @@ int open_command_file(void) {
 		/* create the external command file as a named pipe (FIFO) */
 		if((result = mkfifo(command_file, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) != 0) {
 
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of op5 Monitor is not running, you should delete this file.\n", command_file, errno, strerror(errno));
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n", command_file, errno, strerror(errno));
 			return ERROR;
 			}
 		}

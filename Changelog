@@ -6,6 +6,8 @@ Nagios 3.x Change Log
 ------------------
 ENHANCEMENTS
 * Added code to apply allow_empty_hostgroup_assignment flag to host and service dependencies (Daniel Wittenberg)
+* Users can now see hostgroups and servicegroups that contain at least one host or service they are authorized for, instead of having to be authorized for them all (Ethan Galstad)
+
 
 3.3.1 - 07/25/2011
 ------------------

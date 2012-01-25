@@ -41,6 +41,7 @@ $this_version="3.3.1";
 </div>
 
 
+
 <div id="updateversioninfo">
 <?php
 	$updateinfo=get_update_information();
@@ -68,6 +69,10 @@ $this_version="3.3.1";
 
 <div id="splashboxes">
 <div id="splashbox1" class="splashbox">
+
+<h2>Need Help?</h2>
+<p>Visit the <a href="http://support.nagios.com/forum/" target="_blank">Nagios Support Forum</a></p>
+
 <h2>Get Started</h2>
 <ul>
 <li><a href="http://go.nagios.com/nagioscore/startmonitoring" target="_blank">Start monitoring your infrastructure</a></li>
@@ -89,7 +94,7 @@ $this_version="3.3.1";
 	$x=0;
 	foreach ($rss->items as $item){
 		$x++;
-		if($x>3)
+		if($x>4)
 			break;
 		#$href = $item['link'];
 		#$title = $item['title'];	
@@ -125,7 +130,7 @@ $this_version="3.3.1";
 	$x=0;
 	foreach ($rss->items as $item){
 		$x++;
-		if($x>3)
+		if($x>5)
 			break;
 		$href = $item['link'];
 		$title = $item['title'];	

@@ -186,19 +186,34 @@ ul.navsectionlinks li ul li ul {
 a img {
 	border: none;
 	}
-	
+
 #splashboxes {
+
 	/*border: 1px solid blue;*/
-	margin: auto;
-    width: 90%;
+	clear:both;
+	width: 800px; 
+	height:300px; 
+	margin-left: auto;
+	margin-right:auto; 
+	line-height:1.2em; /* added for better X-browser/OS viewing */
+
 	}
-.splashbox{
+#topsplashbox {
+	height:150px;
+	}
+#bottomsplashbox { 
+	height:150px;
+	}
+
+.splashbox {
 	padding: 5px;
-	margin: 5px 5px 5px;
+	margin: 5px;
 	border: 1px solid #AAAAAA;
 	float: left;
 	text-align: left;
+	width:375px;
 	}
+
 .splashbox h2{
 	margin: 0px;
 	font-size: 12pt;
@@ -213,11 +228,4 @@ a img {
 #splashbox1 {
 	}
 #splashbox2 {
-	width: 50%;
-	}
-#splashbox3 {
-	width: 50%;
-	}
-#splashbox4 {
-	clear: both;
 	}

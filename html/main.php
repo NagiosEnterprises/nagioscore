@@ -3,27 +3,30 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
 $this_version="3.3.1";
 
-	// RSS reader
-	define('MAGPIE_DIR', './includes/rss/');
-	define('MAGPIE_CACHE_ON', 0);
-	define('MAGPIE_CACHE_AGE', 0);
-	define('MAGPIE_CACHE_DIR', '/tmp/magpie_cache');
-	require_once(MAGPIE_DIR.'rss_fetch.inc');
-
 ?>
-
-
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
-<HTML>
+<html>
 
-<HEAD>
-<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
-<TITLE>Nagios Core</TITLE>
-<LINK REL='stylesheet' TYPE='text/css' HREF='stylesheets/common.css'>
-</HEAD>
+<head>
+<meta name="ROBOTS" content="NOINDEX, NOFOLLOW" />
+<title>Nagios Core</title>
+<link rel='stylesheet' type='text/css' href='stylesheets/common.css' />
+<script type="text/javascript" src="includes/jquery-1.7.1.min.js"></script>
 
-<BODY id="splashpage">
+<script type='text/javascript'>
+
+	//rss fetch by ajax to reduce page load time
+	$(document).ready(function() {		
+		$('#bottomsplashbox').load('rss.php');				
+	}); 
+
+</script>
+
+</head>
+
+
+<body id="splashpage">
 
 
 <div id="mainbrandsplash">
@@ -39,7 +42,6 @@ $this_version="3.3.1";
 <div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=3.3.1&product=nagioscore" target="_blank">Check for updates</a></div>
 <!--<div class="whatsnew"><a href="http://go.nagios.com/nagioscore/whatsnew">Read what's new in Nagios Core 3</a></div>-->
 </div>
-
 
 
 <div id="updateversioninfo">
@@ -67,80 +69,44 @@ $this_version="3.3.1";
 ?>
 </div>
 
+
+
 <div id="splashboxes">
-<div id="splashbox1" class="splashbox">
+	<div id='topsplashbox'>
+		<div id="splashbox1" class="splashbox">	
+			<h2>Get Started</h2>
+			<ul>
+			<li><a href="http://go.nagios.com/nagioscore/startmonitoring" target="_blank">Start monitoring your infrastructure</a></li>
+			<li><a href="http://go.nagios.com/nagioscore/changelook" target="_blank">Change the look and feel of Nagios</a></li>
+			<li><a href="http://go.nagios.com/nagioscore/extend" target="_blank">Extend Nagios with hundreds of addons</a></li>
+			<!--<li><a href="http://go.nagios.com/nagioscore/docs" target="_blank">Read the Nagios documentation</a></li>-->
+			<li><a href="http://go.nagios.com/nagioscore/support" target="_blank">Get support</a></li>
+			<li><a href="http://go.nagios.com/nagioscore/training" target="_blank">Get training</a></li>
+			<li><a href="http://go.nagios.com/nagioscore/certification" target="_blank">Get certified</a></li>
+			</ul>
+		</div> <!-- end splashbox1 -->
+		
+		<div id="splashbox2" class="splashbox">
+			<h2>Quick Links</h2>
+			<ul>
+				<li><a href="http://library.nagios.com" target="_blank">Nagios Library</a> (tutorials and docs)</li>
+				<li><a href="http://labs.nagios.com" target="_blank">Nagios Labs</a> (development blog)</li>
+				<li><a href="http://exchange.nagios.org" target="_blank">Nagios Exchange</a> (plugins and addons)</li>
+				<li><a href="http://support.nagios.com" target="_blank">Nagios Support</a> (tech support)</li>
+				<li><a href="http://www.nagios.com" target="_blank">Nagios.com</a> (company)</li>
+				<li><a href="http://www.nagios.org" target="_blank">Nagios.org</a> (project)</li>
 
-<h2>Need Help?</h2>
-<p>Visit the <a href="http://support.nagios.com/forum/" target="_blank">Nagios Support Forum</a></p>
-
-<h2>Get Started</h2>
-<ul>
-<li><a href="http://go.nagios.com/nagioscore/startmonitoring" target="_blank">Start monitoring your infrastructure</a></li>
-<li><a href="http://go.nagios.com/nagioscore/changelook" target="_blank">Change the look and feel of Nagios</a></li>
-<li><a href="http://go.nagios.com/nagioscore/extend" target="_blank">Extend Nagios with hundreds of addons</a></li>
-<!--<li><a href="http://go.nagios.com/nagioscore/docs" target="_blank">Read the Nagios documentation</a></li>-->
-<li><a href="http://go.nagios.com/nagioscore/support" target="_blank">Get support</a></li>
-<li><a href="http://go.nagios.com/nagioscore/training" target="_blank">Get training</a></li>
-<li><a href="http://go.nagios.com/nagioscore/certification" target="_blank">Get certified</a></li>
-</ul>
-</div>
-
-<div id="splashbox3" class="splashbox">
-<h2>Don't Miss...</h2>
-<ul>
-<?php
-	$url="http://www.nagios.org/backend/feeds/corepromo";
-	$rss=fetch_rss($url);
-	$x=0;
-	foreach ($rss->items as $item){
-		$x++;
-		if($x>4)
-			break;
-		#$href = $item['link'];
-		#$title = $item['title'];	
-		$desc = $item['description'];
-		//echo "<li><a href='$href' target='_blank'>$title</a></li>";
-		echo "<li>$desc</li>";
-		}
-?>
-</ul>
-</div>
-
-
-<div id="splashbox4" class="splashbox">
-<h2>Quick Links</h2>
-<ul>
-<li><a href="http://library.nagios.com" target="_blank">Nagios Library</a> (tutorials and docs)</li>
-<li><a href="http://labs.nagios.com" target="_blank">Nagios Labs</a> (development blog)</li>
-<li><a href="http://exchange.nagios.org" target="_blank">Nagios Exchange</a> (plugins and addons)</li>
-<!--
-<li><a href="http://support.nagios.com" target="_blank">Nagios Support</a> (tech support)</li>
-<li><a href="http://www.nagios.com" target="_blank">Nagios.com</a> (company)</li>
-<li><a href="http://www.nagios.org" target="_blank">Nagios.org</a> (project)</li>
-//-->
-</ul>
-</div>
-
-<div id="splashbox2" class="splashbox">
-<h2>Latest News</h2>
-<ul>
-<?php
-	$url="http://www.nagios.org/backend/feeds/frontpage/";
-	$rss=fetch_rss($url);
-	$x=0;
-	foreach ($rss->items as $item){
-		$x++;
-		if($x>5)
-			break;
-		$href = $item['link'];
-		$title = $item['title'];	
-		echo "<li><a href='$href' target='_blank'>$title</a></li>";
-		}
-?>
-<li><a href="http://www.nagios.org/news" target="_blank">More news...</a></li>
-</ul>
-</div>
-
+			</ul>
+		</div><!-- end splashbox1 -->
+		
+	</div> <!-- end topsplashbox -->
+	
+	<div id="bottomsplashbox">
+		<!-- corepromo feed -->
+		<!-- <div id="splashbox3" class="splashbox"></div>	-->	
+		<!-- latest news feed -->
+		<!-- <div id="splashbox4" class="splashbox"></div> -->
+	</div> <!-- end bottomsplashbox -->
 </div><!--splashboxes-->
 
 
@@ -159,6 +125,6 @@ Nagios Core is licensed under the GNU General Public License and is provided AS 
 </div> 
 
 
-</BODY>
-</HTML>
+</body>
+</html>
 

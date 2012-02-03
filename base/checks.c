@@ -444,6 +444,20 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* get the command start time */
 	gettimeofday(&start_time, NULL);
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	neb_result = broker_service_check(NEBTYPE_SERVICECHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, svc, SERVICE_CHECK_ACTIVE, start_time, end_time, svc->service_check_command, svc->latency, 0.0, service_check_timeout, FALSE, 0, processed_command, NULL);
+
+	/* neb module wants to override the service check - perhaps it will check the service itself */
+	if(neb_result == NEBERROR_CALLBACKOVERRIDE) {
+		clear_volatile_macros_r(&mac);
+		svc->latency = old_latency;
+		my_free(processed_command);
+		my_free(raw_command);
+		return OK;
+		}
+#endif
+
 	/* increment number of service checks that are currently running... */
 	currently_running_service_checks++;
 
@@ -462,20 +476,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	check_result_info.exited_ok = TRUE;
 	check_result_info.return_code = STATE_OK;
 	check_result_info.output = NULL;
-
-#ifdef USE_EVENT_BROKER
-	/* send data to event broker */
-	neb_result = broker_service_check(NEBTYPE_SERVICECHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, svc, SERVICE_CHECK_ACTIVE, start_time, end_time, svc->service_check_command, svc->latency, 0.0, service_check_timeout, FALSE, 0, processed_command, NULL);
-
-	/* neb module wants to override the service check - perhaps it will check the service itself */
-	if(neb_result == NEBERROR_CALLBACKOVERRIDE) {
-		clear_volatile_macros_r(&mac);
-		svc->latency = old_latency;
-		my_free(processed_command);
-		my_free(raw_command);
-		return OK;
-		}
-#endif
 
 	/* open a temp file for storing check output */
 	old_umask = umask(new_umask);

@@ -128,9 +128,9 @@ int main(void) {
 		/* right hand column of top row */
 		printf("<td align=right valign=top width=33%%>\n");
 
-		printf("<table border=0 cellspacing=0 cellpadding=0 CLASS='optBox'>\n");
 		printf("<form method='GET' action='%s'>\n", SHOWLOG_CGI);
 		printf("<input type='hidden' name='archive' value='%d'>\n", log_archive);
+		printf("<table border=0 cellspacing=0 cellpadding=0 CLASS='optBox'>\n");
 		printf("<tr>");
 		printf("<td align=left valign=bottom CLASS='optBoxItem'><input type='checkbox' name='oldestfirst' %s> Older Entries First:</td>", (use_lifo == FALSE) ? "checked" : "");
 		printf("</tr>\n");
@@ -145,8 +145,8 @@ int main(void) {
 		printf("</td>\n");
 		printf("</tr>\n");
 
-		printf("</form>\n");
 		printf("</table>\n");
+		printf("</form>\n");
 
 		printf("</td>\n");
 

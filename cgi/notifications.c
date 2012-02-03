@@ -209,7 +209,6 @@ int main(void) {
 		/* right hand column of top row */
 		printf("<td align=right valign=top width=33%%>\n");
 
-		printf("<table border=0 CLASS='optBox'>\n");
 		printf("<form method='GET' action='%s'>\n", NOTIFICATIONS_CGI);
 		if(query_type == FIND_SERVICE) {
 			printf("<input type='hidden' name='host' value='%s'>\n", escape_string(query_host_name));
@@ -218,6 +217,7 @@ int main(void) {
 		else
 			printf("<input type='hidden' name='%s' value='%s'>\n", (query_type == FIND_HOST) ? "host" : "contact", (query_type == FIND_HOST) ? escape_string(query_host_name) : escape_string(query_contact_name));
 		printf("<input type='hidden' name='archive' value='%d'>\n", log_archive);
+		printf("<table border=0 CLASS='optBox'>\n");
 		printf("<tr>\n");
 		if(query_type == FIND_SERVICE)
 			printf("<td align=left colspan=2 CLASS='optBoxItem'>Notification detail level for this service:</td>");
@@ -262,8 +262,8 @@ int main(void) {
 		display_context_help(CONTEXTHELP_NOTIFICATIONS);
 		printf("</td></tr>\n");
 
-		printf("</form>\n");
 		printf("</table>\n");
+		printf("</form>\n");
 
 		printf("</td>\n");
 

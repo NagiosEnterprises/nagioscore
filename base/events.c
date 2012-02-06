@@ -102,11 +102,6 @@ sched_info scheduling_info;
 /******************************************************************/
 
 
-int myfunc3(void) {
-	return false;
-	}
-
-
 /* initialize the event timing loop before we start monitoring */
 void init_timing_loop(void) {
 	host *temp_host = NULL;

@@ -238,14 +238,14 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		my_free(mac.x[MACRO_NOTIFICATIONRECIPIENTS]);
 
 		/*
-		 * Clear all macros customized per contact that will
-		 * otherwise linger in memory now that we're done with
-		 * the notifications.
+		 * Clear all macros, or they will linger in memory
+		 * now that we're done with the notifications.
 		 */
 		clear_summary_macros_r(&mac);
 		clear_contact_macros_r(&mac);
 		clear_argv_macros_r(&mac);
-
+		clear_host_macros_r(&mac);
+		clear_service_macros_r(&mac);
 
 		if(type == NOTIFICATION_NORMAL) {
 
@@ -1192,13 +1192,13 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		my_free(mac.x[MACRO_NOTIFICATIONRECIPIENTS]);
 
 		/*
-		 * Clear all macros customized per contact that will
-		 * otherwise linger in memory now that we're done with
-		 * the notifications.
+		 * Clear all macros, or they will linger in memory
+		 * now that we're done with the notifications.
 		 */
 		clear_summary_macros_r(&mac);
 		clear_contact_macros_r(&mac);
 		clear_argv_macros_r(&mac);
+		clear_host_macros_r(&mac);
 
 		if(type == NOTIFICATION_NORMAL) {
 

@@ -213,7 +213,7 @@ WARNINGS
 
 3.0.5 - 11/04/2008
 ------------------
-* Security fix for Cross Site Request Forgery (CSRF) bug reported by Tim Starling. 
+* Security fix for Cross Site Request Forgery (CSRF) bug reported by Tim Starling.
 * Sample audio files for CGIs removed from distribution
 * Fix for mutliline config file continuation bug
 * Minor fix to RPM spec file
@@ -342,7 +342,7 @@ WARNINGS
 * Fix for compilation bug on systems that don't support setenv() (e.g. Solaris)
 * Support for line continuation/breaks in config files - end lines with one backslash (\) to continue on next line
 * Fixed bug with not deleting old check result files that contained results for invalid host/service
-* Fixed bug with init script option to check Nagios config 
+* Fixed bug with init script option to check Nagios config
 * Auto-filled comment/author fields for acknowledging problems through WAP interface
 * Fixed bug with processing of CONTACTGROUPNAMES, NOTES, NOTESURL, and ACTIONURL macros
 * Doc fix regarding soft state dependencies
@@ -424,7 +424,7 @@ WARNINGS
 * New macros: $HOSTGROUPMEMBERS$, $HOSTGROUPNOTES$, $HOSTGROUPNOTESURL$, $HOSTGROUPACTIONURL$, $SERVICEGROUPMEMBERS$, $SERVICEGROUPNOTES$, $SERVICEGROUPNOTESURL$, $SERVICEGROUPACTIONURL$, $CONTACTGROUPALIAS$, $CONTACTGROUPMEMBERS$, $NOTIFICATIONRECIPIENTS$, $NOTIFICATIONAUTHOR$, $NOTIFICATIONAUTHORNAME$, $NOTIFICATIONAUTHORALIAS$, $NOTIFICATIONCOMMENT$
 * Removed host/service downtime author/comment macros introduced in 3.0b2 in favor of more generic $NOTIFICATION...$ macros
 * Fix for segfault when cancelling active scheduled host downtime
-* Macro code cleanup 
+* Macro code cleanup
 * Added on-demand contact and contactgroup macro support
 * More complete (but still partial) support for macros in CGIs ($xNOTES$, $xNOTESURL$, and $xACTIONURL$ macros)
 * Fixed bug in config CGI with displaying incorrect notification interval for escalations
@@ -443,7 +443,7 @@ WARNINGS
 ------------------
 * Minor bug fix for debug logging of macros
 * Version number is now printed in CGI pages
-* HTML documentation cleanup (HTML Tidy, link checking, etc.) 
+* HTML documentation cleanup (HTML Tidy, link checking, etc.)
 * Fixed bug where notifications would not be sent out host/service contact group members
 
 
@@ -562,7 +562,7 @@ Here are all the changes since Nagios 2.x:
        respectively.  In order to receive downtime notifications, specify 's' or 'downtime' in contact, host,
        and/or service notification options.
 
-* Object changes: 
+* Object changes:
      - Added ability to use multiple template names (separated by commas) in object definitions
      - Added ability to null out optional character directives in object definitions (using 'null' without quotes)
      - Added hostg/service/contactgroup_members directives to host/service/contactgroup definitions,
@@ -683,5 +683,5 @@ Here are all the changes since Nagios 2.x:
        and $SERVICEACKAUTHORALIAS$ macros
 
 
- 
+
 

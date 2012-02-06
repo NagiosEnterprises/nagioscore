@@ -246,8 +246,6 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		clear_contact_macros_r(&mac);
 		clear_argv_macros_r(&mac);
 
-		/* this gets set in create_notification_list_from_service() */
-		my_free(mac.x[MACRO_NOTIFICATIONISESCALATED]);
 
 		if(type == NOTIFICATION_NORMAL) {
 
@@ -294,6 +292,9 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 		log_debug_info(DEBUGL_NOTIFICATIONS, 0, "No contacts were found for notification purposes.  No notification was sent out.\n");
 		}
+
+	/* this gets set in create_notification_list_from_service() */
+	my_free(mac.x[MACRO_NOTIFICATIONISESCALATED]);
 
 	/* get the time we finished */
 	gettimeofday(&end_time, NULL);
@@ -936,7 +937,7 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
 	/* make sure there aren't any leftover contacts */
 	free_notification_list();
 
-	/* set the escalation macro (this never gets free()'d) */
+	/* set the escalation macro */
 	mac->x[MACRO_NOTIFICATIONISESCALATED] = strdup(escalate_notification ? "1" : "0");
 
 	if(options & NOTIFICATION_OPTION_BROADCAST)
@@ -1199,9 +1200,6 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		clear_contact_macros_r(&mac);
 		clear_argv_macros_r(&mac);
 
-		/* this gets set in create_notification_list_from_service() */
-		my_free(mac.x[MACRO_NOTIFICATIONISESCALATED]);
-
 		if(type == NOTIFICATION_NORMAL) {
 
 			/* adjust last/next notification time and notification flags if we notified someone */
@@ -1244,6 +1242,9 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 		log_debug_info(DEBUGL_NOTIFICATIONS, 0, "No contacts were found for notification purposes.  No notification was sent out.\n");
 		}
+
+	/* this gets set in create_notification_list_from_host() */
+	my_free(mac.x[MACRO_NOTIFICATIONISESCALATED]);
 
 	/* get the time we finished */
 	gettimeofday(&end_time, NULL);
@@ -1846,7 +1847,7 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 	/* make sure there aren't any leftover contacts */
 	free_notification_list();
 
-	/* set the escalation macro (this never gets free()'d) */
+	/* set the escalation macro */
 	mac->x[MACRO_NOTIFICATIONISESCALATED] = strdup(escalate_notification ? "1" : "0");
 
 	if(options & NOTIFICATION_OPTION_BROADCAST)

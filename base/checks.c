@@ -2757,8 +2757,8 @@ int execute_sync_host_check_3x(host *hst) {
 
 	/* process any macros contained in the argument */
 	process_macros_r(&mac, raw_command, &processed_command, 0);
-	my_free(raw_command);
 	if(processed_command == NULL) {
+		my_free(raw_command);
 		clear_volatile_macros_r(&mac);
 		return ERROR;
 		}
@@ -2772,6 +2772,7 @@ int execute_sync_host_check_3x(host *hst) {
 
 	log_debug_info(DEBUGL_COMMANDS, 1, "Raw host check command: %s\n", raw_command);
 	log_debug_info(DEBUGL_COMMANDS, 0, "Processed host check ommand: %s\n", processed_command);
+	my_free(raw_command);
 
 	/* clear plugin output and performance data buffers */
 	my_free(hst->plugin_output);

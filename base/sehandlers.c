@@ -113,6 +113,7 @@ int obsessive_compulsive_service_check_processor(service *svc) {
 
 	/* process any macros in the raw command line */
 	process_macros_r(&mac, raw_command, &processed_command, macro_options);
+	my_free(raw_command);
 	if(processed_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		return ERROR;
@@ -130,7 +131,6 @@ int obsessive_compulsive_service_check_processor(service *svc) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: OCSP command '%s' for service '%s' on host '%s' timed out after %d seconds\n", processed_command, svc->description, svc->host_name, ocsp_timeout);
 
 	/* free memory */
-	my_free(raw_command);
 	my_free(processed_command);
 
 	return OK;
@@ -177,6 +177,7 @@ int obsessive_compulsive_host_check_processor(host *hst) {
 
 	/* process any macros in the raw command line */
 	process_macros_r(&mac, raw_command, &processed_command, macro_options);
+	my_free(raw_command);
 	if(processed_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		return ERROR;
@@ -193,7 +194,6 @@ int obsessive_compulsive_host_check_processor(host *hst) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: OCHP command '%s' for host '%s' timed out after %d seconds\n", processed_command, hst->name, ochp_timeout);
 
 	/* free memory */
-	my_free(raw_command);
 	my_free(processed_command);
 
 	return OK;
@@ -301,6 +301,7 @@ int run_global_service_event_handler(nagios_macros *mac, service *svc) {
 
 	/* process any macros in the raw command line */
 	process_macros_r(mac, raw_command, &processed_command, macro_options);
+	my_free(raw_command);
 	if(processed_command == NULL)
 		return ERROR;
 
@@ -321,7 +322,6 @@ int run_global_service_event_handler(nagios_macros *mac, service *svc) {
 	/* neb module wants to override (or cancel) the event handler - perhaps it will run the eventhandler itself */
 	if(neb_result == NEBERROR_CALLBACKOVERRIDE) {
 		my_free(processed_command);
-		my_free(raw_command);
 		my_free(raw_logentry);
 		my_free(processed_logentry);
 		return OK;
@@ -347,7 +347,6 @@ int run_global_service_event_handler(nagios_macros *mac, service *svc) {
 
 	/* free memory */
 	my_free(command_output);
-	my_free(raw_command);
 	my_free(processed_command);
 	my_free(raw_logentry);
 	my_free(processed_logentry);
@@ -401,6 +400,7 @@ int run_service_event_handler(nagios_macros *mac, service *svc) {
 
 	/* process any macros in the raw command line */
 	process_macros_r(mac, raw_command, &processed_command, macro_options);
+	my_free(raw_command);
 	if(processed_command == NULL)
 		return ERROR;
 
@@ -421,7 +421,6 @@ int run_service_event_handler(nagios_macros *mac, service *svc) {
 	/* neb module wants to override (or cancel) the event handler - perhaps it will run the eventhandler itself */
 	if(neb_result == NEBERROR_CALLBACKOVERRIDE) {
 		my_free(processed_command);
-		my_free(raw_command);
 		my_free(raw_logentry);
 		my_free(processed_logentry);
 		return OK;
@@ -447,7 +446,6 @@ int run_service_event_handler(nagios_macros *mac, service *svc) {
 
 	/* free memory */
 	my_free(command_output);
-	my_free(raw_command);
 	my_free(processed_command);
 	my_free(raw_logentry);
 	my_free(processed_logentry);
@@ -548,6 +546,7 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 
 	/* process any macros in the raw command line */
 	process_macros_r(mac, raw_command, &processed_command, macro_options);
+	my_free(raw_command);
 	if(processed_command == NULL)
 		return ERROR;
 
@@ -568,7 +567,6 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 	/* neb module wants to override (or cancel) the event handler - perhaps it will run the eventhandler itself */
 	if(neb_result == NEBERROR_CALLBACKOVERRIDE) {
 		my_free(processed_command);
-		my_free(raw_command);
 		my_free(raw_logentry);
 		my_free(processed_logentry);
 		return OK;
@@ -594,7 +592,6 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 
 	/* free memory */
 	my_free(command_output);
-	my_free(raw_command);
 	my_free(processed_command);
 	my_free(raw_logentry);
 	my_free(processed_logentry);
@@ -646,6 +643,7 @@ int run_host_event_handler(nagios_macros *mac, host *hst) {
 
 	/* process any macros in the raw command line */
 	process_macros_r(mac, raw_command, &processed_command, macro_options);
+	my_free(raw_command);
 	if(processed_command == NULL)
 		return ERROR;
 
@@ -666,7 +664,6 @@ int run_host_event_handler(nagios_macros *mac, host *hst) {
 	/* neb module wants to override (or cancel) the event handler - perhaps it will run the eventhandler itself */
 	if(neb_result == NEBERROR_CALLBACKOVERRIDE) {
 		my_free(processed_command);
-		my_free(raw_command);
 		my_free(raw_logentry);
 		my_free(processed_logentry);
 		return OK;
@@ -692,7 +689,6 @@ int run_host_event_handler(nagios_macros *mac, host *hst) {
 
 	/* free memory */
 	my_free(command_output);
-	my_free(raw_command);
 	my_free(processed_command);
 	my_free(raw_logentry);
 	my_free(processed_logentry);

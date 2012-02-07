@@ -431,13 +431,13 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 	/* process any macros contained in the argument */
 	process_macros_r(&mac, raw_command, &processed_command, 0);
+	my_free(raw_command);
 	if(processed_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		log_debug_info(DEBUGL_CHECKS, 0, "Processed check command for service '%s' on host '%s' was NULL - aborting.\n", svc->description, svc->host_name);
 		if(preferred_time)
 			*preferred_time += (svc->check_interval * interval_length);
 		svc->latency = old_latency;
-		my_free(raw_command);
 		return ERROR;
 		}
 
@@ -453,7 +453,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		clear_volatile_macros_r(&mac);
 		svc->latency = old_latency;
 		my_free(processed_command);
-		my_free(raw_command);
 		return OK;
 		}
 #endif
@@ -836,7 +835,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 			/* free memory */
 			dbuf_free(&checkresult_dbuf);
-			my_free(raw_command);
 			my_free(processed_command);
 
 			/* free check result memory */
@@ -875,7 +873,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		free_check_result(&check_result_info);
 
 		/* free memory */
-		my_free(raw_command);
 		my_free(processed_command);
 
 		/* wait for the first child to return */
@@ -2760,6 +2757,7 @@ int execute_sync_host_check_3x(host *hst) {
 
 	/* process any macros contained in the argument */
 	process_macros_r(&mac, raw_command, &processed_command, 0);
+	my_free(raw_command);
 	if(processed_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		return ERROR;
@@ -2805,7 +2803,6 @@ int execute_sync_host_check_3x(host *hst) {
 
 	/* free memory */
 	my_free(temp_plugin_output);
-	my_free(raw_command);
 	my_free(processed_command);
 
 	/* a NULL host check command means we should assume the host is UP */
@@ -3028,6 +3025,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 	/* process any macros contained in the argument */
 	process_macros_r(&mac, raw_command, &processed_command, 0);
+	my_free(raw_command);
 	if(processed_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		log_debug_info(DEBUGL_CHECKS, 0, "Processed check command for host '%s' was NULL - aborting.\n", hst->name);
@@ -3238,7 +3236,6 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 			/* free memory */
 			dbuf_free(&checkresult_dbuf);
-			my_free(raw_command);
 			my_free(processed_command);
 
 			/* free check result memory */
@@ -3277,7 +3274,6 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		free_check_result(&check_result_info);
 
 		/* free memory */
-		my_free(raw_command);
 		my_free(processed_command);
 
 		/* wait for the first child to return */

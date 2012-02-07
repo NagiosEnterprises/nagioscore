@@ -752,6 +752,7 @@ int notify_contact_of_service(nagios_macros *mac, contact *cntct, service *svc, 
 
 		/* process any macros contained in the argument */
 		process_macros_r(mac, raw_command, &processed_command, macro_options);
+		my_free(raw_command);
 		if(processed_command == NULL)
 			continue;
 
@@ -812,7 +813,6 @@ int notify_contact_of_service(nagios_macros *mac, contact *cntct, service *svc, 
 
 		/* free memory */
 		my_free(command_name);
-		my_free(raw_command);
 		my_free(processed_command);
 
 		/* get end time */
@@ -1663,6 +1663,7 @@ int notify_contact_of_host(nagios_macros *mac, contact *cntct, host *hst, int ty
 
 		/* process any macros contained in the argument */
 		process_macros_r(mac, raw_command, &processed_command, macro_options);
+		my_free(raw_command);
 		if(processed_command == NULL)
 			continue;
 
@@ -1723,7 +1724,6 @@ int notify_contact_of_host(nagios_macros *mac, contact *cntct, host *hst, int ty
 
 		/* free memory */
 		my_free(command_name);
-		my_free(raw_command);
 		my_free(processed_command);
 
 		/* get end time */

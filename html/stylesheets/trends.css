@@ -1,31 +1,16 @@
 
-.trends { font-family: arial,serif;  background-color: white;  color: black; }
+.trends { }
 
-.errorMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
-.errorDescription { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.warningMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
-.infoMessage { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
+.dataTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
 
-.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2px; }
-.infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
-.infoBoxBadProcStatus { color: red; }
-A.homepageURL:Hover { font-family: arial,serif;  color: red; }
+.reportRange {  text-align: center;  font-weight: bold;  font-size: 10pt; }
+.reportDuration {  text-align: center; }
+.reportTime {  text-align: center; }
 
-.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1px; }
+.reportSelectTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
+.reportSelectSubTitle {  text-align: right;  font-size: 10pt; }
+.reportSelectItem {  text-align: left; }
 
-.dataTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
+.helpfulHint {  text-align: left;  font-style: italic;  text-align: center; }
 
-.reportRange { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 10pt; }
-.reportDuration { font-family: arial,serif;  text-align: center;  font-size: 8pt; }
-.reportTime { font-family: arial,serif;  text-align: center;  font-size: 8pt; }
-
-.optBox { font-family: arial narrow,serif;  font-size: 10pt;  font-weight: bold; }
-.optBoxItem { font-family: arial,serif;  font-size: 8pt;  font-weight: bold;  color: red; }
-
-.reportSelectTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.reportSelectSubTitle { font-family: arial,serif;  text-align: right;  font-size: 10pt; }
-.reportSelectItem { font-family: arial,serif;  text-align: left;  font-size: 8pt; }
-
-.helpfulHint { font-family: arial,serif;  text-align: left;  font-size: 8pt;  font-style: italic;  text-align: center; }
-
-.popupText { font-family: arial,serif;  font-size: 8pt;  font-weight: bold; }
+.popupText {  font-weight: bold; }

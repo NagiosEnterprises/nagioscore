@@ -7,7 +7,7 @@
 
 .status { }
 
-.itemTotalsTitle { font-size: 8pt; font-style: italic; }
+.itemTotalsTitle { font-size: 8pt; font-style: italic; clear:both;}
 
 table.status { font-size: 9pt; padding: 0 0 10 0; }
 th.status    { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-bottom: 1px solid #777777; color: #333333; }
@@ -47,10 +47,10 @@ div.status   { font-size: 10pt; text-align: center; }
 .statusBGUNREACHABLEACK   { font-size: 8pt; background-color: #ffddaa; }
 .statusBGUNREACHABLESCHED { font-size: 8pt; background-color: #ffddaa; }
 
-DIV.serviceTotals      { font-size: 10pt; text-align: center; font-weight: bold; }
-TABLE.serviceTotals    { font-size: 10pt; font-weight: bold; }
-TH.serviceTotals,A.serviceTotals { font-size: 8pt; }
-TD.serviceTotals       { font-size: 8pt; text-align: center; background-color: #e0e0e0; border: 1px solid #777777; padding: 2 4 2 4; }
+div.serviceTotals      { font-size: 10pt; text-align: center; font-weight: bold; }
+table.serviceTotals    { font-size: 10pt; font-weight: bold; }
+th.serviceTotals,a.serviceTotals { font-size: 8pt; }
+td.serviceTotals       { font-size: 8pt; text-align: center; background-color: #e0e0e0; border: 1px solid #777777; padding: 2 4 2 4; }
 .serviceTotalsOK       { font-size: 8pt; text-align: center; background-color: #88d066; border: 1px solid #777777; padding: 2 4 2 4; }
 .serviceTotalsWARNING  { font-size: 8pt; text-align: center; background-color: #ffff00; border: 1px solid #777777; padding: 2 4 2 4; }
 .serviceTotalsUNKNOWN  { font-size: 8pt; text-align: center; background-color: #ffbb55; border: 1px solid #777777; padding: 2 4 2 4; }
@@ -58,10 +58,10 @@ TD.serviceTotals       { font-size: 8pt; text-align: center; background-color: #
 .serviceTotalsPENDING  { font-size: 8pt; text-align: center; background-color: #acacac; border: 1px solid #777777; padding: 2 4 2 4; }
 .serviceTotalsPROBLEMS { font-size: 8pt; text-align: center; background-color: #aaccff; border: 1px solid #777777; padding: 2 4 2 4; }
 
-DIV.hostTotals         { font-size: 10pt; text-align: center; font-weight: bold; }
-TABLE.hostTotals       { font-size: 10pt; font-weight: bold; }
-TH.hostTotals,A.hostTotals { font-size: 8pt; }
-TD.hostTotals          { font-size: 8pt; text-align: center; background-color: #e0e0e0; border: 1px solid #777777; padding: 2 4 2 4; }
+div.hostTotals         { font-size: 10pt; text-align: center; font-weight: bold; }
+table.hostTotals       { font-size: 10pt; font-weight: bold; }
+th.hostTotals,a.hostTotals { font-size: 8pt; }
+td.hostTotals          { font-size: 8pt; text-align: center; background-color: #e0e0e0; border: 1px solid #777777; padding: 2 4 2 4; }
 .hostTotalsUP          { font-size: 8pt; text-align: center; background-color: #88d066; border: 1px solid #777777; padding: 2 4 2 4; }
 .hostTotalsDOWN        { font-size: 8pt; text-align: center; background-color: #f88888; border: 1px solid #777777; padding: 2 4 2 4; }
 .hostTotalsUNREACHABLE { font-size: 8pt; text-align: center; background-color: #ffbb55; border: 1px solid #777777; padding: 2 4 2 4; }
@@ -77,3 +77,12 @@ TD.hostTotals          { font-size: 8pt; text-align: center; background-color: #
 .miniStatusUP          { font-size: 8pt; text-align: center; background-color: #88d066; border: 1px solid #777777; padding: 0 5 0 5; }
 .miniStatusDOWN        { font-size: 8pt; text-align: center; background-color: #f88888; border: 1px solid #777777; padding: 0 5 0 5; }
 .miniStatusUNREACHABLE { font-size: 8pt; text-align: center; background-color: #ffbb55; border: 1px solid #777777; padding: 0 5 0 5; }
+
+/* page number styles, added 2/01/2012 -MG */
+#top_page_numbers { float:right;} 
+#result_limit { display:inline;} 
+.pagenumber { display: block; float:left; border: 1px solid #AAAAAA; padding: 0 2px 0 2px; margin: 1px;text-align:center; height:15px; }
+a.pagenumber:hover { background-color: #EFEFEF;text-decoration:none;}
+.current_page { color: #AAA; }
+#inner_numbers { clear:right;} 
+#pagelimit,#bottom_page_numbers { font-size:8pt;}

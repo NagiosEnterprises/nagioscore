@@ -45,6 +45,7 @@ char            url_images_path[MAX_FILENAME_LENGTH];
 char            url_logo_images_path[MAX_FILENAME_LENGTH];
 char            url_stylesheets_path[MAX_FILENAME_LENGTH];
 char            url_media_path[MAX_FILENAME_LENGTH];
+char            url_js_path[MAX_FILENAME_LENGTH];
 
 char            *service_critical_sound = NULL;
 char            *service_warning_sound = NULL;
@@ -106,6 +107,7 @@ int             service_status_has_been_read = FALSE;
 int             program_status_has_been_read = FALSE;
 
 int             refresh_rate = DEFAULT_REFRESH_RATE;
+int				result_limit = 100;
 
 int             escape_html_tags = FALSE;
 
@@ -327,6 +329,10 @@ int read_cgi_config_file(char *filename) {
 
 		else if(!strcmp(var, "refresh_rate"))
 			refresh_rate = atoi(val);
+			
+		/* page limit added 2/1/2012 -MG */ 	
+		else if(!strcmp(var, "result_limit"))
+			result_limit = atoi(val);
 
 		else if(!strcmp(var, "physical_html_path")) {
 			strncpy(physical_html_path, val, sizeof(physical_html_path));
@@ -368,6 +374,11 @@ int read_cgi_config_file(char *filename) {
 
 			snprintf(url_media_path, sizeof(url_media_path), "%smedia/", url_html_path);
 			url_media_path[sizeof(url_media_path) - 1] = '\x0';
+			
+			/* added JS directory 2/1/2012 -MG */ 
+			snprintf(url_js_path, sizeof(url_js_path), "%sjs/", url_html_path);
+			url_js_path[sizeof(url_js_path) - 1] = '\x0';
+			
 			}
 
 		else if(!strcmp(var, "service_critical_sound"))

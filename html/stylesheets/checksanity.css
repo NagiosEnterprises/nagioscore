@@ -1,35 +1,22 @@
 
-.extinfo { font-family: arial,serif;  background-color: white;  color: black;  font-size: 10pt; }
+.extinfo { font-size: 10pt; }
 
-.errorMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
-.errorDescription { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.warningMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt;  align: center; }
-.infoMessage { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 10pt;  align: center; }
 
-.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2px; }
-.infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
-.infoBoxBadProcStatus { font-family: arial,serif;  color: red; }
-A.homepageURL:Hover { font-family: arial,serif;  color: red; }
+.Title {  font-size: large;  text-align: center;  font-weight: bold; }
+.SectionTitle {  font-size: 12pt;  text-align: center;  font-weight: bold; }
 
-.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1px; }
 
-.Title { font-family: arial,serif;  font-size: large;  text-align: center;  font-weight: bold; }
-.SectionTitle { font-family: arial,serif;  font-size: 12pt;  text-align: center;  font-weight: bold; }
+.DynamicData {  font-size: 10pt;  background-color: white;  padding: 2px; }
+.StaticData {  font-size: 10pt;  background-color: white;  padding: 2px; }
+.TableHeader {  font-size: 10pt;  background-color: #999797;  color: #DCE5C1;  text-align: left;  font-weight: bold; }
 
-.optBox { font-family: arial narrow,serif;  font-size: 10pt;  font-weight: bold; }
-.optBoxItem { font-family: arial,serif;  font-size: 8pt;  font-weight: bold;  color: red; }
+.Item {  font-size: 10pt;  text-align: left;  background-color: #C4C2C2;  font-weight: bold; }
+.DataSource {  font-size: 10pt;  text-align: left;  background-color: #C4C2C2; }
+.Number {  font-size: 10pt;  text-align: left;  background-color: #C4C2C2; }
 
-.DynamicData { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2px; }
-.StaticData { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2px; }
-.TableHeader { font-family: arial,serif;  font-size: 10pt;  background-color: #999797;  color: #DCE5C1;  text-align: left;  font-weight: bold; }
-
-.Item { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #C4C2C2;  font-weight: bold; }
-.DataSource { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #C4C2C2; }
-.Number { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #C4C2C2; }
-
-.Value { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #C4C2C2;  font-weight: bold; }
-.ValueOk { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.ValueError { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+.Value {  font-size: 10pt;  text-align: left;  background-color: #C4C2C2;  font-weight: bold; }
+.ValueOk {  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
+.ValueError {  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
 
 
 

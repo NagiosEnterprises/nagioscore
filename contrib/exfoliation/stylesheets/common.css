@@ -73,7 +73,7 @@ a {
 }
 a:hover {
   text-decoration: underline;
-  color #3f5bcd;
+  color: #3f5bcd;
 }
 a:active {
   color: #496aef;
@@ -111,16 +111,18 @@ ul.navsectionlinks li a {
   font-size: 9pt;
   text-decoration: none;
   padding: 0 0 0 15px;
-  background: transparent url(../images/greendot.gif) no-repeat scroll 0 0
+ /* background: transparent url(../images/greendot.gif) no-repeat scroll 0 0; */
+  
 }
 ul.navsectionlinks li ul {
   margin: 0px;
   padding: 0 0 0 30px;
-  list-style: disc;
+  list-style: none;
 }
 ul.navsectionlinks li ul li { }
 ul.navsectionlinks li a:hover {
-  background: transparent url(../images/orangedot.gif) no-repeat scroll 0 0
+/*  background: transparent url(../images/orangedot.gif) no-repeat scroll 0 0; */
+color: #8391cd; 
 }
 ul.navsectionlinks li ul li a {
   background: none;
@@ -133,7 +135,7 @@ ul.navsectionlinks li ul li a:hover {
 ul.navsectionlinks li ul li ul {
   margin: 0px;
   padding: 0 0 0 15px;
-  list-style: circle;
+  list-style: none;
 }
 
 

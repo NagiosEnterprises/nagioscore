@@ -79,6 +79,8 @@ NAGIOS_BEGIN_DECL
 #define MINISTATUS_CSS          "ministatus.css"
 #define SUMMARY_CSS             "summary.css"
 
+	/********************************* JAVASCRIPT INCLUDES **********************/
+#define JQUERY_JS		"jquery-1.7.1.min.js"	
 
 	/********************************* ICONS ************************************/
 
@@ -178,6 +180,10 @@ NAGIOS_BEGIN_DECL
 #define SPLUNK_SMALL_WHITE_ICON		"splunk1.gif"
 #define SPLUNK_SMALL_BLACK_ICON		"splunk2.gif"
 
+#define FIRST_PAGE_ICON			"b_first2.png"
+#define LAST_PAGE_ICON			"b_last2.png"
+#define NEXT_PAGE_ICON			"b_next2.png"
+#define PREVIOUS_PAGE_ICON		"b_prev2.png"
 
 
 	/************************** PLUGIN RETURN VALUES ****************************/

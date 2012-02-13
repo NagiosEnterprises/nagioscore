@@ -1,16 +1,68 @@
+
+/* default font size for all elements */
+* {font-size:8pt;}
+
 body {
-	font-family: arial, verdana, serif;
+	font-family: verdana,arial,serif;
 	font-weight: normal;
-	font-size: 10pt;
 	}
 
 
 /* navbar */
 body.navbar {
-	background-color: black;
-	color: white;
-	font-family: verdana,arial,serif;
+	/* background-color: black; */
+	/* color: white; */ 
+	/* font-family: verdana,arial,serif; */
 	}
+
+a,a:visited {
+  text-decoration: none;
+  color: #40529b;
+}
+a:hover,a:active {
+/*  text-decoration: underline;
+  color: #3f5bcd; */
+ /* color: #FFC47F;  */
+  color: #8391cd;
+  /*color: #8391cd; */
+}
+/*
+a:active {
+  color: #496aef;
+}
+*/
+/*
+a:visited {
+  color: #2c3763;
+}
+*/
+
+table {border-collapse:collapse;}
+th {  font-size: 10pt;  text-align: left;  background-color: #999797;  }
+/* common to all pages, moved to this stylesheet */
+.infoBox { border: 1px solid #AAA;  padding: 2px; font-size:8pt; margin-bottom:3px;}
+.linkBox { padding: 3px; font-size:8pt; border: 1px solid #AAA;}
+.infoBoxTitle {  font-size: 10pt;  font-weight: bold;  }
+.infoBoxTitle {   font-size: 10pt;  font-weight: bold; }
+.infoBoxBadProcStatus { color: red; }
+a.homepageURL:hover {  color: red; }
+/* feedback messages */
+.errorMessage {  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
+.errorDescription {  text-align: center;  font-weight: bold;  font-size: 12pt; }
+.warningMessage {  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
+.infoMessage {  text-align: center;  color: red;  font-weight: bold; }
+
+/* nav and option boxes on several pages */ 
+.navBoxTitle {  font-size: 10pt;  font-weight: bold; }
+.navBoxItem {  font-size: 8pt;  font-weight: bold;  color: red; }
+.navBoxDate {  font-size: 8pt;  font-weight: bold; }
+.navBoxFile {  font-size: 8pt;  font-weight: bold;  text-align: center; }
+/* option boxes */
+.optBox { font-size: 10pt;  font-weight: bold; }
+.optBoxItem {  font-size: 8pt;  font-weight: bold;  color: red; }
+.optBoxTitle {  font-weight: bold;  font-size: 10pt; }
+.optBoxValue {  font-size: 8pt;  font-style: italic; }
+
 
 .navbarlogo {
 	margin: 0 0 10px 0;
@@ -18,13 +70,13 @@ body.navbar {
 
 .navsection {
 	margin: 5px 0 10px 0;
-	color: #DEE7C6;
+	/*color: #AAA; */
 	}
 	
 .navsectiontitle {
 	font-size: 9pt;
 	font-weight: bold;
-	border:1px solid #DEE7C6;
+	border:1px solid #AAA;
 	padding: 2px;
 	}
 
@@ -42,45 +94,45 @@ ul.navsectionlinks li {
 	}
 
 ul.navsectionlinks li a {
-	color: #DEE7C6;
+/*	color: #DEE7C6; */
 	font-weight: bold;
 	font-size: 8pt;
 	text-decoration: none;	
-
 	padding: 0 0 0 15px;
-	background: transparent url(../images/greendot.gif) no-repeat scroll 0 0
+	/* background: transparent url(../images/greendot.gif) no-repeat scroll 0 0; */
+	
 	}
 
 ul.navsectionlinks li ul {
 	margin: 0px;
 	padding: 0 0 0 30px;
-	list-style: disc;
+	list-style: none;
 	}
 
 ul.navsectionlinks li ul li {
 	}
 
-ul.navsectionlinks li a:hover {
-	color: #FFC47F;
-	background: transparent url(../images/orangedot.gif) no-repeat scroll 0 0
+ul.navsectionlinks li a:hover ,ul.navsectionlinks li a:active{
+	color: #8391cd; 
+	/* background: transparent url(../images/orangedot.gif) no-repeat scroll 0 0 */
 	}
 
 ul.navsectionlinks li ul li a {
-	color: #DEE7C6;
-	background: none;
+/*	color: #DEE7C6; 
+	background: none; */
 	padding: 0;
 	font-weight: normal;
 	}
-
+/*
 ul.navsectionlinks li ul li a:hover {
 	color: #FFC47F;
-	background: none;
+	background: none;  
 	}
-
+*/
 ul.navsectionlinks li ul li ul {
 	margin: 0px;
 	padding: 0 0 0 15px;
-	list-style: circle;
+	list-style: none;
 	}
 
 
@@ -97,7 +149,7 @@ ul.navsectionlinks li ul li ul {
 	}
 
 .navbarsearch input{
-	font-size: 8pt;
+/*	font-size: 8pt; */
 	color: black;
 	background-color: white;
 	}

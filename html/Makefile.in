@@ -26,6 +26,7 @@ clean:
 	rm -f docs/*~
 	rm -f docs/images/*.jbf
 	rm -f stylesheets/*~
+	rm -f js/*~
 
 distclean: clean
 	rm -f Makefile config.inc.php
@@ -39,6 +40,7 @@ install:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/contexthelp
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/docs
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/docs/images
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/js
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/images
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/images/logos
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/includes
@@ -59,6 +61,8 @@ install:
 	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/stylesheets; done
 	for file in contexthelp/*.html; \
 	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/contexthelp; done
+	for file in js/*.js; \
+	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/js; done
 #	for file in docs/*.html; \
 #	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/docs; done
 #	for file in docs/images/*.*; \

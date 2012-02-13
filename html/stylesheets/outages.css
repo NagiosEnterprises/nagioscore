@@ -1,25 +1,15 @@
 
-.outages { font-family: arial,serif;  background-color: white;  color: black;  font-size: 10pt; }
+.outages { }
 
-.errorMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
-.errorDescription { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.warningMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
-.infoMessage { font-family: arial,serif;  text-align: center;  font-size: 10pt; }
+.itemTotalsTitle { text-align: center; }
 
-.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2px; }
-.infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
-.infoBoxBadProcStatus { color: red; }
-A.homepageURL:Hover { font-family: arial,serif;  color: red; }
+.dataTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
+TABLE.data {  font-size: 10pt;  background-color: white;  padding: 2px; border-collapse:separate;}
+TH.data {  font-size: 10pt;   text-align: left;  background-color: #999797;   }
+.dataOdd {  font-size: 10pt;  background-color: #DBDBDB; }
+.dataEven {  font-size: 10pt;  background-color: #C4C2C2; }
 
-.itemTotalsTitle { font-family: arial,serif;  font-size: 8pt;  text-align: center; }
-
-.dataTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
-TABLE.data { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2px; }
-TH.data { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
-.dataOdd { font-family: arial,serif;  font-size: 10pt;  background-color: #DBDBDB; }
-.dataEven { font-family: arial,serif;  font-size: 10pt;  background-color: #C4C2C2; }
-
-.hostUP { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.hostDOWN { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
-.hostUNREACHABLE { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+.hostUP {  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
+.hostDOWN {  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+.hostUNREACHABLE {  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
 

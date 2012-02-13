@@ -1,24 +1,14 @@
 
-.cmd { font-family: arial,serif;  background-color: white;  color: black;  font-size: 10pt; }
+.cmd { }
 
-.errorMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
-.errorDescription { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.warningMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
-.infoMessage { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 10pt; }
+.cmdType {  font-size: 10pt;  font-weight: bold;  text-align: center;  color: red; }
 
-.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2px; }
-.infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
-.infoBoxBadProcStatus { color: red; }
-A.homepageURL:Hover { font-family: arial,serif;  color: red; }
+.commandDescription {   text-align: center;  background-color: #DBDBDB;  padding: 5px; }
+.descriptionTitle {  font-size: 10pt;  text-align: center;  font-weight: bold; }
 
-.cmdType { font-family: arial,serif;  font-size: 10pt;  font-weight: bold;  text-align: center;  color: red; }
-
-.commandDescription { font-family: arial,serif;  font-size: 8pt;  text-align: center;  background-color: #DBDBDB;  padding: 5px; }
-.descriptionTitle { font-family: arial,serif;  font-size: 10pt;  text-align: center;  font-weight: bold; }
-
-.optBox { font-family: arial,serif;  font-size: 8pt;  text-align: left;  padding: 5px;  background-color: #C4C2C2;  padding: 5; }
-.optBoxTitle { font-family: arial,serif;  font-size: 10pt;  text-align: center;  font-weight: bold; }
-.optBoxItem { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #C4C2C2; }
-.optBoxRequiredItem { font-family: arial,serif;  font-size: 10pt;  text-align: left;  color: red;  background-color: #C4C2C2; }
+.optBox {   text-align: left;  padding: 5px;  background-color: #C4C2C2; }
+.optBoxTitle {  font-size: 10pt;  text-align: center;  font-weight: bold; }
+.optBoxItem {  font-size: 10pt;  text-align: left;  background-color: #C4C2C2; }
+.optBoxRequiredItem {  font-size: 10pt;  text-align: left;  color: red;  background-color: #C4C2C2; }
 
 

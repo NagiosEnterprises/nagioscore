@@ -1,68 +1,58 @@
 
-.avail { font-family: arial,serif;  background-color: white;  color: black;  font-size: 10pt; }
+.avail {  background-color: white;  color: black;  font-size: 10pt; }
 
-.errorMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
-.errorDescription { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.warningMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
+.reportRange {  text-align: center;  font-weight: bold;  font-size: 10pt; }
+.reportDuration {  text-align: center;  }
+.reportTime {  text-align: center;  }
 
-.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2px; }
-.infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
-.infoBoxBadProcStatus { font-family: arial,serif;  color: red; }
-A.homepageURL:Hover { font-family: arial,serif;  color: red; }
+.dataTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
 
-.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1px; }
+TABLE.data {  font-size: 10pt;  background-color: white;  padding: 2px;border-collapse:separate; }
 
-.reportRange { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 10pt; }
-.reportDuration { font-family: arial,serif;  text-align: center;  font-size: 8pt; }
-.reportTime { font-family: arial,serif;  text-align: center;  font-size: 8pt; }
+/* TH.data {  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; } */
+.dataOdd {   background-color: #DBDBDB; }
+.dataEven {   background-color: #C4C2C2; }
 
-.dataTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
+.optionBoxTitle {  text-align: center;  font-weight: bold;  font-size: 10pt; }
+.optionBox {  font-size: 10pt;  background-color: #EEEEF4;  padding: 2px; }
 
-TABLE.data { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2px; }
-TH.data { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
-.dataOdd { font-family: arial,serif;  font-size: 10pt;  background-color: #DBDBDB; }
-.dataEven { font-family: arial,serif;  font-size: 10pt;  background-color: #C4C2C2; }
+.hostUP {   text-align: left;  background-color: #33FF00;  font-weight: bold; }
+.hostDOWN {   text-align: left;  background-color: #F83838;  font-weight: bold; }
+.hostUNREACHABLE {    text-align: left;  background-color: #F83838;  font-weight: bold; }
 
-.optionBoxTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 10pt; }
-.optionBox { font-family: arial,serif;  font-size: 10pt;  background-color: #EEEEF4;  padding: 2px; }
+.serviceOK {    text-align: left;  background-color: #33FF00;  font-weight: bold; }
+.serviceWARNING {   text-align: left;  background-color: #FFFF00;  font-weight: bold; }
+.serviceUNKNOWN {    text-align: left;  background-color: #FF9900;  font-weight: bold; }
+.serviceCRITICAL {  text-align: left;  background-color: #F83838;  font-weight: bold; }
 
-.hostUP { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.hostDOWN { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
-.hostUNREACHABLE { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+.optBox { font-size: 10pt;  font-weight: bold; }
+.optBoxItem {   font-weight: bold;  color: red; }
 
-.serviceOK { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.serviceWARNING { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #FFFF00;  font-weight: bold; }
-.serviceUNKNOWN { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #FF9900;  font-weight: bold; }
-.serviceCRITICAL { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+.helpfulHint {  text-align: left;   font-style: italic;  text-align: center; }
 
-.optBox { font-family: arial narrow,serif;  font-size: 10pt;  font-weight: bold; }
-.optBoxItem { font-family: arial,serif;  font-size: 8pt;  font-weight: bold;  color: red; }
+.dateSelectTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
+.dateSelectSubTitle {  text-align: left;  font-weight: bold;  font-size: 10pt; }
+.dateSelectItem {  text-align: left;  }
 
-.helpfulHint { font-family: arial,serif;  text-align: left;  font-size: 8pt;  font-style: italic;  text-align: center; }
+.reportSelectTip {  text-align: left;   font-style: italic; }
+.reportSelectTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
+.reportSelectSubTitle {  text-align: right;  font-size: 10pt; }
+.reportSelectItem {  text-align: left;  }
 
-.dateSelectTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.dateSelectSubTitle { font-family: arial,serif;  text-align: left;  font-weight: bold;  font-size: 10pt; }
-.dateSelectItem { font-family: arial,serif;  text-align: left;  font-size: 8pt; }
+TABLE.logEntries {   background-color: white;  padding: 3px; }
+TH.logEntries {  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
+.logEntriesEven {   background-color: white;  text-align: left;  background-color: #C4C2C2;  color: black; }
+.logEntriesOdd {   background-color: white;  text-align: left;  background-color: #DBDBDB;  color: black; }
 
-.reportSelectTip { font-family: arial,serif;  text-align: left;  font-size: 8pt;  font-style: italic; }
-.reportSelectTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.reportSelectSubTitle { font-family: arial,serif;  text-align: right;  font-size: 10pt; }
-.reportSelectItem { font-family: arial,serif;  text-align: left;  font-size: 8pt; }
+.logEntriesINDETERMINATE {   background-color: #ACACAC; }
 
-TABLE.logEntries { font-family: arial,serif;  font-size: 8pt;  background-color: white;  padding: 3px; }
-TH.logEntries { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
-.logEntriesEven { font-family: arial,serif;  font-size: 8pt;  background-color: white;  text-align: left;  background-color: #C4C2C2;  color: black; }
-.logEntriesOdd { font-family: arial,serif;  font-size: 8pt;  background-color: white;  text-align: left;  background-color: #DBDBDB;  color: black; }
-
-.logEntriesINDETERMINATE { font-family: arial,serif;  font-size: 8pt;  background-color: #ACACAC; }
-
-.logEntriesOK { font-family: arial,serif;  font-size: 8pt;  background-color: #33FF00; }
-.logEntriesUNKNOWN { font-family: arial,serif;  font-size: 8pt;  background-color: #FF9900; }
-.logEntriesWARNING { font-family: arial,serif;  font-size: 8pt;  background-color: #FFFF00; }
-.logEntriesCRITICAL { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838; }
-.logEntriesUP { font-family: arial,serif;  font-size: 8pt;  background-color: #33FF00; }
-.logEntriesDOWN { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838; }
-.logEntriesUNREACHABLE { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838; }
+.logEntriesOK {   background-color: #33FF00; }
+.logEntriesUNKNOWN {   background-color: #FF9900; }
+.logEntriesWARNING {   background-color: #FFFF00; }
+.logEntriesCRITICAL {   background-color: #F83838; }
+.logEntriesUP {   background-color: #33FF00; }
+.logEntriesDOWN {   background-color: #F83838; }
+.logEntriesUNREACHABLE {   background-color: #F83838; }
 
 
 

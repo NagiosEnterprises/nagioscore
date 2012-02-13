@@ -1,23 +1,10 @@
 
-.statusmap { font-family: arial,serif;  background-color: white;  color: black; }
+.statusmap {}
 
-.errorMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
-.errorDescription { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.warningMessage { text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
 
-.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2px; }
-.infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
-.infoBoxBadProcStatus { color: red; }
-A.homepageURL:Hover { font-family: arial,serif;  color: red; }
+.imageInfo { font-weight: bold;  text-align: center; }
 
-.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1px; }
+.zoomTitle {  font-size: 12pt;  font-weight: bold; }
 
-.optBox { font-family: arial narrow,serif;  font-size: 10pt;  font-weight: bold; }
-.optBoxItem { font-family: arial,serif;  font-size: 8pt;  font-weight: bold;  color: red; }
-
-.imageInfo { font-family: arial,serif;  font-size: 8pt;  font-weight: bold;  text-align: center; }
-
-.zoomTitle { font-family: arial,serif;  font-size: 12pt;  font-weight: bold; }
-
-.popupText { font-family: arial,serif;  font-size: 8pt;  font-weight: bold; }
+.popupText {  font-weight: bold; }
 

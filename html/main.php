@@ -12,7 +12,7 @@ $this_version="3.3.1";
 <meta name="ROBOTS" content="NOINDEX, NOFOLLOW" />
 <title>Nagios Core</title>
 <link rel='stylesheet' type='text/css' href='stylesheets/common.css' />
-<script type="text/javascript" src="includes/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
 
 <script type='text/javascript'>
 

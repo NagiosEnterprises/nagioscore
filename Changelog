@@ -9,6 +9,7 @@ ENHANCEMENTS
 * Users can now see hostgroups and servicegroups that contain at least one host or service they are authorized for, instead of having to be authorized for them all (Ethan Galstad)
 
 FIXES
+* Scheduled Downtime Notifications Resent On Nagios Restart/reload (Bug #124 - ricardo)
 * NOTIFICATIONTYPE MACRO never became CUSTOM (Bug #168 - Alexey Dvoryanchikov)
 * Plugged minor memory leaks in notification logic
 

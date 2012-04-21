@@ -160,14 +160,14 @@ int xdddefault_cleanup_downtime_data(char *main_config_file) {
 /******************************************************************/
 
 /* adds a new scheduled host downtime entry */
-int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id) {
+int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id, int is_in_effect){
 
 	/* find the next valid downtime id */
 	while(find_host_downtime(next_downtime_id) != NULL)
 		next_downtime_id++;
 
 	/* add downtime to list in memory */
-	add_host_downtime(host_name, entry_time, author, comment, start_time, end_time, fixed, triggered_by, duration, next_downtime_id);
+	add_host_downtime(host_name, entry_time, author, comment, start_time, end_time, fixed, triggered_by, duration, next_downtime_id, is_in_effect);
 
 	/* update downtime file */
 	xdddefault_save_downtime_data();
@@ -185,14 +185,14 @@ int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *a
 
 
 /* adds a new scheduled service downtime entry */
-int xdddefault_add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id) {
+int xdddefault_add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id, int is_in_effect){
 
 	/* find the next valid downtime id */
 	while(find_service_downtime(next_downtime_id) != NULL)
 		next_downtime_id++;
 
 	/* add downtime to list in memory */
-	add_service_downtime(host_name, service_description, entry_time, author, comment, start_time, end_time, fixed, triggered_by, duration, next_downtime_id);
+	add_service_downtime(host_name, service_description, entry_time, author, comment, start_time, end_time, fixed, triggered_by, duration, next_downtime_id, is_in_effect);
 
 	/* update downtime file */
 	xdddefault_save_downtime_data();

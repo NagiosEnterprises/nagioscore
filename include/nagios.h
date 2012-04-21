@@ -544,8 +544,8 @@ int should_host_notification_be_escalated(host *);				/* checks if a host notifi
 int host_notification(host *, int, char *, char *, int);                           	/* notify all contacts about a host (problem or recovery) */
 int check_contact_host_notification_viability(contact *, host *, int, int);	/* checks viability of notifying a contact about a host */
 int notify_contact_of_host(nagios_macros *mac, contact *, host *, int, char *, char *, int, int);        	/* notify a single contact about a host */
-int create_notification_list_from_host(nagios_macros *mac, host *, int, int *);         		/* given a host, create list of contacts to be notified (remove duplicates) */
-int create_notification_list_from_service(nagios_macros *mac, service *, int, int *);    		/* given a service, create list of contacts to be notified (remove duplicates) */
+int create_notification_list_from_host(nagios_macros *mac, host *,int,int *,int);         		/* given a host, create list of contacts to be notified (remove duplicates) */
+int create_notification_list_from_service(nagios_macros *mac, service *,int,int *,int);    		/* given a service, create list of contacts to be notified (remove duplicates) */
 int add_notification(nagios_macros *mac, contact *);						/* adds a notification instance */
 notification *find_notification(contact *);					/* finds a notification object */
 time_t get_next_host_notification_time(host *, time_t);				/* calculates nex acceptable re-notification time for a host */

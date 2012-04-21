@@ -5,10 +5,12 @@ Nagios 3.x Change Log
 3.3.2 - xx/xx/xxxx
 ------------------
 ENHANCEMENTS
+* reduce notification load by moving notification viability check into notification list creation (Opsview Team)
 * Added code to apply allow_empty_hostgroup_assignment flag to host and service dependencies (Daniel Wittenberg)
 * Users can now see hostgroups and servicegroups that contain at least one host or service they are authorized for, instead of having to be authorized for them all (Ethan Galstad)
 
 FIXES
+* fix $NOTIFICATIONRECIPIENTS$ macro contains all contacts assigned to host|service, not only notified contacts (Icinga Development Team) #98
 * Scheduled Downtime Notifications Resent On Nagios Restart/reload (Bug #124 - ricardo)
 * NOTIFICATIONTYPE MACRO never became CUSTOM (Bug #168 - Alexey Dvoryanchikov)
 * Plugged minor memory leaks in notification logic

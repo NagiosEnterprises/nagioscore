@@ -187,6 +187,8 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMEEND";
 		else if(type == NOTIFICATION_DOWNTIMECANCELLED)
 			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMECANCELLED";
+		else if(type == NOTIFICATION_CUSTOM)
+			mac.x[MACRO_NOTIFICATIONTYPE] = "CUSTOM";
 		else if(svc->current_state == STATE_OK)
 			mac.x[MACRO_NOTIFICATIONTYPE] = "RECOVERY";
 		else
@@ -1139,6 +1141,8 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMEEND";
 		else if(type == NOTIFICATION_DOWNTIMECANCELLED)
 			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMECANCELLED";
+		else if(type == NOTIFICATION_CUSTOM)
+			mac.x[MACRO_NOTIFICATIONTYPE] = "CUSTOM";
 		else if(hst->current_state == HOST_UP)
 			mac.x[MACRO_NOTIFICATIONTYPE] = "RECOVERY";
 		else

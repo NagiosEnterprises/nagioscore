@@ -1163,23 +1163,6 @@ int event_execution_loop(void) {
 					my_free(temp_event);
 				}
 
-			/* wait a while so we don't hog the CPU... */
-			else {
-
-				log_debug_info(DEBUGL_EVENTS, 2, "Did not execute scheduled event.  Idling for a bit...\n");
-
-#ifdef USE_NANOSLEEP
-				delay.tv_sec = (time_t)sleep_time;
-				delay.tv_nsec = (long)((sleep_time - (double)delay.tv_sec) * 1000000000);
-				nanosleep(&delay, NULL);
-#else
-				delay.tv_sec = (time_t)sleep_time;
-				if(delay.tv_sec == 0L)
-					delay.tv_sec = 1;
-				delay.tv_nsec = 0L;
-				sleep((unsigned int)delay.tv_sec);
-#endif
-				}
 			}
 
 		/* we don't have anything to do at this moment in time... */

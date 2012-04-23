@@ -72,6 +72,7 @@ extern int      log_external_commands;
 extern int      log_passive_checks;
 
 extern int      service_check_timeout;
+extern int      service_check_timeout_state;
 extern int      host_check_timeout;
 extern int      event_handler_timeout;
 extern int      notification_timeout;
@@ -726,6 +727,24 @@ int read_main_config_file(char *main_config_file) {
 				break;
 				}
 			}
+
+        
+		else if(!strcmp(variable,"service_check_timeout_state")){
+
+			if(!strcmp(value,"o"))
+				service_check_timeout_state=STATE_OK;
+			else if(!strcmp(value,"w"))
+				service_check_timeout_state=STATE_WARNING;
+			else if(!strcmp(value,"c"))
+				service_check_timeout_state=STATE_CRITICAL;
+			else if(!strcmp(value,"u"))
+				service_check_timeout_state=STATE_UNKNOWN;
+			else{
+				asprintf(&error_message,"Illegal value for service_check_timeout_state");
+				error=TRUE;
+				break;
+					}
+				}
 
 		else if(!strcmp(variable, "host_check_timeout")) {
 

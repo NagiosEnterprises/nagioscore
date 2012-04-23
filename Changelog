@@ -5,6 +5,7 @@ Nagios 3.x Change Log
 3.3.2 - xx/xx/xxxx
 ------------------
 ENHANCEMENTS
+* add service_check_timeout_state configuration variable (Bill McGonigle)
 * permanently remove sleep on run_event == FALSE in main loop (Max <perldork@webwizarddesign.com>)
 * reduce notification load by moving notification viability check into notification list creation (Opsview Team)
 * Added code to apply allow_empty_hostgroup_assignment flag to host and service dependencies (Daniel Wittenberg)

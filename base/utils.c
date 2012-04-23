@@ -108,6 +108,7 @@ extern unsigned long      logging_options;
 extern unsigned long      syslog_options;
 
 extern int      service_check_timeout;
+extern int      service_check_timeout_state;
 extern int      host_check_timeout;
 extern int      event_handler_timeout;
 extern int      notification_timeout;
@@ -1846,11 +1847,7 @@ void service_check_sighandler(int sig) {
 	/* get the current time */
 	gettimeofday(&end_time, NULL);
 
-#ifdef SERVICE_CHECK_TIMEOUTS_RETURN_UNKNOWN
-	check_result_info.return_code = STATE_UNKNOWN;
-#else
-	check_result_info.return_code = STATE_CRITICAL;
-#endif
+	check_result_info.return_code = service_check_timeout_state;
 	check_result_info.finish_time = end_time;
 	check_result_info.early_timeout = TRUE;
 

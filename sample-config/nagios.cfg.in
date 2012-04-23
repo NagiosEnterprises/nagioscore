@@ -1016,6 +1016,22 @@ service_freshness_check_interval=60
 
 
 
+# SERVICE CHECK TIMEOUT STATE
+# This setting determines the state Nagios will report when a
+# service check times out - that is does not respond within
+# service_check_timeout seconds.  This can be useful if a
+# machine is running at too high a load and you do not want
+# to consider a failed service check to be critical (the default).
+# Valid settings are:
+# c - Critical (default)
+# u - Unknown
+# w - Warning
+# o - OK
+
+service_check_timeout_state=c
+
+
+
 # HOST FRESHNESS CHECK OPTION
 # This option determines whether or not Nagios will periodically
 # check the "freshness" of host results.  Enabling this option

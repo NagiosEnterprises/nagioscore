@@ -65,6 +65,9 @@ pretty: indent
 indent:
 	@sh indent-all.sh
 
+ctags:
+	ctags -R
+
 all:
 	cd $(SRC_BASE) && $(MAKE)
 	cd $(SRC_CGI) && $(MAKE)
@@ -185,6 +188,7 @@ distclean: clean
 	rm -f daemon-init pkginfo
 	rm -f Makefile subst
 	rm -f config.log config.status config.cache
+	rm -f tags
 
 devclean: distclean
 

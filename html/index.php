@@ -41,9 +41,9 @@ if(isset($_GET['corewindow'])){
 ?>
 
 
-<frameset cols="180,*">
-<frame src="side.php" name="side" frameborder="0">
-<frame src="<?php echo $corewindow;?>" name="main" frameborder="0">
+<frameset cols="180,*" style="border: 0px; framespacing: 0px">
+<frame src="side.php" name="side" frameborder="0" style="">
+<frame src="<?php echo $corewindow;?>" name="main" frameborder="0" style="">
 
 <noframes>
 <!-- This page requires a web browser which supports frames. --> 

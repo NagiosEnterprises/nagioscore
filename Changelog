@@ -11,6 +11,7 @@ ENHANCEMENTS
 * reduce notification load by moving notification viability check into notification list creation (Opsview Team)
 * Added code to apply allow_empty_hostgroup_assignment flag to host and service dependencies (Daniel Wittenberg)
 * Users can now see hostgroups and servicegroups that contain at least one host or service they are authorized for, instead of having to be authorized for them all (Ethan Galstad)
+* RSS feed boxes fallback if an error occurs and no longer block page load
 
 FIXES
 * fix $NOTIFICATIONRECIPIENTS$ macro contains all contacts assigned to host|service, not only notified contacts (Icinga Development Team) #98

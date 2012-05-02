@@ -18,7 +18,8 @@ $this_version="3.3.1";
 
 	//rss fetch by ajax to reduce page load time
 	$(document).ready(function() {		
-		$('#bottomsplashbox').load('rss.php');				
+		 $('#splashbox2-contents').load('rss-corefeed.php');				
+		 $('#splashbox4-contents').load('rss-newsfeed.php');	
 	}); 
 
 </script>
@@ -50,7 +51,7 @@ $this_version="3.3.1";
 	//print_r($updateinfo);
 	//$updateinfo['update_checks_enabled']=false;
 	//$updateinfo['update_available']=true;
-	if($updateinfo['update_checks_enabled']==false && $this_version!=$updateinfo['update_version']){
+	if($updateinfo['update_checks_enabled']==false){
 ?>
 		<div class="updatechecksdisabled">
 		<div class="warningmessage">Warning: Automatic Update Checks are Disabled!</div>
@@ -58,7 +59,7 @@ $this_version="3.3.1";
 		</div>
 <?php
 		}
-	else if($updateinfo['update_available']==true){
+	else if($updateinfo['update_available']==true && $this_version!=$updateinfo['update_version']){
 ?>
 		<div class="updateavailable">
 		<div class="updatemessage">A new version of Nagios Core is available!</div>
@@ -86,7 +87,17 @@ $this_version="3.3.1";
 			</ul>
 		</div> <!-- end splashbox1 -->
 		
+		<!-- corepromo feed -->
 		<div id="splashbox2" class="splashbox">
+		<h2>Don't Miss...</h2>
+		<div id="splashbox2-contents"></div>
+		</div>
+		
+	</div> <!-- end topsplashbox -->
+	
+	<div id="bottomsplashbox">
+
+		<div id="splashbox3" class="splashbox">
 			<h2>Quick Links</h2>
 			<ul>
 				<li><a href="http://library.nagios.com" target="_blank">Nagios Library</a> (tutorials and docs)</li>
@@ -97,15 +108,13 @@ $this_version="3.3.1";
 				<li><a href="http://www.nagios.org" target="_blank">Nagios.org</a> (project)</li>
 
 			</ul>
-		</div><!-- end splashbox1 -->
-		
-	</div> <!-- end topsplashbox -->
-	
-	<div id="bottomsplashbox">
-		<!-- corepromo feed -->
-		<!-- <div id="splashbox3" class="splashbox"></div>	-->	
+		</div><!-- end splashbox3 -->
+
 		<!-- latest news feed -->
-		<!-- <div id="splashbox4" class="splashbox"></div> -->
+		<div id="splashbox4" class="splashbox">
+		<h2>Latest News</h2>
+		<div id="splashbox4-contents"></div>
+		</div>
 	</div> <!-- end bottomsplashbox -->
 </div><!--splashboxes-->
 

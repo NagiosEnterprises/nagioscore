@@ -218,6 +218,7 @@ ul.navsectionlinks li ul li ul {
   /*margin: 100px 0 0 0;*/
   clear: both;
   font-size: 8pt;
+  padding-top: 35px;
 }
 #splashpage #mainfooter .disclaimer{
   /*width: 80%;*/
@@ -341,6 +342,7 @@ th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-b
 	border: 1px solid #AAAAAA;
 	float: left;
 	text-align: left;
+	height: 140px;
 	}
 .splashbox h2{
 	margin: 0px;
@@ -354,13 +356,15 @@ th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-b
 	clear: both;
 	}
 #splashbox1 {
+	width: 250px;
 	}
 #splashbox2 {
-	width: 50%;
+	width: 500px;
 	}
 #splashbox3 {
-	width: 50%;
+	width: 250px;
+	clear: both;
 	}
 #splashbox4 {
-	clear: both;
+	width: 500px;
 	}

@@ -1,4 +1,6 @@
 
+/***************** common to all pages, moved to this stylesheet ********************/
+
 /* default font size for all elements */
 * {font-size:8pt;}
 
@@ -7,45 +9,30 @@ body {
 	font-weight: normal;
 	}
 
-
-/* navbar */
-body.navbar {
-	/* background-color: black; */
-	/* color: white; */ 
-	/* font-family: verdana,arial,serif; */
-	}
-
-a,a:visited {
+/* most other link color scheme blue/light blue */
+a:link,a:visited {
   text-decoration: none;
-  color: #40529b;
+  color: #40529b; /* blue */
+  /* color: #DEE7C6; pale yellow */ 
 }
 a:hover,a:active {
-/*  text-decoration: underline;
-  color: #3f5bcd; */
- /* color: #FFC47F;  */
-  color: #8391cd;
+  text-decoration: underline;
+  /* color: #3f5bcd; gold */
+  color: #8391cd;      /*dark blue */
   /*color: #8391cd; */
 }
-/*
-a:active {
-  color: #496aef;
-}
-*/
-/*
-a:visited {
-  color: #2c3763;
-}
-*/
 
 table {border-collapse:collapse;}
 th {  font-size: 10pt;  text-align: left;  background-color: #999797;  }
-/* common to all pages, moved to this stylesheet */
+
 .infoBox { border: 1px solid #AAA;  padding: 2px; font-size:8pt; margin-bottom:3px;}
 .linkBox { padding: 3px; font-size:8pt; border: 1px solid #AAA;}
 .infoBoxTitle {  font-size: 10pt;  font-weight: bold;  }
 .infoBoxTitle {   font-size: 10pt;  font-weight: bold; }
 .infoBoxBadProcStatus { color: red; }
 a.homepageURL:hover {  color: red; }
+
+
 /* feedback messages */
 .errorMessage {  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
 .errorDescription {  text-align: center;  font-weight: bold;  font-size: 12pt; }
@@ -64,6 +51,24 @@ a.homepageURL:hover {  color: red; }
 .optBoxValue {  font-size: 8pt;  font-style: italic; }
 
 
+
+/* *********navbar frame specific styles ********************* */
+
+/* navbar */
+body.navbar {
+	background-color: black;
+	color: white; 
+	}
+/* navbar links
+body.navbar a:link,a:visited {
+  text-decoration: none;
+  color: #DEE7C6;  pale yellow 
+}
+body.navbar a:hover,a:active {
+ text-decoration: underline;
+  color: #3f5bcd; gold 
+}
+*/
 .navbarlogo {
 	margin: 0 0 10px 0;
 	}
@@ -78,6 +83,7 @@ a.homepageURL:hover {  color: red; }
 	font-weight: bold;
 	border:1px solid #AAA;
 	padding: 2px;
+	text-align:center;
 	}
 
 div.navsectionlinks {
@@ -93,46 +99,50 @@ ul.navsectionlinks {
 ul.navsectionlinks li {
 	}
 
-ul.navsectionlinks li a {
-/*	color: #DEE7C6; */
+/* main nav links */
+ul.navsectionlinks li a:link,ul.navsectionlinks li a:visited {
+	/*color: #DEE7C6; */ 
 	font-weight: bold;
 	font-size: 8pt;
 	text-decoration: none;	
 	padding: 0 0 0 15px;
-	/* background: transparent url(../images/greendot.gif) no-repeat scroll 0 0; */
-	
+	background: transparent url(../images/greendot.gif) no-repeat scroll 0 0; 
+  	color: #DEE7C6; /* pale yellow */ 
 	}
+ul.navsectionlinks li a:hover ,ul.navsectionlinks li a:active{
+	/*color: #8391cd;*/
+	color:#FFC47F;   /*    this one was working before   */
+	background: transparent url(../images/orangedot.gif) no-repeat scroll 0 0;
+  /*	color: #3f5bcd;  gold */
+	}	
+
 
 ul.navsectionlinks li ul {
 	margin: 0px;
 	padding: 0 0 0 30px;
-	list-style: none;
 	}
 
 ul.navsectionlinks li ul li {
 	}
 
-ul.navsectionlinks li a:hover ,ul.navsectionlinks li a:active{
-	color: #8391cd; 
-	/* background: transparent url(../images/orangedot.gif) no-repeat scroll 0 0 */
-	}
 
-ul.navsectionlinks li ul li a {
-/*	color: #DEE7C6; 
-	background: none; */
+/* sub links on main nav */
+ul.navsectionlinks li ul li a:link,ul.navsectionlinks li ul li a:visited  {
+/*	color: #DEE7C6;  */
+	background: none; 
 	padding: 0;
 	font-weight: normal;
+  	color: #DEE7C6; /* pale yellow */ 
 	}
-/*
-ul.navsectionlinks li ul li a:hover {
-	color: #FFC47F;
+
+ul.navsectionlinks li ul li a:hover,ul.navsectionlinks li ul li a:active  {
 	background: none;  
+	color:#FFC47F; 
 	}
-*/
+
 ul.navsectionlinks li ul li ul {
 	margin: 0px;
 	padding: 0 0 0 15px;
-	list-style: none;
 	}
 
 
@@ -154,9 +164,11 @@ ul.navsectionlinks li ul li ul {
 	background-color: white;
 	}
 
+
+
 	
 
-/* main page */
+/* **************** main page *********************** */
 #splashpage{
 	text-align: center;
 	}

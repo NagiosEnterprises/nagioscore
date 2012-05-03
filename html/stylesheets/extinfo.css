@@ -5,9 +5,11 @@ DIV.dataTitle { text-align: center;  font-weight: bold;  font-size: 12pt; }
 DIV.data { text-align: center;  font-size: 12pt; }
 
 DIV.perfTypeTitle { text-align: right;  font-weight: bold;  font-size: 10pt; }
-
+/*
 TABLE.data { font-size: 10pt;  background-color: white;  padding: 2px; border-collapse:separate;}
 TH.data { font-size: 10pt;  text-align: left;  background-color: #999797;  }
+*/
+
 .dataOdd { font-size: 10pt;  background-color: #DBDBDB; }
 .dataEven { font-size: 10pt;  background-color: #C4C2C2; }
 

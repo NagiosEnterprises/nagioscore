@@ -1,8 +1,11 @@
 
-/* .tac {  background-color: black;  background: black;  color: white;  background-color: black; } */
+.tac {  background-color: black;  background: black;  color: white;  background-color: black; margin:10px;} 
 
 .infoBoxBadProcStatus { color: red; }
-a {  color: black; }
+
+body.tac a,a:visited {  color: black; }
+body.tac a:active,a:hover: {text-decoration:underline;}
+body.tac table.infoBox {background-color:#C4C2C2;color:black;}
 
 .title { text-align: left;   font-weight: bold;  font-size: large;  background-color: black;  color: white; }
 .titleItem { text-align: left;   font-weight: bold;  background-color: black;  color: white; }

@@ -2,20 +2,20 @@
 Nagios 3.x Change Log
 #####################
 
-3.3.2 - xx/xx/xxxx
+3.4.0 - xx/xx/xxxx
 ------------------
 ENHANCEMENTS
-* Use execv to execute active check commands (#86 - Ton Voon, dnsmichi)
-* add service_check_timeout_state configuration variable (Bill McGonigle)
-* permanently remove sleep on run_event == FALSE in main loop (Max <perldork@webwizarddesign.com>)
-* reduce notification load by moving notification viability check into notification list creation (Opsview Team)
+* Use execv() to execute active check commands (#86 - Ton Voon, dnsmichi)
+* Added service_check_timeout_state configuration variable (Bill McGonigle)
+* Permanently remove sleep on run_event == FALSE in main loop (Max <perldork@webwizarddesign.com>)
+* Reduce notification load by moving notification viability check into notification list creation (Opsview Team)
 * Added code to apply allow_empty_hostgroup_assignment flag to host and service dependencies (Daniel Wittenberg)
 * Users can now see hostgroups and servicegroups that contain at least one host or service they are authorized for, instead of having to be authorized for them all (Ethan Galstad)
 * RSS feed boxes fallback if an error occurs (Ethan Galstad)
 * RSS feeds no longer block main page load (Mike Guthrie)
 
 FIXES
-* fix $NOTIFICATIONRECIPIENTS$ macro contains all contacts assigned to host|service, not only notified contacts (Bug #98 Matt Harrington)
+* Fix $NOTIFICATIONRECIPIENTS$ macro to contain all contacts assigned to host|service, not only notified contacts (Bug #98 Matt Harrington)
 * Scheduled Downtime Notifications Resent On Nagios Restart/reload (Bug #124 - ricardo)
 * NOTIFICATIONTYPE MACRO never became CUSTOM (Bug #168 - Alexey Dvoryanchikov)
 * Plugged minor memory leaks in notification logic

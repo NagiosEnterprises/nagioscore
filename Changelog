@@ -2,7 +2,7 @@
 Nagios 3.x Change Log
 #####################
 
-3.4.0 - xx/xx/xxxx
+3.4.0 - 05/04/2012
 ------------------
 ENHANCEMENTS
 * Use execv() to execute active check commands (#86 - Ton Voon, dnsmichi)

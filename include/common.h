@@ -22,8 +22,8 @@
 
 #include "shared.h"
 
-#define PROGRAM_VERSION "3.4.0"
-#define PROGRAM_MODIFICATION_DATE "05-04-2012"
+#define PROGRAM_VERSION "3.4.1"
+#define PROGRAM_MODIFICATION_DATE "05-11-2012"
 
 /*#define DEBUG_CHECK_IPC 1 */
 /*#define DEBUG_CHECK_IPC2 1*/

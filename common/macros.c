@@ -89,12 +89,10 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 	char *buf_ptr = NULL;
 	char *delim_ptr = NULL;
 	int in_macro = FALSE;
-	int x = 0;
 	char *selected_macro = NULL;
 	char *original_macro = NULL;
 	char *cleaned_macro = NULL;
 	int clean_macro = FALSE;
-	int found_macro_x = FALSE;
 	int result = OK;
 	int clean_options = 0;
 	int free_macro = FALSE;
@@ -135,7 +133,6 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 		log_debug_info(DEBUGL_MACROS, 2, "  Processing part: '%s'\n", temp_buffer);
 
 		selected_macro = NULL;
-		found_macro_x = FALSE;
 		clean_macro = FALSE;
 
 		/* we're in plain text... */
@@ -165,10 +162,6 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 				if(free_macro == TRUE)
 					my_free(selected_macro);
 				}
-
-			/* we already have a macro... */
-			if(result == OK)
-				x = 0;
 
 			/* an escaped $ is done by specifying two $$ next to each other */
 			else if(!strcmp(temp_buffer, "")) {

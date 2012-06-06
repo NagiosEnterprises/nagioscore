@@ -335,7 +335,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	struct timeval start_time, end_time;
 	pid_t pid = 0;
 	int fork_error = FALSE;
-	int wait_result = 0;
 	host *temp_host = NULL;
 	FILE *fp = NULL;
 	int pclose_result = 0;
@@ -353,7 +352,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	char *args[5] = {"", DO_CLEAN, "", "", NULL };
 	char *perl_plugin_output = NULL;
 	SV *plugin_hndlr_cr = NULL;
-	int count ;
 	int use_epn = FALSE;
 #ifdef aTHX
 	dTHX;
@@ -710,7 +708,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 				PUTBACK;
 
-				count = call_pv("Embed::Persistent::run_package", G_ARRAY);
+				call_pv("Embed::Persistent::run_package", G_ARRAY);
 
 				SPAGAIN;
 
@@ -878,7 +876,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		/* wait for the first child to return */
 		/* don't do this if large install tweaks are enabled - we'll clean up children in event loop */
 		if(child_processes_fork_twice == TRUE)
-			wait_result = waitpid(pid, NULL, 0);
+			waitpid(pid, NULL, 0);
 		}
 
 	/* see if we were able to run the check... */
@@ -2945,7 +2943,6 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	struct timeval start_time, end_time;
 	pid_t pid = 0;
 	int fork_error = FALSE;
-	int wait_result = 0;
 	FILE *fp = NULL;
 	int pclose_result = 0;
 	mode_t new_umask = 077;
@@ -3280,7 +3277,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		/* wait for the first child to return */
 		/* if large install tweaks are enabled, we'll clean up the zombie process later */
 		if(child_processes_fork_twice == TRUE)
-			wait_result = waitpid(pid, NULL, 0);
+			waitpid(pid, NULL, 0);
 		}
 
 	/* see if we were able to run the check... */

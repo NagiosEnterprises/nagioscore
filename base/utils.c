@@ -307,7 +307,6 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 	char *args[5] = {"", DO_CLEAN, "", "", NULL };
 	SV *plugin_hndlr_cr = NULL;
 	char *perl_output = NULL;
-	int count;
 	int use_epn = FALSE;
 #ifdef aTHX
 	dTHX;
@@ -472,7 +471,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 
 			PUTBACK;
 
-			count = call_pv("Embed::Persistent::run_package", G_ARRAY);
+			call_pv("Embed::Persistent::run_package", G_ARRAY);
 			/* count is a debug hook. It should always be two (2), because the persistence framework tries to return two (2) args */
 
 			SPAGAIN;
@@ -852,7 +851,6 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 	time_t day_range_end = (time_t)0L;
 	int test_time_year = 0;
 	int test_time_mon = 0;
-	int test_time_mday = 0;
 	int test_time_wday = 0;
 	int year = 0;
 	int shift;
@@ -879,7 +877,6 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 	t = localtime_r((time_t *)&test_time, &tm_s);
 	test_time_year = t->tm_year;
 	test_time_mon = t->tm_mon;
-	test_time_mday = t->tm_mday;
 	test_time_wday = t->tm_wday;
 
 	/* calculate the start of the day (midnight, 00:00 hours) when the specified test time occurs */
@@ -1143,12 +1140,10 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 
 	int pref_time_year = 0;
 	int pref_time_mon = 0;
-	int pref_time_mday = 0;
 	int pref_time_wday = 0;
 	int current_time_year = 0;
 	int current_time_mon = 0;
 	int current_time_mday = 0;
-	int current_time_wday = 0;
 	int shift;
 
 	/* preferred time must be now or in the future */
@@ -1181,7 +1176,6 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 	/* save pref time values for later */
 	pref_time_year = t->tm_year;
 	pref_time_mon = t->tm_mon;
-	pref_time_mday = t->tm_mday;
 	pref_time_wday = t->tm_wday;
 
 	/* save current time values for later */
@@ -1189,7 +1183,6 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 	current_time_year = t->tm_year;
 	current_time_mon = t->tm_mon;
 	current_time_mday = t->tm_mday;
-	current_time_wday = t->tm_wday;
 
 #ifdef TEST_TIMEPERIODS_B
 	printf("PREF TIME:    %lu = %s", (unsigned long)preferred_time, ctime(&preferred_time));
@@ -2305,7 +2298,6 @@ int process_check_result_file(char *fname) {
 	char *var = NULL;
 	char *val = NULL;
 	char *v1 = NULL, *v2 = NULL;
-	int delete_file = FALSE;
 	time_t current_time;
 	check_result *new_cr = NULL;
 
@@ -2375,7 +2367,6 @@ int process_check_result_file(char *fname) {
 			/* file is too old - ignore check results it contains and delete it */
 			/* this will only work as intended if file_time comes before check results */
 			if(max_check_result_file_age > 0 && (current_time - (strtoul(val, NULL, 0)) > max_check_result_file_age)) {
-				delete_file = TRUE;
 				break;
 				}
 			}
@@ -2737,7 +2728,6 @@ char *get_next_string_from_buf(char *buf, int *start_index, int bufsize) {
 int contains_illegal_object_chars(char *name) {
 	register int x = 0;
 	register int y = 0;
-	register int ch = 0;
 
 	if(name == NULL)
 		return FALSE;
@@ -2745,9 +2735,6 @@ int contains_illegal_object_chars(char *name) {
 	x = (int)strlen(name) - 1;
 
 	for(; x >= 0; x--) {
-
-		ch = (int)name[x];
-
 		/* illegal user-specified characters */
 		if(illegal_object_chars != NULL)
 			for(y = 0; illegal_object_chars[y]; y++)
@@ -3112,7 +3099,7 @@ int file_uses_embedded_perl(char *fname) {
 #ifndef EMBEDDEDPERL
 	return FALSE;
 #else
-	int line, use_epn = FALSE;
+	int line;
 	FILE *fp = NULL;
 	char buf[256] = "";
 
@@ -3571,9 +3558,6 @@ int generate_check_stats(void) {
 	int check_type = 0;
 	float this_bucket_weight = 0.0;
 	float last_bucket_weight = 0.0;
-	int left_value = 0;
-	int right_value = 0;
-
 
 	time(&current_time);
 
@@ -3657,14 +3641,10 @@ int generate_check_stats(void) {
 			/* determine value by weighting this/last buckets... */
 			/* if this is the current bucket, use its full value + weighted % of last bucket */
 			if(x == 0) {
-				right_value = this_bucket_value;
-				left_value = (int)floor(last_bucket_value * last_bucket_weight);
 				bucket_value = (int)(this_bucket_value + floor(last_bucket_value * last_bucket_weight));
 				}
 			/* otherwise use weighted % of this and last bucket */
 			else {
-				right_value = (int)ceil(this_bucket_value * this_bucket_weight);
-				left_value = (int)floor(last_bucket_value * last_bucket_weight);
 				bucket_value = (int)(ceil(this_bucket_value * this_bucket_weight) + floor(last_bucket_value * last_bucket_weight));
 				}
 
@@ -3810,7 +3790,6 @@ int query_update_api(void) {
 	char *buf = NULL;
 	char recv_buf[1024];
 	int report_install = FALSE;
-	int result = OK;
 	char *ptr = NULL;
 	int current_line = 0;
 	int buf_index = 0;
@@ -3856,36 +3835,16 @@ int query_update_api(void) {
 	         api_path, PROGRAM_VERSION, api_server,
 	         strlen(api_query), api_query);
 
-	/*
-	printf("SENDING...\n");
-	printf("==========\n");
-	printf("%s",buf);
-	printf("\n");
-	*/
-
-
-	result = my_tcp_connect(api_server, 80, &sd, 2);
-	/*printf("CONN RESULT: %d, SD: %d\n",result,sd);*/
+	my_tcp_connect(api_server, 80, &sd, 2);
 	if(sd > 0) {
-
 		/* send request */
 		send_len = strlen(buf);
-		result = my_sendall(sd, buf, &send_len, 2);
-		/*printf("SEND RESULT: %d, SENT: %d\n",result,send_len);*/
+		my_sendall(sd, buf, &send_len, 2);
 
 		/* get response */
 		recv_len = sizeof(recv_buf);
-		result = my_recvall(sd, recv_buf, &recv_len, 2);
+		my_recvall(sd, recv_buf, &recv_len, 2);
 		recv_buf[sizeof(recv_buf) - 1] = '\x0';
-		/*printf("RECV RESULT: %d, RECEIVED: %d\n",result,recv_len);*/
-
-		/*
-		printf("\n");
-		printf("RECEIVED...\n");
-		printf("===========\n");
-		printf("%s",recv_buf);
-		printf("\n");
-		*/
 
 		/* close connection */
 		close(sd);
@@ -3906,7 +3865,6 @@ int query_update_api(void) {
 
 			var = strtok(ptr, "=");
 			val = strtok(NULL, "\n");
-			/*printf("VAR: %s, VAL: %s\n",var,val);*/
 
 			if(!strcmp(var, "UPDATE_AVAILABLE")) {
 				update_available = atoi(val);

@@ -401,11 +401,34 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 		}
 
 	/* if downtime handler gets triggerd in between then there seems to be a restart */
-	/* Don't do anything just return */
-	time( &current_time);
-	if( temp_downtime->start_time < current_time && current_time < temp_downtime->end_time && temp_downtime->is_in_effect == TRUE)
-		return OK;
+	time(&current_time);
+	if(temp_downtime->start_time < current_time && current_time < temp_downtime->end_time && temp_downtime->is_in_effect == TRUE) {
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_downtime_data(NEBTYPE_DOWNTIME_START, NEBFLAG_NONE, NEBATTR_NONE, temp_downtime->type, temp_downtime->host_name, temp_downtime->service_description, temp_downtime->entry_time, temp_downtime->author, temp_downtime->comment, temp_downtime->start_time, temp_downtime->end_time, temp_downtime->fixed, temp_downtime->triggered_by, temp_downtime->duration, temp_downtime->downtime_id, NULL);
+#endif
 
+		/* increment the downtime depth variable */
+		if(temp_downtime->type == HOST_DOWNTIME) {
+			hst->scheduled_downtime_depth++;
+			update_host_status(hst, FALSE);
+			}
+		else {
+			svc->scheduled_downtime_depth++;
+			update_service_status(svc, FALSE);
+			}
+
+		/* schedule an event */
+		if(temp_downtime->fixed == FALSE)
+			event_time = (time_t)((unsigned long)time(NULL) + temp_downtime->duration);
+		else
+			event_time = temp_downtime->end_time;
+		if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long)))) {
+			*new_downtime_id = temp_downtime->downtime_id;
+			schedule_new_event(EVENT_SCHEDULED_DOWNTIME, TRUE, event_time, FALSE, 0, NULL, FALSE, (void *)new_downtime_id, NULL, 0);
+			}
+		return OK;
+		}
 
 	/* have we come to the end of the scheduled downtime? */
 	if(temp_downtime->is_in_effect == TRUE) {

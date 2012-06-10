@@ -513,7 +513,8 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 				return ERROR;
 				}
 
-			/* get the macro value */
+			/* get the macro value by reference, so no need to free() */
+			*free_macro = FALSE;
 			result = grab_contact_address_macro(x, temp_contact, output);
 			}
 
@@ -2332,7 +2333,7 @@ int grab_contact_address_macro(int macro_num, contact *temp_contact, char **outp
 
 	/* get the macro */
 	if(temp_contact->address[macro_num])
-		*output = (char *)strdup(temp_contact->address[macro_num]);
+		*output = temp_contact->address[macro_num];
 
 	return OK;
 	}

@@ -53,6 +53,15 @@ extern timeperiod       *timeperiod_list;
 char *macro_x_names[MACRO_X_COUNT]; /* the macro names */
 char *macro_user[MAX_USER_MACROS]; /* $USERx$ macros */
 
+struct macro_key_code {
+	char *name; /* macro key name */
+	int code;  /* numeric macro code, usable in case statements */
+	int clean_options;
+	char *value;
+};
+
+struct macro_key_code macro_keys[MACRO_X_COUNT];
+
 /*
  * These point to their corresponding pointer arrays in global_macros
  * AFTER macros have been initialized.
@@ -78,6 +87,33 @@ nagios_macros *get_global_macros(void) {
 /******************************************************************/
 /************************ MACRO FUNCTIONS *************************/
 /******************************************************************/
+
+/*
+ * locate a macro key based on its name by using a binary search
+ * over all keys. O(log(n)) complexity and a vast improvement over
+ * the previous linear scan
+ */
+const struct macro_key_code *find_macro_key(const char *name) {
+	unsigned int high, low = 0;
+	int value;
+	struct macro_key_code *key;
+
+	high = MACRO_X_COUNT;
+	while (high - low > 0) {
+		unsigned int mid = low + ((high - low) / 2);
+		key = &macro_keys[mid];
+		value = strcmp(name, key->name);
+		if (value == 0) {
+			return key;
+			}
+		if (value > 0)
+			low = mid + 1;
+		else
+			high = mid;
+		}
+	return NULL;
+	}
+
 
 /*
  * replace macros in notification commands with their values,
@@ -386,8 +422,9 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 	contactsmember *temp_contactsmember = NULL;
 	char *temp_buffer = NULL;
 	int delimiter_len = 0;
-	register int x;
-	int result = OK;
+	int x, result = OK;
+	const struct macro_key_code *mkey;
+
 	/* for the early cases, this is the default */
 	*free_macro = FALSE;
 
@@ -436,6 +473,13 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 		return OK;
 		}
 
+	/* most frequently used "x" macro gets a shortcut */
+	if(mac->host_ptr && !strcmp(macro_buffer, "HOSTADDRESS")) {
+		if(mac->host_ptr->address)
+			*output = mac->host_ptr->address;
+		return OK;
+		}
+
 	/* work with a copy of the original buffer */
 	if((buf = (char *)strdup(macro_buffer)) == NULL)
 		return ERROR;
@@ -466,39 +510,16 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 			}
 		}
 
-	/***** X MACROS *****/
-	/* see if this is an x macro */
-	for(x = 0; x < MACRO_X_COUNT; x++) {
-
-		if(macro_x_names[x] == NULL)
-			continue;
-
-		if(!strcmp(macro_name, macro_x_names[x])) {
-
-			log_debug_info(DEBUGL_MACROS, 2, "  macros[%d] (%s) match.\n", x, macro_x_names[x]);
-
-			/* get the macro value */
-			result = grab_macrox_value_r(mac, x, arg[0], arg[1], output, free_macro);
-
-			/* post-processing */
-			/* host/service output/perfdata and author/comment macros should get cleaned */
-			if((x >= 16 && x <= 19) || (x >= 49 && x <= 52) || (x >= 99 && x <= 100) || (x >= 124 && x <= 127)) {
-				*clean_options |= (STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS);
-				log_debug_info(DEBUGL_MACROS, 2, "  New clean options: %d\n", *clean_options);
-				}
-			/* url macros should get cleaned */
-			if((x >= 125 && x <= 126) || (x >= 128 && x <= 129) || (x >= 77 && x <= 78) || (x >= 74 && x <= 75)) {
-				*clean_options |= URL_ENCODE_MACRO_CHARS;
-				log_debug_info(DEBUGL_MACROS, 2, "  New clean options: %d\n", *clean_options);
-				}
-			break;
+	if ((mkey = find_macro_key(macro_name))) {
+		log_debug_info(DEBUGL_MACROS, 2, "  macros[%d] (%s) match.\n", mkey->code, macro_x_names[mkey->code]);
+		if (mkey->clean_options) {
+			*clean_options |= mkey->clean_options;
+			log_debug_info(DEBUGL_MACROS, 2, "  New clean options: %d\n", *clean_options);
 			}
+
+		/* get the macro value */
+		result = grab_macrox_value_r(mac, mkey->code, arg[0], arg[1], output, free_macro);
 		}
-
-	/* we already found the macro... */
-	if(x < MACRO_X_COUNT)
-		x = x;
-
 	/***** CONTACT ADDRESS MACROS *****/
 	/* NOTE: the code below should be broken out into a separate function */
 	else if(strstr(macro_name, "CONTACTADDRESS") == macro_name) {
@@ -2517,6 +2538,14 @@ char *get_url_encoded_string(char *input) {
 	}
 
 
+static int macro_key_cmp(const void *a_, const void *b_)
+{
+	struct macro_key_code *a = (struct macro_key_code *)a_;
+	struct macro_key_code *b = (struct macro_key_code *)b_;
+
+	return strcmp(a->name, b->name);
+}
+
 
 /******************************************************************/
 /***************** MACRO INITIALIZATION FUNCTIONS *****************/
@@ -2525,6 +2554,7 @@ char *get_url_encoded_string(char *input) {
 /* initializes global macros */
 int init_macros(void) {
 	init_macrox_names();
+	int x;
 
 	/*
 	 * non-volatile macros are free()'d when they're set.
@@ -2538,10 +2568,31 @@ int init_macros(void) {
 	/* backwards compatibility hack */
 	macro_x = global_macros.x;
 
+	/*
+	 * Now build an ordered list of X macro names so we can
+	 * do binary lookups later and avoid a ton of strcmp()'s
+	 * for each and every check that gets run. A hash table
+	 * is actually slower, since the most frequently used
+	 * keys are so long and a binary lookup is completed in
+	 * 7 steps for up to ~200 keys, worst case.
+	 */
+	for (x = 0; x < MACRO_X_COUNT; x++) {
+		macro_keys[x].code = x;
+		macro_keys[x].name = macro_x_names[x];
+
+		/* host/service output/perfdata and author/comment macros should get cleaned */
+		if((x >= 16 && x <= 19) || (x >= 49 && x <= 52) || (x >= 99 && x <= 100) || (x >= 124 && x <= 127)) {
+			macro_keys[x].clean_options = (STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS);
+			}
+		/* url macros should get cleaned */
+		if((x >= 125 && x <= 126) || (x >= 128 && x <= 129) || (x >= 77 && x <= 78) || (x >= 74 && x <= 75)) {
+			macro_keys[x].clean_options = URL_ENCODE_MACRO_CHARS;
+			}
+		}
+
+	qsort(macro_keys, x, sizeof(struct macro_key_code), macro_key_cmp);
 	return OK;
 	}
-
-
 
 /*
  * initializes the names of macros, using this nifty little macro

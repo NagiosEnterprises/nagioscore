@@ -1,6 +1,11 @@
 #####################
 Nagios 3.x Change Log
 #####################
+3.4.2 - ???
+------------------
+FIXES
+* Fixed bug #345 with wild card searches not paging properly on status.cgi (Phil Randal)
+
 
 3.4.1 - 05/11/2012
 ------------------

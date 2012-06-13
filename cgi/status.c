@@ -1412,7 +1412,7 @@ void show_service_detail(void) {
 	snprintf(temp_url, sizeof(temp_url) - 1, "%s?", STATUS_CGI);
 	temp_url[sizeof(temp_url) - 1] = '\x0';
 	if(display_type == DISPLAY_HOSTS)
-		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
+	     snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%shost=%s", (navbar_search == TRUE) ? "&navbarsearch=1&" : "", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "servicegroup=%s&style=detail", url_encode(servicegroup_name));
 	else

@@ -2907,6 +2907,7 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 	servicestatus *temp_servicestatus = NULL;
 	hoststatus *temp_hoststatus = NULL;
 	service *temp_service = NULL;
+	service *last_service = NULL;
 	int problem = FALSE;
 
 
@@ -2916,6 +2917,10 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 		/* find the service */
 		temp_service = find_service(temp_member->host_name, temp_member->service_description);
 		if(temp_service == NULL)
+			continue;
+
+		/* skip this if it isn't a new service... */
+		if(temp_service == last_service)
 			continue;
 
 		/* find the service status */
@@ -3020,6 +3025,8 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 
 		else if(temp_servicestatus->status == SERVICE_PENDING)
 			services_pending++;
+
+		last_service = temp_service;
 		}
 
 

@@ -3961,6 +3961,8 @@ void free_memory(nagios_macros *mac) {
 	/* free memory for the high priority event list */
 	this_event = event_list_high;
 	while(this_event != NULL) {
+		if (this_event->event_type == EVENT_SCHEDULED_DOWNTIME)
+			my_free(this_event->event_data);
 		next_event = this_event->next;
 		my_free(this_event);
 		this_event = next_event;
@@ -3972,6 +3974,8 @@ void free_memory(nagios_macros *mac) {
 	/* free memory for the low priority event list */
 	this_event = event_list_low;
 	while(this_event != NULL) {
+		if (this_event->event_type == EVENT_SCHEDULED_DOWNTIME)
+			my_free(this_event->event_data);
 		next_event = this_event->next;
 		my_free(this_event);
 		this_event = next_event;

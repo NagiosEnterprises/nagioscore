@@ -202,8 +202,11 @@ int unschedule_downtime(int type, unsigned long downtime_id) {
 		if(((unsigned long)temp_event->event_data) == downtime_id)
 			break;
 		}
-	if(temp_event != NULL)
+	if(temp_event != NULL) {
 		remove_event(temp_event, &event_list_high, &event_list_high_tail);
+		my_free(temp_event->event_data);
+		my_free(temp_event);
+		}
 
 	/* delete downtime entry */
 	if(temp_downtime->type == HOST_DOWNTIME)

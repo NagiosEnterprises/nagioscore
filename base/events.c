@@ -30,6 +30,7 @@
 #include "../include/nagios.h"
 #include "../include/broker.h"
 #include "../include/sretention.h"
+#include "../lib/squeue.h"
 
 
 extern char	*config_file;
@@ -85,10 +86,7 @@ extern int      child_processes_fork_twice;
 
 extern int      time_change_threshold;
 
-timed_event *event_list_low = NULL;
-timed_event *event_list_low_tail = NULL;
-timed_event *event_list_high = NULL;
-timed_event *event_list_high_tail = NULL;
+squeue_t *nagios_squeue = NULL; /* our scheduling queue */
 
 extern host     *host_list;
 extern service  *service_list;
@@ -118,7 +116,6 @@ void init_timing_loop(void) {
 	double max_inter_check_delay = 0.0;
 	struct timeval tv[9];
 	double runtime[9];
-
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "init_timing_loop() start\n");
 
@@ -762,22 +759,26 @@ void display_scheduling_info(void) {
 	}
 
 
+/*
+ * Create the event queue
+ * We oversize it somewhat to avoid unnecessary growing
+ */
+int init_event_queue(void)
+{
+	unsigned int size;
+
+	size = scheduling_info.total_hosts + scheduling_info.total_services;
+	size += 4096 + (size / 100);
+
+	nagios_squeue = squeue_create(size);
+	return 0;
+}
+
 /* schedule a new timed event */
-int schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args, int event_options) {
-	timed_event **event_list = NULL;
-	timed_event **event_list_tail = NULL;
-	timed_event *new_event = NULL;
+timed_event *schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args, int event_options) {
+	timed_event *new_event;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "schedule_new_event()\n");
-
-	if(high_priority == TRUE) {
-		event_list = &event_list_high;
-		event_list_tail = &event_list_high_tail;
-		}
-	else {
-		event_list = &event_list_low;
-		event_list_tail = &event_list_low_tail;
-		}
 
 	new_event = (timed_event *)malloc(sizeof(timed_event));
 	if(new_event != NULL) {
@@ -790,19 +791,20 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 		new_event->event_interval = event_interval;
 		new_event->timing_func = timing_func;
 		new_event->compensate_for_time_change = compensate_for_time_change;
+		new_event->priority = high_priority;
 		}
 	else
-		return ERROR;
+		return NULL;
 
 	/* add the event to the event list */
-	add_event(new_event, event_list, event_list_tail);
+	add_event(nagios_squeue, new_event);
 
-	return OK;
+	return new_event;
 	}
 
 
 /* reschedule an event in order of execution time */
-void reschedule_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail) {
+void reschedule_event(squeue_t *sq, timed_event *event) {
 	time_t current_time = 0L;
 	time_t (*timingfunc)(void);
 
@@ -827,65 +829,33 @@ void reschedule_event(timed_event *event, timed_event **event_list, timed_event 
 		}
 
 	/* add the event to the event list */
-	add_event(event, event_list, event_list_tail);
+	add_event(sq, event);
 
 	return;
 	}
 
 
 /* add an event to list ordered by execution time */
-void add_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail) {
-	timed_event *temp_event = NULL;
-	timed_event *first_event = NULL;
+void add_event(squeue_t *sq, timed_event *event) {
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "add_event()\n");
 
-	event->next = NULL;
-	event->prev = NULL;
-
-	first_event = *event_list;
-
-	/* add the event to the head of the list if there are no other events */
-	if(*event_list == NULL) {
-		*event_list = event;
-		*event_list_tail = event;
+	if(event->priority) {
+		event->sq_event = squeue_add_usec(sq, event->run_time, event->priority - 1, event);
 		}
-
-	/* add event to head of the list if it should be executed first */
-	else if(event->run_time < first_event->run_time) {
-		event->prev = NULL;
-		(*event_list)->prev = event;
-		event->next = *event_list;
-		*event_list = event;
-		}
-
-	/* else place the event according to next execution time */
 	else {
-
-		/* start from the end of the list, as new events are likely to be executed in the future, rather than now... */
-		for(temp_event = *event_list_tail; temp_event != NULL; temp_event = temp_event->prev) {
-			if(event->run_time >= temp_event->run_time) {
-				event->next = temp_event->next;
-				event->prev = temp_event;
-				temp_event->next = event;
-				if(event->next == NULL)
-					*event_list_tail = event;
-				else
-					event->next->prev = event;
-				break;
-				}
-			else if(temp_event->prev == NULL) {
-				temp_event->prev = event;
-				event->next = temp_event;
-				*event_list = event;
-				break;
-				}
-			}
+		event->sq_event = squeue_add(sq, event->run_time, event);
+		}
+	if(!event->sq_event) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to add event to squeue '%p' with prio %u: %s\n",
+			  sq, event->priority, strerror(errno));
 		}
 
 #ifdef USE_EVENT_BROKER
-	/* send event data to broker */
-	broker_timed_event(NEBTYPE_TIMEDEVENT_ADD, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
+	else {
+		/* send event data to broker */
+		broker_timed_event(NEBTYPE_TIMEDEVENT_ADD, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
+		}
 #endif
 
 	return;
@@ -894,45 +864,13 @@ void add_event(timed_event *event, timed_event **event_list, timed_event **event
 
 
 /* remove an event from the queue */
-void remove_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail) {
-	timed_event *prev_event, *next_event;
-
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "remove_event()\n");
-
-	if (!event)
-		return;
-
+void remove_event(squeue_t *sq, timed_event *event) {
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_REMOVE, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
 #endif
-
-	if(*event_list == NULL)
-		return;
-
-	prev_event = event->prev;
-	next_event = event->next;
-	if (prev_event) {
-		prev_event->next = next_event;
-		}
-	if (next_event) {
-		next_event->prev = prev_event;
-		}
-
-	if (!prev_event) {
-		/* no previous event, so "next" is now first in list */
-		*event_list = next_event;
-		}
-	if (!next_event) {
-		/* no following event, so "prev" is now last in list */
-		*event_list_tail = prev_event;
-		}
-
-	/*
-	 * If there was only one event in the list, we're already
-	 * done, just as if there were events before and efter the
-	 * deleted event
-	 */
+	if(sq && event)
+		squeue_remove(sq, event->sq_event);
 	}
 
 
@@ -957,29 +895,15 @@ int event_execution_loop(void) {
 	time(&last_time);
 
 	/* initialize fake "sleep" event */
+	memset(&sleep_event, 0, sizeof(sleep_event));
 	sleep_event.event_type = EVENT_SLEEP;
 	sleep_event.run_time = last_time;
-	sleep_event.recurring = FALSE;
-	sleep_event.event_interval = 0L;
-	sleep_event.compensate_for_time_change = FALSE;
-	sleep_event.timing_func = NULL;
-	sleep_event.event_data = NULL;
-	sleep_event.event_args = NULL;
-	sleep_event.event_options = 0;
-	sleep_event.next = NULL;
-	sleep_event.prev = NULL;
 
 	while(1) {
 
 		/* see if we should exit or restart (a signal was encountered) */
 		if(sigshutdown == TRUE || sigrestart == TRUE)
 			break;
-
-		/* if we don't have any events to handle, exit */
-		if(event_list_high == NULL && event_list_low == NULL) {
-			log_debug_info(DEBUGL_EVENTS, 0, "There aren't any events that need to be handled! Exiting...\n");
-			break;
-			}
 
 		/* get the current time */
 		time(&current_time);
@@ -995,16 +919,74 @@ int event_execution_loop(void) {
 		/* keep track of the last time */
 		last_time = current_time;
 
+		/* super-priority (hardcoded) events come first */
+		/* check for external commands if we're supposed to check as often as possible */
+		if(command_check_interval == -1)
+			check_for_external_commands();
+
+		/* update status information occassionally - NagVis watches the NDOUtils DB to see if Nagios is alive */
+		if((unsigned long)(current_time - last_status_update) > 5) {
+			last_status_update = current_time;
+			update_program_status(FALSE);
+			}
+
+		/* get next scheduled event */
+		temp_event = (timed_event *)squeue_peek(nagios_squeue);
+
+		/* if we don't have any events to handle, exit */
+		if(!temp_event) {
+			log_debug_info(DEBUGL_EVENTS, 0, "There aren't any events that need to be handled! Exiting...\n");
+			break;
+			}
+
 		log_debug_info(DEBUGL_EVENTS, 1, "** Event Check Loop\n");
-		if(event_list_high != NULL)
-			log_debug_info(DEBUGL_EVENTS, 1, "Next High Priority Event Time: %s", ctime(&event_list_high->run_time));
-		else
-			log_debug_info(DEBUGL_EVENTS, 1, "No high priority events are scheduled...\n");
-		if(event_list_low != NULL)
-			log_debug_info(DEBUGL_EVENTS, 1, "Next Low Priority Event Time:  %s", ctime(&event_list_low->run_time));
-		else
-			log_debug_info(DEBUGL_EVENTS, 1, "No low priority events are scheduled...\n");
-		log_debug_info(DEBUGL_EVENTS, 1, "Current/Max Service Checks: %d/%d\n", currently_running_service_checks, max_parallel_service_checks);
+		log_debug_info(DEBUGL_EVENTS, 1, "Next Event Time: %s", ctime(&temp_event->run_time));
+		log_debug_info(DEBUGL_EVENTS, 1, "Current/Max Service Checks: %d/%d (%.3lf%% saturation)\n",
+		               currently_running_service_checks, max_parallel_service_checks,
+					   ((float)currently_running_service_checks / (float)max_parallel_service_checks) * 100);
+
+
+		/* we don't have anything to do at this moment in time... */
+		if(current_time < temp_event->run_time) {
+
+			log_debug_info(DEBUGL_EVENTS, 2, "No events to execute at the moment.  Idling for a bit...\n");
+
+			/* set time to sleep so we don't hog the CPU... */
+#ifdef USE_NANOSLEEP
+			delay.tv_sec = (time_t)sleep_time;
+			delay.tv_nsec = (long)((sleep_time - (double)delay.tv_sec) * 1000000000);
+#else
+			delay.tv_sec = (time_t)sleep_time;
+			if(delay.tv_sec == 0L)
+				delay.tv_sec = 1;
+			delay.tv_nsec = 0L;
+#endif
+
+#ifdef USE_EVENT_BROKER
+			/* populate fake "sleep" event */
+			sleep_event.run_time = current_time;
+			sleep_event.event_data = (void *)&delay;
+
+			/* send event data to broker */
+			broker_timed_event(NEBTYPE_TIMEDEVENT_SLEEP, NEBFLAG_NONE, NEBATTR_NONE, &sleep_event, NULL);
+#endif
+
+			/* wait a while so we don't hog the CPU... */
+#ifdef USE_NANOSLEEP
+			nanosleep(&delay, NULL);
+#else
+			sleep((unsigned int)delay.tv_sec);
+#endif
+			/* and then get on with things again */
+			continue;
+			}
+
+		/*
+		 * we must remove the entry we've peeked, or
+		 * we'll keep getting the same one over and over.
+		 * This also maintains sync with broker modules.
+		 */
+		remove_event(nagios_squeue, temp_event);
 
 		/* get rid of terminated child processes (zombies) */
 		if(child_processes_fork_twice == FALSE) {
@@ -1012,19 +994,14 @@ int event_execution_loop(void) {
 			}
 
 		/* handle high priority events */
-		if(event_list_high != NULL && (current_time >= event_list_high->run_time)) {
-
-			/* remove the first event from the timing loop */
-			temp_event = event_list_high;
-			event_list_high = event_list_high->next;
-			event_list_high->prev = NULL;
+		if(temp_event->priority) {
 
 			/* handle the event */
 			handle_timed_event(temp_event);
 
 			/* reschedule the event if necessary */
 			if(temp_event->recurring == TRUE)
-				reschedule_event(temp_event, &event_list_high, &event_list_high_tail);
+				reschedule_event(nagios_squeue, temp_event);
 
 			/* else free memory associated with the event */
 			else
@@ -1032,16 +1009,16 @@ int event_execution_loop(void) {
 			}
 
 		/* handle low priority events */
-		else if(event_list_low != NULL && (current_time >= event_list_low->run_time)) {
+		else {
 
 			/* default action is to execute the event */
 			run_event = TRUE;
 			nudge_seconds = 0;
 
 			/* run a few checks before executing a service check... */
-			if(event_list_low->event_type == EVENT_SERVICE_CHECK) {
+			if(temp_event->event_type == EVENT_SERVICE_CHECK) {
 
-				temp_service = (service *)event_list_low->event_data;
+				temp_service = (service *)temp_event->event_data;
 
 				/* don't run a service check if we're already maxed out on the number of parallel service checks...  */
 				if(max_parallel_service_checks != 0 && (currently_running_service_checks >= max_parallel_service_checks)) {
@@ -1071,11 +1048,7 @@ int event_execution_loop(void) {
 
 					/* remove the service check from the event queue and reschedule it for a later time */
 					/* 12/20/05 since event was not executed, it needs to be remove()'ed to maintain sync with event broker modules */
-					temp_event = event_list_low;
-					remove_event(temp_event, &event_list_low, &event_list_low_tail);
-					/*
-					event_list_low=event_list_low->next;
-					*/
+					remove_event(nagios_squeue, temp_event);
 					if(nudge_seconds) {
 						/* We nudge the next check time when it is due to too many concurrent service checks */
 						temp_service->next_check = (time_t)(temp_service->next_check + nudge_seconds);
@@ -1089,7 +1062,7 @@ int event_execution_loop(void) {
 						}
 
 					temp_event->run_time = temp_service->next_check;
-					reschedule_event(temp_event, &event_list_low, &event_list_low_tail);
+					reschedule_event(nagios_squeue, temp_event);
 					update_service_status(temp_service, FALSE);
 
 					run_event = FALSE;
@@ -1097,12 +1070,12 @@ int event_execution_loop(void) {
 				}
 
 			/* run a few checks before executing a host check... */
-			else if(event_list_low->event_type == EVENT_HOST_CHECK) {
+			else if(temp_event->event_type == EVENT_HOST_CHECK) {
 
 				/* default action is to execute the event */
 				run_event = TRUE;
 
-				temp_host = (host *)event_list_low->event_data;
+				temp_host = (host *)temp_event->event_data;
 
 				/* don't run a host check if active checks are disabled */
 				if(execute_host_checks == FALSE) {
@@ -1121,18 +1094,14 @@ int event_execution_loop(void) {
 
 					/* remove the host check from the event queue and reschedule it for a later time */
 					/* 12/20/05 since event was not executed, it needs to be remove()'ed to maintain sync with event broker modules */
-					temp_event = event_list_low;
-					remove_event(temp_event, &event_list_low, &event_list_low_tail);
-					/*
-					event_list_low=event_list_low->next;
-					*/
+					remove_event(nagios_squeue, temp_event);
 					if(temp_host->state_type == SOFT_STATE && temp_host->current_state != STATE_OK)
 						temp_host->next_check = (time_t)(temp_host->next_check + (temp_host->retry_interval * interval_length));
 					else
 						temp_host->next_check = (time_t)(temp_host->next_check + (temp_host->check_interval * interval_length));
 
 					temp_event->run_time = temp_host->next_check;
-					reschedule_event(temp_event, &event_list_low, &event_list_low_tail);
+					reschedule_event(nagios_squeue, temp_event);
 					update_host_status(temp_host, FALSE);
 
 					run_event = FALSE;
@@ -1142,70 +1111,19 @@ int event_execution_loop(void) {
 			/* run the event */
 			if(run_event == TRUE) {
 
-				/* remove the first event from the timing loop */
-				temp_event = event_list_low;
-				event_list_low = event_list_low->next;
-				/* we may have just removed the only item from the list */
-				if(event_list_low != NULL)
-					event_list_low->prev = NULL;
-
 				log_debug_info(DEBUGL_EVENTS, 1, "Running event...\n");
 
-#				/* handle the event */
+				/* handle the event */
 				handle_timed_event(temp_event);
 
 				/* reschedule the event if necessary */
 				if(temp_event->recurring == TRUE)
-					reschedule_event(temp_event, &event_list_low, &event_list_low_tail);
+					reschedule_event(nagios_squeue, temp_event);
 
 				/* else free memory associated with the event */
 				else
 					my_free(temp_event);
 				}
-
-			}
-
-		/* we don't have anything to do at this moment in time... */
-		else if((event_list_high == NULL || (current_time < event_list_high->run_time)) && (event_list_low == NULL || (current_time < event_list_low->run_time))) {
-
-			log_debug_info(DEBUGL_EVENTS, 2, "No events to execute at the moment.  Idling for a bit...\n");
-
-			/* check for external commands if we're supposed to check as often as possible */
-			if(command_check_interval == -1)
-				check_for_external_commands();
-
-			/* set time to sleep so we don't hog the CPU... */
-#ifdef USE_NANOSLEEP
-			delay.tv_sec = (time_t)sleep_time;
-			delay.tv_nsec = (long)((sleep_time - (double)delay.tv_sec) * 1000000000);
-#else
-			delay.tv_sec = (time_t)sleep_time;
-			if(delay.tv_sec == 0L)
-				delay.tv_sec = 1;
-			delay.tv_nsec = 0L;
-#endif
-
-#ifdef USE_EVENT_BROKER
-			/* populate fake "sleep" event */
-			sleep_event.run_time = current_time;
-			sleep_event.event_data = (void *)&delay;
-
-			/* send event data to broker */
-			broker_timed_event(NEBTYPE_TIMEDEVENT_SLEEP, NEBFLAG_NONE, NEBATTR_NONE, &sleep_event, NULL);
-#endif
-
-			/* wait a while so we don't hog the CPU... */
-#ifdef USE_NANOSLEEP
-			nanosleep(&delay, NULL);
-#else
-			sleep((unsigned int)delay.tv_sec);
-#endif
-			}
-
-		/* update status information occassionally - NagVis watches the NDOUtils DB to see if Nagios is alive */
-		if((unsigned long)(current_time - last_status_update) > 5) {
-			last_status_update = current_time;
-			update_program_status(FALSE);
 			}
 		}
 
@@ -1423,222 +1341,67 @@ int handle_timed_event(timed_event *event) {
 
 
 
-/* adjusts scheduling of host and service checks */
+/*
+ * adjusts scheduling of host and service checks
+ * @TODO: Replace the earlier O(n lg n) behaviour of this algorithm
+ * and instead add a (small) random component to each new scheduled
+ * check. It will work better and in O(1) time.
+ */
 void adjust_check_scheduling(void) {
-	timed_event *temp_event = NULL;
-	service *temp_service = NULL;
-	host *temp_host = NULL;
-	double projected_host_check_overhead = 0.1;
-	double projected_service_check_overhead = 0.1;
-	time_t current_time = 0L;
-	time_t first_window_time = 0L;
-	time_t last_window_time = 0L;
-	time_t last_check_time = 0L;
-	time_t new_run_time = 0L;
-	int total_checks = 0;
-	int current_check = 0;
-	double inter_check_delay = 0.0;
-	double current_icd_offset = 0.0;
-	double total_check_exec_time = 0.0;
-	double last_check_exec_time = 0.0;
-	int adjust_scheduling = FALSE;
-	double exec_time_factor = 0.0;
-	double current_exec_time = 0.0;
-	double current_exec_time_offset = 0.0;
-	double new_run_time_offset = 0.0;
-
-
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "adjust_check_scheduling() start\n");
-
-	/* TODO:
-	   - Track host check overhead on a per-host basis
-	   - Figure out how to calculate service check overhead
-	*/
-
-	/* determine our adjustment window */
-	time(&current_time);
-	first_window_time = current_time;
-	last_window_time = first_window_time + auto_rescheduling_window;
-
-	/* get current scheduling data */
-	for(temp_event = event_list_low; temp_event != NULL; temp_event = temp_event->next) {
-
-		/* skip events outside of our current window */
-		if(temp_event->run_time <= first_window_time)
-			continue;
-		if(temp_event->run_time > last_window_time)
-			break;
-
-		if(temp_event->event_type == EVENT_HOST_CHECK) {
-
-			if((temp_host = (host *)temp_event->event_data) == NULL)
-				continue;
-
-			/* ignore forced checks */
-			if(temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)
-				continue;
-
-			/* does the last check "bump" into this one? */
-			if((unsigned long)(last_check_time + last_check_exec_time) > temp_event->run_time)
-				adjust_scheduling = TRUE;
-
-			last_check_time = temp_event->run_time;
-
-			/* calculate time needed to perform check */
-			/* NOTE: host check execution time is not taken into account, as scheduled host checks are run in parallel */
-			last_check_exec_time = projected_host_check_overhead;
-			total_check_exec_time += last_check_exec_time;
-			}
-
-		else if(temp_event->event_type == EVENT_SERVICE_CHECK) {
-
-			if((temp_service = (service *)temp_event->event_data) == NULL)
-				continue;
-
-			/* ignore forced checks */
-			if(temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)
-				continue;
-
-			/* does the last check "bump" into this one? */
-			if((unsigned long)(last_check_time + last_check_exec_time) > temp_event->run_time)
-				adjust_scheduling = TRUE;
-
-			last_check_time = temp_event->run_time;
-
-			/* calculate time needed to perform check */
-			/* NOTE: service check execution time is not taken into account, as service checks are run in parallel */
-			last_check_exec_time = projected_service_check_overhead;
-			total_check_exec_time += last_check_exec_time;
-			}
-
-		else
-			continue;
-
-		total_checks++;
-		}
-
-
-	/* nothing to do... */
-	if(total_checks == 0 || adjust_scheduling == FALSE) {
-
-		/*
-		printf("\n\n");
-		printf("NOTHING TO DO!\n");
-		printf("# CHECKS:    %d\n",total_checks);
-		printf("WINDOW TIME: %d\n",auto_rescheduling_window);
-		printf("EXEC TIME:   %.3f\n",total_check_exec_time);
-		*/
-
-		return;
-		}
-
-	if((unsigned long)total_check_exec_time > auto_rescheduling_window) {
-		inter_check_delay = 0.0;
-		exec_time_factor = (double)((double)auto_rescheduling_window / total_check_exec_time);
-		}
-	else {
-		inter_check_delay = (double)((((double)auto_rescheduling_window) - total_check_exec_time) / (double)(total_checks * 1.0));
-		exec_time_factor = 1.0;
-		}
-
-	/*
-	printf("\n\n");
-	printf("TOTAL CHECKS: %d\n",total_checks);
-	printf("WINDOW TIME:  %d\n",auto_rescheduling_window);
-	printf("EXEC TIME:    %.3f\n",total_check_exec_time);
-	printf("ICD:          %.3f\n",inter_check_delay);
-	printf("EXEC FACTOR:  %.3f\n",exec_time_factor);
-	*/
-
-	/* adjust check scheduling */
-	current_icd_offset = (inter_check_delay / 2.0);
-	for(temp_event = event_list_low; temp_event != NULL; temp_event = temp_event->next) {
-
-		/* skip events outside of our current window */
-		if(temp_event->run_time <= first_window_time)
-			continue;
-		if(temp_event->run_time > last_window_time)
-			break;
-
-		if(temp_event->event_type == EVENT_HOST_CHECK) {
-
-			if((temp_host = (host *)temp_event->event_data) == NULL)
-				continue;
-
-			/* ignore forced checks */
-			if(temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)
-				continue;
-
-			current_exec_time = ((temp_host->execution_time + projected_host_check_overhead) * exec_time_factor);
-			}
-
-		else if(temp_event->event_type == EVENT_SERVICE_CHECK) {
-
-			if((temp_service = (service *)temp_event->event_data) == NULL)
-				continue;
-
-			/* ignore forced checks */
-			if(temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)
-				continue;
-
-			/* NOTE: service check execution time is not taken into account, as service checks are run in parallel */
-			current_exec_time = (projected_service_check_overhead * exec_time_factor);
-			}
-
-		else
-			continue;
-
-		current_check++;
-		new_run_time_offset = current_exec_time_offset + current_icd_offset;
-		new_run_time = (time_t)(first_window_time + (unsigned long)new_run_time_offset);
-
-		/*
-		printf("  CURRENT CHECK #:      %d\n",current_check);
-		printf("  CURRENT ICD OFFSET:   %.3f\n",current_icd_offset);
-		printf("  CURRENT EXEC TIME:    %.3f\n",current_exec_time);
-		printf("  CURRENT EXEC OFFSET:  %.3f\n",current_exec_time_offset);
-		printf("  NEW RUN TIME:         %lu\n",new_run_time);
-		*/
-
-		if(temp_event->event_type == EVENT_HOST_CHECK) {
-			temp_event->run_time = new_run_time;
-			temp_host->next_check = new_run_time;
-			update_host_status(temp_host, FALSE);
-			}
-		else {
-			temp_event->run_time = new_run_time;
-			temp_service->next_check = new_run_time;
-			update_service_status(temp_service, FALSE);
-			}
-
-		current_icd_offset += inter_check_delay;
-		current_exec_time_offset += current_exec_time;
-		}
-
-	/* resort event list (some events may be out of order at this point) */
-	resort_event_list(&event_list_low, &event_list_low_tail);
-
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "adjust_check_scheduling() end\n");
-
 	return;
 	}
 
+static void adjust_squeue_for_time_change(squeue_t **q, int delta) {
+	timed_event *event;
+	squeue_t *sq_new;
 
+	/*
+	 * this is pretty inefficient in terms of free() + malloc(),
+	 * but it should be pretty rare that we have to adjust times
+	 * so we go with the well-tested codepath.
+	 */
+	sq_new = squeue_create(squeue_size(*q));
+	while ((event = squeue_pop(*q))) {
+		if (event->compensate_for_time_change == TRUE) {
+			if (event->timing_func) {
+				time_t (*timingfunc)(void);
+				timingfunc = event->timing_func;
+				event->run_time = timingfunc();
+				}
+			else {
+				event->run_time += delta;
+				}
+			}
+		if(event->priority) {
+			event->sq_event = squeue_add_usec(sq_new, event->run_time, event->priority - 1, event);
+			}
+		else {
+			event->sq_event = squeue_add(sq_new, event->run_time, event);
+			}
+		}
+	squeue_destroy(*q, 0);
+	*q = sq_new;
+	}
 
 /* attempts to compensate for a change in the system time */
 void compensate_for_system_time_change(unsigned long last_time, unsigned long current_time) {
 	unsigned long time_difference = 0L;
-	timed_event *temp_event = NULL;
 	service *temp_service = NULL;
 	host *temp_host = NULL;
 	int days = 0;
 	int hours = 0;
 	int minutes = 0;
 	int seconds = 0;
-	time_t (*timingfunc)(void);
+	int delta = 0;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "compensate_for_system_time_change() start\n");
+
+	/*
+	 * if current_time < last_time, delta will be negative so we can
+	 * still use addition to all effected timestamps
+	 */
+	delta = current_time - last_time;
 
 	/* we moved back in time... */
 	if(last_time > current_time) {
@@ -1655,49 +1418,11 @@ void compensate_for_system_time_change(unsigned long last_time, unsigned long cu
 		}
 
 	/* log the time change */
-	logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_WARNING, TRUE, "Warning: A system time change of %dd %dh %dm %ds (%s in time) has been detected.  Compensating...\n", days, hours, minutes, seconds, (last_time > current_time) ? "backwards" : "forwards");
+	logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_WARNING, TRUE, "Warning: A system time change of %d seconds (%dd %dh %dm %ds %s in time) has been detected.  Compensating...\n",
+	      delta, days, hours, minutes, seconds,
+	      (last_time > current_time) ? "backwards" : "forwards");
 
-	/* adjust the next run time for all high priority timed events */
-	for(temp_event = event_list_high; temp_event != NULL; temp_event = temp_event->next) {
-
-		/* skip special events that occur at specific times... */
-		if(temp_event->compensate_for_time_change == FALSE)
-			continue;
-
-		/* use custom timing function */
-		if(temp_event->timing_func != NULL) {
-			timingfunc = temp_event->timing_func;
-			temp_event->run_time = (*timingfunc)();
-			}
-
-		/* else use standard adjustment */
-		else
-			adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_event->run_time);
-		}
-
-	/* resort event list (some events may be out of order at this point) */
-	resort_event_list(&event_list_high, &event_list_high_tail);
-
-	/* adjust the next run time for all low priority timed events */
-	for(temp_event = event_list_low; temp_event != NULL; temp_event = temp_event->next) {
-
-		/* skip special events that occur at specific times... */
-		if(temp_event->compensate_for_time_change == FALSE)
-			continue;
-
-		/* use custom timing function */
-		if(temp_event->timing_func != NULL) {
-			timingfunc = temp_event->timing_func;
-			temp_event->run_time = (*timingfunc)();
-			}
-
-		/* else use standard adjustment */
-		else
-			adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_event->run_time);
-		}
-
-	/* resort event list (some events may be out of order at this point) */
-	resort_event_list(&event_list_low, &event_list_low_tail);
+	adjust_squeue_for_time_change(&nagios_squeue, delta);
 
 	/* adjust service timestamps */
 	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
@@ -1739,33 +1464,6 @@ void compensate_for_system_time_change(unsigned long last_time, unsigned long cu
 
 	/* update the status data */
 	update_program_status(FALSE);
-
-	return;
-	}
-
-
-
-/* resorts an event list by event execution time - needed when compensating for system time changes */
-void resort_event_list(timed_event **event_list, timed_event **event_list_tail) {
-	timed_event *temp_event_list = NULL;
-	timed_event *temp_event = NULL;
-	timed_event *next_event = NULL;
-
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "resort_event_list()\n");
-
-	/* move current event list to temp list */
-	temp_event_list = *event_list;
-	*event_list = NULL;
-
-	/* move all events to the new event list */
-	for(temp_event = temp_event_list; temp_event != NULL; temp_event = next_event) {
-		next_event = temp_event->next;
-
-		/* add the event to the newly created event list so it will be resorted */
-		temp_event->next = NULL;
-		temp_event->prev = NULL;
-		add_event(temp_event, event_list, event_list_tail);
-		}
 
 	return;
 	}

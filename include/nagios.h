@@ -34,6 +34,7 @@
 #include "locations.h"
 #include "objects.h"
 #include "macros.h"
+#include "../lib/libnagios.h"
 
 	/************* MISC LENGTH/SIZE DEFINITIONS ***********/
 
@@ -285,8 +286,8 @@ typedef struct timed_event_struct {
 	void *event_data;
 	void *event_args;
 	int event_options;
-	struct timed_event_struct *next;
-	struct timed_event_struct *prev;
+	unsigned int priority; /* 0 is auto, 1 is highest. n+1 < n */
+	struct squeue_event *sq_event;
 	} timed_event;
 
 
@@ -426,10 +427,11 @@ void display_scheduling_info(void);				/* displays service check scheduling info
 
 
 /**** Event Queue Functions ****/
-int schedule_new_event(int, int, time_t, int, unsigned long, void *, int, void *, void *, int);	/* schedules a new timed event */
-void reschedule_event(timed_event *, timed_event **, timed_event **);   		/* reschedules an event */
-void add_event(timed_event *, timed_event **, timed_event **);     		/* adds an event to the execution queue */
-void remove_event(timed_event *, timed_event **, timed_event **);     		/* remove an event from the execution queue */
+int init_event_queue(void); /* creates the queue nagios_squeue */
+timed_event *schedule_new_event(int, int, time_t, int, unsigned long, void *, int, void *, void *, int);	/* schedules a new timed event */
+void reschedule_event(squeue_t *sq, timed_event *event);   		/* reschedules an event */
+void add_event(squeue_t *sq, timed_event *event);     		/* adds an event to the execution queue */
+void remove_event(squeue_t *sq, timed_event *event);     		/* remove an event from the execution queue */
 int event_execution_loop(void);                      		/* main monitoring/event handler loop */
 int handle_timed_event(timed_event *);		     		/* top level handler for timed events */
 void adjust_check_scheduling(void);		        	/* auto-adjusts scheduling of host and service checks */

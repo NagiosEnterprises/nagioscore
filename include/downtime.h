@@ -29,6 +29,9 @@
 #include "compat.h"
 #include "common.h"
 #include "objects.h"
+#ifdef NSCORE
+#include "nagios.h"
+#endif
 
 NAGIOS_BEGIN_DECL
 
@@ -53,6 +56,9 @@ typedef struct scheduled_downtime_struct {
 	int incremented_pending_downtime;
 #endif
 	struct scheduled_downtime_struct *next;
+#ifdef NSCORE
+	timed_event *start_event, *stop_event;
+#endif
 	} scheduled_downtime;
 
 

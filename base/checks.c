@@ -102,8 +102,7 @@ extern time_t   last_program_stop;
 extern time_t   program_start;
 extern time_t   event_start;
 
-extern timed_event       *event_list_low;
-extern timed_event       *event_list_low_tail;
+extern squeue_t *nagios_squeue;
 
 extern host              *host_list;
 extern service           *service_list;
@@ -1734,7 +1733,7 @@ void schedule_service_check(service *svc, time_t check_time, int options) {
 
 		/* make sure we kill off the old event */
 		if(temp_event) {
-			remove_event(temp_event, &event_list_low, &event_list_low_tail);
+			remove_event(nagios_squeue, temp_event);
 			my_free(temp_event);
 			}
 		log_debug_info(DEBUGL_CHECKS, 2, "Scheduling new service check event.\n");
@@ -1756,7 +1755,7 @@ void schedule_service_check(service *svc, time_t check_time, int options) {
 		new_event->event_interval = 0L;
 		new_event->timing_func = NULL;
 		new_event->compensate_for_time_change = TRUE;
-		reschedule_event(new_event, &event_list_low, &event_list_low_tail);
+		reschedule_event(nagios_squeue, new_event);
 		}
 
 	else {
@@ -2224,7 +2223,7 @@ void schedule_host_check(host *hst, time_t check_time, int options) {
 			}
 
 		if (temp_event) {
-			remove_event(temp_event, &event_list_low, &event_list_low_tail);
+			remove_event(nagios_squeue, temp_event);
 			my_free(temp_event);
 			}
 
@@ -2245,7 +2244,7 @@ void schedule_host_check(host *hst, time_t check_time, int options) {
 		new_event->event_interval = 0L;
 		new_event->timing_func = NULL;
 		new_event->compensate_for_time_change = TRUE;
-		reschedule_event(new_event, &event_list_low, &event_list_low_tail);
+		reschedule_event(nagios_squeue, new_event);
 		}
 
 	else {

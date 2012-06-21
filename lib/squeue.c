@@ -20,12 +20,12 @@
 #include "squeue.h"
 #include "pqueue.h"
 
-typedef struct squeue_event {
+struct squeue_event {
 	unsigned int pos;
 	pqueue_pri_t pri;
 	struct timeval when;
 	void *data;
-} squeue_event;
+};
 
 
 static pqueue_pri_t evt_compute_pri(struct timeval *tv)

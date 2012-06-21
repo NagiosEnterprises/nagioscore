@@ -152,9 +152,10 @@ int neb_free_module_list(void) {
 /* load all modules */
 int neb_load_all_modules(void) {
 	nebmodule *temp_module = NULL;
+	int result = OK;
 
 	for(temp_module = neb_module_list; temp_module; temp_module = temp_module->next) {
-		neb_load_module(temp_module);
+		result = neb_load_module(temp_module);
 		}
 
 	return OK;

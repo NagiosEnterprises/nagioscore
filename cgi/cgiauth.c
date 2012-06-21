@@ -22,6 +22,8 @@
  *
  *****************************************************************************/
 
+#define NSCGI
+
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/objects.h"

@@ -1,0 +1,30 @@
+CC = gcc
+COV_CFLAGS = -O0 -ftest-coverage -fprofile-arcs -pg
+LDFLAGS = $(COV_CFLAGS)
+CFLAGS = -Wall @CFLAGS@ @DEFS@
+#PROFILE_CFLAGS = -pg -ftest-coverage
+ALL_CFLAGS = $(CFLAGS) $(PROFILE_CFLAGS)
+LIBNAME = libnagios.a
+
+all: $(LIBNAME)
+
+SNPRINTF_O=@SNPRINTF_O@
+SRC_C := squeue.c pqueue.c
+SRC_O := $(patsubst %.c,%.o,$(SRC_C)) $(SNPRINTF_O)
+
+%.o: %.c %.h Makefile
+	$(CC) $(ALL_CFLAGS) -c $< -o $@
+
+$(LIBNAME): $(SRC_O)
+	$(AR) cr $@ $^
+
+wproc: wproc.o $(LIBNAME)
+	$(CC) $(ALL_CFLAGS) $(ALL_LDFLAGS) $^ -o $@
+
+distclean: clean
+	rm -f Makefile
+
+clean:
+	rm -f core.* *.o *~ wproc *.gcov *.gcda *.gcno gmon.out *.a
+
+.PHONY: clean coverage

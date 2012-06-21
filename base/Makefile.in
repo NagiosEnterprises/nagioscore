@@ -9,6 +9,7 @@
 SRC_COMMON=../common
 SRC_INCLUDE=../include
 SRC_XDATA=../xdata
+SRC_LIB=../lib
 
 CC=@CC@
 CFLAGS=-Wall @CFLAGS@ @DEFS@ -DNSCORE
@@ -178,8 +179,11 @@ $(SRC_COMMON)/shared.o: $(SRC_COMMON)/shared.c
 
 ########## NAGIOS ##########
 
-nagios: nagios.c $(OBJS) $(OBJDEPS) $(SRC_INCLUDE)/nagios.h $(SRC_INCLUDE)/locations.h
-	$(CC) $(CFLAGS) -o $@ nagios.c $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(PERLLIBS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS)
+libnagios:
+	$(MAKE) -C $(SRC_LIB)
+
+nagios: nagios.c $(OBJS) $(OBJDEPS) $(SRC_INCLUDE)/nagios.h $(SRC_INCLUDE)/locations.h libnagios
+	$(CC) $(CFLAGS) -o $@ nagios.c $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(PERLLIBS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS) $(SRC_LIB)/libnagios.a
 
 nagiostats: nagiostats.c $(SRC_INCLUDE)/locations.h
 	$(CC) $(CFLAGS) -o $@ nagiostats.c $(LDFLAGS) $(MATHLIBS) $(LIBS)
@@ -211,3 +215,5 @@ install-basic:
 strip-post-install:
 	$(STRIP) $(DESTDIR)$(BINDIR)/@nagios_name@
 	$(STRIP) $(DESTDIR)$(BINDIR)/@nagiostats_name@
+
+.PHONY: libnagios

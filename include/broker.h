@@ -25,7 +25,6 @@
 #ifndef _BROKER_H
 #define _BROKER_H
 
-#include "config.h"
 #include "nagios.h"
 
 /*************** EVENT BROKER OPTIONS *****************/

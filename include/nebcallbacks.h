@@ -26,7 +26,6 @@
 #define _NEBCALLBACKS_H
 
 #include "compat.h"
-#include "config.h"
 #include "nebmodules.h"
 
 

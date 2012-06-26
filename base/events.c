@@ -1046,9 +1046,6 @@ int event_execution_loop(void) {
 				/* reschedule the check if we can't run it now */
 				if(run_event == FALSE) {
 
-					/* remove the service check from the event queue and reschedule it for a later time */
-					/* 12/20/05 since event was not executed, it needs to be remove()'ed to maintain sync with event broker modules */
-					remove_event(nagios_squeue, temp_event);
 					if(nudge_seconds) {
 						/* We nudge the next check time when it is due to too many concurrent service checks */
 						temp_service->next_check = (time_t)(temp_service->next_check + nudge_seconds);
@@ -1091,10 +1088,6 @@ int event_execution_loop(void) {
 
 				/* reschedule the host check if we can't run it right now */
 				if(run_event == FALSE) {
-
-					/* remove the host check from the event queue and reschedule it for a later time */
-					/* 12/20/05 since event was not executed, it needs to be remove()'ed to maintain sync with event broker modules */
-					remove_event(nagios_squeue, temp_event);
 					if(temp_host->state_type == SOFT_STATE && temp_host->current_state != STATE_OK)
 						temp_host->next_check = (time_t)(temp_host->next_check + (temp_host->retry_interval * interval_length));
 					else

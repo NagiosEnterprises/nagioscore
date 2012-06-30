@@ -207,23 +207,3 @@ unsigned int squeue_size(squeue_t *q)
 		return 0;
 	return pqueue_size(q);
 }
-
-/*
- * This is only used to test the squeue implementation
- */
-static void squeue_foreach(squeue_t *q, int (*walker)(squeue_event *, void *), void *arg)
-{
-	squeue_t *dup;
-	void *e, *dup_d;
-
-	dup = squeue_create(q->size);
-	dup_d = dup->d;
-	memcpy(dup, q, sizeof(*q));
-	dup->d = dup_d;
-	memcpy(dup->d, q->d, (q->size * sizeof(void *)));
-
-	while ((e = pqueue_pop(dup))) {
-		walker(e, arg);
-	}
-	squeue_destroy(dup, 0);
-}

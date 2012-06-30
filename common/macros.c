@@ -22,8 +22,8 @@
  *
  *****************************************************************************/
 
-#include "../include/macros.h"
 #include "../include/config.h"
+#include "../include/macros.h"
 #include "../include/common.h"
 #include "../include/objects.h"
 #include "../include/statusdata.h"

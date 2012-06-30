@@ -9,8 +9,16 @@ LIBNAME = libnagios.a
 all: $(LIBNAME)
 
 SNPRINTF_O=@SNPRINTF_O@
-SRC_C := squeue.c pqueue.c
+TESTED_SRC_C := squeue.c
+SRC_C := $(TESTED_SRC_C) pqueue.c
 SRC_O := $(patsubst %.c,%.o,$(SRC_C)) $(SNPRINTF_O)
+TESTS := $(patsubst %.c,test-%,$(TESTED_SRC_C))
+
+test: $(TESTS)
+	@for t in $(TESTS); do echo $$t:; ./$$t; echo; done
+
+test-squeue: pqueue.o test-squeue.o
+	$(CC) $^ -o $@
 
 %.o: %.c %.h Makefile
 	$(CC) $(ALL_CFLAGS) -c $< -o $@

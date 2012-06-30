@@ -40,7 +40,6 @@
 
 char *main_config_file = NULL;
 char *status_file = NULL;
-char *nagiostats_file = NULL;
 char *mrtg_variables = NULL;
 char *mrtg_delimiter = "\n";
 
@@ -206,7 +205,6 @@ int read_config_file(void);
 int read_status_file(void);
 void strip(char *);
 void get_time_breakdown(unsigned long, int *, int *, int *, int *);
-int read_nagiostats_file(void);
 
 
 int main(int argc, char **argv) {
@@ -233,7 +231,6 @@ int main(int argc, char **argv) {
 
 	/* defaults */
 	main_config_file = strdup(DEFAULT_CONFIG_FILE);
-	status_file = strdup(DEFAULT_STATUS_FILE);
 
 	/* get all command line arguments */
 	while(1) {
@@ -265,7 +262,7 @@ int main(int argc, char **argv) {
 				main_config_file = strdup(optarg);
 				break;
 			case 's':
-				nagiostats_file = strdup(optarg);
+				status_file = strdup(optarg);
 				break;
 			case 'm':
 				mrtg_mode = TRUE;
@@ -280,7 +277,6 @@ int main(int argc, char **argv) {
 			default:
 				break;
 			}
-
 		}
 
 	if(mrtg_mode == FALSE) {
@@ -398,30 +394,21 @@ int main(int argc, char **argv) {
 		exit(ERROR);
 		}
 
-	/* read pre-processed stats file */
-	if(nagiostats_file) {
-		result = read_nagiostats_file();
-		if(result == ERROR && mrtg_mode == FALSE) {
-			printf("Error reading stats file '%s': %s\n", nagiostats_file, strerror(errno));
-			return ERROR;
-			}
-		}
-
-	/* else read the normal status file */
-	else {
+	/* if we got no -s option, we must read the main config file */
+	if (status_file == NULL) {
 		/* read main config file */
 		result = read_config_file();
 		if(result == ERROR && mrtg_mode == FALSE) {
 			printf("Error processing config file '%s'\n", main_config_file);
 			return ERROR;
 			}
+		}
 
-		/* read status file */
-		result = read_status_file();
-		if(result == ERROR && mrtg_mode == FALSE) {
-			printf("Error reading status file '%s': %s\n", status_file, strerror(errno));
-			return ERROR;
-			}
+	/* read status file */
+	result = read_status_file();
+	if(result == ERROR && mrtg_mode == FALSE) {
+		printf("Error reading status file '%s': %s\n", status_file, strerror(errno));
+		return ERROR;
 		}
 
 	/* display stats */
@@ -429,9 +416,6 @@ int main(int argc, char **argv) {
 		display_stats();
 	else
 		display_mrtg_values();
-
-	if(nagiostats_file);
-	free(nagiostats_file);
 
 	/* Opsera patch - return based on error, because mrtg_mode was always returning OK */
 	if(result == ERROR)
@@ -783,7 +767,7 @@ int display_stats(void) {
 
 	printf("CURRENT STATUS DATA\n");
 	printf("------------------------------------------------------\n");
-	printf("Status File:                            %s\n", (nagiostats_file != NULL) ? nagiostats_file : status_file);
+	printf("Status File:                            %s\n", status_file);
 	time_difference = (current_time - status_creation_date);
 	get_time_breakdown(time_difference, &days, &hours, &minutes, &seconds);
 	printf("Status File Age:                        %dd %dh %dm %ds\n", days, hours, minutes, seconds);
@@ -1372,342 +1356,6 @@ int read_status_file(void) {
 		}
 
 	fclose(fp);
-
-	return OK;
-	}
-
-
-int read_nagiostats_file(void) {
-	char temp_buffer[MAX_INPUT_BUFFER];
-	FILE *fp = NULL;
-	char *var = NULL;
-	char *val = NULL;
-	char *temp_ptr = NULL;
-	time_t current_time;
-
-	time(&current_time);
-
-	fp = fopen(nagiostats_file, "r");
-	if(fp == NULL)
-		return ERROR;
-
-	/* read all lines in the status file */
-	while(fgets(temp_buffer, sizeof(temp_buffer) - 1, fp)) {
-
-		/* skip comments */
-		if(temp_buffer[0] == '#')
-			continue;
-
-		strip(temp_buffer);
-
-		var = strtok(temp_buffer, "=");
-		val = strtok(NULL, "\n");
-		if(val == NULL)
-			continue;
-
-		/**** INFO ****/
-		if(!strcmp(var, "created"))
-			status_creation_date = strtoul(val, NULL, 10);
-		else if(!strcmp(var, "nagios_version"))
-			status_version = strdup(val);
-
-		/****  PROGRAM INFO ****/
-		else if(!strcmp(var, "program_start"))
-			program_start = strtoul(val, NULL, 10);
-		else if(!strcmp(var, "total_external_command_buffer_slots"))
-			total_external_command_buffer_slots = atoi(val);
-		else if(!strcmp(var, "used_external_command_buffer_slots"))
-			used_external_command_buffer_slots = atoi(val);
-		else if(!strcmp(var, "high_external_command_buffer_slots"))
-			high_external_command_buffer_slots = atoi(val);
-		else if(!strcmp(var, "nagios_pid"))
-			nagios_pid = strtoul(val, NULL, 10);
-		else if(!strcmp(var, "active_scheduled_host_check_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				active_scheduled_host_checks_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_scheduled_host_checks_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_scheduled_host_checks_last_15min = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "active_ondemand_host_check_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				active_ondemand_host_checks_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_ondemand_host_checks_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_ondemand_host_checks_last_15min = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "cached_host_check_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				active_cached_host_checks_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_cached_host_checks_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_cached_host_checks_last_15min = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "passive_host_check_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				passive_host_checks_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				passive_host_checks_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				passive_host_checks_last_15min = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "active_scheduled_service_check_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				active_scheduled_service_checks_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_scheduled_service_checks_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_scheduled_service_checks_last_15min = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "active_ondemand_service_check_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				active_ondemand_service_checks_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_ondemand_service_checks_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_ondemand_service_checks_last_15min = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "cached_service_check_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				active_cached_service_checks_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_cached_service_checks_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_cached_service_checks_last_15min = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "passive_service_check_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				passive_service_checks_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				passive_service_checks_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				passive_service_checks_last_15min = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "external_command_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				external_commands_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				external_commands_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				external_commands_last_15min = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "parallel_host_check_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				parallel_host_checks_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				parallel_host_checks_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				parallel_host_checks_last_15min = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "serial_host_check_stats")) {
-			if((temp_ptr = strtok(val, ",")))
-				serial_host_checks_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				serial_host_checks_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				serial_host_checks_last_15min = atoi(temp_ptr);
-			}
-
-		/***** HOST INFO *****/
-
-		else if(!strcmp(var, "total_hosts"))
-			status_host_entries = atoi(val);
-		else if(!strcmp(var, "hosts_checked"))
-			hosts_checked = atoi(val);
-		else if(!strcmp(var, "hosts_scheduled"))
-			hosts_scheduled = atoi(val);
-		else if(!strcmp(var, "hosts_flapping"))
-			hosts_flapping = atoi(val);
-		else if(!strcmp(var, "hosts_in_downtime"))
-			hosts_in_downtime = atoi(val);
-		else if(!strcmp(var, "hosts_up"))
-			hosts_up = atoi(val);
-		else if(!strcmp(var, "hosts_down"))
-			hosts_down = atoi(val);
-		else if(!strcmp(var, "hosts_unreachable"))
-			hosts_unreachable = atoi(val);
-		else if(!strcmp(var, "hosts_actively_checked"))
-			active_host_checks = atoi(val);
-		else if(!strcmp(var, "hosts_passively_checked"))
-			passive_host_checks = atoi(val);
-		else if(!strcmp(var, "total_host_state_change")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_host_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_host_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_host_state_change = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "active_host_latency")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_active_host_latency = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_active_host_latency = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_active_host_latency = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "active_host_execution_time")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_active_host_execution_time = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_active_host_execution_time = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_active_host_execution_time = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "active_host_state_change")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_active_host_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_active_host_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_active_host_state_change = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "active_hosts_last_x")) {
-			if((temp_ptr = strtok(val, ",")))
-				active_hosts_checked_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_hosts_checked_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_hosts_checked_last_15min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_hosts_checked_last_1hour = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "passive_host_latency")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_passive_host_latency = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_passive_host_latency = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_passive_host_latency = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "passive_host_state_change")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_passive_host_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_passive_host_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_passive_host_state_change = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "passive_hosts_last_x")) {
-			if((temp_ptr = strtok(val, ",")))
-				passive_hosts_checked_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				passive_hosts_checked_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				passive_hosts_checked_last_15min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				passive_hosts_checked_last_1hour = atoi(temp_ptr);
-			}
-
-
-		/***** SERVICE INFO *****/
-
-		else if(!strcmp(var, "total_services"))
-			status_service_entries = atoi(val);
-		else if(!strcmp(var, "services_checked"))
-			services_checked = atoi(val);
-		else if(!strcmp(var, "services_scheduled"))
-			services_scheduled = atoi(val);
-		else if(!strcmp(var, "services_flapping"))
-			services_flapping = atoi(val);
-		else if(!strcmp(var, "services_in_downtime"))
-			services_in_downtime = atoi(val);
-		else if(!strcmp(var, "services_ok"))
-			services_ok = atoi(val);
-		else if(!strcmp(var, "services_warning"))
-			services_warning = atoi(val);
-		else if(!strcmp(var, "services_critical"))
-			services_critical = atoi(val);
-		else if(!strcmp(var, "services_unknown"))
-			services_unknown = atoi(val);
-		else if(!strcmp(var, "services_actively_checked"))
-			active_service_checks = atoi(val);
-		else if(!strcmp(var, "services_passively_checked"))
-			passive_service_checks = atoi(val);
-		else if(!strcmp(var, "total_service_state_change")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_service_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_service_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_service_state_change = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "active_service_latency")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_active_service_latency = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_active_service_latency = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_active_service_latency = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "active_service_execution_time")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_active_service_execution_time = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_active_service_execution_time = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_active_service_execution_time = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "active_service_state_change")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_active_service_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_active_service_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_active_service_state_change = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "active_services_last_x")) {
-			if((temp_ptr = strtok(val, ",")))
-				active_services_checked_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_services_checked_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_services_checked_last_15min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				active_services_checked_last_1hour = atoi(temp_ptr);
-			}
-		else if(!strcmp(var, "passive_service_latency")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_passive_service_latency = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_passive_service_latency = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_passive_service_latency = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "passive_service_state_change")) {
-			if((temp_ptr = strtok(val, ",")))
-				min_passive_service_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				max_passive_service_state_change = strtod(temp_ptr, NULL);
-			if((temp_ptr = strtok(NULL, ",")))
-				average_passive_service_state_change = strtod(temp_ptr, NULL);
-			}
-		else if(!strcmp(var, "passive_services_last_x")) {
-			if((temp_ptr = strtok(val, ",")))
-				passive_services_checked_last_1min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				passive_services_checked_last_5min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				passive_services_checked_last_15min = atoi(temp_ptr);
-			if((temp_ptr = strtok(NULL, ",")))
-				passive_services_checked_last_1hour = atoi(temp_ptr);
-			}
-		}
-
-	fclose(fp);
-
-	/* 02-15-2008 exclude cached host checks from total (they were ondemand checks that never actually executed) */
-	active_host_checks_last_1min = active_scheduled_host_checks_last_1min + active_ondemand_host_checks_last_1min;
-	active_host_checks_last_5min = active_scheduled_host_checks_last_5min + active_ondemand_host_checks_last_5min;
-	active_host_checks_last_15min = active_scheduled_host_checks_last_15min + active_ondemand_host_checks_last_15min;
-
-	/* 02-15-2008 exclude cached service checks from total (they were ondemand checks that never actually executed) */
-	active_service_checks_last_1min = active_scheduled_service_checks_last_1min + active_ondemand_service_checks_last_1min;
-	active_service_checks_last_5min = active_scheduled_service_checks_last_5min + active_ondemand_service_checks_last_5min;
-	active_service_checks_last_15min = active_scheduled_service_checks_last_15min + active_ondemand_service_checks_last_15min;
 
 	return OK;
 	}

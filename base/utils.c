@@ -295,7 +295,6 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 	int status = 0;
 	int result = 0;
 	char buffer[MAX_INPUT_BUFFER] = "";
-	char *temp_buffer = NULL;
 	int fd[2];
 	FILE *fp = NULL;
 	int bytes_read = 0;
@@ -304,6 +303,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 	int dbuf_chunk = 1024;
 	int flags;
 #ifdef EMBEDDEDPERL
+	char *temp_buffer = NULL;
 	char fname[512] = "";
 	char *args[5] = {"", DO_CLEAN, "", "", NULL };
 	SV *plugin_hndlr_cr = NULL;
@@ -578,7 +578,6 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 
 		/* check for possibly missing scripts/binaries/etc */
 		if(result == 126 || result == 127) {
-			temp_buffer = "\163\157\151\147\141\156\040\145\144\151\163\156\151";
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Attempting to execute the command \"%s\" resulted in a return code of %d.  Make sure the script or binary you are trying to execute actually exists...\n", cmd, result);
 			}
 

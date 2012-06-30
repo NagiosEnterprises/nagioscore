@@ -34,7 +34,7 @@
 #include "locations.h"
 #include "objects.h"
 #include "macros.h"
-#include "../lib/libnagios.h"
+#include "lib/libnagios.h"
 
 	/************* MISC LENGTH/SIZE DEFINITIONS ***********/
 

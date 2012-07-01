@@ -32,7 +32,10 @@ wproc: wproc.o $(LIBNAME)
 distclean: clean
 	rm -f Makefile
 
-clean:
+clean: clean-test
 	rm -f core.* *.o *~ wproc *.gcov *.gcda *.gcno gmon.out *.a
 
-.PHONY: clean coverage
+clean-test:
+	rm -f $(TESTS)
+
+.PHONY: clean clean-test coverage

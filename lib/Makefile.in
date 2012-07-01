@@ -1,8 +1,8 @@
 CC = gcc
 COV_CFLAGS = -O0 -ftest-coverage -fprofile-arcs -pg
 LDFLAGS =
-CFLAGS = -Wall @CFLAGS@ @DEFS@
-ALL_CFLAGS = $(CFLAGS)
+CFLAGS ?= @CFLAGS@
+ALL_CFLAGS = -Wall $(CFLAGS) @DEFS@
 LIBNAME = libnagios.a
 
 all: $(LIBNAME)
@@ -17,7 +17,7 @@ test: $(TESTS)
 	@for t in $(TESTS); do echo $$t:; ./$$t; echo; done
 
 test-squeue: pqueue.o test-squeue.o
-	$(CC) $^ -o $@
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) $^ -o $@
 
 %.o: %.c %.h Makefile
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
@@ -28,13 +28,36 @@ $(LIBNAME): $(SRC_O)
 wproc: wproc.o $(LIBNAME)
 	$(CC) $(ALL_CFLAGS) $(ALL_LDFLAGS) $^ -o $@
 
+coverage:
+	@$(MAKE) -s --no-print-directory clean
+	@$(MAKE) --no-print-directory cov-build
+	@$(MAKE) --no-print-directory cov-report
+
+cov-build:
+	$(MAKE) CFLAGS='$(COV_CFLAGS)' LDFLAGS='$(COV_CFLAGS)' test
+
+cov-report:
+	@{ for f in $(TESTS) pqueue; do \
+		gcov -b -p $$f.c >/dev/null; \
+	done; }
+
+	@rm -f *.h.gcov test-*.c.gcov
+	@echo "--- untested functions:" | tee -a untested
+	@grep '^function .* called 0' *.c.gcov \
+	| sed -e 's/function \([^ ]*\) called 0.*/\1/' \
+	| sed -e 's/\.c\.gcov:/\.c:/' | tee -a untested
+
+
 distclean: clean
 	rm -f Makefile
 
-clean: clean-test
-	rm -f core.* *.o *~ wproc *.gcov *.gcda *.gcno gmon.out *.a
+clean: clean-test clean-coverage
+	rm -f core.* *.o *~ wproc *.a
 
-clean-test:
+clean-test: clean-coverage
 	rm -f $(TESTS)
 
-.PHONY: clean clean-test coverage
+clean-coverage:
+	rm -f untested *.gcov *.gcda *.gcno gmon.out
+
+.PHONY: clean clean-test clean-coverage coverage

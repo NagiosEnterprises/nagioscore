@@ -1,9 +1,8 @@
 CC = gcc
 COV_CFLAGS = -O0 -ftest-coverage -fprofile-arcs -pg
-LDFLAGS = $(COV_CFLAGS)
+LDFLAGS =
 CFLAGS = -Wall @CFLAGS@ @DEFS@
-#PROFILE_CFLAGS = -pg -ftest-coverage
-ALL_CFLAGS = $(CFLAGS) $(PROFILE_CFLAGS)
+ALL_CFLAGS = $(CFLAGS)
 LIBNAME = libnagios.a
 
 all: $(LIBNAME)

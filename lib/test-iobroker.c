@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
+#include "iocache.c"
 #include "iobroker.c"
 
 static int fail, pass;
@@ -159,8 +160,27 @@ int main(int argc, char **argv)
 {
 	int listen_fd, flags, sockopt = 1;
 	struct sockaddr_in sain;
+	int error;
+	const char *err_msg;
+
+	error = iobroker_get_max_fds(NULL);
+	if (error == IOBROKER_ENOSET)
+		pass++;
+	else
+		fail++;
+	err_msg = iobroker_strerror(error);
+	if (err_msg && !strcmp(err_msg, iobroker_errors[(~error) + 1].string))
+		pass++;
+	else
+		fail++;
 
 	iobs = iobroker_create();
+	error = iobroker_get_max_fds(iobs);
+	if (iobs && error >= 0)
+		pass++;
+	else
+		fail++;
+
 	listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	flags = fcntl(listen_fd, F_GETFD);
 	flags |= FD_CLOEXEC;
@@ -198,7 +218,7 @@ int main(int argc, char **argv)
 	}
 
 	if (pass) {
-		if (pass == (ARRAY_SIZE(msg) - 1) * NUM_PROCS) {
+		if (pass == 3 + (ARRAY_SIZE(msg) - 1) * NUM_PROCS) {
 			printf("PASS: All %d tests ran just fine\n", pass);
 		} else {
 			printf("PASS: %d tests passed, with connection problems\n", pass);

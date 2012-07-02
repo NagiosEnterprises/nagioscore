@@ -78,14 +78,14 @@ const char *iobroker_strerror(int error)
 {
 	if (error == IOBROKER_ELIB)
 		return strerror(errno);
-	error = ~error;
+	error = (~error) + 1;
 	if (error < 0) {
 		return iobroker_unknown_error;
 	}
 	if (error >= ARRAY_SIZE(iobroker_errors))
 		return strerror(error);
 
-	return iobroker_errors[~error].string;
+	return iobroker_errors[error].string;
 }
 
 void iobroker_print_set(int fd, iobroker_set *iobs)

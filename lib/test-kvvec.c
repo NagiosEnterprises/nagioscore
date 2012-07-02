@@ -78,6 +78,11 @@ int main(int argc, char **argv)
 	kvvec_foreach(kvv2, kvv, walker);
 	kvvb2 = kvvec2buf(kvv2, KVSEP, PAIRSEP, OVERALLOC);
 
+	if (kvv->kv_pairs != kvv2->kv_pairs) {
+		printf("Failure: kvvec2buf -> buf2kvvec fails to get pairs teamed up (delta: %d)\n",
+			   kvv->kv_pairs - kvv2->kv_pairs);
+	}
+
 	for (i = 0; i < kvv->kv_pairs; i++) {
 		struct key_value *kv1, *kv2;
 		kv1 = &kvv->kv[i];

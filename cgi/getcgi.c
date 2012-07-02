@@ -6,8 +6,6 @@
  *
  *****************************************/
 
-#define NSCGI
-
 #include "../include/config.h"
 #include "../include/getcgi.h"
 #include <stdio.h>

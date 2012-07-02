@@ -24,8 +24,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ***********************************************************************/
 
-#define NSCGI
-
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/objects.h"

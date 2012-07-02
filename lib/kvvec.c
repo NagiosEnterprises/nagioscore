@@ -210,8 +210,12 @@ struct kvvec *buf2kvvec(const char *str, unsigned int len,
 		const char *ptr = memchr(str + offset, pair_sep, len - offset);
 		if (!ptr)
 			break;
-		num_pairs++;
 		ptr++;
+
+		/* keys can't start with nul bytes */
+		if (*(str + offset)) {
+			num_pairs++;
+		}
 		offset += (unsigned long)ptr - ((unsigned long)str + offset);
 	}
 
@@ -223,8 +227,6 @@ struct kvvec *buf2kvvec(const char *str, unsigned int len,
 	if (!kvv) {
 		return NULL;
 	}
-
-	kvv->kv_pairs = num_pairs;
 
 	offset = 0;
 	for (i = 0; i < num_pairs; i++) {
@@ -245,7 +247,7 @@ struct kvvec *buf2kvvec(const char *str, unsigned int len,
 			break;
 		}
 
-		kv = &kvv->kv[i];
+		kv = &kvv->kv[kvv->kv_pairs++];
 		kv->key_len = (unsigned long)key_end_ptr - ((unsigned long)str + offset);
 		kv->key = malloc(kv->key_len + 1);
 		memcpy(kv->key, str + offset, kv->key_len);

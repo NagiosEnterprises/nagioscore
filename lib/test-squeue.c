@@ -90,8 +90,8 @@ static int sq_test_random(squeue_t *sq, test_suite *ts)
 	srand((int)now.tv_sec);
 	for (i = 0; i < EVT_ARY; i++) {
 		now.tv_usec = (time_t)rand();
-		numbers[i] = evt_compute_pri(&now);
 		squeue_add_tv(sq, &now, &numbers[i]);
+		numbers[i] = evt_compute_pri(&now);
 		t(squeue_size(sq) == i + 1 + size);
 	}
 

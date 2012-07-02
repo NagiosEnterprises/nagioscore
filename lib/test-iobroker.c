@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-#include "iocache.c"
 #include "iobroker.c"
 
 static int fail, pass;

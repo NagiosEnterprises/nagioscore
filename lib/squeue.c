@@ -33,27 +33,27 @@ static pqueue_pri_t evt_compute_pri(struct timeval *tv)
 	return (tv->tv_sec << 32) | tv->tv_usec;
 }
 
-static int cmp_pri(pqueue_pri_t next, pqueue_pri_t cur)
+static int sq_cmp_pri(pqueue_pri_t next, pqueue_pri_t cur)
 {
 	return next > cur;
 }
 
-static unsigned long long get_pri(void *a)
+static unsigned long long sq_get_pri(void *a)
 {
 	return ((squeue_event *)a)->pri;
 }
 
-static void set_pri(void *a, pqueue_pri_t pri)
+static void sq_set_pri(void *a, pqueue_pri_t pri)
 {
 	((squeue_event *)a)->pri = pri;
 }
 
-static unsigned int get_pos(void *a)
+static unsigned int sq_get_pos(void *a)
 {
 	return ((squeue_event *)a)->pos;
 }
 
-static void set_pos(void *a, unsigned int pos)
+static void sq_set_pos(void *a, unsigned int pos)
 {
 	((squeue_event *)a)->pos = pos;
 }
@@ -84,7 +84,7 @@ squeue_t *squeue_create(unsigned int horizon)
 	if (!horizon)
 		horizon = 127; /* makes pqueue allocate 128 elements */
 
-	return pqueue_init(horizon, cmp_pri, get_pri, set_pri, get_pos, set_pos);
+	return pqueue_init(horizon, sq_cmp_pri, sq_get_pri, sq_set_pri, sq_get_pos, sq_set_pos);
 }
 
 squeue_event *squeue_add_tv(squeue_t *q, struct timeval *tv, void *data)

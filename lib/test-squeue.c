@@ -95,6 +95,8 @@ static int sq_test_random(squeue_t *sq, test_suite *ts)
 		t(squeue_size(sq) == i + 1 + size);
 	}
 
+	t(pqueue_is_valid(sq));
+
 	/*
 	 * make sure we pop events in increasing "priority",
 	 * since we calculate priority based on time and later
@@ -107,6 +109,7 @@ static int sq_test_random(squeue_t *sq, test_suite *ts)
 		max = *d;
 		t(squeue_size(sq) == size + (EVT_ARY - i - 1));
 	}
+	t(pqueue_is_valid(sq));
 
 	return 0;
 }
@@ -146,9 +149,9 @@ static int test_squeue(test_suite *ts)
 	t(squeue_size(sq) == 1);
 	t((b.evt = squeue_add(sq, time(NULL) + 3, &b)) != NULL);
 	t(squeue_size(sq) == 2);
-	t((c.evt = squeue_add(sq, time(NULL) + 5, &c)) != NULL);
+	t((c.evt = squeue_add_msec(sq, time(NULL) + 5, 0, &c)) != NULL);
 	t(squeue_size(sq) == 3);
-	t((d.evt = squeue_add(sq, time(NULL) + 6, &d)) != NULL);
+	t((d.evt = squeue_add_usec(sq, time(NULL) + 5, 1, &d)) != NULL);
 	t(squeue_size(sq) == 4);
 
 	/* add and remove lots. remainder should be what we have above */

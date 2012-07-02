@@ -1,5 +1,5 @@
 CC = gcc
-COV_CFLAGS = -O0 -ftest-coverage -fprofile-arcs -pg
+COV_CFLAGS = -ggdb3 -O0 -ftest-coverage -fprofile-arcs -pg
 LDFLAGS =
 CFLAGS ?= @CFLAGS@
 ALL_CFLAGS = -Wall $(CFLAGS) @DEFS@
@@ -14,7 +14,7 @@ SRC_O := $(patsubst %.c,%.o,$(SRC_C)) $(SNPRINTF_O)
 TESTS := $(patsubst %.c,test-%,$(TESTED_SRC_C))
 
 test: $(TESTS)
-	@for t in $(TESTS); do echo $$t:; ./$$t; echo; done
+	@for t in $(TESTS); do echo $$t:; ./$$t || exit 1; echo; done
 
 test-squeue: pqueue.o test-squeue.o
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) $^ -o $@

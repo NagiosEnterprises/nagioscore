@@ -22,6 +22,9 @@ test-squeue: pqueue.o test-squeue.o
 %.o: %.c %.h Makefile
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
+test-%: test-%.c %.c %.h Makefile
+	$(CC) $(ALL_CFLAGS) $< -o $@
+
 $(LIBNAME): $(SRC_O)
 	$(AR) cr $@ $^
 

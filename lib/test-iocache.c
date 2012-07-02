@@ -21,7 +21,7 @@ static int test_delimiter(const char *delim, unsigned int delim_len)
 	int i;
 	iocache *ioc;
 
-	ioc = iocache_create(65536);
+	ioc = iocache_create(512 * 1024);
 
 	for (i = 0; sc[i].str; i++) {
 		memcpy(&ioc->ioc_buf[ioc->ioc_buflen], sc[i].str, sc[i].len);
@@ -39,10 +39,10 @@ static int test_delimiter(const char *delim, unsigned int delim_len)
 			printf("Null pointer. What weird shit is this??\n");
 			exit(1);
 		}
-		if (len != sc[i].len + delim_len) {
+		if (len != sc[i].len) {
 			printf("########## len error\n");
 			error = 1;
-		} else if (memcmp(ptr, sc[i].str, len - delim_len)) {
+		} else if (memcmp(ptr, sc[i].str, len)) {
 			printf("########## memcmp() error\n");
 			error = 2;
 		}

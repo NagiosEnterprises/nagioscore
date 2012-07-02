@@ -62,6 +62,11 @@ unsigned long iocache_available(iocache *ioc)
 	if (!ioc || !ioc->ioc_buf || !ioc->ioc_bufsize || !ioc->ioc_buflen)
 		return 0;
 
+	if (ioc->ioc_buflen < ioc->ioc_offset) {
+		iocache_move_data(ioc);
+		return 0;
+	}
+
 	return ioc->ioc_buflen - ioc->ioc_offset;
 }
 
@@ -88,6 +93,12 @@ char *iocache_use_delim(iocache *ioc, const char *delim, size_t delim_len, unsig
 	if (!ioc || !ioc->ioc_buf || !ioc->ioc_bufsize || !ioc->ioc_buflen)
 		return NULL;
 
+	*size = 0;
+	if (ioc->ioc_offset >= ioc->ioc_buflen) {
+		iocache_move_data(ioc);
+		return NULL;
+	}
+
 	buf = &ioc->ioc_buf[ioc->ioc_offset];
 	remains = iocache_available(ioc);
 	while (remains >= delim_len) {
@@ -99,12 +110,11 @@ char *iocache_use_delim(iocache *ioc, const char *delim, size_t delim_len, unsig
 		if (delim_len == 1 || !memcmp(ptr, delim, delim_len)) {
 			unsigned long ioc_start;
 
-			/* ptr must point *after* the delimiter */
-			ptr += delim_len;
 			ioc_start = (unsigned long)ioc->ioc_buf + ioc->ioc_offset;
 			*size = (unsigned long)ptr - ioc_start;
 
-			return iocache_use_size(ioc, *size);
+			/* make sure we use up all of the delimiter as well */
+			return iocache_use_size(ioc, delim_len + *size);
 		}
 		jump = 1 + (unsigned long)ptr - (unsigned long)buf;
 		remains -= jump;

@@ -206,16 +206,18 @@ struct kvvec *buf2kvvec(const char *str, unsigned int len,
 		return NULL;
 
 	/* first we count the number of key/value pairs */
-	for (;;) {
-		const char *ptr = memchr(str + offset, pair_sep, len - offset);
-		if (!ptr)
-			break;
-		ptr++;
+	while (offset < len) {
+		const char *ptr;
 
 		/* keys can't start with nul bytes */
 		if (*(str + offset)) {
 			num_pairs++;
 		}
+
+		ptr = memchr(str + offset, pair_sep, len - offset);
+		if (!ptr)
+			break;
+		ptr++;
 		offset += (unsigned long)ptr - ((unsigned long)str + offset);
 	}
 

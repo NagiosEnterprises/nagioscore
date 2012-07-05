@@ -3,6 +3,17 @@
 #include <stdlib.h>
 #include <limits.h>
 
+/**
+ * @file iocache.h
+ * @brief I/O cache function declarations
+ *
+ * The I/O cache library is useful for reading large chunks of data
+ * from sockets and utilizing parts of that data based on either
+ * size or a magic delimiter.
+ *
+ * @{
+ */
+
 /** opaque type for iocache operations */
 struct iocache;
 typedef struct iocache iocache;
@@ -92,3 +103,4 @@ extern iocache *iocache_create(unsigned long size);
 extern int iocache_read(iocache *ioc, int fd);
 
 #endif /* INCLUDE_iocache_h__ */
+/** @} */

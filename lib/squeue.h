@@ -1,3 +1,14 @@
+/**
+ * @file squeue.h
+ * @brief Scheduling queue function declarations
+ *
+ * This library is based on the pqueue api, which implements a
+ * priority queue based on a binary heap, providing O(lg n) times
+ * for insert() and remove(), and O(1) time for peek().
+ * @note There is no "find". Callers must maintain pointers to their
+ * scheduled events if they wish to be able to remove them.
+ * @{
+ */
 #ifndef INCLUDE_squeue_h__
 #define INCLUDE_squeue_h__
 #include <sys/time.h>
@@ -42,14 +53,14 @@ extern void *squeue_event_data(squeue_event *evt);
  * with few scheduled items in that timeframe you'd be better off
  * using a more narrow horizon.
  *
- * @param horizon The desired event horizon
+ * @param size Hint about how large this queue will get
  * @return A pointer to a scheduling queue
  */
 extern squeue_t *squeue_create(unsigned int size);
 
 /**
  * Destroys a scheduling queue completely
- * @param[in] sq The doomed queue
+ * @param[in] q The doomed queue
  * @param[in] flags Flags determining the the level of destruction
  */
 extern void squeue_destroy(squeue_t *q, int flags);
@@ -59,7 +70,7 @@ extern void squeue_destroy(squeue_t *q, int flags);
  * It's up to the caller to keep the event pointer in case he/she
  * wants to remove the event from the queue later.
  *
- * @param sq The scheduling queue to add to
+ * @param q The scheduling queue to add to
  * @param tv When this event should occur
  * @param data Pointer to any kind of data
  * @return The complete scheduled event
@@ -70,7 +81,7 @@ extern squeue_event *squeue_add_tv(squeue_t *q, struct timeval *tv, void *data);
  * Adds an event to the scheduling queue.
  * See notes for squeue_add_tv() for details
  *
- * @param sq The scheduling queue to add to
+ * @param q The scheduling queue to add to
  * @param when The unix timestamp when this event is to occur
  * @param data Pointer to any kind of data
  * @return The complete scheduled event
@@ -81,7 +92,7 @@ extern squeue_event *squeue_add(squeue_t *q, time_t when, void *data);
  * Adds an event to the scheduling queue with millisecond precision
  * See notes on squeue_add_tv() for details
  *
- * @param[in] sq The scheduling queue to add to
+ * @param[in] q The scheduling queue to add to
  * @param[in] when Unix timestamp when this event should occur
  * @param[in] usec Millisecond of above this event should occur
  * @param[in] data Pointer to any kind of data
@@ -93,7 +104,7 @@ extern squeue_event *squeue_add_usec(squeue_t *q, time_t when, time_t usec, void
  * Adds an event to the scheduling queue with millisecond precision
  * See notes on squeue_add_tv() for details
  *
- * @param[in] sq The scheduling queue to add to
+ * @param[in] q The scheduling queue to add to
  * @param[in] when Unix timestamp when this event should occur
  * @param[in] msec Millisecond of above this event should occur
  * @param[in] data Pointer to any kind of data
@@ -105,7 +116,7 @@ extern squeue_event *squeue_add_msec(squeue_t *q, time_t when, time_t msec, void
  * Returns the data of the next scheduled event from the scheduling
  * queue without removing it from the queue.
  *
- * @param sq The scheduling queue to peek into
+ * @param q The scheduling queue to peek into
  */
 extern void *squeue_peek(squeue_t *q);
 
@@ -115,7 +126,7 @@ extern void *squeue_peek(squeue_t *q);
  * This is equivalent to squeue_peek() + squeue_pop()
  * @note This causes the squeue_event to be free()'d.
  *
- * @param sq The scheduling queue to pop from
+ * @param q The scheduling queue to pop from
  */
 extern void *squeue_pop(squeue_t *q);
 
@@ -136,3 +147,4 @@ extern int squeue_remove(squeue_t *q, squeue_event *evt);
  */
 extern unsigned int squeue_size(squeue_t *q);
 #endif
+/** @} */

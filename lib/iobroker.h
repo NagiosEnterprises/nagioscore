@@ -1,6 +1,13 @@
 #ifndef INCLUDE_iobroker_h__
 #define INCLUDE_iobroker_h__
 
+/**
+ * @file iobroker.h
+ * @brief I/O broker library function declarations
+ *
+ * @{
+ */
+
 #if (_POSIX_C_SOURCE - 0) >= 200112L
 #include <poll.h>
 # define IOBROKER_POLLIN POLLIN
@@ -69,7 +76,7 @@ extern int iobroker_max_usable_fds(void);
  * @param iobs The socket set to add the socket to.
  * @param sd The socket descriptor to add
  * @param arg Argument passed to input handler on available input
- * @param input_handler The callback function to call when input is available
+ * @param handler The callback function to call when input is available
  *
  * @return 0 on succes. < 0 on errors.
  */
@@ -126,7 +133,7 @@ extern int iobroker_close(iobroker_set *iobs, int sd);
 /**
  * Destroy a socket set as created by iobroker_create
  * @param iobs The socket set to destroy
- * @param close close(2) all available sockets
+ * @param flags If set, close(2) all registered sockets
  */
 extern void iobroker_destroy(iobroker_set *iobs, int flags);
 
@@ -137,3 +144,4 @@ extern void iobroker_destroy(iobroker_set *iobs, int flags);
  */
 extern int iobroker_poll(iobroker_set *iobs, int timeout);
 #endif /* INCLUDE_iobroker_h__ */
+/** @} */

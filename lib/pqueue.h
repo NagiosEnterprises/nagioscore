@@ -57,15 +57,15 @@ typedef void (*pqueue_print_entry_f)(FILE *out, void *a);
 /** the priority queue handle */
 typedef struct pqueue_t
 {
-    unsigned int size;
-    unsigned int avail;
-    unsigned int step;
-    pqueue_cmp_pri_f cmppri;
-    pqueue_get_pri_f getpri;
-    pqueue_set_pri_f setpri;
-    pqueue_get_pos_f getpos;
-    pqueue_set_pos_f setpos;
-    void **d;
+    unsigned int size;       /**< number of elements in this queue */
+    unsigned int avail;      /**< slots available in this queue */
+    unsigned int step;       /**< growth stepping setting */
+    pqueue_cmp_pri_f cmppri; /**< callback to compare nodes */
+    pqueue_get_pri_f getpri; /**< callback to get priority of a node */
+    pqueue_set_pri_f setpri; /**< callback to set priority of a node */
+    pqueue_get_pos_f getpos; /**< callback to get position of a node */
+    pqueue_set_pos_f setpos; /**< callback to set position of a node */
+    void **d;                /**< The actualy queue in binary heap form */
 } pqueue_t;
 
 
@@ -75,12 +75,14 @@ typedef struct pqueue_t
  * @param n the initial estimate of the number of queue items for which memory
  *          should be preallocated
  * @param cmppri The callback function to run to compare two elements
- *               This callback should return 0 for matching and
- * @param pri the callback function to run to assign a score to a element
- * @param get the callback function to get the current element's position
- * @param set the callback function to set the current element's position
+ *    This callback should return 0 for 'lower' and non-zero
+ *    for 'higher', or vice versa if reverse priority is desired
+ * @param setpri the callback function to run to assign a score to an element
+ * @param getpri the callback function to run to set a score to an element
+ * @param getpos the callback function to get the current element's position
+ * @param setpos the callback function to set the current element's position
  *
- * @Return the handle or NULL for insufficent memory
+ * @return the handle or NULL for insufficent memory
  */
 pqueue_t *
 pqueue_init(unsigned int n,
@@ -117,7 +119,7 @@ int pqueue_insert(pqueue_t *q, void *d);
 /**
  * move an existing entry to a different priority
  * @param q the queue
- * @param old the old priority
+ * @param new_pri the new priority
  * @param d the entry
  */
 void
@@ -128,7 +130,7 @@ pqueue_change_priority(pqueue_t *q,
 
 /**
  * pop the highest-ranking item from the queue.
- * @param p the queue
+ * @param q the queue
  * @return NULL on error, otherwise the entry
  */
 void *pqueue_pop(pqueue_t *q);
@@ -136,7 +138,7 @@ void *pqueue_pop(pqueue_t *q);
 
 /**
  * remove an item from the queue.
- * @param p the queue
+ * @param q the queue
  * @param d the entry
  * @return 0 on success
  */
@@ -146,7 +148,6 @@ int pqueue_remove(pqueue_t *q, void *d);
 /**
  * access highest-ranking item without removing it.
  * @param q the queue
- * @param d the entry
  * @return NULL on error, otherwise the entry
  */
 void *pqueue_peek(pqueue_t *q);

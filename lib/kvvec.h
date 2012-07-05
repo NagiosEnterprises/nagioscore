@@ -1,27 +1,53 @@
 #ifndef INCLUDE_kvvec_h__
 #define INCLUDE_kvvec_h__
+
+/**
+ * @file kvvec.h
+ * @brief Key/value vector library function and type declarations
+ *
+ * The kvvec library is nifty as either a configuration meta-format
+ * or for IPC purposes. Take a look at the buf2kvvec() and kvvec2buf()
+ * pair of functions for the latter.
+ */
+
+/**
+ * key/value pair
+ * One of the two major components of the kvvec api
+ */
 struct key_value {
-	char *key, *value;
-	int key_len, value_len;
+	char *key;     /**< The key */
+	char *value;   /**< The value */
+	int key_len;   /**< Length of key */
+	int value_len; /**< Length of value */
 };
 
+/**
+ * key/value vector buffer. Actually just a buffer, but one that gets
+ * used as return value and internal tracker for kvvec2buf()
+ */
 struct kvvec_buf {
-	char *buf;
-	unsigned long buflen;
-	unsigned long bufsize;
+	char *buf;             /**< The buffer */
+	unsigned long buflen;  /**< Length of buffer */
+	unsigned long bufsize; /**< Size of buffer (includes overalloc) */
 };
 
+/**
+ * key/value vector struct
+ * This is the main component of the kvvec library
+ * @note This should be made opaque, with a kvvec_foreach() using a
+ * callback to iterate over key/value pairs.
+ */
 struct kvvec {
-	struct key_value *kv;
-	int kv_alloc;
-	int kv_pairs;
-	int kvv_sorted;
-	int combined_len; /* used for kvvec_buf to avoid one loop */
+	struct key_value *kv; /**< The key/value array */
+	int kv_alloc;         /**< Allocated size of key/value array */
+	int kv_pairs;         /**< Number of key/value pairs */
+	int kvv_sorted;        /**< Determines if this kvvec has been sorted */
 };
 
 /** Parameters for kvvec_destroy() */
-#define KVVEC_FREE_KEYS   1
-#define KVVEC_FREE_VALUES 2
+#define KVVEC_FREE_KEYS   1 /**< Free keys when destroying a kv vector */
+#define KVVEC_FREE_VALUES 2 /**< Free values when destroying a kv vector */
+/** Free both keys and values when destroying a kv vector */
 #define KVVEC_FREE_ALL    (KVVEC_FREE_KEYS | KVVEC_FREE_VALUES)
 
 /**
@@ -112,7 +138,7 @@ extern struct kvvec_buf *kvvec2buf(struct kvvec *kvv, char kv_sep, char pair_sep
  *
  * @param str The buffer to convert to a key/value vector
  * @param len Length of buffer to convert
- * @param kv_sep Character separating key and value
+ * @param kvsep Character separating key and value
  * @param pair_sep Character separating key/value pairs
  */
 extern struct kvvec *buf2kvvec(const char *str, unsigned int len, const char kvsep, const char pair_sep);

@@ -11,4 +11,6 @@
 #include "kvvec.h"
 #include "iobroker.h"
 #include "iocache.h"
+#include "runcmd.h"
+#include "worker.h"
 #endif /* LIB_libnagios_h__ */

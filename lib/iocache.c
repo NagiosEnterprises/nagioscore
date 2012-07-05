@@ -44,6 +44,8 @@ int iocache_resize(iocache *ioc, unsigned long new_size)
 	buf = realloc(ioc->ioc_buf, new_size);
 	if (!buf)
 		return -1;
+	ioc->ioc_buf = buf;
+	ioc->ioc_bufsize = new_size;
 	return 0;
 }
 

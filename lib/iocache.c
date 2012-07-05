@@ -3,6 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct iocache {
+	char *ioc_buf; /* the data */
+	unsigned long ioc_offset; /* where we're reading in the buffer */
+	unsigned long ioc_buflen; /* the amount of data read into the buffer */
+	unsigned long ioc_bufsize; /* size of the buffer */
+};
+
 void iocache_destroy(iocache *ioc)
 {
 	if (!ioc)
@@ -47,6 +54,16 @@ int iocache_resize(iocache *ioc, unsigned long new_size)
 	ioc->ioc_buf = buf;
 	ioc->ioc_bufsize = new_size;
 	return 0;
+}
+
+int iocache_grow(iocache *ioc, unsigned long increment)
+{
+	return iocache_resize(ioc, iocache_size(ioc) + increment);
+}
+
+unsigned long iocache_size(iocache *ioc)
+{
+	return ioc ? ioc->ioc_bufsize : 0;
 }
 
 unsigned long iocache_capacity(iocache *ioc)

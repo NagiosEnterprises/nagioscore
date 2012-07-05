@@ -2,39 +2,10 @@
 #define INCLUDE_iocache_h__
 #include <stdlib.h>
 #include <limits.h>
-struct iocache {
-	char *ioc_buf; /* the data */
-	unsigned long ioc_offset; /* where we're reading in the buffer */
-	unsigned long ioc_buflen; /* the amount of data read into the buffer */
-	unsigned long ioc_bufsize; /* size of the buffer */
-};
+
+/** opaque type for iocache operations */
+struct iocache;
 typedef struct iocache iocache;
-
-static inline unsigned long iocache_used(iocache *ioc)
-{
-	if (!ioc)
-		return 0;
-	return ioc->ioc_buflen - ioc->ioc_offset;
-}
-
-static inline unsigned long iocache_free(iocache *ioc)
-{
-	if (!ioc)
-		return 0;
-	return ioc->ioc_bufsize - ioc->ioc_buflen;
-}
-
-static inline int iocache_grow(iocache *ioc, unsigned long add_size)
-{
-	if (!ioc)
-		return -1;
-	ioc->ioc_bufsize += add_size;
-	ioc->ioc_buf = realloc(ioc->ioc_buf, ioc->ioc_bufsize);
-	if (ioc->ioc_buf)
-		return 0;
-
-	return -1;
-}
 
 /**
  * Destroys an iocache object, freeing all memory allocated to it.
@@ -49,6 +20,22 @@ extern void iocache_destroy(iocache *ioc);
  * @return 0 on success, -1 on errors
  */
 extern int iocache_resize(iocache *ioc, unsigned long new_size);
+
+/**
+ * Grows an iocache object
+ * This uses iocache_resize() internally
+ * @param[in] ioc The iocache to grow
+ * @param[in] increment How much to increase it
+ * @return 0 on success, -1 on errors
+ */
+extern int iocache_grow(iocache *ioc, unsigned long increment);
+
+/**
+ * Returns the total size of the io cache
+ * @param[in] ioc The iocache to inspect
+ * @return The size of the io cache. If ioc is null, 0 is returned
+ */
+extern unsigned long iocache_size(iocache *ioc);
 
 /**
  * Returns remaining read capacity of the io cache

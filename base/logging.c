@@ -299,6 +299,7 @@ int log_service_event(service *svc) {
 			 (svc->plugin_output == NULL) ? "" : svc->plugin_output);
 
 	write_to_all_logs(temp_buffer, log_options);
+	free(temp_buffer);
 
 	return OK;
 	}

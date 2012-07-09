@@ -678,11 +678,12 @@ struct worker_process *spawn_worker(void (*init_func)(void *), void *init_arg)
 		return worker;
 	}
 
+	/* child closes parent's end of socket and gets busy */
+	close(sv[0]);
+
 	if (init_func) {
 		init_func(init_arg);
 	}
-	/* child closes parent's end of socket and gets busy */
-	close(sv[0]);
 	enter_worker(sv[1]);
 
 	/* not reached, ever */

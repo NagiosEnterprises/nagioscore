@@ -17,6 +17,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <string.h>
+#include <assert.h>
 #include "squeue.h"
 #include "pqueue.h"
 
@@ -103,7 +104,6 @@ squeue_event *squeue_add_tv(squeue_t *q, struct timeval *tv, void *data)
 	if (!pqueue_insert(q, evt))
 		return evt;
 
-	printf("Failed to pqueue_insert()\n");
 	return NULL;
 }
 
@@ -126,6 +126,7 @@ squeue_event *squeue_add_usec(squeue_t *q, time_t when, time_t usec, void *data)
 	struct timeval tv;
 	tv.tv_sec = when;
 	tv.tv_usec = usec;
+	assert(usec < 1000000);
 	return squeue_add_tv(q, &tv, data);
 }
 
@@ -165,8 +166,6 @@ int squeue_remove(squeue_t *q, squeue_event *evt)
 	if (evt)
 		free(evt);
 
-	if (ret)
-		printf("Failed to remove %p\n", evt);
 	return ret;
 }
 

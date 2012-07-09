@@ -499,18 +499,12 @@ child_process *parse_command_kvvec(struct kvvec *kvv)
 
 static void spawn_job(struct kvvec *kvv)
 {
-	int result, i;
+	int result;
 	child_process *cp;
 
 	if (!kvv) {
 		wlog("Received NULL command key/value vector. Bug in iocache.c or kvvec.c?");
 		return;
-	}
-
-	wlog("Spawning command from kvvec with %d entries", kvv->kv_pairs);
-	for (i = 0; i < kvv->kv_pairs; i++) {
-		struct key_value *kv = &kvv->kv[i];
-		wlog("%d: %s=%s", i, kv->key, kv->value);
 	}
 
 	cp = parse_command_kvvec(kvv);
@@ -649,7 +643,6 @@ static void enter_worker(int sd)
 		}
 	}
 
-	printf("Fell out of the event loop. what the lols?\n");
 	/* we exit when the master shuts us down */
 	exit(EXIT_SUCCESS);
 }

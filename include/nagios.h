@@ -437,7 +437,6 @@ int handle_timed_event(timed_event *);		     		/* top level handler for timed ev
 void adjust_check_scheduling(void);		        	/* auto-adjusts scheduling of host and service checks */
 void compensate_for_system_time_change(unsigned long, unsigned long);	/* attempts to compensate for a change in the system time */
 void adjust_timestamp_for_time_change(time_t, time_t, unsigned long, time_t *); /* adjusts a timestamp variable for a system time change */
-void resort_event_list(timed_event **, timed_event **);                 	/* resorts event list by event run time for system time changes */
 
 
 /**** IPC Functions ****/

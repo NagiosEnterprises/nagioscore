@@ -31,6 +31,7 @@
 #include "../include/nagios.h"
 #include "../include/perfdata.h"
 #include "../include/broker.h"
+#include "../include/workers.h"
 
 #ifdef USE_EVENT_BROKER
 #include "../include/neberrors.h"
@@ -73,8 +74,6 @@ int obsessive_compulsive_service_check_processor(service *svc) {
 	char *raw_command = NULL;
 	char *processed_command = NULL;
 	host *temp_host = NULL;
-	int early_timeout = FALSE;
-	double exectime = 0.0;
 	int macro_options = STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
 	nagios_macros mac;
 
@@ -121,16 +120,11 @@ int obsessive_compulsive_service_check_processor(service *svc) {
 
 	log_debug_info(DEBUGL_CHECKS, 2, "Processed obsessive compulsive service processor command line: %s\n", processed_command);
 
-	/* run the command */
-	my_system_r(&mac, processed_command, ocsp_timeout, &early_timeout, &exectime, NULL, 0);
-
-	clear_volatile_macros_r(&mac);
-
-	/* check to see if the command timed out */
-	if(early_timeout == TRUE)
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: OCSP command '%s' for service '%s' on host '%s' timed out after %d seconds\n", processed_command, svc->description, svc->host_name, ocsp_timeout);
+	/* run the command through a worker */
+	wproc_run_service_job(WPJOB_OCSP, ocsp_timeout, svc, processed_command, &mac);
 
 	/* free memory */
+	clear_volatile_macros_r(&mac);
 	my_free(processed_command);
 
 	return OK;
@@ -142,8 +136,6 @@ int obsessive_compulsive_service_check_processor(service *svc) {
 int obsessive_compulsive_host_check_processor(host *hst) {
 	char *raw_command = NULL;
 	char *processed_command = NULL;
-	int early_timeout = FALSE;
-	double exectime = 0.0;
 	int macro_options = STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
 	nagios_macros mac;
 
@@ -185,15 +177,11 @@ int obsessive_compulsive_host_check_processor(host *hst) {
 
 	log_debug_info(DEBUGL_CHECKS, 2, "Processed obsessive compulsive host processor command line: %s\n", processed_command);
 
-	/* run the command */
-	my_system_r(&mac, processed_command, ochp_timeout, &early_timeout, &exectime, NULL, 0);
-	clear_volatile_macros_r(&mac);
-
-	/* check to see if the command timed out */
-	if(early_timeout == TRUE)
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: OCHP command '%s' for host '%s' timed out after %d seconds\n", processed_command, hst->name, ochp_timeout);
+	/* run the command through a worker */
+	wproc_run_host_job(WPJOB_OCHP, ochp_timeout, hst, processed_command, &mac);
 
 	/* free memory */
+	clear_volatile_macros_r(&mac);
 	my_free(processed_command);
 
 	return OK;
@@ -244,9 +232,6 @@ int handle_service_event(service *svc) {
 	if(svc->event_handler != NULL)
 		run_service_event_handler(&mac, svc);
 	clear_volatile_macros_r(&mac);
-
-	/* check for external commands - the event handler may have given us some directives... */
-	check_for_external_commands();
 
 	return OK;
 	}
@@ -328,8 +313,9 @@ int run_global_service_event_handler(nagios_macros *mac, service *svc) {
 		}
 #endif
 
-	/* run the command */
-	result = my_system_r(mac, processed_command, event_handler_timeout, &early_timeout, &exectime, &command_output, 0);
+	/* run the command through a worker */
+	/* XXX FIXME make base/workers.c handle the eventbroker stuff below */
+	result = wproc_run(WPJOB_GLOBAL_SVC_EVTHANDLER, processed_command, event_handler_timeout, mac);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout == TRUE)
@@ -427,8 +413,9 @@ int run_service_event_handler(nagios_macros *mac, service *svc) {
 		}
 #endif
 
-	/* run the command */
-	result = my_system_r(mac, processed_command, event_handler_timeout, &early_timeout, &exectime, &command_output, 0);
+	/* run the command through a worker */
+	/* XXX FIXME make base/workers.c handle the eventbroker stuff below */
+	result = wproc_run(WPJOB_SVC_EVTHANDLER, processed_command, event_handler_timeout, mac);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout == TRUE)
@@ -491,9 +478,6 @@ int handle_host_event(host *hst) {
 	/* run the event handler command if there is one */
 	if(hst->event_handler != NULL)
 		run_host_event_handler(&mac, hst);
-
-	/* check for external commands - the event handler may have given us some directives... */
-	check_for_external_commands();
 
 	return OK;
 	}
@@ -573,8 +557,9 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 		}
 #endif
 
-	/* run the command */
-	result = my_system_r(mac, processed_command, event_handler_timeout, &early_timeout, &exectime, &command_output, 0);
+	/* run the command through a worker */
+	/* XXX FIXME make base/workers.c handle the eventbroker stuff below */
+	wproc_run(WPJOB_GLOBAL_HOST_EVTHANDLER, processed_command, event_handler_timeout, mac);
 
 	/* check for a timeout in the execution of the event handler command */
 	if(early_timeout == TRUE)
@@ -670,8 +655,8 @@ int run_host_event_handler(nagios_macros *mac, host *hst) {
 		}
 #endif
 
-	/* run the command */
-	result = my_system_r(mac, processed_command, event_handler_timeout, &early_timeout, &exectime, &command_output, 0);
+	/* run the command through a worker */
+	result = wproc_run(WPJOB_HOST_EVTHANDLER, processed_command, event_handler_timeout, mac);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout == TRUE)

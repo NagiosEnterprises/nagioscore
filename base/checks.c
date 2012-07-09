@@ -1723,7 +1723,7 @@ void schedule_service_check(service *svc, time_t check_time, int options) {
 	if(use_original_event == FALSE) {
 
 		/* allocate memory for a new event item */
-		new_event = (timed_event *)malloc(sizeof(timed_event));
+		new_event = (timed_event *)calloc(1, sizeof(timed_event));
 		if(new_event == NULL) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not reschedule check of service '%s' on host '%s'!\n", svc->description, svc->host_name);
 			return;
@@ -2215,7 +2215,7 @@ void schedule_host_check(host *hst, time_t check_time, int options) {
 		log_debug_info(DEBUGL_CHECKS, 2, "Scheduling new host check event.\n");
 
 		/* allocate memory for a new event item */
-		if((new_event = (timed_event *)malloc(sizeof(timed_event))) == NULL) {
+		if((new_event = (timed_event *)calloc(1, sizeof(timed_event))) == NULL) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not reschedule check of host '%s'!\n", hst->name);
 			return;
 			}

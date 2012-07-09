@@ -18,7 +18,6 @@ extern void free_worker_memory(void);
 extern int init_workers(int desired_workers);
 extern int wproc_run_check(check_result *cr, char *cmd, nagios_macros *mac);
 extern int wproc_notify(char *cname, char *hname, char *sdesc, char *cmd, nagios_macros *mac);
-extern void wproc_poll(int timeout_ms);
 extern int wproc_run(int job_type, char *cmd, int timeout, nagios_macros *mac);
 extern int wproc_run_service_job(int jtype, int timeout, service *svc, char *cmd, nagios_macros *mac);
 extern int wproc_run_host_job(int jtype, int timeout, host *hst, char *cmd, nagios_macros *mac);

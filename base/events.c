@@ -92,6 +92,7 @@ extern host     *host_list;
 extern service  *service_list;
 
 sched_info scheduling_info;
+extern iobroker_set *nagios_iobs;
 
 
 
@@ -877,11 +878,11 @@ void remove_event(squeue_t *sq, timed_event *event) {
 
 /* this is the main event handler loop */
 int event_execution_loop(void) {
-	timed_event *temp_event = NULL;
-	timed_event sleep_event;
+	timed_event *temp_event = NULL, *last_event = NULL;
 	time_t last_time = 0L;
 	time_t current_time = 0L;
 	time_t last_status_update = 0L;
+	int poll_time_ms;
 	int run_event = TRUE;
 	int nudge_seconds;
 	host *temp_host = NULL;
@@ -893,11 +894,6 @@ int event_execution_loop(void) {
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "event_execution_loop() start\n");
 
 	time(&last_time);
-
-	/* initialize fake "sleep" event */
-	memset(&sleep_event, 0, sizeof(sleep_event));
-	sleep_event.event_type = EVENT_SLEEP;
-	sleep_event.run_time = last_time;
 
 	while(1) {
 
@@ -930,56 +926,38 @@ int event_execution_loop(void) {
 			update_program_status(FALSE);
 			}
 
-		/* get next scheduled event */
-		temp_event = (timed_event *)squeue_peek(nagios_squeue);
+		do {
+			struct timeval now;
+			const struct timeval *event_runtime;
 
-		/* if we don't have any events to handle, exit */
-		if(!temp_event) {
-			log_debug_info(DEBUGL_EVENTS, 0, "There aren't any events that need to be handled! Exiting...\n");
-			break;
-			}
+			/* get next scheduled event */
+			temp_event = (timed_event *)squeue_peek(nagios_squeue);
 
-		log_debug_info(DEBUGL_EVENTS, 1, "** Event Check Loop\n");
-		log_debug_info(DEBUGL_EVENTS, 1, "Next Event Time: %s", ctime(&temp_event->run_time));
-		log_debug_info(DEBUGL_EVENTS, 1, "Current/Max Service Checks: %d/%d (%.3lf%% saturation)\n",
-		               currently_running_service_checks, max_parallel_service_checks,
-					   ((float)currently_running_service_checks / (float)max_parallel_service_checks) * 100);
+			/* if we don't have any events to handle, exit */
+			if(!temp_event) {
+				log_debug_info(DEBUGL_EVENTS, 0, "There aren't any events that need to be handled! Exiting...\n");
+				break;
+				}
 
+			event_runtime = squeue_event_runtime(temp_event->sq_event);
+			if (temp_event != last_event) {
+				log_debug_info(DEBUGL_EVENTS, 1, "** Event Check Loop\n");
+				log_debug_info(DEBUGL_EVENTS, 1, "Next Event Time: %s", ctime(&temp_event->run_time));
+				log_debug_info(DEBUGL_EVENTS, 1, "Current/Max Service Checks: %d/%d (%.3lf%% saturation)\n",
+							   currently_running_service_checks, max_parallel_service_checks,
+							   ((float)currently_running_service_checks / (float)max_parallel_service_checks) * 100);
+				}
+			last_event = temp_event;
 
-		/* we don't have anything to do at this moment in time... */
-		if(current_time < temp_event->run_time) {
-
-			log_debug_info(DEBUGL_EVENTS, 2, "No events to execute at the moment.  Idling for a bit...\n");
-
-			/* set time to sleep so we don't hog the CPU... */
-#ifdef USE_NANOSLEEP
-			delay.tv_sec = (time_t)sleep_time;
-			delay.tv_nsec = (long)((sleep_time - (double)delay.tv_sec) * 1000000000);
-#else
-			delay.tv_sec = (time_t)sleep_time;
-			if(delay.tv_sec == 0L)
-				delay.tv_sec = 1;
-			delay.tv_nsec = 0L;
-#endif
-
-#ifdef USE_EVENT_BROKER
-			/* populate fake "sleep" event */
-			sleep_event.run_time = current_time;
-			sleep_event.event_data = (void *)&delay;
-
-			/* send event data to broker */
-			broker_timed_event(NEBTYPE_TIMEDEVENT_SLEEP, NEBFLAG_NONE, NEBATTR_NONE, &sleep_event, NULL);
-#endif
-
-			/* wait a while so we don't hog the CPU... */
-#ifdef USE_NANOSLEEP
-			nanosleep(&delay, NULL);
-#else
-			sleep((unsigned int)delay.tv_sec);
-#endif
-			/* and then get on with things again */
-			continue;
-			}
+			gettimeofday(&now, NULL);
+			poll_time_ms = tv_delta_msec(&now, event_runtime);
+			if (poll_time_ms <= 0)
+				poll_time_ms = 0;
+			if (poll_time_ms >= 1500)
+				poll_time_ms = 1500;
+			log_debug_info(DEBUGL_PROCESS, 1, "polling I/O broker set for %d msecs\n", poll_time_ms);
+			iobroker_poll(nagios_iobs, poll_time_ms);
+			} while (poll_time_ms > 0 && temp_event->run_time < time(NULL));
 
 		/*
 		 * we must remove the entry we've peeked, or

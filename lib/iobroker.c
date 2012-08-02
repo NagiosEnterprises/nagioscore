@@ -225,6 +225,13 @@ int iobroker_register(iobroker_set *iobs, int fd, void *arg, int (*handler)(int,
 	return 0;
 }
 
+int iobroker_is_registered(iobroker_set *iobs, int fd)
+{
+	if (!iobs || fd < 0 || fd > iobs->max_fds || !iobs->iobroker_fds[fd])
+		return 0;
+
+	return iobs->iobroker_fds[fd]->fd == fd;
+}
 
 int iobroker_unregister(iobroker_set *iobs, int fd)
 {

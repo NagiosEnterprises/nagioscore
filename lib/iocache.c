@@ -33,10 +33,21 @@ static inline void iocache_move_data(iocache *ioc)
 	if (!ioc->ioc_offset)
 		return; /* nothing to do */
 
-	available = iocache_available(ioc);
+	/* if we're fully read, we only have to reset the counters */
+	if (ioc->ioc_buflen <= ioc->ioc_offset) {
+		iocache_reset(ioc);
+		return;
+	}
+	available = ioc->ioc_buflen - ioc->ioc_offset;
 	memmove(ioc->ioc_buf, ioc->ioc_buf + ioc->ioc_offset, available);
 	ioc->ioc_offset = 0;
 	ioc->ioc_buflen = available;
+}
+
+void iocache_reset(iocache *ioc)
+{
+	if (ioc)
+		ioc->ioc_offset = ioc->ioc_buflen = 0;
 }
 
 int iocache_resize(iocache *ioc, unsigned long new_size)
@@ -81,8 +92,8 @@ unsigned long iocache_available(iocache *ioc)
 	if (!ioc || !ioc->ioc_buf || !ioc->ioc_bufsize || !ioc->ioc_buflen)
 		return 0;
 
-	if (ioc->ioc_buflen < ioc->ioc_offset) {
-		iocache_move_data(ioc);
+	if (ioc->ioc_buflen <= ioc->ioc_offset) {
+		iocache_reset(ioc);
 		return 0;
 	}
 
@@ -100,6 +111,7 @@ char *iocache_use_size(iocache *ioc, unsigned long size)
 
 	ret = ioc->ioc_buf + ioc->ioc_offset;
 	ioc->ioc_offset += size;
+
 	return ret;
 }
 
@@ -165,15 +177,6 @@ int iocache_read(iocache *ioc, int fd)
 
 	if (!ioc || !ioc->ioc_buf || fd < 0)
 		return -1;
-
-	/*
-	 * Check if we've managed to read our fill and the caller
-	 * has parsed all data. Otherwise we might end up in a state
-	 * where we can't read anything but there's still new data
-	 * queued on the socket
-	 */
-	if (ioc->ioc_offset >= ioc->ioc_buflen)
-		ioc->ioc_offset = ioc->ioc_buflen = 0;
 
 	/* we make sure we've got as much room as possible */
 	iocache_move_data(ioc);

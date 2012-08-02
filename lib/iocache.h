@@ -25,6 +25,14 @@ typedef struct iocache iocache;
 extern void iocache_destroy(iocache *ioc);
 
 /**
+ * Resets an iocache struct, discarding all data in it without free()'ing
+ * any memory.
+ *
+ * @param[in] ioc The iocache struct to reset
+ */
+extern void iocache_reset(iocache *ioc);
+
+/**
  * Resizes the buffer in an io cache
  * @param ioc The io cache to resize
  * @param new_size The new size of the io cache

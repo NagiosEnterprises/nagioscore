@@ -109,8 +109,6 @@ extern hostdependency    *hostdependency_list;
 extern unsigned long   next_event_id;
 extern unsigned long   next_problem_id;
 
-extern check_result    check_result_info;
-extern check_result    *check_result_list;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 
@@ -125,93 +123,13 @@ extern unsigned long max_debug_file_size;
 
 /* reaps host and service check results */
 int reap_check_results(void) {
-	check_result *queued_check_result = NULL;
-	service *temp_service = NULL;
-	host *temp_host = NULL;
-	time_t current_time = 0L;
-	time_t reaper_start_time = 0L;
 	int reaped_checks = 0;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "reap_check_results() start\n");
 	log_debug_info(DEBUGL_CHECKS, 0, "Starting to reap check results.\n");
 
-	/* get the start time */
-	time(&reaper_start_time);
-
 	/* process files in the check result queue */
-	process_check_result_queue(check_result_path);
-
-	/* read all check results that have come in... */
-	while((queued_check_result = read_check_result())) {
-
-		reaped_checks++;
-
-		log_debug_info(DEBUGL_CHECKS, 2, "Found a check result (#%d) to handle...\n", reaped_checks);
-
-		/* service check */
-		if(queued_check_result->object_check_type == SERVICE_CHECK) {
-
-			/* make sure the service exists */
-			if((temp_service = find_service(queued_check_result->host_name, queued_check_result->service_description)) == NULL) {
-
-				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n", queued_check_result->service_description, queued_check_result->host_name);
-
-				/* free memory */
-				free_check_result(queued_check_result);
-				my_free(queued_check_result);
-
-				/* TODO - add new service definition automatically */
-
-				continue;
-				}
-
-			log_debug_info(DEBUGL_CHECKS, 1, "Handling check result for service '%s' on host '%s'...\n", temp_service->description, temp_service->host_name);
-
-			/* process the check result */
-			handle_async_service_check_result(temp_service, queued_check_result);
-			}
-
-		/* host check */
-		else {
-			if((temp_host = find_host(queued_check_result->host_name)) == NULL) {
-
-				/* make sure the host exists */
-				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check result queue contained results for host '%s', but the host could not be found!  Perhaps you forgot to define the host in your config files?\n", queued_check_result->host_name);
-
-				/* free memory */
-				free_check_result(queued_check_result);
-				my_free(queued_check_result);
-
-				/* TODO - add new host definition automatically */
-
-				continue;
-				}
-
-			log_debug_info(DEBUGL_CHECKS, 1, "Handling check result for host '%s'...\n", temp_host->name);
-
-			/* process the check result */
-			handle_async_host_check_result_3x(temp_host, queued_check_result);
-			}
-
-		log_debug_info(DEBUGL_CHECKS | DEBUGL_IPC, 1, "Deleted check result file '%s'\n", queued_check_result->output_file);
-
-		/* free allocated memory */
-		free_check_result(queued_check_result);
-		my_free(queued_check_result);
-
-		/* break out if we've been here too long (max_check_reaper_time seconds) */
-		time(&current_time);
-		if((int)(current_time - reaper_start_time) > max_check_reaper_time) {
-			log_debug_info(DEBUGL_CHECKS, 0, "Breaking out of check result reaper: max reaper time exceeded\n");
-			break;
-			}
-
-		/* bail out if we encountered a signal */
-		if(sigshutdown == TRUE || sigrestart == TRUE) {
-			log_debug_info(DEBUGL_CHECKS, 0, "Breaking out of check result reaper: signal encountered\n");
-			break;
-			}
-		}
+	reaped_checks = process_check_result_queue(check_result_path);
 
 	log_debug_info(DEBUGL_CHECKS, 0, "Finished reaping %d check results\n", reaped_checks);
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "reap_check_results() end\n");

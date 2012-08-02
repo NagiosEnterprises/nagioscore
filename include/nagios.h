@@ -318,7 +318,6 @@ typedef struct check_result_struct {
 	int return_code;				/* plugin return code */
 	char *output;	                                /* plugin output */
 	struct rusage rusage;			/* resource usage by this check */
-	struct check_result_struct *next;
 	} check_result;
 
 
@@ -444,10 +443,8 @@ void adjust_timestamp_for_time_change(time_t, time_t, unsigned long, time_t *); 
 int move_check_result_to_queue(char *);
 int process_check_result_queue(char *);
 int process_check_result_file(char *);
-int add_check_result_to_list(check_result *);
-check_result *read_check_result(void);                  	/* reads a host/service check result from the list in memory */
+int process_check_result(check_result *);
 int delete_check_result_file(char *);
-int free_check_result_list(void);
 int init_check_result(check_result *);
 int free_check_result(check_result *);                  	/* frees memory associated with a host/service check result */
 int parse_check_output(char *, char **, char **, char **, int, int);

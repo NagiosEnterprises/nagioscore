@@ -2019,7 +2019,8 @@ int process_check_result_queue(char *dirname) {
 	struct stat stat_buf;
 	struct stat ok_stat_buf;
 	char *temp_buffer = NULL;
-	int result = OK;
+	int result = OK, check_result_files = 0;
+	time_t start;
 
 	/* make sure we have what we need */
 	if(dirname == NULL) {
@@ -2035,8 +2036,21 @@ int process_check_result_queue(char *dirname) {
 
 	log_debug_info(DEBUGL_CHECKS, 1, "Starting to read check result queue '%s'...\n", dirname);
 
+	start = time(NULL);
+
 	/* process all files in the directory... */
 	while((dirfile = readdir(dirp)) != NULL) {
+		/* bail out if we encountered a signal */
+		if (sigshutdown == TRUE || sigrestart == TRUE) {
+			log_debug_info(DEBUGL_CHECKS, 0, "Breaking out of check result reaper: signal encountered\n");
+			break;
+			}
+
+		/* break out if we've been here too long */
+		if ((int)(time(NULL) - start) < max_check_reaper_time) {
+			log_debug_info(DEBUGL_CHECKS, 0, "Breaking out of check result reaper: max time exceeded\n");
+			break;
+			}
 
 		/* create /path/to/file */
 		snprintf(file, sizeof(file), "%s/%s", dirname, dirfile->d_name);
@@ -2076,17 +2090,38 @@ int process_check_result_queue(char *dirname) {
 			/* break out if we encountered an error */
 			if(result == ERROR)
 				break;
+
+			check_result_files++;
 			}
 		}
 
 	closedir(dirp);
 
-	return result;
+	return check_result_files;
 
 	}
 
 
-
+int process_check_result(check_result *cr)
+{
+	if (!cr)
+		return ERROR;
+	if (cr->object_check_type == SERVICE_CHECK) {
+		service *svc;
+		svc = find_service(cr->host_name, cr->service_description);
+		if (!svc)
+			return ERROR;
+		return handle_async_service_check_result(svc, cr);
+		}
+	if (cr->object_check_type == HOST_CHECK) {
+		host *hst;
+		hst = find_host(cr->host_name);
+		if (!hst)
+			return ERROR;
+		return handle_async_host_check_result_3x(hst, cr);
+		}
+	return ERROR;
+	}
 
 /* reads check result(s) from a file */
 int process_check_result_file(char *fname) {
@@ -2096,11 +2131,12 @@ int process_check_result_file(char *fname) {
 	char *val = NULL;
 	char *v1 = NULL, *v2 = NULL;
 	time_t current_time;
-	check_result *new_cr = NULL;
+	check_result cr;
 
 	if(fname == NULL)
 		return ERROR;
 
+	init_check_result(&cr);
 	time(&current_time);
 
 	log_debug_info(DEBUGL_CHECKS, 1, "Processing check result file: '%s'\n", fname);
@@ -2131,26 +2167,18 @@ int process_check_result_file(char *fname) {
 		/* empty line indicates end of record */
 		else if(input[0] == '\n') {
 
-			/* we have something... */
-			if(new_cr) {
+			/* do we have the minimum amount of data? */
+			if(cr.host_name != NULL && cr.output != NULL) {
 
-				/* do we have the minimum amount of data? */
-				if(new_cr->host_name != NULL && new_cr->output != NULL) {
+				/* process the check result */
+				process_check_result(&cr);
 
-					/* add check result to list in memory */
-					add_check_result_to_list(new_cr);
-
-					/* reset pointer */
-					new_cr = NULL;
-					}
-
-				/* discard partial input */
-				else {
-					free_check_result(new_cr);
-					init_check_result(new_cr);
-					new_cr->output_file = (char *)strdup(fname);
-					}
 				}
+
+			/* cleanse for next check result */
+			free_check_result(&cr);
+			init_check_result(&cr);
+			cr.output_file = fname;
 			}
 
 		if((var = my_strtok(input, "=")) == NULL)
@@ -2170,88 +2198,63 @@ int process_check_result_file(char *fname) {
 
 		/* else we have check result data */
 		else {
-
-			/* allocate new check result if necessary */
-			if(new_cr == NULL) {
-
-				if((new_cr = (check_result *)malloc(sizeof(check_result))) == NULL)
-					continue;
-
-				/* init values */
-				init_check_result(new_cr);
-				new_cr->output_file = (char *)strdup(fname);
-				}
-
 			if(!strcmp(var, "host_name"))
-				new_cr->host_name = (char *)strdup(val);
+				cr.host_name = (char *)strdup(val);
 			else if(!strcmp(var, "service_description")) {
-				new_cr->service_description = (char *)strdup(val);
-				new_cr->object_check_type = SERVICE_CHECK;
+				cr.service_description = (char *)strdup(val);
+				cr.object_check_type = SERVICE_CHECK;
 				}
 			else if(!strcmp(var, "check_type"))
-				new_cr->check_type = atoi(val);
+				cr.check_type = atoi(val);
 			else if(!strcmp(var, "check_options"))
-				new_cr->check_options = atoi(val);
+				cr.check_options = atoi(val);
 			else if(!strcmp(var, "scheduled_check"))
-				new_cr->scheduled_check = atoi(val);
+				cr.scheduled_check = atoi(val);
 			else if(!strcmp(var, "reschedule_check"))
-				new_cr->reschedule_check = atoi(val);
+				cr.reschedule_check = atoi(val);
 			else if(!strcmp(var, "latency"))
-				new_cr->latency = strtod(val, NULL);
+				cr.latency = strtod(val, NULL);
 			else if(!strcmp(var, "start_time")) {
 				if((v1 = strtok(val, ".")) == NULL)
 					continue;
 				if((v2 = strtok(NULL, "\n")) == NULL)
 					continue;
-				new_cr->start_time.tv_sec = strtoul(v1, NULL, 0);
-				new_cr->start_time.tv_usec = strtoul(v2, NULL, 0);
+				cr.start_time.tv_sec = strtoul(v1, NULL, 0);
+				cr.start_time.tv_usec = strtoul(v2, NULL, 0);
 				}
 			else if(!strcmp(var, "finish_time")) {
 				if((v1 = strtok(val, ".")) == NULL)
 					continue;
 				if((v2 = strtok(NULL, "\n")) == NULL)
 					continue;
-				new_cr->finish_time.tv_sec = strtoul(v1, NULL, 0);
-				new_cr->finish_time.tv_usec = strtoul(v2, NULL, 0);
+				cr.finish_time.tv_sec = strtoul(v1, NULL, 0);
+				cr.finish_time.tv_usec = strtoul(v2, NULL, 0);
 				}
 			else if(!strcmp(var, "early_timeout"))
-				new_cr->early_timeout = atoi(val);
+				cr.early_timeout = atoi(val);
 			else if(!strcmp(var, "exited_ok"))
-				new_cr->exited_ok = atoi(val);
+				cr.exited_ok = atoi(val);
 			else if(!strcmp(var, "return_code"))
-				new_cr->return_code = atoi(val);
+				cr.return_code = atoi(val);
 			else if(!strcmp(var, "output"))
-				new_cr->output = (char *)strdup(val);
+				cr.output = (char *)strdup(val);
 			}
 		}
 
-	/* we have something */
-	if(new_cr) {
+	/* do we have the minimum amount of data? */
+	if(cr.host_name != NULL && cr.output != NULL) {
 
-		/* do we have the minimum amount of data? */
-		if(new_cr->host_name != NULL && new_cr->output != NULL) {
-
-			/* add check result to list in memory */
-			add_check_result_to_list(new_cr);
-
-			/* reset pointer */
-			new_cr = NULL;
-			}
-
-		/* discard partial input */
-		/* free memory for current check result record */
-		else {
-			free_check_result(new_cr);
-			my_free(new_cr);
-			}
+		/* process check result */
+		process_check_result(&cr);
 		}
+
+	free_check_result(&cr);
 
 	/* free memory and close file */
 	my_free(input);
 	mmap_fclose(thefile);
 
-	/* delete the file (as well its ok-to-go file) if it's too old */
-	/* other (current) files are deleted later (when results are processed) */
+	/* delete the file (as well its ok-to-go file) */
 	delete_check_result_file(fname);
 
 	return OK;
@@ -2275,21 +2278,6 @@ int delete_check_result_file(char *fname) {
 	return OK;
 	}
 
-
-
-
-/* reads the first host/service check result from the list in memory */
-check_result *read_check_result(void) {
-	check_result *first_cr = NULL;
-
-	if(check_result_list == NULL)
-		return NULL;
-
-	first_cr = check_result_list;
-	check_result_list = check_result_list->next;
-
-	return first_cr;
-	}
 
 
 
@@ -2318,70 +2306,9 @@ int init_check_result(check_result *info) {
 	info->exited_ok = TRUE;
 	info->return_code = 0;
 	info->output = NULL;
-	info->next = NULL;
 
 	return OK;
 	}
-
-
-
-
-/* adds a new host/service check result to the list in memory */
-int add_check_result_to_list(check_result *new_cr) {
-	check_result *temp_cr = NULL;
-	check_result *last_cr = NULL;
-
-	if(new_cr == NULL)
-		return ERROR;
-
-	/* add to list, sorted by finish time (asc) */
-
-	/* find insertion point */
-	last_cr = check_result_list;
-	for(temp_cr = check_result_list; temp_cr != NULL; temp_cr = temp_cr->next) {
-		if(temp_cr->finish_time.tv_sec >= new_cr->finish_time.tv_sec) {
-			if(temp_cr->finish_time.tv_sec > new_cr->finish_time.tv_sec)
-				break;
-			else if(temp_cr->finish_time.tv_usec > new_cr->finish_time.tv_usec)
-				break;
-			}
-		last_cr = temp_cr;
-		}
-
-	/* item goes at head of list */
-	if(check_result_list == NULL || temp_cr == check_result_list) {
-		new_cr->next = check_result_list;
-		check_result_list = new_cr;
-		}
-
-	/* item goes in middle or at end of list */
-	else {
-		new_cr->next = temp_cr;
-		last_cr->next = new_cr;
-		}
-
-	return OK;
-	}
-
-
-
-
-/* frees all memory associated with the check result list */
-int free_check_result_list(void) {
-	check_result *this_cr = NULL;
-	check_result *next_cr = NULL;
-
-	for(this_cr = check_result_list; this_cr != NULL; this_cr = next_cr) {
-		next_cr = this_cr->next;
-		free_check_result(this_cr);
-		my_free(this_cr);
-		}
-
-	check_result_list = NULL;
-
-	return OK;
-	}
-
 
 
 
@@ -2393,7 +2320,6 @@ int free_check_result(check_result *info) {
 
 	my_free(info->host_name);
 	my_free(info->service_description);
-	my_free(info->output_file);
 	my_free(info->output);
 
 	return OK;
@@ -3620,9 +3546,6 @@ void free_memory(nagios_macros *mac) {
 
 	/* free memory allocated to comments */
 	free_comment_data();
-
-	/* free check result list */
-	free_check_result_list();
 
 	/* free event queue data */
 	squeue_destroy(nagios_squeue, SQUEUE_FREE_DATA);

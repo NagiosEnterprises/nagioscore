@@ -368,15 +368,6 @@ typedef struct check_stats_struct {
 	} check_stats;
 
 
-/******************* THREAD STUFF ********************/
-
-	/* worker threads */
-#define TOTAL_WORKER_THREADS              1
-
-#define COMMAND_WORKER_THREAD		  0
-
-
-
 /******************** FUNCTIONS **********************/
 
 /**** Configuration Functions ****/

@@ -51,7 +51,6 @@ comment     **comment_hashlist = NULL;
 
 
 #ifdef NSCORE
-pthread_mutex_t nagios_comment_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /******************************************************************/
 /**************** INITIALIZATION/CLEANUP FUNCTIONS ****************/
@@ -174,11 +173,6 @@ int delete_comment(int type, unsigned long comment_id) {
 	comment *this_hash = NULL;
 	comment *last_hash = NULL;
 
-	/* lock the comments so we can modify them safely */
-#ifdef NSCORE
-	pthread_mutex_lock(&nagios_comment_lock);
-#endif
-
 	/* find the comment we should remove */
 	for(this_comment = comment_list, last_comment = comment_list; this_comment != NULL; this_comment = next_comment) {
 		next_comment = this_comment->next;
@@ -240,10 +234,6 @@ int delete_comment(int type, unsigned long comment_id) {
 		result = xcddefault_delete_host_comment(comment_id);
 	else
 		result = xcddefault_delete_service_comment(comment_id);
-#endif
-
-#ifdef NSCORE
-	pthread_mutex_unlock(&nagios_comment_lock);
 #endif
 
 	return result;
@@ -522,13 +512,7 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 		comment_list = new_comment;
 		}
 	else {
-		/* add new comment to comment list, sorted by comment id,
-		 * but lock the list first so broker threads doesn't crash
-		 * out in case they're modifying this list too
-		 */
-#ifdef NSCORE
-		pthread_mutex_lock(&nagios_comment_lock);
-#endif
+		/* add new comment to comment list, sorted by comment id */
 		last_comment = comment_list;
 		for(temp_comment = comment_list; temp_comment != NULL; temp_comment = temp_comment->next) {
 			if(new_comment->comment_id < temp_comment->comment_id) {
@@ -550,9 +534,6 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 			new_comment->next = NULL;
 			last_comment->next = new_comment;
 			}
-#ifdef NSCORE
-		pthread_mutex_unlock(&nagios_comment_lock);
-#endif
 		}
 
 #ifdef NSCORE

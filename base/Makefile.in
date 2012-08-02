@@ -49,7 +49,6 @@ HTMURL=@htmurl@
 
 MATHLIBS=-lm
 SOCKETLIBS=@SOCKETLIBS@
-THREADLIBS=@THREADLIBS@
 BROKERLIBS=@BROKERLIBS@
 
 BROKER_LDFLAGS=@BROKER_LDFLAGS@ 
@@ -181,7 +180,7 @@ libnagios:
 	$(MAKE) -C $(SRC_LIB)
 
 nagios: nagios.c $(OBJS) $(OBJDEPS) $(SRC_INCLUDE)/nagios.h $(SRC_INCLUDE)/locations.h libnagios
-	$(CC) $(CFLAGS) -o $@ nagios.c $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS) $(SRC_LIB)/libnagios.a
+	$(CC) $(CFLAGS) -o $@ nagios.c $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS) $(SRC_LIB)/libnagios.a
 
 nagiostats: nagiostats.c $(SRC_INCLUDE)/locations.h
 	$(CC) $(CFLAGS) -o $@ nagiostats.c $(LDFLAGS) $(MATHLIBS) $(LIBS)

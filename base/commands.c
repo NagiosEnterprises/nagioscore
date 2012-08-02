@@ -77,8 +77,6 @@ extern service  *service_list;
 extern FILE     *command_file_fp;
 extern int      command_file_fd;
 
-extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
-
 /******************************************************************/
 /****************** EXTERNAL COMMAND PROCESSING *******************/
 /******************************************************************/

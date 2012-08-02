@@ -107,9 +107,6 @@ extern hostdependency    *hostdependency_list;
 extern unsigned long   next_event_id;
 extern unsigned long   next_problem_id;
 
-
-extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
-
 extern unsigned long max_debug_file_size;
 
 

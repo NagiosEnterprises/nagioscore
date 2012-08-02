@@ -105,9 +105,6 @@ int neb_add_module(char *filename, char *args, int should_be_loaded) {
 	new_module->module_handle = NULL;
 	new_module->init_func = NULL;
 	new_module->deinit_func = NULL;
-#ifdef HAVE_PTHREAD_H
-	new_module->thread_id = (pthread_t)NULL;
-#endif
 
 	/* add module to head of list */
 	new_module->next = neb_module_list;

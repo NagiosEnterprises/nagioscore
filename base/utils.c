@@ -251,8 +251,6 @@ extern unsigned long   max_check_result_file_age;
 
 extern dbuf            check_result_dbuf;
 
-extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
-
 extern check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
 extern char            *debug_file;

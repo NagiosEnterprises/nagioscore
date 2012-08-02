@@ -58,8 +58,6 @@ extern int      debug_verbosity;
 extern unsigned long max_debug_file_size;
 FILE            *debug_file_fp = NULL;
 
-static pthread_mutex_t debug_fp_lock;
-
 /* These simple helpers should most likely be elsewhere */
 static const char *service_state_name(int state)
 {
@@ -87,36 +85,6 @@ static const char *state_type_name(int state_type)
 {
 	return state_type == HARD_STATE ? "HARD" : "SOFT";
 }
-
-/*
- * since we don't want child processes to hang indefinitely
- * in case they inherit a locked lock, we use soft-locking
- * here, which basically tries to acquire the lock for a
- * short while and then gives up, returning -1 to signal
- * the error
- */
-static inline int soft_lock(pthread_mutex_t *lock) {
-	int i;
-
-	for(i = 0; i < 5; i++) {
-		if(!pthread_mutex_trylock(lock)) {
-			/* success */
-			return 0;
-			}
-
-		if(errno == EDEADLK) {
-			/* we already have the lock */
-			return 0;
-			}
-
-		/* sleep briefly */
-		usleep(30);
-		}
-
-	return -1; /* we failed to get the lock. Nothing to do */
-	}
-
-
 
 /******************************************************************/
 /************************ LOGGING FUNCTIONS ***********************/
@@ -518,15 +486,6 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	if(debug_file_fp == NULL)
 		return ERROR;
 
-	/*
-	 * lock it so concurrent threads don't stomp on each other's
-	 * writings. We maintain the lock until we've (optionally)
-	 * renamed the file.
-	 * If soft_lock() fails we return early.
-	 */
-	if(soft_lock(&debug_fp_lock) < 0)
-		return ERROR;
-
 	/* write the timestamp */
 	gettimeofday(&current_time, NULL);
 	fprintf(debug_file_fp, "[%lu.%06lu] [%03d.%d] [pid=%lu] ", current_time.tv_sec, current_time.tv_usec, level, verbosity, (unsigned long)getpid());
@@ -562,8 +521,6 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 		/* open a new file */
 		open_debug_log();
 		}
-
-	pthread_mutex_unlock(&debug_fp_lock);
 
 	return OK;
 	}

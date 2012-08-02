@@ -56,7 +56,6 @@ MATHLIBS=-lm
 PERLLIBS=@PERLLIBS@
 PERLXSI_O=@PERLXSI_O@
 SOCKETLIBS=@SOCKETLIBS@
-THREADLIBS=@THREADLIBS@
 BROKERLIBS=@BROKERLIBS@
 
 BROKER_LDFLAGS=@BROKER_LDFLAGS@ 
@@ -110,10 +109,10 @@ test_freshness: test_freshness.o $(SRC_BASE)/freshness.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^
 
 test_nagios_config: test_nagios_config.o $(CFG_OBJS) $(TAPOBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS)
 
 test_timeperiods: test_timeperiods.o $(TP_OBJS) $(TAPOBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS)
 
 test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)

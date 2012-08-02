@@ -239,11 +239,6 @@
 #include <dirent.h>
 #endif
 
-#undef HAVE_PTHREAD_H
-#ifdef HAVE_PTHREAD_H
-#include <pthread.h>
-#endif
-
 #undef HAVE_REGEX_H
 #ifdef HAVE_REGEX_H
 #include <regex.h>

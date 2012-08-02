@@ -2,17 +2,6 @@
 #define NAGIOS_TEST_STUBS__
 #include "macros.h"
 
-/* give up the (fake) lock after 3 tries at getting it */
-int pthread_mutex_trylock(pthread_mutex_t *mutex) {
-	static int loops = 0;
-	if(loops < 3) {
-		loops++;
-		return -1;
-		}
-	loops = 0;
-	return 0;
-	}
-
 /* Loads of variables + stubbed functions */
 char *config_file = "etc/nagios.cfg";
 int      test_scheduling;

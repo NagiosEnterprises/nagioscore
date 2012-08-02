@@ -29,7 +29,7 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h libgen.h limits.h math.h netdb.h netinet/in.h pthread.h pthreads.h pwd.h regex.h signal.h socket.h stdarg.h string.h strings.h sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h sys/msg.h sys/poll.h syslog.h uio.h unistd.h)
+AC_CHECK_HEADERS(arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h libgen.h limits.h math.h netdb.h netinet/in.h pwd.h regex.h signal.h socket.h stdarg.h string.h strings.h sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h sys/msg.h sys/poll.h syslog.h uio.h unistd.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -121,73 +121,6 @@ AC_TRY_COMPILE([#include <stdlib.h>
 [AC_DEFINE(SOCKET_SIZE_TYPE, size_t, [typedef for socket size]) AC_MSG_RESULT(size_t)],
 [AC_DEFINE(SOCKET_SIZE_TYPE, int, [typedef for socket size]) AC_MSG_RESULT(int)])
 
-
-dnl Test for pthreads support - taken from ICU FreeBSD Port configure script
-THREADLIBS=""
-have_pthreads="no"
-
-dnl FreeBSD: Try ports/linuxthreads first - Mammad Zadeh <mammad@yahoo-inc.com>
-dnl FreeBSD -pthread check - Jonathan McDowell <noodles@earth.li>
-AC_DEFUN([AC_PTHREAD_FREEBSD],[
-	AC_CHECK_LIB(lthread,pthread_create,[
-		CFLAGS="-D_THREAD_SAFE -I/usr/local/include/pthread/linuxthreads -I/usr/include $CFLAGS"
-		THREADLIBS="-L/usr/local/lib -llthread -llgcc_r"
-		],[
-		AC_MSG_CHECKING([if we need -pthread for threads])
-		AC_CACHE_VAL(ac_ldflag_pthread,[
-			ac_save_LDFLAGS="$LDFLAGS"
-			LDFLAGS="-pthread $LDFLAGS"
-			AC_TRY_LINK([
-				char pthread_create();
-				],
-				pthread_create();,
-				eval "ac_ldflag_pthread=yes",
-				eval "ac_ldflag_pthread=no"
-				),
-			THREADLIBS="$ac_save_LDFLAGS"
-			])
-		if eval "test \"`echo $ac_ldflag_pthread`\" = yes"; then
-			AC_MSG_RESULT(yes)
-		else
-			AC_MSG_RESULT(no)
-		fi
-		],-L/usr/local/lib)
-	])
-
-dnl Test for HPUX cma threads first..
-AC_CHECK_LIB(cma,pthread_create,THREADLIBS="$THREADLIBS -lpthread")
-if test $ac_cv_lib_cma_pthread_create = yes; then
-	have_pthreads="yes"
-fi
-
-dnl special pthread handling 
-dnl AIX uses pthreads instead of pthread, and HP/UX uses cma
-dnl FreeBSD users -pthread
-AC_CHECK_LIB(pthread,pthread_create,THREADLIBS="$THREADLIBS -lpthread")
-if test $ac_cv_lib_pthread_pthread_create = yes; then
-	have_pthreads="yes"
-else
-	dnl For HP 11
-	AC_CHECK_LIB(pthread,pthread_mutex_init,THREADLIBS="$THREADLIBS -lpthread")
-	if test $ac_cv_lib_pthread_pthread_mutex_init = yes; then
-		have_pthreads="yes"
-	fi
-fi
-
-dnl AIX uses pthreads instead of pthread
-if test $have_pthreads = "no"; then
-	AC_CHECK_LIB(pthreads,pthread_create,THREADLIBS="$THREADLIBS -lpthreads")
-	if test $ac_cv_lib_pthreads_pthread_create = yes; then
-		have_pthreads="yes"
-	fi
-fi
-
-dnl all other thread tests fail, try BSD's -pthread
-if test $have_pthreads = "no"; then
-	AC_PTHREAD_FREEBSD
-fi
-
-AC_SUBST(THREADLIBS)
 
 dnl Solaris needs rt or posix4 libraries for nanosleep()
 AC_SEARCH_LIBS(nanosleep,[rt posix4],,[

@@ -83,9 +83,6 @@ typedef struct nebmodule_struct {
 	void            *init_func;
 	void            *deinit_func;
 #endif
-#ifdef HAVE_PTHREAD_H
-	pthread_t       thread_id;
-#endif
 	struct nebmodule_struct *next;
 	} nebmodule;
 

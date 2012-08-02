@@ -72,9 +72,6 @@ int     xpddefault_host_perfdata_fd = -1;
 int     xpddefault_service_perfdata_fd = -1;
 
 
-static pthread_mutex_t xpddefault_host_perfdata_fp_lock;
-static pthread_mutex_t xpddefault_service_perfdata_fp_lock;
-
 /******************************************************************/
 /***************** COMMON CONFIG INITIALIZATION  ******************/
 /******************************************************************/
@@ -721,12 +718,10 @@ int xpddefault_update_service_performance_data_file(nagios_macros *mac, service 
 
 	log_debug_info(DEBUGL_PERFDATA, 2, "Processed service performance data file output: %s\n", processed_output);
 
-	/* lock, write to and unlock host performance data file */
-	pthread_mutex_lock(&xpddefault_service_perfdata_fp_lock);
+	/* write to host performance data file */
 	fputs(processed_output, xpddefault_service_perfdata_fp);
 	fputc('\n', xpddefault_service_perfdata_fp);
 	fflush(xpddefault_service_perfdata_fp);
-	pthread_mutex_unlock(&xpddefault_service_perfdata_fp_lock);
 
 	/* free memory */
 	my_free(raw_output);
@@ -763,12 +758,10 @@ int xpddefault_update_host_performance_data_file(nagios_macros *mac, host *hst) 
 
 	log_debug_info(DEBUGL_PERFDATA, 2, "Processed host performance data file output: %s\n", processed_output);
 
-	/* lock, write to and unlock host performance data file */
-	pthread_mutex_lock(&xpddefault_host_perfdata_fp_lock);
+	/* write to host performance data file */
 	fputs(processed_output, xpddefault_host_perfdata_fp);
 	fputc('\n', xpddefault_host_perfdata_fp);
 	fflush(xpddefault_host_perfdata_fp);
-	pthread_mutex_unlock(&xpddefault_host_perfdata_fp_lock);
 
 	/* free memory */
 	my_free(raw_output);
@@ -816,17 +809,15 @@ int xpddefault_process_host_perfdata_file(void) {
 
 	log_debug_info(DEBUGL_PERFDATA, 2, "Processed host performance data file processing command line: %s\n", processed_command_line);
 
-	/* lock and close the performance data file */
-	pthread_mutex_lock(&xpddefault_host_perfdata_fp_lock);
+	/* close the performance data file */
 	xpddefault_close_host_perfdata_file();
 
 	/* run the command */
 	my_system_r(&mac, processed_command_line, xpddefault_perfdata_timeout, &early_timeout, &exectime, NULL, 0);
 	clear_volatile_macros_r(&mac);
 
-	/* re-open and unlock the performance data file */
+	/* re-open the performance data file */
 	xpddefault_open_host_perfdata_file();
-	pthread_mutex_unlock(&xpddefault_host_perfdata_fp_lock);
 
 	/* check to see if the command timed out */
 	if(early_timeout == TRUE)
@@ -878,16 +869,14 @@ int xpddefault_process_service_perfdata_file(void) {
 
 	log_debug_info(DEBUGL_PERFDATA, 2, "Processed service performance data file processing command line: %s\n", processed_command_line);
 
-	/* lock and close the performance data file */
-	pthread_mutex_lock(&xpddefault_service_perfdata_fp_lock);
+	/* close the performance data file */
 	xpddefault_close_service_perfdata_file();
 
 	/* run the command */
 	my_system_r(&mac, processed_command_line, xpddefault_perfdata_timeout, &early_timeout, &exectime, NULL, 0);
 
-	/* re-open and unlock the performance data file */
+	/* re-open the performance data file */
 	xpddefault_open_service_perfdata_file();
-	pthread_mutex_unlock(&xpddefault_service_perfdata_fp_lock);
 
 	clear_volatile_macros_r(&mac);
 

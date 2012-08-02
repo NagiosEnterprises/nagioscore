@@ -233,14 +233,14 @@ int kvvec_capacity(struct kvvec *kvv)
  * much use, but it's nifty for ipc where only computers are
  * involved, and it will parse the kvvec2buf() produce nicely.
  */
-struct kvvec *buf2kvvec_prealloc(struct kvvec *kvv, const char *str,
-				 unsigned int len, const char kvsep,
-				 const char pair_sep)
+int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
+			unsigned int len, const char kvsep,
+			const char pair_sep, int flags)
 {
 	unsigned int num_pairs = 0, i, offset = 0;
 
 	if (!str || !len || !kvv)
-		return NULL;
+		return -1;
 
 	/* first we count the number of key/value pairs */
 	while (offset < len) {
@@ -259,12 +259,15 @@ struct kvvec *buf2kvvec_prealloc(struct kvvec *kvv, const char *str,
 	}
 
 	if (!num_pairs) {
-		return NULL;
+		return 0;
 	}
 
 	/* make sure the key/value vector is large enough */
-	if (kvvec_capacity(kvv) < num_pairs && kvvec_grow(kvv, num_pairs) < 0)
-		return NULL;
+	if (!(flags & KVVEC_APPEND)) {
+		kvvec_init(kvv, num_pairs);
+	} else if (kvvec_capacity(kvv) < num_pairs && kvvec_grow(kvv, num_pairs) < 0) {
+		return -1;
+	}
 
 	offset = 0;
 	for (i = 0; i < num_pairs; i++) {
@@ -273,7 +276,7 @@ struct kvvec *buf2kvvec_prealloc(struct kvvec *kvv, const char *str,
 
 		/* keys can't begin with nul bytes */
 		if (offset && str[offset] == '\0') {
-			return kvv;
+			return kvv->kv_pairs;
 		}
 
 		key_end_ptr = memchr(str + offset, kvsep, len - offset);
@@ -287,30 +290,42 @@ struct kvvec *buf2kvvec_prealloc(struct kvvec *kvv, const char *str,
 
 		kv = &kvv->kv[kvv->kv_pairs++];
 		kv->key_len = (unsigned long)key_end_ptr - ((unsigned long)str + offset);
-		kv->key = malloc(kv->key_len + 1);
-		memcpy(kv->key, str + offset, kv->key_len);
+		if (flags & KVVEC_COPY) {
+			kv->key = malloc(kv->key_len + 1);
+			memcpy(kv->key, str + offset, kv->key_len);
+		} else {
+			kv->key = str + offset;
+		}
 		kv->key[kv->key_len] = 0;
 
 		offset += kv->key_len + 1;
 
 		if (str[offset] == pair_sep) {
 			kv->value_len = 0;
-			kv->value = strdup("");
+			if (flags & KVVEC_COPY) {
+				kv->value = strdup("");
+			} else {
+				kv->value = "";
+			}
 		} else {
 			kv->value_len = (unsigned long)kv_end_ptr - ((unsigned long)str + offset);
-			kv->value = malloc(kv->value_len + 1);
+			if (flags & KVVEC_COPY) {
+				kv->value = malloc(kv->value_len + 1);
+				memcpy(kv->value, str + offset, kv->value_len);
+			} else {
+				kv->value = str + offset;
+			}
 			kv->value[kv->value_len] = 0;
-			memcpy(kv->value, str + offset, kv->value_len);
 		}
 
 		offset += kv->value_len + 1;
 	}
 
-	return kvv;
+	return i;
 }
 
-struct kvvec *buf2kvvec(const char *str, unsigned int len, const char kvsep,
-			const char pair_sep)
+struct kvvec *buf2kvvec(char *str, unsigned int len, const char kvsep,
+			const char pair_sep, int flags)
 {
 	struct kvvec *kvv;
 
@@ -318,5 +333,9 @@ struct kvvec *buf2kvvec(const char *str, unsigned int len, const char kvsep,
 	if (!kvv)
 		return NULL;
 
-	return buf2kvvec_prealloc(kvv, str, len, kvsep, pair_sep);
+	if (buf2kvvec_prealloc(kvv, str, len, kvsep, pair_sep, flags) >= 0)
+		return kvv;
+
+	free(kvv);
+	return NULL;
 }

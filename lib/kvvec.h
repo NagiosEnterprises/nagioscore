@@ -53,6 +53,10 @@ struct kvvec {
 /** Free both keys and values when destroying a kv vector */
 #define KVVEC_FREE_ALL    (KVVEC_FREE_KEYS | KVVEC_FREE_VALUES)
 
+#define KVVEC_ASSIGN      0 /**< Assign from buf in buf2kvvec_prealloc() */
+#define KVVEC_COPY        1 /**< Copy from buf in buf2kvvec_prealloc() */
+#define KVVEC_APPEND      2 /**< Don't reset kvvec in buf2kvvec_prealloc() */
+
 /**
  * Initialize a previously allocated key/value vector
  *
@@ -165,7 +169,19 @@ extern struct kvvec_buf *kvvec2buf(struct kvvec *kvv, char kv_sep, char pair_sep
  * @param len Length of buffer to convert
  * @param kvsep Character separating key and value
  * @param pair_sep Character separating key/value pairs
+ * @return The created key/value vector
  */
-extern struct kvvec *buf2kvvec(const char *str, unsigned int len, const char kvsep, const char pair_sep);
+extern struct kvvec *buf2kvvec(char *str, unsigned int len, const char kvsep, const char pair_sep, int flags);
 
+/**
+ * Parse a buffer into the pre-allocated key/value vector. Immensely
+ * useful for ipc in combination with kvvec2buf().
+ *
+ * @param str The buffer to convert to a key/value vector
+ * @param len Length of buffer to convert
+ * @param kvsep Character separating key and value
+ * @param pair_sep Character separating key/value pairs
+ * @return The number of pairs in the created key/value vector
+ */
+extern int buf2kvvec_prealloc(struct kvvec *kvv, char *str, unsigned int len, const char kvsep, const char pair_sep, int flags);
 #endif /* INCLUDE_kvvec_h__ */

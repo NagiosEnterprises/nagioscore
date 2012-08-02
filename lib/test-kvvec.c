@@ -62,10 +62,12 @@ static void add_vars(struct kvvec *kvv, const char **ary, int len)
 int main(int argc, char **argv)
 {
 	int i;
-	struct kvvec *kvv, *kvv2;
+	struct kvvec *kvv, *kvv2, *kvv3;
 	struct kvvec_buf *kvvb, *kvvb2;
 
 	kvv = kvvec_create(1);
+	kvv2 = kvvec_create(1);
+	kvv3 = kvvec_create(1);
 	add_vars(kvv, test_data, 1239819);
 	add_vars(kvv, (const char **)argv + 1, argc - 1);
 
@@ -74,9 +76,13 @@ int main(int argc, char **argv)
 
 	/* kvvec2buf -> buf2kvvec -> kvvec2buf -> buf2kvvec conversion */
 	kvvb = kvvec2buf(kvv, KVSEP, PAIRSEP, OVERALLOC);
-	kvv2 = buf2kvvec(kvvb->buf, kvvb->buflen, KVSEP, PAIRSEP);
+	kvv3 = buf2kvvec(kvvb->buf, kvvb->buflen, KVSEP, PAIRSEP, KVVEC_COPY);
+	kvvb2 = kvvec2buf(kvv3, KVSEP, PAIRSEP, OVERALLOC);
+
+	buf2kvvec_prealloc(kvv2, kvvb->buf, kvvb->buflen, KVSEP, PAIRSEP, KVVEC_ASSIGN);
 	kvvec_foreach(kvv2, kvv, walker);
-	kvvb2 = kvvec2buf(kvv2, KVSEP, PAIRSEP, OVERALLOC);
+
+	kvvb = kvvec2buf(kvv, KVSEP, PAIRSEP, OVERALLOC);
 
 	if (kvv->kv_pairs != kvv2->kv_pairs) {
 		printf("Failure: kvvec2buf -> buf2kvvec fails to get pairs teamed up (delta: %d)\n",
@@ -99,6 +105,11 @@ int main(int argc, char **argv)
 				   kv2->key, kv2->value, kv2->key_len, kv2->value_len);
 		}
 	}
+	if (kvvb2->buflen == kvvb->buflen)
+		printf("PASS: kvvb->buflen == kvvb->buflen\n");
+	if (kvvb2->bufsize == kvvb->bufsize)
+		printf("PASS: kvvb2->bufsize = kvvb->bufsize\n");
+
 	if (kvvb2->buflen == kvvb->buflen && kvvb2->bufsize == kvvb->bufsize &&
 		!memcmp(kvvb2->buf, kvvb->buf, kvvb->bufsize))
 	{
@@ -110,6 +121,9 @@ int main(int argc, char **argv)
 
 	free(kvvb->buf);
 	free(kvvb);
+	free(kvvb2->buf);
+	free(kvvb2);
 	kvvec_destroy(kvv, 1);
+	kvvec_destroy(kvv3, KVVEC_FREE_ALL);
 	return 0;
 }

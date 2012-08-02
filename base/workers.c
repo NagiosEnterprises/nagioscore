@@ -369,8 +369,10 @@ static int handle_worker_result(int sd, int events, void *arg)
 	char *buf;
 	unsigned long size;
 	int ret;
+	static struct kvvec kvv = KVVEC_INITIALIZER;
 
 	ret = iocache_read(wp->ioc, wp->sd);
+
 	if (ret < 0) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "iocache_read() from worker %d returned %d: %s\n",
 			  wp->pid, ret, strerror(errno));
@@ -384,45 +386,37 @@ static int handle_worker_result(int sd, int events, void *arg)
 	}
 
 	while ((buf = iocache_use_delim(wp->ioc, MSG_DELIM, MSG_DELIM_LEN, &size))) {
-		struct kvvec *kvv;
 		int job_id = -1;
-		char *key, *value;
 		worker_job *job;
 		wproc_result wpres;
 
-		kvv = buf2kvvec(buf, size, '=', '\0');
-		if (!kvv) {
-			/* XXX FIXME log an error */
+		/* log messages are handled first */
+		if (size > 5 && !memcmp(buf, "log=", 4)) {
+			logit(NSLOG_INFO_MESSAGE, TRUE, "worker %d: %s\n", wp->pid, buf + 4);
 			continue;
 		}
 
-		key = kvv->kv[0].key;
-		value = kvv->kv[0].value;
-
-		/* log messages are handled first */
-		if (kvv->kv_pairs == 1 && !strcmp(key, "log")) {
-			logit(NSLOG_INFO_MESSAGE, TRUE, "worker %d: %s\n", wp->pid, value);
-			kvvec_destroy(kvv, KVVEC_FREE_ALL);
+		/* for everything else we need to actually parse */
+		if (buf2kvvec_prealloc(&kvv, buf, size, '=', '\0', KVVEC_ASSIGN) <= 0) {
+			/* XXX FIXME log an error */
 			continue;
 		}
 
 		memset(&wpres, 0, sizeof(wpres));
 		wpres.job_id = -1;
 		wpres.type = -1;
-		wpres.response = kvv;
-		parse_worker_result(&wpres, kvv);
+		wpres.response = &kvv;
+		parse_worker_result(&wpres, &kvv);
 
 		job = get_job(wp, wpres.job_id);
 		if (!job) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker job with id '%d' doesn't exist on worker %d.\n",
 				  job_id, wp->pid);
-			kvvec_destroy(kvv, KVVEC_FREE_ALL);
 			continue;
 		}
 		if (wpres.type != job->type) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker %d claims job %d is type %d, but we think it's type %d\n",
 				  wp->pid, job->id, wpres.type, job->type);
-			kvvec_destroy(kvv, KVVEC_FREE_ALL);
 			break;
 		}
 		oj = (wproc_object_job *)job->arg;
@@ -499,7 +493,6 @@ static int handle_worker_result(int sd, int events, void *arg)
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker %d: Unknown jobtype: %d\n", wp->pid, job->type);
 			break;
 		}
-		kvvec_destroy(kvv, KVVEC_FREE_ALL);
 		destroy_job(wp, job);
 		wp->jobs_running--;
 	}

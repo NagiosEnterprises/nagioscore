@@ -556,7 +556,8 @@ static int receive_command(int sd, int events, void *discard)
 	 */
 	while ((buf = iocache_use_delim(ioc, MSG_DELIM, MSG_DELIM_LEN_RECV, &size))) {
 		struct kvvec *kvv;
-		kvv = buf2kvvec(buf, (unsigned int)size, KV_SEP, PAIR_SEP);
+		/* we must copy vars here, as we preserve them for the response */
+		kvv = buf2kvvec(buf, (unsigned int)size, KV_SEP, PAIR_SEP, KVVEC_COPY);
 		if (kvv)
 			spawn_job(kvv);
 	}

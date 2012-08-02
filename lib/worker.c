@@ -652,17 +652,21 @@ struct worker_process *spawn_worker(void (*init_func)(void *), void *init_arg)
 		return NULL;
 
 	pid = fork();
-	if (pid < 0)
+	if (pid < 0) {
+		close(sv[0]);
+		close(sv[1]);
 		return NULL;
+	}
 
 	/* parent leaves the child */
 	if (pid) {
 		worker_process *worker = calloc(1, sizeof(worker_process));
+		close(sv[1]);
 		if (!worker) {
 			kill(SIGKILL, pid);
+			close(sv[0]);
 			return NULL;
 		}
-		close(sv[1]);
 		worker->sd = sv[0];
 		worker->pid = pid;
 		worker->ioc = iocache_create(1 * 1024 * 1024);

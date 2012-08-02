@@ -12,6 +12,9 @@
 #include "../include/nagios.h"
 #include "../include/workers.h"
 
+/* perfect hash function for wproc response codes */
+#include "wp-phash.c"
+
 extern int service_check_timeout, host_check_timeout;
 extern int notification_timeout;
 
@@ -263,72 +266,6 @@ static int handle_worker_check(wproc_result *wpres, worker_process *wp, worker_j
 	return result;
 }
 
-#define WPRES_job_id 0
-#define WPRES_type 1
-#define WPRES_command 2
-#define WPRES_timeout 3
-#define WPRES_wait_status 4
-#define WPRES_outstd 5
-#define WPRES_outerr 6
-#define WPRES_start 7
-#define WPRES_stop 8
-#define WPRES_runtime 9
-#define WPRES_exited_ok 10
-#define WPRES_ru_utime 11
-#define WPRES_ru_stime 12
-#define WPRES_ru_minflt 13
-#define WPRES_ru_majflt 14
-#define WPRES_ru_nswap 15
-#define WPRES_ru_inblock 16
-#define WPRES_ru_oublock 17
-#define WPRES_ru_nsignals 18
-#define WPRES_error_code 19
-#define WPRES_error_msg 20
-#define WPRES_CODE(str) { #str, sizeof(#str) - 1, WPRES_##str }
-typedef struct strcode {
-	char *str;
-	unsigned int len;
-	int code;
-} strcode;
-static strcode wpres_codes[] = {
-	WPRES_CODE(job_id),
-	WPRES_CODE(type),
-	WPRES_CODE(timeout),
-	WPRES_CODE(start),
-	WPRES_CODE(stop),
-	WPRES_CODE(outstd),
-	WPRES_CODE(outerr),
-	WPRES_CODE(wait_status),
-	WPRES_CODE(command),
-	WPRES_CODE(runtime),
-	WPRES_CODE(ru_utime),
-	WPRES_CODE(ru_stime),
-	WPRES_CODE(ru_minflt),
-	WPRES_CODE(ru_majflt),
-	WPRES_CODE(ru_nswap),
-	WPRES_CODE(ru_inblock),
-	WPRES_CODE(ru_oublock),
-	WPRES_CODE(ru_nsignals),
-	WPRES_CODE(exited_ok),
-	WPRES_CODE(error_msg),
-	WPRES_CODE(error_code),
-};
-
-static int response_code(char *key, unsigned int key_len)
-{
-	int i;
-
-	for (i = 0; i < ARRAY_SIZE(wpres_codes); i++) {
-		if (wpres_codes[i].len != key_len)
-			continue;
-		if (!memcmp(wpres_codes[i].str, key, key_len))
-			return wpres_codes[i].code;
-	}
-
-	/* unrecognized key */
-	return -1;
-}
-
 /*
  * parses a worker result. We do no strdup()'s here, so when
  * kvv is destroyed, all references to strings will become
@@ -344,7 +281,7 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 		key = kvv->kv[i].key;
 		value = kvv->kv[i].value;
 
-		code = response_code(key, kvv->kv[i].key_len);
+		code = wp_phash(key, kvv->kv[i].key_len);
 		switch (code) {
 		case -1:
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Unrecognized worker result variable: (i=%d) %s=%s\n", i, key, value);

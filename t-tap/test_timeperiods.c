@@ -243,8 +243,6 @@ unsigned long	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
 
 dbuf            check_result_dbuf;
 
-circular_buffer check_result_buffer;
-
 check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
 char            *debug_file;

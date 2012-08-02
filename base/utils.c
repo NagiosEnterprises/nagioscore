@@ -266,6 +266,9 @@ extern int             debug_level;
 extern int             debug_verbosity;
 extern unsigned long   max_debug_file_size;
 
+worker_process *command_wproc = NULL;
+extern iobroker_set *nagios_iobs;
+
 /* from GNU defines errno as a macro, since it's a per-thread variable */
 #ifndef errno
 extern int errno;
@@ -2362,28 +2365,6 @@ int open_command_file(void) {
 		return ERROR;
 		}
 
-	/* re-open the FIFO for use with fgets() */
-	if((command_file_fp = (FILE *)fdopen(command_file_fd, "r")) == NULL) {
-
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not open external command file for reading via fdopen(): (%d) -> %s\n", errno, strerror(errno));
-
-		return ERROR;
-		}
-
-	/* initialize worker thread */
-	if(init_command_file_worker_thread() == ERROR) {
-
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not initialize command file worker thread.\n");
-
-		/* close the command file */
-		fclose(command_file_fp);
-
-		/* delete the named pipe */
-		unlink(command_file);
-
-		return ERROR;
-		}
-
 	/* set a flag to remember we already created the file */
 	command_file_created = TRUE;
 
@@ -2750,110 +2731,65 @@ int dbuf_strcat(dbuf *db, char *buf) {
 /************************ THREAD FUNCTIONS ************************/
 /******************************************************************/
 
-/* initializes command file worker thread */
-int init_command_file_worker_thread(void) {
-	int result = 0;
-	sigset_t newmask;
-
-	/* initialize circular buffer */
-	external_command_buffer.head = 0;
-	external_command_buffer.tail = 0;
-	external_command_buffer.items = 0;
-	external_command_buffer.high = 0;
-	external_command_buffer.overflow = 0L;
-	external_command_buffer.buffer = (void **)malloc(external_command_buffer_slots * sizeof(char **));
-	if(external_command_buffer.buffer == NULL)
-		return ERROR;
-
-	/* initialize mutex (only on cold startup) */
-	if(sigrestart == FALSE)
-		pthread_mutex_init(&external_command_buffer.buffer_lock, NULL);
-
-	/* new thread should block all signals */
-	sigfillset(&newmask);
-	pthread_sigmask(SIG_BLOCK, &newmask, NULL);
-
-	/* create worker thread */
-	result = pthread_create(&worker_threads[COMMAND_WORKER_THREAD], NULL, command_file_worker_thread, NULL);
-
-	/* main thread should unblock all signals */
-	pthread_sigmask(SIG_UNBLOCK, &newmask, NULL);
-
-	if(result)
-		return ERROR;
-
-	return OK;
-	}
-
-
 /* shutdown command file worker thread */
-int shutdown_command_file_worker_thread(void) {
-	int result = 0;
+int shutdown_command_file_worker(void) {
+	if (!command_wproc)
+		return 0;
 
-	/*
-	 * calling pthread_cancel(0) will cause segfaults with some
-	 * thread libraries. It's possible that will happen if the
-	 * user has a number of config files larger than the max
-	 * open file descriptor limit (ulimit -n) and some retarded
-	 * eventbroker module leaks filedescriptors, since we'll then
-	 * enter the cleanup() routine from main() before we've
-	 * spawned any threads.
-	 */
-	if(worker_threads[COMMAND_WORKER_THREAD]) {
-		/* tell the worker thread to exit */
-		result = pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
-
-		/* wait for the worker thread to exit */
-		if(result == 0) {
-			result = pthread_join(worker_threads[COMMAND_WORKER_THREAD], NULL);
-			}
-
-		/* we're being called from a fork()'ed child process - can't cancel thread, so just cleanup memory */
-		else {
-			cleanup_command_file_worker_thread(NULL);
-			}
-		}
-
-	return OK;
+	wproc_destroy(command_wproc, WPROC_FORCE);
+	command_wproc = NULL;
+	return 0;
 	}
 
 
-/* clean up resources used by command file worker thread */
-void cleanup_command_file_worker_thread(void *arg) {
-	register int x = 0;
+int command_input_handler(int sd, int events, void *arg) {
+	int ret;
+	char *buf;
+	unsigned long size;
 
-	/* release memory allocated to circular buffer */
-	for(x = external_command_buffer.tail; x != external_command_buffer.head; x = (x + 1) % external_command_buffer_slots) {
-		my_free(((char **)external_command_buffer.buffer)[x]);
+	ret = iocache_read(command_wproc->ioc, sd);
+	log_debug_info(DEBUGL_COMMANDS, 2, "Read %d bytes from command worker\n", ret);
+	if (ret == 0) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Command file worker seems to have died. Respawning\n");
+		shutdown_command_file_worker();
+		launch_command_file_worker();
+		return 0;
 		}
-	my_free(external_command_buffer.buffer);
-
-	return;
+	while ((buf = iocache_use_delim(command_wproc->ioc, "\n", 1, &size))) {
+		if (buf[0] == '[') {
+			/* raw external command */
+			buf[size] = 0;
+			log_debug_info(DEBUGL_COMMANDS, 1, "Read raw external command '%s'\n", buf);
+			}
+		process_external_command1(buf);
+		}
+	return 0;
 	}
 
 
+/* main controller of command file helper process */
+static int command_file_worker(int sd) {
+	iocache *ioc;
 
-/* worker thread - artificially increases buffer of named pipe */
-void * command_file_worker_thread(void *arg) {
-	char input_buffer[MAX_EXTERNAL_COMMAND_LENGTH];
-	struct pollfd pfd;
-	int pollval;
-	struct timeval tv;
-	int buffer_items = 0;
-	int result = 0;
+	if (open_command_file() == ERROR)
+		return (EXIT_FAILURE);
 
-	/* specify cleanup routine */
-	pthread_cleanup_push(cleanup_command_file_worker_thread, NULL);
-
-	/* set cancellation info */
-	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+	ioc = iocache_create(65536);
+	if (!ioc)
+		exit(EXIT_FAILURE);
 
 	while(1) {
+		struct pollfd pfd;
+		int pollval, ret;
+		char *buf;
+		unsigned long size;
 
-		/* should we shutdown? */
-		pthread_testcancel();
+		/* if our master has gone away, we need to die */
+		if (kill(nagios_pid, 0) < 0 && errno == ESRCH) {
+			return EXIT_SUCCESS;
+			}
 
+		errno = 0;
 		/* wait for data to arrive */
 		/* select seems to not work, so we have to use poll instead */
 		/* 10-15-08 EG check into implementing William's patch @ http://blog.netways.de/2008/08/15/nagios-unter-mac-os-x-installieren/ */
@@ -2868,168 +2804,110 @@ void * command_file_worker_thread(void *arg) {
 
 		/* check for errors */
 		if(pollval == -1) {
-
-			switch(errno) {
-				case EBADF:
-					write_to_log("command_file_worker_thread(): poll(): EBADF", logging_options, NULL);
-					break;
-				case ENOMEM:
-					write_to_log("command_file_worker_thread(): poll(): ENOMEM", logging_options, NULL);
-					break;
-				case EFAULT:
-					write_to_log("command_file_worker_thread(): poll(): EFAULT", logging_options, NULL);
-					break;
-				case EINTR:
-					/* this can happen when running under a debugger like gdb */
-					/*
-					write_to_log("command_file_worker_thread(): poll(): EINTR (impossible)",logging_options,NULL);
-					*/
-					break;
-				default:
-					write_to_log("command_file_worker_thread(): poll(): Unknown errno value.", logging_options, NULL);
-					break;
-				}
-
-			continue;
+			/* @todo printf("Failed to poll() command file pipe: %m\n"); */
+			if (errno == EINTR)
+				continue;
+			return EXIT_FAILURE;
 			}
 
-		/* should we shutdown? */
-		pthread_testcancel();
-
-		/* get number of items in the buffer */
-		pthread_mutex_lock(&external_command_buffer.buffer_lock);
-		buffer_items = external_command_buffer.items;
-		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
-
-#ifdef DEBUG_CFWT
-		printf("(CFWT) BUFFER ITEMS: %d/%d\n", buffer_items, external_command_buffer_slots);
-#endif
-
-		/* 10-15-08 Fix for OS X by Jonathan Saggau - see http://www.jonathansaggau.com/blog/2008/09/using_shark_and_custom_dtrace.html */
-		/* Not sure if this would have negative effects on other OSes... */
-		if(buffer_items == 0) {
-			/* pause a bit so OS X doesn't go nuts with CPU overload */
-			tv.tv_sec = 0;
-			tv.tv_usec = 500;
-			select(0, NULL, NULL, NULL, &tv);
-			}
-
-		/* process all commands in the file (named pipe) if there's some space in the buffer */
-		if(buffer_items < external_command_buffer_slots) {
-
-			/* clear EOF condition from prior run (FreeBSD fix) */
-			/* FIXME: use_poll_on_cmd_pipe: Still needed? */
-			clearerr(command_file_fp);
-
-			/* read and process the next command in the file */
-			while(fgets(input_buffer, (int)(sizeof(input_buffer) - 1), command_file_fp) != NULL) {
-
-#ifdef DEBUG_CFWT
-				printf("(CFWT) READ: %s", input_buffer);
-#endif
-
-				/* submit the external command for processing (retry if buffer is full) */
-				while((result = submit_external_command(input_buffer, &buffer_items)) == ERROR && buffer_items == external_command_buffer_slots) {
-
-					/* wait a bit */
-					tv.tv_sec = 0;
-					tv.tv_usec = 250000;
-					select(0, NULL, NULL, NULL, &tv);
-
-					/* should we shutdown? */
-					pthread_testcancel();
-					}
-
-#ifdef DEBUG_CFWT
-				printf("(CFWT) RES: %d, BUFFER_ITEMS: %d/%d\n", result, buffer_items, external_comand_buffer_slots);
-#endif
-
-				/* bail if the circular buffer is full */
-				if(buffer_items == external_command_buffer_slots)
-					break;
-
-				/* should we shutdown? */
-				pthread_testcancel();
-				}
-			}
+		errno = 0;
+		ret = iocache_read(ioc, command_file_fd);
+		if (ret < 1) {
+			if (errno == EINTR)
+				continue;
+			return EXIT_FAILURE;
 		}
 
-	/* removes cleanup handler - this should never be reached */
-	pthread_cleanup_pop(0);
-
-	return NULL;
+		size = iocache_available(ioc);
+		buf = iocache_use_size(ioc, size);
+		ret = write(sd, buf, size);
+		/*
+		 * @todo Add libio to get io_write_all(), which handles
+		 * EINTR and EAGAIN properly instead of just exiting.
+		 */
+		if (ret < 0 && errno != EINTR)
+			return EXIT_FAILURE;
+		} /* while(1) */
 	}
 
 
+int launch_command_file_worker(void) {
+	int ret, pid, sv[2];
+	char *str;
 
-/* submits an external command for processing */
-int submit_external_command(char *cmd, int *buffer_items) {
-	int result = OK;
+	/*
+	 * if we're restarting, we may well already have a command
+	 * file worker process attached. Keep it if that's so.
+	 */
+	if (command_wproc && command_wproc->pid &&
+		kill(command_wproc->pid, 0) == 0 && iobroker_is_registered(nagios_iobs, command_wproc->sd))
+	{
+		return 0;
+	}
 
-	if(cmd == NULL || external_command_buffer.buffer == NULL) {
-		if(buffer_items != NULL)
-			*buffer_items = -1;
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) < 0) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to create socketpair for command file worker: %m\n");
 		return ERROR;
-		}
-
-	/* obtain a lock for writing to the buffer */
-	pthread_mutex_lock(&external_command_buffer.buffer_lock);
-
-	if(external_command_buffer.items < external_command_buffer_slots) {
-
-		/* save the line in the buffer */
-		((char **)external_command_buffer.buffer)[external_command_buffer.head] = (char *)strdup(cmd);
-
-		/* increment the head counter and items */
-		external_command_buffer.head = (external_command_buffer.head + 1) % external_command_buffer_slots;
-		external_command_buffer.items++;
-		if(external_command_buffer.items > external_command_buffer.high)
-			external_command_buffer.high = external_command_buffer.items;
-		}
-
-	/* buffer was full */
-	else
-		result = ERROR;
-
-	/* return number of items now in buffer */
-	if(buffer_items != NULL)
-		*buffer_items = external_command_buffer.items;
-
-	/* release lock on buffer */
-	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
-
-	return result;
 	}
 
-
-
-/* submits a raw external command (without timestamp) for processing */
-int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items) {
-	char *newcmd = NULL;
-	int result = OK;
-	time_t timestamp;
-
-	if(cmd == NULL)
-		return ERROR;
-
-	/* get the time */
-	if(ts != NULL)
-		timestamp = *ts;
-	else
-		time(&timestamp);
-
-	/* create the command string */
-	asprintf(&newcmd, "[%lu] %s", (unsigned long)timestamp, cmd);
-
-	/* submit the command */
-	result = submit_external_command(newcmd, buffer_items);
-
-	/* free allocated memory */
-	my_free(newcmd);
-
-	return result;
+	pid = fork();
+	if (pid < 0) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to fork() command file worker: %m\n");
+		goto err_close;
 	}
 
+	if (pid) {
+		command_wproc = calloc(1, sizeof(*command_wproc));
+		if (!command_wproc) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to calloc(1, %d) for command file worker: %m\n",
+				  (int)sizeof(*command_wproc));
+			goto err_close;
+		}
+		command_wproc->type = "command file";
+		command_wproc->ioc = iocache_create(512 * 1024);
+		if (!command_wproc->ioc) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to create I/O cache for command file worker: %m\n");
+			goto err_free;
+		}
+		printf("command_wproc->ioc: %p\n", command_wproc->ioc);
+
+		command_wproc->pid = pid;
+		command_wproc->sd = sv[0];
+		ret = iobroker_register(nagios_iobs, command_wproc->sd, command_wproc, command_input_handler);
+		if (ret < 0) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to register command file worker socket %d with io broker %p\n",
+				  command_wproc->sd, nagios_iobs);
+			goto err_ioc;
+		}
+		logit(NSLOG_INFO_MESSAGE, TRUE, "Successfully launched command file worker with pid %d\n",
+			  command_wproc->pid);
+		return OK;
+	}
+
+	/* child goes here */
+	close(sv[0]);
+
+	/* make our own process-group so we can be traced into and stuff */
+	setpgid(0, 0);
+
+	/* we must preserve command_file before nuking memory */
+	(void)chdir("/tmp");
+	(void)chdir("nagios-cfw");
+	str = strdup(command_file);
+	free_memory(get_global_macros());
+	command_file = str;
+	exit(command_file_worker(sv[1]));
+
+	/* error conditions for parent */
+err_ioc:
+	free(command_wproc->ioc);
+err_free:
+	free(command_wproc);
+err_close:
+	close(sv[0]);
+	close(sv[1]);
+	return ERROR;
+	}
 
 
 /******************************************************************/

@@ -697,13 +697,8 @@ void disable_contact_host_notifications(contact *);     /* disables host notific
 void enable_contact_service_notifications(contact *);   /* enables service notifications for a specific contact */
 void disable_contact_service_notifications(contact *);  /* disables service notifications for a specific contact */
 
-int init_command_file_worker_thread(void);
-int shutdown_command_file_worker_thread(void);
-void * command_file_worker_thread(void *);
-void cleanup_command_file_worker_thread(void *);
-
-int submit_external_command(char *, int *);
-int submit_raw_external_command(char *, time_t *, int *);
+int launch_command_file_worker(void);
+int shutdown_command_file_worker(void);
 
 char *get_program_version(void);
 char *get_program_modification_date(void);

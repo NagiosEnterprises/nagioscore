@@ -710,12 +710,6 @@ int main(int argc, char **argv, char **env) {
 
 					/* clean up the status data */
 					cleanup_status_data(config_file, TRUE);
-
-					/* shutdown the external command worker thread */
-					shutdown_command_file_worker_thread();
-
-					/* close and delete the external command file FIFO */
-					close_command_file();
 					}
 
 #ifdef USE_EVENT_BROKER
@@ -760,20 +754,6 @@ int main(int argc, char **argv, char **env) {
 				nagios_pid = (int)getpid();
 				}
 
-			/* open the command file (named pipe) for reading */
-			result = open_command_file();
-			if(result != OK) {
-
-				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR, TRUE, "Bailing out due to errors encountered while trying to initialize the external command file... (PID=%d)\n", (int)getpid());
-
-#ifdef USE_EVENT_BROKER
-				/* send program data to broker */
-				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN, NEBFLAG_PROCESS_INITIATED, NEBATTR_SHUTDOWN_ABNORMAL, NULL);
-#endif
-				cleanup();
-				exit(ERROR);
-				}
-
 			/* initialize status data unless we're starting */
 			if(sigrestart == FALSE)
 				initialize_status_data(config_file);
@@ -809,6 +789,9 @@ int main(int argc, char **argv, char **env) {
 
 			/* reset the restart flag */
 			sigrestart = FALSE;
+
+			/* fire up command file worker */
+			launch_command_file_worker();
 
 			/* @TODO: get number of workers from config */
 			init_workers(4);
@@ -864,13 +847,8 @@ int main(int argc, char **argv, char **env) {
 			cleanup_comment_data(config_file);
 
 			/* clean up the status data unless we're restarting */
-			if(sigrestart == FALSE)
-				cleanup_status_data(config_file, TRUE);
-
-			/* close and delete the external command file FIFO unless we're restarting */
 			if(sigrestart == FALSE) {
-				shutdown_command_file_worker_thread();
-				close_command_file();
+				cleanup_status_data(config_file, TRUE);
 				}
 
 			/* shutdown stuff... */

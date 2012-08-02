@@ -2055,10 +2055,13 @@ int process_check_result_queue(char *dirname) {
 			if (!S_ISREG(stat_buf.st_mode))
 				continue;
 
-
-				}
-
 			/* at this point we have a regular file... */
+
+			/* if the file is too old, we delete it */
+			if (stat_buf.st_mtime + max_check_result_file_age < time(NULL)) {
+				delete_check_result_file(dirfile->d_name);
+				continue;
+				}
 
 			/* can we find the associated ok-to-go file ? */
 			asprintf(&temp_buffer, "%s.ok", file);

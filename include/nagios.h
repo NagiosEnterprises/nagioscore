@@ -308,7 +308,6 @@ typedef struct check_result_struct {
 	int reschedule_check;                           /* should we reschedule the next check */
 	char *output_file;                              /* what file is the output stored in? */
 	FILE *output_file_fp;
-	int output_file_fd;
 	double latency;
 	struct timeval start_time;			/* time the service check was initiated */
 	struct timeval finish_time;			/* time the service check was completed */

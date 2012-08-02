@@ -316,7 +316,7 @@ void iobroker_destroy(iobroker_set *iobs, int flags)
 
 int iobroker_poll(iobroker_set *iobs, int timeout)
 {
-	int i, nfds;
+	int i, nfds, ret = 0;
 
 	if (!iobs)
 		return IOBROKER_ENOSET;
@@ -342,6 +342,7 @@ int iobroker_poll(iobroker_set *iobs, int timeout)
 
 		if (s) {
 			s->handler(fd, iobs->ep_events[i].events, s->arg);
+			ret++;
 		}
 	}
 #elif defined(IOBROKER_USES_SELECT)
@@ -386,6 +387,7 @@ int iobroker_poll(iobroker_set *iobs, int timeout)
 					continue;
 				}
 				s->handler(s->fd, POLLIN, s->arg);
+				ret++;
 			}
 		}
 	}
@@ -420,9 +422,10 @@ int iobroker_poll(iobroker_set *iobs, int timeout)
 				continue;
 			}
 			s->handler(s->fd, (int)iobs->pfd[i].revents, s->arg);
+			ret++;
 		}
 	}
 #endif
 
-	return 0;
+	return ret;
 }

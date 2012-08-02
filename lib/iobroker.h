@@ -149,6 +149,7 @@ extern void iobroker_destroy(iobroker_set *iobs, int flags);
  * Wait for input on any of the registered sockets.
  * @param iobs The socket set to wait for.
  * @param timeout Timeout in milliseconds. -1 is "wait indefinitely"
+ * @return -1 on errors, or number of filedescriptors with input
  */
 extern int iobroker_poll(iobroker_set *iobs, int timeout);
 #endif /* INCLUDE_iobroker_h__ */

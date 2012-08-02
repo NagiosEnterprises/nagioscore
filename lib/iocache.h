@@ -1,7 +1,8 @@
 #ifndef INCLUDE_iocache_h__
 #define INCLUDE_iocache_h__
 #include <stdlib.h>
-#include <limits.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 /**
  * @file iocache.h
@@ -110,5 +111,63 @@ extern iocache *iocache_create(unsigned long size);
  */
 extern int iocache_read(iocache *ioc, int fd);
 
+/**
+ * Add data to the iocache buffer
+ * The data is copied, so it can safely be taken from the stack in a
+ * function that returns before the data is used.
+ * If the io cache is too small to hold the data, -1 will be returned.
+ *
+ * @param[in] ioc The io cache to add to
+ * @param[in] buf Pointer to the data we should add
+ * @param[in] len Length (in bytes) of data pointed to by buf
+ * @return iocache_available(ioc) on success, -1 on errors
+ */
+extern int iocache_add(iocache *ioc, char *buf, unsigned int len);
+
+/**
+ * Like sendto(), but sends all cached data prior to the requested
+ *
+ * @param[in] ioc The iocache to send, or cache data in
+ * @param[in] fd The file descriptor to send to
+ * @param[in] buf Pointer to the data to send
+ * @param[in] len Length (in bytes) of data to send
+ * @param[in] flags Flags passed to sendto(2)
+ * @param[in] dest_addr Destination address
+ * @param[in] addrlen size (in bytes) of dest_addr
+ * @return bytes sent on success, -ERRNO on errors
+ */
+extern int iocache_sendto(iocache *ioc, int fd, char *buf, unsigned int len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen);
+
+/**
+ * Like send(2), but sends all cached data prior to the requested
+ * This function uses iocache_sendto() internally, but can only be
+ * used on connected sockets or open()'ed files.
+ *
+ * @param[in] ioc The iocache to send, or cache data in
+ * @param[in] fd The file descriptor to send to
+ * @param[in] buf Pointer to the data to send
+ * @param[in] len Length (in bytes) of data to send
+ * @param[in] flags Flags passed to sendto(2)
+ * @return bytes sent on success, -ERRNO on errors
+ */
+static inline int iocache_send(iocache *ioc, int fd, char *buf, unsigned int len, int flags)
+{
+	return iocache_sendto(ioc, fd, buf, len, flags, NULL, 0);
+}
+
+/**
+ * Like write(2), but sends all cached data prior to the requested
+ * This function uses iocache_send() internally.
+ *
+ * @param[in] ioc The iocache to send, or cache data in
+ * @param[in] fd The file descriptor to send to
+ * @param[in] buf Pointer to the data to send
+ * @param[in] len Length (in bytes) of data to send
+ * @return bytes sent on success, -ERRNO on errors
+ */
+static inline int iocache_write(iocache *ioc, int fd, char *buf, unsigned int len)
+{
+	return iocache_send(ioc, fd, buf, len, 0);
+}
 #endif /* INCLUDE_iocache_h__ */
 /** @} */

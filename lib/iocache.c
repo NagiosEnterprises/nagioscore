@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 struct iocache {
 	char *ioc_buf; /* the data */
@@ -190,4 +191,56 @@ int iocache_read(iocache *ioc, int fd)
 	}
 
 	return bytes_read;
+}
+
+
+int iocache_add(iocache *ioc, char *buf, unsigned int len)
+{
+	if (!ioc || iocache_capacity(ioc) < len)
+		return -1;
+
+	memcpy(ioc->ioc_buf + ioc->ioc_offset, buf, len);
+	ioc->ioc_buflen += len;
+	return ioc->ioc_buflen - ioc->ioc_offset;
+}
+
+/*
+ * Three cases to handle:
+ *  - buf has data, iocache doesn't.
+ *  - iocache has data, buf doesn't.
+ *  - both buf and iocache has data.
+ */
+int iocache_sendto(iocache *ioc, int fd, char *buf, unsigned int len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
+{
+	int sent;
+
+	errno = 0;
+	if (!ioc)
+		return -1;
+
+	if (!ioc->ioc_buflen && !len)
+		return 0;
+
+	if (ioc->ioc_buf && iocache_available(ioc)) {
+		if (buf && len) {
+			/* copy buf and len to iocache buffer to use just one write */
+			if (iocache_capacity(ioc) < len) {
+				if (iocache_grow(ioc, iocache_size(ioc)) < 0)
+					return -1;
+			}
+			if (iocache_add(ioc, buf, len) < 0)
+				return -1;
+		}
+		buf = ioc->ioc_buf;
+		len = iocache_available(ioc);
+	}
+
+	sent = sendto(fd, buf, len, flags, dest_addr, addrlen);
+	if (sent < 1)
+		return -errno;
+
+	if (iocache_available(ioc))
+		iocache_use_size(ioc, sent);
+
+	return sent;
 }

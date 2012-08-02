@@ -47,7 +47,6 @@
 #define DEBUGL_RETENTIONDATA            4
 #define DEBUGL_EVENTS                   8
 #define DEBUGL_CHECKS                   16
-#define DEBUGL_IPC                      16
 #define DEBUGL_FLAPPING                 16
 #define DEBUGL_EVENTHANDLERS            16
 #define DEBUGL_PERFDATA                 16
@@ -58,6 +57,8 @@
 #define DEBUGL_DOWNTIME                 512
 #define DEBUGL_COMMENTS                 1024
 #define DEBUGL_MACROS                   2048
+#define DEBUGL_IPC                      4096
+#define DEBUGL_SCHEDULING               8192
 
 #define DEBUGV_BASIC                    0
 #define DEBUGV_MORE			1

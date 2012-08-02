@@ -268,6 +268,7 @@ int             debug_verbosity = DEFAULT_DEBUG_VERBOSITY;
 unsigned long   max_debug_file_size = DEFAULT_MAX_DEBUG_FILE_SIZE;
 
 
+extern iobroker_set *nagios_iobs;
 
 int main(int argc, char **argv, char **env) {
 	int result;
@@ -626,6 +627,8 @@ int main(int argc, char **argv, char **env) {
 	/* else start to monitor things... */
 	else {
 
+		nagios_iobs = iobroker_create();
+
 		/* keep monitoring things until we get a shutdown command */
 		do {
 
@@ -872,6 +875,8 @@ int main(int argc, char **argv, char **env) {
 
 			/* shutdown stuff... */
 			if(sigshutdown == TRUE) {
+				free_worker_memory(WPROC_FORCE);
+				iobroker_destroy(nagios_iobs, IOBROKER_CLOSE_SOCKETS);
 
 				/* make sure lock file has been removed - it may not have been if we received a shutdown command */
 				if(daemon_mode == TRUE)

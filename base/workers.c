@@ -27,7 +27,6 @@ typedef struct wproc_object_job {
 	char *contact_name;
 	char *host_name;
 	char *service_description;
-	struct squeue_event *sq_evt;
 } wproc_object_job;
 
 typedef struct wproc_result {
@@ -49,6 +48,8 @@ typedef struct wproc_result {
 	struct rusage rusage;
 	struct kvvec *response;
 } wproc_result;
+
+extern int nagios_pid;
 
 #define tv2float(tv) ((float)((tv)->tv_sec) + ((float)(tv)->tv_usec) / 1000000.0)
 
@@ -139,51 +140,93 @@ static void destroy_job(worker_process *wp, worker_job *job)
 	my_free(job->command);
 
 	wp->jobs[job->id % wp->max_jobs] = NULL;
+	wp->jobs_running--;
+
 	free(job);
 }
 
-static void free_wproc_memory(worker_process *wp)
+static int wproc_is_alive(worker_process *wp)
 {
-	int i = 0, destroyed = 0;
+	if (!wp || !wp->pid)
+		return 0;
+	if (kill(wp->pid, 0) == 0 && iobroker_is_registered(nagios_iobs, wp->sd))
+		return 1;
+	return 0;
+}
+
+int wproc_destroy(worker_process *wp, int flags)
+{
+	int i = 0, destroyed = 0, force = 0, sd, self;
 
 	if (!wp)
-		return;
+		return 0;
 
+	force = !!(flags & WPROC_FORCE);
+
+	self = getpid();
+
+	/* master retains workers through restarts */
+	if (self == nagios_pid && !force)
+		return 0;
+
+	/* free all memory when either forcing or a worker called us */
 	iocache_destroy(wp->ioc);
 	wp->ioc = NULL;
+	if (wp->jobs) {
+		for (i = 0; i < wp->max_jobs; i++) {
+			if (!wp->jobs[i])
+				continue;
 
-	for (i = 0; i < wp->max_jobs; i++) {
-		if (!wp->jobs[i])
-			continue;
+			destroy_job(wp, wp->jobs[i]);
+			/* we can (often) break out early */
+			if (++destroyed >= wp->jobs_running)
+				break;
+		}
 
-		destroy_job(wp, wp->jobs[i]);
-		/* we can (often) break out early */
-		if (++destroyed >= wp->jobs_running)
-			break;
+		/* this triggers a double-free() for some reason */
+		/* free(wp->jobs); */
+		wp->jobs = NULL;
+	}
+	sd = wp->sd;
+	free(wp);
+
+	/* workers must never control other workers, so they return early */
+	if (self != nagios_pid)
+		return 0;
+
+	/* kill(0, SIGKILL) equals suicide, so we avoid it */
+	if (wp->pid) {
+		kill(wp->pid, SIGKILL);
 	}
 
-	free(wp->jobs);
+	iobroker_close(nagios_iobs, sd);
+
+	/* reap our possibly lost children */
+	while (waitpid(-1, &i, WNOHANG) > 0)
+		; /* do nothing */
+
+	return 0;
 }
 
 /*
  * This gets called from both parent and worker process, so
  * we must take care not to blindly shut down everything here
  */
-void free_worker_memory(void)
+void free_worker_memory(int flags)
 {
-	unsigned int i;
+	if (workers) {
+		unsigned int i;
 
-	for (i = 0; i < num_workers; i++) {
-		if (!workers[i])
-			continue;
+		for (i = 0; i < num_workers; i++) {
+			if (!workers[i])
+				continue;
 
-		/* workers die when master socket close()s */
-		iobroker_close(nagios_iobs, workers[i]->sd);
-		free_wproc_memory(workers[i]);
-		my_free(workers[i]);
+			wproc_destroy(workers[i], flags);
+			workers[i] = NULL;
+		}
+
+		free(workers);
 	}
-	iobroker_destroy(nagios_iobs, 0);
-	nagios_iobs = NULL;
 	workers = NULL;
 	num_workers = 0;
 	worker_index = 0;
@@ -222,8 +265,6 @@ static int handle_worker_check(wproc_result *wpres, worker_process *wp, worker_j
 	int result = ERROR;
 	check_result *cr = (check_result *)job->arg;
 
-	cr->output_file = NULL;
-	cr->output_file_fp = NULL;
 	memcpy(&cr->rusage, &wpres->rusage, sizeof(wpres->rusage));
 	cr->start_time.tv_sec = wpres->start.tv_sec;
 	cr->start_time.tv_usec = wpres->start.tv_usec;
@@ -494,20 +535,24 @@ static int handle_worker_result(int sd, int events, void *arg)
 			break;
 		}
 		destroy_job(wp, job);
-		wp->jobs_running--;
 	}
 
 	return 0;
 }
 
-static int init_iobroker(void)
+int workers_alive(void)
 {
-	if (!nagios_iobs)
-		nagios_iobs = iobroker_create();
+	int i, alive = 0;
 
-	if (nagios_iobs)
+	if (!workers)
 		return 0;
-	return -1;
+
+	for (i = 0; i < num_workers; i++) {
+		if (wproc_is_alive(workers[i]))
+			alive++;
+	}
+
+	return alive;
 }
 
 int init_workers(int desired_workers)
@@ -519,7 +564,8 @@ int init_workers(int desired_workers)
 		desired_workers = 4;
 	}
 
-	init_iobroker();
+	if (workers_alive() == desired_workers)
+		return 0;
 
 	/* can't shrink the number of workers (yet) */
 	if (desired_workers < num_workers)
@@ -540,20 +586,31 @@ int init_workers(int desired_workers)
 	}
 
 	workers = wps;
-	for (; num_workers < desired_workers; num_workers++) {
+	for (i = 0; i < desired_workers; i++) {
+		int ret;
 		worker_process *wp;
+
+		if (wps[i])
+			continue;
 
 		wp = spawn_worker(worker_init_func, (void *)get_global_macros());
 		if (!wp) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Failed to spawn worker: %s\n", strerror(errno));
-			free_worker_memory();
+			free_worker_memory(0);
 			return ERROR;
 		}
+		set_socket_options(wp->sd, 256 * 1024);
 
-		wps[num_workers] = wp;
-		iobroker_register(nagios_iobs, wp->sd, wp, handle_worker_result);
+		wps[i] = wp;
+		ret = iobroker_register(nagios_iobs, wp->sd, wp, handle_worker_result);
+		if (ret < 0) {
+			printf("Failed to register worker socket with iobroker %p\n", nagios_iobs);
+			exit(1);
+		}
 	}
+	num_workers = desired_workers;
 
+	logit(NSLOG_INFO_MESSAGE, TRUE, "Workers spawned: %d\n", num_workers);
 	return 0;
 }
 
@@ -573,6 +630,7 @@ static worker_process *get_worker(worker_job *job)
 		/* XXX FIXME Fiddle with finding a new, less busy, worker here */
 	}
 	wp->jobs[job->id % wp->max_jobs] = job;
+	job->wp = wp;
 	return wp;
 
 	/* dead code below. for now */

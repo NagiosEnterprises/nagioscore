@@ -14,11 +14,14 @@
 #define WPJOB_GLOBAL_HOST_EVTHANDLER 6
 #define WPJOB_HOST_EVTHANDLER 7
 
-extern void free_worker_memory(void);
+#define WPROC_FORCE  (1 << 0)
+
+extern void free_worker_memory(int flags);
 extern int init_workers(int desired_workers);
 extern int wproc_run_check(check_result *cr, char *cmd, nagios_macros *mac);
 extern int wproc_notify(char *cname, char *hname, char *sdesc, char *cmd, nagios_macros *mac);
 extern int wproc_run(int job_type, char *cmd, int timeout, nagios_macros *mac);
 extern int wproc_run_service_job(int jtype, int timeout, service *svc, char *cmd, nagios_macros *mac);
 extern int wproc_run_host_job(int jtype, int timeout, host *hst, char *cmd, nagios_macros *mac);
+extern int wproc_destroy(worker_process *wp, int flags);
 #endif

@@ -36,12 +36,6 @@
 #include "../include/workers.h"
 
 
-#ifdef EMBEDDEDPERL
-#include "../include/epn_nagios.h"
-static PerlInterpreter *my_perl = NULL;
-int use_embedded_perl = TRUE;
-#endif
-
 extern char	*config_file;
 extern char	*log_file;
 extern char     *command_file;
@@ -51,8 +45,6 @@ extern char     *check_result_path;
 extern char     *check_result_path;
 extern char     *lock_file;
 extern char	*log_archive_path;
-extern char     *auth_file;
-extern char	*p1_file;
 
 extern char     *nagios_user;
 extern char     *nagios_group;
@@ -230,9 +222,6 @@ extern int      enable_environment_macros;
 extern int      free_child_process_memory;
 extern int      child_processes_fork_twice;
 
-extern int      enable_embedded_perl;
-extern int      use_embedded_perl_implicitly;
-
 extern int      date_format;
 
 extern contact		*contact_list;
@@ -302,18 +291,6 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 	dbuf output_dbuf;
 	int dbuf_chunk = 1024;
 	int flags;
-#ifdef EMBEDDEDPERL
-	char *temp_buffer = NULL;
-	char fname[512] = "";
-	char *args[5] = {"", DO_CLEAN, "", "", NULL };
-	SV *plugin_hndlr_cr = NULL;
-	char *perl_output = NULL;
-	int use_epn = FALSE;
-#ifdef aTHX
-	dTHX;
-#endif
-	dSP;
-#endif
 
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "my_system_r()\n");
@@ -329,71 +306,6 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 		return STATE_OK;
 
 	log_debug_info(DEBUGL_COMMANDS, 1, "Running command '%s'...\n", cmd);
-
-#ifdef EMBEDDEDPERL
-
-	/* get"filename" component of command */
-	strncpy(fname, cmd, strcspn(cmd, " "));
-	fname[strcspn(cmd, " ")] = '\x0';
-
-	/* should we use the embedded Perl interpreter to run this script? */
-	use_epn = file_uses_embedded_perl(fname);
-
-	/* if yes, do some initialization */
-	if(use_epn == TRUE) {
-
-		args[0] = fname;
-		args[2] = "";
-
-		if(strchr(cmd, ' ') == NULL)
-			args[3] = "";
-		else
-			args[3] = cmd + strlen(fname) + 1;
-
-		/* call our perl interpreter to compile and optionally cache the compiled script. */
-
-		ENTER;
-		SAVETMPS;
-		PUSHMARK(SP);
-
-		XPUSHs(sv_2mortal(newSVpv(args[0], 0)));
-		XPUSHs(sv_2mortal(newSVpv(args[1], 0)));
-		XPUSHs(sv_2mortal(newSVpv(args[2], 0)));
-		XPUSHs(sv_2mortal(newSVpv(args[3], 0)));
-
-		PUTBACK;
-
-		call_pv("Embed::Persistent::eval_file", G_EVAL);
-
-		SPAGAIN;
-
-		if(SvTRUE(ERRSV)) {
-			/*
-			 * XXXX need pipe open to send the compilation failure message back to Nagios ?
-			 */
-			(void) POPs ;
-
-			asprintf(&temp_buffer, "%s", SvPVX(ERRSV));
-
-			log_debug_info(DEBUGL_COMMANDS, 0, "Embedded perl failed to compile %s, compile error %s\n", fname, temp_buffer);
-
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "%s\n", temp_buffer);
-
-			my_free(temp_buffer);
-
-			return STATE_UNKNOWN;
-			}
-		else {
-			plugin_hndlr_cr = newSVsv(POPs);
-
-			log_debug_info(DEBUGL_COMMANDS, 0, "Embedded perl successfully compiled %s and returned plugin handler (Perl subroutine code ref)\n", fname);
-
-			PUTBACK ;
-			FREETMPS ;
-			LEAVE ;
-			}
-		}
-#endif
 
 	/* create a pipe */
 	pipe(fd);
@@ -453,56 +365,6 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 		/* trap commands that timeout */
 		signal(SIGALRM, my_system_sighandler);
 		alarm(timeout);
-
-
-		/******** BEGIN EMBEDDED PERL CODE EXECUTION ********/
-
-#ifdef EMBEDDEDPERL
-		if(use_epn == TRUE) {
-
-			/* execute our previously compiled script - by call_pv("Embed::Persistent::eval_file",..) */
-			ENTER;
-			SAVETMPS;
-			PUSHMARK(SP);
-
-			XPUSHs(sv_2mortal(newSVpv(args[0], 0)));
-			XPUSHs(sv_2mortal(newSVpv(args[1], 0)));
-			XPUSHs(plugin_hndlr_cr);
-			XPUSHs(sv_2mortal(newSVpv(args[3], 0)));
-
-			PUTBACK;
-
-			call_pv("Embed::Persistent::run_package", G_ARRAY);
-			/* count is a debug hook. It should always be two (2), because the persistence framework tries to return two (2) args */
-
-			SPAGAIN;
-
-			perl_output = POPpx ;
-			strip(perl_output);
-			strncpy(buffer, (perl_output == NULL) ? "" : perl_output, sizeof(buffer));
-			buffer[sizeof(buffer) - 1] = '\x0';
-			status = POPi ;
-
-			PUTBACK;
-			FREETMPS;
-			LEAVE;
-
-			log_debug_info(DEBUGL_COMMANDS, 0, "Embedded perl ran command %s with output %d, %s\n", fname, status, buffer);
-
-			/* write the output back to the parent process */
-			write(fd[1], buffer, strlen(buffer) + 1);
-
-			/* close pipe for writing */
-			close(fd[1]);
-
-			/* reset the alarm */
-			alarm(0);
-
-			_exit(status);
-			}
-#endif
-		/******** END EMBEDDED PERL CODE EXECUTION ********/
-
 
 		/* run the command */
 		fp = (FILE *)popen(cmd, "r");
@@ -2963,134 +2825,6 @@ int dbuf_strcat(dbuf *db, char *buf) {
 
 
 /******************************************************************/
-/******************** EMBEDDED PERL FUNCTIONS *********************/
-/******************************************************************/
-
-/* initializes embedded perl interpreter */
-int init_embedded_perl(char **env) {
-#ifdef EMBEDDEDPERL
-	char **embedding;
-	int exitstatus = 0;
-	int argc = 2;
-	struct stat stat_buf;
-
-	/* make sure the P1 file exists... */
-	if(p1_file == NULL || stat(p1_file, &stat_buf) != 0) {
-
-		use_embedded_perl = FALSE;
-
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: p1.pl file required for embedded Perl interpreter is missing!\n");
-		}
-
-	else {
-
-		embedding = malloc(2 * sizeof(char *));
-		if(embedding == NULL)
-			return ERROR;
-		*embedding = strdup("");
-		*(embedding + 1) = strdup(p1_file);
-
-		use_embedded_perl = TRUE;
-
-		PERL_SYS_INIT3(&argc, &embedding, &env);
-
-		if((my_perl = perl_alloc()) == NULL) {
-			use_embedded_perl = FALSE;
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not allocate memory for embedded Perl interpreter!\n");
-			}
-		}
-
-	/* a fatal error occurred... */
-	if(use_embedded_perl == FALSE) {
-
-		logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR, TRUE, "Bailing out due to errors encountered while initializing the embedded Perl interpreter. (PID=%d)\n", (int)getpid());
-
-		cleanup();
-		exit(ERROR);
-		}
-
-	perl_construct(my_perl);
-	exitstatus = perl_parse(my_perl, xs_init, 2, (char **)embedding, env);
-	if(!exitstatus)
-		exitstatus = perl_run(my_perl);
-
-#endif
-	return OK;
-	}
-
-
-/* closes embedded perl interpreter */
-int deinit_embedded_perl(void) {
-#ifdef EMBEDDEDPERL
-
-	PL_perl_destruct_level = 0;
-	perl_destruct(my_perl);
-	perl_free(my_perl);
-	PERL_SYS_TERM();
-
-#endif
-	return OK;
-	}
-
-
-/* checks to see if we should run a script using the embedded Perl interpreter */
-int file_uses_embedded_perl(char *fname) {
-#ifndef EMBEDDEDPERL
-	return FALSE;
-#else
-	int line;
-	FILE *fp = NULL;
-	char buf[256] = "";
-
-	if(enable_embedded_perl != TRUE)
-		return FALSE;
-
-	/* open the file, check if its a Perl script and see if we can use epn  */
-	fp = fopen(fname, "r");
-	if(fp == NULL)
-		return FALSE;
-
-	/* grab the first line - we should see Perl. go home if not */
-	if (fgets(buf, 80, fp) == NULL || strstr(buf, "/bin/perl") == NULL) {
-		fclose(fp);
-		return FALSE;
-	}
-
-	/* epn directives must be found in first ten lines of plugin */
-	for(line = 1; line < 10; line++) {
-		if(fgets(buf, sizeof(buf) - 1, fp) == NULL)
-			break;
-
-		buf[sizeof(buf) - 1] = '\0';
-
-		/* skip lines not containing nagios 'epn' directives */
-		if(strstr(buf, "# nagios:")) {
-			char *p;
-			p = strstr(buf + 8, "epn");
-			if (!p)
-				continue;
-
-			/*
-			 * we found it, so close the file and return
-			 * whatever it shows. '+epn' means yes. everything
-			 * else means no
-			 */
-			fclose(fp);
-			return *(p - 1) == '+' ? TRUE : FALSE;
-			}
-		}
-
-	fclose(fp);
-
-	return use_embedded_perl_implicitly;
-#endif
-	}
-
-
-
-
-
-/******************************************************************/
 /************************ THREAD FUNCTIONS ************************/
 /******************************************************************/
 
@@ -3941,8 +3675,6 @@ void free_memory(nagios_macros *mac) {
 	my_free(check_result_path);
 	my_free(command_file);
 	my_free(lock_file);
-	my_free(auth_file);
-	my_free(p1_file);
 	my_free(log_archive_path);
 
 	return;
@@ -3977,8 +3709,6 @@ int reset_variables(void) {
 	check_result_path = (char *)strdup(DEFAULT_CHECK_RESULT_PATH);
 	command_file = (char *)strdup(DEFAULT_COMMAND_FILE);
 	lock_file = (char *)strdup(DEFAULT_LOCK_FILE);
-	auth_file = (char *)strdup(DEFAULT_AUTH_FILE);
-	p1_file = (char *)strdup(DEFAULT_P1_FILE);
 	log_archive_path = (char *)strdup(DEFAULT_LOG_ARCHIVE_PATH);
 	debug_file = (char *)strdup(DEFAULT_DEBUG_FILE);
 
@@ -4103,9 +3833,6 @@ int reset_variables(void) {
 	child_processes_fork_twice = FALSE;
 
 	additional_freshness_latency = DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
-
-	enable_embedded_perl = DEFAULT_ENABLE_EMBEDDED_PERL;
-	use_embedded_perl_implicitly = DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY;
 
 	external_command_buffer_slots = DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
 

@@ -40,7 +40,7 @@ COMMON_H=$(SRC_INCLUDE)/config.h $(SRC_INCLUDE)/common.h $(SRC_INCLUDE)/location
 all: $(ALL)
 
 clean:
-	rm -f convertcfg daemonchk.cgi mini_epn new_mini_epn core *.o
+	rm -f convertcfg daemonchk.cgi core *.o
 	rm -f */*/*~
 	rm -f */*~
 	rm -f *~
@@ -64,18 +64,6 @@ daemonchk.cgi: daemonchk.o $(CGI_O) $(CGI_H) $(COMMON_H)
 
 daemonchk.o: daemonchk.c
 	$(CC) $(CLFAGS) -c -o $@ $< -I$(SRC_INCLUDE)
-
-mini_epn: mini_epn.c
-	perl -MExtUtils::Embed -e xsinit
-	$(CC) $(CFLAGS) -c perlxsi.c  `perl -MExtUtils::Embed -e ccopts`
-	$(CC) $(CFLAGS) -c mini_epn.c `perl -MExtUtils::Embed -e ccopts`
-	$(CC) $(CFLAGS) $(LDFLAGS) perlxsi.o mini_epn.o `perl -MExtUtils::Embed -e ccopts -e ldopts` -o $@
-
-new_mini_epn: new_mini_epn.c
-	perl -MExtUtils::Embed -e xsinit
-	$(CC) $(CFLAGS) -c perlxsi.c  `perl -MExtUtils::Embed -e ccopts`
-	$(CC) $(CFLAGS) -c new_mini_epn.c `perl -MExtUtils::Embed -e ccopts`
-	$(CC) $(CFLAGS) $(LDFLAGS) perlxsi.o new_mini_epn.o `perl -MExtUtils::Embed -e ccopts -e ldopts` -o $@
 
 ##############################################################################
 # dependencies

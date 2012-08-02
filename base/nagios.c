@@ -65,8 +65,6 @@ char            *temp_path = NULL;
 char            *check_result_path = NULL;
 char            *lock_file = NULL;
 char            *log_archive_path = NULL;
-char            *p1_file = NULL;  /**** EMBEDDED PERL ****/
-char            *auth_file = NULL; /**** EMBEDDED PERL INTERPRETER AUTH FILE ****/
 char            *nagios_user = NULL;
 char            *nagios_group = NULL;
 
@@ -233,10 +231,6 @@ int             enable_environment_macros = TRUE;
 int             free_child_process_memory = -1;
 int             child_processes_fork_twice = -1;
 
-int             enable_embedded_perl = DEFAULT_ENABLE_EMBEDDED_PERL;
-int             use_embedded_perl_implicitly = DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY;
-int             embedded_perl_initialized = FALSE;
-
 int             date_format = DATE_FORMAT_US;
 char            *use_timezone = NULL;
 
@@ -276,8 +270,6 @@ unsigned long   max_debug_file_size = DEFAULT_MAX_DEBUG_FILE_SIZE;
 
 
 
-
-/* Following main() declaration required by older versions of Perl ut 5.00503 */
 int main(int argc, char **argv, char **env) {
 	int result;
 	int error = FALSE;
@@ -722,10 +714,6 @@ int main(int argc, char **argv, char **env) {
 
 					/* close and delete the external command file FIFO */
 					close_command_file();
-
-					/* cleanup embedded perl interpreter */
-					if(embedded_perl_initialized == TRUE)
-						deinit_embedded_perl();
 					}
 
 #ifdef USE_EVENT_BROKER
@@ -734,22 +722,6 @@ int main(int argc, char **argv, char **env) {
 #endif
 				cleanup();
 				exit(ERROR);
-				}
-
-
-
-			/* initialize embedded Perl interpreter */
-			/* NOTE 02/15/08 embedded Perl must be initialized if compiled in, regardless of whether or not its enabled in the config file */
-			/* It compiled it, but not initialized, Nagios will segfault in readdir() calls, as libperl takes this function over */
-			if(embedded_perl_initialized == FALSE) {
-				/*				if(enable_embedded_perl==TRUE){*/
-#ifdef EMBEDDEDPERL
-				init_embedded_perl(env);
-#else
-				init_embedded_perl(NULL);
-#endif
-				embedded_perl_initialized = TRUE;
-				/*					}*/
 				}
 
 			/* handle signals (interrupts) */
@@ -898,10 +870,6 @@ int main(int argc, char **argv, char **env) {
 				shutdown_command_file_worker_thread();
 				close_command_file();
 				}
-
-			/* cleanup embedded perl interpreter */
-			if(sigrestart == FALSE)
-				deinit_embedded_perl();
 
 			/* shutdown stuff... */
 			if(sigshutdown == TRUE) {

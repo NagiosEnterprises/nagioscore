@@ -39,8 +39,6 @@ extern char     *temp_path;
 extern char     *check_result_path;
 extern char     *lock_file;
 extern char	*log_archive_path;
-extern char     *auth_file;
-extern char	*p1_file;
 
 extern char     *nagios_user;
 extern char     *nagios_group;
@@ -181,9 +179,6 @@ extern int      enable_environment_macros;
 extern int      free_child_process_memory;
 extern int      child_processes_fork_twice;
 
-extern int      enable_embedded_perl;
-extern int      use_embedded_perl_implicitly;
-
 extern int      date_format;
 extern char     *use_timezone;
 
@@ -246,6 +241,13 @@ int read_all_object_data(char *main_config_file) {
 	return OK;
 	}
 
+static void obsoleted_warning(const char *key, const char *msg)
+{
+	if (msg)
+		logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: %s is deprecated and will be removed. %s\n", key, msg);
+	else
+		logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: %s is deprecated and will be removed.\n", key);
+}
 
 /* process the main configuration file */
 int read_main_config_file(char *main_config_file) {
@@ -1211,18 +1213,6 @@ int read_main_config_file(char *main_config_file) {
 			use_timezone = (char *)strdup(value);
 			}
 
-		else if(!strcmp(variable, "p1_file")) {
-
-			if(strlen(value) > MAX_FILENAME_LENGTH - 1) {
-				asprintf(&error_message, "P1 file is too long");
-				error = TRUE;
-				break;
-				}
-
-			my_free(p1_file);
-			p1_file = (char *)strdup(value);
-			}
-
 		else if(!strcmp(variable, "event_broker_options")) {
 
 			if(!strcmp(value, "-1"))
@@ -1283,27 +1273,15 @@ int read_main_config_file(char *main_config_file) {
 		else if(!strcmp(variable, "child_processes_fork_twice"))
 			child_processes_fork_twice = (atoi(value) > 0) ? TRUE : FALSE;
 
-		else if(!strcmp(variable, "enable_embedded_perl")) {
-
-			if(strlen(value) != 1 || value[0] < '0' || value[0] > '1') {
-				asprintf(&error_message, "Illegal value for enable_embedded_perl");
-				error = TRUE;
-				break;
-				}
-
-			enable_embedded_perl = (atoi(value) > 0) ? TRUE : FALSE;
-			}
-
-		else if(!strcmp(variable, "use_embedded_perl_implicitly")) {
-
-			if(strlen(value) != 1 || value[0] < '0' || value[0] > '1') {
-				asprintf(&error_message, "Illegal value for use_embedded_perl_implicitly");
-				error = TRUE;
-				break;
-				}
-
-			use_embedded_perl_implicitly = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		/*** embedded perl variables are deprecated now ***/
+		else if(!strcmp(variable, "enable_embedded_perl"))
+			obsoleted_warning(variable, NULL);
+		else if(!strcmp(variable, "use_embedded_perl_implicitly"))
+			obsoleted_warning(variable, NULL);
+		else if(!strcmp(variable, "auth_file"))
+			obsoleted_warning(variable, NULL);
+		else if(!strcmp(variable, "p1_file"))
+			obsoleted_warning(variable, NULL);
 
 		else if(!strcmp(variable, "external_command_buffer_slots"))
 			external_command_buffer_slots = atoi(value);
@@ -1313,19 +1291,6 @@ int read_main_config_file(char *main_config_file) {
 
 		else if(!strcmp(variable, "bare_update_check"))
 			bare_update_check = (atoi(value) > 0) ? TRUE : FALSE;
-
-		/*** AUTH_FILE VARIABLE USED BY EMBEDDED PERL INTERPRETER ***/
-		else if(!strcmp(variable, "auth_file")) {
-
-			if(strlen(value) > MAX_FILENAME_LENGTH - 1) {
-				asprintf(&error_message, "Auth file is too long");
-				error = TRUE;
-				break;
-				}
-
-			my_free(auth_file);
-			auth_file = (char *)strdup(value);
-			}
 
 		/* warn about old variables */
 		else if(!strcmp(variable, "comment_file") || !strcmp(variable, "xcddefault_comment_file")) {

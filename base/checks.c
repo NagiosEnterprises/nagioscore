@@ -38,10 +38,6 @@
 /*#define DEBUG_HOST_CHECKS 1*/
 
 
-#ifdef EMBEDDEDPERL
-#include "../include/epn_nagios.h"
-#endif
-
 #ifdef USE_EVENT_BROKER
 #include "../include/neberrors.h"
 #endif
@@ -119,11 +115,6 @@ extern check_result    *check_result_list;
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 
 extern unsigned long max_debug_file_size;
-
-#ifdef EMBEDDEDPERL
-extern int      use_embedded_perl;
-#endif
-
 
 
 

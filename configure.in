@@ -647,58 +647,6 @@ if test x$USE_EVENTBROKER = xyes; then
 fi
 
 
-USEPERL=no;
-INSTALLPERLSTUFF=no;
-AC_ARG_ENABLE(embedded-perl,--enable-embedded-perl will enable embedded Perl interpreter,[
-	USEPERL=$enableval
-	]
-	,USEPERL=no)
-
-PERLCACHE=yes;
-AC_ARG_WITH(perlcache,--with-perlcache turns on cacheing of internally compiled Perl scripts,[
-	PERLCACHE=$withval
-	]
-	,[
-	AC_DEFINE(DO_CLEAN,"1",[whether to clean cached compiled perl])
-	PERLCACHE=yes;
-	])
-
-dnl Is embedded Perl being compiled in?
-if test x$USEPERL = xyes; then
-
-	AC_DEFINE_UNQUOTED(EMBEDDEDPERL,,[Is embedded Perl being compiled in?])
-	PERLLIBS="`perl -MExtUtils::Embed -e ldopts`" 
-	PERLDIR="`perl -MConfig -e 'print $Config{installsitearch}'`" 
-	CFLAGS="${CFLAGS} `perl -MExtUtils::Embed -e ccopts`" 
-	USEPERL=yes
-	INSTALLPERLSTUFF=yes;
-	PERLXSI_O=perlxsi.o
-	OBJS="${OBJS} ${PERLXSI_O}"
-	echo "creating base/perlxsi.c"
-	perl -MExtUtils::Embed -e xsinit -- -o base/perlxsi.c
-
-	echo "Embedded Perl interpreter will be compiled in..."
-
-	dnl Is caching enabled?
-	if test x$PERLCACHE = xyes; then
-		AC_DEFINE(DO_CLEAN,"0",[whether to clean cached compiled perl])
-		PERLCACHE=yes;
-		echo "Internally compiled Perl scripts will be cached..."
-	else
-		AC_DEFINE(DO_CLEAN,"1",[whether to clean cached compiled perl])
-		echo "Internally compiled Perl scripts will NOT be cached..."
-	fi
-fi
-
-dnl Test if we're using threaded Perl (patch by Chip Ach)
-if test x$USEPERL = xyes; then
-	if (perl -e 'use Config;exit -1 unless ($Config{'usethreads'});'); then
-		echo "Using threaded perl"
-		AC_DEFINE_UNQUOTED(THREADEDPERL,,[defined if we're using threaded Perl])
-	fi
-fi
-
-
 dnl Option for compiling under CYGWIN
 nagios_name=nagios
 nagiostats_name=nagiostats
@@ -781,12 +729,8 @@ fi
 AC_SUBST(USE_LIBTAP)
 AC_SUBST(CGIEXTRAS)
 AC_SUBST(GDLIBS)
-AC_SUBST(PERLLIBS)
-AC_SUBST(PERLDIR)
-AC_SUBST(PERLXSI_O)
 AC_SUBST(BASEEXTRALIBS)
 AC_SUBST(INITDIR)
-AC_SUBST(INSTALLPERLSTUFF)
 AC_SUBST(USE_EVENTBROKER)
 
 AC_PATH_PROG(PERL,perl)
@@ -832,15 +776,6 @@ echo " -------------------------"
 AC_MSG_RESULT([        Nagios executable:  $nagios_name])
 AC_MSG_RESULT([        Nagios user/group:  $nagios_user,$nagios_grp])
 AC_MSG_RESULT([       Command user/group:  $command_user,$command_grp])
-if test x$USEPERL = xyes; then
-if test x$PERLCACHE = xyes; then
-AC_MSG_RESULT([            Embedded Perl:  yes, with caching])
-else
-AC_MSG_RESULT([            Embedded Perl:  yes, without caching])
-fi
-else
-AC_MSG_RESULT([            Embedded Perl:  no])
-fi
 if test x$USE_EVENTBROKER = xyes; then
 AC_MSG_RESULT([             Event Broker:  yes])
 else

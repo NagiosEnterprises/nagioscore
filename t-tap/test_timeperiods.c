@@ -54,8 +54,6 @@ char            *temp_path = NULL;
 char            *check_result_path = NULL;
 char            *lock_file = NULL;
 char            *log_archive_path = NULL;
-char            *p1_file = NULL;  /**** EMBEDDED PERL ****/
-char            *auth_file = NULL; /**** EMBEDDED PERL INTERPRETER AUTH FILE ****/
 char            *nagios_user = NULL;
 char            *nagios_group = NULL;
 
@@ -221,10 +219,6 @@ int             use_large_installation_tweaks = DEFAULT_USE_LARGE_INSTALLATION_T
 int             enable_environment_macros = TRUE;
 int             free_child_process_memory = -1;
 int             child_processes_fork_twice = -1;
-
-int             enable_embedded_perl = DEFAULT_ENABLE_EMBEDDED_PERL;
-int             use_embedded_perl_implicitly = DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY;
-int             embedded_perl_initialized = FALSE;
 
 int             date_format = DATE_FORMAT_US;
 char            *use_timezone = NULL;

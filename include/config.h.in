@@ -30,12 +30,6 @@
 /* Event broker integration */
 #undef USE_EVENT_BROKER
 
-/* Embed a PERL interpreter into Nagios with optional cache for compiled code (contributed by Stephen Davies) */
-#undef EMBEDDEDPERL
-#undef THREADEDPERL
-/* 0 = cache, 1 = do not cache */
-#define DO_CLEAN		"1"
-
 /* commands used by CGIs */
 #undef TRACEROUTE_COMMAND
 #undef PING_COMMAND

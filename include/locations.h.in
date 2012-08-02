@@ -39,5 +39,3 @@
 #define DEFAULT_OBJECT_CACHE_FILE		"@localstatedir@/objects.cache"
 #define DEFAULT_PRECACHED_OBJECT_FILE		"@localstatedir@/objects.precache"
 #define DEFAULT_EVENT_BROKER_FILE		"@localstatedir@/broker.socket"
-#define DEFAULT_P1_FILE				"@bindir@/p1.pl"	/**** EMBEDDED PERL ****/
-#define DEFAULT_AUTH_FILE			""			/**** EMBEDDED PERL - IS THIS USED? ****/

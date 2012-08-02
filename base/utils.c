@@ -1944,69 +1944,6 @@ int drop_privileges(char *user, char *group) {
 /************************* IPC FUNCTIONS **************************/
 /******************************************************************/
 
-/* move check result to queue directory */
-int move_check_result_to_queue(char *checkresult_file) {
-	char *output_file = NULL;
-	char *temp_buffer = NULL;
-	int output_file_fd = -1;
-	mode_t new_umask = 077;
-	mode_t old_umask;
-	int result = 0;
-
-	/* save the file creation mask */
-	old_umask = umask(new_umask);
-
-	/* create a safe temp file */
-	asprintf(&output_file, "%s/cXXXXXX", check_result_path);
-	output_file_fd = mkstemp(output_file);
-
-	/* file created okay */
-	if(output_file_fd >= 0) {
-
-		log_debug_info(DEBUGL_CHECKS, 2, "Moving temp check result file '%s' to queue file '%s'...\n", checkresult_file, output_file);
-
-#ifdef __CYGWIN__
-		/* Cygwin cannot rename open files - gives Permission Denied */
-		/* close the file */
-		close(output_file_fd);
-#endif
-
-		/* move the original file */
-		result = my_rename(checkresult_file, output_file);
-
-#ifndef __CYGWIN__
-		/* close the file */
-		close(output_file_fd);
-#endif
-
-		/* create an ok-to-go indicator file */
-		asprintf(&temp_buffer, "%s.ok", output_file);
-		if((output_file_fd = open(temp_buffer, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR)) >= 0)
-			close(output_file_fd);
-		my_free(temp_buffer);
-
-		/* delete the original file if it couldn't be moved */
-		if(result != 0)
-			unlink(checkresult_file);
-		}
-	else
-		result = -1;
-
-	/* reset the file creation mask */
-	umask(old_umask);
-
-	/* log a warning on errors */
-	if(result != 0)
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Unable to move file '%s' to check results queue.\n", checkresult_file);
-
-	/* free memory */
-	my_free(output_file);
-
-	return OK;
-	}
-
-
-
 /* processes files in the check result queue directory */
 int process_check_result_queue(char *dirname) {
 	char file[MAX_FILENAME_LENGTH];

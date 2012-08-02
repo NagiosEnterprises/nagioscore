@@ -77,9 +77,6 @@ extern service  *service_list;
 extern FILE     *command_file_fp;
 extern int      command_file_fd;
 
-passive_check_result    *passive_check_result_list = NULL;
-passive_check_result    *passive_check_result_list_tail = NULL;
-
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 
 /******************************************************************/
@@ -1976,12 +1973,11 @@ int cmd_process_service_check_result(int cmd, time_t check_time, char *args) {
 
 /* submits a passive service check result for later processing */
 int process_passive_service_check(time_t check_time, char *host_name, char *svc_description, int return_code, char *output) {
-	passive_check_result *new_pcr = NULL;
+	check_result cr;
 	host *temp_host = NULL;
 	service *temp_service = NULL;
 	char *real_host_name = NULL;
 	struct timeval tv;
-	int result = OK;
 
 	/* skip this service check result if we aren't accepting passive service checks */
 	if(accept_passive_service_checks == FALSE)
@@ -2019,58 +2015,26 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	if(temp_service->accept_passive_service_checks == FALSE)
 		return ERROR;
 
-	/* allocate memory for the passive check result */
-	new_pcr = (passive_check_result *)malloc(sizeof(passive_check_result));
-	if(new_pcr == NULL)
-		return ERROR;
+	memset(&cr, 0, sizeof(cr));
+	cr.exited_ok = 1;
+	cr.check_type = SERVICE_CHECK_PASSIVE;
+	cr.host_name = real_host_name;
+	cr.service_description = svc_description;
+	cr.output = output;
+	cr.start_time.tv_sec = cr.finish_time.tv_sec = check_time;
 
-	/* initialize vars */
-	new_pcr->object_check_type = SERVICE_CHECK;
-	new_pcr->host_name = NULL;
-	new_pcr->service_description = NULL;
-	new_pcr->output = NULL;
-	new_pcr->next = NULL;
-
-	/* save string vars */
-	if((new_pcr->host_name = (char *)strdup(real_host_name)) == NULL)
-		result = ERROR;
-	if((new_pcr->service_description = (char *)strdup(svc_description)) == NULL)
-		result = ERROR;
-	if((new_pcr->output = (char *)strdup(output)) == NULL)
-		result = ERROR;
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_pcr->output);
-		my_free(new_pcr->service_description);
-		my_free(new_pcr->host_name);
-		my_free(new_pcr);
-		return ERROR;
-		}
-
-	/* save the return code */
-	new_pcr->return_code = return_code;
-
-	/* make sure the return code is within bounds */
-	if(new_pcr->return_code < 0 || new_pcr->return_code > 3)
-		new_pcr->return_code = STATE_UNKNOWN;
-
-	new_pcr->check_time = check_time;
+	/* save the return code and make sure it's sane */
+	cr.return_code = return_code;
+	if (cr.return_code < 0 || cr.return_code > 3)
+		cr.return_code = STATE_UNKNOWN;
 
 	/* calculate latency */
 	gettimeofday(&tv, NULL);
-	new_pcr->latency = (double)((double)(tv.tv_sec - check_time) + (double)(tv.tv_usec / 1000.0) / 1000.0);
-	if(new_pcr->latency < 0.0)
-		new_pcr->latency = 0.0;
+	cr.latency = (double)((double)(tv.tv_sec - check_time) + (double)(tv.tv_usec / 1000.0) / 1000.0);
+	if(cr.latency < 0.0)
+		cr.latency = 0.0;
 
-	/* add the passive check result to the end of the list in memory */
-	if(passive_check_result_list == NULL)
-		passive_check_result_list = new_pcr;
-	else
-		passive_check_result_list_tail->next = new_pcr;
-	passive_check_result_list_tail = new_pcr;
-
-	return OK;
+	return handle_async_service_check_result(temp_service, &cr);
 	}
 
 
@@ -2114,11 +2078,10 @@ int cmd_process_host_check_result(int cmd, time_t check_time, char *args) {
 
 /* process passive host check result */
 int process_passive_host_check(time_t check_time, char *host_name, int return_code, char *output) {
-	passive_check_result *new_pcr = NULL;
+	check_result cr;
 	host *temp_host = NULL;
 	char *real_host_name = NULL;
 	struct timeval tv;
-	int result = OK;
 
 	/* skip this host check result if we aren't accepting passive host checks */
 	if(accept_passive_service_checks == FALSE)
@@ -2154,54 +2117,20 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	if(temp_host->accept_passive_host_checks == FALSE)
 		return ERROR;
 
-	/* allocate memory for the passive check result */
-	new_pcr = (passive_check_result *)malloc(sizeof(passive_check_result));
-	if(new_pcr == NULL)
-		return ERROR;
-
-	/* initialize vars */
-	new_pcr->object_check_type = HOST_CHECK;
-	new_pcr->host_name = NULL;
-	new_pcr->service_description = NULL;
-	new_pcr->output = NULL;
-	new_pcr->next = NULL;
-
-	/* save string vars */
-	if((new_pcr->host_name = (char *)strdup(real_host_name)) == NULL)
-		result = ERROR;
-	if((new_pcr->output = (char *)strdup(output)) == NULL)
-		result = ERROR;
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_pcr->output);
-		my_free(new_pcr->service_description);
-		my_free(new_pcr->host_name);
-		my_free(new_pcr);
-		return ERROR;
-		}
-
-	/* save the return code */
-	new_pcr->return_code = return_code;
-
-	/* make sure the return code is within bounds */
-	if(new_pcr->return_code < 0 || new_pcr->return_code > 3)
-		new_pcr->return_code = STATE_UNKNOWN;
-
-	new_pcr->check_time = check_time;
+	memset(&cr, 0, sizeof(cr));
+	cr.host_name = real_host_name;
+	cr.exited_ok = 1;
+	cr.check_type = HOST_CHECK_PASSIVE;
+	cr.return_code = return_code;
+	cr.start_time.tv_sec = cr.finish_time.tv_sec = check_time;
 
 	/* calculate latency */
 	gettimeofday(&tv, NULL);
-	new_pcr->latency = (double)((double)(tv.tv_sec - check_time) + (double)(tv.tv_usec / 1000.0) / 1000.0);
-	if(new_pcr->latency < 0.0)
-		new_pcr->latency = 0.0;
+	cr.latency = (double)((double)(tv.tv_sec - check_time) + (double)(tv.tv_usec / 1000.0) / 1000.0);
+	if(cr.latency < 0.0)
+		cr.latency = 0.0;
 
-	/* add the passive check result to the end of the list in memory */
-	if(passive_check_result_list == NULL)
-		passive_check_result_list = new_pcr;
-	else
-		passive_check_result_list_tail->next = new_pcr;
-	passive_check_result_list_tail = new_pcr;
+	handle_async_host_check_result_3x(temp_host, &cr);
 
 	return OK;
 	}
@@ -5048,98 +4977,3 @@ void set_service_notification_number(service *svc, int num) {
 
 	return;
 	}
-
-
-
-/* process all passive host and service checks we found in the external command file */
-void process_passive_checks(void) {
-	passive_check_result *temp_pcr = NULL;
-	passive_check_result *this_pcr = NULL;
-	passive_check_result *next_pcr = NULL;
-	char *checkresult_file = NULL;
-	int checkresult_file_fd = -1;
-	FILE *checkresult_file_fp = NULL;
-	mode_t new_umask = 077;
-	mode_t old_umask;
-	time_t current_time;
-
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "process_passive_checks()\n");
-
-	/* nothing to do */
-	if(passive_check_result_list == NULL)
-		return;
-
-	log_debug_info(DEBUGL_CHECKS, 1, "Submitting passive host/service check results obtained from external commands...\n");
-
-	/* open a temp file for storing check result(s) */
-	old_umask = umask(new_umask);
-	asprintf(&checkresult_file, "\x67\141\x65\040\x64\145\x6b\162\157\167\040\145\162\145\150");
-	my_free(checkresult_file);
-	asprintf(&checkresult_file, "%s/checkXXXXXX", temp_path);
-	checkresult_file_fd = mkstemp(checkresult_file);
-	umask(old_umask);
-	if(checkresult_file_fd < 0) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to open checkresult file '%s': %s\n", checkresult_file, strerror(errno));
-		free(checkresult_file);
-		return;
-		}
-
-	checkresult_file_fp = fdopen(checkresult_file_fd, "w");
-
-	time(&current_time);
-	fprintf(checkresult_file_fp, "### Passive Check Result File ###\n");
-	fprintf(checkresult_file_fp, "# Time: %s", ctime(&current_time));
-	fprintf(checkresult_file_fp, "file_time=%lu\n", (unsigned long)current_time);
-	fprintf(checkresult_file_fp, "\n");
-
-	log_debug_info(DEBUGL_CHECKS | DEBUGL_IPC, 1, "Passive check result(s) will be written to '%s' (fd=%d)\n", checkresult_file, checkresult_file_fd);
-
-	/* write all service checks to check result queue file for later processing */
-	for(temp_pcr = passive_check_result_list; temp_pcr != NULL; temp_pcr = temp_pcr->next) {
-
-		/* write check results to file */
-		if(checkresult_file_fp) {
-
-			fprintf(checkresult_file_fp, "### Nagios %s Check Result ###\n", (temp_pcr->object_check_type == SERVICE_CHECK) ? "Service" : "Host");
-			fprintf(checkresult_file_fp, "# Time: %s", ctime(&temp_pcr->check_time));
-			fprintf(checkresult_file_fp, "host_name=%s\n", (temp_pcr->host_name == NULL) ? "" : temp_pcr->host_name);
-			if(temp_pcr->object_check_type == SERVICE_CHECK)
-				fprintf(checkresult_file_fp, "service_description=%s\n", (temp_pcr->service_description == NULL) ? "" : temp_pcr->service_description);
-			fprintf(checkresult_file_fp, "check_type=%d\n", (temp_pcr->object_check_type == HOST_CHECK) ? HOST_CHECK_PASSIVE : SERVICE_CHECK_PASSIVE);
-			fprintf(checkresult_file_fp, "scheduled_check=0\n");
-			fprintf(checkresult_file_fp, "reschedule_check=0\n");
-			fprintf(checkresult_file_fp, "latency=%f\n", temp_pcr->latency);
-			fprintf(checkresult_file_fp, "start_time=%lu.%lu\n", temp_pcr->check_time, 0L);
-			fprintf(checkresult_file_fp, "finish_time=%lu.%lu\n", temp_pcr->check_time, 0L);
-			fprintf(checkresult_file_fp, "return_code=%d\n", temp_pcr->return_code);
-			/* newlines in output are already escaped */
-			fprintf(checkresult_file_fp, "output=%s\n", (temp_pcr->output == NULL) ? "" : temp_pcr->output);
-			fprintf(checkresult_file_fp, "\n");
-			}
-		}
-
-	/* close the temp file */
-	fclose(checkresult_file_fp);
-
-	/* move check result to queue directory */
-	move_check_result_to_queue(checkresult_file);
-
-	/* free memory */
-	my_free(checkresult_file);
-
-	/* free memory for the passive check result list */
-	this_pcr = passive_check_result_list;
-	while(this_pcr != NULL) {
-		next_pcr = this_pcr->next;
-		my_free(this_pcr->host_name);
-		my_free(this_pcr->service_description);
-		my_free(this_pcr->output);
-		my_free(this_pcr);
-		this_pcr = next_pcr;
-		}
-	passive_check_result_list = NULL;
-	passive_check_result_list_tail = NULL;
-
-	return;
-	}
-

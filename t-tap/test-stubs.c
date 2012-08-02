@@ -157,7 +157,6 @@ int dbuf_strcat(dbuf *db, char *buf) {}
 int dbuf_free(dbuf *db) {}
 unsigned long   next_event_id = 0L;
 unsigned long   next_problem_id = 0L;
-int move_check_result_to_queue(char *checkresult_file) {}
 int             free_child_process_memory = -1;
 void free_memory(nagios_macros *mac) {}
 int accept_passive_service_checks = TRUE;
@@ -185,7 +184,6 @@ timed_event *event_list_low_tail = NULL;
 void remove_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail) {}
 void reschedule_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail) {}
 int process_passive_service_check(time_t check_time, char *host_name, char *svc_description, int return_code, char *output) {}
-void process_passive_checks(void) {}
 int             soft_state_dependencies = FALSE;
 int             additional_freshness_latency = DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
 hostdependency *get_first_hostdependency_by_dependent_host(char *host_name, void **ptr) {

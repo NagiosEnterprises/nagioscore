@@ -247,14 +247,11 @@ extern char     *tzname[2];
 #endif
 #endif
 
-extern check_result    *check_result_list;
 extern unsigned long   max_check_result_file_age;
 
 extern dbuf            check_result_dbuf;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
-extern circular_buffer check_result_buffer;
-extern circular_buffer event_broker_buffer;
 
 extern check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 

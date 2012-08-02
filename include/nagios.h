@@ -360,18 +360,6 @@ typedef struct passive_check_result_struct {
 	} passive_check_result;
 
 
-/* CIRCULAR_BUFFER structure - used by worker threads */
-typedef struct circular_buffer_struct {
-	void            **buffer;
-	int             tail;
-	int             head;
-	int             items;
-	int		high;		/* highest number of items that has ever been stored in buffer */
-	unsigned long   overflow;
-	pthread_mutex_t buffer_lock;
-	} circular_buffer;
-
-
 /* DBUF structure - dynamic string storage */
 typedef struct dbuf_struct {
 	char *buf;

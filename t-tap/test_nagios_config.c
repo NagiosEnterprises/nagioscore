@@ -240,12 +240,10 @@ extern char	*xrddefault_retention_file;
 notification    *notification_list;
 
 check_result    check_result_info;
-check_result    *check_result_list = NULL;
 unsigned long	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
 
 dbuf            check_result_dbuf;
 
-circular_buffer check_result_buffer;
 pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 
 check_stats     check_statistics[MAX_CHECK_STATS_TYPES];

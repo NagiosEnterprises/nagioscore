@@ -2051,18 +2051,11 @@ int process_check_result_queue(char *dirname) {
 				continue;
 				}
 
-			switch(stat_buf.st_mode & S_IFMT) {
+			/* we only care about real files */
+			if (!S_ISREG(stat_buf.st_mode))
+				continue;
 
-				case S_IFREG:
-					/* don't process symlinked files */
-					if(!S_ISREG(stat_buf.st_mode))
-						continue;
-					break;
 
-				default:
-					/* everything else we ignore */
-					continue;
-					break;
 				}
 
 			/* at this point we have a regular file... */

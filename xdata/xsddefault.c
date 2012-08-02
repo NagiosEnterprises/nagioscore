@@ -681,11 +681,11 @@ int xsddefault_save_status_data(void) {
 	/* flush the file to disk */
 	fflush(fp);
 
-	/* close the temp file */
-	result = fclose(fp);
-
 	/* fsync the file so that it is completely written out before moving it */
 	fsync(fd);
+
+	/* close the temp file */
+	result = fclose(fp);
 
 	/* save/close was successful */
 	if(result == 0) {

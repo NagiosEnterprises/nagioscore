@@ -605,12 +605,8 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 PERL
 USE_EVENTBROKER
-INSTALLPERLSTUFF
 INITDIR
 BASEEXTRALIBS
-PERLXSI_O
-PERLDIR
-PERLLIBS
 GDLIBS
 CGIEXTRAS
 USE_LIBTAP
@@ -738,8 +734,6 @@ with_cgiurl
 with_htmurl
 enable_nanosleep
 enable_event_broker
-enable_embedded_perl
-with_perlcache
 enable_cygwin
 enable_libtap
 '
@@ -1369,7 +1363,6 @@ Optional Features:
 --disable-statuswrl=disables compilation of statuswrl (VRML) CGI
 --enable-nanosleep enables use of nanosleep (instead of sleep) in event timing
 --enable-event-broker enables integration of event broker routines
---enable-embedded-perl will enable embedded Perl interpreter
 --enable-cygwin enables building under the CYGWIN environment
   --enable-libtap         Enable built-in libtap for unit-testing (default:
                           no).
@@ -1395,7 +1388,6 @@ Optional Packages:
 --with-gd-inc=DIR sets location of the gd include files
 --with-cgiurl=<local-url> sets URL for cgi programs (do not use a trailing slash)
 --with-htmurl=<local-url> sets URL for public html
---with-perlcache turns on cacheing of internally compiled Perl scripts
 
 Some influential environment variables:
   CC          C compiler command
@@ -5833,82 +5825,6 @@ _ACEOF
 fi
 
 
-USEPERL=no;
-INSTALLPERLSTUFF=no;
-# Check whether --enable-embedded-perl was given.
-if test "${enable_embedded_perl+set}" = set; then :
-  enableval=$enable_embedded_perl;
-	USEPERL=$enableval
-
-
-else
-  USEPERL=no
-fi
-
-
-PERLCACHE=yes;
-
-# Check whether --with-perlcache was given.
-if test "${with_perlcache+set}" = set; then :
-  withval=$with_perlcache;
-	PERLCACHE=$withval
-
-
-else
-
-
-$as_echo "#define DO_CLEAN \"1\"" >>confdefs.h
-
-	PERLCACHE=yes;
-
-fi
-
-
-if test x$USEPERL = xyes; then
-
-
-cat >>confdefs.h <<_ACEOF
-#define EMBEDDEDPERL /**/
-_ACEOF
-
-	PERLLIBS="`perl -MExtUtils::Embed -e ldopts`"
-	PERLDIR="`perl -MConfig -e 'print $Config{installsitearch}'`"
-	CFLAGS="${CFLAGS} `perl -MExtUtils::Embed -e ccopts`"
-	USEPERL=yes
-	INSTALLPERLSTUFF=yes;
-	PERLXSI_O=perlxsi.o
-	OBJS="${OBJS} ${PERLXSI_O}"
-	echo "creating base/perlxsi.c"
-	perl -MExtUtils::Embed -e xsinit -- -o base/perlxsi.c
-
-	echo "Embedded Perl interpreter will be compiled in..."
-
-		if test x$PERLCACHE = xyes; then
-
-$as_echo "#define DO_CLEAN \"0\"" >>confdefs.h
-
-		PERLCACHE=yes;
-		echo "Internally compiled Perl scripts will be cached..."
-	else
-
-$as_echo "#define DO_CLEAN \"1\"" >>confdefs.h
-
-		echo "Internally compiled Perl scripts will NOT be cached..."
-	fi
-fi
-
-if test x$USEPERL = xyes; then
-	if (perl -e 'use Config;exit -1 unless ($Config{'usethreads'});'); then
-		echo "Using threaded perl"
-
-cat >>confdefs.h <<_ACEOF
-#define THREADEDPERL /**/
-_ACEOF
-
-	fi
-fi
-
-
 nagios_name=nagios
 nagiostats_name=nagiostats
 cygwin=no
@@ -6043,10 +5959,6 @@ subdirs="$subdirs tap"
 else
 	USE_LIBTAP=no
 fi
-
-
-
-
 
 
 
@@ -7507,18 +7419,6 @@ $as_echo "        Nagios executable:  $nagios_name" >&6; }
 $as_echo "        Nagios user/group:  $nagios_user,$nagios_grp" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:        Command user/group:  $command_user,$command_grp" >&5
 $as_echo "       Command user/group:  $command_user,$command_grp" >&6; }
-if test x$USEPERL = xyes; then
-if test x$PERLCACHE = xyes; then
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:             Embedded Perl:  yes, with caching" >&5
-$as_echo "            Embedded Perl:  yes, with caching" >&6; }
-else
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:             Embedded Perl:  yes, without caching" >&5
-$as_echo "            Embedded Perl:  yes, without caching" >&6; }
-fi
-else
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:             Embedded Perl:  no" >&5
-$as_echo "            Embedded Perl:  no" >&6; }
-fi
 if test x$USE_EVENTBROKER = xyes; then
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:              Event Broker:  yes" >&5
 $as_echo "             Event Broker:  yes" >&6; }

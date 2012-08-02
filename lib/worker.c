@@ -565,6 +565,21 @@ static int receive_command(int sd, int events, void *discard)
 	return 0;
 }
 
+int set_socket_options(int sd, int bufsize)
+{
+	int ret;
+
+	ret = fcntl(sd, F_SETFD, FD_CLOEXEC);
+	ret |= fcntl(sd, F_SETFL, O_NONBLOCK);
+
+	if (!bufsize)
+		return ret;
+	ret |= setsockopt(sd, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(int));
+	ret |= setsockopt(sd, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(int));
+
+	return ret;
+}
+
 
 static void enter_worker(int sd)
 {
@@ -595,6 +610,7 @@ static void enter_worker(int sd)
 	 * more than enough for our needs
 	 */
 	sq = squeue_create(1024);
+	set_socket_options(master_sd, 256 * 1024);
 
 	iobroker_register(iobs, master_sd, NULL, receive_command);
 	while (iobroker_get_num_fds(iobs) > 0) {

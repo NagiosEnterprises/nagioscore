@@ -87,4 +87,12 @@ extern const char *mkstr(const char *fmt, ...);
  * @return The millisecond delta between the two structs
  */
 extern int tv_delta_msec(const struct timeval *start, const struct timeval *stop);
+
+/**
+ * Set some common socket options
+ * @param[in] sd The socket to set options for
+ * @param[in] bufsize Size to set send and receive buffers to
+ * @return 0 on success. < 0 on errors
+ */
+extern int set_socket_options(int sd, int bufsize);
 #endif /* INCLUDE_worker_h__ */

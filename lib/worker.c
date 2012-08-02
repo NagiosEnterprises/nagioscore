@@ -96,6 +96,7 @@ static void job_error(child_process *cp, struct kvvec *kvv, const char *fmt, ...
 	char msg[4096];
 	int len;
 	va_list ap;
+	int ret;
 
 	va_start(ap, fmt);
 	len = vsnprintf(msg, sizeof(msg) - 1, fmt, ap);
@@ -104,7 +105,9 @@ static void job_error(child_process *cp, struct kvvec *kvv, const char *fmt, ...
 		kvvec_addkv(kvv, "job_id", (char *)mkstr("%d", cp->id));
 	}
 	kvvec_addkv_wlen(kvv, "error_msg", 5, msg, len);
-	send_kvvec(master_sd, kvv);
+	ret = send_kvvec(master_sd, kvv);
+	if (ret < 0 && errno == EPIPE)
+		exit_worker();
 	kvvec_destroy(kvv, 0);
 }
 
@@ -157,7 +160,7 @@ const char *mkstr(const char *fmt, ...)
 	return ret;
 }
 
-void send_kvvec(int sd, struct kvvec *kvv)
+int send_kvvec(int sd, struct kvvec *kvv)
 {
 	int ret;
 	struct kvvec_buf *kvvb;
@@ -178,22 +181,14 @@ void send_kvvec(int sd, struct kvvec *kvv)
 		 * reason is OOM, in which case the OOM-slayer will
 		 * probably kill us sooner or later.
 		 */
-		return;
+		return 0;
 	}
 
 	/* use bufsize here, as it gets us the nul string delimiter */
 	ret = write(sd, kvvb->buf, kvvb->bufsize);
-	if (ret < 0) {
-		if (errno == EPIPE) {
-			/*
-			 * master has crashed or abandoned us, so we die
-			 * with what grace we can.
-			 */
-			exit_worker();
-		}
-	}
 	free(kvvb->buf);
 	free(kvvb);
+	return ret;
 }
 
 #define kvvec_add_long(kvv, key, value) \
@@ -212,7 +207,7 @@ static int finish_job(child_process *cp, int reason)
 {
 	struct kvvec *resp;
 	struct rusage *ru = &cp->rusage;
-	int i;
+	int i, ret;
 
 	resp = kvvec_init(12 + cp->request->kv_pairs); /* how many key/value pairs do we need? */
 
@@ -274,7 +269,9 @@ static int finish_job(child_process *cp, int reason)
 		kvvec_addkv(resp, "exited_ok", "0");
 		kvvec_addkv(resp, "error_code", (char *)mkstr("%d", reason));
 	}
-	send_kvvec(master_sd, resp);
+	ret = send_kvvec(master_sd, resp);
+	if (ret < 0 && errno == EPIPE)
+		exit_worker();
 
 	/*
 	 * we mustn't free() the key/value pairs here, as they're all

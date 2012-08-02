@@ -66,8 +66,9 @@ extern worker_process *spawn_worker(void (init_func)(void *), void *init_arg);
  * Send a key/value vector as a bytestream through a socket
  * @param[in] sd The socket descriptor to send to
  * @param kvv The key/value vector to send
+ * @return The number of bytes sent, or -1 on errors
  */
-extern void send_kvvec(int sd, struct kvvec *kvv);
+extern int send_kvvec(int sd, struct kvvec *kvv);
 
 /**
  * Create a short-lived string in stack-allocated memory

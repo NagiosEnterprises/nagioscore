@@ -43,9 +43,6 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	va_end(ap);
 	}
 
-circular_buffer external_command_buffer;
-time_t last_command_check;
-int external_command_buffer_slots;
 char *temp_path;
 int date_format;
 host *host_list;

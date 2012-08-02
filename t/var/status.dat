@@ -20,7 +20,6 @@ programstatus {
 	nagios_pid=48451
 	daemon_mode=0
 	program_start=1242341791
-	last_command_check=0
 	last_log_rotation=0
 	enable_notifications=1
 	active_service_checks_enabled=1
@@ -42,9 +41,6 @@ programstatus {
 	next_event_id=1
 	next_problem_id=0
 	next_notification_id=1
-	total_external_command_buffer_slots=4096
-	used_external_command_buffer_slots=0
-	high_external_command_buffer_slots=0
 	active_scheduled_host_check_stats=0,0,0
 	active_ondemand_host_check_stats=0,0,0
 	passive_host_check_stats=0,0,0

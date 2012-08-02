@@ -103,7 +103,6 @@ extern int      max_child_process_time;
 
 extern int      max_parallel_service_checks;
 
-extern int      command_check_interval;
 extern int      check_reaper_interval;
 extern int      max_check_reaper_time;
 extern int      service_freshness_check_interval;
@@ -199,8 +198,6 @@ extern hostescalation   *hostescalation_list;
 extern host		**host_hashlist;
 extern service		**service_hashlist;
 
-extern int              external_command_buffer_slots;
-
 extern unsigned long    max_check_result_file_age;
 
 extern char             *debug_file;
@@ -259,7 +256,6 @@ int read_main_config_file(char *main_config_file) {
 	mmapfile *thefile = NULL;
 	int current_line = 0;
 	int error = FALSE;
-	int command_check_interval_is_seconds = FALSE;
 	char *modptr = NULL;
 	char *argptr = NULL;
 	DIR *tmpdir = NULL;
@@ -1013,15 +1009,9 @@ int read_main_config_file(char *main_config_file) {
 			check_external_commands = (atoi(value) > 0) ? TRUE : FALSE;
 			}
 
+		/* @todo Remove before Nagios 4.3 */
 		else if(!strcmp(variable, "command_check_interval")) {
-
-			command_check_interval_is_seconds = (strstr(value, "s")) ? TRUE : FALSE;
-			command_check_interval = atoi(value);
-			if(command_check_interval < -1 || command_check_interval == 0) {
-				asprintf(&error_message, "Illegal value for command_check_interval");
-				error = TRUE;
-				break;
-				}
+			obsoleted_warning(variable, "Commands are always handled on arrival");
 			}
 
 		else if(!strcmp(variable, "check_for_orphaned_services")) {
@@ -1283,8 +1273,9 @@ int read_main_config_file(char *main_config_file) {
 		else if(!strcmp(variable, "p1_file"))
 			obsoleted_warning(variable, NULL);
 
+		/*** as is external_command_buffer_slots */
 		else if(!strcmp(variable, "external_command_buffer_slots"))
-			external_command_buffer_slots = atoi(value);
+			obsoleted_warning(variable, "All commands are always processed upon arrival");
 
 		else if(!strcmp(variable, "check_for_updates"))
 			check_for_updates = (atoi(value) > 0) ? TRUE : FALSE;
@@ -1338,10 +1329,6 @@ int read_main_config_file(char *main_config_file) {
 	if(use_timezone != NULL)
 		set_environment_var("TZ", use_timezone, 1);
 	tzset();
-
-	/* adjust command check interval */
-	if(command_check_interval_is_seconds == FALSE && command_check_interval != -1)
-		command_check_interval *= interval_length;
 
 	/* adjust tweaks */
 	if(free_child_process_memory == -1)

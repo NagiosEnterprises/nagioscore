@@ -256,7 +256,6 @@ typedef struct nebstruct_program_status_struct {
 	time_t          program_start;
 	int             pid;
 	int             daemon_mode;
-	time_t          last_command_check;
 	time_t          last_log_rotation;
 	int             notifications_enabled;
 	int             active_service_checks_enabled;

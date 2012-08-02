@@ -81,7 +81,6 @@ extern int      enable_event_handlers;
 extern int      obsess_over_services;
 extern int      enable_failure_prediction;
 extern int      process_performance_data;
-extern time_t   last_command_check;
 extern time_t   last_log_rotation;
 
 int             check_external_commands = 0;

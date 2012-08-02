@@ -39,7 +39,6 @@ extern int      test_scheduling;
 
 extern time_t   program_start;
 extern time_t   event_start;
-extern time_t   last_command_check;
 
 extern int      sigshutdown;
 extern int      sigrestart;
@@ -52,7 +51,6 @@ extern int      service_interleave_factor_method;
 extern int      max_host_check_spread;
 extern int      max_service_check_spread;
 
-extern int      command_check_interval;
 extern int      check_reaper_interval;
 extern int      service_freshness_check_interval;
 extern int      host_freshness_check_interval;
@@ -106,7 +104,6 @@ void init_timing_loop(void) {
 	host *temp_host = NULL;
 	service *temp_service = NULL;
 	time_t current_time = 0L;
-	unsigned long interval_to_use = 0L;
 	int total_interleave_blocks = 0;
 	int current_interleave_block = 1;
 	int interleave_block_index = 0;
@@ -582,15 +579,6 @@ void init_timing_loop(void) {
 	if(aggregate_status_updates == TRUE)
 		schedule_new_event(EVENT_STATUS_SAVE, TRUE, current_time + status_update_interval, TRUE, status_update_interval, NULL, TRUE, NULL, NULL, 0);
 
-	/* add an external command check event if needed */
-	if(check_external_commands == TRUE) {
-		if(command_check_interval == -1)
-			interval_to_use = (unsigned long)5;
-		else
-			interval_to_use = (unsigned long)command_check_interval;
-		schedule_new_event(EVENT_COMMAND_CHECK, TRUE, current_time + interval_to_use, TRUE, interval_to_use, NULL, TRUE, NULL, NULL, 0);
-		}
-
 	/* add a log rotation event if necessary */
 	if(log_rotation_method != LOG_ROTATION_NONE)
 		schedule_new_event(EVENT_LOG_ROTATION, TRUE, get_next_log_rotation_time(), TRUE, 0, (void *)get_next_log_rotation_time, TRUE, NULL, NULL, 0);
@@ -916,10 +904,6 @@ int event_execution_loop(void) {
 		last_time = current_time;
 
 		/* super-priority (hardcoded) events come first */
-		/* check for external commands if we're supposed to check as often as possible */
-		if(command_check_interval == -1)
-			check_for_external_commands();
-
 		/* update status information occassionally - NagVis watches the NDOUtils DB to see if Nagios is alive */
 		if((unsigned long)(current_time - last_status_update) > 5) {
 			last_status_update = current_time;
@@ -1154,14 +1138,6 @@ int handle_timed_event(timed_event *event) {
 			/* run the host check */
 			temp_host = (host *)event->event_data;
 			perform_scheduled_host_check(temp_host, event->event_options, latency);
-			break;
-
-		case EVENT_COMMAND_CHECK:
-
-			log_debug_info(DEBUGL_EVENTS, 0, "** External Command Check Event\n");
-
-			/* check for external commands */
-			check_for_external_commands();
 			break;
 
 		case EVENT_LOG_ROTATION:
@@ -1431,7 +1407,6 @@ void compensate_for_system_time_change(unsigned long last_time, unsigned long cu
 	/* adjust program timestamps */
 	adjust_timestamp_for_time_change(last_time, current_time, time_difference, &program_start);
 	adjust_timestamp_for_time_change(last_time, current_time, time_difference, &event_start);
-	adjust_timestamp_for_time_change(last_time, current_time, time_difference, &last_command_check);
 
 	/* update the status data */
 	update_program_status(FALSE);

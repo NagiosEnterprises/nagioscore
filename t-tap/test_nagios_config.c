@@ -127,7 +127,6 @@ int             update_available = FALSE;
 char            *last_program_version = NULL;
 char            *new_program_version = NULL;
 
-time_t          last_command_check = 0L;
 time_t          last_command_status_update = 0L;
 time_t          last_log_rotation = 0L;
 
@@ -246,10 +245,8 @@ unsigned long	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
 
 dbuf            check_result_dbuf;
 
-circular_buffer external_command_buffer;
 circular_buffer check_result_buffer;
 pthread_t       worker_threads[TOTAL_WORKER_THREADS];
-int             external_command_buffer_slots = DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
 
 check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 

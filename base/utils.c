@@ -175,7 +175,6 @@ extern int      log_rotation_method;
 
 extern time_t   program_start;
 
-extern time_t   last_command_check;
 extern time_t	last_command_status_update;
 extern time_t   last_log_rotation;
 
@@ -254,10 +253,8 @@ extern unsigned long   max_check_result_file_age;
 extern dbuf            check_result_dbuf;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
-extern circular_buffer external_command_buffer;
 extern circular_buffer check_result_buffer;
 extern circular_buffer event_broker_buffer;
-extern int             external_command_buffer_slots;
 
 extern check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
@@ -3566,7 +3563,6 @@ int reset_variables(void) {
 	retained_contact_host_attribute_mask = 0L;
 	retained_contact_service_attribute_mask = 0L;
 
-	command_check_interval = DEFAULT_COMMAND_CHECK_INTERVAL;
 	check_reaper_interval = DEFAULT_CHECK_REAPER_INTERVAL;
 	max_check_reaper_time = DEFAULT_MAX_REAPER_TIME;
 	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
@@ -3584,7 +3580,6 @@ int reset_variables(void) {
 
 	log_rotation_method = LOG_ROTATION_NONE;
 
-	last_command_check = 0L;
 	last_command_status_update = 0L;
 	last_log_rotation = 0L;
 
@@ -3630,8 +3625,6 @@ int reset_variables(void) {
 	child_processes_fork_twice = FALSE;
 
 	additional_freshness_latency = DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
-
-	external_command_buffer_slots = DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
 
 	debug_level = DEFAULT_DEBUG_LEVEL;
 	debug_verbosity = DEFAULT_DEBUG_VERBOSITY;

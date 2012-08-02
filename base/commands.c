@@ -45,10 +45,7 @@ extern int      check_external_commands;
 
 extern int      ipc_pipe[2];
 
-extern time_t   last_command_check;
 extern time_t   last_command_status_update;
-
-extern int      command_check_interval;
 
 extern int      enable_notifications;
 extern int      execute_service_checks;
@@ -84,91 +81,16 @@ passive_check_result    *passive_check_result_list = NULL;
 passive_check_result    *passive_check_result_list_tail = NULL;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
-extern circular_buffer external_command_buffer;
-extern int             external_command_buffer_slots;
-
-
 
 /******************************************************************/
 /****************** EXTERNAL COMMAND PROCESSING *******************/
 /******************************************************************/
 
 
-/* checks for the existence of the external command file and processes all commands found in it */
-int check_for_external_commands(void) {
-	char *buffer = NULL;
-	int update_status = FALSE;
-
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_for_external_commands()\n");
-
-	/* bail out if we shouldn't be checking for external commands */
-	if(check_external_commands == FALSE)
-		return ERROR;
-
-	/* update last command check time */
-	last_command_check = time(NULL);
-
-	/* update the status log with new program information */
-	/* go easy on the frequency of this if we're checking often - only update program status every 10 seconds.... */
-	if(last_command_check < (last_command_status_update + 10))
-		update_status = FALSE;
-	else
-		update_status = TRUE;
-	if(update_status == TRUE) {
-		last_command_status_update = last_command_check;
-		update_program_status(FALSE);
-		}
-
-	/* reset passive check result list pointers */
-	passive_check_result_list = NULL;
-	passive_check_result_list_tail = NULL;
-
-	/* process all commands found in the buffer */
-	while(1) {
-
-		/* get a lock on the buffer */
-		pthread_mutex_lock(&external_command_buffer.buffer_lock);
-
-		/* if no items present, bail out */
-		if(external_command_buffer.items <= 0) {
-			pthread_mutex_unlock(&external_command_buffer.buffer_lock);
-			break;
-			}
-
-		if(external_command_buffer.buffer[external_command_buffer.tail])
-			buffer = strdup(((char **)external_command_buffer.buffer)[external_command_buffer.tail]);
-
-		/* free memory allocated for buffer slot */
-		my_free(((char **)external_command_buffer.buffer)[external_command_buffer.tail]);
-
-		/* adjust tail counter and number of items */
-		external_command_buffer.tail = (external_command_buffer.tail + 1) % external_command_buffer_slots;
-		external_command_buffer.items--;
-
-		/* release the lock on the buffer */
-		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
-
-		/* process the command */
-		process_external_command1(buffer);
-
-		/* free memory */
-		my_free(buffer);
-		}
-
-	/**** PROCESS ALL PASSIVE HOST AND SERVICE CHECK RESULTS AT ONE TIME ****/
-	if(passive_check_result_list != NULL)
-		process_passive_checks();
-
-	return OK;
-	}
-
-
-
 /* processes all external commands in a (regular) file */
 int process_external_commands_from_file(char *fname, int delete_file) {
 	mmapfile *thefile = NULL;
 	char *input = NULL;
-
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "process_external_commands_from_file()\n");
 

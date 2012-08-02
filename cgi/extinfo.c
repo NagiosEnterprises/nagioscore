@@ -43,7 +43,6 @@ extern int              refresh_rate;
 extern time_t		program_start;
 extern int              nagios_pid;
 extern int              daemon_mode;
-extern time_t           last_command_check;
 extern time_t           last_log_rotation;
 extern int              enable_notifications;
 extern int              execute_service_checks;
@@ -823,10 +822,6 @@ void show_process_info(void) {
 	get_time_breakdown(run_time, &days, &hours, &minutes, &seconds);
 	sprintf(run_time_string, "%dd %dh %dm %ds", days, hours, minutes, seconds);
 	printf("<TR><TD CLASS='dataVar'>Total Running Time:</TD><TD CLASS='dataVal'>%s</TD></TR>\n", run_time_string);
-
-	/* last external check */
-	get_time_string(&last_command_check, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
-	printf("<TR><TD CLASS='dataVar'>Last External Command Check:</TD><TD CLASS='dataVal'>%s</TD></TR>\n", (last_command_check == (time_t)0) ? "N/A" : date_time);
 
 	/* last log file rotation */
 	get_time_string(&last_log_rotation, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);

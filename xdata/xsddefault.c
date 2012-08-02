@@ -52,7 +52,6 @@
 #ifdef NSCGI
 time_t program_start;
 int daemon_mode;
-time_t last_command_check;
 time_t last_log_rotation;
 int enable_notifications;
 int execute_service_checks;
@@ -76,7 +75,6 @@ int program_stats[MAX_CHECK_STATS_TYPES][3];
 extern time_t program_start;
 extern int nagios_pid;
 extern int daemon_mode;
-extern time_t last_command_check;
 extern time_t last_log_rotation;
 extern int enable_notifications;
 extern int execute_service_checks;
@@ -99,9 +97,6 @@ extern char           *last_program_version;
 extern int            update_available;
 extern char           *last_program_version;
 extern char           *new_program_version;
-
-extern int external_command_buffer_slots;
-extern circular_buffer external_command_buffer;
 
 extern host *host_list;
 extern service *service_list;
@@ -337,8 +332,6 @@ int xsddefault_save_status_data(void) {
 	time_t current_time;
 	int fd = 0;
 	FILE *fp = NULL;
-	int used_external_command_buffer_slots = 0;
-	int high_external_command_buffer_slots = 0;
 	int result = OK;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "save_status_data()\n");
@@ -377,18 +370,6 @@ int xsddefault_save_status_data(void) {
 		return ERROR;
 		}
 
-	/* get number of items in the command buffer */
-	if(check_external_commands == TRUE) {
-		pthread_mutex_lock(&external_command_buffer.buffer_lock);
-		used_external_command_buffer_slots = external_command_buffer.items;
-		high_external_command_buffer_slots = external_command_buffer.high;
-		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
-		}
-	else {
-		used_external_command_buffer_slots = 0;
-		high_external_command_buffer_slots = 0;
-		}
-
 	/* generate check statistics */
 	generate_check_stats();
 
@@ -419,7 +400,6 @@ int xsddefault_save_status_data(void) {
 	fprintf(fp, "\tnagios_pid=%d\n", nagios_pid);
 	fprintf(fp, "\tdaemon_mode=%d\n", daemon_mode);
 	fprintf(fp, "\tprogram_start=%lu\n", program_start);
-	fprintf(fp, "\tlast_command_check=%lu\n", last_command_check);
 	fprintf(fp, "\tlast_log_rotation=%lu\n", last_log_rotation);
 	fprintf(fp, "\tenable_notifications=%d\n", enable_notifications);
 	fprintf(fp, "\tactive_service_checks_enabled=%d\n", execute_service_checks);
@@ -441,9 +421,6 @@ int xsddefault_save_status_data(void) {
 	fprintf(fp, "\tnext_event_id=%lu\n", next_event_id);
 	fprintf(fp, "\tnext_problem_id=%lu\n", next_problem_id);
 	fprintf(fp, "\tnext_notification_id=%lu\n", next_notification_id);
-	fprintf(fp, "\ttotal_external_command_buffer_slots=%d\n", external_command_buffer_slots);
-	fprintf(fp, "\tused_external_command_buffer_slots=%d\n", used_external_command_buffer_slots);
-	fprintf(fp, "\thigh_external_command_buffer_slots=%d\n", high_external_command_buffer_slots);
 	fprintf(fp, "\tactive_scheduled_host_check_stats=%d,%d,%d\n", check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[0], check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[1], check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[2]);
 	fprintf(fp, "\tactive_ondemand_host_check_stats=%d,%d,%d\n", check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[0], check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[1], check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[2]);
 	fprintf(fp, "\tpassive_host_check_stats=%d,%d,%d\n", check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[0], check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[1], check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[2]);
@@ -937,8 +914,6 @@ int xsddefault_read_status_data(char *config_file, int options) {
 						daemon_mode = (atoi(val) > 0) ? TRUE : FALSE;
 					else if(!strcmp(var, "program_start"))
 						program_start = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "last_command_check"))
-						last_command_check = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "last_log_rotation"))
 						last_log_rotation = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "enable_notifications"))
@@ -967,14 +942,6 @@ int xsddefault_read_status_data(char *config_file, int options) {
 						enable_failure_prediction = (atoi(val) > 0) ? TRUE : FALSE;
 					else if(!strcmp(var, "process_performance_data"))
 						process_performance_data = (atoi(val) > 0) ? TRUE : FALSE;
-
-					else if(!strcmp(var, "total_external_command_buffer_slots"))
-						buffer_stats[0][0] = atoi(val);
-					else if(!strcmp(var, "used_external_command_buffer_slots"))
-						buffer_stats[0][1] = atoi(val);
-					else if(!strcmp(var, "high_external_command_buffer_slots"))
-						buffer_stats[0][2] = atoi(val);
-
 
 					else if(strstr(var, "_stats")) {
 

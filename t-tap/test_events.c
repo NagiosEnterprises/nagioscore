@@ -32,7 +32,6 @@ int      test_scheduling;
 
 time_t   program_start;
 time_t   event_start;
-time_t   last_command_check;
 
 int      sigshutdown = FALSE;
 int      sigrestart = FALSE;

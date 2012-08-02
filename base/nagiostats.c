@@ -193,12 +193,6 @@ int external_commands_last_1min = 0;
 int external_commands_last_5min = 0;
 int external_commands_last_15min = 0;
 
-int total_external_command_buffer_slots = 0;
-int used_external_command_buffer_slots = 0;
-int high_external_command_buffer_slots = 0;
-
-
-
 int display_mrtg_values(void);
 int display_stats(void);
 int read_config_file(void);
@@ -468,13 +462,6 @@ int display_mrtg_values(void) {
 		else if(!strcmp(temp_ptr, "NAGIOSVERPID"))
 			printf("Nagios %s (pid=%lu)%s", status_version, nagios_pid, mrtg_delimiter);
 
-
-		else if(!strcmp(temp_ptr, "TOTCMDBUF"))
-			printf("%d%s", total_external_command_buffer_slots, mrtg_delimiter);
-		else if(!strcmp(temp_ptr, "USEDCMDBUF"))
-			printf("%d%s", used_external_command_buffer_slots, mrtg_delimiter);
-		else if(!strcmp(temp_ptr, "HIGHCMDBUF"))
-			printf("%d%s", high_external_command_buffer_slots, mrtg_delimiter);
 
 		else if(!strcmp(temp_ptr, "NUMSERVICES"))
 			printf("%d%s", status_service_entries, mrtg_delimiter);
@@ -777,7 +764,6 @@ int display_stats(void) {
 	get_time_breakdown(time_difference, &days, &hours, &minutes, &seconds);
 	printf("Program Running Time:                   %dd %dh %dm %ds\n", days, hours, minutes, seconds);
 	printf("Nagios PID:                             %lu\n", nagios_pid);
-	printf("Used/High/Total Command Buffers:        %d / %d / %d\n", used_external_command_buffer_slots, high_external_command_buffer_slots, total_external_command_buffer_slots);
 	printf("\n");
 	printf("Total Services:                         %d\n", status_service_entries);
 	printf("Services Checked:                       %d\n", services_checked);
@@ -1204,12 +1190,6 @@ int read_status_file(void) {
 				case STATUS_PROGRAM_DATA:
 					if(!strcmp(var, "program_start"))
 						program_start = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "total_external_command_buffer_slots"))
-						total_external_command_buffer_slots = atoi(val);
-					else if(!strcmp(var, "used_external_command_buffer_slots"))
-						used_external_command_buffer_slots = atoi(val);
-					else if(!strcmp(var, "high_external_command_buffer_slots"))
-						high_external_command_buffer_slots = atoi(val);
 					else if(!strcmp(var, "nagios_pid"))
 						nagios_pid = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "active_scheduled_host_check_stats")) {

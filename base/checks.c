@@ -51,8 +51,6 @@ extern char     *check_result_path;
 
 extern int      interval_length;
 
-extern int      command_check_interval;
-
 extern int      log_initial_states;
 extern int      log_passive_checks;
 extern int      log_host_retries;

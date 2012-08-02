@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 	struct kvvec *kvv, *kvv2;
 	struct kvvec_buf *kvvb, *kvvb2;
 
-	kvv = kvvec_init(1);
+	kvv = kvvec_create(1);
 	add_vars(kvv, test_data, 1239819);
 	add_vars(kvv, (const char **)argv + 1, argc - 1);
 

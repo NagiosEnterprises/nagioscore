@@ -44,6 +44,9 @@ struct kvvec {
 	int kvv_sorted;        /**< Determines if this kvvec has been sorted */
 };
 
+/** Portable initializer for stack-allocated key/value vectors */
+#define KVVEC_INITIALIZER { NULL, 0, 0, 0 }
+
 /** Parameters for kvvec_destroy() */
 #define KVVEC_FREE_KEYS   1 /**< Free keys when destroying a kv vector */
 #define KVVEC_FREE_VALUES 2 /**< Free values when destroying a kv vector */
@@ -51,18 +54,40 @@ struct kvvec {
 #define KVVEC_FREE_ALL    (KVVEC_FREE_KEYS | KVVEC_FREE_VALUES)
 
 /**
- * Initialize a key/value vector
+ * Initialize a previously allocated key/value vector
+ *
  * @param hint Number of key/value pairs we expect to store
  * @return Pointer to a struct kvvec, properly initialized
  */
-extern struct kvvec *kvvec_init(int hint);
+extern struct kvvec *kvvec_init(struct kvvec *kvv, int hint);
 
 /**
- * Grow a key/value vector. Used internally as needed by
- * the kvvec api.
+ * Create a key/value vector
+ *
+ * @param hint Number of key/value pairs we expect to store
+ * @return Pointer to a struct kvvec, properly initialized
+ */
+extern struct kvvec *kvvec_create(int hint);
+
+/**
+ * Resize a key/value vector
+ * Used by kvvec_grow(). If size is smaller than the current number of
+ * used key/value slots, -1 is returned.
+ *
+ * @param[in] kvv The key/value vector to resize
+ * @param[in] size The size to grow to
+ * @return 0 on success, < 0 on errors
+ */
+extern int kvvec_resize(struct kvvec *kvv, int size);
+
+/**
+ * Grow a key/value vector.
+ * Used internally as needed by the kvvec api. If 'hint' is zero, the
+ * key/value capacity is increased by a third of the current capacity
+ * plus a small constant number. This uses kvvec_resize() internally.
  *
  * @param kvv The key/value vector to grow
- * @param hint The new size we should grow to
+ * @param hint The amount of key/value slots we should grow by
  * @return 0 on success, < 0 on errors
  */
 extern int kvvec_grow(struct kvvec *kvv, int hint);

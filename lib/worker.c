@@ -205,11 +205,15 @@ int send_kvvec(int sd, struct kvvec *kvv)
 
 static int finish_job(child_process *cp, int reason)
 {
-	struct kvvec *resp;
+	static struct kvvec resp = KVVEC_INITIALIZER;
 	struct rusage *ru = &cp->rusage;
 	int i, ret;
 
-	resp = kvvec_init(12 + cp->request->kv_pairs); /* how many key/value pairs do we need? */
+	/* how many key/value pairs do we need? */
+	if (kvvec_init(&resp, 12 + cp->request->kv_pairs) == NULL) {
+		/* what the hell do we do now? */
+		exit_worker();
+	}
 
 	gettimeofday(&cp->stop, NULL);
 
@@ -245,39 +249,33 @@ static int finish_job(child_process *cp, int reason)
 		if (kv->key_len == 3 && !strcmp(kv->key, "env")) {
 			continue;
 		}
-		kvvec_addkv_wlen(resp, kv->key, kv->key_len, kv->value, kv->value_len);
+		kvvec_addkv_wlen(&resp, kv->key, kv->key_len, kv->value, kv->value_len);
 	}
-	kvvec_addkv(resp, "wait_status", (char *)mkstr("%d", cp->ret));
-	kvvec_addkv_wlen(resp, "outstd", 6, cp->outstd.buf, cp->outstd.len);
-	kvvec_addkv_wlen(resp, "outerr", 6, cp->outerr.buf, cp->outerr.len);
-	kvvec_add_tv(resp, "start", cp->start);
-	kvvec_add_tv(resp, "stop", cp->stop);
-	kvvec_addkv(resp, "runtime", (char *)mkstr("%f", cp->runtime));
+	kvvec_addkv(&resp, "wait_status", (char *)mkstr("%d", cp->ret));
+	kvvec_addkv_wlen(&resp, "outstd", 6, cp->outstd.buf, cp->outstd.len);
+	kvvec_addkv_wlen(&resp, "outerr", 6, cp->outerr.buf, cp->outerr.len);
+	kvvec_add_tv(&resp, "start", cp->start);
+	kvvec_add_tv(&resp, "stop", cp->stop);
+	kvvec_addkv(&resp, "runtime", (char *)mkstr("%f", cp->runtime));
 	if (!reason) {
 		/* child exited nicely */
-		kvvec_addkv(resp, "exited_ok", "1");
-		kvvec_add_tv(resp, "ru_utime", ru->ru_utime);
-		kvvec_add_tv(resp, "ru_stime", ru->ru_stime);
-		kvvec_add_long(resp, "ru_minflt", ru->ru_minflt);
-		kvvec_add_long(resp, "ru_majflt", ru->ru_majflt);
-		kvvec_add_long(resp, "ru_nswap", ru->ru_nswap);
-		kvvec_add_long(resp, "ru_inblock", ru->ru_inblock);
-		kvvec_add_long(resp, "ru_oublock", ru->ru_oublock);
-		kvvec_add_long(resp, "ru_nsignals", ru->ru_nsignals);
+		kvvec_addkv(&resp, "exited_ok", "1");
+		kvvec_add_tv(&resp, "ru_utime", ru->ru_utime);
+		kvvec_add_tv(&resp, "ru_stime", ru->ru_stime);
+		kvvec_add_long(&resp, "ru_minflt", ru->ru_minflt);
+		kvvec_add_long(&resp, "ru_majflt", ru->ru_majflt);
+		kvvec_add_long(&resp, "ru_nswap", ru->ru_nswap);
+		kvvec_add_long(&resp, "ru_inblock", ru->ru_inblock);
+		kvvec_add_long(&resp, "ru_oublock", ru->ru_oublock);
+		kvvec_add_long(&resp, "ru_nsignals", ru->ru_nsignals);
 	} else {
 		/* some error happened */
-		kvvec_addkv(resp, "exited_ok", "0");
-		kvvec_addkv(resp, "error_code", (char *)mkstr("%d", reason));
+		kvvec_addkv(&resp, "exited_ok", "0");
+		kvvec_addkv(&resp, "error_code", (char *)mkstr("%d", reason));
 	}
-	ret = send_kvvec(master_sd, resp);
+	ret = send_kvvec(master_sd, &resp);
 	if (ret < 0 && errno == EPIPE)
 		exit_worker();
-
-	/*
-	 * we mustn't free() the key/value pairs here, as they're all
-	 * stack-allocated or located in the request thing
-	 */
-	kvvec_destroy(resp, 0);
 
 	running_jobs--;
 	if (cp->outstd.buf) {

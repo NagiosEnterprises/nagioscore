@@ -608,7 +608,7 @@ static worker_process *get_worker(worker_job *job)
  */
 static int wproc_run_job(worker_job *job, nagios_macros *mac)
 {
-	struct kvvec *kvv;
+	static struct kvvec kvv = KVVEC_INITIALIZER;
 	worker_process *wp;
 
 	/*
@@ -626,16 +626,14 @@ static int wproc_run_job(worker_job *job, nagios_macros *mac)
 	 * so workers know to add them to environment. For now,
 	 * we don't support that though.
 	 */
-	kvv = kvvec_init(4); /* job_id, type, command and timeout */
-	if (!kvv)
+	if (!kvvec_init(&kvv, 4))	/* job_id, type, command and timeout */
 		return ERROR;
 
-	kvvec_addkv(kvv, "job_id", (char *)mkstr("%d", job->id));
-	kvvec_addkv(kvv, "type", (char *)mkstr("%d", job->type));
-	kvvec_addkv(kvv, "command", job->command);
-	kvvec_addkv(kvv, "timeout", (char *)mkstr("%u", job->timeout));
-	send_kvvec(wp->sd, kvv);
-	kvvec_destroy(kvv, 0);
+	kvvec_addkv(&kvv, "job_id", (char *)mkstr("%d", job->id));
+	kvvec_addkv(&kvv, "type", (char *)mkstr("%d", job->type));
+	kvvec_addkv(&kvv, "command", job->command);
+	kvvec_addkv(&kvv, "timeout", (char *)mkstr("%u", job->timeout));
+	send_kvvec(wp->sd, &kvv);
 	wp->jobs_running++;
 	wp->jobs_started++;
 

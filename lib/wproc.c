@@ -136,7 +136,7 @@ static int send_command(int sd, int events, void *discard)
 	/* this happens when we're reading from stdin */
 	buf[--ret] = 0;
 
-	kvv = kvvec_init(5);
+	kvv = kvvec_create(5);
 	wp = wps[wp_index++ % NWPS];
 	kvvec_addkv(kvv, "job_id", (char *)mkstr("%d", wp->job_index++));
 	kvvec_addkv_wlen(kvv, "command", sizeof("command") - 1, buf, ret);

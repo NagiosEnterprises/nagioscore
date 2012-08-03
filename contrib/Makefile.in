@@ -25,7 +25,7 @@ CGIDIR=@sbindir@
 BINDIR=@bindir@
 
 CGIS=traceroute.cgi daemonchk.cgi
-UTILS=mini_epn new_mini_epn convertcfg
+UTILS=convertcfg
 ALL=$(CGIS) $(UTILS)
 
 

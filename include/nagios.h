@@ -34,7 +34,7 @@
 #include "locations.h"
 #include "objects.h"
 #include "macros.h"
-#include "lib/libnagios.h" /* re-run configure if this path doesn't work */
+#include "lib/libnagios.h"
 
 	/************* MISC LENGTH/SIZE DEFINITIONS ***********/
 

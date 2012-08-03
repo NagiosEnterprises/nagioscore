@@ -28,7 +28,7 @@ CP=@CP@
 all:	helloworld.o
 
 helloworld.o: helloworld.c
-	$(CC) $(MOD_CFLAGS) $(CFLAGS) -o helloworld.o helloworld.c $(MOD_LDFLAGS) $(LDFLAGS) $(LIBS)
+	$(CC) -I.. $(MOD_CFLAGS) $(CFLAGS) -o helloworld.o helloworld.c $(MOD_LDFLAGS) $(LDFLAGS) $(LIBS)
 
 clean:
 	rm -f helloworld.o

@@ -265,7 +265,7 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 	/* make sure the key/value vector is large enough */
 	if (!(flags & KVVEC_APPEND)) {
 		kvvec_init(kvv, num_pairs);
-	} else if (kvvec_capacity(kvv) < num_pairs && kvvec_grow(kvv, num_pairs) < 0) {
+	} else if (kvvec_capacity(kvv) < num_pairs && kvvec_resize(kvv, num_pairs) < 0) {
 		return -1;
 	}
 

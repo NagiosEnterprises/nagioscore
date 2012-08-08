@@ -2,9 +2,12 @@
 
 my ${exec_prefix};
 my ${prefix};
+my ${datarootdir};
 
 ${prefix}="@prefix@";
 ${exec_prefix}="@exec_prefix@";
+${datarootdir}="@datarootdir@";
+
 while ($f = shift @ARGV) {
 
 	if (-x "/bin/mktemp") { 
@@ -29,6 +32,7 @@ while ($f = shift @ARGV) {
 		s|\@TMPDIR\@|@TMPDIR@|g;
 		s|\@CHECKRESULTDIR\@|@CHECKRESULTDIR@|g;
 		s|\@datadir\@|@datadir@|g;
+		s|\@datarootdir\@|@datarootdir@|g;
 		s|\@sbindir\@|@sbindir@|g;
 		s|\@bindir\@|@bindir@|g;
 		s|\@htmurl\@|@htmurl@|g;

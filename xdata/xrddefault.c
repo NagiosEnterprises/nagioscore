@@ -299,9 +299,9 @@ int xrddefault_save_state_information(void) {
 	/* what attributes should be masked out? */
 	/* NOTE: host/service/contact-specific values may be added in the future, but for now we only have global masks */
 	process_host_attribute_mask = retained_process_host_attribute_mask;
-	process_service_attribute_mask = retained_process_host_attribute_mask;
+	process_service_attribute_mask = retained_process_service_attribute_mask;
 	host_attribute_mask = retained_host_attribute_mask;
-	service_attribute_mask = retained_host_attribute_mask;
+	service_attribute_mask = retained_service_attribute_mask;
 	contact_host_attribute_mask = retained_contact_host_attribute_mask;
 	contact_service_attribute_mask = retained_contact_service_attribute_mask;
 

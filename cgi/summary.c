@@ -42,8 +42,6 @@ extern hostgroup *hostgroup_list;
 extern service *service_list;
 extern servicegroup *servicegroup_list;
 
-extern int       log_rotation_method;
-
 
 /* output types */
 #define HTML_OUTPUT             0

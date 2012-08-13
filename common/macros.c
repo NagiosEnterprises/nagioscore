@@ -41,14 +41,9 @@ extern int      enable_environment_macros;
 
 extern char     *illegal_output_chars;
 
-extern contact		*contact_list;
-extern contactgroup	*contactgroup_list;
 extern host             *host_list;
-extern hostgroup	*hostgroup_list;
 extern service          *service_list;
 extern servicegroup     *servicegroup_list;
-extern command          *command_list;
-extern timeperiod       *timeperiod_list;
 
 char *macro_x_names[MACRO_X_COUNT]; /* the macro names */
 char *macro_user[MAX_USER_MACROS]; /* $USERx$ macros */
@@ -1473,8 +1468,8 @@ int grab_custom_macro_value(char *macro_name, char *arg1, char *arg2, char **out
 int grab_datetime_macro_r(nagios_macros *mac, int macro_type, char *arg1, char *arg2, char **output) {
 	time_t current_time = 0L;
 	timeperiod *temp_timeperiod = NULL;
-	time_t test_time = 0L;
 #ifdef NSCORE
+	time_t test_time = 0L;
 	time_t next_valid_time = 0L;
 #endif
 
@@ -1495,10 +1490,12 @@ int grab_datetime_macro_r(nagios_macros *mac, int macro_type, char *arg1, char *
 				return ERROR;
 
 			/* what timestamp should we use? */
+#ifdef NSCORE
 			if(arg2)
 				test_time = (time_t)strtoul(arg2, NULL, 0);
 			else
 				test_time = current_time;
+#endif
 			break;
 
 		default:

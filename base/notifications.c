@@ -45,8 +45,6 @@ extern int             log_notifications;
 
 extern int             enable_notifications;
 
-extern int             notification_timeout;
-
 extern unsigned long   next_notification_id;
 
 extern char            *generic_summary;

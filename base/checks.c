@@ -42,16 +42,10 @@
 #include "../include/neberrors.h"
 #endif
 
-extern int      sigshutdown;
-extern int      sigrestart;
-
-extern char     *temp_file;
-extern char     *temp_path;
 extern char     *check_result_path;
 
 extern int      interval_length;
 
-extern int      log_initial_states;
 extern int      log_passive_checks;
 extern int      log_host_retries;
 
@@ -59,7 +53,6 @@ extern int      service_check_timeout;
 extern int      host_check_timeout;
 
 extern int      check_reaper_interval;
-extern int      max_check_reaper_time;
 
 extern int      use_aggressive_host_checking;
 extern unsigned long cached_host_check_horizon;
@@ -73,11 +66,8 @@ extern int      currently_running_service_checks;
 extern int      currently_running_host_checks;
 
 extern int      accept_passive_service_checks;
-extern int      execute_service_checks;
 extern int      accept_passive_host_checks;
-extern int      execute_host_checks;
 extern int      obsess_over_services;
-extern int      obsess_over_hosts;
 
 extern int      translate_passive_host_checks;
 extern int      passive_host_checks_are_soft;
@@ -88,10 +78,6 @@ extern int      additional_freshness_latency;
 
 extern int      max_host_check_spread;
 extern int      max_service_check_spread;
-
-extern int      use_large_installation_tweaks;
-extern int      free_child_process_memory;
-extern int      child_processes_fork_twice;
 
 extern time_t   last_program_stop;
 extern time_t   program_start;
@@ -106,9 +92,6 @@ extern hostdependency    *hostdependency_list;
 
 extern unsigned long   next_event_id;
 extern unsigned long   next_problem_id;
-
-extern unsigned long max_debug_file_size;
-
 
 
 

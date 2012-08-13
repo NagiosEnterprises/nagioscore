@@ -49,7 +49,6 @@ extern int obsess_over_hosts;
 extern int enable_flap_detection;
 extern int enable_failure_prediction;
 extern int process_performance_data;
-extern int aggregate_status_updates;
 extern unsigned long modified_host_process_attributes;
 extern unsigned long modified_service_process_attributes;
 extern char *global_host_event_handler;

@@ -32,21 +32,6 @@
 #include "../include/broker.h"
 #include "../include/nagios.h"
 
-extern char     *config_file;
-extern char	*log_file;
-extern char     *command_file;
-extern char     *temp_file;
-extern char     *temp_path;
-
-extern int      sigshutdown;
-extern int      sigrestart;
-
-extern int      check_external_commands;
-
-extern int      ipc_pipe[2];
-
-extern time_t   last_command_status_update;
-
 extern int      enable_notifications;
 extern int      execute_service_checks;
 extern int      accept_passive_service_checks;
@@ -73,9 +58,6 @@ extern command  *global_service_event_handler_ptr;
 
 extern host     *host_list;
 extern service  *service_list;
-
-extern FILE     *command_file_fp;
-extern int      command_file_fd;
 
 /******************************************************************/
 /****************** EXTERNAL COMMAND PROCESSING *******************/

@@ -37,8 +37,6 @@ extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_docs_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 
-extern int    log_rotation_method;
-
 
 #define FIND_HOST		1
 #define FIND_CONTACT		2

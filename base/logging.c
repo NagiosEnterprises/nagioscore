@@ -31,7 +31,6 @@
 
 
 extern char	*log_file;
-extern char     *temp_file;
 extern char	*log_archive_path;
 
 extern host     *host_list;

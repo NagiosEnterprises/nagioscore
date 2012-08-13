@@ -72,16 +72,8 @@ char            *splunk_url = NULL;
 int             lock_author_names = TRUE;
 
 extern time_t   program_start;
-extern int      nagios_pid;
-extern int      daemon_mode;
 extern int      enable_notifications;
 extern int      execute_service_checks;
-extern int      accept_passive_service_checks;
-extern int      enable_event_handlers;
-extern int      obsess_over_services;
-extern int      enable_failure_prediction;
-extern int      process_performance_data;
-extern time_t   last_log_rotation;
 
 int             check_external_commands = 0;
 
@@ -118,13 +110,6 @@ int             default_statuswrl_layout_method = 0;
 int		color_transparency_index_r = 255;
 int		color_transparency_index_g = 255;
 int		color_transparency_index_b = 255;
-
-extern hostgroup       *hostgroup_list;
-extern contactgroup    *contactgroup_list;
-extern command         *command_list;
-extern timeperiod      *timeperiod_list;
-extern contact         *contact_list;
-extern serviceescalation *serviceescalation_list;
 
 extern hoststatus      *hoststatus_list;
 extern servicestatus   *servicestatus_list;
@@ -1496,7 +1481,6 @@ void include_ssi_files(char *cgi_name, int type) {
 	char cgi_ssi_file[MAX_INPUT_BUFFER];
 	char raw_cgi_name[MAX_INPUT_BUFFER];
 	char *stripped_cgi_name;
-	int x;
 
 	/* common header or footer */
 	snprintf(common_ssi_file, sizeof(common_ssi_file) - 1, "%scommon-%s.ssi", physical_ssi_path, (type == SSI_HEADER) ? "header" : "footer");

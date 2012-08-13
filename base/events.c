@@ -33,8 +33,6 @@
 #include "../lib/squeue.h"
 
 
-extern char	*config_file;
-
 extern int      test_scheduling;
 
 extern time_t   program_start;
@@ -54,9 +52,7 @@ extern int      check_reaper_interval;
 extern int      service_freshness_check_interval;
 extern int      host_freshness_check_interval;
 extern int      auto_rescheduling_interval;
-extern int      auto_rescheduling_window;
 
-extern int      check_external_commands;
 extern int      check_orphaned_services;
 extern int      check_orphaned_hosts;
 extern int      check_service_freshness;
@@ -74,12 +70,8 @@ extern int      status_update_interval;
 
 extern int      log_rotation_method;
 
-extern int      service_check_timeout;
-
 extern int      execute_service_checks;
 extern int      execute_host_checks;
-
-extern int      child_processes_fork_twice;
 
 extern int      time_change_threshold;
 

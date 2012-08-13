@@ -43,9 +43,6 @@ extern int             obsess_over_hosts;
 
 extern int             log_event_handlers;
 
-extern unsigned long   next_event_id;
-extern unsigned long   next_problem_id;
-
 extern int             event_handler_timeout;
 extern int             ocsp_timeout;
 extern int             ochp_timeout;
@@ -59,9 +56,6 @@ extern char            *ocsp_command;
 extern char            *ochp_command;
 extern command         *ocsp_command_ptr;
 extern command         *ochp_command_ptr;
-
-extern time_t          program_start;
-
 
 
 /******************************************************************/

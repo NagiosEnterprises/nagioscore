@@ -89,8 +89,6 @@ extern int check_host_freshness;
 extern int enable_flap_detection;
 extern int enable_failure_prediction;
 extern int process_performance_data;
-extern int aggregate_status_updates;
-extern int check_external_commands;
 
 extern time_t         last_update_check;
 extern char           *last_program_version;

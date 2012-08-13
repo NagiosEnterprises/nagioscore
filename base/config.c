@@ -186,7 +186,6 @@ extern host             *host_list;
 extern hostgroup	*hostgroup_list;
 extern service          *service_list;
 extern servicegroup     *servicegroup_list;
-extern notification     *notification_list;
 extern command          *command_list;
 extern timeperiod       *timeperiod_list;
 extern serviceescalation *serviceescalation_list;

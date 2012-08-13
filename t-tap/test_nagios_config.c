@@ -126,7 +126,6 @@ int             update_available = FALSE;
 char            *last_program_version = NULL;
 char            *new_program_version = NULL;
 
-time_t          last_command_status_update = 0L;
 time_t          last_log_rotation = 0L;
 
 int             use_aggressive_host_checking = DEFAULT_AGGRESSIVE_HOST_CHECKING;
@@ -240,8 +239,6 @@ notification    *notification_list;
 
 check_result    check_result_info;
 unsigned long	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
-
-dbuf            check_result_dbuf;
 
 check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 

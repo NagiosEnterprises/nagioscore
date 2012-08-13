@@ -60,7 +60,6 @@ skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 
 #ifdef NSCORE
 int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
-extern int use_precached_objects;
 #endif
 
 

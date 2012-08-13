@@ -62,7 +62,6 @@ extern char *host_unreachable_sound;
 extern char *normal_sound;
 
 extern host *host_list;
-extern hostgroup *hostgroup_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 

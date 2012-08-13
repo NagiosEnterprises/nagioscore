@@ -48,7 +48,6 @@ int date_format;
 host *host_list;
 service *service_list;
 int accept_passive_service_checks;
-time_t last_command_status_update;
 int check_host_freshness;
 int check_service_freshness;
 int check_external_commands;

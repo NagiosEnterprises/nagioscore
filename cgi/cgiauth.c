@@ -31,7 +31,6 @@
 
 extern char            main_config_file[MAX_FILENAME_LENGTH];
 
-extern hostgroup       *hostgroup_list;
 extern servicegroup    *servicegroup_list;
 
 extern int             use_authentication;

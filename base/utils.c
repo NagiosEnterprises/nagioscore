@@ -36,12 +36,10 @@
 #include "../include/workers.h"
 
 
-extern char	*config_file;
 extern char	*log_file;
 extern char     *command_file;
 extern char     *temp_file;
 extern char     *temp_path;
-extern char     *check_result_path;
 extern char     *check_result_path;
 extern char     *lock_file;
 extern char	*log_archive_path;
@@ -101,7 +99,6 @@ extern unsigned long      logging_options;
 extern unsigned long      syslog_options;
 
 extern int      service_check_timeout;
-extern int      service_check_timeout_state;
 extern int      host_check_timeout;
 extern int      event_handler_timeout;
 extern int      notification_timeout;
@@ -174,7 +171,6 @@ extern int      log_rotation_method;
 
 extern time_t   program_start;
 
-extern time_t	last_command_status_update;
 extern time_t   last_log_rotation;
 
 extern int      verify_config;
@@ -189,7 +185,6 @@ extern int      enable_notifications;
 extern int      execute_service_checks;
 extern int      accept_passive_service_checks;
 extern int      execute_host_checks;
-extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
 extern int      obsess_over_hosts;
@@ -222,15 +217,10 @@ extern int      child_processes_fork_twice;
 
 extern int      date_format;
 
-extern contact		*contact_list;
-extern contactgroup	*contactgroup_list;
 extern host             *host_list;
-extern hostgroup	*hostgroup_list;
 extern service          *service_list;
 extern servicegroup     *servicegroup_list;
 extern notification     *notification_list;
-extern command          *command_list;
-extern timeperiod       *timeperiod_list;
 
 extern squeue_t *nagios_squeue;
 
@@ -247,8 +237,6 @@ extern char     *tzname[2];
 #endif
 
 extern unsigned long   max_check_result_file_age;
-
-extern dbuf            check_result_dbuf;
 
 extern check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
@@ -3509,7 +3497,6 @@ int reset_variables(void) {
 
 	log_rotation_method = LOG_ROTATION_NONE;
 
-	last_command_status_update = 0L;
 	last_log_rotation = 0L;
 
 	max_parallel_service_checks = DEFAULT_MAX_PARALLEL_SERVICE_CHECKS;

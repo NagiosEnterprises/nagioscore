@@ -43,7 +43,6 @@ extern time_t   event_start;
 extern int      sigshutdown;
 extern int      sigrestart;
 
-extern double   sleep_time;
 extern int      interval_length;
 extern int      service_inter_check_delay_method;
 extern int      host_inter_check_delay_method;

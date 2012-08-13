@@ -561,14 +561,6 @@ auto_rescheduling_window=180
 
 
 
-# SLEEP TIME
-# This is the number of seconds to sleep between checking for system
-# events and service checks that need to be run.
-
-sleep_time=0.25
-
-
-
 # TIMEOUT VALUES
 # These options control how much time Nagios will allow various
 # types of commands to execute before killing them off.  Options

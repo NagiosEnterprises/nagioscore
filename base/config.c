@@ -89,7 +89,6 @@ extern int      test_scheduling;
 extern int      precache_objects;
 extern int      use_precached_objects;
 
-extern double   sleep_time;
 extern int      interval_length;
 extern int      service_inter_check_delay_method;
 extern int      host_inter_check_delay_method;
@@ -979,13 +978,7 @@ int read_main_config_file(char *main_config_file) {
 			}
 
 		else if(!strcmp(variable, "sleep_time")) {
-
-			sleep_time = atof(value);
-			if(sleep_time <= 0.0) {
-				asprintf(&error_message, "Illegal value for sleep_time");
-				error = TRUE;
-				break;
-				}
+			obsoleted_warning(variable, NULL);
 			}
 
 		else if(!strcmp(variable, "interval_length")) {

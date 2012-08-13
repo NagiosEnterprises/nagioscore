@@ -110,7 +110,6 @@ extern int      ochp_timeout;
 
 extern int      log_initial_states;
 
-extern double   sleep_time;
 extern int      interval_length;
 extern int      service_inter_check_delay_method;
 extern int      host_inter_check_delay_method;
@@ -3464,7 +3463,6 @@ int reset_variables(void) {
 	ocsp_timeout = DEFAULT_OCSP_TIMEOUT;
 	ochp_timeout = DEFAULT_OCHP_TIMEOUT;
 
-	sleep_time = DEFAULT_SLEEP_TIME;
 	interval_length = DEFAULT_INTERVAL_LENGTH;
 	service_inter_check_delay_method = ICD_SMART;
 	host_inter_check_delay_method = ICD_SMART;

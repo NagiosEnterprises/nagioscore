@@ -12,7 +12,6 @@ time_t   event_start;
 int      sigshutdown = FALSE;
 int      sigrestart = FALSE;
 
-double   sleep_time;
 int      interval_length = 60;
 int      service_inter_check_delay_method;
 int      host_inter_check_delay_method;

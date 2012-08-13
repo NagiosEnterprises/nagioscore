@@ -104,7 +104,6 @@ int             notification_timeout = DEFAULT_NOTIFICATION_TIMEOUT;
 int             ocsp_timeout = DEFAULT_OCSP_TIMEOUT;
 int             ochp_timeout = DEFAULT_OCHP_TIMEOUT;
 
-double          sleep_time = DEFAULT_SLEEP_TIME;
 int             interval_length = DEFAULT_INTERVAL_LENGTH;
 int             service_inter_check_delay_method = ICD_SMART;
 int             host_inter_check_delay_method = ICD_SMART;

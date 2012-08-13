@@ -89,7 +89,7 @@ static int print_input(int sd, int events, void *wp_)
 	while ((buf = iocache_use_delim(wp->ioc, MSG_DELIM, MSG_DELIM_LEN_RECV, &size))) {
 		int i;
 		tot_bytes += size + MSG_DELIM_LEN_RECV;
-		kvv = buf2kvvec(buf, (unsigned int)size, KV_SEP, PAIR_SEP);
+		kvv = buf2kvvec(buf, (unsigned int)size, KV_SEP, PAIR_SEP, KVVEC_COPY);
 		if (!kvv) {
 			printf("main: Failed to parse buffer of size %d to key/value vector\n", size);
 			continue;

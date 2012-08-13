@@ -185,14 +185,6 @@ NAGIOS_BEGIN_DECL
 #define PREVIOUS_PAGE_ICON		"b_prev2.png"
 
 
-	/************************** PLUGIN RETURN VALUES ****************************/
-
-#define STATE_OK		0
-#define STATE_WARNING		1
-#define STATE_CRITICAL		2
-#define STATE_UNKNOWN		3       /* changed from -1 on 02/24/2001 */
-
-
 	/********************* EXTENDED INFO CGI DISPLAY TYPES  *********************/
 
 #define DISPLAY_PROCESS_INFO		0

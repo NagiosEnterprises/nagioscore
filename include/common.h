@@ -25,27 +25,18 @@
 #define PROGRAM_VERSION "3.4.1"
 #define PROGRAM_MODIFICATION_DATE "05-11-2012"
 
-/*#define DEBUG_CHECK_IPC 1 */
-/*#define DEBUG_CHECK_IPC2 1*/
-
-
-
-/* daemon is thread safe */
-#ifdef NSCORE
-#ifndef _REENTRANT
-#define _REENTRANT
-#endif
-#ifndef _THREAD_SAFE
-#define _THREAD_SAFE
-#endif
-#endif
-
 /* Experimental performance tweaks - use with caution */
 #undef USE_MEMORY_PERFORMANCE_TWEAKS
 
 /* my_free has been freed from bondage as a function */
 #define my_free(ptr) do { if(ptr) { free(ptr); ptr = NULL; } } while(0)
 
+
+/****************** SERVICE STATES ********************/
+#define STATE_OK			0
+#define STATE_WARNING			1
+#define STATE_CRITICAL			2
+#define STATE_UNKNOWN			3       /* changed from -1 on 02/24/2001 */
 
 
 /***************************** COMMANDS *********************************/

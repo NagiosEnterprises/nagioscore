@@ -76,17 +76,10 @@ int initialize_downtime_data(char *config_file) {
 
 /* cleans up scheduled downtime data */
 int cleanup_downtime_data(char *config_file) {
-	int result = OK;
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XDDDEFAULT
-	result = xdddefault_cleanup_downtime_data(config_file);
-#endif
-
 	/* free memory allocated to downtime data */
 	free_downtime_data();
 
-	return result;
+	return OK;
 	}
 
 
@@ -844,33 +837,19 @@ int delete_downtime(int type, unsigned long downtime_id) {
 
 /* deletes a scheduled host downtime entry */
 int delete_host_downtime(unsigned long downtime_id) {
-	int result = OK;
-
 	/* delete the downtime from memory */
 	delete_downtime(HOST_DOWNTIME, downtime_id);
 
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XDDDEFAULT
-	result = xdddefault_delete_host_downtime(downtime_id);
-#endif
-
-	return result;
+	return OK;
 	}
 
 
 /* deletes a scheduled service downtime entry */
 int delete_service_downtime(unsigned long downtime_id) {
-	int result = OK;
-
 	/* delete the downtime from memory */
 	delete_downtime(SERVICE_DOWNTIME, downtime_id);
 
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XDDDEFAULT
-	result = xdddefault_delete_service_downtime(downtime_id);
-#endif
-
-	return result;
+	return OK;
 	}
 
 /*

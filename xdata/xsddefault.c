@@ -492,12 +492,6 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tis_flapping=%d\n", temp_host->is_flapping);
 		fprintf(fp, "\tpercent_state_change=%.2f\n", temp_host->percent_state_change);
 		fprintf(fp, "\tscheduled_downtime_depth=%d\n", temp_host->scheduled_downtime_depth);
-		/*
-		fprintf(fp,"\tstate_history=");
-		for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-			fprintf(fp,"%s%d",(x>0)?",":"",temp_host->state_history[(x+temp_host->state_history_index)%MAX_STATE_HISTORY_ENTRIES]);
-		fprintf(fp,"\n");
-		*/
 		/* custom variables */
 		for(temp_customvariablesmember = temp_host->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {
 			if(temp_customvariablesmember->variable_name)
@@ -566,12 +560,6 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tis_flapping=%d\n", temp_service->is_flapping);
 		fprintf(fp, "\tpercent_state_change=%.2f\n", temp_service->percent_state_change);
 		fprintf(fp, "\tscheduled_downtime_depth=%d\n", temp_service->scheduled_downtime_depth);
-		/*
-		fprintf(fp,"\tstate_history=");
-		for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-			fprintf(fp,"%s%d",(x>0)?",":"",temp_service->state_history[(x+temp_service->state_history_index)%MAX_STATE_HISTORY_ENTRIES]);
-		fprintf(fp,"\n");
-		*/
 		/* custom variables */
 		for(temp_customvariablesmember = temp_service->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {
 			if(temp_customvariablesmember->variable_name)
@@ -1069,14 +1057,6 @@ int xsddefault_read_status_data(char *config_file, int options) {
 							temp_hoststatus->percent_state_change = strtod(val, NULL);
 						else if(!strcmp(var, "scheduled_downtime_depth"))
 							temp_hoststatus->scheduled_downtime_depth = atoi(val);
-						/*
-						else if(!strcmp(var,"state_history")){
-							temp_ptr=val;
-							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-								temp_hoststatus->state_history[x]=atoi(my_strsep(&temp_ptr,","));
-							temp_hoststatus->state_history_index=0;
-						        }
-						*/
 						}
 					break;
 
@@ -1171,14 +1151,6 @@ int xsddefault_read_status_data(char *config_file, int options) {
 							temp_servicestatus->percent_state_change = strtod(val, NULL);
 						else if(!strcmp(var, "scheduled_downtime_depth"))
 							temp_servicestatus->scheduled_downtime_depth = atoi(val);
-						/*
-						else if(!strcmp(var,"state_history")){
-							temp_ptr=val;
-							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-								temp_servicestatus->state_history[x]=atoi(my_strsep(&temp_ptr,","));
-							temp_servicestatus->state_history_index=0;
-						        }
-						*/
 						}
 					break;
 

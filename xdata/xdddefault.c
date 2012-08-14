@@ -90,7 +90,6 @@ int xdddefault_initialize_downtime_data(char *main_config_file) {
 int xdddefault_validate_downtime_data(void) {
 	scheduled_downtime *temp_downtime;
 	scheduled_downtime *next_downtime;
-	int update_file = FALSE;
 	int save = TRUE;
 
 	/* remove stale downtimes */
@@ -113,7 +112,6 @@ int xdddefault_validate_downtime_data(void) {
 
 		/* delete the downtime */
 		if(save == FALSE) {
-			update_file = TRUE;
 			delete_downtime(temp_downtime->type, temp_downtime->downtime_id);
 			}
 		}
@@ -132,27 +130,12 @@ int xdddefault_validate_downtime_data(void) {
 
 		/* delete the downtime */
 		if(save == FALSE) {
-			update_file = TRUE;
 			delete_downtime(temp_downtime->type, temp_downtime->downtime_id);
 			}
 		}
 
-	/* update downtime file */
-	if(update_file == TRUE)
-		xdddefault_save_downtime_data();
-
 	return OK;
 	}
-
-
-
-/* removes invalid and old downtime entries from the downtime file */
-int xdddefault_cleanup_downtime_data(char *main_config_file) {
-
-	/* we don't need to do any cleanup... */
-	return OK;
-	}
-
 
 
 /******************************************************************/
@@ -168,9 +151,6 @@ int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *a
 
 	/* add downtime to list in memory */
 	add_host_downtime(host_name, entry_time, author, comment, start_time, end_time, fixed, triggered_by, duration, next_downtime_id, is_in_effect);
-
-	/* update downtime file */
-	xdddefault_save_downtime_data();
 
 	/* return the id for the downtime we are about to add (this happens in the main code) */
 	if(downtime_id != NULL)
@@ -194,9 +174,6 @@ int xdddefault_add_new_service_downtime(char *host_name, char *service_descripti
 	/* add downtime to list in memory */
 	add_service_downtime(host_name, service_description, entry_time, author, comment, start_time, end_time, fixed, triggered_by, duration, next_downtime_id, is_in_effect);
 
-	/* update downtime file */
-	xdddefault_save_downtime_data();
-
 	/* return the id for the downtime we are about to add (this happens in the main code) */
 	if(downtime_id != NULL)
 		*downtime_id = next_downtime_id;
@@ -206,54 +183,6 @@ int xdddefault_add_new_service_downtime(char *host_name, char *service_descripti
 
 	return OK;
 	}
-
-
-/******************************************************************/
-/********************** DELETION FUNCTIONS ************************/
-/******************************************************************/
-
-/* deletes a scheduled host downtime entry */
-int xdddefault_delete_host_downtime(unsigned long downtime_id) {
-	int result;
-
-	result = xdddefault_delete_downtime(HOST_DOWNTIME, downtime_id);
-
-	return result;
-	}
-
-
-/* deletes a scheduled service downtime entry */
-int xdddefault_delete_service_downtime(unsigned long downtime_id) {
-	int result;
-
-	result = xdddefault_delete_downtime(SERVICE_DOWNTIME, downtime_id);
-
-	return result;
-	}
-
-
-/* deletes a scheduled host or service downtime entry */
-int xdddefault_delete_downtime(int type, unsigned long downtime_id) {
-
-	/* rewrite the downtime file (downtime was already removed from memory) */
-	xdddefault_save_downtime_data();
-
-	return OK;
-	}
-
-
-
-/******************************************************************/
-/****************** DOWNTIME OUTPUT FUNCTIONS *********************/
-/******************************************************************/
-
-/* writes downtime data to file */
-int xdddefault_save_downtime_data(void) {
-
-	/* don't update the status file now (too inefficent), let aggregated status updates do it */
-	return OK;
-	}
-
 #endif
 
 

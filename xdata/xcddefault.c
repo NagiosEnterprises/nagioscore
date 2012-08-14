@@ -79,18 +79,6 @@ int xcddefault_initialize_comment_data(char *main_config_file) {
 	}
 
 
-/* removes invalid and old comments from the comment file */
-int xcddefault_cleanup_comment_data(char *main_config_file) {
-
-	/* nothing to do anymore */
-
-	return OK;
-	}
-
-
-
-
-
 /******************************************************************/
 /***************** DEFAULT DATA OUTPUT FUNCTIONS ******************/
 /******************************************************************/
@@ -105,9 +93,6 @@ int xcddefault_add_new_host_comment(int entry_type, char *host_name, time_t entr
 
 	/* add comment to list in memory */
 	add_host_comment(entry_type, host_name, entry_time, author_name, comment_data, next_comment_id, persistent, expires, expire_time, source);
-
-	/* update comment file */
-	xcddefault_save_comment_data();
 
 	/* return the id for the comment we are about to add (this happens in the main code) */
 	if(comment_id != NULL)
@@ -130,9 +115,6 @@ int xcddefault_add_new_service_comment(int entry_type, char *host_name, char *sv
 	/* add comment to list in memory */
 	add_service_comment(entry_type, host_name, svc_description, entry_time, author_name, comment_data, next_comment_id, persistent, expires, expire_time, source);
 
-	/* update comment file */
-	xcddefault_save_comment_data();
-
 	/* return the id for the comment we are about to add (this happens in the main code) */
 	if(comment_id != NULL)
 		*comment_id = next_comment_id;
@@ -143,44 +125,4 @@ int xcddefault_add_new_service_comment(int entry_type, char *host_name, char *sv
 	return OK;
 	}
 
-
-
-/******************************************************************/
-/**************** COMMENT DELETION FUNCTIONS **********************/
-/******************************************************************/
-
-
-/* deletes a host comment */
-int xcddefault_delete_host_comment(unsigned long comment_id) {
-
-	/* update comment file */
-	xcddefault_save_comment_data();
-
-	return OK;
-	}
-
-
-/* deletes a service comment */
-int xcddefault_delete_service_comment(unsigned long comment_id) {
-
-	/* update comment file */
-	xcddefault_save_comment_data();
-
-	return OK;
-	}
-
-
-
-/******************************************************************/
-/****************** COMMENT OUTPUT FUNCTIONS **********************/
-/******************************************************************/
-
-/* writes comment data to file */
-int xcddefault_save_comment_data(void) {
-
-	/* don't update the status file now (too inefficent), let aggregated status updates do it */
-	return OK;
-	}
-
 #endif
-

@@ -70,20 +70,6 @@ int initialize_comment_data(char *config_file) {
 	}
 
 
-/* removes old/invalid comments */
-int cleanup_comment_data(char *config_file) {
-	int result = OK;
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XCDDEFAULT
-	result = xcddefault_cleanup_comment_data(config_file);
-#endif
-
-	return result;
-	}
-
-
-
 /******************************************************************/
 /****************** COMMENT OUTPUT FUNCTIONS **********************/
 /******************************************************************/
@@ -165,7 +151,6 @@ int add_new_service_comment(int entry_type, char *host_name, char *svc_descripti
 
 /* deletes a host or service comment */
 int delete_comment(int type, unsigned long comment_id) {
-	int result = OK;
 	comment *this_comment = NULL;
 	comment *last_comment = NULL;
 	comment *next_comment = NULL;
@@ -184,59 +169,47 @@ int delete_comment(int type, unsigned long comment_id) {
 		last_comment = this_comment;
 		}
 
+	if(this_comment == NULL)
+		return ERROR;
+
 	/* remove the comment from the list in memory */
-	if(this_comment != NULL) {
-
 #ifdef USE_EVENT_BROKER
-		/* send data to event broker */
-		broker_comment_data(NEBTYPE_COMMENT_DELETE, NEBFLAG_NONE, NEBATTR_NONE, type, this_comment->entry_type, this_comment->host_name, this_comment->service_description, this_comment->entry_time, this_comment->author, this_comment->comment_data, this_comment->persistent, this_comment->source, this_comment->expires, this_comment->expire_time, comment_id, NULL);
+	/* send data to event broker */
+	broker_comment_data(NEBTYPE_COMMENT_DELETE, NEBFLAG_NONE, NEBATTR_NONE, type, this_comment->entry_type, this_comment->host_name, this_comment->service_description, this_comment->entry_time, this_comment->author, this_comment->comment_data, this_comment->persistent, this_comment->source, this_comment->expires, this_comment->expire_time, comment_id, NULL);
 #endif
 
-		/* first remove from chained hash list */
-		hashslot = hashfunc(this_comment->host_name, NULL, COMMENT_HASHSLOTS);
-		last_hash = NULL;
-		for(this_hash = comment_hashlist[hashslot]; this_hash; this_hash = this_hash->nexthash) {
-			if(this_hash == this_comment) {
-				if(last_hash)
-					last_hash->nexthash = this_hash->nexthash;
-				else {
-					if(this_hash->nexthash)
-						comment_hashlist[hashslot] = this_hash->nexthash;
-					else
-						comment_hashlist[hashslot] = NULL;
-					}
-				break;
+	/* first remove from chained hash list */
+	hashslot = hashfunc(this_comment->host_name, NULL, COMMENT_HASHSLOTS);
+	last_hash = NULL;
+	for(this_hash = comment_hashlist[hashslot]; this_hash; this_hash = this_hash->nexthash) {
+		if(this_hash == this_comment) {
+			if(last_hash)
+				last_hash->nexthash = this_hash->nexthash;
+			else {
+				if(this_hash->nexthash)
+					comment_hashlist[hashslot] = this_hash->nexthash;
+				else
+					comment_hashlist[hashslot] = NULL;
 				}
-			last_hash = this_hash;
+			break;
 			}
-
-		/* then removed from linked list */
-		if(comment_list == this_comment)
-			comment_list = this_comment->next;
-		else
-			last_comment->next = next_comment;
-
-		/* free memory */
-		my_free(this_comment->host_name);
-		my_free(this_comment->service_description);
-		my_free(this_comment->author);
-		my_free(this_comment->comment_data);
-		my_free(this_comment);
-
-		result = OK;
+			last_hash = this_hash;
 		}
-	else
-		result = ERROR;
 
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XCDDEFAULT
-	if(type == HOST_COMMENT)
-		result = xcddefault_delete_host_comment(comment_id);
+	/* then removed from linked list */
+	if(comment_list == this_comment)
+		comment_list = this_comment->next;
 	else
-		result = xcddefault_delete_service_comment(comment_id);
-#endif
+		last_comment->next = next_comment;
 
-	return result;
+	/* free memory */
+	my_free(this_comment->host_name);
+	my_free(this_comment->service_description);
+	my_free(this_comment->author);
+	my_free(this_comment->comment_data);
+	my_free(this_comment);
+
+	return OK;
 	}
 
 

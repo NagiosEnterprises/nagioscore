@@ -715,6 +715,11 @@ else
 AC_MSG_RESULT([             Event Broker:  no])
 fi
 AC_MSG_RESULT([        Install \${prefix}:  $prefix])
+incdir=`eval echo $includedir`
+if test x$incdir = x$prefix/include; then
+	includedir=$prefix/include/nagios
+fi
+AC_MSG_RESULT([    Install \${includedir}:  $includedir])
 AC_MSG_RESULT([                Lock file:  $lockfile])
 AC_MSG_RESULT([   Check result directory:  $CHECKRESULTDIR])
 AC_MSG_RESULT([           Init directory:  $init_dir])

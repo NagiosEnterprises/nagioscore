@@ -64,7 +64,7 @@ perl -i -p -e "s/PKG_VERSION=.*/PKG_VERSION=\"$newversion\"/;" configure.in
 perl -i -p -e "s/PKG_REL_DATE=.*\"/PKG_REL_DATE=\"$SHORTDATE\"/;" configure.in
 
 # Update RPM spec file with version number
-perl -i -p -e "s/%define version .*/%define version $newversion/;" nagios.spec
+perl -i -p -e "s/Version: .*/Version: $newversion/;" nagios.spec
 
 # Update quickstart guides with new version number
 #perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-fedora.html

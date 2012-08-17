@@ -341,6 +341,10 @@ install-devel: lib/libnagios.a
 	# other packages.
 	rm -f $(DESTDIR)$(INCLUDEDIR)/nagios/config.h
 
+dox:
+	@rm -rf Documentation
+	doxygen doxy.conf
+
 
 fullinstall: install install-init install-commandmode install-webconf install-devel
 
@@ -390,4 +394,4 @@ pkgclean:
 	rm -rf pkg Prototype nagios.SPARC.pkg.tar.gz
 
 # Targets that always get built
-.PHONY:	indent clean clean distclean
+.PHONY:	indent clean clean distclean dox

@@ -60,6 +60,7 @@ struct kvvec {
 /**
  * Initialize a previously allocated key/value vector
  *
+ * @param kvv The key/value vector to initialize
  * @param hint Number of key/value pairs we expect to store
  * @return Pointer to a struct kvvec, properly initialized
  */
@@ -169,6 +170,7 @@ extern struct kvvec_buf *kvvec2buf(struct kvvec *kvv, char kv_sep, char pair_sep
  * @param len Length of buffer to convert
  * @param kvsep Character separating key and value
  * @param pair_sep Character separating key/value pairs
+ * @param flags bitmask. See KVVEC_{ASSIGN,COPY,APPEND} for values
  * @return The created key/value vector
  */
 extern struct kvvec *buf2kvvec(char *str, unsigned int len, const char kvsep, const char pair_sep, int flags);
@@ -177,10 +179,12 @@ extern struct kvvec *buf2kvvec(char *str, unsigned int len, const char kvsep, co
  * Parse a buffer into the pre-allocated key/value vector. Immensely
  * useful for ipc in combination with kvvec2buf().
  *
+ * @param kvv A pre-allocated key/value vector to populate
  * @param str The buffer to convert to a key/value vector
  * @param len Length of buffer to convert
  * @param kvsep Character separating key and value
  * @param pair_sep Character separating key/value pairs
+ * @param flags bitmask. See KVVEC_{ASSIGN,COPY,APPEND} for values
  * @return The number of pairs in the created key/value vector
  */
 extern int buf2kvvec_prealloc(struct kvvec *kvv, char *str, unsigned int len, const char kvsep, const char pair_sep, int flags);

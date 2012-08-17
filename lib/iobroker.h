@@ -85,7 +85,7 @@ extern int iobroker_register(iobroker_set *iobs, int sd, void *arg, int (*handle
 
 /**
  * Check if a particular filedescriptor is registered with the iobroker set
- * @param[in] The iobroker set the filedescriptor should be member of
+ * @param[in] iobs The iobroker set the filedescriptor should be member of
  * @param[in] fd The filedescriptor to check for
  * @return 1 if the filedescriptor is registered and 0 otherwise
  */

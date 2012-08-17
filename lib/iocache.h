@@ -97,6 +97,14 @@ extern char *iocache_use_size(iocache *ioc, unsigned long size);
 extern char *iocache_use_delim(iocache *ioc, const char *delim, size_t delim_len, unsigned long *size);
 
 /**
+ * Forget that a specified number of bytes have been used.
+ * @param ioc The io cache that you want to un-use data in
+ * @param size The number of bytes you want to forget you've seen
+ * @return -1 if there was an error, 0 otherwise.
+ */
+extern int iocache_unuse_size(iocache *ioc, unsigned long size);
+
+/**
  * Creates the iocache object, initializing it with the given size
  * @param size Initial size of the iocache buffer
  * @return Pointer to a valid iocache object

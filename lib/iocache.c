@@ -116,6 +116,19 @@ char *iocache_use_size(iocache *ioc, unsigned long size)
 	return ret;
 }
 
+int iocache_unuse_size(iocache *ioc, unsigned long size)
+{
+	if (!ioc || !ioc->ioc_buf)
+		return -1;
+	if (size > ioc->ioc_offset)
+		return -1;
+
+	ioc->ioc_offset -= size;
+
+	return 0;
+}
+
+
 char *iocache_use_delim(iocache *ioc, const char *delim, size_t delim_len, unsigned long *size)
 {
 	char *ptr = NULL;

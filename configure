@@ -7151,6 +7151,12 @@ $as_echo "             Event Broker:  no" >&6; }
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:         Install \${prefix}:  $prefix" >&5
 $as_echo "        Install \${prefix}:  $prefix" >&6; }
+incdir=`eval echo $includedir`
+if test x$incdir = x$prefix/include; then
+	includedir=$prefix/include/nagios
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result:     Install \${includedir}:  $includedir" >&5
+$as_echo "    Install \${includedir}:  $includedir" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:                 Lock file:  $lockfile" >&5
 $as_echo "                Lock file:  $lockfile" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:    Check result directory:  $CHECKRESULTDIR" >&5

@@ -57,6 +57,7 @@ hostescalation  *hostescalation_list = NULL, *hostescalation_list_tail = NULL;
 
 skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 
+struct object_count num_objects;
 
 #ifdef NSCORE
 int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
@@ -457,6 +458,8 @@ timeperiod *add_timeperiod(char *name, char *alias) {
 		timeperiod_list_tail = new_timeperiod;
 		}
 
+	new_timeperiod->id = num_objects.timeperiods++;
+
 	return new_timeperiod;
 	}
 
@@ -835,6 +838,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		host_list_tail = new_host;
 		}
 
+	new_host->id = num_objects.hosts++;
+
 	return new_host;
 	}
 
@@ -1051,6 +1056,7 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 		hostgroup_list_tail = new_hostgroup;
 		}
 
+	new_hostgroup->id = num_objects.hostgroups++;
 	return new_hostgroup;
 	}
 
@@ -1179,6 +1185,7 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 		servicegroup_list_tail = new_servicegroup;
 		}
 
+	new_servicegroup->id = num_objects.servicegroups++;
 	return new_servicegroup;
 	}
 
@@ -1368,6 +1375,7 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 		contact_list_tail = new_contact;
 		}
 
+	new_contact->id = num_objects.contacts++;
 	return new_contact;
 	}
 
@@ -1508,6 +1516,7 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 		contactgroup_list_tail = new_contactgroup;
 		}
 
+	new_contactgroup->id = num_objects.contactgroups++;
 	return new_contactgroup;
 	}
 
@@ -1753,6 +1762,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		service_list_tail = new_service;
 		}
 
+	new_service->id = num_objects.services++;
 	return new_service;
 	}
 
@@ -1865,6 +1875,7 @@ command *add_command(char *name, char *value) {
 		command_list_tail = new_command;
 		}
 
+	new_command->id = num_objects.commands++;
 	return new_command;
 	}
 
@@ -1940,6 +1951,7 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 		serviceescalation_list_tail = new_serviceescalation;
 		}
 
+	new_serviceescalation->id = num_objects.serviceescalations++;
 	return new_serviceescalation;
 	}
 
@@ -2067,6 +2079,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		servicedependency_list_tail = new_servicedependency;
 		}
 
+	new_servicedependency->id = num_objects.servicedependencies++;
 	return new_servicedependency;
 	}
 
@@ -2139,6 +2152,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		hostdependency_list_tail = new_hostdependency;
 		}
 
+	new_hostdependency->id = num_objects.hostdependencies++;
 	return new_hostdependency;
 	}
 
@@ -2210,6 +2224,7 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 		hostescalation_list_tail = new_hostescalation;
 		}
 
+	new_hostescalation->id = num_objects.hostescalations++;
 	return new_hostescalation;
 	}
 
@@ -3606,6 +3621,9 @@ int free_object_data(void) {
 
 	/* free object skiplists */
 	free_object_skiplists();
+
+	/* we no longer have any objects */
+	memset(&num_objects, 0, sizeof(num_objects));
 
 	return OK;
 	}

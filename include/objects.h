@@ -34,7 +34,7 @@ NAGIOS_BEGIN_DECL
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        307     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        400     /* increment when changes are made to data structures... */
 /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -114,6 +114,7 @@ typedef struct timeperiodexclusion_struct {
 
 /* TIMEPERIOD structure */
 typedef struct timeperiod_struct {
+	unsigned int id;
 	char    *name;
 	char    *alias;
 	timerange *days[7];
@@ -136,6 +137,7 @@ typedef struct contactsmember_struct {
 
 /* CONTACTGROUP structure */
 typedef struct contactgroup_struct {
+	unsigned int id;
 	char	*group_name;
 	char    *alias;
 	contactsmember *members;
@@ -165,6 +167,7 @@ typedef struct customvariablesmember_struct {
 
 /* COMMAND structure */
 typedef struct command_struct {
+	unsigned int id;
 	char    *name;
 	char    *command_line;
 	struct command_struct *next;
@@ -183,7 +186,8 @@ typedef struct commandsmember_struct {
 
 
 /* CONTACT structure */
-	struct contact_struct {
+struct contact_struct {
+	unsigned int id;
 	char	*name;
 	char	*alias;
 	char	*email;
@@ -249,6 +253,7 @@ typedef struct hostsmember_struct {
 
 /* HOSTGROUP structure */
 typedef struct hostgroup_struct {
+	unsigned int id;
 	char 	*group_name;
 	char    *alias;
 	hostsmember *members;
@@ -262,6 +267,7 @@ typedef struct hostgroup_struct {
 
 /* HOST structure */
 struct host_struct {
+	unsigned int id;
 	char    *name;
 	char    *display_name;
 	char	*alias;
@@ -388,6 +394,7 @@ struct host_struct {
 
 /* SERVICEGROUP structure */
 typedef struct servicegroup_struct {
+	unsigned int id;
 	char 	*group_name;
 	char    *alias;
 	servicesmember *members;
@@ -401,6 +408,7 @@ typedef struct servicegroup_struct {
 
 /* SERVICE structure */
 struct service_struct {
+	unsigned int id;
 	char	*host_name;
 	char	*description;
 	char    *display_name;
@@ -519,6 +527,7 @@ struct service_struct {
 
 /* SERVICE ESCALATION structure */
 typedef struct serviceescalation_struct {
+	unsigned int id;
 	char    *host_name;
 	char    *description;
 	int     first_notification;
@@ -542,6 +551,7 @@ typedef struct serviceescalation_struct {
 
 /* SERVICE DEPENDENCY structure */
 typedef struct servicedependency_struct {
+	unsigned int id;
 	int     dependency_type;
 	char    *dependent_host_name;
 	char    *dependent_service_description;
@@ -569,6 +579,7 @@ typedef struct servicedependency_struct {
 
 /* HOST ESCALATION structure */
 typedef struct hostescalation_struct {
+	unsigned int id;
 	char    *host_name;
 	int     first_notification;
 	int     last_notification;
@@ -590,6 +601,7 @@ typedef struct hostescalation_struct {
 
 /* HOST DEPENDENCY structure */
 typedef struct hostdependency_struct {
+	unsigned int id;
 	int     dependency_type;
 	char    *dependent_host_name;
 	char    *host_name;

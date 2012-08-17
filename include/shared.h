@@ -17,6 +17,22 @@ typedef struct mmapfile_struct {
 	void *mmap_buf;
 	} mmapfile;
 
+/* official count of first-class objects */
+struct object_count {
+	unsigned int commands;
+	unsigned int timeperiods;
+	unsigned int hosts;
+	unsigned int hostescalations;
+	unsigned int hostdependencies;
+	unsigned int services;
+	unsigned int serviceescalations;
+	unsigned int servicedependencies;
+	unsigned int contacts;
+	unsigned int contactgroups;
+	unsigned int hostgroups;
+	unsigned int servicegroups;
+	};
+
 /* only usable on compile-time initialized arrays, for obvious reasons */
 #define ARRAY_SIZE(ary) (sizeof(ary) / sizeof(ary[0]))
 

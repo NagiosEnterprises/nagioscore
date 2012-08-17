@@ -1,7 +1,6 @@
 ###############################################################################
 # PRINTER.CFG - SAMPLE CONFIG FILE FOR MONITORING A NETWORK PRINTER
 #
-# Last Modified: 10-03-2007
 #
 # NOTES: This config file assumes that you are using the sample configuration
 #	 files that get installed with the Nagios quickstart guide.

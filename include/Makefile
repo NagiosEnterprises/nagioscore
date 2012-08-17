@@ -1,7 +1,6 @@
 ###############################
 # Makefile for Include Files
 #
-# Last Modified: 10-18-2007
 ###############################
 
 clean:

@@ -2,9 +2,6 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
- * Copyright (c) 2009 Nagios Core Development Team and Community Contributors
- * Copyright (c) 2000-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 07-31-2009
  *
  * License:
  *

@@ -4,8 +4,6 @@
  *
  * Copyright (c) 2003-2007 Ethan Galstad (http://www.nagios.org)
  *
- * Last Modified: 12-26-2007
- *
  * Description:
  *
  * This is an example of a very basic module.  It does nothing useful other

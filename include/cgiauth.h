@@ -2,7 +2,6 @@
  *
  * CGIAUTH.H - Authorization utilities header file
  *
- * Last Modified:   11-24-2005
  *
  * License:
  *

@@ -2,8 +2,6 @@
  *
  * XDDDEFAULT.H - Header file for default scheduled downtime data routines
  *
- * Copyright (c) 2001-2006 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 03-01-2006
  *
  * License:
  *

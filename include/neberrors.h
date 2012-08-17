@@ -2,8 +2,6 @@
  *
  * NEBERRORS.H - Event broker errors
  *
- * Copyright (c) 2003-2006 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   12-12-2006
  *
  * License:
  *

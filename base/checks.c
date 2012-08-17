@@ -2,9 +2,6 @@
  *
  * CHECKS.C - Service and host check functions for Nagios
  *
- * Copyright (c) 2011 Nagios Core Development Team
- * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 01-20-2011
  *
  * License:
  *

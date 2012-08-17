@@ -2,8 +2,6 @@
  *
  * NEBCALLBACKS.H - Include file for event broker modules
  *
- * Copyright (c) 2002-2007 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   01-06-2007
  *
  * License:
  *

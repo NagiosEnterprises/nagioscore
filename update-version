@@ -48,14 +48,8 @@ perl -i -p -e "s/\?version=.*&product=/\?version=$newversion&product=/;" html/ma
 perl -i -p -e "s/$this_version=\".*\";/$this_version=\"$newversion\";/;" html/main.php
 
 # Update version number and release date in common code
-perl -i -p -e "s/VERSION \".*\"/VERSION \"$newversion\"/;" include/common.h
+perl -i -p -e "s/PROGRAM_VERSION \".*\"/PROGRAM_VERSION \"$newversion\"/;" include/common.h
 perl -i -p -e "s/MODIFICATION_DATE \".*\"/MODIFICATION_DATE \"$SHORTDATE\"/;" include/common.h
-
-# Update version number and release date in main code
-perl -i -p -e "s/Version: .*/Version: $newversion/;" base/nagios.c
-perl -i -p -e "s/Last Modified:   [0-9].*/Last Modified:   $SHORTDATE/;" base/nagios.c
-perl -i -p -e "s/Version: [0-9].*/Version: $newversion/;" base/nagiostats.c
-perl -i -p -e "s/Last Modified:   [0-9].*/Last Modified:   $SHORTDATE/;" base/nagiostats.c
 
 # Update version number and release date in configure script and configure.in
 perl -i -p -e "s/PKG_VERSION=.*/PKG_VERSION=\"$newversion\"/;" configure
@@ -66,12 +60,6 @@ perl -i -p -e "s/PKG_REL_DATE=.*\"/PKG_REL_DATE=\"$SHORTDATE\"/;" configure.in
 # Update RPM spec file with version number
 perl -i -p -e "s/Version: .*/Version: $newversion/;" nagios.spec
 
-# Update quickstart guides with new version number
-#perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-fedora.html
-#perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-opensuse.html
-#perl -i -p -e "s/nagios-$lastversion/nagios-$newversion/;" html/docs/quickstart-ubuntu.html
-
 # Update this file with version number and last date
 perl -i -p -e "s/^CURRENTVERSION=.*/CURRENTVERSION=$newversion/;" update-version
 perl -i -p -e "s/^LASTDATE=.*/LASTDATE=$SHORTDATE/;" update-version
-

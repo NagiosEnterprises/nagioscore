@@ -2,9 +2,6 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
- * Copyright (c) 2009 Nagios Core Development Team and Community Contributors
- * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 08-06-2010
  *
  * License:
  *

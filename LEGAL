@@ -1,3 +1,12 @@
+Copyright(c) 1999-2009:
+  Ethan Galstad <egalstad@nagios.org>
+Copyright(c) 2009 until further notice:
+  Nagios Core Development Team and Nagios Community Contributors
+
+For detailed authorship information, refer to the source control
+management history and pay particular attention to commit messages
+and the THANKS file.
+
 
 All source code, binaries, documentation, information, and other files
 contained in this distribution are provided AS IS with NO WARRANTY OF

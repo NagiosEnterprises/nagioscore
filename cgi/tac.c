@@ -2,8 +2,6 @@
  *
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
- * Copyright (c) 2001-2010 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 08-05-2010
  *
  * This CGI program will display the contents of the Nagios
  * log file.

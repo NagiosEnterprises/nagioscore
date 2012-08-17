@@ -2,8 +2,6 @@
  *
  * SRETENTION.H - Header for state retention routines
  *
- * Copyright (c) 1999-2006 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   02-28-2006
  *
  * License:
  *

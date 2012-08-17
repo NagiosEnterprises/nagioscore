@@ -2,8 +2,6 @@
  *
  * CGIAUTH.C - Authorization utilities for Nagios CGIs
  *
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   11-30-2008
  *
  * License:
  *

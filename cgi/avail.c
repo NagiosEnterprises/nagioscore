@@ -2,8 +2,6 @@
  *
  * AVAIL.C -  Nagios Availability CGI
  *
- * Copyright (c) 2000-2010 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 08-05-2010
  *
  * License:
  *

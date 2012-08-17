@@ -2,8 +2,6 @@
  *
  * OUTAGES.C -  Nagios Network Outages CGI
  *
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 01-08-2008
  *
  * License:
  *

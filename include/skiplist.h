@@ -2,8 +2,6 @@
  *
  * SKIPLIST.H - Skiplist data structures and functions
  *
- * Copyright (c) 2008 Ethan Galstad
- * Last Modified: 02-24-2008
  *
  * License:
  *

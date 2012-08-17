@@ -2,8 +2,6 @@
  *
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
- * Copyright (c) 2000-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 02-17-2008
  *
  * License:
  *

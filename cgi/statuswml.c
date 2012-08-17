@@ -2,8 +2,6 @@
  *
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
- * Copyright (c) 2001-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 10-15-2008
  *
  * License:
  *

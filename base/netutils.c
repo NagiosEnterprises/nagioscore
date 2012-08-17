@@ -2,9 +2,7 @@
  *
  * NETUTILS.C - Network connection  utility functions for Nagios
  *
- * Copyright (c) 1999,2008 Ethan Galstad (egalstad@nagios.org)
  * Portions Copyright (c) 1999-2008 Nagios Plugin development team
- * Last Modified: 12-04-2008
  *
  * License:
  *

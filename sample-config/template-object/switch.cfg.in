@@ -1,7 +1,6 @@
 ###############################################################################
 # SWITCH.CFG - SAMPLE CONFIG FILE FOR MONITORING A SWITCH
 #
-# Last Modified: 10-03-2007
 #
 # NOTES: This config file assumes that you are using the sample configuration
 #	 files that get installed with the Nagios quickstart guide.

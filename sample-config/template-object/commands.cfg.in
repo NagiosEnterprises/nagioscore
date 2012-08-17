@@ -1,7 +1,6 @@
 ###############################################################################
 # COMMANDS.CFG - SAMPLE COMMAND DEFINITIONS FOR NAGIOS @VERSION@
 #
-# Last Modified: 05-31-2007
 #
 # NOTES: This config file provides you with some example command definitions
 #        that you can reference in host, service, and contact definitions.

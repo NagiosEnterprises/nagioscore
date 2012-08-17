@@ -1,7 +1,6 @@
 ###############################################################################
 # TEMPLATES.CFG - SAMPLE OBJECT TEMPLATES
 #
-# Last Modified: 10-03-2007
 #
 # NOTES: This config file provides you with some example object definition
 #        templates that are refered by other host, service, contact, etc.

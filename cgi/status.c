@@ -2,8 +2,6 @@
  *
  * STATUS.C -  Nagios Status CGI
  *
- * Copyright (c) 1999-2010  Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 08-05-2020
  *
  * License:
  *

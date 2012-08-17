@@ -2,8 +2,6 @@
  *
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
- * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   08-05-2010
  *
  * License:
  *

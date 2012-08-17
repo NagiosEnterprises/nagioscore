@@ -2,8 +2,6 @@
  *
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
- * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 06-16-2009
  *
  * License:
  *

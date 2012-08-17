@@ -4,11 +4,8 @@
 *
 * Program: Nagios Core Testing
 * License: GPL
-* Copyright (c) 2009 Nagios Core Development Team and Community Contributors
-* Copyright (c) 1999-2009 Ethan Galstad
 *
 * First Written:   12-Mov-2010
-* Last Modified:   12-Nov-2010
 *
 * Description:
 *

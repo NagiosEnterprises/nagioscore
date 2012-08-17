@@ -2,8 +2,6 @@
  *
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
- * Copyright (c) 2002-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 01-23-2008
  *
  * License:
  *

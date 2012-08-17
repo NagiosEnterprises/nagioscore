@@ -2,8 +2,6 @@
  *
  * NEBMODULES.H - Include file for event broker modules
  *
- * Copyright (c) 2002-2006 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   02-27-2006
  *
  * License:
  *

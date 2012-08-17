@@ -1,7 +1,6 @@
 ###############################################################################
 # WINDOWS.CFG - SAMPLE CONFIG FILE FOR MONITORING A WINDOWS MACHINE
 #
-# Last Modified: 06-13-2007
 #
 # NOTES: This config file assumes that you are using the sample configuration
 #	 files that get installed with the Nagios quickstart guide.

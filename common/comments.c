@@ -2,8 +2,6 @@
  *
  * COMMENTS.C - Comment functions for Nagios
  *
- * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 08-28-2010
  *
  * License:
  *

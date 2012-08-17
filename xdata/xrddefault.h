@@ -2,8 +2,6 @@
  *
  * XRDDEFAULT.H - Header file for default state retention routines
  *
- * Copyright (c) 1999-2006 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   03-01-2006
  *
  * License:
  *

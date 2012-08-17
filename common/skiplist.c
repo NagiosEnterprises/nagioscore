@@ -2,8 +2,6 @@
  *
  * SKIPLIST.C - Skiplist functions for use in Nagios event/object lists
  *
- * Copyright (c) 2008 Ethan Galstad
- * Last Modified: 02-28-2008
  *
  * Notes:
  *

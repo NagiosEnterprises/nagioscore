@@ -2,7 +2,6 @@
  *
  * MACROS.H - Common macro functions
  * Written By: Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 10-28-2007
  *
  * License:
  *

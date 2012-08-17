@@ -2,8 +2,6 @@
  *
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 12-14-2008
  *
  * License:
  *

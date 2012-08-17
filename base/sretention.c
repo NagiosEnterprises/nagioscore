@@ -2,8 +2,6 @@
  *
  * SRETENTION.C - State retention routines for Nagios
  *
- * Copyright (c) 1999-2006 Ethan Galstad (egalstad@nagios.org)
- * Last Modified:   10-18-2006
  *
  * License:
  *

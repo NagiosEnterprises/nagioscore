@@ -2,8 +2,6 @@
  *
  * SHOWLOG.C - Nagios Log File CGI
  *
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 01-08-2008
  *
  * This CGI program will display the contents of the Nagios
  * log file.

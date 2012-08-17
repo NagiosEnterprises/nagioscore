@@ -2,9 +2,6 @@
  *
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
- * Copyright (c) 2009-2010 Nagios Core Development Team and Community Contributors
- * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Last Modified: 08-04-2010
  *
  * License:
  *

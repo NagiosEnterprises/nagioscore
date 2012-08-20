@@ -10,20 +10,9 @@
 #include <fcntl.h>
 
 #include "iobroker.c"
+#include "t-utils.h"
 
-static int fail, pass;
 static iobroker_set *iobs;
-#define CHECKPOINT(x__) \
-	do { \
-		fprintf(stderr, "ALIVE @ %s:%s:%d\n", __FILE__, __func__, __LINE__); \
-	} while(0)
-
-#define TRY(x__) \
-	do { \
-		fprintf(stderr, "Trying '%s;'\n", #x__); \
-		x__; \
-		fprintf(stderr, "Seems to have worked out ok\n"); \
-	} while (0)
 
 static char *msg[] = {
 	"Welcome to the echo service!\n",
@@ -69,13 +58,8 @@ static int connected_handler(int fd, int events, void *arg)
 
 		buf[len] = 0;
 
-		if (len != strlen(msg[i]) || memcmp(buf, msg[i], len)) {
-			printf("fd: %d, i: %d; len: %d; buf: %s\n", fd, i, len, buf);
-			fprintf(stderr, "Upping fail at #1\n");
-			fail++;
-		} else {
-			pass++;
-		}
+		test(len == strlen(msg[i]), "len match for message %d", i);
+		test(!memcmp(buf, msg[i], len), "data match for message %d", i);
 	}
 
 	i++;
@@ -86,7 +70,6 @@ static int connected_handler(int fd, int events, void *arg)
 	}
 
 	if (!msg[i]) {
-		//printf("OK: %d messages sent on socket %d\n", i, fd);
 		iobroker_close(iobs, fd);
 		return 0;
 	}
@@ -122,9 +105,8 @@ static int listen_handler(int fd, int events, void *arg)
 int sighandler(int sig)
 {
 	/* test failed */
-	fprintf(stderr, "Caught signal %d (%sSIGALRM). Fail = %d\n",
-			sig, sig == SIGALRM ? "" : "not ", fail);
-	exit(1);
+	t_fail("Caught signal %d", sig);
+	exit(t_end());
 }
 
 
@@ -151,7 +133,6 @@ static int conn_spam(struct sockaddr_in *sain)
 		}
 		iobroker_poll(iobs, -1);
 	}
-	printf("%d connections spammed\n", i);
 	return 0;
 }
 
@@ -162,23 +143,18 @@ int main(int argc, char **argv)
 	int error;
 	const char *err_msg;
 
+	t_set_colors(0);
+	t_start("iobroker ipc test");
+
 	error = iobroker_get_max_fds(NULL);
-	if (error == IOBROKER_ENOSET)
-		pass++;
-	else
-		fail++;
+	ok_int(error, IOBROKER_ENOSET, "test errors when passing null");
+	
 	err_msg = iobroker_strerror(error);
-	if (err_msg && !strcmp(err_msg, iobroker_errors[(~error) + 1].string))
-		pass++;
-	else
-		fail++;
+	test(err_msg && !strcmp(err_msg, iobroker_errors[(~error) + 1].string), "iobroker_strerror() returns the right string");
 
 	iobs = iobroker_create();
 	error = iobroker_get_max_fds(iobs);
-	if (iobs && error >= 0)
-		pass++;
-	else
-		fail++;
+	test(iobs && error >= 0, "max fd's for real iobroker set must be > 0");
 
 	listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	flags = fcntl(listen_fd, F_GETFD);
@@ -191,10 +167,7 @@ int main(int argc, char **argv)
 	sain.sin_port = ntohs(9123);
 	sain.sin_family = AF_INET;
 	bind(listen_fd, (struct sockaddr *)&sain, sizeof(sain));
-	printf("Listening on %s:%d with socket %d\n",
-		   inet_ntoa(sain.sin_addr), ntohs(sain.sin_port), listen_fd);
 	listen(listen_fd, 128);
-	printf("Registering listener socket %d with I/O broker\n", listen_fd);
 	iobroker_register(iobs, listen_fd, iobs, listen_handler);
 
 	if (argc == 1)
@@ -208,20 +181,8 @@ int main(int argc, char **argv)
 	}
 
 	iobroker_close(iobs, listen_fd);
-	printf("Destroying iobs\n");
 	iobroker_destroy(iobs, 0);
 
-	if (fail) {
-		printf("FAIL: %d tests failed\n", fail);
-		return 1;
-	}
-
-	if (pass) {
-		if (pass == 3 + (ARRAY_SIZE(msg) - 1) * NUM_PROCS) {
-			printf("PASS: All %d tests ran just fine\n", pass);
-		} else {
-			printf("PASS: %d tests passed, with connection problems\n", pass);
-		}
-	}
+	t_end();
 	return 0;
 }

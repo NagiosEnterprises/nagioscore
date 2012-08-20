@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "iocache.c"
+#include "t-utils.h"
 
 struct strcode {
 	char *str;
@@ -22,6 +23,8 @@ static int test_delimiter(const char *delim, unsigned int delim_len)
 	iocache *ioc;
 
 	ioc = iocache_create(512 * 1024);
+	if (!test(ioc != NULL, "iocache_create must work"))
+		crash("can't test with no available memory");
 
 	for (i = 0; sc[i].str; i++) {
 		memcpy(&ioc->ioc_buf[ioc->ioc_buflen], sc[i].str, sc[i].len);
@@ -35,18 +38,13 @@ static int test_delimiter(const char *delim, unsigned int delim_len)
 		unsigned long len;
 		int error = 0;
 		ptr = iocache_use_delim(ioc, delim, delim_len, &len);
+		t_req(ptr != NULL);
 		if (!ptr) {
 			printf("Null pointer. What weird shit is this??\n");
 			exit(1);
 		}
-		if (len != sc[i].len) {
-			printf("########## len error\n");
-			error = 1;
-		} else if (memcmp(ptr, sc[i].str, len)) {
-			printf("########## memcmp() error\n");
-			error = 2;
-		}
-
+		test(len == sc[i].len, "len check, string %d, delim_len %d", i, delim_len);
+		test(!memcmp(ptr, sc[i].str, len), "memcmp() check, string %d, delim_len %d", i, delim_len);
 		if (error) {
 			printf("delim_len: %d. i: %d; len: %lu; sc[i].len: %d\n",
 				   delim_len, i, len, sc[i].len);
@@ -69,14 +67,15 @@ int main(int argc, char **argv)
 		ADDSTR("\0\0"),
 		ADDSTR("XXXxXXX"),
 		ADDSTR("LALALALALALALAKALASBALLE\n"),
-		{ NULL, 0 },
 	};
 
-	for (i = 0; sc[i].str; i++) {
-		printf("   Testing delimiter of len %d\n", sc[i].len);
+	t_set_colors(0);
+	t_start("iocache_use_delim() test");
+	for (i = 0; i < ARRAY_SIZE(sc); i++) {
+		t_start("Testing delimiter of len %d", sc[i].len);
 		test_delimiter(sc[i].str, sc[i].len);
+		t_end();
 	}
 
-	printf("All tests passed\n");
-	return 0;
+	return t_end();
 }

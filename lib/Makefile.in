@@ -16,14 +16,17 @@ TESTS := $(patsubst %.c,test-%,$(TESTED_SRC_C))
 test: $(TESTS)
 	@for t in $(TESTS); do echo $$t:; ./$$t || exit 1; echo; done
 
-test-squeue: pqueue.o test-squeue.o
+test-squeue: pqueue.o test-squeue.o t-utils.o
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) $^ -o $@
 
 %.o: %.c %.h Makefile
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
-test-%: test-%.c %.c %.h Makefile
-	$(CC) $(ALL_CFLAGS) $< -o $@
+test-%.o: test-%.c %.c %.h Makefile
+	$(CC) $(ALL_CFLAGS) -c $< -o $@
+
+test-%: t-utils.o test-%.o
+	$(CC) $(ALL_CFLAGS) $^ -o $@
 
 $(LIBNAME): $(SRC_O)
 	$(AR) cr $@ $^
@@ -64,3 +67,7 @@ clean-coverage:
 	rm -f untested *.gcov *.gcda *.gcno gmon.out
 
 .PHONY: clean clean-test clean-coverage coverage
+
+# stop make from removing intermediary files, as ours aren't really
+# intermediary
+.SECONDARY:

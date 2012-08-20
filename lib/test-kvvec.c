@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "kvvec.c"
+#include "t-utils.h"
 
 static int walking_steps, walks;
 
@@ -20,8 +21,8 @@ static int walker(struct key_value *kv, void *discard)
 	}
 
 	if (discard && vec) {
-		if (!kv_compare(&vec->kv[step], kv))
-			printf(" PASS: step %d on walk %d matches\n", step, walks);
+		t_ok(!kv_compare(&vec->kv[step], kv), "step %d on walk %d",
+			 step, walks);
 	}
 
 	step++;
@@ -65,6 +66,9 @@ int main(int argc, char **argv)
 	struct kvvec *kvv, *kvv2, *kvv3;
 	struct kvvec_buf *kvvb, *kvvb2;
 
+	t_set_colors(0);
+
+	t_start("key/value vector tests");
 	kvv = kvvec_create(1);
 	kvv2 = kvvec_create(1);
 	kvv3 = kvvec_create(1);
@@ -84,39 +88,34 @@ int main(int argc, char **argv)
 
 	kvvb = kvvec2buf(kvv, KVSEP, PAIRSEP, OVERALLOC);
 
-	if (kvv->kv_pairs != kvv2->kv_pairs) {
-		printf("Failure: kvvec2buf -> buf2kvvec fails to get pairs teamed up (delta: %d)\n",
-			   kvv->kv_pairs - kvv2->kv_pairs);
-	}
+	test(kvv->kv_pairs == kvv2->kv_pairs, "pairs should be identical");
 
 	for (i = 0; i < kvv->kv_pairs; i++) {
 		struct key_value *kv1, *kv2;
 		kv1 = &kvv->kv[i];
 		if (i >= kvv2->kv_pairs) {
-			printf("%d failed: Not present in kvv2\n", i);
+			t_fail("missing var %d in kvv2", i);
 			printf("[%s=%s] (%d+%d)\n", kv1->key, kv1->value, kv1->key_len, kv1->value_len);
 			continue;
 		}
 		kv2 = &kvv2->kv[i];
-		if (kv_compare(kv1, kv2)) {
+		if (!test(!kv_compare(kv1, kv2), "kv pair %d must match", i)) {
 			printf("%d failed: [%s=%s] (%d+%d) != [%s=%s (%d+%d)]\n",
 				   i,
 				   kv1->key, kv1->value, kv1->key_len, kv1->value_len,
 				   kv2->key, kv2->value, kv2->key_len, kv2->value_len);
 		}
 	}
-	if (kvvb2->buflen == kvvb->buflen)
-		printf("PASS: kvvb->buflen == kvvb->buflen\n");
-	if (kvvb2->bufsize == kvvb->bufsize)
-		printf("PASS: kvvb2->bufsize = kvvb->bufsize\n");
+
+	test(kvvb2->buflen == kvvb->buflen, "buflens must match");
+	test(kvvb2->bufsize == kvvb->bufsize, "bufsizes must match");
 
 	if (kvvb2->buflen == kvvb->buflen && kvvb2->bufsize == kvvb->bufsize &&
 		!memcmp(kvvb2->buf, kvvb->buf, kvvb->bufsize))
 	{
-		printf("PASS: kvvec -> buf -> kvvec conversion works flawlessly\n");
+		t_pass("kvvec -> buf -> kvvec conversion works flawlessly");
 	} else {
-		printf("FAIL: kvvec -> buf -> kvvec conversion failed :'(\n");
-		return EXIT_FAILURE;
+		t_fail("kvvec -> buf -> kvvec conversion failed :'(");
 	}
 
 	free(kvvb->buf);
@@ -125,5 +124,7 @@ int main(int argc, char **argv)
 	free(kvvb2);
 	kvvec_destroy(kvv, 1);
 	kvvec_destroy(kvv3, KVVEC_FREE_ALL);
+
+	t_end();
 	return 0;
 }

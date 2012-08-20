@@ -14,6 +14,7 @@
 #include "iocache.h"
 #include "runcmd.h"
 #include "bitmap.h"
+#include "dkhash.h"
 #include "worker.h"
 #include "skiplist.h"
 #endif /* LIB_libnagios_h__ */

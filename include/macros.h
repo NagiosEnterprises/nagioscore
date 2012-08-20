@@ -22,7 +22,6 @@
 #ifndef _MACROS_H
 #define _MACROS_H
 
-#include "compat.h"
 #include "common.h"
 #include "objects.h"
 

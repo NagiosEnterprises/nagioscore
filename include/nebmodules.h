@@ -23,7 +23,7 @@
 #ifndef _NEBMODULES_H
 #define _NEBMODULES_H
 
-#include "compat.h"
+#include "common.h"
 NAGIOS_BEGIN_DECL
 
 	/***** MODULE VERSION INFORMATION *****/

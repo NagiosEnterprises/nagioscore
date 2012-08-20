@@ -22,7 +22,6 @@
 
 #ifndef _AUTH_H
 #define _AUTH_H
-#include "compat.h"
 #include "common.h"
 #include "objects.h"
 

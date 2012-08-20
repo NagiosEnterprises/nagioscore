@@ -177,7 +177,6 @@
 /****** EVENT BROKER FUNCTIONS *************/
 
 #ifdef USE_EVENT_BROKER
-#include "compat.h"
 NAGIOS_BEGIN_DECL
 
 struct timeval get_broker_timestamp(struct timeval *);

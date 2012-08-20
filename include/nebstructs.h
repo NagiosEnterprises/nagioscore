@@ -23,7 +23,7 @@
 #ifndef _NEBSTRUCTS_H
 #define _NEBSTRUCTS_H
 
-#include "compat.h"
+#include "common.h"
 #include "objects.h"
 #include "nagios.h"
 

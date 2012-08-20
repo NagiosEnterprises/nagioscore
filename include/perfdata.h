@@ -23,7 +23,7 @@
 #ifndef _PERFDATA_H
 #define _PERFDATA_H
 
-#include "compat.h"
+#include "common.h"
 #include "objects.h"
 
 NAGIOS_BEGIN_DECL

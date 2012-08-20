@@ -25,7 +25,7 @@ CGIEXTRAS=@CGIEXTRAS@
 
 CP=@CP@
 CC=@CC@
-CFLAGS=-Wall @CFLAGS@ @DEFS@ -DNSCGI
+CFLAGS=-Wall -I.. @CFLAGS@ @DEFS@ -DNSCGI
 
 # Compiler flags for optimization (overrides default)
 #CFLAGS=-O3 -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCGI

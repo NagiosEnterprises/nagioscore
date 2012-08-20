@@ -6,6 +6,7 @@
 
 #ifndef LIB_libnagios_h__
 #define LIB_libnagios_h__
+#include "lnag-utils.h"
 #include "pqueue.h"
 #include "squeue.h"
 #include "kvvec.h"

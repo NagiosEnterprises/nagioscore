@@ -2,7 +2,7 @@
 #define INCLUDE__shared_h__
 
 #include <time.h>
-#include "compat.h"
+#include "lib/libnagios.h"
 
 NAGIOS_BEGIN_DECL
 
@@ -32,9 +32,6 @@ struct object_count {
 	unsigned int hostgroups;
 	unsigned int servicegroups;
 	};
-
-/* only usable on compile-time initialized arrays, for obvious reasons */
-#define ARRAY_SIZE(ary) (sizeof(ary) / sizeof(ary[0]))
 
 extern char *my_strtok(char *buffer, char *tokens);
 extern char *my_strsep(char **stringp, const char *delim);

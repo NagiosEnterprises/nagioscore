@@ -23,7 +23,7 @@
 #ifndef _STATUSDATA_H
 #define _STATUSDATA_H
 
-#include "compat.h"
+#include "common.h"
 
 #ifdef NSCORE
 #include "objects.h"

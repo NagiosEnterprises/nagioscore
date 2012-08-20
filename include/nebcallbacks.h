@@ -23,7 +23,6 @@
 #ifndef _NEBCALLBACKS_H
 #define _NEBCALLBACKS_H
 
-#include "compat.h"
 #include "nebmodules.h"
 
 

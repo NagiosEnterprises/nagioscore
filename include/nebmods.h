@@ -23,7 +23,6 @@
 #ifndef _NEBMODS_H
 #define _NEBMODS_H
 
-#include "compat.h"
 #include "nebcallbacks.h"
 #include "nebmodules.h"
 

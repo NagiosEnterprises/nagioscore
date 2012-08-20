@@ -21,7 +21,7 @@
 
 #ifndef _SKIPLIST_H
 #define _SKIPLIST_H
-#include "compat.h"
+#include "common.h"
 
 #define SKIPLIST_OK              0
 #define SKIPLIST_ERROR_ARGS      1

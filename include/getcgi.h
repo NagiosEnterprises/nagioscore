@@ -5,7 +5,7 @@
  *
  *****************************************************/
 
-#include "compat.h"
+#include "lib/lnag-utils.h"
 NAGIOS_BEGIN_DECL
 
 char **getcgivars(void);

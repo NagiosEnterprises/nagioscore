@@ -27,13 +27,11 @@
 # define NSCORE
 #endif
 
-#include "compat.h"
-#include "logging.h"
 #include "common.h"
+#include "logging.h"
 #include "locations.h"
 #include "objects.h"
 #include "macros.h"
-#include "lib/libnagios.h"
 
 	/************* MISC LENGTH/SIZE DEFINITIONS ***********/
 

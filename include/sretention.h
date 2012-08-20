@@ -20,7 +20,7 @@
  *
  *****************************************************************************/
 
-#include "compat.h"
+#include "common.h"
 NAGIOS_BEGIN_DECL
 
 int initialize_retention_data(char *);

@@ -1,7 +1,6 @@
 #ifndef INCLUDE_logging_h__
 #define INCLUDE_logging_h__
 
-#include "compat.h"
 #include "objects.h"
 
 /******************* LOGGING TYPES ********************/

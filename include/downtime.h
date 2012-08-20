@@ -24,7 +24,6 @@
 #ifndef _DOWNTIME_H
 #define _DOWNTIME_H
 
-#include "compat.h"
 #include "common.h"
 #include "objects.h"
 #ifdef NSCORE

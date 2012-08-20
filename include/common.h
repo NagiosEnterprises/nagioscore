@@ -27,9 +27,6 @@
 /* Experimental performance tweaks - use with caution */
 #undef USE_MEMORY_PERFORMANCE_TWEAKS
 
-/* my_free has been freed from bondage as a function */
-#define my_free(ptr) do { if(ptr) { free(ptr); ptr = NULL; } } while(0)
-
 
 /****************** SERVICE STATES ********************/
 #define STATE_OK			0

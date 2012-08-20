@@ -1,6 +1,6 @@
 #ifndef _NETUTILS_H
 #define _NETUTILS_H
-#include "compat.h"
+#include "common.h"
 NAGIOS_BEGIN_DECL
 int my_tcp_connect(char *host_name, int port, int *sd, int timeout);
 int my_sendall(int s, char *buf, int *len, int timeout);

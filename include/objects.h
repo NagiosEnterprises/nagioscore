@@ -24,7 +24,6 @@
 #ifndef _OBJECTS_H
 #define _OBJECTS_H
 
-#include "compat.h"
 #include "common.h"
 
 NAGIOS_BEGIN_DECL

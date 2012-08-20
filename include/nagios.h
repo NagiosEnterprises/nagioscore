@@ -118,9 +118,6 @@
 
 #define DEFAULT_USE_LARGE_INSTALLATION_TWEAKS                   0       /* don't use tweaks for large Nagios installations */
 
-#define DEFAULT_ENABLE_EMBEDDED_PERL                            0       /* enable embedded Perl interpreter (if compiled in) */
-#define DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY                    1       /* by default, embedded Perl is used for Perl plugins that don't explicitly disable it */
-
 #define DEFAULT_ADDITIONAL_FRESHNESS_LATENCY			15	/* seconds to be added to freshness thresholds when automatically calculated by Nagios */
 
 #define DEFAULT_CHECK_FOR_UPDATES                               1       /* should we check for new Nagios releases? */
@@ -534,9 +531,6 @@ time_t calculate_time_from_weekday_of_month(int, int, int, int);	/* calculates m
 time_t calculate_time_from_day_of_month(int, int, int);	/* calculates midnight time of specific (1st, last, etc.) day of a particular month */
 void get_next_valid_time(time_t, time_t *, timeperiod *);	/* get the next valid time in a time period */
 time_t get_next_log_rotation_time(void);	     	/* determine the next time to schedule a log rotation */
-int init_embedded_perl(char **);			/* initialized embedded perl interpreter */
-int deinit_embedded_perl(void);				/* cleans up embedded perl */
-int file_uses_embedded_perl(char *);			/* tests whether or not the embedded perl interpreter should be used on a file */
 int dbuf_init(dbuf *, int);
 int dbuf_free(dbuf *);
 int dbuf_strcat(dbuf *, char *);

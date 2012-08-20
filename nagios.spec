@@ -80,7 +80,7 @@ you will need to install %{name}-devel.
 find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-march=nocona/g" Makefile {} \; -print
 %{__make} %{?_smp_mflags} all
 
-### Apparently contrib wants to do embedded-perl stuff as well and does not obey configure !
+### Apparently contrib does not obey configure !
 %{__make} %{?_smp_mflags} -C contrib
 
 %install
@@ -91,7 +91,7 @@ find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-ma
     COMMAND_OPTS="" \
     INIT_OPTS=""
 
-### Apparently contrib wants to do embedded-perl stuff as well and does not obey configure !
+### Apparently contrib does not obey configure !
 %{__make} install -C contrib \
     DESTDIR="%{buildroot}" \
     INSTALL_OPTS=""
@@ -171,9 +171,6 @@ fi
 %{_bindir}/convertcfg
 %attr(0755,nagios,nagios) %{_bindir}/nagios
 %attr(0755,root,root) %{_bindir}/nagiostats
-#%{_bindir}/p1.pl
-#%{_bindir}/mini_epn
-#%{_bindir}/new_mini_epn
 %{_libdir}/nagios/
 %{_datadir}/nagios/
 %defattr(-, nagios, nagios, 0755)

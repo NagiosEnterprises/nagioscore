@@ -392,24 +392,6 @@
 #define MAX_CHECK_STATS_TYPES                11
 
 
-/************************* GENERAL DEFINITIONS  **************************/
-
-#define	OK				0
-#define ERROR				-2	/* value was changed from -1 so as to not interfere with STATUS_UNKNOWN plugin result */
-
-
-#ifndef TRUE
-#define TRUE				1
-#elif (TRUE!=1)
-#define TRUE				1
-#endif
-#ifndef FALSE
-#define FALSE				0
-#elif (FALSE!=0)
-#define FALSE				0
-#endif
-
-
 /****************** HOST CONFIG FILE READING OPTIONS ********************/
 
 #define READ_HOSTS			1

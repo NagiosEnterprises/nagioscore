@@ -30,7 +30,6 @@
 #include "../include/comments.h"
 #include "../include/downtime.h"
 #include "../include/macros.h"
-#include "../include/skiplist.h"
 
 #ifdef NSCORE
 #include "../include/nagios.h"

@@ -31,11 +31,34 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************/
 
-#include "../include/config.h"
-#include "../include/common.h"
+#include <unistd.h>
+#include <stdlib.h>
+#include "skiplist.h"
 
-#include "../include/skiplist.h"
 
+static skiplistnode *skiplist_new_node(skiplist *list, int node_levels) {
+	skiplistnode *newnode = NULL;
+	register int x = 0;
+
+	if(list == NULL)
+		return NULL;
+
+	if(node_levels < 0 || node_levels > list->max_levels)
+		return NULL;
+
+	/* allocate memory for node + variable number of level pointers */
+	if((newnode = (skiplistnode *)malloc(sizeof(skiplistnode) + (node_levels * sizeof(skiplistnode *))))) {
+
+		/* initialize forward pointers */
+		for(x = 0; x < node_levels; x++)
+			newnode->forward[x] = NULL;
+
+		/* initialize data pointer */
+		newnode->data = NULL;
+		}
+
+	return newnode;
+	}
 
 
 skiplist *skiplist_new(int max_levels, float level_probability, int allow_duplicates, int append_duplicates, int (*compare_function)(void *, void *)) {
@@ -58,6 +81,23 @@ skiplist *skiplist_new(int max_levels, float level_probability, int allow_duplic
 		}
 
 	return newlist;
+	}
+
+
+static int skiplist_random_level(skiplist *list) {
+	int level = 0;
+	float r = 0.0;
+
+	if(list == NULL)
+		return -1;
+
+	for(level = 0; level < list->max_levels; level++) {
+		r = ((float)rand() / (float)RAND_MAX);
+		if(r > list->level_probability)
+			break;
+		}
+
+	return (level >= list->max_levels) ? list->max_levels - 1 : level;
 	}
 
 
@@ -108,7 +148,6 @@ int skiplist_insert(skiplist *list, void *data) {
 
 	/* get a random level the new node should be inserted at */
 	level = skiplist_random_level(list);
-	/*printf("INSERTION LEVEL: %d\n",level);*/
 
 	/* we're adding a new level... */
 	if(level > list->current_level) {
@@ -144,48 +183,6 @@ int skiplist_insert(skiplist *list, void *data) {
 	return SKIPLIST_OK;
 	}
 
-
-
-skiplistnode *skiplist_new_node(skiplist *list, int node_levels) {
-	skiplistnode *newnode = NULL;
-	register int x = 0;
-
-	if(list == NULL)
-		return NULL;
-
-	if(node_levels < 0 || node_levels > list->max_levels)
-		return NULL;
-
-	/* allocate memory for node + variable number of level pointers */
-	if((newnode = (skiplistnode *)malloc(sizeof(skiplistnode) + (node_levels * sizeof(skiplistnode *))))) {
-
-		/* initialize forward pointers */
-		for(x = 0; x < node_levels; x++)
-			newnode->forward[x] = NULL;
-
-		/* initialize data pointer */
-		newnode->data = NULL;
-		}
-
-	return newnode;
-	}
-
-
-int skiplist_random_level(skiplist *list) {
-	int level = 0;
-	float r = 0.0;
-
-	if(list == NULL)
-		return -1;
-
-	for(level = 0; level < list->max_levels; level++) {
-		r = ((float)rand() / (float)RAND_MAX);
-		if(r > list->level_probability)
-			break;
-		}
-
-	return (level >= list->max_levels) ? list->max_levels - 1 : level;
-	}
 
 
 int skiplist_empty(skiplist *list) {

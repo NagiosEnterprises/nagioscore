@@ -50,7 +50,6 @@
 #include "../include/objects.h"
 #include "../include/locations.h"
 #include "../include/macros.h"
-#include "../include/skiplist.h"
 
 /**** CORE OR CGI SPECIFIC HEADER FILES ****/
 

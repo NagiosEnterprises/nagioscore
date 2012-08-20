@@ -47,7 +47,6 @@ extern int     log_rotation_method;
 extern host *host_list;
 extern service *service_list;
 
-#include "../include/skiplist.h"
 extern skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 
 /* archived state types */

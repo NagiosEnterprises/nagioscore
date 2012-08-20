@@ -16,6 +16,22 @@
  * @{
  */
 
+/*
+ * These macros are widely used throughout Nagios
+ */
+#define	OK       0   /**< Indicates successful function call in Nagios */
+#define ERROR   -2   /**< Non-successful function call in Nagios */
+
+#ifdef FALSE
+#undef FALSE
+#endif
+#define FALSE 0 /**< Not true */
+
+#ifdef TRUE
+#undef TRUE
+#endif
+#define TRUE (!FALSE) /** Not false */
+
 /** Useful macro to safely avoid double-free memory corruption */
 #define my_free(ptr) do { if(ptr) { free(ptr); ptr = NULL; } } while(0)
 

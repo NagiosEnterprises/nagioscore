@@ -8,6 +8,7 @@
 SRC_COMMON=../common
 SRC_INCLUDE=../include
 SRC_XDATA=../xdata
+SRC_LIB=../lib
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -74,9 +75,9 @@ DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 # Common CGI functions (includes object and status functions)
-CGILIBS=$(SRC_COMMON)/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o skiplist.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS)
+CGILIBS=$(SRC_COMMON)/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS) $(SRC_LIB)/libnagios.a
 CGIHDRS=$(SRC_INCLUDE)/config.h $(SRC_INCLUDE)/common.h $(SRC_INCLUDE)/locations.h
-CGIDEPS=$(CGILIBS) $(ODATADEPS) $(SDATADEPS)
+CGIDEPS=$(CGILIBS) $(ODATADEPS) $(SDATADEPS) $(SRC_LIB)/libnagios.a
 
 
 MATHLIBS=-lm
@@ -90,8 +91,8 @@ $(CGILIBS): $(CGIHDRS)
 
 ######## REQUIRED LIBRARIES ##########
 
-skiplist.o: $(SRC_COMMON)/skiplist.c $(SRC_INCLUDE)/skiplist.h
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/skiplist.c
+$(SRC_LIB)/libnagios.a:
+	$(MAKE) -C $(SRC_LIB)
 
 macros-cgi.o: $(SRC_COMMON)/macros.c $(SRC_INCLUDE)/macros.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/macros.c
@@ -211,3 +212,4 @@ strip-post-install:
 	done
 
 
+.PHONY: libnagios

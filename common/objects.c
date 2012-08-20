@@ -23,7 +23,6 @@
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/objects.h"
-#include "../include/skiplist.h"
 
 #ifdef NSCORE
 #include "../include/nagios.h"

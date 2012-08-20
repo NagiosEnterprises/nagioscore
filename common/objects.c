@@ -373,20 +373,12 @@ int skiplist_compare_servicedependency(void *a, void *b) {
 
 
 int get_host_count(void) {
-
-	if(object_skiplists[HOST_SKIPLIST])
-		return object_skiplists[HOST_SKIPLIST]->items;
-
-	return 0;
+	return num_objects.hosts;
 	}
 
 
 int get_service_count(void) {
-
-	if(object_skiplists[SERVICE_SKIPLIST])
-		return object_skiplists[SERVICE_SKIPLIST]->items;
-
-	return 0;
+	return num_objects.services;
 	}
 
 

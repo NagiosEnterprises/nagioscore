@@ -36,6 +36,23 @@
 #include "skiplist.h"
 
 
+typedef struct skiplistnode_struct {
+	void *data;
+	struct skiplistnode_struct *forward[1]; /* this must be the last element of the struct, as we allocate # of elements during runtime*/
+	} skiplistnode;
+
+typedef struct skiplist_struct {
+	int current_level;
+	int max_levels;
+	float level_probability;
+	unsigned long items;
+	int allow_duplicates;
+	int append_duplicates;
+	int (*compare_function)(void *, void *);
+	skiplistnode *head;
+	} skiplist;
+
+
 static skiplistnode *skiplist_new_node(skiplist *list, int node_levels) {
 	skiplistnode *newnode = NULL;
 	register int x = 0;

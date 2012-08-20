@@ -30,22 +30,8 @@
 
 NAGIOS_BEGIN_DECL
 
-typedef struct skiplistnode_struct {
-	void *data;
-	struct skiplistnode_struct *forward[1]; /* this must be the last element of the struct, as we allocate # of elements during runtime*/
-	} skiplistnode;
-
-typedef struct skiplist_struct {
-	int current_level;
-	int max_levels;
-	float level_probability;
-	unsigned long items;
-	int allow_duplicates;
-	int append_duplicates;
-	int (*compare_function)(void *, void *);
-	skiplistnode *head;
-	} skiplist;
-
+struct skiplist_struct;
+typedef struct skiplist_struct skiplist;
 
 skiplist *skiplist_new(int max_levels, float level_probability, int allow_duplicates, int append_duplicates, int (*compare_function)(void *, void *));
 int skiplist_insert(skiplist *list, void *data);

@@ -115,14 +115,8 @@ static void destroy_job(worker_process *wp, worker_job *job)
 		free(job->arg);
 		break;
 	case WPJOB_NOTIFY:
-		free(oj->contact_name);
-		/* fallthrough */
 	case WPJOB_OCSP:
 	case WPJOB_OCHP:
-		free(oj->host_name);
-		if (oj->service_description) {
-			free(oj->service_description);
-		}
 		free(job->arg);
 		break;
 
@@ -697,9 +691,9 @@ static wproc_object_job *create_object_job(char *cname, char *hname, char *sdesc
 
 	oj = calloc(1, sizeof(*oj));
 	if (oj) {
-		oj->host_name = strdup(hname);
+		oj->host_name = hname;
 		if (cname)
-			oj->contact_name = strdup(cname);
+			oj->contact_name = cname;
 		if (sdesc)
 			oj->service_description = sdesc;
 	}

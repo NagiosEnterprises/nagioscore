@@ -2583,20 +2583,143 @@ int pre_flight_object_check(int *w, int *e) {
 #define DFS_NEAR_LOOP                    3  /* has trouble sons */
 #define DFS_LOOPY                        4  /* is a part of a loop */
 
-#define dfs_get_status(h) h->circular_path_checked
-#define dfs_unset_status(h) h->circular_path_checked = 0
-#define dfs_set_status(h, flag) h->circular_path_checked = (flag)
-#define dfs_host_status(h) (h ? dfs_get_status(h) : DFS_OK)
+#define dfs_get_status(obj) (obj ? ary[obj->id] : DFS_OK)
+#define dfs_set_status(obj, value) ary[obj->id] = (value)
+
+extern struct object_count num_objects;
 
 /**
  * Modified version of Depth-first Search
  * http://en.wikipedia.org/wiki/Depth-first_search
+ *
+ * In a dependency tree like this (parent->child, dep->dep or whatever):
+ * A - B   C
+ *      \ /
+ *       D
+ *      / \
+ * E - F - G
+ *   /  \\
+ * H     H
+ *
+ * ... we look at the nodes in the following order:
+ * A B D C G (marking all of them as OK)
+ * E F D G H F (D,G are already OK, E is marked near-loopy F and H are loopy)
+ * H (which is already marked as loopy, so we don't follow it)
+ *
+ * We look at each node at most once per parent, so the algorithm has
+ * O(nx) worst-case complexity,, where x is the average number of
+ * parents.
  */
-static int dfs_host_path(host *root) {
-	hostsmember *child = NULL;
+/*
+ * same as dfs_host_path, but we flip the the tree and traverse it
+ * backwards, since core Nagios doesn't need the child pointer at
+ * later stages.
+ */
+static int dfs_servicedep_path(char *ary, service *root, int dep_type, int *errors)
+{
+	objectlist *olist;
+	int status;
 
-	if(!root)
-		return DFS_NEAR_LOOP;
+	status = dfs_get_status(root);
+	if(status != DFS_UNCHECKED)
+		return status;
+
+	dfs_set_status(root, DFS_TEMP_CHECKED);
+
+	if (dep_type == NOTIFICATION_DEPENDENCY) {
+		olist = root->notify_deps;
+	} else {
+		olist = root->exec_deps;
+	}
+
+	if (!olist) { /* no children, so we can't be loopy */
+		dfs_set_status(root, DFS_OK);
+		return DFS_OK;
+	}
+	for (; olist; olist = olist->next) {
+		int child_status;
+		service *child;
+		servicedependency *child_dep = (servicedependency *)olist->object_ptr;
+
+		/* tree is upside down, so look to master */
+		child = child_dep->master_service_ptr;
+		child_status = dfs_servicedep_path(ary, child, dep_type, errors);
+
+		if (child_status == DFS_OK)
+			continue;
+
+		if(child_status == DFS_TEMP_CHECKED) {
+			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Circular %s dependency detected for services '%s;%s' and '%s;%s'\n",
+				  dep_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
+				  root->host_name, root->description,
+				  child->host_name, child->description);
+			(*errors)++;
+			dfs_set_status(child, DFS_LOOPY);
+			dfs_set_status(root, DFS_LOOPY);
+			continue;
+			}
+		}
+
+	/*
+	 * if we've hit ourself, we'll have marked us as loopy
+	 * above, so if we're TEMP_CHECKED still we're ok
+	 */
+	if (dfs_get_status(root) == DFS_TEMP_CHECKED)
+		dfs_set_status(root, DFS_OK);
+	return dfs_get_status(root);
+}
+
+static int dfs_hostdep_path(char *ary, host *root, int dep_type, int *errors)
+{
+	objectlist *olist;
+	int status;
+
+	status = dfs_get_status(root);
+	if(status != DFS_UNCHECKED)
+		return status;
+
+	dfs_set_status(root, DFS_TEMP_CHECKED);
+
+	if (dep_type == NOTIFICATION_DEPENDENCY) {
+		olist = root->notify_deps;
+	} else {
+		olist = root->exec_deps;
+	}
+
+	for (; olist; olist = olist->next) {
+		int child_status;
+		host *child;
+		hostdependency *child_dep = (hostdependency *)olist->object_ptr;
+
+		child = child_dep->master_host_ptr;
+		child_status = dfs_hostdep_path(ary, child, dep_type, errors);
+
+		if (child_status == DFS_OK)
+			continue;
+
+		if(child_status == DFS_TEMP_CHECKED) {
+			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Circular %s dependency detected for hosts '%s' and '%s'\n",
+				  dep_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
+				  root->name, child->name);
+			dfs_set_status(child, DFS_LOOPY);
+			dfs_set_status(root, DFS_LOOPY);
+			(*errors)++;
+			continue;
+			}
+		}
+
+	/*
+	 * if we've hit ourself, we'll have marked us as loopy
+	 * above, so if we're still TEMP_CHECKED we're ok
+	 */
+	if (dfs_get_status(root) == DFS_TEMP_CHECKED)
+		dfs_set_status(root, DFS_OK);
+	return dfs_get_status(root);
+}
+
+
+static int dfs_host_path(char *ary, host *root, int *errors) {
+	hostsmember *child = NULL;
 
 	if(dfs_get_status(root) != DFS_UNCHECKED)
 		return dfs_get_status(root);
@@ -2606,27 +2729,20 @@ static int dfs_host_path(host *root) {
 
 	/* We are scanning the children */
 	for(child = root->child_hosts; child != NULL; child = child->next) {
-		int child_status = dfs_get_status(child->host_ptr);
+		int child_status = dfs_host_path(ary, child->host_ptr, errors);
 
-		/* If a child is not checked, check it */
-		if(child_status == DFS_UNCHECKED)
-			child_status = dfs_host_path(child->host_ptr);
+		/* we can move on quickly if child is ok */
+		if(child_status == DFS_OK)
+			continue;
 
 		/* If a child already temporary checked, its a problem,
 		 * loop inside, and its a acked status */
 		if(child_status == DFS_TEMP_CHECKED) {
+			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The hosts '%s' and '%s' form or lead into a circular parent/child chain!", root->name, child->host_ptr->name);
+			(*errors)++;
 			dfs_set_status(child->host_ptr, DFS_LOOPY);
 			dfs_set_status(root, DFS_LOOPY);
-			}
-
-		/* If a child already temporary checked, its a problem, loop inside */
-		if(child_status == DFS_NEAR_LOOP || child_status == DFS_LOOPY) {
-			/* if a node is know to be part of a loop, do not let it be less */
-			if(dfs_get_status(root) != DFS_LOOPY)
-				dfs_set_status(root, DFS_NEAR_LOOP);
-
-			/* we already saw this child, it's a problem */
-			dfs_set_status(child->host_ptr, DFS_LOOPY);
+			continue;
 			}
 		}
 
@@ -2640,22 +2756,35 @@ static int dfs_host_path(host *root) {
 	return dfs_get_status(root);
 	}
 
-
 /* check for circular paths and dependencies */
 int pre_flight_circular_check(int *w, int *e) {
 	host *temp_host = NULL;
 	servicedependency *temp_sd = NULL;
-	servicedependency *temp_sd2 = NULL;
 	hostdependency *temp_hd = NULL;
-	hostdependency *temp_hd2 = NULL;
-	int found = FALSE;
-	int warnings = 0;
-	int errors = 0;
-
+	int i, errors = 0;
+	unsigned int alloc, dep_type;
+	char *ary[2];
 
 	/* bail out if we aren't supposed to verify circular paths */
 	if(verify_circular_paths == FALSE)
 		return OK;
+
+	/* this would be a valid but pathological case */
+	if(num_objects.hosts > num_objects.services)
+		alloc = num_objects.hosts;
+	else
+		alloc = num_objects.services;
+
+	for (i = 0; i < ARRAY_SIZE(ary); i++) {
+		if (!(ary[i] = calloc(1, alloc))) {
+			while (i) {
+				my_free(ary[--i]);
+				}
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to allocate memory for circular path checks.\n");
+			errors++;
+			return ERROR;
+			}
+		}
 
 
 	/********************************************/
@@ -2664,93 +2793,38 @@ int pre_flight_circular_check(int *w, int *e) {
 	if(verify_config == TRUE)
 		printf("Checking for circular paths between hosts...\n");
 
-	/* check routes between all hosts */
-	found = FALSE;
-
-	/* We clean the dsf status from previous check */
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-		dfs_set_status(temp_host, DFS_UNCHECKED);
+		dfs_host_path(ary[0], temp_host, &errors);
 		}
-
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-		if(dfs_host_path(temp_host) == DFS_LOOPY)
-			errors = 1;
-		}
-
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-		if(dfs_get_status(temp_host) == DFS_LOOPY)
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The host '%s' is part of a circular parent/child chain!", temp_host->name);
-		/* clean DFS status */
-		dfs_set_status(temp_host, DFS_UNCHECKED);
-		}
-
 
 	/********************************************/
-	/* check for circular dependencies         */
+	/* check for circular dependencies          */
 	/********************************************/
 	if(verify_config == TRUE)
 		printf("Checking for circular host and service dependencies...\n");
 
-	/* check execution dependencies between all services */
+	/* check service dependencies */
+	/* We must clean the dfs status from previous check */
+	for (i = 0; i < ARRAY_SIZE(ary); i++)
+		memset(ary[i], 0, alloc);
 	for(temp_sd = servicedependency_list; temp_sd != NULL; temp_sd = temp_sd->next) {
-
-		/* clear checked flag for all dependencies */
-		for(temp_sd2 = servicedependency_list; temp_sd2 != NULL; temp_sd2 = temp_sd2->next)
-			temp_sd2->circular_path_checked = FALSE;
-
-		found = check_for_circular_servicedependency_path(temp_sd, temp_sd, EXECUTION_DEPENDENCY);
-		if(found == TRUE) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: A circular execution dependency (which could result in a deadlock) exists for service '%s' on host '%s'!", temp_sd->service_description, temp_sd->host_name);
-			errors++;
-			}
+		dep_type = temp_sd->dependency_type;
+		dfs_servicedep_path(ary[dep_type - 1], temp_sd->dependent_service_ptr, dep_type, &errors);
 		}
 
-	/* check notification dependencies between all services */
-	for(temp_sd = servicedependency_list; temp_sd != NULL; temp_sd = temp_sd->next) {
-
-		/* clear checked flag for all dependencies */
-		for(temp_sd2 = servicedependency_list; temp_sd2 != NULL; temp_sd2 = temp_sd2->next)
-			temp_sd2->circular_path_checked = FALSE;
-
-		found = check_for_circular_servicedependency_path(temp_sd, temp_sd, NOTIFICATION_DEPENDENCY);
-		if(found == TRUE) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: A circular notification dependency (which could result in a deadlock) exists for service '%s' on host '%s'!", temp_sd->service_description, temp_sd->host_name);
-			errors++;
-			}
-		}
-
-	/* check execution dependencies between all hosts */
+	/* check host dependencies */
+	for (i = 0; i < ARRAY_SIZE(ary); i++)
+		memset(ary[i], 0, alloc);
 	for(temp_hd = hostdependency_list; temp_hd != NULL; temp_hd = temp_hd->next) {
-
-		/* clear checked flag for all dependencies */
-		for(temp_hd2 = hostdependency_list; temp_hd2 != NULL; temp_hd2 = temp_hd2->next)
-			temp_hd2->circular_path_checked = FALSE;
-
-		found = check_for_circular_hostdependency_path(temp_hd, temp_hd, EXECUTION_DEPENDENCY);
-		if(found == TRUE) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: A circular execution dependency (which could result in a deadlock) exists for host '%s'!", temp_hd->host_name);
-			errors++;
-			}
+		dep_type = temp_hd->dependency_type;
+		dfs_hostdep_path(ary[dep_type - 1], temp_hd->dependent_host_ptr, dep_type, &errors);
 		}
-
-	/* check notification dependencies between all hosts */
-	for(temp_hd = hostdependency_list; temp_hd != NULL; temp_hd = temp_hd->next) {
-
-		/* clear checked flag for all dependencies */
-		for(temp_hd2 = hostdependency_list; temp_hd2 != NULL; temp_hd2 = temp_hd2->next)
-			temp_hd2->circular_path_checked = FALSE;
-
-		found = check_for_circular_hostdependency_path(temp_hd, temp_hd, NOTIFICATION_DEPENDENCY);
-		if(found == TRUE) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: A circular notification dependency (which could result in a deadlock) exists for host '%s'!", temp_hd->host_name);
-			errors++;
-			}
-		}
-
 
 	/* update warning and error count */
-	*w += warnings;
 	*e += errors;
+
+	for (i = 0; i < ARRAY_SIZE(ary); i++)
+		free(ary[i]);
 
 	return (errors > 0) ? ERROR : OK;
 	}

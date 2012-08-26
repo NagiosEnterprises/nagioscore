@@ -375,8 +375,6 @@ struct host_struct {
 	int     total_services;
 	unsigned long total_service_check_interval;
 	unsigned long modified_attributes;
-	int     circular_path_checked;
-	int     contains_circular_path;
 
 	command *event_handler_ptr;
 	command *check_command_ptr;
@@ -384,6 +382,8 @@ struct host_struct {
 	timeperiod *notification_period_ptr;
 	objectlist *hostgroups_ptr;
 #endif
+	/* objects we depend upon */
+	objectlist *exec_deps, *notify_deps;
 	struct  host_struct *next;
 	void *next_check_event;
 	};
@@ -517,6 +517,7 @@ struct service_struct {
 	timeperiod *notification_period_ptr;
 	objectlist *servicegroups_ptr;
 #endif
+	objectlist *exec_deps, *notify_deps;
 	struct service_struct *next;
 	void *next_check_event;
 	};
@@ -562,9 +563,6 @@ typedef struct servicedependency_struct {
 	int     fail_on_critical;
 	int     fail_on_pending;
 #ifdef NSCORE
-	int     circular_path_checked;
-	int     contains_circular_path;
-
 	service *master_service_ptr;
 	service *dependent_service_ptr;
 	timeperiod *dependency_period_ptr;
@@ -609,9 +607,6 @@ typedef struct hostdependency_struct {
 	int     fail_on_unreachable;
 	int     fail_on_pending;
 #ifdef NSCORE
-	int     circular_path_checked;
-	int     contains_circular_path;
-
 	host    *master_host_ptr;
 	host    *dependent_host_ptr;
 	timeperiod *dependency_period_ptr;
@@ -719,15 +714,9 @@ hostescalation *get_first_hostescalation_by_host(char *, void **);
 hostescalation *get_next_hostescalation_by_host(char *, void **);
 serviceescalation *get_first_serviceescalation_by_service(char *, char *, void **);
 serviceescalation *get_next_serviceescalation_by_service(char *, char *, void **);
-hostdependency *get_first_hostdependency_by_dependent_host(char *, void **);
-hostdependency *get_next_hostdependency_by_dependent_host(char *, void **);
-servicedependency *get_first_servicedependency_by_dependent_service(char *, char *, void **);
-servicedependency *get_next_servicedependency_by_dependent_service(char *, char *, void **);
 
-#ifdef NSCORE
 int add_object_to_objectlist(objectlist **, void *);
 int free_objectlist(objectlist **);
-#endif
 
 
 /**** Object Query Functions ****/

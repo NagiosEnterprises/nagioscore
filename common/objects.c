@@ -768,8 +768,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->total_services = 0;
 	new_host->total_service_check_interval = 0L;
 	new_host->modified_attributes = MODATTR_NONE;
-	new_host->circular_path_checked = FALSE;
-	new_host->contains_circular_path = FALSE;
 #endif
 
 	/* add new host to skiplist */
@@ -1992,14 +1990,17 @@ contactsmember *add_contact_to_serviceescalation(serviceescalation *se, char *co
 /* adds a service dependency definition */
 servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical, int fail_on_pending, char *dependency_period) {
 	servicedependency *new_servicedependency = NULL;
+	service *parent, *child;
 	int result = OK;
 
 	/* make sure we have what we need */
-	if((host_name == NULL || !strcmp(host_name, "")) || (service_description == NULL || !strcmp(service_description, ""))) {
+	parent = find_service(host_name, service_description);
+	if(!parent) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: NULL master service description/host name in service dependency definition\n");
 		return NULL;
 		}
-	if((dependent_host_name == NULL || !strcmp(dependent_host_name, "")) || (dependent_service_description == NULL || !strcmp(dependent_service_description, ""))) {
+	child = find_service(dependent_host_name, dependent_service_description);
+	if(!child) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: NULL dependent service description/host name in service dependency definition\n");
 		return NULL;
 		}
@@ -2008,6 +2009,23 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	if((new_servicedependency = (servicedependency *)calloc(1, sizeof(servicedependency))) == NULL)
 		return NULL;
 
+#ifndef NSCGI
+	/*
+	 * add new service dependency to its respective services.
+	 * Ordering doesn't matter here as we'll have to check them
+	 * all anyway.
+	 */
+	if(dependency_type == NOTIFICATION_DEPENDENCY) {
+		if(add_object_to_objectlist(&child->notify_deps, new_servicedependency) != OK)
+			result = ERROR;
+		}
+	else {
+		if(add_object_to_objectlist(&child->exec_deps, new_servicedependency) != OK)
+			result = ERROR;
+		}
+	new_servicedependency->dependent_service_ptr = child;
+	new_servicedependency->master_service_ptr = parent;
+#endif
 	/* duplicate vars */
 	if((new_servicedependency->dependent_host_name = (char *)strdup(dependent_host_name)) == NULL)
 		result = ERROR;
@@ -2029,24 +2047,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->fail_on_unknown = (fail_on_unknown == 1) ? TRUE : FALSE;
 	new_servicedependency->fail_on_critical = (fail_on_critical == 1) ? TRUE : FALSE;
 	new_servicedependency->fail_on_pending = (fail_on_pending == 1) ? TRUE : FALSE;
-#ifdef NSCORE
-	new_servicedependency->circular_path_checked = FALSE;
-	new_servicedependency->contains_circular_path = FALSE;
-#endif
-
-	/* add new service dependency to skiplist */
-	if(result == OK) {
-		result = skiplist_insert(object_skiplists[SERVICEDEPENDENCY_SKIPLIST], (void *)new_servicedependency);
-		switch(result) {
-			case SKIPLIST_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add service dependency to skiplist\n");
-				result = ERROR;
-				break;
-			}
-		}
 
 	/* handle errors */
 	if(result == ERROR) {
@@ -2076,17 +2076,34 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 /* adds a host dependency definition */
 hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable, int fail_on_pending, char *dependency_period) {
 	hostdependency *new_hostdependency = NULL;
+	host *parent, *child;
 	int result = OK;
 
 	/* make sure we have what we need */
-	if((dependent_host_name == NULL || !strcmp(dependent_host_name, "")) || (host_name == NULL || !strcmp(host_name, ""))) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: NULL host name in host dependency definition\n");
+	parent = find_host(host_name);
+	child = find_host(dependent_host_name);
+	if (!parent || !child) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Bad host_name or dependent_host_name in host dependency definition\n");
 		return NULL;
 		}
 
 	/* allocate memory for a new host dependency entry */
 	if((new_hostdependency = (hostdependency *)calloc(1, sizeof(hostdependency))) == NULL)
 		return NULL;
+
+#ifndef NSCGI
+	if(dependency_type == NOTIFICATION_DEPENDENCY) {
+		if(add_object_to_objectlist(&child->notify_deps, new_hostdependency) != OK)
+			result = ERROR;
+		}
+	else {
+		if(add_object_to_objectlist(&child->exec_deps, new_hostdependency) != OK)
+			result = ERROR;
+		}
+
+	new_hostdependency->dependent_host_ptr = child;
+	new_hostdependency->master_host_ptr = parent;
+#endif
 
 	/* duplicate vars */
 	if((new_hostdependency->dependent_host_name = (char *)strdup(dependent_host_name)) == NULL)
@@ -2104,24 +2121,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency->fail_on_down = (fail_on_down == 1) ? TRUE : FALSE;
 	new_hostdependency->fail_on_unreachable = (fail_on_unreachable == 1) ? TRUE : FALSE;
 	new_hostdependency->fail_on_pending = (fail_on_pending == 1) ? TRUE : FALSE;
-#ifdef NSCORE
-	new_hostdependency->circular_path_checked = FALSE;
-	new_hostdependency->contains_circular_path = FALSE;
-#endif
-
-	/* add new host dependency to skiplist */
-	if(result == OK) {
-		result = skiplist_insert(object_skiplists[HOSTDEPENDENCY_SKIPLIST], (void *)new_hostdependency);
-		switch(result) {
-			case SKIPLIST_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add host dependency to skiplist\n");
-				result = ERROR;
-				break;
-			}
-		}
 
 	/* handle errors */
 	if(result == ERROR) {
@@ -2516,59 +2515,6 @@ serviceescalation *get_next_serviceescalation_by_service(char *host_name, char *
 	}
 
 
-hostdependency *get_first_hostdependency_by_dependent_host(char *host_name, void **ptr) {
-	hostdependency temp_hostdependency;
-
-	if(host_name == NULL)
-		return NULL;
-
-	temp_hostdependency.dependent_host_name = host_name;
-
-	return skiplist_find_first(object_skiplists[HOSTDEPENDENCY_SKIPLIST], &temp_hostdependency, ptr);
-	}
-
-
-hostdependency *get_next_hostdependency_by_dependent_host(char *host_name, void **ptr) {
-	hostdependency temp_hostdependency;
-
-	if(host_name == NULL || ptr == NULL)
-		return NULL;
-
-	temp_hostdependency.dependent_host_name = host_name;
-
-	return skiplist_find_next(object_skiplists[HOSTDEPENDENCY_SKIPLIST], &temp_hostdependency, ptr);
-	}
-
-
-servicedependency *get_first_servicedependency_by_dependent_service(char *host_name, char *svc_description, void **ptr) {
-	servicedependency temp_servicedependency;
-
-	if(host_name == NULL || svc_description == NULL)
-		return NULL;
-
-	temp_servicedependency.dependent_host_name = host_name;
-	temp_servicedependency.dependent_service_description = svc_description;
-
-	return skiplist_find_first(object_skiplists[SERVICEDEPENDENCY_SKIPLIST], &temp_servicedependency, ptr);
-	}
-
-
-servicedependency *get_next_servicedependency_by_dependent_service(char *host_name, char *svc_description, void **ptr) {
-	servicedependency temp_servicedependency;
-
-	if(host_name == NULL || svc_description == NULL || ptr == NULL)
-		return NULL;
-
-	temp_servicedependency.dependent_host_name = host_name;
-	temp_servicedependency.dependent_service_description = svc_description;
-
-	return skiplist_find_next(object_skiplists[SERVICEDEPENDENCY_SKIPLIST], &temp_servicedependency, ptr);
-
-	return NULL;
-	}
-
-
-#ifdef NSCORE
 /* adds a object to a list of objects */
 int add_object_to_objectlist(objectlist **list, void *object_ptr) {
 	objectlist *temp_item = NULL;
@@ -2619,7 +2565,6 @@ int free_objectlist(objectlist **temp_list) {
 
 	return OK;
 	}
-#endif
 
 
 
@@ -2998,114 +2943,6 @@ int is_escalated_contact_for_service(service *svc, contact *cntct) {
 	}
 
 
-#ifdef NSCORE
-
-/* checks to see if there exists a circular dependency for a service */
-int check_for_circular_servicedependency_path(servicedependency *root_dep, servicedependency *dep, int dependency_type) {
-	servicedependency *temp_sd = NULL;
-
-	if(root_dep == NULL || dep == NULL)
-		return FALSE;
-
-	/* this is not the proper dependency type */
-	if(root_dep->dependency_type != dependency_type || dep->dependency_type != dependency_type)
-		return FALSE;
-
-	/* don't go into a loop, don't bother checking anymore if we know this dependency already has a loop */
-	if(root_dep->contains_circular_path == TRUE)
-		return TRUE;
-
-	/* dependency has already been checked - there is a path somewhere, but it may not be for this particular dep... */
-	/* this should speed up detection for some loops */
-	if(dep->circular_path_checked == TRUE)
-		return FALSE;
-
-	/* set the check flag so we don't get into an infinite loop */
-	dep->circular_path_checked = TRUE;
-
-	/* is this service dependent on the root service? */
-	if(dep != root_dep) {
-		if(root_dep->dependent_service_ptr == dep->master_service_ptr) {
-			root_dep->contains_circular_path = TRUE;
-			dep->contains_circular_path = TRUE;
-			return TRUE;
-			}
-		}
-
-	/* notification dependencies are ok at this point as long as they don't inherit */
-	if(dependency_type == NOTIFICATION_DEPENDENCY && dep->inherits_parent == FALSE)
-		return FALSE;
-
-	/* check all parent dependencies */
-	for(temp_sd = servicedependency_list; temp_sd != NULL; temp_sd = temp_sd->next) {
-
-		/* only check parent dependencies */
-		if(dep->master_service_ptr != temp_sd->dependent_service_ptr)
-			continue;
-
-		if(check_for_circular_servicedependency_path(root_dep, temp_sd, dependency_type) == TRUE)
-			return TRUE;
-		}
-
-	return FALSE;
-	}
-
-
-/* checks to see if there exists a circular dependency for a host */
-int check_for_circular_hostdependency_path(hostdependency *root_dep, hostdependency *dep, int dependency_type) {
-	hostdependency *temp_hd = NULL;
-
-	if(root_dep == NULL || dep == NULL)
-		return FALSE;
-
-	/* this is not the proper dependency type */
-	if(root_dep->dependency_type != dependency_type || dep->dependency_type != dependency_type)
-		return FALSE;
-
-	/* don't go into a loop, don't bother checking anymore if we know this dependency already has a loop */
-	if(root_dep->contains_circular_path == TRUE)
-		return TRUE;
-
-	/* dependency has already been checked - there is a path somewhere, but it may not be for this particular dep... */
-	/* this should speed up detection for some loops */
-	if(dep->circular_path_checked == TRUE)
-		return FALSE;
-
-	/* set the check flag so we don't get into an infinite loop */
-	dep->circular_path_checked = TRUE;
-
-	/* is this host dependent on the root host? */
-	if(dep != root_dep) {
-		if(root_dep->dependent_host_ptr == dep->master_host_ptr) {
-			root_dep->contains_circular_path = TRUE;
-			dep->contains_circular_path = TRUE;
-			return TRUE;
-			}
-		}
-
-	/* notification dependencies are ok at this point as long as they don't inherit */
-	if(dependency_type == NOTIFICATION_DEPENDENCY && dep->inherits_parent == FALSE)
-		return FALSE;
-
-	/* check all parent dependencies */
-	for(temp_hd = hostdependency_list; temp_hd != NULL; temp_hd = temp_hd->next) {
-
-		/* only check parent dependencies */
-		if(dep->master_host_ptr != temp_hd->dependent_host_ptr)
-			continue;
-
-		if(check_for_circular_hostdependency_path(root_dep, temp_hd, dependency_type) == TRUE)
-			return TRUE;
-		}
-
-	return FALSE;
-	}
-
-#endif
-
-
-
-
 /******************************************************************/
 /******************* OBJECT DELETION FUNCTIONS ********************/
 /******************************************************************/
@@ -3277,6 +3114,8 @@ int free_object_data(void) {
 		free_objectlist(&this_host->hostgroups_ptr);
 #endif
 		my_free(this_host->check_period);
+		free_objectlist(&this_host->notify_deps);
+		free_objectlist(&this_host->exec_deps);
 		my_free(this_host->host_check_command);
 		my_free(this_host->event_handler);
 		my_free(this_host->failure_prediction_options);
@@ -3481,6 +3320,8 @@ int free_object_data(void) {
 #endif
 		my_free(this_service->notification_period);
 		my_free(this_service->check_period);
+		free_objectlist(&this_service->notify_deps);
+		free_objectlist(&this_service->exec_deps);
 		my_free(this_service->event_handler);
 		my_free(this_service->failure_prediction_options);
 		my_free(this_service->notes);

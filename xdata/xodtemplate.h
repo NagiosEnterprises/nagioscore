@@ -55,22 +55,9 @@
 
 /***************** SKIP LISTS ****************/
 
-#define NUM_XOBJECT_SKIPLISTS                  15
-
-#define X_HOST_SKIPLIST                        1
-#define X_SERVICE_SKIPLIST                     2
-#define X_COMMAND_SKIPLIST                     3
-#define X_TIMEPERIOD_SKIPLIST                  4
-#define X_CONTACT_SKIPLIST                     5
-#define X_CONTACTGROUP_SKIPLIST                6
-#define X_HOSTGROUP_SKIPLIST                   7
-#define X_SERVICEGROUP_SKIPLIST                8
-#define X_HOSTDEPENDENCY_SKIPLIST              9
-#define X_SERVICEDEPENDENCY_SKIPLIST           10
-#define X_HOSTESCALATION_SKIPLIST              11
-#define X_SERVICEESCALATION_SKIPLIST           12
-#define X_HOSTEXTINFO_SKIPLIST                 13
-#define X_SERVICEEXTINFO_SKIPLIST              14
+#define HOSTEXTINFO_SKIPLIST                 (NUM_OBJECT_SKIPLISTS)
+#define SERVICEEXTINFO_SKIPLIST              (NUM_OBJECT_SKIPLISTS + 1)
+#define NUM_XOBJECT_SKIPLISTS                (NUM_OBJECT_SKIPLISTS + 2)
 
 
 /********** STRUCTURE DEFINITIONS **********/

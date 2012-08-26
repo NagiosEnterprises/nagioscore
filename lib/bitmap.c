@@ -236,6 +236,20 @@ bitmap *bitmap_union(const bitmap *a, const bitmap *b)
 	return bm;
 }
 
+bitmap *bitmap_unite(bitmap *res, const bitmap *addme)
+{
+	unsigned int i;
+
+	if (bitmap_size(addme) > bitmap_size(res)) {
+		bitmap_resize(res, bitmap_size(addme));
+	}
+
+	for (i = 0; i < addme->alloc; i++) {
+		res->vector[i] |= addme->vector[i];
+	}
+	return res;
+}
+
 /* 
  * Remove all elements from a that are also in b.
  */

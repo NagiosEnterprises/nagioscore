@@ -112,6 +112,14 @@ extern bitmap *bitmap_intersect(const bitmap *a, const bitmap *b);
 extern bitmap *bitmap_union(const bitmap *a, const bitmap *b);
 
 /**
+ * Calculate union of two bitmaps and store result in one of them
+ * @param res The first bitmap
+ * @param addme The bitmap to unite to the first bitmap
+ * @return NULL on errors, res on success
+ */
+extern bitmap *bitmap_unite(bitmap *res, const bitmap *addme);
+
+/**
  * Calculate set difference between two bitmaps
  * The set difference of A / B is defined as all members of A
  * that isn't members of B. Note that parameter ordering matters

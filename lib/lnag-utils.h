@@ -65,7 +65,7 @@ NAGIOS_BEGIN_DECL
  */
 static inline int lnag_ispof2(unsigned int x)
 {
-	return !(x & (x - 1));
+	return x > 1 ? !(x & (x - 1)) : 0;
 }
 
 #ifdef __GNUC__
@@ -94,7 +94,7 @@ static inline int lnag_clz(unsigned int x)
  */
 static inline unsigned int rup2pof2(unsigned int r)
 {
-	return lnag_ispof2(r) ? r : 1 << ((sizeof(r) * 8) - (lnag_clz(r)));
+	return r < 2 ? 4 : lnag_ispof2(r) ? r : 1 << ((sizeof(r) * 8) - (lnag_clz(r)));
 }
 
 NAGIOS_END_DECL

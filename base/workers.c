@@ -102,12 +102,8 @@ static worker_job *get_job(worker_process *wp, int job_id)
 
 static void destroy_job(worker_process *wp, worker_job *job)
 {
-	wproc_object_job *oj;
-
 	if (!job)
 		return;
-
-	oj = (wproc_object_job *)job->arg;
 
 	switch (job->type) {
 	case WPJOB_CHECK:

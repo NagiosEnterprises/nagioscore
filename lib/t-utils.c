@@ -59,10 +59,8 @@ static int t_okv(int success, const char *fmt, va_list ap)
 {
 	passed += !!success;
 	failed += !success;
-	if (!fmt || !t_verbose)
-		return success;
 
-	if (fmt && t_verbose) {
+	if (fmt && (!success || t_verbose)) {
 		t_indent(t_depth);
 		if (success) {
 			printf("%sPASS%s ", green, reset);

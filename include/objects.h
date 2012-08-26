@@ -118,7 +118,6 @@ typedef struct timeperiod_struct {
 	daterange *exceptions[DATERANGE_TYPES];
 	timeperiodexclusion *exclusions;
 	struct 	timeperiod_struct *next;
-	struct 	timeperiod_struct *nexthash;
 	} timeperiod;
 
 
@@ -139,7 +138,6 @@ typedef struct contactgroup_struct {
 	char    *alias;
 	contactsmember *members;
 	struct	contactgroup_struct *next;
-	struct	contactgroup_struct *nexthash;
 	} contactgroup;
 
 
@@ -168,7 +166,6 @@ typedef struct command_struct {
 	char    *name;
 	char    *command_line;
 	struct command_struct *next;
-	struct command_struct *nexthash;
 	} command;
 
 
@@ -223,7 +220,6 @@ struct contact_struct {
 	objectlist *contactgroups_ptr;
 #endif
 	struct	contact_struct *next;
-	struct	contact_struct *nexthash;
 	};
 
 
@@ -258,7 +254,6 @@ typedef struct hostgroup_struct {
 	char    *notes_url;
 	char    *action_url;
 	struct	hostgroup_struct *next;
-	struct	hostgroup_struct *nexthash;
 	} hostgroup;
 
 
@@ -399,7 +394,6 @@ typedef struct servicegroup_struct {
 	char    *notes_url;
 	char    *action_url;
 	struct	servicegroup_struct *next;
-	struct	servicegroup_struct *nexthash;
 	} servicegroup;
 
 
@@ -543,7 +537,6 @@ typedef struct serviceescalation_struct {
 	timeperiod *escalation_period_ptr;
 #endif
 	struct  serviceescalation_struct *next;
-	struct  serviceescalation_struct *nexthash;
 	} serviceescalation;
 
 
@@ -568,7 +561,6 @@ typedef struct servicedependency_struct {
 	timeperiod *dependency_period_ptr;
 #endif
 	struct servicedependency_struct *next;
-	struct servicedependency_struct *nexthash;
 	} servicedependency;
 
 
@@ -590,7 +582,6 @@ typedef struct hostescalation_struct {
 	timeperiod *escalation_period_ptr;
 #endif
 	struct  hostescalation_struct *next;
-	struct  hostescalation_struct *nexthash;
 	} hostescalation;
 
 
@@ -612,7 +603,6 @@ typedef struct hostdependency_struct {
 	timeperiod *dependency_period_ptr;
 #endif
 	struct hostdependency_struct *next;
-	struct hostdependency_struct *nexthash;
 	} hostdependency;
 
 

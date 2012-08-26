@@ -2,6 +2,7 @@
 #include "bitmap.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #ifndef CHAR_BIT
 # define CHAR_BIT 8
@@ -88,15 +89,10 @@ static inline unsigned int l_bits(bmap map)
 		4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
 	};
 
-	if (0 && map)
-		printf("0x%08x\n", map);
 	for (i = 0; i < sizeof(bmap); i++) {
 		const unsigned char ch = (map >> (i * CHAR_BIT)) & 0xff;
 		const unsigned char cbits = bpb[ch];
 		tot_bits += cbits;
-		if (0 && cbits)
-			printf("%d: top char: 0x%02x; bits: %u; tot_bits: %u\n",
-				   i, ch, cbits, tot_bits);
 	}
 
 	return tot_bits;

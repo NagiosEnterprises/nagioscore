@@ -127,7 +127,7 @@ int tv_delta_msec(const struct timeval *start, const struct timeval *stop)
 	return msecs;
 }
 
-static float tv_delta_f(const struct timeval *start, const struct timeval *stop)
+float tv_delta_f(const struct timeval *start, const struct timeval *stop)
 {
 #define DIVIDER 1000000
 	float ret;

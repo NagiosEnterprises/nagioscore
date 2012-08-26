@@ -93,6 +93,14 @@ extern const char *mkstr(const char *fmt, ...);
 extern int tv_delta_msec(const struct timeval *start, const struct timeval *stop);
 
 /**
+ * Get timeval delta as seconds
+ * @param start The start time
+ * @param stop The stop time
+ * @return time difference in fractions of seconds
+ */
+extern float tv_delta_f(const struct timeval *start, const struct timeval *stop);
+
+/**
  * Set some common socket options
  * @param[in] sd The socket to set options for
  * @param[in] bufsize Size to set send and receive buffers to

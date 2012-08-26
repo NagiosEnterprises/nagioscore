@@ -27,10 +27,6 @@ static bitmap *bitmap_init(bitmap *bm, unsigned long size)
 	/* be tight on space */
 	bm->alloc = (size >> SHIFTOUT) + !!(size & MAPMASK);
 	bm->vector = calloc(1, bm->alloc * sizeof(bmap));
-#if 0
-	printf("bitmap created with %lu bytes of storage and capacity %lu\n",
-		   bm->alloc * sizeof(bmap), bm->alloc * MAPSIZE);
-#endif
 	return bm;
 }
 

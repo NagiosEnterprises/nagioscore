@@ -41,7 +41,7 @@ typedef struct skiplistnode_struct {
 	struct skiplistnode_struct *forward[1]; /* this must be the last element of the struct, as we allocate # of elements during runtime*/
 	} skiplistnode;
 
-typedef struct skiplist_struct {
+struct skiplist_struct {
 	int current_level;
 	int max_levels;
 	float level_probability;
@@ -50,7 +50,7 @@ typedef struct skiplist_struct {
 	int append_duplicates;
 	int (*compare_function)(void *, void *);
 	skiplistnode *head;
-	} skiplist;
+	};
 
 unsigned long skiplist_num_items(skiplist *list) {
 	return list ? list->items : 0;

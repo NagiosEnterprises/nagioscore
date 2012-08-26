@@ -2186,68 +2186,28 @@ int is_host_immediate_parent_of_host(host *child_host, host *parent_host) {
 	return FALSE;
 	}
 
+#ifdef NSCGI
+int hostsmember_elements(hostsmember *list)
+{
+	int elems = 0;
+	for (; list; list = list->next)
+		elems++;
+	return elems;
+}
 
 /* returns a count of the immediate children for a given host */
 /* NOTE: This function is only used by the CGIS */
 int number_of_immediate_child_hosts(host *hst) {
-	int children = 0;
-	host *temp_host = NULL;
-
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-		if(is_host_immediate_child_of_host(hst, temp_host) == TRUE)
-			children++;
-		}
-
-	return children;
-	}
-
-
-/* returns a count of the total children for a given host */
-/* NOTE: This function is only used by the CGIS */
-int number_of_total_child_hosts(host *hst) {
-	int children = 0;
-	host *temp_host = NULL;
-
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-		if(is_host_immediate_child_of_host(hst, temp_host) == TRUE)
-			children += number_of_total_child_hosts(temp_host) + 1;
-		}
-
-	return children;
+	return hst == NULL ? 0 : hostsmember_elements(hst->child_hosts);
 	}
 
 
 /* get the number of immediate parent hosts for a given host */
 /* NOTE: This function is only used by the CGIS */
 int number_of_immediate_parent_hosts(host *hst) {
-	int parents = 0;
-	host *temp_host = NULL;
-
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-		if(is_host_immediate_parent_of_host(hst, temp_host) == TRUE) {
-			parents++;
-			}
-		}
-
-	return parents;
+	return hst == NULL ? 0 : hostsmember_elements(hst->parent_hosts);
 	}
-
-
-/* get the total number of parent hosts for a given host */
-/* NOTE: This function is only used by the CGIS */
-int number_of_total_parent_hosts(host *hst) {
-	int parents = 0;
-	host *temp_host = NULL;
-
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-		if(is_host_immediate_parent_of_host(hst, temp_host) == TRUE) {
-			parents += number_of_total_parent_hosts(temp_host) + 1;
-			}
-		}
-
-	return parents;
-	}
-
+#endif
 
 /*  tests whether a host is a member of a particular hostgroup */
 /* NOTE: This function is only used by the CGIS */

@@ -61,6 +61,20 @@ extern service  *service_list;
 /****************** EXTERNAL COMMAND PROCESSING *******************/
 /******************************************************************/
 
+/*** stupid helpers ****/
+static host *find_host_by_name_or_address(const char *name)
+{
+	host *h;
+
+	if ((h = find_host(name)) || !name)
+		return h;
+
+	for (h = host_list; h; h = h->next)
+		if (!strcmp(h->address, name))
+			return h;
+
+	return NULL;
+}
 
 /* processes all external commands in a (regular) file */
 int process_external_commands_from_file(char *fname, int delete_file) {
@@ -1954,7 +1968,6 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	check_result cr;
 	host *temp_host = NULL;
 	service *temp_service = NULL;
-	char *real_host_name = NULL;
 	struct timeval tv;
 
 	/* skip this service check result if we aren't accepting passive service checks */
@@ -1965,26 +1978,16 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	if(host_name == NULL || svc_description == NULL || output == NULL)
 		return ERROR;
 
-	/* find the host by its name or address */
-	if(find_host(host_name) != NULL)
-		real_host_name = host_name;
-	else {
-		for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-			if(!strcmp(host_name, temp_host->address)) {
-				real_host_name = temp_host->name;
-				break;
-				}
-			}
-		}
+	temp_host = find_host_by_name_or_address(host_name);
 
 	/* we couldn't find the host */
-	if(real_host_name == NULL) {
+	if(temp_host == NULL) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Passive check result was received for service '%s' on host '%s', but the host could not be found!\n", svc_description, host_name);
 		return ERROR;
 		}
 
 	/* make sure the service exists */
-	if((temp_service = find_service(real_host_name, svc_description)) == NULL) {
+	if((temp_service = find_service(temp_host->name, svc_description)) == NULL) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n", svc_description, host_name);
 		return ERROR;
 		}
@@ -1996,7 +1999,7 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	memset(&cr, 0, sizeof(cr));
 	cr.exited_ok = 1;
 	cr.check_type = SERVICE_CHECK_PASSIVE;
-	cr.host_name = real_host_name;
+	cr.host_name = temp_host->name;
 	cr.service_description = svc_description;
 	cr.output = output;
 	cr.start_time.tv_sec = cr.finish_time.tv_sec = check_time;
@@ -2058,7 +2061,6 @@ int cmd_process_host_check_result(int cmd, time_t check_time, char *args) {
 int process_passive_host_check(time_t check_time, char *host_name, int return_code, char *output) {
 	check_result cr;
 	host *temp_host = NULL;
-	char *real_host_name = NULL;
 	struct timeval tv;
 
 	/* skip this host check result if we aren't accepting passive host checks */
@@ -2074,16 +2076,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 		return ERROR;
 
 	/* find the host by its name or address */
-	if((temp_host = find_host(host_name)) != NULL)
-		real_host_name = host_name;
-	else {
-		for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-			if(!strcmp(host_name, temp_host->address)) {
-				real_host_name = temp_host->name;
-				break;
-				}
-			}
-		}
+	temp_host = find_host_by_name_or_address(host_name);
 
 	/* we couldn't find the host */
 	if(temp_host == NULL) {
@@ -2096,7 +2089,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 		return ERROR;
 
 	memset(&cr, 0, sizeof(cr));
-	cr.host_name = real_host_name;
+	cr.host_name = temp_host->name;
 	cr.exited_ok = 1;
 	cr.check_type = HOST_CHECK_PASSIVE;
 	cr.return_code = return_code;

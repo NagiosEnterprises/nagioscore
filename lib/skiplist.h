@@ -33,6 +33,7 @@ NAGIOS_BEGIN_DECL
 struct skiplist_struct;
 typedef struct skiplist_struct skiplist;
 
+unsigned long skiplist_num_items(skiplist *list);
 skiplist *skiplist_new(int max_levels, float level_probability, int allow_duplicates, int append_duplicates, int (*compare_function)(void *, void *));
 int skiplist_insert(skiplist *list, void *data);
 int skiplist_empty(skiplist *list);

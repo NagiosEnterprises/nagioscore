@@ -52,6 +52,9 @@ typedef struct skiplist_struct {
 	skiplistnode *head;
 	} skiplist;
 
+unsigned long skiplist_num_items(skiplist *list) {
+	return list ? list->items : 0;
+	}
 
 static skiplistnode *skiplist_new_node(skiplist *list, int node_levels) {
 	skiplistnode *newnode = NULL;

@@ -607,16 +607,6 @@ typedef struct hostdependency_struct {
 
 
 
-
-/****************** HASH STRUCTURES ********************/
-
-typedef struct host_cursor_struct {
-	int     host_hashchain_iterator;
-	host    *current_host_pointer;
-	} host_cursor;
-
-
-
 /********************* FUNCTIONS **********************/
 
 /**** Top-level input functions ****/

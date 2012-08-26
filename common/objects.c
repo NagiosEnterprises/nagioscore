@@ -1901,7 +1901,6 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	serviceescalation *new_serviceescalation = NULL;
 	service *svc;
 	timeperiod *tp;
-	int result = OK;
 
 	/* make sure we have the data we need */
 	if(host_name == NULL || !*host_name || description == NULL || !*description) {
@@ -1911,7 +1910,7 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	if(!(svc = find_service(host_name, description))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service '%s' on host '%s' has an escalation but is not defined anywhere!\n",
 			  host_name, description);
-		return NULL ;
+		return NULL;
 		}
 	if (escalation_period && !(tp = find_timeperiod(escalation_period))) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Escalation period '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!\n",
@@ -1922,6 +1921,13 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	/* allocate memory for a new service escalation entry */
 	if((new_serviceescalation = calloc(1, sizeof(serviceescalation))) == NULL)
 		return NULL;
+
+	if(add_object_to_objectlist(&svc->escalation_list, new_serviceescalation) != OK) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Could not add escalation to service '%s' on host '%s'\n",
+			  svc->host_name, svc->description);
+		my_free(new_serviceescalation);
+		return NULL;
+		}
 
 	/* assign vars. object names are immutable, so no need to copy */
 	new_serviceescalation->host_name = svc->host_name;
@@ -1940,26 +1946,6 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	new_serviceescalation->escalate_on_warning = (escalate_on_warning > 0) ? TRUE : FALSE;
 	new_serviceescalation->escalate_on_unknown = (escalate_on_unknown > 0) ? TRUE : FALSE;
 	new_serviceescalation->escalate_on_critical = (escalate_on_critical > 0) ? TRUE : FALSE;
-
-	/* add new serviceescalation to skiplist */
-	if(result == OK) {
-		result = skiplist_insert(object_skiplists[SERVICEESCALATION_SKIPLIST], (void *)new_serviceescalation);
-		switch(result) {
-			case SKIPLIST_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add escalation for service '%s' on host '%s' to skiplist\n", description, host_name);
-				result = ERROR;
-				break;
-			}
-		}
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_serviceescalation);
-		return NULL;
-		}
 
 	/* service escalations are sorted alphabetically, so add new items to tail of list */
 	if(serviceescalation_list == NULL) {
@@ -2191,7 +2177,6 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	hostescalation *new_hostescalation = NULL;
 	host *h;
 	timeperiod *tp = NULL;
-	int result = OK;
 
 	/* make sure we have the data we need */
 	if(host_name == NULL || !*host_name) {
@@ -2211,6 +2196,12 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	if((new_hostescalation = calloc(1, sizeof(hostescalation))) == NULL)
 		return NULL;
 
+	/* add the escalation to its host */
+	if (add_object_to_objectlist(&h->escalation_list, new_hostescalation) != OK) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add hostescalation to host '%s'\n", host_name);
+		my_free(new_hostescalation);
+		return NULL;
+		}
 
 	/* assign vars. Object names are immutable, so no need to copy */
 	new_hostescalation->host_name = h->name;
@@ -2224,26 +2215,6 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	new_hostescalation->escalate_on_recovery = (escalate_on_recovery > 0) ? TRUE : FALSE;
 	new_hostescalation->escalate_on_down = (escalate_on_down > 0) ? TRUE : FALSE;
 	new_hostescalation->escalate_on_unreachable = (escalate_on_unreachable > 0) ? TRUE : FALSE;
-
-	/* add new hostescalation to skiplist */
-	if(result == OK) {
-		result = skiplist_insert(object_skiplists[HOSTESCALATION_SKIPLIST], (void *)new_hostescalation);
-		switch(result) {
-			case SKIPLIST_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add hostescalation '%s' to skiplist\n", host_name);
-				result = ERROR;
-				break;
-			}
-		}
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_hostescalation);
-		return NULL;
-		}
 
 	/* host escalations are sorted alphabetically, so add new items to tail of list */
 	if(hostescalation_list == NULL) {
@@ -2499,61 +2470,6 @@ service * find_service(char *host_name, char *svc_desc) {
 	return skiplist_find_first(object_skiplists[SERVICE_SKIPLIST], &temp_service, NULL);
 	}
 
-
-
-
-/******************************************************************/
-/******************* OBJECT TRAVERSAL FUNCTIONS *******************/
-/******************************************************************/
-
-hostescalation *get_first_hostescalation_by_host(char *host_name, void **ptr) {
-	hostescalation temp_hostescalation;
-
-	if(host_name == NULL)
-		return NULL;
-
-	temp_hostescalation.host_name = host_name;
-
-	return skiplist_find_first(object_skiplists[HOSTESCALATION_SKIPLIST], &temp_hostescalation, ptr);
-	}
-
-
-hostescalation *get_next_hostescalation_by_host(char *host_name, void **ptr) {
-	hostescalation temp_hostescalation;
-
-	if(host_name == NULL)
-		return NULL;
-
-	temp_hostescalation.host_name = host_name;
-
-	return skiplist_find_next(object_skiplists[HOSTESCALATION_SKIPLIST], &temp_hostescalation, ptr);
-	}
-
-
-serviceescalation *get_first_serviceescalation_by_service(char *host_name, char *svc_description, void **ptr) {
-	serviceescalation temp_serviceescalation;
-
-	if(host_name == NULL || svc_description == NULL)
-		return NULL;
-
-	temp_serviceescalation.host_name = host_name;
-	temp_serviceescalation.description = svc_description;
-
-	return skiplist_find_first(object_skiplists[SERVICEESCALATION_SKIPLIST], &temp_serviceescalation, ptr);
-	}
-
-
-serviceescalation *get_next_serviceescalation_by_service(char *host_name, char *svc_description, void **ptr) {
-	serviceescalation temp_serviceescalation;
-
-	if(host_name == NULL || svc_description == NULL)
-		return NULL;
-
-	temp_serviceescalation.host_name = host_name;
-	temp_serviceescalation.description = svc_description;
-
-	return skiplist_find_next(object_skiplists[SERVICEESCALATION_SKIPLIST], &temp_serviceescalation, ptr);
-	}
 
 
 /* adds a object to a list of objects */
@@ -2862,11 +2778,11 @@ int is_escalated_contact_for_host(host *hst, contact *cntct) {
 	hostescalation *temp_hostescalation = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
-	void *ptr = NULL;
-
+	objectlist *list;
 
 	/* search all host escalations */
-	for(temp_hostescalation = get_first_hostescalation_by_host(hst->name, &ptr); temp_hostescalation != NULL; temp_hostescalation = get_next_hostescalation_by_host(hst->name, &ptr)) {
+	for(list = hst->escalation_list; list; list = list->next) {
+		temp_hostescalation = (hostescalation *)list->object_ptr;
 
 		/* search all contacts of this host escalation */
 		for(temp_contactsmember = temp_hostescalation->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
@@ -2948,10 +2864,11 @@ int is_escalated_contact_for_service(service *svc, contact *cntct) {
 	contact *temp_contact = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
-	void *ptr = NULL;
+	objectlist *list;
 
 	/* search all the service escalations */
-	for(temp_serviceescalation = get_first_serviceescalation_by_service(svc->host_name, svc->description, &ptr); temp_serviceescalation != NULL; temp_serviceescalation = get_next_serviceescalation_by_service(svc->host_name, svc->description, &ptr)) {
+	for(list = svc->escalation_list; list; list = list->next) {
+		temp_serviceescalation = (serviceescalation *)list->object_ptr;
 
 		/* search all contacts of this service escalation */
 		for(temp_contactsmember = temp_serviceescalation->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
@@ -3151,6 +3068,7 @@ int free_object_data(void) {
 #endif
 		free_objectlist(&this_host->notify_deps);
 		free_objectlist(&this_host->exec_deps);
+		free_objectlist(&this_host->escalation_list);
 		my_free(this_host->host_check_command);
 		my_free(this_host->event_handler);
 		my_free(this_host->failure_prediction_options);
@@ -3350,6 +3268,7 @@ int free_object_data(void) {
 #endif
 		free_objectlist(&this_service->notify_deps);
 		free_objectlist(&this_service->exec_deps);
+		free_objectlist(&this_service->escalation_list);
 		my_free(this_service->event_handler);
 		my_free(this_service->failure_prediction_options);
 		my_free(this_service->notes);

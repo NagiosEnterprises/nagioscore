@@ -32,8 +32,6 @@
 
 extern notification    *notification_list;
 extern contact         *contact_list;
-extern serviceescalation *serviceescalation_list;
-extern hostescalation  *hostescalation_list;
 
 extern time_t          program_start;
 
@@ -902,13 +900,13 @@ int is_valid_escalation_for_service_notification(service *svc, serviceescalation
 
 /* checks to see whether a service notification should be escalation */
 int should_service_notification_be_escalated(service *svc) {
-	serviceescalation *temp_se = NULL;
-	void *ptr = NULL;
+	objectlist *list;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "should_service_notification_be_escalated()\n");
 
 	/* search the service escalation list */
-	for(temp_se = get_first_serviceescalation_by_service(svc->host_name, svc->description, &ptr); temp_se != NULL; temp_se = get_next_serviceescalation_by_service(svc->host_name, svc->description, &ptr)) {
+	for (list = svc->escalation_list; list; list = list->next) {
+		serviceescalation *temp_se = (serviceescalation *)list->object_ptr;
 
 		/* we found a matching entry, so escalate this notification! */
 		if(is_valid_escalation_for_service_notification(svc, temp_se, NOTIFICATION_OPTION_NONE) == TRUE) {
@@ -931,7 +929,6 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 	int escalate_notification = FALSE;
-	void *ptr = NULL;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "create_notification_list_from_service()\n");
@@ -953,11 +950,13 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
 
 	/* use escalated contacts for this notification */
 	if(escalate_notification == TRUE || (options & NOTIFICATION_OPTION_BROADCAST)) {
+		objectlist *list;
 
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "Adding contacts from service escalation(s) to notification list.\n");
 
 		/* search all the escalation entries for valid matches */
-		for(temp_se = get_first_serviceescalation_by_service(svc->host_name, svc->description, &ptr); temp_se != NULL; temp_se = get_next_serviceescalation_by_service(svc->host_name, svc->description, &ptr)) {
+		for(list = svc->escalation_list; list; list = list->next) {
+			temp_se = (serviceescalation *)list->object_ptr;
 
 			/* skip this entry if it isn't appropriate */
 			if(is_valid_escalation_for_service_notification(svc, temp_se, options) == FALSE)
@@ -1827,8 +1826,7 @@ int is_valid_escalation_for_host_notification(host *hst, hostescalation *he, int
 
 /* checks to see whether a host notification should be escalation */
 int should_host_notification_be_escalated(host *hst) {
-	hostescalation *temp_he = NULL;
-	void *ptr = NULL;
+	objectlist *list;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "should_host_notification_be_escalated()\n");
 
@@ -1836,8 +1834,8 @@ int should_host_notification_be_escalated(host *hst) {
 		return FALSE;
 
 	/* search the host escalation list */
-	for(temp_he = get_first_hostescalation_by_host(hst->name, &ptr); temp_he != NULL; temp_he = get_next_hostescalation_by_host(hst->name, &ptr)) {
-
+	for (list = hst->escalation_list; list; list = list->next) {
+		hostescalation *temp_he = (hostescalation *)list->object_ptr;
 		/* we found a matching entry, so escalate this notification! */
 		if(is_valid_escalation_for_host_notification(hst, temp_he, NOTIFICATION_OPTION_NONE) == TRUE)
 			return TRUE;
@@ -1857,7 +1855,6 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 	int escalate_notification = FALSE;
-	void *ptr = NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "create_notification_list_from_host()\n");
 
@@ -1878,11 +1875,13 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 
 	/* use escalated contacts for this notification */
 	if(escalate_notification == TRUE || (options & NOTIFICATION_OPTION_BROADCAST)) {
+		objectlist *list;
 
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "Adding contacts from host escalation(s) to notification list.\n");
 
 		/* check all the host escalation entries */
-		for(temp_he = get_first_hostescalation_by_host(hst->name, &ptr); temp_he != NULL; temp_he = get_next_hostescalation_by_host(hst->name, &ptr)) {
+		for(list = hst->escalation_list; list; list = list->next) {
+			temp_he = (hostescalation *)list->object_ptr;
 
 			/* see if this escalation if valid for this notification */
 			if(is_valid_escalation_for_host_notification(hst, temp_he, options) == FALSE)
@@ -1974,7 +1973,7 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 time_t get_next_service_notification_time(service *svc, time_t offset) {
 	time_t next_notification = 0L;
 	double interval_to_use = 0.0;
-	serviceescalation *temp_se = NULL;
+	objectlist *list;
 	int have_escalated_interval = FALSE;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "get_next_service_notification_time()\n");
@@ -1987,7 +1986,8 @@ time_t get_next_service_notification_time(service *svc, time_t offset) {
 	log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Default interval: %f\n", interval_to_use);
 
 	/* search all the escalation entries for valid matches for this service (at its current notification number) */
-	for(temp_se = serviceescalation_list; temp_se != NULL; temp_se = temp_se->next) {
+	for(list = svc->escalation_list; list; list = list->next) {
+		serviceescalation *temp_se = (serviceescalation *)list->object_ptr;
 
 		/* interval < 0 means to use non-escalated interval */
 		if(temp_se->notification_interval < 0.0)
@@ -2032,7 +2032,7 @@ time_t get_next_service_notification_time(service *svc, time_t offset) {
 time_t get_next_host_notification_time(host *hst, time_t offset) {
 	time_t next_notification = 0L;
 	double interval_to_use = 0.0;
-	hostescalation *temp_he = NULL;
+	objectlist *list;
 	int have_escalated_interval = FALSE;
 
 
@@ -2046,7 +2046,8 @@ time_t get_next_host_notification_time(host *hst, time_t offset) {
 	log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Default interval: %f\n", interval_to_use);
 
 	/* check all the host escalation entries for valid matches for this host (at its current notification number) */
-	for(temp_he = hostescalation_list; temp_he != NULL; temp_he = temp_he->next) {
+	for(list = hst->escalation_list; list; list = list->next) {
+		hostescalation *temp_he = (hostescalation *)list->object_ptr;
 
 		/* interval < 0 means to use non-escalated interval */
 		if(temp_he->notification_interval < 0.0)

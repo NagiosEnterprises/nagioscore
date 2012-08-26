@@ -379,6 +379,7 @@ struct host_struct {
 #endif
 	/* objects we depend upon */
 	objectlist *exec_deps, *notify_deps;
+	objectlist *escalation_list;
 	struct  host_struct *next;
 	void *next_check_event;
 	};
@@ -512,6 +513,7 @@ struct service_struct {
 	objectlist *servicegroups_ptr;
 #endif
 	objectlist *exec_deps, *notify_deps;
+	objectlist *escalation_list;
 	struct service_struct *next;
 	void *next_check_event;
 	};
@@ -689,11 +691,6 @@ command *find_command(char *);							                /* finds a command object *
 service *find_service(char *, char *);								/* finds a service object */
 
 
-/**** Object Traversal Functions ****/
-hostescalation *get_first_hostescalation_by_host(char *, void **);
-hostescalation *get_next_hostescalation_by_host(char *, void **);
-serviceescalation *get_first_serviceescalation_by_service(char *, char *, void **);
-serviceescalation *get_next_serviceescalation_by_service(char *, char *, void **);
 
 int add_object_to_objectlist(objectlist **, void *);
 int free_objectlist(objectlist **);

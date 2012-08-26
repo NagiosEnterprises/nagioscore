@@ -47,8 +47,6 @@ extern int     log_rotation_method;
 extern host *host_list;
 extern service *service_list;
 
-extern skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
-
 /* archived state types */
 #define AS_CURRENT_STATE        -1   /* special case for initial assumed state */
 #define AS_NO_DATA		0

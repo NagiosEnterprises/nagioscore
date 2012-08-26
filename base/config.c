@@ -203,6 +203,29 @@ extern unsigned long    max_debug_file_size;
 
 extern int              allow_empty_hostgroup_assignment;
 
+/*** helpers ****/
+/*
+ * find a command with arguments still attached
+ * if we're unsuccessful, the buffer pointed to by 'name' is modified
+ * to have only the real command name (everything up until the first '!')
+ */
+static command *find_bang_command(char *name)
+{
+	char *bang;
+	command *cmd;
+
+	if (!name)
+		return NULL;
+
+	bang = strchr(name, '!');
+	if (!bang)
+		return find_command(name);
+	*bang = 0;
+	cmd = find_command(name);
+	*bang = '!';
+	return cmd;
+}
+
 
 
 /******************************************************************/
@@ -1458,8 +1481,6 @@ int pre_flight_check(void) {
 	host *temp_host = NULL;
 	char *buf = NULL;
 	service *temp_service = NULL;
-	command *temp_command = NULL;
-	char *temp_command_name = "";
 	int warnings = 0;
 	int errors = 0;
 	struct timeval tv[4];
@@ -1492,42 +1513,18 @@ int pre_flight_check(void) {
 	if(verify_config == TRUE)
 		printf("Checking global event handlers...\n");
 	if(global_host_event_handler != NULL) {
-
-		/* check the event handler command */
-		buf = (char *)strdup(global_host_event_handler);
-
-		/* get the command name, leave any arguments behind */
-		temp_command_name = my_strtok(buf, "!");
-
-		temp_command = find_command(temp_command_name);
-		if(temp_command == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Global host event handler command '%s' is not defined anywhere!", temp_command_name);
+		global_host_event_handler_ptr = find_bang_command(global_host_event_handler);
+		if (global_host_event_handler_ptr == NULL) {
+			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Global host event handler command '%s' is not defined anywhere!", global_host_event_handler);
 			errors++;
 			}
-
-		/* save the pointer to the command for later */
-		global_host_event_handler_ptr = temp_command;
-
-		my_free(buf);
 		}
 	if(global_service_event_handler != NULL) {
-
-		/* check the event handler command */
-		buf = (char *)strdup(global_service_event_handler);
-
-		/* get the command name, leave any arguments behind */
-		temp_command_name = my_strtok(buf, "!");
-
-		temp_command = find_command(temp_command_name);
-		if(temp_command == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Global service event handler command '%s' is not defined anywhere!", temp_command_name);
+		global_service_event_handler_ptr = find_bang_command(global_service_event_handler);
+		if (global_service_event_handler_ptr == NULL) {
+			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Global service event handler command '%s' is not defined anywhere!", global_service_event_handler);
 			errors++;
 			}
-
-		/* save the pointer to the command for later */
-		global_service_event_handler_ptr = temp_command;
-
-		my_free(buf);
 		}
 
 
@@ -1537,40 +1534,17 @@ int pre_flight_check(void) {
 	if(verify_config == TRUE)
 		printf("Checking obsessive compulsive processor commands...\n");
 	if(ocsp_command != NULL) {
-
-		buf = (char *)strdup(ocsp_command);
-
-		/* get the command name, leave any arguments behind */
-		temp_command_name = my_strtok(buf, "!");
-
-		temp_command = find_command(temp_command_name);
-		if(temp_command == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Obsessive compulsive service processor command '%s' is not defined anywhere!", temp_command_name);
+		ocsp_command_ptr = find_bang_command(ocsp_command);
+		if (!ocsp_command_ptr) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: OCSP command '%s' is not defined anywhere!\n", ocsp_command);
 			errors++;
 			}
-
-		/* save the pointer to the command for later */
-		ocsp_command_ptr = temp_command;
-
-		my_free(buf);
 		}
 	if(ochp_command != NULL) {
-
-		buf = (char *)strdup(ochp_command);
-
-		/* get the command name, leave any arguments behind */
-		temp_command_name = my_strtok(buf, "!");
-
-		temp_command = find_command(temp_command_name);
-		if(temp_command == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Obsessive compulsive host processor command '%s' is not defined anywhere!", temp_command_name);
-			errors++;
-			}
-
-		/* save the pointer to the command for later */
-		ochp_command_ptr = temp_command;
-
-		my_free(buf);
+		ochp_command_ptr = find_bang_command(ochp_command);
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: OCHP command '%s' is not defined anywhere!\n", ochp_command);
+		ochp_command_ptr = find_bang_command(ochp_command);
+		errors += ochp_command_ptr == NULL;
 		}
 
 
@@ -1675,8 +1649,6 @@ int pre_flight_object_check(int *w, int *e) {
 	timeperiod *temp_timeperiod = NULL;
 	timeperiod *temp_timeperiod2 = NULL;
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
-	char *buf = NULL;
-	char *temp_command_name = "";
 	int found = FALSE;
 	int total_objects = 0;
 	int warnings = 0;
@@ -1721,41 +1693,19 @@ int pre_flight_object_check(int *w, int *e) {
 
 		/* check the event handler command */
 		if(temp_service->event_handler != NULL) {
-
-			/* check the event handler command */
-			buf = (char *)strdup(temp_service->event_handler);
-
-			/* get the command name, leave any arguments behind */
-			temp_command_name = my_strtok(buf, "!");
-
-			temp_command = find_command(temp_command_name);
-			if(temp_command == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Event handler command '%s' specified in service '%s' for host '%s' not defined anywhere", temp_command_name, temp_service->description, temp_service->host_name);
+			temp_service->event_handler_ptr = find_bang_command(temp_service->event_handler);
+			if(temp_service->event_handler_ptr == NULL) {
+				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Event handler command '%s' specified in service '%s' for host '%s' not defined anywhere", temp_service->event_handler, temp_service->description, temp_service->host_name);
 				errors++;
 				}
-
-			my_free(buf);
-
-			/* save the pointer to the event handler for later */
-			temp_service->event_handler_ptr = temp_command;
 			}
 
 		/* check the service check_command */
-		buf = (char *)strdup(temp_service->service_check_command);
-
-		/* get the command name, leave any arguments behind */
-		temp_command_name = my_strtok(buf, "!");
-
-		temp_command = find_command(temp_command_name);
-		if(temp_command == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service check command '%s' specified in service '%s' for host '%s' not defined anywhere!", temp_command_name, temp_service->description, temp_service->host_name);
+		temp_service->check_command_ptr = find_bang_command(temp_service->service_check_command);
+		if(temp_service->check_command_ptr == NULL) {
+			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service check command '%s' specified in service '%s' for host '%s' not defined anywhere!", temp_service->service_check_command, temp_service->description, temp_service->host_name);
 			errors++;
 			}
-
-		my_free(buf);
-
-		/* save the pointer to the check command for later */
-		temp_service->check_command_ptr = temp_command;
 
 		/* check for sane recovery options */
 		if(temp_service->notify_on_recovery == TRUE && temp_service->notify_on_warning == FALSE && temp_service->notify_on_critical == FALSE) {
@@ -1840,44 +1790,20 @@ int pre_flight_object_check(int *w, int *e) {
 
 		/* check the event handler command */
 		if(temp_host->event_handler != NULL) {
-
-			/* check the event handler command */
-			buf = (char *)strdup(temp_host->event_handler);
-
-			/* get the command name, leave any arguments behind */
-			temp_command_name = my_strtok(buf, "!");
-
-			temp_command = find_command(temp_command_name);
-			if(temp_command == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Event handler command '%s' specified for host '%s' not defined anywhere", temp_command_name, temp_host->name);
+			temp_host->event_handler_ptr = find_bang_command(temp_host->event_handler);
+			if(temp_host->event_handler_ptr == NULL) {
+				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Event handler command '%s' specified for host '%s' not defined anywhere", temp_host->event_handler, temp_host->name);
 				errors++;
 				}
-
-			my_free(buf);
-
-			/* save the pointer to the event handler command for later */
-			temp_host->event_handler_ptr = temp_command;
 			}
 
 		/* hosts that don't have check commands defined shouldn't ever be checked... */
 		if(temp_host->host_check_command != NULL) {
-
-			/* check the host check_command */
-			buf = (char *)strdup(temp_host->host_check_command);
-
-			/* get the command name, leave any arguments behind */
-			temp_command_name = my_strtok(buf, "!");
-
-			temp_command = find_command(temp_command_name);
-			if(temp_command == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host check command '%s' specified for host '%s' is not defined anywhere!", temp_command_name, temp_host->name);
+			temp_host->check_command_ptr = find_bang_command(temp_host->host_check_command);
+			if(temp_host->check_command_ptr == NULL) {
+				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host check command '%s' specified for host '%s' is not defined anywhere!", temp_host->host_check_command, temp_host->name);
 				errors++;
 				}
-
-			/* save the pointer to the check command for later */
-			temp_host->check_command_ptr = temp_command;
-
-			my_free(buf);
 			}
 
 		/* check host check timeperiod */
@@ -2065,24 +1991,12 @@ int pre_flight_object_check(int *w, int *e) {
 			errors++;
 			}
 		else for(temp_commandsmember = temp_contact->service_notification_commands; temp_commandsmember != NULL; temp_commandsmember = temp_commandsmember->next) {
-
-				/* check the host notification command */
-				buf = (char *)strdup(temp_commandsmember->command);
-
-				/* get the command name, leave any arguments behind */
-				temp_command_name = my_strtok(buf, "!");
-
-				temp_command = find_command(temp_command_name);
-				if(temp_command == NULL) {
-					logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!", temp_command_name, temp_contact->name);
-					errors++;
-					}
-
-				/* save pointer to the command for later */
-				temp_commandsmember->command_ptr = temp_command;
-
-				my_free(buf);
+			temp_commandsmember->command_ptr = find_bang_command(temp_commandsmember->command);
+			if(temp_commandsmember->command_ptr == NULL) {
+				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!", temp_commandsmember->command, temp_contact->name);
+				errors++;
 				}
+			}
 
 		/* check host notification commands */
 		if(temp_contact->host_notification_commands == NULL) {
@@ -2090,24 +2004,12 @@ int pre_flight_object_check(int *w, int *e) {
 			errors++;
 			}
 		else for(temp_commandsmember = temp_contact->host_notification_commands; temp_commandsmember != NULL; temp_commandsmember = temp_commandsmember->next) {
-
-				/* check the host notification command */
-				buf = (char *)strdup(temp_commandsmember->command);
-
-				/* get the command name, leave any arguments behind */
-				temp_command_name = my_strtok(buf, "!");
-
-				temp_command = find_command(temp_command_name);
-				if(temp_command == NULL) {
-					logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!", temp_command_name, temp_contact->name);
-					errors++;
-					}
-
-				/* save pointer to the command for later */
-				temp_commandsmember->command_ptr = temp_command;
-
-				my_free(buf);
+			temp_commandsmember->command_ptr = find_bang_command(temp_commandsmember->command);
+			if(temp_commandsmember->command_ptr == NULL) {
+				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!", temp_commandsmember->command, temp_contact->name);
+				errors++;
 				}
+			}
 
 		/* check service notification timeperiod */
 		if(temp_contact->service_notification_period == NULL) {

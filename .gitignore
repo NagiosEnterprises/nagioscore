@@ -22,3 +22,4 @@ Makefile
 gmon.out
 core.[1-9]*
 /Documentation
+*.pre-indent

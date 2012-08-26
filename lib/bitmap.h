@@ -9,6 +9,16 @@ struct bitmap;
 typedef struct bitmap bitmap;
 
 /**
+ * Resize a bitmap
+ * If the bitmap is made smaller, data will silently be lost.
+ *
+ * @param bm The bitmap to resize
+ * @param size The new desired size of the bitmap
+ * @return 0 on success, -1 on errors.
+ */
+extern int bitmap_resize(bitmap *bm, unsigned long size);
+
+/**
  * Create a bitmaptor of size 'size'
  * @param size Desired storage capacity
  * @return A bitmap pointer on success, NULL on errors

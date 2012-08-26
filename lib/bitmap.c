@@ -16,23 +16,64 @@ typedef unsigned int bmap;
 
 struct bitmap {
 	bmap *vector;
-	unsigned int alloc;
+	unsigned long alloc;
 };
+
+int bitmap_resize(bitmap *bm, unsigned long size)
+{
+	unsigned long ralloc;
+	bmap *nvec;
+
+	if (!bm)
+		return -1;
+
+	/* be tight on space */
+	ralloc = (size >> SHIFTOUT) + !!(size & MAPMASK);
+
+	if (!bm->vector) {
+		bm->vector = calloc(1, ralloc * sizeof(bmap));
+		if (!bm->vector)
+			return -1;
+		bm->alloc = ralloc;
+		return 0;
+	}
+
+	nvec = realloc(bm->vector, ralloc * sizeof(bmap));
+	if (!nvec) {
+		return -1;
+	}
+	bm->vector = nvec;
+	bm->alloc = ralloc;
+	return 0;
+}
 
 static bitmap *bitmap_init(bitmap *bm, unsigned long size)
 {
+	int ret;
+
 	if (!bm)
 		return NULL;
 
-	/* be tight on space */
-	bm->alloc = (size >> SHIFTOUT) + !!(size & MAPMASK);
-	bm->vector = calloc(1, bm->alloc * sizeof(bmap));
+	ret = bitmap_resize(bm, size);
+	if (ret < 0)
+		return NULL;
+
 	return bm;
 }
 
 bitmap *bitmap_create(unsigned long size)
 {
-	return bitmap_init(calloc(1, sizeof(bitmap)), size);
+	bitmap *bm;
+
+	if (!(bm = calloc(1, sizeof(bitmap))))
+		return NULL;
+
+	if (bitmap_init(bm, size) == bm)
+		return bm;
+
+	free(bm);
+
+	return NULL;
 }
 
 void bitmap_destroy(bitmap *bm)

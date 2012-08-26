@@ -1,5 +1,6 @@
 #ifndef LIBNAGIOS_dkhash_h__
 #define LIBNAGIOS_dkhash_h__
+#include <errno.h>
 
 /**
  * @file dkhash.h
@@ -14,6 +15,13 @@
 /** return flags usable from the callback function of dkhash_walk_data() */
 #define DKHASH_WALK_REMOVE 1 /**< Remove the most recently visited object */
 #define DKHASH_WALK_STOP   2 /**< Cause walking to stop */
+
+/** return values for dkhash_insert() */
+#define DKHASH_OK     0         /**< Success */
+#define DKHASH_EDUPE  (-EPERM)  /**< duplicate insert attempted */
+#define DKHASH_EPERM  (-EPERM)  /**< duplicate insert attempted */
+#define DKHASH_EINVAL (-EINVAL) /**< Invalid parameters passed */
+#define DKHASH_ENOMEM (-ENOMEM) /**< Memory allocation failed */
 
 struct dkhash_table;
 /** opaque type */
@@ -40,7 +48,7 @@ extern int dkhash_destroy(dkhash_table *t);
  * @param t The table to get the data from
  * @param k1 The first key
  * @param k2 The second key
- * @return The data on success, NULL on errors
+ * @return The data on success, NULL on errors or if data isn't found
  */
 extern void *dkhash_get(dkhash_table *t, const char *k1, const char *k2);
 
@@ -66,15 +74,6 @@ extern int dkhash_insert(dkhash_table *t, const char *k1, const char *k2, void *
 extern void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2);
 
 /**
- * Update the data associated with a particular set of keys
- * @param t The hash table
- * @param k1 The first key
- * @param k2 The second key
- * @param data The new data for the keys
- */
-extern void *dkhash_update(dkhash_table *t, const char *k1, const char *k2, void *data);
-
-/**
  * Call a funciton once for each item in the hash-table
  * The callback function can return DKHASH_WALK_{REMOVE,STOP} or any
  * OR'ed combination thereof to control the walking procedure, and
@@ -84,12 +83,22 @@ extern void *dkhash_update(dkhash_table *t, const char *k1, const char *k2, void
  */
 extern void dkhash_walk_data(dkhash_table *t, int (*walker)(void *data));
 
+
+/**
+ * Get number of collisions in hash table
+ * Many collisions is a sign of a too small hash table or
+ * poor hash-function.
+ * @param t The hash table to report on
+ * @return The total number of collisions (not duplicates) from inserts
+ */
+extern unsigned int dkhash_collisions(dkhash_table *t);
+
 /**
  * Get number of items in the hash table
  * @param t The hash table
  * @return Number of items currently in the hash-table
  */
-extern unsigned int dkhash_num_items(dkhash_table *t);
+extern unsigned int dkhash_num_entries(dkhash_table *t);
 
 /**
  * Get max number of items stored in the hash table

@@ -3,7 +3,7 @@
 #include "dkhash.h"
 #include "lnag-utils.h"
 
-#define dkhash_func(k) sdbm((unsigned char *)k)
+#define dkhash_func(k) hash((unsigned char *)k)
 #define dkhash_func2(k1, k2) (dkhash_func(k1) ^ dkhash_func(k2))
 
 typedef struct dkhash_bucket {
@@ -19,9 +19,15 @@ struct dkhash_table {
 	unsigned int added, removed;
 	unsigned int entries;
 	unsigned int max_entries;
+	unsigned int collisions;
 };
 
 /* struct data access functions */
+unsigned int dkhash_collisions(dkhash_table *t)
+{
+	return t ? t->collisions : 0;
+}
+
 unsigned int dkhash_num_entries(dkhash_table *t)
 {
 	return t ? t->entries : 0;
@@ -48,59 +54,27 @@ unsigned int dkhash_table_size(dkhash_table *t)
 }
 
 /*
- * polynomial conversion ignoring overflows
- *
- * Ozan Yigit's original sdbm algorithm, but without Duff's device
- * so we can use it without knowing the length of the string
+ * polynomial conversion ignoring overflows.
+ * Pretty standard hash, once based on Ozan Yigit's sdbm() hash
+ * but later modified for Nagios to produce better results on our
+ * typical data.
  */
-static inline unsigned int sdbm(register const unsigned char *k)
+#define PRIME 509
+static inline unsigned int hash(register const unsigned char *k)
 {
-	register unsigned int h = 0;
+	register unsigned int h = 0x123; /* magic */
 
 	while (*k)
-		h = *k++ + 65599 * h;
+		h = *k++ + PRIME * h;
 
 	return h;
 }
 
-static int dkhash_insert_bucket(dkhash_table *t, const char *k1, const char *k2, void *data, unsigned int h)
+static dkhash_bucket *dkhash_get_bucket(dkhash_table *t, const char *key, unsigned int slot)
 {
 	dkhash_bucket *bkt;
 
-	if (!(bkt = malloc(sizeof(*bkt))))
-		return -1;
-
-	h &= t->num_buckets - 1;
-
-	t->added++;
-	bkt->data = data;
-	bkt->key = k1;
-	bkt->key2 = k2;
-	bkt->next = t->buckets[h];
-	t->buckets[h] = bkt;
-
-	if (++t->entries > t->max_entries)
-		t->max_entries = t->entries;
-
-	return 0;
-}
-
-int dkhash_insert(dkhash_table *t, const char *k1, const char *k2, void *data)
-{
-	unsigned int h = k2 ? dkhash_func2(k1, k2) : dkhash_func(k1);
-
-	return dkhash_insert_bucket(t, k1, k2, data, h);
-}
-
-static dkhash_bucket *dkhash_get_bucket(dkhash_table *t, const char *key)
-{
-	dkhash_bucket *bkt;
-
-	if (!t)
-		return NULL;
-
-	bkt = t->buckets[dkhash_func(key) % t->num_buckets];
-	for (; bkt; bkt = bkt->next) {
+	for (bkt = t->buckets[slot]; bkt; bkt = bkt->next) {
 		if (!strcmp(key, bkt->key))
 			return bkt;
 	}
@@ -108,44 +82,91 @@ static dkhash_bucket *dkhash_get_bucket(dkhash_table *t, const char *key)
 	return NULL;
 }
 
-static dkhash_bucket *dkhash_get_bucket2(dkhash_table *t, const char *k1, const char *k2)
+static dkhash_bucket *dkhash_get_bucket2(dkhash_table *t, const char *k1, const char *k2, unsigned int slot)
 {
 	dkhash_bucket *bkt;
 
-	if (!t)
-		return NULL;
-
-	bkt = t->buckets[dkhash_func2(k1, k2) % t->num_buckets];
-	for (; bkt; bkt = bkt->next) {
-		if (!strcmp(k1, bkt->key) && !strcmp(k2, bkt->key2))
+	for (bkt = t->buckets[slot]; bkt; bkt = bkt->next) {
+		if (!strcmp(k1, bkt->key) && bkt->key2 && !strcmp(k2, bkt->key2))
 			return bkt;
-	}
+		}
 
 	return NULL;
+}
+
+int dkhash_insert(dkhash_table *t, const char *k1, const char *k2, void *data)
+{
+	unsigned int slot;
+	dkhash_bucket *bkt;
+
+	if (!t || !k1)
+		return DKHASH_EINVAL;
+
+	if (k2) {
+		slot = dkhash_func2(k1, k2) & (t->num_buckets - 1);
+		bkt = dkhash_get_bucket2(t, k1, k2, slot);
+	}
+	else {
+		slot = dkhash_func(k1) & (t->num_buckets - 1);
+		bkt = dkhash_get_bucket(t, k1, slot);
+	}
+
+	if (bkt)
+		return DKHASH_EDUPE;
+
+	if (!(bkt = malloc(sizeof(*bkt))))
+		return DKHASH_ENOMEM;
+
+	if (t->buckets[slot])
+		t->collisions++; /* "soft" collision */
+
+	t->added++;
+	bkt->data = data;
+	bkt->key = k1;
+	bkt->key2 = k2;
+	bkt->next = t->buckets[slot];
+	t->buckets[slot] = bkt;
+
+	if (++t->entries > t->max_entries)
+		t->max_entries = t->entries;
+
+	return DKHASH_OK;
 }
 
 void *dkhash_get(dkhash_table *t, const char *k1, const char *k2)
 {
 	dkhash_bucket *bkt;
+	unsigned int slot;
 
-	if (k2)
-		bkt = dkhash_get_bucket2(t, k1, k2);
-	else
-		bkt = dkhash_get_bucket(t, k1);
+	if (!t || !k1)
+		return NULL;
+
+	if (k2) {
+		slot = dkhash_func2(k1, k2) & (t->num_buckets - 1);
+		bkt = dkhash_get_bucket2(t, k1, k2, slot);
+	}
+	else {
+		slot = dkhash_func(k1) & (t->num_buckets - 1);
+		bkt = dkhash_get_bucket(t, k1, slot);
+	}
 
 	return bkt ? bkt->data : NULL;
 }
 
 dkhash_table *dkhash_create(unsigned int size)
 {
-	dkhash_table *t = calloc(sizeof(dkhash_table), 1);
+	dkhash_table *t;
 	unsigned int po2;
 
 	if (!size)
 		return NULL;
 
+	t = calloc(1, sizeof(*t));
+
 	/* we'd like size to be a power of 2, so we round up */
 	po2 = rup2pof2(size);
+	if (po2 < 16)
+		po2 = 16;
 
 	if (t) {
 		t->buckets = calloc(po2, sizeof(dkhash_bucket *));
@@ -160,18 +181,23 @@ dkhash_table *dkhash_create(unsigned int size)
 	return NULL;
 }
 
-void *dkhash_update(dkhash_table *t, const char *k1, const char *k2, void *data)
+int dkhash_destroy(dkhash_table *t)
 {
-	dkhash_bucket *bkt;
+	unsigned int i;
 
-	bkt = dkhash_get_bucket2(t, k1, k2);
-	if (!bkt) {
-		dkhash_insert(t, k1, k2, data);
-		return NULL;
+	if (!t)
+		return DKHASH_EINVAL;
+
+	for (i = 0; i < t->num_buckets; i++) {
+		dkhash_bucket *b, *next;
+		for (b = t->buckets[i]; b; b = next) {
+			next = b->next;
+			free(b);
+		}
 	}
-
-	bkt->data = data;
-	return NULL;
+	free(t->buckets);
+	free(t);
+	return DKHASH_OK;
 }
 
 static inline void *dkhash_destroy_bucket(dkhash_bucket *bkt)
@@ -185,26 +211,28 @@ static inline void *dkhash_destroy_bucket(dkhash_bucket *bkt)
 
 void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
 {
-	unsigned int h;
+	unsigned int slot;
 	dkhash_bucket *bkt, *prev;
 
-	h = k2 ? dkhash_func2(k1, k2) : dkhash_func(k1);
-	h &= t->num_buckets - 1;
-
-	if (!(bkt = t->buckets[h]))
+	if (!t || !k1)
 		return NULL;
 
-	if (!strcmp(k1, bkt->key) && !strcmp(k2, bkt->key2)) {
-		t->buckets[h] = bkt->next;
-		t->entries--;
-		t->removed++;
-		return dkhash_destroy_bucket(bkt);
-	}
+	slot = (k2 ? dkhash_func2(k1, k2) : dkhash_func(k1)) & (t->num_buckets - 1);
+	if (!(bkt = t->buckets[slot]))
+		return NULL;
 
-	prev = bkt;
-	for (bkt = bkt->next; bkt; bkt = bkt->next) {
-		if (!strcmp(k1, bkt->key) && !strcmp(k2, bkt->key2)) {
-			prev->next = bkt->next;
+	prev = bkt; /* pay attention */
+	for (; bkt; bkt = bkt->next) {
+		if (strcmp(k1, bkt->key))
+			continue;
+		if ((!k2 && !bkt->key2) || !strcmp(k2, bkt->key2)) {
+			if (prev == bkt) {
+				/* first entry deleted */
+				t->buckets[slot] = bkt->next;
+			}
+			else {
+				prev->next = bkt->next;
+			}
 			t->entries--;
 			t->removed++;
 			return dkhash_destroy_bucket(bkt);
@@ -214,8 +242,7 @@ void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
 	return NULL;
 }
 
-void dkhash_walk_data(dkhash_table *t, int (*walker)(void *))
-{
+void dkhash_walk_data(dkhash_table *t, int (*walker)(void *)) {
 	dkhash_bucket *bkt, *prev;
 	unsigned int i;
 

@@ -931,6 +931,7 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 	new_servicesmember->service_description = service_ptr->description;
 #ifdef NSCORE
 	new_servicesmember->service_ptr = service_ptr;
+	hst->total_services++;
 #endif
 
 	/* add the child entry to the host definition */

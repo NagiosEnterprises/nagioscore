@@ -1478,9 +1478,7 @@ int read_resource_file(char *resource_file) {
 
 /* do a pre-flight check to make sure object relationships, etc. make sense */
 int pre_flight_check(void) {
-	host *temp_host = NULL;
 	char *buf = NULL;
-	service *temp_service = NULL;
 	int warnings = 0;
 	int errors = 0;
 	struct timeval tv[4];
@@ -1584,14 +1582,6 @@ int pre_flight_check(void) {
 		warnings++;
 		}
 
-	/* count number of services associated with each host (we need this for flap detection)... */
-	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
-		if((temp_host = find_host(temp_service->host_name))) {
-			temp_host->total_services++;
-			temp_host->total_service_check_interval += temp_service->check_interval;
-			}
-		}
-
 	if(verify_config == TRUE) {
 		printf("\n");
 		printf("Total Warnings: %d\n", warnings);
@@ -1649,7 +1639,6 @@ int pre_flight_object_check(int *w, int *e) {
 	timeperiod *temp_timeperiod = NULL;
 	timeperiod *temp_timeperiod2 = NULL;
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
-	int found = FALSE;
 	int total_objects = 0;
 	int warnings = 0;
 	int errors = 0;
@@ -1687,9 +1676,6 @@ int pre_flight_object_check(int *w, int *e) {
 	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		total_objects++;
-		found = FALSE;
-
-
 
 		/* check the event handler command */
 		if(temp_service->event_handler != NULL) {
@@ -1766,26 +1752,11 @@ int pre_flight_object_check(int *w, int *e) {
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		total_objects++;
-		found = FALSE;
 
 		/* make sure each host has at least one service associated with it */
-		/* 02/21/08 NOTE: this is extremely inefficient */
-		if(use_precached_objects == FALSE && use_large_installation_tweaks == FALSE) {
-
-			for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
-				if(!strcmp(temp_service->host_name, temp_host->name)) {
-					found = TRUE;
-					break;
-					}
-				}
-
-			/* we couldn't find a service associated with this host! */
-			if(found == FALSE) {
-				logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Host '%s' has no services associated with it!", temp_host->name);
-				warnings++;
-				}
-
-			found = FALSE;
+		if(temp_host->total_services == 0) {
+			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Host '%s' has no services associated with it!", temp_host->name);
+			warnings++;
 			}
 
 		/* check the event handler command */
@@ -2077,8 +2048,6 @@ int pre_flight_object_check(int *w, int *e) {
 	if(verify_config == TRUE)
 		printf("Checking contact groups...\n");
 	for(temp_contactgroup = contactgroup_list, total_objects = 0; temp_contactgroup != NULL; temp_contactgroup = temp_contactgroup->next, total_objects++) {
-
-		found = FALSE;
 
 		/* check all the group members */
 		for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {

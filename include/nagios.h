@@ -20,9 +20,6 @@
 #ifndef _NAGIOS_H
 #define _NAGIOS_H
 
-#ifndef __GNUC__
-# define __attribute__(x) /* nothing */
-#endif
 #ifndef NSCORE
 # define NSCORE
 #endif

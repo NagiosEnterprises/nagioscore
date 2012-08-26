@@ -1,20 +1,32 @@
 #ifndef LIBNAGIOS_lnag_utils_h__
 #define LIBNAGIOS_lnag_utils_h__
 
-#ifdef __cplusplus
-# define NAGIOS_BEGIN_DECL extern "C" {
-# define NAGIOS_END_DECL }
-#else
-# define NAGIOS_BEGIN_DECL /* nothing */
-# define NAGIOS_END_DECL /* more of nothing */
-#endif
-
 /**
  * @file lnag-utils.h
  * @brief libnagios helper functions that lack a "real" home.
  *
  * @{
  */
+
+#ifdef __cplusplus
+/**
+ * C++ compatibility macro that avoids confusing indentation programs
+ */
+# define NAGIOS_BEGIN_DECL extern "C" {
+/**
+ * Use at end of header file declarations to obtain C++ compatibility
+ * ... without confusing indentation programs
+ */
+# define NAGIOS_END_DECL }
+#else
+# define NAGIOS_BEGIN_DECL /* nothing */
+# define NAGIOS_END_DECL /* more of nothing */
+#endif
+
+#ifndef __GNUC__
+/** So we can safely use the gcc extension */
+# define __attribute__(x) /* nothing */
+#endif
 
 /*
  * These macros are widely used throughout Nagios

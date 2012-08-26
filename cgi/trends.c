@@ -44,9 +44,6 @@ extern char physical_images_path[MAX_FILENAME_LENGTH];
 
 extern int     log_rotation_method;
 
-extern host *host_list;
-extern service *service_list;
-
 /* archived state types */
 #define AS_CURRENT_STATE        -1   /* special case for initial assumed state */
 #define AS_NO_DATA		0

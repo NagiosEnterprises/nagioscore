@@ -122,6 +122,9 @@ int presorted_objects = FALSE;
 
 extern int allow_empty_hostgroup_assignment;
 
+/* add up execution and notification dependencies */
+static unsigned int host_deps, service_deps;
+
 /*
  * Macro magic used to determine if a service is assigned
  * via hostgroup_name or host_name. Those assigned via host_name
@@ -1853,6 +1856,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						}
 					}
 				temp_servicedependency->have_execution_dependency_options = TRUE;
+				service_deps++;
 				}
 			else if(!strcmp(variable, "notification_failure_options") || !strcmp(variable, "notification_failure_criteria")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
@@ -1886,6 +1890,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						}
 					}
 				temp_servicedependency->have_notification_dependency_options = TRUE;
+				service_deps++;
 				}
 			else if(!strcmp(variable, "register"))
 				temp_servicedependency->register_object = (atoi(value) > 0) ? TRUE : FALSE;
@@ -3265,6 +3270,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						}
 					}
 				temp_hostdependency->have_notification_dependency_options = TRUE;
+				host_deps++;
 				}
 			else if(!strcmp(variable, "execution_failure_options") || !strcmp(variable, "execution_failure_criteria")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
@@ -3294,6 +3300,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						}
 					}
 				temp_hostdependency->have_execution_dependency_options = TRUE;
+				host_deps++;
 				}
 			else if(!strcmp(variable, "register"))
 				temp_hostdependency->register_object = (atoi(value) > 0) ? TRUE : FALSE;
@@ -8371,9 +8378,29 @@ xodtemplate_service *xodtemplate_find_real_service(char *host_name, char *servic
 /**************** OBJECT REGISTRATION FUNCTIONS *******************/
 /******************************************************************/
 
-/* registers object definitions */
+/*
+ * registers object definitions
+ * The order goes like this:
+ *   Timeperiods
+ *   Commands
+ *   Contactgroups
+ *   Hostgroups
+ *   Servicegroups
+ *   Contacts
+ *   Hosts
+ *   Services
+ *   Servicedependencies
+ *   Serviceescalations
+ *   Hostdependencies
+ *   Hostescalations
+ *
+ * Why are contactgroups done before contacts? A reasonable assumption
+ * would be that contacts should be flattened and added to the checked
+ * objects directly rather than forcing us to fiddle with that crap
+ * during runtime.
+ */
 int xodtemplate_register_objects(void) {
-	int result = OK;
+	int i, result = OK;
 	xodtemplate_timeperiod *temp_timeperiod = NULL;
 	xodtemplate_command *temp_command = NULL;
 	xodtemplate_contactgroup *temp_contactgroup = NULL;
@@ -8387,6 +8414,24 @@ int xodtemplate_register_objects(void) {
 	xodtemplate_hostdependency *temp_hostdependency = NULL;
 	xodtemplate_hostescalation *temp_hostescalation = NULL;
 	void *ptr = NULL;
+	unsigned int ocount[NUM_OBJECT_SKIPLISTS];
+
+
+	for (i = 0; i < ARRAY_SIZE(ocount); i++) {
+		ocount[i] = (unsigned int)skiplist_num_items(xobject_skiplists[i]);
+	}
+
+	/*
+	 * dependencies may be duplicated still, so it's good we counted
+	 * earlier and know exactly how much space we'll need
+	 */
+	ocount[SERVICEDEPENDENCY_SKIPLIST] = service_deps;
+	ocount[HOSTDEPENDENCY_SKIPLIST] = host_deps;
+
+	if (create_object_tables(ocount) != OK) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to create object tables\n");
+		return ERROR;
+	}
 
 	/* register timeperiods */
 	ptr = NULL;

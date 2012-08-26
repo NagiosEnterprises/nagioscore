@@ -39,9 +39,6 @@ extern double   high_service_flap_threshold;
 extern double   low_host_flap_threshold;
 extern double   high_host_flap_threshold;
 
-extern host     *host_list;
-extern service  *service_list;
-
 extern unsigned long    modified_host_process_attributes;
 extern unsigned long    modified_service_process_attributes;
 
@@ -486,8 +483,7 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 
 /* enables flap detection on a program wide basis */
 void enable_flap_detection_routines(void) {
-	host *temp_host = NULL;
-	service *temp_service = NULL;
+	int i;
 	unsigned long attr = MODATTR_FLAP_DETECTION_ENABLED;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "enable_flap_detection_routines()\n");
@@ -512,20 +508,18 @@ void enable_flap_detection_routines(void) {
 	update_program_status(FALSE);
 
 	/* check for flapping */
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next)
-		check_for_host_flapping(temp_host, FALSE, FALSE, TRUE);
-	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next)
-		check_for_service_flapping(temp_service, FALSE, TRUE);
+	for(i = 0; i < num_objects.hosts; i++)
+		check_for_host_flapping(&host_list[i], FALSE, FALSE, TRUE);
+	for(i = 0; i < num_objects.services; i++)
+		check_for_service_flapping(&service_list[i], FALSE, TRUE);
 
-	return;
 	}
 
 
 
 /* disables flap detection on a program wide basis */
 void disable_flap_detection_routines(void) {
-	host *temp_host = NULL;
-	service *temp_service = NULL;
+	unsigned int i;
 	unsigned long attr = MODATTR_FLAP_DETECTION_ENABLED;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "disable_flap_detection_routines()\n");
@@ -550,10 +544,10 @@ void disable_flap_detection_routines(void) {
 	update_program_status(FALSE);
 
 	/* handle the details... */
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next)
-		handle_host_flap_detection_disabled(temp_host);
-	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next)
-		handle_service_flap_detection_disabled(temp_service);
+	for(i = 0; i < num_objects.hosts; i++)
+		handle_host_flap_detection_disabled(&host_list[i]);
+	for(i = 0; i < num_objects.services; i++)
+		handle_service_flap_detection_disabled(&service_list[i]);
 
 	return;
 	}

@@ -45,18 +45,19 @@
  * Dependencies are attached to the dependent end of the object chain.
  */
 dkhash_table *object_hash_tables[NUM_OBJECT_SKIPLISTS];
-host            *host_list = NULL, *host_list_tail = NULL;
-service         *service_list = NULL, *service_list_tail = NULL;
-contact		*contact_list = NULL, *contact_list_tail = NULL;
-contactgroup	*contactgroup_list = NULL, *contactgroup_list_tail = NULL;
-hostgroup	*hostgroup_list = NULL, *hostgroup_list_tail = NULL;
-servicegroup    *servicegroup_list = NULL, *servicegroup_list_tail = NULL;
-command         *command_list = NULL, *command_list_tail = NULL;
-timeperiod      *timeperiod_list = NULL, *timeperiod_list_tail = NULL;
-serviceescalation *serviceescalation_list = NULL, *serviceescalation_list_tail = NULL;
-servicedependency *servicedependency_list = NULL, *servicedependency_list_tail = NULL;
-hostdependency  *hostdependency_list = NULL, *hostdependency_list_tail = NULL;
-hostescalation  *hostescalation_list = NULL, *hostescalation_list_tail = NULL;
+
+command *command_list = NULL;
+timeperiod *timeperiod_list = NULL;
+host *host_list = NULL;
+service *service_list = NULL;
+contact *contact_list = NULL;
+hostgroup *hostgroup_list = NULL;
+servicegroup *servicegroup_list = NULL;
+contactgroup *contactgroup_list = NULL;
+hostescalation *hostescalation_list = NULL;
+hostdependency *hostdependency_list = NULL;
+serviceescalation *serviceescalation_list = NULL;
+servicedependency *servicedependency_list = NULL;
 
 
 struct object_count num_objects;
@@ -139,6 +140,23 @@ int get_service_count(void) {
 /**************** OBJECT ADDITION FUNCTIONS ***********************/
 /******************************************************************/
 
+static int create_object_table(const char *name, unsigned int elems, unsigned int size, void **ptr)
+{
+	void *ret;
+	if (!elems)
+		return OK;
+	ret = calloc(elems, size);
+	if (!ret) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to allocate %s table with %u elements\n", name, elems);
+		return ERROR;
+		}
+	*ptr = ret;
+	return OK;
+}
+
+#define mktable(name, id) \
+	create_object_table(#name, ocount[id], sizeof(name), (void **)&name##_list)
+
 /* ocount is an array with NUM_OBJECT_TYPES members */
 int create_object_tables(unsigned int *ocount)
 {
@@ -154,7 +172,38 @@ int create_object_tables(unsigned int *ocount)
 		}
 	}
 
+	/*
+	 * errors here will always lead to an early exit, so there's no need
+	 * to free() successful allocs when later ones fail
+	 */
+	if (mktable(timeperiod, TIMEPERIOD_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(command, COMMAND_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(host, HOST_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(service, SERVICE_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(contact, CONTACT_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(hostgroup, HOSTGROUP_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(servicegroup, SERVICEGROUP_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(contactgroup, CONTACTGROUP_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(hostescalation, HOSTESCALATION_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(hostdependency, HOSTDEPENDENCY_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(serviceescalation, SERVICEESCALATION_SKIPLIST) != OK)
+		return ERROR;
+	if (mktable(servicedependency, SERVICEDEPENDENCY_SKIPLIST) != OK)
+		return ERROR;
+
+	return OK;
 }
+
 
 /* add a new timeperiod to the list in memory */
 timeperiod *add_timeperiod(char *name, char *alias) {
@@ -167,13 +216,11 @@ timeperiod *add_timeperiod(char *name, char *alias) {
 		return NULL;
 		}
 
-	/* allocate memory for the new timeperiod */
-	if((new_timeperiod = calloc(1, sizeof(timeperiod))) == NULL)
-		return NULL;
+	new_timeperiod = &timeperiod_list[num_objects.timeperiods];
 
 	/* copy string vars */
 	if((new_timeperiod->name = (char *)strdup(name)) == NULL)
-		result = ERROR;
+		return NULL;
 	if((new_timeperiod->alias = (char *)strdup(alias)) == NULL)
 		result = ERROR;
 
@@ -199,22 +246,12 @@ timeperiod *add_timeperiod(char *name, char *alias) {
 	if(result == ERROR) {
 		my_free(new_timeperiod->alias);
 		my_free(new_timeperiod->name);
-		my_free(new_timeperiod);
 		return NULL;
 		}
 
-	/* timeperiods are registered alphabetically, so add new items to tail of list */
-	if(timeperiod_list == NULL) {
-		timeperiod_list = new_timeperiod;
-		timeperiod_list_tail = timeperiod_list;
-		}
-	else {
-		timeperiod_list_tail->next = new_timeperiod;
-		timeperiod_list_tail = new_timeperiod;
-		}
-
 	new_timeperiod->id = num_objects.timeperiods++;
-
+	if(new_timeperiod->id)
+		timeperiod_list[new_timeperiod->id - 1].next = new_timeperiod;
 	return new_timeperiod;
 	}
 
@@ -386,9 +423,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		return NULL;
 		}
 
-	/* allocate memory for a new host */
-	if((new_host = (host *)calloc(1, sizeof(host))) == NULL)
-		return NULL;
+	new_host = &host_list[num_objects.hosts];
 
 	/* duplicate string vars */
 	if((new_host->name = (char *)strdup(name)) == NULL)
@@ -594,22 +629,12 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		my_free(new_host->alias);
 		my_free(new_host->display_name);
 		my_free(new_host->name);
-		my_free(new_host);
 		return NULL;
 		}
 
-	/* hosts are sorted alphabetically, so add new items to tail of list */
-	if(host_list == NULL) {
-		host_list = new_host;
-		host_list_tail = host_list;
-		}
-	else {
-		host_list_tail->next = new_host;
-		host_list_tail = new_host;
-		}
-
 	new_host->id = num_objects.hosts++;
-
+	if(new_host->id)
+		host_list[new_host->id - 1].next = new_host;
 	return new_host;
 	}
 
@@ -764,9 +789,7 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 		return NULL;
 		}
 
-	/* allocate memory */
-	if((new_hostgroup = (hostgroup *)calloc(1, sizeof(hostgroup))) == NULL)
-		return NULL;
+	new_hostgroup = &hostgroup_list[num_objects.hostgroups];
 
 	/* duplicate vars */
 	if((new_hostgroup->group_name = (char *)strdup(name)) == NULL)
@@ -808,21 +831,12 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 	if(result == ERROR) {
 		my_free(new_hostgroup->alias);
 		my_free(new_hostgroup->group_name);
-		my_free(new_hostgroup);
 		return NULL;
 		}
 
-	/* hostgroups are sorted alphabetically, so add new items to tail of list */
-	if(hostgroup_list == NULL) {
-		hostgroup_list = new_hostgroup;
-		hostgroup_list_tail = hostgroup_list;
-		}
-	else {
-		hostgroup_list_tail->next = new_hostgroup;
-		hostgroup_list_tail = new_hostgroup;
-		}
-
 	new_hostgroup->id = num_objects.hostgroups++;
+	if(new_hostgroup->id)
+		hostgroup_list[new_hostgroup->id - 1].next = new_hostgroup;
 	return new_hostgroup;
 	}
 
@@ -893,9 +907,7 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 		return NULL;
 		}
 
-	/* allocate memory */
-	if((new_servicegroup = (servicegroup *)calloc(1, sizeof(servicegroup))) == NULL)
-		return NULL;
+	new_servicegroup = &servicegroup_list[num_objects.servicegroups];
 
 	/* duplicate vars */
 	if((new_servicegroup->group_name = (char *)strdup(name)) == NULL)
@@ -941,17 +953,9 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 		return NULL;
 		}
 
-	/* servicegroups are sorted alphabetically, so add new items to tail of list */
-	if(servicegroup_list == NULL) {
-		servicegroup_list = new_servicegroup;
-		servicegroup_list_tail = servicegroup_list;
-		}
-	else {
-		servicegroup_list_tail->next = new_servicegroup;
-		servicegroup_list_tail = new_servicegroup;
-		}
-
 	new_servicegroup->id = num_objects.servicegroups++;
+	if(new_servicegroup->id)
+		servicegroup_list[new_servicegroup->id - 1].next = new_servicegroup;
 	return new_servicegroup;
 	}
 
@@ -1048,11 +1052,9 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 		return NULL;
 		}
 
-	/* allocate memory for a new contact */
-	if((new_contact = (contact *)calloc(1, sizeof(contact))) == NULL)
-		return NULL;
 
-	/* duplicate vars, but assign what we can */
+	new_contact = &contact_list[num_objects.contacts];
+
 	new_contact->host_notification_period = htp ? htp->name : NULL;
 	new_contact->service_notification_period = stp ? stp->name : NULL;
 #ifndef NSCGI
@@ -1138,17 +1140,9 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 		return NULL;
 		}
 
-	/* contacts are sorted alphabetically, so add new items to tail of list */
-	if(contact_list == NULL) {
-		contact_list = new_contact;
-		contact_list_tail = contact_list;
-		}
-	else {
-		contact_list_tail->next = new_contact;
-		contact_list_tail = new_contact;
-		}
-
 	new_contact->id = num_objects.contacts++;
+	if(new_contact->id)
+		contact_list[new_contact->id - 1].next = new_contact;
 	return new_contact;
 	}
 
@@ -1243,9 +1237,7 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 		return NULL;
 		}
 
-	/* allocate memory for a new contactgroup entry */
-	if((new_contactgroup = calloc(1, sizeof(contactgroup))) == NULL)
-		return NULL;
+	new_contactgroup = &contactgroup_list[num_objects.contactgroups];
 
 	/* duplicate vars */
 	if((new_contactgroup->group_name = (char *)strdup(name)) == NULL)
@@ -1275,21 +1267,12 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 	if(result == ERROR) {
 		my_free(new_contactgroup->alias);
 		my_free(new_contactgroup->group_name);
-		my_free(new_contactgroup);
 		return NULL;
 		}
 
-	/* contactgroups are sorted alphabetically, so add new items to tail of list */
-	if(contactgroup_list == NULL) {
-		contactgroup_list = new_contactgroup;
-		contactgroup_list_tail = contactgroup_list;
-		}
-	else {
-		contactgroup_list_tail->next = new_contactgroup;
-		contactgroup_list_tail = new_contactgroup;
-		}
-
 	new_contactgroup->id = num_objects.contactgroups++;
+	if(new_contactgroup->id)
+		contactgroup_list[new_contactgroup->id - 1].next = new_contactgroup;
 	return new_contactgroup;
 	}
 
@@ -1373,8 +1356,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		}
 
 	/* allocate memory */
-	if((new_service = (service *)calloc(1, sizeof(service))) == NULL)
-		return NULL;
+	new_service = &service_list[num_objects.services];
 
 	/* duplicate vars, but assign what we can */
 #ifndef NSCGI
@@ -1539,17 +1521,10 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		}
 
 	add_service_link_to_host(h, new_service);
-	/* services are sorted alphabetically, so add new items to tail of list */
-	if(service_list == NULL) {
-		service_list = new_service;
-		service_list_tail = service_list;
-		}
-	else {
-		service_list_tail->next = new_service;
-		service_list_tail = new_service;
-		}
 
 	new_service->id = num_objects.services++;
+	if(new_service->id)
+		service_list[new_service->id - 1].next = new_service;
 	return new_service;
 	}
 
@@ -1611,12 +1586,11 @@ command *add_command(char *name, char *value) {
 		}
 
 	/* allocate memory for the new command */
-	if((new_command = (command *)calloc(1, sizeof(command))) == NULL)
-		return NULL;
+	new_command = &command_list[num_objects.commands];
 
 	/* duplicate vars */
 	if((new_command->name = (char *)strdup(name)) == NULL)
-		result = ERROR;
+		return NULL;
 	if((new_command->command_line = (char *)strdup(value)) == NULL)
 		result = ERROR;
 
@@ -1642,21 +1616,12 @@ command *add_command(char *name, char *value) {
 	if(result == ERROR) {
 		my_free(new_command->command_line);
 		my_free(new_command->name);
-		my_free(new_command);
 		return NULL;
 		}
 
-	/* commands are sorted alphabetically, so add new items to tail of list */
-	if(command_list == NULL) {
-		command_list = new_command;
-		command_list_tail = command_list;
-		}
-	else {
-		command_list_tail->next = new_command;
-		command_list_tail = new_command;
-		}
-
 	new_command->id = num_objects.commands++;
+	if(new_command->id)
+		command_list[new_command->id - 1].next = new_command;
 	return new_command;
 	}
 
@@ -1688,10 +1653,11 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	if((new_serviceescalation = calloc(1, sizeof(serviceescalation))) == NULL)
 		return NULL;
 
+	new_serviceescalation = &serviceescalation_list[num_objects.serviceescalations];
+
 	if(add_object_to_objectlist(&svc->escalation_list, new_serviceescalation) != OK) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Could not add escalation to service '%s' on host '%s'\n",
 			  svc->host_name, svc->description);
-		my_free(new_serviceescalation);
 		return NULL;
 		}
 
@@ -1713,17 +1679,9 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	new_serviceescalation->escalate_on_unknown = (escalate_on_unknown > 0) ? TRUE : FALSE;
 	new_serviceescalation->escalate_on_critical = (escalate_on_critical > 0) ? TRUE : FALSE;
 
-	/* service escalations are sorted alphabetically, so add new items to tail of list */
-	if(serviceescalation_list == NULL) {
-		serviceescalation_list = new_serviceescalation;
-		serviceescalation_list_tail = serviceescalation_list;
-		}
-	else {
-		serviceescalation_list_tail->next = new_serviceescalation;
-		serviceescalation_list_tail = new_serviceescalation;
-		}
-
 	new_serviceescalation->id = num_objects.serviceescalations++;
+	if(new_serviceescalation->id)
+		serviceescalation_list[new_serviceescalation->id - 1].next = new_serviceescalation;
 	return new_serviceescalation;
 	}
 
@@ -1777,7 +1735,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	servicedependency *new_servicedependency = NULL;
 	service *parent, *child;
 	timeperiod *tp = NULL;
-	int result = OK;
 
 	/* make sure we have what we need */
 	parent = find_service(host_name, service_description);
@@ -1799,8 +1756,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		}
 
 	/* allocate memory for a new service dependency entry */
-	if((new_servicedependency = (servicedependency *)calloc(1, sizeof(servicedependency))) == NULL)
-		return NULL;
+	new_servicedependency = &servicedependency_list[num_objects.servicedependencies];
 
 #ifndef NSCGI
 	/*
@@ -1810,11 +1766,11 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	 */
 	if(dependency_type == NOTIFICATION_DEPENDENCY) {
 		if(add_object_to_objectlist(&child->notify_deps, new_servicedependency) != OK)
-			result = ERROR;
+			return NULL;
 		}
 	else {
 		if(add_object_to_objectlist(&child->exec_deps, new_servicedependency) != OK)
-			result = ERROR;
+			return NULL;
 		}
 	new_servicedependency->dependent_service_ptr = child;
 	new_servicedependency->master_service_ptr = parent;
@@ -1837,23 +1793,9 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->fail_on_critical = (fail_on_critical == 1) ? TRUE : FALSE;
 	new_servicedependency->fail_on_pending = (fail_on_pending == 1) ? TRUE : FALSE;
 
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_servicedependency);
-		return NULL;
-		}
-
-	/* service dependencies are sorted alphabetically, so add new items to tail of list */
-	if(servicedependency_list == NULL) {
-		servicedependency_list = new_servicedependency;
-		servicedependency_list_tail = servicedependency_list;
-		}
-	else {
-		servicedependency_list_tail->next = new_servicedependency;
-		servicedependency_list_tail = new_servicedependency;
-		}
-
 	new_servicedependency->id = num_objects.servicedependencies++;
+	if(new_servicedependency->id)
+		servicedependency_list[new_servicedependency->id - 1].next = new_servicedependency;
 	return new_servicedependency;
 	}
 
@@ -1884,9 +1826,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		return NULL ;
 	}
 
-	/* allocate memory for a new host dependency entry */
-	if((new_hostdependency = (hostdependency *)calloc(1, sizeof(hostdependency))) == NULL)
-		return NULL;
+	new_hostdependency = &hostdependency_list[num_objects.hostdependencies];
 
 #ifndef NSCGI
 	if(dependency_type == NOTIFICATION_DEPENDENCY) {
@@ -1922,17 +1862,9 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		return NULL;
 		}
 
-	/* host dependencies are sorted alphabetically, so add new items to tail of list */
-	if(hostdependency_list == NULL) {
-		hostdependency_list = new_hostdependency;
-		hostdependency_list_tail = hostdependency_list;
-		}
-	else {
-		hostdependency_list_tail->next = new_hostdependency;
-		hostdependency_list_tail = new_hostdependency;
-		}
-
 	new_hostdependency->id = num_objects.hostdependencies++;
+	if(new_hostdependency->id)
+		hostdependency_list[new_hostdependency->id - 1].next = new_hostdependency;
 	return new_hostdependency;
 	}
 
@@ -1958,14 +1890,12 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 			  escalation_period, host_name);
 		return NULL;
 		}
-	/* allocate memory for a new host escalation entry */
-	if((new_hostescalation = calloc(1, sizeof(hostescalation))) == NULL)
-		return NULL;
+
+	new_hostescalation = &hostescalation_list[num_objects.hostescalations];
 
 	/* add the escalation to its host */
 	if (add_object_to_objectlist(&h->escalation_list, new_hostescalation) != OK) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add hostescalation to host '%s'\n", host_name);
-		my_free(new_hostescalation);
 		return NULL;
 		}
 
@@ -1982,17 +1912,9 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	new_hostescalation->escalate_on_down = (escalate_on_down > 0) ? TRUE : FALSE;
 	new_hostescalation->escalate_on_unreachable = (escalate_on_unreachable > 0) ? TRUE : FALSE;
 
-	/* host escalations are sorted alphabetically, so add new items to tail of list */
-	if(hostescalation_list == NULL) {
-		hostescalation_list = new_hostescalation;
-		hostescalation_list_tail = hostescalation_list;
-		}
-	else {
-		hostescalation_list_tail->next = new_hostescalation;
-		hostescalation_list_tail = new_hostescalation;
-		}
-
 	new_hostescalation->id = num_objects.hostescalations++;
+	if(new_hostescalation->id)
+		hostescalation_list[new_hostescalation->id - 1].next = new_hostescalation;
 	return new_hostescalation;
 	}
 
@@ -2602,48 +2524,24 @@ int is_escalated_contact_for_service(service *svc, contact *cntct) {
 
 /* free all allocated memory for objects */
 int free_object_data(void) {
-	timeperiod *this_timeperiod = NULL;
-	timeperiod *next_timeperiod = NULL;
 	daterange *this_daterange = NULL;
 	daterange *next_daterange = NULL;
 	timerange *this_timerange = NULL;
 	timerange *next_timerange = NULL;
 	timeperiodexclusion *this_timeperiodexclusion = NULL;
 	timeperiodexclusion *next_timeperiodexclusion = NULL;
-	host *this_host = NULL;
-	host *next_host = NULL;
 	hostsmember *this_hostsmember = NULL;
 	hostsmember *next_hostsmember = NULL;
-	hostgroup *this_hostgroup = NULL;
-	hostgroup *next_hostgroup = NULL;
-	servicegroup *this_servicegroup = NULL;
-	servicegroup *next_servicegroup = NULL;
 	servicesmember *this_servicesmember = NULL;
 	servicesmember *next_servicesmember = NULL;
-	contact	*this_contact = NULL;
-	contact *next_contact = NULL;
-	contactgroup *this_contactgroup = NULL;
-	contactgroup *next_contactgroup = NULL;
 	contactsmember *this_contactsmember = NULL;
 	contactsmember *next_contactsmember = NULL;
 	contactgroupsmember *this_contactgroupsmember = NULL;
 	contactgroupsmember *next_contactgroupsmember = NULL;
 	customvariablesmember *this_customvariablesmember = NULL;
 	customvariablesmember *next_customvariablesmember = NULL;
-	service *this_service = NULL;
-	service *next_service = NULL;
-	command *this_command = NULL;
-	command *next_command = NULL;
 	commandsmember *this_commandsmember = NULL;
 	commandsmember *next_commandsmember = NULL;
-	serviceescalation *this_serviceescalation = NULL;
-	serviceescalation *next_serviceescalation = NULL;
-	servicedependency *this_servicedependency = NULL;
-	servicedependency *next_servicedependency = NULL;
-	hostdependency *this_hostdependency = NULL;
-	hostdependency *next_hostdependency = NULL;
-	hostescalation *this_hostescalation = NULL;
-	hostescalation *next_hostescalation = NULL;
 	register int x = 0;
 	register int i = 0;
 
@@ -2659,8 +2557,8 @@ int free_object_data(void) {
 	}
 
 	/**** free memory for the timeperiod list ****/
-	this_timeperiod = timeperiod_list;
-	while(this_timeperiod != NULL) {
+	for (i = 0; i < num_objects.timeperiods; i++) {
+		timeperiod *this_timeperiod = &timeperiod_list[i];
 
 		/* free the exception time ranges contained in this timeperiod */
 		for(x = 0; x < DATERANGE_TYPES; x++) {
@@ -2691,22 +2589,17 @@ int free_object_data(void) {
 			my_free(this_timeperiodexclusion);
 			}
 
-		next_timeperiod = this_timeperiod->next;
 		my_free(this_timeperiod->name);
 		my_free(this_timeperiod->alias);
-		my_free(this_timeperiod);
-		this_timeperiod = next_timeperiod;
 		}
 
 	/* reset pointers */
-	timeperiod_list = NULL;
+	my_free(timeperiod_list);
 
 
 	/**** free memory for the host list ****/
-	this_host = host_list;
-	while(this_host != NULL) {
-
-		next_host = this_host->next;
+	for (i = 0; i < num_objects.hosts; i++) {
+		host *this_host = &host_list[i];
 
 		/* free memory for parent hosts */
 		this_hostsmember = this_host->parent_hosts;
@@ -2783,17 +2676,15 @@ int free_object_data(void) {
 		my_free(this_host->icon_image_alt);
 		my_free(this_host->vrml_image);
 		my_free(this_host->statusmap_image);
-		my_free(this_host);
-		this_host = next_host;
 		}
 
 	/* reset pointers */
-	host_list = NULL;
+	my_free(host_list);
 
 
 	/**** free memory for the host group list ****/
-	this_hostgroup = hostgroup_list;
-	while(this_hostgroup != NULL) {
+	for (i = 0; i < num_objects.hostgroups; i++) {
+		hostgroup *this_hostgroup = &hostgroup_list[i];
 
 		/* free memory for the group members */
 		this_hostsmember = this_hostgroup->members;
@@ -2804,23 +2695,19 @@ int free_object_data(void) {
 			this_hostsmember = next_hostsmember;
 			}
 
-		next_hostgroup = this_hostgroup->next;
 		my_free(this_hostgroup->group_name);
 		my_free(this_hostgroup->alias);
 		my_free(this_hostgroup->notes);
 		my_free(this_hostgroup->notes_url);
 		my_free(this_hostgroup->action_url);
-		my_free(this_hostgroup);
-		this_hostgroup = next_hostgroup;
 		}
 
 	/* reset pointers */
-	hostgroup_list = NULL;
-
+	my_free(hostgroup_list);
 
 	/**** free memory for the service group list ****/
-	this_servicegroup = servicegroup_list;
-	while(this_servicegroup != NULL) {
+	for (i = 0; i < num_objects.servicegroups; i++) {
+		servicegroup *this_servicegroup = &servicegroup_list[i];
 
 		/* free memory for the group members */
 		this_servicesmember = this_servicegroup->members;
@@ -2832,23 +2719,19 @@ int free_object_data(void) {
 			this_servicesmember = next_servicesmember;
 			}
 
-		next_servicegroup = this_servicegroup->next;
 		my_free(this_servicegroup->group_name);
 		my_free(this_servicegroup->alias);
 		my_free(this_servicegroup->notes);
 		my_free(this_servicegroup->notes_url);
 		my_free(this_servicegroup->action_url);
-		my_free(this_servicegroup);
-		this_servicegroup = next_servicegroup;
 		}
 
 	/* reset pointers */
-	servicegroup_list = NULL;
-
+	my_free(servicegroup_list);
 
 	/**** free memory for the contact list ****/
-	this_contact = contact_list;
-	while(this_contact != NULL) {
+	for (i = 0; i < num_objects.contacts; i++) {
+		contact *this_contact = &contact_list[i];
 
 		/* free memory for the host notification commands */
 		this_commandsmember = this_contact->host_notification_commands;
@@ -2880,7 +2763,6 @@ int free_object_data(void) {
 			this_customvariablesmember = next_customvariablesmember;
 			}
 
-		next_contact = this_contact->next;
 		my_free(this_contact->name);
 		my_free(this_contact->alias);
 		my_free(this_contact->email);
@@ -2891,18 +2773,15 @@ int free_object_data(void) {
 #ifdef NSCORE
 		free_objectlist(&this_contact->contactgroups_ptr);
 #endif
-
-		my_free(this_contact);
-		this_contact = next_contact;
 		}
 
 	/* reset pointers */
-	contact_list = NULL;
+	my_free(contact_list);
 
 
 	/**** free memory for the contact group list ****/
-	this_contactgroup = contactgroup_list;
-	while(this_contactgroup != NULL) {
+	for (i = 0; i < num_objects.contactgroups; i++) {
+		contactgroup *this_contactgroup = &contactgroup_list[i];
 
 		/* free memory for the group members */
 		this_contactsmember = this_contactgroup->members;
@@ -2913,22 +2792,17 @@ int free_object_data(void) {
 			this_contactsmember = next_contactsmember;
 			}
 
-		next_contactgroup = this_contactgroup->next;
 		my_free(this_contactgroup->group_name);
 		my_free(this_contactgroup->alias);
-		my_free(this_contactgroup);
-		this_contactgroup = next_contactgroup;
 		}
 
 	/* reset pointers */
-	contactgroup_list = NULL;
+	my_free(contactgroup_list);
 
 
 	/**** free memory for the service list ****/
-	this_service = service_list;
-	while(this_service != NULL) {
-
-		next_service = this_service->next;
+	for (i = 0; i < num_objects.services; i++) {
+		service *this_service = &service_list[i];
 
 		/* free memory for contact groups */
 		this_contactgroupsmember = this_service->contact_groups;
@@ -2980,31 +2854,26 @@ int free_object_data(void) {
 		my_free(this_service->action_url);
 		my_free(this_service->icon_image);
 		my_free(this_service->icon_image_alt);
-		my_free(this_service);
-		this_service = next_service;
 		}
 
 	/* reset pointers */
-	service_list = NULL;
+	my_free(service_list);
 
 
-	/**** free memory for the command list ****/
-	this_command = command_list;
-	while(this_command != NULL) {
-		next_command = this_command->next;
+	/**** free command memory ****/
+	for (i = 0; i < num_objects.commands; i++) {
+		command *this_command = &command_list[i];
 		my_free(this_command->name);
 		my_free(this_command->command_line);
-		my_free(this_command);
-		this_command = next_command;
 		}
 
 	/* reset pointers */
-	command_list = NULL;
+	my_free(command_list);
 
 
-	/**** free memory for the service escalation list ****/
-	this_serviceescalation = serviceescalation_list;
-	while(this_serviceescalation != NULL) {
+	/**** free service escalation memory ****/
+	for (i = 0; i < num_objects.serviceescalations; i++) {
+		serviceescalation *this_serviceescalation = &serviceescalation_list[i];
 
 		/* free memory for the contact group members */
 		this_contactgroupsmember = this_serviceescalation->contact_groups;
@@ -3021,42 +2890,23 @@ int free_object_data(void) {
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
 			}
-
-		next_serviceescalation = this_serviceescalation->next;
-		my_free(this_serviceescalation);
-		this_serviceescalation = next_serviceescalation;
 		}
 
 	/* reset pointers */
-	serviceescalation_list = NULL;
+	my_free(serviceescalation_list);
 
 
-	/**** free memory for the service dependency list ****/
-	this_servicedependency = servicedependency_list;
-	while(this_servicedependency != NULL) {
-		next_servicedependency = this_servicedependency->next;
-		my_free(this_servicedependency);
-		this_servicedependency = next_servicedependency;
-		}
-
-	/* reset pointers */
-	servicedependency_list = NULL;
+	/**** free service dependency memory ****/
+	my_free(servicedependency_list);
 
 
-	/**** free memory for the host dependency list ****/
-	this_hostdependency = hostdependency_list;
-	while(this_hostdependency != NULL) {
-		next_hostdependency = this_hostdependency->next;
-		this_hostdependency = next_hostdependency;
-		}
-
-	/* reset pointers */
-	hostdependency_list = NULL;
+	/**** free host dependency memory ****/
+	my_free(hostdependency_list);
 
 
-	/**** free memory for the host escalation list ****/
-	this_hostescalation = hostescalation_list;
-	while(this_hostescalation != NULL) {
+	/**** free host escalation memory ****/
+	for (i = 0; i < num_objects.hostescalations; i++) {
+		hostescalation *this_hostescalation = &hostescalation_list[i];
 
 		/* free memory for the contact group members */
 		this_contactgroupsmember = this_hostescalation->contact_groups;
@@ -3073,21 +2923,13 @@ int free_object_data(void) {
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
 			}
-
-		next_hostescalation = this_hostescalation->next;
-		my_free(this_hostescalation);
-		this_hostescalation = next_hostescalation;
 		}
 
 	/* reset pointers */
-	hostescalation_list = NULL;
-
-	/* free object skiplists */
-	free_object_skiplists();
+	my_free(hostescalation_list);
 
 	/* we no longer have any objects */
 	memset(&num_objects, 0, sizeof(num_objects));
 
 	return OK;
 	}
-

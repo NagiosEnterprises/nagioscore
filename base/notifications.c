@@ -31,8 +31,6 @@
 #include "../include/workers.h"
 
 extern notification    *notification_list;
-extern contact         *contact_list;
-
 extern time_t          program_start;
 
 extern int             interval_length;

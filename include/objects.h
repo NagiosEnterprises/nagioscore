@@ -608,6 +608,18 @@ typedef struct hostdependency_struct {
 	struct hostdependency_struct *next;
 	} hostdependency;
 
+extern command *command_list;
+extern timeperiod *timeperiod_list;
+extern host *host_list;
+extern service *service_list;
+extern contact *contact_list;
+extern hostgroup *hostgroup_list;
+extern servicegroup *servicegroup_list;
+extern contactgroup *contactgroup_list;
+extern hostescalation *hostescalation_list;
+extern hostdependency *hostdependency_list;
+extern serviceescalation *serviceescalation_list;
+extern servicedependency *servicedependency_list;
 
 
 /********************* FUNCTIONS **********************/

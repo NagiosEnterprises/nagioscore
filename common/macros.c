@@ -39,10 +39,6 @@ extern int      enable_environment_macros;
 
 extern char     *illegal_output_chars;
 
-extern host             *host_list;
-extern service          *service_list;
-extern servicegroup     *servicegroup_list;
-
 char *macro_x_names[MACRO_X_COUNT]; /* the macro names */
 char *macro_user[MAX_USER_MACROS]; /* $USERx$ macros */
 

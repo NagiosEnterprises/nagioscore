@@ -32,9 +32,6 @@ extern time_t          program_start;
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 
-extern host *host_list;
-extern hostgroup *hostgroup_list;
-extern service *service_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 

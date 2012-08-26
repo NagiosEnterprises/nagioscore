@@ -35,12 +35,6 @@ extern char url_html_path[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 
-extern host      *host_list;
-extern hostgroup *hostgroup_list;
-extern servicegroup *servicegroup_list;
-extern service   *service_list;
-extern timeperiod *timeperiod_list;
-
 extern int       log_rotation_method;
 
 #ifndef max

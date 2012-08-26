@@ -82,11 +82,6 @@ extern time_t   event_start;
 
 extern squeue_t *nagios_squeue;
 
-extern host              *host_list;
-extern service           *service_list;
-extern servicedependency *servicedependency_list;
-extern hostdependency    *hostdependency_list;
-
 extern unsigned long   next_event_id;
 extern unsigned long   next_problem_id;
 

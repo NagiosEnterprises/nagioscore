@@ -31,9 +31,6 @@
 extern char	*log_file;
 extern char	*log_archive_path;
 
-extern host     *host_list;
-extern service  *service_list;
-
 extern int	use_syslog;
 extern int      log_service_retries;
 extern int      log_initial_states;

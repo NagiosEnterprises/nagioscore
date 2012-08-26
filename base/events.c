@@ -75,9 +75,6 @@ extern int      time_change_threshold;
 
 squeue_t *nagios_squeue = NULL; /* our scheduling queue */
 
-extern host     *host_list;
-extern service  *service_list;
-
 sched_info scheduling_info;
 extern iobroker_set *nagios_iobs;
 

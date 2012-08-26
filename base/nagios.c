@@ -231,13 +231,6 @@ FILE            *command_file_fp;
 int             command_file_created = FALSE;
 
 
-extern contact	       *contact_list;
-extern contactgroup    *contactgroup_list;
-extern hostgroup       *hostgroup_list;
-extern command         *command_list;
-extern timeperiod      *timeperiod_list;
-extern serviceescalation *serviceescalation_list;
-
 notification    *notification_list;
 
 check_result    check_result_info;

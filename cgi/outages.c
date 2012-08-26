@@ -32,8 +32,6 @@
 extern int              refresh_rate;
 extern time_t		program_start;
 
-extern host *host_list;
-extern service *service_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 

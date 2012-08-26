@@ -92,13 +92,8 @@ extern int            update_available;
 extern char           *last_program_version;
 extern char           *new_program_version;
 
-extern host *host_list;
-extern service *service_list;
-extern contact *contact_list;
 extern comment *comment_list;
 extern scheduled_downtime *scheduled_downtime_list;
-
-extern skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 
 extern unsigned long  next_comment_id;
 extern unsigned long  next_downtime_id;

@@ -37,20 +37,6 @@ extern char   url_images_path[MAX_FILENAME_LENGTH];
 extern char   url_logo_images_path[MAX_FILENAME_LENGTH];
 extern char   url_stylesheets_path[MAX_FILENAME_LENGTH];
 
-extern host *host_list;
-extern service *service_list;
-extern hostgroup *hostgroup_list;
-extern servicegroup *servicegroup_list;
-extern contactgroup *contactgroup_list;
-extern command *command_list;
-extern timeperiod *timeperiod_list;
-extern contact *contact_list;
-extern servicedependency *servicedependency_list;
-extern serviceescalation *serviceescalation_list;
-extern hostdependency *hostdependency_list;
-extern hostescalation *hostescalation_list;
-
-
 #define DISPLAY_NONE                     0
 #define DISPLAY_HOSTS                    1
 #define DISPLAY_HOSTGROUPS               2

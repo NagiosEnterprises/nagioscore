@@ -41,9 +41,6 @@ extern char url_logo_images_path[MAX_FILENAME_LENGTH];
 
 extern char *statuswrl_include;
 
-extern host *host_list;
-extern service *service_list;
-
 extern int default_statuswrl_layout_method;
 
 

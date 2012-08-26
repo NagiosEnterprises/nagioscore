@@ -178,22 +178,6 @@ extern int      child_processes_fork_twice;
 extern int      date_format;
 extern char     *use_timezone;
 
-extern contact		*contact_list;
-extern contactgroup	*contactgroup_list;
-extern host             *host_list;
-extern hostgroup	*hostgroup_list;
-extern service          *service_list;
-extern servicegroup     *servicegroup_list;
-extern command          *command_list;
-extern timeperiod       *timeperiod_list;
-extern serviceescalation *serviceescalation_list;
-extern servicedependency *servicedependency_list;
-extern hostdependency   *hostdependency_list;
-extern hostescalation   *hostescalation_list;
-
-extern host		**host_hashlist;
-extern service		**service_hashlist;
-
 extern unsigned long    max_check_result_file_age;
 
 extern char             *debug_file;

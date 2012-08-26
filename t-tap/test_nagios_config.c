@@ -223,13 +223,6 @@ int             command_file_created = FALSE;
 unsigned long   update_uid = 0L;
 
 
-extern contact	       *contact_list;
-extern contactgroup    *contactgroup_list;
-extern hostgroup       *hostgroup_list;
-extern command         *command_list;
-extern timeperiod      *timeperiod_list;
-extern serviceescalation *serviceescalation_list;
-extern host 		*host_list;
 extern char	*xrddefault_retention_file;
 
 notification    *notification_list;

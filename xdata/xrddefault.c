@@ -38,9 +38,6 @@
 
 #include "xrddefault.h"
 
-extern host           *host_list;
-extern service        *service_list;
-extern contact        *contact_list;
 extern comment        *comment_list;
 extern scheduled_downtime *scheduled_downtime_list;
 

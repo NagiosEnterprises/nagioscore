@@ -215,9 +215,6 @@ extern int      child_processes_fork_twice;
 
 extern int      date_format;
 
-extern host             *host_list;
-extern service          *service_list;
-extern servicegroup     *servicegroup_list;
 extern notification     *notification_list;
 
 extern squeue_t *nagios_squeue;

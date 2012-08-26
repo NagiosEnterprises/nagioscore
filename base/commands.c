@@ -54,9 +54,6 @@ extern char     *global_service_event_handler;
 extern command  *global_host_event_handler_ptr;
 extern command  *global_service_event_handler_ptr;
 
-extern host     *host_list;
-extern service  *service_list;
-
 /******************************************************************/
 /****************** EXTERNAL COMMAND PROCESSING *******************/
 /******************************************************************/

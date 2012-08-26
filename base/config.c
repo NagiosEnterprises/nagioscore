@@ -1671,15 +1671,10 @@ int pre_flight_object_check(int *w, int *e) {
 	servicegroup *temp_servicegroup = NULL;
 	servicesmember *temp_servicesmember = NULL;
 	service *temp_service = NULL;
-	service *temp_service2 = NULL;
 	command *temp_command = NULL;
 	timeperiod *temp_timeperiod = NULL;
 	timeperiod *temp_timeperiod2 = NULL;
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
-	serviceescalation *temp_se = NULL;
-	hostescalation *temp_he = NULL;
-	servicedependency *temp_sd = NULL;
-	hostdependency *temp_hd = NULL;
 	char *buf = NULL;
 	char *temp_command_name = "";
 	int found = FALSE;
@@ -1722,20 +1717,7 @@ int pre_flight_object_check(int *w, int *e) {
 		total_objects++;
 		found = FALSE;
 
-		/* check for a valid host */
-		temp_host = find_host(temp_service->host_name);
 
-		/* we couldn't find an associated host! */
-		if(!temp_host) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host '%s' specified in service '%s' not defined anywhere!", temp_service->host_name, temp_service->description);
-			errors++;
-			}
-
-		/* save the host pointer for later */
-		temp_service->host_ptr = temp_host;
-
-		/* add a reverse link from the host to the service for faster lookups later */
-		add_service_link_to_host(temp_host, temp_service);
 
 		/* check the event handler command */
 		if(temp_service->event_handler != NULL) {
@@ -1781,37 +1763,6 @@ int pre_flight_object_check(int *w, int *e) {
 			warnings++;
 			}
 
-		/* reset the found flag */
-		found = FALSE;
-
-		/* check for valid contacts */
-		for(temp_contactsmember = temp_service->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-
-			temp_contact = find_contact(temp_contactsmember->contact_name);
-
-			if(temp_contact == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact '%s' specified in service '%s' for host '%s' is not defined anywhere!", temp_contactsmember->contact_name, temp_service->description, temp_service->host_name);
-				errors++;
-				}
-
-			/* save the contact pointer for later */
-			temp_contactsmember->contact_ptr = temp_contact;
-			}
-
-		/* check all contact groupss */
-		for(temp_contactgroupsmember = temp_service->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-
-			temp_contactgroup = find_contactgroup(temp_contactgroupsmember->group_name);
-
-			if(temp_contactgroup == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact group '%s' specified in service '%s' for host '%s' is not defined anywhere!", temp_contactgroupsmember->group_name, temp_service->description, temp_service->host_name);
-				errors++;
-				}
-
-			/* save the contact group pointer for later */
-			temp_contactgroupsmember->group_ptr = temp_contactgroup;
-			}
-
 		/* check to see if there is at least one contact/group */
 		if(temp_service->contacts == NULL && temp_service->contact_groups == NULL) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Service '%s' on host '%s' has no default contacts or contactgroups defined!", temp_service->description, temp_service->host_name);
@@ -1823,32 +1774,11 @@ int pre_flight_object_check(int *w, int *e) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Service '%s' on host '%s' has no check time period defined!", temp_service->description, temp_service->host_name);
 			warnings++;
 			}
-		else {
-			temp_timeperiod = find_timeperiod(temp_service->check_period);
-			if(temp_timeperiod == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Check period '%s' specified for service '%s' on host '%s' is not defined anywhere!", temp_service->check_period, temp_service->description, temp_service->host_name);
-				errors++;
-				}
-
-			/* save the pointer to the check timeperiod for later */
-			temp_service->check_period_ptr = temp_timeperiod;
-			}
 
 		/* check service notification timeperiod */
 		if(temp_service->notification_period == NULL) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Service '%s' on host '%s' has no notification time period defined!", temp_service->description, temp_service->host_name);
 			warnings++;
-			}
-
-		else {
-			temp_timeperiod = find_timeperiod(temp_service->notification_period);
-			if(temp_timeperiod == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Notification period '%s' specified for service '%s' on host '%s' is not defined anywhere!", temp_service->notification_period, temp_service->description, temp_service->host_name);
-				errors++;
-				}
-
-			/* save the pointer to the notification timeperiod for later */
-			temp_service->notification_period_ptr = temp_timeperiod;
 			}
 
 		/* see if the notification interval is less than the check interval */
@@ -2276,239 +2206,6 @@ int pre_flight_object_check(int *w, int *e) {
 
 	if(verify_config == TRUE)
 		printf("\tChecked %d contact groups.\n", total_objects);
-
-
-
-	/*****************************************/
-	/* check all service escalations...     */
-	/*****************************************/
-	if(verify_config == TRUE)
-		printf("Checking service escalations...\n");
-
-	for(temp_se = serviceescalation_list, total_objects = 0; temp_se != NULL; temp_se = temp_se->next, total_objects++) {
-
-		/* find the service */
-		temp_service = find_service(temp_se->host_name, temp_se->description);
-		if(temp_service == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service '%s' on host '%s' specified in service escalation is not defined anywhere!", temp_se->description, temp_se->host_name);
-			errors++;
-			}
-
-		/* save the service pointer for later */
-		temp_se->service_ptr = temp_service;
-
-		/* find the timeperiod */
-		if(temp_se->escalation_period != NULL) {
-			temp_timeperiod = find_timeperiod(temp_se->escalation_period);
-			if(temp_timeperiod == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Escalation period '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!", temp_se->escalation_period, temp_se->description, temp_se->host_name);
-				errors++;
-				}
-
-			/* save the timeperiod pointer for later */
-			temp_se->escalation_period_ptr = temp_timeperiod;
-			}
-
-		/* find the contacts */
-		for(temp_contactsmember = temp_se->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-
-			/* find the contact */
-			temp_contact = find_contact(temp_contactsmember->contact_name);
-			if(temp_contact == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!", temp_contactsmember->contact_name, temp_se->description, temp_se->host_name);
-				errors++;
-				}
-
-			/* save the contact pointer for later */
-			temp_contactsmember->contact_ptr = temp_contact;
-			}
-
-		/* check all contact groups */
-		for(temp_contactgroupsmember = temp_se->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-
-			temp_contactgroup = find_contactgroup(temp_contactgroupsmember->group_name);
-
-			if(temp_contactgroup == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact group '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!", temp_contactgroupsmember->group_name, temp_se->description, temp_se->host_name);
-				errors++;
-				}
-
-			/* save the contact group pointer for later */
-			temp_contactgroupsmember->group_ptr = temp_contactgroup;
-			}
-		}
-
-	if(verify_config == TRUE)
-		printf("\tChecked %d service escalations.\n", total_objects);
-
-
-
-	/*****************************************/
-	/* check all service dependencies...     */
-	/*****************************************/
-	if(verify_config == TRUE)
-		printf("Checking service dependencies...\n");
-
-	for(temp_sd = servicedependency_list, total_objects = 0; temp_sd != NULL; temp_sd = temp_sd->next, total_objects++) {
-
-		/* find the dependent service */
-		temp_service = find_service(temp_sd->dependent_host_name, temp_sd->dependent_service_description);
-		if(temp_service == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Dependent service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!", temp_sd->dependent_service_description, temp_sd->dependent_host_name, temp_sd->service_description, temp_sd->host_name);
-			errors++;
-			}
-
-		/* save pointer for later */
-		temp_sd->dependent_service_ptr = temp_service;
-
-		/* find the service we're depending on */
-		temp_service2 = find_service(temp_sd->host_name, temp_sd->service_description);
-		if(temp_service2 == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!", temp_sd->service_description, temp_sd->host_name, temp_sd->dependent_service_description, temp_sd->dependent_host_name);
-			errors++;
-			}
-
-		/* save pointer for later */
-		temp_sd->master_service_ptr = temp_service2;
-
-		/* make sure they're not the same service */
-		if(temp_service == temp_service2) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service dependency definition for service '%s' on host '%s' is circular (it depends on itself)!", temp_sd->dependent_service_description, temp_sd->dependent_host_name);
-			errors++;
-			}
-
-		/* find the timeperiod */
-		if(temp_sd->dependency_period != NULL) {
-			temp_timeperiod = find_timeperiod(temp_sd->dependency_period);
-			if(temp_timeperiod == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Dependency period '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!", temp_sd->dependency_period, temp_sd->dependent_service_description, temp_sd->dependent_host_name);
-				errors++;
-				}
-
-			/* save the timeperiod pointer for later */
-			temp_sd->dependency_period_ptr = temp_timeperiod;
-			}
-		}
-
-	if(verify_config == TRUE)
-		printf("\tChecked %d service dependencies.\n", total_objects);
-
-
-
-	/*****************************************/
-	/* check all host escalations...     */
-	/*****************************************/
-	if(verify_config == TRUE)
-		printf("Checking host escalations...\n");
-
-	for(temp_he = hostescalation_list, total_objects = 0; temp_he != NULL; temp_he = temp_he->next, total_objects++) {
-
-		/* find the host */
-		temp_host = find_host(temp_he->host_name);
-		if(temp_host == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host '%s' specified in host escalation is not defined anywhere!", temp_he->host_name);
-			errors++;
-			}
-
-		/* save the host pointer for later */
-		temp_he->host_ptr = temp_host;
-
-		/* find the timeperiod */
-		if(temp_he->escalation_period != NULL) {
-			temp_timeperiod = find_timeperiod(temp_he->escalation_period);
-			if(temp_timeperiod == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Escalation period '%s' specified in host escalation for host '%s' is not defined anywhere!", temp_he->escalation_period, temp_he->host_name);
-				errors++;
-				}
-
-			/* save the timeperiod pointer for later */
-			temp_he->escalation_period_ptr = temp_timeperiod;
-			}
-
-		/* find the contacts */
-		for(temp_contactsmember = temp_he->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-
-			/* find the contact*/
-			temp_contact = find_contact(temp_contactsmember->contact_name);
-			if(temp_contact == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact '%s' specified in host escalation for host '%s' is not defined anywhere!", temp_contactsmember->contact_name, temp_he->host_name);
-				errors++;
-				}
-
-			/* save the contact pointer for later */
-			temp_contactsmember->contact_ptr = temp_contact;
-			}
-
-		/* check all contact groups */
-		for(temp_contactgroupsmember = temp_he->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-
-			temp_contactgroup = find_contactgroup(temp_contactgroupsmember->group_name);
-
-			if(temp_contactgroup == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact group '%s' specified in host escalation for host '%s' is not defined anywhere!", temp_contactgroupsmember->group_name, temp_he->host_name);
-				errors++;
-				}
-
-			/* save the contact group pointer for later */
-			temp_contactgroupsmember->group_ptr = temp_contactgroup;
-			}
-		}
-
-	if(verify_config == TRUE)
-		printf("\tChecked %d host escalations.\n", total_objects);
-
-
-
-	/*****************************************/
-	/* check all host dependencies...     */
-	/*****************************************/
-	if(verify_config == TRUE)
-		printf("Checking host dependencies...\n");
-
-	for(temp_hd = hostdependency_list, total_objects = 0; temp_hd != NULL; temp_hd = temp_hd->next, total_objects++) {
-
-		/* find the dependent host */
-		temp_host = find_host(temp_hd->dependent_host_name);
-		if(temp_host == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Dependent host specified in host dependency for host '%s' is not defined anywhere!", temp_hd->dependent_host_name);
-			errors++;
-			}
-
-		/* save pointer for later */
-		temp_hd->dependent_host_ptr = temp_host;
-
-		/* find the host we're depending on */
-		temp_host2 = find_host(temp_hd->host_name);
-		if(temp_host2 == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host specified in host dependency for host '%s' is not defined anywhere!", temp_hd->dependent_host_name);
-			errors++;
-			}
-
-		/* save pointer for later */
-		temp_hd->master_host_ptr = temp_host2;
-
-		/* make sure they're not the same host */
-		if(temp_host == temp_host2) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host dependency definition for host '%s' is circular (it depends on itself)!", temp_hd->dependent_host_name);
-			errors++;
-			}
-
-		/* find the timeperiod */
-		if(temp_hd->dependency_period != NULL) {
-			temp_timeperiod = find_timeperiod(temp_hd->dependency_period);
-			if(temp_timeperiod == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Dependency period '%s' specified in host dependency for host '%s' is not defined anywhere!", temp_hd->dependency_period, temp_hd->dependent_host_name);
-				errors++;
-				}
-
-			/* save the timeperiod pointer for later */
-			temp_hd->dependency_period_ptr = temp_timeperiod;
-			}
-		}
-
-	if(verify_config == TRUE)
-		printf("\tChecked %d host dependencies.\n", total_objects);
-
 
 
 	/*****************************************/

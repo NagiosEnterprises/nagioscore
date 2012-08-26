@@ -586,6 +586,7 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 /* add a new host definition */
 host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host) {
 	host *new_host = NULL;
+	timeperiod *tp;
 	int result = OK;
 #ifdef NSCORE
 	int x = 0;
@@ -633,12 +634,30 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	if((new_host->address = (char *)strdup(address)) == NULL)
 		result = ERROR;
 	if(check_period) {
-		if((new_host->check_period = (char *)strdup(check_period)) == NULL)
+		if (!(tp = find_timeperiod(check_period))) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate check_period '%s' for host '%s'!\n",
+				  check_period, name);
 			result = ERROR;
+			}
+		else {
+			new_host->check_period = tp->name;
+#ifndef NSCGI
+			new_host->check_period_ptr = tp;
+#endif
+			}
 		}
 	if(notification_period) {
-		if((new_host->notification_period = (char *)strdup(notification_period)) == NULL)
+		if (!(tp = find_timeperiod(notification_period))) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate noticiation_period '%s' for host '%s'!\n",
+				  notification_period, name);
 			result = ERROR;
+			}
+		else {
+			new_host->notification_period = tp->name;
+#ifndef NSCGI
+			new_host->check_period_ptr = tp;
+#endif
+			}
 		}
 	if(check_command) {
 		if((new_host->host_check_command = (char *)strdup(check_command)) == NULL)
@@ -805,8 +824,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		my_free(new_host->failure_prediction_options);
 		my_free(new_host->event_handler);
 		my_free(new_host->host_check_command);
-		my_free(new_host->notification_period);
-		my_free(new_host->check_period);
 		my_free(new_host->address);
 		my_free(new_host->alias);
 		my_free(new_host->display_name);
@@ -883,8 +900,8 @@ hostsmember *add_child_link_to_host(host *hst, host *child_ptr) {
 	if((new_hostsmember = (hostsmember *)malloc(sizeof(hostsmember))) == NULL)
 		return NULL;
 
-	/* initialize values */
-	new_hostsmember->host_name = NULL;
+	/* assign values */
+	new_hostsmember->host_name = child_ptr->name;
 #ifdef NSCORE
 	new_hostsmember->host_ptr = child_ptr;
 #endif
@@ -909,7 +926,9 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 	if((new_servicesmember = (servicesmember *)calloc(1, sizeof(servicesmember))) == NULL)
 		return NULL;
 
-	/* initialize values */
+	/* assign values */
+	new_servicesmember->host_name = service_ptr->host_name;
+	new_servicesmember->service_description = service_ptr->description;
 #ifdef NSCORE
 	new_servicesmember->service_ptr = service_ptr;
 #endif
@@ -926,11 +945,12 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 /* add a new contactgroup to a host */
 contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name) {
 	contactgroupsmember *new_contactgroupsmember = NULL;
-	int result = OK;
+	contactgroup *cg;
 
 	/* make sure we have the data we need */
-	if(hst == NULL || (group_name == NULL || !strcmp(group_name, ""))) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host or contactgroup member is NULL\n");
+	if(!(cg = find_contactgroup(group_name))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact group '%s' specified for host '%s' is not defined anywhere!\n",
+			  group_name, hst->name);
 		return NULL;
 		}
 
@@ -938,16 +958,8 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name) {
 	if((new_contactgroupsmember = calloc(1, sizeof(contactgroupsmember))) == NULL)
 		return NULL;
 
-	/* duplicate string vars */
-	if((new_contactgroupsmember->group_name = (char *)strdup(group_name)) == NULL)
-		result = ERROR;
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_contactgroupsmember->group_name);
-		my_free(new_contactgroupsmember);
-		return NULL;
-		}
+	/* assign vars. Object names are immutable, so no need to copy */
+	new_contactgroupsmember->group_name = cg->group_name;
 
 	/* add the new member to the head of the member list */
 	new_contactgroupsmember->next = hst->contact_groups;
@@ -1249,12 +1261,23 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 /* add a new contact to the list in memory */
 contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int notify_service_ok, int notify_service_critical, int notify_service_warning, int notify_service_unknown, int notify_service_flapping, int notify_service_downtime, int notify_host_up, int notify_host_down, int notify_host_unreachable, int notify_host_flapping, int notify_host_downtime, int host_notifications_enabled, int service_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information) {
 	contact *new_contact = NULL;
+	timeperiod *htp = NULL, *stp = NULL;
 	int x = 0;
 	int result = OK;
 
 	/* make sure we have the data we need */
-	if(name == NULL || !strcmp(name, "")) {
+	if(name == NULL || !*name) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact name is NULL\n");
+		return NULL;
+		}
+	if(svc_notification_period && !(stp = find_timeperiod(svc_notification_period))) {
+		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service notification period '%s' specified for contact '%s' is not defined anywhere!\n",
+			  svc_notification_period, name);
+		return NULL;
+		}
+	if(host_notification_period && !(htp = find_timeperiod(host_notification_period))) {
+		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host notification period '%s' specified for contact '%s' is not defined anywhere!\n",
+			  host_notification_period, name);
 		return NULL;
 		}
 
@@ -1262,7 +1285,13 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 	if((new_contact = (contact *)calloc(1, sizeof(contact))) == NULL)
 		return NULL;
 
-	/* duplicate vars */
+	/* duplicate vars, but assign what we can */
+	new_contact->host_notification_period = htp ? htp->name : NULL;
+	new_contact->service_notification_period = stp ? stp->name : NULL;
+#ifndef NSCGI
+	new_contact->host_notification_period_ptr = htp;
+	new_contact->service_notification_period_ptr = stp;
+#endif
 	if((new_contact->name = (char *)strdup(name)) == NULL)
 		result = ERROR;
 	if((new_contact->alias = (char *)strdup((alias == NULL) ? name : alias)) == NULL)
@@ -1273,14 +1302,6 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 		}
 	if(pager) {
 		if((new_contact->pager = (char *)strdup(pager)) == NULL)
-			result = ERROR;
-		}
-	if(svc_notification_period) {
-		if((new_contact->service_notification_period = (char *)strdup(svc_notification_period)) == NULL)
-			result = ERROR;
-		}
-	if(host_notification_period) {
-		if((new_contact->host_notification_period = (char *)strdup(host_notification_period)) == NULL)
 			result = ERROR;
 		}
 	if(addresses) {
@@ -1346,8 +1367,6 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 		my_free(new_contact->alias);
 		my_free(new_contact->email);
 		my_free(new_contact->pager);
-		my_free(new_contact->service_notification_period);
-		my_free(new_contact->host_notification_period);
 		my_free(new_contact);
 		return NULL;
 		}
@@ -1546,6 +1565,8 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 
 /* add a new service to the list in memory */
 service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notify_downtime, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service) {
+	host *h;
+	timeperiod *cp = NULL, *np = NULL;
 	service *new_service = NULL;
 	int result = OK;
 #ifdef NSCORE
@@ -1553,8 +1574,23 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 #endif
 
 	/* make sure we have everything we need */
-	if((host_name == NULL || !strcmp(host_name, "")) || (description == NULL || !strcmp(description, "")) || (check_command == NULL || !strcmp(check_command, ""))) {
+	if(host_name == NULL || description == NULL || !*description || check_command == NULL || !*check_command) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service description, host name, or check command is NULL\n");
+		return NULL;
+		}
+	if (!(h = find_host(host_name))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to locate host '%s' for service '%s'\n",
+			  host_name, description);
+		return NULL;
+		}
+	if(notification_period && !(np = find_timeperiod(notification_period))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: notification_period '%s' for service '%s' on host '%s' could not be found!\n",
+			  notification_period, description, host_name);
+		return NULL;
+		}
+	if(check_period && !(cp = find_timeperiod(check_period))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: check_period '%s' for service '%s' on host '%s' not found!\n",
+			  check_period, description, host_name);
 		return NULL;
 		}
 
@@ -1573,9 +1609,15 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	if((new_service = (service *)calloc(1, sizeof(service))) == NULL)
 		return NULL;
 
-	/* duplicate vars */
-	if((new_service->host_name = (char *)strdup(host_name)) == NULL)
-		result = ERROR;
+	/* duplicate vars, but assign what we can */
+#ifndef NSCGI
+	new_service->notification_period_ptr = np;
+	new_service->check_period_ptr = cp;
+	new_service->host_ptr = h;
+#endif
+	new_service->check_period = cp ? cp->name : NULL;
+	new_service->notification_period = np ? np->name : NULL;
+	new_service->host_name = h->name;
 	if((new_service->description = (char *)strdup(description)) == NULL)
 		result = ERROR;
 	if((new_service->display_name = (char *)strdup((display_name == NULL) ? description : display_name)) == NULL)
@@ -1584,14 +1626,6 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		result = ERROR;
 	if(event_handler) {
 		if((new_service->event_handler = (char *)strdup(event_handler)) == NULL)
-			result = ERROR;
-		}
-	if(notification_period) {
-		if((new_service->notification_period = (char *)strdup(notification_period)) == NULL)
-			result = ERROR;
-		}
-	if(check_period) {
-		if((new_service->check_period = (char *)strdup(check_period)) == NULL)
 			result = ERROR;
 		}
 	if(failure_prediction_options) {
@@ -1729,16 +1763,15 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		my_free(new_service->long_plugin_output);
 #endif
 		my_free(new_service->failure_prediction_options);
-		my_free(new_service->notification_period);
 		my_free(new_service->event_handler);
 		my_free(new_service->service_check_command);
 		my_free(new_service->description);
-		my_free(new_service->host_name);
 		my_free(new_service->display_name);
 		my_free(new_service);
 		return NULL;
 		}
 
+	add_service_link_to_host(h, new_service);
 	/* services are sorted alphabetically, so add new items to tail of list */
 	if(service_list == NULL) {
 		service_list = new_service;
@@ -1758,11 +1791,12 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 /* adds a contact group to a service */
 contactgroupsmember *add_contactgroup_to_service(service *svc, char *group_name) {
 	contactgroupsmember *new_contactgroupsmember = NULL;
-	int result = OK;
+	contactgroup *cg;
 
 	/* bail out if we weren't given the data we need */
-	if(svc == NULL || (group_name == NULL || !strcmp(group_name, ""))) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service or contactgroup name is NULL\n");
+	if(!(cg = find_contactgroup(group_name))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact group '%s' specified for service '%s' on host '%s' is not defined anywhere!\n",
+			  group_name, svc->description, svc->host_name);
 		return NULL;
 		}
 
@@ -1770,15 +1804,8 @@ contactgroupsmember *add_contactgroup_to_service(service *svc, char *group_name)
 	if((new_contactgroupsmember = calloc(1, sizeof(contactgroupsmember))) == NULL)
 		return NULL;
 
-	/* duplicate vars */
-	if((new_contactgroupsmember->group_name = (char *)strdup(group_name)) == NULL)
-		result = ERROR;
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_contactgroupsmember);
-		return NULL;
-		}
+	/* assign vars. Object names are immutable, so no need to copy */
+	new_contactgroupsmember->group_name = cg->group_name;
 
 	/* add this contactgroup to the service */
 	new_contactgroupsmember->next = svc->contact_groups;
@@ -1871,31 +1898,39 @@ command *add_command(char *name, char *value) {
 /* add a new service escalation to the list in memory */
 serviceescalation *add_serviceescalation(char *host_name, char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_recovery) {
 	serviceescalation *new_serviceescalation = NULL;
+	service *svc;
+	timeperiod *tp;
 	int result = OK;
 
 	/* make sure we have the data we need */
-	if((host_name == NULL || !strcmp(host_name, "")) || (description == NULL || !strcmp(description, ""))) {
+	if(host_name == NULL || !*host_name || description == NULL || !*description) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service escalation host name or description is NULL\n");
 		return NULL;
 		}
-
-#ifdef TEST
-	printf("NEW SVC ESCALATION: %s/%s = %d/%d/%.3f\n", host_name, description, first_notification, last_notification, notification_interval);
-#endif
+	if(!(svc = find_service(host_name, description))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service '%s' on host '%s' has an escalation but is not defined anywhere!\n",
+			  host_name, description);
+		return NULL ;
+		}
+	if (escalation_period && !(tp = find_timeperiod(escalation_period))) {
+		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Escalation period '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!\n",
+			  escalation_period, description, host_name);
+		return NULL ;
+		}
 
 	/* allocate memory for a new service escalation entry */
 	if((new_serviceescalation = calloc(1, sizeof(serviceescalation))) == NULL)
 		return NULL;
 
-	/* duplicate vars */
-	if((new_serviceescalation->host_name = (char *)strdup(host_name)) == NULL)
-		result = ERROR;
-	if((new_serviceescalation->description = (char *)strdup(description)) == NULL)
-		result = ERROR;
-	if(escalation_period) {
-		if((new_serviceescalation->escalation_period = (char *)strdup(escalation_period)) == NULL)
-			result = ERROR;
-		}
+	/* assign vars. object names are immutable, so no need to copy */
+	new_serviceescalation->host_name = svc->host_name;
+	new_serviceescalation->description = svc->description;
+#ifndef NSCGI
+	new_serviceescalation->service_ptr = svc;
+	new_serviceescalation->escalation_period_ptr = tp;
+#endif
+	if(tp)
+		new_serviceescalation->escalation_period = tp->name;
 
 	new_serviceescalation->first_notification = first_notification;
 	new_serviceescalation->last_notification = last_notification;
@@ -1921,9 +1956,6 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 
 	/* handle errors */
 	if(result == ERROR) {
-		my_free(new_serviceescalation->host_name);
-		my_free(new_serviceescalation->description);
-		my_free(new_serviceescalation->escalation_period);
 		my_free(new_serviceescalation);
 		return NULL;
 		}
@@ -1947,11 +1979,16 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 /* adds a contact group to a service escalation */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se, char *group_name) {
 	contactgroupsmember *new_contactgroupsmember = NULL;
-	int result = OK;
+	contactgroup *cg;
 
 	/* bail out if we weren't given the data we need */
-	if(se == NULL || (group_name == NULL || !strcmp(group_name, ""))) {
+	if(se == NULL || group_name == NULL || !*group_name) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service escalation or contactgroup name is NULL\n");
+		return NULL;
+		}
+	if (!(cg = find_contactgroup(group_name))) {
+		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact group '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere\n",
+			  group_name, se->description, se->host_name);
 		return NULL;
 		}
 
@@ -1959,16 +1996,11 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 	if((new_contactgroupsmember = (contactgroupsmember *)calloc(1, sizeof(contactgroupsmember))) == NULL)
 		return NULL;
 
-	/* duplicate vars */
-	if((new_contactgroupsmember->group_name = (char *)strdup(group_name)) == NULL)
-		result = ERROR;
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_contactgroupsmember->group_name);
-		my_free(new_contactgroupsmember);
-		return NULL;
-		}
+	/* assign vars. Object names are immutable, so no need to copy */
+	new_contactgroupsmember->group_name = cg->group_name;
+#ifndef NSCGI
+	new_contactgroupsmember->group_ptr = cg;
+#endif
 
 	/* add this contactgroup to the service escalation */
 	new_contactgroupsmember->next = se->contact_groups;
@@ -1991,17 +2023,25 @@ contactsmember *add_contact_to_serviceescalation(serviceescalation *se, char *co
 servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical, int fail_on_pending, char *dependency_period) {
 	servicedependency *new_servicedependency = NULL;
 	service *parent, *child;
+	timeperiod *tp = NULL;
 	int result = OK;
 
 	/* make sure we have what we need */
 	parent = find_service(host_name, service_description);
 	if(!parent) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: NULL master service description/host name in service dependency definition\n");
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Master service '%s' on host '%s' is not defined anywhere!\n",
+			  service_description, host_name);
 		return NULL;
 		}
 	child = find_service(dependent_host_name, dependent_service_description);
 	if(!child) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: NULL dependent service description/host name in service dependency definition\n");
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Dependent service '%s' on host '%s' is not defined anywhere!\n",
+			 dependent_service_description, dependent_host_name);
+		return NULL;
+		}
+	if (dependency_period && !(tp = find_timeperiod(dependency_period))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate timeperiod '%s' for dependency from service '%s' on host '%s' to service '%s' on host '%s'\n",
+			  dependency_period, dependent_service_description, dependent_host_name, service_description, host_name);
 		return NULL;
 		}
 
@@ -2025,20 +2065,16 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		}
 	new_servicedependency->dependent_service_ptr = child;
 	new_servicedependency->master_service_ptr = parent;
+	new_servicedependency->dependency_period_ptr = tp;
 #endif
-	/* duplicate vars */
-	if((new_servicedependency->dependent_host_name = (char *)strdup(dependent_host_name)) == NULL)
-		result = ERROR;
-	if((new_servicedependency->dependent_service_description = (char *)strdup(dependent_service_description)) == NULL)
-		result = ERROR;
-	if((new_servicedependency->host_name = (char *)strdup(host_name)) == NULL)
-		result = ERROR;
-	if((new_servicedependency->service_description = (char *)strdup(service_description)) == NULL)
-		result = ERROR;
-	if(dependency_period) {
-		if((new_servicedependency->dependency_period = (char *)strdup(dependency_period)) == NULL)
-			result = ERROR;
-		}
+
+	/* assign vars. object names are immutable, so no need to copy */
+	new_servicedependency->dependent_host_name = child->host_name;
+	new_servicedependency->dependent_service_description = child->description;
+	new_servicedependency->host_name = parent->host_name;
+	new_servicedependency->service_description = parent->description;
+	if (tp)
+		new_servicedependency->dependency_period = tp->name;
 
 	new_servicedependency->dependency_type = (dependency_type == EXECUTION_DEPENDENCY) ? EXECUTION_DEPENDENCY : NOTIFICATION_DEPENDENCY;
 	new_servicedependency->inherits_parent = (inherits_parent > 0) ? TRUE : FALSE;
@@ -2050,10 +2086,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 
 	/* handle errors */
 	if(result == ERROR) {
-		my_free(new_servicedependency->host_name);
-		my_free(new_servicedependency->service_description);
-		my_free(new_servicedependency->dependent_host_name);
-		my_free(new_servicedependency->dependent_service_description);
 		my_free(new_servicedependency);
 		return NULL;
 		}
@@ -2077,15 +2109,27 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable, int fail_on_pending, char *dependency_period) {
 	hostdependency *new_hostdependency = NULL;
 	host *parent, *child;
+	timeperiod *tp = NULL;
 	int result = OK;
 
 	/* make sure we have what we need */
 	parent = find_host(host_name);
-	child = find_host(dependent_host_name);
-	if (!parent || !child) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Bad host_name or dependent_host_name in host dependency definition\n");
+	if (!parent) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Master host '%s' in hostdependency from '%s' to '%s' is not defined anywhere!\n",
+			  host_name, dependent_host_name, host_name);
 		return NULL;
 		}
+	child = find_host(dependent_host_name);
+	if (!child) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Dependent host '%s' in hostdependency from '%s' to '%s' is not defined anywhere!\n",
+			  dependent_host_name, dependent_host_name, host_name);
+		return NULL;
+		}
+	if (dependency_period && !(tp = find_timeperiod(dependency_period))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to locate dependency_period '%s' for %s->%s host dependency\n",
+			  dependency_period, parent->name, child->name);
+		return NULL ;
+	}
 
 	/* allocate memory for a new host dependency entry */
 	if((new_hostdependency = (hostdependency *)calloc(1, sizeof(hostdependency))) == NULL)
@@ -2103,17 +2147,14 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 
 	new_hostdependency->dependent_host_ptr = child;
 	new_hostdependency->master_host_ptr = parent;
+	new_hostdependency->dependency_period_ptr = tp;
 #endif
 
-	/* duplicate vars */
-	if((new_hostdependency->dependent_host_name = (char *)strdup(dependent_host_name)) == NULL)
-		result = ERROR;
-	if((new_hostdependency->host_name = (char *)strdup(host_name)) == NULL)
-		result = ERROR;
-	if(dependency_period) {
-		if((new_hostdependency->dependency_period = (char *)strdup(dependency_period)) == NULL)
-			result = ERROR;
-		}
+	/* assign vars. Objects are immutable, so no need to copy */
+	new_hostdependency->dependent_host_name = child->name;
+	new_hostdependency->host_name = parent->name;
+	if(tp)
+		new_hostdependency->dependency_period = tp->name;
 
 	new_hostdependency->dependency_type = (dependency_type == EXECUTION_DEPENDENCY) ? EXECUTION_DEPENDENCY : NOTIFICATION_DEPENDENCY;
 	new_hostdependency->inherits_parent = (inherits_parent > 0) ? TRUE : FALSE;
@@ -2124,8 +2165,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 
 	/* handle errors */
 	if(result == ERROR) {
-		my_free(new_hostdependency->host_name);
-		my_free(new_hostdependency->dependent_host_name);
 		my_free(new_hostdependency);
 		return NULL;
 		}
@@ -2149,30 +2188,35 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 /* add a new host escalation to the list in memory */
 hostescalation *add_hostescalation(char *host_name, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalate_on_down, int escalate_on_unreachable, int escalate_on_recovery) {
 	hostescalation *new_hostescalation = NULL;
+	host *h;
+	timeperiod *tp = NULL;
 	int result = OK;
 
 	/* make sure we have the data we need */
-	if(host_name == NULL || !strcmp(host_name, "")) {
+	if(host_name == NULL || !*host_name) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host escalation host name is NULL\n");
 		return NULL;
 		}
-
-#ifdef TEST
-	printf("NEW HST ESCALATION: %s = %d/%d/%.3f\n", host_name, first_notification, last_notification, notification_interval);
-#endif
-
+	if (!(h = find_host(host_name))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host '%s' has an escalation, but is not defined anywhere!\n", host_name);
+		return NULL;
+		}
+	if (escalation_period && !(tp = find_timeperiod(escalation_period))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to locate timeperiod '%s' for hostescalation '%s'\n",
+			  escalation_period, host_name);
+		return NULL;
+		}
 	/* allocate memory for a new host escalation entry */
 	if((new_hostescalation = calloc(1, sizeof(hostescalation))) == NULL)
 		return NULL;
 
-	/* duplicate vars */
-	if((new_hostescalation->host_name = (char *)strdup(host_name)) == NULL)
-		result = ERROR;
-	if(escalation_period) {
-		if((new_hostescalation->escalation_period = (char *)strdup(escalation_period)) == NULL)
-			result = ERROR;
-		}
 
+	/* assign vars. Object names are immutable, so no need to copy */
+	new_hostescalation->host_name = h->name;
+	new_hostescalation->escalation_period = tp ? tp->name : NULL;
+#ifndef NSCGI
+	new_hostescalation->escalation_period_ptr = tp;
+#endif
 	new_hostescalation->first_notification = first_notification;
 	new_hostescalation->last_notification = last_notification;
 	new_hostescalation->notification_interval = (notification_interval <= 0) ? 0 : notification_interval;
@@ -2196,8 +2240,6 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 
 	/* handle errors */
 	if(result == ERROR) {
-		my_free(new_hostescalation->host_name);
-		my_free(new_hostescalation->escalation_period);
 		my_free(new_hostescalation);
 		return NULL;
 		}
@@ -2221,11 +2263,16 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 /* adds a contact group to a host escalation */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he, char *group_name) {
 	contactgroupsmember *new_contactgroupsmember = NULL;
-	int result = OK;
+	contactgroup *cg;
 
 	/* bail out if we weren't given the data we need */
-	if(he == NULL || (group_name == NULL || !strcmp(group_name, ""))) {
+	if(he == NULL || group_name == NULL || !*group_name) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host escalation or contactgroup name is NULL\n");
+		return NULL;
+		}
+	if(!(cg = find_contactgroup(group_name))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to locate contactgroup '%s' specified for hostescalation for host '%s'\n",
+			  group_name, he->host_name);
 		return NULL;
 		}
 
@@ -2233,16 +2280,8 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he, char
 	if((new_contactgroupsmember = (contactgroupsmember *)calloc(1, sizeof(contactgroupsmember))) == NULL)
 		return NULL;
 
-	/* duplicate vars */
-	if((new_contactgroupsmember->group_name = (char *)strdup(group_name)) == NULL)
-		result = ERROR;
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_contactgroupsmember->group_name);
-		my_free(new_contactgroupsmember);
-		return NULL;
-		}
+	/* assign vars. Object names are immutable, so no need to copy */
+	new_contactgroupsmember->group_name = cg->group_name;
 
 	/* add this contactgroup to the host escalation */
 	new_contactgroupsmember->next = he->contact_groups;
@@ -2264,6 +2303,7 @@ contactsmember *add_contact_to_hostescalation(hostescalation *he, char *contact_
 /* adds a contact to an object */
 contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contactname) {
 	contactsmember *new_contactsmember = NULL;
+	contact *c;
 
 	/* make sure we have the data we need */
 	if(object_ptr == NULL) {
@@ -2271,8 +2311,12 @@ contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contact
 		return NULL;
 		}
 
-	if(contactname == NULL || !strcmp(contactname, "")) {
+	if(contactname == NULL || !*contactname) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact name is NULL\n");
+		return NULL;
+		}
+	if(!(c = find_contact(contactname))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact '%s' is not defined anywhere!\n", contactname);
 		return NULL;
 		}
 
@@ -2281,15 +2325,11 @@ contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contact
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not allocate memory for contact\n");
 		return NULL;
 		}
-	if((new_contactsmember->contact_name = (char *)strdup(contactname)) == NULL) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not allocate memory for contact name\n");
-		my_free(new_contactsmember);
-		return NULL;
-		}
+	new_contactsmember->contact_name = c->name;
 
 	/* set initial values */
 #ifdef NSCORE
-	new_contactsmember->contact_ptr = NULL;
+	new_contactsmember->contact_ptr = c;
 #endif
 
 	/* add the new contact to the head of the contact list */
@@ -3059,7 +3099,6 @@ int free_object_data(void) {
 		this_hostsmember = this_host->child_hosts;
 		while(this_hostsmember != NULL) {
 			next_hostsmember = this_hostsmember->next;
-			my_free(this_hostsmember->host_name);
 			my_free(this_hostsmember);
 			this_hostsmember = next_hostsmember;
 			}
@@ -3068,8 +3107,6 @@ int free_object_data(void) {
 		this_servicesmember = this_host->services;
 		while(this_servicesmember != NULL) {
 			next_servicesmember = this_servicesmember->next;
-			my_free(this_servicesmember->host_name);
-			my_free(this_servicesmember->service_description);
 			my_free(this_servicesmember);
 			this_servicesmember = next_servicesmember;
 			}
@@ -3078,7 +3115,6 @@ int free_object_data(void) {
 		this_contactgroupsmember = this_host->contact_groups;
 		while(this_contactgroupsmember != NULL) {
 			next_contactgroupsmember = this_contactgroupsmember->next;
-			my_free(this_contactgroupsmember->group_name);
 			my_free(this_contactgroupsmember);
 			this_contactgroupsmember = next_contactgroupsmember;
 			}
@@ -3087,7 +3123,6 @@ int free_object_data(void) {
 		this_contactsmember = this_host->contacts;
 		while(this_contactsmember != NULL) {
 			next_contactsmember = this_contactsmember->next;
-			my_free(this_contactsmember->contact_name);
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
 			}
@@ -3113,13 +3148,11 @@ int free_object_data(void) {
 
 		free_objectlist(&this_host->hostgroups_ptr);
 #endif
-		my_free(this_host->check_period);
 		free_objectlist(&this_host->notify_deps);
 		free_objectlist(&this_host->exec_deps);
 		my_free(this_host->host_check_command);
 		my_free(this_host->event_handler);
 		my_free(this_host->failure_prediction_options);
-		my_free(this_host->notification_period);
 		my_free(this_host->notes);
 		my_free(this_host->notes_url);
 		my_free(this_host->action_url);
@@ -3231,8 +3264,6 @@ int free_object_data(void) {
 		my_free(this_contact->pager);
 		for(i = 0; i < MAX_CONTACT_ADDRESSES; i++)
 			my_free(this_contact->address[i]);
-		my_free(this_contact->host_notification_period);
-		my_free(this_contact->service_notification_period);
 
 #ifdef NSCORE
 		free_objectlist(&this_contact->contactgroups_ptr);
@@ -3280,7 +3311,6 @@ int free_object_data(void) {
 		this_contactgroupsmember = this_service->contact_groups;
 		while(this_contactgroupsmember != NULL) {
 			next_contactgroupsmember = this_contactgroupsmember->next;
-			my_free(this_contactgroupsmember->group_name);
 			my_free(this_contactgroupsmember);
 			this_contactgroupsmember = next_contactgroupsmember;
 			}
@@ -3304,7 +3334,6 @@ int free_object_data(void) {
 			this_customvariablesmember = next_customvariablesmember;
 			}
 
-		my_free(this_service->host_name);
 		my_free(this_service->description);
 		my_free(this_service->display_name);
 		my_free(this_service->service_check_command);
@@ -3318,8 +3347,6 @@ int free_object_data(void) {
 
 		free_objectlist(&this_service->servicegroups_ptr);
 #endif
-		my_free(this_service->notification_period);
-		my_free(this_service->check_period);
 		free_objectlist(&this_service->notify_deps);
 		free_objectlist(&this_service->exec_deps);
 		my_free(this_service->event_handler);
@@ -3359,7 +3386,6 @@ int free_object_data(void) {
 		this_contactgroupsmember = this_serviceescalation->contact_groups;
 		while(this_contactgroupsmember != NULL) {
 			next_contactgroupsmember = this_contactgroupsmember->next;
-			my_free(this_contactgroupsmember->group_name);
 			my_free(this_contactgroupsmember);
 			this_contactgroupsmember = next_contactgroupsmember;
 			}
@@ -3368,15 +3394,11 @@ int free_object_data(void) {
 		this_contactsmember = this_serviceescalation->contacts;
 		while(this_contactsmember != NULL) {
 			next_contactsmember = this_contactsmember->next;
-			my_free(this_contactsmember->contact_name);
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
 			}
 
 		next_serviceescalation = this_serviceescalation->next;
-		my_free(this_serviceescalation->host_name);
-		my_free(this_serviceescalation->description);
-		my_free(this_serviceescalation->escalation_period);
 		my_free(this_serviceescalation);
 		this_serviceescalation = next_serviceescalation;
 		}
@@ -3389,11 +3411,6 @@ int free_object_data(void) {
 	this_servicedependency = servicedependency_list;
 	while(this_servicedependency != NULL) {
 		next_servicedependency = this_servicedependency->next;
-		my_free(this_servicedependency->dependency_period);
-		my_free(this_servicedependency->dependent_host_name);
-		my_free(this_servicedependency->dependent_service_description);
-		my_free(this_servicedependency->host_name);
-		my_free(this_servicedependency->service_description);
 		my_free(this_servicedependency);
 		this_servicedependency = next_servicedependency;
 		}
@@ -3406,10 +3423,6 @@ int free_object_data(void) {
 	this_hostdependency = hostdependency_list;
 	while(this_hostdependency != NULL) {
 		next_hostdependency = this_hostdependency->next;
-		my_free(this_hostdependency->dependency_period);
-		my_free(this_hostdependency->dependent_host_name);
-		my_free(this_hostdependency->host_name);
-		my_free(this_hostdependency);
 		this_hostdependency = next_hostdependency;
 		}
 
@@ -3425,7 +3438,6 @@ int free_object_data(void) {
 		this_contactgroupsmember = this_hostescalation->contact_groups;
 		while(this_contactgroupsmember != NULL) {
 			next_contactgroupsmember = this_contactgroupsmember->next;
-			my_free(this_contactgroupsmember->group_name);
 			my_free(this_contactgroupsmember);
 			this_contactgroupsmember = next_contactgroupsmember;
 			}
@@ -3434,14 +3446,11 @@ int free_object_data(void) {
 		this_contactsmember = this_hostescalation->contacts;
 		while(this_contactsmember != NULL) {
 			next_contactsmember = this_contactsmember->next;
-			my_free(this_contactsmember->contact_name);
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
 			}
 
 		next_hostescalation = this_hostescalation->next;
-		my_free(this_hostescalation->host_name);
-		my_free(this_hostescalation->escalation_period);
 		my_free(this_hostescalation);
 		this_hostescalation = next_hostescalation;
 		}

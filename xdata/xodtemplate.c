@@ -10824,36 +10824,6 @@ int xodtemplate_free_xobject_skiplists(void) {
 	}
 
 
-int xodtemplate_skiplist_compare_text(const char *val1a, const char *val1b, const char *val2a, const char *val2b) {
-	int result = 0;
-
-	/* check first name */
-	if(val1a == NULL && val2a == NULL)
-		result = 0;
-	else if(val1a == NULL)
-		result = 1;
-	else if(val2a == NULL)
-		result = -1;
-	else
-		result = strcmp(val1a, val2a);
-
-	/* check second name if necessary */
-	if(result == 0) {
-		if(val1b == NULL && val2b == NULL)
-			result = 0;
-		else if(val1b == NULL)
-			result = 1;
-		else if(val2b == NULL)
-			result = -1;
-		else
-			result = strcmp(val1b, val2b);
-		}
-
-	return result;
-	}
-
-
-
 int xodtemplate_skiplist_compare_host_template(void *a, void *b) {
 	xodtemplate_host *oa = NULL;
 	xodtemplate_host *ob = NULL;

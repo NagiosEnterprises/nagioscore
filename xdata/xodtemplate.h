@@ -922,7 +922,6 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *);
 int xodtemplate_init_xobject_skiplists(void);
 int xodtemplate_free_xobject_skiplists(void);
 
-int xodtemplate_skiplist_compare_text(const char *val1a, const char *val1b, const char *val2a, const char *val2b);
 int xodtemplate_skiplist_compare_host_template(void *a, void *b);
 int xodtemplate_skiplist_compare_service_template(void *a, void *b);
 int xodtemplate_skiplist_compare_command_template(void *a, void *b);

@@ -46,6 +46,7 @@ NAGIOS_BEGIN_DECL
 /***************** SKIP LISTS ****************/
 
 #define NUM_OBJECT_SKIPLISTS                   12
+#define NUM_HASHED_OBJECT_TYPES                8
 
 #define HOST_SKIPLIST                          0
 #define SERVICE_SKIPLIST                       1
@@ -658,38 +659,22 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **, c
 servicesmember *add_service_link_to_host(host *, service *);
 
 
-/*** Object Skiplist Functions ****/
-int init_object_skiplists(void);
-int free_object_skiplists(void);
 int skiplist_compare_text(const char *val1a, const char *val1b, const char *val2a, const char *val2b);
-int skiplist_compare_host(void *a, void *b);
-int skiplist_compare_service(void *a, void *b);
-int skiplist_compare_command(void *a, void *b);
-int skiplist_compare_timeperiod(void *a, void *b);
-int skiplist_compare_contact(void *a, void *b);
-int skiplist_compare_contactgroup(void *a, void *b);
-int skiplist_compare_hostgroup(void *a, void *b);
-int skiplist_compare_servicegroup(void *a, void *b);
-int skiplist_compare_hostescalation(void *a, void *b);
-int skiplist_compare_serviceescalation(void *a, void *b);
-int skiplist_compare_hostdependency(void *a, void *b);
-int skiplist_compare_servicedependency(void *a, void *b);
-
 int get_host_count(void);
 int get_service_count(void);
 
 
+int create_object_tables(unsigned int *);
 
 /**** Object Search Functions ****/
-timeperiod *find_timeperiod(char *);						                /* finds a timeperiod object */
-host *find_host(char *);									/* finds a host object */
-hostgroup *find_hostgroup(char *);						                /* finds a hostgroup object */
-servicegroup *find_servicegroup(char *);					                /* finds a servicegroup object */
-contact *find_contact(char *);							                /* finds a contact object */
-contactgroup *find_contactgroup(char *);					                /* finds a contactgroup object */
-command *find_command(char *);							                /* finds a command object */
-service *find_service(char *, char *);								/* finds a service object */
-
+timeperiod *find_timeperiod(const char *);						                /* finds a timeperiod object */
+host *find_host(const char *);									/* finds a host object */
+hostgroup *find_hostgroup(const char *);						                /* finds a hostgroup object */
+servicegroup *find_servicegroup(const char *);					                /* finds a servicegroup object */
+contact *find_contact(const char *);							                /* finds a contact object */
+contactgroup *find_contactgroup(const char *);					                /* finds a contactgroup object */
+command *find_command(const char *);							                /* finds a command object */
+service *find_service(const char *, const char *);								/* finds a service object */
 
 
 int add_object_to_objectlist(objectlist **, void *);

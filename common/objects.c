@@ -39,6 +39,12 @@
 #endif
 
 
+/*
+ * These get created in xdata/xodtemplate.c:xodtemplate_register_objects()
+ * Escalations are attached to the objects they belong to.
+ * Dependencies are attached to the dependent end of the object chain.
+ */
+dkhash_table *object_hash_tables[NUM_OBJECT_SKIPLISTS];
 host            *host_list = NULL, *host_list_tail = NULL;
 service         *service_list = NULL, *service_list_tail = NULL;
 contact		*contact_list = NULL, *contact_list_tail = NULL;
@@ -52,7 +58,6 @@ servicedependency *servicedependency_list = NULL, *servicedependency_list_tail =
 hostdependency  *hostdependency_list = NULL, *hostdependency_list_tail = NULL;
 hostescalation  *hostescalation_list = NULL, *hostescalation_list_tail = NULL;
 
-skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 
 struct object_count num_objects;
 
@@ -71,9 +76,6 @@ int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
 int read_object_config_data(char *main_config_file, int options, int cache, int precache) {
 	int result = OK;
 
-	/* initialize object skiplists */
-	init_object_skiplists();
-
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XODTEMPLATE
 	/* read in data from all text host config files (template-based) */
@@ -90,41 +92,6 @@ int read_object_config_data(char *main_config_file, int options, int cache, int 
 /******************************************************************/
 /******************** SKIPLIST FUNCTIONS **************************/
 /******************************************************************/
-
-int init_object_skiplists(void) {
-	int x = 0;
-
-	for(x = 0; x < NUM_OBJECT_SKIPLISTS; x++)
-		object_skiplists[x] = NULL;
-
-	object_skiplists[HOST_SKIPLIST] = skiplist_new(15, 0.5, FALSE, FALSE, skiplist_compare_host);
-	object_skiplists[SERVICE_SKIPLIST] = skiplist_new(15, 0.5, FALSE, FALSE, skiplist_compare_service);
-
-	object_skiplists[COMMAND_SKIPLIST] = skiplist_new(10, 0.5, FALSE, FALSE, skiplist_compare_command);
-	object_skiplists[TIMEPERIOD_SKIPLIST] = skiplist_new(10, 0.5, FALSE, FALSE, skiplist_compare_timeperiod);
-	object_skiplists[CONTACT_SKIPLIST] = skiplist_new(10, 0.5, FALSE, FALSE, skiplist_compare_contact);
-	object_skiplists[CONTACTGROUP_SKIPLIST] = skiplist_new(10, 0.5, FALSE, FALSE, skiplist_compare_contactgroup);
-	object_skiplists[HOSTGROUP_SKIPLIST] = skiplist_new(10, 0.5, FALSE, FALSE, skiplist_compare_hostgroup);
-	object_skiplists[SERVICEGROUP_SKIPLIST] = skiplist_new(10, 0.5, FALSE, FALSE, skiplist_compare_servicegroup);
-
-	object_skiplists[HOSTESCALATION_SKIPLIST] = skiplist_new(15, 0.5, TRUE, FALSE, skiplist_compare_hostescalation);
-	object_skiplists[SERVICEESCALATION_SKIPLIST] = skiplist_new(15, 0.5, TRUE, FALSE, skiplist_compare_serviceescalation);
-	object_skiplists[HOSTDEPENDENCY_SKIPLIST] = skiplist_new(15, 0.5, TRUE, FALSE, skiplist_compare_hostdependency);
-	object_skiplists[SERVICEDEPENDENCY_SKIPLIST] = skiplist_new(15, 0.5, TRUE, FALSE, skiplist_compare_servicedependency);
-
-	return OK;
-	}
-
-
-
-int free_object_skiplists(void) {
-	int x = 0;
-
-	for(x = 0; x < NUM_OBJECT_SKIPLISTS; x++)
-		skiplist_free(&object_skiplists[x]);
-
-	return OK;
-	}
 
 
 int skiplist_compare_text(const char *val1a, const char *val1b, const char *val2a, const char *val2b) {
@@ -156,222 +123,6 @@ int skiplist_compare_text(const char *val1a, const char *val1b, const char *val2
 	}
 
 
-int skiplist_compare_host(void *a, void *b) {
-	host *oa = NULL;
-	host *ob = NULL;
-
-	oa = (host *)a;
-	ob = (host *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->name, NULL, ob->name, NULL);
-	}
-
-
-int skiplist_compare_service(void *a, void *b) {
-	service *oa = NULL;
-	service *ob = NULL;
-
-	oa = (service *)a;
-	ob = (service *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->host_name, oa->description, ob->host_name, ob->description);
-	}
-
-
-int skiplist_compare_command(void *a, void *b) {
-	command *oa = NULL;
-	command *ob = NULL;
-
-	oa = (command *)a;
-	ob = (command *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->name, NULL, ob->name, NULL);
-	}
-
-
-int skiplist_compare_timeperiod(void *a, void *b) {
-	timeperiod *oa = NULL;
-	timeperiod *ob = NULL;
-
-	oa = (timeperiod *)a;
-	ob = (timeperiod *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->name, NULL, ob->name, NULL);
-	}
-
-
-int skiplist_compare_contact(void *a, void *b) {
-	contact *oa = NULL;
-	contact *ob = NULL;
-
-	oa = (contact *)a;
-	ob = (contact *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->name, NULL, ob->name, NULL);
-	}
-
-
-int skiplist_compare_contactgroup(void *a, void *b) {
-	contactgroup *oa = NULL;
-	contactgroup *ob = NULL;
-
-	oa = (contactgroup *)a;
-	ob = (contactgroup *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->group_name, NULL, ob->group_name, NULL);
-	}
-
-
-int skiplist_compare_hostgroup(void *a, void *b) {
-	hostgroup *oa = NULL;
-	hostgroup *ob = NULL;
-
-	oa = (hostgroup *)a;
-	ob = (hostgroup *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->group_name, NULL, ob->group_name, NULL);
-	}
-
-
-int skiplist_compare_servicegroup(void *a, void *b) {
-	servicegroup *oa = NULL;
-	servicegroup *ob = NULL;
-
-	oa = (servicegroup *)a;
-	ob = (servicegroup *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->group_name, NULL, ob->group_name, NULL);
-	}
-
-
-int skiplist_compare_hostescalation(void *a, void *b) {
-	hostescalation *oa = NULL;
-	hostescalation *ob = NULL;
-
-	oa = (hostescalation *)a;
-	ob = (hostescalation *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->host_name, NULL, ob->host_name, NULL);
-	}
-
-
-int skiplist_compare_serviceescalation(void *a, void *b) {
-	serviceescalation *oa = NULL;
-	serviceescalation *ob = NULL;
-
-	oa = (serviceescalation *)a;
-	ob = (serviceescalation *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->host_name, oa->description, ob->host_name, ob->description);
-	}
-
-
-int skiplist_compare_hostdependency(void *a, void *b) {
-	hostdependency *oa = NULL;
-	hostdependency *ob = NULL;
-
-	oa = (hostdependency *)a;
-	ob = (hostdependency *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->dependent_host_name, NULL, ob->dependent_host_name, NULL);
-	}
-
-
-int skiplist_compare_servicedependency(void *a, void *b) {
-	servicedependency *oa = NULL;
-	servicedependency *ob = NULL;
-
-	oa = (servicedependency *)a;
-	ob = (servicedependency *)b;
-
-	if(oa == NULL && ob == NULL)
-		return 0;
-	if(oa == NULL)
-		return 1;
-	if(ob == NULL)
-		return -1;
-
-	return skiplist_compare_text(oa->dependent_host_name, oa->dependent_service_description, ob->dependent_host_name, ob->dependent_service_description);
-	}
-
-
 int get_host_count(void) {
 	return num_objects.hosts;
 	}
@@ -388,7 +139,22 @@ int get_service_count(void) {
 /**************** OBJECT ADDITION FUNCTIONS ***********************/
 /******************************************************************/
 
+/* ocount is an array with NUM_OBJECT_TYPES members */
+int create_object_tables(unsigned int *ocount)
+{
+	int i;
 
+	for (i = 0; i < NUM_HASHED_OBJECT_TYPES; i++) {
+		const unsigned int hash_size = ocount[i] * 1.5;
+		if (!hash_size)
+			continue;
+		object_hash_tables[i] = dkhash_create(hash_size);
+		if (!object_hash_tables[i]) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to create hash table with %u entries\n", hash_size);
+		}
+	}
+
+}
 
 /* add a new timeperiod to the list in memory */
 timeperiod *add_timeperiod(char *name, char *alias) {
@@ -411,19 +177,19 @@ timeperiod *add_timeperiod(char *name, char *alias) {
 	if((new_timeperiod->alias = (char *)strdup(alias)) == NULL)
 		result = ERROR;
 
-	/* add new timeperiod to skiplist */
+	/* add new timeperiod to hash table */
 	if(result == OK) {
-		result = skiplist_insert(object_skiplists[TIMEPERIOD_SKIPLIST], (void *)new_timeperiod);
+		result = dkhash_insert(object_hash_tables[TIMEPERIOD_SKIPLIST], new_timeperiod->name, NULL, new_timeperiod);
 		switch(result) {
-			case SKIPLIST_ERROR_DUPLICATE:
+			case DKHASH_EDUPE:
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Timeperiod '%s' has already been defined\n", name);
 				result = ERROR;
 				break;
-			case SKIPLIST_OK:
+			case DKHASH_OK:
 				result = OK;
 				break;
 			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add timeperiod '%s' to skiplist\n", name);
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add timeperiod '%s' to hash table\n", name);
 				result = ERROR;
 				break;
 			}
@@ -789,19 +555,19 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->modified_attributes = MODATTR_NONE;
 #endif
 
-	/* add new host to skiplist */
+	/* add new host to hash table */
 	if(result == OK) {
-		result = skiplist_insert(object_skiplists[HOST_SKIPLIST], (void *)new_host);
+		result = dkhash_insert(object_hash_tables[HOST_SKIPLIST], new_host->name, NULL, new_host);
 		switch(result) {
-			case SKIPLIST_ERROR_DUPLICATE:
+			case DKHASH_EDUPE:
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host '%s' has already been defined\n", name);
 				result = ERROR;
 				break;
-			case SKIPLIST_OK:
+			case DKHASH_OK:
 				result = OK;
 				break;
 			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add host '%s' to skiplist\n", name);
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add host '%s' to hash table\n", name);
 				result = ERROR;
 				break;
 			}
@@ -1020,19 +786,19 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 			result = ERROR;
 		}
 
-	/* add new host group to skiplist */
+	/* add new host group to hash table */
 	if(result == OK) {
-		result = skiplist_insert(object_skiplists[HOSTGROUP_SKIPLIST], (void *)new_hostgroup);
+		result = dkhash_insert(object_hash_tables[HOSTGROUP_SKIPLIST], new_hostgroup->group_name, NULL, new_hostgroup);
 		switch(result) {
-			case SKIPLIST_ERROR_DUPLICATE:
+			case DKHASH_EDUPE:
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Hostgroup '%s' has already been defined\n", name);
 				result = ERROR;
 				break;
-			case SKIPLIST_OK:
+			case DKHASH_OK:
 				result = OK;
 				break;
 			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add hostgroup '%s' to skiplist\n", name);
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add hostgroup '%s' to hash table\n", name);
 				result = ERROR;
 				break;
 			}
@@ -1149,19 +915,19 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 			result = ERROR;
 		}
 
-	/* add new service group to skiplist */
+	/* add new service group to hash table */
 	if(result == OK) {
-		result = skiplist_insert(object_skiplists[SERVICEGROUP_SKIPLIST], (void *)new_servicegroup);
+		result = dkhash_insert(object_hash_tables[SERVICEGROUP_SKIPLIST], new_servicegroup->group_name, NULL, new_servicegroup);
 		switch(result) {
-			case SKIPLIST_ERROR_DUPLICATE:
+			case DKHASH_EDUPE:
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Servicegroup '%s' has already been defined\n", name);
 				result = ERROR;
 				break;
-			case SKIPLIST_OK:
+			case DKHASH_OK:
 				result = OK;
 				break;
 			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add servicegroup '%s' to skiplist\n", name);
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add servicegroup '%s' to hash table\n", name);
 				result = ERROR;
 				break;
 			}
@@ -1342,19 +1108,19 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 	new_contact->contactgroups_ptr = NULL;
 #endif
 
-	/* add new contact to skiplist */
+	/* add new contact to hash table */
 	if(result == OK) {
-		result = skiplist_insert(object_skiplists[CONTACT_SKIPLIST], (void *)new_contact);
+		result = dkhash_insert(object_hash_tables[CONTACT_SKIPLIST], new_contact->name, NULL, new_contact);
 		switch(result) {
-			case SKIPLIST_ERROR_DUPLICATE:
+			case DKHASH_EDUPE:
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact '%s' has already been defined\n", name);
 				result = ERROR;
 				break;
-			case SKIPLIST_OK:
+			case DKHASH_OK:
 				result = OK;
 				break;
 			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to skiplist\n", name);
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to hash table\n", name);
 				result = ERROR;
 				break;
 			}
@@ -1487,19 +1253,19 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 	if((new_contactgroup->alias = (char *)strdup((alias == NULL) ? name : alias)) == NULL)
 		result = ERROR;
 
-	/* add new contact group to skiplist */
+	/* add new contact group to hash table */
 	if(result == OK) {
-		result = skiplist_insert(object_skiplists[CONTACTGROUP_SKIPLIST], (void *)new_contactgroup);
+		result = dkhash_insert(object_hash_tables[CONTACTGROUP_SKIPLIST], new_contactgroup->group_name, NULL, new_contactgroup);
 		switch(result) {
-			case SKIPLIST_ERROR_DUPLICATE:
+			case DKHASH_EDUPE:
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contactgroup '%s' has already been defined\n", name);
 				result = ERROR;
 				break;
-			case SKIPLIST_OK:
+			case DKHASH_OK:
 				result = OK;
 				break;
 			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to skiplist\n", name);
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to hash table\n", name);
 				result = ERROR;
 				break;
 			}
@@ -1738,19 +1504,19 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->modified_attributes = MODATTR_NONE;
 #endif
 
-	/* add new service to skiplist */
+	/* add new service to hash table */
 	if(result == OK) {
-		result = skiplist_insert(object_skiplists[SERVICE_SKIPLIST], (void *)new_service);
+		result = dkhash_insert(object_hash_tables[SERVICE_SKIPLIST], new_service->host_name, new_service->description, new_service);
 		switch(result) {
-			case SKIPLIST_ERROR_DUPLICATE:
+			case DKHASH_EDUPE:
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service '%s' on host '%s' has already been defined\n", description, host_name);
 				result = ERROR;
 				break;
-			case SKIPLIST_OK:
+			case DKHASH_OK:
 				result = OK;
 				break;
 			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add service '%s' on host '%s' to skiplist\n", description, host_name);
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add service '%s' on host '%s' to hash table\n", description, host_name);
 				result = ERROR;
 				break;
 			}
@@ -1854,19 +1620,19 @@ command *add_command(char *name, char *value) {
 	if((new_command->command_line = (char *)strdup(value)) == NULL)
 		result = ERROR;
 
-	/* add new command to skiplist */
+	/* add new command to hash table */
 	if(result == OK) {
-		result = skiplist_insert(object_skiplists[COMMAND_SKIPLIST], (void *)new_command);
+		result = dkhash_insert(object_hash_tables[COMMAND_SKIPLIST], new_command->name, NULL, new_command);
 		switch(result) {
-			case SKIPLIST_ERROR_DUPLICATE:
+			case DKHASH_EDUPE:
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Command '%s' has already been defined\n", name);
 				result = ERROR;
 				break;
-			case SKIPLIST_OK:
+			case DKHASH_OK:
 				result = OK;
 				break;
 			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add command '%s' to skiplist\n", name);
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add command '%s' to hash table\n", name);
 				result = ERROR;
 				break;
 			}
@@ -2366,108 +2132,36 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 /******************** OBJECT SEARCH FUNCTIONS *********************/
 /******************************************************************/
 
-/* given a timeperiod name and a starting point, find a timeperiod from the list in memory */
-timeperiod * find_timeperiod(char *name) {
-	timeperiod temp_timeperiod;
-
-	if(name == NULL)
-		return NULL;
-
-	temp_timeperiod.name = name;
-
-	return skiplist_find_first(object_skiplists[TIMEPERIOD_SKIPLIST], &temp_timeperiod, NULL);
+timeperiod *find_timeperiod(const char *name) {
+	return dkhash_get(object_hash_tables[TIMEPERIOD_SKIPLIST], name, NULL);
 	}
 
-
-/* given a host name, find it in the list in memory */
-host * find_host(char *name) {
-	host temp_host;
-
-	if(name == NULL)
-		return NULL;
-
-	temp_host.name = name;
-
-	return skiplist_find_first(object_skiplists[HOST_SKIPLIST], &temp_host, NULL);
+host *find_host(const char *name) {
+	return dkhash_get(object_hash_tables[HOST_SKIPLIST], name, NULL);
 	}
 
-
-/* find a hostgroup from the list in memory */
-hostgroup * find_hostgroup(char *name) {
-	hostgroup temp_hostgroup;
-
-	if(name == NULL)
-		return NULL;
-
-	temp_hostgroup.group_name = name;
-
-	return skiplist_find_first(object_skiplists[HOSTGROUP_SKIPLIST], &temp_hostgroup, NULL);
+hostgroup *find_hostgroup(const char *name) {
+	return dkhash_get(object_hash_tables[HOSTGROUP_SKIPLIST], name, NULL);
 	}
 
-
-/* find a servicegroup from the list in memory */
-servicegroup * find_servicegroup(char *name) {
-	servicegroup temp_servicegroup;
-
-	if(name == NULL)
-		return NULL;
-
-	temp_servicegroup.group_name = name;
-
-	return skiplist_find_first(object_skiplists[SERVICEGROUP_SKIPLIST], &temp_servicegroup, NULL);
+servicegroup *find_servicegroup(const char *name) {
+	return dkhash_get(object_hash_tables[SERVICEGROUP_SKIPLIST], name, NULL);
 	}
 
-
-/* find a contact from the list in memory */
-contact * find_contact(char *name) {
-	contact temp_contact;
-
-	if(name == NULL)
-		return NULL;
-
-	temp_contact.name = name;
-
-	return skiplist_find_first(object_skiplists[CONTACT_SKIPLIST], &temp_contact, NULL);
+contact *find_contact(const char *name) {
+	return dkhash_get(object_hash_tables[CONTACT_SKIPLIST], name, NULL);
 	}
 
-
-/* find a contact group from the list in memory */
-contactgroup * find_contactgroup(char *name) {
-	contactgroup temp_contactgroup;
-
-	if(name == NULL)
-		return NULL;
-
-	temp_contactgroup.group_name = name;
-
-	return skiplist_find_first(object_skiplists[CONTACTGROUP_SKIPLIST], &temp_contactgroup, NULL);
+contactgroup *find_contactgroup(const char *name) {
+	return dkhash_get(object_hash_tables[CONTACTGROUP_SKIPLIST], name, NULL);
 	}
 
-
-/* given a command name, find a command from the list in memory */
-command * find_command(char *name) {
-	command temp_command;
-
-	if(name == NULL)
-		return NULL;
-
-	temp_command.name = name;
-
-	return skiplist_find_first(object_skiplists[COMMAND_SKIPLIST], &temp_command, NULL);
+command *find_command(const char *name) {
+	return dkhash_get(object_hash_tables[COMMAND_SKIPLIST], name, NULL);
 	}
 
-
-/* given a host/service name, find the service in the list in memory */
-service * find_service(char *host_name, char *svc_desc) {
-	service temp_service;
-
-	if(host_name == NULL || svc_desc == NULL)
-		return NULL;
-
-	temp_service.host_name = host_name;
-	temp_service.description = svc_desc;
-
-	return skiplist_find_first(object_skiplists[SERVICE_SKIPLIST], &temp_service, NULL);
+service *find_service(const char *host_name, const char *svc_desc) {
+	return dkhash_get(object_hash_tables[SERVICE_SKIPLIST], host_name, svc_desc);
 	}
 
 
@@ -2953,6 +2647,16 @@ int free_object_data(void) {
 	register int x = 0;
 	register int i = 0;
 
+
+	/*
+	 * kill off hash tables so lingering modules don't look stuff up
+	 * while we're busy removing it.
+	 */
+	for (i = 0; i < ARRAY_SIZE(object_hash_tables); i++) {
+		dkhash_table *t = object_hash_tables[i];
+		object_hash_tables[i] = NULL;
+		dkhash_destroy(t);
+	}
 
 	/**** free memory for the timeperiod list ****/
 	this_timeperiod = timeperiod_list;

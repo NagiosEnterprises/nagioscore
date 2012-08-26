@@ -19,7 +19,7 @@ test: $(TESTS)
 test-squeue: pqueue.o test-squeue.o t-utils.o
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) $^ -o $@
 
-%.o: %.c %.h Makefile
+%.o: %.c %.h Makefile lnag-utils.h
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
 test-%.o: test-%.c %.c %.h Makefile

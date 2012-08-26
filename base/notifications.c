@@ -47,6 +47,20 @@ extern unsigned long   next_notification_id;
 extern char            *generic_summary;
 
 
+/*** silly helpers ****/
+static contact *find_contact_by_name_or_alias(const char *name)
+{
+	contact *c = NULL;
+
+	if (!name || !(c = find_contact(name)))
+		return c;
+	for (c = contact_list; c; c = c->next)
+		if (!strcmp(c->alias, name))
+			break;
+
+	return c;
+}
+
 
 /******************************************************************/
 /***************** SERVICE NOTIFICATION FUNCTIONS *****************/
@@ -150,14 +164,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 		/* if this notification has an author, attempt to lookup the associated contact */
 		if(not_author != NULL) {
-
-			/* see if we can find the contact - first by name, then by alias */
-			if((temp_contact = find_contact(not_author)) == NULL) {
-				for(temp_contact = contact_list; temp_contact != NULL; temp_contact = temp_contact->next) {
-					if(!strcmp(temp_contact->alias, not_author))
-						break;
-					}
-				}
+			temp_contact = find_contact_by_name_or_alias(not_author);
 			}
 
 		/* get author and comment macros */
@@ -1120,14 +1127,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 		/* if this notification has an author, attempt to lookup the associated contact */
 		if(not_author != NULL) {
-
-			/* see if we can find the contact - first by name, then by alias */
-			if((temp_contact = find_contact(not_author)) == NULL) {
-				for(temp_contact = contact_list; temp_contact != NULL; temp_contact = temp_contact->next) {
-					if(!strcmp(temp_contact->alias, not_author))
-						break;
-					}
-				}
+			temp_contact = find_contact_by_name_or_alias(not_author);
 			}
 
 		/* get author and comment macros */

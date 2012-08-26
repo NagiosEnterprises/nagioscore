@@ -19,6 +19,12 @@ struct bitmap {
 	unsigned long alloc;
 };
 
+void bitmap_clear(bitmap *bm)
+{
+	if (bm)
+		memset(bm->vector, 0, bm->alloc * sizeof(bmap));
+}
+
 int bitmap_resize(bitmap *bm, unsigned long size)
 {
 	unsigned long ralloc;

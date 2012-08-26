@@ -84,10 +84,10 @@ extern unsigned long bitmap_count_set_bits(const bitmap *bm);
 extern unsigned long bitmap_count_unset_bits(const bitmap *bm);
 
 /**
- * Unset all bits in a bitmaptor
- * @param bm The bitmaptor to clear
+ * Unset all bits in a bitmap
+ * @param bm The bitmap to clear
  */
-extern bitmap *bitmap_clear(bitmap *bm);
+extern void bitmap_clear(bitmap *bm);
 
 /**
  * Calculate intersection of two bitmaps

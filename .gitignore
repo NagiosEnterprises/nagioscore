@@ -19,3 +19,4 @@ Makefile
 *.gcov
 *.a
 /gmon.out
+/Documentation

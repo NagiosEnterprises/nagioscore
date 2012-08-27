@@ -1649,10 +1649,6 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 		return NULL ;
 		}
 
-	/* allocate memory for a new service escalation entry */
-	if((new_serviceescalation = calloc(1, sizeof(serviceescalation))) == NULL)
-		return NULL;
-
 	new_serviceescalation = &serviceescalation_list[num_objects.serviceescalations];
 
 	if(add_object_to_objectlist(&svc->escalation_list, new_serviceescalation) != OK) {

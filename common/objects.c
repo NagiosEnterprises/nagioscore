@@ -2093,6 +2093,19 @@ int add_object_to_objectlist(objectlist **list, void *object_ptr) {
 	}
 
 
+/* useful when we don't care if the object is unique or not */
+int prepend_object_to_objectlist(objectlist **list, void *object_ptr)
+{
+	objectlist *item;
+	if(list == NULL || object_ptr == NULL)
+		return ERROR;
+	if((item = malloc(sizeof(*item))) == NULL)
+		return ERROR;
+	item->next = *list;
+	item->object_ptr = object_ptr;
+	*list = item;
+	return OK;
+	}
 
 /* frees memory allocated to a temporary object list */
 int free_objectlist(objectlist **temp_list) {

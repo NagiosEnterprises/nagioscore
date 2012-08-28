@@ -686,6 +686,7 @@ service *find_service(const char *, const char *);								/* finds a service obj
 
 
 int add_object_to_objectlist(objectlist **, void *);
+int prepend_object_to_objectlist(objectlist **, void *);
 int free_objectlist(objectlist **);
 
 

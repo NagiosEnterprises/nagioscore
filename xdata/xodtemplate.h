@@ -250,8 +250,6 @@ typedef struct xodtemplate_host_struct {
     int       stalk_on_down;
     int       stalk_on_unreachable;
     int       process_perf_data;
-    int       failure_prediction_enabled;
-    char      *failure_prediction_options;
     char      *notes;
     char      *notes_url;
     char      *action_url;
@@ -277,7 +275,6 @@ typedef struct xodtemplate_host_struct {
     int       have_contact_groups;
     int       have_contacts;
     int       have_notification_period;
-    int       have_failure_prediction_options;
     int       have_notes;
     int       have_notes_url;
     int       have_action_url;
@@ -306,7 +303,6 @@ typedef struct xodtemplate_host_struct {
     int       have_first_notification_delay;
     int       have_stalking_options;
     int       have_process_perf_data;
-    int       have_failure_prediction_enabled;
     int       have_2d_coords;
     int       have_3d_coords;
     int       have_retain_status_information;
@@ -396,8 +392,6 @@ typedef struct xodtemplate_service_struct {
     int        stalk_on_warning;
     int        stalk_on_critical;
     int        process_perf_data;
-    int        failure_prediction_enabled;
-    char       *failure_prediction_options;
     char       *notes;
     char       *notes_url;
     char       *action_url;
@@ -419,7 +413,6 @@ typedef struct xodtemplate_service_struct {
     int        have_notification_period;
     int        have_contact_groups;
     int        have_contacts;
-    int        have_failure_prediction_options;
     int        have_notes;
     int        have_notes_url;
     int        have_action_url;
@@ -449,7 +442,6 @@ typedef struct xodtemplate_service_struct {
     int        have_first_notification_delay;
     int        have_stalking_options;
     int        have_process_perf_data;
-    int        have_failure_prediction_enabled;
     int        have_retain_status_information;
     int        have_retain_nonstatus_information;
 

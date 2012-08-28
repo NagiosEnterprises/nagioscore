@@ -387,7 +387,7 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host) {
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host) {
 	host *new_host = NULL;
 	timeperiod *tp;
 	int result = OK;
@@ -468,10 +468,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		if((new_host->event_handler = (char *)strdup(event_handler)) == NULL)
 			result = ERROR;
 		}
-	if(failure_prediction_options) {
-		if((new_host->failure_prediction_options = (char *)strdup(failure_prediction_options)) == NULL)
-			result = ERROR;
-		}
 	if(notes) {
 		if((new_host->notes = (char *)strdup(notes)) == NULL)
 			result = ERROR;
@@ -528,7 +524,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->checks_enabled = (checks_enabled > 0) ? TRUE : FALSE;
 	new_host->accept_passive_host_checks = (accept_passive_checks > 0) ? TRUE : FALSE;
 	new_host->event_handler_enabled = (event_handler_enabled > 0) ? TRUE : FALSE;
-	new_host->failure_prediction_enabled = (failure_prediction_enabled > 0) ? TRUE : FALSE;
 	new_host->x_2d = x_2d;
 	new_host->y_2d = y_2d;
 	new_host->have_2d_coords = (have_2d_coords > 0) ? TRUE : FALSE;
@@ -622,7 +617,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		my_free(new_host->action_url);
 		my_free(new_host->notes_url);
 		my_free(new_host->notes);
-		my_free(new_host->failure_prediction_options);
 		my_free(new_host->event_handler);
 		my_free(new_host->host_check_command);
 		my_free(new_host->address);
@@ -1314,7 +1308,7 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notify_downtime, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service) {
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notify_downtime, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service) {
 	host *h;
 	timeperiod *cp = NULL, *np = NULL;
 	service *new_service = NULL;
@@ -1377,10 +1371,6 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		if((new_service->event_handler = (char *)strdup(event_handler)) == NULL)
 			result = ERROR;
 		}
-	if(failure_prediction_options) {
-		if((new_service->failure_prediction_options = (char *)strdup(failure_prediction_options)) == NULL)
-			result = ERROR;
-		}
 	if(notes) {
 		if((new_service->notes = (char *)strdup(notes)) == NULL)
 			result = ERROR;
@@ -1436,7 +1426,6 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->retain_nonstatus_information = (retain_nonstatus_information > 0) ? TRUE : FALSE;
 	new_service->notifications_enabled = (notifications_enabled > 0) ? TRUE : FALSE;
 	new_service->obsess_over_service = (obsess_over_service > 0) ? TRUE : FALSE;
-	new_service->failure_prediction_enabled = (failure_prediction_enabled > 0) ? TRUE : FALSE;
 #ifdef NSCORE
 	new_service->problem_has_been_acknowledged = FALSE;
 	new_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
@@ -1511,7 +1500,6 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		my_free(new_service->plugin_output);
 		my_free(new_service->long_plugin_output);
 #endif
-		my_free(new_service->failure_prediction_options);
 		my_free(new_service->event_handler);
 		my_free(new_service->service_check_command);
 		my_free(new_service->description);
@@ -2624,7 +2612,6 @@ int free_object_data(void) {
 		free_objectlist(&this_host->escalation_list);
 		my_free(this_host->host_check_command);
 		my_free(this_host->event_handler);
-		my_free(this_host->failure_prediction_options);
 		my_free(this_host->notes);
 		my_free(this_host->notes_url);
 		my_free(this_host->action_url);
@@ -2804,7 +2791,6 @@ int free_object_data(void) {
 		free_objectlist(&this_service->exec_deps);
 		free_objectlist(&this_service->escalation_list);
 		my_free(this_service->event_handler);
-		my_free(this_service->failure_prediction_options);
 		my_free(this_service->notes);
 		my_free(this_service->notes_url);
 		my_free(this_service->action_url);

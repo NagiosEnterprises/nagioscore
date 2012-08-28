@@ -1049,7 +1049,6 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 			new_host->notifications_enabled = TRUE;
 			new_host->notification_interval = 30.0;
 			new_host->process_perf_data = TRUE;
-			new_host->failure_prediction_enabled = TRUE;
 			new_host->x_2d = -1;
 			new_host->y_2d = -1;
 			new_host->retain_status_information = TRUE;
@@ -1076,7 +1075,6 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 			new_service->notifications_enabled = TRUE;
 			new_service->notification_interval = 30.0;
 			new_service->process_perf_data = TRUE;
-			new_service->failure_prediction_enabled = TRUE;
 			new_service->retain_status_information = TRUE;
 			new_service->retain_nonstatus_information = TRUE;
 
@@ -1114,6 +1112,23 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 	}
 #undef xod_begin_def /* we don't need this anymore */
 
+static const char *xodtemplate_type_name(unsigned int id) {
+	static char *otype_name[] = {
+		"NONE", "timeperiod", "commmand", "contact", "contactgroup",
+		"host", "hostgroup", "service", "servicedependency",
+		"serviceescalation", "hostescalation", "hostdependency",
+		"hostextinfo", "serviceextinfo", "servicegroup"
+	};
+	if (id > ARRAY_SIZE(otype_name))
+		return otype_name[0];
+	return otype_name[id];
+
+	}
+
+static void xodtemplate_obsoleted(const char *var) {
+	logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: %s is obsoleted and no longer has any effect in %s type objects\n",
+		 var, xodtemplate_type_name(xodtemplate_current_object_type));
+	}
 
 /* adds a property to an object definition */
 int xodtemplate_add_object_property(char *input, int options) {
@@ -2428,11 +2443,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->have_event_handler = TRUE;
 				}
 			else if(!strcmp(variable, "failure_prediction_options")) {
-				if(strcmp(value, XODTEMPLATE_NULL)) {
-					if((temp_host->failure_prediction_options = (char *)strdup(value)) == NULL)
-						result = ERROR;
-					}
-				temp_host->have_failure_prediction_options = TRUE;
+				xodtemplate_obsoleted(variable);
 				}
 			else if(!strcmp(variable, "notes")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -2646,8 +2657,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->have_process_perf_data = TRUE;
 				}
 			else if(!strcmp(variable, "failure_prediction_enabled")) {
-				temp_host->failure_prediction_enabled = (atoi(value) > 0) ? TRUE : FALSE;
-				temp_host->have_failure_prediction_enabled = TRUE;
+				xodtemplate_obsoleted(variable);
 				}
 			else if(!strcmp(variable, "2d_coords")) {
 				if((temp_ptr = strtok(value, ", ")) == NULL) {
@@ -2879,11 +2889,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_service->have_contacts = TRUE;
 				}
 			else if(!strcmp(variable, "failure_prediction_options")) {
-				if(strcmp(value, XODTEMPLATE_NULL)) {
-					if((temp_service->failure_prediction_options = (char *)strdup(value)) == NULL)
-						result = ERROR;
-					}
-				temp_service->have_failure_prediction_options = TRUE;
+				xodtemplate_obsoleted(variable);
 				}
 			else if(!strcmp(variable, "notes")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -3110,8 +3116,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_service->have_process_perf_data = TRUE;
 				}
 			else if(!strcmp(variable, "failure_prediction_enabled")) {
-				temp_service->failure_prediction_enabled = (atoi(value) > 0) ? TRUE : FALSE;
-				temp_service->have_failure_prediction_enabled = TRUE;
+				xodtemplate_obsoleted(variable);
 				}
 			else if(!strcmp(variable, "retain_status_information")) {
 				temp_service->retain_status_information = (atoi(value) > 0) ? TRUE : FALSE;
@@ -5129,7 +5134,6 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service->have_notification_period = temp_service->have_notification_period;
 	new_service->have_contact_groups = temp_service->have_contact_groups;
 	new_service->have_contacts = temp_service->have_contacts;
-	new_service->have_failure_prediction_options = temp_service->have_failure_prediction_options;
 	new_service->have_notes = temp_service->have_notes;
 	new_service->have_notes_url = temp_service->have_notes_url;
 	new_service->have_action_url = temp_service->have_action_url;
@@ -5161,8 +5165,6 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		error = TRUE;
 	if(temp_service->contacts != NULL && (new_service->contacts = (char *)strdup(temp_service->contacts)) == NULL)
 		error = TRUE;
-	if(temp_service->failure_prediction_options != NULL && (new_service->failure_prediction_options = (char *)strdup(temp_service->failure_prediction_options)) == NULL)
-		error = TRUE;
 	if(temp_service->notes != NULL && (new_service->notes = (char *)strdup(temp_service->notes)) == NULL)
 		error = TRUE;
 	if(temp_service->notes_url != NULL && (new_service->notes_url = (char *)strdup(temp_service->notes_url)) == NULL)
@@ -5187,7 +5189,6 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		my_free(new_service->notification_period);
 		my_free(new_service->contact_groups);
 		my_free(new_service->contacts);
-		my_free(new_service->failure_prediction_options);
 		my_free(new_service->notes);
 		my_free(new_service->notes_url);
 		my_free(new_service->action_url);
@@ -5256,8 +5257,6 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service->have_stalking_options = temp_service->have_stalking_options;
 	new_service->process_perf_data = temp_service->process_perf_data;
 	new_service->have_process_perf_data = temp_service->have_process_perf_data;
-	new_service->failure_prediction_enabled = temp_service->failure_prediction_enabled;
-	new_service->have_failure_prediction_enabled = temp_service->have_failure_prediction_enabled;
 	new_service->retain_status_information = temp_service->retain_status_information;
 	new_service->have_retain_status_information = temp_service->have_retain_status_information;
 	new_service->retain_nonstatus_information = temp_service->retain_nonstatus_information;
@@ -6734,11 +6733,6 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 				this_host->notification_period = (char *)strdup(template_host->notification_period);
 			this_host->have_notification_period = TRUE;
 			}
-		if(this_host->have_failure_prediction_options == FALSE && template_host->have_failure_prediction_options == TRUE) {
-			if(this_host->failure_prediction_options == NULL && template_host->failure_prediction_options != NULL)
-				this_host->failure_prediction_options = (char *)strdup(template_host->failure_prediction_options);
-			this_host->have_failure_prediction_options = TRUE;
-			}
 		if(this_host->have_notes == FALSE && template_host->have_notes == TRUE) {
 			if(this_host->notes == NULL && template_host->notes != NULL)
 				this_host->notes = (char *)strdup(template_host->notes);
@@ -6861,10 +6855,6 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 		if(this_host->have_process_perf_data == FALSE && template_host->have_process_perf_data == TRUE) {
 			this_host->process_perf_data = template_host->process_perf_data;
 			this_host->have_process_perf_data = TRUE;
-			}
-		if(this_host->have_failure_prediction_enabled == FALSE && template_host->have_failure_prediction_enabled == TRUE) {
-			this_host->failure_prediction_enabled = template_host->failure_prediction_enabled;
-			this_host->have_failure_prediction_enabled = TRUE;
 			}
 		if(this_host->have_2d_coords == FALSE && template_host->have_2d_coords == TRUE) {
 			this_host->x_2d = template_host->x_2d;
@@ -6989,11 +6979,6 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 				this_service->notification_period = (char *)strdup(template_service->notification_period);
 			this_service->have_notification_period = TRUE;
 			}
-		if(this_service->have_failure_prediction_options == FALSE && template_service->have_failure_prediction_options == TRUE) {
-			if(this_service->failure_prediction_options == NULL && template_service->failure_prediction_options != NULL)
-				this_service->failure_prediction_options = (char *)strdup(template_service->failure_prediction_options);
-			this_service->have_failure_prediction_options = TRUE;
-			}
 		if(this_service->have_notes == FALSE && template_service->have_notes == TRUE) {
 			if(this_service->notes == NULL && template_service->notes != NULL)
 				this_service->notes = (char *)strdup(template_service->notes);
@@ -7117,10 +7102,6 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 		if(this_service->have_process_perf_data == FALSE && template_service->have_process_perf_data == TRUE) {
 			this_service->process_perf_data = template_service->process_perf_data;
 			this_service->have_process_perf_data = TRUE;
-			}
-		if(this_service->have_failure_prediction_enabled == FALSE && template_service->have_failure_prediction_enabled == TRUE) {
-			this_service->failure_prediction_enabled = template_service->failure_prediction_enabled;
-			this_service->have_failure_prediction_enabled = TRUE;
 			}
 		if(this_service->have_retain_status_information == FALSE && template_service->have_retain_status_information == TRUE) {
 			this_service->retain_status_information = template_service->retain_status_information;
@@ -9009,7 +8990,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host) {
 		this_host->address = (char *)strdup(this_host->host_name);
 
 	/* add the host definition */
-	new_host = add_host(this_host->host_name, this_host->display_name, this_host->alias, (this_host->address == NULL) ? this_host->host_name : this_host->address, this_host->check_period, this_host->initial_state, this_host->check_interval, this_host->retry_interval, this_host->max_check_attempts, this_host->notify_on_recovery, this_host->notify_on_down, this_host->notify_on_unreachable, this_host->notify_on_flapping, this_host->notify_on_downtime, this_host->notification_interval, this_host->first_notification_delay, this_host->notification_period, this_host->notifications_enabled, this_host->check_command, this_host->active_checks_enabled, this_host->passive_checks_enabled, this_host->event_handler, this_host->event_handler_enabled, this_host->flap_detection_enabled, this_host->low_flap_threshold, this_host->high_flap_threshold, this_host->flap_detection_on_up, this_host->flap_detection_on_down, this_host->flap_detection_on_unreachable, this_host->stalk_on_up, this_host->stalk_on_down, this_host->stalk_on_unreachable, this_host->process_perf_data, this_host->failure_prediction_enabled, this_host->failure_prediction_options, this_host->check_freshness, this_host->freshness_threshold, this_host->notes, this_host->notes_url, this_host->action_url, this_host->icon_image, this_host->icon_image_alt, this_host->vrml_image, this_host->statusmap_image, this_host->x_2d, this_host->y_2d, this_host->have_2d_coords, this_host->x_3d, this_host->y_3d, this_host->z_3d, this_host->have_3d_coords, TRUE, this_host->retain_status_information, this_host->retain_nonstatus_information, this_host->obsess_over_host);
+	new_host = add_host(this_host->host_name, this_host->display_name, this_host->alias, (this_host->address == NULL) ? this_host->host_name : this_host->address, this_host->check_period, this_host->initial_state, this_host->check_interval, this_host->retry_interval, this_host->max_check_attempts, this_host->notify_on_recovery, this_host->notify_on_down, this_host->notify_on_unreachable, this_host->notify_on_flapping, this_host->notify_on_downtime, this_host->notification_interval, this_host->first_notification_delay, this_host->notification_period, this_host->notifications_enabled, this_host->check_command, this_host->active_checks_enabled, this_host->passive_checks_enabled, this_host->event_handler, this_host->event_handler_enabled, this_host->flap_detection_enabled, this_host->low_flap_threshold, this_host->high_flap_threshold, this_host->flap_detection_on_up, this_host->flap_detection_on_down, this_host->flap_detection_on_unreachable, this_host->stalk_on_up, this_host->stalk_on_down, this_host->stalk_on_unreachable, this_host->process_perf_data, this_host->check_freshness, this_host->freshness_threshold, this_host->notes, this_host->notes_url, this_host->action_url, this_host->icon_image, this_host->icon_image_alt, this_host->vrml_image, this_host->statusmap_image, this_host->x_2d, this_host->y_2d, this_host->have_2d_coords, this_host->x_3d, this_host->y_3d, this_host->z_3d, this_host->have_3d_coords, TRUE, this_host->retain_status_information, this_host->retain_nonstatus_information, this_host->obsess_over_host);
 
 
 	/* return with an error if we couldn't add the host */
@@ -9086,7 +9067,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service) {
 		return OK;
 
 	/* add the service */
-	new_service = add_service(this_service->host_name, this_service->service_description, this_service->display_name, this_service->check_period, this_service->initial_state, this_service->max_check_attempts, this_service->parallelize_check, this_service->passive_checks_enabled, this_service->check_interval, this_service->retry_interval, this_service->notification_interval, this_service->first_notification_delay, this_service->notification_period, this_service->notify_on_recovery, this_service->notify_on_unknown, this_service->notify_on_warning, this_service->notify_on_critical, this_service->notify_on_flapping, this_service->notify_on_downtime, this_service->notifications_enabled, this_service->is_volatile, this_service->event_handler, this_service->event_handler_enabled, this_service->check_command, this_service->active_checks_enabled, this_service->flap_detection_enabled, this_service->low_flap_threshold, this_service->high_flap_threshold, this_service->flap_detection_on_ok, this_service->flap_detection_on_warning, this_service->flap_detection_on_unknown, this_service->flap_detection_on_critical, this_service->stalk_on_ok, this_service->stalk_on_warning, this_service->stalk_on_unknown, this_service->stalk_on_critical, this_service->process_perf_data, this_service->failure_prediction_enabled, this_service->failure_prediction_options, this_service->check_freshness, this_service->freshness_threshold, this_service->notes, this_service->notes_url, this_service->action_url, this_service->icon_image, this_service->icon_image_alt, this_service->retain_status_information, this_service->retain_nonstatus_information, this_service->obsess_over_service);
+	new_service = add_service(this_service->host_name, this_service->service_description, this_service->display_name, this_service->check_period, this_service->initial_state, this_service->max_check_attempts, this_service->parallelize_check, this_service->passive_checks_enabled, this_service->check_interval, this_service->retry_interval, this_service->notification_interval, this_service->first_notification_delay, this_service->notification_period, this_service->notify_on_recovery, this_service->notify_on_unknown, this_service->notify_on_warning, this_service->notify_on_critical, this_service->notify_on_flapping, this_service->notify_on_downtime, this_service->notifications_enabled, this_service->is_volatile, this_service->event_handler, this_service->event_handler_enabled, this_service->check_command, this_service->active_checks_enabled, this_service->flap_detection_enabled, this_service->low_flap_threshold, this_service->high_flap_threshold, this_service->flap_detection_on_ok, this_service->flap_detection_on_warning, this_service->flap_detection_on_unknown, this_service->flap_detection_on_critical, this_service->stalk_on_ok, this_service->stalk_on_warning, this_service->stalk_on_unknown, this_service->stalk_on_critical, this_service->process_perf_data, this_service->check_freshness, this_service->freshness_threshold, this_service->notes, this_service->notes_url, this_service->action_url, this_service->icon_image, this_service->icon_image_alt, this_service->retain_status_information, this_service->retain_nonstatus_information, this_service->obsess_over_service);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service == NULL) {
@@ -10415,8 +10396,6 @@ int xodtemplate_cache_objects(char *cache_file) {
 			fprintf(fp, "\tcontact_groups\t%s\n", temp_host->contact_groups);
 		if(temp_host->notification_period)
 			fprintf(fp, "\tnotification_period\t%s\n", temp_host->notification_period);
-		if(temp_host->failure_prediction_options)
-			fprintf(fp, "\tfailure_prediction_options\t%s\n", temp_host->failure_prediction_options);
 		fprintf(fp, "\tinitial_state\t");
 		if(temp_host->initial_state == HOST_DOWN)
 			fprintf(fp, "d\n");
@@ -10477,7 +10456,6 @@ int xodtemplate_cache_objects(char *cache_file) {
 			fprintf(fp, "n");
 		fprintf(fp, "\n");
 		fprintf(fp, "\tprocess_perf_data\t%d\n", temp_host->process_perf_data);
-		fprintf(fp, "\tfailure_prediction_enabled\t%d\n", temp_host->failure_prediction_enabled);
 		if(temp_host->icon_image)
 			fprintf(fp, "\ticon_image\t%s\n", temp_host->icon_image);
 		if(temp_host->icon_image_alt)
@@ -10534,8 +10512,6 @@ int xodtemplate_cache_objects(char *cache_file) {
 			fprintf(fp, "\tcontact_groups\t%s\n", temp_service->contact_groups);
 		if(temp_service->notification_period)
 			fprintf(fp, "\tnotification_period\t%s\n", temp_service->notification_period);
-		if(temp_service->failure_prediction_options)
-			fprintf(fp, "\tfailure_prediction_options\t%s\n", temp_service->failure_prediction_options);
 		fprintf(fp, "\tinitial_state\t");
 		if(temp_service->initial_state == STATE_WARNING)
 			fprintf(fp, "w\n");
@@ -10606,7 +10582,6 @@ int xodtemplate_cache_objects(char *cache_file) {
 			fprintf(fp, "n");
 		fprintf(fp, "\n");
 		fprintf(fp, "\tprocess_perf_data\t%d\n", temp_service->process_perf_data);
-		fprintf(fp, "\tfailure_prediction_enabled\t%d\n", temp_service->failure_prediction_enabled);
 		if(temp_service->icon_image)
 			fprintf(fp, "\ticon_image\t%s\n", temp_service->icon_image);
 		if(temp_service->icon_image_alt)
@@ -11583,7 +11558,6 @@ int xodtemplate_free_memory(void) {
 		my_free(this_host->contact_groups);
 		my_free(this_host->contacts);
 		my_free(this_host->notification_period);
-		my_free(this_host->failure_prediction_options);
 		my_free(this_host->notes);
 		my_free(this_host->notes_url);
 		my_free(this_host->action_url);
@@ -11623,7 +11597,6 @@ int xodtemplate_free_memory(void) {
 		my_free(this_service->notification_period);
 		my_free(this_service->contact_groups);
 		my_free(this_service->contacts);
-		my_free(this_service->failure_prediction_options);
 		my_free(this_service->notes);
 		my_free(this_service->notes_url);
 		my_free(this_service->action_url);

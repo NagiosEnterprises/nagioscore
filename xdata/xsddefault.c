@@ -60,7 +60,6 @@ int obsess_over_hosts;
 int check_service_freshness;
 int check_host_freshness;
 int enable_flap_detection;
-int enable_failure_prediction;
 int process_performance_data;
 int nagios_pid;
 int buffer_stats[1][3];
@@ -83,7 +82,6 @@ extern int obsess_over_hosts;
 extern int check_service_freshness;
 extern int check_host_freshness;
 extern int enable_flap_detection;
-extern int enable_failure_prediction;
 extern int process_performance_data;
 
 extern time_t         last_update_check;
@@ -401,7 +399,6 @@ int xsddefault_save_status_data(void) {
 	fprintf(fp, "\tcheck_service_freshness=%d\n", check_service_freshness);
 	fprintf(fp, "\tcheck_host_freshness=%d\n", check_host_freshness);
 	fprintf(fp, "\tenable_flap_detection=%d\n", enable_flap_detection);
-	fprintf(fp, "\tenable_failure_prediction=%d\n", enable_failure_prediction);
 	fprintf(fp, "\tprocess_performance_data=%d\n", process_performance_data);
 	fprintf(fp, "\tglobal_host_event_handler=%s\n", (global_host_event_handler == NULL) ? "" : global_host_event_handler);
 	fprintf(fp, "\tglobal_service_event_handler=%s\n", (global_service_event_handler == NULL) ? "" : global_service_event_handler);
@@ -476,7 +473,6 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tpassive_checks_enabled=%d\n", temp_host->accept_passive_host_checks);
 		fprintf(fp, "\tevent_handler_enabled=%d\n", temp_host->event_handler_enabled);
 		fprintf(fp, "\tflap_detection_enabled=%d\n", temp_host->flap_detection_enabled);
-		fprintf(fp, "\tfailure_prediction_enabled=%d\n", temp_host->failure_prediction_enabled);
 		fprintf(fp, "\tprocess_performance_data=%d\n", temp_host->process_performance_data);
 		fprintf(fp, "\tobsess_over_host=%d\n", temp_host->obsess_over_host);
 		fprintf(fp, "\tlast_update=%lu\n", current_time);
@@ -544,7 +540,6 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tproblem_has_been_acknowledged=%d\n", temp_service->problem_has_been_acknowledged);
 		fprintf(fp, "\tacknowledgement_type=%d\n", temp_service->acknowledgement_type);
 		fprintf(fp, "\tflap_detection_enabled=%d\n", temp_service->flap_detection_enabled);
-		fprintf(fp, "\tfailure_prediction_enabled=%d\n", temp_service->failure_prediction_enabled);
 		fprintf(fp, "\tprocess_performance_data=%d\n", temp_service->process_performance_data);
 		fprintf(fp, "\tobsess_over_service=%d\n", temp_service->obsess_over_service);
 		fprintf(fp, "\tlast_update=%lu\n", current_time);
@@ -915,8 +910,6 @@ int xsddefault_read_status_data(char *config_file, int options) {
 						check_host_freshness = (atoi(val) > 0) ? TRUE : FALSE;
 					else if(!strcmp(var, "enable_flap_detection"))
 						enable_flap_detection = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "enable_failure_prediction"))
-						enable_failure_prediction = (atoi(val) > 0) ? TRUE : FALSE;
 					else if(!strcmp(var, "process_performance_data"))
 						process_performance_data = (atoi(val) > 0) ? TRUE : FALSE;
 
@@ -1034,8 +1027,6 @@ int xsddefault_read_status_data(char *config_file, int options) {
 							temp_hoststatus->event_handler_enabled = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "flap_detection_enabled"))
 							temp_hoststatus->flap_detection_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "failure_prediction_enabled"))
-							temp_hoststatus->failure_prediction_enabled = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "process_performance_data"))
 							temp_hoststatus->process_performance_data = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "obsess_over_host"))
@@ -1128,8 +1119,6 @@ int xsddefault_read_status_data(char *config_file, int options) {
 							temp_servicestatus->acknowledgement_type = atoi(val);
 						else if(!strcmp(var, "flap_detection_enabled"))
 							temp_servicestatus->flap_detection_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "failure_prediction_enabled"))
-							temp_servicestatus->failure_prediction_enabled = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "process_performance_data"))
 							temp_servicestatus->process_performance_data = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "obsess_over_service"))

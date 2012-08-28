@@ -612,8 +612,6 @@ void enable_service_freshness_checks(void);		/* enable service freshness checks 
 void disable_service_freshness_checks(void);		/* disable service freshness checks */
 void enable_host_freshness_checks(void);		/* enable host freshness checks */
 void disable_host_freshness_checks(void);		/* disable host freshness checks */
-void enable_all_failure_prediction(void);               /* enables failure prediction on a program-wide basis */
-void disable_all_failure_prediction(void);              /* disables failure prediction on a program-wide basis */
 void enable_performance_data(void);                     /* enables processing of performance data on a program-wide basis */
 void disable_performance_data(void);                    /* disables processing of performance data on a program-wide basis */
 void start_executing_host_checks(void);			/* starts executing host checks */

@@ -51,7 +51,6 @@ extern int              enable_event_handlers;
 extern int              obsess_over_services;
 extern int              obsess_over_hosts;
 extern int              enable_flap_detection;
-extern int              enable_failure_prediction;
 extern int              process_performance_data;
 
 extern int              buffer_stats[1][3];
@@ -854,18 +853,8 @@ void show_process_info(void) {
 	/* flap detection enabled */
 	printf("<TR><TD CLASS='dataVar'>Flap Detection Enabled?</TD><TD CLASS='dataVal'>%s</TD></TR>\n", (enable_flap_detection == TRUE) ? "Yes" : "No");
 
-#ifdef PREDICT_FAILURES
-	/* failure prediction enabled */
-	printf("<TR><TD CLASS='dataVar'>Failure Prediction Enabled?</TD><TD CLASS='dataVal'>%s</TD></TR>\n", (enable_failure_prediction == TRUE) ? "Yes" : "No");
-#endif
-
 	/* process performance data */
 	printf("<TR><TD CLASS='dataVar'>Performance Data Being Processed?</TD><TD CLASS='dataVal'>%s</TD></TR>\n", (process_performance_data == TRUE) ? "Yes" : "No");
-
-#ifdef USE_OLDCRUD
-	/* daemon mode */
-	printf("<TR><TD CLASS='dataVar'>Running As A Daemon?</TD><TD CLASS='dataVal'>%s</TD></TR>\n", (daemon_mode == TRUE) ? "Yes" : "No");
-#endif
 
 	printf("</TABLE>\n");
 	printf("</TD></TR>\n");
@@ -932,12 +921,6 @@ void show_process_info(void) {
 		else
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Enable Flap Detection' TITLE='Enable Flap Detection'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Enable flap detection</a></td></tr>\n", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_FLAP_DETECTION);
 
-#ifdef PREDICT_FAILURES
-		if(enable_failure_prediction == TRUE)
-			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Disable Failure Prediction' TITLE='Disable Failure Prediction'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Disable failure prediction</a></td></tr>\n", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_DISABLE_FAILURE_PREDICTION);
-		else
-			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Enable Failure Prediction' TITLE='Enable Failure Prediction'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Enable failure prediction</a></td></tr>\n", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_FAILURE_PREDICTION);
-#endif
 		if(process_performance_data == TRUE)
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Disable Performance Data' TITLE='Disable Performance Data'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Disable performance data</a></td></tr>\n", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_DISABLE_PERFORMANCE_DATA);
 		else

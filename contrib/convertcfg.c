@@ -306,7 +306,6 @@ int main(int argc, char **argv) {
 				printf("\tnotifications_enabled\t\t1\t; Host notifications are enabled\n");
 				printf("\tevent_handler_enabled\t\t1\t; Host event handler is enabled\n");
 				printf("\tflap_detection_enabled\t\t1\t; Flap detection is enabled\n");
-				/*printf("\tfailure_prediction_enabled\t1\t; Failure prediction is enabled\n");*/
 				printf("\tprocess_perf_data\t\t1\t; Process performance data\n");
 				printf("\tretain_status_information\t1\t; Retain status information across program restarts\n");
 				printf("\tretain_nonstatus_information\t1\t; Retain non-status information across program restarts\n");
@@ -427,7 +426,6 @@ int main(int argc, char **argv) {
 				printf("\tnotifications_enabled\t\t1\t; Service notifications are enabled\n");
 				printf("\tevent_handler_enabled\t\t1\t; Service event handler is enabled\n");
 				printf("\tflap_detection_enabled\t\t1\t; Flap detection is enabled\n");
-				/*printf("\tfailure_prediction_enabled\t1\t; Failure prediction is enabled\n");*/
 				printf("\tprocess_perf_data\t\t1\t; Process performance data\n");
 				printf("\tretain_status_information\t1\t; Retain status information across program restarts\n");
 				printf("\tretain_nonstatus_information\t1\t; Retain non-status information across program restarts\n");

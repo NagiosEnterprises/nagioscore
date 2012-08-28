@@ -149,7 +149,6 @@ extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
 extern int      obsess_over_hosts;
-extern int      enable_failure_prediction;
 
 extern int      translate_passive_host_checks;
 extern int      passive_host_checks_are_soft;
@@ -1141,7 +1140,7 @@ int read_main_config_file(char *main_config_file) {
 			enable_flap_detection = (atoi(value) > 0) ? TRUE : FALSE;
 
 		else if(!strcmp(variable, "enable_failure_prediction"))
-			enable_failure_prediction = (atoi(value) > 0) ? TRUE : FALSE;
+			obsoleted_warning(variable, NULL);
 
 		else if(!strcmp(variable, "low_service_flap_threshold")) {
 

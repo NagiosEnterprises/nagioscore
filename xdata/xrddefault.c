@@ -53,7 +53,6 @@ extern int            enable_event_handlers;
 extern int            obsess_over_services;
 extern int            obsess_over_hosts;
 extern int            enable_flap_detection;
-extern int            enable_failure_prediction;
 extern int            process_performance_data;
 extern int            check_service_freshness;
 extern int            check_host_freshness;
@@ -335,7 +334,6 @@ int xrddefault_save_state_information(void) {
 	fprintf(fp, "check_service_freshness=%d\n", check_service_freshness);
 	fprintf(fp, "check_host_freshness=%d\n", check_host_freshness);
 	fprintf(fp, "enable_flap_detection=%d\n", enable_flap_detection);
-	fprintf(fp, "enable_failure_prediction=%d\n", enable_failure_prediction);
 	fprintf(fp, "process_performance_data=%d\n", process_performance_data);
 	fprintf(fp, "global_host_event_handler=%s\n", (global_host_event_handler == NULL) ? "" : global_host_event_handler);
 	fprintf(fp, "global_service_event_handler=%s\n", (global_service_event_handler == NULL) ? "" : global_service_event_handler);
@@ -395,7 +393,6 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "passive_checks_enabled=%d\n", temp_host->accept_passive_host_checks);
 		fprintf(fp, "event_handler_enabled=%d\n", temp_host->event_handler_enabled);
 		fprintf(fp, "flap_detection_enabled=%d\n", temp_host->flap_detection_enabled);
-		fprintf(fp, "failure_prediction_enabled=%d\n", temp_host->failure_prediction_enabled);
 		fprintf(fp, "process_performance_data=%d\n", temp_host->process_performance_data);
 		fprintf(fp, "obsess_over_host=%d\n", temp_host->obsess_over_host);
 		fprintf(fp, "is_flapping=%d\n", temp_host->is_flapping);
@@ -468,7 +465,6 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "problem_has_been_acknowledged=%d\n", temp_service->problem_has_been_acknowledged);
 		fprintf(fp, "acknowledgement_type=%d\n", temp_service->acknowledgement_type);
 		fprintf(fp, "flap_detection_enabled=%d\n", temp_service->flap_detection_enabled);
-		fprintf(fp, "failure_prediction_enabled=%d\n", temp_service->failure_prediction_enabled);
 		fprintf(fp, "process_performance_data=%d\n", temp_service->process_performance_data);
 		fprintf(fp, "obsess_over_service=%d\n", temp_service->obsess_over_service);
 		fprintf(fp, "is_flapping=%d\n", temp_service->is_flapping);
@@ -1090,10 +1086,6 @@ int xrddefault_read_state_information(void) {
 							if(modified_host_process_attributes & MODATTR_FLAP_DETECTION_ENABLED)
 								enable_flap_detection = (atoi(val) > 0) ? TRUE : FALSE;
 							}
-						else if(!strcmp(var, "enable_failure_prediction")) {
-							if(modified_host_process_attributes & MODATTR_FAILURE_PREDICTION_ENABLED)
-								enable_failure_prediction = (atoi(val) > 0) ? TRUE : FALSE;
-							}
 						else if(!strcmp(var, "process_performance_data")) {
 							if(modified_host_process_attributes & MODATTR_PERFORMANCE_DATA_ENABLED)
 								process_performance_data = (atoi(val) > 0) ? TRUE : FALSE;
@@ -1277,10 +1269,6 @@ int xrddefault_read_state_information(void) {
 							else if(!strcmp(var, "flap_detection_enabled")) {
 								if(temp_host->modified_attributes & MODATTR_FLAP_DETECTION_ENABLED)
 									temp_host->flap_detection_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-								}
-							else if(!strcmp(var, "failure_prediction_enabled")) {
-								if(temp_host->modified_attributes & MODATTR_FAILURE_PREDICTION_ENABLED)
-									temp_host->failure_prediction_enabled = (atoi(val) > 0) ? TRUE : FALSE;
 								}
 							else if(!strcmp(var, "process_performance_data")) {
 								if(temp_host->modified_attributes & MODATTR_PERFORMANCE_DATA_ENABLED)
@@ -1552,10 +1540,6 @@ int xrddefault_read_state_information(void) {
 							else if(!strcmp(var, "flap_detection_enabled")) {
 								if(temp_service->modified_attributes & MODATTR_FLAP_DETECTION_ENABLED)
 									temp_service->flap_detection_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-								}
-							else if(!strcmp(var, "failure_prediction_enabled")) {
-								if(temp_service->modified_attributes & MODATTR_FAILURE_PREDICTION_ENABLED)
-									temp_service->failure_prediction_enabled = (atoi(val) > 0) ? TRUE : FALSE;
 								}
 							else if(!strcmp(var, "process_performance_data")) {
 								if(temp_service->modified_attributes & MODATTR_PERFORMANCE_DATA_ENABLED)

@@ -40,7 +40,6 @@ extern int      obsess_over_services;
 extern int      obsess_over_hosts;
 extern int      check_service_freshness;
 extern int      check_host_freshness;
-extern int      enable_failure_prediction;
 extern int      process_performance_data;
 
 extern int      log_external_commands;
@@ -187,11 +186,6 @@ int process_external_command1(char *cmd) {
 
 	else if(!strcmp(command_id, "FLUSH_PENDING_COMMANDS"))
 		command_type = CMD_FLUSH_PENDING_COMMANDS;
-
-	else if(!strcmp(command_id, "ENABLE_FAILURE_PREDICTION"))
-		command_type = CMD_ENABLE_FAILURE_PREDICTION;
-	else if(!strcmp(command_id, "DISABLE_FAILURE_PREDICTION"))
-		command_type = CMD_DISABLE_FAILURE_PREDICTION;
 
 	else if(!strcmp(command_id, "ENABLE_PERFORMANCE_DATA"))
 		command_type = CMD_ENABLE_PERFORMANCE_DATA;
@@ -782,14 +776,6 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 
 		case CMD_DISABLE_HOST_FRESHNESS_CHECKS:
 			disable_host_freshness_checks();
-			break;
-
-		case CMD_ENABLE_FAILURE_PREDICTION:
-			enable_all_failure_prediction();
-			break;
-
-		case CMD_DISABLE_FAILURE_PREDICTION:
-			disable_all_failure_prediction();
 			break;
 
 		case CMD_ENABLE_PERFORMANCE_DATA:
@@ -4707,58 +4693,6 @@ void disable_host_freshness_checks(void) {
 #endif
 
 	/* update the status log with the program info */
-	update_program_status(FALSE);
-
-	return;
-	}
-
-
-/* enable failure prediction on a program-wide basis */
-void enable_all_failure_prediction(void) {
-	unsigned long attr = MODATTR_FAILURE_PREDICTION_ENABLED;
-
-	/* bail out if we're already set... */
-	if(enable_failure_prediction == TRUE)
-		return;
-
-	/* set the attribute modified flag */
-	modified_host_process_attributes |= attr;
-	modified_service_process_attributes |= attr;
-
-	enable_failure_prediction = TRUE;
-
-#ifdef USE_EVENT_BROKER
-	/* send data to event broker */
-	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, CMD_NONE, attr, modified_host_process_attributes, attr, modified_service_process_attributes, NULL);
-#endif
-
-	/* update the status log */
-	update_program_status(FALSE);
-
-	return;
-	}
-
-
-/* disable failure prediction on a program-wide basis */
-void disable_all_failure_prediction(void) {
-	unsigned long attr = MODATTR_FAILURE_PREDICTION_ENABLED;
-
-	/* bail out if we're already set... */
-	if(enable_failure_prediction == FALSE)
-		return;
-
-	/* set the attribute modified flag */
-	modified_host_process_attributes |= attr;
-	modified_service_process_attributes |= attr;
-
-	enable_failure_prediction = FALSE;
-
-#ifdef USE_EVENT_BROKER
-	/* send data to event broker */
-	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, CMD_NONE, attr, modified_host_process_attributes, attr, modified_service_process_attributes, NULL);
-#endif
-
-	/* update the status log */
 	update_program_status(FALSE);
 
 	return;

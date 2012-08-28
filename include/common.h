@@ -155,9 +155,6 @@
 #define CMD_DEL_HOST_DOWNTIME                           78
 #define CMD_DEL_SVC_DOWNTIME                            79
 
-#define CMD_ENABLE_FAILURE_PREDICTION                   80
-#define CMD_DISABLE_FAILURE_PREDICTION                  81
-
 #define CMD_ENABLE_PERFORMANCE_DATA                     82
 #define CMD_DISABLE_PERFORMANCE_DATA                    83
 

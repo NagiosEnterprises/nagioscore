@@ -197,7 +197,6 @@ define host {
 	first_notification_delay	0.000000
 	stalking_options	n
 	process_perf_data	1
-	failure_prediction_enabled	1
 	retain_status_information	1
 	retain_nonstatus_information	1
 	}
@@ -229,7 +228,6 @@ define host {
 	first_notification_delay	0.000000
 	stalking_options	n
 	process_perf_data	1
-	failure_prediction_enabled	1
 	retain_status_information	1
 	retain_nonstatus_information	1
 	}
@@ -263,7 +261,6 @@ define service {
 	first_notification_delay	0.000000
 	stalking_options	n
 	process_perf_data	1
-	failure_prediction_enabled	1
 	retain_status_information	1
 	retain_nonstatus_information	1
 	}
@@ -297,7 +294,6 @@ define service {
 	first_notification_delay	0.000000
 	stalking_options	n
 	process_perf_data	1
-	failure_prediction_enabled	1
 	retain_status_information	1
 	retain_nonstatus_information	1
 	}
@@ -331,7 +327,6 @@ define service {
 	first_notification_delay	0.000000
 	stalking_options	n
 	process_perf_data	1
-	failure_prediction_enabled	1
 	retain_status_information	1
 	retain_nonstatus_information	1
 	}

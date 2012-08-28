@@ -89,7 +89,6 @@ typedef struct hoststatus_struct {
 	double  latency;
 	double  execution_time;
 	int     scheduled_downtime_depth;
-	int     failure_prediction_enabled;
 	int     process_performance_data;
 	int     obsess_over_host;
 	struct  hoststatus_struct *next;
@@ -138,7 +137,6 @@ typedef struct servicestatus_struct {
 	double  latency;
 	double  execution_time;
 	int     scheduled_downtime_depth;
-	int     failure_prediction_enabled;
 	int     process_performance_data;
 	int     obsess_over_service;
 	struct  servicestatus_struct *next;

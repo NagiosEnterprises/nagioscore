@@ -44,7 +44,6 @@ extern int enable_event_handlers;
 extern int obsess_over_services;
 extern int obsess_over_hosts;
 extern int enable_flap_detection;
-extern int enable_failure_prediction;
 extern int process_performance_data;
 extern unsigned long modified_host_process_attributes;
 extern unsigned long modified_service_process_attributes;
@@ -491,7 +490,6 @@ void broker_program_status(int type, int flags, int attr, struct timeval *timest
 	ds.passive_host_checks_enabled = accept_passive_host_checks;
 	ds.event_handlers_enabled = enable_event_handlers;
 	ds.flap_detection_enabled = enable_flap_detection;
-	ds.failure_prediction_enabled = enable_failure_prediction;
 	ds.process_performance_data = process_performance_data;
 	ds.obsess_over_hosts = obsess_over_hosts;
 	ds.obsess_over_services = obsess_over_services;

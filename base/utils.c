@@ -186,7 +186,6 @@ extern int      execute_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
 extern int      obsess_over_hosts;
-extern int      enable_failure_prediction;
 extern int      process_performance_data;
 
 extern int      translate_passive_host_checks;
@@ -3505,7 +3504,6 @@ int reset_variables(void) {
 	enable_event_handlers = TRUE;
 	obsess_over_services = FALSE;
 	obsess_over_hosts = FALSE;
-	enable_failure_prediction = TRUE;
 
 	next_comment_id = 0L; /* comment and downtime id get initialized to nonzero elsewhere */
 	next_downtime_id = 0L;

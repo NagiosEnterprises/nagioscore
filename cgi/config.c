@@ -493,8 +493,6 @@ void display_hosts(void) {
 	printf("<TH CLASS='data'>High Flap Threshold</TH>");
 	printf("<TH CLASS='data'>Flap Detection Options</TH>\n");
 	printf("<TH CLASS='data'>Process Performance Data</TH>");
-	printf("<TH CLASS='data'>Enable Failure Prediction</TH>");
-	printf("<TH CLASS='data'>Failure Prediction Options</TH>");
 	printf("<TH CLASS='data'>Notes</TH>");
 	printf("<TH CLASS='data'>Notes URL</TH>");
 	printf("<TH CLASS='data'>Action URL</TH>");
@@ -708,12 +706,6 @@ void display_hosts(void) {
 			printf("<TD CLASS='%s'>", bg_class);
 			printf("%s\n", (temp_host->process_performance_data == TRUE) ? "Yes" : "No");
 			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>", bg_class);
-			printf("%s\n", (temp_host->failure_prediction_enabled == TRUE) ? "Yes" : "No");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_host->failure_prediction_options == NULL) ? "&nbsp;" : html_encode(temp_host->failure_prediction_options, FALSE));
 
 			printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_host->notes == NULL) ? "&nbsp;" : html_encode(temp_host->notes, FALSE));
 
@@ -1238,8 +1230,6 @@ void display_services(void) {
 	printf("<TH CLASS='data'>High Flap Threshold</TH>");
 	printf("<TH CLASS='data'>Flap Detection Options</TH>");
 	printf("<TH CLASS='data'>Process Performance Data</TH>");
-	printf("<TH CLASS='data'>Enable Failure Prediction</TH>");
-	printf("<TH CLASS='data'>Failure Prediction Options</TH>");
 	printf("<TH CLASS='data'>Notes</TH>");
 	printf("<TH CLASS='data'>Notes URL</TH>");
 	printf("<TH CLASS='data'>Action URL</TH>");
@@ -1452,12 +1442,6 @@ void display_services(void) {
 			printf("<TD CLASS='%s'>", bg_class);
 			printf("%s\n", (temp_service->process_performance_data == TRUE) ? "Yes" : "No");
 			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>", bg_class);
-			printf("%s\n", (temp_service->failure_prediction_enabled == TRUE) ? "Yes" : "No");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_service->failure_prediction_options == NULL) ? "&nbsp;" : html_encode(temp_service->failure_prediction_options, FALSE));
 
 			printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_service->notes == NULL) ? "&nbsp;" : html_encode(temp_service->notes, FALSE));
 

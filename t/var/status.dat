@@ -32,7 +32,6 @@ programstatus {
 	check_service_freshness=1
 	check_host_freshness=0
 	enable_flap_detection=1
-	enable_failure_prediction=1
 	process_performance_data=0
 	global_host_event_handler=
 	global_service_event_handler=
@@ -102,7 +101,6 @@ hoststatus {
 	passive_checks_enabled=1
 	event_handler_enabled=1
 	flap_detection_enabled=1
-	failure_prediction_enabled=1
 	process_performance_data=1
 	obsess_over_host=1
 	last_update=1242341791
@@ -159,7 +157,6 @@ hoststatus {
 	passive_checks_enabled=1
 	event_handler_enabled=1
 	flap_detection_enabled=1
-	failure_prediction_enabled=1
 	process_performance_data=1
 	obsess_over_host=1
 	last_update=1242341791
@@ -218,7 +215,6 @@ servicestatus {
 	problem_has_been_acknowledged=0
 	acknowledgement_type=0
 	flap_detection_enabled=1
-	failure_prediction_enabled=1
 	process_performance_data=1
 	obsess_over_service=1
 	last_update=1242341791
@@ -277,7 +273,6 @@ servicestatus {
 	problem_has_been_acknowledged=0
 	acknowledgement_type=0
 	flap_detection_enabled=1
-	failure_prediction_enabled=1
 	process_performance_data=1
 	obsess_over_service=1
 	last_update=1242341791

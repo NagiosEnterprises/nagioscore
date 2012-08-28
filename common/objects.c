@@ -943,7 +943,6 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 	if(result == ERROR) {
 		my_free(new_servicegroup->alias);
 		my_free(new_servicegroup->group_name);
-		my_free(new_servicegroup);
 		return NULL;
 		}
 
@@ -1130,7 +1129,6 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 		my_free(new_contact->alias);
 		my_free(new_contact->email);
 		my_free(new_contact->pager);
-		my_free(new_contact);
 		return NULL;
 		}
 
@@ -1504,7 +1502,6 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		my_free(new_service->service_check_command);
 		my_free(new_service->description);
 		my_free(new_service->display_name);
-		my_free(new_service);
 		return NULL;
 		}
 
@@ -1789,7 +1786,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	hostdependency *new_hostdependency = NULL;
 	host *parent, *child;
 	timeperiod *tp = NULL;
-	int result = OK;
 
 	/* make sure we have what we need */
 	parent = find_host(host_name);
@@ -1815,11 +1811,11 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 #ifndef NSCGI
 	if(dependency_type == NOTIFICATION_DEPENDENCY) {
 		if(add_object_to_objectlist(&child->notify_deps, new_hostdependency) != OK)
-			result = ERROR;
+			return NULL;
 		}
 	else {
 		if(add_object_to_objectlist(&child->exec_deps, new_hostdependency) != OK)
-			result = ERROR;
+			return NULL;
 		}
 
 	new_hostdependency->dependent_host_ptr = child;
@@ -1839,12 +1835,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency->fail_on_down = (fail_on_down == 1) ? TRUE : FALSE;
 	new_hostdependency->fail_on_unreachable = (fail_on_unreachable == 1) ? TRUE : FALSE;
 	new_hostdependency->fail_on_pending = (fail_on_pending == 1) ? TRUE : FALSE;
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_hostdependency);
-		return NULL;
-		}
 
 	new_hostdependency->id = num_objects.hostdependencies++;
 	if(new_hostdependency->id)

@@ -125,6 +125,12 @@ extern int allow_empty_hostgroup_assignment;
 /* add up execution and notification dependencies */
 static unsigned int host_deps, service_deps;
 
+/* we need these to make sure each object with a group has a unique id */
+static unsigned int xodtemplate_host_id;
+static unsigned int xodtemplate_service_id;
+static unsigned int xodtemplate_contact_id;
+
+
 /*
  * Macro magic used to determine if a service is assigned
  * via hostgroup_name or host_name. Those assigned via host_name
@@ -2126,6 +2132,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 							break;
 						}
 					}
+				temp_contact->id = xodtemplate_contact_id++;
 				}
 			else if(!strcmp(variable, "alias")) {
 				if((temp_contact->alias = (char *)strdup(value)) == NULL)
@@ -2370,6 +2377,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 							break;
 						}
 					}
+				temp_host->id = xodtemplate_host_id++;
 				}
 			else if(!strcmp(variable, "display_name")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -4171,6 +4179,7 @@ int xodtemplate_duplicate_services(void) {
 			/* if this is the first duplication, use the existing entry */
 			if(first_item == TRUE) {
 
+				temp_service->id = xodtemplate_service_id++;
 				my_free(temp_service->host_name);
 				temp_service->host_name = (char *)strdup(this_memberlist->name1);
 				if(temp_service->host_name == NULL) {
@@ -5114,6 +5123,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	if(new_service == NULL)
 		return ERROR;
 
+	new_service->id = xodtemplate_service_id++;
 	/* standard items */
 	new_service->has_been_resolved = temp_service->has_been_resolved;
 	new_service->register_object = temp_service->register_object;
@@ -7473,6 +7483,17 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 
 #ifdef NSCORE
 
+int xodtemplate_add_contactgroup_member(xodtemplate_contactgroup *cg, xodtemplate_contact *c) {
+	if(!cg || !c)
+		return ERROR;
+	if(!cg->member_map && !(cg->member_map = bitmap_create(xodtemplate_contact_id)))
+		return ERROR;
+	if(bitmap_isset(cg->member_map, c->id))
+		return OK;
+	bitmap_set(cg->member_map, c->id);
+	prepend_object_to_objectlist(&cg->member_list, c);
+	return OK;
+	}
 
 /* recombobulates contactgroup definitions */
 int xodtemplate_recombobulate_contactgroups(void) {
@@ -7647,6 +7668,43 @@ int xodtemplate_recombobulate_object_contacts(void) {
 	}
 
 
+int xodtemplate_add_hostgroup_member(xodtemplate_hostgroup *hg, xodtemplate_host *h) {
+	if(!hg || !h)
+		return ERROR;
+	if(hg->member_map == NULL && !(hg->member_map = bitmap_create(xodtemplate_host_id)))
+		return ERROR;
+
+	/* don't add already added objects */
+	if(bitmap_isset(hg->member_map, h->id))
+		return OK;
+	bitmap_set(hg->member_map, h->id);
+	return prepend_object_to_objectlist(&hg->member_list, h);
+	}
+
+
+void xodtemplate_debug_print_hostgroups(const char *msg)
+{
+	xodtemplate_hostgroup *temp_hostgroup;
+
+	printf("%s\n", msg);
+	for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup; temp_hostgroup = temp_hostgroup->next) {
+		objectlist *list;
+		printf("HOSTGROUP [%s]\n", temp_hostgroup->hostgroup_name);
+		printf("H MEMBERS: %s\n", temp_hostgroup->members);
+		printf("H MEMBER-LIST (%p):\n", temp_hostgroup->member_list);
+		for(list = temp_hostgroup->member_list; list; list = list->next) {
+			xodtemplate_host *h = (xodtemplate_host *)list->object_ptr;
+			if(list != temp_hostgroup->member_list)
+				putchar(',');
+			printf("%s", h->host_name);
+		}
+		putchar('\n');
+		printf("G MEMBERS: %s\n", temp_hostgroup->hostgroup_members);
+		printf("\n");
+		}
+	}
+
+
 /* recombobulates hostgroup definitions */
 int xodtemplate_recombobulate_hostgroups(void) {
 	xodtemplate_host *temp_host = NULL;
@@ -7655,17 +7713,6 @@ int xodtemplate_recombobulate_hostgroups(void) {
 	xodtemplate_memberlist *this_memberlist = NULL;
 	char *hostgroup_names = NULL;
 	char *temp_ptr = NULL;
-	char *new_members = NULL;
-
-#ifdef DEBUG
-	printf("** PRE-EXPANSION 1\n");
-	for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup; temp_hostgroup = temp_hostgroup->next) {
-		printf("HOSTGROUP [%s]\n", temp_hostgroup->hostgroup_name);
-		printf("H MEMBERS: %s\n", temp_hostgroup->members);
-		printf("G MEMBERS: %s\n", temp_hostgroup->hostgroup_members);
-		printf("\n");
-		}
-#endif
 
 	/* This should happen before we expand hostgroup members, to avoid duplicate host memberships 01/07/2006 EG */
 	/* process all hosts that have hostgroup directives */
@@ -7698,32 +7745,13 @@ int xodtemplate_recombobulate_hostgroups(void) {
 				return ERROR;
 				}
 
-			/* add this list to the hostgroup members directive */
-			if(temp_hostgroup->members == NULL)
-				temp_hostgroup->members = (char *)strdup(temp_host->host_name);
-			else {
-				new_members = (char *)realloc(temp_hostgroup->members, strlen(temp_hostgroup->members) + strlen(temp_host->host_name) + 2);
-				if(new_members != NULL) {
-					temp_hostgroup->members = new_members;
-					strcat(temp_hostgroup->members, ",");
-					strcat(temp_hostgroup->members, temp_host->host_name);
-					}
-				}
+			/* add ourselves to the hostgroup member list */
+			xodtemplate_add_hostgroup_member(temp_hostgroup, temp_host);
 			}
 
 		/* free memory */
 		my_free(hostgroup_names);
 		}
-
-#ifdef DEBUG
-	printf("** POST-EXPANSION 1\n");
-	for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup; temp_hostgroup = temp_hostgroup->next) {
-		printf("HOSTGROUP [%s]\n", temp_hostgroup->hostgroup_name);
-		printf("H MEMBERS: %s\n", temp_hostgroup->members);
-		printf("G MEMBERS: %s\n", temp_hostgroup->hostgroup_members);
-		printf("\n");
-		}
-#endif
 
 	/* expand subgroup membership recursively */
 	for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup; temp_hostgroup = temp_hostgroup->next)
@@ -7741,7 +7769,6 @@ int xodtemplate_recombobulate_hostgroups(void) {
 
 		/* get list of hosts in the hostgroup */
 		temp_memberlist = xodtemplate_expand_hostgroups_and_hosts(NULL, temp_hostgroup->members, temp_hostgroup->_config_file, temp_hostgroup->_start_line);
-
 		/* add all members to the host group */
 		if(temp_memberlist == NULL) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand members specified in hostgroup (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostgroup->_config_file), temp_hostgroup->_start_line);
@@ -7749,31 +7776,19 @@ int xodtemplate_recombobulate_hostgroups(void) {
 			}
 		my_free(temp_hostgroup->members);
 		for(this_memberlist = temp_memberlist; this_memberlist; this_memberlist = this_memberlist->next) {
-
+			temp_host = xodtemplate_find_real_host(this_memberlist->name1);
 			/* add this host to the hostgroup members directive */
-			if(temp_hostgroup->members == NULL)
-				temp_hostgroup->members = (char *)strdup(this_memberlist->name1);
-			else {
-				new_members = (char *)realloc(temp_hostgroup->members, strlen(temp_hostgroup->members) + strlen(this_memberlist->name1) + 2);
-				if(new_members != NULL) {
-					temp_hostgroup->members = new_members;
-					strcat(temp_hostgroup->members, ",");
-					strcat(temp_hostgroup->members, this_memberlist->name1);
-					}
+			if(temp_host == NULL) {
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to find host '%s' which is supposed to be a member of hostgroup '%s' defined in %s on line %d\n",
+					  this_memberlist->name1, temp_hostgroup->hostgroup_name,
+					  xodtemplate_config_file_name(temp_hostgroup->_config_file),
+					  temp_hostgroup->_start_line);
+				return ERROR;
 				}
+			xodtemplate_add_hostgroup_member(temp_hostgroup, temp_host);
 			}
 		xodtemplate_free_memberlist(&temp_memberlist);
 		}
-
-#ifdef DEBUG
-	printf("** POST-EXPANSION 2\n");
-	for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup; temp_hostgroup = temp_hostgroup->next) {
-		printf("HOSTGROUP [%s]\n", temp_hostgroup->hostgroup_name);
-		printf("H MEMBERS: %s\n", temp_hostgroup->members);
-		printf("G MEMBERS: %s\n", temp_hostgroup->hostgroup_members);
-		printf("\n");
-		}
-#endif
 
 	return OK;
 	}
@@ -7848,6 +7863,21 @@ int xodtemplate_recombobulate_hostgroup_subgroups(xodtemplate_hostgroup *temp_ho
 
 
 
+int xodtemplate_add_servicegroup_member(xodtemplate_servicegroup *sg, xodtemplate_service *s) {
+	if(!sg || !s)
+		return ERROR;
+	if(sg->member_map == NULL) {
+		sg->member_map = bitmap_create(xodtemplate_service_id);
+		if(sg->member_map == NULL)
+			return ERROR;
+		}
+
+	if(bitmap_isset(sg->member_map, s->id))
+		return OK;
+	bitmap_set(sg->member_map, s->id);
+	return prepend_object_to_objectlist(&sg->member_list, s);
+	}
+
 /* recombobulates servicegroup definitions */
 /***** THIS NEEDS TO BE CALLED AFTER OBJECTS (SERVICES) ARE RESOLVED AND DUPLICATED *****/
 int xodtemplate_recombobulate_servicegroups(void) {
@@ -7861,7 +7891,6 @@ int xodtemplate_recombobulate_servicegroups(void) {
 	char *service_description = NULL;
 	char *temp_ptr = NULL;
 	char *temp_ptr2 = NULL;
-	char *new_members = NULL;
 
 	/* This should happen before we expand servicegroup members, to avoid duplicate service memberships 01/07/2006 EG */
 	/* process all services that have servicegroup directives */
@@ -7894,26 +7923,9 @@ int xodtemplate_recombobulate_servicegroups(void) {
 				return ERROR;
 				}
 
-			/* add this list to the servicegroup members directive */
-			if(temp_servicegroup->members == NULL) {
-				temp_servicegroup->members = (char *)malloc(strlen(temp_service->host_name) + strlen(temp_service->service_description) + 2);
-				if(temp_servicegroup->members != NULL) {
-					strcpy(temp_servicegroup->members, temp_service->host_name);
-					strcat(temp_servicegroup->members, ",");
-					strcat(temp_servicegroup->members, temp_service->service_description);
-					}
-				}
-			else {
-				new_members = (char *)realloc(temp_servicegroup->members, strlen(temp_servicegroup->members) + strlen(temp_service->host_name) + strlen(temp_service->service_description) + 3);
-				if(new_members != NULL) {
-					temp_servicegroup->members = new_members;
-					strcat(temp_servicegroup->members, ",");
-					strcat(temp_servicegroup->members, temp_service->host_name);
-					strcat(temp_servicegroup->members, ",");
-					strcat(temp_servicegroup->members, temp_service->service_description);
-					}
-				}
-			}
+			/* add ourselves as members to the group */
+			xodtemplate_add_servicegroup_member(temp_servicegroup, temp_service);
+		}
 
 		/* free servicegroup names */
 		my_free(servicegroup_names);
@@ -7973,25 +7985,18 @@ int xodtemplate_recombobulate_servicegroups(void) {
 
 				for(this_memberlist = temp_memberlist; this_memberlist; this_memberlist = this_memberlist->next) {
 
+					temp_service = xodtemplate_find_real_service(this_memberlist->name1, this_memberlist->name2);
+					if(temp_service == NULL) {
+						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to find service '%s' on host '%s' which is supposed to be a member of servicegroup '%s' defined in %s on line %d\n",
+							  this_memberlist->name2, this_memberlist->name1,
+							  temp_servicegroup->servicegroup_name,
+							  xodtemplate_config_file_name(temp_servicegroup->_config_file),
+							  temp_servicegroup->_start_line);
+						return ERROR;
+						}
+
 					/* add this service to the servicegroup members directive */
-					if(temp_servicegroup->members == NULL) {
-						temp_servicegroup->members = (char *)malloc(strlen(this_memberlist->name1) + strlen(this_memberlist->name2) + 2);
-						if(temp_servicegroup != NULL) {
-							strcpy(temp_servicegroup->members, this_memberlist->name1);
-							strcat(temp_servicegroup->members, ",");
-							strcat(temp_servicegroup->members, this_memberlist->name2);
-							}
-						}
-					else {
-						new_members = (char *)realloc(temp_servicegroup->members, strlen(temp_servicegroup->members) + strlen(this_memberlist->name1) + strlen(this_memberlist->name2) + 3);
-						if(new_members != NULL) {
-							temp_servicegroup->members = new_members;
-							strcat(temp_servicegroup->members, ",");
-							strcat(temp_servicegroup->members, this_memberlist->name1);
-							strcat(temp_servicegroup->members, ",");
-							strcat(temp_servicegroup->members, this_memberlist->name2);
-							}
-						}
+					xodtemplate_add_servicegroup_member(temp_servicegroup, temp_service);
 					}
 				xodtemplate_free_memberlist(&temp_memberlist);
 
@@ -8697,8 +8702,7 @@ int xodtemplate_register_command(xodtemplate_command *this_command) {
 /* registers a contactgroup definition */
 int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgroup) {
 	contactgroup *new_contactgroup = NULL;
-	contactsmember *new_contactsmember = NULL;
-	char *contact_name = NULL;
+	objectlist *list, *next;
 
 	/* bail out if we shouldn't register this object */
 	if(this_contactgroup->register_object == FALSE)
@@ -8713,16 +8717,11 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 		return ERROR;
 		}
 
-	/* Need to check for NULL because strtok could use a NULL value to check the previous string's token value */
-	if(this_contactgroup->members != NULL) {
-		for(contact_name = strtok(this_contactgroup->members, ","); contact_name != NULL; contact_name = strtok(NULL, ",")) {
-			strip(contact_name);
-			new_contactsmember = add_contact_to_contactgroup(new_contactgroup, contact_name);
-			if(new_contactsmember == NULL) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to contactgroup (config file '%s', starting on line %d)\n", contact_name, xodtemplate_config_file_name(this_contactgroup->_config_file), this_contactgroup->_start_line);
-				return ERROR;
-				}
-			}
+	for(list = this_contactgroup->member_list; list; list = next) {
+		xodtemplate_contact *c = (xodtemplate_contact *)list->object_ptr;
+		next = list->next;
+		xodtemplate_add_contactgroup_member(this_contactgroup, c);
+		free(list);
 		}
 
 	return OK;
@@ -8733,8 +8732,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 /* registers a hostgroup definition */
 int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup) {
 	hostgroup *new_hostgroup = NULL;
-	hostsmember *new_hostsmember = NULL;
-	char *host_name = NULL;
+	objectlist *list, *next;
 
 	/* bail out if we shouldn't register this object */
 	if(this_hostgroup->register_object == FALSE)
@@ -8749,15 +8747,11 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup) {
 		return ERROR;
 		}
 
-	if(this_hostgroup->members != NULL) {
-		for(host_name = strtok(this_hostgroup->members, ","); host_name != NULL; host_name = strtok(NULL, ",")) {
-			strip(host_name);
-			new_hostsmember = add_host_to_hostgroup(new_hostgroup, host_name);
-			if(new_hostsmember == NULL) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add host '%s' to hostgroup (config file '%s', starting on line %d)\n", host_name, xodtemplate_config_file_name(this_hostgroup->_config_file), this_hostgroup->_start_line);
-				return ERROR;
-				}
-			}
+	for(list = this_hostgroup->member_list; list; list = next) {
+		xodtemplate_host *h = (xodtemplate_host *)list->object_ptr;
+		next = list->next;
+		xodtemplate_add_hostgroup_member(this_hostgroup, h);
+		free(list);
 		}
 
 	return OK;
@@ -8771,6 +8765,7 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 	servicesmember *new_servicesmember = NULL;
 	char *host_name = NULL;
 	char *svc_description = NULL;
+	objectlist *list, *next;
 
 	/* bail out if we shouldn't register this object */
 	if(this_servicegroup->register_object == FALSE)
@@ -8785,6 +8780,14 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 		return ERROR;
 		}
 
+	for(list = this_servicegroup->member_list; list; list = next) {
+		xodtemplate_service *s = (xodtemplate_service *)list->object_ptr;
+		next = list->next;
+		add_service_to_servicegroup(new_servicegroup, s->host_name, s->service_description);
+		free(list);
+		}
+
+	return OK;
 	if(this_servicegroup->members != NULL) {
 		for(host_name = strtok(this_servicegroup->members, ","); host_name != NULL; host_name = strtok(NULL, ",")) {
 			strip(host_name);
@@ -10117,6 +10120,7 @@ int xodtemplate_cache_objects(char *cache_file) {
 	xodtemplate_hostescalation *temp_hostescalation = NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember = NULL;
 	time_t current_time = 0L;
+	objectlist *list;
 	void *ptr = NULL;
 
 
@@ -10141,7 +10145,6 @@ int xodtemplate_cache_objects(char *cache_file) {
 
 
 	/* cache timeperiods */
-	/*for(temp_timeperiod=xodtemplate_timeperiod_list;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next){*/
 	ptr = NULL;
 	for(temp_timeperiod = (xodtemplate_timeperiod *)skiplist_get_first(xobject_skiplists[TIMEPERIOD_SKIPLIST], &ptr); temp_timeperiod != NULL; temp_timeperiod = (xodtemplate_timeperiod *)skiplist_get_next(&ptr)) {
 
@@ -10219,7 +10222,6 @@ int xodtemplate_cache_objects(char *cache_file) {
 		}
 
 	/* cache commands */
-	/*for(temp_command=xodtemplate_command_list;temp_command!=NULL;temp_command=temp_command->next){*/
 	ptr = NULL;
 	for(temp_command = (xodtemplate_command *)skiplist_get_first(xobject_skiplists[COMMAND_SKIPLIST], &ptr); temp_command != NULL; temp_command = (xodtemplate_command *)skiplist_get_next(&ptr)) {
 		if(temp_command->register_object == FALSE)
@@ -10233,7 +10235,6 @@ int xodtemplate_cache_objects(char *cache_file) {
 		}
 
 	/* cache contactgroups */
-	/*for(temp_contactgroup=xodtemplate_contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){*/
 	ptr = NULL;
 	for(temp_contactgroup = (xodtemplate_contactgroup *)skiplist_get_first(xobject_skiplists[CONTACTGROUP_SKIPLIST], &ptr); temp_contactgroup != NULL; temp_contactgroup = (xodtemplate_contactgroup *)skiplist_get_next(&ptr)) {
 		if(temp_contactgroup->register_object == FALSE)
@@ -10243,13 +10244,20 @@ int xodtemplate_cache_objects(char *cache_file) {
 			fprintf(fp, "\tcontactgroup_name\t%s\n", temp_contactgroup->contactgroup_name);
 		if(temp_contactgroup->alias)
 			fprintf(fp, "\talias\t%s\n", temp_contactgroup->alias);
-		if(temp_contactgroup->members)
-			fprintf(fp, "\tmembers\t%s\n", temp_contactgroup->members);
+		if(temp_contactgroup->member_list) {
+			fprintf(fp, "\tmembers\t");
+			for(list = temp_contactgroup->member_list; list; list = list->next) {
+				xodtemplate_contact *c = (xodtemplate_contact *)list->object_ptr;
+				if(list != temp_contactgroup->member_list)
+					fputc(',', fp);
+				fprintf(fp, c->contact_name);
+			}
+			fputc(',', fp);
+		}
 		fprintf(fp, "\t}\n\n");
 		}
 
 	/* cache hostgroups */
-	/*for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){*/
 	ptr = NULL;
 	for(temp_hostgroup = (xodtemplate_hostgroup *)skiplist_get_first(xobject_skiplists[HOSTGROUP_SKIPLIST], &ptr); temp_hostgroup != NULL; temp_hostgroup = (xodtemplate_hostgroup *)skiplist_get_next(&ptr)) {
 		if(temp_hostgroup->register_object == FALSE)
@@ -10259,8 +10267,16 @@ int xodtemplate_cache_objects(char *cache_file) {
 			fprintf(fp, "\thostgroup_name\t%s\n", temp_hostgroup->hostgroup_name);
 		if(temp_hostgroup->alias)
 			fprintf(fp, "\talias\t%s\n", temp_hostgroup->alias);
-		if(temp_hostgroup->members)
-			fprintf(fp, "\tmembers\t%s\n", temp_hostgroup->members);
+		if(temp_hostgroup->member_list) {
+			fprintf(fp, "\tmembers\t");
+			for(list = temp_hostgroup->member_list; list; list = list->next) {
+				xodtemplate_host *h = (xodtemplate_host *)list->object_ptr;
+				if(list != temp_hostgroup->member_list)
+					fputc(',', fp);
+				fprintf(fp, "%s", h->host_name);
+				}
+			fputc('\n', fp);
+			}
 		if(temp_hostgroup->notes)
 			fprintf(fp, "\tnotes\t%s\n", temp_hostgroup->notes);
 		if(temp_hostgroup->notes_url)
@@ -10281,8 +10297,16 @@ int xodtemplate_cache_objects(char *cache_file) {
 			fprintf(fp, "\tservicegroup_name\t%s\n", temp_servicegroup->servicegroup_name);
 		if(temp_servicegroup->alias)
 			fprintf(fp, "\talias\t%s\n", temp_servicegroup->alias);
-		if(temp_servicegroup->members)
-			fprintf(fp, "\tmembers\t%s\n", temp_servicegroup->members);
+		if(temp_servicegroup->member_list) {
+			fprintf(fp, "\tmembers\t");
+			for(list = temp_servicegroup->member_list; list; list = list->next) {
+				xodtemplate_service *s = (xodtemplate_service *)list->object_ptr;
+				if(list != temp_servicegroup->member_list)
+					fputc(',', fp);
+				fprintf(fp, "%s,%s", s->host_name, s->service_description);
+				}
+			fputc('\n', fp);
+			}
 		if(temp_servicegroup->notes)
 			fprintf(fp, "\tnotes\t%s\n", temp_servicegroup->notes);
 		if(temp_servicegroup->notes_url)
@@ -11423,6 +11447,7 @@ int xodtemplate_free_memory(void) {
 		my_free(this_contactgroup->alias);
 		my_free(this_contactgroup->members);
 		my_free(this_contactgroup->contactgroup_members);
+		bitmap_destroy(this_contactgroup->member_map);
 		my_free(this_contactgroup);
 		}
 	xodtemplate_contactgroup_list = NULL;
@@ -11440,6 +11465,7 @@ int xodtemplate_free_memory(void) {
 		my_free(this_hostgroup->notes);
 		my_free(this_hostgroup->notes_url);
 		my_free(this_hostgroup->action_url);
+		bitmap_destroy(this_hostgroup->member_map);
 		my_free(this_hostgroup);
 		}
 	xodtemplate_hostgroup_list = NULL;
@@ -11457,6 +11483,7 @@ int xodtemplate_free_memory(void) {
 		my_free(this_servicegroup->notes);
 		my_free(this_servicegroup->notes_url);
 		my_free(this_servicegroup->action_url);
+		bitmap_destroy(this_servicegroup->member_map);
 		my_free(this_servicegroup);
 		}
 	xodtemplate_servicegroup_list = NULL;
@@ -12147,6 +12174,7 @@ xodtemplate_memberlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups
 		if(result != OK) {
 			xodtemplate_free_memberlist(&temp_list);
 			xodtemplate_free_memberlist(&reject_list);
+			printf("xodtemplate_expand_hostgroups() came back empty\n");
 			return NULL;
 			}
 		}
@@ -12162,18 +12190,6 @@ xodtemplate_memberlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups
 			return NULL;
 			}
 		}
-
-#ifdef TESTING
-	printf("->PRIOR TO CLEANUP\n");
-	printf("   REJECT LIST:\n");
-	for(list_ptr = reject_list; list_ptr != NULL; list_ptr = list_ptr->next) {
-		printf("      '%s'\n", list_ptr->name1);
-		}
-	printf("   ACCEPT LIST:\n");
-	for(list_ptr = temp_list; list_ptr != NULL; list_ptr = list_ptr->next) {
-		printf("      '%s'\n", list_ptr->name1);
-		}
-#endif
 
 	/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
 	/* NOTE: rejects from this list also affect hosts generated from processing hostgroup names (see above) */
@@ -12445,8 +12461,18 @@ int xodtemplate_add_hostgroup_members_to_memberlist(xodtemplate_memberlist **lis
 		return ERROR;
 
 	/* if we have no members, just return. Empty hostgroups are ok */
-	if(temp_hostgroup->members == NULL) {
+	if(temp_hostgroup->members == NULL && temp_hostgroup->member_list == NULL) {
 		return OK;
+		}
+
+	if(temp_hostgroup->member_list) {
+		objectlist *olist;
+		for(olist = temp_hostgroup->member_list; olist; olist = olist->next) {
+			xodtemplate_host *h = (xodtemplate_host *)olist->object_ptr;
+			xodtemplate_add_member_to_memberlist(list, h->host_name, NULL);
+			}
+		if(temp_hostgroup->members == NULL)
+			return OK;
 		}
 
 	/* save a copy of the members */

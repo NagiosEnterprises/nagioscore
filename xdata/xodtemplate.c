@@ -7481,9 +7481,7 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 /*************** OBJECT RECOMBOBULATION FUNCTIONS *****************/
 /******************************************************************/
 
-#ifdef NSCORE
-
-int xodtemplate_add_contactgroup_member(xodtemplate_contactgroup *cg, xodtemplate_contact *c) {
+static int xodtemplate_add_contactgroup_member(xodtemplate_contactgroup *cg, xodtemplate_contact *c) {
 	if(!cg || !c)
 		return ERROR;
 	if(!cg->member_map && !(cg->member_map = bitmap_create(xodtemplate_contact_id)))
@@ -7494,6 +7492,36 @@ int xodtemplate_add_contactgroup_member(xodtemplate_contactgroup *cg, xodtemplat
 	prepend_object_to_objectlist(&cg->member_list, c);
 	return OK;
 	}
+
+static int xodtemplate_add_hostgroup_member(xodtemplate_hostgroup *hg, xodtemplate_host *h) {
+	if(!hg || !h)
+		return ERROR;
+	if(hg->member_map == NULL && !(hg->member_map = bitmap_create(xodtemplate_host_id)))
+		return ERROR;
+
+	/* don't add already added objects */
+	if(bitmap_isset(hg->member_map, h->id))
+		return OK;
+	bitmap_set(hg->member_map, h->id);
+	return prepend_object_to_objectlist(&hg->member_list, h);
+	}
+
+static int xodtemplate_add_servicegroup_member(xodtemplate_servicegroup *sg, xodtemplate_service *s) {
+	if(!sg || !s)
+		return ERROR;
+	if(sg->member_map == NULL) {
+		sg->member_map = bitmap_create(xodtemplate_service_id);
+		if(sg->member_map == NULL)
+			return ERROR;
+		}
+
+	if(bitmap_isset(sg->member_map, s->id))
+		return OK;
+	bitmap_set(sg->member_map, s->id);
+	return prepend_object_to_objectlist(&sg->member_list, s);
+	}
+
+#ifdef NSCORE
 
 /* recombobulates contactgroup definitions */
 int xodtemplate_recombobulate_contactgroups(void) {
@@ -7665,20 +7693,6 @@ int xodtemplate_recombobulate_contactgroup_subgroups(xodtemplate_contactgroup *t
 /* recombobulates contacts in various object definitions */
 int xodtemplate_recombobulate_object_contacts(void) {
 	return OK;
-	}
-
-
-int xodtemplate_add_hostgroup_member(xodtemplate_hostgroup *hg, xodtemplate_host *h) {
-	if(!hg || !h)
-		return ERROR;
-	if(hg->member_map == NULL && !(hg->member_map = bitmap_create(xodtemplate_host_id)))
-		return ERROR;
-
-	/* don't add already added objects */
-	if(bitmap_isset(hg->member_map, h->id))
-		return OK;
-	bitmap_set(hg->member_map, h->id);
-	return prepend_object_to_objectlist(&hg->member_list, h);
 	}
 
 
@@ -7862,21 +7876,6 @@ int xodtemplate_recombobulate_hostgroup_subgroups(xodtemplate_hostgroup *temp_ho
 	}
 
 
-
-int xodtemplate_add_servicegroup_member(xodtemplate_servicegroup *sg, xodtemplate_service *s) {
-	if(!sg || !s)
-		return ERROR;
-	if(sg->member_map == NULL) {
-		sg->member_map = bitmap_create(xodtemplate_service_id);
-		if(sg->member_map == NULL)
-			return ERROR;
-		}
-
-	if(bitmap_isset(sg->member_map, s->id))
-		return OK;
-	bitmap_set(sg->member_map, s->id);
-	return prepend_object_to_objectlist(&sg->member_list, s);
-	}
 
 /* recombobulates servicegroup definitions */
 /***** THIS NEEDS TO BE CALLED AFTER OBJECTS (SERVICES) ARE RESOLVED AND DUPLICATED *****/

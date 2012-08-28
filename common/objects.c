@@ -2664,6 +2664,7 @@ int free_object_data(void) {
 
 	/**** free memory for the contact list ****/
 	for (i = 0; i < num_objects.contacts; i++) {
+		int j;
 		contact *this_contact = &contact_list[i];
 
 		/* free memory for the host notification commands */
@@ -2700,8 +2701,8 @@ int free_object_data(void) {
 		my_free(this_contact->alias);
 		my_free(this_contact->email);
 		my_free(this_contact->pager);
-		for(i = 0; i < MAX_CONTACT_ADDRESSES; i++)
-			my_free(this_contact->address[i]);
+		for(j = 0; j < MAX_CONTACT_ADDRESSES; j++)
+			my_free(this_contact->address[j]);
 
 #ifdef NSCORE
 		free_objectlist(&this_contact->contactgroups_ptr);
@@ -2749,7 +2750,6 @@ int free_object_data(void) {
 		this_contactsmember = this_service->contacts;
 		while(this_contactsmember != NULL) {
 			next_contactsmember = this_contactsmember->next;
-			my_free(this_contactsmember->contact_name);
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
 			}

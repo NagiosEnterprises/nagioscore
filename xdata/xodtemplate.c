@@ -5491,6 +5491,8 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 	/* add new hostdependency to head of list in memory */
 	new_hostdependency->next = xodtemplate_hostdependency_list;
 	xodtemplate_hostdependency_list = new_hostdependency;
+	host_deps += new_hostdependency->have_notification_dependency_options;
+	host_deps += new_hostdependency->have_execution_dependency_options;
 
 	return OK;
 	}
@@ -5586,6 +5588,8 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	/* add new servicedependency to head of list in memory */
 	new_servicedependency->next = xodtemplate_servicedependency_list;
 	xodtemplate_servicedependency_list = new_servicedependency;
+	service_deps += new_servicedependency->have_notification_dependency_options;
+	service_deps += new_servicedependency->have_execution_dependency_options;
 
 	return OK;
 	}

@@ -188,7 +188,6 @@ int             accept_passive_host_checks = TRUE;
 int             enable_event_handlers = TRUE;
 int             obsess_over_services = FALSE;
 int             obsess_over_hosts = FALSE;
-int             enable_failure_prediction = TRUE;
 
 int             translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
 int             passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;

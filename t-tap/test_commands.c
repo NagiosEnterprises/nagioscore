@@ -60,7 +60,6 @@ int execute_service_checks;
 int enable_event_handlers;
 int accept_passive_host_checks;
 int accept_passive_service_checks;
-int enable_failure_prediction;
 int process_performance_data;
 int execute_host_checks;
 int execute_service_checks;

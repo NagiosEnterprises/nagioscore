@@ -5,13 +5,14 @@
 ###############################
 
 CC=@CC@
-CFLAGS=@CFLAGS@ @DEFS@
+CFLAGS=-I.. @CFLAGS@ @DEFS@
 LDFLAGS=@LDFLAGS@ @LIBS@
 
 # Source code directories
 SRC_INCLUDE=../include
 SRC_COMMON=../common
 SRC_CGI=../cgi
+SRC_LIB=../lib
 
 # Generated automatically from configure script
 SNPRINTF_O=@SNPRINTF_O@
@@ -59,11 +60,14 @@ install:
 ##############################################################################
 # rules and dependencies for actual target programs
 
-daemonchk.cgi: daemonchk.o $(CGI_O) $(CGI_H) $(COMMON_H)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< $(CGI_O)
+$(SRC_LIB)/libnagios.a:
+	make -C $(SRC_LIB) libnagios.a
+
+daemonchk.cgi: daemonchk.o $(CGI_O) $(CGI_H) $(COMMON_H) $(SRC_LIB)/libnagios.a
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< $(CGI_O) $(SRC_LIB)/libnagios.a
 
 daemonchk.o: daemonchk.c
-	$(CC) $(CLFAGS) -c -o $@ $< -I$(SRC_INCLUDE)
+	$(CC) $(CFLAGS) -c -o $@ $< -I$(SRC_INCLUDE)
 
 ##############################################################################
 # dependencies

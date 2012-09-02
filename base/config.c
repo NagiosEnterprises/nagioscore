@@ -2362,6 +2362,8 @@ int pre_flight_circular_check(int *w, int *e) {
 		dep_type = temp_sd->dependency_type;
 		dfs_servicedep_path(ary[dep_type - 1], temp_sd->dependent_service_ptr, dep_type, &errors);
 		}
+	if(verify_config == TRUE)
+		printf("\tChecked %u service dependencies\n", num_objects.servicedependencies);
 
 	/* check host dependencies */
 	for (i = 0; i < ARRAY_SIZE(ary); i++)
@@ -2370,6 +2372,9 @@ int pre_flight_circular_check(int *w, int *e) {
 		dep_type = temp_hd->dependency_type;
 		dfs_hostdep_path(ary[dep_type - 1], temp_hd->dependent_host_ptr, dep_type, &errors);
 		}
+
+	if(verify_config == TRUE)
+		printf("\tChecked %u host dependencies\n", num_objects.hostdependencies);
 
 	/* update warning and error count */
 	*e += errors;

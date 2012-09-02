@@ -43,12 +43,13 @@
 #define XODTEMPLATE_HOSTGROUP             6
 #define XODTEMPLATE_SERVICE               7
 #define XODTEMPLATE_SERVICEDEPENDENCY     8
-#define XODTEMPLATE_SERVICEESCALATION     9
-#define XODTEMPLATE_HOSTESCALATION        10
-#define XODTEMPLATE_HOSTDEPENDENCY        11
-#define XODTEMPLATE_HOSTEXTINFO           12
-#define XODTEMPLATE_SERVICEEXTINFO        13
-#define XODTEMPLATE_SERVICEGROUP          14
+#define XODTEMPLATE_HOSTGROUPESCALATION   9      /* no longer implemented */
+#define XODTEMPLATE_SERVICEESCALATION     10
+#define XODTEMPLATE_HOSTESCALATION        11
+#define XODTEMPLATE_HOSTDEPENDENCY        12
+#define XODTEMPLATE_HOSTEXTINFO           13
+#define XODTEMPLATE_SERVICEEXTINFO        14
+#define XODTEMPLATE_SERVICEGROUP          15
 
 
 
@@ -125,7 +126,6 @@ typedef struct xodtemplate_command_struct {
 
 /* CONTACT TEMPLATE STRUCTURE */
 typedef struct xodtemplate_contact_struct {
-	unsigned int id;
     char      *template;
     char      *name;
     int        _config_file;
@@ -193,8 +193,6 @@ typedef struct xodtemplate_contactgroup_struct {
     char      *alias;
     char      *members;
     char      *contactgroup_members;
-	objectlist *member_list;
-	bitmap *member_map;
 
     int       have_members;
     int       have_contactgroup_members;
@@ -207,7 +205,6 @@ typedef struct xodtemplate_contactgroup_struct {
 
 /* HOST TEMPLATE STRUCTURE */
 typedef struct xodtemplate_host_struct {
-    unsigned int id;
     char      *template;
     char      *name;
     int        _config_file;
@@ -331,8 +328,6 @@ typedef struct xodtemplate_hostgroup_struct {
     char      *notes;
     char      *notes_url;
     char      *action_url;
-	objectlist *member_list;
-	bitmap *member_map;
 
     int       have_members;
     int       have_hostgroup_members;
@@ -348,8 +343,6 @@ typedef struct xodtemplate_hostgroup_struct {
 
 /* SERVICE TEMPLATE STRUCTURE */
 typedef struct xodtemplate_service_struct {
-	unsigned int id;
-	unsigned int cloned_from; /* ~0 means "wasn't cloned at all" */
     char       *template;
     char       *name;
     int        _config_file;
@@ -472,8 +465,6 @@ typedef struct xodtemplate_servicegroup_struct {
     char      *notes;
     char      *notes_url;
     char      *action_url;
-	objectlist *member_list;
-	bitmap *member_map;
 
     int       have_members;
     int       have_servicegroup_members;
@@ -616,8 +607,6 @@ typedef struct xodtemplate_hostdependency_struct {
 
 /* HOSTESCALATION TEMPLATE STRUCTURE */
 typedef struct xodtemplate_hostescalation_struct {
-	unsigned int id;
-	unsigned int cloned_from;
     char      *template;
     char      *name;
     int        _config_file;

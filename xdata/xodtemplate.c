@@ -136,20 +136,6 @@ static unsigned int xodtemplate_host_id;
 static unsigned int xodtemplate_service_id;
 static unsigned int xodtemplate_contact_id;
 
-/*
- * Macro magic used to determine if a service is assigned
- * via hostgroup_name or host_name. Those assigned via host_name
- * take precedence.
- */
-#define X_SERVICE_IS_FROM_HOSTGROUP      (1 << 1)  /* flag to know if service come from a hostgroup def, apply on srv->have_initial_state */
-#define xodtemplate_set_service_is_from_hostgroup(srv) \
-	srv->have_initial_state |= X_SERVICE_IS_FROM_HOSTGROUP
-#define xodtemplate_unset_service_is_from_hostgroup(srv) \
-	srv->have_initial_state &= ~X_SERVICE_IS_FROM_HOSTGROUP
-#define xodtemplate_is_service_is_from_hostgroup(srv) \
-	((srv->have_initial_state & X_SERVICE_IS_FROM_HOSTGROUP) != 0)
-
-
 /* reusable bitmaps for expanding objects */
 static bitmap *service_map, *host_map, *contact_map;
 
@@ -1098,8 +1084,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 			new_service->retain_status_information = TRUE;
 			new_service->retain_nonstatus_information = TRUE;
 
-			/* true service, so is not from host group, must be set AFTER have_initial_state*/
-			xodtemplate_unset_service_is_from_hostgroup(new_service);
+			/* true service, so is not from host group */
+			new_service->is_from_hostgroup = 0;
 			break;
 
 		case XODTEMPLATE_HOSTDEPENDENCY:
@@ -4247,7 +4233,7 @@ int xodtemplate_duplicate_services(void) {
 		if(temp_service->host_name == NULL || temp_service->service_description == NULL)
 			continue;
 
-		if(xodtemplate_is_service_is_from_hostgroup(temp_service)) {
+		if(temp_service->is_from_hostgroup) {
 			continue;
 			}
 
@@ -4280,11 +4266,11 @@ int xodtemplate_duplicate_services(void) {
 		if(temp_service->host_name == NULL || temp_service->service_description == NULL)
 			continue;
 
-		if(!xodtemplate_is_service_is_from_hostgroup(temp_service)) {
+		if(!temp_service->is_from_hostgroup) {
 			continue;
 			}
-		/*The flag X_SERVICE_IS_FROM_HOSTGROUP is set, unset it*/
-		xodtemplate_unset_service_is_from_hostgroup(temp_service);
+
+		temp_service->is_from_hostgroup = 0;
 
 		result = skiplist_insert(xobject_skiplists[SERVICE_SKIPLIST], (void *)temp_service);
 		switch(result) {
@@ -4875,9 +4861,8 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service->register_object = temp_service->register_object;
 	new_service->_config_file = temp_service->_config_file;
 	new_service->_start_line = temp_service->_start_line;
-	/*tag service apply on host group*/
-	if(from_hg)
-		xodtemplate_set_service_is_from_hostgroup(new_service);
+	/* tag service apply on host group */
+	new_service->is_from_hostgroup = from_hg;
 
 	/* string defaults */
 	new_service->have_hostgroup_name = temp_service->have_hostgroup_name;
@@ -12809,7 +12794,7 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplat
 /******************************************************************/
 
 /* determines the value of an inherited string */
-int xodtemplate_get_inherited_string(int *have_template_value, char **template_value, int *have_this_value, char **this_value) {
+int xodtemplate_get_inherited_string(char *have_template_value, char **template_value, char *have_this_value, char **this_value) {
 	char *buf = NULL;
 
 	/* template has a value we should use */

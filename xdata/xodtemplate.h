@@ -101,8 +101,8 @@ typedef struct xodtemplate_timeperiod_struct {
 	xodtemplate_daterange *exceptions[DATERANGE_TYPES];
 	char       *exclusions;
 
-	int        has_been_resolved;
-	int        register_object;
+	unsigned has_been_resolved : 1;
+	unsigned register_object : 1;
 	struct xodtemplate_timeperiod_struct *next;
 	} xodtemplate_timeperiod;
 
@@ -117,8 +117,8 @@ typedef struct xodtemplate_command_struct {
     char       *command_name;
     char       *command_line;
 
-    int        has_been_resolved;
-    int        register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_command_struct *next;
 } xodtemplate_command;
 
@@ -159,25 +159,25 @@ typedef struct xodtemplate_contact_struct {
     int       retain_nonstatus_information;
     xodtemplate_customvariablesmember *custom_variables;
 
-    int       have_contact_groups;
-    int       have_email;
-    int       have_pager;
-    int       have_address[MAX_XODTEMPLATE_CONTACT_ADDRESSES];
-    int       have_host_notification_period;
-    int       have_host_notification_commands;
-    int       have_service_notification_period;
-    int       have_service_notification_commands;
+    char have_contact_groups;
+    char have_email;
+    char have_pager;
+    char have_address[MAX_XODTEMPLATE_CONTACT_ADDRESSES];
+    char have_host_notification_period;
+    char have_host_notification_commands;
+    char have_service_notification_period;
+    char have_service_notification_commands;
 
-    int       have_host_notification_options;
-    int       have_service_notification_options;
-    int       have_host_notifications_enabled;
-    int       have_service_notifications_enabled;
-    int       have_can_submit_commands;
-    int       have_retain_status_information;
-    int       have_retain_nonstatus_information;
+    char have_host_notification_options;
+    char have_service_notification_options;
+    char have_host_notifications_enabled;
+    char have_service_notifications_enabled;
+    char have_can_submit_commands;
+    char have_retain_status_information;
+    char have_retain_nonstatus_information;
 
-    int       has_been_resolved;
-    int       register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_contact_struct *next;
 } xodtemplate_contact;
 
@@ -199,11 +199,11 @@ typedef struct xodtemplate_contactgroup_struct {
 	bitmap *reject_map;
 	int loop_status;
 
-    int       have_members;
-    int       have_contactgroup_members;
+    char have_members;
+    char have_contactgroup_members;
 
-    int       has_been_resolved;
-    int       register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_contactgroup_struct *next;
 } xodtemplate_contactgroup;
 
@@ -272,50 +272,52 @@ typedef struct xodtemplate_host_struct {
     int       retain_nonstatus_information;
     xodtemplate_customvariablesmember *custom_variables;
 
-    int       have_display_name;
-    int       have_parents;
-    int       have_host_groups;
-    int       have_check_command;
-    int       have_check_period;
-    int       have_event_handler;
-    int       have_contact_groups;
-    int       have_contacts;
-    int       have_notification_period;
-    int       have_notes;
-    int       have_notes_url;
-    int       have_action_url;
-    int       have_icon_image;
-    int       have_icon_image_alt;
-    int       have_vrml_image;
-    int       have_statusmap_image;
+    /* these can't be bitfields */
+    char have_host_groups;
+    char have_contact_groups;
+    char have_contacts;
+    char have_parents;
 
-    int       have_initial_state;
-    int       have_check_interval;
-    int       have_retry_interval;
-    int       have_max_check_attempts;
-    int       have_active_checks_enabled;
-    int       have_passive_checks_enabled;
-    int       have_obsess_over_host;
-    int       have_event_handler_enabled;
-    int       have_check_freshness;
-    int       have_freshness_threshold;
-    int       have_low_flap_threshold;
-    int       have_high_flap_threshold;
-    int       have_flap_detection_enabled;
-    int       have_flap_detection_options;
-    int       have_notification_options;
-    int       have_notifications_enabled;
-    int       have_notification_interval;
-    int       have_first_notification_delay;
-    int       have_stalking_options;
-    int       have_process_perf_data;
-    int       have_2d_coords;
-    int       have_3d_coords;
-    int       have_retain_status_information;
-    int       have_retain_nonstatus_information;
+    unsigned have_display_name : 1;
+    unsigned have_check_command : 1;
+    unsigned have_check_period : 1;
+    unsigned have_event_handler : 1;
+    unsigned have_notification_period : 1;
+    unsigned have_notes : 1;
+    unsigned have_notes_url : 1;
+    unsigned have_action_url : 1;
+    unsigned have_icon_image : 1;
+    unsigned have_icon_image_alt : 1;
+    unsigned have_vrml_image : 1;
+    unsigned have_statusmap_image : 1;
 
-    int       has_been_resolved;
-    int       register_object;
+    unsigned have_initial_state : 1;
+    unsigned have_check_interval : 1;
+    unsigned have_retry_interval : 1;
+    unsigned have_max_check_attempts : 1;
+    unsigned have_active_checks_enabled : 1;
+    unsigned have_passive_checks_enabled : 1;
+    unsigned have_obsess_over_host : 1;
+    unsigned have_event_handler_enabled : 1;
+    unsigned have_check_freshness : 1;
+    unsigned have_freshness_threshold : 1;
+    unsigned have_low_flap_threshold : 1;
+    unsigned have_high_flap_threshold : 1;
+    unsigned have_flap_detection_enabled : 1;
+    unsigned have_flap_detection_options : 1;
+    unsigned have_notification_options : 1;
+    unsigned have_notifications_enabled : 1;
+    unsigned have_notification_interval : 1;
+    unsigned have_first_notification_delay : 1;
+    unsigned have_stalking_options : 1;
+    unsigned have_process_perf_data : 1;
+    unsigned have_2d_coords : 1;
+    unsigned have_3d_coords : 1;
+    unsigned have_retain_status_information : 1;
+    unsigned have_retain_nonstatus_information : 1;
+
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_host_struct *next;
 } xodtemplate_host;
 
@@ -340,14 +342,14 @@ typedef struct xodtemplate_hostgroup_struct {
 	bitmap *reject_map;
 	int loop_status;
 
-    int       have_members;
-    int       have_hostgroup_members;
-    int       have_notes;
-    int       have_notes_url;
-    int       have_action_url;
+    char have_members;
+    char have_hostgroup_members;
+    char have_notes;
+    char have_notes_url;
+    char have_action_url;
 
-    int       has_been_resolved;
-    int       register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_hostgroup_struct *next;
 } xodtemplate_hostgroup;
 
@@ -413,52 +415,55 @@ typedef struct xodtemplate_service_struct {
     int        retain_nonstatus_information;
     xodtemplate_customvariablesmember *custom_variables;
 
-    int        have_host_name;
-    int        have_service_description;
-    int        have_display_name;
-    int        have_hostgroup_name;
-    int        have_service_groups;
-    int        have_check_command;
-    int        have_important_check_command;
-    int        have_check_period;
-    int        have_event_handler;
-    int        have_notification_period;
-    int        have_contact_groups;
-    int        have_contacts;
-    int        have_notes;
-    int        have_notes_url;
-    int        have_action_url;
-    int        have_icon_image;
-    int        have_icon_image_alt;
+    /* these can't be bitfields */
+    char have_contact_groups;
+    char have_contacts;
+    char have_host_name;
+    char have_hostgroup_name;
+    char have_service_groups;
 
-    int        have_initial_state;
-    int        have_max_check_attempts;
-    int        have_check_interval;
-    int        have_retry_interval;
-    int        have_active_checks_enabled;
-    int        have_passive_checks_enabled;
-    int        have_parallelize_check;
-    int        have_is_volatile;
-    int        have_obsess_over_service;
-    int        have_event_handler_enabled;
-    int        have_check_freshness;
-    int        have_freshness_threshold;
-    int        have_low_flap_threshold;
-    int        have_high_flap_threshold;
-    int        have_flap_detection_enabled;
-    int        have_flap_detection_options;
-    int        have_notification_options;
-    int        have_notifications_enabled;
-    int        have_notification_dependencies;
-    int        have_notification_interval;
-    int        have_first_notification_delay;
-    int        have_stalking_options;
-    int        have_process_perf_data;
-    int        have_retain_status_information;
-    int        have_retain_nonstatus_information;
+    unsigned have_service_description : 1;
+    unsigned have_display_name : 1;
+    unsigned have_check_command : 1;
+    unsigned have_important_check_command : 1;
+    unsigned have_check_period : 1;
+    unsigned have_event_handler : 1;
+    unsigned have_notification_period : 1;
+    unsigned have_notes : 1;
+    unsigned have_notes_url : 1;
+    unsigned have_action_url : 1;
+    unsigned have_icon_image : 1;
+    unsigned have_icon_image_alt : 1;
 
-    int        has_been_resolved;
-    int        register_object;
+    unsigned have_initial_state : 1;
+    unsigned have_max_check_attempts : 1;
+    unsigned have_check_interval : 1;
+    unsigned have_retry_interval : 1;
+    unsigned have_active_checks_enabled : 1;
+    unsigned have_passive_checks_enabled : 1;
+    unsigned have_parallelize_check : 1;
+    unsigned have_is_volatile : 1;
+    unsigned have_obsess_over_service : 1;
+    unsigned have_event_handler_enabled : 1;
+    unsigned have_check_freshness : 1;
+    unsigned have_freshness_threshold : 1;
+    unsigned have_low_flap_threshold : 1;
+    unsigned have_high_flap_threshold : 1;
+    unsigned have_flap_detection_enabled : 1;
+    unsigned have_flap_detection_options : 1;
+    unsigned have_notification_options : 1;
+    unsigned have_notifications_enabled : 1;
+    unsigned have_notification_dependencies : 1;
+    unsigned have_notification_interval : 1;
+    unsigned have_first_notification_delay : 1;
+    unsigned have_stalking_options : 1;
+    unsigned have_process_perf_data : 1;
+    unsigned have_retain_status_information : 1;
+    unsigned have_retain_nonstatus_information : 1;
+    unsigned is_from_hostgroup : 1;
+
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_service_struct *next;
 } xodtemplate_service;
 
@@ -483,14 +488,14 @@ typedef struct xodtemplate_servicegroup_struct {
 	bitmap *reject_map;
 	int loop_status;
 
-    int       have_members;
-    int       have_servicegroup_members;
-    int       have_notes;
-    int       have_notes_url;
-    int       have_action_url;
+    char have_members;
+    char have_servicegroup_members;
+    char have_notes;
+    char have_notes_url;
+    char have_action_url;
 
-    int       has_been_resolved;
-    int       register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_servicegroup_struct *next;
 } xodtemplate_servicegroup;
 
@@ -523,22 +528,22 @@ typedef struct xodtemplate_servicedependency_struct {
     int        fail_execute_on_critical;
     int        fail_execute_on_pending;
 
-    int        have_host_name;
-    int        have_service_description;
-    int        have_dependent_host_name;
-    int        have_dependent_service_description;
-    int        have_servicegroup_name;
-    int        have_hostgroup_name;
-    int        have_dependent_servicegroup_name;
-    int        have_dependent_hostgroup_name;
-    int        have_dependency_period;
+    char have_host_name;
+    char have_service_description;
+    char have_dependent_host_name;
+    char have_dependent_service_description;
+    char have_servicegroup_name;
+    char have_hostgroup_name;
+    char have_dependent_servicegroup_name;
+    char have_dependent_hostgroup_name;
+    char have_dependency_period;
 
-    int        have_inherits_parent;
-    int        have_notification_dependency_options;
-    int        have_execution_dependency_options;
+    char have_inherits_parent;
+    char have_notification_dependency_options;
+    char have_execution_dependency_options;
 
-    int        has_been_resolved;
-    int        register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_servicedependency_struct *next;
 } xodtemplate_servicedependency;
 
@@ -565,21 +570,21 @@ typedef struct xodtemplate_serviceescalation_struct {
     char      *contact_groups;
     char      *contacts;
 
-    int       have_host_name;
-    int       have_service_description;
-    int       have_servicegroup_name;
-    int       have_hostgroup_name;
-    int       have_escalation_period;
-    int       have_contact_groups;
-    int       have_contacts;
+    char have_host_name;
+    char have_service_description;
+    char have_servicegroup_name;
+    char have_hostgroup_name;
+    char have_escalation_period;
+    char have_contact_groups;
+    char have_contacts;
 
-    int       have_first_notification;
-    int       have_last_notification;
-    int       have_notification_interval;
-    int       have_escalation_options;
+    char have_first_notification;
+    char have_last_notification;
+    char have_notification_interval;
+    char have_escalation_options;
 
-    int       has_been_resolved;
-    int       register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_serviceescalation_struct *next;
 } xodtemplate_serviceescalation;
 
@@ -606,18 +611,18 @@ typedef struct xodtemplate_hostdependency_struct {
     int       fail_execute_on_unreachable;
     int       fail_execute_on_pending;
 
-    int       have_host_name;
-    int       have_dependent_host_name;
-    int       have_hostgroup_name;
-    int       have_dependent_hostgroup_name;
-    int       have_dependency_period;
+    char have_host_name;
+    char have_dependent_host_name;
+    char have_hostgroup_name;
+    char have_dependent_hostgroup_name;
+    char have_dependency_period;
 
-    int       have_inherits_parent;
-    int       have_notification_dependency_options;
-    int       have_execution_dependency_options;
+    char have_inherits_parent;
+    char have_notification_dependency_options;
+    char have_execution_dependency_options;
 
-    int       has_been_resolved;
-    int       register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_hostdependency_struct *next;
 } xodtemplate_hostdependency;
 
@@ -642,19 +647,19 @@ typedef struct xodtemplate_hostescalation_struct {
     char      *contact_groups;
     char      *contacts;
 
-    int       have_host_name;
-    int       have_hostgroup_name;
-    int       have_escalation_period;
-    int       have_contact_groups;
-    int       have_contacts;
+    char have_host_name;
+    char have_hostgroup_name;
+    char have_escalation_period;
+    char have_contact_groups;
+    char have_contacts;
 
-    int       have_first_notification;
-    int       have_last_notification;
-    int       have_notification_interval;
-    int       have_escalation_options;
+    char have_first_notification;
+    char have_last_notification;
+    char have_notification_interval;
+    char have_escalation_options;
 
-    int       has_been_resolved;
-    int       register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_hostescalation_struct *next;
 } xodtemplate_hostescalation;
 
@@ -681,21 +686,21 @@ typedef struct xodtemplate_hostextinfo_struct {
     double     y_3d;
     double     z_3d;
 
-    int        have_host_name;
-    int        have_hostgroup_name;
-    int        have_notes;
-    int        have_notes_url;
-    int        have_action_url;
-    int        have_icon_image;
-    int        have_icon_image_alt;
-    int        have_vrml_image;
-    int        have_statusmap_image;
+    char have_host_name;
+    char have_hostgroup_name;
+    char have_notes;
+    char have_notes_url;
+    char have_action_url;
+    char have_icon_image;
+    char have_icon_image_alt;
+    char have_vrml_image;
+    char have_statusmap_image;
 
-    int        have_2d_coords;
-    int        have_3d_coords;
+    char have_2d_coords;
+    char have_3d_coords;
 
-    int        has_been_resolved;
-    int        register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_hostextinfo_struct *next;
 } xodtemplate_hostextinfo;
 
@@ -716,17 +721,17 @@ typedef struct xodtemplate_serviceextinfo_struct {
     char       *icon_image;
     char       *icon_image_alt;
 
-    int        have_host_name;
-    int        have_hostgroup_name;
-    int        have_service_description;
-    int        have_notes;
-    int        have_notes_url;
-    int        have_action_url;
-    int        have_icon_image;
-    int        have_icon_image_alt;
+    char have_host_name;
+    char have_hostgroup_name;
+    char have_service_description;
+    char have_notes;
+    char have_notes_url;
+    char have_action_url;
+    char have_icon_image;
+    char have_icon_image_alt;
 
-    int        has_been_resolved;
-    int        register_object;
+    unsigned has_been_resolved : 1;
+    unsigned register_object : 1;
     struct xodtemplate_serviceextinfo_struct *next;
 } xodtemplate_serviceextinfo;
 
@@ -901,7 +906,7 @@ xodtemplate_hostescalation *xodtemplate_find_hostescalation(char *);
 xodtemplate_hostextinfo *xodtemplate_find_hostextinfo(char *);
 xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *);
 
-int xodtemplate_get_inherited_string(int *, char **, int *, char **);
+int xodtemplate_get_inherited_string(char *, char **, char *, char **);
 int xodtemplate_clean_additive_string(char **);
 int xodtemplate_clean_additive_strings(void);
 #endif

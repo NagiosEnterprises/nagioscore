@@ -462,6 +462,7 @@ typedef struct xodtemplate_service_struct {
     unsigned have_retain_nonstatus_information : 1;
     unsigned is_from_hostgroup : 1;
 
+    unsigned is_copy : 1;
     unsigned has_been_resolved : 1;
     unsigned register_object : 1;
     struct xodtemplate_service_struct *next;
@@ -542,6 +543,7 @@ typedef struct xodtemplate_servicedependency_struct {
     char have_notification_dependency_options;
     char have_execution_dependency_options;
 
+    unsigned is_copy : 1;
     unsigned has_been_resolved : 1;
     unsigned register_object : 1;
     struct xodtemplate_servicedependency_struct *next;
@@ -583,6 +585,7 @@ typedef struct xodtemplate_serviceescalation_struct {
     char have_notification_interval;
     char have_escalation_options;
 
+    unsigned is_copy : 1;
     unsigned has_been_resolved : 1;
     unsigned register_object : 1;
     struct xodtemplate_serviceescalation_struct *next;
@@ -621,6 +624,7 @@ typedef struct xodtemplate_hostdependency_struct {
     char have_notification_dependency_options;
     char have_execution_dependency_options;
 
+    unsigned is_copy : 1;
     unsigned has_been_resolved : 1;
     unsigned register_object : 1;
     struct xodtemplate_hostdependency_struct *next;
@@ -658,6 +662,7 @@ typedef struct xodtemplate_hostescalation_struct {
     char have_notification_interval;
     char have_escalation_options;
 
+    unsigned is_copy : 1;
     unsigned has_been_resolved : 1;
     unsigned register_object : 1;
     struct xodtemplate_hostescalation_struct *next;

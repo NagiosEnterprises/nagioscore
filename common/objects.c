@@ -1616,7 +1616,7 @@ command *add_command(char *name, char *value) {
 serviceescalation *add_serviceescalation(char *host_name, char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_recovery) {
 	serviceescalation *new_serviceescalation = NULL;
 	service *svc;
-	timeperiod *tp;
+	timeperiod *tp = NULL;
 
 	/* make sure we have the data we need */
 	if(host_name == NULL || !*host_name || description == NULL || !*description) {

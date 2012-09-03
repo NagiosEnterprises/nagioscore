@@ -125,6 +125,7 @@ typedef struct xodtemplate_command_struct {
 
 /* CONTACT TEMPLATE STRUCTURE */
 typedef struct xodtemplate_contact_struct {
+	unsigned int id;
     char      *template;
     char      *name;
     int        _config_file;
@@ -192,6 +193,11 @@ typedef struct xodtemplate_contactgroup_struct {
     char      *alias;
     char      *members;
     char      *contactgroup_members;
+	objectlist *member_list;
+	objectlist *group_list;
+	bitmap *member_map;
+	bitmap *reject_map;
+	int loop_status;
 
     int       have_members;
     int       have_contactgroup_members;
@@ -204,6 +210,7 @@ typedef struct xodtemplate_contactgroup_struct {
 
 /* HOST TEMPLATE STRUCTURE */
 typedef struct xodtemplate_host_struct {
+    unsigned int id;
     char      *template;
     char      *name;
     int        _config_file;
@@ -327,6 +334,11 @@ typedef struct xodtemplate_hostgroup_struct {
     char      *notes;
     char      *notes_url;
     char      *action_url;
+	objectlist *member_list;
+	objectlist *group_list;
+	bitmap *member_map;
+	bitmap *reject_map;
+	int loop_status;
 
     int       have_members;
     int       have_hostgroup_members;
@@ -342,6 +354,7 @@ typedef struct xodtemplate_hostgroup_struct {
 
 /* SERVICE TEMPLATE STRUCTURE */
 typedef struct xodtemplate_service_struct {
+	unsigned int id;
     char       *template;
     char       *name;
     int        _config_file;
@@ -464,6 +477,11 @@ typedef struct xodtemplate_servicegroup_struct {
     char      *notes;
     char      *notes_url;
     char      *action_url;
+	objectlist *member_list;
+	objectlist *group_list;
+	bitmap *member_map;
+	bitmap *reject_map;
+	int loop_status;
 
     int       have_members;
     int       have_servicegroup_members;
@@ -606,6 +624,7 @@ typedef struct xodtemplate_hostdependency_struct {
 
 /* HOSTESCALATION TEMPLATE STRUCTURE */
 typedef struct xodtemplate_hostescalation_struct {
+	unsigned int id;
     char      *template;
     char      *name;
     int        _config_file;
@@ -759,20 +778,16 @@ int xodtemplate_process_config_file(char *, int);           /* process data in a
 int xodtemplate_process_config_dir(char *, int);            /* process all files in a specific config directory */
 
 #ifdef NSCORE
-xodtemplate_memberlist *xodtemplate_expand_contactgroups_and_contacts(char *, char *, int, int);
-int xodtemplate_expand_contactgroups(xodtemplate_memberlist **, xodtemplate_memberlist **, char *, int, int);
-int xodtemplate_expand_contacts(xodtemplate_memberlist **, xodtemplate_memberlist **, char *, int, int);
-int xodtemplate_add_contactgroup_members_to_memberlist(xodtemplate_memberlist **, xodtemplate_contactgroup *, int, int);
+int xodtemplate_expand_contactgroups(objectlist **, bitmap *, char *, int, int);
+int xodtemplate_expand_contacts(objectlist **, bitmap *, char *, int, int);
 
-xodtemplate_memberlist *xodtemplate_expand_hostgroups_and_hosts(char *, char *, int, int);
-int xodtemplate_expand_hostgroups(xodtemplate_memberlist **, xodtemplate_memberlist **, char *, int, int);
-int xodtemplate_expand_hosts(xodtemplate_memberlist **, xodtemplate_memberlist **, char *, int, int);
-int xodtemplate_add_hostgroup_members_to_memberlist(xodtemplate_memberlist **, xodtemplate_hostgroup *, int, int);
+objectlist *xodtemplate_expand_hostgroups_and_hosts(char *, char *, int, int);
+int xodtemplate_expand_hostgroups(objectlist **, bitmap *, char *, int, int);
+int xodtemplate_expand_hosts(objectlist **list, bitmap *reject_map, char *, int, int);
 
-xodtemplate_memberlist *xodtemplate_expand_servicegroups_and_services(char *, char *, char *, int, int);
-int xodtemplate_expand_servicegroups(xodtemplate_memberlist **, xodtemplate_memberlist **, char *, int, int);
-int xodtemplate_expand_services(xodtemplate_memberlist **, xodtemplate_memberlist **, char *, char *, int, int);
-int xodtemplate_add_servicegroup_members_to_memberlist(xodtemplate_memberlist **, xodtemplate_servicegroup *, int, int);
+objectlist *xodtemplate_expand_servicegroups_and_services(char *, char *, char *, int, int);
+int xodtemplate_expand_servicegroups(objectlist **, bitmap *, char *, int, int);
+int xodtemplate_expand_services(objectlist **, bitmap *, char *, char *, int, int);
 
 char *xodtemplate_process_contactgroup_names(char *, int, int);
 int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **, xodtemplate_memberlist **, char *, int, int);
@@ -821,21 +836,17 @@ int xodtemplate_compare_strings2(char *, char *, char *, char *);
 
 int xodtemplate_cache_objects(char *);
 
-int xodtemplate_duplicate_service(xodtemplate_service *, char *);
+int xodtemplate_duplicate_service(xodtemplate_service *, char *, int);
 int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *, char *);
 int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *, char *, char *);
 int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *, char *, char *);
-int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *, char *, char *, char *, char *, char *, char *, char *, char *);
+int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *, char *, char *, char *, char *);
 int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *, char *);
 int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *, char *);
 
 int xodtemplate_recombobulate_contactgroups(void);
-int xodtemplate_recombobulate_contactgroup_subgroups(xodtemplate_contactgroup *, char **);
-int xodtemplate_recombobulate_object_contacts(void);
 int xodtemplate_recombobulate_hostgroups(void);
-int xodtemplate_recombobulate_hostgroup_subgroups(xodtemplate_hostgroup *, char **);
 int xodtemplate_recombobulate_servicegroups(void);
-int xodtemplate_recombobulate_servicegroup_subgroups(xodtemplate_servicegroup *, char **);
 
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_resolve_command(xodtemplate_command *);

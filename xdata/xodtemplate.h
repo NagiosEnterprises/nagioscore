@@ -840,10 +840,6 @@ int xodtemplate_inherit_object_properties(void);
 
 int xodtemplate_resolve_objects(void);
 
-int xodtemplate_sort_objects(void);
-int xodtemplate_compare_strings1(char *, char *);
-int xodtemplate_compare_strings2(char *, char *, char *, char *);
-
 int xodtemplate_cache_objects(char *);
 
 int xodtemplate_duplicate_service(xodtemplate_service *, char *, int);
@@ -872,19 +868,6 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *);
 int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *);
 int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *);
 int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *);
-
-int xodtemplate_sort_timeperiods(void);
-int xodtemplate_sort_commands(void);
-int xodtemplate_sort_contactgroups(void);
-int xodtemplate_sort_hostgroups(void);
-int xodtemplate_sort_servicegroups(void);
-int xodtemplate_sort_contacts(void);
-int xodtemplate_sort_hosts(void);
-int xodtemplate_sort_services(void);
-int xodtemplate_sort_servicedependencies(void);
-int xodtemplate_sort_serviceescalations(void);
-int xodtemplate_sort_hostdependencies(void);
-int xodtemplate_sort_hostescalations(void);
 
 int xodtemplate_merge_extinfo_ojects(void);
 int xodtemplate_merge_host_extinfo_object(xodtemplate_host *, xodtemplate_hostextinfo *);

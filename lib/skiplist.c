@@ -407,14 +407,6 @@ void *skiplist_find_next(skiplist *list, void *data, void **node_ptr) {
 
 
 
-/* delete (all) matching item(s) from list */
-int skiplist_delete(skiplist *list, void *data) {
-
-	return skiplist_delete_all(list, data);
-	}
-
-
-
 /* delete first matching item from list */
 int skiplist_delete_first(skiplist *list, void *data) {
 	skiplistnode **update = NULL;
@@ -481,7 +473,7 @@ int skiplist_delete_first(skiplist *list, void *data) {
 
 
 /* delete all matching items from list */
-int skiplist_delete_all(skiplist *list, void *data) {
+int skiplist_delete(skiplist *list, void *data) {
 	int deleted = 0;
 	int total_deleted = 0;
 

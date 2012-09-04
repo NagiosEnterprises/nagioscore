@@ -1048,7 +1048,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 			new_host->retry_interval = 1.0;
 			new_host->active_checks_enabled = TRUE;
 			new_host->passive_checks_enabled = TRUE;
-			new_host->obsess_over_host = TRUE;
+			new_host->obsess = TRUE;
 			new_host->max_check_attempts = -2;
 			new_host->event_handler_enabled = TRUE;
 			new_host->flap_detection_enabled = TRUE;
@@ -1074,7 +1074,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 			new_service->active_checks_enabled = TRUE;
 			new_service->passive_checks_enabled = TRUE;
 			new_service->parallelize_check = TRUE;
-			new_service->obsess_over_service = TRUE;
+			new_service->obsess = TRUE;
 			new_service->event_handler_enabled = TRUE;
 			new_service->flap_detection_enabled = TRUE;
 			new_service->flap_detection_on_ok = TRUE;
@@ -2701,9 +2701,9 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->z_3d = strtod(temp_ptr, NULL);
 				temp_host->have_3d_coords = TRUE;
 				}
-			else if(!strcmp(variable, "obsess_over_host")) {
-				temp_host->obsess_over_host = (atoi(value) > 0) ? TRUE : FALSE;
-				temp_host->have_obsess_over_host = TRUE;
+			else if(!strcmp(variable, "obsess_over_host") || !strcmp(variable, "obsess")) {
+				temp_host->obsess = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_host->have_obsess = TRUE;
 				}
 			else if(!strcmp(variable, "retain_status_information")) {
 				temp_host->retain_status_information = (atoi(value) > 0) ? TRUE : FALSE;
@@ -2980,9 +2980,9 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_service->is_volatile = (atoi(value) > 0) ? TRUE : FALSE;
 				temp_service->have_is_volatile = TRUE;
 				}
-			else if(!strcmp(variable, "obsess_over_service")) {
-				temp_service->obsess_over_service = (atoi(value) > 0) ? TRUE : FALSE;
-				temp_service->have_obsess_over_service = TRUE;
+			else if(!strcmp(variable, "obsess_over_service") || !strcmp(variable, "obsess")) {
+				temp_service->obsess = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_obsess = TRUE;
 				}
 			else if(!strcmp(variable, "event_handler_enabled")) {
 				temp_service->event_handler_enabled = (atoi(value) > 0) ? TRUE : FALSE;
@@ -6234,9 +6234,9 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 			this_host->passive_checks_enabled = template_host->passive_checks_enabled;
 			this_host->have_passive_checks_enabled = TRUE;
 			}
-		if(this_host->have_obsess_over_host == FALSE && template_host->have_obsess_over_host == TRUE) {
-			this_host->obsess_over_host = template_host->obsess_over_host;
-			this_host->have_obsess_over_host = TRUE;
+		if(this_host->have_obsess == FALSE && template_host->have_obsess == TRUE) {
+			this_host->obsess = template_host->obsess;
+			this_host->have_obsess = TRUE;
 			}
 		if(this_host->have_event_handler_enabled == FALSE && template_host->have_event_handler_enabled == TRUE) {
 			this_host->event_handler_enabled = template_host->event_handler_enabled;
@@ -6478,9 +6478,9 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 			this_service->is_volatile = template_service->is_volatile;
 			this_service->have_is_volatile = TRUE;
 			}
-		if(this_service->have_obsess_over_service == FALSE && template_service->have_obsess_over_service == TRUE) {
-			this_service->obsess_over_service = template_service->obsess_over_service;
-			this_service->have_obsess_over_service = TRUE;
+		if(this_service->have_obsess == FALSE && template_service->have_obsess == TRUE) {
+			this_service->obsess = template_service->obsess;
+			this_service->have_obsess = TRUE;
 			}
 		if(this_service->have_event_handler_enabled == FALSE && template_service->have_event_handler_enabled == TRUE) {
 			this_service->event_handler_enabled = template_service->event_handler_enabled;
@@ -8309,7 +8309,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host) {
 		this_host->address = (char *)strdup(this_host->host_name);
 
 	/* add the host definition */
-	new_host = add_host(this_host->host_name, this_host->display_name, this_host->alias, (this_host->address == NULL) ? this_host->host_name : this_host->address, this_host->check_period, this_host->initial_state, this_host->check_interval, this_host->retry_interval, this_host->max_check_attempts, this_host->notify_on_recovery, this_host->notify_on_down, this_host->notify_on_unreachable, this_host->notify_on_flapping, this_host->notify_on_downtime, this_host->notification_interval, this_host->first_notification_delay, this_host->notification_period, this_host->notifications_enabled, this_host->check_command, this_host->active_checks_enabled, this_host->passive_checks_enabled, this_host->event_handler, this_host->event_handler_enabled, this_host->flap_detection_enabled, this_host->low_flap_threshold, this_host->high_flap_threshold, this_host->flap_detection_on_up, this_host->flap_detection_on_down, this_host->flap_detection_on_unreachable, this_host->stalk_on_up, this_host->stalk_on_down, this_host->stalk_on_unreachable, this_host->process_perf_data, this_host->check_freshness, this_host->freshness_threshold, this_host->notes, this_host->notes_url, this_host->action_url, this_host->icon_image, this_host->icon_image_alt, this_host->vrml_image, this_host->statusmap_image, this_host->x_2d, this_host->y_2d, this_host->have_2d_coords, this_host->x_3d, this_host->y_3d, this_host->z_3d, this_host->have_3d_coords, TRUE, this_host->retain_status_information, this_host->retain_nonstatus_information, this_host->obsess_over_host);
+	new_host = add_host(this_host->host_name, this_host->display_name, this_host->alias, (this_host->address == NULL) ? this_host->host_name : this_host->address, this_host->check_period, this_host->initial_state, this_host->check_interval, this_host->retry_interval, this_host->max_check_attempts, this_host->notify_on_recovery, this_host->notify_on_down, this_host->notify_on_unreachable, this_host->notify_on_flapping, this_host->notify_on_downtime, this_host->notification_interval, this_host->first_notification_delay, this_host->notification_period, this_host->notifications_enabled, this_host->check_command, this_host->active_checks_enabled, this_host->passive_checks_enabled, this_host->event_handler, this_host->event_handler_enabled, this_host->flap_detection_enabled, this_host->low_flap_threshold, this_host->high_flap_threshold, this_host->flap_detection_on_up, this_host->flap_detection_on_down, this_host->flap_detection_on_unreachable, this_host->stalk_on_up, this_host->stalk_on_down, this_host->stalk_on_unreachable, this_host->process_perf_data, this_host->check_freshness, this_host->freshness_threshold, this_host->notes, this_host->notes_url, this_host->action_url, this_host->icon_image, this_host->icon_image_alt, this_host->vrml_image, this_host->statusmap_image, this_host->x_2d, this_host->y_2d, this_host->have_2d_coords, this_host->x_3d, this_host->y_3d, this_host->z_3d, this_host->have_3d_coords, TRUE, this_host->retain_status_information, this_host->retain_nonstatus_information, this_host->obsess);
 
 
 	/* return with an error if we couldn't add the host */
@@ -8386,7 +8386,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service) {
 		return OK;
 
 	/* add the service */
-	new_service = add_service(this_service->host_name, this_service->service_description, this_service->display_name, this_service->check_period, this_service->initial_state, this_service->max_check_attempts, this_service->parallelize_check, this_service->passive_checks_enabled, this_service->check_interval, this_service->retry_interval, this_service->notification_interval, this_service->first_notification_delay, this_service->notification_period, this_service->notify_on_recovery, this_service->notify_on_unknown, this_service->notify_on_warning, this_service->notify_on_critical, this_service->notify_on_flapping, this_service->notify_on_downtime, this_service->notifications_enabled, this_service->is_volatile, this_service->event_handler, this_service->event_handler_enabled, this_service->check_command, this_service->active_checks_enabled, this_service->flap_detection_enabled, this_service->low_flap_threshold, this_service->high_flap_threshold, this_service->flap_detection_on_ok, this_service->flap_detection_on_warning, this_service->flap_detection_on_unknown, this_service->flap_detection_on_critical, this_service->stalk_on_ok, this_service->stalk_on_warning, this_service->stalk_on_unknown, this_service->stalk_on_critical, this_service->process_perf_data, this_service->check_freshness, this_service->freshness_threshold, this_service->notes, this_service->notes_url, this_service->action_url, this_service->icon_image, this_service->icon_image_alt, this_service->retain_status_information, this_service->retain_nonstatus_information, this_service->obsess_over_service);
+	new_service = add_service(this_service->host_name, this_service->service_description, this_service->display_name, this_service->check_period, this_service->initial_state, this_service->max_check_attempts, this_service->parallelize_check, this_service->passive_checks_enabled, this_service->check_interval, this_service->retry_interval, this_service->notification_interval, this_service->first_notification_delay, this_service->notification_period, this_service->notify_on_recovery, this_service->notify_on_unknown, this_service->notify_on_warning, this_service->notify_on_critical, this_service->notify_on_flapping, this_service->notify_on_downtime, this_service->notifications_enabled, this_service->is_volatile, this_service->event_handler, this_service->event_handler_enabled, this_service->check_command, this_service->active_checks_enabled, this_service->flap_detection_enabled, this_service->low_flap_threshold, this_service->high_flap_threshold, this_service->flap_detection_on_ok, this_service->flap_detection_on_warning, this_service->flap_detection_on_unknown, this_service->flap_detection_on_critical, this_service->stalk_on_ok, this_service->stalk_on_warning, this_service->stalk_on_unknown, this_service->stalk_on_critical, this_service->process_perf_data, this_service->check_freshness, this_service->freshness_threshold, this_service->notes, this_service->notes_url, this_service->action_url, this_service->icon_image, this_service->icon_image_alt, this_service->retain_status_information, this_service->retain_nonstatus_information, this_service->obsess);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service == NULL) {
@@ -9736,7 +9736,7 @@ int xodtemplate_cache_objects(char *cache_file) {
 		fprintf(fp, "\tmax_check_attempts\t%d\n", temp_host->max_check_attempts);
 		fprintf(fp, "\tactive_checks_enabled\t%d\n", temp_host->active_checks_enabled);
 		fprintf(fp, "\tpassive_checks_enabled\t%d\n", temp_host->passive_checks_enabled);
-		fprintf(fp, "\tobsess_over_host\t%d\n", temp_host->obsess_over_host);
+		fprintf(fp, "\tobsess\t%d\n", temp_host->obsess);
 		fprintf(fp, "\tevent_handler_enabled\t%d\n", temp_host->event_handler_enabled);
 		fprintf(fp, "\tlow_flap_threshold\t%f\n", temp_host->low_flap_threshold);
 		fprintf(fp, "\thigh_flap_threshold\t%f\n", temp_host->high_flap_threshold);
@@ -9856,7 +9856,7 @@ int xodtemplate_cache_objects(char *cache_file) {
 		fprintf(fp, "\tparallelize_check\t%d\n", temp_service->parallelize_check);
 		fprintf(fp, "\tactive_checks_enabled\t%d\n", temp_service->active_checks_enabled);
 		fprintf(fp, "\tpassive_checks_enabled\t%d\n", temp_service->passive_checks_enabled);
-		fprintf(fp, "\tobsess_over_service\t%d\n", temp_service->obsess_over_service);
+		fprintf(fp, "\tobsess\t%d\n", temp_service->obsess);
 		fprintf(fp, "\tevent_handler_enabled\t%d\n", temp_service->event_handler_enabled);
 		fprintf(fp, "\tlow_flap_threshold\t%f\n", temp_service->low_flap_threshold);
 		fprintf(fp, "\thigh_flap_threshold\t%f\n", temp_service->high_flap_threshold);

@@ -90,7 +90,7 @@ typedef struct hoststatus_struct {
 	double  execution_time;
 	int     scheduled_downtime_depth;
 	int     process_performance_data;
-	int     obsess_over_host;
+	int     obsess;
 	struct  hoststatus_struct *next;
 	struct  hoststatus_struct *nexthash;
 	} hoststatus;
@@ -138,7 +138,7 @@ typedef struct servicestatus_struct {
 	double  execution_time;
 	int     scheduled_downtime_depth;
 	int     process_performance_data;
-	int     obsess_over_service;
+	int     obsess;
 	struct  servicestatus_struct *next;
 	struct  servicestatus_struct *nexthash;
 	} servicestatus;

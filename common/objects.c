@@ -387,7 +387,7 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host) {
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess) {
 	host *new_host = NULL;
 	timeperiod *tp;
 	int result = OK;
@@ -461,7 +461,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 			}
 		}
 	if(check_command) {
-		if((new_host->host_check_command = (char *)strdup(check_command)) == NULL)
+		if((new_host->check_command = (char *)strdup(check_command)) == NULL)
 			result = ERROR;
 		}
 	if(event_handler) {
@@ -532,7 +532,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->z_3d = z_3d;
 	new_host->have_3d_coords = (have_3d_coords > 0) ? TRUE : FALSE;
 	new_host->should_be_drawn = (should_be_drawn > 0) ? TRUE : FALSE;
-	new_host->obsess_over_host = (obsess_over_host > 0) ? TRUE : FALSE;
+	new_host->obsess = (obsess > 0) ? TRUE : FALSE;
 	new_host->retain_status_information = (retain_status_information > 0) ? TRUE : FALSE;
 	new_host->retain_nonstatus_information = (retain_nonstatus_information > 0) ? TRUE : FALSE;
 #ifdef NSCORE
@@ -544,8 +544,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->last_state = initial_state;
 	new_host->last_hard_state = initial_state;
 	new_host->check_type = HOST_CHECK_ACTIVE;
-	new_host->last_host_notification = (time_t)0;
-	new_host->next_host_notification = (time_t)0;
+	new_host->last_notification = (time_t)0;
+	new_host->next_notification = (time_t)0;
 	new_host->next_check = (time_t)0;
 	new_host->should_be_scheduled = TRUE;
 	new_host->last_check = (time_t)0;
@@ -618,7 +618,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		my_free(new_host->notes_url);
 		my_free(new_host->notes);
 		my_free(new_host->event_handler);
-		my_free(new_host->host_check_command);
+		my_free(new_host->check_command);
 		my_free(new_host->address);
 		my_free(new_host->alias);
 		my_free(new_host->display_name);
@@ -1306,7 +1306,7 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notify_downtime, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service) {
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notify_downtime, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess) {
 	host *h;
 	timeperiod *cp = NULL, *np = NULL;
 	service *new_service = NULL;
@@ -1363,7 +1363,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		result = ERROR;
 	if((new_service->display_name = (char *)strdup((display_name == NULL) ? description : display_name)) == NULL)
 		result = ERROR;
-	if((new_service->service_check_command = (char *)strdup(check_command)) == NULL)
+	if((new_service->check_command = (char *)strdup(check_command)) == NULL)
 		result = ERROR;
 	if(event_handler) {
 		if((new_service->event_handler = (char *)strdup(event_handler)) == NULL)
@@ -1423,7 +1423,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->retain_status_information = (retain_status_information > 0) ? TRUE : FALSE;
 	new_service->retain_nonstatus_information = (retain_nonstatus_information > 0) ? TRUE : FALSE;
 	new_service->notifications_enabled = (notifications_enabled > 0) ? TRUE : FALSE;
-	new_service->obsess_over_service = (obsess_over_service > 0) ? TRUE : FALSE;
+	new_service->obsess = (obsess > 0) ? TRUE : FALSE;
 #ifdef NSCORE
 	new_service->problem_has_been_acknowledged = FALSE;
 	new_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
@@ -1499,7 +1499,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		my_free(new_service->long_plugin_output);
 #endif
 		my_free(new_service->event_handler);
-		my_free(new_service->service_check_command);
+		my_free(new_service->check_command);
 		my_free(new_service->description);
 		my_free(new_service->display_name);
 		return NULL;
@@ -2613,7 +2613,7 @@ int free_object_data(void) {
 		free_objectlist(&this_host->notify_deps);
 		free_objectlist(&this_host->exec_deps);
 		free_objectlist(&this_host->escalation_list);
-		my_free(this_host->host_check_command);
+		my_free(this_host->check_command);
 		my_free(this_host->event_handler);
 		my_free(this_host->notes);
 		my_free(this_host->notes_url);
@@ -2779,7 +2779,7 @@ int free_object_data(void) {
 
 		my_free(this_service->description);
 		my_free(this_service->display_name);
-		my_free(this_service->service_check_command);
+		my_free(this_service->check_command);
 #ifdef NSCORE
 		my_free(this_service->plugin_output);
 		my_free(this_service->long_plugin_output);

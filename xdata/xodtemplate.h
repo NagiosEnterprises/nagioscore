@@ -230,7 +230,7 @@ typedef struct xodtemplate_host_struct {
     int       max_check_attempts;
     int       active_checks_enabled;
     int       passive_checks_enabled;
-    int       obsess_over_host;
+    int       obsess;
     char      *event_handler;
     int       event_handler_enabled;
     int       check_freshness;
@@ -297,7 +297,7 @@ typedef struct xodtemplate_host_struct {
     unsigned have_max_check_attempts : 1;
     unsigned have_active_checks_enabled : 1;
     unsigned have_passive_checks_enabled : 1;
-    unsigned have_obsess_over_host : 1;
+    unsigned have_obsess : 1;
     unsigned have_event_handler_enabled : 1;
     unsigned have_check_freshness : 1;
     unsigned have_freshness_threshold : 1;
@@ -377,7 +377,7 @@ typedef struct xodtemplate_service_struct {
     int        passive_checks_enabled;
     int        parallelize_check;
     int        is_volatile;
-    int        obsess_over_service;
+    int        obsess;
     char       *event_handler;
     int        event_handler_enabled;
     int        check_freshness;
@@ -443,7 +443,7 @@ typedef struct xodtemplate_service_struct {
     unsigned have_passive_checks_enabled : 1;
     unsigned have_parallelize_check : 1;
     unsigned have_is_volatile : 1;
-    unsigned have_obsess_over_service : 1;
+    unsigned have_obsess : 1;
     unsigned have_event_handler_enabled : 1;
     unsigned have_check_freshness : 1;
     unsigned have_freshness_threshold : 1;

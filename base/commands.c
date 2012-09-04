@@ -1777,7 +1777,7 @@ int cmd_delay_notification(int cmd, char *args) {
 
 	/* delay the next notification... */
 	if(cmd == CMD_DELAY_HOST_NOTIFICATION)
-		temp_host->next_host_notification = delay_time;
+		temp_host->next_notification = delay_time;
 	else
 		temp_service->next_notification = delay_time;
 
@@ -3054,8 +3054,8 @@ int cmd_change_object_char_var(int cmd, char *args) {
 
 		case CMD_CHANGE_HOST_CHECK_COMMAND:
 
-			my_free(temp_host->host_check_command);
-			temp_host->host_check_command = temp_ptr;
+			my_free(temp_host->check_command);
+			temp_host->check_command = temp_ptr;
 			temp_host->check_command_ptr = temp_command;
 			attr = MODATTR_CHECK_COMMAND;
 			break;
@@ -3086,8 +3086,8 @@ int cmd_change_object_char_var(int cmd, char *args) {
 
 		case CMD_CHANGE_SVC_CHECK_COMMAND:
 
-			my_free(temp_service->service_check_command);
-			temp_service->service_check_command = temp_ptr;
+			my_free(temp_service->check_command);
+			temp_service->check_command = temp_ptr;
 			temp_service->check_command_ptr = temp_command;
 			attr = MODATTR_CHECK_COMMAND;
 			break;
@@ -4756,14 +4756,14 @@ void start_obsessing_over_service(service *svc) {
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
-	if(svc->obsess_over_service == TRUE)
+	if(svc->obsess == TRUE)
 		return;
 
 	/* set the attribute modified flag */
 	svc->modified_attributes |= attr;
 
 	/* set the obsess over service flag */
-	svc->obsess_over_service = TRUE;
+	svc->obsess = TRUE;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -4782,14 +4782,14 @@ void stop_obsessing_over_service(service *svc) {
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
-	if(svc->obsess_over_service == FALSE)
+	if(svc->obsess == FALSE)
 		return;
 
 	/* set the attribute modified flag */
 	svc->modified_attributes |= attr;
 
 	/* set the obsess over service flag */
-	svc->obsess_over_service = FALSE;
+	svc->obsess = FALSE;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -4808,14 +4808,14 @@ void start_obsessing_over_host(host *hst) {
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
-	if(hst->obsess_over_host == TRUE)
+	if(hst->obsess == TRUE)
 		return;
 
 	/* set the attribute modified flag */
 	hst->modified_attributes |= attr;
 
-	/* set the obsess over host flag */
-	hst->obsess_over_host = TRUE;
+	/* set the obsess flag */
+	hst->obsess = TRUE;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -4834,14 +4834,14 @@ void stop_obsessing_over_host(host *hst) {
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
-	if(hst->obsess_over_host == FALSE)
+	if(hst->obsess == FALSE)
 		return;
 
 	/* set the attribute modified flag */
 	hst->modified_attributes |= attr;
 
 	/* set the obsess over host flag */
-	hst->obsess_over_host = FALSE;
+	hst->obsess = FALSE;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */

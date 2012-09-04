@@ -548,11 +548,10 @@ void display_hosts(void) {
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, time_string);
 
 			printf("<TD CLASS='%s'>", bg_class);
-			if(temp_host->host_check_command == NULL)
+			if(temp_host->check_command == NULL)
 				printf("&nbsp;");
 			else
-				/* printf("<a href='%s?type=commands&expand=%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(strtok(temp_host->host_check_command,"!")),html_encode(temp_host->host_check_command,FALSE)); */
-				printf("<a href='%s?type=command&expand=%s'>%s</a></TD>\n", CONFIG_CGI, url_encode(temp_host->host_check_command), html_encode(temp_host->host_check_command, FALSE));
+				printf("<a href='%s?type=command&expand=%s'>%s</a></TD>\n", CONFIG_CGI, url_encode(temp_host->check_command), html_encode(temp_host->check_command, FALSE));
 			printf("</TD>\n");
 
 			printf("<TD CLASS='%s'>", bg_class);
@@ -562,7 +561,7 @@ void display_hosts(void) {
 				printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_host->check_period), html_encode(temp_host->check_period, FALSE));
 			printf("</TD>\n");
 
-			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_host->obsess_over_host == TRUE) ? "Yes" : "No");
+			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_host->obsess == TRUE) ? "Yes" : "No");
 
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_host->checks_enabled == TRUE) ? "Yes" : "No");
 
@@ -1269,7 +1268,7 @@ void display_services(void) {
 			get_interval_time_string(temp_service->retry_interval, time_string, sizeof(time_string));
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, time_string);
 
-			strncpy(command_line, temp_service->service_check_command, sizeof(command_line));
+			strncpy(command_line, temp_service->check_command, sizeof(command_line));
 			command_line[sizeof(command_line) - 1] = '\x0';
 			command_name = strtok(strdup(command_line), "!");
 
@@ -1287,7 +1286,7 @@ void display_services(void) {
 
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_service->is_volatile == TRUE) ? "Yes" : "No");
 
-			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_service->obsess_over_service == TRUE) ? "Yes" : "No");
+			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_service->obsess == TRUE) ? "Yes" : "No");
 
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_service->checks_enabled == TRUE) ? "Yes" : "No");
 

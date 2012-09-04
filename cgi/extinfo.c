@@ -1129,7 +1129,7 @@ void show_host_info(void) {
 
 		printf("<TR><TD CLASS='dataVar'>Passive Checks:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n", (temp_hoststatus->accept_passive_host_checks == TRUE) ? "ENABLED" : "DISABLED", (temp_hoststatus->accept_passive_host_checks) ? "ENABLED" : "DISABLED");
 
-		printf("<TR><TD CLASS='dataVar'>Obsessing:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n", (temp_hoststatus->obsess_over_host == TRUE) ? "ENABLED" : "DISABLED", (temp_hoststatus->obsess_over_host) ? "ENABLED" : "DISABLED");
+		printf("<TR><TD CLASS='dataVar'>Obsessing:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n", (temp_hoststatus->obsess == TRUE) ? "ENABLED" : "DISABLED", (temp_hoststatus->obsess) ? "ENABLED" : "DISABLED");
 
 		printf("<TR><TD CLASS='dataVar'>Notifications:</td><td CLASS='dataVal'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n", (temp_hoststatus->notifications_enabled) ? "ENABLED" : "DISABLED", (temp_hoststatus->notifications_enabled) ? "ENABLED" : "DISABLED");
 
@@ -1176,7 +1176,7 @@ void show_host_info(void) {
 		else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Accepting Passive Checks For This Host' TITLE='Start Accepting Passive Checks For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Start accepting passive checks for this host</a></td></tr>\n", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_PASSIVE_HOST_CHECKS, url_encode(host_name));
 
-		if(temp_hoststatus->obsess_over_host == TRUE)
+		if(temp_hoststatus->obsess == TRUE)
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Stop Obsessing Over This Host' TITLE='Stop Obsessing Over This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Stop obsessing over this host</a></td></tr>\n", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_STOP_OBSESSING_OVER_HOST, url_encode(host_name));
 		else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Obsessing Over This Host' TITLE='Start Obsessing Over This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Start obsessing over this host</a></td></tr>\n", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_START_OBSESSING_OVER_HOST, url_encode(host_name));
@@ -1444,7 +1444,7 @@ void show_service_info(void) {
 
 		printf("<TR><TD CLASS='dataVar'>Passive Checks:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n", (temp_svcstatus->accept_passive_service_checks == TRUE) ? "ENABLED" : "DISABLED", (temp_svcstatus->accept_passive_service_checks) ? "ENABLED" : "DISABLED");
 
-		printf("<TR><TD CLASS='dataVar'>Obsessing:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n", (temp_svcstatus->obsess_over_service == TRUE) ? "ENABLED" : "DISABLED", (temp_svcstatus->obsess_over_service) ? "ENABLED" : "DISABLED");
+		printf("<TR><TD CLASS='dataVar'>Obsessing:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n", (temp_svcstatus->obsess == TRUE) ? "ENABLED" : "DISABLED", (temp_svcstatus->obsess) ? "ENABLED" : "DISABLED");
 
 		printf("<TR><td CLASS='dataVar'>Notifications:</TD><td CLASS='dataVal'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n", (temp_svcstatus->notifications_enabled) ? "ENABLED" : "DISABLED", (temp_svcstatus->notifications_enabled) ? "ENABLED" : "DISABLED");
 
@@ -1502,7 +1502,7 @@ void show_service_info(void) {
 			printf("&service=%s'>Start accepting passive checks for this service</a></td></tr>\n", url_encode(service_desc));
 			}
 
-		if(temp_svcstatus->obsess_over_service == TRUE) {
+		if(temp_svcstatus->obsess == TRUE) {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Stop Obsessing Over This Service' TITLE='Stop Obsessing Over This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_STOP_OBSESSING_OVER_SVC, url_encode(host_name));
 			printf("&service=%s'>Stop obsessing over this service</a></td></tr>\n", url_encode(service_desc));
 			}

@@ -75,9 +75,7 @@ int obsessive_compulsive_service_check_processor(service *svc) {
 		return ERROR;
 
 	/* bail out if we shouldn't be obsessing */
-	if(obsess_over_services == FALSE)
-		return OK;
-	if(svc->obsess_over_service == FALSE)
+	if(obsess_over_services == FALSE || svc->obsess == FALSE)
 		return OK;
 
 	/* if there is no valid command, exit */
@@ -137,9 +135,7 @@ int obsessive_compulsive_host_check_processor(host *hst) {
 		return ERROR;
 
 	/* bail out if we shouldn't be obsessing */
-	if(obsess_over_hosts == FALSE)
-		return OK;
-	if(hst->obsess_over_host == FALSE)
+	if(obsess_over_hosts == FALSE || hst->obsess == FALSE)
 		return OK;
 
 	/* if there is no valid command, exit */

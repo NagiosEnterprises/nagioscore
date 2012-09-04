@@ -1670,9 +1670,9 @@ int pre_flight_object_check(int *w, int *e) {
 			}
 
 		/* check the service check_command */
-		temp_service->check_command_ptr = find_bang_command(temp_service->service_check_command);
+		temp_service->check_command_ptr = find_bang_command(temp_service->check_command);
 		if(temp_service->check_command_ptr == NULL) {
-			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service check command '%s' specified in service '%s' for host '%s' not defined anywhere!", temp_service->service_check_command, temp_service->description, temp_service->host_name);
+			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service check command '%s' specified in service '%s' for host '%s' not defined anywhere!", temp_service->check_command, temp_service->description, temp_service->host_name);
 			errors++;
 			}
 
@@ -1752,10 +1752,10 @@ int pre_flight_object_check(int *w, int *e) {
 			}
 
 		/* hosts that don't have check commands defined shouldn't ever be checked... */
-		if(temp_host->host_check_command != NULL) {
-			temp_host->check_command_ptr = find_bang_command(temp_host->host_check_command);
+		if(temp_host->check_command != NULL) {
+			temp_host->check_command_ptr = find_bang_command(temp_host->check_command);
 			if(temp_host->check_command_ptr == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host check command '%s' specified for host '%s' is not defined anywhere!", temp_host->host_check_command, temp_host->name);
+				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host check command '%s' specified for host '%s' is not defined anywhere!", temp_host->check_command, temp_host->name);
 				errors++;
 				}
 			}

@@ -1346,7 +1346,7 @@ void compensate_for_system_time_change(unsigned long last_time, unsigned long cu
 	/* adjust host timestamps */
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
-		adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_host->last_host_notification);
+		adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_host->last_notification);
 		adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_host->last_check);
 		adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_host->next_check);
 		adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_host->last_state_change);
@@ -1354,7 +1354,7 @@ void compensate_for_system_time_change(unsigned long last_time, unsigned long cu
 		adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_host->last_state_history_update);
 
 		/* recalculate next re-notification time */
-		temp_host->next_host_notification = get_next_host_notification_time(temp_host, temp_host->last_host_notification);
+		temp_host->next_notification = get_next_host_notification_time(temp_host, temp_host->last_notification);
 
 		/* update the status data */
 		update_host_status(temp_host, FALSE);

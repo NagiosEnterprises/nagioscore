@@ -241,7 +241,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	end_time.tv_usec = 0L;
 
 	/* send data to event broker */
-	neb_result = broker_service_check(NEBTYPE_SERVICECHECK_ASYNC_PRECHECK, NEBFLAG_NONE, NEBATTR_NONE, svc, SERVICE_CHECK_ACTIVE, start_time, end_time, svc->service_check_command, svc->latency, 0.0, 0, FALSE, 0, NULL, NULL);
+	neb_result = broker_service_check(NEBTYPE_SERVICECHECK_ASYNC_PRECHECK, NEBFLAG_NONE, NEBATTR_NONE, svc, SERVICE_CHECK_ACTIVE, start_time, end_time, svc->check_command, svc->latency, 0.0, 0, FALSE, 0, NULL, NULL);
 
 	/* neb module wants to cancel the service check - the check will be rescheduled for a later time by the scheduling logic */
 	if(neb_result == NEBERROR_CALLBACKCANCEL) {
@@ -275,7 +275,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	grab_service_macros_r(&mac, svc);
 
 	/* get the raw command line */
-	get_raw_command_line_r(&mac, svc->check_command_ptr, svc->service_check_command, &raw_command, 0);
+	get_raw_command_line_r(&mac, svc->check_command_ptr, svc->check_command, &raw_command, 0);
 	if(raw_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		log_debug_info(DEBUGL_CHECKS, 0, "Raw check command for service '%s' on host '%s' was NULL - aborting.\n", svc->description, svc->host_name);
@@ -302,7 +302,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	neb_result = broker_service_check(NEBTYPE_SERVICECHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, svc, SERVICE_CHECK_ACTIVE, start_time, end_time, svc->service_check_command, svc->latency, 0.0, service_check_timeout, FALSE, 0, processed_command, NULL);
+	neb_result = broker_service_check(NEBTYPE_SERVICECHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, svc, SERVICE_CHECK_ACTIVE, start_time, end_time, svc->check_command, svc->latency, 0.0, service_check_timeout, FALSE, 0, processed_command, NULL);
 
 	/* neb module wants to override the service check - perhaps it will check the service itself */
 	if(neb_result == NEBERROR_CALLBACKOVERRIDE) {
@@ -2134,7 +2134,7 @@ int run_sync_host_check_3x(host *hst, int *check_result_code, int check_options,
 	/* send data to event broker */
 	end_time.tv_sec = 0L;
 	end_time.tv_usec = 0L;
-	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->host_check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, NULL, NULL, NULL, NULL, NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, NULL, NULL, NULL, NULL, NULL);
 #endif
 
 	/* execute the host check */
@@ -2153,7 +2153,7 @@ int run_sync_host_check_3x(host *hst, int *check_result_code, int check_options,
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->host_check_command, hst->latency, hst->execution_time, host_check_timeout, FALSE, hst->current_state, NULL, hst->plugin_output, hst->long_plugin_output, hst->perf_data, NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->check_command, hst->latency, hst->execution_time, host_check_timeout, FALSE, hst->current_state, NULL, hst->plugin_output, hst->long_plugin_output, hst->perf_data, NULL);
 #endif
 
 	return result;
@@ -2195,7 +2195,7 @@ int execute_sync_host_check_3x(host *hst) {
 	end_time.tv_usec = 0L;
 
 	/* send data to event broker */
-	neb_result = broker_host_check(NEBTYPE_HOSTCHECK_SYNC_PRECHECK, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->host_check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, NULL, NULL, NULL, NULL, NULL);
+	neb_result = broker_host_check(NEBTYPE_HOSTCHECK_SYNC_PRECHECK, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, NULL, NULL, NULL, NULL, NULL);
 
 	/* neb module wants to cancel the host check - return the current state of the host */
 	if(neb_result == NEBERROR_CALLBACKCANCEL)
@@ -2218,7 +2218,7 @@ int execute_sync_host_check_3x(host *hst) {
 	time(&hst->last_check);
 
 	/* get the raw command line */
-	get_raw_command_line_r(&mac, hst->check_command_ptr, hst->host_check_command, &raw_command, 0);
+	get_raw_command_line_r(&mac, hst->check_command_ptr, hst->check_command, &raw_command, 0);
 	if(raw_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		return ERROR;
@@ -2236,7 +2236,7 @@ int execute_sync_host_check_3x(host *hst) {
 	/* send data to event broker */
 	end_time.tv_sec = 0L;
 	end_time.tv_usec = 0L;
-	broker_host_check(NEBTYPE_HOSTCHECK_RAW_START, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, return_result, hst->state_type, start_time, end_time, hst->host_check_command, 0.0, 0.0, host_check_timeout, early_timeout, result, processed_command, hst->plugin_output, hst->long_plugin_output, hst->perf_data, NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_RAW_START, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, return_result, hst->state_type, start_time, end_time, hst->check_command, 0.0, 0.0, host_check_timeout, early_timeout, result, processed_command, hst->plugin_output, hst->long_plugin_output, hst->perf_data, NULL);
 #endif
 
 	log_debug_info(DEBUGL_COMMANDS, 1, "Raw host check command: %s\n", raw_command);
@@ -2276,7 +2276,7 @@ int execute_sync_host_check_3x(host *hst) {
 	my_free(processed_command);
 
 	/* a NULL host check command means we should assume the host is UP */
-	if(hst->host_check_command == NULL) {
+	if(hst->check_command == NULL) {
 		my_free(hst->plugin_output);
 		hst->plugin_output = (char *)strdup("(Host assumed to be UP)");
 		result = STATE_OK;
@@ -2309,7 +2309,7 @@ int execute_sync_host_check_3x(host *hst) {
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_RAW_END, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, return_result, hst->state_type, start_time, end_time, hst->host_check_command, 0.0, exectime, host_check_timeout, early_timeout, result, processed_command, hst->plugin_output, hst->long_plugin_output, hst->perf_data, NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_RAW_END, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, return_result, hst->state_type, start_time, end_time, hst->check_command, 0.0, exectime, host_check_timeout, early_timeout, result, processed_command, hst->plugin_output, hst->long_plugin_output, hst->perf_data, NULL);
 #endif
 
 	log_debug_info(DEBUGL_CHECKS, 0, "** Sync host check done: state=%d\n", return_result);
@@ -2444,7 +2444,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	end_time.tv_usec = 0L;
 
 	/* send data to event broker */
-	neb_result = broker_host_check(NEBTYPE_HOSTCHECK_ASYNC_PRECHECK, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->host_check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, NULL, NULL, NULL, NULL, NULL);
+	neb_result = broker_host_check(NEBTYPE_HOSTCHECK_ASYNC_PRECHECK, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, NULL, NULL, NULL, NULL, NULL);
 
 	/* neb module wants to cancel the host check - the check will be rescheduled for a later time by the scheduling logic */
 	if(neb_result == NEBERROR_CALLBACKCANCEL)
@@ -2475,7 +2475,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	grab_host_macros_r(&mac, hst);
 
 	/* get the raw command line */
-	get_raw_command_line_r(&mac, hst->check_command_ptr, hst->host_check_command, &raw_command, 0);
+	get_raw_command_line_r(&mac, hst->check_command_ptr, hst->check_command, &raw_command, 0);
 	if(raw_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		log_debug_info(DEBUGL_CHECKS, 0, "Raw check command for host '%s' was NULL - aborting.\n", hst->name);
@@ -2531,7 +2531,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->host_check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, processed_command, NULL, NULL, NULL, NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, hst, HOST_CHECK_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, processed_command, NULL, NULL, NULL, NULL);
 #endif
 
 	/* reset latency (permanent value for this check will get set later) */
@@ -2712,7 +2712,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 			}
 
 		/* a NULL host check command means we should assume the host is UP */
-		if(temp_host->host_check_command == NULL) {
+		if(temp_host->check_command == NULL) {
 			my_free(temp_host->plugin_output);
 			temp_host->plugin_output = (char *)strdup("(Host assumed to be UP)");
 			result = STATE_OK;
@@ -2755,7 +2755,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED, NEBFLAG_NONE, NEBATTR_NONE, temp_host, temp_host->check_type, temp_host->current_state, temp_host->state_type, start_time_hires, end_time_hires, temp_host->host_check_command, temp_host->latency, temp_host->execution_time, host_check_timeout, queued_check_result->early_timeout, queued_check_result->return_code, NULL, temp_host->plugin_output, temp_host->long_plugin_output, temp_host->perf_data, NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED, NEBFLAG_NONE, NEBATTR_NONE, temp_host, temp_host->check_type, temp_host->current_state, temp_host->state_type, start_time_hires, end_time_hires, temp_host->check_command, temp_host->latency, temp_host->execution_time, host_check_timeout, queued_check_result->early_timeout, queued_check_result->return_code, NULL, temp_host->plugin_output, temp_host->long_plugin_output, temp_host->perf_data, NULL);
 #endif
 
 	return OK;
@@ -3392,8 +3392,8 @@ int handle_host_state(host *hst) {
 	if(state_change == TRUE || hard_state_change == TRUE) {
 
 		/* reset the next and last notification times */
-		hst->last_host_notification = (time_t)0;
-		hst->next_host_notification = (time_t)0;
+		hst->last_notification = (time_t)0;
+		hst->next_notification = (time_t)0;
 
 		/* reset notification suppression option */
 		hst->no_more_notifications = FALSE;

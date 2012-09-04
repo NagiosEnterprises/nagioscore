@@ -268,7 +268,7 @@ struct host_struct {
 	hostsmember *parent_hosts;
 	hostsmember *child_hosts;
 	servicesmember *services;
-	char    *host_check_command;
+	char    *check_command;
 	int     initial_state;
 	double  check_interval;
 	double  retry_interval;
@@ -302,7 +302,7 @@ struct host_struct {
 	int     event_handler_enabled;
 	int     retain_status_information;
 	int     retain_nonstatus_information;
-	int     obsess_over_host;
+	int     obsess;
 	char    *notes;
 	char    *notes_url;
 	char    *action_url;
@@ -340,8 +340,8 @@ struct host_struct {
 	int     is_executing;
 	int     check_options;
 	int     notifications_enabled;
-	time_t  last_host_notification;
-	time_t  next_host_notification;
+	time_t  last_notification;
+	time_t  next_notification;
 	time_t  next_check;
 	int     should_be_scheduled;
 	time_t  last_check;
@@ -403,7 +403,7 @@ struct service_struct {
 	char	*host_name;
 	char	*description;
 	char    *display_name;
-	char    *service_check_command;
+	char    *check_command;
 	char    *event_handler;
 	int     initial_state;
 	double	check_interval;
@@ -443,7 +443,7 @@ struct service_struct {
 	int     retain_status_information;
 	int     retain_nonstatus_information;
 	int     notifications_enabled;
-	int     obsess_over_service;
+	int     obsess;
 	char    *notes;
 	char    *notes_url;
 	char    *action_url;

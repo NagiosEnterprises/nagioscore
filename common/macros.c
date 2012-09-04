@@ -1645,8 +1645,8 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 			break;
 #endif
 		case MACRO_HOSTCHECKCOMMAND:
-			if(temp_host->host_check_command)
-				*output = (char *)strdup(temp_host->host_check_command);
+			if(temp_host->check_command)
+				*output = (char *)strdup(temp_host->check_command);
 			break;
 #ifdef NSCORE
 		case MACRO_HOSTATTEMPT:
@@ -1990,8 +1990,8 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 			break;
 #endif
 		case MACRO_SERVICECHECKCOMMAND:
-			if(temp_service->service_check_command)
-				*output = (char *)strdup(temp_service->service_check_command);
+			if(temp_service->check_command)
+				*output = (char *)strdup(temp_service->check_command);
 			break;
 #ifdef NSCORE
 		case MACRO_SERVICECHECKTYPE:

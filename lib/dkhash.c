@@ -70,6 +70,13 @@ static inline unsigned int hash(register const unsigned char *k)
 	return h;
 }
 
+static inline unsigned int dkhash_slot(dkhash_table *t, const char *k1, const char *k2)
+{
+	if(k2)
+		return dkhash_func2(k1, k2) % t->num_buckets;
+	return dkhash_func(k1) % t->num_buckets;
+}
+
 static dkhash_bucket *dkhash_get_bucket(dkhash_table *t, const char *key, unsigned int slot)
 {
 	dkhash_bucket *bkt;
@@ -102,14 +109,8 @@ int dkhash_insert(dkhash_table *t, const char *k1, const char *k2, void *data)
 	if (!t || !k1)
 		return DKHASH_EINVAL;
 
-	if (k2) {
-		slot = dkhash_func2(k1, k2) & (t->num_buckets - 1);
-		bkt = dkhash_get_bucket2(t, k1, k2, slot);
-	}
-	else {
-		slot = dkhash_func(k1) & (t->num_buckets - 1);
-		bkt = dkhash_get_bucket(t, k1, slot);
-	}
+	slot = dkhash_slot(t, k1, k2);
+	bkt = k2 ? dkhash_get_bucket2(t, k1, k2, slot) : dkhash_get_bucket(t, k1, slot);
 
 	if (bkt)
 		return DKHASH_EDUPE;
@@ -141,14 +142,8 @@ void *dkhash_get(dkhash_table *t, const char *k1, const char *k2)
 	if (!t || !k1)
 		return NULL;
 
-	if (k2) {
-		slot = dkhash_func2(k1, k2) & (t->num_buckets - 1);
-		bkt = dkhash_get_bucket2(t, k1, k2, slot);
-	}
-	else {
-		slot = dkhash_func(k1) & (t->num_buckets - 1);
-		bkt = dkhash_get_bucket(t, k1, slot);
-	}
+	slot = dkhash_slot(t, k1, k2);
+	bkt = k2 ? dkhash_get_bucket2(t, k1, k2, slot) : dkhash_get_bucket(t, k1, slot);
 
 	return bkt ? bkt->data : NULL;
 }
@@ -156,29 +151,20 @@ void *dkhash_get(dkhash_table *t, const char *k1, const char *k2)
 dkhash_table *dkhash_create(unsigned int size)
 {
 	dkhash_table *t;
-	unsigned int po2;
 
 	if (!size)
 		return NULL;
 
-	t = calloc(1, sizeof(*t));
+	if(!(t = calloc(1, sizeof(*t))))
+		return NULL;
 
-	/* we'd like size to be a power of 2, so we round up */
-	po2 = rup2pof2(size);
-	if (po2 < 16)
-		po2 = 16;
-
-	if (t) {
-		t->buckets = calloc(po2, sizeof(dkhash_bucket *));
-		if (t->buckets) {
-			t->num_buckets = po2;
-			return t;
-		}
-
+	if(!(t->buckets = calloc(size, sizeof(dkhash_bucket *)))) {
 		free(t);
+		return NULL;
 	}
 
-	return NULL;
+	t->num_buckets = size;
+	return t;
 }
 
 int dkhash_destroy(dkhash_table *t)
@@ -217,7 +203,7 @@ void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
 	if (!t || !k1)
 		return NULL;
 
-	slot = (k2 ? dkhash_func2(k1, k2) : dkhash_func(k1)) & (t->num_buckets - 1);
+	slot = dkhash_slot(t, k1, k2);
 	if (!(bkt = t->buckets[slot]))
 		return NULL;
 

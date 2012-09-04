@@ -1,0 +1,87 @@
+/** @page configincompat3to4 Configuration Incompatibilities 3->4
+
+This page lists configuration incompatibilities between Nagios 3
+and Nagios 4.
+
+[TOC]
+
+@section mainconfig Main Config File Options
+Since command file handling has been redone, embedded perl has been
+removed and the event execution loop now sits and waits on input from
+worker processes rather than spending any time sleeping, the following
+variables have been obsoleted, will yield a warning when encountered
+and no longer have any effect on monitoring:
+@li command_check_interval
+@li external_command_buffer_slots
+@li sleep_time
+@li enable_failure_prediction
+@li enable_embedded_perl
+@li use_embedded_perl_implicitly
+@li auth_file
+@li p1_file
+
+
+@section nestedgroups Nested Group Includes
+In Nagios 3, it's possible to have groups include each other
+cyclically, like this:
+@verbatim
+define hostgroup{
+	hostgroup_name         HG1
+	alias                  Hostgroup 1
+	hostgroup_members      HG3
+}
+
+define hostgroup{
+	hostgroup_name         HG2
+	alias                  Hostgroup 2
+	hostgroup_members      HG1
+}
+
+define hostgroup{
+	hostgroup_name         HG3
+	alias                  Hostgroup 3
+	hostgroup_members      HG2
+}
+@endverbatim
+With Nagios 4, that will generate an error. The Nagios 3 behaviour
+is that the first hostgroup, as determined by alphabetical sorting,
+will get the members of its included groups, but the later ones in
+the sorting will not get the members of the previous ones. Since
+that is an error-prone and illogical way of assigning group members,
+we now disallow it.
+
+This will work the same for all grouptypes.
+
+@section groupinherits Group Inheritance
+Groups no longer inherit each others exclusions. Consider the
+following scenario:
+@verbatim
+define host{
+    use                            default-host-template
+    host_name                      A
+    alias                          linux Server1
+    address                        127.0.0.1
+    hostgroups                     HG1
+    contact_groups                 support-group
+}
+define hostgroup{
+    hostgroup_name                 HG1
+    alias                          Hostgroup 1
+    hostgroup_members              HG3
+}
+define hostgroup{
+    hostgroup_name                 HG3
+    alias                          Hostgroup 3
+    members                        E,F,H,!A
+    hostgroup_members              HG2
+}
+@endverbatim
+In Nagios 3, A would *not* be a member of HG1. In Nagios 4, it will,
+because the logic has been fixed so that group inclusion works only
+with the actual members, and not the rules concerning how those
+members were chosen.
+If you want to carry over exclusions, you can instead make a template
+and 'use' one hostgroup from another.
+
+The same goes for all group types, and not just hostgroups.
+*/

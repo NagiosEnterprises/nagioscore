@@ -31,7 +31,19 @@ struct squeue_event {
 
 static pqueue_pri_t evt_compute_pri(struct timeval *tv)
 {
-	return (tv->tv_sec << 32) | tv->tv_usec;
+	pqueue_pri_t ret;
+
+	/* keep weird compilers on 32-bit systems from doing wrong */
+	if(sizeof(pqueue_pri_t) < 8) {
+		ret = tv->tv_sec;
+		ret += !!tv->tv_usec;
+	} else {
+		ret = tv->tv_sec;
+		ret <<= 32;
+		ret |= tv->tv_usec;
+	}
+
+	return ret;
 }
 
 static int sq_cmp_pri(pqueue_pri_t next, pqueue_pri_t cur)

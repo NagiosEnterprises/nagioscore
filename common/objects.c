@@ -77,6 +77,9 @@ int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
 int read_object_config_data(char *main_config_file, int options, int cache, int precache) {
 	int result = OK;
 
+	/* reset object counts */
+	memset(&num_objects, 0, sizeof(num_objects));
+
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XODTEMPLATE
 	/* read in data from all text host config files (template-based) */

@@ -23,6 +23,12 @@
 #define _SKIPLIST_H
 #include "lnag-utils.h"
 
+/**
+ * @file skiplist.h
+ * @brief Skiplist library functions
+ * @{
+ */
+
 #define SKIPLIST_OK              0 /**< A ok */
 #define SKIPLIST_ERROR_ARGS      1 /**< Bad arguments */
 #define SKIPLIST_ERROR_MEMORY    2 /**< Memory error */
@@ -45,7 +51,7 @@ unsigned long skiplist_num_items(skiplist *list);
  * @param max_levels Number of "ups" we have.
  * This Should be kept close to lg2 of the number of items to store.
  * @param level_probability Ignored
- * @param allow_duplicate Allow duplicates in this list
+ * @param allow_duplicates Allow duplicates in this list
  * @param append_duplicates Append rather than prepend duplicates
  * @param compare_function Comparison function for data entries
  * @return pointer to a new skiplist on success, NULL on errors
@@ -149,4 +155,5 @@ int skiplist_delete_first(skiplist *list, void *data);
 int skiplist_delete_node(skiplist *list, void *node_ptr);
 
 NAGIOS_END_DECL
+/* @} */
 #endif

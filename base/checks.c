@@ -300,19 +300,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* get the command start time */
 	gettimeofday(&start_time, NULL);
 
-#ifdef USE_EVENT_BROKER
-	/* send data to event broker */
-	neb_result = broker_service_check(NEBTYPE_SERVICECHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, svc, SERVICE_CHECK_ACTIVE, start_time, end_time, svc->check_command, svc->latency, 0.0, service_check_timeout, FALSE, 0, processed_command, NULL);
-
-	/* neb module wants to override the service check - perhaps it will check the service itself */
-	if(neb_result == NEBERROR_CALLBACKOVERRIDE) {
-		clear_volatile_macros_r(&mac);
-		svc->latency = old_latency;
-		my_free(processed_command);
-		return OK;
-		}
-#endif
-
 	cr = malloc(sizeof(*cr));
 	if (!cr) {
 		clear_volatile_macros_r(&mac);
@@ -321,12 +308,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		return ERROR;
 	}
 	init_check_result(cr);
-
-	/* increment number of service checks that are currently running... */
-	currently_running_service_checks++;
-
-	/* set the execution flag */
-	svc->is_executing = TRUE;
 
 	/* save check info */
 	cr->object_check_type = SERVICE_CHECK;
@@ -342,6 +323,26 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	cr->output = NULL;
 	cr->host_name = (char *)strdup(svc->host_name);
 	cr->service_description = (char *)strdup(svc->description);
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	neb_result = broker_service_check(NEBTYPE_SERVICECHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, svc, SERVICE_CHECK_ACTIVE, start_time, end_time, svc->check_command, svc->latency, 0.0, service_check_timeout, FALSE, 0, processed_command, NULL);
+
+	/* neb module wants to override the service check - perhaps it will check the service itself */
+	if(neb_result == NEBERROR_CALLBACKOVERRIDE) {
+		clear_volatile_macros_r(&mac);
+		svc->latency = old_latency;
+		free_check_result(cr);
+		my_free(processed_command);
+		return OK;
+		}
+#endif
+
+	/* increment number of service checks that are currently running... */
+	currently_running_service_checks++;
+
+	/* set the execution flag */
+	svc->is_executing = TRUE;
 
 	/* reset latency (permanent value will be set later) */
 	svc->latency = old_latency;

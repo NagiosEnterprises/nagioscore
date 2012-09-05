@@ -157,25 +157,14 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 			get_next_valid_time(preferred_time, &next_valid_time, svc->check_period_ptr);
 
 			/*
-			logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Service '%s' on host '%s' timeperiod check failed...\n",svc->description,svc->host_name);
-			logit(NSLOG_RUNTIME_WARNING,TRUE,"Current time: %s",ctime(&current_time));
-			logit(NSLOG_RUNTIME_WARNING,TRUE,"Preferred time: %s",ctime(&preferred_time));
-			logit(NSLOG_RUNTIME_WARNING,TRUE,"Next valid time: %s",ctime(&next_valid_time));
-			*/
-
-			/* the service could not be rescheduled properly - set the next check time for next week */
-			/*if(time_is_valid==FALSE && next_valid_time==preferred_time){*/
-			/* UPDATED 08/12/09 EG to reflect proper timeperod check logic */
+			 * If we really can't reschedule the service properly, we
+			 * just push the check to preferred_time and try again then.
+			 */
 			if(time_is_valid == FALSE &&  check_time_against_period(next_valid_time, svc->check_period_ptr) == ERROR) {
 
-				/*
-				svc->next_check=(time_t)(next_valid_time+(60*60*24*365));
-				svc->should_be_scheduled=FALSE;
-				*/
+				svc->next_check = preferred_time;
 
-				svc->next_check = (time_t)(next_valid_time + (60 * 60 * 24 * 7));
-
-				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' could not be rescheduled properly.  Scheduling check for next week...\n", svc->description, svc->host_name);
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' could not be rescheduled properly.  Scheduling check for %s...\n", svc->description, svc->host_name, ctime(&preferred_time));
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Unable to find any valid times to reschedule the next service check!\n");
 				}
@@ -2364,17 +2353,15 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency) {
 			/* make sure we rescheduled the next host check at a valid time */
 			get_next_valid_time(preferred_time, &next_valid_time, hst->check_period_ptr);
 
-			/* the host could not be rescheduled properly - set the next check time for next week */
-			if(time_is_valid == FALSE && next_valid_time == preferred_time) {
+			/*
+			 * If the host really can't be rescheduled properly we
+			 * set next check time to preferred_time and try again then
+			 */
+			if(time_is_valid == FALSE && check_time_against_period(next_valid_time, hst->check_period_ptr) == ERROR) {
 
-				/*
-				hst->next_check=(time_t)(next_valid_time+(60*60*24*365));
-				hst->should_be_scheduled=FALSE;
-				*/
+				hst->next_check = preferred_time;
 
-				hst->next_check = (time_t)(next_valid_time + (60 * 60 * 24 * 7));
-
-				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' could not be rescheduled properly.  Scheduling check for next week...\n", hst->name);
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' could not be rescheduled properly.  Scheduling check for %s...\n", hst->name, ctime(&preferred_time));
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Unable to find any valid times to reschedule the next host check!\n");
 				}

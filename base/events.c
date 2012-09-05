@@ -1081,7 +1081,6 @@ int handle_timed_event(timed_event *event) {
 			log_debug_info(DEBUGL_EVENTS, 0, "** Service Check Event ==> Host: '%s', Service: '%s', Options: %d, Latency: %f sec\n", temp_service->host_name, temp_service->description, event->event_options, latency);
 
 			/* run the service check */
-			temp_service = (service *)event->event_data;
 			run_scheduled_service_check(temp_service, event->event_options, latency);
 			break;
 
@@ -1092,7 +1091,6 @@ int handle_timed_event(timed_event *event) {
 			log_debug_info(DEBUGL_EVENTS, 0, "** Host Check Event ==> Host: '%s', Options: %d, Latency: %f sec\n", temp_host->name, event->event_options, latency);
 
 			/* run the host check */
-			temp_host = (host *)event->event_data;
 			perform_scheduled_host_check(temp_host, event->event_options, latency);
 			break;
 

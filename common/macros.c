@@ -3186,24 +3186,31 @@ int set_all_macro_environment_vars(int set) {
 int set_macrox_environment_vars_r(nagios_macros *mac, int set) {
 	register int x = 0;
 	int free_macro = FALSE;
-	int generate_macro = TRUE;
 
 	/* set each of the macrox environment variables */
 	for(x = 0; x < MACRO_X_COUNT; x++) {
 
 		free_macro = FALSE;
 
+		/* large installations don't get all macros */
+		if(use_large_installation_tweaks == TRUE) {
+			/*
+			 * member macros tend to overflow the
+			 * environment on large installations
+			 */
+			if(x == MACRO_SERVICEGROUPMEMBERS || x == MACRO_HOSTGROUPMEMBERS)
+				continue;
+
+			/* summary macros are CPU intensive to compute */
+			if(x >= MACRO_TOTALHOSTSUP && x <= MACRO_TOTALSERVICEPROBLEMSUNHANDLED)
+				continue;
+			}
+
 		/* generate the macro value if it hasn't already been done */
 		/* THIS IS EXPENSIVE */
 		if(set == TRUE) {
 
-			generate_macro = TRUE;
-
-			/* skip summary macro generation if lage installation tweaks are enabled */
-			if((x >= MACRO_TOTALHOSTSUP && x <= MACRO_TOTALSERVICEPROBLEMSUNHANDLED) && use_large_installation_tweaks == TRUE)
-				generate_macro = FALSE;
-
-			if(mac->x[x] == NULL && generate_macro == TRUE)
+			if(mac->x[x] == NULL)
 				grab_macrox_value_r(mac, x, NULL, NULL, &mac->x[x], &free_macro);
 			}
 

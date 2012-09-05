@@ -76,6 +76,7 @@ extern int      ocsp_timeout;
 extern int      ochp_timeout;
 
 extern int      log_initial_states;
+extern int      log_current_states;
 
 extern int      daemon_mode;
 extern int      daemon_dumps_core;
@@ -605,6 +606,17 @@ int read_main_config_file(char *main_config_file) {
 
 			log_initial_states = (atoi(value) > 0) ? TRUE : FALSE;
 			}
+
+                else if(!strcmp(variable, "log_current_states")) {
+
+                        if(strlen(value) != 1 || value[0] < '0' || value[0] > '1') {
+                                asprintf(&error_message, "Illegal value for log_current_states");
+                                error = TRUE;
+                                break;
+                                }
+
+                        log_current_states = (atoi(value) > 0) ? TRUE : FALSE;
+                        }
 
 		else if(!strcmp(variable, "retain_state_information")) {
 

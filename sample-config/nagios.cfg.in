@@ -291,6 +291,15 @@ log_initial_states=0
 
 
 
+# CURRENT STATES LOGGING OPTION
+# If you don't want Nagios to log all current host and service states
+# after log has been rotated to the main log file, you can disable this
+# option by setting this value to 0. Default value is 1.
+
+log_current_states=1
+
+
+
 # EXTERNAL COMMANDS LOGGING OPTION
 # If you don't want Nagios to log external commands, set this value
 # to 0.  If external commands should be logged, set this value to 1.

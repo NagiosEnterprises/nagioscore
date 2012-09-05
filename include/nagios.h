@@ -79,6 +79,7 @@
 #define DEFAULT_LOG_SERVICE_RETRIES				0	/* don't log service retries */
 #define DEFAULT_LOG_EVENT_HANDLERS				1	/* log event handlers */
 #define DEFAULT_LOG_INITIAL_STATES				0	/* don't log initial service and host states */
+#define DEFAULT_LOG_CURRENT_STATES				1	/* log current service and host states after rotating log */
 #define DEFAULT_LOG_EXTERNAL_COMMANDS				1	/* log external commands */
 #define DEFAULT_LOG_PASSIVE_CHECKS				1	/* log passive service checks */
 

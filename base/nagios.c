@@ -86,6 +86,7 @@ int             log_service_retries = DEFAULT_LOG_SERVICE_RETRIES;
 int             log_host_retries = DEFAULT_LOG_HOST_RETRIES;
 int             log_event_handlers = DEFAULT_LOG_EVENT_HANDLERS;
 int             log_initial_states = DEFAULT_LOG_INITIAL_STATES;
+int             log_current_states = DEFAULT_LOG_CURRENT_STATES;
 int             log_external_commands = DEFAULT_LOG_EXTERNAL_COMMANDS;
 int             log_passive_checks = DEFAULT_LOG_PASSIVE_CHECKS;
 

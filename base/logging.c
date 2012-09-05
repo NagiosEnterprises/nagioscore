@@ -34,6 +34,7 @@ extern char	*log_archive_path;
 extern int	use_syslog;
 extern int      log_service_retries;
 extern int      log_initial_states;
+extern int      log_current_states;
 
 extern unsigned long      logging_options;
 extern unsigned long      syslog_options;
@@ -411,9 +412,11 @@ int rotate_log_file(time_t rotation_time) {
 		chown(log_file, log_file_stat.st_uid, log_file_stat.st_gid);
 		}
 
-	/* log current host and service state */
-	log_host_states(CURRENT_STATES, &rotation_time);
-	log_service_states(CURRENT_STATES, &rotation_time);
+	/* log current host and service state if activated */
+	if(log_current_states==TRUE) {
+		log_host_states(CURRENT_STATES, &rotation_time);
+		log_service_states(CURRENT_STATES, &rotation_time);
+	}
 
 	/* free memory */
 	my_free(log_archive);

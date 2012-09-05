@@ -1878,6 +1878,12 @@ int grab_standard_hostgroup_macro_r(nagios_macros *mac, int macro_type, hostgrou
 					temp_len += strlen(temp_hostsmember->host_name) + 2;
 					}
 				}
+			if(!temp_len) {
+				/* empty group, so return the nul string */
+				*output = calloc(1, 1);
+				return OK;
+				}
+
 			/* allocate or reallocate the memory buffer */
 			if(*output == NULL) {
 				*output = (char *)malloc(temp_len);
@@ -2213,6 +2219,11 @@ int grab_standard_servicegroup_macro_r(nagios_macros *mac, int macro_type, servi
 				else {
 					temp_len += strlen(temp_servicesmember->host_name) + strlen(temp_servicesmember->service_description) + 3;
 					}
+				}
+			if(!temp_len) {
+				/* empty group, so return the nul string */
+				*output = calloc(1, 1);
+				return OK;
 				}
 			/* allocate or reallocate the memory buffer */
 			if(*output == NULL) {

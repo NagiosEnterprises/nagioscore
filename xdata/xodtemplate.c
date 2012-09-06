@@ -7024,8 +7024,13 @@ int xodtemplate_recombobulate_contactgroups(void) {
 			}
 
 		/* get list of contacts in the contactgroup */
-		if(xodtemplate_expand_contacts(&accept, temp_contactgroup->reject_map, temp_contactgroup->members, temp_contactgroup->_config_file, temp_contactgroup->_start_line) != OK)
+		if(xodtemplate_expand_contacts(&accept, temp_contactgroup->reject_map, temp_contactgroup->members, temp_contactgroup->_config_file, temp_contactgroup->_start_line) != OK) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to expand contacts for contactgroup '%s' (config file '%s', starting at line %d)\n",
+				  temp_contactgroup->contactgroup_name,
+				  xodtemplate_config_file_name(temp_contactgroup->_config_file),
+				  temp_contactgroup->_start_line);
 			return ERROR;
+			}
 
 		my_free(temp_contactgroup->members);
 		for(list = accept; list; list = next) {
@@ -7044,8 +7049,11 @@ int xodtemplate_recombobulate_contactgroups(void) {
 			continue;
 
 		/* preprocess the contactgroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
-		if((contactgroup_names = xodtemplate_process_contactgroup_names(temp_contact->contact_groups, temp_contact->_config_file, temp_contact->_start_line)) == NULL)
+		if((contactgroup_names = xodtemplate_process_contactgroup_names(temp_contact->contact_groups, temp_contact->_config_file, temp_contact->_start_line)) == NULL) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to process contactgroups for contact '%s' (config file '%s', starting at line %d)\n",
+				  temp_contact->contact_name, xodtemplate_config_file_name(temp_contact->_config_file),	temp_contact->_start_line);
 			return ERROR;
+			}
 
 		/* process the list of contactgroups */
 		for(temp_ptr = strtok(contactgroup_names, ","); temp_ptr; temp_ptr = strtok(NULL, ",")) {
@@ -7210,8 +7218,11 @@ int xodtemplate_recombobulate_hostgroups(void) {
 
 		/* preprocess the hostgroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
 		/* 10/18/07 EG an empty return value means an error occured */
-		if((hostgroup_names = xodtemplate_process_hostgroup_names(temp_host->host_groups, temp_host->_config_file, temp_host->_start_line)) == NULL)
+		if((hostgroup_names = xodtemplate_process_hostgroup_names(temp_host->host_groups, temp_host->_config_file, temp_host->_start_line)) == NULL) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process hostgroup names for host '%s' (config file '%s', starting at line %d)\n",
+				  temp_host->host_name, xodtemplate_config_file_name(temp_host->_config_file), temp_host->_start_line);
 			return ERROR;
+			}
 
 		/* process the list of hostgroups */
 		for(temp_ptr = strtok(hostgroup_names, ","); temp_ptr; temp_ptr = strtok(NULL, ",")) {
@@ -7376,8 +7387,11 @@ int xodtemplate_recombobulate_servicegroups(void) {
 
 		/* preprocess the servicegroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
 		/* 10/19/07 EG an empry return value means an error occured */
-		if((servicegroup_names = xodtemplate_process_servicegroup_names(temp_service->service_groups, temp_service->_config_file, temp_service->_start_line)) == NULL)
+		if((servicegroup_names = xodtemplate_process_servicegroup_names(temp_service->service_groups, temp_service->_config_file, temp_service->_start_line)) == NULL) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process servicegroup names for service '%s' on host '%s' (config file '%s', starting at line %d)\n",
+				  temp_service->service_description, temp_service->host_name, xodtemplate_config_file_name(temp_servicegroup->_config_file), temp_servicegroup->_start_line);
 			return ERROR;
+			}
 
 		/* process the list of servicegroups */
 		for(temp_ptr = strtok(servicegroup_names, ","); temp_ptr; temp_ptr = strtok(NULL, ",")) {

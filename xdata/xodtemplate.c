@@ -6957,7 +6957,7 @@ static int xodtemplate_recombobulate_contactgroup_subgroups(xodtemplate_contactg
 
 		for(mlist = inc->member_list; mlist; mlist = mlist->next) {
 			xodtemplate_contact *c = (xodtemplate_contact *)mlist->object_ptr;
-			if(xodtemplate_add_hostgroup_member(temp_contactgroup, c) != OK) {
+			if(xodtemplate_add_contactgroup_member(temp_contactgroup, c) != OK) {
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to add '%s' as a subgroup member contact of contactgroup '%s' from contactgroup '%s'\n",
 					  c->contact_name, temp_contactgroup->contactgroup_name, inc->contactgroup_name);
 				return ERROR;

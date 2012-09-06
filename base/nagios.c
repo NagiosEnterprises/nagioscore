@@ -273,7 +273,7 @@ int main(int argc, char **argv, char **env) {
 			{"use-precached-objects", no_argument, 0, 'u'},
 			{0, 0, 0, 0}
 		};
-#define getopt(argc, argv, o) getopt_long(argc, argv, o, long_options, option_index)
+#define getopt(argc, argv, o) getopt_long(argc, argv, o, long_options, &option_index)
 #endif
 
 	mac = get_global_macros();
@@ -336,12 +336,6 @@ int main(int argc, char **argv, char **env) {
 
 		}
 
-	/* make sure we have the right combination of arguments */
-	if(precache_objects == TRUE && (test_scheduling == FALSE && verify_config == FALSE)) {
-		error = TRUE;
-		display_help = TRUE;
-		}
-
 #ifdef DEBUG_MEMORY
 	mtrace();
 #endif
@@ -388,7 +382,7 @@ int main(int argc, char **argv, char **env) {
 		printf("                               diagnostic info based on the current configuration files.\n");
 		/*printf("  -o, --dont-verify-objects    Don't verify object relationships - USE WITH CAUTION!\n");*/
 		printf("  -x, --dont-verify-paths      Don't check for circular object paths - USE WITH CAUTION!\n");
-		printf("  -p, --precache-objects       Precache object configuration - use with -v or -s options\n");
+		printf("  -p, --precache-objects       Precache object configuration\n");
 		printf("  -u, --use-precached-objects  Use precached object config file\n");
 		printf("  -d, --daemon                 Starts Nagios in daemon mode, instead of as a foreground process\n");
 		printf("\n");
@@ -435,39 +429,36 @@ int main(int argc, char **argv, char **env) {
 		my_free(buffer);
 		}
 
-
-	/* we're just verifying the configuration... */
-	if(verify_config == TRUE) {
-
-		/* reset program variables */
+	/*
+	 * let's go to town. We'll be noisy if we're verifying config
+	 * or running scheduling tests.
+	 */
+	if(verify_config || test_scheduling || precache_objects) {
 		reset_variables();
 
-		printf("Reading configuration data...\n");
+		if(verify_config == TRUE)
+			printf("Reading configuration data...\n");
 
-		/* read in the configuration files (main config file, resource and object config files) */
-		if((result = read_main_config_file(config_file)) == OK) {
+		/* read our config file */
+		result = read_main_config_file(config_file);
+		if(result != OK) {
+			printf("   Error processing main config file!\n\n");
+			exit(EXIT_FAILURE);
+			}
 
+		if(verify_config == TRUE)
 			printf("   Read main config file okay...\n");
 
-			/* drop privileges */
-			if((result = drop_privileges(nagios_user, nagios_group)) == ERROR)
-				printf("   Failed to drop privileges.  Aborting.");
-			else {
-				/* read object config files */
-				if((result = read_all_object_data(config_file)) == OK)
-					printf("   Read object config files okay...\n");
-				else
-					printf("   Error processing object config files!\n");
-				}
+		/* drop privileges */
+		if((result = drop_privileges(nagios_user, nagios_group)) == ERROR) {
+			printf("   Failed to drop privileges.  Aborting.");
+			exit(EXIT_FAILURE);
 			}
-		else
-			printf("   Error processing main config file!\n\n");
 
-		printf("\n");
-
-		/* there was a problem reading the config files */
+		/* read object config files */
+		result = read_all_object_data(config_file);
 		if(result != OK) {
-
+			printf("   Error processing object config files!\n\n");
 			/* if the config filename looks fishy, warn the user */
 			if(!strstr(config_file, "nagios.cfg")) {
 				printf("\n***> The name of the main configuration file looks suspicious...\n");
@@ -485,108 +476,50 @@ int main(int argc, char **argv, char **env) {
 			printf("     may have been removed or modified in this version.  Make sure to read\n");
 			printf("     the HTML documentation regarding the config files, as well as the\n");
 			printf("     'Whats New' section to find out what has changed.\n\n");
+			exit(EXIT_FAILURE);
 			}
 
-		/* the config files were okay, so run the pre-flight check */
-		else {
-
+		if(verify_config == TRUE) {
+			printf("   Read object config files okay...\n\n");
 			printf("Running pre-flight check on configuration data...\n\n");
-
-			/* run the pre-flight check to make sure things look okay... */
-			result = pre_flight_check();
-
-			if(result == OK)
-				printf("\nThings look okay - No serious problems were detected during the pre-flight check\n");
-			else {
-				printf("\n***> One or more problems was encountered while running the pre-flight check...\n");
-				printf("\n");
-				printf("     Check your configuration file(s) to ensure that they contain valid\n");
-				printf("     directives and data defintions.  If you are upgrading from a previous\n");
-				printf("     version of Nagios, you should be aware that some variables/definitions\n");
-				printf("     may have been removed or modified in this version.  Make sure to read\n");
-				printf("     the HTML documentation regarding the config files, as well as the\n");
-				printf("     'Whats New' section to find out what has changed.\n\n");
-				}
 			}
 
-		/* clean up after ourselves */
-		cleanup();
+		/* run the pre-flight check to make sure things look okay... */
+		result = pre_flight_check();
 
-		/* free config_file */
-		my_free(config_file);
+		if(result != OK) {
+			printf("\n***> One or more problems was encountered while running the pre-flight check...\n");
+			printf("\n");
+			printf("     Check your configuration file(s) to ensure that they contain valid\n");
+			printf("     directives and data defintions.  If you are upgrading from a previous\n");
+			printf("     version of Nagios, you should be aware that some variables/definitions\n");
+			printf("     may have been removed or modified in this version.  Make sure to read\n");
+			printf("     the HTML documentation regarding the config files, as well as the\n");
+			printf("     'Whats New' section to find out what has changed.\n\n");
+			exit(EXIT_FAILURE);
+			}
 
-		/* exit */
-		exit(result);
-		}
+		if(verify_config == TRUE) {
+			printf("\nThings look okay - No serious problems were detected during the pre-flight check\n");
+			}
 
+		/* scheduling tests need a bit more than config verifications */
+		if(test_scheduling == TRUE) {
 
-	/* we're just testing scheduling... */
-	else if(test_scheduling == TRUE) {
+			/* we'll need the event queue here so we can time insertions */
+			init_event_queue();
 
-		/* reset program variables */
-		reset_variables();
-
-		/* we'll need the event queue here so we can time insertions */
-		init_event_queue();
-
-		/* read in the configuration files (main config file and all host config files) */
-		result = read_main_config_file(config_file);
-
-		/* drop privileges */
-		if(result == OK)
-			if((result = drop_privileges(nagios_user, nagios_group)) == ERROR)
-				printf("Failed to drop privileges.  Aborting.");
-
-		/* read object config files */
-		if(result == OK)
-			result = read_all_object_data(config_file);
-
-		/* read initial service and host state information */
-		if(result == OK) {
+			/* read initial service and host state information */
 			initialize_retention_data(config_file);
 			read_initial_state_information();
-			}
-
-		if(result != OK)
-			printf("***> One or more problems was encountered while reading configuration data...\n");
-
-		/* run the pre-flight check to make sure everything looks okay */
-		if(result == OK) {
-			if((result = pre_flight_check()) != OK)
-				printf("***> One or more problems was encountered while running the pre-flight check...\n");
-			}
-
-		if(result == OK) {
 
 			/* initialize the event timing loop */
 			init_timing_loop();
 
 			/* display scheduling information */
 			display_scheduling_info();
-
-			if(precache_objects == TRUE) {
-				printf("\n");
-				printf("OBJECT PRECACHING\n");
-				printf("-----------------\n");
-				printf("Object config files were precached.\n");
-				}
 			}
 
-#undef TEST_TIMEPERIODS
-#ifdef TEST_TIMEPERIODS
-		/* DO SOME TIMEPERIOD TESTING - ADDED 08/11/2009 */
-		time_t now, pref_time, valid_time;
-		timeperiod *tp;
-		tp = find_timeperiod("247_exclusion");
-		time(&now);
-		pref_time = now;
-		get_next_valid_time(pref_time, &valid_time, tp);
-		printf("=====\n");
-		printf("CURRENT:   %lu = %s", (unsigned long)now, ctime(&now));
-		printf("PREFERRED: %lu = %s", (unsigned long)pref_time, ctime(&pref_time));
-		printf("NEXT:      %lu = %s", (unsigned long)valid_time, ctime(&valid_time));
-		printf("=====\n");
-#endif
 
 		/* clean up after ourselves */
 		cleanup();

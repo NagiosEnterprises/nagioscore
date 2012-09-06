@@ -2370,8 +2370,15 @@ int pre_flight_circular_check(int *w, int *e) {
 	/* We must clean the dfs status from previous check */
 	for (i = 0; i < ARRAY_SIZE(ary); i++)
 		memset(ary[i], 0, alloc);
-	for(temp_sd = servicedependency_list; temp_sd != NULL; temp_sd = temp_sd->next) {
+	for(i = 0; i < num_objects.servicedependencies; i++) {
+		temp_sd = &servicedependency_list[i];
 		dep_type = temp_sd->dependency_type;
+		/*
+		 * this shouldn't happen, but it can in case dependencies are
+		 * added to services on hosts in empty hostgroups (ie, nonexistant)
+		 */
+		if(dep_type < 1 || dep_type > ARRAY_SIZE(ary))
+			continue;
 		dfs_servicedep_path(ary[dep_type - 1], temp_sd->dependent_service_ptr, dep_type, &errors);
 		}
 	if(verify_config == TRUE)
@@ -2380,8 +2387,12 @@ int pre_flight_circular_check(int *w, int *e) {
 	/* check host dependencies */
 	for (i = 0; i < ARRAY_SIZE(ary); i++)
 		memset(ary[i], 0, alloc);
-	for(temp_hd = hostdependency_list; temp_hd != NULL; temp_hd = temp_hd->next) {
+	for(i = 0; i < num_objects.hostdependencies; i++) {
+		temp_hd = &hostdependency_list[i];
 		dep_type = temp_hd->dependency_type;
+		/* see above */
+		if(dep_type < 1 || dep_type > ARRAY_SIZE(ary))
+			continue;
 		dfs_hostdep_path(ary[dep_type - 1], temp_hd->dependent_host_ptr, dep_type, &errors);
 		}
 

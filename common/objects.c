@@ -433,8 +433,14 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	/* duplicate string vars */
 	if((new_host->name = (char *)strdup(name)) == NULL)
 		result = ERROR;
-	if((new_host->display_name = (char *)strdup((display_name == NULL) ? name : display_name)) == NULL)
-		result = ERROR;
+	if(display_name) {
+		if((new_host->display_name = (char *)strdup(display_name)) == NULL)
+			result = ERROR;
+		}
+	else {
+		new_host->display_name = new_host->name;
+		}
+
 	if((new_host->alias = (char *)strdup((alias == NULL) ? name : alias)) == NULL)
 		result = ERROR;
 	if((new_host->address = (char *)strdup(address)) == NULL)
@@ -626,7 +632,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		my_free(new_host->check_command);
 		my_free(new_host->address);
 		my_free(new_host->alias);
-		my_free(new_host->display_name);
+		if(display_name)
+			my_free(new_host->display_name);
 		my_free(new_host->name);
 		return NULL;
 		}
@@ -1366,8 +1373,13 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->host_name = h->name;
 	if((new_service->description = (char *)strdup(description)) == NULL)
 		result = ERROR;
-	if((new_service->display_name = (char *)strdup((display_name == NULL) ? description : display_name)) == NULL)
-		result = ERROR;
+	if(display_name) {
+		if((new_service->display_name = (char *)strdup(display_name)) == NULL)
+			result = ERROR;
+		}
+	else {
+		new_service->display_name = new_service->description;
+		}
 	if((new_service->check_command = (char *)strdup(check_command)) == NULL)
 		result = ERROR;
 	if(event_handler) {
@@ -1506,7 +1518,8 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		my_free(new_service->event_handler);
 		my_free(new_service->check_command);
 		my_free(new_service->description);
-		my_free(new_service->display_name);
+		if(display_name)
+			my_free(new_service->display_name);
 		return NULL;
 		}
 
@@ -2604,8 +2617,9 @@ int free_object_data(void) {
 			this_customvariablesmember = next_customvariablesmember;
 			}
 
+		if(this_host->display_name != this_host->name)
+			my_free(this_host->display_name);
 		my_free(this_host->name);
-		my_free(this_host->display_name);
 		my_free(this_host->alias);
 		my_free(this_host->address);
 #ifdef NSCORE
@@ -2782,8 +2796,9 @@ int free_object_data(void) {
 			this_customvariablesmember = next_customvariablesmember;
 			}
 
+		if(this_service->display_name != this_service->description)
+			my_free(this_service->display_name);
 		my_free(this_service->description);
-		my_free(this_service->display_name);
 		my_free(this_service->check_command);
 #ifdef NSCORE
 		my_free(this_service->plugin_output);

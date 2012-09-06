@@ -258,10 +258,6 @@ int main(int argc, char **argv, char **env) {
 	char datestring[256];
 	nagios_macros *mac;
 
-	mac = get_global_macros();
-
-
-
 #ifdef HAVE_GETOPT_H
 	int option_index = 0;
 	static struct option long_options[] = {
@@ -277,21 +273,18 @@ int main(int argc, char **argv, char **env) {
 			{"use-precached-objects", no_argument, 0, 'u'},
 			{0, 0, 0, 0}
 		};
+#define getopt(argc, argv, o) getopt_long(argc, argv, o, long_options, option_index)
 #endif
+
+	mac = get_global_macros();
 
 	/* make sure we have the correct number of command line arguments */
 	if(argc < 2)
 		error = TRUE;
 
-
 	/* get all command line arguments */
 	while(1) {
-
-#ifdef HAVE_GETOPT_H
-		c = getopt_long(argc, argv, "+hVvdsoxpu", long_options, &option_index);
-#else
 		c = getopt(argc, argv, "+hVvdsoxpu");
-#endif
 
 		if(c == -1 || c == EOF)
 			break;

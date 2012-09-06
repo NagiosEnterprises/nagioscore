@@ -4438,7 +4438,10 @@ int xodtemplate_duplicate_objects(void) {
 
 			/* if this is the last duplication, use the existing entry */
 			if(!next) {
+				my_free(temp_hostescalation->name);
+				my_free(temp_hostescalation->template);
 				my_free(temp_hostescalation->host_name);
+				my_free(temp_hostescalation->hostgroup_name);
 				temp_hostescalation->host_name = h->host_name;
 				continue;
 				}
@@ -4534,6 +4537,8 @@ int xodtemplate_duplicate_objects(void) {
 
 				/* existing definition gets last names */
 				if(!n2 && !next) {
+					my_free(temp_hostdependency->name);
+					my_free(temp_hostdependency->template);
 					my_free(temp_hostdependency->host_name);
 					my_free(temp_hostdependency->dependent_host_name);
 					temp_hostdependency->host_name = master->host_name;
@@ -4622,6 +4627,8 @@ int xodtemplate_duplicate_objects(void) {
 					xodtemplate_duplicate_servicedependency(temp_servicedependency, p->host_name, p->service_description, c->host_name, c->service_description);
 					}
 				else {
+					my_free(temp_servicedependency->name);
+					my_free(temp_servicedependency->template);
 					my_free(temp_servicedependency->hostgroup_name);
 					my_free(temp_servicedependency->host_name);
 					my_free(temp_servicedependency->servicegroup_name);
@@ -10035,12 +10042,6 @@ int xodtemplate_free_memory(void) {
 	for(this_servicedependency = xodtemplate_servicedependency_list; this_servicedependency != NULL; this_servicedependency = next_servicedependency) {
 		next_servicedependency = this_servicedependency->next;
 		if(this_servicedependency->is_copy == FALSE) {
-			my_free(this_servicedependency->template);
-			my_free(this_servicedependency->name);
-			my_free(this_servicedependency->servicegroup_name);
-			my_free(this_servicedependency->hostgroup_name);
-			my_free(this_servicedependency->dependent_servicegroup_name);
-			my_free(this_servicedependency->dependent_hostgroup_name);
 			my_free(this_servicedependency->dependency_period);
 			}
 		my_free(this_servicedependency);
@@ -10052,8 +10053,6 @@ int xodtemplate_free_memory(void) {
 	for(this_serviceescalation = xodtemplate_serviceescalation_list; this_serviceescalation != NULL; this_serviceescalation = next_serviceescalation) {
 		next_serviceescalation = this_serviceescalation->next;
 		if(this_serviceescalation->is_copy == FALSE) {
-			my_free(this_serviceescalation->template);
-			my_free(this_serviceescalation->name);
 			my_free(this_serviceescalation->escalation_period);
 		}
 		my_free(this_serviceescalation->contact_groups);
@@ -10177,10 +10176,6 @@ int xodtemplate_free_memory(void) {
 	for(this_hostdependency = xodtemplate_hostdependency_list; this_hostdependency != NULL; this_hostdependency = next_hostdependency) {
 		next_hostdependency = this_hostdependency->next;
 		if(this_hostdependency->is_copy == FALSE) {
-			my_free(this_hostdependency->template);
-			my_free(this_hostdependency->name);
-			my_free(this_hostdependency->hostgroup_name);
-			my_free(this_hostdependency->dependent_hostgroup_name);
 			my_free(this_hostdependency->dependency_period);
 			}
 		my_free(this_hostdependency);
@@ -10192,10 +10187,6 @@ int xodtemplate_free_memory(void) {
 	for(this_hostescalation = xodtemplate_hostescalation_list; this_hostescalation != NULL; this_hostescalation = next_hostescalation) {
 		next_hostescalation = this_hostescalation->next;
 		if(this_hostescalation->is_copy == FALSE) {
-			my_free(this_hostescalation->template);
-			my_free(this_hostescalation->name);
-			my_free(this_hostescalation->hostgroup_name);
-			my_free(this_hostescalation->host_name);
 			my_free(this_hostescalation->escalation_period);
 			}
 		my_free(this_hostescalation->contact_groups);

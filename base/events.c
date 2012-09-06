@@ -613,7 +613,6 @@ void display_scheduling_info(void) {
 	float minimum_concurrent_checks1 = 0.0;
 	float minimum_concurrent_checks2 = 0.0;
 	float minimum_concurrent_checks = 0.0;
-	float max_reaper_interval = 0.0;
 	int suggestions = 0;
 
 	printf("Projected scheduling information for host and service checks\n");
@@ -683,24 +682,6 @@ void display_scheduling_info(void) {
 	printf("PERFORMANCE SUGGESTIONS\n");
 	printf("-----------------------\n");
 
-
-	/***** MAX REAPER INTERVAL RECOMMENDATION *****/
-
-	/* assume a 100% (2x) check burst for check reaper */
-	/* assume we want a max of 2k files in the result queue at any given time */
-	max_reaper_interval = floor(2000 * scheduling_info.service_inter_check_delay);
-	if(max_reaper_interval < 2.0)
-		max_reaper_interval = 2.0;
-	if(max_reaper_interval > 30.0)
-		max_reaper_interval = 30.0;
-	if((int)max_reaper_interval < check_reaper_interval) {
-		printf("* Value for 'check_result_reaper_frequency' should be <= %d seconds\n", (int)max_reaper_interval);
-		suggestions++;
-		}
-	if(check_reaper_interval < 2) {
-		printf("* Value for 'check_result_reaper_frequency' should be >= 2 seconds\n");
-		suggestions++;
-		}
 
 	/***** MINIMUM CONCURRENT CHECKS RECOMMENDATION *****/
 

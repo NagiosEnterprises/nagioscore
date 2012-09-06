@@ -533,6 +533,9 @@ int main(int argc, char **argv, char **env) {
 		/* reset program variables */
 		reset_variables();
 
+		/* we'll need the event queue here so we can time insertions */
+		init_event_queue();
+
 		/* read in the configuration files (main config file and all host config files) */
 		result = read_main_config_file(config_file);
 

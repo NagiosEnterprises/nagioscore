@@ -3581,6 +3581,10 @@ int fcache_objects(char *cache_file) {
 	time_t current_time = 0L;
 	unsigned int i;
 
+	/* some people won't want to cache their objects */
+	if(!cache_file || !strcmp(cache_file, "/dev/null"))
+		return OK;
+
 	time(&current_time);
 
 	/* open the cache file for writing */

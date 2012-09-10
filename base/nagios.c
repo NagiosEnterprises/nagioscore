@@ -76,6 +76,7 @@ int main(int argc, char **argv, char **env) {
 			{"test-scheduling", no_argument, 0, 's'},
 			{"precache-objects", no_argument, 0, 'p'},
 			{"use-precached-objects", no_argument, 0, 'u'},
+			{"enable-timing-point", no_argument, 0, 'T'},
 			{0, 0, 0, 0}
 		};
 #define getopt(argc, argv, o) getopt_long(argc, argv, o, long_options, &option_index)
@@ -89,7 +90,7 @@ int main(int argc, char **argv, char **env) {
 
 	/* get all command line arguments */
 	while(1) {
-		c = getopt(argc, argv, "+hVvdspu");
+		c = getopt(argc, argv, "+hVvdspuT");
 
 		if(c == -1 || c == EOF)
 			break;
@@ -123,6 +124,9 @@ int main(int argc, char **argv, char **env) {
 
 			case 'u': /* use precached object config */
 				use_precached_objects = TRUE;
+				break;
+			case 'T':
+				enable_timing_point = TRUE;
 				break;
 
 			default:
@@ -175,6 +179,7 @@ int main(int argc, char **argv, char **env) {
 		printf("  -v, --verify-config          Verify all configuration data (-v -v for more info)\n");
 		printf("  -s, --test-scheduling        Shows projected/recommended check scheduling and other\n");
 		printf("                               diagnostic info based on the current configuration files.\n");
+		printf("  -T, --enable-timing-point    Enable timed commentary on initialization\n");
 		/*printf("  -o, --dont-verify-objects    Don't verify object relationships - USE WITH CAUTION!\n");*/
 		printf("  -x, --dont-verify-paths      Don't check for circular object paths - USE WITH CAUTION!\n");
 		printf("  -p, --precache-objects       Precache object configuration\n");
@@ -316,6 +321,7 @@ int main(int argc, char **argv, char **env) {
 			}
 
 		if(precache_objects) {
+			timing_point("Precaching objects\n");
 			result = fcache_objects(object_precache_file);
 			if(result == OK) {
 				printf("Object precache file created:\n%s\n", object_precache_file);
@@ -329,6 +335,7 @@ int main(int argc, char **argv, char **env) {
 		cleanup();
 
 		/* exit */
+		timing_point("Exiting\n");
 		exit(result);
 		}
 

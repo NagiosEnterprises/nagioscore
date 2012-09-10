@@ -26,6 +26,8 @@ time_t last_log_rotation = 0L;
 
 int check_external_commands = DEFAULT_CHECK_EXTERNAL_COMMANDS;
 
+int enable_timing_point = FALSE; /* cgi's never set this to TRUE */
+
 int enable_flap_detection = DEFAULT_ENABLE_FLAP_DETECTION;
 int enable_notifications = TRUE;
 int execute_service_checks = TRUE;

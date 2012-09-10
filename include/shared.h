@@ -4,20 +4,6 @@
 #include <time.h>
 #include "lib/libnagios.h"
 
-#ifndef ENABLE_TIMING_POINT
-#define timing_point(msg) /* nothing */
-#else
-#include <malloc.h>
-#define timing_point(msg) \
-	do { \
-		struct timeval tv; \
-		gettimeofday(&tv, NULL); \
-		printf("%lu.%lu: " msg "\n", tv.tv_sec, tv.tv_usec); \
-		malloc_stats(); \
-	} while(0)
-#endif
-
-
 NAGIOS_BEGIN_DECL
 
 /* mmapfile structure - used for reading files via mmap() */
@@ -49,6 +35,7 @@ struct object_count {
 
 extern struct object_count num_objects;
 
+extern void timing_point(const char *fmt, ...); /* print a message and the time since the first message */
 extern char *my_strtok(char *buffer, char *tokens);
 extern char *my_strsep(char **stringp, const char *delim);
 extern mmapfile *mmap_fopen(char *filename);

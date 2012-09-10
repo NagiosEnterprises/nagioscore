@@ -160,6 +160,8 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 		return ERROR;
 		}
 
+	timing_point("Reading config data from '%s'\n", main_config_file);
+
 	/* get variables from main config file */
 	xodtemplate_grab_config_info(main_config_file);
 
@@ -4062,6 +4064,8 @@ int xodtemplate_duplicate_services(void) {
 	int result = OK;
 	xodtemplate_service *temp_service = NULL;
 
+	timing_point("Duplicating services\n");
+
 	/****** DUPLICATE SERVICE DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	for(temp_service = xodtemplate_service_list; temp_service != NULL; temp_service = temp_service->next) {
 		objectlist *hlist = NULL, *list = NULL, *glist = NULL, *next;
@@ -4365,7 +4369,8 @@ int xodtemplate_duplicate_objects(void) {
 	/*************************************/
 
 
-	/****** DUPLICATE HOST ESCALATION DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
+	/* duplicate host escalations */
+	timing_point("Duplicating hostescalations\n");
 	for(temp_hostescalation = xodtemplate_hostescalation_list; temp_hostescalation != NULL; temp_hostescalation = temp_hostescalation->next) {
 
 		/* skip host escalation definitions without enough data */
@@ -4407,7 +4412,8 @@ int xodtemplate_duplicate_objects(void) {
 		}
 
 
-	/****** DUPLICATE SERVICE ESCALATION DEFINITIONS WITH MULTIPLE DESCRIPTIONS ******/
+	/* duplicate service escalations */
+	timing_point("Duplicating serviceescalations\n");
 	for(temp_serviceescalation = xodtemplate_serviceescalation_list; temp_serviceescalation != NULL; temp_serviceescalation = temp_serviceescalation->next) {
 
 		/* skip serviceescalations without enough data */
@@ -4452,6 +4458,7 @@ int xodtemplate_duplicate_objects(void) {
 
 
 	/* duplicate host dependency definitions */
+	timing_point("Duplicating hostdependencies\n");
 	for(temp_hostdependency = xodtemplate_hostdependency_list; temp_hostdependency != NULL; temp_hostdependency = temp_hostdependency->next) {
 
 		/* skip host dependencies without enough data */
@@ -4508,7 +4515,7 @@ int xodtemplate_duplicate_objects(void) {
 
 
 	/* process service dependencies */
-	timing_point("Duplicating servicedependencies");
+	timing_point("Duplicating servicedependencies\n");
 	for(temp_servicedependency = xodtemplate_servicedependency_list; temp_servicedependency != NULL; temp_servicedependency = temp_servicedependency->next) {
 		objectlist *parents = NULL, *plist, *pnext;
 		objectlist *children = NULL, *clist;
@@ -4599,7 +4606,7 @@ int xodtemplate_duplicate_objects(void) {
 			free_objectlist(&children);
 		}
 
-	timing_point("Duplicating hostextinfo");
+	timing_point("Duplicating hostextinfo\n");
 
 	/****** DUPLICATE HOSTEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	for(temp_hostextinfo = xodtemplate_hostextinfo_list; temp_hostextinfo != NULL; temp_hostextinfo = next_he) {
@@ -4640,7 +4647,7 @@ int xodtemplate_duplicate_objects(void) {
 		}
 
 
-	timing_point("Duplicating serviceextinfo");
+	timing_point("Duplicating serviceextinfo\n");
 
 	/****** DUPLICATE SERVICEEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	for(temp_serviceextinfo = xodtemplate_serviceextinfo_list; temp_serviceextinfo != NULL; temp_serviceextinfo = next_se) {
@@ -4678,7 +4685,6 @@ int xodtemplate_duplicate_objects(void) {
 		}
 
 
-	timing_point("Inserting ternary slaves into skiplists");
 	/***************************************/
 	/* SKIPLIST STUFF FOR FAST SORT/SEARCH */
 	/***************************************/
@@ -4771,7 +4777,6 @@ int xodtemplate_duplicate_objects(void) {
 			}
 		}
 
-	timing_point("Done duplicating and skiplisting");
 	return OK;
 	}
 
@@ -5155,6 +5160,8 @@ int xodtemplate_resolve_objects(void) {
 	xodtemplate_hostescalation *temp_hostescalation = NULL;
 	xodtemplate_hostextinfo *temp_hostextinfo = NULL;
 	xodtemplate_serviceextinfo *temp_serviceextinfo = NULL;
+
+	timing_point("Resolving objects\n");
 
 	/* resolve all timeperiod objects */
 	for(temp_timeperiod = xodtemplate_timeperiod_list; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next) {
@@ -6762,6 +6769,8 @@ int xodtemplate_recombobulate_contactgroups(void) {
 	char *contactgroup_names = NULL;
 	char *temp_ptr = NULL;
 
+	timing_point("Recombobulating contactgroups\n");
+
 	/* expand members of all contactgroups - this could be done in xodtemplate_register_contactgroup(), but we can save the CGIs some work if we do it here */
 	for(temp_contactgroup = xodtemplate_contactgroup_list; temp_contactgroup; temp_contactgroup = temp_contactgroup->next) {
 		objectlist *next, *list, *accept = NULL;
@@ -6929,6 +6938,8 @@ int xodtemplate_recombobulate_hostgroups(void) {
 	xodtemplate_hostgroup *temp_hostgroup = NULL;
 	char *hostgroup_names = NULL;
 	char *ptr, *next_ptr, *temp_ptr = NULL;
+
+	timing_point("Recombobulating hostgroups\n");
 
 	/* expand members of all hostgroups - this could be done in xodtemplate_register_hostgroup(), but we can save the CGIs some work if we do it here */
 	for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup; temp_hostgroup = temp_hostgroup->next) {
@@ -7098,6 +7109,8 @@ int xodtemplate_recombobulate_servicegroups(void) {
 	xodtemplate_servicegroup *temp_servicegroup = NULL;
 	char *servicegroup_names = NULL;
 	char *temp_ptr;
+
+	timing_point("Recombobulating servicegroups\n");
 
 	/*
 	 * expand servicegroup members. We need this to get the rejected ones
@@ -7564,6 +7577,7 @@ int xodtemplate_register_objects(void) {
 		}
 
 	/* register contactgroups */
+	timing_point("Registering contactgroups\n");
 	ptr = NULL;
 	for(temp_contactgroup = (xodtemplate_contactgroup *)skiplist_get_first(xobject_skiplists[CONTACTGROUP_SKIPLIST], &ptr); temp_contactgroup != NULL; temp_contactgroup = (xodtemplate_contactgroup *)skiplist_get_next(&ptr)) {
 		if((result = xodtemplate_register_contactgroup(temp_contactgroup)) == ERROR)
@@ -7572,6 +7586,7 @@ int xodtemplate_register_objects(void) {
 
 	/* register hostgroups */
 	ptr = NULL;
+	timing_point("Registering hostgroups\n");
 	for(temp_hostgroup = (xodtemplate_hostgroup *)skiplist_get_first(xobject_skiplists[HOSTGROUP_SKIPLIST], &ptr); temp_hostgroup != NULL; temp_hostgroup = (xodtemplate_hostgroup *)skiplist_get_next(&ptr)) {
 		if((result = xodtemplate_register_hostgroup(temp_hostgroup)) == ERROR)
 			return ERROR;
@@ -7579,6 +7594,7 @@ int xodtemplate_register_objects(void) {
 
 	/* register servicegroups */
 	ptr = NULL;
+	timing_point("Registering servicegroups\n");
 	for(temp_servicegroup = (xodtemplate_servicegroup *)skiplist_get_first(xobject_skiplists[SERVICEGROUP_SKIPLIST], &ptr); temp_servicegroup != NULL; temp_servicegroup = (xodtemplate_servicegroup *)skiplist_get_next(&ptr)) {
 		if((result = xodtemplate_register_servicegroup(temp_servicegroup)) == ERROR)
 			return ERROR;
@@ -7586,6 +7602,7 @@ int xodtemplate_register_objects(void) {
 
 	/* register contacts */
 	ptr = NULL;
+	timing_point("Registering contacts\n");
 	for(temp_contact = (xodtemplate_contact *)skiplist_get_first(xobject_skiplists[CONTACT_SKIPLIST], &ptr); temp_contact != NULL; temp_contact = (xodtemplate_contact *)skiplist_get_next(&ptr)) {
 		if((result = xodtemplate_register_contact(temp_contact)) == ERROR)
 			return ERROR;
@@ -7593,6 +7610,7 @@ int xodtemplate_register_objects(void) {
 
 	/* register hosts */
 	ptr = NULL;
+	timing_point("Registering hosts\n");
 	for(temp_host = (xodtemplate_host *)skiplist_get_first(xobject_skiplists[HOST_SKIPLIST], &ptr); temp_host != NULL; temp_host = (xodtemplate_host *)skiplist_get_next(&ptr)) {
 		if((result = xodtemplate_register_host(temp_host)) == ERROR)
 			return ERROR;
@@ -7600,8 +7618,8 @@ int xodtemplate_register_objects(void) {
 
 	/* register services */
 	ptr = NULL;
+	timing_point("Registering services\n");
 	for(temp_service = (xodtemplate_service *)skiplist_get_first(xobject_skiplists[SERVICE_SKIPLIST], &ptr); temp_service != NULL; temp_service = (xodtemplate_service *)skiplist_get_next(&ptr)) {
-
 		if((result = xodtemplate_register_service(temp_service)) == ERROR)
 			return ERROR;
 		}

@@ -57,6 +57,7 @@ extern int enable_event_handlers;
 extern int obsess_over_services;
 extern int obsess_over_hosts;
 
+extern int enable_timing_point;
 
 #ifdef HAVE_TZNAME
 #ifdef CYGWIN

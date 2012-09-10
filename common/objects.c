@@ -318,8 +318,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 		return new_timerange;
 		}
 
-	prev = period->days[day];
-	for(tr = prev->next; tr; tr = tr->next) {
+	for(tr = period->days[day]; tr; tr = tr->next) {
 		if(new_timerange->range_start < tr->range_start) {
 			new_timerange->next = tr;
 			prev->next = new_timerange;

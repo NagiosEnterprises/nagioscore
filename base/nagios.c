@@ -245,6 +245,7 @@ unsigned long   max_debug_file_size = DEFAULT_MAX_DEBUG_FILE_SIZE;
 
 
 extern iobroker_set *nagios_iobs;
+extern char *object_precache_file, *object_cache_file;
 
 int main(int argc, char **argv, char **env) {
 	int result;
@@ -520,6 +521,15 @@ int main(int argc, char **argv, char **env) {
 			display_scheduling_info();
 			}
 
+		if(precache_objects) {
+			result = fcache_objects(object_precache_file);
+			if(result == OK) {
+				printf("Object precache file created:\n%s\n", object_precache_file);
+				}
+			else {
+				printf("Failed to precache objects to '%s': %s\n", object_precache_file, strerror(errno));
+				}
+			}
 
 		/* clean up after ourselves */
 		cleanup();
@@ -531,6 +541,9 @@ int main(int argc, char **argv, char **env) {
 
 	/* else start to monitor things... */
 	else {
+
+		/* cache objects for UI's */
+		fcache_objects(object_cache_file);
 
 		nagios_iobs = iobroker_create();
 

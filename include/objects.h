@@ -621,7 +621,7 @@ extern servicedependency *servicedependency_list;
 /********************* FUNCTIONS **********************/
 
 /**** Top-level input functions ****/
-int read_object_config_data(char *, int, int, int);     /* reads all external configuration data of specific types */
+int read_object_config_data(char *, int);     /* reads all external configuration data of specific types */
 
 
 /**** Object Creation Functions ****/
@@ -709,8 +709,39 @@ int number_of_total_child_hosts(host *);				/* counts the number of total child 
 int number_of_immediate_parent_hosts(host *);				/* counts the number of immediate parents hosts for a particular host */
 
 #ifdef NSCORE
-int check_for_circular_servicedependency_path(servicedependency *, servicedependency *, int); /* checks if a circular dependency exists for a given service */
-int check_for_circular_hostdependency_path(hostdependency *, hostdependency *, int); /* checks if a circular dependency exists for a given host */
+void fcache_contactlist(FILE *fp, const char *prefix, contactsmember *list);
+void fcache_contactgrouplist(FILE *fp, const char *prefix, contactgroupsmember *list);
+void fcache_hostlist(FILE *fp, const char *prefix, hostsmember *list);
+void fcache_customvars(FILE *fp, customvariablesmember *cvlist);
+void fcache_timeperiod(FILE *fp, timeperiod *temp_timeperiod);
+void fcache_command(FILE *fp, command *temp_command);
+void fcache_contactgroup(FILE *fp, contactgroup *temp_contactgroup);
+void fcache_hostgroup(FILE *fp, hostgroup *temp_hostgroup);
+void fcache_servicegroup(FILE *fp, servicegroup *temp_servicegroup);
+void fcache_contact(FILE *fp, contact *temp_contact);
+void fcache_host(FILE *fp, host *temp_host);
+void fcache_service(FILE *fp, service *temp_service);
+void fcache_servicedependency(FILE *fp, servicedependency *temp_servicedependency);
+void fcache_serviceescalation(FILE *fp, serviceescalation *temp_serviceescalation);
+void fcache_hostdependency(FILE *fp, hostdependency *temp_hostdependency);
+void fcache_hostescalation(FILE *fp, hostescalation *temp_hostescalation);
+void fcache_contactlist(FILE *fp, const char *prefix, contactsmember *list);
+void fcache_contactgrouplist(FILE *fp, const char *prefix, contactgroupsmember *list);
+void fcache_hostlist(FILE *fp, const char *prefix, hostsmember *list);
+void fcache_customvars(FILE *fp, customvariablesmember *cvlist);
+void fcache_timeperiod(FILE *fp, timeperiod *temp_timeperiod);
+void fcache_command(FILE *fp, command *temp_command);
+void fcache_contactgroup(FILE *fp, contactgroup *temp_contactgroup);
+void fcache_hostgroup(FILE *fp, hostgroup *temp_hostgroup);
+void fcache_servicegroup(FILE *fp, servicegroup *temp_servicegroup);
+void fcache_contact(FILE *fp, contact *temp_contact);
+void fcache_host(FILE *fp, host *temp_host);
+void fcache_service(FILE *fp, service *temp_service);
+void fcache_servicedependency(FILE *fp, servicedependency *temp_servicedependency);
+void fcache_serviceescalation(FILE *fp, serviceescalation *temp_serviceescalation);
+void fcache_hostdependency(FILE *fp, hostdependency *temp_hostdependency);
+void fcache_hostescalation(FILE *fp, hostescalation *temp_hostescalation);
+int fcache_objects(char *cache_file);
 #endif
 
 

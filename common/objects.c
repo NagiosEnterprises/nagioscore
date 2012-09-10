@@ -74,7 +74,7 @@ int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
 
 
 /* read all host configuration data from external source */
-int read_object_config_data(char *main_config_file, int options, int cache, int precache) {
+int read_object_config_data(char *main_config_file, int options) {
 	int result = OK;
 
 	/* reset object counts */
@@ -83,7 +83,7 @@ int read_object_config_data(char *main_config_file, int options, int cache, int 
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XODTEMPLATE
 	/* read in data from all text host config files (template-based) */
-	result = xodtemplate_read_config_data(main_config_file, options, cache, precache);
+	result = xodtemplate_read_config_data(main_config_file, options);
 	if(result != OK)
 		return ERROR;
 #endif
@@ -287,7 +287,7 @@ timeperiodexclusion *add_exclusion_to_timeperiod(timeperiod *period, char *name)
 
 /* add a new timerange to a timeperiod */
 timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned long start_time, unsigned long end_time) {
-	timerange *new_timerange = NULL;
+	timerange *prev = NULL, *tr, *new_timerange = NULL;
 
 	/* make sure we have the data we need */
 	if(period == NULL)
@@ -313,9 +313,27 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 	new_timerange->range_start = start_time;
 	new_timerange->range_end = end_time;
 
-	/* add the new time range to the head of the range list for this day */
-	new_timerange->next = period->days[day];
-	period->days[day] = new_timerange;
+	/* insertion-sort the new time range into the list for this day */
+	if(!period->days[day] || period->days[day]->range_start > new_timerange->range_start) {
+		new_timerange->next = period->days[day];
+		period->days[day] = new_timerange;
+		return new_timerange;
+		}
+
+	prev = period->days[day];
+	for(tr = prev->next; tr; tr = tr->next) {
+		if(new_timerange->range_start < tr->range_start) {
+			new_timerange->next = tr;
+			prev->next = new_timerange;
+			break;
+			}
+		if(!tr->next) {
+			tr->next = new_timerange;
+			new_timerange->next = NULL;
+			break;
+			}
+		prev = tr;
+		}
 
 	return new_timerange;
 	}
@@ -2898,3 +2916,741 @@ int free_object_data(void) {
 
 	return OK;
 	}
+
+
+
+/******************************************************************/
+/*********************** CACHE FUNCTIONS **************************/
+/******************************************************************/
+
+#ifndef NSCGI
+static const char *timerange2str(const timerange *tr)
+{
+	static char str[12];
+	int sh, sm, eh, em;
+
+	if(!tr)
+		return "";
+	sh = tr->range_start / 3600;
+	sm = (tr->range_start / 60) % 60;
+	eh = tr->range_end / 3600;
+	em = (tr->range_end / 60) % 60;
+	sprintf(str, "%02d:%02d-%02d:%02d", sh, sm, eh, em);
+	return str;
+}
+
+void fcache_contactlist(FILE *fp, const char *prefix, contactsmember *list)
+{
+	if(list) {
+		contactsmember *l;
+		fprintf(fp, "%s", prefix);
+		for(l = list; l; l = l->next)
+			fprintf(fp, "%s%c", l->contact_name, l->next ? ',' : '\n');
+	}
+}
+
+void fcache_contactgrouplist(FILE *fp, const char *prefix, contactgroupsmember *list)
+{
+	if(list) {
+		contactgroupsmember *l;
+		fprintf(fp, "%s", prefix);
+		for(l = list; l; l = l->next)
+			fprintf(fp, "%s%c", l->group_name, l->next ? ',' : '\n');
+	}
+}
+
+void fcache_hostlist(FILE *fp, const char *prefix, hostsmember *list)
+{
+	if(list) {
+		hostsmember *l;
+		fprintf(fp, "%s", prefix);
+		for(l = list; l; l = l->next)
+			fprintf(fp, "%s%c", l->host_name, l->next ? ',' : '\n');
+	}
+}
+
+void fcache_customvars(FILE *fp, customvariablesmember *cvlist)
+{
+	if(cvlist) {
+		customvariablesmember *l;
+		for(l = cvlist; l; l = l->next)
+			fprintf(fp, "\t_%s\t%s\n", l->variable_name, (l->variable_value == NULL) ? XODTEMPLATE_NULL : l->variable_value);
+	}
+}
+
+void fcache_timeperiod(FILE *fp, timeperiod *temp_timeperiod)
+{
+	const char *days[7] = {"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"};
+	const char *months[12] = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
+	daterange *temp_daterange;
+	timerange *tr;
+	register int x;
+
+	fprintf(fp, "define timeperiod {\n");
+	fprintf(fp, "\ttimeperiod_name\t%s\n", temp_timeperiod->name);
+	if(temp_timeperiod->alias)
+		fprintf(fp, "\talias\t%s\n", temp_timeperiod->alias);
+
+	if(temp_timeperiod->exclusions) {
+		timeperiodexclusion *exclude;
+		fprintf(fp, "\texclude\t");
+		for(exclude = temp_timeperiod->exclusions; exclude; exclude = exclude->next) {
+			fprintf(fp, "%s%c", exclude->timeperiod_name, exclude->next ? ',' : '\n');
+		}
+	}
+
+	for(x = 0; x < DATERANGE_TYPES; x++) {
+		for(temp_daterange = temp_timeperiod->exceptions[x]; temp_daterange != NULL; temp_daterange = temp_daterange->next) {
+
+			/* skip null entries */
+			if(temp_daterange->times == NULL)
+				continue;
+
+			switch(temp_daterange->type) {
+				case DATERANGE_CALENDAR_DATE:
+				fprintf(fp, "\t%d-%02d-%02d", temp_daterange->syear, temp_daterange->smon + 1, temp_daterange->smday);
+				if((temp_daterange->smday != temp_daterange->emday) || (temp_daterange->smon != temp_daterange->emon) || (temp_daterange->syear != temp_daterange->eyear))
+					fprintf(fp, " - %d-%02d-%02d", temp_daterange->eyear, temp_daterange->emon + 1, temp_daterange->emday);
+				if(temp_daterange->skip_interval > 1)
+					fprintf(fp, " / %d", temp_daterange->skip_interval);
+				break;
+			case DATERANGE_MONTH_DATE:
+				fprintf(fp, "\t%s %d", months[temp_daterange->smon], temp_daterange->smday);
+				if((temp_daterange->smon != temp_daterange->emon) || (temp_daterange->smday != temp_daterange->emday)) {
+					fprintf(fp, " - %s %d", months[temp_daterange->emon], temp_daterange->emday);
+					if(temp_daterange->skip_interval > 1)
+						fprintf(fp, " / %d", temp_daterange->skip_interval);
+				}
+				break;
+			case DATERANGE_MONTH_DAY:
+				fprintf(fp, "\tday %d", temp_daterange->smday);
+				if(temp_daterange->smday != temp_daterange->emday) {
+					fprintf(fp, " - %d", temp_daterange->emday);
+					if(temp_daterange->skip_interval > 1)
+						fprintf(fp, " / %d", temp_daterange->skip_interval);
+				}
+				break;
+			case DATERANGE_MONTH_WEEK_DAY:
+				fprintf(fp, "\t%s %d %s", days[temp_daterange->swday], temp_daterange->swday_offset, months[temp_daterange->smon]);
+				if((temp_daterange->smon != temp_daterange->emon) || (temp_daterange->swday != temp_daterange->ewday) || (temp_daterange->swday_offset != temp_daterange->ewday_offset)) {
+					fprintf(fp, " - %s %d %s", days[temp_daterange->ewday], temp_daterange->ewday_offset, months[temp_daterange->emon]);
+					if(temp_daterange->skip_interval > 1)
+						fprintf(fp, " / %d", temp_daterange->skip_interval);
+				}
+				break;
+			case DATERANGE_WEEK_DAY:
+				fprintf(fp, "\t%s %d", days[temp_daterange->swday], temp_daterange->swday_offset);
+				if((temp_daterange->swday != temp_daterange->ewday) || (temp_daterange->swday_offset != temp_daterange->ewday_offset)) {
+					fprintf(fp, " - %s %d", days[temp_daterange->ewday], temp_daterange->ewday_offset);
+					if(temp_daterange->skip_interval > 1)
+						fprintf(fp, " / %d", temp_daterange->skip_interval);
+				}
+				break;
+			default:
+				break;
+			}
+
+			fputc('\t', fp);
+			for(tr = temp_daterange->times; tr; tr = tr->next) {
+				fprintf(fp, "%s%c\n", timerange2str(tr), tr->next ? ',' : '\n');
+			}
+		}
+	}
+	for(x = 0; x < 7; x++) {
+		/* skip null entries */
+		if(temp_timeperiod->days[x] == NULL)
+			continue;
+
+		fprintf(fp, "\t%s\t", days[x]);
+		for(tr = temp_timeperiod->days[x]; tr; tr = tr->next) {
+			fprintf(fp, "%s%c", timerange2str(tr), tr->next ? ',' : '\n');
+		}
+	}
+	fprintf(fp, "\t}\n\n");
+}
+
+void fcache_command(FILE *fp, command *temp_command)
+{
+	fprintf(fp, "define command {\n\tcommand_name\t%s\n\tcommand_line\t%s\n\t}\n\n",
+		   temp_command->name, temp_command->command_line);
+}
+
+void fcache_contactgroup(FILE *fp, contactgroup *temp_contactgroup)
+{
+	fprintf(fp, "define contactgroup {\n");
+	fprintf(fp, "\tcontactgroup_name\t%s\n", temp_contactgroup->group_name);
+	if(temp_contactgroup->alias)
+		fprintf(fp, "\talias\t%s\n", temp_contactgroup->alias);
+	fcache_contactlist(fp, "\tmembers\t", temp_contactgroup->members);
+	fprintf(fp, "\t}\n\n");
+}
+
+void fcache_hostgroup(FILE *fp, hostgroup *temp_hostgroup)
+{
+	fprintf(fp, "define hostgroup {\n");
+	fprintf(fp, "\thostgroup_name\t%s\n", temp_hostgroup->group_name);
+	if(temp_hostgroup->alias)
+		fprintf(fp, "\talias\t%s\n", temp_hostgroup->alias);
+	if(temp_hostgroup->members) {
+		hostsmember *list;
+		fprintf(fp, "\tmembers\t");
+		for(list = temp_hostgroup->members; list; list = list->next)
+			fprintf(fp, "%s%c", list->host_name, list->next ? ',' : '\n');
+	}
+	if(temp_hostgroup->notes)
+		fprintf(fp, "\tnotes\t%s\n", temp_hostgroup->notes);
+	if(temp_hostgroup->notes_url)
+		fprintf(fp, "\tnotes_url\t%s\n", temp_hostgroup->notes_url);
+	if(temp_hostgroup->action_url)
+		fprintf(fp, "\taction_url\t%s\n", temp_hostgroup->action_url);
+	fprintf(fp, "\t}\n\n");
+}
+
+void fcache_servicegroup(FILE *fp, servicegroup *temp_servicegroup)
+{
+	fprintf(fp, "define servicegroup {\n");
+	fprintf(fp, "\tservicegroup_name\t%s\n", temp_servicegroup->group_name);
+	if(temp_servicegroup->alias)
+		fprintf(fp, "\talias\t%s\n", temp_servicegroup->alias);
+	if(temp_servicegroup->members) {
+		servicesmember *list;
+		fprintf(fp, "\tmembers\t");
+		for(list = temp_servicegroup->members; list; list = list->next) {
+			service *s = list->service_ptr;
+			fprintf(fp, "%s,%s%c", s->host_name, s->description, list->next ? ',' : '\n');
+		}
+	}
+	if(temp_servicegroup->notes)
+		fprintf(fp, "\tnotes\t%s\n", temp_servicegroup->notes);
+	if(temp_servicegroup->notes_url)
+		fprintf(fp, "\tnotes_url\t%s\n", temp_servicegroup->notes_url);
+	if(temp_servicegroup->action_url)
+		fprintf(fp, "\taction_url\t%s\n", temp_servicegroup->action_url);
+	fprintf(fp, "\t}\n\n");
+}
+
+void fcache_contact(FILE *fp, contact *temp_contact)
+{
+	commandsmember *list;
+	int x;
+
+	fprintf(fp, "define contact {\n");
+	fprintf(fp, "\tcontact_name\t%s\n", temp_contact->name);
+	if(temp_contact->alias)
+		fprintf(fp, "\talias\t%s\n", temp_contact->alias);
+	if(temp_contact->service_notification_period)
+		fprintf(fp, "\tservice_notification_period\t%s\n", temp_contact->service_notification_period);
+	if(temp_contact->host_notification_period)
+		fprintf(fp, "\thost_notification_period\t%s\n", temp_contact->host_notification_period);
+	fprintf(fp, "\tservice_notification_options\t");
+	x = 0;
+	if(temp_contact->notify_on_service_warning == TRUE)
+		fprintf(fp, "%sw", (x++ > 0) ? "," : "");
+	if(temp_contact->notify_on_service_unknown == TRUE)
+		fprintf(fp, "%su", (x++ > 0) ? "," : "");
+	if(temp_contact->notify_on_service_critical == TRUE)
+		fprintf(fp, "%sc", (x++ > 0) ? "," : "");
+	if(temp_contact->notify_on_service_recovery == TRUE)
+		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
+	if(temp_contact->notify_on_service_flapping == TRUE)
+		fprintf(fp, "%sf", (x++ > 0) ? "," : "");
+	if(temp_contact->notify_on_service_downtime == TRUE)
+		fprintf(fp, "%ss", (x++ > 0) ? "," : "");
+	if(x == 0)
+		fprintf(fp, "n");
+	fprintf(fp, "\n");
+	fprintf(fp, "\thost_notification_options\t");
+	x = 0;
+	if(temp_contact->notify_on_host_down == TRUE)
+		fprintf(fp, "%sd", (x++ > 0) ? "," : "");
+	if(temp_contact->notify_on_host_unreachable == TRUE)
+		fprintf(fp, "%su", (x++ > 0) ? "," : "");
+	if(temp_contact->notify_on_host_recovery == TRUE)
+		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
+	if(temp_contact->notify_on_host_flapping == TRUE)
+		fprintf(fp, "%sf", (x++ > 0) ? "," : "");
+	if(temp_contact->notify_on_host_downtime == TRUE)
+		fprintf(fp, "%ss", (x++ > 0) ? "," : "");
+	if(x == 0)
+		fprintf(fp, "n");
+	fprintf(fp, "\n");
+	if(temp_contact->service_notification_commands) {
+		fprintf(fp, "\tservice_notification_commands\t");
+		for(list = temp_contact->service_notification_commands; list; list = list->next) {
+			fprintf(fp, "%s%c", list->command, list->next ? ',' : '\n');
+		}
+	}
+	if(temp_contact->host_notification_commands) {
+		fprintf(fp, "\thost_notification_commands\t");
+		for(list = temp_contact->host_notification_commands; list; list = list->next) {
+			fprintf(fp, "%s%c", list->command, list->next ? ',' : '\n');
+		}
+	}
+	if(temp_contact->email)
+		fprintf(fp, "\temail\t%s\n", temp_contact->email);
+	if(temp_contact->pager)
+		fprintf(fp, "\tpager\t%s\n", temp_contact->pager);
+	for(x = 0; x < MAX_XODTEMPLATE_CONTACT_ADDRESSES; x++) {
+		if(temp_contact->address[x])
+			fprintf(fp, "\taddress%d\t%s\n", x + 1, temp_contact->address[x]);
+	}
+	fprintf(fp, "\thost_notifications_enabled\t%d\n", temp_contact->host_notifications_enabled);
+	fprintf(fp, "\tservice_notifications_enabled\t%d\n", temp_contact->service_notifications_enabled);
+	fprintf(fp, "\tcan_submit_commands\t%d\n", temp_contact->can_submit_commands);
+	fprintf(fp, "\tretain_status_information\t%d\n", temp_contact->retain_status_information);
+	fprintf(fp, "\tretain_nonstatus_information\t%d\n", temp_contact->retain_nonstatus_information);
+
+	/* custom variables */
+	fcache_customvars(fp, temp_contact->custom_variables);
+	fprintf(fp, "\t}\n\n");
+}
+
+void fcache_host(FILE *fp, host *temp_host)
+{
+	int x;
+
+	fprintf(fp, "define host {\n");
+	fprintf(fp, "\thost_name\t%s\n", temp_host->name);
+	if(temp_host->display_name != temp_host->name)
+		fprintf(fp, "\tdisplay_name\t%s\n", temp_host->display_name);
+	if(temp_host->alias)
+		fprintf(fp, "\talias\t%s\n", temp_host->alias);
+	if(temp_host->address)
+		fprintf(fp, "\taddress\t%s\n", temp_host->address);
+	fcache_hostlist(fp, "\tparents\t", temp_host->parent_hosts);
+	if(temp_host->check_period)
+		fprintf(fp, "\tcheck_period\t%s\n", temp_host->check_period);
+	if(temp_host->check_command)
+		fprintf(fp, "\tcheck_command\t%s\n", temp_host->check_command);
+	if(temp_host->event_handler)
+		fprintf(fp, "\tevent_handler\t%s\n", temp_host->event_handler);
+	fcache_contactlist(fp, "\tcontacts\t", temp_host->contacts);
+	fcache_contactgrouplist(fp, "\tcontact_groups\t", temp_host->contact_groups);
+	if(temp_host->notification_period)
+		fprintf(fp, "\tnotification_period\t%s\n", temp_host->notification_period);
+	fprintf(fp, "\tinitial_state\t");
+	if(temp_host->initial_state == HOST_DOWN)
+		fprintf(fp, "d\n");
+	else if(temp_host->initial_state == HOST_UNREACHABLE)
+		fprintf(fp, "u\n");
+	else
+		fprintf(fp, "o\n");
+	fprintf(fp, "\tcheck_interval\t%f\n", temp_host->check_interval);
+	fprintf(fp, "\tretry_interval\t%f\n", temp_host->retry_interval);
+	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_host->max_attempts);
+	fprintf(fp, "\tactive_checks_enabled\t%d\n", temp_host->checks_enabled);
+	fprintf(fp, "\tpassive_checks_enabled\t%d\n", temp_host->accept_passive_host_checks);
+	fprintf(fp, "\tobsess\t%d\n", temp_host->obsess);
+	fprintf(fp, "\tevent_handler_enabled\t%d\n", temp_host->event_handler_enabled);
+	fprintf(fp, "\tlow_flap_threshold\t%f\n", temp_host->low_flap_threshold);
+	fprintf(fp, "\thigh_flap_threshold\t%f\n", temp_host->high_flap_threshold);
+	fprintf(fp, "\tflap_detection_enabled\t%d\n", temp_host->flap_detection_enabled);
+	fprintf(fp, "\tflap_detection_options\t");
+	x = 0;
+	if(temp_host->flap_detection_on_up == TRUE)
+		fprintf(fp, "%so", (x++ > 0) ? "," : "");
+	if(temp_host->flap_detection_on_down == TRUE)
+		fprintf(fp, "%sd", (x++ > 0) ? "," : "");
+	if(temp_host->flap_detection_on_unreachable == TRUE)
+		fprintf(fp, "%su", (x++ > 0) ? "," : "");
+	if(x == 0)
+		fprintf(fp, "n");
+	fprintf(fp, "\n");
+	fprintf(fp, "\tfreshness_threshold\t%d\n", temp_host->freshness_threshold);
+	fprintf(fp, "\tcheck_freshness\t%d\n", temp_host->check_freshness);
+	fprintf(fp, "\tnotification_options\t");
+	x = 0;
+	if(temp_host->notify_on_down == TRUE)
+		fprintf(fp, "%sd", (x++ > 0) ? "," : "");
+	if(temp_host->notify_on_unreachable == TRUE)
+		fprintf(fp, "%su", (x++ > 0) ? "," : "");
+	if(temp_host->notify_on_recovery == TRUE)
+		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
+	if(temp_host->notify_on_flapping == TRUE)
+		fprintf(fp, "%sf", (x++ > 0) ? "," : "");
+	if(temp_host->notify_on_downtime == TRUE)
+		fprintf(fp, "%ss", (x++ > 0) ? "," : "");
+	if(x == 0)
+		fprintf(fp, "n");
+	fprintf(fp, "\n");
+	fprintf(fp, "\tnotifications_enabled\t%d\n", temp_host->notifications_enabled);
+	fprintf(fp, "\tnotification_interval\t%f\n", temp_host->notification_interval);
+	fprintf(fp, "\tfirst_notification_delay\t%f\n", temp_host->first_notification_delay);
+	fprintf(fp, "\tstalking_options\t");
+	x = 0;
+	if(temp_host->stalk_on_up == TRUE)
+		fprintf(fp, "%so", (x++ > 0) ? "," : "");
+	if(temp_host->stalk_on_down == TRUE)
+		fprintf(fp, "%sd", (x++ > 0) ? "," : "");
+	if(temp_host->stalk_on_unreachable == TRUE)
+		fprintf(fp, "%su", (x++ > 0) ? "," : "");
+	if(x == 0)
+		fprintf(fp, "n");
+	fprintf(fp, "\n");
+	fprintf(fp, "\tprocess_perf_data\t%d\n", temp_host->process_performance_data);
+	if(temp_host->icon_image)
+		fprintf(fp, "\ticon_image\t%s\n", temp_host->icon_image);
+	if(temp_host->icon_image_alt)
+		fprintf(fp, "\ticon_image_alt\t%s\n", temp_host->icon_image_alt);
+	if(temp_host->vrml_image)
+		fprintf(fp, "\tvrml_image\t%s\n", temp_host->vrml_image);
+	if(temp_host->statusmap_image)
+		fprintf(fp, "\tstatusmap_image\t%s\n", temp_host->statusmap_image);
+	if(temp_host->have_2d_coords == TRUE)
+		fprintf(fp, "\t2d_coords\t%d,%d\n", temp_host->x_2d, temp_host->y_2d);
+	if(temp_host->have_3d_coords == TRUE)
+		fprintf(fp, "\t3d_coords\t%f,%f,%f\n", temp_host->x_3d, temp_host->y_3d, temp_host->z_3d);
+	if(temp_host->notes)
+		fprintf(fp, "\tnotes\t%s\n", temp_host->notes);
+	if(temp_host->notes_url)
+		fprintf(fp, "\tnotes_url\t%s\n", temp_host->notes_url);
+	if(temp_host->action_url)
+		fprintf(fp, "\taction_url\t%s\n", temp_host->action_url);
+	fprintf(fp, "\tretain_status_information\t%d\n", temp_host->retain_status_information);
+	fprintf(fp, "\tretain_nonstatus_information\t%d\n", temp_host->retain_nonstatus_information);
+
+	/* custom variables */
+	fcache_customvars(fp, temp_host->custom_variables);
+	fprintf(fp, "\t}\n\n");
+}
+
+void fcache_service(FILE *fp, service *temp_service)
+{
+	int x;
+
+	fprintf(fp, "define service {\n");
+	fprintf(fp, "\thost_name\t%s\n", temp_service->host_name);
+	fprintf(fp, "\tservice_description\t%s\n", temp_service->description);
+	if(temp_service->display_name != temp_service->description)
+		fprintf(fp, "\tdisplay_name\t%s\n", temp_service->display_name);
+	if(temp_service->check_period)
+		fprintf(fp, "\tcheck_period\t%s\n", temp_service->check_period);
+	if(temp_service->check_command)
+		fprintf(fp, "\tcheck_command\t%s\n", temp_service->check_command);
+	if(temp_service->event_handler)
+		fprintf(fp, "\tevent_handler\t%s\n", temp_service->event_handler);
+	fcache_contactlist(fp, "\tcontacts\t", temp_service->contacts);
+	fcache_contactgrouplist(fp, "\tcontact_groups\t", temp_service->contact_groups);
+	if(temp_service->notification_period)
+		fprintf(fp, "\tnotification_period\t%s\n", temp_service->notification_period);
+	fprintf(fp, "\tinitial_state\t");
+	if(temp_service->initial_state == STATE_WARNING)
+		fprintf(fp, "w\n");
+	else if(temp_service->initial_state == STATE_UNKNOWN)
+		fprintf(fp, "u\n");
+	else if(temp_service->initial_state == STATE_CRITICAL)
+		fprintf(fp, "c\n");
+	else
+		fprintf(fp, "o\n");
+	fprintf(fp, "\tcheck_interval\t%f\n", temp_service->check_interval);
+	fprintf(fp, "\tretry_interval\t%f\n", temp_service->retry_interval);
+	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_service->max_attempts);
+	fprintf(fp, "\tis_volatile\t%d\n", temp_service->is_volatile);
+	fprintf(fp, "\tparallelize_check\t%d\n", temp_service->parallelize);
+	fprintf(fp, "\tactive_checks_enabled\t%d\n", temp_service->checks_enabled);
+	fprintf(fp, "\tpassive_checks_enabled\t%d\n", temp_service->accept_passive_service_checks);
+	fprintf(fp, "\tobsess\t%d\n", temp_service->obsess);
+	fprintf(fp, "\tevent_handler_enabled\t%d\n", temp_service->event_handler_enabled);
+	fprintf(fp, "\tlow_flap_threshold\t%f\n", temp_service->low_flap_threshold);
+	fprintf(fp, "\thigh_flap_threshold\t%f\n", temp_service->high_flap_threshold);
+	fprintf(fp, "\tflap_detection_enabled\t%d\n", temp_service->flap_detection_enabled);
+	fprintf(fp, "\tflap_detection_options\t");
+	x = 0;
+	if(temp_service->flap_detection_on_ok == TRUE)
+		fprintf(fp, "%so", (x++ > 0) ? "," : "");
+	if(temp_service->flap_detection_on_warning == TRUE)
+		fprintf(fp, "%sw", (x++ > 0) ? "," : "");
+	if(temp_service->flap_detection_on_unknown == TRUE)
+		fprintf(fp, "%su", (x++ > 0) ? "," : "");
+	if(temp_service->flap_detection_on_critical == TRUE)
+		fprintf(fp, "%sc", (x++ > 0) ? "," : "");
+	if(x == 0)
+		fprintf(fp, "n");
+	fprintf(fp, "\n");
+	fprintf(fp, "\tfreshness_threshold\t%d\n", temp_service->freshness_threshold);
+	fprintf(fp, "\tcheck_freshness\t%d\n", temp_service->check_freshness);
+	fprintf(fp, "\tnotification_options\t");
+	x = 0;
+	if(temp_service->notify_on_unknown == TRUE)
+		fprintf(fp, "%su", (x++ > 0) ? "," : "");
+	if(temp_service->notify_on_warning == TRUE)
+		fprintf(fp, "%sw", (x++ > 0) ? "," : "");
+	if(temp_service->notify_on_critical == TRUE)
+		fprintf(fp, "%sc", (x++ > 0) ? "," : "");
+	if(temp_service->notify_on_recovery == TRUE)
+		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
+	if(temp_service->notify_on_flapping == TRUE)
+		fprintf(fp, "%sf", (x++ > 0) ? "," : "");
+	if(temp_service->notify_on_downtime == TRUE)
+		fprintf(fp, "%ss", (x++ > 0) ? "," : "");
+	if(x == 0)
+		fprintf(fp, "n");
+	fprintf(fp, "\n");
+	fprintf(fp, "\tnotifications_enabled\t%d\n", temp_service->notifications_enabled);
+	fprintf(fp, "\tnotification_interval\t%f\n", temp_service->notification_interval);
+	fprintf(fp, "\tfirst_notification_delay\t%f\n", temp_service->first_notification_delay);
+	fprintf(fp, "\tstalking_options\t");
+	x = 0;
+	if(temp_service->stalk_on_ok == TRUE)
+		fprintf(fp, "%so", (x++ > 0) ? "," : "");
+	if(temp_service->stalk_on_unknown == TRUE)
+		fprintf(fp, "%su", (x++ > 0) ? "," : "");
+	if(temp_service->stalk_on_warning == TRUE)
+		fprintf(fp, "%sw", (x++ > 0) ? "," : "");
+	if(temp_service->stalk_on_critical == TRUE)
+		fprintf(fp, "%sc", (x++ > 0) ? "," : "");
+	if(x == 0)
+		fprintf(fp, "n");
+	fprintf(fp, "\n");
+	fprintf(fp, "\tprocess_perf_data\t%d\n", temp_service->process_performance_data);
+	if(temp_service->icon_image)
+		fprintf(fp, "\ticon_image\t%s\n", temp_service->icon_image);
+	if(temp_service->icon_image_alt)
+		fprintf(fp, "\ticon_image_alt\t%s\n", temp_service->icon_image_alt);
+	if(temp_service->notes)
+		fprintf(fp, "\tnotes\t%s\n", temp_service->notes);
+	if(temp_service->notes_url)
+		fprintf(fp, "\tnotes_url\t%s\n", temp_service->notes_url);
+	if(temp_service->action_url)
+		fprintf(fp, "\taction_url\t%s\n", temp_service->action_url);
+	fprintf(fp, "\tretain_status_information\t%d\n", temp_service->retain_status_information);
+	fprintf(fp, "\tretain_nonstatus_information\t%d\n", temp_service->retain_nonstatus_information);
+
+	/* custom variables */
+	fcache_customvars(fp, temp_service->custom_variables);
+	fprintf(fp, "\t}\n\n");
+}
+
+void fcache_servicedependency(FILE *fp, servicedependency *temp_servicedependency)
+{
+	fprintf(fp, "define servicedependency {\n");
+	fprintf(fp, "\thost_name\t%s\n", temp_servicedependency->host_name);
+	fprintf(fp, "\tservice_description\t%s\n", temp_servicedependency->service_description);
+	fprintf(fp, "\tdependent_host_name\t%s\n", temp_servicedependency->dependent_host_name);
+	fprintf(fp, "\tdependent_service_description\t%s\n", temp_servicedependency->dependent_service_description);
+	fprintf(fp, "\tdependency_period\t%s\n", temp_servicedependency->dependency_period);
+	fprintf(fp, "\tinherits_parent\t%d\n", temp_servicedependency->inherits_parent);
+	if(temp_servicedependency->dependency_type == NOTIFICATION_DEPENDENCY) {
+		int x = 0;
+		fprintf(fp, "\tnotification_failure_options\t");
+		if(temp_servicedependency->fail_on_ok)
+			fprintf(fp, "%so", (x++ > 0) ? "," : "");
+		if(temp_servicedependency->fail_on_unknown == TRUE)
+			fprintf(fp, "%su", (x++ > 0) ? "," : "");
+		if(temp_servicedependency->fail_on_warning == TRUE)
+			fprintf(fp, "%sw", (x++ > 0) ? "," : "");
+		if(temp_servicedependency->fail_on_critical == TRUE)
+			fprintf(fp, "%sc", (x++ > 0) ? "," : "");
+		if(temp_servicedependency->fail_on_pending == TRUE)
+			fprintf(fp, "%sp", (x++ > 0) ? "," : "");
+		if(x == 0)
+			fprintf(fp, "n");
+		fprintf(fp, "\n");
+	}
+
+	if(temp_servicedependency->dependency_type == EXECUTION_DEPENDENCY) {
+		int x = 0;
+		fprintf(fp, "\texecution_failure_options\t");
+		if(temp_servicedependency->fail_on_ok == TRUE)
+			fprintf(fp, "%so", (x++ > 0) ? "," : "");
+		if(temp_servicedependency->fail_on_unknown == TRUE)
+			fprintf(fp, "%su", (x++ > 0) ? "," : "");
+		if(temp_servicedependency->fail_on_warning == TRUE)
+			fprintf(fp, "%sw", (x++ > 0) ? "," : "");
+		if(temp_servicedependency->fail_on_critical == TRUE)
+			fprintf(fp, "%sc", (x++ > 0) ? "," : "");
+		if(temp_servicedependency->fail_on_pending == TRUE)
+			fprintf(fp, "%sp", (x++ > 0) ? "," : "");
+		if(x == 0)
+			fprintf(fp, "n");
+		fprintf(fp, "\n");
+	}
+	fprintf(fp, "\t}\n\n");
+}
+
+void fcache_serviceescalation(FILE *fp, serviceescalation *temp_serviceescalation)
+{
+	int x = 0;
+	fprintf(fp, "define serviceescalation {\n");
+	fprintf(fp, "\thost_name\t%s\n", temp_serviceescalation->host_name);
+	fprintf(fp, "\tservice_description\t%s\n", temp_serviceescalation->description);
+	fprintf(fp, "\tfirst_notification\t%d\n", temp_serviceescalation->first_notification);
+	fprintf(fp, "\tlast_notification\t%d\n", temp_serviceescalation->last_notification);
+	fprintf(fp, "\tnotification_interval\t%f\n", temp_serviceescalation->notification_interval);
+	if(temp_serviceescalation->escalation_period)
+		fprintf(fp, "\tescalation_period\t%s\n", temp_serviceescalation->escalation_period);
+	fprintf(fp, "\tescalation_options\t");
+	if(temp_serviceescalation->escalate_on_warning == TRUE)
+		fprintf(fp, "%sw", (x++ > 0) ? "," : "");
+	if(temp_serviceescalation->escalate_on_unknown == TRUE)
+		fprintf(fp, "%su", (x++ > 0) ? "," : "");
+	if(temp_serviceescalation->escalate_on_critical == TRUE)
+		fprintf(fp, "%sc", (x++ > 0) ? "," : "");
+	if(temp_serviceescalation->escalate_on_recovery == TRUE)
+		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
+	if(x == 0)
+		fprintf(fp, "n");
+	fprintf(fp, "\n");
+
+	if(temp_serviceescalation->contacts) {
+		contactsmember *cl;
+		fprintf(fp, "\tcontacts\t");
+		for(cl = temp_serviceescalation->contacts; cl; cl = cl->next)
+			fprintf(fp, "%s%c", cl->contact_ptr->name, cl->next ? ',' : '\n');
+	}
+	if(temp_serviceescalation->contact_groups) {
+		contactgroupsmember *cgl;
+		fprintf(fp, "\tcontact_groups\t");
+		for (cgl = temp_serviceescalation->contact_groups; cgl; cgl = cgl->next)
+			fprintf(fp, "%s%c", cgl->group_name, cgl->next ? ',' : '\n');
+	}
+	fprintf(fp, "\t}\n\n");
+}
+
+void fcache_hostdependency(FILE *fp, hostdependency *temp_hostdependency)
+{
+	fprintf(fp, "define hostdependency {\n");
+	fprintf(fp, "\thost_name\t%s\n", temp_hostdependency->host_name);
+	fprintf(fp, "\tdependent_host_name\t%s\n", temp_hostdependency->dependent_host_name);
+	if(temp_hostdependency->dependency_period)
+		fprintf(fp, "\tdependency_period\t%s\n", temp_hostdependency->dependency_period);
+	fprintf(fp, "\tinherits_parent\t%d\n", temp_hostdependency->inherits_parent);
+	if(temp_hostdependency->dependency_type == NOTIFICATION_DEPENDENCY) {
+		int x = 0;
+		fprintf(fp, "\tnotification_failure_options\t");
+		if(temp_hostdependency->fail_on_up == TRUE)
+			fprintf(fp, "%so", (x++ > 0) ? "," : "");
+		if(temp_hostdependency->fail_on_down == TRUE)
+			fprintf(fp, "%sd", (x++ > 0) ? "," : "");
+		if(temp_hostdependency->fail_on_unreachable == TRUE)
+			fprintf(fp, "%su", (x++ > 0) ? "," : "");
+		if(temp_hostdependency->fail_on_pending == TRUE)
+			fprintf(fp, "%sp", (x++ > 0) ? "," : "");
+		if(x == 0)
+			fprintf(fp, "n");
+		fprintf(fp, "\n");
+	}
+	if(temp_hostdependency->dependency_type == EXECUTION_DEPENDENCY) {
+		int x = 0;
+		fprintf(fp, "\texecution_failure_options\t");
+		if(temp_hostdependency->fail_on_up == TRUE)
+			fprintf(fp, "%so", (x++ > 0) ? "," : "");
+		if(temp_hostdependency->fail_on_down == TRUE)
+			fprintf(fp, "%sd", (x++ > 0) ? "," : "");
+		if(temp_hostdependency->fail_on_unreachable == TRUE)
+			fprintf(fp, "%su", (x++ > 0) ? "," : "");
+		if(temp_hostdependency->fail_on_pending == TRUE)
+			fprintf(fp, "%sp", (x++ > 0) ? "," : "");
+		if(x == 0)
+			fprintf(fp, "n");
+		fprintf(fp, "\n");
+	}
+	fprintf(fp, "\t}\n\n");
+}
+
+void fcache_hostescalation(FILE *fp, hostescalation *temp_hostescalation)
+{
+	int x = 0;
+
+	fprintf(fp, "define hostescalation {\n");
+	fprintf(fp, "\thost_name\t%s\n", temp_hostescalation->host_name);
+	fprintf(fp, "\tfirst_notification\t%d\n", temp_hostescalation->first_notification);
+	fprintf(fp, "\tlast_notification\t%d\n", temp_hostescalation->last_notification);
+	fprintf(fp, "\tnotification_interval\t%f\n", temp_hostescalation->notification_interval);
+	if(temp_hostescalation->escalation_period)
+		fprintf(fp, "\tescalation_period\t%s\n", temp_hostescalation->escalation_period);
+	fprintf(fp, "\tescalation_options\t");
+	if(temp_hostescalation->escalate_on_down == TRUE)
+		fprintf(fp, "%sd", (x++ > 0) ? "," : "");
+	if(temp_hostescalation->escalate_on_unreachable == TRUE)
+		fprintf(fp, "%su", (x++ > 0) ? "," : "");
+	if(temp_hostescalation->escalate_on_recovery == TRUE)
+		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
+	if(x == 0)
+		fprintf(fp, "n");
+	fprintf(fp, "\n");
+
+	fcache_contactlist(fp, "\tcontacts\t", temp_hostescalation->contacts);
+	fcache_contactgrouplist(fp, "\tcontact_groups\t", temp_hostescalation->contact_groups);
+	fprintf(fp, "\t}\n\n");
+}
+
+/* writes cached object definitions for use by web interface */
+int fcache_objects(char *cache_file) {
+	FILE *fp = NULL;
+	time_t current_time = 0L;
+	unsigned int i;
+
+	time(&current_time);
+
+	/* open the cache file for writing */
+	fp = fopen(cache_file, "w");
+	if(fp == NULL) {
+		logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: Could not open object cache file '%s' for writing!\n", cache_file);
+		return ERROR;
+		}
+
+	/* write header to cache file */
+	fprintf(fp, "########################################\n");
+	fprintf(fp, "#       NAGIOS OBJECT CACHE FILE\n");
+	fprintf(fp, "#\n");
+	fprintf(fp, "# THIS FILE IS AUTOMATICALLY GENERATED\n");
+	fprintf(fp, "# BY NAGIOS.  DO NOT MODIFY THIS FILE!\n");
+	fprintf(fp, "#\n");
+	fprintf(fp, "# Created: %s", ctime(&current_time));
+	fprintf(fp, "########################################\n\n");
+
+
+	/* cache timeperiods */
+	for(i = 0; i < num_objects.timeperiods; i++)
+		fcache_timeperiod(fp, &timeperiod_list[i]);
+
+	/* cache commands */
+	for(i = 0; i < num_objects.commands; i++)
+		fcache_command(fp, &command_list[i]);
+
+	/* cache contactgroups */
+	for(i = 0; i < num_objects.contactgroups; i++)
+		fcache_contactgroup(fp, &contactgroup_list[i]);
+
+	/* cache hostgroups */
+	for(i = 0; i < num_objects.hostgroups; i++)
+		fcache_hostgroup(fp, &hostgroup_list[i]);
+
+	/* cache servicegroups */
+	for(i = 0; i < num_objects.servicegroups; i++)
+		fcache_servicegroup(fp, &servicegroup_list[i]);
+
+	/* cache contacts */
+	for(i = 0; i < num_objects.contacts; i++)
+		fcache_contact(fp, &contact_list[i]);
+
+	/* cache hosts */
+	for(i = 0; i < num_objects.hosts; i++)
+		fcache_host(fp, &host_list[i]);
+
+	/* cache services */
+	for(i = 0; i < num_objects.services; i++)
+		fcache_service(fp, &service_list[i]);
+
+	/* cache service dependencies */
+	for(i = 0; i < num_objects.servicedependencies; i++)
+		fcache_servicedependency(fp, &servicedependency_list[i]);
+
+	/* cache service escalations */
+	for(i = 0; i < num_objects.serviceescalations; i++)
+		fcache_serviceescalation(fp, &serviceescalation_list[i]);
+
+	/* cache host dependencies */
+	for(i = 0; i < num_objects.hostdependencies; i++)
+		fcache_hostdependency(fp, &hostdependency_list[i]);
+
+	/* cache host escalations */
+	for(i = 0; i < num_objects.hostescalations; i++)
+		fcache_hostescalation(fp, &hostescalation_list[i]);
+
+	fclose(fp);
+
+	return OK;
+	}
+#endif

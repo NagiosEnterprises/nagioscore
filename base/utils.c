@@ -242,6 +242,8 @@ extern unsigned long   max_debug_file_size;
 worker_process *command_wproc = NULL;
 extern iobroker_set *nagios_iobs;
 
+extern char *object_cache_file, *object_precache_file;
+
 /* from GNU defines errno as a macro, since it's a per-thread variable */
 #ifndef errno
 extern int errno;
@@ -3348,6 +3350,9 @@ void free_memory(nagios_macros *mac) {
 	/* free obsessive compulsive commands */
 	my_free(ocsp_command);
 	my_free(ochp_command);
+
+	my_free(object_cache_file);
+	my_free(object_precache_file);
 
 	/*
 	 * free memory associated with macros.

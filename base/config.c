@@ -187,6 +187,8 @@ extern unsigned long    max_debug_file_size;
 
 extern int              allow_empty_hostgroup_assignment;
 
+char *object_cache_file = NULL, *object_precache_file = NULL;
+
 /*** helpers ****/
 /*
  * find a command with arguments still attached
@@ -220,21 +222,11 @@ static command *find_bang_command(char *name)
 int read_all_object_data(char *main_config_file) {
 	int result = OK;
 	int options = 0;
-	int cache = FALSE;
-	int precache = FALSE;
 
 	options = READ_ALL_OBJECT_DATA;
 
-	/* cache object definitions if we're up and running */
-	if(verify_config == FALSE && test_scheduling == FALSE)
-		cache = TRUE;
-
-	/* precache object definitions */
-	if(precache_objects == TRUE && (verify_config == TRUE || test_scheduling == TRUE))
-		precache = TRUE;
-
 	/* read in all host configuration data from external sources */
-	result = read_object_config_data(main_config_file, options, cache, precache);
+	result = read_object_config_data(main_config_file, options);
 	if(result != OK)
 		return ERROR;
 
@@ -1317,9 +1309,9 @@ int read_main_config_file(char *main_config_file) {
 		else if(strstr(input, "state_retention_file=") == input)
 			continue;
 		else if(strstr(input, "object_cache_file=") == input)
-			continue;
+			object_cache_file = (char *)strdup(value);
 		else if(strstr(input, "precached_object_file=") == input)
-			continue;
+			object_precache_file = (char *)strdup(value);
 		else if(!strcmp(variable, "allow_empty_hostgroup_assignment")) {
 			allow_empty_hostgroup_assignment = (atoi(value) > 0) ? TRUE : FALSE;
 			}

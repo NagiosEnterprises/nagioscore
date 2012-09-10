@@ -298,7 +298,7 @@ struct host_struct {
 	int     freshness_threshold;
 	int     process_performance_data;
 	int     checks_enabled;
-	int     accept_passive_host_checks;
+	int     accept_passive_checks;
 	int     event_handler_enabled;
 	int     retain_status_information;
 	int     retain_nonstatus_information;
@@ -437,7 +437,7 @@ struct service_struct {
 	int     process_performance_data;
 	int     check_freshness;
 	int     freshness_threshold;
-	int     accept_passive_service_checks;
+	int     accept_passive_checks;
 	int     event_handler_enabled;
 	int	checks_enabled;
 	int     retain_status_information;

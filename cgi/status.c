@@ -853,17 +853,17 @@ void show_service_status_totals(void) {
 
 			if(temp_servicestatus->status == SERVICE_CRITICAL) {
 				total_critical++;
-				if(temp_servicestatus->problem_has_been_acknowledged == FALSE && (temp_servicestatus->checks_enabled == TRUE || temp_servicestatus->accept_passive_service_checks == TRUE) && temp_servicestatus->notifications_enabled == TRUE && temp_servicestatus->scheduled_downtime_depth == 0)
+				if(temp_servicestatus->problem_has_been_acknowledged == FALSE && (temp_servicestatus->checks_enabled == TRUE || temp_servicestatus->accept_passive_checks == TRUE) && temp_servicestatus->notifications_enabled == TRUE && temp_servicestatus->scheduled_downtime_depth == 0)
 					problem_services_critical++;
 				}
 			else if(temp_servicestatus->status == SERVICE_WARNING) {
 				total_warning++;
-				if(temp_servicestatus->problem_has_been_acknowledged == FALSE && (temp_servicestatus->checks_enabled == TRUE || temp_servicestatus->accept_passive_service_checks == TRUE) && temp_servicestatus->notifications_enabled == TRUE && temp_servicestatus->scheduled_downtime_depth == 0)
+				if(temp_servicestatus->problem_has_been_acknowledged == FALSE && (temp_servicestatus->checks_enabled == TRUE || temp_servicestatus->accept_passive_checks == TRUE) && temp_servicestatus->notifications_enabled == TRUE && temp_servicestatus->scheduled_downtime_depth == 0)
 					problem_services_warning++;
 				}
 			else if(temp_servicestatus->status == SERVICE_UNKNOWN) {
 				total_unknown++;
-				if(temp_servicestatus->problem_has_been_acknowledged == FALSE && (temp_servicestatus->checks_enabled == TRUE || temp_servicestatus->accept_passive_service_checks == TRUE) && temp_servicestatus->notifications_enabled == TRUE && temp_servicestatus->scheduled_downtime_depth == 0)
+				if(temp_servicestatus->problem_has_been_acknowledged == FALSE && (temp_servicestatus->checks_enabled == TRUE || temp_servicestatus->accept_passive_checks == TRUE) && temp_servicestatus->notifications_enabled == TRUE && temp_servicestatus->scheduled_downtime_depth == 0)
 					problem_services_unknown++;
 				}
 			else if(temp_servicestatus->status == SERVICE_OK)
@@ -1789,7 +1789,7 @@ void show_service_detail(void) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_status->host_name));
 				printf("&service=%s#comments'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This service problem has been acknowledged' TITLE='This service problem has been acknowledged'></a></td>", url_encode(temp_status->description), url_images_path, ACKNOWLEDGEMENT_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
 				}
-			if(temp_status->checks_enabled == FALSE && temp_status->accept_passive_service_checks == FALSE) {
+			if(temp_status->checks_enabled == FALSE && temp_status->accept_passive_checks == FALSE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_status->host_name));
 				printf("&service=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Active and passive checks have been disabled for this service' TITLE='Active and passive checks have been disabled for this service'></a></td>", url_encode(temp_status->description), url_images_path, DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
 				}
@@ -5036,10 +5036,10 @@ int passes_host_properties_filter(hoststatus *temp_hoststatus) {
 	if((host_properties & HOST_NOTIFICATIONS_ENABLED) && temp_hoststatus->notifications_enabled == FALSE)
 		return FALSE;
 
-	if((host_properties & HOST_PASSIVE_CHECKS_DISABLED) && temp_hoststatus->accept_passive_host_checks == TRUE)
+	if((host_properties & HOST_PASSIVE_CHECKS_DISABLED) && temp_hoststatus->accept_passive_checks == TRUE)
 		return FALSE;
 
-	if((host_properties & HOST_PASSIVE_CHECKS_ENABLED) && temp_hoststatus->accept_passive_host_checks == FALSE)
+	if((host_properties & HOST_PASSIVE_CHECKS_ENABLED) && temp_hoststatus->accept_passive_checks == FALSE)
 		return FALSE;
 
 	if((host_properties & HOST_PASSIVE_CHECK) && temp_hoststatus->check_type == HOST_CHECK_ACTIVE)
@@ -5104,10 +5104,10 @@ int passes_service_properties_filter(servicestatus *temp_servicestatus) {
 	if((service_properties & SERVICE_NOTIFICATIONS_ENABLED) && temp_servicestatus->notifications_enabled == FALSE)
 		return FALSE;
 
-	if((service_properties & SERVICE_PASSIVE_CHECKS_DISABLED) && temp_servicestatus->accept_passive_service_checks == TRUE)
+	if((service_properties & SERVICE_PASSIVE_CHECKS_DISABLED) && temp_servicestatus->accept_passive_checks == TRUE)
 		return FALSE;
 
-	if((service_properties & SERVICE_PASSIVE_CHECKS_ENABLED) && temp_servicestatus->accept_passive_service_checks == FALSE)
+	if((service_properties & SERVICE_PASSIVE_CHECKS_ENABLED) && temp_servicestatus->accept_passive_checks == FALSE)
 		return FALSE;
 
 	if((service_properties & SERVICE_PASSIVE_CHECK) && temp_servicestatus->check_type == SERVICE_CHECK_ACTIVE)

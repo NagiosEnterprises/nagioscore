@@ -551,7 +551,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->check_freshness = (check_freshness > 0) ? TRUE : FALSE;
 	new_host->freshness_threshold = freshness_threshold;
 	new_host->checks_enabled = (checks_enabled > 0) ? TRUE : FALSE;
-	new_host->accept_passive_host_checks = (accept_passive_checks > 0) ? TRUE : FALSE;
+	new_host->accept_passive_checks = (accept_passive_checks > 0) ? TRUE : FALSE;
 	new_host->event_handler_enabled = (event_handler_enabled > 0) ? TRUE : FALSE;
 	new_host->x_2d = x_2d;
 	new_host->y_2d = y_2d;
@@ -1452,7 +1452,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->process_performance_data = (process_perfdata > 0) ? TRUE : FALSE;
 	new_service->check_freshness = (check_freshness > 0) ? TRUE : FALSE;
 	new_service->freshness_threshold = freshness_threshold;
-	new_service->accept_passive_service_checks = (accept_passive_checks > 0) ? TRUE : FALSE;
+	new_service->accept_passive_checks = (accept_passive_checks > 0) ? TRUE : FALSE;
 	new_service->event_handler_enabled = (event_handler_enabled > 0) ? TRUE : FALSE;
 	new_service->checks_enabled = (checks_enabled > 0) ? TRUE : FALSE;
 	new_service->retain_status_information = (retain_status_information > 0) ? TRUE : FALSE;
@@ -3239,7 +3239,7 @@ void fcache_host(FILE *fp, host *temp_host)
 	fprintf(fp, "\tretry_interval\t%f\n", temp_host->retry_interval);
 	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_host->max_attempts);
 	fprintf(fp, "\tactive_checks_enabled\t%d\n", temp_host->checks_enabled);
-	fprintf(fp, "\tpassive_checks_enabled\t%d\n", temp_host->accept_passive_host_checks);
+	fprintf(fp, "\tpassive_checks_enabled\t%d\n", temp_host->accept_passive_checks);
 	fprintf(fp, "\tobsess\t%d\n", temp_host->obsess);
 	fprintf(fp, "\tevent_handler_enabled\t%d\n", temp_host->event_handler_enabled);
 	fprintf(fp, "\tlow_flap_threshold\t%f\n", temp_host->low_flap_threshold);
@@ -3348,7 +3348,7 @@ void fcache_service(FILE *fp, service *temp_service)
 	fprintf(fp, "\tis_volatile\t%d\n", temp_service->is_volatile);
 	fprintf(fp, "\tparallelize_check\t%d\n", temp_service->parallelize);
 	fprintf(fp, "\tactive_checks_enabled\t%d\n", temp_service->checks_enabled);
-	fprintf(fp, "\tpassive_checks_enabled\t%d\n", temp_service->accept_passive_service_checks);
+	fprintf(fp, "\tpassive_checks_enabled\t%d\n", temp_service->accept_passive_checks);
 	fprintf(fp, "\tobsess\t%d\n", temp_service->obsess);
 	fprintf(fp, "\tevent_handler_enabled\t%d\n", temp_service->event_handler_enabled);
 	fprintf(fp, "\tlow_flap_threshold\t%f\n", temp_service->low_flap_threshold);

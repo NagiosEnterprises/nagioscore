@@ -390,7 +390,7 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "problem_has_been_acknowledged=%d\n", temp_host->problem_has_been_acknowledged);
 		fprintf(fp, "acknowledgement_type=%d\n", temp_host->acknowledgement_type);
 		fprintf(fp, "active_checks_enabled=%d\n", temp_host->checks_enabled);
-		fprintf(fp, "passive_checks_enabled=%d\n", temp_host->accept_passive_host_checks);
+		fprintf(fp, "passive_checks_enabled=%d\n", temp_host->accept_passive_checks);
 		fprintf(fp, "event_handler_enabled=%d\n", temp_host->event_handler_enabled);
 		fprintf(fp, "flap_detection_enabled=%d\n", temp_host->flap_detection_enabled);
 		fprintf(fp, "process_performance_data=%d\n", temp_host->process_performance_data);
@@ -460,7 +460,7 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "last_notification=%lu\n", temp_service->last_notification);
 		fprintf(fp, "notifications_enabled=%d\n", temp_service->notifications_enabled);
 		fprintf(fp, "active_checks_enabled=%d\n", temp_service->checks_enabled);
-		fprintf(fp, "passive_checks_enabled=%d\n", temp_service->accept_passive_service_checks);
+		fprintf(fp, "passive_checks_enabled=%d\n", temp_service->accept_passive_checks);
 		fprintf(fp, "event_handler_enabled=%d\n", temp_service->event_handler_enabled);
 		fprintf(fp, "problem_has_been_acknowledged=%d\n", temp_service->problem_has_been_acknowledged);
 		fprintf(fp, "acknowledgement_type=%d\n", temp_service->acknowledgement_type);
@@ -1260,7 +1260,7 @@ int xrddefault_read_state_information(void) {
 								}
 							else if(!strcmp(var, "passive_checks_enabled")) {
 								if(temp_host->modified_attributes & MODATTR_PASSIVE_CHECKS_ENABLED)
-									temp_host->accept_passive_host_checks = (atoi(val) > 0) ? TRUE : FALSE;
+									temp_host->accept_passive_checks = (atoi(val) > 0) ? TRUE : FALSE;
 								}
 							else if(!strcmp(var, "event_handler_enabled")) {
 								if(temp_host->modified_attributes & MODATTR_EVENT_HANDLER_ENABLED)
@@ -1531,7 +1531,7 @@ int xrddefault_read_state_information(void) {
 								}
 							else if(!strcmp(var, "passive_checks_enabled")) {
 								if(temp_service->modified_attributes & MODATTR_PASSIVE_CHECKS_ENABLED)
-									temp_service->accept_passive_service_checks = (atoi(val) > 0) ? TRUE : FALSE;
+									temp_service->accept_passive_checks = (atoi(val) > 0) ? TRUE : FALSE;
 								}
 							else if(!strcmp(var, "event_handler_enabled")) {
 								if(temp_service->modified_attributes & MODATTR_EVENT_HANDLER_ENABLED)

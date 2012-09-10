@@ -470,7 +470,7 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tproblem_has_been_acknowledged=%d\n", temp_host->problem_has_been_acknowledged);
 		fprintf(fp, "\tacknowledgement_type=%d\n", temp_host->acknowledgement_type);
 		fprintf(fp, "\tactive_checks_enabled=%d\n", temp_host->checks_enabled);
-		fprintf(fp, "\tpassive_checks_enabled=%d\n", temp_host->accept_passive_host_checks);
+		fprintf(fp, "\tpassive_checks_enabled=%d\n", temp_host->accept_passive_checks);
 		fprintf(fp, "\tevent_handler_enabled=%d\n", temp_host->event_handler_enabled);
 		fprintf(fp, "\tflap_detection_enabled=%d\n", temp_host->flap_detection_enabled);
 		fprintf(fp, "\tprocess_performance_data=%d\n", temp_host->process_performance_data);
@@ -535,7 +535,7 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tno_more_notifications=%d\n", temp_service->no_more_notifications);
 		fprintf(fp, "\tnotifications_enabled=%d\n", temp_service->notifications_enabled);
 		fprintf(fp, "\tactive_checks_enabled=%d\n", temp_service->checks_enabled);
-		fprintf(fp, "\tpassive_checks_enabled=%d\n", temp_service->accept_passive_service_checks);
+		fprintf(fp, "\tpassive_checks_enabled=%d\n", temp_service->accept_passive_checks);
 		fprintf(fp, "\tevent_handler_enabled=%d\n", temp_service->event_handler_enabled);
 		fprintf(fp, "\tproblem_has_been_acknowledged=%d\n", temp_service->problem_has_been_acknowledged);
 		fprintf(fp, "\tacknowledgement_type=%d\n", temp_service->acknowledgement_type);
@@ -1022,7 +1022,7 @@ int xsddefault_read_status_data(char *config_file, int options) {
 						else if(!strcmp(var, "active_checks_enabled"))
 							temp_hoststatus->checks_enabled = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "passive_checks_enabled"))
-							temp_hoststatus->accept_passive_host_checks = (atoi(val) > 0) ? TRUE : FALSE;
+							temp_hoststatus->accept_passive_checks = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "event_handler_enabled"))
 							temp_hoststatus->event_handler_enabled = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "flap_detection_enabled"))
@@ -1110,7 +1110,7 @@ int xsddefault_read_status_data(char *config_file, int options) {
 						else if(!strcmp(var, "active_checks_enabled"))
 							temp_servicestatus->checks_enabled = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "passive_checks_enabled"))
-							temp_servicestatus->accept_passive_service_checks = (atoi(val) > 0) ? TRUE : FALSE;
+							temp_servicestatus->accept_passive_checks = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "event_handler_enabled"))
 							temp_servicestatus->event_handler_enabled = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "problem_has_been_acknowledged"))

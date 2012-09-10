@@ -80,7 +80,7 @@ typedef struct hoststatus_struct {
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
 	int     current_notification_number;
-	int     accept_passive_host_checks;
+	int     accept_passive_checks;
 	int     event_handler_enabled;
 	int     checks_enabled;
 	int     flap_detection_enabled;
@@ -129,7 +129,7 @@ typedef struct servicestatus_struct {
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
 	int     current_notification_number;
-	int     accept_passive_service_checks;
+	int     accept_passive_checks;
 	int     event_handler_enabled;
 	int     flap_detection_enabled;
 	int     is_flapping;

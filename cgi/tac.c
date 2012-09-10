@@ -492,7 +492,7 @@ void analyze_status_data(void) {
 			active_checks_disabled_services++;
 
 		/* passive check acceptance */
-		if(temp_servicestatus->accept_passive_service_checks == FALSE)
+		if(temp_servicestatus->accept_passive_checks == FALSE)
 			passive_checks_disabled_services++;
 
 
@@ -651,7 +651,7 @@ void analyze_status_data(void) {
 			active_checks_disabled_hosts++;
 
 		/* passive check acceptance */
-		if(temp_hoststatus->accept_passive_host_checks == FALSE)
+		if(temp_hoststatus->accept_passive_checks == FALSE)
 			passive_checks_disabled_hosts++;
 
 

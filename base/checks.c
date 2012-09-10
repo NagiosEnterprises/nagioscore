@@ -398,7 +398,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			log_debug_info(DEBUGL_CHECKS, 0, "Discarding passive service check result because passive service checks are disabled globally.\n");
 			return ERROR;
 			}
-		if(temp_service->accept_passive_service_checks == FALSE) {
+		if(temp_service->accept_passive_checks == FALSE) {
 			log_debug_info(DEBUGL_CHECKS, 0, "Discarding passive service check result because passive checks are disabled for this service.\n");
 			return ERROR;
 			}
@@ -1450,7 +1450,7 @@ void check_service_result_freshness(void) {
 			continue;
 
 		/* skip services that have both active and passive checks disabled */
-		if(temp_service->checks_enabled == FALSE && temp_service->accept_passive_service_checks == FALSE)
+		if(temp_service->checks_enabled == FALSE && temp_service->accept_passive_checks == FALSE)
 			continue;
 
 		/* skip services that are already being freshened */
@@ -1872,7 +1872,7 @@ void check_host_result_freshness(void) {
 			continue;
 
 		/* skip hosts that have both active and passive checks disabled */
-		if(temp_host->checks_enabled == FALSE && temp_host->accept_passive_host_checks == FALSE)
+		if(temp_host->checks_enabled == FALSE && temp_host->accept_passive_checks == FALSE)
 			continue;
 
 		/* skip hosts that are currently executing (problems here will be caught by orphaned host check) */
@@ -2580,7 +2580,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 			log_debug_info(DEBUGL_CHECKS, 0, "Discarding passive host check result because passive host checks are disabled globally.\n");
 			return ERROR;
 			}
-		if(temp_host->accept_passive_host_checks == FALSE) {
+		if(temp_host->accept_passive_checks == FALSE) {
 			log_debug_info(DEBUGL_CHECKS, 0, "Discarding passive host check result because passive checks are disabled for this host.\n");
 			return ERROR;
 			}

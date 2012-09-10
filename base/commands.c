@@ -1976,7 +1976,7 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 		}
 
 	/* skip this is we aren't accepting passive checks for this service */
-	if(temp_service->accept_passive_service_checks == FALSE)
+	if(temp_service->accept_passive_checks == FALSE)
 		return ERROR;
 
 	memset(&cr, 0, sizeof(cr));
@@ -2068,7 +2068,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 		}
 
 	/* skip this is we aren't accepting passive checks for this host */
-	if(temp_host->accept_passive_host_checks == FALSE)
+	if(temp_host->accept_passive_checks == FALSE)
 		return ERROR;
 
 	memset(&cr, 0, sizeof(cr));
@@ -4043,14 +4043,14 @@ void enable_passive_service_checks(service *svc) {
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* no change */
-	if(svc->accept_passive_service_checks == TRUE)
+	if(svc->accept_passive_checks == TRUE)
 		return;
 
 	/* set the attribute modified flag */
 	svc->modified_attributes |= attr;
 
 	/* set the passive check flag */
-	svc->accept_passive_service_checks = TRUE;
+	svc->accept_passive_checks = TRUE;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -4070,14 +4070,14 @@ void disable_passive_service_checks(service *svc) {
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* no change */
-	if(svc->accept_passive_service_checks == FALSE)
+	if(svc->accept_passive_checks == FALSE)
 		return;
 
 	/* set the attribute modified flag */
 	svc->modified_attributes |= attr;
 
 	/* set the passive check flag */
-	svc->accept_passive_service_checks = FALSE;
+	svc->accept_passive_checks = FALSE;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -4206,14 +4206,14 @@ void enable_passive_host_checks(host *hst) {
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* no change */
-	if(hst->accept_passive_host_checks == TRUE)
+	if(hst->accept_passive_checks == TRUE)
 		return;
 
 	/* set the attribute modified flag */
 	hst->modified_attributes |= attr;
 
 	/* set the passive check flag */
-	hst->accept_passive_host_checks = TRUE;
+	hst->accept_passive_checks = TRUE;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -4233,14 +4233,14 @@ void disable_passive_host_checks(host *hst) {
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* no change */
-	if(hst->accept_passive_host_checks == FALSE)
+	if(hst->accept_passive_checks == FALSE)
 		return;
 
 	/* set the attribute modified flag */
 	hst->modified_attributes |= attr;
 
 	/* set the passive check flag */
-	hst->accept_passive_host_checks = FALSE;
+	hst->accept_passive_checks = FALSE;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */

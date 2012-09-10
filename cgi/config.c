@@ -565,7 +565,7 @@ void display_hosts(void) {
 
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_host->checks_enabled == TRUE) ? "Yes" : "No");
 
-			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_host->accept_passive_host_checks == TRUE) ? "Yes" : "No");
+			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_host->accept_passive_checks == TRUE) ? "Yes" : "No");
 
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_host->check_freshness == TRUE) ? "Yes" : "No");
 
@@ -1290,7 +1290,7 @@ void display_services(void) {
 
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_service->checks_enabled == TRUE) ? "Yes" : "No");
 
-			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_service->accept_passive_service_checks == TRUE) ? "Yes" : "No");
+			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_service->accept_passive_checks == TRUE) ? "Yes" : "No");
 
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_service->check_freshness == TRUE) ? "Yes" : "No");
 

@@ -138,6 +138,14 @@ static char *xodtemplate_config_file_name(int config_file) {
 /************* TOP-LEVEL CONFIG DATA INPUT FUNCTION ***************/
 /******************************************************************/
 
+static void xodtemplate_free_template_skiplists(void) {
+	int x = 0;
+
+	for(x = 0; x < NUM_XOBJECT_SKIPLISTS; x++) {
+		skiplist_free(&xobject_template_skiplists[x]);
+		}
+	}
+
 /* process all config files - both core and CGIs pass in name of main config file */
 int xodtemplate_read_config_data(char *main_config_file, int options) {
 #ifdef NSCORE
@@ -325,6 +333,10 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 		/* resolve objects definitions */
 		if(result == OK)
 			result = xodtemplate_resolve_objects();
+
+		/* these are no longer needed */
+		xodtemplate_free_template_skiplists();
+
 		if(test_scheduling == TRUE)
 			gettimeofday(&tv[2], NULL);
 

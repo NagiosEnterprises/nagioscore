@@ -322,15 +322,6 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 	/* only perform intensive operations if we're not using the precached object file */
 	if(use_precached_objects == FALSE) {
 
-		host_map = bitmap_create(xodtemplate_host_id);
-		contact_map = bitmap_create(xodtemplate_contact_id);
-		service_map = bitmap_create(xodtemplate_service_id);
-
-		if(!host_map || !contact_map || !service_map) {
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to create bitmaps for resolving objects\n");
-			return ERROR;
-			}
-
 		/* resolve objects definitions */
 		if(result == OK)
 			result = xodtemplate_resolve_objects();
@@ -339,6 +330,13 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 
 		/* cleanup some additive inheritance stuff... */
 		xodtemplate_clean_additive_strings();
+
+		host_map = bitmap_create(xodtemplate_host_id);
+		contact_map = bitmap_create(xodtemplate_contact_id);
+		if(!host_map || !contact_map) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to create bitmaps for resolving objects\n");
+			return ERROR;
+			}
 
 		/* do the meat and potatoes stuff... */
 		if(result == OK)
@@ -355,6 +353,13 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 			result = xodtemplate_duplicate_services();
 		if(test_scheduling == TRUE)
 			gettimeofday(&tv[5], NULL);
+
+		/* now we have an accurate service count */
+		service_map = bitmap_create(xodtemplate_service_id);
+		if(!service_map) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to create service map\n");
+			return ERROR;
+			}
 
 		if(result == OK)
 			result = xodtemplate_recombobulate_servicegroups();

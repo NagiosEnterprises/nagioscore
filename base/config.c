@@ -1421,14 +1421,8 @@ int pre_flight_check(void) {
 
 	if(test_scheduling == TRUE) {
 
-		if(verify_object_relationships == TRUE)
-			runtime[0] = (double)((double)(tv[1].tv_sec - tv[0].tv_sec) + (double)((tv[1].tv_usec - tv[0].tv_usec) / 1000.0) / 1000.0);
-		else
-			runtime[0] = 0.0;
-		if(verify_circular_paths == TRUE)
-			runtime[1] = (double)((double)(tv[2].tv_sec - tv[1].tv_sec) + (double)((tv[2].tv_usec - tv[1].tv_usec) / 1000.0) / 1000.0);
-		else
-			runtime[1] = 0.0;
+		runtime[0] = tv_delta_f(&tv[0], &tv[1]);
+		runtime[1] = tv_delta_f(&tv[1], &tv[2]);
 		runtime[2] = (double)((double)(tv[3].tv_sec - tv[2].tv_sec) + (double)((tv[3].tv_usec - tv[2].tv_usec) / 1000.0) / 1000.0);
 		runtime[3] = runtime[0] + runtime[1] + runtime[2];
 
@@ -1485,10 +1479,6 @@ int pre_flight_object_check(int *w, int *e) {
 		printf("FOUND ESCALATION FOR HOST '%s': %d-%d/%d, PTR=%p\n", buf1, temp_he->first_notification, temp_he->last_notification, temp_he->notification_interval, ptr);
 		}
 #endif
-
-	/* bail out if we aren't supposed to verify object relationships */
-	if(verify_object_relationships == FALSE)
-		return OK;
 
 
 	/*****************************************/
@@ -2159,10 +2149,6 @@ int pre_flight_circular_check(int *w, int *e) {
 	int i, errors = 0;
 	unsigned int alloc, dep_type;
 	char *ary[2];
-
-	/* bail out if we aren't supposed to verify circular paths */
-	if(verify_circular_paths == FALSE)
-		return OK;
 
 	/* this would be a valid but pathological case */
 	if(num_objects.hosts > num_objects.services)

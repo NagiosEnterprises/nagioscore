@@ -146,8 +146,6 @@ unsigned long next_downtime_id = 0L;
 unsigned long next_notification_id = 0L;
 
 int verify_config = FALSE;
-int verify_object_relationships = TRUE;
-int verify_circular_paths = TRUE;
 int test_scheduling = FALSE;
 int precache_objects = FALSE;
 int use_precached_objects = FALSE;

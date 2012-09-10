@@ -96,8 +96,6 @@ extern int caught_signal;
 
 
 extern int verify_config;
-extern int verify_object_relationships;
-extern int verify_circular_paths;
 extern int test_scheduling;
 extern int precache_objects;
 extern int use_precached_objects;

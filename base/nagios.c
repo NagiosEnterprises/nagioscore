@@ -74,8 +74,6 @@ int main(int argc, char **argv, char **env) {
 			{"verify-config", no_argument, 0, 'v'},
 			{"daemon", no_argument, 0, 'd'},
 			{"test-scheduling", no_argument, 0, 's'},
-			{"dont-verify-objects", no_argument, 0, 'o'},
-			{"dont-verify-paths", no_argument, 0, 'x'},
 			{"precache-objects", no_argument, 0, 'p'},
 			{"use-precached-objects", no_argument, 0, 'u'},
 			{0, 0, 0, 0}
@@ -91,7 +89,7 @@ int main(int argc, char **argv, char **env) {
 
 	/* get all command line arguments */
 	while(1) {
-		c = getopt(argc, argv, "+hVvdsoxpu");
+		c = getopt(argc, argv, "+hVvdspu");
 
 		if(c == -1 || c == EOF)
 			break;
@@ -117,16 +115,6 @@ int main(int argc, char **argv, char **env) {
 
 			case 'd': /* daemon mode */
 				daemon_mode = TRUE;
-				break;
-
-			case 'o': /* don't verify objects */
-				/*
-				verify_object_relationships=FALSE;
-				*/
-				break;
-
-			case 'x': /* don't verify circular paths */
-				verify_circular_paths = FALSE;
 				break;
 
 			case 'p': /* precache object config */

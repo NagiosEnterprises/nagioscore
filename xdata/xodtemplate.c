@@ -6873,6 +6873,11 @@ int xodtemplate_recombobulate_contactgroups(void) {
 				return ERROR;
 				}
 
+			if(!temp_contactgroup->member_map && !(temp_contactgroup->member_map = bitmap_create(xodtemplate_contact_id))) {
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to create member map for contactgroup '%s'\n",
+					  temp_contactgroup->contactgroup_name);
+				return ERROR;
+				}
 			/* add this contact to the contactgroup members directive */
 			xodtemplate_add_contactgroup_member(temp_contactgroup, temp_contact);
 			}
@@ -7041,6 +7046,11 @@ int xodtemplate_recombobulate_hostgroups(void) {
 			if(temp_hostgroup == NULL) {
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not find hostgroup '%s' specified in host '%s' definition (config file '%s', starting on line %d)\n", temp_ptr, temp_host->host_name, xodtemplate_config_file_name(temp_host->_config_file), temp_host->_start_line);
 				my_free(hostgroup_names);
+				return ERROR;
+				}
+			if(!temp_hostgroup->member_map && !(temp_hostgroup->member_map = bitmap_create(xodtemplate_host_id))) {
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to create bitmap to join host '%s' to group '%s'\n",
+					  temp_host->host_name, temp_hostgroup->hostgroup_name);
 				return ERROR;
 				}
 
@@ -7215,6 +7225,10 @@ int xodtemplate_recombobulate_servicegroups(void) {
 				return ERROR;
 				}
 
+			if(!temp_servicegroup->member_map && !(temp_servicegroup->member_map = bitmap_create(xodtemplate_service_id))) {
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to create member map for service group %s\n", temp_servicegroup->servicegroup_name);
+				return ERROR;
+				}
 			/* add ourselves as members to the group */
 			xodtemplate_add_servicegroup_member(temp_servicegroup, temp_service);
 		}

@@ -27,6 +27,8 @@
 
 #include "../include/cgiutils.h"
 
+char *object_precache_file = NULL, *object_cache_file = NULL;
+
 char            main_config_file[MAX_FILENAME_LENGTH];
 char            log_file[MAX_FILENAME_LENGTH];
 char            log_archive_path[MAX_FILENAME_LENGTH];
@@ -545,7 +547,7 @@ int read_all_object_configuration_data(char *config_file, int options) {
 	int result = OK;
 
 	/* read in all external config data of the desired type(s) */
-	result = read_object_config_data(config_file, options, FALSE, FALSE);
+	result = read_object_config_data(config_file, options);
 
 	return result;
 	}

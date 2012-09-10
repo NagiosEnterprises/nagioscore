@@ -382,14 +382,6 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 			gettimeofday(&tv[8], NULL);
 		}
 
-	if(result == OK) {
-
-		/* merge host/service extinfo definitions with host/service definitions */
-		/* this will be removed in Nagios 4.x */
-		xodtemplate_merge_extinfo_ojects();
-
-		}
-
 	if(test_scheduling == TRUE)
 		gettimeofday(&tv[9], NULL);
 
@@ -4371,8 +4363,8 @@ int xodtemplate_duplicate_objects(void) {
 	xodtemplate_serviceescalation *temp_serviceescalation = NULL;
 	xodtemplate_hostdependency *temp_hostdependency = NULL;
 	xodtemplate_servicedependency *temp_servicedependency = NULL;
-	xodtemplate_hostextinfo *temp_hostextinfo = NULL;
-	xodtemplate_serviceextinfo *temp_serviceextinfo = NULL;
+	xodtemplate_hostextinfo *next_he = NULL, *temp_hostextinfo = NULL;
+	xodtemplate_serviceextinfo *next_se = NULL, *temp_serviceextinfo = NULL;
 
 	objectlist *master_servicelist = NULL;
 	objectlist *master_hostlist = NULL, *dependent_hostlist = NULL;
@@ -4621,7 +4613,8 @@ int xodtemplate_duplicate_objects(void) {
 	timing_point("Duplicating hostextinfo");
 
 	/****** DUPLICATE HOSTEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
-	for(temp_hostextinfo = xodtemplate_hostextinfo_list; temp_hostextinfo != NULL; temp_hostextinfo = temp_hostextinfo->next) {
+	for(temp_hostextinfo = xodtemplate_hostextinfo_list; temp_hostextinfo != NULL; temp_hostextinfo = next_he) {
+		next_he = temp_hostextinfo->next;
 
 		/* skip definitions without enough data */
 		if(temp_hostextinfo->hostgroup_name == NULL && temp_hostextinfo->host_name == NULL)
@@ -4634,77 +4627,65 @@ int xodtemplate_duplicate_objects(void) {
 			return ERROR;
 			}
 
-		/* add a copy of the definition for every host in the hostgroup/host name list */
+		/* merge this extinfo with every host in the hostgroup/host name list */
 		for(list = master_hostlist; list; list = next) {
 			xodtemplate_host *h = (xodtemplate_host *)list->object_ptr;
 			next = list;
 			free(list);
 
-			/* if this is the last duplication, use the existing entry */
-			if(!next) {
-				my_free(temp_hostextinfo->host_name);
-				temp_hostextinfo->host_name = (char *)strdup(h->host_name);
-				if(temp_hostextinfo->host_name == NULL) {
-					free_objectlist(&next);
-					return ERROR;
-					}
-				continue;
-				}
-
-			/* duplicate hostextinfo definition */
-			result = xodtemplate_duplicate_hostextinfo(temp_hostextinfo, h->host_name);
-
-			/* exit on error */
-			if(result == ERROR) {
-				free_objectlist(&next);
-				return ERROR;
-				}
+			/* merge it. we ignore errors here */
+			xodtemplate_merge_host_extinfo_object(h, temp_hostextinfo);
 			}
+		/* might as well kill it off early */
+		my_free(temp_hostextinfo->template);
+		my_free(temp_hostextinfo->name);
+		my_free(temp_hostextinfo->notes);
+		my_free(temp_hostextinfo->host_name);
+		my_free(temp_hostextinfo->hostgroup_name);
+		my_free(temp_hostextinfo->notes_url);
+		my_free(temp_hostextinfo->action_url);
+		my_free(temp_hostextinfo->icon_image);
+		my_free(temp_hostextinfo->vrml_image);
+		my_free(temp_hostextinfo->statusmap_image);
+		my_free(temp_hostextinfo);
 		}
 
 
 	timing_point("Duplicating serviceextinfo");
 
 	/****** DUPLICATE SERVICEEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
-	for(temp_serviceextinfo = xodtemplate_serviceextinfo_list; temp_serviceextinfo != NULL; temp_serviceextinfo = temp_serviceextinfo->next) {
+	for(temp_serviceextinfo = xodtemplate_serviceextinfo_list; temp_serviceextinfo != NULL; temp_serviceextinfo = next_se) {
+		next_se = temp_serviceextinfo->next;
 
 		/* skip definitions without enough data */
 		if(temp_serviceextinfo->hostgroup_name == NULL && temp_serviceextinfo->host_name == NULL)
 			continue;
 
 		/* get list of hosts */
-		master_hostlist = xodtemplate_expand_hostgroups_and_hosts(temp_serviceextinfo->hostgroup_name, temp_serviceextinfo->host_name, temp_serviceextinfo->_config_file, temp_serviceextinfo->_start_line);
-		if(master_hostlist == NULL) {
+		if(xodtemplate_create_service_list(&master_servicelist, temp_serviceextinfo->hostgroup_name, temp_serviceextinfo->host_name, NULL, temp_serviceextinfo->service_description, temp_serviceextinfo->_config_file, temp_serviceextinfo->_start_line) != OK) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_serviceextinfo->_config_file), temp_serviceextinfo->_start_line);
 			return ERROR;
 			}
 
-		/* add a copy of the definition for every host in the hostgroup/host name list */
-		for(list = master_hostlist; list; list = next) {
-			xodtemplate_host *h = (xodtemplate_host *)list->object_ptr;
+		/* merge this serviceextinfo with every service in the list */
+		for(list = master_servicelist; list; list = next) {
+			xodtemplate_service *s = (xodtemplate_service *)list->object_ptr;
 			next = list->next;
 			free(list);
-
-			/* existing definition gets last host name */
-			if(!next) {
-				my_free(temp_serviceextinfo->host_name);
-				temp_serviceextinfo->host_name = (char *)strdup(h->host_name);
-				if(temp_serviceextinfo->host_name == NULL) {
-					free_objectlist(&master_hostlist);
-					return ERROR;
-					}
-				continue;
-				}
-
-			/* duplicate serviceextinfo definition */
-			result = xodtemplate_duplicate_serviceextinfo(temp_serviceextinfo, h->host_name);
-
-			/* exit on error */
-			if(result == ERROR) {
-				free_objectlist(&next);
-				return ERROR;
-				}
+			xodtemplate_merge_service_extinfo_object(s, temp_serviceextinfo);
 			}
+		/* now we're done, so we might as well kill it off */
+		my_free(temp_serviceextinfo->template);
+		my_free(temp_serviceextinfo->name);
+		my_free(temp_serviceextinfo->host_name);
+		my_free(temp_serviceextinfo->hostgroup_name);
+		my_free(temp_serviceextinfo->service_description);
+		my_free(temp_serviceextinfo->notes);
+		my_free(temp_serviceextinfo->notes_url);
+		my_free(temp_serviceextinfo->action_url);
+		my_free(temp_serviceextinfo->icon_image);
+		my_free(temp_serviceextinfo->icon_image_alt);
+		my_free(temp_serviceextinfo);
 		}
 
 
@@ -4981,163 +4962,10 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 
 
 
-/* duplicates a hostextinfo object definition */
-int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo, char *host_name) {
-	xodtemplate_hostextinfo *new_hostextinfo = NULL;
-	int error = FALSE;
-
-	/* allocate zero'd out memory for a new hostextinfo object */
-	new_hostextinfo = (xodtemplate_hostextinfo *)calloc(1, sizeof(xodtemplate_hostextinfo));
-	if(new_hostextinfo == NULL)
-		return ERROR;
-
-	/* standard items */
-	new_hostextinfo->has_been_resolved = this_hostextinfo->has_been_resolved;
-	new_hostextinfo->register_object = this_hostextinfo->register_object;
-	new_hostextinfo->_config_file = this_hostextinfo->_config_file;
-	new_hostextinfo->_start_line = this_hostextinfo->_start_line;
-
-	/* string defaults */
-	new_hostextinfo->have_host_name = this_hostextinfo->have_host_name;
-	new_hostextinfo->have_hostgroup_name = this_hostextinfo->have_hostgroup_name;
-	new_hostextinfo->have_notes = this_hostextinfo->have_notes;
-	new_hostextinfo->have_notes_url = this_hostextinfo->have_notes_url;
-	new_hostextinfo->have_action_url = this_hostextinfo->have_action_url;
-	new_hostextinfo->have_icon_image = this_hostextinfo->have_icon_image;
-	new_hostextinfo->have_icon_image_alt = this_hostextinfo->have_icon_image_alt;
-	new_hostextinfo->have_vrml_image = this_hostextinfo->have_vrml_image;
-	new_hostextinfo->have_statusmap_image = this_hostextinfo->have_statusmap_image;
-
-	/* duplicate strings (host_name member is passed in) */
-	if(host_name != NULL && (new_hostextinfo->host_name = (char *)strdup(host_name)) == NULL)
-		error = TRUE;
-	if(this_hostextinfo->template != NULL && (new_hostextinfo->template = (char *)strdup(this_hostextinfo->template)) == NULL)
-		error = TRUE;
-	if(this_hostextinfo->name != NULL && (new_hostextinfo->name = (char *)strdup(this_hostextinfo->name)) == NULL)
-		error = TRUE;
-	if(this_hostextinfo->notes != NULL && (new_hostextinfo->notes = (char *)strdup(this_hostextinfo->notes)) == NULL)
-		error = TRUE;
-	if(this_hostextinfo->notes_url != NULL && (new_hostextinfo->notes_url = (char *)strdup(this_hostextinfo->notes_url)) == NULL)
-		error = TRUE;
-	if(this_hostextinfo->action_url != NULL && (new_hostextinfo->action_url = (char *)strdup(this_hostextinfo->action_url)) == NULL)
-		error = TRUE;
-	if(this_hostextinfo->icon_image != NULL && (new_hostextinfo->icon_image = (char *)strdup(this_hostextinfo->icon_image)) == NULL)
-		error = TRUE;
-	if(this_hostextinfo->icon_image_alt != NULL && (new_hostextinfo->icon_image_alt = (char *)strdup(this_hostextinfo->icon_image_alt)) == NULL)
-		error = TRUE;
-	if(this_hostextinfo->vrml_image != NULL && (new_hostextinfo->vrml_image = (char *)strdup(this_hostextinfo->vrml_image)) == NULL)
-		error = TRUE;
-	if(this_hostextinfo->statusmap_image != NULL && (new_hostextinfo->statusmap_image = (char *)strdup(this_hostextinfo->statusmap_image)) == NULL)
-		error = TRUE;
-
-	if(error == TRUE) {
-		my_free(new_hostextinfo->host_name);
-		my_free(new_hostextinfo->template);
-		my_free(new_hostextinfo->name);
-		my_free(new_hostextinfo->notes);
-		my_free(new_hostextinfo->notes_url);
-		my_free(new_hostextinfo->action_url);
-		my_free(new_hostextinfo->icon_image);
-		my_free(new_hostextinfo->icon_image_alt);
-		my_free(new_hostextinfo->vrml_image);
-		my_free(new_hostextinfo->statusmap_image);
-		my_free(new_hostextinfo);
-		return ERROR;
-		}
-
-	/* duplicate non-string members */
-	new_hostextinfo->x_2d = this_hostextinfo->x_2d;
-	new_hostextinfo->y_2d = this_hostextinfo->y_2d;
-	new_hostextinfo->have_2d_coords = this_hostextinfo->have_2d_coords;
-	new_hostextinfo->x_3d = this_hostextinfo->x_3d;
-	new_hostextinfo->y_3d = this_hostextinfo->y_3d;
-	new_hostextinfo->z_3d = this_hostextinfo->z_3d;
-	new_hostextinfo->have_3d_coords = this_hostextinfo->have_3d_coords;
-
-	/* add new object to head of list */
-	new_hostextinfo->next = xodtemplate_hostextinfo_list;
-	xodtemplate_hostextinfo_list = new_hostextinfo;
-
-	return OK;
-	}
-
-
-
-/* duplicates a serviceextinfo object definition */
-int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_serviceextinfo, char *host_name) {
-	xodtemplate_serviceextinfo *new_serviceextinfo = NULL;
-	int error = FALSE;
-
-	/* allocate zero'd out object for a new serviceextinfo object */
-	new_serviceextinfo = (xodtemplate_serviceextinfo *)calloc(1, sizeof(xodtemplate_serviceextinfo));
-	if(new_serviceextinfo == NULL)
-		return ERROR;
-
-	/* standard items */
-	new_serviceextinfo->has_been_resolved = this_serviceextinfo->has_been_resolved;
-	new_serviceextinfo->register_object = this_serviceextinfo->register_object;
-	new_serviceextinfo->_config_file = this_serviceextinfo->_config_file;
-	new_serviceextinfo->_start_line = this_serviceextinfo->_start_line;
-
-	/* string defaults */
-	new_serviceextinfo->have_host_name = this_serviceextinfo->have_host_name;
-	new_serviceextinfo->have_service_description = this_serviceextinfo->have_service_description;
-	new_serviceextinfo->have_hostgroup_name = this_serviceextinfo->have_hostgroup_name;
-	new_serviceextinfo->have_notes = this_serviceextinfo->have_notes;
-	new_serviceextinfo->have_notes_url = this_serviceextinfo->have_notes_url;
-	new_serviceextinfo->have_action_url = this_serviceextinfo->have_action_url;
-	new_serviceextinfo->have_icon_image = this_serviceextinfo->have_icon_image;
-	new_serviceextinfo->have_icon_image_alt = this_serviceextinfo->have_icon_image_alt;
-
-	/* duplicate strings (host_name member is passed in) */
-	if(host_name != NULL && (new_serviceextinfo->host_name = (char *)strdup(host_name)) == NULL)
-		error = TRUE;
-	if(this_serviceextinfo->template != NULL && (new_serviceextinfo->template = (char *)strdup(this_serviceextinfo->template)) == NULL)
-		error = TRUE;
-	if(this_serviceextinfo->name != NULL && (new_serviceextinfo->name = (char *)strdup(this_serviceextinfo->name)) == NULL)
-		error = TRUE;
-	if(this_serviceextinfo->service_description != NULL && (new_serviceextinfo->service_description = (char *)strdup(this_serviceextinfo->service_description)) == NULL)
-		error = TRUE;
-	if(this_serviceextinfo->notes != NULL && (new_serviceextinfo->notes = (char *)strdup(this_serviceextinfo->notes)) == NULL)
-		error = TRUE;
-	if(this_serviceextinfo->notes_url != NULL && (new_serviceextinfo->notes_url = (char *)strdup(this_serviceextinfo->notes_url)) == NULL)
-		error = TRUE;
-	if(this_serviceextinfo->action_url != NULL && (new_serviceextinfo->action_url = (char *)strdup(this_serviceextinfo->action_url)) == NULL)
-		error = TRUE;
-	if(this_serviceextinfo->icon_image != NULL && (new_serviceextinfo->icon_image = (char *)strdup(this_serviceextinfo->icon_image)) == NULL)
-		error = TRUE;
-	if(this_serviceextinfo->icon_image_alt != NULL && (new_serviceextinfo->icon_image_alt = (char *)strdup(this_serviceextinfo->icon_image_alt)) == NULL)
-		error = TRUE;
-
-	if(error == TRUE) {
-		my_free(new_serviceextinfo->host_name);
-		my_free(new_serviceextinfo->template);
-		my_free(new_serviceextinfo->name);
-		my_free(new_serviceextinfo->service_description);
-		my_free(new_serviceextinfo->notes);
-		my_free(new_serviceextinfo->notes_url);
-		my_free(new_serviceextinfo->action_url);
-		my_free(new_serviceextinfo->icon_image);
-		my_free(new_serviceextinfo->icon_image_alt);
-		my_free(new_serviceextinfo);
-		return ERROR;
-		}
-
-	/* add new object to head of list */
-	new_serviceextinfo->next = xodtemplate_serviceextinfo_list;
-	xodtemplate_serviceextinfo_list = new_serviceextinfo;
-
-	return OK;
-	}
-
-#endif
-
-
 /******************************************************************/
 /***************** OBJECT RESOLUTION FUNCTIONS ********************/
 /******************************************************************/
 
-#ifdef NSCORE
 
 /* inherit object properties */
 /* some missing defaults (notification options, etc.) are also applied here */
@@ -6862,7 +6690,6 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 	return OK;
 	}
 
-#endif
 
 
 
@@ -6893,7 +6720,6 @@ static int _xodtemplate_add_group_member(objectlist **list, bitmap *in, bitmap *
 #define xodtemplate_add_contactgroup_member xodtemplate_add_group_member
 #define xodtemplate_add_hostgroup_member xodtemplate_add_group_member
 
-#ifdef NSCORE
 
 /* recombobulates contactgroup definitions */
 static int xodtemplate_recombobulate_contactgroup_subgroups(xodtemplate_contactgroup *temp_contactgroup) {
@@ -8514,47 +8340,6 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 
 #ifdef NSCORE
 
-/* merge extinfo definitions */
-int xodtemplate_merge_extinfo_ojects(void) {
-	xodtemplate_hostextinfo *temp_hostextinfo = NULL;
-	xodtemplate_serviceextinfo *temp_serviceextinfo = NULL;
-	xodtemplate_host *temp_host = NULL;
-	xodtemplate_service *temp_service = NULL;
-
-	/* merge service extinfo definitions */
-	for(temp_serviceextinfo = xodtemplate_serviceextinfo_list; temp_serviceextinfo != NULL; temp_serviceextinfo = temp_serviceextinfo->next) {
-
-		/* make sure we have everything */
-		if(temp_serviceextinfo->host_name == NULL || temp_serviceextinfo->service_description == NULL)
-			continue;
-
-		/* find the service */
-		if((temp_service = xodtemplate_find_real_service(temp_serviceextinfo->host_name, temp_serviceextinfo->service_description)) == NULL)
-			continue;
-
-		/* merge the definitions */
-		xodtemplate_merge_service_extinfo_object(temp_service, temp_serviceextinfo);
-		}
-
-	/* merge host extinfo definitions */
-	for(temp_hostextinfo = xodtemplate_hostextinfo_list; temp_hostextinfo != NULL; temp_hostextinfo = temp_hostextinfo->next) {
-
-		/* make sure we have everything */
-		if(temp_hostextinfo->host_name == NULL)
-			continue;
-
-		/* find the host */
-		if((temp_host = xodtemplate_find_real_host(temp_hostextinfo->host_name)) == NULL)
-			continue;
-
-		/* merge the definitions */
-		xodtemplate_merge_host_extinfo_object(temp_host, temp_hostextinfo);
-		}
-
-	return OK;
-	}
-
-
 /* merges a service extinfo definition */
 int xodtemplate_merge_service_extinfo_object(xodtemplate_service *this_service, xodtemplate_serviceextinfo *this_serviceextinfo) {
 
@@ -9201,10 +8986,6 @@ int xodtemplate_free_memory(void) {
 	xodtemplate_hostdependency *next_hostdependency = NULL;
 	xodtemplate_hostescalation *this_hostescalation = NULL;
 	xodtemplate_hostescalation *next_hostescalation = NULL;
-	xodtemplate_hostextinfo *this_hostextinfo = NULL;
-	xodtemplate_hostextinfo *next_hostextinfo = NULL;
-	xodtemplate_serviceextinfo *this_serviceextinfo = NULL;
-	xodtemplate_serviceextinfo *next_serviceextinfo = NULL;
 	xodtemplate_customvariablesmember *this_customvariablesmember = NULL;
 	xodtemplate_customvariablesmember *next_customvariablesmember = NULL;
 	register int x = 0;
@@ -9459,39 +9240,9 @@ int xodtemplate_free_memory(void) {
 	xodtemplate_hostescalation_list = NULL;
 	xodtemplate_hostescalation_list_tail = NULL;
 
-	/* free memory allocated to hostextinfo list */
-	for(this_hostextinfo = xodtemplate_hostextinfo_list; this_hostextinfo != NULL; this_hostextinfo = next_hostextinfo) {
-		next_hostextinfo = this_hostextinfo->next;
-		my_free(this_hostextinfo->template);
-		my_free(this_hostextinfo->name);
-		my_free(this_hostextinfo->hostgroup_name);
-		my_free(this_hostextinfo->notes);
-		my_free(this_hostextinfo->notes_url);
-		my_free(this_hostextinfo->action_url);
-		my_free(this_hostextinfo->icon_image);
-		my_free(this_hostextinfo->icon_image_alt);
-		my_free(this_hostextinfo->vrml_image);
-		my_free(this_hostextinfo->statusmap_image);
-		my_free(this_hostextinfo);
-		}
+	/* extinfo objects are free()'d while they're parsed */
 	xodtemplate_hostextinfo_list = NULL;
 	xodtemplate_hostextinfo_list_tail = NULL;
-
-	/* free memory allocated to serviceextinfo list */
-	for(this_serviceextinfo = xodtemplate_serviceextinfo_list; this_serviceextinfo != NULL; this_serviceextinfo = next_serviceextinfo) {
-		next_serviceextinfo = this_serviceextinfo->next;
-		my_free(this_serviceextinfo->template);
-		my_free(this_serviceextinfo->name);
-		my_free(this_serviceextinfo->host_name);
-		my_free(this_serviceextinfo->hostgroup_name);
-		my_free(this_serviceextinfo->service_description);
-		my_free(this_serviceextinfo->notes);
-		my_free(this_serviceextinfo->notes_url);
-		my_free(this_serviceextinfo->action_url);
-		my_free(this_serviceextinfo->icon_image);
-		my_free(this_serviceextinfo->icon_image_alt);
-		my_free(this_serviceextinfo);
-		}
 	xodtemplate_serviceextinfo_list = NULL;
 	xodtemplate_serviceextinfo_list_tail = NULL;
 

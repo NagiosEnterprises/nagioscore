@@ -217,8 +217,6 @@ int nagios_icon_y = 0;
 
 extern hoststatus *hoststatus_list;
 
-extern time_t program_start;
-
 layer *layer_list = NULL;
 int exclude_layers = TRUE;
 int all_layers = FALSE;

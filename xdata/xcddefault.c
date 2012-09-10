@@ -44,13 +44,6 @@
 
 
 #ifdef NSCORE
-extern unsigned long next_comment_id;
-extern comment *comment_list;
-#endif
-
-
-
-#ifdef NSCORE
 
 /******************************************************************/
 /************ COMMENT INITIALIZATION/CLEANUP FUNCTIONS ************/

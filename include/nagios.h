@@ -24,11 +24,211 @@
 # define NSCORE
 #endif
 
+#include "defaults.h"
 #include "common.h"
 #include "logging.h"
 #include "locations.h"
 #include "objects.h"
 #include "macros.h"
+
+/*
+ * global variables only used in the core. Reducing this list would be
+ * a Good Thing(tm).
+ */
+extern char *config_file;
+extern char *command_file;
+extern char *temp_file;
+extern char *temp_path;
+extern char *check_result_path;
+extern char *lock_file;
+extern char *object_precache_file;
+
+extern char *nagios_user;
+extern char *nagios_group;
+
+extern char *macro_user[MAX_USER_MACROS];
+
+extern char *ocsp_command;
+extern char *ochp_command;
+extern command *ocsp_command_ptr;
+extern command *ochp_command_ptr;
+extern int ocsp_timeout;
+extern int ochp_timeout;
+
+extern char *global_host_event_handler;
+extern char *global_service_event_handler;
+extern command *global_host_event_handler_ptr;
+extern command *global_service_event_handler_ptr;
+
+extern char *illegal_object_chars;
+extern char *illegal_output_chars;
+
+extern int use_regexp_matches;
+extern int use_true_regexp_matching;
+
+extern int use_syslog;
+extern char *log_file;
+extern char *log_archive_path;
+extern int log_notifications;
+extern int log_service_retries;
+extern int log_host_retries;
+extern int log_event_handlers;
+extern int log_external_commands;
+extern int log_passive_checks;
+extern time_t last_log_rotation;
+extern unsigned long logging_options;
+extern unsigned long syslog_options;
+
+extern int service_check_timeout;
+extern int service_check_timeout_state;
+extern int host_check_timeout;
+extern int event_handler_timeout;
+extern int notification_timeout;
+
+extern int log_initial_states;
+extern int log_current_states;
+
+extern int nagios_pid;
+extern int daemon_mode;
+extern int daemon_dumps_core;
+extern int sig_id;
+extern int caught_signal;
+
+
+extern int verify_config;
+extern int verify_object_relationships;
+extern int verify_circular_paths;
+extern int test_scheduling;
+extern int precache_objects;
+extern int use_precached_objects;
+
+extern int interval_length;
+extern int service_inter_check_delay_method;
+extern int host_inter_check_delay_method;
+extern int service_interleave_factor_method;
+extern int max_host_check_spread;
+extern int max_service_check_spread;
+
+extern sched_info scheduling_info;
+
+extern int max_parallel_service_checks;
+
+extern int check_reaper_interval;
+extern int max_check_reaper_time;
+extern int service_freshness_check_interval;
+extern int host_freshness_check_interval;
+extern int auto_rescheduling_interval;
+extern int auto_rescheduling_window;
+
+extern int check_external_commands;
+extern int check_orphaned_services;
+extern int check_orphaned_hosts;
+extern int check_service_freshness;
+extern int check_host_freshness;
+extern int auto_reschedule_checks;
+
+extern int additional_freshness_latency;
+
+extern int check_for_updates;
+extern int bare_update_check;
+extern time_t last_update_check;
+extern unsigned long update_uid;
+extern int update_available;
+extern char *last_program_version;
+extern char *new_program_version;
+
+extern int use_aggressive_host_checking;
+extern unsigned long cached_host_check_horizon;
+extern unsigned long cached_service_check_horizon;
+extern int enable_predictive_host_dependency_checks;
+extern int enable_predictive_service_dependency_checks;
+
+extern int soft_state_dependencies;
+
+extern int retain_state_information;
+extern int retention_update_interval;
+extern int use_retained_program_state;
+extern int use_retained_scheduling_info;
+extern int retention_scheduling_horizon;
+extern unsigned long retained_host_attribute_mask;
+extern unsigned long retained_service_attribute_mask;
+extern unsigned long retained_contact_host_attribute_mask;
+extern unsigned long retained_contact_service_attribute_mask;
+extern unsigned long retained_process_host_attribute_mask;
+extern unsigned long retained_process_service_attribute_mask;
+
+extern int log_rotation_method;
+
+extern int enable_notifications;
+extern int execute_service_checks;
+extern int accept_passive_service_checks;
+extern int execute_host_checks;
+extern int accept_passive_host_checks;
+extern int enable_event_handlers;
+extern int obsess_over_services;
+extern int obsess_over_hosts;
+
+extern int process_performance_data;
+
+extern int translate_passive_host_checks;
+extern int passive_host_checks_are_soft;
+
+extern int aggregate_status_updates;
+extern int status_update_interval;
+
+extern int time_change_threshold;
+
+extern unsigned long event_broker_options;
+
+extern int process_performance_data;
+
+extern int enable_flap_detection;
+
+extern double low_service_flap_threshold;
+extern double high_service_flap_threshold;
+extern double low_host_flap_threshold;
+extern double high_host_flap_threshold;
+
+extern int use_large_installation_tweaks;
+extern int enable_environment_macros;
+extern int free_child_process_memory;
+extern int child_processes_fork_twice;
+
+extern char *use_timezone;
+
+extern unsigned long max_check_result_file_age;
+
+extern char *debug_file;
+extern int debug_level;
+extern int debug_verbosity;
+extern unsigned long max_debug_file_size;
+
+extern int allow_empty_hostgroup_assignment;
+
+extern time_t program_start;
+extern time_t last_program_stop;
+extern time_t event_start;
+
+extern int sigshutdown, sigrestart;
+extern int currently_running_service_checks;
+extern int currently_running_host_checks;
+
+extern unsigned long next_event_id;
+extern unsigned long next_problem_id;
+extern unsigned long next_comment_id;
+extern unsigned long next_downtime_id;
+extern unsigned long next_notification_id;
+
+extern unsigned long modified_process_attributes;
+extern unsigned long modified_host_process_attributes;
+extern unsigned long modified_service_process_attributes;
+
+extern squeue_t *nagios_squeue;
+extern iobroker_set *nagios_iobs;
+
+extern check_stats check_statistics[MAX_CHECK_STATS_TYPES];
+
+extern notification *notification_list;
 
 	/************* MISC LENGTH/SIZE DEFINITIONS ***********/
 
@@ -40,91 +240,6 @@
 	*/
 #define MAX_PLUGIN_OUTPUT_LENGTH                8192    /* max length of plugin output (including perf data) */
 
-
-
-	/******************* DEFAULT VALUES *******************/
-
-#define DEFAULT_LOG_LEVEL					1	/* log all events to main log file */
-#define DEFAULT_USE_SYSLOG					1	/* log events to syslog? 1=yes, 0=no */
-#define DEFAULT_SYSLOG_LEVEL					2	/* log only severe events to syslog */
-
-#define DEFAULT_NOTIFICATION_LOGGING				1	/* log notification events? 1=yes, 0=no */
-
-#define DEFAULT_INTER_CHECK_DELAY				5.0	/* seconds between initial service check scheduling */
-#define DEFAULT_INTERLEAVE_FACTOR      				1       /* default interleave to use when scheduling checks */
-#define DEFAULT_INTERVAL_LENGTH 				60     	/* seconds per interval unit for check scheduling */
-#define DEFAULT_RETRY_INTERVAL  				30	/* services are retried in 30 seconds if they're not OK */
-#define DEFAULT_CHECK_REAPER_INTERVAL				10	/* interval in seconds to reap host and service check results */
-#define DEFAULT_MAX_REAPER_TIME                 		30      /* maximum number of seconds to spend reaping service checks before we break out for a while */
-#define DEFAULT_MAX_CHECK_RESULT_AGE				3600    /* maximum number of seconds that a check result file is considered to be valid */
-#define DEFAULT_MAX_PARALLEL_SERVICE_CHECKS 			0	/* maximum number of service checks we can have running at any given time (0=unlimited) */
-#define DEFAULT_RETENTION_UPDATE_INTERVAL			60	/* minutes between auto-save of retention data */
-#define DEFAULT_RETENTION_SCHEDULING_HORIZON    		900     /* max seconds between program restarts that we will preserve scheduling information */
-#define DEFAULT_STATUS_UPDATE_INTERVAL				60	/* seconds between aggregated status data updates */
-#define DEFAULT_FRESHNESS_CHECK_INTERVAL        		60      /* seconds between service result freshness checks */
-#define DEFAULT_AUTO_RESCHEDULING_INTERVAL      		30      /* seconds between host and service check rescheduling events */
-#define DEFAULT_AUTO_RESCHEDULING_WINDOW        		180     /* window of time (in seconds) for which we should reschedule host and service checks */
-#define DEFAULT_ORPHAN_CHECK_INTERVAL           		60      /* seconds between checks for orphaned hosts and services */
-
-#define DEFAULT_NOTIFICATION_TIMEOUT				30	/* max time in seconds to wait for notification commands to complete */
-#define DEFAULT_EVENT_HANDLER_TIMEOUT				30	/* max time in seconds to wait for event handler commands to complete */
-#define DEFAULT_HOST_CHECK_TIMEOUT				30	/* max time in seconds to wait for host check commands to complete */
-#define DEFAULT_SERVICE_CHECK_TIMEOUT				60	/* max time in seconds to wait for service check commands to complete */
-#define DEFAULT_OCSP_TIMEOUT					15	/* max time in seconds to wait for obsessive compulsive processing commands to complete */
-#define DEFAULT_OCHP_TIMEOUT					15	/* max time in seconds to wait for obsessive compulsive processing commands to complete */
-#define DEFAULT_PERFDATA_TIMEOUT                		5       /* max time in seconds to wait for performance data commands to complete */
-#define DEFAULT_TIME_CHANGE_THRESHOLD				900	/* compensate for time changes of more than 15 minutes */
-
-#define DEFAULT_LOG_HOST_RETRIES				0	/* don't log host retries */
-#define DEFAULT_LOG_SERVICE_RETRIES				0	/* don't log service retries */
-#define DEFAULT_LOG_EVENT_HANDLERS				1	/* log event handlers */
-#define DEFAULT_LOG_INITIAL_STATES				0	/* don't log initial service and host states */
-#define DEFAULT_LOG_CURRENT_STATES				1	/* log current service and host states after rotating log */
-#define DEFAULT_LOG_EXTERNAL_COMMANDS				1	/* log external commands */
-#define DEFAULT_LOG_PASSIVE_CHECKS				1	/* log passive service checks */
-
-#define DEFAULT_DEBUG_LEVEL                                     0       /* don't log any debugging information */
-#define DEFAULT_DEBUG_VERBOSITY                                 1
-#define DEFAULT_MAX_DEBUG_FILE_SIZE                             1000000 /* max size of debug log */
-
-#define DEFAULT_AGGRESSIVE_HOST_CHECKING			0	/* don't use "aggressive" host checking */
-#define DEFAULT_CHECK_EXTERNAL_COMMANDS				1 	/* check for external commands */
-#define DEFAULT_CHECK_ORPHANED_SERVICES				1	/* check for orphaned services */
-#define DEFAULT_CHECK_ORPHANED_HOSTS            		1       /* check for orphaned hosts */
-#define DEFAULT_ENABLE_FLAP_DETECTION           		0       /* don't enable flap detection */
-#define DEFAULT_PROCESS_PERFORMANCE_DATA        		0       /* don't process performance data */
-#define DEFAULT_CHECK_SERVICE_FRESHNESS         		1       /* check service result freshness */
-#define DEFAULT_CHECK_HOST_FRESHNESS            		0       /* don't check host result freshness */
-#define DEFAULT_AUTO_RESCHEDULE_CHECKS          		0       /* don't auto-reschedule host and service checks */
-#define DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS                   0       /* should we translate DOWN/UNREACHABLE passive host checks? */
-#define DEFAULT_PASSIVE_HOST_CHECKS_SOFT                        0       /* passive host checks are treated as HARD by default */
-
-#define DEFAULT_LOW_SERVICE_FLAP_THRESHOLD			20.0	/* low threshold for detection of service flapping */
-#define DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD			30.0	/* high threshold for detection of service flapping */
-#define DEFAULT_LOW_HOST_FLAP_THRESHOLD				20.0	/* low threshold for detection of host flapping */
-#define DEFAULT_HIGH_HOST_FLAP_THRESHOLD			30.0	/* high threshold for detection of host flapping */
-
-#define DEFAULT_HOST_CHECK_SPREAD				30	/* max minutes to schedule all initial host checks */
-#define DEFAULT_SERVICE_CHECK_SPREAD				30	/* max minutes to schedule all initial service checks */
-
-#define DEFAULT_CACHED_HOST_CHECK_HORIZON      			15      /* max age in seconds that cached host checks can be used */
-#define DEFAULT_CACHED_SERVICE_CHECK_HORIZON    		15      /* max age in seconds that cached service checks can be used */
-#define DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS	1	/* should we use predictive host dependency checks? */
-#define DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS	1	/* should we use predictive service dependency checks? */
-
-#define DEFAULT_USE_LARGE_INSTALLATION_TWEAKS                   0       /* don't use tweaks for large Nagios installations */
-
-#define DEFAULT_ADDITIONAL_FRESHNESS_LATENCY			15	/* seconds to be added to freshness thresholds when automatically calculated by Nagios */
-
-#define DEFAULT_CHECK_FOR_UPDATES                               1       /* should we check for new Nagios releases? */
-#define DEFAULT_BARE_UPDATE_CHECK                               0       /* report current version and new installs */
-#define MINIMUM_UPDATE_CHECK_INTERVAL                           60*60*22 /* 22 hours minimum between checks - please be kind to our servers! */
-#define BASE_UPDATE_CHECK_INTERVAL                              60*60*22 /* 22 hours base interval */
-#define UPDATE_CHECK_INTERVAL_WOBBLE                            60*60*4  /* 4 hour wobble on top of base interval */
-#define BASE_UPDATE_CHECK_RETRY_INTERVAL                        60*60*1  /* 1 hour base retry interval */
-#define UPDATE_CHECK_RETRY_INTERVAL_WOBBLE                      60*60*3  /* 3 hour wobble on top of base retry interval */
-
-#define DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT                          0        /* Do not allow empty hostgroups by default */
 
 	/******************** HOST STATUS *********************/
 
@@ -251,103 +366,7 @@
 #define PENDING_DOWNTIME                1       /* pending downtime - scheduled for the future */
 
 
-
-	/****************** DATA STRUCTURES *******************/
-
 NAGIOS_BEGIN_DECL
-
-/* TIMED_EVENT structure */
-typedef struct timed_event_struct {
-	int event_type;
-	time_t run_time;
-	int recurring;
-	unsigned long event_interval;
-	int compensate_for_time_change;
-	void *timing_func;
-	void *event_data;
-	void *event_args;
-	int event_options;
-	unsigned int priority; /* 0 is auto, 1 is highest. n+1 < n */
-	struct squeue_event *sq_event;
-	} timed_event;
-
-
-/* NOTIFY_LIST structure */
-typedef struct notify_list_struct {
-	contact *contact;
-	struct notify_list_struct *next;
-	} notification;
-
-
-/* CHECK_RESULT structure */
-typedef struct check_result_struct {
-	int object_check_type;                          /* is this a service or a host check? */
-	char *host_name;                                /* host name */
-	char *service_description;                      /* service description */
-	int check_type;					/* was this an active or passive service check? */
-	int check_options;
-	int scheduled_check;                            /* was this a scheduled or an on-demand check? */
-	int reschedule_check;                           /* should we reschedule the next check */
-	char *output_file;                              /* what file is the output stored in? */
-	FILE *output_file_fp;
-	double latency;
-	struct timeval start_time;			/* time the service check was initiated */
-	struct timeval finish_time;			/* time the service check was completed */
-	int early_timeout;                              /* did the service check timeout? */
-	int exited_ok;					/* did the plugin check return okay? */
-	int return_code;				/* plugin return code */
-	char *output;	                                /* plugin output */
-	struct rusage rusage;			/* resource usage by this check */
-	} check_result;
-
-
-/* SCHED_INFO structure */
-typedef struct sched_info_struct {
-	int total_services;
-	int total_scheduled_services;
-	int total_hosts;
-	int total_scheduled_hosts;
-	double average_services_per_host;
-	double average_scheduled_services_per_host;
-	unsigned long service_check_interval_total;
-	unsigned long host_check_interval_total;
-	double average_service_execution_time;
-	double average_service_check_interval;
-	double average_host_check_interval;
-	double average_service_inter_check_delay;
-	double average_host_inter_check_delay;
-	double service_inter_check_delay;
-	double host_inter_check_delay;
-	int service_interleave_factor;
-	int max_service_check_spread;
-	int max_host_check_spread;
-	time_t first_service_check;
-	time_t last_service_check;
-	time_t first_host_check;
-	time_t last_host_check;
-	} sched_info;
-
-
-/* DBUF structure - dynamic string storage */
-typedef struct dbuf_struct {
-	char *buf;
-	unsigned long used_size;
-	unsigned long allocated_size;
-	unsigned long chunk_size;
-	} dbuf;
-
-
-#define CHECK_STATS_BUCKETS                  15
-
-/* used for tracking host and service check statistics */
-typedef struct check_stats_struct {
-	int current_bucket;
-	int bucket[CHECK_STATS_BUCKETS];
-	int overflow_bucket;
-	int minute_stats[3];
-	time_t last_update;
-	} check_stats;
-
 
 /******************** FUNCTIONS **********************/
 

@@ -24,6 +24,52 @@
 #define PROGRAM_VERSION "3.4.1"
 #define PROGRAM_MODIFICATION_DATE "05-11-2012"
 
+NAGIOS_BEGIN_DECL
+
+/*************************************************************/
+/************** SHARED GLOBAL VARIABLES **********************/
+/*************************************************************/
+extern int date_format;
+extern int interval_length;
+extern char *illegal_output_chars;
+
+extern int log_rotation_method;
+extern int check_external_commands;
+/* set this if you're going to add a ton of comments at once */
+extern int defer_comment_sorting;
+
+extern char *object_cache_file;
+
+extern time_t program_start;
+extern int nagios_pid;
+extern int daemon_mode;
+
+extern time_t last_log_rotation;
+
+extern int process_performance_data;
+extern int enable_flap_detection;
+extern int enable_notifications;
+extern int execute_service_checks;
+extern int accept_passive_service_checks;
+extern int execute_host_checks;
+extern int accept_passive_host_checks;
+extern int enable_event_handlers;
+extern int obsess_over_services;
+extern int obsess_over_hosts;
+
+
+#ifdef HAVE_TZNAME
+#ifdef CYGWIN
+extern char     *_tzname[2] __declspec(dllimport);
+#else
+extern char     *tzname[2];
+#endif
+#endif
+
+
+NAGIOS_END_DECL
+
+
 /* Experimental performance tweaks - use with caution */
 #undef USE_MEMORY_PERFORMANCE_TWEAKS
 
@@ -408,16 +454,6 @@
 #define READ_SERVICEGROUPS              16384
 
 #define READ_ALL_OBJECT_DATA            READ_HOSTS | READ_HOSTGROUPS | READ_CONTACTS | READ_CONTACTGROUPS | READ_SERVICES | READ_COMMANDS | READ_TIMEPERIODS | READ_SERVICEESCALATIONS | READ_SERVICEDEPENDENCIES | READ_HOSTDEPENDENCIES | READ_HOSTESCALATIONS | READ_HOSTEXTINFO | READ_SERVICEEXTINFO | READ_SERVICEGROUPS
-
-
-/************************** DATE RANGE TYPES ****************************/
-
-#define DATERANGE_CALENDAR_DATE  0  /* 2008-12-25 */
-#define DATERANGE_MONTH_DATE     1  /* july 4 (specific month) */
-#define DATERANGE_MONTH_DAY      2  /* day 21 (generic month) */
-#define DATERANGE_MONTH_WEEK_DAY 3  /* 3rd thursday (specific month) */
-#define DATERANGE_WEEK_DAY       4  /* 3rd thursday (generic month) */
-#define DATERANGE_TYPES          5
 
 
 /************************** DATE/TIME TYPES *****************************/

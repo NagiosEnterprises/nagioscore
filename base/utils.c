@@ -33,222 +33,192 @@
 #include "../include/nebmodules.h"
 #include "../include/workers.h"
 
+/* global varaiables only used by the daemon */
+char *config_file = NULL;
+char *command_file = NULL;
+char *temp_file = NULL;
+char *temp_path = NULL;
+char *check_result_path = NULL;
+char *lock_file = NULL;
 
-extern char	*log_file;
-extern char     *command_file;
-extern char     *temp_file;
-extern char     *temp_path;
-extern char     *check_result_path;
-extern char     *lock_file;
-extern char	*log_archive_path;
+char *nagios_user = NULL;
+char *nagios_group = NULL;
 
-extern char     *nagios_user;
-extern char     *nagios_group;
+char *ocsp_command = NULL;
+char *ochp_command = NULL;
+command *ocsp_command_ptr = NULL;
+command *ochp_command_ptr = NULL;
+int ocsp_timeout = DEFAULT_OCSP_TIMEOUT;
+int ochp_timeout = DEFAULT_OCHP_TIMEOUT;
 
-extern char     *macro_x_names[MACRO_X_COUNT];
-extern char     *macro_user[MAX_USER_MACROS];
-extern customvariablesmember *macro_custom_host_vars;
-extern customvariablesmember *macro_custom_service_vars;
-extern customvariablesmember *macro_custom_contact_vars;
+char *illegal_object_chars = NULL;
 
-extern host         *macro_host_ptr;
-extern hostgroup    *macro_hostgroup_ptr;
-extern service      *macro_service_ptr;
-extern servicegroup *macro_servicegroup_ptr;
-extern contact      *macro_contact_ptr;
-extern contactgroup *macro_contactgroup_ptr;
+int use_regexp_matches;
+int use_true_regexp_matching;
 
-extern char     *global_host_event_handler;
-extern char     *global_service_event_handler;
-extern command  *global_host_event_handler_ptr;
-extern command  *global_service_event_handler_ptr;
+int	use_syslog = DEFAULT_USE_SYSLOG;
+char *log_file = NULL;
+char *log_archive_path = NULL;
+int log_notifications = DEFAULT_NOTIFICATION_LOGGING;
+int log_service_retries = DEFAULT_LOG_SERVICE_RETRIES;
+int log_host_retries = DEFAULT_LOG_HOST_RETRIES;
+int log_event_handlers = DEFAULT_LOG_EVENT_HANDLERS;
+int log_initial_states = DEFAULT_LOG_INITIAL_STATES;
+int log_current_states = DEFAULT_LOG_CURRENT_STATES;
+int log_external_commands = DEFAULT_LOG_EXTERNAL_COMMANDS;
+int log_passive_checks = DEFAULT_LOG_PASSIVE_CHECKS;
+unsigned long logging_options = 0;
+unsigned long syslog_options = 0;
 
-extern char     *ocsp_command;
-extern char     *ochp_command;
-extern command  *ocsp_command_ptr;
-extern command  *ochp_command_ptr;
+int service_check_timeout = DEFAULT_SERVICE_CHECK_TIMEOUT;
+int service_check_timeout_state=STATE_CRITICAL;
+int host_check_timeout = DEFAULT_HOST_CHECK_TIMEOUT;
+int event_handler_timeout = DEFAULT_EVENT_HANDLER_TIMEOUT;
+int notification_timeout = DEFAULT_NOTIFICATION_TIMEOUT;
 
-extern char     *illegal_object_chars;
-extern char     *illegal_output_chars;
 
-extern int      use_regexp_matches;
-extern int      use_true_regexp_matching;
+char *object_precache_file = DEFAULT_PRECACHED_OBJECT_FILE;
 
-extern int      sigshutdown;
-extern int      sigrestart;
-extern char     *sigs[35];
-extern int      caught_signal;
-extern int      sig_id;
+char *global_host_event_handler = NULL;
+char *global_service_event_handler = NULL;
+command *global_host_event_handler_ptr = NULL;
+command *global_service_event_handler_ptr = NULL;
 
-extern int      daemon_mode;
-extern int      daemon_dumps_core;
+int service_inter_check_delay_method = ICD_SMART;
+int host_inter_check_delay_method = ICD_SMART;
+int service_interleave_factor_method = ILF_SMART;
+int max_host_check_spread = DEFAULT_HOST_CHECK_SPREAD;
+int max_service_check_spread = DEFAULT_SERVICE_CHECK_SPREAD;
 
-extern int      nagios_pid;
+int check_reaper_interval = DEFAULT_CHECK_REAPER_INTERVAL;
+int max_check_reaper_time = DEFAULT_MAX_REAPER_TIME;
+int service_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
+int host_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
+int auto_rescheduling_interval = DEFAULT_AUTO_RESCHEDULING_INTERVAL;
 
-extern int	use_syslog;
-extern int      log_notifications;
-extern int      log_service_retries;
-extern int      log_host_retries;
-extern int      log_event_handlers;
-extern int      log_external_commands;
-extern int      log_passive_checks;
+int check_orphaned_services = DEFAULT_CHECK_ORPHANED_SERVICES;
+int check_orphaned_hosts = DEFAULT_CHECK_ORPHANED_HOSTS;
+int check_service_freshness = DEFAULT_CHECK_SERVICE_FRESHNESS;
+int check_host_freshness = DEFAULT_CHECK_HOST_FRESHNESS;
+int auto_reschedule_checks = DEFAULT_AUTO_RESCHEDULE_CHECKS;
+int auto_rescheduling_window = DEFAULT_AUTO_RESCHEDULING_WINDOW;
 
-extern unsigned long      logging_options;
-extern unsigned long      syslog_options;
+int additional_freshness_latency = DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
 
-extern int      service_check_timeout;
-extern int      host_check_timeout;
-extern int      event_handler_timeout;
-extern int      notification_timeout;
-extern int      ocsp_timeout;
-extern int      ochp_timeout;
+int check_for_updates = DEFAULT_CHECK_FOR_UPDATES;
+int bare_update_check = DEFAULT_BARE_UPDATE_CHECK;
+time_t last_update_check = 0L;
+unsigned long update_uid = 0L;
+int update_available = FALSE;
+char *last_program_version = NULL;
+char *new_program_version = NULL;
 
-extern int      log_initial_states;
+time_t last_program_stop = 0L;
 
-extern int      interval_length;
-extern int      service_inter_check_delay_method;
-extern int      host_inter_check_delay_method;
-extern int      service_interleave_factor_method;
-extern int      max_host_check_spread;
-extern int      max_service_check_spread;
+int use_aggressive_host_checking = DEFAULT_AGGRESSIVE_HOST_CHECKING;
+unsigned long cached_host_check_horizon = DEFAULT_CACHED_HOST_CHECK_HORIZON;
+unsigned long cached_service_check_horizon = DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
+int enable_predictive_host_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
+int enable_predictive_service_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS;
 
-extern int      command_check_interval;
-extern int      check_reaper_interval;
-extern int      max_check_reaper_time;
-extern int      service_freshness_check_interval;
-extern int      host_freshness_check_interval;
-extern int      auto_rescheduling_interval;
-extern int      auto_rescheduling_window;
+int soft_state_dependencies = FALSE;
 
-extern int      check_external_commands;
-extern int      check_orphaned_services;
-extern int      check_orphaned_hosts;
-extern int      check_service_freshness;
-extern int      check_host_freshness;
-extern int      auto_reschedule_checks;
+int retain_state_information = FALSE;
+int retention_update_interval = DEFAULT_RETENTION_UPDATE_INTERVAL;
+int use_retained_program_state = TRUE;
+int use_retained_scheduling_info = FALSE;
+int retention_scheduling_horizon = DEFAULT_RETENTION_SCHEDULING_HORIZON;
 
-extern int      additional_freshness_latency;
+unsigned long modified_process_attributes = MODATTR_NONE;
+unsigned long modified_host_process_attributes = MODATTR_NONE;
+unsigned long modified_service_process_attributes = MODATTR_NONE;
+unsigned long retained_host_attribute_mask = 0L;
+unsigned long retained_service_attribute_mask = 0L;
+unsigned long retained_contact_host_attribute_mask = 0L;
+unsigned long retained_contact_service_attribute_mask = 0L;
+unsigned long retained_process_host_attribute_mask = 0L;
+unsigned long retained_process_service_attribute_mask = 0L;
 
-extern int      check_for_updates;
-extern int      bare_update_check;
-extern time_t   last_update_check;
-extern unsigned long update_uid;
-extern char     *last_program_version;
-extern int      update_available;
-extern char     *last_program_version;
-extern char     *new_program_version;
+unsigned long next_event_id = 0L;
+unsigned long next_problem_id = 0L;
+unsigned long next_comment_id = 0L;
+unsigned long next_downtime_id = 0L;
+unsigned long next_notification_id = 0L;
 
-extern int      use_aggressive_host_checking;
-extern unsigned long cached_host_check_horizon;
-extern unsigned long cached_service_check_horizon;
-extern int      enable_predictive_host_dependency_checks;
-extern int      enable_predictive_service_dependency_checks;
+int verify_config = FALSE;
+int verify_object_relationships = TRUE;
+int verify_circular_paths = TRUE;
+int test_scheduling = FALSE;
+int precache_objects = FALSE;
+int use_precached_objects = FALSE;
 
-extern int      soft_state_dependencies;
+int sigshutdown = FALSE;
+int sigrestart = FALSE;
+int caught_signal = FALSE;
+int sig_id = 0;
 
-extern int      retain_state_information;
-extern int      retention_update_interval;
-extern int      use_retained_program_state;
-extern int      use_retained_scheduling_info;
-extern int      retention_scheduling_horizon;
-extern unsigned long modified_host_process_attributes;
-extern unsigned long modified_service_process_attributes;
-extern unsigned long retained_host_attribute_mask;
-extern unsigned long retained_service_attribute_mask;
-extern unsigned long retained_contact_host_attribute_mask;
-extern unsigned long retained_contact_service_attribute_mask;
-extern unsigned long retained_process_host_attribute_mask;
-extern unsigned long retained_process_service_attribute_mask;
+int daemon_dumps_core = TRUE;
 
-extern unsigned long next_comment_id;
-extern unsigned long next_downtime_id;
-extern unsigned long next_event_id;
-extern unsigned long next_notification_id;
+int max_parallel_service_checks = DEFAULT_MAX_PARALLEL_SERVICE_CHECKS;
+int currently_running_service_checks = 0;
+int currently_running_host_checks = 0;
 
-extern int      log_rotation_method;
+time_t event_start = 0L;
 
-extern time_t   program_start;
+int translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
+int passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 
-extern time_t   last_log_rotation;
+int aggregate_status_updates = TRUE;
+int status_update_interval = DEFAULT_STATUS_UPDATE_INTERVAL;
 
-extern int      verify_config;
-extern int      test_scheduling;
+int time_change_threshold = DEFAULT_TIME_CHANGE_THRESHOLD;
 
-extern check_result check_result_info;
+unsigned long   event_broker_options = BROKER_NOTHING;
 
-extern int      max_parallel_service_checks;
-extern int      currently_running_service_checks;
+double low_service_flap_threshold = DEFAULT_LOW_SERVICE_FLAP_THRESHOLD;
+double high_service_flap_threshold = DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD;
+double low_host_flap_threshold = DEFAULT_LOW_HOST_FLAP_THRESHOLD;
+double high_host_flap_threshold = DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
 
-extern int      enable_notifications;
-extern int      execute_service_checks;
-extern int      accept_passive_service_checks;
-extern int      execute_host_checks;
-extern int      enable_event_handlers;
-extern int      obsess_over_services;
-extern int      obsess_over_hosts;
-extern int      process_performance_data;
+int use_large_installation_tweaks = DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
+int enable_environment_macros = TRUE;
+int free_child_process_memory = -1;
+int child_processes_fork_twice = -1;
 
-extern int      translate_passive_host_checks;
-extern int      passive_host_checks_are_soft;
+char *use_timezone = NULL;
 
-extern int      aggregate_status_updates;
-extern int      status_update_interval;
+int allow_empty_hostgroup_assignment = DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
 
-extern int      time_change_threshold;
+int command_file_fd;
+FILE *command_file_fp;
+int command_file_created = FALSE;
 
-extern unsigned long event_broker_options;
 
-extern int      process_performance_data;
+notification    *notification_list;
 
-extern int      enable_flap_detection;
+check_result    check_result_info;
+unsigned long	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
 
-extern double   low_service_flap_threshold;
-extern double   high_service_flap_threshold;
-extern double   low_host_flap_threshold;
-extern double   high_host_flap_threshold;
+check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
-extern int      use_large_installation_tweaks;
-extern int      enable_environment_macros;
-extern int      free_child_process_memory;
-extern int      child_processes_fork_twice;
+char *debug_file;
+int debug_level = DEFAULT_DEBUG_LEVEL;
+int debug_verbosity = DEFAULT_DEBUG_VERBOSITY;
+unsigned long   max_debug_file_size = DEFAULT_MAX_DEBUG_FILE_SIZE;
 
-extern int      date_format;
+iobroker_set *nagios_iobs = NULL;
+squeue_t *nagios_squeue = NULL; /* our scheduling queue */
 
-extern notification     *notification_list;
-
-extern squeue_t *nagios_squeue;
-
-extern int      command_file_fd;
-extern FILE     *command_file_fp;
-extern int      command_file_created;
-
-#ifdef HAVE_TZNAME
-#ifdef CYGWIN
-extern char     *_tzname[2] __declspec(dllimport);
-#else
-extern char     *tzname[2];
-#endif
-#endif
-
-extern unsigned long   max_check_result_file_age;
-
-extern check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
-
-extern char            *debug_file;
-extern int             debug_level;
-extern int             debug_verbosity;
-extern unsigned long   max_debug_file_size;
-
-worker_process *command_wproc = NULL;
-extern iobroker_set *nagios_iobs;
-
-extern char *object_cache_file, *object_precache_file;
+sched_info scheduling_info;
 
 /* from GNU defines errno as a macro, since it's a per-thread variable */
 #ifndef errno
 extern int errno;
 #endif
 
+
+/* global vars local to this file */
+static worker_process *command_wproc = NULL;
 
 
 /******************************************************************/
@@ -1638,6 +1608,7 @@ void reset_sighandler(void) {
 
 /* handle signals */
 void sighandler(int sig) {
+	const char *sigs[35] = {"EXIT", "HUP", "INT", "QUIT", "ILL", "TRAP", "ABRT", "BUS", "FPE", "KILL", "USR1", "SEGV", "USR2", "PIPE", "ALRM", "TERM", "STKFLT", "CHLD", "CONT", "STOP", "TSTP", "TTIN", "TTOU", "URG", "XCPU", "XFSZ", "VTALRM", "PROF", "WINCH", "IO", "PWR", "UNUSED", "ZERR", "DEBUG", (char *)NULL};
 	int x = 0;
 
 	/* if shutdown is already true, we're in a signal trap loop! */
@@ -1655,10 +1626,7 @@ void sighandler(int sig) {
 
 	sig_id = sig;
 
-	/* log errors about segfaults now, as we might not get a chance to later */
-	/* all other signals are logged at a later point in main() to prevent problems with NPTL */
-	if(sig == SIGSEGV)
-		logit(NSLOG_PROCESS_INFO, TRUE, "Caught SIG%s, shutting down...\n", sigs[sig]);
+	logit(NSLOG_PROCESS_INFO, TRUE, "Caught SIG%s, shutting down...\n", sigs[sig]);
 
 	/* we received a SIGHUP, so restart... */
 	if(sig == SIGHUP)

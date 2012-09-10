@@ -32,7 +32,6 @@
 
 extern int             refresh_rate;
 extern int			   result_limit;
-extern time_t          program_start;
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char url_html_path[MAX_FILENAME_LENGTH];

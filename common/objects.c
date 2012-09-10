@@ -60,8 +60,6 @@ serviceescalation *serviceescalation_list = NULL;
 servicedependency *servicedependency_list = NULL;
 
 
-struct object_count num_objects;
-
 #ifdef NSCORE
 int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
 #endif

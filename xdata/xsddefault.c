@@ -66,48 +66,6 @@ int buffer_stats[1][3];
 int program_stats[MAX_CHECK_STATS_TYPES][3];
 #endif
 
-#ifdef NSCORE
-extern time_t program_start;
-extern int nagios_pid;
-extern int daemon_mode;
-extern time_t last_log_rotation;
-extern int enable_notifications;
-extern int execute_service_checks;
-extern int accept_passive_service_checks;
-extern int execute_host_checks;
-extern int accept_passive_host_checks;
-extern int enable_event_handlers;
-extern int obsess_over_services;
-extern int obsess_over_hosts;
-extern int check_service_freshness;
-extern int check_host_freshness;
-extern int enable_flap_detection;
-extern int process_performance_data;
-
-extern time_t         last_update_check;
-extern char           *last_program_version;
-extern int            update_available;
-extern char           *last_program_version;
-extern char           *new_program_version;
-
-extern comment *comment_list;
-extern scheduled_downtime *scheduled_downtime_list;
-
-extern unsigned long  next_comment_id;
-extern unsigned long  next_downtime_id;
-extern unsigned long  next_event_id;
-extern unsigned long  next_problem_id;
-extern unsigned long  next_notification_id;
-
-extern unsigned long  modified_host_process_attributes;
-extern unsigned long  modified_service_process_attributes;
-extern char           *global_host_event_handler;
-extern char           *global_service_event_handler;
-
-extern check_stats    check_statistics[MAX_CHECK_STATS_TYPES];
-#endif
-
-
 char *xsddefault_status_log = NULL;
 char *xsddefault_temp_file = NULL;
 

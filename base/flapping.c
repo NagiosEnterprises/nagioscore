@@ -30,18 +30,6 @@
 #include "../include/nagios.h"
 #include "../include/broker.h"
 
-extern int      interval_length;
-
-extern int      enable_flap_detection;
-
-extern double   low_service_flap_threshold;
-extern double   high_service_flap_threshold;
-extern double   low_host_flap_threshold;
-extern double   high_host_flap_threshold;
-
-extern unsigned long    modified_host_process_attributes;
-extern unsigned long    modified_service_process_attributes;
-
 
 /******************************************************************/
 /******************** FLAP DETECTION FUNCTIONS ********************/

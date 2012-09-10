@@ -62,11 +62,115 @@ NAGIOS_BEGIN_DECL
 #define SERVICEESCALATION_SKIPLIST             11
 
 
+/***************** DATE RANGE TYPES *******************/
+
+#define DATERANGE_CALENDAR_DATE  0  /* 2008-12-25 */
+#define DATERANGE_MONTH_DATE     1  /* july 4 (specific month) */
+#define DATERANGE_MONTH_DAY      2  /* day 21 (generic month) */
+#define DATERANGE_MONTH_WEEK_DAY 3  /* 3rd thursday (specific month) */
+#define DATERANGE_WEEK_DAY       4  /* 3rd thursday (generic month) */
+#define DATERANGE_TYPES          5
+
+
 /****************** DATA STRUCTURES *******************/
 
 typedef struct host_struct host;
 typedef struct service_struct service;
 typedef struct contact_struct contact;
+
+/* TIMED_EVENT structure */
+typedef struct timed_event_struct {
+	int event_type;
+	time_t run_time;
+	int recurring;
+	unsigned long event_interval;
+	int compensate_for_time_change;
+	void *timing_func;
+	void *event_data;
+	void *event_args;
+	int event_options;
+	unsigned int priority; /* 0 is auto, 1 is highest. n+1 < n */
+	struct squeue_event *sq_event;
+	} timed_event;
+
+
+/* NOTIFY_LIST structure */
+typedef struct notify_list_struct {
+	contact *contact;
+	struct notify_list_struct *next;
+	} notification;
+
+
+/* CHECK_RESULT structure */
+typedef struct check_result_struct {
+	int object_check_type;                          /* is this a service or a host check? */
+	char *host_name;                                /* host name */
+	char *service_description;                      /* service description */
+	int check_type;					/* was this an active or passive service check? */
+	int check_options;
+	int scheduled_check;                            /* was this a scheduled or an on-demand check? */
+	int reschedule_check;                           /* should we reschedule the next check */
+	char *output_file;                              /* what file is the output stored in? */
+	FILE *output_file_fp;
+	double latency;
+	struct timeval start_time;			/* time the service check was initiated */
+	struct timeval finish_time;			/* time the service check was completed */
+	int early_timeout;                              /* did the service check timeout? */
+	int exited_ok;					/* did the plugin check return okay? */
+	int return_code;				/* plugin return code */
+	char *output;	                                /* plugin output */
+	struct rusage rusage;			/* resource usage by this check */
+	} check_result;
+
+
+/* SCHED_INFO structure */
+typedef struct sched_info_struct {
+	int total_services;
+	int total_scheduled_services;
+	int total_hosts;
+	int total_scheduled_hosts;
+	double average_services_per_host;
+	double average_scheduled_services_per_host;
+	unsigned long service_check_interval_total;
+	unsigned long host_check_interval_total;
+	double average_service_execution_time;
+	double average_service_check_interval;
+	double average_host_check_interval;
+	double average_service_inter_check_delay;
+	double average_host_inter_check_delay;
+	double service_inter_check_delay;
+	double host_inter_check_delay;
+	int service_interleave_factor;
+	int max_service_check_spread;
+	int max_host_check_spread;
+	time_t first_service_check;
+	time_t last_service_check;
+	time_t first_host_check;
+	time_t last_host_check;
+	} sched_info;
+
+
+/* DBUF structure - dynamic string storage */
+typedef struct dbuf_struct {
+	char *buf;
+	unsigned long used_size;
+	unsigned long allocated_size;
+	unsigned long chunk_size;
+	} dbuf;
+
+
+#define CHECK_STATS_BUCKETS                  15
+
+/* used for tracking host and service check statistics */
+typedef struct check_stats_struct {
+	int current_bucket;
+	int bucket[CHECK_STATS_BUCKETS];
+	int overflow_bucket;
+	int minute_stats[3];
+	time_t last_update;
+	} check_stats;
+
+
 
 /* OBJECT LIST STRUCTURE */
 typedef struct objectlist_struct {

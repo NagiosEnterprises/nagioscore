@@ -62,12 +62,6 @@ extern char *normal_sound;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 
-extern int enable_notifications;
-extern int execute_service_checks;
-extern int accept_passive_service_checks;
-extern int enable_event_handlers;
-extern int enable_flap_detection;
-
 extern int nagios_process_state;
 
 

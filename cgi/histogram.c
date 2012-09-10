@@ -128,8 +128,6 @@ extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern char physical_images_path[MAX_FILENAME_LENGTH];
 
-extern int     log_rotation_method;
-
 authdata current_authdata;
 
 

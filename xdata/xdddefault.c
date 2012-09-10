@@ -43,15 +43,6 @@
 #include "xdddefault.h"
 
 
-
-#ifdef NSCORE
-extern unsigned long next_downtime_id;
-extern scheduled_downtime *scheduled_downtime_list;
-#endif
-
-
-
-
 #ifdef NSCORE
 
 

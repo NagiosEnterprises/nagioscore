@@ -38,58 +38,6 @@
 
 #include "xrddefault.h"
 
-extern comment        *comment_list;
-extern scheduled_downtime *scheduled_downtime_list;
-
-extern char           *global_host_event_handler;
-extern char           *global_service_event_handler;
-
-extern int            enable_notifications;
-extern int            execute_service_checks;
-extern int            accept_passive_service_checks;
-extern int            execute_host_checks;
-extern int            accept_passive_host_checks;
-extern int            enable_event_handlers;
-extern int            obsess_over_services;
-extern int            obsess_over_hosts;
-extern int            enable_flap_detection;
-extern int            process_performance_data;
-extern int            check_service_freshness;
-extern int            check_host_freshness;
-
-extern int            test_scheduling;
-
-extern int            use_large_installation_tweaks;
-
-extern int            use_retained_program_state;
-extern int            use_retained_scheduling_info;
-extern int            retention_scheduling_horizon;
-
-extern time_t         last_program_stop;
-extern time_t         last_update_check;
-extern unsigned long  update_uid;
-extern char           *last_program_version;
-extern int            update_available;
-extern char           *last_program_version;
-extern char           *new_program_version;
-
-extern unsigned long  next_comment_id;
-extern unsigned long  next_downtime_id;
-extern unsigned long  next_event_id;
-extern unsigned long  next_problem_id;
-extern unsigned long  next_notification_id;
-
-extern unsigned long  modified_host_process_attributes;
-extern unsigned long  modified_service_process_attributes;
-
-extern unsigned long  retained_host_attribute_mask;
-extern unsigned long  retained_service_attribute_mask;
-extern unsigned long  retained_contact_host_attribute_mask;
-extern unsigned long  retained_contact_service_attribute_mask;
-extern unsigned long  retained_process_host_attribute_mask;
-extern unsigned long  retained_process_service_attribute_mask;
-
-
 char *xrddefault_retention_file = NULL;
 char *xrddefault_temp_file = NULL;
 

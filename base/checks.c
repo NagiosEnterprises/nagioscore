@@ -39,54 +39,6 @@
 #include "../include/neberrors.h"
 #endif
 
-extern char     *check_result_path;
-
-extern int      interval_length;
-
-extern int      log_passive_checks;
-extern int      log_host_retries;
-
-extern int      service_check_timeout;
-extern int      host_check_timeout;
-
-extern int      check_reaper_interval;
-
-extern int      use_aggressive_host_checking;
-extern unsigned long cached_host_check_horizon;
-extern unsigned long cached_service_check_horizon;
-extern int      enable_predictive_host_dependency_checks;
-extern int      enable_predictive_service_dependency_checks;
-
-extern int      soft_state_dependencies;
-
-extern int      currently_running_service_checks;
-extern int      currently_running_host_checks;
-
-extern int      accept_passive_service_checks;
-extern int      accept_passive_host_checks;
-extern int      obsess_over_services;
-
-extern int      translate_passive_host_checks;
-extern int      passive_host_checks_are_soft;
-
-extern int      check_service_freshness;
-extern int      check_host_freshness;
-extern int      additional_freshness_latency;
-
-extern int      max_host_check_spread;
-extern int      max_service_check_spread;
-
-extern time_t   last_program_stop;
-extern time_t   program_start;
-extern time_t   event_start;
-
-extern squeue_t *nagios_squeue;
-
-extern unsigned long   next_event_id;
-extern unsigned long   next_problem_id;
-
-
-
 /******************************************************************/
 /********************** CHECK REAPER FUNCTIONS ********************/
 /******************************************************************/

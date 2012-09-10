@@ -35,27 +35,6 @@
 #include "../include/neberrors.h"
 #endif
 
-extern int             enable_event_handlers;
-extern int             obsess_over_services;
-extern int             obsess_over_hosts;
-
-extern int             log_event_handlers;
-
-extern int             event_handler_timeout;
-extern int             ocsp_timeout;
-extern int             ochp_timeout;
-
-extern char            *global_host_event_handler;
-extern char            *global_service_event_handler;
-extern command         *global_host_event_handler_ptr;
-extern command         *global_service_event_handler_ptr;
-
-extern char            *ocsp_command;
-extern char            *ochp_command;
-extern command         *ocsp_command_ptr;
-extern command         *ochp_command_ptr;
-
-
 /******************************************************************/
 /************* OBSESSIVE COMPULSIVE HANDLER FUNCTIONS *************/
 /******************************************************************/

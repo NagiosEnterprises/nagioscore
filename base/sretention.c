@@ -30,9 +30,6 @@
 #include "../include/sretention.h"
 #include "../include/broker.h"
 
-extern int            retain_state_information;
-
-
 
 /**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
 #ifdef USE_XRDDEFAULT

@@ -35,8 +35,6 @@ extern char url_html_path[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 
-extern int       log_rotation_method;
-
 #ifndef max
 #define max(a,b)  (((a) > (b)) ? (a) : (b))
 #endif

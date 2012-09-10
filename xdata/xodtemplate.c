@@ -70,14 +70,6 @@
 #define XOD_LOOPY 2 /* loopy */
 #define XOD_OK    3 /* not loopy */
 
-#ifdef NSCORE
-extern int use_regexp_matches;
-extern int use_true_regexp_matching;
-extern int verify_config;
-extern int test_scheduling;
-extern int use_precached_objects;
-#endif
-
 xodtemplate_timeperiod *xodtemplate_timeperiod_list = NULL;
 xodtemplate_command *xodtemplate_command_list = NULL;
 xodtemplate_contactgroup *xodtemplate_contactgroup_list = NULL;
@@ -120,9 +112,6 @@ int xodtemplate_current_config_file = 0;
 char **xodtemplate_config_files = NULL;
 
 int presorted_objects = FALSE;
-
-extern int allow_empty_hostgroup_assignment;
-extern char *object_cache_file, *object_precache_file;
 
 /* add up execution and notification dependencies */
 static unsigned int host_deps, service_deps;
@@ -500,7 +489,7 @@ int xodtemplate_grab_config_info(char *main_config_file) {
 	mmap_fclose(thefile);
 
 	/* make sure we have what we need */
-	if(object_cache_file == NULL || object_precache_file == NULL)
+	if(object_cache_file == NULL)
 		return ERROR;
 
 #ifdef NSCORE

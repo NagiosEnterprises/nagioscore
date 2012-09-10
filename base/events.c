@@ -31,55 +31,6 @@
 #include "../lib/squeue.h"
 
 
-extern int      test_scheduling;
-
-extern time_t   program_start;
-extern time_t   event_start;
-
-extern int      sigshutdown;
-extern int      sigrestart;
-
-extern int      interval_length;
-extern int      service_inter_check_delay_method;
-extern int      host_inter_check_delay_method;
-extern int      service_interleave_factor_method;
-extern int      max_host_check_spread;
-extern int      max_service_check_spread;
-
-extern int      check_reaper_interval;
-extern int      service_freshness_check_interval;
-extern int      host_freshness_check_interval;
-extern int      auto_rescheduling_interval;
-
-extern int      check_orphaned_services;
-extern int      check_orphaned_hosts;
-extern int      check_service_freshness;
-extern int      check_host_freshness;
-extern int      auto_reschedule_checks;
-
-extern int      retain_state_information;
-extern int      retention_update_interval;
-
-extern int      max_parallel_service_checks;
-extern int      currently_running_service_checks;
-
-extern int      aggregate_status_updates;
-extern int      status_update_interval;
-
-extern int      log_rotation_method;
-
-extern int      execute_service_checks;
-extern int      execute_host_checks;
-
-extern int      time_change_threshold;
-
-squeue_t *nagios_squeue = NULL; /* our scheduling queue */
-
-sched_info scheduling_info;
-extern iobroker_set *nagios_iobs;
-
-
-
 /******************************************************************/
 /************ EVENT SCHEDULING/HANDLING FUNCTIONS *****************/
 /******************************************************************/

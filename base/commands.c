@@ -30,29 +30,6 @@
 #include "../include/broker.h"
 #include "../include/nagios.h"
 
-extern int      enable_notifications;
-extern int      execute_service_checks;
-extern int      accept_passive_service_checks;
-extern int      execute_host_checks;
-extern int      accept_passive_host_checks;
-extern int      enable_event_handlers;
-extern int      obsess_over_services;
-extern int      obsess_over_hosts;
-extern int      check_service_freshness;
-extern int      check_host_freshness;
-extern int      process_performance_data;
-
-extern int      log_external_commands;
-extern int      log_passive_checks;
-
-extern unsigned long    modified_host_process_attributes;
-extern unsigned long    modified_service_process_attributes;
-
-extern char     *global_host_event_handler;
-extern char     *global_service_event_handler;
-extern command  *global_host_event_handler_ptr;
-extern command  *global_service_event_handler_ptr;
-
 /******************************************************************/
 /****************** EXTERNAL COMMAND PROCESSING *******************/
 /******************************************************************/

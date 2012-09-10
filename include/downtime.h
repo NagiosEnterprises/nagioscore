@@ -58,6 +58,7 @@ typedef struct scheduled_downtime_struct {
 #endif
 	} scheduled_downtime;
 
+extern scheduled_downtime *scheduled_downtime_list;
 
 
 #ifdef NSCORE

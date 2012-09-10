@@ -24,8 +24,9 @@
 #include "../include/common.h"
 #include "../include/comments.h"
 #include "../include/downtime.h"
-#include "../include/objects.h"
 #include "../include/statusdata.h"
+
+scheduled_downtime *downtime_list;
 
 /***** IMPLEMENTATION-SPECIFIC INCLUDES *****/
 

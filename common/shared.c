@@ -1,11 +1,41 @@
 #include "../include/config.h"
 #include "../include/common.h"
+#include "../include/locations.h"
+#include "../include/defaults.h"
 
 /*
  * This file holds random utility functions shared by cgi's and
- * core.
+ * core, as well as all global variables needed by both.
  */
-extern int date_format;
+int date_format = DATE_FORMAT_US;
+int interval_length = DEFAULT_INTERVAL_LENGTH;
+char *illegal_output_chars = NULL;
+time_t program_start = 0L;
+int check_external_commands;
+int log_rotation_method = LOG_ROTATION_NONE;
+
+char *object_cache_file = DEFAULT_OBJECT_CACHE_FILE;
+struct object_count num_objects;
+
+int process_performance_data = DEFAULT_PROCESS_PERFORMANCE_DATA;
+
+int nagios_pid = 0;
+int daemon_mode = FALSE;
+
+time_t last_log_rotation = 0L;
+
+int check_external_commands = DEFAULT_CHECK_EXTERNAL_COMMANDS;
+
+int enable_flap_detection = DEFAULT_ENABLE_FLAP_DETECTION;
+int enable_notifications = TRUE;
+int execute_service_checks = TRUE;
+int accept_passive_service_checks = TRUE;
+int execute_host_checks = TRUE;
+int accept_passive_host_checks = TRUE;
+int enable_event_handlers = TRUE;
+int obsess_over_services = FALSE;
+int obsess_over_hosts = FALSE;
+
 
 /* fix the problem with strtok() skipping empty options between tokens */
 char *my_strtok(char *buffer, char *tokens) {

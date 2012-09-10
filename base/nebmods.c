@@ -30,11 +30,8 @@
 #ifdef USE_EVENT_BROKER
 
 
-nebmodule *neb_module_list = NULL;
-nebcallback **neb_callback_list = NULL;
-
-extern char     *temp_path;
-
+static nebmodule *neb_module_list;
+static nebcallback **neb_callback_list;
 
 /*#define DEBUG*/
 

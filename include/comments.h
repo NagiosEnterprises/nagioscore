@@ -75,6 +75,7 @@ typedef struct comment_struct {
 	struct 	comment_struct *nexthash;
 	} comment;
 
+extern comment *comment_list;
 
 #ifdef NSCORE
 int initialize_comment_data(char *);                                /* initializes comment data */
@@ -103,11 +104,6 @@ comment *get_next_comment_by_host(char *, comment *);
 int number_of_host_comments(char *);			              /* returns the number of comments associated with a particular host */
 int number_of_service_comments(char *, char *);		              /* returns the number of comments associated with a particular service */
 
-/* If you are going to be adding a lot of comments in sequence, set
-   defer_comment_sorting to 1 before you start and then call
-   sort_comments afterwards. Things will go MUCH faster. */
-
-extern int defer_comment_sorting;
 int add_comment(int, int, char *, char *, time_t, char *, char *, unsigned long, int, int, time_t, int); /* adds a comment (host or service) */
 int sort_comments(void);
 int add_host_comment(int, char *, time_t, char *, char *, unsigned long, int, int, time_t, int);   /* adds a host comment */

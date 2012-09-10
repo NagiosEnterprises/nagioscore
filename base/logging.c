@@ -28,30 +28,7 @@
 #include "../include/broker.h"
 
 
-extern char	*log_file;
-extern char	*log_archive_path;
-
-extern int	use_syslog;
-extern int      log_service_retries;
-extern int      log_initial_states;
-extern int      log_current_states;
-
-extern unsigned long      logging_options;
-extern unsigned long      syslog_options;
-
-extern int      verify_config;
-extern int      test_scheduling;
-
-extern time_t   last_log_rotation;
-extern int      log_rotation_method;
-
-extern int      daemon_mode;
-
-extern char     *debug_file;
-extern int      debug_level;
-extern int      debug_verbosity;
-extern unsigned long max_debug_file_size;
-FILE            *debug_file_fp = NULL;
+static FILE *debug_file_fp;
 
 /* These simple helpers should most likely be elsewhere */
 static const char *service_state_name(int state)

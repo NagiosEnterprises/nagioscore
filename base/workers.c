@@ -15,10 +15,6 @@
 /* perfect hash function for wproc response codes */
 #include "wp-phash.c"
 
-extern int service_check_timeout, host_check_timeout;
-extern int notification_timeout;
-
-iobroker_set *nagios_iobs = NULL;
 static worker_process **workers;
 static unsigned int num_workers;
 static unsigned int worker_index;
@@ -48,8 +44,6 @@ typedef struct wproc_result {
 	struct rusage rusage;
 	struct kvvec *response;
 } wproc_result;
-
-extern int nagios_pid;
 
 #define tv2float(tv) ((float)((tv)->tv_sec) + ((float)(tv)->tv_usec) / 1000000.0)
 

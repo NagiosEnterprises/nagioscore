@@ -38,21 +38,6 @@ extern char             nagios_process_info[MAX_INPUT_BUFFER];
 extern int              nagios_process_state;
 extern int              refresh_rate;
 
-extern time_t		program_start;
-extern int              nagios_pid;
-extern int              daemon_mode;
-extern time_t           last_log_rotation;
-extern int              enable_notifications;
-extern int              execute_service_checks;
-extern int              accept_passive_service_checks;
-extern int              execute_host_checks;
-extern int              accept_passive_host_checks;
-extern int              enable_event_handlers;
-extern int              obsess_over_services;
-extern int              obsess_over_hosts;
-extern int              enable_flap_detection;
-extern int              process_performance_data;
-
 extern int              buffer_stats[1][3];
 extern int              program_stats[MAX_CHECK_STATS_TYPES][3];
 

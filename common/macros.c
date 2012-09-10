@@ -32,14 +32,7 @@
 #include "../include/cgiutils.h"
 #endif
 
-#ifdef NSCORE
-extern int      use_large_installation_tweaks;
-extern int      enable_environment_macros;
-#endif
-
-extern char     *illegal_output_chars;
-
-char *macro_x_names[MACRO_X_COUNT]; /* the macro names */
+static char *macro_x_names[MACRO_X_COUNT]; /* the macro names */
 char *macro_user[MAX_USER_MACROS]; /* $USERx$ macros */
 
 struct macro_key_code {

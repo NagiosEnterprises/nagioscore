@@ -30,19 +30,6 @@
 #include "../include/neberrors.h"
 #include "../include/workers.h"
 
-extern notification    *notification_list;
-extern time_t          program_start;
-
-extern int             interval_length;
-extern int             log_notifications;
-
-extern int             enable_notifications;
-
-extern unsigned long   next_notification_id;
-
-extern char            *generic_summary;
-
-
 /*** silly helpers ****/
 static contact *find_contact_by_name_or_alias(const char *name)
 {

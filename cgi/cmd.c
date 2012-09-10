@@ -47,11 +47,6 @@ extern int  use_authentication;
 
 extern int  lock_author_names;
 
-extern scheduled_downtime *scheduled_downtime_list;
-extern comment *comment_list;
-
-extern int date_format;
-
 
 #define MAX_AUTHOR_LENGTH	64
 #define MAX_COMMENT_LENGTH	1024

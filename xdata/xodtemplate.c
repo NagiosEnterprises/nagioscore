@@ -65,8 +65,6 @@
 
 #include "xodtemplate.h"
 
-#define timing_point(msg) /* nothing */
-
 #define XOD_NEW   0 /* not seen */
 #define XOD_SEEN  1 /* seen, but not yet loopy */
 #define XOD_LOOPY 2 /* loopy */

@@ -4,6 +4,20 @@
 #include <time.h>
 #include "lib/libnagios.h"
 
+#ifndef ENABLE_TIMING_POINT
+#define timing_point(msg) /* nothing */
+#else
+#include <malloc.h>
+#define timing_point(msg) \
+	do { \
+		struct timeval tv; \
+		gettimeofday(&tv, NULL); \
+		printf("%lu.%lu: " msg "\n", tv.tv_sec, tv.tv_usec); \
+		malloc_stats(); \
+	} while(0)
+#endif
+
+
 NAGIOS_BEGIN_DECL
 
 /* mmapfile structure - used for reading files via mmap() */

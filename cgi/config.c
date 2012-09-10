@@ -1727,12 +1727,72 @@ void display_commands(void) {
 	}
 
 
+void display_servicedependency(servicedependency *temp_sd)
+{
+	char *bg_class;
+	static int odd = 0;
+	int options;
+
+	if(*to_expand != '\0' && (strcmp(to_expand, temp_sd->dependent_host_name) || strcmp(to_expand, temp_sd->host_name)))
+		return;
+
+	if(odd)
+		bg_class = "dataOdd";
+	else
+		bg_class = "dataEven";
+	odd ^= 1; /* xor with 1 always flips the switch */
+
+	printf("<TR CLASS='%s'>\n", bg_class);
+
+	printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_sd->dependent_host_name), html_encode(temp_sd->dependent_host_name, FALSE));
+
+	printf("<TD CLASS='%s'><A HREF='%s?type=services&expand=%s#%s;", bg_class, CONFIG_CGI, url_encode(temp_sd->dependent_host_name), url_encode(temp_sd->dependent_host_name));
+	printf("%s'>%s</A></TD>\n", url_encode(temp_sd->dependent_service_description), html_encode(temp_sd->dependent_service_description, FALSE));
+
+	printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_sd->host_name), html_encode(temp_sd->host_name, FALSE));
+
+	printf("<TD CLASS='%s'><A HREF='%s?type=services&expand=%s#%s;", bg_class, CONFIG_CGI, url_encode(temp_sd->host_name), url_encode(temp_sd->host_name));
+	printf("%s'>%s</A></TD>\n", url_encode(temp_sd->service_description), html_encode(temp_sd->service_description, FALSE));
+
+	printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_sd->dependency_type == NOTIFICATION_DEPENDENCY) ? "Notification" : "Check Execution");
+
+	printf("<TD CLASS='%s'>", bg_class);
+	if(temp_sd->dependency_period == NULL)
+		printf("&nbsp;");
+	else
+		printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_sd->dependency_period), html_encode(temp_sd->dependency_period, FALSE));
+	printf("</TD>\n");
+
+	printf("<TD CLASS='%s'>", bg_class);
+	options = FALSE;
+	if(temp_sd->fail_on_ok == TRUE) {
+		printf("Ok");
+		options = TRUE;
+		}
+	if(temp_sd->fail_on_warning == TRUE) {
+		printf("%sWarning", (options == TRUE) ? ", " : "");
+		options = TRUE;
+		}
+	if(temp_sd->fail_on_unknown == TRUE) {
+		printf("%sUnknown", (options == TRUE) ? ", " : "");
+		options = TRUE;
+		}
+	if(temp_sd->fail_on_critical == TRUE) {
+		printf("%sCritical", (options == TRUE) ? ", " : "");
+		options = TRUE;
+		}
+	if(temp_sd->fail_on_pending == TRUE) {
+		printf("%sPending", (options == TRUE) ? ", " : "");
+		options = TRUE;
+		}
+	printf("</TD>\n");
+	printf("</TR>\n");
+	}
 
 void display_servicedependencies(void) {
-	servicedependency *temp_sd;
-	int odd = 0;
-	int options;
-	char *bg_class = "";
+	service *s;
+	objectlist *list;
+	unsigned int i, printed = 0;
 
 	/* see if user is authorized to view hostgroup information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -1761,66 +1821,26 @@ void display_servicedependencies(void) {
 	printf("<TH CLASS='data'>Dependency Failure Options</TH>");
 	printf("</TR>\n");
 
-	/* check all the service dependencies... */
-	for(temp_sd = servicedependency_list; temp_sd != NULL; temp_sd = temp_sd->next)
-		if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_sd->dependent_host_name)) || (!strcmp(to_expand, temp_sd->host_name))) {
+	/*
+	 * servicedependencies aren't stashed separately, so we must traverse
+	 * all services to find them all, but we can break out early when
+	 * we've found the total number of dependencies.
+	 */
+	for(i = 0; i < num_objects.services; i++) {
+		s = &service_list[i];
 
-			if(odd) {
-				odd = 0;
-				bg_class = "dataOdd";
-				}
-			else {
-				odd = 1;
-				bg_class = "dataEven";
-				}
+		if(printed >= num_objects.servicedependencies)
+			break;
 
-			printf("<TR CLASS='%s'>\n", bg_class);
-
-			printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_sd->dependent_host_name), html_encode(temp_sd->dependent_host_name, FALSE));
-
-			printf("<TD CLASS='%s'><A HREF='%s?type=services&expand=%s#%s;", bg_class, CONFIG_CGI, url_encode(temp_sd->dependent_host_name), url_encode(temp_sd->dependent_host_name));
-			printf("%s'>%s</A></TD>\n", url_encode(temp_sd->dependent_service_description), html_encode(temp_sd->dependent_service_description, FALSE));
-
-			printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_sd->host_name), html_encode(temp_sd->host_name, FALSE));
-
-			printf("<TD CLASS='%s'><A HREF='%s?type=services&expand=%s#%s;", bg_class, CONFIG_CGI, url_encode(temp_sd->host_name), url_encode(temp_sd->host_name));
-			printf("%s'>%s</A></TD>\n", url_encode(temp_sd->service_description), html_encode(temp_sd->service_description, FALSE));
-
-			printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_sd->dependency_type == NOTIFICATION_DEPENDENCY) ? "Notification" : "Check Execution");
-
-			printf("<TD CLASS='%s'>", bg_class);
-			if(temp_sd->dependency_period == NULL)
-				printf("&nbsp;");
-			else
-				printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_sd->dependency_period), html_encode(temp_sd->dependency_period, FALSE));
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>", bg_class);
-			options = FALSE;
-			if(temp_sd->fail_on_ok == TRUE) {
-				printf("Ok");
-				options = TRUE;
-				}
-			if(temp_sd->fail_on_warning == TRUE) {
-				printf("%sWarning", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(temp_sd->fail_on_unknown == TRUE) {
-				printf("%sUnknown", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(temp_sd->fail_on_critical == TRUE) {
-				printf("%sCritical", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(temp_sd->fail_on_pending == TRUE) {
-				printf("%sPending", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			printf("</TD>\n");
-
-			printf("</TR>\n");
+		for(list = s->exec_deps; list; list = list->next) {
+			printed++;
+			display_servicedependency((servicedependency *)list->object_ptr);
 			}
+		for(list = s->notify_deps; list; list = list->next) {
+			printed++;
+			display_servicedependency((servicedependency *)list->object_ptr);
+			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
@@ -1840,6 +1860,7 @@ void display_serviceescalations(void) {
 	int odd = 0;
 	char *bg_class = "";
 	int contact = 0;
+	unsigned int i, printed = 0;
 
 	/* see if user is authorized to view hostgroup information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -1868,8 +1889,25 @@ void display_serviceescalations(void) {
 	printf("<TH CLASS='data'>Escalation Options</TH>");
 	printf("</TR>\n");
 
-	/* check all the service escalations... */
-	for(temp_se = serviceescalation_list; temp_se != NULL; temp_se = temp_se->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_se->host_name))) {
+
+	/*
+	 * Service escalations are only stored with their respective
+	 * services, so parse them all and print them one by one
+	 */
+	for(i = 0; i < num_objects.services; i++) {
+		objectlist *list;
+		service *s = &service_list[i];
+
+		/* break early if we can't possibly find more escalations */
+		if(printed >= num_objects.serviceescalations)
+			break;
+
+		if(*to_expand != '\0' && strcmp(to_expand, s->host_name))
+			continue;
+
+		for(list = s->escalation_list; list; list = list->next) {
+			temp_se = (serviceescalation *)list->object_ptr;
+			printed++;
 
 			if(odd) {
 				odd = 0;
@@ -1953,6 +1991,7 @@ void display_serviceescalations(void) {
 
 			printf("</TR>\n");
 			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
@@ -1961,13 +2000,61 @@ void display_serviceescalations(void) {
 	return;
 	}
 
-
-
-void display_hostdependencies(void) {
-	hostdependency *temp_hd;
-	int odd = 0;
+void display_hostdependency(hostdependency *temp_hd)
+{
 	int options;
 	char *bg_class = "";
+	static int odd = 0;
+
+	if(*to_expand != '\0' && (strcmp(to_expand, temp_hd->dependent_host_name) && !strcmp(to_expand, temp_hd->host_name)))
+		return;
+
+	if(odd)
+		bg_class = "dataOdd";
+	else
+		bg_class = "dataEven";
+	odd ^= 1;
+
+	printf("<TR CLASS='%s'>\n", bg_class);
+
+	printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_hd->dependent_host_name), html_encode(temp_hd->dependent_host_name, FALSE));
+
+	printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_hd->host_name), html_encode(temp_hd->host_name, FALSE));
+
+	printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_hd->dependency_type == NOTIFICATION_DEPENDENCY) ? "Notification" : "Check Execution");
+
+	printf("<TD CLASS='%s'>", bg_class);
+	if(temp_hd->dependency_period == NULL)
+		printf("&nbsp;");
+	else
+		printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_hd->dependency_period), html_encode(temp_hd->dependency_period, FALSE));
+	printf("</TD>\n");
+
+	printf("<TD CLASS='%s'>", bg_class);
+	options = FALSE;
+	if(temp_hd->fail_on_up == TRUE) {
+		printf("Up");
+		options = TRUE;
+		}
+	if(temp_hd->fail_on_down == TRUE) {
+		printf("%sDown", (options == TRUE) ? ", " : "");
+		options = TRUE;
+		}
+	if(temp_hd->fail_on_unreachable == TRUE) {
+		printf("%sUnreachable", (options == TRUE) ? ", " : "");
+		options = TRUE;
+		}
+	if(temp_hd->fail_on_pending == TRUE) {
+		printf("%sPending", (options == TRUE) ? ", " : "");
+		options = TRUE;
+		}
+	printf("</TD>\n");
+
+	printf("</TR>\n");
+	}
+
+void display_hostdependencies(void) {
+	unsigned int i, printed = 0;
 
 	/* see if user is authorized to view hostdependency information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -1990,56 +2077,23 @@ void display_hostdependencies(void) {
 	printf("<TH CLASS='data'>Dependency Failure Options</TH>");
 	printf("</TR>\n");
 
-	/* check all the host dependencies... */
-	for(temp_hd = hostdependency_list; temp_hd != NULL; temp_hd = temp_hd->next)
-		if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_hd->dependent_host_name)) || (!strcmp(to_expand, temp_hd->host_name))) {
+	/* print all host's dependencies... */
+	for(i = 0; i < num_objects.hosts; i++) {
+		objectlist *list;
+		host *h = &host_list[i];
 
-			if(odd) {
-				odd = 0;
-				bg_class = "dataOdd";
-				}
-			else {
-				odd = 1;
-				bg_class = "dataEven";
-				}
+		if(printed >= num_objects.hostescalations)
+			break;
 
-			printf("<TR CLASS='%s'>\n", bg_class);
-
-			printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_hd->dependent_host_name), html_encode(temp_hd->dependent_host_name, FALSE));
-
-			printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_hd->host_name), html_encode(temp_hd->host_name, FALSE));
-
-			printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_hd->dependency_type == NOTIFICATION_DEPENDENCY) ? "Notification" : "Check Execution");
-
-			printf("<TD CLASS='%s'>", bg_class);
-			if(temp_hd->dependency_period == NULL)
-				printf("&nbsp;");
-			else
-				printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_hd->dependency_period), html_encode(temp_hd->dependency_period, FALSE));
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>", bg_class);
-			options = FALSE;
-			if(temp_hd->fail_on_up == TRUE) {
-				printf("Up");
-				options = TRUE;
-				}
-			if(temp_hd->fail_on_down == TRUE) {
-				printf("%sDown", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(temp_hd->fail_on_unreachable == TRUE) {
-				printf("%sUnreachable", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(temp_hd->fail_on_pending == TRUE) {
-				printf("%sPending", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			printf("</TD>\n");
-
-			printf("</TR>\n");
+		for(list = h->notify_deps; list; list = list->next) {
+			printed++;
+			display_hostdependency((hostdependency *)list->object_ptr);
 			}
+		for(list = h->exec_deps; list; list = list->next) {
+			printed++;
+			display_hostdependency((hostdependency *)list->object_ptr);
+			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
@@ -2059,6 +2113,7 @@ void display_hostescalations(void) {
 	int odd = 0;
 	char *bg_class = "";
 	int contact = 0;
+	unsigned int i, printed = 0;
 
 	/* see if user is authorized to view hostgroup information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -2083,8 +2138,20 @@ void display_hostescalations(void) {
 	printf("<TH CLASS='data'>Escalation Options</TH>");
 	printf("</TR>\n");
 
-	/* check all the host escalations... */
-	for(temp_he = hostescalation_list; temp_he != NULL; temp_he = temp_he->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_he->host_name))) {
+	/* check all the hosts' escalations... */
+	for(i = 0; i < num_objects.hosts; i++) {
+		objectlist *list;
+		host *h = &host_list[i];
+
+		if(printed >= num_objects.hostescalations)
+			break;
+
+		if(*to_expand != '\0' && strcmp(to_expand, h->name))
+			continue;
+
+		for(list = h->escalation_list; list; list = list->next) {
+			temp_he = (hostescalation *)list->object_ptr;
+			printed++;
 
 			if(odd) {
 				odd = 0;
@@ -2161,6 +2228,7 @@ void display_hostescalations(void) {
 
 			printf("</TR>\n");
 			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");

@@ -1753,20 +1753,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						result = ERROR;
 					}
 				temp_servicedependency->have_dependent_host_name = TRUE;
-
-				/* NOTE: dependencies are added to the skiplist in xodtemplate_duplicate_objects(), except if daemon is using precached config */
-				if(result == OK && force_skiplists == TRUE && temp_servicedependency->dependent_host_name != NULL && temp_servicedependency->dependent_service_description != NULL) {
-					/* add servicedependency to template skiplist for fast searches */
-					result = skiplist_insert(xobject_skiplists[SERVICEDEPENDENCY_SKIPLIST], (void *)temp_servicedependency);
-					switch(result) {
-						case SKIPLIST_OK:
-							result = OK;
-							break;
-						default:
-							result = ERROR;
-							break;
-						}
-					}
 				}
 			else if(!strcmp(variable, "dependent_description") || !strcmp(variable, "dependent_service_description")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -1774,20 +1760,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						result = ERROR;
 					}
 				temp_servicedependency->have_dependent_service_description = TRUE;
-
-				/* NOTE: dependencies are added to the skiplist in xodtemplate_duplicate_objects(), except if daemon is using precached config */
-				if(result == OK && force_skiplists == TRUE && temp_servicedependency->dependent_host_name != NULL && temp_servicedependency->dependent_service_description != NULL) {
-					/* add servicedependency to template skiplist for fast searches */
-					result = skiplist_insert(xobject_skiplists[SERVICEDEPENDENCY_SKIPLIST], (void *)temp_servicedependency);
-					switch(result) {
-						case SKIPLIST_OK:
-							result = OK;
-							break;
-						default:
-							result = ERROR;
-							break;
-						}
-					}
 				}
 			else if(!strcmp(variable, "dependency_period")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -4701,99 +4673,6 @@ int xodtemplate_duplicate_objects(void) {
 		my_free(temp_serviceextinfo);
 		}
 
-
-	/***************************************/
-	/* SKIPLIST STUFF FOR FAST SORT/SEARCH */
-	/***************************************/
-
-	/* host escalations */
-	for(temp_hostescalation = xodtemplate_hostescalation_list; temp_hostescalation != NULL; temp_hostescalation = temp_hostescalation->next) {
-
-		/* skip escalations that shouldn't be registered */
-		if(temp_hostescalation->register_object == FALSE)
-			continue;
-
-		/* skip escalation definitions without enough data */
-		if(temp_hostescalation->host_name == NULL)
-			continue;
-
-		result = skiplist_insert(xobject_skiplists[HOSTESCALATION_SKIPLIST], (void *)temp_hostescalation);
-		switch(result) {
-			case SKIPLIST_OK:
-				result = OK;
-				break;
-			default:
-				result = ERROR;
-				break;
-			}
-		}
-
-	/* service escalations */
-	for(temp_serviceescalation = xodtemplate_serviceescalation_list; temp_serviceescalation != NULL; temp_serviceescalation = temp_serviceescalation->next) {
-
-		/* skip escalations that shouldn't be registered */
-		if(temp_serviceescalation->register_object == FALSE)
-			continue;
-
-		/* skip escalation definitions without enough data */
-		if(temp_serviceescalation->host_name == NULL || temp_serviceescalation->service_description == NULL)
-			continue;
-
-		result = skiplist_insert(xobject_skiplists[SERVICEESCALATION_SKIPLIST], (void *)temp_serviceescalation);
-		switch(result) {
-			case SKIPLIST_OK:
-				result = OK;
-				break;
-			default:
-				result = ERROR;
-				break;
-			}
-		}
-
-	/* host dependencies */
-	for(temp_hostdependency = xodtemplate_hostdependency_list; temp_hostdependency != NULL; temp_hostdependency = temp_hostdependency->next) {
-
-		/* skip dependencys that shouldn't be registered */
-		if(temp_hostdependency->register_object == FALSE)
-			continue;
-
-		/* skip dependency definitions without enough data */
-		if(temp_hostdependency->host_name == NULL)
-			continue;
-
-		result = skiplist_insert(xobject_skiplists[HOSTDEPENDENCY_SKIPLIST], (void *)temp_hostdependency);
-		switch(result) {
-			case SKIPLIST_OK:
-				result = OK;
-				break;
-			default:
-				result = ERROR;
-				break;
-			}
-		}
-
-	/* service dependencies */
-	for(temp_servicedependency = xodtemplate_servicedependency_list; temp_servicedependency != NULL; temp_servicedependency = temp_servicedependency->next) {
-
-		/* skip dependencys that shouldn't be registered */
-		if(temp_servicedependency->register_object == FALSE)
-			continue;
-
-		/* skip dependency definitions without enough data */
-		if(temp_servicedependency->dependent_host_name == NULL || temp_servicedependency->dependent_service_description == NULL)
-			continue;
-
-		result = skiplist_insert(xobject_skiplists[SERVICEDEPENDENCY_SKIPLIST], (void *)temp_servicedependency);
-		switch(result) {
-			case SKIPLIST_OK:
-				result = OK;
-				break;
-			default:
-				result = ERROR;
-				break;
-			}
-		}
-
 	return OK;
 	}
 
@@ -5159,8 +5038,66 @@ int xodtemplate_inherit_object_properties(void) {
 /***************** OBJECT RESOLUTION FUNCTIONS ********************/
 /******************************************************************/
 
-#ifdef NSCORE
 
+static int xodtemplate_register_and_destroy_hostdependency(void *hd_)
+{
+	xodtemplate_hostdependency *hd = (xodtemplate_hostdependency *)hd_;
+	int result;
+
+	result = xodtemplate_register_hostdependency(hd);
+
+	if(hd->is_copy == FALSE)
+		my_free(hd->dependency_period);
+	my_free(hd);
+
+	return result;
+}
+
+static int xodtemplate_register_and_destroy_hostescalation(void *he_)
+{
+	xodtemplate_hostescalation *he = (xodtemplate_hostescalation *)he_;
+	int result;
+
+	result = xodtemplate_register_hostescalation(he);
+	if(he->is_copy == FALSE) {
+		my_free(he->escalation_period);
+		}
+	my_free(he->contact_groups);
+	my_free(he->contacts);
+	my_free(he);
+
+	return result;
+}
+
+static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
+{
+	xodtemplate_servicedependency *sd = (xodtemplate_servicedependency *)sd_;
+	int result;
+
+	result = xodtemplate_register_servicedependency(sd);
+	if(sd->is_copy == FALSE)
+		my_free(sd->dependency_period);
+	my_free(sd);
+	return result;
+}
+
+static int xodtemplate_register_and_destroy_serviceescalation(void *se_)
+{
+	xodtemplate_serviceescalation *se = (xodtemplate_serviceescalation *)se;
+	int result;
+	result = xodtemplate_register_serviceescalation(se);
+
+	if(se->is_copy == FALSE)
+		my_free(se->escalation_period);
+
+	my_free(se->contact_groups);
+	my_free(se->contacts);
+	my_free(se);
+
+	return result;
+}
+
+#ifdef NSCORE
 /* resolves object definitions */
 int xodtemplate_resolve_objects(void) {
 	xodtemplate_timeperiod *temp_timeperiod = NULL;
@@ -7569,11 +7506,11 @@ int xodtemplate_register_objects(void) {
 	xodtemplate_contact *temp_contact = NULL;
 	xodtemplate_host *temp_host = NULL;
 	xodtemplate_service *temp_service = NULL;
-	xodtemplate_servicedependency *temp_servicedependency = NULL;
-	xodtemplate_serviceescalation *temp_serviceescalation = NULL;
-	xodtemplate_hostdependency *temp_hostdependency = NULL;
-	xodtemplate_hostescalation *temp_hostescalation = NULL;
 	void *ptr = NULL;
+	xodtemplate_hostdependency *hd, *next_hd;
+	xodtemplate_hostescalation *he, *next_he;
+	xodtemplate_servicedependency *sd, *next_sd;
+	xodtemplate_serviceescalation *se, *next_se;
 	unsigned int ocount[NUM_OBJECT_SKIPLISTS];
 
 
@@ -7655,31 +7592,35 @@ int xodtemplate_register_objects(void) {
 			return ERROR;
 		}
 
-	/* register service dependencies */
-	ptr = NULL;
-	for(temp_servicedependency = (xodtemplate_servicedependency *)skiplist_get_first(xobject_skiplists[SERVICEDEPENDENCY_SKIPLIST], &ptr); temp_servicedependency != NULL; temp_servicedependency = (xodtemplate_servicedependency *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_servicedependency(temp_servicedependency)) == ERROR)
+	/*
+	 * These aren't in skiplists at all, but it's safe to destroy
+	 * them as we go along, since all dupes are at the head of the list
+	 */
+	timing_point("Registering %u servicedependencies\n", service_deps);
+	for(sd = xodtemplate_servicedependency_list; sd; sd = next_sd) {
+		next_sd = sd->next;
+		if(xodtemplate_register_and_destroy_servicedependency(sd) == ERROR)
 			return ERROR;
 		}
 
-	/* register service escalations */
-	ptr = NULL;
-	for(temp_serviceescalation = (xodtemplate_serviceescalation *)skiplist_get_first(xobject_skiplists[SERVICEESCALATION_SKIPLIST], &ptr); temp_serviceescalation != NULL; temp_serviceescalation = (xodtemplate_serviceescalation *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_serviceescalation(temp_serviceescalation)) == ERROR)
+	timing_point("Registering serviceescalations\n");
+	for(se = xodtemplate_serviceescalation_list; se; se = next_se) {
+		next_se = se->next;
+		if(xodtemplate_register_and_destroy_serviceescalation(se) == ERROR)
 			return ERROR;
 		}
 
-	/* register host dependencies */
-	ptr = NULL;
-	for(temp_hostdependency = (xodtemplate_hostdependency *)skiplist_get_first(xobject_skiplists[HOSTDEPENDENCY_SKIPLIST], &ptr); temp_hostdependency != NULL; temp_hostdependency = (xodtemplate_hostdependency *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_hostdependency(temp_hostdependency)) == ERROR)
+	timing_point("Registering %u hostdependencies\n", host_deps);
+	for(hd = xodtemplate_hostdependency_list; hd; hd = next_hd) {
+		next_hd = hd->next;
+		if(xodtemplate_register_and_destroy_hostdependency(hd) == ERROR)
 			return ERROR;
 		}
 
-	/* register host escalations */
-	ptr = NULL;
-	for(temp_hostescalation = (xodtemplate_hostescalation *)skiplist_get_first(xobject_skiplists[HOSTESCALATION_SKIPLIST], &ptr); temp_hostescalation != NULL; temp_hostescalation = (xodtemplate_hostescalation *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_hostescalation(temp_hostescalation)) == ERROR)
+	timing_point("Registering hostescalations\n");
+	for(he = xodtemplate_hostescalation_list; he; he = next_he) {
+		next_he = he->next;
+		if(xodtemplate_register_and_destroy_hostescalation(he) == ERROR)
 			return ERROR;
 		}
 
@@ -8473,13 +8414,10 @@ int xodtemplate_init_xobject_skiplists(void) {
 	xobject_skiplists[CONTACTGROUP_SKIPLIST] = skiplist_new(10, 0.5, FALSE, FALSE, xodtemplate_skiplist_compare_contactgroup);
 	xobject_skiplists[HOSTGROUP_SKIPLIST] = skiplist_new(10, 0.5, FALSE, FALSE, xodtemplate_skiplist_compare_hostgroup);
 	xobject_skiplists[SERVICEGROUP_SKIPLIST] = skiplist_new(10, 0.5, FALSE, FALSE, xodtemplate_skiplist_compare_servicegroup);
-	/* allow dups in the following lists... */
-	xobject_skiplists[HOSTDEPENDENCY_SKIPLIST] = skiplist_new(16, 0.5, TRUE, FALSE, xodtemplate_skiplist_compare_hostdependency);
-	xobject_skiplists[SERVICEDEPENDENCY_SKIPLIST] = skiplist_new(16, 0.5, TRUE, FALSE, xodtemplate_skiplist_compare_servicedependency);
-	xobject_skiplists[HOSTESCALATION_SKIPLIST] = skiplist_new(16, 0.5, TRUE, FALSE, xodtemplate_skiplist_compare_hostescalation);
-	xobject_skiplists[SERVICEESCALATION_SKIPLIST] = skiplist_new(16, 0.5, TRUE, FALSE, xodtemplate_skiplist_compare_serviceescalation);
-	/* host and service extinfo entries don't need to be added to a list... */
-
+	/*
+	 * host and service extinfo, dependencies, and escalations don't
+	 * need to be sorted, so we avoid creating skiplists for them.
+	 */
 	return OK;
 	}
 
@@ -9010,20 +8948,12 @@ int xodtemplate_free_memory(void) {
 	xodtemplate_hostgroup *next_hostgroup = NULL;
 	xodtemplate_servicegroup *this_servicegroup = NULL;
 	xodtemplate_servicegroup *next_servicegroup = NULL;
-	xodtemplate_servicedependency *this_servicedependency = NULL;
-	xodtemplate_servicedependency *next_servicedependency = NULL;
-	xodtemplate_serviceescalation *this_serviceescalation = NULL;
-	xodtemplate_serviceescalation *next_serviceescalation = NULL;
 	xodtemplate_contact *this_contact = NULL;
 	xodtemplate_contact *next_contact = NULL;
 	xodtemplate_host *this_host = NULL;
 	xodtemplate_host *next_host = NULL;
 	xodtemplate_service *this_service = NULL;
 	xodtemplate_service *next_service = NULL;
-	xodtemplate_hostdependency *this_hostdependency = NULL;
-	xodtemplate_hostdependency *next_hostdependency = NULL;
-	xodtemplate_hostescalation *this_hostescalation = NULL;
-	xodtemplate_hostescalation *next_hostescalation = NULL;
 	xodtemplate_customvariablesmember *this_customvariablesmember = NULL;
 	xodtemplate_customvariablesmember *next_customvariablesmember = NULL;
 	register int x = 0;
@@ -9119,30 +9049,6 @@ int xodtemplate_free_memory(void) {
 		}
 	xodtemplate_servicegroup_list = NULL;
 	xodtemplate_servicegroup_list_tail = NULL;
-
-	/* free memory allocated to servicedependency list */
-	for(this_servicedependency = xodtemplate_servicedependency_list; this_servicedependency != NULL; this_servicedependency = next_servicedependency) {
-		next_servicedependency = this_servicedependency->next;
-		if(this_servicedependency->is_copy == FALSE) {
-			my_free(this_servicedependency->dependency_period);
-			}
-		my_free(this_servicedependency);
-		}
-	xodtemplate_servicedependency_list = NULL;
-	xodtemplate_servicedependency_list_tail = NULL;
-
-	/* free memory allocated to serviceescalation list */
-	for(this_serviceescalation = xodtemplate_serviceescalation_list; this_serviceescalation != NULL; this_serviceescalation = next_serviceescalation) {
-		next_serviceescalation = this_serviceescalation->next;
-		if(this_serviceescalation->is_copy == FALSE) {
-			my_free(this_serviceescalation->escalation_period);
-		}
-		my_free(this_serviceescalation->contact_groups);
-		my_free(this_serviceescalation->contacts);
-		my_free(this_serviceescalation);
-		}
-	xodtemplate_serviceescalation_list = NULL;
-	xodtemplate_serviceescalation_list_tail = NULL;
 
 	/* free memory allocated to contact list */
 	for(this_contact = xodtemplate_contact_list; this_contact != NULL; this_contact = next_contact) {
@@ -9254,31 +9160,10 @@ int xodtemplate_free_memory(void) {
 	xodtemplate_service_list = NULL;
 	xodtemplate_service_list_tail = NULL;
 
-	/* free memory allocated to hostdependency list */
-	for(this_hostdependency = xodtemplate_hostdependency_list; this_hostdependency != NULL; this_hostdependency = next_hostdependency) {
-		next_hostdependency = this_hostdependency->next;
-		if(this_hostdependency->is_copy == FALSE) {
-			my_free(this_hostdependency->dependency_period);
-			}
-		my_free(this_hostdependency);
-		}
-	xodtemplate_hostdependency_list = NULL;
-	xodtemplate_hostdependency_list_tail = NULL;
-
-	/* free memory allocated to hostescalation list */
-	for(this_hostescalation = xodtemplate_hostescalation_list; this_hostescalation != NULL; this_hostescalation = next_hostescalation) {
-		next_hostescalation = this_hostescalation->next;
-		if(this_hostescalation->is_copy == FALSE) {
-			my_free(this_hostescalation->escalation_period);
-			}
-		my_free(this_hostescalation->contact_groups);
-		my_free(this_hostescalation->contacts);
-		my_free(this_hostescalation);
-		}
-	xodtemplate_hostescalation_list = NULL;
-	xodtemplate_hostescalation_list_tail = NULL;
-
-	/* extinfo objects are free()'d while they're parsed */
+	/*
+	 * extinfo objects are free()'d while they're parsed, as are
+	 * dependencies and escalations
+	 */
 	xodtemplate_hostextinfo_list = NULL;
 	xodtemplate_hostextinfo_list_tail = NULL;
 	xodtemplate_serviceextinfo_list = NULL;

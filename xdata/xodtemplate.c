@@ -515,7 +515,7 @@ int xodtemplate_process_config_dir(char *dirname, int options) {
 	struct stat stat_buf;
 
 #ifdef NSCORE
-	if(verify_config == TRUE)
+	if(verify_config >= 2)
 		printf("Processing object config directory '%s'...\n", dirname);
 #endif
 
@@ -597,7 +597,7 @@ int xodtemplate_process_config_file(char *filename, int options) {
 
 
 #ifdef NSCORE
-	if(verify_config == TRUE)
+	if(verify_config >= 2)
 		printf("Processing object config file '%s'...\n", filename);
 #endif
 

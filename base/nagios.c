@@ -106,7 +106,7 @@ int main(int argc, char **argv, char **env) {
 				break;
 
 			case 'v': /* verify */
-				verify_config = TRUE;
+				verify_config++;
 				break;
 
 			case 's': /* scheduling check */
@@ -172,7 +172,7 @@ int main(int argc, char **argv, char **env) {
 		printf("\n");
 		printf("Options:\n");
 		printf("\n");
-		printf("  -v, --verify-config          Verify all configuration data\n");
+		printf("  -v, --verify-config          Verify all configuration data (-v -v for more info)\n");
 		printf("  -s, --test-scheduling        Shows projected/recommended check scheduling and other\n");
 		printf("                               diagnostic info based on the current configuration files.\n");
 		/*printf("  -o, --dont-verify-objects    Don't verify object relationships - USE WITH CAUTION!\n");*/
@@ -231,7 +231,7 @@ int main(int argc, char **argv, char **env) {
 	if(verify_config || test_scheduling || precache_objects) {
 		reset_variables();
 
-		if(verify_config == TRUE)
+		if(verify_config)
 			printf("Reading configuration data...\n");
 
 		/* read our config file */
@@ -241,7 +241,7 @@ int main(int argc, char **argv, char **env) {
 			exit(EXIT_FAILURE);
 			}
 
-		if(verify_config == TRUE)
+		if(verify_config)
 			printf("   Read main config file okay...\n");
 
 		/* drop privileges */
@@ -274,7 +274,7 @@ int main(int argc, char **argv, char **env) {
 			exit(EXIT_FAILURE);
 			}
 
-		if(verify_config == TRUE) {
+		if(verify_config) {
 			printf("   Read object config files okay...\n\n");
 			printf("Running pre-flight check on configuration data...\n\n");
 			}
@@ -294,7 +294,7 @@ int main(int argc, char **argv, char **env) {
 			exit(EXIT_FAILURE);
 			}
 
-		if(verify_config == TRUE) {
+		if(verify_config) {
 			printf("\nThings look okay - No serious problems were detected during the pre-flight check\n");
 			}
 

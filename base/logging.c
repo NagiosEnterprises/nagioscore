@@ -145,7 +145,7 @@ int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) {
 		return ERROR;
 
 	/* don't log anything if we're not actually running... */
-	if(verify_config == TRUE || test_scheduling == TRUE)
+	if(verify_config || test_scheduling == TRUE)
 		return OK;
 
 	/* make sure we can log this type of entry */
@@ -189,7 +189,7 @@ int write_to_syslog(char *buffer, unsigned long data_type) {
 		return ERROR;
 
 	/* don't log anything if we're not actually running... */
-	if(verify_config == TRUE || test_scheduling == TRUE)
+	if(verify_config || test_scheduling == TRUE)
 		return OK;
 
 	/* bail out if we shouldn't write to syslog */
@@ -419,7 +419,7 @@ int write_log_file_info(time_t *timestamp) {
 int open_debug_log(void) {
 
 	/* don't do anything if we're not actually running... */
-	if(verify_config == TRUE || test_scheduling == TRUE)
+	if(verify_config || test_scheduling == TRUE)
 		return OK;
 
 	/* don't do anything if we're not debugging */

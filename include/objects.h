@@ -639,7 +639,6 @@ typedef struct serviceescalation_struct {
 	service *service_ptr;
 	timeperiod *escalation_period_ptr;
 #endif
-	struct  serviceescalation_struct *next;
 	} serviceescalation;
 
 
@@ -663,7 +662,6 @@ typedef struct servicedependency_struct {
 	service *dependent_service_ptr;
 	timeperiod *dependency_period_ptr;
 #endif
-	struct servicedependency_struct *next;
 	} servicedependency;
 
 
@@ -684,7 +682,6 @@ typedef struct hostescalation_struct {
 	host    *host_ptr;
 	timeperiod *escalation_period_ptr;
 #endif
-	struct  hostescalation_struct *next;
 	} hostescalation;
 
 
@@ -705,7 +702,6 @@ typedef struct hostdependency_struct {
 	host    *dependent_host_ptr;
 	timeperiod *dependency_period_ptr;
 #endif
-	struct hostdependency_struct *next;
 	} hostdependency;
 
 extern command *command_list;

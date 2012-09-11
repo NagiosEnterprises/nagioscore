@@ -1684,8 +1684,6 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	new_serviceescalation->escalate_on_critical = (escalate_on_critical > 0) ? TRUE : FALSE;
 
 	new_serviceescalation->id = num_objects.serviceescalations++;
-	if(new_serviceescalation->id)
-		serviceescalation_list[new_serviceescalation->id - 1].next = new_serviceescalation;
 	return new_serviceescalation;
 	}
 
@@ -1798,8 +1796,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->fail_on_pending = (fail_on_pending == 1) ? TRUE : FALSE;
 
 	new_servicedependency->id = num_objects.servicedependencies++;
-	if(new_servicedependency->id)
-		servicedependency_list[new_servicedependency->id - 1].next = new_servicedependency;
 	return new_servicedependency;
 	}
 
@@ -1860,8 +1856,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency->fail_on_pending = (fail_on_pending == 1) ? TRUE : FALSE;
 
 	new_hostdependency->id = num_objects.hostdependencies++;
-	if(new_hostdependency->id)
-		hostdependency_list[new_hostdependency->id - 1].next = new_hostdependency;
 	return new_hostdependency;
 	}
 
@@ -1910,8 +1904,6 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	new_hostescalation->escalate_on_unreachable = (escalate_on_unreachable > 0) ? TRUE : FALSE;
 
 	new_hostescalation->id = num_objects.hostescalations++;
-	if(new_hostescalation->id)
-		hostescalation_list[new_hostescalation->id - 1].next = new_hostescalation;
 	return new_hostescalation;
 	}
 

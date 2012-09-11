@@ -121,8 +121,10 @@ static unsigned int xodtemplate_host_id;
 static unsigned int xodtemplate_service_id;
 static unsigned int xodtemplate_contact_id;
 
+#ifndef NSCGI
 /* reusable bitmaps for expanding objects */
 static bitmap *service_map, *host_map, *contact_map;
+#endif
 
 /* returns the name of a numbered config file */
 static char *xodtemplate_config_file_name(int config_file) {

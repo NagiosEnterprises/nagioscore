@@ -17,4 +17,5 @@
 #include "dkhash.h"
 #include "worker.h"
 #include "skiplist.h"
+#include "nsock.h"
 #endif /* LIB_libnagios_h__ */

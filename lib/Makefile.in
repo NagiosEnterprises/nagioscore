@@ -9,7 +9,7 @@ all: $(LIBNAME)
 
 SNPRINTF_O=@SNPRINTF_O@
 TESTED_SRC_C := squeue.c kvvec.c iocache.c iobroker.c bitmap.c dkhash.c
-SRC_C := $(TESTED_SRC_C) pqueue.c runcmd.c worker.c skiplist.c
+SRC_C := $(TESTED_SRC_C) pqueue.c runcmd.c worker.c skiplist.c nsock.c
 SRC_O := $(patsubst %.c,%.o,$(SRC_C)) $(SNPRINTF_O)
 TESTS := $(patsubst %.c,test-%,$(TESTED_SRC_C))
 

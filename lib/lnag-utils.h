@@ -56,6 +56,10 @@
 # define veclen ARRAY_SIZE
 #endif
 
+#ifndef offsetof
+# define offsetof(t, f) ((unsigned long)&((t *)0)->f)
+#endif
+
 NAGIOS_BEGIN_DECL
 
 /**

@@ -409,7 +409,7 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 /* add a new host definition */
 host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess) {
 	host *new_host = NULL;
-	timeperiod *tp;
+	timeperiod *check_tp = NULL, *notify_tp = NULL;
 	int result = OK;
 #ifdef NSCORE
 	int x = 0;
@@ -421,6 +421,16 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		return NULL;
 		}
 
+	if(check_period && !(check_tp = find_timeperiod(check_period))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate check_period '%s' for host '%s'!\n",
+			  check_period, name);
+		return NULL;
+	}
+	if(notification_period && !(notify_tp = find_timeperiod(notification_period))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate noticiation_period '%s' for host '%s'!\n",
+			  notification_period, name);
+		return NULL;
+	}
 	/* check values */
 	if(max_attempts <= 0) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid max_check_attempts value for host '%s'\n", name);
@@ -460,32 +470,12 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		result = ERROR;
 	if((new_host->address = (char *)strdup(address)) == NULL)
 		result = ERROR;
-	if(check_period) {
-		if (!(tp = find_timeperiod(check_period))) {
-			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate check_period '%s' for host '%s'!\n",
-				  check_period, name);
-			result = ERROR;
-			}
-		else {
-			new_host->check_period = tp->name;
+	new_host->check_period = check_tp ? check_tp->name : NULL;
+	new_host->notification_period = notify_tp ? notify_tp->name : NULL;
 #ifndef NSCGI
-			new_host->check_period_ptr = tp;
+	new_host->notification_period_ptr = notify_tp;
+	new_host->check_period_ptr = check_tp;
 #endif
-			}
-		}
-	if(notification_period) {
-		if (!(tp = find_timeperiod(notification_period))) {
-			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate noticiation_period '%s' for host '%s'!\n",
-				  notification_period, name);
-			result = ERROR;
-			}
-		else {
-			new_host->notification_period = tp->name;
-#ifndef NSCGI
-			new_host->check_period_ptr = tp;
-#endif
-			}
-		}
 	if(check_command) {
 		if((new_host->check_command = (char *)strdup(check_command)) == NULL)
 			result = ERROR;

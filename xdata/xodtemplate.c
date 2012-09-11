@@ -6841,7 +6841,10 @@ int xodtemplate_recombobulate_contactgroups(void) {
 	for(temp_contactgroup = xodtemplate_contactgroup_list; temp_contactgroup; temp_contactgroup = temp_contactgroup->next) {
 		if(xodtemplate_recombobulate_contactgroup_subgroups(temp_contactgroup) != XOD_OK)
 			return ERROR;
+		/* rejects are no longer necessary */
 		bitmap_destroy(temp_contactgroup->reject_map);
+		/* make sure we don't recursively add subgroup members again */
+		free_objectlist(&temp_contactgroup->group_list);
 	}
 
 	return OK;
@@ -7018,7 +7021,10 @@ int xodtemplate_recombobulate_hostgroups(void) {
 		if(xodtemplate_recombobulate_hostgroup_subgroups(temp_hostgroup) != XOD_OK) {
 			return ERROR;
 			}
+		/* rejects are no longer necessary */
 		bitmap_destroy(temp_hostgroup->reject_map);
+		/* make sure we don't recursively add subgroup members again */
+		free_objectlist(&temp_hostgroup->group_list);
 		}
 
 	return OK;
@@ -7193,7 +7199,10 @@ int xodtemplate_recombobulate_servicegroups(void) {
 		if(xodtemplate_recombobulate_servicegroup_subgroups(temp_servicegroup) != XOD_OK) {
 			return ERROR;
 			}
+		/* rejects are no longer necessary */
 		bitmap_destroy(temp_servicegroup->reject_map);
+		/* make sure we don't recursively add subgroup members again */
+		free_objectlist(&temp_servicegroup->group_list);
 		}
 
 	return OK;

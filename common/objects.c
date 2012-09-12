@@ -3402,7 +3402,8 @@ void fcache_servicedependency(FILE *fp, servicedependency *temp_servicedependenc
 	fprintf(fp, "\tservice_description\t%s\n", temp_servicedependency->service_description);
 	fprintf(fp, "\tdependent_host_name\t%s\n", temp_servicedependency->dependent_host_name);
 	fprintf(fp, "\tdependent_service_description\t%s\n", temp_servicedependency->dependent_service_description);
-	fprintf(fp, "\tdependency_period\t%s\n", temp_servicedependency->dependency_period);
+	if(temp_servicedependency->dependency_period)
+		fprintf(fp, "\tdependency_period\t%s\n", temp_servicedependency->dependency_period);
 	fprintf(fp, "\tinherits_parent\t%d\n", temp_servicedependency->inherits_parent);
 	if(temp_servicedependency->dependency_type == NOTIFICATION_DEPENDENCY) {
 		int x = 0;

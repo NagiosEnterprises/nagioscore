@@ -874,6 +874,13 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
 		}
 
 	/* add the new member to the member list, sorted by host name */
+#ifndef NSCGI
+	if(use_large_installation_tweaks == TRUE) {
+		new_member->next = temp_hostgroup->members;
+		temp_hostgroup->members = new_member;
+		return new_member;
+		}
+#endif
 	last_member = temp_hostgroup->members;
 	for(temp_member = temp_hostgroup->members; temp_member != NULL; temp_member = temp_member->next) {
 		if(strcmp(new_member->host_name, temp_member->host_name) < 0) {
@@ -994,7 +1001,17 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 		return NULL;
 		}
 
-	/* add new member to member list, sorted by host name then service description */
+	/*
+	 * add new member to member list, sorted by host name then
+	 * service description, unless we're a large installation, in
+	 * which case insertion-sorting will take far too long
+	 */
+#ifndef NSCGI
+	if(use_large_installation_tweaks == TRUE) {
+		new_member->next = temp_servicegroup->members;
+		temp_servicegroup->members = new_member;
+		}
+#endif
 	last_member = temp_servicegroup->members;
 	for(temp_member = temp_servicegroup->members; temp_member != NULL; temp_member = temp_member->next) {
 

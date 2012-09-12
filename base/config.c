@@ -1564,7 +1564,7 @@ int pre_flight_object_check(int *w, int *e) {
 		total_objects++;
 
 		/* make sure each host has at least one service associated with it */
-		if(temp_host->total_services == 0) {
+		if(temp_host->total_services == 0 && verify_config >= 2) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Host '%s' has no services associated with it!", temp_host->name);
 			warnings++;
 			}

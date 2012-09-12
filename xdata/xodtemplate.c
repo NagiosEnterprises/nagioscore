@@ -366,7 +366,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 			result = xodtemplate_duplicate_services();
 		if(test_scheduling == TRUE)
 			gettimeofday(&tv[5], NULL);
-		timing_point("Done duplicating services\n");
+		timing_point("Created %u services (dupes possible)\n", xodcount.services);
 
 		/* now we have an accurate service count */
 		service_map = bitmap_create(xodcount.services);
@@ -379,6 +379,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 			result = xodtemplate_recombobulate_servicegroups();
 		if(test_scheduling == TRUE)
 			gettimeofday(&tv[6], NULL);
+		timing_point("Done recombobulating servicegroups\n");
 
 		if(result == OK)
 			result = xodtemplate_duplicate_objects();
@@ -4015,6 +4016,7 @@ int xodtemplate_duplicate_services(void) {
 	int result = OK;
 	xodtemplate_service *temp_service = NULL;
 
+	xodcount.services = 0;
 	/****** DUPLICATE SERVICE DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	for(temp_service = xodtemplate_service_list; temp_service != NULL; temp_service = temp_service->next) {
 		objectlist *hlist = NULL, *list = NULL, *glist = NULL, *next;
@@ -4363,7 +4365,7 @@ int xodtemplate_duplicate_objects(void) {
 				}
 			}
 		}
-	timing_point("Done duplicating hostescalations\n");
+	timing_point("Created %u hostescalations (dupes possible)\n", xodcount.hostescalations);
 
 
 	/* duplicate service escalations */
@@ -4410,7 +4412,7 @@ int xodtemplate_duplicate_objects(void) {
 				}
 			}
 		}
-	timing_point("Done duplicating serviceescalations\n");
+	timing_point("Created %u serviceescalations (dupes possible)\n", xodcount.serviceescalations);
 
 
 	/* duplicate host dependency definitions */
@@ -4467,7 +4469,7 @@ int xodtemplate_duplicate_objects(void) {
 				}
 			}
 		}
-	timing_point("Done duplicating hostdependencies\n");
+	timing_point("Created %u hostdependencies (dupes possible)\n", xodcount.hostdependencies);
 
 
 	/* process service dependencies */
@@ -4560,7 +4562,7 @@ int xodtemplate_duplicate_objects(void) {
 		if(same_host == FALSE)
 			free_objectlist(&children);
 		}
-	timing_point("Done duplicating servicedependencies\n");
+	timing_point("Created %u servicedependencies (dupes possible)\n", xodcount.servicedependencies);
 
 
 	/****** DUPLICATE HOSTEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
@@ -4600,7 +4602,7 @@ int xodtemplate_duplicate_objects(void) {
 		my_free(temp_hostextinfo->statusmap_image);
 		my_free(temp_hostextinfo);
 		}
-	timing_point("Done duplicating hostextinfo\n");
+	timing_point("Done merging hostextinfo\n");
 
 
 	/****** DUPLICATE SERVICEEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
@@ -4637,7 +4639,7 @@ int xodtemplate_duplicate_objects(void) {
 		my_free(temp_serviceextinfo->icon_image_alt);
 		my_free(temp_serviceextinfo);
 		}
-	timing_point("Done duplicating serviceextinfo\n");
+	timing_point("Done merging serviceextinfo\n");
 
 	return OK;
 	}

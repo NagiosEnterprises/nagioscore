@@ -135,6 +135,7 @@ static char *xodtemplate_config_file_name(int config_file) {
 /************* TOP-LEVEL CONFIG DATA INPUT FUNCTION ***************/
 /******************************************************************/
 
+#ifndef NSCGI
 static void xodtemplate_free_template_skiplists(void) {
 	int x = 0;
 
@@ -142,6 +143,7 @@ static void xodtemplate_free_template_skiplists(void) {
 		skiplist_free(&xobject_template_skiplists[x]);
 		}
 	}
+#endif
 
 /* process all config files - both core and CGIs pass in name of main config file */
 int xodtemplate_read_config_data(char *main_config_file, int options) {

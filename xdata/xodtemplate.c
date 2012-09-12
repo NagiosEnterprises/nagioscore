@@ -113,13 +113,8 @@ char **xodtemplate_config_files = NULL;
 
 int presorted_objects = FALSE;
 
-/* add up execution and notification dependencies */
-static unsigned int host_deps, service_deps;
-
-/* we need these to make sure each object with a group has a unique id */
-static unsigned int xodtemplate_host_id;
-static unsigned int xodtemplate_service_id;
-static unsigned int xodtemplate_contact_id;
+/* xodtemplate id / object counter */
+static struct object_count xodcount;
 
 #ifndef NSCGI
 /* reusable bitmaps for expanding objects */
@@ -347,8 +342,8 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 		/* cleanup some additive inheritance stuff... */
 		xodtemplate_clean_additive_strings();
 
-		host_map = bitmap_create(xodtemplate_host_id);
-		contact_map = bitmap_create(xodtemplate_contact_id);
+		host_map = bitmap_create(xodcount.hosts);
+		contact_map = bitmap_create(xodcount.contacts);
 		if(!host_map || !contact_map) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to create bitmaps for resolving objects\n");
 			return ERROR;
@@ -374,7 +369,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 		timing_point("Done duplicating services\n");
 
 		/* now we have an accurate service count */
-		service_map = bitmap_create(xodtemplate_service_id);
+		service_map = bitmap_create(xodcount.services);
 		if(!service_map) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to create service map\n");
 			return ERROR;
@@ -1809,7 +1804,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						}
 					}
 				temp_servicedependency->have_execution_dependency_options = TRUE;
-				service_deps++;
+				xodcount.servicedependencies++;
 				}
 			else if(!strcmp(variable, "notification_failure_options") || !strcmp(variable, "notification_failure_criteria")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
@@ -1843,7 +1838,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						}
 					}
 				temp_servicedependency->have_notification_dependency_options = TRUE;
-				service_deps++;
+				xodcount.servicedependencies++;
 				}
 			else if(!strcmp(variable, "register"))
 				temp_servicedependency->register_object = (atoi(value) > 0) ? TRUE : FALSE;
@@ -1892,20 +1887,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						result = ERROR;
 					}
 				temp_serviceescalation->have_host_name = TRUE;
-
-				/* NOTE: escalations are added to the skiplist in xodtemplate_duplicate_objects(), except if daemon is using precached config */
-				if(result == OK && force_skiplists == TRUE  && temp_serviceescalation->host_name != NULL && temp_serviceescalation->service_description != NULL) {
-					/* add serviceescalation to template skiplist for fast searches */
-					result = skiplist_insert(xobject_skiplists[SERVICEESCALATION_SKIPLIST], (void *)temp_serviceescalation);
-					switch(result) {
-						case SKIPLIST_OK:
-							result = OK;
-							break;
-						default:
-							result = ERROR;
-							break;
-						}
-					}
 				}
 			else if(!strcmp(variable, "description") || !strcmp(variable, "service_description")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -1913,20 +1894,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						result = ERROR;
 					}
 				temp_serviceescalation->have_service_description = TRUE;
-
-				/* NOTE: escalations are added to the skiplist in xodtemplate_duplicate_objects(), except if daemon is using precached config */
-				if(result == OK && force_skiplists == TRUE  && temp_serviceescalation->host_name != NULL && temp_serviceescalation->service_description != NULL) {
-					/* add serviceescalation to template skiplist for fast searches */
-					result = skiplist_insert(xobject_skiplists[SERVICEESCALATION_SKIPLIST], (void *)temp_serviceescalation);
-					switch(result) {
-						case SKIPLIST_OK:
-							result = OK;
-							break;
-						default:
-							result = ERROR;
-							break;
-						}
-					}
 				}
 			else if(!strcmp(variable, "servicegroup") || !strcmp(variable, "servicegroups") || !strcmp(variable, "servicegroup_name")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -2064,7 +2031,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 							break;
 						}
 					}
-				temp_contact->id = xodtemplate_contact_id++;
+				temp_contact->id = xodcount.contacts++;
 				}
 			else if(!strcmp(variable, "alias")) {
 				if((temp_contact->alias = (char *)strdup(value)) == NULL)
@@ -2309,7 +2276,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 							break;
 						}
 					}
-				temp_host->id = xodtemplate_host_id++;
+				temp_host->id = xodcount.hosts++;
 				}
 			else if(!strcmp(variable, "display_name")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -3161,20 +3128,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						result = ERROR;
 					}
 				temp_hostdependency->have_dependent_host_name = TRUE;
-
-				/* NOTE: dependencies are added to the skiplist in xodtemplate_duplicate_objects(), except if daemon is using precached config */
-				if(result == OK && force_skiplists == TRUE) {
-					/* add hostdependency to template skiplist for fast searches */
-					result = skiplist_insert(xobject_skiplists[HOSTDEPENDENCY_SKIPLIST], (void *)temp_hostdependency);
-					switch(result) {
-						case SKIPLIST_OK:
-							result = OK;
-							break;
-						default:
-							result = ERROR;
-							break;
-						}
-					}
 				}
 			else if(!strcmp(variable, "dependency_period")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -3215,7 +3168,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						}
 					}
 				temp_hostdependency->have_notification_dependency_options = TRUE;
-				host_deps++;
+				xodcount.hostdependencies++;
 				}
 			else if(!strcmp(variable, "execution_failure_options") || !strcmp(variable, "execution_failure_criteria")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
@@ -3245,7 +3198,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						}
 					}
 				temp_hostdependency->have_execution_dependency_options = TRUE;
-				host_deps++;
+				xodcount.hostdependencies++;
 				}
 			else if(!strcmp(variable, "register"))
 				temp_hostdependency->register_object = (atoi(value) > 0) ? TRUE : FALSE;
@@ -3300,20 +3253,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						result = ERROR;
 					}
 				temp_hostescalation->have_host_name = TRUE;
-
-				/* NOTE: escalations are added to the skiplist in xodtemplate_duplicate_objects(), except if daemon is using precached config */
-				if(result == OK && force_skiplists == TRUE) {
-					/* add hostescalation to template skiplist for fast searches */
-					result = skiplist_insert(xobject_skiplists[HOSTESCALATION_SKIPLIST], (void *)temp_hostescalation);
-					switch(result) {
-						case SKIPLIST_OK:
-							result = OK;
-							break;
-						default:
-							result = ERROR;
-							break;
-						}
-					}
 				}
 			else if(!strcmp(variable, "contact_groups")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -3632,7 +3571,23 @@ int xodtemplate_add_object_property(char *input, int options) {
 /* completes an object definition */
 int xodtemplate_end_object_definition(int options) {
 	int result = OK;
+#ifdef NSCGI
+	xodtemplate_hostdependency *hd;
+	xodtemplate_servicedependency *sd;
 
+	switch(xodtemplate_current_object_type) {
+	case XODTEMPLATE_HOSTESCALATION: xodcount.hostescalations++; break;
+	case XODTEMPLATE_SERVICEESCALATION: xodcount.serviceescalations++; break;
+	case XODTEMPLATE_HOSTDEPENDENCY:
+		hd = (xodtemplate_hostdependency *)xodtemplate_current_object;
+		xodcount.hostdependencies += !!hd->have_execution_failure_options + !!hd->have_notification_failure_options;
+		break;
+	case XODTEMPLATE_SERVICEDEPENDENCY:
+		sd = (xodtemplate_servicedependency *)xodtemplate_current_object;
+		xodcount.servicedependencies += !!sd->have_execution_failure_options + !!sd->have_notification_failure_options;
+		break;
+	}
+#endif
 
 	xodtemplate_current_object = NULL;
 	xodtemplate_current_object_type = XODTEMPLATE_NONE;
@@ -4138,7 +4093,7 @@ int xodtemplate_duplicate_services(void) {
 
 				/* if this is the last duplication, use the existing entry */
 				if(!next && !hlist->next) {
-					temp_service->id = xodtemplate_service_id++;
+					temp_service->id = xodcount.services++;
 					temp_service->host_name = h->host_name;
 					}
 				else {
@@ -4383,6 +4338,8 @@ int xodtemplate_duplicate_objects(void) {
 			next = list->next;
 			free(list);
 
+			xodcount.hostescalations++;
+
 			/* if this is the last duplication, use the existing entry */
 			if(!next) {
 				my_free(temp_hostescalation->name);
@@ -4430,6 +4387,8 @@ int xodtemplate_duplicate_objects(void) {
 			xodtemplate_service *s = (xodtemplate_service *)list->object_ptr;
 			next = list->next;
 			free(list);
+
+			xodcount.serviceescalations++;
 
 			/* if this is the last duplication, use the existing entry */
 			if(!next) {
@@ -4695,7 +4654,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	/* copy the entire thing and override what we have to */
 	memcpy(new_service, temp_service, sizeof(*new_service));
 	new_service->is_copy = TRUE;
-	new_service->id = xodtemplate_service_id++;
+	new_service->id = xodcount.services++;
 	new_service->host_name = host_name;
 
 	/* tag service apply on host group */
@@ -4819,8 +4778,8 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 	/* add new hostdependency to head of list in memory */
 	new_hostdependency->next = xodtemplate_hostdependency_list;
 	xodtemplate_hostdependency_list = new_hostdependency;
-	host_deps += new_hostdependency->have_notification_dependency_options;
-	host_deps += new_hostdependency->have_execution_dependency_options;
+	xodcount.hostdependencies += new_hostdependency->have_notification_dependency_options;
+	xodcount.hostdependencies += new_hostdependency->have_execution_dependency_options;
 
 	return OK;
 	}
@@ -4848,8 +4807,8 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	/* add new servicedependency to head of list in memory */
 	new_servicedependency->next = xodtemplate_servicedependency_list;
 	xodtemplate_servicedependency_list = new_servicedependency;
-	service_deps += new_servicedependency->have_notification_dependency_options;
-	service_deps += new_servicedependency->have_execution_dependency_options;
+	xodcount.servicedependencies += new_servicedependency->have_notification_dependency_options;
+	xodcount.servicedependencies += new_servicedependency->have_execution_dependency_options;
 
 	return OK;
 	}
@@ -6741,7 +6700,7 @@ int xodtemplate_recombobulate_contactgroups(void) {
 		if(temp_contactgroup->members == NULL && temp_contactgroup->contactgroup_members == NULL)
 			continue;
 
-		if(!(temp_contactgroup->member_map = bitmap_create(xodtemplate_contact_id))) {
+		if(!(temp_contactgroup->member_map = bitmap_create(xodcount.contacts))) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not create contactgroup bitmap\n");
 			return ERROR;
 			}
@@ -6771,7 +6730,7 @@ int xodtemplate_recombobulate_contactgroups(void) {
 			continue;
 
 		/* we might need this */
-		if(!(temp_contactgroup->reject_map = bitmap_create(xodtemplate_contact_id))) {
+		if(!(temp_contactgroup->reject_map = bitmap_create(xodcount.contacts))) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not create reject map for contactgroup '%s'", temp_contactgroup->contactgroup_name);
 			return ERROR;
 			}
@@ -6822,7 +6781,7 @@ int xodtemplate_recombobulate_contactgroups(void) {
 				return ERROR;
 				}
 
-			if(!temp_contactgroup->member_map && !(temp_contactgroup->member_map = bitmap_create(xodtemplate_contact_id))) {
+			if(!temp_contactgroup->member_map && !(temp_contactgroup->member_map = bitmap_create(xodcount.contacts))) {
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to create member map for contactgroup '%s'\n",
 					  temp_contactgroup->contactgroup_name);
 				return ERROR;
@@ -6915,7 +6874,7 @@ int xodtemplate_recombobulate_hostgroups(void) {
 			continue;
 
 		/* we'll need the member_map */
-		if (!(temp_hostgroup->member_map = bitmap_create(xodtemplate_host_id))) {
+		if (!(temp_hostgroup->member_map = bitmap_create(xodcount.hosts))) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not create member map for hostgroup '%s'\n", temp_hostgroup->hostgroup_name);
 			return ERROR;
 			}
@@ -6943,7 +6902,7 @@ int xodtemplate_recombobulate_hostgroups(void) {
 			continue;
 
 		/* we might need this */
-		if(!(temp_hostgroup->reject_map = bitmap_create(xodtemplate_host_id))) {
+		if(!(temp_hostgroup->reject_map = bitmap_create(xodcount.hosts))) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not create reject map for hostgroup '%s'\n", temp_hostgroup->hostgroup_name);
 			return ERROR;
 			}
@@ -6998,7 +6957,7 @@ int xodtemplate_recombobulate_hostgroups(void) {
 				my_free(hostgroup_names);
 				return ERROR;
 				}
-			if(!temp_hostgroup->member_map && !(temp_hostgroup->member_map = bitmap_create(xodtemplate_host_id))) {
+			if(!temp_hostgroup->member_map && !(temp_hostgroup->member_map = bitmap_create(xodcount.hosts))) {
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to create bitmap to join host '%s' to group '%s'\n",
 					  temp_host->host_name, temp_hostgroup->hostgroup_name);
 				return ERROR;
@@ -7089,7 +7048,7 @@ int xodtemplate_recombobulate_servicegroups(void) {
 			continue;
 
 		/* we'll need the member map */
-		if(!(temp_servicegroup->member_map = bitmap_create(xodtemplate_service_id))) {
+		if(!(temp_servicegroup->member_map = bitmap_create(xodcount.services))) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not create member map for servicegroup '%s'\n", temp_servicegroup->servicegroup_name);
 			return ERROR;
 			}
@@ -7120,7 +7079,7 @@ int xodtemplate_recombobulate_servicegroups(void) {
 			continue;
 
 		/* we might need this */
-		if(!(temp_servicegroup->reject_map = bitmap_create(xodtemplate_service_id))) {
+		if(!(temp_servicegroup->reject_map = bitmap_create(xodcount.services))) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not create reject map for hostgroup '%s'\n", temp_servicegroup->servicegroup_name);
 			return ERROR;
 			}
@@ -7176,7 +7135,7 @@ int xodtemplate_recombobulate_servicegroups(void) {
 				return ERROR;
 				}
 
-			if(!temp_servicegroup->member_map && !(temp_servicegroup->member_map = bitmap_create(xodtemplate_service_id))) {
+			if(!temp_servicegroup->member_map && !(temp_servicegroup->member_map = bitmap_create(xodcount.services))) {
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to create member map for service group %s\n", temp_servicegroup->servicegroup_name);
 				return ERROR;
 				}
@@ -7527,8 +7486,10 @@ int xodtemplate_register_objects(void) {
 	 * dependencies may be duplicated still, so it's good we counted
 	 * earlier and know exactly how much space we'll need
 	 */
-	ocount[SERVICEDEPENDENCY_SKIPLIST] = service_deps;
-	ocount[HOSTDEPENDENCY_SKIPLIST] = host_deps;
+	ocount[SERVICEDEPENDENCY_SKIPLIST] = xodcount.servicedependencies;
+	ocount[HOSTDEPENDENCY_SKIPLIST] = xodcount.hostdependencies;
+	ocount[HOSTESCALATION_SKIPLIST] = xodcount.hostescalations;
+	ocount[SERVICEESCALATION_SKIPLIST] = xodcount.serviceescalations;
 
 	if (create_object_tables(ocount) != OK) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to create object tables\n");
@@ -7609,7 +7570,7 @@ int xodtemplate_register_objects(void) {
 			return ERROR;
 		}
 	timing_point("%u unique / %u total servicedependencies registered\n",
-				 num_objects.servicedependencies, service_deps);
+				 num_objects.servicedependencies, xodcount.servicedependencies);
 
 	for(se = xodtemplate_serviceescalation_list; se; se = next_se) {
 		next_se = se->next;
@@ -7624,7 +7585,7 @@ int xodtemplate_register_objects(void) {
 			return ERROR;
 		}
 	timing_point("%u unique / %u total hostdependencies registered\n",
-				 num_objects.hostdependencies, host_deps);
+				 num_objects.hostdependencies, xodcount.hostdependencies);
 
 	for(he = xodtemplate_hostescalation_list; he; he = next_he) {
 		next_he = he->next;
@@ -9444,7 +9405,7 @@ objectlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups, char *host
 	bitmap *reject;
 	int result;
 
-	reject = bitmap_create(xodtemplate_host_id);
+	reject = bitmap_create(xodcount.hosts);
 	if(!reject) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to create reject map for expanding hosts and hostgroups\n");
 		return NULL;
@@ -9754,7 +9715,7 @@ objectlist *xodtemplate_expand_servicegroups_and_services(char *servicegroups, c
 	bitmap *reject;
 	int result = OK;
 
-	reject = bitmap_create(xodtemplate_service_id);
+	reject = bitmap_create(xodcount.services);
 	if(!reject) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to create reject map for expanding services and servicegroups\n");
 		return NULL;

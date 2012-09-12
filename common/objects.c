@@ -999,6 +999,7 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 	if(use_large_installation_tweaks == TRUE) {
 		new_member->next = temp_servicegroup->members;
 		temp_servicegroup->members = new_member;
+		return new_member;
 		}
 #endif
 	last_member = temp_servicegroup->members;

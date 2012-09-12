@@ -5087,7 +5087,7 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 
 static int xodtemplate_register_and_destroy_serviceescalation(void *se_)
 {
-	xodtemplate_serviceescalation *se = (xodtemplate_serviceescalation *)se;
+	xodtemplate_serviceescalation *se = (xodtemplate_serviceescalation *)se_;
 	int result;
 	result = xodtemplate_register_serviceescalation(se);
 

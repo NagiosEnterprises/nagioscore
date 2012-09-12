@@ -190,7 +190,6 @@ int             obsess_over_hosts = FALSE;
 int             translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
 int             passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 
-int             aggregate_status_updates = TRUE;
 int             status_update_interval = DEFAULT_STATUS_UPDATE_INTERVAL;
 
 int             time_change_threshold = DEFAULT_TIME_CHANGE_THRESHOLD;

@@ -171,7 +171,6 @@ extern int process_performance_data;
 extern int translate_passive_host_checks;
 extern int passive_host_checks_are_soft;
 
-extern int aggregate_status_updates;
 extern int status_update_interval;
 
 extern int time_change_threshold;

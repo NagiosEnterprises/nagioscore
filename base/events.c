@@ -513,8 +513,7 @@ void init_timing_loop(void) {
 		schedule_new_event(EVENT_HFRESHNESS_CHECK, TRUE, current_time + host_freshness_check_interval, TRUE, host_freshness_check_interval, NULL, TRUE, NULL, NULL, 0);
 
 	/* add a status save event */
-	if(aggregate_status_updates == TRUE)
-		schedule_new_event(EVENT_STATUS_SAVE, TRUE, current_time + status_update_interval, TRUE, status_update_interval, NULL, TRUE, NULL, NULL, 0);
+	schedule_new_event(EVENT_STATUS_SAVE, TRUE, current_time + status_update_interval, TRUE, status_update_interval, NULL, TRUE, NULL, NULL, 0);
 
 	/* add a log rotation event if necessary */
 	if(log_rotation_method != LOG_ROTATION_NONE)

@@ -65,7 +65,6 @@ int      retention_update_interval;
 int      max_parallel_service_checks;
 int      currently_running_service_checks;
 
-int      aggregate_status_updates;
 int      status_update_interval;
 
 int      log_rotation_method;

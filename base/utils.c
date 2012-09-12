@@ -166,7 +166,6 @@ time_t event_start = 0L;
 int translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
 int passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 
-int aggregate_status_updates = TRUE;
 int status_update_interval = DEFAULT_STATUS_UPDATE_INTERVAL;
 
 int time_change_threshold = DEFAULT_TIME_CHANGE_THRESHOLD;
@@ -3506,7 +3505,6 @@ int reset_variables(void) {
 	next_event_id = 1;
 	next_notification_id = 1;
 
-	aggregate_status_updates = TRUE;
 	status_update_interval = DEFAULT_STATUS_UPDATE_INTERVAL;
 
 	event_broker_options = BROKER_NOTHING;

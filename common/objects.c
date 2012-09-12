@@ -1753,7 +1753,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	/* allocate memory for a new service dependency entry */
 	new_servicedependency = &servicedependency_list[num_objects.servicedependencies];
 
-#ifndef NSCGI
 	/*
 	 * add new service dependency to its respective services.
 	 * Ordering doesn't matter here as we'll have to check them
@@ -1767,6 +1766,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		if(add_object_to_objectlist(&child->exec_deps, new_servicedependency) != OK)
 			return NULL;
 		}
+#ifndef NSCGI
 	new_servicedependency->dependent_service_ptr = child;
 	new_servicedependency->master_service_ptr = parent;
 	new_servicedependency->dependency_period_ptr = tp;

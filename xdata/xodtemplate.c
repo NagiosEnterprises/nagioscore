@@ -4274,7 +4274,7 @@ static int xodtemplate_create_service_list(objectlist **ret, char *host_name, ch
 			if(bitmap_isset(host_map, h->id))
 				continue;
 
-			/* expand services and add them all */
+			/* expand services and add them all, unless they're rejected */
 			slist = NULL;
 			if(xodtemplate_expand_services(&slist, service_map, h->host_name, service_description, _config_file, _start_line) != OK) {
 				free_objectlist(&gnext);
@@ -4284,6 +4284,9 @@ static int xodtemplate_create_service_list(objectlist **ret, char *host_name, ch
 				s = (xodtemplate_service *)list->object_ptr;
 				next = list->next;
 				free(list);
+				if(bitmap_isset(service_map, s->id))
+					continue;
+				bitmap_set(service_map, s->id);
 				if(prepend_object_to_objectlist(ret, s) != OK) {
 					free_objectlist(&next);
 					free_objectlist(&gnext);

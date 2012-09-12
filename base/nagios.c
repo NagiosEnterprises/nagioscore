@@ -90,7 +90,7 @@ int main(int argc, char **argv, char **env) {
 
 	/* get all command line arguments */
 	while(1) {
-		c = getopt(argc, argv, "+hVvdspuT");
+		c = getopt(argc, argv, "+hVvdspuxT");
 
 		if(c == -1 || c == EOF)
 			break;
@@ -127,6 +127,10 @@ int main(int argc, char **argv, char **env) {
 				break;
 			case 'T':
 				enable_timing_point = TRUE;
+				break;
+
+			case 'x':
+				printf("Warning: -x is deprecated and will be removed\n");
 				break;
 
 			default:

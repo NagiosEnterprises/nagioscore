@@ -3581,11 +3581,11 @@ int xodtemplate_end_object_definition(int options) {
 	case XODTEMPLATE_SERVICEESCALATION: xodcount.serviceescalations++; break;
 	case XODTEMPLATE_HOSTDEPENDENCY:
 		hd = (xodtemplate_hostdependency *)xodtemplate_current_object;
-		xodcount.hostdependencies += !!hd->have_execution_failure_options + !!hd->have_notification_failure_options;
+		xodcount.hostdependencies += !!hd->have_execution_dependency_options + !!hd->have_notification_dependency_options;
 		break;
 	case XODTEMPLATE_SERVICEDEPENDENCY:
 		sd = (xodtemplate_servicedependency *)xodtemplate_current_object;
-		xodcount.servicedependencies += !!sd->have_execution_failure_options + !!sd->have_notification_failure_options;
+		xodcount.servicedependencies += !!sd->have_execution_dependency_options + !!sd->have_notification_dependency_options;
 		break;
 	}
 #endif

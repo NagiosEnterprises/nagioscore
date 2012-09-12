@@ -850,7 +850,6 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
 	hostsmember *new_member = NULL;
 	hostsmember *last_member = NULL;
 	hostsmember *temp_member = NULL;
-	int result = OK;
 
 	/* make sure we have the data we need */
 	if(temp_hostgroup == NULL || (host_name == NULL || !strcmp(host_name, ""))) {
@@ -863,12 +862,7 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
 		return NULL;
 
 	/* duplicate vars */
-	if((new_member->host_name = (char *)strdup(host_name)) == NULL)
-		result = ERROR;
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_member->host_name);
+	if((new_member->host_name = (char *)strdup(host_name)) == NULL) {
 		my_free(new_member);
 		return NULL;
 		}
@@ -975,7 +969,6 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 	servicesmember *new_member = NULL;
 	servicesmember *last_member = NULL;
 	servicesmember *temp_member = NULL;
-	int result = OK;
 
 	/* make sure we have the data we need */
 	if(temp_servicegroup == NULL || (host_name == NULL || !strcmp(host_name, "")) || (svc_description == NULL || !strcmp(svc_description, ""))) {
@@ -988,15 +981,11 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 		return NULL;
 
 	/* duplicate vars */
-	if((new_member->host_name = (char *)strdup(host_name)) == NULL)
-		result = ERROR;
-	if((new_member->service_description = (char *)strdup(svc_description)) == NULL)
-		result = ERROR;
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_member->service_description);
+	new_member->host_name = (char *)strdup(host_name);
+	new_member->service_description = (char *)strdup(svc_description);
+	if(new_member->host_name == NULL || new_member->service_description == NULL) {
 		my_free(new_member->host_name);
+		my_free(new_member->service_description);
 		my_free(new_member);
 		return NULL;
 		}
@@ -1300,7 +1289,6 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 /* add a new member to a contact group */
 contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_name) {
 	contactsmember *new_contactsmember = NULL;
-	int result = OK;
 
 	/* make sure we have the data we need */
 	if(grp == NULL || (contact_name == NULL || !strcmp(contact_name, ""))) {
@@ -1313,12 +1301,7 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 		return NULL;
 
 	/* duplicate vars */
-	if((new_contactsmember->contact_name = (char *)strdup(contact_name)) == NULL)
-		result = ERROR;
-
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_contactsmember->contact_name);
+	if((new_contactsmember->contact_name = (char *)strdup(contact_name)) == NULL) {
 		my_free(new_contactsmember);
 		return NULL;
 		}

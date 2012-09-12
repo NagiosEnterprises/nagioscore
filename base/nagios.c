@@ -312,21 +312,24 @@ int main(int argc, char **argv, char **env) {
 
 			/* we'll need the event queue here so we can time insertions */
 			init_event_queue();
+			timing_point("Done initializing event queue\n");
 
 			/* read initial service and host state information */
 			initialize_retention_data(config_file);
 			read_initial_state_information();
+			timing_point("Retention data and initial state parsed\n");
 
 			/* initialize the event timing loop */
 			init_timing_loop();
+			timing_point("Timing loop initialized\n");
 
 			/* display scheduling information */
 			display_scheduling_info();
 			}
 
 		if(precache_objects) {
-			timing_point("Precaching objects\n");
 			result = fcache_objects(object_precache_file);
+			timing_point("Done precaching objects\n");
 			if(result == OK) {
 				printf("Object precache file created:\n%s\n", object_precache_file);
 				}

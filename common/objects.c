@@ -416,8 +416,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 #endif
 
 	/* make sure we have the data we need */
-	if((name == NULL || !strcmp(name, "")) || (address == NULL || !strcmp(address, ""))) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host name or address is NULL\n");
+	if(name == NULL || !strcmp(name, "")) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host name is NULL\n");
 		return NULL;
 		}
 
@@ -457,18 +457,11 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 
 	/* duplicate string vars */
 	if((new_host->name = (char *)strdup(name)) == NULL)
-		result = ERROR;
-	if(display_name) {
-		if((new_host->display_name = (char *)strdup(display_name)) == NULL)
-			result = ERROR;
-		}
-	else {
-		new_host->display_name = new_host->name;
-		}
-
-	if((new_host->alias = (char *)strdup((alias == NULL) ? name : alias)) == NULL)
-		result = ERROR;
-	if((new_host->address = (char *)strdup(address)) == NULL)
+		return NULL;
+	new_host->display_name = display_name ? strdup(display_name) : new_host->name;
+	new_host->alias = alias ? strdup(alias) : new_host->name;
+	new_host->address = address ? strdup(address) : new_host->name;
+	if(!new_host->display_name || !new_host->alias || !new_host->address)
 		result = ERROR;
 	new_host->check_period = check_tp ? check_tp->name : NULL;
 	new_host->notification_period = notify_tp ? notify_tp->name : NULL;
@@ -2616,9 +2609,11 @@ int free_object_data(void) {
 
 		if(this_host->display_name != this_host->name)
 			my_free(this_host->display_name);
+		if(this_host->alias != this_host->name)
+			my_free(this_host->alias);
+		if(this_host->address != this_host->name)
+			my_free(this_host->address);
 		my_free(this_host->name);
-		my_free(this_host->alias);
-		my_free(this_host->address);
 #ifdef NSCORE
 		my_free(this_host->plugin_output);
 		my_free(this_host->long_plugin_output);

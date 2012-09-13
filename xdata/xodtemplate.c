@@ -118,7 +118,7 @@ static struct object_count xodcount;
 
 #ifndef NSCGI
 /* reusable bitmaps for expanding objects */
-static bitmap *service_map, *host_map, *contact_map;
+static bitmap *service_map, *parent_map, *host_map, *contact_map;
 #endif
 
 /* returns the name of a numbered config file */
@@ -4181,12 +4181,13 @@ int xodtemplate_duplicate_services(void) {
  * If we have host_name/hostgroup_name and service_description, we do multiple
  * simple lookups and concatenate the results.
  */
-static int xodtemplate_create_service_list(objectlist **ret, char *host_name, char *hostgroup_name, char *servicegroup_name, char *service_description, int _config_file, int _start_line)
+static int xodtemplate_create_service_list(objectlist **ret, bitmap *reject_map, char *host_name, char *hostgroup_name, char *servicegroup_name, char *service_description, int _config_file, int _start_line)
 {
 	objectlist *hlist = NULL, *hglist = NULL, *slist = NULL, *sglist = NULL;
 	objectlist *glist, *gnext, *list, *next; /* iterators */
 	xodtemplate_hostgroup fake_hg;
 	xodtemplate_service *s;
+	bitmap *in;
 
 	/*
 	 * if we have a service_description, we need host_name
@@ -4203,14 +4204,15 @@ static int xodtemplate_create_service_list(objectlist **ret, char *host_name, ch
 
 	/* we'll need these */
 	bitmap_clear(host_map);
-	bitmap_clear(service_map);
+	if (!(in = bitmap_create(xodcount.services)))
+		return ERROR;
 
 	/*
 	 * all services in the accepted servicegroups can be added, except
 	 * if they're also in service_map, in which case they're also
 	 * in rejected servicegroups and must NOT be added
 	 */
-	if(servicegroup_name && xodtemplate_expand_servicegroups(&sglist, service_map, servicegroup_name, _config_file, _start_line) != OK)
+	if(servicegroup_name && xodtemplate_expand_servicegroups(&sglist, reject_map, servicegroup_name, _config_file, _start_line) != OK)
 		return ERROR;
 	for(glist = sglist; glist; glist = gnext) {
 		xodtemplate_servicegroup *sg = (xodtemplate_servicegroup *)glist->object_ptr;
@@ -4220,9 +4222,9 @@ static int xodtemplate_create_service_list(objectlist **ret, char *host_name, ch
 			xodtemplate_service *s = (xodtemplate_service *)list->object_ptr;
 
 			/* rejected or already added */
-			if(bitmap_isset(service_map, s->id))
+			if(bitmap_isset(in, s->id) || bitmap_isset(reject_map, s->id))
 				continue;
-			bitmap_set(service_map, s->id);
+			bitmap_set(in, s->id);
 			if(prepend_object_to_objectlist(ret, s) != OK) {
 				free_objectlist(&gnext);
 				return ERROR;
@@ -4252,6 +4254,7 @@ static int xodtemplate_create_service_list(objectlist **ret, char *host_name, ch
 		if(prepend_object_to_objectlist(&hglist, &fake_hg) != OK) {
 			free_objectlist(&hlist);
 			free_objectlist(&hglist);
+			bitmap_destroy(in);
 			return ERROR;
 		}
 	}
@@ -4268,27 +4271,30 @@ static int xodtemplate_create_service_list(objectlist **ret, char *host_name, ch
 
 			/* expand services and add them all, unless they're rejected */
 			slist = NULL;
-			if(xodtemplate_expand_services(&slist, service_map, h->host_name, service_description, _config_file, _start_line) != OK) {
+			if(xodtemplate_expand_services(&slist, reject_map, h->host_name, service_description, _config_file, _start_line) != OK) {
 				free_objectlist(&gnext);
+				bitmap_destroy(in);
 				return ERROR;
 			}
 			for(list = slist; list; list = next) {
 				s = (xodtemplate_service *)list->object_ptr;
 				next = list->next;
 				free(list);
-				if(bitmap_isset(service_map, s->id))
+				if(bitmap_isset(in, s->id) || bitmap_isset(reject_map, s->id))
 					continue;
-				bitmap_set(service_map, s->id);
+				bitmap_set(in, s->id);
 				if(prepend_object_to_objectlist(ret, s) != OK) {
 					free_objectlist(&next);
 					free_objectlist(&gnext);
 					free_objectlist(&fake_hg.member_list);
+					bitmap_destroy(in);
 					return ERROR;
 				}
 			}
 		}
 	}
 
+	bitmap_destroy(in);
 	free_objectlist(&fake_hg.member_list);
 	return OK;
 }
@@ -4368,7 +4374,7 @@ int xodtemplate_duplicate_objects(void) {
 		master_servicelist = NULL;
 
 		/* get list of services */
-		if(xodtemplate_create_service_list(&master_servicelist, temp_serviceescalation->host_name, temp_serviceescalation->hostgroup_name, temp_serviceescalation->servicegroup_name, temp_serviceescalation->service_description, temp_serviceescalation->_config_file, temp_serviceescalation->_start_line) != OK)
+		if(xodtemplate_create_service_list(&master_servicelist, service_map, temp_serviceescalation->host_name, temp_serviceescalation->hostgroup_name, temp_serviceescalation->servicegroup_name, temp_serviceescalation->service_description, temp_serviceescalation->_config_file, temp_serviceescalation->_start_line) != OK)
 			return ERROR;
 
 		/* we won't need these anymore */
@@ -4382,6 +4388,9 @@ int xodtemplate_duplicate_objects(void) {
 			xodtemplate_service *s = (xodtemplate_service *)list->object_ptr;
 			next = list->next;
 			free(list);
+
+			if(bitmap_isset(service_map, s->id))
+				continue;
 
 			xodcount.serviceescalations++;
 
@@ -4454,7 +4463,7 @@ int xodtemplate_duplicate_objects(void) {
 			continue;
 
 		/* get list of hosts */
-		if(xodtemplate_create_service_list(&master_servicelist, temp_serviceextinfo->hostgroup_name, temp_serviceextinfo->host_name, NULL, temp_serviceextinfo->service_description, temp_serviceextinfo->_config_file, temp_serviceextinfo->_start_line) != OK) {
+		if(xodtemplate_create_service_list(&master_servicelist, service_map, temp_serviceextinfo->hostgroup_name, temp_serviceextinfo->host_name, NULL, temp_serviceextinfo->service_description, temp_serviceextinfo->_config_file, temp_serviceextinfo->_start_line) != OK) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_serviceextinfo->_config_file), temp_serviceextinfo->_start_line);
 			return ERROR;
 			}
@@ -4464,6 +4473,8 @@ int xodtemplate_duplicate_objects(void) {
 			xodtemplate_service *s = (xodtemplate_service *)list->object_ptr;
 			next = list->next;
 			free(list);
+			if(bitmap_isset(service_map, s->id))
+				continue;
 			xodtemplate_merge_service_extinfo_object(s, temp_serviceextinfo);
 			}
 		/* now we're done, so we might as well kill it off */
@@ -4911,15 +4922,17 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 	}
 
 	parents = children = NULL;
+	bitmap_clear(parent_map);
+
 	/* create the two object lists */
-	if(xodtemplate_create_service_list(&parents, temp_servicedependency->host_name, temp_servicedependency->hostgroup_name, temp_servicedependency->servicegroup_name, temp_servicedependency->service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
+	if(xodtemplate_create_service_list(&parents, parent_map, temp_servicedependency->host_name, temp_servicedependency->hostgroup_name, temp_servicedependency->servicegroup_name, temp_servicedependency->service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand master service(s) (config file '%s', starting at line %d)\n",
 			  xodtemplate_config_file_name(temp_servicedependency->_config_file),
 			  temp_servicedependency->_start_line);
 		return ERROR;
 		}
 
-	if(same_host == FALSE && xodtemplate_create_service_list(&children, temp_servicedependency->dependent_host_name, temp_servicedependency->dependent_hostgroup_name, temp_servicedependency->dependent_servicegroup_name, temp_servicedependency->dependent_service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
+	if(same_host == FALSE && xodtemplate_create_service_list(&children, service_map, temp_servicedependency->dependent_host_name, temp_servicedependency->dependent_hostgroup_name, temp_servicedependency->dependent_servicegroup_name, temp_servicedependency->dependent_service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand dependent service(s) (at config file '%s', starting on line %d)\n",
 			  xodtemplate_config_file_name(temp_servicedependency->_config_file),
 			  temp_servicedependency->_start_line);
@@ -4935,19 +4948,25 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 		pnext = plist->next;
 		free(plist); /* free it as we go along */
 
+		if(bitmap_isset(parent_map, p->id))
+			continue;
+		bitmap_set(parent_map, p->id);
+
 		/*
 		 * if this is a same-host dependency, we must expand
 		 * dependent_service_description for the host we're
 		 * currently looking at
 		 */
 		if(same_host) {
-			bitmap_clear(service_map);
 			children = NULL;
 			if(xodtemplate_expand_services(&children, service_map, p->host_name, dsdesc, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK)
 				return ERROR;
 		}
 		for(clist = children; clist; clist = clist->next) {
 			xodtemplate_service *c = (xodtemplate_service *)clist->object_ptr;
+			if(bitmap_isset(service_map, c->id))
+				continue;
+			bitmap_set(service_map, c->id);
 
 			/* now register */
 			temp_servicedependency->host_name = p->host_name;
@@ -7482,6 +7501,13 @@ int xodtemplate_register_objects(void) {
 	 * These aren't in skiplists at all, but it's safe to destroy
 	 * them as we go along, since all dupes are at the head of the list
 	 */
+	if(xodtemplate_servicedependency_list) {
+		parent_map = bitmap_create(xodcount.services);
+		if(!parent_map) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to create parent bitmap for service dependencies\n");
+			return ERROR;
+			}
+		}
 	for(sd = xodtemplate_servicedependency_list; sd; sd = next_sd) {
 		next_sd = sd->next;
 #ifdef NSCGI
@@ -7492,6 +7518,7 @@ int xodtemplate_register_objects(void) {
 			return ERROR;
 #endif
 		}
+	bitmap_destroy(parent_map);
 	timing_point("%u unique / %u total servicedependencies registered\n",
 				 num_objects.servicedependencies, xodcount.servicedependencies);
 
@@ -9638,62 +9665,6 @@ int xodtemplate_expand_hosts(objectlist **list, bitmap *reject_map, char *hosts,
 		return ERROR;
 
 	return OK;
-	}
-
-
-/* expands a comma-delimited list of servicegroups and/or service descriptions */
-objectlist *xodtemplate_expand_servicegroups_and_services(char *servicegroups, char *host_name, char *services, int _config_file, int _start_line) {
-	objectlist *ret = NULL, *glist = NULL, *slist = NULL, *list, *next;
-	bitmap *reject;
-	int result = OK;
-
-	reject = bitmap_create(xodcount.services);
-	if(!reject) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to create reject map for expanding services and servicegroups\n");
-		return NULL;
-	}
-
-	/* process list of servicegroups... */
-	if(servicegroups != NULL) {
-
-		/* expand servicegroups */
-		result = xodtemplate_expand_servicegroups(&glist, reject, servicegroups, _config_file, _start_line);
-		if(result != OK) {
-			bitmap_destroy(reject);
-			free_objectlist(&glist);
-			return NULL;
-			}
-		}
-
-	/* expand services */
-	result = xodtemplate_expand_services(&ret, reject, host_name, services, _config_file, _start_line);
-	if(result != OK) {
-		free_objectlist(&slist);
-		free_objectlist(&glist);
-		bitmap_destroy(reject);
-		return NULL;
-		}
-
-	/*
-	 * Add servicegroup services to ret, taking care not to add any that
-	 * are in the reject list
-	 */
-	for(list = glist; list; list = next) {
-		xodtemplate_servicegroup *sg = (xodtemplate_servicegroup *)list->object_ptr;
-		next = list->next;
-		free(list);
-		for(slist = sg->member_list; slist; slist = slist->next) {
-			xodtemplate_service *s = (xodtemplate_service *)slist->object_ptr;
-			if(bitmap_isset(reject, s->id))
-			   continue;
-			/* mark it as added (we abuse the reject list for that) */
-			bitmap_set(reject, s->id);
-			prepend_object_to_objectlist(&ret, s);
-			}
-		}
-	bitmap_destroy(reject);
-
-	return ret;
 	}
 
 

@@ -795,7 +795,6 @@ objectlist *xodtemplate_expand_hostgroups_and_hosts(char *, char *, int, int);
 int xodtemplate_expand_hostgroups(objectlist **, bitmap *, char *, int, int);
 int xodtemplate_expand_hosts(objectlist **list, bitmap *reject_map, char *, int, int);
 
-objectlist *xodtemplate_expand_servicegroups_and_services(char *, char *, char *, int, int);
 int xodtemplate_expand_servicegroups(objectlist **, bitmap *, char *, int, int);
 int xodtemplate_expand_services(objectlist **, bitmap *, char *, char *, int, int);
 

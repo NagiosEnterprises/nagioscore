@@ -4391,7 +4391,7 @@ int xodtemplate_duplicate_objects(void) {
 				}
 
 			/* duplicate service escalation definition */
-			result = xodtemplate_duplicate_serviceescalation(temp_serviceescalation, temp_serviceescalation->host_name, s->service_description);
+			result = xodtemplate_duplicate_serviceescalation(temp_serviceescalation, s->host_name, s->service_description);
 
 			/* exit on error */
 			if(result == ERROR) {

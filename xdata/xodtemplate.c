@@ -4419,7 +4419,7 @@ int xodtemplate_duplicate_objects(void) {
 		/* merge this extinfo with every host in the hostgroup/host name list */
 		for(list = master_hostlist; list; list = next) {
 			xodtemplate_host *h = (xodtemplate_host *)list->object_ptr;
-			next = list;
+			next = list->next;
 			free(list);
 
 			/* merge it. we ignore errors here */

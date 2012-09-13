@@ -1731,6 +1731,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	servicedependency *new_servicedependency = NULL;
 	service *parent, *child;
 	timeperiod *tp = NULL;
+	int result;
 
 	/* make sure we have what we need */
 	parent = find_service(host_name, service_description);
@@ -1754,19 +1755,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	/* allocate memory for a new service dependency entry */
 	new_servicedependency = &servicedependency_list[num_objects.servicedependencies];
 
-	/*
-	 * add new service dependency to its respective services.
-	 * Ordering doesn't matter here as we'll have to check them
-	 * all anyway.
-	 */
-	if(dependency_type == NOTIFICATION_DEPENDENCY) {
-		if(add_object_to_objectlist(&child->notify_deps, new_servicedependency) != OK)
-			return NULL;
-		}
-	else {
-		if(add_object_to_objectlist(&child->exec_deps, new_servicedependency) != OK)
-			return NULL;
-		}
 #ifndef NSCGI
 	new_servicedependency->dependent_service_ptr = child;
 	new_servicedependency->master_service_ptr = parent;
@@ -1789,7 +1777,24 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->fail_on_critical = (fail_on_critical == 1) ? TRUE : FALSE;
 	new_servicedependency->fail_on_pending = (fail_on_pending == 1) ? TRUE : FALSE;
 
-	new_servicedependency->id = num_objects.servicedependencies++;
+	/*
+	 * add new service dependency to its respective services.
+	 * Ordering doesn't matter here as we'll have to check them
+	 * all anyway. We avoid adding dupes though, since we can
+	 * apparently get zillion's and zillion's of them.
+	 */
+	if(dependency_type == NOTIFICATION_DEPENDENCY)
+		result = prepend_unique_object_to_objectlist(&child->notify_deps, new_servicedependency, sizeof(*new_servicedependency));
+	else
+		result = prepend_unique_object_to_objectlist(&child->exec_deps, new_servicedependency, sizeof(*new_servicedependency));
+
+	if(result != OK) {
+		free(new_servicedependency);
+		/* hack to avoid caller bombing out */
+		return result == OBJECTLIST_DUPE ? (void *)1 : NULL;
+		}
+
+	num_objects.servicedependencies++;
 	return new_servicedependency;
 	}
 
@@ -1799,6 +1804,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	hostdependency *new_hostdependency = NULL;
 	host *parent, *child;
 	timeperiod *tp = NULL;
+	int result;
 
 	/* make sure we have what we need */
 	parent = find_host(host_name);
@@ -1822,15 +1828,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency = &hostdependency_list[num_objects.hostdependencies];
 
 #ifndef NSCGI
-	if(dependency_type == NOTIFICATION_DEPENDENCY) {
-		if(add_object_to_objectlist(&child->notify_deps, new_hostdependency) != OK)
-			return NULL;
-		}
-	else {
-		if(add_object_to_objectlist(&child->exec_deps, new_hostdependency) != OK)
-			return NULL;
-		}
-
 	new_hostdependency->dependent_host_ptr = child;
 	new_hostdependency->master_host_ptr = parent;
 	new_hostdependency->dependency_period_ptr = tp;
@@ -1849,7 +1846,18 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency->fail_on_unreachable = (fail_on_unreachable == 1) ? TRUE : FALSE;
 	new_hostdependency->fail_on_pending = (fail_on_pending == 1) ? TRUE : FALSE;
 
-	new_hostdependency->id = num_objects.hostdependencies++;
+	if(dependency_type == NOTIFICATION_DEPENDENCY)
+		result = prepend_unique_object_to_objectlist(&child->notify_deps, new_hostdependency, sizeof(*new_hostdependency));
+	else
+		result = prepend_unique_object_to_objectlist(&child->exec_deps, new_hostdependency, sizeof(*new_hostdependency));
+
+	if(result != OK) {
+		free(new_hostdependency);
+		/* hack to avoid caller bombing out */
+		return result == OBJECTLIST_DUPE ? (void *)1 : NULL;
+		}
+
+	num_objects.hostdependencies++;
 	return new_hostdependency;
 	}
 

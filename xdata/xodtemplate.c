@@ -4940,6 +4940,7 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 		 */
 		if(same_host) {
 			bitmap_clear(service_map);
+			children = NULL;
 			if(xodtemplate_expand_services(&children, service_map, p->host_name, dsdesc, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK)
 				return ERROR;
 		}

@@ -1116,14 +1116,6 @@ int read_main_config_file(char *main_config_file) {
 		else if(!strcmp(variable, "bare_update_check"))
 			bare_update_check = (atoi(value) > 0) ? TRUE : FALSE;
 
-		/* warn about old variables */
-		else if(!strcmp(variable, "comment_file") || !strcmp(variable, "xcddefault_comment_file")) {
-			logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: comment_file variable ignored.  Comments are now stored in the status and retention files.");
-			}
-		else if(!strcmp(variable, "downtime_file") || !strcmp(variable, "xdddefault_downtime_file")) {
-			logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: downtime_file variable ignored.  Downtime entries are now stored in the status and retention files.");
-			}
-
 		/* skip external data directives */
 		else if(strstr(input, "x") == input)
 			continue;

@@ -4363,6 +4363,8 @@ int xodtemplate_duplicate_objects(void) {
 
 		bitmap_clear(service_map);
 
+		master_servicelist = NULL;
+
 		/* get list of services */
 		if(xodtemplate_create_service_list(&master_servicelist, temp_serviceescalation->host_name, temp_serviceescalation->hostgroup_name, temp_serviceescalation->servicegroup_name, temp_serviceescalation->service_description, temp_serviceescalation->_config_file, temp_serviceescalation->_start_line) != OK)
 			return ERROR;

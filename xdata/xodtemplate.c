@@ -4358,7 +4358,7 @@ int xodtemplate_duplicate_objects(void) {
 	for(temp_serviceescalation = xodtemplate_serviceescalation_list; temp_serviceescalation != NULL; temp_serviceescalation = temp_serviceescalation->next) {
 
 		/* skip serviceescalations without enough data */
-		if(temp_serviceescalation->service_description == NULL || temp_serviceescalation->host_name == NULL)
+		if(temp_serviceescalation->service_description == NULL && (temp_serviceescalation->host_name == NULL || temp_serviceescalation->hostgroup_name == NULL))
 			continue;
 
 		bitmap_clear(service_map);

@@ -2116,6 +2116,18 @@ int prepend_object_to_objectlist(objectlist **list, void *object_ptr)
 	return OK;
 	}
 
+/* useful for adding dependencies to master objects */
+int prepend_unique_object_to_objectlist(objectlist **list, void *object_ptr, size_t size) {
+	objectlist *l;
+	if(list == NULL || object_ptr == NULL)
+		return ERROR;
+	for(l = *list; l; l = l->next) {
+		if(!memcmp(l->object_ptr, object_ptr, size))
+			return OBJECTLIST_DUPE;
+		}
+	return prepend_object_to_objectlist(list, object_ptr);
+}
+
 /* frees memory allocated to a temporary object list */
 int free_objectlist(objectlist **temp_list) {
 	objectlist *this_objectlist = NULL;

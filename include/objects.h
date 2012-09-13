@@ -785,8 +785,10 @@ command *find_command(const char *);							                /* finds a command ob
 service *find_service(const char *, const char *);								/* finds a service object */
 
 
+#define OBJECTLIST_DUPE 1
 int add_object_to_objectlist(objectlist **, void *);
 int prepend_object_to_objectlist(objectlist **, void *);
+int prepend_unique_object_to_objectlist(objectlist **, void *, size_t size);
 int free_objectlist(objectlist **);
 
 

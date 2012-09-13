@@ -118,8 +118,9 @@ static struct object_count xodcount;
 
 #ifndef NSCGI
 /* reusable bitmaps for expanding objects */
-static bitmap *service_map, *parent_map, *host_map, *contact_map;
+static bitmap *service_map, *host_map, *contact_map;
 #endif
+static bitmap *parent_map;
 
 /* returns the name of a numbered config file */
 static char *xodtemplate_config_file_name(int config_file) {

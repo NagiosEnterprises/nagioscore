@@ -62,9 +62,106 @@ servicedependency *servicedependency_list = NULL;
 
 #ifdef NSCORE
 int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
+
+
+static int cmp_sdep(const void *a_, const void *b_) {
+	const servicedependency *a = (servicedependency *)a_;
+	const servicedependency *b = (servicedependency *)b_;
+	int ret;
+
+	ret = strcmp(a->host_name, b->host_name);
+	if(ret)
+		return ret;
+	ret = strcmp(a->service_description, b->service_description);
+	if(ret)
+		return ret;
+	ret = strcmp(a->dependent_host_name, b->dependent_host_name);
+	if(ret)
+		return ret;
+	return strcmp(a->dependent_service_description, b->dependent_service_description);
+	}
+
+static int cmp_hdep(const void *a_, const void *b_) {
+	const hostdependency *a = (const hostdependency *)a_;
+	const hostdependency *b = (const hostdependency *)b_;
+	int ret;
+
+	ret = strcmp(a->host_name, b->host_name);
+	return ret ? ret : strcmp(a->dependent_host_name, b->dependent_host_name);
+	}
+
+static void post_process_object_config(void) {
+	hostdependency_list = malloc(sizeof(hostdependency) * num_objects.hostdependencies);
+	servicedependency_list = malloc(sizeof(servicedependency) * num_objects.servicedependencies);
+	objectlist *list, *next;
+	unsigned int i, slot;
+
+	slot = 0;
+	for(i = 0; slot < num_objects.servicedependencies && i < num_objects.services; i++) {
+		service *s = &service_list[i];
+		for(list = s->notify_deps; list; list = next) {
+			servicedependency *sdep = (servicedependency *)list->object_ptr;
+			next = list->next;
+			free(list);
+			memcpy(&servicedependency_list[slot++], sdep, sizeof(*sdep));
+			free(sdep);
+		}
+		for(list = s->exec_deps; list; list = next) {
+			servicedependency *sdep = (servicedependency *)list->object_ptr;
+			next = list->next;
+			free(list);
+			memcpy(&servicedependency_list[slot++], sdep, sizeof(*sdep));
+			free(sdep);
+		}
+		s->notify_deps = s->exec_deps = NULL;
+	}
+
+	qsort(servicedependency_list, num_objects.servicedependencies, sizeof(servicedependency), cmp_sdep);
+
+	for (i = 0; i < num_objects.servicedependencies; i++) {
+		servicedependency *sdep = &servicedependency_list[i];
+		sdep->id = i;
+		if(sdep->dependency_type == NOTIFICATION_DEPENDENCY)
+			prepend_object_to_objectlist(&sdep->dependent_service_ptr->notify_deps, sdep);
+		else
+			prepend_object_to_objectlist(&sdep->dependent_service_ptr->exec_deps, sdep);
+	}
+	timing_point("Done post-processing servicedependencies\n");
+
+
+	slot = 0;
+	for(i = 0; slot < num_objects.hostdependencies && i < num_objects.hosts; i++) {
+		host *h = &host_list[i];
+		for(list = h->notify_deps; list; list = next) {
+			hostdependency *hdep = (hostdependency *)list->object_ptr;
+			next = list->next;
+			free(list);
+			memcpy(&hostdependency_list[slot++], hdep, sizeof(*hdep));
+			free(hdep);
+		}
+		for(list = h->exec_deps; list; list = next) {
+			hostdependency *hdep = (hostdependency *)list->object_ptr;
+			next = list->next;
+			free(list);
+			memcpy(&hostdependency_list[slot++], hdep, sizeof(*hdep));
+			free(hdep);
+		}
+		h->notify_deps = h->exec_deps = NULL;
+	}
+
+	qsort(hostdependency_list, num_objects.hostdependencies, sizeof(hostdependency), cmp_hdep);
+
+	for(i = 0; i < num_objects.hostdependencies; i++) {
+		hostdependency *hdep = &hostdependency_list[i];
+		hdep->id = i;
+		if(hdep->dependency_type == NOTIFICATION_DEPENDENCY)
+			prepend_object_to_objectlist(&hdep->dependent_host_ptr->notify_deps, hdep);
+		else
+			prepend_object_to_objectlist(&hdep->dependent_host_ptr->exec_deps, hdep);
+	}
+	timing_point("Done post-processing host dependencies\n");
+}
 #endif
-
-
 
 /******************************************************************/
 /******* TOP-LEVEL HOST CONFIGURATION DATA INPUT FUNCTION *********/
@@ -85,6 +182,11 @@ int read_object_config_data(char *main_config_file, int options) {
 	if(result != OK)
 		return ERROR;
 #endif
+	/* handle any remaining config mangling */
+#ifndef NSCGI
+	post_process_object_config();
+#endif
+	timing_point("Done post-processing configuration\n");
 
 	return result;
 	}
@@ -1753,7 +1855,8 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		}
 
 	/* allocate memory for a new service dependency entry */
-	new_servicedependency = &servicedependency_list[num_objects.servicedependencies];
+	if((new_servicedependency = calloc(1, sizeof(*new_servicedependency))) == NULL)
+		return NULL;
 
 #ifndef NSCGI
 	new_servicedependency->dependent_service_ptr = child;
@@ -1825,7 +1928,8 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		return NULL ;
 	}
 
-	new_hostdependency = &hostdependency_list[num_objects.hostdependencies];
+	if((new_hostdependency = calloc(1, sizeof(*new_hostdependency))) == NULL)
+		return NULL;
 
 #ifndef NSCGI
 	new_hostdependency->dependent_host_ptr = child;

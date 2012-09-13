@@ -1808,7 +1808,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						return ERROR;
 						}
 					}
-				xodcount.servicedependencies++;
 				}
 			else if(!strcmp(variable, "notification_failure_options") || !strcmp(variable, "notification_failure_criteria")) {
 				temp_servicedependency->have_notification_dependency_options = TRUE;
@@ -1843,7 +1842,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						return ERROR;
 						}
 					}
-				xodcount.servicedependencies++;
 				}
 			else if(!strcmp(variable, "register"))
 				temp_servicedependency->register_object = (atoi(value) > 0) ? TRUE : FALSE;
@@ -3174,7 +3172,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						return ERROR;
 						}
 					}
-				xodcount.hostdependencies++;
 				}
 			else if(!strcmp(variable, "execution_failure_options") || !strcmp(variable, "execution_failure_criteria")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
@@ -3204,7 +3201,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						}
 					}
 				temp_hostdependency->have_execution_dependency_options = TRUE;
-				xodcount.hostdependencies++;
 				}
 			else if(!strcmp(variable, "register"))
 				temp_hostdependency->register_object = (atoi(value) > 0) ? TRUE : FALSE;
@@ -3578,20 +3574,9 @@ int xodtemplate_add_object_property(char *input, int options) {
 int xodtemplate_end_object_definition(int options) {
 	int result = OK;
 #ifdef NSCGI
-	xodtemplate_hostdependency *hd;
-	xodtemplate_servicedependency *sd;
-
 	switch(xodtemplate_current_object_type) {
 	case XODTEMPLATE_HOSTESCALATION: xodcount.hostescalations++; break;
 	case XODTEMPLATE_SERVICEESCALATION: xodcount.serviceescalations++; break;
-	case XODTEMPLATE_HOSTDEPENDENCY:
-		hd = (xodtemplate_hostdependency *)xodtemplate_current_object;
-		xodcount.hostdependencies += !!hd->have_execution_dependency_options + !!hd->have_notification_dependency_options;
-		break;
-	case XODTEMPLATE_SERVICEDEPENDENCY:
-		sd = (xodtemplate_servicedependency *)xodtemplate_current_object;
-		xodcount.servicedependencies += !!sd->have_execution_dependency_options + !!sd->have_notification_dependency_options;
-		break;
 	}
 #endif
 
@@ -4313,14 +4298,10 @@ int xodtemplate_duplicate_objects(void) {
 	int result = OK;
 	xodtemplate_hostescalation *temp_hostescalation = NULL;
 	xodtemplate_serviceescalation *temp_serviceescalation = NULL;
-	xodtemplate_hostdependency *temp_hostdependency = NULL;
-	xodtemplate_servicedependency *temp_servicedependency = NULL;
 	xodtemplate_hostextinfo *next_he = NULL, *temp_hostextinfo = NULL;
 	xodtemplate_serviceextinfo *next_se = NULL, *temp_serviceextinfo = NULL;
-
-	objectlist *master_servicelist = NULL;
-	objectlist *master_hostlist = NULL, *dependent_hostlist = NULL;
-	objectlist *list, *next, *l2, *n2;
+	objectlist *master_hostlist, *master_servicelist;
+	objectlist *list, *next;
 
 
 	/*************************************/
@@ -4418,156 +4399,6 @@ int xodtemplate_duplicate_objects(void) {
 			}
 		}
 	timing_point("Created %u serviceescalations (dupes possible)\n", xodcount.serviceescalations);
-
-
-	/* duplicate host dependency definitions */
-	for(temp_hostdependency = xodtemplate_hostdependency_list; temp_hostdependency != NULL; temp_hostdependency = temp_hostdependency->next) {
-
-		/* skip host dependencies without enough data */
-		if(temp_hostdependency->hostgroup_name == NULL && temp_hostdependency->dependent_hostgroup_name == NULL && temp_hostdependency->host_name == NULL && temp_hostdependency->dependent_host_name == NULL)
-			continue;
-
-		/* get list of master host names */
-		master_hostlist = xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->hostgroup_name, temp_hostdependency->host_name, temp_hostdependency->_config_file, temp_hostdependency->_start_line);
-		if(master_hostlist == NULL && allow_empty_hostgroup_assignment==0) {
-			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand master hostgroups and/or hosts specified in host dependency (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostdependency->_config_file), temp_hostdependency->_start_line);
-			return ERROR;
-			}
-
-		/* get list of dependent host names */
-		dependent_hostlist = xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->dependent_hostgroup_name, temp_hostdependency->dependent_host_name, temp_hostdependency->_config_file, temp_hostdependency->_start_line);
-		if(dependent_hostlist == NULL && allow_empty_hostgroup_assignment==0) {
-			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand dependent hostgroups (%s) and/or hosts (%s) specified in host dependency (config file '%s', starting on line %d)\n", temp_hostdependency->dependent_hostgroup_name, temp_hostdependency->dependent_host_name, xodtemplate_config_file_name(temp_hostdependency->_config_file), temp_hostdependency->_start_line);
-			free_objectlist(&master_hostlist);
-			return ERROR;
-			}
-
-		/* duplicate the dependency definitions */
-		for(list = master_hostlist; list; list = next) {
-			xodtemplate_host *master = (xodtemplate_host *)list->object_ptr;
-			next = list->next;
-			free(list);
-
-			for(l2 = dependent_hostlist; l2; l2 = n2) {
-				xodtemplate_host *child = (xodtemplate_host *)l2->object_ptr;
-				n2 = l2->next;
-				free(l2);
-
-				/* existing definition gets last names */
-				if(!n2 && !next) {
-					my_free(temp_hostdependency->name);
-					my_free(temp_hostdependency->template);
-					my_free(temp_hostdependency->host_name);
-					my_free(temp_hostdependency->dependent_host_name);
-					temp_hostdependency->host_name = master->host_name;
-					temp_hostdependency->dependent_host_name = child->host_name;
-					continue;
-					}
-				else
-					result = xodtemplate_duplicate_hostdependency(temp_hostdependency, master->host_name, child->host_name);
-				/* exit on error */
-				if(result == ERROR) {
-					free_objectlist(&list);
-					free_objectlist(&l2);
-					return ERROR;
-					}
-				}
-			}
-		}
-	timing_point("Created %u hostdependencies (dupes possible)\n", xodcount.hostdependencies);
-
-
-	/* process service dependencies */
-	for(temp_servicedependency = xodtemplate_servicedependency_list; temp_servicedependency != NULL; temp_servicedependency = temp_servicedependency->next) {
-		objectlist *parents = NULL, *plist, *pnext;
-		objectlist *children = NULL, *clist;
-		int same_host = FALSE;
-
-		/* skip templates */
-		if(temp_servicedependency->register_object == 0)
-			continue;
-
-		/* take care of same-host dependencies */
-		if(!temp_servicedependency->dependent_host_name && !temp_servicedependency->dependent_hostgroup_name) {
-			if(!temp_servicedependency->dependent_service_description)
-				; /* do nothing. might be dependent_servicegroup_name */
-			else {
-				same_host = TRUE;
-				}
-			}
-
-		parents = children = NULL;
-		/* create the two object lists */
-		if(xodtemplate_create_service_list(&parents, temp_servicedependency->host_name, temp_servicedependency->hostgroup_name, temp_servicedependency->servicegroup_name, temp_servicedependency->service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
-			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand master service(s) (config file '%s', starting at line %d)\n",
-				  xodtemplate_config_file_name(temp_servicedependency->_config_file),
-				  temp_servicedependency->_start_line);
-			return ERROR;
-			}
-		if(same_host == FALSE && xodtemplate_create_service_list(&children, temp_servicedependency->dependent_host_name, temp_servicedependency->dependent_hostgroup_name, temp_servicedependency->dependent_servicegroup_name, temp_servicedependency->dependent_service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
-			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand dependent service(s) (at config file '%s', starting on line %d)\n",
-				  xodtemplate_config_file_name(temp_servicedependency->_config_file),
-				  temp_servicedependency->_start_line);
-			return ERROR;
-			}
-
-		/*
-		 * every service in "children" depends on every service in
-		 * "parents", so just loop twice and create them all.
-		 */
-		for(plist = parents; plist; plist = pnext) {
-			xodtemplate_service *p = (xodtemplate_service *)plist->object_ptr;
-			pnext = plist->next;
-			free(plist); /* free it as we go along */
-
-			/*
-			 * if this is a same-host dependency, we must expand
-			 * dependent_service_description for the host we're
-			 * currently looking at
-			 */
-			if(same_host) {
-				bitmap_clear(service_map);
-				if(xodtemplate_expand_services(&children, service_map, p->host_name, temp_servicedependency->dependent_service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
-					return ERROR;
-					}
-				}
-			for(clist = children; clist; clist = clist->next) {
-				xodtemplate_service *c = (xodtemplate_service *)clist->object_ptr;
-
-				/*
-				 * now duplicate it. We re-use the existing entry for the
-				 * very last item. Using the first would mean that we lose
-				 * items from a list of services in the
-				 * dependent_service_description when using same_host
-				 * dependencies.
-				 */
-				if(pnext || clist->next) {
-					xodtemplate_duplicate_servicedependency(temp_servicedependency, p->host_name, p->service_description, c->host_name, c->service_description);
-					}
-				else {
-					my_free(temp_servicedependency->name);
-					my_free(temp_servicedependency->template);
-					my_free(temp_servicedependency->hostgroup_name);
-					my_free(temp_servicedependency->host_name);
-					my_free(temp_servicedependency->servicegroup_name);
-					my_free(temp_servicedependency->service_description);
-					my_free(temp_servicedependency->dependent_hostgroup_name);
-					my_free(temp_servicedependency->dependent_host_name);
-					my_free(temp_servicedependency->dependent_servicegroup_name);
-					my_free(temp_servicedependency->dependent_service_description);
-					temp_servicedependency->host_name = p->host_name;
-					temp_servicedependency->service_description = p->service_description;
-					temp_servicedependency->dependent_host_name = c->host_name;
-					temp_servicedependency->dependent_service_description = c->service_description;
-					}
-				}
-			if(same_host == TRUE)
-				free_objectlist(&children);
-			}
-		if(same_host == FALSE)
-			free_objectlist(&children);
-		}
-	timing_point("Created %u servicedependencies (dupes possible)\n", xodcount.servicedependencies);
 
 
 	/****** DUPLICATE HOSTEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
@@ -4767,64 +4598,6 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	return OK;
 	}
 
-
-
-/* duplicates a host dependency definition (with master and dependent host names) */
-int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostdependency, char *master_host_name, char *dependent_host_name) {
-	xodtemplate_hostdependency *new_hostdependency = NULL;
-
-	/* allocate memory for a new host dependency definition */
-	new_hostdependency = (xodtemplate_hostdependency *)calloc(1, sizeof(xodtemplate_hostdependency));
-	if(new_hostdependency == NULL)
-		return ERROR;
-
-	memcpy(new_hostdependency, temp_hostdependency, sizeof(*new_hostdependency));
-	new_hostdependency->is_copy = TRUE;
-
-	/* allocate memory for and copy string members of hostdependency definition */
-	new_hostdependency->host_name = master_host_name;
-	new_hostdependency->dependent_host_name = dependent_host_name;
-
-	/* add new hostdependency to head of list in memory */
-	new_hostdependency->next = xodtemplate_hostdependency_list;
-	xodtemplate_hostdependency_list = new_hostdependency;
-	xodcount.hostdependencies += new_hostdependency->have_notification_dependency_options;
-	xodcount.hostdependencies += new_hostdependency->have_execution_dependency_options;
-
-	return OK;
-	}
-
-
-
-/* duplicates a service dependency definition */
-int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_servicedependency, char *master_host_name, char *master_service_description, char *dependent_host_name, char *dependent_service_description) {
-	xodtemplate_servicedependency *new_servicedependency = NULL;
-
-	/* allocate memory for a new service dependency definition */
-	new_servicedependency = (xodtemplate_servicedependency *)calloc(1, sizeof(xodtemplate_servicedependency));
-	if(new_servicedependency == NULL)
-		return ERROR;
-
-	memcpy(new_servicedependency, temp_servicedependency, sizeof(*new_servicedependency));
-	new_servicedependency->is_copy = TRUE;
-
-	/* assign strings */
-	new_servicedependency->host_name = master_host_name;
-	new_servicedependency->service_description = master_service_description;
-	new_servicedependency->dependent_host_name = dependent_host_name;
-	new_servicedependency->dependent_service_description = dependent_service_description;
-
-	/* add new servicedependency to head of list in memory */
-	new_servicedependency->next = xodtemplate_servicedependency_list;
-	xodtemplate_servicedependency_list = new_servicedependency;
-	xodcount.servicedependencies += new_servicedependency->have_notification_dependency_options;
-	xodcount.servicedependencies += new_servicedependency->have_execution_dependency_options;
-
-	return OK;
-	}
-
-
-
 /******************************************************************/
 /***************** OBJECT RESOLUTION FUNCTIONS ********************/
 /******************************************************************/
@@ -5011,21 +4784,6 @@ int xodtemplate_inherit_object_properties(void) {
 /***************** OBJECT RESOLUTION FUNCTIONS ********************/
 /******************************************************************/
 
-
-static int xodtemplate_register_and_destroy_hostdependency(void *hd_)
-{
-	xodtemplate_hostdependency *hd = (xodtemplate_hostdependency *)hd_;
-	int result;
-
-	result = xodtemplate_register_hostdependency(hd);
-
-	if(hd->is_copy == FALSE)
-		my_free(hd->dependency_period);
-	my_free(hd);
-
-	return result;
-}
-
 static int xodtemplate_register_and_destroy_hostescalation(void *he_)
 {
 	xodtemplate_hostescalation *he = (xodtemplate_hostescalation *)he_;
@@ -5039,18 +4797,6 @@ static int xodtemplate_register_and_destroy_hostescalation(void *he_)
 	my_free(he->contacts);
 	my_free(he);
 
-	return result;
-}
-
-static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
-{
-	xodtemplate_servicedependency *sd = (xodtemplate_servicedependency *)sd_;
-	int result;
-
-	result = xodtemplate_register_servicedependency(sd);
-	if(sd->is_copy == FALSE)
-		my_free(sd->dependency_period);
-	my_free(sd);
 	return result;
 }
 
@@ -5070,7 +4816,167 @@ static int xodtemplate_register_and_destroy_serviceescalation(void *se_)
 	return result;
 }
 
-#ifdef NSCORE
+#ifndef NSCGI
+static int xodtemplate_register_and_destroy_hostdependency(void *hd_)
+{
+	xodtemplate_hostdependency *temp_hostdependency = (xodtemplate_hostdependency *)hd_;
+	objectlist *master_hostlist = NULL, *dependent_hostlist = NULL;
+	objectlist *list, *next, *l2, *n2;
+
+	/* skip host dependencies without enough data */
+	if(temp_hostdependency->hostgroup_name == NULL && temp_hostdependency->dependent_hostgroup_name == NULL && temp_hostdependency->host_name == NULL && temp_hostdependency->dependent_host_name == NULL)
+		return OK;
+
+	/* get list of master host names */
+	master_hostlist = xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->hostgroup_name, temp_hostdependency->host_name, temp_hostdependency->_config_file, temp_hostdependency->_start_line);
+	if(master_hostlist == NULL && allow_empty_hostgroup_assignment==0) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand master hostgroups and/or hosts specified in host dependency (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostdependency->_config_file), temp_hostdependency->_start_line);
+		return ERROR;
+		}
+
+	/* get list of dependent host names */
+	dependent_hostlist = xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->dependent_hostgroup_name, temp_hostdependency->dependent_host_name, temp_hostdependency->_config_file, temp_hostdependency->_start_line);
+	if(dependent_hostlist == NULL && allow_empty_hostgroup_assignment==0) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand dependent hostgroups (%s) and/or hosts (%s) specified in host dependency (config file '%s', starting on line %d)\n", temp_hostdependency->dependent_hostgroup_name, temp_hostdependency->dependent_host_name, xodtemplate_config_file_name(temp_hostdependency->_config_file), temp_hostdependency->_start_line);
+		free_objectlist(&master_hostlist);
+		return ERROR;
+		}
+
+	my_free(temp_hostdependency->name);
+	my_free(temp_hostdependency->template);
+	my_free(temp_hostdependency->host_name);
+	my_free(temp_hostdependency->hostgroup_name);
+	my_free(temp_hostdependency->dependent_host_name);
+	my_free(temp_hostdependency->dependent_hostgroup_name);
+
+	/* duplicate the dependency definitions */
+	for(list = master_hostlist; list; list = next) {
+		xodtemplate_host *master = (xodtemplate_host *)list->object_ptr;
+		next = list->next;
+		free(list);
+
+		for(l2 = dependent_hostlist; l2; l2 = n2) {
+			xodtemplate_host *child = (xodtemplate_host *)l2->object_ptr;
+			n2 = l2->next;
+			free(l2);
+
+			temp_hostdependency->host_name = master->host_name;
+			temp_hostdependency->dependent_host_name = child->host_name;
+			if(xodtemplate_register_hostdependency(temp_hostdependency) != OK) {
+				/* exit on error */
+				free_objectlist(&next);
+				free_objectlist(&n2);
+				return ERROR;
+				}
+			}
+		}
+
+	my_free(temp_hostdependency->dependency_period);
+	my_free(temp_hostdependency);
+
+	return OK;
+}
+
+static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
+{
+	objectlist *parents = NULL, *plist, *pnext;
+	objectlist *children = NULL, *clist;
+	xodtemplate_servicedependency *temp_servicedependency = (xodtemplate_servicedependency *)sd_;
+	int same_host = FALSE;
+	char *hname, *sdesc, *dhname, *dsdesc;
+
+	hname = temp_servicedependency->host_name;
+	sdesc = temp_servicedependency->service_description;
+	dhname = temp_servicedependency->dependent_host_name;
+	dsdesc = temp_servicedependency->dependent_service_description;
+
+	my_free(temp_servicedependency->name);
+	my_free(temp_servicedependency->template);
+
+	/* skip templates */
+	if(temp_servicedependency->register_object == 0)
+		return OK;
+
+	/* take care of same-host dependencies */
+	if(!temp_servicedependency->dependent_host_name && !temp_servicedependency->dependent_hostgroup_name) {
+		if(!temp_servicedependency->dependent_service_description)
+			; /* do nothing. might be dependent_servicegroup_name */
+		else {
+			same_host = TRUE;
+		}
+	}
+
+	parents = children = NULL;
+	/* create the two object lists */
+	if(xodtemplate_create_service_list(&parents, temp_servicedependency->host_name, temp_servicedependency->hostgroup_name, temp_servicedependency->servicegroup_name, temp_servicedependency->service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand master service(s) (config file '%s', starting at line %d)\n",
+			  xodtemplate_config_file_name(temp_servicedependency->_config_file),
+			  temp_servicedependency->_start_line);
+		return ERROR;
+		}
+
+	if(same_host == FALSE && xodtemplate_create_service_list(&children, temp_servicedependency->dependent_host_name, temp_servicedependency->dependent_hostgroup_name, temp_servicedependency->dependent_servicegroup_name, temp_servicedependency->dependent_service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand dependent service(s) (at config file '%s', starting on line %d)\n",
+			  xodtemplate_config_file_name(temp_servicedependency->_config_file),
+			  temp_servicedependency->_start_line);
+		return ERROR;
+		}
+
+	/*
+	 * every service in "children" depends on every service in
+	 * "parents", so just loop twice and create them all.
+	 */
+	for(plist = parents; plist; plist = pnext) {
+		xodtemplate_service *p = (xodtemplate_service *)plist->object_ptr;
+		pnext = plist->next;
+		free(plist); /* free it as we go along */
+
+		/*
+		 * if this is a same-host dependency, we must expand
+		 * dependent_service_description for the host we're
+		 * currently looking at
+		 */
+		if(same_host) {
+			bitmap_clear(service_map);
+			if(xodtemplate_expand_services(&children, service_map, p->host_name, temp_servicedependency->dependent_service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK)
+				return ERROR;
+		}
+		for(clist = children; clist; clist = clist->next) {
+			xodtemplate_service *c = (xodtemplate_service *)clist->object_ptr;
+
+			/* now register */
+			temp_servicedependency->host_name = p->host_name;
+			temp_servicedependency->service_description = p->service_description;
+			temp_servicedependency->dependent_host_name = c->host_name;
+			temp_servicedependency->dependent_service_description = c->service_description;
+			if(xodtemplate_register_servicedependency(temp_servicedependency) != OK) {
+				logit(NSLOG_VERIFICATION_WARNING, TRUE, "Error: Failed to register servicedependency from '%s;%s' to '%s;%s' (config file '%s', starting at line %d)\n",
+					  p->host_name, p->service_description,
+					  c->host_name, c->service_description,
+					  xodtemplate_config_file_name(temp_servicedependency->_config_file), temp_servicedependency->_start_line);
+				return ERROR;
+			}
+		}
+		if(same_host == TRUE)
+			free_objectlist(&children);
+	}
+	if(same_host == FALSE)
+		free_objectlist(&children);
+
+	my_free(hname);
+	my_free(sdesc);
+	my_free(dhname);
+	my_free(dsdesc);
+	my_free(temp_servicedependency->hostgroup_name);
+	my_free(temp_servicedependency->servicegroup_name);
+	my_free(temp_servicedependency->dependent_hostgroup_name);
+	my_free(temp_servicedependency->dependent_servicegroup_name);
+	my_free(temp_servicedependency->dependency_period);
+	my_free(temp_servicedependency);
+	return OK;
+}
+
+
 /* resolves object definitions */
 int xodtemplate_resolve_objects(void) {
 	xodtemplate_timeperiod *temp_timeperiod = NULL;
@@ -7492,12 +7398,9 @@ int xodtemplate_register_objects(void) {
 		ocount[i] = (unsigned int)skiplist_num_items(xobject_skiplists[i]);
 	}
 
-	/*
-	 * dependencies may be duplicated still, so it's good we counted
-	 * earlier and know exactly how much space we'll need
-	 */
-	ocount[SERVICEDEPENDENCY_SKIPLIST] = xodcount.servicedependencies;
-	ocount[HOSTDEPENDENCY_SKIPLIST] = xodcount.hostdependencies;
+	/* dependencies are handled specially */
+	ocount[SERVICEDEPENDENCY_SKIPLIST] = 0;
+	ocount[HOSTDEPENDENCY_SKIPLIST] = 0;
 	ocount[HOSTESCALATION_SKIPLIST] = xodcount.hostescalations;
 	ocount[SERVICEESCALATION_SKIPLIST] = xodcount.serviceescalations;
 
@@ -7576,8 +7479,13 @@ int xodtemplate_register_objects(void) {
 	 */
 	for(sd = xodtemplate_servicedependency_list; sd; sd = next_sd) {
 		next_sd = sd->next;
+#ifdef NSCGI
+		if(xodtemplate_register_servicedependency(sd) == ERROR)
+			return ERROR;
+#else
 		if(xodtemplate_register_and_destroy_servicedependency(sd) == ERROR)
 			return ERROR;
+#endif
 		}
 	timing_point("%u unique / %u total servicedependencies registered\n",
 				 num_objects.servicedependencies, xodcount.servicedependencies);
@@ -7591,8 +7499,13 @@ int xodtemplate_register_objects(void) {
 
 	for(hd = xodtemplate_hostdependency_list; hd; hd = next_hd) {
 		next_hd = hd->next;
+#ifdef NSCGI
+		if(xodtemplate_register_hostdependency(hd) == ERROR)
+			return ERROR;
+#else
 		if(xodtemplate_register_and_destroy_hostdependency(hd) == ERROR)
 			return ERROR;
+#endif
 		}
 	timing_point("%u unique / %u total hostdependencies registered\n",
 				 num_objects.hostdependencies, xodcount.hostdependencies);
@@ -7899,6 +7812,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 
 	/* add the servicedependency */
 	if(this_servicedependency->have_execution_dependency_options == TRUE) {
+		xodcount.servicedependencies++;
 
 		new_servicedependency = add_service_dependency(this_servicedependency->dependent_host_name, this_servicedependency->dependent_service_description, this_servicedependency->host_name, this_servicedependency->service_description, EXECUTION_DEPENDENCY, this_servicedependency->inherits_parent, this_servicedependency->fail_execute_on_ok, this_servicedependency->fail_execute_on_warning, this_servicedependency->fail_execute_on_unknown, this_servicedependency->fail_execute_on_critical, this_servicedependency->fail_execute_on_pending, this_servicedependency->dependency_period);
 
@@ -7909,6 +7823,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 			}
 		}
 	if(this_servicedependency->have_notification_dependency_options == TRUE) {
+		xodcount.servicedependencies++;
 
 		new_servicedependency = add_service_dependency(this_servicedependency->dependent_host_name, this_servicedependency->dependent_service_description, this_servicedependency->host_name, this_servicedependency->service_description, NOTIFICATION_DEPENDENCY, this_servicedependency->inherits_parent, this_servicedependency->fail_notify_on_ok, this_servicedependency->fail_notify_on_warning, this_servicedependency->fail_notify_on_unknown, this_servicedependency->fail_notify_on_critical, this_servicedependency->fail_notify_on_pending, this_servicedependency->dependency_period);
 
@@ -8204,6 +8119,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 
 	/* add the host execution dependency */
 	if(this_hostdependency->have_execution_dependency_options == TRUE) {
+		xodcount.hostdependencies++;
 
 		new_hostdependency = add_host_dependency(this_hostdependency->dependent_host_name, this_hostdependency->host_name, EXECUTION_DEPENDENCY, this_hostdependency->inherits_parent, this_hostdependency->fail_execute_on_up, this_hostdependency->fail_execute_on_down, this_hostdependency->fail_execute_on_unreachable, this_hostdependency->fail_execute_on_pending, this_hostdependency->dependency_period);
 
@@ -8216,6 +8132,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 
 	/* add the host notification dependency */
 	if(this_hostdependency->have_notification_dependency_options == TRUE) {
+		xodcount.hostdependencies++;
 
 		new_hostdependency = add_host_dependency(this_hostdependency->dependent_host_name, this_hostdependency->host_name, NOTIFICATION_DEPENDENCY, this_hostdependency->inherits_parent, this_hostdependency->fail_notify_on_up, this_hostdependency->fail_notify_on_down, this_hostdependency->fail_notify_on_unreachable, this_hostdependency->fail_notify_on_pending, this_hostdependency->dependency_period);
 

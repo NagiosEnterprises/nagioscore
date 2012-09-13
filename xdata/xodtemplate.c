@@ -1778,6 +1778,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_servicedependency->have_inherits_parent = TRUE;
 				}
 			else if(!strcmp(variable, "execution_failure_options") || !strcmp(variable, "execution_failure_criteria")) {
+				temp_servicedependency->have_execution_dependency_options = TRUE;
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "ok"))
 						temp_servicedependency->fail_execute_on_ok = TRUE;
@@ -1794,6 +1795,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						temp_servicedependency->fail_execute_on_unknown = FALSE;
 						temp_servicedependency->fail_execute_on_warning = FALSE;
 						temp_servicedependency->fail_execute_on_critical = FALSE;
+						temp_servicedependency->have_execution_dependency_options = FALSE;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
 						temp_servicedependency->fail_execute_on_ok = TRUE;
@@ -1806,10 +1808,10 @@ int xodtemplate_add_object_property(char *input, int options) {
 						return ERROR;
 						}
 					}
-				temp_servicedependency->have_execution_dependency_options = TRUE;
 				xodcount.servicedependencies++;
 				}
 			else if(!strcmp(variable, "notification_failure_options") || !strcmp(variable, "notification_failure_criteria")) {
+				temp_servicedependency->have_notification_dependency_options = TRUE;
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "ok"))
 						temp_servicedependency->fail_notify_on_ok = TRUE;
@@ -1827,6 +1829,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						temp_servicedependency->fail_notify_on_warning = FALSE;
 						temp_servicedependency->fail_notify_on_critical = FALSE;
 						temp_servicedependency->fail_notify_on_pending = FALSE;
+						temp_servicedependency->have_notification_dependency_options = FALSE;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
 						temp_servicedependency->fail_notify_on_ok = TRUE;
@@ -1840,7 +1843,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						return ERROR;
 						}
 					}
-				temp_servicedependency->have_notification_dependency_options = TRUE;
 				xodcount.servicedependencies++;
 				}
 			else if(!strcmp(variable, "register"))
@@ -3144,6 +3146,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_hostdependency->have_inherits_parent = TRUE;
 				}
 			else if(!strcmp(variable, "notification_failure_options") || !strcmp(variable, "notification_failure_criteria")) {
+				temp_hostdependency->have_notification_dependency_options = TRUE;
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "up"))
 						temp_hostdependency->fail_notify_on_up = TRUE;
@@ -3158,6 +3161,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 						temp_hostdependency->fail_notify_on_down = FALSE;
 						temp_hostdependency->fail_notify_on_unreachable = FALSE;
 						temp_hostdependency->fail_notify_on_pending = FALSE;
+						temp_hostdependency->have_notification_dependency_options = FALSE;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
 						temp_hostdependency->fail_notify_on_up = TRUE;
@@ -3170,7 +3174,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 						return ERROR;
 						}
 					}
-				temp_hostdependency->have_notification_dependency_options = TRUE;
 				xodcount.hostdependencies++;
 				}
 			else if(!strcmp(variable, "execution_failure_options") || !strcmp(variable, "execution_failure_criteria")) {

@@ -1090,9 +1090,10 @@ static const char *xodtemplate_type_name(unsigned int id) {
 
 	}
 
-static void xodtemplate_obsoleted(const char *var) {
-	logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: %s is obsoleted and no longer has any effect in %s type objects\n",
-		 var, xodtemplate_type_name(xodtemplate_current_object_type));
+static void xodtemplate_obsoleted(const char *var, int start_line) {
+	logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: %s is obsoleted and no longer has any effect in %s type objects (config file '%s', starting at line %d)\n",
+		 var, xodtemplate_type_name(xodtemplate_current_object_type),
+		 xodtemplate_config_file_name(xodtemplate_current_config_file), start_line);
 	}
 
 /* adds a property to an object definition */
@@ -2354,7 +2355,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->have_event_handler = TRUE;
 				}
 			else if(!strcmp(variable, "failure_prediction_options")) {
-				xodtemplate_obsoleted(variable);
+				xodtemplate_obsoleted(variable, temp_host->_start_line);
 				}
 			else if(!strcmp(variable, "notes")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -2568,7 +2569,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->have_process_perf_data = TRUE;
 				}
 			else if(!strcmp(variable, "failure_prediction_enabled")) {
-				xodtemplate_obsoleted(variable);
+				xodtemplate_obsoleted(variable, temp_host->_start_line);
 				}
 			else if(!strcmp(variable, "2d_coords")) {
 				if((temp_ptr = strtok(value, ", ")) == NULL) {
@@ -2800,7 +2801,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_service->have_contacts = TRUE;
 				}
 			else if(!strcmp(variable, "failure_prediction_options")) {
-				xodtemplate_obsoleted(variable);
+				xodtemplate_obsoleted(variable, temp_service->_start_line);
 				}
 			else if(!strcmp(variable, "notes")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -3027,7 +3028,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_service->have_process_perf_data = TRUE;
 				}
 			else if(!strcmp(variable, "failure_prediction_enabled")) {
-				xodtemplate_obsoleted(variable);
+				xodtemplate_obsoleted(variable, temp_service->_start_line);
 				}
 			else if(!strcmp(variable, "retain_status_information")) {
 				temp_service->retain_status_information = (atoi(value) > 0) ? TRUE : FALSE;

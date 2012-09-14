@@ -348,6 +348,7 @@ typedef struct xodtemplate_service_struct {
     char       *host_name;
     char       *service_description;
     char       *display_name;
+	char       *parents;
     char       *hostgroup_name;
     char       *service_groups;
     char       *check_command;
@@ -388,6 +389,7 @@ typedef struct xodtemplate_service_struct {
     xodtemplate_customvariablesmember *custom_variables;
 
     /* these can't be bitfields */
+    char have_parents;
     char have_contact_groups;
     char have_contacts;
     char have_host_name;
@@ -740,6 +742,7 @@ int xodtemplate_grab_config_info(char *);                   /* grabs variables f
 int xodtemplate_process_config_file(char *, int);           /* process data in a specific config file */
 int xodtemplate_process_config_dir(char *, int);            /* process all files in a specific config directory */
 
+int xodtemplate_expand_services(objectlist **, bitmap *, char *, char *, int, int);
 #ifdef NSCORE
 int xodtemplate_expand_contactgroups(objectlist **, bitmap *, char *, int, int);
 int xodtemplate_expand_contacts(objectlist **, bitmap *, char *, int, int);
@@ -749,7 +752,6 @@ int xodtemplate_expand_hostgroups(objectlist **, bitmap *, char *, int, int);
 int xodtemplate_expand_hosts(objectlist **list, bitmap *reject_map, char *, int, int);
 
 int xodtemplate_expand_servicegroups(objectlist **, bitmap *, char *, int, int);
-int xodtemplate_expand_services(objectlist **, bitmap *, char *, char *, int, int);
 
 char *xodtemplate_process_contactgroup_names(char *, int, int);
 int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **, xodtemplate_memberlist **, char *, int, int);

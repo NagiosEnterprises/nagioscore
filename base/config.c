@@ -1437,6 +1437,7 @@ int pre_flight_object_check(int *w, int *e) {
 	host *temp_host = NULL;
 	host *temp_host2 = NULL;
 	hostsmember *temp_hostsmember = NULL;
+	servicesmember *sm = NULL;
 	hostgroup *temp_hostgroup = NULL;
 	servicegroup *temp_servicegroup = NULL;
 	servicesmember *temp_servicesmember = NULL;
@@ -1517,6 +1518,17 @@ int pre_flight_object_check(int *w, int *e) {
 		if(temp_service->notification_period == NULL) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Service '%s' on host '%s' has no notification time period defined!", temp_service->description, temp_service->host_name);
 			warnings++;
+			}
+
+		/* check parent services */
+		for(sm = temp_service->parents; sm; sm = sm->next) {
+			sm->service_ptr = find_service(sm->host_name, sm->service_description);
+			if(sm->service_ptr == NULL) {
+				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service '%s' on host '%s' is not a valid parent for service '%s' on host '%s'\n",
+					  sm->host_name, sm->service_description,
+					  temp_service->host_name, temp_service->description);
+				errors++;
+				}
 			}
 
 		/* see if the notification interval is less than the check interval */

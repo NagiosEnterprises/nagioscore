@@ -528,6 +528,8 @@ struct service_struct {
 	char	*host_name;
 	char	*description;
 	char    *display_name;
+	servicesmember *parents;
+	servicesmember *children;
 	char    *check_command;
 	char    *event_handler;
 	int     initial_state;
@@ -727,6 +729,7 @@ commandsmember *add_host_notification_command_to_contact(contact *, char *);				
 customvariablesmember *add_custom_variable_to_contact(contact *, char *, char *);                       /* adds a custom variable to a service definition */
 host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host);
 hostsmember *add_parent_host_to_host(host *, char *);							/* adds a parent host to a host definition */
+servicesmember *add_parent_service_to_service(service *, char *host_name, char *description);
 hostsmember *add_child_link_to_host(host *, host *);						       /* adds a child host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *, char *);					       /* adds a contactgroup to a host definition */
 contactsmember *add_contact_to_host(host *, char *);                                                    /* adds a contact to a host definition */

@@ -118,9 +118,9 @@ static struct object_count xodcount;
 
 #ifndef NSCGI
 /* reusable bitmaps for expanding objects */
-static bitmap *service_map, *host_map, *contact_map;
+static bitmap *host_map, *contact_map;
 #endif
-static bitmap *parent_map;
+static bitmap *service_map, *parent_map;
 
 /* returns the name of a numbered config file */
 static char *xodtemplate_config_file_name(int config_file) {
@@ -2677,6 +2677,13 @@ int xodtemplate_add_object_property(char *input, int options) {
 						result = ERROR;
 					}
 				temp_service->have_display_name = TRUE;
+				}
+			else if(!strcmp(variable, "parents")) {
+				if(strcmp(value, XODTEMPLATE_NULL)) {
+					if((temp_service->parents = (char *)strdup(value)) == NULL)
+						result = ERROR;
+					}
+				temp_service->have_parents = TRUE;
 				}
 			else if(!strcmp(variable, "hostgroup") || !strcmp(variable, "hostgroups") || !strcmp(variable, "hostgroup_name")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
@@ -5884,6 +5891,7 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 			this_service->have_display_name = TRUE;
 			}
 
+		xodtemplate_get_inherited_string(&template_service->have_parents, &template_service->parents, &this_service->have_parents, &this_service->parents);
 		xodtemplate_get_inherited_string(&template_service->have_host_name, &template_service->host_name, &this_service->have_host_name, &this_service->host_name);
 		xodtemplate_get_inherited_string(&template_service->have_hostgroup_name, &template_service->hostgroup_name, &this_service->have_hostgroup_name, &this_service->hostgroup_name);
 		xodtemplate_get_inherited_string(&template_service->have_service_groups, &template_service->service_groups, &this_service->have_service_groups, &this_service->service_groups);
@@ -7197,7 +7205,7 @@ xodtemplate_service *xodtemplate_find_service(char *name) {
 	return skiplist_find_first(xobject_template_skiplists[SERVICE_SKIPLIST], &temp_service, NULL);
 	}
 
-
+#endif
 /* finds a specific service object by its REAL name, not its TEMPLATE name */
 xodtemplate_service *xodtemplate_find_real_service(char *host_name, char *service_description) {
 	xodtemplate_service temp_service;
@@ -7211,7 +7219,6 @@ xodtemplate_service *xodtemplate_find_real_service(char *host_name, char *servic
 	return skiplist_find_first(xobject_skiplists[SERVICE_SKIPLIST], &temp_service, NULL);
 	}
 
-#endif
 
 
 
@@ -7926,6 +7933,49 @@ int xodtemplate_register_service(xodtemplate_service *this_service) {
 	if(new_service == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not register service (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(this_service->_config_file), this_service->_start_line);
 		return ERROR;
+		}
+
+	/* add all service parents */
+	if(this_service->parents != NULL) {
+		servicesmember *new_servicesmember;
+		char *comma = strchr(this_service->parents, ',');
+
+		if(!comma) { /* same-host single-service parent */
+			new_servicesmember = add_parent_service_to_service(new_service, new_service->host_name, this_service->parents);
+			if(new_servicesmember == NULL) {
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add same-host service parent '%s' to service (config file '%s', starting on line %d)\n",
+					  this_service->parents,
+					  xodtemplate_config_file_name(this_service->_config_file),
+					  this_service->_start_line);
+				return ERROR;
+				}
+			}
+		else {
+			/* Multiple parents, so let's do this the hard way */
+			objectlist *list = NULL, *next;
+			bitmap_clear(service_map);
+			if(xodtemplate_expand_services(&list, service_map, NULL, this_service->parents, this_service->_config_file, this_service->_start_line) != OK) {
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to expand service parents (config file '%s', starting at line %d)\n",
+					  xodtemplate_config_file_name(this_service->_config_file),
+					  this_service->_start_line);
+				return ERROR;
+				}
+			for(; list; list = next) {
+				xodtemplate_service *parent = (xodtemplate_service *)list->object_ptr;
+				next = list->next;
+				free(list);
+				new_servicesmember = add_parent_service_to_service(new_service, parent->host_name, parent->service_description);
+				if(new_servicesmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add service '%s' on host '%s' as parent to service '%s' on host '%s' (config file '%s', starting on line %d)\n",
+						  parent->host_name, parent->service_description,
+						  new_service->host_name, new_service->description,
+						  xodtemplate_config_file_name(this_service->_config_file),
+						  this_service->_start_line);
+					free_objectlist(&next);
+					return ERROR;
+					}
+				}
+			}
 		}
 
 	/* add all contact groups to the service */
@@ -9626,19 +9676,21 @@ int xodtemplate_expand_servicegroups(objectlist **list, bitmap *reject, char *se
 
 	return OK;
 	}
-
+#endif
 
 /* expands services (host name is not expanded) */
 int xodtemplate_expand_services(objectlist **list, bitmap *reject_map, char *host_name, char *services, int _config_file, int _start_line) {
 	char *service_names = NULL;
 	char *temp_ptr = NULL;
 	xodtemplate_service *temp_service = NULL;
+#ifndef NSCGI
 	regex_t preg;
 	regex_t preg2;
-	int found_match = TRUE;
-	int reject_item = FALSE;
 	int use_regexp_host = FALSE;
 	int use_regexp_service = FALSE;
+#endif
+	int found_match = TRUE;
+	int reject_item = FALSE;
 
 	if(list == NULL)
 		return ERROR;
@@ -9683,6 +9735,7 @@ int xodtemplate_expand_services(objectlist **list, bitmap *reject_map, char *hos
 	if(host_name == NULL || services == NULL)
 		return OK;
 
+#ifndef NSCGI
 	/* should we use regular expression matching for the host name? */
 	if(use_regexp_matches == TRUE && (use_true_regexp_matching == TRUE || strstr(host_name, "*") || strstr(host_name, "?") || strstr(host_name, "+") || strstr(host_name, "\\.")))
 		use_regexp_host = TRUE;
@@ -9692,10 +9745,13 @@ int xodtemplate_expand_services(objectlist **list, bitmap *reject_map, char *hos
 		if(regcomp(&preg2, host_name, REG_EXTENDED))
 			return ERROR;
 		}
+#endif
 
 	if((service_names = (char *)strdup(services)) == NULL) {
+#ifndef NSCGI
 		if(use_regexp_host == TRUE)
 			regfree(&preg2);
+#endif
 		return ERROR;
 		}
 
@@ -9708,6 +9764,7 @@ int xodtemplate_expand_services(objectlist **list, bitmap *reject_map, char *hos
 		/* strip trailing spaces */
 		strip(temp_ptr);
 
+#ifndef NSCGI
 		/* should we use regular expression matching for the service description? */
 		if(use_regexp_matches == TRUE && (use_true_regexp_matching == TRUE || strstr(temp_ptr, "*") || strstr(temp_ptr, "?") || strstr(temp_ptr, "+") || strstr(temp_ptr, "\\.")))
 			use_regexp_service = TRUE;
@@ -9769,70 +9826,69 @@ int xodtemplate_expand_services(objectlist **list, bitmap *reject_map, char *hos
 			}
 
 		/* use standard matching... */
-		else {
-
+		else if(!strcmp(temp_ptr, "*")) {
 			/* return a list of all services on the host */
-			if(!strcmp(temp_ptr, "*")) {
 
-				found_match = TRUE;
+			found_match = TRUE;
 
-				for(temp_service = xodtemplate_service_list; temp_service != NULL; temp_service = temp_service->next) {
+			for(temp_service = xodtemplate_service_list; temp_service != NULL; temp_service = temp_service->next) {
 
-					if(temp_service->host_name == NULL || temp_service->service_description == NULL)
-						continue;
+				if(temp_service->host_name == NULL || temp_service->service_description == NULL)
+					continue;
 
-					if(strcmp(temp_service->host_name, host_name))
-						continue;
+				if(strcmp(temp_service->host_name, host_name))
+					continue;
 
-					/* dont' add services that shouldn't be registered */
-					if(temp_service->register_object == FALSE)
-						continue;
+				/* dont' add services that shouldn't be registered */
+				if(temp_service->register_object == FALSE)
+					continue;
 
-					/* add service to the list */
-					add_object_to_objectlist(list, temp_service);
-					}
-				}
-
-			/* else this is just a single service... */
-			else {
-
-				/* this service should be excluded (rejected) */
-				if(temp_ptr[0] == '!') {
-					reject_item = TRUE;
-					temp_ptr++;
-					}
-
-				/* find the service */
-				if((temp_service = xodtemplate_find_real_service(host_name, temp_ptr)) != NULL) {
-
-					found_match = TRUE;
-
-					if(reject_item == TRUE)
-						bitmap_set(reject_map, temp_service->id);
-					else
-						add_object_to_objectlist(list, temp_service);
-					}
+				/* add service to the list */
+				add_object_to_objectlist(list, temp_service);
 				}
 			}
 
+		/* else this is just a single service... */
+		else {
+
+			/* this service should be excluded (rejected) */
+			if(temp_ptr[0] == '!') {
+				reject_item = TRUE;
+				temp_ptr++;
+				}
+
+#endif
+			/* find the service */
+			if((temp_service = xodtemplate_find_real_service(host_name, temp_ptr)) != NULL) {
+
+				found_match = TRUE;
+
+				if(reject_item == TRUE)
+					bitmap_set(reject_map, temp_service->id);
+				else
+					add_object_to_objectlist(list, temp_service);
+			}
+#ifndef NSCGI
+		}
+#endif
 		/* we didn't find a match */
 		if(found_match == FALSE && reject_item == FALSE) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not find a service matching host name '%s' and description '%s' (config file '%s', starting on line %d)\n", host_name, temp_ptr, xodtemplate_config_file_name(_config_file), _start_line);
 			break;
 			}
 		}
-
+#ifndef NSCGI
 	if(use_regexp_host == TRUE)
 		regfree(&preg2);
 	my_free(service_names);
-
+#endif
 	if(found_match == FALSE && reject_item == FALSE)
 		return ERROR;
 
 	return OK;
 	}
 
-
+#ifndef NSCGI
 /* returns a comma-delimited list of hostgroup names */
 char * xodtemplate_process_hostgroup_names(char *hostgroups, int _config_file, int _start_line) {
 	xodtemplate_memberlist *temp_list = NULL;
@@ -10359,7 +10415,6 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplat
 	return OK;
 	}
 
-#ifdef NSCORE
 
 /******************************************************************/
 /****************** ADDITIVE INHERITANCE STUFF ********************/
@@ -10528,7 +10583,6 @@ int xodtemplate_clean_additive_strings(void) {
 
 	return OK;
 	}
-#endif
 
 #endif
 

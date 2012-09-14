@@ -824,7 +824,26 @@ hostsmember *add_parent_host_to_host(host *hst, char *host_name) {
 	return new_hostsmember;
 	}
 
+servicesmember *add_parent_service_to_service(service *svc, char *host_name, char *description) {
+	servicesmember *sm;
 
+	if(!svc || !host_name || !description || !*host_name || !*description)
+		return NULL;
+
+	if((sm = calloc(1, sizeof(*sm))) == NULL)
+		return NULL;
+
+	if ((sm->host_name = strdup(host_name)) == NULL || (sm->service_description = strdup(description)) == NULL) {
+		/* there was an error copying (description is NULL now) */
+		my_free(sm->host_name);
+		free(sm);
+		return NULL;
+		}
+
+	sm->next = svc->parents;
+	svc->parents = sm;
+	return sm;
+	}
 
 hostsmember *add_child_link_to_host(host *hst, host *child_ptr) {
 	hostsmember *new_hostsmember = NULL;
@@ -3312,6 +3331,18 @@ void fcache_service(FILE *fp, service *temp_service)
 	fprintf(fp, "\tservice_description\t%s\n", temp_service->description);
 	if(temp_service->display_name != temp_service->description)
 		fprintf(fp, "\tdisplay_name\t%s\n", temp_service->display_name);
+	if(temp_service->parents) {
+		fprintf(fp, "\tparents\t");
+		/* same-host, single-parent? */
+		if(!temp_service->parents->next && temp_service->parents->service_ptr->host_ptr == temp_service->host_ptr)
+			fprintf(fp, "%s\n", temp_service->parents->service_ptr->description);
+		else {
+			servicesmember *sm;
+			for(sm = temp_service->parents; sm; sm = sm->next) {
+				fprintf(fp, "%s,%s%c", sm->host_name, sm->service_description, sm->next ? ',' : '\n');
+			}
+		}
+	}
 	if(temp_service->check_period)
 		fprintf(fp, "\tcheck_period\t%s\n", temp_service->check_period);
 	if(temp_service->check_command)

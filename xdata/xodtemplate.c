@@ -392,6 +392,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 		/* NOTE: some missing defaults (notification options, etc.) are also applied here */
 		if(result == OK)
 			result = xodtemplate_inherit_object_properties();
+		timing_point("Done propagating inherited object properties\n");
 		if(test_scheduling == TRUE)
 			gettimeofday(&tv[8], NULL);
 		}

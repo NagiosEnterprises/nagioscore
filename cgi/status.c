@@ -159,11 +159,11 @@ int limit_results = TRUE;
 int service_status_types = SERVICE_PENDING | SERVICE_OK | SERVICE_UNKNOWN | SERVICE_WARNING | SERVICE_CRITICAL;
 int all_service_status_types = SERVICE_PENDING | SERVICE_OK | SERVICE_UNKNOWN | SERVICE_WARNING | SERVICE_CRITICAL;
 
-int host_status_types = HOST_PENDING | HOST_UP | HOST_DOWN | HOST_UNREACHABLE;
-int all_host_status_types = HOST_PENDING | HOST_UP | HOST_DOWN | HOST_UNREACHABLE;
+int host_status_types = HOST_PENDING | SD_HOST_UP | SD_HOST_DOWN | SD_HOST_UNREACHABLE;
+int all_host_status_types = HOST_PENDING | SD_HOST_UP | SD_HOST_DOWN | SD_HOST_UNREACHABLE;
 
 int all_service_problems = SERVICE_UNKNOWN | SERVICE_WARNING | SERVICE_CRITICAL;
-int all_host_problems = HOST_DOWN | HOST_UNREACHABLE;
+int all_host_problems = SD_HOST_DOWN | SD_HOST_UNREACHABLE;
 
 unsigned long host_properties = 0L;
 unsigned long service_properties = 0L;
@@ -1080,14 +1080,14 @@ void show_host_status_totals(void) {
 
 		if(count_host) {
 
-			if(temp_hoststatus->status == HOST_UP)
+			if(temp_hoststatus->status == SD_HOST_UP)
 				total_up++;
-			else if(temp_hoststatus->status == HOST_DOWN) {
+			else if(temp_hoststatus->status == SD_HOST_DOWN) {
 				total_down++;
 				if(temp_hoststatus->problem_has_been_acknowledged == FALSE && temp_hoststatus->notifications_enabled == TRUE && temp_hoststatus->checks_enabled == TRUE && temp_hoststatus->scheduled_downtime_depth == 0)
 					problem_hosts_down++;
 				}
-			else if(temp_hoststatus->status == HOST_UNREACHABLE) {
+			else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 				total_unreachable++;
 				if(temp_hoststatus->problem_has_been_acknowledged == FALSE && temp_hoststatus->notifications_enabled == TRUE && temp_hoststatus->checks_enabled == TRUE && temp_hoststatus->scheduled_downtime_depth == 0)
 					problem_hosts_unreachable++;
@@ -1130,7 +1130,7 @@ void show_host_status_totals(void) {
 		}
 	if(service_status_types != all_service_status_types)
 		printf("&servicestatustypes=%d", service_status_types);
-	printf("&hoststatustypes=%d'>", HOST_UP);
+	printf("&hoststatustypes=%d'>", SD_HOST_UP);
 	printf("Up</a></th>\n");
 
 	printf("<th class='hostTotals'>");
@@ -1151,7 +1151,7 @@ void show_host_status_totals(void) {
 		}
 	if(service_status_types != all_service_status_types)
 		printf("&servicestatustypes=%d", service_status_types);
-	printf("&hoststatustypes=%d'>", HOST_DOWN);
+	printf("&hoststatustypes=%d'>", SD_HOST_DOWN);
 	printf("Down</a></th>\n");
 
 	printf("<th class='hostTotals'>");
@@ -1172,7 +1172,7 @@ void show_host_status_totals(void) {
 		}
 	if(service_status_types != all_service_status_types)
 		printf("&servicestatustypes=%d", service_status_types);
-	printf("&hoststatustypes=%d'>", HOST_UNREACHABLE);
+	printf("&hoststatustypes=%d'>", SD_HOST_UNREACHABLE);
 	printf("Unreachable</a></th>\n");
 
 	printf("<th class='hostTotals'>");
@@ -1239,7 +1239,7 @@ void show_host_status_totals(void) {
 		}
 	if(service_status_types != all_service_status_types)
 		printf("&servicestatustypes=%d", service_status_types);
-	printf("&hoststatustypes=%d'>", HOST_DOWN | HOST_UNREACHABLE);
+	printf("&hoststatustypes=%d'>", SD_HOST_DOWN | SD_HOST_UNREACHABLE);
 	printf("<em>All Problems</em></a></th>\n");
 
 	printf("<th class='hostTotals'>");
@@ -1660,7 +1660,7 @@ void show_service_detail(void) {
 				/* grab macros */
 				grab_host_macros_r(mac, temp_host);
 
-				if(temp_hoststatus->status == HOST_DOWN) {
+				if(temp_hoststatus->status == SD_HOST_DOWN) {
 					if(temp_hoststatus->problem_has_been_acknowledged == TRUE)
 						host_status_bg_class = "HOSTDOWNACK";
 					else if(temp_hoststatus->scheduled_downtime_depth > 0)
@@ -1668,7 +1668,7 @@ void show_service_detail(void) {
 					else
 						host_status_bg_class = "HOSTDOWN";
 					}
-				else if(temp_hoststatus->status == HOST_UNREACHABLE) {
+				else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 					if(temp_hoststatus->problem_has_been_acknowledged == TRUE)
 						host_status_bg_class = "HOSTUNREACHABLEACK";
 					else if(temp_hoststatus->scheduled_downtime_depth > 0)
@@ -2179,12 +2179,12 @@ void show_host_detail(void) {
 				status_class = "PENDING";
 				status_bg_class = (odd) ? "Even" : "Odd";
 				}
-			else if(temp_status->status == HOST_UP) {
+			else if(temp_status->status == SD_HOST_UP) {
 				strncpy(status, "UP", sizeof(status));
 				status_class = "HOSTUP";
 				status_bg_class = (odd) ? "Even" : "Odd";
 				}
-			else if(temp_status->status == HOST_DOWN) {
+			else if(temp_status->status == SD_HOST_DOWN) {
 				strncpy(status, "DOWN", sizeof(status));
 				status_class = "HOSTDOWN";
 				if(temp_status->problem_has_been_acknowledged == TRUE)
@@ -2194,7 +2194,7 @@ void show_host_detail(void) {
 				else
 					status_bg_class = "BGDOWN";
 				}
-			else if(temp_status->status == HOST_UNREACHABLE) {
+			else if(temp_status->status == SD_HOST_UNREACHABLE) {
 				strncpy(status, "UNREACHABLE", sizeof(status));
 				status_class = "HOSTUNREACHABLE";
 				if(temp_status->problem_has_been_acknowledged == TRUE)
@@ -2750,10 +2750,10 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
 
 		problem = TRUE;
 
-		if(temp_hoststatus->status == HOST_UP)
+		if(temp_hoststatus->status == SD_HOST_UP)
 			hosts_up++;
 
-		else if(temp_hoststatus->status == HOST_DOWN) {
+		else if(temp_hoststatus->status == SD_HOST_DOWN) {
 			if(temp_hoststatus->scheduled_downtime_depth > 0) {
 				hosts_down_scheduled++;
 				problem = FALSE;
@@ -2771,7 +2771,7 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
 			hosts_down++;
 			}
 
-		else if(temp_hoststatus->status == HOST_UNREACHABLE) {
+		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 			if(temp_hoststatus->scheduled_downtime_depth > 0) {
 				hosts_unreachable_scheduled++;
 				problem = FALSE;
@@ -2799,7 +2799,7 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
 
 	if(hosts_up > 0) {
 		printf("<tr>");
-		printf("<td class='miniStatusUP'><a href='%s?servicegroup=%s&style=detail&&hoststatustypes=%d&hostprops=%lu'>%d UP</a></td>", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_UP, host_properties, hosts_up);
+		printf("<td class='miniStatusUP'><a href='%s?servicegroup=%s&style=detail&&hoststatustypes=%d&hostprops=%lu'>%d UP</a></td>", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_UP, host_properties, hosts_up);
 		printf("</tr>\n");
 		}
 
@@ -2808,21 +2808,21 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
 		printf("<td class='miniStatusDOWN'><table border='0'>\n");
 		printf("<tr>\n");
 
-		printf("<td class='miniStatusDOWN'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d DOWN</a>&nbsp;:</td>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_DOWN, host_properties, hosts_down);
+		printf("<td class='miniStatusDOWN'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d DOWN</a>&nbsp;:</td>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_DOWN, host_properties, hosts_down);
 
 		printf("<td><table border='0'>\n");
 
 		if(hosts_down_unacknowledged > 0)
-			printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_DOWN, HOST_NO_SCHEDULED_DOWNTIME | HOST_STATE_UNACKNOWLEDGED | HOST_CHECKS_ENABLED, hosts_down_unacknowledged);
+			printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_DOWN, HOST_NO_SCHEDULED_DOWNTIME | HOST_STATE_UNACKNOWLEDGED | HOST_CHECKS_ENABLED, hosts_down_unacknowledged);
 
 		if(hosts_down_scheduled > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_DOWN, HOST_SCHEDULED_DOWNTIME, hosts_down_scheduled);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_DOWN, HOST_SCHEDULED_DOWNTIME, hosts_down_scheduled);
 
 		if(hosts_down_acknowledged > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_DOWN, HOST_STATE_ACKNOWLEDGED, hosts_down_acknowledged);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_DOWN, HOST_STATE_ACKNOWLEDGED, hosts_down_acknowledged);
 
 		if(hosts_down_disabled > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_DOWN, HOST_CHECKS_DISABLED, hosts_down_disabled);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_DOWN, HOST_CHECKS_DISABLED, hosts_down_disabled);
 
 		printf("</table></td>\n");
 
@@ -2836,21 +2836,21 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
 		printf("<td class='miniStatusUNREACHABLE'><table border='0'>\n");
 		printf("<tr>\n");
 
-		printf("<td class='miniStatusUNREACHABLE'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d UNREACHABLE</a>&nbsp;:</td>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_UNREACHABLE, host_properties, hosts_unreachable);
+		printf("<td class='miniStatusUNREACHABLE'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d UNREACHABLE</a>&nbsp;:</td>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_UNREACHABLE, host_properties, hosts_unreachable);
 
 		printf("<td><table border='0'>\n");
 
 		if(hosts_unreachable_unacknowledged > 0)
-			printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_UNREACHABLE, HOST_NO_SCHEDULED_DOWNTIME | HOST_STATE_UNACKNOWLEDGED | HOST_CHECKS_ENABLED, hosts_unreachable_unacknowledged);
+			printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_UNREACHABLE, HOST_NO_SCHEDULED_DOWNTIME | HOST_STATE_UNACKNOWLEDGED | HOST_CHECKS_ENABLED, hosts_unreachable_unacknowledged);
 
 		if(hosts_unreachable_scheduled > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_UNREACHABLE, HOST_SCHEDULED_DOWNTIME, hosts_unreachable_scheduled);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_UNREACHABLE, HOST_SCHEDULED_DOWNTIME, hosts_unreachable_scheduled);
 
 		if(hosts_unreachable_acknowledged > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_UNREACHABLE, HOST_STATE_ACKNOWLEDGED, hosts_unreachable_acknowledged);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_UNREACHABLE, HOST_STATE_ACKNOWLEDGED, hosts_unreachable_acknowledged);
 
 		if(hosts_unreachable_disabled > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_UNREACHABLE, HOST_CHECKS_DISABLED, hosts_unreachable_disabled);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_UNREACHABLE, HOST_CHECKS_DISABLED, hosts_unreachable_disabled);
 
 		printf("</table></td>\n");
 
@@ -2948,7 +2948,7 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 
 		else if(temp_servicestatus->status == SERVICE_WARNING) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
-			if(temp_hoststatus != NULL && (temp_hoststatus->status == HOST_DOWN || temp_hoststatus->status == HOST_UNREACHABLE)) {
+			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_warning_host_problem++;
 				problem = FALSE;
 				}
@@ -2971,7 +2971,7 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 
 		else if(temp_servicestatus->status == SERVICE_UNKNOWN) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
-			if(temp_hoststatus != NULL && (temp_hoststatus->status == HOST_DOWN || temp_hoststatus->status == HOST_UNREACHABLE)) {
+			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_unknown_host_problem++;
 				problem = FALSE;
 				}
@@ -2994,7 +2994,7 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 
 		else if(temp_servicestatus->status == SERVICE_CRITICAL) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
-			if(temp_hoststatus != NULL && (temp_hoststatus->status == HOST_DOWN || temp_hoststatus->status == HOST_UNREACHABLE)) {
+			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_critical_host_problem++;
 				problem = FALSE;
 				}
@@ -3037,10 +3037,10 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 		printf("<td><table border='0'>\n");
 
 		if(services_warning_unacknowledged > 0)
-			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_WARNING, HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_warning_unacknowledged);
+			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_WARNING, SD_HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_warning_unacknowledged);
 
 		if(services_warning_host_problem > 0)
-			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_WARNING, HOST_DOWN | HOST_UNREACHABLE, services_warning_host_problem);
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_WARNING, SD_HOST_DOWN | SD_HOST_UNREACHABLE, services_warning_host_problem);
 
 		if(services_warning_scheduled > 0)
 			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_WARNING, SERVICE_SCHEDULED_DOWNTIME, services_warning_scheduled);
@@ -3068,10 +3068,10 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 		printf("<td><table border='0'>\n");
 
 		if(services_unknown_unacknowledged > 0)
-			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_UNKNOWN, HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_unknown_unacknowledged);
+			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_UNKNOWN, SD_HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_unknown_unacknowledged);
 
 		if(services_unknown_host_problem > 0)
-			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_UNKNOWN, HOST_DOWN | HOST_UNREACHABLE, services_unknown_host_problem);
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_UNKNOWN, SD_HOST_DOWN | SD_HOST_UNREACHABLE, services_unknown_host_problem);
 
 		if(services_unknown_scheduled > 0)
 			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_UNKNOWN, SERVICE_SCHEDULED_DOWNTIME, services_unknown_scheduled);
@@ -3099,10 +3099,10 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 		printf("<td><table border='0'>\n");
 
 		if(services_critical_unacknowledged > 0)
-			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_CRITICAL, HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_critical_unacknowledged);
+			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_CRITICAL, SD_HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_critical_unacknowledged);
 
 		if(services_critical_host_problem > 0)
-			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_CRITICAL, HOST_DOWN | HOST_UNREACHABLE, services_critical_host_problem);
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_CRITICAL, SD_HOST_DOWN | SD_HOST_UNREACHABLE, services_critical_host_problem);
 
 		if(services_critical_scheduled > 0)
 			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_CRITICAL, SERVICE_SCHEDULED_DOWNTIME, services_critical_scheduled);
@@ -3289,9 +3289,9 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 
 		printf("<tr class='status%s'>\n", status_bg_class);
 
-		if(temp_hoststatus->status == HOST_DOWN)
+		if(temp_hoststatus->status == SD_HOST_DOWN)
 			host_status_class = "HOStdOWN";
-		else if(temp_hoststatus->status == HOST_UNREACHABLE)
+		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE)
 			host_status_class = "HOSTUNREACHABLE";
 		else
 			host_status_class = status_bg_class;
@@ -3633,17 +3633,17 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd,
 		status_class = "HOSTPENDING";
 		status_bg_class = (odd) ? "Even" : "Odd";
 		}
-	else if(hststatus->status == HOST_UP) {
+	else if(hststatus->status == SD_HOST_UP) {
 		strncpy(status, "UP", sizeof(status));
 		status_class = "HOSTUP";
 		status_bg_class = (odd) ? "Even" : "Odd";
 		}
-	else if(hststatus->status == HOST_DOWN) {
+	else if(hststatus->status == SD_HOST_DOWN) {
 		strncpy(status, "DOWN", sizeof(status));
 		status_class = "HOStdOWN";
 		status_bg_class = "HOStdOWN";
 		}
-	else if(hststatus->status == HOST_UNREACHABLE) {
+	else if(hststatus->status == SD_HOST_UNREACHABLE) {
 		strncpy(status, "UNREACHABLE", sizeof(status));
 		status_class = "HOSTUNREACHABLE";
 		status_bg_class = "HOSTUNREACHABLE";
@@ -3984,10 +3984,10 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 
 		problem = TRUE;
 
-		if(temp_hoststatus->status == HOST_UP)
+		if(temp_hoststatus->status == SD_HOST_UP)
 			hosts_up++;
 
-		else if(temp_hoststatus->status == HOST_DOWN) {
+		else if(temp_hoststatus->status == SD_HOST_DOWN) {
 			if(temp_hoststatus->scheduled_downtime_depth > 0) {
 				hosts_down_scheduled++;
 				problem = FALSE;
@@ -4005,7 +4005,7 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 			hosts_down++;
 			}
 
-		else if(temp_hoststatus->status == HOST_UNREACHABLE) {
+		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 			if(temp_hoststatus->scheduled_downtime_depth > 0) {
 				hosts_unreachable_scheduled++;
 				problem = FALSE;
@@ -4031,7 +4031,7 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 
 	if(hosts_up > 0) {
 		printf("<tr>");
-		printf("<td class='miniStatusUP'><a href='%s?hostgroup=%s&style=hostdetail&&hoststatustypes=%d&hostprops=%lu'>%d UP</a></td>", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_UP, host_properties, hosts_up);
+		printf("<td class='miniStatusUP'><a href='%s?hostgroup=%s&style=hostdetail&&hoststatustypes=%d&hostprops=%lu'>%d UP</a></td>", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_UP, host_properties, hosts_up);
 		printf("</tr>\n");
 		}
 
@@ -4040,21 +4040,21 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 		printf("<td class='miniStatusDOWN'><table border='0'>\n");
 		printf("<tr>\n");
 
-		printf("<td class='miniStatusDOWN'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%lu'>%d DOWN</a>&nbsp;:</td>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_DOWN, host_properties, hosts_down);
+		printf("<td class='miniStatusDOWN'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%lu'>%d DOWN</a>&nbsp;:</td>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_DOWN, host_properties, hosts_down);
 
 		printf("<td><table border='0'>\n");
 
 		if(hosts_down_unacknowledged > 0)
-			printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_DOWN, HOST_NO_SCHEDULED_DOWNTIME | HOST_STATE_UNACKNOWLEDGED | HOST_CHECKS_ENABLED, hosts_down_unacknowledged);
+			printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_DOWN, HOST_NO_SCHEDULED_DOWNTIME | HOST_STATE_UNACKNOWLEDGED | HOST_CHECKS_ENABLED, hosts_down_unacknowledged);
 
 		if(hosts_down_scheduled > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_DOWN, HOST_SCHEDULED_DOWNTIME, hosts_down_scheduled);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_DOWN, HOST_SCHEDULED_DOWNTIME, hosts_down_scheduled);
 
 		if(hosts_down_acknowledged > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_DOWN, HOST_STATE_ACKNOWLEDGED, hosts_down_acknowledged);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_DOWN, HOST_STATE_ACKNOWLEDGED, hosts_down_acknowledged);
 
 		if(hosts_down_disabled > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_DOWN, HOST_CHECKS_DISABLED, hosts_down_disabled);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_DOWN, HOST_CHECKS_DISABLED, hosts_down_disabled);
 
 		printf("</table></td>\n");
 
@@ -4068,21 +4068,21 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 		printf("<td class='miniStatusUNREACHABLE'><table border='0'>\n");
 		printf("<tr>\n");
 
-		printf("<td class='miniStatusUNREACHABLE'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%lu'>%d UNREACHABLE</a>&nbsp;:</td>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_UNREACHABLE, host_properties, hosts_unreachable);
+		printf("<td class='miniStatusUNREACHABLE'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%lu'>%d UNREACHABLE</a>&nbsp;:</td>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_UNREACHABLE, host_properties, hosts_unreachable);
 
 		printf("<td><table border='0'>\n");
 
 		if(hosts_unreachable_unacknowledged > 0)
-			printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_UNREACHABLE, HOST_NO_SCHEDULED_DOWNTIME | HOST_STATE_UNACKNOWLEDGED | HOST_CHECKS_ENABLED, hosts_unreachable_unacknowledged);
+			printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_UNREACHABLE, HOST_NO_SCHEDULED_DOWNTIME | HOST_STATE_UNACKNOWLEDGED | HOST_CHECKS_ENABLED, hosts_unreachable_unacknowledged);
 
 		if(hosts_unreachable_scheduled > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_UNREACHABLE, HOST_SCHEDULED_DOWNTIME, hosts_unreachable_scheduled);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_UNREACHABLE, HOST_SCHEDULED_DOWNTIME, hosts_unreachable_scheduled);
 
 		if(hosts_unreachable_acknowledged > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_UNREACHABLE, HOST_STATE_ACKNOWLEDGED, hosts_unreachable_acknowledged);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_UNREACHABLE, HOST_STATE_ACKNOWLEDGED, hosts_unreachable_acknowledged);
 
 		if(hosts_unreachable_disabled > 0)
-			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_UNREACHABLE, HOST_CHECKS_DISABLED, hosts_unreachable_disabled);
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_UNREACHABLE, HOST_CHECKS_DISABLED, hosts_unreachable_disabled);
 
 		printf("</table></td>\n");
 
@@ -4177,7 +4177,7 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 
 		else if(temp_servicestatus->status == SERVICE_WARNING) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
-			if(temp_hoststatus != NULL && (temp_hoststatus->status == HOST_DOWN || temp_hoststatus->status == HOST_UNREACHABLE)) {
+			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_warning_host_problem++;
 				problem = FALSE;
 				}
@@ -4200,7 +4200,7 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 
 		else if(temp_servicestatus->status == SERVICE_UNKNOWN) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
-			if(temp_hoststatus != NULL && (temp_hoststatus->status == HOST_DOWN || temp_hoststatus->status == HOST_UNREACHABLE)) {
+			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_unknown_host_problem++;
 				problem = FALSE;
 				}
@@ -4223,7 +4223,7 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 
 		else if(temp_servicestatus->status == SERVICE_CRITICAL) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
-			if(temp_hoststatus != NULL && (temp_hoststatus->status == HOST_DOWN || temp_hoststatus->status == HOST_UNREACHABLE)) {
+			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_critical_host_problem++;
 				problem = FALSE;
 				}
@@ -4264,10 +4264,10 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 		printf("<td><table border='0'>\n");
 
 		if(services_warning_unacknowledged > 0)
-			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_WARNING, HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_warning_unacknowledged);
+			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_WARNING, SD_HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_warning_unacknowledged);
 
 		if(services_warning_host_problem > 0)
-			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_WARNING, HOST_DOWN | HOST_UNREACHABLE, services_warning_host_problem);
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_WARNING, SD_HOST_DOWN | SD_HOST_UNREACHABLE, services_warning_host_problem);
 
 		if(services_warning_scheduled > 0)
 			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_WARNING, SERVICE_SCHEDULED_DOWNTIME, services_warning_scheduled);
@@ -4295,10 +4295,10 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 		printf("<td><table border='0'>\n");
 
 		if(services_unknown_unacknowledged > 0)
-			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_UNKNOWN, HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_unknown_unacknowledged);
+			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_UNKNOWN, SD_HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_unknown_unacknowledged);
 
 		if(services_unknown_host_problem > 0)
-			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_UNKNOWN, HOST_DOWN | HOST_UNREACHABLE, services_unknown_host_problem);
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_UNKNOWN, SD_HOST_DOWN | SD_HOST_UNREACHABLE, services_unknown_host_problem);
 
 		if(services_unknown_scheduled > 0)
 			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_UNKNOWN, SERVICE_SCHEDULED_DOWNTIME, services_unknown_scheduled);
@@ -4326,10 +4326,10 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 		printf("<td><table border='0'>\n");
 
 		if(services_critical_unacknowledged > 0)
-			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_CRITICAL, HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_critical_unacknowledged);
+			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_CRITICAL, SD_HOST_UP | HOST_PENDING, SERVICE_NO_SCHEDULED_DOWNTIME | SERVICE_STATE_UNACKNOWLEDGED | SERVICE_CHECKS_ENABLED, services_critical_unacknowledged);
 
 		if(services_critical_host_problem > 0)
-			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_CRITICAL, HOST_DOWN | HOST_UNREACHABLE, services_critical_host_problem);
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_CRITICAL, SD_HOST_DOWN | SD_HOST_UNREACHABLE, services_critical_host_problem);
 
 		if(services_critical_scheduled > 0)
 			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Scheduled</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_CRITICAL, SERVICE_SCHEDULED_DOWNTIME, services_critical_scheduled);
@@ -4515,9 +4515,9 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 		printf("<tr class='status%s'>\n", status_bg_class);
 
 		/* get the status of the host */
-		if(temp_hoststatus->status == HOST_DOWN)
+		if(temp_hoststatus->status == SD_HOST_DOWN)
 			host_status_class = "HOStdOWN";
-		else if(temp_hoststatus->status == HOST_UNREACHABLE)
+		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE)
 			host_status_class = "HOSTUNREACHABLE";
 		else
 			host_status_class = status_bg_class;
@@ -5149,15 +5149,15 @@ void show_filters(void) {
 				printf(" Pending");
 				found = 1;
 				}
-			if(host_status_types & HOST_UP) {
+			if(host_status_types & SD_HOST_UP) {
 				printf("%s Up", (found == 1) ? " |" : "");
 				found = 1;
 				}
-			if(host_status_types & HOST_DOWN) {
+			if(host_status_types & SD_HOST_DOWN) {
 				printf("%s Down", (found == 1) ? " |" : "");
 				found = 1;
 				}
-			if(host_status_types & HOST_UNREACHABLE)
+			if(host_status_types & SD_HOST_UNREACHABLE)
 				printf("%s Unreachable", (found == 1) ? " |" : "");
 			}
 		printf("</td></tr>");

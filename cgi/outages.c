@@ -370,7 +370,7 @@ void display_network_outages(void) {
 			continue;
 
 		/* make	sure we only caught valid state types */
-		if(temp_hoststatus->status != HOST_DOWN && temp_hoststatus->status != HOST_UNREACHABLE)
+		if(temp_hoststatus->status != SD_HOST_DOWN && temp_hoststatus->status != SD_HOST_UNREACHABLE)
 			continue;
 
 		total_entries++;
@@ -384,9 +384,9 @@ void display_network_outages(void) {
 			bg_class = "dataEven";
 			}
 
-		if(temp_hoststatus->status == HOST_UNREACHABLE)
+		if(temp_hoststatus->status == SD_HOST_UNREACHABLE)
 			status = "UNREACHABLE";
-		else if(temp_hoststatus->status == HOST_DOWN)
+		else if(temp_hoststatus->status == SD_HOST_DOWN)
 			status = "DOWN";
 
 		printf("<TR CLASS='%s'>\n", bg_class);
@@ -464,7 +464,7 @@ void find_hosts_causing_outages(void) {
 	for(temp_hoststatus = hoststatus_list; temp_hoststatus != NULL; temp_hoststatus = temp_hoststatus->next) {
 
 		/* check only hosts that are not up and not pending */
-		if(temp_hoststatus->status != HOST_UP && temp_hoststatus->status != HOST_PENDING) {
+		if(temp_hoststatus->status != SD_HOST_UP && temp_hoststatus->status != HOST_PENDING) {
 
 			/* find the host entry */
 			temp_host = find_host(temp_hoststatus->host_name);
@@ -617,7 +617,7 @@ int is_route_to_host_blocked(host *hst) {
 			continue;
 
 		/* at least one parent it up (or pending), so this host is not blocked */
-		if(temp_hoststatus->status == HOST_UP || temp_hoststatus->status == HOST_PENDING)
+		if(temp_hoststatus->status == SD_HOST_UP || temp_hoststatus->status == HOST_PENDING)
 			return FALSE;
 		}
 

@@ -238,14 +238,6 @@ extern notification *notification_list;
 #define MAX_PLUGIN_OUTPUT_LENGTH                8192    /* max length of plugin output (including perf data) */
 
 
-	/******************** HOST STATUS *********************/
-
-#define HOST_UP				0
-#define HOST_DOWN			1
-#define HOST_UNREACHABLE		2
-
-
-
 	/******************* STATE LOGGING TYPES **************/
 
 #define INITIAL_STATES                  1

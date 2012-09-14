@@ -157,16 +157,16 @@ typedef struct servicestatus_struct {
 /**************************** HOST STATES ****************************/
 
 #define HOST_PENDING			1
-#define HOST_UP				2
-#define HOST_DOWN			4
-#define HOST_UNREACHABLE		8
+#define SD_HOST_UP				2
+#define SD_HOST_DOWN			4
+#define SD_HOST_UNREACHABLE		8
 
 /* Convert the (historically ordered) host states into a notion of "urgency".
 	  This is defined as, in ascending order:
-		HOST_UP			(business as usual)
+		SD_HOST_UP			(business as usual)
 		HOST_PENDING		(waiting for - supposedly first - check result)
-		HOST_UNREACHABLE	(a problem, but likely not its cause)
-		HOST_DOWN		(look here!!)
+		SD_HOST_UNREACHABLE	(a problem, but likely not its cause)
+		SD_HOST_DOWN		(look here!!)
 	  The exact values are irrelevant, so I try to make the conversion as
 	  CPU-efficient as possible: */
 #define HOST_URGENCY(hs)		((hs)|(((hs)&0x5)<<1))

@@ -945,7 +945,7 @@ void draw_host(host *temp_host) {
 	printf("material DEF HostMat%s Material{\n", vrml_safe_hostname);
 	if(temp_hoststatus == NULL)
 		printf("emissiveColor 0.2 0.2 0.2\ndiffuseColor 0.2 0.2 0.2\n");
-	else if(temp_hoststatus->status == HOST_UP)
+	else if(temp_hoststatus->status == SD_HOST_UP)
 		printf("emissiveColor 0.2 1.0 0.2\ndiffuseColor 0.2 1.0 0.2\n");
 	else
 		printf("emissiveColor 1.0 0.2 0.2\ndiffuseColor 1.0 0.2 0.2\n");
@@ -981,18 +981,18 @@ void draw_host(host *temp_host) {
 		printf("HostText{\n");
 
 		if(temp_hoststatus != NULL) {
-			if(temp_hoststatus->status == HOST_UP)
+			if(temp_hoststatus->status == SD_HOST_UP)
 				printf("font_color 0 1 0\n");
-			else if(temp_hoststatus->status == HOST_DOWN || temp_hoststatus->status == HOST_UNREACHABLE)
+			else if(temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)
 				printf("font_color 1 0 0\n");
 			}
 		printf("the_text [\"%s\", \"%s\", ", temp_host->name, temp_host->alias);
 		if(temp_hoststatus == NULL)
 			strcpy(state_string, "UNKNOWN");
 		else {
-			if(temp_hoststatus->status == HOST_DOWN)
+			if(temp_hoststatus->status == SD_HOST_DOWN)
 				strcpy(state_string, "DOWN");
-			else if(temp_hoststatus->status == HOST_UNREACHABLE)
+			else if(temp_hoststatus->status == SD_HOST_UNREACHABLE)
 				strcpy(state_string, "UNREACHABLE");
 			else if(temp_hoststatus->status == HOST_PENDING)
 				strcpy(state_string, "PENDING");
@@ -1007,7 +1007,7 @@ void draw_host(host *temp_host) {
 		}
 
 	/* host is down or unreachable, so make it fade in and out */
-	if(temp_hoststatus != NULL && (temp_hoststatus->status == HOST_DOWN || temp_hoststatus->status == HOST_UNREACHABLE))
+	if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE))
 		printf("ROUTE ProblemTimer.fraction_changed TO HostMat%s.set_transparency\n", vrml_safe_hostname);
 
 	free(vrml_safe_hostname);

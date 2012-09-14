@@ -75,12 +75,18 @@ NAGIOS_END_DECL
 #undef USE_MEMORY_PERFORMANCE_TWEAKS
 
 
-/****************** SERVICE STATES ********************/
+/****************** OBJECT STATES ********************/
 #define STATE_OK			0
 #define STATE_WARNING			1
 #define STATE_CRITICAL			2
-#define STATE_UNKNOWN			3       /* changed from -1 on 02/24/2001 */
-
+#define STATE_UNKNOWN			3
+#define STATE_UP                0
+#define STATE_DOWN              1
+#define STATE_UNREACHABLE       2
+/* for legacy reasons */
+#define HOST_UP              STATE_UP
+#define HOST_DOWN            STATE_DOWN
+#define HOST_UNREACHABLE     STATE_UNREACHABLE
 
 /***************************** COMMANDS *********************************/
 

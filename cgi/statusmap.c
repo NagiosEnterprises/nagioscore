@@ -1473,7 +1473,7 @@ void draw_host_links(void) {
 			/* determine color to use when drawing links to children  */
 			this_hoststatus = find_hoststatus(this_host->name);
 			if(this_hoststatus != NULL) {
-				if(this_hoststatus->status == HOST_DOWN || this_hoststatus->status == HOST_UNREACHABLE)
+				if(this_hoststatus->status == SD_HOST_DOWN || this_hoststatus->status == SD_HOST_UNREACHABLE)
 					status_color = color_red;
 				else
 					status_color = color_black;
@@ -1538,7 +1538,7 @@ void draw_host_links(void) {
 			/* determine color to use when drawing links to parent host */
 			parent_hoststatus = find_hoststatus(parent_host->name);
 			if(parent_hoststatus != NULL) {
-				if(parent_hoststatus->status == HOST_DOWN || parent_hoststatus->status == HOST_UNREACHABLE)
+				if(parent_hoststatus->status == SD_HOST_DOWN || parent_hoststatus->status == SD_HOST_UNREACHABLE)
 					status_color = color_red;
 				else
 					status_color = color_black;
@@ -1653,11 +1653,11 @@ void draw_hosts(void) {
 
 			temp_hoststatus = find_hoststatus(temp_host->name);
 			if(temp_hoststatus != NULL) {
-				if(temp_hoststatus->status == HOST_DOWN)
+				if(temp_hoststatus->status == SD_HOST_DOWN)
 					status_color = color_red;
-				else if(temp_hoststatus->status == HOST_UNREACHABLE)
+				else if(temp_hoststatus->status == SD_HOST_UNREACHABLE)
 					status_color = color_red;
-				else if(temp_hoststatus->status == HOST_UP)
+				else if(temp_hoststatus->status == SD_HOST_UP)
 					status_color = color_green;
 				else if(temp_hoststatus->status == HOST_PENDING)
 					status_color = color_grey;
@@ -1692,7 +1692,7 @@ void draw_hosts(void) {
 				/* calculate width of border */
 				if(temp_hoststatus == NULL)
 					inner_radius = outer_radius;
-				else if((temp_hoststatus->status == HOST_DOWN || temp_hoststatus->status == HOST_UNREACHABLE) && temp_hoststatus->problem_has_been_acknowledged == FALSE)
+				else if((temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE) && temp_hoststatus->problem_has_been_acknowledged == FALSE)
 					inner_radius = outer_radius - 3;
 				else
 					inner_radius = outer_radius;
@@ -1868,15 +1868,15 @@ void draw_host_text(char *name, int x, int y) {
 	if(temp_hoststatus != NULL) {
 
 		/* draw the status string */
-		if(temp_hoststatus->status == HOST_DOWN) {
+		if(temp_hoststatus->status == SD_HOST_DOWN) {
 			strncpy(temp_buffer, "Down", sizeof(temp_buffer));
 			status_color = color_red;
 			}
-		else if(temp_hoststatus->status == HOST_UNREACHABLE) {
+		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 			strncpy(temp_buffer, "Unreachable", sizeof(temp_buffer));
 			status_color = color_red;
 			}
-		else if(temp_hoststatus->status == HOST_UP) {
+		else if(temp_hoststatus->status == SD_HOST_UP) {
 			strncpy(temp_buffer, "Up", sizeof(temp_buffer));
 			status_color = color_green;
 			}
@@ -1951,21 +1951,21 @@ void write_host_popup_text(host *hst) {
 	printf("<tr><td class=\\\"popupText\\\">State:</td><td class=\\\"popupText\\\"><b>");
 
 	/* get the status of the host (pending, up, down, or unreachable) */
-	if(temp_status->status == HOST_DOWN) {
+	if(temp_status->status == SD_HOST_DOWN) {
 		printf("<font color=red>Down");
 		if(temp_status->problem_has_been_acknowledged == TRUE)
 			printf(" (Acknowledged)");
 		printf("</font>");
 		}
 
-	else if(temp_status->status == HOST_UNREACHABLE) {
+	else if(temp_status->status == SD_HOST_UNREACHABLE) {
 		printf("<font color=red>Unreachable");
 		if(temp_status->problem_has_been_acknowledged == TRUE)
 			printf(" (Acknowledged)");
 		printf("</font>");
 		}
 
-	else if(temp_status->status == HOST_UP)
+	else if(temp_status->status == SD_HOST_UP)
 		printf("<font color=green>Up</font>");
 
 	else if(temp_status->status == HOST_PENDING)
@@ -2829,7 +2829,7 @@ void draw_circular_layer_markup(host *parent, double start_angle, double useable
 			temp_hoststatus = find_hoststatus(temp_host->name);
 			if(temp_hoststatus == NULL)
 				bgcolor = color_lightgrey;
-			else if(temp_hoststatus->status == HOST_DOWN || temp_hoststatus->status == HOST_UNREACHABLE)
+			else if(temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)
 				bgcolor = color_lightred;
 			else
 				bgcolor = color_lightgreen;

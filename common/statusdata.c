@@ -303,16 +303,16 @@ int add_host_status(hoststatus *new_hoststatus) {
 	if(new_hoststatus != NULL) {
 		switch(new_hoststatus->status) {
 			case 0:
-				new_hoststatus->status = HOST_UP;
+				new_hoststatus->status = SD_HOST_UP;
 				break;
 			case 1:
-				new_hoststatus->status = HOST_DOWN;
+				new_hoststatus->status = SD_HOST_DOWN;
 				break;
 			case 2:
-				new_hoststatus->status = HOST_UNREACHABLE;
+				new_hoststatus->status = SD_HOST_UNREACHABLE;
 				break;
 			default:
-				new_hoststatus->status = HOST_UP;
+				new_hoststatus->status = SD_HOST_UP;
 				break;
 			}
 		if(new_hoststatus->has_been_checked == FALSE) {

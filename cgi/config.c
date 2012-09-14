@@ -605,23 +605,23 @@ void display_hosts(void) {
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = 0;
-			if(temp_host->notify_on_down == TRUE) {
+			if(flag_isset(temp_host->notification_options, OPT_DOWN) == TRUE) {
 				options = 1;
 				printf("Down");
 				}
-			if(temp_host->notify_on_unreachable == TRUE) {
+			if(flag_isset(temp_host->notification_options, OPT_UNREACHABLE) == TRUE) {
 				printf("%sUnreachable", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_host->notify_on_recovery == TRUE) {
+			if(flag_isset(temp_host->notification_options, OPT_RECOVERY) == TRUE) {
 				printf("%sRecovery", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_host->notify_on_flapping == TRUE) {
+			if(flag_isset(temp_host->notification_options, OPT_FLAPPING) == TRUE) {
 				printf("%sFlapping", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_host->notify_on_downtime == TRUE) {
+			if(flag_isset(temp_host->notification_options, OPT_DOWNTIME) == TRUE) {
 				printf("%sDowntime", (options) ? ", " : "");
 				options = 1;
 				}
@@ -650,15 +650,15 @@ void display_hosts(void) {
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = 0;
-			if(temp_host->stalk_on_up == TRUE) {
+			if(flag_isset(temp_host->stalking_options, OPT_UP) == TRUE) {
 				options = 1;
 				printf("Up");
 				}
-			if(temp_host->stalk_on_down == TRUE) {
+			if(flag_isset(temp_host->stalking_options, OPT_DOWN) == TRUE) {
 				printf("%sDown", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_host->stalk_on_unreachable == TRUE) {
+			if(flag_isset(temp_host->stalking_options, OPT_UNREACHABLE) == TRUE) {
 				printf("%sUnreachable", (options) ? ", " : "");
 				options = 1;
 				}
@@ -686,15 +686,15 @@ void display_hosts(void) {
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = 0;
-			if(temp_host->flap_detection_on_up == TRUE) {
+			if(flag_isset(temp_host->flap_detection_options, OPT_UP) == TRUE) {
 				options = 1;
 				printf("Up");
 				}
-			if(temp_host->flap_detection_on_down == TRUE) {
+			if(flag_isset(temp_host->flap_detection_options, OPT_DOWN) == TRUE) {
 				printf("%sDown", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_host->flap_detection_on_unreachable == TRUE) {
+			if(flag_isset(temp_host->flap_detection_options, OPT_UNREACHABLE) == TRUE) {
 				printf("%sUnreachable", (options) ? ", " : "");
 				options = 1;
 				}
@@ -977,27 +977,27 @@ void display_contacts(void) {
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = 0;
-			if(temp_contact->notify_on_service_unknown == TRUE) {
+			if(flag_isset(temp_contact->service_notification_options, OPT_UNKNOWN)) {
 				options = 1;
 				printf("Unknown");
 				}
-			if(temp_contact->notify_on_service_warning == TRUE) {
+			if(flag_isset(temp_contact->service_notification_options, OPT_WARNING)) {
 				printf("%sWarning", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_contact->notify_on_service_critical == TRUE) {
+			if(flag_isset(temp_contact->service_notification_options, OPT_CRITICAL)) {
 				printf("%sCritical", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_contact->notify_on_service_recovery == TRUE) {
+			if(flag_isset(temp_contact->service_notification_options, OPT_RECOVERY)) {
 				printf("%sRecovery", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_contact->notify_on_service_flapping == TRUE) {
+			if(flag_isset(temp_contact->service_notification_options, OPT_FLAPPING)) {
 				printf("%sFlapping", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_contact->notify_on_service_downtime == TRUE) {
+			if(flag_isset(temp_contact->service_notification_options, OPT_DOWNTIME)) {
 				printf("%sDowntime", (options) ? ", " : "");
 				options = 1;
 				}
@@ -1007,23 +1007,23 @@ void display_contacts(void) {
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = 0;
-			if(temp_contact->notify_on_host_down == TRUE) {
+			if(flag_isset(temp_contact->host_notification_options, OPT_DOWN) == TRUE) {
 				options = 1;
 				printf("Down");
 				}
-			if(temp_contact->notify_on_host_unreachable == TRUE) {
+			if(flag_isset(temp_contact->host_notification_options, OPT_UNREACHABLE) == TRUE) {
 				printf("%sUnreachable", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_contact->notify_on_host_recovery == TRUE) {
+			if(flag_isset(temp_contact->host_notification_options, OPT_RECOVERY) == TRUE) {
 				printf("%sRecovery", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_contact->notify_on_host_flapping == TRUE) {
+			if(flag_isset(temp_contact->host_notification_options, OPT_FLAPPING) == TRUE) {
 				printf("%sFlapping", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_contact->notify_on_host_downtime == TRUE) {
+			if(flag_isset(temp_contact->host_notification_options, OPT_DOWNTIME) == TRUE) {
 				printf("%sDowntime", (options) ? ", " : "");
 				options = 1;
 				}
@@ -1331,27 +1331,27 @@ void display_services(void) {
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = 0;
-			if(temp_service->notify_on_unknown == TRUE) {
+			if(flag_isset(temp_service->notification_options, OPT_UNKNOWN) == TRUE) {
 				options = 1;
 				printf("Unknown");
 				}
-			if(temp_service->notify_on_warning == TRUE) {
+			if(flag_isset(temp_service->notification_options, OPT_WARNING) == TRUE) {
 				printf("%sWarning", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_service->notify_on_critical == TRUE) {
+			if(flag_isset(temp_service->notification_options, OPT_CRITICAL) == TRUE) {
 				printf("%sCritical", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_service->notify_on_recovery == TRUE) {
+			if(flag_isset(temp_service->notification_options, OPT_RECOVERY) == TRUE) {
 				printf("%sRecovery", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_service->notify_on_flapping == TRUE) {
+			if(flag_isset(temp_service->notification_options, OPT_FLAPPING) == TRUE) {
 				printf("%sFlapping", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_service->notify_on_downtime == TRUE) {
+			if(flag_isset(temp_service->notification_options, OPT_DOWNTIME) == TRUE) {
 				printf("%sDowntime", (options) ? ", " : "");
 				options = 1;
 				}
@@ -1378,19 +1378,19 @@ void display_services(void) {
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = 0;
-			if(temp_service->stalk_on_ok == TRUE) {
+			if(flag_isset(temp_service->stalking_options, OPT_OK) == TRUE) {
 				options = 1;
 				printf("Ok");
 				}
-			if(temp_service->stalk_on_warning == TRUE) {
+			if(flag_isset(temp_service->stalking_options, OPT_WARNING) == TRUE) {
 				printf("%sWarning", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_service->stalk_on_unknown == TRUE) {
+			if(flag_isset(temp_service->stalking_options, OPT_UNKNOWN) == TRUE) {
 				printf("%sUnknown", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_service->stalk_on_critical == TRUE) {
+			if(flag_isset(temp_service->stalking_options, OPT_CRITICAL) == TRUE) {
 				printf("%sCritical", (options) ? ", " : "");
 				options = 1;
 				}
@@ -1418,19 +1418,19 @@ void display_services(void) {
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = 0;
-			if(temp_service->flap_detection_on_ok == TRUE) {
+			if(flag_isset(temp_service->flap_detection_options, OPT_OK) == TRUE) {
 				options = 1;
 				printf("Ok");
 				}
-			if(temp_service->flap_detection_on_warning == TRUE) {
+			if(flag_isset(temp_service->flap_detection_options, OPT_WARNING) == TRUE) {
 				printf("%sWarning", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_service->flap_detection_on_unknown == TRUE) {
+			if(flag_isset(temp_service->flap_detection_options, OPT_UNKNOWN) == TRUE) {
 				printf("%sUnknown", (options) ? ", " : "");
 				options = 1;
 				}
-			if(temp_service->flap_detection_on_critical == TRUE) {
+			if(flag_isset(temp_service->flap_detection_options, OPT_CRITICAL) == TRUE) {
 				printf("%sCritical", (options) ? ", " : "");
 				options = 1;
 				}
@@ -1765,23 +1765,23 @@ void display_servicedependency(servicedependency *temp_sd)
 
 	printf("<TD CLASS='%s'>", bg_class);
 	options = FALSE;
-	if(temp_sd->fail_on_ok == TRUE) {
+	if(flag_isset(temp_sd->failure_options, OPT_OK) == TRUE) {
 		printf("Ok");
 		options = TRUE;
 		}
-	if(temp_sd->fail_on_warning == TRUE) {
+	if(flag_isset(temp_sd->failure_options, OPT_WARNING) == TRUE) {
 		printf("%sWarning", (options == TRUE) ? ", " : "");
 		options = TRUE;
 		}
-	if(temp_sd->fail_on_unknown == TRUE) {
+	if(flag_isset(temp_sd->failure_options, OPT_UNKNOWN) == TRUE) {
 		printf("%sUnknown", (options == TRUE) ? ", " : "");
 		options = TRUE;
 		}
-	if(temp_sd->fail_on_critical == TRUE) {
+	if(flag_isset(temp_sd->failure_options, OPT_CRITICAL) == TRUE) {
 		printf("%sCritical", (options == TRUE) ? ", " : "");
 		options = TRUE;
 		}
-	if(temp_sd->fail_on_pending == TRUE) {
+	if(flag_isset(temp_sd->failure_options, OPT_PENDING) == TRUE) {
 		printf("%sPending", (options == TRUE) ? ", " : "");
 		options = TRUE;
 		}
@@ -1969,19 +1969,19 @@ void display_serviceescalations(void) {
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = FALSE;
-			if(temp_se->escalate_on_warning == TRUE) {
+			if(flag_isset(temp_se->escalation_options, OPT_WARNING) == TRUE) {
 				printf("%sWarning", (options == TRUE) ? ", " : "");
 				options = TRUE;
 				}
-			if(temp_se->escalate_on_unknown == TRUE) {
+			if(flag_isset(temp_se->escalation_options, OPT_UNKNOWN) == TRUE) {
 				printf("%sUnknown", (options == TRUE) ? ", " : "");
 				options = TRUE;
 				}
-			if(temp_se->escalate_on_critical == TRUE) {
+			if(flag_isset(temp_se->escalation_options, OPT_CRITICAL) == TRUE) {
 				printf("%sCritical", (options == TRUE) ? ", " : "");
 				options = TRUE;
 				}
-			if(temp_se->escalate_on_recovery == TRUE) {
+			if(flag_isset(temp_se->escalation_options, OPT_RECOVERY) == TRUE) {
 				printf("%sRecovery", (options == TRUE) ? ", " : "");
 				options = TRUE;
 				}
@@ -2032,19 +2032,19 @@ void display_hostdependency(hostdependency *temp_hd)
 
 	printf("<TD CLASS='%s'>", bg_class);
 	options = FALSE;
-	if(temp_hd->fail_on_up == TRUE) {
+	if(flag_isset(temp_hd->failure_options, OPT_UP) == TRUE) {
 		printf("Up");
 		options = TRUE;
 		}
-	if(temp_hd->fail_on_down == TRUE) {
+	if(flag_isset(temp_hd->failure_options, OPT_DOWN) == TRUE) {
 		printf("%sDown", (options == TRUE) ? ", " : "");
 		options = TRUE;
 		}
-	if(temp_hd->fail_on_unreachable == TRUE) {
+	if(flag_isset(temp_hd->failure_options, OPT_UNREACHABLE) == TRUE) {
 		printf("%sUnreachable", (options == TRUE) ? ", " : "");
 		options = TRUE;
 		}
-	if(temp_hd->fail_on_pending == TRUE) {
+	if(flag_isset(temp_hd->failure_options, OPT_PENDING) == TRUE) {
 		printf("%sPending", (options == TRUE) ? ", " : "");
 		options = TRUE;
 		}
@@ -2210,15 +2210,15 @@ void display_hostescalations(void) {
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = FALSE;
-			if(temp_he->escalate_on_down == TRUE) {
+			if(flag_isset(temp_he->escalation_options, OPT_DOWN) == TRUE) {
 				printf("%sDown", (options == TRUE) ? ", " : "");
 				options = TRUE;
 				}
-			if(temp_he->escalate_on_unreachable == TRUE) {
+			if(flag_isset(temp_he->escalation_options, OPT_UNREACHABLE) == TRUE) {
 				printf("%sUnreachable", (options == TRUE) ? ", " : "");
 				options = TRUE;
 				}
-			if(temp_he->escalate_on_recovery == TRUE) {
+			if(flag_isset(temp_he->escalation_options, OPT_RECOVERY) == TRUE) {
 				printf("%sRecovery", (options == TRUE) ? ", " : "");
 				options = TRUE;
 				}

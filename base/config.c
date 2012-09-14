@@ -1496,7 +1496,7 @@ int pre_flight_object_check(int *w, int *e) {
 			}
 
 		/* check for sane recovery options */
-		if(temp_service->notify_on_recovery == TRUE && temp_service->notify_on_warning == FALSE && temp_service->notify_on_critical == FALSE) {
+		if(temp_service->notification_options == OPT_RECOVERY) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Recovery notification option in service '%s' for host '%s' doesn't make any sense - specify warning and/or critical options as well", temp_service->description, temp_service->host_name);
 			warnings++;
 			}
@@ -1653,7 +1653,7 @@ int pre_flight_object_check(int *w, int *e) {
 			}
 
 		/* check for sane recovery options */
-		if(temp_host->notify_on_recovery == TRUE && temp_host->notify_on_down == FALSE && temp_host->notify_on_unreachable == FALSE) {
+		if(temp_host->notification_options == OPT_RECOVERY) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Recovery notification option in host '%s' definition doesn't make any sense - specify down and/or unreachable options as well", temp_host->name);
 			warnings++;
 			}
@@ -1819,13 +1819,13 @@ int pre_flight_object_check(int *w, int *e) {
 			}
 
 		/* check for sane host recovery options */
-		if(temp_contact->notify_on_host_recovery == TRUE && temp_contact->notify_on_host_down == FALSE && temp_contact->notify_on_host_unreachable == FALSE) {
+		if(temp_contact->host_notification_options == OPT_RECOVERY) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Host recovery notification option for contact '%s' doesn't make any sense - specify down and/or unreachable options as well", temp_contact->name);
 			warnings++;
 			}
 
 		/* check for sane service recovery options */
-		if(temp_contact->notify_on_service_recovery == TRUE && temp_contact->notify_on_service_critical == FALSE && temp_contact->notify_on_service_warning == FALSE) {
+		if(temp_contact->service_notification_options == OPT_RECOVERY) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Service recovery notification option for contact '%s' doesn't make any sense - specify critical and/or warning options as well", temp_contact->name);
 			warnings++;
 			}

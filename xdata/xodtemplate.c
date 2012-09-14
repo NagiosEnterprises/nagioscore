@@ -1009,9 +1009,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 			new_host->max_check_attempts = -2;
 			new_host->event_handler_enabled = TRUE;
 			new_host->flap_detection_enabled = TRUE;
-			new_host->flap_detection_on_up = TRUE;
-			new_host->flap_detection_on_down = TRUE;
-			new_host->flap_detection_on_unreachable = TRUE;
+			new_host->flap_detection_options = OPT_ALL;
 			new_host->notifications_enabled = TRUE;
 			new_host->notification_interval = 30.0;
 			new_host->process_perf_data = TRUE;
@@ -1034,10 +1032,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 			new_service->obsess = TRUE;
 			new_service->event_handler_enabled = TRUE;
 			new_service->flap_detection_enabled = TRUE;
-			new_service->flap_detection_on_ok = TRUE;
-			new_service->flap_detection_on_warning = TRUE;
-			new_service->flap_detection_on_unknown = TRUE;
-			new_service->flap_detection_on_critical = TRUE;
+			new_service->flap_detection_options = OPT_ALL;
 			new_service->notifications_enabled = TRUE;
 			new_service->notification_interval = 30.0;
 			new_service->process_perf_data = TRUE;
@@ -1784,27 +1779,21 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_servicedependency->have_execution_dependency_options = TRUE;
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "ok"))
-						temp_servicedependency->fail_execute_on_ok = TRUE;
+						flag_set(temp_servicedependency->fail_exec, OPT_OK);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unknown"))
-						temp_servicedependency->fail_execute_on_unknown = TRUE;
+						flag_set(temp_servicedependency->fail_exec, OPT_UNKNOWN);
 					else if(!strcmp(temp_ptr, "w") || !strcmp(temp_ptr, "warning"))
-						temp_servicedependency->fail_execute_on_warning = TRUE;
+						flag_set(temp_servicedependency->fail_exec, OPT_WARNING);
 					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
-						temp_servicedependency->fail_execute_on_critical = TRUE;
+						flag_set(temp_servicedependency->fail_exec, OPT_CRITICAL);
 					else if(!strcmp(temp_ptr, "p") || !strcmp(temp_ptr, "pending"))
-						temp_servicedependency->fail_execute_on_pending = TRUE;
+						flag_set(temp_servicedependency->fail_exec, OPT_PENDING);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_servicedependency->fail_execute_on_ok = FALSE;
-						temp_servicedependency->fail_execute_on_unknown = FALSE;
-						temp_servicedependency->fail_execute_on_warning = FALSE;
-						temp_servicedependency->fail_execute_on_critical = FALSE;
+						temp_servicedependency->fail_exec = OPT_NOTHING;
 						temp_servicedependency->have_execution_dependency_options = FALSE;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_servicedependency->fail_execute_on_ok = TRUE;
-						temp_servicedependency->fail_execute_on_unknown = TRUE;
-						temp_servicedependency->fail_execute_on_warning = TRUE;
-						temp_servicedependency->fail_execute_on_critical = TRUE;
+						temp_servicedependency->fail_exec = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid execution dependency option '%s' in servicedependency definition.\n", temp_ptr);
@@ -1816,29 +1805,21 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_servicedependency->have_notification_dependency_options = TRUE;
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "ok"))
-						temp_servicedependency->fail_notify_on_ok = TRUE;
+						flag_set(temp_servicedependency->fail_notify, OPT_OK);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unknown"))
-						temp_servicedependency->fail_notify_on_unknown = TRUE;
+						flag_set(temp_servicedependency->fail_notify, OPT_UNKNOWN);
 					else if(!strcmp(temp_ptr, "w") || !strcmp(temp_ptr, "warning"))
-						temp_servicedependency->fail_notify_on_warning = TRUE;
+						flag_set(temp_servicedependency->fail_notify, OPT_WARNING);
 					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
-						temp_servicedependency->fail_notify_on_critical = TRUE;
+						flag_set(temp_servicedependency->fail_notify, OPT_CRITICAL);
 					else if(!strcmp(temp_ptr, "p") || !strcmp(temp_ptr, "pending"))
-						temp_servicedependency->fail_notify_on_pending = TRUE;
+						flag_set(temp_servicedependency->fail_notify, OPT_PENDING);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_servicedependency->fail_notify_on_ok = FALSE;
-						temp_servicedependency->fail_notify_on_unknown = FALSE;
-						temp_servicedependency->fail_notify_on_warning = FALSE;
-						temp_servicedependency->fail_notify_on_critical = FALSE;
-						temp_servicedependency->fail_notify_on_pending = FALSE;
+						temp_servicedependency->fail_notify = OPT_NOTHING;
 						temp_servicedependency->have_notification_dependency_options = FALSE;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_servicedependency->fail_notify_on_ok = TRUE;
-						temp_servicedependency->fail_notify_on_unknown = TRUE;
-						temp_servicedependency->fail_notify_on_warning = TRUE;
-						temp_servicedependency->fail_notify_on_critical = TRUE;
-						temp_servicedependency->fail_notify_on_pending = TRUE;
+						temp_servicedependency->fail_notify = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid notification dependency option '%s' in servicedependency definition.\n", temp_ptr);
@@ -1951,24 +1932,18 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "escalation_options")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "w") || !strcmp(temp_ptr, "warning"))
-						temp_serviceescalation->escalate_on_warning = TRUE;
+						flag_set(temp_serviceescalation->escalation_options, OPT_WARNING);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unknown"))
-						temp_serviceescalation->escalate_on_unknown = TRUE;
+						flag_set(temp_serviceescalation->escalation_options, OPT_UNKNOWN);
 					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
-						temp_serviceescalation->escalate_on_critical = TRUE;
+						flag_set(temp_serviceescalation->escalation_options, OPT_CRITICAL);
 					else if(!strcmp(temp_ptr, "r") || !strcmp(temp_ptr, "recovery"))
-						temp_serviceescalation->escalate_on_recovery = TRUE;
+						flag_set(temp_serviceescalation->escalation_options, OPT_RECOVERY);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_serviceescalation->escalate_on_warning = FALSE;
-						temp_serviceescalation->escalate_on_unknown = FALSE;
-						temp_serviceescalation->escalate_on_critical = FALSE;
-						temp_serviceescalation->escalate_on_recovery = FALSE;
+						temp_serviceescalation->escalation_options = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_serviceescalation->escalate_on_warning = TRUE;
-						temp_serviceescalation->escalate_on_unknown = TRUE;
-						temp_serviceescalation->escalate_on_critical = TRUE;
-						temp_serviceescalation->escalate_on_recovery = TRUE;
+						temp_serviceescalation->escalation_options = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid escalation option '%s' in serviceescalation definition.\n", temp_ptr);
@@ -2106,28 +2081,20 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "host_notification_options")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "d") || !strcmp(temp_ptr, "down"))
-						temp_contact->notify_on_host_down = TRUE;
+						flag_set(temp_contact->host_notification_options, OPT_DOWN);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
-						temp_contact->notify_on_host_unreachable = TRUE;
+						flag_set(temp_contact->host_notification_options, OPT_UNREACHABLE);
 					else if(!strcmp(temp_ptr, "r") || !strcmp(temp_ptr, "recovery"))
-						temp_contact->notify_on_host_recovery = TRUE;
+						flag_set(temp_contact->host_notification_options, OPT_RECOVERY);
 					else if(!strcmp(temp_ptr, "f") || !strcmp(temp_ptr, "flapping"))
-						temp_contact->notify_on_host_flapping = TRUE;
+						flag_set(temp_contact->host_notification_options, OPT_FLAPPING);
 					else if(!strcmp(temp_ptr, "s") || !strcmp(temp_ptr, "downtime"))
-						temp_contact->notify_on_host_downtime = TRUE;
+						flag_set(temp_contact->host_notification_options, OPT_DOWNTIME);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_contact->notify_on_host_down = FALSE;
-						temp_contact->notify_on_host_unreachable = FALSE;
-						temp_contact->notify_on_host_recovery = FALSE;
-						temp_contact->notify_on_host_flapping = FALSE;
-						temp_contact->notify_on_host_downtime = FALSE;
+						temp_contact->host_notification_options = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_contact->notify_on_host_down = TRUE;
-						temp_contact->notify_on_host_unreachable = TRUE;
-						temp_contact->notify_on_host_recovery = TRUE;
-						temp_contact->notify_on_host_flapping = TRUE;
-						temp_contact->notify_on_host_downtime = TRUE;
+						temp_contact->host_notification_options = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid host notification option '%s' in contact definition.\n", temp_ptr);
@@ -2139,32 +2106,22 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "service_notification_options")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unknown"))
-						temp_contact->notify_on_service_unknown = TRUE;
+						flag_set(temp_contact->service_notification_options, OPT_UNKNOWN);
 					else if(!strcmp(temp_ptr, "w") || !strcmp(temp_ptr, "warning"))
-						temp_contact->notify_on_service_warning = TRUE;
+						flag_set(temp_contact->service_notification_options, OPT_WARNING);
 					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
-						temp_contact->notify_on_service_critical = TRUE;
+						flag_set(temp_contact->service_notification_options, OPT_CRITICAL);
 					else if(!strcmp(temp_ptr, "r") || !strcmp(temp_ptr, "recovery"))
-						temp_contact->notify_on_service_recovery = TRUE;
+						flag_set(temp_contact->service_notification_options, OPT_RECOVERY);
 					else if(!strcmp(temp_ptr, "f") || !strcmp(temp_ptr, "flapping"))
-						temp_contact->notify_on_service_flapping = TRUE;
+						flag_set(temp_contact->service_notification_options, OPT_FLAPPING);
 					else if(!strcmp(temp_ptr, "s") || !strcmp(temp_ptr, "downtime"))
-						temp_contact->notify_on_service_downtime = TRUE;
+						flag_set(temp_contact->service_notification_options, OPT_DOWNTIME);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_contact->notify_on_service_unknown = FALSE;
-						temp_contact->notify_on_service_warning = FALSE;
-						temp_contact->notify_on_service_critical = FALSE;
-						temp_contact->notify_on_service_recovery = FALSE;
-						temp_contact->notify_on_service_flapping = FALSE;
-						temp_contact->notify_on_service_downtime = FALSE;
+						temp_contact->service_notification_options = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_contact->notify_on_service_unknown = TRUE;
-						temp_contact->notify_on_service_warning = TRUE;
-						temp_contact->notify_on_service_critical = TRUE;
-						temp_contact->notify_on_service_recovery = TRUE;
-						temp_contact->notify_on_service_flapping = TRUE;
-						temp_contact->notify_on_service_downtime = TRUE;
+						temp_contact->service_notification_options = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid service notification option '%s' in contact definition.\n", temp_ptr);
@@ -2467,26 +2424,20 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "flap_detection_options")) {
 
 				/* user is specifying something, so discard defaults... */
-				temp_host->flap_detection_on_up = FALSE;
-				temp_host->flap_detection_on_down = FALSE;
-				temp_host->flap_detection_on_unreachable = FALSE;
+				temp_host->flap_detection_options = OPT_NOTHING;
 
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "up"))
-						temp_host->flap_detection_on_up = TRUE;
+						flag_set(temp_host->flap_detection_options, OPT_UP);
 					else if(!strcmp(temp_ptr, "d") || !strcmp(temp_ptr, "down"))
-						temp_host->flap_detection_on_down = TRUE;
+						flag_set(temp_host->flap_detection_options, OPT_DOWN);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
-						temp_host->flap_detection_on_unreachable = TRUE;
+						flag_set(temp_host->flap_detection_options, OPT_UNREACHABLE);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_host->flap_detection_on_up = FALSE;
-						temp_host->flap_detection_on_down = FALSE;
-						temp_host->flap_detection_on_unreachable = FALSE;
+						temp_host->flap_detection_options = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_host->flap_detection_on_up = TRUE;
-						temp_host->flap_detection_on_down = TRUE;
-						temp_host->flap_detection_on_unreachable = TRUE;
+						temp_host->flap_detection_options = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid flap detection option '%s' in host definition.\n", temp_ptr);
@@ -2498,28 +2449,20 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "notification_options")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "d") || !strcmp(temp_ptr, "down"))
-						temp_host->notify_on_down = TRUE;
+						flag_set(temp_host->notification_options, OPT_DOWN);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
-						temp_host->notify_on_unreachable = TRUE;
+						flag_set(temp_host->notification_options, OPT_UNREACHABLE);
 					else if(!strcmp(temp_ptr, "r") || !strcmp(temp_ptr, "recovery"))
-						temp_host->notify_on_recovery = TRUE;
+						flag_set(temp_host->notification_options, OPT_RECOVERY);
 					else if(!strcmp(temp_ptr, "f") || !strcmp(temp_ptr, "flapping"))
-						temp_host->notify_on_flapping = TRUE;
+						flag_set(temp_host->notification_options, OPT_FLAPPING);
 					else if(!strcmp(temp_ptr, "s") || !strcmp(temp_ptr, "downtime"))
-						temp_host->notify_on_downtime = TRUE;
+						flag_set(temp_host->notification_options, OPT_DOWNTIME);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_host->notify_on_down = FALSE;
-						temp_host->notify_on_unreachable = FALSE;
-						temp_host->notify_on_recovery = FALSE;
-						temp_host->notify_on_flapping = FALSE;
-						temp_host->notify_on_downtime = FALSE;
+						temp_host->notification_options = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_host->notify_on_down = TRUE;
-						temp_host->notify_on_unreachable = TRUE;
-						temp_host->notify_on_recovery = TRUE;
-						temp_host->notify_on_flapping = TRUE;
-						temp_host->notify_on_downtime = TRUE;
+						temp_host->notification_options = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid notification option '%s' in host definition.\n", temp_ptr);
@@ -2543,20 +2486,16 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "stalking_options")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "up"))
-						temp_host->stalk_on_up = TRUE;
+						flag_set(temp_host->stalking_options, OPT_UP);
 					else if(!strcmp(temp_ptr, "d") || !strcmp(temp_ptr, "down"))
-						temp_host->stalk_on_down = TRUE;
+						flag_set(temp_host->stalking_options, OPT_DOWN);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
-						temp_host->stalk_on_unreachable = TRUE;
+						flag_set(temp_host->stalking_options, OPT_UNREACHABLE);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_host->stalk_on_up = FALSE;
-						temp_host->stalk_on_down = FALSE;
-						temp_host->stalk_on_unreachable = FALSE;
+						temp_host->stalking_options = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_host->stalk_on_up = TRUE;
-						temp_host->stalk_on_down = TRUE;
-						temp_host->stalk_on_unreachable = TRUE;
+						temp_host->stalking_options = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid stalking option '%s' in host definition.\n", temp_ptr);
@@ -2913,31 +2852,22 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "flap_detection_options")) {
 
 				/* user is specifying something, so discard defaults... */
-				temp_service->flap_detection_on_ok = FALSE;
-				temp_service->flap_detection_on_warning = FALSE;
-				temp_service->flap_detection_on_unknown = FALSE;
-				temp_service->flap_detection_on_critical = FALSE;
+				temp_service->flap_detection_options = OPT_NOTHING;
 
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "ok"))
-						temp_service->flap_detection_on_ok = TRUE;
+						flag_set(temp_service->flap_detection_options, OPT_OK);
 					else if(!strcmp(temp_ptr, "w") || !strcmp(temp_ptr, "warning"))
-						temp_service->flap_detection_on_warning = TRUE;
+						flag_set(temp_service->flap_detection_options, OPT_WARNING);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unknown"))
-						temp_service->flap_detection_on_unknown = TRUE;
+						flag_set(temp_service->flap_detection_options, OPT_UNKNOWN);
 					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
-						temp_service->flap_detection_on_critical = TRUE;
+						flag_set(temp_service->flap_detection_options, OPT_CRITICAL);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_service->flap_detection_on_ok = FALSE;
-						temp_service->flap_detection_on_warning = FALSE;
-						temp_service->flap_detection_on_unknown = FALSE;
-						temp_service->flap_detection_on_critical = FALSE;
+						temp_service->flap_detection_options = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_service->flap_detection_on_ok = TRUE;
-						temp_service->flap_detection_on_warning = TRUE;
-						temp_service->flap_detection_on_unknown = TRUE;
-						temp_service->flap_detection_on_critical = TRUE;
+						temp_service->flap_detection_options = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid flap detection option '%s' in service definition.\n", temp_ptr);
@@ -2949,32 +2879,22 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "notification_options")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unknown"))
-						temp_service->notify_on_unknown = TRUE;
+						flag_set(temp_service->notification_options, OPT_UNKNOWN);
 					else if(!strcmp(temp_ptr, "w") || !strcmp(temp_ptr, "warning"))
-						temp_service->notify_on_warning = TRUE;
+						flag_set(temp_service->notification_options, OPT_WARNING);
 					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
-						temp_service->notify_on_critical = TRUE;
+						flag_set(temp_service->notification_options, OPT_CRITICAL);
 					else if(!strcmp(temp_ptr, "r") || !strcmp(temp_ptr, "recovery"))
-						temp_service->notify_on_recovery = TRUE;
+						flag_set(temp_service->notification_options, OPT_RECOVERY);
 					else if(!strcmp(temp_ptr, "f") || !strcmp(temp_ptr, "flapping"))
-						temp_service->notify_on_flapping = TRUE;
+						flag_set(temp_service->notification_options, OPT_FLAPPING);
 					else if(!strcmp(temp_ptr, "s") || !strcmp(temp_ptr, "downtime"))
-						temp_service->notify_on_downtime = TRUE;
+						flag_set(temp_service->notification_options, OPT_DOWNTIME);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_service->notify_on_unknown = FALSE;
-						temp_service->notify_on_warning = FALSE;
-						temp_service->notify_on_critical = FALSE;
-						temp_service->notify_on_recovery = FALSE;
-						temp_service->notify_on_flapping = FALSE;
-						temp_service->notify_on_downtime = FALSE;
+						temp_service->notification_options = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_service->notify_on_unknown = TRUE;
-						temp_service->notify_on_warning = TRUE;
-						temp_service->notify_on_critical = TRUE;
-						temp_service->notify_on_recovery = TRUE;
-						temp_service->notify_on_flapping = TRUE;
-						temp_service->notify_on_downtime = TRUE;
+						temp_service->notification_options = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid notification option '%s' in service definition.\n", temp_ptr);
@@ -2998,24 +2918,18 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "stalking_options")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "ok"))
-						temp_service->stalk_on_ok = TRUE;
+						flag_set(temp_service->stalking_options, OPT_OK);
 					else if(!strcmp(temp_ptr, "w") || !strcmp(temp_ptr, "warning"))
-						temp_service->stalk_on_warning = TRUE;
+						flag_set(temp_service->stalking_options, OPT_WARNING);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unknown"))
-						temp_service->stalk_on_unknown = TRUE;
+						flag_set(temp_service->stalking_options, OPT_UNKNOWN);
 					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
-						temp_service->stalk_on_critical = TRUE;
+						flag_set(temp_service->stalking_options, OPT_CRITICAL);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_service->stalk_on_ok = FALSE;
-						temp_service->stalk_on_warning = FALSE;
-						temp_service->stalk_on_unknown = FALSE;
-						temp_service->stalk_on_critical = FALSE;
+						temp_service->stalking_options = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_service->stalk_on_ok = TRUE;
-						temp_service->stalk_on_warning = TRUE;
-						temp_service->stalk_on_unknown = TRUE;
-						temp_service->stalk_on_critical = TRUE;
+						temp_service->stalking_options = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid stalking option '%s' in service definition.\n", temp_ptr);
@@ -3150,25 +3064,19 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_hostdependency->have_notification_dependency_options = TRUE;
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "up"))
-						temp_hostdependency->fail_notify_on_up = TRUE;
+						flag_set(temp_hostdependency->fail_notify, OPT_UP);
 					else if(!strcmp(temp_ptr, "d") || !strcmp(temp_ptr, "down"))
-						temp_hostdependency->fail_notify_on_down = TRUE;
+						flag_set(temp_hostdependency->fail_notify, OPT_DOWN);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
-						temp_hostdependency->fail_notify_on_unreachable = TRUE;
+						flag_set(temp_hostdependency->fail_notify, OPT_UNREACHABLE);
 					else if(!strcmp(temp_ptr, "p") || !strcmp(temp_ptr, "pending"))
-						temp_hostdependency->fail_notify_on_pending = TRUE;
+						flag_set(temp_hostdependency->fail_notify, OPT_PENDING);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_hostdependency->fail_notify_on_up = FALSE;
-						temp_hostdependency->fail_notify_on_down = FALSE;
-						temp_hostdependency->fail_notify_on_unreachable = FALSE;
-						temp_hostdependency->fail_notify_on_pending = FALSE;
+						temp_hostdependency->fail_notify = OPT_NOTHING;
 						temp_hostdependency->have_notification_dependency_options = FALSE;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_hostdependency->fail_notify_on_up = TRUE;
-						temp_hostdependency->fail_notify_on_down = TRUE;
-						temp_hostdependency->fail_notify_on_unreachable = TRUE;
-						temp_hostdependency->fail_notify_on_pending = TRUE;
+						temp_hostdependency->fail_notify = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid notification dependency option '%s' in hostdependency definition.\n", temp_ptr);
@@ -3179,24 +3087,18 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "execution_failure_options") || !strcmp(variable, "execution_failure_criteria")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "up"))
-						temp_hostdependency->fail_execute_on_up = TRUE;
+						flag_set(temp_hostdependency->fail_exec, OPT_UP);
 					else if(!strcmp(temp_ptr, "d") || !strcmp(temp_ptr, "down"))
-						temp_hostdependency->fail_execute_on_down = TRUE;
+						flag_set(temp_hostdependency->fail_exec, OPT_DOWN);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
-						temp_hostdependency->fail_execute_on_unreachable = TRUE;
+						flag_set(temp_hostdependency->fail_exec, OPT_UNREACHABLE);
 					else if(!strcmp(temp_ptr, "p") || !strcmp(temp_ptr, "pending"))
-						temp_hostdependency->fail_execute_on_pending = TRUE;
+						flag_set(temp_hostdependency->fail_exec, OPT_PENDING);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_hostdependency->fail_execute_on_up = FALSE;
-						temp_hostdependency->fail_execute_on_down = FALSE;
-						temp_hostdependency->fail_execute_on_unreachable = FALSE;
-						temp_hostdependency->fail_execute_on_pending = FALSE;
+						temp_hostdependency->fail_exec = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_hostdependency->fail_execute_on_up = TRUE;
-						temp_hostdependency->fail_execute_on_down = TRUE;
-						temp_hostdependency->fail_execute_on_unreachable = TRUE;
-						temp_hostdependency->fail_execute_on_pending = TRUE;
+						temp_hostdependency->fail_exec = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid execution dependency option '%s' in hostdependency definition.\n", temp_ptr);
@@ -3295,20 +3197,16 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "escalation_options")) {
 				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
 					if(!strcmp(temp_ptr, "d") || !strcmp(temp_ptr, "down"))
-						temp_hostescalation->escalate_on_down = TRUE;
+						flag_set(temp_hostescalation->escalation_options, OPT_DOWN);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
-						temp_hostescalation->escalate_on_unreachable = TRUE;
+						flag_set(temp_hostescalation->escalation_options, OPT_UNREACHABLE);
 					else if(!strcmp(temp_ptr, "r") || !strcmp(temp_ptr, "recovery"))
-						temp_hostescalation->escalate_on_recovery = TRUE;
+						flag_set(temp_hostescalation->escalation_options, OPT_RECOVERY);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
-						temp_hostescalation->escalate_on_down = FALSE;
-						temp_hostescalation->escalate_on_unreachable = FALSE;
-						temp_hostescalation->escalate_on_recovery = FALSE;
+						temp_hostescalation->escalation_options = OPT_NOTHING;
 						}
 					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
-						temp_hostescalation->escalate_on_down = TRUE;
-						temp_hostescalation->escalate_on_unreachable = TRUE;
-						temp_hostescalation->escalate_on_recovery = TRUE;
+						temp_hostescalation->escalation_options = OPT_ALL;
 						}
 					else {
 						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid escalation option '%s' in hostescalation definition.\n", temp_ptr);
@@ -4635,11 +4533,7 @@ int xodtemplate_inherit_object_properties(void) {
 
 		/* if notification options are missing, assume all */
 		if(temp_host->have_notification_options == FALSE) {
-			temp_host->notify_on_down = TRUE;
-			temp_host->notify_on_unreachable = TRUE;
-			temp_host->notify_on_recovery = TRUE;
-			temp_host->notify_on_flapping = TRUE;
-			temp_host->notify_on_downtime = TRUE;
+			temp_host->notification_options = OPT_ALL;
 			temp_host->have_notification_options = TRUE;
 			}
 		}
@@ -4677,12 +4571,7 @@ int xodtemplate_inherit_object_properties(void) {
 
 		/* if notification options are missing, assume all */
 		if(temp_service->have_notification_options == FALSE) {
-			temp_service->notify_on_unknown = TRUE;
-			temp_service->notify_on_warning = TRUE;
-			temp_service->notify_on_critical = TRUE;
-			temp_service->notify_on_recovery = TRUE;
-			temp_service->notify_on_flapping = TRUE;
-			temp_service->notify_on_downtime = TRUE;
+			temp_service->notification_options = OPT_ALL;
 			temp_service->have_notification_options = TRUE;
 			}
 		}
@@ -4728,10 +4617,7 @@ int xodtemplate_inherit_object_properties(void) {
 
 		/* if escalation options are missing, assume all */
 		if(temp_serviceescalation->have_escalation_options == FALSE) {
-			temp_serviceescalation->escalate_on_unknown = TRUE;
-			temp_serviceescalation->escalate_on_warning = TRUE;
-			temp_serviceescalation->escalate_on_critical = TRUE;
-			temp_serviceescalation->escalate_on_recovery = TRUE;
+			temp_serviceescalation->escalation_options = OPT_ALL;
 			temp_serviceescalation->have_escalation_options = TRUE;
 			}
 
@@ -4781,9 +4667,7 @@ int xodtemplate_inherit_object_properties(void) {
 
 		/* if escalation options are missing, assume all */
 		if(temp_hostescalation->have_escalation_options == FALSE) {
-			temp_hostescalation->escalate_on_down = TRUE;
-			temp_hostescalation->escalate_on_unreachable = TRUE;
-			temp_hostescalation->escalate_on_recovery = TRUE;
+			temp_hostescalation->escalation_options = OPT_ALL;
 			temp_hostescalation->have_escalation_options = TRUE;
 			}
 
@@ -5504,19 +5388,11 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 			this_servicedependency->have_inherits_parent = TRUE;
 			}
 		if(this_servicedependency->have_execution_dependency_options == FALSE && template_servicedependency->have_execution_dependency_options == TRUE) {
-			this_servicedependency->fail_execute_on_ok = template_servicedependency->fail_execute_on_ok;
-			this_servicedependency->fail_execute_on_unknown = template_servicedependency->fail_execute_on_unknown;
-			this_servicedependency->fail_execute_on_warning = template_servicedependency->fail_execute_on_warning;
-			this_servicedependency->fail_execute_on_critical = template_servicedependency->fail_execute_on_critical;
-			this_servicedependency->fail_execute_on_pending = template_servicedependency->fail_execute_on_pending;
+			this_servicedependency->fail_exec = template_servicedependency->fail_exec;
 			this_servicedependency->have_execution_dependency_options = TRUE;
 			}
 		if(this_servicedependency->have_notification_dependency_options == FALSE && template_servicedependency->have_notification_dependency_options == TRUE) {
-			this_servicedependency->fail_notify_on_ok = template_servicedependency->fail_notify_on_ok;
-			this_servicedependency->fail_notify_on_unknown = template_servicedependency->fail_notify_on_unknown;
-			this_servicedependency->fail_notify_on_warning = template_servicedependency->fail_notify_on_warning;
-			this_servicedependency->fail_notify_on_critical = template_servicedependency->fail_notify_on_critical;
-			this_servicedependency->fail_notify_on_pending = template_servicedependency->fail_notify_on_pending;
+			this_servicedependency->fail_notify = template_servicedependency->fail_notify;
 			this_servicedependency->have_notification_dependency_options = TRUE;
 			}
 		}
@@ -5588,10 +5464,7 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 			this_serviceescalation->have_notification_interval = TRUE;
 			}
 		if(this_serviceescalation->have_escalation_options == FALSE && template_serviceescalation->have_escalation_options == TRUE) {
-			this_serviceescalation->escalate_on_warning = template_serviceescalation->escalate_on_warning;
-			this_serviceescalation->escalate_on_unknown = template_serviceescalation->escalate_on_unknown;
-			this_serviceescalation->escalate_on_critical = template_serviceescalation->escalate_on_critical;
-			this_serviceescalation->escalate_on_recovery = template_serviceescalation->escalate_on_recovery;
+			this_serviceescalation->escalation_options = template_serviceescalation->escalation_options;
 			this_serviceescalation->have_escalation_options = TRUE;
 			}
 		}
@@ -5680,20 +5553,11 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact) {
 			this_contact->have_service_notification_period = TRUE;
 			}
 		if(this_contact->have_host_notification_options == FALSE && template_contact->have_host_notification_options == TRUE) {
-			this_contact->notify_on_host_down = template_contact->notify_on_host_down;
-			this_contact->notify_on_host_unreachable = template_contact->notify_on_host_unreachable;
-			this_contact->notify_on_host_recovery = template_contact->notify_on_host_recovery;
-			this_contact->notify_on_host_flapping = template_contact->notify_on_host_flapping;
-			this_contact->notify_on_host_downtime = template_contact->notify_on_host_downtime;
+			this_contact->host_notification_options = template_contact->host_notification_options;
 			this_contact->have_host_notification_options = TRUE;
 			}
 		if(this_contact->have_service_notification_options == FALSE && template_contact->have_service_notification_options == TRUE) {
-			this_contact->notify_on_service_unknown = template_contact->notify_on_service_unknown;
-			this_contact->notify_on_service_warning = template_contact->notify_on_service_warning;
-			this_contact->notify_on_service_critical = template_contact->notify_on_service_critical;
-			this_contact->notify_on_service_recovery = template_contact->notify_on_service_recovery;
-			this_contact->notify_on_service_flapping = template_contact->notify_on_service_flapping;
-			this_contact->notify_on_service_downtime = template_contact->notify_on_service_downtime;
+			this_contact->service_notification_options = template_contact->service_notification_options;
 			this_contact->have_service_notification_options = TRUE;
 			}
 		if(this_contact->have_host_notifications_enabled == FALSE && template_contact->have_host_notifications_enabled == TRUE) {
@@ -5902,17 +5766,11 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 			this_host->have_flap_detection_enabled = TRUE;
 			}
 		if(this_host->have_flap_detection_options == FALSE && template_host->have_flap_detection_options == TRUE) {
-			this_host->flap_detection_on_up = template_host->flap_detection_on_up;
-			this_host->flap_detection_on_down = template_host->flap_detection_on_down;
-			this_host->flap_detection_on_unreachable = template_host->flap_detection_on_unreachable;
+			this_host->flap_detection_options = template_host->flap_detection_options;
 			this_host->have_flap_detection_options = TRUE;
 			}
 		if(this_host->have_notification_options == FALSE && template_host->have_notification_options == TRUE) {
-			this_host->notify_on_down = template_host->notify_on_down;
-			this_host->notify_on_unreachable = template_host->notify_on_unreachable;
-			this_host->notify_on_recovery = template_host->notify_on_recovery;
-			this_host->notify_on_flapping = template_host->notify_on_flapping;
-			this_host->notify_on_downtime = template_host->notify_on_downtime;
+			this_host->notification_options = template_host->notification_options;
 			this_host->have_notification_options = TRUE;
 			}
 		if(this_host->have_notifications_enabled == FALSE && template_host->have_notifications_enabled == TRUE) {
@@ -5928,9 +5786,7 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 			this_host->have_first_notification_delay = TRUE;
 			}
 		if(this_host->have_stalking_options == FALSE && template_host->have_stalking_options == TRUE) {
-			this_host->stalk_on_up = template_host->stalk_on_up;
-			this_host->stalk_on_down = template_host->stalk_on_down;
-			this_host->stalk_on_unreachable = template_host->stalk_on_unreachable;
+			this_host->stalking_options = template_host->stalking_options;
 			this_host->have_stalking_options = TRUE;
 			}
 		if(this_host->have_process_perf_data == FALSE && template_host->have_process_perf_data == TRUE) {
@@ -6146,19 +6002,11 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 			this_service->have_flap_detection_enabled = TRUE;
 			}
 		if(this_service->have_flap_detection_options == FALSE && template_service->have_flap_detection_options == TRUE) {
-			this_service->flap_detection_on_ok = template_service->flap_detection_on_ok;
-			this_service->flap_detection_on_unknown = template_service->flap_detection_on_unknown;
-			this_service->flap_detection_on_warning = template_service->flap_detection_on_warning;
-			this_service->flap_detection_on_critical = template_service->flap_detection_on_critical;
+			this_service->flap_detection_options = template_service->flap_detection_options;
 			this_service->have_flap_detection_options = TRUE;
 			}
 		if(this_service->have_notification_options == FALSE && template_service->have_notification_options == TRUE) {
-			this_service->notify_on_unknown = template_service->notify_on_unknown;
-			this_service->notify_on_warning = template_service->notify_on_warning;
-			this_service->notify_on_critical = template_service->notify_on_critical;
-			this_service->notify_on_recovery = template_service->notify_on_recovery;
-			this_service->notify_on_flapping = template_service->notify_on_flapping;
-			this_service->notify_on_downtime = template_service->notify_on_downtime;
+			this_service->notification_options = template_service->notification_options;
 			this_service->have_notification_options = TRUE;
 			}
 		if(this_service->have_notifications_enabled == FALSE && template_service->have_notifications_enabled == TRUE) {
@@ -6174,10 +6022,7 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 			this_service->have_first_notification_delay = TRUE;
 			}
 		if(this_service->have_stalking_options == FALSE && template_service->have_stalking_options == TRUE) {
-			this_service->stalk_on_ok = template_service->stalk_on_ok;
-			this_service->stalk_on_unknown = template_service->stalk_on_unknown;
-			this_service->stalk_on_warning = template_service->stalk_on_warning;
-			this_service->stalk_on_critical = template_service->stalk_on_critical;
+			this_service->stalking_options = template_service->stalking_options;
 			this_service->have_stalking_options = TRUE;
 			}
 		if(this_service->have_process_perf_data == FALSE && template_service->have_process_perf_data == TRUE) {
@@ -6266,17 +6111,11 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 			this_hostdependency->have_inherits_parent = TRUE;
 			}
 		if(this_hostdependency->have_execution_dependency_options == FALSE && template_hostdependency->have_execution_dependency_options == TRUE) {
-			this_hostdependency->fail_execute_on_up = template_hostdependency->fail_execute_on_up;
-			this_hostdependency->fail_execute_on_down = template_hostdependency->fail_execute_on_down;
-			this_hostdependency->fail_execute_on_unreachable = template_hostdependency->fail_execute_on_unreachable;
-			this_hostdependency->fail_execute_on_pending = template_hostdependency->fail_execute_on_pending;
+			this_hostdependency->fail_exec = template_hostdependency->fail_exec;
 			this_hostdependency->have_execution_dependency_options = TRUE;
 			}
 		if(this_hostdependency->have_notification_dependency_options == FALSE && template_hostdependency->have_notification_dependency_options == TRUE) {
-			this_hostdependency->fail_notify_on_up = template_hostdependency->fail_notify_on_up;
-			this_hostdependency->fail_notify_on_down = template_hostdependency->fail_notify_on_down;
-			this_hostdependency->fail_notify_on_unreachable = template_hostdependency->fail_notify_on_unreachable;
-			this_hostdependency->fail_notify_on_pending = template_hostdependency->fail_notify_on_pending;
+			this_hostdependency->fail_notify = template_hostdependency->fail_notify;
 			this_hostdependency->have_notification_dependency_options = TRUE;
 			}
 		}
@@ -6346,9 +6185,7 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 			this_hostescalation->have_notification_interval = TRUE;
 			}
 		if(this_hostescalation->have_escalation_options == FALSE && template_hostescalation->have_escalation_options == TRUE) {
-			this_hostescalation->escalate_on_down = template_hostescalation->escalate_on_down;
-			this_hostescalation->escalate_on_unreachable = template_hostescalation->escalate_on_unreachable;
-			this_hostescalation->escalate_on_recovery = template_hostescalation->escalate_on_recovery;
+			this_hostescalation->escalation_options = template_hostescalation->escalation_options;
 			this_hostescalation->have_escalation_options = TRUE;
 			}
 		}
@@ -7849,7 +7686,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 	if(this_servicedependency->have_execution_dependency_options == TRUE) {
 		xodcount.servicedependencies++;
 
-		new_servicedependency = add_service_dependency(this_servicedependency->dependent_host_name, this_servicedependency->dependent_service_description, this_servicedependency->host_name, this_servicedependency->service_description, EXECUTION_DEPENDENCY, this_servicedependency->inherits_parent, this_servicedependency->fail_execute_on_ok, this_servicedependency->fail_execute_on_warning, this_servicedependency->fail_execute_on_unknown, this_servicedependency->fail_execute_on_critical, this_servicedependency->fail_execute_on_pending, this_servicedependency->dependency_period);
+		new_servicedependency = add_service_dependency(this_servicedependency->dependent_host_name, this_servicedependency->dependent_service_description, this_servicedependency->host_name, this_servicedependency->service_description, EXECUTION_DEPENDENCY, this_servicedependency->inherits_parent, this_servicedependency->fail_exec, this_servicedependency->dependency_period);
 
 		/* return with an error if we couldn't add the servicedependency */
 		if(new_servicedependency == NULL) {
@@ -7860,7 +7697,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 	if(this_servicedependency->have_notification_dependency_options == TRUE) {
 		xodcount.servicedependencies++;
 
-		new_servicedependency = add_service_dependency(this_servicedependency->dependent_host_name, this_servicedependency->dependent_service_description, this_servicedependency->host_name, this_servicedependency->service_description, NOTIFICATION_DEPENDENCY, this_servicedependency->inherits_parent, this_servicedependency->fail_notify_on_ok, this_servicedependency->fail_notify_on_warning, this_servicedependency->fail_notify_on_unknown, this_servicedependency->fail_notify_on_critical, this_servicedependency->fail_notify_on_pending, this_servicedependency->dependency_period);
+		new_servicedependency = add_service_dependency(this_servicedependency->dependent_host_name, this_servicedependency->dependent_service_description, this_servicedependency->host_name, this_servicedependency->service_description, NOTIFICATION_DEPENDENCY, this_servicedependency->inherits_parent, this_servicedependency->fail_notify, this_servicedependency->dependency_period);
 
 		/* return with an error if we couldn't add the servicedependency */
 		if(new_servicedependency == NULL) {
@@ -7888,14 +7725,11 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 
 	/* default options if none specified */
 	if(this_serviceescalation->have_escalation_options == FALSE) {
-		this_serviceescalation->escalate_on_warning = TRUE;
-		this_serviceescalation->escalate_on_unknown = TRUE;
-		this_serviceescalation->escalate_on_critical = TRUE;
-		this_serviceescalation->escalate_on_recovery = TRUE;
+		this_serviceescalation->escalation_options = OPT_ALL;
 		}
 
 	/* add the serviceescalation */
-	new_serviceescalation = add_serviceescalation(this_serviceescalation->host_name, this_serviceescalation->service_description, this_serviceescalation->first_notification, this_serviceescalation->last_notification, this_serviceescalation->notification_interval, this_serviceescalation->escalation_period, this_serviceescalation->escalate_on_warning, this_serviceescalation->escalate_on_unknown, this_serviceescalation->escalate_on_critical, this_serviceescalation->escalate_on_recovery);
+	new_serviceescalation = add_serviceescalation(this_serviceescalation->host_name, this_serviceescalation->service_description, this_serviceescalation->first_notification, this_serviceescalation->last_notification, this_serviceescalation->notification_interval, this_serviceescalation->escalation_period, this_serviceescalation->escalation_options);
 
 	/* return with an error if we couldn't add the serviceescalation */
 	if(new_serviceescalation == NULL) {
@@ -7948,7 +7782,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact) {
 		return OK;
 
 	/* add the contact */
-	new_contact = add_contact(this_contact->contact_name, this_contact->alias, this_contact->email, this_contact->pager, this_contact->address, this_contact->service_notification_period, this_contact->host_notification_period, this_contact->notify_on_service_recovery, this_contact->notify_on_service_critical, this_contact->notify_on_service_warning, this_contact->notify_on_service_unknown, this_contact->notify_on_service_flapping, this_contact->notify_on_service_downtime, this_contact->notify_on_host_recovery, this_contact->notify_on_host_down, this_contact->notify_on_host_unreachable, this_contact->notify_on_host_flapping, this_contact->notify_on_host_downtime, this_contact->host_notifications_enabled, this_contact->service_notifications_enabled, this_contact->can_submit_commands, this_contact->retain_status_information, this_contact->retain_nonstatus_information);
+	new_contact = add_contact(this_contact->contact_name, this_contact->alias, this_contact->email, this_contact->pager, this_contact->address, this_contact->service_notification_period, this_contact->host_notification_period, this_contact->service_notification_options, this_contact->host_notification_options, this_contact->host_notifications_enabled, this_contact->service_notifications_enabled, this_contact->can_submit_commands, this_contact->retain_status_information, this_contact->retain_nonstatus_information);
 
 	/* return with an error if we couldn't add the contact */
 	if(new_contact == NULL) {
@@ -8009,7 +7843,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host) {
 		return OK;
 
 	/* add the host definition */
-	new_host = add_host(this_host->host_name, this_host->display_name, this_host->alias, this_host->address, this_host->check_period, this_host->initial_state, this_host->check_interval, this_host->retry_interval, this_host->max_check_attempts, this_host->notify_on_recovery, this_host->notify_on_down, this_host->notify_on_unreachable, this_host->notify_on_flapping, this_host->notify_on_downtime, this_host->notification_interval, this_host->first_notification_delay, this_host->notification_period, this_host->notifications_enabled, this_host->check_command, this_host->active_checks_enabled, this_host->passive_checks_enabled, this_host->event_handler, this_host->event_handler_enabled, this_host->flap_detection_enabled, this_host->low_flap_threshold, this_host->high_flap_threshold, this_host->flap_detection_on_up, this_host->flap_detection_on_down, this_host->flap_detection_on_unreachable, this_host->stalk_on_up, this_host->stalk_on_down, this_host->stalk_on_unreachable, this_host->process_perf_data, this_host->check_freshness, this_host->freshness_threshold, this_host->notes, this_host->notes_url, this_host->action_url, this_host->icon_image, this_host->icon_image_alt, this_host->vrml_image, this_host->statusmap_image, this_host->x_2d, this_host->y_2d, this_host->have_2d_coords, this_host->x_3d, this_host->y_3d, this_host->z_3d, this_host->have_3d_coords, TRUE, this_host->retain_status_information, this_host->retain_nonstatus_information, this_host->obsess);
+	new_host = add_host(this_host->host_name, this_host->display_name, this_host->alias, this_host->address, this_host->check_period, this_host->initial_state, this_host->check_interval, this_host->retry_interval, this_host->max_check_attempts, this_host->notification_options, this_host->notification_interval, this_host->first_notification_delay, this_host->notification_period, this_host->notifications_enabled, this_host->check_command, this_host->active_checks_enabled, this_host->passive_checks_enabled, this_host->event_handler, this_host->event_handler_enabled, this_host->flap_detection_enabled, this_host->low_flap_threshold, this_host->high_flap_threshold, this_host->flap_detection_options, this_host->stalking_options, this_host->process_perf_data, this_host->check_freshness, this_host->freshness_threshold, this_host->notes, this_host->notes_url, this_host->action_url, this_host->icon_image, this_host->icon_image_alt, this_host->vrml_image, this_host->statusmap_image, this_host->x_2d, this_host->y_2d, this_host->have_2d_coords, this_host->x_3d, this_host->y_3d, this_host->z_3d, this_host->have_3d_coords, TRUE, this_host->retain_status_information, this_host->retain_nonstatus_information, this_host->obsess);
 
 
 	/* return with an error if we couldn't add the host */
@@ -8086,7 +7920,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service) {
 		return OK;
 
 	/* add the service */
-	new_service = add_service(this_service->host_name, this_service->service_description, this_service->display_name, this_service->check_period, this_service->initial_state, this_service->max_check_attempts, this_service->parallelize_check, this_service->passive_checks_enabled, this_service->check_interval, this_service->retry_interval, this_service->notification_interval, this_service->first_notification_delay, this_service->notification_period, this_service->notify_on_recovery, this_service->notify_on_unknown, this_service->notify_on_warning, this_service->notify_on_critical, this_service->notify_on_flapping, this_service->notify_on_downtime, this_service->notifications_enabled, this_service->is_volatile, this_service->event_handler, this_service->event_handler_enabled, this_service->check_command, this_service->active_checks_enabled, this_service->flap_detection_enabled, this_service->low_flap_threshold, this_service->high_flap_threshold, this_service->flap_detection_on_ok, this_service->flap_detection_on_warning, this_service->flap_detection_on_unknown, this_service->flap_detection_on_critical, this_service->stalk_on_ok, this_service->stalk_on_warning, this_service->stalk_on_unknown, this_service->stalk_on_critical, this_service->process_perf_data, this_service->check_freshness, this_service->freshness_threshold, this_service->notes, this_service->notes_url, this_service->action_url, this_service->icon_image, this_service->icon_image_alt, this_service->retain_status_information, this_service->retain_nonstatus_information, this_service->obsess);
+	new_service = add_service(this_service->host_name, this_service->service_description, this_service->display_name, this_service->check_period, this_service->initial_state, this_service->max_check_attempts, this_service->parallelize_check, this_service->passive_checks_enabled, this_service->check_interval, this_service->retry_interval, this_service->notification_interval, this_service->first_notification_delay, this_service->notification_period, this_service->notification_options, this_service->notifications_enabled, this_service->is_volatile, this_service->event_handler, this_service->event_handler_enabled, this_service->check_command, this_service->active_checks_enabled, this_service->flap_detection_enabled, this_service->low_flap_threshold, this_service->high_flap_threshold, this_service->flap_detection_options, this_service->stalking_options, this_service->process_perf_data, this_service->check_freshness, this_service->freshness_threshold, this_service->notes, this_service->notes_url, this_service->action_url, this_service->icon_image, this_service->icon_image_alt, this_service->retain_status_information, this_service->retain_nonstatus_information, this_service->obsess);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service == NULL) {
@@ -8150,7 +7984,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 	if(this_hostdependency->have_execution_dependency_options == TRUE) {
 		xodcount.hostdependencies++;
 
-		new_hostdependency = add_host_dependency(this_hostdependency->dependent_host_name, this_hostdependency->host_name, EXECUTION_DEPENDENCY, this_hostdependency->inherits_parent, this_hostdependency->fail_execute_on_up, this_hostdependency->fail_execute_on_down, this_hostdependency->fail_execute_on_unreachable, this_hostdependency->fail_execute_on_pending, this_hostdependency->dependency_period);
+		new_hostdependency = add_host_dependency(this_hostdependency->dependent_host_name, this_hostdependency->host_name, EXECUTION_DEPENDENCY, this_hostdependency->inherits_parent, this_hostdependency->fail_exec, this_hostdependency->dependency_period);
 
 		/* return with an error if we couldn't add the hostdependency */
 		if(new_hostdependency == NULL) {
@@ -8163,7 +7997,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 	if(this_hostdependency->have_notification_dependency_options == TRUE) {
 		xodcount.hostdependencies++;
 
-		new_hostdependency = add_host_dependency(this_hostdependency->dependent_host_name, this_hostdependency->host_name, NOTIFICATION_DEPENDENCY, this_hostdependency->inherits_parent, this_hostdependency->fail_notify_on_up, this_hostdependency->fail_notify_on_down, this_hostdependency->fail_notify_on_unreachable, this_hostdependency->fail_notify_on_pending, this_hostdependency->dependency_period);
+		new_hostdependency = add_host_dependency(this_hostdependency->dependent_host_name, this_hostdependency->host_name, NOTIFICATION_DEPENDENCY, this_hostdependency->inherits_parent, this_hostdependency->fail_notify, this_hostdependency->dependency_period);
 
 		/* return with an error if we couldn't add the hostdependency */
 		if(new_hostdependency == NULL) {
@@ -8191,13 +8025,11 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 
 	/* default options if none specified */
 	if(this_hostescalation->have_escalation_options == FALSE) {
-		this_hostescalation->escalate_on_down = TRUE;
-		this_hostescalation->escalate_on_unreachable = TRUE;
-		this_hostescalation->escalate_on_recovery = TRUE;
+		this_hostescalation->escalation_options = OPT_ALL;
 		}
 
 	/* add the hostescalation */
-	new_hostescalation = add_hostescalation(this_hostescalation->host_name, this_hostescalation->first_notification, this_hostescalation->last_notification, this_hostescalation->notification_interval, this_hostescalation->escalation_period, this_hostescalation->escalate_on_down, this_hostescalation->escalate_on_unreachable, this_hostescalation->escalate_on_recovery);
+	new_hostescalation = add_hostescalation(this_hostescalation->host_name, this_hostescalation->first_notification, this_hostescalation->last_notification, this_hostescalation->notification_interval, this_hostescalation->escalation_period, this_hostescalation->escalation_options);
 
 	/* return with an error if we couldn't add the hostescalation */
 	if(new_hostescalation == NULL) {

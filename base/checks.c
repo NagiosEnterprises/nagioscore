@@ -706,10 +706,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		temp_service->current_notification_number = 0;
 		temp_service->problem_has_been_acknowledged = FALSE;
 		temp_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
-		temp_service->notified_on_unknown = FALSE;
-		temp_service->notified_on_warning = FALSE;
-		temp_service->notified_on_critical = FALSE;
-		temp_service->no_more_notifications = FALSE;
+		temp_service->notified_on = 0;
 
 		if(reschedule_check == TRUE)
 			next_service_check = (time_t)(temp_service->last_check + (temp_service->check_interval * interval_length));
@@ -1012,17 +1009,9 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* if we're stalking this state type and state was not already logged AND the plugin output changed since last check, log it now.. */
 	if(temp_service->state_type == HARD_STATE && state_change == FALSE && state_was_logged == FALSE && compare_strings(old_plugin_output, temp_service->plugin_output)) {
 
-		if((temp_service->current_state == STATE_OK && temp_service->stalk_on_ok == TRUE))
+		if(should_stalk(temp_service))
 			log_service_event(temp_service);
 
-		else if((temp_service->current_state == STATE_WARNING && temp_service->stalk_on_warning == TRUE))
-			log_service_event(temp_service);
-
-		else if((temp_service->current_state == STATE_UNKNOWN && temp_service->stalk_on_unknown == TRUE))
-			log_service_event(temp_service);
-
-		else if((temp_service->current_state == STATE_CRITICAL && temp_service->stalk_on_critical == TRUE))
-			log_service_event(temp_service);
 		}
 
 #ifdef USE_EVENT_BROKER
@@ -1301,15 +1290,7 @@ int check_service_dependencies(service *svc, int dependency_type) {
 			state = temp_service->current_state;
 
 		/* is the service we depend on in state that fails the dependency tests? */
-		if(state == STATE_OK && temp_dependency->fail_on_ok == TRUE)
-			return DEPENDENCIES_FAILED;
-		if(state == STATE_WARNING && temp_dependency->fail_on_warning == TRUE)
-			return DEPENDENCIES_FAILED;
-		if(state == STATE_UNKNOWN && temp_dependency->fail_on_unknown == TRUE)
-			return DEPENDENCIES_FAILED;
-		if(state == STATE_CRITICAL && temp_dependency->fail_on_critical == TRUE)
-			return DEPENDENCIES_FAILED;
-		if((state == STATE_OK && temp_service->has_been_checked == FALSE) && temp_dependency->fail_on_pending == TRUE)
+		if(flag_isset(temp_dependency->failure_options, 1 << state))
 			return DEPENDENCIES_FAILED;
 
 		/* immediate dependencies ok at this point - check parent dependencies if necessary */
@@ -1725,13 +1706,7 @@ int check_host_dependencies(host *hst, int dependency_type) {
 			state = temp_host->current_state;
 
 		/* is the host we depend on in state that fails the dependency tests? */
-		if(state == HOST_UP && temp_dependency->fail_on_up == TRUE)
-			return DEPENDENCIES_FAILED;
-		if(state == HOST_DOWN && temp_dependency->fail_on_down == TRUE)
-			return DEPENDENCIES_FAILED;
-		if(state == HOST_UNREACHABLE && temp_dependency->fail_on_unreachable == TRUE)
-			return DEPENDENCIES_FAILED;
-		if((state == HOST_UP && temp_host->has_been_checked == FALSE) && temp_dependency->fail_on_pending == TRUE)
+		if(flag_isset(temp_dependency->failure_options, 1 << state))
 			return DEPENDENCIES_FAILED;
 
 		/* immediate dependencies ok at this point - check parent dependencies if necessary */
@@ -3060,14 +3035,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 
 	/* if the plugin output differs from previous check and no state change, log the current state/output if state stalking is enabled */
 	if(hst->last_state == hst->current_state && compare_strings(old_plugin_output, hst->plugin_output)) {
-
-		if(hst->current_state == HOST_UP && hst->stalk_on_up == TRUE)
-			log_host_event(hst);
-
-		else if(hst->current_state == HOST_DOWN && hst->stalk_on_down == TRUE)
-			log_host_event(hst);
-
-		else if(hst->current_state == HOST_UNREACHABLE && hst->stalk_on_unreachable == TRUE)
+		if(should_stalk(hst))
 			log_host_event(hst);
 		}
 
@@ -3411,8 +3379,7 @@ int handle_host_state(host *hst) {
 		/* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
 		if(hst->current_state == HOST_UP) {
 			hst->current_notification_number = 0;
-			hst->notified_on_down = FALSE;
-			hst->notified_on_unreachable = FALSE;
+			hst->notified_on = 0;
 			}
 		}
 

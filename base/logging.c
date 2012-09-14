@@ -30,34 +30,6 @@
 
 static FILE *debug_file_fp;
 
-/* These simple helpers should most likely be elsewhere */
-static const char *service_state_name(int state)
-{
-	switch (state) {
-	case STATE_OK: return "OK";
-	case STATE_WARNING: return "WARNING";
-	case STATE_CRITICAL: return "CRITICAL";
-	}
-
-	return "UNKNOWN";
-}
-
-static const char *host_state_name(int state)
-{
-	switch (state) {
-	case HOST_UP: return "UP";
-	case HOST_DOWN: return "DOWN";
-	case HOST_UNREACHABLE: return "UNREACHABLE";
-	}
-
-	return "(unknown)";
-}
-
-static const char *state_type_name(int state_type)
-{
-	return state_type == HARD_STATE ? "HARD" : "SOFT";
-}
-
 /******************************************************************/
 /************************ LOGGING FUNCTIONS ***********************/
 /******************************************************************/

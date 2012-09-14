@@ -31,7 +31,7 @@ NAGIOS_BEGIN_DECL
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        400     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        401     /* increment when changes are made to data structures... */
 /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -70,6 +70,37 @@ NAGIOS_BEGIN_DECL
 #define DATERANGE_MONTH_WEEK_DAY 3  /* 3rd thursday (specific month) */
 #define DATERANGE_WEEK_DAY       4  /* 3rd thursday (generic month) */
 #define DATERANGE_TYPES          5
+
+
+/*
+ * flags for notification_options, flapping_options and other similar
+ * flags. They overlap (hosts and services), so we can't use enum's.
+ */
+#define OPT_NOTHING       0 /* no options selected */
+#define OPT_ALL           (~0) /* everything selected, so all bits set */
+#define OPT_DOWN          (1 << HOST_DOWN)
+#define OPT_UP            (1 << HOST_UP)
+#define OPT_UNREACHABLE   (1 << HOST_UNREACHABLE)
+#define OPT_OK            (1 << STATE_OK)
+#define OPT_WARNING       (1 << STATE_WARNING)
+#define OPT_CRITICAL      (1 << STATE_CRITICAL)
+#define OPT_UNKNOWN       (1 << STATE_UNKNOWN)
+#define OPT_RECOVERY      OPT_OK
+/* and now the "unreal" states... */
+#define OPT_PENDING       (1 << 10)
+#define OPT_FLAPPING      (1 << 11)
+#define OPT_DOWNTIME      (1 << 12)
+#define OPT_DISABLED      (1 << 15) /* will denote disabled checks some day */
+
+/* macros useful with both hosts and services */
+#define flag_set(c, flag)    (c |= (flag))
+#define flag_get(c, flag)    (c & (flag))
+#define flag_isset(c, flag)  (flag_get((c), (flag)) == (flag))
+#define flag_unset(c, flag)  (c &= ~(flag))
+#define should_stalk(o) flag_isset(o->stalking_options, 1 << o->current_state)
+#define should_flap_detect(o) flag_isset(o->flap_detection_options, 1 << o->current_state)
+#define should_notify(o) flag_isset(o->notification_options, 1 << o->current_state)
+#define add_notified_on(o, f) (o->notified_on |= (1 << f))
 
 
 /****************** DATA STRUCTURES *******************/
@@ -294,17 +325,8 @@ struct contact_struct {
 	char    *address[MAX_CONTACT_ADDRESSES];
 	commandsmember *host_notification_commands;
 	commandsmember *service_notification_commands;
-	int     notify_on_service_unknown;
-	int     notify_on_service_warning;
-	int     notify_on_service_critical;
-	int     notify_on_service_recovery;
-	int     notify_on_service_flapping;
-	int     notify_on_service_downtime;
-	int 	notify_on_host_down;
-	int	notify_on_host_unreachable;
-	int	notify_on_host_recovery;
-	int     notify_on_host_flapping;
-	int     notify_on_host_downtime;
+	unsigned int host_notification_options;
+	unsigned int service_notification_options;
 	char	*host_notification_period;
 	char	*service_notification_period;
 	int     host_notifications_enabled;
@@ -382,22 +404,14 @@ struct host_struct {
 	contactsmember *contacts;
 	double  notification_interval;
 	double  first_notification_delay;
-	int	notify_on_down;
-	int	notify_on_unreachable;
-	int     notify_on_recovery;
-	int     notify_on_flapping;
-	int     notify_on_downtime;
+	unsigned int notification_options;
 	char	*notification_period;
 	char    *check_period;
 	int     flap_detection_enabled;
 	double  low_flap_threshold;
 	double  high_flap_threshold;
-	int     flap_detection_on_up;
-	int     flap_detection_on_down;
-	int     flap_detection_on_unreachable;
-	int     stalk_on_up;
-	int     stalk_on_down;
-	int     stalk_on_unreachable;
+	int     flap_detection_options;
+	unsigned int stalking_options;
 	int     check_freshness;
 	int     freshness_threshold;
 	int     process_performance_data;
@@ -412,8 +426,15 @@ struct host_struct {
 	char    *action_url;
 	char    *icon_image;
 	char    *icon_image_alt;
+	char    *statusmap_image; /* used by lots of graphing tools */
+/* #ifdef NSCGI */
+	/*
+	 * these are kept in ancillary storage for the daemon and
+	 * thrown out as soon as we've created the object cache.
+	 * The CGI's still attach them though, since they are the
+	 * only users of this utter crap.
+	 */
 	char    *vrml_image;
-	char    *statusmap_image;
 	int     have_2d_coords;
 	int     x_2d;
 	int     y_2d;
@@ -422,6 +443,7 @@ struct host_struct {
 	double  y_3d;
 	double  z_3d;
 	int     should_be_drawn;
+/* #endif */
 	customvariablesmember *custom_variables;
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
@@ -456,8 +478,7 @@ struct host_struct {
 	time_t  last_time_unreachable;
 	int     has_been_checked;
 	int     is_being_freshened;
-	int     notified_on_down;
-	int     notified_on_unreachable;
+	int     notified_on;
 	int     current_notification_number;
 	int     no_more_notifications;
 	unsigned long current_notification_id;
@@ -518,26 +539,15 @@ struct service_struct {
 	contactsmember *contacts;
 	double	notification_interval;
 	double  first_notification_delay;
-	int     notify_on_unknown;
-	int	notify_on_warning;
-	int	notify_on_critical;
-	int	notify_on_recovery;
-	int     notify_on_flapping;
-	int     notify_on_downtime;
-	int     stalk_on_ok;
-	int     stalk_on_warning;
-	int     stalk_on_unknown;
-	int     stalk_on_critical;
+	unsigned int notification_options;
+	unsigned int stalking_options;
 	int     is_volatile;
 	char	*notification_period;
 	char	*check_period;
 	int     flap_detection_enabled;
 	double  low_flap_threshold;
 	double  high_flap_threshold;
-	int     flap_detection_on_ok;
-	int     flap_detection_on_warning;
-	int     flap_detection_on_unknown;
-	int     flap_detection_on_critical;
+	unsigned int flap_detection_options;
 	int     process_performance_data;
 	int     check_freshness;
 	int     freshness_threshold;
@@ -586,9 +596,7 @@ struct service_struct {
 	time_t  last_time_critical;
 	int     has_been_checked;
 	int     is_being_freshened;
-	int     notified_on_unknown;
-	int     notified_on_warning;
-	int     notified_on_critical;
+	unsigned int notified_on;
 	int     current_notification_number;
 	unsigned long current_notification_id;
 	double  latency;
@@ -629,10 +637,7 @@ typedef struct serviceescalation_struct {
 	int     last_notification;
 	double  notification_interval;
 	char    *escalation_period;
-	int     escalate_on_recovery;
-	int     escalate_on_warning;
-	int     escalate_on_unknown;
-	int     escalate_on_critical;
+	int     escalation_options;
 	contactgroupsmember *contact_groups;
 	contactsmember *contacts;
 #ifdef NSCORE
@@ -652,11 +657,7 @@ typedef struct servicedependency_struct {
 	char    *service_description;
 	char    *dependency_period;
 	int     inherits_parent;
-	int     fail_on_ok;
-	int     fail_on_warning;
-	int     fail_on_unknown;
-	int     fail_on_critical;
-	int     fail_on_pending;
+	int     failure_options;
 #ifdef NSCORE
 	service *master_service_ptr;
 	service *dependent_service_ptr;
@@ -673,9 +674,7 @@ typedef struct hostescalation_struct {
 	int     last_notification;
 	double  notification_interval;
 	char    *escalation_period;
-	int     escalate_on_recovery;
-	int     escalate_on_down;
-	int     escalate_on_unreachable;
+	int     escalation_options;
 	contactgroupsmember *contact_groups;
 	contactsmember *contacts;
 #ifdef NSCORE
@@ -693,10 +692,7 @@ typedef struct hostdependency_struct {
 	char    *host_name;
 	char    *dependency_period;
 	int     inherits_parent;
-	int     fail_on_up;
-	int     fail_on_down;
-	int     fail_on_unreachable;
-	int     fail_on_pending;
+	int     failure_options;
 #ifdef NSCORE
 	host    *master_host_ptr;
 	host    *dependent_host_ptr;
@@ -725,11 +721,11 @@ int read_object_config_data(char *, int);     /* reads all external configuratio
 
 
 /**** Object Creation Functions ****/
-contact *add_contact(char *, char *, char *, char *, char **, char *, char *, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int);	/* adds a contact definition */
+contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int service_notification_options, int host_notification_options, int service_notifications_enabled, int host_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information);
 commandsmember *add_service_notification_command_to_contact(contact *, char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *, char *);				/* adds a host notification command to a contact definition */
 customvariablesmember *add_custom_variable_to_contact(contact *, char *, char *);                       /* adds a custom variable to a service definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host);
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host);
 hostsmember *add_parent_host_to_host(host *, char *);							/* adds a parent host to a host definition */
 hostsmember *add_child_link_to_host(host *, host *);						       /* adds a child host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *, char *);					       /* adds a contactgroup to a host definition */
@@ -747,16 +743,16 @@ servicesmember *add_service_to_servicegroup(servicegroup *, char *, char *);    
 contactgroup *add_contactgroup(char *, char *);								/* adds a contactgroup definition */
 contactsmember *add_contact_to_contactgroup(contactgroup *, char *);					/* adds a contact to a contact group definition */
 command *add_command(char *, char *);									/* adds a command definition */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notify_downtime, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service);
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service);
 contactgroupsmember *add_contactgroup_to_service(service *, char *);					/* adds a contact group to a service definition */
 contactsmember *add_contact_to_service(service *, char *);                                              /* adds a contact to a host definition */
-serviceescalation *add_serviceescalation(char *, char *, int, int, double, char *, int, int, int, int); /* adds a service escalation definition */
+serviceescalation *add_serviceescalation(char *host_name, char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options);
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *, char *);                /* adds a contact group to a service escalation definition */
 contactsmember *add_contact_to_serviceescalation(serviceescalation *, char *);                          /* adds a contact to a service escalation definition */
 customvariablesmember *add_custom_variable_to_service(service *, char *, char *);                       /* adds a custom variable to a service definition */
-servicedependency *add_service_dependency(char *, char *, char *, char *, int, int, int, int, int, int, int, char *); /* adds a service dependency definition */
-hostdependency *add_host_dependency(char *, char *, int, int, int, int, int, int, char *);                     /* adds a host dependency definition */
-hostescalation *add_hostescalation(char *, int, int, double, char *, int, int, int);                    /* adds a host escalation definition */
+servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int failure_options, char *dependency_period);
+hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int failure_options, char *dependency_period);
+hostescalation *add_hostescalation(char *host_name, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options);
 contactsmember *add_contact_to_hostescalation(hostescalation *, char *);                                /* adds a contact to a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *, char *);                      /* adds a contact group to a host escalation definition */
 

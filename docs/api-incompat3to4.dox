@@ -36,7 +36,17 @@ stop_event.
 var.
 @li The passive_service_check data type is no more.
 @li The data type circular_buffer has been removed.
-
+@li The host object's notify_on_down, notify_on_up, notify_on_blablah
+variables have been replaced with a single "notification_options" field
+instead, which is a small hand-managed bitmask of the states we should
+notify on, based on 1 << current_state.
+@li As per above, with flap_detection_options
+@li As per above, with stalking_options
+@li As per the three above, with services
+@li As per above, with dependencies which now have a "failure_options"
+field instead of multiple "fail_on_foo" fields.
+@li As per above with escalations, which now have an
+"escalation_options" field instead of multiple "escalate on foo" fields.
 
 @section functions Functions
 @li Event queue management functions have been significantly altered

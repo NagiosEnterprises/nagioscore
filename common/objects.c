@@ -59,6 +59,63 @@ hostdependency *hostdependency_list = NULL;
 serviceescalation *serviceescalation_list = NULL;
 servicedependency *servicedependency_list = NULL;
 
+struct flag_map {
+	int opt;
+	int ch;
+	char *name;
+};
+
+struct flag_map service_flag_map[] = {
+	{ OPT_WARNING, 'w', "warning" },
+	{ OPT_UNKNOWN, 'u', "unknown" },
+	{ OPT_CRITICAL, 'c', "critical" },
+	{ OPT_FLAPPING, 'f', "flapping" },
+	{ OPT_DOWNTIME, 'd', "downtime" },
+	{ OPT_OK, 'o', "ok" },
+	{ OPT_RECOVERY, 'r', "recovery" },
+	{ OPT_PENDING, 'p', "pending" },
+	{ 0, 0, NULL },
+};
+
+struct flag_map host_flag_map[] = {
+	{ OPT_DOWN, 'd', "down" },
+	{ OPT_UNREACHABLE, 'u', "unreachable" },
+	{ OPT_FLAPPING, 'f', "flapping" },
+	{ OPT_RECOVERY, 'r', "recovery" },
+	{ OPT_DOWNTIME, 's', "downtime" },
+	{ OPT_PENDING, 'p', "pending" },
+	{ 0, 0, NULL },
+};
+
+const char *opts2str(int opts, struct flag_map *map, char ok_char)
+{
+	int i, pos = 0;
+	static char buf[16];
+
+	if(!opts)
+		return "n";
+
+	if(opts == OPT_ALL)
+		return "a";
+
+	if(flag_isset(opts, OPT_OK)) {
+		flag_unset(opts, OPT_OK);
+		buf[pos++] = ok_char;
+		buf[pos++] = opts ? ',' : 0;
+		}
+
+	for (i = 0; map[i].name; i++) {
+		if(flag_isset(opts, map[i].opt)) {
+			buf[pos++] = map[i].ch;
+			flag_unset(opts, map[i].opt);
+			if(!opts)
+				break;
+			buf[pos++] = ',';
+		}
+	}
+	buf[pos++] = 0;
+	return buf;
+}
 
 #ifdef NSCORE
 int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
@@ -162,6 +219,35 @@ static void post_process_object_config(void) {
 	timing_point("Done post-processing host dependencies\n");
 }
 #endif
+
+/* simple state-name helpers, nifty to have all over the place */
+const char *service_state_name(int state)
+{
+	switch (state) {
+	case STATE_OK: return "OK";
+	case STATE_WARNING: return "WARNING";
+	case STATE_CRITICAL: return "CRITICAL";
+	}
+
+	return "UNKNOWN";
+}
+
+const char *host_state_name(int state)
+{
+	switch (state) {
+	case HOST_UP: return "UP";
+	case HOST_DOWN: return "DOWN";
+	case HOST_UNREACHABLE: return "UNREACHABLE";
+	}
+
+	return "(unknown)";
+}
+
+const char *state_type_name(int state_type)
+{
+	return state_type == HARD_STATE ? "HARD" : "SOFT";
+}
+
 
 /******************************************************************/
 /******* TOP-LEVEL HOST CONFIGURATION DATA INPUT FUNCTION *********/
@@ -509,13 +595,10 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess) {
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess) {
 	host *new_host = NULL;
 	timeperiod *check_tp = NULL, *notify_tp = NULL;
 	int result = OK;
-#ifdef NSCORE
-	int x = 0;
-#endif
 
 	/* make sure we have the data we need */
 	if(name == NULL || !strcmp(name, "")) {
@@ -615,26 +698,19 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->retry_interval = retry_interval;
 	new_host->notification_interval = notification_interval;
 	new_host->first_notification_delay = first_notification_delay;
-	new_host->notify_on_recovery = (notify_up > 0) ? TRUE : FALSE;
-	new_host->notify_on_down = (notify_down > 0) ? TRUE : FALSE;
-	new_host->notify_on_unreachable = (notify_unreachable > 0) ? TRUE : FALSE;
-	new_host->notify_on_flapping = (notify_flapping > 0) ? TRUE : FALSE;
-	new_host->notify_on_downtime = (notify_downtime > 0) ? TRUE : FALSE;
+	new_host->notification_options = notification_options;
 	new_host->flap_detection_enabled = (flap_detection_enabled > 0) ? TRUE : FALSE;
 	new_host->low_flap_threshold = low_flap_threshold;
 	new_host->high_flap_threshold = high_flap_threshold;
-	new_host->flap_detection_on_up = (flap_detection_on_up > 0) ? TRUE : FALSE;
-	new_host->flap_detection_on_down = (flap_detection_on_down > 0) ? TRUE : FALSE;
-	new_host->flap_detection_on_unreachable = (flap_detection_on_unreachable > 0) ? TRUE : FALSE;
-	new_host->stalk_on_up = (stalk_on_up > 0) ? TRUE : FALSE;
-	new_host->stalk_on_down = (stalk_on_down > 0) ? TRUE : FALSE;
-	new_host->stalk_on_unreachable = (stalk_on_unreachable > 0) ? TRUE : FALSE;
+	new_host->flap_detection_options = flap_detection_options;
+	new_host->stalking_options = stalking_options;
 	new_host->process_performance_data = (process_perfdata > 0) ? TRUE : FALSE;
 	new_host->check_freshness = (check_freshness > 0) ? TRUE : FALSE;
 	new_host->freshness_threshold = freshness_threshold;
 	new_host->checks_enabled = (checks_enabled > 0) ? TRUE : FALSE;
 	new_host->accept_passive_checks = (accept_passive_checks > 0) ? TRUE : FALSE;
 	new_host->event_handler_enabled = (event_handler_enabled > 0) ? TRUE : FALSE;
+#ifdef NSCGI
 	new_host->x_2d = x_2d;
 	new_host->y_2d = y_2d;
 	new_host->have_2d_coords = (have_2d_coords > 0) ? TRUE : FALSE;
@@ -643,57 +719,21 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->z_3d = z_3d;
 	new_host->have_3d_coords = (have_3d_coords > 0) ? TRUE : FALSE;
 	new_host->should_be_drawn = (should_be_drawn > 0) ? TRUE : FALSE;
+#endif
 	new_host->obsess = (obsess > 0) ? TRUE : FALSE;
 	new_host->retain_status_information = (retain_status_information > 0) ? TRUE : FALSE;
 	new_host->retain_nonstatus_information = (retain_nonstatus_information > 0) ? TRUE : FALSE;
 #ifdef NSCORE
 	new_host->current_state = initial_state;
-	new_host->current_event_id = 0L;
-	new_host->last_event_id = 0L;
-	new_host->current_problem_id = 0L;
-	new_host->last_problem_id = 0L;
 	new_host->last_state = initial_state;
 	new_host->last_hard_state = initial_state;
 	new_host->check_type = HOST_CHECK_ACTIVE;
-	new_host->last_notification = (time_t)0;
-	new_host->next_notification = (time_t)0;
-	new_host->next_check = (time_t)0;
 	new_host->should_be_scheduled = TRUE;
-	new_host->last_check = (time_t)0;
 	new_host->current_attempt = (initial_state == HOST_UP) ? 1 : max_attempts;
 	new_host->state_type = HARD_STATE;
-	new_host->execution_time = 0.0;
-	new_host->is_executing = FALSE;
-	new_host->latency = 0.0;
-	new_host->last_state_change = (time_t)0;
-	new_host->last_hard_state_change = (time_t)0;
-	new_host->last_time_up = (time_t)0;
-	new_host->last_time_down = (time_t)0;
-	new_host->last_time_unreachable = (time_t)0;
-	new_host->has_been_checked = FALSE;
-	new_host->is_being_freshened = FALSE;
-	new_host->problem_has_been_acknowledged = FALSE;
 	new_host->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 	new_host->notifications_enabled = (notifications_enabled > 0) ? TRUE : FALSE;
-	new_host->notified_on_down = FALSE;
-	new_host->notified_on_unreachable = FALSE;
-	new_host->current_notification_number = 0;
-	new_host->current_notification_id = 0L;
-	new_host->no_more_notifications = FALSE;
-	new_host->check_flapping_recovery_notification = FALSE;
-	new_host->scheduled_downtime_depth = 0;
 	new_host->check_options = CHECK_OPTION_NONE;
-	new_host->pending_flex_downtime = 0;
-	for(x = 0; x < MAX_STATE_HISTORY_ENTRIES; x++)
-		new_host->state_history[x] = STATE_OK;
-	new_host->state_history_index = 0;
-	new_host->last_state_history_update = (time_t)0;
-	new_host->is_flapping = FALSE;
-	new_host->flapping_comment_id = 0;
-	new_host->percent_state_change = 0.0;
-	new_host->total_services = 0;
-	new_host->total_service_check_interval = 0L;
-	new_host->modified_attributes = MODATTR_NONE;
 #endif
 
 	/* add new host to hash table */
@@ -1142,7 +1182,7 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 
 
 /* add a new contact to the list in memory */
-contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int notify_service_ok, int notify_service_critical, int notify_service_warning, int notify_service_unknown, int notify_service_flapping, int notify_service_downtime, int notify_host_up, int notify_host_down, int notify_host_unreachable, int notify_host_flapping, int notify_host_downtime, int host_notifications_enabled, int service_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information) {
+contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int service_notification_options, int host_notification_options, int host_notifications_enabled, int service_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information) {
 	contact *new_contact = NULL;
 	timeperiod *htp = NULL, *stp = NULL;
 	int x = 0;
@@ -1194,33 +1234,13 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 			}
 		}
 
-	new_contact->notify_on_service_recovery = (notify_service_ok > 0) ? TRUE : FALSE;
-	new_contact->notify_on_service_critical = (notify_service_critical > 0) ? TRUE : FALSE;
-	new_contact->notify_on_service_warning = (notify_service_warning > 0) ? TRUE : FALSE;
-	new_contact->notify_on_service_unknown = (notify_service_unknown > 0) ? TRUE : FALSE;
-	new_contact->notify_on_service_flapping = (notify_service_flapping > 0) ? TRUE : FALSE;
-	new_contact->notify_on_service_downtime = (notify_service_downtime > 0) ? TRUE : FALSE;
-	new_contact->notify_on_host_recovery = (notify_host_up > 0) ? TRUE : FALSE;
-	new_contact->notify_on_host_down = (notify_host_down > 0) ? TRUE : FALSE;
-	new_contact->notify_on_host_unreachable = (notify_host_unreachable > 0) ? TRUE : FALSE;
-	new_contact->notify_on_host_flapping = (notify_host_flapping > 0) ? TRUE : FALSE;
-	new_contact->notify_on_host_downtime = (notify_host_downtime > 0) ? TRUE : FALSE;
+	new_contact->service_notification_options = service_notification_options;
+	new_contact->host_notification_options = host_notification_options;
 	new_contact->host_notifications_enabled = (host_notifications_enabled > 0) ? TRUE : FALSE;
 	new_contact->service_notifications_enabled = (service_notifications_enabled > 0) ? TRUE : FALSE;
 	new_contact->can_submit_commands = (can_submit_commands > 0) ? TRUE : FALSE;
 	new_contact->retain_status_information = (retain_status_information > 0) ? TRUE : FALSE;
 	new_contact->retain_nonstatus_information = (retain_nonstatus_information > 0) ? TRUE : FALSE;
-#ifdef NSCORE
-	new_contact->last_host_notification = (time_t)0L;
-	new_contact->last_service_notification = (time_t)0L;
-	new_contact->modified_attributes = MODATTR_NONE;
-	new_contact->modified_host_attributes = MODATTR_NONE;
-	new_contact->modified_service_attributes = MODATTR_NONE;
-
-	new_contact->host_notification_period_ptr = NULL;
-	new_contact->service_notification_period_ptr = NULL;
-	new_contact->contactgroups_ptr = NULL;
-#endif
 
 	/* add new contact to hash table */
 	if(result == OK) {
@@ -1419,14 +1439,11 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notify_downtime, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess) {
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess) {
 	host *h;
 	timeperiod *cp = NULL, *np = NULL;
 	service *new_service = NULL;
 	int result = OK;
-#ifdef NSCORE
-	int x = 0;
-#endif
 
 	/* make sure we have everything we need */
 	if(host_name == NULL || description == NULL || !*description || check_command == NULL || !*check_command) {
@@ -1514,24 +1531,13 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->parallelize = (parallelize > 0) ? TRUE : FALSE;
 	new_service->notification_interval = notification_interval;
 	new_service->first_notification_delay = first_notification_delay;
-	new_service->notify_on_unknown = (notify_unknown > 0) ? TRUE : FALSE;
-	new_service->notify_on_warning = (notify_warning > 0) ? TRUE : FALSE;
-	new_service->notify_on_critical = (notify_critical > 0) ? TRUE : FALSE;
-	new_service->notify_on_recovery = (notify_recovery > 0) ? TRUE : FALSE;
-	new_service->notify_on_flapping = (notify_flapping > 0) ? TRUE : FALSE;
-	new_service->notify_on_downtime = (notify_downtime > 0) ? TRUE : FALSE;
+	new_service->notification_options = notification_options;
 	new_service->is_volatile = (is_volatile > 0) ? TRUE : FALSE;
 	new_service->flap_detection_enabled = (flap_detection_enabled > 0) ? TRUE : FALSE;
 	new_service->low_flap_threshold = low_flap_threshold;
 	new_service->high_flap_threshold = high_flap_threshold;
-	new_service->flap_detection_on_ok = (flap_detection_on_ok > 0) ? TRUE : FALSE;
-	new_service->flap_detection_on_warning = (flap_detection_on_warning > 0) ? TRUE : FALSE;
-	new_service->flap_detection_on_unknown = (flap_detection_on_unknown > 0) ? TRUE : FALSE;
-	new_service->flap_detection_on_critical = (flap_detection_on_critical > 0) ? TRUE : FALSE;
-	new_service->stalk_on_ok = (stalk_on_ok > 0) ? TRUE : FALSE;
-	new_service->stalk_on_warning = (stalk_on_warning > 0) ? TRUE : FALSE;
-	new_service->stalk_on_unknown = (stalk_on_unknown > 0) ? TRUE : FALSE;
-	new_service->stalk_on_critical = (stalk_on_critical > 0) ? TRUE : FALSE;
+	new_service->flap_detection_options = flap_detection_options;
+	new_service->stalking_options = stalking_options;
 	new_service->process_performance_data = (process_perfdata > 0) ? TRUE : FALSE;
 	new_service->check_freshness = (check_freshness > 0) ? TRUE : FALSE;
 	new_service->freshness_threshold = freshness_threshold;
@@ -1543,52 +1549,15 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->notifications_enabled = (notifications_enabled > 0) ? TRUE : FALSE;
 	new_service->obsess = (obsess > 0) ? TRUE : FALSE;
 #ifdef NSCORE
-	new_service->problem_has_been_acknowledged = FALSE;
 	new_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 	new_service->check_type = SERVICE_CHECK_ACTIVE;
 	new_service->current_attempt = (initial_state == STATE_OK) ? 1 : max_attempts;
 	new_service->current_state = initial_state;
-	new_service->current_event_id = 0L;
-	new_service->last_event_id = 0L;
-	new_service->current_problem_id = 0L;
-	new_service->last_problem_id = 0L;
 	new_service->last_state = initial_state;
 	new_service->last_hard_state = initial_state;
 	new_service->state_type = HARD_STATE;
-	new_service->host_problem_at_last_check = FALSE;
-	new_service->check_flapping_recovery_notification = FALSE;
-	new_service->next_check = (time_t)0;
 	new_service->should_be_scheduled = TRUE;
-	new_service->last_check = (time_t)0;
-	new_service->last_notification = (time_t)0;
-	new_service->next_notification = (time_t)0;
-	new_service->no_more_notifications = FALSE;
-	new_service->last_state_change = (time_t)0;
-	new_service->last_hard_state_change = (time_t)0;
-	new_service->last_time_ok = (time_t)0;
-	new_service->last_time_warning = (time_t)0;
-	new_service->last_time_unknown = (time_t)0;
-	new_service->last_time_critical = (time_t)0;
-	new_service->has_been_checked = FALSE;
-	new_service->is_being_freshened = FALSE;
-	new_service->notified_on_unknown = FALSE;
-	new_service->notified_on_warning = FALSE;
-	new_service->notified_on_critical = FALSE;
-	new_service->current_notification_number = 0;
-	new_service->current_notification_id = 0L;
-	new_service->latency = 0.0;
-	new_service->execution_time = 0.0;
-	new_service->is_executing = FALSE;
 	new_service->check_options = CHECK_OPTION_NONE;
-	new_service->scheduled_downtime_depth = 0;
-	new_service->pending_flex_downtime = 0;
-	for(x = 0; x < MAX_STATE_HISTORY_ENTRIES; x++)
-		new_service->state_history[x] = STATE_OK;
-	new_service->state_history_index = 0;
-	new_service->is_flapping = FALSE;
-	new_service->flapping_comment_id = 0;
-	new_service->percent_state_change = 0.0;
-	new_service->modified_attributes = MODATTR_NONE;
 #endif
 
 	/* add new service to hash table */
@@ -1732,7 +1701,7 @@ command *add_command(char *name, char *value) {
 
 
 /* add a new service escalation to the list in memory */
-serviceescalation *add_serviceescalation(char *host_name, char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_recovery) {
+serviceescalation *add_serviceescalation(char *host_name, char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options) {
 	serviceescalation *new_serviceescalation = NULL;
 	service *svc;
 	timeperiod *tp = NULL;
@@ -1774,10 +1743,7 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	new_serviceescalation->first_notification = first_notification;
 	new_serviceescalation->last_notification = last_notification;
 	new_serviceescalation->notification_interval = (notification_interval <= 0) ? 0 : notification_interval;
-	new_serviceescalation->escalate_on_recovery = (escalate_on_recovery > 0) ? TRUE : FALSE;
-	new_serviceescalation->escalate_on_warning = (escalate_on_warning > 0) ? TRUE : FALSE;
-	new_serviceescalation->escalate_on_unknown = (escalate_on_unknown > 0) ? TRUE : FALSE;
-	new_serviceescalation->escalate_on_critical = (escalate_on_critical > 0) ? TRUE : FALSE;
+	new_serviceescalation->escalation_options = escalation_options;
 
 	new_serviceescalation->id = num_objects.serviceescalations++;
 	return new_serviceescalation;
@@ -1829,7 +1795,7 @@ contactsmember *add_contact_to_serviceescalation(serviceescalation *se, char *co
 
 
 /* adds a service dependency definition */
-servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical, int fail_on_pending, char *dependency_period) {
+servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int failure_options, char *dependency_period) {
 	servicedependency *new_servicedependency = NULL;
 	service *parent, *child;
 	timeperiod *tp = NULL;
@@ -1874,11 +1840,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 
 	new_servicedependency->dependency_type = (dependency_type == EXECUTION_DEPENDENCY) ? EXECUTION_DEPENDENCY : NOTIFICATION_DEPENDENCY;
 	new_servicedependency->inherits_parent = (inherits_parent > 0) ? TRUE : FALSE;
-	new_servicedependency->fail_on_ok = (fail_on_ok == 1) ? TRUE : FALSE;
-	new_servicedependency->fail_on_warning = (fail_on_warning == 1) ? TRUE : FALSE;
-	new_servicedependency->fail_on_unknown = (fail_on_unknown == 1) ? TRUE : FALSE;
-	new_servicedependency->fail_on_critical = (fail_on_critical == 1) ? TRUE : FALSE;
-	new_servicedependency->fail_on_pending = (fail_on_pending == 1) ? TRUE : FALSE;
+	new_servicedependency->failure_options = failure_options;
 
 	/*
 	 * add new service dependency to its respective services.
@@ -1903,7 +1865,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 
 
 /* adds a host dependency definition */
-hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable, int fail_on_pending, char *dependency_period) {
+hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int failure_options, char *dependency_period) {
 	hostdependency *new_hostdependency = NULL;
 	host *parent, *child;
 	timeperiod *tp = NULL;
@@ -1945,10 +1907,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 
 	new_hostdependency->dependency_type = (dependency_type == EXECUTION_DEPENDENCY) ? EXECUTION_DEPENDENCY : NOTIFICATION_DEPENDENCY;
 	new_hostdependency->inherits_parent = (inherits_parent > 0) ? TRUE : FALSE;
-	new_hostdependency->fail_on_up = (fail_on_up == 1) ? TRUE : FALSE;
-	new_hostdependency->fail_on_down = (fail_on_down == 1) ? TRUE : FALSE;
-	new_hostdependency->fail_on_unreachable = (fail_on_unreachable == 1) ? TRUE : FALSE;
-	new_hostdependency->fail_on_pending = (fail_on_pending == 1) ? TRUE : FALSE;
+	new_hostdependency->failure_options = failure_options;
 
 	if(dependency_type == NOTIFICATION_DEPENDENCY)
 		result = prepend_unique_object_to_objectlist(&child->notify_deps, new_hostdependency, sizeof(*new_hostdependency));
@@ -1968,7 +1927,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 
 
 /* add a new host escalation to the list in memory */
-hostescalation *add_hostescalation(char *host_name, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalate_on_down, int escalate_on_unreachable, int escalate_on_recovery) {
+hostescalation *add_hostescalation(char *host_name, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options) {
 	hostescalation *new_hostescalation = NULL;
 	host *h;
 	timeperiod *tp = NULL;
@@ -2005,9 +1964,7 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	new_hostescalation->first_notification = first_notification;
 	new_hostescalation->last_notification = last_notification;
 	new_hostescalation->notification_interval = (notification_interval <= 0) ? 0 : notification_interval;
-	new_hostescalation->escalate_on_recovery = (escalate_on_recovery > 0) ? TRUE : FALSE;
-	new_hostescalation->escalate_on_down = (escalate_on_down > 0) ? TRUE : FALSE;
-	new_hostescalation->escalate_on_unreachable = (escalate_on_unreachable > 0) ? TRUE : FALSE;
+	new_hostescalation->escalation_options = escalation_options;
 
 	new_hostescalation->id = num_objects.hostescalations++;
 	return new_hostescalation;
@@ -3241,38 +3198,9 @@ void fcache_contact(FILE *fp, contact *temp_contact)
 		fprintf(fp, "\tservice_notification_period\t%s\n", temp_contact->service_notification_period);
 	if(temp_contact->host_notification_period)
 		fprintf(fp, "\thost_notification_period\t%s\n", temp_contact->host_notification_period);
-	fprintf(fp, "\tservice_notification_options\t");
-	x = 0;
-	if(temp_contact->notify_on_service_warning == TRUE)
-		fprintf(fp, "%sw", (x++ > 0) ? "," : "");
-	if(temp_contact->notify_on_service_unknown == TRUE)
-		fprintf(fp, "%su", (x++ > 0) ? "," : "");
-	if(temp_contact->notify_on_service_critical == TRUE)
-		fprintf(fp, "%sc", (x++ > 0) ? "," : "");
-	if(temp_contact->notify_on_service_recovery == TRUE)
-		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
-	if(temp_contact->notify_on_service_flapping == TRUE)
-		fprintf(fp, "%sf", (x++ > 0) ? "," : "");
-	if(temp_contact->notify_on_service_downtime == TRUE)
-		fprintf(fp, "%ss", (x++ > 0) ? "," : "");
-	if(x == 0)
-		fprintf(fp, "n");
+	fprintf(fp, "\tservice_notification_options\t%s\n", opts2str(temp_contact->service_notification_options, service_flag_map, 'r'));
 	fprintf(fp, "\n");
-	fprintf(fp, "\thost_notification_options\t");
-	x = 0;
-	if(temp_contact->notify_on_host_down == TRUE)
-		fprintf(fp, "%sd", (x++ > 0) ? "," : "");
-	if(temp_contact->notify_on_host_unreachable == TRUE)
-		fprintf(fp, "%su", (x++ > 0) ? "," : "");
-	if(temp_contact->notify_on_host_recovery == TRUE)
-		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
-	if(temp_contact->notify_on_host_flapping == TRUE)
-		fprintf(fp, "%sf", (x++ > 0) ? "," : "");
-	if(temp_contact->notify_on_host_downtime == TRUE)
-		fprintf(fp, "%ss", (x++ > 0) ? "," : "");
-	if(x == 0)
-		fprintf(fp, "n");
-	fprintf(fp, "\n");
+	fprintf(fp, "\thost_notification_options\t%s\n", opts2str(temp_contact->host_notification_options, host_flag_map, 'r'));
 	if(temp_contact->service_notification_commands) {
 		fprintf(fp, "\tservice_notification_commands\t");
 		for(list = temp_contact->service_notification_commands; list; list = list->next) {
@@ -3306,8 +3234,6 @@ void fcache_contact(FILE *fp, contact *temp_contact)
 
 void fcache_host(FILE *fp, host *temp_host)
 {
-	int x;
-
 	fprintf(fp, "define host {\n");
 	fprintf(fp, "\thost_name\t%s\n", temp_host->name);
 	if(temp_host->display_name != temp_host->name)
@@ -3344,48 +3270,14 @@ void fcache_host(FILE *fp, host *temp_host)
 	fprintf(fp, "\tlow_flap_threshold\t%f\n", temp_host->low_flap_threshold);
 	fprintf(fp, "\thigh_flap_threshold\t%f\n", temp_host->high_flap_threshold);
 	fprintf(fp, "\tflap_detection_enabled\t%d\n", temp_host->flap_detection_enabled);
-	fprintf(fp, "\tflap_detection_options\t");
-	x = 0;
-	if(temp_host->flap_detection_on_up == TRUE)
-		fprintf(fp, "%so", (x++ > 0) ? "," : "");
-	if(temp_host->flap_detection_on_down == TRUE)
-		fprintf(fp, "%sd", (x++ > 0) ? "," : "");
-	if(temp_host->flap_detection_on_unreachable == TRUE)
-		fprintf(fp, "%su", (x++ > 0) ? "," : "");
-	if(x == 0)
-		fprintf(fp, "n");
-	fprintf(fp, "\n");
+	fprintf(fp, "\tflap_detection_options\t%s\n", opts2str(temp_host->flap_detection_options, host_flag_map, 'u'));
 	fprintf(fp, "\tfreshness_threshold\t%d\n", temp_host->freshness_threshold);
 	fprintf(fp, "\tcheck_freshness\t%d\n", temp_host->check_freshness);
-	fprintf(fp, "\tnotification_options\t");
-	x = 0;
-	if(temp_host->notify_on_down == TRUE)
-		fprintf(fp, "%sd", (x++ > 0) ? "," : "");
-	if(temp_host->notify_on_unreachable == TRUE)
-		fprintf(fp, "%su", (x++ > 0) ? "," : "");
-	if(temp_host->notify_on_recovery == TRUE)
-		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
-	if(temp_host->notify_on_flapping == TRUE)
-		fprintf(fp, "%sf", (x++ > 0) ? "," : "");
-	if(temp_host->notify_on_downtime == TRUE)
-		fprintf(fp, "%ss", (x++ > 0) ? "," : "");
-	if(x == 0)
-		fprintf(fp, "n");
-	fprintf(fp, "\n");
+	fprintf(fp, "\tnotification_options\t%s\n", opts2str(temp_host->notification_options, host_flag_map, 'r'));
 	fprintf(fp, "\tnotifications_enabled\t%d\n", temp_host->notifications_enabled);
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_host->notification_interval);
 	fprintf(fp, "\tfirst_notification_delay\t%f\n", temp_host->first_notification_delay);
-	fprintf(fp, "\tstalking_options\t");
-	x = 0;
-	if(temp_host->stalk_on_up == TRUE)
-		fprintf(fp, "%so", (x++ > 0) ? "," : "");
-	if(temp_host->stalk_on_down == TRUE)
-		fprintf(fp, "%sd", (x++ > 0) ? "," : "");
-	if(temp_host->stalk_on_unreachable == TRUE)
-		fprintf(fp, "%su", (x++ > 0) ? "," : "");
-	if(x == 0)
-		fprintf(fp, "n");
-	fprintf(fp, "\n");
+	fprintf(fp, "\tstalking_options\t%s\n", opts2str(temp_host->stalking_options, host_flag_map, 'u'));
 	fprintf(fp, "\tprocess_perf_data\t%d\n", temp_host->process_performance_data);
 	if(temp_host->icon_image)
 		fprintf(fp, "\ticon_image\t%s\n", temp_host->icon_image);
@@ -3415,8 +3307,6 @@ void fcache_host(FILE *fp, host *temp_host)
 
 void fcache_service(FILE *fp, service *temp_service)
 {
-	int x;
-
 	fprintf(fp, "define service {\n");
 	fprintf(fp, "\thost_name\t%s\n", temp_service->host_name);
 	fprintf(fp, "\tservice_description\t%s\n", temp_service->description);
@@ -3453,54 +3343,14 @@ void fcache_service(FILE *fp, service *temp_service)
 	fprintf(fp, "\tlow_flap_threshold\t%f\n", temp_service->low_flap_threshold);
 	fprintf(fp, "\thigh_flap_threshold\t%f\n", temp_service->high_flap_threshold);
 	fprintf(fp, "\tflap_detection_enabled\t%d\n", temp_service->flap_detection_enabled);
-	fprintf(fp, "\tflap_detection_options\t");
-	x = 0;
-	if(temp_service->flap_detection_on_ok == TRUE)
-		fprintf(fp, "%so", (x++ > 0) ? "," : "");
-	if(temp_service->flap_detection_on_warning == TRUE)
-		fprintf(fp, "%sw", (x++ > 0) ? "," : "");
-	if(temp_service->flap_detection_on_unknown == TRUE)
-		fprintf(fp, "%su", (x++ > 0) ? "," : "");
-	if(temp_service->flap_detection_on_critical == TRUE)
-		fprintf(fp, "%sc", (x++ > 0) ? "," : "");
-	if(x == 0)
-		fprintf(fp, "n");
-	fprintf(fp, "\n");
+	fprintf(fp, "\tflap_detection_options\t%s\n", opts2str(temp_service->flap_detection_options, service_flag_map, 'o'));
 	fprintf(fp, "\tfreshness_threshold\t%d\n", temp_service->freshness_threshold);
 	fprintf(fp, "\tcheck_freshness\t%d\n", temp_service->check_freshness);
-	fprintf(fp, "\tnotification_options\t");
-	x = 0;
-	if(temp_service->notify_on_unknown == TRUE)
-		fprintf(fp, "%su", (x++ > 0) ? "," : "");
-	if(temp_service->notify_on_warning == TRUE)
-		fprintf(fp, "%sw", (x++ > 0) ? "," : "");
-	if(temp_service->notify_on_critical == TRUE)
-		fprintf(fp, "%sc", (x++ > 0) ? "," : "");
-	if(temp_service->notify_on_recovery == TRUE)
-		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
-	if(temp_service->notify_on_flapping == TRUE)
-		fprintf(fp, "%sf", (x++ > 0) ? "," : "");
-	if(temp_service->notify_on_downtime == TRUE)
-		fprintf(fp, "%ss", (x++ > 0) ? "," : "");
-	if(x == 0)
-		fprintf(fp, "n");
-	fprintf(fp, "\n");
+	fprintf(fp, "\tnotification_options\t%s\n", opts2str(temp_service->notification_options, service_flag_map, 'r'));
 	fprintf(fp, "\tnotifications_enabled\t%d\n", temp_service->notifications_enabled);
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_service->notification_interval);
 	fprintf(fp, "\tfirst_notification_delay\t%f\n", temp_service->first_notification_delay);
-	fprintf(fp, "\tstalking_options\t");
-	x = 0;
-	if(temp_service->stalk_on_ok == TRUE)
-		fprintf(fp, "%so", (x++ > 0) ? "," : "");
-	if(temp_service->stalk_on_unknown == TRUE)
-		fprintf(fp, "%su", (x++ > 0) ? "," : "");
-	if(temp_service->stalk_on_warning == TRUE)
-		fprintf(fp, "%sw", (x++ > 0) ? "," : "");
-	if(temp_service->stalk_on_critical == TRUE)
-		fprintf(fp, "%sc", (x++ > 0) ? "," : "");
-	if(x == 0)
-		fprintf(fp, "n");
-	fprintf(fp, "\n");
+	fprintf(fp, "\tstalking_options\t%s\n", opts2str(temp_service->stalking_options, service_flag_map, 'o'));
 	fprintf(fp, "\tprocess_perf_data\t%d\n", temp_service->process_performance_data);
 	if(temp_service->icon_image)
 		fprintf(fp, "\ticon_image\t%s\n", temp_service->icon_image);
@@ -3530,47 +3380,14 @@ void fcache_servicedependency(FILE *fp, servicedependency *temp_servicedependenc
 	if(temp_servicedependency->dependency_period)
 		fprintf(fp, "\tdependency_period\t%s\n", temp_servicedependency->dependency_period);
 	fprintf(fp, "\tinherits_parent\t%d\n", temp_servicedependency->inherits_parent);
-	if(temp_servicedependency->dependency_type == NOTIFICATION_DEPENDENCY) {
-		int x = 0;
-		fprintf(fp, "\tnotification_failure_options\t");
-		if(temp_servicedependency->fail_on_ok)
-			fprintf(fp, "%so", (x++ > 0) ? "," : "");
-		if(temp_servicedependency->fail_on_unknown == TRUE)
-			fprintf(fp, "%su", (x++ > 0) ? "," : "");
-		if(temp_servicedependency->fail_on_warning == TRUE)
-			fprintf(fp, "%sw", (x++ > 0) ? "," : "");
-		if(temp_servicedependency->fail_on_critical == TRUE)
-			fprintf(fp, "%sc", (x++ > 0) ? "," : "");
-		if(temp_servicedependency->fail_on_pending == TRUE)
-			fprintf(fp, "%sp", (x++ > 0) ? "," : "");
-		if(x == 0)
-			fprintf(fp, "n");
-		fprintf(fp, "\n");
-	}
-
-	if(temp_servicedependency->dependency_type == EXECUTION_DEPENDENCY) {
-		int x = 0;
-		fprintf(fp, "\texecution_failure_options\t");
-		if(temp_servicedependency->fail_on_ok == TRUE)
-			fprintf(fp, "%so", (x++ > 0) ? "," : "");
-		if(temp_servicedependency->fail_on_unknown == TRUE)
-			fprintf(fp, "%su", (x++ > 0) ? "," : "");
-		if(temp_servicedependency->fail_on_warning == TRUE)
-			fprintf(fp, "%sw", (x++ > 0) ? "," : "");
-		if(temp_servicedependency->fail_on_critical == TRUE)
-			fprintf(fp, "%sc", (x++ > 0) ? "," : "");
-		if(temp_servicedependency->fail_on_pending == TRUE)
-			fprintf(fp, "%sp", (x++ > 0) ? "," : "");
-		if(x == 0)
-			fprintf(fp, "n");
-		fprintf(fp, "\n");
-	}
+	fprintf(fp, "\t%s_failure_options\t%s\n",
+	        temp_servicedependency->dependency_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
+	        opts2str(temp_servicedependency->failure_options, service_flag_map, 'o'));
 	fprintf(fp, "\t}\n\n");
 }
 
 void fcache_serviceescalation(FILE *fp, serviceescalation *temp_serviceescalation)
 {
-	int x = 0;
 	fprintf(fp, "define serviceescalation {\n");
 	fprintf(fp, "\thost_name\t%s\n", temp_serviceescalation->host_name);
 	fprintf(fp, "\tservice_description\t%s\n", temp_serviceescalation->description);
@@ -3579,18 +3396,7 @@ void fcache_serviceescalation(FILE *fp, serviceescalation *temp_serviceescalatio
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_serviceescalation->notification_interval);
 	if(temp_serviceescalation->escalation_period)
 		fprintf(fp, "\tescalation_period\t%s\n", temp_serviceescalation->escalation_period);
-	fprintf(fp, "\tescalation_options\t");
-	if(temp_serviceescalation->escalate_on_warning == TRUE)
-		fprintf(fp, "%sw", (x++ > 0) ? "," : "");
-	if(temp_serviceescalation->escalate_on_unknown == TRUE)
-		fprintf(fp, "%su", (x++ > 0) ? "," : "");
-	if(temp_serviceescalation->escalate_on_critical == TRUE)
-		fprintf(fp, "%sc", (x++ > 0) ? "," : "");
-	if(temp_serviceescalation->escalate_on_recovery == TRUE)
-		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
-	if(x == 0)
-		fprintf(fp, "n");
-	fprintf(fp, "\n");
+	fprintf(fp, "\tescalation_options\t%s\n", opts2str(temp_serviceescalation->escalation_options, service_flag_map, 'r'));
 
 	if(temp_serviceescalation->contacts) {
 		contactsmember *cl;
@@ -3615,43 +3421,14 @@ void fcache_hostdependency(FILE *fp, hostdependency *temp_hostdependency)
 	if(temp_hostdependency->dependency_period)
 		fprintf(fp, "\tdependency_period\t%s\n", temp_hostdependency->dependency_period);
 	fprintf(fp, "\tinherits_parent\t%d\n", temp_hostdependency->inherits_parent);
-	if(temp_hostdependency->dependency_type == NOTIFICATION_DEPENDENCY) {
-		int x = 0;
-		fprintf(fp, "\tnotification_failure_options\t");
-		if(temp_hostdependency->fail_on_up == TRUE)
-			fprintf(fp, "%so", (x++ > 0) ? "," : "");
-		if(temp_hostdependency->fail_on_down == TRUE)
-			fprintf(fp, "%sd", (x++ > 0) ? "," : "");
-		if(temp_hostdependency->fail_on_unreachable == TRUE)
-			fprintf(fp, "%su", (x++ > 0) ? "," : "");
-		if(temp_hostdependency->fail_on_pending == TRUE)
-			fprintf(fp, "%sp", (x++ > 0) ? "," : "");
-		if(x == 0)
-			fprintf(fp, "n");
-		fprintf(fp, "\n");
-	}
-	if(temp_hostdependency->dependency_type == EXECUTION_DEPENDENCY) {
-		int x = 0;
-		fprintf(fp, "\texecution_failure_options\t");
-		if(temp_hostdependency->fail_on_up == TRUE)
-			fprintf(fp, "%so", (x++ > 0) ? "," : "");
-		if(temp_hostdependency->fail_on_down == TRUE)
-			fprintf(fp, "%sd", (x++ > 0) ? "," : "");
-		if(temp_hostdependency->fail_on_unreachable == TRUE)
-			fprintf(fp, "%su", (x++ > 0) ? "," : "");
-		if(temp_hostdependency->fail_on_pending == TRUE)
-			fprintf(fp, "%sp", (x++ > 0) ? "," : "");
-		if(x == 0)
-			fprintf(fp, "n");
-		fprintf(fp, "\n");
-	}
+	fprintf(fp, "\t%s_failure_options\t%s\n",
+			temp_hostdependency->dependency_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
+			opts2str(temp_hostdependency->failure_options, host_flag_map, 'o'));
 	fprintf(fp, "\t}\n\n");
 }
 
 void fcache_hostescalation(FILE *fp, hostescalation *temp_hostescalation)
 {
-	int x = 0;
-
 	fprintf(fp, "define hostescalation {\n");
 	fprintf(fp, "\thost_name\t%s\n", temp_hostescalation->host_name);
 	fprintf(fp, "\tfirst_notification\t%d\n", temp_hostescalation->first_notification);
@@ -3659,16 +3436,7 @@ void fcache_hostescalation(FILE *fp, hostescalation *temp_hostescalation)
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_hostescalation->notification_interval);
 	if(temp_hostescalation->escalation_period)
 		fprintf(fp, "\tescalation_period\t%s\n", temp_hostescalation->escalation_period);
-	fprintf(fp, "\tescalation_options\t");
-	if(temp_hostescalation->escalate_on_down == TRUE)
-		fprintf(fp, "%sd", (x++ > 0) ? "," : "");
-	if(temp_hostescalation->escalate_on_unreachable == TRUE)
-		fprintf(fp, "%su", (x++ > 0) ? "," : "");
-	if(temp_hostescalation->escalate_on_recovery == TRUE)
-		fprintf(fp, "%sr", (x++ > 0) ? "," : "");
-	if(x == 0)
-		fprintf(fp, "n");
-	fprintf(fp, "\n");
+	fprintf(fp, "\tescalation_options\t%s\n", opts2str(temp_hostescalation->escalation_options, host_flag_map, 'r'));
 
 	fcache_contactlist(fp, "\tcontacts\t", temp_hostescalation->contacts);
 	fcache_contactgrouplist(fp, "\tcontact_groups\t", temp_hostescalation->contact_groups);

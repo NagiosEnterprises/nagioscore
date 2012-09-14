@@ -359,6 +359,11 @@ NAGIOS_BEGIN_DECL
 
 /******************** FUNCTIONS **********************/
 
+/* silly helpers useful pretty much all over the place */
+extern const char *service_state_name(int state);
+extern const char *host_state_name(int state);
+extern const char *state_type_name(int state_type);
+
 /**** Configuration Functions ****/
 int read_main_config_file(char *);                     		/* reads the main config file (nagios.cfg) */
 int read_resource_file(char *);					/* processes macros in resource file */

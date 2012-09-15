@@ -327,6 +327,7 @@ struct contact_struct {
 	commandsmember *service_notification_commands;
 	unsigned int host_notification_options;
 	unsigned int service_notification_options;
+	unsigned int minimum_value;
 	char	*host_notification_period;
 	char	*service_notification_period;
 	int     host_notifications_enabled;
@@ -405,6 +406,7 @@ struct host_struct {
 	double  notification_interval;
 	double  first_notification_delay;
 	unsigned int notification_options;
+	unsigned int hourly_value;
 	char	*notification_period;
 	char    *check_period;
 	int     flap_detection_enabled;
@@ -543,6 +545,7 @@ struct service_struct {
 	double  first_notification_delay;
 	unsigned int notification_options;
 	unsigned int stalking_options;
+	unsigned int hourly_value;
 	int     is_volatile;
 	char	*notification_period;
 	char	*check_period;
@@ -723,11 +726,11 @@ int read_object_config_data(char *, int);     /* reads all external configuratio
 
 
 /**** Object Creation Functions ****/
-contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int service_notification_options, int host_notification_options, int service_notifications_enabled, int host_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information);
+contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int service_notification_options, int host_notification_options, int service_notifications_enabled, int host_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information, unsigned int minimum_value);
 commandsmember *add_service_notification_command_to_contact(contact *, char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *, char *);				/* adds a host notification command to a contact definition */
 customvariablesmember *add_custom_variable_to_contact(contact *, char *, char *);                       /* adds a custom variable to a service definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host);
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host, unsigned int hourly_value);
 hostsmember *add_parent_host_to_host(host *, char *);							/* adds a parent host to a host definition */
 servicesmember *add_parent_service_to_service(service *, char *host_name, char *description);
 hostsmember *add_child_link_to_host(host *, host *);						       /* adds a child host to a host definition */
@@ -746,7 +749,7 @@ servicesmember *add_service_to_servicegroup(servicegroup *, char *, char *);    
 contactgroup *add_contactgroup(char *, char *);								/* adds a contactgroup definition */
 contactsmember *add_contact_to_contactgroup(contactgroup *, char *);					/* adds a contact to a contact group definition */
 command *add_command(char *, char *);									/* adds a command definition */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service);
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service, unsigned int hourly_value);
 contactgroupsmember *add_contactgroup_to_service(service *, char *);					/* adds a contact group to a service definition */
 contactsmember *add_contact_to_service(service *, char *);                                              /* adds a contact to a host definition */
 serviceescalation *add_serviceescalation(char *host_name, char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options);
@@ -792,6 +795,7 @@ int free_objectlist(objectlist **);
 
 
 /**** Object Query Functions ****/
+unsigned int host_services_value(host *h);
 int is_host_immediate_child_of_host(host *, host *);	               /* checks if a host is an immediate child of another host */
 int is_host_primary_immediate_child_of_host(host *, host *);            /* checks if a host is an immediate child (and primary child) of another host */
 int is_host_immediate_parent_of_host(host *, host *);	               /* checks if a host is an immediate child of another host */

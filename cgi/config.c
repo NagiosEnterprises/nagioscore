@@ -469,6 +469,7 @@ void display_hosts(void) {
 	printf("<TH CLASS='data'>Host Name</TH>");
 	printf("<TH CLASS='data'>Alias/Description</TH>");
 	printf("<TH CLASS='data'>Address</TH>");
+	printf("<TH CLASS='data'>Hourly Value</TH>");
 	printf("<TH CLASS='data'>Parent Hosts</TH>");
 	printf("<TH CLASS='data'>Max. Check Attempts</TH>");
 	printf("<TH CLASS='data'>Check Interval</TH>\n");
@@ -526,6 +527,7 @@ void display_hosts(void) {
 			       url_encode(temp_host->name), CONFIG_CGI, url_encode(temp_host->name), html_encode(temp_host->name, FALSE));
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, html_encode(temp_host->alias, FALSE));
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, html_encode(temp_host->address, FALSE));
+			printf("<TD CLASS='%s'>%u</TD>\n", bg_class, temp_host->hourly_value);
 
 			printf("<TD CLASS='%s'>", bg_class);
 			for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
@@ -947,6 +949,7 @@ void display_contacts(void) {
 	printf("<TH CLASS='data'>Alias</TH>");
 	printf("<TH CLASS='data'>Email Address</TH>");
 	printf("<TH CLASS='data'>Pager Address/Number</TH>");
+	printf("<TH CLASS='data'>Minimum Value</TH>");
 	printf("<TH CLASS='data'>Service Notification Options</TH>");
 	printf("<TH CLASS='data'>Host Notification Options</TH>");
 	printf("<TH CLASS='data'>Service Notification Period</TH>");
@@ -974,6 +977,7 @@ void display_contacts(void) {
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, html_encode(temp_contact->alias, FALSE));
 			printf("<TD CLASS='%s'><A HREF='mailto:%s'>%s</A></TD>\n", bg_class, (temp_contact->email == NULL) ? "&nbsp;" : url_encode(temp_contact->email), (temp_contact->email == NULL) ? "&nbsp;" : html_encode(temp_contact->email, FALSE));
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, (temp_contact->pager == NULL) ? "&nbsp;" : html_encode(temp_contact->pager, FALSE));
+			printf("<TD CLASS='%s'>%u</TD>\n", bg_class, temp_contact->minimum_value);
 
 			printf("<TD CLASS='%s'>", bg_class);
 			options = 0;
@@ -1203,6 +1207,7 @@ void display_services(void) {
 	printf("<TR>\n");
 	printf("<TH CLASS='data'>Host</TH>\n");
 	printf("<TH CLASS='data'>Description</TH>\n");
+	printf("<TH CLASS='data'>Hourly Value</TH>\n");
 	printf("<TH CLASS='data'>Max. Check Attempts</TH>\n");
 	printf("<TH CLASS='data'>Normal Check Interval</TH>\n");
 	printf("<TH CLASS='data'>Retry Check Interal</TH>\n");
@@ -1260,6 +1265,7 @@ void display_services(void) {
 			printf("<A HREF='%s?type=hosts&expand=%s'>%s</A></TD>\n", CONFIG_CGI, url_encode(temp_service->host_name), html_encode(temp_service->host_name, FALSE));
 
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, html_encode(temp_service->description, FALSE));
+			printf("<TD CLASS='%s'>%u</TD>\n", bg_class, temp_service->hourly_value);
 
 			printf("<TD CLASS='%s'>%d</TD>\n", bg_class, temp_service->max_attempts);
 

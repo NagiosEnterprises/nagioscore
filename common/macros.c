@@ -1794,7 +1794,20 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 			/* tell caller to NOT free memory when done */
 			*free_macro = FALSE;
 			break;
+		case MACRO_HOSTVALUE:
+			*free_macro = FALSE;
+			*output = (char *)mkstr("%u", mac->host_ptr->hourly_value);
+			break;
+		case MACRO_SERVICEVALUE:
+			*free_macro = FALSE;
+			*output = (char *)mkstr("%u", host_services_value(mac->host_ptr));
+			break;
+		case MACRO_PROBLEMVALUE:
+			*free_macro = FALSE;
+			*output = (char *)mkstr("%u", mac->host_ptr->hourly_value + host_services_value(mac->host_ptr));
+			break;
 #endif
+
 			/***************/
 			/* MISC MACROS */
 			/***************/
@@ -2757,6 +2770,9 @@ int init_macrox_names(void) {
 	add_macrox_name(LASTHOSTSTATEID);
 	add_macrox_name(LASTSERVICESTATE);
 	add_macrox_name(LASTSERVICESTATEID);
+	add_macrox_name(HOSTVALUE);
+	add_macrox_name(SERVICEVALUE);
+	add_macrox_name(PROBLEMVALUE);
 
 	return OK;
 	}

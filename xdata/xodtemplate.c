@@ -992,6 +992,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		case XODTEMPLATE_CONTACT:
 			xod_begin_def(contact);
 
+			new_contact->minimum_value = 1;
 			new_contact->host_notifications_enabled = TRUE;
 			new_contact->service_notifications_enabled = TRUE;
 			new_contact->can_submit_commands = TRUE;
@@ -1001,6 +1002,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		case XODTEMPLATE_HOST:
 			xod_begin_def(host);
+
+			new_host->hourly_value = 1;
 			new_host->check_interval = 5.0;
 			new_host->retry_interval = 1.0;
 			new_host->active_checks_enabled = TRUE;
@@ -1022,6 +1025,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		case XODTEMPLATE_SERVICE:
 			xod_begin_def(service);
 
+			new_service->hourly_value = 1;
 			new_service->initial_state = STATE_OK;
 			new_service->max_check_attempts = -2;
 			new_service->check_interval = 5.0;
@@ -2150,6 +2154,10 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_contact->retain_nonstatus_information = (atoi(value) > 0) ? TRUE : FALSE;
 				temp_contact->have_retain_nonstatus_information = TRUE;
 				}
+			else if(!strcmp(variable, "minimum_value")) {
+				temp_contact->minimum_value = strtoul(value, NULL, 10);
+				temp_contact->have_minimum_value = TRUE;
+				}
 			else if(!strcmp(variable, "register"))
 				temp_contact->register_object = (atoi(value) > 0) ? TRUE : FALSE;
 			else if(variable[0] == '_') {
@@ -2384,6 +2392,10 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "retry_interval") || !strcmp(variable, "retry_check_interval")) {
 				temp_host->retry_interval = strtod(value, NULL);
 				temp_host->have_retry_interval = TRUE;
+				}
+			else if(!strcmp(variable, "hourly_value")) {
+				temp_host->hourly_value = (unsigned int)strtoul(value, NULL, 10);
+				temp_host->have_hourly_value = 1;
 				}
 			else if(!strcmp(variable, "max_check_attempts")) {
 				temp_host->max_check_attempts = atoi(value);
@@ -2799,6 +2811,10 @@ int xodtemplate_add_object_property(char *input, int options) {
 					result = ERROR;
 					}
 				temp_service->have_initial_state = TRUE;
+				}
+			else if(!strcmp(variable, "hourly_value")) {
+				temp_service->hourly_value = (unsigned int)strtoul(value, NULL, 10);
+				temp_service->have_hourly_value = 1;
 				}
 			else if(!strcmp(variable, "max_check_attempts")) {
 				temp_service->max_check_attempts = atoi(value);
@@ -5528,6 +5544,7 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact) {
 		xod_inherit(this_contact, template_contact, can_submit_commands);
 		xod_inherit(this_contact, template_contact, retain_status_information);
 		xod_inherit(this_contact, template_contact, retain_nonstatus_information);
+		xod_inherit(this_contact, template_contact, minimum_value);
 
 		/* apply missing custom variables from template contact... */
 		for(temp_customvariablesmember = template_contact->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {
@@ -7406,7 +7423,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact) {
 		return OK;
 
 	/* add the contact */
-	new_contact = add_contact(this_contact->contact_name, this_contact->alias, this_contact->email, this_contact->pager, this_contact->address, this_contact->service_notification_period, this_contact->host_notification_period, this_contact->service_notification_options, this_contact->host_notification_options, this_contact->host_notifications_enabled, this_contact->service_notifications_enabled, this_contact->can_submit_commands, this_contact->retain_status_information, this_contact->retain_nonstatus_information);
+	new_contact = add_contact(this_contact->contact_name, this_contact->alias, this_contact->email, this_contact->pager, this_contact->address, this_contact->service_notification_period, this_contact->host_notification_period, this_contact->service_notification_options, this_contact->host_notification_options, this_contact->host_notifications_enabled, this_contact->service_notifications_enabled, this_contact->can_submit_commands, this_contact->retain_status_information, this_contact->retain_nonstatus_information, this_contact->minimum_value);
 
 	/* return with an error if we couldn't add the contact */
 	if(new_contact == NULL) {
@@ -7467,7 +7484,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host) {
 		return OK;
 
 	/* add the host definition */
-	new_host = add_host(this_host->host_name, this_host->display_name, this_host->alias, this_host->address, this_host->check_period, this_host->initial_state, this_host->check_interval, this_host->retry_interval, this_host->max_check_attempts, this_host->notification_options, this_host->notification_interval, this_host->first_notification_delay, this_host->notification_period, this_host->notifications_enabled, this_host->check_command, this_host->active_checks_enabled, this_host->passive_checks_enabled, this_host->event_handler, this_host->event_handler_enabled, this_host->flap_detection_enabled, this_host->low_flap_threshold, this_host->high_flap_threshold, this_host->flap_detection_options, this_host->stalking_options, this_host->process_perf_data, this_host->check_freshness, this_host->freshness_threshold, this_host->notes, this_host->notes_url, this_host->action_url, this_host->icon_image, this_host->icon_image_alt, this_host->vrml_image, this_host->statusmap_image, this_host->x_2d, this_host->y_2d, this_host->have_2d_coords, this_host->x_3d, this_host->y_3d, this_host->z_3d, this_host->have_3d_coords, TRUE, this_host->retain_status_information, this_host->retain_nonstatus_information, this_host->obsess);
+	new_host = add_host(this_host->host_name, this_host->display_name, this_host->alias, this_host->address, this_host->check_period, this_host->initial_state, this_host->check_interval, this_host->retry_interval, this_host->max_check_attempts, this_host->notification_options, this_host->notification_interval, this_host->first_notification_delay, this_host->notification_period, this_host->notifications_enabled, this_host->check_command, this_host->active_checks_enabled, this_host->passive_checks_enabled, this_host->event_handler, this_host->event_handler_enabled, this_host->flap_detection_enabled, this_host->low_flap_threshold, this_host->high_flap_threshold, this_host->flap_detection_options, this_host->stalking_options, this_host->process_perf_data, this_host->check_freshness, this_host->freshness_threshold, this_host->notes, this_host->notes_url, this_host->action_url, this_host->icon_image, this_host->icon_image_alt, this_host->vrml_image, this_host->statusmap_image, this_host->x_2d, this_host->y_2d, this_host->have_2d_coords, this_host->x_3d, this_host->y_3d, this_host->z_3d, this_host->have_3d_coords, TRUE, this_host->retain_status_information, this_host->retain_nonstatus_information, this_host->obsess, this_host->hourly_value);
 
 
 	/* return with an error if we couldn't add the host */
@@ -7544,7 +7561,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service) {
 		return OK;
 
 	/* add the service */
-	new_service = add_service(this_service->host_name, this_service->service_description, this_service->display_name, this_service->check_period, this_service->initial_state, this_service->max_check_attempts, this_service->parallelize_check, this_service->passive_checks_enabled, this_service->check_interval, this_service->retry_interval, this_service->notification_interval, this_service->first_notification_delay, this_service->notification_period, this_service->notification_options, this_service->notifications_enabled, this_service->is_volatile, this_service->event_handler, this_service->event_handler_enabled, this_service->check_command, this_service->active_checks_enabled, this_service->flap_detection_enabled, this_service->low_flap_threshold, this_service->high_flap_threshold, this_service->flap_detection_options, this_service->stalking_options, this_service->process_perf_data, this_service->check_freshness, this_service->freshness_threshold, this_service->notes, this_service->notes_url, this_service->action_url, this_service->icon_image, this_service->icon_image_alt, this_service->retain_status_information, this_service->retain_nonstatus_information, this_service->obsess);
+	new_service = add_service(this_service->host_name, this_service->service_description, this_service->display_name, this_service->check_period, this_service->initial_state, this_service->max_check_attempts, this_service->parallelize_check, this_service->passive_checks_enabled, this_service->check_interval, this_service->retry_interval, this_service->notification_interval, this_service->first_notification_delay, this_service->notification_period, this_service->notification_options, this_service->notifications_enabled, this_service->is_volatile, this_service->event_handler, this_service->event_handler_enabled, this_service->check_command, this_service->active_checks_enabled, this_service->flap_detection_enabled, this_service->low_flap_threshold, this_service->high_flap_threshold, this_service->flap_detection_options, this_service->stalking_options, this_service->process_perf_data, this_service->check_freshness, this_service->freshness_threshold, this_service->notes, this_service->notes_url, this_service->action_url, this_service->icon_image, this_service->icon_image_alt, this_service->retain_status_information, this_service->retain_nonstatus_information, this_service->obsess, this_service->hourly_value);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service == NULL) {

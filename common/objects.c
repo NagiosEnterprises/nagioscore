@@ -59,6 +59,10 @@ hostdependency *hostdependency_list = NULL;
 serviceescalation *serviceescalation_list = NULL;
 servicedependency *servicedependency_list = NULL;
 
+#ifdef NSCORE
+int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
+#endif
+
 struct flag_map {
 	int opt;
 	int ch;
@@ -117,8 +121,16 @@ const char *opts2str(int opts, struct flag_map *map, char ok_char)
 	return buf;
 }
 
-#ifdef NSCORE
-int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
+
+#ifndef NSCGI
+unsigned int host_services_value(host *h) {
+	servicesmember *sm;
+	unsigned int ret = 0;
+	for(sm = h->services; sm; sm = sm->next) {
+		ret += sm->service_ptr->hourly_value;
+		}
+	return ret;
+	}
 
 
 static int cmp_sdep(const void *a_, const void *b_) {
@@ -595,7 +607,7 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess) {
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
 	host *new_host = NULL;
 	timeperiod *check_tp = NULL, *notify_tp = NULL;
 	int result = OK;
@@ -693,6 +705,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 
 
 	/* duplicate non-string vars */
+	new_host->hourly_value = hourly_value;
 	new_host->max_attempts = max_attempts;
 	new_host->check_interval = check_interval;
 	new_host->retry_interval = retry_interval;
@@ -1201,7 +1214,7 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 
 
 /* add a new contact to the list in memory */
-contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int service_notification_options, int host_notification_options, int host_notifications_enabled, int service_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information) {
+contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int service_notification_options, int host_notification_options, int host_notifications_enabled, int service_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information, unsigned int minimum_value) {
 	contact *new_contact = NULL;
 	timeperiod *htp = NULL, *stp = NULL;
 	int x = 0;
@@ -1253,6 +1266,7 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 			}
 		}
 
+	new_contact->minimum_value = minimum_value;
 	new_contact->service_notification_options = service_notification_options;
 	new_contact->host_notification_options = host_notification_options;
 	new_contact->host_notifications_enabled = (host_notifications_enabled > 0) ? TRUE : FALSE;
@@ -1458,7 +1472,7 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess) {
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
 	host *h;
 	timeperiod *cp = NULL, *np = NULL;
 	service *new_service = NULL;
@@ -1544,6 +1558,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 			result = ERROR;
 		}
 
+	new_service->hourly_value = hourly_value;
 	new_service->check_interval = check_interval;
 	new_service->retry_interval = retry_interval;
 	new_service->max_attempts = max_attempts;
@@ -3240,6 +3255,7 @@ void fcache_contact(FILE *fp, contact *temp_contact)
 		if(temp_contact->address[x])
 			fprintf(fp, "\taddress%d\t%s\n", x + 1, temp_contact->address[x]);
 	}
+	fprintf(fp, "\tminimum_value\t%u\n", temp_contact->minimum_value);
 	fprintf(fp, "\thost_notifications_enabled\t%d\n", temp_contact->host_notifications_enabled);
 	fprintf(fp, "\tservice_notifications_enabled\t%d\n", temp_contact->service_notifications_enabled);
 	fprintf(fp, "\tcan_submit_commands\t%d\n", temp_contact->can_submit_commands);
@@ -3279,6 +3295,7 @@ void fcache_host(FILE *fp, host *temp_host)
 		fprintf(fp, "u\n");
 	else
 		fprintf(fp, "o\n");
+	fprintf(fp, "\thourly_value\t%u\n", temp_host->hourly_value);
 	fprintf(fp, "\tcheck_interval\t%f\n", temp_host->check_interval);
 	fprintf(fp, "\tretry_interval\t%f\n", temp_host->retry_interval);
 	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_host->max_attempts);
@@ -3362,6 +3379,7 @@ void fcache_service(FILE *fp, service *temp_service)
 		fprintf(fp, "c\n");
 	else
 		fprintf(fp, "o\n");
+	fprintf(fp, "\thourly_value\t%u\n", temp_service->hourly_value);
 	fprintf(fp, "\tcheck_interval\t%f\n", temp_service->check_interval);
 	fprintf(fp, "\tretry_interval\t%f\n", temp_service->retry_interval);
 	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_service->max_attempts);

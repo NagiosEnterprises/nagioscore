@@ -4999,7 +4999,29 @@ int xodtemplate_resolve_objects(void) {
 	return OK;
 	}
 
+/* simple inheritance macros. o = object, t = template, v = variable */
+#define xod_inherit(o, t, v) \
+	do { \
+		if(o->have_##v == FALSE && t->have_##v == TRUE) { \
+			o->v = t->v; \
+			o->have_##v = TRUE; \
+		} \
+	} while(0)
 
+#define xod_inherit_str_nohave(o, t, v) \
+	do { \
+		if(o->v == NULL && t->v != NULL) { \
+			o->v = (char *)strdup(t->v); \
+		} \
+	} while(0)
+
+#define xod_inherit_str(o, t, v) \
+	do { \
+		if(o->have_##v == FALSE && t->have_##v == TRUE) { \
+			xod_inherit_str_nohave(o, t, v); \
+			o->have_##v = TRUE; \
+		} \
+	} while(0)
 
 /* resolves a timeperiod object */
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod) {
@@ -5041,17 +5063,12 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod) {
 		xodtemplate_resolve_timeperiod(template_timeperiod);
 
 		/* apply missing properties from template timeperiod... */
-		if(this_timeperiod->timeperiod_name == NULL && template_timeperiod->timeperiod_name != NULL)
-			this_timeperiod->timeperiod_name = (char *)strdup(template_timeperiod->timeperiod_name);
-		if(this_timeperiod->alias == NULL && template_timeperiod->alias != NULL)
-			this_timeperiod->alias = (char *)strdup(template_timeperiod->alias);
-		if(this_timeperiod->exclusions == NULL && template_timeperiod->exclusions != NULL)
-			this_timeperiod->exclusions = (char *)strdup(template_timeperiod->exclusions);
-		for(x = 0; x < 7; x++) {
-			if(this_timeperiod->timeranges[x] == NULL && template_timeperiod->timeranges[x] != NULL) {
-				this_timeperiod->timeranges[x] = (char *)strdup(template_timeperiod->timeranges[x]);
-				}
-			}
+		xod_inherit_str_nohave(this_timeperiod, template_timeperiod, timeperiod_name);
+		xod_inherit_str_nohave(this_timeperiod, template_timeperiod, alias);
+		xod_inherit_str_nohave(this_timeperiod, template_timeperiod, exclusions);
+		for(x = 0; x < 7; x++)
+			xod_inherit_str_nohave(this_timeperiod, template_timeperiod, timeranges[x]);
+
 		/* daterange exceptions require more work to apply missing ranges... */
 		for(x = 0; x < DATERANGE_TYPES; x++) {
 			for(template_daterange = template_timeperiod->exceptions[x]; template_daterange != NULL; template_daterange = template_daterange->next) {
@@ -5136,10 +5153,8 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command) {
 		xodtemplate_resolve_command(template_command);
 
 		/* apply missing properties from template command... */
-		if(this_command->command_name == NULL && template_command->command_name != NULL)
-			this_command->command_name = (char *)strdup(template_command->command_name);
-		if(this_command->command_line == NULL && template_command->command_line != NULL)
-			this_command->command_line = (char *)strdup(template_command->command_line);
+		xod_inherit_str_nohave(this_command, template_command, command_name);
+		xod_inherit_str_nohave(this_command, template_command, command_line);
 		}
 
 	my_free(template_names);
@@ -5186,10 +5201,8 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 		xodtemplate_resolve_contactgroup(template_contactgroup);
 
 		/* apply missing properties from template contactgroup... */
-		if(this_contactgroup->contactgroup_name == NULL && template_contactgroup->contactgroup_name != NULL)
-			this_contactgroup->contactgroup_name = (char *)strdup(template_contactgroup->contactgroup_name);
-		if(this_contactgroup->alias == NULL && template_contactgroup->alias != NULL)
-			this_contactgroup->alias = (char *)strdup(template_contactgroup->alias);
+		xod_inherit_str_nohave(this_contactgroup, template_contactgroup, contactgroup_name);
+		xod_inherit_str_nohave(this_contactgroup, template_contactgroup, alias);
 
 		xodtemplate_get_inherited_string(&template_contactgroup->have_members, &template_contactgroup->members, &this_contactgroup->have_members, &this_contactgroup->members);
 		xodtemplate_get_inherited_string(&template_contactgroup->have_contactgroup_members, &template_contactgroup->contactgroup_members, &this_contactgroup->have_contactgroup_members, &this_contactgroup->contactgroup_members);
@@ -5240,29 +5253,15 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup) {
 		xodtemplate_resolve_hostgroup(template_hostgroup);
 
 		/* apply missing properties from template hostgroup... */
-		if(this_hostgroup->hostgroup_name == NULL && template_hostgroup->hostgroup_name != NULL)
-			this_hostgroup->hostgroup_name = (char *)strdup(template_hostgroup->hostgroup_name);
-		if(this_hostgroup->alias == NULL && template_hostgroup->alias != NULL)
-			this_hostgroup->alias = (char *)strdup(template_hostgroup->alias);
+		xod_inherit_str_nohave(this_hostgroup, template_hostgroup, hostgroup_name);
+		xod_inherit_str_nohave(this_hostgroup, template_hostgroup, alias);
 
 		xodtemplate_get_inherited_string(&template_hostgroup->have_members, &template_hostgroup->members, &this_hostgroup->have_members, &this_hostgroup->members);
 		xodtemplate_get_inherited_string(&template_hostgroup->have_hostgroup_members, &template_hostgroup->hostgroup_members, &this_hostgroup->have_hostgroup_members, &this_hostgroup->hostgroup_members);
 
-		if(this_hostgroup->have_notes == FALSE && template_hostgroup->have_notes == TRUE) {
-			if(this_hostgroup->notes == NULL && template_hostgroup->notes != NULL)
-				this_hostgroup->notes = (char *)strdup(template_hostgroup->notes);
-			this_hostgroup->have_notes = TRUE;
-			}
-		if(this_hostgroup->have_notes_url == FALSE && template_hostgroup->have_notes_url == TRUE) {
-			if(this_hostgroup->notes_url == NULL && template_hostgroup->notes_url != NULL)
-				this_hostgroup->notes_url = (char *)strdup(template_hostgroup->notes_url);
-			this_hostgroup->have_notes_url = TRUE;
-			}
-		if(this_hostgroup->have_action_url == FALSE && template_hostgroup->have_action_url == TRUE) {
-			if(this_hostgroup->action_url == NULL && template_hostgroup->action_url != NULL)
-				this_hostgroup->action_url = (char *)strdup(template_hostgroup->action_url);
-			this_hostgroup->have_action_url = TRUE;
-			}
+		xod_inherit_str(this_hostgroup, template_hostgroup, notes);
+		xod_inherit_str(this_hostgroup, template_hostgroup, notes_url);
+		xod_inherit_str(this_hostgroup, template_hostgroup, action_url);
 		}
 
 	my_free(template_names);
@@ -5309,29 +5308,15 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 		xodtemplate_resolve_servicegroup(template_servicegroup);
 
 		/* apply missing properties from template servicegroup... */
-		if(this_servicegroup->servicegroup_name == NULL && template_servicegroup->servicegroup_name != NULL)
-			this_servicegroup->servicegroup_name = (char *)strdup(template_servicegroup->servicegroup_name);
-		if(this_servicegroup->alias == NULL && template_servicegroup->alias != NULL)
-			this_servicegroup->alias = (char *)strdup(template_servicegroup->alias);
+		xod_inherit_str_nohave(this_servicegroup, template_servicegroup, servicegroup_name);
+		xod_inherit_str_nohave(this_servicegroup, template_servicegroup, alias);
 
 		xodtemplate_get_inherited_string(&template_servicegroup->have_members, &template_servicegroup->members, &this_servicegroup->have_members, &this_servicegroup->members);
 		xodtemplate_get_inherited_string(&template_servicegroup->have_servicegroup_members, &template_servicegroup->servicegroup_members, &this_servicegroup->have_servicegroup_members, &this_servicegroup->servicegroup_members);
 
-		if(this_servicegroup->have_notes == FALSE && template_servicegroup->have_notes == TRUE) {
-			if(this_servicegroup->notes == NULL && template_servicegroup->notes != NULL)
-				this_servicegroup->notes = (char *)strdup(template_servicegroup->notes);
-			this_servicegroup->have_notes = TRUE;
-			}
-		if(this_servicegroup->have_notes_url == FALSE && template_servicegroup->have_notes_url == TRUE) {
-			if(this_servicegroup->notes_url == NULL && template_servicegroup->notes_url != NULL)
-				this_servicegroup->notes_url = (char *)strdup(template_servicegroup->notes_url);
-			this_servicegroup->have_notes_url = TRUE;
-			}
-		if(this_servicegroup->have_action_url == FALSE && template_servicegroup->have_action_url == TRUE) {
-			if(this_servicegroup->action_url == NULL && template_servicegroup->action_url != NULL)
-				this_servicegroup->action_url = (char *)strdup(template_servicegroup->action_url);
-			this_servicegroup->have_action_url = TRUE;
-			}
+		xod_inherit_str(this_servicegroup, template_servicegroup, notes);
+		xod_inherit_str(this_servicegroup, template_servicegroup, notes_url);
+		xod_inherit_str(this_servicegroup, template_servicegroup, action_url);
 		}
 
 	my_free(template_names);
@@ -5522,71 +5507,27 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact) {
 		xodtemplate_resolve_contact(template_contact);
 
 		/* apply missing properties from template contact... */
-		if(this_contact->contact_name == NULL && template_contact->contact_name != NULL)
-			this_contact->contact_name = (char *)strdup(template_contact->contact_name);
-		if(this_contact->alias == NULL && template_contact->alias != NULL)
-			this_contact->alias = (char *)strdup(template_contact->alias);
+		xod_inherit_str_nohave(this_contact, template_contact, contact_name);
+		xod_inherit_str_nohave(this_contact, template_contact, alias);
 
-		if(this_contact->have_email == FALSE && template_contact->have_email == TRUE) {
-			if(this_contact->email == NULL && template_contact->email != NULL)
-				this_contact->email = (char *)strdup(template_contact->email);
-			this_contact->have_email = TRUE;
-			}
-		if(this_contact->have_pager == FALSE && template_contact->have_pager == TRUE) {
-			if(this_contact->pager == NULL && template_contact->pager != NULL)
-				this_contact->pager = (char *)strdup(template_contact->pager);
-			this_contact->have_pager = TRUE;
-			}
-		for(x = 0; x < MAX_XODTEMPLATE_CONTACT_ADDRESSES; x++) {
-			if(this_contact->have_address[x] == FALSE && template_contact->have_address[x] == TRUE) {
-				if(this_contact->address[x] == NULL && template_contact->address[x] != NULL)
-					this_contact->address[x] = (char *)strdup(template_contact->address[x]);
-				this_contact->have_address[x] = TRUE;
-				}
-			}
+		xod_inherit_str(this_contact, template_contact, email);
+		xod_inherit_str(this_contact, template_contact, pager);
+		for(x = 0; x < MAX_XODTEMPLATE_CONTACT_ADDRESSES; x++)
+			xod_inherit_str(this_contact, template_contact, address[x]);
 
 		xodtemplate_get_inherited_string(&template_contact->have_contact_groups, &template_contact->contact_groups, &this_contact->have_contact_groups, &this_contact->contact_groups);
 		xodtemplate_get_inherited_string(&template_contact->have_host_notification_commands, &template_contact->host_notification_commands, &this_contact->have_host_notification_commands, &this_contact->host_notification_commands);
 		xodtemplate_get_inherited_string(&template_contact->have_service_notification_commands, &template_contact->service_notification_commands, &this_contact->have_service_notification_commands, &this_contact->service_notification_commands);
 
-		if(this_contact->have_host_notification_period == FALSE && template_contact->have_host_notification_period == TRUE) {
-			if(this_contact->host_notification_period == NULL && template_contact->host_notification_period != NULL)
-				this_contact->host_notification_period = (char *)strdup(template_contact->host_notification_period);
-			this_contact->have_host_notification_period = TRUE;
-			}
-		if(this_contact->have_service_notification_period == FALSE && template_contact->have_service_notification_period == TRUE) {
-			if(this_contact->service_notification_period == NULL && template_contact->service_notification_period != NULL)
-				this_contact->service_notification_period = (char *)strdup(template_contact->service_notification_period);
-			this_contact->have_service_notification_period = TRUE;
-			}
-		if(this_contact->have_host_notification_options == FALSE && template_contact->have_host_notification_options == TRUE) {
-			this_contact->host_notification_options = template_contact->host_notification_options;
-			this_contact->have_host_notification_options = TRUE;
-			}
-		if(this_contact->have_service_notification_options == FALSE && template_contact->have_service_notification_options == TRUE) {
-			this_contact->service_notification_options = template_contact->service_notification_options;
-			this_contact->have_service_notification_options = TRUE;
-			}
-		if(this_contact->have_host_notifications_enabled == FALSE && template_contact->have_host_notifications_enabled == TRUE) {
-			this_contact->host_notifications_enabled = template_contact->host_notifications_enabled;
-			this_contact->have_host_notifications_enabled = TRUE;
-			}
-		if(this_contact->have_service_notifications_enabled == FALSE && template_contact->have_service_notifications_enabled == TRUE) {
-			this_contact->service_notifications_enabled = template_contact->service_notifications_enabled;
-			this_contact->have_service_notifications_enabled = TRUE;
-			}
-		if(this_contact->have_can_submit_commands == FALSE && template_contact->have_can_submit_commands == TRUE) {
-			this_contact->can_submit_commands = template_contact->can_submit_commands;
-			this_contact->have_can_submit_commands = TRUE;
-			}
-		if(this_contact->have_retain_status_information == FALSE && template_contact->have_retain_status_information == TRUE) {
-			this_contact->retain_status_information = template_contact->retain_status_information;
-			this_contact->have_retain_status_information = TRUE;
-			}
-		if(this_contact->have_retain_nonstatus_information == FALSE && template_contact->have_retain_nonstatus_information == TRUE) {
-			this_contact->retain_nonstatus_information = template_contact->retain_nonstatus_information;
-			this_contact->have_retain_nonstatus_information = TRUE;
-			}
+		xod_inherit_str(this_contact, template_contact, host_notification_period);
+		xod_inherit_str(this_contact, template_contact, service_notification_period);
+		xod_inherit(this_contact, template_contact, host_notification_options);
+		xod_inherit(this_contact, template_contact, service_notification_options);
+		xod_inherit(this_contact, template_contact, host_notifications_enabled);
+		xod_inherit(this_contact, template_contact, service_notifications_enabled);
+		xod_inherit(this_contact, template_contact, can_submit_commands);
+		xod_inherit(this_contact, template_contact, retain_status_information);
+		xod_inherit(this_contact, template_contact, retain_nonstatus_information);
 
 		/* apply missing custom variables from template contact... */
 		for(temp_customvariablesmember = template_contact->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {
@@ -5648,158 +5589,49 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 		xodtemplate_resolve_host(template_host);
 
 		/* apply missing properties from template host... */
-		if(this_host->host_name == NULL && template_host->host_name != NULL)
-			this_host->host_name = (char *)strdup(template_host->host_name);
-		if(this_host->have_display_name == FALSE && template_host->have_display_name == TRUE) {
-			if(this_host->display_name == NULL && template_host->display_name != NULL)
-				this_host->display_name = (char *)strdup(template_host->display_name);
-			this_host->have_display_name = TRUE;
-			}
-		if(this_host->alias == NULL && template_host->alias != NULL)
-			this_host->alias = (char *)strdup(template_host->alias);
-		if(this_host->address == NULL && template_host->address != NULL)
-			this_host->address = (char *)strdup(template_host->address);
+		xod_inherit_str_nohave(this_host, template_host, host_name);
+		xod_inherit_str(this_host, template_host, display_name);
+		xod_inherit_str_nohave(this_host, template_host, alias);
+		xod_inherit_str_nohave(this_host, template_host, address);
 
 		xodtemplate_get_inherited_string(&template_host->have_parents, &template_host->parents, &this_host->have_parents, &this_host->parents);
 		xodtemplate_get_inherited_string(&template_host->have_host_groups, &template_host->host_groups, &this_host->have_host_groups, &this_host->host_groups);
 		xodtemplate_get_inherited_string(&template_host->have_contact_groups, &template_host->contact_groups, &this_host->have_contact_groups, &this_host->contact_groups);
 		xodtemplate_get_inherited_string(&template_host->have_contacts, &template_host->contacts, &this_host->have_contacts, &this_host->contacts);
 
-		if(this_host->have_check_command == FALSE && template_host->have_check_command == TRUE) {
-			if(this_host->check_command == NULL && template_host->check_command != NULL)
-				this_host->check_command = (char *)strdup(template_host->check_command);
-			this_host->have_check_command = TRUE;
-			}
-		if(this_host->have_check_period == FALSE && template_host->have_check_period == TRUE) {
-			if(this_host->check_period == NULL && template_host->check_period != NULL)
-				this_host->check_period = (char *)strdup(template_host->check_period);
-			this_host->have_check_period = TRUE;
-			}
-		if(this_host->have_event_handler == FALSE && template_host->have_event_handler == TRUE) {
-			if(this_host->event_handler == NULL && template_host->event_handler != NULL)
-				this_host->event_handler = (char *)strdup(template_host->event_handler);
-			this_host->have_event_handler = TRUE;
-			}
-		if(this_host->have_notification_period == FALSE && template_host->have_notification_period == TRUE) {
-			if(this_host->notification_period == NULL && template_host->notification_period != NULL)
-				this_host->notification_period = (char *)strdup(template_host->notification_period);
-			this_host->have_notification_period = TRUE;
-			}
-		if(this_host->have_notes == FALSE && template_host->have_notes == TRUE) {
-			if(this_host->notes == NULL && template_host->notes != NULL)
-				this_host->notes = (char *)strdup(template_host->notes);
-			this_host->have_notes = TRUE;
-			}
-		if(this_host->have_notes_url == FALSE && template_host->have_notes_url == TRUE) {
-			if(this_host->notes_url == NULL && template_host->notes_url != NULL)
-				this_host->notes_url = (char *)strdup(template_host->notes_url);
-			this_host->have_notes_url = TRUE;
-			}
-		if(this_host->have_action_url == FALSE && template_host->have_action_url == TRUE) {
-			if(this_host->action_url == NULL && template_host->action_url != NULL)
-				this_host->action_url = (char *)strdup(template_host->action_url);
-			this_host->have_action_url = TRUE;
-			}
-		if(this_host->have_icon_image == FALSE && template_host->have_icon_image == TRUE) {
-			if(this_host->icon_image == NULL && template_host->icon_image != NULL)
-				this_host->icon_image = (char *)strdup(template_host->icon_image);
-			this_host->have_icon_image = TRUE;
-			}
-		if(this_host->have_icon_image_alt == FALSE && template_host->have_icon_image_alt == TRUE) {
-			if(this_host->icon_image_alt == NULL && template_host->icon_image_alt != NULL)
-				this_host->icon_image_alt = (char *)strdup(template_host->icon_image_alt);
-			this_host->have_icon_image_alt = TRUE;
-			}
-		if(this_host->have_vrml_image == FALSE && template_host->have_vrml_image == TRUE) {
-			if(this_host->vrml_image == NULL && template_host->vrml_image != NULL)
-				this_host->vrml_image = (char *)strdup(template_host->vrml_image);
-			this_host->have_vrml_image = TRUE;
-			}
-		if(this_host->have_statusmap_image == FALSE && template_host->have_statusmap_image == TRUE) {
-			if(this_host->statusmap_image == NULL && template_host->statusmap_image != NULL)
-				this_host->statusmap_image = (char *)strdup(template_host->statusmap_image);
-			this_host->have_statusmap_image = TRUE;
-			}
-		if(this_host->have_initial_state == FALSE && template_host->have_initial_state == TRUE) {
-			this_host->initial_state = template_host->initial_state;
-			this_host->have_initial_state = TRUE;
-			}
-		if(this_host->have_check_interval == FALSE && template_host->have_check_interval == TRUE) {
-			this_host->check_interval = template_host->check_interval;
-			this_host->have_check_interval = TRUE;
-			}
-		if(this_host->have_retry_interval == FALSE && template_host->have_retry_interval == TRUE) {
-			this_host->retry_interval = template_host->retry_interval;
-			this_host->have_retry_interval = TRUE;
-			}
-		if(this_host->have_max_check_attempts == FALSE && template_host->have_max_check_attempts == TRUE) {
-			this_host->max_check_attempts = template_host->max_check_attempts;
-			this_host->have_max_check_attempts = TRUE;
-			}
-		if(this_host->have_active_checks_enabled == FALSE && template_host->have_active_checks_enabled == TRUE) {
-			this_host->active_checks_enabled = template_host->active_checks_enabled;
-			this_host->have_active_checks_enabled = TRUE;
-			}
-		if(this_host->have_passive_checks_enabled == FALSE && template_host->have_passive_checks_enabled == TRUE) {
-			this_host->passive_checks_enabled = template_host->passive_checks_enabled;
-			this_host->have_passive_checks_enabled = TRUE;
-			}
-		if(this_host->have_obsess == FALSE && template_host->have_obsess == TRUE) {
-			this_host->obsess = template_host->obsess;
-			this_host->have_obsess = TRUE;
-			}
-		if(this_host->have_event_handler_enabled == FALSE && template_host->have_event_handler_enabled == TRUE) {
-			this_host->event_handler_enabled = template_host->event_handler_enabled;
-			this_host->have_event_handler_enabled = TRUE;
-			}
-		if(this_host->have_check_freshness == FALSE && template_host->have_check_freshness == TRUE) {
-			this_host->check_freshness = template_host->check_freshness;
-			this_host->have_check_freshness = TRUE;
-			}
-		if(this_host->have_freshness_threshold == FALSE && template_host->have_freshness_threshold == TRUE) {
-			this_host->freshness_threshold = template_host->freshness_threshold;
-			this_host->have_freshness_threshold = TRUE;
-			}
-		if(this_host->have_low_flap_threshold == FALSE && template_host->have_low_flap_threshold == TRUE) {
-			this_host->low_flap_threshold = template_host->low_flap_threshold;
-			this_host->have_low_flap_threshold = TRUE;
-			}
-		if(this_host->have_high_flap_threshold == FALSE && template_host->have_high_flap_threshold == TRUE) {
-			this_host->high_flap_threshold = template_host->high_flap_threshold;
-			this_host->have_high_flap_threshold = TRUE;
-			}
-		if(this_host->have_flap_detection_enabled == FALSE && template_host->have_flap_detection_enabled == TRUE) {
-			this_host->flap_detection_enabled = template_host->flap_detection_enabled;
-			this_host->have_flap_detection_enabled = TRUE;
-			}
-		if(this_host->have_flap_detection_options == FALSE && template_host->have_flap_detection_options == TRUE) {
-			this_host->flap_detection_options = template_host->flap_detection_options;
-			this_host->have_flap_detection_options = TRUE;
-			}
-		if(this_host->have_notification_options == FALSE && template_host->have_notification_options == TRUE) {
-			this_host->notification_options = template_host->notification_options;
-			this_host->have_notification_options = TRUE;
-			}
-		if(this_host->have_notifications_enabled == FALSE && template_host->have_notifications_enabled == TRUE) {
-			this_host->notifications_enabled = template_host->notifications_enabled;
-			this_host->have_notifications_enabled = TRUE;
-			}
-		if(this_host->have_notification_interval == FALSE && template_host->have_notification_interval == TRUE) {
-			this_host->notification_interval = template_host->notification_interval;
-			this_host->have_notification_interval = TRUE;
-			}
-		if(this_host->have_first_notification_delay == FALSE && template_host->have_first_notification_delay == TRUE) {
-			this_host->first_notification_delay = template_host->first_notification_delay;
-			this_host->have_first_notification_delay = TRUE;
-			}
-		if(this_host->have_stalking_options == FALSE && template_host->have_stalking_options == TRUE) {
-			this_host->stalking_options = template_host->stalking_options;
-			this_host->have_stalking_options = TRUE;
-			}
-		if(this_host->have_process_perf_data == FALSE && template_host->have_process_perf_data == TRUE) {
-			this_host->process_perf_data = template_host->process_perf_data;
-			this_host->have_process_perf_data = TRUE;
-			}
+		xod_inherit_str(this_host, template_host, check_command);
+		xod_inherit_str(this_host, template_host, check_period);
+		xod_inherit_str(this_host, template_host, event_handler);
+		xod_inherit_str(this_host, template_host, notification_period);
+		xod_inherit_str(this_host, template_host, notes);
+		xod_inherit_str(this_host, template_host, notes_url);
+		xod_inherit_str(this_host, template_host, action_url);
+		xod_inherit_str(this_host, template_host, icon_image);
+		xod_inherit_str(this_host, template_host, icon_image_alt);
+		xod_inherit_str(this_host, template_host, vrml_image);
+		xod_inherit_str(this_host, template_host, statusmap_image);
+
+		xod_inherit(this_host, template_host, initial_state);
+		xod_inherit(this_host, template_host, check_interval);
+		xod_inherit(this_host, template_host, retry_interval);
+		xod_inherit(this_host, template_host, max_check_attempts);
+		xod_inherit(this_host, template_host, active_checks_enabled);
+		xod_inherit(this_host, template_host, passive_checks_enabled);
+		xod_inherit(this_host, template_host, obsess);
+		xod_inherit(this_host, template_host, event_handler_enabled);
+		xod_inherit(this_host, template_host, check_freshness);
+		xod_inherit(this_host, template_host, freshness_threshold);
+		xod_inherit(this_host, template_host, low_flap_threshold);
+		xod_inherit(this_host, template_host, high_flap_threshold);
+		xod_inherit(this_host, template_host, flap_detection_enabled);
+		xod_inherit(this_host, template_host, flap_detection_options);
+		xod_inherit(this_host, template_host, notification_options);
+		xod_inherit(this_host, template_host, notifications_enabled);
+		xod_inherit(this_host, template_host, notification_interval);
+		xod_inherit(this_host, template_host, first_notification_delay);
+		xod_inherit(this_host, template_host, stalking_options);
+		xod_inherit(this_host, template_host, process_perf_data);
+
 		if(this_host->have_2d_coords == FALSE && template_host->have_2d_coords == TRUE) {
 			this_host->x_2d = template_host->x_2d;
 			this_host->y_2d = template_host->y_2d;
@@ -5811,14 +5643,9 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 			this_host->z_3d = template_host->z_3d;
 			this_host->have_3d_coords = TRUE;
 			}
-		if(this_host->have_retain_status_information == FALSE && template_host->have_retain_status_information == TRUE) {
-			this_host->retain_status_information = template_host->retain_status_information;
-			this_host->have_retain_status_information = TRUE;
-			}
-		if(this_host->have_retain_nonstatus_information == FALSE && template_host->have_retain_nonstatus_information == TRUE) {
-			this_host->retain_nonstatus_information = template_host->retain_nonstatus_information;
-			this_host->have_retain_nonstatus_information = TRUE;
-			}
+
+		xod_inherit(this_host, template_host, retain_status_information);
+		xod_inherit(this_host, template_host, retain_nonstatus_information);
 
 		/* apply missing custom variables from template host... */
 		for(temp_customvariablesmember = template_host->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {
@@ -5880,16 +5707,8 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 		xodtemplate_resolve_service(template_service);
 
 		/* apply missing properties from template service... */
-		if(this_service->have_service_description == FALSE && template_service->have_service_description == TRUE) {
-			if(this_service->service_description == NULL && template_service->service_description != NULL)
-				this_service->service_description = (char *)strdup(template_service->service_description);
-			this_service->have_service_description = TRUE;
-			}
-		if(this_service->have_display_name == FALSE && template_service->have_display_name == TRUE) {
-			if(this_service->display_name == NULL && template_service->display_name != NULL)
-				this_service->display_name = (char *)strdup(template_service->display_name);
-			this_service->have_display_name = TRUE;
-			}
+		xod_inherit_str(this_service, template_service, service_description);
+		xod_inherit_str(this_service, template_service, display_name);
 
 		xodtemplate_get_inherited_string(&template_service->have_parents, &template_service->parents, &this_service->have_parents, &this_service->parents);
 		xodtemplate_get_inherited_string(&template_service->have_host_name, &template_service->host_name, &this_service->have_host_name, &this_service->host_name);
@@ -5903,148 +5722,42 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 				my_free(this_service->check_command);
 				this_service->have_check_command = FALSE;
 				}
-			if(this_service->have_check_command == FALSE) {
-				if(this_service->check_command == NULL && template_service->check_command != NULL)
-					this_service->check_command = (char *)strdup(template_service->check_command);
-				this_service->have_check_command = TRUE;
-				}
 			}
-		if(this_service->have_check_period == FALSE && template_service->have_check_period == TRUE) {
-			if(this_service->check_period == NULL && template_service->check_period != NULL)
-				this_service->check_period = (char *)strdup(template_service->check_period);
-			this_service->have_check_period = TRUE;
-			}
-		if(this_service->have_event_handler == FALSE && template_service->have_event_handler == TRUE) {
-			if(this_service->event_handler == NULL && template_service->event_handler != NULL)
-				this_service->event_handler = (char *)strdup(template_service->event_handler);
-			this_service->have_event_handler = TRUE;
-			}
-		if(this_service->have_notification_period == FALSE && template_service->have_notification_period == TRUE) {
-			if(this_service->notification_period == NULL && template_service->notification_period != NULL)
-				this_service->notification_period = (char *)strdup(template_service->notification_period);
-			this_service->have_notification_period = TRUE;
-			}
-		if(this_service->have_notes == FALSE && template_service->have_notes == TRUE) {
-			if(this_service->notes == NULL && template_service->notes != NULL)
-				this_service->notes = (char *)strdup(template_service->notes);
-			this_service->have_notes = TRUE;
-			}
-		if(this_service->have_notes_url == FALSE && template_service->have_notes_url == TRUE) {
-			if(this_service->notes_url == NULL && template_service->notes_url != NULL)
-				this_service->notes_url = (char *)strdup(template_service->notes_url);
-			this_service->have_notes_url = TRUE;
-			}
-		if(this_service->have_action_url == FALSE && template_service->have_action_url == TRUE) {
-			if(this_service->action_url == NULL && template_service->action_url != NULL)
-				this_service->action_url = (char *)strdup(template_service->action_url);
-			this_service->have_action_url = TRUE;
-			}
-		if(this_service->have_icon_image == FALSE && template_service->have_icon_image == TRUE) {
-			if(this_service->icon_image == NULL && template_service->icon_image != NULL)
-				this_service->icon_image = (char *)strdup(template_service->icon_image);
-			this_service->have_icon_image = TRUE;
-			}
-		if(this_service->have_icon_image_alt == FALSE && template_service->have_icon_image_alt == TRUE) {
-			if(this_service->icon_image_alt == NULL && template_service->icon_image_alt != NULL)
-				this_service->icon_image_alt = (char *)strdup(template_service->icon_image_alt);
-			this_service->have_icon_image_alt = TRUE;
-			}
-		if(this_service->have_initial_state == FALSE && template_service->have_initial_state == TRUE) {
-			this_service->initial_state = template_service->initial_state;
-			this_service->have_initial_state = TRUE;
-			}
-		if(this_service->have_max_check_attempts == FALSE && template_service->have_max_check_attempts == TRUE) {
-			this_service->max_check_attempts = template_service->max_check_attempts;
-			this_service->have_max_check_attempts = TRUE;
-			}
-		if(this_service->have_check_interval == FALSE && template_service->have_check_interval == TRUE) {
-			this_service->check_interval = template_service->check_interval;
-			this_service->have_check_interval = TRUE;
-			}
-		if(this_service->have_retry_interval == FALSE && template_service->have_retry_interval == TRUE) {
-			this_service->retry_interval = template_service->retry_interval;
-			this_service->have_retry_interval = TRUE;
-			}
-		if(this_service->have_active_checks_enabled == FALSE && template_service->have_active_checks_enabled == TRUE) {
-			this_service->active_checks_enabled = template_service->active_checks_enabled;
-			this_service->have_active_checks_enabled = TRUE;
-			}
-		if(this_service->have_passive_checks_enabled == FALSE && template_service->have_passive_checks_enabled == TRUE) {
-			this_service->passive_checks_enabled = template_service->passive_checks_enabled;
-			this_service->have_passive_checks_enabled = TRUE;
-			}
-		if(this_service->have_parallelize_check == FALSE && template_service->have_parallelize_check == TRUE) {
-			this_service->parallelize_check = template_service->parallelize_check;
-			this_service->have_parallelize_check = TRUE;
-			}
-		if(this_service->have_is_volatile == FALSE && template_service->have_is_volatile == TRUE) {
-			this_service->is_volatile = template_service->is_volatile;
-			this_service->have_is_volatile = TRUE;
-			}
-		if(this_service->have_obsess == FALSE && template_service->have_obsess == TRUE) {
-			this_service->obsess = template_service->obsess;
-			this_service->have_obsess = TRUE;
-			}
-		if(this_service->have_event_handler_enabled == FALSE && template_service->have_event_handler_enabled == TRUE) {
-			this_service->event_handler_enabled = template_service->event_handler_enabled;
-			this_service->have_event_handler_enabled = TRUE;
-			}
-		if(this_service->have_check_freshness == FALSE && template_service->have_check_freshness == TRUE) {
-			this_service->check_freshness = template_service->check_freshness;
-			this_service->have_check_freshness = TRUE;
-			}
-		if(this_service->have_freshness_threshold == FALSE && template_service->have_freshness_threshold == TRUE) {
-			this_service->freshness_threshold = template_service->freshness_threshold;
-			this_service->have_freshness_threshold = TRUE;
-			}
-		if(this_service->have_low_flap_threshold == FALSE && template_service->have_low_flap_threshold == TRUE) {
-			this_service->low_flap_threshold = template_service->low_flap_threshold;
-			this_service->have_low_flap_threshold = TRUE;
-			}
-		if(this_service->have_high_flap_threshold == FALSE && template_service->have_high_flap_threshold == TRUE) {
-			this_service->high_flap_threshold = template_service->high_flap_threshold;
-			this_service->have_high_flap_threshold = TRUE;
-			}
-		if(this_service->have_flap_detection_enabled == FALSE && template_service->have_flap_detection_enabled == TRUE) {
-			this_service->flap_detection_enabled = template_service->flap_detection_enabled;
-			this_service->have_flap_detection_enabled = TRUE;
-			}
-		if(this_service->have_flap_detection_options == FALSE && template_service->have_flap_detection_options == TRUE) {
-			this_service->flap_detection_options = template_service->flap_detection_options;
-			this_service->have_flap_detection_options = TRUE;
-			}
-		if(this_service->have_notification_options == FALSE && template_service->have_notification_options == TRUE) {
-			this_service->notification_options = template_service->notification_options;
-			this_service->have_notification_options = TRUE;
-			}
-		if(this_service->have_notifications_enabled == FALSE && template_service->have_notifications_enabled == TRUE) {
-			this_service->notifications_enabled = template_service->notifications_enabled;
-			this_service->have_notifications_enabled = TRUE;
-			}
-		if(this_service->have_notification_interval == FALSE && template_service->have_notification_interval == TRUE) {
-			this_service->notification_interval = template_service->notification_interval;
-			this_service->have_notification_interval = TRUE;
-			}
-		if(this_service->have_first_notification_delay == FALSE && template_service->have_first_notification_delay == TRUE) {
-			this_service->first_notification_delay = template_service->first_notification_delay;
-			this_service->have_first_notification_delay = TRUE;
-			}
-		if(this_service->have_stalking_options == FALSE && template_service->have_stalking_options == TRUE) {
-			this_service->stalking_options = template_service->stalking_options;
-			this_service->have_stalking_options = TRUE;
-			}
-		if(this_service->have_process_perf_data == FALSE && template_service->have_process_perf_data == TRUE) {
-			this_service->process_perf_data = template_service->process_perf_data;
-			this_service->have_process_perf_data = TRUE;
-			}
-		if(this_service->have_retain_status_information == FALSE && template_service->have_retain_status_information == TRUE) {
-			this_service->retain_status_information = template_service->retain_status_information;
-			this_service->have_retain_status_information = TRUE;
-			}
-		if(this_service->have_retain_nonstatus_information == FALSE && template_service->have_retain_nonstatus_information == TRUE) {
-			this_service->retain_nonstatus_information = template_service->retain_nonstatus_information;
-			this_service->have_retain_nonstatus_information = TRUE;
-			}
+		xod_inherit_str(this_service, template_service, check_command);
+
+		xod_inherit_str(this_service, template_service, check_period);
+		xod_inherit_str(this_service, template_service, event_handler);
+		xod_inherit_str(this_service, template_service, notification_period);
+		xod_inherit_str(this_service, template_service, notes);
+		xod_inherit_str(this_service, template_service, notes_url);
+		xod_inherit_str(this_service, template_service, action_url);
+		xod_inherit_str(this_service, template_service, icon_image);
+		xod_inherit_str(this_service, template_service, icon_image_alt);
+
+		xod_inherit(this_service, template_service, initial_state);
+		xod_inherit(this_service, template_service, max_check_attempts);
+		xod_inherit(this_service, template_service, check_interval);
+		xod_inherit(this_service, template_service, retry_interval);
+		xod_inherit(this_service, template_service, active_checks_enabled);
+		xod_inherit(this_service, template_service, passive_checks_enabled);
+		xod_inherit(this_service, template_service, parallelize_check);
+		xod_inherit(this_service, template_service, is_volatile);
+		xod_inherit(this_service, template_service, obsess);
+		xod_inherit(this_service, template_service, event_handler_enabled);
+		xod_inherit(this_service, template_service, check_freshness);
+		xod_inherit(this_service, template_service, freshness_threshold);
+		xod_inherit(this_service, template_service, low_flap_threshold);
+		xod_inherit(this_service, template_service, high_flap_threshold);
+		xod_inherit(this_service, template_service, flap_detection_enabled);
+		xod_inherit(this_service, template_service, flap_detection_options);
+		xod_inherit(this_service, template_service, notification_options);
+		xod_inherit(this_service, template_service, notifications_enabled);
+		xod_inherit(this_service, template_service, notification_interval);
+		xod_inherit(this_service, template_service, first_notification_delay);
+		xod_inherit(this_service, template_service, stalking_options);
+		xod_inherit(this_service, template_service, process_perf_data);
+		xod_inherit(this_service, template_service, retain_status_information);
+		xod_inherit(this_service, template_service, retain_nonstatus_information);
 
 		/* apply missing custom variables from template service... */
 		for(temp_customvariablesmember = template_service->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {
@@ -6109,23 +5822,10 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 		xodtemplate_get_inherited_string(&template_hostdependency->have_hostgroup_name, &template_hostdependency->hostgroup_name, &this_hostdependency->have_hostgroup_name, &this_hostdependency->hostgroup_name);
 		xodtemplate_get_inherited_string(&template_hostdependency->have_dependent_hostgroup_name, &template_hostdependency->dependent_hostgroup_name, &this_hostdependency->have_dependent_hostgroup_name, &this_hostdependency->dependent_hostgroup_name);
 
-		if(this_hostdependency->have_execution_failure_options == FALSE && template_hostdependency->have_execution_failure_options == TRUE) {
-			this_hostdependency->execution_failure_options = template_hostdependency->execution_failure_options;
-			this_hostdependency->have_execution_failure_options = TRUE;
-		if(this_hostdependency->have_dependency_period == FALSE && template_hostdependency->have_dependency_period == TRUE) {
-			if(this_hostdependency->dependency_period == NULL && template_hostdependency->dependency_period != NULL)
-				this_hostdependency->dependency_period = (char *)strdup(template_hostdependency->dependency_period);
-			this_hostdependency->have_dependency_period = TRUE;
-			}
-		if(this_hostdependency->have_inherits_parent == FALSE && template_hostdependency->have_inherits_parent == TRUE) {
-			this_hostdependency->inherits_parent = template_hostdependency->inherits_parent;
-			this_hostdependency->have_inherits_parent = TRUE;
-			}
-			}
-		if(this_hostdependency->have_notification_failure_options == FALSE && template_hostdependency->have_notification_failure_options == TRUE) {
-			this_hostdependency->notification_failure_options = template_hostdependency->notification_failure_options;
-			this_hostdependency->have_notification_failure_options = TRUE;
-			}
+		xod_inherit_str(this_hostdependency, template_hostdependency, dependency_period);
+		xod_inherit(this_hostdependency, template_hostdependency, inherits_parent);
+		xod_inherit(this_hostdependency, template_hostdependency, execution_failure_options);
+		xod_inherit(this_hostdependency, template_hostdependency, notification_failure_options);
 		}
 
 	my_free(template_names);
@@ -6175,27 +5875,11 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 		xodtemplate_get_inherited_string(&template_hostescalation->have_contact_groups, &template_hostescalation->contact_groups, &this_hostescalation->have_contact_groups, &this_hostescalation->contact_groups);
 		xodtemplate_get_inherited_string(&template_hostescalation->have_contacts, &template_hostescalation->contacts, &this_hostescalation->have_contacts, &this_hostescalation->contacts);
 
-		if(this_hostescalation->have_escalation_period == FALSE && template_hostescalation->have_escalation_period == TRUE) {
-			if(this_hostescalation->escalation_period == NULL && template_hostescalation->escalation_period != NULL)
-				this_hostescalation->escalation_period = (char *)strdup(template_hostescalation->escalation_period);
-			this_hostescalation->have_escalation_period = TRUE;
-			}
-		if(this_hostescalation->have_first_notification == FALSE && template_hostescalation->have_first_notification == TRUE) {
-			this_hostescalation->first_notification = template_hostescalation->first_notification;
-			this_hostescalation->have_first_notification = TRUE;
-			}
-		if(this_hostescalation->have_last_notification == FALSE && template_hostescalation->have_last_notification == TRUE) {
-			this_hostescalation->last_notification = template_hostescalation->last_notification;
-			this_hostescalation->have_last_notification = TRUE;
-			}
-		if(this_hostescalation->have_notification_interval == FALSE && template_hostescalation->have_notification_interval == TRUE) {
-			this_hostescalation->notification_interval = template_hostescalation->notification_interval;
-			this_hostescalation->have_notification_interval = TRUE;
-			}
-		if(this_hostescalation->have_escalation_options == FALSE && template_hostescalation->have_escalation_options == TRUE) {
-			this_hostescalation->escalation_options = template_hostescalation->escalation_options;
-			this_hostescalation->have_escalation_options = TRUE;
-			}
+		xod_inherit_str(this_hostescalation, template_hostescalation, escalation_period);
+		xod_inherit(this_hostescalation, template_hostescalation, first_notification);
+		xod_inherit(this_hostescalation, template_hostescalation, last_notification);
+		xod_inherit(this_hostescalation, template_hostescalation, notification_interval);
+		xod_inherit(this_hostescalation, template_hostescalation, escalation_options);
 		}
 
 	my_free(template_names);
@@ -6241,51 +5925,16 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo) {
 		xodtemplate_resolve_hostextinfo(template_hostextinfo);
 
 		/* apply missing properties from template hostextinfo... */
-		if(this_hostextinfo->have_host_name == FALSE && template_hostextinfo->have_host_name == TRUE) {
-			if(this_hostextinfo->host_name == NULL && template_hostextinfo->host_name != NULL)
-				this_hostextinfo->host_name = (char *)strdup(template_hostextinfo->host_name);
-			this_hostextinfo->have_host_name = TRUE;
-			}
-		if(this_hostextinfo->have_hostgroup_name == FALSE && template_hostextinfo->have_hostgroup_name == TRUE) {
-			if(this_hostextinfo->hostgroup_name == NULL && template_hostextinfo->hostgroup_name != NULL)
-				this_hostextinfo->hostgroup_name = (char *)strdup(template_hostextinfo->hostgroup_name);
-			this_hostextinfo->have_hostgroup_name = TRUE;
-			}
-		if(this_hostextinfo->have_notes == FALSE && template_hostextinfo->have_notes == TRUE) {
-			if(this_hostextinfo->notes == NULL && template_hostextinfo->notes != NULL)
-				this_hostextinfo->notes = (char *)strdup(template_hostextinfo->notes);
-			this_hostextinfo->have_notes = TRUE;
-			}
-		if(this_hostextinfo->have_notes_url == FALSE && template_hostextinfo->have_notes_url == TRUE) {
-			if(this_hostextinfo->notes_url == NULL && template_hostextinfo->notes_url != NULL)
-				this_hostextinfo->notes_url = (char *)strdup(template_hostextinfo->notes_url);
-			this_hostextinfo->have_notes_url = TRUE;
-			}
-		if(this_hostextinfo->have_action_url == FALSE && template_hostextinfo->have_action_url == TRUE) {
-			if(this_hostextinfo->action_url == NULL && template_hostextinfo->action_url != NULL)
-				this_hostextinfo->action_url = (char *)strdup(template_hostextinfo->action_url);
-			this_hostextinfo->have_action_url = TRUE;
-			}
-		if(this_hostextinfo->have_icon_image == FALSE && template_hostextinfo->have_icon_image == TRUE) {
-			if(this_hostextinfo->icon_image == NULL && template_hostextinfo->icon_image != NULL)
-				this_hostextinfo->icon_image = (char *)strdup(template_hostextinfo->icon_image);
-			this_hostextinfo->have_icon_image = TRUE;
-			}
-		if(this_hostextinfo->have_icon_image_alt == FALSE && template_hostextinfo->have_icon_image_alt == TRUE) {
-			if(this_hostextinfo->icon_image_alt == NULL && template_hostextinfo->icon_image_alt != NULL)
-				this_hostextinfo->icon_image_alt = (char *)strdup(template_hostextinfo->icon_image_alt);
-			this_hostextinfo->have_icon_image_alt = TRUE;
-			}
-		if(this_hostextinfo->have_vrml_image == FALSE && template_hostextinfo->have_vrml_image == TRUE) {
-			if(this_hostextinfo->vrml_image == NULL && template_hostextinfo->vrml_image != NULL)
-				this_hostextinfo->vrml_image = (char *)strdup(template_hostextinfo->vrml_image);
-			this_hostextinfo->have_vrml_image = TRUE;
-			}
-		if(this_hostextinfo->have_statusmap_image == FALSE && template_hostextinfo->have_statusmap_image == TRUE) {
-			if(this_hostextinfo->statusmap_image == NULL && template_hostextinfo->statusmap_image != NULL)
-				this_hostextinfo->statusmap_image = (char *)strdup(template_hostextinfo->statusmap_image);
-			this_hostextinfo->have_statusmap_image = TRUE;
-			}
+		xod_inherit_str(this_hostextinfo, template_hostextinfo, host_name);
+		xod_inherit_str(this_hostextinfo, template_hostextinfo, hostgroup_name);
+		xod_inherit_str(this_hostextinfo, template_hostextinfo, notes);
+		xod_inherit_str(this_hostextinfo, template_hostextinfo, notes_url);
+		xod_inherit_str(this_hostextinfo, template_hostextinfo, action_url);
+		xod_inherit_str(this_hostextinfo, template_hostextinfo, icon_image);
+		xod_inherit_str(this_hostextinfo, template_hostextinfo, icon_image_alt);
+		xod_inherit_str(this_hostextinfo, template_hostextinfo, vrml_image);
+		xod_inherit_str(this_hostextinfo, template_hostextinfo, statusmap_image);
+
 		if(this_hostextinfo->have_2d_coords == FALSE && template_hostextinfo->have_2d_coords == TRUE) {
 			this_hostextinfo->x_2d = template_hostextinfo->x_2d;
 			this_hostextinfo->y_2d = template_hostextinfo->y_2d;
@@ -6342,46 +5991,14 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 		xodtemplate_resolve_serviceextinfo(template_serviceextinfo);
 
 		/* apply missing properties from template serviceextinfo... */
-		if(this_serviceextinfo->have_host_name == FALSE && template_serviceextinfo->have_host_name == TRUE) {
-			if(this_serviceextinfo->host_name == NULL && template_serviceextinfo->host_name != NULL)
-				this_serviceextinfo->host_name = (char *)strdup(template_serviceextinfo->host_name);
-			this_serviceextinfo->have_host_name = TRUE;
-			}
-		if(this_serviceextinfo->have_hostgroup_name == FALSE && template_serviceextinfo->have_hostgroup_name == TRUE) {
-			if(this_serviceextinfo->hostgroup_name == NULL && template_serviceextinfo->hostgroup_name != NULL)
-				this_serviceextinfo->hostgroup_name = (char *)strdup(template_serviceextinfo->hostgroup_name);
-			this_serviceextinfo->have_hostgroup_name = TRUE;
-			}
-		if(this_serviceextinfo->have_service_description == FALSE && template_serviceextinfo->have_service_description == TRUE) {
-			if(this_serviceextinfo->service_description == NULL && template_serviceextinfo->service_description != NULL)
-				this_serviceextinfo->service_description = (char *)strdup(template_serviceextinfo->service_description);
-			this_serviceextinfo->have_service_description = TRUE;
-			}
-		if(this_serviceextinfo->have_notes == FALSE && template_serviceextinfo->have_notes == TRUE) {
-			if(this_serviceextinfo->notes == NULL && template_serviceextinfo->notes != NULL)
-				this_serviceextinfo->notes = (char *)strdup(template_serviceextinfo->notes);
-			this_serviceextinfo->have_notes = TRUE;
-			}
-		if(this_serviceextinfo->have_notes_url == FALSE && template_serviceextinfo->have_notes_url == TRUE) {
-			if(this_serviceextinfo->notes_url == NULL && template_serviceextinfo->notes_url != NULL)
-				this_serviceextinfo->notes_url = (char *)strdup(template_serviceextinfo->notes_url);
-			this_serviceextinfo->have_notes_url = TRUE;
-			}
-		if(this_serviceextinfo->have_action_url == FALSE && template_serviceextinfo->have_action_url == TRUE) {
-			if(this_serviceextinfo->action_url == NULL && template_serviceextinfo->action_url != NULL)
-				this_serviceextinfo->action_url = (char *)strdup(template_serviceextinfo->action_url);
-			this_serviceextinfo->have_action_url = TRUE;
-			}
-		if(this_serviceextinfo->have_icon_image == FALSE && template_serviceextinfo->have_icon_image == TRUE) {
-			if(this_serviceextinfo->icon_image == NULL && template_serviceextinfo->icon_image != NULL)
-				this_serviceextinfo->icon_image = (char *)strdup(template_serviceextinfo->icon_image);
-			this_serviceextinfo->have_icon_image = TRUE;
-			}
-		if(this_serviceextinfo->have_icon_image_alt == FALSE && template_serviceextinfo->have_icon_image_alt == TRUE) {
-			if(this_serviceextinfo->icon_image_alt == NULL && template_serviceextinfo->icon_image_alt != NULL)
-				this_serviceextinfo->icon_image_alt = (char *)strdup(template_serviceextinfo->icon_image_alt);
-			this_serviceextinfo->have_icon_image_alt = TRUE;
-			}
+		xod_inherit_str(this_serviceextinfo, template_serviceextinfo, host_name);
+		xod_inherit_str(this_serviceextinfo, template_serviceextinfo, hostgroup_name);
+		xod_inherit_str(this_serviceextinfo, template_serviceextinfo, service_description);
+		xod_inherit_str(this_serviceextinfo, template_serviceextinfo, notes);
+		xod_inherit_str(this_serviceextinfo, template_serviceextinfo, notes_url);
+		xod_inherit_str(this_serviceextinfo, template_serviceextinfo, action_url);
+		xod_inherit_str(this_serviceextinfo, template_serviceextinfo, icon_image);
+		xod_inherit_str(this_serviceextinfo, template_serviceextinfo, icon_image_alt);
 		}
 
 	my_free(template_names);

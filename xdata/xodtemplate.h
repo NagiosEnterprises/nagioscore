@@ -492,8 +492,8 @@ typedef struct xodtemplate_servicedependency_struct {
     char       *dependent_hostgroup_name;
     char       *dependency_period;
     int        inherits_parent;
-    int        fail_notify;
-    int        fail_exec;
+    int        notification_failure_options;
+    int        execution_failure_options;
 
     char have_host_name;
     char have_service_description;
@@ -506,8 +506,8 @@ typedef struct xodtemplate_servicedependency_struct {
     char have_dependency_period;
 
     char have_inherits_parent;
-    char have_notification_dependency_options;
-    char have_execution_dependency_options;
+    char have_notification_failure_options;
+    char have_execution_failure_options;
 
     unsigned is_copy : 1;
     unsigned has_been_resolved : 1;
@@ -568,8 +568,8 @@ typedef struct xodtemplate_hostdependency_struct {
     char      *dependent_hostgroup_name;
     char      *dependency_period;
     int       inherits_parent;
-    int       fail_notify;
-    int       fail_exec;
+    int       notification_failure_options;
+    int       execution_failure_options;
 
     char have_host_name;
     char have_dependent_host_name;
@@ -578,8 +578,8 @@ typedef struct xodtemplate_hostdependency_struct {
     char have_dependency_period;
 
     char have_inherits_parent;
-    char have_notification_dependency_options;
-    char have_execution_dependency_options;
+    char have_notification_failure_options;
+    char have_execution_failure_options;
 
     unsigned is_copy : 1;
     unsigned has_been_resolved : 1;

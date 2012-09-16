@@ -2002,7 +2002,7 @@ int process_check_result(check_result *cr)
 		hst = find_host(cr->host_name);
 		if (!hst)
 			return ERROR;
-		return handle_async_host_check_result_3x(hst, cr);
+		return handle_async_host_check_result(hst, cr);
 		}
 	return ERROR;
 	}

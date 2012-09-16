@@ -440,16 +440,15 @@ void handle_service_flap_detection_disabled(service *);		/* handles the details 
 /**** Route/Host Check Functions ****/
 int perform_on_demand_host_check(host *, int *, int, int, unsigned long);
 int perform_scheduled_host_check(host *, int, double);
-int check_host_check_viability_3x(host *, int, int *, time_t *);
-int adjust_host_check_attempt_3x(host *, int);
+int check_host_check_viability(host *, int, int *, time_t *);
+int adjust_host_check_attempt(host *, int);
 int determine_host_reachability(host *);
-int process_host_check_result_3x(host *, int, char *, int, int, int, unsigned long);
-int perform_on_demand_host_check_3x(host *, int *, int, int, unsigned long);
-int run_sync_host_check_3x(host *, int *, int, int, unsigned long);
-int execute_sync_host_check_3x(host *);
-int run_scheduled_host_check_3x(host *, int, double);
-int run_async_host_check_3x(host *, int, double, int, int, int *, time_t *);
-int handle_async_host_check_result_3x(host *, check_result *);
+int process_host_check_result(host *, int, char *, int, int, int, unsigned long);
+int perform_on_demand_host_check(host *, int *, int, int, unsigned long);
+int execute_sync_host_check(host *);
+int run_scheduled_host_check(host *, int, double);
+int run_async_host_check(host *, int, double, int, int, int *, time_t *);
+int handle_async_host_check_result(host *, check_result *);
 
 
 /**** Service Check Functions ****/

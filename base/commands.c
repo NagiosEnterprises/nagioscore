@@ -2061,7 +2061,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	if(cr.latency < 0.0)
 		cr.latency = 0.0;
 
-	handle_async_host_check_result_3x(temp_host, &cr);
+	handle_async_host_check_result(temp_host, &cr);
 
 	return OK;
 	}

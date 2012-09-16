@@ -41,7 +41,7 @@ int date_format;
 service *svc1 = NULL, *svc2 = NULL;
 host *host1 = NULL;
 int found_log_rechecking_host_when_service_wobbles = 0;
-int found_log_run_async_host_check_3x = 0;
+int found_log_run_async_host_check = 0;
 check_result *tmp_check_result;
 
 void setup_check_result() {
@@ -85,8 +85,8 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	if(strcmp(buffer, "Service wobbled between non-OK states, so we'll recheck the host state...\n") == 0) {
 		found_log_rechecking_host_when_service_wobbles++;
 		}
-	if(strcmp(buffer, "run_async_host_check_3x()\n") == 0) {
-		found_log_run_async_host_check_3x++;
+	if(strcmp(buffer, "run_async_host_check()\n") == 0) {
+		found_log_run_async_host_check++;
 		}
 	free(buffer);
 	va_end(ap);
@@ -377,7 +377,7 @@ main(int argc, char **argv) {
 	tmp_check_result->return_code = STATE_CRITICAL;
 	tmp_check_result->output = strdup("DOWN failure 2");
 	tmp_check_result->check_type = HOST_CHECK_PASSIVE;
-	handle_async_host_check_result_3x(host1, tmp_check_result);
+	handle_async_host_check_result(host1, tmp_check_result);
 	ok(host1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, "No ack set");
 	ok(host1->current_attempt == 2, "Attempts right (not sure why this goes into 2 and not 1)") || diag("current_attempt=%d", host1->current_attempt);
 	ok(strcmp(host1->plugin_output, "DOWN failure 2") == 0, "output set") || diag("plugin_output=%s", host1->plugin_output);
@@ -385,14 +385,14 @@ main(int argc, char **argv) {
 	host1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
 
 	tmp_check_result->output = strdup("DOWN failure 3");
-	handle_async_host_check_result_3x(host1, tmp_check_result);
+	handle_async_host_check_result(host1, tmp_check_result);
 	ok(host1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, "Ack should be retained as in soft state");
 	ok(host1->current_attempt == 3, "Attempts incremented") || diag("current_attempt=%d", host1->current_attempt);
 	ok(strcmp(host1->plugin_output, "DOWN failure 3") == 0, "output set") || diag("plugin_output=%s", host1->plugin_output);
 
 
 	tmp_check_result->output = strdup("DOWN failure 4");
-	handle_async_host_check_result_3x(host1, tmp_check_result);
+	handle_async_host_check_result(host1, tmp_check_result);
 	ok(host1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, "Ack should be retained as in soft state");
 	ok(host1->current_attempt == 4, "Attempts incremented") || diag("current_attempt=%d", host1->current_attempt);
 	ok(strcmp(host1->plugin_output, "DOWN failure 4") == 0, "output set") || diag("plugin_output=%s", host1->plugin_output);
@@ -400,7 +400,7 @@ main(int argc, char **argv) {
 
 	tmp_check_result->return_code = STATE_OK;
 	tmp_check_result->output = strdup("UP again");
-	handle_async_host_check_result_3x(host1, tmp_check_result);
+	handle_async_host_check_result(host1, tmp_check_result);
 	ok(host1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, "Ack reset due to state change");
 	ok(host1->current_attempt == 1, "Attempts reset") || diag("current_attempt=%d", host1->current_attempt);
 	ok(strcmp(host1->plugin_output, "UP again") == 0, "output set") || diag("plugin_output=%s", host1->plugin_output);

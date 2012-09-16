@@ -74,7 +74,7 @@ struct flag_map service_flag_map[] = {
 	{ OPT_UNKNOWN, 'u', "unknown" },
 	{ OPT_CRITICAL, 'c', "critical" },
 	{ OPT_FLAPPING, 'f', "flapping" },
-	{ OPT_DOWNTIME, 'd', "downtime" },
+	{ OPT_DOWNTIME, 's', "downtime" },
 	{ OPT_OK, 'o', "ok" },
 	{ OPT_RECOVERY, 'r', "recovery" },
 	{ OPT_PENDING, 'p', "pending" },

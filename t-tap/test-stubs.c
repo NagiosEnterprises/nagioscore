@@ -128,14 +128,12 @@ check_result *read_check_result(void) {}
 int broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, struct timeval *timestamp) {}
 int get_raw_command_line(command *a, char *b, char **c, int d) {}
 int get_raw_command_line_r(nagios_macros *mac, command *a, char *b, char **c, int d) {}
-check_result    check_result_info;
 char *temp_path;
 int dbuf_init(dbuf *db, int chunk_size) {}
 int update_check_stats(int check_type, time_t check_time) {}
 int set_all_macro_environment_vars_r(nagios_macros *mac, int set) {}
 int close_command_file(void) {}
 void reset_sighandler(void) {}
-void service_check_sighandler(int sig) {}
 unsigned long   max_debug_file_size = DEFAULT_MAX_DEBUG_FILE_SIZE;
 int             host_check_timeout = DEFAULT_HOST_CHECK_TIMEOUT;
 int broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, char *output, char *long_output, char *perfdata, struct timeval *timestamp) {}
@@ -180,7 +178,6 @@ hostdependency *get_first_hostdependency_by_dependent_host(char *host_name, void
 hostdependency *get_next_hostdependency_by_dependent_host(char *host_name, void **ptr) {}
 int             currently_running_host_checks = 0;
 int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, double *exectime, char **output, int max_output_length) {}
-void host_check_sighandler(int sig) {}
 int             accept_passive_host_checks = TRUE;
 int             passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 int             translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;

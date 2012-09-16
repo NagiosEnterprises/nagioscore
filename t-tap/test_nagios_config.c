@@ -223,7 +223,6 @@ extern char	*xrddefault_retention_file;
 
 notification    *notification_list;
 
-check_result    check_result_info;
 unsigned long	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
 
 check_stats     check_statistics[MAX_CHECK_STATS_TYPES];

@@ -514,8 +514,6 @@ void free_notification_list(void);		     	/* frees all memory allocated to the n
 
 /**** Miscellaneous Functions ****/
 void sighandler(int);                                	/* handles signals */
-void service_check_sighandler(int);                     /* handles timeouts when executing service checks */
-void host_check_sighandler(int);                        /* handles timeouts when executing host checks */
 void my_system_sighandler(int);				/* handles timeouts when executing commands via my_system() */
 char *get_next_string_from_buf(char *buf, int *start_index, int bufsize);
 int compare_strings(char *, char *);                    /* compares two strings for equality */

@@ -193,7 +193,6 @@ int command_file_created = FALSE;
 
 notification    *notification_list;
 
-check_result    check_result_info;
 unsigned long	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
 
 check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
@@ -1659,26 +1658,6 @@ void sighandler(int sig) {
 		sigshutdown = TRUE;
 
 	return;
-	}
-
-/* handle timeouts when executing on-demand host checks */
-void host_check_sighandler(int sig) {
-	struct timeval end_time;
-	host *h;
-
-	h = find_host(check_result_info.host_name);
-	if (!h)
-		return;
-
-	/* get the current time */
-	gettimeofday(&end_time, NULL);
-
-	check_result_info.return_code = STATE_CRITICAL;
-	check_result_info.finish_time = end_time;
-	check_result_info.early_timeout = TRUE;
-
-	/* @TODO check how this works out */
-	handle_async_host_check_result_3x(h, &check_result_info);
 	}
 
 /* handle timeouts when executing commands via my_system_r() */

@@ -350,9 +350,6 @@ int main(int argc, char **argv, char **env) {
 	/* else start to monitor things... */
 	else {
 
-		/* cache objects for UI's */
-		fcache_objects(object_cache_file);
-
 		nagios_iobs = iobroker_create();
 
 		/* keep monitoring things until we get a shutdown command */
@@ -445,6 +442,9 @@ int main(int argc, char **argv, char **env) {
 				cleanup();
 				exit(ERROR);
 				}
+
+			/* write the objects.cache file */
+			fcache_objects(object_cache_file);
 
 			/* handle signals (interrupts) */
 			setup_sighandler();

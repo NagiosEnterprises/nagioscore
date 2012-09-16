@@ -45,6 +45,7 @@ typedef struct worker_job {
 /** A worker process as seen from its controller */
 typedef struct worker_process {
 	const char *type; /**< identifying typename of this worker */
+	char *source_name; /**< check-source name of this worker */
 	int sd;    /**< communication socket */
 	pid_t pid; /**< pid */
 	int max_jobs; /**< Max number of jobs we can handle */

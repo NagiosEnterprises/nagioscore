@@ -227,6 +227,8 @@ extern check_stats check_statistics[MAX_CHECK_STATS_TYPES];
 
 extern notification *notification_list;
 
+extern struct check_engine nagios_check_engine;
+
 	/************* MISC LENGTH/SIZE DEFINITIONS ***********/
 
 	/*
@@ -363,6 +365,7 @@ NAGIOS_BEGIN_DECL
 extern const char *service_state_name(int state);
 extern const char *host_state_name(int state);
 extern const char *state_type_name(int state_type);
+extern const char *check_result_source(check_result *cr);
 
 /**** Configuration Functions ****/
 int read_main_config_file(char *);                     		/* reads the main config file (nagios.cfg) */

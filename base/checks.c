@@ -337,7 +337,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* get the current time */
 	time(&current_time);
 
-	log_debug_info(DEBUGL_CHECKS, 0, "** Handling check result for service '%s' on host '%s'...\n", temp_service->description, temp_service->host_name);
+	log_debug_info(DEBUGL_CHECKS, 0, "** Handling check result for service '%s' on host '%s' from '%s'...\n", temp_service->description, temp_service->host_name, check_result_source(queued_check_result));
 	log_debug_info(DEBUGL_CHECKS, 1, "HOST: %s, SERVICE: %s, CHECK TYPE: %s, OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT: %s\n", temp_service->host_name, temp_service->description, (queued_check_result->check_type == SERVICE_CHECK_ACTIVE) ? "Active" : "Passive", queued_check_result->check_options, (queued_check_result->scheduled_check == TRUE) ? "Yes" : "No", (queued_check_result->reschedule_check == TRUE) ? "Yes" : "No", (queued_check_result->exited_ok == TRUE) ? "Yes" : "No", queued_check_result->return_code, queued_check_result->output);
 
 	/* decrement the number of service checks still out there... */
@@ -2451,7 +2451,7 @@ int handle_async_host_check_result(host *temp_host, check_result *queued_check_r
 
 	time(&current_time);
 
-	log_debug_info(DEBUGL_CHECKS, 1, "** Handling async check result for host '%s'...\n", temp_host->name);
+	log_debug_info(DEBUGL_CHECKS, 1, "** Handling async check result for host '%s' from '%s'...\n", temp_host->name, check_result_source(queued_check_result));
 
 	log_debug_info(DEBUGL_CHECKS, 2, "\tCheck Type:         %s\n", (queued_check_result->check_type == HOST_CHECK_ACTIVE) ? "Active" : "Passive");
 	log_debug_info(DEBUGL_CHECKS, 2, "\tCheck Options:      %d\n", queued_check_result->check_options);

@@ -208,6 +208,35 @@ extern int errno;
 #endif
 
 
+static const char *worker_source_name(void *source) {
+	if(!source)
+		return "unknown internal source (voodoo, perhaps?)";
+
+	return ((worker_process *)source)->source_name;
+	}
+
+static const char *spool_file_source_name(void *source) {
+	return "check result spool dir";
+	}
+
+struct check_engine nagios_check_engine = {
+	"Nagios Core",
+	worker_source_name,
+	NULL,
+};
+
+static struct check_engine nagios_spool_check_engine = {
+	"Spooled checkresult file",
+	spool_file_source_name,
+	NULL,
+};
+
+const char *check_result_source(check_result *cr) {
+	if(!cr->engine)
+		return "(unknown engine)";
+	return cr->engine->source_name(cr->source);
+	}
+
 
 /* silly debug-ish helper used to track down hotspots in config parsing */
 void timing_point(const char *fmt, ...) {
@@ -1981,13 +2010,18 @@ int process_check_result_queue(char *dirname) {
 
 int process_check_result(check_result *cr)
 {
+	const char *source_name;
 	if (!cr)
 		return ERROR;
+
+	source_name = check_result_source(cr);
+
 	if (cr->object_check_type == SERVICE_CHECK) {
 		service *svc;
 		svc = find_service(cr->host_name, cr->service_description);
 		if (!svc)
 			return ERROR;
+		svc->check_source = source_name;
 		return handle_async_service_check_result(svc, cr);
 		}
 	if (cr->object_check_type == HOST_CHECK) {
@@ -1995,6 +2029,7 @@ int process_check_result(check_result *cr)
 		hst = find_host(cr->host_name);
 		if (!hst)
 			return ERROR;
+		hst->check_source = source_name;
 		return handle_async_host_check_result(hst, cr);
 		}
 	return ERROR;
@@ -2014,6 +2049,8 @@ int process_check_result_file(char *fname) {
 		return ERROR;
 
 	init_check_result(&cr);
+	cr.engine = &nagios_spool_check_engine;
+
 	time(&current_time);
 
 	log_debug_info(DEBUGL_CHECKS, 1, "Processing check result file: '%s'\n", fname);
@@ -2182,6 +2219,7 @@ int init_check_result(check_result *info) {
 	info->exited_ok = TRUE;
 	info->return_code = 0;
 	info->output = NULL;
+	info->source = NULL;
 
 	return OK;
 	}

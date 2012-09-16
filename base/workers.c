@@ -270,6 +270,8 @@ static int handle_worker_check(wproc_result *wpres, worker_process *wp, worker_j
 
 	cr->early_timeout = wpres->early_timeout;
 	cr->exited_ok = wpres->exited_ok;
+	cr->engine = &nagios_check_engine;
+	cr->source = wp;
 
 	process_check_result(cr);
 	free_check_result(cr);
@@ -570,6 +572,7 @@ int init_workers(int desired_workers)
 			return ERROR;
 		}
 		set_socket_options(wp->sd, 256 * 1024);
+		asprintf(&wp->source_name, "Nagios Core worker %d", wp->pid);
 
 		wps[i] = wp;
 		ret = iobroker_register(nagios_iobs, wp->sd, wp, handle_worker_result);

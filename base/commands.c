@@ -2217,6 +2217,8 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	cr.service_description = svc_description;
 	cr.output = output;
 	cr.start_time.tv_sec = cr.finish_time.tv_sec = check_time;
+	cr.engine = &nagios_check_engine;
+	cr.source = command_wproc;
 
 	/* save the return code and make sure it's sane */
 	cr.return_code = return_code;

@@ -140,6 +140,7 @@ typedef struct nebstruct_host_check_struct {
 	char            *output;
 	char            *long_output;
 	char            *perf_data;
+	check_result    *check_result_ptr;
 
 	void            *object_ptr;
 	} nebstruct_host_check_data;
@@ -172,6 +173,7 @@ typedef struct nebstruct_service_check_struct {
 	char            *output;
 	char            *long_output;
 	char            *perf_data;
+	check_result    *check_result_ptr;
 
 	void            *object_ptr;
 	} nebstruct_service_check_data;

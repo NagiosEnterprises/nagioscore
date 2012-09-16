@@ -31,7 +31,7 @@ NAGIOS_BEGIN_DECL
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        401     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        402     /* increment when changes are made to data structures... */
 /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -132,6 +132,21 @@ typedef struct notify_list_struct {
 	} notification;
 
 
+/*
+ * *name can be "Nagios Core", "Merlin", "mod_gearman" or "DNX", fe.
+ * source_name gets passed the 'source' pointer from check_result
+ * and must return a non-free()'able string useful for printing what
+ * we need to determine exactly where the check was received from,
+ * such as "mod_gearman worker@10.11.12.13", or "Nagios Core command
+ * file worker" (for passive checks submitted locally), which will be
+ * stashed with hosts and services and used as the "CHECKSOURCE" macro.
+ */
+struct check_engine {
+	char *name;         /* "Nagios Core", "Merlin", "Mod Gearman" fe */
+	const char *(*source_name)(void *);
+	void (*clean_result)(void *);
+};
+
 /* CHECK_RESULT structure */
 typedef struct check_result_struct {
 	int object_check_type;                          /* is this a service or a host check? */
@@ -151,6 +166,8 @@ typedef struct check_result_struct {
 	int return_code;				/* plugin return code */
 	char *output;	                                /* plugin output */
 	struct rusage rusage;			/* resource usage by this check */
+	struct check_engine *engine;	/* where did we get this check from? */
+	void *source;					/* engine handles this */
 	} check_result;
 
 
@@ -418,6 +435,7 @@ struct host_struct {
 	int     freshness_threshold;
 	int     process_performance_data;
 	int     checks_enabled;
+	const char *check_source;
 	int     accept_passive_checks;
 	int     event_handler_enabled;
 	int     retain_status_information;
@@ -559,6 +577,7 @@ struct service_struct {
 	int     accept_passive_checks;
 	int     event_handler_enabled;
 	int	checks_enabled;
+	const char *check_source;
 	int     retain_status_information;
 	int     retain_nonstatus_information;
 	int     notifications_enabled;

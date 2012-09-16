@@ -813,6 +813,7 @@ static int should_run_event(timed_event *temp_event)
 
 		/* reschedule the check if we can't run it now */
 		if(run_event == FALSE) {
+			remove_event(temp_event);
 
 			if(nudge_seconds) {
 				/* We nudge the next check time when it is due to too many concurrent service checks */
@@ -851,6 +852,8 @@ static int should_run_event(timed_event *temp_event)
 
 		/* reschedule the host check if we can't run it right now */
 		if(run_event == FALSE) {
+			remove_event(temp_event);
+
 			if(temp_host->state_type == SOFT_STATE && temp_host->current_state != STATE_OK)
 				temp_host->next_check = (time_t)(temp_host->next_check + (temp_host->retry_interval * interval_length));
 			else
@@ -947,6 +950,13 @@ int event_execution_loop(void) {
 		if (tv_delta_msec(&now, event_runtime) > 100)
 			continue;
 
+		/* move on if we shouldn't run this event */
+		if(should_run_event(temp_event) == FALSE)
+			continue;
+
+		/* handle the event */
+		handle_timed_event(temp_event);
+
 		/*
 		 * we must remove the entry we've peeked, or
 		 * we'll keep getting the same one over and over.
@@ -954,19 +964,13 @@ int event_execution_loop(void) {
 		 */
 		remove_event(nagios_squeue, temp_event);
 
-		/* handle high priority events */
-		if(temp_event->priority || should_run_event(temp_event)) {
-			/* handle the event */
-			handle_timed_event(temp_event);
+		/* reschedule the event if necessary */
+		if(temp_event->recurring == TRUE)
+			reschedule_event(nagios_squeue, temp_event);
 
-			/* reschedule the event if necessary */
-			if(temp_event->recurring == TRUE)
-				reschedule_event(nagios_squeue, temp_event);
-
-			/* else free memory associated with the event */
-			else
-				my_free(temp_event);
-		}
+		/* else free memory associated with the event */
+		else
+			my_free(temp_event);
 	}
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "event_execution_loop() end\n");

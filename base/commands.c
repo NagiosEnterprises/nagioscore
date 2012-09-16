@@ -2214,7 +2214,7 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	cr.exited_ok = 1;
 	cr.check_type = SERVICE_CHECK_PASSIVE;
 	cr.host_name = temp_host->name;
-	cr.service_description = svc_description;
+	cr.service_description = temp_service->description;
 	cr.output = output;
 	cr.start_time.tv_sec = cr.finish_time.tv_sec = check_time;
 	cr.engine = &nagios_check_engine;

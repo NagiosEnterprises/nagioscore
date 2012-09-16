@@ -213,9 +213,6 @@ int             child_processes_fork_twice = -1;
 int             date_format = DATE_FORMAT_US;
 char            *use_timezone = NULL;
 
-int             command_file_fd;
-FILE            *command_file_fp;
-int             command_file_created = FALSE;
 unsigned long   update_uid = 0L;
 
 

@@ -813,7 +813,7 @@ static int should_run_event(timed_event *temp_event)
 
 		/* reschedule the check if we can't run it now */
 		if(run_event == FALSE) {
-			remove_event(temp_event);
+			remove_event(nagios_squeue, temp_event);
 
 			if(nudge_seconds) {
 				/* We nudge the next check time when it is due to too many concurrent service checks */
@@ -852,7 +852,7 @@ static int should_run_event(timed_event *temp_event)
 
 		/* reschedule the host check if we can't run it right now */
 		if(run_event == FALSE) {
-			remove_event(temp_event);
+			remove_event(nagios_squeue, temp_event);
 
 			if(temp_host->state_type == SOFT_STATE && temp_host->current_state != STATE_OK)
 				temp_host->next_check = (time_t)(temp_host->next_check + (temp_host->retry_interval * interval_length));
@@ -1002,7 +1002,7 @@ int handle_timed_event(timed_event *event) {
 	/* get event latency */
 	gettimeofday(&tv, NULL);
 	event_runtime = squeue_event_runtime(event->sq_event);
-	latency = (double)(tv_delta_f(&tv, event_runtime));
+	latency = (double)(tv_delta_f(event_runtime, &tv));
 	if (latency < 0.0) /* events may run up to 0.1 seconds early */
 		latency = 0.0;
 

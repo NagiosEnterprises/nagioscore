@@ -2205,7 +2205,7 @@ int init_check_result(check_result *info) {
 	info->object_check_type = HOST_CHECK;
 	info->host_name = NULL;
 	info->service_description = NULL;
-	info->check_type = HOST_CHECK_ACTIVE;
+	info->check_type = CHECK_TYPE_ACTIVE;
 	info->check_options = CHECK_OPTION_NONE;
 	info->scheduled_check = FALSE;
 	info->reschedule_check = FALSE;

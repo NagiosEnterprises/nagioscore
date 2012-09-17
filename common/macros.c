@@ -1619,7 +1619,7 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 			asprintf(output, "%d", temp_host->last_state);
 			break;
 		case MACRO_HOSTCHECKTYPE:
-			asprintf(output, "%s", (temp_host->check_type == HOST_CHECK_PASSIVE) ? "PASSIVE" : "ACTIVE");
+			asprintf(output, "%s", (temp_host->check_type == CHECK_TYPE_PASSIVE) ? "PASSIVE" : "ACTIVE");
 			break;
 		case MACRO_HOSTSTATETYPE:
 			asprintf(output, "%s", (temp_host->state_type == HARD_STATE) ? "HARD" : "SOFT");
@@ -2007,7 +2007,7 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 			break;
 #ifdef NSCORE
 		case MACRO_SERVICECHECKTYPE:
-			*output = (char *)strdup((temp_service->check_type == SERVICE_CHECK_PASSIVE) ? "PASSIVE" : "ACTIVE");
+			*output = (char *)strdup((temp_service->check_type == CHECK_TYPE_PASSIVE) ? "PASSIVE" : "ACTIVE");
 			break;
 		case MACRO_SERVICESTATETYPE:
 			*output = (char *)strdup((temp_service->state_type == HARD_STATE) ? "HARD" : "SOFT");

@@ -590,7 +590,7 @@ void analyze_status_data(void) {
 
 
 		/* calculate execution time and latency stats */
-		if(temp_servicestatus->check_type == SERVICE_CHECK_ACTIVE) {
+		if(temp_servicestatus->check_type == CHECK_TYPE_ACTIVE) {
 
 			total_active_service_checks++;
 
@@ -711,7 +711,7 @@ void analyze_status_data(void) {
 			potential_host_health++;
 
 		/* check type stats */
-		if(temp_hoststatus->check_type == HOST_CHECK_ACTIVE) {
+		if(temp_hoststatus->check_type == CHECK_TYPE_ACTIVE) {
 
 			total_active_host_checks++;
 

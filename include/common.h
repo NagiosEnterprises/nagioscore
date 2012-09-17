@@ -345,17 +345,21 @@ NAGIOS_END_DECL
 #define CMD_CUSTOM_COMMAND                              999
 
 
+/**************************** CHECK TYPES ********************************/
 
-/************************ SERVICE CHECK TYPES ****************************/
+#define CHECK_TYPE_ACTIVE   0
+#define CHECK_TYPE_PASSIVE  1
+#define CHECK_TYPE_PARENT   2 /* (active) check for the benefit of dependent objects */
+#define CHECK_TYPE_FILE     3 /* from spool files (yuck) */
+#define CHECK_TYPE_OTHER    4 /* for modules to use */
 
-#define SERVICE_CHECK_ACTIVE		0	/* Nagios performed the service check */
-#define SERVICE_CHECK_PASSIVE		1	/* the service check result was submitted by an external source */
 
+/************* LEGACY (deprecated) CHECK TYPES ***************************/
 
-/************************** HOST CHECK TYPES *****************************/
-
-#define HOST_CHECK_ACTIVE		0	/* Nagios performed the host check */
-#define HOST_CHECK_PASSIVE		1	/* the host check result was submitted by an external source */
+#define SERVICE_CHECK_ACTIVE    CHECK_TYPE_ACTIVE
+#define SERVICE_CHECK_PASSIVE   CHECK_TYPE_PASSIVE
+#define HOST_CHECK_ACTIVE       CHECK_TYPE_ACTIVE
+#define HOST_CHECK_PASSIVE      CHECK_TYPE_PASSIVE
 
 
 /************************ SERVICE STATE TYPES ****************************/

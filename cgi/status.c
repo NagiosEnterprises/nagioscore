@@ -5041,10 +5041,10 @@ int passes_host_properties_filter(hoststatus *temp_hoststatus) {
 	if((host_properties & HOST_PASSIVE_CHECKS_ENABLED) && temp_hoststatus->accept_passive_checks == FALSE)
 		return FALSE;
 
-	if((host_properties & HOST_PASSIVE_CHECK) && temp_hoststatus->check_type == HOST_CHECK_ACTIVE)
+	if((host_properties & HOST_PASSIVE_CHECK) && temp_hoststatus->check_type == CHECK_TYPE_ACTIVE)
 		return FALSE;
 
-	if((host_properties & HOST_ACTIVE_CHECK) && temp_hoststatus->check_type == HOST_CHECK_PASSIVE)
+	if((host_properties & HOST_ACTIVE_CHECK) && temp_hoststatus->check_type == CHECK_TYPE_PASSIVE)
 		return FALSE;
 
 	if((host_properties & HOST_HARD_STATE) && temp_hoststatus->state_type == SOFT_STATE)
@@ -5109,10 +5109,10 @@ int passes_service_properties_filter(servicestatus *temp_servicestatus) {
 	if((service_properties & SERVICE_PASSIVE_CHECKS_ENABLED) && temp_servicestatus->accept_passive_checks == FALSE)
 		return FALSE;
 
-	if((service_properties & SERVICE_PASSIVE_CHECK) && temp_servicestatus->check_type == SERVICE_CHECK_ACTIVE)
+	if((service_properties & SERVICE_PASSIVE_CHECK) && temp_servicestatus->check_type == CHECK_TYPE_ACTIVE)
 		return FALSE;
 
-	if((service_properties & SERVICE_ACTIVE_CHECK) && temp_servicestatus->check_type == SERVICE_CHECK_PASSIVE)
+	if((service_properties & SERVICE_ACTIVE_CHECK) && temp_servicestatus->check_type == CHECK_TYPE_PASSIVE)
 		return FALSE;
 
 	if((service_properties & SERVICE_HARD_STATE) && temp_servicestatus->state_type == SOFT_STATE)

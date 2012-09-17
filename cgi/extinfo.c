@@ -1052,10 +1052,10 @@ void show_host_info(void) {
 		get_time_string(&temp_hoststatus->last_check, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
 		printf("<TR><TD CLASS='dataVar'>Last Check Time:</td><td CLASS='dataVal'>%s</td></tr>\n", date_time);
 
-		printf("<TR><TD CLASS='dataVar'>Check Type:</TD><TD CLASS='dataVal'>%s</TD></TR>\n", (temp_hoststatus->check_type == HOST_CHECK_ACTIVE) ? "ACTIVE" : "PASSIVE");
+		printf("<TR><TD CLASS='dataVar'>Check Type:</TD><TD CLASS='dataVal'>%s</TD></TR>\n", (temp_hoststatus->check_type == CHECK_TYPE_ACTIVE) ? "ACTIVE" : "PASSIVE");
 
 		printf("<TR><TD CLASS='dataVar' NOWRAP>Check Latency / Duration:</TD><TD CLASS='dataVal'>");
-		if(temp_hoststatus->check_type == HOST_CHECK_ACTIVE)
+		if(temp_hoststatus->check_type == CHECK_TYPE_ACTIVE)
 			printf("%.3f", temp_hoststatus->latency);
 		else
 			printf("N/A");
@@ -1365,10 +1365,10 @@ void show_service_info(void) {
 		get_time_string(&temp_svcstatus->last_check, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
 		printf("<TR><TD CLASS='dataVar'>Last Check Time:</TD><TD CLASS='dataVal'>%s</TD></TR>\n", date_time);
 
-		printf("<TR><TD CLASS='dataVar'>Check Type:</TD><TD CLASS='dataVal'>%s</TD></TR>\n", (temp_svcstatus->check_type == SERVICE_CHECK_ACTIVE) ? "ACTIVE" : "PASSIVE");
+		printf("<TR><TD CLASS='dataVar'>Check Type:</TD><TD CLASS='dataVal'>%s</TD></TR>\n", (temp_svcstatus->check_type == CHECK_TYPE_ACTIVE) ? "ACTIVE" : "PASSIVE");
 
 		printf("<TR><TD CLASS='dataVar' NOWRAP>Check Latency / Duration:</TD><TD CLASS='dataVal'>");
-		if(temp_svcstatus->check_type == SERVICE_CHECK_ACTIVE)
+		if(temp_svcstatus->check_type == CHECK_TYPE_ACTIVE)
 			printf("%.3f", temp_svcstatus->latency);
 		else
 			printf("N/A");
@@ -2030,7 +2030,7 @@ void show_performance_data(void) {
 			continue;
 
 		/* is this an active or passive check? */
-		if(temp_servicestatus->check_type == SERVICE_CHECK_ACTIVE) {
+		if(temp_servicestatus->check_type == CHECK_TYPE_ACTIVE) {
 
 			total_active_service_checks++;
 
@@ -2117,7 +2117,7 @@ void show_performance_data(void) {
 			continue;
 
 		/* is this an active or passive check? */
-		if(temp_hoststatus->check_type == HOST_CHECK_ACTIVE) {
+		if(temp_hoststatus->check_type == CHECK_TYPE_ACTIVE) {
 
 			total_active_host_checks++;
 

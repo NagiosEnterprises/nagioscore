@@ -740,7 +740,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->current_state = initial_state;
 	new_host->last_state = initial_state;
 	new_host->last_hard_state = initial_state;
-	new_host->check_type = HOST_CHECK_ACTIVE;
+	new_host->check_type = CHECK_TYPE_ACTIVE;
 	new_host->should_be_scheduled = TRUE;
 	new_host->current_attempt = (initial_state == HOST_UP) ? 1 : max_attempts;
 	new_host->state_type = HARD_STATE;
@@ -1584,7 +1584,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->obsess = (obsess > 0) ? TRUE : FALSE;
 #ifdef NSCORE
 	new_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
-	new_service->check_type = SERVICE_CHECK_ACTIVE;
+	new_service->check_type = CHECK_TYPE_ACTIVE;
 	new_service->current_attempt = (initial_state == STATE_OK) ? 1 : max_attempts;
 	new_service->current_state = initial_state;
 	new_service->last_state = initial_state;

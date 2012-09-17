@@ -28,7 +28,7 @@
 
 /***** CALLBACK TYPES *****/
 
-#define NEBCALLBACK_NUMITEMS                          33    /* total number of callback types we have */
+#define NEBCALLBACK_NUMITEMS                          26    /* total number of callback types we have */
 
 #define NEBCALLBACK_PROCESS_DATA                      0
 #define NEBCALLBACK_TIMED_EVENT_DATA                  1

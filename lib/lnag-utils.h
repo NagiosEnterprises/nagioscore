@@ -60,6 +60,9 @@
 # define offsetof(t, f) ((unsigned long)&((t *)0)->f)
 #endif
 
+/** Use this macro to dynamically increase vector lengths */
+#define alloc_nr(x) (((x)+16)*3/2)
+
 NAGIOS_BEGIN_DECL
 
 /**

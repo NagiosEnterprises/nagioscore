@@ -111,6 +111,16 @@ int neb_add_module(char *filename, char *args, int should_be_loaded) {
 	}
 
 
+int neb_add_core_module(nebmodule *mod) {
+	mod->should_be_loaded = FALSE;
+	mod->is_currently_loaded = TRUE;
+	mod->core_module = TRUE;
+	mod->module_handle = mod;
+	mod->next = neb_module_list;
+	neb_module_list = mod;
+	return 0;
+	}
+
 /* free memory allocated to module list */
 int neb_free_module_list(void) {
 	nebmodule *temp_module = NULL;
@@ -347,12 +357,15 @@ int neb_unload_module(nebmodule *mod, int flags, int reason) {
 	/* deregister all of the module's callbacks */
 	neb_deregister_module_callbacks(mod);
 
-	/* unload the module */
+	if(mod->core_module == FALSE) {
+
+		/* unload the module */
 #ifdef USE_LTDL
-	result = lt_dlclose(mod->module_handle);
+		result = lt_dlclose(mod->module_handle);
 #else
-	result = dlclose(mod->module_handle);
+		result = dlclose(mod->module_handle);
 #endif
+		}
 
 	/* mark the module as being unloaded */
 	mod->is_currently_loaded = FALSE;

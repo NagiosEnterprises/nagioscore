@@ -29,7 +29,7 @@ NAGIOS_BEGIN_DECL
 	/***** MODULE VERSION INFORMATION *****/
 
 #define NEB_API_VERSION(x) int __neb_api_version = x;
-#define CURRENT_NEB_API_VERSION    3
+#define CURRENT_NEB_API_VERSION    4
 
 
 
@@ -72,6 +72,7 @@ typedef struct nebmodule_struct {
 	char            *info[NEBMODULE_MODINFO_NUMITEMS];
 	int             should_be_loaded;
 	int             is_currently_loaded;
+	int             core_module;
 #ifdef USE_LTDL
 	lt_dlhandle     module_handle;
 	lt_ptr          init_func;

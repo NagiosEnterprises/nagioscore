@@ -50,6 +50,7 @@ int neb_free_module_list(void);
 int neb_unload_all_modules(int, int);
 int neb_unload_module(nebmodule *, int, int);
 int neb_add_module(char *, char *, int);
+int neb_add_core_module(nebmodule *mod);
 
 
 /***** CALLBACK FUNCTIONS *****/

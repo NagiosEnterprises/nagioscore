@@ -122,6 +122,37 @@ static bitmap *host_map, *contact_map;
 #endif
 static bitmap *service_map, *parent_map;
 
+
+/*
+ * simple inheritance macros. o = object, t = template, v = variable
+ * Note that these can be used for inter-object inheritance as well,
+ * so long as the variable names are identical.
+ */
+#define xod_inherit(o, t, v) \
+	do { \
+		if(o->have_##v == FALSE && t->have_##v == TRUE) { \
+			o->v = t->v; \
+			o->have_##v = TRUE; \
+		} \
+	} while(0)
+
+#define xod_inherit_str_nohave(o, t, v) \
+	do { \
+		if(o->v == NULL && t->v != NULL) { \
+			o->v = (char *)strdup(t->v); \
+		} \
+	} while(0)
+
+#define xod_inherit_str(o, t, v) \
+	do { \
+		if(o->have_##v == FALSE && t->have_##v == TRUE) { \
+			xod_inherit_str_nohave(o, t, v); \
+			o->have_##v = TRUE; \
+		} \
+	} while(0)
+
+
+
 /* returns the name of a numbered config file */
 static char *xodtemplate_config_file_name(int config_file) {
 	if(config_file <= xodtemplate_current_config_file)
@@ -4568,29 +4599,20 @@ int xodtemplate_inherit_object_properties(void) {
 		if((temp_host = xodtemplate_find_real_host(temp_service->host_name)) == NULL)
 			continue;
 
-		/* services inherit contact groups from host if not already specified */
-		if(temp_service->have_contact_groups == FALSE && temp_host->have_contact_groups == TRUE && temp_host->contact_groups != NULL) {
-			temp_service->contact_groups = (char *)strdup(temp_host->contact_groups);
-			temp_service->have_contact_groups = TRUE;
-			}
-
-		/* services inherit contacts from host if not already specified */
-		if(temp_service->have_contacts == FALSE && temp_host->have_contacts == TRUE && temp_host->contacts != NULL) {
-			temp_service->contacts = (char *)strdup(temp_host->contacts);
-			temp_service->have_contacts = TRUE;
+		/*
+		 * if the service has no contacts specified, it will inherit
+		 * them from the host
+		 */
+		if(temp_service->have_contact_groups == FALSE && temp_service->have_contacts == FALSE) {
+			xod_inherit_str(temp_service, temp_host, contact_groups);
+			xod_inherit_str(temp_service, temp_host, contacts);
 			}
 
 		/* services inherit notification interval from host if not already specified */
-		if(temp_service->have_notification_interval == FALSE && temp_host->have_notification_interval == TRUE) {
-			temp_service->notification_interval = temp_host->notification_interval;
-			temp_service->have_notification_interval = TRUE;
-			}
+		xod_inherit(temp_service, temp_host, notification_interval);
 
 		/* services inherit notification period from host if not already specified */
-		if(temp_service->have_notification_period == FALSE && temp_host->have_notification_period == TRUE && temp_host->notification_period != NULL) {
-			temp_service->notification_period = (char *)strdup(temp_host->notification_period);
-			temp_service->have_notification_period = TRUE;
-			}
+		xod_inherit_str(temp_service, temp_host, notification_period);
 
 		/* if notification options are missing, assume all */
 		if(temp_service->have_notification_options == FALSE) {
@@ -4606,31 +4628,22 @@ int xodtemplate_inherit_object_properties(void) {
 		if((temp_service = xodtemplate_find_real_service(temp_serviceescalation->host_name, temp_serviceescalation->service_description)) == NULL)
 			continue;
 
-		/* service escalations inherit contact groups from service if not already specified */
-		if(temp_serviceescalation->have_contact_groups == FALSE && temp_service->have_contact_groups == TRUE && temp_service->contact_groups != NULL) {
-			temp_serviceescalation->contact_groups = (char *)strdup(temp_service->contact_groups);
-			temp_serviceescalation->have_contact_groups = TRUE;
-			}
-
 		/* SPECIAL RULE 10/04/07 - additive inheritance from service's contactgroup(s) */
 		if(temp_serviceescalation->contact_groups != NULL && temp_serviceescalation->contact_groups[0] == '+')
 			xodtemplate_get_inherited_string(&temp_service->have_contact_groups, &temp_service->contact_groups, &temp_serviceescalation->have_contact_groups, &temp_serviceescalation->contact_groups);
-
-		/* service escalations inherit contacts from service if not already specified */
-		if(temp_serviceescalation->have_contacts == FALSE && temp_service->have_contacts == TRUE && temp_service->contacts != NULL) {
-			temp_serviceescalation->contacts = (char *)strdup(temp_service->contacts);
-			temp_serviceescalation->have_contacts = TRUE;
-			}
 
 		/* SPECIAL RULE 10/04/07 - additive inheritance from service's contact(s) */
 		if(temp_serviceescalation->contacts != NULL && temp_serviceescalation->contacts[0] == '+')
 			xodtemplate_get_inherited_string(&temp_service->have_contacts, &temp_service->contacts, &temp_serviceescalation->have_contacts, &temp_serviceescalation->contacts);
 
-		/* service escalations inherit notification interval from service if not already defined */
-		if(temp_serviceescalation->have_notification_interval == FALSE && temp_service->have_notification_interval == TRUE) {
-			temp_serviceescalation->notification_interval = temp_service->notification_interval;
-			temp_serviceescalation->have_notification_interval = TRUE;
+		/* service escalations inherit contacts from service if none are specified */
+		if(temp_serviceescalation->have_contact_groups == FALSE && temp_serviceescalation->have_contacts == FALSE) {
+			xod_inherit_str(temp_serviceescalation, temp_service, contact_groups);
+			xod_inherit_str(temp_serviceescalation, temp_service, contacts);
 			}
+
+		/* service escalations inherit notification interval from service if not already defined */
+		xod_inherit(temp_serviceescalation, temp_service, notification_interval);
 
 		/* service escalations inherit escalation period from service if not already defined */
 		if(temp_serviceescalation->have_escalation_period == FALSE && temp_service->have_notification_period == TRUE && temp_service->notification_period != NULL) {
@@ -4656,31 +4669,22 @@ int xodtemplate_inherit_object_properties(void) {
 		if((temp_host = xodtemplate_find_real_host(temp_hostescalation->host_name)) == NULL)
 			continue;
 
-		/* host escalations inherit contact groups from service if not already specified */
-		if(temp_hostescalation->have_contact_groups == FALSE && temp_host->have_contact_groups == TRUE && temp_host->contact_groups != NULL) {
-			temp_hostescalation->contact_groups = (char *)strdup(temp_host->contact_groups);
-			temp_hostescalation->have_contact_groups = TRUE;
-			}
-
 		/* SPECIAL RULE 10/04/07 - additive inheritance from host's contactgroup(s) */
 		if(temp_hostescalation->contact_groups != NULL && temp_hostescalation->contact_groups[0] == '+')
 			xodtemplate_get_inherited_string(&temp_host->have_contact_groups, &temp_host->contact_groups, &temp_hostescalation->have_contact_groups, &temp_hostescalation->contact_groups);
-
-		/* host escalations inherit contacts from service if not already specified */
-		if(temp_hostescalation->have_contacts == FALSE && temp_host->have_contacts == TRUE && temp_host->contacts != NULL) {
-			temp_hostescalation->contacts = (char *)strdup(temp_host->contacts);
-			temp_hostescalation->have_contacts = TRUE;
-			}
 
 		/* SPECIAL RULE 10/04/07 - additive inheritance from host's contact(s) */
 		if(temp_hostescalation->contacts != NULL && temp_hostescalation->contacts[0] == '+')
 			xodtemplate_get_inherited_string(&temp_host->have_contacts, &temp_host->contacts, &temp_hostescalation->have_contacts, &temp_hostescalation->contacts);
 
-		/* host escalations inherit notification interval from host if not already defined */
-		if(temp_hostescalation->have_notification_interval == FALSE && temp_host->have_notification_interval == TRUE) {
-			temp_hostescalation->notification_interval = temp_host->notification_interval;
-			temp_hostescalation->have_notification_interval = TRUE;
+		/* host escalations inherit contacts from host if none are specified */
+		if(temp_hostescalation->have_contact_groups == FALSE && temp_hostescalation->have_contacts == FALSE) {
+			xod_inherit_str(temp_hostescalation, temp_host, contact_groups);
+			xod_inherit_str(temp_hostescalation, temp_host, contacts);
 			}
+
+		/* host escalations inherit notification interval from host if not already defined */
+		xod_inherit(temp_hostescalation, temp_host, notification_interval);
 
 		/* host escalations inherit escalation period from host if not already defined */
 		if(temp_hostescalation->have_escalation_period == FALSE && temp_host->have_notification_period == TRUE && temp_host->notification_period != NULL) {
@@ -5014,30 +5018,6 @@ int xodtemplate_resolve_objects(void) {
 
 	return OK;
 	}
-
-/* simple inheritance macros. o = object, t = template, v = variable */
-#define xod_inherit(o, t, v) \
-	do { \
-		if(o->have_##v == FALSE && t->have_##v == TRUE) { \
-			o->v = t->v; \
-			o->have_##v = TRUE; \
-		} \
-	} while(0)
-
-#define xod_inherit_str_nohave(o, t, v) \
-	do { \
-		if(o->v == NULL && t->v != NULL) { \
-			o->v = (char *)strdup(t->v); \
-		} \
-	} while(0)
-
-#define xod_inherit_str(o, t, v) \
-	do { \
-		if(o->have_##v == FALSE && t->have_##v == TRUE) { \
-			xod_inherit_str_nohave(o, t, v); \
-			o->have_##v = TRUE; \
-		} \
-	} while(0)
 
 /* resolves a timeperiod object */
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod) {

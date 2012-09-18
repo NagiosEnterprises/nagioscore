@@ -372,6 +372,11 @@ extern const char *host_state_name(int state);
 extern const char *state_type_name(int state_type);
 extern const char *check_result_source(check_result *cr);
 
+/*** Nagios Event Radio Dispatcher functions ***/
+extern int nerd_init(void);
+extern int nerd_mkchan(const char *name, int (*handler)(int, void *), unsigned int callbacks);
+
+
 /**** Configuration Functions ****/
 int read_main_config_file(char *);                     		/* reads the main config file (nagios.cfg) */
 int read_resource_file(char *);					/* processes macros in resource file */

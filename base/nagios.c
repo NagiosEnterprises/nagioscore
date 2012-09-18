@@ -402,6 +402,9 @@ int main(int argc, char **argv, char **env) {
 			/* write log version/info */
 			write_log_file_info(NULL);
 
+			/* initialize nagios event radio dispatcher */
+			nerd_init();
+
 #ifdef USE_EVENT_BROKER
 			/* load modules */
 			neb_load_all_modules();

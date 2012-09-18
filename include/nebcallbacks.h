@@ -57,6 +57,7 @@
 #define NEBCALLBACK_CONTACT_STATUS_DATA               24
 #define NEBCALLBACK_ADAPTIVE_CONTACT_DATA             25
 
+#define nebcallback_flag(x) (1 << (x))
 
 /***** CALLBACK FUNCTIONS *****/
 NAGIOS_BEGIN_DECL

@@ -5,7 +5,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 AC_INIT(base/nagios.c)
-AC_CONFIG_HEADER(include/config.h include/snprintf.h)
+AC_CONFIG_HEADER(include/config.h lib/snprintf.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
@@ -61,10 +61,10 @@ else
     fi
 fi
 
-AC_CHECK_FUNC(vsnprintf,,SNPRINTF_O=../common/snprintf.o)
-AC_CHECK_FUNC(snprintf,,SNPRINTF_O=../common/snprintf.o)
-AC_CHECK_FUNC(asprintf,,SNPRINTF_O=../common/snprintf.o)
-AC_CHECK_FUNC(vasprintf,,SNPRINTF_O=../common/snprintf.o)
+AC_CHECK_FUNC(vsnprintf,,SNPRINTF_O=../lib/snprintf.o)
+AC_CHECK_FUNC(snprintf,,SNPRINTF_O=../lib/snprintf.o)
+AC_CHECK_FUNC(asprintf,,SNPRINTF_O=../lib/snprintf.o)
+AC_CHECK_FUNC(vasprintf,,SNPRINTF_O=../lib/snprintf.o)
 
 AC_CACHE_CHECK([for C99 vsnprintf],ac_cv_HAVE_C99_VSNPRINTF,[
 AC_TRY_RUN([

@@ -18,4 +18,5 @@
 #include "worker.h"
 #include "skiplist.h"
 #include "nsock.h"
+#include "snprintf.h"
 #endif /* LIB_libnagios_h__ */

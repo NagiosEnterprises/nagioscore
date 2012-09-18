@@ -2318,7 +2318,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-ac_config_headers="$ac_config_headers include/config.h include/snprintf.h"
+ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h"
 
 
 
@@ -4293,28 +4293,28 @@ ac_fn_c_check_func "$LINENO" "vsnprintf" "ac_cv_func_vsnprintf"
 if test "x$ac_cv_func_vsnprintf" = xyes; then :
 
 else
-  SNPRINTF_O=../common/snprintf.o
+  SNPRINTF_O=../lib/snprintf.o
 fi
 
 ac_fn_c_check_func "$LINENO" "snprintf" "ac_cv_func_snprintf"
 if test "x$ac_cv_func_snprintf" = xyes; then :
 
 else
-  SNPRINTF_O=../common/snprintf.o
+  SNPRINTF_O=../lib/snprintf.o
 fi
 
 ac_fn_c_check_func "$LINENO" "asprintf" "ac_cv_func_asprintf"
 if test "x$ac_cv_func_asprintf" = xyes; then :
 
 else
-  SNPRINTF_O=../common/snprintf.o
+  SNPRINTF_O=../lib/snprintf.o
 fi
 
 ac_fn_c_check_func "$LINENO" "vasprintf" "ac_cv_func_vasprintf"
 if test "x$ac_cv_func_vasprintf" = xyes; then :
 
 else
-  SNPRINTF_O=../common/snprintf.o
+  SNPRINTF_O=../lib/snprintf.o
 fi
 
 
@@ -6353,7 +6353,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "include/config.h") CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
-    "include/snprintf.h") CONFIG_HEADERS="$CONFIG_HEADERS include/snprintf.h" ;;
+    "lib/snprintf.h") CONFIG_HEADERS="$CONFIG_HEADERS lib/snprintf.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
     "subst") CONFIG_FILES="$CONFIG_FILES subst" ;;

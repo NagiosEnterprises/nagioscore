@@ -72,7 +72,6 @@ XDDH=@XDDH@
 BASEEXTRALIBS=@BASEEXTRALIBS@
 
 # Generated automatically from configure script
-SNPRINTF_O=@SNPRINTF_O@
 BROKER_O=@BROKER_O@
 BROKER_H=@BROKER_H@
 

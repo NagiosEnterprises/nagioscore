@@ -51,9 +51,6 @@ XODH=@XODH@
 XDDC=@XDDC@
 XDDH=@XDDH@
 
-# Generated automatically from configure script
-SNPRINTF_O=@SNPRINTF_O@
-
 # Object functions
 ODATALIBS=objects-cgi.o xobjects-cgi.o
 ODATAHDRS=

@@ -577,7 +577,7 @@ int xpddefault_open_host_perfdata_file(void) {
 
 		if(xpddefault_host_perfdata_file_pipe == TRUE) {
 			/* must open read-write to avoid failure if the other end isn't ready yet */
-			xpddefault_host_perfdata_fd = open(xpddefault_host_perfdata_file, O_NONBLOCK | O_RDWR | O_CREAT);
+			xpddefault_host_perfdata_fd = open(xpddefault_host_perfdata_file, O_NONBLOCK | O_RDWR | O_CREAT, 0644);
 			xpddefault_host_perfdata_fp = fdopen(xpddefault_host_perfdata_fd, "w");
 			}
 		else

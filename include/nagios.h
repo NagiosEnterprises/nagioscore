@@ -359,6 +359,11 @@ extern struct check_engine nagios_check_engine;
 
 NAGIOS_BEGIN_DECL
 
+/* useful for hosts and services to determine time 'til next check */
+#define normal_check_window(o) ((time_t)(o->check_interval * interval_length))
+#define retry_check_window(o) ((time_t)(o->retry_interval * interval_length))
+#define check_window(o) (o->state_type == SOFT_STATE ? retry_check_window(o) : normal_check_window(o))
+
 /******************** FUNCTIONS **********************/
 
 /* silly helpers useful pretty much all over the place */

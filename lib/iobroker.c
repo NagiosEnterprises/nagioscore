@@ -88,16 +88,6 @@ const char *iobroker_strerror(int error)
 	return iobroker_errors[error].string;
 }
 
-void iobroker_print_set(int fd, iobroker_set *iobs)
-{
-	dprintf(fd, "iobroker_set:\n");
-	dprintf(fd, "\tmax_fds: %d\n", iobs->max_fds);
-	dprintf(fd, "\tnum_fds: %d\n", iobs->num_fds);
-#ifdef IOBROKER_USES_EPOLL
-	dprintf(fd, "\tepfd: %d\n", iobs->epfd);
-#endif
-}
-
 
 int iobroker_max_usable_fds(void)
 {

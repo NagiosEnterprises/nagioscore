@@ -30,6 +30,10 @@
 #define PAIR_SEP 0 /**< pair separator for buf2kvvec() and kvvec2buf() */
 #define KV_SEP '=' /**< key/value separator for buf2kvvec() and kvvec2buf() */
 
+#ifndef ETIME
+#define ETIME ETIMEDOUT
+#endif
+
 struct worker_process;
 
 /** Worker job data */

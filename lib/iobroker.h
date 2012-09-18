@@ -51,13 +51,6 @@ typedef struct iobroker_set iobroker_set;
 extern const char *iobroker_strerror(int error);
 
 /**
- * Write an io broker set to the named filedescriptor
- * @param fd The filedescriptor to write to (using dprintf())
- * @param iobs The io broker set to print
- */
-extern void iobroker_print_set(int fd, iobroker_set *iobs);
-
-/**
  * Create a new socket set
  * @return An iobroker_set on success. NULL on errors.
  */

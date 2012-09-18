@@ -1,6 +1,8 @@
 #ifndef LIBNAGIOS_lnag_utils_h__
 #define LIBNAGIOS_lnag_utils_h__
 
+#include <stdlib.h> /* for rand() */
+
 /**
  * @file lnag-utils.h
  * @brief libnagios helper functions that lack a "real" home.
@@ -103,6 +105,19 @@ static inline unsigned int rup2pof2(unsigned int r)
 {
 	return r < 2 ? 4 : lnag_ispof2(r) ? r : 1 << ((sizeof(r) * 8) - (lnag_clz(r)));
 }
+
+/**
+ * Grab a random unsigned int in the range between low and high.
+ * Note that the PRNG has to be seeded prior to calling this.
+ * @param low The lower bound, inclusive
+ * @param high The higher bound, inclusive
+ * @return An unsigned integer in the mathematical range [low, high]
+ */
+static inline unsigned int ranged_urand(unsigned int low, unsigned int high)
+{
+	return low + (rand() * (1.0 / (RAND_MAX + 1.0)) * (high - low));
+}
+
 
 NAGIOS_END_DECL
 

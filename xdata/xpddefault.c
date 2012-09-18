@@ -158,6 +158,7 @@ int xpddefault_grab_config_directives(char *input) {
 		xpddefault_service_perfdata_file = (char *)strdup(varvalue);
 
 	else if(!strcmp(varname, "host_perfdata_file_mode")) {
+		xpddefault_host_perfdata_file_pipe = FALSE;
 		if(strstr(varvalue, "p") != NULL)
 			xpddefault_host_perfdata_file_pipe = TRUE;
 		else if(strstr(varvalue, "w") != NULL)
@@ -167,6 +168,7 @@ int xpddefault_grab_config_directives(char *input) {
 		}
 
 	else if(!strcmp(varname, "service_perfdata_file_mode")) {
+		xpddefault_service_perfdata_file_pipe = FALSE;
 		if(strstr(varvalue, "p") != NULL)
 			xpddefault_service_perfdata_file_pipe = TRUE;
 		else if(strstr(varvalue, "w") != NULL)
@@ -575,7 +577,7 @@ int xpddefault_open_host_perfdata_file(void) {
 
 		if(xpddefault_host_perfdata_file_pipe == TRUE) {
 			/* must open read-write to avoid failure if the other end isn't ready yet */
-			xpddefault_host_perfdata_fd = open(xpddefault_host_perfdata_file, O_NONBLOCK | O_RDWR);
+			xpddefault_host_perfdata_fd = open(xpddefault_host_perfdata_file, O_NONBLOCK | O_RDWR | O_CREAT);
 			xpddefault_host_perfdata_fp = fdopen(xpddefault_host_perfdata_fd, "w");
 			}
 		else

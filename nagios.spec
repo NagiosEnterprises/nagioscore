@@ -5,18 +5,23 @@
 %define logmsg logger -t %{name}/rpm
 %define logdir %{_localstatedir}/log/nagios
 
+# Setup some debugging options in case we build with --with debug
+%if %{defined _with_debug}
+	%define mycflags -O0 -pg -ggdb3
+%else
+	%define mycflags %{nil}
+%endif
+
 Summary: Open Source host, service and network monitoring program
 Name: nagios
 Version: 3.99.95
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPL
 Group: Applications/System
 URL: http://www.nagios.org/
 Packager: Daniel Wittenberg <dwittenberg2008@gmail.com>
 Vendor: Nagios Enterprises (http://www.nagios.org)
 Source0: http://dl.sf.net/nagios/nagios-%{version}.tar.gz
-Source1: nagios.rc
-Source2: nagios.sysconfig
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: gd-devel > 1.8
 BuildRequires: zlib-devel
@@ -24,7 +29,7 @@ BuildRequires: libpng-devel
 BuildRequires: libjpeg-devel
 
 Obsoletes: nagios-www <= %{version}
-Requires: httpd
+Requires: httpd,php
 
 %description
 Nagios is an application, system and network monitoring application.
@@ -45,8 +50,17 @@ Requires: %{name} = %{version}-%{release}
 
 %description devel
 This package contains the header files, static libraries and development
-documentation for %{name}. If you like to develop programs using %{name},
-you will need to install %{name}-devel.
+documentation for %{name}. If you are a NEB-module author or wish to
+write addons for Nagios using Nagios' own API's, you should install
+this package.
+
+%package contrib
+Summary: Files from the contrib directory
+Group: Development/Utils
+Requires: %{name} = %{version}-%{release}
+
+%description contrib
+This package contains all the files from the contrib directory
 
 %prep
 %setup
@@ -55,7 +69,8 @@ you will need to install %{name}-devel.
 %{__perl} -pi.orig -e 's|/usr/local/nagios/var/rw|%{_localstatedir}/nagios/rw|g;' contrib/eventhandlers/submit_check_result
 
 %build
-%configure \
+
+CFLAGS="%{mycflags}" LDFLAGS="$CFLAGS" %configure \
     --datadir="%{_datadir}/nagios" \
     --libexecdir="%{_libdir}/nagios/plugins" \
     --localstatedir="%{_localstatedir}/nagios" \
@@ -85,19 +100,11 @@ find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-ma
 
 %install
 %{__rm} -rf %{buildroot}
-%{__make} install install-init install-commandmode install-config \
+%{__make} install-unstripped install-init install-commandmode install-config \
     DESTDIR="%{buildroot}" \
     INSTALL_OPTS="" \
     COMMAND_OPTS="" \
     INIT_OPTS=""
-
-### Apparently contrib does not obey configure !
-%{__make} install -C contrib \
-    DESTDIR="%{buildroot}" \
-    INSTALL_OPTS=""
-
-%{__install} -d -m 0755 %{buildroot}%{_libdir}/nagios/plugins/eventhandlers/
-%{__cp} -afpv contrib/eventhandlers/* %{buildroot}%{_libdir}/nagios/plugins/eventhandlers/
 
 %{__install} -d -m 0755 %{buildroot}%{_includedir}/nagios/
 %{__install} -p -m 0644 include/*.h %{buildroot}%{_includedir}/nagios/
@@ -117,13 +124,27 @@ find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-ma
 
 ### Install logos
 %{__mkdir_p} %{buildroot}%{_datadir}/nagios/images/logos
-#tar -xvz -C %{buildroot}%{_datadir}/nagios/images/logos -f %{SOURCE3}
-#tar -xvz -C %{buildroot}%{_datadir}/nagios/images/logos -f %{SOURCE4}
 
 # Put the new RC script in place
-%{__install} -m 0755 %{SOURCE1} %{buildroot}/%{_initrddir}/nagios
+%{__install} -m 0755 nagios.init %{buildroot}/%{_initrddir}/nagios
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/sysconfig/
-%{__install} -m 0644 %{SOURCE2} %{buildroot}/%{_sysconfdir}/sysconfig/nagios
+%{__install} -m 0644 nagios.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/nagios
+
+### Apparently contrib wants to do embedded-perl stuff as well and does not obey configure !
+%{__make} install -C contrib \
+    DESTDIR="%{buildroot}" \
+    INSTALL_OPTS=""
+
+%{__install} -d -m 0755 %{buildroot}%{_libdir}/nagios/plugins/eventhandlers/
+%{__cp} -afpv contrib/eventhandlers/* %{buildroot}%{_libdir}/nagios/plugins/eventhandlers/
+%{__mv} contrib/README contrib/README.contrib
+
+CGI=`/bin/find contrib/ -name '*.cgi' -type f |sed s/'contrib\/'//g`
+CGI=`for i in $CGI; do echo -n "$i|"; done |sed s/\|$//`
+/bin/find %{buildroot}/%{_libdir}/nagios/cgi -type f -print | sed s!'%{buildroot}'!!g | egrep -ve "($CGI)" > cgi.files
+/bin/find %{buildroot}/%{_libdir}/nagios/cgi -type f -print | sed s!'%{buildroot}'!!g | egrep "($CGI)" > contrib.files
+
+
 
 %pre
 if ! /usr/bin/id nagios &>/dev/null; then
@@ -153,220 +174,43 @@ if [ $1 -eq 0 ]; then
 fi
 
 %postun
-if [ $1 -eq 0 ]; then
-    /usr/sbin/userdel nagios || %logmsg "User \"nagios\" could not be deleted."
-    /usr/sbin/groupdel nagios || %logmsg "Group \"nagios\" could not be deleted."
-fi
+# This could be bad if files are left with this uid/gid and then get owned by a new user
+#if [ $1 -eq 0 ]; then
+#    /usr/sbin/userdel nagios || %logmsg "User \"nagios\" could not be deleted."
+#    /usr/sbin/groupdel nagios || %logmsg "Group \"nagios\" could not be deleted."
+#fi
 /sbin/service nagios condrestart &>/dev/null || :
 
 %clean
 %{__rm} -rf %{buildroot}
 
-%files
+%files -f cgi.files
 %defattr(-, root, root, 0755)
-%doc Changelog INSTALLING LICENSE README UPGRADING
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/nagios.conf
-%config(noreplace) %{_sysconfdir}/sysconfig/nagios
-%config %{_initrddir}/nagios
-%{_bindir}/convertcfg
-%attr(0755,nagios,nagios) %{_bindir}/nagios
+%doc Changelog INSTALLING LEGAL LICENSE README THANKS UPGRADING
+%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/httpd/conf.d/nagios.conf
+%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/sysconfig/nagios
+%attr(0755,root,root) %config %{_initrddir}/nagios
+%attr(0755,root,root) %{_bindir}/nagios
 %attr(0755,root,root) %{_bindir}/nagiostats
-%{_libdir}/nagios/
-%{_datadir}/nagios/
-%defattr(-, nagios, nagios, 0755)
-%dir %{_sysconfdir}/nagios/
-%config(noreplace) %{_sysconfdir}/nagios/*.cfg
-%config(noreplace) %{_sysconfdir}/nagios/objects
-%{_localstatedir}/nagios/
-%{_localstatedir}/nagios/spool/
-%{logdir}/
-
-%defattr(-, nagios, apache, 2755)
-%{_localstatedir}/nagios/rw/
+%attr(0644,root,root) %{_libdir}/nagios/plugins/
+%attr(0644,root,root) %{_datadir}/nagios/
+%attr(0755,nagios,nagios) %dir %{_sysconfdir}/nagios/
+%attr(0644,nagios,nagios) %config(noreplace) %{_sysconfdir}/nagios/*.cfg
+%attr(0644,nagios,nagios) %config(noreplace) %{_sysconfdir}/nagios/objects
+%attr(0755,nagios,nagios) %dir %{_localstatedir}/nagios/
+%attr(0644,nagios,nagios) %{_localstatedir}/nagios/
+%attr(0644,root,root) %{logdir}/
+%attr(0755,nagios,apache) %{_localstatedir}/nagios/rw/
 
 %files devel
-%defattr(-, root, root, 0755)
-%{_includedir}/nagios/
+%attr(0755,root,root) %{_includedir}/nagios/
+
+%files contrib -f contrib.files
+%%doc contrib/README.contrib
+%attr(0755,root,root) %{_bindir}/convertcfg
+%attr(0755,root,root) %{_libdir}/nagios/plugins/eventhandlers/
 
 %changelog
-* Fri Aug 03 2012 Dan Wittenberg <daniel.wittenberg.r0ko@statefarm.com> - 3.4.1-2
-- Remove perl-core and perl-devel since not using embedded anymore
-- Remove other references and builds for embedded
-
-* Wed May 30 2012 Dan Wittenberg <daniel.wittenberg.r0ko@statefarm.com> - 3.4.1-1
-- Update to 3.4.1
-- Updated RC script to use sysconfig variables, ramdisk and nicelevel
-- Updated BuildRequires to include perl-core and perl-devel for embedded
-
-* Wed Dec 28 2011 Dan Wittenberg <daniel.wittenberg.r0ko@statefarm.com> - 3.2.3-4
-- Split patches up for cmd pipe, hostgroups, and rc script updates
-
-* Wed Dec 28 2011 Dan Wittenberg <daniel.wittenberg.r0ko@statefarm.com> - 3.2.3-3
-- Updated future patch to allow servicedependencies with null hostgroups
-
-* Wed Nov 03 2010 Dan Wittenberg <daniel.wittenberg.r0ko@statefarm.com> - 3.2.3-2
-- Added future patch for allow_unused_hostgroups config option
-
-* Tue Oct 07 2010 Dan Wittenberg <daniel.wittenberg.r0ko@statefarm.com> - 3.2.3-1
-- Updated to release 3.2.3.
-
-* Tue Oct 05 2010 Dag Wieers <dag@wieers.com> - 3.2.2-1 - 9076+/cmr
-- Updated to release 3.2.2.
-
-* Sat Aug 29 2010 Christoph Maser <cmr@financial.com> - 3.2.1-6
-- remove "-p pidfile" from call to killproc in initscript to make
-  it el4 compatible
-
-* Fri Jun 18 2010 Christoph Maser <cmr@financial.com> - 3.2.1-5
-- Run configtest with correct user instead of root
-- Use --user in init script call to daemon function
-- Change owner of /usr/bin/nagios to nagios
-
-* Wed Jun 02 2010 Christoph Maser <cmr@financial.com> - 3.2.1-4
-- Add configtest to initscript
-
-* Tue May 11 2010 Christoph Maser <cmr@financial.com> - 3.2.1-3
-- Roll our own init-script
-- Move pid file to a location where nagios user has access
-
-* Fri May 07 2010 Yury V. Zaytsev <yury@shurup.com> - 3.2.1-2
-- Fixed Apache group assignement (Catalin Bucur).
-- Cleaned up old options.
-
-* Sun Mar 21 2010 Dag Wieers <dag@wieers.com> - 3.2.1-1
-- Updated to release 3.2.1.
-
-* Thu Aug 12 2009 Christoph Maser <cmr$financial,com> - 3.2.0-1
-- Updated to release 3.2.0.
-
-* Mon Aug 03 2009 Christoph Maser <cmr$financial,com> - 3.1.2-1
-- Updated to release 3.1.2.
-
-* Mon Jan 26 2009 Christoph Maser <cmr$financial,com> - 3.1.0-1
-- Updated to release 3.1.0.
-
-* Thu Dec 02 2008 Christoph Maser <cmr$financial,com> - 3.0.6-1
-- Updated to release 3.0.6.
-
-* Thu Nov 06 2008 Christoph Maser <cmr$financial,com> - 3.0.5-1
-- Updated to release 3.0.5.
-
-* Tue Oct 21 2008 Christoph Maser <cmr$financial,com> - 3.0.4-1
-- Updated to release 3.0.4.
-
-* Wed Oct 10 2008 Christoph Maser <cmr$financial,com> - 3.0.3-1
-- Updated to release 3.0.3.
-- Set localstatedir to ${_localstatedir}.
-- Because of the previous modify installed configs to put logs in %{logdir}.
-
-* Thu May 22 2008 Dag Wieers <dag@wieers.com> - 2.12-1
-- Updated to release 2.12.
-
-* Thu Mar 13 2008 Dag Wieers <dag@wieers.com> - 2.11-1
-- Updated to release 2.11.
-- Fixed a wrong reference to /usr/local. (Christophe Sahut)
-
-* Wed Oct 24 2007 Christoph Maser <cmr@financial.com> - 2.10-1
-- Updated to release 2.10.
-
-* Sun Apr 15 2007 Dag Wieers <dag@wieers.com> - 2.9-1
-- Updated to release 2.9.
-
-* Sat Mar 10 2007 Dag Wieers <dag@wieers.com> - 2.8-1
-- Updated to release 2.8.
-
-* Wed Jan 24 2007 Dag Wieers <dag@wieers.com> - 2.7-1
-- Updated to release 2.7.
-
-* Mon Dec 11 2006 Dag Wieers <dag@wieers.com> - 2.6-1
-- Updated to release 2.6.
-
-* Wed Jul 19 2006 Dag Wieers <dag@wieers.com> - 2.5-1
-- Updated to release 2.5.
-
-* Fri Jun 02 2006 Dag Wieers <dag@wieers.com> - 2.4-2
-- Make nagios owner of /etc/nagios. (Christop Maser)
-- Updated to release 2.4.
-
-* Mon May 29 2006 Dag Wieers <dag@wieers.com> - 2.3.1-2
-- Make nagios owner of /etc/nagios. (Christop Maser)
-
-* Wed May 17 2006 Dag Wieers <dag@wieers.com> - 2.3.1-1
-- Updated to release 2.3.1.
-
-* Wed May 03 2006 Dag Wieers <dag@wieers.com> - 2.3-1
-- Updated to release 2.3.
-
-* Sat Apr 08 2006 Dag Wieers <dag@wieers.com> - 2.2-1
-- Updated to release 2.2.
-
-* Tue Mar 28 2006 Dag Wieers <dag@wieers.com> - 2.1-1
-- Updated to release 2.1.
-
-* Wed Feb 08 2006 Dag Wieers <dag@wieers.com> - 2.0-2
-- Fixed the nagiocmd group creation. (Rick Johnson)
-- Added _without_perlcache macro. (Rick Johnson)
-
-* Wed Feb 08 2006 Dag Wieers <dag@wieers.com> - 2.0-1
-- Updated to release 2.0.
-
-* Thu Jan 12 2006 Dag Wieers <dag@wieers.com> - 2.0-0.rc2
-- Updated to release 2.0rc2.
-
-* Sun Jan 01 2006 Dag Wieers <dag@wieers.com> - 2.0-0.rc1
-- Updated to release 2.0rc1.
-
-* Mon Dec 12 2005 Dag Wieers <dag@wieers.com> - 2.0-0.b6.1
-- Updated to release 2.0b6.
-
-* Fri Aug 05 2005 Dag Wieers <dag@wieers.com> - 2.0-0.b4.1
-- Updated to release 2.0b4.
-
-* Mon May 23 2005 Dag Wieers <dag@wieers.com> - 2.0-0.b3.1
-- Use the actual 2.0b3 sourcecode, sigh. (Cameron Pitt-Downton)
-
-* Wed May 18 2005 Dag Wieers <dag@wieers.com> - 2.0-0.b3
-- Updated to release 2.0b3.
-
-* Mon Feb 21 2005 Tim Verhoeven <dj@rootshell.be> - 2.0-0.b2
-- Updated to release 2.0b2.
-
-* Sun Jan 02 2005 Dag Wieers <dag@wieers.com> - 2.0-0.b1
-* Updated to release 2.0b1.
-
-* Fri Nov 26 2004 Dag Wieers <dag@wieers.com> - 1.2-1
-* Fixed %%{_libdir} in httpd nagios.conf. (Thomas Zehetbauer)
-
-* Wed Feb 11 2004 Dag Wieers <dag@wieers.com> - 1.2-0
-- Added embedded perl patch for perl > 5.8. (Stanley Hopcroft)
-- Updated to release 1.2.
-
-* Wed Jan 28 2004 Dag Wieers <dag@wieers.com> - 1.1-6
-- Fixed the longstanding nagios.cmd problem. (Magnus Stenman)
-
-* Wed Oct 29 2003 Dag Wieers <dag@wieers.com> - 1.1-5
-- Fixed resource.cfg location from nagios.cfg. (Ragnar Wisloff)
-- Cleaned up perl one-liners.
-
-* Wed Oct 08 2003 Dag Wieers <dag@wieers.com> - 1.1-4
-- Removed --with-file-perfdata, use default. (Erik De Cock)
-
-* Mon Aug 25 2003 Dag Wieers <dag@wieers.com> - 1.1-3
-- Fixed the missing @MAIL_PROG@ problem in misccommands.cfg.
-
-* Mon Aug 18 2003 Dag Wieers <dag@wieers.com> - 1.1-2
-- Let %pre silently check for user nagios.
-- Added base imagepak.
-
-* Sat Jul 12 2003 Dag Wieers <dag@wieers.com> - 1.1-1
-- Disabled embedded perl.
-
-* Wed Jun 04 2003 Dag Wieers <dag@wieers.com> - 1.1-0
-- Updated to release 1.1.
-
-* Tue Jun 03 2003 Dag Wieers <dag@wieers.com> - 1.0-1
-- Don't restart webserver.
-
-* Sun Feb 16 2003 Dag Wieers <dag@wieers.com> - 1.0-0
-- Initial package. (using DAR)
-
+* Fri Sep 14 2012 Daniel Wittenberg <dwittenberg2008@gmail.com> 3.99.95-1
+- Major update for version 4.0
+- New spec file, new RC script, new sysconfig

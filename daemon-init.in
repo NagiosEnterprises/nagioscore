@@ -1,236 +1,148 @@
 #!/bin/sh
-# 
-# chkconfig: 345 99 01
-# description: Nagios network monitor
-#
-# File : nagios
-#
-# Author : Jorge Sanchez Aymar (jsanchez@lanchile.cl)
-# 
-# Changelog :
-#
-# 1999-07-09 Karl DeBisschop <kdebisschop@infoplease.com>
-#  - setup for autoconf
-#  - add reload function
-# 1999-08-06 Ethan Galstad <egalstad@nagios.org>
-#  - Added configuration info for use with RedHat's chkconfig tool
-#    per Fran Boon's suggestion
-# 1999-08-13 Jim Popovitch <jimpop@rocketship.com>
-#  - added variable for nagios/var directory
-#  - cd into nagios/var directory before creating tmp files on startup
-# 1999-08-16 Ethan Galstad <egalstad@nagios.org>
-#  - Added test for rc.d directory as suggested by Karl DeBisschop
-# 2000-07-23 Karl DeBisschop <kdebisschop@users.sourceforge.net>
-#  - Clean out redhat macros and other dependencies
-# 2003-01-11 Ethan Galstad <egalstad@nagios.org>
-#  - Updated su syntax (Gary Miller)
-#
-# Description: Starts and stops the Nagios monitor
-#              used to provide network services status.
-#
 
-# Load any extra environment variables for Nagios and its plugins
-if test -f /etc/sysconfig/nagios; then
-	. /etc/sysconfig/nagios
+# Nagios	Startup script for the Nagios monitoring daemon
+#
+# chkconfig:	- 85 15
+# description:	Nagios is a service monitoring system
+# processname: nagios
+# config: /etc/nagios/nagios.cfg
+# pidfile: /var/nagios/nagios.pid
+#
+### BEGIN INIT INFO
+# Provides:		nagios
+# Required-Start:	$local_fs $syslog $network
+# Required-Stop:	$local_fs $syslog $network
+# Short-Description:	start and stop Nagios monitoring server
+# Description:		Nagios is is a service monitoring system
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+exec="@bindir@/nagios"
+prog="nagios"
+config="@sysconfdir@/nagios.cfg"
+pidfile="@lockfile@"
+user="nagios"
+group="nagios"
+checkconfig="false"
+ramdiskdir="/var/nagios/ramcache"
+
+test -e /etc/sysconfig/$prog && . /etc/sysconfig/$prog
+
+lockfile=/var/lock/subsys/$prog
+USE_RAMDISK=${USE_RAMDISK:-0}
+
+if test "$USE_RAMDISK" -ne 0 && test "$RAMDISK_SIZE"X != "X"; then
+	ramdisk=`mount |grep "$ramdiskdir type tmpfs"`
+	if [ "$ramdisk"X == "X" ]; then
+		mkdir -p -m 0755 $ramdiskdir
+		mount -t tmpfs -o size=${RAMDISK_SIZE}m tmpfs $ramdiskdir
+		mkdir -p -m 0755 $ramdiskdir/checkresults
+		chown -R $user:$group $ramdiskdir
+	fi
 fi
 
-status_nagios ()
-{
+check_config() {
+	TMPFILE="/tmp/.configtest.$$"
+	/sbin/service nagios configtest > "$TMPFILE"
+	WARN=`grep ^"Total Warnings:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g`
+	ERR=`grep ^"Total Errors:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g`
 
-	if test -x $NagiosCGI/daemonchk.cgi; then
-		if $NagiosCGI/daemonchk.cgi -l $NagiosRunFile; then
-		        return 0
-		else
-			return 1
-		fi
+	if test "$WARN" = "0" && test "${ERR}" = "0"; then
+		echo "OK - Configuration check verified" > /var/run/nagios.configtest
+		chmod 0644 /var/run/nagios.configtest
+		/bin/rm "$TMPFILE"
+	return 0
 	else
-		if ps -p $NagiosPID > /dev/null 2>&1; then
-		        return 0
-		else
-			return 1
-		fi
-	fi
-
-	return 1
-}
-
-
-printstatus_nagios()
-{
-
-	if status_nagios $1 $2; then
-		echo "nagios (pid $NagiosPID) is running..."
-	else
-		echo "nagios is not running"
+		# We'll write out the errors to a file we can have a
+		# script watching for
+		echo "WARNING: Errors in config files - see log for details: $TMPFILE" > /var/run/nagios.configtest
+		egrep -i "(^warning|^error)" "$TMPFILE" >> /var/run/nagios.configtest
+		chmod 0644 /var/run/nagios.configtest
+		cat "$TMPFILE"
+	exit 8
 	fi
 }
 
-
-killproc_nagios ()
-{
-
-	kill $2 $NagiosPID
-
-}
-
-
-pid_nagios ()
-{
-
-	if test ! -f $NagiosRunFile; then
-		echo "No lock file found in $NagiosRunFile"
-		exit 1
+start() {
+	test -x $exec || exit 5
+	test -f $config || exit 6
+	if test "$checkconfig" == "false"; then
+		check_config
 	fi
+	echo -n $"Starting $prog: "
+	# We need to _make sure_ the precache is there and verified
+	# Raise priority to make it run better
+	daemon --user=$user $exec -ud $config
+	retval=$?
+	echo
+	test $retval -eq 0 && touch $lockfile
+	return $retval
+}
 
-	NagiosPID=`head -n 1 $NagiosRunFile`
+stop() {
+	echo -n $"Stopping $prog: "
+	killproc -p ${pidfile} -d 10 $exec
+	retval=$?
+	echo
+	test $retval -eq 0 && rm -f $lockfile
+	return $retval
 }
 
 
-# Source function library
-# Solaris doesn't have an rc.d directory, so do a test first
-if [ -f /etc/rc.d/init.d/functions ]; then
-	. /etc/rc.d/init.d/functions
-elif [ -f /etc/init.d/functions ]; then
-	. /etc/init.d/functions
-fi
+restart() {
+	check_config
+	checkconfig="true"
+	stop
+	start
+}
 
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-NagiosBin=@bindir@/nagios
-NagiosCfgFile=@sysconfdir@/nagios.cfg
-NagiosStatusFile=@localstatedir@/status.dat
-NagiosRetentionFile=@localstatedir@/retention.dat
-NagiosCommandFile=@localstatedir@/rw/nagios.cmd
-NagiosVarDir=@localstatedir@
-NagiosRunFile=@lockfile@
-NagiosLockDir=/var/lock/subsys
-NagiosLockFile=nagios
-NagiosCGIDir=@sbindir@
-NagiosUser=@nagios_user@
-NagiosGroup=@nagios_grp@
-          
+reload() {
+	echo -n $"Reloading $prog: "
+	killproc -p ${pidfile} $exec -HUP
+	RETVAL=$?
+	echo
+}
 
-# Check that nagios exists.
-if [ ! -f $NagiosBin ]; then
-    echo "Executable file $NagiosBin not found.  Exiting."
-    exit 1
-fi
+force_reload() {
+	restart
+}
 
-# Check that nagios.cfg exists.
-if [ ! -f $NagiosCfgFile ]; then
-    echo "Configuration file $NagiosCfgFile not found.  Exiting."
-    exit 1
-fi
-          
-# See how we were called.
 case "$1" in
-
 	start)
-		echo -n "Starting nagios:"
-		$NagiosBin -v $NagiosCfgFile > /dev/null 2>&1;
-		if [ $? -eq 0 ]; then
-			su - $NagiosUser -c "touch $NagiosVarDir/nagios.log $NagiosRetentionFile"
-			rm -f $NagiosCommandFile
-			touch $NagiosRunFile
-			chown $NagiosUser:$NagiosGroup $NagiosRunFile
-			$NagiosBin -d $NagiosCfgFile
-			if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
-			echo " done."
-			exit 0
-		else
-			echo "CONFIG ERROR!  Start aborted.  Check your Nagios configuration."
-			exit 1
-		fi
+		status $prog && exit 0
+		$1
 		;;
-
 	stop)
-		echo -n "Stopping nagios: "
-
-		pid_nagios
-		killproc_nagios nagios
-
- 		# now we have to wait for nagios to exit and remove its
- 		# own NagiosRunFile, otherwise a following "start" could
- 		# happen, and then the exiting nagios will remove the
- 		# new NagiosRunFile, allowing multiple nagios daemons
- 		# to (sooner or later) run - John Sellens
-		#echo -n 'Waiting for nagios to exit .'
- 		for i in 1 2 3 4 5 6 7 8 9 10 ; do
- 		    if status_nagios > /dev/null; then
- 			echo -n '.'
- 			sleep 1
- 		    else
- 			break
- 		    fi
- 		done
- 		if status_nagios > /dev/null; then
- 		    echo ''
- 		    echo 'Warning - nagios did not exit in a timely manner'
- 		else
- 		    echo 'done.'
- 		fi
-
-		rm -f $NagiosStatusFile $NagiosRunFile $NagiosLockDir/$NagiosLockFile $NagiosCommandFile
+		status $prog|| exit 0
+		$1
 		;;
-
-	status)
-		pid_nagios
-		printstatus_nagios nagios
-		;;
-
-	checkconfig)
-		printf "Running configuration check..."
-		$NagiosBin -v $NagiosCfgFile > /dev/null 2>&1;
-		if [ $? -eq 0 ]; then
-			echo " OK."
-		else
-			echo " CONFIG ERROR!  Check your Nagios configuration."
-			exit 1
-		fi
-		;;
-
 	restart)
-		printf "Running configuration check..."
-		$NagiosBin -v $NagiosCfgFile > /dev/null 2>&1;
-		if [ $? -eq 0 ]; then
-			echo "done."
-			$0 stop
-			$0 start
-		else
-			echo " CONFIG ERROR!  Restart aborted.  Check your Nagios configuration."
-			exit 1
-		fi
+		$1
 		;;
-
-	reload|force-reload)
-		printf "Running configuration check..."
-		$NagiosBin -v $NagiosCfgFile > /dev/null 2>&1;
-		if [ $? -eq 0 ]; then
-			echo "done."
-			if test ! -f $NagiosRunFile; then
-				$0 start
-			else
-				pid_nagios
-				if status_nagios > /dev/null; then
-					printf "Reloading nagios configuration..."
-					killproc_nagios nagios -HUP
-					echo "done"
-				else
-					$0 stop
-					$0 start
-				fi
-			fi
-		else
-			echo " CONFIG ERROR!  Reload aborted.  Check your Nagios configuration."
-			exit 1
-		fi
+	reload)
+		status $prog || exit 7
+		$1
 		;;
-
+	force-reload)
+		force_reload
+		;;
+	status)
+		status $prog
+		;;
+	condrestart|try-restart)
+		status $prog|| exit 0
+		restart
+		;;
+	configtest)
+		$nice runuser -s /bin/bash - $user -c "$corelimit >/dev/null 2>&1 ; $exec -vp $config"
+		RETVAL=$?
+		;;
 	*)
-		echo "Usage: nagios {start|stop|restart|reload|force-reload|status|checkconfig}"
-		exit 1
-		;;
-
+		echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload|configtest}"
+		exit 2
 esac
-  
-# End of this script
+exit $?

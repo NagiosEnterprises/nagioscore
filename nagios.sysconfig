@@ -1,0 +1,10 @@
+# Setup some basic values for startup
+
+# Do you want to use the ramdisk
+USE_RAMDISK=0
+
+# How big (in MB) should the ramdisk be
+RAMDISK_SIZE=256
+
+# Should the process be niced
+NICELEVEL=-15

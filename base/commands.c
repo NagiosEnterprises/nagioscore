@@ -112,6 +112,7 @@ int shutdown_command_file_worker(void) {
 	if (!command_wproc)
 		return 0;
 
+	iocache_destroy(command_wproc->ioc);
 	wproc_destroy(command_wproc, WPROC_FORCE);
 	command_wproc = NULL;
 	return 0;

@@ -105,12 +105,13 @@ NAGIOS_BEGIN_DECL
 
 /****************** DATA STRUCTURES *******************/
 
-typedef struct host_struct host;
-typedef struct service_struct service;
-typedef struct contact_struct contact;
+/* @todo Remove typedef's of non-opaque types in Nagios 5 */
+typedef struct host host;
+typedef struct service service;
+typedef struct contact contact;
 
 /* TIMED_EVENT structure */
-typedef struct timed_event_struct {
+typedef struct timed_event {
 	int event_type;
 	time_t run_time;
 	int recurring;
@@ -126,9 +127,9 @@ typedef struct timed_event_struct {
 
 
 /* NOTIFY_LIST structure */
-typedef struct notify_list_struct {
-	contact *contact;
-	struct notify_list_struct *next;
+typedef struct notify_list {
+	struct contact *contact;
+	struct notify_list *next;
 	} notification;
 
 
@@ -148,7 +149,7 @@ struct check_engine {
 };
 
 /* CHECK_RESULT structure */
-typedef struct check_result_struct {
+typedef struct check_result {
 	int object_check_type;                          /* is this a service or a host check? */
 	char *host_name;                                /* host name */
 	char *service_description;                      /* service description */
@@ -172,7 +173,7 @@ typedef struct check_result_struct {
 
 
 /* SCHED_INFO structure */
-typedef struct sched_info_struct {
+typedef struct sched_info {
 	int total_services;
 	int total_scheduled_services;
 	int total_hosts;
@@ -199,7 +200,7 @@ typedef struct sched_info_struct {
 
 
 /* DBUF structure - dynamic string storage */
-typedef struct dbuf_struct {
+typedef struct dbuf {
 	char *buf;
 	unsigned long used_size;
 	unsigned long allocated_size;
@@ -210,7 +211,7 @@ typedef struct dbuf_struct {
 #define CHECK_STATS_BUCKETS                  15
 
 /* used for tracking host and service check statistics */
-typedef struct check_stats_struct {
+typedef struct check_stats {
 	int current_bucket;
 	int bucket[CHECK_STATS_BUCKETS];
 	int overflow_bucket;
@@ -221,22 +222,22 @@ typedef struct check_stats_struct {
 
 
 /* OBJECT LIST STRUCTURE */
-typedef struct objectlist_struct {
+typedef struct objectlist {
 	void      *object_ptr;
-	struct objectlist_struct *next;
+	struct objectlist *next;
 	} objectlist;
 
 
 /* TIMERANGE structure */
-typedef struct timerange_struct {
+typedef struct timerange {
 	unsigned long range_start;
 	unsigned long range_end;
-	struct timerange_struct *next;
+	struct timerange *next;
 	} timerange;
 
 
 /* DATERANGE structure */
-typedef struct daterange_struct {
+typedef struct daterange {
 	int type;
 	int syear;          /* start year */
 	int smon;           /* start month */
@@ -249,99 +250,99 @@ typedef struct daterange_struct {
 	int ewday;
 	int ewday_offset;
 	int skip_interval;
-	timerange *times;
-	struct daterange_struct *next;
+	struct timerange *times;
+	struct daterange *next;
 	} daterange;
 
 
 /* TIMEPERIODEXCLUSION structure */
-typedef struct timeperiodexclusion_struct {
+typedef struct timeperiodexclusion {
 	char  *timeperiod_name;
-	struct timeperiod_struct *timeperiod_ptr;
-	struct timeperiodexclusion_struct *next;
+	struct timeperiod *timeperiod_ptr;
+	struct timeperiodexclusion *next;
 	} timeperiodexclusion;
 
 
 /* TIMEPERIOD structure */
-typedef struct timeperiod_struct {
+typedef struct timeperiod {
 	unsigned int id;
 	char    *name;
 	char    *alias;
-	timerange *days[7];
-	daterange *exceptions[DATERANGE_TYPES];
-	timeperiodexclusion *exclusions;
-	struct 	timeperiod_struct *next;
+	struct timerange *days[7];
+	struct daterange *exceptions[DATERANGE_TYPES];
+	struct timeperiodexclusion *exclusions;
+	struct timeperiod *next;
 	} timeperiod;
 
 
 /* CONTACTSMEMBER structure */
-typedef struct contactsmember_struct {
+typedef struct contactsmember {
 	char    *contact_name;
 #ifdef NSCORE
-	contact *contact_ptr;
+	struct contact *contact_ptr;
 #endif
-	struct  contactsmember_struct *next;
+	struct contactsmember *next;
 	} contactsmember;
 
 
 /* CONTACTGROUP structure */
-typedef struct contactgroup_struct {
+typedef struct contactgroup {
 	unsigned int id;
 	char	*group_name;
 	char    *alias;
-	contactsmember *members;
-	struct	contactgroup_struct *next;
+	struct contactsmember *members;
+	struct contactgroup *next;
 	} contactgroup;
 
 
 /* CONTACTGROUPSMEMBER structure */
-typedef struct contactgroupsmember_struct {
+typedef struct contactgroupsmember {
 	char    *group_name;
 #ifdef NSCORE
-	contactgroup *group_ptr;
+	struct contactgroup *group_ptr;
 #endif
-	struct contactgroupsmember_struct *next;
+	struct contactgroupsmember *next;
 	} contactgroupsmember;
 
 
 /* CUSTOMVARIABLESMEMBER structure */
-typedef struct customvariablesmember_struct {
+typedef struct customvariablesmember {
 	char    *variable_name;
 	char    *variable_value;
 	int     has_been_modified;
-	struct customvariablesmember_struct *next;
+	struct customvariablesmember *next;
 	} customvariablesmember;
 
 
 /* COMMAND structure */
-typedef struct command_struct {
+typedef struct command {
 	unsigned int id;
 	char    *name;
 	char    *command_line;
-	struct command_struct *next;
+	struct command *next;
 	} command;
 
 
 /* COMMANDSMEMBER structure */
-typedef struct commandsmember_struct {
+typedef struct commandsmember {
 	char	*command;
 #ifdef NSCORE
-	command *command_ptr;
+	struct command *command_ptr;
 #endif
-	struct	commandsmember_struct *next;
+	struct	commandsmember *next;
 	} commandsmember;
 
 
 /* CONTACT structure */
-struct contact_struct {
+struct contact {
 	unsigned int id;
 	char	*name;
 	char	*alias;
 	char	*email;
 	char	*pager;
 	char    *address[MAX_CONTACT_ADDRESSES];
-	commandsmember *host_notification_commands;
-	commandsmember *service_notification_commands;
+	struct commandsmember *host_notification_commands;
+	struct commandsmember *service_notification_commands;
 	unsigned int host_notification_options;
 	unsigned int service_notification_options;
 	unsigned int minimum_value;
@@ -352,7 +353,7 @@ struct contact_struct {
 	int     can_submit_commands;
 	int     retain_status_information;
 	int     retain_nonstatus_information;
-	customvariablesmember *custom_variables;
+	struct customvariablesmember *custom_variables;
 #ifdef NSCORE
 	time_t  last_host_notification;
 	time_t  last_service_notification;
@@ -360,66 +361,66 @@ struct contact_struct {
 	unsigned long modified_host_attributes;
 	unsigned long modified_service_attributes;
 
-	timeperiod *host_notification_period_ptr;
-	timeperiod *service_notification_period_ptr;
-	objectlist *contactgroups_ptr;
+	struct timeperiod *host_notification_period_ptr;
+	struct timeperiod *service_notification_period_ptr;
+	struct objectlist *contactgroups_ptr;
 #endif
-	struct	contact_struct *next;
+	struct	contact *next;
 	};
 
 
 /* SERVICESMEMBER structure */
-typedef struct servicesmember_struct {
+typedef struct servicesmember {
 	char    *host_name;
 	char    *service_description;
 #ifdef NSCORE
-	service *service_ptr;
+	struct service *service_ptr;
 #endif
-	struct servicesmember_struct *next;
+	struct servicesmember *next;
 	} servicesmember;
 
 
 /* HOSTSMEMBER structure */
-typedef struct hostsmember_struct {
+typedef struct hostsmember {
 	char    *host_name;
 #ifdef NSCORE
-	host    *host_ptr;
+	struct host    *host_ptr;
 #endif
-	struct hostsmember_struct *next;
+	struct hostsmember *next;
 	} hostsmember;
 
 
 /* HOSTGROUP structure */
-typedef struct hostgroup_struct {
+typedef struct hostgroup {
 	unsigned int id;
 	char 	*group_name;
 	char    *alias;
-	hostsmember *members;
+	struct hostsmember *members;
 	char    *notes;
 	char    *notes_url;
 	char    *action_url;
-	struct	hostgroup_struct *next;
+	struct	hostgroup *next;
 	} hostgroup;
 
 
 /* HOST structure */
-struct host_struct {
+struct host {
 	unsigned int id;
 	char    *name;
 	char    *display_name;
 	char	*alias;
 	char    *address;
-	hostsmember *parent_hosts;
-	hostsmember *child_hosts;
-	servicesmember *services;
+	struct hostsmember *parent_hosts;
+	struct hostsmember *child_hosts;
+	struct servicesmember *services;
 	char    *check_command;
 	int     initial_state;
 	double  check_interval;
 	double  retry_interval;
 	int     max_attempts;
 	char    *event_handler;
-	contactgroupsmember *contact_groups;
-	contactsmember *contacts;
+	struct contactgroupsmember *contact_groups;
+	struct contactsmember *contacts;
 	double  notification_interval;
 	double  first_notification_delay;
 	unsigned int notification_options;
@@ -515,41 +516,41 @@ struct host_struct {
 	unsigned long total_service_check_interval;
 	unsigned long modified_attributes;
 
-	command *event_handler_ptr;
-	command *check_command_ptr;
-	timeperiod *check_period_ptr;
-	timeperiod *notification_period_ptr;
-	objectlist *hostgroups_ptr;
+	struct command *event_handler_ptr;
+	struct command *check_command_ptr;
+	struct timeperiod *check_period_ptr;
+	struct timeperiod *notification_period_ptr;
+	struct objectlist *hostgroups_ptr;
 #endif
 	/* objects we depend upon */
-	objectlist *exec_deps, *notify_deps;
-	objectlist *escalation_list;
-	struct  host_struct *next;
+	struct objectlist *exec_deps, *notify_deps;
+	struct objectlist *escalation_list;
+	struct  host *next;
 	void *next_check_event;
 	};
 
 
 /* SERVICEGROUP structure */
-typedef struct servicegroup_struct {
+typedef struct servicegroup {
 	unsigned int id;
 	char 	*group_name;
 	char    *alias;
-	servicesmember *members;
+	struct servicesmember *members;
 	char    *notes;
 	char    *notes_url;
 	char    *action_url;
-	struct	servicegroup_struct *next;
+	struct	servicegroup *next;
 	} servicegroup;
 
 
 /* SERVICE structure */
-struct service_struct {
+struct service {
 	unsigned int id;
 	char	*host_name;
 	char	*description;
 	char    *display_name;
-	servicesmember *parents;
-	servicesmember *children;
+	struct servicesmember *parents;
+	struct servicesmember *children;
 	char    *check_command;
 	char    *event_handler;
 	int     initial_state;
@@ -557,8 +558,8 @@ struct service_struct {
 	double  retry_interval;
 	int	max_attempts;
 	int     parallelize;
-	contactgroupsmember *contact_groups;
-	contactsmember *contacts;
+	struct contactgroupsmember *contact_groups;
+	struct contactsmember *contacts;
 	double	notification_interval;
 	double  first_notification_delay;
 	unsigned int notification_options;
@@ -587,7 +588,7 @@ struct service_struct {
 	char    *action_url;
 	char    *icon_image;
 	char    *icon_image_alt;
-	customvariablesmember *custom_variables;
+	struct customvariablesmember *custom_variables;
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
@@ -636,24 +637,24 @@ struct service_struct {
 	double  percent_state_change;
 	unsigned long modified_attributes;
 
-	host *host_ptr;
-	command *event_handler_ptr;
+	struct host *host_ptr;
+	struct command *event_handler_ptr;
 	char *event_handler_args;
-	command *check_command_ptr;
+	struct command *check_command_ptr;
 	char *check_command_args;
-	timeperiod *check_period_ptr;
-	timeperiod *notification_period_ptr;
-	objectlist *servicegroups_ptr;
+	struct timeperiod *check_period_ptr;
+	struct timeperiod *notification_period_ptr;
+	struct objectlist *servicegroups_ptr;
 #endif
-	objectlist *exec_deps, *notify_deps;
-	objectlist *escalation_list;
-	struct service_struct *next;
-	void *next_check_event;
+	struct objectlist *exec_deps, *notify_deps;
+	struct objectlist *escalation_list;
+	struct service *next;
+	struct timed_event *next_check_event;
 	};
 
 
 /* SERVICE ESCALATION structure */
-typedef struct serviceescalation_struct {
+typedef struct serviceescalation {
 	unsigned int id;
 	char    *host_name;
 	char    *description;
@@ -662,17 +663,17 @@ typedef struct serviceescalation_struct {
 	double  notification_interval;
 	char    *escalation_period;
 	int     escalation_options;
-	contactgroupsmember *contact_groups;
-	contactsmember *contacts;
+	struct contactgroupsmember *contact_groups;
+	struct contactsmember *contacts;
 #ifdef NSCORE
-	service *service_ptr;
-	timeperiod *escalation_period_ptr;
+	struct service *service_ptr;
+	struct timeperiod *escalation_period_ptr;
 #endif
 	} serviceescalation;
 
 
 /* SERVICE DEPENDENCY structure */
-typedef struct servicedependency_struct {
+typedef struct servicedependency {
 	unsigned int id;
 	int     dependency_type;
 	char    *dependent_host_name;
@@ -683,15 +684,15 @@ typedef struct servicedependency_struct {
 	int     inherits_parent;
 	int     failure_options;
 #ifdef NSCORE
-	service *master_service_ptr;
-	service *dependent_service_ptr;
-	timeperiod *dependency_period_ptr;
+	struct service *master_service_ptr;
+	struct service *dependent_service_ptr;
+	struct timeperiod *dependency_period_ptr;
 #endif
 	} servicedependency;
 
 
 /* HOST ESCALATION structure */
-typedef struct hostescalation_struct {
+typedef struct hostescalation {
 	unsigned int id;
 	char    *host_name;
 	int     first_notification;
@@ -699,17 +700,17 @@ typedef struct hostescalation_struct {
 	double  notification_interval;
 	char    *escalation_period;
 	int     escalation_options;
-	contactgroupsmember *contact_groups;
-	contactsmember *contacts;
+	struct contactgroupsmember *contact_groups;
+	struct contactsmember *contacts;
 #ifdef NSCORE
-	host    *host_ptr;
-	timeperiod *escalation_period_ptr;
+	struct host    *host_ptr;
+	struct timeperiod *escalation_period_ptr;
 #endif
 	} hostescalation;
 
 
 /* HOST DEPENDENCY structure */
-typedef struct hostdependency_struct {
+typedef struct hostdependency {
 	unsigned int id;
 	int     dependency_type;
 	char    *dependent_host_name;
@@ -718,24 +719,24 @@ typedef struct hostdependency_struct {
 	int     inherits_parent;
 	int     failure_options;
 #ifdef NSCORE
-	host    *master_host_ptr;
-	host    *dependent_host_ptr;
-	timeperiod *dependency_period_ptr;
+	struct host    *master_host_ptr;
+	struct host    *dependent_host_ptr;
+	struct timeperiod *dependency_period_ptr;
 #endif
 	} hostdependency;
 
-extern command *command_list;
-extern timeperiod *timeperiod_list;
-extern host *host_list;
-extern service *service_list;
-extern contact *contact_list;
-extern hostgroup *hostgroup_list;
-extern servicegroup *servicegroup_list;
-extern contactgroup *contactgroup_list;
-extern hostescalation *hostescalation_list;
-extern hostdependency *hostdependency_list;
-extern serviceescalation *serviceescalation_list;
-extern servicedependency *servicedependency_list;
+extern struct command *command_list;
+extern struct timeperiod *timeperiod_list;
+extern struct host *host_list;
+extern struct service *service_list;
+extern struct contact *contact_list;
+extern struct hostgroup *hostgroup_list;
+extern struct servicegroup *servicegroup_list;
+extern struct contactgroup *contactgroup_list;
+extern struct hostescalation *hostescalation_list;
+extern struct hostdependency *hostdependency_list;
+extern struct serviceescalation *serviceescalation_list;
+extern struct servicedependency *servicedependency_list;
 
 
 /********************* FUNCTIONS **********************/
@@ -745,47 +746,47 @@ int read_object_config_data(char *, int);     /* reads all external configuratio
 
 
 /**** Object Creation Functions ****/
-contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int service_notification_options, int host_notification_options, int service_notifications_enabled, int host_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information, unsigned int minimum_value);
-commandsmember *add_service_notification_command_to_contact(contact *, char *);				/* adds a service notification command to a contact definition */
-commandsmember *add_host_notification_command_to_contact(contact *, char *);				/* adds a host notification command to a contact definition */
-customvariablesmember *add_custom_variable_to_contact(contact *, char *, char *);                       /* adds a custom variable to a service definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host, unsigned int hourly_value);
-hostsmember *add_parent_host_to_host(host *, char *);							/* adds a parent host to a host definition */
-servicesmember *add_parent_service_to_service(service *, char *host_name, char *description);
-hostsmember *add_child_link_to_host(host *, host *);						       /* adds a child host to a host definition */
-contactgroupsmember *add_contactgroup_to_host(host *, char *);					       /* adds a contactgroup to a host definition */
-contactsmember *add_contact_to_host(host *, char *);                                                    /* adds a contact to a host definition */
-customvariablesmember *add_custom_variable_to_host(host *, char *, char *);                             /* adds a custom variable to a host definition */
-timeperiod *add_timeperiod(char *, char *);								/* adds a timeperiod definition */
-timeperiodexclusion *add_exclusion_to_timeperiod(timeperiod *, char *);                                 /* adds an exclusion to a timeperiod */
-timerange *add_timerange_to_timeperiod(timeperiod *, int, unsigned long, unsigned long);			/* adds a timerange to a timeperiod definition */
-daterange *add_exception_to_timeperiod(timeperiod *, int, int, int, int, int, int, int, int, int, int, int, int);
-timerange *add_timerange_to_daterange(daterange *, unsigned long, unsigned long);
-hostgroup *add_hostgroup(char *, char *, char *, char *, char *);						/* adds a hostgroup definition */
-hostsmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host to a hostgroup definition */
-servicegroup *add_servicegroup(char *, char *, char *, char *, char *);                                 /* adds a servicegroup definition */
-servicesmember *add_service_to_servicegroup(servicegroup *, char *, char *);                            /* adds a service to a servicegroup definition */
-contactgroup *add_contactgroup(char *, char *);								/* adds a contactgroup definition */
-contactsmember *add_contact_to_contactgroup(contactgroup *, char *);					/* adds a contact to a contact group definition */
-command *add_command(char *, char *);									/* adds a command definition */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service, unsigned int hourly_value);
-contactgroupsmember *add_contactgroup_to_service(service *, char *);					/* adds a contact group to a service definition */
-contactsmember *add_contact_to_service(service *, char *);                                              /* adds a contact to a host definition */
-serviceescalation *add_serviceescalation(char *host_name, char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options);
-contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *, char *);                /* adds a contact group to a service escalation definition */
-contactsmember *add_contact_to_serviceescalation(serviceescalation *, char *);                          /* adds a contact to a service escalation definition */
-customvariablesmember *add_custom_variable_to_service(service *, char *, char *);                       /* adds a custom variable to a service definition */
-servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int failure_options, char *dependency_period);
-hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int failure_options, char *dependency_period);
-hostescalation *add_hostescalation(char *host_name, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options);
-contactsmember *add_contact_to_hostescalation(hostescalation *, char *);                                /* adds a contact to a host escalation definition */
-contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *, char *);                      /* adds a contact group to a host escalation definition */
+struct contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int service_notification_options, int host_notification_options, int service_notifications_enabled, int host_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information, unsigned int minimum_value);
+struct commandsmember *add_service_notification_command_to_contact(contact *, char *);				/* adds a service notification command to a contact definition */
+struct commandsmember *add_host_notification_command_to_contact(contact *, char *);				/* adds a host notification command to a contact definition */
+struct customvariablesmember *add_custom_variable_to_contact(contact *, char *, char *);                       /* adds a custom variable to a service definition */
+struct host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host, unsigned int hourly_value);
+struct hostsmember *add_parent_host_to_host(host *, char *);							/* adds a parent host to a host definition */
+struct servicesmember *add_parent_service_to_service(service *, char *host_name, char *description);
+struct hostsmember *add_child_link_to_host(host *, host *);						       /* adds a child host to a host definition */
+struct contactgroupsmember *add_contactgroup_to_host(host *, char *);					       /* adds a contactgroup to a host definition */
+struct contactsmember *add_contact_to_host(host *, char *);                                                    /* adds a contact to a host definition */
+struct customvariablesmember *add_custom_variable_to_host(host *, char *, char *);                             /* adds a custom variable to a host definition */
+struct timeperiod *add_timeperiod(char *, char *);								/* adds a timeperiod definition */
+struct timeperiodexclusion *add_exclusion_to_timeperiod(timeperiod *, char *);                                 /* adds an exclusion to a timeperiod */
+struct timerange *add_timerange_to_timeperiod(timeperiod *, int, unsigned long, unsigned long);			/* adds a timerange to a timeperiod definition */
+struct daterange *add_exception_to_timeperiod(timeperiod *, int, int, int, int, int, int, int, int, int, int, int, int);
+struct timerange *add_timerange_to_daterange(daterange *, unsigned long, unsigned long);
+struct hostgroup *add_hostgroup(char *, char *, char *, char *, char *);						/* adds a hostgroup definition */
+struct hostsmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host to a hostgroup definition */
+struct servicegroup *add_servicegroup(char *, char *, char *, char *, char *);                                 /* adds a servicegroup definition */
+struct servicesmember *add_service_to_servicegroup(servicegroup *, char *, char *);                            /* adds a service to a servicegroup definition */
+struct contactgroup *add_contactgroup(char *, char *);								/* adds a contactgroup definition */
+struct contactsmember *add_contact_to_contactgroup(contactgroup *, char *);					/* adds a contact to a contact group definition */
+struct command *add_command(char *, char *);									/* adds a command definition */
+struct service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service, unsigned int hourly_value);
+struct contactgroupsmember *add_contactgroup_to_service(service *, char *);					/* adds a contact group to a service definition */
+struct contactsmember *add_contact_to_service(service *, char *);                                              /* adds a contact to a host definition */
+struct serviceescalation *add_serviceescalation(char *host_name, char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options);
+struct contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *, char *);                /* adds a contact group to a service escalation definition */
+struct contactsmember *add_contact_to_serviceescalation(serviceescalation *, char *);                          /* adds a contact to a service escalation definition */
+struct customvariablesmember *add_custom_variable_to_service(service *, char *, char *);                       /* adds a custom variable to a service definition */
+struct servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int failure_options, char *dependency_period);
+struct hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int failure_options, char *dependency_period);
+struct hostescalation *add_hostescalation(char *host_name, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options);
+struct contactsmember *add_contact_to_hostescalation(hostescalation *, char *);                                /* adds a contact to a host escalation definition */
+struct contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *, char *);                      /* adds a contact group to a host escalation definition */
 
-contactsmember *add_contact_to_object(contactsmember **, char *);                                       /* adds a contact to an object */
-customvariablesmember *add_custom_variable_to_object(customvariablesmember **, char *, char *);         /* adds a custom variable to an object */
+struct contactsmember *add_contact_to_object(contactsmember **, char *);                                       /* adds a contact to an object */
+struct customvariablesmember *add_custom_variable_to_object(customvariablesmember **, char *, char *);         /* adds a custom variable to an object */
 
 
-servicesmember *add_service_link_to_host(host *, service *);
+struct servicesmember *add_service_link_to_host(host *, service *);
 
 
 int skiplist_compare_text(const char *val1a, const char *val1b, const char *val2a, const char *val2b);
@@ -796,75 +797,75 @@ int get_service_count(void);
 int create_object_tables(unsigned int *);
 
 /**** Object Search Functions ****/
-timeperiod *find_timeperiod(const char *);						                /* finds a timeperiod object */
-host *find_host(const char *);									/* finds a host object */
-hostgroup *find_hostgroup(const char *);						                /* finds a hostgroup object */
-servicegroup *find_servicegroup(const char *);					                /* finds a servicegroup object */
-contact *find_contact(const char *);							                /* finds a contact object */
-contactgroup *find_contactgroup(const char *);					                /* finds a contactgroup object */
-command *find_command(const char *);							                /* finds a command object */
-service *find_service(const char *, const char *);								/* finds a service object */
+struct timeperiod *find_timeperiod(const char *);
+struct host *find_host(const char *);
+struct hostgroup *find_hostgroup(const char *);
+struct servicegroup *find_servicegroup(const char *);
+struct contact *find_contact(const char *);
+struct contactgroup *find_contactgroup(const char *);
+struct command *find_command(const char *);
+struct service *find_service(const char *, const char *);
 
 
 #define OBJECTLIST_DUPE 1
-int add_object_to_objectlist(objectlist **, void *);
-int prepend_object_to_objectlist(objectlist **, void *);
-int prepend_unique_object_to_objectlist(objectlist **, void *, size_t size);
+int add_object_to_objectlist(struct objectlist **, void *);
+int prepend_object_to_objectlist(struct objectlist **, void *);
+int prepend_unique_object_to_objectlist(struct objectlist **, void *, size_t size);
 int free_objectlist(objectlist **);
 
 
 /**** Object Query Functions ****/
-unsigned int host_services_value(host *h);
-int is_host_immediate_child_of_host(host *, host *);	               /* checks if a host is an immediate child of another host */
-int is_host_primary_immediate_child_of_host(host *, host *);            /* checks if a host is an immediate child (and primary child) of another host */
-int is_host_immediate_parent_of_host(host *, host *);	               /* checks if a host is an immediate child of another host */
-int is_host_member_of_hostgroup(hostgroup *, host *);		       /* tests whether or not a host is a member of a specific hostgroup */
-int is_host_member_of_servicegroup(servicegroup *, host *);	       /* tests whether or not a service is a member of a specific servicegroup */
-int is_service_member_of_servicegroup(servicegroup *, service *);	/* tests whether or not a service is a member of a specific servicegroup */
-int is_contact_member_of_contactgroup(contactgroup *, contact *);	/* tests whether or not a contact is a member of a specific contact group */
-int is_contact_for_host(host *, contact *);			       /* tests whether or not a contact is a contact member for a specific host */
-int is_escalated_contact_for_host(host *, contact *);                   /* checks whether or not a contact is an escalated contact for a specific host */
-int is_contact_for_service(service *, contact *);		       /* tests whether or not a contact is a contact member for a specific service */
-int is_escalated_contact_for_service(service *, contact *);             /* checks whether or not a contact is an escalated contact for a specific service */
-int is_host_immediate_parent_of_host(host *, host *);		       /* tests whether or not a host is an immediate parent of another host */
+unsigned int host_services_value(struct host *h);
+int is_host_immediate_child_of_host(struct host *, struct host *);	               /* checks if a host is an immediate child of another host */
+int is_host_primary_immediate_child_of_host(struct host *, struct host *);            /* checks if a host is an immediate child (and primary child) of another host */
+int is_host_immediate_parent_of_host(struct host *, struct host *);	               /* checks if a host is an immediate child of another host */
+int is_host_member_of_hostgroup(struct hostgroup *, struct host *);		       /* tests whether or not a host is a member of a specific hostgroup */
+int is_host_member_of_servicegroup(struct servicegroup *, struct host *);	       /* tests whether or not a service is a member of a specific servicegroup */
+int is_service_member_of_servicegroup(struct servicegroup *, struct service *);	/* tests whether or not a service is a member of a specific servicegroup */
+int is_contact_member_of_contactgroup(struct contactgroup *, struct contact *);	/* tests whether or not a contact is a member of a specific contact group */
+int is_contact_for_host(struct host *, struct contact *);			       /* tests whether or not a contact is a contact member for a specific host */
+int is_escalated_contact_for_host(struct host *, struct contact *);                   /* checks whether or not a contact is an escalated contact for a specific host */
+int is_contact_for_service(struct service *, struct contact *);		       /* tests whether or not a contact is a contact member for a specific service */
+int is_escalated_contact_for_service(struct service *, struct contact *);             /* checks whether or not a contact is an escalated contact for a specific service */
+int is_host_immediate_parent_of_host(struct host *, struct host *);		       /* tests whether or not a host is an immediate parent of another host */
 
-int number_of_immediate_child_hosts(host *);		                /* counts the number of immediate child hosts for a particular host */
-int number_of_total_child_hosts(host *);				/* counts the number of total child hosts for a particular host */
-int number_of_immediate_parent_hosts(host *);				/* counts the number of immediate parents hosts for a particular host */
+int number_of_immediate_child_hosts(struct host *);		                /* counts the number of immediate child hosts for a particular host */
+int number_of_total_child_hosts(struct host *);				/* counts the number of total child hosts for a particular host */
+int number_of_immediate_parent_hosts(struct host *);				/* counts the number of immediate parents hosts for a particular host */
 
 #ifdef NSCORE
+void fcache_contactlist(FILE *fp, const char *prefix, struct contactsmember *list);
+void fcache_contactgrouplist(FILE *fp, const char *prefix, struct contactgroupsmember *list);
+void fcache_hostlist(FILE *fp, const char *prefix, struct hostsmember *list);
+void fcache_customvars(FILE *fp, struct customvariablesmember *cvlist);
+void fcache_timeperiod(FILE *fp, struct timeperiod *temp_timeperiod);
+void fcache_command(FILE *fp, struct command *temp_command);
+void fcache_contactgroup(FILE *fp, struct contactgroup *temp_contactgroup);
+void fcache_hostgroup(FILE *fp, struct hostgroup *temp_hostgroup);
+void fcache_servicegroup(FILE *fp, struct servicegroup *temp_servicegroup);
+void fcache_contact(FILE *fp, struct contact *temp_contact);
+void fcache_host(FILE *fp, struct host *temp_host);
+void fcache_service(FILE *fp, struct service *temp_service);
+void fcache_servicedependency(FILE *fp, struct servicedependency *temp_servicedependency);
+void fcache_serviceescalation(FILE *fp, struct serviceescalation *temp_serviceescalation);
+void fcache_hostdependency(FILE *fp, struct hostdependency *temp_hostdependency);
+void fcache_hostescalation(FILE *fp, struct hostescalation *temp_hostescalation);
 void fcache_contactlist(FILE *fp, const char *prefix, contactsmember *list);
-void fcache_contactgrouplist(FILE *fp, const char *prefix, contactgroupsmember *list);
-void fcache_hostlist(FILE *fp, const char *prefix, hostsmember *list);
-void fcache_customvars(FILE *fp, customvariablesmember *cvlist);
-void fcache_timeperiod(FILE *fp, timeperiod *temp_timeperiod);
-void fcache_command(FILE *fp, command *temp_command);
-void fcache_contactgroup(FILE *fp, contactgroup *temp_contactgroup);
-void fcache_hostgroup(FILE *fp, hostgroup *temp_hostgroup);
-void fcache_servicegroup(FILE *fp, servicegroup *temp_servicegroup);
-void fcache_contact(FILE *fp, contact *temp_contact);
-void fcache_host(FILE *fp, host *temp_host);
-void fcache_service(FILE *fp, service *temp_service);
-void fcache_servicedependency(FILE *fp, servicedependency *temp_servicedependency);
-void fcache_serviceescalation(FILE *fp, serviceescalation *temp_serviceescalation);
-void fcache_hostdependency(FILE *fp, hostdependency *temp_hostdependency);
-void fcache_hostescalation(FILE *fp, hostescalation *temp_hostescalation);
-void fcache_contactlist(FILE *fp, const char *prefix, contactsmember *list);
-void fcache_contactgrouplist(FILE *fp, const char *prefix, contactgroupsmember *list);
-void fcache_hostlist(FILE *fp, const char *prefix, hostsmember *list);
-void fcache_customvars(FILE *fp, customvariablesmember *cvlist);
-void fcache_timeperiod(FILE *fp, timeperiod *temp_timeperiod);
-void fcache_command(FILE *fp, command *temp_command);
-void fcache_contactgroup(FILE *fp, contactgroup *temp_contactgroup);
-void fcache_hostgroup(FILE *fp, hostgroup *temp_hostgroup);
-void fcache_servicegroup(FILE *fp, servicegroup *temp_servicegroup);
-void fcache_contact(FILE *fp, contact *temp_contact);
-void fcache_host(FILE *fp, host *temp_host);
-void fcache_service(FILE *fp, service *temp_service);
-void fcache_servicedependency(FILE *fp, servicedependency *temp_servicedependency);
-void fcache_serviceescalation(FILE *fp, serviceescalation *temp_serviceescalation);
-void fcache_hostdependency(FILE *fp, hostdependency *temp_hostdependency);
-void fcache_hostescalation(FILE *fp, hostescalation *temp_hostescalation);
+void fcache_contactgrouplist(FILE *fp, const char *prefix, struct contactgroupsmember *list);
+void fcache_hostlist(FILE *fp, const char *prefix, struct hostsmember *list);
+void fcache_customvars(FILE *fp, struct customvariablesmember *cvlist);
+void fcache_timeperiod(FILE *fp, struct timeperiod *temp_timeperiod);
+void fcache_command(FILE *fp, struct command *temp_command);
+void fcache_contactgroup(FILE *fp, struct contactgroup *temp_contactgroup);
+void fcache_hostgroup(FILE *fp, struct hostgroup *temp_hostgroup);
+void fcache_servicegroup(FILE *fp, struct servicegroup *temp_servicegroup);
+void fcache_contact(FILE *fp, struct contact *temp_contact);
+void fcache_host(FILE *fp, struct host *temp_host);
+void fcache_service(FILE *fp, struct service *temp_service);
+void fcache_servicedependency(FILE *fp, struct servicedependency *temp_servicedependency);
+void fcache_serviceescalation(FILE *fp, struct serviceescalation *temp_serviceescalation);
+void fcache_hostdependency(FILE *fp, struct hostdependency *temp_hostdependency);
+void fcache_hostescalation(FILE *fp, struct hostescalation *temp_hostescalation);
 int fcache_objects(char *cache_file);
 #endif
 

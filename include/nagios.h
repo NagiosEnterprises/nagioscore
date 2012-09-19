@@ -223,9 +223,9 @@ extern unsigned long modified_service_process_attributes;
 extern squeue_t *nagios_squeue;
 extern iobroker_set *nagios_iobs;
 
-extern check_stats check_statistics[MAX_CHECK_STATS_TYPES];
+extern struct check_stats check_statistics[MAX_CHECK_STATS_TYPES];
 
-extern notification *notification_list;
+extern struct notify_list *notification_list;
 
 extern struct check_engine nagios_check_engine;
 

@@ -33,7 +33,7 @@
 NAGIOS_BEGIN_DECL
 
 /* SCHEDULED_DOWNTIME_ENTRY structure */
-typedef struct scheduled_downtime_struct {
+typedef struct scheduled_downtime {
 	int type;
 	char *host_name;
 	char *service_description;
@@ -52,13 +52,13 @@ typedef struct scheduled_downtime_struct {
 	int start_flex_downtime;
 	int incremented_pending_downtime;
 #endif
-	struct scheduled_downtime_struct *next;
+	struct scheduled_downtime *next;
 #ifdef NSCORE
-	timed_event *start_event, *stop_event;
+	struct timed_event *start_event, *stop_event;
 #endif
 	} scheduled_downtime;
 
-extern scheduled_downtime *scheduled_downtime_list;
+extern struct scheduled_downtime *scheduled_downtime_list;
 
 
 #ifdef NSCORE
@@ -77,11 +77,11 @@ int schedule_downtime(int, char *, char *, time_t, char *, char *, time_t, time_
 int unschedule_downtime(int, unsigned long);
 
 int register_downtime(int, unsigned long);
-int handle_scheduled_downtime(scheduled_downtime *);
+int handle_scheduled_downtime(struct scheduled_downtime *);
 int handle_scheduled_downtime_by_id(unsigned long);
 
-int check_pending_flex_host_downtime(host *);
-int check_pending_flex_service_downtime(service *);
+int check_pending_flex_host_downtime(struct host *);
+int check_pending_flex_service_downtime(struct service *);
 
 int check_for_expired_downtime(void);
 #endif
@@ -97,9 +97,9 @@ extern int defer_downtime_sorting;
 int add_downtime(int, char *, char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long, int);
 int sort_downtime(void);
 
-scheduled_downtime *find_downtime(int, unsigned long);
-scheduled_downtime *find_host_downtime(unsigned long);
-scheduled_downtime *find_service_downtime(unsigned long);
+struct scheduled_downtime *find_downtime(int, unsigned long);
+struct scheduled_downtime *find_host_downtime(unsigned long);
+struct scheduled_downtime *find_service_downtime(unsigned long);
 
 void free_downtime_data(void);                                       /* frees memory allocated to scheduled downtime list */
 

@@ -63,5 +63,11 @@ versions without the _3x suffix.
 @li run_sync_host_check_3x() is gone. perform_on_demand_host_check(),
 which previously only called run_sync_host_check_3x(), now does
 something sensible instead of calling out to a single helper.
-
+@li Using the 'struct host_struct *foo' form of type-naming has been
+obsoleted and will no longer work. Use 'struct host' instead.
+@li Use of typedef'ed typenames for non-opaque structures is now
+deprecated. The typedef's will be removed in Nagios 5, and modules
+that wish to continue using them after that will have to add them
+themselves. The new preferred form is 'struct host *foo', which
+clearly shows that we're dealing with a non-opaque type.
 */

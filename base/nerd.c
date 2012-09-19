@@ -268,7 +268,7 @@ static int nerd_input_handler(int sd, int events, void *sub_)
 	else if(!strcmp(request, "unsubscribe "))
 		action = NERD_UNSUBSCRIBE;
 	else {
-		dprintf(sd, "Bad request. Do things right or go away\n");
+		nsock_printf(sd, "Bad request. Do things right or go away\n");
 		iobroker_close(nagios_iobs, sd);
 	}
 
@@ -281,7 +281,7 @@ static int nerd_input_handler(int sd, int events, void *sub_)
 
 	chan = find_channel(chan_name);
 	if(!chan) {
-		dprintf(sd, "Invalid request");
+		nsock_printf(sd, "Invalid request");
 		return 0;
 	}
 
@@ -312,7 +312,7 @@ static int nerd_tuneins(int in_sock, int events, void *discard)
 	}
 
 	if(num_subscribers >= max_subscribers) {
-		dprintf(sd, "We're full. Go away\n");
+		nsock_printf(sd, "We're full. Go away\n");
 		close(sd);
 		iobroker_unregister(nagios_iobs, sd);
 	}

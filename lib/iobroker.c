@@ -194,6 +194,13 @@ int iobroker_register(iobroker_set *iobs, int fd, void *arg, int (*handler)(int,
 	if (fd < 0 || fd > iobs->max_fds)
 		return IOBROKER_EINVAL;
 
+	/*
+	 * Re-registering a socket is an error, as multiple input
+	 * handlers for a single socket makes no sense at all
+	 */
+	if (iobs->iobroker_fds[fd] != NULL)
+		return IOBROKER_EALREADY;
+
 #ifdef IOBROKER_USES_EPOLL
 	{
 		struct epoll_event ev;

@@ -28,11 +28,12 @@
 #endif
 
 /** return codes */
-#define IOBROKER_SUCCESS 0
-#define IOBROKER_ENOSET -1
-#define IOBROKER_ENOINIT -2
-#define IOBROKER_ELIB -3
-#define IOBROKER_EINVAL -EINVAL
+#define IOBROKER_SUCCESS    0
+#define IOBROKER_ENOSET   (-1)
+#define IOBROKER_ENOINIT  (-2)
+#define IOBROKER_ELIB     (-3)
+#define IOBROKER_EALREADY (-EALREADY)
+#define IOBROKER_EINVAL   (-EINVAL)
 
 
 /** Flags for iobroker_destroy() */

@@ -7,6 +7,7 @@
 #include <sys/un.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <fcntl.h>
 #include "snprintf.h"
 #include "lnag-utils.h"
 #include "nsock.h"
@@ -60,6 +61,9 @@ int nsock_unix(const char *path, unsigned int mask, unsigned int flags)
 			return NSOCK_EBIND;
 		}
 	}
+
+	if(!(flags & NSOCK_BLOCK) && fcntl(sock, F_SETFL, O_NONBLOCK) < 0)
+		return NSOCK_EFCNTL;
 
 	if(flags & NSOCK_UDP)
 		return sock;

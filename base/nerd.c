@@ -15,7 +15,6 @@
 #include "include/config.h"
 #include <sys/types.h>
 #include <sys/socket.h>
-#include "include/snprintf.h"
 #include "lib/libnagios.h"
 #include "include/common.h"
 #include "include/objects.h"

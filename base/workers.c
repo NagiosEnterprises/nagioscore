@@ -260,7 +260,7 @@ static int handle_worker_check(wproc_result *wpres, worker_process *wp, worker_j
 		cr->return_code = STATE_UNKNOWN;
 	}
 
-	if (wpres->outstd) {
+	if (wpres->outstd && *wpres->outstd) {
 		cr->output = strdup(wpres->outstd);
 	} else if (wpres->outerr) {
 		asprintf(&cr->output, "(No output on stdout) stderr: %s", wpres->outerr);

@@ -93,7 +93,6 @@ int main(int argc, char **argv)
 
 	t_set_colors(0);
 	t_start("dkhash basic test");
-	t_verbose = 1;
 	t = dkhash_create(512);
 
 	p1 = strdup("a not-so secret value");

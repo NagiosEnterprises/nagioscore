@@ -12,6 +12,21 @@
 #include "lnag-utils.h"
 #include "nsock.h"
 
+const char *nsock_strerror(int code)
+{
+	switch (code) {
+	case NSOCK_EBIND: return "bind() failed";
+	case NSOCK_ELISTEN: return "listen() failed";
+	case NSOCK_ESOCKET: return "socket() failed";
+	case NSOCK_EUNLINK: return "unlink() failed";
+	case NSOCK_ECONNECT: return "connect() failed";
+	case NSOCK_EFCNTL: return "fcntl() failed";
+	case NSOCK_EINVAL: return "Invalid arguments";
+	}
+
+	return "Unknown error";
+}
+
 int nsock_unix(const char *path, unsigned int mask, unsigned int flags)
 {
 	struct sockaddr_un saun;

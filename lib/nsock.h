@@ -19,6 +19,13 @@
 #define NSOCK_BLOCK   (1 << 4)  /**< socket should be in blocking mode */
 
 /**
+ * Grab an error string relating to nsock_unix()
+ * @param code The error code return by the nsock library
+ * @return An error string describing the error
+ */
+extern const char *nsock_strerror(int code);
+
+/**
  * Create or connect to a unix socket
  *
  * @param path The path to connect to or create

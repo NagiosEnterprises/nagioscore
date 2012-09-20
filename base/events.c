@@ -714,7 +714,7 @@ timed_event *schedule_new_event(int event_type, int high_priority, time_t run_ti
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "schedule_new_event()\n");
 
-	new_event = (timed_event *)malloc(sizeof(timed_event));
+	new_event = (timed_event *)calloc(1, sizeof(timed_event));
 	if(new_event != NULL) {
 		new_event->event_type = event_type;
 		new_event->event_data = event_data;
@@ -803,41 +803,41 @@ void remove_event(squeue_t *sq, timed_event *event) {
 	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_REMOVE, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
 #endif
-	if(sq && event)
+	if(!event)
+		return;
+
+	if(sq)
 		squeue_remove(sq, event->sq_event);
+
+	event->sq_event = NULL; /* mark this event as unscheduled */
 	}
 
 
 static int should_run_event(timed_event *temp_event)
 {
 	int run_event = TRUE;	/* default action is to execute the event */
-	int nudge_seconds = 5 + (rand() % 10);
+	int nudge_seconds = 0;
 
 	/* run a few checks before executing a service check... */
 	if(temp_event->event_type == EVENT_SERVICE_CHECK) {
 		service *temp_service = (service *)temp_event->event_data;
 
+		/* forced checks override normal check logic */
+		if((temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION))
+			return TRUE;
+
 		/* don't run a service check if we're already maxed out on the number of parallel service checks...  */
 		if(max_parallel_service_checks != 0 && (currently_running_service_checks >= max_parallel_service_checks)) {
-			temp_service->next_check += nudge_seconds;
-			temp_event->run_time += nudge_seconds;
+			nudge_seconds = ranged_urand(5, 17);
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "\tMax concurrent service checks (%d) has been reached.  Nudging %s:%s by %d seconds...\n", max_parallel_service_checks, temp_service->host_name, temp_service->description, nudge_seconds);
-			reschedule_event(nagios_squeue, temp_event);
-			return 0;
+			run_event = FALSE;
 		}
 
 		/* don't run a service check if active checks are disabled */
 		if(execute_service_checks == FALSE) {
-			temp_service->next_check = temp_service->last_check + (temp_service->check_interval * interval_length) + (rand() % 7);
-			temp_event->run_time = temp_service->next_check;
 			log_debug_info(DEBUGL_EVENTS | DEBUGL_CHECKS, 1, "We're not executing service checks right now, so we'll skip this event.\n");
-			reschedule_event(nagios_squeue, temp_event);
 			run_event = FALSE;
 		}
-
-		/* forced checks override normal check logic */
-		if((temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION))
-			run_event = TRUE;
 
 		/* reschedule the check if we can't run it now */
 		if(run_event == FALSE) {
@@ -876,7 +876,7 @@ static int should_run_event(timed_event *temp_event)
 
 		/* forced checks override normal check logic */
 		if((temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION))
-			run_event = TRUE;
+			return TRUE;
 
 		/* reschedule the host check if we can't run it right now */
 		if(run_event == FALSE) {

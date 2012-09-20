@@ -2220,6 +2220,7 @@ int init_check_result(check_result *info) {
 	info->return_code = 0;
 	info->output = NULL;
 	info->source = NULL;
+	info->engine = NULL;
 
 	return OK;
 	}

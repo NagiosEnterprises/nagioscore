@@ -700,8 +700,9 @@ int init_event_queue(void)
 {
 	unsigned int size;
 
-	size = scheduling_info.total_hosts + scheduling_info.total_services;
-	size += 4096 + (size / 100);
+	size = num_objects.hosts + num_objects.services;
+	if(size < 4096)
+		size = 4096;
 
 	nagios_squeue = squeue_create(size);
 	return 0;

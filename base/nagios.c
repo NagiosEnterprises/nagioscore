@@ -355,8 +355,6 @@ int main(int argc, char **argv, char **env) {
 		/* keep monitoring things until we get a shutdown command */
 		do {
 
-			init_event_queue();
-
 			/* reset program variables */
 			reset_variables();
 
@@ -445,6 +443,8 @@ int main(int argc, char **argv, char **env) {
 				cleanup();
 				exit(ERROR);
 				}
+
+			init_event_queue();
 
 			/* write the objects.cache file */
 			fcache_objects(object_cache_file);

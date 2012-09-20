@@ -1069,7 +1069,6 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 /* schedules an immediate or delayed service check */
 void schedule_service_check(service *svc, time_t check_time, int options) {
 	timed_event *temp_event = NULL;
-	timed_event *new_event = NULL;
 	int use_original_event = TRUE;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "schedule_service_check()\n");
@@ -1135,39 +1134,39 @@ void schedule_service_check(service *svc, time_t check_time, int options) {
 
 	/* schedule a new event */
 	if(use_original_event == FALSE) {
-
-		/* allocate memory for a new event item */
-		new_event = (timed_event *)calloc(1, sizeof(timed_event));
-		if(new_event == NULL) {
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not reschedule check of service '%s' on host '%s'!\n", svc->description, svc->host_name);
-			return;
-			}
-
-		/* make sure we kill off the old event */
+		/* make sure we remove the old event from the queue */
 		if(temp_event) {
 			remove_event(nagios_squeue, temp_event);
-			my_free(temp_event);
 			}
+		else {
+			/* allocate memory for a new event item */
+			temp_event = (timed_event *)calloc(1, sizeof(timed_event));
+			if(temp_event == NULL) {
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not reschedule check of service '%s' on host '%s'!\n", svc->description, svc->host_name);
+				return;
+				}
+			}
+
 		log_debug_info(DEBUGL_CHECKS, 2, "Scheduling new service check event.\n");
 
 		/* set the next service check event and time */
-		svc->next_check_event = new_event;
+		svc->next_check_event = temp_event;
 		svc->next_check = check_time;
 
 		/* save check options for retention purposes */
 		svc->check_options = options;
 
 		/* place the new event in the event queue */
-		new_event->event_type = EVENT_SERVICE_CHECK;
-		new_event->event_data = (void *)svc;
-		new_event->event_args = (void *)NULL;
-		new_event->event_options = options;
-		new_event->run_time = svc->next_check;
-		new_event->recurring = FALSE;
-		new_event->event_interval = 0L;
-		new_event->timing_func = NULL;
-		new_event->compensate_for_time_change = TRUE;
-		reschedule_event(nagios_squeue, new_event);
+		temp_event->event_type = EVENT_SERVICE_CHECK;
+		temp_event->event_data = (void *)svc;
+		temp_event->event_args = (void *)NULL;
+		temp_event->event_options = options;
+		temp_event->run_time = svc->next_check;
+		temp_event->recurring = FALSE;
+		temp_event->event_interval = 0L;
+		temp_event->timing_func = NULL;
+		temp_event->compensate_for_time_change = TRUE;
+		add_event(nagios_squeue, temp_event);
 		}
 
 	else {
@@ -1540,7 +1539,6 @@ int perform_scheduled_host_check(host *hst, int check_options, double latency) {
 /* schedules an immediate or delayed host check */
 void schedule_host_check(host *hst, time_t check_time, int options) {
 	timed_event *temp_event = NULL;
-	timed_event *new_event = NULL;
 	int use_original_event = TRUE;
 
 
@@ -1610,35 +1608,34 @@ void schedule_host_check(host *hst, time_t check_time, int options) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Scheduling new host check event.\n");
 
-		/* allocate memory for a new event item */
-		if((new_event = (timed_event *)calloc(1, sizeof(timed_event))) == NULL) {
+		/* possibly allocate memory for a new event item */
+		if (temp_event) {
+			remove_event(nagios_squeue, temp_event);
+			}
+		else if((temp_event = (timed_event *)calloc(1, sizeof(timed_event))) == NULL) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not reschedule check of host '%s'!\n", hst->name);
 			return;
 			}
 
-		if (temp_event) {
-			remove_event(nagios_squeue, temp_event);
-			my_free(temp_event);
-			}
 
 		/* set the next host check event and time */
-		hst->next_check_event = new_event;
+		hst->next_check_event = temp_event;
 		hst->next_check = check_time;
 
 		/* save check options for retention purposes */
 		hst->check_options = options;
 
 		/* place the new event in the event queue */
-		new_event->event_type = EVENT_HOST_CHECK;
-		new_event->event_data = (void *)hst;
-		new_event->event_args = (void *)NULL;
-		new_event->event_options = options;
-		new_event->run_time = hst->next_check;
-		new_event->recurring = FALSE;
-		new_event->event_interval = 0L;
-		new_event->timing_func = NULL;
-		new_event->compensate_for_time_change = TRUE;
-		reschedule_event(nagios_squeue, new_event);
+		temp_event->event_type = EVENT_HOST_CHECK;
+		temp_event->event_data = (void *)hst;
+		temp_event->event_args = (void *)NULL;
+		temp_event->event_options = options;
+		temp_event->run_time = hst->next_check;
+		temp_event->recurring = FALSE;
+		temp_event->event_interval = 0L;
+		temp_event->timing_func = NULL;
+		temp_event->compensate_for_time_change = TRUE;
+		add_event(nagios_squeue, temp_event);
 		}
 
 	else {

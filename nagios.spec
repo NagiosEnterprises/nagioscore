@@ -126,7 +126,7 @@ find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-ma
 %{__mkdir_p} %{buildroot}%{_datadir}/nagios/images/logos
 
 # Put the new RC script in place
-%{__install} -m 0755 nagios.init %{buildroot}/%{_initrddir}/nagios
+%{__install} -m 0755 daemon-init %{buildroot}/%{_initrddir}/nagios
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/sysconfig/
 %{__install} -m 0644 nagios.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/nagios
 

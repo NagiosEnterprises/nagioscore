@@ -554,8 +554,6 @@ int init_workers(int desired_workers)
 				desired_workers = cpus - desired_workers;
 			}
 		}
-		printf("desired workers: %d; cpu's online: %d; workers: %d\n",
-			   i, cpus, desired_workers);
 	}
 
 	if (workers_alive() == desired_workers)

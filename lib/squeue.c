@@ -116,6 +116,7 @@ squeue_event *squeue_add_tv(squeue_t *q, struct timeval *tv, void *data)
 	if (!pqueue_insert(q, evt))
 		return evt;
 
+	free(evt);
 	return NULL;
 }
 

@@ -522,8 +522,8 @@ int main(int argc, char **argv, char **env) {
 			/* fire up command file worker */
 			launch_command_file_worker();
 
-			/* @TODO: get number of workers from config */
-			init_workers(4);
+			/* initialize check workers */
+			init_workers(num_check_workers);
 
 #ifdef USE_EVENT_BROKER
 			/* send program data to broker */

@@ -41,6 +41,7 @@ char *temp_path = NULL;
 char *check_result_path = NULL;
 char *lock_file = NULL;
 
+int num_check_workers = 0; /* auto-decide */
 char *nagios_user = NULL;
 char *nagios_group = NULL;
 

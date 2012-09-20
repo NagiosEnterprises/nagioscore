@@ -1,6 +1,7 @@
 #ifndef LIBNAGIOS_lnag_utils_h__
 #define LIBNAGIOS_lnag_utils_h__
 
+#include <unistd.h> /* for sysconf() */
 #include <stdlib.h> /* for rand() */
 
 /**
@@ -118,6 +119,40 @@ static inline unsigned int ranged_urand(unsigned int low, unsigned int high)
 	return low + (rand() * (1.0 / (RAND_MAX + 1.0)) * (high - low));
 }
 
+
+#if defined(hpux) || defined(__hpux) || defined(_hpux)
+#  include <sys/pstat.h>
+#endif
+
+/*
+ * By doing this in two steps we can at least get
+ * the function to be somewhat coherent, even
+ * with this disgusting nest of #ifdefs.
+ */
+#ifndef _SC_NPROCESSORS_ONLN
+#  ifdef _SC_NPROC_ONLN
+#    define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
+#  elif defined _SC_CRAY_NCPU
+#    define _SC_NPROCESSORS_ONLN _SC_CRAY_NCPU
+#  endif
+#endif
+
+static inline int online_cpus(void)
+{
+#ifdef _SC_NPROCESSORS_ONLN
+	long ncpus;
+
+	if ((ncpus = (long)sysconf(_SC_NPROCESSORS_ONLN)) > 0)
+		return (int)ncpus;
+#elif defined(hpux) || defined(__hpux) || defined(_hpux)
+	struct pst_dynamic psd;
+
+	if (!pstat_getdynamic(&psd, sizeof(psd), (size_t)1, 0))
+		return (int)psd.psd_proc_cnt;
+#endif
+
+	return 0;
+}
 
 NAGIOS_END_DECL
 

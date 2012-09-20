@@ -43,6 +43,7 @@ extern char *check_result_path;
 extern char *lock_file;
 extern char *object_precache_file;
 
+extern int num_check_workers;
 extern char *nagios_user;
 extern char *nagios_group;
 

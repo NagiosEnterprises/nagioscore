@@ -241,7 +241,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* get the command start time */
 	gettimeofday(&start_time, NULL);
 
-	cr = malloc(sizeof(*cr));
+	cr = calloc(1, sizeof(*cr));
 	if (!cr) {
 		clear_volatile_macros_r(&mac);
 		svc->latency = old_latency;
@@ -2376,7 +2376,7 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 	/* get the command start time */
 	gettimeofday(&start_time, NULL);
 
-	cr = malloc(sizeof(*cr));
+	cr = calloc(1, sizeof(*cr));
 	if (!cr) {
 		clear_volatile_macros_r(&mac);
 		clear_host_macros_r(&mac);

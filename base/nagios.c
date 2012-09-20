@@ -382,6 +382,13 @@ int main(int argc, char **argv, char **env) {
 				exit(ERROR);
 				}
 
+			/*
+			 * Initialize query handler and event subscription service.
+			 * This must be done before modules are initialized, so
+			 * the modules can use our in-core stuff properly
+			 */
+			qh_init(qh_socket_path);
+
 #ifdef USE_EVENT_BROKER
 			/* initialize modules */
 			neb_init_modules();

@@ -44,6 +44,8 @@ extern char *lock_file;
 extern char *object_precache_file;
 
 extern int num_check_workers;
+extern char *qh_socket_path;
+
 extern char *nagios_user;
 extern char *nagios_group;
 
@@ -377,6 +379,17 @@ extern const char *check_result_source(check_result *cr);
 extern int nerd_init(void);
 extern int nerd_mkchan(const char *name, int (*handler)(int, void *), unsigned int callbacks);
 
+/*** Query Handler functions, types and macros*/
+typedef int (*qh_handler)(int, char *, unsigned int);
+
+/* return codes for query_handlers() */
+#define QH_OK        0  /* keep listening */
+#define QH_CLOSE     1  /* we should close the socket */
+#define QH_INVALID   2  /* invalid query. Log and close */
+#define QH_TAKEOVER  3  /* handler will take full control. de-register but don't close */
+extern int qh_init(const char *path);
+extern int qh_deinit(void);
+extern int qh_register_handler(const char *name, unsigned int options, qh_handler handler);
 
 /**** Configuration Functions ****/
 int read_main_config_file(char *);                     		/* reads the main config file (nagios.cfg) */

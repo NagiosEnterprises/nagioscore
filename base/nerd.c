@@ -7,7 +7,6 @@
  *
  * This code uses the eventbroker api to get its data, which means
  * we're finally eating our own dogfood in that respect.
- *
  */
 
 #define _GNU_SOURCE 1
@@ -23,7 +22,6 @@
 #include "include/nebmodules.h"
 #include "include/nebstructs.h"
 
-static unsigned int max_subscribers = 32; /* make this configurable */
 static unsigned int num_subscribers;
 static nebmodule *nerd_mod; /* fake module to get our callbacks accepted */
 static int nerd_sock; /* teehee. nerd-socks :D */
@@ -95,14 +93,17 @@ static int nerd_deregister_channel_callbacks(struct nerd_channel *chan)
 	return 0;
 }
 	
-static int subscribe(int sd, struct nerd_channel *chan, struct subscriber *sub, char *fmt)
+static int subscribe(int sd, struct nerd_channel *chan, char *fmt)
 {
 	struct subscription *subscr;
+	struct subscriber *sub;
 
-	subscr = malloc(sizeof(*subscr));
-	if(!subscr)
+	if(!(sub = calloc(1, sizeof(*sub))))
+		return -1;
+	if(!(subscr = calloc(1, sizeof(*subscr))))
 		return -1;
 
+	sub->sd = sd;
 	subscr->chan = chan;
 	subscr->sub = sub;
 	subscr->format = fmt ? strdup(fmt) : NULL;
@@ -148,17 +149,14 @@ static int cancel_channel_subscription(struct subscription *subscr)
 	return 0;
 }
 
-static int unsubscribe(struct nerd_channel *chan, struct subscriber *sub, const char *fmt)
+static int unsubscribe(int sd, struct nerd_channel *chan, const char *fmt)
 {
 	objectlist *list, *next, *prev;
-
-	if(!sub)
-		return -1;
 
 	for(list = chan->subscriptions; list; list = next) {
 		struct subscription *subscr = (struct subscription *)list->object_ptr;
 		next = list->next;
-		if(subscr->sub != sub || (fmt && !subscr->format) || (!fmt && subscr->format)) {
+		if(subscr->sub->sd != sd || (fmt && !subscr->format) || (!fmt && subscr->format)) {
 			prev = list;
 			continue;
 		}
@@ -224,106 +222,18 @@ static int broadcast(unsigned int chan_id, void *buf, unsigned int len)
 		next = list->next;
 
 		result = send(subscr->sub->sd, buf, len, MSG_NOSIGNAL);
-		if(result < 0 && errno == EPIPE) {
+		if(result < 0) {
+			if (errno == EAGAIN)
+				return 0;
+
 			cancel_subscriber(subscr->sub);
+			return 500;
 		}
 	}
 
 	return 0;
 }
 
-
-#define prefixcmp(buf, find) strncmp(buf, find, strlen(find))
-#define NERD_SUBSCRIBE   0
-#define NERD_UNSUBSCRIBE 1
-static int nerd_input_handler(int sd, int events, void *sub_)
-{
-	struct subscriber *sub = (struct subscriber *)sub_;
-	struct nerd_channel *chan;
-	char request[2048], *chan_name, *fmt;
-	int result, action = NERD_SUBSCRIBE;
-
-	result = recv(sd, request, sizeof(request), MSG_NOSIGNAL);
-	printf("nerd_input(): recv() returned %d: %m\n", result);
-	if(result <= 0) {
-		cancel_subscriber(sub);
-		return 0;
-	}
-	request[result--] = 0;
-	printf("request: %s\n", request);
-	while(request[result] == '\n')
-		request[result--] = 0;
-	if(!result) /* empty request */
-		return 0;
-
-	chan_name = strchr(request, ' ');
-	if(result <= 0 || !chan_name) {
-		iobroker_close(nagios_iobs, sd);
-	}
-
-	*chan_name = 0;
-	chan_name++;
-	if(strcmp(request, "subscribe ") && strcmp(request, "unsubscribe"))
-		action = NERD_SUBSCRIBE;
-	else if(!strcmp(request, "unsubscribe "))
-		action = NERD_UNSUBSCRIBE;
-	else {
-		nsock_printf(sd, "Bad request. Do things right or go away\n");
-		iobroker_close(nagios_iobs, sd);
-	}
-
-	/* might have a format-string */
-	fmt = strchr(chan_name, ':');
-	if(fmt) {
-		*fmt = 0;
-		fmt++;
-	}
-
-	chan = find_channel(chan_name);
-	if(!chan) {
-		nsock_printf(sd, "Invalid request");
-		return 0;
-	}
-
-	if(action == NERD_SUBSCRIBE)
-		subscribe(sd, chan, sub, fmt);
-	else
-		unsubscribe(chan, sub, fmt);
-
-	return 0;
-}
-
-static int nerd_tuneins(int in_sock, int events, void *discard)
-{
-	int sd;
-	struct sockaddr sa;
-	socklen_t slen;
-	struct subscriber *sub;
-
-	sd = accept(in_sock, &sa, &slen);
-	printf("NERD tune-in discovered from %d (%m)\n", sd);
-	printf("num_subscribers: %u; max_subscribers: %u\n",
-		   num_subscribers, max_subscribers);
-
-	if(sd < 0) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to accept() NERD tune-in: %s\n",
-			  strerror(errno));
-		return 0;
-	}
-
-	if(num_subscribers >= max_subscribers) {
-		nsock_printf(sd, "We're full. Go away\n");
-		close(sd);
-		iobroker_unregister(nagios_iobs, sd);
-	}
-
-	sub = calloc(1, sizeof(*sub));
-	num_subscribers++;
-	sub->sd = sd;
-	iobroker_register(nagios_iobs, sd, sub, nerd_input_handler);
-
-	return 0;
-}
 
 static int chan_host_checks(int cb, void *data)
 {
@@ -414,19 +324,65 @@ int nerd_mkchan(const char *name, int (*handler)(int, void *), unsigned int call
 	return num_channels - 1;
 }
 
+#define NERD_SUBSCRIBE   0
+#define NERD_UNSUBSCRIBE 1
+static int nerd_qh_handler(int sd, char *request, unsigned int len)
+{
+	char *chan_name, *fmt;
+	struct nerd_channel *chan;
+	int action;
+
+	printf("Got request '%s'\n", request);
+	while(request[len] == 0 || request[len] == '\n')
+		request[len--] = 0;
+	chan_name = strchr(request, ' ');
+	if(!chan_name)
+		return 400;
+
+	*chan_name = 0;
+	chan_name++;
+	if(strcmp(request, "subscribe ") && strcmp(request, "unsubscribe"))
+		action = NERD_SUBSCRIBE;
+	else if(!strcmp(request, "unsubscribe "))
+		action = NERD_UNSUBSCRIBE;
+	else {
+		return 400;
+	}
+
+	/* might have a format-string */
+	if((fmt = strchr(chan_name, ':')))
+		*(fmt++) = 0;
+
+	chan = find_channel(chan_name);
+	if(!chan) {
+		printf("Failed to find channel %s\n", chan_name);
+		return 400;
+	}
+
+	if(action == NERD_SUBSCRIBE)
+		subscribe(sd, chan, fmt);
+	else
+		unsubscribe(sd, chan, fmt);
+
+	return 0;
+}
+
 /* nebmod_init(), but loaded even if no modules are */
 int nerd_init(void)
 {
 	nerd_mod = calloc(1, sizeof(*nerd_mod));
 	nerd_mod->deinit_func = nerd_deinit;
 
+	if(qh_register_handler("nerd", 0, nerd_qh_handler) < 0) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to register 'nerd' with query handler\n");
+		return ERROR;
+	}
+
 	neb_add_core_module(nerd_mod);
 
-	nerd_sock = nsock_unix("/tmp/nerd.sock", 07, NSOCK_TCP | NSOCK_UNLINK);
-	printf("nsock_unix() returned %d: %m\n", nerd_sock);
-	iobroker_register(nagios_iobs, nerd_sock, NULL, nerd_tuneins);
 	chan_host_checks_id = nerd_mkchan("hostchecks", chan_host_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA));
 	chan_service_checks_id = nerd_mkchan("servicechecks", chan_service_checks, nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
 
+	logit(NSLOG_INFO_MESSAGE, TRUE, "NERD initialized and ready to rock!\n");
 	return 0;
 }

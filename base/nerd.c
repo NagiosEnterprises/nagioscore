@@ -39,7 +39,7 @@ struct subscription {
 };
 
 
-static nebmodule *nerd_mod; /* fake module to get our callbacks accepted */
+static nebmodule nerd_mod; /* fake module to get our callbacks accepted */
 static int nerd_sock; /* teehee. nerd-socks :D */
 static struct nerd_channel **channels;
 static unsigned int num_channels, alloc_channels;
@@ -57,7 +57,6 @@ static struct nerd_channel *find_channel(const char *name)
 			return chan;
 		}
 	}
-
 	return NULL;
 }
 
@@ -66,7 +65,7 @@ static int nerd_register_channel_callbacks(struct nerd_channel *chan)
 	int i;
 
 	for(i = 0; i < chan->num_callbacks; i++) {
-		int result = neb_register_callback(chan->callbacks[i], nerd_mod, 0, chan->handler);
+		int result = neb_register_callback(chan->callbacks[i], &nerd_mod, 0, chan->handler);
 		if(result != 0) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to register callback %d for channel '%s': %d\n",
 				  chan->callbacks[i], chan->name, result);
@@ -359,7 +358,7 @@ static int nerd_deinit(void)
 		}
 		chan->subscriptions = NULL;
 	}
-	free(nerd_mod);
+
 	return 0;
 }
 
@@ -440,15 +439,14 @@ static int nerd_qh_handler(int sd, char *request, unsigned int len)
 /* nebmod_init(), but loaded even if no modules are */
 int nerd_init(void)
 {
-	nerd_mod = calloc(1, sizeof(*nerd_mod));
-	nerd_mod->deinit_func = nerd_deinit;
+	nerd_mod.deinit_func = nerd_deinit;
 
 	if(qh_register_handler("nerd", 0, nerd_qh_handler) < 0) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to register 'nerd' with query handler\n");
 		return ERROR;
 	}
 
-	neb_add_core_module(nerd_mod);
+	neb_add_core_module(&nerd_mod);
 
 	chan_host_checks_id = nerd_mkchan("hostchecks", chan_host_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA));
 	chan_service_checks_id = nerd_mkchan("servicechecks", chan_service_checks, nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));

@@ -2647,7 +2647,6 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 	host *parent_host = NULL;
 	host *master_host = NULL;
 	host *temp_host = NULL;
-	hostdependency *temp_dependency = NULL;
 	objectlist *check_hostlist = NULL;
 	objectlist *hostlist_item = NULL;
 	int parent_state = HOST_UP;
@@ -2967,15 +2966,17 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 					log_debug_info(DEBUGL_CHECKS, 1, "Propagating predictive dependency checks to hosts this one depends on...\n");
 
 					for(list = hst->notify_deps; list; list = list->next) {
-						if(temp_dependency->dependent_host_ptr == hst && temp_dependency->master_host_ptr != NULL) {
-							master_host = (host *)temp_dependency->master_host_ptr;
+						hostdependency *dep = (hostdependency *)list->object_ptr;
+						if(dep->dependent_host_ptr == hst && dep->master_host_ptr != NULL) {
+							master_host = (host *)dep->master_host_ptr;
 							log_debug_info(DEBUGL_CHECKS, 1, "Check of host '%s' queued.\n", master_host->name);
 							add_object_to_objectlist(&check_hostlist, (void *)master_host);
 							}
 						}
 					for(list = hst->exec_deps; list; list = list->next) {
-						if(temp_dependency->dependent_host_ptr == hst && temp_dependency->master_host_ptr != NULL) {
-							master_host = (host *)temp_dependency->master_host_ptr;
+						hostdependency *dep = (hostdependency *)list->object_ptr;
+						if(dep->dependent_host_ptr == hst && dep->master_host_ptr != NULL) {
+							master_host = (host *)dep->master_host_ptr;
 							log_debug_info(DEBUGL_CHECKS, 1, "Check of host '%s' queued.\n", master_host->name);
 							add_object_to_objectlist(&check_hostlist, (void *)master_host);
 							}

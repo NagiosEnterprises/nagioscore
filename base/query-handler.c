@@ -10,6 +10,7 @@ struct query_handler {
 	const char *name; /* also "address" of this handler. Must be unique */
 	unsigned int options;
 	qh_handler handler;
+	struct query_handler *next_qh;
 };
 
 static struct query_handler *qhandlers;
@@ -55,6 +56,10 @@ static int qh_input(int sd, int events, void *ioc_)
 			return 0;
 		}
 
+		/*
+		 * @todo: Stash the iocache and the socket in some
+		 * addressable list so we can release them on deinit
+		 */
 		if(iobroker_register(nagios_iobs, nsd, ioc, qh_input) < 0) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to register query input socket %d with I/O broker: %s\n", nsd, strerror(errno));
 			close(nsd);
@@ -150,6 +155,7 @@ int qh_register_handler(const char *name, unsigned int options, qh_handler handl
 	qh->name = name;
 	qh->handler = handler;
 	qh->options = options;
+	qh->next_qh = qhandlers;
 	qhandlers = qh;
 
 	result = dkhash_insert(qh_table, qh->name, NULL, qh);
@@ -162,6 +168,21 @@ int qh_register_handler(const char *name, unsigned int options, qh_handler handl
 	}
 
 	return 0;
+}
+
+void qh_deinit(const char *path)
+{
+	struct query_handler *qh, *next;
+
+	for(qh = qhandlers; qh; qh = next) {
+		next = qh->next_qh;
+		free(qh);
+	}
+
+	if(!path)
+		return;
+
+	unlink(path);
 }
 
 int qh_init(const char *path)

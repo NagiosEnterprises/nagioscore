@@ -388,7 +388,7 @@ typedef int (*qh_handler)(int, char *, unsigned int);
 #define QH_INVALID   2  /* invalid query. Log and close */
 #define QH_TAKEOVER  3  /* handler will take full control. de-register but don't close */
 extern int qh_init(const char *path);
-extern int qh_deinit(void);
+extern void qh_deinit(const char *path);
 extern int qh_register_handler(const char *name, unsigned int options, qh_handler handler);
 
 /**** Configuration Functions ****/

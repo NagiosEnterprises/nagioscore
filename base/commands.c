@@ -297,7 +297,7 @@ static host *find_host_by_name_or_address(const char *name)
 	if ((h = find_host(name)) || !name)
 		return h;
 
-	for (h = *host_list; h; h = h->next)
+	for (h = host_list ? host_list[0] : NULL; h; h = h->next)
 		if (!strcmp(h->address, name))
 			return h;
 

@@ -317,7 +317,7 @@ int main(void) {
 					}
 
 				printf("<DIV CLASS='data'>Member of</DIV><DIV CLASS='dataTitle'>");
-				for(temp_hostgroup = *hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+				for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 					if(is_host_member_of_hostgroup(temp_hostgroup, temp_host) == TRUE) {
 						if(found == TRUE)
 							printf(", ");
@@ -336,7 +336,7 @@ int main(void) {
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n", temp_host->alias);
 				printf("<DIV CLASS='dataTitle'>(<A HREF='%s?type=%d&host=%s'>%s</a>)</DIV><BR>\n", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_host->name), temp_host->name);
 				printf("<DIV CLASS='data'>Member of</DIV><DIV CLASS='dataTitle'>");
-				for(temp_servicegroup = *servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
+				for(temp_servicegroup = servicegroup_list ? servicegroup_list[0] : NULL; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 					if(is_service_member_of_servicegroup(temp_servicegroup, temp_service) == TRUE) {
 						if(found == TRUE)
 							printf(", ");

@@ -724,7 +724,7 @@ int main(int argc, char **argv) {
 		printf("<select name='rpttimeperiod'>\n");
 		printf("<option value=\"\">None\n");
 		/* check all the time periods... */
-		for(temp_timeperiod = *timeperiod_list; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next)
+		for(temp_timeperiod = timeperiod_list ? timeperiod_list[0] : NULL; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next)
 			printf("<option value=%s>%s\n", escape_string(temp_timeperiod->name), temp_timeperiod->name);
 		printf("</select>\n");
 		printf("</td>\n");
@@ -825,7 +825,7 @@ int main(int argc, char **argv) {
 		printf("<tr><td class='reportSelectSubTitle' valign=center>Hostgroup(s):</td><td align=left valign=center class='reportSelectItem'>\n");
 		printf("<select name='hostgroup'>\n");
 		printf("<option value='all'>** ALL HOSTGROUPS **\n");
-		for(temp_hostgroup = *hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+		for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 			if(is_authorized_for_hostgroup(temp_hostgroup, &current_authdata) == TRUE)
 				printf("<option value='%s'>%s\n", escape_string(temp_hostgroup->group_name), temp_hostgroup->group_name);
 			}
@@ -855,7 +855,7 @@ int main(int argc, char **argv) {
 		printf("<tr><td class='reportSelectSubTitle' valign=center>Host(s):</td><td align=left valign=center class='reportSelectItem'>\n");
 		printf("<select name='host'>\n");
 		printf("<option value='all'>** ALL HOSTS **\n");
-		for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next) {
+		for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
 			if(is_authorized_for_host(temp_host, &current_authdata) == TRUE)
 				printf("<option value='%s'>%s\n", escape_string(temp_host->name), temp_host->name);
 			}
@@ -887,7 +887,7 @@ int main(int argc, char **argv) {
 		printf("<tr><td class='reportSelectSubTitle' valign=center>Servicegroup(s):</td><td align=left valign=center class='reportSelectItem'>\n");
 		printf("<select name='servicegroup'>\n");
 		printf("<option value='all'>** ALL SERVICEGROUPS **\n");
-		for(temp_servicegroup = *servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
+		for(temp_servicegroup = servicegroup_list ? servicegroup_list[0] : NULL; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 			if(is_authorized_for_servicegroup(temp_servicegroup, &current_authdata) == TRUE)
 				printf("<option value='%s'>%s\n", escape_string(temp_servicegroup->group_name), temp_servicegroup->group_name);
 			}
@@ -911,7 +911,7 @@ int main(int argc, char **argv) {
 		printf("hostnames=[\"all\"");
 
 		firsthostpointer = NULL;
-		for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next) {
+		for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
 			if(is_authorized_for_service(temp_service, &current_authdata) == TRUE) {
 				if(!firsthostpointer)
 					firsthostpointer = temp_service->host_name;
@@ -937,7 +937,7 @@ int main(int argc, char **argv) {
 		printf("<tr><td class='reportSelectSubTitle' valign=center>Service(s):</td><td align=left valign=center class='reportSelectItem'>\n");
 		printf("<select name='service' onFocus='document.serviceform.host.value=gethostname(this.selectedIndex);' onChange='document.serviceform.host.value=gethostname(this.selectedIndex);'>\n");
 		printf("<option value='all'>** ALL SERVICES **\n");
-		for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next) {
+		for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
 			if(is_authorized_for_service(temp_service, &current_authdata) == TRUE)
 				printf("<option value='%s'>%s;%s\n", escape_string(temp_service->description), temp_service->host_name, temp_service->description);
 			}
@@ -1624,7 +1624,7 @@ int process_cgivars(void) {
 				break;
 				}
 
-			for(temp_timeperiod = *timeperiod_list; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next) {
+			for(temp_timeperiod = timeperiod_list ? timeperiod_list[0] : NULL; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next) {
 				if(!strcmp(url_encode(temp_timeperiod->name), variables[x])) {
 					current_timeperiod = temp_timeperiod;
 					break;
@@ -2454,7 +2454,7 @@ void create_subject_list(void) {
 		/* we're only displaying a specific host (and summaries for all services associated with it) */
 		if(show_all_hosts == FALSE) {
 			add_subject(HOST_SUBJECT, host_name, NULL);
-			for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next) {
+			for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
 				if(!strcmp(temp_service->host_name, host_name))
 					add_subject(SERVICE_SUBJECT, host_name, temp_service->description);
 				}
@@ -2462,7 +2462,7 @@ void create_subject_list(void) {
 
 		/* we're displaying all hosts */
 		else {
-			for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next)
+			for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next)
 				add_subject(HOST_SUBJECT, temp_host->name, NULL);
 			}
 		}
@@ -2476,7 +2476,7 @@ void create_subject_list(void) {
 
 		/* we're displaying all services */
 		else {
-			for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next)
+			for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next)
 				add_subject(SERVICE_SUBJECT, temp_service->host_name, temp_service->description);
 			}
 		}
@@ -2486,7 +2486,7 @@ void create_subject_list(void) {
 
 		/* we're displaying all hostgroups */
 		if(show_all_hostgroups == TRUE) {
-			for(temp_hostgroup = *hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+			for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 				for(temp_hgmember = temp_hostgroup->members; temp_hgmember != NULL; temp_hgmember = temp_hgmember->next)
 					add_subject(HOST_SUBJECT, temp_hgmember->host_name, NULL);
 				}
@@ -2506,7 +2506,7 @@ void create_subject_list(void) {
 
 		/* we're displaying all servicegroups */
 		if(show_all_servicegroups == TRUE) {
-			for(temp_servicegroup = *servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
+			for(temp_servicegroup = servicegroup_list ? servicegroup_list[0] : NULL; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 				for(temp_sgmember = temp_servicegroup->members; temp_sgmember != NULL; temp_sgmember = temp_sgmember->next) {
 					add_subject(SERVICE_SUBJECT, temp_sgmember->host_name, temp_sgmember->service_description);
 					if(strcmp(last_host_name, temp_sgmember->host_name))
@@ -3414,7 +3414,7 @@ void display_hostgroup_availability(void) {
 
 	/* display data for all hostgroups */
 	else {
-		for(temp_hostgroup = *hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next)
+		for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next)
 			display_specific_hostgroup_availability(temp_hostgroup);
 		}
 
@@ -3558,7 +3558,7 @@ void display_servicegroup_availability(void) {
 
 	/* display data for all servicegroups */
 	else {
-		for(temp_servicegroup = *servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next)
+		for(temp_servicegroup = servicegroup_list ? servicegroup_list[0] : NULL; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next)
 			display_specific_servicegroup_availability(temp_servicegroup);
 		}
 

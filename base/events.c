@@ -80,7 +80,7 @@ void init_timing_loop(void) {
 		gettimeofday(&tv[0], NULL);
 
 	/* get info on service checks to be scheduled */
-	for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
 
 		schedule_check = TRUE;
 
@@ -123,7 +123,7 @@ void init_timing_loop(void) {
 		gettimeofday(&tv[1], NULL);
 
 	/* get info on host checks to be scheduled */
-	for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
 
 		schedule_check = TRUE;
 
@@ -270,7 +270,7 @@ void init_timing_loop(void) {
 
 	/* determine check times for service checks (with interleaving to minimize remote load) */
 	current_interleave_block = 0;
-	for(temp_service = *service_list; temp_service != NULL && scheduling_info.service_interleave_factor > 0;) {
+	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL && scheduling_info.service_interleave_factor > 0;) {
 
 		log_debug_info(DEBUGL_EVENTS, 2, "Current Interleave Block: %d\n", current_interleave_block);
 
@@ -349,7 +349,7 @@ void init_timing_loop(void) {
 		gettimeofday(&tv[4], NULL);
 
 	/* add scheduled service checks to event queue */
-	for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
 
 		/* Nagios XI/NDOUtils MOD */
 		/* update status of all services (scheduled or not) */
@@ -443,7 +443,7 @@ void init_timing_loop(void) {
 
 	/* determine check times for host checks */
 	mult_factor = 0;
-	for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
 
 		log_debug_info(DEBUGL_EVENTS, 2, "Host '%s'\n", temp_host->name);
 
@@ -496,7 +496,7 @@ void init_timing_loop(void) {
 		gettimeofday(&tv[7], NULL);
 
 	/* add scheduled host checks to event queue */
-	for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
 
 		/* Nagios XI/NDOUtils Mod */
 		/* update status of all hosts (scheduled or not) */
@@ -1289,7 +1289,7 @@ void compensate_for_system_time_change(unsigned long last_time, unsigned long cu
 	adjust_squeue_for_time_change(&nagios_squeue, delta);
 
 	/* adjust service timestamps */
-	for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
 
 		adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_service->last_notification);
 		adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_service->last_check);
@@ -1305,7 +1305,7 @@ void compensate_for_system_time_change(unsigned long last_time, unsigned long cu
 		}
 
 	/* adjust host timestamps */
-	for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
 
 		adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_host->last_notification);
 		adjust_timestamp_for_time_change(last_time, current_time, time_difference, &temp_host->last_check);

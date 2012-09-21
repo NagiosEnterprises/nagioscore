@@ -3233,9 +3233,9 @@ void fcache_contact(FILE *fp, contact *temp_contact)
 		fprintf(fp, "\tservice_notification_period\t%s\n", temp_contact->service_notification_period);
 	if(temp_contact->host_notification_period)
 		fprintf(fp, "\thost_notification_period\t%s\n", temp_contact->host_notification_period);
-	fprintf(fp, "\tservice_notification_options\t%s", opts2str(temp_contact->service_notification_options, service_flag_map, 'r'));
+	fprintf(fp, "\tservice_notification_options\t%s\n", opts2str(temp_contact->service_notification_options, service_flag_map, 'r'));
 	fprintf(fp, "\n");
-	fprintf(fp, "\thost_notification_options\t%s", opts2str(temp_contact->host_notification_options, host_flag_map, 'r'));
+	fprintf(fp, "\thost_notification_options\t%s\n", opts2str(temp_contact->host_notification_options, host_flag_map, 'r'));
 	if(temp_contact->service_notification_commands) {
 		fprintf(fp, "\tservice_notification_commands\t");
 		for(list = temp_contact->service_notification_commands; list; list = list->next) {
@@ -3307,14 +3307,14 @@ void fcache_host(FILE *fp, host *temp_host)
 	fprintf(fp, "\tlow_flap_threshold\t%f\n", temp_host->low_flap_threshold);
 	fprintf(fp, "\thigh_flap_threshold\t%f\n", temp_host->high_flap_threshold);
 	fprintf(fp, "\tflap_detection_enabled\t%d\n", temp_host->flap_detection_enabled);
-	fprintf(fp, "\tflap_detection_options\t%s", opts2str(temp_host->flap_detection_options, host_flag_map, 'u'));
+	fprintf(fp, "\tflap_detection_options\t%s\n", opts2str(temp_host->flap_detection_options, host_flag_map, 'u'));
 	fprintf(fp, "\tfreshness_threshold\t%d\n", temp_host->freshness_threshold);
 	fprintf(fp, "\tcheck_freshness\t%d\n", temp_host->check_freshness);
-	fprintf(fp, "\tnotification_options\t%s", opts2str(temp_host->notification_options, host_flag_map, 'r'));
+	fprintf(fp, "\tnotification_options\t%s\n", opts2str(temp_host->notification_options, host_flag_map, 'r'));
 	fprintf(fp, "\tnotifications_enabled\t%d\n", temp_host->notifications_enabled);
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_host->notification_interval);
 	fprintf(fp, "\tfirst_notification_delay\t%f\n", temp_host->first_notification_delay);
-	fprintf(fp, "\tstalking_options\t%s", opts2str(temp_host->stalking_options, host_flag_map, 'u'));
+	fprintf(fp, "\tstalking_options\t%s\n", opts2str(temp_host->stalking_options, host_flag_map, 'u'));
 	fprintf(fp, "\tprocess_perf_data\t%d\n", temp_host->process_performance_data);
 	if(temp_host->icon_image)
 		fprintf(fp, "\ticon_image\t%s\n", temp_host->icon_image);
@@ -3393,14 +3393,14 @@ void fcache_service(FILE *fp, service *temp_service)
 	fprintf(fp, "\tlow_flap_threshold\t%f\n", temp_service->low_flap_threshold);
 	fprintf(fp, "\thigh_flap_threshold\t%f\n", temp_service->high_flap_threshold);
 	fprintf(fp, "\tflap_detection_enabled\t%d\n", temp_service->flap_detection_enabled);
-	fprintf(fp, "\tflap_detection_options\t%s", opts2str(temp_service->flap_detection_options, service_flag_map, 'o'));
+	fprintf(fp, "\tflap_detection_options\t%s\n", opts2str(temp_service->flap_detection_options, service_flag_map, 'o'));
 	fprintf(fp, "\tfreshness_threshold\t%d\n", temp_service->freshness_threshold);
 	fprintf(fp, "\tcheck_freshness\t%d\n", temp_service->check_freshness);
-	fprintf(fp, "\tnotification_options\t%s", opts2str(temp_service->notification_options, service_flag_map, 'r'));
+	fprintf(fp, "\tnotification_options\t%s\n", opts2str(temp_service->notification_options, service_flag_map, 'r'));
 	fprintf(fp, "\tnotifications_enabled\t%d\n", temp_service->notifications_enabled);
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_service->notification_interval);
 	fprintf(fp, "\tfirst_notification_delay\t%f\n", temp_service->first_notification_delay);
-	fprintf(fp, "\tstalking_options\t%s", opts2str(temp_service->stalking_options, service_flag_map, 'o'));
+	fprintf(fp, "\tstalking_options\t%s\n", opts2str(temp_service->stalking_options, service_flag_map, 'o'));
 	fprintf(fp, "\tprocess_perf_data\t%d\n", temp_service->process_performance_data);
 	if(temp_service->icon_image)
 		fprintf(fp, "\ticon_image\t%s\n", temp_service->icon_image);
@@ -3430,7 +3430,7 @@ void fcache_servicedependency(FILE *fp, servicedependency *temp_servicedependenc
 	if(temp_servicedependency->dependency_period)
 		fprintf(fp, "\tdependency_period\t%s\n", temp_servicedependency->dependency_period);
 	fprintf(fp, "\tinherits_parent\t%d\n", temp_servicedependency->inherits_parent);
-	fprintf(fp, "\t%s_failure_options\t%s",
+	fprintf(fp, "\t%s_failure_options\t%s\n",
 	        temp_servicedependency->dependency_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
 	        opts2str(temp_servicedependency->failure_options, service_flag_map, 'o'));
 	fprintf(fp, "\t}\n\n");
@@ -3446,7 +3446,7 @@ void fcache_serviceescalation(FILE *fp, serviceescalation *temp_serviceescalatio
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_serviceescalation->notification_interval);
 	if(temp_serviceescalation->escalation_period)
 		fprintf(fp, "\tescalation_period\t%s\n", temp_serviceescalation->escalation_period);
-	fprintf(fp, "\tescalation_options\t%s", opts2str(temp_serviceescalation->escalation_options, service_flag_map, 'r'));
+	fprintf(fp, "\tescalation_options\t%s\n", opts2str(temp_serviceescalation->escalation_options, service_flag_map, 'r'));
 
 	if(temp_serviceescalation->contacts) {
 		contactsmember *cl;
@@ -3471,7 +3471,7 @@ void fcache_hostdependency(FILE *fp, hostdependency *temp_hostdependency)
 	if(temp_hostdependency->dependency_period)
 		fprintf(fp, "\tdependency_period\t%s\n", temp_hostdependency->dependency_period);
 	fprintf(fp, "\tinherits_parent\t%d\n", temp_hostdependency->inherits_parent);
-	fprintf(fp, "\t%s_failure_options\t%s",
+	fprintf(fp, "\t%s_failure_options\t%s\n",
 			temp_hostdependency->dependency_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
 			opts2str(temp_hostdependency->failure_options, host_flag_map, 'o'));
 	fprintf(fp, "\t}\n\n");
@@ -3486,7 +3486,7 @@ void fcache_hostescalation(FILE *fp, hostescalation *temp_hostescalation)
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_hostescalation->notification_interval);
 	if(temp_hostescalation->escalation_period)
 		fprintf(fp, "\tescalation_period\t%s\n", temp_hostescalation->escalation_period);
-	fprintf(fp, "\tescalation_options\t%s", opts2str(temp_hostescalation->escalation_options, host_flag_map, 'r'));
+	fprintf(fp, "\tescalation_options\t%s\n", opts2str(temp_hostescalation->escalation_options, host_flag_map, 'r'));
 
 	fcache_contactlist(fp, "\tcontacts\t", temp_hostescalation->contacts);
 	fcache_contactgrouplist(fp, "\tcontact_groups\t", temp_hostescalation->contact_groups);

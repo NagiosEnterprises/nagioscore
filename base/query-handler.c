@@ -62,6 +62,7 @@ static int qh_input(int sd, int events, void *ioc_)
 		 */
 		if(iobroker_register(nagios_iobs, nsd, ioc, qh_input) < 0) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to register query input socket %d with I/O broker: %s\n", nsd, strerror(errno));
+			iocache_destroy(ioc);
 			close(nsd);
 			return 0;
 		}

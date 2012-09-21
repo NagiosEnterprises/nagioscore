@@ -5,3 +5,4 @@ test-iobroker
 test-bitmap
 test-dkhash
 wproc
+snprintf.h

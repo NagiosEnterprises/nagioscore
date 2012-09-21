@@ -198,7 +198,7 @@ int qh_init(const char *path)
 
 	if(!path) {
 		/* not configured, so do nothing */
-		logit(NSLOG_INFO_MESSAGE, TRUE, "Query socket not enabled by config\n");
+		logit(NSLOG_INFO_MESSAGE, TRUE, "Query socket not enabled. Set 'query_socket=</path/to/query-socket>' in config (and stop whining, Robin).\n");
 		return 0;
 	}
 

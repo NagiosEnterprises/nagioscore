@@ -127,6 +127,7 @@ int qh_deregister_handler(const char *name)
 int qh_register_handler(const char *name, unsigned int options, qh_handler handler)
 {
 	struct query_handler *qh;
+	int result;
 
 	if(!name || !handler)
 		return -1;
@@ -137,10 +138,12 @@ int qh_register_handler(const char *name, unsigned int options, qh_handler handl
 
 	/* names must be unique */
 	if(qh_find_handler(name)) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: A query handler named '%s' already exists\n", name);
 		return -1;
 	}
 
 	if (!(qh = calloc(1, sizeof(*qh)))) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to allocate memory for query handler '%s'\n", name);
 		return -errno;
 	}
 
@@ -149,9 +152,13 @@ int qh_register_handler(const char *name, unsigned int options, qh_handler handl
 	qh->options = options;
 	qhandlers = qh;
 
-	if(dkhash_insert(qh_table, qh->name, NULL, qh) < 0) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to register query handler '%s': %s\n", name, strerror(errno));
+	result = dkhash_insert(qh_table, qh->name, NULL, qh);
+	if(result < 0) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE,
+			  "Error: Failed to insert query handler '%s' (%p) into hash table %p (%d): %s\n",
+			  name, qh, qh_table, result, strerror(errno));
 		free(qh);
+		return result;
 	}
 
 	return 0;

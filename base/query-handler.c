@@ -91,6 +91,9 @@ static int qh_input(int sd, int events, void *ioc_)
 		 * to the handler
 		 */
 		buf = iocache_use_delim(ioc, "\0", 1, &len);
+		if(!buf)
+			return 0;
+
 		if(*buf != '@') {
 			/* bad request, so nuke the socket */
 			nsock_printf(sd, "400: Bad request");

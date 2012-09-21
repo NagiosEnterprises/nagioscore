@@ -127,14 +127,17 @@ int neb_free_module_list(void) {
 	nebmodule *next_module = NULL;
 	int x = OK;
 
-	for(temp_module = neb_module_list; temp_module;) {
+	for(temp_module = neb_module_list; temp_module; temp_module = next_module) {
 		next_module = temp_module->next;
+
 		my_free(temp_module->filename);
 		my_free(temp_module->args);
 		for(x = 0; x < NEBMODULE_MODINFO_NUMITEMS; x++)
 			my_free(temp_module->info[x]);
-		my_free(temp_module);
-		temp_module = next_module;
+
+		/* don't free core modules */
+		if(temp_module->core_module == FALSE)
+			my_free(temp_module);
 		}
 
 	neb_module_list = NULL;

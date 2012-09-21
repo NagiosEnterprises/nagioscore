@@ -44,6 +44,7 @@ static int nerd_sock; /* teehee. nerd-socks :D */
 static struct nerd_channel **channels;
 static unsigned int num_channels, alloc_channels;
 static unsigned int chan_host_checks_id, chan_service_checks_id;
+static unsigned int chan_opath_checks_id;
 
 
 static struct nerd_channel *find_channel(const char *name)
@@ -254,11 +255,97 @@ static int chan_service_checks(int cb, void *data)
 	return 0;
 }
 
+static char **host_parent_path_cache;
+static const char *host_parent_path(host *leaf, char sep)
+{
+	char *ret;
+	unsigned int len = 0, pos = 0;
+	objectlist *stack = NULL, *list, *next;
+	host *h = leaf;
+
+	if(!h->parent_hosts)
+		return h->name;
+
+	if(!host_parent_path_cache) {
+		host_parent_path_cache = calloc(num_objects.hosts, sizeof(char *));
+	}
+	if(host_parent_path_cache[h->id]) {
+		printf("Found cached path for host '%s'\n", h->name);
+		return host_parent_path_cache[h->id];
+	}
+
+	while(h) {
+		len += strlen(h->name) + 2; /* room for separator */
+		prepend_object_to_objectlist(&stack, h->name);
+		if(h->parent_hosts && h->parent_hosts->host_ptr)
+			h = h->parent_hosts->host_ptr;
+		else
+			break;
+	}
+
+	ret = malloc(len) + 1;
+	for(list = stack; list; list = next) {
+		char *ppart = (char *)list->object_ptr;
+		next = list->next;
+		free(list);
+		ret[pos++] = sep;
+		memcpy(ret + pos, ppart, strlen(ppart));
+		pos += strlen(ppart);
+	}
+	ret[pos++] = 0;
+	host_parent_path_cache[h->id] = ret;
+	return ret;
+}
+
+static int chan_opath_checks(int cb, void *data)
+{
+	const int red = 0xff0000, green = 0xff00, blue = 0xff, pale = 0x555555;
+	unsigned int color;
+	check_result *cr;
+	host *h;
+	const char *name = "_HOST_";
+	char *buf = NULL;
+
+	if(cb == NEBCALLBACK_HOST_CHECK_DATA) {
+		nebstruct_host_check_data *ds = (nebstruct_host_check_data *)data;
+
+		if(ds->type != NEBTYPE_HOSTCHECK_PROCESSED)
+			return 0;
+
+		cr = ds->check_result_ptr;
+		h = ds->object_ptr;
+		color = red | green;
+	} else if(cb == NEBCALLBACK_SERVICE_CHECK_DATA) {
+	   nebstruct_service_check_data *ds = (nebstruct_service_check_data *)data;
+		service *s;
+
+		if(ds->type != NEBTYPE_SERVICECHECK_PROCESSED)
+			return 0;
+		s = (service *)ds->object_ptr;
+		h = s->host_ptr;
+		cr = ds->check_result_ptr;
+		color = (red | green | blue) ^ pale;
+		name = s->description;
+	}
+	asprintf(&buf, "%lu|%s|M|%s/%s|%06X\n", cr->finish_time.tv_sec,
+			 check_result_source(cr), host_parent_path(h, '/'), name, color);
+	broadcast(chan_opath_checks_id, buf, strlen(buf));
+	free(buf);
+	return 0;
+}
+
+
 static int nerd_deinit(void)
 {
 	unsigned int i;
 
 	iobroker_close(nagios_iobs, nerd_sock);
+	if(host_parent_path_cache) {
+		for(i = 0; i < num_objects.hosts; i++) {
+			my_free(host_parent_path_cache[i]);
+		}
+		free(host_parent_path_cache);
+	}
 
 	for(i = 0; i < num_channels; i++) {
 		struct nerd_channel *chan = channels[i];
@@ -365,6 +452,7 @@ int nerd_init(void)
 
 	chan_host_checks_id = nerd_mkchan("hostchecks", chan_host_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA));
 	chan_service_checks_id = nerd_mkchan("servicechecks", chan_service_checks, nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
+	chan_opath_checks_id = nerd_mkchan("opathchecks", chan_opath_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA) | nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
 
 	logit(NSLOG_INFO_MESSAGE, TRUE, "NERD initialized and ready to rock!\n");
 	return 0;

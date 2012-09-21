@@ -29,8 +29,6 @@
 
 extern char            main_config_file[MAX_FILENAME_LENGTH];
 
-extern servicegroup    *servicegroup_list;
-
 extern int             use_authentication;
 extern int             use_ssl_authentication;
 

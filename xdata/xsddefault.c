@@ -385,7 +385,7 @@ int xsddefault_save_status_data(void) {
 
 
 	/* save host status data */
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		fprintf(fp, "hoststatus {\n");
 		fprintf(fp, "\thost_name=%s\n", temp_host->name);
@@ -450,7 +450,7 @@ int xsddefault_save_status_data(void) {
 		}
 
 	/* save service status data */
-	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		fprintf(fp, "servicestatus {\n");
 		fprintf(fp, "\thost_name=%s\n", temp_service->host_name);
@@ -517,7 +517,7 @@ int xsddefault_save_status_data(void) {
 		}
 
 	/* save contact status data */
-	for(temp_contact = contact_list; temp_contact != NULL; temp_contact = temp_contact->next) {
+	for(temp_contact = *contact_list; temp_contact != NULL; temp_contact = temp_contact->next) {
 
 		fprintf(fp, "contactstatus {\n");
 		fprintf(fp, "\tcontact_name=%s\n", temp_contact->name);

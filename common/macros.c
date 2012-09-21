@@ -1098,7 +1098,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			if(mac->x[MACRO_TOTALHOSTSUP] == NULL) {
 
 				/* get host totals */
-				for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
+				for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 					/* filter totals based on contact if necessary */
 					if(mac->contact_ptr != NULL)
@@ -1138,7 +1138,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 				host_problems_unhandled = hosts_down_unhandled + hosts_unreachable_unhandled;
 
 				/* get service totals */
-				for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
+				for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 					/* filter totals based on contact if necessary */
 					if(mac->contact_ptr != NULL)

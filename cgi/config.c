@@ -507,7 +507,7 @@ void display_hosts(void) {
 	printf("</TR>\n");
 
 	/* check all the hosts... */
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) if(((*to_expand) == '\0') || !strcmp(to_expand, temp_host->name)) {
+	for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next) if(((*to_expand) == '\0') || !strcmp(to_expand, temp_host->name)) {
 
 			/* grab macros */
 			grab_host_macros_r(mac, temp_host);
@@ -799,7 +799,7 @@ void display_hostgroups(void) {
 	printf("</TR>\n");
 
 	/* check all the hostgroups... */
-	for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_hostgroup->group_name))) {
+	for(temp_hostgroup = *hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_hostgroup->group_name))) {
 
 			if(odd) {
 				odd = 0;
@@ -874,7 +874,7 @@ void display_servicegroups(void) {
 	printf("</TR>\n");
 
 	/* check all the servicegroups... */
-	for(temp_servicegroup = servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_servicegroup->group_name))) {
+	for(temp_servicegroup = *servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_servicegroup->group_name))) {
 
 			if(odd) {
 				odd = 0;
@@ -960,7 +960,7 @@ void display_contacts(void) {
 	printf("</TR>\n");
 
 	/* check all contacts... */
-	for(temp_contact = contact_list; temp_contact != NULL; temp_contact = temp_contact->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_contact->name))) {
+	for(temp_contact = *contact_list; temp_contact != NULL; temp_contact = temp_contact->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_contact->name))) {
 
 			if(odd) {
 				odd = 0;
@@ -1135,7 +1135,7 @@ void display_contactgroups(void) {
 	printf("</TR>\n");
 
 	/* check all the contact groups... */
-	for(temp_contactgroup = contactgroup_list; temp_contactgroup != NULL; temp_contactgroup = temp_contactgroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_contactgroup->group_name))) {
+	for(temp_contactgroup = *contactgroup_list; temp_contactgroup != NULL; temp_contactgroup = temp_contactgroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_contactgroup->group_name))) {
 
 			if(odd) {
 				odd = 0;
@@ -1243,7 +1243,7 @@ void display_services(void) {
 	printf("</TR>\n");
 
 	/* check all the services... */
-	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next)
+	for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next)
 		if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_service->host_name)) || (!strcmp(to_expand, temp_service->description))) {
 
 			/* grab macros */
@@ -1530,7 +1530,7 @@ void display_timeperiods(void) {
 	printf("</TR>\n");
 
 	/* check all the time periods... */
-	for(temp_timeperiod = timeperiod_list; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_timeperiod->name))) {
+	for(temp_timeperiod = *timeperiod_list; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_timeperiod->name))) {
 
 			if(odd) {
 				odd = 0;
@@ -1707,7 +1707,7 @@ void display_commands(void) {
 	printf("<TR><TH CLASS='data'>Command Name</TH><TH CLASS='data'>Command Line</TH></TR>\n");
 
 	/* check all commands */
-	for(temp_command = command_list; temp_command != NULL; temp_command = temp_command->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_command->name))) {
+	for(temp_command = *command_list; temp_command != NULL; temp_command = temp_command->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_command->name))) {
 
 			if(odd) {
 				odd = 0;
@@ -1796,9 +1796,7 @@ void display_servicedependency(servicedependency *temp_sd)
 	}
 
 void display_servicedependencies(void) {
-	service *s;
-	objectlist *list;
-	unsigned int i, printed = 0;
+	unsigned int i;
 
 	/* see if user is authorized to view hostgroup information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -1827,25 +1825,8 @@ void display_servicedependencies(void) {
 	printf("<TH CLASS='data'>Dependency Failure Options</TH>");
 	printf("</TR>\n");
 
-	/*
-	 * servicedependencies aren't stashed separately, so we must traverse
-	 * all services to find them all, but we can break out early when
-	 * we've found the total number of dependencies.
-	 */
-	for(i = 0; i < num_objects.services; i++) {
-		s = &service_list[i];
-
-		if(printed >= num_objects.servicedependencies)
-			break;
-
-		for(list = s->exec_deps; list; list = list->next) {
-			printed++;
-			display_servicedependency((servicedependency *)list->object_ptr);
-			}
-		for(list = s->notify_deps; list; list = list->next) {
-			printed++;
-			display_servicedependency((servicedependency *)list->object_ptr);
-			}
+	for(i = 0; i < num_objects.servicedependencies; i++) {
+		display_servicedependency(servicedependency_list[i]);
 		}
 
 	printf("</TABLE>\n");
@@ -1866,7 +1847,7 @@ void display_serviceescalations(void) {
 	int odd = 0;
 	char *bg_class = "";
 	int contact = 0;
-	unsigned int i, printed = 0;
+	unsigned int i;
 
 	/* see if user is authorized to view hostgroup information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -1896,107 +1877,92 @@ void display_serviceescalations(void) {
 	printf("</TR>\n");
 
 
-	/*
-	 * Service escalations are only stored with their respective
-	 * services, so parse them all and print them one by one
-	 */
 	for(i = 0; i < num_objects.services; i++) {
-		objectlist *list;
-		service *s = &service_list[i];
-
-		/* break early if we can't possibly find more escalations */
-		if(printed >= num_objects.serviceescalations)
-			break;
-
-		if(*to_expand != '\0' && strcmp(to_expand, s->host_name))
+		temp_se = serviceescalation_list[i];
+		if(*to_expand != '\0' && strcmp(to_expand, temp_se->host_name))
 			continue;
 
-		for(list = s->escalation_list; list; list = list->next) {
-			temp_se = (serviceescalation *)list->object_ptr;
-			printed++;
-
-			if(odd) {
-				odd = 0;
-				bg_class = "dataOdd";
-				}
-			else {
-				odd = 1;
-				bg_class = "dataEven";
-				}
-
-			printf("<TR CLASS='%s'>\n", bg_class);
-
-			printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_se->host_name), html_encode(temp_se->host_name, FALSE));
-
-			printf("<TD CLASS='%s'><A HREF='%s?type=services&expand=%s#%s;", bg_class, CONFIG_CGI, url_encode(temp_se->host_name), url_encode(temp_se->host_name));
-			printf("%s'>%s</A></TD>\n", url_encode(temp_se->description), html_encode(temp_se->description, FALSE));
-
-			printf("<TD CLASS='%s'>", bg_class);
-			contact = 0;
-			for(temp_contactsmember = temp_se->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-				contact++;
-				if(contact > 1)
-					printf(", ");
-				printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactsmember->contact_name), html_encode(temp_contactsmember->contact_name, FALSE));
-				}
-			for(temp_contactgroupsmember = temp_se->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-				contact++;
-				if(contact > 1)
-					printf(", ");
-				printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactgroupsmember->group_name), html_encode(temp_contactgroupsmember->group_name, FALSE));
-				}
-			if(contact == 0)
-				printf("&nbsp;");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>%d</TD>", bg_class, temp_se->first_notification);
-
-			printf("<TD CLASS='%s'>", bg_class);
-			if(temp_se->last_notification == 0)
-				printf("Infinity");
-			else
-				printf("%d", temp_se->last_notification);
-			printf("</TD>\n");
-
-			get_interval_time_string(temp_se->notification_interval, time_string, sizeof(time_string));
-			printf("<TD CLASS='%s'>", bg_class);
-			if(temp_se->notification_interval == 0.0)
-				printf("Notify Only Once (No Re-notification)");
-			else
-				printf("%s", time_string);
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>", bg_class);
-			if(temp_se->escalation_period == NULL)
-				printf("&nbsp;");
-			else
-				printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_se->escalation_period), html_encode(temp_se->escalation_period, FALSE));
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>", bg_class);
-			options = FALSE;
-			if(flag_isset(temp_se->escalation_options, OPT_WARNING) == TRUE) {
-				printf("%sWarning", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(flag_isset(temp_se->escalation_options, OPT_UNKNOWN) == TRUE) {
-				printf("%sUnknown", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(flag_isset(temp_se->escalation_options, OPT_CRITICAL) == TRUE) {
-				printf("%sCritical", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(flag_isset(temp_se->escalation_options, OPT_RECOVERY) == TRUE) {
-				printf("%sRecovery", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(options == FALSE)
-				printf("None");
-			printf("</TD>\n");
-
-			printf("</TR>\n");
+		if(odd) {
+			odd = 0;
+			bg_class = "dataOdd";
 			}
+		else {
+			odd = 1;
+			bg_class = "dataEven";
+			}
+
+		printf("<TR CLASS='%s'>\n", bg_class);
+
+		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_se->host_name), html_encode(temp_se->host_name, FALSE));
+
+		printf("<TD CLASS='%s'><A HREF='%s?type=services&expand=%s#%s;", bg_class, CONFIG_CGI, url_encode(temp_se->host_name), url_encode(temp_se->host_name));
+		printf("%s'>%s</A></TD>\n", url_encode(temp_se->description), html_encode(temp_se->description, FALSE));
+
+		printf("<TD CLASS='%s'>", bg_class);
+		contact = 0;
+		for(temp_contactsmember = temp_se->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+			contact++;
+			if(contact > 1)
+				printf(", ");
+			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactsmember->contact_name), html_encode(temp_contactsmember->contact_name, FALSE));
+			}
+		for(temp_contactgroupsmember = temp_se->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
+			contact++;
+			if(contact > 1)
+				printf(", ");
+			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactgroupsmember->group_name), html_encode(temp_contactgroupsmember->group_name, FALSE));
+			}
+		if(contact == 0)
+			printf("&nbsp;");
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>%d</TD>", bg_class, temp_se->first_notification);
+
+		printf("<TD CLASS='%s'>", bg_class);
+		if(temp_se->last_notification == 0)
+			printf("Infinity");
+		else
+			printf("%d", temp_se->last_notification);
+		printf("</TD>\n");
+
+		get_interval_time_string(temp_se->notification_interval, time_string, sizeof(time_string));
+		printf("<TD CLASS='%s'>", bg_class);
+		if(temp_se->notification_interval == 0.0)
+			printf("Notify Only Once (No Re-notification)");
+		else
+			printf("%s", time_string);
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>", bg_class);
+		if(temp_se->escalation_period == NULL)
+			printf("&nbsp;");
+		else
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_se->escalation_period), html_encode(temp_se->escalation_period, FALSE));
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>", bg_class);
+		options = FALSE;
+		if(flag_isset(temp_se->escalation_options, OPT_WARNING) == TRUE) {
+			printf("%sWarning", (options == TRUE) ? ", " : "");
+			options = TRUE;
+			}
+		if(flag_isset(temp_se->escalation_options, OPT_UNKNOWN) == TRUE) {
+			printf("%sUnknown", (options == TRUE) ? ", " : "");
+			options = TRUE;
+			}
+		if(flag_isset(temp_se->escalation_options, OPT_CRITICAL) == TRUE) {
+			printf("%sCritical", (options == TRUE) ? ", " : "");
+			options = TRUE;
+			}
+		if(flag_isset(temp_se->escalation_options, OPT_RECOVERY) == TRUE) {
+			printf("%sRecovery", (options == TRUE) ? ", " : "");
+			options = TRUE;
+			}
+		if(options == FALSE)
+			printf("None");
+		printf("</TD>\n");
+
+		printf("</TR>\n");
 		}
 
 	printf("</TABLE>\n");
@@ -2060,7 +2026,7 @@ void display_hostdependency(hostdependency *temp_hd)
 	}
 
 void display_hostdependencies(void) {
-	unsigned int i, printed = 0;
+	unsigned int i;
 
 	/* see if user is authorized to view hostdependency information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -2083,23 +2049,9 @@ void display_hostdependencies(void) {
 	printf("<TH CLASS='data'>Dependency Failure Options</TH>");
 	printf("</TR>\n");
 
-	/* print all host's dependencies... */
-	for(i = 0; i < num_objects.hosts; i++) {
-		objectlist *list;
-		host *h = &host_list[i];
-
-		if(printed >= num_objects.hostescalations)
-			break;
-
-		for(list = h->notify_deps; list; list = list->next) {
-			printed++;
-			display_hostdependency((hostdependency *)list->object_ptr);
-			}
-		for(list = h->exec_deps; list; list = list->next) {
-			printed++;
-			display_hostdependency((hostdependency *)list->object_ptr);
-			}
-		}
+	/* print all host dependencies... */
+	for(i = 0; i < num_objects.hostdependencies; i++)
+		display_hostdependency(hostdependency_list[i]);
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
@@ -2119,7 +2071,7 @@ void display_hostescalations(void) {
 	int odd = 0;
 	char *bg_class = "";
 	int contact = 0;
-	unsigned int i, printed = 0;
+	unsigned int i;
 
 	/* see if user is authorized to view hostgroup information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -2144,96 +2096,86 @@ void display_hostescalations(void) {
 	printf("<TH CLASS='data'>Escalation Options</TH>");
 	printf("</TR>\n");
 
-	/* check all the hosts' escalations... */
-	for(i = 0; i < num_objects.hosts; i++) {
-		objectlist *list;
-		host *h = &host_list[i];
-
-		if(printed >= num_objects.hostescalations)
-			break;
-
-		if(*to_expand != '\0' && strcmp(to_expand, h->name))
+	/* print all hostescalations... */
+	for(i = 0; i < num_objects.hostescalations; i++) {
+		temp_he = hostescalation_list[i];
+		if(*to_expand != '\0' && strcmp(to_expand, temp_he->host_name))
 			continue;
 
-		for(list = h->escalation_list; list; list = list->next) {
-			temp_he = (hostescalation *)list->object_ptr;
-			printed++;
-
-			if(odd) {
-				odd = 0;
-				bg_class = "dataOdd";
-				}
-			else {
-				odd = 1;
-				bg_class = "dataEven";
-				}
-
-			printf("<TR CLASS='%s'>\n", bg_class);
-
-			printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_he->host_name), html_encode(temp_he->host_name, FALSE));
-
-			printf("<TD CLASS='%s'>", bg_class);
-			contact = 0;
-			for(temp_contactsmember = temp_he->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-				contact++;
-				if(contact > 1)
-					printf(", ");
-				printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactsmember->contact_name), html_encode(temp_contactsmember->contact_name, FALSE));
-				}
-			for(temp_contactgroupsmember = temp_he->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-				contact++;
-				if(contact > 1)
-					printf(", ");
-				printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactgroupsmember->group_name), html_encode(temp_contactgroupsmember->group_name, FALSE));
-				}
-			if(contact == 0)
-				printf("&nbsp;");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>%d</TD>", bg_class, temp_he->first_notification);
-
-			printf("<TD CLASS='%s'>", bg_class);
-			if(temp_he->last_notification == 0)
-				printf("Infinity");
-			else
-				printf("%d", temp_he->last_notification);
-			printf("</TD>\n");
-
-			get_interval_time_string(temp_he->notification_interval, time_string, sizeof(time_string));
-			printf("<TD CLASS='%s'>", bg_class);
-			if(temp_he->notification_interval == 0.0)
-				printf("Notify Only Once (No Re-notification)");
-			else
-				printf("%s", time_string);
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>", bg_class);
-			if(temp_he->escalation_period == NULL)
-				printf("&nbsp;");
-			else
-				printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_he->escalation_period), html_encode(temp_he->escalation_period, FALSE));
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>", bg_class);
-			options = FALSE;
-			if(flag_isset(temp_he->escalation_options, OPT_DOWN) == TRUE) {
-				printf("%sDown", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(flag_isset(temp_he->escalation_options, OPT_UNREACHABLE) == TRUE) {
-				printf("%sUnreachable", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(flag_isset(temp_he->escalation_options, OPT_RECOVERY) == TRUE) {
-				printf("%sRecovery", (options == TRUE) ? ", " : "");
-				options = TRUE;
-				}
-			if(options == FALSE)
-				printf("None");
-			printf("</TD>\n");
-
-			printf("</TR>\n");
+		if(odd) {
+			odd = 0;
+			bg_class = "dataOdd";
 			}
+		else {
+			odd = 1;
+			bg_class = "dataEven";
+			}
+
+		printf("<TR CLASS='%s'>\n", bg_class);
+
+		printf("<TD CLASS='%s'><A HREF='%s?type=hosts&expand=%s'>%s</A></TD>", bg_class, CONFIG_CGI, url_encode(temp_he->host_name), html_encode(temp_he->host_name, FALSE));
+
+		printf("<TD CLASS='%s'>", bg_class);
+		contact = 0;
+		for(temp_contactsmember = temp_he->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+			contact++;
+			if(contact > 1)
+				printf(", ");
+			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactsmember->contact_name), html_encode(temp_contactsmember->contact_name, FALSE));
+			}
+		for(temp_contactgroupsmember = temp_he->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
+			contact++;
+			if(contact > 1)
+				printf(", ");
+			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactgroupsmember->group_name), html_encode(temp_contactgroupsmember->group_name, FALSE));
+			}
+		if(contact == 0)
+			printf("&nbsp;");
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>%d</TD>", bg_class, temp_he->first_notification);
+
+		printf("<TD CLASS='%s'>", bg_class);
+		if(temp_he->last_notification == 0)
+			printf("Infinity");
+		else
+			printf("%d", temp_he->last_notification);
+		printf("</TD>\n");
+
+		get_interval_time_string(temp_he->notification_interval, time_string, sizeof(time_string));
+		printf("<TD CLASS='%s'>", bg_class);
+		if(temp_he->notification_interval == 0.0)
+			printf("Notify Only Once (No Re-notification)");
+		else
+			printf("%s", time_string);
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>", bg_class);
+		if(temp_he->escalation_period == NULL)
+			printf("&nbsp;");
+		else
+			printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_he->escalation_period), html_encode(temp_he->escalation_period, FALSE));
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>", bg_class);
+		options = FALSE;
+		if(flag_isset(temp_he->escalation_options, OPT_DOWN) == TRUE) {
+			printf("%sDown", (options == TRUE) ? ", " : "");
+			options = TRUE;
+			}
+		if(flag_isset(temp_he->escalation_options, OPT_UNREACHABLE) == TRUE) {
+			printf("%sUnreachable", (options == TRUE) ? ", " : "");
+			options = TRUE;
+			}
+		if(flag_isset(temp_he->escalation_options, OPT_RECOVERY) == TRUE) {
+			printf("%sRecovery", (options == TRUE) ? ", " : "");
+			options = TRUE;
+			}
+		if(options == FALSE)
+			printf("None");
+		printf("</TD>\n");
+
+		printf("</TR>\n");
 		}
 
 	printf("</TABLE>\n");
@@ -2338,7 +2280,7 @@ void display_command_expansion(void) {
 		printf("\n</TD></TR>\n");
 
 		/* check all commands */
-		for(temp_command = command_list; temp_command != NULL; temp_command = temp_command->next) {
+		for(temp_command = *command_list; temp_command != NULL; temp_command = temp_command->next) {
 
 			if(!strcmp(temp_command->name, command_args[0])) {
 

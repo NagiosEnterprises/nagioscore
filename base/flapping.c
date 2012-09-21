@@ -489,9 +489,9 @@ void enable_flap_detection_routines(void) {
 
 	/* check for flapping */
 	for(i = 0; i < num_objects.hosts; i++)
-		check_for_host_flapping(&host_list[i], FALSE, FALSE, TRUE);
+		check_for_host_flapping(host_list[i], FALSE, FALSE, TRUE);
 	for(i = 0; i < num_objects.services; i++)
-		check_for_service_flapping(&service_list[i], FALSE, TRUE);
+		check_for_service_flapping(service_list[i], FALSE, TRUE);
 
 	}
 
@@ -525,9 +525,9 @@ void disable_flap_detection_routines(void) {
 
 	/* handle the details... */
 	for(i = 0; i < num_objects.hosts; i++)
-		handle_host_flap_detection_disabled(&host_list[i]);
+		handle_host_flap_detection_disabled(host_list[i]);
 	for(i = 0; i < num_objects.services; i++)
-		handle_service_flap_detection_disabled(&service_list[i]);
+		handle_service_flap_detection_disabled(service_list[i]);
 
 	return;
 	}

@@ -1480,7 +1480,7 @@ int pre_flight_object_check(int *w, int *e) {
 		errors++;
 		}
 	total_objects = 0;
-	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = *service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		total_objects++;
 
@@ -1567,7 +1567,7 @@ int pre_flight_object_check(int *w, int *e) {
 		}
 
 	total_objects = 0;
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		total_objects++;
 
@@ -1693,7 +1693,7 @@ int pre_flight_object_check(int *w, int *e) {
 	/*****************************************/
 	if(verify_config)
 		printf("Checking host groups...\n");
-	for(temp_hostgroup = hostgroup_list, total_objects = 0; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next, total_objects++) {
+	for(temp_hostgroup = *hostgroup_list, total_objects = 0; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next, total_objects++) {
 
 		/* check all group members */
 		for(temp_hostsmember = temp_hostgroup->members; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
@@ -1730,7 +1730,7 @@ int pre_flight_object_check(int *w, int *e) {
 	/*****************************************/
 	if(verify_config)
 		printf("Checking service groups...\n");
-	for(temp_servicegroup = servicegroup_list, total_objects = 0; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next, total_objects++) {
+	for(temp_servicegroup = *servicegroup_list, total_objects = 0; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next, total_objects++) {
 
 		/* check all group members */
 		for(temp_servicesmember = temp_servicegroup->members; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
@@ -1772,7 +1772,7 @@ int pre_flight_object_check(int *w, int *e) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: There are no contacts defined!");
 		errors++;
 		}
-	for(temp_contact = contact_list, total_objects = 0; temp_contact != NULL; temp_contact = temp_contact->next, total_objects++) {
+	for(temp_contact = *contact_list, total_objects = 0; temp_contact != NULL; temp_contact = temp_contact->next, total_objects++) {
 
 		/* check service notification commands */
 		if(temp_contact->service_notification_commands == NULL) {
@@ -1865,7 +1865,7 @@ int pre_flight_object_check(int *w, int *e) {
 	/*****************************************/
 	if(verify_config)
 		printf("Checking contact groups...\n");
-	for(temp_contactgroup = contactgroup_list, total_objects = 0; temp_contactgroup != NULL; temp_contactgroup = temp_contactgroup->next, total_objects++) {
+	for(temp_contactgroup = *contactgroup_list, total_objects = 0; temp_contactgroup != NULL; temp_contactgroup = temp_contactgroup->next, total_objects++) {
 
 		/* check all the group members */
 		for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
@@ -1903,7 +1903,7 @@ int pre_flight_object_check(int *w, int *e) {
 	if(verify_config)
 		printf("Checking commands...\n");
 
-	for(temp_command = command_list, total_objects = 0; temp_command != NULL; temp_command = temp_command->next, total_objects++) {
+	for(temp_command = *command_list, total_objects = 0; temp_command != NULL; temp_command = temp_command->next, total_objects++) {
 
 		/* check for illegal characters in command name */
 		if(use_precached_objects == FALSE) {
@@ -1925,7 +1925,7 @@ int pre_flight_object_check(int *w, int *e) {
 	if(verify_config)
 		printf("Checking time periods...\n");
 
-	for(temp_timeperiod = timeperiod_list, total_objects = 0; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next, total_objects++) {
+	for(temp_timeperiod = *timeperiod_list, total_objects = 0; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next, total_objects++) {
 
 		/* check for illegal characters in timeperiod name */
 		if(use_precached_objects == FALSE) {
@@ -2174,7 +2174,7 @@ int pre_flight_circular_check(int *w, int *e) {
 	if(verify_config)
 		printf("Checking for circular paths between hosts...\n");
 
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = *host_list; temp_host != NULL; temp_host = temp_host->next) {
 		dfs_host_path(ary[0], temp_host, &errors);
 		}
 
@@ -2189,7 +2189,7 @@ int pre_flight_circular_check(int *w, int *e) {
 	for (i = 0; i < ARRAY_SIZE(ary); i++)
 		memset(ary[i], 0, alloc);
 	for(i = 0; i < num_objects.servicedependencies; i++) {
-		temp_sd = &servicedependency_list[i];
+		temp_sd = servicedependency_list[i];
 		dep_type = temp_sd->dependency_type;
 		/*
 		 * this shouldn't happen, but it can in case dependencies are
@@ -2206,7 +2206,7 @@ int pre_flight_circular_check(int *w, int *e) {
 	for (i = 0; i < ARRAY_SIZE(ary); i++)
 		memset(ary[i], 0, alloc);
 	for(i = 0; i < num_objects.hostdependencies; i++) {
-		temp_hd = &hostdependency_list[i];
+		temp_hd = hostdependency_list[i];
 		dep_type = temp_hd->dependency_type;
 		/* see above */
 		if(dep_type < 1 || dep_type > ARRAY_SIZE(ary))

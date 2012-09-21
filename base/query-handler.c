@@ -13,7 +13,7 @@ struct query_handler {
 };
 
 static struct query_handler *qhandlers;
-static int qh_listen_sock; /* the listening socket */
+static int qh_listen_sock = -1; /* the listening socket */
 static unsigned int qh_running;
 unsigned int qh_max_running = 0; /* defaults to unlimited */
 static dkhash_table *qh_table;
@@ -164,8 +164,11 @@ int qh_init(const char *path)
 	if(qh_listen_sock >= 0)
 		iobroker_close(nagios_iobs, qh_listen_sock);
 
-	if(!path) /* not configured, so do nothing */
+	if(!path) {
+		/* not configured, so do nothing */
+		logit(NSLOG_INFO_MESSAGE, TRUE, "Query socket not enabled by config\n");
 		return 0;
+	}
 
 	errno = 0;
 	qh_listen_sock = nsock_unix(path, 022, NSOCK_TCP | NSOCK_UNLINK);

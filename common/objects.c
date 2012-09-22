@@ -3021,7 +3021,7 @@ int free_object_data(void) {
 		}
 
 	/* reset pointers */
-	my_free(hostescalation_list);
+	my_free(hostescalation_ary);
 
 	/* we no longer have any objects */
 	memset(&num_objects, 0, sizeof(num_objects));

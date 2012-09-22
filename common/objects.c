@@ -901,30 +901,36 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 
 
 
-/* add a new contactgroup to a host */
-contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name) {
-	contactgroupsmember *new_contactgroupsmember = NULL;
+static contactgroupsmember *add_contactgroup_to_object(contactgroupsmember **cg_list, const char *group_name) {
+	contactgroupsmember *cgm;
 	contactgroup *cg;
 
-	/* make sure we have the data we need */
-	if(!(cg = find_contactgroup(group_name))) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact group '%s' specified for host '%s' is not defined anywhere!\n",
-			  group_name, hst->name);
+	if(!group_name || !*group_name) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact name is NULL\n");
 		return NULL;
 		}
-
-	/* allocate memory for a new member */
-	if((new_contactgroupsmember = calloc(1, sizeof(contactgroupsmember))) == NULL)
+	if(!(cg = find_contactgroup(group_name))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contactgroup '%s' is not defined anywhere\n", group_name);
 		return NULL;
+		}
+	if(!(cgm = malloc(sizeof(*cgm)))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not allocate memory for contactgroup\n");
+		return NULL;
+		}
+	cgm->group_name = cg->group_name;
+#ifndef NSCGI
+	cgm->group_ptr = cg;
+#endif
+	cgm->next = *cg_list;
+	*cg_list = cgm;
 
-	/* assign vars. Object names are immutable, so no need to copy */
-	new_contactgroupsmember->group_name = cg->group_name;
+	return cgm;
+	}
 
-	/* add the new member to the head of the member list */
-	new_contactgroupsmember->next = hst->contact_groups;
-	hst->contact_groups = new_contactgroupsmember;;
 
-	return new_contactgroupsmember;
+/* add a new contactgroup to a host */
+contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name) {
+	return add_contactgroup_to_object(&hst->contact_groups, group_name);
 	}
 
 
@@ -1639,28 +1645,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 
 /* adds a contact group to a service */
 contactgroupsmember *add_contactgroup_to_service(service *svc, char *group_name) {
-	contactgroupsmember *new_contactgroupsmember = NULL;
-	contactgroup *cg;
-
-	/* bail out if we weren't given the data we need */
-	if(!(cg = find_contactgroup(group_name))) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact group '%s' specified for service '%s' on host '%s' is not defined anywhere!\n",
-			  group_name, svc->description, svc->host_name);
-		return NULL;
-		}
-
-	/* allocate memory for the contactgroups member */
-	if((new_contactgroupsmember = calloc(1, sizeof(contactgroupsmember))) == NULL)
-		return NULL;
-
-	/* assign vars. Object names are immutable, so no need to copy */
-	new_contactgroupsmember->group_name = cg->group_name;
-
-	/* add this contactgroup to the service */
-	new_contactgroupsmember->next = svc->contact_groups;
-	svc->contact_groups = new_contactgroupsmember;
-
-	return new_contactgroupsmember;
+	return add_contactgroup_to_object(&svc->contact_groups, group_name);
 	}
 
 
@@ -1793,35 +1778,7 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 
 /* adds a contact group to a service escalation */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se, char *group_name) {
-	contactgroupsmember *new_contactgroupsmember = NULL;
-	contactgroup *cg;
-
-	/* bail out if we weren't given the data we need */
-	if(se == NULL || group_name == NULL || !*group_name) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service escalation or contactgroup name is NULL\n");
-		return NULL;
-		}
-	if (!(cg = find_contactgroup(group_name))) {
-		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact group '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere\n",
-			  group_name, se->description, se->host_name);
-		return NULL;
-		}
-
-	/* allocate memory for the contactgroups member */
-	if((new_contactgroupsmember = (contactgroupsmember *)calloc(1, sizeof(contactgroupsmember))) == NULL)
-		return NULL;
-
-	/* assign vars. Object names are immutable, so no need to copy */
-	new_contactgroupsmember->group_name = cg->group_name;
-#ifndef NSCGI
-	new_contactgroupsmember->group_ptr = cg;
-#endif
-
-	/* add this contactgroup to the service escalation */
-	new_contactgroupsmember->next = se->contact_groups;
-	se->contact_groups = new_contactgroupsmember;
-
-	return new_contactgroupsmember;
+	return add_contactgroup_to_object(&se->contact_groups, group_name);
 	}
 
 
@@ -2016,32 +1973,7 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 
 /* adds a contact group to a host escalation */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he, char *group_name) {
-	contactgroupsmember *new_contactgroupsmember = NULL;
-	contactgroup *cg;
-
-	/* bail out if we weren't given the data we need */
-	if(he == NULL || group_name == NULL || !*group_name) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host escalation or contactgroup name is NULL\n");
-		return NULL;
-		}
-	if(!(cg = find_contactgroup(group_name))) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to locate contactgroup '%s' specified for hostescalation for host '%s'\n",
-			  group_name, he->host_name);
-		return NULL;
-		}
-
-	/* allocate memory for the contactgroups member */
-	if((new_contactgroupsmember = (contactgroupsmember *)calloc(1, sizeof(contactgroupsmember))) == NULL)
-		return NULL;
-
-	/* assign vars. Object names are immutable, so no need to copy */
-	new_contactgroupsmember->group_name = cg->group_name;
-
-	/* add this contactgroup to the host escalation */
-	new_contactgroupsmember->next = he->contact_groups;
-	he->contact_groups = new_contactgroupsmember;
-
-	return new_contactgroupsmember;
+	return add_contactgroup_to_object(&he->contact_groups, group_name);
 	}
 
 

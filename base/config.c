@@ -1437,7 +1437,6 @@ int pre_flight_object_check(int *w, int *e) {
 	commandsmember *temp_commandsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 	contactsmember *temp_contactsmember = NULL;
-	contactgroupsmember *temp_contactgroupsmember = NULL;
 	host *temp_host = NULL;
 	host *temp_host2 = NULL;
 	hostsmember *temp_hostsmember = NULL;
@@ -1481,8 +1480,6 @@ int pre_flight_object_check(int *w, int *e) {
 		}
 	total_objects = 0;
 	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
-		contactgroupsmember *cgm;
-		contactsmember *cm;
 
 		total_objects++;
 
@@ -1533,23 +1530,6 @@ int pre_flight_object_check(int *w, int *e) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service '%s' on host '%s' is not a valid parent for service '%s' on host '%s'\n",
 					  sm->host_name, sm->service_description,
 					  temp_service->host_name, temp_service->description);
-				errors++;
-				}
-			}
-
-		for(cgm = temp_service->contact_groups; cgm; cgm = cgm->next) {
-			cgm->group_ptr = find_contactgroup(cgm->group_name);
-			if(cgm->group_ptr == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contactgroup '%s' on service '%s;%s' could not be found\n",
-					  cgm->group_name, temp_service->host_name, temp_service->description);
-				errors++;
-				}
-			}
-		for(cm = temp_service->contacts; cm; cm = cm->next) {
-			cm->contact_ptr = find_contact(cm->contact_name);
-			if(cm->contact_ptr == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact '%s' on service '%s;%s' could not be found\n",
-					  cm->contact_name, temp_service->host_name, temp_service->description);
 				errors++;
 				}
 			}
@@ -1624,35 +1604,6 @@ int pre_flight_object_check(int *w, int *e) {
 
 			/* save the pointer to the check timeperiod for later */
 			temp_host->check_period_ptr = temp_timeperiod;
-			}
-
-		/* check all contacts */
-		for(temp_contactsmember = temp_host->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-
-			temp_contact = find_contact(temp_contactsmember->contact_name);
-
-			if(temp_contact == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact '%s' specified in host '%s' is not defined anywhere!", temp_contactsmember->contact_name, temp_host->name);
-				errors++;
-				}
-
-			/* save the contact pointer for later */
-			temp_contactsmember->contact_ptr = temp_contact;
-			}
-
-		/* check all contact groups */
-		for(temp_contactgroupsmember = temp_host->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-
-			temp_contactgroup = find_contactgroup(temp_contactgroupsmember->group_name);
-
-			if(temp_contactgroup == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact group '%s' specified in host '%s' is not defined anywhere!", temp_contactgroupsmember->group_name, temp_host->name);
-				errors++;
-				}
-
-			temp_contactgroupsmember->group_name = temp_contactgroup->group_name;
-			/* save the contact group pointer for later */
-			temp_contactgroupsmember->group_ptr = temp_contactgroup;
 			}
 
 		/* check to see if there is at least one contact/group */

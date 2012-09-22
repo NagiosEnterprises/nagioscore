@@ -293,7 +293,7 @@ int xrddefault_save_state_information(void) {
 	fprintf(fp, "}\n");
 
 	/* save host state information */
-	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		fprintf(fp, "host {\n");
 		fprintf(fp, "host_name=%s\n", temp_host->name);
@@ -362,7 +362,7 @@ int xrddefault_save_state_information(void) {
 		}
 
 	/* save service state information */
-	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		fprintf(fp, "service {\n");
 		fprintf(fp, "host_name=%s\n", temp_service->host_name);
@@ -434,7 +434,7 @@ int xrddefault_save_state_information(void) {
 		}
 
 	/* save contact state information */
-	for(temp_contact = contact_list ? contact_list[0] : NULL; temp_contact != NULL; temp_contact = temp_contact->next) {
+	for(temp_contact = contact_list; temp_contact != NULL; temp_contact = temp_contact->next) {
 
 		fprintf(fp, "contact {\n");
 		fprintf(fp, "contact_name=%s\n", temp_contact->name);

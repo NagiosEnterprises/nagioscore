@@ -576,7 +576,7 @@ int main(int argc, char **argv) {
 		printf("<tr><td class='reportSelectSubTitle' valign=center>Limit To Hostgroup:</td><td align=left valign=center class='reportSelectItem'>\n");
 		printf("<select name='hostgroup'>\n");
 		printf("<option value='all'>** ALL HOSTGROUPS **\n");
-		for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+		for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 			if(is_authorized_for_hostgroup(temp_hostgroup, &current_authdata) == TRUE)
 				printf("<option value='%s'>%s\n", escape_string(temp_hostgroup->group_name), temp_hostgroup->group_name);
 			}
@@ -586,7 +586,7 @@ int main(int argc, char **argv) {
 		printf("<tr><td class='reportSelectSubTitle' valign=center>Limit To Servicegroup:</td><td align=left valign=center class='reportSelectItem'>\n");
 		printf("<select name='servicegroup'>\n");
 		printf("<option value='all'>** ALL SERVICEGROUPS **\n");
-		for(temp_servicegroup = servicegroup_list ? servicegroup_list[0] : NULL; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
+		for(temp_servicegroup = servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 			if(is_authorized_for_servicegroup(temp_servicegroup, &current_authdata) == TRUE)
 				printf("<option value='%s'>%s\n", escape_string(temp_servicegroup->group_name), temp_servicegroup->group_name);
 			}
@@ -597,7 +597,7 @@ int main(int argc, char **argv) {
 		printf("<select name='host'>\n");
 		printf("<option value='all'>** ALL HOSTS **\n");
 
-		for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
+		for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 			if(is_authorized_for_host(temp_host, &current_authdata) == TRUE)
 				printf("<option value='%s'>%s\n", escape_string(temp_host->name), temp_host->name);
 			}
@@ -1974,7 +1974,7 @@ void display_hostgroup_alert_totals(void) {
 	if(show_all_hostgroups == FALSE)
 		display_specific_hostgroup_alert_totals(target_hostgroup);
 	else {
-		for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next)
+		for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next)
 			display_specific_hostgroup_alert_totals(temp_hostgroup);
 		}
 
@@ -2140,7 +2140,7 @@ void display_host_alert_totals(void) {
 	if(show_all_hosts == FALSE)
 		display_specific_host_alert_totals(target_host);
 	else {
-		for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next)
+		for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next)
 			display_specific_host_alert_totals(temp_host);
 		}
 
@@ -2308,7 +2308,7 @@ void display_servicegroup_alert_totals(void) {
 	if(show_all_servicegroups == FALSE)
 		display_specific_servicegroup_alert_totals(target_servicegroup);
 	else {
-		for(temp_servicegroup = servicegroup_list ? servicegroup_list[0] : NULL; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next)
+		for(temp_servicegroup = servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next)
 			display_specific_servicegroup_alert_totals(temp_servicegroup);
 		}
 
@@ -2481,7 +2481,7 @@ void display_service_alert_totals(void) {
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<DIV ALIGN=CENTER CLASS='dataSubTitle'>Totals By Service</DIV>\n");
 
-	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next)
+	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next)
 		display_specific_service_alert_totals(temp_service);
 
 	printf("</DIV>\n");

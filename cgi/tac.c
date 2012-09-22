@@ -871,7 +871,7 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts) {
 
 
 	/* find all child hosts of this host */
-	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		/* skip this host if it is not a child */
 		if(is_host_immediate_child_of_host(hst, temp_host) == FALSE)

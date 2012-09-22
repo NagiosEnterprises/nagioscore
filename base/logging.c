@@ -254,7 +254,7 @@ int log_host_states(int type, time_t *timestamp) {
 	if(type == INITIAL_STATES && log_initial_states == FALSE)
 		return OK;
 
-	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		asprintf(&temp_buffer, "%s HOST STATE: %s;%s;%s;%d;%s\n", (type == INITIAL_STATES) ? "INITIAL" : "CURRENT",
 				 temp_host->name,
@@ -282,7 +282,7 @@ int log_service_states(int type, time_t *timestamp) {
 	if(type == INITIAL_STATES && log_initial_states == FALSE)
 		return OK;
 
-	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		/* find the associated host */
 		if((temp_host = temp_service->host_ptr) == NULL)

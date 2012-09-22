@@ -37,7 +37,7 @@ static contact *find_contact_by_name_or_alias(const char *name)
 
 	if (!name || !(c = find_contact(name)))
 		return c;
-	for (c = contact_list ? contact_list[0] : NULL; c; c = c->next)
+	for (c = contact_list; c; c = c->next)
 		if (!strcmp(c->alias, name))
 			break;
 

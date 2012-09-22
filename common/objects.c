@@ -46,18 +46,28 @@
  */
 dkhash_table *object_hash_tables[NUM_OBJECT_SKIPLISTS];
 
-command **command_list = NULL;
-timeperiod **timeperiod_list = NULL;
-host **host_list = NULL;
-service **service_list = NULL;
-contact **contact_list = NULL;
-hostgroup **hostgroup_list = NULL;
-servicegroup **servicegroup_list = NULL;
-contactgroup **contactgroup_list = NULL;
-hostescalation **hostescalation_list = NULL;
-serviceescalation **serviceescalation_list = NULL;
-hostdependency **hostdependency_list = NULL;
-servicedependency **servicedependency_list = NULL;
+command *command_list = NULL;
+timeperiod *timeperiod_list = NULL;
+host *host_list = NULL;
+service *service_list = NULL;
+contact *contact_list = NULL;
+hostgroup *hostgroup_list = NULL;
+servicegroup *servicegroup_list = NULL;
+contactgroup *contactgroup_list = NULL;
+hostescalation *hostescalation_list = NULL;
+serviceescalation *serviceescalation_list = NULL;
+command **command_ary = NULL;
+timeperiod **timeperiod_ary = NULL;
+host **host_ary = NULL;
+service **service_ary = NULL;
+contact **contact_ary = NULL;
+hostgroup **hostgroup_ary = NULL;
+servicegroup **servicegroup_ary = NULL;
+contactgroup **contactgroup_ary = NULL;
+hostescalation **hostescalation_ary = NULL;
+serviceescalation **serviceescalation_ary = NULL;
+hostdependency **hostdependency_ary = NULL;
+servicedependency **servicedependency_ary = NULL;
 
 #ifdef NSCORE
 int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
@@ -163,36 +173,47 @@ static void post_process_object_config(void) {
 	objectlist *list;
 	unsigned int i, slot;
 
-	if(hostdependency_list)
-		free(hostdependency_list);
-	if(servicedependency_list)
-		free(servicedependency_list);
+	if(hostdependency_ary)
+		free(hostdependency_ary);
+	if(servicedependency_ary)
+		free(servicedependency_ary);
 
-	hostdependency_list = calloc(num_objects.hostdependencies, sizeof(void *));
-	servicedependency_list = calloc(num_objects.servicedependencies, sizeof(void *));
+	hostdependency_ary = calloc(num_objects.hostdependencies, sizeof(void *));
+	servicedependency_ary = calloc(num_objects.servicedependencies, sizeof(void *));
 
 	slot = 0;
 	for(i = 0; slot < num_objects.servicedependencies && i < num_objects.services; i++) {
-		service *s = service_list[i];
+		service *s = service_ary[i];
 		for(list = s->notify_deps; list; list = list->next)
-			servicedependency_list[slot++] = (servicedependency *)list->object_ptr;
+			servicedependency_ary[slot++] = (servicedependency *)list->object_ptr;
 		for(list = s->exec_deps; list; list = list->next)
-			servicedependency_list[slot++] = (servicedependency *)list->object_ptr;
+			servicedependency_ary[slot++] = (servicedependency *)list->object_ptr;
 	}
-	qsort(servicedependency_list, num_objects.servicedependencies, sizeof(servicedependency *), cmp_sdep);
+	qsort(servicedependency_ary, num_objects.servicedependencies, sizeof(servicedependency *), cmp_sdep);
 	timing_point("Done post-processing servicedependencies\n");
 
 	slot = 0;
 	for(i = 0; slot < num_objects.hostdependencies && i < num_objects.hosts; i++) {
-		host *h = host_list[i];
+		host *h = host_ary[i];
 		for(list = h->notify_deps; list; list = list->next)
-			hostdependency_list[slot++] = (hostdependency *)list->object_ptr;
+			hostdependency_ary[slot++] = (hostdependency *)list->object_ptr;
 		for(list = h->exec_deps; list; list = list->next)
-			hostdependency_list[slot++] = (hostdependency *)list->object_ptr;
+			hostdependency_ary[slot++] = (hostdependency *)list->object_ptr;
 	}
 
-	qsort(hostdependency_list, num_objects.hostdependencies, sizeof(hostdependency *), cmp_hdep);
+	qsort(hostdependency_ary, num_objects.hostdependencies, sizeof(hostdependency *), cmp_hdep);
 	timing_point("Done post-processing host dependencies\n");
+
+	timeperiod_list = timeperiod_ary ? *timeperiod_ary : NULL;
+	command_list = command_ary ? *command_ary : NULL;
+	hostgroup_list = hostgroup_ary ? *hostgroup_ary : NULL;
+	contactgroup_list = contactgroup_ary ? *contactgroup_ary : NULL;
+	servicegroup_list = servicegroup_ary ? *servicegroup_ary : NULL;
+	contact_list = contact_ary ? *contact_ary : NULL;
+	host_list = host_ary ? *host_ary : NULL;
+	service_list = service_ary ? *service_ary : NULL;
+	hostescalation_list = hostescalation_ary ? *hostescalation_ary : NULL;
+	serviceescalation_list = serviceescalation_ary ? *serviceescalation_ary : NULL;
 }
 #endif
 
@@ -322,7 +343,7 @@ static int create_object_table(const char *name, unsigned int elems, unsigned in
 }
 
 #define mktable(name, id) \
-	create_object_table(#name, ocount[id], sizeof(name), (void **)&name##_list)
+	create_object_table(#name, ocount[id], sizeof(name *), (void **)&name##_ary)
 
 /* ocount is an array with NUM_OBJECT_TYPES members */
 int create_object_tables(unsigned int *ocount)
@@ -420,8 +441,8 @@ timeperiod *add_timeperiod(char *name, char *alias) {
 
 	new_timeperiod->id = num_objects.timeperiods++;
 	if(new_timeperiod->id)
-		timeperiod_list[new_timeperiod->id - 1]->next = new_timeperiod;
-	timeperiod_list[new_timeperiod->id] = new_timeperiod;
+		timeperiod_ary[new_timeperiod->id - 1]->next = new_timeperiod;
+	timeperiod_ary[new_timeperiod->id] = new_timeperiod;
 	return new_timeperiod;
 	}
 
@@ -759,9 +780,9 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		}
 
 	new_host->id = num_objects.hosts++;
-	host_list[new_host->id] = new_host;
+	host_ary[new_host->id] = new_host;
 	if(new_host->id)
-		host_list[new_host->id - 1]->next = new_host;
+		host_ary[new_host->id - 1]->next = new_host;
 	return new_host;
 	}
 
@@ -981,9 +1002,9 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 		}
 
 	new_hostgroup->id = num_objects.hostgroups++;
-	hostgroup_list[new_hostgroup->id] = new_hostgroup;
+	hostgroup_ary[new_hostgroup->id] = new_hostgroup;
 	if(new_hostgroup->id)
-		hostgroup_list[new_hostgroup->id - 1]->next = new_hostgroup;
+		hostgroup_ary[new_hostgroup->id - 1]->next = new_hostgroup;
 	return new_hostgroup;
 	}
 
@@ -1101,9 +1122,9 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 		}
 
 	new_servicegroup->id = num_objects.servicegroups++;
-	servicegroup_list[new_servicegroup->id] = new_servicegroup;
+	servicegroup_ary[new_servicegroup->id] = new_servicegroup;
 	if(new_servicegroup->id)
-		servicegroup_list[new_servicegroup->id - 1]->next = new_servicegroup;
+		servicegroup_ary[new_servicegroup->id - 1]->next = new_servicegroup;
 	return new_servicegroup;
 	}
 
@@ -1277,9 +1298,9 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 		}
 
 	new_contact->id = num_objects.contacts++;
-	contact_list[new_contact->id] = new_contact;
+	contact_ary[new_contact->id] = new_contact;
 	if(new_contact->id)
-		contact_list[new_contact->id - 1]->next = new_contact;
+		contact_ary[new_contact->id - 1]->next = new_contact;
 	return new_contact;
 	}
 
@@ -1410,9 +1431,9 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 		}
 
 	new_contactgroup->id = num_objects.contactgroups++;
-	contactgroup_list[new_contactgroup->id] = new_contactgroup;
+	contactgroup_ary[new_contactgroup->id] = new_contactgroup;
 	if(new_contactgroup->id)
-		contactgroup_list[new_contactgroup->id - 1]->next = new_contactgroup;
+		contactgroup_ary[new_contactgroup->id - 1]->next = new_contactgroup;
 	return new_contactgroup;
 	}
 
@@ -1608,9 +1629,9 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	add_service_link_to_host(h, new_service);
 
 	new_service->id = num_objects.services++;
-	service_list[new_service->id] = new_service;
+	service_ary[new_service->id] = new_service;
 	if(new_service->id)
-		service_list[new_service->id - 1]->next = new_service;
+		service_ary[new_service->id - 1]->next = new_service;
 	return new_service;
 	}
 
@@ -1708,9 +1729,9 @@ command *add_command(char *name, char *value) {
 		}
 
 	new_command->id = num_objects.commands++;
-	command_list[new_command->id] = new_command;
+	command_ary[new_command->id] = new_command;
 	if(new_command->id)
-		command_list[new_command->id - 1]->next = new_command;
+		command_ary[new_command->id - 1]->next = new_command;
 	return new_command;
 	}
 
@@ -1764,7 +1785,7 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	new_serviceescalation->escalation_options = escalation_options;
 
 	new_serviceescalation->id = num_objects.serviceescalations++;
-	serviceescalation_list[new_serviceescalation->id] = new_serviceescalation;
+	serviceescalation_ary[new_serviceescalation->id] = new_serviceescalation;
 	return new_serviceescalation;
 	}
 
@@ -1987,7 +2008,7 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	new_hostescalation->escalation_options = escalation_options;
 
 	new_hostescalation->id = num_objects.hostescalations++;
-	hostescalation_list[new_hostescalation->id] = new_hostescalation;
+	hostescalation_ary[new_hostescalation->id] = new_hostescalation;
 	return new_hostescalation;
 	}
 
@@ -2616,7 +2637,7 @@ int free_object_data(void) {
 
 	/**** free memory for the timeperiod list ****/
 	for (i = 0; i < num_objects.timeperiods; i++) {
-		timeperiod *this_timeperiod = timeperiod_list[i];
+		timeperiod *this_timeperiod = timeperiod_ary[i];
 
 		/* free the exception time ranges contained in this timeperiod */
 		for(x = 0; x < DATERANGE_TYPES; x++) {
@@ -2653,12 +2674,12 @@ int free_object_data(void) {
 		}
 
 	/* reset pointers */
-	my_free(timeperiod_list);
+	my_free(timeperiod_ary);
 
 
 	/**** free memory for the host list ****/
 	for (i = 0; i < num_objects.hosts; i++) {
-		host *this_host = host_list[i];
+		host *this_host = host_ary[i];
 
 		/* free memory for parent hosts */
 		this_hostsmember = this_host->parent_hosts;
@@ -2741,12 +2762,12 @@ int free_object_data(void) {
 		}
 
 	/* reset pointers */
-	my_free(host_list);
+	my_free(host_ary);
 
 
 	/**** free memory for the host group list ****/
 	for (i = 0; i < num_objects.hostgroups; i++) {
-		hostgroup *this_hostgroup = hostgroup_list[i];
+		hostgroup *this_hostgroup = hostgroup_ary[i];
 
 		/* free memory for the group members */
 		this_hostsmember = this_hostgroup->members;
@@ -2766,11 +2787,11 @@ int free_object_data(void) {
 		}
 
 	/* reset pointers */
-	my_free(hostgroup_list);
+	my_free(hostgroup_ary);
 
 	/**** free memory for the service group list ****/
 	for (i = 0; i < num_objects.servicegroups; i++) {
-		servicegroup *this_servicegroup = servicegroup_list[i];
+		servicegroup *this_servicegroup = servicegroup_ary[i];
 
 		/* free memory for the group members */
 		this_servicesmember = this_servicegroup->members;
@@ -2791,12 +2812,12 @@ int free_object_data(void) {
 		}
 
 	/* reset pointers */
-	my_free(servicegroup_list);
+	my_free(servicegroup_ary);
 
 	/**** free memory for the contact list ****/
 	for (i = 0; i < num_objects.contacts; i++) {
 		int j;
-		contact *this_contact = contact_list[i];
+		contact *this_contact = contact_ary[i];
 
 		/* free memory for the host notification commands */
 		this_commandsmember = this_contact->host_notification_commands;
@@ -2842,12 +2863,12 @@ int free_object_data(void) {
 		}
 
 	/* reset pointers */
-	my_free(contact_list);
+	my_free(contact_ary);
 
 
 	/**** free memory for the contact group list ****/
 	for (i = 0; i < num_objects.contactgroups; i++) {
-		contactgroup *this_contactgroup = contactgroup_list[i];
+		contactgroup *this_contactgroup = contactgroup_ary[i];
 
 		/* free memory for the group members */
 		this_contactsmember = this_contactgroup->members;
@@ -2864,12 +2885,12 @@ int free_object_data(void) {
 		}
 
 	/* reset pointers */
-	my_free(contactgroup_list);
+	my_free(contactgroup_ary);
 
 
 	/**** free memory for the service list ****/
 	for (i = 0; i < num_objects.services; i++) {
-		service *this_service = service_list[i];
+		service *this_service = service_ary[i];
 
 		/* free memory for contact groups */
 		this_contactgroupsmember = this_service->contact_groups;
@@ -2924,24 +2945,24 @@ int free_object_data(void) {
 		}
 
 	/* reset pointers */
-	my_free(service_list);
+	my_free(service_ary);
 
 
 	/**** free command memory ****/
 	for (i = 0; i < num_objects.commands; i++) {
-		command *this_command = command_list[i];
+		command *this_command = command_ary[i];
 		my_free(this_command->name);
 		my_free(this_command->command_line);
 		my_free(this_command);
 		}
 
 	/* reset pointers */
-	my_free(command_list);
+	my_free(command_ary);
 
 
 	/**** free service escalation memory ****/
 	for (i = 0; i < num_objects.serviceescalations; i++) {
-		serviceescalation *this_serviceescalation = serviceescalation_list[i];
+		serviceescalation *this_serviceescalation = serviceescalation_ary[i];
 
 		/* free memory for the contact group members */
 		this_contactgroupsmember = this_serviceescalation->contact_groups;
@@ -2962,24 +2983,24 @@ int free_object_data(void) {
 		}
 
 	/* reset pointers */
-	my_free(serviceescalation_list);
+	my_free(serviceescalation_ary);
 
 
 	/**** free service dependency memory ****/
 	for(i = 0; i < num_objects.servicedependencies; i++)
-		my_free(servicedependency_list[i]);
-	my_free(servicedependency_list);
+		my_free(servicedependency_ary[i]);
+	my_free(servicedependency_ary);
 
 
 	/**** free host dependency memory ****/
 	for(i = 0; i < num_objects.hostdependencies; i++)
-		my_free(hostdependency_list[i]);
-	my_free(hostdependency_list);
+		my_free(hostdependency_ary[i]);
+	my_free(hostdependency_ary);
 
 
 	/**** free host escalation memory ****/
 	for (i = 0; i < num_objects.hostescalations; i++) {
-		hostescalation *this_hostescalation = hostescalation_list[i];
+		hostescalation *this_hostescalation = hostescalation_ary[i];
 
 		/* free memory for the contact group members */
 		this_contactgroupsmember = this_hostescalation->contact_groups;
@@ -3525,51 +3546,51 @@ int fcache_objects(char *cache_file) {
 
 	/* cache timeperiods */
 	for(i = 0; i < num_objects.timeperiods; i++)
-		fcache_timeperiod(fp, timeperiod_list[i]);
+		fcache_timeperiod(fp, timeperiod_ary[i]);
 
 	/* cache commands */
 	for(i = 0; i < num_objects.commands; i++)
-		fcache_command(fp, command_list[i]);
+		fcache_command(fp, command_ary[i]);
 
 	/* cache contactgroups */
 	for(i = 0; i < num_objects.contactgroups; i++)
-		fcache_contactgroup(fp, contactgroup_list[i]);
+		fcache_contactgroup(fp, contactgroup_ary[i]);
 
 	/* cache hostgroups */
 	for(i = 0; i < num_objects.hostgroups; i++)
-		fcache_hostgroup(fp, hostgroup_list[i]);
+		fcache_hostgroup(fp, hostgroup_ary[i]);
 
 	/* cache servicegroups */
 	for(i = 0; i < num_objects.servicegroups; i++)
-		fcache_servicegroup(fp, servicegroup_list[i]);
+		fcache_servicegroup(fp, servicegroup_ary[i]);
 
 	/* cache contacts */
 	for(i = 0; i < num_objects.contacts; i++)
-		fcache_contact(fp, contact_list[i]);
+		fcache_contact(fp, contact_ary[i]);
 
 	/* cache hosts */
 	for(i = 0; i < num_objects.hosts; i++)
-		fcache_host(fp, host_list[i]);
+		fcache_host(fp, host_ary[i]);
 
 	/* cache services */
 	for(i = 0; i < num_objects.services; i++)
-		fcache_service(fp, service_list[i]);
+		fcache_service(fp, service_ary[i]);
 
 	/* cache service dependencies */
 	for(i = 0; i < num_objects.servicedependencies; i++)
-		fcache_servicedependency(fp, servicedependency_list[i]);
+		fcache_servicedependency(fp, servicedependency_ary[i]);
 
 	/* cache service escalations */
 	for(i = 0; i < num_objects.serviceescalations; i++)
-		fcache_serviceescalation(fp, serviceescalation_list[i]);
+		fcache_serviceescalation(fp, serviceescalation_ary[i]);
 
 	/* cache host dependencies */
 	for(i = 0; i < num_objects.hostdependencies; i++)
-		fcache_hostdependency(fp, hostdependency_list[i]);
+		fcache_hostdependency(fp, hostdependency_ary[i]);
 
 	/* cache host escalations */
 	for(i = 0; i < num_objects.hostescalations; i++)
-		fcache_hostescalation(fp, hostescalation_list[i]);
+		fcache_hostescalation(fp, hostescalation_ary[i]);
 
 	fclose(fp);
 

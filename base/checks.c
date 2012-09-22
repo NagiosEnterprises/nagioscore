@@ -1317,7 +1317,7 @@ void check_for_orphaned_services(void) {
 	time(&current_time);
 
 	/* check all services... */
-	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		/* skip services that are not currently executing */
 		if(temp_service->is_executing == FALSE)
@@ -1371,7 +1371,7 @@ void check_service_result_freshness(void) {
 	time(&current_time);
 
 	/* check all services... */
-	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		/* skip services we shouldn't be checking for freshness */
 		if(temp_service->check_freshness == FALSE)
@@ -1719,7 +1719,7 @@ void check_for_orphaned_hosts(void) {
 	time(&current_time);
 
 	/* check all hosts... */
-	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		/* skip hosts that don't have a set check interval (on-demand checks are missed by the orphan logic) */
 		if(temp_host->next_check == (time_t)0L)
@@ -1777,7 +1777,7 @@ void check_host_result_freshness(void) {
 	time(&current_time);
 
 	/* check all hosts... */
-	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		/* skip hosts we shouldn't be checking for freshness */
 		if(temp_host->check_freshness == FALSE)

@@ -550,7 +550,7 @@ void display_quick_stats(void) {
 	printf("</p>\n");
 
 	/* check all hosts */
-	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 			continue;
@@ -570,7 +570,7 @@ void display_quick_stats(void) {
 		}
 
 	/* check all services */
-	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		if(is_authorized_for_service(temp_service, &current_authdata) == FALSE)
 			continue;
@@ -632,7 +632,7 @@ void display_hostgroup_overview(void) {
 	printf("<b><anchor title='Status Overview'>Status Overview<go href='%s' method='post'><postfield name='hostgroup' value='%s'/><postfield name='style' value='summary'/></go></anchor></b><br/><br/>\n", STATUSWML_CGI, escape_string(hostgroup_name));
 
 	/* check all hostgroups */
-	for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+	for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 
 		if(show_all_hostgroups == FALSE && strcmp(temp_hostgroup->group_name, hostgroup_name))
 			continue;
@@ -715,7 +715,7 @@ void display_hostgroup_summary(void) {
 	printf("<b><anchor title='Status Summary'>Status Summary<go href='%s' method='post'><postfield name='hostgroup' value='%s'/><postfield name='style' value='overview'/></go></anchor></b><br/><br/>\n", STATUSWML_CGI, escape_string(hostgroup_name));
 
 	/* check all hostgroups */
-	for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+	for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 
 		if(show_all_hostgroups == FALSE && strcmp(temp_hostgroup->group_name, hostgroup_name))
 			continue;
@@ -762,7 +762,7 @@ void display_hostgroup_summary(void) {
 				hosts_up++;
 
 			/* check all services on this host */
-			for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
+			for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 				if(strcmp(temp_service->host_name, temp_host->name))
 					continue;
@@ -1015,7 +1015,7 @@ void display_host_services(void) {
 	printf("<table columns='2' align='LL'>\n");
 
 	/* check all services */
-	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		if(strcmp(temp_service->host_name, host_name))
 			continue;

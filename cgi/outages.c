@@ -576,7 +576,7 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts, int *affect
 
 
 	/* find all child hosts of this host */
-	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
+	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		/* skip this host if it is not a child */
 		if(is_host_immediate_child_of_host(hst, temp_host) == FALSE)
@@ -632,7 +632,7 @@ int number_of_host_services(host *hst) {
 	service *temp_service;
 
 	/* check all services */
-	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next) {
+	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		if(!strcmp(temp_service->host_name, hst->name))
 			total_services++;

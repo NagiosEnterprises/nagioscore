@@ -269,7 +269,7 @@ int main(void) {
 			}
 		else {
 			if((temp_host = find_host(host_name)) == NULL) {
-				for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
+				for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 					if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 						continue;
 					if(!strcmp(host_name, temp_host->address)) {
@@ -279,7 +279,7 @@ int main(void) {
 						}
 					}
 				if(temp_host == NULL) {
-					for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) {
+					for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 						if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 							continue;
 						if((strstr(temp_host->name, host_name) == temp_host->name) || !strncasecmp(temp_host->name, host_name, strlen(host_name))) {
@@ -2410,7 +2410,7 @@ void show_servicegroup_overviews(void) {
 		current_column = 1;
 
 		/* loop through all servicegroups... */
-		for(temp_servicegroup = servicegroup_list ? servicegroup_list[0] : NULL; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
+		for(temp_servicegroup = servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 
 			/* make sure the user is authorized to view at least one host in this servicegroup */
 			if(is_authorized_for_servicegroup(temp_servicegroup, &current_authdata) == FALSE)
@@ -2612,7 +2612,7 @@ void show_servicegroup_summaries(void) {
 	if(show_all_servicegroups == TRUE) {
 
 		/* loop through all servicegroups... */
-		for(temp_servicegroup = servicegroup_list ? servicegroup_list[0] : NULL; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
+		for(temp_servicegroup = servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 
 			/* make sure the user is authorized to view at least one host in this servicegroup */
 			if(is_authorized_for_servicegroup(temp_servicegroup, &current_authdata) == FALSE)
@@ -3177,7 +3177,7 @@ void show_servicegroup_grids(void) {
 	if(show_all_servicegroups == TRUE) {
 
 		/* loop through all servicegroups... */
-		for(temp_servicegroup = servicegroup_list ? servicegroup_list[0] : NULL; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
+		for(temp_servicegroup = servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 
 			/* make sure the user is authorized to view at least one host in this servicegroup */
 			if(is_authorized_for_servicegroup(temp_servicegroup, &current_authdata) == FALSE)
@@ -3468,7 +3468,7 @@ void show_hostgroup_overviews(void) {
 		current_column = 1;
 
 		/* loop through all hostgroups... */
-		for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+		for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 
 			/* make sure the user is authorized to view this hostgroup */
 			if(is_authorized_for_hostgroup(temp_hostgroup, &current_authdata) == FALSE)
@@ -3850,7 +3850,7 @@ void show_hostgroup_summaries(void) {
 	if(show_all_hostgroups == TRUE) {
 
 		/* loop through all hostgroups... */
-		for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+		for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 
 			/* make sure the user is authorized to view this hostgroup */
 			if(is_authorized_for_hostgroup(temp_hostgroup, &current_authdata) == FALSE)
@@ -4404,7 +4404,7 @@ void show_hostgroup_grids(void) {
 	if(show_all_hostgroups == TRUE) {
 
 		/* loop through all hostgroups... */
-		for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+		for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 
 			/* make sure the user is authorized to view this hostgroup */
 			if(is_authorized_for_hostgroup(temp_hostgroup, &current_authdata) == FALSE)
@@ -4564,7 +4564,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 
 		/* display all services on the host */
 		current_item = 1;
-		for(temp_service = service_list ? service_list[0] : NULL; temp_service; temp_service = temp_service->next) {
+		for(temp_service = service_list; temp_service; temp_service = temp_service->next) {
 
 			/* skip this service if it's not associate with the host */
 			if(strcmp(temp_service->host_name, temp_host->name))

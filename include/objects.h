@@ -725,18 +725,28 @@ typedef struct hostdependency {
 #endif
 	} hostdependency;
 
-extern struct command **command_list;
-extern struct timeperiod **timeperiod_list;
-extern struct host **host_list;
-extern struct service **service_list;
-extern struct contact **contact_list;
-extern struct hostgroup **hostgroup_list;
-extern struct servicegroup **servicegroup_list;
-extern struct contactgroup **contactgroup_list;
-extern struct hostescalation **hostescalation_list;
-extern struct hostdependency **hostdependency_list;
-extern struct serviceescalation **serviceescalation_list;
-extern struct servicedependency **servicedependency_list;
+extern struct command *command_list;
+extern struct timeperiod *timeperiod_list;
+extern struct host *host_list;
+extern struct service *service_list;
+extern struct contact *contact_list;
+extern struct hostgroup *hostgroup_list;
+extern struct servicegroup *servicegroup_list;
+extern struct contactgroup *contactgroup_list;
+extern struct hostescalation *hostescalation_list;
+extern struct serviceescalation *serviceescalation_list;
+extern struct command **command_ary;
+extern struct timeperiod **timeperiod_ary;
+extern struct host **host_ary;
+extern struct service **service_ary;
+extern struct contact **contact_ary;
+extern struct hostgroup **hostgroup_ary;
+extern struct servicegroup **servicegroup_ary;
+extern struct contactgroup **contactgroup_ary;
+extern struct hostescalation **hostescalation_ary;
+extern struct hostdependency **hostdependency_ary;
+extern struct serviceescalation **serviceescalation_ary;
+extern struct servicedependency **servicedependency_ary;
 
 
 /********************* FUNCTIONS **********************/

@@ -507,7 +507,7 @@ void display_hosts(void) {
 	printf("</TR>\n");
 
 	/* check all the hosts... */
-	for(temp_host = host_list ? host_list[0] : NULL; temp_host != NULL; temp_host = temp_host->next) if(((*to_expand) == '\0') || !strcmp(to_expand, temp_host->name)) {
+	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) if(((*to_expand) == '\0') || !strcmp(to_expand, temp_host->name)) {
 
 			/* grab macros */
 			grab_host_macros_r(mac, temp_host);
@@ -799,7 +799,7 @@ void display_hostgroups(void) {
 	printf("</TR>\n");
 
 	/* check all the hostgroups... */
-	for(temp_hostgroup = hostgroup_list ? hostgroup_list[0] : NULL; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_hostgroup->group_name))) {
+	for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_hostgroup->group_name))) {
 
 			if(odd) {
 				odd = 0;
@@ -874,7 +874,7 @@ void display_servicegroups(void) {
 	printf("</TR>\n");
 
 	/* check all the servicegroups... */
-	for(temp_servicegroup = servicegroup_list ? servicegroup_list[0] : NULL; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_servicegroup->group_name))) {
+	for(temp_servicegroup = servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_servicegroup->group_name))) {
 
 			if(odd) {
 				odd = 0;
@@ -960,7 +960,7 @@ void display_contacts(void) {
 	printf("</TR>\n");
 
 	/* check all contacts... */
-	for(temp_contact = contact_list ? contact_list[0] : NULL; temp_contact != NULL; temp_contact = temp_contact->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_contact->name))) {
+	for(temp_contact = contact_list; temp_contact != NULL; temp_contact = temp_contact->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_contact->name))) {
 
 			if(odd) {
 				odd = 0;
@@ -1135,7 +1135,7 @@ void display_contactgroups(void) {
 	printf("</TR>\n");
 
 	/* check all the contact groups... */
-	for(temp_contactgroup = contactgroup_list ? contactgroup_list[0] : NULL; temp_contactgroup != NULL; temp_contactgroup = temp_contactgroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_contactgroup->group_name))) {
+	for(temp_contactgroup = contactgroup_list; temp_contactgroup != NULL; temp_contactgroup = temp_contactgroup->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_contactgroup->group_name))) {
 
 			if(odd) {
 				odd = 0;
@@ -1243,7 +1243,7 @@ void display_services(void) {
 	printf("</TR>\n");
 
 	/* check all the services... */
-	for(temp_service = service_list ? service_list[0] : NULL; temp_service != NULL; temp_service = temp_service->next)
+	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next)
 		if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_service->host_name)) || (!strcmp(to_expand, temp_service->description))) {
 
 			/* grab macros */
@@ -1530,7 +1530,7 @@ void display_timeperiods(void) {
 	printf("</TR>\n");
 
 	/* check all the time periods... */
-	for(temp_timeperiod = timeperiod_list ? timeperiod_list[0] : NULL; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_timeperiod->name))) {
+	for(temp_timeperiod = timeperiod_list; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_timeperiod->name))) {
 
 			if(odd) {
 				odd = 0;
@@ -1707,7 +1707,7 @@ void display_commands(void) {
 	printf("<TR><TH CLASS='data'>Command Name</TH><TH CLASS='data'>Command Line</TH></TR>\n");
 
 	/* check all commands */
-	for(temp_command = command_list ? command_list[0] : NULL; temp_command != NULL; temp_command = temp_command->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_command->name))) {
+	for(temp_command = command_list; temp_command != NULL; temp_command = temp_command->next) if(((*to_expand) == '\0') || (!strcmp(to_expand, temp_command->name))) {
 
 			if(odd) {
 				odd = 0;
@@ -1826,7 +1826,7 @@ void display_servicedependencies(void) {
 	printf("</TR>\n");
 
 	for(i = 0; i < num_objects.servicedependencies; i++) {
-		display_servicedependency(servicedependency_list[i]);
+		display_servicedependency(servicedependency_ary[i]);
 		}
 
 	printf("</TABLE>\n");
@@ -1878,7 +1878,7 @@ void display_serviceescalations(void) {
 
 
 	for(i = 0; i < num_objects.services; i++) {
-		temp_se = serviceescalation_list[i];
+		temp_se = serviceescalation_ary[i];
 		if(*to_expand != '\0' && strcmp(to_expand, temp_se->host_name))
 			continue;
 
@@ -2051,7 +2051,7 @@ void display_hostdependencies(void) {
 
 	/* print all host dependencies... */
 	for(i = 0; i < num_objects.hostdependencies; i++)
-		display_hostdependency(hostdependency_list[i]);
+		display_hostdependency(hostdependency_ary[i]);
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
@@ -2098,7 +2098,7 @@ void display_hostescalations(void) {
 
 	/* print all hostescalations... */
 	for(i = 0; i < num_objects.hostescalations; i++) {
-		temp_he = hostescalation_list[i];
+		temp_he = hostescalation_ary[i];
 		if(*to_expand != '\0' && strcmp(to_expand, temp_he->host_name))
 			continue;
 
@@ -2280,7 +2280,7 @@ void display_command_expansion(void) {
 		printf("\n</TD></TR>\n");
 
 		/* check all commands */
-		for(temp_command = command_list ? command_list[0] : NULL; temp_command != NULL; temp_command = temp_command->next) {
+		for(temp_command = command_list; temp_command != NULL; temp_command = temp_command->next) {
 
 			if(!strcmp(temp_command->name, command_args[0])) {
 

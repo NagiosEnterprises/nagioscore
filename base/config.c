@@ -1481,6 +1481,8 @@ int pre_flight_object_check(int *w, int *e) {
 		}
 	total_objects = 0;
 	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
+		contactgroupsmember *cgm;
+		contactsmember *cm;
 
 		total_objects++;
 
@@ -1531,6 +1533,23 @@ int pre_flight_object_check(int *w, int *e) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service '%s' on host '%s' is not a valid parent for service '%s' on host '%s'\n",
 					  sm->host_name, sm->service_description,
 					  temp_service->host_name, temp_service->description);
+				errors++;
+				}
+			}
+
+		for(cgm = temp_service->contact_groups; cgm; cgm = cgm->next) {
+			cgm->group_ptr = find_contactgroup(cgm->group_name);
+			if(cgm->group_ptr == NULL) {
+				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contactgroup '%s' on service '%s;%s' could not be found\n",
+					  cgm->group_name, temp_service->host_name, temp_service->description);
+				errors++;
+				}
+			}
+		for(cm = temp_service->contacts; cm; cm = cm->next) {
+			cm->contact_ptr = find_contact(cm->contact_name);
+			if(cm->contact_ptr == NULL) {
+				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact '%s' on service '%s;%s' could not be found\n",
+					  cm->contact_name, temp_service->host_name, temp_service->description);
 				errors++;
 				}
 			}
@@ -1631,6 +1650,7 @@ int pre_flight_object_check(int *w, int *e) {
 				errors++;
 				}
 
+			temp_contactgroupsmember->group_name = temp_contactgroup->group_name;
 			/* save the contact group pointer for later */
 			temp_contactgroupsmember->group_ptr = temp_contactgroup;
 			}

@@ -391,5 +391,11 @@ pkgset: nagios.SPARC.pkg.tar.gz
 pkgclean:
 	rm -rf pkg Prototype nagios.SPARC.pkg.tar.gz
 
+dist: distclean
+	rm -f nagios-$(VERSION)
+	ln -s . nagios-$(VERSION)
+	tar zhcf nagios-$(VERSION).tar.gz --exclude nagios-$(VERSION)/nagios-$(VERSION).tar.gz --exclude nagios-$(VERSION)/nagios-$(VERSION) --exclude RCS --exclude CVS --exclude build-* --exclude *~ --exclude .git* nagios-$(VERSION)/
+	rm -f nagios-$(VERSION)
+
 # Targets that always get built
 .PHONY:	indent clean clean distclean dox

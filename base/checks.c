@@ -1524,18 +1524,6 @@ int is_service_result_fresh(service *temp_service, time_t current_time, int log_
 /*************** COMMON ROUTE/HOST CHECK FUNCTIONS ****************/
 /******************************************************************/
 
-/* execute a scheduled host check using either the 2.x or 3.x logic */
-int perform_scheduled_host_check(host *hst, int check_options, double latency) {
-
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "perform_scheduled_host_check()\n");
-
-	run_scheduled_host_check(hst, check_options, latency);
-
-	return OK;
-	}
-
-
-
 /* schedules an immediate or delayed host check */
 void schedule_host_check(host *hst, time_t check_time, int options) {
 	timed_event *temp_event = NULL;

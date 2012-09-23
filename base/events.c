@@ -1054,7 +1054,7 @@ int handle_timed_event(timed_event *event) {
 			log_debug_info(DEBUGL_EVENTS, 0, "** Host Check Event ==> Host: '%s', Options: %d, Latency: %f sec\n", temp_host->name, event->event_options, latency);
 
 			/* run the host check */
-			perform_scheduled_host_check(temp_host, event->event_options, latency);
+			run_scheduled_host_check(temp_host, event->event_options, latency);
 			break;
 
 		case EVENT_LOG_ROTATION:

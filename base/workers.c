@@ -537,22 +537,15 @@ int init_workers(int desired_workers)
 	if (desired_workers <= 0) {
 		int cpus = online_cpus();
 
-		if(cpus < 0) {
-			desired_workers = 4;
+		if(!desired_workers) {
+			desired_workers = cpus * 1.5;
+			/* min 4 workers, as it's tested and known to work */
+			if(desired_workers < 4)
+				desired_workers = 4;
 		}
 		else {
-			if(!desired_workers) {
-				desired_workers = ((cpus / 2) + (cpus / 3));
-				/* max 12, min 2 workers, for arbitrary reasons */
-				if(desired_workers > 12)
-					desired_workers = 12;
-				if(desired_workers < 2)
-					desired_workers = 2;
-			}
-			else {
-				/* desired workers is a negative number */
-				desired_workers = cpus - desired_workers;
-			}
+			/* desired workers is a negative number */
+			desired_workers = cpus - desired_workers;
 		}
 	}
 

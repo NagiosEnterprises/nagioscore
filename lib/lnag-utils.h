@@ -151,7 +151,7 @@ static inline int online_cpus(void)
 		return (int)psd.psd_proc_cnt;
 #endif
 
-	return 0;
+	return 1;
 }
 
 NAGIOS_END_DECL

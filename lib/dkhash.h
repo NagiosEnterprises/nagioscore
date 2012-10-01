@@ -74,7 +74,7 @@ extern int dkhash_insert(dkhash_table *t, const char *k1, const char *k2, void *
 extern void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2);
 
 /**
- * Call a funciton once for each item in the hash-table
+ * Call a function once for each item in the hash-table
  * The callback function can return DKHASH_WALK_{REMOVE,STOP} or any
  * OR'ed combination thereof to control the walking procedure, and
  * should return 0 on the normal case.

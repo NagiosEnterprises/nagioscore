@@ -145,7 +145,7 @@ int main(int argc, char **argv, char **env) {
 
 	if(daemon_mode == FALSE) {
 		printf("\nNagios Core %s\n", PROGRAM_VERSION);
-		printf("Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors\n");
+		printf("Copyright (c) 2009-present Nagios Core Development Team and Community Contributors\n");
 		printf("Copyright (c) 1999-2009 Ethan Galstad\n");
 		printf("Last Modified: %s\n", PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");

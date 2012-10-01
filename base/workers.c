@@ -409,7 +409,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 
 		/* log messages are handled first */
 		if (size > 5 && !memcmp(buf, "log=", 4)) {
-			logit(NSLOG_INFO_MESSAGE, TRUE, "worker %d: %s\n", wp->pid, buf + 4);
+			logit(NSLOG_INFO_MESSAGE, TRUE, "%s: %s\n", wp->source_name, buf + 4);
 			continue;
 		}
 

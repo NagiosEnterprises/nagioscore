@@ -2830,8 +2830,6 @@ int check_for_nagios_updates(int force, int reschedule) {
 	unsigned int rand_seed = 0;
 	int randnum = 0;
 
-	return 0; /* op5 users get their updates elsewhere */
-
 	time(&current_time);
 
 	/*

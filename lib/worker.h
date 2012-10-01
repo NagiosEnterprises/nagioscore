@@ -63,6 +63,24 @@ typedef struct worker_process {
 	struct worker_process *next_wp; /**< next worker in list */
 } worker_process;
 
+typedef struct iobuf {
+	int fd;
+	unsigned int len;
+	char *buf;
+} iobuf;
+
+typedef struct execution_information execution_information;
+
+typedef struct child_process {
+	unsigned int id, timeout;
+	char *cmd;
+	int ret;
+	struct kvvec *request;
+	iobuf outstd;
+	iobuf outerr;
+	execution_information *ei;
+} child_process;
+
 /**
  * Spawn a worker process
  * @param[in] init_func The initialization function for the worker
@@ -70,6 +88,21 @@ typedef struct worker_process {
  * @return A worker process struct on success (for the parent). Null on errors
  */
 extern worker_process *spawn_worker(void (init_func)(void *), void *init_arg);
+
+/**
+ * To be called when a child_process has completed to ship the result to nagios
+ * @param cp The child_process that describes the job
+ * @param reason 0 if everything was OK, 1 if the job was unable to run
+ * @return 0 on success, non-zero otherwise
+ */
+extern int finish_job(child_process *cp, int reason);
+
+/**
+ * Start to poll the socket and call the callback when there are new tasks
+ * @param sd A socket descriptor to poll
+ * @param cb The callback to call upon completion
+ */
+extern void enter_worker(int sd, int (*cb)(child_process*));
 
 /**
  * Send a key/value vector as a bytestream through a socket

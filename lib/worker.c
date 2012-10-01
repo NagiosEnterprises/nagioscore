@@ -8,26 +8,14 @@
 #include <time.h>
 #include "libnagios.h"
 
-typedef struct iobuf {
-	int fd;
-	unsigned int len;
-	char *buf;
-} iobuf;
-
-typedef struct child_process {
-	unsigned int id, timeout;
-	char *cmd;
+struct execution_information {
+	squeue_event *sq_event;
 	pid_t pid;
-	int ret;
 	struct timeval start;
 	struct timeval stop;
 	float runtime;
 	struct rusage rusage;
-	iobuf outstd;
-	iobuf outerr;
-	struct kvvec *request;
-	squeue_event *sq_event;
-} child_process;
+};
 
 static iobroker_set *iobs;
 static squeue_t *sq;
@@ -203,10 +191,10 @@ int send_kvvec(int sd, struct kvvec *kvv)
 		kvvec_addkv_wlen(kvv, key, sizeof(key) - 1, buf, strlen(buf)); \
 	} while (0)
 
-static int finish_job(child_process *cp, int reason)
+int finish_job(child_process *cp, int reason)
 {
 	static struct kvvec resp = KVVEC_INITIALIZER;
-	struct rusage *ru = &cp->rusage;
+	struct rusage *ru = &cp->ei->rusage;
 	int i, ret;
 
 	/* how many key/value pairs do we need? */
@@ -215,7 +203,7 @@ static int finish_job(child_process *cp, int reason)
 		exit_worker();
 	}
 
-	gettimeofday(&cp->stop, NULL);
+	gettimeofday(&cp->ei->stop, NULL);
 
 	if (running_jobs != squeue_size(sq)) {
 		wlog("running_jobs(%d) != squeue_size(sq) (%d)\n",
@@ -229,7 +217,7 @@ static int finish_job(child_process *cp, int reason)
 	 * or we'll end up accessing an already free()'d
 	 * pointer, or the pointer to a different child.
 	 */
-	squeue_remove(sq, cp->sq_event);
+	squeue_remove(sq, cp->ei->sq_event);
 
 	/* get rid of still open filedescriptors */
 	if (cp->outstd.fd != -1)
@@ -237,7 +225,7 @@ static int finish_job(child_process *cp, int reason)
 	if (cp->outerr.fd != -1)
 		iobroker_close(iobs, cp->outerr.fd);
 
-	cp->runtime = tv_delta_f(&cp->start, &cp->stop);
+	cp->ei->runtime = tv_delta_f(&cp->ei->start, &cp->ei->stop);
 
 	/*
 	 * Now build the return message.
@@ -254,9 +242,9 @@ static int finish_job(child_process *cp, int reason)
 	kvvec_addkv(&resp, "wait_status", (char *)mkstr("%d", cp->ret));
 	kvvec_addkv_wlen(&resp, "outstd", 6, cp->outstd.buf, cp->outstd.len);
 	kvvec_addkv_wlen(&resp, "outerr", 6, cp->outerr.buf, cp->outerr.len);
-	kvvec_add_tv(&resp, "start", cp->start);
-	kvvec_add_tv(&resp, "stop", cp->stop);
-	kvvec_addkv(&resp, "runtime", (char *)mkstr("%f", cp->runtime));
+	kvvec_add_tv(&resp, "start", cp->ei->start);
+	kvvec_add_tv(&resp, "stop", cp->ei->stop);
+	kvvec_addkv(&resp, "runtime", (char *)mkstr("%f", cp->ei->runtime));
 	if (!reason) {
 		/* child exited nicely */
 		kvvec_addkv(&resp, "exited_ok", "1");
@@ -289,6 +277,7 @@ static int finish_job(child_process *cp, int reason)
 
 	kvvec_destroy(cp->request, KVVEC_FREE_ALL);
 	free(cp->cmd);
+	free(cp->ei);
 	free(cp);
 
 	return 0;
@@ -299,7 +288,7 @@ static int check_completion(child_process *cp, int flags)
 	int result, status;
 	time_t max_time;
 
-	if (!cp || !cp->pid) {
+	if (!cp || !cp->ei->pid) {
 		return 0;
 	}
 
@@ -311,10 +300,10 @@ static int check_completion(child_process *cp, int flags)
 	 */
 	do {
 		errno = 0;
-		result = wait4(cp->pid, &status, flags, &cp->rusage);
+		result = wait4(cp->ei->pid, &status, flags, &cp->ei->rusage);
 	} while (result == -1 && errno == EINTR && time(NULL) < max_time);
 
-	if (result == cp->pid) {
+	if (result == cp->ei->pid) {
 		cp->ret = status;
 		finish_job(cp, 0);
 		return 0;
@@ -334,22 +323,22 @@ static void kill_job(child_process *cp, int reason)
 	struct rusage ru;
 
 	/* brutal but efficient */
-	ret = kill(cp->pid, SIGKILL);
+	ret = kill(cp->ei->pid, SIGKILL);
 	if (ret < 0) {
 		if (errno == ESRCH) {
 			finish_job(cp, reason);
 			return;
 		}
-		wlog("kill(%d, SIGKILL) failed: %s\n", cp->pid, strerror(errno));
+		wlog("kill(%d, SIGKILL) failed: %s\n", cp->ei->pid, strerror(errno));
 	}
 
-	ret = wait4(cp->pid, &cp->ret, 0, &ru);
+	ret = wait4(cp->ei->pid, &cp->ret, 0, &ru);
 	finish_job(cp, reason);
 
 #ifdef PLAY_NICE_IN_kill_job
 	int i, sig = SIGTERM;
 
-	pid = cp->pid;
+	pid = cp->ei->pid;
 
 	for (i = 0; i < 2; i++) {
 		/* check one last time if the job is done */
@@ -435,10 +424,9 @@ static int fd_start_cmd(child_process *cp)
 	if (cp->outstd.fd == -1) {
 		return -1;
 	}
-	gettimeofday(&cp->start, NULL);
 
 	cp->outerr.fd = pfderr[0];
-	cp->pid = runcmd_pid(cp->outstd.fd);
+	cp->ei->pid = runcmd_pid(cp->outstd.fd);
 	iobroker_register(iobs, cp->outstd.fd, cp, stdout_handler);
 	iobroker_register(iobs, cp->outerr.fd, cp, stderr_handler);
 
@@ -456,6 +444,11 @@ child_process *parse_command_kvvec(struct kvvec *kvv)
 	cp = calloc(1, sizeof(*cp));
 	if (!cp) {
 		wlog("Failed to calloc() a child_process struct");
+		return NULL;
+	}
+	cp->ei = calloc(1, sizeof(*cp->ei));
+	if (!cp->ei) {
+		wlog("Failed to calloc() a execution_information struct");
 		return NULL;
 	}
 
@@ -492,7 +485,7 @@ child_process *parse_command_kvvec(struct kvvec *kvv)
 	return cp;
 }
 
-static void spawn_job(struct kvvec *kvv)
+static void spawn_job(struct kvvec *kvv, int(*cb)(child_process *))
 {
 	int result;
 	child_process *cp;
@@ -512,19 +505,19 @@ static void spawn_job(struct kvvec *kvv)
 		return;
 	}
 
-	result = fd_start_cmd(cp);
+	gettimeofday(&cp->ei->start, NULL);
+	cp->request = kvv;
+	started++;
+	running_jobs++;
+	cp->ei->sq_event = squeue_add(sq, cp->timeout + time(NULL), cp);
+	result = cb(cp);
 	if (result < 0) {
 		job_error(cp, kvv, "Failed to start child");
 		return;
 	}
-
-	started++;
-	running_jobs++;
-	cp->request = kvv;
-	cp->sq_event = squeue_add(sq, cp->timeout + time(NULL), cp);
 }
 
-static int receive_command(int sd, int events, void *discard)
+static int receive_command(int sd, int events, void *arg)
 {
 	int ioc_ret;
 	char *buf;
@@ -559,7 +552,7 @@ static int receive_command(int sd, int events, void *discard)
 		/* we must copy vars here, as we preserve them for the response */
 		kvv = buf2kvvec(buf, (unsigned int)size, KV_SEP, PAIR_SEP, KVVEC_COPY);
 		if (kvv)
-			spawn_job(kvv);
+			spawn_job(kvv, arg);
 	}
 
 	return 0;
@@ -581,7 +574,7 @@ int set_socket_options(int sd, int bufsize)
 }
 
 
-static void enter_worker(int sd)
+void enter_worker(int sd, int (*cb)(child_process*))
 {
 	/* created with socketpair(), usually */
 	master_sd = sd;
@@ -612,7 +605,7 @@ static void enter_worker(int sd)
 	sq = squeue_create(1024);
 	set_socket_options(master_sd, 256 * 1024);
 
-	iobroker_register(iobs, master_sd, NULL, receive_command);
+	iobroker_register(iobs, master_sd, cb, receive_command);
 	while (iobroker_get_num_fds(iobs) > 0) {
 		int poll_time = -1;
 
@@ -626,8 +619,8 @@ static void enter_worker(int sd)
 			if (!cp)
 				break;
 
-			tmo.tv_usec = cp->start.tv_usec;
-			tmo.tv_sec = cp->start.tv_sec + cp->timeout;
+			tmo.tv_usec = cp->ei->start.tv_usec;
+			tmo.tv_sec = cp->ei->start.tv_sec + cp->timeout;
 			gettimeofday(&now, NULL);
 			poll_time = tv_delta_msec(&now, &tmo);
 			/*
@@ -640,7 +633,7 @@ static void enter_worker(int sd)
 				break;
 
 			/* this job timed out, so kill it */
-			wlog("job with pid %d timed out. Killing it", cp->pid);
+			wlog("job with pid %d timed out. Killing it", cp->ei->pid);
 			kill_job(cp, ETIME);
 		}
 
@@ -700,7 +693,7 @@ struct worker_process *spawn_worker(void (*init_func)(void *), void *init_arg)
 	if (init_func) {
 		init_func(init_arg);
 	}
-	enter_worker(sv[1]);
+	enter_worker(sv[1], fd_start_cmd);
 
 	/* not reached, ever */
 	exit(EXIT_FAILURE);

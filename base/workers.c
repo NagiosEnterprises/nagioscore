@@ -23,6 +23,8 @@ struct wproc_list {
 
 static struct wproc_list workers = {0, 0, NULL};
 
+static dkhash_table *specialized_workers;
+
 typedef struct wproc_object_job {
 	char *contact_name;
 	char *host_name;
@@ -196,6 +198,31 @@ int wproc_destroy(worker_process *wp, int flags)
 	return 0;
 }
 
+static worker_process *to_remove = NULL;
+/* remove the worker pointed to by to_remove
+ * if to_remove is null, remove everything */
+static int remove_specialized(void *data)
+{
+	int i;
+	struct wproc_list *list = (struct wproc_list *)data;
+	for (i = 0; i < list->len; i++) {
+		if (to_remove != NULL && list->wps[i] != to_remove)
+			continue;
+
+		if (list->len <= 1) {
+			free(list->wps);
+			free(list);
+			return DKHASH_WALK_REMOVE;
+		}
+		else {
+			list->len--;
+			list->wps[i] = list->wps[list->len];
+			i--;
+		}
+	}
+	return 0;
+}
+
 /*
  * This gets called from both parent and worker process, so
  * we must take care not to blindly shut down everything here
@@ -215,6 +242,9 @@ void free_worker_memory(int flags)
 
 		free(workers.wps);
 	}
+	to_remove = NULL;
+	dkhash_walk_data(specialized_workers, remove_specialized);
+	dkhash_destroy(specialized_workers);
 	workers.wps = NULL;
 	workers.len = 0;
 	workers.idx = 0;
@@ -379,28 +409,13 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 	return 0;
 }
 
-static int handle_worker_result(int sd, int events, void *arg)
+static int handle_worker_result_worker(worker_process *wp)
 {
-	worker_process *wp = (worker_process *)arg;
 	wproc_object_job *oj;
 	char *buf;
 	unsigned long size;
 	int ret;
 	static struct kvvec kvv = KVVEC_INITIALIZER;
-
-	ret = iocache_read(wp->ioc, wp->sd);
-
-	if (ret < 0) {
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "iocache_read() from worker %d returned %d: %s\n",
-			  wp->pid, ret, strerror(errno));
-		return 0;
-	} else if (ret == 0) {
-		/*
-		 * XXX FIXME worker exited. spawn a new on to replace it
-		 * and distribute all unfinished jobs from this one to others
-		 */
-		return 0;
-	}
 
 	while ((buf = iocache_use_delim(wp->ioc, MSG_DELIM, MSG_DELIM_LEN, &size))) {
 		int job_id = -1;
@@ -516,6 +531,49 @@ static int handle_worker_result(int sd, int events, void *arg)
 	return 0;
 }
 
+static int handle_internal_worker_result(int sd, int events, void *arg)
+{
+	worker_process *wp = (worker_process *)arg;
+	int ret;
+
+	ret = iocache_read(wp->ioc, wp->sd);
+
+	if (ret < 0) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "iocache_read() from worker %d returned %d: %s\n",
+			  wp->pid, ret, strerror(errno));
+		return 0;
+	} else if (ret == 0) {
+		/*
+		 * XXX FIXME worker exited. spawn a new on to replace it
+		 * and distribute all unfinished jobs from this one to others
+		 */
+		return 0;
+	}
+	return handle_worker_result_worker(wp);
+}
+
+static int handle_external_worker_result(int sd, int events, void *arg)
+{
+	worker_process *wp = (worker_process *)arg;
+	int ret;
+
+	ret = iocache_read(wp->ioc, wp->sd);
+
+	if (ret < 0) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "iocache_read() from worker %d returned %d: %s\n",
+			  wp->pid, ret, strerror(errno));
+		return 0;
+	} else if (ret == 0) {
+		logit(NSLOG_INFO_MESSAGE, TRUE, "Socket to worker %s broken, removing", wp->source_name);
+		iobroker_unregister(nagios_iobs, sd);
+		to_remove = wp;
+		dkhash_walk_data(specialized_workers, remove_specialized);
+		wproc_destroy(wp, 0);
+		return 0;
+	}
+	return handle_worker_result_worker(wp);
+}
+
 int workers_alive(void)
 {
 	int i, alive = 0;
@@ -531,6 +589,57 @@ int workers_alive(void)
 	return alive;
 }
 
+/* a service for registering workers */
+static int register_query_handler(int sd, char *buf, unsigned int len)
+{
+	int i;
+	struct kvvec *info;
+	worker_process *worker = calloc(1, sizeof(worker_process));
+	if (!worker) {
+		nsock_printf(sd, "Couldn't allocate memory for creating worker process\n");
+		close(sd);
+		return 500;
+	}
+	info = buf2kvvec(buf, len, '=', ' ', 0);
+	if (info == NULL) {
+		nsock_printf(sd, "Invalid request format: '@register_worker name=<name> plugin=<plugin1> plugin=<plugin2>\n");
+		return 500;
+	}
+	worker->source_name = NULL;
+	worker->sd = sd;
+	worker->pid = 0;
+	worker->ioc = iocache_create(1 * 1024 * 1024);
+	worker->max_jobs = (iobroker_max_usable_fds() - 1) / 2;
+	worker->jobs = calloc(worker->max_jobs, sizeof(worker_job *));
+
+	iobroker_unregister(nagios_iobs, sd);
+	iobroker_register(nagios_iobs, sd, worker, handle_external_worker_result);
+
+	for(i = 0; i < info->kv_pairs; i++) {
+		struct key_value *kv = &info->kv[i];
+		if (!strcmp(kv->key, "name")) {
+			worker->source_name = strdup(kv->value);
+		}
+		else if (!strcmp(kv->key, "plugin")) {
+			struct wproc_list *command_handlers;
+			if (!(command_handlers = dkhash_get(specialized_workers, kv->value, NULL))) {
+				command_handlers = calloc(1, sizeof(struct wproc_list));
+				command_handlers->wps = calloc(1, sizeof(worker_process**));
+				command_handlers->len = 1;
+				command_handlers->wps[0] = worker;
+				dkhash_insert(specialized_workers, strdup(kv->value), NULL, command_handlers);
+			}
+			else {
+				command_handlers->len++;
+				command_handlers->wps = realloc(command_handlers->wps, command_handlers->len * sizeof(worker_process**));
+				command_handlers->wps[command_handlers->len - 1] = worker;
+			}
+		}
+	}
+	kvvec_destroy(info, 0);
+	nsock_printf(sd, "OK");
+	return 0;
+}
 
 int init_workers(int desired_workers)
 {
@@ -592,7 +701,7 @@ int init_workers(int desired_workers)
 		asprintf(&wp->source_name, "Nagios Core worker %d", wp->pid);
 
 		wps[i] = wp;
-		ret = iobroker_register(nagios_iobs, wp->sd, wp, handle_worker_result);
+		ret = iobroker_register(nagios_iobs, wp->sd, wp, handle_internal_worker_result);
 		if (ret < 0) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to register worker socket with io broker: %s\n", iobroker_strerror(ret));
 			return ERROR;
@@ -602,19 +711,39 @@ int init_workers(int desired_workers)
 
 	logit(NSLOG_INFO_MESSAGE, TRUE, "Workers spawned: %d\n", workers.len);
 
+	specialized_workers = dkhash_create(512);
+	if(!qh_register_handler("register_worker", 0, register_query_handler))
+		logit(NSLOG_INFO_MESSAGE, TRUE, "Successfully registered worker registration service with query handler\n");
+
 	return 0;
 }
 
 static worker_process *get_worker(worker_job *job)
 {
 	worker_process *wp = NULL;
+	struct wproc_list *wp_list;
 	int i;
+	char *cmd_name, *space;
 
-	if (!workers.wps) {
-		return NULL;
+	/* first, look for a specialized worker for this command */
+	cmd_name = job->command;
+	if ((space = strchr(cmd_name, ' ')) != NULL)
+		*space = '\0';
+
+	wp_list = dkhash_get(specialized_workers, cmd_name, NULL);
+	if (wp_list != NULL) {
+		logit(NSLOG_INFO_MESSAGE, 1, "Found specialized worker(s) for '%s'", cmd_name);
 	}
+	else {
+		if (!workers.wps)
+			return NULL;
+		wp_list = &workers;
+	}
+	if (space != NULL)
+		*space = ' ';
 
-	wp = workers.wps[workers.idx++ % workers.len];
+
+	wp = wp_list->wps[wp_list->idx++ % wp_list->len];
 
 	job->id = get_job_id(wp);
 

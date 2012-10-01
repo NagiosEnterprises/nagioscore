@@ -28,6 +28,7 @@
 #define DEFAULT_DOWNTIME_FILE			"@localstatedir@/downtime.dat"
 #define DEFAULT_RETENTION_FILE			"@localstatedir@/retention.dat"
 #define DEFAULT_COMMAND_FILE			"@localstatedir@/rw/nagios.cmd"
+#define DEFAULT_QUERY_SOCKET            "@localstatedir/rw/nagios.qh"
 #define DEFAULT_CONFIG_FILE			"@sysconfdir@/nagios.cfg"
 #define DEFAULT_PHYSICAL_HTML_PATH		"@datadir@"
 #define DEFAULT_URL_HTML_PATH			"@htmurl@"

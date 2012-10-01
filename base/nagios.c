@@ -404,7 +404,7 @@ int main(int argc, char **argv, char **env) {
 			 * This must be done before modules are initialized, so
 			 * the modules can use our in-core stuff properly
 			 */
-			qh_init(qh_socket_path);
+			qh_init(qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET);
 			nerd_init();
 
 #ifdef USE_EVENT_BROKER

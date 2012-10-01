@@ -241,6 +241,7 @@ int launch_command_file_worker(void) {
 			goto err_close;
 		}
 		command_wproc->type = "command file";
+		command_wproc->source_name = "command file";
 		command_wproc->ioc = iocache_create(512 * 1024);
 		if (!command_wproc->ioc) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to create I/O cache for command file worker: %m\n");

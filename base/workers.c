@@ -15,9 +15,13 @@
 /* perfect hash function for wproc response codes */
 #include "wp-phash.c"
 
-static worker_process **workers;
-static unsigned int num_workers;
-static unsigned int worker_index;
+struct wproc_list {
+	int len;
+	unsigned int idx;
+	worker_process **wps;
+};
+
+static struct wproc_list workers = {0, 0, NULL};
 
 typedef struct wproc_object_job {
 	char *contact_name;
@@ -198,22 +202,22 @@ int wproc_destroy(worker_process *wp, int flags)
  */
 void free_worker_memory(int flags)
 {
-	if (workers) {
+	if (workers.wps) {
 		unsigned int i;
 
-		for (i = 0; i < num_workers; i++) {
-			if (!workers[i])
+		for (i = 0; i < workers.len; i++) {
+			if (!workers.wps[i])
 				continue;
 
-			wproc_destroy(workers[i], flags);
-			workers[i] = NULL;
+			wproc_destroy(workers.wps[i], flags);
+			workers.wps[i] = NULL;
 		}
 
-		free(workers);
+		free(workers.wps);
 	}
-	workers = NULL;
-	num_workers = 0;
-	worker_index = 0;
+	workers.wps = NULL;
+	workers.len = 0;
+	workers.idx = 0;
 }
 
 /*
@@ -516,11 +520,11 @@ int workers_alive(void)
 {
 	int i, alive = 0;
 
-	if (!workers)
+	if (!workers.wps)
 		return 0;
 
-	for (i = 0; i < num_workers; i++) {
-		if (wproc_is_alive(workers[i]))
+	for (i = 0; i < workers.len; i++) {
+		if (wproc_is_alive(workers.wps[i]))
 			alive++;
 	}
 
@@ -553,24 +557,24 @@ int init_workers(int desired_workers)
 		return 0;
 
 	/* can't shrink the number of workers (yet) */
-	if (desired_workers < num_workers)
+	if (desired_workers < workers.len)
 		return -1;
 
 	wps = calloc(desired_workers, sizeof(worker_process *));
 	if (!wps)
 		return -1;
 
-	if (workers) {
-		if (num_workers < desired_workers) {
-			for (i = 0; i < num_workers; i++) {
-				wps[i] = workers[i];
+	if (workers.wps) {
+		if (workers.len < desired_workers) {
+			for (i = 0; i < workers.len; i++) {
+				wps[i] = workers.wps[i];
 			}
 		}
 
-		free(workers);
+		free(workers.wps);
 	}
 
-	workers = wps;
+	workers.wps = wps;
 	for (i = 0; i < desired_workers; i++) {
 		int ret;
 		worker_process *wp;
@@ -594,9 +598,10 @@ int init_workers(int desired_workers)
 			return ERROR;
 		}
 	}
-	num_workers = desired_workers;
+	workers.len = desired_workers;
 
-	logit(NSLOG_INFO_MESSAGE, TRUE, "Workers spawned: %d\n", num_workers);
+	logit(NSLOG_INFO_MESSAGE, TRUE, "Workers spawned: %d\n", workers.len);
+
 	return 0;
 }
 
@@ -605,11 +610,12 @@ static worker_process *get_worker(worker_job *job)
 	worker_process *wp = NULL;
 	int i;
 
-	if (!workers) {
+	if (!workers.wps) {
 		return NULL;
 	}
 
-	wp = workers[worker_index++ % num_workers];
+	wp = workers.wps[workers.idx++ % workers.len];
+
 	job->id = get_job_id(wp);
 
 	if (job->id < 0) {
@@ -620,8 +626,8 @@ static worker_process *get_worker(worker_job *job)
 	return wp;
 
 	/* dead code below. for now */
-	for (i = 0; i < num_workers; i++) {
-		wp = workers[worker_index++ % num_workers];
+	for (i = 0; i < workers.len; i++) {
+		wp = workers.wps[workers.idx++ % workers.len];
 		if (wp) {
 			/*
 			 * XXX: check worker flags so we don't ship checks to a
@@ -630,7 +636,7 @@ static worker_process *get_worker(worker_job *job)
 			return wp;
 		}
 
-		worker_index++;
+		workers.idx++;
 		if (wp)
 			return wp;
 	}

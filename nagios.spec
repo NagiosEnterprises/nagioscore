@@ -70,7 +70,7 @@ This package contains all the files from the contrib directory
 
 %build
 
-CFLAGS="%{mycflags}" LDFLAGS="$CFLAGS" %configure \
+CFLAGS="%{mycflags} -Wno-unused-result" LDFLAGS="$CFLAGS" %configure \
     --datadir="%{_datadir}/nagios" \
     --libexecdir="%{_libdir}/nagios/plugins" \
     --localstatedir="%{_localstatedir}/nagios" \

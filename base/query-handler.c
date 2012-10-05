@@ -66,6 +66,9 @@ static int qh_input(int sd, int events, void *ioc_)
 			close(nsd);
 			return 0;
 		}
+
+		/* make it non-blocking, but leave kernel buffers unchanged */
+		set_socket_options(nsd, 0);
 		qh_running++;
 		return 0;
 	}

@@ -202,7 +202,7 @@ static int broadcast(unsigned int chan_id, void *buf, unsigned int len)
 
 		next = list->next;
 
-		result = send(subscr->sd, buf, len, MSG_NOSIGNAL);
+		result = send(subscr->sd, buf, len, 0);
 		if(result < 0) {
 			if (errno == EAGAIN)
 				return 0;

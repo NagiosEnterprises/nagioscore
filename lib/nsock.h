@@ -44,6 +44,17 @@ extern int nsock_unix(const char *path, unsigned int mask, unsigned int flags);
  * @param fmt The format string
  * @return Whatever write() returns
  */
+extern int nsock_printf_nul(int sd, const char *fmt, ...)
+	__attribute__((__format__(__printf__, 2, 3)));
+
+/**
+ * Write a printf()-formatted string to the socket pointed to by sd.
+ * This is identical to dprintf(), which is unfortunately GNU only.
+ * @note This function may block, so poll(2) for writability
+ * @param sd The socket to write to
+ * @param fmt The format string
+ * @return Whatever write() returns
+ */
 extern int nsock_printf(int sd, const char *fmt, ...)
 	__attribute__((__format__(__printf__, 2, 3)));
 #endif /* LIBNAGIOS_nsock_h__ */

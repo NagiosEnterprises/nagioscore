@@ -583,7 +583,7 @@ int workers_alive(void)
 /* a service for registering workers */
 static int register_worker(int sd, char *buf, unsigned int len)
 {
-	int i;
+	int i, is_global = 1;
 	struct kvvec *info;
 	worker_process *worker = calloc(1, sizeof(worker_process));
 	if (!worker) {
@@ -593,7 +593,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 	}
 	info = buf2kvvec(buf, len, '=', ' ', 0);
 	if (info == NULL) {
-		nsock_printf(sd, "Invalid request format: '@register_worker name=<name> plugin=<plugin1> plugin=<plugin2>\n");
+		nsock_printf(sd, "Invalid request format: '@wproc register name=<name> plugin=<plugin1> plugin=<plugin2>\n");
 		return 500;
 	}
 	worker->source_name = NULL;
@@ -613,6 +613,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 		}
 		else if (!strcmp(kv->key, "plugin")) {
 			struct wproc_list *command_handlers;
+			is_global = 0;
 			if (!(command_handlers = dkhash_get(specialized_workers, kv->value, NULL))) {
 				command_handlers = calloc(1, sizeof(struct wproc_list));
 				command_handlers->wps = calloc(1, sizeof(worker_process**));
@@ -626,6 +627,11 @@ static int register_worker(int sd, char *buf, unsigned int len)
 				command_handlers->wps[command_handlers->len - 1] = worker;
 			}
 		}
+	}
+	if (is_global) {
+		workers.len++;
+		workers.wps = realloc(workers.wps, workers.len * sizeof(worker_process *));
+		workers.wps[workers.len - 1] = worker;
 	}
 	kvvec_destroy(info, 0);
 	nsock_printf(sd, "OK");

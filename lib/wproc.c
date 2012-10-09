@@ -112,7 +112,7 @@ static int print_input(int sd, int events, void *wp_)
 	return 0;
 }
 
-#define NWPS 1
+#define NWPS 3
 static worker_process *wps[NWPS];
 static int wp_index;
 

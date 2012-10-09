@@ -417,7 +417,7 @@ static int stdout_handler(int fd, int events, void *cp_)
 	return 0;
 }
 
-static int fd_start_cmd(child_process *cp)
+int start_cmd(child_process *cp)
 {
 	int pfd[2], pfderr[2];
 
@@ -694,7 +694,7 @@ struct worker_process *spawn_worker(void (*init_func)(void *), void *init_arg)
 	if (init_func) {
 		init_func(init_arg);
 	}
-	enter_worker(sv[1], fd_start_cmd);
+	enter_worker(sv[1], start_cmd);
 
 	/* not reached, ever */
 	exit(EXIT_FAILURE);

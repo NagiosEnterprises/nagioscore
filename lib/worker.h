@@ -82,6 +82,11 @@ typedef struct child_process {
 } child_process;
 
 /**
+ * Callback for enter_worker that simply runs a command
+ */
+extern int start_cmd(child_process *cp);
+
+/**
  * Spawn a worker process
  * @param[in] init_func The initialization function for the worker
  * @param[in] init_arg Initialization argument for the worker

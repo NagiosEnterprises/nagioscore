@@ -23,9 +23,9 @@
  * take care to use different MSG_DELIM_LEN depending on if we're
  * sending or receiving. Change this if PAIR_SEP alters.
  */
-#define MSG_DELIM "\0\0\0" /**< message limiter */
-#define MSG_DELIM_LEN (sizeof(MSG_DELIM) - 1) /**< message delimiter length */
-#define MSG_DELIM_LEN_SEND (MSG_DELIM_LEN - 1) /**< msg delim len when sendin */
+#define MSG_DELIM "\1\0\0" /**< message limiter */
+#define MSG_DELIM_LEN (sizeof(MSG_DELIM)) /**< message delimiter length */
+#define MSG_DELIM_LEN_SEND (MSG_DELIM_LEN) /**< msg delim len when sendin */
 #define MSG_DELIM_LEN_RECV (MSG_DELIM_LEN) /**< msg delimm len when receivin */
 #define PAIR_SEP 0 /**< pair separator for buf2kvvec() and kvvec2buf() */
 #define KV_SEP '=' /**< key/value separator for buf2kvvec() and kvvec2buf() */

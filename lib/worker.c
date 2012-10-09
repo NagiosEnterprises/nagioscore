@@ -171,6 +171,7 @@ int send_kvvec(int sd, struct kvvec *kvv)
 		 */
 		return 0;
 	}
+	memcpy(kvvb->buf + (kvvb->bufsize - MSG_DELIM_LEN_SEND), MSG_DELIM, MSG_DELIM_LEN_SEND);
 
 	/* use bufsize here, as it gets us the nul string delimiter */
 	ret = write(sd, kvvb->buf, kvvb->bufsize);

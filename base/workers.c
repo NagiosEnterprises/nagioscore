@@ -590,7 +590,7 @@ int workers_alive(void)
 }
 
 /* a service for registering workers */
-static int register_query_handler(int sd, char *buf, unsigned int len)
+static int register_worker(int sd, char *buf, unsigned int len)
 {
 	int i;
 	struct kvvec *info;
@@ -639,6 +639,22 @@ static int register_query_handler(int sd, char *buf, unsigned int len)
 	kvvec_destroy(info, 0);
 	nsock_printf(sd, "OK");
 	return 0;
+}
+
+static int wproc_query_handler(int sd, char *buf, unsigned int len)
+{
+	char *space, *rbuf = NULL;
+
+	if ((space = memchr(buf, ' ', len)) != NULL)
+		*space = 0;
+
+	rbuf = space ? space + 1 : buf;
+	len -= (unsigned long)rbuf - (unsigned long)buf;
+
+	if (!strcmp(buf, "register"))
+		return register_worker(sd, rbuf, len);
+
+	return 400;
 }
 
 int init_workers(int desired_workers)
@@ -712,8 +728,10 @@ int init_workers(int desired_workers)
 	logit(NSLOG_INFO_MESSAGE, TRUE, "Workers spawned: %d\n", workers.len);
 
 	specialized_workers = dkhash_create(512);
-	if(!qh_register_handler("register_worker", 0, register_query_handler))
-		logit(NSLOG_INFO_MESSAGE, TRUE, "Successfully registered worker registration service with query handler\n");
+	if(!qh_register_handler("wproc", 0, wproc_query_handler))
+		logit(NSLOG_INFO_MESSAGE, TRUE, "Successfully registered wproc manager as @wproc with query handler\n");
+	else
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to register wproc manager with query handler\n");
 
 	return 0;
 }

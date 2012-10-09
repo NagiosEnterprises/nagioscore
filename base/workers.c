@@ -409,14 +409,48 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 	return 0;
 }
 
-static int handle_worker_result_worker(worker_process *wp)
+static int handle_worker_result(int sd, int events, void *arg)
 {
 	wproc_object_job *oj;
 	char *buf;
 	unsigned long size;
 	int ret;
 	static struct kvvec kvv = KVVEC_INITIALIZER;
+	worker_process *wp = (worker_process *)arg;
 
+	ret = iocache_read(wp->ioc, wp->sd);
+
+	if (ret < 0) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "iocache_read() from %s returned %d: %s\n",
+			  wp->source_name, ret, strerror(errno));
+		return 0;
+	} else if (ret == 0) {
+		logit(NSLOG_INFO_MESSAGE, TRUE, "Socket to worker %s broken, removing", wp->source_name);
+		iobroker_unregister(nagios_iobs, sd);
+		to_remove = wp;
+		dkhash_walk_data(specialized_workers, remove_specialized);
+		if (remove_specialized((void *)&workers) == DKHASH_WALK_REMOVE) {
+			/* there aren't global workers left, we can't run any more checks
+			 * we should try respawning a few of the standard ones
+			 */
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "All our workers are dead, we can't do anything!");
+		}
+		if (wp->jobs) {
+			int i, rescheduled = 0;
+			for (i = 0; i < wp->max_jobs; i++) {
+				if (!wp->jobs[i])
+					continue;
+
+				create_job(wp->jobs[i]->type, wp->jobs[i]->arg, wp->jobs[i]->timeout, wp->jobs[i]->command);
+
+				if (++rescheduled >= wp->jobs_running)
+					break;
+			}
+		}
+
+		wproc_destroy(wp, 0);
+		return 0;
+	}
 	while ((buf = iocache_use_delim(wp->ioc, MSG_DELIM, MSG_DELIM_LEN, &size))) {
 		int job_id = -1;
 		worker_job *job;
@@ -531,49 +565,6 @@ static int handle_worker_result_worker(worker_process *wp)
 	return 0;
 }
 
-static int handle_internal_worker_result(int sd, int events, void *arg)
-{
-	worker_process *wp = (worker_process *)arg;
-	int ret;
-
-	ret = iocache_read(wp->ioc, wp->sd);
-
-	if (ret < 0) {
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "iocache_read() from worker %d returned %d: %s\n",
-			  wp->pid, ret, strerror(errno));
-		return 0;
-	} else if (ret == 0) {
-		/*
-		 * XXX FIXME worker exited. spawn a new on to replace it
-		 * and distribute all unfinished jobs from this one to others
-		 */
-		return 0;
-	}
-	return handle_worker_result_worker(wp);
-}
-
-static int handle_external_worker_result(int sd, int events, void *arg)
-{
-	worker_process *wp = (worker_process *)arg;
-	int ret;
-
-	ret = iocache_read(wp->ioc, wp->sd);
-
-	if (ret < 0) {
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "iocache_read() from worker %d returned %d: %s\n",
-			  wp->pid, ret, strerror(errno));
-		return 0;
-	} else if (ret == 0) {
-		logit(NSLOG_INFO_MESSAGE, TRUE, "Socket to worker %s broken, removing", wp->source_name);
-		iobroker_unregister(nagios_iobs, sd);
-		to_remove = wp;
-		dkhash_walk_data(specialized_workers, remove_specialized);
-		wproc_destroy(wp, 0);
-		return 0;
-	}
-	return handle_worker_result_worker(wp);
-}
-
 int workers_alive(void)
 {
 	int i, alive = 0;
@@ -613,7 +604,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 	worker->jobs = calloc(worker->max_jobs, sizeof(worker_job *));
 
 	iobroker_unregister(nagios_iobs, sd);
-	iobroker_register(nagios_iobs, sd, worker, handle_external_worker_result);
+	iobroker_register(nagios_iobs, sd, worker, handle_worker_result);
 
 	for(i = 0; i < info->kv_pairs; i++) {
 		struct key_value *kv = &info->kv[i];
@@ -717,7 +708,7 @@ int init_workers(int desired_workers)
 		asprintf(&wp->source_name, "Nagios Core worker %d", wp->pid);
 
 		wps[i] = wp;
-		ret = iobroker_register(nagios_iobs, wp->sd, wp, handle_internal_worker_result);
+		ret = iobroker_register(nagios_iobs, wp->sd, wp, handle_worker_result);
 		if (ret < 0) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to register worker socket with io broker: %s\n", iobroker_strerror(ret));
 			return ERROR;

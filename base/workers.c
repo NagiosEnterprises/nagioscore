@@ -591,7 +591,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 		close(sd);
 		return 500;
 	}
-	info = buf2kvvec(buf, len, '=', ' ', 0);
+	info = buf2kvvec(buf, len, '=', '\n', 0);
 	if (info == NULL) {
 		nsock_printf(sd, "Invalid request format: '@wproc register name=<name> plugin=<plugin1> plugin=<plugin2>\n");
 		return 500;
@@ -634,7 +634,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 		workers.wps[workers.len - 1] = worker;
 	}
 	kvvec_destroy(info, 0);
-	nsock_printf(sd, "OK");
+	nsock_printf_nul(sd, "OK");
 	return 0;
 }
 

@@ -237,11 +237,11 @@ int iobroker_unregister(iobroker_set *iobs, int fd)
 	if (!iobs)
 		return IOBROKER_ENOSET;
 
-	if (fd < 0 || fd >= iobs->max_fds || !iobs->iobroker_fds[fd])
-		return IOBROKER_EINVAL;
-
 	if (!iobs->iobroker_fds)
 		return IOBROKER_ENOINIT;
+
+	if (fd < 0 || fd >= iobs->max_fds || !iobs->iobroker_fds[fd])
+		return IOBROKER_EINVAL;
 
 	free(iobs->iobroker_fds[fd]);
 	iobs->iobroker_fds[fd] = NULL;

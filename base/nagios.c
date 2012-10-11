@@ -581,6 +581,7 @@ int main(int argc, char **argv, char **env) {
 			if(sigshutdown == TRUE) {
 				free_worker_memory(WPROC_FORCE);
 				iobroker_destroy(nagios_iobs, IOBROKER_CLOSE_SOCKETS);
+				nagios_iobs = NULL;
 
 				/* make sure lock file has been removed - it may not have been if we received a shutdown command */
 				if(daemon_mode == TRUE)

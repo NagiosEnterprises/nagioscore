@@ -333,12 +333,14 @@ int main(int argc, char **argv, char **env) {
 
 			/* reset program variables */
 			reset_variables();
+			timing_point("Variables reset\n");
 
 			/* get PID */
 			nagios_pid = (int)getpid();
 
 			/* read in the configuration files (main and resource config files) */
 			result = read_main_config_file(config_file);
+			timing_point("Main config file read\n");
 
 			/* NOTE 11/06/07 EG moved to after we read config files, as user may have overridden timezone offset */
 			/* get program (re)start time and save as macro */
@@ -363,6 +365,7 @@ int main(int argc, char **argv, char **env) {
 			neb_init_modules();
 			neb_init_callback_list();
 #endif
+			timing_point("NEB module API initialized\n");
 
 			/* this must be logged after we read config data, as user may have changed location of main log file */
 			logit(NSLOG_PROCESS_INFO, TRUE, "Nagios %s starting... (PID=%d)\n", PROGRAM_VERSION, (int)getpid());
@@ -382,14 +385,18 @@ int main(int argc, char **argv, char **env) {
 			 * the modules can use our in-core stuff properly
 			 */
 			qh_init(qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET);
+			timing_point("Query handler initialized\n");
 			nerd_init();
+			timing_point("NERD initialized\n");
 
 #ifdef USE_EVENT_BROKER
 			/* load modules */
 			neb_load_all_modules();
+			timing_point("Modules loaded\n");
 
 			/* send program data to broker */
 			broker_program_state(NEBTYPE_PROCESS_PRELAUNCH, NEBFLAG_NONE, NEBATTR_NONE, NULL);
+			timing_point("First callback made\n");
 #endif
 
 			/* read in all object config data */
@@ -425,10 +432,14 @@ int main(int argc, char **argv, char **env) {
 				exit(ERROR);
 				}
 
-			init_event_queue();
+			timing_point("Object configuration parsed and understood\n");
 
 			/* write the objects.cache file */
 			fcache_objects(object_cache_file);
+			timing_point("Objects cached\n");
+
+			init_event_queue();
+			timing_point("Event queue initialized\n");
 
 			/* handle signals (interrupts) */
 			setup_sighandler();
@@ -465,43 +476,56 @@ int main(int argc, char **argv, char **env) {
 				}
 
 			/* initialize status data unless we're starting */
-			if(sigrestart == FALSE)
+			if(sigrestart == FALSE) {
 				initialize_status_data(config_file);
+				timing_point("Status data initialized\n");
+				}
 
 			/* read initial service and host state information  */
 			initialize_retention_data(config_file);
+			timing_point("Retention data initialized\n");
 			read_initial_state_information();
+			timing_point("Initial state information read\n");
 
 			/* initialize comment data */
 			initialize_comment_data(config_file);
+			timing_point("Comment data initialized\n");
 
 			/* initialize scheduled downtime data */
 			initialize_downtime_data(config_file);
+			timing_point("Downtime data initialized\n");
 
 			/* initialize performance data */
 			initialize_performance_data(config_file);
+			timing_point("Performance data initialized\n");
 
 			/* initialize the event timing loop */
 			init_timing_loop();
+			timing_point("Event timing loop initialized\n");
 
 			/* initialize check statistics */
 			init_check_stats();
+			timing_point("check stats initialized\n");
 
 			/* check for updates */
 			check_for_nagios_updates(FALSE, TRUE);
+			timing_point("Update check concluded\n");
 
 			/* update all status data (with retained information) */
 			update_all_status_data();
+			timing_point("Status data updated\n");
 
 			/* log initial host and service state */
 			log_host_states(INITIAL_STATES, NULL);
 			log_service_states(INITIAL_STATES, NULL);
+			timing_point("Initial states logged\n");
 
 			/* reset the restart flag */
 			sigrestart = FALSE;
 
 			/* fire up command file worker */
 			launch_command_file_worker();
+			timing_point("Command file worker launched\n");
 
 			/* initialize check workers */
 			init_workers(num_check_workers);
@@ -516,6 +540,7 @@ int main(int argc, char **argv, char **env) {
 			my_free(mac->x[MACRO_EVENTSTARTTIME]);
 			asprintf(&mac->x[MACRO_EVENTSTARTTIME], "%lu", (unsigned long)event_start);
 
+			timing_point("Entering event execution loop\n");
 			/***** start monitoring all services *****/
 			/* (doesn't return until a restart or shutdown signal is encountered) */
 			event_execution_loop();

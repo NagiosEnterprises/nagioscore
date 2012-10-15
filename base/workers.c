@@ -123,7 +123,7 @@ static void destroy_job(worker_process *wp, worker_job *job)
 		/* these require nothing special */
 		break;
 	default:
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Workers: Unknown job type: %d\n", job->type);
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: Unknown job type: %d\n", job->type);
 		break;
 	}
 
@@ -331,7 +331,7 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 		code = wp_phash(key, kvv->kv[i].key_len);
 		switch (code) {
 		case -1:
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Unrecognized worker result variable: (i=%d) %s=%s\n", i, key, value);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: Unrecognized result variable: (i=%d) %s=%s\n", i, key, value);
 			break;
 
 		case WPRES_job_id:
@@ -402,7 +402,7 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 			break;
 
 		default:
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Recognized but unhandled worker result variable: %s=%s\n", key, value);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: Recognized but unhandled result variable: %s=%s\n", key, value);
 			break;
 		}
 	}
@@ -421,11 +421,11 @@ static int handle_worker_result(int sd, int events, void *arg)
 	ret = iocache_read(wp->ioc, wp->sd);
 
 	if (ret < 0) {
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "iocache_read() from %s returned %d: %s\n",
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: iocache_read() from %s returned %d: %s\n",
 			  wp->source_name, ret, strerror(errno));
 		return 0;
 	} else if (ret == 0) {
-		logit(NSLOG_INFO_MESSAGE, TRUE, "Socket to worker %s broken, removing", wp->source_name);
+		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Socket to worker %s broken, removing", wp->source_name);
 		iobroker_unregister(nagios_iobs, sd);
 		to_remove = wp;
 		dkhash_walk_data(specialized_workers, remove_specialized);
@@ -433,7 +433,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 			/* there aren't global workers left, we can't run any more checks
 			 * we should try respawning a few of the standard ones
 			 */
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "All our workers are dead, we can't do anything!");
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: All our workers are dead, we can't do anything!");
 		}
 		if (wp->jobs) {
 			int i, rescheduled = 0;
@@ -476,13 +476,13 @@ static int handle_worker_result(int sd, int events, void *arg)
 
 		job = get_job(wp, wpres.job_id);
 		if (!job) {
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker job with id '%d' doesn't exist on worker %d.\n",
-				  job_id, wp->pid);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: Job with id '%d' doesn't exist on %s.\n",
+				  job_id, wp->source_name);
 			continue;
 		}
 		if (wpres.type != job->type) {
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker %d claims job %d is type %d, but we think it's type %d\n",
-				  wp->pid, job->id, wpres.type, job->type);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: %s claims job %d is type %d, but we think it's type %d\n",
+				  wp->source_name, job->id, wpres.type, job->type);
 			break;
 		}
 		oj = (wproc_object_job *)job->arg;

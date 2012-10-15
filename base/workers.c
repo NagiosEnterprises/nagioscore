@@ -657,6 +657,16 @@ int init_workers(int desired_workers)
 	worker_process **wps;
 	int i;
 
+	/*
+	 * we register our query handler before launching workers,
+	 * so other workers can join us whenever they're ready
+	 */
+	specialized_workers = dkhash_create(512);
+	if(!qh_register_handler("wproc", 0, wproc_query_handler))
+		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Successfully registered manager as @wproc with query handler\n");
+	else
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to register manager with query handler\n");
+
 	i = desired_workers;
 	if (desired_workers <= 0) {
 		int cpus = online_cpus();
@@ -722,11 +732,6 @@ int init_workers(int desired_workers)
 
 	logit(NSLOG_INFO_MESSAGE, TRUE, "Workers spawned: %d\n", workers.len);
 
-	specialized_workers = dkhash_create(512);
-	if(!qh_register_handler("wproc", 0, wproc_query_handler))
-		logit(NSLOG_INFO_MESSAGE, TRUE, "Successfully registered wproc manager as @wproc with query handler\n");
-	else
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to register wproc manager with query handler\n");
 
 	return 0;
 }

@@ -53,6 +53,39 @@
 #endif
 
 
+static int nagios_core_worker(const char *path)
+{
+	int sd, ret;
+	char response[128];
+
+	sd = nsock_unix(path, 0, NSOCK_TCP | NSOCK_CONNECT);
+	if (sd < 0) {
+		printf("Failed to connect to query socket '%s': %s: %s\n",
+			   path, nsock_strerror(sd), strerror(errno));
+		return 1;
+	}
+
+	ret = nsock_printf_nul(sd, "@wproc register name=Core Worker %d\npid=%d\n", getpid(), getpid());
+	if (ret < 0) {
+		printf("Failed to register as worker.\n");
+		return 1;
+	}
+
+	ret = read(sd, response, 3);
+	if (ret != 3) {
+		printf("Failed to read response from wproc manager\n");
+		return 1;
+	}
+	if (memcmp(response, "OK", 3)) {
+		read(sd, response + 3, sizeof(response) - 4);
+		response[sizeof(response) - 2] = 0;
+		printf("Failed to register with wproc manager: %s\n", response);
+		return 1;
+	}
+	enter_worker(sd, start_cmd);
+	return 0;
+}
+
 int main(int argc, char **argv, char **env) {
 	int result;
 	int error = FALSE;
@@ -64,6 +97,7 @@ int main(int argc, char **argv, char **env) {
 	time_t now;
 	char datestring[256];
 	nagios_macros *mac;
+	const char *worker_socket = NULL;
 
 #ifdef HAVE_GETOPT_H
 	int option_index = 0;
@@ -77,6 +111,7 @@ int main(int argc, char **argv, char **env) {
 			{"precache-objects", no_argument, 0, 'p'},
 			{"use-precached-objects", no_argument, 0, 'u'},
 			{"enable-timing-point", no_argument, 0, 'T'},
+			{"worker", required_argument, 0, 'W'},
 			{0, 0, 0, 0}
 		};
 #define getopt(argc, argv, o) getopt_long(argc, argv, o, long_options, &option_index)
@@ -90,7 +125,7 @@ int main(int argc, char **argv, char **env) {
 
 	/* get all command line arguments */
 	while(1) {
-		c = getopt(argc, argv, "+hVvdspuxT");
+		c = getopt(argc, argv, "+hVvdspuxTW");
 
 		if(c == -1 || c == EOF)
 			break;
@@ -128,6 +163,9 @@ int main(int argc, char **argv, char **env) {
 			case 'T':
 				enable_timing_point = TRUE;
 				break;
+			case 'W':
+				worker_socket = optarg;
+				break;
 
 			case 'x':
 				printf("Warning: -x is deprecated and will be removed\n");
@@ -142,6 +180,10 @@ int main(int argc, char **argv, char **env) {
 #ifdef DEBUG_MEMORY
 	mtrace();
 #endif
+	/* if we're a worker we can skip everything below */
+	if(worker_socket) {
+		exit(nagios_core_worker(worker_socket));
+	}
 
 	if(daemon_mode == FALSE) {
 		printf("\nNagios Core %s\n", PROGRAM_VERSION);
@@ -188,6 +230,7 @@ int main(int argc, char **argv, char **env) {
 		printf("  -p, --precache-objects       Precache object configuration\n");
 		printf("  -u, --use-precached-objects  Use precached object config file\n");
 		printf("  -d, --daemon                 Starts Nagios in daemon mode, instead of as a foreground process\n");
+		printf("  -W, --worker /path/to/socket Act as a worker for an already running daemon\n");
 		printf("\n");
 		printf("Visit the Nagios website at http://www.nagios.org/ for bug fixes, new\n");
 		printf("releases, online documentation, FAQs, information on subscribing to\n");

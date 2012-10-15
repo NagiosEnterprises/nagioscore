@@ -98,6 +98,7 @@ int main(int argc, char **argv, char **env) {
 	char datestring[256];
 	nagios_macros *mac;
 	const char *worker_socket = NULL;
+	int i;
 
 #ifdef HAVE_GETOPT_H
 	int option_index = 0;
@@ -445,8 +446,10 @@ int main(int argc, char **argv, char **env) {
 			/* initialize check workers */
 			init_workers(num_check_workers);
 			timing_point("%u workers spawned\n", wproc_num_workers_spawned);
-			while (wproc_num_workers_online < wproc_num_workers_spawned) {
-				iobroker_poll(nagios_iobs, 1500);
+			i = 0;
+			while (i < 50 && wproc_num_workers_online < wproc_num_workers_spawned) {
+				iobroker_poll(nagios_iobs, 50);
+				i++;
 			}
 			timing_point("%u workers connected\n", wproc_num_workers_online);
 

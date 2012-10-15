@@ -406,6 +406,10 @@ static int handle_worker_result(int sd, int events, void *arg)
 	static struct kvvec kvv = KVVEC_INITIALIZER;
 	worker_process *wp = (worker_process *)arg;
 
+	if(iocache_capacity(wp->ioc) == 0) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: iocache_capacity() is 0 for worker %s.\n", wp->source_name);
+	}
+
 	ret = iocache_read(wp->ioc, wp->sd);
 
 	if (ret < 0) {

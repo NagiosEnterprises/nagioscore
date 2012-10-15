@@ -250,7 +250,11 @@ int main(int argc, char **argv, char **env) {
 
 	/* make sure the config file uses an absolute path */
 	config_file = nspath_absolute(config_file, NULL);
-	config_file_dir = strdup(dirname(config_file));
+	buffer = strdup(config_file);
+	config_file_dir = strdup(dirname(buffer));
+	free(buffer);
+
+	nagios_binary_path = nspath_absolute(argv[0], NULL);
 
 	/*
 	 * let's go to town. We'll be noisy if we're verifying config

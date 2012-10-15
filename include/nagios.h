@@ -35,6 +35,7 @@
  * global variables only used in the core. Reducing this list would be
  * a Good Thing(tm).
  */
+extern char *nagios_binary_path;
 extern char *config_file;
 extern char *config_file_dir;
 extern char *command_file;

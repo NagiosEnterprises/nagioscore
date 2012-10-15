@@ -425,7 +425,7 @@ static int stdout_handler(int fd, int events, void *cp_)
 
 int start_cmd(child_process *cp)
 {
-	int pfd[2], pfderr[2];
+	int pfd[2] = {-1, -1}, pfderr[2] = {-1, -1};
 
 	cp->outstd.fd = runcmd_open(cp->cmd, pfd, pfderr, NULL);
 	if (cp->outstd.fd == -1) {
@@ -434,6 +434,10 @@ int start_cmd(child_process *cp)
 
 	cp->outerr.fd = pfderr[0];
 	cp->ei->pid = runcmd_pid(cp->outstd.fd);
+	/* no pid means we somehow failed */
+	if (!cp->ei->pid) {
+		return -1;
+	}
 	iobroker_register(iobs, cp->outstd.fd, cp, stdout_handler);
 	iobroker_register(iobs, cp->outerr.fd, cp, stderr_handler);
 
@@ -516,12 +520,12 @@ static void spawn_job(struct kvvec *kvv, int(*cb)(child_process *))
 	cp->request = kvv;
 	started++;
 	running_jobs++;
-	cp->ei->sq_event = squeue_add(sq, cp->timeout + time(NULL), cp);
 	result = cb(cp);
 	if (result < 0) {
 		job_error(cp, kvv, "Failed to start child");
 		return;
 	}
+	cp->ei->sq_event = squeue_add(sq, cp->timeout + time(NULL), cp);
 }
 
 static int receive_command(int sd, int events, void *arg)

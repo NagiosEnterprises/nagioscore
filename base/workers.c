@@ -644,6 +644,20 @@ static int wproc_query_handler(int sd, char *buf, unsigned int len)
 	return 400;
 }
 
+static int spawn_core_worker(void)
+{
+	char *argvec[] = {nagios_binary_path, "--worker", qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET, NULL};
+	int ret;
+
+	if ((ret = spawn_helper(argvec)) < 0)
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to launch core worker: %s\n", strerror(errno));
+	else
+		wproc_num_workers_spawned++;
+
+	return ret;
+}
+
+
 int init_workers(int desired_workers)
 {
 	int i;
@@ -681,12 +695,8 @@ int init_workers(int desired_workers)
 	if (desired_workers < workers.len)
 		return -1;
 
-	for (i = 0; i < desired_workers; i++) {
-		char *argvec[] = {nagios_binary_path, "--worker", qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET, NULL};
-		if (spawn_helper(argvec) < 0) {
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to launch worker\n");
-		}
-	}
+	for (i = 0; i < desired_workers; i++)
+		spawn_core_worker();
 
 	return 0;
 }

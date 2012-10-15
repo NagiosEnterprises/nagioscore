@@ -201,9 +201,6 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 
 	timing_point("Reading config data from '%s'\n", main_config_file);
 
-	/* get variables from main config file */
-	xodtemplate_grab_config_info(main_config_file);
-
 	/* initialize variables */
 	xodtemplate_timeperiod_list = NULL;
 	xodtemplate_command_list = NULL;
@@ -500,66 +497,6 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 
 	return result;
 	}
-
-
-
-/* grab config variable from main config file */
-int xodtemplate_grab_config_info(char *main_config_file) {
-	char *input = NULL;
-	char *var = NULL;
-	char *val = NULL;
-	mmapfile *thefile = NULL;
-#ifdef NSCORE
-	nagios_macros *mac;
-#endif
-
-	/* open the main config file for reading */
-	if((thefile = mmap_fopen(main_config_file)) == NULL)
-		return ERROR;
-
-	/* read in all lines from the main config file */
-	while(1) {
-
-		/* free memory */
-		my_free(input);
-
-		/* read the next line */
-		if((input = mmap_fgets_multiline(thefile)) == NULL)
-			break;
-
-		/* strip input */
-		strip(input);
-
-		/* skip blank lines and comments */
-		if(input[0] == '#' || input[0] == ';' || input[0] == '\x0')
-			continue;
-
-		if((var = strtok(input, "=")) == NULL)
-			continue;
-
-		if((val = strtok(NULL, "\n")) == NULL)
-			continue;
-
-		}
-
-	/* close the file */
-	mmap_fclose(thefile);
-
-	/* make sure we have what we need */
-	if(object_cache_file == NULL)
-		return ERROR;
-
-#ifdef NSCORE
-	mac = get_global_macros();
-	/* save the object cache file macro */
-	my_free(mac->x[MACRO_OBJECTCACHEFILE]);
-	if((mac->x[MACRO_OBJECTCACHEFILE] = (char *)strdup(object_cache_file)))
-		strip(mac->x[MACRO_OBJECTCACHEFILE]);
-#endif
-
-	return OK;
-	}
-
 
 
 /* process all files in a specific config directory */

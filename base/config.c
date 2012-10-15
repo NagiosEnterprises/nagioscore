@@ -1132,8 +1132,11 @@ int read_main_config_file(char *main_config_file) {
 			continue;
 		else if(strstr(input, "state_retention_file=") == input)
 			continue;
-		else if(strstr(input, "object_cache_file=") == input)
+		else if(strstr(input, "object_cache_file=") == input) {
 			object_cache_file = nspath_absolute(value, config_file_dir);
+			my_free(mac->x[MACRO_OBJECTCACHEFILE]);
+			mac->x[MACRO_OBJECTCACHEFILE] = strdup(object_cache_file);
+		}
 		else if(strstr(input, "precached_object_file=") == input)
 			object_precache_file = nspath_absolute(value, config_file_dir);
 		else if(!strcmp(variable, "allow_empty_hostgroup_assignment")) {

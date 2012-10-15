@@ -282,6 +282,12 @@ int main(int argc, char **argv, char **env) {
 			exit(EXIT_FAILURE);
 			}
 
+		if (access(nagios_binary_path, X_OK) < 0) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Spawning workers will be impossible. Aborting.\n");
+			exit(EXIT_FAILURE);
+			}
+
 		/* read object config files */
 		result = read_all_object_data(config_file);
 		if(result != OK) {

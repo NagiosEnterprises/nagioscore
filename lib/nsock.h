@@ -1,3 +1,13 @@
+/**
+ * @file nsock.h
+ * @brief Nagios socket helper library
+ *
+ * This is a pretty stupid library, but since so many addons and
+ * now Nagios core itself makes use of sockets, we might as well
+ * have some simple wrappers for it that handle the most common
+ * cases.
+ */
+
 #ifndef LIBNAGIOS_nsock_h__
 #define LIBNAGIOS_nsock_h__
 #include <errno.h>
@@ -10,7 +20,7 @@
 #define NSOCK_EFCNTL   (-6)     /**< failed to fcntl() */
 #define NSOCK_EINVAL (-EINVAL) /**< -22, normally */
 
-/** flags for the various create calls */
+/* flags for the various create calls */
 #define NSOCK_TCP     (1 << 0)  /**< use tcp mode */
 #define NSOCK_UDP     (1 << 1)  /**< use udp mode */
 #define NSOCK_UNLINK  (1 << 2)  /**< unlink existing path (only nsock_unix) */

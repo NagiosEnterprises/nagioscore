@@ -616,7 +616,7 @@ void enter_worker(int sd, int (*cb)(child_process*))
 		int poll_time = -1;
 
 		/* check for timed out jobs */
-		for (;;) {
+		while (running_jobs) {
 			child_process *cp;
 			struct timeval now, tmo;
 

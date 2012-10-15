@@ -452,7 +452,10 @@ int main(int argc, char **argv, char **env) {
 			timing_point("NERD initialized\n");
 
 			/* initialize check workers */
-			init_workers(num_check_workers);
+			if(init_workers(num_check_workers) < 0) {
+				logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to spawn workers. Aborting\n");
+				exit(EXIT_FAILURE);
+			}
 			timing_point("%u workers spawned\n", wproc_num_workers_spawned);
 			i = 0;
 			while (i < 50 && wproc_num_workers_online < wproc_num_workers_spawned) {

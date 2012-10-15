@@ -323,6 +323,11 @@ static void kill_job(child_process *cp, int reason)
 	int ret;
 	struct rusage ru;
 
+	if (!cp->ei->pid) {
+		wlog("No pid for job %d (%u running); '%s'", cp->id, running_jobs, cp->cmd);
+		return;
+	}
+
 	/* brutal but efficient */
 	ret = kill(cp->ei->pid, SIGKILL);
 	if (ret < 0) {

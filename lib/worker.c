@@ -649,14 +649,6 @@ void enter_worker(int sd, int (*cb)(child_process*))
 		}
 
 		iobroker_poll(iobs, poll_time);
-
-		/*
-		 * if our parent goes away we can't really do anything
-		 * sensible at all, so let's just break out and exit
-		 */
-		if (kill(parent_pid, 0) < 0 && errno == ESRCH) {
-			break;
-		}
 	}
 
 	/* we exit when the master shuts us down */

@@ -250,18 +250,6 @@ void free_worker_memory(int flags)
 	workers.idx = 0;
 }
 
-/*
- * function workers call as soon as they come alive
- */
-static void worker_init_func(void *arg)
-{
-	/*
-	 * we pass 'arg' here to safeguard against
-	 * changes in it since the worker spawned
-	 */
-	free_memory((nagios_macros *)arg);
-}
-
 static int str2timeval(char *str, struct timeval *tv)
 {
 	char *ptr, *ptr2;
@@ -569,9 +557,6 @@ int workers_alive(void)
 {
 	int i, alive = 0;
 
-	if (!workers.wps)
-		return 0;
-
 	for (i = 0; i < workers.len; i++) {
 		if (wproc_is_alive(workers.wps[i]))
 			alive++;
@@ -657,7 +642,6 @@ static int wproc_query_handler(int sd, char *buf, unsigned int len)
 
 int init_workers(int desired_workers)
 {
-	worker_process **wps;
 	int i;
 
 	/*
@@ -693,48 +677,12 @@ int init_workers(int desired_workers)
 	if (desired_workers < workers.len)
 		return -1;
 
-	wps = calloc(desired_workers, sizeof(worker_process *));
-	if (!wps)
-		return -1;
-
-	if (workers.wps) {
-		if (workers.len < desired_workers) {
-			for (i = 0; i < workers.len; i++) {
-				wps[i] = workers.wps[i];
-			}
-		}
-
-		free(workers.wps);
-	}
-
-	workers.wps = wps;
 	for (i = 0; i < desired_workers; i++) {
-		int ret;
-		worker_process *wp;
-
-		if (wps[i])
-			continue;
-
-		wp = spawn_worker(worker_init_func, (void *)get_global_macros());
-		if (!wp) {
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to spawn worker: %s\n", strerror(errno));
-			free_worker_memory(0);
-			return ERROR;
-		}
-		set_socket_options(wp->sd, 256 * 1024);
-		asprintf(&wp->source_name, "Nagios Core worker %d", wp->pid);
-
-		wps[i] = wp;
-		ret = iobroker_register(nagios_iobs, wp->sd, wp, handle_worker_result);
-		if (ret < 0) {
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to register worker socket with io broker: %s\n", iobroker_strerror(ret));
-			return ERROR;
+		char *argvec[] = {nagios_binary_path, "--worker", qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET, NULL};
+		if (spawn_helper(argvec) < 0) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to launch worker\n");
 		}
 	}
-	workers.len = desired_workers;
-
-	logit(NSLOG_INFO_MESSAGE, TRUE, "Workers spawned: %d\n", workers.len);
-
 
 	return 0;
 }

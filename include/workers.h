@@ -17,6 +17,7 @@
 #define WPROC_FORCE  (1 << 0)
 
 extern void free_worker_memory(int flags);
+extern int workers_alive(void);
 extern int init_workers(int desired_workers);
 extern int wproc_run_check(check_result *cr, char *cmd, nagios_macros *mac);
 extern int wproc_notify(char *cname, char *hname, char *sdesc, char *cmd, nagios_macros *mac);

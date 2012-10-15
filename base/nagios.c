@@ -436,6 +436,14 @@ int main(int argc, char **argv, char **env) {
 			nerd_init();
 			timing_point("NERD initialized\n");
 
+			/* initialize check workers */
+			init_workers(num_check_workers);
+			timing_point("Workers spawned\n");
+			while (!workers_alive()) {
+				iobroker_poll(nagios_iobs, 1500);
+			}
+			timing_point("Worker(s) connected\n");
+
 #ifdef USE_EVENT_BROKER
 			/* load modules */
 			neb_load_all_modules();
@@ -573,9 +581,6 @@ int main(int argc, char **argv, char **env) {
 			/* fire up command file worker */
 			launch_command_file_worker();
 			timing_point("Command file worker launched\n");
-
-			/* initialize check workers */
-			init_workers(num_check_workers);
 
 #ifdef USE_EVENT_BROKER
 			/* send program data to broker */

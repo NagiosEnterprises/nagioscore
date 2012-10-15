@@ -57,6 +57,7 @@ static int nagios_core_worker(const char *path)
 {
 	int sd, ret;
 	char response[128];
+	struct rlimit rlim;
 
 	sd = nsock_unix(path, 0, NSOCK_TCP | NSOCK_CONNECT);
 	if (sd < 0) {

@@ -82,6 +82,13 @@ static int nagios_core_worker(const char *path)
 		printf("Failed to register with wproc manager: %s\n", response);
 		return 1;
 	}
+
+	getrlimit(RLIMIT_NOFILE, &rlim);
+	rlim.rlim_cur = rlim.rlim_max;
+	setrlimit(RLIMIT_NOFILE, &rlim);
+	getrlimit(RLIMIT_NPROC, &rlim);
+	rlim.rlim_cur = rlim.rlim_max;
+	setrlimit(RLIMIT_NPROC, &rlim);
 	enter_worker(sd, start_cmd);
 	return 0;
 }

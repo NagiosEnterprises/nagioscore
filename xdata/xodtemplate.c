@@ -253,9 +253,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 		/* determine the directory of the main config file */
 		if((config_file = (char *)strdup(main_config_file)) == NULL) {
 			my_free(xodtemplate_config_files);
-#ifdef NSCORE
 			printf("Unable to allocate memory!\n");
-#endif
 			return ERROR;
 			}
 		config_base_dir = (char *)strdup(dirname(config_file));
@@ -265,9 +263,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 		if((thefile = mmap_fopen(main_config_file)) == NULL) {
 			my_free(config_base_dir);
 			my_free(xodtemplate_config_files);
-#ifdef NSCORE
 			printf("Unable to open main config file '%s'\n", main_config_file);
-#endif
 			return ERROR;
 			}
 

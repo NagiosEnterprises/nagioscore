@@ -438,11 +438,11 @@ int main(int argc, char **argv, char **env) {
 
 			/* initialize check workers */
 			init_workers(num_check_workers);
-			timing_point("Workers spawned\n");
-			while (!workers_alive()) {
+			timing_point("%u workers spawned\n", wproc_num_workers_spawned);
+			while (wproc_num_workers_online < wproc_num_workers_spawned) {
 				iobroker_poll(nagios_iobs, 1500);
 			}
-			timing_point("Worker(s) connected\n");
+			timing_point("%u workers connected\n", wproc_num_workers_online);
 
 #ifdef USE_EVENT_BROKER
 			/* load modules */

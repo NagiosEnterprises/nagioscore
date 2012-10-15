@@ -51,6 +51,9 @@ typedef struct wproc_result {
 	struct kvvec *response;
 } wproc_result;
 
+unsigned int wproc_num_workers_online = 0, wproc_num_workers_desired = 0;
+unsigned int wproc_num_workers_spawned = 0;
+
 #define tv2float(tv) ((float)((tv)->tv_sec) + ((float)(tv)->tv_usec) / 1000000.0)
 
 static worker_job *create_job(int type, void *arg, time_t timeout, const char *command)
@@ -418,6 +421,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 		return 0;
 	} else if (ret == 0) {
 		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Socket to worker %s broken, removing", wp->source_name);
+		wproc_num_workers_online--;
 		iobroker_unregister(nagios_iobs, sd);
 		to_remove = wp;
 		dkhash_walk_data(specialized_workers, remove_specialized);
@@ -623,6 +627,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 		workers.wps = realloc(workers.wps, workers.len * sizeof(worker_process *));
 		workers.wps[workers.len - 1] = worker;
 	}
+	wproc_num_workers_online++;
 	kvvec_destroy(info, 0);
 	nsock_printf_nul(sd, "OK");
 	return 0;
@@ -687,6 +692,7 @@ int init_workers(int desired_workers)
 			desired_workers = cpus - desired_workers;
 		}
 	}
+	wproc_num_workers_desired = desired_workers;
 
 	if (workers_alive() == desired_workers)
 		return 0;

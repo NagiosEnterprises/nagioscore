@@ -609,6 +609,9 @@ static int register_worker(int sd, char *buf, unsigned int len)
 		if (!strcmp(kv->key, "name")) {
 			worker->source_name = strdup(kv->value);
 		}
+		else if (!strcmp(kv->key, "pid")) {
+			worker->pid = atoi(kv->value);
+		}
 		else if (!strcmp(kv->key, "plugin")) {
 			struct wproc_list *command_handlers;
 			is_global = 0;

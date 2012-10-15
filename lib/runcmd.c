@@ -356,7 +356,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 			free(argv[0]);
 		else
 			free(argv[2]);
-		exit (errno);
+		_exit (errno);
 	}
 
 	/* parent picks up execution here */

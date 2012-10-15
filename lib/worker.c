@@ -658,6 +658,24 @@ void enter_worker(int sd, int (*cb)(child_process*))
 	exit(EXIT_SUCCESS);
 }
 
+int spawn_helper(char **argv)
+{
+	int ret, pid;
+
+	pid = fork();
+	if (pid < 0) {
+		return -1;
+	}
+
+	/* parent leaves early */
+	if (pid)
+		return pid;
+
+	ret = execvp(argv[0], argv);
+	/* if execvp() fails, there's really nothing we can do */
+	exit(ret);
+}
+
 struct worker_process *spawn_worker(void (*init_func)(void *), void *init_arg)
 {
 	int sv[2];

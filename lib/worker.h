@@ -95,6 +95,13 @@ extern int start_cmd(child_process *cp);
 extern worker_process *spawn_worker(void (init_func)(void *), void *init_arg);
 
 /**
+ * Spawn any random helper process
+ * @param argv The (NULL-sentinel-terminated) argument vector
+ * @return 0 on success, < 0 on errors
+ */
+extern int spawn_helper(char **argv);
+
+/**
  * To be called when a child_process has completed to ship the result to nagios
  * @param cp The child_process that describes the job
  * @param reason 0 if everything was OK, 1 if the job was unable to run

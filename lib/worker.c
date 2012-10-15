@@ -220,6 +220,7 @@ int finish_job(child_process *cp, int reason)
 	 * pointer, or the pointer to a different child.
 	 */
 	squeue_remove(sq, cp->ei->sq_event);
+	running_jobs--;
 
 	/* get rid of still open filedescriptors */
 	if (cp->outstd.fd != -1)
@@ -267,7 +268,6 @@ int finish_job(child_process *cp, int reason)
 	if (ret < 0 && errno == EPIPE)
 		exit_worker();
 
-	running_jobs--;
 	if (cp->outstd.buf) {
 		free(cp->outstd.buf);
 		cp->outstd.buf = NULL;
@@ -518,14 +518,14 @@ static void spawn_job(struct kvvec *kvv, int(*cb)(child_process *))
 
 	gettimeofday(&cp->ei->start, NULL);
 	cp->request = kvv;
-	started++;
-	running_jobs++;
 	result = cb(cp);
 	if (result < 0) {
 		job_error(cp, kvv, "Failed to start child");
 		return;
 	}
 	cp->ei->sq_event = squeue_add(sq, cp->timeout + time(NULL), cp);
+	started++;
+	running_jobs++;
 }
 
 static int receive_command(int sd, int events, void *arg)

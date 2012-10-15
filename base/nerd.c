@@ -67,7 +67,7 @@ static int nerd_register_channel_callbacks(struct nerd_channel *chan)
 	for(i = 0; i < chan->num_callbacks; i++) {
 		int result = neb_register_callback(chan->callbacks[i], &nerd_mod, 0, chan->handler);
 		if(result != 0) {
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to register callback %d for channel '%s': %d\n",
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "nerd: Failed to register callback %d for channel '%s': %d\n",
 				  chan->callbacks[i], chan->name, result);
 			return -1;
 		}
@@ -130,7 +130,7 @@ static int cancel_channel_subscription(struct nerd_channel *chan, int sd)
 	}
 
 	if(cancelled) {
-		logit(NSLOG_INFO_MESSAGE, TRUE, "Cancelled %d subscription%s to channel '%s' for %d\n",
+		logit(NSLOG_INFO_MESSAGE, TRUE, "nerd: Cancelled %d subscription%s to channel '%s' for %d\n",
 			  cancelled, cancelled == 1 ? "" : "s", chan->name, sd);
 	}
 
@@ -389,7 +389,7 @@ int nerd_mkchan(const char *name, int (*handler)(int, void *), unsigned int call
 
 	channels[num_channels++] = chan;
 
-	logit(NSLOG_INFO_MESSAGE, TRUE, "NERD channel %s registered successfully\n", chan->name);
+	logit(NSLOG_INFO_MESSAGE, TRUE, "nerd: Channel %s registered successfully\n", chan->name);
 	return num_channels - 1;
 }
 
@@ -442,7 +442,7 @@ int nerd_init(void)
 	nerd_mod.deinit_func = nerd_deinit;
 
 	if(qh_register_handler("nerd", 0, nerd_qh_handler) < 0) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to register 'nerd' with query handler\n");
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "nerd: Failed to register with query handler\n");
 		return ERROR;
 	}
 

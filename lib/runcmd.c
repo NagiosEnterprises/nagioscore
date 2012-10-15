@@ -351,7 +351,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 				close (i);
 
 		i = execvp(argv[0], argv);
-		fprintf(stderr, "execvp() failed. errno is %d: %s\n", errno, strerror(errno));
+		fprintf(stderr, "execvp(%s, ...) failed. errno is %d: %s\n", argv[0], errno, strerror(errno));
 		if (!cmd2strv_errors)
 			free(argv[0]);
 		else

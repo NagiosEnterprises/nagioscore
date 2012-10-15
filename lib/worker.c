@@ -70,7 +70,8 @@ static void wlog(const char *fmt, ...)
 
 	/* add delimiter and send it. 1 extra as kv pair separator */
 	to_send = len + MSG_DELIM_LEN_SEND + 1;
-	memset(&lmsg[len], 0, to_send);
+	lmsg[len] = 0;
+	memcpy(&lmsg[len + 1], MSG_DELIM, MSG_DELIM_LEN_SEND);
 	if (write(master_sd, lmsg, to_send) < 0) {
 		if (errno == EPIPE) {
 			/* master has died or abandoned us, so exit */

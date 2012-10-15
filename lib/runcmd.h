@@ -20,6 +20,14 @@
 #define CMD_HAS_UBDQ (1 << 5) /**< unbalanced double quotes */
 #define CMD_HAS_WILDCARD (1 << 6) /**< wildcards present */
 
+
+#define RUNCMD_EFD    (-1)  /**< Failed to pipe() or open() */
+#define RUNCMD_EALLOC (-2)  /**< Failed to alloc */
+#define RUNCMD_ECMD   (-3)  /**< Bad command */
+#define RUNCMD_EFORK  (-4)  /**< Failed to fork() */
+#define RUNCMD_EINVAL (-5)  /**< Invalid parameters */
+#define RUNCMD_EWAIT  (-6)  /**< Failed to wait() */
+
 /**
  * Initialize the runcmd library.
  *
@@ -35,6 +43,13 @@ extern void runcmd_init(void);
  * @return pid of the child, or 0 on errors
  */
 extern pid_t runcmd_pid(int fd);
+
+/**
+ * Return explanation of which system call or operation failed
+ * @param code Error code returned by a library function
+ * @return A non-free()'able string explaining where the error occurred
+ */
+extern const char *runcmd_strerror(int code);
 
 /**
  * Start a command from a command string

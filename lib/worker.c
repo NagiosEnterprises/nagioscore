@@ -428,7 +428,7 @@ int start_cmd(child_process *cp)
 	int pfd[2] = {-1, -1}, pfderr[2] = {-1, -1};
 
 	cp->outstd.fd = runcmd_open(cp->cmd, pfd, pfderr, NULL);
-	if (cp->outstd.fd == -1) {
+	if (cp->outstd.fd < 0) {
 		return -1;
 	}
 
@@ -520,7 +520,7 @@ static void spawn_job(struct kvvec *kvv, int(*cb)(child_process *))
 	cp->request = kvv;
 	result = cb(cp);
 	if (result < 0) {
-		job_error(cp, kvv, "Failed to start child");
+		job_error(cp, kvv, "Failed to start child: %s: %s", runcmd_strerror(result), strerror(errno));
 		return;
 	}
 	cp->ei->sq_event = squeue_add(sq, cp->timeout + time(NULL), cp);

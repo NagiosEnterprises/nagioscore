@@ -69,6 +69,25 @@ static int maxfd = 0;
 #endif /* OPEN_MAX */
 
 
+const char *runcmd_strerror(int code)
+{
+	switch (code) {
+	case RUNCMD_EFD:
+		return "pipe() or open() failed";
+	case RUNCMD_EALLOC:
+		return "memory allocation failed";
+	case RUNCMD_ECMD:
+		return "command too complicated";
+	case RUNCMD_EFORK:
+		return "failed to fork()";
+	case RUNCMD_EINVAL:
+		return "invalid parameters";
+	case RUNCMD_EWAIT:
+		return "wait() failed";
+	}
+	return "unknown";
+}
+
 /* yield the pid belonging to a particular file descriptor */
 pid_t runcmd_pid(int fd)
 {
@@ -274,12 +293,12 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 
 	/* if no command was passed, return with no error */
 	if (!cmd || !*cmd)
-		return -1;
+		return RUNCMD_EINVAL;
 
 	cmdlen = strlen(cmd);
 	argv = calloc((cmdlen / 2) + 5, sizeof(char *));
 	if (!argv)
-		return -1;
+		return RUNCMD_EALLOC;
 
 	cmd2strv_errors = runcmd_cmd2strv(cmd, &argc, argv);
 	if (cmd2strv_errors) {
@@ -293,7 +312,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 		argv[2] = strdup(cmd);
 		if (!argv[2]) {
 			free(argv);
-			return -1;
+			return RUNCMD_EALLOC;
 		}
 		argv[3] = NULL;
 	}
@@ -304,7 +323,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 		else
 			free(argv[2]);
 		free(argv);
-		return -1;
+		return RUNCMD_ECMD;
 	}
 	if (pipe(pfderr) < 0) {
 		if (!cmd2strv_errors)
@@ -314,7 +333,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 		free(argv);
 		close(pfd[0]);
 		close(pfd[1]);
-		return -1;
+		return RUNCMD_EFD;
 	}
 	pid = fork();
 	if (pid < 0) {
@@ -327,7 +346,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 		close(pfd[1]);
 		close(pfderr[0]);
 		close(pfderr[1]);
-		return -1; /* errno set by the failing function */
+		return RUNCMD_EFORK; /* errno set by the failing function */
 	}
 
 	/* child runs excevp() and _exit. */
@@ -387,7 +406,7 @@ int runcmd_close(int fd)
 
 	/* make sure this fd was opened by runcmd_open() */
 	if(fd < 0 || fd > maxfd || !pids || (pid = pids[fd]) == 0)
-		return -1;
+		return RUNCMD_EINVAL;
 
 	pids[fd] = 0;
 	if (close(fd) == -1)
@@ -396,7 +415,7 @@ int runcmd_close(int fd)
 	/* EINTR is ok (sort of), everything else is bad */
 	while (waitpid(pid, &status, 0) < 0)
 		if (errno != EINTR)
-			return -1;
+			return RUNCMD_EWAIT;
 
 	/* return child's termination status */
 	return (WIFEXITED(status)) ? WEXITSTATUS(status) : -1;
@@ -410,7 +429,7 @@ int runcmd_try_close(int fd, int *status, int sig)
 
 	/* make sure this fd was opened by popen() */
 	if(fd < 0 || fd > maxfd || !pids || !pids[fd])
-		return -1;
+		return RUNCMD_EINVAL;
 
 	pid = pids[fd];
 	while((result = waitpid(pid, status, WNOHANG)) != pid) {

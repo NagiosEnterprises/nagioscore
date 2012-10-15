@@ -40,7 +40,6 @@ struct subscription {
 
 
 static nebmodule nerd_mod; /* fake module to get our callbacks accepted */
-static int nerd_sock; /* teehee. nerd-socks :D */
 static struct nerd_channel **channels;
 static unsigned int num_channels, alloc_channels;
 static unsigned int chan_host_checks_id, chan_service_checks_id;
@@ -338,7 +337,6 @@ static int nerd_deinit(void)
 {
 	unsigned int i;
 
-	iobroker_close(nagios_iobs, nerd_sock);
 	if(host_parent_path_cache) {
 		for(i = 0; i < num_objects.hosts; i++) {
 			my_free(host_parent_path_cache[i]);
@@ -352,6 +350,7 @@ static int nerd_deinit(void)
 
 		for(list = chan->subscriptions; list; list = next) {
 			struct subscription *subscr = (struct subscription *)list->object_ptr;
+			iobroker_close(nagios_iobs, subscr->sd);
 			next = list->next;
 			free(list);
 			free(subscr);

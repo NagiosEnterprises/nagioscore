@@ -586,14 +586,12 @@ static int register_worker(int sd, char *buf, unsigned int len)
 	int i, is_global = 1;
 	struct kvvec *info;
 	worker_process *worker = calloc(1, sizeof(worker_process));
+
 	if (!worker) {
-		nsock_printf(sd, "Couldn't allocate memory for creating worker process\n");
-		close(sd);
 		return 500;
 	}
 	info = buf2kvvec(buf, len, '=', '\n', 0);
 	if (info == NULL) {
-		nsock_printf(sd, "Invalid request format: '@wproc register name=<name> plugin=<plugin1> plugin=<plugin2>\n");
 		return 500;
 	}
 	worker->source_name = NULL;

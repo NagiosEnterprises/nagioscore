@@ -36,6 +36,7 @@
  * a Good Thing(tm).
  */
 extern char *config_file;
+extern char *config_file_dir;
 extern char *command_file;
 extern char *temp_file;
 extern char *temp_path;

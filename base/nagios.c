@@ -206,31 +206,8 @@ int main(int argc, char **argv, char **env) {
 		}
 
 	/* make sure the config file uses an absolute path */
-	if(config_file[0] != '/') {
-
-		/* save the name of the config file */
-		buffer = (char *)strdup(config_file);
-
-		/* reallocate a larger chunk of memory */
-		config_file = (char *)realloc(config_file, MAX_FILENAME_LENGTH);
-		if(config_file == NULL) {
-			printf("Error allocating memory.\n");
-			exit(ERROR);
-			}
-
-		/* get absolute path of current working directory */
-		getcwd(config_file, MAX_FILENAME_LENGTH);
-
-		/* append a forward slash */
-		strncat(config_file, "/", 1);
-		config_file[MAX_FILENAME_LENGTH - 1] = '\x0';
-
-		/* append the config file to the path */
-		strncat(config_file, buffer, MAX_FILENAME_LENGTH - strlen(config_file) - 1);
-		config_file[MAX_FILENAME_LENGTH - 1] = '\x0';
-
-		my_free(buffer);
-		}
+	config_file = nspath_absolute(config_file, NULL);
+	config_file_dir = strdup(dirname(config_file));
 
 	/*
 	 * let's go to town. We'll be noisy if we're verifying config

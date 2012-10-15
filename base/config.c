@@ -163,10 +163,10 @@ int read_main_config_file(char *main_config_file) {
 
 			/* save the macro */
 			my_free(mac->x[MACRO_RESOURCEFILE]);
-			mac->x[MACRO_RESOURCEFILE] = (char *)strdup(value);
+			mac->x[MACRO_RESOURCEFILE] = nspath_absolute(value, config_file_dir);
 
 			/* process the resource file */
-			read_resource_file(value);
+			read_resource_file(mac->x[MACRO_RESOURCEFILE]);
 			}
 
 		else if(!strcmp(variable, "check_workers"))
@@ -182,7 +182,7 @@ int read_main_config_file(char *main_config_file) {
 				}
 
 			my_free(log_file);
-			log_file = (char *)strdup(value);
+			log_file = nspath_absolute(value, config_file_dir);
 
 			/* save the macro */
 			my_free(mac->x[MACRO_LOGFILE]);
@@ -204,7 +204,7 @@ int read_main_config_file(char *main_config_file) {
 				}
 
 			my_free(debug_file);
-			debug_file = (char *)strdup(value);
+			debug_file = nspath_absolute(value, config_file_dir);
 			}
 
 		else if(!strcmp(variable, "max_debug_file_size"))
@@ -219,7 +219,7 @@ int read_main_config_file(char *main_config_file) {
 				}
 
 			my_free(command_file);
-			command_file = (char *)strdup(value);
+			command_file = nspath_absolute(value, config_file_dir);
 
 			/* save the macro */
 			my_free(mac->x[MACRO_COMMANDFILE]);
@@ -235,7 +235,7 @@ int read_main_config_file(char *main_config_file) {
 				}
 
 			my_free(temp_file);
-			temp_file = (char *)strdup(value);
+			temp_file = nspath_absolute(value, config_file_dir);
 
 			/* save the macro */
 			my_free(mac->x[MACRO_TEMPFILE]);
@@ -258,12 +258,10 @@ int read_main_config_file(char *main_config_file) {
 			closedir(tmpdir);
 
 			my_free(temp_path);
-			if((temp_path = (char *)strdup(value))) {
-				strip(temp_path);
-				/* make sure we don't have a trailing slash */
-				if(temp_path[strlen(temp_path) - 1] == '/')
-					temp_path[strlen(temp_path) - 1] = '\x0';
-				}
+			temp_path = nspath_absolute(value, config_file_dir);
+			/* make sure we don't have a trailing slash */
+			if(temp_path[strlen(temp_path) - 1] == '/')
+				temp_path[strlen(temp_path) - 1] = '\x0';
 
 			/* save the macro */
 			my_free(mac->x[MACRO_TEMPPATH]);
@@ -285,16 +283,13 @@ int read_main_config_file(char *main_config_file) {
 				}
 			closedir(tmpdir);
 
-			my_free(temp_path);
-			if((temp_path = (char *)strdup(value))) {
-				strip(temp_path);
-				/* make sure we don't have a trailing slash */
-				if(temp_path[strlen(temp_path) - 1] == '/')
-					temp_path[strlen(temp_path) - 1] = '\x0';
-				}
-
 			my_free(check_result_path);
-			check_result_path = (char *)strdup(temp_path);
+			check_result_path = nspath_absolute(value, config_file_dir);
+			/* make sure we don't have a trailing slash */
+			if(check_result_path[strlen(check_result_path) - 1] == '/')
+				check_result_path[strlen(check_result_path) - 1] = '\x0';
+
+			check_result_path = (char *)strdup(check_result_path);
 			}
 
 		else if(!strcmp(variable, "max_check_result_file_age"))
@@ -309,7 +304,7 @@ int read_main_config_file(char *main_config_file) {
 				}
 
 			my_free(lock_file);
-			lock_file = (char *)strdup(value);
+			lock_file = nspath_absolute(value, config_file_dir);
 			}
 
 		else if(!strcmp(variable, "global_host_event_handler")) {
@@ -444,16 +439,16 @@ int read_main_config_file(char *main_config_file) {
 			log_initial_states = (atoi(value) > 0) ? TRUE : FALSE;
 			}
 
-                else if(!strcmp(variable, "log_current_states")) {
+		else if(!strcmp(variable, "log_current_states")) {
 
-                        if(strlen(value) != 1 || value[0] < '0' || value[0] > '1') {
-                                asprintf(&error_message, "Illegal value for log_current_states");
-                                error = TRUE;
-                                break;
-                                }
+			if(strlen(value) != 1 || value[0] < '0' || value[0] > '1') {
+				asprintf(&error_message, "Illegal value for log_current_states");
+				error = TRUE;
+				break;
+				}
 
-                        log_current_states = (atoi(value) > 0) ? TRUE : FALSE;
-                        }
+			log_current_states = (atoi(value) > 0) ? TRUE : FALSE;
+			}
 
 		else if(!strcmp(variable, "retain_state_information")) {
 
@@ -710,7 +705,7 @@ int read_main_config_file(char *main_config_file) {
 				}
 
 			my_free(log_archive_path);
-			log_archive_path = (char *)strdup(value);
+			log_archive_path = nspath_absolute(value, config_file_dir);
 			}
 
 		else if(!strcmp(variable, "enable_event_handlers"))
@@ -1138,9 +1133,9 @@ int read_main_config_file(char *main_config_file) {
 		else if(strstr(input, "state_retention_file=") == input)
 			continue;
 		else if(strstr(input, "object_cache_file=") == input)
-			object_cache_file = (char *)strdup(value);
+			object_cache_file = nspath_absolute(value, config_file_dir);
 		else if(strstr(input, "precached_object_file=") == input)
-			object_precache_file = (char *)strdup(value);
+			object_precache_file = nspath_absolute(value, config_file_dir);
 		else if(!strcmp(variable, "allow_empty_hostgroup_assignment")) {
 			allow_empty_hostgroup_assignment = (atoi(value) > 0) ? TRUE : FALSE;
 			}

@@ -269,7 +269,6 @@ static const char *host_parent_path(host *leaf, char sep)
 		host_parent_path_cache = calloc(num_objects.hosts, sizeof(char *));
 	}
 	if(host_parent_path_cache[h->id]) {
-		printf("Found cached path for host '%s'\n", h->name);
 		return host_parent_path_cache[h->id];
 	}
 
@@ -292,7 +291,7 @@ static const char *host_parent_path(host *leaf, char sep)
 		pos += strlen(ppart);
 	}
 	ret[pos++] = 0;
-	host_parent_path_cache[h->id] = ret;
+	host_parent_path_cache[leaf->id] = ret;
 	return ret;
 }
 

@@ -118,6 +118,7 @@ static int cancel_channel_subscription(struct nerd_channel *chan, int sd)
 		if(subscr->sd == sd) {
 			cancelled++;
 			free(list);
+			free(subscr);
 			if(prev) {
 				prev->next = next;
 			} else {

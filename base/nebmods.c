@@ -86,7 +86,7 @@ int neb_add_module(char *filename, char *args, int should_be_loaded) {
 		return ERROR;
 
 	/* allocate memory */
-	new_module = (nebmodule *)malloc(sizeof(nebmodule));
+	new_module = (nebmodule *)calloc(1, sizeof(nebmodule));
 	if(new_module == NULL)
 		return ERROR;
 

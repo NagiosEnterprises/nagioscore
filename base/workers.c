@@ -149,7 +149,7 @@ static int wproc_is_alive(worker_process *wp)
 
 int wproc_destroy(worker_process *wp, int flags)
 {
-	int i = 0, destroyed = 0, force = 0, sd, self;
+	int i = 0, destroyed = 0, force = 0, self;
 
 	if (!wp)
 		return 0;
@@ -165,6 +165,7 @@ int wproc_destroy(worker_process *wp, int flags)
 	/* free all memory when either forcing or a worker called us */
 	iocache_destroy(wp->ioc);
 	wp->ioc = NULL;
+	my_free(wp->source_name);
 	if (wp->jobs) {
 		for (i = 0; i < wp->max_jobs; i++) {
 			if (!wp->jobs[i])
@@ -180,8 +181,6 @@ int wproc_destroy(worker_process *wp, int flags)
 		/* free(wp->jobs); */
 		wp->jobs = NULL;
 	}
-	sd = wp->sd;
-	free(wp);
 
 	/* workers must never control other workers, so they return early */
 	if (self != nagios_pid)
@@ -192,11 +191,13 @@ int wproc_destroy(worker_process *wp, int flags)
 		kill(wp->pid, SIGKILL);
 	}
 
-	iobroker_close(nagios_iobs, sd);
+	iobroker_close(nagios_iobs, wp->sd);
 
 	/* reap our possibly lost children */
 	while (waitpid(-1, &i, WNOHANG) > 0)
 		; /* do nothing */
+
+	free(wp);
 
 	return 0;
 }

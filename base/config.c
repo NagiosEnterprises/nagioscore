@@ -289,7 +289,6 @@ int read_main_config_file(char *main_config_file) {
 			if(check_result_path[strlen(check_result_path) - 1] == '/')
 				check_result_path[strlen(check_result_path) - 1] = '\x0';
 
-			check_result_path = (char *)strdup(check_result_path);
 			}
 
 		else if(!strcmp(variable, "max_check_result_file_age"))
@@ -1133,12 +1132,15 @@ int read_main_config_file(char *main_config_file) {
 		else if(strstr(input, "state_retention_file=") == input)
 			continue;
 		else if(strstr(input, "object_cache_file=") == input) {
+			my_free(object_cache_file);
 			object_cache_file = nspath_absolute(value, config_file_dir);
 			my_free(mac->x[MACRO_OBJECTCACHEFILE]);
 			mac->x[MACRO_OBJECTCACHEFILE] = strdup(object_cache_file);
 		}
-		else if(strstr(input, "precached_object_file=") == input)
+		else if(strstr(input, "precached_object_file=") == input) {
+			my_free(object_precache_file);
 			object_precache_file = nspath_absolute(value, config_file_dir);
+		}
 		else if(!strcmp(variable, "allow_empty_hostgroup_assignment")) {
 			allow_empty_hostgroup_assignment = (atoi(value) > 0) ? TRUE : FALSE;
 			}

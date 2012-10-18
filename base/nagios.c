@@ -250,15 +250,17 @@ int main(int argc, char **argv, char **env) {
 		}
 
 
-	/* config file is last argument specified */
-	config_file = (char *)strdup(argv[optind]);
+	/*
+	 * config file is last argument specified.
+	 * Make sure it uses an absolute path
+	 */
+	config_file = nspath_absolute(argv[optind], NULL);
 	if(config_file == NULL) {
 		printf("Error allocating memory.\n");
 		exit(ERROR);
 		}
 
 	/* make sure the config file uses an absolute path */
-	config_file = nspath_absolute(config_file, NULL);
 	buffer = strdup(config_file);
 	config_file_dir = strdup(dirname(buffer));
 	free(buffer);

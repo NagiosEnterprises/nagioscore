@@ -305,6 +305,7 @@ void iobroker_destroy(iobroker_set *iobs, int flags)
 		dereg(iobs, i);
 	}
 	free(iobs->iobroker_fds);
+	iobs->iobroker_fds = NULL;
 #ifdef IOBROKER_USES_EPOLL
 	free(iobs->ep_events);
 	close(iobs->epfd);

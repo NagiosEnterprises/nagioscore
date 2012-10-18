@@ -177,8 +177,7 @@ int wproc_destroy(worker_process *wp, int flags)
 				break;
 		}
 
-		/* this triggers a double-free() for some reason */
-		/* free(wp->jobs); */
+		free(wp->jobs);
 		wp->jobs = NULL;
 	}
 
@@ -633,7 +632,9 @@ static int register_worker(int sd, char *buf, unsigned int len)
 	wproc_num_workers_online++;
 	kvvec_destroy(info, 0);
 	nsock_printf_nul(sd, "OK");
-	return 0;
+
+	/* signal query handler to release its iocache for this one */
+	return QH_TAKEOVER;
 }
 
 static int wproc_query_handler(int sd, char *buf, unsigned int len)

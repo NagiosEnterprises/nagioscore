@@ -485,7 +485,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 		printf("                      ============\n");
 		printf("TOTAL:                %.6lf sec  ", runtime[10]);
 		if(use_precached_objects == FALSE)
-			printf("* = %.6lf sec (%.2f%%) estimated savings", runtime[10] - runtime[9] - runtime[8] - runtime[0], ((runtime[10] - runtime[9] - runtime[8] - runtime[0]) / runtime[10]) * 100.0);
+			printf("* = %.6lf sec (%.2f%%) estimated savings", (runtime[10] - runtime[9] - runtime[8] - runtime[0]) / 4, ((runtime[10] - runtime[9] - runtime[8] - runtime[0]) / runtime[10]) * 25.0);
 		printf("\n");
 		printf("\n\n");
 		}

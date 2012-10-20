@@ -281,7 +281,7 @@ static const char *host_parent_path(host *leaf, char sep)
 			break;
 	}
 
-	ret = malloc(len) + 1;
+	ret = malloc(len + 1);
 	for(list = stack; list; list = next) {
 		char *ppart = (char *)list->object_ptr;
 		next = list->next;

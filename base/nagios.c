@@ -87,9 +87,12 @@ static int nagios_core_worker(const char *path)
 	getrlimit(RLIMIT_NOFILE, &rlim);
 	rlim.rlim_cur = rlim.rlim_max;
 	setrlimit(RLIMIT_NOFILE, &rlim);
+	nofile_limit = rlim.rlim_max;
 	getrlimit(RLIMIT_NPROC, &rlim);
 	rlim.rlim_cur = rlim.rlim_max;
 	setrlimit(RLIMIT_NPROC, &rlim);
+	nproc_limit = rlim.rlim_max;
+
 	enter_worker(sd, start_cmd);
 	return 0;
 }
@@ -107,6 +110,7 @@ int main(int argc, char **argv, char **env) {
 	nagios_macros *mac;
 	const char *worker_socket = NULL;
 	int i;
+	struct rlimit rlim;
 
 #ifdef HAVE_GETOPT_H
 	int option_index = 0;
@@ -292,6 +296,23 @@ int main(int argc, char **argv, char **env) {
 			printf("   Failed to drop privileges.  Aborting.");
 			exit(EXIT_FAILURE);
 			}
+
+		/*
+		 * limits become seriously important now that we're fast
+		 * enough to actually reach them.
+		 */
+		getrlimit(RLIMIT_NOFILE, &rlim);
+		rlim.rlim_cur = rlim.rlim_max;
+		setrlimit(RLIMIT_NOFILE, &rlim);
+		nofile_limit = rlim.rlim_max;
+		getrlimit(RLIMIT_NPROC, &rlim);
+		rlim.rlim_cur = rlim.rlim_max;
+		setrlimit(RLIMIT_NPROC, &rlim);
+		nproc_limit = rlim.rlim_max;
+
+		max_apps = nproc_limit - 50;
+		if ((nofile_limit - 100) / 3 < max_apps)
+			max_apps = (nofile_limit - 100) / 3;
 
 		if (access(nagios_binary_path, X_OK) < 0) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));

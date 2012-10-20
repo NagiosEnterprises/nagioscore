@@ -1416,13 +1416,13 @@ int pre_flight_check(void) {
 
 		printf("Timing information on configuration verification is listed below.\n\n");
 
-		printf("CONFIG VERIFICATION TIMES          (* = Potential for speedup with -x option)\n");
+		printf("CONFIG VERIFICATION TIMES\n");
 		printf("----------------------------------\n");
 		printf("Object Relationships: %.6lf sec\n", runtime[0]);
-		printf("Circular Paths:       %.6lf sec  *\n", runtime[1]);
+		printf("Circular Paths:       %.6lf sec\n", runtime[1]);
 		printf("Misc:                 %.6lf sec\n", runtime[2]);
 		printf("                      ============\n");
-		printf("TOTAL:                %.6lf sec  * = %.6lf sec (%.1f%%) estimated savings\n", runtime[3], runtime[1], (runtime[1] / runtime[3]) * 100.0);
+		printf("TOTAL:                %.6lf sec\n", runtime[3]);
 		printf("\n\n");
 		}
 

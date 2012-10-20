@@ -255,10 +255,8 @@ int finish_job(child_process *cp, int reason)
 		kvvec_add_tv(&resp, "ru_stime", ru->ru_stime);
 		kvvec_add_long(&resp, "ru_minflt", ru->ru_minflt);
 		kvvec_add_long(&resp, "ru_majflt", ru->ru_majflt);
-		kvvec_add_long(&resp, "ru_nswap", ru->ru_nswap);
 		kvvec_add_long(&resp, "ru_inblock", ru->ru_inblock);
 		kvvec_add_long(&resp, "ru_oublock", ru->ru_oublock);
-		kvvec_add_long(&resp, "ru_nsignals", ru->ru_nsignals);
 	} else {
 		/* some error happened */
 		kvvec_addkv(&resp, "exited_ok", "0");

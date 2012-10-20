@@ -369,17 +369,11 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 		case WPRES_ru_majflt:
 			wpres->rusage.ru_majflt = atoi(value);
 			break;
-		case WPRES_ru_nswap:
-			wpres->rusage.ru_nswap = atoi(value);
-			break;
 		case WPRES_ru_inblock:
 			wpres->rusage.ru_inblock = atoi(value);
 			break;
 		case WPRES_ru_oublock:
 			wpres->rusage.ru_oublock = atoi(value);
-			break;
-		case WPRES_ru_nsignals:
-			wpres->rusage.ru_nsignals = atoi(value);
 			break;
 		case WPRES_exited_ok:
 			wpres->exited_ok = atoi(value);
@@ -388,10 +382,12 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 			wpres->exited_ok = FALSE;
 			wpres->error_msg = value;
 			break;
-
 		case WPRES_error_code:
 			wpres->exited_ok = FALSE;
 			wpres->error_code = atoi(value);
+			break;
+		case WPRES_ru_nsignals:
+		case WPRES_ru_nswap:
 			break;
 
 		default:

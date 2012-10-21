@@ -245,6 +245,10 @@ const char *state_type_name(int state_type)
 	return state_type == HARD_STATE ? "HARD" : "SOFT";
 }
 
+const char *check_type_name(int check_type)
+{
+	return check_type == CHECK_TYPE_PASSIVE ? "PASSIVE" : "ACTIVE";
+}
 
 /******************************************************************/
 /******* TOP-LEVEL HOST CONFIGURATION DATA INPUT FUNCTION *********/

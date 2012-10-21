@@ -377,6 +377,7 @@ NAGIOS_BEGIN_DECL
 extern const char *service_state_name(int state);
 extern const char *host_state_name(int state);
 extern const char *state_type_name(int state_type);
+extern const char *check_type_name(int check_type);
 extern const char *check_result_source(check_result *cr);
 
 /*** Nagios Event Radio Dispatcher functions ***/

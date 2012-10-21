@@ -171,6 +171,7 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 			clean_options = 0;
 
 			/* grab the macro value */
+			free_macro = FALSE;
 			result = grab_macro_value_r(mac, temp_buffer, &selected_macro, &clean_options, &free_macro);
 			log_debug_info(DEBUGL_MACROS, 2, "  Processed '%s', Clean Options: %d, Free: %d\n", temp_buffer, clean_options, free_macro);
 
@@ -468,9 +469,6 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 	if((buf = (char *)strdup(macro_buffer)) == NULL)
 		return ERROR;
 
-	/* BY DEFAULT, TELL CALLER TO FREE MACRO BUFFER WHEN DONE */
-	*free_macro = TRUE;
-
 	/* macro name is at start of buffer */
 	macro_name = buf;
 
@@ -644,8 +642,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 	if(output == NULL || free_macro == NULL)
 		return ERROR;
 
-	/* BY DEFAULT, TELL CALLER TO FREE MACRO BUFFER WHEN DONE */
-	*free_macro = TRUE;
+	*free_macro = FALSE;
 
 	/* handle the macro */
 	switch(macro_type) {
@@ -653,6 +650,8 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/***************/
 			/* HOST MACROS */
 			/***************/
+		case MACRO_HOSTGROUPNAMES:
+			*free_macro = TRUE;
 		case MACRO_HOSTNAME:
 		case MACRO_HOSTALIAS:
 		case MACRO_HOSTADDRESS:
@@ -686,7 +685,6 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_HOSTNOTIFICATIONID:
 		case MACRO_HOSTEVENTID:
 		case MACRO_LASTHOSTEVENTID:
-		case MACRO_HOSTGROUPNAMES:
 		case MACRO_HOSTACKAUTHORNAME:
 		case MACRO_HOSTACKAUTHORALIAS:
 		case MACRO_MAXHOSTATTEMPTS:
@@ -760,12 +758,13 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/********************/
 			/* HOSTGROUP MACROS */
 			/********************/
+		case MACRO_HOSTGROUPMEMBERS:
+			*free_macro = TRUE;
 		case MACRO_HOSTGROUPNAME:
 		case MACRO_HOSTGROUPALIAS:
 		case MACRO_HOSTGROUPNOTES:
 		case MACRO_HOSTGROUPNOTESURL:
 		case MACRO_HOSTGROUPACTIONURL:
-		case MACRO_HOSTGROUPMEMBERS:
 
 			/* a standard hostgroup macro */
 			/* use the saved hostgroup pointer */
@@ -787,6 +786,8 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/******************/
 			/* SERVICE MACROS */
 			/******************/
+		case MACRO_SERVICEGROUPNAMES:
+			*free_macro = TRUE;
 		case MACRO_SERVICEDESC:
 		case MACRO_SERVICESTATE:
 		case MACRO_SERVICESTATEID:
@@ -819,7 +820,6 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_SERVICENOTIFICATIONID:
 		case MACRO_SERVICEEVENTID:
 		case MACRO_LASTSERVICEEVENTID:
-		case MACRO_SERVICEGROUPNAMES:
 		case MACRO_SERVICEACKAUTHORNAME:
 		case MACRO_SERVICEACKAUTHORALIAS:
 		case MACRO_MAXSERVICEATTEMPTS:
@@ -868,6 +868,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 						return ERROR;
 
 					delimiter_len = strlen(arg2);
+					*free_macro = TRUE;
 
 					/* concatenate macro values for all servicegroup members */
 					for(temp_servicesmember = temp_servicegroup->members; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
@@ -907,12 +908,13 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/***********************/
 			/* SERVICEGROUP MACROS */
 			/***********************/
+		case MACRO_SERVICEGROUPMEMBERS:
+			*free_macro = TRUE;
 		case MACRO_SERVICEGROUPNAME:
 		case MACRO_SERVICEGROUPALIAS:
 		case MACRO_SERVICEGROUPNOTES:
 		case MACRO_SERVICEGROUPNOTESURL:
 		case MACRO_SERVICEGROUPACTIONURL:
-		case MACRO_SERVICEGROUPMEMBERS:
 			/* a standard servicegroup macro */
 			/* use the saved servicegroup pointer */
 			if(arg1 == NULL) {
@@ -962,6 +964,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 					return ERROR;
 
 				delimiter_len = strlen(arg2);
+				*free_macro = TRUE;
 
 				/* concatenate macro values for all contactgroup members */
 				for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
@@ -997,9 +1000,10 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/***********************/
 			/* CONTACTGROUP MACROS */
 			/***********************/
+		case MACRO_CONTACTGROUPMEMBERS:
+			*free_macro = TRUE;
 		case MACRO_CONTACTGROUPNAME:
 		case MACRO_CONTACTGROUPALIAS:
-		case MACRO_CONTACTGROUPMEMBERS:
 			/* a standard contactgroup macro */
 			/* use the saved contactgroup pointer */
 			if(arg1 == NULL) {
@@ -1521,19 +1525,19 @@ int grab_datetime_macro_r(nagios_macros *mac, int macro_type, char *arg1, char *
 			break;
 
 		case MACRO_TIMET:
-			asprintf(output, "%lu", (unsigned long)current_time);
+			*output = (char *)mkstr("%lu", (unsigned long)current_time);
 			break;
 
 #ifdef NSCORE
 		case MACRO_ISVALIDTIME:
-			asprintf(output, "%d", (check_time_against_period(test_time, temp_timeperiod) == OK) ? 1 : 0);
+			*output = (char *)mkstr("%d", (check_time_against_period(test_time, temp_timeperiod) == OK) ? 1 : 0);
 			break;
 
 		case MACRO_NEXTVALIDTIME:
 			get_next_valid_time(test_time, &next_valid_time, temp_timeperiod);
 			if(next_valid_time == test_time && check_time_against_period(test_time, temp_timeperiod) == ERROR)
 				next_valid_time = (time_t)0L;
-			asprintf(output, "%lu", (unsigned long)next_valid_time);
+			*output = (char *)mkstr("%lu", (unsigned long)next_valid_time);
 			break;
 #endif
 
@@ -1576,83 +1580,70 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 	if(temp_host == NULL || output == NULL || free_macro == NULL)
 		return ERROR;
 
-	/* BY DEFAULT TELL CALLER TO FREE MACRO BUFFER WHEN DONE */
-	*free_macro = TRUE;
-
 	/* get the macro */
 	switch(macro_type) {
 
 		case MACRO_HOSTNAME:
-			*output = (char *)strdup(temp_host->name);
+			*output = temp_host->name;
 			break;
 		case MACRO_HOSTDISPLAYNAME:
 			if(temp_host->display_name)
-				*output = (char *)strdup(temp_host->display_name);
+				*output = temp_host->display_name;
 			break;
 		case MACRO_HOSTALIAS:
-			*output = (char *)strdup(temp_host->alias);
+			*output = temp_host->alias;
 			break;
 		case MACRO_HOSTADDRESS:
-			*output = (char *)strdup(temp_host->address);
+			*output = temp_host->address;
 			break;
 #ifdef NSCORE
 		case MACRO_HOSTSTATE:
-			if(temp_host->current_state == HOST_DOWN)
-				*output = (char *)strdup("DOWN");
-			else if(temp_host->current_state == HOST_UNREACHABLE)
-				*output = (char *)strdup("UNREACHABLE");
-			else
-				*output = (char *)strdup("UP");
+			*output = (char *)host_state_name(temp_host->current_state);
 			break;
 		case MACRO_HOSTSTATEID:
-			asprintf(output, "%d", temp_host->current_state);
+			*output = (char *)mkstr("%d", temp_host->current_state);
 			break;
 		case MACRO_LASTHOSTSTATE:
-			if(temp_host->last_state == HOST_DOWN)
-				*output = (char *)strdup("DOWN");
-			else if(temp_host->last_state == HOST_UNREACHABLE)
-				*output = (char *)strdup("UNREACHABLE");
-			else
-				*output = (char *)strdup("UP");
+			*output = (char *)host_state_name(temp_host->last_state);
 			break;
 		case MACRO_LASTHOSTSTATEID:
-			asprintf(output, "%d", temp_host->last_state);
+			*output = (char *)mkstr("%d", temp_host->last_state);
 			break;
 		case MACRO_HOSTCHECKTYPE:
-			asprintf(output, "%s", (temp_host->check_type == CHECK_TYPE_PASSIVE) ? "PASSIVE" : "ACTIVE");
+			*output = (char *)check_type_name(temp_host->check_type);
 			break;
 		case MACRO_HOSTSTATETYPE:
-			asprintf(output, "%s", (temp_host->state_type == HARD_STATE) ? "HARD" : "SOFT");
+			*output = (char *)state_type_name(temp_host->state_type);
 			break;
 		case MACRO_HOSTOUTPUT:
 			if(temp_host->plugin_output)
-				*output = (char *)strdup(temp_host->plugin_output);
+				*output = temp_host->plugin_output;
 			break;
 		case MACRO_LONGHOSTOUTPUT:
 			if(temp_host->long_plugin_output)
-				*output = (char *)strdup(temp_host->long_plugin_output);
+				*output = temp_host->long_plugin_output;
 			break;
 		case MACRO_HOSTPERFDATA:
 			if(temp_host->perf_data)
-				*output = (char *)strdup(temp_host->perf_data);
+				*output = temp_host->perf_data;
 			break;
 #endif
 		case MACRO_HOSTCHECKCOMMAND:
 			if(temp_host->check_command)
-				*output = (char *)strdup(temp_host->check_command);
+				*output = temp_host->check_command;
 			break;
 #ifdef NSCORE
 		case MACRO_HOSTATTEMPT:
-			asprintf(output, "%d", temp_host->current_attempt);
+			*output = (char *)mkstr("%d", temp_host->current_attempt);
 			break;
 		case MACRO_MAXHOSTATTEMPTS:
-			asprintf(output, "%d", temp_host->max_attempts);
+			*output = (char *)mkstr("%d", temp_host->max_attempts);
 			break;
 		case MACRO_HOSTDOWNTIME:
-			asprintf(output, "%d", temp_host->scheduled_downtime_depth);
+			*output = (char *)mkstr("%d", temp_host->scheduled_downtime_depth);
 			break;
 		case MACRO_HOSTPERCENTCHANGE:
-			asprintf(output, "%.2f", temp_host->percent_state_change);
+			*output = (char *)mkstr("%.2f", temp_host->percent_state_change);
 			break;
 		case MACRO_HOSTDURATIONSEC:
 		case MACRO_HOSTDURATION:
@@ -1660,7 +1651,7 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 			duration = (unsigned long)(current_time - temp_host->last_state_change);
 
 			if(macro_type == MACRO_HOSTDURATIONSEC)
-				asprintf(output, "%lu", duration);
+				*output = (char *)mkstr("%lu", duration);
 			else {
 
 				days = duration / 86400;
@@ -1670,60 +1661,60 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 				minutes = duration / 60;
 				duration -= (minutes * 60);
 				seconds = duration;
-				asprintf(output, "%dd %dh %dm %ds", days, hours, minutes, seconds);
+				*output = (char *)mkstr("%dd %dh %dm %ds", days, hours, minutes, seconds);
 				}
 			break;
 		case MACRO_HOSTEXECUTIONTIME:
-			asprintf(output, "%.3f", temp_host->execution_time);
+			*output = (char *)mkstr("%.3f", temp_host->execution_time);
 			break;
 		case MACRO_HOSTLATENCY:
-			asprintf(output, "%.3f", temp_host->latency);
+			*output = (char *)mkstr("%.3f", temp_host->latency);
 			break;
 		case MACRO_LASTHOSTCHECK:
-			asprintf(output, "%lu", (unsigned long)temp_host->last_check);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_host->last_check);
 			break;
 		case MACRO_LASTHOSTSTATECHANGE:
-			asprintf(output, "%lu", (unsigned long)temp_host->last_state_change);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_host->last_state_change);
 			break;
 		case MACRO_LASTHOSTUP:
-			asprintf(output, "%lu", (unsigned long)temp_host->last_time_up);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_host->last_time_up);
 			break;
 		case MACRO_LASTHOSTDOWN:
-			asprintf(output, "%lu", (unsigned long)temp_host->last_time_down);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_host->last_time_down);
 			break;
 		case MACRO_LASTHOSTUNREACHABLE:
-			asprintf(output, "%lu", (unsigned long)temp_host->last_time_unreachable);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_host->last_time_unreachable);
 			break;
 		case MACRO_HOSTNOTIFICATIONNUMBER:
-			asprintf(output, "%d", temp_host->current_notification_number);
+			*output = (char *)mkstr("%d", temp_host->current_notification_number);
 			break;
 		case MACRO_HOSTNOTIFICATIONID:
-			asprintf(output, "%lu", temp_host->current_notification_id);
+			*output = (char *)mkstr("%lu", temp_host->current_notification_id);
 			break;
 		case MACRO_HOSTEVENTID:
-			asprintf(output, "%lu", temp_host->current_event_id);
+			*output = (char *)mkstr("%lu", temp_host->current_event_id);
 			break;
 		case MACRO_LASTHOSTEVENTID:
-			asprintf(output, "%lu", temp_host->last_event_id);
+			*output = (char *)mkstr("%lu", temp_host->last_event_id);
 			break;
 		case MACRO_HOSTPROBLEMID:
-			asprintf(output, "%lu", temp_host->current_problem_id);
+			*output = (char *)mkstr("%lu", temp_host->current_problem_id);
 			break;
 		case MACRO_LASTHOSTPROBLEMID:
-			asprintf(output, "%lu", temp_host->last_problem_id);
+			*output = (char *)mkstr("%lu", temp_host->last_problem_id);
 			break;
 #endif
 		case MACRO_HOSTACTIONURL:
 			if(temp_host->action_url)
-				*output = (char *)strdup(temp_host->action_url);
+				*output = temp_host->action_url;
 			break;
 		case MACRO_HOSTNOTESURL:
 			if(temp_host->notes_url)
-				*output = (char *)strdup(temp_host->notes_url);
+				*output = temp_host->notes_url;
 			break;
 		case MACRO_HOSTNOTES:
 			if(temp_host->notes)
-				*output = (char *)strdup(temp_host->notes);
+				*output = temp_host->notes;
 			break;
 #ifdef NSCORE
 		case MACRO_HOSTGROUPNAMES:
@@ -1776,34 +1767,23 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 					}
 
 				/* these macros are time-intensive to compute, and will likely be used together, so save them all for future use */
-				my_free(mac->x[MACRO_TOTALHOSTSERVICES]);
-				asprintf(&mac->x[MACRO_TOTALHOSTSERVICES], "%d", total_host_services);
-				my_free(mac->x[MACRO_TOTALHOSTSERVICESOK]);
-				asprintf(&mac->x[MACRO_TOTALHOSTSERVICESOK], "%d", total_host_services_ok);
-				my_free(mac->x[MACRO_TOTALHOSTSERVICESWARNING]);
-				asprintf(&mac->x[MACRO_TOTALHOSTSERVICESWARNING], "%d", total_host_services_warning);
-				my_free(mac->x[MACRO_TOTALHOSTSERVICESUNKNOWN]);
-				asprintf(&mac->x[MACRO_TOTALHOSTSERVICESUNKNOWN], "%d", total_host_services_unknown);
-				my_free(mac->x[MACRO_TOTALHOSTSERVICESCRITICAL]);
-				asprintf(&mac->x[MACRO_TOTALHOSTSERVICESCRITICAL], "%d", total_host_services_critical);
+				mac->x[MACRO_TOTALHOSTSERVICES] = (char *)mkstr("%d", total_host_services);
+				mac->x[MACRO_TOTALHOSTSERVICESOK] = (char *)mkstr("%d", total_host_services_ok);
+				mac->x[MACRO_TOTALHOSTSERVICESWARNING] = (char *)mkstr("%d", total_host_services_warning);
+				mac->x[MACRO_TOTALHOSTSERVICESUNKNOWN] = (char *)mkstr("%d", total_host_services_unknown);
+				mac->x[MACRO_TOTALHOSTSERVICESCRITICAL] = (char *)mkstr("%d", total_host_services_critical);
 				}
 
 			/* return only the macro the user requested */
 			*output = mac->x[macro_type];
-
-			/* tell caller to NOT free memory when done */
-			*free_macro = FALSE;
 			break;
 		case MACRO_HOSTVALUE:
-			*free_macro = FALSE;
 			*output = (char *)mkstr("%u", mac->host_ptr->hourly_value);
 			break;
 		case MACRO_SERVICEVALUE:
-			*free_macro = FALSE;
 			*output = (char *)mkstr("%u", host_services_value(mac->host_ptr));
 			break;
 		case MACRO_PROBLEMVALUE:
-			*free_macro = FALSE;
 			*output = (char *)mkstr("%u", mac->host_ptr->hourly_value + host_services_value(mac->host_ptr));
 			break;
 #endif
@@ -1818,7 +1798,6 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 			/* no need to do any more work - these are already precomputed elsewhere */
 			/* NOTE: these macros won't work as on-demand macros */
 			*output = mac->x[macro_type];
-			*free_macro = FALSE;
 			break;
 
 		default:
@@ -1832,11 +1811,13 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 	switch(macro_type) {
 		case MACRO_HOSTACTIONURL:
 		case MACRO_HOSTNOTESURL:
+			*free_macro = TRUE;
 			process_macros_r(mac, *output, &temp_buffer, URL_ENCODE_MACRO_CHARS);
 			my_free(*output);
 			*output = temp_buffer;
 			break;
 		case MACRO_HOSTNOTES:
+			*free_macro = TRUE;
 			process_macros_r(mac, *output, &temp_buffer, 0);
 			my_free(*output);
 			*output = temp_buffer;
@@ -1866,11 +1847,11 @@ int grab_standard_hostgroup_macro_r(nagios_macros *mac, int macro_type, hostgrou
 	/* get the macro value */
 	switch(macro_type) {
 		case MACRO_HOSTGROUPNAME:
-			*output = (char *)strdup(temp_hostgroup->group_name);
+			*output = temp_hostgroup->group_name;
 			break;
 		case MACRO_HOSTGROUPALIAS:
 			if(temp_hostgroup->alias)
-				*output = (char *)strdup(temp_hostgroup->alias);
+				*output = temp_hostgroup->alias;
 			break;
 		case MACRO_HOSTGROUPMEMBERS:
 			/* make the calculations for total string length */
@@ -1914,15 +1895,15 @@ int grab_standard_hostgroup_macro_r(nagios_macros *mac, int macro_type, hostgrou
 			break;
 		case MACRO_HOSTGROUPACTIONURL:
 			if(temp_hostgroup->action_url)
-				*output = (char *)strdup(temp_hostgroup->action_url);
+				*output = temp_hostgroup->action_url;
 			break;
 		case MACRO_HOSTGROUPNOTESURL:
 			if(temp_hostgroup->notes_url)
-				*output = (char *)strdup(temp_hostgroup->notes_url);
+				*output = temp_hostgroup->notes_url;
 			break;
 		case MACRO_HOSTGROUPNOTES:
 			if(temp_hostgroup->notes)
-				*output = (char *)strdup(temp_hostgroup->notes);
+				*output = temp_hostgroup->notes;
 			break;
 		default:
 			log_debug_info(DEBUGL_MACROS, 0, "UNHANDLED HOSTGROUP MACRO #%d! THIS IS A BUG!\n", macro_type);
@@ -1975,109 +1956,92 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 	if(temp_service == NULL || output == NULL)
 		return ERROR;
 
-	/* BY DEFAULT TELL CALLER TO FREE MACRO BUFFER WHEN DONE */
-	*free_macro = TRUE;
-
 	/* get the macro value */
 	switch(macro_type) {
 		case MACRO_SERVICEDESC:
-			*output = (char *)strdup(temp_service->description);
+			*output = temp_service->description;
 			break;
 		case MACRO_SERVICEDISPLAYNAME:
 			if(temp_service->display_name)
-				*output = (char *)strdup(temp_service->display_name);
+				*output = temp_service->display_name;
 			break;
 #ifdef NSCORE
 		case MACRO_SERVICEOUTPUT:
 			if(temp_service->plugin_output)
-				*output = (char *)strdup(temp_service->plugin_output);
+				*output = temp_service->plugin_output;
 			break;
 		case MACRO_LONGSERVICEOUTPUT:
 			if(temp_service->long_plugin_output)
-				*output = (char *)strdup(temp_service->long_plugin_output);
+				*output = temp_service->long_plugin_output;
 			break;
 		case MACRO_SERVICEPERFDATA:
 			if(temp_service->perf_data)
-				*output = (char *)strdup(temp_service->perf_data);
+				*output = temp_service->perf_data;
 			break;
 #endif
 		case MACRO_SERVICECHECKCOMMAND:
 			if(temp_service->check_command)
-				*output = (char *)strdup(temp_service->check_command);
+				*output = temp_service->check_command;
 			break;
 #ifdef NSCORE
 		case MACRO_SERVICECHECKTYPE:
-			*output = (char *)strdup((temp_service->check_type == CHECK_TYPE_PASSIVE) ? "PASSIVE" : "ACTIVE");
+			*output = (char *)check_type_name(temp_service->check_type);
 			break;
 		case MACRO_SERVICESTATETYPE:
-			*output = (char *)strdup((temp_service->state_type == HARD_STATE) ? "HARD" : "SOFT");
+			*output = (char *)state_type_name(temp_service->state_type);
 			break;
 		case MACRO_SERVICESTATE:
-			if(temp_service->current_state == STATE_OK)
-				*output = (char *)strdup("OK");
-			else if(temp_service->current_state == STATE_WARNING)
-				*output = (char *)strdup("WARNING");
-			else if(temp_service->current_state == STATE_CRITICAL)
-				*output = (char *)strdup("CRITICAL");
-			else
-				*output = (char *)strdup("UNKNOWN");
+			*output = (char *)service_state_name(temp_service->current_state);
 			break;
 		case MACRO_SERVICESTATEID:
-			asprintf(output, "%d", temp_service->current_state);
+			*output = (char *)mkstr("%d", temp_service->current_state);
 			break;
 		case MACRO_LASTSERVICESTATE:
-			if(temp_service->last_state == STATE_OK)
-				*output = (char *)strdup("OK");
-			else if(temp_service->last_state == STATE_WARNING)
-				*output = (char *)strdup("WARNING");
-			else if(temp_service->last_state == STATE_CRITICAL)
-				*output = (char *)strdup("CRITICAL");
-			else
-				*output = (char *)strdup("UNKNOWN");
+			*output = (char *)service_state_name(temp_service->last_state);
 			break;
 		case MACRO_LASTSERVICESTATEID:
-			asprintf(output, "%d", temp_service->last_state);
+			*output = (char *)mkstr("%d", temp_service->last_state);
 			break;
 #endif
 		case MACRO_SERVICEISVOLATILE:
-			asprintf(output, "%d", temp_service->is_volatile);
+			*output = (char *)mkstr("%d", temp_service->is_volatile);
 			break;
 #ifdef NSCORE
 		case MACRO_SERVICEATTEMPT:
-			asprintf(output, "%d", temp_service->current_attempt);
+			*output = (char *)mkstr("%d", temp_service->current_attempt);
 			break;
 		case MACRO_MAXSERVICEATTEMPTS:
-			asprintf(output, "%d", temp_service->max_attempts);
+			*output = (char *)mkstr("%d", temp_service->max_attempts);
 			break;
 		case MACRO_SERVICEEXECUTIONTIME:
-			asprintf(output, "%.3f", temp_service->execution_time);
+			*output = (char *)mkstr("%.3f", temp_service->execution_time);
 			break;
 		case MACRO_SERVICELATENCY:
-			asprintf(output, "%.3f", temp_service->latency);
+			*output = (char *)mkstr("%.3f", temp_service->latency);
 			break;
 		case MACRO_LASTSERVICECHECK:
-			asprintf(output, "%lu", (unsigned long)temp_service->last_check);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_service->last_check);
 			break;
 		case MACRO_LASTSERVICESTATECHANGE:
-			asprintf(output, "%lu", (unsigned long)temp_service->last_state_change);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_service->last_state_change);
 			break;
 		case MACRO_LASTSERVICEOK:
-			asprintf(output, "%lu", (unsigned long)temp_service->last_time_ok);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_service->last_time_ok);
 			break;
 		case MACRO_LASTSERVICEWARNING:
-			asprintf(output, "%lu", (unsigned long)temp_service->last_time_warning);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_service->last_time_warning);
 			break;
 		case MACRO_LASTSERVICEUNKNOWN:
-			asprintf(output, "%lu", (unsigned long)temp_service->last_time_unknown);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_service->last_time_unknown);
 			break;
 		case MACRO_LASTSERVICECRITICAL:
-			asprintf(output, "%lu", (unsigned long)temp_service->last_time_critical);
+			*output = (char *)mkstr("%lu", (unsigned long)temp_service->last_time_critical);
 			break;
 		case MACRO_SERVICEDOWNTIME:
-			asprintf(output, "%d", temp_service->scheduled_downtime_depth);
+			*output = (char *)mkstr("%d", temp_service->scheduled_downtime_depth);
 			break;
 		case MACRO_SERVICEPERCENTCHANGE:
-			asprintf(output, "%.2f", temp_service->percent_state_change);
+			*output = (char *)mkstr("%.2f", temp_service->percent_state_change);
 			break;
 		case MACRO_SERVICEDURATIONSEC:
 		case MACRO_SERVICEDURATION:
@@ -2087,7 +2051,7 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 
 			/* get the state duration in seconds */
 			if(macro_type == MACRO_SERVICEDURATIONSEC)
-				asprintf(output, "%lu", duration);
+				*output = (char *)mkstr("%lu", duration);
 
 			/* get the state duration */
 			else {
@@ -2098,39 +2062,39 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 				minutes = duration / 60;
 				duration -= (minutes * 60);
 				seconds = duration;
-				asprintf(output, "%dd %dh %dm %ds", days, hours, minutes, seconds);
+				*output = (char *)mkstr("%dd %dh %dm %ds", days, hours, minutes, seconds);
 				}
 			break;
 		case MACRO_SERVICENOTIFICATIONNUMBER:
-			asprintf(output, "%d", temp_service->current_notification_number);
+			*output = (char *)mkstr("%d", temp_service->current_notification_number);
 			break;
 		case MACRO_SERVICENOTIFICATIONID:
-			asprintf(output, "%lu", temp_service->current_notification_id);
+			*output = (char *)mkstr("%lu", temp_service->current_notification_id);
 			break;
 		case MACRO_SERVICEEVENTID:
-			asprintf(output, "%lu", temp_service->current_event_id);
+			*output = (char *)mkstr("%lu", temp_service->current_event_id);
 			break;
 		case MACRO_LASTSERVICEEVENTID:
-			asprintf(output, "%lu", temp_service->last_event_id);
+			*output = (char *)mkstr("%lu", temp_service->last_event_id);
 			break;
 		case MACRO_SERVICEPROBLEMID:
-			asprintf(output, "%lu", temp_service->current_problem_id);
+			*output = (char *)mkstr("%lu", temp_service->current_problem_id);
 			break;
 		case MACRO_LASTSERVICEPROBLEMID:
-			asprintf(output, "%lu", temp_service->last_problem_id);
+			*output = (char *)mkstr("%lu", temp_service->last_problem_id);
 			break;
 #endif
 		case MACRO_SERVICEACTIONURL:
 			if(temp_service->action_url)
-				*output = (char *)strdup(temp_service->action_url);
+				*output = temp_service->action_url;
 			break;
 		case MACRO_SERVICENOTESURL:
 			if(temp_service->notes_url)
-				*output = (char *)strdup(temp_service->notes_url);
+				*output = temp_service->notes_url;
 			break;
 		case MACRO_SERVICENOTES:
 			if(temp_service->notes)
-				*output = (char *)strdup(temp_service->notes);
+				*output = temp_service->notes;
 			break;
 #ifdef NSCORE
 		case MACRO_SERVICEGROUPNAMES:
@@ -2208,11 +2172,11 @@ int grab_standard_servicegroup_macro_r(nagios_macros *mac, int macro_type, servi
 	/* get the macro value */
 	switch(macro_type) {
 		case MACRO_SERVICEGROUPNAME:
-			*output = (char *)strdup(temp_servicegroup->group_name);
+			*output = temp_servicegroup->group_name;
 			break;
 		case MACRO_SERVICEGROUPALIAS:
 			if(temp_servicegroup->alias)
-				*output = (char *)strdup(temp_servicegroup->alias);
+				*output = temp_servicegroup->alias;
 			break;
 		case MACRO_SERVICEGROUPMEMBERS:
 			/* make the calculations for total string length */
@@ -2255,15 +2219,15 @@ int grab_standard_servicegroup_macro_r(nagios_macros *mac, int macro_type, servi
 			break;
 		case MACRO_SERVICEGROUPACTIONURL:
 			if(temp_servicegroup->action_url)
-				*output = (char *)strdup(temp_servicegroup->action_url);
+				*output = temp_servicegroup->action_url;
 			break;
 		case MACRO_SERVICEGROUPNOTESURL:
 			if(temp_servicegroup->notes_url)
-				*output = (char *)strdup(temp_servicegroup->notes_url);
+				*output = temp_servicegroup->notes_url;
 			break;
 		case MACRO_SERVICEGROUPNOTES:
 			if(temp_servicegroup->notes)
-				*output = (char *)strdup(temp_servicegroup->notes);
+				*output = temp_servicegroup->notes;
 			break;
 		default:
 			log_debug_info(DEBUGL_MACROS, 0, "UNHANDLED SERVICEGROUP MACRO #%d! THIS IS A BUG!\n", macro_type);
@@ -2311,18 +2275,18 @@ int grab_standard_contact_macro_r(nagios_macros *mac, int macro_type, contact *t
 	/* get the macro value */
 	switch(macro_type) {
 		case MACRO_CONTACTNAME:
-			*output = (char *)strdup(temp_contact->name);
+			*output = temp_contact->name;
 			break;
 		case MACRO_CONTACTALIAS:
-			*output = (char *)strdup(temp_contact->alias);
+			*output = temp_contact->alias;
 			break;
 		case MACRO_CONTACTEMAIL:
 			if(temp_contact->email)
-				*output = (char *)strdup(temp_contact->email);
+				*output = temp_contact->email;
 			break;
 		case MACRO_CONTACTPAGER:
 			if(temp_contact->pager)
-				*output = (char *)strdup(temp_contact->pager);
+				*output = temp_contact->pager;
 			break;
 #ifdef NSCORE
 		case MACRO_CONTACTGROUPNAMES:
@@ -2383,11 +2347,11 @@ int grab_standard_contactgroup_macro(int macro_type, contactgroup *temp_contactg
 	/* get the macro value */
 	switch(macro_type) {
 		case MACRO_CONTACTGROUPNAME:
-			*output = (char *)strdup(temp_contactgroup->group_name);
+			*output = temp_contactgroup->group_name;
 			break;
 		case MACRO_CONTACTGROUPALIAS:
 			if(temp_contactgroup->alias)
-				*output = (char *)strdup(temp_contactgroup->alias);
+				*output = temp_contactgroup->alias;
 			break;
 		case MACRO_CONTACTGROUPMEMBERS:
 			/* get the member list */
@@ -2427,7 +2391,7 @@ int grab_custom_object_macro_r(nagios_macros *mac, char *macro_name, customvaria
 
 		if(!strcmp(macro_name, temp_customvariablesmember->variable_name)) {
 			if(temp_customvariablesmember->variable_value)
-				*output = (char *)strdup(temp_customvariablesmember->variable_value);
+				*output = temp_customvariablesmember->variable_value;
 			result = OK;
 			break;
 			}
@@ -2926,45 +2890,13 @@ int clear_service_macros_r(nagios_macros *mac) {
 	customvariablesmember *this_customvariablesmember = NULL;
 	customvariablesmember *next_customvariablesmember = NULL;
 
-	/* FIXME: strings. make these not be strdup()'s anymore */
-	my_free(mac->x[MACRO_SERVICEDESC]);
-	my_free(mac->x[MACRO_SERVICEDISPLAYNAME]);
-	my_free(mac->x[MACRO_SERVICEOUTPUT]);
-	my_free(mac->x[MACRO_LONGSERVICEOUTPUT]);
-	my_free(mac->x[MACRO_SERVICEPERFDATA]);
-
 	/* these are recursive but persistent. what to do? */
 	my_free(mac->x[MACRO_SERVICECHECKCOMMAND]);
 	my_free(mac->x[MACRO_SERVICEACTIONURL]);
 	my_free(mac->x[MACRO_SERVICENOTESURL]);
 	my_free(mac->x[MACRO_SERVICENOTES]);
 
-	my_free(mac->x[MACRO_SERVICECHECKTYPE]);
-	my_free(mac->x[MACRO_SERVICESTATETYPE]);
-	my_free(mac->x[MACRO_SERVICESTATE]);
-	my_free(mac->x[MACRO_SERVICEISVOLATILE]);
-	my_free(mac->x[MACRO_SERVICESTATEID]);
-	my_free(mac->x[MACRO_SERVICEATTEMPT]);
-	my_free(mac->x[MACRO_MAXSERVICEATTEMPTS]);
-	my_free(mac->x[MACRO_SERVICEEXECUTIONTIME]);
-	my_free(mac->x[MACRO_SERVICELATENCY]);
-	my_free(mac->x[MACRO_LASTSERVICECHECK]);
-	my_free(mac->x[MACRO_LASTSERVICESTATECHANGE]);
-	my_free(mac->x[MACRO_LASTSERVICEOK]);
-	my_free(mac->x[MACRO_LASTSERVICEWARNING]);
-	my_free(mac->x[MACRO_LASTSERVICEUNKNOWN]);
-	my_free(mac->x[MACRO_LASTSERVICECRITICAL]);
-	my_free(mac->x[MACRO_SERVICEDOWNTIME]);
-	my_free(mac->x[MACRO_SERVICEPERCENTCHANGE]);
-	my_free(mac->x[MACRO_SERVICEDURATIONSEC]);
-	my_free(mac->x[MACRO_SERVICEDURATION]);
-	my_free(mac->x[MACRO_SERVICENOTIFICATIONNUMBER]);
-	my_free(mac->x[MACRO_SERVICENOTIFICATIONID]);
-	my_free(mac->x[MACRO_SERVICEEVENTID]);
-	my_free(mac->x[MACRO_LASTSERVICEEVENTID]);
 	my_free(mac->x[MACRO_SERVICEGROUPNAMES]);
-	my_free(mac->x[MACRO_SERVICEPROBLEMID]);
-	my_free(mac->x[MACRO_LASTSERVICEPROBLEMID]);
 
 	/* clear custom service variables */
 	for(this_customvariablesmember = mac->custom_service_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
@@ -2990,15 +2922,6 @@ int clear_host_macros_r(nagios_macros *mac) {
 	customvariablesmember *this_customvariablesmember = NULL;
 	customvariablesmember *next_customvariablesmember = NULL;
 
-	/* FIXME: strings; Fix these to not be strdup()'s anymore */
-	my_free(mac->x[MACRO_HOSTNAME]);
-	my_free(mac->x[MACRO_HOSTDISPLAYNAME]);
-	my_free(mac->x[MACRO_HOSTALIAS]);
-	my_free(mac->x[MACRO_HOSTADDRESS]);
-	my_free(mac->x[MACRO_HOSTOUTPUT]);
-	my_free(mac->x[MACRO_LONGHOSTOUTPUT]);
-	my_free(mac->x[MACRO_HOSTPERFDATA]);
-
 	/* these are recursive but persistent. what to do? */
 	my_free(mac->x[MACRO_HOSTCHECKCOMMAND]);
 	my_free(mac->x[MACRO_HOSTACTIONURL]);
@@ -3006,36 +2929,7 @@ int clear_host_macros_r(nagios_macros *mac) {
 	my_free(mac->x[MACRO_HOSTNOTES]);
 
 	/* numbers or by necessity autogenerated strings */
-	my_free(mac->x[MACRO_HOSTSTATE]);
-	my_free(mac->x[MACRO_HOSTSTATEID]);
-	my_free(mac->x[MACRO_HOSTCHECKTYPE]);
-	my_free(mac->x[MACRO_HOSTSTATETYPE]);
-	my_free(mac->x[MACRO_HOSTATTEMPT]);
-	my_free(mac->x[MACRO_MAXHOSTATTEMPTS]);
-	my_free(mac->x[MACRO_HOSTDOWNTIME]);
-	my_free(mac->x[MACRO_HOSTPERCENTCHANGE]);
-	my_free(mac->x[MACRO_HOSTDURATIONSEC]);
-	my_free(mac->x[MACRO_HOSTDURATION]);
-	my_free(mac->x[MACRO_HOSTEXECUTIONTIME]);
-	my_free(mac->x[MACRO_HOSTLATENCY]);
-	my_free(mac->x[MACRO_LASTHOSTCHECK]);
-	my_free(mac->x[MACRO_LASTHOSTSTATECHANGE]);
-	my_free(mac->x[MACRO_LASTHOSTUP]);
-	my_free(mac->x[MACRO_LASTHOSTDOWN]);
-	my_free(mac->x[MACRO_LASTHOSTUNREACHABLE]);
-	my_free(mac->x[MACRO_HOSTNOTIFICATIONNUMBER]);
-	my_free(mac->x[MACRO_HOSTNOTIFICATIONID]);
-	my_free(mac->x[MACRO_HOSTEVENTID]);
-	my_free(mac->x[MACRO_LASTHOSTEVENTID]);
 	my_free(mac->x[MACRO_HOSTGROUPNAMES]);
-	my_free(mac->x[MACRO_TOTALHOSTSERVICES]);
-	my_free(mac->x[MACRO_TOTALHOSTSERVICESOK]);
-	my_free(mac->x[MACRO_TOTALHOSTSERVICESWARNING]);
-	my_free(mac->x[MACRO_TOTALHOSTSERVICESUNKNOWN]);
-	my_free(mac->x[MACRO_TOTALHOSTSERVICESCRITICAL]);
-	my_free(mac->x[MACRO_HOSTPROBLEMID]);
-	my_free(mac->x[MACRO_LASTHOSTPROBLEMID]);
-
 
 	/* clear custom host variables */
 	for(this_customvariablesmember = mac->custom_host_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
@@ -3059,11 +2953,8 @@ int clear_host_macros(void) {
 
 /* clear hostgroup macros */
 int clear_hostgroup_macros_r(nagios_macros *mac) {
-	/* FIXME: make these not strdup()'s */
-	my_free(mac->x[MACRO_HOSTGROUPNAME]);
-	my_free(mac->x[MACRO_HOSTGROUPALIAS]);
 
-	/* generated but persistent. what to do? */
+	/* recursive but persistent. what to do? */
 	my_free(mac->x[MACRO_HOSTGROUPACTIONURL]);
 	my_free(mac->x[MACRO_HOSTGROUPNOTESURL]);
 	my_free(mac->x[MACRO_HOSTGROUPNOTES]);
@@ -3084,11 +2975,7 @@ int clear_hostgroup_macros(void) {
 
 /* clear servicegroup macros */
 int clear_servicegroup_macros_r(nagios_macros *mac) {
-	/* FIXME: these should not be strdup()'s */
-	my_free(mac->x[MACRO_SERVICEGROUPNAME]);
-	my_free(mac->x[MACRO_SERVICEGROUPALIAS]);
-
-	/* generated but persistent. what to do? */
+	/* recursive but persistent. what to do? */
 	my_free(mac->x[MACRO_SERVICEGROUPACTIONURL]);
 	my_free(mac->x[MACRO_SERVICEGROUPNOTESURL]);
 	my_free(mac->x[MACRO_SERVICEGROUPNOTES]);
@@ -3113,18 +3000,8 @@ int clear_contact_macros_r(nagios_macros *mac) {
 	customvariablesmember *this_customvariablesmember = NULL;
 	customvariablesmember *next_customvariablesmember = NULL;
 
-	/* FIXME: these should not be strdup()'d */
-	my_free(mac->x[MACRO_CONTACTNAME]);
-	my_free(mac->x[MACRO_CONTACTALIAS]);
-	my_free(mac->x[MACRO_CONTACTEMAIL]);
-	my_free(mac->x[MACRO_CONTACTPAGER]);
-
-	/* generated per contact */
+	/* generated */
 	my_free(mac->x[MACRO_CONTACTGROUPNAMES]);
-
-	/* clear contact addresses */
-	for(x = 0; x < MAX_CONTACT_ADDRESSES; x++)
-		my_free(mac->contactaddress[x]);
 
 	/* clear custom contact variables */
 	for(this_customvariablesmember = mac->custom_contact_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
@@ -3148,8 +3025,7 @@ int clear_contact_macros(void) {
 
 /* clear contactgroup macros */
 int clear_contactgroup_macros_r(nagios_macros *mac) {
-	my_free(mac->x[MACRO_CONTACTGROUPNAME]);
-	my_free(mac->x[MACRO_CONTACTGROUPALIAS]);
+	/* generated */
 	my_free(mac->x[MACRO_CONTACTGROUPMEMBERS]);
 
 	/* clear pointers */

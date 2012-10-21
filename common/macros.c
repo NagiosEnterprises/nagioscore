@@ -176,7 +176,7 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 
 			/* an error occurred - we couldn't parse the macro, so continue on */
 			if(result == ERROR) {
-				log_debug_info(DEBUGL_MACROS, 0, " WARNING: An error occurred processing macro '%s'!\n", temp_buffer);
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: An error occurred processing macro '%s'!\n", temp_buffer);
 				if(free_macro == TRUE)
 					my_free(selected_macro);
 				}

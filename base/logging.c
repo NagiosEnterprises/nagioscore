@@ -29,6 +29,7 @@
 
 
 static FILE *debug_file_fp;
+static FILE *log_fp;
 
 /******************************************************************/
 /************************ LOGGING FUNCTIONS ***********************/
@@ -108,9 +109,33 @@ static void write_to_all_logs_with_timestamp(char *buffer, unsigned long data_ty
 	}
 
 
+FILE *open_log_file(void)
+{
+	if(log_fp) /* keep it open unless we rotate */
+		return log_fp;
+
+	log_fp = fopen(log_file, "a+");
+	if(log_fp == NULL && daemon_mode == FALSE) {
+		printf("Warning: Cannot open log file '%s' for writing\n", log_file);
+		}
+
+	return log_fp;
+}
+
+int close_log_file(void)
+{
+	if(!log_fp)
+		return 0;
+
+	fflush(log_fp);
+	fclose(log_fp);
+	log_fp = NULL;
+	return 0;
+}
+
 /* write something to the nagios log file */
 int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) {
-	FILE *fp = NULL;
+	FILE *fp;
 	time_t log_time = 0L;
 
 	if(buffer == NULL)
@@ -124,13 +149,7 @@ int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) {
 	if(!(data_type & logging_options))
 		return OK;
 
-	fp = fopen(log_file, "a+");
-	if(fp == NULL) {
-		if(daemon_mode == FALSE)
-			printf("Warning: Cannot open log file '%s' for writing\n", log_file);
-		return ERROR;
-		}
-
+	fp = open_log_file();
 	/* what timestamp should we use? */
 	if(timestamp == NULL)
 		time(&log_time);
@@ -142,8 +161,6 @@ int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) {
 
 	/* write the buffer to the log file */
 	fprintf(fp, "[%lu] %s\n", log_time, buffer);
-
-	fclose(fp);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to the event broker */
@@ -337,11 +354,14 @@ int rotate_log_file(time_t rotation_time) {
 
 	stat_result = stat(log_file, &log_file_stat);
 
+	close_log_file();
+
 	/* get the archived filename to use */
 	asprintf(&log_archive, "%s%snagios-%02d-%02d-%d-%02d.log", log_archive_path, (log_archive_path[strlen(log_archive_path) - 1] == '/') ? "" : "/", t->tm_mon + 1, t->tm_mday, t->tm_year + 1900, t->tm_hour);
 
 	/* rotate the log file */
 	rename_result = my_rename(log_file, log_archive);
+	log_fp = open_log_file();
 
 	if(rename_result) {
 		my_free(log_archive);

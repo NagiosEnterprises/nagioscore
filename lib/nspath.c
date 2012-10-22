@@ -144,3 +144,14 @@ char *nspath_absolute(const char *rel_path, const char *base)
 
 	return normpath;
 }
+
+char *nspath_real(const char *rel_path, const char *base)
+{
+	char *abspath, *ret;
+
+	abspath = nspath_absolute(rel_path, base);
+	ret = realpath(abspath, NULL);
+	if(abspath)
+		free(abspath);
+	return ret;
+}

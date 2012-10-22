@@ -109,7 +109,6 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 	int in_macro = FALSE;
 	char *selected_macro = NULL;
 	char *original_macro = NULL;
-	char *cleaned_macro = NULL;
 	int clean_macro = FALSE;
 	int result = OK;
 	int clean_options = 0;
@@ -223,11 +222,14 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 
 				/* some macros are cleaned... */
 				if(clean_macro == TRUE || ((macro_options & STRIP_ILLEGAL_MACRO_CHARS) || (macro_options & ESCAPE_MACRO_CHARS))) {
+					char *cleaned_macro = NULL;
 
 					/* add the (cleaned) processed macro to the end of the already processed buffer */
 					if(selected_macro != NULL && (cleaned_macro = clean_macro_chars(selected_macro, macro_options)) != NULL) {
 						*output_buffer = (char *)realloc(*output_buffer, strlen(*output_buffer) + strlen(cleaned_macro) + 1);
 						strcat(*output_buffer, cleaned_macro);
+						if(*cleaned_macro)
+							free(cleaned_macro);
 
 						log_debug_info(DEBUGL_MACROS, 2, "  Cleaned macro.  Running output (%lu): '%s'\n", (unsigned long)strlen(*output_buffer), *output_buffer);
 						}
@@ -2416,12 +2418,14 @@ char *clean_macro_chars(char *macro, int options) {
 	register int z = 0;
 	register int ch = 0;
 	register int len = 0;
+	char *ret = NULL;
 	register int illegal_char = 0;
 
-	if(macro == NULL)
+	if(macro == NULL || !*macro)
 		return "";
 
 	len = (int)strlen(macro);
+	ret = strdup(macro);
 
 	/* strip illegal characters out of macro */
 	if(options & STRIP_ILLEGAL_MACRO_CHARS) {
@@ -2448,10 +2452,10 @@ char *clean_macro_chars(char *macro, int options) {
 				}
 
 			if(illegal_char == FALSE)
-				macro[y++] = macro[x];
+				ret[y++] = ret[x];
 			}
 
-		macro[y++] = '\x0';
+		ret[y++] = '\x0';
 		}
 
 #ifdef ON_HOLD_FOR_NOW
@@ -2460,7 +2464,7 @@ char *clean_macro_chars(char *macro, int options) {
 		}
 #endif
 
-	return macro;
+	return ret;
 	}
 
 

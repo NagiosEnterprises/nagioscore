@@ -2286,7 +2286,7 @@ int contains_illegal_object_chars(char *name) {
 	register int x = 0;
 	register int y = 0;
 
-	if(name == NULL)
+	if(name == NULL || illegal_object_chars == NULL)
 		return FALSE;
 
 	x = (int)strlen(name) - 1;

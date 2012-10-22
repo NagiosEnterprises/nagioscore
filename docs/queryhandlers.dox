@@ -1,0 +1,68 @@
+/** @page qh Query Handler
+
+@section purpose Purpose
+The purpose of the query handler is to provide Nagios Core and its
+eventbroker modules with the ability to communicate directly with
+the outside world through a well-defined API, as well as allowing
+external apps a way to help out with various Nagios tasks.
+
+@section caveats Caveats
+The query handlers run in the main thread. Nagios doesn't provide any
+parallellism here and main Nagios will be blocked while a query is
+running. As such, it's a very good idea to make ones queryhandlers
+complete in as little time as possible.
+
+@section syntax Syntax
+The query language is remarkably simple (although each handler may
+implement its own parsers that handle and do pretty much whatever
+they want).
+
+Basically, it boils down to an at-sign, followed by a (registered)
+address, followed by a space, followed by free-form text (which the
+query-handler at that address will take care of parsing), followed
+by a nul byte.
+
+It looks like this:
+@verbatim
+@<address><SPACE><query-for-the-handler>
+@endverbatim
+
+So to send a query to the echo service, it would look something like
+this:
+@verbatim
+@echo Hello there, Nagios :)
+@endverbatim
+
+@section icqh In-core query handlers
+There are a few in-core query handlers.
+
+@subsection echo The echo service
+As I'm sure you've already guessed, the echo service just prints the
+inbound data right back at you. While that's not exactly nobel prize
+winning material, it's actually pretty nifty to figure out how fast
+Nagios can parse its inbound data, which in turn shows how fast it can
+handle its inbound checkresults, which puts an upper cap on how many
+checks Nagios can handle at any given time (although short bursts that
+exceed that limit are ok and will be handled just fine).
+
+It can be addressed as such:
+@verbatim
+@echo foo bar baz said the bunny\0
+@endverbatim
+
+@subsection nerd Nagios Event Radio Dispatcher
+The nerd radio is subscribed in fuller detail at @see nerd, but its
+worth knowing that it's a core part of Nagios 4 and that it will
+always be available.
+
+@subsection wproc Worker process manager
+The worker process manager lets you register workers that can help out
+with running checks, send notifications, run eventhandlers or whatever.
+
+In order to register a worker that only handles checks supposed to be
+run by the plugins check_foo and check_bar (irrespective of where in
+the paths they are), you'd do something like this:
+@verbatim
+@wproc register name=foobar\nplugin=check_foo\nplugin=check_bar\n\0
+@endverbatim
+*/

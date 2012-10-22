@@ -109,7 +109,6 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 	int in_macro = FALSE;
 	char *selected_macro = NULL;
 	char *original_macro = NULL;
-	int clean_macro = FALSE;
 	int result = OK;
 	int clean_options = 0;
 	int free_macro = FALSE;
@@ -150,7 +149,6 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 		log_debug_info(DEBUGL_MACROS, 2, "  Processing part: '%s'\n", temp_buffer);
 
 		selected_macro = NULL;
-		clean_macro = FALSE;
 
 		/* we're in plain text... */
 		if(in_macro == FALSE) {
@@ -221,7 +219,7 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 					}
 
 				/* some macros are cleaned... */
-				if(clean_macro == TRUE || ((macro_options & STRIP_ILLEGAL_MACRO_CHARS) || (macro_options & ESCAPE_MACRO_CHARS))) {
+				if(macro_options & STRIP_ILLEGAL_MACRO_CHARS || macro_options & ESCAPE_MACRO_CHARS) {
 					char *cleaned_macro = NULL;
 
 					/* add the (cleaned) processed macro to the end of the already processed buffer */
@@ -3000,7 +2998,6 @@ int clear_servicegroup_macros(void) {
 
 /* clear contact macros */
 int clear_contact_macros_r(nagios_macros *mac) {
-	register int x;
 	customvariablesmember *this_customvariablesmember = NULL;
 	customvariablesmember *next_customvariablesmember = NULL;
 

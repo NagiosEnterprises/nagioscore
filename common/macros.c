@@ -787,6 +787,9 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/* SERVICE MACROS */
 			/******************/
 		case MACRO_SERVICEGROUPNAMES:
+		case MACRO_SERVICEACTIONURL:
+		case MACRO_SERVICENOTESURL:
+		case MACRO_SERVICENOTES:
 			*free_macro = TRUE;
 		case MACRO_SERVICEDESC:
 		case MACRO_SERVICESTATE:
@@ -811,9 +814,6 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_LASTSERVICECRITICAL:
 		case MACRO_SERVICECHECKCOMMAND:
 		case MACRO_SERVICEDISPLAYNAME:
-		case MACRO_SERVICEACTIONURL:
-		case MACRO_SERVICENOTESURL:
-		case MACRO_SERVICENOTES:
 		case MACRO_SERVICECHECKTYPE:
 		case MACRO_LONGSERVICEOUTPUT:
 		case MACRO_SERVICENOTIFICATIONNUMBER:
@@ -909,12 +909,12 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/* SERVICEGROUP MACROS */
 			/***********************/
 		case MACRO_SERVICEGROUPMEMBERS:
-			*free_macro = TRUE;
-		case MACRO_SERVICEGROUPNAME:
-		case MACRO_SERVICEGROUPALIAS:
 		case MACRO_SERVICEGROUPNOTES:
 		case MACRO_SERVICEGROUPNOTESURL:
 		case MACRO_SERVICEGROUPACTIONURL:
+			*free_macro = TRUE;
+		case MACRO_SERVICEGROUPNAME:
+		case MACRO_SERVICEGROUPALIAS:
 			/* a standard servicegroup macro */
 			/* use the saved servicegroup pointer */
 			if(arg1 == NULL) {
@@ -935,11 +935,12 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/******************/
 			/* CONTACT MACROS */
 			/******************/
+		case MACRO_CONTACTGROUPNAMES:
+			*free_macro = TRUE;
 		case MACRO_CONTACTNAME:
 		case MACRO_CONTACTALIAS:
 		case MACRO_CONTACTEMAIL:
 		case MACRO_CONTACTPAGER:
-		case MACRO_CONTACTGROUPNAMES:
 			/* a standard contact macro */
 			if(arg2 == NULL) {
 
@@ -1813,13 +1814,11 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 		case MACRO_HOSTNOTESURL:
 			*free_macro = TRUE;
 			process_macros_r(mac, *output, &temp_buffer, URL_ENCODE_MACRO_CHARS);
-			my_free(*output);
 			*output = temp_buffer;
 			break;
 		case MACRO_HOSTNOTES:
 			*free_macro = TRUE;
 			process_macros_r(mac, *output, &temp_buffer, 0);
-			my_free(*output);
 			*output = temp_buffer;
 			break;
 		default:
@@ -1917,12 +1916,10 @@ int grab_standard_hostgroup_macro_r(nagios_macros *mac, int macro_type, hostgrou
 		case MACRO_HOSTGROUPACTIONURL:
 		case MACRO_HOSTGROUPNOTESURL:
 			process_macros_r(mac, *output, &temp_buffer, URL_ENCODE_MACRO_CHARS);
-			my_free(*output);
 			*output = temp_buffer;
 			break;
 		case MACRO_HOSTGROUPNOTES:
 			process_macros_r(mac, *output, &temp_buffer, 0);
-			my_free(*output);
 			*output = temp_buffer;
 			break;
 		default:
@@ -2139,12 +2136,10 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 		case MACRO_SERVICEACTIONURL:
 		case MACRO_SERVICENOTESURL:
 			process_macros_r(mac, *output, &temp_buffer, URL_ENCODE_MACRO_CHARS);
-			my_free(*output);
 			*output = temp_buffer;
 			break;
 		case MACRO_SERVICENOTES:
 			process_macros_r(mac, *output, &temp_buffer, 0);
-			my_free(*output);
 			*output = temp_buffer;
 			break;
 		default:
@@ -2240,12 +2235,10 @@ int grab_standard_servicegroup_macro_r(nagios_macros *mac, int macro_type, servi
 		case MACRO_SERVICEGROUPACTIONURL:
 		case MACRO_SERVICEGROUPNOTESURL:
 			process_macros_r(mac, *output, &temp_buffer, URL_ENCODE_MACRO_CHARS);
-			my_free(*output);
 			*output = temp_buffer;
 			break;
 		case MACRO_SERVICEGROUPNOTES:
 			process_macros_r(mac, *output, &temp_buffer, 0);
-			my_free(*output);
 			*output = temp_buffer;
 			break;
 		default:

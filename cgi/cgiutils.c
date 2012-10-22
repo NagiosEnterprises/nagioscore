@@ -246,6 +246,7 @@ int read_cgi_config_file(char *filename) {
 	mmapfile *thefile;
 	char *var = NULL;
 	char *val = NULL;
+	char *p = NULL;
 
 
 	if((thefile = mmap_fopen(filename)) == NULL)
@@ -409,6 +410,9 @@ int read_cgi_config_file(char *filename) {
 		else if(!strcmp(var, "use_ssl_authentication"))
 			use_ssl_authentication = (atoi(val) > 0) ? TRUE : FALSE;
 		}
+
+	for(p = illegal_output_chars; p && *p; p++)
+		illegal_output_char_map[*p] = 1;
 
 	/* free memory and close the file */
 	free(input);

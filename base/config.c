@@ -1397,6 +1397,12 @@ int pre_flight_check(void) {
 		logit(NSLOG_VERIFICATION_WARNING, TRUE, "%s", "Warning: Nothing specified for illegal_macro_output_chars variable!\n");
 		warnings++;
 		}
+	else {
+		char *p;
+		for(p = illegal_output_chars; *p; p++) {
+			illegal_output_char_map[(int)*p] = 1;
+			}
+		}
 
 	if(verify_config) {
 		printf("\n");

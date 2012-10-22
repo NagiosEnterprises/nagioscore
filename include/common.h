@@ -32,6 +32,7 @@ NAGIOS_BEGIN_DECL
 extern int date_format;
 extern int interval_length;
 extern char *illegal_output_chars;
+extern char illegal_output_char_map[256];
 
 extern int log_rotation_method;
 extern int check_external_commands;

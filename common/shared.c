@@ -10,6 +10,7 @@
 int date_format = DATE_FORMAT_US;
 int interval_length = DEFAULT_INTERVAL_LENGTH;
 char *illegal_output_chars = NULL;
+char illegal_output_char_map[] = CHAR_MAP_INIT(0);
 time_t program_start = 0L;
 int check_external_commands;
 int log_rotation_method = LOG_ROTATION_NONE;

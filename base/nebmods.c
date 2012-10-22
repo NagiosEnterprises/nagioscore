@@ -33,8 +33,18 @@
 static nebmodule *neb_module_list;
 static nebcallback **neb_callback_list;
 
-/*#define DEBUG*/
-
+/* compat stuff for USE_LTDL */
+#ifdef USE_LTDL
+# define dlopen(p, flags) lt_dlopen(p)
+# define dlclose(p) lt_dlclose(p)
+# define dlerror() lt_dlerror()
+# define dlsym(hdl, sym) lt_dlsym(hdl, sym)
+# define RTLD_NOW 0
+# define RTLD_GLOBAL 0
+#else
+# define lt_dlinit() 0
+# define lt_dlexit() 0
+#endif
 
 /****************************************************************************/
 /****************************************************************************/
@@ -44,37 +54,18 @@ static nebcallback **neb_callback_list;
 
 /* initialize module routines */
 int neb_init_modules(void) {
-#ifdef USE_LTDL
-	int result = OK;
-#endif
-
-	/* initialize library */
-#ifdef USE_LTDL
-	result = lt_dlinit();
-	if(result)
+	if(lt_dlinit())
 		return ERROR;
-#endif
-
 	return OK;
 	}
 
 
 /* deinitialize module routines */
 int neb_deinit_modules(void) {
-#ifdef USE_LTDL
-	int result = OK;
-#endif
-
-	/* deinitialize library */
-#ifdef USE_LTDL
-	result = lt_dlexit();
-	if(result)
+	if(lt_dlexit())
 		return ERROR;
-#endif
-
 	return OK;
 	}
-
 
 
 /* add a new module to module list */
@@ -216,18 +207,9 @@ int neb_load_module(nebmodule *mod) {
 		}
 
 	/* load the module (use the temp copy we just made) */
-#ifdef USE_LTDL
-	mod->module_handle = lt_dlopen(output_file);
-#else
-	mod->module_handle = (void *)dlopen(output_file, RTLD_NOW | RTLD_GLOBAL);
-#endif
+	mod->module_handle = dlopen(output_file, RTLD_NOW | RTLD_GLOBAL);
 	if(mod->module_handle == NULL) {
-
-#ifdef USE_LTDL
-		logit(NSLOG_RUNTIME_ERROR, FALSE, "Error: Could not load module '%s' -> %s\n", mod->filename, lt_dlerror());
-#else
 		logit(NSLOG_RUNTIME_ERROR, FALSE, "Error: Could not load module '%s' -> %s\n", mod->filename, dlerror());
-#endif
 
 		return ERROR;
 		}
@@ -247,11 +229,7 @@ int neb_load_module(nebmodule *mod) {
 		}
 
 	/* find module API version */
-#ifdef USE_LTDL
-	module_version_ptr = (int *)lt_dlsym(mod->module_handle, "__neb_api_version");
-#else
 	module_version_ptr = (int *)dlsym(mod->module_handle, "__neb_api_version");
-#endif
 
 	/* check the module API version */
 	if(module_version_ptr == NULL || ((*module_version_ptr) != CURRENT_NEB_API_VERSION)) {
@@ -264,11 +242,7 @@ int neb_load_module(nebmodule *mod) {
 		}
 
 	/* locate the initialization function */
-#ifdef USE_LTDL
-	mod->init_func = lt_dlsym(mod->module_handle, "nebmodule_init");
-#else
-	mod->init_func = (void *)dlsym(mod->module_handle, "nebmodule_init");
-#endif
+	mod->init_func = dlsym(mod->module_handle, "nebmodule_init");
 
 	/* if the init function could not be located, unload the module */
 	if(mod->init_func == NULL) {
@@ -297,11 +271,7 @@ int neb_load_module(nebmodule *mod) {
 	logit(NSLOG_INFO_MESSAGE, FALSE, "Event broker module '%s' initialized successfully.\n", mod->filename);
 
 	/* locate the de-initialization function (may or may not be present) */
-#ifdef USE_LTDL
-	mod->deinit_func = lt_dlsym(mod->module_handle, "nebmodule_deinit");
-#else
-	mod->deinit_func = (void *)dlsym(mod->module_handle, "nebmodule_deinit");
-#endif
+	mod->deinit_func = dlsym(mod->module_handle, "nebmodule_deinit");
 
 	log_debug_info(DEBUGL_EVENTBROKER, 0, "Module '%s' loaded with return code of '%d'\n", mod->filename, result);
 	if(mod->deinit_func != NULL)
@@ -363,11 +333,7 @@ int neb_unload_module(nebmodule *mod, int flags, int reason) {
 	if(mod->core_module == FALSE) {
 
 		/* unload the module */
-#ifdef USE_LTDL
-		result = lt_dlclose(mod->module_handle);
-#else
 		result = dlclose(mod->module_handle);
-#endif
 		}
 
 	/* mark the module as being unloaded */
@@ -402,7 +368,7 @@ int neb_set_module_info(void *handle, int type, char *data) {
 
 	/* find the module */
 	for(temp_module = neb_module_list; temp_module != NULL; temp_module = temp_module->next) {
-		if((void *)temp_module->module_handle == (void *)handle)
+		if(temp_module->module_handle == handle)
 			break;
 		}
 	if(temp_module == NULL)
@@ -448,7 +414,7 @@ int neb_register_callback(int callback_type, void *mod_handle, int priority, int
 
 	/* make sure module handle is valid */
 	for(temp_module = neb_module_list; temp_module; temp_module = temp_module->next) {
-		if((void *)temp_module->module_handle == (void *)mod_handle)
+		if(temp_module->module_handle == mod_handle)
 			break;
 		}
 	if(temp_module == NULL)
@@ -460,8 +426,8 @@ int neb_register_callback(int callback_type, void *mod_handle, int priority, int
 		return NEBERROR_NOMEM;
 
 	new_callback->priority = priority;
-	new_callback->module_handle = (void *)mod_handle;
-	new_callback->callback_func = (void *)callback_func;
+	new_callback->module_handle = mod_handle;
+	new_callback->callback_func = callback_func;
 
 	/* add new function to callback list, sorted by priority (first come, first served for same priority) */
 	new_callback->next = NULL;
@@ -506,7 +472,7 @@ int neb_deregister_module_callbacks(nebmodule *mod) {
 	for(callback_type = 0; callback_type < NEBCALLBACK_NUMITEMS; callback_type++) {
 		for(temp_callback = neb_callback_list[callback_type]; temp_callback != NULL; temp_callback = next_callback) {
 			next_callback = temp_callback->next;
-			if((void *)temp_callback->module_handle == (void *)mod->module_handle)
+			if(temp_callback->module_handle == mod->module_handle)
 				neb_deregister_callback(callback_type, (int(*)(int, void*))temp_callback->callback_func);
 			}
 
@@ -537,7 +503,7 @@ int neb_deregister_callback(int callback_type, int (*callback_func)(int, void *)
 		next_callback = temp_callback->next;
 
 		/* we found it */
-		if(temp_callback->callback_func == (void *)callback_func)
+		if(temp_callback->callback_func == callback_func)
 			break;
 
 		last_callback = temp_callback;

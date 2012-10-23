@@ -250,18 +250,18 @@ int read_main_config_file(char *main_config_file) {
 				break;
 				}
 
-			if((tmpdir = opendir((char *)value)) == NULL) {
-				asprintf(&error_message, "Temp path is not a valid directory");
-				error = TRUE;
-				break;
-				}
-			closedir(tmpdir);
-
 			my_free(temp_path);
 			temp_path = nspath_absolute(value, config_file_dir);
 			/* make sure we don't have a trailing slash */
 			if(temp_path[strlen(temp_path) - 1] == '/')
 				temp_path[strlen(temp_path) - 1] = '\x0';
+
+			if((tmpdir = opendir(temp_path)) == NULL) {
+				asprintf(&error_message, "Temp path '%s' is not a valid directory", temp_path);
+				error = TRUE;
+				break;
+				}
+			closedir(tmpdir);
 
 			/* save the macro */
 			my_free(mac->x[MACRO_TEMPPATH]);
@@ -276,18 +276,18 @@ int read_main_config_file(char *main_config_file) {
 				break;
 				}
 
-			if((tmpdir = opendir((char *)value)) == NULL) {
-				asprintf(&error_message, "Check result path is not a valid directory");
-				error = TRUE;
-				break;
-				}
-			closedir(tmpdir);
-
 			my_free(check_result_path);
 			check_result_path = nspath_absolute(value, config_file_dir);
 			/* make sure we don't have a trailing slash */
 			if(check_result_path[strlen(check_result_path) - 1] == '/')
 				check_result_path[strlen(check_result_path) - 1] = '\x0';
+
+			if((tmpdir = opendir(check_result_path)) == NULL) {
+				asprintf(&error_message, "Check result path '%s' is not a valid directory", check_result_path);
+				error = TRUE;
+				break;
+				}
+			closedir(tmpdir);
 
 			}
 

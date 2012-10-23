@@ -412,7 +412,7 @@ int read_cgi_config_file(char *filename) {
 		}
 
 	for(p = illegal_output_chars; p && *p; p++)
-		illegal_output_char_map[*p] = 1;
+		illegal_output_char_map[(int)*p] = 1;
 
 	/* free memory and close the file */
 	free(input);

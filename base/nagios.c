@@ -269,8 +269,6 @@ int main(int argc, char **argv, char **env) {
 	config_file_dir = strdup(dirname(buffer));
 	free(buffer);
 
-	nagios_binary_path = nspath_absolute(argv[0], NULL);
-
 	/*
 	 * let's go to town. We'll be noisy if we're verifying config
 	 * or running scheduling tests.
@@ -313,12 +311,6 @@ int main(int argc, char **argv, char **env) {
 		max_apps = nproc_limit - 50;
 		if ((nofile_limit - 100) / 3 < max_apps)
 			max_apps = (nofile_limit - 100) / 3;
-
-		if (access(nagios_binary_path, X_OK) < 0) {
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Spawning workers will be impossible. Aborting.\n");
-			exit(EXIT_FAILURE);
-			}
 
 		/* read object config files */
 		result = read_all_object_data(config_file);
@@ -410,6 +402,24 @@ int main(int argc, char **argv, char **env) {
 
 	/* else start to monitor things... */
 	else {
+
+		/*
+		 * if we're called with a relative path we must make
+		 * it absolute so we can launch our workers.
+		 * If not, we needn't bother, as we're using execvp()
+		 */
+		if (strchr(argv[0], '/')) {
+			if (access(nagios_binary_path, X_OK) < 0) {
+				nagios_binary_path = nspath_absolute(argv[0], NULL);
+
+				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));
+				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Spawning workers will be impossible. Aborting.\n");
+				exit(EXIT_FAILURE);
+				}
+			}
+		else {
+			nagios_binary_path = strdup(argv[0]);
+		}
 
 		nagios_iobs = iobroker_create();
 

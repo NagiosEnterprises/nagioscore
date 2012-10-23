@@ -396,9 +396,8 @@ int main(int argc, char **argv, char **env) {
 		 * If not, we needn't bother, as we're using execvp()
 		 */
 		if (strchr(argv[0], '/')) {
+			nagios_binary_path = nspath_absolute(argv[0], NULL);
 			if (access(nagios_binary_path, X_OK) < 0) {
-				nagios_binary_path = nspath_absolute(argv[0], NULL);
-
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Spawning workers will be impossible. Aborting.\n");
 				exit(EXIT_FAILURE);

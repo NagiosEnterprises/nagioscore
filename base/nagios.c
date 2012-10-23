@@ -57,7 +57,6 @@ static int nagios_core_worker(const char *path)
 {
 	int sd, ret;
 	char response[128];
-	struct rlimit rlim;
 
 	sd = nsock_unix(path, 0, NSOCK_TCP | NSOCK_CONNECT);
 	if (sd < 0) {
@@ -84,15 +83,6 @@ static int nagios_core_worker(const char *path)
 		return 1;
 	}
 
-	getrlimit(RLIMIT_NOFILE, &rlim);
-	rlim.rlim_cur = rlim.rlim_max;
-	setrlimit(RLIMIT_NOFILE, &rlim);
-	nofile_limit = rlim.rlim_max;
-	getrlimit(RLIMIT_NPROC, &rlim);
-	rlim.rlim_cur = rlim.rlim_max;
-	setrlimit(RLIMIT_NPROC, &rlim);
-	nproc_limit = rlim.rlim_max;
-
 	enter_worker(sd, start_cmd);
 	return 0;
 }
@@ -111,6 +101,20 @@ int main(int argc, char **argv, char **env) {
 	const char *worker_socket = NULL;
 	int i;
 	struct rlimit rlim;
+
+	/* Workers need to up 'em, master needs to know 'em */
+	getrlimit(RLIMIT_NOFILE, &rlim);
+	rlim.rlim_cur = rlim.rlim_max;
+	setrlimit(RLIMIT_NOFILE, &rlim);
+	nofile_limit = rlim.rlim_max;
+	getrlimit(RLIMIT_NPROC, &rlim);
+	rlim.rlim_cur = rlim.rlim_max;
+	setrlimit(RLIMIT_NPROC, &rlim);
+	nproc_limit = rlim.rlim_max;
+
+	max_apps = nproc_limit - 50;
+	if ((nofile_limit - 100) / 3 < max_apps)
+		max_apps = (nofile_limit - 100) / 3;
 
 #ifdef HAVE_GETOPT_H
 	int option_index = 0;
@@ -294,23 +298,6 @@ int main(int argc, char **argv, char **env) {
 			printf("   Failed to drop privileges.  Aborting.");
 			exit(EXIT_FAILURE);
 			}
-
-		/*
-		 * limits become seriously important now that we're fast
-		 * enough to actually reach them.
-		 */
-		getrlimit(RLIMIT_NOFILE, &rlim);
-		rlim.rlim_cur = rlim.rlim_max;
-		setrlimit(RLIMIT_NOFILE, &rlim);
-		nofile_limit = rlim.rlim_max;
-		getrlimit(RLIMIT_NPROC, &rlim);
-		rlim.rlim_cur = rlim.rlim_max;
-		setrlimit(RLIMIT_NPROC, &rlim);
-		nproc_limit = rlim.rlim_max;
-
-		max_apps = nproc_limit - 50;
-		if ((nofile_limit - 100) / 3 < max_apps)
-			max_apps = (nofile_limit - 100) / 3;
 
 		/* read object config files */
 		result = read_all_object_data(config_file);

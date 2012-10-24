@@ -3079,6 +3079,7 @@ void cleanup(void) {
 
 	/* free all allocated memory - including macros */
 	free_memory(get_global_macros());
+	close_log_file();
 
 	return;
 	}

@@ -58,7 +58,7 @@ static int nagios_core_worker(const char *path)
 	int sd, ret;
 	char response[128];
 
-	sd = nsock_unix(path, 0, NSOCK_TCP | NSOCK_CONNECT);
+	sd = nsock_unix(path, NSOCK_TCP | NSOCK_CONNECT);
 	if (sd < 0) {
 		printf("Failed to connect to query socket '%s': %s: %s\n",
 			   path, nsock_strerror(sd), strerror(errno));

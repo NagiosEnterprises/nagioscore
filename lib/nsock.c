@@ -27,11 +27,11 @@ const char *nsock_strerror(int code)
 	return "Unknown error";
 }
 
-int nsock_unix(const char *path, unsigned int mask, unsigned int flags)
+int nsock_unix(const char *path, unsigned int flags)
 {
 	struct sockaddr_un saun;
 	struct sockaddr *sa;
-	int old_mask, sock = 0, mode;
+	int sock = 0, mode;
 	socklen_t slen;
 
 	if(!path)
@@ -49,11 +49,9 @@ int nsock_unix(const char *path, unsigned int mask, unsigned int flags)
 	}
 
 	/* set up the sockaddr_un struct and the socklen_t */
-	old_mask = umask(mask);
 	sa = (struct sockaddr *)&saun;
 	memset(&saun, 0, sizeof(saun));
 	saun.sun_family = AF_UNIX;
-	umask(old_mask);
 	slen = strlen(path);
 	memcpy(&saun.sun_path, path, slen);
 	slen += offsetof(struct sockaddr_un, sun_path);

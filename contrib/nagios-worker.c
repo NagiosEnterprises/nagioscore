@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 	if (!name)
 		name = basename(argv[0]);
 
-	sd = nsock_unix(path, 022, NSOCK_TCP | NSOCK_CONNECT);
+	sd = nsock_unix(path, NSOCK_TCP | NSOCK_CONNECT);
 	if (sd < 0) {
 		printf("Couldn't open socket: %s\n", nsock_strerror(sd));
 		return 1;

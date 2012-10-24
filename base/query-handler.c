@@ -212,7 +212,7 @@ int qh_init(const char *path)
 	}
 
 	errno = 0;
-	qh_listen_sock = nsock_unix(path, 022, NSOCK_TCP | NSOCK_UNLINK);
+	qh_listen_sock = nsock_unix(path, NSOCK_TCP | NSOCK_UNLINK);
 	if(qh_listen_sock < 0) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "qh: Failed to init socket '%s'. %s: %s\n",
 			  path, nsock_strerror(qh_listen_sock), strerror(errno));

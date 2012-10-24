@@ -37,13 +37,15 @@ extern const char *nsock_strerror(int code);
 
 /**
  * Create or connect to a unix socket
+ * To control permissions on sockets when NSOCK_LISTEN is specified,
+ * callers will have to modify their umask() before (and possibly
+ * after) the nsock_unix() call.
  *
  * @param path The path to connect to or create
- * @param mask The umask to use when creating the new socket
  * @param flags Various options controlling the mode of the socket
  * @return An NSOCK_E macro on errors, the created socket on succes
  */
-extern int nsock_unix(const char *path, unsigned int mask, unsigned int flags);
+extern int nsock_unix(const char *path, unsigned int flags);
 
 /**
  * Write a nul-terminated message to the socket pointed to by sd.

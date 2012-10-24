@@ -200,7 +200,7 @@ void qh_deinit(const char *path)
 
 int qh_init(const char *path)
 {
-	int result;
+	int result, old_umask;
 
 	if(qh_listen_sock >= 0)
 		iobroker_close(nagios_iobs, qh_listen_sock);
@@ -211,8 +211,10 @@ int qh_init(const char *path)
 		return 0;
 	}
 
+	old_umask = umask(027);
 	errno = 0;
 	qh_listen_sock = nsock_unix(path, NSOCK_TCP | NSOCK_UNLINK);
+	umask(old_umask);
 	if(qh_listen_sock < 0) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "qh: Failed to init socket '%s'. %s: %s\n",
 			  path, nsock_strerror(qh_listen_sock), strerror(errno));

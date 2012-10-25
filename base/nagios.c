@@ -460,6 +460,9 @@ int main(int argc, char **argv, char **env) {
 			/* write log version/info */
 			write_log_file_info(NULL);
 
+			/* handle signals (interrupts) before we do any socket I/O */
+			setup_sighandler();
+
 			/*
 			 * Initialize query handler and event subscription service.
 			 * This must be done before modules are initialized, so
@@ -534,9 +537,6 @@ int main(int argc, char **argv, char **env) {
 
 			init_event_queue();
 			timing_point("Event queue initialized\n");
-
-			/* handle signals (interrupts) */
-			setup_sighandler();
 
 
 #ifdef USE_EVENT_BROKER

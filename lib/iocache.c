@@ -93,11 +93,6 @@ unsigned long iocache_available(iocache *ioc)
 	if (!ioc || !ioc->ioc_buf || !ioc->ioc_bufsize || !ioc->ioc_buflen)
 		return 0;
 
-	if (ioc->ioc_buflen <= ioc->ioc_offset) {
-		iocache_reset(ioc);
-		return 0;
-	}
-
 	return ioc->ioc_buflen - ioc->ioc_offset;
 }
 

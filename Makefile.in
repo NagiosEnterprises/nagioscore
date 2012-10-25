@@ -328,16 +328,18 @@ install-commandmode:
 	@echo ""
 
 
-install-devel: lib/libnagios.a
+install-devel: install-headers install-lib
+
+install-headers:
 	$(INSTALL) -d -m 755 $(DESTDIR)$(INCLUDEDIR)
 	$(INSTALL) -d -m 755 $(DESTDIR)$(INCLUDEDIR)/lib
-	$(INSTALL) -d -m 755 $(DESTDIR)$(LIBDIR)
-	$(INSTALL) -m 644 lib/libnagios.a $(DESTDIR)$(LIBDIR)
 	$(INSTALL) -m 644 include/*.h $(DESTDIR)$(INCLUDEDIR)
 	$(INSTALL) -m 644 lib/*.h $(DESTDIR)$(INCLUDEDIR)/lib
-	# this file isn't needed and will most likely conflict with
-	# other packages.
 	rm -f $(DESTDIR)$(INCLUDEDIR)/nagios/config.h
+
+install-lib: $(SRC_LIB)/libnagios.a
+	$(INSTALL) -d -m 755 $(DESTDIR)$(LIBDIR)
+	$(INSTALL) -m 644 $(SRC_LIB)/libnagios.a $(DESTDIR)$(LIBDIR)
 
 dox:
 	@rm -rf Documentation

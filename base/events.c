@@ -101,6 +101,10 @@ void init_timing_loop(void) {
 			}
 
 		if(schedule_check == TRUE) {
+			double exec_time;
+
+			/* get real exec time, or make a pessimistic guess */
+			exec_time = temp_service->execution_time ? temp_service->execution_time : 2.0;
 
 			scheduling_info.total_scheduled_services++;
 
@@ -108,7 +112,7 @@ void init_timing_loop(void) {
 			scheduling_info.service_check_interval_total += temp_service->check_interval;
 
 			/* calculate rolling average execution time (available from retained state information) */
-			scheduling_info.average_service_execution_time = (double)(((scheduling_info.average_service_execution_time * (scheduling_info.total_scheduled_services - 1)) + temp_service->execution_time) / (double)scheduling_info.total_scheduled_services);
+			scheduling_info.average_service_execution_time = (double)(((scheduling_info.average_service_execution_time * (scheduling_info.total_scheduled_services - 1)) + exec_time) / (double)scheduling_info.total_scheduled_services);
 			}
 		else {
 			temp_service->should_be_scheduled = FALSE;
@@ -587,8 +591,6 @@ void init_timing_loop(void) {
 
 /* displays service check scheduling information */
 void display_scheduling_info(void) {
-	float minimum_concurrent_checks1 = 0.0;
-	float minimum_concurrent_checks2 = 0.0;
 	float minimum_concurrent_checks = 0.0;
 	int suggestions = 0;
 
@@ -646,10 +648,19 @@ void display_scheduling_info(void) {
 	printf("Last scheduled check:               %s", ctime(&scheduling_info.last_service_check));
 	printf("\n\n");
 
+	/***** MINIMUM CONCURRENT CHECKS RECOMMENDATION *****/
+	minimum_concurrent_checks = ceil((((scheduling_info.total_scheduled_services / scheduling_info.average_service_check_interval)
+									   + (scheduling_info.total_scheduled_hosts / scheduling_info.average_host_check_interval))
+									  * 1.4 * scheduling_info.average_service_execution_time));
+
 	printf("CHECK PROCESSING INFORMATION\n");
 	printf("----------------------------\n");
-	printf("Check result reaper interval:       %d sec\n", check_reaper_interval);
-	printf("Max concurrent service checks:      ");
+	printf("Average check execution time:    %.2fs%s",
+		   scheduling_info.average_service_execution_time,
+		   scheduling_info.average_service_execution_time == 2.0 ? " (pessimistic guesstimate)\n" : "\n");
+	printf("Estimated concurrent checks:     %.0f (%.2f per cpu core)\n",
+		   minimum_concurrent_checks, (float)minimum_concurrent_checks / (float)online_cpus());
+	printf("Max concurrent service checks:   ");
 	if(max_parallel_service_checks == 0)
 		printf("Unlimited\n");
 	else
@@ -660,31 +671,38 @@ void display_scheduling_info(void) {
 	printf("-----------------------\n");
 
 
-	/***** MINIMUM CONCURRENT CHECKS RECOMMENDATION *****/
-
-	/* first method (old) - assume a 100% (2x) service check burst for max concurrent checks */
-	if(scheduling_info.service_inter_check_delay == 0.0)
-		minimum_concurrent_checks1 = ceil(check_reaper_interval * 2.0);
-	else
-		minimum_concurrent_checks1 = ceil((check_reaper_interval * 2.0) / scheduling_info.service_inter_check_delay);
-
-	/* second method (new) - assume a 25% (1.25x) service check burst for max concurrent checks */
-	minimum_concurrent_checks2 = ceil((((double)scheduling_info.total_scheduled_services) / scheduling_info.average_service_check_interval) * 1.25 * check_reaper_interval * scheduling_info.average_service_execution_time);
-
-	/* use max of computed values */
-	if(minimum_concurrent_checks1 > minimum_concurrent_checks2)
-		minimum_concurrent_checks = minimum_concurrent_checks1;
-	else
-		minimum_concurrent_checks = minimum_concurrent_checks2;
-
 	/* compare with configured value */
 	if(((int)minimum_concurrent_checks > max_parallel_service_checks) && max_parallel_service_checks != 0) {
 		printf("* Value for 'max_concurrent_checks' option should be >= %d\n", (int)minimum_concurrent_checks);
 		suggestions++;
 		}
+	if(nofile_limit * 0.4 < minimum_concurrent_checks) {
+		printf("* Increase the \"open files\" ulimit for user '%s'\n", nagios_user);
+		printf(" - You can do this by adding\n      %s hard nofiles %d\n   to /etc/security/limits.conf\n",
+			   nagios_user, rup2pof2(minimum_concurrent_checks * 2));
+		suggestions++;
+		}
+	if(nproc_limit * 0.75 < minimum_concurrent_checks) {
+		printf("* Increase the \"max user processes\" ulimit for user '%s'\n", nagios_user);
+		printf(" - You can do this by adding\n      %s hard nproc %d\n   to /etc/security/limits.conf\n",
+			   nagios_user, rup2pof2(minimum_concurrent_checks));
+		suggestions++;
+		}
 
-	if(suggestions == 0)
+	if(minimum_concurrent_checks > online_cpus() * 75) {
+		printf("* Aim for a max of 50 concurrent checks / cpu core (current: %.2f)\n",
+			   (float)minimum_concurrent_checks / (float)online_cpus());
+		suggestions++;
+		}
+
+	if(suggestions) {
+		printf("\nNOTE: These are just guidelines and *not* hard numbers.\n\n");
+		printf("Ultimately, only testing will tell if your settings and hardware are\n");
+		printf("suitable for the types and number of checks you're planning to run.\n");
+		}
+	else {
 		printf("I have no suggestions - things look okay.\n");
+		}
 
 	printf("\n");
 

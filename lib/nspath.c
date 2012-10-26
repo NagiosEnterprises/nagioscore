@@ -64,7 +64,7 @@ static char *pcomp_construct(struct pcomp *pcomp, int comps)
  */
 char *nspath_normalize(const char *orig_path)
 {
-	struct pcomp pcomp[256]; /* >256 components will fail hard */
+	struct pcomp *pcomp = NULL;
 	int comps, i = 0, m, depth = 0;
 	char *path, *rpath, *p, *slash;
 
@@ -73,7 +73,10 @@ char *nspath_normalize(const char *orig_path)
 
 	rpath = strdup(orig_path);
 	comps = path_components(rpath);
-	memset(pcomp, 0, sizeof(pcomp));
+	pcomp = calloc(comps, sizeof(struct pcomp));
+	if (pcomp == NULL)
+		return NULL;
+
 	p = pcomp[0].str = rpath;
 	for (; p; p = slash, i++) {
 		slash = strchr(p, '/');
@@ -114,6 +117,7 @@ char *nspath_normalize(const char *orig_path)
 
 	path = pcomp_construct(pcomp, comps);
 	free(rpath);
+	free(pcomp);
 	return path;
 }
 

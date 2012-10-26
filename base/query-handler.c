@@ -119,12 +119,19 @@ static int qh_input(int sd, int events, void *ioc_)
 			nsock_printf(sd, "%d: Seems '%s' doesn't like you. Oops...", result, qh->name);
 			iobroker_close(nagios_iobs, sd);
 			iocache_destroy(ioc);
-		} else if(result == QH_TAKEOVER) {
+		}
+		switch (result) {
+		case QH_CLOSE:
+			/* oneshot handler */
+			iobroker_close(nagios_iobs, sd);
+			/* fallthrough */
+		case QH_TAKEOVER:
 			/*
-			 * the handler has taken over this socket,
-			 * so we release its memory
+			 * handler has taken over, or wants us to close
+			 * the socket, so destroy the associated cache
 			 */
 			iocache_destroy(ioc);
+			break;
 		}
 	}
 	return 0;

@@ -245,7 +245,8 @@ int iobroker_unregister(iobroker_set *iobs, int fd)
 
 	free(iobs->iobroker_fds[fd]);
 	iobs->iobroker_fds[fd] = NULL;
-	iobs->num_fds--;
+	if (iobs->num_fds > 0)
+		iobs->num_fds--;
 
 #ifdef IOBROKER_USES_EPOLL
 	{

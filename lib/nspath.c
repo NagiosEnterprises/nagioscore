@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdio.h>
+#include <limits.h>
 #include "nspath.h"
 
 #ifndef PATH_MAX
@@ -123,7 +124,7 @@ char *nspath_normalize(const char *orig_path)
 
 char *nspath_absolute(const char *rel_path, const char *base)
 {
-	char cwd[4096];
+	char cwd[PATH_MAX];
 	int len;
 	char *path = NULL, *normpath;
 

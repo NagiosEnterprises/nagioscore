@@ -132,7 +132,7 @@ char *nspath_absolute(const char *rel_path, const char *base)
 		return nspath_normalize(rel_path);
 
 	if (!base) {
-		if (getcwd(cwd, sizeof(cwd) - 1) < 0)
+		if (getcwd(cwd, sizeof(cwd)) == NULL)
 			return NULL;
 		base = cwd;
 	}

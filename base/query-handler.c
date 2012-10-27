@@ -4,6 +4,7 @@
 #include "lib/nsock.h"
 #include <unistd.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 /* A registered handler */
 struct query_handler {
@@ -233,6 +234,9 @@ int qh_init(const char *path)
 			  path, nsock_strerror(qh_listen_sock), strerror(errno));
 		return ERROR;
 	}
+
+	/* plugins shouldn't have this socket */
+	(void)fcntl(qh_listen_sock, F_SETFD, FD_CLOEXEC);
 
 	/* most likely overkill, but it's small, so... */
 	if(!(qh_table = dkhash_create(1024))) {

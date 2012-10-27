@@ -26,6 +26,7 @@
 #include "../include/macros.h"
 #include "../include/nagios.h"
 #include "../include/broker.h"
+#include <fcntl.h>
 
 
 static FILE *debug_file_fp;
@@ -119,6 +120,7 @@ FILE *open_log_file(void)
 		printf("Warning: Cannot open log file '%s' for writing\n", log_file);
 		}
 
+	(void)fcntl(fileno(log_fp), F_SETFD, FD_CLOEXEC);
 	return log_fp;
 }
 
@@ -421,6 +423,8 @@ int open_debug_log(void) {
 
 	if((debug_file_fp = fopen(debug_file, "a+")) == NULL)
 		return ERROR;
+
+	(void)fcntl(fileno(debug_file_fp), F_SETFD, FD_CLOEXEC);
 
 	return OK;
 	}

@@ -224,7 +224,7 @@ int qh_init(const char *path)
 		return 0;
 	}
 
-	old_umask = umask(027);
+	old_umask = umask(0117);
 	errno = 0;
 	qh_listen_sock = nsock_unix(path, NSOCK_TCP | NSOCK_UNLINK);
 	umask(old_umask);

@@ -92,7 +92,7 @@ static int qh_input(int sd, int events, void *ioc_)
 		 * A request looks like this: '@foo<SP><handler-specific request>\0'
 		 * but we only need to care about the first part ("@foo"), so
 		 * locate the first space and then pass the rest of the request
-		 * to the handler
+		 * to the handler, after cutting any trailing newlines
 		 */
 		buf = iocache_use_delim(ioc, "\0", 1, &len);
 		if(!buf)
@@ -114,6 +114,11 @@ static int qh_input(int sd, int events, void *ioc_)
 			return 0;
 		}
 		len -= strlen(buf);
+
+		/* strip trailing newlines */
+		while (space[len - 1] == 0 || space[len - 1] == '\n')
+			space[--len] = 0;
+
 		result = qh->handler(sd, space, len);
 		if(result >= 300) {
 			nsock_printf_nul(sd, "%d: Seems '%s' doesn't like you. Oops...", result, qh->name);

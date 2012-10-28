@@ -591,12 +591,8 @@ static int register_worker(int sd, char *buf, unsigned int len)
 		return 500;
 	}
 
-	worker->source_name = NULL;
 	worker->sd = sd;
-	worker->pid = 0;
 	worker->ioc = iocache_create(1 * 1024 * 1024);
-	worker->max_jobs = (iobroker_max_usable_fds() - 1) / 2;
-	worker->jobs = calloc(worker->max_jobs, sizeof(worker_job *));
 
 	iobroker_unregister(nagios_iobs, sd);
 	iobroker_register(nagios_iobs, sd, worker, handle_worker_result);
@@ -608,6 +604,9 @@ static int register_worker(int sd, char *buf, unsigned int len)
 		}
 		else if (!strcmp(kv->key, "pid")) {
 			worker->pid = atoi(kv->value);
+		}
+		else if (!strcmp(kv->key, "max_jobs")) {
+			worker->max_jobs = atoi(kv->value);
 		}
 		else if (!strcmp(kv->key, "plugin")) {
 			struct wproc_list *command_handlers;
@@ -626,6 +625,18 @@ static int register_worker(int sd, char *buf, unsigned int len)
 			}
 		}
 	}
+
+	if (!worker->max_jobs) {
+		/*
+		 * each worker uses two filedescriptors per job, one to
+		 * connect to the master and about 13 to handle libraries
+		 * and memory allocation, so this guesstimate shouldn't
+		 * be too far off (for local workers, at least).
+		 */
+		worker->max_jobs = (iobroker_max_usable_fds() / 2) - 50;
+	}
+	worker->jobs = calloc(worker->max_jobs, sizeof(worker_job *));
+
 	if (is_global) {
 		workers.len++;
 		workers.wps = realloc(workers.wps, workers.len * sizeof(worker_process *));

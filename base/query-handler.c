@@ -98,15 +98,15 @@ static int qh_input(int sd, int events, void *ioc_)
 		if(!buf)
 			return 0;
 
-		if(*buf != '@' && *buf != '#') {
+		if((*buf != '@' && *buf != '#') || !(space = strchr(buf, ' '))) {
 			/* bad request, so nuke the socket */
 			nsock_printf_nul(sd, "400: Bad request");
 			iobroker_close(nagios_iobs, sd);
 			iocache_destroy(ioc);
 			return 0;
 		}
-		if((space = strchr(buf, ' ')))
-			*(space++) = 0;
+
+		*(space++) = 0;
 
 		if(!(qh = qh_find_handler(buf + 1))) {
 			/* no handler. that's a 404 */
@@ -114,7 +114,7 @@ static int qh_input(int sd, int events, void *ioc_)
 			return 0;
 		}
 		len -= strlen(buf);
-		result = qh->handler(sd, space ? space : buf, len);
+		result = qh->handler(sd, space, len);
 		if(result >= 300) {
 			nsock_printf_nul(sd, "%d: Seems '%s' doesn't like you. Oops...", result, qh->name);
 		}

@@ -219,6 +219,11 @@ void qh_deinit(const char *path)
 	unlink(path);
 }
 
+static int qh_core(int sd, char *buf, unsigned int len)
+{
+	return 0;
+}
+
 int qh_init(const char *path)
 {
 	int result, old_umask;
@@ -264,6 +269,9 @@ int qh_init(const char *path)
 	logit(NSLOG_INFO_MESSAGE, FALSE, "qh: Socket '%s' successfully initialized\n", path);
 	if(!qh_register_handler("echo", 0, qh_echo))
 		logit(NSLOG_INFO_MESSAGE, FALSE, "qh: echo services successfully registered\n");
+
+	if(!qh_register_handler("core", 0, qh_core))
+		logit(NSLOG_INFO_MESSAGE, FALSE, "qh: core query handler registered\n");
 
 	return 0;
 }

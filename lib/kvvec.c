@@ -252,9 +252,9 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 		}
 
 		ptr = memchr(str + offset, pair_sep, len - offset);
+		ptr++;
 		if (!ptr)
 			break;
-		ptr++;
 		offset += (unsigned long)ptr - ((unsigned long)str + offset);
 	}
 
@@ -285,7 +285,10 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 		}
 		kv_end_ptr = memchr(key_end_ptr + 1, pair_sep, len - ((unsigned long)key_end_ptr - (unsigned long)str));
 		if (!kv_end_ptr) {
-			break;
+			if (i != num_pairs - 1)
+				break;
+			/* last pair doesn't need a pair separator */
+			kv_end_ptr = str + len;
 		}
 
 		kv = &kvv->kv[kvv->kv_pairs++];

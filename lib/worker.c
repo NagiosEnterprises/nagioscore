@@ -23,12 +23,6 @@ static unsigned int started, running_jobs;
 static int master_sd;
 static int parent_pid;
 
-static void worker_die(const char *msg)
-{
-	perror(msg);
-	exit(EXIT_FAILURE);
-}
-
 /*
  * contains all information sent in a particular request
  */
@@ -39,13 +33,33 @@ struct request {
 	struct kvvec *request, *response;
 };
 
-static void exit_worker(void)
+static void exit_worker(int code, const char *msg)
 {
+	child_process *cp;
+	int discard;
+
+	if (msg) {
+		perror(msg);
+	}
+
 	/*
-	 * XXX: check to make sure we have no children running. If
-	 * we do, kill 'em all before we go home.
+	 * We must kill our children, so let's embark on that
+	 * large scale filicide. First SIGTERM to all processes
+	 * in our group, and then SIGKILL to every item in our
+	 * event queue
 	 */
-	exit(EXIT_SUCCESS);
+	signal(SIGTERM, SIG_IGN);
+	kill(0, SIGTERM);
+	while (waitpid(-1, &discard, WNOHANG) > 0)
+		; /* do nothing */
+	sleep(1);
+	while ((cp = (child_process *)squeue_pop(sq))) {
+		(void)kill(cp->ei->pid, SIGKILL);
+	}
+	while (waitpid(-1, &discard, WNOHANG) > 0)
+		; /* do nothing */
+
+	exit(code);
 }
 
 /*
@@ -75,7 +89,7 @@ static void wlog(const char *fmt, ...)
 	if (write(master_sd, lmsg, to_send) < 0) {
 		if (errno == EPIPE) {
 			/* master has died or abandoned us, so exit */
-			exit_worker();
+			exit_worker(1, "Failed to write() to master");
 		}
 	}
 }
@@ -96,7 +110,7 @@ static void job_error(child_process *cp, struct kvvec *kvv, const char *fmt, ...
 	kvvec_addkv_wlen(kvv, "error_msg", 9, msg, len);
 	ret = send_kvvec(master_sd, kvv);
 	if (ret < 0 && errno == EPIPE)
-		exit_worker();
+		exit_worker(1, "Failed to send job error key/value vector to master");
 	kvvec_destroy(kvv, 0);
 }
 
@@ -202,7 +216,7 @@ int finish_job(child_process *cp, int reason)
 	/* how many key/value pairs do we need? */
 	if (kvvec_init(&resp, 12 + cp->request->kv_pairs) == NULL) {
 		/* what the hell do we do now? */
-		exit_worker();
+		exit_worker(1, "Failed to init response key/value vector");
 	}
 
 	gettimeofday(&cp->ei->stop, NULL);
@@ -264,7 +278,7 @@ int finish_job(child_process *cp, int reason)
 	}
 	ret = send_kvvec(master_sd, &resp);
 	if (ret < 0 && errno == EPIPE)
-		exit_worker();
+		exit_worker(1, "Failed to send_kvvec()");
 
 	if (cp->outstd.buf) {
 		free(cp->outstd.buf);
@@ -540,7 +554,7 @@ static int receive_command(int sd, int events, void *arg)
 	/* master closed the connection, so we exit */
 	if (ioc_ret == 0) {
 		iobroker_close(iobs, sd);
-		exit_worker();
+		exit_worker(0, NULL);
 	}
 	if (ioc_ret < 0) {
 		/* XXX: handle this somehow */
@@ -604,7 +618,7 @@ void enter_worker(int sd, int (*cb)(child_process*))
 	iobs = iobroker_create();
 	if (!iobs) {
 		/* XXX: handle this a bit better */
-		worker_die("Worker failed to create io broker socket set");
+		exit_worker(EXIT_FAILURE, "Worker failed to create io broker socket set");
 	}
 
 	/*

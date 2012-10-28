@@ -111,6 +111,8 @@ static int qh_input(int sd, int events, void *ioc_)
 		if(!(qh = qh_find_handler(buf + 1))) {
 			/* no handler. that's a 404 */
 			nsock_printf(sd, "404: No such handler");
+			iobroker_close(nagios_iobs, sd);
+			iocache_destroy(ioc);
 			return 0;
 		}
 		len -= strlen(buf);

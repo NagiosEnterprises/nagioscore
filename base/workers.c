@@ -576,15 +576,21 @@ static int register_worker(int sd, char *buf, unsigned int len)
 {
 	int i, is_global = 1;
 	struct kvvec *info;
-	worker_process *worker = calloc(1, sizeof(worker_process));
+	worker_process *worker;
 
-	if (!worker) {
+	logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Registry request: %s\n", buf);
+	if (!(worker = calloc(1, sizeof(*worker)))) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to allocate worker: %s\n", strerror(errno));
 		return 500;
 	}
-	info = buf2kvvec(buf, len, '=', '\n', 0);
+
+	info = buf2kvvec(buf, len, '=', ';', 0);
 	if (info == NULL) {
+		free(worker);
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to parse registration request\n");
 		return 500;
 	}
+
 	worker->source_name = NULL;
 	worker->sd = sd;
 	worker->pid = 0;

@@ -662,6 +662,17 @@ static int wproc_query_handler(int sd, char *buf, unsigned int len)
 
 	if (!strcmp(buf, "register"))
 		return register_worker(sd, rbuf, len);
+	if (!strcmp(buf, "wpstats")) {
+		int i;
+
+		for (i = 0; i < workers.len; i++) {
+			worker_process *wp = workers.wps[i];
+			nsock_printf(sd, "name=%s;pid=%d;jobs_running=%u;jobs_started=%u\n",
+						 wp->source_name, wp->pid,
+						 wp->jobs_running, wp->jobs_started);
+		}
+		return 0;
+	}
 
 	return 400;
 }

@@ -45,6 +45,16 @@ static const char *test_data[] = {
 	NULL,
 };
 
+static const char *pair_term_missing[] = {
+	"foo=bar;lul=bar;haha=lulu",
+	"foo=bar;lul=bar;haha=lulu;",
+	"hobbit=palace;gandalf=wizard1",
+	"hobbit=palace;gandalf=wizard1;",
+	"0=0;1=1;2=2;3=3;4=4",
+	"0=0;1=1;2=2;3=3;4=4;",
+	NULL,
+};
+
 static void add_vars(struct kvvec *kvv, const char **ary, int len)
 {
 	int i;
@@ -62,9 +72,10 @@ static void add_vars(struct kvvec *kvv, const char **ary, int len)
 
 int main(int argc, char **argv)
 {
-	int i;
+	int i, j;
 	struct kvvec *kvv, *kvv2, *kvv3;
 	struct kvvec_buf *kvvb, *kvvb2;
+	struct kvvec k = KVVEC_INITIALIZER;
 
 	t_set_colors(0);
 
@@ -124,6 +135,18 @@ int main(int argc, char **argv)
 	free(kvvb2);
 	kvvec_destroy(kvv, 1);
 	kvvec_destroy(kvv3, KVVEC_FREE_ALL);
+
+	for (j = 0; pair_term_missing[j]; j++) {
+		buf2kvvec_prealloc(&k, strdup(pair_term_missing[j]), strlen(pair_term_missing[j]), '=', ';', KVVEC_COPY);
+		for (i = 0; i < k.kv_pairs; i++) {
+			struct key_value *kv = &k.kv[i];
+			test(kv->key_len == kv->value_len, "%d.%d; key_len=%d; value_len=%d (%s = %s)",
+				 j, i, kv->key_len, kv->value_len, kv->key, kv->value);
+			test(kv->value_len == strlen(kv->value),
+				 "%d.%d; kv->value_len(%d) == strlen(%s)(%d)",
+				 j, i, kv->value_len, kv->value, (int)strlen(kv->value));
+		}
+	}
 
 	t_end();
 	return 0;

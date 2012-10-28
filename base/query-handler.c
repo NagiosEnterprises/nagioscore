@@ -100,7 +100,7 @@ static int qh_input(int sd, int events, void *ioc_)
 
 		if(*buf != '@' && *buf != '#') {
 			/* bad request, so nuke the socket */
-			nsock_printf(sd, "400: Bad request");
+			nsock_printf_nul(sd, "400: Bad request");
 			iobroker_close(nagios_iobs, sd);
 			iocache_destroy(ioc);
 			return 0;
@@ -116,7 +116,7 @@ static int qh_input(int sd, int events, void *ioc_)
 		len -= strlen(buf);
 		result = qh->handler(sd, space ? space : buf, len);
 		if(result >= 300) {
-			nsock_printf(sd, "%d: Seems '%s' doesn't like you. Oops...", result, qh->name);
+			nsock_printf_nul(sd, "%d: Seems '%s' doesn't like you. Oops...", result, qh->name);
 		}
 
 		if(result >= 300 || *buf == '#') {

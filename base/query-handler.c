@@ -32,6 +32,48 @@ static struct query_handler *qh_find_handler(const char *name)
 	return (struct query_handler *)dkhash_get(qh_table, name, NULL);
 }
 
+/* subset of http error codes */
+static const char *qh_strerror(int code)
+{
+	if (code == 100)
+		return "Continue";
+	if (code == 101)
+		return "Switching protocols";
+
+	if (code < 300)
+		return "OK";
+
+	if (code < 400)
+		return "Redirected (possibly deprecated address)";
+
+	switch (code) {
+		/* client errors */
+	case 400: return "Bad request";
+	case 401: return "Unathorized";
+	case 403: return "Forbidden (disabled by config)";
+	case 404: return "Not found";
+	case 405: return "Method not allowed";
+	case 406: return "Not acceptable";
+	case 407: return "Proxy authentication required";
+	case 408: return "Request timed out";
+	case 409: return "Conflict";
+	case 410: return "Gone";
+	case 411: return "Length required";
+	case 412: return "Precondition failed";
+	case 413: return "Request too large";
+	case 414: return "Request-URI too long";
+
+		/* server errors */
+	case 500: return "Internal server error";
+	case 501: return "Not implemented";
+	case 502: return "Bad gateway";
+	case 503: return "Service unavailable";
+	case 504: return "Gateway timeout";
+	case 505: return "Version not supported";
+	}
+	return "Unknown error";
+}
+
 static int qh_input(int sd, int events, void *ioc_)
 {
 	iocache *ioc = (iocache *)ioc_;
@@ -121,9 +163,8 @@ static int qh_input(int sd, int events, void *ioc_)
 		while (space[len - 1] == 0 || space[len - 1] == '\n')
 			space[--len] = 0;
 
-		result = qh->handler(sd, space, len);
-		if(result >= 300) {
-			nsock_printf_nul(sd, "%d: Seems '%s' doesn't like you. Oops...", result, qh->name);
+		if ((result = qh->handler(sd, space, len)) >= 100) {
+			nsock_printf_nul(sd, "%d: %s", result, qh_strerror(result));
 		}
 
 		if(result >= 300 || *buf == '#') {
@@ -135,15 +176,12 @@ static int qh_input(int sd, int events, void *ioc_)
 
 		/* check for magic handler codes */
 		switch (result) {
-		case QH_CLOSE:
-			/* oneshot handler */
+		case QH_CLOSE: /* oneshot handler */
+		case -1:       /* general error */
 			iobroker_close(nagios_iobs, sd);
 			/* fallthrough */
-		case QH_TAKEOVER:
-			/*
-			 * handler has taken over, or wants us to close
-			 * the socket, so destroy the associated cache
-			 */
+		case QH_TAKEOVER: /* handler takes over */
+		case 101:         /* switch protocol (takeover + message) */
 			iocache_destroy(ioc);
 			break;
 		}
@@ -226,7 +264,7 @@ static int qh_core(int sd, char *buf, unsigned int len)
 	if ((space = memchr(buf, ' ', len)))
 		*(space++) = 0;
 	if (!space && !strcmp(buf, "loadctl")) {
-		return nsock_printf_nul
+		nsock_printf_nul
 			(sd, "jobs_max=%u;jobs_min=%u;"
 				"jobs_running=%u;jobs_limit=%u;"
 				"load=%.2f;"
@@ -241,12 +279,13 @@ static int qh_core(int sd, char *buf, unsigned int len)
 				loadctl.rampup_limit, loadctl.rampup_change,
 				loadctl.nproc_limit, loadctl.nofile_limit,
 				loadctl.options);
+		return 0;
 	}
 
 	if (space) {
 		len -= (unsigned long)space - (unsigned long)buf;
 		if (strcmp(buf, "loadctl")) {
-			return set_loadctl_options(space, len);
+			return set_loadctl_options(space, len) == OK ? 200 : 500;
 		}
 	}
 	return 0;

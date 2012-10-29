@@ -163,35 +163,37 @@ const char *mkstr(const char *fmt, ...)
 	return ret;
 }
 
+struct kvvec_buf *build_kvvec_buf(struct kvvec *kvv)
+{
+	struct kvvec_buf *kvvb;
+
+	/*
+	 * key=value, separated by PAIR_SEP and messages
+	 * delimited by MSG_DELIM
+	 */
+	kvvb = kvvec2buf(kvv, KV_SEP, PAIR_SEP, MSG_DELIM_LEN_SEND);
+	if (!kvvb) {
+		return NULL;
+	}
+	memcpy(kvvb->buf + (kvvb->bufsize - MSG_DELIM_LEN_SEND), MSG_DELIM, MSG_DELIM_LEN_SEND);
+
+	return kvvb;
+}
+
 int send_kvvec(int sd, struct kvvec *kvv)
 {
 	int ret;
 	struct kvvec_buf *kvvb;
 
-	/*
-	 * key=value, separated by nul bytes and two nul's
-	 * delimit one message from another. We need to cut
-	 * one from MSG_DELIM_LEN here though, since nul is
-	 * added unconditionally after each value as well
-	 * and we'd otherwise run into an off-by-one when
-	 * parsing the messages back into sensible order.
-	 */
-	kvvb = kvvec2buf(kvv, KV_SEP, PAIR_SEP, MSG_DELIM_LEN_SEND);
-	if (!kvvb) {
-		/*
-		 * XXX: do *something* sensible here to let the
-		 * master know we failed, although the most likely
-		 * reason is OOM, in which case the OOM-slayer will
-		 * probably kill us sooner or later.
-		 */
-		return 0;
-	}
-	memcpy(kvvb->buf + (kvvb->bufsize - MSG_DELIM_LEN_SEND), MSG_DELIM, MSG_DELIM_LEN_SEND);
+	kvvb = build_kvvec_buf(kvv);
+	if (!kvvb)
+		return -1;
 
-	/* use bufsize here, as it gets us the nul string delimiter */
+	/* bufsize, not buflen, as it gets us the delimiter */
 	ret = write(sd, kvvb->buf, kvvb->bufsize);
 	free(kvvb->buf);
 	free(kvvb);
+
 	return ret;
 }
 

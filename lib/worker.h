@@ -117,6 +117,16 @@ extern int finish_job(child_process *cp, int reason);
 extern void enter_worker(int sd, int (*cb)(child_process*));
 
 /**
+ * Build a buffer from a key/value vector buffer.
+ * The resulting kvvec-buffer is suitable for sending between
+ * worker and master in either direction, as it has all the
+ * right delimiters in all the right places.
+ * @param kvv The key/value vector to build the buffer from
+ * @return NULL on errors, a newly allocated kvvec buffer on success
+ */
+extern struct kvvec_buf *build_kvvec_buf(struct kvvec *kvv);
+
+/**
  * Send a key/value vector as a bytestream through a socket
  * @param[in] sd The socket descriptor to send to
  * @param kvv The key/value vector to send

@@ -52,11 +52,56 @@
 #include <mcheck.h>
 #endif
 
+static int is_worker;
+
+static void set_loadctl_defaults(void)
+{
+	struct rlimit rlim;
+
+	/* Workers need to up 'em, master needs to know 'em */
+	getrlimit(RLIMIT_NOFILE, &rlim);
+	rlim.rlim_cur = rlim.rlim_max;
+	setrlimit(RLIMIT_NOFILE, &rlim);
+	loadctl.nofile_limit = rlim.rlim_max;
+	getrlimit(RLIMIT_NPROC, &rlim);
+	rlim.rlim_cur = rlim.rlim_max;
+	setrlimit(RLIMIT_NPROC, &rlim);
+	loadctl.nproc_limit = rlim.rlim_max;
+
+	/*
+	 * things may have been configured already. Otherwise we
+	 * set some sort of sane defaults here
+	 */
+	if (!loadctl.jobs_max) {
+		loadctl.jobs_max = loadctl.nproc_limit - 100;
+		if (!is_worker && loadctl.jobs_max > (loadctl.nofile_limit - 50) * wproc_num_workers_online) {
+			loadctl.jobs_max = (loadctl.nofile_limit - 50) * wproc_num_workers_online;
+		}
+	}
+
+	if (!loadctl.jobs_limit)
+		loadctl.jobs_limit = loadctl.jobs_max;
+
+	if (!loadctl.backoff_limit)
+		loadctl.backoff_limit = online_cpus() * 2.5;
+	if (!loadctl.rampup_limit)
+		loadctl.rampup_limit = online_cpus() * 0.8;
+	if (!loadctl.backoff_change)
+		loadctl.backoff_change = loadctl.jobs_limit * 0.3;
+	if (!loadctl.rampup_change)
+		loadctl.rampup_change = loadctl.backoff_change * 0.25;
+	if (!loadctl.check_interval)
+		loadctl.check_interval = 60;
+}
 
 static int nagios_core_worker(const char *path)
 {
 	int sd, ret;
 	char response[128];
+
+	is_worker = 1;
+
+	set_loadctl_defaults();
 
 	sd = nsock_unix(path, NSOCK_TCP | NSOCK_CONNECT);
 	if (sd < 0) {
@@ -100,21 +145,6 @@ int main(int argc, char **argv, char **env) {
 	nagios_macros *mac;
 	const char *worker_socket = NULL;
 	int i;
-	struct rlimit rlim;
-
-	/* Workers need to up 'em, master needs to know 'em */
-	getrlimit(RLIMIT_NOFILE, &rlim);
-	rlim.rlim_cur = rlim.rlim_max;
-	setrlimit(RLIMIT_NOFILE, &rlim);
-	nofile_limit = rlim.rlim_max;
-	getrlimit(RLIMIT_NPROC, &rlim);
-	rlim.rlim_cur = rlim.rlim_max;
-	setrlimit(RLIMIT_NPROC, &rlim);
-	nproc_limit = rlim.rlim_max;
-
-	max_apps = nproc_limit - 50;
-	if ((nofile_limit - 100) / 3 < max_apps)
-		max_apps = (nofile_limit - 100) / 3;
 
 #ifdef HAVE_GETOPT_H
 	int option_index = 0;
@@ -134,6 +164,7 @@ int main(int argc, char **argv, char **env) {
 #define getopt(argc, argv, o) getopt_long(argc, argv, o, long_options, &option_index)
 #endif
 
+	memset(&loadctl, 0, sizeof(loadctl));
 	mac = get_global_macros();
 
 	/* make sure we have the correct number of command line arguments */
@@ -485,6 +516,9 @@ int main(int argc, char **argv, char **env) {
 				i++;
 			}
 			timing_point("%u workers connected\n", wproc_num_workers_online);
+
+			/* now that workers have arrived we can set the defaults */
+			set_loadctl_defaults();
 
 #ifdef USE_EVENT_BROKER
 			/* load modules */

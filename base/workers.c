@@ -56,6 +56,65 @@ unsigned int wproc_num_workers_spawned = 0;
 
 #define tv2float(tv) ((float)((tv)->tv_sec) + ((float)(tv)->tv_usec) / 1000000.0)
 
+/* reap 'jobs' jobs or 'secs' seconds, whichever comes first */
+void wproc_reap(int jobs, int msecs)
+{
+	time_t start, now;
+	start = time(NULL);
+
+	/* one input equals one job (or close enough to it anyway) */
+	do {
+		int inputs;
+
+		now = time(NULL);
+		inputs = iobroker_poll(nagios_iobs, (now - start) * 1000);
+		jobs -= inputs;
+	} while (jobs > 0 && start + (msecs * 1000) <= now);
+}
+
+
+int wproc_can_spawn(struct load_control *lc)
+{
+	unsigned int old = 0;
+
+	/* if no load control is enabled, we can safely run this job */
+	if (!(lc->options & LOADCTL_ENABLED))
+		return 1;
+
+	if (lc->check_interval < time(NULL) - lc->last_check) {
+		if (getloadavg(lc->load, 3) < 0)
+			return lc->jobs_limit < lc->jobs_running;
+
+		if (lc->load[0] > lc->backoff_limit) {
+			old = lc->jobs_limit;
+			lc->jobs_limit -= lc->backoff_change;
+		}
+		else if (lc->load[0] < lc->rampup_limit) {
+			old = lc->jobs_limit;
+			lc->jobs_limit += lc->rampup_change;
+		}
+
+		if (lc->jobs_limit > lc->jobs_max) {
+			lc->jobs_limit = lc->jobs_max;
+		}
+		else if (lc->jobs_limit < lc->jobs_min) {
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Tried to set jobs_limit to %u, below jobs_min (%u)\n",
+				  lc->jobs_limit, lc->jobs_min);
+			lc->jobs_limit = lc->jobs_min;
+		}
+
+		if (old) {
+			if (lc->jobs_limit < old) {
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: loadctl.jobs_limit changed from %u to %u\n", old, lc->jobs_limit);
+			} else {
+				logit(NSLOG_INFO_MESSAGE, FALSE, "wproc: loadctl.jobs_limit changed from %u to %u\n", old, lc->jobs_limit);
+			}
+		}
+	}
+
+	return lc->jobs_limit < lc->jobs_running;
+}
+
 static worker_job *create_job(int type, void *arg, time_t timeout, const char *command)
 {
 	worker_job *job;
@@ -134,6 +193,7 @@ static void destroy_job(worker_process *wp, worker_job *job)
 
 	wp->jobs[job->id % wp->max_jobs] = NULL;
 	wp->jobs_running--;
+	loadctl.jobs_running--;
 
 	free(job);
 }
@@ -825,6 +885,7 @@ static int wproc_run_job(worker_job *job, nagios_macros *mac)
 	send_kvvec(wp->sd, &kvv);
 	wp->jobs_running++;
 	wp->jobs_started++;
+	loadctl.jobs_running++;
 
 	return 0;
 }

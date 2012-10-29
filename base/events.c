@@ -28,6 +28,7 @@
 #include "../include/nagios.h"
 #include "../include/broker.h"
 #include "../include/sretention.h"
+#include "../include/workers.h"
 #include "../lib/squeue.h"
 
 
@@ -676,13 +677,13 @@ void display_scheduling_info(void) {
 		printf("* Value for 'max_concurrent_checks' option should be >= %d\n", (int)minimum_concurrent_checks);
 		suggestions++;
 		}
-	if(nofile_limit * 0.4 < minimum_concurrent_checks) {
+	if(loadctl.nofile_limit * 0.4 < minimum_concurrent_checks) {
 		printf("* Increase the \"open files\" ulimit for user '%s'\n", nagios_user);
 		printf(" - You can do this by adding\n      %s hard nofiles %d\n   to /etc/security/limits.conf\n",
 			   nagios_user, rup2pof2(minimum_concurrent_checks * 2));
 		suggestions++;
 		}
-	if(nproc_limit * 0.75 < minimum_concurrent_checks) {
+	if(loadctl.nproc_limit * 0.75 < minimum_concurrent_checks) {
 		printf("* Increase the \"max user processes\" ulimit for user '%s'\n", nagios_user);
 		printf(" - You can do this by adding\n      %s hard nproc %d\n   to /etc/security/limits.conf\n",
 			   nagios_user, rup2pof2(minimum_concurrent_checks));
@@ -835,6 +836,19 @@ static int should_run_event(timed_event *temp_event)
 {
 	int run_event = TRUE;	/* default action is to execute the event */
 	int nudge_seconds = 0;
+
+	/* we only care about jobs that cause processes to run */
+	if (temp_event->event_type != EVENT_HOST_CHECK &&
+	    temp_event->event_type != EVENT_SERVICE_CHECK)
+	{
+		return TRUE;
+	}
+
+	/* if we can't spawn any more jobs, don't bother */
+	if (!wproc_can_spawn(&loadctl)) {
+		wproc_reap(100, 3000);
+		return FALSE;
+	}
 
 	/* run a few checks before executing a service check... */
 	if(temp_event->event_type == EVENT_SERVICE_CHECK) {

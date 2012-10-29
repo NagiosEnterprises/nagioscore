@@ -43,8 +43,6 @@ char *temp_path = NULL;
 char *check_result_path = NULL;
 char *lock_file = NULL;
 
-unsigned int nproc_limit, nofile_limit, max_apps;
-
 int num_check_workers = 0; /* auto-decide */
 char *qh_socket_path = NULL; /* disabled */
 
@@ -102,6 +100,8 @@ int max_check_reaper_time = DEFAULT_MAX_REAPER_TIME;
 int service_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
 int host_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
 int auto_rescheduling_interval = DEFAULT_AUTO_RESCHEDULING_INTERVAL;
+
+struct load_control loadctl;
 
 int check_orphaned_services = DEFAULT_CHECK_ORPHANED_SERVICES;
 int check_orphaned_hosts = DEFAULT_CHECK_ORPHANED_HOSTS;
@@ -270,6 +270,44 @@ void timing_point(const char *fmt, ...) {
 	vprintf(fmt, ap);
 	va_end(ap);
 	}
+
+int set_loadctl_options(char *opts, unsigned int len)
+{
+	struct kvvec *kvv;
+	unsigned int i;
+
+	kvv = buf2kvvec(opts, len, '=', ';', 0);
+	for (i = 0; i < kvv->kv_pairs; i++) {
+		struct key_value *kv = &kvv->kv[i];
+
+		if (!strcmp(kv->key, "enabled") && *kv->value == '1') {
+			if (!(loadctl.options & LOADCTL_ENABLED))
+				logit(0, 0, "Warning: Enabling experimental load control\n");
+			loadctl.options |= LOADCTL_ENABLED;
+		} else if (!strcmp(kv->key, "jobs_max")) {
+			loadctl.jobs_max = atoi(kv->value);
+		} else if (!strcmp(kv->key, "jobs_min")) {
+			loadctl.jobs_min = atoi(kv->value);
+		} else if (!strcmp(kv->key, "jobs_limit")) {
+			loadctl.jobs_min = atoi(kv->value);
+		} else if (!strcmp(kv->key, "check_interval")) {
+			loadctl.check_interval = strtoul(kv->value, NULL, 10);
+		} else if (!strcmp(kv->key, "backoff_limit")) {
+			loadctl.backoff_limit = strtod(kv->value, NULL);
+		} else if (!strcmp(kv->key, "rampup_limit")) {
+			loadctl.rampup_limit = strtod(kv->value, NULL);
+		} else if (!strcmp(kv->key, "backoff_change")) {
+			loadctl.backoff_change = atoi(kv->value);
+		} else if (!strcmp(kv->key, "rampup_change")) {
+			loadctl.rampup_change = atoi(kv->value);
+		} else {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Bad loadctl option; %s = %s\n", kv->key, kv->value);
+			return 400;
+		}
+	}
+	kvvec_destroy(kvv, 0);
+	return 0;
+}
 
 /******************************************************************/
 /******************** SYSTEM COMMAND FUNCTIONS ********************/

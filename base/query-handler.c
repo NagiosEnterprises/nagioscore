@@ -221,6 +221,34 @@ void qh_deinit(const char *path)
 
 static int qh_core(int sd, char *buf, unsigned int len)
 {
+	char *space;
+
+	if ((space = memchr(buf, ' ', len)))
+		*(space++) = 0;
+	if (!space && !strcmp(buf, "loadctl")) {
+		return nsock_printf_nul
+			(sd, "jobs_max=%u;jobs_min=%u;"
+				"jobs_running=%u;jobs_limit=%u;"
+				"load=%.2f;"
+				"backoff_limit=%.2f;backoff_change=%u;"
+				"rampup_limit=%.2f;rampup_change=%u;"
+				"nproc_limit=%u;nofile_limit=%u;"
+				"options=%u",
+				loadctl.jobs_max, loadctl.jobs_min,
+				loadctl.jobs_running, loadctl.jobs_limit,
+				loadctl.load[0],
+				loadctl.backoff_limit, loadctl.backoff_change,
+				loadctl.rampup_limit, loadctl.rampup_change,
+				loadctl.nproc_limit, loadctl.nofile_limit,
+				loadctl.options);
+	}
+
+	if (space) {
+		len -= (unsigned long)space - (unsigned long)buf;
+		if (strcmp(buf, "loadctl")) {
+			return set_loadctl_options(space, len);
+		}
+	}
 	return 0;
 }
 

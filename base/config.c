@@ -169,6 +169,8 @@ int read_main_config_file(char *main_config_file) {
 			read_resource_file(mac->x[MACRO_RESOURCEFILE]);
 			}
 
+		else if(!strcmp(variable, "loadctl_options"))
+			error = set_loadctl_options(value, strlen(value)) != OK;
 		else if(!strcmp(variable, "check_workers"))
 			num_check_workers = atoi(value);
 		else if(!strcmp(variable, "query_socket"))

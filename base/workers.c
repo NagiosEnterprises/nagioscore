@@ -800,16 +800,23 @@ static worker_process *get_worker(worker_job *job)
 	worker_process *wp = NULL;
 	struct wproc_list *wp_list;
 	int i;
-	char *cmd_name, *space;
+	char *cmd_name, *space, *slash = NULL;
 
 	/* first, look for a specialized worker for this command */
 	cmd_name = job->command;
-	if ((space = strchr(cmd_name, ' ')) != NULL)
+	if ((space = strchr(cmd_name, ' ')) != NULL) {
 		*space = '\0';
+		slash = strrchr(space - 1, '/');
+	}
 
 	wp_list = dkhash_get(specialized_workers, cmd_name, NULL);
+	if (!wp_list && slash) {
+		*slash = 0;
+		wp_list = dkhash_get(specialized_workers, slash + 1, NULL);
+		*(slash++) = '/';
+	}
 	if (wp_list != NULL) {
-		logit(NSLOG_INFO_MESSAGE, 1, "Found specialized worker(s) for '%s'", cmd_name);
+		logit(NSLOG_INFO_MESSAGE, 1, "Found specialized worker(s) for '%s'", (slash && *slash != '/') ? slash : cmd_name);
 	}
 	else {
 		if (!workers.wps)

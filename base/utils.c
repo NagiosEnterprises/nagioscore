@@ -280,10 +280,17 @@ int set_loadctl_options(char *opts, unsigned int len)
 	for (i = 0; i < kvv->kv_pairs; i++) {
 		struct key_value *kv = &kvv->kv[i];
 
-		if (!strcmp(kv->key, "enabled") && *kv->value == '1') {
-			if (!(loadctl.options & LOADCTL_ENABLED))
-				logit(0, 0, "Warning: Enabling experimental load control\n");
-			loadctl.options |= LOADCTL_ENABLED;
+		if (!strcmp(kv->key, "enabled")) {
+			if (*kv->value == '1') {
+				if (!(loadctl.options & LOADCTL_ENABLED))
+					logit(0, 0, "Warning: Enabling experimental load control\n");
+				loadctl.options |= LOADCTL_ENABLED;
+			}
+			else {
+				if (loadctl.options & LOADCTL_ENABLED)
+					logit(0, 0, "Warning: Disabling experimental load control\n");
+				loadctl.options &= (~LOADCTL_ENABLED);
+			}
 		} else if (!strcmp(kv->key, "jobs_max")) {
 			loadctl.jobs_max = atoi(kv->value);
 		} else if (!strcmp(kv->key, "jobs_min")) {

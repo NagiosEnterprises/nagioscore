@@ -400,7 +400,6 @@ static int nerd_qh_handler(int sd, char *request, unsigned int len)
 	struct nerd_channel *chan;
 	int action;
 
-	printf("Got request '%s'\n", request);
 	while(request[len] == 0 || request[len] == '\n')
 		request[len--] = 0;
 	chan_name = strchr(request, ' ');
@@ -423,7 +422,6 @@ static int nerd_qh_handler(int sd, char *request, unsigned int len)
 
 	chan = find_channel(chan_name);
 	if(!chan) {
-		printf("Failed to find channel %s\n", chan_name);
 		return 400;
 	}
 

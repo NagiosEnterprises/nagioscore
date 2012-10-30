@@ -78,6 +78,20 @@ extern int iobroker_register(iobroker_set *iobs, int sd, void *arg, int (*handle
 
 
 /**
+ * Register a socket for output polling with the broker
+ * @note There's no guarantee that *ALL* data is writable just
+ * because the socket won't block you completely.
+ *
+ * @param iobs The socket set to add the socket to.
+ * @param sd The socket descriptor to add
+ * @param arg Argument passed to output handler on ready-to-write
+ * @param handler The function to call when output won't block
+ *
+ * @return 0 on success. < 0 on errors
+ */
+extern int iobroker_register_out(iobroker_set *iobs, int sd, void *arg, int (*handler)(int, int, void *));
+
+/**
  * Check if a particular filedescriptor is registered with the iobroker set
  * @param[in] iobs The iobroker set the filedescriptor should be member of
  * @param[in] fd The filedescriptor to check for

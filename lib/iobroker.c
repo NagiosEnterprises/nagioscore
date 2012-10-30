@@ -45,7 +45,7 @@
 
 typedef struct {
 	int fd; /* the file descriptor */
-	int flags; /* various flags for the buffer */
+	int events; /* events the caller is interested in */
 	int (*handler)(int, int, void *); /* where we send data */
 	void *arg; /* the argument we send to the input handler */
 } iobroker_fd;
@@ -183,8 +183,7 @@ error_out:
 	return NULL;
 }
 
-
-int iobroker_register(iobroker_set *iobs, int fd, void *arg, int (*handler)(int, int, void *))
+static int reg_one(iobroker_set *iobs, int fd, int events, void *arg, int (*handler)(int, int, void *))
 {
 	iobroker_fd *s;
 
@@ -204,7 +203,7 @@ int iobroker_register(iobroker_set *iobs, int fd, void *arg, int (*handler)(int,
 #ifdef IOBROKER_USES_EPOLL
 	{
 		struct epoll_event ev;
-		ev.events = EPOLLIN | EPOLLRDHUP;
+		ev.events = events;
 		ev.data.ptr = arg;
 		ev.data.fd = fd;
 		if (epoll_ctl(iobs->epfd, EPOLL_CTL_ADD, fd, &ev) < 0) {
@@ -215,13 +214,31 @@ int iobroker_register(iobroker_set *iobs, int fd, void *arg, int (*handler)(int,
 
 	s = calloc(1, sizeof(iobroker_fd));
 	s->handler = handler;
-	s->flags = s->flags;
 	s->fd = fd;
 	s->arg = arg;
+	s->events = events;
 	iobs->iobroker_fds[fd] = s;
 	iobs->num_fds++;
 
 	return 0;
+}
+
+int iobroker_register(iobroker_set *iobs, int fd, void *arg, int (*handler)(int, int, void *))
+{
+#ifdef IOBROKER_USES_EPOLL
+	return reg_one(iobs, fd, EPOLLIN | EPOLLRDHUP, arg, handler);
+#else
+	return reg_one(iobs, fd, POLLIN, arg, handler);
+#endif
+}
+
+int iobroker_register_out(iobroker_set *iobs, int fd, void *arg, int (*handler)(int, int, void *))
+{
+#ifdef IOBROKER_USES_EPOLL
+	return reg_one(iobs, fd, EPOLLOUT, arg, handler);
+#else
+	return reg_one(iobs, fd, POLLOUT, arg, handler);
+#endif
 }
 
 int iobroker_is_registered(iobroker_set *iobs, int fd)

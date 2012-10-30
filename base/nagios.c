@@ -110,7 +110,7 @@ static int nagios_core_worker(const char *path)
 		return 1;
 	}
 
-	ret = nsock_printf_nul(sd, "@wproc register name=Core Worker %d;pid=%d", getpid(), getpid());
+	ret = nsock_printf_nul(sd, "@wproc register name=Core Worker %d;pid=%d;max_jobs=20", getpid(), getpid());
 	if (ret < 0) {
 		printf("Failed to register as worker.\n");
 		return 1;
@@ -310,6 +310,13 @@ int main(int argc, char **argv, char **env) {
 	 */
 	if(verify_config || test_scheduling || precache_objects) {
 		reset_variables();
+		/*
+		 * if we don't beef up our resource limits as much as
+		 * we can, it's quite possible we'll run headlong into
+		 * EAGAIN due to too many processes when we try to
+		 * drop privileges later.
+		 */
+		set_loadctl_defaults();
 
 		if(verify_config)
 			printf("Reading configuration data...\n");

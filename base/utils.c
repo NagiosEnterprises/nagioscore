@@ -296,7 +296,7 @@ int set_loadctl_options(char *opts, unsigned int len)
 		} else if (!strcmp(kv->key, "jobs_min")) {
 			loadctl.jobs_min = atoi(kv->value);
 		} else if (!strcmp(kv->key, "jobs_limit")) {
-			loadctl.jobs_min = atoi(kv->value);
+			loadctl.jobs_limit = atoi(kv->value);
 		} else if (!strcmp(kv->key, "check_interval")) {
 			loadctl.check_interval = strtoul(kv->value, NULL, 10);
 		} else if (!strcmp(kv->key, "backoff_limit")) {
@@ -312,6 +312,14 @@ int set_loadctl_options(char *opts, unsigned int len)
 			return 400;
 		}
 	}
+
+	/* precedence order is "jobs_min -> jobs_max -> jobs_limit" */
+	if (loadctl.jobs_max < loadctl.jobs_min)
+		loadctl.jobs_max = loadctl.jobs_min;
+	if (loadctl.jobs_limit > loadctl.jobs_max)
+		loadctl.jobs_limit = loadctl.jobs_max;
+	if (loadctl.jobs_limit < loadctl.jobs_min)
+		loadctl.jobs_limit = loadctl.jobs_min;
 	kvvec_destroy(kvv, 0);
 	return 0;
 }

@@ -285,10 +285,12 @@ static int qh_core(int sd, char *buf, unsigned int len)
 	if (space) {
 		len -= (unsigned long)space - (unsigned long)buf;
 		if (!strcmp(buf, "loadctl")) {
-			return set_loadctl_options(space, len) == OK ? 200 : 500;
+			return set_loadctl_options(space, len) == OK ? 200 : 400;
 		}
 	}
-	return 0;
+
+	/* No matching command found */
+	return 404;
 }
 
 int qh_init(const char *path)

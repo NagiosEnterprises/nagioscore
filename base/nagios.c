@@ -92,6 +92,8 @@ static void set_loadctl_defaults(void)
 		loadctl.rampup_change = loadctl.backoff_change * 0.25;
 	if (!loadctl.check_interval)
 		loadctl.check_interval = 60;
+	if (!loadctl.jobs_min)
+		loadctl.jobs_min = online_cpus() * 20; /* pessimistic */
 }
 
 static int nagios_core_worker(const char *path)

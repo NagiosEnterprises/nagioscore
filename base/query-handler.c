@@ -271,14 +271,14 @@ static int qh_core(int sd, char *buf, unsigned int len)
 				"backoff_limit=%.2f;backoff_change=%u;"
 				"rampup_limit=%.2f;rampup_change=%u;"
 				"nproc_limit=%u;nofile_limit=%u;"
-				"options=%u",
+				"options=%u;changes=%u;",
 				loadctl.jobs_max, loadctl.jobs_min,
 				loadctl.jobs_running, loadctl.jobs_limit,
 				loadctl.load[0],
 				loadctl.backoff_limit, loadctl.backoff_change,
 				loadctl.rampup_limit, loadctl.rampup_change,
 				loadctl.nproc_limit, loadctl.nofile_limit,
-				loadctl.options);
+				loadctl.options, loadctl.changes);
 		return 0;
 	}
 

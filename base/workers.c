@@ -834,8 +834,9 @@ static worker_process *get_worker(worker_job *job)
 
 	if (job->id < 0) {
 		/* XXX FIXME Fiddle with finding a new, less busy, worker here */
+		return NULL;
 	}
-	wp->jobs[job->id % wp->max_jobs] = job;
+	wp->jobs[job->id] = job;
 	job->wp = wp;
 	return wp;
 

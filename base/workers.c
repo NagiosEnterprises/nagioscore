@@ -213,7 +213,7 @@ static int wproc_is_alive(worker_process *wp)
 
 int wproc_destroy(worker_process *wp, int flags)
 {
-	int i = 0, destroyed = 0, force = 0, self;
+	int i = 0, force = 0, self;
 
 	if (!wp)
 		return 0;
@@ -231,14 +231,11 @@ int wproc_destroy(worker_process *wp, int flags)
 	wp->ioc = NULL;
 	my_free(wp->source_name);
 	if (wp->jobs) {
-		for (i = 0; i < wp->max_jobs; i++) {
+		for (i = 0; i < wp->max_jobs && wp->jobs_running; i++) {
 			if (!wp->jobs[i])
 				continue;
 
 			destroy_job(wp, wp->jobs[i]);
-			/* we can (often) break out early */
-			if (++destroyed >= wp->jobs_running)
-				break;
 		}
 
 		free(wp->jobs);

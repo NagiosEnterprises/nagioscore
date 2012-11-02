@@ -107,7 +107,7 @@ int wproc_can_spawn(struct load_control *lc)
 			lc->jobs_limit = lc->jobs_min;
 		}
 
-		if (old) {
+		if (old && old != lc->jobs_limit) {
 			if (lc->jobs_limit < old) {
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: loadctl.jobs_limit changed from %u to %u\n", old, lc->jobs_limit);
 			} else {

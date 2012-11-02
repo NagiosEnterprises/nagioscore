@@ -76,12 +76,16 @@ void wproc_reap(int jobs, int msecs)
 int wproc_can_spawn(struct load_control *lc)
 {
 	unsigned int old = 0;
+	time_t now;
 
 	/* if no load control is enabled, we can safely run this job */
 	if (!(lc->options & LOADCTL_ENABLED))
 		return 1;
 
-	if (lc->check_interval < time(NULL) - lc->last_check) {
+	now = time(NULL);
+	if (lc->last_check + lc->check_interval > now) {
+		lc->last_check = now;
+
 		if (getloadavg(lc->load, 3) < 0)
 			return lc->jobs_limit < lc->jobs_running;
 

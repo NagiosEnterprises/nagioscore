@@ -1003,6 +1003,11 @@ int event_execution_loop(void) {
 		               poll_time_ms, iobroker_get_num_fds(nagios_iobs),
 		               squeue_size(nagios_squeue), nagios_iobs);
 		inputs = iobroker_poll(nagios_iobs, poll_time_ms);
+		if (inputs < 0) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error polling for input, giving up");
+			break;
+		}
+
 		log_debug_info(DEBUGL_IPC, 2, "## %d descriptors had input\n", inputs);
 
 		/* 100 milliseconds allowance for firing off events early */

@@ -88,16 +88,51 @@ int xdddefault_validate_downtime_data(void) {
 		save = TRUE;
 
 		/* delete downtimes with invalid host names */
-		if(find_host(temp_downtime->host_name) == NULL)
+		if(find_host(temp_downtime->host_name) == NULL) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, 
+					"Deleting downtime with invalid host name: %s\n",
+					temp_downtime->host_name);
 			save = FALSE;
+			}
 
 		/* delete downtimes with invalid service descriptions */
-		if(temp_downtime->type == SERVICE_DOWNTIME && find_service(temp_downtime->host_name, temp_downtime->service_description) == NULL)
+		if(temp_downtime->type == SERVICE_DOWNTIME && find_service(temp_downtime->host_name, temp_downtime->service_description) == NULL) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, 
+					"Deleting downtime with invalid service description: %s\n",
+					temp_downtime->service_description);
 			save = FALSE;
+			}
 
-		/* delete downtimes that have expired */
-		if(temp_downtime->end_time < time(NULL))
+		/* delete fixed downtimes that have expired */
+		if((TRUE == temp_downtime->fixed) && 
+				(temp_downtime->end_time < time(NULL))) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, 
+					"Deleting fixed downtime that expired at: %lu\n",
+					temp_downtime->end_time);
 			save = FALSE;
+			}
+
+		/* delete flexible downtimes that never started and have expired */
+		if((FALSE == temp_downtime->fixed) && 
+				(0 == temp_downtime->flex_downtime_start) &&
+				(temp_downtime->end_time < time(NULL))) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, 
+					"Deleting flexible downtime that expired at: %lu\n",
+					temp_downtime->end_time);
+			save = FALSE;
+			}
+
+		/* delete flexible downtimes that started but whose duration
+			has completed */
+		if((FALSE == temp_downtime->fixed) && 
+				(0 != temp_downtime->flex_downtime_start) &&
+				((temp_downtime->flex_downtime_start + temp_downtime->duration) 
+				< time(NULL))) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, 
+					"Deleting flexible downtime whose duration ended at: %lu\n",
+					temp_downtime->flex_downtime_start + temp_downtime->duration);
+			save = FALSE;
+			}
 
 		/* delete the downtime */
 		if(save == FALSE) {
@@ -139,7 +174,7 @@ int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *a
 		next_downtime_id++;
 
 	/* add downtime to list in memory */
-	add_host_downtime(host_name, entry_time, author, comment, start_time, end_time, fixed, triggered_by, duration, next_downtime_id, is_in_effect);
+	add_host_downtime(host_name, entry_time, author, comment, start_time, (time_t)0, end_time, fixed, triggered_by, duration, next_downtime_id, is_in_effect);
 
 	/* return the id for the downtime we are about to add (this happens in the main code) */
 	if(downtime_id != NULL)
@@ -161,7 +196,7 @@ int xdddefault_add_new_service_downtime(char *host_name, char *service_descripti
 		next_downtime_id++;
 
 	/* add downtime to list in memory */
-	add_service_downtime(host_name, service_description, entry_time, author, comment, start_time, end_time, fixed, triggered_by, duration, next_downtime_id, is_in_effect);
+	add_service_downtime(host_name, service_description, entry_time, author, comment, start_time, (time_t)0, end_time, fixed, triggered_by, duration, next_downtime_id, is_in_effect);
 
 	/* return the id for the downtime we are about to add (this happens in the main code) */
 	if(downtime_id != NULL)

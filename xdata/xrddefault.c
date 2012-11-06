@@ -489,9 +489,11 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "host_name=%s\n", temp_downtime->host_name);
 		if(temp_downtime->type == SERVICE_DOWNTIME)
 			fprintf(fp, "service_description=%s\n", temp_downtime->service_description);
+		fprintf(fp, "comment_id=%lu\n", temp_downtime->comment_id);
 		fprintf(fp, "downtime_id=%lu\n", temp_downtime->downtime_id);
 		fprintf(fp, "entry_time=%lu\n", temp_downtime->entry_time);
 		fprintf(fp, "start_time=%lu\n", temp_downtime->start_time);
+		fprintf(fp, "flex_downtime_start=%lu\n", temp_downtime->flex_downtime_start);
 		fprintf(fp, "end_time=%lu\n", temp_downtime->end_time);
 		fprintf(fp, "triggered_by=%lu\n", temp_downtime->triggered_by);
 		fprintf(fp, "fixed=%d\n", temp_downtime->fixed);
@@ -577,6 +579,7 @@ int xrddefault_read_state_information(void) {
 	int scheduling_info_is_ok = FALSE;
 	unsigned long downtime_id = 0;
 	time_t start_time = 0L;
+	time_t flex_downtime_start = ( time_t)0;
 	time_t end_time = 0L;
 	int fixed = FALSE;
 	unsigned long triggered_by = 0;
@@ -900,9 +903,9 @@ int xrddefault_read_state_information(void) {
 
 					/* add the downtime */
 					if(data_type == XRDDEFAULT_HOSTDOWNTIME_DATA)
-						add_host_downtime(host_name, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+						add_host_downtime(host_name, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
 					else
-						add_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+						add_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
 
 					/* must register the downtime with Nagios so it can schedule it, add comments, etc. */
 					register_downtime((data_type == XRDDEFAULT_HOSTDOWNTIME_DATA) ? HOST_DOWNTIME : SERVICE_DOWNTIME, downtime_id);
@@ -917,6 +920,7 @@ int xrddefault_read_state_information(void) {
 					downtime_id = 0;
 					entry_time = 0L;
 					start_time = 0L;
+					flex_downtime_start = ( time_t)0;
 					end_time = 0L;
 					fixed = FALSE;
 					triggered_by = 0;
@@ -1752,10 +1756,14 @@ int xrddefault_read_state_information(void) {
 						service_description = (char *)strdup(val);
 					else if(!strcmp(var, "downtime_id"))
 						downtime_id = strtoul(val, NULL, 10);
+					else if(!strcmp(var, "comment_id"))
+						comment_id = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "entry_time"))
 						entry_time = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "start_time"))
 						start_time = strtoul(val, NULL, 10);
+					else if(!strcmp(var, "flex_downtime_start"))
+						flex_downtime_start = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "end_time"))
 						end_time = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "fixed"))

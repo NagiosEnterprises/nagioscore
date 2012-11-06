@@ -273,7 +273,8 @@ static int remove_specialized(void *data)
 		if (to_remove != NULL && list->wps[i] != to_remove)
 			continue;
 
-		if (list->len <= 1) {
+		list->len--;
+		if (list->len <= 0) {
 			free(list->wps);
 			list->wps = NULL;
 			if(list != &workers)
@@ -281,7 +282,6 @@ static int remove_specialized(void *data)
 			return DKHASH_WALK_REMOVE;
 		}
 		else {
-			list->len--;
 			list->wps[i] = list->wps[list->len];
 			i--;
 		}

@@ -4,6 +4,8 @@ Nagios 3.x Change Log
 3.4.2 - ???
 ------------------
 FIXES
+* Corrected logic so that end times for flexible downtimes are calculated from the downtime start rather than the current time in the case where Nagios is restarted (Eric Stanley)
+* Fixed issue introduced by fix for bug #124 where flexible downtimes are not taken into account on Nagios restart. (Scott Wilkerson, Eric Stanley)
 * Fixed bug #247: If a service reports no performance data, the perfdata log file has no line indicating the test. (omnikron@free.fr)
 * Fixed link for unhandled unreachable host problems on tactical overview page (Rudolf Cejka)
 * Fixed bug #345 with wild card searches not paging properly on status.cgi (Phil Randal)

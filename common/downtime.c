@@ -66,6 +66,8 @@ pthread_mutex_t nagios_downtime_lock = PTHREAD_MUTEX_INITIALIZER;
 int initialize_downtime_data(char *config_file) {
 	int result = OK;
 
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "initialize_downtime_data()\n");
+
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
 	result = xdddefault_initialize_downtime_data(config_file);
@@ -78,6 +80,8 @@ int initialize_downtime_data(char *config_file) {
 /* cleans up scheduled downtime data */
 int cleanup_downtime_data(char *config_file) {
 	int result = OK;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "cleanup_downtime_data()\n");
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
@@ -102,8 +106,11 @@ int schedule_downtime(int type, char *host_name, char *service_description, time
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "schedule_downtime()\n");
 
 	/* don't add old or invalid downtimes */
-	if(start_time >= end_time || end_time <= time(NULL))
+	if(start_time >= end_time || end_time <= time(NULL)) {
+		log_debug_info(DEBUGL_DOWNTIME, 1, "Invalid start (%lu) or end (%lu) times\n",
+				start_time, end_time);
 		return ERROR;
+		}
 
 	/* add a new downtime entry */
 	add_new_downtime(type, host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id, FALSE);
@@ -238,6 +245,7 @@ int unschedule_downtime(int type, unsigned long downtime_id) {
 int register_downtime(int type, unsigned long downtime_id) {
 	char *temp_buffer = NULL;
 	char start_time_string[MAX_DATETIME_LENGTH] = "";
+	char flex_start_string[MAX_DATETIME_LENGTH] = "";
 	char end_time_string[MAX_DATETIME_LENGTH] = "";
 	scheduled_downtime *temp_downtime = NULL;
 	host *hst = NULL;
@@ -247,26 +255,40 @@ int register_downtime(int type, unsigned long downtime_id) {
 	int minutes = 0;
 	int seconds = 0;
 	unsigned long *new_downtime_id = NULL;
+	int was_in_effect = FALSE;
 
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "register_downtime()\n");
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "register_downtime( %d, %lu)\n", type, 
+			downtime_id);
 
 	/* find the downtime entry in memory */
 	temp_downtime = find_downtime(type, downtime_id);
-	if(temp_downtime == NULL)
+	if(temp_downtime == NULL) {
+		log_debug_info(DEBUGL_DOWNTIME, 0, "Cannot find downtime ID: %lu\n", downtime_id);
 		return ERROR;
+		}
 
 	/* find the host or service associated with this downtime */
 	if(temp_downtime->type == HOST_DOWNTIME) {
-		if((hst = find_host(temp_downtime->host_name)) == NULL)
+		if((hst = find_host(temp_downtime->host_name)) == NULL) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, 
+					"Cannot find host (%s) for downtime ID: %lu\n", 
+					temp_downtime->host_name, downtime_id);
 			return ERROR;
+			}
 		}
 	else {
-		if((svc = find_service(temp_downtime->host_name, temp_downtime->service_description)) == NULL)
+		if((svc = find_service(temp_downtime->host_name, temp_downtime->service_description)) == NULL) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, 
+					"Cannot find service (%s) for host (%s) for downtime ID: %lu\n", 
+					temp_downtime->service_description, temp_downtime->host_name, 
+					downtime_id);
 			return ERROR;
+			}
 		}
 
 	/* create the comment */
 	get_datetime_string(&(temp_downtime->start_time), start_time_string, MAX_DATETIME_LENGTH, SHORT_DATE_TIME);
+	get_datetime_string(&(temp_downtime->flex_downtime_start), flex_start_string, MAX_DATETIME_LENGTH, SHORT_DATE_TIME);
 	get_datetime_string(&(temp_downtime->end_time), end_time_string, MAX_DATETIME_LENGTH, SHORT_DATE_TIME);
 	hours = temp_downtime->duration / 3600;
 	minutes = ((temp_downtime->duration - (hours * 3600)) / 60);
@@ -293,6 +315,9 @@ int register_downtime(int type, unsigned long downtime_id) {
 		}
 	log_debug_info(DEBUGL_DOWNTIME, 0, " Fixed/Flex:  %s\n", (temp_downtime->fixed == TRUE) ? "Fixed" : "Flexible");
 	log_debug_info(DEBUGL_DOWNTIME, 0, " Start:       %s\n", start_time_string);
+	if( temp_downtime->flex_downtime_start) {
+		log_debug_info(DEBUGL_DOWNTIME, 0, " Flex Start:  %s\n", flex_start_string);
+		}
 	log_debug_info(DEBUGL_DOWNTIME, 0, " End:         %s\n", end_time_string);
 	log_debug_info(DEBUGL_DOWNTIME, 0, " Duration:    %dh %dm %ds\n", hours, minutes, seconds);
 	log_debug_info(DEBUGL_DOWNTIME, 0, " Downtime ID: %lu\n", temp_downtime->downtime_id);
@@ -307,15 +332,43 @@ int register_downtime(int type, unsigned long downtime_id) {
 
 	my_free(temp_buffer);
 
-	/*** SCHEDULE DOWNTIME - FLEXIBLE (NON-FIXED) DOWNTIME IS HANDLED AT A LATER POINT ***/
-
 	/* only non-triggered downtime is scheduled... */
-	if(temp_downtime->triggered_by == 0) {
+	if((temp_downtime->triggered_by == 0) && ((TRUE == temp_downtime->fixed) || 
+			((FALSE == temp_downtime->fixed) && 
+			(TRUE == temp_downtime->is_in_effect)))) {
+		/* If this is a fixed downtime, schedule the event to start it. If this
+			is a flexible downtime, normally we wait for one of the 
+			check_pending_flex_*_downtime() functions to start it, but if the 
+			downtime is already in effect, this means that we are restarting 
+			Nagios and the downtime was in effect when we last shutdown 
+			Nagios, so we should restart the flexible downtime now. This 
+			should work even if the downtime has ended because the 
+			handle_scheduled_dowtime() function will immediately schedule 
+			another downtime event which will end the downtime. */
 		if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long *)))) {
 			*new_downtime_id = downtime_id;
 			temp_downtime->start_event = schedule_new_event(EVENT_SCHEDULED_DOWNTIME, TRUE, temp_downtime->start_time, FALSE, 0, NULL, FALSE, (void *)new_downtime_id, NULL, 0);
+			/* Turn off is_in_effect flag so handle_scheduled_downtime() will 
+				handle it correctly */
+			was_in_effect = temp_downtime->is_in_effect;
+			temp_downtime->is_in_effect = FALSE;
 			}
 		}
+
+		if((FALSE == temp_downtime->fixed) && (FALSE == was_in_effect)) {
+			/* increment pending flex downtime counter */
+			if(temp_downtime->type == HOST_DOWNTIME)
+				hst->pending_flex_downtime++;
+			else
+				svc->pending_flex_downtime++;
+			temp_downtime->incremented_pending_downtime = TRUE;
+
+			/* Since a flex downtime may never start, schedule an expiring event in
+				case the event is never triggered. The expire event will NOT cancel
+				a downtime event that is in effect */
+			log_debug_info(DEBUGL_DOWNTIME, 1, "Scheduling downtime expire event in case flexible downtime is never triggered\n");
+			temp_downtime->stop_event = schedule_new_event(EVENT_EXPIRE_DOWNTIME, TRUE, (temp_downtime->end_time + 1), FALSE, 0, NULL, FALSE, NULL, NULL, 0);
+			}
 
 #ifdef PROBABLY_NOT_NEEDED
 	/*** FLEXIBLE DOWNTIME SANITY CHECK - ADDED 02/17/2008 ****/
@@ -339,9 +392,14 @@ int register_downtime(int type, unsigned long downtime_id) {
 int handle_scheduled_downtime_by_id(unsigned long downtime_id) {
 	scheduled_downtime *temp_downtime = NULL;
 
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_scheduled_downtime_by_id()\n");
+
 	/* find the downtime entry */
-	if((temp_downtime = find_downtime(ANY_DOWNTIME, downtime_id)) == NULL)
+	if((temp_downtime = find_downtime(ANY_DOWNTIME, downtime_id)) == NULL) {
+		log_debug_info(DEBUGL_DOWNTIME, 1, "Unable to find downtime id: %lu\n", 
+				downtime_id);
 		return ERROR;
+		}
 
 	/* handle the downtime */
 	return handle_scheduled_downtime(temp_downtime);
@@ -355,7 +413,6 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 	host *hst = NULL;
 	service *svc = NULL;
 	time_t event_time = 0L;
-	time_t current_time = 0L;
 	unsigned long *new_downtime_id = NULL;
 #ifdef USE_EVENT_BROKER
 	int attr = 0;
@@ -369,68 +426,16 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 
 	/* find the host or service associated with this downtime */
 	if(temp_downtime->type == HOST_DOWNTIME) {
-		if((hst = find_host(temp_downtime->host_name)) == NULL)
+		if((hst = find_host(temp_downtime->host_name)) == NULL) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, "Unable to find host (%s) for downtime\n", temp_downtime->host_name);
 			return ERROR;
+			}
 		}
 	else {
-		if((svc = find_service(temp_downtime->host_name, temp_downtime->service_description)) == NULL)
+		if((svc = find_service(temp_downtime->host_name, temp_downtime->service_description)) == NULL) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, "Unable to find service (%s) host (%s) for downtime\n", temp_downtime->service_description, temp_downtime->host_name);
 			return ERROR;
-		}
-
-	/* if downtime if flexible and host/svc is in an ok state, don't do anything right now (wait for event handler to kick it off) */
-	/* start_flex_downtime variable is set to TRUE by event handler functions */
-	if(temp_downtime->fixed == FALSE) {
-
-		/* we're not supposed to force a start of flex downtime... */
-		if(temp_downtime->start_flex_downtime == FALSE) {
-
-			/* host is up or service is ok, so we don't really do anything right now */
-			if((temp_downtime->type == HOST_DOWNTIME && hst->current_state == HOST_UP) || (temp_downtime->type == SERVICE_DOWNTIME && svc->current_state == STATE_OK)) {
-
-				/* increment pending flex downtime counter */
-				if(temp_downtime->type == HOST_DOWNTIME)
-					hst->pending_flex_downtime++;
-				else
-					svc->pending_flex_downtime++;
-				temp_downtime->incremented_pending_downtime = TRUE;
-
-				/*** SINCE THE FLEX DOWNTIME MAY NEVER START, WE HAVE TO PROVIDE A WAY OF EXPIRING UNUSED DOWNTIME... ***/
-
-				temp_downtime->stop_event = schedule_new_event(EVENT_EXPIRE_DOWNTIME, TRUE, (temp_downtime->end_time + 1), FALSE, 0, NULL, FALSE, NULL, NULL, 0);
-
-				return OK;
-				}
 			}
-		}
-
-	/* if downtime handler gets triggerd in between then there seems to be a restart */
-	time(&current_time);
-	if(temp_downtime->start_time < current_time && current_time < temp_downtime->end_time && temp_downtime->is_in_effect == TRUE) {
-#ifdef USE_EVENT_BROKER
-		/* send data to event broker */
-		broker_downtime_data(NEBTYPE_DOWNTIME_START, NEBFLAG_NONE, NEBATTR_NONE, temp_downtime->type, temp_downtime->host_name, temp_downtime->service_description, temp_downtime->entry_time, temp_downtime->author, temp_downtime->comment, temp_downtime->start_time, temp_downtime->end_time, temp_downtime->fixed, temp_downtime->triggered_by, temp_downtime->duration, temp_downtime->downtime_id, NULL);
-#endif
-
-		/* increment the downtime depth variable */
-		if(temp_downtime->type == HOST_DOWNTIME) {
-			hst->scheduled_downtime_depth++;
-			update_host_status(hst, FALSE);
-			}
-		else {
-			svc->scheduled_downtime_depth++;
-			update_service_status(svc, FALSE);
-			}
-
-		/* schedule an event */
-		if(temp_downtime->fixed == FALSE)
-			event_time = (time_t)((unsigned long)time(NULL) + temp_downtime->duration);
-		else
-			event_time = temp_downtime->end_time;
-		if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long)))) {
-			*new_downtime_id = temp_downtime->downtime_id;
-			schedule_new_event(EVENT_SCHEDULED_DOWNTIME, TRUE, event_time, FALSE, 0, NULL, FALSE, (void *)new_downtime_id, NULL, 0);
-			}
-		return OK;
 		}
 
 	/* have we come to the end of the scheduled downtime? */
@@ -556,11 +561,14 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 		else
 			update_service_status(svc, FALSE);
 
-		/* schedule an event */
-		if(temp_downtime->fixed == FALSE)
-			event_time = (time_t)((unsigned long)time(NULL) + temp_downtime->duration);
-		else
+		/* schedule an event to end the downtime */
+		if(temp_downtime->fixed == FALSE) {
+			event_time = (time_t)((unsigned long)temp_downtime->flex_downtime_start 
+					+ temp_downtime->duration);
+			}
+		else {
 			event_time = temp_downtime->end_time;
+			}
 		if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long *)))) {
 			*new_downtime_id = temp_downtime->downtime_id;
 			schedule_new_event(EVENT_SCHEDULED_DOWNTIME, TRUE, event_time, FALSE, 0, NULL, FALSE, (void *)new_downtime_id, NULL, 0);
@@ -582,6 +590,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 int check_pending_flex_host_downtime(host *hst) {
 	scheduled_downtime *temp_downtime = NULL;
 	time_t current_time = 0L;
+	unsigned long * new_downtime_id = NULL;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_pending_flex_host_downtime()\n");
@@ -619,8 +628,11 @@ int check_pending_flex_host_downtime(host *hst) {
 
 				log_debug_info(DEBUGL_DOWNTIME, 0, "Flexible downtime (id=%lu) for host '%s' starting now...\n", temp_downtime->downtime_id, hst->name);
 
-				temp_downtime->start_flex_downtime = TRUE;
-				handle_scheduled_downtime(temp_downtime);
+				temp_downtime->flex_downtime_start = current_time;
+				if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long *)))) {
+					*new_downtime_id = temp_downtime->downtime_id;
+					temp_downtime->start_event = schedule_new_event(EVENT_SCHEDULED_DOWNTIME, TRUE, temp_downtime->flex_downtime_start, FALSE, 0, NULL, FALSE, (void *)new_downtime_id, NULL, 0);
+					}
 				}
 			}
 		}
@@ -633,6 +645,7 @@ int check_pending_flex_host_downtime(host *hst) {
 int check_pending_flex_service_downtime(service *svc) {
 	scheduled_downtime *temp_downtime = NULL;
 	time_t current_time = 0L;
+	unsigned long * new_downtime_id = NULL;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_pending_flex_service_downtime()\n");
@@ -670,8 +683,11 @@ int check_pending_flex_service_downtime(service *svc) {
 
 				log_debug_info(DEBUGL_DOWNTIME, 0, "Flexible downtime (id=%lu) for service '%s' on host '%s' starting now...\n", temp_downtime->downtime_id, svc->description, svc->host_name);
 
-				temp_downtime->start_flex_downtime = TRUE;
-				handle_scheduled_downtime(temp_downtime);
+				temp_downtime->flex_downtime_start = current_time;
+				if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long *)))) {
+					*new_downtime_id = temp_downtime->downtime_id;
+					temp_downtime->start_event = schedule_new_event(EVENT_SCHEDULED_DOWNTIME, TRUE, temp_downtime->flex_downtime_start, FALSE, 0, NULL, FALSE, (void *)new_downtime_id, NULL, 0);
+					}
 				}
 			}
 		}
@@ -763,8 +779,15 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 	int result = OK;
 	unsigned long new_downtime_id = 0L;
 
-	if(host_name == NULL || service_description == NULL)
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "add_new_service_downtime()\n");
+
+	if(host_name == NULL || service_description == NULL) {
+		log_debug_info(DEBUGL_DOWNTIME, 1, 
+				"Host name (%s) or service description (%s) is null\n",
+				((NULL == host_name) ? "null" : host_name),
+				((NULL == service_description) ? "null" : service_description));
 		return ERROR;
+		}
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
@@ -942,58 +965,83 @@ int delete_downtime_by_hostname_service_description_start_time_comment(char *hos
 /******************************************************************/
 
 /* adds a host downtime entry to the list in memory */
-int add_host_downtime(char *host_name, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect){
+int add_host_downtime(char *host_name, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect){
 	int result = OK;
 
-	result = add_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+	result = add_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
 
 	return result;
 	}
 
 
 /* adds a service downtime entry to the list in memory */
-int add_service_downtime(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect){
+int add_service_downtime(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect){
 	int result = OK;
 
-	result = add_downtime(SERVICE_DOWNTIME, host_name, svc_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+	result = add_downtime(SERVICE_DOWNTIME, host_name, svc_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
 
 	return result;
 	}
 
 
 /* adds a host or service downtime entry to the list in memory */
-int add_downtime(int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect){
+int add_downtime(int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect){
 	scheduled_downtime *new_downtime = NULL;
 	scheduled_downtime *last_downtime = NULL;
 	scheduled_downtime *temp_downtime = NULL;
 	int result = OK;
 
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "add_downtime()\n");
+
 	/* don't add triggered downtimes that don't have a valid parent */
-	if(triggered_by > 0  && find_downtime(ANY_DOWNTIME, triggered_by) == NULL)
+	if(triggered_by > 0  && find_downtime(ANY_DOWNTIME, triggered_by) == NULL) {
+		log_debug_info(DEBUGL_DOWNTIME, 1, 
+				"Downtime is triggered, but has no valid parent\n");
 		return ERROR;
+		}
 
 	/* we don't have enough info */
-	if(host_name == NULL || (downtime_type == SERVICE_DOWNTIME && svc_description == NULL))
+	if(host_name == NULL || (downtime_type == SERVICE_DOWNTIME && svc_description == NULL)) {
+		log_debug_info(DEBUGL_DOWNTIME, 1, 
+				"Host name (%s) or service description (%s) is null\n",
+				((NULL == host_name) ? "null" : host_name),
+				((NULL == svc_description) ? "null" : svc_description));
 		return ERROR;
+		}
 
 	/* allocate memory for the downtime */
-	if((new_downtime = (scheduled_downtime *)calloc(1, sizeof(scheduled_downtime))) == NULL)
+	if((new_downtime = (scheduled_downtime *)calloc(1, sizeof(scheduled_downtime))) == NULL) {
+		log_debug_info(DEBUGL_DOWNTIME, 1, 
+				"Unable to allocate memory for new downtime\n");
 		return ERROR;
+		}
 
 	/* duplicate vars */
-	if((new_downtime->host_name = (char *)strdup(host_name)) == NULL)
+	if((new_downtime->host_name = (char *)strdup(host_name)) == NULL) {
+		log_debug_info(DEBUGL_DOWNTIME, 1, 
+				"Unable to allocate memory for new downtime's host name\n");
 		result = ERROR;
+		}
 	if(downtime_type == SERVICE_DOWNTIME) {
-		if((new_downtime->service_description = (char *)strdup(svc_description)) == NULL)
+		if((new_downtime->service_description = (char *)strdup(svc_description)) == NULL) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, 
+					"Unable to allocate memory for new downtime's service description\n");
 			result = ERROR;
+			}
 		}
 	if(author) {
-		if((new_downtime->author = (char *)strdup(author)) == NULL)
+		if((new_downtime->author = (char *)strdup(author)) == NULL) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, 
+					"Unable to allocate memory for new downtime's author\n");
 			result = ERROR;
+			}
 		}
 	if(comment_data) {
-		if((new_downtime->comment = (char *)strdup(comment_data)) == NULL)
+		if((new_downtime->comment = (char *)strdup(comment_data)) == NULL) {
+			log_debug_info(DEBUGL_DOWNTIME, 1, 
+					"Unable to allocate memory for new downtime's comment\n");
 			result = ERROR;
+			}
 		}
 
 	/* handle errors */
@@ -1009,12 +1057,17 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	new_downtime->type = downtime_type;
 	new_downtime->entry_time = entry_time;
 	new_downtime->start_time = start_time;
+	new_downtime->flex_downtime_start = flex_downtime_start;
 	new_downtime->end_time = end_time;
 	new_downtime->fixed = (fixed > 0) ? TRUE : FALSE;
 	new_downtime->triggered_by = triggered_by;
 	new_downtime->duration = duration;
 	new_downtime->downtime_id = downtime_id;
 	new_downtime->is_in_effect=is_in_effect;
+#ifdef NSCORE
+	new_downtime->start_event = ( timed_event *)0;
+	new_downtime->stop_event = ( timed_event *)0;
+#endif
 
 	if(defer_downtime_sorting) {
 		new_downtime->next = scheduled_downtime_list;
@@ -1074,6 +1127,8 @@ int sort_downtime(void) {
 	scheduled_downtime **array, *temp_downtime;
 	unsigned long i = 0, unsorted_downtimes = 0;
 
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "sort_downtime()\n");
+
 	if(!defer_downtime_sorting)
 		return OK;
 	defer_downtime_sorting = 0;
@@ -1115,7 +1170,12 @@ int sort_downtime(void) {
 scheduled_downtime *find_downtime(int type, unsigned long downtime_id) {
 	scheduled_downtime *temp_downtime = NULL;
 
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "find_downtime()\n");
+
 	for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
+		log_debug_info(DEBUGL_DOWNTIME, 2, 
+				"find_downtime() looking at type %d, id: %lu\n", type, 
+				downtime_id);
 		if(type != ANY_DOWNTIME && temp_downtime->type != type)
 			continue;
 		if(temp_downtime->downtime_id == downtime_id)

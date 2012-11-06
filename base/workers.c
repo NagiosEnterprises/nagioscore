@@ -815,7 +815,7 @@ static worker_process *get_worker(worker_job *job)
 		wp_list = dkhash_get(specialized_workers, ++slash, NULL);
 	}
 	if (wp_list != NULL) {
-		logit(NSLOG_INFO_MESSAGE, 1, "Found specialized worker(s) for '%s'", (slash && *slash != '/') ? slash : cmd_name);
+		log_debug_info(DEBUGL_CHECKS, 1, "Found specialized worker(s) for '%s'", (slash && *slash != '/') ? slash : cmd_name);
 	}
 	else {
 		if (!workers.wps)

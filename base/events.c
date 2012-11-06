@@ -777,8 +777,27 @@ int init_event_queue(void)
 /* schedule a new timed event */
 timed_event *schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args, int event_options) {
 	timed_event *new_event;
+	char run_time_string[MAX_DATETIME_LENGTH] = "";
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "schedule_new_event()\n");
+
+	get_datetime_string(&run_time, run_time_string, MAX_DATETIME_LENGTH, 
+			SHORT_DATE_TIME);
+	log_debug_info(DEBUGL_EVENTS, 0, "New Event Details:\n");
+	log_debug_info(DEBUGL_EVENTS, 0, " Type:                       %s\n", 
+			EVENT_TYPE_STR( event_type));
+	log_debug_info(DEBUGL_EVENTS, 0, " High Priority:              %s\n", 
+			( high_priority ? "Yes" : "No"));
+	log_debug_info(DEBUGL_EVENTS, 0, " Run Time:                   %s\n", 
+			run_time_string);
+	log_debug_info(DEBUGL_EVENTS, 0, " Recurring:                  %s\n", 
+			( recurring ? "Yes" : "No"));
+	log_debug_info(DEBUGL_EVENTS, 0, " Event Interval:             %lu\n", 
+			event_interval);
+	log_debug_info(DEBUGL_EVENTS, 0, " Compensate for Time Change: %s\n", 
+			( compensate_for_time_change ? "Yes" : "No"));
+	log_debug_info(DEBUGL_EVENTS, 0, " Event Options:              %d\n", 
+			event_options);
 
 	new_event = (timed_event *)malloc(sizeof(timed_event));
 	if(new_event != NULL) {
@@ -795,6 +814,9 @@ timed_event *schedule_new_event(int event_type, int high_priority, time_t run_ti
 		}
 	else
 		return NULL;
+
+	log_debug_info(DEBUGL_EVENTS, 0, " Event ID:                   %lx\n", 
+			( void *)new_event);
 
 	/* add the event to the event list */
 	add_event(nagios_squeue, new_event);
@@ -1143,7 +1165,7 @@ int handle_timed_event(timed_event *event) {
 	broker_timed_event(NEBTYPE_TIMEDEVENT_EXECUTE, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
 #endif
 
-	log_debug_info(DEBUGL_EVENTS, 0, "** Timed Event ** Type: %d, Run Time: %s", event->event_type, ctime(&event->run_time));
+	log_debug_info(DEBUGL_EVENTS, 0, "** Timed Event ** Type: %s, Run Time: %s", EVENT_TYPE_STR( event->event_type), ctime(&event->run_time));
 
 	/* how should we handle the event? */
 	switch(event->event_type) {

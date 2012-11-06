@@ -532,14 +532,16 @@ static void spawn_job(struct kvvec *kvv, int(*cb)(child_process *))
 
 	gettimeofday(&cp->ei->start, NULL);
 	cp->request = kvv;
-	result = cb(cp);
-	if (result < 0) {
-		job_error(cp, kvv, "Failed to start child: %s: %s", runcmd_strerror(result), strerror(errno));
-		return;
-	}
 	cp->ei->sq_event = squeue_add(sq, cp->timeout + time(NULL), cp);
 	started++;
 	running_jobs++;
+	result = cb(cp);
+	if (result < 0) {
+		job_error(cp, kvv, "Failed to start child: %s: %s", runcmd_strerror(result), strerror(errno));
+		squeue_remove(sq, cp->ei->sq_event);
+		running_jobs--;
+		return;
+	}
 }
 
 static int receive_command(int sd, int events, void *arg)

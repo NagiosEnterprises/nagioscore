@@ -401,6 +401,13 @@ int handle_scheduled_downtime_by_id(unsigned long downtime_id) {
 		return ERROR;
 		}
 
+	/* NULL out this event's start time since the calling function, 
+		handle_timed_event(), will free the event, this will prevent 
+		unschedule_downtime from freeing something that has already been
+		freed. The start event is not needed within 
+		handle_scheduled_downtime(). */
+	temp_downtime->start_event = NULL;
+
 	/* handle the downtime */
 	return handle_scheduled_downtime(temp_downtime);
 	}

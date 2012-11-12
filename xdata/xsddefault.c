@@ -662,8 +662,10 @@ int xsddefault_save_status_data(void) {
 		if(temp_downtime->type == SERVICE_DOWNTIME)
 			fprintf(fp, "\tservice_description=%s\n", temp_downtime->service_description);
 		fprintf(fp, "\tdowntime_id=%lu\n", temp_downtime->downtime_id);
+		fprintf(fp, "\tcomment_id=%lu\n", temp_downtime->comment_id);
 		fprintf(fp, "\tentry_time=%lu\n", temp_downtime->entry_time);
 		fprintf(fp, "\tstart_time=%lu\n", temp_downtime->start_time);
+		fprintf(fp, "\tflex_downtime_start=%lu\n", temp_downtime->flex_downtime_start);
 		fprintf(fp, "\tend_time=%lu\n", temp_downtime->end_time);
 		fprintf(fp, "\ttriggered_by=%lu\n", temp_downtime->triggered_by);
 		fprintf(fp, "\tfixed=%d\n", temp_downtime->fixed);
@@ -756,6 +758,7 @@ int xsddefault_read_status_data(char *config_file, int options) {
 	char *comment_data = NULL;
 	unsigned long downtime_id = 0;
 	time_t start_time = 0L;
+	time_t flex_downtime_start = 0L;
 	time_t end_time = 0L;
 	int fixed = FALSE;
 	unsigned long triggered_by = 0;
@@ -888,9 +891,9 @@ int xsddefault_read_status_data(char *config_file, int options) {
 
 					/* add the downtime */
 					if(data_type == XSDDEFAULT_HOSTDOWNTIME_DATA)
-						add_host_downtime(host_name, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+						add_host_downtime(host_name, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
 					else
-						add_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+						add_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
 
 					/* free temp memory */
 					my_free(host_name);
@@ -1255,10 +1258,14 @@ int xsddefault_read_status_data(char *config_file, int options) {
 						service_description = (char *)strdup(val);
 					else if(!strcmp(var, "downtime_id"))
 						downtime_id = strtoul(val, NULL, 10);
+					else if(!strcmp(var, "comment_id"))
+						comment_id = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "entry_time"))
 						entry_time = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "start_time"))
 						start_time = strtoul(val, NULL, 10);
+					else if(!strcmp(var, "flex_downtime_start"))
+						flex_downtime_start = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "end_time"))
 						end_time = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "fixed"))

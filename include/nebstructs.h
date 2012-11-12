@@ -26,7 +26,6 @@
 #define _NEBSTRUCTS_H
 
 #include "compat.h"
-#include "config.h"
 #include "objects.h"
 #include "nagios.h"
 

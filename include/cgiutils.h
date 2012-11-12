@@ -23,7 +23,6 @@
 #ifndef _CGIUTILS_H
 #define _CGIUTILS_H
 #include "compat.h"
-#include "config.h"
 #include "logging.h"
 #include "objects.h"
 #include "cgiauth.h"

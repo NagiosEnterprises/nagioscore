@@ -26,7 +26,6 @@
 #ifndef _COMMENTS_H
 #define _COMMENTS_H
 #include "compat.h"
-#include "config.h"
 #include "common.h"
 #include "objects.h"
 

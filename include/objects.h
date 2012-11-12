@@ -27,7 +27,6 @@
 #define _OBJECTS_H
 
 #include "compat.h"
-#include "config.h"
 #include "common.h"
 
 NAGIOS_BEGIN_DECL

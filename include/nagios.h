@@ -29,7 +29,6 @@
 #endif
 
 #include "compat.h"
-#include "config.h"
 #include "logging.h"
 #include "common.h"
 #include "locations.h"

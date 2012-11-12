@@ -24,7 +24,6 @@
 #define _MACROS_H
 
 #include "compat.h"
-#include "config.h"
 #include "common.h"
 #include "objects.h"
 

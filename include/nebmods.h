@@ -26,7 +26,6 @@
 #define _NEBMODS_H
 
 #include "compat.h"
-#include "config.h"
 #include "nebcallbacks.h"
 #include "nebmodules.h"
 

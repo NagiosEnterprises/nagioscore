@@ -22,6 +22,8 @@
  *
  *****************************************************************************/
 
+#include "../include/config.h"
+
 /* include (minimum required) event broker header files */
 #include "../include/nebmodules.h"
 #include "../include/nebcallbacks.h"

@@ -4,6 +4,8 @@ Nagios 3.x Change Log
 3.4.2 - ???
 ------------------
 FIXES
+* Fixed bug #247: If a service reports no performance data, the perfdata log file has no line indicating the test. (omnikron@free.fr)
+* Fixed link for unhandled unreachable host problems on tactical overview page (Rudolf Cejka)
 * Fixed bug #345 with wild card searches not paging properly on status.cgi (Phil Randal)
 * Fixed bug #343 on status.cgi where Service Group Summary can potentially show wrong totals (Mark Ziesemer)
 * Fixed memory leaks on SIGHUP (Carlos Velasco)

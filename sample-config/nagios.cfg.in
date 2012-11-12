@@ -901,6 +901,18 @@ process_performance_data=0
 
 
 
+# HOST AND SERVICE PERFORMANCE DATA PROCESS EMPTY RESULTS
+# THese options determine wether the core will process empty perfdata
+# results or not. This is needed for distributed monitoring, and intentionally
+# turned on by default.
+# If you don't require empty perfdata - saving some cpu cycles
+# on unwanted macro calculation - you can turn that off. Be careful!
+# Values: 1 = enable, 0 = disable
+
+#host_perfdata_process_empty_results=1
+#service_perfdata_process_empty_results=1
+
+
 # OBSESS OVER SERVICE CHECKS OPTION
 # This determines whether or not Nagios will obsess over service
 # checks and run the ocsp_command defined below.  Unless you're

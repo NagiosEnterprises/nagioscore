@@ -1,7 +1,15 @@
 #####################
 Nagios 3.x Change Log
 #####################
-3.4.2 - ???
+3.4.3 - ???
+-----------------
+- Reverted event queue changes intended for Nagios 4
+- Reapplied all patches from 3.4.2 release
+
+
+
+
+3.4.2 - 11/09/2012
 ------------------
 FIXES
 * Fixed issue where deleting a downtime could cause Nagios to crash (Eric Stanley)

@@ -52,6 +52,8 @@ typedef struct scheduled_downtime_struct {
 	unsigned long comment_id;
 	int start_flex_downtime;
 	int incremented_pending_downtime;
+//	int start_event; 
+//	int stop_event;
 #endif
 	struct scheduled_downtime_struct *next;
 	} scheduled_downtime;

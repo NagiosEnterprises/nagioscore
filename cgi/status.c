@@ -1452,13 +1452,26 @@ void show_service_detail(void) {
 		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
 	*/
-			
+	
+	if (sort_type != SORT_NONE) {
+	        snprintf(temp_buffer, sizeof(temp_buffer), "&sorttype=%i&sortoption=%i", sort_type, sort_option);
+                temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
+                strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
+                temp_url[sizeof(temp_url) - 1] = '\x0';
+	}
+
 	/* GET input can override cgi.cfg */
 	if(limit_results==TRUE)
 		result_limit = temp_result_limit ? temp_result_limit : result_limit;
 	else 
 		result_limit = 0;	
 	/* select box to set result limit */
+        if(result_limit) {
+	  snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&limit=%i", temp_result_limit);
+	  temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
+	  strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
+	  temp_url[sizeof(temp_url) - 1] = '\x0';
+	}
 	create_page_limiter(result_limit,temp_url); 	 
 	
 	/* the main list of services */

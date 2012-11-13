@@ -3,8 +3,9 @@ Nagios 3.x Change Log
 #####################
 3.4.3 - ???
 -----------------
-- Reverted event queue changes intended for Nagios 4
+- Reverted squeue changes intended for Nagios 4
 - Reapplied all patches from 3.4.2 release
+- Applied fix for pagination and sorting on status.cgi #381 (Phil Randal)
 
 
 

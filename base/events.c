@@ -1025,7 +1025,7 @@ int event_execution_loop(void) {
 		               poll_time_ms, iobroker_get_num_fds(nagios_iobs),
 		               squeue_size(nagios_squeue), nagios_iobs);
 		inputs = iobroker_poll(nagios_iobs, poll_time_ms);
-		if (inputs < 0) {
+		if (inputs < 0 && errno != EINTR) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error polling for input, giving up");
 			break;
 		}

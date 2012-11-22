@@ -320,6 +320,8 @@ void iobroker_destroy(iobroker_set *iobs, int flags)
 		return;
 
 	for (i = 0; i < iobs->max_fds; i++) {
+		if (iobs->iobroker_fds[i] == NULL)
+			continue;
 		dereg(iobs, i);
 	}
 	free(iobs->iobroker_fds);

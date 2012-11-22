@@ -118,9 +118,9 @@ static struct object_count xodcount;
 
 #ifndef NSCGI
 /* reusable bitmaps for expanding objects */
-static bitmap *host_map, *contact_map;
+static bitmap *host_map = NULL, *contact_map = NULL;
 #endif
-static bitmap *service_map, *parent_map;
+static bitmap *service_map = NULL, *parent_map = NULL;
 
 
 /*
@@ -6901,18 +6901,19 @@ int xodtemplate_register_objects(void) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to create parent bitmap for service dependencies\n");
 			return ERROR;
 			}
-		}
-	for(sd = xodtemplate_servicedependency_list; sd; sd = next_sd) {
-		next_sd = sd->next;
+		for(sd = xodtemplate_servicedependency_list; sd; sd = next_sd) {
+			next_sd = sd->next;
 #ifdef NSCGI
-		if(xodtemplate_register_servicedependency(sd) == ERROR)
-			return ERROR;
+			if(xodtemplate_register_servicedependency(sd) == ERROR)
+				return ERROR;
 #else
-		if(xodtemplate_register_and_destroy_servicedependency(sd) == ERROR)
-			return ERROR;
+			if(xodtemplate_register_and_destroy_servicedependency(sd) == ERROR)
+				return ERROR;
 #endif
+			}
+		bitmap_destroy(parent_map);
+		parent_map = NULL;
 		}
-	bitmap_destroy(parent_map);
 	timing_point("%u unique / %u total servicedependencies registered\n",
 				 num_objects.servicedependencies, xodcount.servicedependencies);
 

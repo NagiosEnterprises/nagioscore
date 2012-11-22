@@ -154,6 +154,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	host *temp_host = NULL;
 	double old_latency = 0.0;
 	check_result *cr;
+	int runchk_result = OK;
 #ifdef USE_EVENT_BROKER
 	int neb_result = OK;
 #endif
@@ -292,7 +293,10 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	update_check_stats((scheduled_check == TRUE) ? ACTIVE_SCHEDULED_SERVICE_CHECK_STATS : ACTIVE_ONDEMAND_SERVICE_CHECK_STATS, start_time.tv_sec);
 
 	/* paw off the check to a worker to run */
-	wproc_run_check(cr, processed_command, &mac);
+	runchk_result = wproc_run_check(cr, processed_command, &mac);
+	if (runchk_result == ERROR) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Unable to run check for service '%s' on host '%s'\n", svc->description, svc->host_name);
+	}
 
 	/* free memory */
 	my_free(processed_command);
@@ -2285,6 +2289,7 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 	struct timeval start_time, end_time;
 	double old_latency = 0.0;
 	check_result *cr;
+	int runchk_result = OK;
 #ifdef USE_EVENT_BROKER
 	int neb_result = OK;
 #endif
@@ -2409,7 +2414,10 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 	update_check_stats((scheduled_check == TRUE) ? ACTIVE_SCHEDULED_HOST_CHECK_STATS : ACTIVE_ONDEMAND_HOST_CHECK_STATS, start_time.tv_sec);
 	update_check_stats(PARALLEL_HOST_CHECK_STATS, start_time.tv_sec);
 
-	wproc_run_check(cr, processed_command, &mac);
+	runchk_result = wproc_run_check(cr, processed_command, &mac);
+	if (runchk_result == ERROR) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Unable to run check for host '%s'\n", hst->name);
+	}
 
 	/* free memory */
 	clear_volatile_macros_r(&mac);

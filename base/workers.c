@@ -930,6 +930,8 @@ int wproc_notify(char *cname, char *hname, char *sdesc, char *cmd, nagios_macros
 
 	oj = create_object_job(cname, hname, sdesc);
 	job = create_job(WPJOB_NOTIFY, oj, notification_timeout, cmd);
+	if (job == NULL)
+		return ERROR;
 
 	return wproc_run_job(job, mac);
 }

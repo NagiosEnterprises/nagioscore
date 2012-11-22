@@ -2307,11 +2307,14 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 		return ERROR;
 
 	memset(&cr, 0, sizeof(cr));
-	cr.host_name = temp_host->name;
 	cr.exited_ok = 1;
 	cr.check_type = CHECK_TYPE_PASSIVE;
-	cr.return_code = return_code;
+	cr.host_name = temp_host->name;
+	cr.output = output;
 	cr.start_time.tv_sec = cr.finish_time.tv_sec = check_time;
+	cr.engine = &nagios_check_engine;
+	cr.source = command_wproc;
+	cr.return_code = return_code;
 
 	/* calculate latency */
 	gettimeofday(&tv, NULL);

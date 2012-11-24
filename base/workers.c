@@ -803,6 +803,9 @@ static worker_process *get_worker(worker_job *job)
 	int i;
 	char *cmd_name, *space, *slash = NULL;
 
+	if (!job)
+		return NULL;
+
 	/* first, look for a specialized worker for this command */
 	cmd_name = job->command;
 	if ((space = strchr(cmd_name, ' ')) != NULL) {
@@ -869,6 +872,9 @@ static int wproc_run_job(worker_job *job, nagios_macros *mac)
 	worker_process *wp;
 	int ret;
 
+	if (!job)
+		return ERROR;
+
 	/*
 	 * get_worker() also adds job to the workers list
 	 * and sets job_id
@@ -928,10 +934,10 @@ int wproc_notify(char *cname, char *hname, char *sdesc, char *cmd, nagios_macros
 	worker_job *job;
 	wproc_object_job *oj;
 
-	oj = create_object_job(cname, hname, sdesc);
-	job = create_job(WPJOB_NOTIFY, oj, notification_timeout, cmd);
-	if (job == NULL)
+	if (!(oj = create_object_job(cname, hname, sdesc)))
 		return ERROR;
+
+	job = create_job(WPJOB_NOTIFY, oj, notification_timeout, cmd);
 
 	return wproc_run_job(job, mac);
 }
@@ -941,7 +947,9 @@ int wproc_run_service_job(int jtype, int timeout, service *svc, char *cmd, nagio
 	worker_job *job;
 	wproc_object_job *oj;
 
-	oj = create_object_job(NULL, svc->host_name, svc->description);
+	if (!(oj = create_object_job(NULL, svc->host_name, svc->description)))
+		return ERROR;
+
 	job = create_job(jtype, oj, timeout, cmd);
 
 	return wproc_run_job(job, mac);
@@ -952,7 +960,9 @@ int wproc_run_host_job(int jtype, int timeout, host *hst, char *cmd, nagios_macr
 	worker_job *job;
 	wproc_object_job *oj;
 
-	oj = create_object_job(NULL, hst->name, NULL);
+	if (!(oj = create_object_job(NULL, hst->name, NULL)))
+		return ERROR;
+
 	job = create_job(jtype, oj, timeout, cmd);
 
 	return wproc_run_job(job, mac);

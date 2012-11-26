@@ -124,8 +124,10 @@ static worker_job *create_job(int type, void *arg, time_t timeout, const char *c
 	worker_job *job;
 
 	job = calloc(1, sizeof(*job));
-	if (!job)
+	if (!job) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to allocate memory for worker job: %s\n", strerror(errno));
 		return NULL;
+	}
 
 	job->type = type;
 	job->arg = arg;
@@ -140,8 +142,11 @@ static int get_job_id(worker_process *wp)
 	int i;
 
 	/* if there can't be any jobs, we break out early */
-	if (wp->jobs_running == wp->max_jobs)
+	if (wp->jobs_running >= wp->max_jobs) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Worker '%s' already runs too many jobs (%d >= %d)\n",
+			  wp->source_name, wp->jobs_running, wp->max_jobs);
 		return -1;
+	}
 
 	/*
 	 * Locate a free job_id by checking oldest slots first.
@@ -154,6 +159,8 @@ static int get_job_id(worker_process *wp)
 		}
 	}
 
+	logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to find free job-slot for worker '%s' (running: %d; max: %d)\n",
+		  wp->source_name, wp->jobs_running, wp->max_jobs);
 	return -1;
 }
 
@@ -880,8 +887,10 @@ static int wproc_run_job(worker_job *job, nagios_macros *mac)
 	 * and sets job_id
 	 */
 	wp = get_worker(job);
-	if (!wp || job->id < 0)
+	if (!wp || job->id < 0) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to find suitable worker\n");
 		return ERROR;
+	}
 
 	/*
 	 * XXX FIXME: add environment macros as

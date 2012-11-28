@@ -257,6 +257,30 @@ void qh_deinit(const char *path)
 	unlink(path);
 }
 
+static int qh_help(int sd, char *buf, unsigned int len)
+{
+	struct query_handler *qh;
+	if (!strcmp(buf, "list")) {
+		for (qh = qhandlers; qh; qh = qh->next_qh) {
+			nsock_printf(sd, "%s\n", qh->name);
+		}
+		nsock_printf(sd, 0);
+		return 0;
+	}
+	if ((qh = qh_find_handler(buf)) != FALSE) {
+		int res = qh->handler(sd, "--help", 6);
+		if (res > 200) {
+			nsock_printf_nul(sd, "The handler %s doesn't have any help yet.", buf);
+		}
+		return 0;
+	}
+
+	nsock_printf_nul(sd, "This is the help query handler.\n"
+		"Try \"#help list\" to see all registered handlers, or\n"
+		"\"#help <handler>\" to get help on a specific handler.");
+	return 0;
+}
+
 static int qh_core(int sd, char *buf, unsigned int len)
 {
 	char *space;
@@ -341,6 +365,9 @@ int qh_init(const char *path)
 
 	if(!qh_register_handler("core", 0, qh_core))
 		logit(NSLOG_INFO_MESSAGE, FALSE, "qh: core query handler registered\n");
+
+	if(!qh_register_handler("help", 0, qh_help))
+		logit(NSLOG_INFO_MESSAGE, FALSE, "qh: help query handler registered\n");
 
 	return 0;
 }

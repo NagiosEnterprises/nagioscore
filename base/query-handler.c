@@ -206,10 +206,16 @@ int qh_register_handler(const char *name, unsigned int options, qh_handler handl
 	struct query_handler *qh;
 	int result;
 
-	if(!name || !handler)
+	if(!name)
 		return -1;
 
+	if(!handler) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "qh: Failed to register handler '%s': No handler function specified\n", name);
+		return -1;
+	}
+
 	if(strlen(name) > 128) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "qh: Failed to register handler '%s': Name too long\n", name);
 		return -ENAMETOOLONG;
 	}
 
@@ -360,14 +366,12 @@ int qh_init(const char *path)
 	}
 
 	logit(NSLOG_INFO_MESSAGE, FALSE, "qh: Socket '%s' successfully initialized\n", path);
-	if(!qh_register_handler("echo", 0, qh_echo))
-		logit(NSLOG_INFO_MESSAGE, FALSE, "qh: echo services successfully registered\n");
 
+	/* now register our the in-core handlers */
 	if(!qh_register_handler("core", 0, qh_core))
 		logit(NSLOG_INFO_MESSAGE, FALSE, "qh: core query handler registered\n");
-
-	if(!qh_register_handler("help", 0, qh_help))
-		logit(NSLOG_INFO_MESSAGE, FALSE, "qh: help query handler registered\n");
+	qh_register_handler("echo", 0, qh_echo);
+	qh_register_handler("help", 0, qh_help);
 
 	return 0;
 }

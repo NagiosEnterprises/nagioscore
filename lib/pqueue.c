@@ -47,7 +47,6 @@ pqueue_init(unsigned int n,
 		free(q);
 		return NULL;
 	}
-	memset(q->d, 0, (n + 1) * sizeof(void *));
 
 	q->size = 1;
 	q->avail = q->step = (n + 1); /* see comment above about n+1 */

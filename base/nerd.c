@@ -324,7 +324,9 @@ static int chan_opath_checks(int cb, void *data)
 		cr = ds->check_result_ptr;
 		color = (red | green | blue) ^ pale;
 		name = s->description;
-	}
+	} else
+		return 0;
+
 	asprintf(&buf, "%lu|%s|M|%s/%s|%06X\n", cr->finish_time.tv_sec,
 			 check_result_source(cr), host_parent_path(h, '/'), name, color);
 	broadcast(chan_opath_checks_id, buf, strlen(buf));

@@ -343,7 +343,7 @@ static int nerd_deinit(void)
 		for(i = 0; i < num_objects.hosts; i++) {
 			my_free(host_parent_path_cache[i]);
 		}
-		free(host_parent_path_cache);
+		my_free(host_parent_path_cache);
 	}
 
 	for(i = 0; i < num_channels; i++) {

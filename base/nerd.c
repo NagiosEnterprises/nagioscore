@@ -359,6 +359,9 @@ static int nerd_deinit(void)
 		}
 		chan->subscriptions = NULL;
 	}
+	my_free(channels);
+	num_channels = 0;
+	alloc_channels = 0;
 
 	return 0;
 }

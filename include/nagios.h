@@ -434,7 +434,7 @@ extern const char *check_result_source(check_result *cr);
 
 /*** Nagios Event Radio Dispatcher functions ***/
 extern int nerd_init(void);
-extern int nerd_mkchan(const char *name, int (*handler)(int, void *), unsigned int callbacks);
+extern int nerd_mkchan(const char *name, const char *description, int (*handler)(int, void *), unsigned int callbacks);
 
 /*** Query Handler functions, types and macros*/
 typedef int (*qh_handler)(int, char *, unsigned int);

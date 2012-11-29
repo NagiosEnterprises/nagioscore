@@ -24,6 +24,7 @@
 
 struct nerd_channel {
 	const char *name; /* name of this channel */
+	const char *description; /* user-presentable string to document the purpouse of this channel */
 	unsigned int id; /* channel id (might vary between invocations) */
 	unsigned int required_options; /* event_broker_options required for this channel */
 	unsigned int num_callbacks;
@@ -366,7 +367,7 @@ static int nerd_deinit(void)
 	return 0;
 }
 
-int nerd_mkchan(const char *name, int (*handler)(int, void *), unsigned int callbacks)
+int nerd_mkchan(const char *name, const char *description, int (*handler)(int, void *), unsigned int callbacks)
 {
 	struct nerd_channel *chan, **ptr;
 	int i;
@@ -383,6 +384,7 @@ int nerd_mkchan(const char *name, int (*handler)(int, void *), unsigned int call
 		return -1;
 
 	chan->name = name;
+	chan->description = description;
 	chan->handler = handler;
 	for(i = 0; callbacks && i < NEBCALLBACK_NUMITEMS; i++) {
 		if(!(callbacks & (1 << i)))
@@ -418,7 +420,7 @@ static int nerd_qh_handler(int sd, char *request, unsigned int len)
 		int i;
 		for (i = 0; i < num_channels; i++) {
 			chan = channels[i];
-			nsock_printf(sd, "%s\n", chan->name);
+			nsock_printf(sd, "%-15s %s\n", chan->name, chan->description);
 		}
 		nsock_printf(sd, "%c", 0);
 		return 0;
@@ -467,9 +469,15 @@ int nerd_init(void)
 
 	neb_add_core_module(&nerd_mod);
 
-	chan_host_checks_id = nerd_mkchan("hostchecks", chan_host_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA));
-	chan_service_checks_id = nerd_mkchan("servicechecks", chan_service_checks, nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
-	chan_opath_checks_id = nerd_mkchan("opathchecks", chan_opath_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA) | nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
+	chan_host_checks_id = nerd_mkchan("hostchecks",
+			"Host check results",
+			chan_host_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA));
+	chan_service_checks_id = nerd_mkchan("servicechecks",
+			"Service check results",
+			chan_service_checks, nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
+	chan_opath_checks_id = nerd_mkchan("opathchecks",
+			"Host and service checks in gource's log format",
+			chan_opath_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA) | nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
 
 	logit(NSLOG_INFO_MESSAGE, TRUE, "nerd: Fully initialized and ready to rock!\n");
 	return 0;

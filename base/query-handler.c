@@ -23,6 +23,11 @@ static dkhash_table *qh_table;
 /* the echo service. stupid, but useful for testing */
 static int qh_echo(int sd, char *buf, unsigned int len)
 {
+	if (!strcmp(buf, "help")) {
+		nsock_printf_nul(sd,
+			"Query handler that simply echoes back what you send it.");
+		return 0;
+	}
 	(void)write(sd, buf, len);
 	return 0;
 }
@@ -274,7 +279,7 @@ static int qh_help(int sd, char *buf, unsigned int len)
 		return 0;
 	}
 	if ((qh = qh_find_handler(buf)) != FALSE) {
-		int res = qh->handler(sd, "--help", 6);
+		int res = qh->handler(sd, "help", 4);
 		if (res > 200) {
 			nsock_printf_nul(sd, "The handler %s doesn't have any help yet.", buf);
 		}
@@ -291,6 +296,16 @@ static int qh_core(int sd, char *buf, unsigned int len)
 {
 	char *space;
 
+	if (!strcmp(buf, "help")) {
+		nsock_printf_nul(sd, "Query handler for manipulating nagios core.\n"
+			"Available commands:\n"
+			"  loadctl           Print information about current load control settings\n"
+			"  loadctl <options> Configure nagios load control.\n"
+			"                    The options are the same parameters and format as\n"
+			"                    returned above.\n"
+		);
+		return 0;
+	}
 	if ((space = memchr(buf, ' ', len)))
 		*(space++) = 0;
 	if (!space && !strcmp(buf, "loadctl")) {

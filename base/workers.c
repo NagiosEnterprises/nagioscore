@@ -722,6 +722,16 @@ static int wproc_query_handler(int sd, char *buf, unsigned int len)
 {
 	char *space, *rbuf = NULL;
 
+	if (!strcmp(buf, "help")) {
+		nsock_printf_nul(sd, "Control worker processes.\n"
+			"Valid commands:\n"
+			"  wpstats              Print general job information\n"
+			"  register <options>   Register a new worker\n"
+			"                       <options> can be name, pid, max_jobs and/or plugin.\n"
+			"                       There can be many plugin args.");
+		return 0;
+	}
+
 	if ((space = memchr(buf, ' ', len)) != NULL)
 		*space = 0;
 

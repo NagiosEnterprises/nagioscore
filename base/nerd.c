@@ -405,8 +405,25 @@ static int nerd_qh_handler(int sd, char *request, unsigned int len)
 	struct nerd_channel *chan;
 	int action;
 
-	while(request[len] == 0 || request[len] == '\n')
-		request[len--] = 0;
+	if (!strcmp(request, "help")) {
+		nsock_printf_nul(sd, "Manage subscriptions to NERD channels.\n"
+			"Valid commands:\n"
+			"  list                      list available channels\n"
+			"  subscribe <channel>       subscribe to a channel\n"
+			"  unsubscribe <channel>     unsubscribe to a channel\n");
+		return 0;
+	}
+
+	if (!strcmp(request, "list")) {
+		int i;
+		for (i = 0; i < num_channels; i++) {
+			chan = channels[i];
+			nsock_printf(sd, "%s\n", chan->name);
+		}
+		nsock_printf(sd, "%c", 0);
+		return 0;
+	}
+
 	chan_name = strchr(request, ' ');
 	if(!chan_name)
 		return 400;

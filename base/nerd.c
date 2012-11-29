@@ -33,13 +33,6 @@ struct nerd_channel {
 	objectlist *subscriptions; /* subscriber list */
 };
 
-struct subscription {
-	int sd;
-	struct nerd_channel *chan;
-	char *format; /* requested format (macro string) for this subscription */
-};
-
-
 static nebmodule nerd_mod; /* fake module to get our callbacks accepted */
 static struct nerd_channel **channels;
 static unsigned int num_channels, alloc_channels;
@@ -58,6 +51,32 @@ static struct nerd_channel *find_channel(const char *name)
 		}
 	}
 	return NULL;
+}
+
+int nerd_get_channel_id(const char *name)
+{
+	struct nerd_channel *chan;
+
+	chan = find_channel(name);
+	if (!chan)
+		return -1;
+
+	return chan->id;
+}
+
+static struct nerd_channel *nerd_get_channel(int chan_id)
+{
+	if(chan_id < 0 || chan_id >= num_channels)
+		return NULL;
+
+	return channels[chan_id];
+}
+
+objectlist *nerd_get_subscriptions(int chan_id)
+{
+	struct nerd_channel *chan = nerd_get_channel(chan_id);
+
+	return chan ? chan->subscriptions : NULL;
 }
 
 static int nerd_register_channel_callbacks(struct nerd_channel *chan)
@@ -87,7 +106,7 @@ static int nerd_deregister_channel_callbacks(struct nerd_channel *chan)
 	
 static int subscribe(int sd, struct nerd_channel *chan, char *fmt)
 {
-	struct subscription *subscr;
+	struct nerd_subscription *subscr;
 
 	if(!(subscr = calloc(1, sizeof(*subscr))))
 		return -1;
@@ -113,7 +132,7 @@ static int cancel_channel_subscription(struct nerd_channel *chan, int sd)
 		return -1;
 
 	for(list = chan->subscriptions; list; list = next) {
-		struct subscription *subscr = (struct subscription *)list->object_ptr;
+		struct nerd_subscription *subscr = (struct nerd_subscription *)list->object_ptr;
 		next = list->next;
 
 		if(subscr->sd == sd) {
@@ -146,7 +165,7 @@ static int unsubscribe(int sd, struct nerd_channel *chan, const char *fmt)
 	objectlist *list, *next, *prev = NULL;
 
 	for(list = chan->subscriptions; list; list = next) {
-		struct subscription *subscr = (struct subscription *)list->object_ptr;
+		struct nerd_subscription *subscr = (struct nerd_subscription *)list->object_ptr;
 		next = list->next;
 		if(subscr->sd == sd) {
 			/* found it, so remove it */
@@ -170,7 +189,7 @@ static int unsubscribe(int sd, struct nerd_channel *chan, const char *fmt)
 }
 
 /* removes a subscriber entirely and closes its socket */
-static int cancel_subscriber(int sd)
+int nerd_cancel_subscriber(int sd)
 {
 	int i;
 
@@ -182,23 +201,16 @@ static int cancel_subscriber(int sd)
 	return 0;
 }
 
-static int broadcast(unsigned int chan_id, void *buf, unsigned int len)
+int nerd_broadcast(unsigned int chan_id, void *buf, unsigned int len)
 {
 	struct nerd_channel *chan;
 	objectlist *list, *next;
 
-	if(chan_id < 0 || chan_id >= num_channels)
+	if (!(chan = nerd_get_channel(chan_id)))
 		return -1;
 
-	chan = channels[chan_id];
-
-	if(!chan->subscriptions) {
-		nerd_deregister_channel_callbacks(chan);
-		return 0;
-	}
-
 	for(list = chan->subscriptions; list; list = next) {
-		struct subscription *subscr = (struct subscription *)list->object_ptr;
+		struct nerd_subscription *subscr = (struct nerd_subscription *)list->object_ptr;
 		int result;
 
 		next = list->next;
@@ -208,7 +220,7 @@ static int broadcast(unsigned int chan_id, void *buf, unsigned int len)
 			if (errno == EAGAIN)
 				return 0;
 
-			cancel_subscriber(subscr->sd);
+			nerd_cancel_subscriber(subscr->sd);
 			return 500;
 		}
 	}
@@ -233,7 +245,7 @@ static int chan_host_checks(int cb, void *data)
 
 	h = (host *)ds->object_ptr;
 	len = asprintf(&buf, "%s from %d -> %d: %s\n", h->name, h->last_state, h->current_state, cr->output);
-	broadcast(chan_host_checks_id, buf, len);
+	nerd_broadcast(chan_host_checks_id, buf, len);
 	free(buf);
 	return 0;
 }
@@ -250,7 +262,7 @@ static int chan_service_checks(int cb, void *data)
 		return 0;
 	s = (service *)ds->object_ptr;
 	len = asprintf(&buf, "%s;%s from %d -> %d: %s\n", s->host_name, s->description, s->last_state, s->current_state, cr->output);
-	broadcast(chan_service_checks_id, buf, len);
+	nerd_broadcast(chan_service_checks_id, buf, len);
 	free(buf);
 	return 0;
 }
@@ -330,7 +342,7 @@ static int chan_opath_checks(int cb, void *data)
 
 	asprintf(&buf, "%lu|%s|M|%s/%s|%06X\n", cr->finish_time.tv_sec,
 			 check_result_source(cr), host_parent_path(h, '/'), name, color);
-	broadcast(chan_opath_checks_id, buf, strlen(buf));
+	nerd_broadcast(chan_opath_checks_id, buf, strlen(buf));
 	free(buf);
 	return 0;
 }
@@ -352,7 +364,7 @@ static int nerd_deinit(void)
 		objectlist *list, *next;
 
 		for(list = chan->subscriptions; list; list = next) {
-			struct subscription *subscr = (struct subscription *)list->object_ptr;
+			struct nerd_subscription *subscr = (struct nerd_subscription *)list->object_ptr;
 			iobroker_close(nagios_iobs, subscr->sd);
 			next = list->next;
 			free(list);

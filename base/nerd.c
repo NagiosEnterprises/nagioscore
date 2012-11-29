@@ -471,6 +471,6 @@ int nerd_init(void)
 	chan_service_checks_id = nerd_mkchan("servicechecks", chan_service_checks, nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
 	chan_opath_checks_id = nerd_mkchan("opathchecks", chan_opath_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA) | nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
 
-	logit(NSLOG_INFO_MESSAGE, TRUE, "NERD initialized and ready to rock!\n");
+	logit(NSLOG_INFO_MESSAGE, TRUE, "nerd: Fully initialized and ready to rock!\n");
 	return 0;
 }

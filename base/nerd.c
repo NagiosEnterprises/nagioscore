@@ -460,7 +460,7 @@ int nerd_init(void)
 {
 	nerd_mod.deinit_func = nerd_deinit;
 
-	if(qh_register_handler("nerd", 0, nerd_qh_handler) < 0) {
+	if(qh_register_handler("nerd", "Nagios Event Radio Dispatcher - Subscriber Service", 0, nerd_qh_handler) < 0) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "nerd: Failed to register with query handler\n");
 		return ERROR;
 	}

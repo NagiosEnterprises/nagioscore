@@ -778,7 +778,7 @@ int init_workers(int desired_workers)
 	 * so other workers can join us whenever they're ready
 	 */
 	specialized_workers = dkhash_create(512);
-	if(!qh_register_handler("wproc", 0, wproc_query_handler))
+	if(!qh_register_handler("wproc", "Worker process management and info", 0, wproc_query_handler))
 		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Successfully registered manager as @wproc with query handler\n");
 	else
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to register manager with query handler\n");

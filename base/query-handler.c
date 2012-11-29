@@ -9,6 +9,7 @@
 /* A registered handler */
 struct query_handler {
 	const char *name; /* also "address" of this handler. Must be unique */
+	const char *description; /* short description of this handler */
 	unsigned int options;
 	qh_handler handler;
 	struct query_handler *next_qh;
@@ -206,7 +207,7 @@ int qh_deregister_handler(const char *name)
 	return 0;
 }
 
-int qh_register_handler(const char *name, unsigned int options, qh_handler handler)
+int qh_register_handler(const char *name, const char *description, unsigned int options, qh_handler handler)
 {
 	struct query_handler *qh;
 	int result;
@@ -236,6 +237,7 @@ int qh_register_handler(const char *name, unsigned int options, qh_handler handl
 	}
 
 	qh->name = name;
+	qh->description = description;
 	qh->handler = handler;
 	qh->options = options;
 	qh->next_qh = qhandlers;
@@ -273,9 +275,9 @@ static int qh_help(int sd, char *buf, unsigned int len)
 	struct query_handler *qh;
 	if (!strcmp(buf, "list")) {
 		for (qh = qhandlers; qh; qh = qh->next_qh) {
-			nsock_printf(sd, "%s\n", qh->name);
+			nsock_printf(sd, "%-10s %s\n", qh->name, qh->description ? qh->description : "(No description available)");
 		}
-		nsock_printf(sd, 0);
+		nsock_printf(sd, "%c", 0);
 		return 0;
 	}
 	if ((qh = qh_find_handler(buf)) != FALSE) {
@@ -383,10 +385,10 @@ int qh_init(const char *path)
 	logit(NSLOG_INFO_MESSAGE, FALSE, "qh: Socket '%s' successfully initialized\n", path);
 
 	/* now register our the in-core handlers */
-	if(!qh_register_handler("core", 0, qh_core))
+	if(!qh_register_handler("core", "Nagios Core control and info", 0, qh_core))
 		logit(NSLOG_INFO_MESSAGE, FALSE, "qh: core query handler registered\n");
-	qh_register_handler("echo", 0, qh_echo);
-	qh_register_handler("help", 0, qh_help);
+	qh_register_handler("echo", "The Echo Service - What You Put Is What You Get", 0, qh_echo);
+	qh_register_handler("help", "Help for the query handler", 0, qh_help);
 
 	return 0;
 }

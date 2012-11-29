@@ -124,8 +124,10 @@ static int qh_input(int sd, int events, void *ioc_)
 	else {
 		int result;
 		unsigned long len;
+		unsigned int query_len = 0;
 		char *buf, *space;
 		struct query_handler *qh;
+		char *handler = NULL, *query = NULL;
 
 		result = iocache_read(ioc, sd);
 		/* disconnect? */
@@ -137,39 +139,49 @@ static int qh_input(int sd, int events, void *ioc_)
 		}
 
 		/*
-		 * A request looks like this: '@foo<SP><handler-specific request>\0'
-		 * but we only need to care about the first part ("@foo"), so
-		 * locate the first space and then pass the rest of the request
-		 * to the handler, after cutting any trailing newlines
+		 * A request looks like this: '[@|#]<qh>[<SP>][<query>]\0'.
+		 * That is, optional '#' (oneshot) or '@' (keepalive),
+		 * followed by the name of a registered handler, followed by
+		 * an optional space and an optional query. If the handler
+		 * has no "default" handler, a query is required or an error
+		 * will be thrown.
 		 */
+
+		/* Use data up to the first nul byte */
 		buf = iocache_use_delim(ioc, "\0", 1, &len);
 		if(!buf)
 			return 0;
 
-		if((*buf != '@' && *buf != '#') || !(space = strchr(buf, ' '))) {
-			/* bad request, so nuke the socket */
-			nsock_printf_nul(sd, "400: Bad request");
+		/* Identify handler part and any magic query bytes */
+		if (*buf == '@' || *buf == '#') {
+			handler = buf + 1;
+		}
+
+		/* Locate query (if any) */
+		if((space = strchr(buf, ' '))) {
+			*space = 0;
+			query = space + 1;
+			query_len = len - ((unsigned long)query - (unsigned long)buf);
+		} else {
+			query = "";
+			query_len = 0;
+		}
+
+		/* locate the handler */
+		if(!(qh = qh_find_handler(handler))) {
+			/* not found. that's a 404 */
+			nsock_printf(sd, "404: %s: No such handler", handler);
 			iobroker_close(nagios_iobs, sd);
 			iocache_destroy(ioc);
 			return 0;
 		}
-
-		*(space++) = 0;
-
-		if(!(qh = qh_find_handler(buf + 1))) {
-			/* no handler. that's a 404 */
-			nsock_printf(sd, "404: No such handler");
-			iobroker_close(nagios_iobs, sd);
-			iocache_destroy(ioc);
-			return 0;
-		}
-		len -= strlen(buf);
 
 		/* strip trailing newlines */
-		while (space[len - 1] == 0 || space[len - 1] == '\n')
-			space[--len] = 0;
+		while (query_len > 0 && (query[query_len - 1] == 0 || query[query_len - 1] == '\n'))
+			query[--query_len] = 0;
 
-		if ((result = qh->handler(sd, space, len)) >= 100) {
+		/* now pass the query to the handler */
+		if ((result = qh->handler(sd, query, query_len)) >= 100) {
 			nsock_printf_nul(sd, "%d: %s", result, qh_strerror(result));
 		}
 
@@ -273,6 +285,14 @@ void qh_deinit(const char *path)
 static int qh_help(int sd, char *buf, unsigned int len)
 {
 	struct query_handler *qh;
+
+	if (!*buf) {
+		nsock_printf_nul(sd,
+			"  help <name>   show help for handler <name>\n"
+			"  help list     list registered handlers\n");
+		return 0;
+	}
+
 	if (!strcmp(buf, "list")) {
 		for (qh = qhandlers; qh; qh = qh->next_qh) {
 			nsock_printf(sd, "%-10s %s\n", qh->name, qh->description ? qh->description : "(No description available)");
@@ -280,17 +300,13 @@ static int qh_help(int sd, char *buf, unsigned int len)
 		nsock_printf(sd, "%c", 0);
 		return 0;
 	}
-	if ((qh = qh_find_handler(buf)) != FALSE) {
-		int res = qh->handler(sd, "help", 4);
-		if (res > 200) {
-			nsock_printf_nul(sd, "The handler %s doesn't have any help yet.", buf);
-		}
-		return 0;
+
+	if (!(qh = qh_find_handler(buf))) {
+		nsock_printf_nul(sd, "No handler named '%s' is registered\n", buf);
+	} else if (qh->handler(sd, "help", 4) > 200) {
+		nsock_printf_nul(sd, "The handler %s doesn't have any help yet.", buf);
 	}
 
-	nsock_printf_nul(sd, "This is the help query handler.\n"
-		"Try \"#help list\" to see all registered handlers, or\n"
-		"\"#help <handler>\" to get help on a specific handler.");
 	return 0;
 }
 
@@ -298,7 +314,7 @@ static int qh_core(int sd, char *buf, unsigned int len)
 {
 	char *space;
 
-	if (!strcmp(buf, "help")) {
+	if (!*buf || !strcmp(buf, "help")) {
 		nsock_printf_nul(sd, "Query handler for manipulating nagios core.\n"
 			"Available commands:\n"
 			"  loadctl           Print information about current load control settings\n"

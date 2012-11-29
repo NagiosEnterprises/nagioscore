@@ -405,7 +405,7 @@ static int nerd_qh_handler(int sd, char *request, unsigned int len)
 	struct nerd_channel *chan;
 	int action;
 
-	if (!strcmp(request, "help")) {
+	if (!*request || !strcmp(request, "help")) {
 		nsock_printf_nul(sd, "Manage subscriptions to NERD channels.\n"
 			"Valid commands:\n"
 			"  list                      list available channels\n"

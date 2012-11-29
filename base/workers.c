@@ -722,7 +722,7 @@ static int wproc_query_handler(int sd, char *buf, unsigned int len)
 {
 	char *space, *rbuf = NULL;
 
-	if (!strcmp(buf, "help")) {
+	if (!*buf || !strcmp(buf, "help")) {
 		nsock_printf_nul(sd, "Control worker processes.\n"
 			"Valid commands:\n"
 			"  wpstats              Print general job information\n"

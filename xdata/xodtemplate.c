@@ -6452,7 +6452,7 @@ int xodtemplate_recombobulate_servicegroups(void) {
 		/* 10/19/07 EG an empry return value means an error occured */
 		if((servicegroup_names = xodtemplate_process_servicegroup_names(temp_service->service_groups, temp_service->_config_file, temp_service->_start_line)) == NULL) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process servicegroup names for service '%s' on host '%s' (config file '%s', starting at line %d)\n",
-				  temp_service->service_description, temp_service->host_name, xodtemplate_config_file_name(temp_servicegroup->_config_file), temp_servicegroup->_start_line);
+				  temp_service->service_description, temp_service->host_name, xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);
 			return ERROR;
 			}
 

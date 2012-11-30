@@ -1218,7 +1218,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 				hst->last_notification = current_time;
 
 				/* update notifications flags */
-				hst->notified_on = (1 << hst->current_state);
+				add_notified_on(hst, hst->current_state);
 
 				log_debug_info(DEBUGL_NOTIFICATIONS, 0, "%d contacts were notified.  Next possible notification time: %s", contacts_notified, ctime(&hst->next_notification));
 				}

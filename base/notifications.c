@@ -514,7 +514,7 @@ int check_service_notification_viability(service *svc, int type, int options) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't notify about %s states for this service.\n", service_state_name(svc->current_state));
 		return ERROR;
 		}
-	if(svc->notified_on == 0) {
+	if(svc->current_state == STATE_OK && svc->notified_on == 0) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't notify about this recovery.\n");
 		return ERROR;
 		}

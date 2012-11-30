@@ -1,14 +1,12 @@
 #####################
 Nagios 3.x Change Log
 #####################
-3.4.3 - ???
------------------
+
+3.4.3 - 11/30/2012
+------------------
 - Reverted squeue changes intended for Nagios 4
 - Reapplied all patches from 3.4.2 release
 - Applied fix for pagination and sorting on status.cgi #381 (Phil Randal)
-
-
-
 
 3.4.2 - 11/09/2012
 ------------------

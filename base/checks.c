@@ -458,8 +458,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		}
 
 
-	/* record the last state time */
-	switch(temp_service->current_state) {
+	/* record the time the last state ended */
+	switch(temp_service->last_state) {
 		case STATE_OK:
 			temp_service->last_time_ok = temp_service->last_check;
 			break;
@@ -3236,8 +3236,8 @@ int handle_host_state(host *hst) {
 	/* update performance data */
 	update_host_performance_data(hst);
 
-	/* record latest time for current state */
-	switch(hst->current_state) {
+	/* record the time the last state ended */
+	switch(hst->last_state) {
 		case HOST_UP:
 			hst->last_time_up = current_time;
 			break;

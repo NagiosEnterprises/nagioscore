@@ -522,19 +522,12 @@ int check_service_notification_viability(service *svc, int type, int options) {
 
 	/* see if enough time has elapsed for first notification (Mathias Sundman) */
 	/* 10/02/07 don't place restrictions on recoveries or non-normal notifications, must use last time ok (or program start) in calculation */
-	/* it is reasonable to assume that if the host was never up, the program start time should be used in this calculation */
+	/* it is reasonable to assume that if the service was never up, the program start time should be used in this calculation */
 	if(type == NOTIFICATION_NORMAL && svc->current_notification_number == 0 && svc->current_state != STATE_OK) {
 
-		/* determine the time to use of the first problem point */
-		first_problem_time = svc->last_time_ok; /* not accurate, but its the earliest time we could use in the comparison */
-		if((svc->last_time_warning < first_problem_time) && (svc->last_time_warning > svc->last_time_ok))
-			first_problem_time = svc->last_time_warning;
-		if((svc->last_time_unknown < first_problem_time) && (svc->last_time_unknown > svc->last_time_ok))
-			first_problem_time = svc->last_time_unknown;
-		if((svc->last_time_critical < first_problem_time) && (svc->last_time_critical > svc->last_time_ok))
-			first_problem_time = svc->last_time_critical;
+		first_problem_time = svc->last_time_ok > 0 ? svc->last_time_ok : program_start;
 
-		if(current_time < (time_t)((first_problem_time == (time_t)0L) ? program_start : first_problem_time) + (time_t)(svc->first_notification_delay * interval_length)) {
+		if(current_time < first_problem_time + (time_t)(svc->first_notification_delay * interval_length)) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 1, "Not enough time has elapsed since the service changed to a non-OK state, so we should not notify about this problem yet\n");
 			return ERROR;
 			}
@@ -1445,14 +1438,9 @@ int check_host_notification_viability(host *hst, int type, int options) {
 	/* it is reasonable to assume that if the host was never up, the program start time should be used in this calculation */
 	if(type == NOTIFICATION_NORMAL && hst->current_notification_number == 0 && hst->current_state != HOST_UP) {
 
-		/* determine the time to use of the first problem point */
-		first_problem_time = hst->last_time_up; /* not accurate, but its the earliest time we could use in the comparison */
-		if((hst->last_time_down < first_problem_time) && (hst->last_time_down > hst->last_time_up))
-			first_problem_time = hst->last_time_down;
-		if((hst->last_time_unreachable < first_problem_time) && (hst->last_time_unreachable > hst->last_time_unreachable))
-			first_problem_time = hst->last_time_unreachable;
+		first_problem_time = hst->last_time_up > 0 ? hst->last_time_up : program_start;
 
-		if(current_time < (time_t)((first_problem_time == (time_t)0L) ? program_start : first_problem_time) + (time_t)(hst->first_notification_delay * interval_length)) {
+		if(current_time < first_problem_time + (time_t)(hst->first_notification_delay * interval_length)) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 1, "Not enough time has elapsed since the host changed to a non-UP state (or since program start), so we shouldn't notify about this problem yet.\n");
 			return ERROR;
 			}

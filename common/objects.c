@@ -3191,7 +3191,6 @@ void fcache_contact(FILE *fp, contact *temp_contact)
 	if(temp_contact->host_notification_period)
 		fprintf(fp, "\thost_notification_period\t%s\n", temp_contact->host_notification_period);
 	fprintf(fp, "\tservice_notification_options\t%s\n", opts2str(temp_contact->service_notification_options, service_flag_map, 'r'));
-	fprintf(fp, "\n");
 	fprintf(fp, "\thost_notification_options\t%s\n", opts2str(temp_contact->host_notification_options, host_flag_map, 'r'));
 	if(temp_contact->service_notification_commands) {
 		fprintf(fp, "\tservice_notification_commands\t");

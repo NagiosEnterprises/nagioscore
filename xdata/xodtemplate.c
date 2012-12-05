@@ -368,46 +368,50 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 
 		/* cleanup some additive inheritance stuff... */
 		xodtemplate_clean_additive_strings();
+		}
 
-		host_map = bitmap_create(xodcount.hosts);
-		contact_map = bitmap_create(xodcount.contacts);
-		if(!host_map || !contact_map) {
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to create bitmaps for resolving objects\n");
-			return ERROR;
-			}
+	/* do the meat and potatoes stuff... */
+	host_map = bitmap_create(xodcount.hosts);
+	contact_map = bitmap_create(xodcount.contacts);
+	if(!host_map || !contact_map) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to create bitmaps for resolving objects\n");
+		return ERROR;
+		}
 
-		/* do the meat and potatoes stuff... */
-		if(result == OK)
-			result = xodtemplate_recombobulate_contactgroups();
-		if(test_scheduling == TRUE)
-			gettimeofday(&tv[3], NULL);
-		timing_point("Done recombobulating contactgroups\n");
+	if(result == OK)
+		result = xodtemplate_recombobulate_contactgroups();
+	if(test_scheduling == TRUE)
+		gettimeofday(&tv[3], NULL);
+	timing_point("Done recombobulating contactgroups\n");
 
-		if(result == OK)
-			result = xodtemplate_recombobulate_hostgroups();
-		if(test_scheduling == TRUE)
-			gettimeofday(&tv[4], NULL);
-		timing_point("Done recombobulating hostgroups\n");
+	if(result == OK)
+		result = xodtemplate_recombobulate_hostgroups();
+	if(test_scheduling == TRUE)
+		gettimeofday(&tv[4], NULL);
+	timing_point("Done recombobulating hostgroups\n");
 
+	if(use_precached_objects == FALSE) {
 		if(result == OK)
 			result = xodtemplate_duplicate_services();
 		if(test_scheduling == TRUE)
 			gettimeofday(&tv[5], NULL);
 		timing_point("Created %u services (dupes possible)\n", xodcount.services);
+		}
 
-		/* now we have an accurate service count */
-		service_map = bitmap_create(xodcount.services);
-		if(!service_map) {
-			logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to create service map\n");
-			return ERROR;
-			}
+	/* now we have an accurate service count */
+	service_map = bitmap_create(xodcount.services);
+	if(!service_map) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to create service map\n");
+		return ERROR;
+		}
 
-		if(result == OK)
-			result = xodtemplate_recombobulate_servicegroups();
-		if(test_scheduling == TRUE)
-			gettimeofday(&tv[6], NULL);
-		timing_point("Done recombobulating servicegroups\n");
+	if(result == OK)
+		result = xodtemplate_recombobulate_servicegroups();
+	if(test_scheduling == TRUE)
+		gettimeofday(&tv[6], NULL);
+	timing_point("Done recombobulating servicegroups\n");
 
+	if(use_precached_objects == FALSE) {
 		if(result == OK)
 			result = xodtemplate_duplicate_objects();
 		if(test_scheduling == TRUE)
@@ -2615,6 +2619,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 							break;
 						case SKIPLIST_OK:
 							result = OK;
+							temp_service->id = xodcount.services++;
 							break;
 						default:
 							result = ERROR;
@@ -2640,6 +2645,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 							break;
 						case SKIPLIST_OK:
 							result = OK;
+							temp_service->id = xodcount.services++;
 							break;
 						default:
 							result = ERROR;
@@ -3991,7 +3997,6 @@ int xodtemplate_duplicate_services(void) {
 
 	/* First loop for single host service definition*/
 	for(temp_service = xodtemplate_service_list; temp_service != NULL; temp_service = temp_service->next) {
-
 		/* skip services that shouldn't be registered */
 		if(temp_service->register_object == FALSE)
 			continue;
@@ -6088,6 +6093,10 @@ int xodtemplate_recombobulate_contactgroups(void) {
 			}
 		}
 
+	/* if we're using precached objects we can bail out now */
+	if(use_precached_objects)
+		return OK;
+
 	/* process all contacts with contactgroups directives */
 	for(temp_contact = xodtemplate_contact_list; temp_contact != NULL; temp_contact = temp_contact->next) {
 
@@ -6259,6 +6268,10 @@ int xodtemplate_recombobulate_hostgroups(void) {
 			xodtemplate_add_hostgroup_member(temp_hostgroup, temp_host);
 			}
 		}
+
+	/* if we're using precached objects we can bail out now */
+	if(use_precached_objects)
+		return OK;
 
 	/* process all hosts that have hostgroup directives */
 	for(temp_host = xodtemplate_host_list; temp_host != NULL; temp_host = temp_host->next) {
@@ -6436,6 +6449,10 @@ int xodtemplate_recombobulate_servicegroups(void) {
 			xodtemplate_add_servicegroup_member(temp_servicegroup, s);
 			}
 		}
+
+	/* if we're using precached objects we can bail out now */
+	if(use_precached_objects == TRUE)
+		return OK;
 
 	/* Add services from 'servicegroups' directive */
 	for(temp_service = xodtemplate_service_list; temp_service != NULL; temp_service = temp_service->next) {

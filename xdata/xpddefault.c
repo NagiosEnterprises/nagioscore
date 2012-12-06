@@ -152,10 +152,10 @@ int xpddefault_grab_config_directives(char *input) {
 		xpddefault_service_perfdata_file_template = (char *)strdup(varvalue);
 
 	else if(!strcmp(varname, "host_perfdata_file"))
-		xpddefault_host_perfdata_file = (char *)strdup(varvalue);
+		xpddefault_host_perfdata_file = nspath_absolute(varvalue, config_file_dir);
 
 	else if(!strcmp(varname, "service_perfdata_file"))
-		xpddefault_service_perfdata_file = (char *)strdup(varvalue);
+		xpddefault_service_perfdata_file = nspath_absolute(varvalue, config_file_dir);
 
 	else if(!strcmp(varname, "host_perfdata_file_mode")) {
 		xpddefault_host_perfdata_file_pipe = FALSE;

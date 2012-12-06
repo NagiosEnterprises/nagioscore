@@ -204,12 +204,14 @@ int xsddefault_grab_config_directives(char *input) {
 		}
 
 	/* status log definition */
-	if(!strcmp(varname, "status_file") || !strcmp(varname, "xsddefault_status_log"))
-		xsddefault_status_log = (char *)strdup(temp_ptr);
+	if(!strcmp(varname, "status_file") || !strcmp(varname, "xsddefault_status_log")) {
+		xsddefault_status_log = nspath_absolute(temp_ptr, config_file_dir);
+		}
 
 	/* temp file definition */
-	else if(!strcmp(varname, "temp_file"))
-		xsddefault_temp_file = (char *)strdup(temp_ptr);
+	else if(!strcmp(varname, "temp_file")) {
+		xsddefault_temp_file = nspath_absolute(temp_ptr, config_file_dir);
+		}
 
 	/* free memory */
 	my_free(varname);

@@ -440,6 +440,11 @@ int main(int argc, char **argv, char **env) {
 		else
 			nagios_binary_path = strdup(argv[0]);
 
+		if (!nagios_binary_path) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to allocate memory for nagios_binary_path\n");
+			exit(EXIT_FAILURE);
+			}
+
 		nagios_iobs = iobroker_create();
 
 		/* keep monitoring things until we get a shutdown command */

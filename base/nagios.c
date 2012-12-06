@@ -435,17 +435,10 @@ int main(int argc, char **argv, char **env) {
 		 * it absolute so we can launch our workers.
 		 * If not, we needn't bother, as we're using execvp()
 		 */
-		if (strchr(argv[0], '/')) {
+		if (strchr(argv[0], '/'))
 			nagios_binary_path = nspath_absolute(argv[0], NULL);
-			if (access(nagios_binary_path, X_OK) < 0) {
-				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));
-				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Spawning workers will be impossible. Aborting.\n");
-				exit(EXIT_FAILURE);
-				}
-			}
-		else {
+		else
 			nagios_binary_path = strdup(argv[0]);
-		}
 
 		nagios_iobs = iobroker_create();
 
@@ -479,6 +472,12 @@ int main(int argc, char **argv, char **env) {
 
 				cleanup();
 				exit(ERROR);
+				}
+
+			if (access(nagios_binary_path, X_OK) < 0) {
+				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));
+				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Spawning workers will be impossible. Aborting.\n");
+				exit(EXIT_FAILURE);
 				}
 
 #ifdef USE_EVENT_BROKER

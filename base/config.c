@@ -1055,7 +1055,14 @@ int read_main_config_file(char *main_config_file) {
 			modptr = strtok(value, " \n");
 			argptr = strtok(NULL, "\n");
 #ifdef USE_EVENT_BROKER
-			neb_add_module(modptr, argptr, TRUE);
+			modptr = nspath_absolute(modptr, config_file_dir);
+			if (modptr) {
+				neb_add_module(modptr, argptr, TRUE);
+				free(modptr);
+				}
+			else {
+				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to allocate module path memory for '%s'\n", value);
+				}
 #endif
 			}
 

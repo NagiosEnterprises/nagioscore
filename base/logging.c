@@ -116,8 +116,11 @@ FILE *open_log_file(void)
 		return log_fp;
 
 	log_fp = fopen(log_file, "a+");
-	if(log_fp == NULL && daemon_mode == FALSE) {
-		printf("Warning: Cannot open log file '%s' for writing\n", log_file);
+	if(log_fp == NULL) {
+		if (daemon_mode == FALSE) {
+			printf("Warning: Cannot open log file '%s' for writing\n", log_file);
+			}
+		return NULL;
 		}
 
 	(void)fcntl(fileno(log_fp), F_SETFD, FD_CLOEXEC);
@@ -152,6 +155,8 @@ int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) {
 		return OK;
 
 	fp = open_log_file();
+	if (fp == NULL)
+		return ERROR;
 	/* what timestamp should we use? */
 	if(timestamp == NULL)
 		time(&log_time);
@@ -365,6 +370,8 @@ int rotate_log_file(time_t rotation_time) {
 	/* rotate the log file */
 	rename_result = my_rename(log_file, log_archive);
 	log_fp = open_log_file();
+	if (log_fp == NULL)
+		return ERROR;
 
 	if(rename_result) {
 		my_free(log_archive);

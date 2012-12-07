@@ -301,10 +301,7 @@ int main(int argc, char **argv, char **env) {
 		exit(ERROR);
 		}
 
-	/* make sure the config file uses an absolute path */
-	buffer = strdup(config_file);
-	config_file_dir = strdup(dirname(buffer));
-	free(buffer);
+	config_file_dir = nspath_absolute_dirname(config_file, NULL);
 
 	/*
 	 * let's go to town. We'll be noisy if we're verifying config

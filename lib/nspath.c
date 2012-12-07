@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <limits.h>
+#include <libgen.h>
 #include "nspath.h"
 
 #ifndef PATH_MAX
@@ -159,5 +160,18 @@ char *nspath_real(const char *rel_path, const char *base)
 
 	ret = realpath(abspath, NULL);
 	free(abspath);
+	return ret;
+}
+
+/* we must take care not to destroy the original buffer here */
+char *nspath_absolute_dirname(const char *path, const char *base)
+{
+	char *buf, *ret;
+
+	if (!(buf = nspath_absolute(path, base)))
+		return NULL;
+
+	ret = strdup(dirname(buf));
+	free(buf);
 	return ret;
 }

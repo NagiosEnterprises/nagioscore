@@ -50,4 +50,12 @@ extern char *nspath_absolute(const char *rel_path, const char *base);
  * @return Newly allocated canonical path on succes, NULL on errors
  */
 extern char *nspath_real(const char *rel_path, const char *base);
+
+/**
+ * Get absolute dirname of "path", relative to "base"
+ * @param path Full path to target object (file or subdir)
+ * @param base The base directory (if NULL, we use current working dir)
+ * @return NULL on errors, allocated absolute directory name on success
+ */
+extern char *nspath_absolute_dirname(const char *path, const char *base);
 /* @} */

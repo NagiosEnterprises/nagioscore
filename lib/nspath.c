@@ -154,9 +154,10 @@ char *nspath_real(const char *rel_path, const char *base)
 {
 	char *abspath, *ret;
 
-	abspath = nspath_absolute(rel_path, base);
+	if (!(abspath = nspath_absolute(rel_path, base)))
+		return NULL;
+
 	ret = realpath(abspath, NULL);
-	if(abspath)
-		free(abspath);
+	free(abspath);
 	return ret;
 }

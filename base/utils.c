@@ -36,7 +36,6 @@
 /* global varaiables only used by the daemon */
 char *nagios_binary_path = NULL;
 char *config_file = NULL;
-char *config_file_dir = NULL;
 char *command_file = NULL;
 char *temp_file = NULL;
 char *temp_path = NULL;

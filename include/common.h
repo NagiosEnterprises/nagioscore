@@ -60,6 +60,8 @@ extern int obsess_over_hosts;
 
 extern int enable_timing_point;
 
+extern char *config_file_dir;
+
 #ifdef HAVE_TZNAME
 #ifdef CYGWIN
 extern char     *_tzname[2] __declspec(dllimport);

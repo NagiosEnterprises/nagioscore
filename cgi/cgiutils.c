@@ -103,7 +103,6 @@ char encoded_url_string[2][MAX_INPUT_BUFFER]; // 2 to be able use url_encode twi
 char *encoded_html_string = NULL;
 
 
-
 /*
  * These function stubs allow us to compile a lot of the
  * source-files common to cgi's and daemon without adding
@@ -432,6 +431,7 @@ int read_main_config_file(char *filename) {
 	char *temp_buffer;
 	mmapfile *thefile;
 
+	config_file_dir = nspath_absolute_dirname(filename, NULL);
 
 	if((thefile = mmap_fopen(filename)) == NULL)
 		return ERROR;

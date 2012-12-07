@@ -39,6 +39,8 @@ int enable_event_handlers = TRUE;
 int obsess_over_services = FALSE;
 int obsess_over_hosts = FALSE;
 
+char *config_file_dir = NULL;
+
 
 /* fix the problem with strtok() skipping empty options between tokens */
 char *my_strtok(char *buffer, char *tokens) {

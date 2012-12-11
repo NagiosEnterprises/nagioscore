@@ -252,8 +252,8 @@ int launch_command_file_worker(void) {
 		command_wproc->sd = sv[0];
 		ret = iobroker_register(nagios_iobs, command_wproc->sd, command_wproc, command_input_handler);
 		if (ret < 0) {
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to register command file worker socket %d with io broker %p: %s\n",
-				  command_wproc->sd, nagios_iobs, iobroker_strerror(ret));
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to register command file worker socket %d with io broker %p: %s; errno=%d: %s\n",
+				  command_wproc->sd, nagios_iobs, iobroker_strerror(ret), errno, strerror(errno));
 			goto err_ioc;
 		}
 		logit(NSLOG_INFO_MESSAGE, TRUE, "Successfully launched command file worker with pid %d\n",

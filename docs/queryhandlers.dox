@@ -67,6 +67,6 @@ In order to register a worker that only handles checks supposed to be
 run by the plugins check_foo and check_bar (irrespective of where in
 the paths they are), you'd do something like this:
 @verbatim
-@wproc register name=foobar\nplugin=check_foo\nplugin=check_bar\n\0
+@wproc register name=foobar;plugin=check_foo;plugin=check_bar\0
 @endverbatim
 */

@@ -16,29 +16,87 @@ parallellism here and main Nagios will be blocked while a query is
 running. As such, it's a very good idea to make ones queryhandlers
 complete in as little time as possible.
 
+@section qh_registering Registering a query handler
+This is really for module authors only.
+
+To register a query handler, you *must* have a function like the one
+below:
+the following arguments:
+@code
+int lala_query_handler(int sd, char *query, unsigned int query_len)
+@endcode
+
+The parameters don't have to have those exact names, and the function
+certainly doesn't have to be called "lala_query_handler()". We're not
+quite that childish (well, we are, but we like to pretend we're not).
+They will suffice for this explanation, however.
+@li sd - The socket you should respond to.
+@li query - The query, minus the address and the magic byte.
+@li query_len - Length of the query, in bytes.
+
+The call to register it with Nagios so you get all queries directed
+to the 'lala' address is then:
+@code
+qh_register_handler("lala", "The LaLa query handler", 0,
+lala_query_handler);
+@endcode
+
+The second argument is a description, which will be printed when
+someone sends a help request.
+@note It's a good idea to handle queries such as "help" and take
+them to mean "print me some text telling me at least the basics
+of how to use this query handler".
+
 @section syntax Syntax
 The query language is remarkably simple (although each handler may
 implement its own parsers that handle and do pretty much whatever
-they want).
+they want). The first byte is magic. If it's an at-sign, we expect
+the queryer to persist and issue more queries after the first one.
+If it's a hash-sign, the query handler will disconnect the client
+as soon as it regains control from whatever handler registered for
+the particular address. Each particular handler has some control
+over this behaviour though, and can use specific return codes to
+denote that it will take over the socket from the query handler.
+If no at-sign and no hash-sign is present at the first byte, the
+-1'th byte will be considered an at-sign, and the connection will
+consequently be considered persistent.
 
-Basically, it boils down to an at-sign, followed by a (registered)
-address, followed by a space, followed by free-form text (which the
-query-handler at that address will take care of parsing), followed
-by a nul byte.
-
-It looks like this:
+@subsection qh_examples Example queries
+Subscribe for real-time push-events for servicechecks from the NERD radio:
 @verbatim
-@<address><SPACE><query-for-the-handler>
+@nerd subscribe servicechecks\0
 @endverbatim
 
-So to send a query to the echo service, it would look something like
-this:
+One-shot query the core query handler for current load-control options:
 @verbatim
-@echo Hello there, Nagios :)
+#core loadctl\0
 @endverbatim
+
+Get Nagios to say hi to you:
+@verbatim
+#echo Greetings, Exalted One
+@endverbatim
+
+Ask the help handler to list registered handlers:
+@verbatim
+#help list
+@endverbatim
+
 
 @section icqh In-core query handlers
 There are a few in-core query handlers.
+
+@subsection help The help service
+The help query handler is quite possibly the most important one. It
+can be used to list registered handlers (with short descriptions),
+and can be used to get help about registered handlers (assuming
+they've implemented it, that is). It should be noted that the ones
+that *have* implemented it can also be queried directly for their
+help output, like so:
+@verbatim
+@core help
+@endverbatim
+
 
 @subsection echo The echo service
 As I'm sure you've already guessed, the echo service just prints the

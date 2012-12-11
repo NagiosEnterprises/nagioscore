@@ -1,5 +1,9 @@
 /** @page qh Query Handler
 
+A brief intro to the Nagios query handler system
+
+[TOC]
+
 @section purpose Purpose
 The purpose of the query handler is to provide Nagios Core and its
 eventbroker modules with the ability to communicate directly with

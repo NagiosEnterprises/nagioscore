@@ -207,7 +207,7 @@ static int reg_one(iobroker_set *iobs, int fd, int events, void *arg, int (*hand
 		ev.data.ptr = arg;
 		ev.data.fd = fd;
 		if (epoll_ctl(iobs->epfd, EPOLL_CTL_ADD, fd, &ev) < 0) {
-			return IOBROKER_ENOSET;
+			return IOBROKER_ELIB;
 		}
 	}
 #endif

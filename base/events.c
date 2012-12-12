@@ -768,8 +768,7 @@ timed_event *schedule_new_event(int event_type, int high_priority, time_t run_ti
 	else
 		return NULL;
 
-	log_debug_info(DEBUGL_EVENTS, 0, " Event ID:                   %lx\n", 
-			( void *)new_event);
+	log_debug_info(DEBUGL_EVENTS, 0, " Event ID:                   %p\n", new_event);
 
 	/* add the event to the event list */
 	add_event(nagios_squeue, new_event);

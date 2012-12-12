@@ -347,7 +347,7 @@ int iobroker_poll(iobroker_set *iobs, int timeout)
 #if defined(IOBROKER_USES_EPOLL)
 	nfds = epoll_wait(iobs->epfd, iobs->ep_events, iobs->num_fds, timeout);
 	if (nfds < 0) {
-		return nfds;
+		return IOBROKER_ELIB;
 	}
 
 	for (i = 0; i < nfds; i++) {

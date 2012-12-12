@@ -442,7 +442,11 @@ int main(int argc, char **argv, char **env) {
 			exit(EXIT_FAILURE);
 			}
 
-		nagios_iobs = iobroker_create();
+		if (!(nagios_iobs = iobroker_create())) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to create IO broker set: %s\n",
+				  strerror(errno));
+			exit(EXIT_FAILURE);
+			}
 
 		/* keep monitoring things until we get a shutdown command */
 		do {

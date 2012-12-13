@@ -787,15 +787,14 @@ int init_workers(int desired_workers)
 	if (desired_workers <= 0) {
 		int cpus = online_cpus();
 
-		if(!desired_workers) {
+		if(desired_workers < 0) {
+			desired_workers = cpus - desired_workers;
+		}
+		if(desired_workers <= 0) {
 			desired_workers = cpus * 1.5;
 			/* min 4 workers, as it's tested and known to work */
 			if(desired_workers < 4)
 				desired_workers = 4;
-		}
-		else {
-			/* desired workers is a negative number */
-			desired_workers = cpus - desired_workers;
 		}
 	}
 	wproc_num_workers_desired = desired_workers;

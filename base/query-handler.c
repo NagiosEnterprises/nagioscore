@@ -364,9 +364,8 @@ int qh_init(const char *path)
 		iobroker_close(nagios_iobs, qh_listen_sock);
 
 	if(!path) {
-		/* not configured, so do nothing */
-		logit(NSLOG_INFO_MESSAGE, TRUE, "qh: Query socket not enabled. Set 'query_socket=</path/to/query-socket>' in config (and stop whining, Robin).\n");
-		return 0;
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "qh: query_socket is NULL. What voodoo is this?\n");
+		return ERROR;
 	}
 
 	old_umask = umask(0117);

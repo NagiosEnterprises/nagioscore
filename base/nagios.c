@@ -513,7 +513,10 @@ int main(int argc, char **argv, char **env) {
 			 * This must be done before modules are initialized, so
 			 * the modules can use our in-core stuff properly
 			 */
-			qh_init(qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET);
+			if (qh_init(qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET) != OK) {
+				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to initialize query handler. Aborting\n");
+				exit(EXIT_FAILURE);
+			}
 			timing_point("Query handler initialized\n");
 			nerd_init();
 			timing_point("NERD initialized\n");

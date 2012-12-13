@@ -687,6 +687,12 @@ int main(int argc, char **argv, char **env) {
 			/* (doesn't return until a restart or shutdown signal is encountered) */
 			event_execution_loop();
 
+			/*
+			 * immediately deinitialize the query handler so it
+			 * can remove modules that have stashed data with it
+			 */
+			qh_deinit(qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET);
+
 			/* 03/01/2007 EG Moved from sighandler() to prevent FUTEX locking problems under NPTL */
 			/* 03/21/2007 EG SIGSEGV signals are still logged in sighandler() so we don't loose them */
 			/* did we catch a signal? */

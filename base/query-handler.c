@@ -12,7 +12,7 @@ struct query_handler {
 	const char *description; /* short description of this handler */
 	unsigned int options;
 	qh_handler handler;
-	struct query_handler *next_qh;
+	struct query_handler *prev_qh, *next_qh;
 };
 
 static struct query_handler *qhandlers;
@@ -209,12 +209,22 @@ static int qh_input(int sd, int events, void *ioc_)
 
 int qh_deregister_handler(const char *name)
 {
-	struct query_handler *qh;
+	struct query_handler *qh, *next, *prev;
 
-	qh = dkhash_get(qh_table, name, NULL);
-	if(qh) {
-		free(qh);
-	}
+	if (!(qh = dkhash_remove(qh_table, name, NULL)))
+		return 0;
+
+	printf("Deregistering '%s'. Next is '%p'\n", qh->name, qh->next_qh);
+	next = qh->next_qh;
+	prev = qh->prev_qh;
+	if (next)
+		next->prev_qh = prev;
+	if (prev)
+		prev->next_qh = next;
+	else
+		qhandlers = next;
+
+	free(qh);
 
 	return 0;
 }
@@ -253,6 +263,8 @@ int qh_register_handler(const char *name, const char *description, unsigned int 
 	qh->handler = handler;
 	qh->options = options;
 	qh->next_qh = qhandlers;
+	if (qhandlers)
+		qhandlers->prev_qh = qh;
 	qhandlers = qh;
 
 	result = dkhash_insert(qh_table, qh->name, NULL, qh);
@@ -273,8 +285,10 @@ void qh_deinit(const char *path)
 
 	for(qh = qhandlers; qh; qh = next) {
 		next = qh->next_qh;
-		free(qh);
+		qh_deregister_handler(qh->name);
 	}
+	dkhash_destroy(qh_table);
+	qhandlers = NULL;
 
 	if(!path)
 		return;

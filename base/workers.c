@@ -87,7 +87,7 @@ int wproc_can_spawn(struct load_control *lc)
 		lc->last_check = now;
 
 		if (getloadavg(lc->load, 3) < 0)
-			return lc->jobs_limit < lc->jobs_running;
+			return lc->jobs_limit > lc->jobs_running;
 
 		if (lc->load[0] > lc->backoff_limit) {
 			old = lc->jobs_limit;
@@ -116,7 +116,7 @@ int wproc_can_spawn(struct load_control *lc)
 		}
 	}
 
-	return lc->jobs_limit < lc->jobs_running;
+	return lc->jobs_limit > lc->jobs_running;
 }
 
 static worker_job *create_job(int type, void *arg, time_t timeout, const char *command)

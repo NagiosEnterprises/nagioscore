@@ -288,6 +288,7 @@ void qh_deinit(const char *path)
 		qh_deregister_handler(qh->name);
 	}
 	dkhash_destroy(qh_table);
+	qh_table = NULL;
 	qhandlers = NULL;
 
 	if(!path)

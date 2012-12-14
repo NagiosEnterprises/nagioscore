@@ -526,7 +526,7 @@ struct host {
 	struct objectlist *exec_deps, *notify_deps;
 	struct objectlist *escalation_list;
 	struct  host *next;
-	void *next_check_event;
+	struct timed_event *next_check_event;
 	};
 
 

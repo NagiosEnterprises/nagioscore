@@ -121,14 +121,14 @@ int neb_free_module_list(void) {
 	for(temp_module = neb_module_list; temp_module; temp_module = next_module) {
 		next_module = temp_module->next;
 
-		my_free(temp_module->filename);
-		my_free(temp_module->args);
 		for(x = 0; x < NEBMODULE_MODINFO_NUMITEMS; x++)
 			my_free(temp_module->info[x]);
 
-		/* don't free core modules */
-		if(temp_module->core_module == FALSE)
-			my_free(temp_module);
+		/* don't free this stuff for core modules */
+		if (temp_module->core_module)
+			continue;
+		my_free(temp_module->filename);
+		my_free(temp_module->args);
 		}
 
 	neb_module_list = NULL;
@@ -328,7 +328,7 @@ int neb_unload_module(nebmodule *mod, int flags, int reason) {
 	/* remove the module's demand-loaded file */
 	if(daemon_dumps_core == TRUE && mod->dl_file) {
 		(void)unlink(mod->dl_file);
-		free(mod->dl_file);
+		my_free(mod->dl_file);
 	}
 
 	/* call the de-initialization function if available (and the module was initialized) */

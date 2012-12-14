@@ -300,7 +300,7 @@ static int qh_help(int sd, char *buf, unsigned int len)
 {
 	struct query_handler *qh;
 
-	if (!*buf) {
+	if (!*buf || !strcmp(buf, "help")) {
 		nsock_printf_nul(sd,
 			"  help <name>   show help for handler <name>\n"
 			"  help list     list registered handlers\n");

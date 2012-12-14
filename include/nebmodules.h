@@ -68,6 +68,7 @@ NAGIOS_BEGIN_DECL
 /* NEB module structure */
 typedef struct nebmodule_struct {
 	char            *filename;
+	char            *dl_file; /* the file we actually loaded */
 	char            *args;
 	char            *info[NEBMODULE_MODINFO_NUMITEMS];
 	int             should_be_loaded;

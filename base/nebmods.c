@@ -228,6 +228,17 @@ int neb_load_module(nebmodule *mod) {
 		return ERROR;
 		}
 
+	/*
+	 * now that it's loaded and removed, we create a new file in
+	 * its place so debuggers can find the correct symbols properly,
+	 * but only if we're supposed to dump core
+	 */
+	if(daemon_dumps_core == TRUE) {
+		dest_fd = open(output_file, O_CREAT | O_WRONLY);
+		result = my_fdcopy(mod->filename, output_file, dest_fd);
+		mod->dl_file = strdup(output_file);
+		}
+
 	/* find module API version */
 	module_version_ptr = (int *)dlsym(mod->module_handle, "__neb_api_version");
 
@@ -313,6 +324,12 @@ int neb_unload_module(nebmodule *mod, int flags, int reason) {
 		return ERROR;
 
 	log_debug_info(DEBUGL_EVENTBROKER, 0, "Attempting to unload module '%s': flags=%d, reason=%d\n", mod->filename, flags, reason);
+
+	/* remove the module's demand-loaded file */
+	if(daemon_dumps_core == TRUE && mod->dl_file) {
+		(void)unlink(mod->dl_file);
+		free(mod->dl_file);
+	}
 
 	/* call the de-initialization function if available (and the module was initialized) */
 	if(mod->deinit_func && reason != NEBMODULE_ERROR_BAD_INIT) {

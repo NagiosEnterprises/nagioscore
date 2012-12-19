@@ -472,9 +472,6 @@ int main(int argc, char **argv, char **env) {
 			my_free(mac->x[MACRO_PROCESSSTARTTIME]);
 			asprintf(&mac->x[MACRO_PROCESSSTARTTIME], "%lu", (unsigned long)program_start);
 
-			/* open debug log */
-			open_debug_log();
-
 			/* drop privileges */
 			if(drop_privileges(nagios_user, nagios_group) == ERROR) {
 
@@ -483,6 +480,9 @@ int main(int argc, char **argv, char **env) {
 				cleanup();
 				exit(ERROR);
 				}
+
+			/* open debug log now that we're the right user */
+			open_debug_log();
 
 			if (access(nagios_binary_path, X_OK) < 0) {
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));

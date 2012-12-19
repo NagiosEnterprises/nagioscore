@@ -1892,9 +1892,6 @@ int drop_privileges(char *user, char *group) {
 	struct passwd *pw = NULL;
 	int result = OK;
 
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "drop_privileges() start\n");
-	log_debug_info(DEBUGL_PROCESS, 0, "Original UID/GID: %d/%d\n", (int)getuid(), (int)getgid());
-
 	/* only drop privileges if we're running as root, so we don't interfere with being debugged while running as some random user */
 	if(getuid() != 0)
 		return OK;
@@ -1962,8 +1959,6 @@ int drop_privileges(char *user, char *group) {
 			result = ERROR;
 			}
 		}
-
-	log_debug_info(DEBUGL_PROCESS, 0, "New UID/GID: %d/%d\n", (int)getuid(), (int)getgid());
 
 	return result;
 	}

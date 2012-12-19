@@ -174,8 +174,11 @@ $(SRC_COMMON)/shared.o: $(SRC_COMMON)/shared.c
 libnagios:
 	$(MAKE) -C $(SRC_LIB)
 
-nagios: nagios.c $(OBJS) $(OBJDEPS) $(SRC_INCLUDE)/nagios.h $(SRC_INCLUDE)/locations.h libnagios
-	$(CC) $(CFLAGS) -o $@ nagios.c $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS) $(SRC_LIB)/libnagios.a
+nagios.o: nagios.c $(SRC_INCLUDE)/nagios.h $(SRC_INCLUDE)/locations.h
+	$(CC) $(CFLAGS) -c -o $@ nagios.c
+
+nagios: nagios.o $(OBJS) $(OBJDEPS) libnagios
+	$(CC) $(CFLAGS) -o $@ $< $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS) $(SRC_LIB)/libnagios.a
 
 nagiostats: nagiostats.c $(SRC_INCLUDE)/locations.h
 	$(CC) $(CFLAGS) -o $@ nagiostats.c $(LDFLAGS) $(MATHLIBS) $(LIBS)

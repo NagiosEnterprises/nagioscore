@@ -487,11 +487,11 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Day %d is not valid for timeperiod '%s'\n", day, period->name);
 		return NULL;
 		}
-	if(start_time < 0 || start_time > 86400) {
+	if(start_time > 86400) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Start time %lu on day %d is not valid for timeperiod '%s'\n", start_time, day, period->name);
 		return NULL;
 		}
-	if(end_time < 0 || end_time > 86400) {
+	if(end_time > 86400) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: End time %lu on day %d is not value for timeperiod '%s'\n", end_time, day, period->name);
 		return NULL;
 		}
@@ -573,11 +573,11 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 	if(drange == NULL)
 		return NULL;
 
-	if(start_time < 0 || start_time > 86400) {
+	if(start_time > 86400) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Start time %lu is not valid for timeperiod\n", start_time);
 		return NULL;
 		}
-	if(end_time < 0 || end_time > 86400) {
+	if(end_time > 86400) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: End time %lu is not value for timeperiod\n", end_time);
 		return NULL;
 		}

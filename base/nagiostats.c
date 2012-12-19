@@ -34,165 +34,165 @@
 #define STATUS_SERVICE_DATA        4
 
 
-char *main_config_file = NULL;
-char *status_file = NULL;
-char *mrtg_variables = NULL;
-char *mrtg_delimiter = "\n";
+static char *main_config_file = NULL;
+static char *status_file = NULL;
+static char *mrtg_variables = NULL;
+static char *mrtg_delimiter = "\n";
 
-int mrtg_mode = FALSE;
+static int mrtg_mode = FALSE;
 
-time_t status_creation_date = 0L;
-char *status_version = NULL;
+static time_t status_creation_date = 0L;
+static char *status_version = NULL;
 time_t program_start = 0L;
-int status_service_entries = 0;
-int status_host_entries = 0;
+static int status_service_entries = 0;
+static int status_host_entries = 0;
 int nagios_pid = 0;
 
-double min_service_state_change = 0.0;
-int have_min_service_state_change = FALSE;
-double max_service_state_change = 0.0;
-int have_max_service_state_change = FALSE;
-double average_service_state_change = 0.0;
-double min_active_service_state_change = 0.0;
-int have_min_active_service_state_change = FALSE;
-double max_active_service_state_change = 0.0;
-int have_max_active_service_state_change = FALSE;
-double average_active_service_state_change = 0.0;
-double min_active_service_latency = 0.0;
-int have_min_active_service_latency = FALSE;
-double max_active_service_latency = 0.0;
-int have_max_active_service_latency = FALSE;
-double average_active_service_latency = 0.0;
-double min_active_service_execution_time = 0.0;
-int have_min_active_service_execution_time = FALSE;
-double max_active_service_execution_time = 0.0;
-int have_max_active_service_execution_time = FALSE;
-double average_active_service_execution_time = 0.0;
-double min_passive_service_state_change = 0.0;
-int have_min_passive_service_state_change = FALSE;
-double max_passive_service_state_change = 0.0;
-int have_max_passive_service_state_change = FALSE;
-double average_passive_service_state_change = 0.0;
-double min_passive_service_latency = 0.0;
-int have_min_passive_service_latency = FALSE;
-double max_passive_service_latency = 0.0;
-int have_max_passive_service_latency = FALSE;
-double average_passive_service_latency = 0.0;
+static double min_service_state_change = 0.0;
+static int have_min_service_state_change = FALSE;
+static double max_service_state_change = 0.0;
+static int have_max_service_state_change = FALSE;
+static double average_service_state_change = 0.0;
+static double min_active_service_state_change = 0.0;
+static int have_min_active_service_state_change = FALSE;
+static double max_active_service_state_change = 0.0;
+static int have_max_active_service_state_change = FALSE;
+static double average_active_service_state_change = 0.0;
+static double min_active_service_latency = 0.0;
+static int have_min_active_service_latency = FALSE;
+static double max_active_service_latency = 0.0;
+static int have_max_active_service_latency = FALSE;
+static double average_active_service_latency = 0.0;
+static double min_active_service_execution_time = 0.0;
+static int have_min_active_service_execution_time = FALSE;
+static double max_active_service_execution_time = 0.0;
+static int have_max_active_service_execution_time = FALSE;
+static double average_active_service_execution_time = 0.0;
+static double min_passive_service_state_change = 0.0;
+static int have_min_passive_service_state_change = FALSE;
+static double max_passive_service_state_change = 0.0;
+static int have_max_passive_service_state_change = FALSE;
+static double average_passive_service_state_change = 0.0;
+static double min_passive_service_latency = 0.0;
+static int have_min_passive_service_latency = FALSE;
+static double max_passive_service_latency = 0.0;
+static int have_max_passive_service_latency = FALSE;
+static double average_passive_service_latency = 0.0;
 
-int have_min_host_state_change = FALSE;
-double min_host_state_change = 0.0;
-int have_max_host_state_change = FALSE;
-double max_host_state_change = 0.0;
-double average_host_state_change = 0.0;
-int have_min_active_host_state_change = FALSE;
-double min_active_host_state_change = 0.0;
-int have_max_active_host_state_change = FALSE;
-double max_active_host_state_change = 0.0;
-double average_active_host_state_change = 0.0;
-int have_min_active_host_latency = FALSE;
-double min_active_host_latency = 0.0;
-int have_max_active_host_latency = FALSE;
-double max_active_host_latency = 0.0;
-double average_active_host_latency = 0.0;
-int have_min_active_host_execution_time = FALSE;
-double min_active_host_execution_time = 0.0;
-int have_max_active_host_execution_time = FALSE;
-double max_active_host_execution_time = 0.0;
-double average_active_host_execution_time = 0.0;
-int have_min_passive_host_latency = FALSE;
-double min_passive_host_latency = 0.0;
-int have_max_passive_host_latency = FALSE;
-double max_passive_host_latency = 0.0;
-double average_passive_host_latency = 0.0;
-double min_passive_host_state_change = 0.0;
-int have_min_passive_host_state_change = FALSE;
-double max_passive_host_state_change = 0.0;
-int have_max_passive_host_state_change = FALSE;
-double average_passive_host_state_change = 0.0;
+static int have_min_host_state_change = FALSE;
+static double min_host_state_change = 0.0;
+static int have_max_host_state_change = FALSE;
+static double max_host_state_change = 0.0;
+static double average_host_state_change = 0.0;
+static int have_min_active_host_state_change = FALSE;
+static double min_active_host_state_change = 0.0;
+static int have_max_active_host_state_change = FALSE;
+static double max_active_host_state_change = 0.0;
+static double average_active_host_state_change = 0.0;
+static int have_min_active_host_latency = FALSE;
+static double min_active_host_latency = 0.0;
+static int have_max_active_host_latency = FALSE;
+static double max_active_host_latency = 0.0;
+static double average_active_host_latency = 0.0;
+static int have_min_active_host_execution_time = FALSE;
+static double min_active_host_execution_time = 0.0;
+static int have_max_active_host_execution_time = FALSE;
+static double max_active_host_execution_time = 0.0;
+static double average_active_host_execution_time = 0.0;
+static int have_min_passive_host_latency = FALSE;
+static double min_passive_host_latency = 0.0;
+static int have_max_passive_host_latency = FALSE;
+static double max_passive_host_latency = 0.0;
+static double average_passive_host_latency = 0.0;
+static double min_passive_host_state_change = 0.0;
+static int have_min_passive_host_state_change = FALSE;
+static double max_passive_host_state_change = 0.0;
+static int have_max_passive_host_state_change = FALSE;
+static double average_passive_host_state_change = 0.0;
 
-int passive_service_checks = 0;
-int active_service_checks = 0;
-int services_ok = 0;
-int services_warning = 0;
-int services_unknown = 0;
-int services_critical = 0;
-int services_flapping = 0;
-int services_in_downtime = 0;
-int services_checked = 0;
-int services_scheduled = 0;
-int passive_host_checks = 0;
-int active_host_checks = 0;
-int hosts_up = 0;
-int hosts_down = 0;
-int hosts_unreachable = 0;
-int hosts_flapping = 0;
-int hosts_in_downtime = 0;
-int hosts_checked = 0;
-int hosts_scheduled = 0;
+static int passive_service_checks = 0;
+static int active_service_checks = 0;
+static int services_ok = 0;
+static int services_warning = 0;
+static int services_unknown = 0;
+static int services_critical = 0;
+static int services_flapping = 0;
+static int services_in_downtime = 0;
+static int services_checked = 0;
+static int services_scheduled = 0;
+static int passive_host_checks = 0;
+static int active_host_checks = 0;
+static int hosts_up = 0;
+static int hosts_down = 0;
+static int hosts_unreachable = 0;
+static int hosts_flapping = 0;
+static int hosts_in_downtime = 0;
+static int hosts_checked = 0;
+static int hosts_scheduled = 0;
 
-int passive_services_checked_last_1min = 0;
-int passive_services_checked_last_5min = 0;
-int passive_services_checked_last_15min = 0;
-int passive_services_checked_last_1hour = 0;
-int active_services_checked_last_1min = 0;
-int active_services_checked_last_5min = 0;
-int active_services_checked_last_15min = 0;
-int active_services_checked_last_1hour = 0;
-int passive_hosts_checked_last_1min = 0;
-int passive_hosts_checked_last_5min = 0;
-int passive_hosts_checked_last_15min = 0;
-int passive_hosts_checked_last_1hour = 0;
-int active_hosts_checked_last_1min = 0;
-int active_hosts_checked_last_5min = 0;
-int active_hosts_checked_last_15min = 0;
-int active_hosts_checked_last_1hour = 0;
+static int passive_services_checked_last_1min = 0;
+static int passive_services_checked_last_5min = 0;
+static int passive_services_checked_last_15min = 0;
+static int passive_services_checked_last_1hour = 0;
+static int active_services_checked_last_1min = 0;
+static int active_services_checked_last_5min = 0;
+static int active_services_checked_last_15min = 0;
+static int active_services_checked_last_1hour = 0;
+static int passive_hosts_checked_last_1min = 0;
+static int passive_hosts_checked_last_5min = 0;
+static int passive_hosts_checked_last_15min = 0;
+static int passive_hosts_checked_last_1hour = 0;
+static int active_hosts_checked_last_1min = 0;
+static int active_hosts_checked_last_5min = 0;
+static int active_hosts_checked_last_15min = 0;
+static int active_hosts_checked_last_1hour = 0;
 
-int active_host_checks_last_1min = 0;
-int active_host_checks_last_5min = 0;
-int active_host_checks_last_15min = 0;
-int active_ondemand_host_checks_last_1min = 0;
-int active_ondemand_host_checks_last_5min = 0;
-int active_ondemand_host_checks_last_15min = 0;
-int active_scheduled_host_checks_last_1min = 0;
-int active_scheduled_host_checks_last_5min = 0;
-int active_scheduled_host_checks_last_15min = 0;
-int passive_host_checks_last_1min = 0;
-int passive_host_checks_last_5min = 0;
-int passive_host_checks_last_15min = 0;
-int active_cached_host_checks_last_1min = 0;
-int active_cached_host_checks_last_5min = 0;
-int active_cached_host_checks_last_15min = 0;
-int parallel_host_checks_last_1min = 0;
-int parallel_host_checks_last_5min = 0;
-int parallel_host_checks_last_15min = 0;
-int serial_host_checks_last_1min = 0;
-int serial_host_checks_last_5min = 0;
-int serial_host_checks_last_15min = 0;
+static int active_host_checks_last_1min = 0;
+static int active_host_checks_last_5min = 0;
+static int active_host_checks_last_15min = 0;
+static int active_ondemand_host_checks_last_1min = 0;
+static int active_ondemand_host_checks_last_5min = 0;
+static int active_ondemand_host_checks_last_15min = 0;
+static int active_scheduled_host_checks_last_1min = 0;
+static int active_scheduled_host_checks_last_5min = 0;
+static int active_scheduled_host_checks_last_15min = 0;
+static int passive_host_checks_last_1min = 0;
+static int passive_host_checks_last_5min = 0;
+static int passive_host_checks_last_15min = 0;
+static int active_cached_host_checks_last_1min = 0;
+static int active_cached_host_checks_last_5min = 0;
+static int active_cached_host_checks_last_15min = 0;
+static int parallel_host_checks_last_1min = 0;
+static int parallel_host_checks_last_5min = 0;
+static int parallel_host_checks_last_15min = 0;
+static int serial_host_checks_last_1min = 0;
+static int serial_host_checks_last_5min = 0;
+static int serial_host_checks_last_15min = 0;
 
-int active_service_checks_last_1min = 0;
-int active_service_checks_last_5min = 0;
-int active_service_checks_last_15min = 0;
-int active_ondemand_service_checks_last_1min = 0;
-int active_ondemand_service_checks_last_5min = 0;
-int active_ondemand_service_checks_last_15min = 0;
-int active_scheduled_service_checks_last_1min = 0;
-int active_scheduled_service_checks_last_5min = 0;
-int active_scheduled_service_checks_last_15min = 0;
-int passive_service_checks_last_1min = 0;
-int passive_service_checks_last_5min = 0;
-int passive_service_checks_last_15min = 0;
-int active_cached_service_checks_last_1min = 0;
-int active_cached_service_checks_last_5min = 0;
-int active_cached_service_checks_last_15min = 0;
+static int active_service_checks_last_1min = 0;
+static int active_service_checks_last_5min = 0;
+static int active_service_checks_last_15min = 0;
+static int active_ondemand_service_checks_last_1min = 0;
+static int active_ondemand_service_checks_last_5min = 0;
+static int active_ondemand_service_checks_last_15min = 0;
+static int active_scheduled_service_checks_last_1min = 0;
+static int active_scheduled_service_checks_last_5min = 0;
+static int active_scheduled_service_checks_last_15min = 0;
+static int passive_service_checks_last_1min = 0;
+static int passive_service_checks_last_5min = 0;
+static int passive_service_checks_last_15min = 0;
+static int active_cached_service_checks_last_1min = 0;
+static int active_cached_service_checks_last_5min = 0;
+static int active_cached_service_checks_last_15min = 0;
 
-int external_commands_last_1min = 0;
-int external_commands_last_5min = 0;
-int external_commands_last_15min = 0;
+static int external_commands_last_1min = 0;
+static int external_commands_last_5min = 0;
+static int external_commands_last_15min = 0;
 
-int display_mrtg_values(void);
-int display_stats(void);
-int read_config_file(void);
-int read_status_file(void);
+static int display_mrtg_values(void);
+static int display_stats(void);
+static int read_config_file(void);
+static int read_status_file(void);
 void strip(char *);
 void get_time_breakdown(unsigned long, int *, int *, int *, int *);
 
@@ -207,16 +207,17 @@ int main(int argc, char **argv) {
 #ifdef HAVE_GETOPT_H
 	int option_index = 0;
 	static struct option long_options[] = {
-			{"help", no_argument, 0, 'h'},
-			{"version", no_argument, 0, 'V'},
-			{"license", no_argument, 0, 'L'},
-			{"config", required_argument, 0, 'c'},
-			{"statsfile", required_argument, 0, 's'},
-			{"mrtg", no_argument, 0, 'm'},
-			{"data", required_argument, 0, 'd'},
-			{"delimiter", required_argument, 0, 'D'},
-			{0, 0, 0, 0}
+			{"help", no_argument, NULL, 'h'},
+			{"version", no_argument, NULL, 'V'},
+			{"license", no_argument, NULL, 'L'},
+			{"config", required_argument, NULL, 'c'},
+			{"statsfile", required_argument, NULL, 's'},
+			{"mrtg", no_argument, NULL, 'm'},
+			{"data", required_argument, NULL, 'd'},
+			{"delimiter", required_argument, NULL, 'D'},
+			{NULL, 0, NULL, 0}
 		};
+#define getopt(argc, argv, OPTSTR) getopt_long(argc, argv, OPTSTR, long_options, &option_index)
 #endif
 
 	/* defaults */
@@ -225,11 +226,7 @@ int main(int argc, char **argv) {
 	/* get all command line arguments */
 	while(1) {
 
-#ifdef HAVE_GETOPT_H
-		c = getopt_long(argc, argv, "+hVLc:ms:d:D:", long_options, &option_index);
-#else
 		c = getopt(argc, argv, "+hVLc:ms:d:D:");
-#endif
 
 		if(c == -1 || c == EOF)
 			break;
@@ -416,7 +413,7 @@ int main(int argc, char **argv) {
 
 
 
-int display_mrtg_values(void) {
+static int display_mrtg_values(void) {
 	char *temp_ptr;
 	time_t current_time;
 	unsigned long time_difference;
@@ -738,7 +735,7 @@ int display_mrtg_values(void) {
 	}
 
 
-int display_stats(void) {
+static int display_stats(void) {
 	time_t current_time;
 	unsigned long time_difference;
 	int days;
@@ -829,7 +826,7 @@ int display_stats(void) {
 	}
 
 
-int read_config_file(void) {
+static int read_config_file(void) {
 	char temp_buffer[MAX_INPUT_BUFFER];
 	FILE *fp;
 	char *var;
@@ -868,7 +865,7 @@ int read_config_file(void) {
 	}
 
 
-int read_status_file(void) {
+static int read_status_file(void) {
 	char temp_buffer[MAX_INPUT_BUFFER];
 	FILE *fp = NULL;
 	int data_type = STATUS_NO_DATA;

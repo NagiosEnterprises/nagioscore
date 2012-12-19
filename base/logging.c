@@ -110,7 +110,7 @@ static void write_to_all_logs_with_timestamp(char *buffer, unsigned long data_ty
 	}
 
 
-FILE *open_log_file(void)
+static FILE *open_log_file(void)
 {
 	if(log_fp) /* keep it open unless we rotate */
 		return log_fp;

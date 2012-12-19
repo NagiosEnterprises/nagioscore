@@ -919,8 +919,6 @@ static int should_run_event(timed_event *temp_event)
 	else if(temp_event->event_type == EVENT_HOST_CHECK) {
 		host *temp_host = (host *)temp_event->event_data;
 
-		temp_host = (host *)temp_event->event_data;
-
 		/* don't run a host check if active checks are disabled */
 		if(execute_host_checks == FALSE) {
 			log_debug_info(DEBUGL_EVENTS | DEBUGL_CHECKS, 1, "We're not executing host checks right now, so we'll skip this event.\n");

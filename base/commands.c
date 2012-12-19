@@ -119,7 +119,7 @@ int shutdown_command_file_worker(void) {
 	}
 
 
-int command_input_handler(int sd, int events, void *arg) {
+static int command_input_handler(int sd, int events, void *arg) {
 	int ret;
 	char *buf;
 	unsigned long size;
@@ -2009,10 +2009,10 @@ int cmd_delay_notification(int cmd, char *args) {
 	delay_time = strtoul(temp_ptr, NULL, 10);
 
 	/* delay the next notification... */
-	if(cmd == CMD_DELAY_HOST_NOTIFICATION)
-		temp_host->next_notification = delay_time;
-	else
+	if(cmd == CMD_DELAY_SVC_NOTIFICATION)
 		temp_service->next_notification = delay_time;
+	else
+		temp_host->next_notification = delay_time;
 
 	return OK;
 	}

@@ -35,39 +35,39 @@
 #include "xpddefault.h"
 
 
-int     xpddefault_perfdata_timeout;
+static int     xpddefault_perfdata_timeout;
 
-char    *xpddefault_host_perfdata_command = NULL;
-char    *xpddefault_service_perfdata_command = NULL;
-command *xpddefault_host_perfdata_command_ptr = NULL;
-command *xpddefault_service_perfdata_command_ptr = NULL;
+static char    *xpddefault_host_perfdata_command = NULL;
+static char    *xpddefault_service_perfdata_command = NULL;
+static command *xpddefault_host_perfdata_command_ptr = NULL;
+static command *xpddefault_service_perfdata_command_ptr = NULL;
 
-char    *xpddefault_host_perfdata_file_template = NULL;
-char    *xpddefault_service_perfdata_file_template = NULL;
+static char    *xpddefault_host_perfdata_file_template = NULL;
+static char    *xpddefault_service_perfdata_file_template = NULL;
 
-char    *xpddefault_host_perfdata_file = NULL;
-char    *xpddefault_service_perfdata_file = NULL;
+static char    *xpddefault_host_perfdata_file = NULL;
+static char    *xpddefault_service_perfdata_file = NULL;
 
-int     xpddefault_host_perfdata_file_append = TRUE;
-int     xpddefault_service_perfdata_file_append = TRUE;
-int     xpddefault_host_perfdata_file_pipe = FALSE;
-int     xpddefault_service_perfdata_file_pipe = FALSE;
+static int     xpddefault_host_perfdata_file_append = TRUE;
+static int     xpddefault_service_perfdata_file_append = TRUE;
+static int     xpddefault_host_perfdata_file_pipe = FALSE;
+static int     xpddefault_service_perfdata_file_pipe = FALSE;
 
-unsigned long xpddefault_host_perfdata_file_processing_interval = 0L;
-unsigned long xpddefault_service_perfdata_file_processing_interval = 0L;
+static unsigned long xpddefault_host_perfdata_file_processing_interval = 0L;
+static unsigned long xpddefault_service_perfdata_file_processing_interval = 0L;
 
-char    *xpddefault_host_perfdata_file_processing_command = NULL;
-char    *xpddefault_service_perfdata_file_processing_command = NULL;
-command *xpddefault_host_perfdata_file_processing_command_ptr = NULL;
-command *xpddefault_service_perfdata_file_processing_command_ptr = NULL;
+static char    *xpddefault_host_perfdata_file_processing_command = NULL;
+static char    *xpddefault_service_perfdata_file_processing_command = NULL;
+static command *xpddefault_host_perfdata_file_processing_command_ptr = NULL;
+static command *xpddefault_service_perfdata_file_processing_command_ptr = NULL;
 
-int     xpddefault_host_perfdata_process_empty_results=DEFAULT_HOST_PERFDATA_PROCESS_EMPTY_RESULTS;
-int     xpddefault_service_perfdata_process_empty_results=DEFAULT_SERVICE_PERFDATA_PROCESS_EMPTY_RESULTS;
+static int     xpddefault_host_perfdata_process_empty_results=DEFAULT_HOST_PERFDATA_PROCESS_EMPTY_RESULTS;
+static int     xpddefault_service_perfdata_process_empty_results=DEFAULT_SERVICE_PERFDATA_PROCESS_EMPTY_RESULTS;
 
-FILE    *xpddefault_host_perfdata_fp = NULL;
-FILE    *xpddefault_service_perfdata_fp = NULL;
-int     xpddefault_host_perfdata_fd = -1;
-int     xpddefault_service_perfdata_fd = -1;
+static FILE    *xpddefault_host_perfdata_fp = NULL;
+static FILE    *xpddefault_service_perfdata_fp = NULL;
+static int     xpddefault_host_perfdata_fd = -1;
+static int     xpddefault_service_perfdata_fd = -1;
 
 
 /******************************************************************/

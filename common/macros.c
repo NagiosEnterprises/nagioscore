@@ -42,7 +42,7 @@ struct macro_key_code {
 	char *value;
 };
 
-struct macro_key_code macro_keys[MACRO_X_COUNT];
+static struct macro_key_code macro_keys[MACRO_X_COUNT];
 
 /*
  * These point to their corresponding pointer arrays in global_macros
@@ -53,7 +53,7 @@ struct macro_key_code macro_keys[MACRO_X_COUNT];
  * on their values after having run a certain command will require an
  * update
  */
-char **macro_x = NULL;
+static char **macro_x = NULL;
 
 /*
  * scoped to this file to prevent (unintentional) mischief,

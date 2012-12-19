@@ -176,6 +176,8 @@ int read_main_config_file(char *main_config_file) {
 		else if(!strcmp(variable, "query_socket"))
 			qh_socket_path = (char *)strdup(value);
 		else if(!strcmp(variable, "log_file")) {
+			char *orig_log_file;
+			FILE *fp;
 
 			if(strlen(value) > MAX_FILENAME_LENGTH - 1) {
 				asprintf(&error_message, "Log file is too long");
@@ -183,12 +185,21 @@ int read_main_config_file(char *main_config_file) {
 				break;
 				}
 
-			my_free(log_file);
+			orig_log_file = log_file;
 			log_file = nspath_absolute(value, config_file_dir);
-
-			/* save the macro */
-			my_free(mac->x[MACRO_LOGFILE]);
-			mac->x[MACRO_LOGFILE] = (char *)strdup(log_file);
+			if((fp = fopen(log_file, "w")) == NULL) {
+				char *value_absolute = log_file;
+				log_file = orig_log_file;
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to open logfile '%s' for writing: %s\n", value_absolute, strerror(errno));
+				return ERROR;
+				}
+			else {
+				fclose(fp);
+				/* save the macro */
+				my_free(orig_log_file);
+				my_free(mac->x[MACRO_LOGFILE]);
+				mac->x[MACRO_LOGFILE] = (char *)strdup(log_file);
+				}
 			}
 
 		else if(!strcmp(variable, "debug_level"))

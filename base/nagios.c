@@ -137,7 +137,6 @@ static int nagios_core_worker(const char *path)
 int main(int argc, char **argv, char **env) {
 	int result;
 	int error = FALSE;
-	char *buffer = NULL;
 	int display_license = FALSE;
 	int display_help = FALSE;
 	int c = 0;
@@ -481,21 +480,27 @@ int main(int argc, char **argv, char **env) {
 				exit(ERROR);
 				}
 
-			/* open debug log now that we're the right user */
-			open_debug_log();
-
 			if (access(nagios_binary_path, X_OK) < 0) {
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Spawning workers will be impossible. Aborting.\n");
 				exit(EXIT_FAILURE);
 				}
 
-#ifdef USE_EVENT_BROKER
-			/* initialize modules */
-			neb_init_modules();
-			neb_init_callback_list();
-#endif
-			timing_point("NEB module API initialized\n");
+			/* enter daemon mode (unless we're restarting...) */
+			if(daemon_mode == TRUE && sigrestart == FALSE) {
+
+				result = daemon_init();
+
+				/* we had an error daemonizing, so bail... */
+				if(result == ERROR) {
+					logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR, TRUE, "Bailing out due to failure to daemonize. (PID=%d)", (int)getpid());
+					cleanup();
+					exit(EXIT_FAILURE);
+					}
+
+				/* get new PID */
+				nagios_pid = (int)getpid();
+				}
 
 			/* this must be logged after we read config data, as user may have changed location of main log file */
 			logit(NSLOG_PROCESS_INFO, TRUE, "Nagios %s starting... (PID=%d)\n", PROGRAM_VERSION, (int)getpid());
@@ -508,6 +513,16 @@ int main(int argc, char **argv, char **env) {
 
 			/* write log version/info */
 			write_log_file_info(NULL);
+
+			/* open debug log now that we're the right user */
+			open_debug_log();
+
+#ifdef USE_EVENT_BROKER
+			/* initialize modules */
+			neb_init_modules();
+			neb_init_callback_list();
+#endif
+			timing_point("NEB module API initialized\n");
 
 			/* handle signals (interrupts) before we do any socket I/O */
 			setup_sighandler();
@@ -598,31 +613,6 @@ int main(int argc, char **argv, char **env) {
 			/* send program data to broker */
 			broker_program_state(NEBTYPE_PROCESS_START, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
-
-			/* enter daemon mode (unless we're restarting...) */
-			if(daemon_mode == TRUE && sigrestart == FALSE) {
-
-				result = daemon_init();
-
-				/* we had an error daemonizing, so bail... */
-				if(result == ERROR) {
-					logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR, TRUE, "Bailing out due to failure to daemonize. (PID=%d)", (int)getpid());
-
-#ifdef USE_EVENT_BROKER
-					/* send program data to broker */
-					broker_program_state(NEBTYPE_PROCESS_SHUTDOWN, NEBFLAG_PROCESS_INITIATED, NEBATTR_SHUTDOWN_ABNORMAL, NULL);
-#endif
-					cleanup();
-					exit(ERROR);
-					}
-
-				asprintf(&buffer, "Finished daemonizing... (New PID=%d)\n", (int)getpid());
-				write_to_all_logs(buffer, NSLOG_PROCESS_INFO);
-				my_free(buffer);
-
-				/* get new PID */
-				nagios_pid = (int)getpid();
-				}
 
 			/* initialize status data unless we're starting */
 			if(sigrestart == FALSE) {

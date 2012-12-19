@@ -1777,6 +1777,17 @@ int daemon_init(void) {
 
 	umask(S_IWGRP | S_IWOTH);
 
+	/* close existing stdin, stdout, stderr */
+	close(0);
+	close(1);
+	close(2);
+
+	/* THIS HAS TO BE DONE TO AVOID PROBLEMS WITH STDERR BEING REDIRECTED TO SERVICE MESSAGE PIPE! */
+	/* re-open stdin, stdout, stderr with known values */
+	open("/dev/null", O_RDONLY);
+	open("/dev/null", O_WRONLY);
+	open("/dev/null", O_WRONLY);
+
 	lockfile = open(lock_file, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
 	if(lockfile < 0) {
@@ -1858,17 +1869,6 @@ int daemon_init(void) {
 	val = fcntl(lockfile, F_GETFD, 0);
 	val |= FD_CLOEXEC;
 	fcntl(lockfile, F_SETFD, val);
-
-	/* close existing stdin, stdout, stderr */
-	close(0);
-	close(1);
-	close(2);
-
-	/* THIS HAS TO BE DONE TO AVOID PROBLEMS WITH STDERR BEING REDIRECTED TO SERVICE MESSAGE PIPE! */
-	/* re-open stdin, stdout, stderr with known values */
-	open("/dev/null", O_RDONLY);
-	open("/dev/null", O_WRONLY);
-	open("/dev/null", O_WRONLY);
 
 #ifdef USE_EVENT_BROKER
 	/* send program data to broker */

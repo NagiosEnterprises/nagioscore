@@ -460,6 +460,10 @@ int main(int argc, char **argv, char **env) {
 
 			/* read in the configuration files (main and resource config files) */
 			result = read_main_config_file(config_file);
+			if (result != OK) {
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process config file '%s'. Aborting\n", config_file);
+				exit(EXIT_FAILURE);
+				}
 			timing_point("Main config file read\n");
 
 			/* NOTE 11/06/07 EG moved to after we read config files, as user may have overridden timezone offset */

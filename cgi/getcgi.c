@@ -136,14 +136,15 @@ char **getcgivars(void) {
 		/* check for NULL query string environment variable - 04/28/00 (Ludo Bosmans) */
 		if(getenv("QUERY_STRING") == NULL) {
 			cgiinput = (char *)malloc(1);
-			if(cgiinput == NULL) {
-				printf("getcgivars(): Could not allocate memory for CGI input.\n");
-				exit(1);
-				}
-			cgiinput[0] = '\x0';
+			if(cgiinput != NULL) 
+				cgiinput[0] = '\x0';
 			}
 		else
 			cgiinput = strdup(getenv("QUERY_STRING"));
+		if(cgiinput == NULL) {
+			printf("getcgivars(): Could not allocate memory for CGI input.\n");
+			exit(1);
+			}
 		}
 
 	else if(!strcmp(request_method, "POST") || !strcmp(request_method, "PUT")) {
@@ -219,7 +220,12 @@ char **getcgivars(void) {
 	paircount = 0;
 	nvpair = strtok(cgiinput, "&");
 	while(nvpair) {
-		pairlist[paircount++] = strdup(nvpair);
+		pairlist[paircount] = strdup(nvpair);
+		if( NULL == pairlist[paircount]) {
+			printf("getcgivars(): Could not allocate memory for name-value pair #%d.\n", paircount);
+			exit(1);
+			}
+		paircount++;
 		if(!(paircount % 256)) {
 			pairlist = (char **)realloc(pairlist, (paircount + 256) * sizeof(char **));
 			if(pairlist == NULL) {
@@ -244,13 +250,29 @@ char **getcgivars(void) {
 		/* get the variable name preceding the equal (=) sign */
 		if((eqpos = strchr(pairlist[i], '=')) != NULL) {
 			*eqpos = '\0';
-			unescape_cgi_input(cgivars[i * 2 + 1] = strdup(eqpos + 1));
+			cgivars[i * 2 + 1] = strdup(eqpos + 1);
+			if( NULL == cgivars[ i * 2 + 1]) {
+				printf("getcgivars(): Could not allocate memory for cgi value #%d.\n", i);
+				exit(1);
+				}
+			unescape_cgi_input(cgivars[i * 2 + 1]);
 			}
-		else
-			unescape_cgi_input(cgivars[i * 2 + 1] = strdup(""));
+		else {
+			cgivars[i * 2 + 1] = strdup("");
+			if( NULL == cgivars[ i * 2 + 1]) {
+				printf("getcgivars(): Could not allocate memory for empty stringfor variable value #%d.\n", i);
+				exit(1);
+				}
+			unescape_cgi_input(cgivars[i * 2 + 1]);
+			}
 
 		/* get the variable value (or name/value of there was no real "pair" in the first place) */
-		unescape_cgi_input(cgivars[i * 2] = strdup(pairlist[i]));
+		cgivars[i * 2] = strdup(pairlist[i]);
+		if( NULL == cgivars[ i * 2]) {
+			printf("getcgivars(): Could not allocate memory for cgi name #%d.\n", i);
+			exit(1);
+			}
+		unescape_cgi_input(cgivars[i * 2]);
 		}
 
 	/* terminate the name-value list */

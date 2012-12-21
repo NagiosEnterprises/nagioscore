@@ -2,11 +2,16 @@
 Nagios 3.x Change Log
 #####################
 
+3.4.4 - xx/xx/xxxx
+------------------
+* Added NULL pointer checks to CGI code. (Eric Stanley)
+* Fixed buffer overflow vulnerability in CGI code. Thanks to Neohapsis (http://archives.neohapsis.com/archives/fulldisclosure/2012-12/0108.html) for finding this. (Eric Stanley)
+
 3.4.3 - 11/30/2012
 ------------------
-- Reverted squeue changes intended for Nagios 4
-- Reapplied all patches from 3.4.2 release
-- Applied fix for pagination and sorting on status.cgi #381 (Phil Randal)
+* Reverted squeue changes intended for Nagios 4
+* Reapplied all patches from 3.4.2 release
+* Applied fix for pagination and sorting on status.cgi #381 (Phil Randal)
 
 3.4.2 - 11/09/2012
 ------------------

@@ -4009,17 +4009,16 @@ int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *tperiod, char
 	else
 		result = ERROR;
 
+#ifdef NSCORE
+	if(result == ERROR) {
+		printf("Error: Could not parse timeperiod directive '%s'!\n", input);
+		}
+#endif
+
 	/* free memory */
 	my_free(input);
 
-	if(result == ERROR) {
-#ifdef NSCORE
-		printf("Error: Could not parse timeperiod directive '%s'!\n", input);
-#endif
-		return ERROR;
-		}
-
-	return OK;
+	return result;
 	}
 
 

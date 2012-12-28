@@ -4,6 +4,7 @@ Nagios 3.x Change Log
 
 3.4.4 - xx/xx/xxxx
 ------------------
+* Fixed bug #401: segmentation fault on Solaris when parsing unknown timeperiod directives. (Eric Stanley)
 * Added NULL pointer checks to CGI code. (Eric Stanley)
 * Fixed buffer overflow vulnerability in CGI code. Thanks to Neohapsis (http://archives.neohapsis.com/archives/fulldisclosure/2012-12/0108.html) for finding this. (Eric Stanley)
 

@@ -2281,7 +2281,7 @@ int process_check_result_queue(char *dirname) {
 				continue;
 
 			/* process the file */
-			result = process_check_result_file(file);
+			result = process_check_result_file(file, &check_result_list);
 
 			/* break out if we encountered an error */
 			if(result == ERROR)
@@ -2299,7 +2299,7 @@ int process_check_result_queue(char *dirname) {
 
 
 /* reads check result(s) from a file */
-int process_check_result_file(char *fname) {
+int process_check_result_file(char *fname, check_result **listp) {
 	mmapfile *thefile = NULL;
 	char *input = NULL;
 	char *var = NULL;
@@ -2349,7 +2349,7 @@ int process_check_result_file(char *fname) {
 				if(new_cr->host_name != NULL && new_cr->output != NULL) {
 
 					/* add check result to list in memory */
-					add_check_result_to_list(new_cr);
+					add_check_result_to_list(listp, new_cr);
 
 					/* reset pointer */
 					new_cr = NULL;
@@ -2444,7 +2444,7 @@ int process_check_result_file(char *fname) {
 		if(new_cr->host_name != NULL && new_cr->output != NULL) {
 
 			/* add check result to list in memory */
-			add_check_result_to_list(new_cr);
+			add_check_result_to_list(listp, new_cr);
 
 			/* reset pointer */
 			new_cr = NULL;
@@ -2491,14 +2491,14 @@ int delete_check_result_file(char *fname) {
 
 
 /* reads the first host/service check result from the list in memory */
-check_result *read_check_result(void) {
+check_result *read_check_result(check_result **listp) {
 	check_result *first_cr = NULL;
 
-	if(check_result_list == NULL)
+	if(*listp == NULL)
 		return NULL;
 
-	first_cr = check_result_list;
-	check_result_list = check_result_list->next;
+	first_cr = *listp;
+	*listp = (*listp)->next;
 
 	return first_cr;
 	}
@@ -2539,7 +2539,7 @@ int init_check_result(check_result *info) {
 
 
 /* adds a new host/service check result to the list in memory */
-int add_check_result_to_list(check_result *new_cr) {
+int add_check_result_to_list(check_result **listp, check_result *new_cr) {
 	check_result *temp_cr = NULL;
 	check_result *last_cr = NULL;
 
@@ -2549,8 +2549,8 @@ int add_check_result_to_list(check_result *new_cr) {
 	/* add to list, sorted by finish time (asc) */
 
 	/* find insertion point */
-	last_cr = check_result_list;
-	for(temp_cr = check_result_list; temp_cr != NULL; temp_cr = temp_cr->next) {
+	last_cr = *listp;
+	for(temp_cr = *listp; temp_cr != NULL; temp_cr = temp_cr->next) {
 		if(temp_cr->finish_time.tv_sec >= new_cr->finish_time.tv_sec) {
 			if(temp_cr->finish_time.tv_sec > new_cr->finish_time.tv_sec)
 				break;
@@ -2561,9 +2561,9 @@ int add_check_result_to_list(check_result *new_cr) {
 		}
 
 	/* item goes at head of list */
-	if(check_result_list == NULL || temp_cr == check_result_list) {
-		new_cr->next = check_result_list;
-		check_result_list = new_cr;
+	if(*listp == NULL || temp_cr == *listp) {
+		new_cr->next = *listp;
+		*listp = new_cr;
 		}
 
 	/* item goes in middle or at end of list */
@@ -2579,17 +2579,17 @@ int add_check_result_to_list(check_result *new_cr) {
 
 
 /* frees all memory associated with the check result list */
-int free_check_result_list(void) {
+int free_check_result_list(check_result **listp) {
 	check_result *this_cr = NULL;
 	check_result *next_cr = NULL;
 
-	for(this_cr = check_result_list; this_cr != NULL; this_cr = next_cr) {
+	for(this_cr = *listp; this_cr != NULL; this_cr = next_cr) {
 		next_cr = this_cr->next;
 		free_check_result(this_cr);
 		my_free(this_cr);
 		}
 
-	check_result_list = NULL;
+	*listp = NULL;
 
 	return OK;
 	}
@@ -3998,7 +3998,7 @@ void free_memory(nagios_macros *mac) {
 	free_comment_data();
 
 	/* free check result list */
-	free_check_result_list();
+	free_check_result_list(&check_result_list);
 
 	/* free memory for the high priority event list */
 	this_event = event_list_high;

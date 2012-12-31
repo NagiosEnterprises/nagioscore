@@ -151,7 +151,7 @@ int reap_check_results(void) {
 	process_check_result_queue(check_result_path);
 
 	/* read all check results that have come in... */
-	while((queued_check_result = read_check_result())) {
+	while((queued_check_result = read_check_result(&check_result_list))) {
 
 		reaped_checks++;
 

@@ -441,11 +441,11 @@ void resort_event_list(timed_event **, timed_event **);                 	/* reso
 /**** IPC Functions ****/
 int move_check_result_to_queue(char *);
 int process_check_result_queue(char *);
-int process_check_result_file(char *);
-int add_check_result_to_list(check_result *);
-check_result *read_check_result(void);                  	/* reads a host/service check result from the list in memory */
+int process_check_result_file(char *, check_result **);
+int add_check_result_to_list(check_result **, check_result *);
+check_result *read_check_result(check_result **);                  	/* reads a host/service check result from the list in memory */
 int delete_check_result_file(char *);
-int free_check_result_list(void);
+int free_check_result_list(check_result **);
 int init_check_result(check_result *);
 int free_check_result(check_result *);                  	/* frees memory associated with a host/service check result */
 int parse_check_output(char *, char **, char **, char **, int, int);

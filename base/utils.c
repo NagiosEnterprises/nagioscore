@@ -2135,6 +2135,9 @@ int drop_privileges(char *user, char *group) {
 				}
 			}
 #endif
+		/* Change the ownership on the debug log file */
+		chown_debug_log( uid, gid);
+
 		if(setuid(uid) == -1) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not set effective UID=%d", (int)uid);
 			result = ERROR;

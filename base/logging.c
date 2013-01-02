@@ -490,6 +490,29 @@ int open_debug_log(void) {
 	}
 
 
+/* change the ownership of the debug log. This is done so that if Nagios
+   receives a HUP signal, it will be owned by a user that can reopen the file */
+int chown_debug_log(uid_t uid, gid_t gid) {
+
+	/* don't do anything if we're not actually running... */
+	if(verify_config == TRUE || test_scheduling == TRUE)
+		return OK;
+
+	/* don't do anything if we're not debugging */
+	if(debug_level == DEBUGL_NONE)
+		return OK;
+
+	if( chown(debug_file, uid, gid) < 0) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, 
+				"Failed to change ownership on debug log: %s.", 
+				strerror( errno));
+		return ERROR;
+		}
+
+	return OK;
+	}
+
+
 /* closes the debug log */
 int close_debug_log(void) {
 

@@ -81,6 +81,7 @@ int log_service_states(int, time_t *);                  /* logs initial/current 
 int rotate_log_file(time_t);			     	/* rotates the main log file */
 int write_log_file_info(time_t *); 			/* records log file/version info */
 int open_debug_log(void);
+int chown_debug_log(uid_t, gid_t);
 int close_debug_log(void);
 #endif /* !NSCGI */
 

@@ -245,6 +245,28 @@
 #define EVENT_SLEEP                     98      /* asynchronous sleep event that occurs when event queues are empty */
 #define EVENT_USER_FUNCTION             99      /* USER-defined function (modules) */
 
+#define EVENT_TYPE_STR( type)  ( \
+	type == EVENT_SERVICE_CHECK ? "EVENT_SERVICE_CHECK" : \
+	type == EVENT_COMMAND_CHECK ? "EVENT_COMMAND_CHECK" : \
+	type == EVENT_LOG_ROTATION ? "EVENT_LOG_ROTATION" : \
+	type == EVENT_PROGRAM_SHUTDOWN ? "EVENT_PROGRAM_SHUTDOWN" : \
+	type == EVENT_PROGRAM_RESTART ? "EVENT_PROGRAM_RESTART" : \
+	type == EVENT_CHECK_REAPER ? "EVENT_CHECK_REAPER" : \
+	type == EVENT_ORPHAN_CHECK ? "EVENT_ORPHAN_CHECK" : \
+	type == EVENT_RETENTION_SAVE ? "EVENT_RETENTION_SAVE" : \
+	type == EVENT_STATUS_SAVE ? "EVENT_STATUS_SAVE" : \
+	type == EVENT_SCHEDULED_DOWNTIME ? "EVENT_SCHEDULED_DOWNTIME" : \
+	type == EVENT_SFRESHNESS_CHECK ? "EVENT_SFRESHNESS_CHECK" : \
+	type == EVENT_EXPIRE_DOWNTIME ? "EVENT_EXPIRE_DOWNTIME" : \
+	type == EVENT_HOST_CHECK ? "EVENT_HOST_CHECK" : \
+	type == EVENT_HFRESHNESS_CHECK ? "EVENT_HFRESHNESS_CHECK" : \
+	type == EVENT_RESCHEDULE_CHECKS ? "EVENT_RESCHEDULE_CHECKS" : \
+	type == EVENT_EXPIRE_COMMENT ? "EVENT_EXPIRE_COMMENT" : \
+	type == EVENT_CHECK_PROGRAM_UPDATE ? "EVENT_CHECK_PROGRAM_UPDATE" : \
+	type == EVENT_SLEEP ? "EVENT_SLEEP" : \
+	type == EVENT_USER_FUNCTION ? "EVENT_USER_FUNCTION" : \
+	"UNKNOWN_EVENT_TYPE" \
+)
 
 
 	/******* INTER-CHECK DELAY CALCULATION TYPES **********/
@@ -441,7 +463,8 @@ void resort_event_list(timed_event **, timed_event **);                 	/* reso
 /**** IPC Functions ****/
 int move_check_result_to_queue(char *);
 int process_check_result_queue(char *);
-int process_check_result_file(char *, check_result **);
+int find_executing_checks(char *);
+int process_check_result_file(char *, check_result **, int, int);
 int add_check_result_to_list(check_result **, check_result *);
 check_result *read_check_result(check_result **);                  	/* reads a host/service check result from the list in memory */
 int delete_check_result_file(char *);

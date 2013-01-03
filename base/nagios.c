@@ -814,6 +814,10 @@ int main(int argc, char **argv, char **env) {
 			/* initialize performance data */
 			initialize_performance_data(config_file);
 
+			/* Determine which checks are still executing so they are not
+				scheduled when the timing loop is initialized */
+			find_executing_checks(check_result_path);
+
 			/* initialize the event timing loop */
 			init_timing_loop();
 

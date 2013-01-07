@@ -234,7 +234,7 @@ int neb_load_module(nebmodule *mod) {
 	 * but only if we're supposed to dump core
 	 */
 	if(daemon_dumps_core == TRUE) {
-		dest_fd = open(output_file, O_CREAT | O_WRONLY);
+		dest_fd = open(output_file, O_CREAT | O_WRONLY, S_IRWXU | S_IRGRP | S_IROTH);
 		result = my_fdcopy(mod->filename, output_file, dest_fd);
 		mod->dl_file = strdup(output_file);
 		}

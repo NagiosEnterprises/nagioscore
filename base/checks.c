@@ -257,6 +257,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	cr->check_options = check_options;
 	cr->scheduled_check = scheduled_check;
 	cr->reschedule_check = reschedule_check;
+	cr->latency = latency;
 	cr->start_time = start_time;
 	cr->finish_time = start_time;
 	cr->early_timeout = FALSE;

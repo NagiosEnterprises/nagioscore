@@ -240,45 +240,13 @@ int read_main_config_file(char *main_config_file) {
 			}
 
 		else if(!strcmp(variable, "temp_file")) {
-
-			if(strlen(value) > MAX_FILENAME_LENGTH - 1) {
-				asprintf(&error_message, "Temp file is too long");
-				error = TRUE;
-				break;
-				}
-
 			my_free(temp_file);
-			temp_file = nspath_absolute(value, config_file_dir);
-
-			/* save the macro */
-			my_free(mac->x[MACRO_TEMPFILE]);
-			mac->x[MACRO_TEMPFILE] = (char *)strdup(temp_file);
+			temp_file = strdup(value);
 			}
 
 		else if(!strcmp(variable, "temp_path")) {
-
-			if(strlen(value) > MAX_FILENAME_LENGTH - 1) {
-				asprintf(&error_message, "Temp path is too long");
-				error = TRUE;
-				break;
-				}
-
 			my_free(temp_path);
 			temp_path = nspath_absolute(value, config_file_dir);
-			/* make sure we don't have a trailing slash */
-			if(temp_path[strlen(temp_path) - 1] == '/')
-				temp_path[strlen(temp_path) - 1] = '\x0';
-
-			if((tmpdir = opendir(temp_path)) == NULL) {
-				asprintf(&error_message, "Temp path '%s' is not a valid directory", temp_path);
-				error = TRUE;
-				break;
-				}
-			closedir(tmpdir);
-
-			/* save the macro */
-			my_free(mac->x[MACRO_TEMPPATH]);
-			mac->x[MACRO_TEMPPATH] = (char *)strdup(temp_path);
 			}
 
 		else if(!strcmp(variable, "check_result_path")) {
@@ -1173,6 +1141,56 @@ int read_main_config_file(char *main_config_file) {
 			}
 
 		}
+
+	if (!temp_path && !(temp_path = getenv("TMPDIR")) && !(temp_path = getenv("TMP"))) {
+		temp_path = strdup("/tmp");
+		}
+	else {
+		/* make sure we don't have a trailing slash */
+		if(temp_path[strlen(temp_path) - 1] == '/')
+			temp_path[strlen(temp_path) - 1] = '\x0';
+		}
+
+	if((strlen(temp_path) > MAX_FILENAME_LENGTH - 1)) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: temp_path is too long\n");
+		return ERROR;
+	}
+	if((tmpdir = opendir(temp_path)) == NULL) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: temp_path '%s' is not a valid directory\n", temp_path);
+		return ERROR;
+		}
+	closedir(tmpdir);
+
+	/* now that we know we have temp_path, we can set temp_file properly */
+	if (!temp_file) {
+		temp_file = nspath_absolute("nagios.tmp", temp_path);
+		}
+	else if (*temp_file == '.') {
+		/* temp_file is relative. Make it nagios.cfg-relative */
+		char *foo = temp_file;
+		temp_file = nspath_absolute(temp_file, config_file_dir);
+		free(foo);
+		}
+	else if (*temp_file != '/') {
+		/*
+		 * tempfile is not relative and not absolute, so
+		 * put it in temp_path
+		 */
+		char *foo = temp_file;
+		temp_file = nspath_absolute(temp_file, temp_path);
+		free(foo);
+		}
+
+	if(strlen(temp_file) > MAX_FILENAME_LENGTH - 1) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Temp file '%s' is too long\n", temp_file);
+		return ERROR;
+		}
+
+	/* save the macros */
+	my_free(mac->x[MACRO_TEMPPATH]);
+	mac->x[MACRO_TEMPFILE] = (char *)strdup(temp_path);
+	my_free(mac->x[MACRO_TEMPFILE]);
+	mac->x[MACRO_TEMPFILE] = (char *)strdup(temp_file);
 
 	/* adjust timezone values */
 	if(use_timezone != NULL)

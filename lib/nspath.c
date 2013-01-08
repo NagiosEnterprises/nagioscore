@@ -67,7 +67,7 @@ static char *pcomp_construct(struct pcomp *pcomp, int comps)
 char *nspath_normalize(const char *orig_path)
 {
 	struct pcomp *pcomp = NULL;
-	int comps, i = 0, m, depth = 0;
+	int comps, i = 0, m, depth = 0, have_slash = 0;
 	char *path, *rpath, *p, *slash;
 
 	if (!orig_path || !*orig_path)
@@ -83,6 +83,7 @@ char *nspath_normalize(const char *orig_path)
 	for (; p; p = slash, i++) {
 		slash = strchr(p, '/');
 		if (slash) {
+			have_slash = 1;
 			*slash = 0;
 			slash++;
 		}
@@ -117,6 +118,15 @@ char *nspath_normalize(const char *orig_path)
 		depth++;
 	}
 
+	/*
+	 * If we back up all the way to the root we need to add a slash
+	 * as the first path component.
+	 */
+	if (have_slash && depth == 1) {
+		pcomp[0].flags &= ~(PCOMP_IGNORE);
+		pcomp[0].str[0] = 0;
+		pcomp[0].len = 0;
+	}
 	path = pcomp_construct(pcomp, comps);
 	free(rpath);
 	free(pcomp);

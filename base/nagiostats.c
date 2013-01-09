@@ -22,6 +22,7 @@
  *
  *****************************************************************************/
 
+#include "../lib/libnagios.h"
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/nagios.h"
@@ -831,7 +832,13 @@ static int read_config_file(void) {
 	FILE *fp;
 	char *var;
 	char *val;
+	char *main_cfg_dir = NULL;
+	char *slash = NULL;
 
+
+	main_cfg_dir = nspath_absolute(main_config_file, NULL);
+	if ((slash = strrchr(main_cfg_dir, '/')))
+		*slash = 0;
 
 	fp = fopen(main_config_file, "r");
 	if(fp == NULL)
@@ -854,7 +861,7 @@ static int read_config_file(void) {
 		if(!strcmp(var, "status_file") || !strcmp(var, "status_log") || !strcmp(var, "xsddefault_status_log")) {
 			if(status_file)
 				free(status_file);
-			status_file = strdup(val);
+			status_file = nspath_absolute(val, main_cfg_dir);
 			}
 
 		}

@@ -461,6 +461,12 @@ int read_main_config_file(char *filename) {
 			strip(log_file);
 			}
 
+		else if(strstr(input, "object_cache_file=") == input) {
+			temp_buffer = strtok(input, "=");
+			temp_buffer = strtok(NULL, "\x0");
+			object_cache_file = nspath_absolute(temp_buffer, config_file_dir);
+			}
+
 		else if(strstr(input, "log_archive_path=") == input) {
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\n");

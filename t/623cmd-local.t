@@ -568,21 +568,6 @@ like( $output, "/<td CLASS='optBoxRequiredItem'>Scheduled Downtime ID:</td>/", "
 unlike( $output, "/Sorry, but no information is available for this command./", "$local_cgi with cmd_typ=$cmd_typ has a command description" );
 
 
-# Tests against command type '80'
-$cmd_typ=80;
-$output = `NAGIOS_CGI_CONFIG=etc/cgi.cfg $remote_user REQUEST_METHOD=GET QUERY_STRING='cmd_typ=$cmd_typ' $local_cgi`;
-like( $output, "/You are requesting to enable failure prediction for hosts and service/", "$local_cgi with cmd_typ=$cmd_typ shows request to enable failure prediction for hosts and service" );
-unlike( $output, "/Sorry, but no information is available for this command./", "$local_cgi with cmd_typ=$cmd_typ has a command description" );
-
-
-
-# Tests against command type '81'
-$cmd_typ=81;
-$output = `NAGIOS_CGI_CONFIG=etc/cgi.cfg $remote_user REQUEST_METHOD=GET QUERY_STRING='cmd_typ=$cmd_typ' $local_cgi`;
-like( $output, "/You are requesting to disable failure prediction for hosts and service/", "$local_cgi with cmd_typ=$cmd_typ shows request to disable failure prediction for hosts and service" );
-unlike( $output, "/Sorry, but no information is available for this command./", "$local_cgi with cmd_typ=$cmd_typ has a command description" );
-
-
 # Tests against command type '82'
 $cmd_typ=82;
 $output = `NAGIOS_CGI_CONFIG=etc/cgi.cfg $remote_user REQUEST_METHOD=GET QUERY_STRING='cmd_typ=$cmd_typ' $local_cgi`;

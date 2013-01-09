@@ -29,6 +29,12 @@ define contactgroup {
 	}
 
 define contactgroup {
+	contactgroup_name	normalhostcontactgroup
+	alias	This contact group is assigned to a host normally
+	members	second
+	}
+
+define contactgroup {
 	contactgroup_name	empty
 	alias	No members defined - this should pass validation
 	}
@@ -69,6 +75,7 @@ define host {
 	address	192.168.1.1
 	check_period	none
 	contacts	nagiosadmin
+	contact_groups normalhostcontactgroup
 	notification_period	none
 	initial_state	o
 	check_interval	5.000000
@@ -131,6 +138,7 @@ define service {
 	check_period	none
 	check_command	check_me
 	contacts	nagiosadmin
+	contact_groups normalhostcontactgroup
 	notification_period	none
 	initial_state	o
 	check_interval	32.000000

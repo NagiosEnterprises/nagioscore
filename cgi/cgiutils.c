@@ -117,9 +117,6 @@ void logit(int data_type, int display, const char *fmt, ...) {
 int log_debug_info(int leve, int verbosity, const char *fmt, ...) {
 	return 0;
 	}
-void timing_point(const char *fmt, ...) {
-	return;
-	}
 
 /**********************************************************
  ***************** CLEANUP FUNCTIONS **********************

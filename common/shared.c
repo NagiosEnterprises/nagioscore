@@ -42,6 +42,32 @@ int obsess_over_hosts = FALSE;
 char *config_file_dir = NULL;
 
 
+/* silly debug-ish helper used to track down hotspots in config parsing */
+void timing_point(const char *fmt, ...) {
+	static struct timeval last = {0, 0}, first = {0, 0};
+	struct timeval now;
+	va_list ap;
+
+	if(!enable_timing_point)
+		return;
+
+	if(first.tv_sec == 0) {
+		gettimeofday(&first, NULL);
+		last.tv_sec = first.tv_sec;
+		last.tv_usec = first.tv_usec;
+		printf("[0.0000 (+0.0000)] ");
+		}
+	else {
+		gettimeofday(&now, NULL);
+		printf("[%.4f (+%.4f)] ", tv_delta_f(&first, &now), tv_delta_f(&last, &now));
+		last.tv_sec = now.tv_sec;
+		last.tv_usec = now.tv_usec;
+		}
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
+	va_end(ap);
+	}
+
 /* fix the problem with strtok() skipping empty options between tokens */
 char *my_strtok(char *buffer, char *tokens) {
 	char *token_position = NULL;

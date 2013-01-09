@@ -22,7 +22,7 @@ like( $output, "/Error processing config file/", "No config file" );
 
 $output = `$nagiostats -c "$etc/nagios-no-status.cfg"`;
 isnt( $?, 0, "Bad return code with no status file" );
-like( $output, "/Error reading status file 'var/status.dat.no.such.file': No such file or directory/", "No config file" );
+like( $output, "/Error reading status file '.*var/status.dat.no.such.file': No such file or directory/", "No config file" );
 
 $output = `$nagiostats -c "$etc/nagios-no-status.cfg" -m -d NUMHSTUP`;
 isnt( $?, 0, "Bad return code with no status file in MRTG mode" );

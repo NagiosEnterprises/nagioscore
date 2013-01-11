@@ -1200,13 +1200,16 @@ use_large_installation_tweaks=0
 # This option determines whether or not Nagios will make all standard
 # macros available as environment variables when host/service checks
 # and system commands (event handlers, notifications, etc.) are
-# executed.  Enabling this option can cause performance issues in 
-# large installations, as it will consume a bit more memory and (more
-# importantly) consume more CPU.
-# Values: 1 - Enable environment variable macros (default)
-#         0 - Disable environment variable macros
+# executed.
+# Enabling this is a very bad idea for anything but very small setups,
+# as it means plugins, notification scripts and eventhandlers may run
+# out of environment space. It will also cause a significant increase
+# in CPU- and memory usage and drastically reduce the number of checks
+# you can run.
+# Values: 1 - Enable environment variable macros
+#         0 - Disable environment variable macros (default)
 
-enable_environment_macros=1
+enable_environment_macros=0
 
 
 

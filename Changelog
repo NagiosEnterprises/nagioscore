@@ -2,8 +2,9 @@
 Nagios 3.x Change Log
 #####################
 
-3.4.4 - xx/xx/xxxx
+3.4.4 - 01/12/2013
 ------------------
+* Reenabled check for newer versions of Nagios Core (Mike Guthrie)
 * Fixed bug #408: service checks get duplicated on reload (Eric Stanley)
 * Fixed bug #401: segmentation fault on Solaris when parsing unknown timeperiod directives. (Eric Stanley)
 * Added NULL pointer checks to CGI code. (Eric Stanley)

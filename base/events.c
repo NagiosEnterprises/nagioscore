@@ -31,6 +31,8 @@
 #include "../include/workers.h"
 #include "../lib/squeue.h"
 
+/* the event we're currently processing */
+static timed_event *current_event;
 
 /******************************************************************/
 /************ EVENT SCHEDULING/HANDLING FUNCTIONS *****************/
@@ -850,6 +852,18 @@ void remove_event(squeue_t *sq, timed_event *event) {
 		squeue_remove(sq, event->sq_event);
 
 	event->sq_event = NULL; /* mark this event as unscheduled */
+
+	/*
+	 * if we catch an event from the queue which gets removed when
+	 * we go polling for input (as might happen with f.e. downtime
+	 * events that we get "cancel" commands for just as they are
+	 * about to start or expire), we must make sure we mark the
+	 * current event as no longer scheduled, or we'll run into
+	 * segfaults and memory corruptions for sure.
+	 */
+	if (event == current_event) {
+		current_event = NULL;
+		}
 	}
 
 
@@ -950,7 +964,7 @@ static int should_run_event(timed_event *temp_event)
 
 /* this is the main event handler loop */
 int event_execution_loop(void) {
-	timed_event *temp_event = NULL, *last_event = NULL;
+	timed_event *temp_event, *last_event = NULL;
 	time_t last_time = 0L;
 	time_t current_time = 0L;
 	time_t last_status_update = 0L;
@@ -983,7 +997,7 @@ int event_execution_loop(void) {
 			compensate_for_system_time_change((unsigned long)last_time, (unsigned long)current_time);
 
 		/* get next scheduled event */
-		temp_event = (timed_event *)squeue_peek(nagios_squeue);
+		current_event = temp_event = (timed_event *)squeue_peek(nagios_squeue);
 
 		/* if we don't have any events to handle, exit */
 		if(!temp_event) {
@@ -1028,6 +1042,17 @@ int event_execution_loop(void) {
 		}
 
 		log_debug_info(DEBUGL_IPC, 2, "## %d descriptors had input\n", inputs);
+
+		/*
+		 * if the event we peaked was removed from the queue from
+		 * one of the I/O operations, we must take care not to
+		 * try to run at, as we're (almost) sure to access free'd
+		 * or invalid memory if we do.
+		 */
+		if (!current_event) {
+			log_debug_info(DEBUGL_EVENTS, 0, "Event was cancelled by iobroker input\n");
+			continue;
+			}
 
 		/* 100 milliseconds allowance for firing off events early */
 		gettimeofday(&now, NULL);

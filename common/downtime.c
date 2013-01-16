@@ -150,7 +150,7 @@ int unschedule_downtime(int type, unsigned long downtime_id) {
 		}
 
 	log_debug_info(DEBUGL_DOWNTIME, 0, "Cancelling %s downtime (id=%lu)\n",
-	               temp_downtime->downtime_type == HOST_DOWNTIME ? "host" : "service",
+	               temp_downtime->type == HOST_DOWNTIME ? "host" : "service",
 	               temp_downtime->downtime_id);
 
 	/* decrement the downtime depth variable and update status data if necessary */

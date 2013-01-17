@@ -320,7 +320,7 @@ extern struct load_control loadctl;
 #define NOTIFICATION_DOWNTIMESTART      5
 #define NOTIFICATION_DOWNTIMEEND        6
 #define NOTIFICATION_DOWNTIMECANCELLED  7
-#define NOTIFICATION_CUSTOM             99
+#define NOTIFICATION_CUSTOM             8
 
 
 
@@ -578,6 +578,7 @@ int run_global_host_event_handler(nagios_macros *mac, host *);			/* runs the glo
 
 
 /**** Notification Functions ****/
+const char *notification_reason_name(unsigned int reason_type);
 int check_service_notification_viability(service *, int, int);			/* checks viability of notifying all contacts about a service */
 int is_valid_escalation_for_service_notification(service *, serviceescalation *, int);	/* checks if an escalation entry is valid for a particular service notification */
 int should_service_notification_be_escalated(service *);			/* checks if a service notification should be escalated */

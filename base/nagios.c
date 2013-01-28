@@ -134,6 +134,39 @@ static int nagios_core_worker(const char *path)
 	return 0;
 }
 
+/*
+ * only handles logfile for now, which we stash in macros to
+ * make sure we can log *somewhere* in case the new path is
+ * completely inaccessible.
+ */
+static int test_configured_paths(void)
+{
+	FILE *fp;
+	nagios_macros *mac;
+
+	mac = get_global_macros();
+
+	fp = fopen(log_file, "w");
+	if (!fp) {
+		/*
+		 * we do some variable trashing here so logit() can
+		 * open the old logfile (if any), in case we got a
+		 * restart command or a SIGHUP
+		 */
+		char *value_absolute = log_file;
+		log_file = mac->x[MACRO_LOGFILE];
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to open logfile '%s' for writing: %s\n", value_absolute, strerror(errno));
+		return ERROR;
+		}
+
+	fclose(fp);
+
+	/* save the macro */
+	my_free(mac->x[MACRO_LOGFILE]);
+	mac->x[MACRO_LOGFILE] = log_file;
+	return OK;
+}
+
 int main(int argc, char **argv, char **env) {
 	int result;
 	int error = FALSE;
@@ -326,12 +359,24 @@ int main(int argc, char **argv, char **env) {
 			exit(EXIT_FAILURE);
 			}
 
+		if (test_configured_paths() == ERROR)
+			printf("   One or more path problems detected. Aborting.\n");
+
 		if(verify_config)
 			printf("   Read main config file okay...\n");
 
 		/* drop privileges */
 		if((result = drop_privileges(nagios_user, nagios_group)) == ERROR) {
 			printf("   Failed to drop privileges.  Aborting.");
+			exit(EXIT_FAILURE);
+			}
+
+		/*
+		 * this must come after dropping privileges, so we make
+		 * sure to test access permissions as the right user.
+		 */
+		if (test_configured_paths() == ERROR) {
+			/* error is already logged */
 			exit(EXIT_FAILURE);
 			}
 

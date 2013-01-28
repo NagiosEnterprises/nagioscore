@@ -3158,6 +3158,7 @@ void free_memory(nagios_macros *mac) {
 
 	/* free file/path variables */
 	my_free(log_file);
+	mac->x[MACRO_LOGFILE] = NULL; /* assigned from 'log_file' */
 	my_free(debug_file);
 	my_free(temp_file);
 	my_free(temp_path);

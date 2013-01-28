@@ -749,7 +749,6 @@ int xodtemplate_process_config_file(char *, int);           /* process data in a
 int xodtemplate_process_config_dir(char *, int);            /* process all files in a specific config directory */
 
 int xodtemplate_expand_services(objectlist **, bitmap *, char *, char *, int, int);
-#ifdef NSCORE
 int xodtemplate_expand_contactgroups(objectlist **, bitmap *, char *, int, int);
 int xodtemplate_expand_contacts(objectlist **, bitmap *, char *, int, int);
 
@@ -771,7 +770,6 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **, xodtemplate_me
 int xodtemplate_add_member_to_memberlist(xodtemplate_memberlist **, char *, char *);
 int xodtemplate_free_memberlist(xodtemplate_memberlist **);
 void xodtemplate_remove_memberlist_item(xodtemplate_memberlist *, xodtemplate_memberlist **);
-#endif
 
 
 int xodtemplate_begin_object_definition(char *, int, int, int);
@@ -809,11 +807,13 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *, char *, c
 int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *, char *, char *, char *, char *);
 int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *, char *);
 int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *, char *);
+#endif
 
 int xodtemplate_recombobulate_contactgroups(void);
 int xodtemplate_recombobulate_hostgroups(void);
 int xodtemplate_recombobulate_servicegroups(void);
 
+#ifdef NSCORE
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_resolve_command(xodtemplate_command *);
 int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *);
@@ -832,6 +832,7 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *);
 int xodtemplate_merge_extinfo_ojects(void);
 int xodtemplate_merge_host_extinfo_object(xodtemplate_host *, xodtemplate_hostextinfo *);
 int xodtemplate_merge_service_extinfo_object(xodtemplate_service *, xodtemplate_serviceextinfo *);
+#endif
 
 xodtemplate_timeperiod *xodtemplate_find_timeperiod(char *);
 xodtemplate_command *xodtemplate_find_command(char *);
@@ -857,7 +858,6 @@ xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *);
 int xodtemplate_get_inherited_string(char *, char **, char *, char **);
 int xodtemplate_clean_additive_string(char **);
 int xodtemplate_clean_additive_strings(void);
-#endif
 
 int xodtemplate_register_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_get_time_ranges(char *, unsigned long *, unsigned long *);

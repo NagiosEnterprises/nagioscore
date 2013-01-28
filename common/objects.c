@@ -132,6 +132,7 @@ const char *opts2str(int opts, struct flag_map *map, char ok_char)
 }
 
 
+/* Host/Service dependencies are not visible in Nagios CGIs, so we exclude them */
 #ifndef NSCGI
 unsigned int host_services_value(host *h) {
 	servicesmember *sm;
@@ -168,8 +169,10 @@ static int cmp_hdep(const void *a_, const void *b_) {
 	ret = strcmp(a->host_name, b->host_name);
 	return ret ? ret : strcmp(a->dependent_host_name, b->dependent_host_name);
 	}
+#endif
 
 static void post_process_object_config(void) {
+#ifndef NSCGI
 	objectlist *list;
 	unsigned int i, slot;
 
@@ -204,6 +207,8 @@ static void post_process_object_config(void) {
 	qsort(hostdependency_ary, num_objects.hostdependencies, sizeof(hostdependency *), cmp_hdep);
 	timing_point("Done post-processing host dependencies\n");
 
+#endif
+
 	timeperiod_list = timeperiod_ary ? *timeperiod_ary : NULL;
 	command_list = command_ary ? *command_ary : NULL;
 	hostgroup_list = hostgroup_ary ? *hostgroup_ary : NULL;
@@ -215,7 +220,6 @@ static void post_process_object_config(void) {
 	hostescalation_list = hostescalation_ary ? *hostescalation_ary : NULL;
 	serviceescalation_list = serviceescalation_ary ? *serviceescalation_ary : NULL;
 }
-#endif
 
 /* simple state-name helpers, nifty to have all over the place */
 const char *service_state_name(int state)
@@ -270,9 +274,7 @@ int read_object_config_data(char *main_config_file, int options) {
 		return ERROR;
 #endif
 	/* handle any remaining config mangling */
-#ifndef NSCGI
 	post_process_object_config();
-#endif
 	timing_point("Done post-processing configuration\n");
 
 	return result;

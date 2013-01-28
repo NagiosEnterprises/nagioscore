@@ -185,3 +185,41 @@ char *nspath_absolute_dirname(const char *path, const char *base)
 	free(buf);
 	return ret;
 }
+
+int nspath_mkdir_p(const char *orig_path, mode_t mode, int options)
+{
+	char *sep, *path;
+	int ret = 0, mkdir_start = 0;
+
+	if (options)
+		return mkdir(path, mode);
+
+	sep = path = strdup(path);
+	for (;;) {
+		struct stat st;
+
+		sep = strchr(sep, '/');
+		if (!sep && !(options & NSPATH_MKDIR_SKIP_LAST))
+			break;
+
+		/* stat() our way up the tree and start mkdir() on ENOENT */
+		if (!mkdir_start) {
+			ret = stat(path, &st);
+			if (ret < 0 && errno != ENOENT)
+				break;
+			mkdir_start = 1;
+		}
+
+		if (mkdir_start) {
+			ret = mkdir(path, mode);
+			if (ret < 0)
+				break;
+		}
+		if (!sep)
+			break;
+		*sep = '/';
+	}
+
+	free(path);
+	return ret;
+}

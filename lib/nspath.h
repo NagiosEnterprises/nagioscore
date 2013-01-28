@@ -11,6 +11,7 @@
  */
 
 #define _GNU_SOURCE 1
+#include <errno.h>
 #include "snprintf.h"
 
 /**
@@ -58,4 +59,19 @@ extern char *nspath_real(const char *rel_path, const char *base);
  * @return NULL on errors, allocated absolute directory name on success
  */
 extern char *nspath_absolute_dirname(const char *path, const char *base);
+
+
+/**
+ * Recursively create a directory, just like mkdir_p would
+ * @param path Path to create, in normalized form
+ * @param mode Filemode (same as mkdir() takes)
+ * @param options Options flag. See NSPATH_MKDIR_* for or-able options
+ * @return 0 on success, -1 on errors and errno will hold error code
+ *   from either stat() or mkdir().
+ */
+extern int nspath_mkdir_p(const char *path, mode_t mode, int options);
+
+/** Don't mkdir() last element of path when calling nspath_mkdir_p() */
+#define NSPATH_MKDIR_SKIP_LAST (1 << 0)
+
 /* @} */

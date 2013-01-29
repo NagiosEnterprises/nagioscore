@@ -12,6 +12,7 @@
 
 #define _GNU_SOURCE 1
 #include <errno.h>
+#include <sys/stat.h>
 #include "snprintf.h"
 
 /**
@@ -62,7 +63,13 @@ extern char *nspath_absolute_dirname(const char *path, const char *base);
 
 
 /**
- * Recursively create a directory, just like mkdir_p would
+ * Recursively create a directory, just like mkdir_p would.
+ * @note This function *will* taint errno with ENOENT if any path
+ * component has to be created.
+ * @note If "path" has a trailing slash, NSPATH_MKDIR_SKIP_LAST
+ * won't have any effect. That's considered a feature, since the
+ * option is designed so one can send a file-path to the function
+ * and have it create the directory structure for it.
  * @param path Path to create, in normalized form
  * @param mode Filemode (same as mkdir() takes)
  * @param options Options flag. See NSPATH_MKDIR_* for or-able options

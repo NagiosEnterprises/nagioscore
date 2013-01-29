@@ -191,31 +191,38 @@ int nspath_mkdir_p(const char *orig_path, mode_t mode, int options)
 	char *sep, *path;
 	int ret = 0, mkdir_start = 0;
 
-	if (options)
-		return mkdir(path, mode);
+	if (!orig_path) {
+		errno = EFAULT;
+		return -1;
+	}
 
-	sep = path = strdup(path);
+	sep = path = strdup(orig_path);
+	if (!sep)
+		return -1;
+
 	for (;;) {
 		struct stat st;
 
-		sep = strchr(sep, '/');
-		if (!sep && !(options & NSPATH_MKDIR_SKIP_LAST))
+		if ((sep = strchr(sep + 1, '/'))) {
+			*sep = 0; /* nul-terminate path */
+		} else if (options & NSPATH_MKDIR_SKIP_LAST) {
 			break;
+		}
 
 		/* stat() our way up the tree and start mkdir() on ENOENT */
-		if (!mkdir_start) {
-			ret = stat(path, &st);
-			if (ret < 0 && errno != ENOENT)
+		if (!mkdir_start && (ret = stat(path, &st)) < 0) {
+			if (errno != ENOENT) {
 				break;
+			}
 			mkdir_start = 1;
 		}
 
-		if (mkdir_start) {
-			ret = mkdir(path, mode);
-			if (ret < 0)
-				break;
+		if (mkdir_start && (ret = mkdir(path, mode)) < 0) {
+			break;
 		}
-		if (!sep)
+
+		/* end of path or trailing slash? */
+		if (!sep || !sep[1])
 			break;
 		*sep = '/';
 	}

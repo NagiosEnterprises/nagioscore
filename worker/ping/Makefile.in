@@ -1,0 +1,55 @@
+###################################
+# Makefile for NEB examples
+#
+###################################
+
+
+# Source code directories
+SRC_LIB=@srcdir@/lib
+SRC_INCLUDE=@srcdir@/include
+
+CC=@CC@
+WORKER_CFLAGS=@WORKER_CFLAGS@
+CFLAGS=@CFLAGS@ @DEFS@
+WORKER_LDFLAGS=@WORKER_LDFLAGS@
+LDFLAGS=@LDFLAGS@
+LIBS=@LIBS@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+BINDIR=@bindir@
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+COMMAND_OPTS=@COMMAND_OPTS@
+STRIP=@STRIP@
+
+CP=@CP@
+
+all:	worker-ping
+
+worker-ping: worker-ping.c
+	$(CC) -I.. $(WORKER_CFLAGS) $(CFLAGS) -o worker-ping worker-ping.c $(WORKER_LDFLAGS) $(LDFLAGS) $(LIBS)
+
+clean:
+	rm -f worker-ping worker-ping.o
+	rm -f core *.o
+	rm -f *~ *.*~
+
+distclean: clean
+	rm -f Makefile
+
+devclean: distclean
+
+install:
+	$(MAKE) install-basic
+	$(MAKE) strip-post-install
+
+install-unstripped:
+	$(MAKE) install-basic
+
+install-basic:
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 774 $(INSTALL_OPTS) worker-ping $(DESTDIR)$(BINDIR)
+
+strip-post-install:
+	$(STRIP) $(DESTDIR)$(BINDIR)/worker-ping

@@ -15,6 +15,7 @@ SRC_COMMON=@srcdir@/common
 SRC_XDATA=@srcdir@/xdata
 SRC_CONTRIB=@srcdir@/contrib
 SRC_TTAP=@srcdir@/t-tap
+SRC_WORKERS=@srcdir@/worker
 
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@
@@ -51,7 +52,7 @@ CP=@CP@
 
 none:
 		@echo "Please supply a command line argument (i.e. 'make all').  Other targets are:"
-		@echo "   nagios cgis contrib modules"
+		@echo "   nagios cgis contrib modules workers"
 		@echo "   clean"
 		@echo "   install install-base install-cgis install-html install-exfoliation install-config install-init install-commandmode fullinstall"
 #		@echo "   uninstall"
@@ -73,6 +74,7 @@ all:
 	if [ x$(USE_EVENTBROKER) = xyes ]; then \
 		cd $(SRC_MODULE) && $(MAKE); \
 	fi
+	cd $(SRC_WORKERS) && $(MAKE) $@
 
 	@echo ""
 	@echo "*** Compile finished ***"
@@ -162,6 +164,9 @@ contrib:
 modules:
 	cd $(SRC_MODULE) && $(MAKE)
 
+workers:
+	cd $(SRC_WORKERS) && $(MAKE) all
+
 clean:
 	cd $(SRC_LIB) && $(MAKE) $@
 	cd $(SRC_BASE) && $(MAKE) $@
@@ -173,6 +178,7 @@ clean:
 	cd $(SRC_CONTRIB) && $(MAKE) $@
 	cd $(SRC_MODULE) && $(MAKE) $@
 	cd $(SRC_TTAP) && $(MAKE) $@
+	cd $(SRC_WORKERS) && $(MAKE) $@
 	rm -f *.cfg core
 	rm -f *~ *.*~ */*~ */*.*~ */*/*.*~
 
@@ -187,6 +193,7 @@ distclean: clean
 	cd $(SRC_CONTRIB) && $(MAKE) $@
 	cd $(SRC_MODULE) && $(MAKE) $@
 	cd $(SRC_TTAP) && $(MAKE) $@
+	cd $(SRC_WORKERS) && $(MAKE) $@
 	rm -f sample-config/*.cfg  sample-config/*.conf sample-config/template-object/*.cfg
 	rm -f daemon-init pkginfo
 	rm -f Makefile subst

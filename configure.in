@@ -571,6 +571,11 @@ if test x$USE_EVENTBROKER = xyes; then
 	AC_SUBST(MOD_CFLAGS)
 	AC_SUBST(MOD_LDFLAGS)
 
+	dnl - flags for compiling workers
+	WORKER_CFLAGS="-I ../../include -I ../.."
+	WORKER_LDFLAGS="-L ../../lib -l nagios"
+	AC_SUBST(WORKER_CFLAGS)
+	AC_SUBST(WORKER_LDFLAGS)
 
 	AC_DEFINE_UNQUOTED(USE_EVENT_BROKER,,[defined to bring in the event broker objects])
 	BROKER_O="broker.o nebmods.o"
@@ -668,7 +673,7 @@ AC_SUBST(USE_EVENTBROKER)
 
 AC_PATH_PROG(PERL,perl)
 
-AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile)
+AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile)
 
 
 perl subst include/locations.h

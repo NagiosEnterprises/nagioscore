@@ -162,7 +162,6 @@ static int test_configured_paths(void)
 	fclose(fp);
 
 	/* save the macro */
-	my_free(mac->x[MACRO_LOGFILE]);
 	mac->x[MACRO_LOGFILE] = log_file;
 	return OK;
 }
@@ -359,9 +358,6 @@ int main(int argc, char **argv, char **env) {
 			exit(EXIT_FAILURE);
 			}
 
-		if (test_configured_paths() == ERROR)
-			printf("   One or more path problems detected. Aborting.\n");
-
 		if(verify_config)
 			printf("   Read main config file okay...\n");
 
@@ -376,7 +372,7 @@ int main(int argc, char **argv, char **env) {
 		 * sure to test access permissions as the right user.
 		 */
 		if (test_configured_paths() == ERROR) {
-			/* error is already logged */
+			printf("   One or more path problems detected. Aborting.\n");
 			exit(EXIT_FAILURE);
 			}
 

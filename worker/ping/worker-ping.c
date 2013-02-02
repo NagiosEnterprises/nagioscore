@@ -37,6 +37,8 @@
 #define PW_ERROR	1
 
 /* Local function declarations */
+int			daemon_init( void);
+int			drop_privileges( char *, char *);
 void		print_license( void);
 void		print_usage( char *);
 void		print_version( void);
@@ -67,6 +69,15 @@ main( int argc, char **argv, char **env) {
 	if( drop_privileges( worker_user, worker_group) == PW_ERROR) {
 		fprintf( stderr, "Failed to drop privileges. Aborting.\n");
 		exit( 1);
+	}
+
+	if( TRUE == daemon_mode) {
+		if( daemon_init() == ERROR) {
+			fprintf( stderr, 
+					"Bailing out due to failure to daemonize. (PID=%d)\n", 
+					( int)getpid());
+			exit( 1);
+		}
 	}
 
 	/* Enter the worker code */
@@ -324,4 +335,132 @@ int drop_privileges( char *user, char *group) {
 	}
 
 	return result;
+}
+
+int daemon_init( void) {
+	pid_t pid = -1;
+	int pidno = 0;
+	int lockfile = 0;
+	int val = 0;
+	char buf[256];
+	struct flock lock;
+	char *homedir = NULL;
+
+#ifdef RLIMIT_CORE
+	struct rlimit limit;
+#endif
+
+	/* change working directory. scuttle home if we're dumping core */
+	homedir = getenv( "HOME");
+#ifdef DAEMON_DUMPS_CORE
+	if( NULL != homedir) {
+		chdir( homedir);
+	}
+	else {
+#endif
+		chdir( "/");
+#ifdef DAEMON_DUMPS_CORE
+	}
+#endif
+
+	umask( S_IWGRP | S_IWOTH);
+
+	/* close existing stdin, stdout, stderr */
+	close( 0);
+	close( 1);
+	close( 2);
+
+	/* THIS HAS TO BE DONE TO AVOID PROBLEMS WITH STDERR BEING REDIRECTED TO SERVICE MESSAGE PIPE! */
+	/* re-open stdin, stdout, stderr with known values */
+	open( "/dev/null", O_RDONLY);
+	open( "/dev/null", O_WRONLY);
+	open( "/dev/null", O_WRONLY);
+
+#ifdef USE_LOCKFILE
+	lockfile = open( lock_file, 
+			O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+
+	if( lockfile < 0) {
+		logit( NSLOG_RUNTIME_ERROR, TRUE, "Failed to obtain lock on file %s: %s\n", lock_file, strerror(errno));
+		logit( NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR, TRUE, "Bailing out due to errors encountered while attempting to daemonize... (PID=%d)", (int)getpid());
+
+		exit( 1);
+	}
+
+	/* see if we can read the contents of the lockfile */
+	if(( val = read( lockfile, buf, ( size_t)10)) < 0) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile exists but cannot be read");
+		exit( 1);
+	}
+
+	/* we read something - check the PID */
+	if( val > 0) {
+		if(( val = sscanf( buf, "%d", &pidno)) < 1) {
+			logit( NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' does not contain a valid PID (%s)", lock_file, buf);
+			exit( 1);
+		}
+	}
+
+	/* check for SIGHUP */
+	if( val == 1 && ( pid = ( pid_t)pidno) == getpid()) {
+		close( lockfile);
+		return OK;
+	}
+#endif
+
+	/* exit on errors... */
+	if(( pid = fork()) < 0) {
+		return( PW_ERROR);
+	}
+
+	/* parent process goes away.. */
+	else if((int)pid != 0) {
+		exit( 0);
+	}
+
+	/* child continues... */
+
+	/* child becomes session leader... */
+	setsid();
+
+#ifdef USE_LOCKFILE
+	/* place a file lock on the lock file */
+	lock.l_type = F_WRLCK;
+	lock.l_start = 0;
+	lock.l_whence = SEEK_SET;
+	lock.l_len = 0;
+	if( fcntl( lockfile, F_SETLK, &lock) < 0) {
+		if( EACCES == errno || EAGAIN == errno) {
+			fcntl( lockfile, F_GETLK, &lock);
+			logit( NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' looks like its already held by another instance of Nagios (PID %d).  Bailing out...", lock_file, (int)lock.l_pid);
+			}
+		else {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Cannot lock lockfile '%s': %s. Bailing out...", lock_file, strerror(errno));
+
+		}
+		exit( 1);
+	}
+#endif
+
+	/* prevent daemon from dumping a core file... */
+#if defined( RLIMIT_CORE) && defined( DAEMON_DUMPS_CORE)
+	getrlimit( RLIMIT_CORE, &limit);
+	limit.rlim_cur = 0;
+	setrlimit( RLIMIT_CORE, &limit);
+#endif
+
+#ifdef USE_LOCKFILE
+	/* write PID to lockfile... */
+	lseek( lockfile, 0, SEEK_SET);
+	ftruncate( lockfile, 0);
+	sprintf( buf, "%d\n", ( int)getpid());
+	write( lockfile, buf, strlen( buf));
+
+	/* make sure lock file stays open while program is executing... */
+	val = fcntl( lockfile, F_GETFD, 0);
+	val |= FD_CLOEXEC;
+	fcntl( lockfile, F_SETFD, val);
+#endif
+
+	return PW_OK;
 }

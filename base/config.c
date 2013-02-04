@@ -1171,8 +1171,8 @@ int read_main_config_file(char *main_config_file) {
 
 	/* save the macros */
 	my_free(mac->x[MACRO_TEMPPATH]);
-	mac->x[MACRO_TEMPFILE] = (char *)strdup(temp_path);
 	my_free(mac->x[MACRO_TEMPFILE]);
+	mac->x[MACRO_TEMPPATH] = (char *)strdup(temp_path);
 	mac->x[MACRO_TEMPFILE] = (char *)strdup(temp_file);
 
 	/* adjust timezone values */

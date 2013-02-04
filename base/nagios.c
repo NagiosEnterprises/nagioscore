@@ -572,6 +572,10 @@ int main(int argc, char **argv, char **env) {
 				exit(EXIT_FAILURE);
 				}
 
+			if (test_configured_paths() == ERROR) {
+				/* error has already been logged */
+				exit(EXIT_FAILURE);
+				}
 			/* enter daemon mode (unless we're restarting...) */
 			if(daemon_mode == TRUE && sigrestart == FALSE) {
 

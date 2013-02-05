@@ -1,8 +1,8 @@
-CC = gcc
+CC = @CC@
 COV_CFLAGS = -ggdb3 -O0 -ftest-coverage -fprofile-arcs -pg
 LDFLAGS =
 CFLAGS ?= @CFLAGS@
-ALL_CFLAGS = -Wall $(CFLAGS) @DEFS@
+ALL_CFLAGS = $(CFLAGS) @DEFS@
 LIBNAME = libnagios.a
 
 all: $(LIBNAME)

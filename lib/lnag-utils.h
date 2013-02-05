@@ -108,6 +108,8 @@ static inline int lnag_ispof2(unsigned int x)
  */
 static inline int lnag_clz(unsigned int x)
 {
+	int i;
+
 	for (i = 0; i < sizeof(x) * 8; i++) {
 		if (x >> (i * sizeof(x) * 8) == 1)
 			return i;

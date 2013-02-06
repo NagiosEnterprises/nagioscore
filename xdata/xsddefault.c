@@ -204,9 +204,6 @@ int xsddefault_grab_config_directives(char *input) {
 		xsddefault_status_log = nspath_absolute(temp_ptr, config_file_dir);
 		}
 
-	/* use the global already-parsed temp_file for this */
-	xsddefault_temp_file = temp_file;
-
 	/* free memory */
 	my_free(varname);
 	my_free(varvalue);
@@ -226,6 +223,9 @@ int xsddefault_grab_config_directives(char *input) {
 /* initialize status data */
 int xsddefault_initialize_status_data(char *config_file) {
 	int result;
+
+	/* use the global already-parsed temp_file for this */
+	xsddefault_temp_file = temp_file;
 
 	/* grab configuration data */
 	result = xsddefault_grab_config_info(config_file);

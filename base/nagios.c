@@ -63,10 +63,14 @@ static void set_loadctl_defaults(void)
 	rlim.rlim_cur = rlim.rlim_max;
 	setrlimit(RLIMIT_NOFILE, &rlim);
 	loadctl.nofile_limit = rlim.rlim_max;
+#ifdef RLIMIT_NPROC
 	getrlimit(RLIMIT_NPROC, &rlim);
 	rlim.rlim_cur = rlim.rlim_max;
 	setrlimit(RLIMIT_NPROC, &rlim);
 	loadctl.nproc_limit = rlim.rlim_max;
+#else
+	loadctl.nproc_limit = loadctl.nofile_limit / 2;
+#endif
 
 	/*
 	 * things may have been configured already. Otherwise we

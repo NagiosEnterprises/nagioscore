@@ -571,7 +571,6 @@ int get_raw_command_line_r(nagios_macros *mac, command *cmd_ptr, char *cmd, char
 	register int x = 0;
 	register int y = 0;
 	register int arg_index = 0;
-	register int escaped = FALSE;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "get_raw_command_line_r()\n");
 
@@ -608,22 +607,17 @@ int get_raw_command_line_r(nagios_macros *mac, command *cmd_ptr, char *cmd, char
 			/* can't use strtok(), as that's used in process_macros... */
 			for(arg_index++, y = 0; y < sizeof(temp_arg) - 1; arg_index++) {
 
-				/* backslashes escape */
-				if(cmd[arg_index] == '\\' && escaped == FALSE) {
-					escaped = TRUE;
-					continue;
-					}
-
-				/* end of argument */
-				if((cmd[arg_index] == '!' && escaped == FALSE) || cmd[arg_index] == '\x0')
+				/* handle escaped argument delimiters */
+				if(cmd[arg_index] == '\\' && cmd[arg_index+1] == '!') {
+					arg_index++;
+				} else if(cmd[arg_index] == '!' || cmd[arg_index] == '\x0') {
+					/* end of argument */
 					break;
+				}
 
-				/* normal of escaped char */
+				/* copy the character */
 				temp_arg[y] = cmd[arg_index];
 				y++;
-
-				/* clear escaped flag */
-				escaped = FALSE;
 				}
 			temp_arg[y] = '\x0';
 

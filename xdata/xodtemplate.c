@@ -4782,6 +4782,7 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 
 	parents = children = NULL;
 	bitmap_clear(parent_map);
+	bitmap_clear(service_map);
 
 	/* create the two object lists */
 	if(xodtemplate_create_service_list(&parents, parent_map, temp_servicedependency->host_name, temp_servicedependency->hostgroup_name, temp_servicedependency->servicegroup_name, temp_servicedependency->service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {

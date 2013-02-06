@@ -67,7 +67,7 @@ int program_stats[MAX_CHECK_STATS_TYPES][3];
 #endif
 
 char *xsddefault_status_log = NULL;
-char *xsddefault_temp_file = NULL;
+char *xsddefault_temp_file = NULL; /* XXX: TO BE REMOVED SO DO NOT USE! */
 
 
 
@@ -160,13 +160,9 @@ int xsddefault_grab_config_info(char *config_file) {
 	/* initialize locations if necessary */
 	if(xsddefault_status_log == NULL)
 		xsddefault_status_log = (char *)strdup(DEFAULT_STATUS_FILE);
-	if(xsddefault_temp_file == NULL)
-		xsddefault_temp_file = (char *)strdup(DEFAULT_TEMP_FILE);
 
 	/* make sure we have what we need */
 	if(xsddefault_status_log == NULL)
-		return ERROR;
-	if(xsddefault_temp_file == NULL)
 		return ERROR;
 
 #ifdef NSCORE
@@ -208,10 +204,8 @@ int xsddefault_grab_config_directives(char *input) {
 		xsddefault_status_log = nspath_absolute(temp_ptr, config_file_dir);
 		}
 
-	/* temp file definition */
-	else if(!strcmp(varname, "temp_file")) {
-		xsddefault_temp_file = nspath_absolute(temp_ptr, config_file_dir);
-		}
+	/* use the global already-parsed temp_file for this */
+	xsddefault_temp_file = temp_file;
 
 	/* free memory */
 	my_free(varname);
@@ -257,7 +251,6 @@ int xsddefault_cleanup_status_data(char *config_file, int delete_status_data) {
 
 	/* free memory */
 	my_free(xsddefault_status_log);
-	my_free(xsddefault_temp_file);
 
 	return OK;
 	}
@@ -269,7 +262,7 @@ int xsddefault_cleanup_status_data(char *config_file, int delete_status_data) {
 
 /* write all status data to file */
 int xsddefault_save_status_data(void) {
-	char *temp_file = NULL;
+	char *tmp_log = NULL;
 	customvariablesmember *temp_customvariablesmember = NULL;
 	host *temp_host = NULL;
 	service *temp_service = NULL;
@@ -287,22 +280,19 @@ int xsddefault_save_status_data(void) {
 	if(!xsddefault_status_log || !strcmp(xsddefault_status_log, "/dev/null"))
 		return OK;
 
-	/* open a safe temp file for output */
-	if(xsddefault_temp_file == NULL)
-		return ERROR;
-	asprintf(&temp_file, "%sXXXXXX", xsddefault_temp_file);
-	if(temp_file == NULL)
+	asprintf(&tmp_log, "%sXXXXXX", temp_file);
+	if(tmp_log == NULL)
 		return ERROR;
 
-	log_debug_info(DEBUGL_STATUSDATA, 2, "Writing status data to temp file '%s'\n", temp_file);
+	log_debug_info(DEBUGL_STATUSDATA, 2, "Writing status data to temp file '%s'\n", tmp_log);
 
-	if((fd = mkstemp(temp_file)) == -1) {
+	if((fd = mkstemp(tmp_log)) == -1) {
 
 		/* log an error */
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to create temp file '%s' for writing status data: %s\n", temp_file, strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to create temp file '%s' for writing status data: %s\n", tmp_log, strerror(errno));
 
 		/* free memory */
-		my_free(temp_file);
+		my_free(tmp_log);
 
 		return ERROR;
 		}
@@ -310,13 +300,13 @@ int xsddefault_save_status_data(void) {
 	if(fp == NULL) {
 
 		close(fd);
-		unlink(temp_file);
+		unlink(tmp_log);
 
 		/* log an error */
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to open temp file '%s' for writing status data: %s\n", temp_file, strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to open temp file '%s' for writing status data: %s\n", tmp_log, strerror(errno));
 
 		/* free memory */
-		my_free(temp_file);
+		my_free(tmp_log);
 
 		return ERROR;
 		}
@@ -608,8 +598,8 @@ int xsddefault_save_status_data(void) {
 		result = OK;
 
 		/* move the temp file to the status log (overwrite the old status log) */
-		if(my_rename(temp_file, xsddefault_status_log)) {
-			unlink(temp_file);
+		if(my_rename(tmp_log, xsddefault_status_log)) {
+			unlink(tmp_log);
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to update status data file '%s': %s", xsddefault_status_log, strerror(errno));
 			result = ERROR;
 			}
@@ -621,12 +611,12 @@ int xsddefault_save_status_data(void) {
 		result = ERROR;
 
 		/* remove temp file and log an error */
-		unlink(temp_file);
+		unlink(tmp_log);
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to save status file: %s", strerror(errno));
 		}
 
 	/* free memory */
-	my_free(temp_file);
+	my_free(tmp_log);
 
 	return result;
 	}
@@ -1180,7 +1170,6 @@ int xsddefault_read_status_data(char *config_file, int options) {
 
 	/* free memory */
 	my_free(xsddefault_status_log);
-	my_free(xsddefault_temp_file);
 
 	if(sort_downtime() != OK)
 		return ERROR;

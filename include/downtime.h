@@ -46,6 +46,7 @@ typedef struct scheduled_downtime_struct {
 	unsigned long duration;
 	unsigned long downtime_id;
 	int is_in_effect;
+	int	start_notification_sent;
 	char *author;
 	char *comment;
 #ifdef NSCORE
@@ -64,9 +65,9 @@ typedef struct scheduled_downtime_struct {
 int initialize_downtime_data(char *);                                /* initializes scheduled downtime data */
 int cleanup_downtime_data(char *);                                   /* cleans up scheduled downtime data */
 
-int add_new_downtime(int, char *, char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int);
-int add_new_host_downtime(char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int);
-int add_new_service_downtime(char *, char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int);
+int add_new_downtime(int, char *, char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int, int);
+int add_new_host_downtime(char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int, int);
+int add_new_service_downtime(char *, char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int, int);
 
 int delete_host_downtime(unsigned long);
 int delete_service_downtime(unsigned long);
@@ -85,15 +86,15 @@ int check_pending_flex_service_downtime(service *);
 int check_for_expired_downtime(void);
 #endif
 
-int add_host_downtime(char *, time_t, char *, char *, time_t, time_t, time_t, int, unsigned long, unsigned long, unsigned long, int);
-int add_service_downtime(char *, char *, time_t, char *, char *, time_t, time_t, time_t, int, unsigned long, unsigned long, unsigned long, int);
+int add_host_downtime(char *, time_t, char *, char *, time_t, time_t, time_t, int, unsigned long, unsigned long, unsigned long, int, int);
+int add_service_downtime(char *, char *, time_t, char *, char *, time_t, time_t, time_t, int, unsigned long, unsigned long, unsigned long, int, int);
 
 /* If you are going to be adding a lot of downtime in sequence, set
    defer_downtime_sorting to 1 before you start and then call
    sort_downtime afterwards. Things will go MUCH faster. */
 
 extern int defer_downtime_sorting;
-int add_downtime(int, char *, char *, time_t, char *, char *, time_t, time_t, time_t, int, unsigned long, unsigned long, unsigned long, int);
+int add_downtime(int, char *, char *, time_t, char *, char *, time_t, time_t, time_t, int, unsigned long, unsigned long, unsigned long, int, int);
 int sort_downtime(void);
 
 scheduled_downtime *find_downtime(int, unsigned long);

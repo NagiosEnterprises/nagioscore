@@ -574,6 +574,7 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tfixed=%d\n", temp_downtime->fixed);
 		fprintf(fp, "\tduration=%lu\n", temp_downtime->duration);
 		fprintf(fp, "\tis_in_effect=%d\n", temp_downtime->is_in_effect);
+		fprintf(fp, "\tstart_notification_sent=%d\n", temp_downtime->start_notification_sent);
 		fprintf(fp, "\tauthor=%s\n", temp_downtime->author);
 		fprintf(fp, "\tcomment=%s\n", temp_downtime->comment);
 		fprintf(fp, "\t}\n\n");
@@ -668,6 +669,7 @@ int xsddefault_read_status_data(char *config_file, int options) {
 	unsigned long duration = 0L;
 	int x = 0;
 	int is_in_effect = FALSE;
+	int start_notification_sent = FALSE;
 
 
 	/* initialize some vars */
@@ -794,9 +796,9 @@ int xsddefault_read_status_data(char *config_file, int options) {
 
 					/* add the downtime */
 					if(data_type == XSDDEFAULT_HOSTDOWNTIME_DATA)
-						add_host_downtime(host_name, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+						add_host_downtime(host_name, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
 					else
-						add_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+						add_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
 
 					/* free temp memory */
 					my_free(host_name);
@@ -813,6 +815,7 @@ int xsddefault_read_status_data(char *config_file, int options) {
 					triggered_by = 0;
 					duration = 0L;
 					is_in_effect = FALSE;
+					start_notification_sent = FALSE;
 
 					break;
 
@@ -1147,6 +1150,8 @@ int xsddefault_read_status_data(char *config_file, int options) {
 						duration = strtoul(val, NULL, 10);
 					else if(!strcmp(var, "is_in_effect"))
 						is_in_effect = (atoi(val) > 0) ? TRUE : FALSE;
+					else if(!strcmp(var, "start_notification_sent"))
+						start_notification_sent = (atoi(val) > 0) ? TRUE : FALSE;
 					else if(!strcmp(var, "author"))
 						author = (char *)strdup(val);
 					else if(!strcmp(var, "comment"))

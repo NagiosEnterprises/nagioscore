@@ -31,8 +31,8 @@
 #ifdef NSCORE
 int xdddefault_initialize_downtime_data(char *);
 int xdddefault_validate_downtime_data(void);
-int xdddefault_add_new_host_downtime(char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int);
-int xdddefault_add_new_service_downtime(char *, char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int);
+int xdddefault_add_new_host_downtime(char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int, int);
+int xdddefault_add_new_service_downtime(char *, char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int, int);
 #endif
 
 #endif

@@ -102,7 +102,7 @@ int schedule_downtime(int type, char *host_name, char *service_description, time
 		}
 
 	/* add a new downtime entry */
-	add_new_downtime(type, host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id, FALSE);
+	add_new_downtime(type, host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id, FALSE, FALSE);
 
 	/* register the scheduled downtime */
 	register_downtime(type, downtime_id);
@@ -532,7 +532,10 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 			logit(NSLOG_INFO_MESSAGE, FALSE, "HOST DOWNTIME ALERT: %s;STARTED; Host has entered a period of scheduled downtime", hst->name);
 
 			/* send a notification */
-			host_notification(hst, NOTIFICATION_DOWNTIMESTART, temp_downtime->author, temp_downtime->comment, NOTIFICATION_OPTION_NONE);
+			if( FALSE == temp_downtime->start_notification_sent) {
+				host_notification(hst, NOTIFICATION_DOWNTIMESTART, temp_downtime->author, temp_downtime->comment, NOTIFICATION_OPTION_NONE);
+				temp_downtime->start_notification_sent = TRUE;
+				}
 			}
 
 		else if(temp_downtime->type == SERVICE_DOWNTIME && svc->scheduled_downtime_depth == 0) {
@@ -543,7 +546,10 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 			logit(NSLOG_INFO_MESSAGE, FALSE, "SERVICE DOWNTIME ALERT: %s;%s;STARTED; Service has entered a period of scheduled downtime", svc->host_name, svc->description);
 
 			/* send a notification */
-			service_notification(svc, NOTIFICATION_DOWNTIMESTART, temp_downtime->author, temp_downtime->comment, NOTIFICATION_OPTION_NONE);
+			if( FALSE == temp_downtime->start_notification_sent) {
+				service_notification(svc, NOTIFICATION_DOWNTIMESTART, temp_downtime->author, temp_downtime->comment, NOTIFICATION_OPTION_NONE);
+				temp_downtime->start_notification_sent = TRUE;
+				}
 			}
 
 		/* increment the downtime depth variable */
@@ -735,20 +741,20 @@ int check_for_expired_downtime(void) {
 
 
 /* save a host or service downtime */
-int add_new_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id,int is_in_effect){
+int add_new_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id, int is_in_effect, int start_notification_sent){
 	int result = OK;
 
 	if(type == HOST_DOWNTIME)
-		result = add_new_host_downtime(host_name, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+		result = add_new_host_downtime(host_name, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
 	else
-		result = add_new_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+		result = add_new_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
 
 	return result;
 	}
 
 
 /* saves a host downtime entry */
-int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id, int is_in_effect){
+int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id, int is_in_effect, int start_notification_sent){
 	int result = OK;
 	unsigned long new_downtime_id = 0L;
 
@@ -759,7 +765,7 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
-	result = xdddefault_add_new_host_downtime(host_name, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &new_downtime_id, is_in_effect);
+	result = xdddefault_add_new_host_downtime(host_name, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &new_downtime_id, is_in_effect, start_notification_sent);
 #endif
 
 	/* save downtime id */
@@ -776,7 +782,7 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 
 
 /* saves a service downtime entry */
-int add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id, int is_in_effect){
+int add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id, int is_in_effect, int start_notification_sent){
 	int result = OK;
 	unsigned long new_downtime_id = 0L;
 
@@ -792,7 +798,7 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
-	result = xdddefault_add_new_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &new_downtime_id, is_in_effect);
+	result = xdddefault_add_new_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &new_downtime_id, is_in_effect, start_notification_sent);
 #endif
 
 	/* save downtime id */
@@ -937,27 +943,27 @@ int delete_downtime_by_hostname_service_description_start_time_comment(char *hos
 /******************************************************************/
 
 /* adds a host downtime entry to the list in memory */
-int add_host_downtime(char *host_name, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect){
+int add_host_downtime(char *host_name, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect, int start_notification_sent){
 	int result = OK;
 
-	result = add_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+	result = add_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
 
 	return result;
 	}
 
 
 /* adds a service downtime entry to the list in memory */
-int add_service_downtime(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect){
+int add_service_downtime(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect, int start_notification_sent){
 	int result = OK;
 
-	result = add_downtime(SERVICE_DOWNTIME, host_name, svc_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect);
+	result = add_downtime(SERVICE_DOWNTIME, host_name, svc_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
 
 	return result;
 	}
 
 
 /* adds a host or service downtime entry to the list in memory */
-int add_downtime(int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect){
+int add_downtime(int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect, int start_notification_sent){
 	scheduled_downtime *new_downtime = NULL;
 	scheduled_downtime *last_downtime = NULL;
 	scheduled_downtime *temp_downtime = NULL;
@@ -1036,6 +1042,7 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	new_downtime->duration = duration;
 	new_downtime->downtime_id = downtime_id;
 	new_downtime->is_in_effect=is_in_effect;
+	new_downtime->start_notification_sent=start_notification_sent;
 #ifdef NSCORE
 	new_downtime->start_event = ( timed_event *)0;
 	new_downtime->stop_event = ( timed_event *)0;

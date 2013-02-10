@@ -2,6 +2,10 @@
 Nagios 3.x Change Log
 #####################
 
+3.4.5 - xx/xx/xxxx
+------------------
+* Fixed bug #418: Scheduled Downtime Notifications Resent On Nagios Restart/reload (Eric Stanley)
+
 3.4.4 - 01/12/2013
 ------------------
 * Reenabled check for newer versions of Nagios Core (Mike Guthrie)

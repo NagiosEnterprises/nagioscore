@@ -4695,7 +4695,7 @@ static int xodtemplate_register_and_destroy_hostdependency(void *hd_)
 {
 	xodtemplate_hostdependency *temp_hostdependency = (xodtemplate_hostdependency *)hd_;
 	objectlist *master_hostlist = NULL, *dependent_hostlist = NULL;
-	objectlist *list, *next, *l2, *n2;
+	objectlist *list, *next, *l2;
 
 	/* skip host dependencies without enough data */
 	if(temp_hostdependency->hostgroup_name == NULL && temp_hostdependency->dependent_hostgroup_name == NULL && temp_hostdependency->host_name == NULL && temp_hostdependency->dependent_host_name == NULL)
@@ -4729,22 +4729,21 @@ static int xodtemplate_register_and_destroy_hostdependency(void *hd_)
 		next = list->next;
 		free(list);
 
-		for(l2 = dependent_hostlist; l2; l2 = n2) {
+		for(l2 = dependent_hostlist; l2; l2 = l2->next) {
 			xodtemplate_host *child = (xodtemplate_host *)l2->object_ptr;
-			n2 = l2->next;
-			free(l2);
 
 			temp_hostdependency->host_name = master->host_name;
 			temp_hostdependency->dependent_host_name = child->host_name;
 			if(xodtemplate_register_hostdependency(temp_hostdependency) != OK) {
 				/* exit on error */
+				free_objectlist(&dependent_hostlist);
 				free_objectlist(&next);
-				free_objectlist(&n2);
 				return ERROR;
 				}
 			}
 		}
 
+	free_objectlist(&dependent_hostlist);
 	my_free(temp_hostdependency->dependency_period);
 	my_free(temp_hostdependency);
 

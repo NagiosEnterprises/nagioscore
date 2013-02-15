@@ -194,19 +194,16 @@ NAGIOS_END_DECL
 #define CMD_ENABLE_HOSTGROUP_SVC_CHECKS                 67
 #define CMD_DISABLE_HOSTGROUP_SVC_CHECKS                68
 
-#define CMD_CANCEL_HOST_DOWNTIME                        69 /* not internally implemented */
-#define CMD_CANCEL_SVC_DOWNTIME                         70 /* not internally implemented */
-
-#define CMD_CANCEL_ACTIVE_HOST_DOWNTIME                 71 /* old - no longer used */
-#define CMD_CANCEL_PENDING_HOST_DOWNTIME                72 /* old - no longer used */
-
-#define CMD_CANCEL_ACTIVE_SVC_DOWNTIME                  73 /* old - no longer used */
-#define CMD_CANCEL_PENDING_SVC_DOWNTIME                 74 /* old - no longer used */
-
-#define CMD_CANCEL_ACTIVE_HOST_SVC_DOWNTIME             75 /* unimplemented */
-#define CMD_CANCEL_PENDING_HOST_SVC_DOWNTIME            76 /* unimplemented */
-
-#define CMD_FLUSH_PENDING_COMMANDS                      77
+/* commands 69-77 are unimplemented */
+#define CMD_UNIMPLEMENTED_69                            69
+#define CMD_UNIMPLEMENTED_70                            70
+#define CMD_UNIMPLEMENTED_71                            71
+#define CMD_UNIMPLEMENTED_72                            72
+#define CMD_UNIMPLEMENTED_73                            73
+#define CMD_UNIMPLEMENTED_74                            74
+#define CMD_UNIMPLEMENTED_75                            75
+#define CMD_UNIMPLEMENTED_76                            76
+#define CMD_UNIMPLEMENTED_77                            77
 
 #define CMD_DEL_HOST_DOWNTIME                           78
 #define CMD_DEL_SVC_DOWNTIME                            79

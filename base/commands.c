@@ -417,9 +417,6 @@ int process_external_command1(char *cmd) {
 	else if(!strcmp(command_id, "DISABLE_EVENT_HANDLERS"))
 		command_type = CMD_DISABLE_EVENT_HANDLERS;
 
-	else if(!strcmp(command_id, "FLUSH_PENDING_COMMANDS"))
-		command_type = CMD_FLUSH_PENDING_COMMANDS;
-
 	else if(!strcmp(command_id, "ENABLE_PERFORMANCE_DATA"))
 		command_type = CMD_ENABLE_PERFORMANCE_DATA;
 	else if(!strcmp(command_id, "DISABLE_PERFORMANCE_DATA"))
@@ -1216,10 +1213,6 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 
 		case CMD_DEL_DOWNTIME_BY_START_TIME_COMMENT:
 			cmd_delete_downtime_by_start_time_comment(cmd, args);
-			break;
-
-		case CMD_CANCEL_ACTIVE_HOST_SVC_DOWNTIME:
-		case CMD_CANCEL_PENDING_HOST_SVC_DOWNTIME:
 			break;
 
 		case CMD_SCHEDULE_HOST_CHECK:

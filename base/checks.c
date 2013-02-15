@@ -185,6 +185,11 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* send data to event broker */
 	neb_result = broker_service_check(NEBTYPE_SERVICECHECK_ASYNC_PRECHECK, NEBFLAG_NONE, NEBATTR_NONE, svc, CHECK_TYPE_ACTIVE, start_time, end_time, svc->check_command, svc->latency, 0.0, 0, FALSE, 0, NULL, NULL, NULL);
 
+	if (neb_result == NEBERROR_CALLBACKCANCEL || neb_result == NEBERROR_CALLBACKOVERRIDE) {
+		log_debug_info(DEBUGL_CHECKS, 0, "Check of service '%s' on host '%s' (id=%u) was %s by a module\n",
+		               svc->description, svc->host_name, svc->id,
+		               neb_result == NEBERROR_CALLBACKCANCEL ? "cancelled" : "overridden");
+	}
 	/* neb module wants to cancel the service check - the check will be rescheduled for a later time by the scheduling logic */
 	if(neb_result == NEBERROR_CALLBACKCANCEL) {
 		if(preferred_time)
@@ -2077,14 +2082,20 @@ int execute_sync_host_check(host *hst) {
 	/* send data to event broker */
 	neb_result = broker_host_check(NEBTYPE_HOSTCHECK_SYNC_PRECHECK, NEBFLAG_NONE, NEBATTR_NONE, hst, CHECK_TYPE_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, NULL, NULL, NULL, NULL, NULL, NULL);
 
-	/* neb module wants to cancel the host check - return the current state of the host */
-	if(neb_result == NEBERROR_CALLBACKCANCEL)
-		return hst->current_state;
+	/*
+	 * If a neb module cancels the host check we return the current state
+	 * of the host.
+	 * NOTE: if a module does this, it must check the status of the host
+	 * and populate the data structures BEFORE it returns from the callback!
+	 */
+	if(neb_result == NEBERROR_CALLBACKCANCEL || neb_result == NEBERROR_CALLBACKOVERRIDE) {
+		log_debug_info(DEBUGL_CHECKS, 0, "Check of host '%s' (id=%u) was %s by a module. Returning %d\n",
+		               hst->name, hst->id,
+		               neb_result == NEBERROR_CALLBACKCANCEL ? "cancelled" : "overridden",
+		               hst->current_state);
 
-	/* neb module wants to override the host check - perhaps it will check the host itself */
-	/* NOTE: if a module does this, it must check the status of the host and populate the data structures BEFORE it returns from the callback! */
-	if(neb_result == NEBERROR_CALLBACKOVERRIDE)
 		return hst->current_state;
+	}
 #endif
 
 	/* grab the host macros */

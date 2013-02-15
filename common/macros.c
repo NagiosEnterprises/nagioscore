@@ -787,9 +787,6 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/* SERVICE MACROS */
 			/******************/
 		case MACRO_SERVICEGROUPNAMES:
-		case MACRO_SERVICEACTIONURL:
-		case MACRO_SERVICENOTESURL:
-		case MACRO_SERVICENOTES:
 			*free_macro = TRUE;
 		case MACRO_SERVICEDESC:
 		case MACRO_SERVICESTATE:
@@ -814,6 +811,9 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_LASTSERVICECRITICAL:
 		case MACRO_SERVICECHECKCOMMAND:
 		case MACRO_SERVICEDISPLAYNAME:
+		case MACRO_SERVICEACTIONURL:
+		case MACRO_SERVICENOTESURL:
+		case MACRO_SERVICENOTES:
 		case MACRO_SERVICECHECKTYPE:
 		case MACRO_LONGSERVICEOUTPUT:
 		case MACRO_SERVICENOTIFICATIONNUMBER:

@@ -90,6 +90,8 @@ int main(int argc, char **argv)
 	unsigned int x;
 	struct test_data s;
 	char *p1, *p2;
+	char *strs[10];
+	char tmp[32];
 
 	t_set_colors(0);
 	t_start("dkhash basic test");
@@ -143,6 +145,37 @@ int main(int argc, char **argv)
 	test(0 == dkhash_num_entries(tx), "x table post all ops");
 	test(0 == dkhash_check_table(tx), "x table consistency post all ops");
 	dkhash_debug_table(tx, 0);
+	t_end();
+
+	for(x = 0; x < 10; x++) {
+		sprintf(tmp, "string %d", x);
+		strs[x] = strdup(tmp);
+	}
+
+	t_start("dkhash single bucket add remove forward");
+
+	t = dkhash_create(1);
+	for(x = 0; x < 10; x++) {
+		dkhash_insert(t, strs[x], NULL, strs[x]);
+	}
+	for( x = 0; x < 10; x++) {
+		p1 = strs[x];
+		p2 = dkhash_remove(t, p1, NULL);
+		test(p1 == p2, "remove should return a value");
+	}
+	t_end();
+
+	t_start("dkhash single bucket add remove backward");
+
+	t = dkhash_create(1);
+	for(x = 0; x < 10; x++) {
+		dkhash_insert(t, strs[x], NULL, strs[x]);
+	}
+	for(x = 9; x >= 0; x--) {
+		p1 = strs[x];
+		p2 = dkhash_remove(t, p1, NULL);
+		test(p1 == p2, "remove should return a value");
+	}
 
 	return t_end();
 }

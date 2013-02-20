@@ -223,6 +223,7 @@ void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
 			t->removed++;
 			return dkhash_destroy_bucket(bkt);
 		}
+		prev = bkt;
 	}
 
 	return NULL;

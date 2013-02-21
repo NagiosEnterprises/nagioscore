@@ -87,7 +87,7 @@ static int del_matching(void *data)
 int main(int argc, char **argv)
 {
 	dkhash_table *tx, *t;
-	unsigned int x;
+	int x;
 	struct test_data s;
 	char *p1, *p2;
 	char *strs[10];

@@ -207,8 +207,7 @@ void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
 	if (!(bkt = t->buckets[slot]))
 		return NULL;
 
-	prev = bkt; /* pay attention */
-	for (; bkt; bkt = bkt->next) {
+	for (prev = bkt; bkt; prev = bkt, bkt = bkt->next) {
 		if (strcmp(k1, bkt->key))
 			continue;
 		if ((!k2 && !bkt->key2) || !strcmp(k2, bkt->key2)) {
@@ -223,7 +222,6 @@ void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
 			t->removed++;
 			return dkhash_destroy_bucket(bkt);
 		}
-		prev = bkt;
 	}
 
 	return NULL;

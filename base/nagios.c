@@ -195,7 +195,7 @@ static int test_configured_paths(void)
 
 	mac = get_global_macros();
 
-	fp = fopen(log_file, "w");
+	fp = fopen(log_file, "a+");
 	if (!fp) {
 		/*
 		 * we do some variable trashing here so logit() can

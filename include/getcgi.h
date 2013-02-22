@@ -33,7 +33,7 @@ unsigned char hex_to_char(char *);
 
 void	process_language( char *);
 accept_languages *	parse_accept_languages( char *);
-static int compare_accept_languages( const void *, const void *);
+int compare_accept_languages( const void *, const void *);
 void	free_accept_languages( accept_languages *);
 
 NAGIOS_END_DECL

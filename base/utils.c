@@ -2389,7 +2389,7 @@ int find_executing_checks(char *dirname) {
 								"but the host could not be found! Ignoring "
 								"check.\n", cr->host_name);
 						}
-					if( current_time - cr->start_time.tv_sec < 
+					else if( current_time - cr->start_time.tv_sec < 
 							host_check_timeout) {
 						log_debug_info(DEBUGL_CHECKS, 1, 
 								"Check for host %s is still executing.\n",
@@ -2399,7 +2399,7 @@ int find_executing_checks(char *dirname) {
 					}
 				else if( SERVICE_CHECK == cr->object_check_type) {
 					log_debug_info(DEBUGL_CHECKS, 2, 
-							"Determining whether check for service '%s' on host '%s' isstill executing.\n",
+							"Determining whether check for service '%s' on host '%s' is still executing.\n",
 							cr->host_name, cr->service_description);
 					if((svc = find_service(cr->host_name, 
 							cr->service_description)) == NULL) {
@@ -2409,7 +2409,7 @@ int find_executing_checks(char *dirname) {
 								"found! Ignoring check.\n", 
 								cr->service_description, cr->host_name);
 						}
-					if( current_time - cr->start_time.tv_sec < 
+					else if( current_time - cr->start_time.tv_sec < 
 							service_check_timeout) {
 						log_debug_info(DEBUGL_CHECKS, 1, 
 								"Check for service %s:%s is still executing.\n",

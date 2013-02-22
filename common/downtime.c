@@ -898,7 +898,9 @@ Returns number deleted
 int delete_downtime_by_hostname_service_description_start_time_comment(char *hostname, char *service_description, time_t start_time, char *comment) {
 	scheduled_downtime *temp_downtime;
 	scheduled_downtime *next_downtime;
+	void *downtime_cpy;
 	int deleted = 0;
+	objectlist *matches = NULL, *tmp_match = NULL;
 
 	/* Do not allow deletion of everything - must have at least 1 filter on */
 	if(hostname == NULL && service_description == NULL && start_time == 0 && comment == NULL)
@@ -925,9 +927,19 @@ int delete_downtime_by_hostname_service_description_start_time_comment(char *hos
 				continue;
 			}
 
-		unschedule_downtime(temp_downtime->type, temp_downtime->downtime_id);
+		downtime_cpy = malloc(sizeof(scheduled_downtime));
+		memcpy(downtime_cpy, temp_downtime, sizeof(scheduled_downtime));
+		prepend_object_to_objectlist(&matches, downtime_cpy);
 		deleted++;
 		}
+
+	for(tmp_match = matches; tmp_match != NULL; tmp_match = tmp_match->next) {
+		temp_downtime = (scheduled_downtime *)tmp_match->object_ptr;
+		unschedule_downtime(temp_downtime->type, temp_downtime->downtime_id);
+		my_free(temp_downtime);
+		}
+
+	free_objectlist(&matches);
 
 	return deleted;
 	}

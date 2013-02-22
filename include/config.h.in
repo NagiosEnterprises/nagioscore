@@ -304,6 +304,16 @@
 #include <linux/module.h>
 #endif
 
+#undef HAVE_LOCALE_H
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif
+
+#undef HAVE_WCHAR_H
+#ifdef HAVE_WCHAR_H
+#include <wchar.h>
+#endif
+
 /* configure script should allow user to override ltdl choice, but this will do for now... */
 #undef USE_LTDL
 #undef HAVE_LTDL_H

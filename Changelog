@@ -4,6 +4,7 @@ Nagios 3.x Change Log
 
 3.4.5 - xx/xx/xxxx
 ------------------
+* Updated CGI utility functions to support UTF-8 characters (Eric Stanley)
 * Fixed bug where selecting Command Expansion from Configuration CGI page would display commands instead (Eric Stanley)
 * Fixed bug #369: status.cgi crashes with segfault when there are german ulauts (äöüß) in the hostname or the servicename (Eric Stanley)
 * Fixed bug #418: Scheduled Downtime Notifications Resent On Nagios Restart/reload (Eric Stanley)

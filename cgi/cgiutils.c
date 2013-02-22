@@ -1067,53 +1067,87 @@ void strip_html_brackets(char *buffer) {
 	}
 
 
-
 /* escape string for html form usage */
-char * escape_string(char *input) {
-	int len, output_len;
-	int x, y;
-	char temp_expansion[10];
+char *escape_string(char *input) {
+	int			len;
+	int			output_max;
+	wchar_t		wctemp[1];
+	size_t		mbtowc_result;
+	char		mbtemp[ 10];
+	int			wctomb_result;
+	char		*stp;
+	char		temp_expansion[10];
+/*	static int	i = 0;
+	mbstate_t	mbrtowc_state;
+	mbstate_t	wcrtomb_state; */
 
-	/* we need up to six times the space to do the conversion */
+	/* If they don't give us anything to do... */
+	if( NULL == input) {
+		return "";
+		}
+
+	/* We need up to six times the space to do the conversion */
 	len = (int)strlen(input);
-	output_len = len * 6;
-	if((encoded_html_string = (char *)malloc(output_len + 1)) == NULL)
+	output_max = len * 6;
+	if(( stp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
 		return "";
 
 	strcpy(encoded_html_string, "");
 
-	for(x = 0, y = 0; x <= len; x++) {
+	/* Get the first multibyte character in the input string */
+	mbtowc_result = mbtowc( wctemp, input, MB_CUR_MAX);
 
-		/* end of string */
-		if((char)input[x] == (char)'\x0') {
-			encoded_html_string[y] = '\x0';
-			break;
+	/* Process all characters until a null character is found */
+	while( 0 != mbtowc_result) {	/* 0 indicates a null character was found */
+
+		if(( size_t)-2 == mbtowc_result) {
+			/* No complete multibyte character found - try at next memory
+				address */
+			input++;
 			}
 
-		/* alpha-numeric characters don't get encoded */
-		else if(((char)input[x] >= '0' && (char)input[x] <= '9') || ((char)input[x] >= 'A' && (char)input[x] <= 'Z') || ((char)input[x] >= (char)'a' && (char)input[x] <= (char)'z'))
-			encoded_html_string[y++] = input[x];
+		else if((( size_t)-1 == mbtowc_result) && ( EILSEQ == errno)) {
+			/* Invalid multibyte character found - try at next memory address */
+			input++;
+			}
 
-		/* spaces, hyphens, periods, underscores and colons don't get encoded */
-		else if(((char)input[x] == (char)' ') || ((char)input[x] == (char)'-') || ((char)input[x] == (char)'.') || ((char)input[x] == (char)'_') || ((char)input[x] == (char)':'))
-			encoded_html_string[y++] = input[x];
-
-		/* for simplicity, all other chars represented by their numeric value */
-		else {
-			encoded_html_string[y] = '\x0';
-			sprintf(temp_expansion, "&#%d;", (unsigned char)input[x]);
-			if((int)strlen(encoded_html_string) < (output_len - strlen(temp_expansion))) {
-				strcat(encoded_html_string, temp_expansion);
-				y += strlen(temp_expansion);
+		/* Alpha-numeric characters and a few other characters don't get 
+				encoded */
+		else if(( *wctemp  >= '0' && *wctemp <= '9') || 
+				( *wctemp >= 'A' && *wctemp <= 'Z') || 
+				( *wctemp >= 'a' && *wctemp <= 'z') || 
+				' ' == *wctemp || '-' == *wctemp || '.' == *wctemp || 
+				'_' == *wctemp || ':' == *wctemp) {
+			wctomb_result = wctomb( mbtemp, wctemp[0]);
+			if(( wctomb_result > 0) && 
+					((( stp - encoded_html_string) + wctomb_result) < output_max)) {
+				strncpy( stp, mbtemp, wctomb_result);
+				stp += wctomb_result;
 				}
+			input += mbtowc_result;
 			}
+
+		/* Encode everything else (this may be excessive) */
+		else {
+			sprintf( temp_expansion, "&#%u", ( unsigned int)wctemp[ 0]);
+			if((( stp - encoded_html_string) + strlen( temp_expansion)) < 
+					output_max) {
+				strncpy( stp, temp_expansion, strlen( temp_expansion));
+				stp += strlen( temp_expansion);
+				}
+			input += mbtowc_result;
+			}
+
+		/* Read the next character */
+		mbtowc_result = mbtowc( wctemp, input, MB_CUR_MAX);
 		}
 
-	encoded_html_string[y++] = '\x0';
+	/* Null terminate the encoded string */
+	*stp = '\x0';
+	encoded_html_string[ output_max - 1] = '\x0';
 
 	return encoded_html_string;
 	}
-
 
 
 /* determines the log file we should use (from current time) */

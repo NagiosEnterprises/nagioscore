@@ -457,7 +457,7 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 	return langs;
 }
 
-static int compare_accept_languages( const void *p1, const void *p2) {
+int compare_accept_languages( const void *p1, const void *p2) {
 	accept_language *	lang1 = *( accept_language **)p1;
 	accept_language *	lang2 = *( accept_language **)p2;
 

@@ -1879,17 +1879,7 @@ int drop_privileges(char *user, char *group) {
 		/* else we were passed the GID */
 		else
 			gid = (gid_t)atoi(group);
-
-		/* set effective group ID if other than current EGID */
-		if(gid != getegid()) {
-
-			if(setgid(gid) == -1) {
-				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not set effective GID=%d", (int)gid);
-				result = ERROR;
-				}
-			}
 		}
-
 
 	/* set effective user ID */
 	if(user != NULL) {
@@ -1906,27 +1896,37 @@ int drop_privileges(char *user, char *group) {
 		/* else we were passed the UID */
 		else
 			uid = (uid_t)atoi(user);
+		}
 
-#ifdef HAVE_INITGROUPS
+	/* now that we know what to change to, we fix log file permissions */
+	fix_log_file_owner(uid, gid);
 
-		if(uid != geteuid()) {
-
-			/* initialize supplementary groups */
-			if(initgroups(user, gid) == -1) {
-				if(errno == EPERM)
-					logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Unable to change supplementary groups using initgroups() -- I hope you know what you're doing");
-				else {
-					logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Possibly root user failed dropping privileges with initgroups()");
-					return ERROR;
-					}
-				}
-			}
-#endif
-		if(setuid(uid) == -1) {
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not set effective UID=%d", (int)uid);
+	/* set effective group ID if other than current EGID */
+	if(gid != getegid()) {
+		if(setgid(gid) == -1) {
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not set effective GID=%d", (int)gid);
 			result = ERROR;
 			}
 		}
+#ifdef HAVE_INITGROUPS
+
+	if(uid != geteuid()) {
+
+		/* initialize supplementary groups */
+		if(initgroups(user, gid) == -1) {
+			if(errno == EPERM)
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Unable to change supplementary groups using initgroups() -- I hope you know what you're doing");
+			else {
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Possibly root user failed dropping privileges with initgroups()");
+				return ERROR;
+				}
+			}
+		}
+#endif
+	if(setuid(uid) == -1) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not set effective UID=%d", (int)uid);
+		result = ERROR;
+	}
 
 	return result;
 	}

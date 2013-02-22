@@ -83,6 +83,7 @@ int write_log_file_info(time_t *); 			/* records log file/version info */
 int open_debug_log(void);
 int close_debug_log(void);
 int close_log_file(void);
+int fix_log_file_owner(uid_t uid, gid_t gid);
 #endif /* !NSCGI */
 
 NAGIOS_END_DECL

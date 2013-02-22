@@ -2451,7 +2451,7 @@ void display_options(void) {
 	printf("<option value='contactgroups' %s>Contact Groups\n", (display_type == DISPLAY_CONTACTGROUPS) ? "SELECTED" : "");
 	printf("<option value='timeperiods' %s>Timeperiods\n", (display_type == DISPLAY_TIMEPERIODS) ? "SELECTED" : "");
 	printf("<option value='commands' %s>Commands\n", (display_type == DISPLAY_COMMANDS) ? "SELECTED" : "");
-	printf("<option value='commands' %s>Command Expansion\n", (display_type == DISPLAY_COMMAND_EXPANSION) ? "SELECTED" : "");
+	printf("<option value='command' %s>Command Expansion\n", (display_type == DISPLAY_COMMAND_EXPANSION) ? "SELECTED" : "");
 	printf("</select>\n");
 	printf("</td></tr>\n");
 

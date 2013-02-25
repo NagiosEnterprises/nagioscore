@@ -442,7 +442,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	else {
 
 		/* parse check output to get: (1) short output, (2) long output, (3) perf data */
-		parse_check_output(queued_check_result->output, &temp_service->plugin_output, &temp_service->long_plugin_output, &temp_service->perf_data, TRUE, TRUE);
+		parse_check_output(queued_check_result->output, &temp_service->plugin_output, &temp_service->long_plugin_output, &temp_service->perf_data, TRUE, FALSE);
 
 		/* make sure the plugin output isn't null */
 		if(temp_service->plugin_output == NULL)
@@ -2160,7 +2160,7 @@ int execute_sync_host_check(host *hst) {
 	hst->check_type = CHECK_TYPE_ACTIVE;
 
 	/* parse the output: short and long output, and perf data */
-	parse_check_output(temp_plugin_output, &hst->plugin_output, &hst->long_plugin_output, &hst->perf_data, TRUE, TRUE);
+	parse_check_output(temp_plugin_output, &hst->plugin_output, &hst->long_plugin_output, &hst->perf_data, TRUE, FALSE);
 
 	/* free memory */
 	my_free(temp_plugin_output);
@@ -2545,7 +2545,7 @@ int handle_async_host_check_result(host *temp_host, check_result *queued_check_r
 	my_free(temp_host->perf_data);
 
 	/* parse check output to get: (1) short output, (2) long output, (3) perf data */
-	parse_check_output(queued_check_result->output, &temp_host->plugin_output, &temp_host->long_plugin_output, &temp_host->perf_data, TRUE, TRUE);
+	parse_check_output(queued_check_result->output, &temp_host->plugin_output, &temp_host->long_plugin_output, &temp_host->perf_data, TRUE, FALSE);
 
 	/* make sure we have some data */
 	if(temp_host->plugin_output == NULL || !strcmp(temp_host->plugin_output, "")) {

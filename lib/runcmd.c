@@ -151,7 +151,8 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			break;
 
 		case '\\':
-			i++;
+			if (!have_state(STATE_INSQ))
+				i++;
 			break;
 
 		case '\'':

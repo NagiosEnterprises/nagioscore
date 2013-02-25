@@ -1,6 +1,8 @@
 #ifndef INCLUDE_runcmd_h__
 #define INCLUDE_runcmd_h__
 
+#include <signal.h>
+
 /**
  * @file runcmd.h
  * @brief runcmd library function declarations

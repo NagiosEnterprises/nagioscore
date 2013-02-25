@@ -202,14 +202,14 @@ int neb_load_module(nebmodule *mod) {
 	result = my_fdcopy(mod->filename, output_file, dest_fd);
 	close(dest_fd);
 	if(result == ERROR) {
-		logit(NSLOG_RUNTIME_ERROR, FALSE, "Error: Failed to safely copy module '%s'. The module will not be loaded\n", mod->filename);
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to safely copy module '%s'. The module will not be loaded\n", mod->filename);
 		return ERROR;
 		}
 
 	/* load the module (use the temp copy we just made) */
 	mod->module_handle = dlopen(output_file, RTLD_NOW | RTLD_GLOBAL);
 	if(mod->module_handle == NULL) {
-		logit(NSLOG_RUNTIME_ERROR, FALSE, "Error: Could not load module '%s' -> %s\n", mod->filename, dlerror());
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not load module '%s' -> %s\n", mod->filename, dlerror());
 
 		return ERROR;
 		}
@@ -222,7 +222,7 @@ int neb_load_module(nebmodule *mod) {
 	/* the kernel will keep the deleted file in memory until we unload it */
 	/* NOTE: This *should* be portable to most Unices, but I've only tested it on Linux */
 	if(unlink(output_file) == -1) {
-		logit(NSLOG_RUNTIME_ERROR, FALSE, "Error: Could not delete temporary file '%s' used for module '%s'.  The module will be unloaded: %s\n", output_file, mod->filename, strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not delete temporary file '%s' used for module '%s'.  The module will be unloaded: %s\n", output_file, mod->filename, strerror(errno));
 		neb_unload_module(mod, NEBMODULE_FORCE_UNLOAD, NEBMODULE_ERROR_API_VERSION);
 
 		return ERROR;
@@ -245,7 +245,7 @@ int neb_load_module(nebmodule *mod) {
 	/* check the module API version */
 	if(module_version_ptr == NULL || ((*module_version_ptr) != CURRENT_NEB_API_VERSION)) {
 
-		logit(NSLOG_RUNTIME_ERROR, FALSE, "Error: Module '%s' is using an old or unspecified version of the event broker API.  Module will be unloaded.\n", mod->filename);
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Module '%s' is using an old or unspecified version of the event broker API.  Module will be unloaded.\n", mod->filename);
 
 		neb_unload_module(mod, NEBMODULE_FORCE_UNLOAD, NEBMODULE_ERROR_API_VERSION);
 
@@ -258,7 +258,7 @@ int neb_load_module(nebmodule *mod) {
 	/* if the init function could not be located, unload the module */
 	if(mod->init_func == NULL) {
 
-		logit(NSLOG_RUNTIME_ERROR, FALSE, "Error: Could not locate nebmodule_init() in module '%s'.  Module will be unloaded.\n", mod->filename);
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not locate nebmodule_init() in module '%s'.  Module will be unloaded.\n", mod->filename);
 
 		neb_unload_module(mod, NEBMODULE_FORCE_UNLOAD, NEBMODULE_ERROR_NO_INIT);
 
@@ -272,14 +272,14 @@ int neb_load_module(nebmodule *mod) {
 	/* if the init function returned an error, unload the module */
 	if(result != OK) {
 
-		logit(NSLOG_RUNTIME_ERROR, FALSE, "Error: Function nebmodule_init() in module '%s' returned an error.  Module will be unloaded.\n", mod->filename);
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Function nebmodule_init() in module '%s' returned an error.  Module will be unloaded.\n", mod->filename);
 
 		neb_unload_module(mod, NEBMODULE_FORCE_UNLOAD, NEBMODULE_ERROR_BAD_INIT);
 
 		return ERROR;
 		}
 
-	logit(NSLOG_INFO_MESSAGE, FALSE, "Event broker module '%s' initialized successfully.\n", mod->filename);
+	logit(NSLOG_INFO_MESSAGE, TRUE, "Event broker module '%s' initialized successfully.\n", mod->filename);
 
 	/* locate the de-initialization function (may or may not be present) */
 	mod->deinit_func = dlsym(mod->module_handle, "nebmodule_deinit");

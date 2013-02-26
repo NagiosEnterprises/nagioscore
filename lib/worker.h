@@ -95,7 +95,16 @@ extern int start_cmd(child_process *cp);
 extern worker_process *spawn_worker(void (init_func)(void *), void *init_arg);
 
 /**
- * Spawn any random helper process
+ * Spawn a helper with a specific process name
+ * The first entry in the argv parameter will be the name of the
+ * new process, unless the process changes the name itself.
+ * @param path The path to the executable (can be $PATH relative)
+ * @param argv Argument vector for the helper to spawn
+ */
+extern int spawn_named_helper(char *path, char **argv);
+
+/**
+ * Spawn any random helper process. Uses spawn_named_helper()
  * @param argv The (NULL-sentinel-terminated) argument vector
  * @return 0 on success, < 0 on errors
  */

@@ -671,7 +671,7 @@ void enter_worker(int sd, int (*cb)(child_process*))
 	exit(EXIT_SUCCESS);
 }
 
-int spawn_helper(char **argv)
+int spawn_named_helper(char *path, char **argv)
 {
 	int ret, pid;
 
@@ -684,9 +684,14 @@ int spawn_helper(char **argv)
 	if (pid)
 		return pid;
 
-	ret = execvp(argv[0], argv);
+	ret = execvp(path, argv);
 	/* if execvp() fails, there's really nothing we can do */
 	exit(ret);
+}
+
+int spawn_helper(char **argv)
+{
+	return spawn_named_helper(argv[0], argv);
 }
 
 struct worker_process *spawn_worker(void (*init_func)(void *), void *init_arg)

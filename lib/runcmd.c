@@ -223,6 +223,8 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			if (!(state & STATE_INSQ)) {
 				if (p[1] == '(')
 					add_ret(CMD_HAS_SUBCOMMAND);
+				else
+					add_ret(CMD_HAS_SHVAR);
 			}
 			break;
 

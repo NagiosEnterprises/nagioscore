@@ -21,6 +21,7 @@
 #define CMD_HAS_UBSQ (1 << 4) /**< unbalanced single quotes */
 #define CMD_HAS_UBDQ (1 << 5) /**< unbalanced double quotes */
 #define CMD_HAS_WILDCARD (1 << 6) /**< wildcards present */
+#define CMD_HAS_SHVAR    (1 << 7) /**< shell variables present */
 
 
 #define RUNCMD_EFD    (-1)  /**< Failed to pipe() or open() */

@@ -2276,7 +2276,7 @@ void display_command_expansion(void) {
 
 		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>To expand:</TD><TD CLASS='dataEven'>%s", escape_string(command_args[0]));
 		for(i = 1; (i < MAX_COMMAND_ARGUMENTS) && command_args[i]; i++)
-			printf("!<FONT\n   COLOR='%s'>%s</FONT>", hash_color(i), command_args[i]);
+			printf("!<FONT\n   COLOR='%s'>%s</FONT>", hash_color(i), escape_string(command_args[i]));
 		printf("\n</TD></TR>\n");
 
 		/* check all commands */
@@ -2410,6 +2410,7 @@ void display_command_expansion(void) {
 			}
 		}
 
+	printf("<TR CLASS='dataEven'><TD><BR/></TD><TD CLASS='dataEven'>Enter the command_check definition from a host or service definition and press Go to see the expansion of the command</TD></TR>\n");
 	printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>To expand:</TD><TD CLASS='dataEven'><FORM\n");
 	printf("METHOD='GET' ACTION='%s'><INPUT TYPE='HIDDEN' NAME='type' VALUE='command'><INPUT\n", CONFIG_CGI);
 	printf("TYPE='text' NAME='expand' SIZE='100%%' VALUE='%s'>\n", html_encode(to_expand, FALSE));

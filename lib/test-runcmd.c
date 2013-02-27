@@ -61,6 +61,17 @@ struct {
 	{ 0, NULL},
 };
 
+struct {
+	int ret;
+	char *cmd;
+	int argc_exp;
+	char *argv_exp[10];
+} parse_case[] = {
+	{ 0, "foo bar nisse", 3, { "foo", "bar", "nisse", NULL }},
+	{ 0, "foo\\ bar nisse", 2, { "foo bar", "nisse", NULL }},
+	{ 0, NULL, 0, NULL },
+};
+
 int main(int argc, char **argv)
 {
 	int ret, r2;
@@ -97,6 +108,25 @@ int main(int argc, char **argv)
 			ok_int(ret, anomaly[i].ret, anomaly[i].cmd);
 		}
 	}
+	r2 = t_end();
+	ret = r2 ? r2 : ret;
+	t_reset();
+	t_start("argument splitting");
+	{
+		int i;
+		for (i = 0; parse_case[i].cmd; i++) {
+			int x, out_argc;
+			char *out_argv[256];
+			int ret = runcmd_cmd2strv(parse_case[i].cmd, &out_argc, out_argv);
+			out_argv[out_argc] = NULL;
+			ok_int(ret, 0, parse_case[i].cmd);
+			ok_int(out_argc, parse_case[i].argc_exp, parse_case[i].cmd);
+			for (x = 0; x < parse_case[x].argc_exp && out_argv[x]; x++) {
+				ok_str(parse_case[i].argv_exp[x], out_argv[x], "argv comparison test");
+			}
+		}
+	}
+
 	r2 = t_end();
 	return r2 ? r2 : ret;
 }

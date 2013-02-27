@@ -960,85 +960,113 @@ char *url_encode(char *input) {
 
 /* escapes a string used in HTML */
 char * html_encode(char *input, int escape_newlines) {
-	int len, output_len;
-	int x, y;
-	char temp_expansion[10];
+	int 		len;
+	int			output_max;
+	char		*outstp;
+	wchar_t		*wcinput;
+	wchar_t		*inwcp;
+	size_t		mbstowcs_result;
+	char		mbtemp[ 10];
+	int			wctomb_result;
+	int			x;
+	char		temp_expansion[10];
 
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
-	output_len = len * 6;
-	if((encoded_html_string = (char *)malloc(output_len + 1)) == NULL)
+	output_max = len * 6;
+	if(( outstp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
 		return "";
 
 	strcpy(encoded_html_string, "");
 
-	for(x = 0, y = 0; x <= len; x++) {
+	/* Convert the string to a wide character string */
+	if(( wcinput = malloc( len * sizeof( wchar_t))) == NULL) {
+		return "";
+		}
+	if(( mbstowcs_result = mbstowcs( wcinput, input, len)) < 0) {
+		free( wcinput);
+		return "";
+		}
 
-		/* end of string */
-		if((char)input[x] == (char)'\x0') {
-			encoded_html_string[y] = '\x0';
-			break;
+	/* Process all converted characters */
+	for( x = 0, inwcp = wcinput; x < mbstowcs_result && '\0' != *inwcp; x++, inwcp++) {
+
+		/* Most ASCII characters don't get encoded */
+		if(( *inwcp  >= 0x20 && *inwcp <= 0x7e) &&
+				( !( '"' == *inwcp || '&' == *inwcp || '\'' == *inwcp || 
+				'<' == *inwcp || '>' == *inwcp))) {
+			wctomb_result = wctomb( mbtemp, *inwcp);
+			if(( wctomb_result > 0) && 
+					((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
+				strncpy( outstp, mbtemp, wctomb_result);
+				outstp += wctomb_result;
+				}
 			}
-
-		/* alpha-numeric characters and spaces don't get encoded */
-		else if(((char)input[x] == (char)' ') || ((char)input[x] >= '0' && (char)input[x] <= '9') || ((char)input[x] >= 'A' && (char)input[x] <= 'Z') || ((char)input[x] >= (char)'a' && (char)input[x] <= (char)'z'))
-			encoded_html_string[y++] = input[x];
 
 		/* newlines turn to <BR> tags */
-		else if(escape_newlines == TRUE && (char)input[x] == (char)'\n') {
-			strcpy(&encoded_html_string[y], "<BR>");
-			y += 4;
+		else if(escape_newlines == TRUE && '\n' == *inwcp) {
+			strncpy( outstp, "<BR>", 4);
+			outstp += 4;
 			}
-		else if(escape_newlines == TRUE && (char)input[x] == (char)'\\' && (char)input[x + 1] == (char)'n') {
-			strcpy(&encoded_html_string[y], "<BR>");
-			y += 4;
-			x++;
+
+		else if(escape_newlines == TRUE && '\\' == *inwcp && '\n' == *( inwcp + 1)) {
+			strncpy( outstp, "<BR>", 4);
+			outstp += 4;
+			inwcp++; /* needed so loop skips two wide characters */
 			}
 
 		/* TODO - strip all but allowed HTML tags out... */
 
-		else if((char)input[x] == (char)'<') {
+		else if( '<' == *inwcp) {
 
-			if(escape_html_tags == FALSE)
-				encoded_html_string[y++] = input[x];
+			if(escape_html_tags == FALSE) {
+				wctomb_result = wctomb( mbtemp, *inwcp);
+				if(( wctomb_result > 0) && 
+						((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
+					strncpy( outstp, mbtemp, wctomb_result);
+					outstp += wctomb_result;
+					}
+				}
 			else {
-				encoded_html_string[y] = '\x0';
-				if((int)strlen(encoded_html_string) < (output_len - 4)) {
-					strcat(encoded_html_string, "&lt;");
-					y += 4;
+				if((( outstp - encoded_html_string) + 4) < output_max) {
+					strncpy( outstp, "&lt;", 4);
+					outstp += 4;
 					}
 				}
 			}
 
-		else if((char)input[x] == (char)'>') {
+		else if( '>' == *inwcp) {
 
-			if(escape_html_tags == FALSE)
-				encoded_html_string[y++] = input[x];
+			if(escape_html_tags == FALSE) {
+				wctomb_result = wctomb( mbtemp, *inwcp);
+				if(( wctomb_result > 0) && 
+						((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
+					strncpy( outstp, mbtemp, wctomb_result);
+					outstp += wctomb_result;
+					}
+				}
 			else {
-				encoded_html_string[y] = '\x0';
-				if((int)strlen(encoded_html_string) < (output_len - 4)) {
-					strcat(encoded_html_string, "&gt;");
-					y += 4;
+				if((( outstp - encoded_html_string) + 4) < output_max) {
+					strncpy( outstp, "&gt;", 4);
+					outstp += 4;
 					}
 				}
 			}
 
 		/* for simplicity, all other chars represented by their numeric value */
 		else {
-			if(escape_html_tags == FALSE)
-				encoded_html_string[y++] = input[x];
-			else {
-				encoded_html_string[y] = '\x0';
-				sprintf(temp_expansion, "&#%d;", (unsigned char)input[x]);
-				if((int)strlen(encoded_html_string) < (output_len - strlen(temp_expansion))) {
-					strcat(encoded_html_string, temp_expansion);
-					y += strlen(temp_expansion);
-					}
+			sprintf( temp_expansion, "&#%u", *( unsigned int *)inwcp);
+			if((( outstp - encoded_html_string) + strlen( temp_expansion)) < 
+					output_max) {
+				strncpy( outstp, temp_expansion, strlen( temp_expansion));
+				outstp += strlen( temp_expansion);
 				}
 			}
 		}
 
-	encoded_html_string[y++] = '\x0';
+	/* Null terminate the encoded string */
+	*outstp = '\x0';
+	encoded_html_string[ output_max - 1] = '\x0';
 
 	return encoded_html_string;
 	}
@@ -1077,9 +1105,6 @@ char *escape_string(char *input) {
 	int			wctomb_result;
 	char		*stp;
 	char		temp_expansion[10];
-/*	static int	i = 0;
-	mbstate_t	mbrtowc_state;
-	mbstate_t	wcrtomb_state; */
 
 	/* If they don't give us anything to do... */
 	if( NULL == input) {

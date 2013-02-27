@@ -219,6 +219,13 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			}
 			break;
 
+		case '$':
+			if (!(state & STATE_INSQ)) {
+				if (p[1] == '(')
+					add_ret(CMD_HAS_SUBCOMMAND);
+			}
+			break;
+
 		case '*': case '?':
 			if (!in_quotes) {
 				add_ret(CMD_HAS_WILDCARD);

@@ -208,7 +208,7 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			break;
 
 		case '`':
-			if (!in_quotes) {
+			if (!(state & STATE_INSQ)) {
 				add_ret(CMD_HAS_SUBCOMMAND);
 			}
 			break;

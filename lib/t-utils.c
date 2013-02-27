@@ -11,6 +11,11 @@ static const char *indent_str = "  ";
 #define delta(a, b) ((max(a, b) - (min(a, b))))
 
 
+void t_reset(void)
+{
+	passed = failed = 0;
+}
+
 void t_set_colors(int force)
 {
 	if (force == 1 || isatty(fileno(stdout))) {

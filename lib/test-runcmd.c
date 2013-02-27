@@ -53,5 +53,5 @@ int main(int argc, char **argv)
 		}
 	}
 	t_end();
-	return 0;
+	return t_end();
 }

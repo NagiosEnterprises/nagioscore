@@ -115,6 +115,7 @@ int main(int argc, char **argv)
 	test(p1 == p2, "dkhash_remove() should return removed data");
 	t_end();
 
+	t_reset();
 	/* lots of tests below, so we shut up while they're running */
 	t_verbose = 0;
 
@@ -147,6 +148,7 @@ int main(int argc, char **argv)
 	dkhash_debug_table(tx, 0);
 	t_end();
 
+	t_reset();
 	for(x = 0; x < 10; x++) {
 		sprintf(tmp, "string %d", x);
 		strs[x] = strdup(tmp);
@@ -164,6 +166,7 @@ int main(int argc, char **argv)
 		test(p1 == p2, "remove should return a value");
 	}
 	t_end();
+	t_reset();
 
 	t_start("dkhash single bucket add remove backward");
 

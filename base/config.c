@@ -1377,9 +1377,10 @@ int pre_flight_check(void) {
 		}
 	if(ochp_command != NULL) {
 		ochp_command_ptr = find_bang_command(ochp_command);
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: OCHP command '%s' is not defined anywhere!\n", ochp_command);
-		ochp_command_ptr = find_bang_command(ochp_command);
-		errors += ochp_command_ptr == NULL;
+		if (!ochp_command_ptr) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: OCHP command '%s' is not defined anywhere!\n", ochp_command);
+			errors++;
+			}
 		}
 
 

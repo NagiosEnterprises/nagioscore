@@ -40,6 +40,8 @@ struct {
 	{ 0, "foo \\&\\& bar" },
 	{ CMD_HAS_JOBCONTROL, "foo & bar" },
 	{ 0, "foo \\& bar" },
+	{ CMD_HAS_JOBCONTROL, "lala foo ; bar" },
+	{ 0, "lala 'foo; bar'" },
 	{ CMD_HAS_SUBCOMMAND, "foo \"`extcmd`\"" },
 	{ 0, "foo \"\\`extcmd\\`\"" },
 	{ CMD_HAS_SUBCOMMAND, "foo `extcmd`" },

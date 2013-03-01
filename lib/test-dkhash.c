@@ -87,7 +87,7 @@ static int del_matching(void *data)
 int main(int argc, char **argv)
 {
 	dkhash_table *tx, *t;
-	int x;
+	int x, ret, r2;
 	struct test_data s;
 	char *p1, *p2;
 	char *strs[10];
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 	ok_int(dkhash_num_entries(t), 1, "should be 1 entries after 2 inserts and 1 successful remove");
 	p2 = dkhash_remove(t, "nisse", NULL);
 	test(p1 == p2, "dkhash_remove() should return removed data");
-	t_end();
+	ret = t_end();
 
 	t_reset();
 	/* lots of tests below, so we shut up while they're running */
@@ -146,7 +146,8 @@ int main(int argc, char **argv)
 	test(0 == dkhash_num_entries(tx), "x table post all ops");
 	test(0 == dkhash_check_table(tx), "x table consistency post all ops");
 	dkhash_debug_table(tx, 0);
-	t_end();
+	r2 = t_end();
+	ret = r2 ? r2 : ret;
 
 	t_reset();
 	for(x = 0; x < 10; x++) {
@@ -160,12 +161,13 @@ int main(int argc, char **argv)
 	for(x = 0; x < 10; x++) {
 		dkhash_insert(t, strs[x], NULL, strs[x]);
 	}
-	for( x = 0; x < 10; x++) {
+	for(x = 0; x < 10; x++) {
 		p1 = strs[x];
 		p2 = dkhash_remove(t, p1, NULL);
 		test(p1 == p2, "remove should return a value");
 	}
-	t_end();
+	r2 = t_end();
+	ret = r2 ? r2 : ret;
 	t_reset();
 
 	t_start("dkhash single bucket add remove backward");
@@ -180,5 +182,6 @@ int main(int argc, char **argv)
 		test(p1 == p2, "remove should return a value");
 	}
 
-	return t_end();
+	r2 = t_end();
+	return r2 ? r2 : ret;
 }

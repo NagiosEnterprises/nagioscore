@@ -652,7 +652,13 @@ int main(int argc, char **argv, char **env) {
 
 #ifdef USE_EVENT_BROKER
 			/* load modules */
-			neb_load_all_modules();
+			if (neb_load_all_modules() != OK) {
+				logit(NSLOG_CONFIG_ERROR, ERROR, "Error: Module loading failed. Aborting.\n");
+				/* if we're dumping core, we must remove all dl-files */
+				if (daemon_dumps_core)
+					neb_unload_all_modules(NEBMODULE_FORCE_UNLOAD, NEBMODULE_NEB_SHUTDOWN);
+				exit(EXIT_FAILURE);
+				}
 			timing_point("Modules loaded\n");
 
 			/* send program data to broker */

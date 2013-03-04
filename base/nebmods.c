@@ -148,12 +148,17 @@ int neb_free_module_list(void) {
 /* load all modules */
 int neb_load_all_modules(void) {
 	nebmodule *temp_module = NULL;
+	int ret, errors = 0;
 
 	for(temp_module = neb_module_list; temp_module; temp_module = temp_module->next) {
-		neb_load_module(temp_module);
+		ret = neb_load_module(temp_module);
+		if (ret != OK) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to load module '%s'.\n", temp_module->filename ? temp_module->filename : "(no file?)");
+			errors++;
+			}
 		}
 
-	return OK;
+	return errors ? ERROR : OK;
 	}
 
 
@@ -167,7 +172,7 @@ int neb_load_module(nebmodule *mod) {
 	char output_file[PATH_MAX];
 	int dest_fd, result = OK;
 
-	if(mod == NULL || mod->filename == NULL)
+	if(mod == NULL)
 		return ERROR;
 
 	/* don't reopen the module */
@@ -175,7 +180,7 @@ int neb_load_module(nebmodule *mod) {
 		return OK;
 
 	/* don't load modules unless they should be loaded */
-	if(mod->should_be_loaded == FALSE)
+	if(mod->should_be_loaded == FALSE || mod->filename == NULL)
 		return ERROR;
 
 	/**********

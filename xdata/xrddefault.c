@@ -62,7 +62,6 @@ int xrddefault_grab_config_info(char *main_config_file) {
 		log_debug_info(DEBUGL_RETENTIONDATA, 2, "Error: Cannot open main configuration file '%s' for reading!\n", main_config_file);
 
 		my_free(xrddefault_retention_file);
-		my_free(xrddefault_temp_file);
 
 		return ERROR;
 		}
@@ -93,19 +92,17 @@ int xrddefault_grab_config_info(char *main_config_file) {
 	/* initialize locations if necessary  */
 	if(xrddefault_retention_file == NULL)
 		xrddefault_retention_file = (char *)strdup(DEFAULT_RETENTION_FILE);
-	if(xrddefault_temp_file == NULL)
-		xrddefault_temp_file = (char *)strdup(DEFAULT_TEMP_FILE);
 
 	/* make sure we have everything */
 	if(xrddefault_retention_file == NULL)
-		return ERROR;
-	if(xrddefault_temp_file == NULL)
 		return ERROR;
 
 	/* save the retention file macro */
 	my_free(mac->x[MACRO_RETENTIONDATAFILE]);
 	if((mac->x[MACRO_RETENTIONDATAFILE] = (char *)strdup(xrddefault_retention_file)))
 		strip(mac->x[MACRO_RETENTIONDATAFILE]);
+
+	xrddefault_temp_file = temp_file;
 
 	return OK;
 	}
@@ -137,10 +134,6 @@ int xrddefault_grab_config_directives(char *input) {
 	/* retention file definition */
 	if(!strcmp(varname, "xrddefault_retention_file") || !strcmp(varname, "state_retention_file"))
 		xrddefault_retention_file = (char *)strdup(varvalue);
-
-	/* temp file definition */
-	else if(!strcmp(varname, "temp_file"))
-		xrddefault_temp_file = (char *)strdup(varvalue);
 
 	/* free memory */
 	my_free(varname);
@@ -175,7 +168,6 @@ int xrddefault_cleanup_retention_data(char *config_file) {
 
 	/* free memory */
 	my_free(xrddefault_retention_file);
-	my_free(xrddefault_temp_file);
 
 	return OK;
 	}
@@ -186,7 +178,7 @@ int xrddefault_cleanup_retention_data(char *config_file) {
 /******************************************************************/
 
 int xrddefault_save_state_information(void) {
-	char *temp_file = NULL;
+	char *tmp_file = NULL;
 	customvariablesmember *temp_customvariablesmember = NULL;
 	time_t current_time = 0L;
 	int result = OK;
@@ -216,23 +208,23 @@ int xrddefault_save_state_information(void) {
 		}
 
 	/* open a safe temp file for output */
-	asprintf(&temp_file, "%sXXXXXX", xrddefault_temp_file);
-	if(temp_file == NULL)
+	asprintf(&tmp_file, "%sXXXXXX", temp_file);
+	if(tmp_file == NULL)
 		return ERROR;
-	if((fd = mkstemp(temp_file)) == -1)
+	if((fd = mkstemp(tmp_file)) == -1)
 		return ERROR;
 
-	log_debug_info(DEBUGL_RETENTIONDATA, 2, "Writing retention data to temp file '%s'\n", temp_file);
+	log_debug_info(DEBUGL_RETENTIONDATA, 2, "Writing retention data to temp file '%s'\n", tmp_file);
 
 	fp = (FILE *)fdopen(fd, "w");
 	if(fp == NULL) {
 
 		close(fd);
-		unlink(temp_file);
+		unlink(tmp_file);
 
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not open temp state retention file '%s' for writing!\n", temp_file);
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not open temp state retention file '%s' for writing!\n", tmp_file);
 
-		my_free(temp_file);
+		my_free(tmp_file);
 
 		return ERROR;
 		}
@@ -515,8 +507,8 @@ int xrddefault_save_state_information(void) {
 		result = OK;
 
 		/* move the temp file to the retention file (overwrite the old retention file) */
-		if(my_rename(temp_file, xrddefault_retention_file)) {
-			unlink(temp_file);
+		if(my_rename(tmp_file, xrddefault_retention_file)) {
+			unlink(tmp_file);
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to update retention file '%s': %s", xrddefault_retention_file, strerror(errno));
 			result = ERROR;
 			}
@@ -528,12 +520,12 @@ int xrddefault_save_state_information(void) {
 		result = ERROR;
 
 		/* remove temp file and log an error */
-		unlink(temp_file);
+		unlink(tmp_file);
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to save retention file: %s", strerror(errno));
 		}
 
 	/* free memory */
-	my_free(temp_file);
+	my_free(tmp_file);
 
 	return result;
 	}

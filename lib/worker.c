@@ -209,11 +209,24 @@ int send_kvvec(int sd, struct kvvec *kvv)
 		kvvec_addkv_wlen(kvv, key, sizeof(key) - 1, buf, strlen(buf)); \
 	} while (0)
 
+/* forward declaration */
+static void gather_output(child_process *cp, iobuf *io, int final);
+
 int finish_job(child_process *cp, int reason)
 {
 	static struct kvvec resp = KVVEC_INITIALIZER;
 	struct rusage *ru = &cp->ei->rusage;
 	int i, ret;
+
+	/* get rid of still open filedescriptors */
+	if (cp->outstd.fd != -1) {
+		gather_output(cp, &cp->outstd, 1);
+		iobroker_close(iobs, cp->outstd.fd);
+	}
+	if (cp->outerr.fd != -1) {
+		gather_output(cp, &cp->outerr, 1);
+		iobroker_close(iobs, cp->outerr.fd);
+	}
 
 	/* how many key/value pairs do we need? */
 	if (kvvec_init(&resp, 12 + cp->request->kv_pairs) == NULL) {
@@ -237,12 +250,6 @@ int finish_job(child_process *cp, int reason)
 	 */
 	squeue_remove(sq, cp->ei->sq_event);
 	running_jobs--;
-
-	/* get rid of still open filedescriptors */
-	if (cp->outstd.fd != -1)
-		iobroker_close(iobs, cp->outstd.fd);
-	if (cp->outerr.fd != -1)
-		iobroker_close(iobs, cp->outerr.fd);
 
 	cp->ei->runtime = tv_delta_f(&cp->ei->start, &cp->ei->stop);
 
@@ -385,7 +392,7 @@ static void kill_job(child_process *cp, int reason)
 #endif /* PLAY_NICE_IN_kill_job */
 }
 
-static void gather_output(child_process *cp, iobuf *io)
+static void gather_output(child_process *cp, iobuf *io, int final)
 {
 	iobuf *other_io;
 
@@ -409,7 +416,7 @@ static void gather_output(child_process *cp, iobuf *io)
 			memcpy(&io->buf[io->len], buf, rd);
 			io->len += rd;
 			io->buf[io->len] = '\0';
-		} else {
+		} else if (!final) {
 			iobroker_close(iobs, io->fd);
 			io->fd = -1;
 			if (other_io->fd < 0) {
@@ -426,14 +433,14 @@ static void gather_output(child_process *cp, iobuf *io)
 static int stderr_handler(int fd, int events, void *cp_)
 {
 	child_process *cp = (child_process *)cp_;
-	gather_output(cp, &cp->outerr);
+	gather_output(cp, &cp->outerr, 0);
 	return 0;
 }
 
 static int stdout_handler(int fd, int events, void *cp_)
 {
 	child_process *cp = (child_process *)cp_;
-	gather_output(cp, &cp->outstd);
+	gather_output(cp, &cp->outstd, 0);
 	return 0;
 }
 

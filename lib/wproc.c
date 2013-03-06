@@ -30,7 +30,7 @@ static void die(const char *msg)
 static void sighandler(int sig)
 {
 	sigreceived = sig;
-	printf("%d: caught sig %d (%s)\n", getpid(), sig, strsignal(sig));
+	printf("%d: caught sig %d\n", getpid(), sig);
 }
 
 static void child_exited(int sig)

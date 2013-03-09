@@ -1053,9 +1053,21 @@ char * html_encode(char *input, int escape_newlines) {
 				}
 			}
 
+		/* When not escaping HTML tags, don't encode quotes or ampersands 
+			(left and right carets are handled above */
+		else if((escape_html_tags == FALSE) && ( '"' == *inwcp || 
+				'&' == *inwcp || '\'' == *inwcp)) {
+			wctomb_result = wctomb( mbtemp, *inwcp);
+			if(( wctomb_result > 0) && 
+					((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
+				strncpy( outstp, mbtemp, wctomb_result);
+				outstp += wctomb_result;
+				}
+			}
+
 		/* for simplicity, all other chars represented by their numeric value */
 		else {
-			sprintf( temp_expansion, "&#%u", *( unsigned int *)inwcp);
+			sprintf( temp_expansion, "&#%u;", *( unsigned int *)inwcp);
 			if((( outstp - encoded_html_string) + strlen( temp_expansion)) < 
 					output_max) {
 				strncpy( outstp, temp_expansion, strlen( temp_expansion));
@@ -1154,7 +1166,7 @@ char *escape_string(char *input) {
 
 		/* Encode everything else (this may be excessive) */
 		else {
-			sprintf( temp_expansion, "&#%u", ( unsigned int)wctemp[ 0]);
+			sprintf( temp_expansion, "&#%u;", ( unsigned int)wctemp[ 0]);
 			if((( stp - encoded_html_string) + strlen( temp_expansion)) < 
 					output_max) {
 				strncpy( stp, temp_expansion, strlen( temp_expansion));

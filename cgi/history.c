@@ -805,22 +805,22 @@ void get_history(void) {
 			else if(display_type == DISPLAY_HOSTS) {
 
 				if(history_type == HOST_HISTORY || history_type == SERVICE_HISTORY) {
-					snprintf(match1, sizeof( match1), 
-							" HOST ALERT: %s;", host_name);
-					snprintf(match2, sizeof( match2), 
-							" SERVICE ALERT: %s;", host_name);
+					snprintf(match1, sizeof(match1),
+					         " HOST ALERT: %s;", host_name);
+					snprintf(match2, sizeof(match2),
+					         " SERVICE ALERT: %s;", host_name);
 					}
 				else if(history_type == HOST_FLAPPING_HISTORY || history_type == SERVICE_FLAPPING_HISTORY) {
-					snprintf(match1, sizeof( match1), 
-							" HOST FLAPPING ALERT: %s;", host_name);
-					snprintf(match2, sizeof( match2), 
-							" SERVICE FLAPPING ALERT: %s;", host_name);
+					snprintf(match1, sizeof(match1),
+					         " HOST FLAPPING ALERT: %s;", host_name);
+					snprintf(match2, sizeof(match2),
+					         " SERVICE FLAPPING ALERT: %s;", host_name);
 					}
 				else if(history_type == HOST_DOWNTIME_HISTORY || history_type == SERVICE_DOWNTIME_HISTORY) {
-					snprintf(match1, sizeof( match1), 
-							" HOST DOWNTIME ALERT: %s;", host_name);
-					snprintf(match2, sizeof( match2), 
-							" SERVICE DOWNTIME ALERT: %s;", host_name);
+					snprintf(match1, sizeof(match1),
+					         " HOST DOWNTIME ALERT: %s;", host_name);
+					snprintf(match2, sizeof(match2),
+					         " SERVICE DOWNTIME ALERT: %s;", host_name);
 					}
 
 				if(show_all_hosts == TRUE)
@@ -859,11 +859,11 @@ void get_history(void) {
 			else if(display_type == DISPLAY_SERVICES) {
 
 				if(history_type == SERVICE_HISTORY)
-					snprintf(match1, sizeof( match1), " SERVICE ALERT: %s;%s;", host_name, svc_description);
+					snprintf(match1, sizeof(match1), " SERVICE ALERT: %s;%s;", host_name, svc_description);
 				else if(history_type == SERVICE_FLAPPING_HISTORY)
-					snprintf(match1, sizeof( match1), " SERVICE FLAPPING ALERT: %s;%s;", host_name, svc_description);
+					snprintf(match1, sizeof(match1), " SERVICE FLAPPING ALERT: %s;%s;", host_name, svc_description);
 				else if(history_type == SERVICE_DOWNTIME_HISTORY)
-					snprintf(match1, sizeof( match1), " SERVICE DOWNTIME ALERT: %s;%s;", host_name, svc_description);
+					snprintf(match1, sizeof(match1), " SERVICE DOWNTIME ALERT: %s;%s;", host_name, svc_description);
 
 				if(strstr(temp_buffer, match1) && (history_type == SERVICE_HISTORY || history_type == SERVICE_FLAPPING_HISTORY || history_type == SERVICE_DOWNTIME_HISTORY))
 					display_line = TRUE;

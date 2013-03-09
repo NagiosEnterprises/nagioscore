@@ -336,7 +336,7 @@ int is_authorized_for_servicegroup(servicegroup *sg, authdata *authinfo) {
 		if(is_authorized_for_service(temp_service, authinfo) == TRUE)
 			return TRUE;
 		}
-		
+
 	/*return TRUE*/;
 	return FALSE;
 	}

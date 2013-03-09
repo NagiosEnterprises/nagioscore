@@ -61,32 +61,35 @@ FILE            *debug_file_fp = NULL;
 static pthread_mutex_t debug_fp_lock;
 
 /* These simple helpers should most likely be elsewhere */
-static const char *service_state_name(int state)
-{
-	switch (state) {
-	case STATE_OK: return "OK";
-	case STATE_WARNING: return "WARNING";
-	case STATE_CRITICAL: return "CRITICAL";
-	}
+static const char *service_state_name(int state) {
+	switch(state) {
+		case STATE_OK:
+			return "OK";
+		case STATE_WARNING:
+			return "WARNING";
+		case STATE_CRITICAL:
+			return "CRITICAL";
+		}
 
 	return "UNKNOWN";
-}
-
-static const char *host_state_name(int state)
-{
-	switch (state) {
-	case HOST_UP: return "UP";
-	case HOST_DOWN: return "DOWN";
-	case HOST_UNREACHABLE: return "UNREACHABLE";
 	}
 
-	return "(unknown)";
-}
+static const char *host_state_name(int state) {
+	switch(state) {
+		case HOST_UP:
+			return "UP";
+		case HOST_DOWN:
+			return "DOWN";
+		case HOST_UNREACHABLE:
+			return "UNREACHABLE";
+		}
 
-static const char *state_type_name(int state_type)
-{
+	return "(unknown)";
+	}
+
+static const char *state_type_name(int state_type) {
 	return state_type == HARD_STATE ? "HARD" : "SOFT";
-}
+	}
 
 /*
  * since we don't want child processes to hang indefinitely
@@ -292,11 +295,11 @@ int log_service_event(service *svc) {
 		return ERROR;
 
 	asprintf(&temp_buffer, "SERVICE ALERT: %s;%s;%s;%s;%d;%s\n",
-			 svc->host_name, svc->description,
-			 service_state_name(svc->current_state),
-			 state_type_name(svc->state_type),
-			 svc->current_attempt,
-			 (svc->plugin_output == NULL) ? "" : svc->plugin_output);
+	         svc->host_name, svc->description,
+	         service_state_name(svc->current_state),
+	         state_type_name(svc->state_type),
+	         svc->current_attempt,
+	         (svc->plugin_output == NULL) ? "" : svc->plugin_output);
 
 	write_to_all_logs(temp_buffer, log_options);
 
@@ -318,11 +321,11 @@ int log_host_event(host *hst) {
 		log_options = NSLOG_HOST_UP;
 
 	asprintf(&temp_buffer, "HOST ALERT: %s;%s;%s;%d;%s\n",
-			 hst->name,
-			 host_state_name(hst->current_state),
-			 state_type_name(hst->state_type),
-			 hst->current_attempt,
-			 (hst->plugin_output == NULL) ? "" : hst->plugin_output);
+	         hst->name,
+	         host_state_name(hst->current_state),
+	         state_type_name(hst->state_type),
+	         hst->current_attempt,
+	         (hst->plugin_output == NULL) ? "" : hst->plugin_output);
 
 	write_to_all_logs(temp_buffer, log_options);
 
@@ -344,11 +347,11 @@ int log_host_states(int type, time_t *timestamp) {
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		asprintf(&temp_buffer, "%s HOST STATE: %s;%s;%s;%d;%s\n", (type == INITIAL_STATES) ? "INITIAL" : "CURRENT",
-				 temp_host->name,
-				 host_state_name(temp_host->current_state),
-				 state_type_name(temp_host->state_type),
-				 temp_host->current_attempt,
-				 (temp_host->plugin_output == NULL) ? "" : temp_host->plugin_output);
+		         temp_host->name,
+		         host_state_name(temp_host->current_state),
+		         state_type_name(temp_host->state_type),
+		         temp_host->current_attempt,
+		         (temp_host->plugin_output == NULL) ? "" : temp_host->plugin_output);
 
 		write_to_all_logs_with_timestamp(temp_buffer, NSLOG_INFO_MESSAGE, timestamp);
 
@@ -376,12 +379,12 @@ int log_service_states(int type, time_t *timestamp) {
 			continue;
 
 		asprintf(&temp_buffer, "%s SERVICE STATE: %s;%s;%s;%s;%d;%s\n",
-				 (type == INITIAL_STATES) ? "INITIAL" : "CURRENT",
-				 temp_service->host_name, temp_service->description,
-				 service_state_name(temp_service->current_state),
-				 state_type_name(temp_service->state_type),
-				 temp_service->current_attempt,
-				 temp_service->plugin_output);
+		         (type == INITIAL_STATES) ? "INITIAL" : "CURRENT",
+		         temp_service->host_name, temp_service->description,
+		         service_state_name(temp_service->current_state),
+		         state_type_name(temp_service->state_type),
+		         temp_service->current_attempt,
+		         temp_service->plugin_output);
 
 		write_to_all_logs_with_timestamp(temp_buffer, NSLOG_INFO_MESSAGE, timestamp);
 
@@ -502,10 +505,10 @@ int chown_debug_log(uid_t uid, gid_t gid) {
 	if(debug_level == DEBUGL_NONE)
 		return OK;
 
-	if( chown(debug_file, uid, gid) < 0) {
-		logit(NSLOG_RUNTIME_WARNING, TRUE, 
-				"Failed to change ownership on debug log: %s.", 
-				strerror( errno));
+	if(chown(debug_file, uid, gid) < 0) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE,
+		      "Failed to change ownership on debug log: %s.",
+		      strerror(errno));
 		return ERROR;
 		}
 

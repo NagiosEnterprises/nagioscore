@@ -642,7 +642,7 @@ int xrddefault_read_state_information(void) {
 	int scheduling_info_is_ok = FALSE;
 	unsigned long downtime_id = 0;
 	time_t start_time = 0L;
-	time_t flex_downtime_start = ( time_t)0;
+	time_t flex_downtime_start = (time_t)0;
 	time_t end_time = 0L;
 	int fixed = FALSE;
 	unsigned long triggered_by = 0;
@@ -984,7 +984,7 @@ int xrddefault_read_state_information(void) {
 					downtime_id = 0;
 					entry_time = 0L;
 					start_time = 0L;
-					flex_downtime_start = ( time_t)0;
+					flex_downtime_start = (time_t)0;
 					end_time = 0L;
 					fixed = FALSE;
 					triggered_by = 0;

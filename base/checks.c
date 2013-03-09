@@ -2084,13 +2084,12 @@ int is_service_result_fresh(service *temp_service, time_t current_time, int log_
 	 * freshness threshold based on vast heuristical research (ie, "some
 	 * guy once told me the golden ratio is good for loads of stuff").
 	 */
-	if (temp_service->check_type == SERVICE_CHECK_PASSIVE) {
-		if (temp_service->last_check < event_start &&
-			event_start - last_program_stop < freshness_threshold * 0.618)
-		{
+	if(temp_service->check_type == SERVICE_CHECK_PASSIVE) {
+		if(temp_service->last_check < event_start &&
+		        event_start - last_program_stop < freshness_threshold * 0.618) {
 			expiration_time = event_start + freshness_threshold;
+			}
 		}
-	}
 	log_debug_info(DEBUGL_CHECKS, 2, "HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n", temp_service->has_been_checked, (unsigned long)program_start, (unsigned long)event_start, (unsigned long)temp_service->last_check, (unsigned long)current_time, (unsigned long)expiration_time);
 
 	/* the results for the last check of this service are stale */
@@ -2223,7 +2222,7 @@ void schedule_host_check(host *hst, time_t check_time, int options) {
 			return;
 			}
 
-		if (temp_event) {
+		if(temp_event) {
 			remove_event(temp_event, &event_list_low, &event_list_low_tail);
 			my_free(temp_event);
 			}
@@ -2495,13 +2494,12 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int log_this) {
 	 * freshness threshold based on vast heuristical research (ie, "some
 	 * guy once told me the golden ratio is good for loads of stuff").
 	 */
-	if (temp_host->check_type == HOST_CHECK_PASSIVE) {
-		if (temp_host->last_check < event_start &&
-			event_start - last_program_stop > freshness_threshold * 0.618)
-		{
+	if(temp_host->check_type == HOST_CHECK_PASSIVE) {
+		if(temp_host->last_check < event_start &&
+		        event_start - last_program_stop > freshness_threshold * 0.618) {
 			expiration_time = event_start + freshness_threshold;
+			}
 		}
-	}
 
 	log_debug_info(DEBUGL_CHECKS, 2, "HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n", temp_host->has_been_checked, (unsigned long)program_start, (unsigned long)event_start, (unsigned long)temp_host->last_check, (unsigned long)current_time, (unsigned long)expiration_time);
 

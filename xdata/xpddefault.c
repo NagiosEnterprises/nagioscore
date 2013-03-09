@@ -63,8 +63,8 @@ char    *xpddefault_service_perfdata_file_processing_command = NULL;
 command *xpddefault_host_perfdata_file_processing_command_ptr = NULL;
 command *xpddefault_service_perfdata_file_processing_command_ptr = NULL;
 
-int     xpddefault_host_perfdata_process_empty_results=DEFAULT_HOST_PERFDATA_PROCESS_EMPTY_RESULTS;
-int     xpddefault_service_perfdata_process_empty_results=DEFAULT_SERVICE_PERFDATA_PROCESS_EMPTY_RESULTS;
+int     xpddefault_host_perfdata_process_empty_results = DEFAULT_HOST_PERFDATA_PROCESS_EMPTY_RESULTS;
+int     xpddefault_service_perfdata_process_empty_results = DEFAULT_SERVICE_PERFDATA_PROCESS_EMPTY_RESULTS;
 
 FILE    *xpddefault_host_perfdata_fp = NULL;
 FILE    *xpddefault_service_perfdata_fp = NULL;
@@ -191,10 +191,10 @@ int xpddefault_grab_config_directives(char *input) {
 
 	else if(!strcmp(varname, "service_perfdata_file_processing_command"))
 		xpddefault_service_perfdata_file_processing_command = (char *)strdup(varvalue);
-	else if(!strcmp(varname,"host_perfdata_process_empty_results"))
-	        xpddefault_host_perfdata_process_empty_results=(atoi(varvalue)>0)?TRUE:FALSE;
-	else if(!strcmp(varname,"service_perfdata_process_empty_results"))
-	        xpddefault_service_perfdata_process_empty_results=(atoi(varvalue)>0)?TRUE:FALSE;
+	else if(!strcmp(varname, "host_perfdata_process_empty_results"))
+		xpddefault_host_perfdata_process_empty_results = (atoi(varvalue) > 0) ? TRUE : FALSE;
+	else if(!strcmp(varname, "service_perfdata_process_empty_results"))
+		xpddefault_service_perfdata_process_empty_results = (atoi(varvalue) > 0) ? TRUE : FALSE;
 
 	/* free memory */
 	my_free(varname);
@@ -391,15 +391,15 @@ int xpddefault_update_service_performance_data(service *svc) {
 	 * on distributed setups, empty perfdata results are required, so
 	 * only drop out if demanded via configs.
 	*/
-	if(xpddefault_service_perfdata_process_empty_results==FALSE){
-	        if(!svc || !svc->perf_data || !*svc->perf_data) {
-		       return OK;
-		}
-	        if((!xpddefault_service_perfdata_fp || !xpddefault_service_perfdata_file_template) && !xpddefault_service_perfdata_command) {
-		       return OK;
-		}
+	if(xpddefault_service_perfdata_process_empty_results == FALSE) {
+		if(!svc || !svc->perf_data || !*svc->perf_data) {
+			return OK;
+			}
+		if((!xpddefault_service_perfdata_fp || !xpddefault_service_perfdata_file_template) && !xpddefault_service_perfdata_command) {
+			return OK;
+			}
 
-	}
+		}
 	/*
 	 * we know we've got some work to do, so grab the necessary
 	 * macros and get busy
@@ -433,17 +433,17 @@ int xpddefault_update_host_performance_data(host *hst) {
 	/*
 	 * bail early if we've got nothing to do so we don't spend a lot
 	 * of time calculating macros that never get used
-         * on distributed setups, empty perfdata results are required, so
-         * only drop out if demanded via configs.
+	     * on distributed setups, empty perfdata results are required, so
+	     * only drop out if demanded via configs.
 	 */
-        if(xpddefault_host_perfdata_process_empty_results==FALSE){
-	        if(!hst || !hst->perf_data || !*hst->perf_data) {
-		       return OK;
+	if(xpddefault_host_perfdata_process_empty_results == FALSE) {
+		if(!hst || !hst->perf_data || !*hst->perf_data) {
+			return OK;
+			}
+		if((!xpddefault_host_perfdata_fp || !xpddefault_host_perfdata_file_template) && !xpddefault_host_perfdata_command) {
+			return OK;
+			}
 		}
-	        if((!xpddefault_host_perfdata_fp || !xpddefault_host_perfdata_file_template) && !xpddefault_host_perfdata_command) {
-		       return OK;
-		}
-	}
 
 	/* set up macros and get to work */
 	memset(&mac, 0, sizeof(mac));
@@ -547,7 +547,7 @@ int xpddefault_run_host_performance_data_command(nagios_macros *mac, host *hst) 
 	/* process any macros in the raw command line */
 	process_macros_r(mac, raw_command_line, &processed_command_line, macro_options);
 	my_free(raw_command_line);
-	if (!processed_command_line)
+	if(!processed_command_line)
 		return ERROR;
 
 	log_debug_info(DEBUGL_PERFDATA, 2, "Processed host performance data command line: %s\n", processed_command_line);

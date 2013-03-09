@@ -2136,7 +2136,7 @@ int drop_privileges(char *user, char *group) {
 			}
 #endif
 		/* Change the ownership on the debug log file */
-		chown_debug_log( uid, gid);
+		chown_debug_log(uid, gid);
 
 		if(setuid(uid) == -1) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not set effective UID=%d", (int)uid);
@@ -2284,8 +2284,8 @@ int process_check_result_queue(char *dirname) {
 				continue;
 
 			/* process the file */
-			result = process_check_result_file(file, &check_result_list, 
-					TRUE, TRUE);
+			result = process_check_result_file(file, &check_result_list,
+			                                   TRUE, TRUE);
 
 			/* break out if we encountered an error */
 			if(result == ERROR)
@@ -2302,7 +2302,7 @@ int process_check_result_queue(char *dirname) {
 
 
 
-/* Find checks that are currently executing. This function is intended to 
+/* Find checks that are currently executing. This function is intended to
    be used on a Nagios restart to prevent currently executing checks from
    being rescheduled. */
 int find_executing_checks(char *dirname) {
@@ -2343,7 +2343,7 @@ int find_executing_checks(char *dirname) {
 
 		/* process this if it's a check result file... */
 		x = strlen(dirfile->d_name);
-		if(x == 11 && !strncmp( dirfile->d_name, "check", 5)) {
+		if(x == 11 && !strncmp(dirfile->d_name, "check", 5)) {
 
 			if(stat(file, &stat_buf) == -1) {
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not stat() check status '%s'.\n", file);
@@ -2365,8 +2365,8 @@ int find_executing_checks(char *dirname) {
 				}
 
 			/* at this point we have a regular file... */
-			log_debug_info(DEBUGL_CHECKS, 2, 
-					"Looking for still-executing checks in %s.\n", file);
+			log_debug_info(DEBUGL_CHECKS, 2,
+			               "Looking for still-executing checks in %s.\n", file);
 
 			/* process the file */
 			result = process_check_result_file(file, &crl, FALSE, FALSE);
@@ -2378,42 +2378,42 @@ int find_executing_checks(char *dirname) {
 			time(&current_time);
 
 			/* examine the check results */
-			while(( cr = read_check_result(&crl)) != NULL) {
-				if( HOST_CHECK == cr->object_check_type) {
-					log_debug_info(DEBUGL_CHECKS, 2, 
-							"Determining whether check for host '%s' is still executing.\n",
-							cr->host_name);
+			while((cr = read_check_result(&crl)) != NULL) {
+				if(HOST_CHECK == cr->object_check_type) {
+					log_debug_info(DEBUGL_CHECKS, 2,
+					               "Determining whether check for host '%s' is still executing.\n",
+					               cr->host_name);
 					if((host = find_host(cr->host_name)) == NULL) {
-						logit(NSLOG_RUNTIME_WARNING, TRUE, 
-								"Warning: Check status contained host '%s', "
-								"but the host could not be found! Ignoring "
-								"check.\n", cr->host_name);
+						logit(NSLOG_RUNTIME_WARNING, TRUE,
+						      "Warning: Check status contained host '%s', "
+						      "but the host could not be found! Ignoring "
+						      "check.\n", cr->host_name);
 						}
-					else if( current_time - cr->start_time.tv_sec < 
-							host_check_timeout) {
-						log_debug_info(DEBUGL_CHECKS, 1, 
-								"Check for host %s is still executing.\n",
-								cr->host_name);
+					else if(current_time - cr->start_time.tv_sec <
+					        host_check_timeout) {
+						log_debug_info(DEBUGL_CHECKS, 1,
+						               "Check for host %s is still executing.\n",
+						               cr->host_name);
 						host->is_executing = TRUE;
 						}
 					}
-				else if( SERVICE_CHECK == cr->object_check_type) {
-					log_debug_info(DEBUGL_CHECKS, 2, 
-							"Determining whether check for service '%s' on host '%s' is still executing.\n",
-							cr->host_name, cr->service_description);
-					if((svc = find_service(cr->host_name, 
-							cr->service_description)) == NULL) {
-						logit(NSLOG_RUNTIME_WARNING, TRUE, 
-								"Warning: Check status contained service '%s' "
-								"on host '%s', but the service could not be "
-								"found! Ignoring check.\n", 
-								cr->service_description, cr->host_name);
+				else if(SERVICE_CHECK == cr->object_check_type) {
+					log_debug_info(DEBUGL_CHECKS, 2,
+					               "Determining whether check for service '%s' on host '%s' is still executing.\n",
+					               cr->host_name, cr->service_description);
+					if((svc = find_service(cr->host_name,
+					                       cr->service_description)) == NULL) {
+						logit(NSLOG_RUNTIME_WARNING, TRUE,
+						      "Warning: Check status contained service '%s' "
+						      "on host '%s', but the service could not be "
+						      "found! Ignoring check.\n",
+						      cr->service_description, cr->host_name);
 						}
-					else if( current_time - cr->start_time.tv_sec < 
-							service_check_timeout) {
-						log_debug_info(DEBUGL_CHECKS, 1, 
-								"Check for service %s:%s is still executing.\n",
-								cr->host_name, cr->service_description);
+					else if(current_time - cr->start_time.tv_sec <
+					        service_check_timeout) {
+						log_debug_info(DEBUGL_CHECKS, 1,
+						               "Check for service %s:%s is still executing.\n",
+						               cr->host_name, cr->service_description);
 						svc->is_executing = TRUE;
 						}
 					}
@@ -2478,8 +2478,8 @@ int process_check_result_file(char *fname, check_result **listp, int delete_file
 			if(new_cr) {
 
 				/* do we have the minimum amount of data? */
-				if(new_cr->host_name != NULL && 
-						( !need_output || new_cr->output != NULL)) {
+				if(new_cr->host_name != NULL &&
+				        (!need_output || new_cr->output != NULL)) {
 
 					/* add check result to list in memory */
 					add_check_result_to_list(listp, new_cr);
@@ -2574,8 +2574,8 @@ int process_check_result_file(char *fname, check_result **listp, int delete_file
 	if(new_cr) {
 
 		/* do we have the minimum amount of data? */
-		if(new_cr->host_name != NULL && 
-				( !need_output || new_cr->output != NULL)) {
+		if(new_cr->host_name != NULL &&
+		        (!need_output || new_cr->output != NULL)) {
 
 			/* add check result to list in memory */
 			add_check_result_to_list(listp, new_cr);
@@ -3259,10 +3259,10 @@ int file_uses_embedded_perl(char *fname) {
 		return FALSE;
 
 	/* grab the first line - we should see Perl. go home if not */
-	if (fgets(buf, 80, fp) == NULL || strstr(buf, "/bin/perl") == NULL) {
+	if(fgets(buf, 80, fp) == NULL || strstr(buf, "/bin/perl") == NULL) {
 		fclose(fp);
 		return FALSE;
-	}
+		}
 
 	/* epn directives must be found in first ten lines of plugin */
 	for(line = 1; line < 10; line++) {
@@ -3275,7 +3275,7 @@ int file_uses_embedded_perl(char *fname) {
 		if(strstr(buf, "# nagios:")) {
 			char *p;
 			p = strstr(buf + 8, "epn");
-			if (!p)
+			if(!p)
 				continue;
 
 			/*
@@ -4135,7 +4135,7 @@ void free_memory(nagios_macros *mac) {
 	/* free memory for the high priority event list */
 	this_event = event_list_high;
 	while(this_event != NULL) {
-		if (this_event->event_type == EVENT_SCHEDULED_DOWNTIME)
+		if(this_event->event_type == EVENT_SCHEDULED_DOWNTIME)
 			my_free(this_event->event_data);
 		next_event = this_event->next;
 		my_free(this_event);
@@ -4148,7 +4148,7 @@ void free_memory(nagios_macros *mac) {
 	/* free memory for the low priority event list */
 	this_event = event_list_low;
 	while(this_event != NULL) {
-		if (this_event->event_type == EVENT_SCHEDULED_DOWNTIME)
+		if(this_event->event_type == EVENT_SCHEDULED_DOWNTIME)
 			my_free(this_event->event_data);
 		next_event = this_event->next;
 		my_free(this_event);

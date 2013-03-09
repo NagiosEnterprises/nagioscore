@@ -9,7 +9,7 @@
  * Copyright (c) 1999-2009 Ethan Galstad
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   
+ * Last Modified:
  *
  * Description:
  *
@@ -98,7 +98,7 @@ unsigned long   logging_options = 0;
 unsigned long   syslog_options = 0;
 
 int             service_check_timeout = DEFAULT_SERVICE_CHECK_TIMEOUT;
-int             service_check_timeout_state=STATE_CRITICAL;
+int             service_check_timeout_state = STATE_CRITICAL;
 int             host_check_timeout = DEFAULT_HOST_CHECK_TIMEOUT;
 int             event_handler_timeout = DEFAULT_EVENT_HANDLER_TIMEOUT;
 int             notification_timeout = DEFAULT_NOTIFICATION_TIMEOUT;

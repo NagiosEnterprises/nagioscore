@@ -58,7 +58,7 @@ struct macro_key_code {
 	int code;  /* numeric macro code, usable in case statements */
 	int clean_options;
 	char *value;
-};
+	};
 
 struct macro_key_code macro_keys[MACRO_X_COUNT];
 
@@ -99,14 +99,14 @@ const struct macro_key_code *find_macro_key(const char *name) {
 	struct macro_key_code *key;
 
 	high = MACRO_X_COUNT;
-	while (high - low > 0) {
+	while(high - low > 0) {
 		unsigned int mid = low + ((high - low) / 2);
 		key = &macro_keys[mid];
 		value = strcmp(name, key->name);
-		if (value == 0) {
+		if(value == 0) {
 			return key;
 			}
-		if (value > 0)
+		if(value > 0)
 			low = mid + 1;
 		else
 			high = mid;
@@ -517,9 +517,9 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 			}
 		}
 
-	if ((mkey = find_macro_key(macro_name))) {
+	if((mkey = find_macro_key(macro_name))) {
 		log_debug_info(DEBUGL_MACROS, 2, "  macros[%d] (%s) match.\n", mkey->code, macro_x_names[mkey->code]);
-		if (mkey->clean_options) {
+		if(mkey->clean_options) {
 			*clean_options |= mkey->clean_options;
 			log_debug_info(DEBUGL_MACROS, 2, "  New clean options: %d\n", *clean_options);
 			}
@@ -2545,13 +2545,12 @@ char *get_url_encoded_string(char *input) {
 	}
 
 
-static int macro_key_cmp(const void *a_, const void *b_)
-{
+static int macro_key_cmp(const void *a_, const void *b_) {
 	struct macro_key_code *a = (struct macro_key_code *)a_;
 	struct macro_key_code *b = (struct macro_key_code *)b_;
 
 	return strcmp(a->name, b->name);
-}
+	}
 
 
 /******************************************************************/
@@ -2583,7 +2582,7 @@ int init_macros(void) {
 	 * keys are so long and a binary lookup is completed in
 	 * 7 steps for up to ~200 keys, worst case.
 	 */
-	for (x = 0; x < MACRO_X_COUNT; x++) {
+	for(x = 0; x < MACRO_X_COUNT; x++) {
 		macro_keys[x].code = x;
 		macro_keys[x].name = macro_x_names[x];
 

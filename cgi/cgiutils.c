@@ -329,8 +329,8 @@ int read_cgi_config_file(char *filename) {
 
 		else if(!strcmp(var, "refresh_rate"))
 			refresh_rate = atoi(val);
-			
-		/* page limit added 2/1/2012 -MG */ 	
+
+		/* page limit added 2/1/2012 -MG */
 		else if(!strcmp(var, "result_limit"))
 			result_limit = atoi(val);
 
@@ -374,11 +374,11 @@ int read_cgi_config_file(char *filename) {
 
 			snprintf(url_media_path, sizeof(url_media_path), "%smedia/", url_html_path);
 			url_media_path[sizeof(url_media_path) - 1] = '\x0';
-			
-			/* added JS directory 2/1/2012 -MG */ 
+
+			/* added JS directory 2/1/2012 -MG */
 			snprintf(url_js_path, sizeof(url_js_path), "%sjs/", url_html_path);
 			url_js_path[sizeof(url_js_path) - 1] = '\x0';
-			
+
 			}
 
 		else if(!strcmp(var, "service_critical_sound"))
@@ -974,104 +974,104 @@ char * html_encode(char *input, int escape_newlines) {
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
 	output_max = len * 6;
-	if(( outstp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
+	if((outstp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
 		return "";
 
 	strcpy(encoded_html_string, "");
 
 	/* Convert the string to a wide character string */
-	if(( wcinput = malloc( len * sizeof( wchar_t))) == NULL) {
+	if((wcinput = malloc(len * sizeof(wchar_t))) == NULL) {
 		return "";
 		}
-	if(( mbstowcs_result = mbstowcs( wcinput, input, len)) < 0) {
-		free( wcinput);
+	if((mbstowcs_result = mbstowcs(wcinput, input, len)) < 0) {
+		free(wcinput);
 		return "";
 		}
 
 	/* Process all converted characters */
-	for( x = 0, inwcp = wcinput; x < mbstowcs_result && '\0' != *inwcp; x++, inwcp++) {
+	for(x = 0, inwcp = wcinput; x < mbstowcs_result && '\0' != *inwcp; x++, inwcp++) {
 
 		/* Most ASCII characters don't get encoded */
-		if(( *inwcp  >= 0x20 && *inwcp <= 0x7e) &&
-				( !( '"' == *inwcp || '&' == *inwcp || '\'' == *inwcp || 
-				'<' == *inwcp || '>' == *inwcp))) {
-			wctomb_result = wctomb( mbtemp, *inwcp);
-			if(( wctomb_result > 0) && 
-					((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
-				strncpy( outstp, mbtemp, wctomb_result);
+		if((*inwcp  >= 0x20 && *inwcp <= 0x7e) &&
+		        (!('"' == *inwcp || '&' == *inwcp || '\'' == *inwcp ||
+		           '<' == *inwcp || '>' == *inwcp))) {
+			wctomb_result = wctomb(mbtemp, *inwcp);
+			if((wctomb_result > 0) &&
+			        (((outstp - encoded_html_string) + wctomb_result) < output_max)) {
+				strncpy(outstp, mbtemp, wctomb_result);
 				outstp += wctomb_result;
 				}
 			}
 
 		/* newlines turn to <BR> tags */
 		else if(escape_newlines == TRUE && '\n' == *inwcp) {
-			strncpy( outstp, "<BR>", 4);
+			strncpy(outstp, "<BR>", 4);
 			outstp += 4;
 			}
 
-		else if(escape_newlines == TRUE && '\\' == *inwcp && '\n' == *( inwcp + 1)) {
-			strncpy( outstp, "<BR>", 4);
+		else if(escape_newlines == TRUE && '\\' == *inwcp && '\n' == *(inwcp + 1)) {
+			strncpy(outstp, "<BR>", 4);
 			outstp += 4;
 			inwcp++; /* needed so loop skips two wide characters */
 			}
 
 		/* TODO - strip all but allowed HTML tags out... */
 
-		else if( '<' == *inwcp) {
+		else if('<' == *inwcp) {
 
 			if(escape_html_tags == FALSE) {
-				wctomb_result = wctomb( mbtemp, *inwcp);
-				if(( wctomb_result > 0) && 
-						((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
-					strncpy( outstp, mbtemp, wctomb_result);
+				wctomb_result = wctomb(mbtemp, *inwcp);
+				if((wctomb_result > 0) &&
+				        (((outstp - encoded_html_string) + wctomb_result) < output_max)) {
+					strncpy(outstp, mbtemp, wctomb_result);
 					outstp += wctomb_result;
 					}
 				}
 			else {
-				if((( outstp - encoded_html_string) + 4) < output_max) {
-					strncpy( outstp, "&lt;", 4);
+				if(((outstp - encoded_html_string) + 4) < output_max) {
+					strncpy(outstp, "&lt;", 4);
 					outstp += 4;
 					}
 				}
 			}
 
-		else if( '>' == *inwcp) {
+		else if('>' == *inwcp) {
 
 			if(escape_html_tags == FALSE) {
-				wctomb_result = wctomb( mbtemp, *inwcp);
-				if(( wctomb_result > 0) && 
-						((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
-					strncpy( outstp, mbtemp, wctomb_result);
+				wctomb_result = wctomb(mbtemp, *inwcp);
+				if((wctomb_result > 0) &&
+				        (((outstp - encoded_html_string) + wctomb_result) < output_max)) {
+					strncpy(outstp, mbtemp, wctomb_result);
 					outstp += wctomb_result;
 					}
 				}
 			else {
-				if((( outstp - encoded_html_string) + 4) < output_max) {
-					strncpy( outstp, "&gt;", 4);
+				if(((outstp - encoded_html_string) + 4) < output_max) {
+					strncpy(outstp, "&gt;", 4);
 					outstp += 4;
 					}
 				}
 			}
 
-		/* When not escaping HTML tags, don't encode quotes or ampersands 
+		/* When not escaping HTML tags, don't encode quotes or ampersands
 			(left and right carets are handled above */
-		else if((escape_html_tags == FALSE) && ( '"' == *inwcp || 
-				'&' == *inwcp || '\'' == *inwcp)) {
-			wctomb_result = wctomb( mbtemp, *inwcp);
-			if(( wctomb_result > 0) && 
-					((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
-				strncpy( outstp, mbtemp, wctomb_result);
+		else if((escape_html_tags == FALSE) && ('"' == *inwcp ||
+		                                        '&' == *inwcp || '\'' == *inwcp)) {
+			wctomb_result = wctomb(mbtemp, *inwcp);
+			if((wctomb_result > 0) &&
+			        (((outstp - encoded_html_string) + wctomb_result) < output_max)) {
+				strncpy(outstp, mbtemp, wctomb_result);
 				outstp += wctomb_result;
 				}
 			}
 
 		/* for simplicity, all other chars represented by their numeric value */
 		else {
-			sprintf( temp_expansion, "&#%u;", *( unsigned int *)inwcp);
-			if((( outstp - encoded_html_string) + strlen( temp_expansion)) < 
-					output_max) {
-				strncpy( outstp, temp_expansion, strlen( temp_expansion));
-				outstp += strlen( temp_expansion);
+			sprintf(temp_expansion, "&#%u;", *(unsigned int *)inwcp);
+			if(((outstp - encoded_html_string) + strlen(temp_expansion)) <
+			        output_max) {
+				strncpy(outstp, temp_expansion, strlen(temp_expansion));
+				outstp += strlen(temp_expansion);
 				}
 			}
 		}
@@ -1119,46 +1119,46 @@ char *escape_string(char *input) {
 	char		temp_expansion[10];
 
 	/* If they don't give us anything to do... */
-	if( NULL == input) {
+	if(NULL == input) {
 		return "";
 		}
 
 	/* We need up to six times the space to do the conversion */
 	len = (int)strlen(input);
 	output_max = len * 6;
-	if(( stp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
+	if((stp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
 		return "";
 
 	strcpy(encoded_html_string, "");
 
 	/* Get the first multibyte character in the input string */
-	mbtowc_result = mbtowc( wctemp, input, MB_CUR_MAX);
+	mbtowc_result = mbtowc(wctemp, input, MB_CUR_MAX);
 
 	/* Process all characters until a null character is found */
-	while( 0 != mbtowc_result) {	/* 0 indicates a null character was found */
+	while(0 != mbtowc_result) {	/* 0 indicates a null character was found */
 
-		if(( size_t)-2 == mbtowc_result) {
+		if((size_t) - 2 == mbtowc_result) {
 			/* No complete multibyte character found - try at next memory
 				address */
 			input++;
 			}
 
-		else if((( size_t)-1 == mbtowc_result) && ( EILSEQ == errno)) {
+		else if(((size_t) - 1 == mbtowc_result) && (EILSEQ == errno)) {
 			/* Invalid multibyte character found - try at next memory address */
 			input++;
 			}
 
-		/* Alpha-numeric characters and a few other characters don't get 
+		/* Alpha-numeric characters and a few other characters don't get
 				encoded */
-		else if(( *wctemp  >= '0' && *wctemp <= '9') || 
-				( *wctemp >= 'A' && *wctemp <= 'Z') || 
-				( *wctemp >= 'a' && *wctemp <= 'z') || 
-				' ' == *wctemp || '-' == *wctemp || '.' == *wctemp || 
-				'_' == *wctemp || ':' == *wctemp) {
-			wctomb_result = wctomb( mbtemp, wctemp[0]);
-			if(( wctomb_result > 0) && 
-					((( stp - encoded_html_string) + wctomb_result) < output_max)) {
-				strncpy( stp, mbtemp, wctomb_result);
+		else if((*wctemp  >= '0' && *wctemp <= '9') ||
+		        (*wctemp >= 'A' && *wctemp <= 'Z') ||
+		        (*wctemp >= 'a' && *wctemp <= 'z') ||
+		        ' ' == *wctemp || '-' == *wctemp || '.' == *wctemp ||
+		        '_' == *wctemp || ':' == *wctemp) {
+			wctomb_result = wctomb(mbtemp, wctemp[0]);
+			if((wctomb_result > 0) &&
+			        (((stp - encoded_html_string) + wctomb_result) < output_max)) {
+				strncpy(stp, mbtemp, wctomb_result);
 				stp += wctomb_result;
 				}
 			input += mbtowc_result;
@@ -1166,17 +1166,17 @@ char *escape_string(char *input) {
 
 		/* Encode everything else (this may be excessive) */
 		else {
-			sprintf( temp_expansion, "&#%u;", ( unsigned int)wctemp[ 0]);
-			if((( stp - encoded_html_string) + strlen( temp_expansion)) < 
-					output_max) {
-				strncpy( stp, temp_expansion, strlen( temp_expansion));
-				stp += strlen( temp_expansion);
+			sprintf(temp_expansion, "&#%u;", (unsigned int)wctemp[ 0]);
+			if(((stp - encoded_html_string) + strlen(temp_expansion)) <
+			        output_max) {
+				strncpy(stp, temp_expansion, strlen(temp_expansion));
+				stp += strlen(temp_expansion);
 				}
 			input += mbtowc_result;
 			}
 
 		/* Read the next character */
-		mbtowc_result = mbtowc( wctemp, input, MB_CUR_MAX);
+		mbtowc_result = mbtowc(wctemp, input, MB_CUR_MAX);
 		}
 
 	/* Null terminate the encoded string */

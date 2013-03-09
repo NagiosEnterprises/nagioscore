@@ -350,9 +350,9 @@ void init_timing_loop(void) {
 
 			/* skip services whose checks are currently executing */
 			if(temp_service->is_executing) {
-				log_debug_info(DEBUGL_EVENTS, 2, 
-						"Service check '%s' on host '%s' is already executing.\n", 
-						temp_service->description, temp_service->host_name);
+				log_debug_info(DEBUGL_EVENTS, 2,
+				               "Service check '%s' on host '%s' is already executing.\n",
+				               temp_service->description, temp_service->host_name);
 				continue;
 				}
 
@@ -428,9 +428,9 @@ void init_timing_loop(void) {
 			}
 
 		/* create a new service check event */
-		log_debug_info(DEBUGL_EVENTS, 2, 
-				"Scheduling check for service '%s' on host '%s'.\n", 
-				temp_service->description, temp_service->host_name);
+		log_debug_info(DEBUGL_EVENTS, 2,
+		               "Scheduling check for service '%s' on host '%s'.\n",
+		               temp_service->description, temp_service->host_name);
 		schedule_new_event(EVENT_SERVICE_CHECK, FALSE, temp_service->next_check, FALSE, 0, NULL, TRUE, (void *)temp_service, NULL, temp_service->check_options);
 		}
 
@@ -522,8 +522,8 @@ void init_timing_loop(void) {
 
 		/* skip hosts whose checks are currently executing */
 		if(temp_host->is_executing) {
-			log_debug_info(DEBUGL_EVENTS, 2, 
-					"Host check %s is already executing.\n", temp_host->name);
+			log_debug_info(DEBUGL_EVENTS, 2,
+			               "Host check %s is already executing.\n", temp_host->name);
 			continue;
 			}
 
@@ -578,8 +578,8 @@ void init_timing_loop(void) {
 			}
 
 		/* schedule a new host check event */
-		log_debug_info(DEBUGL_EVENTS, 2, "Scheduling check for host '%s'.\n", 
-				temp_host->name);
+		log_debug_info(DEBUGL_EVENTS, 2, "Scheduling check for host '%s'.\n",
+		               temp_host->name);
 		schedule_new_event(EVENT_HOST_CHECK, FALSE, temp_host->next_check, FALSE, 0, NULL, TRUE, (void *)temp_host, NULL, temp_host->check_options);
 		}
 
@@ -801,22 +801,22 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "schedule_new_event()\n");
 
 	get_datetime_string(&run_time, run_time_string, MAX_DATETIME_LENGTH,
-			SHORT_DATE_TIME);
+	                    SHORT_DATE_TIME);
 	log_debug_info(DEBUGL_EVENTS, 0, "New Event Details:\n");
 	log_debug_info(DEBUGL_EVENTS, 0, " Type:                       %s\n",
-			EVENT_TYPE_STR( event_type));
+	               EVENT_TYPE_STR(event_type));
 	log_debug_info(DEBUGL_EVENTS, 0, " High Priority:              %s\n",
-			( high_priority ? "Yes" : "No"));
+	               (high_priority ? "Yes" : "No"));
 	log_debug_info(DEBUGL_EVENTS, 0, " Run Time:                   %s\n",
-			run_time_string);
+	               run_time_string);
 	log_debug_info(DEBUGL_EVENTS, 0, " Recurring:                  %s\n",
-			( recurring ? "Yes" : "No"));
+	               (recurring ? "Yes" : "No"));
 	log_debug_info(DEBUGL_EVENTS, 0, " Event Interval:             %lu\n",
-			event_interval);
+	               event_interval);
 	log_debug_info(DEBUGL_EVENTS, 0, " Compensate for Time Change: %s\n",
-			( compensate_for_time_change ? "Yes" : "No"));
+	               (compensate_for_time_change ? "Yes" : "No"));
 	log_debug_info(DEBUGL_EVENTS, 0, " Event Options:              %d\n",
-			event_options);
+	               event_options);
 
 	if(high_priority == TRUE) {
 		event_list = &event_list_high;
@@ -947,7 +947,7 @@ void remove_event(timed_event *event, timed_event **event_list, timed_event **ev
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "remove_event()\n");
 
-	if (!event)
+	if(!event)
 		return;
 
 #ifdef USE_EVENT_BROKER
@@ -960,18 +960,18 @@ void remove_event(timed_event *event, timed_event **event_list, timed_event **ev
 
 	prev_event = event->prev;
 	next_event = event->next;
-	if (prev_event) {
+	if(prev_event) {
 		prev_event->next = next_event;
 		}
-	if (next_event) {
+	if(next_event) {
 		next_event->prev = prev_event;
 		}
 
-	if (!prev_event) {
+	if(!prev_event) {
 		/* no previous event, so "next" is now first in list */
 		*event_list = next_event;
 		}
-	if (!next_event) {
+	if(!next_event) {
 		/* no following event, so "prev" is now last in list */
 		*event_list_tail = prev_event;
 		}

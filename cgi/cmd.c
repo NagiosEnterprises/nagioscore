@@ -219,7 +219,7 @@ int main(void) {
 		free_object_data();
 
 		return OK;
-        }
+		}
 
 	/* if no command was specified... */
 	if(command_type == CMD_NONE) {

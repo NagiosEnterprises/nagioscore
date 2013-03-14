@@ -4755,7 +4755,7 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 	objectlist *parents = NULL, *plist, *pnext;
 	objectlist *children = NULL, *clist;
 	xodtemplate_servicedependency *temp_servicedependency = (xodtemplate_servicedependency *)sd_;
-	int same_host = FALSE;
+	int same_host = FALSE, children_first = FALSE, pret = OK, cret = OK;
 	char *hname, *sdesc, *dhname, *dsdesc;
 
 	hname = temp_servicedependency->host_name;
@@ -4770,11 +4770,26 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 	if(temp_servicedependency->register_object == 0)
 		return OK;
 
+	if(!temp_servicedependency->host_name && !temp_servicedependency->hostgroup_name
+	   && !temp_servicedependency->servicegroup_name)
+	{
+		/*
+		 * parent service is in exact. We must take children first
+		 * and build parent chain from same-host deps there
+		 */
+		children_first = TRUE;
+		same_host = TRUE;
+	}
+
 	/* take care of same-host dependencies */
 	if(!temp_servicedependency->dependent_host_name && !temp_servicedependency->dependent_hostgroup_name) {
-		if(!temp_servicedependency->dependent_service_description)
-			; /* do nothing. might be dependent_servicegroup_name */
-		else {
+		if (!temp_servicedependency->dependent_servicegroup_name) {
+			if (children_first || !temp_servicedependency->dependent_service_description) {
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Impossible service dependency definition\n (config file '%s', starting at line '%d')",
+					  xodtemplate_config_file_name(temp_servicedependency->_config_file),
+					  temp_servicedependency->_start_line);
+				return ERROR;
+			}
 			same_host = TRUE;
 		}
 	}
@@ -4784,19 +4799,34 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 	bitmap_clear(service_map);
 
 	/* create the two object lists */
-	if(xodtemplate_create_service_list(&parents, parent_map, temp_servicedependency->host_name, temp_servicedependency->hostgroup_name, temp_servicedependency->servicegroup_name, temp_servicedependency->service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
+	if(!children_first) {
+		pret = xodtemplate_create_service_list(&parents, parent_map, temp_servicedependency->host_name, temp_servicedependency->hostgroup_name, temp_servicedependency->servicegroup_name, temp_servicedependency->service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line);
+		if (!same_host)
+			cret = xodtemplate_create_service_list(&children, service_map, temp_servicedependency->dependent_host_name, temp_servicedependency->dependent_hostgroup_name, temp_servicedependency->dependent_servicegroup_name, temp_servicedependency->dependent_service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line);
+	} else {
+		/*
+		 * NOTE: we flip the variables here to avoid duplicating
+		 * the entire loop down below
+		 */
+		cret = xodtemplate_create_service_list(&parents, parent_map, temp_servicedependency->dependent_host_name, temp_servicedependency->dependent_hostgroup_name, temp_servicedependency->dependent_servicegroup_name, temp_servicedependency->dependent_service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line);
+		dsdesc = temp_servicedependency->service_description;
+		sdesc = temp_servicedependency->dependent_service_description;
+	}
+
+	/* now log errors and bail out if we failed to get members */
+	if(pret != OK) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand master service(s) (config file '%s', starting at line %d)\n",
 			  xodtemplate_config_file_name(temp_servicedependency->_config_file),
 			  temp_servicedependency->_start_line);
-		return ERROR;
 		}
-
-	if(same_host == FALSE && xodtemplate_create_service_list(&children, service_map, temp_servicedependency->dependent_host_name, temp_servicedependency->dependent_hostgroup_name, temp_servicedependency->dependent_servicegroup_name, temp_servicedependency->dependent_service_description, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
+	if(cret != OK) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand dependent service(s) (at config file '%s', starting on line %d)\n",
 			  xodtemplate_config_file_name(temp_servicedependency->_config_file),
 			  temp_servicedependency->_start_line);
-		return ERROR;
 		}
+
+	if(cret != OK || pret != OK)
+		return ERROR;
 
 	/*
 	 * every service in "children" depends on every service in
@@ -4818,8 +4848,12 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 		 */
 		if(same_host) {
 			children = NULL;
-			if(xodtemplate_expand_services(&children, service_map, p->host_name, dsdesc, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK)
+			if(xodtemplate_expand_services(&children, service_map, p->host_name, dsdesc, temp_servicedependency->_config_file, temp_servicedependency->_start_line) != OK) {
+				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to expand same-host servicedependency services (config file '%s', starting at line %d)\n",
+					  xodtemplate_config_file_name(temp_servicedependency->_config_file),
+					  temp_servicedependency->_start_line);
 				return ERROR;
+			}
 		}
 		for(clist = children; clist; clist = clist->next) {
 			xodtemplate_service *c = (xodtemplate_service *)clist->object_ptr;
@@ -4827,7 +4861,12 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 				continue;
 			bitmap_set(service_map, c->id);
 
-			/* now register */
+			/* now register, but flip the states again if necessary */
+			if(children_first) {
+				xodtemplate_service *tmp = p;
+				p = c;
+				c = tmp;
+			}
 			temp_servicedependency->host_name = p->host_name;
 			temp_servicedependency->service_description = p->service_description;
 			temp_servicedependency->dependent_host_name = c->host_name;

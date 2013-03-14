@@ -163,7 +163,6 @@ static int cmp_hdep(const void *a_, const void *b_) {
 #endif
 
 static void post_process_object_config(void) {
-#ifndef NSCGI
 	objectlist *list;
 	unsigned int i, slot;
 
@@ -183,7 +182,6 @@ static void post_process_object_config(void) {
 		for(list = s->exec_deps; list; list = list->next)
 			servicedependency_ary[slot++] = (servicedependency *)list->object_ptr;
 	}
-	qsort(servicedependency_ary, num_objects.servicedependencies, sizeof(servicedependency *), cmp_sdep);
 	timing_point("Done post-processing servicedependencies\n");
 
 	slot = 0;
@@ -194,10 +192,14 @@ static void post_process_object_config(void) {
 		for(list = h->exec_deps; list; list = list->next)
 			hostdependency_ary[slot++] = (hostdependency *)list->object_ptr;
 	}
-
-	qsort(hostdependency_ary, num_objects.hostdependencies, sizeof(hostdependency *), cmp_hdep);
 	timing_point("Done post-processing host dependencies\n");
 
+#ifndef NSCGI
+	/* cgi's always get their objects in sorted order */
+	if(servicedependency_ary)
+		qsort(servicedependency_ary, num_objects.servicedependencies, sizeof(servicedependency *), cmp_sdep);
+	if(hostdependency_ary)
+		qsort(hostdependency_ary, num_objects.hostdependencies, sizeof(hostdependency *), cmp_hdep);
 #endif
 
 	timeperiod_list = timeperiod_ary ? *timeperiod_ary : NULL;

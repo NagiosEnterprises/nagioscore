@@ -4,5 +4,6 @@ test-iocache
 test-iobroker
 test-bitmap
 test-dkhash
+test-runcmd
 wproc
 snprintf.h

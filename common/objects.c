@@ -148,26 +148,17 @@ static int cmp_sdep(const void *a_, const void *b_) {
 	const servicedependency *a = *(servicedependency **)a_;
 	const servicedependency *b = *(servicedependency **)b_;
 	int ret;
-
-	ret = strcmp(a->host_name, b->host_name);
-	if(ret)
-		return ret;
-	ret = strcmp(a->service_description, b->service_description);
-	if(ret)
-		return ret;
-	ret = strcmp(a->dependent_host_name, b->dependent_host_name);
-	if(ret)
-		return ret;
-	return strcmp(a->dependent_service_description, b->dependent_service_description);
+	ret = a->master_service_ptr->id - b->master_service_ptr->id;
+	return ret ? ret : a->dependent_service_ptr->id - b->dependent_service_ptr->id;
 	}
 
 static int cmp_hdep(const void *a_, const void *b_) {
 	const hostdependency *a = *(const hostdependency **)a_;
 	const hostdependency *b = *(const hostdependency **)b_;
 	int ret;
+	ret = a->master_host_ptr->id - b->master_host_ptr->id;
+	return ret ? ret : a->dependent_host_ptr->id - b->dependent_host_ptr->id;
 
-	ret = strcmp(a->host_name, b->host_name);
-	return ret ? ret : strcmp(a->dependent_host_name, b->dependent_host_name);
 	}
 #endif
 

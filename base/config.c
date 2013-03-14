@@ -183,6 +183,7 @@ int read_main_config_file(char *main_config_file) {
 				break;
 				}
 
+			my_free(log_file);
 			log_file = nspath_absolute(value, config_file_dir);
 			}
 		else if(!strcmp(variable, "debug_level"))

@@ -203,6 +203,7 @@ distclean: clean
 devclean: distclean
 
 test:
+	cd $(SRC_LIB) && $(MAKE) test
 	$(MAKE) test-perl
 	$(MAKE) test-tap
 
@@ -407,4 +408,4 @@ dist: distclean
 	rm -f nagios-$(VERSION)
 
 # Targets that always get built
-.PHONY:	indent clean clean distclean dox
+.PHONY:	indent clean clean distclean dox test

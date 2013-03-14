@@ -61,12 +61,14 @@ define servicegroup {
 
 define contact {
 	contact_name	nagiosadmin
+	alias	nagiosadmin
 	service_notification_period	none
 	host_notification_period	none
-	service_notification_options	w,u,c,r,f,s
-	host_notification_options	d,u,r,f,s
+	service_notification_options	r,w,u,c,f,s
+	host_notification_options	r,d,u,f,s
 	service_notification_commands	notify-none
 	host_notification_commands	notify-none
+	minimum_value	1
 	host_notifications_enabled	0
 	service_notifications_enabled	0
 	can_submit_commands	1
@@ -76,12 +78,14 @@ define contact {
 
 define contact {
 	contact_name	second
+	alias	second
 	service_notification_period	none
 	host_notification_period	none
-	service_notification_options	w,u,c,r,f,s
-	host_notification_options	d,u,r,f,s
+	service_notification_options	r,w,u,c,f,s
+	host_notification_options	r,d,u,f,s
 	service_notification_commands	notify-none
 	host_notification_commands	notify-none
+	minimum_value	1
 	host_notifications_enabled	0
 	service_notifications_enabled	0
 	can_submit_commands	1
@@ -97,20 +101,21 @@ define host {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
+	hourly_value	1
 	check_interval	5.000000
 	retry_interval	1.000000
 	max_check_attempts	2
 	active_checks_enabled	1
 	passive_checks_enabled	1
-	obsess_over_host	1
+	obsess	1
 	event_handler_enabled	1
 	low_flap_threshold	0.000000
 	high_flap_threshold	0.000000
 	flap_detection_enabled	1
-	flap_detection_options	o,d,u
+	flap_detection_options	a
 	freshness_threshold	0
 	check_freshness	0
-	notification_options	d,u,r,f,s
+	notification_options	a
 	notifications_enabled	1
 	notification_interval	60.000000
 	first_notification_delay	0.000000
@@ -128,20 +133,21 @@ define host {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
+	hourly_value	1
 	check_interval	5.000000
 	retry_interval	1.000000
 	max_check_attempts	2
 	active_checks_enabled	1
 	passive_checks_enabled	1
-	obsess_over_host	1
+	obsess	1
 	event_handler_enabled	1
 	low_flap_threshold	0.000000
 	high_flap_threshold	0.000000
 	flap_detection_enabled	1
-	flap_detection_options	o,d,u
+	flap_detection_options	a
 	freshness_threshold	0
 	check_freshness	0
-	notification_options	d,u,r,f,s
+	notification_options	a
 	notifications_enabled	1
 	notification_interval	60.000000
 	first_notification_delay	0.000000
@@ -159,20 +165,21 @@ define host {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
+	hourly_value	1
 	check_interval	5.000000
 	retry_interval	1.000000
 	max_check_attempts	2
 	active_checks_enabled	1
 	passive_checks_enabled	1
-	obsess_over_host	1
+	obsess	1
 	event_handler_enabled	1
 	low_flap_threshold	0.000000
 	high_flap_threshold	0.000000
 	flap_detection_enabled	1
-	flap_detection_options	o,d,u
+	flap_detection_options	a
 	freshness_threshold	0
 	check_freshness	0
-	notification_options	d,u,r,f,s
+	notification_options	a
 	notifications_enabled	1
 	notification_interval	60.000000
 	first_notification_delay	0.000000
@@ -190,6 +197,7 @@ define service {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
+	hourly_value	1
 	check_interval	32.000000
 	retry_interval	1.000000
 	max_check_attempts	3
@@ -197,15 +205,15 @@ define service {
 	parallelize_check	1
 	active_checks_enabled	1
 	passive_checks_enabled	1
-	obsess_over_service	1
+	obsess	1
 	event_handler_enabled	1
 	low_flap_threshold	0.000000
 	high_flap_threshold	0.000000
 	flap_detection_enabled	1
-	flap_detection_options	o,w,u,c
+	flap_detection_options	a
 	freshness_threshold	0
 	check_freshness	0
-	notification_options	u,w,c,r,f,s
+	notification_options	a
 	notifications_enabled	1
 	notification_interval	60.000000
 	first_notification_delay	0.000000
@@ -223,6 +231,7 @@ define service {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
+	hourly_value	1
 	check_interval	15.000000
 	retry_interval	1.000000
 	max_check_attempts	5
@@ -230,15 +239,15 @@ define service {
 	parallelize_check	1
 	active_checks_enabled	1
 	passive_checks_enabled	1
-	obsess_over_service	1
+	obsess	1
 	event_handler_enabled	1
 	low_flap_threshold	0.000000
 	high_flap_threshold	0.000000
 	flap_detection_enabled	1
-	flap_detection_options	o,w,u,c
+	flap_detection_options	a
 	freshness_threshold	0
 	check_freshness	0
-	notification_options	u,w,c,r,f,s
+	notification_options	a
 	notifications_enabled	1
 	notification_interval	65.000000
 	first_notification_delay	0.000000
@@ -256,6 +265,7 @@ define service {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
+	hourly_value	1
 	check_interval	15.000000
 	retry_interval	1.000000
 	max_check_attempts	5
@@ -263,15 +273,15 @@ define service {
 	parallelize_check	1
 	active_checks_enabled	1
 	passive_checks_enabled	1
-	obsess_over_service	1
+	obsess	1
 	event_handler_enabled	1
 	low_flap_threshold	0.000000
 	high_flap_threshold	0.000000
 	flap_detection_enabled	1
-	flap_detection_options	o,w,u,c
+	flap_detection_options	a
 	freshness_threshold	0
 	check_freshness	0
-	notification_options	u,w,c,r,f,s
+	notification_options	a
 	notifications_enabled	1
 	notification_interval	65.000000
 	first_notification_delay	0.000000
@@ -289,6 +299,7 @@ define service {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
+	hourly_value	1
 	check_interval	15.000000
 	retry_interval	1.000000
 	max_check_attempts	5
@@ -296,15 +307,15 @@ define service {
 	parallelize_check	1
 	active_checks_enabled	1
 	passive_checks_enabled	1
-	obsess_over_service	1
+	obsess	1
 	event_handler_enabled	1
 	low_flap_threshold	0.000000
 	high_flap_threshold	0.000000
 	flap_detection_enabled	1
-	flap_detection_options	o,w,u,c
+	flap_detection_options	a
 	freshness_threshold	0
 	check_freshness	0
-	notification_options	u,w,c,r,f,s
+	notification_options	a
 	notifications_enabled	1
 	notification_interval	65.000000
 	first_notification_delay	0.000000
@@ -322,6 +333,7 @@ define service {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
+	hourly_value	1
 	check_interval	15.000000
 	retry_interval	1.000000
 	max_check_attempts	5
@@ -329,15 +341,15 @@ define service {
 	parallelize_check	1
 	active_checks_enabled	1
 	passive_checks_enabled	1
-	obsess_over_service	1
+	obsess	1
 	event_handler_enabled	1
 	low_flap_threshold	0.000000
 	high_flap_threshold	0.000000
 	flap_detection_enabled	1
-	flap_detection_options	o,w,u,c
+	flap_detection_options	a
 	freshness_threshold	0
 	check_freshness	0
-	notification_options	u,w,c,r,f,s
+	notification_options	a
 	notifications_enabled	1
 	notification_interval	65.000000
 	first_notification_delay	0.000000
@@ -354,7 +366,6 @@ define servicedependency {
 	dependent_service_description	dependent-service
 	inherits_parent	0
 	notification_failure_options	u,c
-	execution_failure_options	n
 	}
 
 define serviceescalation {
@@ -364,7 +375,7 @@ define serviceescalation {
 	last_notification	-2
 	notification_interval	65.000000
 	escalation_period	none
-	escalation_options	w,u,c,r
+	escalation_options	a
 	contacts	nagiosadmin
 	}
 
@@ -375,7 +386,7 @@ define serviceescalation {
 	last_notification	-2
 	notification_interval	65.000000
 	escalation_period	none
-	escalation_options	w,u,c,r
+	escalation_options	a
 	contacts	nagiosadmin
 	}
 
@@ -386,7 +397,7 @@ define serviceescalation {
 	last_notification	-2
 	notification_interval	65.000000
 	escalation_period	none
-	escalation_options	w,u,c,r
+	escalation_options	a
 	contacts	nagiosadmin
 	}
 
@@ -397,7 +408,7 @@ define serviceescalation {
 	last_notification	-2
 	notification_interval	65.000000
 	escalation_period	none
-	escalation_options	w,u,c,r
+	escalation_options	a
 	contacts	nagiosadmin
 	}
 

@@ -84,4 +84,36 @@ If you want to carry over exclusions, you can instead make a template
 and 'use' one hostgroup from another.
 
 The same goes for all group types, and not just hostgroups.
+
+@section oconfchanges Object Configuration Changes
+@subsection Deprecations
+The "obsess_over_host" (for hosts) and "obsess_over_service" (for
+services) configuration variables have been renamed to simply "obsess".
+The old values will serve as aliases for the duration of the Nagios 4
+lifetime and will be removed in Nagios 5. Users should adjust their
+configurations accordingly.
+
+@subsection additions Additions
+Services have two new configurable values:
+@li parents
+@li hourly_value
+
+The 'parents' directive can be used to suppress notifications for a
+service in much the same way that it can be used for hosts. If all
+parents of a particular service are in a non-OK state when the child
+service enters a HARD state (and should have notified), notifications
+will be suppressed for the child service.
+
+The 'hourly_value' directive can be used to set a service 'value' of
+the service in question. It works in tandem with a new directive for
+contacts ("minimum_value") in order to suppress notifications, and
+UI's are encouraged to take it into account to display the most severe
+and valuable errors in a more prominent fashion. Note that it has no
+currency attached to it, so whether you interpret it as affected_users,
+business_value or whatever is entirely up to you.
+
+Contacts have one new configurable value, namely 'minimum_value', which
+sets the minimum notification value for which the contact should get
+notified. The notification value is determined by the total value of
+all objects affected by the problem.
 */

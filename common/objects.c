@@ -158,7 +158,18 @@ static int cmp_hdep(const void *a_, const void *b_) {
 	int ret;
 	ret = a->master_host_ptr->id - b->master_host_ptr->id;
 	return ret ? ret : a->dependent_host_ptr->id - b->dependent_host_ptr->id;
+	}
 
+static int cmp_serviceesc(const void *a_, const void *b_) {
+	const serviceescalation *a = *(const serviceescalation **)a_;
+	const serviceescalation *b = *(const serviceescalation **)b_;
+	return a->service_ptr->id - b->service_ptr->id;
+	}
+
+static int cmp_hostesc(const void *a_, const void *b_) {
+	const hostescalation *a = *(const hostescalation **)a_;
+	const hostescalation *b = *(const hostescalation **)b_;
+	return a->host_ptr->id - b->host_ptr->id;
 	}
 #endif
 
@@ -200,6 +211,11 @@ static void post_process_object_config(void) {
 		qsort(servicedependency_ary, num_objects.servicedependencies, sizeof(servicedependency *), cmp_sdep);
 	if(hostdependency_ary)
 		qsort(hostdependency_ary, num_objects.hostdependencies, sizeof(hostdependency *), cmp_hdep);
+	if(hostescalation_ary)
+		qsort(hostescalation_ary, num_objects.hostescalations, sizeof(hostescalation *), cmp_hostesc);
+	if(serviceescalation_ary)
+		qsort(serviceescalation_ary, num_objects.serviceescalations, sizeof(serviceescalation *), cmp_serviceesc);
+	timing_point("Done post-sorting slave objects\n");
 #endif
 
 	timeperiod_list = timeperiod_ary ? *timeperiod_ary : NULL;

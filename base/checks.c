@@ -1503,7 +1503,7 @@ int is_service_result_fresh(service *temp_service, time_t current_time, int log_
 	 */
 	if (temp_service->check_type == CHECK_TYPE_PASSIVE) {
 		if (temp_service->last_check < event_start &&
-			event_start - last_program_stop < freshness_threshold * 0.618)
+			event_start - last_program_stop > freshness_threshold * 0.618)
 		{
 			expiration_time = event_start + freshness_threshold;
 		}

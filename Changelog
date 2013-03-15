@@ -2,7 +2,7 @@
 Nagios 3.x Change Log
 #####################
 
-3.5.0 - xx/xx/xxxx
+3.5.0 - 03/15/2013
 ------------------
 * Fixed bug #403: The "configuration" page of the webui doesn't use entity encoding when displaying the "command expansion" item (Eric Stanley, Phil Randal)
 * Fixed bug #424: Nagios Core 3.4.4 seg fault (core dump) on restart after removing config for running service (Eric Stanley)

@@ -285,11 +285,9 @@ int grab_host_macros_r(nagios_macros *mac, host *hst) {
 	if(hst == NULL)
 		return ERROR;
 
-#ifdef NSCORE
 	/* save pointer to host's first/primary hostgroup */
 	if(hst->hostgroups_ptr)
 		mac->hostgroup_ptr = (hostgroup *)hst->hostgroups_ptr->object_ptr;
-#endif
 
 	return OK;
 	}
@@ -332,11 +330,9 @@ int grab_service_macros_r(nagios_macros *mac, service *svc) {
 	if(svc == NULL)
 		return ERROR;
 
-#ifdef NSCORE
 	/* save first/primary servicegroup pointer for later */
 	if(svc->servicegroups_ptr)
 		mac->servicegroup_ptr = (servicegroup *)svc->servicegroups_ptr->object_ptr;
-#endif
 
 	return OK;
 	}
@@ -378,11 +374,9 @@ int grab_contact_macros_r(nagios_macros *mac, contact *cntct) {
 	if(cntct == NULL)
 		return ERROR;
 
-#ifdef NSCORE
 	/* save pointer to first/primary contactgroup for later */
 	if(cntct->contactgroups_ptr)
 		mac->contactgroup_ptr = (contactgroup *)cntct->contactgroups_ptr->object_ptr;
-#endif
 
 	return OK;
 	}
@@ -537,12 +531,8 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 				/* concatenate macro values for all contactgroup members */
 				for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
 
-#ifdef NSCORE
 					if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 						continue;
-					if((temp_contact = find_contact(temp_contactsmember->contact_name)) == NULL)
-						continue;
-#endif
 
 					/* get the macro value for this contact */
 					grab_contact_address_macro(x, temp_contact, &temp_buffer);
@@ -726,13 +716,8 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 				/* concatenate macro values for all hostgroup members */
 				for(temp_hostsmember = temp_hostgroup->members; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
 
-#ifdef NSCORE
 					if((temp_host = temp_hostsmember->host_ptr) == NULL)
 						continue;
-#else
-					if((temp_host = find_host(temp_hostsmember->host_name)) == NULL)
-						continue;
-#endif
 
 					/* get the macro value for this host */
 					grab_standard_host_macro_r(mac, macro_type, temp_host, &temp_buffer, &free_sub_macro);
@@ -873,13 +858,8 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 					/* concatenate macro values for all servicegroup members */
 					for(temp_servicesmember = temp_servicegroup->members; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
 
-#ifdef NSCORE
 						if((temp_service = temp_servicesmember->service_ptr) == NULL)
 							continue;
-#else
-						if((temp_service = find_service(temp_servicesmember->host_name, temp_servicesmember->service_description)) == NULL)
-							continue;
-#endif
 
 						/* get the macro value for this service */
 						grab_standard_service_macro_r(mac, macro_type, temp_service, &temp_buffer, &free_sub_macro);
@@ -970,13 +950,8 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 				/* concatenate macro values for all contactgroup members */
 				for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
 
-#ifdef NSCORE
 					if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 						continue;
-#else
-					if((temp_contact = find_contact(temp_contactsmember->contact_name)) == NULL)
-						continue;
-#endif
 
 					/* get the macro value for this contact */
 					grab_standard_contact_macro_r(mac, macro_type, temp_contact, &temp_buffer);
@@ -1293,13 +1268,8 @@ int grab_custom_macro_value_r(nagios_macros *mac, char *macro_name, char *arg1, 
 			/* concatenate macro values for all hostgroup members */
 			for(temp_hostsmember = temp_hostgroup->members; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
 
-#ifdef NSCORE
 				if((temp_host = temp_hostsmember->host_ptr) == NULL)
 					continue;
-#else
-				if((temp_host = find_host(temp_hostsmember->host_name)) == NULL)
-					continue;
-#endif
 
 				/* get the macro value for this host */
 				grab_custom_macro_value_r(mac, macro_name, temp_host->name, NULL, &temp_buffer);
@@ -1357,13 +1327,8 @@ int grab_custom_macro_value_r(nagios_macros *mac, char *macro_name, char *arg1, 
 				/* concatenate macro values for all servicegroup members */
 				for(temp_servicesmember = temp_servicegroup->members; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
 
-#ifdef NSCORE
 					if((temp_service = temp_servicesmember->service_ptr) == NULL)
 						continue;
-#else
-					if((temp_service = find_service(temp_servicesmember->host_name, temp_servicesmember->service_description)) == NULL)
-						continue;
-#endif
 
 					/* get the macro value for this service */
 					grab_custom_macro_value_r(mac, macro_name, temp_service->host_name, temp_service->description, &temp_buffer);
@@ -1417,13 +1382,8 @@ int grab_custom_macro_value_r(nagios_macros *mac, char *macro_name, char *arg1, 
 			/* concatenate macro values for all contactgroup members */
 			for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
 
-#ifdef NSCORE
 				if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 					continue;
-#else
-				if((temp_contact = find_contact(temp_contactsmember->contact_name)) == NULL)
-					continue;
-#endif
 
 				/* get the macro value for this contact */
 				grab_custom_macro_value_r(mac, macro_name, temp_contact->name, NULL, &temp_buffer);

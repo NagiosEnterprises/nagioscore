@@ -665,10 +665,9 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		result = ERROR;
 	new_host->check_period = check_tp ? check_tp->name : NULL;
 	new_host->notification_period = notify_tp ? notify_tp->name : NULL;
-#ifndef NSCGI
 	new_host->notification_period_ptr = notify_tp;
 	new_host->check_period_ptr = check_tp;
-#endif
+
 	if(check_command) {
 		if((new_host->check_command = (char *)strdup(check_command)) == NULL)
 			result = ERROR;
@@ -875,9 +874,7 @@ hostsmember *add_child_link_to_host(host *hst, host *child_ptr) {
 
 	/* assign values */
 	new_hostsmember->host_name = child_ptr->name;
-#ifdef NSCORE
 	new_hostsmember->host_ptr = child_ptr;
-#endif
 
 	/* add the child entry to the host definition */
 	new_hostsmember->next = hst->child_hosts;
@@ -902,8 +899,8 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 	/* assign values */
 	new_servicesmember->host_name = service_ptr->host_name;
 	new_servicesmember->service_description = service_ptr->description;
-#ifdef NSCORE
 	new_servicesmember->service_ptr = service_ptr;
+#ifndef NSCGI
 	hst->total_services++;
 #endif
 
@@ -933,9 +930,7 @@ static contactgroupsmember *add_contactgroup_to_object(contactgroupsmember **cg_
 		return NULL;
 		}
 	cgm->group_name = cg->group_name;
-#ifndef NSCGI
 	cgm->group_ptr = cg;
-#endif
 	cgm->next = *cg_list;
 	*cg_list = cgm;
 
@@ -1255,10 +1250,8 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 
 	new_contact->host_notification_period = htp ? htp->name : NULL;
 	new_contact->service_notification_period = stp ? stp->name : NULL;
-#ifndef NSCGI
 	new_contact->host_notification_period_ptr = htp;
 	new_contact->service_notification_period_ptr = stp;
-#endif
 	if((new_contact->name = (char *)strdup(name)) == NULL)
 		result = ERROR;
 	if((new_contact->alias = (char *)strdup((alias == NULL) ? name : alias)) == NULL)
@@ -1534,11 +1527,9 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		return NULL;
 
 	/* duplicate vars, but assign what we can */
-#ifndef NSCGI
 	new_service->notification_period_ptr = np;
 	new_service->check_period_ptr = cp;
 	new_service->host_ptr = h;
-#endif
 	new_service->check_period = cp ? cp->name : NULL;
 	new_service->notification_period = np ? np->name : NULL;
 	new_service->host_name = h->name;
@@ -1772,10 +1763,8 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	/* assign vars. object names are immutable, so no need to copy */
 	new_serviceescalation->host_name = svc->host_name;
 	new_serviceescalation->description = svc->description;
-#ifndef NSCGI
 	new_serviceescalation->service_ptr = svc;
 	new_serviceescalation->escalation_period_ptr = tp;
-#endif
 	if(tp)
 		new_serviceescalation->escalation_period = tp->name;
 
@@ -1836,11 +1825,9 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	if((new_servicedependency = calloc(1, sizeof(*new_servicedependency))) == NULL)
 		return NULL;
 
-#ifndef NSCGI
 	new_servicedependency->dependent_service_ptr = child;
 	new_servicedependency->master_service_ptr = parent;
 	new_servicedependency->dependency_period_ptr = tp;
-#endif
 
 	/* assign vars. object names are immutable, so no need to copy */
 	new_servicedependency->dependent_host_name = child->host_name;
@@ -1905,11 +1892,9 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	if((new_hostdependency = calloc(1, sizeof(*new_hostdependency))) == NULL)
 		return NULL;
 
-#ifndef NSCGI
 	new_hostdependency->dependent_host_ptr = child;
 	new_hostdependency->master_host_ptr = parent;
 	new_hostdependency->dependency_period_ptr = tp;
-#endif
 
 	/* assign vars. Objects are immutable, so no need to copy */
 	new_hostdependency->dependent_host_name = child->name;
@@ -1971,9 +1956,7 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	/* assign vars. Object names are immutable, so no need to copy */
 	new_hostescalation->host_name = h->name;
 	new_hostescalation->escalation_period = tp ? tp->name : NULL;
-#ifndef NSCGI
 	new_hostescalation->escalation_period_ptr = tp;
-#endif
 	new_hostescalation->first_notification = first_notification;
 	new_hostescalation->last_notification = last_notification;
 	new_hostescalation->notification_interval = (notification_interval <= 0) ? 0 : notification_interval;
@@ -2029,9 +2012,7 @@ contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contact
 	new_contactsmember->contact_name = c->name;
 
 	/* set initial values */
-#ifdef NSCORE
 	new_contactsmember->contact_ptr = c;
-#endif
 
 	/* add the new contact to the head of the contact list */
 	new_contactsmember->next = *object_ptr;
@@ -2229,13 +2210,8 @@ int is_host_immediate_child_of_host(host *parent_host, host *child_host) {
 	else {
 
 		for(temp_hostsmember = child_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-#ifdef NSCORE
 			if(temp_hostsmember->host_ptr == parent_host)
 				return TRUE;
-#else
-			if(!strcmp(temp_hostsmember->host_name, parent_host->name))
-				return TRUE;
-#endif
 			}
 		}
 
@@ -2284,13 +2260,8 @@ int is_host_member_of_hostgroup(hostgroup *group, host *hst) {
 		return FALSE;
 
 	for(temp_hostsmember = group->members; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-#ifdef NSCORE
 		if(temp_hostsmember->host_ptr == hst)
 			return TRUE;
-#else
-		if(!strcmp(temp_hostsmember->host_name, hst->name))
-			return TRUE;
-#endif
 		}
 
 	return FALSE;
@@ -2306,13 +2277,8 @@ int is_host_member_of_servicegroup(servicegroup *group, host *hst) {
 		return FALSE;
 
 	for(temp_servicesmember = group->members; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
-#ifdef NSCORE
 		if(temp_servicesmember->service_ptr != NULL && temp_servicesmember->service_ptr->host_ptr == hst)
 			return TRUE;
-#else
-		if(!strcmp(temp_servicesmember->host_name, hst->name))
-			return TRUE;
-#endif
 		}
 
 	return FALSE;
@@ -2328,13 +2294,8 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc) {
 		return FALSE;
 
 	for(temp_servicesmember = group->members; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
-#ifdef NSCORE
 		if(temp_servicesmember->service_ptr == svc)
 			return TRUE;
-#else
-		if(!strcmp(temp_servicesmember->host_name, svc->host_name) && !strcmp(temp_servicesmember->service_description, svc->description))
-			return TRUE;
-#endif
 		}
 
 	return FALSE;
@@ -2350,21 +2311,13 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc) {
  */
 int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct) {
 	contactsmember *member;
-	contact *temp_contact = NULL;
 
 	if(!group || !cntct)
 		return FALSE;
 
 	/* search all contacts in this contact group */
 	for(member = group->members; member; member = member->next) {
-#ifdef NSCORE
-		temp_contact = member->contact_ptr;
-#else
-		temp_contact = find_contact(member->contact_name);
-#endif
-		if(temp_contact == NULL)
-			continue;
-		if(temp_contact == cntct)
+		if (member->contact_ptr == cntct)
 			return TRUE;
 		}
 
@@ -2374,7 +2327,6 @@ int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct) {
 /*  tests whether a contact is a contact for a particular host */
 int is_contact_for_host(host *hst, contact *cntct) {
 	contactsmember *temp_contactsmember = NULL;
-	contact *temp_contact = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 
@@ -2384,26 +2336,13 @@ int is_contact_for_host(host *hst, contact *cntct) {
 
 	/* search all individual contacts of this host */
 	for(temp_contactsmember = hst->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-#ifdef NSCORE
-		temp_contact = temp_contactsmember->contact_ptr;
-#else
-		temp_contact = find_contact(temp_contactsmember->contact_name);
-#endif
-		if(temp_contact == NULL)
-			continue;
-		if(temp_contact == cntct)
+		if (temp_contactsmember->contact_ptr == cntct)
 			return TRUE;
 		}
 
 	/* search all contactgroups of this host */
 	for(temp_contactgroupsmember = hst->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-#ifdef NSCORE
 		temp_contactgroup = temp_contactgroupsmember->group_ptr;
-#else
-		temp_contactgroup = find_contactgroup(temp_contactgroupsmember->group_name);
-#endif
-		if(temp_contactgroup == NULL)
-			continue;
 		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
 			return TRUE;
 		}
@@ -2416,7 +2355,6 @@ int is_contact_for_host(host *hst, contact *cntct) {
 /* tests whether or not a contact is an escalated contact for a particular host */
 int is_escalated_contact_for_host(host *hst, contact *cntct) {
 	contactsmember *temp_contactsmember = NULL;
-	contact *temp_contact = NULL;
 	hostescalation *temp_hostescalation = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
@@ -2428,29 +2366,15 @@ int is_escalated_contact_for_host(host *hst, contact *cntct) {
 
 		/* search all contacts of this host escalation */
 		for(temp_contactsmember = temp_hostescalation->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-#ifdef NSCORE
-			temp_contact = temp_contactsmember->contact_ptr;
-#else
-			temp_contact = find_contact(temp_contactsmember->contact_name);
-#endif
-			if(temp_contact == NULL)
-				continue;
-			if(temp_contact == cntct)
+			if(temp_contactsmember->contact_ptr == cntct)
 				return TRUE;
 			}
 
 		/* search all contactgroups of this host escalation */
 		for(temp_contactgroupsmember = temp_hostescalation->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-#ifdef NSCORE
 			temp_contactgroup = temp_contactgroupsmember->group_ptr;
-#else
-			temp_contactgroup = find_contactgroup(temp_contactgroupsmember->group_name);
-#endif
-			if(temp_contactgroup == NULL)
-				continue;
 			if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
 				return TRUE;
-
 			}
 		}
 
@@ -2461,7 +2385,6 @@ int is_escalated_contact_for_host(host *hst, contact *cntct) {
 /*  tests whether a contact is a contact for a particular service */
 int is_contact_for_service(service *svc, contact *cntct) {
 	contactsmember *temp_contactsmember = NULL;
-	contact *temp_contact = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 
@@ -2470,25 +2393,13 @@ int is_contact_for_service(service *svc, contact *cntct) {
 
 	/* search all individual contacts of this service */
 	for(temp_contactsmember = svc->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-#ifdef NSCORE
-		temp_contact = temp_contactsmember->contact_ptr;
-#else
-		temp_contact = find_contact(temp_contactsmember->contact_name);
-#endif
-
-		if(temp_contact == cntct)
+		if(temp_contactsmember->contact_ptr == cntct)
 			return TRUE;
 		}
 
 	/* search all contactgroups of this service */
 	for(temp_contactgroupsmember = svc->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-#ifdef NSCORE
 		temp_contactgroup = temp_contactgroupsmember->group_ptr;
-#else
-		temp_contactgroup = find_contactgroup(temp_contactgroupsmember->group_name);
-#endif
-		if(temp_contactgroup == NULL)
-			continue;
 		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
 			return TRUE;
 
@@ -2503,7 +2414,6 @@ int is_contact_for_service(service *svc, contact *cntct) {
 int is_escalated_contact_for_service(service *svc, contact *cntct) {
 	serviceescalation *temp_serviceescalation = NULL;
 	contactsmember *temp_contactsmember = NULL;
-	contact *temp_contact = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 	objectlist *list;
@@ -2514,26 +2424,13 @@ int is_escalated_contact_for_service(service *svc, contact *cntct) {
 
 		/* search all contacts of this service escalation */
 		for(temp_contactsmember = temp_serviceescalation->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-#ifdef NSCORE
-			temp_contact = temp_contactsmember->contact_ptr;
-#else
-			temp_contact = find_contact(temp_contactsmember->contact_name);
-#endif
-			if(temp_contact == NULL)
-				continue;
-			if(temp_contact == cntct)
+			if(temp_contactsmember->contact_ptr == cntct)
 				return TRUE;
 			}
 
 		/* search all contactgroups of this service escalation */
 		for(temp_contactgroupsmember = temp_serviceescalation->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-#ifdef NSCORE
 			temp_contactgroup = temp_contactgroupsmember->group_ptr;
-#else
-			temp_contactgroup = find_contactgroup(temp_contactgroupsmember->group_name);
-#endif
-			if(temp_contactgroup == NULL)
-				continue;
 			if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
 				return TRUE;
 			}
@@ -2690,9 +2587,8 @@ int free_object_data(void) {
 		my_free(this_host->plugin_output);
 		my_free(this_host->long_plugin_output);
 		my_free(this_host->perf_data);
-
-		free_objectlist(&this_host->hostgroups_ptr);
 #endif
+		free_objectlist(&this_host->hostgroups_ptr);
 		free_objectlist(&this_host->notify_deps);
 		free_objectlist(&this_host->exec_deps);
 		free_objectlist(&this_host->escalation_list);
@@ -2803,9 +2699,7 @@ int free_object_data(void) {
 		for(j = 0; j < MAX_CONTACT_ADDRESSES; j++)
 			my_free(this_contact->address[j]);
 
-#ifdef NSCORE
 		free_objectlist(&this_contact->contactgroups_ptr);
-#endif
 		my_free(this_contact);
 		}
 
@@ -2876,9 +2770,9 @@ int free_object_data(void) {
 
 		my_free(this_service->event_handler_args);
 		my_free(this_service->check_command_args);
+#endif
 
 		free_objectlist(&this_service->servicegroups_ptr);
-#endif
 		free_objectlist(&this_service->notify_deps);
 		free_objectlist(&this_service->exec_deps);
 		free_objectlist(&this_service->escalation_list);

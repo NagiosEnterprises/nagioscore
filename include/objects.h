@@ -278,9 +278,7 @@ typedef struct timeperiod {
 /* CONTACTSMEMBER structure */
 typedef struct contactsmember {
 	char    *contact_name;
-#ifdef NSCORE
 	struct contact *contact_ptr;
-#endif
 	struct contactsmember *next;
 	} contactsmember;
 
@@ -298,9 +296,7 @@ typedef struct contactgroup {
 /* CONTACTGROUPSMEMBER structure */
 typedef struct contactgroupsmember {
 	char    *group_name;
-#ifdef NSCORE
 	struct contactgroup *group_ptr;
-#endif
 	struct contactgroupsmember *next;
 	} contactgroupsmember;
 
@@ -326,9 +322,7 @@ typedef struct command {
 /* COMMANDSMEMBER structure */
 typedef struct commandsmember {
 	char	*command;
-#ifdef NSCORE
 	struct command *command_ptr;
-#endif
 	struct	commandsmember *next;
 	} commandsmember;
 
@@ -360,11 +354,11 @@ struct contact {
 	unsigned long modified_attributes;
 	unsigned long modified_host_attributes;
 	unsigned long modified_service_attributes;
+#endif
 
 	struct timeperiod *host_notification_period_ptr;
 	struct timeperiod *service_notification_period_ptr;
 	struct objectlist *contactgroups_ptr;
-#endif
 	struct	contact *next;
 	};
 
@@ -373,9 +367,7 @@ struct contact {
 typedef struct servicesmember {
 	char    *host_name;
 	char    *service_description;
-#ifdef NSCORE
 	struct service *service_ptr;
-#endif
 	struct servicesmember *next;
 	} servicesmember;
 
@@ -383,9 +375,7 @@ typedef struct servicesmember {
 /* HOSTSMEMBER structure */
 typedef struct hostsmember {
 	char    *host_name;
-#ifdef NSCORE
 	struct host    *host_ptr;
-#endif
 	struct hostsmember *next;
 	} hostsmember;
 
@@ -515,13 +505,13 @@ struct host {
 	int     total_services;
 	unsigned long total_service_check_interval;
 	unsigned long modified_attributes;
+#endif
 
 	struct command *event_handler_ptr;
 	struct command *check_command_ptr;
 	struct timeperiod *check_period_ptr;
 	struct timeperiod *notification_period_ptr;
 	struct objectlist *hostgroups_ptr;
-#endif
 	/* objects we depend upon */
 	struct objectlist *exec_deps, *notify_deps;
 	struct objectlist *escalation_list;
@@ -636,6 +626,7 @@ struct service {
 	unsigned long flapping_comment_id;
 	double  percent_state_change;
 	unsigned long modified_attributes;
+#endif
 
 	struct host *host_ptr;
 	struct command *event_handler_ptr;
@@ -645,7 +636,6 @@ struct service {
 	struct timeperiod *check_period_ptr;
 	struct timeperiod *notification_period_ptr;
 	struct objectlist *servicegroups_ptr;
-#endif
 	struct objectlist *exec_deps, *notify_deps;
 	struct objectlist *escalation_list;
 	struct service *next;
@@ -665,10 +655,8 @@ typedef struct serviceescalation {
 	int     escalation_options;
 	struct contactgroupsmember *contact_groups;
 	struct contactsmember *contacts;
-#ifdef NSCORE
 	struct service *service_ptr;
 	struct timeperiod *escalation_period_ptr;
-#endif
 	} serviceescalation;
 
 
@@ -683,11 +671,9 @@ typedef struct servicedependency {
 	char    *dependency_period;
 	int     inherits_parent;
 	int     failure_options;
-#ifdef NSCORE
 	struct service *master_service_ptr;
 	struct service *dependent_service_ptr;
 	struct timeperiod *dependency_period_ptr;
-#endif
 	} servicedependency;
 
 
@@ -702,10 +688,8 @@ typedef struct hostescalation {
 	int     escalation_options;
 	struct contactgroupsmember *contact_groups;
 	struct contactsmember *contacts;
-#ifdef NSCORE
 	struct host    *host_ptr;
 	struct timeperiod *escalation_period_ptr;
-#endif
 	} hostescalation;
 
 
@@ -718,11 +702,9 @@ typedef struct hostdependency {
 	char    *dependency_period;
 	int     inherits_parent;
 	int     failure_options;
-#ifdef NSCORE
 	struct host    *master_host_ptr;
 	struct host    *dependent_host_ptr;
 	struct timeperiod *dependency_period_ptr;
-#endif
 	} hostdependency;
 
 extern struct command *command_list;

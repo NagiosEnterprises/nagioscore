@@ -1564,7 +1564,7 @@ void draw_host_links(void) {
 void draw_hosts(void) {
 	host *temp_host;
 	int x1, x2;
-	int y1, y2;
+	int y1;
 	int has_image = FALSE;
 	char image_input_file[MAX_INPUT_BUFFER];
 	int current_radius = 0;
@@ -1600,7 +1600,6 @@ void draw_hosts(void) {
 		x1 = nagios_icon_x - canvas_x;
 		x2 = x1 + DEFAULT_NODE_WIDTH;
 		y1 = nagios_icon_y - canvas_y;
-		y2 = y1 + DEFAULT_NODE_HEIGHT;
 
 		/* get the name of the image file to open for the logo */
 		snprintf(image_input_file, sizeof(image_input_file) - 1, "%s%s", physical_logo_images_path, NAGIOS_GD2_ICON);
@@ -1646,7 +1645,6 @@ void draw_hosts(void) {
 		x1 = temp_host->x_2d - canvas_x;
 		x2 = x1 + DEFAULT_NODE_WIDTH;
 		y1 = temp_host->y_2d - canvas_y;
-		y2 = y1 + DEFAULT_NODE_HEIGHT;
 
 		if(create_type == CREATE_IMAGE) {
 
@@ -2643,7 +2641,6 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 	double this_drawing_angle = 0.0;
 	double available_angle = 0.0;
 	double clipped_available_angle = 0.0;
-	double average_child_angle = 0.0;
 	double x_coord = 0.0;
 	double y_coord = 0.0;
 	host *temp_host;
@@ -2658,9 +2655,6 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 
 	/* calculate total drawing "width" of parent host */
 	parent_drawing_width = max_child_host_drawing_width(parent);
-
-	/* calculate average angle given to each child host */
-	average_child_angle = (double)(useable_angle / (double)immediate_children);
 
 	/* calculate initial drawing angle */
 	current_drawing_angle = start_angle;
@@ -2732,7 +2726,6 @@ void draw_circular_layer_markup(host *parent, double start_angle, double useable
 	double current_drawing_angle = 0.0;
 	double available_angle = 0.0;
 	double clipped_available_angle = 0.0;
-	double average_child_angle = 0.0;
 	double x_coord[4] = {0.0, 0.0, 0.0, 0.0};
 	double y_coord[4] = {0.0, 0.0, 0.0, 0.0};
 	hoststatus *temp_hoststatus;
@@ -2756,9 +2749,6 @@ void draw_circular_layer_markup(host *parent, double start_angle, double useable
 
 	/* calculate total drawing "width" of parent host */
 	parent_drawing_width = max_child_host_drawing_width(parent);
-
-	/* calculate average angle given to each child host */
-	average_child_angle = (double)(useable_angle / (double)immediate_children);
 
 	/* calculate initial drawing angle */
 	current_drawing_angle = start_angle;

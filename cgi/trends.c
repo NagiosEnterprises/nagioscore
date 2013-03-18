@@ -1731,7 +1731,6 @@ void graph_all_trend_data(void) {
 	hoststatus *hststatus = NULL;
 	servicestatus *svcstatus = NULL;
 	unsigned long wobble = 300;
-	int first_real_state = AS_NO_DATA;
 	time_t initial_assumed_time;
 	int initial_assumed_state = AS_SVC_OK;
 	int error = FALSE;
@@ -1774,9 +1773,6 @@ void graph_all_trend_data(void) {
 
 				/* add a dummy archived state item, so something can get graphed */
 				add_archived_state(last_known_state, AS_HARD_STATE, t1, "Current Host State Assumed (Faked Log Entry)");
-
-				/* use the current state as the last known real state */
-				first_real_state = last_known_state;
 				}
 			}
 		else {
@@ -1793,9 +1789,6 @@ void graph_all_trend_data(void) {
 
 				/* add a dummy archived state item, so something can get graphed */
 				add_archived_state(last_known_state, AS_HARD_STATE, t1, "Current Service State Assumed (Faked Log Entry)");
-
-				/* use the current state as the last known real state */
-				first_real_state = last_known_state;
 				}
 			}
 		}
@@ -2036,7 +2029,6 @@ void graph_all_trend_data(void) {
 /* graphs trend data */
 void graph_trend_data(int first_state, int last_state, time_t real_start_time, time_t start_time, time_t end_time, char *state_info) {
 	int start_state;
-	int end_state;
 	int start_pixel = 0;
 	int end_pixel = 0;
 	int color_to_use = 0;
@@ -2105,12 +2097,6 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 		start_state = first_state;
 		last_known_state = first_state;
 		}
-
-	/* special case if last entry was program stop */
-	if(last_state == AS_PROGRAM_END)
-		end_state = first_state;
-	else
-		end_state = last_state;
 
 #ifdef DEBUG
 	printf("Graphing state %d\n", start_state);
@@ -2791,7 +2777,6 @@ void draw_time_breakdowns(void) {
 	unsigned long total_time = 0L;
 	unsigned long total_state_time;
 	unsigned long time_indeterminate = 0L;
-	int string_height;
 
 	if(mode == CREATE_HTML)
 		return;
@@ -2811,7 +2796,6 @@ void draw_time_breakdowns(void) {
 	else
 		time_indeterminate = total_time - total_state_time;
 
-	string_height = gdFontSmall->h;
 
 	if(display_type == DISPLAY_HOST_TRENDS) {
 

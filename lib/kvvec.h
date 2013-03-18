@@ -146,6 +146,13 @@ extern int kvvec_foreach(struct kvvec *kvv, void *arg, int (*callback)(struct ke
 extern int kvvec_destroy(struct kvvec *kvv, int flags);
 
 /**
+ * Free key/value pairs associated with a key/value vector
+ * @param kvv The key/value vector to operate on
+ * @param flags flags or'ed combination of KVVEC_FREE_{KEYS,VALUES}, or KVVEC_FREE_ALL
+ */
+void kvvec_free_kvpairs(struct kvvec *kvv, int flags);
+
+/**
  * Create a linear buffer of all the key/value pairs and
  * return it as a kvvec_buf. The caller must free() all
  * pointers in the returned kvvec_buf

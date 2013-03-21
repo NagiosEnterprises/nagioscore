@@ -348,7 +348,7 @@ struct contact {
 	int     retain_status_information;
 	int     retain_nonstatus_information;
 	struct customvariablesmember *custom_variables;
-#ifdef NSCORE
+#ifndef NSCGI
 	time_t  last_host_notification;
 	time_t  last_service_notification;
 	unsigned long modified_attributes;
@@ -456,7 +456,7 @@ struct host {
 	int     should_be_drawn;
 /* #endif */
 	customvariablesmember *custom_variables;
-#ifdef NSCORE
+#ifndef NSCGI
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
 	int     check_type;
@@ -579,7 +579,7 @@ struct service {
 	char    *icon_image;
 	char    *icon_image_alt;
 	struct customvariablesmember *custom_variables;
-#ifdef NSCORE
+#ifndef NSCGI
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
 	int     host_problem_at_last_check;
@@ -825,7 +825,7 @@ int number_of_immediate_child_hosts(struct host *);		                /* counts t
 int number_of_total_child_hosts(struct host *);				/* counts the number of total child hosts for a particular host */
 int number_of_immediate_parent_hosts(struct host *);				/* counts the number of immediate parents hosts for a particular host */
 
-#ifdef NSCORE
+#ifndef NSCGI
 void fcache_contactlist(FILE *fp, const char *prefix, struct contactsmember *list);
 void fcache_contactgrouplist(FILE *fp, const char *prefix, struct contactgroupsmember *list);
 void fcache_hostlist(FILE *fp, const char *prefix, struct hostsmember *list);

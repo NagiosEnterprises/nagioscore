@@ -318,7 +318,7 @@ int clear_contactgroup_macros_r(nagios_macros *mac);
 int clear_summary_macros_r(nagios_macros *mac);
 
 
-#ifdef NSCORE
+#ifndef NSCGI
 int set_all_macro_environment_vars(int);
 int set_macrox_environment_vars(int);
 int set_argv_macro_environment_vars(int);

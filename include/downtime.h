@@ -26,7 +26,7 @@
 
 #include "common.h"
 #include "objects.h"
-#ifdef NSCORE
+#ifndef NSCGI
 #include "nagios.h"
 #endif
 
@@ -49,13 +49,13 @@ typedef struct scheduled_downtime {
 	int	start_notification_sent;
 	char *author;
 	char *comment;
-#ifdef NSCORE
+#ifndef NSCGI
 	unsigned long comment_id;
 	int start_flex_downtime;
 	int incremented_pending_downtime;
 #endif
 	struct scheduled_downtime *next;
-#ifdef NSCORE
+#ifndef NSCGI
 	struct timed_event *start_event, *stop_event;
 #endif
 	} scheduled_downtime;
@@ -63,7 +63,7 @@ typedef struct scheduled_downtime {
 extern struct scheduled_downtime *scheduled_downtime_list;
 
 
-#ifdef NSCORE
+#ifndef NSCGI
 int initialize_downtime_data(char *);                                /* initializes scheduled downtime data */
 int cleanup_downtime_data(char *);                                   /* cleans up scheduled downtime data */
 

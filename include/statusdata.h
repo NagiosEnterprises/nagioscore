@@ -24,13 +24,9 @@
 #define _STATUSDATA_H
 
 #include "common.h"
-
-#ifdef NSCORE
 #include "objects.h"
-#endif
 
 #ifdef NSCGI
-
 #define READ_PROGRAM_STATUS	1
 #define READ_HOST_STATUS	2
 #define READ_SERVICE_STATUS	4
@@ -189,7 +185,7 @@ int get_servicestatus_count(char *, int);		/* gets total number of services of a
 void free_status_data(void);                            /* free all memory allocated to status data */
 #endif
 
-#ifdef NSCORE
+#ifndef NSCGI
 int initialize_status_data(char *);                     /* initializes status data at program start */
 int update_all_status_data(void);                       /* updates all status data */
 int cleanup_status_data(char *, int);                   /* cleans up status data at program termination */

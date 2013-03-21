@@ -102,7 +102,7 @@ static int print_input(int sd, int events, void *wp_)
 {
 	int ret, pkt = 0;
 	worker_process *wp = (worker_process *)wp_;
-	struct kvvec *kvv;
+	struct kvvec kvv = KVVEC_INITIALIZER;
 	char *buf;
 	unsigned long tot_bytes = 0, size;
 
@@ -130,26 +130,25 @@ static int print_input(int sd, int events, void *wp_)
 	}
 	if (ret < 0) {
 		printf("iocache_read() from worker %d returned %d: %m\n", wp->pid, ret);
-		return;
+		return 0;
 	}
 	printf("read %d bytes from worker with pid %d::\n", ret, wp->pid);
-	while ((buf = iocache_use_delim(wp->ioc, MSG_DELIM, MSG_DELIM_LEN_RECV, &size))) {
-		int i;
-		tot_bytes += size + MSG_DELIM_LEN_RECV;
-		kvv = buf2kvvec(buf, (unsigned int)size, KV_SEP, PAIR_SEP, KVVEC_COPY);
-		if (!kvv) {
-			printf("main: Failed to parse buffer of size %d to key/value vector\n", size);
+	while ((buf = worker_ioc2msg(wp->ioc, &size, 0))) {
+		int i, ret;
+		tot_bytes += size;
+		ret = worker_buf2kvvec_prealloc(&kvv, buf, (unsigned int)size, KVVEC_ASSIGN);
+		if (!ret < 0) {
+			printf("main: Failed to parse buffer of size %lu to key/value vector\n", size);
 			continue;
 		}
-		for (i = 0; i < kvv->kv_pairs; i++) {
-			struct key_value *kv = &kvv->kv[i];
+		for (i = 0; i < kvv.kv_pairs; i++) {
+			struct key_value *kv = &kvv.kv[i];
 			if (!i && memcmp(kv->key, buf, kv->key_len)) {
 				printf("### kv[0]->key doesn't match buf. error in kvvec?\n");
 			}
 			printf("main: %2d.%02d: %s=%s\n", pkt, i, kv->key, kv->value);
 		}
 		pkt++;
-		kvvec_destroy(kvv, KVVEC_FREE_ALL);
 	}
 
 	printf("iocache: available: %d; size: %lu; capacity: %ld\n",

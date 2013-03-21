@@ -8,6 +8,11 @@
 #include <time.h>
 #include "libnagios.h"
 
+#define MSG_DELIM "\1\0\0" /**< message limiter */
+#define MSG_DELIM_LEN (sizeof(MSG_DELIM)) /**< message delimiter length */
+#define PAIR_SEP 0 /**< pair separator for buf2kvvec() and kvvec2buf() */
+#define KV_SEP '=' /**< key/value separator for buf2kvvec() and kvvec2buf() */
+
 struct execution_information {
 	squeue_event *sq_event;
 	pid_t pid;
@@ -73,9 +78,9 @@ static void wlog(const char *fmt, ...)
 	len += 4; /* log= */
 
 	/* add delimiter and send it. 1 extra as kv pair separator */
-	to_send = len + MSG_DELIM_LEN_SEND + 1;
+	to_send = len + MSG_DELIM_LEN + 1;
 	lmsg[len] = 0;
-	memcpy(&lmsg[len + 1], MSG_DELIM, MSG_DELIM_LEN_SEND);
+	memcpy(&lmsg[len + 1], MSG_DELIM, MSG_DELIM_LEN);
 	if (write(master_sd, lmsg, to_send) < 0) {
 		if (errno == EPIPE) {
 			/* master has died or abandoned us, so exit */
@@ -112,11 +117,11 @@ struct kvvec_buf *build_kvvec_buf(struct kvvec *kvv)
 	 * key=value, separated by PAIR_SEP and messages
 	 * delimited by MSG_DELIM
 	 */
-	kvvb = kvvec2buf(kvv, KV_SEP, PAIR_SEP, MSG_DELIM_LEN_SEND);
+	kvvb = kvvec2buf(kvv, KV_SEP, PAIR_SEP, MSG_DELIM_LEN);
 	if (!kvvb) {
 		return NULL;
 	}
-	memcpy(kvvb->buf + (kvvb->bufsize - MSG_DELIM_LEN_SEND), MSG_DELIM, MSG_DELIM_LEN_SEND);
+	memcpy(kvvb->buf + (kvvb->bufsize - MSG_DELIM_LEN), MSG_DELIM, MSG_DELIM_LEN);
 
 	return kvvb;
 }
@@ -141,6 +146,16 @@ int worker_send_kvvec(int sd, struct kvvec *kvv)
 int send_kvvec(int sd, struct kvvec *kvv)
 {
 	return worker_send_kvvec(sd, kvv);
+}
+
+char *worker_ioc2msg(iocache *ioc, unsigned long *size, int flags)
+{
+	return iocache_use_delim(ioc, MSG_DELIM, MSG_DELIM_LEN, size);
+}
+
+int worker_buf2kvvec_prealloc(struct kvvec *kvv, char *buf, unsigned long len, int kvv_flags)
+{
+	return buf2kvvec_prealloc(kvv, buf, len, KV_SEP, PAIR_SEP, kvv_flags);
 }
 
 #define kvvec_add_long(kvv, key, value) \
@@ -527,7 +542,7 @@ static int receive_command(int sd, int events, void *arg)
 	 * now loop over all inbound messages in the iocache.
 	 * Since KV_TERMINATOR is a nul-byte, they're separated by 3 nuls
 	 */
-	while ((buf = iocache_use_delim(ioc, MSG_DELIM, MSG_DELIM_LEN_RECV, &size))) {
+	while ((buf = iocache_use_delim(ioc, MSG_DELIM, MSG_DELIM_LEN, &size))) {
 		struct kvvec *kvv;
 		/* we must copy vars here, as we preserve them for the response */
 		kvv = buf2kvvec(buf, (unsigned int)size, KV_SEP, PAIR_SEP, KVVEC_COPY);

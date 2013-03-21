@@ -513,7 +513,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 		wproc_destroy(wp, 0);
 		return 0;
 	}
-	while ((buf = iocache_use_delim(wp->ioc, MSG_DELIM, MSG_DELIM_LEN, &size))) {
+	while ((buf = worker_ioc2msg(wp->ioc, &size, 0))) {
 		int job_id = -1;
 		worker_job *job;
 		wproc_result wpres;

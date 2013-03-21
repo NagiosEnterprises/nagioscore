@@ -152,12 +152,12 @@ replaced with actual values, ofcourse):
 job_id=%d\0type=%d\0command=%s\0timeout=%u\0\1\0\0
 @endverbatim
 
-Note that strings can contain equal signs, but cannot contain nul bytes,
-and cannot contain the message delimiter sequence.
-By including nagios/lib/worker.h and using the buf2kvvec() and
-kvvec2buf() calls with KV_SEP, PAIR_SEP, MSG_DELIM and MSG_DELIM_LEN
-macros you will get the correct result. Have a look in base/workers.c
-and lib/worker.c to see how it's done for the core workers.
+Note that values can contain equal signs, but cannot contain nul
+bytes, and cannot contain the message delimiter sequence.
+By including nagios/lib/worker.h and using worker_ioc2msg() followed
+by worker_kvvec2buf_prealloc(), you will get a parsed key/value vector
+handed to you. Have a look in base/workers.c to see how it's done for
+the core workers.
 
 @subsection responses Responses
 Once the worker is done running a task, it hands over the result to

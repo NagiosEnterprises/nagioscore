@@ -18,18 +18,6 @@
  * as an example on how to use the API's found here.
  */
 
-/*
- * Since PAIR_SEP is a nul byte, and MSG_DELIM is all nuls, we must
- * take care to use different MSG_DELIM_LEN depending on if we're
- * sending or receiving. Change this if PAIR_SEP alters.
- */
-#define MSG_DELIM "\1\0\0" /**< message limiter */
-#define MSG_DELIM_LEN (sizeof(MSG_DELIM)) /**< message delimiter length */
-#define MSG_DELIM_LEN_SEND (MSG_DELIM_LEN) /**< msg delim len when sendin */
-#define MSG_DELIM_LEN_RECV (MSG_DELIM_LEN) /**< msg delimm len when receivin */
-#define PAIR_SEP 0 /**< pair separator for buf2kvvec() and kvvec2buf() */
-#define KV_SEP '=' /**< key/value separator for buf2kvvec() and kvvec2buf() */
-
 #ifndef ETIME
 #define ETIME ETIMEDOUT
 #endif
@@ -138,6 +126,26 @@ extern int worker_send_kvvec(int sd, struct kvvec *kvv);
 /** @deprecated Use worker_send_kvvec() instead */
 extern int send_kvvec(int sd, struct kvvec *kvv)
 	NAGIOS_DEPRECATED(4.1.0, "worker_send_kvvec()");
+
+/**
+ * Grab a worker message from an iocache buffer
+ * @param[in] ioc The io cache
+ * @param[out] size Out buffer for buffer length
+ * @param[in] flags Currently unused
+ * @return A buffer from the iocache on succes; NULL on errors
+ */
+extern char *worker_ioc2msg(iocache *ioc, unsigned long *size, int flags);
+
+/**
+ * Parse a worker message to a preallocated key/value vector
+ *
+ * @param[in] kvv Key/value vector to fill
+ * @param[in] buf The buffer to parse
+ * @param[in] len Length of 'buf'
+ * @param[in] kvv_flags Flags for buf2kvvec()
+ * @return 0 on success, < 0 on errors
+ */
+extern int worker_buf2kvvec_prealloc(struct kvvec *kvv, char *buf, unsigned long len, int kvv_flags);
 
 /**
  * Set some common socket options

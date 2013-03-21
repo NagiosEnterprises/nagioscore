@@ -238,9 +238,9 @@ static struct check_engine nagios_spool_check_engine = {
 };
 
 const char *check_result_source(check_result *cr) {
-	if(!cr->engine)
-		return "(unknown engine)";
-	return cr->engine->source_name(cr->source);
+	if(cr->engine)
+		return cr->engine->source_name(cr->source);
+	return cr->source ? (const char *)cr->source : "(unknown engine)";
 	}
 
 

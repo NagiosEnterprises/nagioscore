@@ -215,10 +215,7 @@ extern int errno;
 
 
 static const char *worker_source_name(void *source) {
-	if(!source)
-		return "unknown internal source (voodoo, perhaps?)";
-
-	return ((worker_process *)source)->source_name;
+	return source ? (const char *)source : "unknown internal source (voodoo, perhaps?)";
 	}
 
 static const char *spool_file_source_name(void *source) {

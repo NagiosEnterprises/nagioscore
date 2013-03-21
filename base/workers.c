@@ -989,7 +989,7 @@ int wproc_run_host_job(int jtype, int timeout, host *hst, char *cmd, nagios_macr
 int wproc_run_check(check_result *cr, char *cmd, nagios_macros *mac)
 {
 	worker_job *job;
-	time_t timeout;
+	int timeout;
 
 	if (cr->service_description)
 		timeout = service_check_timeout;
@@ -1003,8 +1003,7 @@ int wproc_run_check(check_result *cr, char *cmd, nagios_macros *mac)
 int wproc_run(int jtype, char *cmd, int timeout, nagios_macros *mac)
 {
 	worker_job *job;
-	time_t real_timeout = timeout + time(NULL);
 
-	job = create_job(jtype, NULL, real_timeout, cmd);
+	job = create_job(jtype, NULL, timeout, cmd);
 	return wproc_run_job(job, mac);
 }

@@ -22,35 +22,6 @@
 #define ETIME ETIMEDOUT
 #endif
 
-struct worker_process;
-
-/** Worker job data */
-typedef struct worker_job {
-	int id;         /**< job id */
-	int type;       /**< internal only */
-	time_t timeout; /**< timeout, in absolute time */
-	char *command;  /**< command string for this job */
-	struct worker_process *wp; /**< worker process running this job */
-	void *arg;      /**< any random argument */
-} worker_job;
-
-/** A worker process as seen from its controller */
-typedef struct worker_process {
-	const char *type; /**< identifying typename of this worker */
-	char *source_name; /**< check-source name of this worker */
-	int sd;    /**< communication socket */
-	pid_t pid; /**< pid */
-	int max_jobs; /**< Max number of jobs we can handle */
-	int jobs_running; /**< jobs running */
-	int jobs_started; /**< jobs started */
-	struct timeval start; /**< worker start time */
-	iocache *ioc; /**< iocache for reading from worker */
-	worker_job **jobs; /**< array of jobs */
-	int job_index; /**< round-robin slot allocator (this wraps) */
-	struct worker_process *prev_wp; /**< previous worker in list */
-	struct worker_process *next_wp; /**< next worker in list */
-} worker_process;
-
 typedef struct iobuf {
 	int fd;
 	unsigned int len;

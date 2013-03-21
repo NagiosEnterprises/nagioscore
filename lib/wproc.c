@@ -16,12 +16,19 @@
 #include <netinet/in.h>
 #include "worker.h"
 
+
+typedef struct simple_worker {
+	int pid, sd;
+	unsigned int job_index;
+	iocache *ioc;
+} simple_worker;
+
 /* we can't handle packets larger than 64MiB */
 #define MAX_IOCACHE_SIZE (64 * 1024 * 1024)
 static int sigreceived;
 static iobroker_set *iobs;
 
-static struct worker_process *spawn_worker(void (*init_func)(void *), void *init_arg)
+static simple_worker *spawn_worker(void (*init_func)(void *), void *init_arg)
 {
 	int sv[2];
 	int pid;
@@ -38,7 +45,7 @@ static struct worker_process *spawn_worker(void (*init_func)(void *), void *init
 
 	/* parent leaves the child */
 	if (pid) {
-		worker_process *worker = calloc(1, sizeof(worker_process));
+		simple_worker *worker = calloc(1, sizeof(simple_worker));
 		close(sv[1]);
 		if (!worker) {
 			kill(SIGKILL, pid);
@@ -48,11 +55,6 @@ static struct worker_process *spawn_worker(void (*init_func)(void *), void *init
 		worker->sd = sv[0];
 		worker->pid = pid;
 		worker->ioc = iocache_create(1 * 1024 * 1024);
-
-		/* 1 socket for master, 2 fd's for each child */
-		worker->max_jobs = (iobroker_max_usable_fds() - 1) / 2;
-		worker->jobs = calloc(worker->max_jobs, sizeof(worker_job *));
-
 		return worker;
 	}
 
@@ -101,7 +103,7 @@ static void child_exited(int sig)
 static int print_input(int sd, int events, void *wp_)
 {
 	int ret, pkt = 0;
-	worker_process *wp = (worker_process *)wp_;
+	simple_worker *wp = (simple_worker *)wp_;
 	struct kvvec kvv = KVVEC_INITIALIZER;
 	char *buf;
 	unsigned long tot_bytes = 0, size;
@@ -159,14 +161,14 @@ static int print_input(int sd, int events, void *wp_)
 }
 
 #define NWPS 3
-static worker_process *wps[NWPS];
+static simple_worker *wps[NWPS];
 static int wp_index;
 
 static int send_command(int sd, int events, void *discard)
 {
 	char buf[8192];
 	int ret;
-	worker_process *wp;
+	simple_worker *wp;
 	struct kvvec *kvv;
 
 	ret = read(sd, buf, sizeof(buf));
@@ -202,7 +204,7 @@ void print_some_crap(void *arg)
 
 int main(int argc, char **argv)
 {
-	struct worker_process *wp;
+	simple_worker *wp;
 	int i;
 
 	signal(SIGINT, sighandler);

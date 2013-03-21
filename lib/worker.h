@@ -133,7 +133,12 @@ extern struct kvvec_buf *build_kvvec_buf(struct kvvec *kvv);
  * @param kvv The key/value vector to send
  * @return The number of bytes sent, or -1 on errors
  */
-extern int send_kvvec(int sd, struct kvvec *kvv);
+extern int worker_send_kvvec(int sd, struct kvvec *kvv);
+
+/** @deprecated Use worker_send_kvvec() instead */
+extern int send_kvvec(int sd, struct kvvec *kvv)
+	NAGIOS_DEPRECATED(4.1.0, "worker_send_kvvec()");
+
 /**
  * Set some common socket options
  * @param[in] sd The socket to set options for

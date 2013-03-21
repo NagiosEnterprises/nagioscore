@@ -189,7 +189,7 @@ static int send_command(int sd, int events, void *discard)
 	kvvec_addkv_wlen(kvv, "command", sizeof("command") - 1, buf, ret);
 	kvvec_addkv(kvv, "timeout", (char *)mkstr("%d", 10));
 	printf("Sending kvvec with %d pairs to worker %d\n", kvv->kv_pairs, wp->pid);
-	send_kvvec(wp->sd, kvv);
+	worker_send_kvvec(wp->sd, kvv);
 	kvvec_destroy(kvv, 0);
 	return 0;
 }

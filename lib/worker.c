@@ -98,7 +98,7 @@ static void job_error(child_process *cp, struct kvvec *kvv, const char *fmt, ...
 		kvvec_addkv(kvv, "job_id", (char *)mkstr("%d", cp->id));
 	}
 	kvvec_addkv_wlen(kvv, "error_msg", 9, msg, len);
-	ret = send_kvvec(master_sd, kvv);
+	ret = worker_send_kvvec(master_sd, kvv);
 	if (ret < 0 && errno == EPIPE)
 		exit_worker(1, "Failed to send job error key/value vector to master");
 	kvvec_destroy(kvv, 0);
@@ -121,7 +121,7 @@ struct kvvec_buf *build_kvvec_buf(struct kvvec *kvv)
 	return kvvb;
 }
 
-int send_kvvec(int sd, struct kvvec *kvv)
+int worker_send_kvvec(int sd, struct kvvec *kvv)
 {
 	int ret;
 	struct kvvec_buf *kvvb;
@@ -136,6 +136,11 @@ int send_kvvec(int sd, struct kvvec *kvv)
 	free(kvvb);
 
 	return ret;
+}
+
+int send_kvvec(int sd, struct kvvec *kvv)
+{
+	return worker_send_kvvec(sd, kvv);
 }
 
 #define kvvec_add_long(kvv, key, value) \
@@ -226,9 +231,9 @@ int finish_job(child_process *cp, int reason)
 		kvvec_addkv(&resp, "exited_ok", "0");
 		kvvec_addkv(&resp, "error_code", (char *)mkstr("%d", reason));
 	}
-	ret = send_kvvec(master_sd, &resp);
+	ret = worker_send_kvvec(master_sd, &resp);
 	if (ret < 0 && errno == EPIPE)
-		exit_worker(1, "Failed to send_kvvec()");
+		exit_worker(1, "Failed to send kvvec struct to master");
 
 	if (cp->outstd.buf) {
 		free(cp->outstd.buf);

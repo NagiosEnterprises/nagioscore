@@ -19,13 +19,16 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************/
 
-#ifndef _SKIPLIST_H
-#define _SKIPLIST_H
+#ifndef LIBNAGIOS_skiplist_h__
+#define LIBNAGIOS_skiplist_h__
 #include "lnag-utils.h"
 
 /**
  * @file skiplist.h
  * @brief Skiplist library functions
+ *
+ * http://en.wikipedia.org/wiki/Skiplist
+ *
  * @{
  */
 

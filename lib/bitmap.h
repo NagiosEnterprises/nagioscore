@@ -1,8 +1,12 @@
 #ifndef LIBNAGIOS_bitmap_h__
 #define LIBNAGIOS_bitmap_h__
+
 /**
  * @file bitmap.h
  * @brief Bit map API
+ *
+ * The bitmap api is useful for running set operations on objects
+ * indexed by unsigned integers.
  * @{
  */
 struct bitmap;

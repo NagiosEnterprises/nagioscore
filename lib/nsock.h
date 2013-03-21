@@ -1,3 +1,7 @@
+#ifndef LIBNAGIOS_nsock_h__
+#define LIBNAGIOS_nsock_h__
+#include <errno.h>
+
 /**
  * @file nsock.h
  * @brief Nagios socket helper library
@@ -6,11 +10,9 @@
  * now Nagios core itself makes use of sockets, we might as well
  * have some simple wrappers for it that handle the most common
  * cases.
+ *
+ * @{
  */
-
-#ifndef LIBNAGIOS_nsock_h__
-#define LIBNAGIOS_nsock_h__
-#include <errno.h>
 
 #define NSOCK_EBIND    (-1)     /**< failed to bind() */
 #define NSOCK_ELISTEN  (-2)     /**< failed to listen() */
@@ -69,4 +71,6 @@ extern int nsock_printf_nul(int sd, const char *fmt, ...)
  */
 extern int nsock_printf(int sd, const char *fmt, ...)
 	__attribute__((__format__(__printf__, 2, 3)));
+
+/** @} */
 #endif /* LIBNAGIOS_nsock_h__ */

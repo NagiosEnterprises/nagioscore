@@ -1,5 +1,5 @@
-#ifndef INCLUDE_worker_h__
-#define INCLUDE_worker_h__
+#ifndef LIBNAGIOS_worker_h__
+#define LIBNAGIOS_worker_h__
 #include <errno.h>
 #include <sys/socket.h>
 #include <stdio.h>

@@ -1,5 +1,5 @@
-#ifndef INCLUDE_kvvec_h__
-#define INCLUDE_kvvec_h__
+#ifndef LIBNAGIOS_kvvec_h__
+#define LIBNAGIOS_kvvec_h__
 
 /**
  * @file kvvec.h
@@ -8,6 +8,7 @@
  * The kvvec library is nifty as either a configuration meta-format
  * or for IPC purposes. Take a look at the buf2kvvec() and kvvec2buf()
  * pair of functions for the latter.
+ * @{
  */
 
 /**
@@ -195,4 +196,5 @@ extern struct kvvec *buf2kvvec(char *str, unsigned int len, const char kvsep, co
  * @return The number of pairs in the created key/value vector
  */
 extern int buf2kvvec_prealloc(struct kvvec *kvv, char *str, unsigned int len, const char kvsep, const char pair_sep, int flags);
+/** @} */
 #endif /* INCLUDE_kvvec_h__ */

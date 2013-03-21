@@ -14,27 +14,24 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-/*
- * Altered for Nagios by Andreas Ericsson <ae@op5.se> with the excplicit
- * consent of Volkan Yazici <volkan.yazici@gmail.com>. Many thanks.
- * Changed as follows:
- *
- * - pqueue_pri_t is an unsigned long long instead of a double
- *   ull comparisons are 107 times faster than double comparisons
- *   on my 64-bit laptop
- */
+#ifndef LIBNAGIOS_pqueue_h__
+#define LIBNAGIOS_pqueue_h__
+#include <stdio.h>
 
 /**
  * @file  pqueue.h
  * @brief Priority Queue function declarations
  *
+ * This priority queue library was originally written by Volkan Yazici
+ * <volkan.yazici@gmail.com>. It was lated adapted for Nagios by
+ * Andreas Ericsson <ae@op5.se>. Changes compared to the original
+ * version are pretty much limited to changing pqueue_pri_t to be
+ * an unsigned long long instead of a double, since ULL comparisons
+ * are 107 times faster on my 64-bit laptop.
+ *
  * @{
  */
 
-
-#ifndef LIB_pqueue_h__
-#define LIB_pqueue_h__
-#include <stdio.h>
 
 /** priority data type (used to be double, but ull is 107 times faster) */
 typedef unsigned long long pqueue_pri_t;
@@ -184,6 +181,5 @@ void pqueue_dump(pqueue_t *q, FILE *out, pqueue_print_entry_f print);
  */
 int pqueue_is_valid(pqueue_t *q);
 
-
-#endif /* PQUEUE_H */
+#endif
 /** @} */

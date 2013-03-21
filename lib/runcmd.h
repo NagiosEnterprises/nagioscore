@@ -1,6 +1,5 @@
-#ifndef INCLUDE_runcmd_h__
-#define INCLUDE_runcmd_h__
-
+#ifndef LIBNAGIOS_runcmd_h__
+#define LIBNAGIOS_runcmd_h__
 #include <signal.h>
 
 /**
@@ -8,20 +7,20 @@
  * @brief runcmd library function declarations
  *
  * @note This is inherited from the nagiosplugins project, although
- * I (AE) wrote the original code, and it might need of refactoring
+ * I (AE) wrote the original code, and it might need refactoring
  * for performance later.
  * @{
  */
 
 /** Return code bitflags for runcmd_cmd2strv() */
-#define CMD_HAS_REDIR (1 << 0) /**< I/O redirection */
-#define CMD_HAS_SUBCOMMAND  (1 << 1) /**< subcommands present */
-#define CMD_HAS_PAREN (1 << 2) /**< parentheses present in command */
-#define CMD_HAS_JOBCONTROL (1 << 3) /**< job control stuff present */
-#define CMD_HAS_UBSQ (1 << 4) /**< unbalanced single quotes */
-#define CMD_HAS_UBDQ (1 << 5) /**< unbalanced double quotes */
-#define CMD_HAS_WILDCARD (1 << 6) /**< wildcards present */
-#define CMD_HAS_SHVAR    (1 << 7) /**< shell variables present */
+#define RUNCMD_HAS_REDIR (1 << 0) /**< I/O redirection */
+#define RUNCMD_HAS_SUBCOMMAND  (1 << 1) /**< subcommands present */
+#define RUNCMD_HAS_PAREN (1 << 2) /**< parentheses present in command */
+#define RUNCMD_HAS_JOBCONTROL (1 << 3) /**< job control stuff present */
+#define RUNCMD_HAS_UBSQ (1 << 4) /**< unbalanced single quotes */
+#define RUNCMD_HAS_UBDQ (1 << 5) /**< unbalanced double quotes */
+#define RUNCMD_HAS_WILDCARD (1 << 6) /**< wildcards present */
+#define RUNCMD_HAS_SHVAR    (1 << 7) /**< shell variables present */
 
 
 #define RUNCMD_EFD    (-1)  /**< Failed to pipe() or open() */
@@ -86,7 +85,7 @@ extern int runcmd_close(int fd);
  * @param[out] out_argv The argument vector
  * @return 0 on (great) success, or a bitmask of failure-codes
  * representing f.e. unclosed quotes, job control or output redirection.
- * See the CMD_HAS_* and their ilk to find out about the flag.
+ * See the RUNCMD_HAS_* and their ilk to find out about the flag.
  */
 extern int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv);
 

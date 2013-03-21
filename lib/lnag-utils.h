@@ -6,15 +6,16 @@
 
 /**
  * @file lnag-utils.h
- * @brief libnagios helper functions that lack a "real" home.
+ * @brief libnagios helper and compatibility macros that lack a "real" home.
+ *
+ * This is the home of random macros that must be present for compilation
+ * to succeed but are missing on some platforms.
  *
  * @{
  */
 
 #ifdef __cplusplus
-/**
- * C++ compatibility macro that avoids confusing indentation programs
- */
+/** C++ compatibility macro that avoids confusing indentation programs */
 # define NAGIOS_BEGIN_DECL extern "C" {
 /**
  * Use at end of header file declarations to obtain C++ compatibility
@@ -22,7 +23,9 @@
  */
 # define NAGIOS_END_DECL }
 #else
+/** C++ compatibility macro that avoids confusing indentation programs */
 # define NAGIOS_BEGIN_DECL /* nothing */
+/** C++ compatibility macro that avoid confusing indentation programs */
 # define NAGIOS_END_DECL /* more of nothing */
 #endif
 
@@ -45,7 +48,7 @@
 #ifdef TRUE
 #undef TRUE
 #endif
-#define TRUE (!FALSE) /** Not false */
+#define TRUE (!FALSE) /**< Not false */
 
 /** Useful macro to safely avoid double-free memory corruption */
 #define my_free(ptr) do { if(ptr) { free(ptr); ptr = NULL; } } while(0)
@@ -60,6 +63,7 @@
 #endif
 
 #ifndef offsetof
+/** standard offsetof macro */
 # define offsetof(t, f) ((unsigned long)&((t *)0)->f)
 #endif
 
@@ -179,4 +183,4 @@ static inline int online_cpus(void)
 NAGIOS_END_DECL
 
 /** @} */
-#endif /* NAGIOSINCLUDE_pp_utils_h__ */
+#endif

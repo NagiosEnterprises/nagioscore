@@ -1,9 +1,15 @@
-#ifndef INCLUDE_iobroker_h__
-#define INCLUDE_iobroker_h__
+#ifndef LIBNAGIOS_iobroker_h__
+#define LIBNAGIOS_iobroker_h__
 
 /**
  * @file iobroker.h
  * @brief I/O broker library function declarations
+ *
+ * The I/O broker library handles multiplexing between hundreds or
+ * thousands of sockets with a few simple calls. It's designed to
+ * be as lightweight as possible so as to not cause memory bloat,
+ * and is therefore highly suitable for use by processes that are
+ * fork()-intensive.
  *
  * @{
  */

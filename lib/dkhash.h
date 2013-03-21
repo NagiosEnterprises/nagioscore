@@ -10,6 +10,8 @@
  * much data in Nagios pertains to services (which are uniquely
  * identified based on both host_name and service_description), it
  * makes sense here.
+ *
+ * @{
  */
 
 /** return flags usable from the callback function of dkhash_walk_data() */
@@ -128,4 +130,5 @@ extern unsigned int dkhash_num_entries_removed(dkhash_table *t);
  * @return Number of bucket-slots in hash table
  */
 extern unsigned int dkhash_table_size(dkhash_table *t);
+/** @} */
 #endif /* LIBNAGIOS_dkhash_h__ */

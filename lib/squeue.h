@@ -1,3 +1,8 @@
+#ifndef LIBNAGIOS_squeue_h__
+#define LIBNAGIOS_squeue_h__
+#include <sys/time.h>
+#include <time.h>
+#include "pqueue.h"
 /**
  * @file squeue.h
  * @brief Scheduling queue function declarations
@@ -7,13 +12,9 @@
  * for insert() and remove(), and O(1) time for peek().
  * @note There is no "find". Callers must maintain pointers to their
  * scheduled events if they wish to be able to remove them.
+ *
  * @{
  */
-#ifndef INCLUDE_squeue_h__
-#define INCLUDE_squeue_h__
-#include <sys/time.h>
-#include <time.h>
-#include "pqueue.h"
 
 /*
  * All opaque types here.

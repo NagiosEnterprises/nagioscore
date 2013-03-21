@@ -1,5 +1,5 @@
-#ifndef INCLUDE_iocache_h__
-#define INCLUDE_iocache_h__
+#ifndef LIBNAGIOS_iocache_h__
+#define LIBNAGIOS_iocache_h__
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>

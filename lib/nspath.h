@@ -1,3 +1,12 @@
+#ifndef LIBNAGIOS_nspath_h__
+#define LIBNAGIOS_nspath_h__
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE 1
+#endif
+#include <errno.h>
+#include <sys/stat.h>
+#include "snprintf.h"
+
 /**
  * @file nspath.h
  * @brief path handling functions
@@ -9,11 +18,6 @@
  *
  * @{
  */
-
-#define _GNU_SOURCE 1
-#include <errno.h>
-#include <sys/stat.h>
-#include "snprintf.h"
 
 /**
  * Normalize a path
@@ -81,4 +85,4 @@ extern int nspath_mkdir_p(const char *path, mode_t mode, int options);
 /** Don't mkdir() last element of path when calling nspath_mkdir_p() */
 #define NSPATH_MKDIR_SKIP_LAST (1 << 0)
 
-/* @} */
+/** @} */

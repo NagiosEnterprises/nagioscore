@@ -193,13 +193,13 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 
 		case '|':
 			if (!in_quotes) {
-				add_ret(CMD_HAS_REDIR);
+				add_ret(RUNCMD_HAS_REDIR);
 			}
 			break;
 		case '&': case ';':
 			if (!in_quotes) {
 				set_state(STATE_SPECIAL);
-				add_ret(CMD_HAS_JOBCONTROL);
+				add_ret(RUNCMD_HAS_JOBCONTROL);
 				if (i && str[i - 1] != *p) {
 					argz[a++] = 0;
 					out_argv[arg++] = &argz[a];
@@ -209,28 +209,28 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 
 		case '`':
 			if (!(state & STATE_INSQ)) {
-				add_ret(CMD_HAS_SUBCOMMAND);
+				add_ret(RUNCMD_HAS_SUBCOMMAND);
 			}
 			break;
 
 		case '(': case ')':
 			if (!in_quotes) {
-				add_ret(CMD_HAS_PAREN);
+				add_ret(RUNCMD_HAS_PAREN);
 			}
 			break;
 
 		case '$':
 			if (!(state & STATE_INSQ)) {
 				if (p[1] == '(')
-					add_ret(CMD_HAS_SUBCOMMAND);
+					add_ret(RUNCMD_HAS_SUBCOMMAND);
 				else
-					add_ret(CMD_HAS_SHVAR);
+					add_ret(RUNCMD_HAS_SHVAR);
 			}
 			break;
 
 		case '*': case '?':
 			if (!in_quotes) {
-				add_ret(CMD_HAS_WILDCARD);
+				add_ret(RUNCMD_HAS_WILDCARD);
 			}
 
 			/* fallthrough */
@@ -252,9 +252,9 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 	argz[a++] = 0;
 
 	if (have_state(STATE_INSQ))
-		add_ret(CMD_HAS_UBSQ);
+		add_ret(RUNCMD_HAS_UBSQ);
 	if (have_state(STATE_INDQ))
-		add_ret(CMD_HAS_UBDQ);
+		add_ret(RUNCMD_HAS_UBDQ);
 
 	*out_argc = arg;
 

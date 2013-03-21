@@ -553,7 +553,7 @@ static int receive_command(int sd, int events, void *arg)
 	return 0;
 }
 
-int set_socket_options(int sd, int bufsize)
+int worker_set_sockopts(int sd, int bufsize)
 {
 	int ret;
 
@@ -568,6 +568,11 @@ int set_socket_options(int sd, int bufsize)
 	return ret;
 }
 
+/* XXX: deprecated */
+int set_socket_options(int sd, int bufsize)
+{
+	return worker_set_sockopts(sd, bufsize);
+}
 
 void enter_worker(int sd, int (*cb)(child_process*))
 {

@@ -87,14 +87,6 @@ typedef struct child_process {
 extern int start_cmd(child_process *cp);
 
 /**
- * Spawn a worker process
- * @param[in] init_func The initialization function for the worker
- * @param[in] init_arg Initialization argument for the worker
- * @return A worker process struct on success (for the parent). Null on errors
- */
-extern worker_process *spawn_worker(void (init_func)(void *), void *init_arg);
-
-/**
  * Spawn a helper with a specific process name
  * The first entry in the argv parameter will be the name of the
  * new process, unless the process changes the name itself.

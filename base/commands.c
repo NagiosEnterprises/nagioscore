@@ -35,7 +35,16 @@
 static int command_file_fd;
 static FILE *command_file_fp;
 static int command_file_created = FALSE;
-static worker_process *command_wproc;
+
+/* The command file worker process */
+static struct {
+	/* these must come first for check source detection */
+	const char *type;
+	const char *source_name;
+	int pid;
+	int sd;
+	iocache *ioc;
+} command_worker = { "command file", "command file worker", 0, 0, NULL };
 
 
 /******************************************************************/
@@ -109,22 +118,25 @@ int close_command_file(void) {
 
 /* shutdown command file worker thread */
 int shutdown_command_file_worker(void) {
-	if (!command_wproc)
+	if (!command_worker.pid)
 		return 0;
 
-	iocache_destroy(command_wproc->ioc);
-	wproc_destroy(command_wproc, WPROC_FORCE);
-	command_wproc = NULL;
+	iocache_destroy(command_worker.ioc);
+	command_worker.ioc = NULL;
+	iobroker_close(nagios_iobs, command_worker.sd);
+	command_worker.sd = -1;
+	kill(command_worker.pid, SIGKILL);
+	command_worker.pid = 0;
 	return 0;
 	}
 
 
-static int command_input_handler(int sd, int events, void *arg) {
+static int command_input_handler(int sd, int events, void *discard) {
 	int ret;
 	char *buf;
 	unsigned long size;
 
-	ret = iocache_read(command_wproc->ioc, sd);
+	ret = iocache_read(command_worker.ioc, sd);
 	log_debug_info(DEBUGL_COMMANDS, 2, "Read %d bytes from command worker\n", ret);
 	if (ret == 0) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Command file worker seems to have died. Respawning\n");
@@ -132,7 +144,7 @@ static int command_input_handler(int sd, int events, void *arg) {
 		launch_command_file_worker();
 		return 0;
 		}
-	while ((buf = iocache_use_delim(command_wproc->ioc, "\n", 1, &size))) {
+	while ((buf = iocache_use_delim(command_worker.ioc, "\n", 1, &size))) {
 		if (buf[0] == '[') {
 			/* raw external command */
 			buf[size] = 0;
@@ -209,15 +221,15 @@ static int command_file_worker(int sd) {
 
 
 int launch_command_file_worker(void) {
-	int ret, pid, sv[2];
+	int ret, sv[2];
 	char *str;
 
 	/*
 	 * if we're restarting, we may well already have a command
 	 * file worker process attached. Keep it if that's so.
 	 */
-	if (command_wproc && command_wproc->pid &&
-		kill(command_wproc->pid, 0) == 0 && iobroker_is_registered(nagios_iobs, command_wproc->sd))
+	if (command_worker.pid && kill(command_worker.pid, 0) == 0 &&
+		iobroker_is_registered(nagios_iobs, command_worker.sd))
 	{
 		return 0;
 	}
@@ -227,37 +239,29 @@ int launch_command_file_worker(void) {
 		return ERROR;
 	}
 
-	pid = fork();
-	if (pid < 0) {
+	command_worker.pid = fork();
+	if (command_worker.pid < 0) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to fork() command file worker: %m\n");
 		goto err_close;
 	}
 
-	if (pid) {
-		command_wproc = calloc(1, sizeof(*command_wproc));
-		if (!command_wproc) {
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to calloc(1, %d) for command file worker: %m\n",
-				  (int)sizeof(*command_wproc));
+	if (command_worker.pid) {
+		command_worker.ioc = iocache_create(512 * 1024);
+		if (!command_worker.ioc) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to create I/O cache for command file worker: %m\n");
 			goto err_close;
 		}
-		command_wproc->type = "command file";
-		command_wproc->source_name = "command file";
-		command_wproc->ioc = iocache_create(512 * 1024);
-		if (!command_wproc->ioc) {
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to create I/O cache for command file worker: %m\n");
-			goto err_free;
-		}
 
-		command_wproc->pid = pid;
-		command_wproc->sd = sv[0];
-		ret = iobroker_register(nagios_iobs, command_wproc->sd, command_wproc, command_input_handler);
+		command_worker.sd = sv[0];
+		ret = iobroker_register(nagios_iobs, command_worker.sd, NULL, command_input_handler);
 		if (ret < 0) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to register command file worker socket %d with io broker %p: %s; errno=%d: %s\n",
-				  command_wproc->sd, nagios_iobs, iobroker_strerror(ret), errno, strerror(errno));
-			goto err_ioc;
+				  command_worker.sd, nagios_iobs, iobroker_strerror(ret), errno, strerror(errno));
+			iocache_destroy(command_worker.ioc);
+			goto err_close;
 		}
 		logit(NSLOG_INFO_MESSAGE, TRUE, "Successfully launched command file worker with pid %d\n",
-			  command_wproc->pid);
+			  command_worker.pid);
 		return OK;
 	}
 
@@ -276,13 +280,11 @@ int launch_command_file_worker(void) {
 	exit(command_file_worker(sv[1]));
 
 	/* error conditions for parent */
-err_ioc:
-	free(command_wproc->ioc);
-err_free:
-	free(command_wproc);
 err_close:
 	close(sv[0]);
 	close(sv[1]);
+	command_worker.pid = 0;
+	command_worker.sd = -1;
 	return ERROR;
 	}
 
@@ -2213,7 +2215,7 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	cr.output = output;
 	cr.start_time.tv_sec = cr.finish_time.tv_sec = check_time;
 	cr.engine = &nagios_check_engine;
-	cr.source = command_wproc;
+	cr.source = &command_worker;
 
 	/* save the return code and make sure it's sane */
 	cr.return_code = return_code;
@@ -2306,7 +2308,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	cr.output = output;
 	cr.start_time.tv_sec = cr.finish_time.tv_sec = check_time;
 	cr.engine = &nagios_check_engine;
-	cr.source = command_wproc;
+	cr.source = &command_worker;
 	cr.return_code = return_code;
 
 	/* calculate latency */

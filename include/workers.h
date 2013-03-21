@@ -30,5 +30,4 @@ extern int wproc_notify(char *cname, char *hname, char *sdesc, char *cmd, nagios
 extern int wproc_run(int job_type, char *cmd, int timeout, nagios_macros *mac);
 extern int wproc_run_service_job(int jtype, int timeout, service *svc, char *cmd, nagios_macros *mac);
 extern int wproc_run_host_job(int jtype, int timeout, host *hst, char *cmd, nagios_macros *mac);
-extern int wproc_destroy(worker_process *wp, int flags);
 #endif

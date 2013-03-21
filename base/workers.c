@@ -218,7 +218,7 @@ static int wproc_is_alive(worker_process *wp)
 	return 0;
 }
 
-int wproc_destroy(worker_process *wp, int flags)
+static int wproc_destroy(worker_process *wp, int flags)
 {
 	int i = 0, force = 0, self;
 

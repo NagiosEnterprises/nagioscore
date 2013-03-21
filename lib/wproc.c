@@ -153,7 +153,7 @@ static int print_input(int sd, int events, void *wp_)
 		pkt++;
 	}
 
-	printf("iocache: available: %d; size: %lu; capacity: %ld\n",
+	printf("iocache: available: %lu; size: %lu; capacity: %lu\n",
 		   iocache_available(wp->ioc), iocache_size(wp->ioc), iocache_capacity(wp->ioc));
 	printf("Got %d packets in %ld bytes (ret: %d)\n", pkt, tot_bytes, ret);
 

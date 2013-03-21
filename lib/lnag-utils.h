@@ -14,6 +14,9 @@
  * @{
  */
 
+#define NAGIOS_MKVERSION(a, b, c) \
+	(((a) * 10000) + ((b) * 100) + (c))
+
 #ifdef __cplusplus
 /** C++ compatibility macro that avoids confusing indentation programs */
 # define NAGIOS_BEGIN_DECL extern "C" {
@@ -29,14 +32,27 @@
 # define NAGIOS_END_DECL /* more of nothing */
 #endif
 
-#ifndef __GNUC__
-/** So we can safely use the gcc extension */
-# define __attribute__(x) /* nothing */
-#endif
+#ifndef NODOXY /* doxy comments are useless here */
+# ifndef __GNUC__
+#  define GCC_VERSION 0
+#  define __attribute__(x) /* nothing */
+# else
+#  ifdef __GNUC_PATCHLEVEL__
+#   define GCC_VERSION NAGIOS_MKVERSION(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
+#  else
+#   define GCC_VERSION NAGIOS_MKVERSION(__GNUC__, __GNUC_MINOR__, 0)
+#  endif /* __GNUC_PATCHLEVEL__ */
+# endif /* __GNUC__ */
+#endif /* NODOXY */
 
-/** Macro for alerting module authors to function deprecation */
-#define NAGIOS_DEPRECATED(version, hint) \
+#if GCC_VERSION >= NAGIOS_MKVERSION(4, 5, 0)
+# define NAGIOS_DEPRECATED(version, hint) \
 	__attribute__((deprecated("This function will be removed in Nagios v" #version ". Please use " #hint " instead")))
+#else
+/** Macro for alerting module authors to function deprecation */
+# define NAGIOS_DEPRECATED(version, hint) \
+	__attribute__((deprecated))
+#endif
 
 /*
  * These macros are widely used throughout Nagios

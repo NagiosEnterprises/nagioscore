@@ -603,7 +603,7 @@ void enter_worker(int sd, int (*cb)(child_process*))
 	 * more than enough for our needs
 	 */
 	sq = squeue_create(1024);
-	set_socket_options(master_sd, 256 * 1024);
+	worker_set_sockopts(master_sd, 256 * 1024);
 
 	iobroker_register(iobs, master_sd, cb, receive_command);
 	while (iobroker_get_num_fds(iobs) > 0) {

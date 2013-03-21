@@ -114,55 +114,6 @@ static void job_error(child_process *cp, struct kvvec *kvv, const char *fmt, ...
 	kvvec_destroy(kvv, 0);
 }
 
-int tv_delta_msec(const struct timeval *start, const struct timeval *stop)
-{
-	int msecs;
-	unsigned long usecs = 0;
-
-	msecs = (stop->tv_sec - start->tv_sec) * 1000;
-	if (stop->tv_usec < start->tv_usec) {
-		msecs -= 1000;
-		usecs += 1000000;
-	}
-	usecs += stop->tv_usec - start->tv_usec;
-	msecs += (usecs / 1000);
-
-	return msecs;
-}
-
-float tv_delta_f(const struct timeval *start, const struct timeval *stop)
-{
-#define DIVIDER 1000000
-	float ret;
-	unsigned long usecs, stop_usec;
-
-	ret = stop->tv_sec - start->tv_sec;
-	stop_usec = stop->tv_usec;
-	if (stop_usec < start->tv_usec) {
-		ret -= 1.0;
-		stop_usec += DIVIDER;
-	}
-	usecs = stop_usec - start->tv_usec;
-
-	ret += (float)((float)usecs / DIVIDER);
-	return ret;
-}
-
-#define MKSTR_BUFS 256 /* should be plenty */
-const char *mkstr(const char *fmt, ...)
-{
-	static char buf[MKSTR_BUFS][32]; /* 8k statically on the stack */
-	static int slot = 0;
-	char *ret;
-	va_list ap;
-
-	ret = buf[slot++ & (MKSTR_BUFS - 1)];
-	va_start(ap, fmt);
-	vsnprintf(ret, sizeof(buf[0]), fmt, ap);
-	va_end(ap);
-	return ret;
-}
-
 struct kvvec_buf *build_kvvec_buf(struct kvvec *kvv)
 {
 	struct kvvec_buf *kvvb;

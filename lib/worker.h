@@ -142,33 +142,6 @@ extern struct kvvec_buf *build_kvvec_buf(struct kvvec *kvv);
  * @return The number of bytes sent, or -1 on errors
  */
 extern int send_kvvec(int sd, struct kvvec *kvv);
-
-/**
- * Create a short-lived string in stack-allocated memory
- * The number and size of strings is limited (currently to 256 strings of
- * 32 bytes each), so beware and use this sensibly. Intended for
- * number-to-string conversion.
- * @param[in] fmt The format string
- * @return A pointer to the formatted string on success. Undefined on errors
- */
-extern const char *mkstr(const char *fmt, ...);
-
-/**
- * Calculate the millisecond delta between two timeval structs
- * @param[in] start The start time
- * @param[in] stop The stop time
- * @return The millisecond delta between the two structs
- */
-extern int tv_delta_msec(const struct timeval *start, const struct timeval *stop);
-
-/**
- * Get timeval delta as seconds
- * @param start The start time
- * @param stop The stop time
- * @return time difference in fractions of seconds
- */
-extern float tv_delta_f(const struct timeval *start, const struct timeval *stop);
-
 /**
  * Set some common socket options
  * @param[in] sd The socket to set options for

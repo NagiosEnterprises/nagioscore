@@ -34,6 +34,10 @@
 # define __attribute__(x) /* nothing */
 #endif
 
+/** Macro for alerting module authors to function deprecation */
+#define NAGIOS_DEPRECATED(version, hint) \
+	__attribute__((deprecated("This function will be removed in Nagios v" #version ". Please use " #hint " instead")))
+
 /*
  * These macros are widely used throughout Nagios
  */
@@ -86,101 +90,6 @@
 	k, k, k, k, k, k, k, k, k, k, k, k, k, k, k, k, \
 	k, k, k, k, k, k, k, k, k, k, k, k, k, k, k, k, \
 	}
-
-/** Use this macro to dynamically increase vector lengths */
-#define alloc_nr(x) (((x)+16)*3/2)
-
-NAGIOS_BEGIN_DECL
-
-/**
- * Check if a number is a power of 2
- * @param x The number to check
- * @return 1 if the number is a power of 2, 0 if it's not
- */
-static inline int lnag_ispof2(unsigned int x)
-{
-	return x > 1 ? !(x & (x - 1)) : 0;
-}
-
-#ifdef __GNUC__
-# define lnag_clz(x) __builtin_clz(x)
-#else
-/**
- * Count leading zeroes
- * @param x The unsigned integer to check
- * @return Number of leading zero bits
- */
-static inline int lnag_clz(unsigned int x)
-{
-	int i;
-
-	for (i = 0; i < sizeof(x) * 8; i++) {
-		if (x >> (i * sizeof(x) * 8) == 1)
-			return i;
-	}
-}
-#endif
-
-/**
- * Round up to a power of 2
- * Yes, this is the most cryptic function name in all of Nagios, but I
- * like it, so shush.
- * @param r The number to round up
- * @return r, rounded up to the nearest power of 2.
- */
-static inline unsigned int rup2pof2(unsigned int r)
-{
-	return r < 2 ? 4 : lnag_ispof2(r) ? r : 1 << ((sizeof(r) * 8) - (lnag_clz(r)));
-}
-
-/**
- * Grab a random unsigned int in the range between low and high.
- * Note that the PRNG has to be seeded prior to calling this.
- * @param low The lower bound, inclusive
- * @param high The higher bound, inclusive
- * @return An unsigned integer in the mathematical range [low, high]
- */
-static inline unsigned int ranged_urand(unsigned int low, unsigned int high)
-{
-	return low + (rand() * (1.0 / (RAND_MAX + 1.0)) * (high - low));
-}
-
-
-#if defined(hpux) || defined(__hpux) || defined(_hpux)
-#  include <sys/pstat.h>
-#endif
-
-/*
- * By doing this in two steps we can at least get
- * the function to be somewhat coherent, even
- * with this disgusting nest of #ifdefs.
- */
-#ifndef _SC_NPROCESSORS_ONLN
-#  ifdef _SC_NPROC_ONLN
-#    define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
-#  elif defined _SC_CRAY_NCPU
-#    define _SC_NPROCESSORS_ONLN _SC_CRAY_NCPU
-#  endif
-#endif
-
-static inline int online_cpus(void)
-{
-#ifdef _SC_NPROCESSORS_ONLN
-	long ncpus;
-
-	if ((ncpus = (long)sysconf(_SC_NPROCESSORS_ONLN)) > 0)
-		return (int)ncpus;
-#elif defined(hpux) || defined(__hpux) || defined(_hpux)
-	struct pst_dynamic psd;
-
-	if (!pstat_getdynamic(&psd, sizeof(psd), (size_t)1, 0))
-		return (int)psd.psd_proc_cnt;
-#endif
-
-	return 1;
-}
-
-NAGIOS_END_DECL
 
 /** @} */
 #endif

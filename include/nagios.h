@@ -458,6 +458,7 @@ typedef int (*qh_handler)(int, char *, unsigned int);
 extern int qh_init(const char *path);
 extern void qh_deinit(const char *path);
 extern int qh_register_handler(const char *name, const char *description, unsigned int options, qh_handler handler);
+extern const char *qh_strerror(int code);
 
 /**** Configuration Functions ****/
 int read_main_config_file(char *);                     		/* reads the main config file (nagios.cfg) */

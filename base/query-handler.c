@@ -39,8 +39,11 @@ static struct query_handler *qh_find_handler(const char *name)
 }
 
 /* subset of http error codes */
-static const char *qh_strerror(int code)
+const char *qh_strerror(int code)
 {
+	if (code < 0)
+		return "Low-level system error";
+
 	if (code == 100)
 		return "Continue";
 	if (code == 101)

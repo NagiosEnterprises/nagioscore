@@ -23,16 +23,6 @@ static unsigned int started, running_jobs;
 static int master_sd;
 static int parent_pid;
 
-/*
- * contains all information sent in a particular request
- */
-struct request {
-	char *cmd;
-	int when;
-	char **env;
-	struct kvvec *request, *response;
-};
-
 static void exit_worker(int code, const char *msg)
 {
 	child_process *cp;

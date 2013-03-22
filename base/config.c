@@ -185,6 +185,8 @@ int read_main_config_file(char *main_config_file) {
 
 			my_free(log_file);
 			log_file = nspath_absolute(value, config_file_dir);
+			/* make sure the configured logfile takes effect */
+			close_log_file();
 			}
 		else if(!strcmp(variable, "debug_level"))
 			debug_level = atoi(value);

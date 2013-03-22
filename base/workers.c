@@ -553,7 +553,9 @@ static int handle_worker_result(int sd, int events, void *arg)
 
 		/* for everything else we need to actually parse */
 		if (buf2kvvec_prealloc(&kvv, buf, size, '=', '\0', KVVEC_ASSIGN) <= 0) {
-			/* XXX FIXME log an error */
+			logit(NSLOG_RUNTIME_ERROR, TRUE,
+				  "wproc: Failed to parse key/value vector from worker response with len %lu. First kv=%s",
+				  size, buf ? buf : "(NULL)");
 			continue;
 		}
 

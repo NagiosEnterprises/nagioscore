@@ -74,12 +74,15 @@ int read_all_object_data(char *main_config_file) {
 	return OK;
 	}
 
+static objectlist *deprecated = NULL;
 static void obsoleted_warning(const char *key, const char *msg)
 {
-	if (msg)
-		logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: %s is deprecated and will be removed. %s\n", key, msg);
-	else
-		logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: %s is deprecated and will be removed.\n", key);
+	char *buf;
+	asprintf(&buf, "Warning: %s is deprecated and will be removed.%s%s\n",
+		     key, msg ? " " : "", msg ? msg : "");
+	if (!buf)
+		return;
+	prepend_object_to_objectlist(&deprecated, buf);
 }
 
 /* process the main configuration file */
@@ -96,6 +99,7 @@ int read_main_config_file(char *main_config_file) {
 	char *argptr = NULL;
 	DIR *tmpdir = NULL;
 	nagios_macros *mac;
+	objectlist *list;
 
 	mac = get_global_macros();
 
@@ -1126,6 +1130,15 @@ int read_main_config_file(char *main_config_file) {
 			break;
 			}
 
+		}
+
+	if (deprecated) {
+		for (list = deprecated; list; list = list->next) {
+			logit(NSLOG_CONFIG_WARNING, TRUE, "%s", (char *)list->object_ptr);
+			free(list->object_ptr);
+			}
+		free_objectlist(&deprecated);
+		deprecated = NULL;
 		}
 
 	if (!temp_path && !(temp_path = getenv("TMPDIR")) && !(temp_path = getenv("TMP"))) {

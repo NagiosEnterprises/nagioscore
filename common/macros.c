@@ -2776,6 +2776,11 @@ int clear_volatile_macros_r(nagios_macros *mac) {
 			case MACRO_PROCESSSTARTTIME:
 			case MACRO_TEMPPATH:
 			case MACRO_EVENTSTARTTIME:
+			case MACRO_TOTALHOSTSERVICES:
+			case MACRO_TOTALHOSTSERVICESOK:
+			case MACRO_TOTALHOSTSERVICESWARNING:
+			case MACRO_TOTALHOSTSERVICESUNKNOWN:
+			case MACRO_TOTALHOSTSERVICESCRITICAL:
 				/* these don't change during the course of monitoring, so no need to free them */
 				break;
 			default:

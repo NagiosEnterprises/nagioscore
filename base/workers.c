@@ -36,7 +36,7 @@ struct wproc_worker {
 	int jobs_started; /**< jobs started */
 	int job_index; /**< round-robin slot allocator (this wraps) */
 	iocache *ioc;  /**< iocache for reading from worker */
-	struct wproc_job **jobs; /**< array of jobs */
+	fanout_table *jobs; /**< array of jobs */
 };
 
 struct wproc_list {
@@ -148,38 +148,12 @@ static struct wproc_job *create_job(int type, void *arg, time_t timeout, const c
 
 static int get_job_id(struct wproc_worker *wp)
 {
-	int i;
-
-	/* if there can't be any jobs, we break out early */
-	if (wp->jobs_running >= wp->max_jobs) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Worker '%s' already runs too many jobs (%d >= %d)\n",
-			  wp->name, wp->jobs_running, wp->max_jobs);
-		return -1;
-	}
-
-	/*
-	 * Locate a free job_id by checking oldest slots first.
-	 * This should result in us getting a slot fairly quickly
-	 */
-	for (i = wp->job_index; i < wp->job_index + wp->max_jobs; i++) {
-		if (!wp->jobs[i % wp->max_jobs]) {
-			wp->job_index = i % wp->max_jobs;
-			return wp->job_index;
-		}
-	}
-
-	logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to find free job-slot for worker '%s' (running: %d; max: %d)\n",
-		  wp->name, wp->jobs_running, wp->max_jobs);
-	return -1;
+	return wp->job_index++;
 }
 
 static struct wproc_job *get_job(struct wproc_worker *wp, int job_id)
 {
-	/*
-	 * XXX FIXME check job->id against job_id and do something if
-	 * they don't match
-	 */
-	return wp->jobs[job_id % wp->max_jobs];
+	return fanout_remove(wp->jobs, job_id);
 }
 
 static void run_job_callback(struct wproc_job *job, struct wproc_result *wpres, int val)
@@ -228,12 +202,16 @@ static void destroy_job(struct wproc_worker *wp, struct wproc_job *job)
 	}
 
 	my_free(job->command);
-
-	wp->jobs[job->id % wp->max_jobs] = NULL;
 	wp->jobs_running--;
 	loadctl.jobs_running--;
 
 	free(job);
+}
+
+static void fo_destroy_job(void *job_)
+{
+	struct wproc_job *job = (struct wproc_job *)job_;
+	destroy_job(job->wp, job);
 }
 
 static int wproc_is_alive(struct wproc_worker *wp)
@@ -264,17 +242,8 @@ static int wproc_destroy(struct wproc_worker *wp, int flags)
 	iocache_destroy(wp->ioc);
 	wp->ioc = NULL;
 	my_free(wp->name);
-	if (wp->jobs) {
-		for (i = 0; i < wp->max_jobs && wp->jobs_running; i++) {
-			if (!wp->jobs[i])
-				continue;
-
-			destroy_job(wp, wp->jobs[i]);
-		}
-
-		free(wp->jobs);
-		wp->jobs = NULL;
-	}
+	fanout_destroy(wp->jobs, fo_destroy_job);
+	wp->jobs = NULL;
 
 	/* workers must never control other workers, so they return early */
 	if (self != nagios_pid)
@@ -493,6 +462,14 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 	return 0;
 }
 
+static int wproc_run_job(struct wproc_job *job, nagios_macros *mac);
+static void reassign_wproc_job(void *job_)
+{
+	struct wproc_job *job = (struct wproc_job *)job_;
+	/* macros aren't used right now anyways */
+	wproc_run_job(job, NULL);
+}
+
 static int handle_worker_result(int sd, int events, void *arg)
 {
 	wproc_object_job *oj;
@@ -524,19 +501,8 @@ static int handle_worker_result(int sd, int events, void *arg)
 			 */
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: All our workers are dead, we can't do anything!");
 		}
-		if (wp->jobs) {
-			int i, rescheduled = 0;
-			for (i = 0; i < wp->max_jobs; i++) {
-				if (!wp->jobs[i])
-					continue;
-
-				create_job(wp->jobs[i]->type, wp->jobs[i]->arg, wp->jobs[i]->timeout, wp->jobs[i]->command);
-
-				if (++rescheduled >= wp->jobs_running)
-					break;
-			}
-		}
-
+		fanout_destroy(wp->jobs, reassign_wproc_job);
+		wp->jobs = NULL;
 		wproc_destroy(wp, 0);
 		return 0;
 	}
@@ -736,7 +702,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 		 */
 		worker->max_jobs = (iobroker_max_usable_fds() / 2) - 50;
 	}
-	worker->jobs = calloc(worker->max_jobs, sizeof(struct wproc_job *));
+	worker->jobs = fanout_create(worker->max_jobs);
 
 	if (is_global) {
 		workers.len++;
@@ -849,7 +815,6 @@ static struct wproc_worker *get_worker(struct wproc_job *job)
 {
 	struct wproc_worker *wp = NULL;
 	struct wproc_list *wp_list;
-	int i;
 	char *cmd_name, *space, *slash = NULL;
 
 	if (!job)
@@ -877,36 +842,26 @@ static struct wproc_worker *get_worker(struct wproc_job *job)
 	if (space != NULL)
 		*space = ' ';
 
+	if (wp_list->len == 1 && wp_list->wps[0] == to_remove)
+		wp_list = &workers;
 
-	wp = wp_list->wps[wp_list->idx++ % wp_list->len];
+	do {
+		wp = wp_list->wps[wp_list->idx++ % wp_list->len];
+	} while (wp_list->len > 1 && wp == to_remove);
 
-	job->id = get_job_id(wp);
-
-	if (job->id < 0) {
-		/* XXX FIXME Fiddle with finding a new, less busy, worker here */
+	if (wp == to_remove) {
+		/* our last general-purpose worker is about to go byebye */
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Last general-purpose worker died. Unable to assign jobs\n");
 		return NULL;
 	}
-	wp->jobs[job->id] = job;
+
+	job->id = get_job_id(wp);
+	if (fanout_add(wp->jobs, job->id, job) < 0) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to add job to fanout table for worker %s\n", wp->name);
+		return NULL;
+	}
 	job->wp = wp;
 	return wp;
-
-	/* dead code below. for now */
-	for (i = 0; i < workers.len; i++) {
-		wp = workers.wps[workers.idx++ % workers.len];
-		if (wp) {
-			/*
-			 * XXX: check worker flags so we don't ship checks to a
-			 * worker that's about to reincarnate.
-			 */
-			return wp;
-		}
-
-		workers.idx++;
-		if (wp)
-			return wp;
-	}
-
-	return NULL;
 }
 
 /*

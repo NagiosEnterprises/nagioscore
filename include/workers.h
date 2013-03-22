@@ -13,8 +13,30 @@
 #define WPJOB_SVC_EVTHANDLER  5
 #define WPJOB_GLOBAL_HOST_EVTHANDLER 6
 #define WPJOB_HOST_EVTHANDLER 7
+#define WPJOB_CALLBACK 8
 
 #define WPROC_FORCE  (1 << 0)
+
+NAGIOS_BEGIN_DECL;
+
+typedef struct wproc_result {
+	int job_id;
+	int type;
+	time_t timeout;
+	struct timeval start;
+	struct timeval stop;
+	struct timeval runtime;
+	char *command;
+	char *outstd;
+	char *outerr;
+	char *error_msg;
+	int wait_status;
+	int error_code;
+	int exited_ok;
+	int early_timeout;
+	struct kvvec *response;
+	struct rusage rusage;
+} wproc_result;
 
 extern unsigned int wproc_num_workers_spawned;
 extern unsigned int wproc_num_workers_online;
@@ -30,4 +52,7 @@ extern int wproc_notify(char *cname, char *hname, char *sdesc, char *cmd, nagios
 extern int wproc_run(int job_type, char *cmd, int timeout, nagios_macros *mac);
 extern int wproc_run_service_job(int jtype, int timeout, service *svc, char *cmd, nagios_macros *mac);
 extern int wproc_run_host_job(int jtype, int timeout, host *hst, char *cmd, nagios_macros *mac);
+extern int wproc_run_callback(char *cmt, int timeout, void (*cb)(struct wproc_result *, void *, int), void *data, nagios_macros *mac);
+
+NAGIOS_END_DECL;
 #endif

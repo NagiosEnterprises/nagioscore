@@ -49,31 +49,16 @@ static struct wproc_list workers = {0, 0, NULL};
 
 static dkhash_table *specialized_workers;
 
+typedef struct wproc_callback_job {
+	void *data;
+	void (*callback)(struct wproc_result *, void *, int);
+} wproc_callback_job;
+
 typedef struct wproc_object_job {
 	char *contact_name;
 	char *host_name;
 	char *service_description;
 } wproc_object_job;
-
-typedef struct wproc_result {
-	int job_id;
-	int type;
-	time_t timeout;
-	struct timeval start;
-	struct timeval stop;
-	struct timeval runtime;
-	int wait_status;
-	char *command;
-	char *outstd;
-	char *outerr;
-	char *error_msg;
-	int error_code;
-	int exited_ok;
-	int errcode;
-	int early_timeout;
-	struct rusage rusage;
-	struct kvvec *response;
-} wproc_result;
 
 unsigned int wproc_num_workers_online = 0, wproc_num_workers_desired = 0;
 unsigned int wproc_num_workers_spawned = 0;
@@ -197,6 +182,20 @@ static struct wproc_job *get_job(struct wproc_worker *wp, int job_id)
 	return wp->jobs[job_id % wp->max_jobs];
 }
 
+static void run_job_callback(struct wproc_job *job, struct wproc_result *wpres, int val)
+{
+	wproc_callback_job *cj;
+
+	if (!job || !job->arg)
+		return;
+	cj = (struct wproc_callback_job *)job->arg;
+
+	if (!cj->callback)
+		return;
+	cj->callback(wpres, cj->data, val);
+	cj->callback = NULL;
+}
+
 static void destroy_job(struct wproc_worker *wp, struct wproc_job *job)
 {
 	if (!job)
@@ -218,6 +217,10 @@ static void destroy_job(struct wproc_worker *wp, struct wproc_job *job)
 	case WPJOB_GLOBAL_HOST_EVTHANDLER:
 	case WPJOB_HOST_EVTHANDLER:
 		/* these require nothing special */
+		break;
+	case WPJOB_CALLBACK:
+		/* call with NULL result to make callback clean things up */
+		run_job_callback(job, NULL, 0);
 		break;
 	default:
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: Unknown job type: %d\n", job->type);
@@ -641,6 +644,10 @@ static int handle_worker_result(int sd, int events, void *arg)
 			}
 			break;
 
+		case WPJOB_CALLBACK:
+			run_job_callback(job, &wpres, 0);
+			break;
+
 		default:
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker %d: Unknown jobtype: %d\n", wp->pid, job->type);
 			break;
@@ -1029,5 +1036,20 @@ int wproc_run(int jtype, char *cmd, int timeout, nagios_macros *mac)
 	struct wproc_job *job;
 
 	job = create_job(jtype, NULL, timeout, cmd);
+	return wproc_run_job(job, mac);
+}
+
+int wproc_run_callback(char *cmd, int timeout,
+		void (*cb)(struct wproc_result *, void *, int), void *data,
+		nagios_macros *mac)
+{
+	struct wproc_job *job;
+	struct wproc_callback_job *cj;
+	if (!(cj = calloc(1, sizeof(*cj))))
+		return ERROR;
+	cj->callback = cb;
+	cj->data = data;
+
+	job = create_job(WPJOB_CALLBACK, cj, timeout, cmd);
 	return wproc_run_job(job, mac);
 }

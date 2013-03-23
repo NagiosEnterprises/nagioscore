@@ -542,7 +542,7 @@ int read_main_config_file(char *main_config_file) {
 				}
 			}
 
-        
+
 		else if(!strcmp(variable,"service_check_timeout_state")){
 
 			if(!strcmp(value,"o"))
@@ -2156,20 +2156,52 @@ static int dfs_host_path(char *ary, host *root, int *errors) {
 	return dfs_get_status(root);
 	}
 
+int dfs_timeperiod_path(char *ary, timeperiod *root, int *errors)
+{
+	timeperiodexclusion *exc;
+
+	if(dfs_get_status(root) != DFS_UNCHECKED)
+		return dfs_get_status(root);
+
+	/* Mark the root temporary checked */
+	dfs_set_status(root, DFS_TEMP_CHECKED);
+
+	for (exc = root->exclusions; exc; exc = exc->next) {
+		int child_status = dfs_timeperiod_path(ary, exc->timeperiod_ptr, errors);
+
+		if(child_status == DFS_TEMP_CHECKED) {
+			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The timeperiods '%s' and '%s' form or lead into a circular exclusion chain!",
+				  root->name, exc->timeperiod_ptr->name);
+			(*errors)++;
+			dfs_set_status(exc->timeperiod_ptr, DFS_LOOPY);
+			dfs_set_status(root, DFS_LOOPY);
+			continue;
+			}
+		}
+
+	if(dfs_get_status(root) == DFS_TEMP_CHECKED)
+		dfs_set_status(root, DFS_OK);
+
+	return dfs_get_status(root);
+}
+
+
 /* check for circular paths and dependencies */
 int pre_flight_circular_check(int *w, int *e) {
 	host *temp_host = NULL;
 	servicedependency *temp_sd = NULL;
 	hostdependency *temp_hd = NULL;
+	timeperiod *tp;
 	int i, errors = 0;
 	unsigned int alloc, dep_type;
 	char *ary[2];
 
-	/* this would be a valid but pathological case */
 	if(num_objects.hosts > num_objects.services)
 		alloc = num_objects.hosts;
 	else
 		alloc = num_objects.services;
+	if(num_objects.timeperiods > alloc)
+		alloc = num_objects.timeperiods;
 
 	for (i = 0; i < ARRAY_SIZE(ary); i++) {
 		if (!(ary[i] = calloc(1, alloc))) {
@@ -2187,18 +2219,17 @@ int pre_flight_circular_check(int *w, int *e) {
 	/* check for circular paths between hosts   */
 	/********************************************/
 	if(verify_config)
-		printf("Checking for circular paths between hosts...\n");
+		printf("Checking for circular paths...\n");
 
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 		dfs_host_path(ary[0], temp_host, &errors);
 		}
+	if (verify_config)
+		printf("\tChecked %u hosts\n", num_objects.hosts);
 
 	/********************************************/
 	/* check for circular dependencies          */
 	/********************************************/
-	if(verify_config)
-		printf("Checking for circular host and service dependencies...\n");
-
 	/* check service dependencies */
 	/* We must clean the dfs status from previous check */
 	for (i = 0; i < ARRAY_SIZE(ary); i++)
@@ -2231,6 +2262,15 @@ int pre_flight_circular_check(int *w, int *e) {
 
 	if(verify_config)
 		printf("\tChecked %u host dependencies\n", num_objects.hostdependencies);
+
+	/* check timeperiod exclusion chains */
+	for (i = 0; i < ARRAY_SIZE(ary); i++)
+		memset(ary[i], 0, alloc);
+	for (tp = timeperiod_list; tp; tp = tp->next) {
+		dfs_timeperiod_path(ary[0], tp, &errors);
+		}
+	if (verify_config)
+		printf("\tChecked %u timeperiods\n", num_objects.timeperiods);
 
 	/* update warning and error count */
 	*e += errors;

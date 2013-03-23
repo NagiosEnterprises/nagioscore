@@ -298,15 +298,15 @@ char **getcgivars(void) {
 
 /* Set the locale based on the HTTP_ACCEPT_LANGUAGE variable value sent by
 	the browser */
-void process_language( char * accept_language) {
+void process_language( char * accept_lang) {
 	accept_languages *accept_langs = NULL;
 	int x;
 	char	locale_string[ 64];
 	char *	locale = NULL;
 	char *	locale_failsafe[] = { "en_US.utf8", "POSIX", "C" };
 
-	if( accept_language != NULL) {
-		accept_langs = parse_accept_languages( accept_language);
+	if( accept_lang != NULL) {
+		accept_langs = parse_accept_languages( accept_lang);
 	}
 
 	if( NULL != accept_langs) {
@@ -316,9 +316,12 @@ void process_language( char * accept_language) {
 
 		/* Try each language in order of priority */
 		for( x = 0; (( x < accept_langs->count) && ( NULL == locale)); x++) {
+			accept_language *l;
+			l = accept_langs->languages[x];
+			if (!l || !l->locality || !l->language)
+				continue;
 			snprintf( locale_string, sizeof( locale_string), "%s_%s.%s",
-					accept_langs->languages[ x]->language,
-					accept_langs->languages[ x]->locality, "utf8");
+					l->language, l->locality, "utf8");
 			locale = setlocale( LC_ALL, locale_string);
 		}
 

@@ -1955,6 +1955,7 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 
 	/* assign vars. Object names are immutable, so no need to copy */
 	new_hostescalation->host_name = h->name;
+	new_hostescalation->host_ptr = h;
 	new_hostescalation->escalation_period = tp ? tp->name : NULL;
 	new_hostescalation->escalation_period_ptr = tp;
 	new_hostescalation->first_notification = first_notification;

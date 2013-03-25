@@ -99,6 +99,10 @@ int main(int argc, char **argv)
 
 	p1 = strdup("a not-so secret value");
 	dkhash_insert(t, "nisse", NULL, p1);
+	ok_int(dkhash_num_entries_max(t), 1, "Added one entry, so that's max");
+	ok_int(dkhash_num_entries_added(t), 1, "Added one entry, so one added");
+	ok_int(dkhash_table_size(t), 512, "Table must be sized properly");
+	ok_int(dkhash_collisions(t), 0, "One entry, so zero collisions");
 	p2 = dkhash_get(t, "nisse", NULL);
 	test(p1 == p2, "get should get what insert set");
 	dkhash_insert(t, "kalle", "bananas", p1);
@@ -181,6 +185,8 @@ int main(int argc, char **argv)
 		p2 = dkhash_remove(t, p1, NULL);
 		test(p1 == p2, "remove should return a value");
 	}
+
+	dkhash_destroy(t);
 
 	r2 = t_end();
 	return r2 ? r2 : ret;

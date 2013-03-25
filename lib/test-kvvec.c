@@ -81,6 +81,7 @@ int main(int argc, char **argv)
 
 	t_start("key/value vector tests");
 	kvv = kvvec_create(1);
+	ok_int(kvvec_capacity(kvv), 1, "capacity of one should be guaranteed");
 	kvv2 = kvvec_create(1);
 	kvv3 = kvvec_create(1);
 	add_vars(kvv, test_data, 1239819);

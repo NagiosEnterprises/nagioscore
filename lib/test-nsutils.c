@@ -6,20 +6,30 @@ int main(int argc, char **argv)
 	struct timeval start, stop;
 	float f_delta;
 	int msec_delta;
+	char *s1, *s2;
 
-	t_start("tv_delta tests");
-	t_verbose = 1;
 	t_set_colors(0);
+	t_verbose = 1;
+	t_start("tv_delta tests");
 
 	stop.tv_sec = start.tv_sec = time(NULL);
 	stop.tv_usec = 2500;
 	start.tv_usec = 0;
-	msec_delta = nsu_tv_delta_msec(&start, &stop);
-	t_ok(msec_delta == 2, "nsu_tv_delta_msec()");
-	f_delta = nsu_tv_delta_f(&start, &stop) * 1000;
-	t_ok((double)f_delta == (double)2.5, "nsu_tv_delta_f() * 1000 is %.2f and should be 2.5", f_delta);
+	msec_delta = tv_delta_msec(&start, &stop);
+	t_ok(msec_delta == 2, "tv_delta_msec()");
+	f_delta = tv_delta_f(&start, &stop) * 1000;
+	t_ok((double)f_delta == (double)2.5, "tv_delta_f() * 1000 is %.2f and should be 2.5", f_delta);
 	gettimeofday(&start, NULL);
 	memcpy(&stop, &start, sizeof(start));
 	stop.tv_sec += 100;
+
+	asprintf(&s1, "arg varg foo %d", 12);
+	s2 = mkstr("arg varg foo %d", 12);
+	ok_str(s1, s2, "mkstr() must build proper strings");
+	if (online_cpus() > 1) {
+		t_pass("%d online cpus detected", online_cpus());
+	} else {
+		t_fail("Do you really have only one cpu core?");
+	}
 	return t_end();
 }

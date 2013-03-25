@@ -29,13 +29,15 @@ fanout_table *fanout_create(unsigned long size)
 void fanout_destroy(fanout_table *t, void (*destructor)(void *))
 {
 	unsigned long i;
+	struct fanout_entry *next;
 
 	if (!t || !t->entries || !t->alloc)
 		return;
 
 	for (i = 0; i < t->alloc; i++) {
 		struct fanout_entry *entry;
-		for (entry = t->entries[i]; entry; entry = entry->next) {
+		for (entry = t->entries[i]; entry; entry = next) {
+			next = entry->next;
 			if (destructor) {
 				destructor(entry->data);
 			}
@@ -67,13 +69,15 @@ int fanout_add(struct fanout_table *t, unsigned long key, void *data)
 
 void *fanout_remove(fanout_table *t, unsigned long key)
 {
-	struct fanout_entry *entry, *prev = NULL;
+	struct fanout_entry *entry, *next, *prev = NULL;
 	unsigned long slot;
+
 	if (!t || !t->entries || !t->alloc)
 		return NULL;
 
 	slot = key % t->alloc;
-	for (entry = t->entries[slot]; entry; prev = entry, entry = entry->next) {
+	for (entry = t->entries[slot]; entry; prev = entry, entry = next) {
+		next = entry->next;
 		if (entry->key == key) {
 			void *data = entry->data;
 			if (prev) {

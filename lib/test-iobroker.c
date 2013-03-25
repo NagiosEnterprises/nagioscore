@@ -32,11 +32,13 @@ static int echo_service(int fd, int events, void *arg)
 	if (len < 0) {
 		perror("read");
 		iobroker_close(iobs, fd);
+		ok_int(iobroker_is_registered(iobs, fd), 0, "Closing must deregister");
 		return 0;
 	}
 	/* zero read means we're disconnected */
 	if (!len) {
 		iobroker_close(iobs, fd);
+		ok_int(iobroker_is_registered(iobs, fd), 0, "Closing must deregister");
 		return 0;
 	}
 
@@ -99,6 +101,7 @@ static int listen_handler(int fd, int events, void *arg)
 
 	write(sock, msg[0], strlen(msg[0]));
 	iobroker_register(iobs, sock, iobs, echo_service);
+	ok_int(iobroker_is_registered(iobs, sock), 1, "is_registered must be true");
 	return 0;
 }
 

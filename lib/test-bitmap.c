@@ -21,10 +21,12 @@ int main(int argc, char **argv)
 	 * symdiff:  1,          1783,             1786, 1790, 1791, 1792
 	 */
 
-	ok_int(bitmap_count_set_bits(a), 0, "counting bits in null vector a");
+	ok_int(bitmap_count_set_bits(a), 0, "counting set bits in null vector a");
+	ok_int(bitmap_count_unset_bits(a), 0, "counting unset bits in null vector a");
 	a = bitmap_create(PRIME);
 	b = bitmap_create(PRIME);
-	ok_int(bitmap_count_set_bits(b), 0, "counting bits in empty vector b");
+	ok_int(bitmap_count_set_bits(b), 0, "counting set bits in empty vector b");
+	ok_int(bitmap_count_unset_bits(b), bitmap_cardinality(b), "counting unset bits in empty vector b");
 
 	t_set_colors(0);
 	ok_int(bitmap_cardinality(a) > PRIME, 1, "bitmap cardinality test");
@@ -64,6 +66,26 @@ int main(int argc, char **argv)
 
 	r_intersect = bitmap_intersect(a, b);
 	ok_int(bitmap_count_set_bits(r_intersect), 4, "intersect must set right amount of bits");
+	for (i = 0; i < veclen(sa); i++) {
+		if (bitmap_isset(a, sa[i]) && bitmap_isset(b, sa[i])) {
+			ok_int(bitmap_isset(r_intersect, sa[i]), 1, "intersect must have bits in both");
+		} else {
+			ok_int(bitmap_isset(r_intersect, sa[i]), 0, "Intersect must not have bits in only one or none");
+		}
+	}
+
+	ok_int(bitmap_count_unset_bits(NULL), 0, "There are no unset bits in a NULL bitmap");
+	ok_int(bitmap_count_set_bits(NULL), 0, "No set bits in a NULL map");
+
+	bitmap_set(a, 0);
+	ok_int(bitmap_isset(a, 0), 1, "bitmap_set()");
+	bitmap_unset(a, 0);
+	ok_int(bitmap_isset(a, 0), 0, "bitmap_unset()");
+	bitmap_set(a, 0);
+	bitmap_clear(a);
+	ok_int(bitmap_isset(a, 0), 0, "bitmap_clear()");
+	ok_int(bitmap_count_unset_bits(a), bitmap_cardinality(a), "bitmap_clear() must clear all");
+	ok_int(bitmap_count_set_bits(a), 0, "bitmap_clear() must clear all (part 2)");
 
 	t_end();
 	return 0;

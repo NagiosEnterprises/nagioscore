@@ -170,7 +170,9 @@ int read_main_config_file(char *main_config_file) {
 			mac->x[MACRO_RESOURCEFILE] = nspath_absolute(value, config_file_dir);
 
 			/* process the resource file */
-			read_resource_file(mac->x[MACRO_RESOURCEFILE]);
+			if(read_resource_file(mac->x[MACRO_RESOURCEFILE]) == ERROR) {
+				error = TRUE;
+				}
 			}
 
 		else if(!strcmp(variable, "loadctl_options"))

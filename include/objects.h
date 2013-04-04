@@ -819,7 +819,6 @@ int is_contact_for_host(struct host *, struct contact *);			       /* tests whet
 int is_escalated_contact_for_host(struct host *, struct contact *);                   /* checks whether or not a contact is an escalated contact for a specific host */
 int is_contact_for_service(struct service *, struct contact *);		       /* tests whether or not a contact is a contact member for a specific service */
 int is_escalated_contact_for_service(struct service *, struct contact *);             /* checks whether or not a contact is an escalated contact for a specific service */
-int is_host_immediate_parent_of_host(struct host *, struct host *);		       /* tests whether or not a host is an immediate parent of another host */
 
 int number_of_immediate_child_hosts(struct host *);		                /* counts the number of immediate child hosts for a particular host */
 int number_of_total_child_hosts(struct host *);				/* counts the number of total child hosts for a particular host */
@@ -827,22 +826,6 @@ int number_of_immediate_parent_hosts(struct host *);				/* counts the number of 
 
 #ifndef NSCGI
 void fcache_contactlist(FILE *fp, const char *prefix, struct contactsmember *list);
-void fcache_contactgrouplist(FILE *fp, const char *prefix, struct contactgroupsmember *list);
-void fcache_hostlist(FILE *fp, const char *prefix, struct hostsmember *list);
-void fcache_customvars(FILE *fp, struct customvariablesmember *cvlist);
-void fcache_timeperiod(FILE *fp, struct timeperiod *temp_timeperiod);
-void fcache_command(FILE *fp, struct command *temp_command);
-void fcache_contactgroup(FILE *fp, struct contactgroup *temp_contactgroup);
-void fcache_hostgroup(FILE *fp, struct hostgroup *temp_hostgroup);
-void fcache_servicegroup(FILE *fp, struct servicegroup *temp_servicegroup);
-void fcache_contact(FILE *fp, struct contact *temp_contact);
-void fcache_host(FILE *fp, struct host *temp_host);
-void fcache_service(FILE *fp, struct service *temp_service);
-void fcache_servicedependency(FILE *fp, struct servicedependency *temp_servicedependency);
-void fcache_serviceescalation(FILE *fp, struct serviceescalation *temp_serviceescalation);
-void fcache_hostdependency(FILE *fp, struct hostdependency *temp_hostdependency);
-void fcache_hostescalation(FILE *fp, struct hostescalation *temp_hostescalation);
-void fcache_contactlist(FILE *fp, const char *prefix, contactsmember *list);
 void fcache_contactgrouplist(FILE *fp, const char *prefix, struct contactgroupsmember *list);
 void fcache_hostlist(FILE *fp, const char *prefix, struct hostsmember *list);
 void fcache_customvars(FILE *fp, struct customvariablesmember *cvlist);

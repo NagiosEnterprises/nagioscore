@@ -37,7 +37,6 @@
  */
 extern char *nagios_binary_path;
 extern char *config_file;
-extern char *config_file_dir;
 extern char *command_file;
 extern char *temp_file;
 extern char *temp_path;
@@ -68,7 +67,6 @@ extern command *global_host_event_handler_ptr;
 extern command *global_service_event_handler_ptr;
 
 extern char *illegal_object_chars;
-extern char *illegal_output_chars;
 
 extern int use_regexp_matches;
 extern int use_true_regexp_matching;
@@ -82,7 +80,6 @@ extern int log_host_retries;
 extern int log_event_handlers;
 extern int log_external_commands;
 extern int log_passive_checks;
-extern time_t last_log_rotation;
 extern unsigned long logging_options;
 extern unsigned long syslog_options;
 
@@ -95,8 +92,6 @@ extern int notification_timeout;
 extern int log_initial_states;
 extern int log_current_states;
 
-extern int nagios_pid;
-extern int daemon_mode;
 extern int daemon_dumps_core;
 extern int sig_id;
 extern int caught_signal;
@@ -107,7 +102,6 @@ extern int test_scheduling;
 extern int precache_objects;
 extern int use_precached_objects;
 
-extern int interval_length;
 extern int service_inter_check_delay_method;
 extern int host_inter_check_delay_method;
 extern int service_interleave_factor_method;
@@ -125,7 +119,6 @@ extern int host_freshness_check_interval;
 extern int auto_rescheduling_interval;
 extern int auto_rescheduling_window;
 
-extern int check_external_commands;
 extern int check_orphaned_services;
 extern int check_orphaned_hosts;
 extern int check_service_freshness;
@@ -162,19 +155,6 @@ extern unsigned long retained_contact_service_attribute_mask;
 extern unsigned long retained_process_host_attribute_mask;
 extern unsigned long retained_process_service_attribute_mask;
 
-extern int log_rotation_method;
-
-extern int enable_notifications;
-extern int execute_service_checks;
-extern int accept_passive_service_checks;
-extern int execute_host_checks;
-extern int accept_passive_host_checks;
-extern int enable_event_handlers;
-extern int obsess_over_services;
-extern int obsess_over_hosts;
-
-extern int process_performance_data;
-
 extern int translate_passive_host_checks;
 extern int passive_host_checks_are_soft;
 
@@ -183,10 +163,6 @@ extern int status_update_interval;
 extern int time_change_threshold;
 
 extern unsigned long event_broker_options;
-
-extern int process_performance_data;
-
-extern int enable_flap_detection;
 
 extern double low_service_flap_threshold;
 extern double high_service_flap_threshold;
@@ -209,7 +185,6 @@ extern unsigned long max_debug_file_size;
 
 extern int allow_empty_hostgroup_assignment;
 
-extern time_t program_start;
 extern time_t last_program_stop;
 extern time_t event_start;
 
@@ -534,7 +509,6 @@ void handle_service_flap_detection_disabled(service *);		/* handles the details 
 
 
 /**** Route/Host Check Functions ****/
-int perform_on_demand_host_check(host *, int *, int, int, unsigned long);
 int check_host_check_viability(host *, int, int *, time_t *);
 int adjust_host_check_attempt(host *, int);
 int determine_host_reachability(host *);

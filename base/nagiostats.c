@@ -194,8 +194,6 @@ static int display_mrtg_values(void);
 static int display_stats(void);
 static int read_config_file(void);
 static int read_status_file(void);
-void strip(char *);
-void get_time_breakdown(unsigned long, int *, int *, int *, int *);
 
 
 int main(int argc, char **argv) {

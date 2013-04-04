@@ -40,8 +40,6 @@ extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 
 extern int  nagios_process_state;
 
-extern int  check_external_commands;
-
 extern int  use_authentication;
 
 extern int  lock_author_names;

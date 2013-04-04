@@ -28,16 +28,12 @@
 #include "../include/getcgi.h"
 #include "../include/cgiauth.h"
 
-extern time_t          program_start;
-
 extern char main_config_file[MAX_FILENAME_LENGTH];
 
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 
 extern int	use_ssl_authentication;
-extern int      enable_notifications;
-extern int      execute_service_checks;
 extern int      nagios_process_state;
 
 extern char     *ping_syntax;

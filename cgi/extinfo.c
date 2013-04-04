@@ -53,8 +53,6 @@ extern int              enable_splunk_integration;
 extern char             *notes_url_target;
 extern char             *action_url_target;
 
-extern comment           *comment_list;
-extern scheduled_downtime  *scheduled_downtime_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 

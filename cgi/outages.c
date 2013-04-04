@@ -30,7 +30,6 @@
 #include "../include/cgiauth.h"
 
 extern int              refresh_rate;
-extern time_t		program_start;
 
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;

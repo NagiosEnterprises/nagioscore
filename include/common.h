@@ -19,6 +19,9 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************/
 
+#ifndef INCLUDE_COMMON_H
+#define INCLUDE_COMMON_H
+
 #include "shared.h"
 
 #define PROGRAM_VERSION "3.99.96"
@@ -514,3 +517,4 @@ NAGIOS_END_DECL
 #define MODATTR_CHECK_TIMEPERIOD                16384
 #define MODATTR_CUSTOM_VARIABLE                 32768
 #define MODATTR_NOTIFICATION_TIMEPERIOD         65536
+#endif /* INCLUDE_COMMON_H */

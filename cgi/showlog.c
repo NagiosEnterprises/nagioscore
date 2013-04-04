@@ -35,8 +35,6 @@ extern char   url_html_path[MAX_FILENAME_LENGTH];
 extern char   url_images_path[MAX_FILENAME_LENGTH];
 extern char   url_stylesheets_path[MAX_FILENAME_LENGTH];
 
-extern int    log_rotation_method;
-
 extern int    enable_splunk_integration;
 
 void document_header(int);

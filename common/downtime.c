@@ -47,11 +47,6 @@ scheduled_downtime *downtime_list;
 scheduled_downtime *scheduled_downtime_list = NULL;
 int		   defer_downtime_sorting = 0;
 
-#ifdef NSCORE
-extern squeue_t *nagios_squeue;
-#endif
-
-
 
 #ifdef NSCORE
 

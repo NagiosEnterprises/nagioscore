@@ -84,7 +84,7 @@ char hashed_color[8];
 
 int embedded = FALSE;
 
-void print_expand_input(int type) {
+static void print_expand_input(int type) {
 	char *seldesc = "";
 
 	if(type == DISPLAY_COMMAND_EXPANSION) return;	/* Has its own form, w/ larger <input> */
@@ -1733,7 +1733,7 @@ void display_commands(void) {
 	}
 
 
-void display_servicedependency(servicedependency *temp_sd)
+static void display_servicedependency(servicedependency *temp_sd)
 {
 	char *bg_class;
 	static int odd = 0;
@@ -1972,7 +1972,7 @@ void display_serviceescalations(void) {
 	return;
 	}
 
-void display_hostdependency(hostdependency *temp_hd)
+static void display_hostdependency(hostdependency *temp_hd)
 {
 	int options;
 	char *bg_class = "";
@@ -2197,9 +2197,7 @@ void unauthorized_message(void) {
 	}
 
 
-
-
-char *hash_color(int i) {
+static const char *hash_color(int i) {
 	char c;
 
 	/* This is actually optimized for MAX_COMMAND_ARGUMENTS==32 ... */

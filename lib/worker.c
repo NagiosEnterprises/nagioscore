@@ -428,7 +428,7 @@ int start_cmd(child_process *cp)
 
 static iocache *ioc;
 
-child_process *parse_command_kvvec(struct kvvec *kvv)
+static child_process *parse_command_kvvec(struct kvvec *kvv)
 {
 	int i;
 	child_process *cp;

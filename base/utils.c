@@ -690,13 +690,13 @@ int set_environment_var(char *name, char *value, int set) {
 
 
 /* Checks if the given time is in daylight time saving period */
-int is_dst_time(time_t *time) {
+static int is_dst_time(time_t *time) {
 	struct tm *bt = localtime(time);
 	return bt->tm_isdst;
 	}
 
 /* Returns the shift in seconds if the given times are across the daylight time saving period change */
-int get_dst_shift(time_t *start, time_t *end) {
+static int get_dst_shift(time_t *start, time_t *end) {
 	int shift = 0, dst_end, dst_start;
 	dst_start = is_dst_time(start);
 	dst_end = is_dst_time(end);
@@ -991,7 +991,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 /*#define TEST_TIMEPERIODS_B 1*/
 
 /* Separate this out from public get_next_valid_time for testing, so we can mock current_time */
-void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod) {
+static void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod) {
 	time_t preferred_time = (time_t)0L;
 	timerange *temp_timerange;
 	daterange *temp_daterange;

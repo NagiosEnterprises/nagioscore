@@ -75,7 +75,7 @@ nagios_macros *get_global_macros(void) {
  * over all keys. O(log(n)) complexity and a vast improvement over
  * the previous linear scan
  */
-const struct macro_key_code *find_macro_key(const char *name) {
+static const struct macro_key_code *find_macro_key(const char *name) {
 	unsigned int high, low = 0;
 	int value;
 	struct macro_key_code *key;

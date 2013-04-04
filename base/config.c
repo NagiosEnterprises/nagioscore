@@ -2158,7 +2158,7 @@ static int dfs_host_path(char *ary, host *root, int *errors) {
 	return dfs_get_status(root);
 	}
 
-int dfs_timeperiod_path(char *ary, timeperiod *root, int *errors)
+static int dfs_timeperiod_path(char *ary, timeperiod *root, int *errors)
 {
 	timeperiodexclusion *exc;
 

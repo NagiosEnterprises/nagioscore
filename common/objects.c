@@ -101,7 +101,7 @@ struct flag_map host_flag_map[] = {
 	{ 0, 0, NULL },
 };
 
-const char *opts2str(int opts, struct flag_map *map, char ok_char)
+static const char *opts2str(int opts, struct flag_map *map, char ok_char)
 {
 	int i, pos = 0;
 	static char buf[16];

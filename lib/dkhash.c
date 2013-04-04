@@ -236,9 +236,9 @@ void dkhash_walk_data(dkhash_table *t, int (*walker)(void *)) {
 
 	for (i = 0; i < t->num_buckets; i++) {
 		int depth = 0;
+		dkhash_bucket *next;
 
 		prev = t->buckets[i];
-		dkhash_bucket *next;
 		for (bkt = t->buckets[i]; bkt; bkt = next) {
 			next = bkt->next;
 

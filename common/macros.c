@@ -2462,8 +2462,8 @@ static int macro_key_cmp(const void *a_, const void *b_)
 
 /* initializes global macros */
 int init_macros(void) {
-	init_macrox_names();
 	int x;
+	init_macrox_names();
 
 	for(x = 0; x < 32; x++)
 		illegal_output_char_map[x] = 1;

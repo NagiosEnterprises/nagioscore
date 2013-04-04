@@ -239,12 +239,12 @@ bitmap *bitmap_union(const bitmap *a, const bitmap *b)
 		return bitmap_copy(b);
 	if(!b)
 		return bitmap_copy(a);
-
-	BITMAP_MATH(a, b) {
-		bm->vector[i] = a->vector[i] | b->vector[i];
-	}
-
-	return bm;
+	do {
+		BITMAP_MATH(a, b) {
+			bm->vector[i] = a->vector[i] | b->vector[i];
+		}
+		return bm;
+	} while(0);
 }
 
 bitmap *bitmap_unite(bitmap *res, const bitmap *addme)

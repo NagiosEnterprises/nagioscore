@@ -2288,7 +2288,7 @@ void clean_comment_data(char *buffer) {
 
 
 /* display information about a command */
-void show_command_help(cmd) {
+void show_command_help(int cmd) {
 
 	printf("<DIV ALIGN=CENTER CLASS='descriptionTitle'>Command Description</DIV>\n");
 	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0 CLASS='commandDescription'>\n");

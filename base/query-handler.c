@@ -217,7 +217,6 @@ int qh_deregister_handler(const char *name)
 	if (!(qh = dkhash_remove(qh_table, name, NULL)))
 		return 0;
 
-	printf("Deregistering '%s'. Next is '%p'\n", qh->name, qh->next_qh);
 	next = qh->next_qh;
 	prev = qh->prev_qh;
 	if (next)

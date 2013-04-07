@@ -219,7 +219,7 @@ struct kvvec_buf *kvvec2buf(struct kvvec *kvv, char kv_sep, char pair_sep, int o
 	return kvvb;
 }
 
-int kvvec_capacity(struct kvvec *kvv)
+unsigned int kvvec_capacity(struct kvvec *kvv)
 {
 	if (!kvv)
 		return 0;

@@ -99,6 +99,13 @@ extern int kvvec_resize(struct kvvec *kvv, int size);
 extern int kvvec_grow(struct kvvec *kvv, int hint);
 
 /**
+ * Return remaining storage capacity of key/value vector
+ * @param[in] kvv The key/value vector to check
+ * @return Number of key/value pairs that can be stored without growing
+ */
+extern unsigned int kvvec_capacity(struct kvvec *kvv);
+
+/**
  * Sort a key/value vector alphabetically by key name
  * @param kvv The key/value vector to sort
  * @return 0

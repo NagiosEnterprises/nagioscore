@@ -72,7 +72,7 @@ static void wlog(const char *fmt, ...)
 	va_start(ap, fmt);
 	len = vsnprintf(&lmsg[len], sizeof(lmsg) - 7, fmt, ap);
 	va_end(ap);
-	if (len < 0 || len >= sizeof(lmsg))
+	if (len < 0 || len >= (int)sizeof(lmsg))
 		return;
 
 	len += 4; /* log= */
@@ -100,7 +100,7 @@ static void job_error(child_process *cp, struct kvvec *kvv, const char *fmt, ...
 	len = vsnprintf(msg, sizeof(msg) - 1, fmt, ap);
 	va_end(ap);
 	if (cp) {
-		kvvec_addkv(kvv, "job_id", (char *)mkstr("%d", cp->id));
+		kvvec_addkv(kvv, "job_id", mkstr("%d", cp->id));
 	}
 	kvvec_addkv_wlen(kvv, "error_msg", 9, msg, len);
 	ret = worker_send_kvvec(master_sd, kvv);
@@ -160,13 +160,13 @@ int worker_buf2kvvec_prealloc(struct kvvec *kvv, char *buf, unsigned long len, i
 
 #define kvvec_add_long(kvv, key, value) \
 	do { \
-		char *buf = (char *)mkstr("%ld", value); \
+		const char *buf = mkstr("%ld", value); \
 		kvvec_addkv_wlen(kvv, key, sizeof(key) - 1, buf, strlen(buf)); \
 	} while (0)
 
 #define kvvec_add_tv(kvv, key, value) \
 	do { \
-		char *buf = (char *)mkstr("%ld.%06ld", value.tv_sec, value.tv_usec); \
+		const char *buf = mkstr("%ld.%06ld", value.tv_sec, value.tv_usec); \
 		kvvec_addkv_wlen(kvv, key, sizeof(key) - 1, buf, strlen(buf)); \
 	} while (0)
 
@@ -226,12 +226,12 @@ int finish_job(child_process *cp, int reason)
 		}
 		kvvec_addkv_wlen(&resp, kv->key, kv->key_len, kv->value, kv->value_len);
 	}
-	kvvec_addkv(&resp, "wait_status", (char *)mkstr("%d", cp->ret));
+	kvvec_addkv(&resp, "wait_status", mkstr("%d", cp->ret));
 	kvvec_addkv_wlen(&resp, "outstd", 6, cp->outstd.buf, cp->outstd.len);
 	kvvec_addkv_wlen(&resp, "outerr", 6, cp->outerr.buf, cp->outerr.len);
 	kvvec_add_tv(&resp, "start", cp->ei->start);
 	kvvec_add_tv(&resp, "stop", cp->ei->stop);
-	kvvec_addkv(&resp, "runtime", (char *)mkstr("%f", cp->ei->runtime));
+	kvvec_addkv(&resp, "runtime", mkstr("%f", cp->ei->runtime));
 	if (!reason) {
 		/* child exited nicely */
 		kvvec_addkv(&resp, "exited_ok", "1");
@@ -244,7 +244,7 @@ int finish_job(child_process *cp, int reason)
 	} else {
 		/* some error happened */
 		kvvec_addkv(&resp, "exited_ok", "0");
-		kvvec_addkv(&resp, "error_code", (char *)mkstr("%d", reason));
+		kvvec_addkv(&resp, "error_code", mkstr("%d", reason));
 	}
 	ret = worker_send_kvvec(master_sd, &resp);
 	if (ret < 0 && errno == EPIPE)

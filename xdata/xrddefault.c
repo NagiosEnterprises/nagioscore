@@ -48,7 +48,7 @@ char *xrddefault_temp_file = NULL;
 /********************* CONFIG INITIALIZATION  *********************/
 /******************************************************************/
 
-int xrddefault_grab_config_info(char *main_config_file) {
+int xrddefault_grab_config_info(const char *main_config_file) {
 	char *input = NULL;
 	mmapfile *thefile = NULL;
 	nagios_macros *mac;
@@ -151,7 +151,7 @@ int xrddefault_grab_config_directives(char *input) {
 
 
 /* initialize retention data */
-int xrddefault_initialize_retention_data(char *cfgfile) {
+int xrddefault_initialize_retention_data(const char *cfgfile) {
 	int result;
 
 	/* grab configuration data */

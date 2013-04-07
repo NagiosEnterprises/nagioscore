@@ -238,7 +238,7 @@ int register_downtime(int type, unsigned long downtime_id) {
 	scheduled_downtime *temp_downtime = NULL;
 	host *hst = NULL;
 	service *svc = NULL;
-	char *type_string = NULL;
+	const char *type_string = NULL;
 	int hours = 0;
 	int minutes = 0;
 	int seconds = 0;

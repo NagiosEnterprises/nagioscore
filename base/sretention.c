@@ -47,7 +47,7 @@
 
 
 /* initializes retention data at program start */
-int initialize_retention_data(char *cfgfile) {
+int initialize_retention_data(const char *cfgfile) {
 	int result = OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/

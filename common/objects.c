@@ -76,7 +76,7 @@ int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
 struct flag_map {
 	int opt;
 	int ch;
-	char *name;
+	const char *name;
 };
 
 struct flag_map service_flag_map[] = {
@@ -269,7 +269,7 @@ const char *check_type_name(int check_type)
 
 
 /* read all host configuration data from external source */
-int read_object_config_data(char *main_config_file, int options) {
+int read_object_config_data(const char *main_config_file, int options) {
 	int result = OK;
 
 	/* reset object counts */

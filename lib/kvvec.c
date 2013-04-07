@@ -67,7 +67,7 @@ int kvvec_grow(struct kvvec *kvv, int hint)
 	return kvvec_resize(kvv, kvv->kv_alloc + hint);
 }
 
-int kvvec_addkv_wlen(struct kvvec *kvv, char *key, int keylen, char *value, int valuelen)
+int kvvec_addkv_wlen(struct kvvec *kvv, const char *key, int keylen, const char *value, int valuelen)
 {
 	struct key_value *kv;
 
@@ -80,9 +80,9 @@ int kvvec_addkv_wlen(struct kvvec *kvv, char *key, int keylen, char *value, int 
 	}
 
 	kv = &kvv->kv[kvv->kv_pairs++];
-	kv->key = key;
+	kv->key = (char *)key;
 	kv->key_len = keylen;
-	kv->value = value;
+	kv->value = (char *)value;
 	kv->value_len = valuelen;
 
 	if (!keylen) {
@@ -308,7 +308,7 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 			if (flags & KVVEC_COPY) {
 				kv->value = strdup("");
 			} else {
-				kv->value = "";
+				kv->value = (char *)"";
 			}
 		} else {
 			kv->value_len = (unsigned long)kv_end_ptr - ((unsigned long)str + offset);

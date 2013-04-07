@@ -1724,9 +1724,9 @@ void display_recent_alerts(void) {
 	archived_event *temp_event;
 	int current_item = 0;
 	int odd = 0;
-	char *bgclass = "";
-	char *status_bgclass = "";
-	char *status = "";
+	const char *bgclass = "";
+	const char *status_bgclass = "";
+	const char *status = "";
 	char date_time[MAX_DATETIME_LENGTH];
 
 
@@ -2684,7 +2684,7 @@ void display_top_alerts(void) {
 	int producer_type = AE_HOST_PRODUCER;
 	int current_item = 0;
 	int odd = 0;
-	char *bgclass = "";
+	const char *bgclass = "";
 
 	/* process all events */
 	for(temp_event = event_list; temp_event != NULL; temp_event = temp_event->next) {

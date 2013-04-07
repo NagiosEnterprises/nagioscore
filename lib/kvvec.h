@@ -115,7 +115,7 @@ extern int kvvec_sort(struct kvvec *kvv);
  * @param valuelen Length of the value
  * @return 0 on success, < 0 on errors
  */
-extern int kvvec_addkv_wlen(struct kvvec *kvv, char *key, int keylen, char *value, int valuelen);
+extern int kvvec_addkv_wlen(struct kvvec *kvv, const char *key, int keylen, const char *value, int valuelen);
 
 /**
  * Shortcut to kvvec_addkv_wlen() when lengths aren't known

@@ -171,7 +171,7 @@ typedef struct servicestatus_struct {
 
 /**************************** FUNCTIONS ******************************/
 
-int read_status_data(char *, int);                      /* reads all status data */
+int read_status_data(const char *, int);                /* reads all status data */
 int add_host_status(hoststatus *);                      /* adds a host status entry to the list in memory */
 int add_service_status(servicestatus *);                /* adds a service status entry to the list in memory */
 
@@ -186,7 +186,7 @@ void free_status_data(void);                            /* free all memory alloc
 #endif
 
 #ifndef NSCGI
-int initialize_status_data(char *);                     /* initializes status data at program start */
+int initialize_status_data(const char *);               /* initializes status data at program start */
 int update_all_status_data(void);                       /* updates all status data */
 int cleanup_status_data(int);                           /* cleans up status data at program termination */
 int update_program_status(int);                         /* updates program status data */

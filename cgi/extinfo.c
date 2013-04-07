@@ -934,7 +934,7 @@ void show_host_info(void) {
 	char state_duration[48];
 	char status_age[48];
 	char state_string[MAX_INPUT_BUFFER];
-	char *bg_class = "";
+	const char *bg_class = "";
 	char *buf = NULL;
 	int days;
 	int hours;
@@ -1243,7 +1243,7 @@ void show_service_info(void) {
 	char state_duration[48];
 	servicestatus *temp_svcstatus;
 	char state_string[MAX_INPUT_BUFFER];
-	char *bg_class = "";
+	const char *bg_class = "";
 	char *buf = NULL;
 	int days;
 	int hours;
@@ -1773,7 +1773,7 @@ void show_servicegroup_info() {
 /* shows all service and host comments */
 void show_all_comments(void) {
 	int total_comments = 0;
-	char *bg_class = "";
+	const char *bg_class = "";
 	int odd = 0;
 	char date_time[MAX_DATETIME_LENGTH];
 	comment *temp_comment;
@@ -2454,7 +2454,7 @@ void display_comments(int type) {
 	service *temp_service = NULL;
 	int total_comments = 0;
 	int display_comment = FALSE;
-	char *bg_class = "";
+	const char *bg_class = "";
 	int odd = 1;
 	char date_time[MAX_DATETIME_LENGTH];
 	comment *temp_comment;
@@ -2573,7 +2573,7 @@ void display_comments(int type) {
 /* shows all service and host scheduled downtime */
 void show_all_downtime(void) {
 	int total_downtime = 0;
-	char *bg_class = "";
+	const char *bg_class = "";
 	int odd = 0;
 	char date_time[MAX_DATETIME_LENGTH];
 	scheduled_downtime *temp_downtime;
@@ -2737,7 +2737,7 @@ void show_scheduling_queue(void) {
 	char date_time[MAX_DATETIME_LENGTH];
 	char temp_url[MAX_INPUT_BUFFER];
 	int odd = 0;
-	char *bgclass = "";
+	const char *bgclass = "";
 
 
 	/* make sure the user has rights to view system information */

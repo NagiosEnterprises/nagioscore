@@ -69,7 +69,7 @@ void timing_point(const char *fmt, ...) {
 	}
 
 /* fix the problem with strtok() skipping empty options between tokens */
-char *my_strtok(char *buffer, char *tokens) {
+char *my_strtok(char *buffer, const char *tokens) {
 	char *token_position = NULL;
 	char *sequence_head = NULL;
 	static char *my_strtok_buffer = NULL;
@@ -142,7 +142,7 @@ char *my_strsep(char **stringp, const char *delim) {
 	}
 
 /* open a file read-only via mmap() */
-mmapfile *mmap_fopen(char *filename) {
+mmapfile *mmap_fopen(const char *filename) {
 	mmapfile *new_mmapfile = NULL;
 	int fd = 0;
 	void *mmap_buf = NULL;
@@ -461,12 +461,12 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 	int month;
 	int day;
 	int year;
-	char *weekdays[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-	char *months[12] = {
+	const char *weekdays[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	const char *months[12] = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept",
 		"Oct", "Nov", "Dec"
 		};
-	char *tzone = "";
+	const char *tzone = "";
 
 	if(raw_time == NULL)
 		time(&t);
@@ -486,7 +486,7 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 	year = tm_ptr->tm_year + 1900;
 
 #ifdef HAVE_TM_ZONE
-	tzone = (char *)(tm_ptr->tm_zone);
+	tzone = tm_ptr->tm_zone;
 #else
 	tzone = (tm_ptr->tm_isdst) ? tzname[1] : tzname[0];
 #endif

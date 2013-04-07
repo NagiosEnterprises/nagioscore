@@ -85,7 +85,7 @@ char hashed_color[8];
 int embedded = FALSE;
 
 static void print_expand_input(int type) {
-	char *seldesc = "";
+	const char *seldesc = "";
 
 	if(type == DISPLAY_COMMAND_EXPANSION) return;	/* Has its own form, w/ larger <input> */
 	else if(type == DISPLAY_SERVICES) {
@@ -450,7 +450,7 @@ void display_hosts(void) {
 	int options = 0;
 	int odd = 0;
 	char time_string[16];
-	char *bg_class = "";
+	const char *bg_class = "";
 	int contact = 0;
 
 	/* see if user is authorized to view host information... */
@@ -774,7 +774,7 @@ void display_hostgroups(void) {
 	hostgroup *temp_hostgroup;
 	hostsmember *temp_hostsmember;
 	int odd = 0;
-	char *bg_class = "";
+	const char *bg_class = "";
 
 	/* see if user is authorized to view hostgroup information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -849,7 +849,7 @@ void display_servicegroups(void) {
 	servicegroup *temp_servicegroup;
 	servicesmember *temp_servicesmember;
 	int odd = 0;
-	char *bg_class = "";
+	const char *bg_class = "";
 
 	/* see if user is authorized to view servicegroup information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -928,7 +928,7 @@ void display_contacts(void) {
 	int odd = 0;
 	int options;
 	int found;
-	char *bg_class = "";
+	const char *bg_class = "";
 
 	/* see if user is authorized to view contact information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -1111,7 +1111,7 @@ void display_contactgroups(void) {
 	contactgroup *temp_contactgroup;
 	contactsmember *temp_contactsmember;
 	int odd = 0;
-	char *bg_class = "";
+	const char *bg_class = "";
 
 	/* see if user is authorized to view contactgroup information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -1180,11 +1180,11 @@ void display_services(void) {
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	char *processed_string = NULL;
 	char command_line[MAX_INPUT_BUFFER];
-	char *command_name = "";
+	char *command_name;
 	int options;
 	int odd = 0;
 	char time_string[16];
-	char *bg_class;
+	const char *bg_class;
 	int contact = 0;
 
 
@@ -1495,12 +1495,12 @@ void display_timeperiods(void) {
 	daterange *temp_daterange = NULL;
 	timeperiod *temp_timeperiod = NULL;
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
-	char *months[12] = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
-	char *days[7] = {"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"};
+	const char *months[12] = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
+	const char *days[7] = {"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"};
 	int odd = 0;
 	int day = 0;
 	int x = 0;
-	char *bg_class = "";
+	const char *bg_class = "";
 	char timestring[10];
 	int hours = 0;
 	int minutes = 0;
@@ -1691,7 +1691,7 @@ void display_timeperiods(void) {
 void display_commands(void) {
 	command *temp_command;
 	int odd = 0;
-	char *bg_class = "";
+	const char *bg_class = "";
 
 	/* see if user is authorized to view command information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
@@ -1735,7 +1735,7 @@ void display_commands(void) {
 
 static void display_servicedependency(servicedependency *temp_sd)
 {
-	char *bg_class;
+	const char *bg_class;
 	static int odd = 0;
 	int options;
 
@@ -1845,7 +1845,7 @@ void display_serviceescalations(void) {
 	char time_string[16] = "";
 	int options = FALSE;
 	int odd = 0;
-	char *bg_class = "";
+	const char *bg_class = "";
 	int contact = 0;
 	unsigned int i;
 
@@ -1975,7 +1975,7 @@ void display_serviceescalations(void) {
 static void display_hostdependency(hostdependency *temp_hd)
 {
 	int options;
-	char *bg_class = "";
+	const char *bg_class = "";
 	static int odd = 0;
 
 	if(*to_expand != '\0' && (strcmp(to_expand, temp_hd->dependent_host_name) && !strcmp(to_expand, temp_hd->host_name)))
@@ -2069,7 +2069,7 @@ void display_hostescalations(void) {
 	char time_string[16] = "";
 	int options = FALSE;
 	int odd = 0;
-	char *bg_class = "";
+	const char *bg_class = "";
 	int contact = 0;
 	unsigned int i;
 
@@ -2228,7 +2228,7 @@ static const char *hash_color(int i) {
 void display_command_expansion(void) {
 	command *temp_command;
 	int odd = 0;
-	char *bg_class = "";
+	const char *bg_class = "";
 	int i, j;
 	char *c, *cc;
 	char commandline[MAX_COMMAND_BUFFER];

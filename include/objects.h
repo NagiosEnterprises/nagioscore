@@ -734,7 +734,7 @@ extern struct servicedependency **servicedependency_ary;
 /********************* FUNCTIONS **********************/
 
 /**** Top-level input functions ****/
-int read_object_config_data(char *, int);     /* reads all external configuration data of specific types */
+int read_object_config_data(const char *, int);     /* reads all external configuration data of specific types */
 
 
 /**** Object Creation Functions ****/

@@ -75,7 +75,7 @@ static int     xpddefault_service_perfdata_fd = -1;
 /******************************************************************/
 
 /* grabs configuration information from main config file */
-int xpddefault_grab_config_info(char *cfgfile) {
+int xpddefault_grab_config_info(const char *cfgfile) {
 	char *input = NULL;
 	mmapfile *thefile = NULL;
 
@@ -207,7 +207,7 @@ int xpddefault_grab_config_directives(char *input) {
 /******************************************************************/
 
 /* initializes performance data */
-int xpddefault_initialize_performance_data(char *cfgfile) {
+int xpddefault_initialize_performance_data(const char *cfgfile) {
 	char *buffer = NULL;
 	char *temp_buffer = NULL;
 	char *temp_command_name = NULL;

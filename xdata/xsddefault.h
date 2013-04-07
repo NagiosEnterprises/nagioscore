@@ -24,7 +24,7 @@
 #define _XSDDEFAULT_H
 
 #ifdef NSCORE
-int xsddefault_initialize_status_data(char *);
+int xsddefault_initialize_status_data(const char *);
 int xsddefault_cleanup_status_data(int);
 int xsddefault_save_status_data(void);
 #endif
@@ -42,10 +42,10 @@ int xsddefault_save_status_data(void);
 #define XSDDEFAULT_HOSTDOWNTIME_DATA     8
 #define XSDDEFAULT_SERVICEDOWNTIME_DATA  9
 
-int xsddefault_read_status_data(char *, int);
+int xsddefault_read_status_data(const char *, int);
 #endif
 
-int xsddefault_grab_config_info(char *);
+int xsddefault_grab_config_info(const char *);
 int xsddefault_grab_config_directives(char *);
 
 #endif

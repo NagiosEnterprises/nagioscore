@@ -76,7 +76,7 @@ char *xsddefault_temp_file = NULL; /* XXX: TO BE REMOVED SO DO NOT USE! */
 /******************************************************************/
 
 /* grab configuration information */
-int xsddefault_grab_config_info(char *cfgfile) {
+int xsddefault_grab_config_info(const char *cfgfile) {
 	char *input = NULL;
 	mmapfile *thefile;
 #ifdef NSCGI
@@ -221,7 +221,7 @@ int xsddefault_grab_config_directives(char *input) {
 
 
 /* initialize status data */
-int xsddefault_initialize_status_data(char *cfgfile) {
+int xsddefault_initialize_status_data(const char *cfgfile) {
 	int result;
 
 	/* use the global already-parsed temp_file for this */

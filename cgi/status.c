@@ -1294,10 +1294,10 @@ void show_service_detail(void) {
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char temp_url[MAX_INPUT_BUFFER];
 	char *processed_string = NULL;
-	char *status_class = "";
-	char *status_bg_class = "";
-	char *host_status_bg_class = "";
-	char *last_host = "";
+	const char *status_class = "";
+	const char *status_bg_class = "";
+	const char *host_status_bg_class = "";
+	const char *last_host = "";
 	int new_host = FALSE;
 	servicestatus *temp_status = NULL;
 	hostgroup *temp_hostgroup = NULL;
@@ -1933,8 +1933,8 @@ void show_host_detail(void) {
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char temp_url[MAX_INPUT_BUFFER];
 	char *processed_string = NULL;
-	char *status_class = "";
-	char *status_bg_class = "";
+	const char *status_class = "";
+	const char *status_bg_class = "";
 	hoststatus *temp_status = NULL;
 	hostgroup *temp_hostgroup = NULL;
 	host *temp_host = NULL;
@@ -2676,7 +2676,7 @@ void show_servicegroup_summaries(void) {
 
 /* displays status summary information for a specific servicegroup */
 void show_servicegroup_summary(servicegroup *temp_servicegroup, int odd) {
-	char *status_bg_class = "";
+	const char *status_bg_class = "";
 
 	if(odd == 1)
 		status_bg_class = "Even";
@@ -3237,9 +3237,9 @@ void show_servicegroup_grids(void) {
 
 /* displays status grid for a specific servicegroup */
 void show_servicegroup_grid(servicegroup *temp_servicegroup) {
-	char *status_bg_class = "";
-	char *host_status_class = "";
-	char *service_status_class = "";
+	const char *status_bg_class = "";
+	const char *host_status_class = "";
+	const char *service_status_class = "";
 	char *processed_string = NULL;
 	servicesmember *temp_member;
 	servicesmember *temp_member2;
@@ -3618,8 +3618,8 @@ void show_hostgroup_overview(hostgroup *hstgrp) {
 /* shows a host status overview... */
 void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd, void *data) {
 	char status[MAX_INPUT_BUFFER];
-	char *status_bg_class = "";
-	char *status_class = "";
+	const char *status_bg_class = "";
+	const char *status_class = "";
 	host *temp_host = NULL;
 	char *processed_string = NULL;
 
@@ -3915,7 +3915,7 @@ void show_hostgroup_summaries(void) {
 
 /* displays status summary information for a specific hostgroup */
 void show_hostgroup_summary(hostgroup *temp_hostgroup, int odd) {
-	char *status_bg_class = "";
+	const char *status_bg_class = "";
 
 	if(odd == 1)
 		status_bg_class = "Even";
@@ -4466,9 +4466,9 @@ void show_hostgroup_grids(void) {
 /* displays status grid for a specific hostgroup */
 void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 	hostsmember *temp_member;
-	char *status_bg_class = "";
-	char *host_status_class = "";
-	char *service_status_class = "";
+	const char *status_bg_class = "";
+	const char *host_status_class = "";
+	const char *service_status_class = "";
 	host *temp_host;
 	service *temp_service;
 	hoststatus *temp_hoststatus;

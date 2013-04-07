@@ -63,7 +63,7 @@ extern int      use_pending_states;
 /******************************************************************/
 
 /* initializes status data at program start */
-int initialize_status_data(char *cfgfile) {
+int initialize_status_data(const char *cfgfile) {
 	int result = OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/

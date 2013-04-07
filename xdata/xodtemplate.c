@@ -184,7 +184,7 @@ static void xodtemplate_free_template_skiplists(void) {
 #endif
 
 /* process all config files - both core and CGIs pass in name of main config file */
-int xodtemplate_read_config_data(char *main_config_file, int options) {
+int xodtemplate_read_config_data(const char *main_config_file, int options) {
 #ifdef NSCORE
 	char *cfgfile = NULL;
 	char *config_base_dir = NULL;
@@ -1053,7 +1053,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 #undef xod_begin_def /* we don't need this anymore */
 
 static const char *xodtemplate_type_name(unsigned int id) {
-	static char *otype_name[] = {
+	static const char *otype_name[] = {
 		"NONE", "timeperiod", "commmand", "contact", "contactgroup",
 		"host", "hostgroup", "service", "servicedependency",
 		"serviceescalation", "hostescalation", "hostdependency",
@@ -3858,7 +3858,7 @@ xodtemplate_daterange *xodtemplate_add_exception_to_timeperiod(xodtemplate_timep
 
 
 int xodtemplate_get_month_from_string(char *str, int *month) {
-	char *months[12] = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
+	const char *months[12] = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
 	int x = 0;
 
 	if(str == NULL || month == NULL)
@@ -3878,7 +3878,7 @@ int xodtemplate_get_month_from_string(char *str, int *month) {
 
 
 int xodtemplate_get_weekday_from_string(char *str, int *weekday) {
-	char *days[7] = {"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"};
+	const char *days[7] = {"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"};
 	int x = 0;
 
 	if(str == NULL || weekday == NULL)

@@ -35,9 +35,9 @@
 #define XRDDEFAULT_HOSTDOWNTIME_DATA     8
 #define XRDDEFAULT_SERVICEDOWNTIME_DATA  9
 
-int xrddefault_initialize_retention_data(char *);
-int xrddefault_grab_config_info(char *);
+int xrddefault_initialize_retention_data(const char *);
 int xrddefault_cleanup_retention_data(void);
+int xrddefault_grab_config_info(const char *);
 int xrddefault_grab_config_directives(char *);
 int xrddefault_save_state_information(void);        /* saves all host and service state information */
 int xrddefault_read_state_information(void);        /* reads in initial host and service state information */

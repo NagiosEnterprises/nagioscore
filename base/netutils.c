@@ -27,7 +27,7 @@
 
 
 /* connect to a TCP socket in nonblocking fashion */
-int my_tcp_connect(char *host_name, int port, int *sd, int timeout) {
+int my_tcp_connect(const char *host_name, int port, int *sd, int timeout) {
 	struct addrinfo hints;
 	struct addrinfo *res;
 	int result;
@@ -152,7 +152,7 @@ int my_tcp_connect(char *host_name, int port, int *sd, int timeout) {
 
 
 /* based on Beej's sendall - thanks Beej! */
-int my_sendall(int s, char *buf, int *len, int timeout) {
+int my_sendall(int s, const char *buf, int *len, int timeout) {
 	int total_sent = 0;
 	int bytes_left = 0;
 	int n;

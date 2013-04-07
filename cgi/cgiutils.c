@@ -210,7 +210,7 @@ void free_memory(void) {
  **********************************************************/
 
 /* read the CGI config file location from an environment variable */
-char * get_cgi_config_location(void) {
+const char *get_cgi_config_location(void) {
 	static char *cgiloc = NULL;
 
 	if(!cgiloc) {
@@ -224,7 +224,7 @@ char * get_cgi_config_location(void) {
 
 
 /* read the command file location from an environment variable */
-char * get_cmd_file_location(void) {
+const char *get_cmd_file_location(void) {
 	static char *cmdloc = NULL;
 
 	if(!cmdloc) {
@@ -237,7 +237,7 @@ char * get_cmd_file_location(void) {
 
 
 /*read the CGI configuration file */
-int read_cgi_config_file(char *filename) {
+int read_cgi_config_file(const char *filename) {
 	char *input = NULL;
 	mmapfile *thefile;
 	char *var = NULL;
@@ -423,7 +423,7 @@ int read_cgi_config_file(char *filename) {
 
 
 /* read the main configuration file */
-int read_main_config_file(char *filename) {
+int read_main_config_file(const char *filename) {
 	char *input = NULL;
 	char *temp_buffer;
 	mmapfile *thefile;
@@ -529,7 +529,7 @@ int read_main_config_file(char *filename) {
 
 
 /* read all object definitions */
-int read_all_object_configuration_data(char *cfgfile, int options) {
+int read_all_object_configuration_data(const char *cfgfile, int options) {
 	int result = OK;
 
 	/* read in all external config data of the desired type(s) */
@@ -540,7 +540,7 @@ int read_all_object_configuration_data(char *cfgfile, int options) {
 
 
 /* read all status data */
-int read_all_status_data(char *cfgfile, int options) {
+int read_all_status_data(const char *cfgfile, int options) {
 	int result = OK;
 
 	/* don't duplicate things we've already read in */
@@ -785,9 +785,9 @@ void get_time_string(time_t *raw_time, char *buffer, int buffer_length, int type
 	int month = 0;
 	int day = 0;
 	int year = 0;
-	char *weekdays[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-	char *months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-	char *tzone = "";
+	const char *weekdays[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+	const char *months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	const char *tzone = "";
 
 	if(raw_time == NULL)
 		time(&t);
@@ -871,7 +871,7 @@ void get_interval_time_string(double time_units, char *buffer, int buffer_length
 
 
 /* encodes a string in proper URL format */
-char *url_encode(char *input) {
+const char *url_encode(const char *input) {
 	int len, output_len;
 	int x, y;
 	char temp_expansion[4];
@@ -1065,7 +1065,7 @@ void strip_html_brackets(char *buffer) {
 
 
 /* escape string for html form usage */
-char *escape_string(char *input) {
+char *escape_string(const char *input) {
 	int			len;
 	int			output_max;
 	wchar_t		wctemp[1];
@@ -1305,7 +1305,7 @@ void determine_log_rotation_times(int archive) {
  *************** COMMON HTML FUNCTIONS ********************
  **********************************************************/
 
-void display_info_table(char *title, int refresh, authdata *current_authdata) {
+void display_info_table(const char *title, int refresh, authdata *current_authdata) {
 	time_t current_time;
 	char date_time[MAX_DATETIME_LENGTH];
 	int result;
@@ -1520,7 +1520,7 @@ void print_extra_servicegroup_url(char *group_name, char *url) {
 
 
 /* include user-defined SSI footers or headers */
-void include_ssi_files(char *cgi_name, int type) {
+void include_ssi_files(const char *cgi_name, int type) {
 	char common_ssi_file[MAX_INPUT_BUFFER];
 	char cgi_ssi_file[MAX_INPUT_BUFFER];
 	char raw_cgi_name[MAX_INPUT_BUFFER];
@@ -1554,7 +1554,7 @@ void include_ssi_files(char *cgi_name, int type) {
 
 
 /* include user-defined SSI footer or header */
-void include_ssi_file(char *filename) {
+void include_ssi_file(const char *filename) {
 	char buffer[MAX_INPUT_BUFFER];
 	FILE *fp;
 	struct stat stat_result;
@@ -1616,7 +1616,7 @@ void include_ssi_file(char *filename) {
 
 
 /* displays an error if CGI config file could not be read */
-void cgi_config_file_error(char *config_file) {
+void cgi_config_file_error(const char *config_file) {
 
 	printf("<H1>Whoops!</H1>\n");
 
@@ -1645,7 +1645,7 @@ void cgi_config_file_error(char *config_file) {
 
 
 /* displays an error if main config file could not be read */
-void main_config_file_error(char *config_file) {
+void main_config_file_error(const char *config_file) {
 
 	printf("<H1>Whoops!</H1>\n");
 
@@ -1735,8 +1735,8 @@ void status_data_error(void) {
 
 
 /* displays context-sensitive help window */
-void display_context_help(char *chid) {
-	char *icon = CONTEXT_HELP_ICON1;
+void display_context_help(const char *chid) {
+	const char *icon = CONTEXT_HELP_ICON1;
 
 	if(show_context_help == FALSE)
 		return;

@@ -65,7 +65,7 @@ struct iobroker_set {
 
 static struct {
 	int code;
-	char *string;
+	const char *string;
 } iobroker_errors[] = {
 	{ IOBROKER_SUCCESS, "Success" },
 	{ IOBROKER_ENOSET, "IOB set is NULL" },

@@ -222,14 +222,14 @@ void write_log_entries(avail_subject *);
 
 void get_running_average(double *, double, int);
 
-void host_report_url(char *, char *);
-void service_report_url(char *, char *, char *);
+void host_report_url(const char *, const char *);
+void service_report_url(const char *, const char *, const char *);
 void compute_report_times(void);
 
 int convert_host_state_to_archived_state(int);
 int convert_service_state_to_archived_state(int);
-void add_global_archived_state(int, int, time_t, char *);
-void add_archived_state(int, int, time_t, char *, avail_subject *);
+void add_global_archived_state(int, int, time_t, const char *);
+void add_archived_state(int, int, time_t, const char *, avail_subject *);
 void add_scheduled_downtime(int, time_t, avail_subject *);
 void free_availability_data(void);
 void free_archived_state_list(archived_state *);
@@ -2446,7 +2446,7 @@ void create_subject_list(void) {
 	servicesmember *temp_sgmember;
 	host *temp_host;
 	service *temp_service;
-	char *last_host_name = "";
+	const char *last_host_name = "";
 
 	/* we're displaying one or more hosts */
 	if(display_type == DISPLAY_HOST_AVAIL && host_name && strcmp(host_name, "")) {
@@ -2655,7 +2655,7 @@ avail_subject *find_subject(int type, char *hn, char *sd) {
 
 
 /* adds an archived state entry to all subjects */
-void add_global_archived_state(int entry_type, int state_type, time_t time_stamp, char *state_info) {
+void add_global_archived_state(int entry_type, int state_type, time_t time_stamp, const char *state_info) {
 	avail_subject *temp_subject;
 
 	for(temp_subject = subject_list; temp_subject != NULL; temp_subject = temp_subject->next)
@@ -2668,7 +2668,7 @@ void add_global_archived_state(int entry_type, int state_type, time_t time_stamp
 
 
 /* adds an archived state entry to a specific subject */
-void add_archived_state(int entry_type, int state_type, time_t time_stamp, char *state_info, avail_subject *subject) {
+void add_archived_state(int entry_type, int state_type, time_t time_stamp, const char *state_info, avail_subject *subject) {
 	archived_state *last_as = NULL;
 	archived_state *temp_as = NULL;
 	archived_state *new_as = NULL;
@@ -3214,10 +3214,10 @@ void write_log_entries(avail_subject *subject) {
 	char start_date_time[MAX_DATETIME_LENGTH];
 	char end_date_time[MAX_DATETIME_LENGTH];
 	char duration[20];
-	char *bgclass = "";
-	char *ebgclass = "";
-	char *entry_type = "";
-	char *state_type = "";
+	const char *bgclass = "";
+	const char *ebgclass = "";
+	const char *entry_type = "";
+	const char *state_type = "";
 	int days;
 	int hours;
 	int minutes;
@@ -3447,7 +3447,7 @@ void display_specific_hostgroup_availability(hostgroup *hg) {
 
 	int current_subject = 0;
 
-	char *bgclass = "";
+	const char *bgclass = "";
 	int odd = 1;
 	host *temp_host;
 
@@ -3607,7 +3607,7 @@ void display_specific_servicegroup_availability(servicegroup *sg) {
 
 	int current_subject = 0;
 
-	char *bgclass = "";
+	const char *bgclass = "";
 	int odd = 1;
 	host *temp_host;
 	service *temp_service;
@@ -3884,7 +3884,7 @@ void display_host_availability(void) {
 
 	int current_subject = 0;
 
-	char *bgclass = "";
+	const char *bgclass = "";
 	int odd = 1;
 
 	/* calculate total time during period based on timeperiod used for reporting */
@@ -4358,7 +4358,7 @@ void display_service_availability(void) {
 	double percent_time_indeterminate_nodata = 0.0;
 
 	int odd = 1;
-	char *bgclass = "";
+	const char *bgclass = "";
 	char last_host[128] = "";
 
 
@@ -4709,7 +4709,7 @@ void display_service_availability(void) {
 
 
 
-void host_report_url(char *hn, char *label) {
+void host_report_url(const char *hn, const char *label) {
 
 	printf("<a href='%s?host=%s", AVAIL_CGI, url_encode(hn));
 	printf("&show_log_entries");
@@ -4733,7 +4733,7 @@ void host_report_url(char *hn, char *label) {
 	}
 
 
-void service_report_url(char *hn, char *sd, char *label) {
+void service_report_url(const char *hn, const char *sd, const char *label) {
 
 	printf("<a href='%s?host=%s", AVAIL_CGI, url_encode(hn));
 	printf("&service=%s", url_encode(sd));

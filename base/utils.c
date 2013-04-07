@@ -2267,7 +2267,7 @@ int free_check_result(check_result *info) {
 /* gets the next string from a buffer in memory - strings are terminated by newlines, which are removed */
 char *get_next_string_from_buf(char *buf, int *start_index, int bufsize) {
 	char *sptr = NULL;
-	char *nl = "\n";
+	const char *nl = "\n";
 	int x;
 
 	if(buf == NULL || start_index == NULL)
@@ -2549,7 +2549,7 @@ int dbuf_free(dbuf *db) {
 
 
 /* dynamically expands a string */
-int dbuf_strcat(dbuf *db, char *buf) {
+int dbuf_strcat(dbuf *db, const char *buf) {
 	char *newbuf = NULL;
 	unsigned long buflen = 0L;
 	unsigned long new_size = 0L;
@@ -2935,8 +2935,8 @@ int check_for_nagios_updates(int force, int reschedule) {
 
 /* checks for updates at api.nagios.org */
 int query_update_api(void) {
-	char *api_server = "api.nagios.org";
-	char *api_path = "/versioncheck/";
+	const char *api_server = "api.nagios.org";
+	const char *api_path = "/versioncheck/";
 	char *api_query = NULL;
 	char *api_query_opts = NULL;
 	char *buf = NULL;

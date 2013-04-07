@@ -307,8 +307,8 @@ void display_network_outages(void) {
 	hostoutage *temp_hostoutage;
 	hoststatus *temp_hoststatus;
 	int odd = 0;
-	char *bg_class = "";
-	char *status = "";
+	const char *bg_class = "";
+	const char *status = "";
 	int days;
 	int hours;
 	int minutes;

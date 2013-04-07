@@ -69,9 +69,8 @@ serviceescalation **serviceescalation_ary = NULL;
 hostdependency **hostdependency_ary = NULL;
 servicedependency **servicedependency_ary = NULL;
 
-#ifdef NSCORE
+#ifndef NSCGI
 int __nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
-#endif
 
 struct flag_map {
 	int opt;
@@ -79,7 +78,7 @@ struct flag_map {
 	const char *name;
 };
 
-struct flag_map service_flag_map[] = {
+static const struct flag_map service_flag_map[] = {
 	{ OPT_WARNING, 'w', "warning" },
 	{ OPT_UNKNOWN, 'u', "unknown" },
 	{ OPT_CRITICAL, 'c', "critical" },
@@ -91,7 +90,7 @@ struct flag_map service_flag_map[] = {
 	{ 0, 0, NULL },
 };
 
-struct flag_map host_flag_map[] = {
+static const struct flag_map host_flag_map[] = {
 	{ OPT_DOWN, 'd', "down" },
 	{ OPT_UNREACHABLE, 'u', "unreachable" },
 	{ OPT_FLAPPING, 'f', "flapping" },
@@ -101,7 +100,7 @@ struct flag_map host_flag_map[] = {
 	{ 0, 0, NULL },
 };
 
-static const char *opts2str(int opts, struct flag_map *map, char ok_char)
+static const char *opts2str(int opts, const struct flag_map *map, char ok_char)
 {
 	int i, pos = 0;
 	static char buf[16];
@@ -131,9 +130,7 @@ static const char *opts2str(int opts, struct flag_map *map, char ok_char)
 	return buf;
 }
 
-
 /* Host/Service dependencies are not visible in Nagios CGIs, so we exclude them */
-#ifndef NSCGI
 unsigned int host_services_value(host *h) {
 	servicesmember *sm;
 	unsigned int ret = 0;

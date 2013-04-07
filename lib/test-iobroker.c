@@ -92,6 +92,7 @@ static int listen_handler(int fd, int events, void *arg)
 		printf("Argument passing seems to fail spectacularly\n");
 	}
 
+	addrlen = sizeof(sain);
 	//printf("listen_handler(%d, %d, %p) called\n", fd, events, arg);
 	sock = accept(fd, (struct sockaddr *)&sain, &addrlen);
 	if (sock < 0) {

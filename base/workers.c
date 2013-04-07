@@ -577,7 +577,6 @@ static int handle_worker_result(int sd, int events, void *arg)
 		return 0;
 	}
 	while ((buf = worker_ioc2msg(wp->ioc, &size, 0))) {
-		int job_id = -1;
 		struct wproc_job *job;
 		wproc_result wpres;
 
@@ -604,7 +603,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 		job = get_job(wp, wpres.job_id);
 		if (!job) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: Job with id '%d' doesn't exist on %s.\n",
-				  job_id, wp->name);
+				  wpres.job_id, wp->name);
 			continue;
 		}
 		if (wpres.type != job->type) {

@@ -26,6 +26,7 @@ struct wproc_job {
 	struct wproc_worker *wp;
 };
 
+struct wproc_list;
 
 struct wproc_worker {
 	char *name; /**< check-source name of this worker */
@@ -37,6 +38,7 @@ struct wproc_worker {
 	int job_index; /**< round-robin slot allocator (this wraps) */
 	iocache *ioc;  /**< iocache for reading from worker */
 	fanout_table *jobs; /**< array of jobs */
+	struct wproc_list *wp_list;
 };
 
 struct wproc_list {
@@ -48,7 +50,7 @@ struct wproc_list {
 static struct wproc_list workers = {0, 0, NULL};
 
 static dkhash_table *specialized_workers;
-static struct wproc_worker *to_remove = NULL;
+static struct wproc_list *to_remove = NULL;
 
 typedef struct wproc_callback_job {
 	void *data;
@@ -179,7 +181,6 @@ static struct wproc_list *get_wproc_list(const char *cmd)
 
 static struct wproc_worker *get_worker(const char *cmd)
 {
-	struct wproc_worker *wp = NULL;
 	struct wproc_list *wp_list;
 
 	if (!cmd)
@@ -189,20 +190,7 @@ static struct wproc_worker *get_worker(const char *cmd)
 	if (!wp_list)
 		return NULL;
 
-	if (wp_list->len == 1 && wp_list->wps[0] == to_remove)
-		wp_list = &workers;
-
-	do {
-		wp = wp_list->wps[wp_list->idx++ % wp_list->len];
-	} while (wp_list->len > 1 && wp == to_remove);
-
-	if (wp == to_remove) {
-		/* our last general-purpose worker is about to go byebye */
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Last general-purpose worker died. Unable to assign jobs\n");
-		return NULL;
-	}
-
-	return wp;
+	return wp_list->wps[wp_list->idx++ % wp_list->len];
 }
 
 static struct wproc_job *create_job(int type, void *arg, time_t timeout, const char *cmd)
@@ -345,31 +333,33 @@ static int wproc_destroy(struct wproc_worker *wp, int flags)
 	return 0;
 }
 
-/* remove the worker pointed to by to_remove
- * if to_remove is null, remove everything */
+/* remove the worker list pointed to by to_remove */
 static int remove_specialized(void *data)
 {
-	int i;
-	struct wproc_list *list = (struct wproc_list *)data;
-	for (i = 0; i < list->len; i++) {
-		if (to_remove != NULL && list->wps[i] != to_remove)
-			continue;
-
-		list->len--;
-		if (list->len <= 0) {
-			free(list->wps);
-			list->wps = NULL;
-			if(list != &workers)
-				free(list);
-			return DKHASH_WALK_REMOVE;
-		}
-		else {
-			list->wps[i] = list->wps[list->len];
-			i--;
-		}
-	}
+	if (data == to_remove)
+		return DKHASH_WALK_REMOVE;
 	return 0;
 }
+
+/* remove worker from job assignment list */
+static void remove_worker(struct wproc_worker *worker)
+{
+	int i,j = 0;
+	struct wproc_list *wpl = worker->wp_list;
+	for (i = 0; i < wpl->len; i++) {
+		if (wpl->wps[i] == worker)
+			continue;
+		wpl->wps[j++] = wpl->wps[i];
+	}
+	wpl->len--;
+	if (!specialized_workers || wpl->len)
+		return;
+
+	to_remove = wpl;
+	dkhash_walk_data(specialized_workers, remove_specialized);
+
+}
+
 
 /*
  * This gets called from both parent and worker process, so
@@ -542,9 +532,11 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 }
 
 static int wproc_run_job(struct wproc_job *job, nagios_macros *mac);
-static void reassign_wproc_job(void *job_)
+static void fo_reassign_wproc_job(void *job_)
 {
 	struct wproc_job *job = (struct wproc_job *)job_;
+	job->wp = get_worker(job->command);
+	job->id = get_job_id(job->wp);
 	/* macros aren't used right now anyways */
 	wproc_run_job(job, NULL);
 }
@@ -572,15 +564,14 @@ static int handle_worker_result(int sd, int events, void *arg)
 		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Socket to worker %s broken, removing", wp->name);
 		wproc_num_workers_online--;
 		iobroker_unregister(nagios_iobs, sd);
-		to_remove = wp;
-		dkhash_walk_data(specialized_workers, remove_specialized);
-		if (remove_specialized((void *)&workers) == DKHASH_WALK_REMOVE) {
+		if (workers.len <= 0) {
 			/* there aren't global workers left, we can't run any more checks
 			 * we should try respawning a few of the standard ones
 			 */
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: All our workers are dead, we can't do anything!");
 		}
-		fanout_destroy(wp->jobs, reassign_wproc_job);
+		remove_worker(wp);
+		fanout_destroy(wp->jobs, fo_reassign_wproc_job);
 		wp->jobs = NULL;
 		wproc_destroy(wp, 0);
 		return 0;
@@ -769,6 +760,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 				command_handlers->wps = realloc(command_handlers->wps, command_handlers->len * sizeof(struct wproc_worker**));
 				command_handlers->wps[command_handlers->len - 1] = worker;
 			}
+			worker->wp_list = command_handlers;
 		}
 	}
 

@@ -48,6 +48,7 @@ struct wproc_list {
 static struct wproc_list workers = {0, 0, NULL};
 
 static dkhash_table *specialized_workers;
+static struct wproc_worker *to_remove = NULL;
 
 typedef struct wproc_callback_job {
 	void *data;
@@ -128,24 +129,6 @@ int wproc_can_spawn(struct load_control *lc)
 	return lc->jobs_limit > lc->jobs_running;
 }
 
-static struct wproc_job *create_job(int type, void *arg, time_t timeout, const char *command)
-{
-	struct wproc_job *job;
-
-	job = calloc(1, sizeof(*job));
-	if (!job) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to allocate memory for worker job: %s\n", strerror(errno));
-		return NULL;
-	}
-
-	job->type = type;
-	job->arg = arg;
-	job->timeout = timeout;
-	job->command = strdup(command);
-
-	return job;
-}
-
 static int get_job_id(struct wproc_worker *wp)
 {
 	return wp->job_index++;
@@ -154,6 +137,101 @@ static int get_job_id(struct wproc_worker *wp)
 static struct wproc_job *get_job(struct wproc_worker *wp, int job_id)
 {
 	return fanout_remove(wp->jobs, job_id);
+}
+
+
+static struct wproc_list *get_wproc_list(const char *cmd)
+{
+	struct wproc_list *wp_list;
+	char *cmd_name = NULL, *slash = NULL, *space;
+
+	if (!specialized_workers)
+		return &workers;
+
+	/* first, look for a specialized worker for this command */
+	if ((space = strchr(cmd, ' ')) != NULL) {
+		int namelen = (unsigned long)space - (unsigned long)cmd;
+		cmd_name = calloc(1, namelen + 1);
+		/* not exactly optimal, but what the hells */
+		if (!cmd_name)
+			return &workers;
+		memcpy(cmd_name, cmd, namelen);
+		slash = strrchr(cmd_name, '/');
+	}
+
+	wp_list = dkhash_get(specialized_workers, cmd_name ? cmd_name : cmd, NULL);
+	if (!wp_list && slash) {
+		wp_list = dkhash_get(specialized_workers, ++slash, NULL);
+	}
+	if (wp_list != NULL) {
+		log_debug_info(DEBUGL_CHECKS, 1, "Found specialized worker(s) for '%s'", (slash && *slash != '/') ? slash : cmd_name);
+	}
+	else {
+		if (!workers.wps)
+			return NULL;
+		wp_list = &workers;
+	}
+	if (cmd_name) {
+		free(cmd_name);
+	}
+	return wp_list;
+}
+
+static struct wproc_worker *get_worker(const char *cmd)
+{
+	struct wproc_worker *wp = NULL;
+	struct wproc_list *wp_list;
+
+	if (!cmd)
+		return NULL;
+
+	wp_list = get_wproc_list(cmd);
+	if (!wp_list)
+		return NULL;
+
+	if (wp_list->len == 1 && wp_list->wps[0] == to_remove)
+		wp_list = &workers;
+
+	do {
+		wp = wp_list->wps[wp_list->idx++ % wp_list->len];
+	} while (wp_list->len > 1 && wp == to_remove);
+
+	if (wp == to_remove) {
+		/* our last general-purpose worker is about to go byebye */
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Last general-purpose worker died. Unable to assign jobs\n");
+		return NULL;
+	}
+
+	return wp;
+}
+
+static struct wproc_job *create_job(int type, void *arg, time_t timeout, const char *cmd)
+{
+	struct wproc_job *job;
+	struct wproc_worker *wp;
+
+	wp = get_worker(cmd);
+	if (!wp)
+		return NULL;
+
+	job = calloc(1, sizeof(*job));
+	if (!job) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to allocate memory for worker job: %s\n", strerror(errno));
+		return NULL;
+	}
+
+	job->wp = wp;
+	job->id = get_job_id(wp);
+	job->type = type;
+	job->arg = arg;
+	job->timeout = timeout;
+	if (fanout_add(wp->jobs, job->id, job) < 0 || !(job->command = strdup(cmd))) {
+		free(job);
+		return NULL;
+	}
+	job->command = strdup(cmd);
+
+	return job;
 }
 
 static void run_job_callback(struct wproc_job *job, struct wproc_result *wpres, int val)
@@ -170,7 +248,7 @@ static void run_job_callback(struct wproc_job *job, struct wproc_result *wpres, 
 	cj->callback = NULL;
 }
 
-static void destroy_job(struct wproc_worker *wp, struct wproc_job *job)
+static void destroy_job(struct wproc_job *job)
 {
 	if (!job)
 		return;
@@ -202,16 +280,18 @@ static void destroy_job(struct wproc_worker *wp, struct wproc_job *job)
 	}
 
 	my_free(job->command);
-	wp->jobs_running--;
+	if (job->wp) {
+		fanout_remove(job->wp->jobs, job->id);
+		job->wp->jobs_running--;
+	}
 	loadctl.jobs_running--;
 
 	free(job);
 }
 
-static void fo_destroy_job(void *job_)
+static void fo_destroy_job(void *job)
 {
-	struct wproc_job *job = (struct wproc_job *)job_;
-	destroy_job(job->wp, job);
+	destroy_job((struct wproc_job *)job);
 }
 
 static int wproc_is_alive(struct wproc_worker *wp)
@@ -265,7 +345,6 @@ static int wproc_destroy(struct wproc_worker *wp, int flags)
 	return 0;
 }
 
-static struct wproc_worker *to_remove = NULL;
 /* remove the worker pointed to by to_remove
  * if to_remove is null, remove everything */
 static int remove_specialized(void *data)
@@ -620,7 +699,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker %d: Unknown jobtype: %d\n", wp->pid, job->type);
 			break;
 		}
-		destroy_job(wp, job);
+		destroy_job(job);
 	}
 
 	return 0;
@@ -811,59 +890,6 @@ int init_workers(int desired_workers)
 	return 0;
 }
 
-static struct wproc_worker *get_worker(struct wproc_job *job)
-{
-	struct wproc_worker *wp = NULL;
-	struct wproc_list *wp_list;
-	char *cmd_name, *space, *slash = NULL;
-
-	if (!job)
-		return NULL;
-
-	/* first, look for a specialized worker for this command */
-	cmd_name = job->command;
-	if ((space = strchr(cmd_name, ' ')) != NULL) {
-		*space = '\0';
-		slash = strrchr(cmd_name, '/');
-	}
-
-	wp_list = dkhash_get(specialized_workers, cmd_name, NULL);
-	if (!wp_list && slash) {
-		wp_list = dkhash_get(specialized_workers, ++slash, NULL);
-	}
-	if (wp_list != NULL) {
-		log_debug_info(DEBUGL_CHECKS, 1, "Found specialized worker(s) for '%s'", (slash && *slash != '/') ? slash : cmd_name);
-	}
-	else {
-		if (!workers.wps)
-			return NULL;
-		wp_list = &workers;
-	}
-	if (space != NULL)
-		*space = ' ';
-
-	if (wp_list->len == 1 && wp_list->wps[0] == to_remove)
-		wp_list = &workers;
-
-	do {
-		wp = wp_list->wps[wp_list->idx++ % wp_list->len];
-	} while (wp_list->len > 1 && wp == to_remove);
-
-	if (wp == to_remove) {
-		/* our last general-purpose worker is about to go byebye */
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Last general-purpose worker died. Unable to assign jobs\n");
-		return NULL;
-	}
-
-	job->id = get_job_id(wp);
-	if (fanout_add(wp->jobs, job->id, job) < 0) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to add job to fanout table for worker %s\n", wp->name);
-		return NULL;
-	}
-	job->wp = wp;
-	return wp;
-}
-
 /*
  * Handles adding the command and macros to the kvvec,
  * as well as shipping the command off to a designated
@@ -876,18 +902,10 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 	struct wproc_worker *wp;
 	int ret;
 
-	if (!job)
+	if (!job || !job->wp)
 		return ERROR;
 
-	/*
-	 * get_worker() also adds job to the workers list
-	 * and sets job_id
-	 */
-	wp = get_worker(job);
-	if (!wp || job->id < 0) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to find suitable worker\n");
-		return ERROR;
-	}
+	wp = job->wp;
 
 	/*
 	 * XXX FIXME: add environment macros as
@@ -911,7 +929,7 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 	if (ret != kvvb->bufsize) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: '%s' seems to be choked. ret = %d; bufsize = %lu: errno = %d (%s)\n",
 			  wp->name, ret, kvvb->bufsize, errno, strerror(errno));
-		destroy_job(wp, job);
+		destroy_job(job);
 	}
 	free(kvvb->buf);
 	free(kvvb);

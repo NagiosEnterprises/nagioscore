@@ -71,7 +71,7 @@ struct {
 } parse_case[] = {
 	{ 0, "foo bar nisse", 3, { "foo", "bar", "nisse", NULL }},
 	{ 0, "foo\\ bar nisse", 2, { "foo bar", "nisse", NULL }},
-	{ 0, NULL, 0, NULL },
+	{ 0, NULL, 0, { NULL, NULL, NULL }},
 };
 
 int main(int argc, char **argv)

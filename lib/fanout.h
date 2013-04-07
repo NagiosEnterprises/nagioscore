@@ -40,6 +40,15 @@ extern fanout_table *fanout_create(unsigned long size);
 extern void fanout_destroy(fanout_table *t, void (*destructor)(void *));
 
 /**
+ * Return a pointer from the fanout table t
+ *
+ * @param[in] t table to fetch from
+ * @param[in] key key to fetch
+ * @return NULL on errors; Pointer to data on success
+ */
+extern void *fanout_get(fanout_table *t, unsigned long key);
+
+/**
  * Add an entry to the fanout table.
  * Note that we don't check if the key is unique. If it isn't,
  * fanout_remove() will remove the latest added first.

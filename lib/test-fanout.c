@@ -52,14 +52,53 @@ static void run_tests(int ntests, int fo_size)
 	free(test);
 }
 
+struct test_data {
+	unsigned long key;
+	char *name;
+};
+
+static fanout_table *fot;
+static void pdest(void *arg_)
+{
+	struct test_data *td = (struct test_data *)arg_;
+	fanout_remove(fot, td->key);
+	free(td->name);
+	free(td);
+	destroyed++;
+}
+
 int main(int argc, char **argv)
 {
-	int i;
-
+	unsigned long k;
 	t_set_colors(0);
 	t_start("fanout tests");
+	struct test_data *td;
+
 	run_tests(10, 64);
 	run_tests(512, 64);
 	run_tests(64, 64);
+	run_tests(511, 17);
+
+	destroyed = 0;
+	fot = fanout_create(512);
+	ok_int(fanout_remove(fot, 12398) == NULL, 1,
+		"remove on empty table must yield NULL");
+	ok_int(fanout_get(fot, 123887987) == NULL, 1,
+		"get on empty table must yield NULL");
+	for (k = 0; k < 16385; k++) {
+		struct test_data *td = calloc(1, sizeof(*td));
+		td->key = k;
+		asprintf(&td->name, "%lu", k);
+		fanout_add(fot, k, td);
+	}
+	td = fanout_get(fot, k - 1);
+	ok_int(td != NULL, 1, "get must get what add inserts");
+	ok_int(fanout_remove(fot, k + 1) == NULL, 1,
+		"remove on non-inserted key must yield NULL");
+	ok_int(fanout_get(fot, k + 1) == NULL, 1,
+		"get on non-inserted must yield NULL");
+	fanout_destroy(fot, pdest);
+	ok_int((int)destroyed, (int)k, "destroy counter while free()'ing");
+
 	return t_end();
 }

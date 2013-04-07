@@ -67,6 +67,23 @@ int fanout_add(struct fanout_table *t, unsigned long key, void *data)
 	return 0;
 }
 
+void *fanout_get(fanout_table *t, unsigned long key)
+{
+	struct fanout_entry *entry;
+	unsigned long slot;
+
+	if (!t || !t->entries || !t->alloc)
+		return NULL;
+
+	slot = key % t->alloc;
+	for (entry = t->entries[slot]; entry; entry = entry->next) {
+		if (entry->key == key)
+			return entry->data;
+	}
+
+	return NULL;
+}
+
 void *fanout_remove(fanout_table *t, unsigned long key)
 {
 	struct fanout_entry *entry, *next, *prev = NULL;

@@ -265,17 +265,6 @@ bitmap *bitmap_unite(bitmap *res, const bitmap *addme)
 }
 
 /*
- * Remove all elements from a that are also in b.
- */
-bitmap *bitmap_minus(const bitmap *a, const bitmap *b)
-{
-	BITMAP_MATH(a, b) {
-		bm->vector[i] = a->vector[i] & ~(b->vector[i]);
-	}
-	return bm;
-}
-
-/*
  * set difference gets everything in A that isn't also in B. A is the
  * numerator, so if it's larger we must include any overflow in the
  * resulting set.

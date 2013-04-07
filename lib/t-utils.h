@@ -58,6 +58,7 @@ extern int ok_int(int a, int b, const char *name);
 extern int ok_uint(unsigned int a, unsigned int b, const char *name);
 extern int ok_str(const char *a, const char *b, const char *name);
 extern int t_end(void);
+extern void t_reset(void);
 extern void crash(const char *fmt, ...)
 	__attribute__((__format__(__printf__, 1, 2), __noreturn__));
 #endif

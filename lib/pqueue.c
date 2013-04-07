@@ -218,7 +218,7 @@ pqueue_peek(pqueue_t *q)
 	return q->d[1];
 }
 
-
+#if 0
 void
 pqueue_dump(pqueue_t *q, FILE *out, pqueue_print_entry_f print)
 {
@@ -269,7 +269,7 @@ pqueue_print(pqueue_t *q, FILE *out, pqueue_print_entry_f print)
 
 	pqueue_free(dup);
 }
-
+#endif
 
 static int
 subtree_is_valid(pqueue_t *q, int pos)

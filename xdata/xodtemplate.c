@@ -3475,12 +3475,13 @@ int xodtemplate_add_object_property(char *input, int options) {
 /* completes an object definition */
 int xodtemplate_end_object_definition(int options) {
 	int result = OK;
-#ifdef NSCGI
-	switch(xodtemplate_current_object_type) {
-	case XODTEMPLATE_HOSTESCALATION: xodcount.hostescalations++; break;
-	case XODTEMPLATE_SERVICEESCALATION: xodcount.serviceescalations++; break;
-	}
-#endif
+
+	if (use_precached_objects == TRUE) {
+		switch(xodtemplate_current_object_type) {
+		case XODTEMPLATE_HOSTESCALATION: xodcount.hostescalations++; break;
+		case XODTEMPLATE_SERVICEESCALATION: xodcount.serviceescalations++; break;
+			}
+		}
 
 	xodtemplate_current_object = NULL;
 	xodtemplate_current_object_type = XODTEMPLATE_NONE;

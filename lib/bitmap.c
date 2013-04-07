@@ -264,7 +264,7 @@ bitmap *bitmap_unite(bitmap *res, const bitmap *addme)
 	return res;
 }
 
-/* 
+/*
  * Remove all elements from a that are also in b.
  */
 bitmap *bitmap_minus(const bitmap *a, const bitmap *b)

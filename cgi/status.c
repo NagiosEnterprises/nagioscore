@@ -150,8 +150,8 @@ int max_grid_width = 8;
 int group_style_type = STYLE_OVERVIEW;
 int navbar_search = FALSE;
 
-/* experimental paging feature */ 
-int temp_result_limit; 
+/* experimental paging feature */
+int temp_result_limit;
 int page_start;
 int limit_results = TRUE;
 
@@ -546,15 +546,15 @@ void document_header(int use_stylesheet) {
 		printf("<link rel='stylesheet' type='text/css' href='%s%s' />\n", url_stylesheets_path, COMMON_CSS);
 		printf("<link rel='stylesheet' type='text/css' href='%s%s' />\n", url_stylesheets_path, STATUS_CSS);
 		}
-	
-	/* added jquery library 1/31/2012 */	
-	printf("<script type='text/javascript' src='%s%s'></script>\n",url_js_path, JQUERY_JS); 
-	/* JS function to append content to elements on page */ 
-	printf("<script type='text/javascript'>\n"); 
-	printf("$(document).ready(function() { $('#top_page_numbers').append($('#bottom_page_numbers').html() ); });");	
+
+	/* added jquery library 1/31/2012 */
+	printf("<script type='text/javascript' src='%s%s'></script>\n",url_js_path, JQUERY_JS);
+	/* JS function to append content to elements on page */
+	printf("<script type='text/javascript'>\n");
+	printf("$(document).ready(function() { $('#top_page_numbers').append($('#bottom_page_numbers').html() ); });");
 	printf("function set_limit(url) { \nthis.location = url+'&limit='+$('#limit').val();\n  }");
 	printf("</script>\n");
-	
+
 	printf("</head>\n");
 
 	printf("<body class='status'>\n");
@@ -779,7 +779,7 @@ int process_cgivars(void) {
 			service_filter = strdup(variables[x]);
 			strip_html_brackets(service_filter);
 			}
-		
+
 		/* experimental page limit feature */
 		else if(!strcmp(variables[x], "start")) {
 			x++;
@@ -788,22 +788,22 @@ int process_cgivars(void) {
 				break;
 				}
 			page_start = atoi(variables[x]);
-			}		
+			}
 		else if(!strcmp(variables[x], "limit")) {
 			x++;
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
 				}
-			temp_result_limit = atoi(variables[x]);	
-			if(temp_result_limit == 0) 
+			temp_result_limit = atoi(variables[x]);
+			if(temp_result_limit == 0)
 				limit_results = FALSE;
-			else 
-				limit_results = TRUE;				
-			}	
-					
+			else
+				limit_results = TRUE;
+			}
+
 		}
-		
+
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
@@ -888,9 +888,9 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */ 
+		/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -903,9 +903,9 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */ 
+		/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -918,9 +918,9 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */ 
+		/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -933,9 +933,9 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */ 
+		/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -948,9 +948,9 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */ 
+		/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -992,9 +992,9 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */ 
+		/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -1007,9 +1007,9 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */ 
+		/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -1114,9 +1114,9 @@ void show_host_status_totals(void) {
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
-	/* paging */ 
+	/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -1135,9 +1135,9 @@ void show_host_status_totals(void) {
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
-	/* paging */ 
+	/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -1156,9 +1156,9 @@ void show_host_status_totals(void) {
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
-	/* paging */ 
+	/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -1177,9 +1177,9 @@ void show_host_status_totals(void) {
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
-	/* paging */ 
+	/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -1223,9 +1223,9 @@ void show_host_status_totals(void) {
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
-	/* paging */ 
+	/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -1244,9 +1244,9 @@ void show_host_status_totals(void) {
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
-	/* paging */ 
+	/* paging */
 	if(temp_result_limit)
-		printf("limit=%i&",temp_result_limit); 
+		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
@@ -1400,7 +1400,7 @@ void show_service_detail(void) {
 
 
 
-	/* handle navigation GET variables */ 
+	/* handle navigation GET variables */
 	snprintf(temp_url, sizeof(temp_url) - 1, "%s?", STATUS_CGI);
 	temp_url[sizeof(temp_url) - 1] = '\x0';
 	if(display_type == DISPLAY_HOSTS)
@@ -1436,7 +1436,7 @@ void show_service_detail(void) {
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
-	/*	
+	/*
 	if(temp_result_limit) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&limit=%i", temp_result_limit);
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
@@ -1444,15 +1444,15 @@ void show_service_detail(void) {
 		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
 	*/
-			
+
 	/* GET input can override cgi.cfg */
 	if(limit_results==TRUE)
 		result_limit = temp_result_limit ? temp_result_limit : result_limit;
-	else 
-		result_limit = 0;	
+	else
+		result_limit = 0;
 	/* select box to set result limit */
-	create_page_limiter(result_limit,temp_url); 	 
-	
+	create_page_limiter(result_limit,temp_url);
+
 	/* the main list of services */
 	printf("<table border=0 width=100%% class='status'>\n");
 	printf("<tr>\n");
@@ -1483,7 +1483,7 @@ void show_service_detail(void) {
 
 	/* check all services... */
 	while(1) {
-	
+
 		/* get the next service to display */
 		if(use_sort == TRUE) {
 			if(first_entry == TRUE)
@@ -1571,14 +1571,14 @@ void show_service_detail(void) {
 				show_service = TRUE;
 			}
 
-		/* final checks for display visibility, add to total results.  Used for page numbers */		
-		if(result_limit == 0) 
-			limit_results = FALSE; 
-						
+		/* final checks for display visibility, add to total results.  Used for page numbers */
+		if(result_limit == 0)
+			limit_results = FALSE;
+
 		if( (limit_results == TRUE && show_service== TRUE)  && ( (total_entries < page_start) || (total_entries >= (page_start + result_limit)) )  ) {
 			total_entries++;
-			show_service = FALSE;  
-			} 	
+			show_service = FALSE;
+			}
 
 		/* a visible entry */
 		if(show_service == TRUE) {
@@ -1592,15 +1592,15 @@ void show_service_detail(void) {
 					printf("<tr><td colspan='6'></td></tr>\n");
 					printf("<tr><td colspan='6'></td></tr>\n");
 					}
-				}				
+				}
 
 			if(odd)
 				odd = 0;
 			else
 				odd = 1;
-				
+
 			/* keep track of total number of services we're displaying */
-			visible_entries++; 
+			visible_entries++;
 			total_entries++;
 
 			/* get the last service check time */
@@ -1892,7 +1892,7 @@ void show_service_detail(void) {
 			printf("</tr>\n");
 
 			/* mod to account for paging */
-			if(visible_entries != 0) 
+			if(visible_entries != 0)
 				last_host = temp_status->host_name;
 			}
 
@@ -1914,10 +1914,10 @@ void show_service_detail(void) {
 			}
 		}
 	else {
-		/* do page numbers if applicable */ 	
+		/* do page numbers if applicable */
 		create_pagenumbers(total_entries,temp_url,TRUE);
 		}
-		
+
 	return;
 	}
 
@@ -1968,7 +1968,7 @@ void show_host_detail(void) {
 
 
 //	printf("<P>\n");
-	
+
 
 	printf("<table class='pageTitle' border='0' width='100%%'>\n");
 	printf("<tr>\n");
@@ -2049,23 +2049,23 @@ void show_host_detail(void) {
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
-		}	
-	/*	
+		}
+	/*
 	if(temp_result_limit) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&limit=%i", temp_result_limit);
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
-		}	
+		}
 	*/
 
 	/* GET input can override cgi.cfg */
 	if(limit_results==TRUE)
 		result_limit = temp_result_limit ? temp_result_limit : result_limit;
-	else 
-		result_limit = 0;	
+	else
+		result_limit = 0;
 	/* select box to set result limit */
-	create_page_limiter(result_limit,temp_url); 
+	create_page_limiter(result_limit,temp_url);
 
 
 	/* the main list of hosts */
@@ -2144,17 +2144,17 @@ void show_host_detail(void) {
 
 
 		total_entries++;
-		
-		/* final checks for display visibility, add to total results.  Used for page numbers */		
-		if(result_limit == 0) 
-			limit_results = FALSE; 
-						
+
+		/* final checks for display visibility, add to total results.  Used for page numbers */
+		if(result_limit == 0)
+			limit_results = FALSE;
+
 		if( (limit_results == TRUE) && ( (total_entries < page_start) || (total_entries >= (page_start + result_limit)) )  ) {
-			continue;   
-			} 	
-			
-		visible_entries++; 			
-		
+			continue;
+			}
+
+		visible_entries++;
+
 
 		/* grab macros */
 		grab_host_macros_r(mac, temp_host);
@@ -2351,7 +2351,7 @@ void show_host_detail(void) {
 		}
 
 	else {
-		/* do page numbers if applicable */ 	
+		/* do page numbers if applicable */
 		create_pagenumbers(total_entries,temp_url,FALSE);
 		}
 	return;
@@ -5381,59 +5381,59 @@ void show_filters(void) {
 
 void create_pagenumbers(int total_entries,char *temp_url,int type_service) {
 
-	int pages = 1;	 
-	int tmp_start; 
+	int pages = 1;
+	int tmp_start;
 	int i;
-	int previous_page; 
+	int previous_page;
 
-	/* do page numbers if applicable */ 
+	/* do page numbers if applicable */
 	if(result_limit > 0 && total_entries > result_limit) {
-		pages = (total_entries / result_limit);  
+		pages = (total_entries / result_limit);
 		previous_page = (page_start-result_limit) > 0 ? (page_start-result_limit) : 0;
 		printf("<div id='bottom_page_numbers'>\n");
-		printf("<div class='inner_numbers'>\n");		
-		printf("<a href='%s&start=0&limit=%i' class='pagenumber' title='First Page'><img src='%s%s' height='15' width='15' alt='<<' /></a>\n",temp_url,result_limit,url_images_path,FIRST_PAGE_ICON); 
+		printf("<div class='inner_numbers'>\n");
+		printf("<a href='%s&start=0&limit=%i' class='pagenumber' title='First Page'><img src='%s%s' height='15' width='15' alt='<<' /></a>\n",temp_url,result_limit,url_images_path,FIRST_PAGE_ICON);
 		printf("<a href='%s&start=%i&limit=%i' class='pagenumber' title='Previous Page'><img src='%s%s' height='15' width='10' alt='<' /></a>\n",temp_url,previous_page,result_limit,url_images_path,PREVIOUS_PAGE_ICON);
 
 		for(i = 0; i < (pages + 1); i++) {
 			tmp_start = (i * result_limit);
-			if(tmp_start == page_start) 
+			if(tmp_start == page_start)
 				printf("<div class='pagenumber current_page'> %i </div>\n",(i+1));
-			else					
+			else
 				printf("<a class='pagenumber' href='%s&start=%i&limit=%i' title='Page %i'> %i </a>\n",temp_url,tmp_start,result_limit,(i+1),(i+1));
 			}
-			
+
 		printf("<a href='%s&start=%i&limit=%i' class='pagenumber' title='Next Page'><img src='%s%s' height='15' width='10' alt='>' /></a>\n",temp_url,(page_start+result_limit),result_limit,url_images_path,NEXT_PAGE_ICON);
 		printf("<a href='%s&start=%i&limit=%i' class='pagenumber' title='Last Page'><img src='%s%s' height='15' width='15' alt='>>' /></a>\n",temp_url,((pages)*result_limit),result_limit,url_images_path,LAST_PAGE_ICON);
 		printf("</div> <!-- end inner_page_numbers div -->\n");
 		if(type_service == TRUE)
 			printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Services</div>\n</div>\n",page_start,((page_start+result_limit) > total_entries ? total_entries :(page_start+result_limit) ),total_entries );
-		else 
-			printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Hosts</div>\n\n",page_start,((page_start+result_limit) > total_entries ? total_entries :(page_start+result_limit) ),total_entries );		
+		else
+			printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Hosts</div>\n\n",page_start,((page_start+result_limit) > total_entries ? total_entries :(page_start+result_limit) ),total_entries );
 
 		printf("</div> <!-- end bottom_page_numbers div -->\n\n");
 		}
 	else {
 		if(type_service == TRUE)
 			printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Services</div>\n</div>\n",1,total_entries,total_entries);
-		else 
-			printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Hosts</div>\n\n",1,total_entries,total_entries);		
-	
+		else
+			printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Hosts</div>\n\n",1,total_entries,total_entries);
+
 		}
-			
-	/* show total results displayed */ 	
+
+	/* show total results displayed */
 	//printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Services</div>\n</div>\n",page_start,((page_start+result_limit) > total_entries ? total_entries :(page_start+result_limit) ),total_entries );
-	
+
 	}
 
 void create_page_limiter(int result_limit,char *temp_url) {
 
-	/*  Result Limit Select Box   */ 
+	/*  Result Limit Select Box   */
 	printf("<div id='pagelimit'>\n<div id='result_limit'>\n");
 	printf("<label for='limit'>Limit Results: </label>\n");
 	printf("<select onchange='set_limit(\"%s\")' name='limit' id='limit'>\n",temp_url);
-	printf("<option %s value='50'>50</option>\n",( (result_limit==50) ? "selected='selected'" : "") ); 
-	printf("<option %s value='100'>100</option>\n",( (result_limit==100) ? "selected='selected'" : "") ); 
+	printf("<option %s value='50'>50</option>\n",( (result_limit==50) ? "selected='selected'" : "") );
+	printf("<option %s value='100'>100</option>\n",( (result_limit==100) ? "selected='selected'" : "") );
 	printf("<option %s value='250'>250</option>\n",( (result_limit==250) ? "selected='selected'" : "") );
 	printf("<option %s value='1000'>1000</option>\n",( (result_limit==1000) ? "selected='selected'" : "") );
 	printf("<option %s value='0'>All</option>\n",(result_limit==0) ? "selected='selected'" : "");

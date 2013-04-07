@@ -57,7 +57,7 @@ int is_authorized_for_service_commands(service *, authdata *);
 
 int is_authorized_for_hostgroup(hostgroup *, authdata *);
 int is_authorized_for_servicegroup(servicegroup *, authdata *);
-	
+
 int is_authorized_for_hostgroup_commands(hostgroup *, authdata *);
 int is_authorized_for_servicegroup_commands(servicegroup *, authdata *);
 

@@ -73,8 +73,8 @@ main( int argc, char **argv, char **env) {
 
 	if( TRUE == daemon_mode) {
 		if( daemon_init() == ERROR) {
-			fprintf( stderr, 
-					"Bailing out due to failure to daemonize. (PID=%d)\n", 
+			fprintf( stderr,
+					"Bailing out due to failure to daemonize. (PID=%d)\n",
 					( int)getpid());
 			exit( 1);
 		}
@@ -86,8 +86,8 @@ main( int argc, char **argv, char **env) {
 	}
 }
 
-void parse_worker_command_line( int argc, char **argv, char **env, 
-		int *daemon_mode, char **worker_socket, char **worker_user, 
+void parse_worker_command_line( int argc, char **argv, char **env,
+		int *daemon_mode, char **worker_socket, char **worker_user,
 		char **worker_group) {
 	int c = 0;
 	int display_usage = FALSE;
@@ -142,7 +142,7 @@ void parse_worker_command_line( int argc, char **argv, char **env,
 				break;
 
 			case ':':
-				printf( "Missing argument for command line option '%c'.\n\n", 
+				printf( "Missing argument for command line option '%c'.\n\n",
 						optopt);
 				print_usage( argv[ 0]);
 				exit( 1);
@@ -252,7 +252,7 @@ int drop_privileges( char *user, char *group) {
 	struct passwd *pw = NULL;
 	int result = PW_OK;
 
-	/* only drop privileges if we're running as root, so we don't 
+	/* only drop privileges if we're running as root, so we don't
 		interfere with being debugged while running as some random user */
 	if( getuid() != 0) {
 		return PW_OK;
@@ -268,7 +268,7 @@ int drop_privileges( char *user, char *group) {
 				gid = ( gid_t)(grp->gr_gid);
 			}
 			else {
-				fprintf( stderr, 
+				fprintf( stderr,
 					"Warning: Could not get group entry for '%s'\n", group);
 			}
 		}
@@ -281,7 +281,7 @@ int drop_privileges( char *user, char *group) {
 		/* set effective group ID if other than current EGID */
 		if( gid != getegid()) {
 			if( setgid( gid) == -1) {
-				fprintf( stderr, "Warning: Could not set effective GID=%d\n", 
+				fprintf( stderr, "Warning: Could not set effective GID=%d\n",
 						( int)gid);
 				result = PW_ERROR;
 			}
@@ -298,7 +298,7 @@ int drop_privileges( char *user, char *group) {
 				uid = ( uid_t)(pw->pw_uid);
 			}
 			else {
-				fprintf( stderr, 
+				fprintf( stderr,
 						"Warning: Could not get passwd entry for '%s'\n", user);
 			}
 		}
@@ -328,7 +328,7 @@ int drop_privileges( char *user, char *group) {
 		}
 #endif
 		if( setuid( uid) == -1) {
-			fprintf( stderr, "Warning: Could not set effective UID=%d\n", 
+			fprintf( stderr, "Warning: Could not set effective UID=%d\n",
 					( int)uid);
 			result = PW_ERROR;
 		}
@@ -377,7 +377,7 @@ int daemon_init( void) {
 	open( "/dev/null", O_WRONLY);
 
 #ifdef USE_LOCKFILE
-	lockfile = open( lock_file, 
+	lockfile = open( lock_file,
 			O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
 	if( lockfile < 0) {

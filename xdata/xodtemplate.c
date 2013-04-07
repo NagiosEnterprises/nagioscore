@@ -6461,7 +6461,7 @@ int xodtemplate_recombobulate_servicegroups(void) {
 				if(!(sg = xodtemplate_find_real_servicegroup(ptr))) {
 					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not find member group '%s' specified in servicegroup '%s' (config file '%s', starting on line %d)\n", ptr, temp_servicegroup->servicegroup_name, xodtemplate_config_file_name(temp_servicegroup->_config_file), temp_servicegroup->_start_line);
 					return ERROR;
-					
+
 				}
 				add_object_to_objectlist(&temp_servicegroup->group_list, sg);
 				if(!next_ptr)

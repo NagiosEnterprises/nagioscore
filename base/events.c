@@ -736,24 +736,24 @@ timed_event *schedule_new_event(int event_type, int high_priority, time_t run_ti
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "schedule_new_event()\n");
 
-	get_datetime_string(&run_time, run_time_string, MAX_DATETIME_LENGTH, 
+	get_datetime_string(&run_time, run_time_string, MAX_DATETIME_LENGTH,
 			SHORT_DATE_TIME);
 	log_debug_info(DEBUGL_EVENTS, 0, "New Event Details:\n");
-	log_debug_info(DEBUGL_EVENTS, 0, " Type:                       %s\n", 
+	log_debug_info(DEBUGL_EVENTS, 0, " Type:                       %s\n",
 			EVENT_TYPE_STR( event_type));
-	log_debug_info(DEBUGL_EVENTS, 0, " High Priority:              %s\n", 
+	log_debug_info(DEBUGL_EVENTS, 0, " High Priority:              %s\n",
 			( high_priority ? "Yes" : "No"));
-	log_debug_info(DEBUGL_EVENTS, 0, " Run Time:                   %s\n", 
+	log_debug_info(DEBUGL_EVENTS, 0, " Run Time:                   %s\n",
 			run_time_string);
-	log_debug_info(DEBUGL_EVENTS, 0, " Recurring:                  %s\n", 
+	log_debug_info(DEBUGL_EVENTS, 0, " Recurring:                  %s\n",
 			( recurring ? "Yes" : "No"));
-	log_debug_info(DEBUGL_EVENTS, 0, " Event Interval:             %lu\n", 
+	log_debug_info(DEBUGL_EVENTS, 0, " Event Interval:             %lu\n",
 			event_interval);
-	log_debug_info(DEBUGL_EVENTS, 0, " Compensate for Time Change: %s\n", 
+	log_debug_info(DEBUGL_EVENTS, 0, " Compensate for Time Change: %s\n",
 			( compensate_for_time_change ? "Yes" : "No"));
-	log_debug_info(DEBUGL_EVENTS, 0, " Event Options:              %d\n", 
+	log_debug_info(DEBUGL_EVENTS, 0, " Event Options:              %d\n",
 			event_options);
- 
+
 	new_event = (timed_event *)calloc(1, sizeof(timed_event));
 	if(new_event != NULL) {
 		new_event->event_type = event_type;

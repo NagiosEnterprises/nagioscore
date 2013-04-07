@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 
 	error = iobroker_get_max_fds(NULL);
 	ok_int(error, IOBROKER_ENOSET, "test errors when passing null");
-	
+
 	err_msg = iobroker_strerror(error);
 	test(err_msg && !strcmp(err_msg, iobroker_errors[(~error) + 1].string), "iobroker_strerror() returns the right string");
 

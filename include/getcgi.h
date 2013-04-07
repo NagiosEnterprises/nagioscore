@@ -10,7 +10,7 @@ NAGIOS_BEGIN_DECL
 
 #define ACCEPT_LANGUAGE_Q_DELIMITER	";q="
 
-/* information for a single language in the variable HTTP_ACCEPT_LANGUAGE 
+/* information for a single language in the variable HTTP_ACCEPT_LANGUAGE
 	sent by the browser */
 typedef struct accept_language_struct {
 	char *	language;
@@ -18,7 +18,7 @@ typedef struct accept_language_struct {
 	double	q;
 } accept_language;
 
-/* information for all languages in the variable HTTP_ACCEPT_LANGUAGE 
+/* information for all languages in the variable HTTP_ACCEPT_LANGUAGE
 	sent by the browser */
 typedef struct accept_languages_struct {
 	int					count;

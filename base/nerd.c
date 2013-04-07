@@ -103,7 +103,7 @@ static int nerd_deregister_channel_callbacks(struct nerd_channel *chan)
 	}
 	return 0;
 }
-	
+
 static int subscribe(int sd, struct nerd_channel *chan, char *fmt)
 {
 	struct nerd_subscription *subscr;

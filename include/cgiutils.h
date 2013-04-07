@@ -77,7 +77,7 @@ NAGIOS_BEGIN_DECL
 #define SUMMARY_CSS             "summary.css"
 
 	/********************************* JAVASCRIPT INCLUDES **********************/
-#define JQUERY_JS		"jquery-1.7.1.min.js"	
+#define JQUERY_JS		"jquery-1.7.1.min.js"
 
 	/********************************* ICONS ************************************/
 

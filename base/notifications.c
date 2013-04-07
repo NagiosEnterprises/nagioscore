@@ -136,7 +136,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 	/* create the contact notification list for this service */
 
-	/* 2011-11-01 MF:  
+	/* 2011-11-01 MF:
 	   check viability before adding a contact
 	   to the notification list, requires type
 	   this prevents us from running through all
@@ -1082,7 +1082,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	/* reset memory for local macro data */
 	memset(&mac, 0, sizeof(mac));
 
-	/* 2011-11-01 MF:  
+	/* 2011-11-01 MF:
 		check viability before adding a contact
 		to the notification list, requires type
 		this prevents us from running through all

@@ -89,7 +89,7 @@ int xdddefault_validate_downtime_data(void) {
 
 		/* delete downtimes with invalid host names */
 		if(find_host(temp_downtime->host_name) == NULL) {
-			log_debug_info(DEBUGL_DOWNTIME, 1, 
+			log_debug_info(DEBUGL_DOWNTIME, 1,
 					"Deleting downtime with invalid host name: %s\n",
 					temp_downtime->host_name);
 			save = FALSE;
@@ -97,26 +97,26 @@ int xdddefault_validate_downtime_data(void) {
 
 		/* delete downtimes with invalid service descriptions */
 		if(temp_downtime->type == SERVICE_DOWNTIME && find_service(temp_downtime->host_name, temp_downtime->service_description) == NULL) {
-			log_debug_info(DEBUGL_DOWNTIME, 1, 
+			log_debug_info(DEBUGL_DOWNTIME, 1,
 					"Deleting downtime with invalid service description: %s\n",
 					temp_downtime->service_description);
 			save = FALSE;
 			}
 
 		/* delete fixed downtimes that have expired */
-		if((TRUE == temp_downtime->fixed) && 
+		if((TRUE == temp_downtime->fixed) &&
 				(temp_downtime->end_time < time(NULL))) {
-			log_debug_info(DEBUGL_DOWNTIME, 1, 
+			log_debug_info(DEBUGL_DOWNTIME, 1,
 					"Deleting fixed downtime that expired at: %lu\n",
 					temp_downtime->end_time);
 			save = FALSE;
 			}
 
 		/* delete flexible downtimes that never started and have expired */
-		if((FALSE == temp_downtime->fixed) && 
+		if((FALSE == temp_downtime->fixed) &&
 				(0 == temp_downtime->flex_downtime_start) &&
 				(temp_downtime->end_time < time(NULL))) {
-			log_debug_info(DEBUGL_DOWNTIME, 1, 
+			log_debug_info(DEBUGL_DOWNTIME, 1,
 					"Deleting flexible downtime that expired at: %lu\n",
 					temp_downtime->end_time);
 			save = FALSE;
@@ -124,11 +124,11 @@ int xdddefault_validate_downtime_data(void) {
 
 		/* delete flexible downtimes that started but whose duration
 			has completed */
-		if((FALSE == temp_downtime->fixed) && 
+		if((FALSE == temp_downtime->fixed) &&
 				(0 != temp_downtime->flex_downtime_start) &&
-				((temp_downtime->flex_downtime_start + temp_downtime->duration) 
+				((temp_downtime->flex_downtime_start + temp_downtime->duration)
 				< time(NULL))) {
-			log_debug_info(DEBUGL_DOWNTIME, 1, 
+			log_debug_info(DEBUGL_DOWNTIME, 1,
 					"Deleting flexible downtime whose duration ended at: %lu\n",
 					temp_downtime->flex_downtime_start + temp_downtime->duration);
 			save = FALSE;

@@ -141,7 +141,7 @@ char **getcgivars(void) {
 		/* check for NULL query string environment variable - 04/28/00 (Ludo Bosmans) */
 		if(getenv("QUERY_STRING") == NULL) {
 			cgiinput = (char *)malloc(1);
-			if(cgiinput != NULL) 
+			if(cgiinput != NULL)
 				cgiinput[0] = '\x0';
 			}
 		else
@@ -311,7 +311,7 @@ void process_language( char * accept_lang) {
 
 	if( NULL != accept_langs) {
 		/* Sort the results */
-		qsort( accept_langs->languages, accept_langs->count, 
+		qsort( accept_langs->languages, accept_langs->count,
 				sizeof( accept_langs->languages[ 0]), compare_accept_languages);
 
 		/* Try each language in order of priority */
@@ -329,7 +329,7 @@ void process_language( char * accept_lang) {
 	}
 	if( NULL == locale) { /* Still isn't set */
 		/* Try the fail safe locales */
-		for( x = 0; (( x < ( sizeof( locale_failsafe) / sizeof( char *))) && 
+		for( x = 0; (( x < ( sizeof( locale_failsafe) / sizeof( char *))) &&
 				( NULL == locale)); x++) {
 			locale = setlocale( LC_ALL, locale_failsafe[ x]);
 		}
@@ -375,7 +375,7 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 		langs->count++;
 		if( NULL == langs->languages) {
 			/* Adding first language */
-			if( NULL == ( langs->languages = 
+			if( NULL == ( langs->languages =
 					malloc( langs->count * sizeof( accept_language *)))) {
 				printf( "Unable to allocate memory for first language\n");
 				langs->count--;
@@ -386,7 +386,7 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 		}
 		else {
 			/* Adding additional language */
-			if( NULL == ( langs->languages = realloc( langs->languages, 
+			if( NULL == ( langs->languages = realloc( langs->languages,
 					langs->count * sizeof( accept_language *)))) {
 				printf( "Unable to allocate memory for additional language\n");
 				langs->count--;
@@ -395,7 +395,7 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 				return NULL;
 			}
 		}
-		if( NULL == ( langs->languages[ langs->count - 1] = 
+		if( NULL == ( langs->languages[ langs->count - 1] =
 				malloc( sizeof( accept_language)))) {
 			printf( "Unable to allocate memory for language\n");
 			langs->count--;
@@ -406,12 +406,12 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 		langs->languages[ langs->count - 1]->language = ( char *)NULL;
 		langs->languages[ langs->count - 1]->locality = ( char *)NULL;
 		langs->languages[ langs->count - 1]->q = 1.0;
-		
+
 		/* Check to see if there is a q value */
 		qdelim = strstr( langtok, ACCEPT_LANGUAGE_Q_DELIMITER);
 
 		if( NULL != qdelim) {	/* found a q value */
-			langs->languages[ langs->count - 1]->q = 
+			langs->languages[ langs->count - 1]->q =
 					strtod( qdelim + strlen( ACCEPT_LANGUAGE_Q_DELIMITER), NULL);
 			langtok[ qdelim - langtok] = '\0';
 		}
@@ -423,9 +423,9 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 
 		if( NULL != localitydelim) {
 			/* We have a locality delimiter, so copy it */
-			if( NULL == ( langs->languages[ langs->count - 1]->locality = 
+			if( NULL == ( langs->languages[ langs->count - 1]->locality =
 					strdup( localitydelim + 1))) {
-				printf( "Unable to allocate memory for locality '%s'\n", 
+				printf( "Unable to allocate memory for locality '%s'\n",
 						langtok);
 				free_accept_languages( langs);
 				free( langdup);
@@ -442,16 +442,16 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 			/* Then null out the delimiter so the language copy works */
 			*localitydelim = '\0';
 		}
-		if( NULL == ( langs->languages[ langs->count - 1]->language = 
+		if( NULL == ( langs->languages[ langs->count - 1]->language =
 				strdup( langtok))) {
-			printf( "Unable to allocate memory for language '%s'\n", 
+			printf( "Unable to allocate memory for language '%s'\n",
 					langtok);
 			free_accept_languages( langs);
 			free( langdup);
 			return NULL;
 		}
 
-		/* Get the next language token */	
+		/* Get the next language token */
 		langtok = strtok_r( NULL, ",", &saveptr);
 	}
 
@@ -464,7 +464,7 @@ int compare_accept_languages( const void *p1, const void *p2) {
 	accept_language *	lang2 = *( accept_language **)p2;
 
 	if( lang1->q == lang2->q) {
-		if((( NULL == lang1->locality) && ( NULL == lang2->locality)) || 
+		if((( NULL == lang1->locality) && ( NULL == lang2->locality)) ||
 				(( NULL != lang1->locality) && ( NULL != lang2->locality))) {
 			return 0;
 		}

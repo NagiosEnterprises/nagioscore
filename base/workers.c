@@ -42,7 +42,7 @@ struct wproc_worker {
 };
 
 struct wproc_list {
-	int len;
+	unsigned int len;
 	unsigned int idx;
 	struct wproc_worker **wps;
 };
@@ -343,7 +343,7 @@ static int remove_specialized(void *data)
 /* remove worker from job assignment list */
 static void remove_worker(struct wproc_worker *worker)
 {
-	int i,j = 0;
+	unsigned int i, j = 0;
 	struct wproc_list *wpl = worker->wp_list;
 	for (i = 0; i < wpl->len; i++) {
 		if (wpl->wps[i] == worker)
@@ -696,7 +696,8 @@ static int handle_worker_result(int sd, int events, void *arg)
 
 int workers_alive(void)
 {
-	int i, alive = 0;
+	unsigned int i;
+	int alive = 0;
 
 	for (i = 0; i < workers.len; i++) {
 		if (wproc_is_alive(workers.wps[i]))
@@ -809,7 +810,7 @@ static int wproc_query_handler(int sd, char *buf, unsigned int len)
 	if (!strcmp(buf, "register"))
 		return register_worker(sd, rbuf, len);
 	if (!strcmp(buf, "wpstats")) {
-		int i;
+		unsigned int i;
 
 		for (i = 0; i < workers.len; i++) {
 			struct wproc_worker *wp = workers.wps[i];
@@ -871,7 +872,7 @@ int init_workers(int desired_workers)
 		return 0;
 
 	/* can't shrink the number of workers (yet) */
-	if (desired_workers < workers.len)
+	if (desired_workers < (int)workers.len)
 		return -1;
 
 	for (i = 0; i < desired_workers; i++)
@@ -916,7 +917,7 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 	wp->jobs_running++;
 	wp->jobs_started++;
 	loadctl.jobs_running++;
-	if (ret != kvvb->bufsize) {
+	if (ret != (int)kvvb->bufsize) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: '%s' seems to be choked. ret = %d; bufsize = %lu: errno = %d (%s)\n",
 			  wp->name, ret, kvvb->bufsize, errno, strerror(errno));
 		destroy_job(job);

@@ -136,8 +136,8 @@ extern char *last_program_version;
 extern char *new_program_version;
 
 extern int use_aggressive_host_checking;
-extern unsigned long cached_host_check_horizon;
-extern unsigned long cached_service_check_horizon;
+extern time_t cached_host_check_horizon;
+extern time_t cached_service_check_horizon;
 extern int enable_predictive_host_dependency_checks;
 extern int enable_predictive_service_dependency_checks;
 
@@ -176,7 +176,7 @@ extern int child_processes_fork_twice;
 
 extern char *use_timezone;
 
-extern unsigned long max_check_result_file_age;
+extern time_t max_check_result_file_age;
 
 extern char *debug_file;
 extern int debug_level;

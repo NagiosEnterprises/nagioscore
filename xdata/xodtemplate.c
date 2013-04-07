@@ -6857,7 +6857,8 @@ xodtemplate_service *xodtemplate_find_real_service(char *host_name, char *servic
  * during runtime.
  */
 int xodtemplate_register_objects(void) {
-	int i, result = OK;
+	unsigned int i;
+	int result = OK;
 	xodtemplate_timeperiod *temp_timeperiod = NULL;
 	xodtemplate_command *temp_command = NULL;
 	xodtemplate_contactgroup *temp_contactgroup = NULL;

@@ -146,7 +146,7 @@ static int cmp_sdep(const void *a_, const void *b_) {
 	const servicedependency *b = *(servicedependency **)b_;
 	int ret;
 	ret = a->master_service_ptr->id - b->master_service_ptr->id;
-	return ret ? ret : a->dependent_service_ptr->id - b->dependent_service_ptr->id;
+	return ret ? ret : (int)(a->dependent_service_ptr->id - b->dependent_service_ptr->id);
 	}
 
 static int cmp_hdep(const void *a_, const void *b_) {
@@ -154,7 +154,7 @@ static int cmp_hdep(const void *a_, const void *b_) {
 	const hostdependency *b = *(const hostdependency **)b_;
 	int ret;
 	ret = a->master_host_ptr->id - b->master_host_ptr->id;
-	return ret ? ret : a->dependent_host_ptr->id - b->dependent_host_ptr->id;
+	return ret ? ret : (int)(a->dependent_host_ptr->id - b->dependent_host_ptr->id);
 	}
 
 static int cmp_serviceesc(const void *a_, const void *b_) {
@@ -2463,8 +2463,7 @@ int free_object_data(void) {
 	customvariablesmember *next_customvariablesmember = NULL;
 	commandsmember *this_commandsmember = NULL;
 	commandsmember *next_commandsmember = NULL;
-	register int x = 0;
-	register int i = 0;
+	unsigned int i = 0, x = 0;
 
 
 	/*

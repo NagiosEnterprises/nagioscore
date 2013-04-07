@@ -122,8 +122,8 @@ char *new_program_version = NULL;
 time_t last_program_stop = 0L;
 
 int use_aggressive_host_checking = DEFAULT_AGGRESSIVE_HOST_CHECKING;
-unsigned long cached_host_check_horizon = DEFAULT_CACHED_HOST_CHECK_HORIZON;
-unsigned long cached_service_check_horizon = DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
+time_t cached_host_check_horizon = DEFAULT_CACHED_HOST_CHECK_HORIZON;
+time_t cached_service_check_horizon = DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
 int enable_predictive_host_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
 int enable_predictive_service_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS;
 
@@ -194,7 +194,7 @@ int allow_empty_hostgroup_assignment = DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
 
 notification    *notification_list;
 
-unsigned long	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
+time_t max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
 
 check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
@@ -244,7 +244,7 @@ const char *check_result_source(check_result *cr) {
 int set_loadctl_options(char *opts, unsigned int len)
 {
 	struct kvvec *kvv;
-	unsigned int i;
+	int i;
 
 	kvv = buf2kvvec(opts, len, '=', ';', 0);
 	for (i = 0; i < kvv->kv_pairs; i++) {
@@ -526,7 +526,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 			while(1);
 
 			/* cap output length - this isn't necessary, but it keeps runaway plugin output from causing problems */
-			if(max_output_length > 0  && output_dbuf.used_size > max_output_length)
+			if(max_output_length > 0  && (int)output_dbuf.used_size > max_output_length)
 				output_dbuf.buf[max_output_length] = '\x0';
 
 			if(output != NULL && output_dbuf.buf)
@@ -602,7 +602,7 @@ int get_raw_command_line_r(nagios_macros *mac, command *cmd_ptr, char *cmd, char
 
 			/* get the next argument */
 			/* can't use strtok(), as that's used in process_macros... */
-			for(arg_index++, y = 0; y < sizeof(temp_arg) - 1; arg_index++) {
+			for(arg_index++, y = 0; y < (int)sizeof(temp_arg) - 1; arg_index++) {
 
 				/* handle escaped argument delimiters */
 				if(cmd[arg_index] == '\\' && cmd[arg_index+1] == '!') {
@@ -2410,7 +2410,7 @@ int my_rename(char *source, char *dest) {
  */
 int my_fdcopy(char *source, char *dest, int dest_fd) {
 	int source_fd, rd_result = 0, wr_result = 0;
-	unsigned long tot_written = 0, tot_read = 0, buf_size = 0;
+	int tot_written = 0, tot_read = 0, buf_size = 0;
 	struct stat st;
 	char *buf;
 
@@ -2442,7 +2442,7 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 	buf_size = st.st_size > 128 << 10 ? 128 << 10 : st.st_size;
 	buf = malloc(buf_size);
 	if(!buf) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to malloc(%lu) bytes: %s\n", buf_size, strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to malloc(%d) bytes: %s\n", buf_size, strerror(errno));
 		close(source_fd);
 		return ERROR;
 		}

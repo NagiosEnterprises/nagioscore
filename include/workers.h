@@ -20,8 +20,8 @@
 NAGIOS_BEGIN_DECL;
 
 typedef struct wproc_result {
-	int job_id;
-	int type;
+	unsigned int job_id;
+	unsigned int type;
 	time_t timeout;
 	struct timeval start;
 	struct timeval stop;

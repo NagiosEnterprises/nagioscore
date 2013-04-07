@@ -42,7 +42,7 @@ static unsigned int chan_opath_checks_id;
 
 static struct nerd_channel *find_channel(const char *name)
 {
-	int i;
+	unsigned int i;
 
 	for(i = 0; i < num_channels; i++) {
 		struct nerd_channel *chan = channels[i];
@@ -64,12 +64,9 @@ int nerd_get_channel_id(const char *name)
 	return chan->id;
 }
 
-static struct nerd_channel *nerd_get_channel(int chan_id)
+static struct nerd_channel *nerd_get_channel(unsigned int chan_id)
 {
-	if(chan_id < 0 || chan_id >= num_channels)
-		return NULL;
-
-	return channels[chan_id];
+	return chan_id >= num_channels ? NULL : channels[chan_id];
 }
 
 objectlist *nerd_get_subscriptions(int chan_id)
@@ -81,7 +78,7 @@ objectlist *nerd_get_subscriptions(int chan_id)
 
 static int nerd_register_channel_callbacks(struct nerd_channel *chan)
 {
-	int i;
+	unsigned int i;
 
 	for(i = 0; i < chan->num_callbacks; i++) {
 		int result = neb_register_callback(chan->callbacks[i], &nerd_mod, 0, chan->handler);
@@ -96,7 +93,7 @@ static int nerd_register_channel_callbacks(struct nerd_channel *chan)
 
 static int nerd_deregister_channel_callbacks(struct nerd_channel *chan)
 {
-	int i;
+	unsigned int i;
 
 	for(i = 0; i < chan->num_callbacks; i++) {
 		neb_deregister_callback(chan->callbacks[i], chan->handler);
@@ -191,7 +188,7 @@ static int unsubscribe(int sd, struct nerd_channel *chan)
 /* removes a subscriber entirely and closes its socket */
 int nerd_cancel_subscriber(int sd)
 {
-	int i;
+	unsigned int i;
 
 	for(i = 0; i < num_channels; i++) {
 		cancel_channel_subscription(channels[i], sd);
@@ -430,7 +427,7 @@ static int nerd_qh_handler(int sd, char *request, unsigned int len)
 	}
 
 	if (!strcmp(request, "list")) {
-		int i;
+		unsigned int i;
 		for (i = 0; i < num_channels; i++) {
 			chan = channels[i];
 			nsock_printf(sd, "%-15s %s\n", chan->name, chan->description);

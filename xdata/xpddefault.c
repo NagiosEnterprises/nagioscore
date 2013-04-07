@@ -650,8 +650,7 @@ int xpddefault_close_service_perfdata_file(void) {
 /* processes delimiter characters in templates */
 int xpddefault_preprocess_file_templates(char *template) {
 	char *tempbuf;
-	int x = 0;
-	int y = 0;
+	unsigned int x, y;
 
 	if(template == NULL)
 		return OK;

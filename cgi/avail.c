@@ -1966,7 +1966,7 @@ void compute_subject_availability_times(int first_state, int last_state, time_t 
 	int start_state;
 	unsigned long state_duration;
 	struct tm *t;
-	unsigned long midnight_today;
+	time_t midnight_today;
 	int weekday;
 	timerange *temp_timerange;
 	unsigned long temp_duration;
@@ -4769,7 +4769,7 @@ void get_running_average(double *running_average, double new_value, int current_
 /* used in reports where a timeperiod is selected */
 unsigned long calculate_total_time(time_t start_time, time_t end_time) {
 	struct tm *t;
-	unsigned long midnight_today;
+	time_t midnight_today;
 	int weekday;
 	unsigned long total_time;
 	timerange *temp_timerange;
@@ -4790,7 +4790,7 @@ unsigned long calculate_total_time(time_t start_time, time_t end_time) {
 		t->tm_min = 0;
 		t->tm_hour = 0;
 		t->tm_isdst = -1;
-		midnight_today = (unsigned long)mktime(t);
+		midnight_today = mktime(t);
 		weekday = t->tm_wday;
 
 		total_time = 0;

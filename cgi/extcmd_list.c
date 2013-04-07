@@ -181,7 +181,7 @@ struct nagios_extcmd in_core_commands[] = {
 #endif
 
 const char *extcmd_get_name(int id) {
-	int i;
+	unsigned int i;
 
 	for(i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
 		struct nagios_extcmd *ecmd;

@@ -2194,7 +2194,8 @@ int pre_flight_circular_check(int *w, int *e) {
 	servicedependency *temp_sd = NULL;
 	hostdependency *temp_hd = NULL;
 	timeperiod *tp;
-	int i, errors = 0;
+	unsigned int i;
+	int errors = 0;
 	unsigned int alloc, dep_type;
 	char *ary[2];
 
@@ -2207,8 +2208,8 @@ int pre_flight_circular_check(int *w, int *e) {
 
 	for (i = 0; i < ARRAY_SIZE(ary); i++) {
 		if (!(ary[i] = calloc(1, alloc))) {
-			while (--i >= 0) {
-				my_free(ary[i]);
+			while (i) {
+				my_free(ary[--i]);
 				}
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to allocate memory for circular path checks.\n");
 			errors++;

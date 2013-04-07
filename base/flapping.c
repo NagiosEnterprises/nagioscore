@@ -463,7 +463,7 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 
 /* enables flap detection on a program wide basis */
 void enable_flap_detection_routines(void) {
-	int i;
+	unsigned int i;
 	unsigned long attr = MODATTR_FLAP_DETECTION_ENABLED;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "enable_flap_detection_routines()\n");

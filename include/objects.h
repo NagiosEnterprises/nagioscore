@@ -93,9 +93,9 @@ NAGIOS_BEGIN_DECL
 #define OPT_DISABLED      (1 << 15) /* will denote disabled checks some day */
 
 /* macros useful with both hosts and services */
-#define flag_set(c, flag)    (c |= (flag))
-#define flag_get(c, flag)    (c & (flag))
-#define flag_isset(c, flag)  (flag_get((c), (flag)) == (flag))
+#define flag_set(c, flag)    ((c) |= (flag))
+#define flag_get(c, flag)    (unsigned int)((c) & (flag))
+#define flag_isset(c, flag)  (flag_get((c), (flag)) == (unsigned int)(flag))
 #define flag_unset(c, flag)  (c &= ~(flag))
 #define should_stalk(o) flag_isset(o->stalking_options, 1 << o->current_state)
 #define should_flap_detect(o) flag_isset(o->flap_detection_options, 1 << o->current_state)

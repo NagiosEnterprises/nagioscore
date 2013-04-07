@@ -64,8 +64,8 @@ extern struct scheduled_downtime *scheduled_downtime_list;
 
 
 #ifndef NSCGI
-int initialize_downtime_data(char *);                                /* initializes scheduled downtime data */
-int cleanup_downtime_data(char *);                                   /* cleans up scheduled downtime data */
+int initialize_downtime_data(void);        /* initializes scheduled downtime data */
+int cleanup_downtime_data(void);           /* cleans up scheduled downtime data */
 
 int add_new_downtime(int, char *, char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int, int);
 int add_new_host_downtime(char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long *, int, int);

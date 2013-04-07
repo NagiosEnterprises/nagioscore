@@ -25,7 +25,7 @@
 
 #ifdef NSCORE
 int xsddefault_initialize_status_data(char *);
-int xsddefault_cleanup_status_data(char *, int);
+int xsddefault_cleanup_status_data(int);
 int xsddefault_save_status_data(void);
 #endif
 

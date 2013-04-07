@@ -51,7 +51,7 @@
 
 
 /* initialize comment data */
-int xcddefault_initialize_comment_data(char *main_config_file) {
+int xcddefault_initialize_comment_data(void) {
 	comment *temp_comment = NULL;
 
 	/* find the new starting index for comment id if its missing*/

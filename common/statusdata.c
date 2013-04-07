@@ -102,12 +102,12 @@ int update_all_status_data(void) {
 
 
 /* cleans up status data before program termination */
-int cleanup_status_data(char *config_file, int delete_status_data) {
+int cleanup_status_data(int delete_status_data) {
 	int result = OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XSDDEFAULT
-	result = xsddefault_cleanup_status_data(config_file, delete_status_data);
+	result = xsddefault_cleanup_status_data(delete_status_data);
 #endif
 
 	return result;

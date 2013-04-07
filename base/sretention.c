@@ -61,12 +61,12 @@ int initialize_retention_data(char *config_file) {
 
 
 /* cleans up retention data before program termination */
-int cleanup_retention_data(char *config_file) {
+int cleanup_retention_data(void) {
 	int result = OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XRDDEFAULT
-	result = xrddefault_cleanup_retention_data(config_file);
+	result = xrddefault_cleanup_retention_data();
 #endif
 
 	return result;

@@ -56,12 +56,12 @@ comment     **comment_hashlist = NULL;
 
 
 /* initializes comment data */
-int initialize_comment_data(char *config_file) {
+int initialize_comment_data(void) {
 	int result = OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
-	result = xcddefault_initialize_comment_data(config_file);
+	result = xcddefault_initialize_comment_data();
 #endif
 
 	return result;

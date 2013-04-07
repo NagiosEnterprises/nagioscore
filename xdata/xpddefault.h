@@ -34,8 +34,8 @@
 
 
 int xpddefault_initialize_performance_data(char *);
-int xpddefault_cleanup_performance_data(char *);
 int xpddefault_grab_config_info(char *);
+int xpddefault_cleanup_performance_data(void);
 int xpddefault_grab_config_directives(char *);
 
 int xpddefault_update_service_performance_data(service *);

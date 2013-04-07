@@ -56,14 +56,14 @@ int		   defer_downtime_sorting = 0;
 
 
 /* initializes scheduled downtime data */
-int initialize_downtime_data(char *config_file) {
+int initialize_downtime_data(void) {
 	int result = OK;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "initialize_downtime_data()\n");
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
-	result = xdddefault_initialize_downtime_data(config_file);
+	result = xdddefault_initialize_downtime_data();
 #endif
 
 	return result;
@@ -71,7 +71,7 @@ int initialize_downtime_data(char *config_file) {
 
 
 /* cleans up scheduled downtime data */
-int cleanup_downtime_data(char *config_file) {
+int cleanup_downtime_data(void) {
 	/* free memory allocated to downtime data */
 	free_downtime_data();
 

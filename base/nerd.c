@@ -160,7 +160,7 @@ static int cancel_channel_subscription(struct nerd_channel *chan, int sd)
 	return 0;
 }
 
-static int unsubscribe(int sd, struct nerd_channel *chan, const char *fmt)
+static int unsubscribe(int sd, struct nerd_channel *chan)
 {
 	objectlist *list, *next, *prev = NULL;
 
@@ -465,7 +465,7 @@ static int nerd_qh_handler(int sd, char *request, unsigned int len)
 	if(action == NERD_SUBSCRIBE)
 		subscribe(sd, chan, fmt);
 	else
-		unsubscribe(sd, chan, fmt);
+		unsubscribe(sd, chan);
 
 	return 0;
 }

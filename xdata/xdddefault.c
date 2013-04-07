@@ -52,7 +52,7 @@
 
 
 /* initialize downtime data */
-int xdddefault_initialize_downtime_data(char *main_config_file) {
+int xdddefault_initialize_downtime_data(void) {
 	scheduled_downtime *temp_downtime = NULL;
 
 	/* clean up the old downtime data */

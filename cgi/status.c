@@ -120,7 +120,7 @@ void show_hostgroup_grids(void);
 void show_hostgroup_grid(hostgroup *);
 
 void show_filters(void);
-void create_pagenumbers(int total_entries,int visible_entries, char *temp_url,int type_service);
+void create_pagenumbers(int total_entries, char *temp_url,int type_service);
 void create_page_limiter(int result_limit,char *temp_url);
 
 int passes_host_properties_filter(hoststatus *);
@@ -1915,7 +1915,7 @@ void show_service_detail(void) {
 		}
 	else {
 		/* do page numbers if applicable */ 	
-		create_pagenumbers(total_entries,visible_entries,temp_url,TRUE);
+		create_pagenumbers(total_entries,temp_url,TRUE);
 		}
 		
 	return;
@@ -2352,7 +2352,7 @@ void show_host_detail(void) {
 
 	else {
 		/* do page numbers if applicable */ 	
-		create_pagenumbers(total_entries,visible_entries,temp_url,FALSE);		 
+		create_pagenumbers(total_entries,temp_url,FALSE);
 		}
 	return;
 	}
@@ -5379,7 +5379,7 @@ void show_filters(void) {
 	return;
 	}
 
-void create_pagenumbers(int total_entries,int visible_entries,char *temp_url,int type_service) {
+void create_pagenumbers(int total_entries,char *temp_url,int type_service) {
 
 	int pages = 1;	 
 	int tmp_start; 

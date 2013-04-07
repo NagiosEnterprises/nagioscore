@@ -241,7 +241,7 @@ int xsddefault_initialize_status_data(char *config_file) {
 
 
 /* cleanup status data before terminating */
-int xsddefault_cleanup_status_data(char *config_file, int delete_status_data) {
+int xsddefault_cleanup_status_data(int delete_status_data) {
 
 	/* delete the status log */
 	if(delete_status_data == TRUE && xsddefault_status_log) {

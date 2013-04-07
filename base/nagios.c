@@ -215,7 +215,7 @@ static int test_configured_paths(void)
 	return OK;
 }
 
-int main(int argc, char **argv, char **env) {
+int main(int argc, char **argv) {
 	int result;
 	int error = FALSE;
 	int display_license = FALSE;
@@ -688,7 +688,7 @@ int main(int argc, char **argv, char **env) {
 				if(sigrestart == TRUE) {
 
 					/* clean up the status data */
-					cleanup_status_data(config_file, TRUE);
+					cleanup_status_data(TRUE);
 					}
 
 #ifdef USE_EVENT_BROKER
@@ -727,11 +727,11 @@ int main(int argc, char **argv, char **env) {
 			timing_point("Initial state information read\n");
 
 			/* initialize comment data */
-			initialize_comment_data(config_file);
+			initialize_comment_data();
 			timing_point("Comment data initialized\n");
 
 			/* initialize scheduled downtime data */
-			initialize_downtime_data(config_file);
+			initialize_downtime_data();
 			timing_point("Downtime data initialized\n");
 
 			/* initialize performance data */
@@ -808,17 +808,17 @@ int main(int argc, char **argv, char **env) {
 
 			/* save service and host state information */
 			save_state_information(FALSE);
-			cleanup_retention_data(config_file);
+			cleanup_retention_data();
 
 			/* clean up performance data */
-			cleanup_performance_data(config_file);
+			cleanup_performance_data();
 
 			/* clean up the scheduled downtime data */
-			cleanup_downtime_data(config_file);
+			cleanup_downtime_data();
 
 			/* clean up the status data unless we're restarting */
 			if(sigrestart == FALSE) {
-				cleanup_status_data(config_file, TRUE);
+				cleanup_status_data(TRUE);
 				}
 
 			/* shutdown stuff... */

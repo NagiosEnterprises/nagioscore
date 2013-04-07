@@ -53,10 +53,10 @@ int initialize_performance_data(char *config_file) {
 
 
 /* cleans up performance data */
-int cleanup_performance_data(char *config_file) {
+int cleanup_performance_data(void) {
 
 #ifdef USE_XPDDEFAULT
-	xpddefault_cleanup_performance_data(config_file);
+	xpddefault_cleanup_performance_data();
 #endif
 
 	return OK;

@@ -78,7 +78,7 @@ typedef struct comment {
 extern struct comment *comment_list;
 
 #ifndef NSCGI
-int initialize_comment_data(char *);                                /* initializes comment data */
+int initialize_comment_data(void);                                /* initializes comment data */
 int add_new_comment(int, int, char *, char *, time_t, char *, char *, int, int, int, time_t, unsigned long *); /* adds a new host or service comment */
 int add_new_host_comment(int, char *, time_t, char *, char *, int, int, int, time_t, unsigned long *);    /* adds a new host comment */
 int add_new_service_comment(int, char *, char *, time_t, char *, char *, int, int, int, time_t, unsigned long *); /* adds a new service comment */

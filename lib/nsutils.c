@@ -58,7 +58,7 @@ float tv_delta_f(const struct timeval *start, const struct timeval *stop)
 {
 #define DIVIDER 1000000
 	float ret;
-	unsigned long usecs, stop_usec;
+	time_t usecs, stop_usec;
 
 	ret = stop->tv_sec - start->tv_sec;
 	stop_usec = stop->tv_usec;

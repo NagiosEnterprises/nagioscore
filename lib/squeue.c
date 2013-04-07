@@ -184,7 +184,7 @@ int squeue_remove(squeue_t *q, squeue_event *evt)
 
 void squeue_destroy(squeue_t *q, int flags)
 {
-	int i;
+	unsigned int i;
 
 	if (!q || pqueue_size(q) < 1)
 		return;

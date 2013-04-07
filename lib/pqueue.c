@@ -23,9 +23,9 @@
 #include "pqueue.h"
 
 
-#define left(i)   ((i) << 1)
-#define right(i)  (((i) << 1) + 1)
-#define parent(i) ((i) >> 1)
+#define left(i)   (unsigned long)((i) << 1)
+#define right(i)  (unsigned long)(((i) << 1) + 1)
+#define parent(i) (unsigned long)((i) >> 1)
 
 
 pqueue_t *

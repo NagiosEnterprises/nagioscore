@@ -84,7 +84,7 @@ const char *iobroker_strerror(int error)
 	if (error < 0) {
 		return iobroker_unknown_error;
 	}
-	if (error >= ARRAY_SIZE(iobroker_errors))
+	if (error >= (int)ARRAY_SIZE(iobroker_errors))
 		return strerror(error);
 
 	return iobroker_errors[error].string;

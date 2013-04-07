@@ -210,7 +210,7 @@ unsigned long bitmap_count_unset_bits(const bitmap *bm)
 }
 
 #define BITMAP_MATH(a, b) \
-	int i; \
+	unsigned int i; \
 	bitmap *bm; \
 	/* a->alloc has to be smallest */ \
 	if (a->alloc > b->alloc) { \

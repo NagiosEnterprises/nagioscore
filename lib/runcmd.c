@@ -123,7 +123,8 @@ pid_t runcmd_pid(int fd)
 #define add_ret(r) (ret |= r)
 int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 {
-	int arg = 0, i, a = 0;
+	int arg = 0, a = 0;
+	unsigned int i;
 	int state, ret = 0;
 	size_t len;
 	char *argz;

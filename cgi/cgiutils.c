@@ -952,7 +952,7 @@ char * html_encode(char *input, int escape_newlines) {
 	if(( wcinput = malloc( len * sizeof( wchar_t))) == NULL) {
 		return "";
 		}
-	if(( mbstowcs_result = mbstowcs( wcinput, input, len)) < 0) {
+	if((mbstowcs_result = mbstowcs( wcinput, input, len)) == (size_t)-1) {
 		free( wcinput);
 		return "";
 		}

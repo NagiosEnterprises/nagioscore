@@ -1,12 +1,17 @@
+#define _GNU_SOURCE
+#include <stdio.h>
 #include "nsutils.c"
 #include "t-utils.h"
+#include <sys/time.h>
+#include <time.h>
 
 int main(int argc, char **argv)
 {
 	struct timeval start, stop;
 	float f_delta;
 	int msec_delta;
-	char *s1, *s2;
+	char *s1;
+	const char *s2;
 
 	t_set_colors(0);
 	t_verbose = 1;

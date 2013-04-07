@@ -127,11 +127,11 @@ void t_diag(const char *fmt, ...)
 int ok_int(int a, int b, const char *name)
 {
 	if (a == b) {
-		t_pass(name);
+		t_pass("%s", name);
 		return TEST_PASS;
 	}
 
-	t_fail(name);
+	t_fail("%s", name);
 	t_diag("%d != %d. delta: %d", a, b, delta(a, b));
 	return TEST_FAIL;
 }
@@ -139,11 +139,11 @@ int ok_int(int a, int b, const char *name)
 int ok_uint(uint a, uint b, const char *name)
 {
 	if (a == b) {
-		t_pass(name);
+		t_pass("%s", name);
 		return TEST_PASS;
 	}
 
-	t_fail(name);
+	t_fail("%s", name);
 	t_diag("%u != %u. delta: %u", a, b, delta(a, b));
 	return TEST_FAIL;
 }
@@ -151,11 +151,11 @@ int ok_uint(uint a, uint b, const char *name)
 int ok_str(const char *a, const char *b, const char *name)
 {
 	if ((!a && !b) || (a && b && !strcmp(a, b))) {
-		t_pass(name);
+		t_pass("%s", name);
 		return TEST_PASS;
 	}
 
-	t_fail(name);
+	t_fail("%s", name);
 	t_diag("'%s' != '%s'", a, b);
 	return TEST_FAIL;
 }

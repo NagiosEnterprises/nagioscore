@@ -111,7 +111,7 @@ void unescape_cgi_input(char *input) {
 /* this is a hacked version of a routine I found a long time ago somewhere - can't remember where anymore */
 char **getcgivars(void) {
 	register int i;
-	char *accept_language;
+	char *accept_lang;
 	char *request_method;
 	char *content_type;
 	char *content_length_string;
@@ -127,8 +127,8 @@ char **getcgivars(void) {
 	cgiinput = "";
 
 	/* Attempt to set the locale */
-	accept_language = getenv("HTTP_ACCEPT_LANGUAGE");
-	process_language( accept_language);
+	accept_lang = getenv("HTTP_ACCEPT_LANGUAGE");
+	process_language(accept_lang);
 
 	/* depending on the request method, read all CGI input into cgiinput */
 

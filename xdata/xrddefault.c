@@ -151,11 +151,11 @@ int xrddefault_grab_config_directives(char *input) {
 
 
 /* initialize retention data */
-int xrddefault_initialize_retention_data(char *config_file) {
+int xrddefault_initialize_retention_data(char *cfgfile) {
 	int result;
 
 	/* grab configuration data */
-	result = xrddefault_grab_config_info(config_file);
+	result = xrddefault_grab_config_info(cfgfile);
 	if(result == ERROR)
 		return ERROR;
 

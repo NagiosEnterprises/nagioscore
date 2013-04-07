@@ -41,10 +41,10 @@
 /******************************************************************/
 
 /* initializes performance data */
-int initialize_performance_data(char *config_file) {
+int initialize_performance_data(char *cfgfile) {
 
 #ifdef USE_XPDDEFAULT
-	xpddefault_initialize_performance_data(config_file);
+	xpddefault_initialize_performance_data(cfgfile);
 #endif
 
 	return OK;

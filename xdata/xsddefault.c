@@ -76,7 +76,7 @@ char *xsddefault_temp_file = NULL; /* XXX: TO BE REMOVED SO DO NOT USE! */
 /******************************************************************/
 
 /* grab configuration information */
-int xsddefault_grab_config_info(char *config_file) {
+int xsddefault_grab_config_info(char *cfgfile) {
 	char *input = NULL;
 	mmapfile *thefile;
 #ifdef NSCGI
@@ -91,7 +91,7 @@ int xsddefault_grab_config_info(char *config_file) {
 	/*** CORE PASSES IN MAIN CONFIG FILE, CGIS PASS IN CGI CONFIG FILE! ***/
 
 	/* open the config file for reading */
-	if((thefile = mmap_fopen(config_file)) == NULL)
+	if((thefile = mmap_fopen(cfgfile)) == NULL)
 		return ERROR;
 
 	/* read in all lines from the main config file */
@@ -221,14 +221,14 @@ int xsddefault_grab_config_directives(char *input) {
 
 
 /* initialize status data */
-int xsddefault_initialize_status_data(char *config_file) {
+int xsddefault_initialize_status_data(char *cfgfile) {
 	int result;
 
 	/* use the global already-parsed temp_file for this */
 	xsddefault_temp_file = temp_file;
 
 	/* grab configuration data */
-	result = xsddefault_grab_config_info(config_file);
+	result = xsddefault_grab_config_info(cfgfile);
 	if(result == ERROR)
 		return ERROR;
 
@@ -633,7 +633,7 @@ int xsddefault_save_status_data(void) {
 /******************************************************************/
 
 /* read all program, host, and service status information */
-int xsddefault_read_status_data(char *config_file, int options) {
+int xsddefault_read_status_data(const char *cfgfile, int options) {
 #ifdef NO_MMAP
 	char input[MAX_PLUGIN_OUTPUT_LENGTH] = "";
 	FILE *fp = NULL;
@@ -680,7 +680,7 @@ int xsddefault_read_status_data(char *config_file, int options) {
 		}
 
 	/* grab configuration data */
-	result = xsddefault_grab_config_info(config_file);
+	result = xsddefault_grab_config_info(cfgfile);
 	if(result == ERROR)
 		return ERROR;
 

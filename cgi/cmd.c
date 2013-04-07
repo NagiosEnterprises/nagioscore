@@ -656,7 +656,7 @@ int process_cgivars(void) {
 
 void request_command_data(int cmd) {
 	time_t t;
-	char start_time[MAX_DATETIME_LENGTH];
+	char start_time_str[MAX_DATETIME_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
 	contact *temp_contact;
 	scheduled_downtime *temp_downtime;
@@ -1182,15 +1182,15 @@ void request_command_data(int cmd) {
 				if(temp_downtime->type != HOST_DOWNTIME)
 					continue;
 				printf("<option value='%lu'>", temp_downtime->downtime_id);
-				get_time_string(&temp_downtime->start_time, start_time, sizeof(start_time), SHORT_DATE_TIME);
-				printf("ID: %lu, Host '%s' starting @ %s\n", temp_downtime->downtime_id, temp_downtime->host_name, start_time);
+				get_time_string(&temp_downtime->start_time, start_time_str, sizeof(start_time_str), SHORT_DATE_TIME);
+				printf("ID: %lu, Host '%s' starting @ %s\n", temp_downtime->downtime_id, temp_downtime->host_name, start_time_str);
 				}
 			for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
 				if(temp_downtime->type != SERVICE_DOWNTIME)
 					continue;
 				printf("<option value='%lu'>", temp_downtime->downtime_id);
-				get_time_string(&temp_downtime->start_time, start_time, sizeof(start_time), SHORT_DATE_TIME);
-				printf("ID: %lu, Service '%s' on host '%s' starting @ %s \n", temp_downtime->downtime_id, temp_downtime->service_description, temp_downtime->host_name, start_time);
+				get_time_string(&temp_downtime->start_time, start_time_str, sizeof(start_time_str), SHORT_DATE_TIME);
+				printf("ID: %lu, Service '%s' on host '%s' starting @ %s \n", temp_downtime->downtime_id, temp_downtime->service_description, temp_downtime->host_name, start_time_str);
 				}
 
 			printf("</select>\n");
@@ -1890,20 +1890,20 @@ void commit_command_data(int cmd) {
 __attribute__((format(printf, 2, 3)))
 static int cmd_submitf(int id, const char *fmt, ...) {
 	char cmd[MAX_EXTERNAL_COMMAND_LENGTH];
-	const char *command;
+	const char *command_name;
 	int len, len2;
 	va_list ap;
 
-	command = extcmd_get_name(id);
+	command_name = extcmd_get_name(id);
 	/*
 	 * We disallow sending 'CHANGE' commands from the cgi's
 	 * until we do proper session handling to prevent cross-site
 	 * request forgery
 	 */
-	if(!command || (strlen(command) > 6 && !memcmp("CHANGE", command, 6)))
+	if(!command_name || (strlen(command_name) > 6 && !memcmp("CHANGE", command_name, 6)))
 		return ERROR;
 
-	len = snprintf(cmd, sizeof(cmd) - 1, "[%lu] %s;", time(NULL), command);
+	len = snprintf(cmd, sizeof(cmd) - 1, "[%lu] %s;", time(NULL), command_name);
 	if(len < 0)
 		return ERROR;
 

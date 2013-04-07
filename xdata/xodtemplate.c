@@ -160,9 +160,9 @@ static bitmap *service_map = NULL, *parent_map = NULL;
 
 
 /* returns the name of a numbered config file */
-static char *xodtemplate_config_file_name(int config_file) {
-	if(config_file <= xodtemplate_current_config_file)
-		return xodtemplate_config_files[config_file - 1];
+static const char *xodtemplate_config_file_name(int cfgfile) {
+	if(cfgfile <= xodtemplate_current_config_file)
+		return xodtemplate_config_files[cfgfile - 1];
 
 	return "?";
 	}
@@ -186,7 +186,7 @@ static void xodtemplate_free_template_skiplists(void) {
 /* process all config files - both core and CGIs pass in name of main config file */
 int xodtemplate_read_config_data(char *main_config_file, int options) {
 #ifdef NSCORE
-	char *config_file = NULL;
+	char *cfgfile = NULL;
 	char *config_base_dir = NULL;
 	char *input = NULL;
 	char *var = NULL;
@@ -255,15 +255,14 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 
 	/* process object config files normally... */
 	else {
-
 		/* determine the directory of the main config file */
-		if((config_file = (char *)strdup(main_config_file)) == NULL) {
+		if((cfgfile = (char *)strdup(main_config_file)) == NULL) {
 			my_free(xodtemplate_config_files);
 			printf("Unable to allocate memory!\n");
 			return ERROR;
 			}
-		config_base_dir = (char *)strdup(dirname(config_file));
-		my_free(config_file);
+		config_base_dir = (char *)strdup(dirname(cfgfile));
+		my_free(cfgfile);
 
 		/* open the main config file for reading (we need to find all the config files to read) */
 		if((thefile = mmap_fopen(main_config_file)) == NULL) {
@@ -301,15 +300,15 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 			if(!strcmp(var, "xodtemplate_config_file") || !strcmp(var, "cfg_file")) {
 
 				if(config_base_dir != NULL && val[0] != '/') {
-					asprintf(&config_file, "%s/%s", config_base_dir, val);
+					asprintf(&cfgfile, "%s/%s", config_base_dir, val);
 					}
 				else
-					config_file = strdup(val);
+					cfgfile = strdup(val);
 
 				/* process the config file... */
-				result = xodtemplate_process_config_file(config_file, options);
+				result = xodtemplate_process_config_file(cfgfile, options);
 
-				my_free(config_file);
+				my_free(cfgfile);
 
 				/* if there was an error processing the config file, break out of loop */
 				if(result == ERROR)
@@ -320,19 +319,19 @@ int xodtemplate_read_config_data(char *main_config_file, int options) {
 			else if(!strcmp(var, "xodtemplate_config_dir") || !strcmp(var, "cfg_dir")) {
 
 				if(config_base_dir != NULL && val[0] != '/') {
-					asprintf(&config_file, "%s/%s", config_base_dir, val);
+					asprintf(&cfgfile, "%s/%s", config_base_dir, val);
 					}
 				else
-					config_file = strdup(val);
+					cfgfile = strdup(val);
 
 				/* strip trailing / if necessary */
-				if(config_file != NULL && config_file[strlen(config_file) - 1] == '/')
-					config_file[strlen(config_file) - 1] = '\x0';
+				if(cfgfile != NULL && cfgfile[strlen(cfgfile) - 1] == '/')
+					cfgfile[strlen(cfgfile) - 1] = '\x0';
 
 				/* process the config directory... */
-				result = xodtemplate_process_config_dir(config_file, options);
+				result = xodtemplate_process_config_dir(cfgfile, options);
 
-				my_free(config_file);
+				my_free(cfgfile);
 
 				/* if there was an error processing the config file, break out of loop */
 				if(result == ERROR)
@@ -791,7 +790,7 @@ int xodtemplate_process_config_file(char *filename, int options) {
 		if (new_##type == NULL) \
 			return ERROR; \
 		new_##type->register_object=TRUE; \
-		new_##type->_config_file=config_file; \
+		new_##type->_config_file=cfgfile; \
 		new_##type->_start_line=start_line; \
 	\
 		/* precached object files are already sorted, so add to tail */ \
@@ -818,7 +817,7 @@ int xodtemplate_process_config_file(char *filename, int options) {
 	} while (0)
 
 /* starts a new object definition */
-int xodtemplate_begin_object_definition(char *input, int options, int config_file, int start_line) {
+int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, int start_line) {
 	int result = OK;
 	xodtemplate_timeperiod *new_timeperiod = NULL;
 	xodtemplate_command *new_command = NULL;
@@ -4087,7 +4086,6 @@ static int xodtemplate_create_service_list(objectlist **ret, bitmap *reject_map,
 	objectlist *hlist = NULL, *hglist = NULL, *slist = NULL, *sglist = NULL;
 	objectlist *glist, *gnext, *list, *next; /* iterators */
 	xodtemplate_hostgroup fake_hg;
-	xodtemplate_service *s;
 	bitmap *in;
 
 	/*
@@ -4178,7 +4176,7 @@ static int xodtemplate_create_service_list(objectlist **ret, bitmap *reject_map,
 				return ERROR;
 			}
 			for(list = slist; list; list = next) {
-				s = (xodtemplate_service *)list->object_ptr;
+				xodtemplate_service *s = (xodtemplate_service *)list->object_ptr;
 				next = list->next;
 				free(list);
 				if(bitmap_isset(in, s->id) || bitmap_isset(reject_map, s->id))

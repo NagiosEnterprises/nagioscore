@@ -75,12 +75,12 @@ static int     xpddefault_service_perfdata_fd = -1;
 /******************************************************************/
 
 /* grabs configuration information from main config file */
-int xpddefault_grab_config_info(char *config_file) {
+int xpddefault_grab_config_info(char *cfgfile) {
 	char *input = NULL;
 	mmapfile *thefile = NULL;
 
 	/* open the config file for reading */
-	if((thefile = mmap_fopen(config_file)) == NULL) {
+	if((thefile = mmap_fopen(cfgfile)) == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not open main config file '%s' for reading performance variables!\n", config_file);
 		return ERROR;
 		}
@@ -207,7 +207,7 @@ int xpddefault_grab_config_directives(char *input) {
 /******************************************************************/
 
 /* initializes performance data */
-int xpddefault_initialize_performance_data(char *config_file) {
+int xpddefault_initialize_performance_data(char *cfgfile) {
 	char *buffer = NULL;
 	char *temp_buffer = NULL;
 	char *temp_command_name = NULL;
@@ -225,7 +225,7 @@ int xpddefault_initialize_performance_data(char *config_file) {
 	xpddefault_service_perfdata_file_processing_command_ptr = NULL;
 
 	/* grab config info from main config file */
-	xpddefault_grab_config_info(config_file);
+	xpddefault_grab_config_info(cfgfile);
 
 	/* make sure we have some templates defined */
 	if(xpddefault_host_perfdata_file_template == NULL)

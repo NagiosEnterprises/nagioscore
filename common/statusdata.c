@@ -63,12 +63,12 @@ extern int      use_pending_states;
 /******************************************************************/
 
 /* initializes status data at program start */
-int initialize_status_data(char *config_file) {
+int initialize_status_data(char *cfgfile) {
 	int result = OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XSDDEFAULT
-	result = xsddefault_initialize_status_data(config_file);
+	result = xsddefault_initialize_status_data(cfgfile);
 #endif
 
 	return result;
@@ -182,15 +182,12 @@ int update_contact_status(contact *cntct, int aggregated_dump) {
 
 
 /* reads in all status data */
-int read_status_data(char *config_file, int options) {
+int read_status_data(const char *cfgfile, int options) {
 	int result = OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XSDDEFAULT
-	result = xsddefault_read_status_data(config_file, options);
-#endif
-#ifdef USE_XSDDB
-	result = xsddb_read_status_data(config_file, options);
+	result = xsddefault_read_status_data(cfgfile, options);
 #endif
 
 	return result;

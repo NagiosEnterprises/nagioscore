@@ -890,7 +890,7 @@ Deletes all host and service downtimes on a host by hostname, optionally filtere
 All char* must be set or NULL - "" will silently fail to match
 Returns number deleted
 */
-int delete_downtime_by_hostname_service_description_start_time_comment(char *hostname, char *service_description, time_t start_time, char *comment) {
+int delete_downtime_by_hostname_service_description_start_time_comment(char *hostname, char *service_description, time_t start_time, char *cmnt) {
 	scheduled_downtime *temp_downtime;
 	scheduled_downtime *next_downtime;
 	void *downtime_cpy;
@@ -898,7 +898,7 @@ int delete_downtime_by_hostname_service_description_start_time_comment(char *hos
 	objectlist *matches = NULL, *tmp_match = NULL;
 
 	/* Do not allow deletion of everything - must have at least 1 filter on */
-	if(hostname == NULL && service_description == NULL && start_time == 0 && comment == NULL)
+	if(hostname == NULL && service_description == NULL && start_time == 0 && cmnt == NULL)
 		return deleted;
 
 	for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = next_downtime) {
@@ -906,7 +906,7 @@ int delete_downtime_by_hostname_service_description_start_time_comment(char *hos
 		if(start_time != 0 && temp_downtime->start_time != start_time) {
 			continue;
 			}
-		if(comment != NULL && strcmp(temp_downtime->comment, comment) != 0)
+		if(cmnt != NULL && strcmp(temp_downtime->comment, cmnt) != 0)
 			continue;
 		if(temp_downtime->type == HOST_DOWNTIME) {
 			/* If service is specified, then do not delete the host downtime */

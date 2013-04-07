@@ -47,12 +47,12 @@
 
 
 /* initializes retention data at program start */
-int initialize_retention_data(char *config_file) {
+int initialize_retention_data(char *cfgfile) {
 	int result = OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XRDDEFAULT
-	result = xrddefault_initialize_retention_data(config_file);
+	result = xrddefault_initialize_retention_data(cfgfile);
 #endif
 
 	return result;

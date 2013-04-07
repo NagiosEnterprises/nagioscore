@@ -469,7 +469,7 @@ int close_debug_log(void) {
 /* write to the debug log */
 int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	va_list ap;
-	char *temp_path = NULL;
+	char *tmppath = NULL;
 	struct timeval current_time;
 
 	if(!(debug_level == DEBUGL_ALL || (level & debug_level)))
@@ -500,17 +500,17 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 		close_debug_log();
 
 		/* rotate the log file */
-		asprintf(&temp_path, "%s.old", debug_file);
-		if(temp_path) {
+		asprintf(&tmppath, "%s.old", debug_file);
+		if(tmppath) {
 
 			/* unlink the old debug file */
-			unlink(temp_path);
+			unlink(tmppath);
 
 			/* rotate the debug file */
-			my_rename(debug_file, temp_path);
+			my_rename(debug_file, tmppath);
 
 			/* free memory */
-			my_free(temp_path);
+			my_free(tmppath);
 			}
 
 		/* open a new file */

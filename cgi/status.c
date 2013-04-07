@@ -3714,7 +3714,7 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd,
 
 
 
-void show_servicegroup_hostgroup_member_service_status_totals(char *host_name, void *data) {
+void show_servicegroup_hostgroup_member_service_status_totals(char *hst_name, void *data) {
 	int total_ok = 0;
 	int total_warning = 0;
 	int total_unknown = 0;
@@ -3732,7 +3732,7 @@ void show_servicegroup_hostgroup_member_service_status_totals(char *host_name, v
 	/* check all services... */
 	for(temp_servicestatus = servicestatus_list; temp_servicestatus != NULL; temp_servicestatus = temp_servicestatus->next) {
 
-		if(!strcmp(host_name, temp_servicestatus->host_name)) {
+		if(!strcmp(hst_name, temp_servicestatus->host_name)) {
 
 			/* make sure the user is authorized to see this service... */
 			temp_service = find_service(temp_servicestatus->host_name, temp_servicestatus->description);
@@ -3775,7 +3775,7 @@ void show_servicegroup_hostgroup_member_service_status_totals(char *host_name, v
 	if(display_type == DISPLAY_SERVICEGROUPS)
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "servicegroup=%s&style=detail", url_encode(temp_servicegroup->group_name));
 	else
-		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "host=%s", url_encode(host_name));
+		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "host=%s", url_encode(hst_name));
 	temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 
 	if(total_ok > 0)
@@ -5426,19 +5426,18 @@ void create_pagenumbers(int total_entries,char *temp_url,int type_service) {
 
 	}
 
-void create_page_limiter(int result_limit,char *temp_url) {
+void create_page_limiter(int limit,char *temp_url) {
 
 	/*  Result Limit Select Box   */
 	printf("<div id='pagelimit'>\n<div id='result_limit'>\n");
 	printf("<label for='limit'>Limit Results: </label>\n");
 	printf("<select onchange='set_limit(\"%s\")' name='limit' id='limit'>\n",temp_url);
-	printf("<option %s value='50'>50</option>\n",( (result_limit==50) ? "selected='selected'" : "") );
-	printf("<option %s value='100'>100</option>\n",( (result_limit==100) ? "selected='selected'" : "") );
-	printf("<option %s value='250'>250</option>\n",( (result_limit==250) ? "selected='selected'" : "") );
-	printf("<option %s value='1000'>1000</option>\n",( (result_limit==1000) ? "selected='selected'" : "") );
-	printf("<option %s value='0'>All</option>\n",(result_limit==0) ? "selected='selected'" : "");
+	printf("<option %s value='50'>50</option>\n",( (limit==50) ? "selected='selected'" : "") );
+	printf("<option %s value='100'>100</option>\n",( (limit==100) ? "selected='selected'" : "") );
+	printf("<option %s value='250'>250</option>\n",( (limit==250) ? "selected='selected'" : "") );
+	printf("<option %s value='1000'>1000</option>\n",( (limit==1000) ? "selected='selected'" : "") );
+	printf("<option %s value='0'>All</option>\n",(limit==0) ? "selected='selected'" : "");
 	printf("</select></div>\n");
 	printf("<div id='top_page_numbers'></div>\n</div>\n");
 	//page numbers
-
 	}

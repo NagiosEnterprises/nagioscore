@@ -217,7 +217,6 @@ static struct wproc_job *create_job(int type, void *arg, time_t timeout, const c
 		free(job);
 		return NULL;
 	}
-	job->command = strdup(cmd);
 
 	return job;
 }

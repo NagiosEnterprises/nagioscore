@@ -529,18 +529,18 @@ int read_main_config_file(char *filename) {
 
 
 /* read all object definitions */
-int read_all_object_configuration_data(char *config_file, int options) {
+int read_all_object_configuration_data(char *cfgfile, int options) {
 	int result = OK;
 
 	/* read in all external config data of the desired type(s) */
-	result = read_object_config_data(config_file, options);
+	result = read_object_config_data(cfgfile, options);
 
 	return result;
 	}
 
 
 /* read all status data */
-int read_all_status_data(char *config_file, int options) {
+int read_all_status_data(char *cfgfile, int options) {
 	int result = OK;
 
 	/* don't duplicate things we've already read in */
@@ -556,7 +556,7 @@ int read_all_status_data(char *config_file, int options) {
 		return OK;
 
 	/* read in all external status data */
-	result = read_status_data(config_file, options);
+	result = read_status_data(cfgfile, options);
 
 	/* mark what items we've read in... */
 	if(options & READ_PROGRAM_STATUS)

@@ -760,8 +760,3 @@ void handle_service_flap_detection_disabled(service *svc) {
 
 	return;
 	}
-
-
-
-
-

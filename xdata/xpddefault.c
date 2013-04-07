@@ -889,4 +889,3 @@ int xpddefault_process_service_perfdata_file(void) {
 
 	return result;
 	}
-

@@ -2839,4 +2839,3 @@ void draw_circular_layer_markup(host *parent, double start_angle, double useable
 
 	return;
 	}
-

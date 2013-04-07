@@ -687,8 +687,3 @@ comment *find_comment(unsigned long comment_id, int comment_type) {
 
 	return NULL;
 	}
-
-
-
-
-

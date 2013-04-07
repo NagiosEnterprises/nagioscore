@@ -1288,5 +1288,3 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 
 	return;
 	}
-
-

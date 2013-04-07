@@ -1501,6 +1501,3 @@ void display_problems(void) {
 
 	return;
 	}
-
-
-

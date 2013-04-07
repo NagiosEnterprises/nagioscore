@@ -2282,4 +2282,3 @@ int pre_flight_circular_check(int *w, int *e) {
 
 	return (errors > 0) ? ERROR : OK;
 	}
-

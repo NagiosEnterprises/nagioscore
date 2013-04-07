@@ -135,6 +135,3 @@ int read_initial_state_information(void) {
 
 	return OK;
 	}
-
-
-

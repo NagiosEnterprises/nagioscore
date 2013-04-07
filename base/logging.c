@@ -519,4 +519,3 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 
 	return OK;
 	}
-

@@ -3567,5 +3567,3 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 
 	return OK;
 	}
-
-

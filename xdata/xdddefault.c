@@ -208,5 +208,3 @@ int xdddefault_add_new_service_downtime(char *host_name, char *service_descripti
 	return OK;
 	}
 #endif
-
-

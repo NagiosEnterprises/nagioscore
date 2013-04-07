@@ -984,6 +984,4 @@ struct timeval get_broker_timestamp(struct timeval *timestamp) {
 	return tv;
 	}
 
-
-
 #endif

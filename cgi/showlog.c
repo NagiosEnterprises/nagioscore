@@ -543,4 +543,3 @@ int display_log(void) {
 
 	return OK;
 	}
-

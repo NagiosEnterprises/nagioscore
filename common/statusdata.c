@@ -539,7 +539,4 @@ int get_servicestatus_count(char *host_name, int type) {
 	return count;
 	}
 
-
-
 #endif
-

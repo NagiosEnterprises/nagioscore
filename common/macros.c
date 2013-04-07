@@ -3198,5 +3198,4 @@ int set_macro_environment_var(char *name, char *value, int set) {
 	return OK;
 	}
 
-
 #endif

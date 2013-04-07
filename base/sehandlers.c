@@ -647,6 +647,3 @@ int run_host_event_handler(nagios_macros *mac, host *hst) {
 
 	return OK;
 	}
-
-
-

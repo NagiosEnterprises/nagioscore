@@ -1826,5 +1826,3 @@ void strip_splunk_query_terms(char *buffer) {
 
 	return;
 	}
-
-

@@ -3336,4 +3336,3 @@ int reset_variables(void) {
 
 	return OK;
 	}
-

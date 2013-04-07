@@ -10195,5 +10195,3 @@ int xodtemplate_clean_additive_strings(void) {
 	}
 
 #endif
-
-

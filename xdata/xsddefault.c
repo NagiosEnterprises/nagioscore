@@ -1185,4 +1185,3 @@ int xsddefault_read_status_data(char *config_file, int options) {
 	}
 
 #endif
-

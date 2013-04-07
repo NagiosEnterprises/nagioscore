@@ -1201,5 +1201,3 @@ void free_downtime_data(void) {
 
 	return;
 	}
-
-

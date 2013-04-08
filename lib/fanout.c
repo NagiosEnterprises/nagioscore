@@ -29,23 +29,28 @@ fanout_table *fanout_create(unsigned long size)
 void fanout_destroy(fanout_table *t, void (*destructor)(void *))
 {
 	unsigned long i;
-	struct fanout_entry *next;
+	struct fanout_entry **entries, *next;
 
 	if (!t || !t->entries || !t->alloc)
 		return;
 
+	/* protect against destructors calling fanout_remove() */
+	entries = t->entries;
+	t->entries = NULL;
+
 	for (i = 0; i < t->alloc; i++) {
 		struct fanout_entry *entry;
-		for (entry = t->entries[i]; entry; entry = next) {
+
+		for (entry = entries[i]; entry; entry = next) {
+			void *data = entry->data;
 			next = entry->next;
-			if (destructor) {
-				destructor(entry->data);
-			}
 			free(entry);
+			if (destructor) {
+				destructor(data);
+			}
 		}
-		t->entries[i] = NULL;
 	}
-	free(t->entries);
+	free(entries);
 	free(t);
 }
 

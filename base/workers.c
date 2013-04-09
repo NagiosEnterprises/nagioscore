@@ -168,15 +168,10 @@ static struct wproc_list *get_wproc_list(const char *cmd)
 	if (wp_list != NULL) {
 		log_debug_info(DEBUGL_CHECKS, 1, "Found specialized worker(s) for '%s'", (slash && *slash != '/') ? slash : cmd_name);
 	}
-	else {
-		if (!workers.wps)
-			return NULL;
-		wp_list = &workers;
-	}
-	if (cmd_name) {
+	if (cmd_name)
 		free(cmd_name);
-	}
-	return wp_list;
+
+	return wp_list ? wp_list : &workers;
 }
 
 static struct wproc_worker *get_worker(const char *cmd)
@@ -187,7 +182,7 @@ static struct wproc_worker *get_worker(const char *cmd)
 		return NULL;
 
 	wp_list = get_wproc_list(cmd);
-	if (!wp_list)
+	if (!wp_list || !wp_list->wps || !wp_list->len)
 		return NULL;
 
 	return wp_list->wps[wp_list->idx++ % wp_list->len];

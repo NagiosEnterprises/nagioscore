@@ -28,7 +28,16 @@ struct squeue_event {
 	void *data;
 };
 
-
+/*
+ * 21 bits has enough data for systems that can have the usec
+ * field of a struct timeval move into the 1-second range, but
+ * not enough to let them to (far) beyond 2. If the system libs
+ * are too buggy, we really can't save it.
+ * This little twiddling operation lets us use dates beyond
+ * 2038 on 64-bit systems, while retaining the fast priority
+ * comparisons.
+ */
+#define SQ_BITS 21
 static pqueue_pri_t evt_compute_pri(struct timeval *tv)
 {
 	pqueue_pri_t ret;
@@ -39,8 +48,8 @@ static pqueue_pri_t evt_compute_pri(struct timeval *tv)
 		ret += !!tv->tv_usec;
 	} else {
 		ret = tv->tv_sec;
-		ret <<= 32;
-		ret |= tv->tv_usec;
+		ret <<= SQ_BITS;
+		ret |= tv->tv_usec & ((1 << SQ_BITS) - 1);
 	}
 
 	return ret;
@@ -108,6 +117,15 @@ squeue_event *squeue_add_tv(squeue_t *q, struct timeval *tv, void *data)
 	if (tv->tv_sec < time(NULL))
 		tv->tv_sec = time(NULL);
 	evt->when.tv_sec = tv->tv_sec;
+	if (sizeof(evt->when.tv_sec) > 4) {
+		/*
+		 * Only use bottom sizeof(pqueue_pri_t)-SQ_BITS bits on
+		 * 64-bit systems, or we may get entries at the head
+		 * of the queue are actually scheduled to run several
+		 * hundred thousand years from now.
+		 */
+		evt->when.tv_sec &= (1ULL << ((sizeof(pqueue_pri_t) * 8) - SQ_BITS)) - 1;
+	}
 	evt->when.tv_usec = tv->tv_usec;
 	evt->data = data;
 

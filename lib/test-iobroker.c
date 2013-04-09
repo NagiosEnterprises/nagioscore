@@ -60,13 +60,13 @@ static int connected_handler(int fd, int events, void *arg)
 
 		buf[len] = 0;
 
-		test(len == strlen(msg[i]), "len match for message %d", i);
+		test(len == (int)strlen(msg[i]), "len match for message %d", i);
 		test(!memcmp(buf, msg[i], len), "data match for message %d", i);
 	}
 
 	i++;
 
-	if (i < 0 || i >= ARRAY_SIZE(msg)) {
+	if (i < 0 || i >= (int)ARRAY_SIZE(msg)) {
 		fprintf(stderr, "i = %d in connected_handler(). What's up with that?\n", i);
 		return 0;
 	}

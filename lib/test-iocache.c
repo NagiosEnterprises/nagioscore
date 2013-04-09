@@ -61,7 +61,7 @@ static int test_delimiter(const char *delim, unsigned int delim_len)
 
 int main(int argc, char **argv)
 {
-	int i;
+	unsigned int i;
 	struct strcode sc[] = {
 		ADDSTR("\n"),
 		ADDSTR("\0\0"),

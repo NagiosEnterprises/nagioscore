@@ -1,3 +1,5 @@
+#define _GNU_SOURCE 1
+#include <stdio.h>
 #include "fanout.c"
 #include "t-utils.h"
 
@@ -15,7 +17,7 @@ static void destructor(void *ptr)
 
 static void run_tests(int ntests, int fo_size)
 {
-	struct tcase *test;
+	struct tcase *tc;
 	unsigned long last_ptr, *ptr;
 	int i, added = 0, removed = 0;
 	fanout_table *fo;
@@ -23,10 +25,10 @@ static void run_tests(int ntests, int fo_size)
 	last_ptr = ntests;
 
 	fo = fanout_create(fo_size);
-	test = calloc(ntests, sizeof(*test));
+	tc = calloc(ntests, sizeof(*tc));
 	for (i = 0; i < ntests; i++) {
-		test[i].value = i;
-		if (!fanout_add(fo, test[i].key, &test[i].value))
+		tc[i].value = i;
+		if (!fanout_add(fo, tc[i].key, &tc[i].value))
 			added++;
 	}
 	ok_int(added, ntests, "Adding stuff must work");
@@ -42,14 +44,14 @@ static void run_tests(int ntests, int fo_size)
 
 	fo = fanout_create(fo_size);
 	for (i = 0; i < ntests; i++) {
-		test[i].value = i;
-		if (!fanout_add(fo, test[i].key, &test[i].value))
+		tc[i].value = i;
+		if (!fanout_add(fo, tc[i].key, &tc[i].value))
 			added++;
 	}
 	fanout_destroy(fo, destructor);
 	ok_int(destroyed, ntests, "Expected ntest entries in destructor");
 	destroyed = 0;
-	free(test);
+	free(tc);
 }
 
 struct test_data {
@@ -86,10 +88,10 @@ int main(int argc, char **argv)
 	ok_int(fanout_get(fot, 123887987) == NULL, 1,
 		"get on empty table must yield NULL");
 	for (k = 0; k < 16385; k++) {
-		struct test_data *td = calloc(1, sizeof(*td));
-		td->key = k;
-		asprintf(&td->name, "%lu", k);
-		fanout_add(fot, k, td);
+		struct test_data *tdata = calloc(1, sizeof(*td));
+		tdata->key = k;
+		asprintf(&tdata->name, "%lu", k);
+		fanout_add(fot, k, tdata);
 	}
 	td = fanout_get(fot, k - 1);
 	ok_int(td != NULL, 1, "get must get what add inserts");

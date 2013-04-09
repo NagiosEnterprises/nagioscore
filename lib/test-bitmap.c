@@ -6,7 +6,7 @@
 int main(int argc, char **argv)
 {
 	bitmap *a = NULL, *b, *r_union, *r_diff, *r_symdiff, *r_intersect;
-	int i;
+	unsigned int i;
 	int sa[] = {    2, 3, 4, 1783, 1784, 1785 };
 	int sb[] = { 1, 2, 3,          1784, 1785, 1786, 1790, 1791, 1792 };
 

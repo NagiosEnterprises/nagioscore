@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 			struct key_value *kv = &k.kv[i];
 			test(kv->key_len == kv->value_len, "%d.%d; key_len=%d; value_len=%d (%s = %s)",
 				 j, i, kv->key_len, kv->value_len, kv->key, kv->value);
-			test(kv->value_len == strlen(kv->value),
+			test(kv->value_len == (int)strlen(kv->value),
 				 "%d.%d; kv->value_len(%d) == strlen(%s)(%d)",
 				 j, i, kv->value_len, kv->value, (int)strlen(kv->value));
 		}

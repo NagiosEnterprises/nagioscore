@@ -87,7 +87,8 @@ static int del_matching(void *data)
 int main(int argc, char **argv)
 {
 	dkhash_table *tx, *t;
-	int x, ret, r2;
+	unsigned int x;
+	int ret, r2;
 	struct test_data s;
 	char *p1, *p2;
 	char *strs[10];
@@ -180,7 +181,7 @@ int main(int argc, char **argv)
 	for(x = 0; x < 10; x++) {
 		dkhash_insert(t, strs[x], NULL, strs[x]);
 	}
-	for(x = 9; x >= 0; x--) {
+	for(x = 9; x; x--) {
 		p1 = strs[x];
 		p2 = dkhash_remove(t, p1, NULL);
 		test(p1 == p2, "remove should return a value");

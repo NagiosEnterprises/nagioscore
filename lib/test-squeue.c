@@ -43,7 +43,7 @@ typedef struct sq_test_event {
 	squeue_event *evt;
 } sq_test_event;
 
-static unsigned long sq_high = 0;
+static time_t sq_high = 0;
 static int sq_walker(squeue_event *evt, void *arg)
 {
 	static int walks = 0;

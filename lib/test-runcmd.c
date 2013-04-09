@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include "runcmd.c"
 #include "t-utils.h"
 #include <stdio.h>
@@ -106,8 +107,8 @@ int main(int argc, char **argv)
 		for (i = 0; anomaly[i].cmd; i++) {
 			int out_argc;
 			char *out_argv[256];
-			int ret = runcmd_cmd2strv(anomaly[i].cmd, &out_argc, out_argv);
-			ok_int(ret, anomaly[i].ret, anomaly[i].cmd);
+			int result = runcmd_cmd2strv(anomaly[i].cmd, &out_argc, out_argv);
+			ok_int(result, anomaly[i].ret, anomaly[i].cmd);
 		}
 	}
 	r2 = t_end();
@@ -119,9 +120,9 @@ int main(int argc, char **argv)
 		for (i = 0; parse_case[i].cmd; i++) {
 			int x, out_argc;
 			char *out_argv[256];
-			int ret = runcmd_cmd2strv(parse_case[i].cmd, &out_argc, out_argv);
+			int result = runcmd_cmd2strv(parse_case[i].cmd, &out_argc, out_argv);
 			out_argv[out_argc] = NULL;
-			ok_int(ret, 0, parse_case[i].cmd);
+			ok_int(result, 0, parse_case[i].cmd);
 			ok_int(out_argc, parse_case[i].argc_exp, parse_case[i].cmd);
 			for (x = 0; x < parse_case[x].argc_exp && out_argv[x]; x++) {
 				ok_str(parse_case[i].argv_exp[x], out_argv[x], "argv comparison test");

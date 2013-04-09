@@ -350,13 +350,13 @@ static void remove_worker(struct wproc_worker *worker)
 			continue;
 		wpl->wps[j++] = wpl->wps[i];
 	}
-	wpl->len--;
+	wpl->len = j;
+
 	if (!specialized_workers || wpl->len)
 		return;
 
 	to_remove = wpl;
 	dkhash_walk_data(specialized_workers, remove_specialized);
-
 }
 
 

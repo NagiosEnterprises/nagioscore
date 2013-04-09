@@ -3155,7 +3155,6 @@ void free_memory(nagios_macros *mac) {
 	my_free(temp_path);
 	my_free(check_result_path);
 	my_free(command_file);
-	my_free(lock_file);
 	my_free(log_archive_path);
 
 	return;
@@ -3189,6 +3188,8 @@ int reset_variables(void) {
 	temp_path = (char *)strdup(DEFAULT_TEMP_PATH);
 	check_result_path = (char *)strdup(DEFAULT_CHECK_RESULT_PATH);
 	command_file = (char *)strdup(DEFAULT_COMMAND_FILE);
+	if (lock_file) /* this is kept across restarts */
+		free(lock_file);
 	lock_file = (char *)strdup(DEFAULT_LOCK_FILE);
 	log_archive_path = (char *)strdup(DEFAULT_LOG_ARCHIVE_PATH);
 	debug_file = (char *)strdup(DEFAULT_DEBUG_FILE);

@@ -827,10 +827,6 @@ int main(int argc, char **argv) {
 				iobroker_destroy(nagios_iobs, IOBROKER_CLOSE_SOCKETS);
 				nagios_iobs = NULL;
 
-				/* make sure lock file has been removed - it may not have been if we received a shutdown command */
-				if(daemon_mode == TRUE)
-					unlink(lock_file);
-
 				/* log a shutdown message */
 				logit(NSLOG_PROCESS_INFO, TRUE, "Successfully shutdown... (PID=%d)\n", (int)getpid());
 				}
@@ -844,7 +840,11 @@ int main(int argc, char **argv) {
 			}
 		while(sigrestart == TRUE && sigshutdown == FALSE);
 
+		if(daemon_mode == TRUE)
+			unlink(lock_file);
+
 		/* free misc memory */
+		my_free(lock_file);
 		my_free(config_file);
 		}
 

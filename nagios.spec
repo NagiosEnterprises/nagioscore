@@ -22,11 +22,13 @@ URL: http://www.nagios.org/
 Packager: Daniel Wittenberg <dwittenberg2008@gmail.com>
 Vendor: Nagios Enterprises (http://www.nagios.org)
 Source0: http://dl.sf.net/nagios/nagios-%{version}.tar.gz
+Source1: %{_sourcedir}/Nagios-beta.png
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: gd-devel > 1.8
 BuildRequires: zlib-devel
 BuildRequires: libpng-devel
 BuildRequires: libjpeg-devel
+BuildRequires: doxygen
 
 Obsoletes: nagios-www <= %{version}
 Requires: httpd,php
@@ -95,6 +97,9 @@ CFLAGS="%{mycflags} -Wno-unused-result" LDFLAGS="$CFLAGS" %configure \
 find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-march=nocona/g" Makefile {} \; -print
 %{__make} %{?_smp_mflags} all
 
+### Build our documentaiton
+%{__make} dox
+
 ### Apparently contrib does not obey configure !
 %{__make} %{?_smp_mflags} -C contrib
 
@@ -108,6 +113,8 @@ find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-ma
 
 %{__install} -d -m 0755 %{buildroot}%{_includedir}/nagios/
 %{__install} -p -m 0644 include/*.h %{buildroot}%{_includedir}/nagios/
+%{__mkdir} -p -m 0755 %{buildroot}/%{_includedir}/nagios/lib
+%{__install} -m 0644 lib/*.h %{buildroot}/%{_includedir}/nagios/lib
 
 %{__install} -Dp -m 0644 sample-config/httpd.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/nagios.conf
 
@@ -124,6 +131,11 @@ find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-ma
 
 ### Install logos
 %{__mkdir_p} %{buildroot}%{_datadir}/nagios/images/logos
+%{__cp} %{SOURCE1} %{buildroot}%{_datadir}/nagios/images/
+
+### Install documentation
+%{__mkdir_p} %{buildroot}%{_datadir}/nagios/documentation
+%{__cp} -a Documentation/html/* %{buildroot}%{_datadir}/nagios/documentation
 
 # Put the new RC script in place
 %{__install} -m 0755 daemon-init %{buildroot}/%{_initrddir}/nagios
@@ -134,6 +146,9 @@ find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-ma
 %{__make} install -C contrib \
     DESTDIR="%{buildroot}" \
     INSTALL_OPTS=""
+
+### Install libnagios
+%{__install} -m 0644 lib/libnagios.a %{buildroot}%{_libdir}/libnagios.a
 
 %{__install} -d -m 0755 %{buildroot}%{_libdir}/nagios/plugins/eventhandlers/
 %{__cp} -afpv contrib/eventhandlers/* %{buildroot}%{_libdir}/nagios/plugins/eventhandlers/
@@ -193,14 +208,15 @@ fi
 %attr(0755,root,root) %{_bindir}/nagios
 %attr(0755,root,root) %{_bindir}/nagiostats
 %attr(0644,root,root) %{_libdir}/nagios/plugins/
-%attr(0644,root,root) %{_datadir}/nagios/
+%attr(0755,root,root) %{_datadir}/nagios/
 %attr(0755,nagios,nagios) %dir %{_sysconfdir}/nagios/
 %attr(0644,nagios,nagios) %config(noreplace) %{_sysconfdir}/nagios/*.cfg
-%attr(0644,nagios,nagios) %config(noreplace) %{_sysconfdir}/nagios/objects
+%attr(0755,nagios,nagios) %{_sysconfdir}/nagios/objects/
 %attr(0755,nagios,nagios) %dir %{_localstatedir}/nagios/
-%attr(0644,nagios,nagios) %{_localstatedir}/nagios/
-%attr(0644,root,root) %{logdir}/
+%attr(0755,nagios,nagios) %{_localstatedir}/nagios/
+%attr(0755,nagios,nagios) %{logdir}/
 %attr(0755,nagios,apache) %{_localstatedir}/nagios/rw/
+%attr(0644,root,root) %{_libdir}/libnagios.a
 
 %files devel
 %attr(0755,root,root) %{_includedir}/nagios/
@@ -211,6 +227,6 @@ fi
 %attr(0755,root,root) %{_libdir}/nagios/plugins/eventhandlers/
 
 %changelog
-* Fri Sep 14 2012 Daniel Wittenberg <dwittenberg2008@gmail.com> 3.99.95-1
-- Major update for version 4.0
+* Fri Mar 15 2013 Daniel Wittenberg <dwittenberg2008@gmail.com> 3.99.96-1
+- Major updates for version 4.0
 - New spec file, new RC script, new sysconfig

@@ -11,14 +11,15 @@ struct cases {
 };
 
 struct cases cases[] = {
+	{"test0\\", "test0"},
 	{"te\\st1", "test1"},
 	{"te\\\\st2", "te\\st2"},
 	{"te\\\\\\st3", "te\\st3"},
 	{"te\\\\\\\\st4", "te\\\\st4"},
 
-	{"\"te\\st5\"", "test5"},
+	{"\"te\\st5\"", "te\\st5"},
 	{"\"te\\\\st6\"", "te\\st6"},
-	{"\"te\\\\\\st7\"", "te\\st7"},
+	{"\"te\\\\\\st7\"", "te\\\\st7"},
 	{"\"te\\\\\\\\st8\"", "te\\\\st8"},
 
 	{"'te\\st9'", "te\\st9"},
@@ -28,6 +29,7 @@ struct cases cases[] = {
 
 	{"\\'te\\\\st13", "'te\\st13"},
 	{"'test14\"'", "test14\""},
+	{"\"\\\\test\"", "\\test"},
 	{NULL},
 };
 
@@ -72,6 +74,14 @@ struct {
 } parse_case[] = {
 	{ 0, "foo bar nisse", 3, { "foo", "bar", "nisse", NULL }},
 	{ 0, "foo\\ bar nisse", 2, { "foo bar", "nisse", NULL }},
+	{ 0, "\"\\\\foo\"", 1, { "\\foo", NULL }},
+	{ 0, "\"\\1bs in dq\"", 1, { "\\1bs in dq", NULL }},
+	{ 0, "\"\\\\2bs in dq\"", 1, { "\\2bs in dq", NULL }},
+	{ 0, "\"\\\\\\3bs in dq\"", 1, { "\\\\3bs in dq", NULL }},
+	{ 0, "\"\\\\\\\\4bs in dq\"", 1, { "\\\\4bs in dq", NULL }},
+	{ 0, "\\ \t \\\t  \\ ", 3, { " ", "\t", " ", NULL }},
+	{ 0, "\\$foo walla wonga", 3, { "$foo", "walla", "wonga", NULL }},
+	{ 0, "\"\\$bar is\" very wide open", 4, { "$bar is", "very", "wide", "open", NULL }},
 	{ 0, NULL, 0, { NULL, NULL, NULL }},
 };
 

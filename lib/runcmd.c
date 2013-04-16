@@ -114,6 +114,7 @@ pid_t runcmd_pid(int fd)
 #define STATE_INSQ  (1 << 2)
 #define STATE_INDQ  (1 << 3)
 #define STATE_SPECIAL (1 << 4)
+#define STATE_BSLASH (1 << 5)
 #define in_quotes (state & (STATE_INSQ | STATE_INDQ))
 #define is_state(s) (state == s)
 #define set_state(s) (state = s)
@@ -152,8 +153,28 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			break;
 
 		case '\\':
-			if (!have_state(STATE_INSQ))
-				i++;
+			/* single-quoted strings never interpolate backslashes */
+			if (have_state(STATE_INSQ) || have_state(STATE_BSLASH)) {
+				break;
+			}
+			/*
+			 * double-quoted strings let backslashes escape
+			 * a few, but not all, shell specials
+			 */
+			if (have_state(STATE_INDQ)) {
+				const char next = str[i + 1];
+				switch (next) {
+				case '"': case '\\': case '$': case '`':
+					add_state(STATE_BSLASH);
+					continue;
+				}
+				break;
+			}
+			/*
+			 * unquoted strings remove unescaped backslashes,
+			 * but backslashes escape anything and everything
+			 */
+			i++;
 			break;
 
 		case '\'':
@@ -209,7 +230,7 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			break;
 
 		case '`':
-			if (!(state & STATE_INSQ)) {
+			if (!have_state(STATE_INSQ) && !have_state(STATE_BSLASH)) {
 				add_ret(RUNCMD_HAS_SUBCOMMAND);
 			}
 			break;
@@ -239,6 +260,9 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 		default:
 			break;
 		}
+
+		/* here, we're limited to escaped backslashes, so remove STATE_BSLASH */
+		del_state(STATE_BSLASH);
 
 		if (is_state(STATE_NONE)) {
 			set_state(STATE_INARG);

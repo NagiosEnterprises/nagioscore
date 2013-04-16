@@ -242,7 +242,7 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			break;
 
 		case '$':
-			if (!(state & STATE_INSQ)) {
+			if (!have_state(STATE_INSQ) && !have_state(STATE_BSLASH)) {
 				if (p[1] == '(')
 					add_ret(RUNCMD_HAS_SUBCOMMAND);
 				else

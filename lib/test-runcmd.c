@@ -63,6 +63,8 @@ struct {
 	{ 0, "ls -l /dev/tty\\?" },
 	{ RUNCMD_HAS_SHVAR, "echo $foo" },
 	{ 0, "echo \\$foo" },
+	{ RUNCMD_HAS_PAREN, "\\$(hoopla booyaka" },
+	{ 0, "\\$\\(hoopla booyaka" },
 	{ 0, NULL},
 };
 

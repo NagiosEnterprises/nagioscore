@@ -902,7 +902,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				}
 
 			/* perform dependency checks on the second to last check of the service */
-			if(enable_predictive_service_dependency_checks == TRUE && temp_service->current_attempt == (temp_service->max_attempts - 1)) {
+			if(execute_service_checks && enable_predictive_service_dependency_checks == TRUE && temp_service->current_attempt == (temp_service->max_attempts - 1)) {
 				objectlist *list;
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Looking for services to check for predictive dependency checks...\n");
@@ -2717,13 +2717,14 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 			/* propagate checks to immediate parents if they are not already UP */
 			/* we do this because a parent host (or grandparent) may have recovered somewhere and we should catch the recovery as soon as possible */
 			log_debug_info(DEBUGL_CHECKS, 1, "Propagating checks to parent host(s)...\n");
-
-			for(temp_hostsmember = hst->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-				if((parent_host = temp_hostsmember->host_ptr) == NULL)
-					continue;
-				if(parent_host->current_state != HOST_UP) {
-					log_debug_info(DEBUGL_CHECKS, 1, "Check of parent host '%s' queued.\n", parent_host->name);
-					add_object_to_objectlist(&check_hostlist, (void *)parent_host);
+			if(execute_host_checks) {
+				for(temp_hostsmember = hst->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
+					if((parent_host = temp_hostsmember->host_ptr) == NULL)
+						continue;
+					if(parent_host->current_state != HOST_UP) {
+						log_debug_info(DEBUGL_CHECKS, 1, "Check of parent host '%s' queued.\n", parent_host->name);
+						add_object_to_objectlist(&check_hostlist, (void *)parent_host);
+						}
 					}
 				}
 
@@ -2731,12 +2732,14 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 			/* we do this because children may currently be UNREACHABLE, but may (as a result of this recovery) switch to UP or DOWN states */
 			log_debug_info(DEBUGL_CHECKS, 1, "Propagating checks to child host(s)...\n");
 
-			for(temp_hostsmember = hst->child_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-				if((child_host = temp_hostsmember->host_ptr) == NULL)
-					continue;
-				if(child_host->current_state != HOST_UP) {
-					log_debug_info(DEBUGL_CHECKS, 1, "Check of child host '%s' queued.\n", child_host->name);
-					add_object_to_objectlist(&check_hostlist, (void *)child_host);
+			if(execute_host_checks) {
+				for(temp_hostsmember = hst->child_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
+					if((child_host = temp_hostsmember->host_ptr) == NULL)
+						continue;
+					if(child_host->current_state != HOST_UP) {
+						log_debug_info(DEBUGL_CHECKS, 1, "Check of child host '%s' queued.\n", child_host->name);
+						add_object_to_objectlist(&check_hostlist, (void *)child_host);
+						}
 					}
 				}
 			}
@@ -2894,12 +2897,14 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 				/* we do this because we may now be blocking the route to child hosts */
 				log_debug_info(DEBUGL_CHECKS, 1, "Propagating check to immediate non-UNREACHABLE child hosts...\n");
 
-				for(temp_hostsmember = hst->child_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-					if((child_host = temp_hostsmember->host_ptr) == NULL)
-						continue;
-					if(child_host->current_state != HOST_UNREACHABLE) {
-						log_debug_info(DEBUGL_CHECKS, 1, "Check of child host '%s' queued.\n", child_host->name);
-						add_object_to_objectlist(&check_hostlist, (void *)child_host);
+				if (execute_host_checks) {
+					for(temp_hostsmember = hst->child_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
+						if((child_host = temp_hostsmember->host_ptr) == NULL)
+							continue;
+						if(child_host->current_state != HOST_UNREACHABLE) {
+							log_debug_info(DEBUGL_CHECKS, 1, "Check of child host '%s' queued.\n", child_host->name);
+							add_object_to_objectlist(&check_hostlist, (void *)child_host);
+							}
 						}
 					}
 				}
@@ -2946,12 +2951,14 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 				/* checking the parents ASAP will allow us to better determine the final state (DOWN/UNREACHABLE) of this host later */
 				log_debug_info(DEBUGL_CHECKS, 1, "Propagating checks to immediate parent hosts that are UP...\n");
 
-				for(temp_hostsmember = hst->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-					if((parent_host = temp_hostsmember->host_ptr) == NULL)
-						continue;
-					if(parent_host->current_state == HOST_UP) {
-						add_object_to_objectlist(&check_hostlist, (void *)parent_host);
-						log_debug_info(DEBUGL_CHECKS, 1, "Check of host '%s' queued.\n", parent_host->name);
+				if (execute_host_checks) {
+					for(temp_hostsmember = hst->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
+						if((parent_host = temp_hostsmember->host_ptr) == NULL)
+							continue;
+						if(parent_host->current_state == HOST_UP) {
+							add_object_to_objectlist(&check_hostlist, (void *)parent_host);
+							log_debug_info(DEBUGL_CHECKS, 1, "Check of host '%s' queued.\n", parent_host->name);
+							}
 						}
 					}
 
@@ -2959,12 +2966,14 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 				/* we do this because we may now be blocking the route to child hosts */
 				log_debug_info(DEBUGL_CHECKS, 1, "Propagating checks to immediate non-UNREACHABLE child hosts...\n");
 
-				for(temp_hostsmember = hst->child_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-					if((child_host = temp_hostsmember->host_ptr) == NULL)
-						continue;
-					if(child_host->current_state != HOST_UNREACHABLE) {
-						log_debug_info(DEBUGL_CHECKS, 1, "Check of child host '%s' queued.\n", child_host->name);
-						add_object_to_objectlist(&check_hostlist, (void *)child_host);
+				if (execute_host_checks) {
+					for(temp_hostsmember = hst->child_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
+						if((child_host = temp_hostsmember->host_ptr) == NULL)
+							continue;
+						if(child_host->current_state != HOST_UNREACHABLE) {
+							log_debug_info(DEBUGL_CHECKS, 1, "Check of child host '%s' queued.\n", child_host->name);
+							add_object_to_objectlist(&check_hostlist, (void *)child_host);
+							}
 						}
 					}
 

@@ -5,5 +5,8 @@ test-iobroker
 test-bitmap
 test-dkhash
 test-runcmd
+test-fanout
+test-nsutils
 wproc
 snprintf.h
+core

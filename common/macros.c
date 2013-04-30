@@ -2492,6 +2492,7 @@ int init_macros(void) {
 	for (x = 0; x < MACRO_X_COUNT; x++) {
 		macro_keys[x].code = x;
 		macro_keys[x].name = macro_x_names[x];
+		macro_keys[x].clean_options = 0;
 
 		switch (x) {
 			/* output, perfdata, comments and author names need cleaning */

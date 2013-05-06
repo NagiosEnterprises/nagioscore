@@ -147,7 +147,7 @@ int main(int argc, char **argv) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 		ok(is_valid_time == OK, "Always OK for 24x7 with TZ=UTC, time_t=%lu", test_time);
 		chosen_valid_time = 0L;
-		_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+		_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 		ok(test_time == chosen_valid_time, "get_next_valid_time always returns same time");
 		test_time += 1800;
 		c++;
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
 	while(c < iterations) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 		ok(is_valid_time == OK, "Always OK for 24x7 with TZ=Europe/London, time_t=%lu", test_time);
-		_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+		_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 		ok(test_time == chosen_valid_time, "get_next_valid_time always returns same time, time_t=%lu", test_time);
 		test_time += 1800;
 		c++;
@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
 	while(c < iterations) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 		ok(is_valid_time == OK, "Always OK for 24x7 with TZ=America/New_York, time_t=%lu", test_time);
-		_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+		_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 		ok(test_time == chosen_valid_time, "get_next_valid_time always returns same time, time_t=%lu", test_time);
 		test_time += 1800;
 		c++;
@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
 
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1288103400, "Next valid time should be Tue Oct 26 16:30:00 2010, was %s", ctime(&chosen_valid_time));
 
 
@@ -209,7 +209,7 @@ int main(int argc, char **argv) {
 	test_time = 1278939600; //mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1279058340, "Next valid time should be Tue Jul 13 23:59:00 2010, was %s", ctime(&chosen_valid_time));
 
 
@@ -218,7 +218,7 @@ int main(int argc, char **argv) {
 	test_time = 1278939600; //mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1284474600, "Next valid time should be Tue Sep 14 16:30:00 2010, was %s", ctime(&chosen_valid_time));
 
 
@@ -227,7 +227,7 @@ int main(int argc, char **argv) {
 	test_time = 1278939600; //mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1283265000, "Next valid time should be Tue Aug 31 16:30:00 2010, was %s", ctime(&chosen_valid_time));
 
 
@@ -247,62 +247,62 @@ int main(int argc, char **argv) {
 	test_time = 1256421000;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "Sat Oct 24 22:50:00 2009 - false");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1256425200, "Next valid time=Sun Oct 25 00:00:00 2009");
 
 
 	test_time = 1256421661;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "Sat Oct 24 23:01:01 2009 - false");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1256425200, "Next valid time=Sun Oct 25 00:00:00 2009");
 
 	test_time = 1256425400;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == OK, "Sun Oct 25 00:03:20 2009 - true");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == test_time, "Next valid time=Sun Oct 25 00:03:20 2009");
 
 	test_time = 1256429700;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == OK, "Sun Oct 25 01:15:00 2009 - true");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == test_time, "Next valid time=Sun Oct 25 01:15:00 2009");
 
 	test_time = 1256430400;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "Sun Oct 25 01:26:40 2009 - false");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1256440500, "Next valid time should be Sun Oct 25 03:15:00 2009, was %s", ctime(&chosen_valid_time));
 
 	test_time = 1256440500;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == OK, "Sun Oct 25 03:15:00 2009 - true");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == test_time, "Next valid time=Sun Oct 25 03:15:00 2009");
 
 	test_time = 1256500000;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == OK, "Sun Oct 25 19:46:40 2009 - true");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1256500000, "Next valid time=Sun Oct 25 19:46:40 2009");
 
 	test_time = 1256508000;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == OK, "Sun Oct 25 22:00:00 2009 - true");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1256508000, "Next valid time=Sun Oct 25 22:00:00 2009");
 
 	test_time = 1256508001;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "Sun Oct 25 22:00:01 2009 - false");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1257033600, "Next valid time=Sun Nov 1 00:00:00 2009");
 
 	test_time = 1256513000;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "Sun Oct 25 23:23:20 2009 - false");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1257033600, "Next valid time=Sun Nov 1 00:00:00 2009");
 
 
@@ -316,7 +316,7 @@ int main(int argc, char **argv) {
 	test_time = 1268109420;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "Mon Mar  8 23:37:00 2010 - false");
-	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1268115300, "Next valid time=Tue Mar  9 01:15:00 2010");
 
 

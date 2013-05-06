@@ -970,9 +970,9 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 
 /*#define TEST_TIMEPERIODS_B 1*/
 
-void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod);
+void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod);
 
-static void _get_next_invalid_time(time_t pref_time, time_t current_time, time_t *invalid_time, timeperiod *tperiod) {
+static void _get_next_invalid_time(time_t pref_time, time_t *invalid_time, timeperiod *tperiod) {
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
 	int depth = 0;
 	int max_depth = 300; // commonly roughly equal to "days in the future"
@@ -1029,7 +1029,7 @@ static void _get_next_invalid_time(time_t pref_time, time_t current_time, time_t
 			}
 
 		for(temp_timeperiodexclusion = tperiod->exclusions; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
-			_get_next_valid_time(last_earliest_time, current_time, &potential_time, temp_timeperiodexclusion->timeperiod_ptr);
+			_get_next_valid_time(last_earliest_time, &potential_time, temp_timeperiodexclusion->timeperiod_ptr);
 			if (potential_time + 60 < earliest_time)
 				earliest_time = potential_time + 60;
 			}
@@ -1044,8 +1044,8 @@ static void _get_next_invalid_time(time_t pref_time, time_t current_time, time_t
 		*invalid_time = earliest_time;
 	}
 
-/* Separate this out from public get_next_valid_time for testing, so we can mock current_time */
-void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod) {
+/* Separate this out from public get_next_valid_time for testing */
+void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod) {
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
 	int depth = 0;
 	int max_depth = 300; // commonly roughly equal to "days in the future"
@@ -1119,7 +1119,7 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 			earliest_time = midnight + 86400;
 		} else {
 			for(temp_timeperiodexclusion = tperiod->exclusions; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
-				_get_next_invalid_time(earliest_time, current_time, &earliest_time, temp_timeperiodexclusion->timeperiod_ptr);
+				_get_next_invalid_time(earliest_time, &earliest_time, temp_timeperiodexclusion->timeperiod_ptr);
 #ifdef TEST_TIMEPERIODS_B
 				printf("    FINAL EARLIEST TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
 #endif
@@ -1145,7 +1145,7 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 
 	pref_time = (pref_time < current_time) ? current_time : pref_time;
 
-	_get_next_valid_time(pref_time, current_time, valid_time, tperiod);
+	_get_next_valid_time(pref_time, valid_time, tperiod);
 	}
 
 

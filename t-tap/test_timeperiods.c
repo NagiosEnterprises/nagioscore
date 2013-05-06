@@ -195,56 +195,40 @@ int main(int argc, char **argv) {
 
 	/* Timeperiod exclude tests, from Jean Gabes */
 	temp_timeperiod = find_timeperiod("Test_exclude");
-	ok(temp_timeperiod != NULL, "ME: Testing Exclude timeperiod");
+	ok(temp_timeperiod != NULL, "Testing Exclude timeperiod");
 	test_time = 1278939600; //mon jul 12 15:00:00
-	/* printf("Testing at time %s", ctime(&test_time)); */
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
-	ok(is_valid_time == ERROR, "ME: 12 Jul 2010 15:00:00 - false");
+	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
 
 	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
-	/* printf("JEAN: Got chosent time at %s", ctime(&chosen_valid_time)); */
-	todo_start("Bug in exclude");
-	ok(chosen_valid_time == 1288103400, "ME: Next valid time=Tue Oct 26 16:30:00 2010, was %i", chosen_valid_time);
-	todo_end();
+	ok(chosen_valid_time == 1288103400, "Next valid time should be Tue Oct 26 16:30:00 2010, was %s", ctime(&chosen_valid_time));
 
 
 	temp_timeperiod = find_timeperiod("Test_exclude2");
-	ok(temp_timeperiod != NULL, "ME: Testing Exclude timeperiod 2");
-	test_time = 1278939600;
-	/* printf("Testing at time %s", ctime(&test_time)); */
+	ok(temp_timeperiod != NULL, "Testing Exclude timeperiod 2");
+	test_time = 1278939600; //mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
-	ok(is_valid_time == ERROR, "ME: 12 Jul 2010 15:00:00 - false");
+	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
 	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
-	/* printf("JEAN: Got chosent time at %s", ctime(&chosen_valid_time)); */
-	todo_start("Bug in exclude 2");
-	ok(chosen_valid_time == 1279058340, "ME: Next valid time=Tue Jul 13 23:59:00 2010");
-	todo_end();
+	ok(chosen_valid_time == 1279058340, "Next valid time should be Tue Jul 13 23:59:00 2010, was %s", ctime(&chosen_valid_time));
 
 
 	temp_timeperiod = find_timeperiod("Test_exclude3");
-	ok(temp_timeperiod != NULL, "ME: Testing Exclude timeperiod 3");
-	test_time = 1278939600;
-	/* printf("Testing at time %s", ctime(&test_time)); */
+	ok(temp_timeperiod != NULL, "Testing Exclude timeperiod 3");
+	test_time = 1278939600; //mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
-	ok(is_valid_time == ERROR, "ME: 12 Jul 2010 15:00:00 - false");
+	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
 	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
-	/* printf("JEAN: Got chosent time at %s", ctime(&chosen_valid_time)); */
-	todo_start("Bug in exclude 3");
-	ok(chosen_valid_time == 1284474600, "ME: Next valid time=Tue Sep 14 16:30:00 2010");
-	todo_end();
+	ok(chosen_valid_time == 1284474600, "Next valid time should be Tue Sep 14 16:30:00 2010, was %s", ctime(&chosen_valid_time));
 
 
 	temp_timeperiod = find_timeperiod("Test_exclude4");
-	ok(temp_timeperiod != NULL, "ME: Testing Exclude timeperiod 4");
-	test_time = 1278939600;
-	/* printf("Testing at time %s", ctime(&test_time)); */
+	ok(temp_timeperiod != NULL, "Testing Exclude timeperiod 4");
+	test_time = 1278939600; //mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
-	ok(is_valid_time == ERROR, "ME: 12 Jul 2010 15:00:00 - false");
+	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
 	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
-	/* printf("JEAN: Got chosent time at %s", ctime(&chosen_valid_time)); */
-	todo_start("Bug in exclude 3");
-	ok(chosen_valid_time == 1283265000, "ME: Next valid time=Tue Aug 31 16:30:00 2010");
-	todo_end();
+	ok(chosen_valid_time == 1283265000, "Next valid time should be Tue Aug 31 16:30:00 2010, was %s", ctime(&chosen_valid_time));
 
 
 
@@ -289,9 +273,7 @@ int main(int argc, char **argv) {
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "Sun Oct 25 01:26:40 2009 - false");
 	_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
-	todo_start("Is a bug in get_next_valid_time for a time that falls in the DST change hour period");
-	ok(chosen_valid_time == 1256440500, "Next valid time=Sun Oct 25 03:15:00 2009") || printf("chosen_valid_time=%lu\n", chosen_valid_time);
-	todo_end();
+	ok(chosen_valid_time == 1256440500, "Next valid time should be Sun Oct 25 03:15:00 2009, was %s", ctime(&chosen_valid_time));
 
 	test_time = 1256440500;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);

@@ -711,46 +711,25 @@ static int get_dst_shift(time_t *start, time_t *end) {
 
 /*#define TEST_TIMEPERIODS_A 1*/
 
-/* see if the specified time falls into a valid time range in the given time period */
-int check_time_against_period(time_t test_time, timeperiod *tperiod) {
-	timeperiodexclusion *temp_timeperiodexclusion = NULL;
-	timeperiodexclusion *first_timeperiodexclusion = NULL;
+static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod) {
 	daterange *temp_daterange = NULL;
-	timerange *temp_timerange = NULL;
-	time_t midnight = (time_t)0L;
 	time_t start_time = (time_t)0L;
 	time_t end_time = (time_t)0L;
-	int found_match = FALSE;
+	unsigned long days = 0L;
+	int year = 0;
+	int shift = 0;
+	time_t midnight = (time_t)0L;
 	struct tm *t, tm_s;
 	int daterange_type = 0;
-	unsigned long days = 0L;
-	time_t day_range_start = (time_t)0L;
-	time_t day_range_end = (time_t)0L;
 	int test_time_year = 0;
 	int test_time_mon = 0;
 	int test_time_wday = 0;
-	int year = 0;
-	int shift;
 
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_time_against_period()\n");
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "_get_matching_timerange()\n");
 
-	/* if no period was specified, assume the time is good */
 	if(tperiod == NULL)
-		return OK;
+		return NULL;
 
-	/* test exclusions first - if exclusions match current time, bail out with an error */
-	/* clear exclusions list before recursing (and restore afterwards) to prevent endless loops... */
-	first_timeperiodexclusion = tperiod->exclusions;
-	tperiod->exclusions = NULL;
-	for(temp_timeperiodexclusion = first_timeperiodexclusion; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
-		if(check_time_against_period(test_time, temp_timeperiodexclusion->timeperiod_ptr) == OK) {
-			tperiod->exclusions = first_timeperiodexclusion;
-			return ERROR;
-			}
-		}
-	tperiod->exclusions = first_timeperiodexclusion;
-
-	/* save values for later */
 	t = localtime_r((time_t *)&test_time, &tm_s);
 	test_time_year = t->tm_year;
 	test_time_mon = t->tm_mon;
@@ -930,59 +909,65 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 			printf("NEW START:    %lu = %s", (unsigned long)start_time, ctime(&start_time));
 			printf("NEW END:      %lu = %s", (unsigned long)end_time, ctime(&end_time));
 			printf("%d DAYS PASSED\n", days);
-			printf("DLST SHIFT:   %d", shift);
+			printf("DLST SHIFT:   %i\n", shift);
 #endif
 
-			/* time falls into the range of days */
-			if(midnight >= start_time && midnight <= end_time)
-				found_match = TRUE;
-
-			/* found a day match, so see if time ranges are good */
-			if(found_match == TRUE) {
-
-				for(temp_timerange = temp_daterange->times; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
-
-					/* ranges with start/end of zero mean exlude this day */
-					if(temp_timerange->range_start == 0 && temp_timerange->range_end == 0) {
+			/* time falls inside the range of days
+			 * end time < start_time when range covers end-of-$unit
+			 * (fe. end-of-month) */
+			if((midnight + 84800 >= start_time && (midnight <= end_time || start_time > end_time)) || (midnight <= end_time && start_time > end_time)) {
 #ifdef TEST_TIMEPERIODS_A
-						printf("0 MINUTE RANGE EXCLUSION\n");
+				printf("(MATCH)\n");
 #endif
-						continue;
-						}
-
-					day_range_start = (time_t)(midnight + temp_timerange->range_start);
-					day_range_end = (time_t)(midnight + temp_timerange->range_end);
-
-#ifdef TEST_TIMEPERIODS_A
-					printf("  RANGE START: %lu (%lu) = %s", temp_timerange->range_start, (unsigned long)day_range_start, ctime(&day_range_start));
-					printf("  RANGE END:   %lu (%lu) = %s", temp_timerange->range_end, (unsigned long)day_range_end, ctime(&day_range_end));
-#endif
-
-					/* if the user-specified time falls in this range, return with a positive result */
-					if(test_time >= day_range_start && test_time <= day_range_end)
-						return OK;
-					}
-
-				/* no match, so bail with error */
-				return ERROR;
+				return temp_daterange->times;
 				}
 			}
 		}
 
+	return tperiod->days[test_time_wday];
+}
 
-	/**** check normal, weekly rotating schedule last ****/
+/* see if the specified time falls into a valid time range in the given time period */
+int check_time_against_period(time_t test_time, timeperiod *tperiod) {
+	timerange *temp_timerange = NULL;
+	timeperiodexclusion *temp_timeperiodexclusion = NULL;
+	timeperiodexclusion *first_timeperiodexclusion = NULL;
+	struct tm *t, tm_s;
+	time_t midnight = (time_t)0L;
+	time_t day_range_start = (time_t)0L;
+	time_t day_range_end = (time_t)0L;
 
-	/* check weekday time ranges */
-	for(temp_timerange = tperiod->days[test_time_wday]; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_time_against_period()\n");
+
+	t = localtime_r((time_t *)&test_time, &tm_s);
+
+	t->tm_sec = 0;
+	t->tm_min = 0;
+	t->tm_hour = 0;
+	midnight = mktime(t);
+
+	/* if no period was specified, assume the time is good */
+	if(tperiod == NULL)
+		return OK;
+
+	first_timeperiodexclusion = tperiod->exclusions;
+	tperiod->exclusions = NULL;
+	for(temp_timeperiodexclusion = first_timeperiodexclusion; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
+		if(check_time_against_period(test_time, temp_timeperiodexclusion->timeperiod_ptr) == OK) {
+			tperiod->exclusions = first_timeperiodexclusion;
+			return ERROR;
+			}
+		}
+	tperiod->exclusions = first_timeperiodexclusion;
+
+	for(temp_timerange = _get_matching_timerange(test_time, tperiod); temp_timerange != NULL; temp_timerange = temp_timerange->next) {
 
 		day_range_start = (time_t)(midnight + temp_timerange->range_start);
 		day_range_end = (time_t)(midnight + temp_timerange->range_end);
 
-		/* if the user-specified time falls in this range, return with a positive result */
 		if(test_time >= day_range_start && test_time <= day_range_end)
 			return OK;
 		}
-
 	return ERROR;
 	}
 
@@ -990,410 +975,175 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 
 /*#define TEST_TIMEPERIODS_B 1*/
 
-/* Separate this out from public get_next_valid_time for testing, so we can mock current_time */
-void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod) {
-	time_t preferred_time = (time_t)0L;
-	timerange *temp_timerange;
-	daterange *temp_daterange;
-	time_t midnight = (time_t)0L;
+void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod);
+
+static void _get_next_invalid_time(time_t pref_time, time_t current_time, time_t *invalid_time, timeperiod *tperiod) {
+	timeperiodexclusion *temp_timeperiodexclusion = NULL;
+	timeperiodexclusion *first_timeperiodexclusion = NULL;
+	int depth = 0;
+	int max_depth = 300; // commonly roughly equal to "days in the future"
 	struct tm *t, tm_s;
-	time_t day_start = (time_t)0L;
+	time_t earliest_time = pref_time;
+	time_t last_earliest_time = 0;
+	time_t midnight = (time_t)0L;
 	time_t day_range_start = (time_t)0L;
 	time_t day_range_end = (time_t)0L;
-	time_t start_time = (time_t)0L;
-	time_t end_time = (time_t)0L;
-	int have_earliest_time = FALSE;
-	time_t earliest_time = (time_t)0L;
-	time_t earliest_day = (time_t)0L;
-	time_t potential_time = (time_t)0L;
-	int weekday = 0;
-	int has_looped = FALSE;
-	int days_into_the_future = 0;
-	int daterange_type = 0;
-	unsigned long days = 0L;
-	unsigned long advance_interval = 0L;
-	int year = 0; /* new */
-	int month = 0; /* new */
 
-	int pref_time_year = 0;
-	int pref_time_mon = 0;
-	int pref_time_wday = 0;
-	int current_time_year = 0;
-	int current_time_mon = 0;
-	int current_time_mday = 0;
-	int shift;
-
-	/* preferred time must be now or in the future */
-	preferred_time = (pref_time < current_time) ? current_time : pref_time;
-
-	/* if no timeperiod, go with preferred time */
+	/* if no period was specified, assume the time is good */
 	if(tperiod == NULL) {
-		*valid_time = preferred_time;
+		*invalid_time = pref_time;
 		return;
-		}
+	}
 
-	/* if the preferred time is valid in timeperiod, go with it */
-	/* this is necessary because the code below won't catch exceptions where preferred day is last (or only) date in timeperiod (date range) and last valid time has already passed */
-	/* performing this check and bailing out early allows us to skip having to check the next instance of a date range exception or weekday to determine the next valid time */
-	if(check_time_against_period(preferred_time, tperiod) == OK) {
-#ifdef TEST_TIMEPERIODS_B
-		printf("PREF TIME IS VALID\n");
-#endif
-		*valid_time = preferred_time;
-		return;
-		}
+	while (earliest_time != last_earliest_time && depth < max_depth) {
+		time_t potential_time = 0;
+		depth++;
+		last_earliest_time = earliest_time;
 
-	/* calculate the start of the day (midnight, 00:00 hours) of preferred time */
-	t = localtime_r(&preferred_time, &tm_s);
-	t->tm_sec = 0;
-	t->tm_min = 0;
-	t->tm_hour = 0;
-	midnight = mktime(t);
+		t = localtime_r((time_t *)&earliest_time, &tm_s);
+		t->tm_sec = 0;
+		t->tm_min = 0;
+		t->tm_hour = 0;
+		midnight = mktime(t);
 
-	/* save pref time values for later */
-	pref_time_year = t->tm_year;
-	pref_time_mon = t->tm_mon;
-	pref_time_wday = t->tm_wday;
+		timerange *temp_timerange = _get_matching_timerange(earliest_time, tperiod);
 
-	/* save current time values for later */
-	t = localtime_r(&current_time, &tm_s);
-	current_time_year = t->tm_year;
-	current_time_mon = t->tm_mon;
-	current_time_mday = t->tm_mday;
-
-#ifdef TEST_TIMEPERIODS_B
-	printf("PREF TIME:    %lu = %s", (unsigned long)preferred_time, ctime(&preferred_time));
-	printf("CURRENT TIME: %lu = %s", (unsigned long)current_time, ctime(&current_time));
-	printf("PREF YEAR:    %d, MON: %d, MDAY: %d, WDAY: %d\n", pref_time_year, pref_time_mon, pref_time_mday, pref_time_wday);
-	printf("CURRENT YEAR: %d, MON: %d, MDAY: %d, WDAY: %d\n", current_time_year, current_time_mon, current_time_mday, current_time_wday);
-#endif
-
-	/**** check exceptions (in this timeperiod definition) first ****/
-	for(daterange_type = 0; daterange_type < DATERANGE_TYPES; daterange_type++) {
-
-#ifdef TEST_TIMEPERIODS_B
-		printf("TYPE: %d\n", daterange_type);
-#endif
-
-		for(temp_daterange = tperiod->exceptions[daterange_type]; temp_daterange != NULL; temp_daterange = temp_daterange->next) {
-
-			/* get the start time */
-			switch(daterange_type) {
-				case DATERANGE_CALENDAR_DATE: /* 2009-08-11 */
-					t->tm_sec = 0;
-					t->tm_min = 0;
-					t->tm_hour = 0;
-					t->tm_mday = temp_daterange->smday;
-					t->tm_mon = temp_daterange->smon;
-					t->tm_year = (temp_daterange->syear - 1900);
-					t->tm_isdst = -1;
-					start_time = mktime(t);
-					break;
-				case DATERANGE_MONTH_DATE:  /* january 1 */
-					/* what year should we use? */
-					year = (pref_time_year < current_time_year) ? current_time_year : pref_time_year;
-					/* advance an additional year if we already passed the end month date */
-					if((temp_daterange->emon < current_time_mon) || ((temp_daterange->emon == current_time_mon) && temp_daterange->emday < current_time_mday))
-						year++;
-					start_time = calculate_time_from_day_of_month(year, temp_daterange->smon, temp_daterange->smday);
-					break;
-				case DATERANGE_MONTH_DAY:  /* day 3 */
-					/* what year should we use? */
-					year = (pref_time_year < current_time_year) ? current_time_year : pref_time_year;
-					/* use current month */
-					month = current_time_mon;
-					/* advance an additional month (and possibly the year) if we already passed the end day of month */
-					if(temp_daterange->emday < current_time_mday) {
-						/*if(month==1){*/
-						if(month == 11) {
-							month = 0;
-							year++;
-							}
-						else
-							month++;
-						}
-					start_time = calculate_time_from_day_of_month(year, month, temp_daterange->smday);
-					break;
-				case DATERANGE_MONTH_WEEK_DAY: /* thursday 2 april */
-					/* what year should we use? */
-					year = (pref_time_year < current_time_year) ? current_time_year : pref_time_year;
-					/* calculate time of specified weekday of specific month */
-					start_time = calculate_time_from_weekday_of_month(year, temp_daterange->smon, temp_daterange->swday, temp_daterange->swday_offset);
-					/* advance to next year if we've passed this month weekday already this year */
-					if(start_time < preferred_time) {
-						year++;
-						start_time = calculate_time_from_weekday_of_month(year, temp_daterange->smon, temp_daterange->swday, temp_daterange->swday_offset);
-						}
-					break;
-				case DATERANGE_WEEK_DAY: /* wednesday 1 */
-					/* what year should we use? */
-					year = (pref_time_year < current_time_year) ? current_time_year : pref_time_year;
-					/* calculate time of specified weekday of month */
-					start_time = calculate_time_from_weekday_of_month(year, pref_time_mon, temp_daterange->swday, temp_daterange->swday_offset);
-					/* advance to next month (or year) if we've passed this weekday of this month already */
-					if(start_time < preferred_time) {
-						month = pref_time_mon;
-						if(month == 11) {
-							month = 0;
-							year++;
-							}
-						else
-							month++;
-						start_time = calculate_time_from_weekday_of_month(year, month, temp_daterange->swday, temp_daterange->swday_offset);
-						}
-					break;
-				default:
-					continue;
-					break;
-				}
-
-#ifdef TEST_TIMEPERIODS_B
-			printf("START TIME: %lu = %s", start_time, ctime(&start_time));
-#endif
-
-			/* get the end time */
-			switch(daterange_type) {
-				case DATERANGE_CALENDAR_DATE:
-					t->tm_sec = 0;
-					t->tm_min = 0;
-					t->tm_hour = 0;
-					t->tm_mday = temp_daterange->emday;
-					t->tm_mon = temp_daterange->emon;
-					t->tm_year = (temp_daterange->eyear - 1900);
-					t->tm_isdst = -1;
-					end_time = mktime(t);
-					break;
-				case DATERANGE_MONTH_DATE:
-					/* use same year as was calculated for start time above */
-					end_time = calculate_time_from_day_of_month(year, temp_daterange->emon, temp_daterange->emday);
-					/* advance a year if necessary: august 5 - feburary 2 */
-					if(end_time < start_time) {
-						year++;
-						end_time = calculate_time_from_day_of_month(year, temp_daterange->emon, temp_daterange->emday);
-						}
-					break;
-				case DATERANGE_MONTH_DAY:
-					/* use same year and month as was calculated for start time above */
-					end_time = calculate_time_from_day_of_month(year, month, temp_daterange->emday);
-					break;
-				case DATERANGE_MONTH_WEEK_DAY:
-					/* use same year as was calculated for start time above */
-					end_time = calculate_time_from_weekday_of_month(year, temp_daterange->emon, temp_daterange->ewday, temp_daterange->ewday_offset);
-					/* advance a year if necessary: thursday 2 august - monday 3 february */
-					if(end_time < start_time) {
-						year++;
-						end_time = calculate_time_from_weekday_of_month(year, temp_daterange->emon, temp_daterange->ewday, temp_daterange->ewday_offset);
-						}
-					break;
-				case DATERANGE_WEEK_DAY:
-					/* use same year and month as was calculated for start time above */
-					end_time = calculate_time_from_weekday_of_month(year, month, temp_daterange->ewday, temp_daterange->ewday_offset);
-					break;
-				default:
-					continue;
-					break;
-				}
-
-#ifdef TEST_TIMEPERIODS_B
-			printf("STARTTIME: %lu = %s", (unsigned long)start_time, ctime(&start_time));
-			printf("ENDTIME1: %lu = %s", (unsigned long)end_time, ctime(&end_time));
-#endif
-
-			/* start date was bad, so skip this date range */
-			if((unsigned long)start_time == 0L)
+		for(; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
+			/* ranges with start/end of zero mean exlude this day */
+			if(temp_timerange->range_start == 0 && temp_timerange->range_end == 0)
 				continue;
 
-			/* end date was bad - see if we can handle the error */
-			if((unsigned long)end_time == 0L) {
-				switch(daterange_type) {
-					case DATERANGE_CALENDAR_DATE:
-						continue;
-						break;
-					case DATERANGE_MONTH_DATE:
-						/* end date can't be helped, so skip it */
-						if(temp_daterange->emday < 0)
-							continue;
-
-						/* else end date slipped past end of month, so use last day of month as end date */
-						end_time = calculate_time_from_day_of_month(year, temp_daterange->emon, -1);
-						break;
-					case DATERANGE_MONTH_DAY:
-						/* end date can't be helped, so skip it */
-						if(temp_daterange->emday < 0)
-							continue;
-
-						/* else end date slipped past end of month, so use last day of month as end date */
-						end_time = calculate_time_from_day_of_month(year, month, -1);
-						break;
-					case DATERANGE_MONTH_WEEK_DAY:
-						/* end date can't be helped, so skip it */
-						if(temp_daterange->ewday_offset < 0)
-							continue;
-
-						/* else end date slipped past end of month, so use last day of month as end date */
-						end_time = calculate_time_from_day_of_month(year, pref_time_mon, -1);
-						break;
-					case DATERANGE_WEEK_DAY:
-						/* end date can't be helped, so skip it */
-						if(temp_daterange->ewday_offset < 0)
-							continue;
-
-						/* else end date slipped past end of month, so use last day of month as end date */
-						end_time = calculate_time_from_day_of_month(year, month, -1);
-						break;
-					default:
-						continue;
-						break;
-					}
-				}
+			day_range_start = (time_t)(midnight + temp_timerange->range_start);
+			day_range_end = (time_t)(midnight + temp_timerange->range_end);
 
 #ifdef TEST_TIMEPERIODS_B
-			printf("ENDTIME2: %lu = %s", (unsigned long)end_time, ctime(&end_time));
+			printf("  INVALID RANGE START: %lu (%lu) = %s", temp_timerange->range_start, (unsigned long)day_range_start, ctime(&day_range_start));
+			printf("  INVALID RANGE END:   %lu (%lu) = %s", temp_timerange->range_end, (unsigned long)day_range_end, ctime(&day_range_end));
 #endif
 
-			/* if skipping days... */
-			if(temp_daterange->skip_interval > 1) {
-
-				/* advance to the next possible skip date */
-				if(start_time < preferred_time) {
-					/* check if interval is across dlst change and gets the compensation */
-					shift = get_dst_shift(&start_time, &midnight);
-
-					/* how many days have passed between skip start date and preferred time? */
-					days = (shift + (unsigned long)midnight - (unsigned long)start_time) / (3600 * 24);
-
-#ifdef TEST_TIMEPERIODS_B
-					printf("MIDNIGHT: %lu = %s", midnight, ctime(&midnight));
-					printf("%lu SECONDS PASSED\n", (midnight - (unsigned long)start_time));
-					printf("%d DAYS PASSED\n", days);
-					printf("REMAINDER: %d\n", (days % temp_daterange->skip_interval));
-					printf("SKIP INTERVAL: %d\n", temp_daterange->skip_interval);
-					printf("DLST SHIFT: %d", shift);
-#endif
-
-					/* advance start date to next skip day */
-					if((days % temp_daterange->skip_interval) == 0)
-						start_time += (days * 3600 * 24);
-					else
-						start_time += ((days - (days % temp_daterange->skip_interval) + temp_daterange->skip_interval) * 3600 * 24);
-					}
-
-				/* if skipping has no end, use start date as end */
-				if((daterange_type == DATERANGE_CALENDAR_DATE) && is_daterange_single_day(temp_daterange) == TRUE)
-					end_time = start_time;
-				}
-
-#ifdef TEST_TIMEPERIODS_B
-			printf("\nSTART:     %lu = %s", (unsigned long)start_time, ctime(&start_time));
-			printf("END:       %lu = %s", (unsigned long)end_time, ctime(&end_time));
-			printf("PREFERRED: %lu = %s", (unsigned long)preferred_time, ctime(&preferred_time));
-			printf("CURRENT:   %lu = %s", (unsigned long)current_time, ctime(&current_time));
-#endif
-
-			/* skip this date range its out of bounds with what we want */
-			if(preferred_time > end_time)
-				continue;
-
-			/* how many days at a time should we advance? */
-			if(temp_daterange->skip_interval > 1)
-				advance_interval = temp_daterange->skip_interval;
+			if(day_range_start <= earliest_time && day_range_end > earliest_time)
+				potential_time = day_range_end + 60;
 			else
-				advance_interval = 1;
+				potential_time = earliest_time;
 
-			/* advance through the date range */
-			for(day_start = start_time; day_start <= end_time; day_start += (advance_interval * 3600 * 24)) {
-
-				/* we already found a time from a higher-precendence date range exception */
-				if(day_start >= earliest_day && have_earliest_time == TRUE)
-					continue;
-
-				for(temp_timerange = temp_daterange->times; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
-
-					/* ranges with start/end of zero mean exlude this day */
-					if(temp_timerange->range_start == 0 && temp_timerange->range_end == 0)
-						continue;
-
-					day_range_start = (time_t)(day_start + temp_timerange->range_start);
-					day_range_end = (time_t)(day_start + temp_timerange->range_end);
-
+			if(potential_time > earliest_time) {
+				earliest_time = potential_time;
 #ifdef TEST_TIMEPERIODS_B
-					printf("  RANGE START: %lu (%lu) = %s", temp_timerange->range_start, (unsigned long)day_range_start, ctime(&day_range_start));
-					printf("  RANGE END:   %lu (%lu) = %s", temp_timerange->range_end, (unsigned long)day_range_end, ctime(&day_range_end));
+				printf("    EARLIEST INVALID TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
 #endif
-
-					/* range is out of bounds */
-					if(day_range_end < preferred_time)
-						continue;
-
-					/* preferred time occurs before range start, so use range start time as earliest potential time */
-					if(day_range_start >= preferred_time)
-						potential_time = day_range_start;
-					/* preferred time occurs between range start/end, so use preferred time as earliest potential time */
-					else if(day_range_end >= preferred_time)
-						potential_time = preferred_time;
-
-					/* is this the earliest time found thus far? */
-					if(have_earliest_time == FALSE || potential_time < earliest_time) {
-						have_earliest_time = TRUE;
-						earliest_time = potential_time;
-						earliest_day = day_start;
-#ifdef TEST_TIMEPERIODS_B
-						printf("    EARLIEST TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
-#endif
-						}
-					}
 				}
 			}
 
-		}
-
-
-	/**** find next available time from normal, weekly rotating schedule (in this timeperiod definition) ****/
-
-	/* check a one week rotation of time */
-	has_looped = FALSE;
-	for(weekday = pref_time_wday, days_into_the_future = 0;; weekday++, days_into_the_future++) {
-
-		/* break out of the loop if we have checked an entire week already */
-		if(has_looped == TRUE && weekday >= pref_time_wday)
-			break;
-
-		if(weekday >= 7) {
-			weekday -= 7;
-			has_looped = TRUE;
+		first_timeperiodexclusion = tperiod->exclusions;
+		tperiod->exclusions = NULL;
+		for(temp_timeperiodexclusion = first_timeperiodexclusion; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
+			_get_next_valid_time(last_earliest_time, current_time, &potential_time, temp_timeperiodexclusion->timeperiod_ptr);
+			if (potential_time + 60 < earliest_time)
+				earliest_time = potential_time + 60;
 			}
+		tperiod->exclusions = first_timeperiodexclusion;
+		}
+#ifdef TEST_TIMEPERIODS_B
+		printf("    FINAL EARLIEST INVALID TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
+#endif
 
-		/* calculate start of this future weekday */
-		day_start = (time_t)(midnight + (days_into_the_future * 3600 * 24));
+	if (depth == max_depth)
+		*invalid_time = pref_time;
+	else
+		*invalid_time = earliest_time;
+	}
 
-		/* we already found a time from a higher-precendence date range exception */
-		if(day_start == earliest_day)
-			continue;
+/* Separate this out from public get_next_valid_time for testing, so we can mock current_time */
+void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod) {
+	timeperiodexclusion *temp_timeperiodexclusion = NULL;
+	timeperiodexclusion *first_timeperiodexclusion = NULL;
+	int depth = 0;
+	int max_depth = 300; // commonly roughly equal to "days in the future"
+	time_t earliest_time = pref_time;
+	time_t last_earliest_time = 0;
+	struct tm *t, tm_s;
+	time_t midnight = (time_t)0L;
+	time_t day_range_start = (time_t)0L;
+	time_t day_range_end = (time_t)0L;
+	int have_earliest_time = FALSE;
 
-		/* check all time ranges for this day of the week */
-		for(temp_timerange = tperiod->days[weekday]; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
+	/* if no period was specified, assume the time is good */
+	if(tperiod == NULL) {
+		*valid_time = pref_time;
+		return;
+	}
 
-			/* calculate the time for the start of this time range */
-			day_range_start = (time_t)(day_start + temp_timerange->range_start);
+	while (earliest_time != last_earliest_time && depth < max_depth) {
+		time_t potential_time = 0;
+		have_earliest_time = FALSE;
+		depth++;
+		last_earliest_time = earliest_time;
 
-			if((have_earliest_time == FALSE || day_range_start < earliest_time) && day_range_start >= preferred_time) {
-				have_earliest_time = TRUE;
-				earliest_time = day_range_start;
-				earliest_day = day_start;
+		t = localtime_r((time_t *)&earliest_time, &tm_s);
+		t->tm_sec = 0;
+		t->tm_min = 0;
+		t->tm_hour = 0;
+		midnight = mktime(t);
+
+		timerange *temp_timerange = _get_matching_timerange(earliest_time, tperiod);
+#ifdef TEST_TIMEPERIODS_B
+			printf("  RANGE START: %lu\n", temp_timerange ? temp_timerange->range_start : 0);
+			printf("  RANGE END:   %lu\n", temp_timerange ? temp_timerange->range_end : 0);
+#endif
+
+		for(; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
+			/* ranges with start/end of zero mean exlude this day */
+			if(temp_timerange->range_start == 0 && temp_timerange->range_end == 0)
+				continue;
+
+			day_range_start = (time_t)(midnight + temp_timerange->range_start);
+			day_range_end = (time_t)(midnight + temp_timerange->range_end);
+
+#ifdef TEST_TIMEPERIODS_B
+			printf("  RANGE START: %lu (%lu) = %s", temp_timerange->range_start, (unsigned long)day_range_start, ctime(&day_range_start));
+			printf("  RANGE END:   %lu (%lu) = %s", temp_timerange->range_end, (unsigned long)day_range_end, ctime(&day_range_end));
+#endif
+
+			/* range is out of bounds */
+			if(day_range_end < last_earliest_time)
+				continue;
+
+			/* preferred time occurs before range start, so use range start time as earliest potential time */
+			if(day_range_start >= last_earliest_time)
+				potential_time = day_range_start;
+			/* preferred time occurs between range start/end, so use preferred time as earliest potential time */
+			else if(day_range_end >= last_earliest_time)
+				potential_time = last_earliest_time;
+
+			/* is this the earliest time found thus far? */
+			if(have_earliest_time == FALSE || potential_time < earliest_time) {
+				earliest_time = potential_time;
+#ifdef TEST_TIMEPERIODS_B
+				printf("    EARLIEST TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
+#endif
 				}
+			have_earliest_time = TRUE;
+			}
+
+		if (have_earliest_time == FALSE) {
+			earliest_time = midnight + 86400;
+		} else {
+			first_timeperiodexclusion = tperiod->exclusions;
+			tperiod->exclusions = NULL;
+			for(temp_timeperiodexclusion = first_timeperiodexclusion; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
+				_get_next_invalid_time(earliest_time, current_time, &earliest_time, temp_timeperiodexclusion->timeperiod_ptr);
+#ifdef TEST_TIMEPERIODS_B
+				printf("    FINAL EARLIEST TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
+#endif
+				}
+			tperiod->exclusions = first_timeperiodexclusion;
 			}
 		}
 
-
-	/* if we couldn't find a time period there must be none defined */
-	if(have_earliest_time == FALSE || earliest_time == (time_t)0)
-		*valid_time = (time_t)preferred_time;
-
-	/* else use the calculated time */
+	if (depth == max_depth)
+		*valid_time = pref_time;
 	else
 		*valid_time = earliest_time;
-
-	return;
 	}
 
 
@@ -1405,6 +1155,8 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 
 	/* get time right now, preferred time must be now or in the future */
 	time(&current_time);
+
+	pref_time = (pref_time < current_time) ? current_time : pref_time;
 
 	_get_next_valid_time(pref_time, current_time, valid_time, tperiod);
 	}

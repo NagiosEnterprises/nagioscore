@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 	int is_valid_time = 0;
 	int iterations = 1000;
 
-	plan_tests(6043);
+	plan_tests(6046);
 
 	/* reset program variables */
 	reset_variables();
@@ -230,7 +230,13 @@ int main(int argc, char **argv) {
 	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
 	ok(chosen_valid_time == 1283265000, "Next valid time should be Tue Aug 31 16:30:00 2010, was %s", ctime(&chosen_valid_time));
 
-
+	temp_timeperiod = find_timeperiod("exclude_always");
+	ok(temp_timeperiod != NULL, "Testing exclude always");
+	test_time = 1278939600; //mon jul 12 15:00:00
+	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
+	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
+	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
+	ok(chosen_valid_time == test_time, "There should be no next valid time, was %s", ctime(&chosen_valid_time));
 
 
 	/* Back to New york */

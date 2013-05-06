@@ -10,7 +10,7 @@ SRC_CGI=../cgi
 SRC_COMMON=../common
 
 CC=@CC@
-CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src
+CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src -I..
 
 TESTS = test_logging test_events test_timeperiods test_nagios_config
 TESTS += test_xsddefault
@@ -22,11 +22,11 @@ TESTS += test_downtime
 XSD_OBJS = $(SRC_CGI)/statusdata-cgi.o $(SRC_CGI)/xstatusdata-cgi.o
 XSD_OBJS += $(SRC_CGI)/objects-cgi.o $(SRC_CGI)/xobjects-cgi.o
 XSD_OBJS += $(SRC_CGI)/comments-cgi.o $(SRC_CGI)/downtime-cgi.o
-XSD_OBJS += $(SRC_CGI)/cgiutils.o $(SRC_CGI)/skiplist.o ../common/shared.o
+XSD_OBJS += $(SRC_CGI)/cgiutils.o ../common/shared.o
 
 TP_OBJS = $(SRC_BASE)/utils.o $(SRC_BASE)/config.o $(SRC_BASE)/macros-base.o
 TP_OBJS += $(SRC_BASE)/objects-base.o $(SRC_BASE)/xobjects-base.o
-TP_OBJS += $(SRC_BASE)/skiplist.o ../common/shared.o
+TP_OBJS += ../common/shared.o
 
 CFG_OBJS = $(TP_OBJS)
 CFG_OBJS += $(SRC_BASE)/comments-base.o $(SRC_BASE)/xcomments-base.o
@@ -35,7 +35,7 @@ CFG_OBJS += $(SRC_BASE)/retention-base.o $(SRC_BASE)/xretention-base.o
 
 
 LDFLAGS=@LDFLAGS@
-LIBS=@LIBS@
+LIBS=@LIBS@ ../lib/libnagios.a
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@

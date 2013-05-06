@@ -991,7 +991,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 /*#define TEST_TIMEPERIODS_B 1*/
 
 /* Separate this out from public get_next_valid_time for testing, so we can mock current_time */
-static void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod) {
+void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod) {
 	time_t preferred_time = (time_t)0L;
 	timerange *temp_timerange;
 	daterange *temp_daterange;

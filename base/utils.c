@@ -931,7 +931,6 @@ static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod)
 int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 	timerange *temp_timerange = NULL;
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
-	timeperiodexclusion *first_timeperiodexclusion = NULL;
 	struct tm *t, tm_s;
 	time_t midnight = (time_t)0L;
 	time_t day_range_start = (time_t)0L;
@@ -950,15 +949,11 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 	if(tperiod == NULL)
 		return OK;
 
-	first_timeperiodexclusion = tperiod->exclusions;
-	tperiod->exclusions = NULL;
-	for(temp_timeperiodexclusion = first_timeperiodexclusion; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
+	for(temp_timeperiodexclusion = tperiod->exclusions; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
 		if(check_time_against_period(test_time, temp_timeperiodexclusion->timeperiod_ptr) == OK) {
-			tperiod->exclusions = first_timeperiodexclusion;
 			return ERROR;
 			}
 		}
-	tperiod->exclusions = first_timeperiodexclusion;
 
 	for(temp_timerange = _get_matching_timerange(test_time, tperiod); temp_timerange != NULL; temp_timerange = temp_timerange->next) {
 
@@ -979,7 +974,6 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 
 static void _get_next_invalid_time(time_t pref_time, time_t current_time, time_t *invalid_time, timeperiod *tperiod) {
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
-	timeperiodexclusion *first_timeperiodexclusion = NULL;
 	int depth = 0;
 	int max_depth = 300; // commonly roughly equal to "days in the future"
 	struct tm *t, tm_s;
@@ -1034,14 +1028,11 @@ static void _get_next_invalid_time(time_t pref_time, time_t current_time, time_t
 				}
 			}
 
-		first_timeperiodexclusion = tperiod->exclusions;
-		tperiod->exclusions = NULL;
-		for(temp_timeperiodexclusion = first_timeperiodexclusion; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
+		for(temp_timeperiodexclusion = tperiod->exclusions; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
 			_get_next_valid_time(last_earliest_time, current_time, &potential_time, temp_timeperiodexclusion->timeperiod_ptr);
 			if (potential_time + 60 < earliest_time)
 				earliest_time = potential_time + 60;
 			}
-		tperiod->exclusions = first_timeperiodexclusion;
 		}
 #ifdef TEST_TIMEPERIODS_B
 		printf("    FINAL EARLIEST INVALID TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
@@ -1056,7 +1047,6 @@ static void _get_next_invalid_time(time_t pref_time, time_t current_time, time_t
 /* Separate this out from public get_next_valid_time for testing, so we can mock current_time */
 void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod) {
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
-	timeperiodexclusion *first_timeperiodexclusion = NULL;
 	int depth = 0;
 	int max_depth = 300; // commonly roughly equal to "days in the future"
 	time_t earliest_time = pref_time;
@@ -1128,15 +1118,12 @@ void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_t
 		if (have_earliest_time == FALSE) {
 			earliest_time = midnight + 86400;
 		} else {
-			first_timeperiodexclusion = tperiod->exclusions;
-			tperiod->exclusions = NULL;
-			for(temp_timeperiodexclusion = first_timeperiodexclusion; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
+			for(temp_timeperiodexclusion = tperiod->exclusions; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
 				_get_next_invalid_time(earliest_time, current_time, &earliest_time, temp_timeperiodexclusion->timeperiod_ptr);
 #ifdef TEST_TIMEPERIODS_B
 				printf("    FINAL EARLIEST TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
 #endif
 				}
-			tperiod->exclusions = first_timeperiodexclusion;
 			}
 		}
 

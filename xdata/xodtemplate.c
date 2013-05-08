@@ -502,6 +502,10 @@ int xodtemplate_read_config_data(const char *main_config_file, int options) {
 		}
 #endif
 
+	bitmap_destroy(contact_map);
+	bitmap_destroy(host_map);
+	bitmap_destroy(service_map);
+
 	return result;
 	}
 

@@ -509,6 +509,12 @@ int main(int argc, char **argv) {
 
 		/* exit */
 		timing_point("Exiting\n");
+
+		/* make valgrind shut up about still reachable memory */
+		neb_free_module_list();
+		free(config_file_dir);
+		free(config_file);
+
 		exit(result);
 		}
 
@@ -846,6 +852,8 @@ int main(int argc, char **argv) {
 		/* free misc memory */
 		my_free(lock_file);
 		my_free(config_file);
+		my_free(config_file_dir);
+		my_free(nagios_binary_path);
 		}
 
 	return OK;

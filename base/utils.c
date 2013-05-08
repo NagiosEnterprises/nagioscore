@@ -3099,6 +3099,8 @@ void cleanup(void) {
 
 /* free the memory allocated to the linked lists */
 void free_memory(nagios_macros *mac) {
+	int i;
+
 	/* free all allocated memory for the object definitions */
 	free_object_data();
 
@@ -3148,14 +3150,29 @@ void free_memory(nagios_macros *mac) {
 	my_free(new_program_version);
 
 	/* free file/path variables */
+	my_free(debug_file);
 	my_free(log_file);
 	mac->x[MACRO_LOGFILE] = NULL; /* assigned from 'log_file' */
-	my_free(debug_file);
 	my_free(temp_file);
+	mac->x[MACRO_TEMPFILE] = NULL; /* assigned from temp_file */
 	my_free(temp_path);
+	mac->x[MACRO_TEMPPATH] = NULL; /*assigned from temp_path */
 	my_free(check_result_path);
 	my_free(command_file);
+	mac->x[MACRO_COMMANDFILE] = NULL; /* assigned from command_file */
 	my_free(log_archive_path);
+	my_free(lock_file);
+
+	for (i = 0; i < MAX_USER_MACROS; i++) {
+		my_free(macro_user[i]);
+	}
+
+	/* these have no other reference */
+	my_free(mac->x[MACRO_ADMINEMAIL]);
+	my_free(mac->x[MACRO_ADMINPAGER]);
+	my_free(mac->x[MACRO_RESOURCEFILE]);
+	my_free(mac->x[MACRO_OBJECTCACHEFILE]);
+	my_free(mac->x[MACRO_MAINCONFIGFILE]);
 
 	return;
 	}

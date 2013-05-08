@@ -227,8 +227,7 @@ int read_main_config_file(char *main_config_file) {
 			command_file = nspath_absolute(value, config_file_dir);
 
 			/* save the macro */
-			my_free(mac->x[MACRO_COMMANDFILE]);
-			mac->x[MACRO_COMMANDFILE] = (char *)strdup(value);
+			mac->x[MACRO_COMMANDFILE] = command_file;
 			}
 
 		else if(!strcmp(variable, "temp_file")) {
@@ -1188,10 +1187,8 @@ int read_main_config_file(char *main_config_file) {
 		}
 
 	/* save the macros */
-	my_free(mac->x[MACRO_TEMPPATH]);
-	my_free(mac->x[MACRO_TEMPFILE]);
-	mac->x[MACRO_TEMPPATH] = (char *)strdup(temp_path);
-	mac->x[MACRO_TEMPFILE] = (char *)strdup(temp_file);
+	mac->x[MACRO_TEMPPATH] = temp_path;
+	mac->x[MACRO_TEMPFILE] = temp_file;
 
 	/* adjust timezone values */
 	if(use_timezone != NULL)

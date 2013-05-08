@@ -4769,9 +4769,16 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 	my_free(temp_servicedependency->name);
 	my_free(temp_servicedependency->template);
 
-	/* skip templates */
-	if(temp_servicedependency->register_object == 0)
+	/* skip templates, but free them first */
+	if(temp_servicedependency->register_object == 0) {
+		my_free(temp_servicedependency->host_name);
+		my_free(temp_servicedependency->service_description);
+		my_free(temp_servicedependency->hostgroup_name);
+		my_free(temp_servicedependency->dependent_host_name);
+		my_free(temp_servicedependency->dependent_service_description);
+		my_free(temp_servicedependency->dependent_hostgroup_name);
 		return OK;
+		}
 
 	if(!temp_servicedependency->host_name && !temp_servicedependency->hostgroup_name
 	   && !temp_servicedependency->servicegroup_name)

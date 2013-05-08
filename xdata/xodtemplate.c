@@ -1097,9 +1097,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 	xodtemplate_hostescalation *temp_hostescalation = NULL;
 	xodtemplate_hostextinfo *temp_hostextinfo = NULL;
 	xodtemplate_serviceextinfo *temp_serviceextinfo = NULL;
-	register int x = 0;
-	register int y = 0;
-	int force_skiplists = FALSE;
+	int x, y, force_skiplists = FALSE;
 
 
 	/* should some object definitions be added to skiplists immediately? */
@@ -1174,23 +1172,22 @@ int xodtemplate_add_object_property(char *input, int options) {
 		}
 
 	/* get variable name */
-	if((variable = (char *)strdup(input)) == NULL)
-		return ERROR;
+	variable = input;
 	/* trim at first whitespace occurance */
-	for(x = 0, y = 0; variable[x] != '\x0'; x++) {
-		if(variable[x] == ' ' || variable[x] == '\t')
+	for(x = 0; variable[x] != '\x0'; x++) {
+		if(variable[x] == ' ' || variable[x] == '\t') {
+			variable[x] = 0;
+			y = x;
 			break;
-		y++;
+			}
 		}
-	variable[y] = '\x0';
 
 	/* get variable value */
-	if((value = (char *)strdup(input + x)) == NULL) {
-		my_free(variable);
-		return ERROR;
-		}
+	value = input + x + 1;
+	while (*value == ' ' || *value == '\t')
+		value++;
+	/* now strip trailing spaces */
 	strip(value);
-
 
 	switch(xodtemplate_current_object_type) {
 
@@ -3465,10 +3462,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 			return ERROR;
 			break;
 		}
-
-	/* free memory */
-	my_free(variable);
-	my_free(value);
 
 	return result;
 	}

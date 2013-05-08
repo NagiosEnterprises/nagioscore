@@ -7433,7 +7433,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 	/* add the contact groups */
 	if(this_serviceescalation->contact_groups != NULL) {
 
-		for(contact_group = strtok(this_serviceescalation->contact_groups, ","); contact_group != NULL; contact_group = strtok(NULL, ", ")) {
+		for(contact_group = strtok(this_serviceescalation->contact_groups, ","); contact_group != NULL; contact_group = strtok(NULL, ",")) {
 
 			strip(contact_group);
 			new_contactgroupsmember = add_contactgroup_to_serviceescalation(new_serviceescalation, contact_group);
@@ -7447,7 +7447,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 	/* add the contacts */
 	if(this_serviceescalation->contacts != NULL) {
 
-		for(contact_name = strtok(this_serviceescalation->contacts, ","); contact_name != NULL; contact_name = strtok(NULL, ", ")) {
+		for(contact_name = strtok(this_serviceescalation->contacts, ","); contact_name != NULL; contact_name = strtok(NULL, ",")) {
 
 			strip(contact_name);
 			new_contactsmember = add_contact_to_serviceescalation(new_serviceescalation, contact_name);
@@ -7790,7 +7790,7 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 	/* add the contacts */
 	if(this_hostescalation->contacts != NULL) {
 
-		for(contact_name = strtok(this_hostescalation->contacts, ","); contact_name != NULL; contact_name = strtok(NULL, ", ")) {
+		for(contact_name = strtok(this_hostescalation->contacts, ","); contact_name != NULL; contact_name = strtok(NULL, ",")) {
 
 			strip(contact_name);
 			new_contactsmember = add_contact_to_hostescalation(new_hostescalation, contact_name);

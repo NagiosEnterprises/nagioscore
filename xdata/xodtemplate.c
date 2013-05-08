@@ -8973,7 +8973,7 @@ objectlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups, char *host
 		/* expand host */
 		result = xodtemplate_expand_hostgroups(&glist, reject, hostgroups, _config_file, _start_line);
 		if(result != OK) {
-			printf("Failed to expand hostgroups '%s' to something sensible\n", hostgroups);
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to expand hostgroups '%s' to something sensible\n", hostgroups);
 			free_objectlist(&glist);
 			bitmap_destroy(reject);
 			return NULL;

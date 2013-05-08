@@ -1027,22 +1027,25 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
 	hostsmember *new_member = NULL;
 	hostsmember *last_member = NULL;
 	hostsmember *temp_member = NULL;
+	struct host *h;
 
 	/* make sure we have the data we need */
 	if(temp_hostgroup == NULL || (host_name == NULL || !strcmp(host_name, ""))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Hostgroup or group member is NULL\n");
 		return NULL;
 		}
+	if (!(h = find_host(host_name))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate host '%s' for hostgroup '%s'\n", host_name, temp_hostgroup->group_name);
+		return NULL;
+	}
 
 	/* allocate memory for a new member */
 	if((new_member = calloc(1, sizeof(hostsmember))) == NULL)
 		return NULL;
 
-	/* duplicate vars */
-	if((new_member->host_name = (char *)strdup(host_name)) == NULL) {
-		my_free(new_member);
-		return NULL;
-		}
+	/* assign vars */
+	new_member->host_name = h->name;
+	new_member->host_ptr = h;
 
 	/* add the new member to the member list, sorted by host name */
 #ifndef NSCGI
@@ -1073,6 +1076,8 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
 		new_member->next = NULL;
 		last_member->next = new_member;
 		}
+
+	prepend_object_to_objectlist(&h->hostgroups_ptr, (void *)temp_hostgroup);
 
 	return new_member;
 	}
@@ -1147,10 +1152,15 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 	servicesmember *new_member = NULL;
 	servicesmember *last_member = NULL;
 	servicesmember *temp_member = NULL;
+	struct service *svc;
 
 	/* make sure we have the data we need */
 	if(temp_servicegroup == NULL || (host_name == NULL || !strcmp(host_name, "")) || (svc_description == NULL || !strcmp(svc_description, ""))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Servicegroup or group member is NULL\n");
+		return NULL;
+		}
+	if (!(svc = find_service(host_name, svc_description))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate service '%s' on host '%s' for servicegroup '%s'\n", svc_description, host_name, temp_servicegroup->group_name);
 		return NULL;
 		}
 
@@ -1158,15 +1168,10 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 	if((new_member = calloc(1, sizeof(servicesmember))) == NULL)
 		return NULL;
 
-	/* duplicate vars */
-	new_member->host_name = (char *)strdup(host_name);
-	new_member->service_description = (char *)strdup(svc_description);
-	if(new_member->host_name == NULL || new_member->service_description == NULL) {
-		my_free(new_member->host_name);
-		my_free(new_member->service_description);
-		my_free(new_member);
-		return NULL;
-		}
+	/* assign vars */
+	new_member->host_name = svc->host_name;
+	new_member->service_description = svc->description;
+	new_member->service_ptr = svc;
 
 	/*
 	 * add new member to member list, sorted by host name then
@@ -1212,6 +1217,8 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 		new_member->next = NULL;
 		last_member->next = new_member;
 		}
+
+	prepend_object_to_objectlist(&svc->servicegroups_ptr, (void *)temp_servicegroup);
 
 	return new_member;
 	}
@@ -1453,6 +1460,7 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 /* add a new member to a contact group */
 contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_name) {
 	contactsmember *new_contactsmember = NULL;
+	struct contact *c;
 
 	/* make sure we have the data we need */
 	if(grp == NULL || (contact_name == NULL || !strcmp(contact_name, ""))) {
@@ -1460,19 +1468,24 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 		return NULL;
 		}
 
+	if (!(c = find_contact(contact_name))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate contact '%s' for contactgroup '%s'\n", contact_name, grp->group_name);
+		return NULL;
+		}
+
 	/* allocate memory for a new member */
 	if((new_contactsmember = calloc(1, sizeof(contactsmember))) == NULL)
 		return NULL;
 
-	/* duplicate vars */
-	if((new_contactsmember->contact_name = (char *)strdup(contact_name)) == NULL) {
-		my_free(new_contactsmember);
-		return NULL;
-		}
+	/* assign vars */
+	new_contactsmember->contact_name = c->name;
+	new_contactsmember->contact_ptr = c;
 
 	/* add the new member to the head of the member list */
 	new_contactsmember->next = grp->members;
 	grp->members = new_contactsmember;
+
+	prepend_object_to_objectlist(&c->contactgroups_ptr, (void *)grp);
 
 	return new_contactsmember;
 	}
@@ -2613,7 +2626,6 @@ int free_object_data(void) {
 		this_hostsmember = this_hostgroup->members;
 		while(this_hostsmember != NULL) {
 			next_hostsmember = this_hostsmember->next;
-			my_free(this_hostsmember->host_name);
 			my_free(this_hostsmember);
 			this_hostsmember = next_hostsmember;
 			}
@@ -2637,8 +2649,6 @@ int free_object_data(void) {
 		this_servicesmember = this_servicegroup->members;
 		while(this_servicesmember != NULL) {
 			next_servicesmember = this_servicesmember->next;
-			my_free(this_servicesmember->host_name);
-			my_free(this_servicesmember->service_description);
 			my_free(this_servicesmember);
 			this_servicesmember = next_servicesmember;
 			}
@@ -2712,7 +2722,6 @@ int free_object_data(void) {
 		this_contactsmember = this_contactgroup->members;
 		while(this_contactsmember != NULL) {
 			next_contactsmember = this_contactsmember->next;
-			my_free(this_contactsmember->contact_name);
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
 			}

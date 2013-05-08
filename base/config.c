@@ -1482,14 +1482,12 @@ int pre_flight_object_check(int *w, int *e) {
 	contact *temp_contact = NULL;
 	commandsmember *temp_commandsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
-	contactsmember *temp_contactsmember = NULL;
 	host *temp_host = NULL;
 	host *temp_host2 = NULL;
 	hostsmember *temp_hostsmember = NULL;
 	servicesmember *sm = NULL;
 	hostgroup *temp_hostgroup = NULL;
 	servicegroup *temp_servicegroup = NULL;
-	servicesmember *temp_servicesmember = NULL;
 	service *temp_service = NULL;
 	command *temp_command = NULL;
 	timeperiod *temp_timeperiod = NULL;
@@ -1711,24 +1709,6 @@ int pre_flight_object_check(int *w, int *e) {
 	if(verify_config)
 		printf("Checking host groups...\n");
 	for(temp_hostgroup = hostgroup_list, total_objects = 0; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next, total_objects++) {
-
-		/* check all group members */
-		for(temp_hostsmember = temp_hostgroup->members; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-
-			temp_host = find_host(temp_hostsmember->host_name);
-			if(temp_host == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host '%s' specified in host group '%s' is not defined anywhere!", temp_hostsmember->host_name, temp_hostgroup->group_name);
-				errors++;
-				}
-
-			/* save a pointer to this hostgroup for faster host/group membership lookups later */
-			else
-				add_object_to_objectlist(&temp_host->hostgroups_ptr, (void *)temp_hostgroup);
-
-			/* save host pointer for later */
-			temp_hostsmember->host_ptr = temp_host;
-			}
-
 		/* check for illegal characters in hostgroup name */
 		if(use_precached_objects == FALSE) {
 			if(contains_illegal_object_chars(temp_hostgroup->group_name) == TRUE) {
@@ -1748,24 +1728,6 @@ int pre_flight_object_check(int *w, int *e) {
 	if(verify_config)
 		printf("Checking service groups...\n");
 	for(temp_servicegroup = servicegroup_list, total_objects = 0; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next, total_objects++) {
-
-		/* check all group members */
-		for(temp_servicesmember = temp_servicegroup->members; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
-
-			temp_service = find_service(temp_servicesmember->host_name, temp_servicesmember->service_description);
-			if(temp_service == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service '%s' on host '%s' specified in service group '%s' is not defined anywhere!", temp_servicesmember->service_description, temp_servicesmember->host_name, temp_servicegroup->group_name);
-				errors++;
-				}
-
-			/* save a pointer to this servicegroup for faster service/group membership lookups later */
-			else
-				add_object_to_objectlist(&temp_service->servicegroups_ptr, (void *)temp_servicegroup);
-
-			/* save service pointer for later */
-			temp_servicesmember->service_ptr = temp_service;
-			}
-
 		/* check for illegal characters in servicegroup name */
 		if(use_precached_objects == FALSE) {
 			if(contains_illegal_object_chars(temp_servicegroup->group_name) == TRUE) {
@@ -1883,24 +1845,6 @@ int pre_flight_object_check(int *w, int *e) {
 	if(verify_config)
 		printf("Checking contact groups...\n");
 	for(temp_contactgroup = contactgroup_list, total_objects = 0; temp_contactgroup != NULL; temp_contactgroup = temp_contactgroup->next, total_objects++) {
-
-		/* check all the group members */
-		for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-
-			temp_contact = find_contact(temp_contactsmember->contact_name);
-			if(temp_contact == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact '%s' specified in contact group '%s' is not defined anywhere!", temp_contactsmember->contact_name, temp_contactgroup->group_name);
-				errors++;
-				}
-
-			/* save a pointer to this contactgroup for faster contact/group membership lookups later */
-			else
-				add_object_to_objectlist(&temp_contact->contactgroups_ptr, (void *)temp_contactgroup);
-
-			/* save the contact pointer for later */
-			temp_contactsmember->contact_ptr = temp_contact;
-			}
-
 		/* check for illegal characters in contactgroup name */
 		if(use_precached_objects == FALSE) {
 			if(contains_illegal_object_chars(temp_contactgroup->group_name) == TRUE) {

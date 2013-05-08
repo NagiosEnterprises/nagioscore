@@ -6846,6 +6846,71 @@ xodtemplate_service *xodtemplate_find_real_service(char *host_name, char *servic
 /**************** OBJECT REGISTRATION FUNCTIONS *******************/
 /******************************************************************/
 
+static int xodtemplate_register_contactgroup_members(xodtemplate_contactgroup *this_contactgroup)
+{
+	objectlist *list;
+	struct contactgroup *cg;
+	int num_regs = 0;
+
+	if (!this_contactgroup->register_object)
+		return 0;
+
+	cg = find_contactgroup(this_contactgroup->contactgroup_name);
+	for(list = this_contactgroup->member_list; list; list = list->next) {
+		xodtemplate_contact *c = (xodtemplate_contact *)list->object_ptr;
+		if (!add_contact_to_contactgroup(cg, c->contact_name)) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Bad member of contactgroup '%s' (config file '%s', starting on line %d)\n", cg->group_name, xodtemplate_config_file_name(this_contactgroup->_config_file), this_contactgroup->_start_line);
+			return -1;
+			}
+		num_regs++;
+		}
+	return num_regs;
+}
+
+static int xodtemplate_register_hostgroup_members(xodtemplate_hostgroup *this_hostgroup)
+{
+	objectlist *list;
+	struct hostgroup *hg;
+	int num_regs = 0;
+
+	if (!this_hostgroup->register_object)
+		return 0;
+
+	hg = find_hostgroup(this_hostgroup->hostgroup_name);
+	for(list = this_hostgroup->member_list; list; list = list->next) {
+		xodtemplate_host *h = (xodtemplate_host *)list->object_ptr;
+		if (!add_host_to_hostgroup(hg, h->host_name)) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Bad member of hostgrop '%s' (config file '%s', starting on line %d)\n", hg->group_name, xodtemplate_config_file_name(this_hostgroup->_config_file), this_hostgroup->_start_line);
+			return -1;
+			}
+		num_regs++;
+		}
+	return num_regs;
+	}
+
+static int xodtemplate_register_servicegroup_members(xodtemplate_servicegroup *this_servicegroup)
+{
+	objectlist *list, *next;
+	struct servicegroup *sg;
+	int num_regs = 0;
+
+	if (!this_servicegroup->register_object)
+		return 0;
+
+	sg = find_servicegroup(this_servicegroup->servicegroup_name);
+	for(list = this_servicegroup->member_list; list; list = next) {
+		xodtemplate_service *s = (xodtemplate_service *)list->object_ptr;
+		next = list->next;
+		if (!add_service_to_servicegroup(sg, s->host_name, s->service_description)) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Bad member of servicegroup '%s' (config file '%s', starting on line %d)\n", sg->group_name, xodtemplate_config_file_name(this_servicegroup->_config_file), this_servicegroup->_start_line);
+			return -1;
+			}
+		num_regs++;
+		}
+
+	return num_regs;
+	}
+
 /*
  * registers object definitions
  * The order goes like this:
@@ -6869,7 +6934,7 @@ xodtemplate_service *xodtemplate_find_real_service(char *host_name, char *servic
  */
 int xodtemplate_register_objects(void) {
 	unsigned int i;
-	int result = OK;
+	int mcount;
 	xodtemplate_timeperiod *temp_timeperiod = NULL;
 	xodtemplate_command *temp_command = NULL;
 	xodtemplate_contactgroup *temp_contactgroup = NULL;
@@ -6884,6 +6949,7 @@ int xodtemplate_register_objects(void) {
 	xodtemplate_servicedependency *sd, *next_sd;
 	xodtemplate_serviceescalation *se, *next_se;
 	unsigned int ocount[NUM_OBJECT_SKIPLISTS];
+	unsigned int tot_members = 0;
 
 
 	for (i = 0; i < ARRAY_SIZE(ocount); i++) {
@@ -6904,7 +6970,7 @@ int xodtemplate_register_objects(void) {
 	/* register timeperiods */
 	ptr = NULL;
 	for(temp_timeperiod = (xodtemplate_timeperiod *)skiplist_get_first(xobject_skiplists[TIMEPERIOD_SKIPLIST], &ptr); temp_timeperiod != NULL; temp_timeperiod = (xodtemplate_timeperiod *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_timeperiod(temp_timeperiod)) == ERROR)
+		if(xodtemplate_register_timeperiod(temp_timeperiod) == ERROR)
 			return ERROR;
 		}
 	timing_point("%u timeperiods registered\n", num_objects.timeperiods);
@@ -6912,7 +6978,7 @@ int xodtemplate_register_objects(void) {
 	/* register commands */
 	ptr = NULL;
 	for(temp_command = (xodtemplate_command *)skiplist_get_first(xobject_skiplists[COMMAND_SKIPLIST], &ptr); temp_command != NULL; temp_command = (xodtemplate_command *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_command(temp_command)) == ERROR)
+		if(xodtemplate_register_command(temp_command) == ERROR)
 			return ERROR;
 		}
 	timing_point("%u commands registered\n", num_objects.commands);
@@ -6920,7 +6986,7 @@ int xodtemplate_register_objects(void) {
 	/* register contactgroups */
 	ptr = NULL;
 	for(temp_contactgroup = (xodtemplate_contactgroup *)skiplist_get_first(xobject_skiplists[CONTACTGROUP_SKIPLIST], &ptr); temp_contactgroup != NULL; temp_contactgroup = (xodtemplate_contactgroup *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_contactgroup(temp_contactgroup)) == ERROR)
+		if(xodtemplate_register_contactgroup(temp_contactgroup) == ERROR)
 			return ERROR;
 		}
 	timing_point("%u contactgroups registered\n", num_objects.contactgroups);
@@ -6928,7 +6994,7 @@ int xodtemplate_register_objects(void) {
 	/* register hostgroups */
 	ptr = NULL;
 	for(temp_hostgroup = (xodtemplate_hostgroup *)skiplist_get_first(xobject_skiplists[HOSTGROUP_SKIPLIST], &ptr); temp_hostgroup != NULL; temp_hostgroup = (xodtemplate_hostgroup *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_hostgroup(temp_hostgroup)) == ERROR)
+		if(xodtemplate_register_hostgroup(temp_hostgroup) == ERROR)
 			return ERROR;
 		}
 	timing_point("%u hostgroups registered\n", num_objects.hostgroups);
@@ -6936,7 +7002,7 @@ int xodtemplate_register_objects(void) {
 	/* register servicegroups */
 	ptr = NULL;
 	for(temp_servicegroup = (xodtemplate_servicegroup *)skiplist_get_first(xobject_skiplists[SERVICEGROUP_SKIPLIST], &ptr); temp_servicegroup != NULL; temp_servicegroup = (xodtemplate_servicegroup *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_servicegroup(temp_servicegroup)) == ERROR)
+		if(xodtemplate_register_servicegroup(temp_servicegroup) == ERROR)
 			return ERROR;
 		}
 	timing_point("%u servicegroups registered\n", num_objects.servicegroups);
@@ -6944,7 +7010,7 @@ int xodtemplate_register_objects(void) {
 	/* register contacts */
 	ptr = NULL;
 	for(temp_contact = (xodtemplate_contact *)skiplist_get_first(xobject_skiplists[CONTACT_SKIPLIST], &ptr); temp_contact != NULL; temp_contact = (xodtemplate_contact *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_contact(temp_contact)) == ERROR)
+		if(xodtemplate_register_contact(temp_contact) == ERROR)
 			return ERROR;
 		}
 	timing_point("%u contacts registered\n", num_objects.contacts);
@@ -6952,7 +7018,7 @@ int xodtemplate_register_objects(void) {
 	/* register hosts */
 	ptr = NULL;
 	for(temp_host = (xodtemplate_host *)skiplist_get_first(xobject_skiplists[HOST_SKIPLIST], &ptr); temp_host != NULL; temp_host = (xodtemplate_host *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_host(temp_host)) == ERROR)
+		if(xodtemplate_register_host(temp_host) == ERROR)
 			return ERROR;
 		}
 	timing_point("%u hosts registered\n", num_objects.hosts);
@@ -6960,10 +7026,38 @@ int xodtemplate_register_objects(void) {
 	/* register services */
 	ptr = NULL;
 	for(temp_service = (xodtemplate_service *)skiplist_get_first(xobject_skiplists[SERVICE_SKIPLIST], &ptr); temp_service != NULL; temp_service = (xodtemplate_service *)skiplist_get_next(&ptr)) {
-		if((result = xodtemplate_register_service(temp_service)) == ERROR)
+		if(xodtemplate_register_service(temp_service) == ERROR)
 			return ERROR;
 		}
 	timing_point("%u services registered\n", num_objects.services);
+
+	/* groups and objects are registered, so join them up */
+	/* register contactgroup members */
+	ptr = NULL; tot_members = 0;
+	for(temp_contactgroup = (xodtemplate_contactgroup *)skiplist_get_first(xobject_skiplists[CONTACTGROUP_SKIPLIST], &ptr); temp_contactgroup != NULL; temp_contactgroup = (xodtemplate_contactgroup *)skiplist_get_next(&ptr)) {
+		if((mcount = xodtemplate_register_contactgroup_members(temp_contactgroup)) < 0)
+			return ERROR;
+		tot_members += mcount;
+		}
+	timing_point("%u contactgroup memberships registered\n", tot_members);
+
+	/* register hostgroup members */
+	ptr = NULL; tot_members = 0;
+	for(temp_hostgroup = (xodtemplate_hostgroup *)skiplist_get_first(xobject_skiplists[HOSTGROUP_SKIPLIST], &ptr); temp_hostgroup != NULL; temp_hostgroup = (xodtemplate_hostgroup *)skiplist_get_next(&ptr)) {
+		if((mcount = xodtemplate_register_hostgroup_members(temp_hostgroup)) < 0)
+			return ERROR;
+		tot_members += mcount;
+		}
+	timing_point("%u hostgroup memberships registered\n", tot_members);
+
+	/* register servicegroup members */
+	ptr = NULL; tot_members = 0;
+	for(temp_servicegroup = (xodtemplate_servicegroup *)skiplist_get_first(xobject_skiplists[SERVICEGROUP_SKIPLIST], &ptr); temp_servicegroup != NULL; temp_servicegroup = (xodtemplate_servicegroup *)skiplist_get_next(&ptr)) {
+		if((mcount = xodtemplate_register_servicegroup_members(temp_servicegroup)) < 0)
+			return ERROR;
+		tot_members += mcount;
+		}
+	timing_point("%u servicegroup memberships registered\n", tot_members);
 
 	/*
 	 * These aren't in skiplists at all, but it's safe to destroy
@@ -7212,11 +7306,9 @@ int xodtemplate_register_command(xodtemplate_command *this_command) {
 	}
 
 
-
 /* registers a contactgroup definition */
 int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgroup) {
 	contactgroup *new_contactgroup = NULL;
-	objectlist *list;
 
 	/* bail out if we shouldn't register this object */
 	if(this_contactgroup->register_object == FALSE)
@@ -7231,11 +7323,6 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 		return ERROR;
 		}
 
-	for(list = this_contactgroup->member_list; list; list = list->next) {
-		xodtemplate_contact *c = (xodtemplate_contact *)list->object_ptr;
-		add_contact_to_contactgroup(new_contactgroup, c->contact_name);
-		}
-
 	return OK;
 	}
 
@@ -7244,7 +7331,6 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 /* registers a hostgroup definition */
 int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup) {
 	hostgroup *new_hostgroup = NULL;
-	objectlist *list;
 
 	/* bail out if we shouldn't register this object */
 	if(this_hostgroup->register_object == FALSE)
@@ -7258,20 +7344,13 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not register hostgroup (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(this_hostgroup->_config_file), this_hostgroup->_start_line);
 		return ERROR;
 		}
-	for(list = this_hostgroup->member_list; list; list = list->next) {
-		xodtemplate_host *h = (xodtemplate_host *)list->object_ptr;
-		add_host_to_hostgroup(new_hostgroup, h->host_name);
-	}
 
 	return OK;
 	}
 
-
-
 /* registers a servicegroup definition */
 int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegroup) {
 	servicegroup *new_servicegroup = NULL;
-	objectlist *list, *next;
 
 	/* bail out if we shouldn't register this object */
 	if(this_servicegroup->register_object == FALSE)
@@ -7286,15 +7365,8 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 		return ERROR;
 		}
 
-	for(list = this_servicegroup->member_list; list; list = next) {
-		xodtemplate_service *s = (xodtemplate_service *)list->object_ptr;
-		next = list->next;
-		add_service_to_servicegroup(new_servicegroup, s->host_name, s->service_description);
-		}
-
 	return OK;
 	}
-
 
 
 /* registers a servicedependency definition */

@@ -421,10 +421,8 @@ timeperiod *add_timeperiod(char *name, char *alias) {
 		return NULL;
 
 	/* copy string vars */
-	if((new_timeperiod->name = (char *)strdup(name)) == NULL)
-		return NULL;
-	if((new_timeperiod->alias = (char *)strdup(alias)) == NULL)
-		result = ERROR;
+	new_timeperiod->name = name;
+	new_timeperiod->alias = alias ? alias : name;
 
 	/* add new timeperiod to hash table */
 	if(result == OK) {
@@ -446,8 +444,7 @@ timeperiod *add_timeperiod(char *name, char *alias) {
 
 	/* handle errors */
 	if(result == ERROR) {
-		my_free(new_timeperiod->alias);
-		my_free(new_timeperiod->name);
+		free(new_timeperiod);
 		return NULL;
 		}
 
@@ -624,7 +621,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		return NULL;
 	}
 	if(notification_period && !(notify_tp = find_timeperiod(notification_period))) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate noticiation_period '%s' for host '%s'!\n",
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate notification_period '%s' for host '%s'!\n",
 			  notification_period, name);
 		return NULL;
 	}
@@ -652,56 +649,24 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 
 	new_host = calloc(1, sizeof(*new_host));
 
-	/* duplicate string vars */
-	if((new_host->name = (char *)strdup(name)) == NULL)
-		return NULL;
-	new_host->display_name = display_name ? strdup(display_name) : new_host->name;
-	new_host->alias = alias ? strdup(alias) : new_host->name;
-	new_host->address = address ? strdup(address) : new_host->name;
-	if(!new_host->display_name || !new_host->alias || !new_host->address)
-		result = ERROR;
+	/* assign string vars */
+	new_host->name = name;
+	new_host->display_name = display_name ? display_name : new_host->name;
+	new_host->alias = alias ? alias : new_host->name;
+	new_host->address = address ? address : new_host->name;
 	new_host->check_period = check_tp ? check_tp->name : NULL;
 	new_host->notification_period = notify_tp ? notify_tp->name : NULL;
 	new_host->notification_period_ptr = notify_tp;
 	new_host->check_period_ptr = check_tp;
-
-	if(check_command) {
-		if((new_host->check_command = (char *)strdup(check_command)) == NULL)
-			result = ERROR;
-		}
-	if(event_handler) {
-		if((new_host->event_handler = (char *)strdup(event_handler)) == NULL)
-			result = ERROR;
-		}
-	if(notes) {
-		if((new_host->notes = (char *)strdup(notes)) == NULL)
-			result = ERROR;
-		}
-	if(notes_url) {
-		if((new_host->notes_url = (char *)strdup(notes_url)) == NULL)
-			result = ERROR;
-		}
-	if(action_url) {
-		if((new_host->action_url = (char *)strdup(action_url)) == NULL)
-			result = ERROR;
-		}
-	if(icon_image) {
-		if((new_host->icon_image = (char *)strdup(icon_image)) == NULL)
-			result = ERROR;
-		}
-	if(icon_image_alt) {
-		if((new_host->icon_image_alt = (char *)strdup(icon_image_alt)) == NULL)
-			result = ERROR;
-		}
-	if(vrml_image) {
-		if((new_host->vrml_image = (char *)strdup(vrml_image)) == NULL)
-			result = ERROR;
-		}
-	if(statusmap_image) {
-		if((new_host->statusmap_image = (char *)strdup(statusmap_image)) == NULL)
-			result = ERROR;
-		}
-
+	new_host->check_command = check_command;
+	new_host->event_handler = event_handler;
+	new_host->notes = notes;
+	new_host->notes_url = notes_url;
+	new_host->action_url = action_url;
+	new_host->icon_image = icon_image;
+	new_host->icon_image_alt = icon_image_alt;
+	new_host->vrml_image = vrml_image;
+	new_host->statusmap_image = statusmap_image;
 
 	/* duplicate non-string vars */
 	new_host->hourly_value = hourly_value;
@@ -768,25 +733,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 
 	/* handle errors */
 	if(result == ERROR) {
-#ifdef NSCORE
-		my_free(new_host->plugin_output);
-		my_free(new_host->long_plugin_output);
-		my_free(new_host->perf_data);
-#endif
-		my_free(new_host->statusmap_image);
-		my_free(new_host->vrml_image);
-		my_free(new_host->icon_image_alt);
-		my_free(new_host->icon_image);
-		my_free(new_host->action_url);
-		my_free(new_host->notes_url);
-		my_free(new_host->notes);
-		my_free(new_host->event_handler);
-		my_free(new_host->check_command);
-		my_free(new_host->address);
-		my_free(new_host->alias);
-		if(display_name)
-			my_free(new_host->display_name);
-		my_free(new_host->name);
+		my_free(new_host);
 		return NULL;
 		}
 
@@ -971,23 +918,12 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 
 	new_hostgroup = calloc(1, sizeof(*new_hostgroup));
 
-	/* duplicate vars */
-	if((new_hostgroup->group_name = (char *)strdup(name)) == NULL)
-		result = ERROR;
-	if((new_hostgroup->alias = (char *)strdup((alias == NULL) ? name : alias)) == NULL)
-		result = ERROR;
-	if(notes) {
-		if((new_hostgroup->notes = (char *)strdup(notes)) == NULL)
-			result = ERROR;
-		}
-	if(notes_url) {
-		if((new_hostgroup->notes_url = (char *)strdup(notes_url)) == NULL)
-			result = ERROR;
-		}
-	if(action_url) {
-		if((new_hostgroup->action_url = (char *)strdup(action_url)) == NULL)
-			result = ERROR;
-		}
+	/* assign vars */
+	new_hostgroup->group_name = name;
+	new_hostgroup->alias = alias ? alias : name;
+	new_hostgroup->notes = notes;
+	new_hostgroup->notes_url = notes_url;
+	new_hostgroup->action_url = action_url;
 
 	/* add new host group to hash table */
 	if(result == OK) {
@@ -1009,8 +945,7 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 
 	/* handle errors */
 	if(result == ERROR) {
-		my_free(new_hostgroup->alias);
-		my_free(new_hostgroup->group_name);
+		free(new_hostgroup);
 		return NULL;
 		}
 
@@ -1097,22 +1032,11 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 	new_servicegroup = calloc(1, sizeof(*new_servicegroup));
 
 	/* duplicate vars */
-	if((new_servicegroup->group_name = (char *)strdup(name)) == NULL)
-		result = ERROR;
-	if((new_servicegroup->alias = (char *)strdup((alias == NULL) ? name : alias)) == NULL)
-		result = ERROR;
-	if(notes) {
-		if((new_servicegroup->notes = (char *)strdup(notes)) == NULL)
-			result = ERROR;
-		}
-	if(notes_url) {
-		if((new_servicegroup->notes_url = (char *)strdup(notes_url)) == NULL)
-			result = ERROR;
-		}
-	if(action_url) {
-		if((new_servicegroup->action_url = (char *)strdup(action_url)) == NULL)
-			result = ERROR;
-		}
+	new_servicegroup->group_name = name;
+	new_servicegroup->alias = alias ? alias : name;
+	new_servicegroup->notes = notes;
+	new_servicegroup->notes_url = notes_url;
+	new_servicegroup->action_url = action_url;
 
 	/* add new service group to hash table */
 	if(result == OK) {
@@ -1134,8 +1058,7 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 
 	/* handle errors */
 	if(result == ERROR) {
-		my_free(new_servicegroup->alias);
-		my_free(new_servicegroup->group_name);
+		my_free(new_servicegroup);
 		return NULL;
 		}
 
@@ -1256,25 +1179,13 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 	new_contact->service_notification_period = stp ? stp->name : NULL;
 	new_contact->host_notification_period_ptr = htp;
 	new_contact->service_notification_period_ptr = stp;
-	if((new_contact->name = (char *)strdup(name)) == NULL)
-		result = ERROR;
-	if((new_contact->alias = (char *)strdup((alias == NULL) ? name : alias)) == NULL)
-		result = ERROR;
-	if(email) {
-		if((new_contact->email = (char *)strdup(email)) == NULL)
-			result = ERROR;
-		}
-	if(pager) {
-		if((new_contact->pager = (char *)strdup(pager)) == NULL)
-			result = ERROR;
-		}
+	new_contact->name = name;
+	new_contact->alias = alias ? alias : name;
+	new_contact->email = email;
+	new_contact->pager = pager;
 	if(addresses) {
-		for(x = 0; x < MAX_CONTACT_ADDRESSES; x++) {
-			if(addresses[x]) {
-				if((new_contact->address[x] = (char *)strdup(addresses[x])) == NULL)
-					result = ERROR;
-				}
-			}
+		for(x = 0; x < MAX_CONTACT_ADDRESSES; x++)
+			new_contact->address[x] = addresses[x];
 		}
 
 	new_contact->minimum_value = minimum_value;
@@ -1306,12 +1217,7 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 
 	/* handle errors */
 	if(result == ERROR) {
-		for(x = 0; x < MAX_CONTACT_ADDRESSES; x++)
-			my_free(new_contact->address[x]);
-		my_free(new_contact->name);
-		my_free(new_contact->alias);
-		my_free(new_contact->email);
-		my_free(new_contact->pager);
+		free(new_contact);
 		return NULL;
 		}
 
@@ -1417,11 +1323,9 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 	if(!new_contactgroup)
 		return NULL;
 
-	/* duplicate vars */
-	if((new_contactgroup->group_name = (char *)strdup(name)) == NULL)
-		result = ERROR;
-	if((new_contactgroup->alias = (char *)strdup((alias == NULL) ? name : alias)) == NULL)
-		result = ERROR;
+	/* assign vars */
+	new_contactgroup->group_name = name;
+	new_contactgroup->alias = alias ? alias : name;
 
 	/* add new contact group to hash table */
 	if(result == OK) {
@@ -1443,8 +1347,7 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 
 	/* handle errors */
 	if(result == ERROR) {
-		my_free(new_contactgroup->alias);
-		my_free(new_contactgroup->group_name);
+		free(new_contactgroup);
 		return NULL;
 		}
 
@@ -1698,11 +1601,9 @@ command *add_command(char *name, char *value) {
 	if(!new_command)
 		return NULL;
 
-	/* duplicate vars */
-	if((new_command->name = (char *)strdup(name)) == NULL)
-		return NULL;
-	if((new_command->command_line = (char *)strdup(value)) == NULL)
-		result = ERROR;
+	/* assign vars */
+	new_command->name = name;
+	new_command->command_line = value;
 
 	/* add new command to hash table */
 	if(result == OK) {
@@ -1724,8 +1625,7 @@ command *add_command(char *name, char *value) {
 
 	/* handle errors */
 	if(result == ERROR) {
-		my_free(new_command->command_line);
-		my_free(new_command->name);
+		my_free(new_command);
 		return NULL;
 		}
 
@@ -2522,8 +2422,9 @@ int free_object_data(void) {
 			my_free(this_timeperiodexclusion);
 			}
 
+		if (this_timeperiod->alias != this_timeperiod->name)
+			my_free(this_timeperiod->alias);
 		my_free(this_timeperiod->name);
-		my_free(this_timeperiod->alias);
 		my_free(this_timeperiod);
 		}
 
@@ -2630,8 +2531,9 @@ int free_object_data(void) {
 			this_hostsmember = next_hostsmember;
 			}
 
+		if (this_hostgroup->alias != this_hostgroup->group_name)
+			my_free(this_hostgroup->alias);
 		my_free(this_hostgroup->group_name);
-		my_free(this_hostgroup->alias);
 		my_free(this_hostgroup->notes);
 		my_free(this_hostgroup->notes_url);
 		my_free(this_hostgroup->action_url);
@@ -2653,8 +2555,9 @@ int free_object_data(void) {
 			this_servicesmember = next_servicesmember;
 			}
 
+		if (this_servicegroup->alias != this_servicegroup->group_name)
+			my_free(this_servicegroup->alias);
 		my_free(this_servicegroup->group_name);
-		my_free(this_servicegroup->alias);
 		my_free(this_servicegroup->notes);
 		my_free(this_servicegroup->notes_url);
 		my_free(this_servicegroup->action_url);
@@ -2699,8 +2602,9 @@ int free_object_data(void) {
 			this_customvariablesmember = next_customvariablesmember;
 			}
 
+		if (this_contact->alias != this_contact->name)
+			my_free(this_contact->alias);
 		my_free(this_contact->name);
-		my_free(this_contact->alias);
 		my_free(this_contact->email);
 		my_free(this_contact->pager);
 		for(j = 0; j < MAX_CONTACT_ADDRESSES; j++)
@@ -2726,8 +2630,9 @@ int free_object_data(void) {
 			this_contactsmember = next_contactsmember;
 			}
 
+		if (this_contactgroup->alias != this_contactgroup->group_name)
+			my_free(this_contactgroup->alias);
 		my_free(this_contactgroup->group_name);
-		my_free(this_contactgroup->alias);
 		my_free(this_contactgroup);
 		}
 

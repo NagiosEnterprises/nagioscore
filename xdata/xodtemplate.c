@@ -8466,8 +8466,10 @@ int xodtemplate_free_memory(void) {
 		next_timeperiod = this_timeperiod->next;
 		my_free(this_timeperiod->template);
 		my_free(this_timeperiod->name);
-		my_free(this_timeperiod->timeperiod_name);
-		my_free(this_timeperiod->alias);
+		if (!this_timeperiod->register_object) {
+			my_free(this_timeperiod->timeperiod_name);
+			my_free(this_timeperiod->alias);
+		}
 		for(x = 0; x < 7; x++)
 			my_free(this_timeperiod->timeranges[x]);
 		for(x = 0; x < DATERANGE_TYPES; x++) {
@@ -8488,8 +8490,10 @@ int xodtemplate_free_memory(void) {
 		next_command = this_command->next;
 		my_free(this_command->template);
 		my_free(this_command->name);
-		my_free(this_command->command_name);
-		my_free(this_command->command_line);
+		if (!this_command->register_object) {
+			my_free(this_command->command_name);
+			my_free(this_command->command_line);
+		}
 		my_free(this_command);
 		}
 	xodtemplate_command_list = NULL;
@@ -8500,8 +8504,10 @@ int xodtemplate_free_memory(void) {
 		next_contactgroup = this_contactgroup->next;
 		my_free(this_contactgroup->template);
 		my_free(this_contactgroup->name);
-		my_free(this_contactgroup->contactgroup_name);
-		my_free(this_contactgroup->alias);
+		if (!this_contactgroup->register_object) {
+			my_free(this_contactgroup->contactgroup_name);
+			my_free(this_contactgroup->alias);
+		}
 		my_free(this_contactgroup->members);
 		my_free(this_contactgroup->contactgroup_members);
 		bitmap_destroy(this_contactgroup->member_map);
@@ -8517,13 +8523,15 @@ int xodtemplate_free_memory(void) {
 		next_hostgroup = this_hostgroup->next;
 		my_free(this_hostgroup->template);
 		my_free(this_hostgroup->name);
-		my_free(this_hostgroup->hostgroup_name);
-		my_free(this_hostgroup->alias);
+		if (!this_hostgroup->register_object) {
+			my_free(this_hostgroup->hostgroup_name);
+			my_free(this_hostgroup->alias);
+			my_free(this_hostgroup->notes);
+			my_free(this_hostgroup->notes_url);
+			my_free(this_hostgroup->action_url);
+		}
 		my_free(this_hostgroup->members);
 		my_free(this_hostgroup->hostgroup_members);
-		my_free(this_hostgroup->notes);
-		my_free(this_hostgroup->notes_url);
-		my_free(this_hostgroup->action_url);
 		bitmap_destroy(this_hostgroup->member_map);
 		free_objectlist(&this_hostgroup->member_list);
 		free_objectlist(&this_hostgroup->group_list);
@@ -8537,13 +8545,15 @@ int xodtemplate_free_memory(void) {
 		next_servicegroup = this_servicegroup->next;
 		my_free(this_servicegroup->template);
 		my_free(this_servicegroup->name);
-		my_free(this_servicegroup->servicegroup_name);
-		my_free(this_servicegroup->alias);
+		if (!this_servicegroup->register_object) {
+			my_free(this_servicegroup->servicegroup_name);
+			my_free(this_servicegroup->alias);
+			my_free(this_servicegroup->notes);
+			my_free(this_servicegroup->notes_url);
+			my_free(this_servicegroup->action_url);
+		}
 		my_free(this_servicegroup->members);
 		my_free(this_servicegroup->servicegroup_members);
-		my_free(this_servicegroup->notes);
-		my_free(this_servicegroup->notes_url);
-		my_free(this_servicegroup->action_url);
 		bitmap_destroy(this_servicegroup->member_map);
 		free_objectlist(&this_servicegroup->member_list);
 		free_objectlist(&this_servicegroup->group_list);
@@ -8554,6 +8564,14 @@ int xodtemplate_free_memory(void) {
 
 	/* free memory allocated to contact list */
 	for(this_contact = xodtemplate_contact_list; this_contact != NULL; this_contact = next_contact) {
+		if (!this_contact->register_object) {
+			my_free(this_contact->contact_name);
+			my_free(this_contact->alias);
+			my_free(this_contact->email);
+			my_free(this_contact->pager);
+			for (x = 0; x < MAX_XODTEMPLATE_CONTACT_ADDRESSES; x++)
+				my_free(this_contact->address[x]);
+		}
 
 		/* free custom variables */
 		this_customvariablesmember = this_contact->custom_variables;
@@ -8568,13 +8586,7 @@ int xodtemplate_free_memory(void) {
 		next_contact = this_contact->next;
 		my_free(this_contact->template);
 		my_free(this_contact->name);
-		my_free(this_contact->contact_name);
-		my_free(this_contact->alias);
 		my_free(this_contact->contact_groups);
-		my_free(this_contact->email);
-		my_free(this_contact->pager);
-		for(x = 0; x < MAX_XODTEMPLATE_CONTACT_ADDRESSES; x++)
-			my_free(this_contact->address[x]);
 		my_free(this_contact->service_notification_period);
 		my_free(this_contact->service_notification_commands);
 		my_free(this_contact->host_notification_period);
@@ -8586,7 +8598,22 @@ int xodtemplate_free_memory(void) {
 
 	/* free memory allocated to host list */
 	for(this_host = xodtemplate_host_list; this_host != NULL; this_host = next_host) {
-
+		next_host = this_host->next;
+		if (!this_host->register_object) {
+			my_free(this_host->host_name);
+			my_free(this_host->alias);
+			my_free(this_host->display_name);
+			my_free(this_host->address);
+			my_free(this_host->check_command);
+			my_free(this_host->event_handler);
+			my_free(this_host->notes);
+			my_free(this_host->notes_url);
+			my_free(this_host->action_url);
+			my_free(this_host->icon_image);
+			my_free(this_host->icon_image_alt);
+			my_free(this_host->statusmap_image);
+			my_free(this_host->vrml_image);
+			}
 		/* free custom variables */
 		this_customvariablesmember = this_host->custom_variables;
 		while(this_customvariablesmember != NULL) {
@@ -8597,28 +8624,14 @@ int xodtemplate_free_memory(void) {
 			this_customvariablesmember = next_customvariablesmember;
 			}
 
-		next_host = this_host->next;
 		my_free(this_host->template);
 		my_free(this_host->name);
-		my_free(this_host->host_name);
-		my_free(this_host->alias);
-		my_free(this_host->display_name);
-		my_free(this_host->address);
 		my_free(this_host->parents);
 		my_free(this_host->host_groups);
-		my_free(this_host->check_command);
 		my_free(this_host->check_period);
-		my_free(this_host->event_handler);
 		my_free(this_host->contact_groups);
 		my_free(this_host->contacts);
 		my_free(this_host->notification_period);
-		my_free(this_host->notes);
-		my_free(this_host->notes_url);
-		my_free(this_host->action_url);
-		my_free(this_host->icon_image);
-		my_free(this_host->icon_image_alt);
-		my_free(this_host->vrml_image);
-		my_free(this_host->statusmap_image);
 		my_free(this_host);
 		}
 	xodtemplate_host_list = NULL;
@@ -8629,7 +8642,7 @@ int xodtemplate_free_memory(void) {
 		next_service = this_service->next;
 
 		/* free custom variables */
-		if(this_service->is_copy == FALSE) {
+		if(this_service->is_copy == FALSE || !this_service->register_object) {
 			this_customvariablesmember = this_service->custom_variables;
 			while(this_customvariablesmember != NULL) {
 				next_customvariablesmember = this_customvariablesmember->next;

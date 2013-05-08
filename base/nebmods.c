@@ -129,6 +129,7 @@ int neb_free_module_list(void) {
 			continue;
 		my_free(temp_module->filename);
 		my_free(temp_module->args);
+		my_free(temp_module);
 		}
 
 	neb_module_list = NULL;

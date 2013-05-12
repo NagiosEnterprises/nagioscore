@@ -6099,7 +6099,7 @@ int xodtemplate_recombobulate_contactgroups(void) {
 			xodtemplate_contactgroup *cg;
 			char *ptr, *next_ptr;
 
-			for(next_ptr = ptr = temp_contactgroup->contactgroup_members; ptr; ptr = next_ptr + 1) {
+			for(next_ptr = ptr = temp_contactgroup->contactgroup_members; next_ptr; ptr = next_ptr + 1) {
 				next_ptr = strchr(ptr, ',');
 				if(next_ptr)
 					*next_ptr = 0;

@@ -1097,7 +1097,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 	xodtemplate_hostescalation *temp_hostescalation = NULL;
 	xodtemplate_hostextinfo *temp_hostextinfo = NULL;
 	xodtemplate_serviceextinfo *temp_serviceextinfo = NULL;
-	int x, y, force_skiplists = FALSE;
+	int x, force_skiplists = FALSE;
 
 
 	/* should some object definitions be added to skiplists immediately? */
@@ -1177,7 +1177,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 	for(x = 0; variable[x] != '\x0'; x++) {
 		if(variable[x] == ' ' || variable[x] == '\t') {
 			variable[x] = 0;
-			y = x;
 			break;
 			}
 		}

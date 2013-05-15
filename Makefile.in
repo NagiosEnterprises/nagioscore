@@ -202,7 +202,7 @@ distclean: clean
 
 devclean: distclean
 
-test:
+test: nagios cgis
 	cd $(SRC_LIB) && $(MAKE) test
 	$(MAKE) test-perl
 	$(MAKE) test-tap

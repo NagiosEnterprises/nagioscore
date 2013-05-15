@@ -22,7 +22,6 @@ URL: http://www.nagios.org/
 Packager: Daniel Wittenberg <dwittenberg2008@gmail.com>
 Vendor: Nagios Enterprises (http://www.nagios.org)
 Source0: http://dl.sf.net/nagios/nagios-%{version}.tar.gz
-Source1: %{_sourcedir}/Nagios-beta.png
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: gd-devel > 1.8
 BuildRequires: zlib-devel
@@ -131,7 +130,6 @@ find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-ma
 
 ### Install logos
 %{__mkdir_p} %{buildroot}%{_datadir}/nagios/images/logos
-%{__cp} %{SOURCE1} %{buildroot}%{_datadir}/nagios/images/
 
 ### Install documentation
 %{__mkdir_p} %{buildroot}%{_datadir}/nagios/documentation

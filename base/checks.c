@@ -155,6 +155,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	double old_latency = 0.0;
 	check_result *cr;
 	int runchk_result = OK;
+	int macro_options = STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
 #ifdef USE_EVENT_BROKER
 	int neb_result = OK;
 #endif
@@ -222,7 +223,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	grab_service_macros_r(&mac, svc);
 
 	/* get the raw command line */
-	get_raw_command_line_r(&mac, svc->check_command_ptr, svc->check_command, &raw_command, 0);
+	get_raw_command_line_r(&mac, svc->check_command_ptr, svc->check_command, &raw_command, macro_options);
 	if(raw_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		log_debug_info(DEBUGL_CHECKS, 0, "Raw check command for service '%s' on host '%s' was NULL - aborting.\n", svc->description, svc->host_name);
@@ -233,7 +234,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		}
 
 	/* process any macros contained in the argument */
-	process_macros_r(&mac, raw_command, &processed_command, 0);
+	process_macros_r(&mac, raw_command, &processed_command, macro_options);
 	my_free(raw_command);
 	if(processed_command == NULL) {
 		clear_volatile_macros_r(&mac);
@@ -2069,6 +2070,7 @@ int execute_sync_host_check(host *hst) {
 	int early_timeout = FALSE;
 	double exectime;
 	char *temp_plugin_output = NULL;
+	int macro_options = STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
 #ifdef USE_EVENT_BROKER
 	int neb_result = OK;
 #endif
@@ -2118,14 +2120,14 @@ int execute_sync_host_check(host *hst) {
 	time(&hst->last_check);
 
 	/* get the raw command line */
-	get_raw_command_line_r(&mac, hst->check_command_ptr, hst->check_command, &raw_command, 0);
+	get_raw_command_line_r(&mac, hst->check_command_ptr, hst->check_command, &raw_command, macro_options);
 	if(raw_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		return ERROR;
 		}
 
 	/* process any macros contained in the argument */
-	process_macros_r(&mac, raw_command, &processed_command, 0);
+	process_macros_r(&mac, raw_command, &processed_command, macro_options);
 	if(processed_command == NULL) {
 		my_free(raw_command);
 		clear_volatile_macros_r(&mac);
@@ -2311,6 +2313,7 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 	double old_latency = 0.0;
 	check_result *cr;
 	int runchk_result = OK;
+	int macro_options = STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
 #ifdef USE_EVENT_BROKER
 	int neb_result = OK;
 #endif
@@ -2374,7 +2377,7 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 	grab_host_macros_r(&mac, hst);
 
 	/* get the raw command line */
-	get_raw_command_line_r(&mac, hst->check_command_ptr, hst->check_command, &raw_command, 0);
+	get_raw_command_line_r(&mac, hst->check_command_ptr, hst->check_command, &raw_command, macro_options);
 	if(raw_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		log_debug_info(DEBUGL_CHECKS, 0, "Raw check command for host '%s' was NULL - aborting.\n", hst->name);
@@ -2382,7 +2385,7 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 		}
 
 	/* process any macros contained in the argument */
-	process_macros_r(&mac, raw_command, &processed_command, 0);
+	process_macros_r(&mac, raw_command, &processed_command, macro_options);
 	my_free(raw_command);
 	if(processed_command == NULL) {
 		clear_volatile_macros_r(&mac);

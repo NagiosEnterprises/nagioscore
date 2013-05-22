@@ -2900,7 +2900,6 @@ void free_memory(nagios_macros *mac) {
 	my_free(command_file);
 	mac->x[MACRO_COMMANDFILE] = NULL; /* assigned from command_file */
 	my_free(log_archive_path);
-	my_free(lock_file);
 
 	for (i = 0; i < MAX_USER_MACROS; i++) {
 		my_free(macro_user[i]);

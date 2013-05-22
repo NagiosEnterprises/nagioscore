@@ -168,6 +168,11 @@ xretention-base.o: $(SRC_XDATA)/$(XRDC) $(SRC_XDATA)/$(XRDH)
 $(SRC_COMMON)/shared.o: $(SRC_COMMON)/shared.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+workers.o: workers.c wpres-phash.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+wpres-phash.h: wpres.gperf
+	gperf -S 1 -t -H wpres_key_phash -N wpres_get_key $< > $@
 
 ########## NAGIOS ##########
 
@@ -194,6 +199,7 @@ distclean: clean
 	rm -f Makefile
 
 devclean: distclean
+	rm -f wpres-phash.h
 
 install:
 	$(MAKE) install-basic

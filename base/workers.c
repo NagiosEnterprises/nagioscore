@@ -13,7 +13,7 @@
 #include "../include/workers.h"
 
 /* perfect hash function for wproc response codes */
-#include "wp-phash.c"
+#include "wpres-phash.h"
 
 struct wproc_worker;
 
@@ -443,17 +443,17 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 	int i;
 
 	for (i = 0; i < kvv->kv_pairs; i++) {
+		struct wpres_key *k;
 		char *key, *value;
-		int code;
 		key = kvv->kv[i].key;
 		value = kvv->kv[i].value;
 
-		code = wp_phash(key, kvv->kv[i].key_len);
-		switch (code) {
-		case -1:
+		k = wpres_get_key(key, kvv->kv[i].key_len);
+		if (!k) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: Unrecognized result variable: (i=%d) %s=%s\n", i, key, value);
-			break;
-
+			continue;
+		}
+		switch (k->code) {
 		case WPRES_job_id:
 			wpres->job_id = atoi(value);
 			break;
@@ -481,6 +481,17 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 		case WPRES_outerr:
 			wpres->outerr = value;
 			break;
+		case WPRES_exited_ok:
+			wpres->exited_ok = atoi(value);
+			break;
+		case WPRES_error_msg:
+			wpres->exited_ok = FALSE;
+			wpres->error_msg = value;
+			break;
+		case WPRES_error_code:
+			wpres->exited_ok = FALSE;
+			wpres->error_code = atoi(value);
+			break;
 		case WPRES_runtime:
 			/* ignored */
 			break;
@@ -496,25 +507,29 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 		case WPRES_ru_majflt:
 			wpres->rusage.ru_majflt = atoi(value);
 			break;
+		case WPRES_ru_nswap:
+			wpres->rusage.ru_nswap = atoi(value);
+			break;
 		case WPRES_ru_inblock:
 			wpres->rusage.ru_inblock = atoi(value);
 			break;
 		case WPRES_ru_oublock:
 			wpres->rusage.ru_oublock = atoi(value);
 			break;
-		case WPRES_exited_ok:
-			wpres->exited_ok = atoi(value);
+		case WPRES_ru_msgsnd:
+			wpres->rusage.ru_msgsnd = atoi(value);
 			break;
-		case WPRES_error_msg:
-			wpres->exited_ok = FALSE;
-			wpres->error_msg = value;
-			break;
-		case WPRES_error_code:
-			wpres->exited_ok = FALSE;
-			wpres->error_code = atoi(value);
+		case WPRES_ru_msgrcv:
+			wpres->rusage.ru_msgrcv = atoi(value);
 			break;
 		case WPRES_ru_nsignals:
-		case WPRES_ru_nswap:
+			wpres->rusage.ru_nsignals = atoi(value);
+			break;
+		case WPRES_ru_nvcsw:
+			wpres->rusage.ru_nsignals = atoi(value);
+			break;
+		case WPRES_ru_nivcsw:
+			wpres->rusage.ru_nsignals = atoi(value);
 			break;
 
 		default:

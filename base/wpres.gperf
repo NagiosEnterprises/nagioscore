@@ -1,0 +1,68 @@
+%{
+enum {
+	WPRES_job_id,
+	WPRES_type,
+	WPRES_command,
+	WPRES_timeout,
+	WPRES_wait_status,
+	WPRES_start,
+	WPRES_stop,
+	WPRES_outstd,
+	WPRES_outerr,
+	WPRES_exited_ok,
+	WPRES_error_msg,
+	WPRES_error_code,
+	WPRES_runtime,
+	WPRES_ru_utime,
+	WPRES_ru_stime,
+	WPRES_ru_maxrss,
+	WPRES_ru_ixrss,
+	WPRES_ru_idrss,
+	WPRES_ru_isrss,
+	WPRES_ru_minflt,
+	WPRES_ru_majflt,
+	WPRES_ru_nswap,
+	WPRES_ru_inblock,
+	WPRES_ru_oublock,
+	WPRES_ru_msgsnd,
+	WPRES_ru_msgrcv,
+	WPRES_ru_nsignals,
+	WPRES_ru_nvcsw,
+	WPRES_ru_nivcsw,
+};
+#include <string.h> /* for strcmp() */
+%}
+struct wpres_key {
+	const char *name;
+	int code;
+};
+%%
+job_id, WPRES_job_id
+type, WPRES_type
+command, WPRES_command
+timeout, WPRES_timeout
+wait_status, WPRES_wait_status
+start, WPRES_start
+stop, WPRES_stop
+outstd, WPRES_outstd
+outerr, WPRES_outerr
+exited_ok, WPRES_exited_ok
+error_message, WPRES_error_msg
+error_code, WPRES_error_code
+runtime, WPRES_runtime
+ru_utime, WPRES_ru_utime
+ru_stime, WPRES_ru_stime
+ru_maxrss, WPRES_ru_maxrss
+ru_ixrss, WPRES_ru_ixrss
+ru_idrss, WPRES_ru_idrss
+ru_isrss, WPRES_ru_isrss
+ru_minflt, WPRES_ru_minflt
+ru_majflt, WPRES_ru_majflt
+ru_nswap, WPRES_ru_nswap
+ru_inblock, WPRES_ru_inblock
+ru_oublock, WPRES_ru_oublock
+ru_msgsnd, WPRES_ru_msgsnd
+ru_msgrcv, WPRES_ru_msgrcv
+ru_nsignals, WPRES_ru_nsignals
+ru_nvcsw, WPRES_ru_nvcsw
+ru_nivcsw, WPRES_ru_nivcsw

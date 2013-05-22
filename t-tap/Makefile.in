@@ -18,6 +18,7 @@ TESTS += test_checks
 TESTS += test_strtoul
 TESTS += test_commands
 TESTS += test_downtime
+TESTS += test_macros
 
 XSD_OBJS = $(SRC_CGI)/statusdata-cgi.o $(SRC_CGI)/xstatusdata-cgi.o
 XSD_OBJS += $(SRC_CGI)/objects-cgi.o $(SRC_CGI)/xobjects-cgi.o
@@ -113,6 +114,9 @@ test_nagios_config: test_nagios_config.o $(CFG_OBJS) $(TAPOBJ)
 
 test_timeperiods: test_timeperiods.o $(TP_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS)
+
+test_macros: test_macros.o $(TP_OBJS) $(TAPOBJ)
+	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(LIBS)
 
 test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)

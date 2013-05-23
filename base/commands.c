@@ -2214,8 +2214,7 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	cr.service_description = temp_service->description;
 	cr.output = output;
 	cr.start_time.tv_sec = cr.finish_time.tv_sec = check_time;
-	cr.engine = &nagios_check_engine;
-	cr.source = &command_worker;
+	cr.source = command_worker.source_name;
 
 	/* save the return code and make sure it's sane */
 	cr.return_code = return_code;
@@ -2307,8 +2306,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	cr.host_name = temp_host->name;
 	cr.output = output;
 	cr.start_time.tv_sec = cr.finish_time.tv_sec = check_time;
-	cr.engine = &nagios_check_engine;
-	cr.source = &command_worker;
+	cr.source = command_worker.source_name;
 	cr.return_code = return_code;
 
 	/* calculate latency */

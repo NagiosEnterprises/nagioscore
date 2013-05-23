@@ -424,7 +424,7 @@ static int handle_worker_check(wproc_result *wpres, struct wproc_worker *wp, str
 
 	cr->early_timeout = wpres->early_timeout;
 	cr->exited_ok = wpres->exited_ok;
-	cr->engine = &nagios_check_engine;
+	cr->engine = NULL;
 	cr->source = wp->name;
 
 	process_check_result(cr);

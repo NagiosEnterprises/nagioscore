@@ -1711,8 +1711,8 @@ int process_check_result_queue(char *dirname) {
 			}
 
 		/* break out if we've been here too long */
-		if ((int)(time(NULL) - start) < max_check_reaper_time) {
-			log_debug_info(DEBUGL_CHECKS, 0, "Breaking out of check result reaper: max time exceeded\n");
+		if (start + max_check_reaper_time < time(NULL)) {
+			log_debug_info(DEBUGL_CHECKS, 0, "Breaking out of check result reaper: max time (%ds) exceeded\n", max_check_reaper_time);
 			break;
 			}
 

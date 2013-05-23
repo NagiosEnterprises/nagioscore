@@ -504,10 +504,12 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			/* 08/04/07 EG launch an async (parallel) host check unless aggressive host checking is enabled */
 			/* previous logic was to simply run a sync (serial) host check */
 			/* do NOT allow cached check results to happen here - we need the host to be checked for real... */
-			if(use_aggressive_host_checking == TRUE)
-				perform_on_demand_host_check(temp_host, NULL, CHECK_OPTION_NONE, FALSE, 0L);
-			else
-				run_async_host_check(temp_host, CHECK_OPTION_NONE, 0.0, FALSE, FALSE, NULL, NULL);
+			if(execute_host_checks) {
+				if(use_aggressive_host_checking == TRUE)
+					perform_on_demand_host_check(temp_host, NULL, CHECK_OPTION_NONE, FALSE, 0L);
+				else
+					run_async_host_check(temp_host, CHECK_OPTION_NONE, 0.0, FALSE, FALSE, NULL, NULL);
+				}
 			}
 		}
 
@@ -739,7 +741,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 			/* 08/04/07 EG launch an async (parallel) host check (possibly cached) unless aggressive host checking is enabled */
 			/* previous logic was to simply run a sync (serial) host check */
-			if(use_aggressive_host_checking == TRUE)
+			if(execute_host_checks && use_aggressive_host_checking == TRUE)
 				perform_on_demand_host_check(temp_host, &route_result, CHECK_OPTION_NONE, TRUE, cached_host_check_horizon);
 			else {
 				/* can we use the last cached host state? */
@@ -757,7 +759,9 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				else if(state_change == TRUE) {
 					/* use current host state as route result */
 					route_result = temp_host->current_state;
-					run_async_host_check(temp_host, CHECK_OPTION_NONE, 0.0, FALSE, FALSE, NULL, NULL);
+					if (execute_host_checks) {
+						run_async_host_check(temp_host, CHECK_OPTION_NONE, 0.0, FALSE, FALSE, NULL, NULL);
+						}
 					}
 
 				/* ADDED 02/15/08 */
@@ -777,7 +781,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			log_debug_info(DEBUGL_CHECKS, 1, "Host is currently DOWN/UNREACHABLE.\n");
 
 			/* we're using aggressive host checking, so really do recheck the host... */
-			if(use_aggressive_host_checking == TRUE) {
+			if(execute_host_checks && use_aggressive_host_checking == TRUE) {
 				log_debug_info(DEBUGL_CHECKS, 1, "Agressive host checking is enabled, so we'll recheck the host state...\n");
 				perform_on_demand_host_check(temp_host, &route_result, CHECK_OPTION_NONE, TRUE, cached_host_check_horizon);
 				}
@@ -789,7 +793,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				/* previous logic was to simply run a sync (serial) host check */
 				/* use current host state as route result */
 				route_result = temp_host->current_state;
-				run_async_host_check(temp_host, CHECK_OPTION_NONE, 0.0, FALSE, FALSE, NULL, NULL);
+				if (execute_host_checks)
+					run_async_host_check(temp_host, CHECK_OPTION_NONE, 0.0, FALSE, FALSE, NULL, NULL);
 				/*perform_on_demand_host_check(temp_host,&route_result,CHECK_OPTION_NONE,TRUE,cached_host_check_horizon);*/
 				}
 

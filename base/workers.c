@@ -902,7 +902,7 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 	static struct kvvec kvv = KVVEC_INITIALIZER;
 	struct kvvec_buf *kvvb;
 	struct wproc_worker *wp;
-	int ret;
+	int ret, result = OK;
 
 	if (!job || !job->wp)
 		return ERROR;
@@ -925,18 +925,20 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 	kvvec_addkv(&kvv, "timeout", (char *)mkstr("%u", job->timeout));
 	kvvb = build_kvvec_buf(&kvv);
 	ret = write(wp->sd, kvvb->buf, kvvb->bufsize);
-	wp->jobs_running++;
-	wp->jobs_started++;
-	loadctl.jobs_running++;
 	if (ret != (int)kvvb->bufsize) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: '%s' seems to be choked. ret = %d; bufsize = %lu: errno = %d (%s)\n",
 			  wp->name, ret, kvvb->bufsize, errno, strerror(errno));
 		destroy_job(job);
+		result = ERROR;
+	} else {
+		wp->jobs_running++;
+		wp->jobs_started++;
+		loadctl.jobs_running++;
 	}
 	free(kvvb->buf);
 	free(kvvb);
 
-	return ret;
+	return result;
 }
 
 static wproc_object_job *create_object_job(char *cname, char *hname, char *sdesc)

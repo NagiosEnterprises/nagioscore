@@ -348,6 +348,14 @@ NAGIOS_END_DECL
 /* custom command introduced in Nagios 3.x */
 #define CMD_CUSTOM_COMMAND                              999
 
+/**************************** COMMAND ERRORS *****************************/
+#define CMD_ERROR_OK 0 /* No errors encountered */
+#define CMD_ERROR_UNKNOWN_COMMAND 1 /* Unknown/unsupported command */
+#define CMD_ERROR_MALFORMED_COMMAND 2 /* Command malformed/missing timestamp? */
+#define CMD_ERROR_INTERNAL_ERROR 3 /* Internal error */
+#define CMD_ERROR_FAILURE 4 /* Command routine failed */
+
+extern const char *cmd_error_strerror(int error_code);
 
 /**************************** CHECK TYPES ********************************/
 

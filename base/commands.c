@@ -132,7 +132,7 @@ int shutdown_command_file_worker(void) {
 
 
 static int command_input_handler(int sd, int events, void *discard) {
-	int ret;
+	int ret, cmd_ret;
 	char *buf;
 	unsigned long size;
 
@@ -150,7 +150,10 @@ static int command_input_handler(int sd, int events, void *discard) {
 			buf[size] = 0;
 			log_debug_info(DEBUGL_COMMANDS, 1, "Read raw external command '%s'\n", buf);
 			}
-		process_external_command1(buf);
+		if ((cmd_ret = process_external_command1(buf)) != CMD_ERROR_OK) {
+			logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING, TRUE, "External command error: %s\n", cmd_error_strerror(cmd_ret));
+			}
+
 		}
 	return 0;
 	}
@@ -364,7 +367,7 @@ int process_external_command1(char *cmd) {
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "process_external_command1()\n");
 
 	if(cmd == NULL)
-		return ERROR;
+		return CMD_ERROR_MALFORMED_COMMAND;
 
 	/* strip the command of newlines and carriage returns */
 	strip(cmd);
@@ -373,16 +376,16 @@ int process_external_command1(char *cmd) {
 
 	/* get the command entry time */
 	if((temp_ptr = my_strtok(cmd, "[")) == NULL)
-		return ERROR;
+		return CMD_ERROR_MALFORMED_COMMAND;
 	if((temp_ptr = my_strtok(NULL, "]")) == NULL)
-		return ERROR;
+		return CMD_ERROR_MALFORMED_COMMAND;
 	entry_time = (time_t)strtoul(temp_ptr, NULL, 10);
 
 	/* get the command identifier */
 	if((temp_ptr = my_strtok(NULL, ";")) == NULL)
-		return ERROR;
+		return CMD_ERROR_MALFORMED_COMMAND;
 	if((command_id = (char *)strdup(temp_ptr + 1)) == NULL)
-		return ERROR;
+		return CMD_ERROR_INTERNAL_ERROR;
 
 	/* get the command arguments */
 	if((temp_ptr = my_strtok(NULL, "\n")) == NULL)
@@ -391,7 +394,7 @@ int process_external_command1(char *cmd) {
 		args = (char *)strdup(temp_ptr);
 	if(args == NULL) {
 		my_free(command_id);
-		return ERROR;
+		return CMD_ERROR_INTERNAL_ERROR;
 		}
 
 	/* decide what type of command this is... */
@@ -853,7 +856,7 @@ int process_external_command1(char *cmd) {
 		my_free(command_id);
 		my_free(args);
 
-		return ERROR;
+		return CMD_ERROR_UNKNOWN_COMMAND;
 		}
 
 	/* update statistics for external commands */
@@ -878,7 +881,8 @@ int process_external_command1(char *cmd) {
 #endif
 
 	/* process the command */
-	if ((external_command_ret = process_external_command2(command_type, entry_time, args)) != OK) {
+	external_command_ret = (process_external_command2(command_type, entry_time, args) == OK) ? CMD_ERROR_OK : CMD_ERROR_FAILURE;
+	if (external_command_ret != CMD_ERROR_OK) {
 			logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING, TRUE, "Error: External command failed -> %s;%s\n", command_id, args);
 	}
 
@@ -895,7 +899,21 @@ int process_external_command1(char *cmd) {
 	return external_command_ret;
 	}
 
-
+const char *cmd_error_strerror(int code) {
+	switch(code) {
+		case CMD_ERROR_OK:
+			return "No error";
+		case CMD_ERROR_FAILURE:
+			return "Command failed";
+		case CMD_ERROR_INTERNAL_ERROR:
+			return "Internal error";
+		case CMD_ERROR_UNKNOWN_COMMAND:
+			return "Unknown or unsupported command";
+		case CMD_ERROR_MALFORMED_COMMAND:
+			return "Malformed command";
+		}
+	return "Unknown error";
+	}
 
 /* top-level processor for a single external command */
 int process_external_command2(int cmd, time_t entry_time, char *args) {
@@ -1283,7 +1301,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 			break;
 
 		default:
-			return ERROR;
+			return CMD_ERROR_UNKNOWN_COMMAND;
 			break;
 		}
 

@@ -6119,7 +6119,7 @@ int xodtemplate_recombobulate_contactgroups(void) {
 			continue;
 
 		/* we might need this */
-		if(!(temp_contactgroup->reject_map = bitmap_create(xodcount.contacts))) {
+		if(!use_precached_objects && !(temp_contactgroup->reject_map = bitmap_create(xodcount.contacts))) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not create reject map for contactgroup '%s'", temp_contactgroup->contactgroup_name);
 			return ERROR;
 			}
@@ -6295,7 +6295,7 @@ int xodtemplate_recombobulate_hostgroups(void) {
 			continue;
 
 		/* we might need this */
-		if(!(temp_hostgroup->reject_map = bitmap_create(xodcount.hosts))) {
+		if(!use_precached_objects && !(temp_hostgroup->reject_map = bitmap_create(xodcount.hosts))) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not create reject map for hostgroup '%s'\n", temp_hostgroup->hostgroup_name);
 			return ERROR;
 			}
@@ -6476,7 +6476,7 @@ int xodtemplate_recombobulate_servicegroups(void) {
 			continue;
 
 		/* we might need this */
-		if(!(temp_servicegroup->reject_map = bitmap_create(xodcount.services))) {
+		if(!use_precached_objects && !(temp_servicegroup->reject_map = bitmap_create(xodcount.services))) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not create reject map for hostgroup '%s'\n", temp_servicegroup->servicegroup_name);
 			return ERROR;
 			}

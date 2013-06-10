@@ -788,6 +788,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 		workers.len++;
 		workers.wps = realloc(workers.wps, workers.len * sizeof(struct wproc_worker *));
 		workers.wps[workers.len - 1] = worker;
+		worker->wp_list = &workers;
 	}
 	wproc_num_workers_online++;
 	kvvec_destroy(info, 0);

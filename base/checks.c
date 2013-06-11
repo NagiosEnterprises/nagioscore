@@ -416,8 +416,12 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	my_free(temp_service->long_plugin_output);
 	my_free(temp_service->perf_data);
 
+	if(queued_check_result->early_timeout == TRUE) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' timed out after %.3fs!\n", temp_service->description, temp_service->host_name, temp_service->execution_time);
+		asprintf(&temp_service->plugin_output, "(Service check timed out after %.2lf seconds)\n", temp_service->execution_time);
+		}
 	/* if there was some error running the command, just skip it (this shouldn't be happening) */
-	if(queued_check_result->exited_ok == FALSE) {
+	else if(queued_check_result->exited_ok == FALSE) {
 
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of service '%s' on host '%s' did not exit properly!\n", temp_service->description, temp_service->host_name);
 
@@ -2575,9 +2579,17 @@ int handle_async_host_check_result(host *temp_host, check_result *queued_check_r
 
 	/* adjust return code (active checks only) */
 	if(queued_check_result->check_type == CHECK_TYPE_ACTIVE) {
+		if(queued_check_result->early_timeout) {
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' timed out after %.2lf seconds\n", temp_host->name, temp_host->execution_time);
+			my_free(temp_host->plugin_output);
+			my_free(temp_host->long_plugin_output);
+			my_free(temp_host->perf_data);
+			asprintf(&temp_host->plugin_output, "(Host check timed out after %.2lf seconds)", temp_host->execution_time);
+			result = STATE_UNKNOWN;
+			}
 
 		/* if there was some error running the command, just skip it (this shouldn't be happening) */
-		if(queued_check_result->exited_ok == FALSE) {
+		else if(queued_check_result->exited_ok == FALSE) {
 
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of host '%s' did not exit properly!\n", temp_host->name);
 

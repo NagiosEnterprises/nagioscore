@@ -1509,12 +1509,12 @@ int pre_flight_object_check(int *w, int *e) {
 		}
 #endif
 
+	if(verify_config)
+		printf("Checking objects...\n");
 
 	/*****************************************/
 	/* check each service...                 */
 	/*****************************************/
-	if(verify_config)
-		printf("Checking services...\n");
 	if(get_service_count() == 0) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: There are no services defined!");
 		errors++;
@@ -1598,9 +1598,6 @@ int pre_flight_object_check(int *w, int *e) {
 	/*****************************************/
 	/* check all hosts...                    */
 	/*****************************************/
-	if(verify_config)
-		printf("Checking hosts...\n");
-
 	if(get_host_count() == 0) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: There are no hosts defined!");
 		errors++;
@@ -1703,8 +1700,6 @@ int pre_flight_object_check(int *w, int *e) {
 	/*****************************************/
 	/* check each host group...              */
 	/*****************************************/
-	if(verify_config)
-		printf("Checking host groups...\n");
 	for(temp_hostgroup = hostgroup_list, total_objects = 0; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next, total_objects++) {
 		/* check for illegal characters in hostgroup name */
 		if(use_precached_objects == FALSE) {
@@ -1722,8 +1717,6 @@ int pre_flight_object_check(int *w, int *e) {
 	/*****************************************/
 	/* check each service group...           */
 	/*****************************************/
-	if(verify_config)
-		printf("Checking service groups...\n");
 	for(temp_servicegroup = servicegroup_list, total_objects = 0; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next, total_objects++) {
 		/* check for illegal characters in servicegroup name */
 		if(use_precached_objects == FALSE) {
@@ -1742,8 +1735,6 @@ int pre_flight_object_check(int *w, int *e) {
 	/*****************************************/
 	/* check all contacts...                 */
 	/*****************************************/
-	if(verify_config)
-		printf("Checking contacts...\n");
 	if(contact_list == NULL) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: There are no contacts defined!");
 		errors++;
@@ -1839,8 +1830,6 @@ int pre_flight_object_check(int *w, int *e) {
 	/*****************************************/
 	/* check each contact group...           */
 	/*****************************************/
-	if(verify_config)
-		printf("Checking contact groups...\n");
 	for(temp_contactgroup = contactgroup_list, total_objects = 0; temp_contactgroup != NULL; temp_contactgroup = temp_contactgroup->next, total_objects++) {
 		/* check for illegal characters in contactgroup name */
 		if(use_precached_objects == FALSE) {
@@ -1858,9 +1847,6 @@ int pre_flight_object_check(int *w, int *e) {
 	/*****************************************/
 	/* check all commands...                 */
 	/*****************************************/
-	if(verify_config)
-		printf("Checking commands...\n");
-
 	for(temp_command = command_list, total_objects = 0; temp_command != NULL; temp_command = temp_command->next, total_objects++) {
 
 		/* check for illegal characters in command name */
@@ -1880,9 +1866,6 @@ int pre_flight_object_check(int *w, int *e) {
 	/*****************************************/
 	/* check all timeperiods...              */
 	/*****************************************/
-	if(verify_config)
-		printf("Checking time periods...\n");
-
 	for(temp_timeperiod = timeperiod_list, total_objects = 0; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next, total_objects++) {
 
 		/* check for illegal characters in timeperiod name */
@@ -1911,6 +1894,11 @@ int pre_flight_object_check(int *w, int *e) {
 		printf("\tChecked %d time periods.\n", total_objects);
 
 
+	/* help people use scripts to verify that objects are loaded */
+	if(verify_config) {
+		printf("\tChecked %u host escalations.\n", num_objects.hostescalations);
+		printf("\tChecked %u service escalations.\n", num_objects.serviceescalations);
+		}
 
 	/* update warning and error count */
 	*w += warnings;

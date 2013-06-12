@@ -56,8 +56,8 @@ extern int suppress_alert_window;
 
 extern int enable_splunk_integration;
 
-extern int navbar_search_for_addresses;
-extern int navbar_search_for_aliases;
+extern int navbar_search_addresses;
+extern int navbar_search_aliases;
 
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
@@ -1564,15 +1564,15 @@ void show_service_detail(void) {
 				show_service = TRUE;
 			else if(host_filter != NULL && 0 == regexec(&preg_hostname, temp_status->host_name, 0, NULL, 0))
 				show_service = TRUE;
-			else if(host_filter != NULL && navbar_search_for_addresses == TRUE && 0 == regexec(&preg_hostname, temp_host->address, 0, NULL, 0))
+			else if(host_filter != NULL && navbar_search_addresses == TRUE && 0 == regexec(&preg_hostname, temp_host->address, 0, NULL, 0))
 				show_service = TRUE;
-			else if(host_filter != NULL && navbar_search_for_aliases == TRUE && 0 == regexec(&preg_hostname, temp_host->alias, 0, NULL, 0))
+			else if(host_filter != NULL && navbar_search_aliases == TRUE && 0 == regexec(&preg_hostname, temp_host->alias, 0, NULL, 0))
 				show_service = TRUE;
 			else if(!strcmp(host_name, temp_status->host_name))
 				show_service = TRUE;
-			else if(navbar_search_for_addresses == TRUE && !strcmp(host_name, temp_host->address))
+			else if(navbar_search_addresses == TRUE && !strcmp(host_name, temp_host->address))
 				show_service = TRUE;
-			else if(navbar_search_for_aliases == TRUE && !strcmp(host_name, temp_host->alias))
+			else if(navbar_search_aliases == TRUE && !strcmp(host_name, temp_host->alias))
 				show_service = TRUE;
 			}
 

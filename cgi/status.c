@@ -56,6 +56,9 @@ extern int suppress_alert_window;
 
 extern int enable_splunk_integration;
 
+extern int navbar_search_for_addresses;
+extern int navbar_search_for_aliases;
+
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 
@@ -136,6 +139,7 @@ time_t current_time;
 
 char alert_message[MAX_MESSAGE_BUFFER];
 char *host_name = NULL;
+char *host_address = NULL;
 char *host_filter = NULL;
 char *hostgroup_name = NULL;
 char *servicegroup_name = NULL;
@@ -273,8 +277,15 @@ int main(void) {
 					if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 						continue;
 					if(!strcmp(host_name, temp_host->address)) {
-						free(host_name);
-						host_name = strdup(temp_host->name);
+						host_address = strdup(temp_host->address);
+						host_filter = malloc(sizeof(char) * (strlen(host_address) * 2 + 3));
+						len = strlen(host_address);
+						for(i = 0; i < len; i++, regex_i++) {
+							host_filter[regex_i] = host_address[i];
+						}
+						host_filter[0] = '^';
+						host_filter[regex_i++] = '$';
+						host_filter[regex_i] = '\0';
 						break;
 						}
 					}
@@ -1553,7 +1564,15 @@ void show_service_detail(void) {
 				show_service = TRUE;
 			else if(host_filter != NULL && 0 == regexec(&preg_hostname, temp_status->host_name, 0, NULL, 0))
 				show_service = TRUE;
+			else if(host_filter != NULL && navbar_search_for_addresses == TRUE && 0 == regexec(&preg_hostname, temp_host->address, 0, NULL, 0))
+				show_service = TRUE;
+			else if(host_filter != NULL && navbar_search_for_aliases == TRUE && 0 == regexec(&preg_hostname, temp_host->alias, 0, NULL, 0))
+				show_service = TRUE;
 			else if(!strcmp(host_name, temp_status->host_name))
+				show_service = TRUE;
+			else if(navbar_search_for_addresses == TRUE && !strcmp(host_name, temp_host->address))
+				show_service = TRUE;
+			else if(navbar_search_for_aliases == TRUE && !strcmp(host_name, temp_host->alias))
 				show_service = TRUE;
 			}
 

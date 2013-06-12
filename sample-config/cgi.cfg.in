@@ -361,3 +361,12 @@ lock_author_names=1
 
 
 
+
+# NAVIGATION BAR SEARCH OPTIONS
+# The following options allow to configure the navbar search. Default
+# is to search for hostnames. With enabled navbar_search_for_addresses,
+# the navbar search queries IP addresses as well. It's also possible
+# to enable search for aliases by setting navbar_search_for_aliases=1.
+
+navbar_search_for_addresses=1
+navbar_search_for_aliases=1

@@ -66,6 +66,9 @@ int             enable_splunk_integration = FALSE;
 char            *splunk_url = NULL;
 int             lock_author_names = TRUE;
 
+int             navbar_search_addresses = TRUE;
+int             navbar_search_aliases = TRUE;
+
 time_t          this_scheduled_log_rotation = 0L;
 time_t          last_scheduled_log_rotation = 0L;
 time_t          next_scheduled_log_rotation = 0L;
@@ -405,6 +408,12 @@ int read_cgi_config_file(const char *filename) {
 
 		else if(!strcmp(var, "use_ssl_authentication"))
 			use_ssl_authentication = (atoi(val) > 0) ? TRUE : FALSE;
+
+		else if(!strcmp(var, "navbar_search_addresses"))
+			navbar_search_addresses = (atoi(val) > 0) ? TRUE : FALSE;
+
+		else if(!strcmp(var, "navbar_search_aliases"))
+			navbar_search_aliases = (atoi(val) > 0) ? TRUE : FALSE;
 		}
 
 	for(p = illegal_output_chars; p && *p; p++)

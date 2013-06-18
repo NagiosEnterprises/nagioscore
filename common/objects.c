@@ -982,6 +982,9 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
 	new_member->host_name = h->name;
 	new_member->host_ptr = h;
 
+	/* add (unsorted) link from the host to its group */
+	prepend_object_to_objectlist(&h->hostgroups_ptr, (void *)temp_hostgroup);
+
 	/* add the new member to the member list, sorted by host name */
 #ifndef NSCGI
 	if(use_large_installation_tweaks == TRUE) {
@@ -1011,8 +1014,6 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
 		new_member->next = NULL;
 		last_member->next = new_member;
 		}
-
-	prepend_object_to_objectlist(&h->hostgroups_ptr, (void *)temp_hostgroup);
 
 	return new_member;
 	}
@@ -1096,6 +1097,9 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 	new_member->service_description = svc->description;
 	new_member->service_ptr = svc;
 
+	/* add (unsorted) link from the service to its groups */
+	prepend_object_to_objectlist(&svc->servicegroups_ptr, temp_servicegroup);
+
 	/*
 	 * add new member to member list, sorted by host name then
 	 * service description, unless we're a large installation, in
@@ -1140,8 +1144,6 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 		new_member->next = NULL;
 		last_member->next = new_member;
 		}
-
-	prepend_object_to_objectlist(&svc->servicegroups_ptr, (void *)temp_servicegroup);
 
 	return new_member;
 	}

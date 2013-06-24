@@ -68,6 +68,40 @@ unsigned int wproc_num_workers_spawned = 0;
 
 #define tv2float(tv) ((float)((tv)->tv_sec) + ((float)(tv)->tv_usec) / 1000000.0)
 
+static const char *wpjob_type_name(unsigned int type)
+{
+	switch (type) {
+	case WPJOB_CHECK: return "CHECK";
+	case WPJOB_NOTIFY: return "NOTIFY";
+	case WPJOB_OCSP: return "OCSP";
+	case WPJOB_OCHP: return "OCHP";
+	case WPJOB_GLOBAL_SVC_EVTHANDLER: return "GLOBAL SERVICE EVENTHANDLER";
+	case WPJOB_SVC_EVTHANDLER: return "SERVICE EVENTHANDLER";
+	case WPJOB_GLOBAL_HOST_EVTHANDLER: return "GLOBAL HOST EVENTHANDLER";
+	case WPJOB_HOST_EVTHANDLER: return "HOST EVENTHANDLER";
+	case WPJOB_CALLBACK: return "CALLBACK";
+	}
+	return "UNKNOWN";
+}
+
+static void wproc_logdump_buffer(int level, int show, const char *prefix, char *buf)
+{
+	char *ptr, *eol;
+	unsigned int line = 1;
+
+	if (!buf || !*buf)
+		return;
+	for (ptr = buf; ptr && *ptr; ptr = eol ? eol + 1 : NULL) {
+		if ((eol = strchr(ptr, '\n')))
+			*eol = 0;
+		logit(level, show, "%s line %.02d: %s\n", prefix, line++, ptr);
+		if (eol)
+			*eol = '\n';
+		else
+			break;
+	}
+}
+
 /* reap 'jobs' jobs or 'secs' seconds, whichever comes first */
 void wproc_reap(int jobs, int msecs)
 {
@@ -83,7 +117,6 @@ void wproc_reap(int jobs, int msecs)
 		jobs -= inputs;
 	} while (jobs > 0 && start + (msecs * 1000) <= now);
 }
-
 
 int wproc_can_spawn(struct load_control *lc)
 {
@@ -552,8 +585,8 @@ static void fo_reassign_wproc_job(void *job_)
 
 static int handle_worker_result(int sd, int events, void *arg)
 {
-	wproc_object_job *oj;
-	char *buf;
+	wproc_object_job *oj = NULL;
+	char *buf, *error_reason = NULL;
 	unsigned long size;
 	int ret;
 	static struct kvvec kvv = KVVEC_INITIALIZER;
@@ -630,6 +663,40 @@ static int handle_worker_result(int sd, int events, void *arg)
 		if (wpres.error_code == ETIME) {
 			wpres.early_timeout = TRUE;
 		}
+		if (wpres.early_timeout) {
+			asprintf(&error_reason, "timed out after %.2fs", tv_delta_f(&wpres.start, &wpres.stop));
+		}
+		else if (WIFSIGNALED(wpres.wait_status)) {
+			asprintf(&error_reason, "died by signal %d%s after %.2f seconds",
+			         WSTOPSIG(wpres.wait_status),
+			         WCOREDUMP(wpres.wait_status) ? " (core dumped)" : "",
+			         tv_delta_f(&wpres.start, &wpres.stop));
+		}
+		else if (job->type != WPJOB_CHECK && WEXITSTATUS(wpres.wait_status) != 0) {
+			asprintf(&error_reason, "is a non-check helper but exited with return code %d",
+			         WEXITSTATUS(wpres.wait_status));
+		}
+		if (error_reason) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: %s job %d from worker %s %s",
+			      wpjob_type_name(job->type), job->id, wp->name, error_reason);
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   command: %s\n", job->command);
+			if (job->type != WPJOB_CHECK && oj) {
+				logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   host=%s; service=%s; contact=%s\n",
+				      oj->host_name ? oj->host_name : "(none)",
+				      oj->service_description ? oj->service_description : "(none)",
+				      oj->contact_name ? oj->contact_name : "(none)");
+			} else if (oj) {
+				struct check_result *cr = (struct check_result *)job->arg;
+				logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   host=%s; service=%s;\n",
+				      cr->host_name, cr->service_description);
+			}
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   early_timeout=%d; exited_ok=%d; wait_status=%d; error_code=%d;\n",
+			      wpres.early_timeout, wpres.exited_ok, wpres.wait_status, wpres.error_code);
+			wproc_logdump_buffer(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   stderr", wpres.outerr);
+			wproc_logdump_buffer(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   stdout", wpres.outstd);
+		}
+		my_free(error_reason);
+
 		switch (job->type) {
 		case WPJOB_CHECK:
 			ret = handle_worker_check(&wpres, wp, job);

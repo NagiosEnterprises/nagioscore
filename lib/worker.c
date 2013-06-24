@@ -233,7 +233,7 @@ int finish_job(child_process *cp, int reason)
 	kvvec_add_tv(&resp, "stop", cp->ei->stop);
 	kvvec_addkv(&resp, "runtime", mkstr("%f", cp->ei->runtime));
 	if (!reason) {
-		/* child exited nicely */
+		/* child exited nicely (or with a signal, so check wait_status) */
 		kvvec_addkv(&resp, "exited_ok", "1");
 		kvvec_add_tv(&resp, "ru_utime", ru->ru_utime);
 		kvvec_add_tv(&resp, "ru_stime", ru->ru_stime);

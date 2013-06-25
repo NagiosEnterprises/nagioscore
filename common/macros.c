@@ -2402,6 +2402,32 @@ char *clean_macro_chars(char *macro, int options) {
 
 /* encodes a string in proper URL format */
 char *get_url_encoded_string(char *input) {
+	/* From RFC 3986:
+	segment       = *pchar
+
+	[...]
+
+	pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+
+	query         = *( pchar / "/" / "?" )
+
+	fragment      = *( pchar / "/" / "?" )
+
+	pct-encoded   = "%" HEXDIG HEXDIG
+
+	unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+	reserved      = gen-delims / sub-delims
+	gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+	sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+	                 / "*" / "+" / "," / ";" / "="
+
+	Encode everything but "unreserved", to be on safe side.
+
+	Another note:
+	nowhere in the RFC states that + is interpreted as space. Therefore, encode
+	space as %20 (as all other characters that should be escaped)
+	*/
+
 	register int x = 0;
 	register int y = 0;
 	char *encoded_url_string = NULL;
@@ -2420,16 +2446,17 @@ char *get_url_encoded_string(char *input) {
 	for(x = 0, y = 0; input[x] != (char)'\x0'; x++) {
 
 		/* alpha-numeric characters and a few other characters don't get encoded */
-		if(((char)input[x] >= '0' && (char)input[x] <= '9') || ((char)input[x] >= 'A' && (char)input[x] <= 'Z') || ((char)input[x] >= (char)'a' && (char)input[x] <= (char)'z') || (char)input[x] == (char)'.' || (char)input[x] == (char)'-' || (char)input[x] == (char)'_' || (char)input[x] == (char)':' || (char)input[x] == (char)'/' || (char)input[x] == (char)'?' || (char)input[x] == (char)'=' || (char)input[x] == (char)'&') {
+		if(((char)input[x] >= '0' && (char)input[x] <= '9') ||
+		   ((char)input[x] >= 'A' && (char)input[x] <= 'Z') ||
+		   ((char)input[x] >= 'a' && (char)input[x] <= 'z') ||
+		   (char)input[x] == '.' ||
+		   (char)input[x] == '-' ||
+		   (char)input[x] == '_' ||
+		   (char)input[x] == '~')
+		{
 			encoded_url_string[y] = input[x];
 			y++;
-			}
-
-		/* spaces are pluses */
-		else if((char)input[x] <= (char)' ') {
-			encoded_url_string[y] = '+';
-			y++;
-			}
+		}
 
 		/* anything else gets represented by its hex value */
 		else {

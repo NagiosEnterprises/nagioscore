@@ -2431,7 +2431,6 @@ char *get_url_encoded_string(char *input) {
 	register int x = 0;
 	register int y = 0;
 	char *encoded_url_string = NULL;
-	char temp_expansion[6] = "";
 
 
 	/* bail if no input */
@@ -2443,7 +2442,7 @@ char *get_url_encoded_string(char *input) {
 		return NULL;
 
 	/* check/encode all characters */
-	for(x = 0, y = 0; input[x] != (char)'\x0'; x++) {
+	for(x = 0, y = 0; input[x]; x++) {
 
 		/* alpha-numeric characters and a few other characters don't get encoded */
 		if(((char)input[x] >= '0' && (char)input[x] <= '9') ||
@@ -2454,15 +2453,12 @@ char *get_url_encoded_string(char *input) {
 		   (char)input[x] == '_' ||
 		   (char)input[x] == '~')
 		{
-			encoded_url_string[y] = input[x];
-			y++;
+			encoded_url_string[y++] = input[x];
 		}
 
 		/* anything else gets represented by its hex value */
 		else {
-			encoded_url_string[y] = '\x0';
-			sprintf(temp_expansion, "%%%02X", (unsigned int)(input[x] & 0xFF));
-			strcat(encoded_url_string, temp_expansion);
+			sprintf(&encoded_url_string[y], "%%%02X", (unsigned int)(input[x] & 0xFF));
 			y += 3;
 			}
 		}

@@ -3924,13 +3924,19 @@ int xodtemplate_duplicate_services(void) {
 			if(xodtemplate_expand_hostgroups(&glist, host_map, temp_service->hostgroup_name, temp_service->_config_file, temp_service->_start_line) == ERROR) {
 				return ERROR;
 				}
-			/* empty result is only bad if allow_empty_hostgroup_assignment is off */
-			if(!glist && !bitmap_count_set_bits(host_map) && allow_empty_hostgroup_assignment == 0) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand hostgroups and/or hosts specified in service (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);
-				return ERROR;
-				}
 			/* no longer needed */
 			my_free(temp_service->hostgroup_name);
+
+			/* empty result is only bad if allow_empty_hostgroup_assignment is off */
+			if(!glist && !bitmap_count_set_bits(host_map)) {
+				if(!allow_empty_hostgroup_assignment) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand hostgroups and/or hosts specified in service (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);
+					return ERROR;
+					}
+				else if (allow_empty_hostgroup_assignment == 2) {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: Could not expand hostgroups and/or hosts specified in service (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);
+					}
+				}
 			}
 
 		/* now find direct hosts */

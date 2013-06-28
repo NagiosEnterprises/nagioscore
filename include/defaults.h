@@ -84,5 +84,5 @@
 #define BASE_UPDATE_CHECK_RETRY_INTERVAL                        60*60*1  /* 1 hour base retry interval */
 #define UPDATE_CHECK_RETRY_INTERVAL_WOBBLE                      60*60*3  /* 3 hour wobble on top of base retry interval */
 
-#define DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT                          0        /* Do not allow empty hostgroups by default */
+#define DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT        2        /* Allow assigning to empty hostgroups by default, but warn about it */
 #endif /* INCLUDE_defaults_h__ */

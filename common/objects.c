@@ -2918,7 +2918,7 @@ void fcache_timeperiod(FILE *fp, timeperiod *temp_timeperiod)
 
 			fputc('\t', fp);
 			for(tr = temp_daterange->times; tr; tr = tr->next) {
-				fprintf(fp, "%s%c\n", timerange2str(tr), tr->next ? ',' : '\n');
+				fprintf(fp, "%s%c", timerange2str(tr), tr->next ? ',' : '\n');
 			}
 		}
 	}

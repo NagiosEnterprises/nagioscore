@@ -1160,9 +1160,9 @@ int xrddefault_read_state_information(void) {
 							else if(!strcmp(var, "last_time_unreachable"))
 								temp_host->last_time_unreachable = strtoul(val, NULL, 10);
 							else if(!strcmp(var, "notified_on_down"))
-								temp_host->notified_on |= (atoi(val) > 0 ? 1 : 0) << OPT_DOWN;
+								temp_host->notified_on |= (atoi(val) > 0 ? OPT_DOWN : 0);
 							else if(!strcmp(var, "notified_on_unreachable"))
-								temp_host->notified_on |= (atoi(val) > 0 ? 1 : 0) << OPT_UNREACHABLE;
+								temp_host->notified_on |= (atoi(val) > 0 ? OPT_UNREACHABLE : 0);
 							else if(!strcmp(var, "last_notification"))
 								temp_host->last_notification = strtoul(val, NULL, 10);
 							else if(!strcmp(var, "current_notification_number"))
@@ -1429,11 +1429,11 @@ int xrddefault_read_state_information(void) {
 									temp_service->check_options = atoi(val);
 								}
 							else if(!strcmp(var, "notified_on_unknown"))
-								temp_service->notified_on |= ((atoi(val) > 0) ? 1 : 0) << OPT_UNKNOWN;
+								temp_service->notified_on |= ((atoi(val) > 0) ? OPT_UNKNOWN : 0);
 							else if(!strcmp(var, "notified_on_warning"))
-								temp_service->notified_on |= ((atoi(val) > 0) ? 0 : 1) << OPT_WARNING;
+								temp_service->notified_on |= ((atoi(val) > 0) ? OPT_WARNING : 0);
 							else if(!strcmp(var, "notified_on_critical"))
-								temp_service->notified_on = ((atoi(val) > 0) ? 0 : 1) << OPT_CRITICAL;
+								temp_service->notified_on |= ((atoi(val) > 0) ? OPT_CRITICAL : 0);
 							else if(!strcmp(var, "current_notification_number"))
 								temp_service->current_notification_number = atoi(val);
 							else if(!strcmp(var, "current_notification_id"))

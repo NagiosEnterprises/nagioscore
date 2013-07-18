@@ -4360,7 +4360,7 @@ int xodtemplate_duplicate_objects(void) {
 		next_se = temp_serviceextinfo->next;
 
 		/* skip definitions without enough data */
-		if(temp_serviceextinfo->hostgroup_name == NULL && temp_serviceextinfo->host_name == NULL)
+		if(temp_serviceextinfo->service_description == NULL || (temp_serviceextinfo->hostgroup_name == NULL && temp_serviceextinfo->host_name == NULL))
 			continue;
 
 		bitmap_clear(service_map);

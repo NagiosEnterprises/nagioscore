@@ -4363,6 +4363,7 @@ int xodtemplate_duplicate_objects(void) {
 		if(temp_serviceextinfo->hostgroup_name == NULL && temp_serviceextinfo->host_name == NULL)
 			continue;
 
+		bitmap_clear(service_map);
 		master_servicelist = NULL;
 
 		/* get list of services */

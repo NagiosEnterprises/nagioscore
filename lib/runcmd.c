@@ -386,6 +386,10 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 
 	/* child runs excevp() and _exit. */
 	if (pid == 0) {
+
+		/* make sure all our children are killable by our parent */
+		setpgid(getpid(), getpid());
+
 		close (pfd[0]);
 		if (pfd[1] != STDOUT_FILENO) {
 			dup2 (pfd[1], STDOUT_FILENO);

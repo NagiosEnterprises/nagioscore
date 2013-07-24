@@ -39,9 +39,9 @@ static void exit_worker(int code, const char *msg)
 
 	/*
 	 * We must kill our children, so let's embark on that
-	 * large scale filicide. First SIGTERM to all processes
-	 * in our group, and then SIGKILL to every item in our
-	 * event queue
+	 * large scale filicide. Each process should be in a
+	 * process group of its own, so we can signal not only
+	 * the plugin but also all of its children.
 	 */
 	signal(SIGTERM, SIG_IGN);
 	kill(0, SIGTERM);
@@ -49,8 +49,10 @@ static void exit_worker(int code, const char *msg)
 		; /* do nothing */
 	sleep(1);
 	while ((cp = (child_process *)squeue_pop(sq))) {
-		(void)kill(cp->ei->pid, SIGKILL);
+		/* kill all processes in the child's process group */
+		(void)kill(-cp->ei->pid, SIGKILL);
 	}
+	sleep(1);
 	while (waitpid(-1, &discard, WNOHANG) > 0)
 		; /* do nothing */
 
@@ -303,8 +305,7 @@ static int check_completion(child_process *cp, int flags)
 
 static void kill_job(child_process *cp, int reason)
 {
-	int ret;
-	struct rusage ru;
+	int ret, status, loops = 0;
 
 	if (!cp->ei->pid) {
 		wlog("No pid for job %d (%u running); '%s'", cp->id, running_jobs, cp->cmd);
@@ -312,45 +313,46 @@ static void kill_job(child_process *cp, int reason)
 	}
 
 	/* brutal but efficient */
-	ret = kill(cp->ei->pid, SIGKILL);
+	ret = kill(-cp->ei->pid, SIGKILL);
 	if (ret < 0) {
 		if (errno == ESRCH) {
 			finish_job(cp, reason);
 			return;
 		}
-		wlog("kill(%d, SIGKILL) failed: %s\n", cp->ei->pid, strerror(errno));
+		wlog("kill(-%d, SIGKILL) failed: %s\n", cp->ei->pid, strerror(errno));
 	}
 
-	ret = wait4(cp->ei->pid, &cp->ret, 0, &ru);
+	/*
+	 * Reap the child and all grandchildren (ie, anything in the
+	 * child's process group)
+	 * Note that this is "best effort", since we can't hang around
+	 * indefinitely and processes stuck in uninterruptable I/O will
+	 * still become zombies
+	 */
+	loops = 5;
+	do {
+		ret = waitpid(-cp->ei->pid, &status, WNOHANG);
+		if (ret > 0) {
+			if (ret == cp->ei->pid)
+				cp->ret = status;
+			continue;
+		}
+
+		if (!ret) {
+			/* children exist but haven't changed state yet */
+			--loops;
+			usleep(1000); /* sleep 1 msec to yield the cpu */
+			continue;
+		}
+		/* ret < 0. errno is ECIHLD, EINVAL or EINTR */
+		if (errno == ECHILD || errno == EINVAL) {
+			/* nothin' doin' */
+			break;
+		}
+		/* waitpid was interrupted */
+	} while (loops);
+
 	finish_job(cp, reason);
-
-#ifdef PLAY_NICE_IN_kill_job
-	int i, sig = SIGTERM;
-
-	pid = cp->ei->pid;
-
-	for (i = 0; i < 2; i++) {
-		/* check one last time if the job is done */
-		ret = check_completion(cp, WNOHANG);
-		if (!ret || ret == -ECHILD) {
-			/* check_completion ran finish_job() */
-			return;
-		}
-
-		/* not done, so signal it. SIGTERM first and check again */
-		errno = 0;
-		ret = kill(pid, sig);
-		if (ret < 0) {
-			finish_job(cp, -errno);
-		}
-		sig = SIGKILL;
-		check_completion(cp, WNOHANG);
-		if (ret < 0) {
-			finish_job(cp, errno);
-		}
-		usleep(50000);
-	}
-#endif /* PLAY_NICE_IN_kill_job */
 }
 
 static void gather_output(child_process *cp, iobuf *io, int final)

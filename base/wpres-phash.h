@@ -71,10 +71,10 @@ struct wpres_key {
 
 #define TOTAL_KEYWORDS 29
 #define MIN_WORD_LENGTH 4
-#define MAX_WORD_LENGTH 13
+#define MAX_WORD_LENGTH 11
 #define MIN_HASH_VALUE 4
-#define MAX_HASH_VALUE 54
-/* maximum key range = 51, duplicates = 0 */
+#define MAX_HASH_VALUE 64
+/* maximum key range = 61, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -90,32 +90,32 @@ wpres_key_phash (str, len)
 {
   static unsigned char asso_values[] =
     {
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 15, 55, 20, 55, 30,
-      15,  0, 25,  0, 55,  0, 55, 55,  0,  0,
-       0, 10,  5, 55,  0,  5,  0,  0, 30, 55,
-      25, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55, 55, 55, 55, 55,
-      55, 55, 55, 55, 55, 55
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 15, 65, 25, 65,  3,
+      10,  0, 30,  0, 65,  0, 65, 65,  0,  0,
+       0, 20,  5, 65,  0,  5,  0,  0, 30, 65,
+      15, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+      65, 65, 65, 65, 65, 65
     };
   register int hval = len;
 
@@ -164,46 +164,46 @@ wpres_get_key (str, len)
       {"ru_inblock", WPRES_ru_inblock},
 #line 47 "wpres.gperf"
       {"outstd", WPRES_outstd},
+#line 68 "wpres.gperf"
+      {"ru_nivcsw", WPRES_ru_nivcsw},
 #line 54 "wpres.gperf"
       {"ru_stime", WPRES_ru_stime},
 #line 65 "wpres.gperf"
       {"ru_msgrcv", WPRES_ru_msgrcv},
 #line 66 "wpres.gperf"
       {"ru_nsignals", WPRES_ru_nsignals},
-#line 43 "wpres.gperf"
-      {"timeout", WPRES_timeout},
 #line 58 "wpres.gperf"
       {"ru_isrss", WPRES_ru_isrss},
 #line 64 "wpres.gperf"
       {"ru_msgsnd", WPRES_ru_msgsnd},
-#line 63 "wpres.gperf"
-      {"ru_oublock", WPRES_ru_oublock},
 #line 40 "wpres.gperf"
       {"job_id", WPRES_job_id},
-#line 50 "wpres.gperf"
-      {"error_message", WPRES_error_msg},
+#line 57 "wpres.gperf"
+      {"ru_idrss", WPRES_ru_idrss},
 #line 49 "wpres.gperf"
       {"exited_ok", WPRES_exited_ok},
 #line 44 "wpres.gperf"
       {"wait_status", WPRES_wait_status},
-#line 57 "wpres.gperf"
-      {"ru_idrss", WPRES_ru_idrss},
+#line 43 "wpres.gperf"
+      {"timeout", WPRES_timeout},
+#line 56 "wpres.gperf"
+      {"ru_ixrss", WPRES_ru_ixrss},
+#line 50 "wpres.gperf"
+      {"error_msg", WPRES_error_msg},
+#line 63 "wpres.gperf"
+      {"ru_oublock", WPRES_ru_oublock},
+#line 51 "wpres.gperf"
+      {"error_code", WPRES_error_code},
 #line 55 "wpres.gperf"
       {"ru_maxrss", WPRES_ru_maxrss},
 #line 61 "wpres.gperf"
       {"ru_nswap", WPRES_ru_nswap},
 #line 59 "wpres.gperf"
       {"ru_minflt", WPRES_ru_minflt},
-#line 56 "wpres.gperf"
-      {"ru_ixrss", WPRES_ru_ixrss},
-#line 68 "wpres.gperf"
-      {"ru_nivcsw", WPRES_ru_nivcsw},
 #line 42 "wpres.gperf"
       {"command", WPRES_command},
 #line 67 "wpres.gperf"
       {"ru_nvcsw", WPRES_ru_nvcsw},
-#line 51 "wpres.gperf"
-      {"error_code", WPRES_error_code},
 #line 60 "wpres.gperf"
       {"ru_majflt", WPRES_ru_majflt}
     };
@@ -242,16 +242,16 @@ wpres_get_key (str, len)
               case 7:
                 resword = &wordlist[7];
                 goto compare;
-              case 9:
+              case 8:
                 resword = &wordlist[8];
                 goto compare;
-              case 10:
+              case 9:
                 resword = &wordlist[9];
                 goto compare;
-              case 12:
+              case 10:
                 resword = &wordlist[10];
                 goto compare;
-              case 13:
+              case 12:
                 resword = &wordlist[11];
                 goto compare;
               case 14:
@@ -260,19 +260,19 @@ wpres_get_key (str, len)
               case 15:
                 resword = &wordlist[13];
                 goto compare;
-              case 16:
+              case 17:
                 resword = &wordlist[14];
                 goto compare;
-              case 17:
+              case 19:
                 resword = &wordlist[15];
                 goto compare;
-              case 19:
+              case 20:
                 resword = &wordlist[16];
                 goto compare;
-              case 20:
+              case 22:
                 resword = &wordlist[17];
                 goto compare;
-              case 22:
+              case 23:
                 resword = &wordlist[18];
                 goto compare;
               case 24:
@@ -281,28 +281,28 @@ wpres_get_key (str, len)
               case 25:
                 resword = &wordlist[20];
                 goto compare;
-              case 29:
+              case 26:
                 resword = &wordlist[21];
                 goto compare;
-              case 30:
+              case 29:
                 resword = &wordlist[22];
                 goto compare;
-              case 34:
+              case 30:
                 resword = &wordlist[23];
                 goto compare;
-              case 35:
+              case 34:
                 resword = &wordlist[24];
                 goto compare;
-              case 38:
+              case 35:
                 resword = &wordlist[25];
                 goto compare;
-              case 39:
+              case 38:
                 resword = &wordlist[26];
                 goto compare;
-              case 46:
+              case 39:
                 resword = &wordlist[27];
                 goto compare;
-              case 50:
+              case 60:
                 resword = &wordlist[28];
                 goto compare;
             }

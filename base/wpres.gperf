@@ -47,7 +47,7 @@ stop, WPRES_stop
 outstd, WPRES_outstd
 outerr, WPRES_outerr
 exited_ok, WPRES_exited_ok
-error_message, WPRES_error_msg
+error_msg, WPRES_error_msg
 error_code, WPRES_error_code
 runtime, WPRES_runtime
 ru_utime, WPRES_ru_utime

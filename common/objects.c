@@ -2741,15 +2741,19 @@ int free_object_data(void) {
 
 
 	/**** free service dependency memory ****/
-	for(i = 0; i < num_objects.servicedependencies; i++)
-		my_free(servicedependency_ary[i]);
-	my_free(servicedependency_ary);
+	if (servicedependency_ary) {
+		for(i = 0; i < num_objects.servicedependencies; i++)
+			my_free(servicedependency_ary[i]);
+		my_free(servicedependency_ary);
+		}
 
 
 	/**** free host dependency memory ****/
-	for(i = 0; i < num_objects.hostdependencies; i++)
-		my_free(hostdependency_ary[i]);
-	my_free(hostdependency_ary);
+	if (hostdependency_ary) {
+		for(i = 0; i < num_objects.hostdependencies; i++)
+			my_free(hostdependency_ary[i]);
+		my_free(hostdependency_ary);
+		}
 
 
 	/**** free host escalation memory ****/

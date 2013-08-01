@@ -16,6 +16,7 @@
 struct execution_information {
 	squeue_event *sq_event;
 	pid_t pid;
+	int state;
 	struct timeval start;
 	struct timeval stop;
 	float runtime;
@@ -175,6 +176,32 @@ int worker_buf2kvvec_prealloc(struct kvvec *kvv, char *buf, unsigned long len, i
 /* forward declaration */
 static void gather_output(child_process *cp, iobuf *io, int final);
 
+static void destroy_job(child_process *cp)
+{
+	/*
+	 * we must remove the job's timeout ticker,
+	 * or we'll end up accessing an already free()'d
+	 * pointer, or the pointer to a different child.
+	 */
+	squeue_remove(sq, cp->ei->sq_event);
+	running_jobs--;
+
+	if (cp->outstd.buf) {
+		free(cp->outstd.buf);
+		cp->outstd.buf = NULL;
+	}
+	if (cp->outerr.buf) {
+		free(cp->outerr.buf);
+		cp->outerr.buf = NULL;
+	}
+
+	kvvec_destroy(cp->request, KVVEC_FREE_ALL);
+	free(cp->cmd);
+
+	free(cp->ei);
+	free(cp);
+}
+
 int finish_job(child_process *cp, int reason)
 {
 	static struct kvvec resp = KVVEC_INITIALIZER;
@@ -205,14 +232,6 @@ int finish_job(child_process *cp, int reason)
 		wlog("started: %d; running: %d; finished: %d\n",
 			 started, running_jobs, started - running_jobs);
 	}
-
-	/*
-	 * we must remove the job's timeout ticker,
-	 * or we'll end up accessing an already free()'d
-	 * pointer, or the pointer to a different child.
-	 */
-	squeue_remove(sq, cp->ei->sq_event);
-	running_jobs--;
 
 	cp->ei->runtime = tv_delta_f(&cp->ei->start, &cp->ei->stop);
 
@@ -252,20 +271,6 @@ int finish_job(child_process *cp, int reason)
 	if (ret < 0 && errno == EPIPE)
 		exit_worker(1, "Failed to send kvvec struct to master");
 
-	if (cp->outstd.buf) {
-		free(cp->outstd.buf);
-		cp->outstd.buf = NULL;
-	}
-	if (cp->outerr.buf) {
-		free(cp->outerr.buf);
-		cp->outerr.buf = NULL;
-	}
-
-	kvvec_destroy(cp->request, KVVEC_FREE_ALL);
-	free(cp->cmd);
-	free(cp->ei);
-	free(cp);
-
 	return 0;
 }
 
@@ -289,23 +294,32 @@ static int check_completion(child_process *cp, int flags)
 		result = wait4(cp->ei->pid, &status, flags, &cp->ei->rusage);
 	} while (result == -1 && errno == EINTR && time(NULL) < max_time);
 
-	if (result == cp->ei->pid) {
+	if (result == cp->ei->pid || (result < 0 && errno == ECHILD)) {
 		cp->ret = status;
 		finish_job(cp, 0);
+		destroy_job(cp);
 		return 0;
-	}
-
-	if (errno == ECHILD) {
-		cp->ret = status;
-		finish_job(cp, errno);
 	}
 
 	return -errno;
 }
 
+/*
+ * "What can the harvest hope for, if not for the care
+ * of the Reaper Man?"
+ *   -- Terry Pratchett, Reaper Man
+ *
+ * We end up here no matter if the job is stale (ie, the child is
+ * stuck in uninterruptable sleep) or if it's the first time we try
+ * to kill it.
+ * A job is considered reaped once we reap our direct child, in
+ * which case init will become parent of our grandchildren.
+ * It's also considered fully reaped if kill() results in ESRCH or
+ * EPERM, or if wait()ing for the process group results in ECHILD.
+ */
 static void kill_job(child_process *cp, int reason)
 {
-	int ret, status, loops = 0;
+	int ret, status, reaped = 0;
 
 	if (!cp->ei->pid) {
 		wlog("No pid for job %d (%u running); '%s'", cp->id, running_jobs, cp->cmd);
@@ -313,46 +327,48 @@ static void kill_job(child_process *cp, int reason)
 	}
 
 	/* brutal but efficient */
-	ret = kill(-cp->ei->pid, SIGKILL);
-	if (ret < 0) {
+	if (kill(-cp->ei->pid, SIGKILL) < 0) {
 		if (errno == ESRCH) {
-			finish_job(cp, reason);
-			return;
+			reaped = 1;
+		} else {
+			wlog("kill(-%d, SIGKILL) failed: %s\n", cp->ei->pid, strerror(errno));
 		}
-		wlog("kill(-%d, SIGKILL) failed: %s\n", cp->ei->pid, strerror(errno));
 	}
 
 	/*
-	 * Reap the child and all grandchildren (ie, anything in the
-	 * child's process group)
-	 * Note that this is "best effort", since we can't hang around
-	 * indefinitely and processes stuck in uninterruptable I/O will
-	 * still become zombies
+	 * we must iterate at least once, in case kill() returns
+	 * ESRCH when there's zombies
 	 */
-	loops = 5;
 	do {
-		ret = waitpid(-cp->ei->pid, &status, WNOHANG);
-		if (ret > 0) {
-			if (ret == cp->ei->pid)
-				cp->ret = status;
+		ret = waitpid(cp->ei->pid, &status, WNOHANG);
+		if (ret < 0 && errno == EINTR)
 			continue;
-		}
 
-		if (!ret) {
-			/* children exist but haven't changed state yet */
-			--loops;
-			usleep(1000); /* sleep 1 msec to yield the cpu */
-			continue;
-		}
-		/* ret < 0. errno is ECIHLD, EINVAL or EINTR */
-		if (errno == ECHILD || errno == EINVAL) {
-			/* nothin' doin' */
+		if (ret == cp->ei->pid || (ret < 0 && errno == ECHILD)) {
+			reaped = 1;
 			break;
 		}
-		/* waitpid was interrupted */
-	} while (loops);
+		if (!ret) {
+			time_t when = time(NULL) + 5;
+			/*
+			 * stale process (signal may not have been delivered, or
+			 * the child can be stuck in uninterruptible sleep). We
+			 * can't hang around forever, so just reschedule a new
+			 * reap attempt later.
+			 */
+			wlog("Failed to reap child with pid %d. Next attempt @ %lu", cp->ei->pid, when);
+			finish_job(cp, reason);
+			cp->ei->state = ESTALE;
+			squeue_remove(sq, cp->ei->sq_event);
+			squeue_add(sq, when, cp->ei->sq_event);
+			return;
+		}
+	} while (!reaped);
 
-	finish_job(cp, reason);
+	wlog("Child with pid %d reaped after timeout", cp->ei->pid);
+	if (cp->ei->state != ESTALE)
+		finish_job(cp, reason);
+	destroy_job(cp);
 }
 
 static void gather_output(child_process *cp, iobuf *io, int final)
@@ -634,9 +650,14 @@ void enter_worker(int sd, int (*cb)(child_process*))
 			if (poll_time > 0)
 				break;
 
-			/* this job timed out, so kill it */
-			wlog("job with pid %d timed out. Killing it", cp->ei->pid);
-			kill_job(cp, ETIME);
+			if (cp->ei->state == ESTALE) {
+				wlog("Attempting to reap dormant job %d", cp->ei->pid);
+				kill_job(cp, ESTALE);
+			} else {
+				/* this job timed out, so kill it */
+				wlog("job with pid %d timed out. Killing it", cp->ei->pid);
+				kill_job(cp, ETIME);
+			}
 		}
 
 		iobroker_poll(iobs, poll_time);

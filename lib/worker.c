@@ -366,11 +366,19 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 		int rd;
 
 		rd = read(io->fd, buf, sizeof(buf));
-		if (rd < 0) {
-			if (errno == EINTR)
-				continue;
-			/* XXX: handle the error somehow */
-			check_completion(cp, WNOHANG);
+		if (rd < 0 && errno == EINTR)
+			continue;
+
+		/*
+		 * Close down on bad, zero and final reads (we don't get
+		 * EAGAIN, so all errors are really unfixable)
+		 */
+		if (rd <= 0 || final) {
+			iobroker_close(iobs, io->fd);
+			io->fd = -1;
+			if (!final && other_io->fd < 0)
+				check_completion(cp, WNOHANG);
+			break;
 		}
 
 		if (rd) {
@@ -379,14 +387,6 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 			memcpy(&io->buf[io->len], buf, rd);
 			io->len += rd;
 			io->buf[io->len] = '\0';
-		} else if (!final) {
-			iobroker_close(iobs, io->fd);
-			io->fd = -1;
-			if (other_io->fd < 0) {
-				check_completion(cp, 0);
-			} else {
-				check_completion(cp, WNOHANG);
-			}
 		}
 		break;
 	}

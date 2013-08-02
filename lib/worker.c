@@ -360,7 +360,7 @@ static void kill_job(child_process *cp, int reason)
 			finish_job(cp, reason);
 			cp->ei->state = ESTALE;
 			squeue_remove(sq, cp->ei->sq_event);
-			squeue_add(sq, when, cp->ei->sq_event);
+			cp->ei->sq_event = squeue_add(sq, when, cp);
 			return;
 		}
 	} while (!reaped);

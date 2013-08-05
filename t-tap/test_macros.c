@@ -109,7 +109,7 @@ int handle_async_host_check_result(host *temp_host,
 
 host test_host = { .name = "name'&%", .address = "address'&%", .notes_url =
 		"notes_url'&%($HOSTNOTES$)", .notes = "notes'&%($HOSTACTIONURL$)",
-		.action_url = "action_url'&%" };
+		.action_url = "action_url'&%", .plugin_output = "name'&%" };
 
 /*****************************************************************************/
 /*                             Helper functions                              */
@@ -152,16 +152,19 @@ void test_escaping(nagios_macros *mac) {
 	/* Nothing should be changed... options == 0 */
 	RUN_MACRO_TEST( "$HOSTNAME$ '&%", "name'&% '&%", 0);
 
+	/* Nothing should be changed... HOSTNAME doesn't accept STRIP_ILLEGAL_MACRO_CHARS */
+	RUN_MACRO_TEST( "$HOSTNAME$ '&%", "name'&% '&%", STRIP_ILLEGAL_MACRO_CHARS);
+
 	/* ' and & should be stripped from the macro, according to
 	 * init_environment(), but not from the initial string
 	 */
-	RUN_MACRO_TEST( "$HOSTNAME$ '&%", "name% '&%", STRIP_ILLEGAL_MACRO_CHARS);
+	RUN_MACRO_TEST( "$HOSTOUTPUT$ '&%", "name% '&%", STRIP_ILLEGAL_MACRO_CHARS);
 
 	/* ESCAPE_MACRO_CHARS doesn't seem to do anything... exist always in pair
 	 * with STRIP_ILLEGAL_MACRO_CHARS
 	 */
-	RUN_MACRO_TEST( "$HOSTNAME$ '&%", "name'&% '&%", ESCAPE_MACRO_CHARS);
-	RUN_MACRO_TEST( "$HOSTNAME$ '&%", "name% '&%",
+	RUN_MACRO_TEST( "$HOSTOUTPUT$ '&%", "name'&% '&%", ESCAPE_MACRO_CHARS);
+	RUN_MACRO_TEST( "$HOSTOUTPUT$ '&%", "name% '&%",
 			STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS);
 
 	/* $HOSTNAME$ should be url-encoded, but not the tailing chars */
@@ -174,12 +177,13 @@ void test_escaping(nagios_macros *mac) {
 	RUN_MACRO_TEST( "$HOSTNOTESURL$ '&%",
 			"notes_url'&%(notes%27%26%25%28action_url%27%26%25%29) '&%", 0);
 
-	/* '& in the source string should be removed, as in the url. the macros
+	/* '& in the source string shouldn't be removed, because HOSTNOTESURL
+	 * doesn't accept STRIP_ILLEGAL_MACRO_CHARS, as in the url. the macros
 	 * included in the string should be url-encoded, and therefore not contain &
 	 * and '
 	 */
 	RUN_MACRO_TEST( "$HOSTNOTESURL$ '&%",
-			"notes_url%(notes%27%26%25%28action_url%27%26%25%29) '&%",
+			"notes_url'&%(notes%27%26%25%28action_url%27%26%25%29) '&%",
 			STRIP_ILLEGAL_MACRO_CHARS);
 
 	/* This should double-encode some chars ($HOSTNOTESURL$ should contain

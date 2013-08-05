@@ -36,9 +36,10 @@ static char *macro_x_names[MACRO_X_COUNT]; /* the macro names */
 char *macro_user[MAX_USER_MACROS]; /* $USERx$ macros */
 
 struct macro_key_code {
-	char *name; /* macro key name */
+	char *name;  /* macro key name */
+	char *value; /* macro value */
 	int code;  /* numeric macro code, usable in case statements */
-	char *value;
+	int options; /* Options for how the macro can be escaped */
 };
 
 static struct macro_key_code macro_keys[MACRO_X_COUNT];
@@ -110,6 +111,7 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 	char *original_macro = NULL;
 	int result = OK;
 	int free_macro = FALSE;
+	int macro_options = 0;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "process_macros_r()\n");
 
@@ -160,10 +162,9 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 
 		/* looks like we're in a macro, so process it... */
 		else {
-
 			/* grab the macro value */
 			free_macro = FALSE;
-			result = grab_macro_value_r(mac, temp_buffer, &selected_macro, NULL, &free_macro);
+			result = grab_macro_value_r(mac, temp_buffer, &selected_macro, &macro_options, &free_macro);
 			log_debug_info(DEBUGL_MACROS, 2, "  Processed '%s', Free: %d\n", temp_buffer, free_macro);
 
 			/* an error occurred - we couldn't parse the macro, so continue on */
@@ -207,8 +208,8 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 					free_macro = TRUE;
 					}
 
-				/* some macros are cleaned... */
-				if((options & STRIP_ILLEGAL_MACRO_CHARS) || (options & ESCAPE_MACRO_CHARS)) {
+				/* some macros should sometimes be cleaned */
+				if(macro_options & options & (STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS)) {
 					char *cleaned_macro = NULL;
 
 					/* add the (cleaned) processed macro to the end of the already processed buffer */
@@ -405,6 +406,8 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 	if(macro_buffer == NULL || free_macro == NULL)
 		return ERROR;
 
+	if(clean_options)
+		*clean_options = 0;
 
 	/*
 	 * We handle argv and user macros first, since those are by far
@@ -480,6 +483,12 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 
 		/* get the macro value */
 		result = grab_macrox_value_r(mac, mkey->code, arg[0], arg[1], output, free_macro);
+
+		/* Return the macro attributes */
+
+		if(clean_options) {
+			*clean_options = mkey->options;
+			}
 		}
 	/***** CONTACT ADDRESS MACROS *****/
 	/* NOTE: the code below should be broken out into a separate function */
@@ -2494,6 +2503,21 @@ int init_macros(void) {
 	for (x = 0; x < MACRO_X_COUNT; x++) {
 		macro_keys[x].code = x;
 		macro_keys[x].name = macro_x_names[x];
+
+		/* This tells which escaping is possible to do on the macro */
+		macro_keys[x].options = URL_ENCODE_MACRO_CHARS;
+		switch(x) {
+		case MACRO_HOSTOUTPUT:
+		case MACRO_HOSTPERFDATA:
+		case MACRO_HOSTACKAUTHOR:
+		case MACRO_HOSTACKCOMMENT:
+		case MACRO_SERVICEOUTPUT:
+		case MACRO_SERVICEPERFDATA:
+		case MACRO_SERVICEACKAUTHOR:
+		case MACRO_SERVICEACKCOMMENT:
+			macro_keys[x].options |= STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
+			break;
+		}
 	}
 
 	qsort(macro_keys, x, sizeof(struct macro_key_code), macro_key_cmp);

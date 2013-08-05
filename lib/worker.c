@@ -365,9 +365,10 @@ static void kill_job(child_process *cp, int reason)
 		}
 	} while (!reaped);
 
-	wlog("Child with pid %d reaped after timeout", cp->ei->pid);
 	if (cp->ei->state != ESTALE)
 		finish_job(cp, reason);
+	else
+		wlog("Previously dormant child with pid %d reaped after timeout", cp->ei->pid);
 	destroy_job(cp);
 }
 
@@ -651,7 +652,6 @@ void enter_worker(int sd, int (*cb)(child_process*))
 				break;
 
 			if (cp->ei->state == ESTALE) {
-				wlog("Attempting to reap dormant job %d", cp->ei->pid);
 				kill_job(cp, ESTALE);
 			} else {
 				/* this job timed out, so kill it */

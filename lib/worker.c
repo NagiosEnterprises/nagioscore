@@ -349,18 +349,29 @@ static void kill_job(child_process *cp, int reason)
 			break;
 		}
 		if (!ret) {
-			time_t when = time(NULL) + 5;
+			struct timeval tv;
+
+			gettimeofday(&tv, NULL);
 			/*
 			 * stale process (signal may not have been delivered, or
 			 * the child can be stuck in uninterruptible sleep). We
 			 * can't hang around forever, so just reschedule a new
 			 * reap attempt later.
 			 */
-			wlog("Failed to reap child with pid %d. Next attempt @ %lu", cp->ei->pid, when);
-			finish_job(cp, reason);
-			cp->ei->state = ESTALE;
+			if (reason == ESTALE) {
+				tv.tv_sec += 5;
+				wlog("Failed to reap child with pid %d. Next attempt @ %lu.%lu", cp->ei->pid, tv.tv_sec, tv.tv_usec);
+			} else {
+				tv.tv_usec = 250000;
+				if (tv.tv_usec > 1000000) {
+					tv.tv_usec -= 1000000;
+					tv.tv_sec += 1;
+				}
+				cp->ei->state = ESTALE;
+				finish_job(cp, reason);
+			}
 			squeue_remove(sq, cp->ei->sq_event);
-			cp->ei->sq_event = squeue_add(sq, when, cp);
+			cp->ei->sq_event = squeue_add_tv(sq, &tv, cp);
 			return;
 		}
 	} while (!reaped);

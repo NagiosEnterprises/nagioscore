@@ -668,7 +668,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 		}
 		else if (WIFSIGNALED(wpres.wait_status)) {
 			asprintf(&error_reason, "died by signal %d%s after %.2f seconds",
-			         WSTOPSIG(wpres.wait_status),
+			         WTERMSIG(wpres.wait_status),
 			         WCOREDUMP(wpres.wait_status) ? " (core dumped)" : "",
 			         tv_delta_f(&wpres.start, &wpres.stop));
 		}

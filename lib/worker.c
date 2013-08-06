@@ -66,6 +66,7 @@ static void exit_worker(int code, const char *msg)
  * but avoids doing several extra malloc()+free() for this
  * pretty simple case.
  */
+__attribute__((__format__(__printf__, 1, 2)))
 static void wlog(const char *fmt, ...)
 {
 	va_list ap;

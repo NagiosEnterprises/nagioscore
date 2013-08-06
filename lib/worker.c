@@ -25,7 +25,7 @@ struct execution_information {
 
 static iobroker_set *iobs;
 static squeue_t *sq;
-static unsigned int started, running_jobs;
+static unsigned int started, running_jobs, timeouts;
 static int master_sd;
 static int parent_pid;
 
@@ -278,13 +278,10 @@ int finish_job(child_process *cp, int reason)
 static int check_completion(child_process *cp, int flags)
 {
 	int result, status;
-	time_t max_time;
 
 	if (!cp || !cp->ei->pid) {
 		return 0;
 	}
-
-	max_time = time(NULL) + 1;
 
 	/*
 	 * we mustn't let EINTR interrupt us, since it could well
@@ -293,7 +290,7 @@ static int check_completion(child_process *cp, int flags)
 	do {
 		errno = 0;
 		result = wait4(cp->ei->pid, &status, flags, &cp->ei->rusage);
-	} while (result == -1 && errno == EINTR && time(NULL) < max_time);
+	} while (result < 0 && errno == EINTR);
 
 	if (result == cp->ei->pid || (result < 0 && errno == ECHILD)) {
 		cp->ret = status;
@@ -301,6 +298,9 @@ static int check_completion(child_process *cp, int flags)
 		destroy_job(cp);
 		return 0;
 	}
+
+	if (!result)
+		return -1;
 
 	return -errno;
 }
@@ -321,9 +321,15 @@ static int check_completion(child_process *cp, int flags)
 static void kill_job(child_process *cp, int reason)
 {
 	int ret, status, reaped = 0;
+	int pid = cp ? cp->ei->pid : 0;
 
-	if (!cp->ei->pid) {
-		wlog("No pid for job %d (%u running); '%s'", cp->id, running_jobs, cp->cmd);
+	/*
+	 * first attempt at reaping, so see if we just failed to
+	 * notice that things were going wrong her
+	 */
+	if (reason == ETIME && !check_completion(cp, WNOHANG)) {
+		timeouts++;
+		wlog("job %d with pid %d reaped at timeout. timeouts=%u; started=%u", cp->id, pid, timeouts, started);
 		return;
 	}
 
@@ -395,8 +401,12 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 		int rd;
 
 		rd = read(io->fd, buf, sizeof(buf));
-		if (rd < 0 && errno == EINTR)
-			continue;
+		if (rd < 0) {
+			if (errno == EINTR)
+				continue;
+			if (!final || errno != EAGAIN)
+				wlog("job %d (pid=%d): Failed to read(): %s", cp->id, cp->ei->pid, strerror(errno));
+		}
 
 		/*
 		 * Close down on bad, zero and final reads (we don't get
@@ -451,6 +461,10 @@ int start_cmd(child_process *cp)
 	if (!cp->ei->pid) {
 		return -1;
 	}
+
+	/* We must never block, even if plugins issue '_exit()' */
+	fcntl(cp->outstd.fd, F_SETFL, O_NONBLOCK);
+	fcntl(cp->outerr.fd, F_SETFL, O_NONBLOCK);
 	iobroker_register(iobs, cp->outstd.fd, cp, stdout_handler);
 	iobroker_register(iobs, cp->outerr.fd, cp, stderr_handler);
 

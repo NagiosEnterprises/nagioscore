@@ -25,9 +25,10 @@ struct execution_information {
 
 static iobroker_set *iobs;
 static squeue_t *sq;
-static unsigned int started, running_jobs, timeouts;
+static unsigned int started, running_jobs, timeouts, reapable;
 static int master_sd;
 static int parent_pid;
+static fanout_table *ptab;
 
 static void exit_worker(int code, const char *msg)
 {
@@ -186,6 +187,7 @@ static void destroy_job(child_process *cp)
 	 */
 	squeue_remove(sq, cp->ei->sq_event);
 	running_jobs--;
+	fanout_remove(ptab, cp->ei->pid);
 
 	if (cp->outstd.buf) {
 		free(cp->outstd.buf);
@@ -442,6 +444,37 @@ static int stdout_handler(int fd, int events, void *cp_)
 	return 0;
 }
 
+static void sigchld_handler(int sig)
+{
+	reapable++;
+}
+
+static void reap_jobs(void)
+{
+	int reaped = 0;
+	do {
+		int pid, status;
+		struct rusage ru;
+		pid = wait3(&status, WNOHANG, &ru);
+		if (pid > 0) {
+			struct child_process *cp;
+
+			reapable--;
+			if (!(cp = fanout_get(ptab, pid))) {
+				/* we reaped a lost child. Odd that */
+				continue;
+			}
+			reaped++;
+			if (cp->ei->state != ESTALE)
+				finish_job(cp, cp->ei->state);
+			destroy_job(cp);
+		}
+		else if (!pid || (pid < 0 && errno == ECHILD)) {
+			reapable = 0;
+		}
+	} while (reapable);
+}
+
 int start_cmd(child_process *cp)
 {
 	int pfd[2] = {-1, -1}, pfderr[2] = {-1, -1};
@@ -463,6 +496,7 @@ int start_cmd(child_process *cp)
 	fcntl(cp->outerr.fd, F_SETFL, O_NONBLOCK);
 	iobroker_register(iobs, cp->outstd.fd, cp, stdout_handler);
 	iobroker_register(iobs, cp->outerr.fd, cp, stderr_handler);
+	fanout_add(ptab, cp->ei->pid, cp);
 
 	return 0;
 }
@@ -623,12 +657,14 @@ void enter_worker(int sd, int (*cb)(child_process*))
 	(void)chdir("/tmp");
 	(void)chdir("nagios-workers");
 
+	ptab = fanout_create(4096);
+
 	if (setpgid(0, 0)) {
 		/* XXX: handle error somehow, or maybe just ignore it */
 	}
 
-	/* we need to catch child signals the default way */
-	signal(SIGCHLD, SIG_DFL);
+	/* we need to catch child signals to mark jobs as reapable */
+	signal(SIGCHLD, sigchld_handler);
 
 	fcntl(fileno(stdout), F_SETFD, FD_CLOEXEC);
 	fcntl(fileno(stderr), F_SETFD, FD_CLOEXEC);
@@ -683,6 +719,9 @@ void enter_worker(int sd, int (*cb)(child_process*))
 		}
 
 		iobroker_poll(iobs, poll_time);
+
+		if (reapable)
+			reap_jobs();
 	}
 
 	/* we exit when the master shuts us down */

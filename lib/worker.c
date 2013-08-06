@@ -392,10 +392,6 @@ static void kill_job(child_process *cp, int reason)
 
 static void gather_output(child_process *cp, iobuf *io, int final)
 {
-	iobuf *other_io;
-
-	other_io = io == &cp->outstd ? &cp->outerr : &cp->outstd;
-
 	for (;;) {
 		char buf[4096];
 		int rd;
@@ -415,7 +411,7 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 		if (rd <= 0 || final) {
 			iobroker_close(iobs, io->fd);
 			io->fd = -1;
-			if (!final && other_io->fd < 0)
+			if (!final)
 				check_completion(cp, WNOHANG);
 			break;
 		}

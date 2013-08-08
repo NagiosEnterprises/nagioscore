@@ -545,6 +545,10 @@ int main(int argc, char **argv) {
 
 		/* keep monitoring things until we get a shutdown command */
 		do {
+			/* reset internal book-keeping (in case we're restarting) */
+			wproc_num_workers_spawned = wproc_num_workers_online = 0;
+			caught_signal = sigshutdown = sigrestart = FALSE;
+			sig_id = 0;
 
 			/* reset program variables */
 			reset_variables();

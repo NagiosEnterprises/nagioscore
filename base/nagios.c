@@ -827,9 +827,9 @@ int main(int argc, char **argv) {
 				cleanup_status_data(TRUE);
 				}
 
+			free_worker_memory(WPROC_FORCE);
 			/* shutdown stuff... */
 			if(sigshutdown == TRUE) {
-				free_worker_memory(WPROC_FORCE);
 				iobroker_destroy(nagios_iobs, IOBROKER_CLOSE_SOCKETS);
 				nagios_iobs = NULL;
 

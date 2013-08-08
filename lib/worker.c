@@ -464,6 +464,8 @@ static void reap_jobs(void)
 				/* we reaped a lost child. Odd that */
 				continue;
 			}
+			cp->ret = status;
+			memcpy(&cp->ei->rusage, &ru, sizeof(ru));
 			reaped++;
 			if (cp->ei->state != ESTALE)
 				finish_job(cp, cp->ei->state);

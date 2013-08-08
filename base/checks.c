@@ -287,22 +287,19 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		}
 #endif
 
-	/* increment number of service checks that are currently running... */
-	currently_running_service_checks++;
-
-	/* set the execution flag */
-	svc->is_executing = TRUE;
-
 	/* reset latency (permanent value will be set later) */
 	svc->latency = old_latency;
-
-	/* update check statistics */
-	update_check_stats((scheduled_check == TRUE) ? ACTIVE_SCHEDULED_SERVICE_CHECK_STATS : ACTIVE_ONDEMAND_SERVICE_CHECK_STATS, start_time.tv_sec);
 
 	/* paw off the check to a worker to run */
 	runchk_result = wproc_run_check(cr, processed_command, &mac);
 	if (runchk_result == ERROR) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Unable to run check for service '%s' on host '%s'\n", svc->description, svc->host_name);
+	}
+	else {
+		/* do the book-keeping */
+		currently_running_service_checks++;
+		svc->is_executing = TRUE;
+		update_check_stats((scheduled_check == TRUE) ? ACTIVE_SCHEDULED_SERVICE_CHECK_STATS : ACTIVE_ONDEMAND_SERVICE_CHECK_STATS, start_time.tv_sec);
 	}
 
 	/* free memory */
@@ -2404,12 +2401,6 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 	}
 	init_check_result(cr);
 
-	/* increment number of host checks that are currently running... */
-	currently_running_host_checks++;
-
-	/* set the execution flag */
-	hst->is_executing = TRUE;
-
 	/* save check info */
 	cr->object_check_type = HOST_CHECK;
 	cr->host_name = (char *)strdup(hst->name);
@@ -2434,14 +2425,17 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 	/* reset latency (permanent value for this check will get set later) */
 	hst->latency = old_latency;
 
-	/* update check statistics */
-	update_check_stats((scheduled_check == TRUE) ? ACTIVE_SCHEDULED_HOST_CHECK_STATS : ACTIVE_ONDEMAND_HOST_CHECK_STATS, start_time.tv_sec);
-	update_check_stats(PARALLEL_HOST_CHECK_STATS, start_time.tv_sec);
-
 	runchk_result = wproc_run_check(cr, processed_command, &mac);
 	if (runchk_result == ERROR) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Unable to run check for host '%s'\n", hst->name);
+	} else {
+		/* do the book-keeping */
+		currently_running_host_checks++;
+		hst->is_executing = TRUE;
+		update_check_stats((scheduled_check == TRUE) ? ACTIVE_SCHEDULED_HOST_CHECK_STATS : ACTIVE_ONDEMAND_HOST_CHECK_STATS, start_time.tv_sec);
+		update_check_stats(PARALLEL_HOST_CHECK_STATS, start_time.tv_sec);
 	}
+
 
 	/* free memory */
 	clear_volatile_macros_r(&mac);

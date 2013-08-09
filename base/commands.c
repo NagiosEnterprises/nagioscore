@@ -2656,7 +2656,6 @@ int cmd_delete_downtime(int cmd, char *args) {
 	}
 
 
-/* Opsview enhancements: some of these commands are now "distributable" as no downtime ids are used */
 /* Deletes scheduled host and service downtime based on hostname and optionally other filter arguments */
 int cmd_delete_downtime_by_host_name(int cmd, char *args) {
 	char *temp_ptr = NULL;
@@ -2702,7 +2701,6 @@ int cmd_delete_downtime_by_host_name(int cmd, char *args) {
 	return OK;
 	}
 
-/* Opsview enhancement: Deletes scheduled host and service downtime based on hostgroup and optionally other filter arguments */
 int cmd_delete_downtime_by_hostgroup_name(int cmd, char *args) {
 	char *temp_ptr = NULL;
 	char *end_ptr = NULL;
@@ -2786,7 +2784,6 @@ int cmd_delete_downtime_by_hostgroup_name(int cmd, char *args) {
 	return OK;
 	}
 
-/* Opsview enhancement: Delete downtimes based on start time and/or comment */
 int cmd_delete_downtime_by_start_time_comment(int cmd, char *args) {
 	time_t downtime_start_time = 0L;
 	char *downtime_comment = NULL;

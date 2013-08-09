@@ -136,23 +136,21 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 	/* create the contact notification list for this service */
 
-	/* 2011-11-01 MF:
-	   check viability before adding a contact
-	   to the notification list, requires type
-	   this prevents us from running through all
-	   the steps until notify_contact_of_host|service
-	   is reached. furthermore the $NOTIFICATIONRECIPIENTS$
-	   macro only gets populated with actual recipients,
-	   not all contacts assigned to that host|service.
-
-	   note: checks against timeperiod will happen now(),
-	   and not when the notification is actually being sent.
-
-	   original patch by Opsview Team
-	*/
+	/*
+	 * check viability before adding a contact to the notification
+	 * list and build up the $NOTIFICATIONRECIPIENTS$ macro while
+	 * we're at it.
+	 * This prevents us from running through all the steps again in
+	 * notify_contact_of_host|service.
+	 * Furthermore the $NOTIFICATIONRECIPIENTS$ macro will contain
+	 * only actual recipients (as the name implies), and not all
+	 * contacts assigned to that host|service.
+	 *
+	 * note: checks against timeperiod will happen now(),
+	 * and not when the notification is actually being sent.
+	 */
 	create_notification_list_from_service(&mac, svc, options, &escalated, type);
 
-	/* XXX: crazy indent */
 	/* we have contacts to notify... */
 	if(notification_list != NULL) {
 
@@ -1082,23 +1080,21 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	/* reset memory for local macro data */
 	memset(&mac, 0, sizeof(mac));
 
-	/* 2011-11-01 MF:
-		check viability before adding a contact
-		to the notification list, requires type
-		this prevents us from running through all
-		the steps until notify_contact_of_host|service
-		is reached. furthermore the $NOTIFICATIONRECIPIENTS$
-		macro only gets populated with actual recipients,
-		not all contacts assigned to that host|service.
-
-		note: checks against timeperiod will happen now(),
-		and not when the notification is actually being sent.
-
-		original patch by Opsview Team
-	*/
+	/*
+	 * check viability before adding a contact to the notification
+	 * list and build up the $NOTIFICATIONRECIPIENTS$ macro while
+	 * we're at it.
+	 * This prevents us from running through all the steps again in
+	 * notify_contact_of_host|service.
+	 * Furthermore the $NOTIFICATIONRECIPIENTS$ macro will contain
+	 * only actual recipients (as the name implies), and not all
+	 * contacts assigned to that host|service.
+	 *
+	 * note: checks against timeperiod will happen now(),
+	 * and not when the notification is actually being sent.
+	 */
 	create_notification_list_from_host(&mac, hst, options, &escalated, type);
 
-	/* XXX: crazy indent */
 	/* there are contacts to be notified... */
 	if(notification_list != NULL) {
 

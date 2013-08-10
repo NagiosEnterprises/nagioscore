@@ -402,7 +402,7 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 		if (rd < 0) {
 			if (errno == EINTR)
 				continue;
-			if (!final || errno != EAGAIN)
+			if (!final && errno != EAGAIN)
 				wlog("job %d (pid=%d): Failed to read(): %s", cp->id, cp->ei->pid, strerror(errno));
 		}
 

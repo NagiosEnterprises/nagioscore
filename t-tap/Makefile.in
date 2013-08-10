@@ -15,7 +15,6 @@ CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src -I..
 TESTS = test_logging test_events test_timeperiods test_nagios_config
 TESTS += test_xsddefault
 TESTS += test_checks
-TESTS += test_strtoul
 TESTS += test_commands
 TESTS += test_downtime
 TESTS += test_macros

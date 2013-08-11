@@ -851,6 +851,7 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 	/* add the child entry to the host definition */
 	new_servicesmember->next = hst->services;
 	hst->services = new_servicesmember;
+	hst->hourly_value += service_ptr->hourly_value;
 
 	return new_servicesmember;
 	}

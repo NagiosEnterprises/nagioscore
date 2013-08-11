@@ -101,7 +101,7 @@ define host {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
-	hourly_value	1
+	hourly_value	3
 	check_interval	5.000000
 	retry_interval	1.000000
 	max_check_attempts	2
@@ -133,7 +133,7 @@ define host {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
-	hourly_value	1
+	hourly_value	2
 	check_interval	5.000000
 	retry_interval	1.000000
 	max_check_attempts	2
@@ -165,7 +165,7 @@ define host {
 	contacts	nagiosadmin
 	notification_period	none
 	initial_state	o
-	hourly_value	1
+	hourly_value	3
 	check_interval	5.000000
 	retry_interval	1.000000
 	max_check_attempts	2

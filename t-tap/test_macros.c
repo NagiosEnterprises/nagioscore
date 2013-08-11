@@ -201,6 +201,8 @@ void test_escaping(nagios_macros *mac) {
 int main(void) {
 	nagios_macros *mac;
 
+	plan_tests(9);
+
 	reset_variables();
 	init_environment();
 	init_macros();

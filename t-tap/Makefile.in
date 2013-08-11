@@ -12,12 +12,8 @@ SRC_COMMON=../common
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src -I..
 
-TESTS = test_logging test_events test_timeperiods test_nagios_config
-TESTS += test_xsddefault
-TESTS += test_checks
-TESTS += test_commands
-TESTS += test_downtime
-TESTS += test_macros
+TESTS = test_macros
+TESTS += test_timeperiods
 
 XSD_OBJS = $(SRC_CGI)/statusdata-cgi.o $(SRC_CGI)/xstatusdata-cgi.o
 XSD_OBJS += $(SRC_CGI)/objects-cgi.o $(SRC_CGI)/xobjects-cgi.o
@@ -79,11 +75,6 @@ XDDH=@XDDH@
 # Extra base code
 BASEEXTRALIBS=@BASEEXTRALIBS@
 
-# Generated automatically from configure script
-SNPRINTF_O=@SNPRINTF_O@
-BROKER_O=@BROKER_O@
-BROKER_H=@BROKER_H@
-
 TAPOBJ=../tap/src/tap.o $(SNPRINTF_O)
 
 all: $(TESTS)
@@ -127,7 +118,7 @@ test: $(TESTS)
 	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(map { "./$$_" } @ARGV)' $(TESTS)
 
 clean:
-	rm -f nagios nagiostats core *.o gmon.out
+	rm -f core core.* *.o gmon.out $(TESTS)
 	rm -f *~ *.*~
 
 distclean: clean

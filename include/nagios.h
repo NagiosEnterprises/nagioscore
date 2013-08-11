@@ -148,6 +148,7 @@ extern int retention_update_interval;
 extern int use_retained_program_state;
 extern int use_retained_scheduling_info;
 extern int retention_scheduling_horizon;
+extern char *retention_file;
 extern unsigned long retained_host_attribute_mask;
 extern unsigned long retained_service_attribute_mask;
 extern unsigned long retained_contact_host_attribute_mask;
@@ -159,6 +160,8 @@ extern int translate_passive_host_checks;
 extern int passive_host_checks_are_soft;
 
 extern int status_update_interval;
+extern char *status_file;
+extern char *retention_file;
 
 extern int time_change_threshold;
 
@@ -206,6 +209,26 @@ extern squeue_t *nagios_squeue;
 extern iobroker_set *nagios_iobs;
 
 extern struct check_stats check_statistics[MAX_CHECK_STATS_TYPES];
+
+/*** perfdata variables ***/
+extern int     perfdata_timeout;
+extern char    *host_perfdata_command;
+extern char    *service_perfdata_command;
+extern char    *host_perfdata_file_template;
+extern char    *service_perfdata_file_template;
+extern char    *host_perfdata_file;
+extern char    *service_perfdata_file;
+extern int     host_perfdata_file_append;
+extern int     service_perfdata_file_append;
+extern int     host_perfdata_file_pipe;
+extern int     service_perfdata_file_pipe;
+extern unsigned long host_perfdata_file_processing_interval;
+extern unsigned long service_perfdata_file_processing_interval;
+extern char    *host_perfdata_file_processing_command;
+extern char    *service_perfdata_file_processing_command;
+extern int     host_perfdata_process_empty_results;
+extern int     service_perfdata_process_empty_results;
+/*** end perfdata variables */
 
 extern struct notify_list *notification_list;
 

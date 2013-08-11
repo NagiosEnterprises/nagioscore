@@ -1095,22 +1095,62 @@ int read_main_config_file(char *main_config_file) {
 		else if(!strcmp(variable, "bare_update_check"))
 			bare_update_check = (atoi(value) > 0) ? TRUE : FALSE;
 
-		/* skip external data directives */
-		else if(strstr(input, "x") == input)
-			continue;
-
-		/* ignore external variables */
+		/* BEGIN status data variables */
 		else if(!strcmp(variable, "status_file"))
-			continue;
-		else if(!strcmp(variable, "perfdata_timeout"))
-			continue;
-		else if(strstr(variable, "host_perfdata") == variable)
-			continue;
-		else if(strstr(variable, "service_perfdata") == variable)
-			continue;
-		else if(strstr(input, "cfg_file=") == input || strstr(input, "cfg_dir=") == input)
-			continue;
+			status_file = nspath_absolute(value, config_file_dir);
 		else if(strstr(input, "state_retention_file=") == input)
+			retention_file = nspath_absolute(value, config_file_dir);
+		/* END status data variables */
+
+		/*** BEGIN perfdata variables ***/
+		else if(!strcmp(variable, "perfdata_timeout")) {
+			perfdata_timeout = atoi(value);
+			}
+		else if(!strcmp(variable, "host_perfdata_command"))
+			host_perfdata_command = (char *)strdup(value);
+		else if(!strcmp(variable, "service_perfdata_command"))
+			service_perfdata_command = (char *)strdup(value);
+		else if(!strcmp(variable, "host_perfdata_file_template"))
+			host_perfdata_file_template = (char *)strdup(value);
+		else if(!strcmp(variable, "service_perfdata_file_template"))
+			service_perfdata_file_template = (char *)strdup(value);
+		else if(!strcmp(variable, "host_perfdata_file"))
+			host_perfdata_file = nspath_absolute(value, config_file_dir);
+		else if(!strcmp(variable, "service_perfdata_file"))
+			service_perfdata_file = nspath_absolute(value, config_file_dir);
+		else if(!strcmp(variable, "host_perfdata_file_mode")) {
+			host_perfdata_file_pipe = FALSE;
+			if(strstr(value, "p") != NULL)
+				host_perfdata_file_pipe = TRUE;
+			else if(strstr(value, "w") != NULL)
+				host_perfdata_file_append = FALSE;
+			else
+				host_perfdata_file_append = TRUE;
+			}
+		else if(!strcmp(variable, "service_perfdata_file_mode")) {
+			service_perfdata_file_pipe = FALSE;
+			if(strstr(value, "p") != NULL)
+				service_perfdata_file_pipe = TRUE;
+			else if(strstr(value, "w") != NULL)
+				service_perfdata_file_append = FALSE;
+			else
+				service_perfdata_file_append = TRUE;
+			}
+		else if(!strcmp(variable, "host_perfdata_file_processing_interval"))
+			host_perfdata_file_processing_interval = strtoul(value, NULL, 0);
+		else if(!strcmp(variable, "service_perfdata_file_processing_interval"))
+			service_perfdata_file_processing_interval = strtoul(value, NULL, 0);
+		else if(!strcmp(variable, "host_perfdata_file_processing_command"))
+			host_perfdata_file_processing_command = (char *)strdup(value);
+		else if(!strcmp(variable, "service_perfdata_file_processing_command"))
+			service_perfdata_file_processing_command = (char *)strdup(value);
+		else if(!strcmp(variable,"host_perfdata_process_empty_results"))
+			host_perfdata_process_empty_results = (atoi(value) > 0) ? TRUE : FALSE;
+		else if(!strcmp(variable,"service_perfdata_process_empty_results"))
+			service_perfdata_process_empty_results = (atoi(value) > 0) ? TRUE : FALSE;
+		/*** END perfdata variables */
+
+		else if(strstr(input, "cfg_file=") == input || strstr(input, "cfg_dir=") == input)
 			continue;
 		else if(strstr(input, "object_cache_file=") == input) {
 			my_free(object_cache_file);
@@ -1125,6 +1165,9 @@ int read_main_config_file(char *main_config_file) {
 		else if(!strcmp(variable, "allow_empty_hostgroup_assignment")) {
 			allow_empty_hostgroup_assignment = (atoi(value) > 0) ? TRUE : FALSE;
 			}
+		/* skip external data directives */
+		else if(strstr(input, "x") == input)
+			continue;
 
 		/* we don't know what this variable is... */
 		else {

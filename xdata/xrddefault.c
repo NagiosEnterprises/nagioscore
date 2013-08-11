@@ -38,112 +38,7 @@
 
 #include "xrddefault.h"
 
-char *xrddefault_retention_file = NULL;
 char *xrddefault_temp_file = NULL;
-
-
-
-
-/******************************************************************/
-/********************* CONFIG INITIALIZATION  *********************/
-/******************************************************************/
-
-int xrddefault_grab_config_info(const char *main_config_file) {
-	char *input = NULL;
-	mmapfile *thefile = NULL;
-	nagios_macros *mac;
-
-	mac = get_global_macros();
-
-
-	/* open the main config file for reading */
-	if((thefile = mmap_fopen(main_config_file)) == NULL) {
-
-		log_debug_info(DEBUGL_RETENTIONDATA, 2, "Error: Cannot open main configuration file '%s' for reading!\n", main_config_file);
-
-		my_free(xrddefault_retention_file);
-
-		return ERROR;
-		}
-
-	/* read in all lines from the main config file */
-	while(1) {
-
-		/* free memory */
-		my_free(input);
-
-		/* read the next line */
-		if((input = mmap_fgets_multiline(thefile)) == NULL)
-			break;
-
-		strip(input);
-
-		/* skip blank lines and comments */
-		if(input[0] == '#' || input[0] == '\x0')
-			continue;
-
-		xrddefault_grab_config_directives(input);
-		}
-
-	/* free memory and close the file */
-	my_free(input);
-	mmap_fclose(thefile);
-
-	/* initialize locations if necessary  */
-	if(xrddefault_retention_file == NULL)
-		xrddefault_retention_file = (char *)strdup(DEFAULT_RETENTION_FILE);
-
-	/* make sure we have everything */
-	if(xrddefault_retention_file == NULL)
-		return ERROR;
-
-	/* save the retention file macro */
-	my_free(mac->x[MACRO_RETENTIONDATAFILE]);
-	if((mac->x[MACRO_RETENTIONDATAFILE] = (char *)strdup(xrddefault_retention_file)))
-		strip(mac->x[MACRO_RETENTIONDATAFILE]);
-
-	xrddefault_temp_file = temp_file;
-
-	return OK;
-	}
-
-
-
-/* process a single config directive */
-int xrddefault_grab_config_directives(char *input) {
-	char *temp_ptr = NULL;
-	char *varname = NULL;
-	char *varvalue = NULL;
-
-	/* get the variable name */
-	if((temp_ptr = my_strtok(input, "=")) == NULL)
-		return ERROR;
-	if((varname = (char *)strdup(temp_ptr)) == NULL)
-		return ERROR;
-
-	/* get the variable value */
-	if((temp_ptr = my_strtok(NULL, "\n")) == NULL) {
-		my_free(varname);
-		return ERROR;
-		}
-	if((varvalue = (char *)strdup(temp_ptr)) == NULL) {
-		my_free(varname);
-		return ERROR;
-		}
-
-	/* retention file definition */
-	if(!strcmp(varname, "xrddefault_retention_file") || !strcmp(varname, "state_retention_file"))
-		xrddefault_retention_file = (char *)strdup(varvalue);
-
-	/* free memory */
-	my_free(varname);
-	my_free(varvalue);
-
-	return OK;
-	}
-
-
-
 
 /******************************************************************/
 /********************* INIT/CLEANUP FUNCTIONS *********************/
@@ -152,12 +47,25 @@ int xrddefault_grab_config_directives(char *input) {
 
 /* initialize retention data */
 int xrddefault_initialize_retention_data(const char *cfgfile) {
-	int result;
+	nagios_macros *mac;
 
-	/* grab configuration data */
-	result = xrddefault_grab_config_info(cfgfile);
-	if(result == ERROR)
+	/* initialize locations if necessary  */
+	if(retention_file == NULL)
+		retention_file = (char *)strdup(DEFAULT_RETENTION_FILE);
+
+	/* make sure we have everything */
+	if(retention_file == NULL)
 		return ERROR;
+
+	mac = get_global_macros();
+
+	/* save the retention file macro */
+	my_free(mac->x[MACRO_RETENTIONDATAFILE]);
+	mac->x[MACRO_RETENTIONDATAFILE] = retention_file;
+	if((mac->x[MACRO_RETENTIONDATAFILE] = (char *)strdup(retention_file)))
+		strip(mac->x[MACRO_RETENTIONDATAFILE]);
+
+	xrddefault_temp_file = temp_file;
 
 	return OK;
 	}
@@ -167,7 +75,7 @@ int xrddefault_initialize_retention_data(const char *cfgfile) {
 int xrddefault_cleanup_retention_data(void) {
 
 	/* free memory */
-	my_free(xrddefault_retention_file);
+	my_free(retention_file);
 
 	return OK;
 	}
@@ -202,7 +110,7 @@ int xrddefault_save_state_information(void) {
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "xrddefault_save_state_information()\n");
 
 	/* make sure we have everything */
-	if(xrddefault_retention_file == NULL || xrddefault_temp_file == NULL) {
+	if(retention_file == NULL || xrddefault_temp_file == NULL) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: We don't have the required file names to store retention data!\n");
 		return ERROR;
 		}
@@ -507,9 +415,9 @@ int xrddefault_save_state_information(void) {
 		result = OK;
 
 		/* move the temp file to the retention file (overwrite the old retention file) */
-		if(my_rename(tmp_file, xrddefault_retention_file)) {
+		if(my_rename(tmp_file, retention_file)) {
 			unlink(tmp_file);
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to update retention file '%s': %s", xrddefault_retention_file, strerror(errno));
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to update retention file '%s': %s", retention_file, strerror(errno));
 			result = ERROR;
 			}
 		}
@@ -598,7 +506,7 @@ int xrddefault_read_state_information(void) {
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "xrddefault_read_state_information() start\n");
 
 	/* make sure we have what we need */
-	if(xrddefault_retention_file == NULL) {
+	if(retention_file == NULL) {
 
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: We don't have a filename for retention data!\n");
 
@@ -609,7 +517,7 @@ int xrddefault_read_state_information(void) {
 		gettimeofday(&tv[0], NULL);
 
 	/* open the retention file for reading */
-	if((thefile = mmap_fopen(xrddefault_retention_file)) == NULL)
+	if((thefile = mmap_fopen(retention_file)) == NULL)
 		return ERROR;
 
 	/* what attributes should be masked out? */

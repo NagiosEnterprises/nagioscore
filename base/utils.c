@@ -134,6 +134,7 @@ int retention_update_interval = DEFAULT_RETENTION_UPDATE_INTERVAL;
 int use_retained_program_state = TRUE;
 int use_retained_scheduling_info = FALSE;
 int retention_scheduling_horizon = DEFAULT_RETENTION_SCHEDULING_HORIZON;
+char *retention_file = NULL;
 
 unsigned long modified_process_attributes = MODATTR_NONE;
 unsigned long modified_host_process_attributes = MODATTR_NONE;
@@ -173,6 +174,7 @@ int translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
 int passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 
 int status_update_interval = DEFAULT_STATUS_UPDATE_INTERVAL;
+char *status_file = NULL;
 
 int time_change_threshold = DEFAULT_TIME_CHANGE_THRESHOLD;
 
@@ -191,6 +193,26 @@ int child_processes_fork_twice = -1;
 char *use_timezone = NULL;
 
 int allow_empty_hostgroup_assignment = DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
+
+/*** perfdata variables ***/
+int     perfdata_timeout;
+char    *host_perfdata_command = NULL;
+char    *service_perfdata_command = NULL;
+char    *host_perfdata_file_template = NULL;
+char    *service_perfdata_file_template = NULL;
+char    *host_perfdata_file = NULL;
+char    *service_perfdata_file = NULL;
+int     host_perfdata_file_append = TRUE;
+int     service_perfdata_file_append = TRUE;
+int     host_perfdata_file_pipe = FALSE;
+int     service_perfdata_file_pipe = FALSE;
+unsigned long host_perfdata_file_processing_interval = 0L;
+unsigned long service_perfdata_file_processing_interval = 0L;
+char    *host_perfdata_file_processing_command = NULL;
+char    *service_perfdata_file_processing_command = NULL;
+int     host_perfdata_process_empty_results=DEFAULT_HOST_PERFDATA_PROCESS_EMPTY_RESULTS;
+int     service_perfdata_process_empty_results=DEFAULT_SERVICE_PERFDATA_PROCESS_EMPTY_RESULTS;
+/*** end perfdata variables */
 
 notification    *notification_list;
 

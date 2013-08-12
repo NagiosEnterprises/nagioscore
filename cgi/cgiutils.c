@@ -610,7 +610,7 @@ void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_opti
 		}
 
 	/* read all status data */
-	result = read_all_status_data(get_cgi_config_location(), status_options);
+	result = read_all_status_data(main_config_file, status_options);
 	if(result == ERROR) {
 		doc_header(FALSE);
 		status_data_error();

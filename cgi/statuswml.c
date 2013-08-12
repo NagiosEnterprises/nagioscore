@@ -133,7 +133,7 @@ int main(void) {
 		}
 
 	/* read all status data */
-	result = read_all_status_data(get_cgi_config_location(), READ_ALL_STATUS_DATA);
+	result = read_all_status_data(main_config_file, READ_ALL_STATUS_DATA);
 	if(result == ERROR) {
 		printf("<P>Error: Could not read host and service status information!</P>\n");
 		document_footer();

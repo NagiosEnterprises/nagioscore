@@ -79,16 +79,9 @@ char *xsddefault_temp_file = NULL; /* XXX: TO BE REMOVED SO DO NOT USE! */
 int xsddefault_grab_config_info(const char *cfgfile) {
 	char *input = NULL;
 	mmapfile *thefile;
-#ifdef NSCGI
-	char *input2 = NULL;
-	mmapfile *thefile2;
-	char *temp_buffer;
-#else
+#ifndef NSCGI
 	nagios_macros *mac;
 #endif
-
-
-	/*** CORE PASSES IN MAIN CONFIG FILE, CGIS PASS IN CGI CONFIG FILE! ***/
 
 	/* open the config file for reading */
 	if((thefile = mmap_fopen(cfgfile)) == NULL)
@@ -110,47 +103,8 @@ int xsddefault_grab_config_info(const char *cfgfile) {
 		if(input[0] == '#' || input[0] == '\x0')
 			continue;
 
-#ifdef NSCGI
-		/* CGI needs to find and read contents of main config file, since it was passed the name of the CGI config file */
-		if(strstr(input, "main_config_file") == input) {
-
-			temp_buffer = strtok(input, "=");
-			temp_buffer = strtok(NULL, "\n");
-			if(temp_buffer == NULL)
-				continue;
-
-			if((thefile2 = mmap_fopen(temp_buffer)) == NULL)
-				continue;
-
-			/* read in all lines from the main config file */
-			while(1) {
-
-				/* free memory */
-				my_free(input2);
-
-				/* read the next line */
-				if((input2 = mmap_fgets_multiline(thefile2)) == NULL)
-					break;
-
-				strip(input2);
-
-				/* skip blank lines and comments */
-				if(input2[0] == '#' || input2[0] == '\x0')
-					continue;
-
-				xsddefault_grab_config_directives(input2);
-				}
-
-			/* free memory and close the file */
-			my_free(input2);
-			mmap_fclose(thefile2);
-			}
-#endif
-
-#ifdef NSCORE
 		/* core reads variables directly from the main config file */
 		xsddefault_grab_config_directives(input);
-#endif
 		}
 
 	/* free memory and close the file */

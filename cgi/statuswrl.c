@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
 		return ERROR;
 
 	/* read all status data */
-	result = read_all_status_data(get_cgi_config_location(), READ_ALL_STATUS_DATA);
+	result = read_all_status_data(main_config_file, READ_ALL_STATUS_DATA);
 	if(result == ERROR) {
 		free_memory();
 		return ERROR;

@@ -95,51 +95,13 @@ int display_header = TRUE;
 
 
 int main(void) {
-	int result = OK;
-
-
 	/* get the arguments passed in the URL */
 	process_cgivars();
 
 	/* reset internal variables */
 	reset_cgi_vars();
 
-	/* read the CGI configuration file */
-	result = read_cgi_config_file(get_cgi_config_location());
-	if(result == ERROR) {
-		document_header(FALSE);
-		cgi_config_file_error(get_cgi_config_location());
-		document_footer();
-		return ERROR;
-		}
-
-	/* read the main configuration file */
-	result = read_main_config_file(main_config_file);
-	if(result == ERROR) {
-		document_header(FALSE);
-		main_config_file_error(main_config_file);
-		document_footer();
-		return ERROR;
-		}
-
-	/* read all object configuration data */
-	result = read_all_object_configuration_data(main_config_file, READ_ALL_OBJECT_DATA);
-	if(result == ERROR) {
-		document_header(FALSE);
-		object_data_error();
-		document_footer();
-		return ERROR;
-		}
-
-	/* read all status data */
-	result = read_all_status_data(get_cgi_config_location(), READ_ALL_STATUS_DATA);
-	if(result == ERROR) {
-		document_header(FALSE);
-		status_data_error();
-		document_footer();
-		free_memory();
-		return ERROR;
-		}
+	cgi_init(document_header, document_footer, READ_ALL_OBJECT_DATA, READ_ALL_STATUS_DATA);
 
 	document_header(TRUE);
 

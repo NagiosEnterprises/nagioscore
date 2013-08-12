@@ -423,6 +423,7 @@ typedef struct lifo_struct {
 /******************************** FUNCTIONS *******************************/
 
 void reset_cgi_vars(void);
+void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_options, int status_options);
 void free_memory(void);
 
 const char *get_cgi_config_location(void);				/* gets location of the CGI config file to read */

@@ -195,7 +195,6 @@ int generate_report = FALSE;
 
 
 int main(int argc, char **argv) {
-	int result = OK;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char start_timestring[MAX_DATETIME_LENGTH];
 	char end_timestring[MAX_DATETIME_LENGTH];
@@ -211,32 +210,7 @@ int main(int argc, char **argv) {
 	/* reset internal CGI variables */
 	reset_cgi_vars();
 
-	/* read the CGI configuration file */
-	result = read_cgi_config_file(get_cgi_config_location());
-	if(result == ERROR) {
-		document_header(FALSE);
-		cgi_config_file_error(get_cgi_config_location());
-		document_footer();
-		return ERROR;
-		}
-
-	/* read the main configuration file */
-	result = read_main_config_file(main_config_file);
-	if(result == ERROR) {
-		document_header(FALSE);
-		main_config_file_error(main_config_file);
-		document_footer();
-		return ERROR;
-		}
-
-	/* read all object configuration data */
-	result = read_all_object_configuration_data(main_config_file, READ_ALL_OBJECT_DATA);
-	if(result == ERROR) {
-		document_header(FALSE);
-		object_data_error();
-		document_footer();
-		return ERROR;
-		}
+	cgi_init(document_header, document_footer, READ_ALL_OBJECT_DATA, 0);
 
 	/* initialize report time period to last 24 hours */
 	time(&t2);

@@ -579,6 +579,48 @@ int read_all_status_data(const char *cfgfile, int options) {
 	}
 
 
+void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_options, int status_options) {
+	int result;
+
+	/* read the CGI configuration file */
+	result = read_cgi_config_file(get_cgi_config_location());
+	if(result == ERROR) {
+		doc_header(FALSE);
+		cgi_config_file_error(get_cgi_config_location());
+		doc_footer();
+		exit(EXIT_FAILURE);
+		}
+
+	/* read the main configuration file */
+	result = read_main_config_file(main_config_file);
+	if(result == ERROR) {
+		doc_header(FALSE);
+		main_config_file_error(main_config_file);
+		doc_footer();
+		exit(EXIT_FAILURE);
+		}
+
+	/* read all object configuration data */
+	result = read_all_object_configuration_data(main_config_file, object_options);
+	if(result == ERROR) {
+		doc_header(FALSE);
+		object_data_error();
+		doc_footer();
+		exit(EXIT_FAILURE);
+		}
+
+	/* read all status data */
+	result = read_all_status_data(get_cgi_config_location(), status_options);
+	if(result == ERROR) {
+		doc_header(FALSE);
+		status_data_error();
+		doc_footer();
+		free_memory();
+		exit(EXIT_FAILURE);
+		}
+	}
+
+
 /**********************************************************
  ******************* LIFO FUNCTIONS ***********************
  **********************************************************/
@@ -1320,7 +1362,7 @@ void display_info_table(const char *title, int refresh, authdata *current_authda
 	int result;
 
 	/* read program status */
-	result = read_all_status_data(get_cgi_config_location(), READ_PROGRAM_STATUS);
+	result = read_all_status_data(main_config_file, READ_PROGRAM_STATUS);
 
 	printf("<TABLE CLASS='infoBox' BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
 	printf("<TR><TD CLASS='infoBox'>\n");

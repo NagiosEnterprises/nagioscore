@@ -472,6 +472,11 @@ int read_main_config_file(const char *filename) {
 			temp_buffer = strtok(NULL, "\x0");
 			object_cache_file = nspath_absolute(temp_buffer, config_file_dir);
 			}
+		else if(strstr(input, "status_file=") == input) {
+			temp_buffer = strtok(input, "=");
+			temp_buffer = strtok(NULL, "\x0");
+			status_file = nspath_absolute(temp_buffer, config_file_dir);
+			}
 
 		else if(strstr(input, "log_archive_path=") == input) {
 			temp_buffer = strtok(input, "=");

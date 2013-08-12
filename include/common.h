@@ -43,6 +43,7 @@ extern int check_external_commands;
 extern int defer_comment_sorting;
 
 extern char *object_cache_file;
+extern char *status_file;
 
 extern time_t program_start;
 extern int nagios_pid;

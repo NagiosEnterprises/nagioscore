@@ -19,6 +19,7 @@ char *object_cache_file = DEFAULT_OBJECT_CACHE_FILE;
 struct object_count num_objects;
 
 int process_performance_data = DEFAULT_PROCESS_PERFORMANCE_DATA;
+char *status_file = NULL;
 
 int nagios_pid = 0;
 int daemon_mode = FALSE;

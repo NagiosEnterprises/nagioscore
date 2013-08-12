@@ -45,7 +45,4 @@ int xsddefault_save_status_data(void);
 int xsddefault_read_status_data(const char *, int);
 #endif
 
-int xsddefault_grab_config_info(const char *);
-int xsddefault_grab_config_directives(char *);
-
 #endif

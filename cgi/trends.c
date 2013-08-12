@@ -1757,7 +1757,7 @@ void graph_all_trend_data(void) {
 	/* the "wobble" value is necessary because when the CGI is called to do the PNG generation, t2 will actually be less that current_time by a bit */
 
 	/* if we don't have any data, assume current state (if possible) */
-	if(as_list == NULL && current_time > t1 && current_time < (t2 + wobble)) {
+	if(as_list == NULL && current_time > t1 && current_time < (time_t)(t2 + wobble)) {
 
 		/* we don't have any historical information, but the current time falls within the reporting period, so use */
 		/* the current status of the host/service as the starting data */

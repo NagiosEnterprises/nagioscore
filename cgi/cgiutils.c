@@ -1014,7 +1014,7 @@ char * html_encode(char *input, int escape_newlines) {
 		}
 
 	/* Process all converted characters */
-	for( x = 0, inwcp = wcinput; x < mbstowcs_result && '\0' != *inwcp; x++, inwcp++) {
+	for( x = 0, inwcp = wcinput; x < (int)mbstowcs_result && '\0' != *inwcp; x++, inwcp++) {
 
 		/* Most ASCII characters don't get encoded */
 		if(( *inwcp  >= 0x20 && *inwcp <= 0x7e) &&
@@ -1082,7 +1082,7 @@ char * html_encode(char *input, int escape_newlines) {
 		else {
 			sprintf( temp_expansion, "&#%u", *( unsigned int *)inwcp);
 			if((( outstp - encoded_html_string) + strlen( temp_expansion)) <
-					output_max) {
+					(unsigned int)output_max) {
 				strncpy( outstp, temp_expansion, strlen( temp_expansion));
 				outstp += strlen( temp_expansion);
 				}
@@ -1181,7 +1181,7 @@ char *escape_string(const char *input) {
 		else {
 			sprintf( temp_expansion, "&#%u", ( unsigned int)wctemp[ 0]);
 			if((( stp - encoded_html_string) + strlen( temp_expansion)) <
-					output_max) {
+					(unsigned int)output_max) {
 				strncpy( stp, temp_expansion, strlen( temp_expansion));
 				stp += strlen( temp_expansion);
 				}

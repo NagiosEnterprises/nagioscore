@@ -329,7 +329,7 @@ void process_language( char * accept_lang) {
 	}
 	if( NULL == locale) { /* Still isn't set */
 		/* Try the fail safe locales */
-		for( x = 0; (( x < ( sizeof( locale_failsafe) / sizeof( char *))) &&
+		for( x = 0; (( x < (int)( sizeof( locale_failsafe) / sizeof( char *))) &&
 				( NULL == locale)); x++) {
 			locale = setlocale( LC_ALL, locale_failsafe[ x]);
 		}
@@ -434,7 +434,7 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 
 			/* Ensure it is upper case */
 			for( x = 0, stp = langs->languages[ langs->count - 1]->locality;
-					x < strlen( langs->languages[ langs->count - 1]->locality);
+					x < (int)strlen( langs->languages[ langs->count - 1]->locality);
 					x++, stp++) {
 				*stp = toupper( *stp);
 			}

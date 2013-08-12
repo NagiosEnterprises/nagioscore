@@ -90,10 +90,10 @@ extern int default_statusmap_layout_method;
 #define LAYOUT_CIRCULAR_BALLOON         6
 
 
-typedef struct layer_struct {
+struct layer {
 	char *layer_name;
-	struct layer_struct *next;
-	} layer;
+	struct layer *next;
+};
 
 
 void document_header(int);
@@ -217,7 +217,7 @@ int nagios_icon_y = 0;
 
 extern hoststatus *hoststatus_list;
 
-layer *layer_list = NULL;
+struct layer *layer_list = NULL;
 int exclude_layers = TRUE;
 int all_layers = FALSE;
 
@@ -596,7 +596,7 @@ void display_page_header(void) {
 	int zoom_height_granularity = 0;
 	int current_zoom_granularity = 0;
 	hostgroup *temp_hostgroup;
-	layer *temp_layer;
+	struct layer *temp_layer;
 	int found = 0;
 
 
@@ -1242,13 +1242,13 @@ void calculate_canvas_bounds(void) {
 
 
 /* calculates canvas coordinates/dimensions around a particular host */
-void calculate_canvas_bounds_from_host(char *host_name) {
+void calculate_canvas_bounds_from_host(char *hname) {
 	host *temp_host;
 	int zoom_width;
 	int zoom_height;
 
 	/* find the extended host info */
-	temp_host = find_host(host_name);
+	temp_host = find_host(hname);
 	if(temp_host == NULL)
 		return;
 
@@ -2324,13 +2324,13 @@ void write_popup_code(void) {
 
 /* adds a layer to the list in memory */
 int add_layer(char *group_name) {
-	layer *new_layer;
+	struct layer *new_layer;
 
 	if(group_name == NULL)
 		return ERROR;
 
 	/* allocate memory for a new layer */
-	new_layer = (layer *)malloc(sizeof(layer));
+	new_layer = (struct layer *)malloc(sizeof(struct layer));
 	if(new_layer == NULL)
 		return ERROR;
 
@@ -2353,8 +2353,7 @@ int add_layer(char *group_name) {
 
 /* frees memory allocated to the layer list */
 void free_layer_list(void) {
-	layer *this_layer;
-	layer *next_layer;
+	struct layer *this_layer, *next_layer;
 
 	return;
 
@@ -2371,7 +2370,7 @@ void free_layer_list(void) {
 /* checks to see if a host is in the layer list */
 int is_host_in_layer_list(host *hst) {
 	hostgroup *temp_hostgroup;
-	layer *temp_layer;
+	struct layer *temp_layer;
 
 	if(hst == NULL)
 		return FALSE;
@@ -2395,7 +2394,7 @@ int is_host_in_layer_list(host *hst) {
 
 /* print layer url info */
 void print_layer_url(int get_method) {
-	layer *temp_layer;
+	struct layer *temp_layer;
 
 	for(temp_layer = layer_list; temp_layer != NULL; temp_layer = temp_layer->next) {
 		if(get_method == TRUE)

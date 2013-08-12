@@ -1454,15 +1454,15 @@ void sighandler(int sig) {
 
 	sig_id = sig;
 
-	logit(NSLOG_PROCESS_INFO, TRUE, "Caught SIG%s, shutting down...\n", sigs[sig]);
-
 	/* we received a SIGHUP, so restart... */
 	if(sig == SIGHUP)
 		sigrestart = TRUE;
 
 	/* else begin shutting down... */
-	else if(sig < 16)
+	else if(sig < 16) {
+		logit(NSLOG_PROCESS_INFO, TRUE, "Caught SIG%s, shutting down...\n", sigs[sig]);
 		sigshutdown = TRUE;
+		}
 
 	return;
 	}

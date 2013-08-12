@@ -25,22 +25,13 @@
 #include "../include/comments.h"
 #include "../include/downtime.h"
 #include "../include/statusdata.h"
-
-scheduled_downtime *downtime_list;
-
-/***** IMPLEMENTATION-SPECIFIC INCLUDES *****/
-
-#ifdef USE_XDDDEFAULT
 #include "../xdata/xdddefault.h"
-#endif
-
-#ifdef NSCORE
-#include "../include/nagios.h"
-#include "../include/broker.h"
-#endif
 
 #ifdef NSCGI
 #include "../include/cgiutils.h"
+#else
+#include "../include/nagios.h"
+#include "../include/broker.h"
 #endif
 
 
@@ -57,16 +48,8 @@ int		   defer_downtime_sorting = 0;
 
 /* initializes scheduled downtime data */
 int initialize_downtime_data(void) {
-	int result = OK;
-
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "initialize_downtime_data()\n");
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XDDDEFAULT
-	result = xdddefault_initialize_downtime_data();
-#endif
-
-	return result;
+	return xdddefault_initialize_downtime_data();
 	}
 
 
@@ -74,7 +57,6 @@ int initialize_downtime_data(void) {
 int cleanup_downtime_data(void) {
 	/* free memory allocated to downtime data */
 	free_downtime_data();
-
 	return OK;
 	}
 
@@ -766,10 +748,7 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "cleanup_downtime_data()\n");
 
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XDDDEFAULT
 	result = xdddefault_add_new_host_downtime(host_name, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &new_downtime_id, is_in_effect, start_notification_sent);
-#endif
 
 	/* save downtime id */
 	if(downtime_id != NULL)
@@ -799,10 +778,7 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 		return ERROR;
 		}
 
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XDDDEFAULT
 	result = xdddefault_add_new_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &new_downtime_id, is_in_effect, start_notification_sent);
-#endif
 
 	/* save downtime id */
 	if(downtime_id != NULL)
@@ -894,10 +870,11 @@ int delete_service_downtime(unsigned long downtime_id) {
 	}
 
 /*
-Deletes all host and service downtimes on a host by hostname, optionally filtered by service description, start time and comment.
-All char* must be set or NULL - "" will silently fail to match
-Returns number deleted
-*/
+ * Deletes all host and service downtimes on a host by hostname,
+ * optionally filtered by service description, start time and comment.
+ * All char* must be set or NULL - "" will silently fail to match
+ * Returns number deleted
+ */
 int delete_downtime_by_hostname_service_description_start_time_comment(char *hostname, char *service_description, time_t start_time, char *cmnt) {
 	scheduled_downtime *temp_downtime;
 	scheduled_downtime *next_downtime;
@@ -1106,7 +1083,7 @@ static int downtime_compar(const void *p1, const void *p2) {
 	scheduled_downtime *d2 = *(scheduled_downtime **)p2;
 
 	/*
- 		If the start times of two downtimes are equal and one is triggered but
+ 		If the start times of two downtimes are equal and one is triggered
 		but the other is not, the triggered downtime should be later in the
 		list than the untriggered one. This is so they are written to the
 		retention.dat and status.dat in the correct order.

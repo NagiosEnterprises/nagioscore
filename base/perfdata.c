@@ -28,12 +28,7 @@
 #include "../include/objects.h"
 #include "../include/perfdata.h"
 #include "../include/macros.h"
-
-/***** IMPLEMENTATION-SPECIFIC HEADER FILES *****/
-
-#ifdef USE_XPDDEFAULT
 #include "../xdata/xpddefault.h"
-#endif
 
 
 /******************************************************************/
@@ -42,24 +37,14 @@
 
 /* initializes performance data */
 int initialize_performance_data(const char *cfgfile) {
-
-#ifdef USE_XPDDEFAULT
-	xpddefault_initialize_performance_data(cfgfile);
-#endif
-
-	return OK;
+	return xpddefault_initialize_performance_data(cfgfile);
 	}
 
 
 
 /* cleans up performance data */
 int cleanup_performance_data(void) {
-
-#ifdef USE_XPDDEFAULT
-	xpddefault_cleanup_performance_data();
-#endif
-
-	return OK;
+	return xpddefault_cleanup_performance_data();
 	}
 
 
@@ -81,9 +66,7 @@ int update_service_performance_data(service *svc) {
 		return OK;
 
 	/* process the performance data! */
-#ifdef USE_XPDDEFAULT
 	xpddefault_update_service_performance_data(svc);
-#endif
 
 	return OK;
 	}
@@ -102,9 +85,7 @@ int update_host_performance_data(host *hst) {
 		return OK;
 
 	/* process the performance data! */
-#ifdef USE_XPDDEFAULT
 	xpddefault_update_host_performance_data(hst);
-#endif
 
 	return OK;
 	}

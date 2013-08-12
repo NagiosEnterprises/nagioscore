@@ -24,12 +24,7 @@
 #include "../include/common.h"
 #include "../include/comments.h"
 #include "../include/objects.h"
-
-/***** IMPLEMENTATION-SPECIFIC INCLUDES *****/
-
-#ifdef USE_XCDDEFAULT
 #include "../xdata/xcddefault.h"
-#endif
 
 #ifdef NSCORE
 #include "../include/nagios.h"
@@ -57,14 +52,7 @@ comment     **comment_hashlist = NULL;
 
 /* initializes comment data */
 int initialize_comment_data(void) {
-	int result = OK;
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XCDDEFAULT
-	result = xcddefault_initialize_comment_data();
-#endif
-
-	return result;
+	return xcddefault_initialize_comment_data();
 	}
 
 
@@ -75,7 +63,7 @@ int initialize_comment_data(void) {
 
 /* adds a new host or service comment */
 int add_new_comment(int type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id) {
-	int result = OK;
+	int result;
 	unsigned long new_comment_id = 0L;
 
 	if(type == HOST_COMMENT)
@@ -97,13 +85,10 @@ int add_new_comment(int type, int entry_type, char *host_name, char *svc_descrip
 
 /* adds a new host comment */
 int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id) {
-	int result = OK;
+	int result;
 	unsigned long new_comment_id = 0L;
 
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XCDDEFAULT
 	result = xcddefault_add_new_host_comment(entry_type, host_name, entry_time, author_name, comment_data, persistent, source, expires, expire_time, &new_comment_id);
-#endif
 
 	/* save comment id */
 	if(comment_id != NULL)
@@ -120,13 +105,10 @@ int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, cha
 
 /* adds a new service comment */
 int add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id) {
-	int result = OK;
+	int result;
 	unsigned long new_comment_id = 0L;
 
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XCDDEFAULT
 	result = xcddefault_add_new_service_comment(entry_type, host_name, svc_description, entry_time, author_name, comment_data, persistent, source, expires, expire_time, &new_comment_id);
-#endif
 
 	/* save comment id */
 	if(comment_id != NULL)

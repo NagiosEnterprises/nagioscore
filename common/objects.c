@@ -23,20 +23,14 @@
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/objects.h"
-
-#ifdef NSCORE
-#include "../include/nagios.h"
-#endif
+#include "../xdata/xodtemplate.h"
 
 #ifdef NSCGI
 #include "../include/cgiutils.h"
+#else
+#include "../include/nagios.h"
 #endif
 
-/**** IMPLEMENTATION-SPECIFIC HEADER FILES ****/
-
-#ifdef USE_XODTEMPLATE                          /* template-based routines */
-#include "../xdata/xodtemplate.h"
-#endif
 
 
 /*
@@ -272,13 +266,11 @@ int read_object_config_data(const char *main_config_file, int options) {
 	/* reset object counts */
 	memset(&num_objects, 0, sizeof(num_objects));
 
-	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
-#ifdef USE_XODTEMPLATE
 	/* read in data from all text host config files (template-based) */
 	result = xodtemplate_read_config_data(main_config_file, options);
 	if(result != OK)
 		return ERROR;
-#endif
+
 	/* handle any remaining config mangling */
 	post_process_object_config();
 	timing_point("Done post-processing configuration\n");

@@ -26,19 +26,13 @@
 #include "../include/common.h"
 #include "../include/objects.h"
 #include "../include/statusdata.h"
+#include "../xdata/xsddefault.h"		/* default routines */
 
-#ifdef NSCORE
-#include "../include/nagios.h"
-#include "../include/broker.h"
-#endif
 #ifdef NSCGI
 #include "../include/cgiutils.h"
-#endif
-
-/**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
-
-#ifdef USE_XSDDEFAULT
-#include "../xdata/xsddefault.h"		/* default routines */
+#else
+#include "../include/nagios.h"
+#include "../include/broker.h"
 #endif
 
 
@@ -64,14 +58,7 @@ extern int      use_pending_states;
 
 /* initializes status data at program start */
 int initialize_status_data(const char *cfgfile) {
-	int result = OK;
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XSDDEFAULT
-	result = xsddefault_initialize_status_data(cfgfile);
-#endif
-
-	return result;
+	return xsddefault_initialize_status_data(cfgfile);
 	}
 
 
@@ -84,33 +71,19 @@ int update_all_status_data(void) {
 	broker_aggregated_status_data(NEBTYPE_AGGREGATEDSTATUS_STARTDUMP, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XSDDEFAULT
 	result = xsddefault_save_status_data();
-#endif
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_aggregated_status_data(NEBTYPE_AGGREGATEDSTATUS_ENDDUMP, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
-
-	if(result != OK)
-		return ERROR;
-
-	return OK;
+	return result;
 	}
 
 
 /* cleans up status data before program termination */
 int cleanup_status_data(int delete_status_data) {
-	int result = OK;
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XSDDEFAULT
-	result = xsddefault_cleanup_status_data(delete_status_data);
-#endif
-
-	return result;
+	return xsddefault_cleanup_status_data(delete_status_data);
 	}
 
 
@@ -183,14 +156,7 @@ int update_contact_status(contact *cntct, int aggregated_dump) {
 
 /* reads in all status data */
 int read_status_data(const char *cfgfile, int options) {
-	int result = OK;
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XSDDEFAULT
-	result = xsddefault_read_status_data(cfgfile, options);
-#endif
-
-	return result;
+	return xsddefault_read_status_data(cfgfile, options);
 	}
 
 

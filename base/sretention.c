@@ -29,16 +29,7 @@
 #include "../include/nagios.h"
 #include "../include/sretention.h"
 #include "../include/broker.h"
-
-
-/**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
-#ifdef USE_XRDDEFAULT
 #include "../xdata/xrddefault.h"		/* default routines */
-#endif
-
-
-
-
 
 
 /******************************************************************/
@@ -48,28 +39,14 @@
 
 /* initializes retention data at program start */
 int initialize_retention_data(const char *cfgfile) {
-	int result = OK;
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XRDDEFAULT
-	result = xrddefault_initialize_retention_data(cfgfile);
-#endif
-
-	return result;
+	return xrddefault_initialize_retention_data(cfgfile);
 	}
 
 
 
 /* cleans up retention data before program termination */
 int cleanup_retention_data(void) {
-	int result = OK;
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XRDDEFAULT
-	result = xrddefault_cleanup_retention_data();
-#endif
-
-	return result;
+	return xrddefault_cleanup_retention_data();
 	}
 
 
@@ -86,10 +63,7 @@ int save_state_information(int autosave) {
 	broker_retention_data(NEBTYPE_RETENTIONDATA_STARTSAVE, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
-	/********* IMPLEMENTATION-SPECIFIC OUTPUT FUNCTION ********/
-#ifdef USE_XRDDEFAULT
 	result = xrddefault_save_state_information();
-#endif
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -107,7 +81,6 @@ int save_state_information(int autosave) {
 
 
 
-
 /* reads in initial host and state information */
 int read_initial_state_information(void) {
 	int result = OK;
@@ -120,10 +93,7 @@ int read_initial_state_information(void) {
 	broker_retention_data(NEBTYPE_RETENTIONDATA_STARTLOAD, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
-	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
-#ifdef USE_XRDDEFAULT
 	result = xrddefault_read_state_information();
-#endif
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */

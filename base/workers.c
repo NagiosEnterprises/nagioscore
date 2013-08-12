@@ -80,6 +80,8 @@ static const char *wpjob_type_name(unsigned int type)
 	case WPJOB_GLOBAL_HOST_EVTHANDLER: return "GLOBAL HOST EVENTHANDLER";
 	case WPJOB_HOST_EVTHANDLER: return "HOST EVENTHANDLER";
 	case WPJOB_CALLBACK: return "CALLBACK";
+	case WPJOB_HOST_PERFDATA: return "HOST PERFDATA";
+	case WPJOB_SVC_PERFDATA: return "SERVICE PERFDATA";
 	}
 	return "UNKNOWN";
 }

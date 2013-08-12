@@ -28,6 +28,7 @@
 #include "../include/objects.h"
 #include "../include/macros.h"
 #include "../include/nagios.h"
+#include "../include/workers.h"
 
 
 /**** DATA INPUT-SPECIFIC HEADER FILES ****/
@@ -270,17 +271,17 @@ int xpddefault_update_host_performance_data(host *hst) {
 	/*
 	 * bail early if we've got nothing to do so we don't spend a lot
 	 * of time calculating macros that never get used
-         * on distributed setups, empty perfdata results are required, so
-         * only drop out if demanded via configs.
+	 * on distributed setups, empty perfdata results are required, so
+	 * only drop out if demanded via configs.
 	 */
-        if(host_perfdata_process_empty_results==FALSE){
-	        if(!hst || !hst->perf_data || !*hst->perf_data) {
-		       return OK;
+	if(host_perfdata_process_empty_results==FALSE){
+		if(!hst || !hst->perf_data || !*hst->perf_data) {
+			return OK;
+			}
+		if((!host_perfdata_fp || !host_perfdata_file_template) && !host_perfdata_command) {
+			return OK;
+			}
 		}
-	        if((!host_perfdata_fp || !host_perfdata_file_template) && !host_perfdata_command) {
-		       return OK;
-		}
-	}
 
 	/* set up macros and get to work */
 	memset(&mac, 0, sizeof(mac));
@@ -313,8 +314,6 @@ int xpddefault_update_host_performance_data(host *hst) {
 int xpddefault_run_service_performance_data_command(nagios_macros *mac, service *svc) {
 	char *raw_command_line = NULL;
 	char *processed_command_line = NULL;
-	int early_timeout = FALSE;
-	double exectime;
 	int result = OK;
 	int macro_options = STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
 
@@ -343,11 +342,7 @@ int xpddefault_run_service_performance_data_command(nagios_macros *mac, service 
 	log_debug_info(DEBUGL_PERFDATA, 2, "Processed service performance data command line: %s\n", processed_command_line);
 
 	/* run the command */
-	my_system_r(mac, processed_command_line, perfdata_timeout, &early_timeout, &exectime, NULL, 0);
-
-	/* check to see if the command timed out */
-	if(early_timeout == TRUE)
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Service performance data command '%s' for service '%s' on host '%s' timed out after %d seconds\n", processed_command_line, svc->description, svc->host_name, perfdata_timeout);
+	wproc_run(WPJOB_SVC_PERFDATA, processed_command_line, perfdata_timeout, NULL);
 
 	/* free memory */
 	my_free(processed_command_line);
@@ -360,8 +355,6 @@ int xpddefault_run_service_performance_data_command(nagios_macros *mac, service 
 int xpddefault_run_host_performance_data_command(nagios_macros *mac, host *hst) {
 	char *raw_command_line = NULL;
 	char *processed_command_line = NULL;
-	int early_timeout = FALSE;
-	double exectime;
 	int result = OK;
 	int macro_options = STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
 
@@ -390,13 +383,7 @@ int xpddefault_run_host_performance_data_command(nagios_macros *mac, host *hst) 
 	log_debug_info(DEBUGL_PERFDATA, 2, "Processed host performance data command line: %s\n", processed_command_line);
 
 	/* run the command */
-	my_system_r(mac, processed_command_line, perfdata_timeout, &early_timeout, &exectime, NULL, 0);
-	if(processed_command_line == NULL)
-		return ERROR;
-
-	/* check to see if the command timed out */
-	if(early_timeout == TRUE)
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Host performance data command '%s' for host '%s' timed out after %d seconds\n", processed_command_line, hst->name, perfdata_timeout);
+	wproc_run(WPJOB_HOST_PERFDATA, processed_command_line, perfdata_timeout, NULL);
 
 	/* free memory */
 	my_free(processed_command_line);

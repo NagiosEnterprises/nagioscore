@@ -28,6 +28,7 @@ BuildRequires: zlib-devel
 BuildRequires: libpng-devel
 BuildRequires: libjpeg-devel
 BuildRequires: doxygen
+BuildRequires: gperf
 
 Obsoletes: nagios-www <= %{version}
 Requires: httpd,php

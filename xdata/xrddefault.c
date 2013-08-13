@@ -32,13 +32,8 @@
 #include "../include/sretention.h"
 #include "../include/comments.h"
 #include "../include/downtime.h"
-
-
-/**** STATE INFORMATION SPECIFIC HEADER FILES ****/
-
 #include "xrddefault.h"
 
-char *xrddefault_temp_file = NULL;
 
 /******************************************************************/
 /********************* INIT/CLEANUP FUNCTIONS *********************/
@@ -64,8 +59,6 @@ int xrddefault_initialize_retention_data(const char *cfgfile) {
 	mac->x[MACRO_RETENTIONDATAFILE] = retention_file;
 	if((mac->x[MACRO_RETENTIONDATAFILE] = (char *)strdup(retention_file)))
 		strip(mac->x[MACRO_RETENTIONDATAFILE]);
-
-	xrddefault_temp_file = temp_file;
 
 	return OK;
 	}
@@ -110,7 +103,7 @@ int xrddefault_save_state_information(void) {
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "xrddefault_save_state_information()\n");
 
 	/* make sure we have everything */
-	if(retention_file == NULL || xrddefault_temp_file == NULL) {
+	if(retention_file == NULL || temp_file == NULL) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: We don't have the required file names to store retention data!\n");
 		return ERROR;
 		}

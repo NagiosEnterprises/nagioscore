@@ -41,16 +41,6 @@ LIBS=@LIBS@
 
 CGIS=avail.cgi cmd.cgi config.cgi extinfo.cgi history.cgi notifications.cgi outages.cgi showlog.cgi status.cgi statuswml.cgi summary.cgi tac.cgi $(CGIEXTRAS)
 
-# External data I/O code and headers
-XSDC=@XSDC@
-XSDH=@XSDH@
-XCDC=@XCDC@
-XCDH=@XCDH@
-XODC=@XODC@
-XODH=@XODH@
-XDDC=@XDDC@
-XDDH=@XDDH@
-
 # Object functions
 ODATALIBS=objects-cgi.o xobjects-cgi.o
 ODATAHDRS=
@@ -97,26 +87,20 @@ macros-cgi.o: $(SRC_COMMON)/macros.c $(SRC_INCLUDE)/macros.h
 objects-cgi.o: $(SRC_COMMON)/objects.c $(SRC_INCLUDE)/objects.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/objects.c
 
-xobjects-cgi.o: $(SRC_XDATA)/$(XODC) $(SRC_XDATA)/$(XODH)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XODC)
+xobjects-cgi.o: $(SRC_XDATA)/xodtemplate.c $(SRC_XDATA)/xodtemplate.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xodtemplate.c
 
 statusdata-cgi.o: $(SRC_COMMON)/statusdata.c $(SRC_INCLUDE)/statusdata.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/statusdata.c
 
-xstatusdata-cgi.o: $(SRC_XDATA)/$(XSDC) $(SRC_XDATA)/$(XSDH)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XSDC)
+xstatusdata-cgi.o: $(SRC_XDATA)/xsddefault.c $(SRC_XDATA)/xsddefault.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xsddefault.c
 
 comments-cgi.o: $(SRC_COMMON)/comments.c $(SRC_INCLUDE)/comments.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/comments.c
 
-xcomments-cgi.o: $(SRC_XDATA)/$(XCDC) $(SRC_XDATA)/$(XCDH)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XCDC)
-
 downtime-cgi.o: $(SRC_COMMON)/downtime.c $(SRC_INCLUDE)/downtime.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/downtime.c
-
-xdowntime-cgi.o: $(SRC_XDATA)/$(XDDC) $(SRC_XDATA)/$(XDDH)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XDDC)
 
 $(SRC_COMMON)/shared.o: $(SRC_COMMON)/shared.c
 	$(CC) $(CFLAGS) -c -o $@ $<

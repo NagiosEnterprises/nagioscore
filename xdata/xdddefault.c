@@ -28,22 +28,9 @@
 #include "../include/locations.h"
 #include "../include/downtime.h"
 #include "../include/macros.h"
-
-#ifdef NSCORE
 #include "../include/objects.h"
 #include "../include/nagios.h"
-#endif
-
-#ifdef NSCGI
-#include "../include/cgiutils.h"
-#endif
-
-
-/**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
 #include "xdddefault.h"
-
-
-#ifdef NSCORE
 
 
 /******************************************************************/
@@ -207,4 +194,3 @@ int xdddefault_add_new_service_downtime(char *host_name, char *service_descripti
 
 	return OK;
 	}
-#endif

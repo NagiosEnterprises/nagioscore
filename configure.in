@@ -211,86 +211,6 @@ AC_ARG_WITH(lockfile,--with-lockfile=<path> sets path and file name for lock fil
 AC_SUBST(lockfile)
 
 
-
-dnl Default xdata routines...
-XSDTYPE=default
-XCDTYPE=default
-XRDTYPE=default
-XODTYPE=template
-XPDTYPE=default
-XDDTYPE=default
-
-XSDCOMMENT=
-XCDCOMMENT=
-XRDCOMMENT=
-XODCOMMENT=
-XPDCOMMENT=
-XDDCOMMENT=
-
-USE_MYSQL=no
-USE_PGSQL=no
-
-dnl Status data
-AC_DEFINE_UNQUOTED(USE_XSDDEFAULT,,[use default routines (in xdata/xsddefault.*) for status data I/O...])
-XSDC="xsddefault.c"
-XSDH="xsddefault.h"
-XSDCOMMENT="Default (text file)"
-echo "We'll use default routines (in xdata/xsddefault.*) for status data I/O..."
-AC_SUBST(XSDC)
-AC_SUBST(XSDH)
-
-
-dnl Comment data
-AC_DEFINE_UNQUOTED(USE_XCDDEFAULT,,[use default routines (in xdata/xcddefault.*) for comment data I/O...])
-XCDC="xcddefault.c"
-XCDH="xcddefault.h"
-XCDCOMMENT="Default (text file)"
-echo "We'll use default routines (in xdata/xcddefault.*) for comment data I/O..."
-AC_SUBST(XCDC)
-AC_SUBST(XCDH)
-
-
-dnl Retention data
-AC_DEFINE_UNQUOTED(USE_XRDDEFAULT,,[use default routines (in xdata/xrddefault.*) for retention data I/O...])
-XRDC="xrddefault.c"
-XRDH="xrddefault.h"
-XRDCOMMENT="Default (text file)"
-echo "We'll use default routines (in xdata/xrddefault.*) for retention data I/O..."
-AC_SUBST(XRDC)
-AC_SUBST(XRDH)
-
-
-dnl Object data
-AC_DEFINE_UNQUOTED(USE_XODTEMPLATE,,[use template-based routines (in xdata/xodtemplate.*) for object data I/O...])
-XODC="xodtemplate.c"
-XODH="xodtemplate.h"
-XODCOMMENT="Template-based (text file)"
-echo "We'll use template-based routines (in xdata/xodtemplate.*) for object data I/O..."
-AC_SUBST(XODC)
-AC_SUBST(XODH)
-
-
-
-dnl Performance data
-AC_DEFINE_UNQUOTED(USE_XPDDEFAULT,,[use default routines (in xdata/xpddefault.*) for performance data I/O...])
-XPDC="xpddefault.c"
-XPDH="xpddefault.h"
-XPDCOMMENT="Default (external commands)"
-echo "We'll use default routines (in xdata/xpddefault.*) for performance data I/O..."
-AC_SUBST(XPDC)
-AC_SUBST(XPDH)
-
-
-dnl Downtime data
-AC_DEFINE_UNQUOTED(USE_XDDDEFAULT,,[use default routines (in xdata/xdddefault.*) for scheduled downtime data I/O...])
-XDDC="xdddefault.c"
-XDDH="xdddefault.h"
-XDDCOMMENT="Default (text file)"
-echo "We'll use default routines (in xdata/xdddefault.*) for scheduled downtime data I/O..."
-AC_SUBST(XDDC)
-AC_SUBST(XDDH)
-
-
 dnl Optional GD library and include paths
 AC_ARG_WITH(gd-lib,--with-gd-lib=DIR sets location of the gd library,[
 	LDFLAGS="${LDFLAGS} -L${withval}"
@@ -740,19 +660,8 @@ AC_MSG_RESULT([                 HTML URL:  http://localhost$htmurl/])
 AC_MSG_RESULT([                  CGI URL:  http://localhost$cgiurl/])
 AC_MSG_RESULT([ Traceroute (used by WAP):  $PATH_TO_TRACEROUTE])
 
-dnl echo ""
-dnl echo " External Data Routines:"
-dnl echo " ------------------------"
-
-dnl AC_MSG_RESULT([              Status data:  $XSDCOMMENT])
-dnl AC_MSG_RESULT([             Comment data:  $XCDCOMMENT])
-dnl AC_MSG_RESULT([            Downtime data:  $XDDCOMMENT])
-dnl AC_MSG_RESULT([          Peformance data:  $XPDCOMMENT])
-
-
 echo ""
 echo ""
 echo "Review the options above for accuracy.  If they look okay,"
 echo "type 'make all' to compile the main program and CGIs."
 echo ""
-

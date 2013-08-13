@@ -30,6 +30,7 @@
 #include "../include/comments.h"
 #include "../include/downtime.h"
 #include "../include/macros.h"
+#include "xsddefault.h"
 
 #ifdef NSCORE
 #include "../include/nagios.h"
@@ -37,15 +38,6 @@
 
 #ifdef NSCGI
 #include "../include/cgiutils.h"
-#endif
-
-
-/**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
-#include "xsddefault.h"
-
-
-
-#ifdef NSCGI
 time_t program_start;
 int daemon_mode;
 time_t last_log_rotation;
@@ -65,8 +57,6 @@ int nagios_pid;
 int buffer_stats[1][3];
 int program_stats[MAX_CHECK_STATS_TYPES][3];
 #endif
-
-char *xsddefault_status_log = NULL;
 
 #ifdef NSCORE
 

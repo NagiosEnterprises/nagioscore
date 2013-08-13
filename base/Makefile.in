@@ -54,20 +54,6 @@ BROKER_LDFLAGS=@BROKER_LDFLAGS@
 
 CP=@CP@
 
-# External data I/O code and headers
-XSDC=@XSDC@
-XSDH=@XSDH@
-XCDC=@XCDC@
-XCDH=@XCDH@
-XRDC=@XRDC@
-XRDH=@XRDH@
-XODC=@XODC@
-XODH=@XODH@
-XPDC=@XPDC@
-XPDH=@XPDH@
-XDDC=@XDDC@
-XDDH=@XDDH@
-
 # Extra base code
 BASEEXTRALIBS=@BASEEXTRALIBS@
 
@@ -76,43 +62,31 @@ BROKER_O=@BROKER_O@
 BROKER_H=@BROKER_H@
 
 # Object data
-#ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)
-#ODATAHDRS=$(SRC_INCLUDE)/objects.h $(SRC_XDATA)/$(XODH)
 ODATALIBS=objects-base.o xobjects-base.o
 ODATAHDRS=
 ODATADEPS=$(ODATALIBS)
 
 # Retention data
-#RDATALIBS=sretention.o $(SRC_XDATA)/$(XRDC)
-#RDATAHDRS=$(SRC_INCLUDE)/sretention.h $(SRC_XDATA)/$(XRDH)
 RDATALIBS=retention-base.o xretention-base.o
 RDATAHDRS=
 RDATADEPS=$(RDATALIBS)
 
 # Comment data
-#CDATALIBS=$(SRC_COMMON)/comments.c $(SRC_XDATA)/$(XCDC)
-#CDATAHDRS=$(SRC_INCLUDE)/comments.h $(SRC_XDATA)/$(XCDH)
 CDATALIBS=comments-base.o xcomments-base.o
 CDATAHDRS=
 CDATADEPS=$(CDATALIBS)
 
 # Status data
-#SDATALIBS=$(SRC_COMMON)/statusdata.c $(SRC_XDATA)/$(XSDC)
-#SDATAHDRS=$(SRC_INCLUDE)/statusdata.h $(SRC_XDATA)/$(XSDH)
 SDATALIBS=statusdata-base.o xstatusdata-base.o
 SDATAHDRS=
 SDATADEPS=$(SDATALIBS)
 
 # Performance data
-#PDATALIBS=perfdata.o $(SRC_XDATA)/$(XPDC)
-#PDATAHDRS=$(SRC_INCLUDE)/perfdata.h $(SRC_XDATA)/$(XPDH)
 PDATALIBS=perfdata-base.o xperfdata-base.o
 PDATAHDRS=
 PDATADEPS=$(PDATALIBS)
 
 # Downtime data
-#DDATALIBS=$(SRC_COMMON)/downtime.c $(SRC_XDATA)/$(XDDC)
-#DDATAHDRS=$(SRC_INCLUDE)/downtime.h $(SRC_XDATA)/$(XDDH)
 DDATALIBS=downtime-base.o xdowntime-base.o
 DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
@@ -132,38 +106,38 @@ macros-base.o: $(SRC_COMMON)/macros.c $(SRC_INCLUDE)/macros.h
 objects-base.o: $(SRC_COMMON)/objects.c $(SRC_INCLUDE)/objects.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/objects.c
 
-xobjects-base.o: $(SRC_XDATA)/$(XODC) $(SRC_XDATA)/$(XODH)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XODC)
+xobjects-base.o: $(SRC_XDATA)/xodtemplate.c $(SRC_XDATA)/xodtemplate.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xodtemplate.c
 
 statusdata-base.o: $(SRC_COMMON)/statusdata.c $(SRC_INCLUDE)/statusdata.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/statusdata.c
 
-xstatusdata-base.o: $(SRC_XDATA)/$(XSDC) $(SRC_XDATA)/$(XSDH)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XSDC)
+xstatusdata-base.o: $(SRC_XDATA)/xsddefault.c $(SRC_XDATA)/xsddefault.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xsddefault.c
 
 comments-base.o: $(SRC_COMMON)/comments.c $(SRC_INCLUDE)/comments.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/comments.c
 
-xcomments-base.o: $(SRC_XDATA)/$(XCDC) $(SRC_XDATA)/$(XCDH)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XCDC)
+xcomments-base.o: $(SRC_XDATA)/xcddefault.c $(SRC_XDATA)/xcddefault.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xcddefault.c
 
 downtime-base.o: $(SRC_COMMON)/downtime.c $(SRC_INCLUDE)/downtime.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/downtime.c
 
-xdowntime-base.o: $(SRC_XDATA)/$(XDDC) $(SRC_XDATA)/$(XDDH)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XDDC)
+xdowntime-base.o: $(SRC_XDATA)/xdddefault.c $(SRC_XDATA)/xdddefault.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xdddefault.c
 
 perfdata-base.o: perfdata.c $(SRC_INCLUDE)/perfdata.h
 	$(CC) $(CFLAGS) -c -o $@ perfdata.c
 
-xperfdata-base.o: $(SRC_XDATA)/$(XPDC) $(SRC_XDATA)/$(XPDH)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XPDC)
+xperfdata-base.o: $(SRC_XDATA)/xpddefault.c $(SRC_XDATA)/xpddefault.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xpddefault.c
 
 retention-base.o: sretention.c $(SRC_INCLUDE)/sretention.h
 	$(CC) $(CFLAGS) -c -o $@ sretention.c
 
-xretention-base.o: $(SRC_XDATA)/$(XRDC) $(SRC_XDATA)/$(XRDH)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XRDC)
+xretention-base.o: $(SRC_XDATA)/xrddefault.c $(SRC_XDATA)/xrddefault.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xrddefault.c
 
 $(SRC_COMMON)/shared.o: $(SRC_COMMON)/shared.c
 	$(CC) $(CFLAGS) -c -o $@ $<

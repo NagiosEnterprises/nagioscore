@@ -29,10 +29,6 @@
 #include "../include/macros.h"
 #include "../include/nagios.h"
 #include "../include/workers.h"
-
-
-/**** DATA INPUT-SPECIFIC HEADER FILES ****/
-
 #include "xpddefault.h"
 
 

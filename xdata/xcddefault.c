@@ -28,22 +28,10 @@
 #include "../include/locations.h"
 #include "../include/comments.h"
 #include "../include/macros.h"
-
-#ifdef NSCORE
 #include "../include/objects.h"
 #include "../include/nagios.h"
-#endif
-
-#ifdef NSCGI
-#include "../include/cgiutils.h"
-#endif
-
-
-/**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
 #include "xcddefault.h"
 
-
-#ifdef NSCORE
 
 /******************************************************************/
 /************ COMMENT INITIALIZATION/CLEANUP FUNCTIONS ************/
@@ -115,5 +103,3 @@ int xcddefault_add_new_service_comment(int entry_type, char *host_name, char *sv
 
 	return OK;
 	}
-
-#endif

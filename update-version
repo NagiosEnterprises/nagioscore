@@ -60,6 +60,9 @@ perl -i -p -e "s/PKG_REL_DATE=.*\"/PKG_REL_DATE=\"$SHORTDATE\"/;" configure.in
 # Update RPM spec file with version number
 perl -i -p -e "s/Version: .*/Version: $newversion/;" nagios.spec
 
+# Update the doxygen docs
+perl -i -p -e "s/^PROJECT_NUMBER = .*/PROJECT_NUMBER = $newversion/;" doxy.conf
+
 # Update this file with version number and last date
 perl -i -p -e "s/^CURRENTVERSION=.*/CURRENTVERSION=$newversion/;" update-version
 perl -i -p -e "s/^LASTDATE=.*/LASTDATE=$SHORTDATE/;" update-version

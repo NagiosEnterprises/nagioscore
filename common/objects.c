@@ -663,8 +663,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	/* duplicate non-string vars */
 	new_host->hourly_value = hourly_value;
 	new_host->max_attempts = max_attempts;
-	new_host->check_interval = check_interval;
-	new_host->retry_interval = retry_interval;
+	new_host->check_interval = check_interval == 0.0 ? 1.0 : check_interval;
+	new_host->retry_interval = retry_interval == 0.0 ? 1.0 : retry_interval;
 	new_host->notification_interval = notification_interval;
 	new_host->first_notification_delay = first_notification_delay;
 	new_host->notification_options = notification_options;
@@ -1478,8 +1478,8 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		}
 
 	new_service->hourly_value = hourly_value;
-	new_service->check_interval = check_interval;
-	new_service->retry_interval = retry_interval;
+	new_service->check_interval = check_interval == 0.0 ? 1.0 : check_interval;
+	new_service->retry_interval = retry_interval == 0.0 ? 1.0 : retry_interval;
 	new_service->max_attempts = max_attempts;
 	new_service->parallelize = (parallelize > 0) ? TRUE : FALSE;
 	new_service->notification_interval = notification_interval;

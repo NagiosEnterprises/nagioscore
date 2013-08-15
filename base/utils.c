@@ -1798,19 +1798,34 @@ int process_check_result(check_result *cr)
 	if (cr->object_check_type == SERVICE_CHECK) {
 		service *svc;
 		svc = find_service(cr->host_name, cr->service_description);
-		if (!svc)
+		if (!svc) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Got check result for service '%s' on host '%s'. Unable to find service\n",
+			      cr->host_name, cr->service_description);
 			return ERROR;
+			}
+		log_debug_info(DEBUGL_CHECKS, 2, "Processing check result for service '%s' on host '%s'\n",
+		               svc->host_name, svc->description);
 		svc->check_source = source_name;
 		return handle_async_service_check_result(svc, cr);
 		}
 	if (cr->object_check_type == HOST_CHECK) {
 		host *hst;
 		hst = find_host(cr->host_name);
-		if (!hst)
+		if (!hst) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Got host checkresult for '%s', but no such host can be found\n", cr->host_name);
 			return ERROR;
+			}
+		log_debug_info(DEBUGL_CHECKS, 2, "Processing check result for host '%s'\n", hst->name);
 		hst->check_source = source_name;
 		return handle_async_host_check_result(hst, cr);
 		}
+
+	/* We should never end up here */
+	logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unknown object check type for checkresult: %d; (host_name: %s; service_description: %s)\n",
+	      cr->object_check_type,
+	      cr->host_name ? cr->host_name : "(null)",
+	      cr->service_description ? cr->service_description : "(null)");
+
 	return ERROR;
 	}
 

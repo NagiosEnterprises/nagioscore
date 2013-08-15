@@ -121,13 +121,11 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	end_time.tv_sec = 0L;
 	end_time.tv_usec = 0L;
 	neb_result = broker_notification_data(NEBTYPE_NOTIFICATION_START, NEBFLAG_NONE, NEBATTR_NONE, SERVICE_NOTIFICATION, type, start_time, end_time, (void *)svc, not_author, not_data, escalated, 0, NULL);
-	if(NEBERROR_CALLBACKCANCEL == neb_result) {
+	if(neb_result == NEBERROR_CALLBACKCANCEL || neb_result == NEBERROR_CALLBACKOVERRIDE) {
+		log_debug_info(DEBUGL_CHECKS, 0, "Service notification to %s;%s (id=%u) was blocked by a module\n",
+		               svc->host_name, svc->description, svc->id);
 		free_notification_list();
-		return ERROR;
-		}
-	else if(NEBERROR_CALLBACKOVERRIDE == neb_result) {
-		free_notification_list();
-		return OK;
+		return neb_result == NEBERROR_CALLBACKOVERRIDE ? OK : ERROR;
 		}
 #endif
 
@@ -1067,13 +1065,10 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	end_time.tv_sec = 0L;
 	end_time.tv_usec = 0L;
 	neb_result = broker_notification_data(NEBTYPE_NOTIFICATION_START, NEBFLAG_NONE, NEBATTR_NONE, HOST_NOTIFICATION, type, start_time, end_time, (void *)hst, not_author, not_data, escalated, 0, NULL);
-	if(NEBERROR_CALLBACKCANCEL == neb_result) {
+	if(neb_result == NEBERROR_CALLBACKCANCEL || neb_result == NEBERROR_CALLBACKOVERRIDE) {
+		log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Host notification to %s (id=%u) was blocked by a module.\n", hst->name, hst->id);
 		free_notification_list();
-		return ERROR;
-		}
-	else if(NEBERROR_CALLBACKOVERRIDE == neb_result) {
-		free_notification_list();
-		return OK;
+		return neb_result == NEBERROR_CALLBACKOVERRIDE ? OK : ERROR;
 		}
 #endif
 

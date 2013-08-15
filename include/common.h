@@ -418,6 +418,7 @@ extern const char *cmd_error_strerror(int error_code);
 #define CHECK_OPTION_FORCE_EXECUTION	1	/* force execution of a check (ignores disabled services/hosts, invalid timeperiods) */
 #define CHECK_OPTION_FRESHNESS_CHECK    2       /* this is a freshness check */
 #define CHECK_OPTION_ORPHAN_CHECK       4       /* this is an orphan check */
+#define CHECK_OPTION_DEPENDENCY_CHECK   8       /* dependency check. different scheduling rules apply */
 
 
 /**************************** PROGRAM MODES ******************************/

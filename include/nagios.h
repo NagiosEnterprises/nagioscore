@@ -417,7 +417,10 @@ NAGIOS_BEGIN_DECL
 /* useful for hosts and services to determine time 'til next check */
 #define normal_check_window(o) ((time_t)(o->check_interval * interval_length))
 #define retry_check_window(o) ((time_t)(o->retry_interval * interval_length))
-#define check_window(o) (o->state_type == SOFT_STATE ? retry_check_window(o) : normal_check_window(o))
+#define check_window(o) \
+	((!o->current_state && o->state_type == SOFT_STATE) ? \
+		retry_check_window(o) : \
+		normal_check_window(o))
 
 /** Nerd subscription type */
 struct nerd_subscription {

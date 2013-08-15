@@ -902,7 +902,7 @@ static int should_run_event(timed_event *temp_event)
 
 		/* don't run a service check if active checks are disabled */
 		if(execute_service_checks == FALSE) {
-			log_debug_info(DEBUGL_EVENTS | DEBUGL_CHECKS, 1, "We're not executing service checks right now, so we'll skip this event.\n");
+			log_debug_info(DEBUGL_EVENTS | DEBUGL_CHECKS, 1, "We're not executing service checks right now, so we'll skip check event for service '%s;%s'.\n", temp_service->host_name, temp_service->description);
 			run_event = FALSE;
 		}
 
@@ -915,11 +915,7 @@ static int should_run_event(timed_event *temp_event)
 				temp_service->next_check = (time_t)(temp_service->next_check + nudge_seconds);
 			}
 			else {
-				/* Otherwise reschedule (TODO: This should be smarter as it doesn't consider its timeperiod) */
-				if(temp_service->state_type == SOFT_STATE && temp_service->current_state != STATE_OK)
-					temp_service->next_check = (time_t)(temp_service->next_check + (temp_service->retry_interval * interval_length));
-				else
-					temp_service->next_check = (time_t)(temp_service->next_check + (temp_service->check_interval * interval_length));
+				temp_service->next_check += check_window(temp_service);
 			}
 
 			temp_event->run_time = temp_service->next_check;
@@ -933,25 +929,20 @@ static int should_run_event(timed_event *temp_event)
 	else if(temp_event->event_type == EVENT_HOST_CHECK) {
 		host *temp_host = (host *)temp_event->event_data;
 
-		/* don't run a host check if active checks are disabled */
-		if(execute_host_checks == FALSE) {
-			log_debug_info(DEBUGL_EVENTS | DEBUGL_CHECKS, 1, "We're not executing host checks right now, so we'll skip this event.\n");
-			run_event = FALSE;
-		}
-
 		/* forced checks override normal check logic */
 		if((temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION))
 			return TRUE;
 
+		/* don't run a host check if active checks are disabled */
+		if(execute_host_checks == FALSE) {
+			log_debug_info(DEBUGL_EVENTS | DEBUGL_CHECKS, 1, "We're not executing host checks right now, so we'll skip host check event for host '%s'.\n", temp_host->name);
+			run_event = FALSE;
+		}
+
 		/* reschedule the host check if we can't run it right now */
 		if(run_event == FALSE) {
 			remove_event(nagios_squeue, temp_event);
-
-			if(temp_host->state_type == SOFT_STATE && temp_host->current_state != STATE_OK)
-				temp_host->next_check = (time_t)(temp_host->next_check + (temp_host->retry_interval * interval_length));
-			else
-				temp_host->next_check = (time_t)(temp_host->next_check + (temp_host->check_interval * interval_length));
-
+			temp_host->next_check += check_window(temp_host);
 			temp_event->run_time = temp_host->next_check;
 			reschedule_event(nagios_squeue, temp_event);
 			update_host_status(temp_host, FALSE);

@@ -418,6 +418,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	if(queued_check_result->early_timeout == TRUE) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' timed out after %.3fs!\n", temp_service->description, temp_service->host_name, temp_service->execution_time);
 		asprintf(&temp_service->plugin_output, "(Service check timed out after %.2lf seconds)\n", temp_service->execution_time);
+		temp_service->current_state = service_check_timeout_state;
 		}
 	/* if there was some error running the command, just skip it (this shouldn't be happening) */
 	else if(queued_check_result->exited_ok == FALSE) {

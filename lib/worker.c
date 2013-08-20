@@ -205,6 +205,16 @@ static void destroy_job(child_process *cp)
 	free(cp);
 }
 
+#define strip_nul_bytes(io) \
+	do { \
+		char *nul; \
+		if (!io.buf || !*io.buf) \
+			io.len = 0; \
+		else if ((nul = memchr(io.buf, 0, io.len))) { \
+			io.len = (unsigned long)nul - (unsigned long)io.buf; \
+		} \
+	} while (0)
+
 int finish_job(child_process *cp, int reason)
 {
 	static struct kvvec resp = KVVEC_INITIALIZER;
@@ -220,6 +230,10 @@ int finish_job(child_process *cp, int reason)
 		gather_output(cp, &cp->outerr, 1);
 		iobroker_close(iobs, cp->outerr.fd);
 	}
+
+	/* Make sure network-supplied data doesn't contain nul bytes */
+	strip_nul_bytes(cp->outstd);
+	strip_nul_bytes(cp->outerr);
 
 	/* how many key/value pairs do we need? */
 	if (kvvec_init(&resp, 12 + cp->request->kv_pairs) == NULL) {

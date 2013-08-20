@@ -265,8 +265,6 @@ int finish_job(child_process *cp, int reason)
 		kvvec_addkv_wlen(&resp, kv->key, kv->key_len, kv->value, kv->value_len);
 	}
 	kvvec_addkv(&resp, "wait_status", mkstr("%d", cp->ret));
-	kvvec_addkv_wlen(&resp, "outstd", 6, cp->outstd.buf, cp->outstd.len);
-	kvvec_addkv_wlen(&resp, "outerr", 6, cp->outerr.buf, cp->outerr.len);
 	kvvec_add_tv(&resp, "start", cp->ei->start);
 	kvvec_add_tv(&resp, "stop", cp->ei->stop);
 	kvvec_addkv(&resp, "runtime", mkstr("%f", cp->ei->runtime));
@@ -284,6 +282,8 @@ int finish_job(child_process *cp, int reason)
 		kvvec_addkv(&resp, "exited_ok", "0");
 		kvvec_addkv(&resp, "error_code", mkstr("%d", reason));
 	}
+	kvvec_addkv_wlen(&resp, "outerr", 6, cp->outerr.buf, cp->outerr.len);
+	kvvec_addkv_wlen(&resp, "outstd", 6, cp->outstd.buf, cp->outstd.len);
 	ret = worker_send_kvvec(master_sd, &resp);
 	if (ret < 0 && errno == EPIPE)
 		exit_worker(1, "Failed to send kvvec struct to master");

@@ -213,6 +213,11 @@ int     host_perfdata_process_empty_results=DEFAULT_HOST_PERFDATA_PROCESS_EMPTY_
 int     service_perfdata_process_empty_results=DEFAULT_SERVICE_PERFDATA_PROCESS_EMPTY_RESULTS;
 /*** end perfdata variables */
 
+/* Filename variables used by handle_sigxfsz */
+extern char *status_file;
+
+static long long check_file_size(char *, unsigned long, struct rlimit);
+
 notification    *notification_list;
 
 time_t max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
@@ -1428,6 +1433,7 @@ void reset_sighandler(void) {
 	signal(SIGHUP, SIG_DFL);
 	signal(SIGSEGV, SIG_DFL);
 	signal(SIGPIPE, SIG_DFL);
+	signal(SIGXFSZ, SIG_DFL);
 
 	return;
 	}
@@ -1474,6 +1480,124 @@ void my_system_sighandler(int sig) {
 	}
 
 
+/* Handle the SIGXFSZ signal. A SIGXFSZ signal is received when a file exceeds
+	the maximum allowable size either as dictated by the fzise paramater in
+	/etc/security/limits.conf (ulimit -f) or by the maximum size allowed by
+	the filesystem */
+void handle_sigxfsz(int sig) {
+
+	static time_t lastlog_time = (time_t)0;	/* Save the last log time so we 
+											   don't log too often. */
+	unsigned long log_interval = 300;		/* How frequently to log messages
+											   about receiving the signal */
+	struct rlimit rlim;
+	time_t now;
+	char *files[] = {
+		log_file,
+		debug_file,
+		host_perfdata_file,
+		service_perfdata_file,
+		object_cache_file,
+		object_precache_file,
+		status_file,
+		retention_file,
+		};
+	int x;
+	char **filep;
+	long long size;
+	long long max_size = 0LL;
+	char *max_name = NULL;
+
+	if(SIGXFSZ == sig) {	/* Make sure we're handling the correct signal */
+		/* Check the current time and if less time has passed since the last
+			time the signal was received, ignore it */
+		time(&now);
+		if((unsigned long)(now - lastlog_time) < log_interval) return;
+
+		/* Get the current file size limit */
+		if(getrlimit(RLIMIT_FSIZE, &rlim) != 0) {
+			/* Attempt to log the error, realizing that the logging may fail
+				if it is the log file that is over the size limit. */
+			logit(NSLOG_RUNTIME_ERROR, TRUE, 
+					"Unable to determine current resoure limits: %s\n", 
+					strerror(errno));
+			}
+
+		/* Try to figure out which file caused the signal and react 
+				appropriately */
+		for(x = 0, filep = files; x < (sizeof(files) / sizeof(files[0])); 
+				x++, filep++) {
+			if((*filep != NULL) && strcmp(*filep, "/dev/null")) {
+				if((size = check_file_size(*filep, 1024, rlim)) == -1) {
+					lastlog_time = now;
+					return;
+					}
+				else if(size > max_size) {
+					max_size = size;
+					max_name = log_file;
+					}
+				}
+			}
+		if((max_size > 0) && (max_name != NULL)) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "SIGXFSZ received because a "
+					"file's size may have exceeded the file size limits of "
+					"the filesystem. The largest file checked, '%s', has a "
+					"size of %lld bytes", max_name, max_size);
+			
+			}
+		else {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "SIGXFSZ received but unable to "
+					"determine which file may have caused it.");
+			}
+		}
+	return;
+	}
+
+/* Checks a file to determine whether it exceeds resource limit imposed
+	limits. Returns the file size if file is OK, 0 if it's status could not 
+	be determined, or -1 if not OK. fudge is the fudge factor (in bytes) for 
+	checking the file size */
+static long long check_file_size(char *path, unsigned long fudge, 
+		struct rlimit rlim) {
+
+	struct stat status;
+
+	/* Make sure we were passed a legitimate file path */
+	if(NULL == path) {
+		return 0;
+		}
+
+	/* Get the status of the file */
+	if(stat(path, &status) == 0) {
+		/* Make sure it is a file */
+		if(S_ISREG(status.st_mode)) {
+			/* If the file size plus the fudge factor exceeds the 
+				current resource limit imposed size limit, log an error */
+			if(status.st_size + fudge > rlim.rlim_cur) {
+				logit(NSLOG_RUNTIME_ERROR, TRUE, "Size of file '%s' (%llu) "
+						"exceeds (or nearly exceeds) size imposed by resource "
+						"limits (%llu). Consider increasing limits with "
+						"ulimit(1).\n", path, 
+						(unsigned long long)status.st_size, 
+						(unsigned long long)rlim.rlim_cur);
+				return -1;
+				}
+			else {
+				return status.st_size;
+				}
+			}
+		else {
+			return 0;
+			}
+		}
+	else {
+		/* If we could not determine the file status, log an error message */
+		logit(NSLOG_RUNTIME_ERROR, TRUE, 
+				"Unable to determine status of file %s: %s\n", 
+				log_file, strerror(errno));
+		return 0;
+		}
+	}
 
 
 /******************************************************************/

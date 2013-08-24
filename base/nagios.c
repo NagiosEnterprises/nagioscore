@@ -383,6 +383,13 @@ int main(int argc, char **argv) {
 
 	config_file_dir = nspath_absolute_dirname(config_file, NULL);
 
+	/* 
+	 * Set the signal handler for the SIGXFSZ signal here because
+	 * we may encounter this signal before the other signal handlers
+	 * are set.
+	 */
+	signal(SIGXFSZ, handle_sigxfsz);
+
 	/*
 	 * let's go to town. We'll be noisy if we're verifying config
 	 * or running scheduling tests.

@@ -67,7 +67,14 @@ static inline unsigned int ranged_urand(unsigned int low, unsigned int high)
 
 /**
  * Get number of online cpus
- * @return Number of kernel-handled cpu cores
+ * @return Active cpu cores detected on success. 0 on failure.
+ */
+extern int real_online_cpus(void);
+
+/**
+ * Wrapper for real_online_cpus(), returning 1 in case we can't
+ * detect any active cpus.
+ * @return Number of active cpu cores on success. 1 on failure.
  */
 extern int online_cpus(void);
 

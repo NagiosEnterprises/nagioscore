@@ -31,10 +31,11 @@ int main(int argc, char **argv)
 	asprintf(&s1, "arg varg foo %d", 12);
 	s2 = mkstr("arg varg foo %d", 12);
 	ok_str(s1, s2, "mkstr() must build proper strings");
-	if (online_cpus() > 1) {
-		t_pass("%d online cpus detected", online_cpus());
+	if (real_online_cpus() > 0) {
+		t_pass("%d online cpus detected", real_online_cpus());
 	} else {
-		t_fail("Do you really have only one cpu core?");
+		t_fail("Can't determine the number of online cpus");
 	}
+
 	return t_end();
 }

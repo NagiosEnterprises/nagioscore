@@ -21,7 +21,7 @@
 #  endif
 #endif
 
-int online_cpus(void)
+int real_online_cpus(void)
 {
 #ifdef _SC_NPROCESSORS_ONLN
 	long ncpus;
@@ -35,7 +35,13 @@ int online_cpus(void)
 		return (int)psd.psd_proc_cnt;
 #endif
 
-	return 1;
+	return 0;
+}
+
+int online_cpus(void)
+{
+	int ncpus = real_online_cpus();
+	return ncpus > 0 ? ncpus : 1;
 }
 
 int tv_delta_msec(const struct timeval *start, const struct timeval *stop)

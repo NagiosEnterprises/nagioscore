@@ -769,8 +769,8 @@ timed_event *schedule_new_event(int event_type, int high_priority, time_t run_ti
 	get_datetime_string(&run_time, run_time_string, MAX_DATETIME_LENGTH,
 			SHORT_DATE_TIME);
 	log_debug_info(DEBUGL_EVENTS, 0, "New Event Details:\n");
-	log_debug_info(DEBUGL_EVENTS, 0, " Type:                       %s\n",
-			EVENT_TYPE_STR( event_type));
+	log_debug_info(DEBUGL_EVENTS, 0, " Type:                       EVENT_%s\n",
+			EVENT_TYPE_STR(event_type));
 	log_debug_info(DEBUGL_EVENTS, 0, " High Priority:              %s\n",
 			( high_priority ? "Yes" : "No"));
 	log_debug_info(DEBUGL_EVENTS, 0, " Run Time:                   %s\n",
@@ -1133,7 +1133,7 @@ int handle_timed_event(timed_event *event) {
 	broker_timed_event(NEBTYPE_TIMEDEVENT_EXECUTE, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
 #endif
 
-	log_debug_info(DEBUGL_EVENTS, 0, "** Timed Event ** Type: %s, Run Time: %s", EVENT_TYPE_STR( event->event_type), ctime(&event->run_time));
+	log_debug_info(DEBUGL_EVENTS, 0, "** Timed Event ** Type: EVENT_%s, Run Time: %s", EVENT_TYPE_STR(event->event_type), ctime(&event->run_time));
 
 	/* get event latency */
 	gettimeofday(&tv, NULL);

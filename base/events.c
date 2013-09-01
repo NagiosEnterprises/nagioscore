@@ -34,10 +34,40 @@
 /* the event we're currently processing */
 static timed_event *current_event;
 
+static unsigned int event_count[EVENT_USER_FUNCTION + 1];
+
 /******************************************************************/
 /************ EVENT SCHEDULING/HANDLING FUNCTIONS *****************/
 /******************************************************************/
 
+int dump_event_stats(int sd)
+{
+	unsigned int i;
+
+	for (i = 0; i < ARRAY_SIZE(event_count); i++) {
+		nsock_printf(sd, "%s=%u%c", EVENT_TYPE_STR(i), event_count[i],
+		             i == EVENT_USER_FUNCTION ? '\0' : ';');
+		/*
+		 * VERSIONFIX: Make EVENT_SLEEP and EVENT_USER_FUNCTION
+		 * appear in linear order in include/nagios.h when we go
+		 * from 4.0 -> 4.1, so we can remove this junk.
+		 */
+		if (i == 16)
+			i = 97;
+		}
+
+	return OK;
+	}
+
+static void track_events(unsigned int type, int add)
+{
+	/*
+	 * remove_event() calls track_events() with add being -1.
+	 * add_event() calls us with add being 1
+	 */
+	if (type < ARRAY_SIZE(event_count))
+		event_count[type] += add;
+	}
 
 /* initialize the event timing loop before we start monitoring */
 void init_timing_loop(void) {
@@ -827,6 +857,9 @@ void add_event(squeue_t *sq, timed_event *event) {
 			  sq, event->priority, strerror(errno));
 		}
 
+	if(sq == nagios_squeue)
+		track_events(event->event_type, +1);
+
 #ifdef USE_EVENT_BROKER
 	else {
 		/* send event data to broker */
@@ -850,6 +883,9 @@ void remove_event(squeue_t *sq, timed_event *event) {
 
 	if(sq)
 		squeue_remove(sq, event->sq_event);
+
+	if(sq == nagios_squeue)
+		track_events(event->event_type, -1);
 
 	event->sq_event = NULL; /* mark this event as unscheduled */
 

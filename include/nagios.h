@@ -365,6 +365,11 @@ extern struct load_control loadctl;
 #define EVENT_SLEEP                     98      /* asynchronous sleep event that occurs when event queues are empty */
 #define EVENT_USER_FUNCTION             99      /* USER-defined function (modules) */
 
+/*
+ * VERSIONFIX: Make EVENT_SLEEP and EVENT_USER_FUNCTION appear
+ * linearly in order.
+ */
+
 #define EVENT_TYPE_STR( type)	( \
 	type == EVENT_SERVICE_CHECK ? "EVENT_SERVICE_CHECK" : \
 	type == EVENT_COMMAND_CHECK ? "EVENT_COMMAND_CHECK" : \
@@ -449,6 +454,7 @@ extern int nerd_broadcast(unsigned int chan_id, void *buf, unsigned int len);
 
 /*** Query Handler functions, types and macros*/
 typedef int (*qh_handler)(int, char *, unsigned int);
+extern int dump_event_stats(int sd);
 
 /* return codes for query_handlers() */
 #define QH_OK        0  /* keep listening */

@@ -846,6 +846,13 @@ void add_event(squeue_t *sq, timed_event *event) {
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "add_event()\n");
 
+	if(event->sq_event) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE,
+		      "Error: Adding %s event that seems to already be scheduled\n",
+		      EVENT_TYPE_STR(event->event_type));
+		remove_event(sq, event);
+	}
+
 	if(event->priority) {
 		event->sq_event = squeue_add_usec(sq, event->run_time, event->priority - 1, event);
 		}
@@ -853,7 +860,7 @@ void add_event(squeue_t *sq, timed_event *event) {
 		event->sq_event = squeue_add(sq, event->run_time, event);
 		}
 	if(!event->sq_event) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to add event to squeue '%p' with prio %u: %s\n",
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to add event to squeue '%p' with prio %u: %s\n",
 			  sq, event->priority, strerror(errno));
 		}
 
@@ -878,11 +885,15 @@ void remove_event(squeue_t *sq, timed_event *event) {
 	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_REMOVE, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
 #endif
-	if(!event)
+	if(!event || !event->sq_event)
 		return;
 
-	if(sq)
+	if (sq)
 		squeue_remove(sq, event->sq_event);
+	else
+		logit(NSLOG_RUNTIME_ERROR, TRUE,
+		      "Error: remove_event() called for %s event with NULL sq parameter\n",
+		      EVENT_TYPE_STR(event->event_type));
 
 	if(sq == nagios_squeue)
 		track_events(event->event_type, -1);

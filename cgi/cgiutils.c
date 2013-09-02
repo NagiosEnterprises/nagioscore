@@ -994,7 +994,7 @@ char * html_encode(char *input, int escape_newlines) {
 	char		mbtemp[ 10];
 	int			wctomb_result;
 	int			x;
-	char		temp_expansion[10];
+	char		temp_expansion[11];
 
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
@@ -1080,7 +1080,7 @@ char * html_encode(char *input, int escape_newlines) {
 
 		/* for simplicity, all other chars represented by their numeric value */
 		else {
-			sprintf( temp_expansion, "&#%u", *( unsigned int *)inwcp);
+			sprintf( temp_expansion, "&#%u;", *( unsigned int *)inwcp);
 			if((( outstp - encoded_html_string) + strlen( temp_expansion)) <
 					(unsigned int)output_max) {
 				strncpy( outstp, temp_expansion, strlen( temp_expansion));
@@ -1129,7 +1129,7 @@ char *escape_string(const char *input) {
 	char		mbtemp[ 10];
 	int			wctomb_result;
 	char		*stp;
-	char		temp_expansion[10];
+	char		temp_expansion[11];
 
 	/* If they don't give us anything to do... */
 	if( NULL == input) {
@@ -1179,7 +1179,7 @@ char *escape_string(const char *input) {
 
 		/* Encode everything else (this may be excessive) */
 		else {
-			sprintf( temp_expansion, "&#%u", ( unsigned int)wctemp[ 0]);
+			sprintf( temp_expansion, "&#%u;", ( unsigned int)wctemp[ 0]);
 			if((( stp - encoded_html_string) + strlen( temp_expansion)) <
 					(unsigned int)output_max) {
 				strncpy( stp, temp_expansion, strlen( temp_expansion));

@@ -45,8 +45,7 @@ int dump_event_stats(int sd)
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(event_count); i++) {
-		nsock_printf(sd, "%s=%u%c", EVENT_TYPE_STR(i), event_count[i],
-		             i == EVENT_USER_FUNCTION ? '\0' : ';');
+		nsock_printf(sd, "%s=%u;", EVENT_TYPE_STR(i), event_count[i]);
 		/*
 		 * VERSIONFIX: Make EVENT_SLEEP and EVENT_USER_FUNCTION
 		 * appear in linear order in include/nagios.h when we go
@@ -55,6 +54,7 @@ int dump_event_stats(int sd)
 		if (i == 16)
 			i = 97;
 		}
+	nsock_printf_nul(sd, "SQUEUE_ENTRIES=%u", squeue_size(nagios_squeue));
 
 	return OK;
 	}

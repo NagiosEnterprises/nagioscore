@@ -711,7 +711,7 @@ int xodtemplate_process_config_file(char *filename, int options) {
 
 				/* close out current definition */
 				if(xodtemplate_end_object_definition(options) == ERROR) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not complete object definition in file '%s' on line %d.\n", filename, current_line);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not complete object definition in file '%s' on line %d. Have you named all your objects?\n", filename, current_line);
 					result = ERROR;
 					break;
 					}
@@ -1270,7 +1270,6 @@ int xodtemplate_add_object_property(char *input, int options) {
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
-
 				if((temp_command->name = (char *)strdup(value)) == NULL)
 					result = ERROR;
 
@@ -3467,16 +3466,47 @@ int xodtemplate_add_object_property(char *input, int options) {
 
 
 
+#define xod_check_complete(otype) \
+	do { \
+		xodtemplate_##otype *o = (xodtemplate_##otype *)xodtemplate_current_object; \
+		if (o->register_object && !o->otype##_name && !o->name) { \
+			return ERROR; \
+		} \
+	} while(0)
 /* completes an object definition */
 int xodtemplate_end_object_definition(int options) {
 	int result = OK;
 
-	if (use_precached_objects == TRUE) {
-		switch(xodtemplate_current_object_type) {
-		case XODTEMPLATE_HOSTESCALATION: xodcount.hostescalations++; break;
-		case XODTEMPLATE_SERVICEESCALATION: xodcount.serviceescalations++; break;
-			}
-		}
+	switch(xodtemplate_current_object_type) {
+	case XODTEMPLATE_HOSTESCALATION:
+		xodcount.hostescalations += !!use_precached_objects;
+		break;
+	case XODTEMPLATE_SERVICEESCALATION:
+		xodcount.serviceescalations += !!use_precached_objects;
+		break;
+	case XODTEMPLATE_TIMEPERIOD:
+		xod_check_complete(timeperiod);
+		break;
+	case XODTEMPLATE_COMMAND:
+		xod_check_complete(command);
+		break;
+	case XODTEMPLATE_CONTACT:
+		xod_check_complete(contact);
+		break;
+	case XODTEMPLATE_CONTACTGROUP:
+		xod_check_complete(contactgroup);
+		break;
+	case XODTEMPLATE_HOST:
+		xod_check_complete(host);
+		break;
+	case XODTEMPLATE_HOSTGROUP:
+		xod_check_complete(hostgroup);
+		break;
+	case XODTEMPLATE_SERVICEGROUP:
+		xod_check_complete(servicegroup);
+		break;
+	}
+
 
 	xodtemplate_current_object = NULL;
 	xodtemplate_current_object_type = XODTEMPLATE_NONE;
@@ -3912,13 +3942,15 @@ int xodtemplate_duplicate_services(void) {
 		/* clear for each round */
 		bitmap_clear(host_map);
 
-		/* skip service definitions without enough data */
-		if(temp_service->hostgroup_name == NULL && temp_service->host_name == NULL)
-			continue;
-
 		/* skip services that shouldn't be registered */
 		if(temp_service->register_object == FALSE)
 			continue;
+
+		/* bail out on service definitions without enough data */
+		if((temp_service->hostgroup_name == NULL && temp_service->host_name == NULL) || temp_service->service_description == NULL) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service has no hosts and/or service_description (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);
+			return ERROR;
+			}
 
 		if(temp_service->hostgroup_name != NULL) {
 			if(xodtemplate_expand_hostgroups(&glist, host_map, temp_service->hostgroup_name, temp_service->_config_file, temp_service->_start_line) == ERROR) {

@@ -9464,7 +9464,6 @@ int xodtemplate_expand_services(objectlist **list, bitmap *reject_map, char *hos
 			/* now we have arguments we can handle safely, so do that */
 			if(xodtemplate_expand_services(list, reject_map, p1, p2, _config_file, _start_line) != OK) {
 				free(scopy);
-				free(services);
 				return ERROR;
 				}
 			}

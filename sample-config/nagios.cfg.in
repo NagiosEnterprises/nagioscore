@@ -154,6 +154,14 @@ check_external_commands=1
 command_file=@localstatedir@/rw/nagios.cmd
 
 
+
+# QUERY HANDLER INTERFACE
+# This is the socket that is created for the Query Handler interface
+
+#query_socket=@localstatedir@/rw/nagios.qh
+
+
+
 # LOCK FILE
 # This is the lockfile that Nagios will use to store its PID number
 # in when it is running in daemon mode.
@@ -821,8 +829,8 @@ process_performance_data=0
 # Performance data is only written to these files if the
 # enable_performance_data option (above) is set to 1.
 
-#host_perfdata_file=/tmp/host-perfdata
-#service_perfdata_file=/tmp/service-perfdata
+#host_perfdata_file=@localstatedir@/host-perfdata
+#service_perfdata_file=@localstatedir@/service-perfdata
 
 
 
@@ -873,7 +881,7 @@ process_performance_data=0
 
 
 # HOST AND SERVICE PERFORMANCE DATA PROCESS EMPTY RESULTS
-# THese options determine wether the core will process empty perfdata
+# These options determine wether the core will process empty perfdata
 # results or not. This is needed for distributed monitoring, and intentionally
 # turned on by default.
 # If you don't require empty perfdata - saving some cpu cycles
@@ -1291,3 +1299,38 @@ debug_file=@localstatedir@/nagios.debug
 max_debug_file_size=1000000
 
 
+
+# Should we allow hostgroups to have no hosts, we default this to off since
+# that was the old behavior
+
+allow_empty_hostgroup_assignment=0
+
+
+
+# Normally worker count is dynamically allocated based on 1.5 * number of cpu's
+# with a minimum of 4 workers.  This value will override the defaults
+
+#check_workers=3
+
+
+
+# EXPERIMENTAL load controlling options
+# To get current defaults based on your system issue a command to
+# the query handler. Please note that this is an experimental feature
+# and not meant for production use. Used incorrectly it can induce
+# enormous latency.
+# #core loadctl
+#   jobs_max - The maximum amount of jobs to run at one time
+#   jobs_min - The minimum amount of jobs to run at one time
+#   jobs_limit - The maximum amount of jobs the current load lets us run
+#   backoff_limit - The minimum backoff_change
+#   backoff_change - # of jobs to remove from jobs_limit when backing off
+#   rampup_limit - Minimum rampup_change
+#   rampup_change - # of jobs to add to jobs_limit when ramping up
+# NOTE: The backoff_limit and rampup_limit are NOT used by anything currently,
+#       so if your system is under load nothing will actively modify the jobs
+#       even if you have these options enabled, they are for external
+#       connector information only.  However, if you change the jobs_max or
+#       jobs_min manually here or through the query handler interface that
+#       WILL affect your system
+#loadctl_options=jobs_max=100;backoff_limit=10;rampup_change=5

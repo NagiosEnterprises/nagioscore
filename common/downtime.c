@@ -730,9 +730,9 @@ int add_new_downtime(int type, char *host_name, char *service_description, time_
 	int result = OK;
 
 	if(type == HOST_DOWNTIME)
-		result = add_new_host_downtime(host_name, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
+		return add_new_host_downtime(host_name, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
 	else
-		result = add_new_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
+		return add_new_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
 
 	return result;
 	}
@@ -852,21 +852,13 @@ int delete_downtime(int type, unsigned long downtime_id) {
 	}
 
 
-/* deletes a scheduled host downtime entry */
 int delete_host_downtime(unsigned long downtime_id) {
-	/* delete the downtime from memory */
-	delete_downtime(HOST_DOWNTIME, downtime_id);
-
-	return OK;
+	return delete_downtime(HOST_DOWNTIME, downtime_id);
 	}
 
 
-/* deletes a scheduled service downtime entry */
 int delete_service_downtime(unsigned long downtime_id) {
-	/* delete the downtime from memory */
-	delete_downtime(SERVICE_DOWNTIME, downtime_id);
-
-	return OK;
+	return delete_downtime(SERVICE_DOWNTIME, downtime_id);
 	}
 
 /*
@@ -936,21 +928,13 @@ int delete_downtime_by_hostname_service_description_start_time_comment(char *hos
 
 /* adds a host downtime entry to the list in memory */
 int add_host_downtime(char *host_name, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect, int start_notification_sent){
-	int result = OK;
-
-	result = add_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
-
-	return result;
+	return add_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
 	}
 
 
 /* adds a service downtime entry to the list in memory */
 int add_service_downtime(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect, int start_notification_sent){
-	int result = OK;
-
-	result = add_downtime(SERVICE_DOWNTIME, host_name, svc_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
-
-	return result;
+	return add_downtime(SERVICE_DOWNTIME, host_name, svc_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
 	}
 
 

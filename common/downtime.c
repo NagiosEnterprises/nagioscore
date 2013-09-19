@@ -863,7 +863,6 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 
 /* deletes a scheduled host or service downtime entry from the list in memory */
 int delete_downtime(int type, unsigned long downtime_id) {
-	int result = OK;
 	scheduled_downtime *this_downtime = NULL;
 	scheduled_downtime *last_downtime = NULL;
 	scheduled_downtime *next_downtime = NULL;
@@ -879,40 +878,34 @@ int delete_downtime(int type, unsigned long downtime_id) {
 		last_downtime = this_downtime;
 		}
 
-	/* remove the downtime from the list in memory */
-	if(this_downtime != NULL) {
+	if(!this_downtime)
+		return ERROR;
 
-		downtime_remove(this_downtime);
+	downtime_remove(this_downtime);
 
-		/* first remove the comment associated with this downtime */
-		if(this_downtime->type == HOST_DOWNTIME)
-			delete_host_comment(this_downtime->comment_id);
-		else
-			delete_service_comment(this_downtime->comment_id);
+	/* first remove the comment associated with this downtime */
+	if(this_downtime->type == HOST_DOWNTIME)
+		delete_host_comment(this_downtime->comment_id);
+	else
+		delete_service_comment(this_downtime->comment_id);
 
 #ifdef USE_EVENT_BROKER
-		/* send data to event broker */
-		broker_downtime_data(NEBTYPE_DOWNTIME_DELETE, NEBFLAG_NONE, NEBATTR_NONE, type, this_downtime->host_name, this_downtime->service_description, this_downtime->entry_time, this_downtime->author, this_downtime->comment, this_downtime->start_time, this_downtime->end_time, this_downtime->fixed, this_downtime->triggered_by, this_downtime->duration, downtime_id, NULL);
+	/* send data to event broker */
+	broker_downtime_data(NEBTYPE_DOWNTIME_DELETE, NEBFLAG_NONE, NEBATTR_NONE, type, this_downtime->host_name, this_downtime->service_description, this_downtime->entry_time, this_downtime->author, this_downtime->comment, this_downtime->start_time, this_downtime->end_time, this_downtime->fixed, this_downtime->triggered_by, this_downtime->duration, downtime_id, NULL);
 #endif
 
-		if(scheduled_downtime_list == this_downtime)
-			scheduled_downtime_list = this_downtime->next;
-		else
-			last_downtime->next = next_downtime;
-
-		/* free memory */
-		my_free(this_downtime->host_name);
-		my_free(this_downtime->service_description);
-		my_free(this_downtime->author);
-		my_free(this_downtime->comment);
-		my_free(this_downtime);
-
-		result = OK;
-		}
+	if(scheduled_downtime_list == this_downtime)
+		scheduled_downtime_list = this_downtime->next;
 	else
-		result = ERROR;
+		last_downtime->next = next_downtime;
 
-	return result;
+	/* free memory */
+	my_free(this_downtime->host_name);
+	my_free(this_downtime->service_description);
+	my_free(this_downtime->author);
+	my_free(this_downtime->comment);
+	my_free(this_downtime);
+	return OK;
 	}
 
 

@@ -737,6 +737,16 @@ int add_new_downtime(int type, char *host_name, char *service_description, time_
 	return result;
 	}
 
+static unsigned long get_next_downtime_id(void) {
+	unsigned long new_dt_id;
+	for (;;) {
+		new_dt_id = next_downtime_id++;
+		if (!find_downtime(ANY_DOWNTIME, next_downtime_id)) {
+			return new_dt_id;
+			}
+		}
+	return 0;
+	}
 
 /* saves a host downtime entry */
 int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id, int is_in_effect, int start_notification_sent){
@@ -747,8 +757,8 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 		return ERROR;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "cleanup_downtime_data()\n");
-
-	result = xdddefault_add_new_host_downtime(host_name, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &new_downtime_id, is_in_effect, start_notification_sent);
+	new_downtime_id = get_next_downtime_id();
+	result = add_host_downtime(host_name, entry_time, author, comment_data, start_time, 0, end_time, fixed, triggered_by, duration, new_downtime_id, is_in_effect, start_notification_sent);
 
 	/* save downtime id */
 	if(downtime_id != NULL)
@@ -778,7 +788,8 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 		return ERROR;
 		}
 
-	result = xdddefault_add_new_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &new_downtime_id, is_in_effect, start_notification_sent);
+	new_downtime_id = get_next_downtime_id();
+	result = add_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, 0, end_time, fixed, triggered_by, duration, new_downtime_id, is_in_effect, start_notification_sent);
 
 	/* save downtime id */
 	if(downtime_id != NULL)

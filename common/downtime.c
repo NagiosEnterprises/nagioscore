@@ -40,6 +40,45 @@ int		   defer_downtime_sorting = 0;
 static fanout_table *dt_fanout;
 
 
+static int downtime_compar(const void *p1, const void *p2) {
+	scheduled_downtime *d1 = *(scheduled_downtime **)p1;
+	scheduled_downtime *d2 = *(scheduled_downtime **)p2;
+
+	/*
+		If the start times of two downtimes are equal and one is triggered
+		but the other is not, the triggered downtime should be later in the
+		list than the untriggered one. This is so they are written to the
+		retention.dat and status.dat in the correct order.
+
+		Previously the triggered downtime always appeared before its
+		triggering downtime in those files. When the downtimes were read
+		from those files, either on a core restart or by the CGIs, the
+		triggered downtime would be discarded because the triggering
+		downtime did not yet exist.
+
+		The most common case for this is when a downtime is created and
+		the option is selected to create triggered downtimes on all child
+		objects. This change in the sort order does NOT resolve the
+		case where a manually created, triggered downtime is created with
+		a start time earlier than the triggering downtime.
+
+		This would need to be resolved by comparing the triggered_by value
+		with the downtime ID regardless of the start time. However, this
+		should be a relatively rare case and only caused by intentional
+		scheduling by a human. This change was not implemented because it
+		would cause the downtime list to be out of time order and the
+		implications of this were not well understood.
+	*/
+
+	if(d1->start_time == d2->start_time) {
+		if(( d1->triggered_by == 0 && d2->triggered_by != 0) ||
+				( d1->triggered_by != 0 && d2->triggered_by == 0)) {
+			return d1->triggered_by == 0 ? -1 : 1;
+			}
+		}
+	return (d1->start_time < d2->start_time) ? -1 : (d1->start_time - d2->start_time);
+	}
+
 static int downtime_add(scheduled_downtime *dt)
 {
 	return fanout_add(dt_fanout, dt->downtime_id, dt) == 0 ? OK : ERROR;
@@ -1050,7 +1089,9 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 #endif
 	downtime_add(new_downtime);
 
-	if(defer_downtime_sorting) {
+	if(defer_downtime_sorting || !scheduled_downtime_list ||
+	   downtime_compar(&new_downtime, &scheduled_downtime_list) < 0)
+	{
 		new_downtime->next = scheduled_downtime_list;
 		scheduled_downtime_list = new_downtime;
 		}
@@ -1069,11 +1110,7 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 			else
 				last_downtime = temp_downtime;
 			}
-		if(scheduled_downtime_list == NULL) {
-			new_downtime->next = NULL;
-			scheduled_downtime_list = new_downtime;
-			}
-		else if(temp_downtime == NULL) {
+		if(temp_downtime == NULL) {
 			new_downtime->next = NULL;
 			last_downtime->next = new_downtime;
 			}
@@ -1086,45 +1123,6 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 #endif
 
 	return OK;
-	}
-
-static int downtime_compar(const void *p1, const void *p2) {
-	scheduled_downtime *d1 = *(scheduled_downtime **)p1;
-	scheduled_downtime *d2 = *(scheduled_downtime **)p2;
-
-	/*
- 		If the start times of two downtimes are equal and one is triggered
-		but the other is not, the triggered downtime should be later in the
-		list than the untriggered one. This is so they are written to the
-		retention.dat and status.dat in the correct order.
-
-		Previously the triggered downtime always appeared before its 
-		triggering downtime in those files. When the downtimes were read 
-		from those files, either on a core restart or by the CGIs, the 
-		triggered downtime would be discarded because the triggering 
-		downtime did not yet exist.
-
-		The most common case for this is when a downtime is created and 
-		the option is selected to create triggered downtimes on all child 
-		objects. This change in the sort order does NOT resolve the 
-		case where a manually created, triggered downtime is created with 
-		a start time earlier than the triggering downtime.
-
-		This would need to be resolved by comparing the triggered_by value
-		with the downtime ID regardless of the start time. However, this
-		should be a relatively rare case and only caused by intentional
-		scheduling by a human. This change was not implemented because it
-		would cause the downtime list to be out of time order and the
-		implications of this were not well understood.
-	*/
-
-	if(d1->start_time == d2->start_time) {
-		if(( d1->triggered_by == 0 && d2->triggered_by != 0) ||
-				( d1->triggered_by != 0 && d2->triggered_by == 0)) {
-			return d1->triggered_by == 0 ? -1 : 1;
-			}
-		}
-	return (d1->start_time < d2->start_time) ? -1 : (d1->start_time - d2->start_time);
 	}
 
 int sort_downtime(void) {

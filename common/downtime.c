@@ -37,7 +37,18 @@
 
 scheduled_downtime *scheduled_downtime_list = NULL;
 int		   defer_downtime_sorting = 0;
+static fanout_table *dt_fanout;
 
+
+static int downtime_add(scheduled_downtime *dt)
+{
+	return fanout_add(dt_fanout, dt->downtime_id, dt) == 0 ? OK : ERROR;
+}
+
+static void downtime_remove(scheduled_downtime *dt)
+{
+	fanout_remove(dt_fanout, dt->downtime_id);
+}
 
 #ifdef NSCORE
 
@@ -49,6 +60,7 @@ int		   defer_downtime_sorting = 0;
 /* initializes scheduled downtime data */
 int initialize_downtime_data(void) {
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "initialize_downtime_data()\n");
+	dt_fanout = fanout_create(16384);
 	return xdddefault_initialize_downtime_data();
 	}
 
@@ -831,6 +843,8 @@ int delete_downtime(int type, unsigned long downtime_id) {
 	/* remove the downtime from the list in memory */
 	if(this_downtime != NULL) {
 
+		downtime_remove(this_downtime);
+
 		/* first remove the comment associated with this downtime */
 		if(this_downtime->type == HOST_DOWNTIME)
 			delete_host_comment(this_downtime->comment_id);
@@ -1034,6 +1048,7 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	new_downtime->start_event = ( timed_event *)0;
 	new_downtime->stop_event = ( timed_event *)0;
 #endif
+	downtime_add(new_downtime);
 
 	if(defer_downtime_sorting) {
 		new_downtime->next = scheduled_downtime_list;
@@ -1157,20 +1172,13 @@ int sort_downtime(void) {
 
 /* finds a specific downtime entry */
 scheduled_downtime *find_downtime(int type, unsigned long downtime_id) {
-	scheduled_downtime *temp_downtime = NULL;
+	scheduled_downtime *dt = NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "find_downtime()\n");
 
-	for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
-		log_debug_info(DEBUGL_DOWNTIME, 2,
-				"find_downtime() looking at type %d, id: %lu\n", type,
-				downtime_id);
-		if(type != ANY_DOWNTIME && temp_downtime->type != type)
-			continue;
-		if(temp_downtime->downtime_id == downtime_id)
-			return temp_downtime;
-		}
-
+	dt = fanout_get(dt_fanout, downtime_id);
+	if (dt && (type == ANY_DOWNTIME || type == dt->type))
+		return dt;
 	return NULL;
 	}
 
@@ -1198,6 +1206,8 @@ scheduled_downtime *find_service_downtime(unsigned long downtime_id) {
 void free_downtime_data(void) {
 	scheduled_downtime *this_downtime = NULL;
 	scheduled_downtime *next_downtime = NULL;
+
+	fanout_destroy(dt_fanout, NULL);
 
 	/* free memory for the scheduled_downtime list */
 	for(this_downtime = scheduled_downtime_list; this_downtime != NULL; this_downtime = next_downtime) {

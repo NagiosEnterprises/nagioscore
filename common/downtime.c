@@ -864,20 +864,9 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 /* deletes a scheduled host or service downtime entry from the list in memory */
 int delete_downtime(int type, unsigned long downtime_id) {
 	scheduled_downtime *this_downtime = NULL;
-	scheduled_downtime *last_downtime = NULL;
-	scheduled_downtime *next_downtime = NULL;
 
 	/* find the downtime we should remove */
-	for(this_downtime = scheduled_downtime_list, last_downtime = scheduled_downtime_list; this_downtime != NULL; this_downtime = next_downtime) {
-		next_downtime = this_downtime->next;
-
-		/* we found the downtime we should delete */
-		if(this_downtime->downtime_id == downtime_id && this_downtime->type == type)
-			break;
-
-		last_downtime = this_downtime;
-		}
-
+	this_downtime = find_downtime(type, downtime_id);
 	if(!this_downtime)
 		return ERROR;
 
@@ -896,8 +885,11 @@ int delete_downtime(int type, unsigned long downtime_id) {
 
 	if(scheduled_downtime_list == this_downtime)
 		scheduled_downtime_list = this_downtime->next;
-	else
-		last_downtime->next = next_downtime;
+	else {
+		this_downtime->prev->next = this_downtime->next;
+		if (this_downtime->next)
+			this_downtime->next->prev = this_downtime->prev;
+	}
 
 	/* free memory */
 	my_free(this_downtime->host_name);
@@ -998,7 +990,6 @@ int add_service_downtime(char *host_name, char *svc_description, time_t entry_ti
 /* adds a host or service downtime entry to the list in memory */
 int add_downtime(int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect, int start_notification_sent){
 	scheduled_downtime *new_downtime = NULL;
-	scheduled_downtime *last_downtime = NULL;
 	scheduled_downtime *temp_downtime = NULL;
 	int result = OK;
 
@@ -1085,29 +1076,30 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	if(defer_downtime_sorting || !scheduled_downtime_list ||
 	   downtime_compar(&new_downtime, &scheduled_downtime_list) < 0)
 	{
+		if (scheduled_downtime_list) {
+			scheduled_downtime_list->prev = new_downtime;
+		}
 		new_downtime->next = scheduled_downtime_list;
 		scheduled_downtime_list = new_downtime;
 		}
 	else {
 		/* add new downtime to downtime list, sorted by start time */
-		last_downtime = scheduled_downtime_list;
 		for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
 			if(downtime_compar(&new_downtime, &temp_downtime) < 0) {
+				new_downtime->prev = temp_downtime->prev;
 				new_downtime->next = temp_downtime;
-				if(temp_downtime == scheduled_downtime_list)
-					scheduled_downtime_list = new_downtime;
-				else
-					last_downtime->next = new_downtime;
+				temp_downtime->prev->next = new_downtime;
+				temp_downtime->prev = new_downtime;
 				break;
 				}
-			else
-				last_downtime = temp_downtime;
-			}
-		if(temp_downtime == NULL) {
-			new_downtime->next = NULL;
-			last_downtime->next = new_downtime;
+			if (!temp_downtime->next) {
+				new_downtime->next = NULL;
+				temp_downtime->next = new_downtime;
+				new_downtime->prev = temp_downtime;
+				break;
 			}
 		}
+	}
 #ifdef NSCORE
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */

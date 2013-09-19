@@ -1099,7 +1099,7 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 		/* add new downtime to downtime list, sorted by start time */
 		last_downtime = scheduled_downtime_list;
 		for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
-			if(new_downtime->start_time < temp_downtime->start_time) {
+			if(downtime_compar(&new_downtime, &temp_downtime) < 0) {
 				new_downtime->next = temp_downtime;
 				if(temp_downtime == scheduled_downtime_list)
 					scheduled_downtime_list = new_downtime;

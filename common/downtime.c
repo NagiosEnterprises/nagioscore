@@ -81,12 +81,51 @@ static int downtime_compar(const void *p1, const void *p2) {
 
 static int downtime_add(scheduled_downtime *dt)
 {
-	return fanout_add(dt_fanout, dt->downtime_id, dt) == 0 ? OK : ERROR;
+	if (fanout_add(dt_fanout, dt->downtime_id, dt) < 0)
+		return ERROR;
+
+	if(defer_downtime_sorting || !scheduled_downtime_list ||
+	   downtime_compar(&dt, &scheduled_downtime_list) < 0)
+	{
+		if (scheduled_downtime_list) {
+			scheduled_downtime_list->prev = dt;
+		}
+		dt->next = scheduled_downtime_list;
+		scheduled_downtime_list = dt;
+		}
+	else {
+		scheduled_downtime *cur;
+
+		/* add new downtime to downtime list, sorted by start time */
+		for(cur = scheduled_downtime_list; cur; cur = cur->next) {
+			if(downtime_compar(&dt, &cur) < 0) {
+				dt->prev = cur->prev;
+				dt->next = cur;
+				cur->prev->next = dt;
+				cur->prev = dt;
+				break;
+				}
+			if (!cur->next) {
+				dt->next = NULL;
+				cur->next = dt;
+				dt->prev = cur;
+				break;
+			}
+		}
+	}
+	return OK;
 }
 
 static void downtime_remove(scheduled_downtime *dt)
 {
 	fanout_remove(dt_fanout, dt->downtime_id);
+	if(scheduled_downtime_list == dt)
+		scheduled_downtime_list = dt->next;
+	else {
+		dt->prev->next = dt->next;
+		if (dt->next)
+			dt->next->prev = dt->prev;
+	}
 }
 
 #ifdef NSCORE
@@ -883,14 +922,6 @@ int delete_downtime(int type, unsigned long downtime_id) {
 	broker_downtime_data(NEBTYPE_DOWNTIME_DELETE, NEBFLAG_NONE, NEBATTR_NONE, type, this_downtime->host_name, this_downtime->service_description, this_downtime->entry_time, this_downtime->author, this_downtime->comment, this_downtime->start_time, this_downtime->end_time, this_downtime->fixed, this_downtime->triggered_by, this_downtime->duration, downtime_id, NULL);
 #endif
 
-	if(scheduled_downtime_list == this_downtime)
-		scheduled_downtime_list = this_downtime->next;
-	else {
-		this_downtime->prev->next = this_downtime->next;
-		if (this_downtime->next)
-			this_downtime->next->prev = this_downtime->prev;
-	}
-
 	/* free memory */
 	my_free(this_downtime->host_name);
 	my_free(this_downtime->service_description);
@@ -990,7 +1021,6 @@ int add_service_downtime(char *host_name, char *svc_description, time_t entry_ti
 /* adds a host or service downtime entry to the list in memory */
 int add_downtime(int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t flex_downtime_start, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, int is_in_effect, int start_notification_sent){
 	scheduled_downtime *new_downtime = NULL;
-	scheduled_downtime *temp_downtime = NULL;
 	int result = OK;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "add_downtime()\n");
@@ -1073,33 +1103,6 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 #endif
 	downtime_add(new_downtime);
 
-	if(defer_downtime_sorting || !scheduled_downtime_list ||
-	   downtime_compar(&new_downtime, &scheduled_downtime_list) < 0)
-	{
-		if (scheduled_downtime_list) {
-			scheduled_downtime_list->prev = new_downtime;
-		}
-		new_downtime->next = scheduled_downtime_list;
-		scheduled_downtime_list = new_downtime;
-		}
-	else {
-		/* add new downtime to downtime list, sorted by start time */
-		for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
-			if(downtime_compar(&new_downtime, &temp_downtime) < 0) {
-				new_downtime->prev = temp_downtime->prev;
-				new_downtime->next = temp_downtime;
-				temp_downtime->prev->next = new_downtime;
-				temp_downtime->prev = new_downtime;
-				break;
-				}
-			if (!temp_downtime->next) {
-				new_downtime->next = NULL;
-				temp_downtime->next = new_downtime;
-				new_downtime->prev = temp_downtime;
-				break;
-			}
-		}
-	}
 #ifdef NSCORE
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */

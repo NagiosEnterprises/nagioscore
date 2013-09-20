@@ -25,7 +25,6 @@
 #include "../include/comments.h"
 #include "../include/downtime.h"
 #include "../include/statusdata.h"
-#include "../xdata/xdddefault.h"
 
 #ifdef NSCGI
 #include "../include/cgiutils.h"
@@ -39,6 +38,28 @@ scheduled_downtime *scheduled_downtime_list = NULL;
 int		   defer_downtime_sorting = 0;
 static fanout_table *dt_fanout;
 
+
+#define DT_ENULL (-1)
+#define DT_EHOST (-2)
+#define DT_ESERVICE (-3)
+#define DT_ETYPE (-4)
+#define DT_ETRIGGER (-5)
+#define DT_ETIME (-6)
+static const char *dt_strerror(int err)
+{
+	if (err > 0)
+		return strerror(err);
+
+	switch(err) {
+	 case DT_ENULL: return "NULL pointer";
+	 case DT_EHOST: return "No hostname, or host not found";
+	 case DT_ESERVICE: return "No service_description, or service not found";
+	 case DT_ETYPE: return "Invalid downtime type, or type/data mismatch";
+	 case DT_ETRIGGER: return "Triggering downtime not found";
+	 case DT_ETIME: return "Bad time spec";
+	}
+	return "Unknown error";
+}
 
 static int downtime_compar(const void *p1, const void *p2) {
 	scheduled_downtime *d1 = *(scheduled_downtime **)p1;
@@ -81,8 +102,61 @@ static int downtime_compar(const void *p1, const void *p2) {
 
 static int downtime_add(scheduled_downtime *dt)
 {
-	if (fanout_add(dt_fanout, dt->downtime_id, dt) < 0)
-		return ERROR;
+	unsigned long prev_downtime_id;
+	scheduled_downtime *trigger = NULL;
+	struct host *h;
+	struct service *s;
+
+	if (!dt)
+		return DT_ENULL;
+
+	log_debug_info(DEBUGL_DOWNTIME, 0, "downtime_add(): id=%lu; type=%s; host=%s; service=%s\n",
+				   dt->downtime_id,
+				   dt->type == HOST_DOWNTIME ? "host" : "service",
+				   dt->host_name, dt->service_description);
+	/*
+	 * check for errors.
+	 * host_name must always be set
+	 */
+	if (!dt->host_name)
+		return DT_EHOST;
+
+	/* service_description should only be set for service downtime */
+	if ((dt->type == HOST_DOWNTIME) != (!dt->service_description))
+		return DT_ETYPE;
+	/* type must be either SERVICE_DOWNTIME or HOST_DOWNTIME */
+	if (dt->type != SERVICE_DOWNTIME && dt->type != HOST_DOWNTIME)
+		return DT_ETYPE;
+	/* triggered downtime must be triggered by an existing downtime */
+	if (dt->triggered_by && !(trigger = find_downtime(ANY_DOWNTIME, dt->triggered_by)))
+		return DT_ETRIGGER;
+	/* non-triggered downtime must have start_time < end_time */
+	if (!trigger && dt->start_time >= dt->end_time)
+		return DT_ETIME;
+	/* flexible downtime must have a duration */
+	if (!dt->fixed && !dt->duration)
+		return DT_ETIME;
+
+	/* the object we're adding downtime for must exist */
+	if (!dt->service_description) {
+		if (!(h = find_host(dt->host_name)))
+			return DT_EHOST;
+	} else if (!(s = find_service(dt->host_name, dt->service_description))) {
+		return DT_ESERVICE;
+	}
+
+	/* set downtime_id if not already set */
+	prev_downtime_id = next_downtime_id;
+	if (!dt->downtime_id) {
+		dt->downtime_id = next_downtime_id++;
+	} else if (dt->downtime_id > next_downtime_id) {
+		next_downtime_id = dt->downtime_id + 1;
+	}
+
+	if (fanout_add(dt_fanout, dt->downtime_id, dt) < 0) {
+		next_downtime_id = prev_downtime_id;
+		return errno;
+	}
 
 	if(defer_downtime_sorting || !scheduled_downtime_list ||
 	   downtime_compar(&dt, &scheduled_downtime_list) < 0)
@@ -139,7 +213,8 @@ static void downtime_remove(scheduled_downtime *dt)
 int initialize_downtime_data(void) {
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "initialize_downtime_data()\n");
 	dt_fanout = fanout_create(16384);
-	return xdddefault_initialize_downtime_data();
+	next_downtime_id = 1;
+	return dt_fanout ? OK : ERROR;
 	}
 
 
@@ -1025,13 +1100,6 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "add_downtime()\n");
 
-	/* don't add triggered downtimes that don't have a valid parent */
-	if(triggered_by > 0  && find_downtime(ANY_DOWNTIME, triggered_by) == NULL) {
-		log_debug_info(DEBUGL_DOWNTIME, 1,
-				"Downtime is triggered, but has no valid parent\n");
-		return ERROR;
-		}
-
 	/* we don't have enough info */
 	if(host_name == NULL || (downtime_type == SERVICE_DOWNTIME && svc_description == NULL)) {
 		log_debug_info(DEBUGL_DOWNTIME, 1,
@@ -1076,16 +1144,6 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 			}
 		}
 
-	/* handle errors */
-	if(result == ERROR) {
-		my_free(new_downtime->comment);
-		my_free(new_downtime->author);
-		my_free(new_downtime->service_description);
-		my_free(new_downtime->host_name);
-		my_free(new_downtime);
-		return ERROR;
-		}
-
 	new_downtime->type = downtime_type;
 	new_downtime->entry_time = entry_time;
 	new_downtime->start_time = start_time;
@@ -1101,7 +1159,27 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	new_downtime->start_event = ( timed_event *)0;
 	new_downtime->stop_event = ( timed_event *)0;
 #endif
-	downtime_add(new_downtime);
+	result = downtime_add(new_downtime);
+	if (result) {
+		if (new_downtime->type == SERVICE_DOWNTIME) {
+			log_debug_info(DEBUGL_DOWNTIME, 0, "Failed to add downtime for service '%s' on host '%s': %s\n",
+			               new_downtime->service_description, new_downtime->host_name, dt_strerror(result));
+		}
+		else {
+			log_debug_info(DEBUGL_DOWNTIME, 0, "Failed to add downtime for host '%s': %s\n", new_downtime->host_name, dt_strerror(result));
+		}
+		result = ERROR;
+	}
+
+	/* handle errors */
+	if(result == ERROR) {
+		my_free(new_downtime->comment);
+		my_free(new_downtime->author);
+		my_free(new_downtime->service_description);
+		my_free(new_downtime->host_name);
+		my_free(new_downtime);
+		return ERROR;
+		}
 
 #ifdef NSCORE
 #ifdef USE_EVENT_BROKER

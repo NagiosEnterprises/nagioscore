@@ -87,7 +87,7 @@ PDATAHDRS=
 PDATADEPS=$(PDATALIBS)
 
 # Downtime data
-DDATALIBS=downtime-base.o xdowntime-base.o
+DDATALIBS=downtime-base.o
 DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
@@ -123,9 +123,6 @@ xcomments-base.o: $(SRC_XDATA)/xcddefault.c $(SRC_XDATA)/xcddefault.h
 
 downtime-base.o: $(SRC_COMMON)/downtime.c $(SRC_INCLUDE)/downtime.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/downtime.c
-
-xdowntime-base.o: $(SRC_XDATA)/xdddefault.c $(SRC_XDATA)/xdddefault.h
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xdddefault.c
 
 perfdata-base.o: perfdata.c $(SRC_INCLUDE)/perfdata.h
 	$(CC) $(CFLAGS) -c -o $@ perfdata.c

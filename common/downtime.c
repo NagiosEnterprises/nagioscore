@@ -306,7 +306,8 @@ int unschedule_downtime(int type, unsigned long downtime_id) {
 
 		if(temp_downtime->type == HOST_DOWNTIME) {
 
-			hst->scheduled_downtime_depth--;
+			if (hst->scheduled_downtime_depth > 0)
+				hst->scheduled_downtime_depth--;
 			update_host_status(hst, FALSE);
 
 			/* log a notice - this is parsed by the history CGI */
@@ -321,7 +322,8 @@ int unschedule_downtime(int type, unsigned long downtime_id) {
 
 		else {
 
-			svc->scheduled_downtime_depth--;
+			if (svc->scheduled_downtime_depth > 0)
+				svc->scheduled_downtime_depth--;
 			update_service_status(svc, FALSE);
 
 			/* log a notice - this is parsed by the history CGI */
@@ -598,9 +600,9 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 #endif
 
 		/* decrement the downtime depth variable */
-		if(temp_downtime->type == HOST_DOWNTIME)
+		if(temp_downtime->type == HOST_DOWNTIME && hst->scheduled_downtime_depth > 0)
 			hst->scheduled_downtime_depth--;
-		else
+		else if (svc->scheduled_downtime_depth > 0)
 			svc->scheduled_downtime_depth--;
 
 		if(temp_downtime->type == HOST_DOWNTIME && hst->scheduled_downtime_depth == 0) {

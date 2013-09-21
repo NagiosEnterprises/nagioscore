@@ -27,6 +27,7 @@ CGIEXTRAS=@CGIEXTRAS@
 CP=@CP@
 CC=@CC@
 CFLAGS=-Wall -I.. @CFLAGS@ @DEFS@ -DNSCGI
+JSONFLAGS=-DJSON_NAGIOS_4X
 
 # Compiler flags for optimization (overrides default)
 #CFLAGS=-O3 -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCGI
@@ -39,7 +40,7 @@ CFLAGS=-Wall -I.. @CFLAGS@ @DEFS@ -DNSCGI
 LDFLAGS=@LDFLAGS@
 LIBS=@LIBS@
 
-CGIS=avail.cgi cmd.cgi config.cgi extinfo.cgi history.cgi notifications.cgi outages.cgi showlog.cgi status.cgi statuswml.cgi summary.cgi tac.cgi $(CGIEXTRAS)
+CGIS=archivejson.cgi avail.cgi cmd.cgi config.cgi extinfo.cgi history.cgi notifications.cgi objectjson.cgi outages.cgi showlog.cgi status.cgi statusjson.cgi statuswml.cgi summary.cgi tac.cgi $(CGIEXTRAS)
 
 # Object functions
 ODATALIBS=objects-cgi.o xobjects-cgi.o
@@ -163,6 +164,24 @@ trends.cgi: trends.c $(CGIDEPS)
 
 histogram.cgi: histogram.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ histogram.c $(CGILIBS) $(GDLIBS) $(LIBS)
+
+########## JSON CGIS ##########
+
+jsonutils.o: jsonutils.c $(SRC_INCLUDE)/jsonutils.h
+	$(CC) $(CFLAGS) $(JSONFLAGS) -c -o $@ jsonutils.c
+
+archiveutils.o: archiveutils.c $(SRC_INCLUDE)/archiveutils.h
+	$(CC) $(CFLAGS) $(JSONFLAGS) -c -o $@ archiveutils.c
+
+archivejson.cgi: archivejson.c $(CGIDEPS) archiveutils.o jsonutils.o $(SRC_INCLUDE)/archivejson.h
+	$(CC) $(CFLAGS) $(JSONFLAGS) $(LDFLAGS) -o $@ archivejson.c $(CGILIBS) archiveutils.o jsonutils.o $(LIBS)
+
+objectjson.cgi: objectjson.c $(CGIDEPS) jsonutils.o $(SRC_INCLUDE)/objectjson.h
+	$(CC) $(CFLAGS) $(JSONFLAGS) $(LDFLAGS) -o $@ objectjson.c $(CGILIBS) jsonutils.o $(LIBS)
+
+statusjson.cgi: statusjson.c $(CGIDEPS) jsonutils.o $(SRC_INCLUDE)/statusjson.h
+	$(CC) $(CFLAGS) $(JSONFLAGS) $(LDFLAGS) -o $@ statusjson.c $(CGILIBS) jsonutils.o $(LIBS)
+
 
 clean:
 	rm -f $(CGIS)

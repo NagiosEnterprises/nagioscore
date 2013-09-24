@@ -37,6 +37,7 @@
 scheduled_downtime *scheduled_downtime_list = NULL;
 int		   defer_downtime_sorting = 0;
 static fanout_table *dt_fanout;
+unsigned long next_downtime_id = 0;
 
 
 #define DT_ENULL (-1)

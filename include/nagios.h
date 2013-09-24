@@ -197,7 +197,6 @@ extern int currently_running_host_checks;
 extern unsigned long next_event_id;
 extern unsigned long next_problem_id;
 extern unsigned long next_comment_id;
-extern unsigned long next_downtime_id;
 extern unsigned long next_notification_id;
 
 extern unsigned long modified_process_attributes;

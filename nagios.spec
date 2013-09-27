@@ -65,14 +65,14 @@ Requires: %{name} = %{version}-%{release}
 This package contains all the files from the contrib directory
 
 %prep
-%setup
+%setup -n nagios
 
 # /usr/local/nagios is hardcoded in many places
 %{__perl} -pi.orig -e 's|/usr/local/nagios/var/rw|%{_localstatedir}/nagios/rw|g;' contrib/eventhandlers/submit_check_result
 
 %build
 
-CFLAGS="%{mycflags} -Wno-unused-result" LDFLAGS="$CFLAGS" %configure \
+CFLAGS="%{mycflags}" LDFLAGS="$CFLAGS" %configure \
     --datadir="%{_datadir}/nagios" \
     --libexecdir="%{_libdir}/nagios/plugins" \
     --localstatedir="%{_localstatedir}/nagios" \
@@ -104,6 +104,7 @@ find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-ma
 %{__make} %{?_smp_mflags} -C contrib
 
 %install
+export PATH=%{_bindir}:/bin:\$PATH
 %{__rm} -rf %{buildroot}
 %{__make} install-unstripped install-init install-commandmode install-config \
     DESTDIR="%{buildroot}" \
@@ -153,10 +154,10 @@ find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-ma
 %{__cp} -afpv contrib/eventhandlers/* %{buildroot}%{_libdir}/nagios/plugins/eventhandlers/
 %{__mv} contrib/README contrib/README.contrib
 
-CGI=`/bin/find contrib/ -name '*.cgi' -type f |sed s/'contrib\/'//g`
+CGI=`find contrib/ -name '*.cgi' -type f |sed s/'contrib\/'//g`
 CGI=`for i in $CGI; do echo -n "$i|"; done |sed s/\|$//`
-/bin/find %{buildroot}/%{_libdir}/nagios/cgi -type f -print | sed s!'%{buildroot}'!!g | egrep -ve "($CGI)" > cgi.files
-/bin/find %{buildroot}/%{_libdir}/nagios/cgi -type f -print | sed s!'%{buildroot}'!!g | egrep "($CGI)" > contrib.files
+find %{buildroot}/%{_libdir}/nagios/cgi -type f -print | sed s!'%{buildroot}'!!g | egrep -ve "($CGI)" > cgi.files
+find %{buildroot}/%{_libdir}/nagios/cgi -type f -print | sed s!'%{buildroot}'!!g | egrep "($CGI)" > contrib.files
 
 
 
@@ -226,6 +227,10 @@ fi
 %attr(0755,root,root) %{_libdir}/nagios/plugins/eventhandlers/
 
 %changelog
+* Wed Sep 18 2013 Daniel Wittenberg <dwittenberg2008@gmail.com> 4.0.0rc2-1
+- Fix find command - Florin Andrei, bug #489
+- Remove compiler warning option that breaks older builds, bug #488
+
 * Fri Mar 15 2013 Daniel Wittenberg <dwittenberg2008@gmail.com> 3.99.96-1
 - Major updates for version 4.0
 - New spec file, new RC script, new sysconfig

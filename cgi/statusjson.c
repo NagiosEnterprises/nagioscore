@@ -294,7 +294,7 @@ option_help status_json_help[] = {
 		"Host Group",
 		"nagios:objectjson/hostgrouplist",
 		{ "hostgroup", NULL },
-		{ "hostcount", "hostlist" "servicecount", "servicelist", NULL },
+		{ "hostcount", "hostlist", "servicecount", "servicelist", NULL },
 		NULL,
 		"Returns information applicable to the hostgroup or the hosts in the hostgroup depending on the query.",
 		NULL

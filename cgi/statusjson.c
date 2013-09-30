@@ -43,8 +43,13 @@
 #include "../include/objectjson.h"
 #include "../include/statusjson.h"
 
+#ifdef JSON_NAGIOS_4X
+#define HOST_STATUS_ALL (SD_HOST_UP | SD_HOST_DOWN | SD_HOST_UNREACHABLE | HOST_PENDING)
+#define SERVICE_STATUS_ALL (SERVICE_OK | SERVICE_WARNING | SERVICE_CRITICAL | SERVICE_UNKNOWN | SERVICE_PENDING)
+#else
 #define HOST_STATUS_ALL (HOST_UP | HOST_DOWN | HOST_UNREACHABLE | HOST_PENDING)
 #define SERVICE_STATUS_ALL (SERVICE_OK | SERVICE_WARNING | SERVICE_CRITICAL | SERVICE_UNKNOWN | SERVICE_PENDING)
+#endif
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 
@@ -1707,11 +1712,23 @@ json_object *json_status_hostcount(unsigned format_options, int use_parent_host,
 			}
 		}
 
+#ifdef JSON_NAGIOS_4X
+	if( host_statuses & SD_HOST_UP)
+#else
 	if( host_statuses & HOST_UP)
+#endif
 		json_object_append_integer(json_count, "up", up);
+#ifdef JSON_NAGIOS_4X
+	if( host_statuses & SD_HOST_DOWN)
+#else
 	if( host_statuses & HOST_DOWN)
+#endif
 		json_object_append_integer(json_count, "down", down);
+#ifdef JSON_NAGIOS_4X
+	if( host_statuses & SD_HOST_UNREACHABLE)
+#else
 	if( host_statuses & HOST_UNREACHABLE)
+#endif
 		json_object_append_integer(json_count, "unreachable", unreachable);
 	if( host_statuses & HOST_PENDING)
 		json_object_append_integer(json_count, "pending", pending);

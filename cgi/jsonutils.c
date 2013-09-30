@@ -72,9 +72,15 @@ const string_value_mapping svm_format_options[] = {
 	};
 
 const string_value_mapping svm_host_statuses[] = {
+#ifdef JSON_NAGIOS_4X
+	{ "up", SD_HOST_UP, "HOST_UP" },
+	{ "down", SD_HOST_DOWN, "HOST_DOWN" },
+	{ "unreachable", SD_HOST_UNREACHABLE, "HOST_UNREACHABLE" },
+#else
 	{ "up", HOST_UP, "HOST_UP" },
 	{ "down", HOST_DOWN, "HOST_DOWN" },
 	{ "unreachable", HOST_UNREACHABLE, "HOST_UNREACHABLE" },
+#endif
 	{ "pending", HOST_PENDING, "HOST_PENDING" },
 	{ NULL, -1, NULL },
 	};

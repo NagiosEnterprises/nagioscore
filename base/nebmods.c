@@ -303,6 +303,11 @@ int neb_unload_module(nebmodule *mod, int flags, int reason) {
 
 		/* unload the module */
 		result = dlclose(mod->module_handle);
+
+		if (result != 0) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not unload module '%s' -> %s\n", mod->filename, dlerror());
+			return ERROR;
+			}
 		}
 
 	/* mark the module as being unloaded */

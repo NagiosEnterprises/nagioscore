@@ -1643,13 +1643,14 @@ my $comment;
 
 if( defined( $singleRun)) {
 	if( $singleRun =~ /^(Fixed|Flexible) downtime: (.*)/) {
+		my $downtimeType = $1;
 		my @singleRunPerm = split( /, /, $2);
 		my $fixed = (( $singleRun =~ /^Fixed/) ? 1 : 0);
 		my $testSchedule = scheduleDowntimePermutation( $service, $cfg, 
 				\@singleRunPerm, $version->{ "major"});
 		my $testComment = join( ", ", @singleRunPerm);
-		checkDowntime( "Flexible downtime: $testComment", $service, $cfg, 0, 
-				$testSchedule, $version->{ "major"});
+		checkDowntime( "$downtimeType downtime: $testComment", $service, $cfg, 
+				$fixed, $testSchedule, $version->{ "major"});
 		exit 0;
 	}
 	else {

@@ -1923,11 +1923,11 @@ int process_check_result(check_result *cr)
 		svc = find_service(cr->host_name, cr->service_description);
 		if (!svc) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Got check result for service '%s' on host '%s'. Unable to find service\n",
-			      cr->host_name, cr->service_description);
+			      cr->service_description, cr->host_name);
 			return ERROR;
 			}
 		log_debug_info(DEBUGL_CHECKS, 2, "Processing check result for service '%s' on host '%s'\n",
-		               svc->host_name, svc->description);
+		               svc->description, svc->host_name);
 		svc->check_source = source_name;
 		return handle_async_service_check_result(svc, cr);
 		}

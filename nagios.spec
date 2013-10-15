@@ -7,9 +7,16 @@
 
 # Setup some debugging options in case we build with --with debug
 %if %{defined _with_debug}
-	%define mycflags -O0 -pg -ggdb3
+  %define mycflags -O0 -pg -ggdb3
 %else
-	%define mycflags %{nil}
+  %define mycflags %{nil}
+%endif
+
+# Allow newer compiler to suppress warnings
+%if 0%{?el6}
+  %define myXcflags -Wno-unused-result
+%else
+  %define myXcflags %{nil}
 %endif
 
 Summary: Open Source host, service and network monitoring program
@@ -65,14 +72,14 @@ Requires: %{name} = %{version}-%{release}
 This package contains all the files from the contrib directory
 
 %prep
-%setup -n nagios
+%setup
 
 # /usr/local/nagios is hardcoded in many places
 %{__perl} -pi.orig -e 's|/usr/local/nagios/var/rw|%{_localstatedir}/nagios/rw|g;' contrib/eventhandlers/submit_check_result
 
 %build
 
-CFLAGS="%{mycflags}" LDFLAGS="$CFLAGS" %configure \
+CFLAGS="%{mycflags} %{myXcflags}" LDFLAGS="$CFLAGS" %configure \
     --datadir="%{_datadir}/nagios" \
     --libexecdir="%{_libdir}/nagios/plugins" \
     --localstatedir="%{_localstatedir}/nagios" \

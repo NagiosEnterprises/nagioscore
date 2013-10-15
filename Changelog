@@ -1,6 +1,22 @@
 ########################
 Nagios Core 4 Change Log
 ########################
+
+4.0.1 - 10/15/2013
+------------------
+ENHANCEMENTS
+* Added compiler flags in RPM spec file to reduce compiler noise (Dan Wittenberg)
+* Added logging of failure in dlclose() call (Anton Lofgren)
+* Added a simple query handler interface, nagios-qh.rb (Dan Wittenberg)
+* Multiple code simplifications, additional error handling in downtime code (Andreas Ericsson)
+
+FIXES
+* Reverted commit f99a9a7b which set check_interval to 1 if it was configured as zero.
+* Corrected order of arguments when logging unknown hosts/services (Scott Wilkerson)
+* Downtime initialized before retention data read (Eric Stanley)
+* Patches to make RPM build again (Dan Wittenberg)
+* Ensure that scheduled_downtime_depth never drops below zero (Andreas Ericsson)
+
 4.0.0 - 09/20/2013
 ------------------
 See http://nagios.sourceforge.net/docs/nagioscore/4/en/whatsnew.html for a

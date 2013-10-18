@@ -2146,14 +2146,41 @@ int hostsmember_elements(hostsmember *list)
 /* returns a count of the immediate children for a given host */
 /* NOTE: This function is only used by the CGIS */
 int number_of_immediate_child_hosts(host *hst) {
-	return hst == NULL ? 0 : hostsmember_elements(hst->child_hosts);
+	int children = 0;
+	host *temp_host = NULL;
+
+	if(hst == NULL) {
+		for(temp_host = host_list; temp_host != NULL;
+				temp_host = temp_host->next) {
+			if(is_host_immediate_child_of_host(hst, temp_host) == TRUE)
+				children++;
+			}
+		return children;
+		}
+	else {
+		return hostsmember_elements(hst->child_hosts);
+		}
 	}
 
 
 /* get the number of immediate parent hosts for a given host */
 /* NOTE: This function is only used by the CGIS */
 int number_of_immediate_parent_hosts(host *hst) {
-	return hst == NULL ? 0 : hostsmember_elements(hst->parent_hosts);
+	int parents = 0;
+	host *temp_host = NULL;
+
+	if(hst == NULL) {
+		for(temp_host = host_list; temp_host != NULL;
+				temp_host = temp_host->next) {
+			if(is_host_immediate_parent_of_host(hst, temp_host) == TRUE) {
+				parents++;
+				}
+			}
+		return parents;
+		}
+	else {
+		return hostsmember_elements(hst->parent_hosts);
+		}
 	}
 #endif
 

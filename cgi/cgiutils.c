@@ -545,9 +545,35 @@ int read_main_config_file(const char *filename) {
 /* read all object definitions */
 int read_all_object_configuration_data(const char *cfgfile, int options) {
 	int result = OK;
+	host *temp_host = NULL;
+	host *parent_host = NULL;
+	hostsmember *temp_hostsmember = NULL;
 
 	/* read in all external config data of the desired type(s) */
 	result = read_object_config_data(cfgfile, options);
+
+	/* Resolve host child->parent relationships */
+	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
+		/* For each of the host's parents */
+		for(temp_hostsmember = temp_host->parent_hosts;
+				temp_hostsmember != NULL;
+				temp_hostsmember = temp_hostsmember->next) {
+			if((parent_host = find_host(temp_hostsmember->host_name)) == NULL) {
+				logit(NSLOG_CONFIG_ERROR, TRUE,
+						"Error: '%s' is not a valid parent for host '%s'!",
+						temp_hostsmember->host_name, temp_host->name);
+				}
+			/* save the parent host pointer for later */
+			temp_hostsmember->host_ptr = parent_host;
+
+			/* add a reverse (child) link to make searches faster later on */
+			if(add_child_link_to_host(parent_host, temp_host) == NULL) {
+				logit(NSLOG_CONFIG_ERROR, TRUE,
+						"Error: Failed to add '%s' as a child host of '%s'",
+						temp_host->name, parent_host->name);
+				}
+			}
+		}
 
 	return result;
 	}

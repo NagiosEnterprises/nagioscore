@@ -2,6 +2,12 @@
 Nagios Core 4 Change Log
 ########################
 
+4.0.2 - xx/xx/xxxx
+------------------
+FIXES
+* Fixed Bug 470: statusmap doesn't display info (Cameron Moore)
+* Fixed Bug 499: Security issue in daemon-init.in, function check_config (Tómas Edwardsson)
+
 4.0.1 - 10/15/2013
 ------------------
 ENHANCEMENTS

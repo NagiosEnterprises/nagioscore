@@ -1631,13 +1631,8 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	json_array *json_contactgroups;
 	json_array *json_contacts;
 	json_array *json_custom_variables;
-#ifdef NSCORE
 	hostsmember *temp_hostsmember;
 	servicesmember *temp_servicesmember;
-#else
-	host *temp_host2;
-	service *temp_service;
-#endif
 	contactgroupsmember *temp_contact_groupsmember;
 #ifdef NSCORE
 	contactsmember *temp_contactsmember;
@@ -1652,52 +1647,25 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	json_object_append_string(json_details, "address", temp_host->address);
 
 	json_parent_hosts = json_new_array();
-#ifdef NSCORE
 	for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; 
 			temp_hostsmember = temp_hostsmember->next) {
 		json_array_append_string(json_parent_hosts, temp_hostsmember->host_name);
 		}
-#else
-	for(temp_host2 = host_list; temp_host2 != NULL; 
-			temp_host2 = temp_host2->next) {
-		if(TRUE == is_host_immediate_child_of_host(temp_host2, temp_host)) {
-			json_array_append_string(json_parent_hosts, temp_host2->name);
-			}
-		}
-#endif
 	json_object_append_array(json_details, "parent_hosts", json_parent_hosts);
 
 	json_child_hosts = json_new_array();
-#ifdef NSCORE
 	for(temp_hostsmember = temp_host->child_hosts; temp_hostsmember != NULL; 
 			temp_hostsmember = temp_hostsmember->next) {
 		json_array_append_string(json_child_hosts, temp_hostsmember->host_name);
 		}
-#else
-	for(temp_host2 = host_list; temp_host2 != NULL; 
-			temp_host2 = temp_host2->next) {
-		if(TRUE == is_host_immediate_child_of_host(temp_host, temp_host2)) {
-			json_array_append_string(json_child_hosts, temp_host2->name);
-			}
-		}
-#endif
 	json_object_append_array(json_details, "child_hosts", json_child_hosts);
 
 	json_services = json_new_array();
-#ifdef NSCORE
 	for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; 
 			temp_servicesmember = temp_servicesmember->next) {
 		json_array_append_string(json_services, 
 				temp_servicesmember->service_description);
 		}
-#else
-	for(temp_service = service_list; temp_service != NULL; 
-			temp_service = temp_service->next) {
-		if(!strcmp(temp_host->name, temp_service->host_name)) {
-			json_array_append_string(json_services, temp_service->description);
-			}
-		}
-#endif
 	json_object_append_array(json_details, "services", json_services);
 
 #ifdef JSON_NAGIOS_4X

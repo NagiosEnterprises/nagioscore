@@ -842,8 +842,11 @@ int xsddefault_read_status_data(const char *cfgfile, int options) {
 							temp_hoststatus->is_flapping = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "percent_state_change"))
 							temp_hoststatus->percent_state_change = strtod(val, NULL);
-						else if(!strcmp(var, "scheduled_downtime_depth"))
+						else if(!strcmp(var, "scheduled_downtime_depth")) {
 							temp_hoststatus->scheduled_downtime_depth = atoi(val);
+							if (temp_hoststatus->scheduled_downtime_depth < 0)
+								temp_hoststatus->scheduled_downtime_depth = 0;
+							}
 						}
 					break;
 
@@ -934,8 +937,11 @@ int xsddefault_read_status_data(const char *cfgfile, int options) {
 							temp_servicestatus->is_flapping = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "percent_state_change"))
 							temp_servicestatus->percent_state_change = strtod(val, NULL);
-						else if(!strcmp(var, "scheduled_downtime_depth"))
+						else if(!strcmp(var, "scheduled_downtime_depth")) {
 							temp_servicestatus->scheduled_downtime_depth = atoi(val);
+							if (temp_servicestatus->scheduled_downtime_depth < 0)
+								temp_servicestatus->scheduled_downtime_depth = 0;
+							}
 						}
 					break;
 

@@ -737,6 +737,10 @@ int main(int argc, char **argv) {
 				timing_point("Status data initialized\n");
 				}
 
+			/* initialize scheduled downtime data */
+			initialize_downtime_data();
+			timing_point("Downtime data initialized\n");
+
 			/* read initial service and host state information  */
 			initialize_retention_data(config_file);
 			timing_point("Retention data initialized\n");
@@ -746,10 +750,6 @@ int main(int argc, char **argv) {
 			/* initialize comment data */
 			initialize_comment_data();
 			timing_point("Comment data initialized\n");
-
-			/* initialize scheduled downtime data */
-			initialize_downtime_data();
-			timing_point("Downtime data initialized\n");
 
 			/* initialize performance data */
 			initialize_performance_data(config_file);

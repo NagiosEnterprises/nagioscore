@@ -663,8 +663,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	/* duplicate non-string vars */
 	new_host->hourly_value = hourly_value;
 	new_host->max_attempts = max_attempts;
-	new_host->check_interval = check_interval == 0.0 ? 1.0 : check_interval;
-	new_host->retry_interval = retry_interval == 0.0 ? 1.0 : retry_interval;
+	new_host->check_interval = check_interval;
+	new_host->retry_interval = retry_interval;
 	new_host->notification_interval = notification_interval;
 	new_host->first_notification_delay = first_notification_delay;
 	new_host->notification_options = notification_options;
@@ -1478,8 +1478,8 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		}
 
 	new_service->hourly_value = hourly_value;
-	new_service->check_interval = check_interval == 0.0 ? 1.0 : check_interval;
-	new_service->retry_interval = retry_interval == 0.0 ? 1.0 : retry_interval;
+	new_service->check_interval = check_interval;
+	new_service->retry_interval = retry_interval;
 	new_service->max_attempts = max_attempts;
 	new_service->parallelize = (parallelize > 0) ? TRUE : FALSE;
 	new_service->notification_interval = notification_interval;
@@ -2146,14 +2146,41 @@ int hostsmember_elements(hostsmember *list)
 /* returns a count of the immediate children for a given host */
 /* NOTE: This function is only used by the CGIS */
 int number_of_immediate_child_hosts(host *hst) {
-	return hst == NULL ? 0 : hostsmember_elements(hst->child_hosts);
+	int children = 0;
+	host *temp_host = NULL;
+
+	if(hst == NULL) {
+		for(temp_host = host_list; temp_host != NULL;
+				temp_host = temp_host->next) {
+			if(is_host_immediate_child_of_host(hst, temp_host) == TRUE)
+				children++;
+			}
+		return children;
+		}
+	else {
+		return hostsmember_elements(hst->child_hosts);
+		}
 	}
 
 
 /* get the number of immediate parent hosts for a given host */
 /* NOTE: This function is only used by the CGIS */
 int number_of_immediate_parent_hosts(host *hst) {
-	return hst == NULL ? 0 : hostsmember_elements(hst->parent_hosts);
+	int parents = 0;
+	host *temp_host = NULL;
+
+	if(hst == NULL) {
+		for(temp_host = host_list; temp_host != NULL;
+				temp_host = temp_host->next) {
+			if(is_host_immediate_parent_of_host(hst, temp_host) == TRUE) {
+				parents++;
+				}
+			}
+		return parents;
+		}
+	else {
+		return hostsmember_elements(hst->parent_hosts);
+		}
 	}
 #endif
 

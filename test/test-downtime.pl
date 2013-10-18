@@ -231,13 +231,15 @@ sub sendPassiveResults {
 sub maxDiscoveryTime {
 	my $cfg = shift;
 	my $service = shift;
+	my $versionMajor = shift;
 
 	my $maxDiscoveryTime = 0;
 	if( $service->{ "active_checks_enabled"}) {
 		$maxDiscoveryTime += ( $service->{ "check_interval"} * 
 				$cfg->{ "interval_length"});
 		$maxDiscoveryTime += ((( $service->{ "retry_interval"} + 
-				$cfg->{ "check_result_reaper_frequency"}) * 
+				( $versionMajor < 4 ? 
+				$cfg->{ "check_result_reaper_frequency"} : 0)) * 
 				$cfg->{ "interval_length"}) * 
 				( $service->{ "max_check_attempts"} - 1));
 	}
@@ -449,6 +451,7 @@ sub recoverService {
 	my $cfg = shift;
 	my $message = shift;
 	my $nagiosRunning = shift;
+	my $versionMajor = shift;
 
 	print statusString( 1, sprintf( "%s\n", $message));
 	if( $service->{ "active_checks_enabled"}) {
@@ -480,8 +483,10 @@ sub recoverService {
 					sprintf( "Waiting for next check to run at %s",
 					humanTime( $nextCheck))));
 		}
-		noisySleep( $cfg->{ "check_result_reaper_frequency"} + 2,
-				statusString( 2, "Waiting for check results reaper to run"));
+		if( $versionMajor < 4) {
+			noisySleep( $cfg->{ "check_result_reaper_frequency"} + 2,
+					statusString( 2, "Waiting for check results reaper to run"));
+		}
 		noisySleepUntilFileUpdate( $cfg->{ "status_file"}, time,
 				$cfg->{ "status_update_interval"} * 
 				$cfg->{ "StatusUpdateIntervalMultiplier"}, 
@@ -497,6 +502,7 @@ sub failService {
 	my $schedule = shift;
 	my $downtimeStart = shift;
 	my $nagiosRunning = shift;
+	my $versionMajor = shift;
 
 	# downtimeEndCheckIncrement is how much time we're going to add before the
 	# DowntimeEndCheck event due to a service check being delayed after the
@@ -527,14 +533,16 @@ sub failService {
 		if( $service->{ "active_checks_enabled"}) {
 			my $nextCheck = findServiceNextCheck( $cfg, $service);
 			$downtimeEndCheckIncrement = $nextCheck - time - 
-					maxDiscoveryTime( $cfg, $service);
+					maxDiscoveryTime( $cfg, $service, $versionMajor);
 			$downtimeEndCheckIncrement = 0 if( $downtimeEndCheckIncrement < 0);
 			noisySleepUntilTime( $nextCheck, statusString( 2, 
 					sprintf( "Waiting for next check to run at %s",
 					humanTime( $nextCheck))));
 		}
-		noisySleep( $cfg->{ "check_result_reaper_frequency"} + 2,
-				statusString( 2, "Waiting for check results reaper to run"));
+		if( $versionMajor < 4) {
+			noisySleep( $cfg->{ "check_result_reaper_frequency"} + 2,
+					statusString( 2, "Waiting for check results reaper to run"));
+		}
 		noisySleepUntilFileUpdate( $cfg->{ "status_file"}, time,
 				$cfg->{ "status_update_interval"} * 
 				$cfg->{ "StatusUpdateIntervalMultiplier"}, 
@@ -737,7 +745,8 @@ sub checkStateAfterNagiosRestart {
 		print statusString( 1, "Verifying downtime after Nagios restart.\n");
 		if( !verifyDowntime( $service, $cfg, $downtimeFixed, 
 				$downtimeStart,
-				$downtimeStart + $schedule->{ "DowntimeEnd"}, 
+				$downtimeStart + ( $schedule->{ "DowntimeEnd"} - 
+				$schedule->{ "DowntimeStart"}), 
 				$schedule->{ "DowntimeDuration"})) {
 			return -1;
 		}
@@ -757,6 +766,7 @@ sub checkDowntime {
 	my $cfg = shift;
 	my $downtimeFixed = shift;
 	my $schedule = shift;
+	my $versionMajor = shift;
 
 	my $startTime = time;
 	my $datfile;
@@ -775,7 +785,7 @@ sub checkDowntime {
 
 	# Determine the amount of time to discover a service failure above
 	# the normal check results reaper frequency
-	my $maxDiscoveryTime = maxDiscoveryTime( $cfg, $service);
+	my $maxDiscoveryTime = maxDiscoveryTime( $cfg, $service, $versionMajor);
 
 	# Create an events list
 	my @events;
@@ -796,11 +806,13 @@ sub checkDowntime {
 		}
 	}
 	else {
-		if( $schedule->{ "NagiosStart"} > $schedule->{ "DowntimeEnd"}) {
+		if( $schedule->{ "NagiosStart"} > ( $schedule->{ "DowntimeEnd"} - 
+				$schedule->{ "DowntimeStart"})) {
 			$eventTime = $schedule->{ "NagiosStart"} + 1;
 		}
 		else {
-			$eventTime = $schedule->{ "DowntimeEnd"};
+			$eventTime = ( $schedule->{ "DowntimeEnd"} - 
+					$schedule->{ "DowntimeStart"});
 		}
 	}
 	push( @events, { "time" => $eventTime + $cfg->{ "status_update_interval"}, 
@@ -837,7 +849,8 @@ sub checkDowntime {
 
 	# Make sure the service starts in a good state
 	if( ! recoverService( $service, $cfg, 
-			"Making sure the service is in a good state.", $nagiosRunning)) {
+			"Making sure the service is in a good state.", $nagiosRunning,
+			$versionMajor)) {
 		return -1;
 	}
 
@@ -858,16 +871,19 @@ sub checkDowntime {
 		print statusString( 1, 
 				sprintf( "Scheduling fixed downtime\n\t\tfrom %s to %s.\n",
 				humanTime( $downtimeStart), 
-				humanTime( $downtimeStart + $schedule->{ "DowntimeEnd"})));
+				humanTime( $downtimeStart + ( $schedule->{ "DowntimeEnd"} - 
+				$schedule->{ "DowntimeStart"}))));
 	}
 	else {
 		print statusString( 1, sprintf( "Scheduling flexible downtime of " .
 				"%d seconds\n\t\tfrom %s to %s.\n",
 				$schedule->{ "DowntimeDuration"}, humanTime( $downtimeStart),
-				humanTime( $downtimeStart + $schedule->{ "DowntimeEnd"})));
+				humanTime( $downtimeStart + ( $schedule->{ "DowntimeEnd"} - 
+				$schedule->{ "DowntimeStart"}))));
 	}
 	scheduleDowntime( $service, $downtimeStart,
-			$downtimeStart + $schedule->{ "DowntimeEnd"}, $downtimeFixed, 
+			$downtimeStart + ( $schedule->{ "DowntimeEnd"} - 
+			$schedule->{ "DowntimeStart"}), $downtimeFixed, 
 			$schedule->{ "DowntimeDuration"}, $testComment);
 	
 	# Wait for the status file to update
@@ -878,7 +894,8 @@ sub checkDowntime {
 
 	# Verify the downtime 
 	if( !verifyDowntime( $service, $cfg, $downtimeFixed, $downtimeStart,
-			$downtimeStart + $schedule->{ "DowntimeEnd"}, 
+			$downtimeStart + ( $schedule->{ "DowntimeEnd"} - 
+			$schedule->{ "DowntimeStart"}), 
 			$schedule->{ "DowntimeDuration"})) {
 		return -1;
 	}
@@ -967,7 +984,7 @@ sub checkDowntime {
 		elsif( $sortedEvents[ $eventIndex]->{ "type"} eq "ServiceFail") {
 			( $downtimeEndCheckIncrement, $downtimeAfterServiceFail) = 
 					failService( $service, $cfg, $schedule, $downtimeStart, 
-					$nagiosRunning);
+					$nagiosRunning, $versionMajor);
 			if( $downtimeEndCheckIncrement < 0) {
 				return -1;
 			}
@@ -983,7 +1000,7 @@ sub checkDowntime {
 		# Cause the service to recover
 		elsif( $sortedEvents[ $eventIndex]->{ "type"} eq "ServiceRecover") {
 			if( !recoverService( $service, $cfg, "Sending service recovery.", 
-					$nagiosRunning)) {
+					$nagiosRunning, $versionMajor)) {
 				return -1;
 			}
 		}
@@ -1170,6 +1187,7 @@ sub scheduleDowntimePermutation {
 	my $service = shift;
 	my $cfg = shift;
 	my $permutation = shift;
+	my $versionMajor = shift;
 
 	# Initialize times
 	my %schedule;
@@ -1183,7 +1201,7 @@ sub scheduleDowntimePermutation {
 
 	# Determine the amount of time to discover a service failure above
 	# the normal check results reaper frequency
-	my $maxDiscoveryTime = maxDiscoveryTime( $cfg, $service);
+	my $maxDiscoveryTime = maxDiscoveryTime( $cfg, $service, $versionMajor);
 
 	# Get the current time, to be used for all future times
 	my $currentTime = time;
@@ -1198,7 +1216,8 @@ sub scheduleDowntimePermutation {
 	elsif( $permutation->[ 0] eq "DowntimeStart") {
 		$schedule{ "DowntimeStart"} = -10;
 		$lastEventTime = $schedule{ "DowntimeStart"} + 
-				$cfg->{ "check_result_reaper_frequency"} + 2 ;
+				( $versionMajor < 4 ? 
+				$cfg->{ "check_result_reaper_frequency"} : 0) + 2 ;
 	}
 	else {
 		die "Unsupported permutation order: " . $permutation->[ 0] . " => " .
@@ -1251,7 +1270,8 @@ sub scheduleDowntimePermutation {
 					( $cfg->{ "status_update_interval"} * 
 					$cfg->{ "StatusUpdateIntervalMultiplier"});
 			$lastEventTime = $schedule{ "ServiceFail"} + 
-					$cfg->{ "check_result_reaper_frequency"} + 
+					( $versionMajor < 4 ? 
+					$cfg->{ "check_result_reaper_frequency"} : 0) + 
 					$maxDiscoveryTime;
 			printf( "    Service Fail: %s\n", $schedule{ "ServiceFail"});
 		}
@@ -1260,7 +1280,8 @@ sub scheduleDowntimePermutation {
 					( $cfg->{ "status_update_interval"} * 
 					$cfg->{ "StatusUpdateIntervalMultiplier"});
 			$lastEventTime = $schedule{ "ServiceRecover"} +
-					$cfg->{ "check_result_reaper_frequency"} + 
+					( $versionMajor < 4 ? 
+					$cfg->{ "check_result_reaper_frequency"} : 0) + 
 					$maxDiscoveryTime;
 			printf( "    Service Recover: %s\n", $schedule{ "ServiceRecover"});
 		}
@@ -1358,14 +1379,14 @@ sub flexibleDowntimeTestPermutations {
 # This function verifies the global Nagios configuration
 sub verifyConfig {
 
-	# Read the Nagios configuration
-	my $cfg = readCfgFile( "/usr/local/nagios/etc/nagios.cfg");
+	my $cfg = shift;
+	my $versionMajor = shift;
 
 	# Verify the status update interval
 	if( $cfg->{ "status_update_interval"} < 5) {
 		print STDERR sprintf( "status_update_interval (%d) is too short\n",
 				$cfg->{ "status_update_interval"});
-		return undef;
+		return 0;
 	}
 	if( $cfg->{ "status_update_interval"} >= 10) {
 		print sprintf( "The status_update_interval (%d) is long. " .
@@ -1375,21 +1396,23 @@ sub verifyConfig {
 		<STDIN>;
 	}
 
-	# Verify the check_result_reaper_frequency
-	if( $cfg->{ "check_result_reaper_frequency"} < 5) {
-		print STDERR sprintf( "check_result_reaper_frequency (%d)" .
-				" is too short\n", $cfg->{ "check_result_reaper_frequency"});
-		return undef;
-	}
-	if( $cfg->{ "check_result_reaper_frequency"} >= 10) {
-		print sprintf( "The check_result_reaper_frequency (%d) is long. " .
-				"It should optimally be 5 seconds.\n", 
-				$cfg->{ "check_result_reaper_frequency"});
-		print "Press ENTER to continue...";
-		<STDIN>;
+	if( $versionMajor < 4) {
+		# Verify the check_result_reaper_frequency
+		if( $cfg->{ "check_result_reaper_frequency"} < 5) {
+			print STDERR sprintf( "check_result_reaper_frequency (%d) is too " .
+					"short\n", $cfg->{ "check_result_reaper_frequency"});
+			return 0;
+		}
+		if( $cfg->{ "check_result_reaper_frequency"} >= 10) {
+			print sprintf( "The check_result_reaper_frequency (%d) is long. " .
+					"It should optimally be 5 seconds.\n", 
+					$cfg->{ "check_result_reaper_frequency"});
+			print "Press ENTER to continue...";
+			<STDIN>;
+		}
 	}
 
-	return $cfg;
+	return 1;
 }
 
 sub verifyService {
@@ -1464,6 +1487,19 @@ sub verifyService {
 		}
 	}
 	return $service;
+}
+
+sub getVersion {
+	my $cfg = shift;
+
+	my $status = readDatFile( $cfg->{ "status_file"});
+	my @versionparts = split( /\./, $status->{ "info"}->{ "version"});
+	my %version;
+	$version{ "major"} = $versionparts[ 0];
+	$version{ "minor"} = $versionparts[ 1];
+	$version{ "micro"} = $versionparts[ 2];
+
+	return \%version;
 }
 
 sub isInArray {
@@ -1567,9 +1603,19 @@ if( $status !~ /nagios \(pid( \d+)+\) is running.../) {
 	exit 1;
 }
 
-# Verify the global configuration
-my $cfg = verifyConfig();
+# Read the Nagios configuration
+my $cfg = readCfgFile( "/usr/local/nagios/etc/nagios.cfg");
 exit 1 unless( defined( $cfg));
+
+# Get the version
+my $version = getVersion( $cfg);
+printf( "Nagios version is %d.%d.%d\n", $version->{ "major"}, 
+		$version->{ "minor"}, $version->{ "micro"});
+
+# Verify the global configuration
+unless( verifyConfig( $cfg, $version->{ "major"}) > 0) {
+	exit 1;
+}
 $cfg->{ "StatusUpdateIntervalMultiplier"} = 4;
 
 # Verify the service configuration
@@ -1588,21 +1634,23 @@ my $schedule;
 my $comment;
 
 #my @testPerm = ( "DowntimeStart", "DurationEnd", "EntryTime", "ServiceFail", "NagiosStop", "DowntimeEnd", "NagiosStart", "ServiceRecover");
-#my $testSchedule = scheduleDowntimePermutation( $service, $cfg, \@testPerm);
+#my $testSchedule = scheduleDowntimePermutation( $service, $cfg, \@testPerm, 
+#		$version->{ "major"});
 #my $testComment = join( ", ", @testPerm);
 #checkDowntime( "Flexible downtime: $testComment", $service, $cfg, 0, 
-#		$testSchedule);
+#		$testSchedule, $version->{ "major"});
 #exit( 0);
 
 if( defined( $singleRun)) {
 	if( $singleRun =~ /^(Fixed|Flexible) downtime: (.*)/) {
+		my $downtimeType = $1;
 		my @singleRunPerm = split( /, /, $2);
 		my $fixed = (( $singleRun =~ /^Fixed/) ? 1 : 0);
 		my $testSchedule = scheduleDowntimePermutation( $service, $cfg, 
-				\@singleRunPerm);
+				\@singleRunPerm, $version->{ "major"});
 		my $testComment = join( ", ", @singleRunPerm);
-		checkDowntime( "Flexible downtime: $testComment", $service, $cfg, 0, 
-				$testSchedule);
+		checkDowntime( "$downtimeType downtime: $testComment", $service, $cfg, 
+				$fixed, $testSchedule, $version->{ "major"});
 		exit 0;
 	}
 	else {
@@ -1636,9 +1684,9 @@ else {
 				printf( "Fixed Test %d of %d\n", $x + 1, 
 						scalar( @$fixedDowntimeTests));
 				$schedule = scheduleDowntimePermutation( $service, $cfg, 
-						$fixedDowntimeTests->[ $x]);
+						$fixedDowntimeTests->[ $x], $version->{ "major"});
 				$permutationTime = checkDowntime( "Fixed downtime: $comment", 
-						$service, $cfg, 1, $schedule);
+						$service, $cfg, 1, $schedule, $version->{ "major"});
 				if( $permutationTime == -1) {
 					if( $lastTriedPermutation != $x) {
 						print "Downtime test failed: retrying\n";
@@ -1680,9 +1728,9 @@ else {
 				printf( "Flexible Test %d of %d\n", $y + 1, 
 						scalar( @$flexibleDowntimeTests));
 				$schedule = scheduleDowntimePermutation( $service, $cfg, 
-						$flexibleDowntimeTests->[ $y]);
+						$flexibleDowntimeTests->[ $y], $version->{ "major"});
 				$permutationTime = checkDowntime( "Flexible downtime: $comment", 
-						$service, $cfg, 0, $schedule);
+						$service, $cfg, 0, $schedule, $version->{ "major"});
 				if( $permutationTime == -1) {
 					if( $lastTriedPermutation != $y) {
 						print "Downtime test failed: retrying\n";

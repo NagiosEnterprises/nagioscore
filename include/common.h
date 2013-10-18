@@ -24,8 +24,8 @@
 
 #include "shared.h"
 
-#define PROGRAM_VERSION "4.0.0"
-#define PROGRAM_MODIFICATION_DATE "09-20-2013"
+#define PROGRAM_VERSION "4.0.1"
+#define PROGRAM_MODIFICATION_DATE "10-15-2013"
 
 NAGIOS_BEGIN_DECL
 
@@ -41,6 +41,7 @@ extern int log_rotation_method;
 extern int check_external_commands;
 /* set this if you're going to add a ton of comments at once */
 extern int defer_comment_sorting;
+extern unsigned long next_downtime_id;
 
 extern char *object_cache_file;
 extern char *status_file;

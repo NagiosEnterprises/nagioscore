@@ -46,7 +46,7 @@ if test "$USE_RAMDISK" -ne 0 && test "$RAMDISK_SIZE"X != "X"; then
 fi
 
 check_config() {
-	TMPFILE="/tmp/.configtest.$$"
+	TMPFILE=$(mktemp /tmp/.configtest.XXXXXXXX)
 	/sbin/service nagios configtest > "$TMPFILE"
 	WARN=`grep ^"Total Warnings:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g`
 	ERR=`grep ^"Total Errors:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g`

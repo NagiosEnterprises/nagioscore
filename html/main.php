@@ -1,7 +1,7 @@
 <?php
 include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
-$this_version="4.0.0";
+$this_version="4.0.1";
 
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
@@ -38,9 +38,9 @@ $this_version="4.0.0";
 
 <div id="currentversioninfo">
 <div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
-<div class="version">Version 4.0.0</div>
-<div class="releasedate">September 20, 2013</div>
-<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=4.0.0&product=nagioscore" target="_blank">Check for updates</a></div>
+<div class="version">Version 4.0.1</div>
+<div class="releasedate">October 15, 2013</div>
+<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=4.0.1&product=nagioscore" target="_blank">Check for updates</a></div>
 <!--<div class="whatsnew"><a href="http://go.nagios.com/nagioscore/whatsnew">Read what's new in Nagios Core 3</a></div>-->
 </div>
 

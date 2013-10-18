@@ -58,6 +58,7 @@ typedef struct scheduled_downtime {
 #ifndef NSCGI
 	struct timed_event *start_event, *stop_event;
 #endif
+	struct scheduled_downtime *prev;
 	} scheduled_downtime;
 
 extern struct scheduled_downtime *scheduled_downtime_list;

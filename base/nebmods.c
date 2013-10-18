@@ -167,7 +167,7 @@ int neb_load_all_modules(void) {
 int neb_load_module(nebmodule *mod) {
 	int (*initfunc)(int, char *, void *);
 	int *module_version_ptr = NULL;
-	int dest_fd, result = OK;
+	int result = OK;
 
 	if(mod == NULL)
 		return ERROR;
@@ -303,6 +303,11 @@ int neb_unload_module(nebmodule *mod, int flags, int reason) {
 
 		/* unload the module */
 		result = dlclose(mod->module_handle);
+
+		if (result != 0) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not unload module '%s' -> %s\n", mod->filename, dlerror());
+			return ERROR;
+			}
 		}
 
 	/* mark the module as being unloaded */

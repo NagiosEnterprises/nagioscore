@@ -1942,6 +1942,7 @@ json_object *json_status_host(unsigned format_options, host *temp_host,
 void json_status_host_details(json_object *json_details, unsigned format_options, 
 		host *temp_host, hoststatus *temp_hoststatus) {
 
+	json_object_append_string(json_details, "name", temp_host->name);
 	json_object_append_string(json_details, "plugin_output", 
 			temp_hoststatus->plugin_output);
 	json_object_append_string(json_details, "long_plugin_output", 
@@ -2502,7 +2503,8 @@ json_object *json_status_service(unsigned format_options, service *temp_service,
 	json_object *json_service = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "host_name", temp_service->host_name);
+	json_object_append_string(json_details, "host_name", 
+			temp_service->host_name);
 	json_object_append_string(json_details, "description", 
 			temp_service->description);
 	json_status_service_details(json_details, format_options, temp_service, 
@@ -2516,6 +2518,10 @@ void json_status_service_details(json_object *json_details,
 		unsigned format_options, service *temp_service, 
 		servicestatus *temp_servicestatus) {
 
+	json_object_append_string(json_details, "host_name", 
+			temp_service->host_name);
+	json_object_append_string(json_details, "description", 
+			temp_service->description);
 	json_object_append_string(json_details, "plugin_output", 
 			temp_servicestatus->plugin_output);
 	json_object_append_string(json_details, "long_plugin_output", 
@@ -2770,6 +2776,8 @@ json_object *json_status_comment(unsigned format_options, comment *temp_comment)
 void json_status_comment_details(json_object *json_details, 
 		unsigned format_options, comment *temp_comment) {
 
+	json_object_append_integer(json_details, "comment_id", 
+			temp_comment->comment_id);
 	json_enumeration(json_details, format_options, "comment_type",
 			temp_comment->comment_type, svm_comment_types);
 	json_enumeration(json_details, format_options, "entry_type",
@@ -2972,6 +2980,8 @@ json_object *json_status_downtime(unsigned format_options,
 void json_status_downtime_details(json_object *json_details, 
 		unsigned format_options, scheduled_downtime *temp_downtime) {
 
+	json_object_append_integer(json_details, "downtime_id", 
+			temp_downtime->downtime_id);
 	json_enumeration(json_details, format_options, "type", temp_downtime->type, 
 			svm_downtime_types);
 	json_object_append_string(json_details, "host_name", 

@@ -1790,6 +1790,7 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 #endif
 	customvariablesmember *temp_custom_variablesmember;
 
+	json_object_append_string(json_details, "name", temp_host->name);
 	json_object_append_string(json_details, "display_name", 
 			temp_host->display_name);
 	json_object_append_string(json_details, "alias", temp_host->alias);
@@ -2186,7 +2187,8 @@ json_object *json_object_hostgroup(unsigned format_options,
 	json_object *json_hostgroup = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "name", temp_hostgroup->group_name);
+	json_object_append_string(json_details, "group_name", 
+			temp_hostgroup->group_name);
 	json_object_hostgroup_details(json_details, format_options, temp_hostgroup);
 	json_object_append_object(json_hostgroup, "hostgroup", json_details);
 
@@ -2199,6 +2201,8 @@ void json_object_hostgroup_details(json_object *json_details,
 	json_array *json_members;
 	hostsmember *temp_member;
 
+	json_object_append_string(json_details, "group_name", 
+			temp_hostgroup->group_name);
 	json_object_append_string(json_details, "alias", temp_hostgroup->alias);
 
 	json_members = json_new_array();
@@ -2488,7 +2492,8 @@ json_object *json_object_service(unsigned format_options, service *temp_service)
 	json_object *json_service = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "host_name", temp_service->host_name);
+	json_object_append_string(json_details, "host_name", 
+			temp_service->host_name);
 	json_object_append_string(json_details, "description", 
 			temp_service->description);
 	json_object_service_details(json_details, format_options, temp_service);
@@ -2516,6 +2521,10 @@ void json_object_service_details(json_object *json_details,
 	json_array *json_custom_variables;
 	customvariablesmember *temp_customvariablesmember;
 
+	json_object_append_string(json_details, "host_name", 
+			temp_service->host_name);
+	json_object_append_string(json_details, "description", 
+			temp_service->description);
 	json_object_append_string(json_details, "display_name", 
 			temp_service->display_name);
 #ifdef JSON_NAGIOS_4X
@@ -2928,7 +2937,7 @@ json_object * json_object_servicegroup(unsigned format_options,
 	json_object *json_servicegroup = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "name", 
+	json_object_append_string(json_details, "group_name", 
 			temp_servicegroup->group_name);
 	json_object_servicegroup_details(json_details, format_options, 
 			temp_servicegroup);
@@ -2944,6 +2953,8 @@ void json_object_servicegroup_details(json_object *json_details,
 	servicesmember *temp_member;
 	json_object *json_member;
 
+	json_object_append_string(json_details, "group_name", 
+			temp_servicegroup->group_name);
 	json_object_append_string(json_details, "alias", temp_servicegroup->alias);
 
 	json_members = json_new_array();
@@ -3110,6 +3121,7 @@ void json_object_contact_details(json_object *json_details,
 	commandsmember *temp_commandsmember;
 	customvariablesmember *temp_customvariablesmember;
 
+	json_object_append_string(json_details, "name", temp_contact->name);
 	json_object_append_string(json_details, "alias", temp_contact->alias);
 	json_object_append_string(json_details, "email", temp_contact->email);
 	json_object_append_string(json_details, "pager", temp_contact->pager);
@@ -3384,7 +3396,7 @@ json_object *json_object_contactgroup(unsigned format_options,
 	json_object *json_contactgroup = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "name", 
+	json_object_append_string(json_details, "group_name", 
 			temp_contactgroup->group_name);
 	json_object_contactgroup_details(json_details, format_options, 
 			temp_contactgroup);
@@ -3399,6 +3411,8 @@ void json_object_contactgroup_details(json_object *json_details,
 	json_array *json_members;
 	contactsmember *temp_member;
 
+	json_object_append_string(json_details, "group_name", 
+			temp_contactgroup->group_name);
 	json_object_append_string(json_details, "alias", temp_contactgroup->alias);
 
 	json_members = json_new_array();
@@ -3525,6 +3539,7 @@ void json_object_timeperiod_details(json_object *json_details,
 	daterange *temp_daterange;
 	timeperiodexclusion *temp_timeperiodexclusion;
 
+	json_object_append_string(json_details, "name", temp_timeperiod->name);
 	json_object_append_string(json_details, "alias", temp_timeperiod->alias);
 
 	json_days = json_new_object();
@@ -3533,7 +3548,7 @@ void json_object_timeperiod_details(json_object *json_details,
 			json_timeranges = json_new_array();
 			json_object_timerange(json_timeranges, format_options, 
 					temp_timeperiod->days[x]);
-			json_object_append_object(json_days, (char *)dayofweek[x], 
+			json_object_append_array(json_days, (char *)dayofweek[x], 
 					json_timeranges);
 			}
 		}
@@ -3838,6 +3853,7 @@ json_object *json_object_command(unsigned format_options, command *temp_command)
 
 void json_object_command_details(json_object *json_details, 
 		unsigned format_options, command *temp_command) {
+	json_object_append_string(json_details, "name", temp_command->name);
 	json_object_append_string(json_details, "command_line", 
 			temp_command->command_line);
 	}

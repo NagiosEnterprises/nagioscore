@@ -938,8 +938,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_queries, &(cgi_data->query))) 
-					!= RESULT_SUCCESS) {
+					valid_queries, &(cgi_data->query))) != RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -950,8 +949,8 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)svm_format_options, 
-					&(cgi_data->format_options))) != RESULT_SUCCESS) {
+					svm_format_options, &(cgi_data->format_options))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1827,7 +1826,7 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 #endif
 
 	json_enumeration(json_details, format_options, "initial_state", 
-			temp_host->initial_state, (string_value_mapping *)svm_host_states);
+			temp_host->initial_state, svm_host_states);
 	json_object_append_real(json_details, "check_interval", 
 			temp_host->check_interval);
 	json_object_append_real(json_details, "retry_interval", 
@@ -1885,8 +1884,7 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	else {
 #endif
 		json_bitmask(json_details, format_options, "notifications_options",
-				temp_host->notification_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_host->notification_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -1925,8 +1923,7 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	else {
 #endif
 		json_bitmask(json_details, format_options, "flap_detection_options",
-				temp_host->flap_detection_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_host->flap_detection_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -1952,8 +1949,7 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	else {
 #endif
 		json_bitmask(json_details, format_options, "stalking_options",
-				temp_host->stalking_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_host->stalking_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -2543,8 +2539,7 @@ void json_object_service_details(json_object *json_details,
 			temp_service->event_handler);
 
 	json_enumeration(json_details, format_options, "initial_state", 
-			temp_service->initial_state, 
-			(string_value_mapping *)svm_service_states);
+			temp_service->initial_state, svm_service_states);
 
 	json_object_append_real(json_details, "check_interval", 
 			temp_service->check_interval);
@@ -2606,8 +2601,7 @@ void json_object_service_details(json_object *json_details,
 	else {
 #endif
 		json_bitmask(json_details, format_options, "notifications_options",
-				temp_service->notification_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_service->notification_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -2641,8 +2635,7 @@ void json_object_service_details(json_object *json_details,
 	else {
 #endif
 		json_bitmask(json_details, format_options, "stalking_options",
-				temp_service->stalking_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_service->stalking_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -2685,8 +2678,7 @@ void json_object_service_details(json_object *json_details,
 	else {
 #endif
 		json_bitmask(json_details, format_options, "flap_detection_options",
-				temp_service->flap_detection_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_service->flap_detection_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -3176,8 +3168,7 @@ void json_object_contact_details(json_object *json_details,
 #endif
 		json_bitmask(json_details, format_options, 
 				"service_notification_options",
-				temp_contact->service_notification_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_contact->service_notification_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -3217,8 +3208,7 @@ void json_object_contact_details(json_object *json_details,
 	else {
 #endif
 		json_bitmask(json_details, format_options, "host_notification_options",
-				temp_contact->host_notification_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_contact->host_notification_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -3984,8 +3974,7 @@ void json_object_servicedependency_details(json_object *json_details,
 	else {
 #endif
 		json_bitmask(json_details, format_options, "failure_options",
-				temp_servicedependency->failure_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_servicedependency->failure_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -4161,8 +4150,7 @@ void json_object_serviceescalation_details(json_object *json_details,
 	else {
 #endif
 		json_bitmask(json_details, format_options, "escalation_options",
-				temp_serviceescalation->escalation_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_serviceescalation->escalation_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -4318,8 +4306,7 @@ void json_object_hostdependency_details(json_object *json_details,
 	else {
 #endif
 		json_bitmask(json_details, format_options, "failure_options",
-				temp_hostdependency->failure_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_hostdependency->failure_options, svm_option_types);
 #if 0
 		}
 #endif
@@ -4486,8 +4473,7 @@ void json_object_hostescalation_details(json_object *json_details,
 	else {
 #endif
 		json_bitmask(json_details, format_options, "escalation_options",
-				temp_hostescalation->escalation_options, 
-				(string_value_mapping *)svm_option_types);
+				temp_hostescalation->escalation_options, svm_option_types);
 #if 0
 		}
 #endif

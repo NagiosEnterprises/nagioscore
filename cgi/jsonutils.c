@@ -1012,12 +1012,12 @@ void json_duration(int padding, int whitespace, char *key, unsigned long value,
 	}
 
 void json_enumeration(json_object *json_parent, unsigned format_options, 
-		char *key, int value, string_value_mapping *map) {
+		char *key, int value, const string_value_mapping *map) {
 
 	string_value_mapping *svmp;
 
 	if(format_options & JSON_FORMAT_ENUMERATE) {
-		for(svmp = map; NULL != svmp->string; svmp++) {
+		for(svmp = (string_value_mapping *)map; NULL != svmp->string; svmp++) {
 			if( value == svmp->value) {
 				json_object_append_string(json_parent, key, svmp->string);
 				break;
@@ -1034,14 +1034,14 @@ void json_enumeration(json_object *json_parent, unsigned format_options,
 	}
 
 void json_bitmask(json_object *json_parent, unsigned format_options, char *key, 
-		int value, string_value_mapping *map) {
+		int value, const string_value_mapping *map) {
 
 	json_array *json_bitmask_array;
 	string_value_mapping *svmp;
 
 	if(format_options & JSON_FORMAT_BITMASK) {
 		json_bitmask_array = json_new_array();
-		for(svmp = map; NULL != svmp->string; svmp++) {
+		for(svmp = (string_value_mapping *)map; NULL != svmp->string; svmp++) {
 			if( value & svmp->value) {
 				json_array_append_string(json_bitmask_array, svmp->string);
 				}
@@ -1054,8 +1054,8 @@ void json_bitmask(json_object *json_parent, unsigned format_options, char *key,
 	}
 
 int parse_bitmask_cgivar(char *cgi, char *query, json_object *json_parent, 
-		time_t query_time, char *key, char *value, string_value_mapping *svm, 
-		unsigned *var) {
+		time_t query_time, char *key, char *value, 
+		const string_value_mapping *svm, unsigned *var) {
 
 	int result = RESULT_SUCCESS;
 	char *option;
@@ -1091,8 +1091,8 @@ int parse_bitmask_cgivar(char *cgi, char *query, json_object *json_parent,
 	}
 
 int parse_enumeration_cgivar(char *cgi, char *query, json_object *json_parent, 
-		time_t query_time, char *key, char *value, string_value_mapping *svm, 
-		int *var) {
+		time_t query_time, char *key, char *value, 
+		const string_value_mapping *svm, int *var) {
 
 	string_value_mapping *svmp;
 

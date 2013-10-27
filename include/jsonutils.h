@@ -170,14 +170,14 @@ extern void json_time_t(int, int, char *, time_t, char *);
 extern void json_duration(int, int, char *, unsigned long, int);
 
 extern void json_enumeration(json_object *, unsigned, char *, int, 
-		string_value_mapping *);
+		const string_value_mapping *);
 extern void json_bitmask(json_object *, unsigned, char *, int, 
-		string_value_mapping *);
+		const string_value_mapping *);
 
 extern int parse_bitmask_cgivar(char *, char *, json_object *, time_t, char *, 
-		char *, string_value_mapping *, unsigned *);
+		char *, const string_value_mapping *, unsigned *);
 extern int parse_enumeration_cgivar(char *, char *, json_object *, time_t, 
-		char *, char *, string_value_mapping *, int *);
+		char *, char *, const string_value_mapping *, int *);
 extern int parse_string_cgivar(char *, char *, json_object *, time_t, char *, 
 		char *, char **);
 extern int parse_time_cgivar(char *, char *, json_object *, time_t, char *, 

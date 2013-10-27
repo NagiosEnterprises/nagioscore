@@ -1000,8 +1000,7 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_queries, 
-					&(cgi_data->query))) != RESULT_SUCCESS) {
+					valid_queries, &(cgi_data->query))) != RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1012,8 +1011,8 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)svm_format_options, 
-					&(cgi_data->format_options))) != RESULT_SUCCESS) {
+					svm_format_options, &(cgi_data->format_options))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1064,8 +1063,8 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_object_types, 
-					&(cgi_data->object_type))) != RESULT_SUCCESS) {
+					valid_object_types, &(cgi_data->object_type))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1076,8 +1075,8 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_object_types, 
-					&(cgi_data->object_types))) != RESULT_SUCCESS) {
+					valid_object_types, &(cgi_data->object_types))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1087,7 +1086,7 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_availability_object_types, 
+					valid_availability_object_types, 
 					&(cgi_data->object_type))) != RESULT_SUCCESS) {
 				break;
 				}
@@ -1099,8 +1098,8 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_state_types, 
-					&(cgi_data->state_types))) != RESULT_SUCCESS) {
+					valid_state_types, &(cgi_data->state_types))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1111,8 +1110,8 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_host_states, 
-					&(cgi_data->host_states))) != RESULT_SUCCESS) {
+					valid_host_states, &(cgi_data->host_states))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1123,8 +1122,8 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_service_states, 
-					&(cgi_data->service_states))) != RESULT_SUCCESS) {
+					valid_service_states, &(cgi_data->service_states))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1135,7 +1134,7 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_host_notification_types, 
+					valid_host_notification_types, 
 					&(cgi_data->host_notification_types))) != RESULT_SUCCESS) {
 				break;
 				}
@@ -1147,7 +1146,7 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_service_notification_types, 
+					valid_service_notification_types, 
 					&(cgi_data->service_notification_types))) 
 					!= RESULT_SUCCESS) {
 				break;
@@ -1292,7 +1291,7 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_initial_host_states, 
+					valid_initial_host_states, 
 					&(cgi_data->assumed_initial_host_state))) != 
 					RESULT_SUCCESS) {
 				break;
@@ -1304,7 +1303,7 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_initial_service_states, 
+					valid_initial_service_states, 
 					&(cgi_data->assumed_initial_service_state))) != 
 					RESULT_SUCCESS) {
 				break;
@@ -1943,25 +1942,24 @@ json_object * json_archive_alert_selectors(unsigned format_options, int start,
 
 	if(object_types != AU_OBJTYPE_ALL) {
 		json_bitmask(json_selectors, format_options, "objecttypes", 
-				object_types, (string_value_mapping *)valid_object_types);
+				object_types, valid_object_types);
 		}
 
 	if(match_state_types != AU_STATETYPE_ALL) {
 		json_bitmask(json_selectors, format_options, "statetypes", 
-				match_state_types, (string_value_mapping *)valid_state_types);
+				match_state_types, valid_state_types);
 		}
 
 	if((object_types & AU_OBJTYPE_HOST) && 
 			(match_host_states != AU_STATE_HOST_ALL)) {
 		json_bitmask(json_selectors, format_options, "hoststates", 
-				match_host_states, (string_value_mapping *)valid_host_states);
+				match_host_states, valid_host_states);
 		}
 
 	if((object_types & AU_OBJTYPE_SERVICE) && 
 			(match_service_states != AU_STATE_SERVICE_ALL)) {
 		json_bitmask(json_selectors, format_options, "servicestates", 
-				match_service_states, 
-				(string_value_mapping *)valid_service_states);
+				match_service_states, valid_service_states);
 		}
 
 	if(NULL != match_host) {
@@ -2160,7 +2158,7 @@ void json_archive_alert_details(json_object *json_details,
 	json_object_append_time_t(json_details, "timestamp", timestamp);
 
 	json_enumeration(json_details, format_options, "object_type", 
-			temp_alert->obj_type, (string_value_mapping *)svm_au_object_types);
+			temp_alert->obj_type, svm_au_object_types);
 
 	switch(temp_alert->obj_type) {
 	case AU_OBJTYPE_HOST:
@@ -2177,9 +2175,9 @@ void json_archive_alert_details(json_object *json_details,
 		}
 
 	json_enumeration(json_details, format_options, "state_type", 
-			temp_alert->state_type, (string_value_mapping *)svm_au_state_types);
+			temp_alert->state_type, svm_au_state_types);
 	json_enumeration(json_details, format_options, "state", temp_alert->state, 
-			(string_value_mapping *)svm_au_states);
+			svm_au_states);
 	json_object_append_string(json_details, "plugin_output", 
 			temp_alert->plugin_output);
 	}
@@ -2454,21 +2452,21 @@ json_object * json_archive_notification_selectors(unsigned format_options,
 
 	if(match_object_types != AU_OBJTYPE_ALL) {
 		json_bitmask(json_selectors, format_options, "objecttypes", 
-				match_object_types, (string_value_mapping *)valid_object_types);
+				match_object_types, valid_object_types);
 		}
 
 	if((match_object_types & AU_OBJTYPE_HOST) && 
 			(match_host_notification_types != AU_NOTIFICATION_HOST_ALL)) {
 		json_bitmask(json_selectors, format_options, "hostnotificationtypes", 
 				match_host_notification_types, 
-				(string_value_mapping *)valid_host_notification_types);
+				valid_host_notification_types);
 		}
 
 	if((match_object_types & AU_OBJTYPE_SERVICE) && 
 			(match_service_notification_types != AU_NOTIFICATION_SERVICE_ALL)) {
 		json_bitmask(json_selectors, format_options, "servicenotificationtypes",
 				match_service_notification_types, 
-				(string_value_mapping *)valid_service_notification_types);
+				valid_service_notification_types);
 		}
 
 	if(NULL != match_host) {
@@ -2685,7 +2683,7 @@ void json_archive_notification_details(json_object *json_details,
 
 	json_enumeration(json_details, format_options, "object_type", 
 			temp_notification->obj_type, 
-			(string_value_mapping *)svm_au_object_types);
+			svm_au_object_types);
 
 	switch(temp_notification->obj_type) {
 	case AU_OBJTYPE_HOST:
@@ -2705,7 +2703,7 @@ void json_archive_notification_details(json_object *json_details,
 			temp_notification->contact->name);
 	json_enumeration(json_details, format_options, "notification_type", 
 			temp_notification->notification_type, 
-			(string_value_mapping *)svm_au_notification_types);
+			svm_au_notification_types);
 	json_object_append_string(json_details, "method", 
 			temp_notification->method);
 	json_object_append_string(json_details, "message", 
@@ -2814,7 +2812,7 @@ json_object *json_archive_statechange_selectors(unsigned format_options,
 
 	if(state_types != AU_STATETYPE_ALL) {
 		json_bitmask(json_selectors, format_options, "statetypes", state_types, 
-				(string_value_mapping *)valid_state_types);
+				valid_state_types);
 		}
 
 	return json_selectors;
@@ -3762,8 +3760,7 @@ json_object *json_archive_availability_selectors(unsigned format_options,
 	json_selectors = json_new_object();
 
 	json_enumeration(json_selectors, format_options, "availabilityobjecttype", 
-			availability_object_type, 
-			(string_value_mapping *)valid_availability_object_types);
+			availability_object_type, valid_availability_object_types);
 
 	if(start_time > 0) {
 		json_object_append_time_t(json_selectors, "starttime", start_time);
@@ -3807,18 +3804,18 @@ json_object *json_archive_availability_selectors(unsigned format_options,
 	if(assumed_initial_host_state != AU_STATE_NO_DATA) {
 		json_enumeration(json_selectors, format_options, 
 			"assumedinitialhoststate", assumed_initial_host_state, 
-			(string_value_mapping *)valid_initial_host_states);
+			valid_initial_host_states);
 		}
 
 	if(assumed_initial_service_state != AU_STATE_NO_DATA) {
 		json_enumeration(json_selectors, format_options, 
 			"assumedinitialservicestate", assumed_initial_service_state, 
-			(string_value_mapping *)valid_initial_service_states);
+			valid_initial_service_states);
 		}
 
 	if(state_types != AU_STATETYPE_ALL) {
 		json_bitmask(json_selectors, format_options, "statetypes", state_types, 
-				(string_value_mapping *)valid_state_types);
+				valid_state_types);
 		}
 
 	return json_selectors;

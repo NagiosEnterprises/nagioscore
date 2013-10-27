@@ -935,8 +935,7 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)valid_queries, &(cgi_data->query))) 
-					!= RESULT_SUCCESS) {
+					valid_queries, &(cgi_data->query))) != RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -947,8 +946,8 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)svm_format_options, 
-					&(cgi_data->format_options))) != RESULT_SUCCESS) {
+					svm_format_options, &(cgi_data->format_options))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1031,8 +1030,8 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)svm_host_statuses, 
-					&(cgi_data->host_statuses))) != RESULT_SUCCESS) {
+					svm_host_statuses, &(cgi_data->host_statuses))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1053,8 +1052,8 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)svm_service_statuses, 
-					&(cgi_data->service_statuses))) != RESULT_SUCCESS) {
+					svm_service_statuses, &(cgi_data->service_statuses))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1138,8 +1137,8 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)svm_host_time_fields, 
-					&(cgi_data->host_time_field))) != RESULT_SUCCESS) {
+					svm_host_time_fields, &(cgi_data->host_time_field))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1149,8 +1148,8 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)svm_service_time_fields, 
-					&(cgi_data->service_time_field))) != RESULT_SUCCESS) {
+					svm_service_time_fields, &(cgi_data->service_time_field))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1160,8 +1159,8 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)svm_comment_time_fields, 
-					&(cgi_data->comment_time_field))) != RESULT_SUCCESS) {
+					svm_comment_time_fields, &(cgi_data->comment_time_field))) 
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1171,7 +1170,7 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
-					(string_value_mapping *)svm_downtime_time_fields, 
+					svm_downtime_time_fields, 
 					&(cgi_data->downtime_time_field))) != RESULT_SUCCESS) {
 				break;
 				}
@@ -1746,14 +1745,14 @@ json_object *json_status_host_selectors(unsigned format_options, int start,
 		}
 	if(HOST_STATUS_ALL != host_statuses) {
 		json_bitmask(json_selectors, format_options, "hoststatus", 
-				host_statuses, (string_value_mapping *)svm_host_statuses);
+				host_statuses, svm_host_statuses);
 		}
 	if(NULL != temp_contact) {
 		json_object_append_string(json_selectors, "contact", temp_contact->name);
 		}
 	if(time_field > 0) {
 		json_enumeration(json_selectors, format_options, "hosttimefield", 
-				time_field, (string_value_mapping*)svm_host_time_fields);
+				time_field, svm_host_time_fields);
 		}
 	if(start_time > 0) {
 		json_object_append_time_t(json_selectors, "starttime", start_time);
@@ -1914,8 +1913,7 @@ json_object *json_status_hostlist(unsigned format_options, int start, int count,
 				}
 			else {
 				json_enumeration(json_hostlist, format_options, temp_host->name,
-						temp_hoststatus->status, 
-						(string_value_mapping*)svm_host_statuses);
+						temp_hoststatus->status, svm_host_statuses);
 				}
 			counted++;
 			}
@@ -1951,7 +1949,7 @@ void json_status_host_details(json_object *json_details, unsigned format_options
 	json_object_append_string(json_details, "perf_data", 
 			temp_hoststatus->perf_data);
 	json_enumeration(json_details, format_options, "status", 
-			temp_hoststatus->status, (string_value_mapping *)svm_host_statuses);
+			temp_hoststatus->status, svm_host_statuses);
 	json_object_append_time_t(json_details, "last_update", 
 			temp_hoststatus->last_update);
 	json_object_append_boolean(json_details, "has_been_checked", 
@@ -1967,18 +1965,15 @@ void json_status_host_details(json_object *json_details, unsigned format_options
 	json_object_append_time_t(json_details, "next_check", 
 			temp_hoststatus->next_check);
 	json_bitmask(json_details, format_options, "check_options",
-			temp_hoststatus->check_options, 
-			(string_value_mapping *)svm_check_options);
+			temp_hoststatus->check_options, svm_check_options);
 	json_enumeration(json_details, format_options, "check_type",
-			temp_hoststatus->check_type, 
-			(string_value_mapping *)svm_host_check_types);
+			temp_hoststatus->check_type, svm_host_check_types);
 	json_object_append_time_t(json_details, "last_state_change", 
 			temp_hoststatus->last_state_change);
 	json_object_append_time_t(json_details, "last_hard_state_change", 
 			temp_hoststatus->last_hard_state_change);
 	json_enumeration(json_details, format_options, "last_hard_state", 
-			temp_hoststatus->last_hard_state, 
-			(string_value_mapping *)svm_host_states);
+			temp_hoststatus->last_hard_state, svm_host_states);
 	json_object_append_time_t(json_details, "last_time_up", 
 			temp_hoststatus->last_time_up);
 	json_object_append_time_t(json_details, "last_time_down",
@@ -1986,8 +1981,7 @@ void json_status_host_details(json_object *json_details, unsigned format_options
 	json_object_append_time_t(json_details, "last_time_unreachable", 
 			temp_hoststatus->last_time_unreachable);
 	json_enumeration(json_details, format_options, "state_type", 
-			temp_hoststatus->state_type, 
-			(string_value_mapping *)svm_state_types);
+			temp_hoststatus->state_type, svm_state_types);
 	json_object_append_time_t(json_details, "last_notification", 
 			temp_hoststatus->last_notification);
 	json_object_append_time_t(json_details, "next_notification", 
@@ -1999,8 +1993,7 @@ void json_status_host_details(json_object *json_details, unsigned format_options
 	json_object_append_boolean(json_details, "problem_has_been_acknowledged", 
 			temp_hoststatus->problem_has_been_acknowledged);
 	json_enumeration(json_details, format_options, "acknowledgement_type", 
-			temp_hoststatus->acknowledgement_type, 
-			(string_value_mapping *)svm_acknowledgement_types);
+			temp_hoststatus->acknowledgement_type, svm_acknowledgement_types);
 	json_object_append_integer(json_details, "current_notification_number", 
 			temp_hoststatus->current_notification_number);
 #ifdef JSON_NAGIOS_4X
@@ -2279,18 +2272,18 @@ json_object *json_status_service_selectors(unsigned format_options,
 		}
 	if(HOST_STATUS_ALL != host_statuses) {
 		json_bitmask(json_selectors, format_options, "host_status", 
-				host_statuses, (string_value_mapping *)svm_host_statuses);
+				host_statuses, svm_host_statuses);
 		}
 	if(SERVICE_STATUS_ALL != service_statuses) {
 		json_bitmask(json_selectors, format_options, "service_status", 
-				service_statuses, (string_value_mapping *)svm_service_statuses);
+				service_statuses, svm_service_statuses);
 		}
 	if( NULL != temp_contact) {
 		json_object_append_string(json_selectors, "contact", temp_contact->name);
 		}
 	if(time_field > 0) {
 		json_enumeration(json_selectors, format_options, "servicetimefield", 
-				time_field, (string_value_mapping*)svm_service_time_fields);
+				time_field, svm_service_time_fields);
 		}
 	if(start_time > 0) {
 		json_object_append_time_t(json_selectors, "starttime", start_time);
@@ -2485,7 +2478,7 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 					json_enumeration(json_servicelist, format_options, 
 							temp_service->description,
 							temp_servicestatus->status, 
-							(string_value_mapping*)svm_service_statuses);
+							svm_service_statuses);
 					}
 				counted++;
 				}
@@ -2534,8 +2527,7 @@ void json_status_service_details(json_object *json_details,
 	json_object_append_integer(json_details, "current_attempt", 
 			temp_servicestatus->current_attempt);
 	json_enumeration(json_details, format_options, "status", 
-			temp_servicestatus->status, 
-			(string_value_mapping *)svm_service_statuses);
+			temp_servicestatus->status, svm_service_statuses);
 	json_object_append_time_t(json_details, "last_update", 
 			temp_servicestatus->last_update);
 	json_object_append_boolean(json_details, "has_been_checked", 
@@ -2545,11 +2537,9 @@ void json_status_service_details(json_object *json_details,
 	json_object_append_time_t(json_details, "last_check", 
 			temp_servicestatus->last_check);
 	json_bitmask(json_details, format_options, "check_options",
-			temp_servicestatus->check_options, 
-			(string_value_mapping *)svm_check_options);
+			temp_servicestatus->check_options, svm_check_options);
 	json_enumeration(json_details, format_options, "check_type",
-			temp_servicestatus->check_type, 
-			(string_value_mapping *)svm_service_check_types);
+			temp_servicestatus->check_type, svm_service_check_types);
 	json_object_append_boolean(json_details, "checks_enabled", 
 			temp_servicestatus->checks_enabled);
 	json_object_append_time_t(json_details, "last_state_change", 
@@ -2557,8 +2547,7 @@ void json_status_service_details(json_object *json_details,
 	json_object_append_time_t(json_details, "last_hard_state_change", 
 			temp_servicestatus->last_hard_state_change);
 	json_enumeration(json_details, format_options, "last_hard_state", 
-			temp_servicestatus->last_hard_state, 
-			(string_value_mapping *)svm_service_states);
+			temp_servicestatus->last_hard_state, svm_service_states);
 	json_object_append_time_t(json_details, "last_time_ok", 
 			temp_servicestatus->last_time_ok);
 	json_object_append_time_t(json_details, "last_time_warning", 
@@ -2568,8 +2557,7 @@ void json_status_service_details(json_object *json_details,
 	json_object_append_time_t(json_details, "last_time_critical", 
 			temp_servicestatus->last_time_critical);
 	json_enumeration(json_details, format_options, "state_type", 
-			temp_servicestatus->state_type, 
-			(string_value_mapping *)svm_state_types);
+			temp_servicestatus->state_type, svm_state_types);
 	json_object_append_time_t(json_details, "last_notification", 
 			temp_servicestatus->last_notification);
 	json_object_append_time_t(json_details, "next_notification", 
@@ -2582,7 +2570,7 @@ void json_status_service_details(json_object *json_details,
 			temp_servicestatus->problem_has_been_acknowledged);
 	json_enumeration(json_details, format_options, "acknowledgement_type", 
 			temp_servicestatus->acknowledgement_type, 
-			(string_value_mapping *)svm_acknowledgement_types);
+			svm_acknowledgement_types);
 	json_object_append_integer(json_details, "current_notification_number", 
 			temp_servicestatus->current_notification_number);
 #ifdef JSON_NAGIOS_4X
@@ -2664,7 +2652,7 @@ json_object *json_status_comment_selectors(unsigned format_options, int start,
 		}
 	if(time_field > 0) {
 		json_enumeration(json_selectors, format_options, "commenttimefield", 
-				time_field, (string_value_mapping*)svm_comment_time_fields);
+				time_field, svm_comment_time_fields);
 		}
 	if(start_time > 0) {
 		json_object_append_time_t(json_selectors, "starttime", start_time);
@@ -2783,11 +2771,9 @@ void json_status_comment_details(json_object *json_details,
 		unsigned format_options, comment *temp_comment) {
 
 	json_enumeration(json_details, format_options, "comment_type",
-			temp_comment->comment_type, 
-			(string_value_mapping*)svm_comment_types);
+			temp_comment->comment_type, svm_comment_types);
 	json_enumeration(json_details, format_options, "entry_type",
-			temp_comment->entry_type, 
-			(string_value_mapping*)svm_comment_entry_types);
+			temp_comment->entry_type, svm_comment_entry_types);
 	json_object_append_integer(json_details,  "source", temp_comment->source);
 	json_object_append_boolean(json_details, "persistent", 
 			temp_comment->persistent);
@@ -2867,7 +2853,7 @@ json_object *json_status_downtime_selectors(unsigned format_options, int start,
 		}
 	if(time_field > 0) {
 		json_enumeration(json_selectors, format_options, "downtimetimefield", 
-				time_field, (string_value_mapping*)svm_downtime_time_fields);
+				time_field, svm_downtime_time_fields);
 		}
 	if(start_time > 0) {
 		json_object_append_time_t(json_selectors, "starttime", start_time);
@@ -2987,7 +2973,7 @@ void json_status_downtime_details(json_object *json_details,
 		unsigned format_options, scheduled_downtime *temp_downtime) {
 
 	json_enumeration(json_details, format_options, "type", temp_downtime->type, 
-			(string_value_mapping*)svm_downtime_types);
+			svm_downtime_types);
 	json_object_append_string(json_details, "host_name", 
 			temp_downtime->host_name);
 	if(SERVICE_DOWNTIME == temp_downtime->type) {

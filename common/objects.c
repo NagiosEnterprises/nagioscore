@@ -679,7 +679,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->checks_enabled = (checks_enabled > 0) ? TRUE : FALSE;
 	new_host->accept_passive_checks = (accept_passive_checks > 0) ? TRUE : FALSE;
 	new_host->event_handler_enabled = (event_handler_enabled > 0) ? TRUE : FALSE;
-#ifdef NSCGI
 	new_host->x_2d = x_2d;
 	new_host->y_2d = y_2d;
 	new_host->have_2d_coords = (have_2d_coords > 0) ? TRUE : FALSE;
@@ -688,7 +687,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->z_3d = z_3d;
 	new_host->have_3d_coords = (have_3d_coords > 0) ? TRUE : FALSE;
 	new_host->should_be_drawn = (should_be_drawn > 0) ? TRUE : FALSE;
-#endif
 	new_host->obsess = (obsess > 0) ? TRUE : FALSE;
 	new_host->retain_status_information = (retain_status_information > 0) ? TRUE : FALSE;
 	new_host->retain_nonstatus_information = (retain_nonstatus_information > 0) ? TRUE : FALSE;

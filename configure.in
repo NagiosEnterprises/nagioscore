@@ -5,7 +5,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 AC_INIT(base/nagios.c)
-AC_CONFIG_HEADER(include/config.h lib/snprintf.h)
+AC_CONFIG_HEADER(include/config.h lib/snprintf.h lib/iobroker.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
@@ -239,6 +239,92 @@ AC_ARG_WITH(lockfile,
 )
 AC_SUBST(lockfile)
 
+
+dnl Determine the library to be used by the iobroker
+
+dnl epoll_*() is linux specific and was added to glibc 2.3.2, so we
+dnl check for 2.4 and use epoll() if we're on that version or later.
+
+case $host_os in
+linux*)
+	AC_MSG_CHECKING(for glibc at least version 2.4)
+	AC_TRY_CPP(
+		[
+#include <stdio.h>
+#if defined(__GLIBC__) && defined(__linux)
+#include <features.h>
+# if !__GLIBC_PREREQ(2, 4)
+#  error GLIBC too old
+# endif
+#else
+# error Not using GLIBC
+#endif
+		],
+		[GLIBC_NEWER_2_4=1; AC_MSG_RESULT(yes)],
+		[GLIBC_NEWER_2_4=0; AC_MSG_RESULT(no)]
+	)
+	if test $GLIBC_NEWER_2_4 -eq 1; then
+		AC_CHECK_HEADER([sys/epoll.h])
+	fi
+	;;
+esac
+AC_CHECK_HEADER([sys/select.h])
+
+AC_ARG_WITH(iobroker,
+	AC_HELP_STRING([--with-iobroker=<method>],
+		[specify the method to use with iobroker: epoll, poll, or select]),
+	IOBROKER_METHOD=$withval,
+	IOBROKER_METHOD="none"
+)
+
+case $IOBROKER_METHOD in
+epoll*)
+	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_EPOLL])
+	else
+		echo "\"epoll\" is not available as an iobroker method."
+		echo "Please use one of the other options."
+		exit 1
+	fi
+	;;
+poll*)
+	if test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_POLL])
+	else
+		echo "\"poll\" is not available as an iobroker method."
+		echo "Please use one of the other options."
+		exit 1
+	fi
+	;;
+select*)
+	if test x$ac_cv_header_sys_select_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_SELECT])
+	else
+		echo "\"select\" is not available as an iobroker method."
+		echo "Please use one of the other options."
+		exit 1
+	fi
+	;;
+none*)
+	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_EPOLL])
+		IOBROKER_METHOD="epoll"
+	elif test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_POLL])
+		IOBROKER_METHOD="poll"
+	elif test x$ac_cv_header_sys_select_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_SELECT])
+		IOBROKER_METHOD="select"
+	else
+		echo "There are no available options for iobroker polling"
+		exit 1
+	fi
+	;;
+*)
+		echo "\"$IOBROKER_METHOD\" is not a valid method for --with-iobroker"
+		exit 1
+	;;
+esac
 
 dnl Optional GD library and include paths
 AC_ARG_WITH(gd-lib,
@@ -714,6 +800,7 @@ AC_MSG_RESULT([           Init directory:  $init_dir])
 AC_MSG_RESULT([  Apache conf.d directory:  $HTTPD_CONF])
 AC_MSG_RESULT([             Mail program:  $MAIL_PROG])
 AC_MSG_RESULT([                  Host OS:  $host_os])
+AC_MSG_RESULT([          IOBroker Method:  $IOBROKER_METHOD])
 
 echo ""
 echo " Web Interface Options:"

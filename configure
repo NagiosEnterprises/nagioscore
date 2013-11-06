@@ -750,6 +750,7 @@ with_checkresult_dir
 with_temp_dir
 with_init_dir
 with_lockfile
+with_iobroker
 with_gd_lib
 with_gd_inc
 enable_statusmap
@@ -1422,6 +1423,9 @@ Optional Packages:
   --with-temp-dir=<path>  sets path to temp directory
   --with-init-dir=<path>  sets directory to place init script into
   --with-lockfile=<path>  sets path and file name for lock file
+  --with-iobroker=<method>
+                          specify the method to use with iobroker: epoll,
+                          poll, or select
   --with-gd-lib=DIR       sets location of the gd library
   --with-gd-inc=DIR       sets location of the gd include files
   --with-cgiurl=<local-url>
@@ -1863,7 +1867,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h"
+ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobroker.h"
 
 
 
@@ -6179,6 +6183,399 @@ fi
 
 
 
+
+case $host_os in
+linux*)
+	{ $as_echo "$as_me:$LINENO: checking for glibc at least version 2.4" >&5
+$as_echo_n "checking for glibc at least version 2.4... " >&6; }
+	cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#if defined(__GLIBC__) && defined(__linux)
+#include <features.h>
+# if !__GLIBC_PREREQ(2, 4)
+#  error GLIBC too old
+# endif
+#else
+# error Not using GLIBC
+#endif
+
+_ACEOF
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
+  GLIBC_NEWER_2_4=1; { $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  GLIBC_NEWER_2_4=0; { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+
+rm -f conftest.err conftest.$ac_ext
+	if test $GLIBC_NEWER_2_4 -eq 1; then
+		if test "${ac_cv_header_sys_epoll_h+set}" = set; then
+  { $as_echo "$as_me:$LINENO: checking for sys/epoll.h" >&5
+$as_echo_n "checking for sys/epoll.h... " >&6; }
+if test "${ac_cv_header_sys_epoll_h+set}" = set; then
+  $as_echo_n "(cached) " >&6
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_header_sys_epoll_h" >&5
+$as_echo "$ac_cv_header_sys_epoll_h" >&6; }
+else
+  # Is the header compilable?
+{ $as_echo "$as_me:$LINENO: checking sys/epoll.h usability" >&5
+$as_echo_n "checking sys/epoll.h usability... " >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <sys/epoll.h>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_header_compiler=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_header_compiler=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ $as_echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+$as_echo "$ac_header_compiler" >&6; }
+
+# Is the header present?
+{ $as_echo "$as_me:$LINENO: checking sys/epoll.h presence" >&5
+$as_echo_n "checking sys/epoll.h presence... " >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <sys/epoll.h>
+_ACEOF
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
+  ac_header_preproc=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+
+rm -f conftest.err conftest.$ac_ext
+{ $as_echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+$as_echo "$ac_header_preproc" >&6; }
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { $as_echo "$as_me:$LINENO: WARNING: sys/epoll.h: accepted by the compiler, rejected by the preprocessor!" >&5
+$as_echo "$as_me: WARNING: sys/epoll.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/epoll.h: proceeding with the compiler's result" >&5
+$as_echo "$as_me: WARNING: sys/epoll.h: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { $as_echo "$as_me:$LINENO: WARNING: sys/epoll.h: present but cannot be compiled" >&5
+$as_echo "$as_me: WARNING: sys/epoll.h: present but cannot be compiled" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/epoll.h:     check for missing prerequisite headers?" >&5
+$as_echo "$as_me: WARNING: sys/epoll.h:     check for missing prerequisite headers?" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/epoll.h: see the Autoconf documentation" >&5
+$as_echo "$as_me: WARNING: sys/epoll.h: see the Autoconf documentation" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/epoll.h:     section \"Present But Cannot Be Compiled\"" >&5
+$as_echo "$as_me: WARNING: sys/epoll.h:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/epoll.h: proceeding with the preprocessor's result" >&5
+$as_echo "$as_me: WARNING: sys/epoll.h: proceeding with the preprocessor's result" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/epoll.h: in the future, the compiler will take precedence" >&5
+$as_echo "$as_me: WARNING: sys/epoll.h: in the future, the compiler will take precedence" >&2;}
+
+    ;;
+esac
+{ $as_echo "$as_me:$LINENO: checking for sys/epoll.h" >&5
+$as_echo_n "checking for sys/epoll.h... " >&6; }
+if test "${ac_cv_header_sys_epoll_h+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_header_sys_epoll_h=$ac_header_preproc
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_header_sys_epoll_h" >&5
+$as_echo "$ac_cv_header_sys_epoll_h" >&6; }
+
+fi
+
+
+	fi
+	;;
+esac
+if test "${ac_cv_header_sys_select_h+set}" = set; then
+  { $as_echo "$as_me:$LINENO: checking for sys/select.h" >&5
+$as_echo_n "checking for sys/select.h... " >&6; }
+if test "${ac_cv_header_sys_select_h+set}" = set; then
+  $as_echo_n "(cached) " >&6
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_header_sys_select_h" >&5
+$as_echo "$ac_cv_header_sys_select_h" >&6; }
+else
+  # Is the header compilable?
+{ $as_echo "$as_me:$LINENO: checking sys/select.h usability" >&5
+$as_echo_n "checking sys/select.h usability... " >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <sys/select.h>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_header_compiler=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_header_compiler=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ $as_echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+$as_echo "$ac_header_compiler" >&6; }
+
+# Is the header present?
+{ $as_echo "$as_me:$LINENO: checking sys/select.h presence" >&5
+$as_echo_n "checking sys/select.h presence... " >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <sys/select.h>
+_ACEOF
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
+  ac_header_preproc=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+
+rm -f conftest.err conftest.$ac_ext
+{ $as_echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+$as_echo "$ac_header_preproc" >&6; }
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { $as_echo "$as_me:$LINENO: WARNING: sys/select.h: accepted by the compiler, rejected by the preprocessor!" >&5
+$as_echo "$as_me: WARNING: sys/select.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/select.h: proceeding with the compiler's result" >&5
+$as_echo "$as_me: WARNING: sys/select.h: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { $as_echo "$as_me:$LINENO: WARNING: sys/select.h: present but cannot be compiled" >&5
+$as_echo "$as_me: WARNING: sys/select.h: present but cannot be compiled" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/select.h:     check for missing prerequisite headers?" >&5
+$as_echo "$as_me: WARNING: sys/select.h:     check for missing prerequisite headers?" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/select.h: see the Autoconf documentation" >&5
+$as_echo "$as_me: WARNING: sys/select.h: see the Autoconf documentation" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/select.h:     section \"Present But Cannot Be Compiled\"" >&5
+$as_echo "$as_me: WARNING: sys/select.h:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/select.h: proceeding with the preprocessor's result" >&5
+$as_echo "$as_me: WARNING: sys/select.h: proceeding with the preprocessor's result" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: sys/select.h: in the future, the compiler will take precedence" >&5
+$as_echo "$as_me: WARNING: sys/select.h: in the future, the compiler will take precedence" >&2;}
+
+    ;;
+esac
+{ $as_echo "$as_me:$LINENO: checking for sys/select.h" >&5
+$as_echo_n "checking for sys/select.h... " >&6; }
+if test "${ac_cv_header_sys_select_h+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_header_sys_select_h=$ac_header_preproc
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_header_sys_select_h" >&5
+$as_echo "$ac_cv_header_sys_select_h" >&6; }
+
+fi
+
+
+
+
+# Check whether --with-iobroker was given.
+if test "${with_iobroker+set}" = set; then
+  withval=$with_iobroker; IOBROKER_METHOD=$withval
+else
+  IOBROKER_METHOD="none"
+
+fi
+
+
+case $IOBROKER_METHOD in
+epoll*)
+	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+		cat >>confdefs.h <<\_ACEOF
+#define IOBROKER_USES_EPOLL 1
+_ACEOF
+
+	else
+		echo "\"epoll\" is not available as an iobroker method."
+		echo "Please use one of the other options."
+		exit 1
+	fi
+	;;
+poll*)
+	if test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+		cat >>confdefs.h <<\_ACEOF
+#define IOBROKER_USES_POLL 1
+_ACEOF
+
+	else
+		echo "\"poll\" is not available as an iobroker method."
+		echo "Please use one of the other options."
+		exit 1
+	fi
+	;;
+select*)
+	if test x$ac_cv_header_sys_select_h = xyes ; then
+		cat >>confdefs.h <<\_ACEOF
+#define IOBROKER_USES_SELECT 1
+_ACEOF
+
+	else
+		echo "\"select\" is not available as an iobroker method."
+		echo "Please use one of the other options."
+		exit 1
+	fi
+	;;
+none*)
+	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+		cat >>confdefs.h <<\_ACEOF
+#define IOBROKER_USES_EPOLL 1
+_ACEOF
+
+		IOBROKER_METHOD="epoll"
+	elif test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+		cat >>confdefs.h <<\_ACEOF
+#define IOBROKER_USES_POLL 1
+_ACEOF
+
+		IOBROKER_METHOD="poll"
+	elif test x$ac_cv_header_sys_select_h = xyes ; then
+		cat >>confdefs.h <<\_ACEOF
+#define IOBROKER_USES_SELECT 1
+_ACEOF
+
+		IOBROKER_METHOD="select"
+	else
+		echo "There are no available options for iobroker polling"
+		exit 1
+	fi
+	;;
+*)
+		echo "\"$IOBROKER_METHOD\" is not a valid method for --with-iobroker"
+		exit 1
+	;;
+esac
+
+
 # Check whether --with-gd-lib was given.
 if test "${with_gd_lib+set}" = set; then
   withval=$with_gd_lib;
@@ -8135,6 +8532,7 @@ do
   case $ac_config_target in
     "include/config.h") CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
     "lib/snprintf.h") CONFIG_HEADERS="$CONFIG_HEADERS lib/snprintf.h" ;;
+    "lib/iobroker.h") CONFIG_HEADERS="$CONFIG_HEADERS lib/iobroker.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
     "subst") CONFIG_FILES="$CONFIG_FILES subst" ;;
@@ -9056,6 +9454,8 @@ $as_echo "  Apache conf.d directory:  $HTTPD_CONF" >&6; }
 $as_echo "             Mail program:  $MAIL_PROG" >&6; }
 { $as_echo "$as_me:$LINENO: result:                   Host OS:  $host_os" >&5
 $as_echo "                  Host OS:  $host_os" >&6; }
+{ $as_echo "$as_me:$LINENO: result:           IOBroker Method:  $IOBROKER_METHOD" >&5
+$as_echo "          IOBroker Method:  $IOBROKER_METHOD" >&6; }
 
 echo ""
 echo " Web Interface Options:"

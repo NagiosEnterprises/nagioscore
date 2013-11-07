@@ -314,7 +314,8 @@ void runcmd_init(void)
 
 
 /* Start running a command */
-int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
+int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
+		void (*iobreg)(int, int, void *), void *iobregarg)
 {
 	char **argv = NULL;
 	int cmd2strv_errors, argc = 0;
@@ -370,6 +371,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 		close(pfd[1]);
 		return RUNCMD_EFD;
 	}
+	iobreg(pfd[0], pfderr[0], iobregarg);
 	pid = fork();
 	if (pid < 0) {
 		if (!cmd2strv_errors)
@@ -387,17 +389,32 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 	/* child runs excevp() and _exit. */
 	if (pid == 0) {
 
+		/* Not sure why this works, but in order for workers to be
+		 * able to consistently get the output of checks, at least
+		 * in RHEL/CentOS 5, it appears we have to have iobroker use
+		 * the select method (instead of poll or epoll) and we have
+		 * to take a short nap here.
+		 */
+		struct timespec naptime;
+		naptime.tv_sec = 0;
+		naptime.tv_nsec = 100;
+		nanosleep(&naptime, NULL);
+
 		/* make sure all our children are killable by our parent */
 		setpgid(getpid(), getpid());
 
 		close (pfd[0]);
 		if (pfd[1] != STDOUT_FILENO) {
-			dup2 (pfd[1], STDOUT_FILENO);
+			if(dup2(pfd[1], STDOUT_FILENO) == -1) {
+				_exit(errno);
+			}
 			close (pfd[1]);
 		}
 		close (pfderr[0]);
 		if (pfderr[1] != STDERR_FILENO) {
-			dup2 (pfderr[1], STDERR_FILENO);
+			if(dup2(pfderr[1], STDERR_FILENO) == -1) {
+				_exit(errno);
+			}
 			close (pfderr[1]);
 		}
 

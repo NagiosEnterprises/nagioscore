@@ -59,9 +59,12 @@ extern const char *runcmd_strerror(int code);
  * @param[out] pfd Child's stdout filedescriptor
  * @param[out] pfderr Child's stderr filedescriptor
  * @param[in] env Currently ignored for portability
+ * @param[in] iobreg The callback function to register the iobrokers for the read ends of the pipe
+ * @param[in] iobregarg The "arg" value to pass to iobroker_register()
  */
-extern int runcmd_open(const char *cmdstring, int *pfd, int *pfderr, char **env)
-	__attribute__((__nonnull__(1, 2, 3)));
+extern int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
+		void (*iobreg)(int, int, void *), void *iobregarg)
+	__attribute__((__nonnull__(1, 2, 3, 5, 6)));
 
 /**
  * Close a command and return its exit status

@@ -1222,9 +1222,11 @@ int sort_downtime(void) {
 
 	qsort((void *)array, i, sizeof(*array), downtime_compar);
 	scheduled_downtime_list = temp_downtime = array[0];
+	temp_downtime->prev = NULL;
 	for(i = 1; i < unsorted_downtimes; i++) {
 		temp_downtime->next = array[i];
 		temp_downtime = temp_downtime->next;
+		temp_downtime->prev = array[i-1];
 		}
 	temp_downtime->next = NULL;
 	my_free(array);

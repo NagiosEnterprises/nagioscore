@@ -420,6 +420,14 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 				wlog("job %d (pid=%d): Failed to read(): %s", cp->id, cp->ei->pid, strerror(errno));
 		}
 
+		if (rd > 0) {
+			/* we read some data */
+			io->buf = realloc(io->buf, rd + io->len + 1);
+			memcpy(&io->buf[io->len], buf, rd);
+			io->len += rd;
+			io->buf[io->len] = '\0';
+		}
+
 		/*
 		 * Close down on bad, zero and final reads (we don't get
 		 * EAGAIN, so all errors are really unfixable)
@@ -432,13 +440,6 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 			break;
 		}
 
-		if (rd) {
-			/* we read some data */
-			io->buf = realloc(io->buf, rd + io->len + 1);
-			memcpy(&io->buf[io->len], buf, rd);
-			io->len += rd;
-			io->buf[io->len] = '\0';
-		}
 		break;
 	}
 }

@@ -389,17 +389,6 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	/* child runs excevp() and _exit. */
 	if (pid == 0) {
 
-		/* Not sure why this works, but in order for workers to be
-		 * able to consistently get the output of checks, at least
-		 * in RHEL/CentOS 5, it appears we have to have iobroker use
-		 * the select method (instead of poll or epoll) and we have
-		 * to take a short nap here.
-		 */
-		struct timespec naptime;
-		naptime.tv_sec = 0;
-		naptime.tv_nsec = 100;
-		nanosleep(&naptime, NULL);
-
 		/* make sure all our children are killable by our parent */
 		setpgid(getpid(), getpid());
 

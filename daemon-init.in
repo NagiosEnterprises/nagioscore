@@ -27,8 +27,9 @@ config="@sysconfdir@/nagios.cfg"
 pidfile="@lockfile@"
 user="nagios"
 group="nagios"
-checkconfig="false"
+checkconfig="true"
 ramdiskdir="/var/nagios/ramcache"
+use_precached_objects="false"
 
 test -e /etc/sysconfig/$prog && . /etc/sysconfig/$prog
 
@@ -55,7 +56,7 @@ check_config() {
 		echo "OK - Configuration check verified" > /var/run/nagios.configtest
 		chmod 0644 /var/run/nagios.configtest
 		/bin/rm "$TMPFILE"
-	return 0
+    	return 0
 	else
 		# We'll write out the errors to a file we can have a
 		# script watching for
@@ -63,20 +64,24 @@ check_config() {
 		egrep -i "(^warning|^error)" "$TMPFILE" >> /var/run/nagios.configtest
 		chmod 0644 /var/run/nagios.configtest
 		cat "$TMPFILE"
-	exit 8
+    	exit 8
 	fi
 }
 
 start() {
 	test -x $exec || exit 5
 	test -f $config || exit 6
-	if test "$checkconfig" == "false"; then
+	if test "$checkconfig" = "true"; then
 		check_config
 	fi
+    options="-d"
+	if test "$use_precached_objects" = "true"; then
+        options="$options -u"
+    fi
 	echo -n $"Starting $prog: "
 	# We need to _make sure_ the precache is there and verified
 	# Raise priority to make it run better
-	daemon --user=$user $exec -ud $config
+	daemon --user=$user $exec $options $config
 	retval=$?
 	echo
 	test $retval -eq 0 && touch $lockfile

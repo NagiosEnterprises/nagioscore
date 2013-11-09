@@ -203,8 +203,6 @@ static void downtime_remove(scheduled_downtime *dt)
 	}
 }
 
-#ifdef NSCORE
-
 /******************************************************************/
 /**************** INITIALIZATION/CLEANUP FUNCTIONS ****************/
 /******************************************************************/
@@ -226,6 +224,8 @@ int cleanup_downtime_data(void) {
 	return OK;
 	}
 
+
+#ifdef NSCORE
 
 /******************************************************************/
 /********************** SCHEDULING FUNCTIONS **********************/

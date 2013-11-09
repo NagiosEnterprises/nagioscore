@@ -5,6 +5,7 @@ Nagios Core 4 Change Log
 4.0.2 - xx/xx/xxxx
 ------------------
 FIXES
+* Fixed bug 514: scheduled downtime not showing in web interface (Eric Stanley)
 * Fixed bug 526: sort_downtime() corrupts scheduled_downtime_list causing segfault (Adam James)
 * Fixed bug 492: Nagios 4 fails to remove/add checks upon reload (Eric Stanley)
 * Fixed Bug 484: Beta4.0.0b4 service checks returning (No output on stdout) (Eric Stanley)

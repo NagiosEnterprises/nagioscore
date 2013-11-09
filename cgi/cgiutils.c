@@ -25,6 +25,7 @@
 #include "../include/objects.h"
 #include "../include/statusdata.h"
 
+#include "../include/downtime.h"
 #include "../include/cgiutils.h"
 
 char            main_config_file[MAX_FILENAME_LENGTH];
@@ -594,6 +595,9 @@ int read_all_status_data(const char *cfgfile, int options) {
 	/* bail out if we've already read what we need */
 	if(options <= 0)
 		return OK;
+
+	/* Initialize the downtime data */
+	initialize_downtime_data();
 
 	/* read in all external status data */
 	result = read_status_data(cfgfile, options);

@@ -9,17 +9,6 @@
 #include <string.h>
 #include "iobroker.h"
 
-/*
- * epoll_*() is linux specific and was added to glibc 2.3.2, so we
- * check for 2.4 and use epoll() if we're on that version or later.
- */
-#if defined(__GLIBC__) && defined(__linux)
-#include <features.h>
-# if __GLIBC_PREREQ(2, 4) && !defined(IOBROKER_USES_SELECT) && !defined(IOBROKER_USES_POLL)
-#  define IOBROKER_USES_EPOLL
-# endif
-#endif
-
 #ifdef IOBROKER_USES_EPOLL
 #include <sys/epoll.h>
 /* these were added later */

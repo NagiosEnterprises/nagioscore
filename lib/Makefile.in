@@ -57,7 +57,7 @@ cov-report:
 
 
 distclean: clean
-	rm -f Makefile
+	rm -f Makefile iobroker.h
 
 clean: clean-test clean-coverage
 	rm -f core.* *.o *~ wproc *.a

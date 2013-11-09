@@ -5,7 +5,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 AC_INIT(base/nagios.c)
-AC_CONFIG_HEADER(include/config.h lib/snprintf.h)
+AC_CONFIG_HEADER(include/config.h lib/snprintf.h lib/iobroker.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
@@ -146,7 +146,12 @@ AC_SUBST(COMMAND_OPTS)
 
 dnl Check for location of mail program
 MAIL_PROG=no
-AC_ARG_WITH(mail,--with-mail=<path_to_mail> sets path to equivalent program to mail,MAIL_PROG=$withval,MAIL_PROG=no) 
+AC_ARG_WITH(mail,
+	AC_HELP_STRING([--with-mail=<path_to_mail>],
+		[sets path to equivalent program to mail]),
+	MAIL_PROG=$withval,
+	MAIL_PROG=no
+) 
 if test x$MAIL_PROG = xno; then
 	AC_PATH_PROG(MAIL_PROG,mail) 
 fi 
@@ -158,7 +163,12 @@ AC_SUBST(MAIL_PROG)
 
 dnl Check for location of Apache conf.d directory
 HTTP_CONF=no
-AC_ARG_WITH(httpd_conf,--with-httpd-conf=<path_to_conf> sets path to Apache conf.d directory,HTTPD_CONF=$withval,HTTPD_CONF=no) 
+AC_ARG_WITH(httpd_conf,
+	AC_HELP_STRING([--with-httpd-conf=<path_to_conf>],
+		[sets path to Apache conf.d directory]),
+	HTTPD_CONF=$withval,
+	HTTPD_CONF=no
+) 
 if test x$HTTPD_CONF = xno; then
 	if test -d /etc/httpd/conf.d; then
 		HTTPD_CONF="/etc/httpd/conf.d"
@@ -174,7 +184,12 @@ AC_SUBST(HTTPD_CONF)
 
 dnl Location of check result path
 CHECKRESULTDIR=no
-AC_ARG_WITH(checkresult-dir,--with-checkresult-dir=<path> sets path to check results spool directory,CHECKRESULTDIR=$withval,CHECKRESULTDIR=no) 
+AC_ARG_WITH(checkresult-dir,
+	AC_HELP_STRING([--with-checkresult-dir=<path>],
+		[sets path to check results spool directory]),
+	CHECKRESULTDIR=$withval,
+	CHECKRESULTDIR=no
+) 
 if test x$CHECKRESULTDIR = xno; then
 	CHECKRESULTDIR="$localstatedir/spool/checkresults"
 fi 
@@ -182,7 +197,12 @@ AC_SUBST(CHECKRESULTDIR)
 
 dnl Location of check result path
 TMPDIR=no
-AC_ARG_WITH(temp-dir,--with-temp-dir=<path> sets path to temp directory,TMPDIR=$withval,TMPDIR=no) 
+AC_ARG_WITH(temp-dir,
+	AC_HELP_STRING([--with-temp-dir=<path>],
+		[sets path to temp directory]),
+	TMPDIR=$withval,
+	TMPDIR=no
+) 
 if test x$TMPDIR = xno; then
 	TMPDIR="/tmp"
 fi 
@@ -203,34 +223,141 @@ elif test -d /sbin/init.d; then
 fi
 
 dnl User can override init script location
-AC_ARG_WITH(init_dir,--with-init-dir=<path> sets directory to place init script into,init_dir=$withval)
+AC_ARG_WITH(init_dir,
+	AC_HELP_STRING([--with-init-dir=<path>],
+		[sets directory to place init script into]),
+	init_dir=$withval
+)
 AC_SUBST(init_dir)
 
 dnl User can override lock file location
-AC_ARG_WITH(lockfile,--with-lockfile=<path> sets path and file name for lock file,lockfile=$withval,lockfile=$localstatedir/nagios.lock)
+AC_ARG_WITH(lockfile,
+	AC_HELP_STRING([--with-lockfile=<path>],
+		[sets path and file name for lock file]),
+	lockfile=$withval,
+	lockfile=$localstatedir/nagios.lock
+)
 AC_SUBST(lockfile)
 
 
+dnl Determine the library to be used by the iobroker
+
+dnl epoll_*() is linux specific and was added to glibc 2.3.2, so we
+dnl check for 2.4 and use epoll() if we're on that version or later.
+
+case $host_os in
+linux*)
+	AC_MSG_CHECKING(for glibc at least version 2.4)
+	AC_TRY_CPP(
+		[
+#include <stdio.h>
+#if defined(__GLIBC__) && defined(__linux)
+#include <features.h>
+# if !__GLIBC_PREREQ(2, 4)
+#  error GLIBC too old
+# endif
+#else
+# error Not using GLIBC
+#endif
+		],
+		[GLIBC_NEWER_2_4=1; AC_MSG_RESULT(yes)],
+		[GLIBC_NEWER_2_4=0; AC_MSG_RESULT(no)]
+	)
+	if test $GLIBC_NEWER_2_4 -eq 1; then
+		AC_CHECK_HEADER([sys/epoll.h])
+	fi
+	;;
+esac
+AC_CHECK_HEADER([sys/select.h])
+
+AC_ARG_WITH(iobroker,
+	AC_HELP_STRING([--with-iobroker=<method>],
+		[specify the method to use with iobroker: epoll, poll, or select]),
+	IOBROKER_METHOD=$withval,
+	IOBROKER_METHOD="none"
+)
+
+case $IOBROKER_METHOD in
+epoll*)
+	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_EPOLL])
+	else
+		echo "\"epoll\" is not available as an iobroker method."
+		echo "Please use one of the other options."
+		exit 1
+	fi
+	;;
+poll*)
+	if test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_POLL])
+	else
+		echo "\"poll\" is not available as an iobroker method."
+		echo "Please use one of the other options."
+		exit 1
+	fi
+	;;
+select*)
+	if test x$ac_cv_header_sys_select_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_SELECT])
+	else
+		echo "\"select\" is not available as an iobroker method."
+		echo "Please use one of the other options."
+		exit 1
+	fi
+	;;
+none*)
+	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_EPOLL])
+		IOBROKER_METHOD="epoll"
+	elif test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_POLL])
+		IOBROKER_METHOD="poll"
+	elif test x$ac_cv_header_sys_select_h = xyes ; then
+		AC_DEFINE([IOBROKER_USES_SELECT])
+		IOBROKER_METHOD="select"
+	else
+		echo "There are no available options for iobroker polling"
+		exit 1
+	fi
+	;;
+*)
+		echo "\"$IOBROKER_METHOD\" is not a valid method for --with-iobroker"
+		exit 1
+	;;
+esac
+
 dnl Optional GD library and include paths
-AC_ARG_WITH(gd-lib,--with-gd-lib=DIR sets location of the gd library,[
-	LDFLAGS="${LDFLAGS} -L${withval}"
-	LD_RUN_PATH="${withval}${LD_RUN_PATH:+:}${LD_RUN_PATH}"
-	])
-AC_ARG_WITH(gd-inc,--with-gd-inc=DIR sets location of the gd include files,[
-	CFLAGS="${CFLAGS} -I${withval}"
-	])
+AC_ARG_WITH(gd-lib,
+	AC_HELP_STRING([--with-gd-lib=DIR],[sets location of the gd library]),
+	[
+		LDFLAGS="${LDFLAGS} -L${withval}"
+		LD_RUN_PATH="${withval}${LD_RUN_PATH:+:}${LD_RUN_PATH}"
+	]
+)
+AC_ARG_WITH(gd-inc,
+	AC_HELP_STRING([--with-gd-inc=DIR],[sets location of the gd include files]),
+	[CFLAGS="${CFLAGS} -I${withval}"]
+)
 
 
 TRYGD=yep
 
 dnl statusmap CGI enabled by default, unless users chooses not to use it
 TRYSTATUSMAP=yep
-AC_ARG_ENABLE(statusmap,--disable-statusmap=disables compilation of statusmap CGI,TRYSTATUSMAP=nope)
+AC_ARG_ENABLE(statusmap,
+	AC_HELP_STRING([--disable-statusmap],
+		[disables compilation of statusmap CGI]),
+	TRYSTATUSMAP=nope
+)
 
 
 dnl statuswrl CGI enabled by default, unless users chooses not to use it
 TRYSTATUSWRL=yep
-AC_ARG_ENABLE(statuswrl,--disable-statuswrl=disables compilation of statuswrl (VRML) CGI,TRYSTATUSWRL=nope)
+AC_ARG_ENABLE(statuswrl,
+	AC_HELP_STRING([--disable-statuswrl],
+		[disables compilation of statuswrl (VRML) CGI]),
+	TRYSTATUSWRL=nope
+)
 
 if test x$TRYSTATUSWRL = xyep; then
 	AC_DEFINE_UNQUOTED(USE_STATUSWRL,,[statuswrl CGI enabled by default, unless users chooses not to use it])
@@ -380,19 +507,39 @@ if test x$TRYGD = xyep; then
 	fi
 fi
 
-AC_ARG_WITH(cgiurl,--with-cgiurl=<local-url> sets URL for cgi programs (do not use a trailing slash),cgiurl=$withval,cgiurl=/nagios/cgi-bin)
-AC_ARG_WITH(htmurl,--with-htmurl=<local-url> sets URL for public html,htmurl=$withval,htmurl=/nagios)
+AC_ARG_WITH(cgiurl,
+	AC_HELP_STRING([--with-cgiurl=<local-url>],
+		[sets URL for cgi programs (do not use a trailing slash)]),
+	cgiurl=$withval,
+	cgiurl=/nagios/cgi-bin
+)
+AC_ARG_WITH(htmurl,
+	AC_HELP_STRING([--with-htmurl=<local-url>],
+		[sets URL for public html]),
+	htmurl=$withval,
+	htmurl=/nagios
+)
 AC_SUBST(htmurl)
 AC_SUBST(cgiurl)
 
 USE_NANOSLEEP=yes
-AC_ARG_ENABLE(nanosleep,--enable-nanosleep enables use of nanosleep (instead of sleep) in event timing,USE_NANOSLEEP=$enableval,USE_NANOSLEEP=yes)
+AC_ARG_ENABLE(nanosleep,
+	AC_HELP_STRING([--enable-nanosleep],
+		[enables use of nanosleep (instead of sleep) in event timing]),
+	USE_NANOSLEEP=$enableval,
+	USE_NANOSLEEP=yes
+)
 if test x$USE_NANOSLEEP = xyes; then
 	AC_DEFINE_UNQUOTED(USE_NANOSLEEP,,[enables use of nanosleep (instead of sleep)])
 fi
 
 USE_EVENTBROKER=yes
-AC_ARG_ENABLE(event-broker,--enable-event-broker enables integration of event broker routines,USE_EVENTBROKER=$enableval,USE_EVENTBROKER=yes)
+AC_ARG_ENABLE(event-broker,
+	AC_HELP_STRING([--enable-event-broker],
+		[enables integration of event broker routines]),
+	USE_EVENTBROKER=$enableval,
+	USE_EVENTBROKER=yes
+)
 
 BROKER_LDFLAGS=""
 BROKERLIBS="";
@@ -509,9 +656,11 @@ dnl Option for compiling under CYGWIN
 nagios_name=nagios
 nagiostats_name=nagiostats
 cygwin=no
-AC_ARG_ENABLE(cygwin,--enable-cygwin enables building under the CYGWIN environment,[
-	cygwin=$enableval
-	])
+AC_ARG_ENABLE(cygwin,
+	AC_HELP_STRING([--enable-cygwin],
+		[enables building under the CYGWIN environment]),
+	[cygwin=$enableval]
+)
 if test x$cygwin = xyes; then
 	CFLAGS="${CFLAGS} -DCYGWIN" 
 	nagios_name=nagios.exe;
@@ -651,6 +800,7 @@ AC_MSG_RESULT([           Init directory:  $init_dir])
 AC_MSG_RESULT([  Apache conf.d directory:  $HTTPD_CONF])
 AC_MSG_RESULT([             Mail program:  $MAIL_PROG])
 AC_MSG_RESULT([                  Host OS:  $host_os])
+AC_MSG_RESULT([          IOBroker Method:  $IOBROKER_METHOD])
 
 echo ""
 echo " Web Interface Options:"

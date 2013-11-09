@@ -314,7 +314,8 @@ void runcmd_init(void)
 
 
 /* Start running a command */
-int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
+int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
+		void (*iobreg)(int, int, void *), void *iobregarg)
 {
 	char **argv = NULL;
 	int cmd2strv_errors, argc = 0;
@@ -370,6 +371,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 		close(pfd[1]);
 		return RUNCMD_EFD;
 	}
+	iobreg(pfd[0], pfderr[0], iobregarg);
 	pid = fork();
 	if (pid < 0) {
 		if (!cmd2strv_errors)
@@ -392,12 +394,16 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env)
 
 		close (pfd[0]);
 		if (pfd[1] != STDOUT_FILENO) {
-			dup2 (pfd[1], STDOUT_FILENO);
+			if(dup2(pfd[1], STDOUT_FILENO) == -1) {
+				_exit(errno);
+			}
 			close (pfd[1]);
 		}
 		close (pfderr[0]);
 		if (pfderr[1] != STDERR_FILENO) {
-			dup2 (pfderr[1], STDERR_FILENO);
+			if(dup2(pfderr[1], STDERR_FILENO) == -1) {
+				_exit(errno);
+			}
 			close (pfderr[1]);
 		}
 

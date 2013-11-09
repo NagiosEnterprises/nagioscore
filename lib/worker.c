@@ -420,6 +420,14 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 				wlog("job %d (pid=%d): Failed to read(): %s", cp->id, cp->ei->pid, strerror(errno));
 		}
 
+		if (rd > 0) {
+			/* we read some data */
+			io->buf = realloc(io->buf, rd + io->len + 1);
+			memcpy(&io->buf[io->len], buf, rd);
+			io->len += rd;
+			io->buf[io->len] = '\0';
+		}
+
 		/*
 		 * Close down on bad, zero and final reads (we don't get
 		 * EAGAIN, so all errors are really unfixable)
@@ -432,13 +440,6 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 			break;
 		}
 
-		if (rd) {
-			/* we read some data */
-			io->buf = realloc(io->buf, rd + io->len + 1);
-			memcpy(&io->buf[io->len], buf, rd);
-			io->len += rd;
-			io->buf[io->len] = '\0';
-		}
 		break;
 	}
 }
@@ -491,11 +492,24 @@ static void reap_jobs(void)
 	} while (reapable);
 }
 
+void cmd_iobroker_register(int fdout, int fderr, void *arg) {
+	/* We must never block, even if plugins issue '_exit()' */
+	fcntl(fdout, F_SETFL, O_NONBLOCK);
+	fcntl(fderr, F_SETFL, O_NONBLOCK);
+	if( iobroker_register(iobs, fdout, arg, stdout_handler) < 0) {
+		wlog("Failed to register iobroker for stdout");
+	}
+	if( iobroker_register(iobs, fderr, arg, stderr_handler) < 0) {
+		wlog("Failed to register iobroker for stderr");
+	}
+}
+
 int start_cmd(child_process *cp)
 {
 	int pfd[2] = {-1, -1}, pfderr[2] = {-1, -1};
 
-	cp->outstd.fd = runcmd_open(cp->cmd, pfd, pfderr, NULL);
+	cp->outstd.fd = runcmd_open(cp->cmd, pfd, pfderr, NULL, 
+			cmd_iobroker_register, cp);
 	if (cp->outstd.fd < 0) {
 		return -1;
 	}
@@ -507,11 +521,6 @@ int start_cmd(child_process *cp)
 		return -1;
 	}
 
-	/* We must never block, even if plugins issue '_exit()' */
-	fcntl(cp->outstd.fd, F_SETFL, O_NONBLOCK);
-	fcntl(cp->outerr.fd, F_SETFL, O_NONBLOCK);
-	iobroker_register(iobs, cp->outstd.fd, cp, stdout_handler);
-	iobroker_register(iobs, cp->outerr.fd, cp, stderr_handler);
 	fanout_add(ptab, cp->ei->pid, cp);
 
 	return 0;

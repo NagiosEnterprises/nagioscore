@@ -5,6 +5,11 @@ Nagios Core 4 Change Log
 4.0.2 - xx/xx/xxxx
 ------------------
 FIXES
+* Fixed bug 530: RPM spec file sets wrong permissions on plugins directory (duplicate of bug 494)
+* Fixed bug 494: nagios.spec fixes (with patch) (Karsten Weiss)
+* Fixed bug 515: Segsegv after starting up nagios (duplicate of bug 526)
+* Fixed bug 513: Crash while entering downtime for service (duplicate of bug 526)
+* Fixed bug 529: Core Worker failed to reap child in 4.0.1 Description
 * Fixed bug 514: scheduled downtime not showing in web interface (Eric Stanley)
 * Fixed bug 526: sort_downtime() corrupts scheduled_downtime_list causing segfault (Adam James)
 * Fixed bug 492: Nagios 4 fails to remove/add checks upon reload (Eric Stanley)

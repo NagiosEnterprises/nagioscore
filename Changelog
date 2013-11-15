@@ -5,6 +5,8 @@ Nagios Core 4 Change Log
 4.0.2 - xx/xx/xxxx
 ------------------
 FIXES
+* Fixed bug 528: Nagios 4.0.1: Logrotation: Only current host- and servicestates saved in rotated logfiles (duplicate of 507)
+* Fixed bug 507: Nagios 4.0.0 - Problem during log rotate (Stefano Ghelfi)
 * Fixed bug 530: RPM spec file sets wrong permissions on plugins directory (duplicate of bug 494)
 * Fixed bug 494: nagios.spec fixes (with patch) (Karsten Weiss)
 * Fixed bug 515: Segsegv after starting up nagios (duplicate of bug 526)

@@ -214,11 +214,12 @@ fi
 %attr(0755,root,root) %config %{_initrddir}/nagios
 %attr(0755,root,root) %{_bindir}/nagios
 %attr(0755,root,root) %{_bindir}/nagiostats
-%attr(0644,root,root) %{_libdir}/nagios/plugins/
+%attr(0755,root,root) %{_libdir}/nagios/plugins/
 %attr(0755,root,root) %{_datadir}/nagios/
 %attr(0755,nagios,nagios) %dir %{_sysconfdir}/nagios/
 %attr(0644,nagios,nagios) %config(noreplace) %{_sysconfdir}/nagios/*.cfg
 %attr(0755,nagios,nagios) %{_sysconfdir}/nagios/objects/
+%attr(0644,nagios,nagios) %config(noreplace) %{_sysconfdir}/nagios/objects/*.cfg
 %attr(0755,nagios,nagios) %dir %{_localstatedir}/nagios/
 %attr(0755,nagios,nagios) %{_localstatedir}/nagios/
 %attr(0755,nagios,nagios) %{logdir}/
@@ -229,11 +230,16 @@ fi
 %attr(0755,root,root) %{_includedir}/nagios/
 
 %files contrib -f contrib.files
-%%doc contrib/README.contrib
+%doc contrib/README.contrib
 %attr(0755,root,root) %{_bindir}/convertcfg
 %attr(0755,root,root) %{_libdir}/nagios/plugins/eventhandlers/
 
 %changelog
+* Fri Nov 15 2013 Eric Stanley  <estanley@nagios.com> 4.0.1-1
+- Corrected permissions on plugins directory (bug #494 - patch by Karsten Weiss)
+- Corrected doc directive (bug #494 - patch by Karsten Weiss)
+- Added configuration directive for *.cfg files (bug #494 - patch by Karsten Weiss)
+
 * Wed Sep 18 2013 Daniel Wittenberg <dwittenberg2008@gmail.com> 4.0.0rc2-1
 - Fix find command - Florin Andrei, bug #489
 - Remove compiler warning option that breaks older builds, bug #488

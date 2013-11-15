@@ -3867,6 +3867,10 @@ json_object *json_archive_availability(unsigned format_options,
 				json_host_list = json_new_array();
 				for(temp_host = host_list; temp_host != NULL; 
 						temp_host = temp_host->next) {
+					if(FALSE == is_authorized_for_host(temp_host, 
+							&current_authdata)) {
+						continue;
+						}
 					json_host_object = 
 							json_archive_single_host_availability(
 							format_options, query_time, start_time, end_time, 
@@ -3882,16 +3886,19 @@ json_object *json_archive_availability(unsigned format_options,
 				json_object_append_array(json_data, "hosts", json_host_list);
 				}
 			else {
-				json_host_object = 
-						json_archive_single_host_availability(format_options, 
-						query_time, start_time, end_time, host_name, 
-						report_timeperiod, assume_initial_state, 
-						assume_state_retention, 
-						assume_state_during_nagios_downtime, 
-						assumed_initial_host_state, state_types, log);
-				if(NULL != json_host_object) {
-					json_object_append_object(json_data, "host", 
-							json_host_object);
+				if(TRUE == is_authorized_for_host(temp_host, 
+							&current_authdata)) {
+					json_host_object = 
+							json_archive_single_host_availability(format_options, 
+							query_time, start_time, end_time, host_name, 
+							report_timeperiod, assume_initial_state, 
+							assume_state_retention, 
+							assume_state_during_nagios_downtime, 
+							assumed_initial_host_state, state_types, log);
+					if(NULL != json_host_object) {
+						json_object_append_object(json_data, "host", 
+								json_host_object);
+						}
 					}
 				}
 			break;
@@ -3901,6 +3908,10 @@ json_object *json_archive_availability(unsigned format_options,
 				json_service_list = json_new_array();
 				for(temp_service = service_list; temp_service != NULL; 
 						temp_service = temp_service->next) {
+					if(FALSE == is_authorized_for_service(temp_service,
+							&current_authdata)) {
+						continue;
+						}
 					json_service_object = 
 							json_archive_single_service_availability(
 							format_options, query_time, start_time, end_time, 
@@ -3922,7 +3933,9 @@ json_object *json_archive_availability(unsigned format_options,
 				json_service_list = json_new_array();
 				for(temp_service = service_list; temp_service != NULL; 
 						temp_service = temp_service->next) {
-					if(!strcmp(temp_service->host_name, host_name)) {
+					if(!strcmp(temp_service->host_name, host_name) &&
+							(TRUE == is_authorized_for_service(temp_service,
+							&current_authdata))) {
 						json_service_object = 
 								json_archive_single_service_availability(
 								format_options, query_time, start_time, 
@@ -3947,7 +3960,9 @@ json_object *json_archive_availability(unsigned format_options,
 				for(temp_service = service_list; temp_service != NULL; 
 						temp_service = temp_service->next) {
 					if(!strcmp(temp_service->description, 
-							service_description)) {
+							service_description) &&
+							(TRUE == is_authorized_for_service(temp_service,
+							&current_authdata))) {
 						json_service_object = 
 								json_archive_single_service_availability(
 								format_options, query_time, start_time, 
@@ -3967,16 +3982,19 @@ json_object *json_archive_availability(unsigned format_options,
 						json_service_list);
 				}
 			else {
-				json_service_object = 
-						json_archive_single_service_availability(format_options,
-						query_time, start_time, end_time, host_name, 
-						service_description, report_timeperiod, 
-						assume_initial_state, assume_state_retention, 
-						assume_state_during_nagios_downtime, 
-						assumed_initial_service_state, state_types, log);
-				if(NULL != json_service_object) {
-					json_object_append_object(json_data, "service", 
-							json_service_object);
+				if(TRUE == is_authorized_for_service(temp_service,
+						&current_authdata)) {
+					json_service_object = 
+							json_archive_single_service_availability(format_options,
+							query_time, start_time, end_time, host_name, 
+							service_description, report_timeperiod, 
+							assume_initial_state, assume_state_retention, 
+							assume_state_during_nagios_downtime, 
+							assumed_initial_service_state, state_types, log);
+					if(NULL != json_service_object) {
+						json_object_append_object(json_data, "service", 
+								json_service_object);
+						}
 					}
 				}
 			break;
@@ -3991,6 +4009,10 @@ json_object *json_archive_availability(unsigned format_options,
 							temp_hostgroup_member != NULL; 
 							temp_hostgroup_member = 
 							temp_hostgroup_member->next) {
+						if(FALSE == is_authorized_for_host(temp_hostgroup_member, 
+								&current_authdata)) {
+							continue;
+							}
 						json_host_object = 
 								json_archive_single_host_availability(
 								format_options, query_time, start_time, 
@@ -4021,6 +4043,10 @@ json_object *json_archive_availability(unsigned format_options,
 				for(temp_hostgroup_member = hostgroup_selector->members; 
 						temp_hostgroup_member != NULL; 
 						temp_hostgroup_member = temp_hostgroup_member->next) {
+					if(FALSE == is_authorized_for_host(temp_hostgroup_member, 
+							&current_authdata)) {
+						continue;
+						}
 					json_host_object = 
 							json_archive_single_host_availability(
 							format_options, query_time, start_time, end_time, 
@@ -4054,6 +4080,10 @@ json_object *json_archive_availability(unsigned format_options,
 							temp_servicegroup_member != NULL; 
 							temp_servicegroup_member = 
 							temp_servicegroup_member->next) {
+						if(FALSE == is_authorized_for_service(temp_servicegroup_member,
+								&current_authdata)) {
+							continue;
+							}
 						json_service_object = 
 								json_archive_single_service_availability(
 								format_options, query_time, start_time, 
@@ -4081,12 +4111,16 @@ json_object *json_archive_availability(unsigned format_options,
 						json_servicegroup_list);
 				}
 			else {
-				/* compute for all hosts in the specified hostgroup */
+				/* compute for all services in the specified servicegroup */
 				json_service_list = json_new_array();
 				for(temp_servicegroup_member = servicegroup_selector->members; 
 						temp_servicegroup_member != NULL; 
 						temp_servicegroup_member = 
 						temp_servicegroup_member->next) {
+					if(FALSE == is_authorized_for_service(temp_servicegroup_member,
+							&current_authdata)) {
+						continue;
+						}
 					json_service_object = 
 							json_archive_single_service_availability(
 							format_options, query_time, start_time, end_time, 

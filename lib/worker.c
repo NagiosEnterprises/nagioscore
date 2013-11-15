@@ -382,6 +382,7 @@ static void kill_job(child_process *cp, int reason)
 			 * reap attempt later.
 			 */
 			if (reason == ESTALE) {
+wlog("tv.tv_sec is currently %d", tv.tv_sec);
 				tv.tv_sec += 5;
 				wlog("Failed to reap child with pid %d. Next attempt @ %lu.%lu", cp->ei->pid, tv.tv_sec, tv.tv_usec);
 			} else {
@@ -735,7 +736,13 @@ void enter_worker(int sd, int (*cb)(child_process*))
 				break;
 
 			if (cp->ei->state == ESTALE) {
-				kill_job(cp, ESTALE);
+				if(cp->ei->sq_event &&
+						squeue_evt_when_is_after(cp->ei->sq_event, &now)) {
+					/* If the state is already stale, there is a already
+						a job to kill the child on the queue so don't
+						add another one here. */
+					kill_job(cp, ESTALE);
+				}
 			} else {
 				/* this job timed out, so kill it */
 				wlog("job %d (pid=%d) timed out. Killing it", cp->id, cp->ei->pid);

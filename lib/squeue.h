@@ -147,5 +147,15 @@ extern int squeue_remove(squeue_t *q, squeue_event *evt);
  * @return number of events in the inspected queue
  */
 extern unsigned int squeue_size(squeue_t *q);
+
+
+/**
+ * Returns true if passed timeval is after the time for the event
+ *
+ * @param[in] evt The queue event to inspect
+ * @param[in] reftime The reference time to compare to the queue event time
+ * @return 1 if reftime > event time, 0 otherwise
+ */
+extern int squeue_evt_when_is_after(squeue_event *evt, struct timeval *reftime);
 #endif
 /** @} */

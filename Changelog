@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.0.2 - xx/xx/xxxx
+4.0.2 - 11/25/2013
 ------------------
 FIXES
 * Fixed bug 528: Nagios 4.0.1: Logrotation: Only current host- and servicestates saved in rotated logfiles (duplicate of 507)

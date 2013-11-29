@@ -1851,7 +1851,7 @@ void display_serviceescalations(void) {
 	printf("</TR>\n");
 
 
-	for(i = 0; i < num_objects.services; i++) {
+	for(i = 0; i < num_objects.serviceescalations; i++) {
 		temp_se = serviceescalation_ary[i];
 		if(*to_expand != '\0' && strcmp(to_expand, temp_se->host_name))
 			continue;

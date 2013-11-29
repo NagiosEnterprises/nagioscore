@@ -1,6 +1,7 @@
 #ifndef LIBNAGIOS_nsutils_h__
 #define LIBNAGIOS_nsutils_h__
 #include <sys/types.h>
+#include <sys/time.h>
 
 /**
  * @file nsutils.h

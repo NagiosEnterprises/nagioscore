@@ -2,6 +2,12 @@
 Nagios Core 4 Change Log
 ########################
 
+4.0.3 - xx/xx/xxxx
+------------------
+FIXES
+* Fixed bug #523: quotes and double quostes in plugin message are converted to HTML escapes in Nagios 4.0 (duplicate of bug #524)
+* Fixed bug #524: URLs returned in plugin check results are not correctly displayed (Eric Stanley)
+
 4.0.2 - 11/25/2013
 ------------------
 FIXES

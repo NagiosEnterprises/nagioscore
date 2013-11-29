@@ -1011,7 +1011,43 @@ const char *url_encode(const char *input) {
 	return str;
 	}
 
+static char * copy_wc_to_output(wchar_t wc, char *outstp, int output_max) {
 
+	int		wctomb_result;
+	char	mbtemp[ 10];
+
+	wctomb_result = wctomb(mbtemp, wc);
+	if(( wctomb_result > 0) &&
+			((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
+		strncpy( outstp, mbtemp, wctomb_result);
+		outstp += wctomb_result;
+		}
+	return outstp;
+	}
+
+static char * encode_character(wchar_t wc, char *outstp, int output_max) {
+
+	char	temp_expansion[11];
+
+	sprintf(temp_expansion, "&#%u;", (unsigned int)wc);
+	if(((outstp - encoded_html_string) + strlen(temp_expansion)) <
+			(unsigned int)output_max) {
+		strncpy(outstp, temp_expansion, strlen( temp_expansion));
+		outstp += strlen( temp_expansion);
+		}
+	return outstp;
+	}
+
+#define WHERE_OUTSIDE_TAG				0	/* Not in an HTML tag */
+#define WHERE_IN_TAG_NAME				1	/* In HTML tag name (either opening
+												or closing tag) */
+#define WHERE_IN_TAG_OUTSIDE_ATTRIBUTE	2	/* In HTML tag, but before or after 
+												an attribute. Should be <, > or
+												space */
+#define WHERE_IN_TAG_IN_ATTRIBUTE_NAME	3	/* In the attribute name */
+#define WHERE_IN_TAG_AT_EQUALS			4	/* At the equals sign between the
+												attribute name and value */
+#define WHERE_IN_TAG_IN_ATTRIBUTE_VALUE	5	/* In the attribute value */
 
 /* escapes a string used in HTML */
 char * html_encode(char *input, int escape_newlines) {
@@ -1021,10 +1057,10 @@ char * html_encode(char *input, int escape_newlines) {
 	wchar_t		*wcinput;
 	wchar_t		*inwcp;
 	size_t		mbstowcs_result;
-	char		mbtemp[ 10];
-	int			wctomb_result;
 	int			x;
-	char		temp_expansion[11];
+	int			where_in_tag = WHERE_OUTSIDE_TAG; /* Location in HTML tag */
+	wchar_t		attr_value_start = (wchar_t)0;	/* character that starts the 
+													attribute value */
 
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
@@ -1044,17 +1080,72 @@ char * html_encode(char *input, int escape_newlines) {
 		}
 
 	/* Process all converted characters */
-	for( x = 0, inwcp = wcinput; x < (int)mbstowcs_result && '\0' != *inwcp; x++, inwcp++) {
+	for( x = 0, inwcp = wcinput; x < (int)mbstowcs_result && '\0' != *inwcp; 
+			x++, inwcp++) {
 
 		/* Most ASCII characters don't get encoded */
 		if(( *inwcp  >= 0x20 && *inwcp <= 0x7e) &&
 				( !( '"' == *inwcp || '&' == *inwcp || '\'' == *inwcp ||
 				'<' == *inwcp || '>' == *inwcp))) {
-			wctomb_result = wctomb( mbtemp, *inwcp);
-			if(( wctomb_result > 0) &&
-					((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
-				strncpy( outstp, mbtemp, wctomb_result);
-				outstp += wctomb_result;
+			outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+			switch(where_in_tag) {
+			case WHERE_IN_TAG_NAME:
+				if(*inwcp == 0x20) {
+					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
+					}
+				break;
+			case WHERE_IN_TAG_OUTSIDE_ATTRIBUTE:
+				if(*inwcp != 0x20) {
+					where_in_tag = WHERE_IN_TAG_IN_ATTRIBUTE_NAME;
+					}
+				break;
+			case WHERE_IN_TAG_IN_ATTRIBUTE_NAME:
+				if(*inwcp == '=') {
+					where_in_tag = WHERE_IN_TAG_AT_EQUALS;
+					}
+				break;
+			case WHERE_IN_TAG_AT_EQUALS:
+				if(*inwcp != 0x20) {
+					attr_value_start = *inwcp;
+					where_in_tag = WHERE_IN_TAG_IN_ATTRIBUTE_VALUE;
+					}
+				break;
+			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
+				if((*inwcp == 0x20) && (attr_value_start != '"') &&
+						(attr_value_start != '\'')) {
+					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
+					}
+				break;
+				}
+			}
+
+		/* Special handling for quotes */
+		else if(FALSE == escape_html_tags && 
+				('"' == *inwcp || '\'' == *inwcp)) {
+			switch(where_in_tag) {
+			case WHERE_OUTSIDE_TAG:
+				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+				break;
+			case WHERE_IN_TAG_AT_EQUALS:
+				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+				attr_value_start = *inwcp;
+				where_in_tag = WHERE_IN_TAG_IN_ATTRIBUTE_VALUE;
+				break;
+			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
+				if(*(inwcp-1) == '\\') {
+					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+					}
+				else if(attr_value_start == *inwcp) {
+					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
+					}
+				else {
+					outstp = encode_character(*inwcp, outstp, output_max);
+					}
+				break;
+			default:
+				outstp = encode_character(*inwcp, outstp, output_max);
+				break;
 				}
 			}
 
@@ -1071,51 +1162,45 @@ char * html_encode(char *input, int escape_newlines) {
 			}
 
 		/* TODO - strip all but allowed HTML tags out... */
+		else if(('<' == *inwcp) && (FALSE == escape_html_tags)) {
 
-		else if( '<' == *inwcp) {
-
-			if(escape_html_tags == FALSE) {
-				wctomb_result = wctomb( mbtemp, *inwcp);
-				if(( wctomb_result > 0) &&
-						((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
-					strncpy( outstp, mbtemp, wctomb_result);
-					outstp += wctomb_result;
-					}
-				}
-			else {
-				if((( outstp - encoded_html_string) + 4) < output_max) {
-					strncpy( outstp, "&lt;", 4);
-					outstp += 4;
-					}
+			switch(where_in_tag) {
+			case WHERE_OUTSIDE_TAG:
+				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+				where_in_tag = WHERE_IN_TAG_NAME;
+				break;
+			default:
+				outstp = encode_character(*inwcp, outstp, output_max);
+				break;
 				}
 			}
 
-		else if( '>' == *inwcp) {
+		else if(('>' == *inwcp) && (FALSE == escape_html_tags)) {
 
-			if(escape_html_tags == FALSE) {
-				wctomb_result = wctomb( mbtemp, *inwcp);
-				if(( wctomb_result > 0) &&
-						((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
-					strncpy( outstp, mbtemp, wctomb_result);
-					outstp += wctomb_result;
+			switch(where_in_tag) {
+			case WHERE_IN_TAG_NAME:
+			case WHERE_IN_TAG_OUTSIDE_ATTRIBUTE:
+				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+				where_in_tag = WHERE_OUTSIDE_TAG;
+				break;
+			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
+				if((attr_value_start != '"') && (attr_value_start != '\'')) {
+					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+					where_in_tag = WHERE_OUTSIDE_TAG;
 					}
-				}
-			else {
-				if((( outstp - encoded_html_string) + 4) < output_max) {
-					strncpy( outstp, "&gt;", 4);
-					outstp += 4;
+				else {
+					outstp = encode_character(*inwcp, outstp, output_max);
 					}
+				break;
+			default:
+				outstp = encode_character(*inwcp, outstp, output_max);
+				break;
 				}
 			}
 
 		/* for simplicity, all other chars represented by their numeric value */
 		else {
-			sprintf( temp_expansion, "&#%u;", *( unsigned int *)inwcp);
-			if((( outstp - encoded_html_string) + strlen( temp_expansion)) <
-					(unsigned int)output_max) {
-				strncpy( outstp, temp_expansion, strlen( temp_expansion));
-				outstp += strlen( temp_expansion);
-				}
+			outstp = encode_character(*inwcp, outstp, output_max);
 			}
 		}
 

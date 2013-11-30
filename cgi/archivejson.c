@@ -3886,8 +3886,10 @@ json_object *json_archive_availability(unsigned format_options,
 				json_object_append_array(json_data, "hosts", json_host_list);
 				}
 			else {
-				if(TRUE == is_authorized_for_host(temp_host, 
-							&current_authdata)) {
+				temp_host = find_host(host_name);
+				if((NULL != temp_host) && 
+						(TRUE == is_authorized_for_host(temp_host, 
+						&current_authdata))) {
 					json_host_object = 
 							json_archive_single_host_availability(format_options, 
 							query_time, start_time, end_time, host_name, 
@@ -3982,8 +3984,10 @@ json_object *json_archive_availability(unsigned format_options,
 						json_service_list);
 				}
 			else {
-				if(TRUE == is_authorized_for_service(temp_service,
-						&current_authdata)) {
+				temp_service = find_service(host_name, service_description);
+				if((NULL != temp_service) && 
+						(TRUE == is_authorized_for_service(temp_service,
+						&current_authdata))) {
 					json_service_object = 
 							json_archive_single_service_availability(format_options,
 							query_time, start_time, end_time, host_name, 
@@ -4009,7 +4013,7 @@ json_object *json_archive_availability(unsigned format_options,
 							temp_hostgroup_member != NULL; 
 							temp_hostgroup_member = 
 							temp_hostgroup_member->next) {
-						if(FALSE == is_authorized_for_host(temp_hostgroup_member, 
+						if(FALSE == is_authorized_for_host(temp_hostgroup_member->host_ptr, 
 								&current_authdata)) {
 							continue;
 							}
@@ -4043,7 +4047,7 @@ json_object *json_archive_availability(unsigned format_options,
 				for(temp_hostgroup_member = hostgroup_selector->members; 
 						temp_hostgroup_member != NULL; 
 						temp_hostgroup_member = temp_hostgroup_member->next) {
-					if(FALSE == is_authorized_for_host(temp_hostgroup_member, 
+					if(FALSE == is_authorized_for_host(temp_hostgroup_member->host_ptr, 
 							&current_authdata)) {
 						continue;
 						}
@@ -4080,7 +4084,7 @@ json_object *json_archive_availability(unsigned format_options,
 							temp_servicegroup_member != NULL; 
 							temp_servicegroup_member = 
 							temp_servicegroup_member->next) {
-						if(FALSE == is_authorized_for_service(temp_servicegroup_member,
+						if(FALSE == is_authorized_for_service(temp_servicegroup_member->service_ptr,
 								&current_authdata)) {
 							continue;
 							}
@@ -4117,7 +4121,7 @@ json_object *json_archive_availability(unsigned format_options,
 						temp_servicegroup_member != NULL; 
 						temp_servicegroup_member = 
 						temp_servicegroup_member->next) {
-					if(FALSE == is_authorized_for_service(temp_servicegroup_member,
+					if(FALSE == is_authorized_for_service(temp_servicegroup_member->service_ptr,
 							&current_authdata)) {
 						continue;
 						}

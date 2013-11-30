@@ -85,6 +85,8 @@ typedef struct status_json_cgi_data_struct {
 	contact *	contact;
 	/* Type(s) of comment to include in comment count and list results */
 	unsigned	comment_types;
+	/* Entry type(s) of comment to include in comment count and list results */
+	unsigned	entry_types;
 	/* ID of comment for which details should be returned */
 	int			comment_id;
 	/* Comment whose id is comment_id */
@@ -157,6 +159,16 @@ typedef struct status_json_cgi_data_struct {
 #define COMMENT_TYPE_SERVICE	2
 #define COMMENT_TYPE_ALL 		(COMMENT_TYPE_HOST | COMMENT_TYPE_SERVICE)
 
+/* Comment Entry Types */
+#define COMMENT_ENTRY_USER				1
+#define COMMENT_ENTRY_DOWNTIME			2
+#define COMMENT_ENTRY_FLAPPING			4
+#define COMMENT_ENTRY_ACKNOWLEDGEMENT	8
+#define COMMENT_ENTRY_ALL				(COMMENT_ENTRY_USER |\
+											COMMENT_ENTRY_DOWNTIME |\
+											COMMENT_ENTRY_FLAPPING |\
+											COMMENT_ENTRY_ACKNOWLEDGEMENT)
+
 extern json_object *json_status_hostcount(unsigned, int, host *, int, host *, 
 		hostgroup *, int, contact *, int, time_t, time_t);
 extern json_object *json_status_hostlist(unsigned, int, int, int, int, host *, 
@@ -185,9 +197,9 @@ extern void json_status_contact_details(unsigned, unsigned, contact *);
 #endif
 
 extern json_object *json_status_commentcount(unsigned, int, time_t, time_t,
-		unsigned);
+		unsigned, unsigned);
 extern json_object *json_status_commentlist(unsigned, int, int, int, int, 
-		time_t, time_t, unsigned);
+		time_t, time_t, unsigned, unsigned);
 extern json_object *json_status_comment(unsigned, comment *);
 extern void json_status_comment_details(json_object *, unsigned, comment *);
 

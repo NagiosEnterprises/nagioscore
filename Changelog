@@ -2,9 +2,18 @@
 Nagios Core 4 Change Log
 ########################
 
-4.0.2 - xx/xx/xxxx
+4.0.3 - xx/xx/xxxx
 ------------------
 FIXES
+* Fixed bug #502: 4.0.0: Configuration -> Service Escalations = incomplete list (Eric Stanley)
+* Fixed bug #523: quotes and double quostes in plugin message are converted to HTML escapes in Nagios 4.0 (duplicate of bug #524)
+* Fixed bug #524: URLs returned in plugin check results are not correctly displayed (Eric Stanley)
+
+4.0.2 - 11/25/2013
+------------------
+FIXES
+* Fixed bug 528: Nagios 4.0.1: Logrotation: Only current host- and servicestates saved in rotated logfiles (duplicate of 507)
+* Fixed bug 507: Nagios 4.0.0 - Problem during log rotate (Stefano Ghelfi)
 * Fixed bug 530: RPM spec file sets wrong permissions on plugins directory (duplicate of bug 494)
 * Fixed bug 494: nagios.spec fixes (with patch) (Karsten Weiss)
 * Fixed bug 515: Segsegv after starting up nagios (duplicate of bug 526)

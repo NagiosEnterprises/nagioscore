@@ -356,6 +356,8 @@ int rotate_log_file(time_t rotation_time) {
 	int rename_result = 0;
 	int stat_result = -1;
 	struct stat log_file_stat;
+	struct stat archive_stat;
+	int archive_stat_result;
 
 	if(log_rotation_method == LOG_ROTATION_NONE) {
 		return OK;
@@ -383,6 +385,16 @@ int rotate_log_file(time_t rotation_time) {
 
 	/* get the archived filename to use */
 	asprintf(&log_archive, "%s%snagios-%02d-%02d-%d-%02d.log", log_archive_path, (log_archive_path[strlen(log_archive_path) - 1] == '/') ? "" : "/", t->tm_mon + 1, t->tm_mday, t->tm_year + 1900, t->tm_hour);
+
+	/* HACK: If the archive exists, don't overwrite it. This is a hack
+		because the real problem is that some log rotations are executed
+		early and as a result the next log rotatation is scheduled for 
+		the same time as the one that ran early */
+	archive_stat_result = stat(log_archive, &archive_stat);
+	if((0 == archive_stat_result) || 
+			((-1 == archive_stat_result) && (ENOENT != errno))) {
+		return OK;
+	}
 
 	/* rotate the log file */
 	rename_result = my_rename(log_file, log_archive);

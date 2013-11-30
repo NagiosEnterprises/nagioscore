@@ -1401,7 +1401,7 @@ void commit_command_data(int cmd) {
 	service *temp_service;
 	host *temp_host;
 	hostgroup *temp_hostgroup;
-	comment *temp_comment;
+	nagios_comment *temp_comment;
 	scheduled_downtime *temp_downtime;
 	servicegroup *temp_servicegroup = NULL;
 	contact *temp_contact = NULL;

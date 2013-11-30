@@ -97,6 +97,11 @@ typedef struct option_help_struct {
 #define RESULT_OPTION_VALUE_INVALID	6
 #define RESULT_OPTION_IGNORED	7
 
+/* Boolean Values - Used when selecting true, false, or both */
+#define BOOLEAN_TRUE	1
+#define BOOLEAN_FALSE	2
+#define BOOLEAN_EITHER  (BOOLEAN_TRUE | BOOLEAN_FALSE)
+
 /* Formatting Options */
 #define JSON_FORMAT_WHITESPACE	(1<<0)
 #define JSON_FORMAT_ENUMERATE	(1<<1)

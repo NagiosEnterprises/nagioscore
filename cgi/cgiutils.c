@@ -1048,6 +1048,7 @@ static char * encode_character(wchar_t wc, char *outstp, int output_max) {
 #define WHERE_IN_TAG_AT_EQUALS			4	/* At the equals sign between the
 												attribute name and value */
 #define WHERE_IN_TAG_IN_ATTRIBUTE_VALUE	5	/* In the attribute value */
+#define WHERE_IN_COMMENT				6	/* In an HTML comment */
 
 /* escapes a string used in HTML */
 char * html_encode(char *input, int escape_newlines) {
@@ -1090,8 +1091,13 @@ char * html_encode(char *input, int escape_newlines) {
 			outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 			switch(where_in_tag) {
 			case WHERE_IN_TAG_NAME:
-				if(*inwcp == 0x20) {
+				switch(*inwcp) {
+				case 0x20:
 					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
+					break;
+				case '!':
+					where_in_tag = WHERE_IN_COMMENT;
+					break;
 					}
 				break;
 			case WHERE_IN_TAG_OUTSIDE_ATTRIBUTE:
@@ -1124,6 +1130,7 @@ char * html_encode(char *input, int escape_newlines) {
 				('"' == *inwcp || '\'' == *inwcp)) {
 			switch(where_in_tag) {
 			case WHERE_OUTSIDE_TAG:
+			case WHERE_IN_COMMENT:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				break;
 			case WHERE_IN_TAG_AT_EQUALS:
@@ -1180,6 +1187,7 @@ char * html_encode(char *input, int escape_newlines) {
 			switch(where_in_tag) {
 			case WHERE_IN_TAG_NAME:
 			case WHERE_IN_TAG_OUTSIDE_ATTRIBUTE:
+			case WHERE_IN_COMMENT:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				where_in_tag = WHERE_OUTSIDE_TAG;
 				break;

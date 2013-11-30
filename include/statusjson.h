@@ -90,6 +90,9 @@ typedef struct status_json_cgi_data_struct {
 	/* Persistence(s) of comments to include in comment count and list 
  		results */
 	unsigned	persistence;
+	/* Whether comments that are expiring, non-expiring, or both are included 
+ 		in comment count and list results */
+	unsigned	expiring;
 	/* ID of comment for which details should be returned */
 	int			comment_id;
 	/* Comment whose id is comment_id */
@@ -200,9 +203,9 @@ extern void json_status_contact_details(unsigned, unsigned, contact *);
 #endif
 
 extern json_object *json_status_commentcount(unsigned, int, time_t, time_t,
-		unsigned, unsigned, unsigned);
+		unsigned, unsigned, unsigned, unsigned);
 extern json_object *json_status_commentlist(unsigned, int, int, int, int, 
-		time_t, time_t, unsigned, unsigned, unsigned);
+		time_t, time_t, unsigned, unsigned, unsigned, unsigned);
 extern json_object *json_status_comment(unsigned, comment *);
 extern void json_status_comment_details(json_object *, unsigned, comment *);
 

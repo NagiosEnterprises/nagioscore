@@ -211,6 +211,12 @@ const string_value_mapping svm_valid_persistence[] = {
 	{ NULL, -1, NULL },
 	};
 
+const string_value_mapping svm_valid_expiration[] = {
+	{ "yes", BOOLEAN_TRUE, "Comment Expires" },
+	{ "no", BOOLEAN_FALSE, "Comment Does Not Expire" },
+	{ NULL, -1, NULL },
+	};
+
 const string_value_mapping svm_comment_time_fields[] = {
 	{ "entrytime", STATUS_TIME_ENTRY_TIME, "Entry Time" },
 	{ "expiretime", STATUS_TIME_EXPIRE_TIME, "Expiration Time" },
@@ -413,6 +419,16 @@ option_help status_json_help[] = {
 		svm_valid_persistence
 		},
 	{ 
+		"expiring",
+		"Comment Expiration",
+		"list",
+		{ NULL },
+		{ "commentcount", "commentlist", NULL },
+		NULL,
+		"Whether or not the comment expires.",
+		svm_valid_expiration
+		},
+	{ 
 		"commentid",
 		"Comment ID",
 		"nagios:statusjson/commentlist",
@@ -530,9 +546,9 @@ json_object *json_status_service_selectors(unsigned, int, int, int, host *, int,
 		time_t, time_t, char *);
 
 int json_status_comment_passes_selection(comment *, int, time_t, time_t,
-		unsigned, unsigned, unsigned);
+		unsigned, unsigned, unsigned, unsigned);
 json_object *json_status_comment_selectors(unsigned, int, int, int, time_t, 
-		time_t, unsigned, unsigned, unsigned);
+		time_t, unsigned, unsigned, unsigned, unsigned);
 
 int json_status_downtime_passes_selection(scheduled_downtime *, int, time_t, 
 		time_t);
@@ -790,7 +806,8 @@ int main(void) {
 				json_status_commentcount(cgi_data.format_options, 
 				cgi_data.comment_time_field, cgi_data.start_time, 
 				cgi_data.end_time, cgi_data.comment_types,
-				cgi_data.entry_types, cgi_data.persistence));
+				cgi_data.entry_types, cgi_data.persistence,
+				cgi_data.expiring));
 		break;
 	case STATUS_QUERY_COMMENTLIST:
 		json_object_append_object(json_root, "result", 
@@ -802,7 +819,7 @@ int main(void) {
 				cgi_data.count, cgi_data.details, cgi_data.comment_time_field, 
 				cgi_data.start_time, cgi_data.end_time, 
 				cgi_data.comment_types, cgi_data.entry_types, 
-				cgi_data.persistence));
+				cgi_data.persistence, cgi_data.expiring));
 		break;
 	case STATUS_QUERY_COMMENT:
 		json_object_append_object(json_root, "result", 
@@ -948,6 +965,7 @@ void init_cgi_data(status_json_cgi_data *cgi_data) {
 	cgi_data->comment_types = COMMENT_TYPE_ALL;
 	cgi_data->entry_types = COMMENT_ENTRY_ALL;
 	cgi_data->persistence = BOOLEAN_EITHER;
+	cgi_data->expiring = BOOLEAN_EITHER;
 	cgi_data->comment_id = -1;
 	cgi_data->comment = NULL;
 	cgi_data->downtime_id = -1;
@@ -1147,6 +1165,18 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
 					svm_valid_persistence, &(cgi_data->persistence))) 
+					!= RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "expiring")) {
+			cgi_data->expiring = 0;
+			if((result = parse_bitmask_cgivar(THISCGI, 
+					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					json_root, query_time, variables[x], variables[x+1], 
+					svm_valid_expiration, &(cgi_data->expiring))) 
 					!= RESULT_SUCCESS) {
 				break;
 				}
@@ -2710,7 +2740,7 @@ void json_status_service_details(json_object *json_details,
 
 int json_status_comment_passes_selection(comment *temp_comment, int time_field, 
 		time_t start_time, time_t end_time, unsigned comment_types,
-		unsigned entry_types, unsigned persistence) {
+		unsigned entry_types, unsigned persistence, unsigned expiring) {
 
 	switch(time_field) {
 	case STATUS_TIME_INVALID: 
@@ -2790,12 +2820,28 @@ int json_status_comment_passes_selection(comment *temp_comment, int time_field,
 			}
 		}
 
+	if(expiring != BOOLEAN_EITHER) {
+		switch(temp_comment->expires) {
+		case 0: /* false */
+			if(!(expiring & BOOLEAN_FALSE)) {
+				return 0;
+				}
+			break;
+		case 1: /* true */
+			if(!(expiring & BOOLEAN_TRUE)) {
+				return 0;
+				}
+			break;
+			}
+		}
+
 	return 1;
 	}
 
 json_object *json_status_comment_selectors(unsigned format_options, int start, 
 		int count, int time_field, time_t start_time, time_t end_time,
-		unsigned comment_types, unsigned entry_types, unsigned persistence) {
+		unsigned comment_types, unsigned entry_types, unsigned persistence,
+		unsigned expiring) {
 
 	json_object *json_selectors;
 
@@ -2829,13 +2875,17 @@ json_object *json_status_comment_selectors(unsigned format_options, int start,
 		json_bitmask(json_selectors, format_options, "persistence", 
 				persistence, svm_valid_persistence);
 		}
+	if(expiring != BOOLEAN_EITHER) {
+		json_bitmask(json_selectors, format_options, "expiring", 
+				expiring, svm_valid_expiration);
+		}
 
 	return json_selectors;
 	}
 
 json_object *json_status_commentcount(unsigned format_options, int time_field, 
 		time_t start_time, time_t end_time, unsigned comment_types,
-		unsigned entry_types, unsigned persistence) {
+		unsigned entry_types, unsigned persistence, unsigned expiring) {
 
 	json_object *json_data;
 	comment *temp_comment;
@@ -2844,13 +2894,14 @@ json_object *json_status_commentcount(unsigned format_options, int time_field,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_status_comment_selectors(format_options, 0, 0, time_field, 
-			start_time, end_time, comment_types, entry_types, persistence));
+			start_time, end_time, comment_types, entry_types, persistence,
+			expiring));
 
 	for(temp_comment = comment_list; temp_comment != NULL; 
 			temp_comment = temp_comment->next) {
 		if(json_status_comment_passes_selection(temp_comment, time_field, 
 				start_time, end_time, comment_types, entry_types,
-				persistence) == 0) {
+				persistence, expiring) == 0) {
 			continue;
 			}
 		count++;
@@ -2864,7 +2915,7 @@ json_object *json_status_commentcount(unsigned format_options, int time_field,
 json_object *json_status_commentlist(unsigned format_options, int start, 
 		int count, int details, int time_field, time_t start_time, 
 		time_t end_time, unsigned comment_types, unsigned entry_types,
-		unsigned persistence) {
+		unsigned persistence, unsigned expiring) {
 
 	json_object *json_data;
 	json_object *json_commentlist_object = NULL;
@@ -2879,7 +2930,7 @@ json_object *json_status_commentlist(unsigned format_options, int start,
 	json_object_append_object(json_data, "selectors", 
 			json_status_comment_selectors(format_options, start, count, 
 			time_field, start_time, end_time, comment_types, entry_types,
-				persistence));
+			persistence, expiring));
 
 	if(details > 0) {
 		json_commentlist_object = json_new_object();
@@ -2893,7 +2944,7 @@ json_object *json_status_commentlist(unsigned format_options, int start,
 
 		if(json_status_comment_passes_selection(temp_comment, time_field, 
 				start_time, end_time, comment_types, entry_types,
-				persistence) == 0) {
+				persistence, expiring) == 0) {
 			continue;
 			}
 

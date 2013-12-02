@@ -1062,6 +1062,7 @@ char * html_encode(char *input, int escape_newlines) {
 	int			where_in_tag = WHERE_OUTSIDE_TAG; /* Location in HTML tag */
 	wchar_t		attr_value_start = (wchar_t)0;	/* character that starts the 
 													attribute value */
+	int			tag_depth = 0;					/* depth of nested HTML tags */
 
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
@@ -1130,6 +1131,13 @@ char * html_encode(char *input, int escape_newlines) {
 				('"' == *inwcp || '\'' == *inwcp)) {
 			switch(where_in_tag) {
 			case WHERE_OUTSIDE_TAG:
+				if(tag_depth >0) {
+					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+					}
+				else {
+					outstp = encode_character(*inwcp, outstp, output_max);
+					}
+				break;
 			case WHERE_IN_COMMENT:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				break;
@@ -1140,14 +1148,22 @@ char * html_encode(char *input, int escape_newlines) {
 				break;
 			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
 				if(*(inwcp-1) == '\\') {
+					/* This covers the case where the quote is backslash
+						escaped. */
 					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 					}
 				else if(attr_value_start == *inwcp) {
+					/* If the quote is the same type of quote that started
+						the attribute value and it is not backslash 
+						escaped, it signals the end of the attribute value */
 					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
 					}
 				else {
-					outstp = encode_character(*inwcp, outstp, output_max);
+					/* If we encounter an quote that did not start the
+						attribute value and is not backslash escaped, 
+						use it as is */
+					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 					}
 				break;
 			default:
@@ -1175,6 +1191,7 @@ char * html_encode(char *input, int escape_newlines) {
 			case WHERE_OUTSIDE_TAG:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				where_in_tag = WHERE_IN_TAG_NAME;
+				tag_depth++;
 				break;
 			default:
 				outstp = encode_character(*inwcp, outstp, output_max);
@@ -1190,6 +1207,7 @@ char * html_encode(char *input, int escape_newlines) {
 			case WHERE_IN_COMMENT:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				where_in_tag = WHERE_OUTSIDE_TAG;
+				tag_depth--;
 				break;
 			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
 				if((attr_value_start != '"') && (attr_value_start != '\'')) {

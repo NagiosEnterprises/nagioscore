@@ -1191,7 +1191,16 @@ char * html_encode(char *input, int escape_newlines) {
 			case WHERE_OUTSIDE_TAG:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				where_in_tag = WHERE_IN_TAG_NAME;
-				tag_depth++;
+				switch(*(inwcp+1)) {
+				case '/':
+					tag_depth--;
+					break;
+				case '!':
+					break;
+				default:
+					tag_depth++;
+					break;
+					}
 				break;
 			default:
 				outstp = encode_character(*inwcp, outstp, output_max);
@@ -1207,7 +1216,6 @@ char * html_encode(char *input, int escape_newlines) {
 			case WHERE_IN_COMMENT:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				where_in_tag = WHERE_OUTSIDE_TAG;
-				tag_depth--;
 				break;
 			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
 				if((attr_value_start != '"') && (attr_value_start != '\'')) {

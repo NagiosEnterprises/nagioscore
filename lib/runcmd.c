@@ -137,7 +137,7 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 		return RUNCMD_EINVAL;
 
 	len = strlen(str);
-	argz = malloc(len + 10);
+	argz = malloc(len + 1);
 	if (!argz)
 		return RUNCMD_EALLOC;
 
@@ -236,10 +236,6 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			if (!in_quotes) {
 				set_state(STATE_SPECIAL);
 				add_ret(RUNCMD_HAS_JOBCONTROL);
-				if (i && str[i - 1] != *p) {
-					argz[a++] = 0;
-					out_argv[arg++] = &argz[a];
-				}
 			}
 			break;
 

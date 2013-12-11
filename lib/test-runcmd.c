@@ -65,6 +65,7 @@ struct {
 	{ 0, "echo \\$foo" },
 	{ RUNCMD_HAS_PAREN, "\\$(hoopla booyaka" },
 	{ 0, "\\$\\(hoopla booyaka" },
+	{ RUNCMD_HAS_JOBCONTROL, "a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a"},
 	{ 0, NULL},
 };
 

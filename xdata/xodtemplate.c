@@ -5655,6 +5655,7 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 		xod_inherit(this_host, template_host, first_notification_delay);
 		xod_inherit(this_host, template_host, stalking_options);
 		xod_inherit(this_host, template_host, process_perf_data);
+		xod_inherit(this_host, template_host, hourly_value);
 
 		if(this_host->have_2d_coords == FALSE && template_host->have_2d_coords == TRUE) {
 			this_host->x_2d = template_host->x_2d;
@@ -5782,6 +5783,7 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 		xod_inherit(this_service, template_service, process_perf_data);
 		xod_inherit(this_service, template_service, retain_status_information);
 		xod_inherit(this_service, template_service, retain_nonstatus_information);
+		xod_inherit(this_service, template_service, hourly_value);
 
 		/* apply missing custom variables from template service... */
 		for(temp_customvariablesmember = template_service->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {

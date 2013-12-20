@@ -4,6 +4,9 @@ Nagios Core 4 Change Log
 
 4.0.3 - xx/xx/xxxx
 ------------------
+ENHANCEMENTS
+* Added notifications on flexible downtime expiration (Dan Wittenberg)
+
 FIXES
 * Fixed CGI bug where the CGI could read past the end of the list of CGI variables, potentially crashing the CGI (Scott Wilkerson)
 * Fixed inheritance of hourly_value from host and service templates (Scott Wilkerson)

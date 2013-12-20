@@ -8,6 +8,7 @@ ENHANCEMENTS
 * Added notifications on flexible downtime expiration (Dan Wittenberg)
 
 FIXES
+* No longer checks whether logs can be written when verifying configuration (Eric Stanley)
 * Fixed CGI bug where the CGI could read past the end of the list of CGI variables, potentially crashing the CGI (Scott Wilkerson)
 * Fixed inheritance of hourly_value from host and service templates (Scott Wilkerson)
 * Fixed bug #502: 4.0.0: Configuration -> Service Escalations = incomplete list (Eric Stanley)

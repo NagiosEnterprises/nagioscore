@@ -3204,4 +3204,223 @@ int set_macro_environment_var(char *name, char *value, int set) {
 
 	return OK;
 	}
+
+static int add_macrox_environment_vars_r(nagios_macros *, struct kvvec *);
+static int add_argv_macro_environment_vars_r(nagios_macros *, struct kvvec *);
+static int add_custom_macro_environment_vars_r(nagios_macros *, struct kvvec *);
+static int add_contact_address_environment_vars_r(nagios_macros *,
+		struct kvvec *);
+
+struct kvvec * macros_to_kvv(nagios_macros *mac) {
+
+	struct kvvec *kvvp;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "macros_to_kvv()\n");
+
+	/* If we're not supposed to export macros as environment variables,
+		just return */
+	if(FALSE == enable_environment_macros) return NULL;
+
+	/* Create the kvvec to hold the macros */
+	if((kvvp = calloc(1, sizeof(struct kvvec))) == NULL) return NULL;
+	if(!kvvec_init(kvvp, MACRO_X_COUNT + MAX_COMMAND_ARGUMENTS + MAX_CONTACT_ADDRESSES)) return NULL;
+
+	add_macrox_environment_vars_r(mac, kvvp);
+	add_argv_macro_environment_vars_r(mac, kvvp);
+	add_custom_macro_environment_vars_r(mac, kvvp);
+	add_contact_address_environment_vars_r(mac, kvvp);
+
+	return kvvp;
+	}
+
+/* adds macrox environment variables */
+static int add_macrox_environment_vars_r(nagios_macros *mac,
+		struct kvvec *kvvp) {
+	register int x = 0;
+	int free_macro = FALSE;
+	char *envname;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 1, "add_macrox_environment_vars_r()\n");
+
+	/* set each of the macrox environment variables */
+	for(x = 0; x < MACRO_X_COUNT; x++) {
+
+		log_debug_info(DEBUGL_MACROS, 2, "Processing macro %d of %d\n", x,
+				MACRO_X_COUNT);
+		free_macro = FALSE;
+
+		/* large installations don't get all macros */
+		if(use_large_installation_tweaks == TRUE) {
+			/*
+			 * member macros tend to overflow the
+			 * environment on large installations
+			 */
+			if(x == MACRO_SERVICEGROUPMEMBERS ||
+					x == MACRO_HOSTGROUPMEMBERS) continue;
+
+			/* summary macros are CPU intensive to compute */
+			if(x >= MACRO_TOTALHOSTSUP &&
+					x <= MACRO_TOTALSERVICEPROBLEMSUNHANDLED) continue;
+			}
+
+		/* generate the macro value if it hasn't already been done */
+		/* THIS IS EXPENSIVE */
+		if(mac->x[x] == NULL) {
+			log_debug_info(DEBUGL_MACROS, 2, "Grabbing value for macro: %s\n",
+					macro_x_names[x]);
+
+			grab_macrox_value_r(mac, x, NULL, NULL, &mac->x[x], &free_macro);
+			}
+
+		/* add the value to the kvvec */
+		log_debug_info(DEBUGL_MACROS, 2, "Adding macro \"%s\" with value \"%s\" to kvvec\n",
+					macro_x_names[x], mac->x[x]);
+		/* Allocate memory for each environment variable name, but not the 
+			values because when kvvec_destroy() is called, it is called with
+			KVVEC_FREE_KEYS */
+		asprintf(&envname, "%s%s", MACRO_ENV_VAR_PREFIX, macro_x_names[x]);
+		kvvec_addkv(kvvp, envname, mac->x[x]);
+		}
+
+	log_debug_info(DEBUGL_FUNCTIONS, 2, "add_macrox_environment_vars_r() end\n");
+	return OK;
+	}
+
+/* adds argv macro environment variables */
+static int add_argv_macro_environment_vars_r(nagios_macros *mac,
+		struct kvvec *kvvp) {
+	char *macro_name = NULL;
+	register int x = 0;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 1, "add_argv_macro_environment_vars_r()\n");
+
+	/* set each of the argv macro environment variables */
+	for(x = 0; x < MAX_COMMAND_ARGUMENTS; x++) {
+		/* Allocate memory for each environment variable name, but not the 
+			values because when kvvec_destroy() is called, it is called with
+			KVVEC_FREE_KEYS */
+		asprintf(&macro_name, "ARG%d", x + 1);
+		kvvec_addkv(kvvp, macro_name, mac->argv[x]);
+		}
+
+	return OK;
+	}
+
+/* adds custom host/service/contact macro environment variables */
+static int add_custom_macro_environment_vars_r(nagios_macros *mac,
+		struct kvvec *kvvp) {
+
+	customvariablesmember *temp_customvariablesmember = NULL;
+	host *temp_host = NULL;
+	service *temp_service = NULL;
+	contact *temp_contact = NULL;
+	char *customvarname = NULL;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 1, "add_custom_macro_environment_vars_r()\n");
+
+	/***** CUSTOM HOST VARIABLES *****/
+	/* generate variables and save them for later */
+	temp_host = mac->host_ptr;
+	if(temp_host) {
+		for(temp_customvariablesmember = temp_host->custom_variables;
+				temp_customvariablesmember != NULL;
+				temp_customvariablesmember = temp_customvariablesmember->next) {
+			asprintf(&customvarname, "_HOST%s",
+					temp_customvariablesmember->variable_name);
+			add_custom_variable_to_object(&mac->custom_host_vars, customvarname,
+					temp_customvariablesmember->variable_value);
+			my_free(customvarname);
+			}
+		}
+	/* set variables */
+	for(temp_customvariablesmember = mac->custom_host_vars;
+			temp_customvariablesmember != NULL;
+			temp_customvariablesmember = temp_customvariablesmember->next) {
+		/* Allocate memory for each environment variable name, but not the 
+			values because when kvvec_destroy() is called, it is called with
+			KVVEC_FREE_KEYS */
+		kvvec_addkv(kvvp, strdup(temp_customvariablesmember->variable_name),
+				clean_macro_chars(temp_customvariablesmember->variable_value,
+				STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS));
+		}
+
+	/***** CUSTOM SERVICE VARIABLES *****/
+	/* generate variables and save them for later */
+	temp_service = mac->service_ptr;
+	if(temp_service) {
+		for(temp_customvariablesmember = temp_service->custom_variables;
+				temp_customvariablesmember != NULL;
+				temp_customvariablesmember = temp_customvariablesmember->next) {
+			asprintf(&customvarname, "_SERVICE%s",
+					temp_customvariablesmember->variable_name);
+			add_custom_variable_to_object(&mac->custom_service_vars,
+					customvarname, temp_customvariablesmember->variable_value);
+			my_free(customvarname);
+			}
+		}
+	/* set variables */
+	for(temp_customvariablesmember = mac->custom_service_vars;
+			temp_customvariablesmember != NULL;
+			temp_customvariablesmember = temp_customvariablesmember->next) {
+		/* Allocate memory for each environment variable name, but not the 
+			values because when kvvec_destroy() is called, it is called with
+			KVVEC_FREE_KEYS */
+		kvvec_addkv(kvvp, strdup(temp_customvariablesmember->variable_name),
+				clean_macro_chars(temp_customvariablesmember->variable_value,
+				STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS));
+		}
+
+	/***** CUSTOM CONTACT VARIABLES *****/
+	/* generate variables and save them for later */
+	temp_contact = mac->contact_ptr;
+	if(temp_contact) {
+		for(temp_customvariablesmember = temp_contact->custom_variables;
+				temp_customvariablesmember != NULL;
+				temp_customvariablesmember = temp_customvariablesmember->next) {
+			asprintf(&customvarname, "_CONTACT%s",
+					temp_customvariablesmember->variable_name);
+			add_custom_variable_to_object(&mac->custom_contact_vars,
+					customvarname, temp_customvariablesmember->variable_value);
+			my_free(customvarname);
+			}
+		}
+	/* set variables */
+	for(temp_customvariablesmember = mac->custom_contact_vars;
+			temp_customvariablesmember != NULL;
+			temp_customvariablesmember = temp_customvariablesmember->next) {
+		/* Allocate memory for each environment variable name, but not the 
+			values because when kvvec_destroy() is called, it is called with
+			KVVEC_FREE_KEYS */
+		kvvec_addkv(kvvp, strdup(temp_customvariablesmember->variable_name),
+				clean_macro_chars(temp_customvariablesmember->variable_value,
+				STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS));
+		}
+
+	return OK;
+	}
+
+/* add contact address environment variables */
+static int add_contact_address_environment_vars_r(nagios_macros *mac,
+		struct kvvec *kvvp) {
+
+	char *varname = NULL;
+	register int x;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 1, "add_contact_address_environment_vars_r()\n");
+
+	/* these only get set during notifications */
+	if(mac->contact_ptr == NULL)
+		return OK;
+
+	for(x = 0; x < MAX_CONTACT_ADDRESSES; x++) {
+		/* Allocate memory for each environment variable name, but not the 
+			values because when kvvec_destroy() is called, it is called with
+			KVVEC_FREE_KEYS */
+		asprintf(&varname, "CONTACTADDRESS%d", x);
+		kvvec_addkv(kvvp, varname, mac->contact_ptr->address[x]);
+		}
+
+	return OK;
+	}
+
 #endif

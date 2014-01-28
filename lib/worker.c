@@ -198,6 +198,7 @@ static void destroy_job(child_process *cp)
 		cp->outerr.buf = NULL;
 	}
 
+	kvvec_destroy(cp->env, KVVEC_FREE_ALL);
 	kvvec_destroy(cp->request, KVVEC_FREE_ALL);
 	free(cp->cmd);
 
@@ -505,12 +506,30 @@ void cmd_iobroker_register(int fdout, int fderr, void *arg) {
 	}
 }
 
+char **env_from_kvvec(struct kvvec *kvv_env) {
+
+	int i;
+	char **env = calloc(kvv_env->kv_pairs*2+1, sizeof(char *));
+
+	for (i = 0; i < kvv_env->kv_pairs; i++) {
+		struct key_value *kv = &kvv_env->kv[i];
+		env[i*2] = kv->key;
+		env[i*2+1] = kv->value;
+	}
+	env[i*2] = NULL;
+
+	return env;
+}
+
 int start_cmd(child_process *cp)
 {
 	int pfd[2] = {-1, -1}, pfderr[2] = {-1, -1};
 
-	cp->outstd.fd = runcmd_open(cp->cmd, pfd, pfderr, NULL, 
+	char **env = env_from_kvvec(cp->env);
+
+	cp->outstd.fd = runcmd_open(cp->cmd, pfd, pfderr, env, 
 			cmd_iobroker_register, cp);
+	my_free(env);
 	if (cp->outstd.fd < 0) {
 		return -1;
 	}
@@ -567,6 +586,10 @@ static child_process *parse_command_kvvec(struct kvvec *kvv)
 		}
 		if (!strcmp(key, "timeout")) {
 			cp->timeout = (unsigned int)strtoul(value, &endptr, 0);
+			continue;
+		}
+		if (!strcmp(key, "env")) {
+			cp->env = buf2kvvec(value, strlen(value), '=', '\n', KVVEC_COPY);
 			continue;
 		}
 	}

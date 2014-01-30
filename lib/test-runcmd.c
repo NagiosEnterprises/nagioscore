@@ -30,7 +30,7 @@ struct cases cases[] = {
 	{"\\'te\\\\st13", "'te\\st13"},
 	{"'test14\"'", "test14\""},
 	{"\"\\\\test\"", "\\test"},
-	{NULL},
+	{NULL, NULL},
 };
 
 struct {

@@ -115,6 +115,8 @@ typedef struct status_json_cgi_data_struct {
 	int			downtime_time_field;
 	/* Object type to use for downtimecount and downtimelist queries */
 	unsigned	downtime_object_types;
+	/* Downtime type to use for downtimecount and downtimelist queries */
+	unsigned	downtime_types;
 	} status_json_cgi_data;
 
 /* Status Type Information */
@@ -183,6 +185,11 @@ typedef struct status_json_cgi_data_struct {
 #define DOWNTIME_OBJECT_TYPE_ALL 		(DOWNTIME_OBJECT_TYPE_HOST |\
 											DOWNTIME_OBJECT_TYPE_SERVICE)
 
+/* Downtime Types */
+#define DOWNTIME_TYPE_FIXED		1
+#define DOWNTIME_TYPE_FLEXIBLE	2
+#define DOWNTIME_TYPE_ALL 		(DOWNTIME_TYPE_FIXED | DOWNTIME_TYPE_FLEXIBLE)
+
 extern json_object *json_status_hostcount(unsigned, int, host *, int, host *, 
 		hostgroup *, int, contact *, int, time_t, time_t);
 extern json_object *json_status_hostlist(unsigned, int, int, int, int, host *, 
@@ -218,9 +225,9 @@ extern json_object *json_status_comment(unsigned, comment *);
 extern void json_status_comment_details(json_object *, unsigned, comment *);
 
 extern json_object *json_status_downtimecount(unsigned, int, time_t, time_t, 
-		unsigned);
+		unsigned, unsigned);
 extern json_object *json_status_downtimelist(unsigned, int, int, int, int, 
-		time_t, time_t, unsigned);
+		time_t, time_t, unsigned, unsigned);
 extern json_object *json_status_downtime(unsigned, scheduled_downtime *);
 extern void json_status_downtime_details(json_object *, unsigned, 
 		scheduled_downtime *);

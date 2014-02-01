@@ -122,6 +122,9 @@ typedef struct status_json_cgi_data_struct {
 	unsigned	triggered;
 	/* ID of a triggering downtime */
 	int			triggered_by;
+	/* Whether downtimes that are or are not in effect or both are included 
+		in downtime count and list results */
+	unsigned	in_effect;
 	} status_json_cgi_data;
 
 /* Status Type Information */
@@ -230,9 +233,9 @@ extern json_object *json_status_comment(unsigned, comment *);
 extern void json_status_comment_details(json_object *, unsigned, comment *);
 
 extern json_object *json_status_downtimecount(unsigned, int, time_t, time_t, 
-		unsigned, unsigned, unsigned, int);
+		unsigned, unsigned, unsigned, int, unsigned);
 extern json_object *json_status_downtimelist(unsigned, int, int, int, int, 
-		time_t, time_t, unsigned, unsigned, unsigned, int);
+		time_t, time_t, unsigned, unsigned, unsigned, int, unsigned);
 extern json_object *json_status_downtime(unsigned, scheduled_downtime *);
 extern void json_status_downtime_details(json_object *, unsigned, 
 		scheduled_downtime *);

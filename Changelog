@@ -4,7 +4,14 @@ Nagios Core 4 Change Log
 
 4.0.3 - xx/xx/xxxx
 ------------------
+ENHANCEMENTS
+* Added notifications on flexible downtime expiration (Dan Wittenberg)
+
 FIXES
+* Macros now exported to environment when enable_environment_macros=1 (Eric Stanley)
+* No longer checks whether logs can be written when verifying configuration (Eric Stanley)
+* Fixed CGI bug where the CGI could read past the end of the list of CGI variables, potentially crashing the CGI (Scott Wilkerson)
+* Fixed inheritance of hourly_value from host and service templates (Scott Wilkerson)
 * Fixed bug #502: 4.0.0: Configuration -> Service Escalations = incomplete list (Eric Stanley)
 * Fixed bug #523: quotes and double quostes in plugin message are converted to HTML escapes in Nagios 4.0 (duplicate of bug #524)
 * Fixed bug #524: URLs returned in plugin check results are not correctly displayed (Eric Stanley)

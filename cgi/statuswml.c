@@ -226,8 +226,13 @@ int process_cgivars(void) {
 
 	for(x = 0; variables[x] != NULL; x++) {
 
+		/* do some basic length checking on the variable identifier to prevent buffer overflows */
+		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
+			continue;
+			}
+
 		/* we found the hostgroup argument */
-		if(!strcmp(variables[x], "hostgroup")) {
+		else if(!strcmp(variables[x], "hostgroup")) {
 			display_type = DISPLAY_HOSTGROUP;
 			x++;
 			if(variables[x] == NULL) {

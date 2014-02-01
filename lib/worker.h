@@ -33,6 +33,7 @@ typedef struct execution_information execution_information;
 typedef struct child_process {
 	unsigned int id, timeout;
 	char *cmd;
+	struct kvvec *env;
 	int ret;
 	struct kvvec *request;
 	iobuf outstd;

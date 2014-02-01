@@ -427,7 +427,7 @@ int main(int argc, char **argv) {
 		 * this must come after dropping privileges, so we make
 		 * sure to test access permissions as the right user.
 		 */
-		if (test_configured_paths() == ERROR) {
+		if (!verify_config && test_configured_paths() == ERROR) {
 			printf("   One or more path problems detected. Aborting.\n");
 			exit(EXIT_FAILURE);
 			}

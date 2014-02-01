@@ -38,7 +38,7 @@
 
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
-#define MACRO_X_COUNT				156	/* size of macro_x[] array */
+#define MACRO_X_COUNT				153	/* size of macro_x[] array */
 
 NAGIOS_BEGIN_DECL
 

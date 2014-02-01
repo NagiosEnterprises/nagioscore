@@ -244,6 +244,12 @@ const string_value_mapping svm_valid_downtime_types[] = {
 	{ NULL, -1, NULL },
 	};
 
+const string_value_mapping svm_valid_triggered_status[] = {
+	{ "yes", BOOLEAN_TRUE, "Downtime Triggered" },
+	{ "no", BOOLEAN_FALSE, "Downtime Not Triggered" },
+	{ NULL, -1, NULL },
+	};
+
 option_help status_json_help[] = {
 	{ 
 		"query",
@@ -461,6 +467,16 @@ option_help status_json_help[] = {
 		svm_valid_downtime_types
 		},
 	{ 
+		"triggered",
+		"Downtime Triggered",
+		"list",
+		{ NULL },
+		{ "downtimecount", "downtimelist", NULL },
+		NULL,
+		"Whether or not the downtime is triggered.",
+		svm_valid_triggered_status
+		},
+	{ 
 		"commentid",
 		"Comment ID",
 		"nagios:statusjson/commentlist",
@@ -583,9 +599,9 @@ json_object *json_status_comment_selectors(unsigned, int, int, int, time_t,
 		time_t, unsigned, unsigned, unsigned, unsigned);
 
 int json_status_downtime_passes_selection(scheduled_downtime *, int, time_t, 
-		time_t, unsigned, unsigned);
+		time_t, unsigned, unsigned, unsigned);
 json_object *json_status_downtime_selectors(unsigned, int, int, int, time_t, 
-		time_t, unsigned, unsigned);
+		time_t, unsigned, unsigned, unsigned);
 
 int main(void) {
 	int result = OK;
@@ -870,7 +886,7 @@ int main(void) {
 				json_status_downtimecount(cgi_data.format_options, 
 				cgi_data.downtime_time_field, cgi_data.start_time, 
 				cgi_data.end_time, cgi_data.downtime_object_types, 
-				cgi_data.downtime_types));
+				cgi_data.downtime_types, cgi_data.triggered));
 		break;
 	case STATUS_QUERY_DOWNTIMELIST:
 		json_object_append_object(json_root, "result", 
@@ -882,7 +898,7 @@ int main(void) {
 				cgi_data.start, cgi_data.count, cgi_data.details,
 				cgi_data.downtime_time_field, cgi_data.start_time, 
 				cgi_data.end_time, cgi_data.downtime_object_types, 
-				cgi_data.downtime_types));
+				cgi_data.downtime_types, cgi_data.triggered));
 		break;
 	case STATUS_QUERY_DOWNTIME:
 		json_object_append_object(json_root, "result", 
@@ -1012,6 +1028,7 @@ void init_cgi_data(status_json_cgi_data *cgi_data) {
 	cgi_data->downtime_time_field = STATUS_TIME_INVALID;
 	cgi_data->downtime_object_types = DOWNTIME_OBJECT_TYPE_ALL;
 	cgi_data->downtime_types = DOWNTIME_TYPE_ALL;
+	cgi_data->triggered = BOOLEAN_EITHER;
 }
 
 void free_cgi_data( status_json_cgi_data *cgi_data) {
@@ -1257,6 +1274,18 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
 					svm_valid_downtime_types, &(cgi_data->downtime_types))) 
+					!= RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "triggered")) {
+			cgi_data->triggered = 0;
+			if((result = parse_bitmask_cgivar(THISCGI, 
+					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					json_root, query_time, variables[x], variables[x+1], 
+					svm_valid_triggered_status, &(cgi_data->triggered))) 
 					!= RESULT_SUCCESS) {
 				break;
 				}
@@ -3081,7 +3110,7 @@ void json_status_comment_details(json_object *json_details,
 
 int json_status_downtime_passes_selection(scheduled_downtime *temp_downtime, 
 		int time_field, time_t start_time, time_t end_time, 
-		unsigned object_types, unsigned downtime_types) {
+		unsigned object_types, unsigned downtime_types, unsigned triggered) {
 
 	switch(time_field) {
 	case STATUS_TIME_INVALID: 
@@ -3151,12 +3180,25 @@ int json_status_downtime_passes_selection(scheduled_downtime *temp_downtime,
 			}
 		}
 
+	if(triggered != BOOLEAN_EITHER) {
+		if(0 == temp_downtime->triggered_by) {
+			if(!(triggered & BOOLEAN_FALSE)) {
+				return 0;
+				}
+			}
+		else {
+			if(!(triggered & BOOLEAN_TRUE)) {
+				return 0;
+				}
+			}
+		}
+
 	return 1;
 	}
 
 json_object *json_status_downtime_selectors(unsigned format_options, int start, 
 		int count, int time_field, time_t start_time, time_t end_time,
-		unsigned object_types, unsigned downtime_types) {
+		unsigned object_types, unsigned downtime_types, unsigned triggered) {
 
 	json_object *json_selectors;
 
@@ -3186,13 +3228,17 @@ json_object *json_status_downtime_selectors(unsigned format_options, int start,
 		json_bitmask(json_selectors, format_options, "downtimetypes", 
 				downtime_types, svm_valid_downtime_types);
 		}
+	if(triggered != BOOLEAN_EITHER) {
+		json_bitmask(json_selectors, format_options, "triggered", 
+				triggered, svm_valid_triggered_status);
+		}
 
 	return json_selectors;
 	}
 
 json_object *json_status_downtimecount(unsigned format_options, int time_field, 
 		time_t start_time, time_t end_time, unsigned object_types,
-		unsigned downtime_types) {
+		unsigned downtime_types, unsigned triggered) {
 
 	json_object *json_data;
 	scheduled_downtime *temp_downtime;
@@ -3201,12 +3247,13 @@ json_object *json_status_downtimecount(unsigned format_options, int time_field,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_status_downtime_selectors(format_options, 0, 0, time_field, 
-			start_time, end_time, object_types, downtime_types));
+			start_time, end_time, object_types, downtime_types, triggered));
 
 	for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; 
 			temp_downtime = temp_downtime->next) {
 		if(!json_status_downtime_passes_selection(temp_downtime, time_field, 
-				start_time, end_time, object_types, downtime_types)) {
+				start_time, end_time, object_types, downtime_types,
+				triggered)) {
 			continue;
 			}
 		count++;
@@ -3219,7 +3266,8 @@ json_object *json_status_downtimecount(unsigned format_options, int time_field,
 
 json_object *json_status_downtimelist(unsigned format_options, int start, 
 		int count, int details, int time_field, time_t start_time, 
-		time_t end_time, unsigned object_types, unsigned downtime_types) {
+		time_t end_time, unsigned object_types, unsigned downtime_types,
+		unsigned triggered) {
 
 	json_object *json_data;
 	json_object *json_downtimelist_object = NULL;
@@ -3233,7 +3281,8 @@ json_object *json_status_downtimelist(unsigned format_options, int start,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_status_downtime_selectors(format_options, start, count, 
-			time_field, start_time, end_time, object_types, downtime_types));
+			time_field, start_time, end_time, object_types, downtime_types,
+			triggered));
 
 	if(details > 0) {
 		json_downtimelist_object = json_new_object();
@@ -3246,7 +3295,8 @@ json_object *json_status_downtimelist(unsigned format_options, int start,
 			temp_downtime = temp_downtime->next) {
 
 		if(!json_status_downtime_passes_selection(temp_downtime, time_field, 
-				start_time, end_time, object_types, downtime_types)) {
+				start_time, end_time, object_types, downtime_types,
+				triggered)) {
 			continue;
 			}
 

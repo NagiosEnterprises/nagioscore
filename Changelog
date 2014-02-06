@@ -8,7 +8,7 @@ ENHANCEMENTS
 * Added notifications on flexible downtime expiration (Dan Wittenberg)
 
 FIXES
-* Macros now exported to environment when enable_environment_macros=1 (Eric Stanley)
+* Fixed bug #498: Nagios 4 enable_environment_macros=1 not working (Eric Stanley, Alexey Dvoryanchikov)
 * No longer checks whether logs can be written when verifying configuration (Eric Stanley)
 * Fixed CGI bug where the CGI could read past the end of the list of CGI variables, potentially crashing the CGI (Scott Wilkerson)
 * Fixed inheritance of hourly_value from host and service templates (Scott Wilkerson)

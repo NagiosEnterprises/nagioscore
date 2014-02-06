@@ -198,7 +198,7 @@ static void destroy_job(child_process *cp)
 		cp->outerr.buf = NULL;
 	}
 
-	kvvec_destroy(cp->env, KVVEC_FREE_ALL);
+	if(NULL != cp->env) kvvec_destroy(cp->env, KVVEC_FREE_ALL);
 	kvvec_destroy(cp->request, KVVEC_FREE_ALL);
 	free(cp->cmd);
 
@@ -509,8 +509,11 @@ void cmd_iobroker_register(int fdout, int fderr, void *arg) {
 char **env_from_kvvec(struct kvvec *kvv_env) {
 
 	int i;
-	char **env = calloc(kvv_env->kv_pairs*2+1, sizeof(char *));
+	char **env;
 
+	if(NULL == kvv_env) return NULL;
+
+	env = calloc(kvv_env->kv_pairs*2+1, sizeof(char *));
 	for (i = 0; i < kvv_env->kv_pairs; i++) {
 		struct key_value *kv = &kvv_env->kv[i];
 		env[i*2] = kv->key;

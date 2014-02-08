@@ -848,6 +848,31 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 
 
 
+servicesmember *add_child_link_to_service(service *svc, service *child_ptr) {
+	servicesmember *new_servicesmember = NULL;
+
+	/* make sure we have the data we need */
+	if(svc == NULL || child_ptr == NULL)
+		return NULL;
+
+	/* allocate memory */
+	if((new_servicesmember = (servicesmember *)malloc(sizeof(servicesmember))) 
+			== NULL) return NULL;
+
+	/* assign values */
+	new_servicesmember->host_name = child_ptr->host_name;
+	new_servicesmember->service_description = child_ptr->description;
+	new_servicesmember->service_ptr = child_ptr;
+
+	/* add the child entry to the host definition */
+	new_servicesmember->next = svc->children;
+	svc->children = new_servicesmember;
+
+	return new_servicesmember;
+	}
+
+
+
 static contactgroupsmember *add_contactgroup_to_object(contactgroupsmember **cg_list, const char *group_name) {
 	contactgroupsmember *cgm;
 	contactgroup *cg;

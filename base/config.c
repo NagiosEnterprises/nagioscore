@@ -1618,6 +1618,9 @@ int pre_flight_object_check(int *w, int *e) {
 					  temp_service->host_name, temp_service->description);
 				errors++;
 				}
+
+			/* add a reverse (child) link to make searches faster later on */
+			add_child_link_to_service(sm->service_ptr, temp_service);
 			}
 
 		/* see if the notification interval is less than the check interval */

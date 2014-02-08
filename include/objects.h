@@ -746,6 +746,7 @@ struct host *add_host(char *name, char *display_name, char *alias, char *address
 struct hostsmember *add_parent_host_to_host(host *, char *);							/* adds a parent host to a host definition */
 struct servicesmember *add_parent_service_to_service(service *, char *host_name, char *description);
 struct hostsmember *add_child_link_to_host(host *, host *);						       /* adds a child host to a host definition */
+struct servicesmember *add_child_link_to_service(service *, service *);						       /* adds a child host to a host definition */
 struct contactgroupsmember *add_contactgroup_to_host(host *, char *);					       /* adds a contactgroup to a host definition */
 struct contactsmember *add_contact_to_host(host *, char *);                                                    /* adds a contact to a host definition */
 struct customvariablesmember *add_custom_variable_to_host(host *, char *, char *);                             /* adds a custom variable to a host definition */

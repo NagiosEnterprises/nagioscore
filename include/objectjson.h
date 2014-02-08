@@ -209,9 +209,9 @@ extern void json_object_servicedependency_details(json_object *, unsigned,
 		servicedependency *);
 
 extern json_object *json_object_serviceescalationcount(host *, char *,
-		hostgroup *);
+		hostgroup *, servicegroup *);
 extern json_object *json_object_serviceescalationlist(unsigned, int, int, 
-		host *, char *, hostgroup *);
+		host *, char *, hostgroup *, servicegroup *);
 extern void json_object_serviceescalation_details(json_object *, unsigned, 
 		serviceescalation *);
 

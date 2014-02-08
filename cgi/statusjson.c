@@ -387,6 +387,26 @@ option_help status_json_help[] = {
 		"Limits returned information to those services whose status matches this list. Service statuses are space separated.",
 		svm_service_statuses
 		},
+	{
+		"parentservice",
+		"Parent Service",
+		"nagios:objectjson/servicelist",
+		{ NULL },
+		{ "servicecount", "servicelist", NULL },
+		NULL,
+		"Limits the serivces returned to those whose service parent has the name specified. A value of 'none' returns all services with no service parent.",
+		parent_service_extras
+		},
+	{
+		"childservice",
+		"Child Service",
+		"nagios:objectjson/servicelist",
+		{ NULL },
+		{ "servicecount", "servicelist", NULL },
+		NULL,
+		"Limits the serivces returned to those whose having the named service as a child service. A value of 'none' returns all services with no child services.",
+		child_service_extras
+		},
 #if 0
 	{ 
 		"contactgroup",
@@ -614,10 +634,11 @@ json_object *json_status_host_display_selectors(unsigned, int, int, int, host *,
 int json_status_service_passes_host_selection(host *, int, host *, int, host *, 
 		hostgroup *, host *, int);
 int json_status_service_passes_service_selection(service *, servicegroup *, 
-		contact *, servicestatus *, int, time_t, time_t, char *);
+		contact *, servicestatus *, int, time_t, time_t, char *, char *,
+		char *);
 json_object *json_status_service_selectors(unsigned, int, int, int, host *, int,
 		host *, hostgroup *, host *, servicegroup *, int, int, contact *, int, 
-		time_t, time_t, char *);
+		time_t, time_t, char *, char *, char *);
 
 int json_status_comment_passes_selection(comment *, int, time_t, time_t,
 		unsigned, unsigned, unsigned, unsigned);
@@ -806,7 +827,8 @@ int main(void) {
 				cgi_data.host_statuses, cgi_data.service_statuses, 
 				cgi_data.contact, cgi_data.service_time_field, 
 				cgi_data.start_time, cgi_data.end_time, 
-				cgi_data.service_description));
+				cgi_data.service_description, cgi_data.parent_service_name,
+				cgi_data.child_service_name));
 		break;
 	case STATUS_QUERY_SERVICELIST:
 		json_object_append_object(json_root, "result", 
@@ -822,7 +844,8 @@ int main(void) {
 				cgi_data.host_statuses, cgi_data.service_statuses, 
 				cgi_data.contact, cgi_data.service_time_field, 
 				cgi_data.start_time, cgi_data.end_time, 
-				cgi_data.service_description));
+				cgi_data.service_description, cgi_data.parent_service_name,
+				cgi_data.child_service_name));
 		break;
 	case STATUS_QUERY_SERVICE:
 		temp_servicestatus = find_servicestatus(cgi_data.host_name, 
@@ -1034,6 +1057,8 @@ void init_cgi_data(status_json_cgi_data *cgi_data) {
 	cgi_data->service_description = NULL;
 	cgi_data->service = NULL;
 	cgi_data->service_statuses = SERVICE_STATUS_ALL;
+	cgi_data->parent_service_name = NULL;
+	cgi_data->child_service_name = NULL;
 #if 0
 	cgi_data->contactgroup_name = NULL;
 	cgi_data->contactgroup = NULL;
@@ -1068,6 +1093,8 @@ void free_cgi_data( status_json_cgi_data *cgi_data) {
 	if( NULL != cgi_data->hostgroup_name) free( cgi_data->hostgroup_name);
 	if( NULL != cgi_data->servicegroup_name) free(cgi_data->servicegroup_name);
 	if( NULL != cgi_data->service_description) free(cgi_data->service_description);
+	if( NULL != cgi_data->parent_service_name) free(cgi_data->parent_service_name);
+	if( NULL != cgi_data->child_service_name) free(cgi_data->child_service_name);
 #if 0
 	if( NULL != cgi_data->contactgroup_name) free(cgi_data->contactgroup_name);
 #endif
@@ -1212,6 +1239,27 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
 					svm_service_statuses, &(cgi_data->service_statuses))) 
+					!= RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "parentservice")) {
+			if((result = parse_string_cgivar(THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					json_root, query_time, variables[x], variables[x+1],
+					&(cgi_data->parent_service_name))) != RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "childservice")) {
+			if((result = parse_string_cgivar(THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					json_root, query_time, variables[x], variables[x+1],
+					&(cgi_data->child_service_name)))
 					!= RESULT_SUCCESS) {
 				break;
 				}
@@ -1632,9 +1680,12 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 
 	/* Validate the requested parent host */
 	if( NULL != cgi_data->parent_host_name) {
+		cgi_data->use_parent_host = 1;
+		cgi_data->parent_host = NULL;
 		if(strcmp(cgi_data->parent_host_name, "none")) {
 			temp_host = find_host(cgi_data->parent_host_name);
 			if( NULL == temp_host) {
+				cgi_data->use_parent_host = 0;
 				result = RESULT_OPTION_VALUE_INVALID;
 				json_object_append_object(json_root, "result", 
 						json_result(query_time, THISCGI, 
@@ -1643,21 +1694,19 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 						cgi_data->parent_host_name));
 				}
 			else {
-				cgi_data->use_parent_host = 1;
 				cgi_data->parent_host = temp_host;
 				}
-			}
-		else {
-			cgi_data->use_parent_host = 1;
-			cgi_data->parent_host = NULL;
 			}
 		}
 
 	/* Validate the requested child host */
 	if( NULL != cgi_data->child_host_name) {
+		cgi_data->use_child_host = 1;
+		cgi_data->child_host = NULL;
 		if(strcmp(cgi_data->child_host_name, "none")) {
 			temp_host = find_host(cgi_data->child_host_name);
 			if( NULL == temp_host) {
+				cgi_data->use_child_host = 0;
 				result = RESULT_OPTION_VALUE_INVALID;
 				json_object_append_object(json_root, "result", 
 						json_result(query_time, THISCGI, 
@@ -1666,13 +1715,8 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 						cgi_data->child_host_name));
 				}
 			else {
-				cgi_data->use_child_host = 1;
 				cgi_data->child_host = temp_host;
 				}
-			}
-		else {
-			cgi_data->use_child_host = 1;
-			cgi_data->child_host = NULL;
 			}
 		}
 
@@ -2379,7 +2423,10 @@ int json_status_service_passes_host_selection(host *temp_host,
 int json_status_service_passes_service_selection(service *temp_service, 
 		servicegroup *temp_servicegroup, contact *temp_contact, 
 		servicestatus *temp_servicestatus, int time_field, time_t start_time, 
-		time_t end_time, char *service_description) {
+		time_t end_time, char *service_description, char *parent_service_name,
+		char *child_service_name) {
+
+	servicesmember *temp_servicesmember;
 
 	/* Skip if user is not authorized for this service */
 	if(FALSE == is_authorized_for_service(temp_service, 
@@ -2513,6 +2560,60 @@ int json_status_service_passes_service_selection(service *temp_service,
 		return 0;
 		}
 
+	/* If a parent service was specified... */
+	if(NULL != parent_service_name) {
+		/* If the parent service is "none", skip this service if it has
+			parentren */
+		if(!strcmp(parent_service_name,"none")) {
+			if(NULL != temp_service->parents) {
+				return 0;
+				}
+			}
+		/* Otherwise, skip this service if it does not have the specified
+			service as a parent */
+		else {
+			int found = 0;
+			for(temp_servicesmember = temp_service->parents;
+					temp_servicesmember != NULL;
+					temp_servicesmember = temp_servicesmember->next) {
+				if(!strcmp(temp_servicesmember->service_description,
+						parent_service_name)) {
+					found = 1;
+					}
+				}
+			if(0 == found) {
+				return 0;
+				}
+			}
+		}
+
+	/* If a child service was specified... */
+	if(NULL != child_service_name) {
+		/* If the child service is "none", skip this service if it has
+			children */
+		if(!strcmp(child_service_name,"none")) {
+			if(NULL != temp_service->children) {
+				return 0;
+				}
+			}
+		/* Otherwise, skip this service if it does not have the specified
+			service as a child */
+		else {
+			int found = 0;
+			for(temp_servicesmember = temp_service->children;
+					temp_servicesmember != NULL;
+					temp_servicesmember = temp_servicesmember->next) {
+				if(!strcmp(temp_servicesmember->service_description,
+						child_service_name)) {
+					found = 1;
+					}
+				}
+			if(0 == found) {
+				return 0;
+				}
+			}
+		}
+
 	return 1;
 	}
 
@@ -2521,7 +2622,8 @@ json_object *json_status_service_selectors(unsigned format_options,
 		int use_child_host, host *child_host, hostgroup *temp_hostgroup, 
 		host *match_host, servicegroup *temp_servicegroup, int host_statuses, 
 		int service_statuses, contact *temp_contact, int time_field, 
-		time_t start_time, time_t end_time, char *service_description) {
+		time_t start_time, time_t end_time, char *service_description,
+		char *parent_service_name, char *child_service_name) {
 
 	json_object *json_selectors;
 
@@ -2574,6 +2676,14 @@ json_object *json_status_service_selectors(unsigned format_options,
 		json_object_append_string(json_selectors, "servicedescription", 
 				service_description);
 		}
+	if( NULL != parent_service_name) {
+		json_object_append_string(json_selectors, "parentservice",
+				parent_service_name);
+		}
+	if( NULL != child_service_name) {
+		json_object_append_string(json_selectors, "childservice",
+				child_service_name);
+		}
 
 	return json_selectors;
 	}
@@ -2583,7 +2693,8 @@ json_object *json_status_servicecount(unsigned format_options, host *match_host,
 		host *child_host, hostgroup *temp_hostgroup, 
 		servicegroup *temp_servicegroup, int host_statuses, 
 		int service_statuses, contact *temp_contact, int time_field, 
-		time_t start_time, time_t end_time, char *service_description) {
+		time_t start_time, time_t end_time, char *service_description,
+		char *parent_service_name, char *child_service_name) {
 
 	json_object *json_data;
 	json_object *json_count;
@@ -2601,7 +2712,8 @@ json_object *json_status_servicecount(unsigned format_options, host *match_host,
 			json_status_service_selectors(format_options, 0, 0, use_parent_host,
 			parent_host, use_child_host, child_host, temp_hostgroup, match_host,
 			temp_servicegroup, host_statuses, service_statuses, temp_contact, 
-			time_field, start_time, end_time, service_description));
+			time_field, start_time, end_time, service_description,
+			parent_service_name, child_service_name));
 
 	json_count = json_new_object();
 
@@ -2630,7 +2742,8 @@ json_object *json_status_servicecount(unsigned format_options, host *match_host,
 
 		if(!json_status_service_passes_service_selection(temp_service, 
 				temp_servicegroup, temp_contact, temp_servicestatus, 
-				time_field, start_time, end_time, service_description)) {
+				time_field, start_time, end_time, service_description,
+					parent_service_name, child_service_name)) {
 			continue;
 			}
 
@@ -2676,7 +2789,8 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 		hostgroup *temp_hostgroup, servicegroup *temp_servicegroup, 
 		int host_statuses, int service_statuses, contact *temp_contact,
 		int time_field, time_t start_time, time_t end_time, 
-		char *service_description) {
+		char *service_description, char *parent_service_name,
+		char *child_service_name) {
 
 	json_object *json_data;
 	json_object *json_hostlist;
@@ -2695,7 +2809,7 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 			use_parent_host, parent_host, use_child_host, child_host, 
 			temp_hostgroup, match_host, temp_servicegroup, host_statuses, 
 			service_statuses, temp_contact, time_field, start_time, end_time, 
-			service_description));
+			service_description, parent_service_name, child_service_name));
 
 	json_hostlist = json_new_object();
 
@@ -2730,7 +2844,8 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 			if(json_status_service_passes_service_selection(temp_service, 
 					temp_servicegroup, temp_contact, temp_servicestatus, 
 					time_field, start_time, end_time, 
-					service_description) == 0) {
+					service_description, parent_service_name,
+					child_service_name) == 0) {
 				continue;
 				}
 

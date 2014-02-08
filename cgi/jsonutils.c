@@ -193,6 +193,16 @@ const string_value_mapping child_host_extras[] = {
 	{ NULL, -1, NULL },
 	};
 
+const string_value_mapping parent_service_extras[] = {
+	{ "none", 0, "Services that have no parent services" },
+	{ NULL, -1, NULL },
+	};
+
+const string_value_mapping child_service_extras[] = {
+	{ "none", 0, "Services that have no child services" },
+	{ NULL, -1, NULL },
+	};
+
 const char *dayofweek[7] = { "Sunday", "Monday", "Tuesday", "Wednesday",
 		"Thursday", "Friday", "Saturday" };
 const char *month[12] = { "January", "February", "March", "April", "May",

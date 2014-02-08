@@ -34,10 +34,6 @@
 		Add contacts, contactgroups, timeperiods as selection for
 			hosts/services
 		Add childhost as selection criteria for hosts, services
-		Add service parent selection criteria similar to host parent selection
-			for the hostlist (only applies to Nagios Core 4)
-		Add service child selection criteria similar to host parent selection
-			for the hostlist (only applies to Nagios Core 4)
 
 		Add code to display customvariables
 		Add sort criteria for *list queries
@@ -276,6 +272,26 @@ option_help object_json_help[] = {
 		"Returns information applicable to the servicegroup or the services in the servicegroup depending on the query.",
 		NULL
 		},
+	{
+		"parentservice",
+		"Parent Service",
+		"nagios:objectjson/servicelist",
+		{ NULL },
+		{ "servicecount", "servicelist", NULL },
+		NULL,
+		"Limits the serivces returned to those whose service parent has the name specified. A value of 'none' returns all services with no service parent.",
+		parent_service_extras
+		},
+	{
+		"childservice",
+		"Child Service",
+		"nagios:objectjson/servicelist",
+		{ NULL },
+		{ "servicecount", "servicelist", NULL },
+		NULL,
+		"Limits the serivces returned to those whose having the named service as a child service. A value of 'none' returns all services with no child services.",
+		child_service_extras
+		},
 	{ 
 		"contactgroup",
 		"Contact Group",
@@ -379,9 +395,9 @@ json_object *json_object_hostgroup_selectors(int, int, host *);
 int json_object_service_passes_host_selection(host *, int, host *, int, host *, 
 		hostgroup *, host *);
 int json_object_service_passes_service_selection(service *, servicegroup *, 
-		contact *, char *);
+		contact *, char *, char *, char *);
 json_object *json_object_service_selectors(int, int, int, host *, int, host *, 
-		hostgroup *, host *, servicegroup *, contact *, char *);
+		hostgroup *, host *, servicegroup *, contact *, char *, char *, char *);
 
 int json_object_servicegroup_passes_selection(servicegroup *, service *);
 json_object *json_object_servicegroup_display_selectors(int, int, service *);
@@ -583,7 +599,8 @@ int main(void) {
 				cgi_data.use_parent_host, cgi_data.parent_host, 
 				cgi_data.use_child_host, cgi_data.child_host, 
 				cgi_data.hostgroup, cgi_data.servicegroup, cgi_data.contact, 
-				cgi_data.service_description));
+				cgi_data.service_description, cgi_data.parent_service_name,
+				cgi_data.child_service_name));
 		break;
 	case OBJECT_QUERY_SERVICELIST:
 		json_object_append_object(json_root, "result", 
@@ -596,7 +613,8 @@ int main(void) {
 				cgi_data.use_parent_host, cgi_data.parent_host, 
 				cgi_data.use_child_host, cgi_data.child_host, 
 				cgi_data.hostgroup, cgi_data.servicegroup, cgi_data.contact, 
-				cgi_data.service_description));
+				cgi_data.service_description, cgi_data.parent_service_name,
+				cgi_data.child_service_name));
 		break;
 	case OBJECT_QUERY_SERVICE:
 		json_object_append_object(json_root, "result", 
@@ -889,6 +907,8 @@ void init_cgi_data(object_json_cgi_data *cgi_data) {
 	cgi_data->servicegroup_member_host_name = NULL;
 	cgi_data->servicegroup_member_service_description = NULL;
 	cgi_data->servicegroup_member = NULL;
+	cgi_data->parent_service_name = NULL;
+	cgi_data->child_service_name = NULL;
 	cgi_data->contactgroup_name = NULL;
 	cgi_data->contactgroup = NULL;
 	cgi_data->contact_name = NULL;
@@ -912,6 +932,8 @@ void free_cgi_data( object_json_cgi_data *cgi_data) {
 	if( NULL != cgi_data->service_description) free(cgi_data->service_description);
 	if( NULL != cgi_data->servicegroup_member_host_name) free(cgi_data->servicegroup_member_host_name);
 	if( NULL != cgi_data->servicegroup_member_service_description) free(cgi_data->servicegroup_member_service_description);
+	if( NULL != cgi_data->parent_service_name) free( cgi_data->parent_service_name);
+	if( NULL != cgi_data->child_service_name) free( cgi_data->child_service_name);
 	if( NULL != cgi_data->contactgroup_name) free(cgi_data->contactgroup_name);
 	if( NULL != cgi_data->contact_name) free(cgi_data->contact_name);
 	if( NULL != cgi_data->contactgroup_member_name) free(cgi_data->contactgroup_member_name);
@@ -1045,6 +1067,27 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->servicegroup_name))) != RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "parentservice")) {
+			if((result = parse_string_cgivar(THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					json_root, query_time, variables[x], variables[x+1],
+					&(cgi_data->parent_service_name))) != RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "childservice")) {
+			if((result = parse_string_cgivar(THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					json_root, query_time, variables[x], variables[x+1],
+					&(cgi_data->child_service_name)))
+					!= RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1336,9 +1379,12 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 
 	/* Validate the requested parent host */
 	if( NULL != cgi_data->parent_host_name) {
+		cgi_data->use_parent_host = 1;
+		cgi_data->parent_host = NULL;
 		if(strcmp(cgi_data->parent_host_name, "none")) {
 			temp_host = find_host(cgi_data->parent_host_name);
 			if( NULL == temp_host) {
+				cgi_data->use_parent_host = 0;
 				result = RESULT_OPTION_VALUE_INVALID;
 				json_object_append_object(json_root, "result", 
 						json_result(query_time, THISCGI, 
@@ -1347,21 +1393,19 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 						cgi_data->parent_host_name));
 				}
 			else {
-				cgi_data->use_parent_host = 1;
 				cgi_data->parent_host = temp_host;
 				}
-			}
-		else {
-			cgi_data->use_parent_host = 1;
-			cgi_data->parent_host = NULL;
 			}
 		}
 
 	/* Validate the requested child host */
 	if( NULL != cgi_data->child_host_name) {
+		cgi_data->use_child_host = 1;
+		cgi_data->child_host = NULL;
 		if(strcmp(cgi_data->child_host_name, "none")) {
 			temp_host = find_host(cgi_data->child_host_name);
 			if( NULL == temp_host) {
+				cgi_data->use_child_host = 0;
 				result = RESULT_OPTION_VALUE_INVALID;
 				json_object_append_object(json_root, "result", 
 						json_result(query_time, THISCGI, 
@@ -1370,13 +1414,8 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 						cgi_data->child_host_name));
 				}
 			else {
-				cgi_data->use_child_host = 1;
 				cgi_data->child_host = temp_host;
 				}
-			}
-		else {
-			cgi_data->use_child_host = 1;
-			cgi_data->child_host = NULL;
 			}
 		}
 
@@ -2275,7 +2314,10 @@ int json_object_service_passes_host_selection(host *temp_host,
 
 int json_object_service_passes_service_selection(service *temp_service, 
 		servicegroup *temp_servicegroup, contact *temp_contact, 
-		char *service_description) {
+		char *service_description, char *parent_service_name,
+		char *child_service_name) {
+
+	servicesmember *temp_servicesmember;
 
 	/* Skip if user is not authorized for this service */
 	if(FALSE == is_authorized_for_service(temp_service, &current_authdata)) {
@@ -2304,6 +2346,60 @@ int json_object_service_passes_service_selection(service *temp_service,
 		return 0;
 		}
 
+	/* If a parent service was specified... */
+	if(NULL != parent_service_name) {
+		/* If the parent service is "none", skip this service if it has
+			parentren */
+		if(!strcmp(parent_service_name,"none")) {
+			if(NULL != temp_service->parents) {
+				return 0;
+				}
+			}
+		/* Otherwise, skip this service if it does not have the specified
+			service as a parent */
+		else {
+			int found = 0;
+			for(temp_servicesmember = temp_service->parents;
+					temp_servicesmember != NULL;
+					temp_servicesmember = temp_servicesmember->next) {
+				if(!strcmp(temp_servicesmember->service_description,
+						parent_service_name)) {
+					found = 1;
+					}
+				}
+			if(0 == found) {
+				return 0;
+				}
+			}
+		}
+
+	/* If a child service was specified... */
+	if(NULL != child_service_name) {
+		/* If the child service is "none", skip this service if it has
+			children */
+		if(!strcmp(child_service_name,"none")) {
+			if(NULL != temp_service->children) {
+				return 0;
+				}
+			}
+		/* Otherwise, skip this service if it does not have the specified
+			service as a child */
+		else {
+			int found = 0;
+			for(temp_servicesmember = temp_service->children;
+					temp_servicesmember != NULL;
+					temp_servicesmember = temp_servicesmember->next) {
+				if(!strcmp(temp_servicesmember->service_description,
+						child_service_name)) {
+					found = 1;
+					}
+				}
+			if(0 == found) {
+				return 0;
+				}
+			}
+		}
+
 	return 1;
 	}
 
@@ -2311,7 +2407,8 @@ json_object *json_object_service_selectors(int start, int count,
 		int use_parent_host, host *parent_host, int use_child_host,
 		host *child_host, hostgroup *temp_hostgroup, host *match_host, 
 		servicegroup *temp_servicegroup, contact *temp_contact, 
-		char *service_description) {
+		char *service_description, char *parent_service_name,
+		char *child_service_name) {
 
 	json_object *json_selectors;
 
@@ -2349,6 +2446,14 @@ json_object *json_object_service_selectors(int start, int count,
 		json_object_append_string(json_selectors, "servicedescription", 
 				service_description);
 		}
+	if( NULL != parent_service_name) {
+		json_object_append_string(json_selectors, "parentservice",
+				parent_service_name);
+		}
+	if( NULL != child_service_name) {
+		json_object_append_string(json_selectors, "childservice",
+				child_service_name);
+		}
 
 	return json_selectors;
 	}
@@ -2356,7 +2461,8 @@ json_object *json_object_service_selectors(int start, int count,
 json_object *json_object_servicecount(host *match_host, int use_parent_host, 
 		host *parent_host, int use_child_host, host *child_host, 
 		hostgroup *temp_hostgroup, servicegroup *temp_servicegroup, 
-		contact *temp_contact, char *service_description) {
+		contact *temp_contact, char *service_description,
+		char *parent_service_name, char *child_service_name) {
 
 	json_object *json_data;
 	host *temp_host;
@@ -2367,7 +2473,8 @@ json_object *json_object_servicecount(host *match_host, int use_parent_host,
 	json_object_append_object(json_data, "selectors", 
 			json_object_service_selectors(0, 0, use_parent_host, parent_host, 
 			use_child_host, child_host, temp_hostgroup, match_host, 
-			temp_servicegroup, temp_contact, service_description));
+			temp_servicegroup, temp_contact, service_description,
+			parent_service_name, child_service_name));
 
 	for(temp_service = service_list; temp_service != NULL; 
 			temp_service = temp_service->next) {
@@ -2384,7 +2491,8 @@ json_object *json_object_servicecount(host *match_host, int use_parent_host,
 			}
 
 		if(json_object_service_passes_service_selection(temp_service, 
-				temp_servicegroup, temp_contact, service_description) == 0) {
+				temp_servicegroup, temp_contact, service_description,
+				parent_service_name, child_service_name) == 0) {
 			continue;
 			}
 
@@ -2400,7 +2508,8 @@ json_object *json_object_servicelist(unsigned format_options, int start,
 		int count, int details, host *match_host, int use_parent_host, 
 		host *parent_host, int use_child_host, host *child_host, 
 		hostgroup *temp_hostgroup, servicegroup *temp_servicegroup, 
-		contact *temp_contact, char *service_description) {
+		contact *temp_contact, char *service_description,
+		char *parent_service_name, char *child_service_name) {
 
 	json_object *json_data;
 	json_object *json_hostlist;
@@ -2418,7 +2527,8 @@ json_object *json_object_servicelist(unsigned format_options, int start,
 	json_object_append_object(json_data, "selectors", 
 			json_object_service_selectors(start, count, use_parent_host, 
 			parent_host, use_child_host, child_host, temp_hostgroup, match_host,
-			temp_servicegroup, temp_contact, service_description));
+			temp_servicegroup, temp_contact, service_description,
+			parent_service_name, child_service_name));
 
 	json_hostlist = json_new_object();
 
@@ -2442,7 +2552,8 @@ json_object *json_object_servicelist(unsigned format_options, int start,
 	
 			if(json_object_service_passes_service_selection(temp_service,
 					temp_servicegroup, temp_contact, 
-					service_description) == 0) {
+					service_description, parent_service_name,
+					child_service_name) == 0) {
 				continue;
 				}
 
@@ -2517,6 +2628,8 @@ void json_object_service_details(json_object *json_details,
 	servicesmember *temp_servicesmember;
 	json_object *json_parent_service;
 	json_array *json_parent_services;
+	json_object *json_child_service;
+	json_array *json_child_services;
 #endif
 	json_array *json_custom_variables;
 	customvariablesmember *temp_customvariablesmember;
@@ -2775,8 +2888,20 @@ void json_object_service_details(json_object *json_details,
 				temp_servicesmember->service_description);
 		json_array_append_object(json_parent_services, json_parent_service);
 		}
-	json_object_append_array(json_details, "parents", 
-				json_parent_services);
+	json_object_append_array(json_details, "parents", json_parent_services);
+
+	json_child_services = json_new_array();
+	for(temp_servicesmember = temp_service->children;
+			temp_servicesmember != NULL;
+			temp_servicesmember = temp_servicesmember->next) {
+		json_child_service = json_new_object();
+		json_object_append_string(json_child_service, "host_name",
+				temp_servicesmember->host_name);
+		json_object_append_string(json_child_service, "service_description",
+				temp_servicesmember->service_description);
+		json_array_append_object(json_child_services, json_child_service);
+		}
+	json_object_append_array(json_details, "children", json_child_services);
 #endif
 
 	json_object_append_string(json_details, "notes", temp_service->notes);

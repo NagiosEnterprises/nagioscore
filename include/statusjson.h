@@ -73,6 +73,12 @@ typedef struct status_json_cgi_data_struct {
 	service *	service;
 	/* The service status selector values */
 	unsigned	service_statuses;
+	/* Name of service whose children should be returned if parentservice is
+		specified */
+	char *		parent_service_name;
+	/* Name of service whose parents should be returned if childservice is
+		specified */
+	char *		child_service_name;
 #if 0
 	/* Name of contactgroup for which details should be returned */
 	char *		contactgroup_name;
@@ -208,10 +214,10 @@ extern void json_status_host_details(json_object *, unsigned, host *,
 
 extern json_object *json_status_servicecount(unsigned, host *, int, host *, 
 		int, host *, hostgroup *, servicegroup *, int, int, contact *, int, 
-		time_t, time_t, char *);
+		time_t, time_t, char *, char *, char *);
 extern json_object *json_status_servicelist(unsigned, int, int, int, host *, 
 		int, host *, int, host *, hostgroup *, servicegroup *, int, int, 
-		contact *, int, time_t, time_t, char *);
+		contact *, int, time_t, time_t, char *, char *, char *);
 extern json_object *json_status_service(unsigned, service *, servicestatus *);
 extern void json_status_service_details(json_object *, unsigned, service *,
 		servicestatus *);

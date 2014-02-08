@@ -41,14 +41,14 @@ typedef struct object_json_cgi_data_struct {
 	/* Name of host whose children should be returned if parenthost is 
 		specified */
 	char *		parent_host_name;
-	/* Use the parent host field or search all hosts*/
+	/* Use the parent host field or search all hosts */
 	int			use_parent_host;
 	/* Host whose children should be returned if use_parent_host is non-zero */
 	host *		parent_host;
 	/* Name of host whose parents should be returned if childhost is 
 		specified */
 	char *		child_host_name;
-	/* Use the child host field or search all hosts*/
+	/* Use the child host field or search all hosts */
 	int			use_child_host;
 	/* Host whose parents should be returned if use_child_host is non-zero */
 	host *		child_host;
@@ -85,6 +85,12 @@ typedef struct object_json_cgi_data_struct {
 		servicegroup_member_host_name and 
 		servicegroup_member_service_description are specified */
 	service *	servicegroup_member;
+	/* Name of service whose children should be returned if parentservice is
+		specified */
+	char *		parent_service_name;
+	/* Name of service whose parents should be returned if childservice is
+		specified */
+	char *		child_service_name;
 	/* Name of contactgroup for which details should be returned */
 	char *		contactgroup_name;
 	/* Contactgroup whose name is contactgroup_name */
@@ -158,10 +164,10 @@ extern json_object *json_object_hostgroup(unsigned, hostgroup *);
 extern void json_object_hostgroup_details(json_object *, unsigned, hostgroup *);
 
 extern json_object *json_object_servicecount(host *, int, host *, int, host *, 
-		hostgroup *, servicegroup *, contact *, char *);
+		hostgroup *, servicegroup *, contact *, char *, char *, char *);
 extern json_object *json_object_servicelist(unsigned, int, int, int, host *, 
 		int, host *, int, host *, hostgroup *, servicegroup *, contact *, 
-		char *);
+		char *, char *, char *);
 extern json_object *json_object_service(unsigned, service *);
 extern void json_object_service_details(json_object *, unsigned, service *);
 

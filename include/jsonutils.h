@@ -128,6 +128,8 @@ extern const string_value_mapping svm_comment_entry_types[];
 extern const string_value_mapping svm_downtime_types[];
 extern const string_value_mapping parent_host_extras[];
 extern const string_value_mapping child_host_extras[];
+extern const string_value_mapping parent_service_extras[];
+extern const string_value_mapping child_service_extras[];
 #ifdef JSON_NAGIOS_4X
 extern const string_value_mapping svm_option_types[];
 #endif

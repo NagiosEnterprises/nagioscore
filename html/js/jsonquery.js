@@ -219,33 +219,23 @@ $( document).ready( function() {
 				nagobjs.valid_values[ vvkey] = option.valid_values[ vvkey];
 			}
 			if( query == "servicelist") {
-				var hostname = getValue( option.depends_on,
-						help.data.options[ option.depends_on]);
-				if( hostname == "") {
-					var allServices = new Array();
-					for( var hostname in data.data[ query]) {
-						var host = data.data[ query][ hostname];
-						for( var x = 0; x < host.length; x++) {
-							if( allServices.indexOf( host[ x]) == -1) {
-								allServices.push( host[ x]);
-							}
-						}
-					}
-					allServices.sort();
-					for( var x = 0; x < allServices.length; x++) {
-						nagobjs.valid_values[ allServices[ x]] = {};
-					}
-				}
-				else {
+				// Special case because services are nested under hosts
+				var services = new Array();
+				for( var hostname in data.data[ query]) {
 					var host = data.data[ query][ hostname];
 					for( var x = 0; x < host.length; x++) {
-						nagobjs.valid_values[ host[ x]] = {};
+						if( services.indexOf( host[ x]) == -1) {
+							services.push( host[ x]);
+						}
 					}
+				}
+				services.sort();
+				for( var x = 0; x < services.length; x++) {
+					nagobjs.valid_values[ services[ x]] = {};
 				}
 			}
 			else {
 				for( var x = 0; x < data.data[ query].length; x++) {
-//					console.debug( data.data[ query][ x]);
 					nagobjs.valid_values[ data.data[ query][ x]] = new Object();
 					nagobjs.valid_values[ data.data[ query][ x]][ 'description'] = data.data[ query][ x];
 				}

@@ -549,6 +549,9 @@ int read_all_object_configuration_data(const char *cfgfile, int options) {
 	host *temp_host = NULL;
 	host *parent_host = NULL;
 	hostsmember *temp_hostsmember = NULL;
+	service *temp_service = NULL;
+	service *parent_service = NULL;
+	servicesmember *temp_servicesmember = NULL;
 
 	/* read in all external config data of the desired type(s) */
 	result = read_object_config_data(cfgfile, options);
@@ -572,6 +575,33 @@ int read_all_object_configuration_data(const char *cfgfile, int options) {
 				logit(NSLOG_CONFIG_ERROR, TRUE,
 						"Error: Failed to add '%s' as a child host of '%s'",
 						temp_host->name, parent_host->name);
+				}
+			}
+		}
+
+	/* Resolve service child->parent relationships */
+	for(temp_service = service_list; temp_service != NULL;
+			temp_service = temp_service->next) {
+		/* For each of the service's parents */
+		for(temp_servicesmember = temp_service->parents;
+				temp_servicesmember != NULL;
+				temp_servicesmember = temp_servicesmember->next) {
+			/* Find the parent service */
+			if((parent_service = find_service(temp_servicesmember->host_name,
+					temp_servicesmember->service_description)) == NULL) {
+				logit(NSLOG_CONFIG_ERROR, TRUE,
+						"Error: '%s:%s' is not a valid parent for service '%s:%s'!",
+						temp_servicesmember->host_name,
+						temp_servicesmember->service_description,
+						temp_service->host_name, temp_service->description);
+				}
+			/* add a reverse (child) link to make searches faster later on */
+			if(add_child_link_to_service(parent_service,
+					temp_service) == NULL) {
+				logit(NSLOG_CONFIG_ERROR, TRUE,
+						"Error: Failed to add '%s:%s' as a child service of '%s:%s'",
+						temp_service->host_name, temp_service->description,
+						parent_service->host_name, parent_service->description);
 				}
 			}
 		}

@@ -342,7 +342,7 @@ option_help status_json_help[] = {
 		"Host Name",
 		"nagios:objectjson/hostlist",
 		{ "host", "service", NULL },
-		{ "servicecount", "servicelist", "commentcount", "commentlist", NULL },
+		{ "servicecount", "servicelist", "commentcount", "commentlist", "downtimecount", "downtimelist", NULL },
 		NULL,
 		"Name for the host requested.",
 		NULL
@@ -427,7 +427,7 @@ option_help status_json_help[] = {
 		"nagios:objectjson/servicelist",
 		/* "for query: 'service'",*/
 		{ "service", NULL },
-		{ "servicecount", "servicelist", "commentcount", "commentlist", NULL },
+		{ "servicecount", "servicelist", "commentcount", "commentlist", "downtimecount", "downtimelist", NULL },
 		"hostname",
 		"Description for the service requested.",
 		NULL
@@ -646,9 +646,9 @@ json_object *json_status_comment_selectors(unsigned, int, int, int, time_t,
 		time_t, unsigned, unsigned, unsigned, unsigned, char *, char *);
 
 int json_status_downtime_passes_selection(scheduled_downtime *, int, time_t, 
-		time_t, unsigned, unsigned, unsigned, int, unsigned);
+		time_t, unsigned, unsigned, unsigned, int, unsigned, char *, char *);
 json_object *json_status_downtime_selectors(unsigned, int, int, int, time_t, 
-		time_t, unsigned, unsigned, unsigned, int, unsigned);
+		time_t, unsigned, unsigned, unsigned, int, unsigned, char *, char *);
 
 int main(void) {
 	int result = OK;
@@ -938,7 +938,8 @@ int main(void) {
 				cgi_data.downtime_time_field, cgi_data.start_time, 
 				cgi_data.end_time, cgi_data.downtime_object_types, 
 				cgi_data.downtime_types, cgi_data.triggered,
-				cgi_data.triggered_by, cgi_data.in_effect));
+				cgi_data.triggered_by, cgi_data.in_effect, cgi_data.host_name,
+				cgi_data.service_description));
 		break;
 	case STATUS_QUERY_DOWNTIMELIST:
 		json_object_append_object(json_root, "result", 
@@ -951,7 +952,8 @@ int main(void) {
 				cgi_data.downtime_time_field, cgi_data.start_time, 
 				cgi_data.end_time, cgi_data.downtime_object_types, 
 				cgi_data.downtime_types, cgi_data.triggered,
-				cgi_data.triggered_by, cgi_data.in_effect));
+				cgi_data.triggered_by, cgi_data.in_effect, cgi_data.host_name,
+				cgi_data.service_description));
 		break;
 	case STATUS_QUERY_DOWNTIME:
 		json_object_append_object(json_root, "result", 
@@ -3107,15 +3109,17 @@ int json_status_comment_passes_selection(comment *temp_comment, int time_field,
 			}
 		}
 
-	if((NULL != host_name) && (NULL != temp_comment->host_name)) {
-		if(strcmp(temp_comment->host_name, host_name)) {
+	if(NULL != host_name) {
+		if((NULL == temp_comment->host_name) ||
+				strcmp(temp_comment->host_name, host_name)) {
 			return 0;
 			}
 		}
 
-	if((NULL != service_description) && 
-			(NULL != temp_comment->service_description)) {
-		if(strcmp(temp_comment->service_description, service_description)) {
+	if(NULL != service_description) {
+		if((NULL == temp_comment->service_description) ||
+				strcmp(temp_comment->service_description,
+				service_description)) {
 			return 0;
 			}
 		}
@@ -3316,7 +3320,8 @@ void json_status_comment_details(json_object *json_details,
 int json_status_downtime_passes_selection(scheduled_downtime *temp_downtime, 
 		int time_field, time_t start_time, time_t end_time, 
 		unsigned object_types, unsigned downtime_types, unsigned triggered,
-		int triggered_by, unsigned in_effect) {
+		int triggered_by, unsigned in_effect, char *host_name,
+		char *service_description) {
 
 	switch(time_field) {
 	case STATUS_TIME_INVALID: 
@@ -3418,13 +3423,29 @@ int json_status_downtime_passes_selection(scheduled_downtime *temp_downtime,
 			}
 		}
 
+	if(NULL != host_name) {
+		if((NULL == temp_downtime->host_name) ||
+				strcmp(temp_downtime->host_name, host_name)) {
+			return 0;
+			}
+		}
+
+	if(NULL != service_description) {
+		if((NULL == temp_downtime->service_description) ||
+				strcmp(temp_downtime->service_description,
+				service_description)) {
+			return 0;
+			}
+		}
+
 	return 1;
 	}
 
 json_object *json_status_downtime_selectors(unsigned format_options, int start, 
 		int count, int time_field, time_t start_time, time_t end_time,
 		unsigned object_types, unsigned downtime_types, unsigned triggered,
-		int triggered_by, unsigned in_effect) {
+		int triggered_by, unsigned in_effect, char *host_name,
+		char *service_description) {
 
 	json_object *json_selectors;
 
@@ -3465,6 +3486,13 @@ json_object *json_status_downtime_selectors(unsigned format_options, int start,
 		json_bitmask(json_selectors, format_options, "ineffect", 
 				in_effect, svm_valid_in_effect_status);
 		}
+	if(NULL != host_name) {
+		json_object_append_string(json_selectors, "hostname", host_name);
+		}
+	if(NULL != service_description) {
+		json_object_append_string(json_selectors, "servicedescription", 
+				service_description);
+		}
 
 	return json_selectors;
 	}
@@ -3472,7 +3500,7 @@ json_object *json_status_downtime_selectors(unsigned format_options, int start,
 json_object *json_status_downtimecount(unsigned format_options, int time_field, 
 		time_t start_time, time_t end_time, unsigned object_types,
 		unsigned downtime_types, unsigned triggered, int triggered_by,
-		unsigned in_effect) {
+		unsigned in_effect, char *host_name, char *service_description) {
 
 	json_object *json_data;
 	scheduled_downtime *temp_downtime;
@@ -3482,13 +3510,14 @@ json_object *json_status_downtimecount(unsigned format_options, int time_field,
 	json_object_append_object(json_data, "selectors", 
 			json_status_downtime_selectors(format_options, 0, 0, time_field, 
 			start_time, end_time, object_types, downtime_types, triggered,
-			triggered_by, in_effect));
+			triggered_by, in_effect, host_name, service_description));
 
 	for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; 
 			temp_downtime = temp_downtime->next) {
 		if(!json_status_downtime_passes_selection(temp_downtime, time_field, 
 				start_time, end_time, object_types, downtime_types,
-				triggered, triggered_by, in_effect)) {
+				triggered, triggered_by, in_effect, host_name,
+				service_description)) {
 			continue;
 			}
 		count++;
@@ -3502,7 +3531,8 @@ json_object *json_status_downtimecount(unsigned format_options, int time_field,
 json_object *json_status_downtimelist(unsigned format_options, int start, 
 		int count, int details, int time_field, time_t start_time, 
 		time_t end_time, unsigned object_types, unsigned downtime_types,
-		unsigned triggered, int triggered_by, unsigned in_effect) {
+		unsigned triggered, int triggered_by, unsigned in_effect,
+		char *host_name, char *service_description) {
 
 	json_object *json_data;
 	json_object *json_downtimelist_object = NULL;
@@ -3517,7 +3547,8 @@ json_object *json_status_downtimelist(unsigned format_options, int start,
 	json_object_append_object(json_data, "selectors", 
 			json_status_downtime_selectors(format_options, start, count, 
 			time_field, start_time, end_time, object_types, downtime_types,
-			triggered, triggered_by, in_effect));
+			triggered, triggered_by, in_effect, host_name,
+			service_description));
 
 	if(details > 0) {
 		json_downtimelist_object = json_new_object();
@@ -3531,7 +3562,8 @@ json_object *json_status_downtimelist(unsigned format_options, int start,
 
 		if(!json_status_downtime_passes_selection(temp_downtime, time_field, 
 				start_time, end_time, object_types, downtime_types,
-				triggered, triggered_by, in_effect)) {
+				triggered, triggered_by, in_effect, host_name,
+				service_description)) {
 			continue;
 			}
 

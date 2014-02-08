@@ -239,9 +239,10 @@ extern json_object *json_status_comment(unsigned, comment *);
 extern void json_status_comment_details(json_object *, unsigned, comment *);
 
 extern json_object *json_status_downtimecount(unsigned, int, time_t, time_t, 
-		unsigned, unsigned, unsigned, int, unsigned);
+		unsigned, unsigned, unsigned, int, unsigned, char *, char *);
 extern json_object *json_status_downtimelist(unsigned, int, int, int, int, 
-		time_t, time_t, unsigned, unsigned, unsigned, int, unsigned);
+		time_t, time_t, unsigned, unsigned, unsigned, int, unsigned, char *,
+		char *);
 extern json_object *json_status_downtime(unsigned, scheduled_downtime *);
 extern void json_status_downtime_details(json_object *, unsigned, 
 		scheduled_downtime *);

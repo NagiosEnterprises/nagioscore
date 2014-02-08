@@ -307,7 +307,7 @@ option_help object_json_help[] = {
 		"Service Description",
 		"nagios:objectjson/servicelist",
 		{ "service", NULL },
-		{ "servicecount", "servicelist", NULL },
+		{ "servicecount", "servicelist", "serviceescalationcount", "serviceescalationlist", NULL },
 		"hostname",
 		"Description for the service requested.",
 		NULL
@@ -414,8 +414,9 @@ json_object *json_object_command_selectors(int, int);
 
 json_object *json_object_servicedependency_selectors(int, int);
 
-int json_object_serviceescalation_passes_selection(serviceescalation *, host *);
-json_object *json_object_serviceescalation_selectors(int, int, host *);
+int json_object_serviceescalation_passes_selection(serviceescalation *, host *,
+		char *);
+json_object *json_object_serviceescalation_selectors(int, int, host *, char *);
 
 json_object *json_object_hostdependency_selectors(int, int);
 
@@ -776,7 +777,8 @@ int main(void) {
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_object_serviceescalationcount(cgi_data.host));
+				json_object_serviceescalationcount(cgi_data.host,
+				cgi_data.service_description));
 		break;
 	case OBJECT_QUERY_SERVICEESCALATIONLIST:
 		json_object_append_object(json_root, "result", 
@@ -785,7 +787,8 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_serviceescalationlist(cgi_data.format_options, 
-				cgi_data.start, cgi_data.count, cgi_data.host));
+				cgi_data.start, cgi_data.count, cgi_data.host,
+				cgi_data.service_description));
 		break;
 	case OBJECT_QUERY_HOSTDEPENDENCYCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -4134,7 +4137,7 @@ void json_object_servicedependency_details(json_object *json_details,
 	}
 
 int json_object_serviceescalation_passes_selection(serviceescalation *temp_serviceescalation, 
-		host *match_host) {
+		host *match_host, char *service_description) {
 
 	/* Skip if the serviceescalation is not for the specified host */
 	if( NULL != match_host && 
@@ -4142,11 +4145,16 @@ int json_object_serviceescalation_passes_selection(serviceescalation *temp_servi
 		return 0;
 		}
 
+	if((NULL != service_description) &&
+			strcmp(temp_serviceescalation->description, service_description)) {
+		return 0;
+		}
+
 	return 1;
 	}
 
 json_object *json_object_serviceescalation_selectors(int start, int count,
-		host *match_host) {
+		host *match_host, char *service_description) {
 
 	json_object *json_selectors;
 
@@ -4161,11 +4169,16 @@ json_object *json_object_serviceescalation_selectors(int start, int count,
 	if(NULL != match_host) {
 		json_object_append_string(json_selectors, "hostname", match_host->name);
 		}
+	if(NULL != service_description) {
+		json_object_append_string(json_selectors, "servicedescription",
+				service_description);
+		}
 
 	return json_selectors;
 	}
 
-json_object *json_object_serviceescalationcount(host *match_host) {
+json_object *json_object_serviceescalationcount(host *match_host,
+		char *service_description) {
 
 	json_object *json_data;
 #ifdef JSON_NAGIOS_4X
@@ -4176,7 +4189,8 @@ json_object *json_object_serviceescalationcount(host *match_host) {
 
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
-			json_object_serviceescalation_selectors(0, 0, match_host));
+			json_object_serviceescalation_selectors(0, 0, match_host,
+			service_description));
 
 #ifdef JSON_NAGIOS_4X
 	for(x = 0; x < num_objects.serviceescalations; x++) {
@@ -4187,7 +4201,7 @@ json_object *json_object_serviceescalationcount(host *match_host) {
 			temp_serviceescalation = temp_serviceescalation->next) {
 #endif
 		if(json_object_serviceescalation_passes_selection(temp_serviceescalation,
-				match_host) == 0) {
+				match_host, service_description) == 0) {
 			continue;
 			}
 
@@ -4201,7 +4215,7 @@ json_object *json_object_serviceescalationcount(host *match_host) {
 	}
 
 json_object *json_object_serviceescalationlist(unsigned format_options, 
-		int start, int count, host *match_host) {
+		int start, int count, host *match_host, char *service_description) {
 
 	json_object *json_data;
 	json_array *json_serviceescalationlist;
@@ -4215,7 +4229,8 @@ json_object *json_object_serviceescalationlist(unsigned format_options,
 
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
-			json_object_serviceescalation_selectors(start, count, match_host));
+			json_object_serviceescalation_selectors(start, count, match_host,
+			service_description));
 
 	json_serviceescalationlist = json_new_array();
 
@@ -4228,7 +4243,7 @@ json_object *json_object_serviceescalationlist(unsigned format_options,
 			temp_serviceescalation = temp_serviceescalation->next) {
 #endif
 		if(json_object_serviceescalation_passes_selection(temp_serviceescalation,
-				match_host) == 0) {
+				match_host, service_description) == 0) {
 			continue;
 			}
 

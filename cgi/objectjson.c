@@ -297,7 +297,7 @@ option_help object_json_help[] = {
 		"Contact Group",
 		"nagios:objectjson/contactgrouplist",
 		{ "contactgroup", NULL },
-		{ "hostcount", "hostlist", "servicecount", "servicelist", "contactcount", "contactlist", NULL },
+		{ "hostcount", "hostlist", "servicecount", "servicelist", "contactcount", "contactlist", "serviceescalationcount", "serviceescalationlist", "hostescalationcount", "hostescalationlist", NULL },
 		NULL,
 		"Returns information applicable to the contactgroup or the contacts in the contactgroup depending on the query.",
 		NULL
@@ -337,7 +337,7 @@ option_help object_json_help[] = {
 		"Contact Name",
 		"nagios:objectjson/contactlist",
 		{ "contact", NULL },
-		{ "hostcount", "hostlist", "servicecount", "servicelist", NULL },
+		{ "hostcount", "hostlist", "servicecount", "servicelist", "serviceescalationcount", "serviceescalationlist", "hostescalationcount", "hostescalationlist", NULL },
 		NULL,
 		"Name for the contact requested.",
 		NULL
@@ -416,16 +416,16 @@ json_object *json_object_command_selectors(int, int);
 json_object *json_object_servicedependency_selectors(int, int);
 
 int json_object_serviceescalation_passes_selection(serviceescalation *, host *,
-		char *, hostgroup *, servicegroup *);
+		char *, hostgroup *, servicegroup *, contact *, contactgroup *);
 json_object *json_object_serviceescalation_selectors(int, int, host *, char *,
-		hostgroup *, servicegroup *);
+		hostgroup *, servicegroup *, contact *, contactgroup *);
 
 json_object *json_object_hostdependency_selectors(int, int);
 
 int json_object_hostescalation_passes_selection(hostescalation *, host *,
-		hostgroup *);
+		hostgroup *, contact *, contactgroup *);
 json_object *json_object_hostescalation_selectors(int, int, host *,
-		hostgroup *);
+		hostgroup *, contact *, contactgroup *);
 
 int main(void) {
 	int result = OK;
@@ -785,7 +785,8 @@ int main(void) {
 		json_object_append_object(json_root, "data", 
 				json_object_serviceescalationcount(cgi_data.host,
 				cgi_data.service_description, cgi_data.hostgroup,
-				cgi_data.servicegroup));
+				cgi_data.servicegroup, cgi_data.contact,
+				cgi_data.contactgroup));
 		break;
 	case OBJECT_QUERY_SERVICEESCALATIONLIST:
 		json_object_append_object(json_root, "result", 
@@ -796,7 +797,8 @@ int main(void) {
 				json_object_serviceescalationlist(cgi_data.format_options, 
 				cgi_data.start, cgi_data.count, cgi_data.host,
 				cgi_data.service_description, cgi_data.hostgroup,
-				cgi_data.servicegroup));
+				cgi_data.servicegroup, cgi_data.contact,
+				cgi_data.contactgroup));
 		break;
 	case OBJECT_QUERY_HOSTDEPENDENCYCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -822,7 +824,7 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostescalationcount(cgi_data.host,
-				cgi_data.hostgroup));
+				cgi_data.hostgroup, cgi_data.contact, cgi_data.contactgroup));
 		break;
 	case OBJECT_QUERY_HOSTESCALATIONLIST:
 		json_object_append_object(json_root, "result", 
@@ -832,7 +834,7 @@ int main(void) {
 		json_object_append_object(json_root, "data", 
 				json_object_hostescalationlist(cgi_data.format_options, 
 				cgi_data.start, cgi_data.count, cgi_data.host,
-				cgi_data.hostgroup));
+				cgi_data.hostgroup, cgi_data.contact, cgi_data.contactgroup));
 		break;
 	case OBJECT_QUERY_HELP:
 		json_object_append_object(json_root, "result", 
@@ -4180,7 +4182,8 @@ void json_object_servicedependency_details(json_object *json_details,
 
 int json_object_serviceescalation_passes_selection(serviceescalation *temp_serviceescalation, 
 		host *match_host, char *service_description,
-		hostgroup *match_hostgroup, servicegroup *match_servicegroup) {
+		hostgroup *match_hostgroup, servicegroup *match_servicegroup,
+		contact *match_contact, contactgroup *match_contactgroup) {
 
 	int found;
 	hostsmember *temp_hostsmember;
@@ -4231,12 +4234,29 @@ int json_object_serviceescalation_passes_selection(serviceescalation *temp_servi
 				}
 		}
 
+	/* If a contact was specified, skip this service escalation if it does
+		not have the contact specified */
+	if( NULL != match_contact &&
+			( FALSE == is_contact_for_service_escalation(temp_serviceescalation,
+			match_contact))) {
+		return 0;
+		}
+
+	/* If a contactgroup was specified, skip this service escalation if
+		it does not have the contactgroup specified */
+	if(NULL != match_contactgroup && (FALSE ==
+			is_contactgroup_for_service_escalation(temp_serviceescalation,
+			 match_contactgroup))) {
+		return 0;
+		}
+
 	return 1;
 	}
 
 json_object *json_object_serviceescalation_selectors(int start, int count,
 		host *match_host, char *service_description,
-		hostgroup *match_hostgroup, servicegroup *match_servicegroup) {
+		hostgroup *match_hostgroup, servicegroup *match_servicegroup,
+		contact *match_contact, contactgroup *match_contactgroup) {
 
 	json_object *json_selectors;
 
@@ -4263,13 +4283,22 @@ json_object *json_object_serviceescalation_selectors(int start, int count,
 		json_object_append_string(json_selectors, "servicegroup",
 				match_servicegroup->group_name);
 		}
+	if( NULL != match_contact) {
+		json_object_append_string(json_selectors, "contact",
+				match_contact->name);
+		}
+	if( NULL != match_contactgroup) {
+		json_object_append_string(json_selectors, "contactgroup",
+				match_contactgroup->group_name);
+		}
 
 	return json_selectors;
 	}
 
 json_object *json_object_serviceescalationcount(host *match_host,
 		char *service_description, hostgroup *match_hostgroup,
-		servicegroup *match_servicegroup) {
+		servicegroup *match_servicegroup, contact *match_contact,
+		contactgroup *match_contactgroup) {
 
 	json_object *json_data;
 #ifdef JSON_NAGIOS_4X
@@ -4281,7 +4310,8 @@ json_object *json_object_serviceescalationcount(host *match_host,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_object_serviceescalation_selectors(0, 0, match_host,
-			service_description, match_hostgroup, match_servicegroup));
+			service_description, match_hostgroup, match_servicegroup,
+			match_contact, match_contactgroup));
 
 #ifdef JSON_NAGIOS_4X
 	for(x = 0; x < num_objects.serviceescalations; x++) {
@@ -4293,7 +4323,7 @@ json_object *json_object_serviceescalationcount(host *match_host,
 #endif
 		if(json_object_serviceescalation_passes_selection(temp_serviceescalation,
 				match_host, service_description, match_hostgroup,
-				match_servicegroup) == 0) {
+				match_servicegroup, match_contact, match_contactgroup) == 0) {
 			continue;
 			}
 
@@ -4308,7 +4338,8 @@ json_object *json_object_serviceescalationcount(host *match_host,
 
 json_object *json_object_serviceescalationlist(unsigned format_options, 
 		int start, int count, host *match_host, char *service_description,
-		hostgroup *match_hostgroup, servicegroup *match_servicegroup) {
+		hostgroup *match_hostgroup, servicegroup *match_servicegroup,
+		contact *match_contact, contactgroup *match_contactgroup) {
 
 	json_object *json_data;
 	json_array *json_serviceescalationlist;
@@ -4323,7 +4354,8 @@ json_object *json_object_serviceescalationlist(unsigned format_options,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_object_serviceescalation_selectors(start, count, match_host,
-			service_description, match_hostgroup, match_servicegroup));
+			service_description, match_hostgroup, match_servicegroup,
+			match_contact, match_contactgroup));
 
 	json_serviceescalationlist = json_new_array();
 
@@ -4337,7 +4369,7 @@ json_object *json_object_serviceescalationlist(unsigned format_options,
 #endif
 		if(json_object_serviceescalation_passes_selection(temp_serviceescalation,
 				match_host, service_description, match_hostgroup,
-				match_servicegroup) == 0) {
+				match_servicegroup, match_contact, match_contactgroup) == 0) {
 			continue;
 			}
 
@@ -4573,7 +4605,8 @@ void json_object_hostdependency_details(json_object *json_details,
 	}
 
 int json_object_hostescalation_passes_selection(hostescalation *temp_hostescalation, 
-		host *match_host, hostgroup *match_hostgroup) {
+		host *match_host, hostgroup *match_hostgroup, contact *match_contact,
+		contactgroup *match_contactgroup) {
 
 	int found;
 	hostsmember *temp_hostsmember;
@@ -4600,11 +4633,28 @@ int json_object_hostescalation_passes_selection(hostescalation *temp_hostescalat
 				}
 		}
 
+	/* If a contact was specified, skip this host escalation if it does
+		not have the contact specified */
+	if( NULL != match_contact &&
+			( FALSE == is_contact_for_host_escalation(temp_hostescalation,
+			match_contact))) {
+		return 0;
+		}
+
+	/* If a contactgroup was specified, skip this host escalation if
+		it does not have the contactgroup specified */
+	if(NULL != match_contactgroup && (FALSE ==
+			is_contactgroup_for_host_escalation(temp_hostescalation,
+			 match_contactgroup))) {
+		return 0;
+		}
+
 	return 1;
 	}
 
 json_object *json_object_hostescalation_selectors(int start, int count, 
-		host *match_host, hostgroup *match_hostgroup) {
+		host *match_host, hostgroup *match_hostgroup, contact *match_contact,
+		contactgroup *match_contactgroup) {
 
 	json_object *json_selectors;
 
@@ -4623,12 +4673,21 @@ json_object *json_object_hostescalation_selectors(int start, int count,
 		json_object_append_string(json_selectors, "hostgroup",
 				match_hostgroup->group_name);
 		}
+	if( NULL != match_contact) {
+		json_object_append_string(json_selectors, "contact",
+				match_contact->name);
+		}
+	if( NULL != match_contactgroup) {
+		json_object_append_string(json_selectors, "contactgroup",
+				match_contactgroup->group_name);
+		}
 
 	return json_selectors;
 	}
 
 json_object *json_object_hostescalationcount(host *match_host,
-		hostgroup *match_hostgroup) {
+		hostgroup *match_hostgroup, contact *match_contact,
+		contactgroup *match_contactgroup) {
 
 	json_object *json_data;
 #ifdef JSON_NAGIOS_4X
@@ -4640,7 +4699,7 @@ json_object *json_object_hostescalationcount(host *match_host,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_object_hostescalation_selectors(0, 0, match_host,
-			match_hostgroup));
+			match_hostgroup, match_contact, match_contactgroup));
 
 #ifdef JSON_NAGIOS_4X
 	for(x = 0; x < num_objects.hostescalations; x++) {
@@ -4651,7 +4710,8 @@ json_object *json_object_hostescalationcount(host *match_host,
 			temp_hostescalation = temp_hostescalation->next) {
 #endif
 		if(json_object_hostescalation_passes_selection(temp_hostescalation,
-				match_host, match_hostgroup) == 0) {
+				match_host, match_hostgroup, match_contact,
+				match_contactgroup) == 0) {
 			continue;
 			}
 
@@ -4664,7 +4724,8 @@ json_object *json_object_hostescalationcount(host *match_host,
 	}
 
 json_object *json_object_hostescalationlist(unsigned format_options, int start, 
-		int count, host *match_host, hostgroup *match_hostgroup) {
+		int count, host *match_host, hostgroup *match_hostgroup,
+		contact *match_contact, contactgroup *match_contactgroup) {
 
 	json_object *json_data;
 	json_array *json_hostescalationlist;
@@ -4679,7 +4740,7 @@ json_object *json_object_hostescalationlist(unsigned format_options, int start,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_object_hostescalation_selectors(start, count, match_host,
-			match_hostgroup));
+			match_hostgroup, match_contact, match_contactgroup));
 
 	json_hostescalationlist = json_new_array();
 
@@ -4692,7 +4753,8 @@ json_object *json_object_hostescalationlist(unsigned format_options, int start,
 			temp_hostescalation = temp_hostescalation->next) {
 #endif
 		if(json_object_hostescalation_passes_selection(temp_hostescalation,
-				match_host, match_hostgroup) == 0) {
+				match_host, match_hostgroup, match_contact,
+				match_contactgroup) == 0) {
 			continue;
 			}
 

@@ -210,9 +210,9 @@ extern void json_object_servicedependency_details(json_object *, unsigned,
 		servicedependency *);
 
 extern json_object *json_object_serviceescalationcount(host *, char *,
-		hostgroup *, servicegroup *);
+		hostgroup *, servicegroup *, contact *, contactgroup *);
 extern json_object *json_object_serviceescalationlist(unsigned, int, int, 
-		host *, char *, hostgroup *, servicegroup *);
+		host *, char *, hostgroup *, servicegroup *, contact *, contactgroup *);
 extern void json_object_serviceescalation_details(json_object *, unsigned, 
 		serviceescalation *);
 
@@ -221,9 +221,10 @@ extern json_object *json_object_hostdependencylist(unsigned, int, int);
 extern void json_object_hostdependency_details(json_object *, unsigned, 
 		hostdependency *);
 
-extern json_object *json_object_hostescalationcount(host *, hostgroup *);
+extern json_object *json_object_hostescalationcount(host *, hostgroup *,
+		contact *, contactgroup *);
 extern json_object *json_object_hostescalationlist(unsigned, int, int, host *,
-		hostgroup *);
+		hostgroup *, contact *, contactgroup *);
 extern void json_object_hostescalation_details(json_object *, unsigned, 
 		hostescalation *);
 

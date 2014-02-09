@@ -2330,34 +2330,76 @@ int is_contactgroup_for_host(host *hst, contactgroup *group) {
 
 
 
-/* tests whether or not a contact is an escalated contact for a particular host */
+/* tests whether a contact is an escalated contact for a particular host */
 int is_escalated_contact_for_host(host *hst, contact *cntct) {
-	contactsmember *temp_contactsmember = NULL;
 	hostescalation *temp_hostescalation = NULL;
-	contactgroupsmember *temp_contactgroupsmember = NULL;
-	contactgroup *temp_contactgroup = NULL;
 	objectlist *list;
 
 	/* search all host escalations */
 	for(list = hst->escalation_list; list; list = list->next) {
 		temp_hostescalation = (hostescalation *)list->object_ptr;
 
-		/* search all contacts of this host escalation */
-		for(temp_contactsmember = temp_hostescalation->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-			if(temp_contactsmember->contact_ptr == cntct)
-				return TRUE;
-			}
-
-		/* search all contactgroups of this host escalation */
-		for(temp_contactgroupsmember = temp_hostescalation->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-			temp_contactgroup = temp_contactgroupsmember->group_ptr;
-			if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
-				return TRUE;
+		if(is_contact_for_host_escalation(temp_hostescalation, cntct) == TRUE) {
+			return TRUE;
 			}
 		}
 
 	return FALSE;
 	}
+
+
+
+/* tests whether a contact is an contact for a particular host escalation */
+int is_contact_for_host_escalation(hostescalation *escalation, contact *cntct) {
+	contactsmember *temp_contactsmember = NULL;
+	hostescalation *temp_hostescalation = NULL;
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+	contactgroup *temp_contactgroup = NULL;
+
+	/* search all contacts of this host escalation */
+	for(temp_contactsmember = temp_hostescalation->contacts;
+			temp_contactsmember != NULL;
+			temp_contactsmember = temp_contactsmember->next) {
+		if(temp_contactsmember->contact_ptr == cntct)
+			return TRUE;
+		}
+
+	/* search all contactgroups of this host escalation */
+	for(temp_contactgroupsmember = temp_hostescalation->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		temp_contactgroup = temp_contactgroupsmember->group_ptr;
+		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
+			return TRUE;
+		}
+
+	return FALSE;
+	}
+
+
+
+/*  tests whether a contactgroup is a contactgroup for a particular
+	host escalation */
+int is_contactgroup_for_host_escalation(hostescalation *escalation,
+		contactgroup *group) {
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+
+	if(escalation == NULL || group == NULL) {
+		return FALSE;
+		}
+
+	/* search all contactgroups of this host escalation */
+	for(temp_contactgroupsmember = escalation->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		if(temp_contactgroupsmember->group_ptr == group) {
+			return TRUE;
+			}
+		}
+
+	return FALSE;
+	}
+
 
 
 /*  tests whether a contact is a contact for a particular service */
@@ -2409,34 +2451,77 @@ int is_contactgroup_for_service(service *svc, contactgroup *group) {
 
 
 
-/* tests whether or not a contact is an escalated contact for a particular service */
+/* tests whether a contact is an escalated contact for a particular service */
 int is_escalated_contact_for_service(service *svc, contact *cntct) {
 	serviceescalation *temp_serviceescalation = NULL;
-	contactsmember *temp_contactsmember = NULL;
-	contactgroupsmember *temp_contactgroupsmember = NULL;
-	contactgroup *temp_contactgroup = NULL;
 	objectlist *list;
 
 	/* search all the service escalations */
 	for(list = svc->escalation_list; list; list = list->next) {
 		temp_serviceescalation = (serviceescalation *)list->object_ptr;
 
-		/* search all contacts of this service escalation */
-		for(temp_contactsmember = temp_serviceescalation->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-			if(temp_contactsmember->contact_ptr == cntct)
-				return TRUE;
-			}
-
-		/* search all contactgroups of this service escalation */
-		for(temp_contactgroupsmember = temp_serviceescalation->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-			temp_contactgroup = temp_contactgroupsmember->group_ptr;
-			if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
-				return TRUE;
+		if(is_contact_for_service_escalation(temp_serviceescalation,
+				cntct) == TRUE) {
+			return TRUE;
 			}
 		}
 
 	return FALSE;
 	}
+
+
+
+/* tests whether a contact is an contact for a particular service escalation */
+int is_contact_for_service_escalation(serviceescalation *escalation,
+		contact *cntct) {
+	contactsmember *temp_contactsmember = NULL;
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+	contactgroup *temp_contactgroup = NULL;
+
+	/* search all contacts of this service escalation */
+	for(temp_contactsmember = escalation->contacts;
+			temp_contactsmember != NULL;
+			temp_contactsmember = temp_contactsmember->next) {
+		if(temp_contactsmember->contact_ptr == cntct)
+			return TRUE;
+		}
+
+	/* search all contactgroups of this service escalation */
+	for(temp_contactgroupsmember =escalation->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		temp_contactgroup = temp_contactgroupsmember->group_ptr;
+		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
+			return TRUE;
+		}
+
+	return FALSE;
+	}
+
+
+
+/*  tests whether a contactgroup is a contactgroup for a particular
+	service escalation */
+int is_contactgroup_for_service_escalation(serviceescalation *escalation,
+		contactgroup *group) {
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+
+	if(escalation == NULL || group == NULL) {
+		return FALSE;
+		}
+
+	/* search all contactgroups of this service escalation */
+	for(temp_contactgroupsmember = escalation->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		if(temp_contactgroupsmember->group_ptr == group) {
+			return TRUE;
+			}
+		}
+
+	return FALSE;
+	}
+
 
 
 /******************************************************************/

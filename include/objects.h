@@ -820,11 +820,22 @@ int is_contact_for_host(struct host *, struct contact *);			       /* tests whet
 int is_contactgroup_for_host(struct host *, struct contactgroup *);
 	/* tests whether a contact group is a contract group for a specific host */
 int is_escalated_contact_for_host(struct host *, struct contact *);                   /* checks whether or not a contact is an escalated contact for a specific host */
+int is_contact_for_host_escalation(hostescalation *, contact *);
+	/* tests whether a contact is an contact for a particular host escalation */
+int is_contactgroup_for_host_escalation(hostescalation *, contactgroup *);
+	/*  tests whether a contactgroup is a contactgroup for a particular
+	host escalation */
 int is_contact_for_service(struct service *, struct contact *);		       /* tests whether or not a contact is a contact member for a specific service */
 int is_contactgroup_for_service(struct service *, struct contactgroup *);
 	/* tests whether a contact group is a contract group for a specific service */
 int is_escalated_contact_for_host(struct host *, struct contact *);                   /* checks whether or not a contact is an escalated contact for a specific host */
 int is_escalated_contact_for_service(struct service *, struct contact *);             /* checks whether or not a contact is an escalated contact for a specific service */
+int is_contact_for_service_escalation(serviceescalation *, contact *);
+	/* tests whether a contact is an contact for a particular service
+		escalation */
+int is_contactgroup_for_service_escalation(serviceescalation *, contactgroup *);
+/*  tests whether a contactgroup is a contactgroup for a particular
+	service escalation */
 
 int number_of_immediate_child_hosts(struct host *);		                /* counts the number of immediate child hosts for a particular host */
 int number_of_total_child_hosts(struct host *);				/* counts the number of total child hosts for a particular host */

@@ -297,7 +297,7 @@ option_help object_json_help[] = {
 		"Contact Group",
 		"nagios:objectjson/contactgrouplist",
 		{ "contactgroup", NULL },
-		{ "contactcount", "contactlist", NULL },
+		{ "hostcount", "hostlist", "servicecount", "servicelist", "contactcount", "contactlist", NULL },
 		NULL,
 		"Returns information applicable to the contactgroup or the contacts in the contactgroup depending on the query.",
 		NULL
@@ -385,9 +385,9 @@ option_help object_json_help[] = {
 	};
 
 int json_object_host_passes_selection(host *, int, host *, int, host *, 
-		hostgroup *, contact *);
+		hostgroup *, contact *, contactgroup *);
 json_object *json_object_host_selectors(int, int, int, host *, int, host *, 
-		hostgroup *, contact *);
+		hostgroup *, contact *, contactgroup *);
 
 int json_object_hostgroup_passes_selection(hostgroup *, host *);
 json_object *json_object_hostgroup_selectors(int, int, host *);
@@ -395,9 +395,10 @@ json_object *json_object_hostgroup_selectors(int, int, host *);
 int json_object_service_passes_host_selection(host *, int, host *, int, host *, 
 		hostgroup *, host *);
 int json_object_service_passes_service_selection(service *, servicegroup *, 
-		contact *, char *, char *, char *);
+		contact *, char *, char *, char *, contactgroup *);
 json_object *json_object_service_selectors(int, int, int, host *, int, host *, 
-		hostgroup *, host *, servicegroup *, contact *, char *, char *, char *);
+		hostgroup *, host *, servicegroup *, contact *, char *, char *, char *,
+		contactgroup *);
 
 int json_object_servicegroup_passes_selection(servicegroup *, service *);
 json_object *json_object_servicegroup_display_selectors(int, int, service *);
@@ -544,7 +545,8 @@ int main(void) {
 		json_object_append_object(json_root, "data", 
 				json_object_hostcount(cgi_data.use_parent_host, 
 				cgi_data.parent_host, cgi_data.use_child_host, 
-				cgi_data.child_host, cgi_data.hostgroup, cgi_data.contact));
+				cgi_data.child_host, cgi_data.hostgroup, cgi_data.contact,
+				cgi_data.contactgroup));
 		break;
 	case OBJECT_QUERY_HOSTLIST:
 		json_object_append_object(json_root, "result", 
@@ -555,7 +557,8 @@ int main(void) {
 				json_object_hostlist(cgi_data.format_options, cgi_data.start, 
 				cgi_data.count, cgi_data.details, cgi_data.use_parent_host, 
 				cgi_data.parent_host, cgi_data.use_child_host, 
-				cgi_data.child_host, cgi_data.hostgroup, cgi_data.contact));
+				cgi_data.child_host, cgi_data.hostgroup, cgi_data.contact,
+				cgi_data.contactgroup));
 		break;
 	case OBJECT_QUERY_HOST:
 		json_object_append_object(json_root, "result", 
@@ -604,7 +607,7 @@ int main(void) {
 				cgi_data.use_child_host, cgi_data.child_host, 
 				cgi_data.hostgroup, cgi_data.servicegroup, cgi_data.contact, 
 				cgi_data.service_description, cgi_data.parent_service_name,
-				cgi_data.child_service_name));
+				cgi_data.child_service_name, cgi_data.contactgroup));
 		break;
 	case OBJECT_QUERY_SERVICELIST:
 		json_object_append_object(json_root, "result", 
@@ -618,7 +621,7 @@ int main(void) {
 				cgi_data.use_child_host, cgi_data.child_host, 
 				cgi_data.hostgroup, cgi_data.servicegroup, cgi_data.contact, 
 				cgi_data.service_description, cgi_data.parent_service_name,
-				cgi_data.child_service_name));
+				cgi_data.child_service_name, cgi_data.contactgroup));
 		break;
 	case OBJECT_QUERY_SERVICE:
 		json_object_append_object(json_root, "result", 
@@ -1635,7 +1638,8 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 
 int json_object_host_passes_selection(host *temp_host, int use_parent_host,
 		host *parent_host, int use_child_host, host *child_host,
-		hostgroup *temp_hostgroup, contact *temp_contact) {
+		hostgroup *temp_hostgroup, contact *temp_contact,
+		contactgroup *temp_contactgroup) {
 
 	host *temp_host2;
 
@@ -1666,6 +1670,13 @@ int json_object_host_passes_selection(host *temp_host, int use_parent_host,
 		return 0;
 		}
 
+	/* If a contactgroup was specified, skip this host if it does not have
+		the contactgroup specified */
+	if(NULL != temp_contactgroup &&
+			(FALSE == is_contactgroup_for_host(temp_host, temp_contactgroup))) {
+		return 0;
+		}
+
 	/* If a child host was specified... */
 	if(1 == use_child_host) { 
 		/* If the child host is "none", skip this host if it has children */
@@ -1690,7 +1701,8 @@ int json_object_host_passes_selection(host *temp_host, int use_parent_host,
 
 json_object * json_object_host_selectors(int start, int count, 
 		int use_parent_host, host *parent_host, int use_child_host,
-		host *child_host, hostgroup *temp_hostgroup, contact *temp_contact) {
+		host *child_host, hostgroup *temp_hostgroup, contact *temp_contact,
+		contactgroup *temp_contactgroup) {
 
 	json_object *json_selectors;
 
@@ -1714,7 +1726,12 @@ json_object * json_object_host_selectors(int start, int count,
 				temp_hostgroup->group_name);
 		}
 	if( NULL != temp_contact) {
-		json_object_append_string(json_selectors, "contact", temp_contact->name);
+		json_object_append_string(json_selectors, "contact",
+				temp_contact->name);
+		}
+	if( NULL != temp_contactgroup) {
+		json_object_append_string(json_selectors, "contactgroup",
+				temp_contactgroup->group_name);
 		}
 
 	return json_selectors;
@@ -1722,7 +1739,7 @@ json_object * json_object_host_selectors(int start, int count,
 
 json_object * json_object_hostcount(int use_parent_host, host *parent_host, 
 		int use_child_host, host *child_host, hostgroup *temp_hostgroup, 
-		contact *temp_contact) {
+		contact *temp_contact, contactgroup *temp_contactgroup) {
 
 	json_object *json_data;
 	host *temp_host;
@@ -1731,13 +1748,14 @@ json_object * json_object_hostcount(int use_parent_host, host *parent_host,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_object_host_selectors(0, 0, use_parent_host, parent_host, 
-			use_child_host, child_host, temp_hostgroup, temp_contact));
+			use_child_host, child_host, temp_hostgroup, temp_contact,
+			temp_contactgroup));
 
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		if(json_object_host_passes_selection(temp_host, use_parent_host,
 				parent_host, use_child_host, child_host, temp_hostgroup, 
-				temp_contact) == 0) {
+				temp_contact, temp_contactgroup) == 0) {
 			continue;
 			}
 
@@ -1748,9 +1766,10 @@ json_object * json_object_hostcount(int use_parent_host, host *parent_host,
 	return json_data;
 	}
 
-json_object * json_object_hostlist(unsigned format_options, int start, int count, 
-		int details, int use_parent_host, host *parent_host, int use_child_host, 
-		host *child_host, hostgroup *temp_hostgroup, contact *temp_contact) {
+json_object * json_object_hostlist(unsigned format_options, int start,
+		int count, int details, int use_parent_host, host *parent_host,
+		int use_child_host, host *child_host, hostgroup *temp_hostgroup,
+		contact *temp_contact, contactgroup *temp_contactgroup) {
 
 	json_object *json_data;
 	json_object *json_hostlist_object = NULL;
@@ -1764,7 +1783,7 @@ json_object * json_object_hostlist(unsigned format_options, int start, int count
 	json_object_append_object(json_data, "selectors", 
 			json_object_host_selectors(start, count, use_parent_host, 
 			parent_host, use_child_host, child_host, temp_hostgroup, 
-			temp_contact));
+			temp_contact, temp_contactgroup));
 
 	if(details > 0) {
 		json_hostlist_object = json_new_object();
@@ -1777,7 +1796,7 @@ json_object * json_object_hostlist(unsigned format_options, int start, int count
 
 		if(json_object_host_passes_selection(temp_host, use_parent_host,
 				parent_host, use_child_host, child_host, temp_hostgroup, 
-				temp_contact) == 0) {
+				temp_contact, temp_contactgroup) == 0) {
 			continue;
 			}
 
@@ -2325,7 +2344,7 @@ int json_object_service_passes_host_selection(host *temp_host,
 int json_object_service_passes_service_selection(service *temp_service, 
 		servicegroup *temp_servicegroup, contact *temp_contact, 
 		char *service_description, char *parent_service_name,
-		char *child_service_name) {
+		char *child_service_name, contactgroup *temp_contactgroup) {
 
 	servicesmember *temp_servicesmember;
 
@@ -2346,6 +2365,14 @@ int json_object_service_passes_service_selection(service *temp_service,
 		the contact specified */
 	if( NULL != temp_contact && 
 			( FALSE == is_contact_for_service(temp_service, temp_contact))) {
+		return 0;
+		}
+
+	/* If a contactgroup was specified, skip the services that do not have
+		the contactgroup specified */
+	if(NULL != temp_contactgroup &&
+			(FALSE == is_contactgroup_for_service(temp_service,
+			temp_contactgroup))) {
 		return 0;
 		}
 
@@ -2418,7 +2445,7 @@ json_object *json_object_service_selectors(int start, int count,
 		host *child_host, hostgroup *temp_hostgroup, host *match_host, 
 		servicegroup *temp_servicegroup, contact *temp_contact, 
 		char *service_description, char *parent_service_name,
-		char *child_service_name) {
+		char *child_service_name, contactgroup *temp_contactgroup) {
 
 	json_object *json_selectors;
 
@@ -2449,8 +2476,13 @@ json_object *json_object_service_selectors(int start, int count,
 		json_object_append_string(json_selectors, "servicegroup", 
 				temp_servicegroup->group_name);
 		}
-	if( NULL != temp_contact) {
-		json_object_append_string(json_selectors, "contact", temp_contact->name);
+	if(NULL != temp_contact) {
+		json_object_append_string(json_selectors, "contact",
+				temp_contact->name);
+		}
+	if(NULL != temp_contactgroup) {
+		json_object_append_string(json_selectors, "contactgroup",
+				temp_contactgroup->group_name);
 		}
 	if( NULL != service_description) {
 		json_object_append_string(json_selectors, "servicedescription", 
@@ -2472,7 +2504,8 @@ json_object *json_object_servicecount(host *match_host, int use_parent_host,
 		host *parent_host, int use_child_host, host *child_host, 
 		hostgroup *temp_hostgroup, servicegroup *temp_servicegroup, 
 		contact *temp_contact, char *service_description,
-		char *parent_service_name, char *child_service_name) {
+		char *parent_service_name, char *child_service_name,
+		contactgroup *temp_contactgroup) {
 
 	json_object *json_data;
 	host *temp_host;
@@ -2484,7 +2517,7 @@ json_object *json_object_servicecount(host *match_host, int use_parent_host,
 			json_object_service_selectors(0, 0, use_parent_host, parent_host, 
 			use_child_host, child_host, temp_hostgroup, match_host, 
 			temp_servicegroup, temp_contact, service_description,
-			parent_service_name, child_service_name));
+			parent_service_name, child_service_name, temp_contactgroup));
 
 	for(temp_service = service_list; temp_service != NULL; 
 			temp_service = temp_service->next) {
@@ -2502,7 +2535,8 @@ json_object *json_object_servicecount(host *match_host, int use_parent_host,
 
 		if(json_object_service_passes_service_selection(temp_service, 
 				temp_servicegroup, temp_contact, service_description,
-				parent_service_name, child_service_name) == 0) {
+				parent_service_name, child_service_name,
+				temp_contactgroup) == 0) {
 			continue;
 			}
 
@@ -2519,7 +2553,8 @@ json_object *json_object_servicelist(unsigned format_options, int start,
 		host *parent_host, int use_child_host, host *child_host, 
 		hostgroup *temp_hostgroup, servicegroup *temp_servicegroup, 
 		contact *temp_contact, char *service_description,
-		char *parent_service_name, char *child_service_name) {
+		char *parent_service_name, char *child_service_name,
+		contactgroup *temp_contactgroup) {
 
 	json_object *json_data;
 	json_object *json_hostlist;
@@ -2538,7 +2573,7 @@ json_object *json_object_servicelist(unsigned format_options, int start,
 			json_object_service_selectors(start, count, use_parent_host, 
 			parent_host, use_child_host, child_host, temp_hostgroup, match_host,
 			temp_servicegroup, temp_contact, service_description,
-			parent_service_name, child_service_name));
+			parent_service_name, child_service_name, temp_contactgroup));
 
 	json_hostlist = json_new_object();
 
@@ -2563,7 +2598,7 @@ json_object *json_object_servicelist(unsigned format_options, int start,
 			if(json_object_service_passes_service_selection(temp_service,
 					temp_servicegroup, temp_contact, 
 					service_description, parent_service_name,
-					child_service_name) == 0) {
+					child_service_name, temp_contactgroup) == 0) {
 				continue;
 				}
 

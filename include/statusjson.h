@@ -79,12 +79,10 @@ typedef struct status_json_cgi_data_struct {
 	/* Name of service whose parents should be returned if childservice is
 		specified */
 	char *		child_service_name;
-#if 0
 	/* Name of contactgroup for which details should be returned */
 	char *		contactgroup_name;
 	/* Contactgroup whose name is contactgroup_name */
 	contactgroup *	contactgroup;
-#endif
 	/* Name of contact for which details should be returned */
 	char *		contact_name;
 	/* Contact whose contact name is contact_name */
@@ -205,19 +203,20 @@ typedef struct status_json_cgi_data_struct {
 #define DOWNTIME_TYPE_ALL 		(DOWNTIME_TYPE_FIXED | DOWNTIME_TYPE_FLEXIBLE)
 
 extern json_object *json_status_hostcount(unsigned, int, host *, int, host *, 
-		hostgroup *, int, contact *, int, time_t, time_t);
+		hostgroup *, int, contact *, int, time_t, time_t, contactgroup *);
 extern json_object *json_status_hostlist(unsigned, int, int, int, int, host *, 
-		int, host *, hostgroup *, int, contact *, int, time_t, time_t);
+		int, host *, hostgroup *, int, contact *, int, time_t, time_t,
+		contactgroup *);
 extern json_object *json_status_host(unsigned, host *, hoststatus *);
 extern void json_status_host_details(json_object *, unsigned, host *, 
 		hoststatus *);
 
 extern json_object *json_status_servicecount(unsigned, host *, int, host *, 
 		int, host *, hostgroup *, servicegroup *, int, int, contact *, int, 
-		time_t, time_t, char *, char *, char *);
+		time_t, time_t, char *, char *, char *, contactgroup *);
 extern json_object *json_status_servicelist(unsigned, int, int, int, host *, 
 		int, host *, int, host *, hostgroup *, servicegroup *, int, int, 
-		contact *, int, time_t, time_t, char *, char *, char *);
+		contact *, int, time_t, time_t, char *, char *, char *, contactgroup *);
 extern json_object *json_status_service(unsigned, service *, servicestatus *);
 extern void json_status_service_details(json_object *, unsigned, service *,
 		servicestatus *);

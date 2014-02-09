@@ -151,10 +151,10 @@ typedef struct object_json_cgi_data_struct {
 #define OBJECT_QUERY_HOSTESCALATIONLIST		32
 #define OBJECT_QUERY_HELP					33
 
-extern json_object *json_object_hostcount(int, host *, int, host *, hostgroup *, 
-		contact *);
+extern json_object *json_object_hostcount(int, host *, int, host *, hostgroup *,
+		contact *, contactgroup *);
 extern json_object *json_object_hostlist(unsigned, int, int, int, int, host *, 
-		int, host *, hostgroup *, contact *);
+		int, host *, hostgroup *, contact *, contactgroup *);
 extern json_object *json_object_host(unsigned, host *);
 extern void json_object_host_details(json_object *, unsigned, host *);
 
@@ -164,10 +164,11 @@ extern json_object *json_object_hostgroup(unsigned, hostgroup *);
 extern void json_object_hostgroup_details(json_object *, unsigned, hostgroup *);
 
 extern json_object *json_object_servicecount(host *, int, host *, int, host *, 
-		hostgroup *, servicegroup *, contact *, char *, char *, char *);
+		hostgroup *, servicegroup *, contact *, char *, char *, char *,
+		contactgroup *);
 extern json_object *json_object_servicelist(unsigned, int, int, int, host *, 
 		int, host *, int, host *, hostgroup *, servicegroup *, contact *, 
-		char *, char *, char *);
+		char *, char *, char *, contactgroup *);
 extern json_object *json_object_service(unsigned, service *);
 extern void json_object_service_details(json_object *, unsigned, service *);
 

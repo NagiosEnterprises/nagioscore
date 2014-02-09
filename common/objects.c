@@ -2308,6 +2308,28 @@ int is_contact_for_host(host *hst, contact *cntct) {
 
 
 
+/*  tests whether a contactgroup is a contactgroup for a particular host */
+int is_contactgroup_for_host(host *hst, contactgroup *group) {
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+
+	if(hst == NULL || group == NULL) {
+		return FALSE;
+		}
+
+	/* search all contactgroups of this host */
+	for(temp_contactgroupsmember = hst->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		if(temp_contactgroupsmember->group_ptr == group) {
+			return TRUE;
+			}
+		}
+
+	return FALSE;
+	}
+
+
+
 /* tests whether or not a contact is an escalated contact for a particular host */
 int is_escalated_contact_for_host(host *hst, contact *cntct) {
 	contactsmember *temp_contactsmember = NULL;
@@ -2359,6 +2381,27 @@ int is_contact_for_service(service *svc, contact *cntct) {
 		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
 			return TRUE;
 
+		}
+
+	return FALSE;
+	}
+
+
+
+/*  tests whether a contactgroup is a contactgroup for a particular service */
+int is_contactgroup_for_service(service *svc, contactgroup *group) {
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+
+	if(svc == NULL || group == NULL)
+		return FALSE;
+
+	/* search all contactgroups of this service */
+	for(temp_contactgroupsmember = svc->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		if(temp_contactgroupsmember->group_ptr == group) {
+			return TRUE;
+			}
 		}
 
 	return FALSE;

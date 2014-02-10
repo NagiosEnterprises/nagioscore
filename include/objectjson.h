@@ -195,9 +195,10 @@ extern json_object *json_object_servicegroup(unsigned, servicegroup *);
 extern void json_object_servicegroup_details(json_object *, unsigned, 
 		servicegroup *);
 
-extern json_object *json_object_contactcount(contactgroup *);
+extern json_object *json_object_contactcount(contactgroup *, timeperiod *,
+		timeperiod *);
 extern json_object *json_object_contactlist(unsigned, int, int, int, 
-		contactgroup *);
+		contactgroup *, timeperiod *, timeperiod *);
 extern json_object *json_object_contact(unsigned, contact *);
 extern void json_object_contact_details(json_object *, unsigned, contact *);
 

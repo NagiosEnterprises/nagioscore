@@ -372,7 +372,7 @@ option_help object_json_help[] = {
 		"Host Notification Timeperiod Name",
 		"nagios:objectjson/timeperiodlist",
 		{ NULL },
-		{ "hostcount","hostlist", NULL },
+		{ "hostcount","hostlist", "contactcount", "contactlist", NULL },
 		NULL,
 		"Name of a host notification timeperiod to be used as selection criteria.",
 		NULL
@@ -382,7 +382,7 @@ option_help object_json_help[] = {
 		"Service Notification Timeperiod Name",
 		"nagios:objectjson/timeperiodlist",
 		{ NULL },
-		{ "servicecount", "servicelist", NULL },
+		{ "servicecount", "servicelist", "contactcount", "contactlist", NULL },
 		NULL,
 		"Name of a service notification timeperiod to be used as selection criteria.",
 		NULL
@@ -429,8 +429,10 @@ json_object *json_object_service_selectors(int, int, int, host *, int, host *,
 int json_object_servicegroup_passes_selection(servicegroup *, service *);
 json_object *json_object_servicegroup_display_selectors(int, int, service *);
 
-int json_object_contact_passes_selection(contact *, contactgroup *);
-json_object *json_object_contact_selectors(int, int, contactgroup *);
+int json_object_contact_passes_selection(contact *, contactgroup *,
+		timeperiod *, timeperiod *);
+json_object *json_object_contact_selectors(int, int, contactgroup *,
+		timeperiod *, timeperiod *);
 
 int json_object_contactgroup_passes_selection(contactgroup *, contact *);
 json_object *json_object_contactgroup_display_selectors(int, int, contact *);
@@ -696,7 +698,9 @@ int main(void) {
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_object_contactcount(cgi_data.contactgroup));
+				json_object_contactcount(cgi_data.contactgroup,
+				cgi_data.host_notification_timeperiod,
+				cgi_data.service_notification_timeperiod));
 		break;
 	case OBJECT_QUERY_CONTACTLIST:
 		json_object_append_object(json_root, "result", 
@@ -705,7 +709,9 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_contactlist(cgi_data.format_options, cgi_data.start, 
-				cgi_data.count, cgi_data.details, cgi_data.contactgroup));
+				cgi_data.count, cgi_data.details, cgi_data.contactgroup,
+				cgi_data.host_notification_timeperiod,
+				cgi_data.service_notification_timeperiod));
 		break;
 	case OBJECT_QUERY_CONTACT:
 		json_object_append_object(json_root, "result", 
@@ -3331,7 +3337,9 @@ void json_object_servicegroup_details(json_object *json_details,
 	}
 
 int json_object_contact_passes_selection(contact *temp_contact,
-		contactgroup *temp_contactgroup) {
+		contactgroup *temp_contactgroup,
+		timeperiod *host_notification_timeperiod,
+		timeperiod *service_notification_timeperiod) {
 
 	/* If the contactgroup was specified, skip the contacts that are not 
 		members of the contactgroup specified */
@@ -3341,11 +3349,28 @@ int json_object_contact_passes_selection(contact *temp_contact,
 		return 0;
 		}
 
+	/* If a host notification timeperiod was specified, skip this contact
+		if it does not have the host notification timeperiod specified */
+	if(NULL != host_notification_timeperiod && (host_notification_timeperiod !=
+			temp_contact->host_notification_period_ptr)) {
+		return 0;
+		}
+
+	/* If a service notification timeperiod was specified, skip this contact
+		if it does not have the service notification timeperiod specified */
+	if(NULL != service_notification_timeperiod &&
+			(service_notification_timeperiod !=
+			temp_contact->service_notification_period_ptr)) {
+		return 0;
+		}
+
 	return 1;
 	}
 
 json_object *json_object_contact_display_selectors(int start, int count, 
-		contactgroup *temp_contactgroup) {
+		contactgroup *temp_contactgroup,
+		timeperiod *host_notification_timeperiod,
+		timeperiod *service_notification_timeperiod) {
 
 	json_object *json_selectors;
 
@@ -3361,11 +3386,22 @@ json_object *json_object_contact_display_selectors(int start, int count,
 		json_object_append_string(json_selectors, "contactgroup", 
 				temp_contactgroup->group_name);
 		}
+	if( NULL != host_notification_timeperiod) {
+		json_object_append_string(json_selectors, "hostnotificationtimeperiod",
+				host_notification_timeperiod->name);
+		}
+	if( NULL != service_notification_timeperiod) {
+		json_object_append_string(json_selectors,
+				"servicenotificationtimeperiod",
+				service_notification_timeperiod->name);
+		}
 
 	return json_selectors;
 	}
 
-json_object *json_object_contactcount(contactgroup *temp_contactgroup) {
+json_object *json_object_contactcount(contactgroup *temp_contactgroup,
+		timeperiod *host_notification_timeperiod,
+		timeperiod *service_notification_timeperiod) {
 
 	json_object *json_data;
 	contact *temp_contact;
@@ -3373,13 +3409,15 @@ json_object *json_object_contactcount(contactgroup *temp_contactgroup) {
 
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
-			json_object_contact_display_selectors(0, 0, temp_contactgroup));
+			json_object_contact_display_selectors(0, 0, temp_contactgroup,
+			host_notification_timeperiod, service_notification_timeperiod));
 
 	for(temp_contact = contact_list; temp_contact != NULL; 
 			temp_contact = temp_contact->next) {
 
 		if(json_object_contact_passes_selection(temp_contact, 
-				temp_contactgroup) == 0) {
+				temp_contactgroup, host_notification_timeperiod,
+				service_notification_timeperiod) == 0) {
 			continue;
 			}
 
@@ -3392,7 +3430,9 @@ json_object *json_object_contactcount(contactgroup *temp_contactgroup) {
 	}
 
 json_object *json_object_contactlist(unsigned format_options, int start, 
-		int count, int details, contactgroup *temp_contactgroup) {
+		int count, int details, contactgroup *temp_contactgroup,
+		timeperiod *host_notification_timeperiod,
+		timeperiod *service_notification_timeperiod) {
 
 	json_object *json_data;
 	json_object *json_contactlist_object = NULL;
@@ -3405,7 +3445,8 @@ json_object *json_object_contactlist(unsigned format_options, int start,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_object_contact_display_selectors(start, count,
-			temp_contactgroup));
+			temp_contactgroup, host_notification_timeperiod,
+			service_notification_timeperiod));
 
 	if(details > 0) {
 		json_contactlist_object = json_new_object();
@@ -3418,7 +3459,8 @@ json_object *json_object_contactlist(unsigned format_options, int start,
 			temp_contact = temp_contact->next) {
 
 		if(json_object_contact_passes_selection(temp_contact, 
-				temp_contactgroup) == 0) {
+				temp_contactgroup, host_notification_timeperiod,
+				service_notification_timeperiod) == 0) {
 			continue;
 			}
 

@@ -27,13 +27,8 @@
 			criteria to servicedependencylist.
  		Add host (both dependent and independent) selection criteria to 
 			hostdependencylist.
- 		Add host, hostgroup, service, contact, contactgroup selection 
-			criteria to serviceescalationlist.
- 		Add host, hostgroup, contact, contactgroup selection 
-			criteria to hostescalationlist.
 		Add contacts, contactgroups, timeperiods as selection for
 			hosts/services
-		Add childhost as selection criteria for hosts, services
 
 		Add code to display customvariables
 		Add sort criteria for *list queries
@@ -363,6 +358,16 @@ option_help object_json_help[] = {
 		NULL
 		},
 	{ 
+		"checktimeperiod",
+		"Check Timeperiod Name",
+		"nagios:objectjson/timeperiodlist",
+		{ NULL },
+		{ "hostcount","hostlist", "servicecount", "servicelist", NULL },
+		NULL,
+		"Name of a check timeperiod to be used as selection criteria.",
+		NULL
+		},
+	{
 		"command",
 		"Command Name",
 		"nagios:objectjson/commandlist",
@@ -385,9 +390,9 @@ option_help object_json_help[] = {
 	};
 
 int json_object_host_passes_selection(host *, int, host *, int, host *, 
-		hostgroup *, contact *, contactgroup *);
+		hostgroup *, contact *, contactgroup *, timeperiod *);
 json_object *json_object_host_selectors(int, int, int, host *, int, host *, 
-		hostgroup *, contact *, contactgroup *);
+		hostgroup *, contact *, contactgroup *, timeperiod *);
 
 int json_object_hostgroup_passes_selection(hostgroup *, host *);
 json_object *json_object_hostgroup_selectors(int, int, host *);
@@ -395,10 +400,10 @@ json_object *json_object_hostgroup_selectors(int, int, host *);
 int json_object_service_passes_host_selection(host *, int, host *, int, host *, 
 		hostgroup *, host *);
 int json_object_service_passes_service_selection(service *, servicegroup *, 
-		contact *, char *, char *, char *, contactgroup *);
+		contact *, char *, char *, char *, contactgroup *, timeperiod *);
 json_object *json_object_service_selectors(int, int, int, host *, int, host *, 
 		hostgroup *, host *, servicegroup *, contact *, char *, char *, char *,
-		contactgroup *);
+		contactgroup *, timeperiod *);
 
 int json_object_servicegroup_passes_selection(servicegroup *, service *);
 json_object *json_object_servicegroup_display_selectors(int, int, service *);
@@ -546,7 +551,7 @@ int main(void) {
 				json_object_hostcount(cgi_data.use_parent_host, 
 				cgi_data.parent_host, cgi_data.use_child_host, 
 				cgi_data.child_host, cgi_data.hostgroup, cgi_data.contact,
-				cgi_data.contactgroup));
+				cgi_data.contactgroup, cgi_data.check_timeperiod));
 		break;
 	case OBJECT_QUERY_HOSTLIST:
 		json_object_append_object(json_root, "result", 
@@ -558,7 +563,7 @@ int main(void) {
 				cgi_data.count, cgi_data.details, cgi_data.use_parent_host, 
 				cgi_data.parent_host, cgi_data.use_child_host, 
 				cgi_data.child_host, cgi_data.hostgroup, cgi_data.contact,
-				cgi_data.contactgroup));
+				cgi_data.contactgroup, cgi_data.check_timeperiod));
 		break;
 	case OBJECT_QUERY_HOST:
 		json_object_append_object(json_root, "result", 
@@ -607,7 +612,8 @@ int main(void) {
 				cgi_data.use_child_host, cgi_data.child_host, 
 				cgi_data.hostgroup, cgi_data.servicegroup, cgi_data.contact, 
 				cgi_data.service_description, cgi_data.parent_service_name,
-				cgi_data.child_service_name, cgi_data.contactgroup));
+				cgi_data.child_service_name, cgi_data.contactgroup,
+				cgi_data.check_timeperiod));
 		break;
 	case OBJECT_QUERY_SERVICELIST:
 		json_object_append_object(json_root, "result", 
@@ -621,7 +627,8 @@ int main(void) {
 				cgi_data.use_child_host, cgi_data.child_host, 
 				cgi_data.hostgroup, cgi_data.servicegroup, cgi_data.contact, 
 				cgi_data.service_description, cgi_data.parent_service_name,
-				cgi_data.child_service_name, cgi_data.contactgroup));
+				cgi_data.child_service_name, cgi_data.contactgroup,
+				cgi_data.check_timeperiod));
 		break;
 	case OBJECT_QUERY_SERVICE:
 		json_object_append_object(json_root, "result", 
@@ -932,6 +939,8 @@ void init_cgi_data(object_json_cgi_data *cgi_data) {
 	cgi_data->contactgroup_member = NULL;
 	cgi_data->timeperiod_name = NULL;
 	cgi_data->timeperiod = NULL;
+	cgi_data->check_timeperiod_name = NULL;
+	cgi_data->check_timeperiod = NULL;
 	cgi_data->command_name = NULL;
 	cgi_data->command = NULL;
 }
@@ -953,6 +962,7 @@ void free_cgi_data( object_json_cgi_data *cgi_data) {
 	if( NULL != cgi_data->contact_name) free(cgi_data->contact_name);
 	if( NULL != cgi_data->contactgroup_member_name) free(cgi_data->contactgroup_member_name);
 	if( NULL != cgi_data->timeperiod_name) free(cgi_data->timeperiod_name);
+	if( NULL != cgi_data->check_timeperiod_name) free(cgi_data->check_timeperiod_name);
 	if( NULL != cgi_data->command_name) free(cgi_data->command_name);
 	}
 
@@ -1176,6 +1186,16 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->timeperiod_name))) != RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "checktimeperiod")) {
+			if((result = parse_string_cgivar(THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					json_root, query_time, variables[x], variables[x+1],
+					&(cgi_data->check_timeperiod_name))) != RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1619,6 +1639,22 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			}
 		}
 
+	/* Validate the requested check timeperiod */
+	if( NULL != cgi_data->check_timeperiod_name) {
+		temp_timeperiod = find_timeperiod(cgi_data->check_timeperiod_name);
+		if( NULL == temp_timeperiod) {
+			result = RESULT_OPTION_VALUE_INVALID;
+			json_object_append_object(json_root, "result",
+					json_result(query_time, THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					result, "The check timeperiod '%s' could not be found.",
+					cgi_data->check_timeperiod_name));
+			}
+		else {
+			cgi_data->check_timeperiod = temp_timeperiod;
+			}
+		}
+
 	/* Validate the requested command */
 	if( NULL != cgi_data->command_name) {
 		temp_command = find_command(cgi_data->command_name);
@@ -1641,7 +1677,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 int json_object_host_passes_selection(host *temp_host, int use_parent_host,
 		host *parent_host, int use_child_host, host *child_host,
 		hostgroup *temp_hostgroup, contact *temp_contact,
-		contactgroup *temp_contactgroup) {
+		contactgroup *temp_contactgroup, timeperiod *check_timeperiod) {
 
 	host *temp_host2;
 
@@ -1679,6 +1715,13 @@ int json_object_host_passes_selection(host *temp_host, int use_parent_host,
 		return 0;
 		}
 
+	/* If a check timeperiod was specified, skip this host if it does not have
+		the check timeperiod specified */
+	if(NULL != check_timeperiod &&
+			(check_timeperiod != temp_host->check_period_ptr)) {
+		return 0;
+		}
+
 	/* If a child host was specified... */
 	if(1 == use_child_host) { 
 		/* If the child host is "none", skip this host if it has children */
@@ -1704,7 +1747,7 @@ int json_object_host_passes_selection(host *temp_host, int use_parent_host,
 json_object * json_object_host_selectors(int start, int count, 
 		int use_parent_host, host *parent_host, int use_child_host,
 		host *child_host, hostgroup *temp_hostgroup, contact *temp_contact,
-		contactgroup *temp_contactgroup) {
+		contactgroup *temp_contactgroup, timeperiod *check_timeperiod) {
 
 	json_object *json_selectors;
 
@@ -1735,13 +1778,18 @@ json_object * json_object_host_selectors(int start, int count,
 		json_object_append_string(json_selectors, "contactgroup",
 				temp_contactgroup->group_name);
 		}
+	if( NULL != check_timeperiod) {
+		json_object_append_string(json_selectors, "checktimeperiod",
+				check_timeperiod->name);
+		}
 
 	return json_selectors;
 	}
 
 json_object * json_object_hostcount(int use_parent_host, host *parent_host, 
 		int use_child_host, host *child_host, hostgroup *temp_hostgroup, 
-		contact *temp_contact, contactgroup *temp_contactgroup) {
+		contact *temp_contact, contactgroup *temp_contactgroup,
+		timeperiod *check_timeperiod) {
 
 	json_object *json_data;
 	host *temp_host;
@@ -1751,13 +1799,13 @@ json_object * json_object_hostcount(int use_parent_host, host *parent_host,
 	json_object_append_object(json_data, "selectors", 
 			json_object_host_selectors(0, 0, use_parent_host, parent_host, 
 			use_child_host, child_host, temp_hostgroup, temp_contact,
-			temp_contactgroup));
+			temp_contactgroup, check_timeperiod));
 
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		if(json_object_host_passes_selection(temp_host, use_parent_host,
 				parent_host, use_child_host, child_host, temp_hostgroup, 
-				temp_contact, temp_contactgroup) == 0) {
+				temp_contact, temp_contactgroup, check_timeperiod) == 0) {
 			continue;
 			}
 
@@ -1771,7 +1819,8 @@ json_object * json_object_hostcount(int use_parent_host, host *parent_host,
 json_object * json_object_hostlist(unsigned format_options, int start,
 		int count, int details, int use_parent_host, host *parent_host,
 		int use_child_host, host *child_host, hostgroup *temp_hostgroup,
-		contact *temp_contact, contactgroup *temp_contactgroup) {
+		contact *temp_contact, contactgroup *temp_contactgroup,
+		timeperiod *check_timeperiod) {
 
 	json_object *json_data;
 	json_object *json_hostlist_object = NULL;
@@ -1785,7 +1834,7 @@ json_object * json_object_hostlist(unsigned format_options, int start,
 	json_object_append_object(json_data, "selectors", 
 			json_object_host_selectors(start, count, use_parent_host, 
 			parent_host, use_child_host, child_host, temp_hostgroup, 
-			temp_contact, temp_contactgroup));
+			temp_contact, temp_contactgroup, check_timeperiod));
 
 	if(details > 0) {
 		json_hostlist_object = json_new_object();
@@ -1798,7 +1847,7 @@ json_object * json_object_hostlist(unsigned format_options, int start,
 
 		if(json_object_host_passes_selection(temp_host, use_parent_host,
 				parent_host, use_child_host, child_host, temp_hostgroup, 
-				temp_contact, temp_contactgroup) == 0) {
+				temp_contact, temp_contactgroup, check_timeperiod) == 0) {
 			continue;
 			}
 
@@ -2346,7 +2395,8 @@ int json_object_service_passes_host_selection(host *temp_host,
 int json_object_service_passes_service_selection(service *temp_service, 
 		servicegroup *temp_servicegroup, contact *temp_contact, 
 		char *service_description, char *parent_service_name,
-		char *child_service_name, contactgroup *temp_contactgroup) {
+		char *child_service_name, contactgroup *temp_contactgroup,
+		timeperiod *check_timeperiod) {
 
 	servicesmember *temp_servicesmember;
 
@@ -2382,6 +2432,13 @@ int json_object_service_passes_service_selection(service *temp_service,
 		have this service description */
 	if((NULL != service_description) && 
 			strcmp(temp_service->description, service_description)) {
+		return 0;
+		}
+
+	/* If a check timeperiod was specified, skip this service if it does
+		not have the check timeperiod specified */
+	if(NULL != check_timeperiod &&
+			(check_timeperiod != temp_service->check_period_ptr)) {
 		return 0;
 		}
 
@@ -2447,7 +2504,8 @@ json_object *json_object_service_selectors(int start, int count,
 		host *child_host, hostgroup *temp_hostgroup, host *match_host, 
 		servicegroup *temp_servicegroup, contact *temp_contact, 
 		char *service_description, char *parent_service_name,
-		char *child_service_name, contactgroup *temp_contactgroup) {
+		char *child_service_name, contactgroup *temp_contactgroup,
+		timeperiod *check_timeperiod) {
 
 	json_object *json_selectors;
 
@@ -2498,6 +2556,10 @@ json_object *json_object_service_selectors(int start, int count,
 		json_object_append_string(json_selectors, "childservice",
 				child_service_name);
 		}
+	if( NULL != check_timeperiod) {
+		json_object_append_string(json_selectors, "checktimeperiod",
+				check_timeperiod->name);
+		}
 
 	return json_selectors;
 	}
@@ -2507,7 +2569,7 @@ json_object *json_object_servicecount(host *match_host, int use_parent_host,
 		hostgroup *temp_hostgroup, servicegroup *temp_servicegroup, 
 		contact *temp_contact, char *service_description,
 		char *parent_service_name, char *child_service_name,
-		contactgroup *temp_contactgroup) {
+		contactgroup *temp_contactgroup, timeperiod *check_timeperiod) {
 
 	json_object *json_data;
 	host *temp_host;
@@ -2519,7 +2581,8 @@ json_object *json_object_servicecount(host *match_host, int use_parent_host,
 			json_object_service_selectors(0, 0, use_parent_host, parent_host, 
 			use_child_host, child_host, temp_hostgroup, match_host, 
 			temp_servicegroup, temp_contact, service_description,
-			parent_service_name, child_service_name, temp_contactgroup));
+			parent_service_name, child_service_name, temp_contactgroup,
+			check_timeperiod));
 
 	for(temp_service = service_list; temp_service != NULL; 
 			temp_service = temp_service->next) {
@@ -2538,7 +2601,7 @@ json_object *json_object_servicecount(host *match_host, int use_parent_host,
 		if(json_object_service_passes_service_selection(temp_service, 
 				temp_servicegroup, temp_contact, service_description,
 				parent_service_name, child_service_name,
-				temp_contactgroup) == 0) {
+				temp_contactgroup, check_timeperiod) == 0) {
 			continue;
 			}
 
@@ -2556,7 +2619,7 @@ json_object *json_object_servicelist(unsigned format_options, int start,
 		hostgroup *temp_hostgroup, servicegroup *temp_servicegroup, 
 		contact *temp_contact, char *service_description,
 		char *parent_service_name, char *child_service_name,
-		contactgroup *temp_contactgroup) {
+		contactgroup *temp_contactgroup, timeperiod *check_timeperiod) {
 
 	json_object *json_data;
 	json_object *json_hostlist;
@@ -2575,7 +2638,8 @@ json_object *json_object_servicelist(unsigned format_options, int start,
 			json_object_service_selectors(start, count, use_parent_host, 
 			parent_host, use_child_host, child_host, temp_hostgroup, match_host,
 			temp_servicegroup, temp_contact, service_description,
-			parent_service_name, child_service_name, temp_contactgroup));
+			parent_service_name, child_service_name, temp_contactgroup,
+			check_timeperiod));
 
 	json_hostlist = json_new_object();
 
@@ -2600,7 +2664,8 @@ json_object *json_object_servicelist(unsigned format_options, int start,
 			if(json_object_service_passes_service_selection(temp_service,
 					temp_servicegroup, temp_contact, 
 					service_description, parent_service_name,
-					child_service_name, temp_contactgroup) == 0) {
+					child_service_name, temp_contactgroup,
+					check_timeperiod) == 0) {
 				continue;
 				}
 

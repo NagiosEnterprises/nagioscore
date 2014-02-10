@@ -429,6 +429,16 @@ option_help status_json_help[] = {
 		NULL
 		},
 	{ 
+		"checktimeperiod",
+		"Check Timeperiod Name",
+		"nagios:objectjson/timeperiodlist",
+		{ NULL },
+		{ "hostcount","hostlist", "servicecount", "servicelist", NULL },
+		NULL,
+		"Name of a check timeperiod to be used as selection criteria.",
+		NULL
+		},
+	{
 		"commenttypes",
 		"Comment Type",
 		"list",
@@ -624,19 +634,19 @@ option_help status_json_help[] = {
 
 int json_status_host_passes_selection(host *, int, host *, int, host *, 
 		hostgroup *, contact *, hoststatus *, int, time_t, time_t,
-		contactgroup *);
+		contactgroup *, timeperiod *);
 json_object *json_status_host_display_selectors(unsigned, int, int, int, host *,
 		int, host *, hostgroup *, int, contact *, int, time_t, time_t,
-		contactgroup *);
+		contactgroup *, timeperiod *);
 
 int json_status_service_passes_host_selection(host *, int, host *, int, host *, 
 		hostgroup *, host *, int);
 int json_status_service_passes_service_selection(service *, servicegroup *, 
 		contact *, servicestatus *, int, time_t, time_t, char *, char *,
-		char *, contactgroup *);
+		char *, contactgroup *, timeperiod *);
 json_object *json_status_service_selectors(unsigned, int, int, int, host *, int,
 		host *, hostgroup *, host *, servicegroup *, int, int, contact *, int, 
-		time_t, time_t, char *, char *, char *, contactgroup *);
+		time_t, time_t, char *, char *, char *, contactgroup *, timeperiod *);
 
 int json_status_comment_passes_selection(comment *, int, time_t, time_t,
 		unsigned, unsigned, unsigned, unsigned, char *, char *);
@@ -776,7 +786,8 @@ int main(void) {
 				cgi_data.use_child_host, cgi_data.child_host, 
 				cgi_data.hostgroup, cgi_data.host_statuses, cgi_data.contact,
 				cgi_data.host_time_field, cgi_data.start_time, 
-				cgi_data.end_time, cgi_data.contactgroup));
+				cgi_data.end_time, cgi_data.contactgroup,
+				cgi_data.check_timeperiod));
 		break;
 	case STATUS_QUERY_HOSTLIST:
 		json_object_append_object(json_root, "result", 
@@ -789,7 +800,8 @@ int main(void) {
 				cgi_data.parent_host, cgi_data.use_child_host, 
 				cgi_data.child_host, cgi_data.hostgroup, cgi_data.host_statuses,
 				cgi_data.contact, cgi_data.host_time_field, cgi_data.start_time,
-				cgi_data.end_time, cgi_data.contactgroup));
+				cgi_data.end_time, cgi_data.contactgroup,
+				cgi_data.check_timeperiod));
 		break;
 	case STATUS_QUERY_HOST:
 		temp_hoststatus = find_hoststatus(cgi_data.host_name);
@@ -826,7 +838,8 @@ int main(void) {
 				cgi_data.contact, cgi_data.service_time_field, 
 				cgi_data.start_time, cgi_data.end_time, 
 				cgi_data.service_description, cgi_data.parent_service_name,
-				cgi_data.child_service_name, cgi_data.contactgroup));
+				cgi_data.child_service_name, cgi_data.contactgroup,
+				cgi_data.check_timeperiod));
 		break;
 	case STATUS_QUERY_SERVICELIST:
 		json_object_append_object(json_root, "result", 
@@ -843,7 +856,8 @@ int main(void) {
 				cgi_data.contact, cgi_data.service_time_field, 
 				cgi_data.start_time, cgi_data.end_time, 
 				cgi_data.service_description, cgi_data.parent_service_name,
-				cgi_data.child_service_name, cgi_data.contactgroup));
+				cgi_data.child_service_name, cgi_data.contactgroup,
+				cgi_data.check_timeperiod));
 		break;
 	case STATUS_QUERY_SERVICE:
 		temp_servicestatus = find_servicestatus(cgi_data.host_name, 
@@ -1065,6 +1079,8 @@ void init_cgi_data(status_json_cgi_data *cgi_data) {
 	cgi_data->contactgroup = NULL;
 	cgi_data->contact_name = NULL;
 	cgi_data->contact = NULL;
+	cgi_data->check_timeperiod_name = NULL;
+	cgi_data->check_timeperiod = NULL;
 	cgi_data->comment_types = COMMENT_TYPE_ALL;
 	cgi_data->entry_types = COMMENT_ENTRY_ALL;
 	cgi_data->persistence = BOOLEAN_EITHER;
@@ -1097,6 +1113,7 @@ void free_cgi_data( status_json_cgi_data *cgi_data) {
 	if( NULL != cgi_data->child_service_name) free(cgi_data->child_service_name);
 	if( NULL != cgi_data->contactgroup_name) free(cgi_data->contactgroup_name);
 	if( NULL != cgi_data->contact_name) free(cgi_data->contact_name);
+	if( NULL != cgi_data->check_timeperiod_name) free(cgi_data->check_timeperiod_name);
 	}
 
 
@@ -1259,6 +1276,16 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->child_service_name)))
 					!= RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "checktimeperiod")) {
+			if((result = parse_string_cgivar(THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					json_root, query_time, variables[x], variables[x+1],
+					&(cgi_data->check_timeperiod_name))) != RESULT_SUCCESS) {
 				break;
 				}
 			x++;
@@ -1534,6 +1561,7 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 	servicegroup *temp_servicegroup = NULL;
 	service *temp_service = NULL;
 	contactgroup *temp_contactgroup = NULL;
+	timeperiod *temp_timeperiod = NULL;
 	contact *temp_contact = NULL;
 	comment *temp_comment = NULL;
 	scheduled_downtime *temp_downtime = NULL;
@@ -1798,6 +1826,22 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 			}
 		}
 
+	/* Validate the requested check timeperiod */
+	if( NULL != cgi_data->check_timeperiod_name) {
+		temp_timeperiod = find_timeperiod(cgi_data->check_timeperiod_name);
+		if( NULL == temp_timeperiod) {
+			result = RESULT_OPTION_VALUE_INVALID;
+			json_object_append_object(json_root, "result",
+					json_result(query_time, THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					result, "The check timeperiod '%s' could not be found.",
+					cgi_data->check_timeperiod_name));
+			}
+		else {
+			cgi_data->check_timeperiod = temp_timeperiod;
+			}
+		}
+
 	/* Validate the requested comment */
 	if(-1 != cgi_data->comment_id) {
 		temp_comment = find_host_comment(cgi_data->comment_id);
@@ -1880,7 +1924,8 @@ int json_status_host_passes_selection(host *temp_host, int use_parent_host,
 		host *parent_host, int use_child_host, host *child_host, 
 		hostgroup *temp_hostgroup, contact *temp_contact, 
 		hoststatus *temp_hoststatus, int time_field, time_t start_time, 
-		time_t end_time, contactgroup *temp_contactgroup) {
+		time_t end_time, contactgroup *temp_contactgroup,
+		timeperiod *check_timeperiod) {
 
 	host *temp_host2;
 
@@ -2012,6 +2057,13 @@ int json_status_host_passes_selection(host *temp_host, int use_parent_host,
 		return 0;
 		}
 
+	/* If a check timeperiod was specified, skip this host if it does not have
+		the check timeperiod specified */
+	if(NULL != check_timeperiod &&
+			(check_timeperiod != temp_host->check_period_ptr)) {
+		return 0;
+		}
+
 	/* If a child host was specified... (leave this for last since it is the
 		most expensive check) */
 	if(1 == use_child_host) { 
@@ -2040,7 +2092,8 @@ json_object *json_status_host_selectors(unsigned format_options, int start,
 		int count, int use_parent_host, host *parent_host, int use_child_host, 
 		host *child_host, hostgroup *temp_hostgroup, int host_statuses, 
 		contact *temp_contact, int time_field, time_t start_time, 
-		time_t end_time, contactgroup *temp_contactgroup) {
+		time_t end_time, contactgroup *temp_contactgroup,
+		timeperiod *check_timeperiod) {
 
 	json_object *json_selectors;
 
@@ -2086,6 +2139,10 @@ json_object *json_status_host_selectors(unsigned format_options, int start,
 	if(end_time > 0) {
 		json_object_append_time_t(json_selectors, "endtime", end_time);
 		}
+	if( NULL != check_timeperiod) {
+		json_object_append_string(json_selectors, "checktimeperiod",
+				check_timeperiod->name);
+		}
 
 	return json_selectors;
 	}
@@ -2094,7 +2151,7 @@ json_object *json_status_hostcount(unsigned format_options, int use_parent_host,
 		host *parent_host, int use_child_host, host *child_host, 
 		hostgroup *temp_hostgroup, int host_statuses, contact *temp_contact,
 		int time_field, time_t start_time, time_t end_time,
-		contactgroup *temp_contactgroup) {
+		contactgroup *temp_contactgroup, timeperiod *check_timeperiod) {
 
 	json_object *json_data;
 	json_object *json_count;
@@ -2110,7 +2167,7 @@ json_object *json_status_hostcount(unsigned format_options, int use_parent_host,
 			json_status_host_selectors(format_options, 0, 0, use_parent_host, 
 			parent_host, use_child_host, child_host, temp_hostgroup, 
 			host_statuses, temp_contact, time_field, start_time, end_time,
-			temp_contactgroup));
+			temp_contactgroup, check_timeperiod));
 
 	json_count = json_new_object();
 
@@ -2126,7 +2183,7 @@ json_object *json_status_hostcount(unsigned format_options, int use_parent_host,
 		if(json_status_host_passes_selection(temp_host, use_parent_host, 
 				parent_host, use_child_host, child_host, temp_hostgroup, 
 				temp_contact, temp_hoststatus, time_field, start_time, 
-				end_time, temp_contactgroup) == 0) {
+				end_time, temp_contactgroup, check_timeperiod) == 0) {
 			continue;
 			}
 
@@ -2189,7 +2246,8 @@ json_object *json_status_hostlist(unsigned format_options, int start, int count,
 		int details, int use_parent_host, host *parent_host, int use_child_host,
 		host *child_host, hostgroup *temp_hostgroup, int host_statuses, 
 		contact *temp_contact, int time_field, time_t start_time, 
-		time_t end_time, contactgroup *temp_contactgroup) {
+		time_t end_time, contactgroup *temp_contactgroup,
+		timeperiod *check_timeperiod) {
 
 	json_object *json_data;
 	json_object *json_hostlist;
@@ -2204,7 +2262,7 @@ json_object *json_status_hostlist(unsigned format_options, int start, int count,
 			json_status_host_selectors(format_options, start, count, 
 			use_parent_host, parent_host, use_child_host, child_host, 
 			temp_hostgroup, host_statuses, temp_contact, time_field, start_time,
-			end_time, temp_contactgroup));
+			end_time, temp_contactgroup, check_timeperiod));
 
 	json_hostlist = json_new_object();
 
@@ -2220,7 +2278,7 @@ json_object *json_status_hostlist(unsigned format_options, int start, int count,
 		if(json_status_host_passes_selection(temp_host, use_parent_host, 
 				parent_host, use_child_host, child_host, temp_hostgroup, 
 				temp_contact, temp_hoststatus, time_field, start_time, 
-				end_time, temp_contactgroup) == 0) {
+				end_time, temp_contactgroup, check_timeperiod) == 0) {
 			continue;
 			}
 
@@ -2430,7 +2488,8 @@ int json_status_service_passes_service_selection(service *temp_service,
 		servicegroup *temp_servicegroup, contact *temp_contact, 
 		servicestatus *temp_servicestatus, int time_field, time_t start_time, 
 		time_t end_time, char *service_description, char *parent_service_name,
-		char *child_service_name, contactgroup *temp_contactgroup) {
+		char *child_service_name, contactgroup *temp_contactgroup,
+		timeperiod *check_timeperiod) {
 
 	servicesmember *temp_servicesmember;
 
@@ -2574,6 +2633,13 @@ int json_status_service_passes_service_selection(service *temp_service,
 		return 0;
 		}
 
+	/* If a check timeperiod was specified, skip this service if it does
+		not have the check timeperiod specified */
+	if(NULL != check_timeperiod &&
+			(check_timeperiod != temp_service->check_period_ptr)) {
+		return 0;
+		}
+
 	/* If a parent service was specified... */
 	if(NULL != parent_service_name) {
 		/* If the parent service is "none", skip this service if it has
@@ -2638,7 +2704,7 @@ json_object *json_status_service_selectors(unsigned format_options,
 		int service_statuses, contact *temp_contact, int time_field, 
 		time_t start_time, time_t end_time, char *service_description,
 		char *parent_service_name, char *child_service_name,
-		contactgroup *temp_contactgroup) {
+		contactgroup *temp_contactgroup, timeperiod *check_timeperiod) {
 
 	json_object *json_selectors;
 
@@ -2704,6 +2770,10 @@ json_object *json_status_service_selectors(unsigned format_options,
 		json_object_append_string(json_selectors, "childservice",
 				child_service_name);
 		}
+	if( NULL != check_timeperiod) {
+		json_object_append_string(json_selectors, "checktimeperiod",
+				check_timeperiod->name);
+		}
 
 	return json_selectors;
 	}
@@ -2715,7 +2785,7 @@ json_object *json_status_servicecount(unsigned format_options, host *match_host,
 		int service_statuses, contact *temp_contact, int time_field, 
 		time_t start_time, time_t end_time, char *service_description,
 		char *parent_service_name, char *child_service_name,
-		contactgroup *temp_contactgroup) {
+		contactgroup *temp_contactgroup, timeperiod *check_timeperiod) {
 
 	json_object *json_data;
 	json_object *json_count;
@@ -2734,7 +2804,8 @@ json_object *json_status_servicecount(unsigned format_options, host *match_host,
 			parent_host, use_child_host, child_host, temp_hostgroup, match_host,
 			temp_servicegroup, host_statuses, service_statuses, temp_contact, 
 			time_field, start_time, end_time, service_description,
-			parent_service_name, child_service_name, temp_contactgroup));
+			parent_service_name, child_service_name, temp_contactgroup,
+			check_timeperiod));
 
 	json_count = json_new_object();
 
@@ -2764,7 +2835,8 @@ json_object *json_status_servicecount(unsigned format_options, host *match_host,
 		if(!json_status_service_passes_service_selection(temp_service, 
 				temp_servicegroup, temp_contact, temp_servicestatus, 
 				time_field, start_time, end_time, service_description,
-				parent_service_name, child_service_name, temp_contactgroup)) {
+				parent_service_name, child_service_name, temp_contactgroup,
+				check_timeperiod)) {
 			continue;
 			}
 
@@ -2811,7 +2883,8 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 		int host_statuses, int service_statuses, contact *temp_contact,
 		int time_field, time_t start_time, time_t end_time, 
 		char *service_description, char *parent_service_name,
-		char *child_service_name, contactgroup *temp_contactgroup) {
+		char *child_service_name, contactgroup *temp_contactgroup,
+		timeperiod *check_timeperiod) {
 
 	json_object *json_data;
 	json_object *json_hostlist;
@@ -2831,7 +2904,7 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 			temp_hostgroup, match_host, temp_servicegroup, host_statuses, 
 			service_statuses, temp_contact, time_field, start_time, end_time, 
 			service_description, parent_service_name, child_service_name,
-			temp_contactgroup));
+			temp_contactgroup, check_timeperiod));
 
 	json_hostlist = json_new_object();
 
@@ -2867,7 +2940,8 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 					temp_servicegroup, temp_contact, temp_servicestatus, 
 					time_field, start_time, end_time, 
 					service_description, parent_service_name,
-					child_service_name, temp_contactgroup) == 0) {
+					child_service_name, temp_contactgroup,
+					check_timeperiod) == 0) {
 				continue;
 				}
 

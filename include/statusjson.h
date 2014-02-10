@@ -87,6 +87,10 @@ typedef struct status_json_cgi_data_struct {
 	char *		contact_name;
 	/* Contact whose contact name is contact_name */
 	contact *	contact;
+	/* Name of check timeperiod for which details should be returned */
+	char *		check_timeperiod_name;
+	/* Timeperiod whose timeperiod name is check_timeperiod_name */
+	timeperiod *check_timeperiod;
 	/* Type(s) of comments to include in comment count and list results */
 	unsigned	comment_types;
 	/* Entry type(s) of comments to include in comment count and list results */
@@ -203,20 +207,22 @@ typedef struct status_json_cgi_data_struct {
 #define DOWNTIME_TYPE_ALL 		(DOWNTIME_TYPE_FIXED | DOWNTIME_TYPE_FLEXIBLE)
 
 extern json_object *json_status_hostcount(unsigned, int, host *, int, host *, 
-		hostgroup *, int, contact *, int, time_t, time_t, contactgroup *);
+		hostgroup *, int, contact *, int, time_t, time_t, contactgroup *,
+		timeperiod *);
 extern json_object *json_status_hostlist(unsigned, int, int, int, int, host *, 
 		int, host *, hostgroup *, int, contact *, int, time_t, time_t,
-		contactgroup *);
+		contactgroup *, timeperiod *);
 extern json_object *json_status_host(unsigned, host *, hoststatus *);
 extern void json_status_host_details(json_object *, unsigned, host *, 
 		hoststatus *);
 
 extern json_object *json_status_servicecount(unsigned, host *, int, host *, 
 		int, host *, hostgroup *, servicegroup *, int, int, contact *, int, 
-		time_t, time_t, char *, char *, char *, contactgroup *);
+		time_t, time_t, char *, char *, char *, contactgroup *, timeperiod *);
 extern json_object *json_status_servicelist(unsigned, int, int, int, host *, 
 		int, host *, int, host *, hostgroup *, servicegroup *, int, int, 
-		contact *, int, time_t, time_t, char *, char *, char *, contactgroup *);
+		contact *, int, time_t, time_t, char *, char *, char *, contactgroup *,
+		timeperiod *);
 extern json_object *json_status_service(unsigned, service *, servicestatus *);
 extern void json_status_service_details(json_object *, unsigned, service *,
 		servicestatus *);

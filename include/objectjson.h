@@ -109,6 +109,10 @@ typedef struct object_json_cgi_data_struct {
 	char *		timeperiod_name;
 	/* Timeperiod whose timeperiod name is timeperiod_name */
 	timeperiod *timeperiod;
+	/* Name of check timeperiod for which details should be returned */
+	char *		check_timeperiod_name;
+	/* Timeperiod whose timeperiod name is check_timeperiod_name */
+	timeperiod *check_timeperiod;
 	/* Name of command for which details should be returned */
 	char *		command_name;
 	/* Command whose command name is command_name */
@@ -152,9 +156,9 @@ typedef struct object_json_cgi_data_struct {
 #define OBJECT_QUERY_HELP					33
 
 extern json_object *json_object_hostcount(int, host *, int, host *, hostgroup *,
-		contact *, contactgroup *);
+		contact *, contactgroup *, timeperiod *);
 extern json_object *json_object_hostlist(unsigned, int, int, int, int, host *, 
-		int, host *, hostgroup *, contact *, contactgroup *);
+		int, host *, hostgroup *, contact *, contactgroup *, timeperiod *);
 extern json_object *json_object_host(unsigned, host *);
 extern void json_object_host_details(json_object *, unsigned, host *);
 
@@ -165,10 +169,10 @@ extern void json_object_hostgroup_details(json_object *, unsigned, hostgroup *);
 
 extern json_object *json_object_servicecount(host *, int, host *, int, host *, 
 		hostgroup *, servicegroup *, contact *, char *, char *, char *,
-		contactgroup *);
+		contactgroup *, timeperiod *);
 extern json_object *json_object_servicelist(unsigned, int, int, int, host *, 
 		int, host *, int, host *, hostgroup *, servicegroup *, contact *, 
-		char *, char *, char *, contactgroup *);
+		char *, char *, char *, contactgroup *, timeperiod *);
 extern json_object *json_object_service(unsigned, service *);
 extern void json_object_service_details(json_object *, unsigned, service *);
 

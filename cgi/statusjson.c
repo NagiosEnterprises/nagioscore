@@ -469,6 +469,16 @@ option_help status_json_help[] = {
 		NULL
 		},
 	{
+		"eventhandler",
+		"Event Handler Name",
+		"nagios:objectjson/commandlist",
+		{ NULL },
+		{ "hostcount", "hostlist", "servicecount", "servicelist", NULL },
+		NULL,
+		"Name of an event handler to be be used as a selector.",
+		NULL
+		},
+	{
 		"commenttypes",
 		"Comment Type",
 		"list",
@@ -664,20 +674,21 @@ option_help status_json_help[] = {
 
 int json_status_host_passes_selection(host *, int, host *, int, host *, 
 		hostgroup *, contact *, hoststatus *, int, time_t, time_t,
-		contactgroup *, timeperiod *, timeperiod *, command *);
+		contactgroup *, timeperiod *, timeperiod *, command *, command *);
 json_object *json_status_host_display_selectors(unsigned, int, int, int, host *,
 		int, host *, hostgroup *, int, contact *, int, time_t, time_t,
-		contactgroup *, timeperiod *, timeperiod *, command *);
+		contactgroup *, timeperiod *, timeperiod *, command *, command *);
 
 int json_status_service_passes_host_selection(host *, int, host *, int, host *, 
 		hostgroup *, host *, int);
 int json_status_service_passes_service_selection(service *, servicegroup *, 
 		contact *, servicestatus *, int, time_t, time_t, char *, char *,
-		char *, contactgroup *, timeperiod *, timeperiod *, command *);
+		char *, contactgroup *, timeperiod *, timeperiod *, command *,
+		command *);
 json_object *json_status_service_selectors(unsigned, int, int, int, host *, int,
 		host *, hostgroup *, host *, servicegroup *, int, int, contact *, int, 
 		time_t, time_t, char *, char *, char *, contactgroup *, timeperiod *,
-		timeperiod *, command *);
+		timeperiod *, command *, command *);
 
 int json_status_comment_passes_selection(comment *, int, time_t, time_t,
 		unsigned, unsigned, unsigned, unsigned, char *, char *);
@@ -819,7 +830,8 @@ int main(void) {
 				cgi_data.host_time_field, cgi_data.start_time, 
 				cgi_data.end_time, cgi_data.contactgroup,
 				cgi_data.check_timeperiod,
-				cgi_data.host_notification_timeperiod, cgi_data.check_command));
+				cgi_data.host_notification_timeperiod, cgi_data.check_command,
+				cgi_data.event_handler));
 		break;
 	case STATUS_QUERY_HOSTLIST:
 		json_object_append_object(json_root, "result", 
@@ -834,7 +846,8 @@ int main(void) {
 				cgi_data.contact, cgi_data.host_time_field, cgi_data.start_time,
 				cgi_data.end_time, cgi_data.contactgroup,
 				cgi_data.check_timeperiod,
-				cgi_data.host_notification_timeperiod, cgi_data.check_command));
+				cgi_data.host_notification_timeperiod, cgi_data.check_command,
+				cgi_data.event_handler));
 		break;
 	case STATUS_QUERY_HOST:
 		temp_hoststatus = find_hoststatus(cgi_data.host_name);
@@ -874,7 +887,7 @@ int main(void) {
 				cgi_data.child_service_name, cgi_data.contactgroup,
 				cgi_data.check_timeperiod,
 				cgi_data.service_notification_timeperiod,
-				cgi_data.check_command));
+				cgi_data.check_command, cgi_data.event_handler));
 		break;
 	case STATUS_QUERY_SERVICELIST:
 		json_object_append_object(json_root, "result", 
@@ -894,7 +907,7 @@ int main(void) {
 				cgi_data.child_service_name, cgi_data.contactgroup,
 				cgi_data.check_timeperiod,
 				cgi_data.service_notification_timeperiod,
-				cgi_data.check_command));
+				cgi_data.check_command, cgi_data.event_handler));
 		break;
 	case STATUS_QUERY_SERVICE:
 		temp_servicestatus = find_servicestatus(cgi_data.host_name, 
@@ -1124,6 +1137,8 @@ void init_cgi_data(status_json_cgi_data *cgi_data) {
 	cgi_data->service_notification_timeperiod = NULL;
 	cgi_data->check_command_name = NULL;
 	cgi_data->check_command = NULL;
+	cgi_data->event_handler_name = NULL;
+	cgi_data->event_handler = NULL;
 	cgi_data->comment_types = COMMENT_TYPE_ALL;
 	cgi_data->entry_types = COMMENT_ENTRY_ALL;
 	cgi_data->persistence = BOOLEAN_EITHER;
@@ -1160,6 +1175,7 @@ void free_cgi_data( status_json_cgi_data *cgi_data) {
 	if( NULL != cgi_data->host_notification_timeperiod_name) free(cgi_data->host_notification_timeperiod_name);
 	if( NULL != cgi_data->service_notification_timeperiod_name) free(cgi_data->service_notification_timeperiod_name);
 	if( NULL != cgi_data->check_command_name) free(cgi_data->check_command_name);
+	if( NULL != cgi_data->event_handler_name) free(cgi_data->event_handler_name);
 	}
 
 
@@ -1364,6 +1380,17 @@ int process_cgivars(json_object *json_root, status_json_cgi_data *cgi_data,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->check_command_name)))
+					!= RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "eventhandler")) {
+			if((result = parse_string_cgivar(THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					json_root, query_time, variables[x], variables[x+1],
+					&(cgi_data->event_handler_name)))
 					!= RESULT_SUCCESS) {
 				break;
 				}
@@ -1972,6 +1999,22 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 			}
 		}
 
+	/* Validate the requested event_handler */
+	if( NULL != cgi_data->event_handler_name) {
+		temp_command = find_command(cgi_data->event_handler_name);
+		if( NULL == temp_command) {
+			result = RESULT_OPTION_VALUE_INVALID;
+			json_object_append_object(json_root, "result",
+					json_result(query_time, THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					result, "The event_handler '%s' could not be found.",
+					cgi_data->event_handler_name));
+			}
+		else {
+			cgi_data->event_handler = temp_command;
+			}
+		}
+
 	/* Validate the requested comment */
 	if(-1 != cgi_data->comment_id) {
 		temp_comment = find_host_comment(cgi_data->comment_id);
@@ -2056,7 +2099,7 @@ int json_status_host_passes_selection(host *temp_host, int use_parent_host,
 		hoststatus *temp_hoststatus, int time_field, time_t start_time, 
 		time_t end_time, contactgroup *temp_contactgroup,
 		timeperiod *check_timeperiod, timeperiod *notification_timeperiod,
-		command *check_command) {
+		command *check_command, command *event_handler) {
 
 	host *temp_host2;
 
@@ -2209,6 +2252,13 @@ int json_status_host_passes_selection(host *temp_host, int use_parent_host,
 		return 0;
 		}
 
+	/* If an event handler was specified, skip this host if it does not
+		have the event handler specified */
+	if(NULL != event_handler &&
+			(event_handler != temp_host->event_handler_ptr)) {
+		return 0;
+		}
+
 	/* If a child host was specified... (leave this for last since it is the
 		most expensive check) */
 	if(1 == use_child_host) { 
@@ -2239,7 +2289,7 @@ json_object *json_status_host_selectors(unsigned format_options, int start,
 		contact *temp_contact, int time_field, time_t start_time, 
 		time_t end_time, contactgroup *temp_contactgroup,
 		timeperiod *check_timeperiod, timeperiod *notification_timeperiod,
-		command *check_command) {
+		command *check_command, command *event_handler) {
 
 	json_object *json_selectors;
 
@@ -2297,6 +2347,10 @@ json_object *json_status_host_selectors(unsigned format_options, int start,
 		json_object_append_string(json_selectors, "checkcommand",
 				check_command->name);
 		}
+	if( NULL != event_handler) {
+		json_object_append_string(json_selectors, "eventhandler",
+				event_handler->name);
+		}
 
 	return json_selectors;
 	}
@@ -2306,7 +2360,8 @@ json_object *json_status_hostcount(unsigned format_options, int use_parent_host,
 		hostgroup *temp_hostgroup, int host_statuses, contact *temp_contact,
 		int time_field, time_t start_time, time_t end_time,
 		contactgroup *temp_contactgroup, timeperiod *check_timeperiod,
-		timeperiod *notification_timeperiod, command *check_command) {
+		timeperiod *notification_timeperiod, command *check_command,
+		command *event_handler) {
 
 	json_object *json_data;
 	json_object *json_count;
@@ -2323,7 +2378,7 @@ json_object *json_status_hostcount(unsigned format_options, int use_parent_host,
 			parent_host, use_child_host, child_host, temp_hostgroup, 
 			host_statuses, temp_contact, time_field, start_time, end_time,
 			temp_contactgroup, check_timeperiod, notification_timeperiod,
-			check_command));
+			check_command, event_handler));
 
 	json_count = json_new_object();
 
@@ -2340,7 +2395,7 @@ json_object *json_status_hostcount(unsigned format_options, int use_parent_host,
 				parent_host, use_child_host, child_host, temp_hostgroup, 
 				temp_contact, temp_hoststatus, time_field, start_time, 
 				end_time, temp_contactgroup, check_timeperiod,
-				notification_timeperiod, check_command) == 0) {
+				notification_timeperiod, check_command, event_handler) == 0) {
 			continue;
 			}
 
@@ -2405,7 +2460,7 @@ json_object *json_status_hostlist(unsigned format_options, int start, int count,
 		contact *temp_contact, int time_field, time_t start_time, 
 		time_t end_time, contactgroup *temp_contactgroup,
 		timeperiod *check_timeperiod, timeperiod *notification_timeperiod,
-		command *check_command) {
+		command *check_command, command *event_handler) {
 
 	json_object *json_data;
 	json_object *json_hostlist;
@@ -2421,7 +2476,7 @@ json_object *json_status_hostlist(unsigned format_options, int start, int count,
 			use_parent_host, parent_host, use_child_host, child_host, 
 			temp_hostgroup, host_statuses, temp_contact, time_field, start_time,
 			end_time, temp_contactgroup, check_timeperiod,
-			notification_timeperiod, check_command));
+			notification_timeperiod, check_command, event_handler));
 
 	json_hostlist = json_new_object();
 
@@ -2438,7 +2493,7 @@ json_object *json_status_hostlist(unsigned format_options, int start, int count,
 				parent_host, use_child_host, child_host, temp_hostgroup, 
 				temp_contact, temp_hoststatus, time_field, start_time, 
 				end_time, temp_contactgroup, check_timeperiod,
-				notification_timeperiod, check_command) == 0) {
+				notification_timeperiod, check_command, event_handler) == 0) {
 			continue;
 			}
 
@@ -2650,7 +2705,7 @@ int json_status_service_passes_service_selection(service *temp_service,
 		time_t end_time, char *service_description, char *parent_service_name,
 		char *child_service_name, contactgroup *temp_contactgroup,
 		timeperiod *check_timeperiod, timeperiod *notification_timeperiod,
-		command *check_command) {
+		command *check_command, command *event_handler) {
 
 	servicesmember *temp_servicesmember;
 
@@ -2815,6 +2870,13 @@ int json_status_service_passes_service_selection(service *temp_service,
 		return 0;
 		}
 
+	/* If a event handler was specified, skip this service if it does not
+		have the event handler specified */
+	if(NULL != event_handler &&
+			(event_handler != temp_service->event_handler_ptr)) {
+		return 0;
+		}
+
 	/* If a parent service was specified... */
 	if(NULL != parent_service_name) {
 		/* If the parent service is "none", skip this service if it has
@@ -2880,7 +2942,8 @@ json_object *json_status_service_selectors(unsigned format_options,
 		time_t start_time, time_t end_time, char *service_description,
 		char *parent_service_name, char *child_service_name,
 		contactgroup *temp_contactgroup, timeperiod *check_timeperiod,
-		timeperiod *notification_timeperiod, command *check_command) {
+		timeperiod *notification_timeperiod, command *check_command,
+		command *event_handler) {
 
 	json_object *json_selectors;
 
@@ -2958,6 +3021,10 @@ json_object *json_status_service_selectors(unsigned format_options,
 		json_object_append_string(json_selectors, "checkcommand",
 				check_command->name);
 		}
+	if( NULL != event_handler) {
+		json_object_append_string(json_selectors, "eventhandler",
+				event_handler->name);
+		}
 
 	return json_selectors;
 	}
@@ -2970,7 +3037,8 @@ json_object *json_status_servicecount(unsigned format_options, host *match_host,
 		time_t start_time, time_t end_time, char *service_description,
 		char *parent_service_name, char *child_service_name,
 		contactgroup *temp_contactgroup, timeperiod *check_timeperiod,
-		timeperiod *notification_timeperiod, command *check_command) {
+		timeperiod *notification_timeperiod, command *check_command,
+		command *event_handler) {
 
 	json_object *json_data;
 	json_object *json_count;
@@ -2990,7 +3058,8 @@ json_object *json_status_servicecount(unsigned format_options, host *match_host,
 			temp_servicegroup, host_statuses, service_statuses, temp_contact, 
 			time_field, start_time, end_time, service_description,
 			parent_service_name, child_service_name, temp_contactgroup,
-			check_timeperiod, notification_timeperiod, check_command));
+			check_timeperiod, notification_timeperiod, check_command,
+			event_handler));
 
 	json_count = json_new_object();
 
@@ -3021,7 +3090,8 @@ json_object *json_status_servicecount(unsigned format_options, host *match_host,
 				temp_servicegroup, temp_contact, temp_servicestatus, 
 				time_field, start_time, end_time, service_description,
 				parent_service_name, child_service_name, temp_contactgroup,
-				check_timeperiod, notification_timeperiod, check_command)) {
+				check_timeperiod, notification_timeperiod, check_command,
+				event_handler)) {
 			continue;
 			}
 
@@ -3070,7 +3140,7 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 		char *service_description, char *parent_service_name,
 		char *child_service_name, contactgroup *temp_contactgroup,
 		timeperiod *check_timeperiod, timeperiod *notification_timeperiod,
-		command *check_command) {
+		command *check_command, command *event_handler) {
 
 	json_object *json_data;
 	json_object *json_hostlist;
@@ -3091,7 +3161,7 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 			service_statuses, temp_contact, time_field, start_time, end_time, 
 			service_description, parent_service_name, child_service_name,
 			temp_contactgroup, check_timeperiod, notification_timeperiod,
-			check_command));
+			check_command, event_handler));
 
 	json_hostlist = json_new_object();
 
@@ -3129,7 +3199,7 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 					service_description, parent_service_name,
 					child_service_name, temp_contactgroup,
 					check_timeperiod, notification_timeperiod,
-					check_command) == 0) {
+					check_command, event_handler) == 0) {
 				continue;
 				}
 

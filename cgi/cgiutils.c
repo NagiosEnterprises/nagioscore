@@ -587,6 +587,10 @@ int read_all_object_configuration_data(const char *cfgfile, int options) {
 		temp_host->check_command_ptr =
 				find_bang_command(temp_host->check_command);
 
+		/* Find the command object for the event handler */
+		temp_host->event_handler_ptr =
+				find_bang_command(temp_host->event_handler);
+
 		/* Resolve host child->parent relationships */
 		for(temp_hostsmember = temp_host->parent_hosts;
 				temp_hostsmember != NULL;
@@ -614,6 +618,10 @@ int read_all_object_configuration_data(const char *cfgfile, int options) {
 		/* Find the command object for the check command */
 		temp_service->check_command_ptr =
 				find_bang_command(temp_service->check_command);
+
+		/* Find the command object for the event handler */
+		temp_service->event_handler_ptr =
+				find_bang_command(temp_service->event_handler);
 
 		/* Resolve service child->parent relationships */
 		for(temp_servicesmember = temp_service->parents;

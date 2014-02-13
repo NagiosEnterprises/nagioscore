@@ -104,8 +104,12 @@ typedef struct status_json_cgi_data_struct {
 	timeperiod *service_notification_timeperiod;
 	/* Name of check command to be used as a selector */
 	char *		check_command_name;
-	/* Command whose command name is command_name */
+	/* Command whose command name is check_command_name */
 	command *	check_command;
+	/* Name of event handle to be used as a selector */
+	char *		event_handler_name;
+	/* Command whose command name is event_handler_name */
+	command *	event_handler;
 	/* Type(s) of comments to include in comment count and list results */
 	unsigned	comment_types;
 	/* Entry type(s) of comments to include in comment count and list results */
@@ -223,10 +227,10 @@ typedef struct status_json_cgi_data_struct {
 
 extern json_object *json_status_hostcount(unsigned, int, host *, int, host *, 
 		hostgroup *, int, contact *, int, time_t, time_t, contactgroup *,
-		timeperiod *, timeperiod *, command *);
+		timeperiod *, timeperiod *, command *, command *);
 extern json_object *json_status_hostlist(unsigned, int, int, int, int, host *, 
 		int, host *, hostgroup *, int, contact *, int, time_t, time_t,
-		contactgroup *, timeperiod *, timeperiod *, command *);
+		contactgroup *, timeperiod *, timeperiod *, command *, command *);
 extern json_object *json_status_host(unsigned, host *, hoststatus *);
 extern void json_status_host_details(json_object *, unsigned, host *, 
 		hoststatus *);
@@ -234,11 +238,11 @@ extern void json_status_host_details(json_object *, unsigned, host *,
 extern json_object *json_status_servicecount(unsigned, host *, int, host *, 
 		int, host *, hostgroup *, servicegroup *, int, int, contact *, int, 
 		time_t, time_t, char *, char *, char *, contactgroup *, timeperiod *,
-		timeperiod *, command *);
+		timeperiod *, command *, command *);
 extern json_object *json_status_servicelist(unsigned, int, int, int, host *, 
 		int, host *, int, host *, hostgroup *, servicegroup *, int, int, 
 		contact *, int, time_t, time_t, char *, char *, char *, contactgroup *,
-		timeperiod *, timeperiod *, command *);
+		timeperiod *, timeperiod *, command *, command *);
 extern json_object *json_status_service(unsigned, service *, servicestatus *);
 extern void json_status_service_details(json_object *, unsigned, service *,
 		servicestatus *);

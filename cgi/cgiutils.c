@@ -122,6 +122,31 @@ int log_debug_info(int leve, int verbosity, const char *fmt, ...) {
 	return 0;
 	}
 
+/*** helpers ****/
+/*
+ * find a command with arguments still attached
+ * if we're unsuccessful, the buffer pointed to by 'name' is modified
+ * to have only the real command name (everything up until the first '!')
+ */
+static command *find_bang_command(char *name)
+{
+	char *bang;
+	command *cmd;
+
+	if (!name)
+		return NULL;
+
+	bang = strchr(name, '!');
+	if (!bang)
+		return find_command(name);
+	*bang = 0;
+	cmd = find_command(name);
+	*bang = '!';
+	return cmd;
+}
+
+
+
 /**********************************************************
  ***************** CLEANUP FUNCTIONS **********************
  **********************************************************/
@@ -556,9 +581,13 @@ int read_all_object_configuration_data(const char *cfgfile, int options) {
 	/* read in all external config data of the desired type(s) */
 	result = read_object_config_data(cfgfile, options);
 
-	/* Resolve host child->parent relationships */
+	/* Resolve objects in the host object */
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-		/* For each of the host's parents */
+		/* Find the command object for the check command */
+		temp_host->check_command_ptr =
+				find_bang_command(temp_host->check_command);
+
+		/* Resolve host child->parent relationships */
 		for(temp_hostsmember = temp_host->parent_hosts;
 				temp_hostsmember != NULL;
 				temp_hostsmember = temp_hostsmember->next) {
@@ -579,10 +608,14 @@ int read_all_object_configuration_data(const char *cfgfile, int options) {
 			}
 		}
 
-	/* Resolve service child->parent relationships */
+	/* Resolve objects in the service object */
 	for(temp_service = service_list; temp_service != NULL;
 			temp_service = temp_service->next) {
-		/* For each of the service's parents */
+		/* Find the command object for the check command */
+		temp_service->check_command_ptr =
+				find_bang_command(temp_service->check_command);
+
+		/* Resolve service child->parent relationships */
 		for(temp_servicesmember = temp_service->parents;
 				temp_servicesmember != NULL;
 				temp_servicesmember = temp_servicesmember->next) {

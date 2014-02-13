@@ -128,6 +128,10 @@ typedef struct object_json_cgi_data_struct {
 	char *		command_name;
 	/* Command whose command name is command_name */
 	command *	command;
+	/* Name of check command to be used as a selector */
+	char *		check_command_name;
+	/* Command whose command name is command_name */
+	command *	check_command;
 	} object_json_cgi_data;
 
 /* Object Type Information */
@@ -167,10 +171,10 @@ typedef struct object_json_cgi_data_struct {
 #define OBJECT_QUERY_HELP					33
 
 extern json_object *json_object_hostcount(int, host *, int, host *, hostgroup *,
-		contact *, contactgroup *, timeperiod *, timeperiod *);
+		contact *, contactgroup *, timeperiod *, timeperiod *, command *);
 extern json_object *json_object_hostlist(unsigned, int, int, int, int, host *, 
 		int, host *, hostgroup *, contact *, contactgroup *, timeperiod *,
-		timeperiod *);
+		timeperiod *, command *);
 extern json_object *json_object_host(unsigned, host *);
 extern void json_object_host_details(json_object *, unsigned, host *);
 
@@ -181,10 +185,11 @@ extern void json_object_hostgroup_details(json_object *, unsigned, hostgroup *);
 
 extern json_object *json_object_servicecount(host *, int, host *, int, host *, 
 		hostgroup *, servicegroup *, contact *, char *, char *, char *,
-		contactgroup *, timeperiod *, timeperiod *);
+		contactgroup *, timeperiod *, timeperiod *, command *);
 extern json_object *json_object_servicelist(unsigned, int, int, int, host *, 
 		int, host *, int, host *, hostgroup *, servicegroup *, contact *, 
-		char *, char *, char *, contactgroup *, timeperiod *, timeperiod *);
+		char *, char *, char *, contactgroup *, timeperiod *, timeperiod *,
+		command *);
 extern json_object *json_object_service(unsigned, service *);
 extern void json_object_service_details(json_object *, unsigned, service *);
 

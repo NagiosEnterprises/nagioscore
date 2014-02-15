@@ -3052,7 +3052,7 @@ void fcache_contact(FILE *fp, contact *temp_contact)
 		if(temp_contact->address[x])
 			fprintf(fp, "\taddress%d\t%s\n", x + 1, temp_contact->address[x]);
 	}
-	fprintf(fp, "\tminimum_value\t%u\n", temp_contact->minimum_value);
+	fprintf(fp, "\tminimum_importance\t%u\n", temp_contact->minimum_value);
 	fprintf(fp, "\thost_notifications_enabled\t%d\n", temp_contact->host_notifications_enabled);
 	fprintf(fp, "\tservice_notifications_enabled\t%d\n", temp_contact->service_notifications_enabled);
 	fprintf(fp, "\tcan_submit_commands\t%d\n", temp_contact->can_submit_commands);
@@ -3092,7 +3092,7 @@ void fcache_host(FILE *fp, host *temp_host)
 		fprintf(fp, "u\n");
 	else
 		fprintf(fp, "o\n");
-	fprintf(fp, "\thourly_value\t%u\n", temp_host->hourly_value);
+	fprintf(fp, "\timportance\t%u\n", temp_host->hourly_value);
 	fprintf(fp, "\tcheck_interval\t%f\n", temp_host->check_interval);
 	fprintf(fp, "\tretry_interval\t%f\n", temp_host->retry_interval);
 	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_host->max_attempts);
@@ -3176,7 +3176,7 @@ void fcache_service(FILE *fp, service *temp_service)
 		fprintf(fp, "c\n");
 	else
 		fprintf(fp, "o\n");
-	fprintf(fp, "\thourly_value\t%u\n", temp_service->hourly_value);
+	fprintf(fp, "\timportance\t%u\n", temp_service->hourly_value);
 	fprintf(fp, "\tcheck_interval\t%f\n", temp_service->check_interval);
 	fprintf(fp, "\tretry_interval\t%f\n", temp_service->retry_interval);
 	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_service->max_attempts);

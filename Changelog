@@ -5,6 +5,7 @@ Nagios Core 4 Change Log
 4.0.3 - xx/xx/xxxx
 ------------------
 ENHANCEMENTS
+* Aliased hourly_value to importance and minimum_value to minimum_importance and deprecated the former (Eric Stanley)
 * Added host and service importance macros (Eric Stanley)
 * Added notifications on flexible downtime expiration (Dan Wittenberg)
 

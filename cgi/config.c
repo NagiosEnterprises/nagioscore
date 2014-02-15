@@ -442,7 +442,8 @@ void display_hosts(void) {
 	printf("<TH CLASS='data'>Host Name</TH>");
 	printf("<TH CLASS='data'>Alias/Description</TH>");
 	printf("<TH CLASS='data'>Address</TH>");
-	printf("<TH CLASS='data'>Importance</TH>");
+	printf("<TH CLASS='data'>Importance (Host)</TH>");
+	printf("<TH CLASS='data'>Importance (Host + Services)</TH>");
 	printf("<TH CLASS='data'>Parent Hosts</TH>");
 	printf("<TH CLASS='data'>Max. Check Attempts</TH>");
 	printf("<TH CLASS='data'>Check Interval</TH>\n");
@@ -501,6 +502,7 @@ void display_hosts(void) {
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, html_encode(temp_host->alias, FALSE));
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, html_encode(temp_host->address, FALSE));
 			printf("<TD CLASS='%s'>%u</TD>\n", bg_class, temp_host->hourly_value);
+			printf("<TD CLASS='%s'>%u</TD>\n", bg_class, temp_host->hourly_value + host_services_value(temp_host));
 
 			printf("<TD CLASS='%s'>", bg_class);
 			for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {

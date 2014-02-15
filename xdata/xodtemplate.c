@@ -971,7 +971,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 		case XODTEMPLATE_CONTACT:
 			xod_begin_def(contact);
 
-			new_contact->minimum_value = 1;
+			new_contact->minimum_value = 0;
 			new_contact->host_notifications_enabled = TRUE;
 			new_contact->service_notifications_enabled = TRUE;
 			new_contact->can_submit_commands = TRUE;
@@ -982,7 +982,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 		case XODTEMPLATE_HOST:
 			xod_begin_def(host);
 
-			new_host->hourly_value = 1;
+			new_host->hourly_value = 0;
 			new_host->check_interval = 5.0;
 			new_host->retry_interval = 1.0;
 			new_host->active_checks_enabled = TRUE;
@@ -1004,7 +1004,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 		case XODTEMPLATE_SERVICE:
 			xod_begin_def(service);
 
-			new_service->hourly_value = 1;
+			new_service->hourly_value = 0;
 			new_service->initial_state = STATE_OK;
 			new_service->max_check_attempts = -2;
 			new_service->check_interval = 5.0;

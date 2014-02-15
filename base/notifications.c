@@ -1506,7 +1506,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 		}
 
 	/* is this host important enough? */
-	if(cntct->minimum_value > hst->hourly_value && cntct->minimum_value > hst->hourly_value + host_services_value(hst)) {
+	if(cntct->minimum_value > hst->hourly_value + host_services_value(hst)) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Contact's minimum_importance is greater than the importance of the host and all its services. Notification will be blocked\n");
 		return ERROR;
 		}

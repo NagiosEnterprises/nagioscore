@@ -123,8 +123,8 @@ static const char *opts2str(int opts, const struct flag_map *map, char ok_char)
 	buf[pos++] = 0;
 	return buf;
 }
+#endif
 
-/* Host/Service dependencies are not visible in Nagios CGIs, so we exclude them */
 unsigned int host_services_value(host *h) {
 	servicesmember *sm;
 	unsigned int ret = 0;
@@ -135,6 +135,8 @@ unsigned int host_services_value(host *h) {
 	}
 
 
+#ifndef NSCGI
+/* Host/Service dependencies are not visible in Nagios CGIs, so we exclude them */
 static int cmp_sdep(const void *a_, const void *b_) {
 	const servicedependency *a = *(servicedependency **)a_;
 	const servicedependency *b = *(servicedependency **)b_;
@@ -841,7 +843,6 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 	/* add the child entry to the host definition */
 	new_servicesmember->next = hst->services;
 	hst->services = new_servicesmember;
-	hst->hourly_value += service_ptr->hourly_value;
 
 	return new_servicesmember;
 	}

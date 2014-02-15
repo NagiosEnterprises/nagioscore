@@ -5,6 +5,7 @@ Nagios Core 4 Change Log
 4.0.3 - xx/xx/xxxx
 ------------------
 ENHANCEMENTS
+* Added host and service importance macros (Eric Stanley)
 * Added notifications on flexible downtime expiration (Dan Wittenberg)
 
 FIXES

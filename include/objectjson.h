@@ -156,6 +156,10 @@ typedef struct object_json_cgi_data_struct {
 	char *		dependent_host_name;
 	/* Host whose host name is dependent_host_name */
 	host *		dependent_host;
+	/* Name of dependent hostgroup to be used as a selector for dependencies */
+	char *		dependent_hostgroup_name;
+	/* Host whose hostgroup name is dependent_hostgroup_name */
+	hostgroup *	dependent_hostgroup;
 	} object_json_cgi_data;
 
 /* Object Type Information */
@@ -252,9 +256,9 @@ extern json_object *json_object_command(unsigned, command *);
 extern void json_object_command_details(json_object *, unsigned, command *);
 
 extern json_object *json_object_servicedependencycount(host *, hostgroup *,
-		char *, servicegroup *, host *);
+		char *, servicegroup *, host *, hostgroup *);
 extern json_object *json_object_servicedependencylist(unsigned, int, int,
-		host *, hostgroup *, char *, servicegroup *, host *);
+		host *, hostgroup *, char *, servicegroup *, host *, hostgroup *);
 extern void json_object_servicedependency_details(json_object *, unsigned, 
 		servicedependency *);
 
@@ -266,9 +270,9 @@ extern void json_object_serviceescalation_details(json_object *, unsigned,
 		serviceescalation *);
 
 extern json_object *json_object_hostdependencycount(host *, hostgroup *,
-		host *);
+		host *, hostgroup *);
 extern json_object *json_object_hostdependencylist(unsigned, int, int, host *,
-		hostgroup *, host *);
+		hostgroup *, host *, hostgroup *);
 extern void json_object_hostdependency_details(json_object *, unsigned, 
 		hostdependency *);
 

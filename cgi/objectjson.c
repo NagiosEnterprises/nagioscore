@@ -437,6 +437,26 @@ option_help object_json_help[] = {
 		"Name for a master hostgroup to be used as a selector.",
 		NULL
 		},
+	{
+		"masterservicedescription",
+		"Master Service Description",
+		"nagios:objectjson/servicelist",
+		{ NULL },
+		{ "servicedependencycount", "servicedependencylist", NULL },
+		"masterhostname",
+		"Description for a master service to be used as a selector.",
+		NULL
+		},
+	{
+		"masterservicegroupname",
+		"Master Servicegroup Name",
+		"nagios:objectjson/servicegrouplist",
+		{ NULL },
+		{ "servicedependencycount", "servicedependencylist", NULL },
+		NULL,
+		"Name for a master servicegroup to be used as a selector.",
+		NULL
+		},
 	{ /* The last entry must contain all NULL entries */
 		NULL,
 		NULL,
@@ -484,9 +504,9 @@ json_object *json_object_timeperiod_selectors(int, int);
 json_object *json_object_command_selectors(int, int);
 
 int json_object_servicedependency_passes_selection(servicedependency *, host *,
-		hostgroup *);
+		hostgroup *, char *, servicegroup *);
 json_object *json_object_servicedependency_selectors(int, int, host *,
-		hostgroup *);
+		hostgroup *, char *, servicegroup *);
 
 int json_object_serviceescalation_passes_selection(serviceescalation *, host *,
 		char *, hostgroup *, servicegroup *, contact *, contactgroup *);
@@ -857,7 +877,8 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_servicedependencycount(cgi_data.master_host, 
-				cgi_data.master_hostgroup));
+				cgi_data.master_hostgroup, cgi_data.master_service_description,
+				cgi_data.master_servicegroup));
 		break;
 	case OBJECT_QUERY_SERVICEDEPENDENCYLIST:
 		json_object_append_object(json_root, "result", 
@@ -867,7 +888,8 @@ int main(void) {
 		json_object_append_object(json_root, "data", 
 				json_object_servicedependencylist(cgi_data.format_options, 
 				cgi_data.start, cgi_data.count, cgi_data.master_host,
-				cgi_data.master_hostgroup));
+				cgi_data.master_hostgroup, cgi_data.master_service_description,
+				cgi_data.master_servicegroup));
 		break;
 	case OBJECT_QUERY_SERVICEESCALATIONCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -1042,6 +1064,10 @@ void init_cgi_data(object_json_cgi_data *cgi_data) {
 	cgi_data->master_host = NULL;
 	cgi_data->master_hostgroup_name = NULL;
 	cgi_data->master_hostgroup = NULL;
+	cgi_data->master_service_description = NULL;
+	cgi_data->master_service = NULL;
+	cgi_data->master_servicegroup_name = NULL;
+	cgi_data->master_servicegroup = NULL;
 }
 
 void free_cgi_data( object_json_cgi_data *cgi_data) {
@@ -1069,6 +1095,8 @@ void free_cgi_data( object_json_cgi_data *cgi_data) {
 	if( NULL != cgi_data->event_handler_name) free(cgi_data->event_handler_name);
 	if( NULL != cgi_data->master_host_name) free(cgi_data->master_host_name);
 	if( NULL != cgi_data->master_hostgroup_name) free(cgi_data->master_hostgroup_name);
+	if( NULL != cgi_data->master_service_description) free(cgi_data->master_service_description);
+	if( NULL != cgi_data->master_servicegroup_name) free(cgi_data->master_servicegroup_name);
 	}
 
 
@@ -1377,6 +1405,28 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->master_hostgroup_name))) !=
+					RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "masterservicedescription")) {
+			if((result = parse_string_cgivar(THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					json_root, query_time, variables[x], variables[x+1],
+					&(cgi_data->master_service_description))) !=
+					RESULT_SUCCESS) {
+				break;
+				}
+			x++;
+			}
+
+		else if(!strcmp(variables[x], "masterservicegroupname")) {
+			if((result = parse_string_cgivar(THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					json_root, query_time, variables[x], variables[x+1],
+					&(cgi_data->master_servicegroup_name))) !=
 					RESULT_SUCCESS) {
 				break;
 				}
@@ -1937,6 +1987,23 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			}
 		else {
 			cgi_data->master_hostgroup = temp_hostgroup;
+			}
+		}
+
+	/* Validate the requested master servicegroup */
+	if( NULL != cgi_data->master_servicegroup_name) {
+		temp_servicegroup =
+				find_servicegroup(cgi_data->master_servicegroup_name);
+		if( NULL == temp_servicegroup) {
+			result = RESULT_OPTION_VALUE_INVALID;
+			json_object_append_object(json_root, "result",
+					json_result(query_time, THISCGI,
+					svm_get_string_from_value(cgi_data->query, valid_queries),
+					result, "The master servicegroup '%s' could not be found.",
+					cgi_data->master_servicegroup_name));
+			}
+		else {
+			cgi_data->master_servicegroup = temp_servicegroup;
 			}
 		}
 
@@ -4488,9 +4555,11 @@ void json_object_command_details(json_object *json_details,
 
 int json_object_servicedependency_passes_selection(
 		servicedependency *temp_servicedependency, host *master_host,
-		hostgroup *master_hostgroup) {
+		hostgroup *master_hostgroup, char *master_service_description,
+		servicegroup *master_servicegroup) {
 
 	host *temp_host = NULL;
+	service *temp_service = NULL;
 
 	/* Skip if the servicedependency does not have the specified master host */
 	if(NULL != master_host &&
@@ -4499,11 +4568,31 @@ int json_object_servicedependency_passes_selection(
 		}
 
 	/* Skip if the servicedependency does not have a master host in the
-		specified hostgroup*/
+		specified hostgroup */
 	if(NULL != master_hostgroup) {
 		temp_host = find_host(temp_servicedependency->host_name);
-		if((NULL != temp_host) && ( FALSE ==
+		if((NULL != temp_host) && (FALSE ==
 				is_host_member_of_hostgroup(master_hostgroup, temp_host))) {
+			return 0;
+			}
+		}
+
+	/* Skip if the servicedependency does not have the specified master
+		service */
+	if(NULL != master_service_description &&
+			strcmp(temp_servicedependency->service_description,
+			master_service_description)) {
+		return 0;
+		}
+
+	/* Skip if the servicedependency does not have a master service in the
+		specified servicegroup */
+	if(NULL != master_servicegroup) {
+		temp_service = find_service(temp_servicedependency->host_name,
+				temp_servicedependency->service_description);
+		if((NULL != temp_service) && (FALSE ==
+				is_service_member_of_servicegroup(master_servicegroup,
+				temp_service))) {
 			return 0;
 			}
 		}
@@ -4512,7 +4601,8 @@ int json_object_servicedependency_passes_selection(
 	}
 
 json_object *json_object_servicedependency_selectors(int start, int count,
-		host *master_host, hostgroup *master_hostgroup) {
+		host *master_host, hostgroup *master_hostgroup,
+		char *master_service_description, servicegroup *master_servicegroup) {
 
 	json_object *json_selectors;
 
@@ -4525,19 +4615,28 @@ json_object *json_object_servicedependency_selectors(int start, int count,
 		json_object_append_integer(json_selectors, "count", count);
 		}
 	if(NULL != master_host) {
-		json_object_append_string(json_selectors, "masterhost",
+		json_object_append_string(json_selectors, "masterhostname",
 				master_host->name);
 		}
 	if(NULL != master_hostgroup) {
-		json_object_append_string(json_selectors, "masterhostgroup",
+		json_object_append_string(json_selectors, "masterhostgroupname",
 				master_hostgroup->group_name);
+		}
+	if(NULL != master_service_description) {
+		json_object_append_string(json_selectors, "masterservicedescription",
+				master_service_description);
+		}
+	if(NULL != master_servicegroup) {
+		json_object_append_string(json_selectors, "masterservicegroupname",
+				master_servicegroup->group_name);
 		}
 
 	return json_selectors;
 	}
 
 json_object *json_object_servicedependencycount(host *master_host,
-		hostgroup *master_hostgroup) {
+		hostgroup *master_hostgroup, char *master_service_description,
+		servicegroup *master_servicegroup) {
 
 	json_object *json_data;
 #ifdef JSON_NAGIOS_4X
@@ -4549,7 +4648,7 @@ json_object *json_object_servicedependencycount(host *master_host,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_object_servicedependency_selectors(0, 0, master_host,
-			master_hostgroup));
+			master_hostgroup, master_service_description, master_servicegroup));
 
 #ifdef JSON_NAGIOS_4X
 	for(x = 0; x < num_objects.servicedependencies; x++) {
@@ -4561,7 +4660,8 @@ json_object *json_object_servicedependencycount(host *master_host,
 #endif
 
 		if(json_object_servicedependency_passes_selection(temp_servicedependency,
-				master_host, master_hostgroup)) {
+				master_host, master_hostgroup, master_service_description,
+				master_servicegroup)) {
 			count++; 
 			}
 		}
@@ -4572,7 +4672,8 @@ json_object *json_object_servicedependencycount(host *master_host,
 	}
 
 json_object *json_object_servicedependencylist(unsigned format_options,
-		int start, int count, host *master_host, hostgroup *master_hostgroup) {
+		int start, int count, host *master_host, hostgroup *master_hostgroup,
+		char *master_service_description, servicegroup *master_servicegroup) {
 
 	json_object *json_data;
 	json_array *json_servicedependencylist;
@@ -4587,7 +4688,8 @@ json_object *json_object_servicedependencylist(unsigned format_options,
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
 			json_object_servicedependency_selectors(start, count,
-			master_host, master_hostgroup));
+			master_host, master_hostgroup, master_service_description,
+				master_servicegroup));
 
 	json_servicedependencylist = json_new_array();
 
@@ -4601,7 +4703,8 @@ json_object *json_object_servicedependencylist(unsigned format_options,
 #endif
 
 		if(!json_object_servicedependency_passes_selection(temp_servicedependency,
-				master_host, master_hostgroup)) {
+				master_host, master_hostgroup, master_service_description,
+				master_servicegroup)) {
 			continue;
 			}
 
@@ -4983,7 +5086,7 @@ int json_object_hostdependency_passes_selection(
 		specified hostgroup*/
 	if(NULL != master_hostgroup) {
 		temp_host = find_host(temp_hostdependency->host_name);
-		if((NULL != temp_host) && ( FALSE ==
+		if((NULL != temp_host) && (FALSE ==
 				is_host_member_of_hostgroup(master_hostgroup, temp_host))) {
 			return 0;
 			}
@@ -5006,11 +5109,11 @@ json_object *json_object_hostdependency_selectors(int start, int count,
 		json_object_append_integer(json_selectors, "count", count);
 		}
 	if(NULL != master_host) {
-		json_object_append_string(json_selectors, "masterhost",
+		json_object_append_string(json_selectors, "masterhostname",
 				master_host->name);
 		}
 	if(NULL != master_hostgroup) {
-		json_object_append_string(json_selectors, "masterhostgroup",
+		json_object_append_string(json_selectors, "masterhostgroupname",
 				master_hostgroup->group_name);
 		}
 

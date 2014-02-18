@@ -160,6 +160,15 @@ typedef struct object_json_cgi_data_struct {
 	char *		dependent_hostgroup_name;
 	/* Host whose hostgroup name is dependent_hostgroup_name */
 	hostgroup *	dependent_hostgroup;
+	/* Name of dependent service to be used as a selector for dependencies */
+	char *		dependent_service_description;
+	/* Service whose service name is dependent_service_description */
+	service *	dependent_service;
+	/* Name of dependent servicegroup to be used as a selector for
+			dependencies */
+	char *		dependent_servicegroup_name;
+	/* Service whose servicegroup name is dependent_servicegroup_name */
+	servicegroup *	dependent_servicegroup;
 	} object_json_cgi_data;
 
 /* Object Type Information */
@@ -256,9 +265,10 @@ extern json_object *json_object_command(unsigned, command *);
 extern void json_object_command_details(json_object *, unsigned, command *);
 
 extern json_object *json_object_servicedependencycount(host *, hostgroup *,
-		char *, servicegroup *, host *, hostgroup *);
+		char *, servicegroup *, host *, hostgroup *, char *, servicegroup *);
 extern json_object *json_object_servicedependencylist(unsigned, int, int,
-		host *, hostgroup *, char *, servicegroup *, host *, hostgroup *);
+		host *, hostgroup *, char *, servicegroup *, host *, hostgroup *,
+		char *, servicegroup *);
 extern void json_object_servicedependency_details(json_object *, unsigned, 
 		servicedependency *);
 

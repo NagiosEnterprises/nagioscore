@@ -681,6 +681,8 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_LASTHOSTPROBLEMID:
 		case MACRO_LASTHOSTSTATE:
 		case MACRO_LASTHOSTSTATEID:
+		case MACRO_HOSTIMPORTANCE:
+		case MACRO_HOSTANDSERVICESIMPORTANCE:
 
 			/* a standard host macro */
 			if(arg2 == NULL) {
@@ -807,6 +809,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_LASTSERVICEPROBLEMID:
 		case MACRO_LASTSERVICESTATE:
 		case MACRO_LASTSERVICESTATEID:
+		case MACRO_SERVICEIMPORTANCE:
 
 			/* use saved service pointer */
 			if(arg1 == NULL && arg2 == NULL) {
@@ -1732,17 +1735,13 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 			/* return only the macro the user requested */
 			*output = mac->x[macro_type];
 			break;
-#if 0
-		case MACRO_HOSTVALUE:
-			*output = strdup(mkstr("%u", mac->host_ptr->hourly_value));
+		case MACRO_HOSTIMPORTANCE:
+			*output = strdup(mkstr("%u", temp_host->hourly_value));
 			break;
-		case MACRO_SERVICEVALUE:
-			*output = strdup(mkstr("%u", host_services_value(mac->host_ptr)));
+		case MACRO_HOSTANDSERVICESIMPORTANCE:
+			*output = strdup(mkstr("%u", temp_host->hourly_value +
+					host_services_value(temp_host)));
 			break;
-		case MACRO_PROBLEMVALUE:
-			*output = strdup(mkstr("%u", mac->host_ptr->hourly_value + host_services_value(mac->host_ptr)));
-			break;
-#endif
 #endif
 
 			/***************/
@@ -2049,6 +2048,7 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 			if(temp_service->notes)
 				*output = strdup(temp_service->notes);
 			break;
+
 #ifdef NSCORE
 		case MACRO_SERVICEGROUPNAMES:
 			/* find all servicegroups this service is associated with */
@@ -2066,7 +2066,11 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 				my_free(buf2);
 				}
 			break;
+		case MACRO_SERVICEIMPORTANCE:
+			*output = strdup(mkstr("%u", temp_service->hourly_value));
+			break;
 #endif
+
 			/***************/
 			/* MISC MACROS */
 			/***************/
@@ -2692,11 +2696,9 @@ int init_macrox_names(void) {
 	add_macrox_name(LASTHOSTSTATEID);
 	add_macrox_name(LASTSERVICESTATE);
 	add_macrox_name(LASTSERVICESTATEID);
-#if 0
-	add_macrox_name(HOSTVALUE);
-	add_macrox_name(SERVICEVALUE);
-	add_macrox_name(PROBLEMVALUE);
-#endif
+	add_macrox_name(HOSTIMPORTANCE);
+	add_macrox_name(SERVICEIMPORTANCE);
+	add_macrox_name(HOSTANDSERVICESIMPORTANCE);
 
 	return OK;
 	}
@@ -2759,10 +2761,23 @@ void copy_constant_macros(char **dest) {
 	}
 #undef cp_macro
 
-/* clear all macros that are not "constant" (i.e. they change throughout the course of monitoring) */
-int clear_volatile_macros_r(nagios_macros *mac) {
+static void clear_custom_vars(customvariablesmember **vars) {
 	customvariablesmember *this_customvariablesmember = NULL;
 	customvariablesmember *next_customvariablesmember = NULL;
+
+	for(this_customvariablesmember = *vars;
+			this_customvariablesmember != NULL;
+			this_customvariablesmember = next_customvariablesmember) {
+		next_customvariablesmember = this_customvariablesmember->next;
+		my_free(this_customvariablesmember->variable_name);
+		my_free(this_customvariablesmember->variable_value);
+		my_free(this_customvariablesmember);
+		}
+	*vars = NULL;
+	}
+
+/* clear all macros that are not "constant" (i.e. they change throughout the course of monitoring) */
+int clear_volatile_macros_r(nagios_macros *mac) {
 	register int x = 0;
 
 	for(x = 0; x < MACRO_X_COUNT; x++) {
@@ -2815,31 +2830,13 @@ int clear_volatile_macros_r(nagios_macros *mac) {
 	clear_argv_macros_r(mac);
 
 	/* clear custom host variables */
-	for(this_customvariablesmember = mac->custom_host_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
-		next_customvariablesmember = this_customvariablesmember->next;
-		my_free(this_customvariablesmember->variable_name);
-		my_free(this_customvariablesmember->variable_value);
-		my_free(this_customvariablesmember);
-		}
-	mac->custom_host_vars = NULL;
+	clear_custom_vars(&(mac->custom_host_vars));
 
 	/* clear custom service variables */
-	for(this_customvariablesmember = mac->custom_service_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
-		next_customvariablesmember = this_customvariablesmember->next;
-		my_free(this_customvariablesmember->variable_name);
-		my_free(this_customvariablesmember->variable_value);
-		my_free(this_customvariablesmember);
-		}
-	mac->custom_service_vars = NULL;
+	clear_custom_vars(&(mac->custom_service_vars));
 
 	/* clear custom contact variables */
-	for(this_customvariablesmember = mac->custom_contact_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
-		next_customvariablesmember = this_customvariablesmember->next;
-		my_free(this_customvariablesmember->variable_name);
-		my_free(this_customvariablesmember->variable_value);
-		my_free(this_customvariablesmember);
-		}
-	mac->custom_contact_vars = NULL;
+	clear_custom_vars(&(mac->custom_contact_vars));
 
 	return OK;
 	}
@@ -2852,8 +2849,6 @@ int clear_volatile_macros(void) {
 
 /* clear service macros */
 int clear_service_macros_r(nagios_macros *mac) {
-	customvariablesmember *this_customvariablesmember = NULL;
-	customvariablesmember *next_customvariablesmember = NULL;
 
 	/* these are recursive but persistent. what to do? */
 	my_free(mac->x[MACRO_SERVICECHECKCOMMAND]);
@@ -2864,13 +2859,7 @@ int clear_service_macros_r(nagios_macros *mac) {
 	my_free(mac->x[MACRO_SERVICEGROUPNAMES]);
 
 	/* clear custom service variables */
-	for(this_customvariablesmember = mac->custom_service_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
-		next_customvariablesmember = this_customvariablesmember->next;
-		my_free(this_customvariablesmember->variable_name);
-		my_free(this_customvariablesmember->variable_value);
-		my_free(this_customvariablesmember);
-		}
-	mac->custom_service_vars = NULL;
+	clear_custom_vars(&(mac->custom_service_vars));
 
 	/* clear pointers */
 	mac->service_ptr = NULL;
@@ -2884,8 +2873,6 @@ int clear_service_macros(void) {
 
 /* clear host macros */
 int clear_host_macros_r(nagios_macros *mac) {
-	customvariablesmember *this_customvariablesmember = NULL;
-	customvariablesmember *next_customvariablesmember = NULL;
 
 	/* these are recursive but persistent. what to do? */
 	my_free(mac->x[MACRO_HOSTCHECKCOMMAND]);
@@ -2897,13 +2884,7 @@ int clear_host_macros_r(nagios_macros *mac) {
 	my_free(mac->x[MACRO_HOSTGROUPNAMES]);
 
 	/* clear custom host variables */
-	for(this_customvariablesmember = mac->custom_host_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
-		next_customvariablesmember = this_customvariablesmember->next;
-		my_free(this_customvariablesmember->variable_name);
-		my_free(this_customvariablesmember->variable_value);
-		my_free(this_customvariablesmember);
-		}
-	mac->custom_host_vars = NULL;
+	clear_custom_vars(&(mac->custom_host_vars));
 
 	/* clear pointers */
 	mac->host_ptr = NULL;
@@ -2961,20 +2942,12 @@ int clear_servicegroup_macros(void) {
 
 /* clear contact macros */
 int clear_contact_macros_r(nagios_macros *mac) {
-	customvariablesmember *this_customvariablesmember = NULL;
-	customvariablesmember *next_customvariablesmember = NULL;
 
 	/* generated */
 	my_free(mac->x[MACRO_CONTACTGROUPNAMES]);
 
 	/* clear custom contact variables */
-	for(this_customvariablesmember = mac->custom_contact_vars; this_customvariablesmember != NULL; this_customvariablesmember = next_customvariablesmember) {
-		next_customvariablesmember = this_customvariablesmember->next;
-		my_free(this_customvariablesmember->variable_name);
-		my_free(this_customvariablesmember->variable_value);
-		my_free(this_customvariablesmember);
-		}
-	mac->custom_contact_vars = NULL;
+	clear_custom_vars(&(mac->custom_contact_vars));
 
 	/* clear pointers */
 	mac->contact_ptr = NULL;

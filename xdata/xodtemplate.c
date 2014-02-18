@@ -971,7 +971,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 		case XODTEMPLATE_CONTACT:
 			xod_begin_def(contact);
 
-			new_contact->minimum_value = 1;
+			new_contact->minimum_value = 0;
 			new_contact->host_notifications_enabled = TRUE;
 			new_contact->service_notifications_enabled = TRUE;
 			new_contact->can_submit_commands = TRUE;
@@ -982,7 +982,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 		case XODTEMPLATE_HOST:
 			xod_begin_def(host);
 
-			new_host->hourly_value = 1;
+			new_host->hourly_value = 0;
 			new_host->check_interval = 5.0;
 			new_host->retry_interval = 1.0;
 			new_host->active_checks_enabled = TRUE;
@@ -1004,7 +1004,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 		case XODTEMPLATE_SERVICE:
 			xod_begin_def(service);
 
-			new_service->hourly_value = 1;
+			new_service->hourly_value = 0;
 			new_service->initial_state = STATE_OK;
 			new_service->max_check_attempts = -2;
 			new_service->check_interval = 5.0;
@@ -2128,7 +2128,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_contact->retain_nonstatus_information = (atoi(value) > 0) ? TRUE : FALSE;
 				temp_contact->have_retain_nonstatus_information = TRUE;
 				}
-			else if(!strcmp(variable, "minimum_value")) {
+			else if(!strcmp(variable, "minimum_importance") ||
+					!strcmp(variable, "minimum_value")) {
+				if(!strcmp(variable, "minimum_value")) {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The minimum_value attribute is deprecated and will be removed in future versions. Please use minimum_importance instead.\n");
+					}
 				temp_contact->minimum_value = strtoul(value, NULL, 10);
 				temp_contact->have_minimum_value = TRUE;
 				}
@@ -2367,7 +2371,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->retry_interval = strtod(value, NULL);
 				temp_host->have_retry_interval = TRUE;
 				}
-			else if(!strcmp(variable, "hourly_value")) {
+			else if(!strcmp(variable, "importance") ||
+					!strcmp(variable, "hourly_value")) {
+				if(!strcmp(variable, "hourly_value")) {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The hourly_value attribute is deprecated and will be removed in future versions. Please use importance instead.\n");
+					}
 				temp_host->hourly_value = (unsigned int)strtoul(value, NULL, 10);
 				temp_host->have_hourly_value = 1;
 				}
@@ -2788,7 +2796,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 					}
 				temp_service->have_initial_state = TRUE;
 				}
-			else if(!strcmp(variable, "hourly_value")) {
+			else if(!strcmp(variable, "importance") ||
+					!strcmp(variable, "hourly_value")) {
+				if(!strcmp(variable, "hourly_value")) {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The hourly_value attribute is deprecated and will be removed in future versions. Please use importance instead.\n");
+					}
 				temp_service->hourly_value = (unsigned int)strtoul(value, NULL, 10);
 				temp_service->have_hourly_value = 1;
 				}

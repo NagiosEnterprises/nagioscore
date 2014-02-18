@@ -140,6 +140,10 @@ typedef struct object_json_cgi_data_struct {
 	char *		master_host_name;
 	/* Host whose host name is master_host_name */
 	host *		master_host;
+	/* Name of master hostgroup to be used as a selector for dependencies */
+	char *		master_hostgroup_name;
+	/* Host whose hostgroup name is master_hostgroup_name */
+	hostgroup *	master_hostgroup;
 	} object_json_cgi_data;
 
 /* Object Type Information */
@@ -235,9 +239,9 @@ extern json_object *json_object_commandlist(unsigned, int, int, int);
 extern json_object *json_object_command(unsigned, command *);
 extern void json_object_command_details(json_object *, unsigned, command *);
 
-extern json_object *json_object_servicedependencycount(host *);
+extern json_object *json_object_servicedependencycount(host *, hostgroup *);
 extern json_object *json_object_servicedependencylist(unsigned, int, int,
-		host *);
+		host *, hostgroup *);
 extern void json_object_servicedependency_details(json_object *, unsigned, 
 		servicedependency *);
 
@@ -248,8 +252,9 @@ extern json_object *json_object_serviceescalationlist(unsigned, int, int,
 extern void json_object_serviceescalation_details(json_object *, unsigned, 
 		serviceescalation *);
 
-extern json_object *json_object_hostdependencycount(host *);
-extern json_object *json_object_hostdependencylist(unsigned, int, int, host *);
+extern json_object *json_object_hostdependencycount(host *, hostgroup *);
+extern json_object *json_object_hostdependencylist(unsigned, int, int, host *,
+		hostgroup *);
 extern void json_object_hostdependency_details(json_object *, unsigned, 
 		hostdependency *);
 

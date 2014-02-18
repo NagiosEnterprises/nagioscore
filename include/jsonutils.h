@@ -113,6 +113,12 @@ typedef struct option_help_struct {
 #define JSON_FORMAT_TIME		(1<<5)
 #endif
 
+/* Possible Query Statuses */
+#define QUERY_STATUS_ALPHA		0
+#define QUERY_STATUS_BETA		1
+#define QUERY_STATUS_RELEASED	2
+#define QUERY_STATUS_DEPRECATED	3
+
 extern const string_value_mapping svm_format_options[];
 extern const string_value_mapping svm_host_statuses[];
 extern const string_value_mapping svm_host_states[];
@@ -163,7 +169,7 @@ extern void json_object_print(json_object *, int, int, char *, unsigned);
 extern void json_array_print(json_array *, int, int, char *, unsigned);
 extern void json_member_print(json_object_member *, int, int, char *, unsigned);
 
-extern json_object *json_result(time_t, char *, char *, int, char *, ...);
+extern json_object *json_result(time_t, char *, char *, int, int, char *, ...);
 extern json_object *json_help(option_help *);
 extern int passes_start_and_count_limits(int, int, int, int);
 extern void indentf(int, int, char *, ...);
@@ -181,19 +187,20 @@ extern void json_enumeration(json_object *, unsigned, char *, int,
 extern void json_bitmask(json_object *, unsigned, char *, int, 
 		const string_value_mapping *);
 
-extern int parse_bitmask_cgivar(char *, char *, json_object *, time_t, char *, 
-		char *, const string_value_mapping *, unsigned *);
-extern int parse_enumeration_cgivar(char *, char *, json_object *, time_t, 
-		char *, char *, const string_value_mapping *, int *);
-extern int parse_string_cgivar(char *, char *, json_object *, time_t, char *, 
-		char *, char **);
-extern int parse_time_cgivar(char *, char *, json_object *, time_t, char *, 
-		char *, time_t *);
-extern int parse_boolean_cgivar(char *, char *, json_object *, time_t, char *, 
-		char *, int *);
-extern int parse_int_cgivar(char *, char *, json_object *, time_t, char *, 
-		char *, int *);
+extern int parse_bitmask_cgivar(char *, char *, int, json_object *, time_t,
+		char *, char *, const string_value_mapping *, unsigned *);
+extern int parse_enumeration_cgivar(char *, char *, int, json_object *,
+		time_t, char *, char *, const string_value_mapping *, int *);
+extern int parse_string_cgivar(char *, char *, int, json_object *, time_t,
+		char *, char *, char **);
+extern int parse_time_cgivar(char *, char *, int, json_object *, time_t,
+		char *, char *, time_t *);
+extern int parse_boolean_cgivar(char *, char *, int, json_object *, time_t,
+		char *, char *, int *);
+extern int parse_int_cgivar(char *, char *, int, json_object *, time_t,
+		char *, char *, int *);
 
+extern int get_query_status(const int[][2], int);
 extern char *svm_get_string_from_value(int, const string_value_mapping *);
 extern char *svm_get_description_from_value(int, const string_value_mapping *);
 

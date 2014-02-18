@@ -146,6 +146,43 @@ const string_value_mapping valid_queries[] = {
 	{ NULL, -1, NULL },
 	};
 
+static const int query_status[][2] = {
+	{ OBJECT_QUERY_HOSTCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HOSTLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HOST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HOSTGROUPCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HOSTGROUPLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HOSTGROUP, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_SERVICECOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_SERVICELIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_SERVICE, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_SERVICEGROUPCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_SERVICEGROUPLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_SERVICEGROUP, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_CONTACTCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_CONTACTLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_CONTACT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_CONTACTGROUPCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_CONTACTGROUPLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_CONTACTGROUP, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_TIMEPERIODCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_TIMEPERIODLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_TIMEPERIOD, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_COMMANDCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_COMMANDLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_COMMAND, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_SERVICEDEPENDENCYCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_SERVICEDEPENDENCYLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_SERVICEESCALATIONCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_SERVICEESCALATIONLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HOSTDEPENDENCYCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HOSTDEPENDENCYLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HOSTESCALATIONCOUNT, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HOSTESCALATIONLIST, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HELP, QUERY_STATUS_BETA },
+	{ -1, -1 },
+};
+
 option_help object_json_help[] = {
 	{ 
 		"query",
@@ -608,6 +645,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_FILE_OPEN_READ_ERROR,
 				"Error: Could not open CGI configuration file '%s' for reading!", 
 				get_cgi_config_location()));
@@ -624,6 +662,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_FILE_OPEN_READ_ERROR,
 				"Error: Could not open main configuration file '%s' for reading!",
 				main_config_file));
@@ -639,6 +678,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_FILE_OPEN_READ_ERROR,
 				"Error: Could not read some or all object configuration data!"));
 		json_object_append_object(json_root, "data", json_help(object_json_help));
@@ -652,6 +692,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_FILE_OPEN_READ_ERROR,
 				"Error: Could not read host and service status information!"));
 		json_object_append_object(json_root, "data", json_help(object_json_help));
@@ -679,6 +720,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostcount(cgi_data.use_parent_host, 
@@ -692,6 +734,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostlist(cgi_data.format_options, cgi_data.start, 
@@ -706,6 +749,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_host(cgi_data.format_options, cgi_data.host));
@@ -714,6 +758,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostgroupcount(cgi_data.format_options, 
@@ -723,6 +768,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data",
 				json_object_hostgrouplist(cgi_data.format_options, 
@@ -733,6 +779,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostgroup(cgi_data.format_options, 
@@ -742,6 +789,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_servicecount(cgi_data.host, 
@@ -758,6 +806,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_servicelist(cgi_data.format_options, cgi_data.start,
@@ -775,6 +824,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_service(cgi_data.format_options, cgi_data.service));
@@ -783,6 +833,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_servicegroupcount(cgi_data.servicegroup_member));
@@ -791,6 +842,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data",
 				json_object_servicegrouplist(cgi_data.format_options, 
@@ -801,6 +853,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_servicegroup(cgi_data.format_options, 
@@ -810,6 +863,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_contactcount(cgi_data.contactgroup,
@@ -820,6 +874,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_contactlist(cgi_data.format_options, cgi_data.start, 
@@ -831,6 +886,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_contact(cgi_data.format_options, cgi_data.contact));
@@ -839,6 +895,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_contactgroupcount(cgi_data.contactgroup_member));
@@ -847,6 +904,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data",
 				json_object_contactgrouplist(cgi_data.format_options, 
@@ -857,6 +915,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_contactgroup(cgi_data.format_options, 
@@ -866,6 +925,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_timeperiodcount());
@@ -874,6 +934,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_timeperiodlist(cgi_data.format_options, 
@@ -883,6 +944,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_timeperiod(cgi_data.format_options, 
@@ -892,6 +954,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", json_object_commandcount());
 		break;
@@ -899,6 +962,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_commandlist(cgi_data.format_options, cgi_data.start, 
@@ -908,6 +972,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_command(cgi_data.format_options, cgi_data.command));
@@ -916,6 +981,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_servicedependencycount(cgi_data.master_host, 
@@ -929,6 +995,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_servicedependencylist(cgi_data.format_options, 
@@ -943,6 +1010,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_serviceescalationcount(cgi_data.host,
@@ -954,6 +1022,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_serviceescalationlist(cgi_data.format_options, 
@@ -966,6 +1035,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostdependencycount(cgi_data.master_host,
@@ -976,6 +1046,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostdependencylist(cgi_data.format_options, 
@@ -987,6 +1058,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostescalationcount(cgi_data.host,
@@ -996,6 +1068,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostescalationlist(cgi_data.format_options, 
@@ -1006,6 +1079,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", json_help(object_json_help));
 		break;
@@ -1013,6 +1087,7 @@ int main(void) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 
 				svm_get_string_from_value(cgi_data.query, valid_queries), 
+				get_query_status(query_status, cgi_data.query),
 				RESULT_OPTION_MISSING,
 				"Error: Object Type not specified. See data for help."));
 		json_object_append_object(json_root, "data", json_help(object_json_help));
@@ -1179,6 +1254,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		if(!strcmp(variables[x], "query")) {
 			if((result = parse_enumeration_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					valid_queries, &(cgi_data->query))) != RESULT_SUCCESS) {
 				break;
@@ -1190,6 +1266,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 			cgi_data->format_options = 0;
 			if((result = parse_bitmask_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					svm_format_options, &(cgi_data->format_options))) 
 					!= RESULT_SUCCESS) {
@@ -1201,6 +1278,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "start")) {
 			if((result = parse_int_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->start))) != RESULT_SUCCESS) {
 				break;
@@ -1211,6 +1289,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "count")) {
 			if((result = parse_int_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->count))) != RESULT_SUCCESS) {
 				break;
@@ -1220,6 +1299,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 				json_object_append_object(json_root, "result", 
 						json_result(query_time, THISCGI, 
 						svm_get_string_from_value(cgi_data->query, valid_queries),
+						get_query_status(query_status, cgi_data->query),
 						RESULT_OPTION_VALUE_INVALID,
 						"The count option value is invalid. "
 						"It must be an integer greater than zero"));
@@ -1232,6 +1312,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "parenthost")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->parent_host_name))) != RESULT_SUCCESS) {
 				break;
@@ -1242,6 +1323,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "childhost")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->child_host_name)))
 					!= RESULT_SUCCESS) {
@@ -1253,6 +1335,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "hostname")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->host_name))) != 
 					RESULT_SUCCESS) {
@@ -1264,6 +1347,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "hostgroupmember")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->hostgroup_member_name))) != RESULT_SUCCESS) {
 				break;
@@ -1274,6 +1358,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "hostgroup")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->hostgroup_name))) 
 					!= RESULT_SUCCESS) {
@@ -1285,6 +1370,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "servicegroup")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->servicegroup_name))) != RESULT_SUCCESS) {
 				break;
@@ -1295,6 +1381,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "parentservice")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->parent_service_name))) != RESULT_SUCCESS) {
 				break;
@@ -1305,6 +1392,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "childservice")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->child_service_name)))
 					!= RESULT_SUCCESS) {
@@ -1316,6 +1404,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "contactgroup")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->contactgroup_name))) != RESULT_SUCCESS) {
 				break;
@@ -1326,6 +1415,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "servicedescription")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->service_description))) != RESULT_SUCCESS) {
 				break;
@@ -1336,6 +1426,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "servicegroupmemberhost")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->servicegroup_member_host_name))) != 
 					RESULT_SUCCESS) {
@@ -1347,6 +1438,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "servicegroupmemberservice")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->servicegroup_member_service_description))) 
 					!= RESULT_SUCCESS) {
@@ -1358,6 +1450,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "contactname")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->contact_name))) 
 					!= RESULT_SUCCESS) {
@@ -1369,6 +1462,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "contactgroupmember")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->contactgroup_member_name))) != RESULT_SUCCESS) {
 				break;
@@ -1379,6 +1473,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "timeperiod")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->timeperiod_name))) != RESULT_SUCCESS) {
 				break;
@@ -1389,6 +1484,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "checktimeperiod")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->check_timeperiod_name))) != RESULT_SUCCESS) {
 				break;
@@ -1399,6 +1495,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "hostnotificationtimeperiod")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->host_notification_timeperiod_name)))
 					!= RESULT_SUCCESS) {
@@ -1410,6 +1507,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "servicenotificationtimeperiod")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->service_notification_timeperiod_name)))
 					!= RESULT_SUCCESS) {
@@ -1421,6 +1519,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "command")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->command_name))) 
 					!= RESULT_SUCCESS) {
@@ -1432,6 +1531,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "checkcommand")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->check_command_name)))
 					!= RESULT_SUCCESS) {
@@ -1443,6 +1543,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "eventhandler")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->event_handler_name)))
 					!= RESULT_SUCCESS) {
@@ -1454,6 +1555,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "masterhostname")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->master_host_name))) !=
 					RESULT_SUCCESS) {
@@ -1465,6 +1567,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "masterhostgroupname")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->master_hostgroup_name))) !=
 					RESULT_SUCCESS) {
@@ -1476,6 +1579,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "masterservicedescription")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->master_service_description))) !=
 					RESULT_SUCCESS) {
@@ -1487,6 +1591,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "masterservicegroupname")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->master_servicegroup_name))) !=
 					RESULT_SUCCESS) {
@@ -1498,6 +1603,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "dependenthostname")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->dependent_host_name))) !=
 					RESULT_SUCCESS) {
@@ -1509,6 +1615,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "dependenthostgroupname")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->dependent_hostgroup_name))) !=
 					RESULT_SUCCESS) {
@@ -1520,6 +1627,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "dependentservicedescription")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->dependent_service_description))) !=
 					RESULT_SUCCESS) {
@@ -1531,6 +1639,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "dependentservicegroupname")) {
 			if((result = parse_string_cgivar(THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1],
 					&(cgi_data->dependent_servicegroup_name))) !=
 					RESULT_SUCCESS) {
@@ -1542,6 +1651,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "details")) {
 			if((result = parse_boolean_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->details))) != RESULT_SUCCESS) {
 				break;
@@ -1552,6 +1662,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 		else if(!strcmp(variables[x], "dateformat")) {
 			if((result = parse_string_cgivar(THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					json_root, query_time, variables[x], variables[x+1], 
 					&(cgi_data->strftime_format))) != RESULT_SUCCESS) {
 				break;
@@ -1565,6 +1676,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					RESULT_OPTION_INVALID, "Invalid option: '%s'.", 
 					variables[x]));
 			result = RESULT_OPTION_INVALID;
@@ -1602,6 +1714,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"Host information requested, but no host name specified."));
 			}
@@ -1616,6 +1729,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result, 
 					"Hostgroup information requested, but no hostgroup name specified."));
 			}
@@ -1630,6 +1744,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"Service information requested, but no host name specified."));
 			}
@@ -1638,6 +1753,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"Service information requested, but no service description specified."));
 			}
@@ -1652,6 +1768,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"Service group information requested, but no service group name specified."));
 			}
@@ -1666,6 +1783,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"Contact information requested, but no contact name specified."));
 			}
@@ -1680,6 +1798,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"Contactgroup information requested, but no contactgroup name specified."));
 			}
@@ -1694,6 +1813,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"Timeperiod information requested, but no timeperiod name specified."));
 			}
@@ -1708,6 +1828,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"Command information requested, but no command name specified."));
 			}
@@ -1732,9 +1853,11 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 		break;
 	default:
 		result = RESULT_OPTION_MISSING;
-		json_object_append_object(json_root, "result", json_result(query_time, 
-				THISCGI, svm_get_string_from_value(cgi_data->query, 
-				valid_queries), result, 
+		json_object_append_object(json_root, "result", json_result(query_time,
+				THISCGI,
+				svm_get_string_from_value(cgi_data->query, valid_queries),
+				get_query_status(query_status, cgi_data->query),
+				result,
 				"Missing validation for object type %u.", cgi_data->query));
 		break;
 		}
@@ -1751,6 +1874,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 				json_object_append_object(json_root, "result", 
 						json_result(query_time, THISCGI, 
 						svm_get_string_from_value(cgi_data->query, valid_queries), 
+						get_query_status(query_status, cgi_data->query),
 						result, "The parenthost '%s' could not be found.", 
 						cgi_data->parent_host_name));
 				}
@@ -1772,6 +1896,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 				json_object_append_object(json_root, "result", 
 						json_result(query_time, THISCGI, 
 						svm_get_string_from_value(cgi_data->query, valid_queries), 
+						get_query_status(query_status, cgi_data->query),
 						result, "The childhost '%s' could not be found.", 
 						cgi_data->child_host_name));
 				}
@@ -1789,6 +1914,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"The host '%s' could not be found.", cgi_data->host_name));
 			}
@@ -1805,6 +1931,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"The hostgroup member '%s' could not be found.", 
 					cgi_data->hostgroup_member_name));
@@ -1822,6 +1949,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"The hostgroup '%s' could not be found.", 
 					cgi_data->hostgroup_name));
@@ -1839,6 +1967,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"The servicegroup '%s' could not be found.", 
 					cgi_data->servicegroup_name));
@@ -1856,6 +1985,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"The contactgroup '%s' could not be found.", 
 					cgi_data->contactgroup_name));
@@ -1877,6 +2007,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"The service '%s' on host '%s' could not be found.", 
 					cgi_data->service_description, cgi_data->host_name));
@@ -1896,6 +2027,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result,
 					"If either the servicegroupmemberhost or servicegroupmemberservice is specified, both must be specified."));
 			}
@@ -1907,6 +2039,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 				json_object_append_object(json_root, "result", 
 						json_result(query_time, THISCGI, 
 						svm_get_string_from_value(cgi_data->query, valid_queries), 
+						get_query_status(query_status, cgi_data->query),
 						result,
 						"The servicegroup member service '%s' on host '%s' could not be found.", 
 						cgi_data->servicegroup_member_service_description,
@@ -1926,6 +2059,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result, "The contact '%s' could not be found.", 
 					cgi_data->contact_name));
 			}
@@ -1942,6 +2076,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result, "The contactgroup member '%s' could not be found.", 
 					cgi_data->contactgroup_member_name));
 			}
@@ -1958,6 +2093,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result, "The timeperiod '%s' could not be found.", 
 					cgi_data->timeperiod_name));
 			}
@@ -1974,6 +2110,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The check timeperiod '%s' could not be found.",
 					cgi_data->check_timeperiod_name));
 			}
@@ -1991,6 +2128,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The host notification timeperiod '%s' could not be found.",
 					cgi_data->host_notification_timeperiod_name));
 			}
@@ -2008,6 +2146,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The service notification timeperiod '%s' could not be found.",
 					cgi_data->service_notification_timeperiod_name));
 			}
@@ -2024,6 +2163,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result", 
 					json_result(query_time, THISCGI, 
 					svm_get_string_from_value(cgi_data->query, valid_queries), 
+					get_query_status(query_status, cgi_data->query),
 					result, "The command '%s' could not be found.", 
 					cgi_data->command_name));
 			}
@@ -2040,6 +2180,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The check command '%s' could not be found.",
 					cgi_data->check_command_name));
 			}
@@ -2056,6 +2197,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The event handler '%s' could not be found.",
 					cgi_data->event_handler_name));
 			}
@@ -2072,6 +2214,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The master host '%s' could not be found.",
 					cgi_data->master_host_name));
 			}
@@ -2088,6 +2231,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The master hostgroup '%s' could not be found.",
 					cgi_data->master_hostgroup_name));
 			}
@@ -2105,6 +2249,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The master servicegroup '%s' could not be found.",
 					cgi_data->master_servicegroup_name));
 			}
@@ -2121,6 +2266,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The dependent host '%s' could not be found.",
 					cgi_data->dependent_host_name));
 			}
@@ -2137,6 +2283,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The dependent hostgroup '%s' could not be found.",
 					cgi_data->dependent_hostgroup_name));
 			}
@@ -2154,6 +2301,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 			json_object_append_object(json_root, "result",
 					json_result(query_time, THISCGI,
 					svm_get_string_from_value(cgi_data->query, valid_queries),
+					get_query_status(query_status, cgi_data->query),
 					result, "The dependent servicegroup '%s' could not be found.",
 					cgi_data->dependent_servicegroup_name));
 			}

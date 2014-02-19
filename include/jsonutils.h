@@ -169,7 +169,8 @@ extern void json_object_print(json_object *, int, int, char *, unsigned);
 extern void json_array_print(json_array *, int, int, char *, unsigned);
 extern void json_member_print(json_object_member *, int, int, char *, unsigned);
 
-extern json_object *json_result(time_t, char *, char *, int, int, char *, ...);
+extern json_object *json_result(time_t, char *, char *, int, time_t, int,
+		char *, ...);
 extern json_object *json_help(option_help *);
 extern int passes_start_and_count_limits(int, int, int, int);
 extern void indentf(int, int, char *, ...);
@@ -204,4 +205,5 @@ extern int get_query_status(const int[][2], int);
 extern char *svm_get_string_from_value(int, const string_value_mapping *);
 extern char *svm_get_description_from_value(int, const string_value_mapping *);
 
+extern time_t compile_time(const char *, const char *);
 #endif

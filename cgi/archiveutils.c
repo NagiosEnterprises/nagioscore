@@ -223,7 +223,7 @@ void au_free_log(au_log *log) {
 /* reads log files for archived data */
 int read_archived_data(time_t start_time, time_t end_time, 
 		int backtrack_archives, unsigned obj_types, unsigned state_types, 
-		unsigned log_types, au_log *log) {
+		unsigned log_types, au_log *log, time_t *last_archive_data_update) {
 
 	char filename[MAX_FILENAME_LENGTH];
 	int oldest_archive = 0;
@@ -235,6 +235,7 @@ int read_archived_data(time_t start_time, time_t end_time,
 	au_host *temp_host;
 	au_service *temp_service;
 	au_node *temp_entry;
+	struct stat adstat;
 
 	/* Determine oldest archive to use when scanning for data 
 		(include backtracked archives as well) */
@@ -264,6 +265,14 @@ int read_archived_data(time_t start_time, time_t end_time,
 #ifdef DEBUG
 		printf("Archive name: '%s'\n", filename);
 #endif
+
+		/* Record the last modification time of the the archive file */
+		if(stat(filename, &adstat) < 0) {
+			return -1;
+			}
+		if(*last_archive_data_update < adstat.st_mtime) {
+			*last_archive_data_update = adstat.st_mtime;
+			}
 
 		/* scan the log file for archived state data */
 		if(read_log_file(filename, obj_types, state_types, log_types, 

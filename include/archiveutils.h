@@ -247,7 +247,7 @@ typedef struct au_log_struct {
 /* External functions */
 extern au_log *au_init_log(void);
 extern int read_archived_data(time_t, time_t, int, unsigned, unsigned, 
-		unsigned, au_log *);
+		unsigned, au_log *, time_t *);
 extern int	au_cmp_log_entries(const void *, const void *);
 extern void au_free_log(au_log *);
 

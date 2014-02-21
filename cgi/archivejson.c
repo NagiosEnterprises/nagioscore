@@ -585,7 +585,8 @@ int main(void) {
 	int whitespace;
 	json_object *json_root;
 	au_log *log;
-	time_t last_archive_data_update;
+	time_t last_archive_data_update = (time_t)0;
+	json_object_member *romp = NULL;
 
 	/* The official time of the query */
 	time(&query_time);
@@ -757,6 +758,11 @@ int main(void) {
 					get_query_status(query_status, cgi_data.query),
 					last_archive_data_update, RESULT_SUCCESS, ""));
 			}
+		else {
+			romp = json_get_object_member(json_root, "result");
+			json_object_append_time_t(romp->value.object, "last_data_update",
+					last_archive_data_update);
+			}
 		json_object_append_object(json_root, "data", 
 				json_archive_alertcount(cgi_data.format_options, 
 				cgi_data.start_time, cgi_data.end_time, cgi_data.object_types, 
@@ -779,6 +785,11 @@ int main(void) {
 					get_query_status(query_status, cgi_data.query),
 					last_archive_data_update, RESULT_SUCCESS, ""));
 			}
+		else {
+			romp = json_get_object_member(json_root, "result");
+			json_object_append_time_t(romp->value.object, "last_data_update",
+					last_archive_data_update);
+			}
 		json_object_append_object(json_root, "data", 
 				json_archive_alertlist(cgi_data.format_options, cgi_data.start,
 				cgi_data.count, cgi_data.start_time, cgi_data.end_time, 
@@ -800,6 +811,11 @@ int main(void) {
 					svm_get_string_from_value(cgi_data.query, valid_queries), 
 					get_query_status(query_status, cgi_data.query),
 					last_archive_data_update, RESULT_SUCCESS, ""));
+			}
+		else {
+			romp = json_get_object_member(json_root, "result");
+			json_object_append_time_t(romp->value.object, "last_data_update",
+					last_archive_data_update);
 			}
 		json_object_append_object(json_root, "data", 
 				json_archive_notificationcount(cgi_data.format_options, 
@@ -825,6 +841,11 @@ int main(void) {
 					get_query_status(query_status, cgi_data.query),
 					last_archive_data_update, RESULT_SUCCESS, ""));
 			}
+		else {
+			romp = json_get_object_member(json_root, "result");
+			json_object_append_time_t(romp->value.object, "last_data_update",
+					last_archive_data_update);
+			}
 		json_object_append_object(json_root, "data", 
 				json_archive_notificationlist(cgi_data.format_options, 
 				cgi_data.start, cgi_data.count, cgi_data.start_time, 
@@ -848,6 +869,11 @@ int main(void) {
 					svm_get_string_from_value(cgi_data.query, valid_queries), 
 					get_query_status(query_status, cgi_data.query),
 					last_archive_data_update, RESULT_SUCCESS, ""));
+			}
+		else {
+			romp = json_get_object_member(json_root, "result");
+			json_object_append_time_t(romp->value.object, "last_data_update",
+					last_archive_data_update);
 			}
 		json_object_append_object(json_root, "data", 
 				json_archive_statechangelist(cgi_data.format_options, 
@@ -883,6 +909,11 @@ int main(void) {
 					svm_get_string_from_value(cgi_data.query, valid_queries), 
 					get_query_status(query_status, cgi_data.query),
 					last_archive_data_update, RESULT_SUCCESS, ""));
+			}
+		else {
+			romp = json_get_object_member(json_root, "result");
+			json_object_append_time_t(romp->value.object, "last_data_update",
+					last_archive_data_update);
 			}
 		json_object_append_object(json_root, "data", 
 				json_archive_availability(cgi_data.format_options, query_time,

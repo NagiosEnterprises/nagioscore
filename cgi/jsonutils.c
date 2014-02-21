@@ -496,6 +496,11 @@ void json_object_append_time_t(json_object *obj, char *key, time_t value) {
 	mp->value.time = value;
 	}
 
+void json_set_time_t(json_object_member *mp, time_t value) {
+	if(NULL == mp) return;
+	mp->value.time = value;
+	}
+
 void json_object_append_string(json_object *obj, char *key, char *format, ...) {
 	json_object_member *mp;
 	va_list a_list;
@@ -636,6 +641,107 @@ void json_object_append_duration(json_object *obj, char *key,
 
 void json_array_append_duration(json_object *obj, unsigned long value) {
 	json_object_append_duration(obj, NULL, value);
+	}
+
+/*
+	Fetch an object member based on the path. The path is a dot-separated
+	list of nodes. Nodes may be either a key or a zero-based array index.
+
+	For example to return the query_time key in the result object, the
+	path would be "result.query_time". To find the 2nd host host in
+	the list of hosts for a hostlist query, the path would be
+	"data.hostlist.1"
+*/
+
+json_object_member *json_get_object_member(json_object *root, char *path) {
+
+	char *dot;
+	char node[1024];
+	int x;
+	json_object_member **mpp;
+
+	/* Parse the path to get the first node */
+	dot = strchr(path, '.');
+	if(NULL == dot) {	/* single node path */
+		strcpy(node, path);
+		}
+	else {
+		strncpy(node, path, (dot - path));
+		node[dot - path] = '\0';
+		}
+
+	/* Loop over the members of the passed root looking for the node name */
+	for(x = 0, mpp = root->members; x < root->member_count; x++, mpp++) {
+		if(!strcmp((*mpp)->key, node)) {
+			if(NULL == dot) { /* return this node */
+				return *mpp;
+				}
+			else {
+				switch((*mpp)->type) {
+				case JSON_TYPE_OBJECT:
+					return json_get_object_member((*mpp)->value.object, dot + 1);
+					break;
+				case JSON_TYPE_ARRAY:
+					return json_get_array_member((*mpp)->value.object, dot + 1);
+					break;
+				default:
+					/* It should never happen that we want the child of a
+						childless node */
+					return NULL;
+					break;
+					}
+				}
+			}
+		}
+
+	return NULL;
+	}
+
+json_object_member *json_get_array_member(json_object *root, char *path) {
+
+	char *dot;
+	char node[1024];
+	int index;
+	json_object_member *mp;
+
+	/* Parse the path to get the first node */
+	dot = strchr(path, '.');
+	if(NULL == dot) {	/* single node path */
+		strcpy(node, path);
+		}
+	else {
+		strncpy(node, path, (dot - path));
+		node[dot - path] = '\0';
+		}
+	index = (int)strtol(node, NULL, 10);
+
+	/* Verify that we have a reasonable index */
+	if(index < 0 || index >= root->member_count) {
+		return NULL;
+		}
+
+	/* Find the requested member and deal with it appropriately */
+	mp = root->members[ index];
+	if(NULL == dot) { /* return this node */
+		return mp;
+		}
+	else {
+		switch(mp->type) {
+		case JSON_TYPE_OBJECT:
+			return json_get_object_member(mp->value.object, dot + 1);
+			break;
+		case JSON_TYPE_ARRAY:
+			return json_get_array_member(mp->value.object, dot + 1);
+			break;
+		default:
+			/* It should never happen that we want the child of a
+				childless node */
+			return NULL;
+			break;
+			}
+		}
+
+	return NULL;
 	}
 
 void json_object_print(json_object *obj, int padding, int whitespace,

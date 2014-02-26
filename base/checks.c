@@ -415,57 +415,67 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	my_free(temp_service->long_plugin_output);
 	my_free(temp_service->perf_data);
 
-	if(queued_check_result->early_timeout == TRUE) {
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' timed out after %.3fs!\n", temp_service->description, temp_service->host_name, temp_service->execution_time);
-		asprintf(&temp_service->plugin_output, "(Service check timed out after %.2lf seconds)\n", temp_service->execution_time);
-		temp_service->current_state = service_check_timeout_state;
-		}
-	/* if there was some error running the command, just skip it (this shouldn't be happening) */
-	else if(queued_check_result->exited_ok == FALSE) {
+	/* parse check output to get: (1) short output, (2) long output, (3) perf data */
+	parse_check_output(queued_check_result->output, &temp_service->plugin_output, &temp_service->long_plugin_output, &temp_service->perf_data, TRUE, FALSE);
 
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of service '%s' on host '%s' did not exit properly!\n", temp_service->description, temp_service->host_name);
+	/* make sure the plugin output isn't null */
+	if(temp_service->plugin_output == NULL)
+		temp_service->plugin_output = (char *)strdup("(No output returned from plugin)");
 
-		temp_service->plugin_output = (char *)strdup("(Service check did not exit properly)");
-
-		temp_service->current_state = STATE_CRITICAL;
+	/* replace semicolons in plugin output (but not performance data) with colons */
+	else if((temp_ptr = temp_service->plugin_output)) {
+		while((temp_ptr = strchr(temp_ptr, ';')))
+			* temp_ptr = ':';
 		}
 
-	/* make sure the return code is within bounds */
-	else if(queued_check_result->return_code < 0 || queued_check_result->return_code > 3) {
+	/* adjust return code (active checks only) */
+	if(queued_check_result->check_type == CHECK_TYPE_ACTIVE) {
+		if(queued_check_result->early_timeout == TRUE) {
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' timed out after %.3fs!\n", temp_service->description, temp_service->host_name, temp_service->execution_time);
+			my_free(temp_service->plugin_output);
+			my_free(temp_service->long_plugin_output);
+			my_free(temp_service->perf_data);
+			asprintf(&temp_service->plugin_output, "(Service check timed out after %.2lf seconds)\n", temp_service->execution_time);
+			temp_service->current_state = service_check_timeout_state;
+			}
+		/* if there was some error running the command, just skip it (this shouldn't be happening) */
+		else if(queued_check_result->exited_ok == FALSE) {
 
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n", queued_check_result->return_code, temp_service->description, temp_service->host_name, (queued_check_result->return_code == 126 ? "Make sure the plugin you're trying to run is executable." : (queued_check_result->return_code == 127 ? " Make sure the plugin you're trying to run actually exists." : "")));
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of service '%s' on host '%s' did not exit properly!\n", temp_service->description, temp_service->host_name);
+			
+			my_free(temp_service->plugin_output);
+			my_free(temp_service->long_plugin_output);
+			my_free(temp_service->perf_data);
 
-		asprintf(&temp_plugin_output, "\x73\x6f\x69\x67\x61\x6e\x20\x74\x68\x67\x69\x72\x79\x70\x6f\x63\x20\x6e\x61\x68\x74\x65\x20\x64\x61\x74\x73\x6c\x61\x67");
-		my_free(temp_plugin_output);
-		asprintf(&temp_service->plugin_output, "(Return code of %d is out of bounds%s)", queued_check_result->return_code, (queued_check_result->return_code == 126 ? " - plugin may not be executable" : (queued_check_result->return_code == 127 ? " - plugin may be missing" : "")));
+			temp_service->plugin_output = (char *)strdup("(Service check did not exit properly)");
 
-		temp_service->current_state = STATE_CRITICAL;
-		}
-
-	/* else the return code is okay... */
-	else {
-
-		/* parse check output to get: (1) short output, (2) long output, (3) perf data */
-		parse_check_output(queued_check_result->output, &temp_service->plugin_output, &temp_service->long_plugin_output, &temp_service->perf_data, TRUE, FALSE);
-
-		/* make sure the plugin output isn't null */
-		if(temp_service->plugin_output == NULL)
-			temp_service->plugin_output = (char *)strdup("(No output returned from plugin)");
-
-		/* replace semicolons in plugin output (but not performance data) with colons */
-		else if((temp_ptr = temp_service->plugin_output)) {
-			while((temp_ptr = strchr(temp_ptr, ';')))
-				* temp_ptr = ':';
+			temp_service->current_state = STATE_CRITICAL;
 			}
 
-		log_debug_info(DEBUGL_CHECKS, 2, "Parsing check output...\n");
-		log_debug_info(DEBUGL_CHECKS, 2, "Short Output: %s\n", (temp_service->plugin_output == NULL) ? "NULL" : temp_service->plugin_output);
-		log_debug_info(DEBUGL_CHECKS, 2, "Long Output:  %s\n", (temp_service->long_plugin_output == NULL) ? "NULL" : temp_service->long_plugin_output);
-		log_debug_info(DEBUGL_CHECKS, 2, "Perf Data:    %s\n", (temp_service->perf_data == NULL) ? "NULL" : temp_service->perf_data);
+		/* make sure the return code is within bounds */
+		else if(queued_check_result->return_code < 0 || queued_check_result->return_code > 3) {
 
-		/* grab the return code */
-		temp_service->current_state = queued_check_result->return_code;
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n", queued_check_result->return_code, temp_service->description, temp_service->host_name, (queued_check_result->return_code == 126 ? "Make sure the plugin you're trying to run is executable." : (queued_check_result->return_code == 127 ? " Make sure the plugin you're trying to run actually exists." : "")));
+
+			my_free(temp_service->plugin_output);
+			my_free(temp_service->long_plugin_output);
+			my_free(temp_service->perf_data);
+			
+			asprintf(&temp_plugin_output, "\x73\x6f\x69\x67\x61\x6e\x20\x74\x68\x67\x69\x72\x79\x70\x6f\x63\x20\x6e\x61\x68\x74\x65\x20\x64\x61\x74\x73\x6c\x61\x67");
+			my_free(temp_plugin_output);
+			asprintf(&temp_service->plugin_output, "(Return code of %d is out of bounds%s)", queued_check_result->return_code, (queued_check_result->return_code == 126 ? " - plugin may not be executable" : (queued_check_result->return_code == 127 ? " - plugin may be missing" : "")));
+
+			temp_service->current_state = STATE_CRITICAL;
+			}
 		}
+
+	log_debug_info(DEBUGL_CHECKS, 2, "Parsing check output...\n");
+	log_debug_info(DEBUGL_CHECKS, 2, "Short Output: %s\n", (temp_service->plugin_output == NULL) ? "NULL" : temp_service->plugin_output);
+	log_debug_info(DEBUGL_CHECKS, 2, "Long Output:  %s\n", (temp_service->long_plugin_output == NULL) ? "NULL" : temp_service->long_plugin_output);
+	log_debug_info(DEBUGL_CHECKS, 2, "Perf Data:    %s\n", (temp_service->perf_data == NULL) ? "NULL" : temp_service->perf_data);
+
+	/* grab the return code */
+	temp_service->current_state = queued_check_result->return_code;
 
 
 	/* record the time the last state ended */

@@ -123,8 +123,8 @@ static const char *opts2str(int opts, const struct flag_map *map, char ok_char)
 	buf[pos++] = 0;
 	return buf;
 }
+#endif
 
-/* Host/Service dependencies are not visible in Nagios CGIs, so we exclude them */
 unsigned int host_services_value(host *h) {
 	servicesmember *sm;
 	unsigned int ret = 0;
@@ -135,6 +135,8 @@ unsigned int host_services_value(host *h) {
 	}
 
 
+#ifndef NSCGI
+/* Host/Service dependencies are not visible in Nagios CGIs, so we exclude them */
 static int cmp_sdep(const void *a_, const void *b_) {
 	const servicedependency *a = *(servicedependency **)a_;
 	const servicedependency *b = *(servicedependency **)b_;
@@ -841,7 +843,6 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 	/* add the child entry to the host definition */
 	new_servicesmember->next = hst->services;
 	hst->services = new_servicesmember;
-	hst->hourly_value += service_ptr->hourly_value;
 
 	return new_servicesmember;
 	}
@@ -3052,7 +3053,7 @@ void fcache_contact(FILE *fp, contact *temp_contact)
 		if(temp_contact->address[x])
 			fprintf(fp, "\taddress%d\t%s\n", x + 1, temp_contact->address[x]);
 	}
-	fprintf(fp, "\tminimum_value\t%u\n", temp_contact->minimum_value);
+	fprintf(fp, "\tminimum_importance\t%u\n", temp_contact->minimum_value);
 	fprintf(fp, "\thost_notifications_enabled\t%d\n", temp_contact->host_notifications_enabled);
 	fprintf(fp, "\tservice_notifications_enabled\t%d\n", temp_contact->service_notifications_enabled);
 	fprintf(fp, "\tcan_submit_commands\t%d\n", temp_contact->can_submit_commands);
@@ -3092,7 +3093,7 @@ void fcache_host(FILE *fp, host *temp_host)
 		fprintf(fp, "u\n");
 	else
 		fprintf(fp, "o\n");
-	fprintf(fp, "\thourly_value\t%u\n", temp_host->hourly_value);
+	fprintf(fp, "\timportance\t%u\n", temp_host->hourly_value);
 	fprintf(fp, "\tcheck_interval\t%f\n", temp_host->check_interval);
 	fprintf(fp, "\tretry_interval\t%f\n", temp_host->retry_interval);
 	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_host->max_attempts);
@@ -3176,7 +3177,7 @@ void fcache_service(FILE *fp, service *temp_service)
 		fprintf(fp, "c\n");
 	else
 		fprintf(fp, "o\n");
-	fprintf(fp, "\thourly_value\t%u\n", temp_service->hourly_value);
+	fprintf(fp, "\timportance\t%u\n", temp_service->hourly_value);
 	fprintf(fp, "\tcheck_interval\t%f\n", temp_service->check_interval);
 	fprintf(fp, "\tretry_interval\t%f\n", temp_service->retry_interval);
 	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_service->max_attempts);

@@ -5,10 +5,14 @@ Nagios Core 4 Change Log
 4.0.3 - xx/xx/xxxx
 ------------------
 ENHANCEMENTS
+* Aliased hourly_value to importance and minimum_value to minimum_importance and deprecated the former (Eric Stanley)
+* Added host and service importance macros (Eric Stanley)
 * Added notifications on flexible downtime expiration (Dan Wittenberg)
 
 FIXES
-* Macros now exported to environment when enable_environment_macros=1 (Eric Stanley)
+* Bug #548: Temporary fix that rejects all external command during restart to prevent Core from crashing (Eric Stanley)
+* Corrected calulation of host importance and importance defaults (Eric Stanley)
+* Fixed bug #498: Nagios 4 enable_environment_macros=1 not working (Eric Stanley, Alexey Dvoryanchikov)
 * No longer checks whether logs can be written when verifying configuration (Eric Stanley)
 * Fixed CGI bug where the CGI could read past the end of the list of CGI variables, potentially crashing the CGI (Scott Wilkerson)
 * Fixed inheritance of hourly_value from host and service templates (Scott Wilkerson)

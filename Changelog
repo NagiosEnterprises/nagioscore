@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.0.3 - xx/xx/xxxx
+4.0.3 - 02/28/2014
 ------------------
 ENHANCEMENTS
 * Aliased hourly_value to importance and minimum_value to minimum_importance and deprecated the former (Eric Stanley)

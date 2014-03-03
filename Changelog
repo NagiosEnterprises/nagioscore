@@ -2,6 +2,13 @@
 Nagios Core 4 Change Log
 ########################
 
+4.x.x - xx/xx/2014
+------------------
+
+FIXES
+* Fixed bug #491,#553: Rebuilt the daemon-init scripts back to something that should work on all systems (Scott Wilkerson)
+
+
 4.0.3 - 02/28/2014
 ------------------
 ENHANCEMENTS

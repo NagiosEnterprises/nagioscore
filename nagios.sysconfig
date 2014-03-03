@@ -6,5 +6,8 @@ USE_RAMDISK=0
 # How big (in MB) should the ramdisk be
 RAMDISK_SIZE=256
 
+# Ramdisk Location
+RAMDISK_DIR="/var/nagios/ramcache"
+
 # Should the process be niced
 NICELEVEL=-15

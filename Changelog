@@ -2,8 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
-4.x.x - xx/xx/2014
+4.0.4 - 03/14/2014
 ------------------
+ENHANCEMENTS
+* JSON CGIs moved to beta status (Eric Stanley)
 
 FIXES
 * Fixed bug #491,#553: Rebuilt the daemon-init scripts back to something that should work on all systems (Scott Wilkerson)

@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.x.x - xx/xx/2014
+------------------
+* Fixed init script to remove the switching of users when performing configuration verification which was causing failures if nagios user was set to nologin (Scott Wilkerson)
+* Fixed auto creation of RAMDISK via environment variables in init script to properly check existence using $RAMDISK_DIR environment variable. (Scott Wilkerson)
+
 4.0.4 - 03/14/2014
 ------------------
 ENHANCEMENTS

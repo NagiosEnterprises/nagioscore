@@ -70,7 +70,7 @@ checkconfig="true"
 # Automate addition of RAMDISK based on environment variables
 USE_RAMDISK=${USE_RAMDISK:-0}
 if test "$USE_RAMDISK" -ne 0 && test "$RAMDISK_SIZE"X != "X"; then
-	ramdisk=`mount |grep "$ramdiskdir type tmpfs"`
+	ramdisk=`mount |grep "${RAMDISK_DIR} type tmpfs"`
 	if [ "$ramdisk"X == "X" ]; then
 		mkdir -p -m 0755 ${RAMDISK_DIR}
 		mount -t tmpfs -o size=${RAMDISK_SIZE}m tmpfs ${RAMDISK_DIR}
@@ -81,7 +81,7 @@ fi
 
 check_config() {
 	TMPFILE=$(mktemp /tmp/.configtest.XXXXXXXX)
-	su - $NagiosUser -c "$NagiosBin -vp $NagiosCfgFile" > "$TMPFILE"
+	$NagiosBin -vp $NagiosCfgFile > "$TMPFILE"
 	WARN=`grep ^"Total Warnings:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g`
 	ERR=`grep ^"Total Errors:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g`
 
@@ -183,10 +183,10 @@ case "$1" in
 			check_config
 		fi
 		if [ $? -eq 0 ]; then
-			su - $NagiosUser -c "touch $NagiosVarDir/nagios.log $NagiosRetentionFile"
+			touch $NagiosVarDir/nagios.log $NagiosRetentionFile
 			rm -f $NagiosCommandFile
 			touch $NagiosRunFile
-			chown $NagiosUser:$NagiosGroup $NagiosRunFile
+			chown $NagiosUser:$NagiosGroup $NagiosRunFile NagiosVarDir/nagios.log $NagiosRetentionFile
 			$NagiosBin -d $NagiosCfgFile
 			if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
 			echo " done."
@@ -234,7 +234,7 @@ case "$1" in
 
 	checkconfig)
 		if test "$checkconfig" = "true"; then
-			printf "Running configuration check..."
+			printf "Running configuration check...\n"
 			check_config
 		fi
 		
@@ -248,7 +248,7 @@ case "$1" in
 
 	restart)
 		if test "$checkconfig" = "true"; then
-			printf "Running configuration check..."
+			printf "Running configuration check...\n"
 			check_config
 		fi
 
@@ -259,7 +259,7 @@ case "$1" in
 
 	reload|force-reload)
 		if test "$checkconfig" = "true"; then
-			printf "Running configuration check..."
+			printf "Running configuration check...\n"
 			check_config
 		fi
 		
@@ -268,7 +268,7 @@ case "$1" in
 		else
 			pid_nagios
 			if status_nagios > /dev/null; then
-				printf "Reloading nagios configuration..."
+				printf "Reloading nagios configuration...\n"
 				killproc_nagios nagios -HUP
 				echo "done"
 			else

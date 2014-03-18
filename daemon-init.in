@@ -280,7 +280,7 @@ case "$1" in
 		;;
 
 	configtest)
-		su - $NagiosUser -c "$NagiosBin -vp $NagiosCfgFile"
+		$NagiosBin -vp $NagiosCfgFile
 		
 		;;
 	*)

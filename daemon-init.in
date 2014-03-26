@@ -186,7 +186,7 @@ case "$1" in
 			touch $NagiosVarDir/nagios.log $NagiosRetentionFile
 			rm -f $NagiosCommandFile
 			touch $NagiosRunFile
-			chown $NagiosUser:$NagiosGroup $NagiosRunFile NagiosVarDir/nagios.log $NagiosRetentionFile
+			chown $NagiosUser:$NagiosGroup $NagiosRunFile $NagiosVarDir/nagios.log $NagiosRetentionFile
 			$NagiosBin -d $NagiosCfgFile
 			if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
 			echo " done."

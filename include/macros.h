@@ -316,6 +316,7 @@ int clear_servicegroup_macros_r(nagios_macros *mac);
 int clear_contact_macros_r(nagios_macros *mac);
 int clear_contactgroup_macros_r(nagios_macros *mac);
 int clear_summary_macros_r(nagios_macros *mac);
+int clear_datetime_macros_r(nagios_macros *mac);
 
 
 #ifndef NSCGI

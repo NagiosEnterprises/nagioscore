@@ -440,7 +440,7 @@ int main(void) {
 	else if(problem_services_unknown == 0 && problem_services_warning == 0 && problem_services_critical == 0 && problem_hosts_down == 0 && problem_hosts_unreachable == 0 && normal_sound != NULL)
 		sound = normal_sound;
 	if(sound != NULL) {
-		printf("<object type=\"audio/x-wav\" data=\"%s%s\" height=\"0\" width=\"0\">", url_media_path, sound);
+		printf("<object type=\"audio/x-wav\" data=\"%s%s\" height=\"1\" width=\"1\">", url_media_path, sound);
 		printf("<param name=\"filename\" value=\"%s%s\">", url_media_path, sound);
 		printf("<param name=\"autostart\" value=\"true\">");
 		printf("<param name=\"playcount\" value=\"1\">");

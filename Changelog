@@ -7,6 +7,7 @@ Nagios Core 4 Change Log
 * Fixed init script to remove the switching of users when performing configuration verification which was causing failures if nagios user was set to nologin (Scott Wilkerson)
 * Fixed auto creation of RAMDISK via environment variables in init script to properly check existence using $RAMDISK_DIR environment variable. (Scott Wilkerson)
 * Fixed unreferenced variable NagiosVarDir in daemon-init (Eric Mislivec)
+* Fixed bug where audio alerts wouldn't work with a 0 height and width - http://support.nagios.com/forum/viewtopic.php?t=26387 (Scott Wilkerson)
 
 4.0.4 - 03/14/2014
 ------------------

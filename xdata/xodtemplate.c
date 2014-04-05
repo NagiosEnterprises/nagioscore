@@ -8702,6 +8702,7 @@ int xodtemplate_free_memory(void) {
 
 			my_free(this_service->template);
 			my_free(this_service->name);
+			my_free(this_service->parents);
 			my_free(this_service->display_name);
 			my_free(this_service->check_command);
 			my_free(this_service->check_period);

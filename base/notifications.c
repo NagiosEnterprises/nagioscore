@@ -259,9 +259,13 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		 */
 		clear_summary_macros_r(&mac);
 		clear_contact_macros_r(&mac);
+		clear_contactgroup_macros_r(&mac);
 		clear_argv_macros_r(&mac);
 		clear_host_macros_r(&mac);
+		clear_hostgroup_macros_r(&mac);
 		clear_service_macros_r(&mac);
+		clear_servicegroup_macros_r(&mac);
+		clear_datetime_macros_r(&mac);
 
 		if(type == NOTIFICATION_NORMAL) {
 
@@ -1202,8 +1206,11 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		 */
 		clear_summary_macros_r(&mac);
 		clear_contact_macros_r(&mac);
+		clear_contactgroup_macros_r(&mac);
 		clear_argv_macros_r(&mac);
 		clear_host_macros_r(&mac);
+		clear_hostgroup_macros_r(&mac);
+		clear_datetime_macros_r(&mac);
 
 		if(type == NOTIFICATION_NORMAL) {
 

@@ -1018,6 +1018,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_SHORTDATETIME:
 		case MACRO_DATE:
 		case MACRO_TIME:
+			*free_macro = TRUE;
 		case MACRO_TIMET:
 		case MACRO_ISVALIDTIME:
 		case MACRO_NEXTVALIDTIME:

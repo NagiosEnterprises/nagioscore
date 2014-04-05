@@ -999,7 +999,8 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 				kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
 			}
 			else {
-				kvvec_addkv(&kvv, "env", env_kvvb->buf);
+				kvvec_addkv_wlen(&kvv, "env", strlen("env"), env_kvvb->buf,
+						env_kvvb->buflen);
 			}
 		}
 	}

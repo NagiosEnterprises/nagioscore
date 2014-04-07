@@ -308,7 +308,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	my_free(processed_command);
 	clear_volatile_macros_r(&mac);
 
-	return OK;
+	return runchk_result;
 	}
 
 
@@ -2107,7 +2107,7 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 	clear_volatile_macros_r(&mac);
 	my_free(processed_command);
 
-	return OK;
+	return runchk_result;
 	}
 
 

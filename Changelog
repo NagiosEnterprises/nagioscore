@@ -4,6 +4,7 @@ Nagios Core 4 Change Log
 
 4.x.x - xx/xx/2014
 ------------------
+* Bug #580: Nagios 4 memory leak (Eric Stanley)
 * Fixed init script to remove the switching of users when performing configuration verification which was causing failures if nagios user was set to nologin (Scott Wilkerson)
 * Fixed auto creation of RAMDISK via environment variables in init script to properly check existence using $RAMDISK_DIR environment variable. (Scott Wilkerson)
 * Fixed unreferenced variable NagiosVarDir in daemon-init (Eric Mislivec)

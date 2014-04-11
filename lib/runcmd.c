@@ -423,7 +423,6 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		if(NULL != env) {
 			char **envpp = env;
 			while(NULL != *envpp && NULL != *(envpp+1)) {
-				fprintf(stderr, "ENV: '%s'='%s'\n", *envpp, *(envpp+1));
 				update_environment(*envpp, *(envpp+1), 1);
 				envpp += 2;
 			}

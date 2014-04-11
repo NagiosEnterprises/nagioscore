@@ -683,7 +683,11 @@ static int handle_worker_result(int sd, int events, void *arg)
 		if (error_reason) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: %s job %d from worker %s %s",
 			      wpjob_type_name(job->type), job->id, wp->name, error_reason);
+#ifdef DEBUG
+			/* The log below could leak sensitive information, such as 
+				passwords, so only enable it if you neally need it */
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   command: %s\n", job->command);
+#endif
 			if (job->type != WPJOB_CHECK && oj) {
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   host=%s; service=%s; contact=%s\n",
 				      oj->host_name ? oj->host_name : "(none)",

@@ -4,6 +4,7 @@ Nagios Core 4 Change Log
 
 4.x.x - xx/xx/2014
 ------------------
+* Fixed bug #595: Nagios 4 security fix (Alexey Dvoryanchikov, Eric Stanley)
 * Fixed bug #594: Nagios 4 fix contactgroups parsing (Alexey Dvoryanchikov, Eric Stanley)
 * Fixed bug #577: Nagios 4 checks stalled when write to socket failed (Alexey Dvoryanchikov)
 * Fixed bug #580: Nagios 4 memory leak (Eric Stanley)

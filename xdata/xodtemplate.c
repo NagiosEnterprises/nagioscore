@@ -6132,7 +6132,7 @@ int xodtemplate_recombobulate_contactgroups(void) {
 	for(temp_contactgroup = xodtemplate_contactgroup_list; temp_contactgroup; temp_contactgroup = temp_contactgroup->next) {
 		objectlist *next, *list, *accept = NULL;
 
-		if(temp_contactgroup->members == NULL)
+		if(temp_contactgroup->members == NULL && temp_contactgroup->contactgroup_members == NULL)
 			continue;
 
 		/*

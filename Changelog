@@ -2,6 +2,12 @@
 Nagios Core 4 Change Log
 ########################
 
+x.x.x - xx/xx/xxxx
+------------------
+FIXES
+* Archive JSON: Fixed bugs calculating availability
+* Archive JSON: Allow missing logs to be skipped
+
 4.0.5 - 04/11/2014
 ------------------
 * Fixed bug #595: Nagios 4 security fix (Alexey Dvoryanchikov, Eric Stanley)

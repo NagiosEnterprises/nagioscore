@@ -114,6 +114,21 @@ const string_value_mapping valid_state_types[] = {
 	{ NULL, -1, NULL },
 	};
 
+const string_value_mapping valid_states[] = {
+	{ "no_data", AU_STATE_NO_DATA, "No Data" },
+	{ "host_up", AU_STATE_HOST_UP, "Host Up" },
+	{ "host_down", AU_STATE_HOST_DOWN, "Host Down" },
+	{ "host_unreachable", AU_STATE_HOST_UNREACHABLE, "Host Unreachable" },
+	{ "service_ok", AU_STATE_SERVICE_OK, "Service OK" },
+	{ "service_warning", AU_STATE_SERVICE_WARNING, "Service Warning" },
+	{ "service_critical", AU_STATE_SERVICE_CRITICAL, "Service Critical" },
+	{ "service_unknown", AU_STATE_SERVICE_UNKNOWN, "Service Unknown" },
+	{ "program_start", AU_STATE_PROGRAM_START, "Program Start" },
+	{ "program_end", AU_STATE_PROGRAM_END, "Program End" },
+	{ "downtime_start", AU_STATE_DOWNTIME_START, "Downtime Start" },
+	{ "downtime_end", AU_STATE_DOWNTIME_END, "Downtime End" },
+};
+
 const string_value_mapping valid_host_states[] = {
 	{ "up", AU_STATE_HOST_UP, "Up" },
 	{ "down", AU_STATE_HOST_DOWN, "Down" },
@@ -562,8 +577,8 @@ int get_log_entry_state(au_log_entry *);
 int have_data(au_linked_list *, int);
 void compute_window_availability(time_t, time_t, int, int, int, timeperiod *, 
 		au_availability *, int, int, int);
-void compute_availability(au_linked_list *, time_t, time_t, time_t, 
-		timeperiod *, int, au_availability *, int, int, int, int);
+static void compute_availability(au_linked_list *, time_t, time_t, time_t, 
+		timeperiod *, au_availability *, int, int, int, int);
 void compute_host_availability(time_t, time_t, time_t, au_log *, au_host *, 
 		timeperiod *, int, int, int, int);
 void compute_service_availability(time_t, time_t, time_t, au_log *, 
@@ -3409,15 +3424,56 @@ unsigned long calculate_window_duration(time_t start_time, time_t end_time,
 	return state_duration;
 	}
 
+#ifdef DEBUG
+void print_availability(au_availability *availability, const char *padding) {
+
+	printf("%sAll::           up:          %10lu\n", padding,
+			availability->time_up);
+	printf("%s                down:        %10lu\n", padding,
+			availability->time_down);
+	printf("%s                unreachable: %10lu\n", padding,
+			availability->time_unreachable);
+	printf("%s                ok:          %10lu\n", padding,
+			availability->time_ok);
+	printf("%s                warning:     %10lu\n", padding,
+			availability->time_warning);
+	printf("%s                critical:    %10lu\n", padding,
+			availability->time_critical);
+	printf("%s                unknown:     %10lu\n", padding,
+			availability->time_unknown); 
+	printf("%sScheduled::     up:          %10lu\n", padding,
+			availability->scheduled_time_up);
+	printf("%s                down:        %10lu\n", padding,
+			availability->scheduled_time_down);
+	printf("%s                unreachable: %10lu\n", padding,
+			availability->scheduled_time_unreachable);
+	printf("%s                ok:          %10lu\n", padding,
+			availability->scheduled_time_ok);
+	printf("%s                warning:     %10lu\n", padding,
+			availability->scheduled_time_warning);
+	printf("%s                critical:    %10lu\n", padding,
+			availability->scheduled_time_critical);
+	printf("%s                unknown:     %10lu\n", padding,
+			availability->scheduled_time_unknown); 
+	printf("%sIndeterminate:: scheduled:   %10lu\n", padding,
+			availability->scheduled_time_indeterminate);
+	printf("%s                nodata:      %10lu\n", padding,
+			availability->time_indeterminate_nodata);
+	printf("%s                notrunning:  %10lu\n", padding,
+			availability->time_indeterminate_notrunning); 
+	}
+#endif
+
 void compute_window_availability(time_t start_time, time_t end_time, 
-		int last_subject_state, int last_downtime_state, int last_nagios_state, 		timeperiod *report_timeperiod, au_availability *availability, 
+		int last_subject_state, int last_downtime_state, int last_nagios_state,
+		timeperiod *report_timeperiod, au_availability *availability, 
 		int assume_state_during_nagios_downtime, int object_type, 
 		int assume_state_retention) {
 
 	unsigned long state_duration;
 
 #ifdef DEBUG
-printf( "%lu to %lu (%lus): %s/%s/%s\n", start_time, end_time, 
+printf( "    %lu to %lu (%lus): %s/%s/%s\n", start_time, end_time, 
 		(end_time - start_time),
 		svm_get_string_from_value(last_subject_state, svm_au_states),
 		svm_get_string_from_value(last_downtime_state, svm_au_states),
@@ -3557,14 +3613,18 @@ printf( "%lu to %lu (%lus): %s/%s/%s\n", start_time, end_time,
 		break;
 		}
 
+#ifdef DEBUG
+	print_availability(availability, "    ");
+#endif
+
 	return;
 	}
 
-void compute_availability(au_linked_list *log_entries, time_t query_time, 
+static void compute_availability(au_linked_list *log_entries, time_t query_time,
 		time_t start_time, time_t end_time, timeperiod *report_timeperiod, 
-		int last_known_state, au_availability *availability, 
-		int initial_subject_state, int assume_state_during_nagios_downtime, 
-		int object_type, int assume_state_retention) {
+		au_availability *availability, int initial_subject_state,
+		int assume_state_during_nagios_downtime, int object_type,
+		int assume_state_retention) {
 
 	int current_nagios_state;
 	int last_nagios_state;
@@ -3581,6 +3641,11 @@ void compute_availability(au_linked_list *log_entries, time_t query_time,
 	time_t last_time = start_time;
 	time_t current_time;
 
+#ifdef DEBUG
+	printf("  initial state: %s\n",
+			svm_get_string_from_value(initial_subject_state, valid_states));
+#endif
+
 	/* Determine the initial Nagios state */
 	if((last_nagios_state = current_nagios_state = 
 			get_initial_nagios_state(log_entries, start_time, end_time)) 
@@ -3589,6 +3654,11 @@ void compute_availability(au_linked_list *log_entries, time_t query_time,
 		return;
 		}
 
+#ifdef DEBUG
+	printf("  initial nagios state: %s\n",
+			svm_get_string_from_value(last_nagios_state, valid_states));
+#endif
+
 	/* Determine the initial downtime state */
 	if((last_downtime_state = current_downtime_state = 
 			get_initial_downtime_state(log_entries, start_time, end_time)) 
@@ -3596,6 +3666,12 @@ void compute_availability(au_linked_list *log_entries, time_t query_time,
 		/* This is bad; I'm giving up. */
 		return;
 		}
+
+#ifdef DEBUG
+	printf("  initial downtime state: %s\n",
+			svm_get_string_from_value(last_downtime_state, valid_states));
+#endif
+
 
 	/* Process all entry pairs */
 	for(temp_node = log_entries->head; temp_node != NULL; 
@@ -3606,9 +3682,9 @@ void compute_availability(au_linked_list *log_entries, time_t query_time,
 		if(current_log_entry->timestamp < start_time) continue;
 
 #ifdef DEBUG
-printf("Got downtime log of type %s at %d\n", 
-		svm_get_string_from_value(current_log_entry->entry_type, 
-		svm_au_log_types), current_log_entry->timestamp);
+		printf("  Got log of type \"%s\" at %lu\n", 
+				svm_get_string_from_value(current_log_entry->entry_type, 
+				svm_au_log_types), current_log_entry->timestamp);
 #endif
 
 		/* Update states */
@@ -3622,14 +3698,29 @@ printf("Got downtime log of type %s at %d\n",
 		case AU_LOGTYPE_STATE_CURRENT:
 			temp_alert_log = (au_log_alert *)current_log_entry->entry;
 			current_subject_state = temp_alert_log->state;
+#ifdef DEBUG
+			printf("  Current alert state: \"%s\"\n", 
+					svm_get_string_from_value(current_subject_state, 
+					valid_states));
+#endif
 			break;
 		case AU_LOGTYPE_DOWNTIME:
 			temp_downtime_log = (au_log_downtime *)current_log_entry->entry;
 			current_downtime_state = temp_downtime_log->downtime_type;
+#ifdef DEBUG
+			printf("  Current downtime state: \"%s\"\n", 
+					svm_get_string_from_value(current_downtime_state, 
+					valid_states));
+#endif
 			break;
 		case AU_LOGTYPE_NAGIOS:
 			temp_nagios_log = (au_log_nagios *)current_log_entry->entry;
 			current_nagios_state = temp_nagios_log->type;
+#ifdef DEBUG
+			printf("  Current nagios state: \"%s\"\n", 
+					svm_get_string_from_value(current_nagios_state, 
+					valid_states));
+#endif
 			break;
 		default:
 			continue;
@@ -3671,6 +3762,11 @@ printf("Got downtime log of type %s at %d\n",
 
 	/* Process the last entry */
 	if(last_log_entry != NULL) {
+		/* Update states */
+		last_subject_state = current_subject_state;
+		last_downtime_state = current_downtime_state;
+		last_nagios_state = current_nagios_state;
+
 		/* Don't process an entry that is beyond the end of the requested
 			time range */
 		if(last_log_entry->timestamp < end_time) {
@@ -3688,6 +3784,14 @@ printf("Got downtime log of type %s at %d\n",
 					assume_state_retention);
 			}
 		}
+	else {
+		/* There were no log entries for the entire queried time, therefore
+			the whole query window was the same state */
+		compute_window_availability(start_time, end_time, initial_subject_state,
+				last_downtime_state, last_nagios_state, report_timeperiod,
+				availability, assume_state_during_nagios_downtime, object_type, 
+				assume_state_retention);
+		}
 	}
 
 
@@ -3701,6 +3805,11 @@ void compute_host_availability(time_t query_time, time_t start_time,
 	int	last_known_state = AU_STATE_NO_DATA;
 	int	initial_host_state = AU_STATE_NO_DATA;
 
+#ifdef DEBUG
+	printf("Computing availability for host %s\n    from %lu to %lu\n",
+			host->name, start_time, end_time);
+#endif
+
 	/* If the start time is in the future, we can't compute anything */
 	if(start_time > query_time) return;
 
@@ -3711,7 +3820,7 @@ void compute_host_availability(time_t query_time, time_t start_time,
 		query window, and we have the current host status, insert the 
 		current state as the pseudo state at the start of the requested
 		query window. */
-	if((have_state_data(host->log_entries) == TRUE) && 
+	if((have_state_data(host->log_entries) == FALSE) && 
 			(query_time > start_time) && (query_time <= end_time) && 
 			(host_status != NULL)) {
 		switch(host_status->status) {
@@ -3731,6 +3840,10 @@ void compute_host_availability(time_t query_time, time_t start_time,
 
 		if(last_known_state != AU_STATE_NO_DATA) {
 			/* Add a dummy current state item */
+#ifdef DEBUG
+			printf("  Inserting %s as current service pseudo-state\n",
+					svm_get_string_from_value(last_known_state, valid_states));
+#endif
 			(void)au_add_alert_or_state_log(log, start_time, 
 					AU_LOGTYPE_STATE_CURRENT, AU_OBJTYPE_HOST, host, 
 					AU_STATETYPE_HARD, last_known_state, 
@@ -3741,6 +3854,10 @@ void compute_host_availability(time_t query_time, time_t start_time,
 	/* Next determine the initial state of the host */
 	initial_host_state = get_initial_subject_state(host->log_entries, 
 			start_time, end_time);
+#ifdef DEBUG
+	printf("  Initial state from logs: %s\n",
+			svm_get_string_from_value(initial_host_state, valid_states));
+#endif
 
 	if((AU_STATE_NO_DATA == initial_host_state) && 
 			(1 == assume_initial_state)) {
@@ -3776,9 +3893,9 @@ void compute_host_availability(time_t query_time, time_t start_time,
 	/* Compute the availability for every entry in the host's list of log
 		entries */
 	compute_availability(host->log_entries, query_time, start_time, end_time, 
-			report_timeperiod, last_known_state, host->availability, 
-			initial_host_state, assume_state_during_nagios_downtime, 
-			AU_OBJTYPE_HOST, assume_state_retention);
+			report_timeperiod, host->availability, initial_host_state,
+			assume_state_during_nagios_downtime, AU_OBJTYPE_HOST,
+			assume_state_retention);
 
 	}
 
@@ -3792,6 +3909,11 @@ void compute_service_availability(time_t query_time, time_t start_time,
 	int	last_known_state = AU_STATE_NO_DATA;
 	int	initial_service_state = AU_STATE_NO_DATA;
 
+#ifdef DEBUG
+	printf("Computing availability for service %s:%s\n    from %lu to %lu\n",
+			service->host_name, service->description, start_time, end_time);
+#endif
+
 	/* If the start time is in the future, we can't compute anything */
 	if(start_time > query_time) return;
 
@@ -3803,7 +3925,7 @@ void compute_service_availability(time_t query_time, time_t start_time,
 		query window, and we have the current service status, insert the 
 		current state as the pseudo state at the start of the requested
 		query window. */
-	if((have_state_data(service->log_entries) ==FALSE) && 
+	if((have_state_data(service->log_entries) == FALSE) && 
 			(query_time > start_time) && (query_time <= end_time) && 
 			(service_status != NULL)) {
 		switch(service_status->status) {
@@ -3826,6 +3948,10 @@ void compute_service_availability(time_t query_time, time_t start_time,
 
 		if(last_known_state != AU_STATE_NO_DATA) {
 			/* Add a dummy current state item */
+#ifdef DEBUG
+			printf("  Inserting %s as current service pseudo-state\n",
+					svm_get_string_from_value(last_known_state, valid_states));
+#endif
 			(void)au_add_alert_or_state_log(log, start_time, 
 					AU_LOGTYPE_STATE_CURRENT, AU_OBJTYPE_SERVICE, service, 
 					AU_STATETYPE_HARD, last_known_state, 
@@ -3836,6 +3962,10 @@ void compute_service_availability(time_t query_time, time_t start_time,
 	/* Next determine the initial state of the service */
 	initial_service_state = get_initial_subject_state(service->log_entries, 
 			start_time, end_time);
+#ifdef DEBUG
+	printf("  Initial state from logs: %s\n",
+			svm_get_string_from_value(initial_service_state, valid_states));
+#endif
 	if((AU_STATE_NO_DATA == initial_service_state) && 
 			(1 == assume_initial_state)) {
 		switch(assumed_initial_service_state) {
@@ -3874,9 +4004,9 @@ void compute_service_availability(time_t query_time, time_t start_time,
 	/* Compute the availability for every entry in the service's list of log
 		entries */
 	compute_availability(service->log_entries, query_time, start_time, end_time,
-			report_timeperiod, last_known_state, service->availability, 
-			initial_service_state, assume_state_during_nagios_downtime, 
-			AU_OBJTYPE_SERVICE, assume_state_retention);
+			report_timeperiod, service->availability, initial_service_state,
+			assume_state_during_nagios_downtime, AU_OBJTYPE_SERVICE,
+			assume_state_retention);
 
 	}
 

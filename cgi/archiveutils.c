@@ -268,16 +268,20 @@ int read_archived_data(time_t start_time, time_t end_time,
 
 		/* Record the last modification time of the the archive file */
 		if(stat(filename, &adstat) < 0) {
-			return -1;
+			/* ENOENT is OK because Nagios may have been down when the 
+				logs were being rotated */
+			if(ENOENT != errno) return -1;
 			}
-		if(*last_archive_data_update < adstat.st_mtime) {
-			*last_archive_data_update = adstat.st_mtime;
-			}
+		else {
+			if(*last_archive_data_update < adstat.st_mtime) {
+				*last_archive_data_update = adstat.st_mtime;
+				}
 
-		/* scan the log file for archived state data */
-		if(read_log_file(filename, obj_types, state_types, log_types, 
-				log) == 0) {
-			return 0;	/* Memory allocation error */
+			/* scan the log file for archived state data */
+			if(read_log_file(filename, obj_types, state_types, log_types, 
+					log) == 0) {
+				return 0;	/* Memory allocation error */
+				}
 			}
 		}
 

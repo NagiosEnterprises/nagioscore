@@ -4,9 +4,14 @@ Nagios Core 4 Change Log
 
 x.x.x - xx/xx/xxxx
 ------------------
+ENHANCEMENTS
+* Added name of authenticated user to JSON CGI results object (Eric Stanley)
+* Added Nagios Core versiont the Status CGI programstatus query (Eric Stanley)
+
 FIXES
-* Archive JSON: Fixed bugs calculating availability
-* Archive JSON: Allow missing logs to be skipped
+* Fixed bug #438: Reloads during downtime causes wrong availability calculations (Eric Stanley)
+* Archive JSON: Fixed bugs calculating availability (Eric Stanley)
+* Archive JSON: Allow missing logs to be skipped (Eric Stanley)
 
 4.0.5 - 04/11/2014
 ------------------

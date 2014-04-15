@@ -841,7 +841,7 @@ void indentf(int padding, int whitespace, char *format, ...) {
 	}
 
 json_object * json_result(time_t query_time, char *cgi, char *query,
-		int query_status, time_t last_data_update, int type,
+		int query_status, time_t last_data_update, authdata *authinfo, int type,
 		char *message, ...) {
 
 	json_object *json_result;
@@ -852,6 +852,9 @@ json_object * json_result(time_t query_time, char *cgi, char *query,
 	json_result = json_new_object();
 	json_object_append_time_t(json_result, "query_time", query_time);
 	json_object_append_string(json_result, "cgi", cgi);
+	if(NULL != authinfo) {
+		json_object_append_string(json_result, "user", authinfo->username);
+		}
 	if(NULL != query) {
 		json_object_append_string(json_result, "query", query);
 		json_object_append_string(json_result, "query_status",
@@ -1187,8 +1190,9 @@ void json_bitmask(json_object *json_parent, unsigned format_options, char *key,
 	}
 
 int parse_bitmask_cgivar(char *cgi, char *query, int query_status,
-		json_object *json_parent, time_t query_time, char *key, char *value,
-		const string_value_mapping *svm, unsigned *var) {
+		json_object *json_parent, time_t query_time, authdata *authinfo,
+		char *key, char *value, const string_value_mapping *svm,
+		unsigned *var) {
 
 	int result = RESULT_SUCCESS;
 	char *option;
@@ -1198,7 +1202,7 @@ int parse_bitmask_cgivar(char *cgi, char *query, int query_status,
 	if(value == NULL) {
 		json_object_append_object(json_parent, "result", 
 				json_result(query_time, cgi, query, query_status,
-				(time_t)-1, RESULT_OPTION_VALUE_MISSING,
+				(time_t)-1, authinfo, RESULT_OPTION_VALUE_MISSING,
 				"No value specified for %s option.", key));
 		return RESULT_OPTION_VALUE_MISSING;
 		}
@@ -1214,7 +1218,7 @@ int parse_bitmask_cgivar(char *cgi, char *query, int query_status,
 		if( NULL == svmp->string) {
 			json_object_append_object(json_parent, "result", 
 					json_result(query_time, cgi, query, query_status,
-					(time_t)-1, RESULT_OPTION_VALUE_INVALID,
+					(time_t)-1, authinfo, RESULT_OPTION_VALUE_INVALID,
 					"The %s option value '%s' is invalid.", key, option));
 			result = RESULT_OPTION_VALUE_INVALID;
 			break;
@@ -1225,15 +1229,15 @@ int parse_bitmask_cgivar(char *cgi, char *query, int query_status,
 	}
 
 int parse_enumeration_cgivar(char *cgi, char *query, int query_status,
-		json_object *json_parent, time_t query_time, char *key, char *value,
-		const string_value_mapping *svm, int *var) {
+		json_object *json_parent, time_t query_time, authdata *authinfo,
+		char *key, char *value, const string_value_mapping *svm, int *var) {
 
 	string_value_mapping *svmp;
 
 	if(value == NULL) {
 		json_object_append_object(json_parent, "result", 
 				json_result(query_time, cgi, query, query_status,
-				(time_t)-1, RESULT_OPTION_VALUE_MISSING,
+				(time_t)-1, authinfo, RESULT_OPTION_VALUE_MISSING,
 				"No value specified for %s option.", key));
 		return RESULT_OPTION_VALUE_MISSING;
 		}
@@ -1247,7 +1251,7 @@ int parse_enumeration_cgivar(char *cgi, char *query, int query_status,
 	if( NULL == svmp->string) {
 		json_object_append_object(json_parent, "result", 
 				json_result(query_time, cgi, query, query_status,
-				(time_t)-1, RESULT_OPTION_VALUE_INVALID,
+				(time_t)-1, authinfo, RESULT_OPTION_VALUE_INVALID,
 				"The %s option value '%s' is invalid.", key, value));
 		return RESULT_OPTION_VALUE_INVALID;
 		} 
@@ -1257,13 +1261,13 @@ int parse_enumeration_cgivar(char *cgi, char *query, int query_status,
 
 
 int parse_string_cgivar(char *cgi, char *query, int query_status,
-		json_object *json_parent, time_t query_time, char *key, char *value,
-		char **var) {
+		json_object *json_parent, time_t query_time, authdata *authinfo,
+		char *key, char *value, char **var) {
 
 	if(value == NULL) {
 		json_object_append_object(json_parent, "result", 
 				json_result(query_time, cgi, query, query_status,
-				(time_t)-1, RESULT_OPTION_VALUE_MISSING,
+				(time_t)-1, authinfo, RESULT_OPTION_VALUE_MISSING,
 				"No value specified for %s option.", key));
 		return RESULT_OPTION_VALUE_MISSING;
 		}
@@ -1271,7 +1275,7 @@ int parse_string_cgivar(char *cgi, char *query, int query_status,
 	if(NULL == (*var = strdup( value))) {
 		json_object_append_object(json_parent, "result", 
 				json_result(query_time, cgi, query, query_status,
-				(time_t)-1, RESULT_MEMORY_ALLOCATION_ERROR,
+				(time_t)-1, authinfo, RESULT_MEMORY_ALLOCATION_ERROR,
 				"Unable to allocate memory for %s option.", key));
 		return RESULT_MEMORY_ALLOCATION_ERROR;
 		}
@@ -1281,15 +1285,15 @@ int parse_string_cgivar(char *cgi, char *query, int query_status,
 
 
 int parse_time_cgivar(char *cgi, char *query, int query_status,
-		json_object *json_parent, time_t query_time, char *key, char *value,
-		time_t *var) {
+		json_object *json_parent, time_t query_time, authdata *authinfo,
+		char *key, char *value, time_t *var) {
 
 	long long templl;
 
 	if(value == NULL) {
 		json_object_append_object(json_parent, "result", 
 				json_result(query_time, cgi, query, query_status,
-				(time_t)-1, RESULT_OPTION_VALUE_MISSING,
+				(time_t)-1, authinfo, RESULT_OPTION_VALUE_MISSING,
 				"No value specified for %s option.", key));
 		return RESULT_OPTION_VALUE_MISSING;
 		}
@@ -1312,13 +1316,13 @@ int parse_time_cgivar(char *cgi, char *query, int query_status,
 
 
 int parse_boolean_cgivar(char *cgi, char *query, int query_status,
-		json_object *json_parent, time_t query_time, char *key, char *value,
-		int *var) {
+		json_object *json_parent, time_t query_time, authdata *authinfo,
+		char *key, char *value, int *var) {
 
 	if(value == NULL) {
 		json_object_append_object(json_parent, "result", 
 				json_result(query_time, cgi, query, query_status,
-				(time_t)-1, RESULT_OPTION_VALUE_MISSING,
+				(time_t)-1, authinfo, RESULT_OPTION_VALUE_MISSING,
 				"No value specified for %s option.", key));
 		return ERROR;
 		}
@@ -1332,7 +1336,7 @@ int parse_boolean_cgivar(char *cgi, char *query, int query_status,
 	else {
 		json_object_append_object(json_parent, "result", 
 				json_result(query_time, cgi, query, query_status,
-				(time_t)-1, RESULT_OPTION_VALUE_INVALID,
+				(time_t)-1, authinfo, RESULT_OPTION_VALUE_INVALID,
 				"Value for %s option must be 'true' or 'false'.", key));
 		return RESULT_OPTION_VALUE_INVALID;
 		}
@@ -1342,13 +1346,13 @@ int parse_boolean_cgivar(char *cgi, char *query, int query_status,
 
 
 int parse_int_cgivar(char *cgi, char *query, int query_status,
-		json_object *json_parent, time_t query_time, char *key, char *value,
-		int *var) {
+		json_object *json_parent, time_t query_time, authdata *authinfo,
+		char *key, char *value, int *var) {
 
 	if(value == NULL) {
 		json_object_append_object(json_parent, "result", 
 				json_result(query_time, cgi, query, query_status,
-				(time_t)-1, RESULT_OPTION_VALUE_MISSING,
+				(time_t)-1, authinfo, RESULT_OPTION_VALUE_MISSING,
 				"No value specified for %s option.", key));
 		return RESULT_OPTION_VALUE_MISSING;
 		}

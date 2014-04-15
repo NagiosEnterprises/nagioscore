@@ -172,8 +172,8 @@ extern void json_object_print(json_object *, int, int, char *, unsigned);
 extern void json_array_print(json_array *, int, int, char *, unsigned);
 extern void json_member_print(json_object_member *, int, int, char *, unsigned);
 
-extern json_object *json_result(time_t, char *, char *, int, time_t, int,
-		char *, ...);
+extern json_object *json_result(time_t, char *, char *, int, time_t, authdata *,
+		int, char *, ...);
 extern json_object *json_help(option_help *);
 extern int passes_start_and_count_limits(int, int, int, int);
 extern void indentf(int, int, char *, ...);
@@ -192,17 +192,18 @@ extern void json_bitmask(json_object *, unsigned, char *, int,
 		const string_value_mapping *);
 
 extern int parse_bitmask_cgivar(char *, char *, int, json_object *, time_t,
-		char *, char *, const string_value_mapping *, unsigned *);
+		authdata *, char *, char *, const string_value_mapping *, unsigned *);
 extern int parse_enumeration_cgivar(char *, char *, int, json_object *,
-		time_t, char *, char *, const string_value_mapping *, int *);
+		time_t, authdata *, char *, char *, const string_value_mapping *,
+		int *);
 extern int parse_string_cgivar(char *, char *, int, json_object *, time_t,
-		char *, char *, char **);
+		authdata *, char *, char *, char **);
 extern int parse_time_cgivar(char *, char *, int, json_object *, time_t,
-		char *, char *, time_t *);
+		authdata *, char *, char *, time_t *);
 extern int parse_boolean_cgivar(char *, char *, int, json_object *, time_t,
-		char *, char *, int *);
+		authdata *, char *, char *, int *);
 extern int parse_int_cgivar(char *, char *, int, json_object *, time_t,
-		char *, char *, int *);
+		authdata *, char *, char *, int *);
 
 extern int get_query_status(const int[][2], int);
 extern char *svm_get_string_from_value(int, const string_value_mapping *);

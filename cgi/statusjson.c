@@ -4208,6 +4208,7 @@ json_object *json_status_program(unsigned format_options) {
 			"modified_service_process_attributes", 
 			(unsigned long long)modified_service_process_attributes);
 #endif
+	json_object_append_string(json_status, "version", PROGRAM_VERSION);
 	json_object_append_integer(json_status, "nagios_pid", nagios_pid);
 	json_object_append_boolean(json_status, "daemon_mode", daemon_mode);
 	json_object_append_time_t(json_status, "program_start", program_start);

@@ -29,7 +29,7 @@ function do_corefeed_html() {
 		$html .= '</ul>';
 	}
 	else {
-		$html = "An error occurred while trying to fetch the Nagios Core feed. Stay on top of what's happening by visiting <a href='http://www.nagios.org/' target='_blank'>http://www.nagios.org/</a>.";
+		$html = "Unable to fetch the Nagios Core feed. Stay on top of what's happening by visiting <a href='http://www.nagios.org/' target='_blank'>http://www.nagios.org/</a>.";
 	}
 
 	print $html;

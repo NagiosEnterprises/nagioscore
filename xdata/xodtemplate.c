@@ -6132,9 +6132,6 @@ int xodtemplate_recombobulate_contactgroups(void) {
 	for(temp_contactgroup = xodtemplate_contactgroup_list; temp_contactgroup; temp_contactgroup = temp_contactgroup->next) {
 		objectlist *next, *list, *accept = NULL;
 
-		if(temp_contactgroup->members == NULL && temp_contactgroup->contactgroup_members == NULL)
-			continue;
-
 		/*
 		 * If the contactgroup has no accept or reject list and no group
 		 * members we don't need the bitmaps for it. bitmap_isset()

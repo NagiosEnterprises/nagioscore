@@ -355,6 +355,17 @@ th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-b
 .splashbox-media {
   margin: 5px;
 }
+.splashbox3-empty {
+  margin: 5px;
+  border: 1px solid #AAAAAA;
+  width: 238px;
+  height: 150px;
+}
+.splashbox3-full {
+  margin: 5px;
+  width: 240px;
+  height: 152px;
+}
 .splashbox-clear {
   clear: both;
 }
@@ -364,8 +375,6 @@ th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-b
 }
 #splashbox3 {
   float: left;
-  width: 240px;
-  height: 152px;
 }
 #splashbox5 {
   width: 500px;

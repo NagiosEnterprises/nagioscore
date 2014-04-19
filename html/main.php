@@ -17,27 +17,101 @@ $this_version="4.0.5";
 
 <script type='text/javascript'>
 	$(document).ready(function() {
-		// Fetch RSS by ajax to reduce page load time.
-		$('#splashbox0-contents').load('rss-corebanner.php');
-		$('#splashbox4-contents').load('rss-newsfeed.php');
-		$('#splashbox5-contents').load('rss-corefeed.php');
+		loadRemoteFeed( // Our top banner splash.
+			'#splashbox0-contents', 'corebanner', 1,
+			'', processBannerItem, ''
+		);
 
-		// Get the daemon status JSON.
+		loadRemoteFeed( // "Latest News"
+			'#splashbox4-contents', 'frontpage', 3,
+			'<ul>', processNewsItem, '<li><a href="http://www.nagios.org/news" target="_blank">More news...</a></li></ul>'
+		);
+
+		loadRemoteFeed( // "Don't Miss..."
+			'#splashbox5-contents', 'corepromo', 3,
+			'<ul>', processPromoItem, '</ul>'
+		);
+
+		getCoreStatus();
+	});
+
+	// Fetch an RSS feed and format HTML for the first n items.
+	loadRemoteFeed = function(id, name, n, prefix, formatter, suffix) {
+		$.ajax({
+			type: 'GET',
+			url: 'http://www.nagios.org/backend/feeds/' + name + '/',
+			crossDomain: true,
+			success: function(d, status, jqXHR) {
+				// We should have Internet access, set the playlist HTML.
+				initializePlaylist();
+
+				var text = ''; // Start with empty text by default.
+
+				$(d).find('channel').find('item').each(function(index) {
+					var itemText = formatter($(this)); // Format the item's HTML.
+					if (itemText) {
+						text += itemText; // Append if non-empty.
+					}
+					return index+1 < n; // Only process n items.
+				});
+
+				// Only set the HTML if we have item text.
+				if (text) {
+					$(id).html(prefix + text + suffix);
+				}
+			}
+		});
+	};
+
+	processBannerItem = function(item) {
+		return item.find('description').text();
+	};
+
+	processNewsItem = function(item) {
+		var link = item.find('link').text();
+		var title = item.find('title').text();
+		return link && title
+			? '<li><a href="' + link + '" target="_blank">' + title + '</a></li>'
+			: '';
+	};
+
+	processPromoItem = function(item) {
+		var description = item.find('description').text();
+		return description
+			? '<li>' + description + '</li>'
+			: '';
+	};
+
+
+	// Set our playlist HTML when we know we have Internet access.
+	var playlistInitialized = false;
+	initializePlaylist = function() {
+		if (!playlistInitialized) {
+			playlistInitialized = true;
+			$('#splashbox3')
+				.addClass('splashbox3-full')
+				.removeClass('splashbox3-empty')
+				.html('<iframe width="100%" height="100%" src="//www.youtube.com/embed/videoseries?list=PLN-ryIrpC_mCUW1DFwZpxpAk00i60lSkE&iv_load_policy=3&rel=0" frameborder="0" allowfullscreen></iframe>');
+		}
+	};
+
+	// Get the daemon status JSON.
+	getCoreStatus = function() {
 		setCoreStatusHTML('passiveonly', 'Checking process status...');
 
-		$.get('cgi-bin/statusjson.cgi?query=programstatus', function(data) {
-			if (data) {
-				var pid = data['data']['programstatus']['nagios_pid'];
-				var daemon = data['data']['programstatus']['daemon_mode']
-					? 'Daemon' : 'Process';
+		$.get('cgi-bin/statusjson.cgi?query=programstatus', function(d) {
+			d = d && d.data && d.data.programstatus || false;
+			if (d && d.nagios_pid) {
+				var pid = d.nagios_pid;
+				var daemon = d.daemon_mode ? 'Daemon' : 'Process';
 				setCoreStatusHTML('enabled', daemon + ' running with PID ' + pid);
 			} else {
 				setCoreStatusHTML('disabled', 'Not running');
 			}
 		}).fail(function() {
-			setCoreStatusHTML('disabled', 'Not running');
+			setCoreStatusHTML('disabled', 'Unable to get process status');
 		});
-	});
+	};
 
 	setCoreStatusHTML = function(image, text) {
 		$('#core-status').html('<img src="/nagios/images/' + image + '.gif" /> ' + text);
@@ -124,9 +198,7 @@ $this_version="4.0.5";
 			</ul>
 		</div>
 
-		<div id="splashbox3" class="splashbox-media"><!-- youtube playlist -->
-			<iframe width="100%" height="100%" src="//www.youtube.com/embed/videoseries?list=PLN-ryIrpC_mCUW1DFwZpxpAk00i60lSkE&iv_load_policy=3&rel=0" frameborder="0" allowfullscreen></iframe>
-		</div>
+		<div id="splashbox3" class="splashbox3-empty" /><!-- youtube playlist -->
 
 	</div><!-- end splashrow1 -->
 	
@@ -134,12 +206,16 @@ $this_version="4.0.5";
 
 		<div id="splashbox4" class="splashbox splashbox-clear"><!-- latest news feed -->
 			<h2>Latest News</h2>
-			<div id="splashbox4-contents"></div>
+			<div id="splashbox4-contents">
+				<?php @include(dirname(__FILE__).'/rss-newsfeed.html'); ?>
+			</div>
 		</div>
 
-		<div id="splashbox5" class="splashbox"><!-- corepromo feed -->
+		<div id="splashbox5" class="splashbox"><!-- core promo feed -->
 			<h2>Don't Miss...</h2>
-			<div id="splashbox5-contents"></div>
+			<div id="splashbox5-contents">
+				<?php @include(dirname(__FILE__).'/rss-corefeed.html'); ?>
+			</div>
 		</div>
 
 	</div><!-- end splashrow2 -->

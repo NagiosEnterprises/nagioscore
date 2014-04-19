@@ -33,7 +33,7 @@ function do_newsfeed_html() {
 		</ul>';
 	}
 	else {
-		$html = "An error occurred while trying to fetch the latest Nagios news. Stay on top of what's happening by visiting <a href='http://www.nagios.org/news' target='_blank'>http://www.nagios.org/news</a>.";
+		$html = "Unable to fetch the latest Nagios news. Stay on top of what's happening by visiting <a href='http://www.nagios.org/news' target='_blank'>http://www.nagios.org/news</a>.";
 	}
 
 	print $html;

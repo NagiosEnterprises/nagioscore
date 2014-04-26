@@ -9,6 +9,7 @@ ENHANCEMENTS
 * Added Nagios Core version to the Status JSON CGI programstatus query (Eric Stanley)
 
 FIXES
+* Fixed bug #600: Service Check Timeout State always returns OK (0) status (Mauno <mauno@pihelgas.eu>, Eric Stanley)
 * Fixed bug #583: Status Check Output of (No output on stdout) stderr: (Eric
 Stanley - duplicate of bug #573)
 * Fixed bug #573: Service checks returns (No output on stdout) stderr (Eric Stanley)

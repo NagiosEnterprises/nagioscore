@@ -312,6 +312,65 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	}
 
 
+static int get_service_check_return_code(service *temp_service,
+		check_result *queued_check_result) {
+
+	int rc;
+	char *temp_plugin_output = NULL;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "get_service_check_return_code()\n");
+
+	if(NULL == temp_service || NULL == queued_check_result) {
+		return STATE_UNKNOWN;
+		}
+
+	/* grab the return code */
+	rc = queued_check_result->return_code;
+
+	/* adjust return code (active checks only) */
+	if(queued_check_result->check_type == CHECK_TYPE_ACTIVE) {
+		if(queued_check_result->early_timeout == TRUE) {
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' timed out after %.3fs!\n", temp_service->description, temp_service->host_name, temp_service->execution_time);
+			my_free(temp_service->plugin_output);
+			my_free(temp_service->long_plugin_output);
+			my_free(temp_service->perf_data);
+			asprintf(&temp_service->plugin_output, "(Service check timed out after %.2lf seconds)\n", temp_service->execution_time);
+			rc = service_check_timeout_state;
+			}
+		/* if there was some error running the command, just skip it (this shouldn't be happening) */
+		else if(queued_check_result->exited_ok == FALSE) {
+
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of service '%s' on host '%s' did not exit properly!\n", temp_service->description, temp_service->host_name);
+			
+			my_free(temp_service->plugin_output);
+			my_free(temp_service->long_plugin_output);
+			my_free(temp_service->perf_data);
+
+			temp_service->plugin_output = (char *)strdup("(Service check did not exit properly)");
+
+			rc = STATE_CRITICAL;
+			}
+
+		/* make sure the return code is within bounds */
+		else if(queued_check_result->return_code < 0 || queued_check_result->return_code > 3) {
+
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n", queued_check_result->return_code, temp_service->description, temp_service->host_name, (queued_check_result->return_code == 126 ? "Make sure the plugin you're trying to run is executable." : (queued_check_result->return_code == 127 ? " Make sure the plugin you're trying to run actually exists." : "")));
+
+			my_free(temp_service->plugin_output);
+			my_free(temp_service->long_plugin_output);
+			my_free(temp_service->perf_data);
+			
+			asprintf(&temp_plugin_output, "\x73\x6f\x69\x67\x61\x6e\x20\x74\x68\x67\x69\x72\x79\x70\x6f\x63\x20\x6e\x61\x68\x74\x65\x20\x64\x61\x74\x73\x6c\x61\x67");
+			my_free(temp_plugin_output);
+			asprintf(&temp_service->plugin_output, "(Return code of %d is out of bounds%s)", queued_check_result->return_code, (queued_check_result->return_code == 126 ? " - plugin may not be executable" : (queued_check_result->return_code == 127 ? " - plugin may be missing" : "")));
+
+			rc = STATE_CRITICAL;
+			}
+		}
+
+	return rc;
+	}
+
 
 /* handles asynchronous service check results */
 int handle_async_service_check_result(service *temp_service, check_result *queued_check_result) {
@@ -428,55 +487,14 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			* temp_ptr = ':';
 		}
 
-	/* adjust return code (active checks only) */
-	if(queued_check_result->check_type == CHECK_TYPE_ACTIVE) {
-		if(queued_check_result->early_timeout == TRUE) {
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' timed out after %.3fs!\n", temp_service->description, temp_service->host_name, temp_service->execution_time);
-			my_free(temp_service->plugin_output);
-			my_free(temp_service->long_plugin_output);
-			my_free(temp_service->perf_data);
-			asprintf(&temp_service->plugin_output, "(Service check timed out after %.2lf seconds)\n", temp_service->execution_time);
-			temp_service->current_state = service_check_timeout_state;
-			}
-		/* if there was some error running the command, just skip it (this shouldn't be happening) */
-		else if(queued_check_result->exited_ok == FALSE) {
-
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of service '%s' on host '%s' did not exit properly!\n", temp_service->description, temp_service->host_name);
-			
-			my_free(temp_service->plugin_output);
-			my_free(temp_service->long_plugin_output);
-			my_free(temp_service->perf_data);
-
-			temp_service->plugin_output = (char *)strdup("(Service check did not exit properly)");
-
-			temp_service->current_state = STATE_CRITICAL;
-			}
-
-		/* make sure the return code is within bounds */
-		else if(queued_check_result->return_code < 0 || queued_check_result->return_code > 3) {
-
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n", queued_check_result->return_code, temp_service->description, temp_service->host_name, (queued_check_result->return_code == 126 ? "Make sure the plugin you're trying to run is executable." : (queued_check_result->return_code == 127 ? " Make sure the plugin you're trying to run actually exists." : "")));
-
-			my_free(temp_service->plugin_output);
-			my_free(temp_service->long_plugin_output);
-			my_free(temp_service->perf_data);
-			
-			asprintf(&temp_plugin_output, "\x73\x6f\x69\x67\x61\x6e\x20\x74\x68\x67\x69\x72\x79\x70\x6f\x63\x20\x6e\x61\x68\x74\x65\x20\x64\x61\x74\x73\x6c\x61\x67");
-			my_free(temp_plugin_output);
-			asprintf(&temp_service->plugin_output, "(Return code of %d is out of bounds%s)", queued_check_result->return_code, (queued_check_result->return_code == 126 ? " - plugin may not be executable" : (queued_check_result->return_code == 127 ? " - plugin may be missing" : "")));
-
-			temp_service->current_state = STATE_CRITICAL;
-			}
-		}
+	/* grab the return code */
+	temp_service->current_state = get_service_check_return_code(temp_service,
+			queued_check_result);
 
 	log_debug_info(DEBUGL_CHECKS, 2, "Parsing check output...\n");
 	log_debug_info(DEBUGL_CHECKS, 2, "Short Output: %s\n", (temp_service->plugin_output == NULL) ? "NULL" : temp_service->plugin_output);
 	log_debug_info(DEBUGL_CHECKS, 2, "Long Output:  %s\n", (temp_service->long_plugin_output == NULL) ? "NULL" : temp_service->long_plugin_output);
 	log_debug_info(DEBUGL_CHECKS, 2, "Perf Data:    %s\n", (temp_service->perf_data == NULL) ? "NULL" : temp_service->perf_data);
-
-	/* grab the return code */
-	temp_service->current_state = queued_check_result->return_code;
-
 
 	/* record the time the last state ended */
 	switch(temp_service->last_state) {
@@ -2112,6 +2130,66 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 
 
 
+static int get_host_check_return_code(host *temp_host,
+		check_result *queued_check_result) {
+
+	int rc;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "get_host_check_return_code()\n");
+
+	/* get the unprocessed return code */
+	/* NOTE: for passive checks, this is the final/processed state */
+	rc = queued_check_result->return_code;
+
+	/* adjust return code (active checks only) */
+	if(queued_check_result->check_type == CHECK_TYPE_ACTIVE) {
+		if(queued_check_result->early_timeout) {
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' timed out after %.2lf seconds\n", temp_host->name, temp_host->execution_time);
+			my_free(temp_host->plugin_output);
+			my_free(temp_host->long_plugin_output);
+			my_free(temp_host->perf_data);
+			asprintf(&temp_host->plugin_output, "(Host check timed out after %.2lf seconds)", temp_host->execution_time);
+			rc = STATE_UNKNOWN;
+			}
+
+		/* if there was some error running the command, just skip it (this shouldn't be happening) */
+		else if(queued_check_result->exited_ok == FALSE) {
+
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of host '%s' did not exit properly!\n", temp_host->name);
+
+			my_free(temp_host->plugin_output);
+			my_free(temp_host->long_plugin_output);
+			my_free(temp_host->perf_data);
+
+			temp_host->plugin_output = (char *)strdup("(Host check did not exit properly)");
+
+			rc = STATE_CRITICAL;
+			}
+
+		/* make sure the return code is within bounds */
+		else if(queued_check_result->return_code < 0 || queued_check_result->return_code > 3) {
+
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of host '%s' was out of bounds.%s\n", queued_check_result->return_code, temp_host->name, (queued_check_result->return_code == 126 || queued_check_result->return_code == 127) ? " Make sure the plugin you're trying to run actually exists." : "");
+
+			my_free(temp_host->plugin_output);
+			my_free(temp_host->long_plugin_output);
+			my_free(temp_host->perf_data);
+
+			asprintf(&temp_host->plugin_output, "(Return code of %d is out of bounds%s)", queued_check_result->return_code, (queued_check_result->return_code == 126 || queued_check_result->return_code == 127) ? " - plugin may be missing" : "");
+
+			rc = STATE_CRITICAL;
+			}
+
+		/* a NULL host check command means we should assume the host is UP */
+		if(temp_host->check_command == NULL) {
+			my_free(temp_host->plugin_output);
+			temp_host->plugin_output = (char *)strdup("(Host assumed to be UP)");
+			rc = STATE_OK;
+			}
+		}
+	return rc;
+	}
+
 /* process results of an asynchronous host check */
 int handle_async_host_check_result(host *temp_host, check_result *queued_check_result) {
 	time_t current_time;
@@ -2236,56 +2314,8 @@ int handle_async_host_check_result(host *temp_host, check_result *queued_check_r
 	log_debug_info(DEBUGL_CHECKS, 2, "Long Output:  %s\n", (temp_host->long_plugin_output == NULL) ? "NULL" : temp_host->long_plugin_output);
 	log_debug_info(DEBUGL_CHECKS, 2, "Perf Data:    %s\n", (temp_host->perf_data == NULL) ? "NULL" : temp_host->perf_data);
 
-	/* get the unprocessed return code */
-	/* NOTE: for passive checks, this is the final/processed state */
-	result = queued_check_result->return_code;
-
-	/* adjust return code (active checks only) */
-	if(queued_check_result->check_type == CHECK_TYPE_ACTIVE) {
-		if(queued_check_result->early_timeout) {
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' timed out after %.2lf seconds\n", temp_host->name, temp_host->execution_time);
-			my_free(temp_host->plugin_output);
-			my_free(temp_host->long_plugin_output);
-			my_free(temp_host->perf_data);
-			asprintf(&temp_host->plugin_output, "(Host check timed out after %.2lf seconds)", temp_host->execution_time);
-			result = STATE_UNKNOWN;
-			}
-
-		/* if there was some error running the command, just skip it (this shouldn't be happening) */
-		else if(queued_check_result->exited_ok == FALSE) {
-
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of host '%s' did not exit properly!\n", temp_host->name);
-
-			my_free(temp_host->plugin_output);
-			my_free(temp_host->long_plugin_output);
-			my_free(temp_host->perf_data);
-
-			temp_host->plugin_output = (char *)strdup("(Host check did not exit properly)");
-
-			result = STATE_CRITICAL;
-			}
-
-		/* make sure the return code is within bounds */
-		else if(queued_check_result->return_code < 0 || queued_check_result->return_code > 3) {
-
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of host '%s' was out of bounds.%s\n", queued_check_result->return_code, temp_host->name, (queued_check_result->return_code == 126 || queued_check_result->return_code == 127) ? " Make sure the plugin you're trying to run actually exists." : "");
-
-			my_free(temp_host->plugin_output);
-			my_free(temp_host->long_plugin_output);
-			my_free(temp_host->perf_data);
-
-			asprintf(&temp_host->plugin_output, "(Return code of %d is out of bounds%s)", queued_check_result->return_code, (queued_check_result->return_code == 126 || queued_check_result->return_code == 127) ? " - plugin may be missing" : "");
-
-			result = STATE_CRITICAL;
-			}
-
-		/* a NULL host check command means we should assume the host is UP */
-		if(temp_host->check_command == NULL) {
-			my_free(temp_host->plugin_output);
-			temp_host->plugin_output = (char *)strdup("(Host assumed to be UP)");
-			result = STATE_OK;
-			}
-		}
+	/* get the check return code */
+	result = get_host_check_return_code(temp_host, queued_check_result);
 
 	/* translate return code to basic UP/DOWN state - the DOWN/UNREACHABLE state determination is made later */
 	/* NOTE: only do this for active checks - passive check results already have the final state */

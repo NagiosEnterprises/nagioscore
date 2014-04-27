@@ -62,7 +62,7 @@ extern service *service_list;
 extern contact *contact_list;
 #endif
 extern servicestatus *servicestatus_list;
-extern comment *comment_list;
+extern nagios_comment *comment_list;
 extern scheduled_downtime *scheduled_downtime_list;
 
 /* Program status variables */
@@ -714,7 +714,7 @@ json_object *json_status_service_selectors(unsigned, int, int, int, host *, int,
 		time_t, time_t, char *, char *, char *, contactgroup *, timeperiod *,
 		timeperiod *, command *, command *);
 
-int json_status_comment_passes_selection(comment *, int, time_t, time_t,
+int json_status_comment_passes_selection(nagios_comment *, int, time_t, time_t,
 		unsigned, unsigned, unsigned, unsigned, char *, char *);
 json_object *json_status_comment_selectors(unsigned, int, int, int, time_t, 
 		time_t, unsigned, unsigned, unsigned, unsigned, char *, char *);
@@ -1819,7 +1819,7 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 	timeperiod *temp_timeperiod = NULL;
 	command *temp_command = NULL;
 	contact *temp_contact = NULL;
-	comment *temp_comment = NULL;
+	nagios_comment *temp_comment = NULL;
 	scheduled_downtime *temp_downtime = NULL;
 	authdata *authinfo = NULL; /* Currently always NULL because
 									get_authentication_information() hasn't
@@ -3558,10 +3558,10 @@ void json_status_service_details(json_object *json_details,
 #endif
 	}
 
-int json_status_comment_passes_selection(comment *temp_comment, int time_field, 
-		time_t start_time, time_t end_time, unsigned comment_types,
-		unsigned entry_types, unsigned persistence, unsigned expiring,
-		char *host_name, char *service_description) {
+int json_status_comment_passes_selection(nagios_comment *temp_comment,
+		int time_field, time_t start_time, time_t end_time,
+		unsigned comment_types, unsigned entry_types, unsigned persistence,
+		unsigned expiring, char *host_name, char *service_description) {
 
 	switch(time_field) {
 	case STATUS_TIME_INVALID: 
@@ -3732,7 +3732,7 @@ json_object *json_status_commentcount(unsigned format_options, int time_field,
 		char *host_name, char *service_description) {
 
 	json_object *json_data;
-	comment *temp_comment;
+	nagios_comment *temp_comment;
 	int count = 0;
 
 	json_data = json_new_object();
@@ -3766,7 +3766,7 @@ json_object *json_status_commentlist(unsigned format_options, int start,
 	json_object *json_commentlist_object = NULL;
 	json_object *json_commentlist_array = NULL;
 	json_object *json_comment_details;
-	comment *temp_comment;
+	nagios_comment *temp_comment;
 	int current = 0;
 	int counted = 0;
 	char *buf;
@@ -3824,7 +3824,8 @@ json_object *json_status_commentlist(unsigned format_options, int start,
 	return json_data;
 	}
 
-json_object *json_status_comment(unsigned format_options, comment *temp_comment) {
+json_object *json_status_comment(unsigned format_options,
+		nagios_comment *temp_comment) {
 
 	json_object *json_comment = json_new_object();
 	json_object *json_details = json_new_object();
@@ -3838,7 +3839,7 @@ json_object *json_status_comment(unsigned format_options, comment *temp_comment)
 	}
 
 void json_status_comment_details(json_object *json_details, 
-		unsigned format_options, comment *temp_comment) {
+		unsigned format_options, nagios_comment *temp_comment) {
 
 	json_object_append_integer(json_details, "comment_id", 
 			temp_comment->comment_id);

@@ -66,6 +66,8 @@ typedef struct wproc_object_job {
 unsigned int wproc_num_workers_online = 0, wproc_num_workers_desired = 0;
 unsigned int wproc_num_workers_spawned = 0;
 
+extern struct kvvec * macros_to_kvv(nagios_macros *);
+
 #define tv2float(tv) ((float)((tv)->tv_sec) + ((float)(tv)->tv_usec) / 1000000.0)
 
 static const char *wpjob_type_name(unsigned int type)
@@ -681,7 +683,11 @@ static int handle_worker_result(int sd, int events, void *arg)
 		if (error_reason) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: %s job %d from worker %s %s",
 			      wpjob_type_name(job->type), job->id, wp->name, error_reason);
+#ifdef DEBUG
+			/* The log below could leak sensitive information, such as 
+				passwords, so only enable it if you neally need it */
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   command: %s\n", job->command);
+#endif
 			if (job->type != WPJOB_CHECK && oj) {
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   host=%s; service=%s; contact=%s\n",
 				      oj->host_name ? oj->host_name : "(none)",
@@ -970,6 +976,8 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 {
 	static struct kvvec kvv = KVVEC_INITIALIZER;
 	struct kvvec_buf *kvvb;
+	struct kvvec *env_kvvp = NULL;
+	struct kvvec_buf *env_kvvb = NULL;
 	struct wproc_worker *wp;
 	int ret, result = OK;
 
@@ -978,13 +986,6 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 
 	wp = job->wp;
 
-	/*
-	 * XXX FIXME: add environment macros as
-	 *  kvvec_addkv(kvv, "env", "NAGIOS_LALAMACRO=VALUE");
-	 *  kvvec_addkv(kvv, "env", "NAGIOS_LALAMACRO2=VALUE");
-	 * so workers know to add them to environment. For now,
-	 * we don't support that though.
-	 */
 	if (!kvvec_init(&kvv, 4))	/* job_id, type, command and timeout */
 		return ERROR;
 
@@ -992,6 +993,21 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 	kvvec_addkv(&kvv, "type", (char *)mkstr("%d", job->type));
 	kvvec_addkv(&kvv, "command", job->command);
 	kvvec_addkv(&kvv, "timeout", (char *)mkstr("%u", job->timeout));
+
+	/* Add the macro environment variables */
+	if(mac) {
+		env_kvvp = macros_to_kvv(mac);
+		if(NULL != env_kvvp) {
+			env_kvvb = kvvec2buf(env_kvvp, '=', '\n', 0);
+			if(NULL == env_kvvb) {
+				kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
+			}
+			else {
+				kvvec_addkv_wlen(&kvv, "env", strlen("env"), env_kvvb->buf,
+						env_kvvb->buflen);
+			}
+		}
+	}
 	kvvb = build_kvvec_buf(&kvv);
 	ret = write(wp->sd, kvvb->buf, kvvb->bufsize);
 	if (ret != (int)kvvb->bufsize) {
@@ -1003,6 +1019,11 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 		wp->jobs_running++;
 		wp->jobs_started++;
 		loadctl.jobs_running++;
+	}
+	if(NULL != env_kvvp) kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
+	if(NULL != env_kvvb) {
+		free(env_kvvb->buf);
+		free(env_kvvb);
 	}
 	free(kvvb->buf);
 	free(kvvb);

@@ -214,9 +214,9 @@ typedef struct nagios_macros nagios_macros;
 #define MACRO_LASTHOSTSTATEID                   150
 #define MACRO_LASTSERVICESTATE                  151
 #define MACRO_LASTSERVICESTATEID                152
-#define MACRO_HOSTVALUE                         153
-#define MACRO_SERVICEVALUE                      154
-#define MACRO_PROBLEMVALUE                      155
+#define MACRO_HOSTIMPORTANCE                    153
+#define MACRO_SERVICEIMPORTANCE                 154
+#define MACRO_HOSTANDSERVICESIMPORTANCE         155
 
 
 /************* MACRO CLEANING OPTIONS *****************/
@@ -316,6 +316,7 @@ int clear_servicegroup_macros_r(nagios_macros *mac);
 int clear_contact_macros_r(nagios_macros *mac);
 int clear_contactgroup_macros_r(nagios_macros *mac);
 int clear_summary_macros_r(nagios_macros *mac);
+int clear_datetime_macros_r(nagios_macros *mac);
 
 
 #ifndef NSCGI

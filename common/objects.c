@@ -123,8 +123,8 @@ static const char *opts2str(int opts, const struct flag_map *map, char ok_char)
 	buf[pos++] = 0;
 	return buf;
 }
+#endif
 
-/* Host/Service dependencies are not visible in Nagios CGIs, so we exclude them */
 unsigned int host_services_value(host *h) {
 	servicesmember *sm;
 	unsigned int ret = 0;
@@ -135,6 +135,8 @@ unsigned int host_services_value(host *h) {
 	}
 
 
+#ifndef NSCGI
+/* Host/Service dependencies are not visible in Nagios CGIs, so we exclude them */
 static int cmp_sdep(const void *a_, const void *b_) {
 	const servicedependency *a = *(servicedependency **)a_;
 	const servicedependency *b = *(servicedependency **)b_;
@@ -841,7 +843,31 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 	/* add the child entry to the host definition */
 	new_servicesmember->next = hst->services;
 	hst->services = new_servicesmember;
-	hst->hourly_value += service_ptr->hourly_value;
+
+	return new_servicesmember;
+	}
+
+
+
+servicesmember *add_child_link_to_service(service *svc, service *child_ptr) {
+	servicesmember *new_servicesmember = NULL;
+
+	/* make sure we have the data we need */
+	if(svc == NULL || child_ptr == NULL)
+		return NULL;
+
+	/* allocate memory */
+	if((new_servicesmember = (servicesmember *)malloc(sizeof(servicesmember))) 
+			== NULL) return NULL;
+
+	/* assign values */
+	new_servicesmember->host_name = child_ptr->host_name;
+	new_servicesmember->service_description = child_ptr->description;
+	new_servicesmember->service_ptr = child_ptr;
+
+	/* add the child entry to the host definition */
+	new_servicesmember->next = svc->children;
+	svc->children = new_servicesmember;
 
 	return new_servicesmember;
 	}
@@ -2283,34 +2309,98 @@ int is_contact_for_host(host *hst, contact *cntct) {
 
 
 
-/* tests whether or not a contact is an escalated contact for a particular host */
-int is_escalated_contact_for_host(host *hst, contact *cntct) {
-	contactsmember *temp_contactsmember = NULL;
-	hostescalation *temp_hostescalation = NULL;
+/*  tests whether a contactgroup is a contactgroup for a particular host */
+int is_contactgroup_for_host(host *hst, contactgroup *group) {
 	contactgroupsmember *temp_contactgroupsmember = NULL;
-	contactgroup *temp_contactgroup = NULL;
+
+	if(hst == NULL || group == NULL) {
+		return FALSE;
+		}
+
+	/* search all contactgroups of this host */
+	for(temp_contactgroupsmember = hst->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		if(temp_contactgroupsmember->group_ptr == group) {
+			return TRUE;
+			}
+		}
+
+	return FALSE;
+	}
+
+
+
+/* tests whether a contact is an escalated contact for a particular host */
+int is_escalated_contact_for_host(host *hst, contact *cntct) {
+	hostescalation *temp_hostescalation = NULL;
 	objectlist *list;
 
 	/* search all host escalations */
 	for(list = hst->escalation_list; list; list = list->next) {
 		temp_hostescalation = (hostescalation *)list->object_ptr;
 
-		/* search all contacts of this host escalation */
-		for(temp_contactsmember = temp_hostescalation->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-			if(temp_contactsmember->contact_ptr == cntct)
-				return TRUE;
-			}
-
-		/* search all contactgroups of this host escalation */
-		for(temp_contactgroupsmember = temp_hostescalation->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-			temp_contactgroup = temp_contactgroupsmember->group_ptr;
-			if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
-				return TRUE;
+		if(is_contact_for_host_escalation(temp_hostescalation, cntct) == TRUE) {
+			return TRUE;
 			}
 		}
 
 	return FALSE;
 	}
+
+
+
+/* tests whether a contact is an contact for a particular host escalation */
+int is_contact_for_host_escalation(hostescalation *escalation, contact *cntct) {
+	contactsmember *temp_contactsmember = NULL;
+	hostescalation *temp_hostescalation = NULL;
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+	contactgroup *temp_contactgroup = NULL;
+
+	/* search all contacts of this host escalation */
+	for(temp_contactsmember = temp_hostescalation->contacts;
+			temp_contactsmember != NULL;
+			temp_contactsmember = temp_contactsmember->next) {
+		if(temp_contactsmember->contact_ptr == cntct)
+			return TRUE;
+		}
+
+	/* search all contactgroups of this host escalation */
+	for(temp_contactgroupsmember = temp_hostescalation->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		temp_contactgroup = temp_contactgroupsmember->group_ptr;
+		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
+			return TRUE;
+		}
+
+	return FALSE;
+	}
+
+
+
+/*  tests whether a contactgroup is a contactgroup for a particular
+	host escalation */
+int is_contactgroup_for_host_escalation(hostescalation *escalation,
+		contactgroup *group) {
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+
+	if(escalation == NULL || group == NULL) {
+		return FALSE;
+		}
+
+	/* search all contactgroups of this host escalation */
+	for(temp_contactgroupsmember = escalation->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		if(temp_contactgroupsmember->group_ptr == group) {
+			return TRUE;
+			}
+		}
+
+	return FALSE;
+	}
+
 
 
 /*  tests whether a contact is a contact for a particular service */
@@ -2341,34 +2431,98 @@ int is_contact_for_service(service *svc, contact *cntct) {
 
 
 
-/* tests whether or not a contact is an escalated contact for a particular service */
+/*  tests whether a contactgroup is a contactgroup for a particular service */
+int is_contactgroup_for_service(service *svc, contactgroup *group) {
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+
+	if(svc == NULL || group == NULL)
+		return FALSE;
+
+	/* search all contactgroups of this service */
+	for(temp_contactgroupsmember = svc->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		if(temp_contactgroupsmember->group_ptr == group) {
+			return TRUE;
+			}
+		}
+
+	return FALSE;
+	}
+
+
+
+/* tests whether a contact is an escalated contact for a particular service */
 int is_escalated_contact_for_service(service *svc, contact *cntct) {
 	serviceescalation *temp_serviceescalation = NULL;
-	contactsmember *temp_contactsmember = NULL;
-	contactgroupsmember *temp_contactgroupsmember = NULL;
-	contactgroup *temp_contactgroup = NULL;
 	objectlist *list;
 
 	/* search all the service escalations */
 	for(list = svc->escalation_list; list; list = list->next) {
 		temp_serviceescalation = (serviceescalation *)list->object_ptr;
 
-		/* search all contacts of this service escalation */
-		for(temp_contactsmember = temp_serviceescalation->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-			if(temp_contactsmember->contact_ptr == cntct)
-				return TRUE;
-			}
-
-		/* search all contactgroups of this service escalation */
-		for(temp_contactgroupsmember = temp_serviceescalation->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
-			temp_contactgroup = temp_contactgroupsmember->group_ptr;
-			if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
-				return TRUE;
+		if(is_contact_for_service_escalation(temp_serviceescalation,
+				cntct) == TRUE) {
+			return TRUE;
 			}
 		}
 
 	return FALSE;
 	}
+
+
+
+/* tests whether a contact is an contact for a particular service escalation */
+int is_contact_for_service_escalation(serviceescalation *escalation,
+		contact *cntct) {
+	contactsmember *temp_contactsmember = NULL;
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+	contactgroup *temp_contactgroup = NULL;
+
+	/* search all contacts of this service escalation */
+	for(temp_contactsmember = escalation->contacts;
+			temp_contactsmember != NULL;
+			temp_contactsmember = temp_contactsmember->next) {
+		if(temp_contactsmember->contact_ptr == cntct)
+			return TRUE;
+		}
+
+	/* search all contactgroups of this service escalation */
+	for(temp_contactgroupsmember =escalation->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		temp_contactgroup = temp_contactgroupsmember->group_ptr;
+		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
+			return TRUE;
+		}
+
+	return FALSE;
+	}
+
+
+
+/*  tests whether a contactgroup is a contactgroup for a particular
+	service escalation */
+int is_contactgroup_for_service_escalation(serviceescalation *escalation,
+		contactgroup *group) {
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+
+	if(escalation == NULL || group == NULL) {
+		return FALSE;
+		}
+
+	/* search all contactgroups of this service escalation */
+	for(temp_contactgroupsmember = escalation->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		if(temp_contactgroupsmember->group_ptr == group) {
+			return TRUE;
+			}
+		}
+
+	return FALSE;
+	}
+
 
 
 /******************************************************************/
@@ -3052,7 +3206,7 @@ void fcache_contact(FILE *fp, contact *temp_contact)
 		if(temp_contact->address[x])
 			fprintf(fp, "\taddress%d\t%s\n", x + 1, temp_contact->address[x]);
 	}
-	fprintf(fp, "\tminimum_value\t%u\n", temp_contact->minimum_value);
+	fprintf(fp, "\tminimum_importance\t%u\n", temp_contact->minimum_value);
 	fprintf(fp, "\thost_notifications_enabled\t%d\n", temp_contact->host_notifications_enabled);
 	fprintf(fp, "\tservice_notifications_enabled\t%d\n", temp_contact->service_notifications_enabled);
 	fprintf(fp, "\tcan_submit_commands\t%d\n", temp_contact->can_submit_commands);
@@ -3092,7 +3246,7 @@ void fcache_host(FILE *fp, host *temp_host)
 		fprintf(fp, "u\n");
 	else
 		fprintf(fp, "o\n");
-	fprintf(fp, "\thourly_value\t%u\n", temp_host->hourly_value);
+	fprintf(fp, "\timportance\t%u\n", temp_host->hourly_value);
 	fprintf(fp, "\tcheck_interval\t%f\n", temp_host->check_interval);
 	fprintf(fp, "\tretry_interval\t%f\n", temp_host->retry_interval);
 	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_host->max_attempts);
@@ -3176,7 +3330,7 @@ void fcache_service(FILE *fp, service *temp_service)
 		fprintf(fp, "c\n");
 	else
 		fprintf(fp, "o\n");
-	fprintf(fp, "\thourly_value\t%u\n", temp_service->hourly_value);
+	fprintf(fp, "\timportance\t%u\n", temp_service->hourly_value);
 	fprintf(fp, "\tcheck_interval\t%f\n", temp_service->check_interval);
 	fprintf(fp, "\tretry_interval\t%f\n", temp_service->retry_interval);
 	fprintf(fp, "\tmax_check_attempts\t%d\n", temp_service->max_attempts);

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>JSON Query Generator</title>
+		<link rel="stylesheet" type="text/css" href="stylesheets/jsonquery.css"/>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/jsonquery.js"></script>
+	</head>
+	<body>
+		<div id="wrap">
+			<h1>JSON Query Generator</h1>
+			<div id="results">
+				<p>Your query results will appear here.</p>
+			</div>
+			<div id="options">
+				<p>Enter your options here.</p>
+				<form id="query" action="jsonquery.php" method="get">
+					<table id="cgiform">
+						<tr>
+							<td class="label">
+								CGI:
+							</td>
+							<td>
+								<select id="cginame" name="cginame">
+									<option value="none">
+										Select a CGI
+									</option>
+									<option value="archivejson.cgi">
+										Archive JSON CGI
+									</option>
+									<option value="objectjson.cgi">
+										Object JSON CGI
+									</option>
+									<option value="statusjson.cgi">
+										Status JSON CGI
+									</option>
+								</select>
+							</td>
+						</tr>
+					</table>
+					<button type="submit">Send Query</button>
+				<form>
+			<div>
+		</div>
+	</body>
+</body>

@@ -971,7 +971,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 		case XODTEMPLATE_CONTACT:
 			xod_begin_def(contact);
 
-			new_contact->minimum_value = 1;
+			new_contact->minimum_value = 0;
 			new_contact->host_notifications_enabled = TRUE;
 			new_contact->service_notifications_enabled = TRUE;
 			new_contact->can_submit_commands = TRUE;
@@ -982,7 +982,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 		case XODTEMPLATE_HOST:
 			xod_begin_def(host);
 
-			new_host->hourly_value = 1;
+			new_host->hourly_value = 0;
 			new_host->check_interval = 5.0;
 			new_host->retry_interval = 1.0;
 			new_host->active_checks_enabled = TRUE;
@@ -1004,7 +1004,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 		case XODTEMPLATE_SERVICE:
 			xod_begin_def(service);
 
-			new_service->hourly_value = 1;
+			new_service->hourly_value = 0;
 			new_service->initial_state = STATE_OK;
 			new_service->max_check_attempts = -2;
 			new_service->check_interval = 5.0;
@@ -2128,7 +2128,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_contact->retain_nonstatus_information = (atoi(value) > 0) ? TRUE : FALSE;
 				temp_contact->have_retain_nonstatus_information = TRUE;
 				}
-			else if(!strcmp(variable, "minimum_value")) {
+			else if(!strcmp(variable, "minimum_importance") ||
+					!strcmp(variable, "minimum_value")) {
+				if(!strcmp(variable, "minimum_value")) {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The minimum_value attribute is deprecated and will be removed in future versions. Please use minimum_importance instead.\n");
+					}
 				temp_contact->minimum_value = strtoul(value, NULL, 10);
 				temp_contact->have_minimum_value = TRUE;
 				}
@@ -2367,7 +2371,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->retry_interval = strtod(value, NULL);
 				temp_host->have_retry_interval = TRUE;
 				}
-			else if(!strcmp(variable, "hourly_value")) {
+			else if(!strcmp(variable, "importance") ||
+					!strcmp(variable, "hourly_value")) {
+				if(!strcmp(variable, "hourly_value")) {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The hourly_value attribute is deprecated and will be removed in future versions. Please use importance instead.\n");
+					}
 				temp_host->hourly_value = (unsigned int)strtoul(value, NULL, 10);
 				temp_host->have_hourly_value = 1;
 				}
@@ -2788,7 +2796,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 					}
 				temp_service->have_initial_state = TRUE;
 				}
-			else if(!strcmp(variable, "hourly_value")) {
+			else if(!strcmp(variable, "importance") ||
+					!strcmp(variable, "hourly_value")) {
+				if(!strcmp(variable, "hourly_value")) {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The hourly_value attribute is deprecated and will be removed in future versions. Please use importance instead.\n");
+					}
 				temp_service->hourly_value = (unsigned int)strtoul(value, NULL, 10);
 				temp_service->have_hourly_value = 1;
 				}
@@ -5655,6 +5667,7 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 		xod_inherit(this_host, template_host, first_notification_delay);
 		xod_inherit(this_host, template_host, stalking_options);
 		xod_inherit(this_host, template_host, process_perf_data);
+		xod_inherit(this_host, template_host, hourly_value);
 
 		if(this_host->have_2d_coords == FALSE && template_host->have_2d_coords == TRUE) {
 			this_host->x_2d = template_host->x_2d;
@@ -5782,6 +5795,7 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 		xod_inherit(this_service, template_service, process_perf_data);
 		xod_inherit(this_service, template_service, retain_status_information);
 		xod_inherit(this_service, template_service, retain_nonstatus_information);
+		xod_inherit(this_service, template_service, hourly_value);
 
 		/* apply missing custom variables from template service... */
 		for(temp_customvariablesmember = template_service->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {
@@ -6117,9 +6131,6 @@ int xodtemplate_recombobulate_contactgroups(void) {
 	/* expand members of all contactgroups - this could be done in xodtemplate_register_contactgroup(), but we can save the CGIs some work if we do it here */
 	for(temp_contactgroup = xodtemplate_contactgroup_list; temp_contactgroup; temp_contactgroup = temp_contactgroup->next) {
 		objectlist *next, *list, *accept = NULL;
-
-		if(temp_contactgroup->members == NULL)
-			continue;
 
 		/*
 		 * If the contactgroup has no accept or reject list and no group
@@ -8688,6 +8699,7 @@ int xodtemplate_free_memory(void) {
 
 			my_free(this_service->template);
 			my_free(this_service->name);
+			my_free(this_service->parents);
 			my_free(this_service->display_name);
 			my_free(this_service->check_command);
 			my_free(this_service->check_period);

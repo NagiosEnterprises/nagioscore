@@ -2,12 +2,59 @@
 Nagios Core 4 Change Log
 ########################
 
-4.0.3 - xx/xx/xxxx
+x.x.x - xx/xx/xxxx
 ------------------
+ENHANCEMENTS
+* Added name of authenticated user to JSON CGI results object (Eric Stanley)
+* Added Nagios Core version to the Status JSON CGI programstatus query (Eric Stanley)
+
 FIXES
+* Fixed bug #600: Service Check Timeout State always returns OK (0) status (Mauno <mauno@pihelgas.eu>, Eric Stanley)
+* Fixed bug #583: Status Check Output of (No output on stdout) stderr: (Eric
+Stanley - duplicate of bug #573)
+* Fixed bug #573: Service checks returns (No output on stdout) stderr (Eric Stanley)
+* Fixed bug #438: Reloads during downtime causes wrong availability calculations (Eric Stanley)
+* Archive JSON: Fixed bugs calculating availability (Eric Stanley)
+* Archive JSON: Allow missing logs to be skipped (Eric Stanley)
+
+4.0.5 - 04/11/2014
+------------------
+* Fixed bug #595: Nagios 4 security fix (Alexey Dvoryanchikov, Eric Stanley)
+* Fixed bug #594: Nagios 4 fix contactgroups parsing (Alexey Dvoryanchikov, Eric Stanley)
+* Fixed bug #577: Nagios 4 checks stalled when write to socket failed (Alexey Dvoryanchikov)
+* Fixed bug #580: Nagios 4 memory leak (Eric Stanley)
+* Fixed init script to remove the switching of users when performing configuration verification which was causing failures if nagios user was set to nologin (Scott Wilkerson)
+* Fixed auto creation of RAMDISK via environment variables in init script to properly check existence using $RAMDISK_DIR environment variable. (Scott Wilkerson)
+* Fixed unreferenced variable NagiosVarDir in daemon-init (Eric Mislivec)
+* Fixed bug where audio alerts wouldn't work with a 0 height and width - http://support.nagios.com/forum/viewtopic.php?t=26387 (Scott Wilkerson)
+
+4.0.4 - 03/14/2014
+------------------
+ENHANCEMENTS
+* JSON CGIs moved to beta status (Eric Stanley)
+
+FIXES
+* Fixed bug #491,#553: Rebuilt the daemon-init scripts back to something that should work on all systems (Scott Wilkerson)
+
+
+4.0.3 - 02/28/2014
+------------------
+ENHANCEMENTS
+* Aliased hourly_value to importance and minimum_value to minimum_importance and deprecated the former (Eric Stanley)
+* Added host and service importance macros (Eric Stanley)
+* Added notifications on flexible downtime expiration (Dan Wittenberg)
+
+FIXES
+* Bug #548: Temporary fix that rejects all external command during restart to prevent Core from crashing (Eric Stanley)
+* Corrected calculation of host importance and importance defaults (Eric Stanley)
+* Fixed bug #498: Nagios 4 enable_environment_macros=1 not working (Eric Stanley, Alexey Dvoryanchikov)
+* No longer checks whether logs can be written when verifying configuration (Eric Stanley)
+* Fixed CGI bug where the CGI could read past the end of the list of CGI variables, potentially crashing the CGI (Scott Wilkerson)
+* Fixed inheritance of hourly_value from host and service templates (Scott Wilkerson)
 * Fixed bug #502: 4.0.0: Configuration -> Service Escalations = incomplete list (Eric Stanley)
-* Fixed bug #523: quotes and double quostes in plugin message are converted to HTML escapes in Nagios 4.0 (duplicate of bug #524)
+* Fixed bug #523: quotes and double quotes in plugin message are converted to HTML escapes in Nagios 4.0 (duplicate of bug #524)
 * Fixed bug #524: URLs returned in plugin check results are not correctly displayed (Eric Stanley)
+* Fixed bug where passive service checks would return "Service check timed out after 0.00 seconds" (Scott Wilkerson)
 
 4.0.2 - 11/25/2013
 ------------------

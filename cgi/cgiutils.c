@@ -122,6 +122,31 @@ int log_debug_info(int leve, int verbosity, const char *fmt, ...) {
 	return 0;
 	}
 
+/*** helpers ****/
+/*
+ * find a command with arguments still attached
+ * if we're unsuccessful, the buffer pointed to by 'name' is modified
+ * to have only the real command name (everything up until the first '!')
+ */
+static command *find_bang_command(char *name)
+{
+	char *bang;
+	command *cmd;
+
+	if (!name)
+		return NULL;
+
+	bang = strchr(name, '!');
+	if (!bang)
+		return find_command(name);
+	*bang = 0;
+	cmd = find_command(name);
+	*bang = '!';
+	return cmd;
+}
+
+
+
 /**********************************************************
  ***************** CLEANUP FUNCTIONS **********************
  **********************************************************/
@@ -549,13 +574,24 @@ int read_all_object_configuration_data(const char *cfgfile, int options) {
 	host *temp_host = NULL;
 	host *parent_host = NULL;
 	hostsmember *temp_hostsmember = NULL;
+	service *temp_service = NULL;
+	service *parent_service = NULL;
+	servicesmember *temp_servicesmember = NULL;
 
 	/* read in all external config data of the desired type(s) */
 	result = read_object_config_data(cfgfile, options);
 
-	/* Resolve host child->parent relationships */
+	/* Resolve objects in the host object */
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-		/* For each of the host's parents */
+		/* Find the command object for the check command */
+		temp_host->check_command_ptr =
+				find_bang_command(temp_host->check_command);
+
+		/* Find the command object for the event handler */
+		temp_host->event_handler_ptr =
+				find_bang_command(temp_host->event_handler);
+
+		/* Resolve host child->parent relationships */
 		for(temp_hostsmember = temp_host->parent_hosts;
 				temp_hostsmember != NULL;
 				temp_hostsmember = temp_hostsmember->next) {
@@ -572,6 +608,41 @@ int read_all_object_configuration_data(const char *cfgfile, int options) {
 				logit(NSLOG_CONFIG_ERROR, TRUE,
 						"Error: Failed to add '%s' as a child host of '%s'",
 						temp_host->name, parent_host->name);
+				}
+			}
+		}
+
+	/* Resolve objects in the service object */
+	for(temp_service = service_list; temp_service != NULL;
+			temp_service = temp_service->next) {
+		/* Find the command object for the check command */
+		temp_service->check_command_ptr =
+				find_bang_command(temp_service->check_command);
+
+		/* Find the command object for the event handler */
+		temp_service->event_handler_ptr =
+				find_bang_command(temp_service->event_handler);
+
+		/* Resolve service child->parent relationships */
+		for(temp_servicesmember = temp_service->parents;
+				temp_servicesmember != NULL;
+				temp_servicesmember = temp_servicesmember->next) {
+			/* Find the parent service */
+			if((parent_service = find_service(temp_servicesmember->host_name,
+					temp_servicesmember->service_description)) == NULL) {
+				logit(NSLOG_CONFIG_ERROR, TRUE,
+						"Error: '%s:%s' is not a valid parent for service '%s:%s'!",
+						temp_servicesmember->host_name,
+						temp_servicesmember->service_description,
+						temp_service->host_name, temp_service->description);
+				}
+			/* add a reverse (child) link to make searches faster later on */
+			if(add_child_link_to_service(parent_service,
+					temp_service) == NULL) {
+				logit(NSLOG_CONFIG_ERROR, TRUE,
+						"Error: Failed to add '%s:%s' as a child service of '%s:%s'",
+						temp_service->host_name, temp_service->description,
+						parent_service->host_name, parent_service->description);
 				}
 			}
 		}
@@ -1062,6 +1133,7 @@ char * html_encode(char *input, int escape_newlines) {
 	int			where_in_tag = WHERE_OUTSIDE_TAG; /* Location in HTML tag */
 	wchar_t		attr_value_start = (wchar_t)0;	/* character that starts the 
 													attribute value */
+	int			tag_depth = 0;					/* depth of nested HTML tags */
 
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
@@ -1130,6 +1202,13 @@ char * html_encode(char *input, int escape_newlines) {
 				('"' == *inwcp || '\'' == *inwcp)) {
 			switch(where_in_tag) {
 			case WHERE_OUTSIDE_TAG:
+				if(tag_depth >0) {
+					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+					}
+				else {
+					outstp = encode_character(*inwcp, outstp, output_max);
+					}
+				break;
 			case WHERE_IN_COMMENT:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				break;
@@ -1140,14 +1219,22 @@ char * html_encode(char *input, int escape_newlines) {
 				break;
 			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
 				if(*(inwcp-1) == '\\') {
+					/* This covers the case where the quote is backslash
+						escaped. */
 					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 					}
 				else if(attr_value_start == *inwcp) {
+					/* If the quote is the same type of quote that started
+						the attribute value and it is not backslash 
+						escaped, it signals the end of the attribute value */
 					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
 					}
 				else {
-					outstp = encode_character(*inwcp, outstp, output_max);
+					/* If we encounter an quote that did not start the
+						attribute value and is not backslash escaped, 
+						use it as is */
+					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 					}
 				break;
 			default:
@@ -1175,6 +1262,16 @@ char * html_encode(char *input, int escape_newlines) {
 			case WHERE_OUTSIDE_TAG:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				where_in_tag = WHERE_IN_TAG_NAME;
+				switch(*(inwcp+1)) {
+				case '/':
+					tag_depth--;
+					break;
+				case '!':
+					break;
+				default:
+					tag_depth++;
+					break;
+					}
 				break;
 			default:
 				outstp = encode_character(*inwcp, outstp, output_max);

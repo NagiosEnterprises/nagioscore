@@ -44,6 +44,11 @@
 # define SIG_ERR ((Sigfunc *)-1)
 #endif
 
+/* Determine whether we have setenv()/unsetenv() (see setenv(3) on Linux) */
+#if _BSD_SOURCE || _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
+# define HAVE_SETENV
+#endif
+
 /* This variable must be global, since there's no way the caller
  * can forcibly slay a dead or ungainly running program otherwise.
  * Multithreading apps and plugins can initialize it (via runcmd_init())
@@ -414,6 +419,15 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 			if(pids[i] > 0)
 				close (i);
 
+		/* Export the environment */
+		if(NULL != env) {
+			char **envpp = env;
+			while(NULL != *envpp && NULL != *(envpp+1)) {
+				update_environment(*envpp, *(envpp+1), 1);
+				envpp += 2;
+			}
+		}
+
 		i = execvp(argv[0], argv);
 		fprintf(stderr, "execvp(%s, ...) failed. errno is %d: %s\n", argv[0], errno, strerror(errno));
 		if (!cmd2strv_errors)
@@ -499,4 +513,35 @@ int runcmd_try_close(int fd, int *status, int sig)
 	pids[fd] = 0;
 	close(fd);
 	return result;
+}
+
+/* sets or unsets an environment variable */
+int update_environment(char *name, char *value, int set) {
+#ifndef HAVE_SETENV
+	char *env_string = NULL;
+#endif
+
+	/* we won't mess with null variable names */
+	if(name == NULL) return -1;
+
+	/* set the environment variable */
+	if(set == 1) {
+
+#ifdef HAVE_SETENV
+		setenv(name, (value == NULL) ? "" : value, 1);
+#else
+		/* needed for Solaris and systems that don't have setenv() */
+		/* this will leak memory, but in a "controlled" way, since lost memory should be freed when the child process exits */
+		asprintf(&env_string, "%s=%s", name, (value == NULL) ? "" : value);
+		if(env_string) putenv(env_string);
+#endif
+	}
+	/* clear the variable */
+	else {
+#ifdef HAVE_UNSETENV
+		unsetenv(name);
+#endif
+	}
+
+	return 0;
 }

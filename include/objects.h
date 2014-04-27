@@ -746,6 +746,7 @@ struct host *add_host(char *name, char *display_name, char *alias, char *address
 struct hostsmember *add_parent_host_to_host(host *, char *);							/* adds a parent host to a host definition */
 struct servicesmember *add_parent_service_to_service(service *, char *host_name, char *description);
 struct hostsmember *add_child_link_to_host(host *, host *);						       /* adds a child host to a host definition */
+struct servicesmember *add_child_link_to_service(service *, service *);						       /* adds a child host to a host definition */
 struct contactgroupsmember *add_contactgroup_to_host(host *, char *);					       /* adds a contactgroup to a host definition */
 struct contactsmember *add_contact_to_host(host *, char *);                                                    /* adds a contact to a host definition */
 struct customvariablesmember *add_custom_variable_to_host(host *, char *, char *);                             /* adds a custom variable to a host definition */
@@ -816,9 +817,25 @@ int is_host_member_of_servicegroup(struct servicegroup *, struct host *);	      
 int is_service_member_of_servicegroup(struct servicegroup *, struct service *);	/* tests whether or not a service is a member of a specific servicegroup */
 int is_contact_member_of_contactgroup(struct contactgroup *, struct contact *);	/* tests whether or not a contact is a member of a specific contact group */
 int is_contact_for_host(struct host *, struct contact *);			       /* tests whether or not a contact is a contact member for a specific host */
+int is_contactgroup_for_host(struct host *, struct contactgroup *);
+	/* tests whether a contact group is a contract group for a specific host */
 int is_escalated_contact_for_host(struct host *, struct contact *);                   /* checks whether or not a contact is an escalated contact for a specific host */
+int is_contact_for_host_escalation(hostescalation *, contact *);
+	/* tests whether a contact is an contact for a particular host escalation */
+int is_contactgroup_for_host_escalation(hostescalation *, contactgroup *);
+	/*  tests whether a contactgroup is a contactgroup for a particular
+	host escalation */
 int is_contact_for_service(struct service *, struct contact *);		       /* tests whether or not a contact is a contact member for a specific service */
+int is_contactgroup_for_service(struct service *, struct contactgroup *);
+	/* tests whether a contact group is a contract group for a specific service */
+int is_escalated_contact_for_host(struct host *, struct contact *);                   /* checks whether or not a contact is an escalated contact for a specific host */
 int is_escalated_contact_for_service(struct service *, struct contact *);             /* checks whether or not a contact is an escalated contact for a specific service */
+int is_contact_for_service_escalation(serviceescalation *, contact *);
+	/* tests whether a contact is an contact for a particular service
+		escalation */
+int is_contactgroup_for_service_escalation(serviceescalation *, contactgroup *);
+/*  tests whether a contactgroup is a contactgroup for a particular
+	service escalation */
 
 int number_of_immediate_child_hosts(struct host *);		                /* counts the number of immediate child hosts for a particular host */
 int number_of_total_child_hosts(struct host *);				/* counts the number of total child hosts for a particular host */

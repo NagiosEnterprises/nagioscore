@@ -32,6 +32,8 @@
 #include "../include/workers.h"
 
 
+extern int sigrestart;
+
 static int command_file_fd;
 static FILE *command_file_fp;
 static int command_file_created = FALSE;
@@ -150,6 +152,11 @@ static int command_input_handler(int sd, int events, void *discard) {
 			buf[size] = 0;
 			log_debug_info(DEBUGL_COMMANDS, 1, "Read raw external command '%s'\n", buf);
 			}
+
+		/* Drop commands while restarting because we may not be ready to 
+			handle them */
+		if(TRUE == sigrestart) continue;
+
 		if ((cmd_ret = process_external_command1(buf)) != CMD_ERROR_OK) {
 			logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING, TRUE, "External command error: %s\n", cmd_error_strerror(cmd_ret));
 			}

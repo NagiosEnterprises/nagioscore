@@ -54,6 +54,7 @@ install:
 	rm -f $(DESTDIR)$(HTMLDIR)/index.html
 	rm -f $(DESTDIR)$(HTMLDIR)/main.html
 	rm -f $(DESTDIR)$(HTMLDIR)/side.html
+	$(INSTALL) -m 664 $(INSTALL_OPTS) jsonquery.html $(DESTDIR)$(HTMLDIR)
 	for file in *.php; \
 	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR); done
 #	for file in media/*.wav; \

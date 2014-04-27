@@ -1,0 +1,37 @@
+body, html {
+	margin: 0;
+	padding: 0;
+}
+
+#wrap {
+	width: 750px;
+	left: calc(50% - 375px);
+	background: #ddd;
+	position: absolute;
+	text-align: center;
+}
+
+#options {
+	width: 290px;
+	float: left;
+	background: #bbb;
+	padding-left: 5px;
+	padding-right: 5px;
+	text-align: left;
+}
+
+#results {
+	width: 440px;
+	float: right;
+	padding-left: 5px;
+	padding-right: 5px;
+	text-align: left;
+}
+
+#results p.error {
+	color: red;
+}
+
+.required {
+	color: red;
+}

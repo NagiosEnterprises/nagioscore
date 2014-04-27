@@ -1096,7 +1096,6 @@ int process_cgivars(void) {
 
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
-			x++;
 			continue;
 			}
 
@@ -2107,8 +2106,8 @@ void compute_subject_downtime(avail_subject *subject, time_t current_time) {
 	archived_state *temp_sd;
 	time_t start_time;
 	time_t end_time;
-	int host_downtime_depth = 0;
-	int service_downtime_depth = 0;
+	int host_downtime_state = 0;
+	int service_downtime_state = 0;
 	int process_chunk = FALSE;
 
 #ifdef DEBUG2
@@ -2150,20 +2149,20 @@ void compute_subject_downtime(avail_subject *subject, time_t current_time) {
 			break;
 
 		if(temp_sd->entry_type == AS_HOST_DOWNTIME_START)
-			host_downtime_depth++;
+			host_downtime_state = 1;
 		else if(temp_sd->entry_type == AS_HOST_DOWNTIME_END)
-			host_downtime_depth--;
+			host_downtime_state = 0;
 		else if(temp_sd->entry_type == AS_SVC_DOWNTIME_START)
-			service_downtime_depth++;
+			service_downtime_state = 1;
 		else if(temp_sd->entry_type == AS_SVC_DOWNTIME_END)
-			service_downtime_depth--;
+			service_downtime_state = 0;
 		else
 			continue;
 
 		process_chunk = FALSE;
 		if(temp_sd->entry_type == AS_HOST_DOWNTIME_START || temp_sd->entry_type == AS_SVC_DOWNTIME_START)
 			process_chunk = TRUE;
-		else if(subject->type == SERVICE_SUBJECT && (host_downtime_depth > 0 || service_downtime_depth > 0))
+		else if(subject->type == SERVICE_SUBJECT && (host_downtime_state == 1 || service_downtime_state == 1))
 			process_chunk = TRUE;
 
 		/* process this specific "chunk" of scheduled downtime */

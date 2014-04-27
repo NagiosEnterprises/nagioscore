@@ -105,7 +105,7 @@ ul.navsectionlinks {
   padding: 0;
   list-style: none;
 }
-ul.navsectionlinks li {	}
+ul.navsectionlinks li { }
 ul.navsectionlinks li a {
   font-weight: bold;
   font-size: 9pt;
@@ -149,86 +149,82 @@ ul.navsectionlinks li ul li ul {
 .navbarsearch fieldset legend {
   font-size: 8pt;
 }
-.navbarsearch input{
+.navbarsearch input {
   font-size: 9pt;
 }
 
-	
-#splashpage{
+
+#splashpage {
   text-align: center;
 }
-#mainbrandsplash{
+#mainbrandsplash {
   font-size: 12pt;
   font-weight: bold;
   margin: 0 0 35px 0;
 }
-#maincopy{
+#maincopy {
   margin: 0 0 15px 0;
 }
-#currentversioninfo{
+#currentversioninfo {
   font-size: 12pt;
 }
-#currentversioninfo .product{
+#currentversioninfo .product {
   font-size: 14pt;
   font-weight: bold;
 }
-#currentversioninfo .version{
+#currentversioninfo .version {
   font-size: 14pt;
   font-weight: bold;
 }
-#currentversioninfo .releasedate{
+#currentversioninfo .releasedate {
   font-size: 11pt;
   margin: 5px 0 0 0;
 }
-#currentversioninfo .checkforupdates{
+#currentversioninfo .checkforupdates {
   font-size: 11pt;
   font-weight: bold;
 }
-#currentversioninfo .whatsnew{
+#currentversioninfo .whatsnew {
   font-size: 11pt;
   font-weight: bold;
   margin: 50px 0 0 0;
 }
-#updateversioninfo{
+#updateversioninfo {
   margin: 15px auto 35px auto;
   width: 400px;
 }
-.updatechecksdisabled{
+#updateversioninfo div.submessage {
+  clear: left;
+}
+.updatechecksdisabled {
   background-color: #FF9F9F;
   border: 1px solid red;
   padding: 10px;
 }
-.updatechecksdisabled div.warningmessage{
+.updatechecksdisabled div.warningmessage {
   font-weight: bold;
 }
-#updateversioninfo div.submessage{
-  clear: left;
-}
-.updateavailable{
+.updateavailable {
   background-color: #9FD4FF;
   border: 1px solid blue;
   padding: 10px;
 }
-.updateavailable div.updatemessage{
+.updateavailable div.updatemessage {
   font-size: 12pt;
   font-weight: bold;
 }
-	
-#splashpage #mainfooter{
-  /*margin: 100px 0 0 0;*/
+
+#splashpage #mainfooter {
   clear: both;
   font-size: 8pt;
   padding-top: 35px;
 }
-#splashpage #mainfooter .disclaimer{
-  /*width: 80%;*/
+#splashpage #mainfooter .disclaimer {
   margin: auto;
 }
-#splashpage #mainfooter .logos{
+#splashpage #mainfooter .logos {
   margin: 15px 0 0 0;
 }
-
-
 
 
 
@@ -330,41 +326,56 @@ th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-b
 }
 
 
-	
+
 #splashboxes {
-	/*border: 1px solid blue;*/
-	margin: auto;
-    width: 90%;
-	}
-.splashbox{
-	padding: 5px;
-	margin: 5px 5px 5px;
-	border: 1px solid #AAAAAA;
-	float: left;
-	text-align: left;
-	height: 140px;
-	}
-.splashbox h2{
-	margin: 0px;
-	font-size: 12pt;
-	}
-.splashbox ul{
-    margin: 0;
-    padding: 5px 5px 5px 15px;
-	}
-.splashbox ul li{
-	clear: both;
-	}
-#splashbox1 {
-	width: 250px;
-	}
-#splashbox2 {
-	width: 500px;
-	}
+  margin: auto;
+  width: 794px;
+}
+
+.splashbox {
+  padding: 5px;
+  margin: 5px;
+  border: 1px solid #AAAAAA;
+  float: left;
+  text-align: left;
+  height: 140px;
+}
+.splashbox h2 {
+  margin: 0;
+  font-size: 12pt;
+}
+.splashbox ul {
+  margin: 0;
+  padding: 5px 5px 5px 15px;
+}
+.splashbox ul li {
+  clear: both;
+}
+
+.splashbox-media {
+  margin: 5px;
+}
+.splashbox3-empty {
+  margin: 5px;
+  border: 1px solid #AAAAAA;
+  width: 238px;
+  height: 150px;
+}
+.splashbox3-full {
+  margin: 5px;
+  width: 240px;
+  height: 152px;
+}
+.splashbox-clear {
+  clear: both;
+}
+
+#splashbox1, #splashbox2, #splashbox4 {
+  width: 250px;
+}
 #splashbox3 {
-	width: 250px;
-	clear: both;
-	}
-#splashbox4 {
-	width: 500px;
-	}
+  float: left;
+}
+#splashbox5 {
+  width: 500px;
+}

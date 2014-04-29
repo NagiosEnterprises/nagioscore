@@ -36,7 +36,7 @@ $this_version="4.0.5";
 	});
 
 	// Fetch an RSS feed and format HTML for the first n items.
-	loadRemoteFeed = function(id, name, n, prefix, formatter, suffix) {
+	function loadRemoteFeed(id, name, n, prefix, formatter, suffix) {
 		$.ajax({
 			type: 'GET',
 			url: 'http://www.nagios.org/backend/feeds/' + name + '/',
@@ -49,43 +49,39 @@ $this_version="4.0.5";
 
 				$(d).find('channel').find('item').each(function(index) {
 					var itemText = formatter($(this)); // Format the item's HTML.
-					if (itemText) {
-						text += itemText; // Append if non-empty.
-					}
+					if (itemText) text += itemText; // Append if non-empty.
 					return index+1 < n; // Only process n items.
 				});
 
 				// Only set the HTML if we have item text.
-				if (text) {
-					$(id).html(prefix + text + suffix);
-				}
+				if (text) $(id).html(prefix + text + suffix);
 			}
 		});
-	};
+	}
 
-	processBannerItem = function(item) {
+	function processBannerItem(item) {
 		return item.find('description').text();
-	};
+	}
 
-	processNewsItem = function(item) {
+	function processNewsItem(item) {
 		var link = item.find('link').text();
 		var title = item.find('title').text();
 		return link && title
 			? '<li><a href="' + link + '" target="_blank">' + title + '</a></li>'
 			: '';
-	};
+	}
 
-	processPromoItem = function(item) {
+	function processPromoItem(item) {
 		var description = item.find('description').text();
 		return description
 			? '<li>' + description + '</li>'
 			: '';
-	};
+	}
 
 
 	// Set our playlist HTML when we know we have Internet access.
 	var playlistInitialized = false;
-	initializePlaylist = function() {
+	function initializePlaylist() {
 		if (!playlistInitialized) {
 			playlistInitialized = true;
 			$('#splashbox3')
@@ -93,10 +89,10 @@ $this_version="4.0.5";
 				.removeClass('splashbox3-empty')
 				.html('<iframe width="100%" height="100%" src="//www.youtube.com/embed/videoseries?list=PLN-ryIrpC_mCUW1DFwZpxpAk00i60lSkE&iv_load_policy=3&rel=0" frameborder="0" allowfullscreen></iframe>');
 		}
-	};
+	}
 
 	// Get the daemon status JSON.
-	getCoreStatus = function() {
+	function getCoreStatus() {
 		setCoreStatusHTML('passiveonly', 'Checking process status...');
 
 		$.get('cgi-bin/statusjson.cgi?query=programstatus', function(d) {
@@ -111,11 +107,11 @@ $this_version="4.0.5";
 		}).fail(function() {
 			setCoreStatusHTML('disabled', 'Unable to get process status');
 		});
-	};
+	}
 
-	setCoreStatusHTML = function(image, text) {
+	function setCoreStatusHTML(image, text) {
 		$('#core-status').html('<img src="/nagios/images/' + image + '.gif" /> ' + text);
-	};
+	}
 </script>
 
 </head>
@@ -134,7 +130,7 @@ $this_version="4.0.5";
 	<div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
 	<div class="version">Version 4.0.5</div>
 	<div class="releasedate">April 11, 2014</div>
-	<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=4.0.5&product=nagioscore" target="_blank">Check for updates</a></div>
+	<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=4.0.5&amp;product=nagioscore" target="_blank">Check for updates</a></div>
 </div>
 
 
@@ -198,7 +194,8 @@ $this_version="4.0.5";
 			</ul>
 		</div>
 
-		<div id="splashbox3" class="splashbox3-empty" /><!-- youtube playlist -->
+		<div id="splashbox3" class="splashbox3-empty"><!-- youtube playlist -->
+		</div>
 
 	</div><!-- end splashrow1 -->
 	
@@ -232,7 +229,7 @@ $this_version="4.0.5";
 	</div>
 	<div class="logos">
 		<a href="http://www.nagios.org/" target="_blank"><img src="images/weblogo1.png" width="102" height="47" border="0" style="padding: 0 40px 0 40px;" title="Nagios.org" /></a>
-		<a href="http://sourceforge.net/projects/nagios"><img src="images/sflogo.png" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+		<a href="http://sourceforge.net/projects/nagios" target="_blank"><img src="images/sflogo.png" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
 	</div>
 </div> 
 

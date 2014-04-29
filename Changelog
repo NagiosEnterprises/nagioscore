@@ -7,6 +7,7 @@ x.x.x - xx/xx/xxxx
 ENHANCEMENTS
 * Added name of authenticated user to JSON CGI results object (Eric Stanley)
 * Added Nagios Core version to the Status JSON CGI programstatus query (Eric Stanley)
+* Added daemon status to main page (Eric Mislivec)
 
 FIXES
 * Fixed bug #600: Service Check Timeout State always returns OK (0) status (Mauno <mauno@pihelgas.eu>, Eric Stanley)
@@ -14,6 +15,7 @@ FIXES
 Stanley - duplicate of bug #573)
 * Fixed bug #573: Service checks returns (No output on stdout) stderr (Eric Stanley)
 * Fixed bug #438: Reloads during downtime causes wrong availability calculations (Eric Stanley)
+* Fixed feed updates when daemon can not access external networks (Eric Mislivec)
 * Archive JSON: Fixed bugs calculating availability (Eric Stanley)
 * Archive JSON: Allow missing logs to be skipped (Eric Stanley)
 

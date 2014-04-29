@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-x.x.x - xx/xx/xxxx
+4.0.6 - 04/29/2014
 ------------------
 ENHANCEMENTS
 * Added name of authenticated user to JSON CGI results object (Eric Stanley)

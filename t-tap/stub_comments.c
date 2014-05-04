@@ -1,4 +1,5 @@
 /* Stub file for comments.c */
+#include "objects.h"
 int delete_service_comment(unsigned long comment_id) {}
 int delete_host_comment(unsigned long comment_id) {}
 int add_new_comment(int type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id) {}

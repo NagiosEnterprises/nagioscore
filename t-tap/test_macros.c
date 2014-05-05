@@ -29,9 +29,12 @@
  *****************************************************************************/
 
 #include <string.h>
+#include <time.h>
 #include "../include/objects.h"
 #include "../include/nagios.h"
 #include "tap.h"
+#include "stub_downtime.c"
+#include "stub_comments.c"
 
 /*****************************************************************************/
 /*                             Dummy functions                               */
@@ -40,8 +43,6 @@ void logit(int data_type, int display, const char *fmt, ...) {
 }
 int my_sendall(int s, char *buf, int *len, int timeout) {
 	return 0;
-}
-void free_comment_data(void) {
 }
 
 int log_debug_info(int level, int verbosity, const char *fmt, ...) {

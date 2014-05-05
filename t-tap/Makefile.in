@@ -73,7 +73,7 @@ test_logging: test_logging.o $(SRC_BASE)/logging.o $(TAPOBJ)
 test_events: test_events.o $(SRC_BASE)/events.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(MATHLIBS) $(LIBS)
 
-test_checks: test_checks.o $(SRC_BASE)/checks.o $(TAPOBJ)
+test_checks: test_checks.o $(SRC_BASE)/checks.o $(TAPOBJ) $(SRC_BASE)/utils.o $(SRC_COMMON)/shared.o $(SRC_BASE)/objects-base.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(MATHLIBS) $(LIBS)
 
 test_commands: test_commands.o $(SRC_COMMON)/shared.o $(TAPOBJ)
@@ -88,10 +88,10 @@ test_freshness: test_freshness.o $(SRC_BASE)/freshness.o $(TAPOBJ)
 test_nagios_config: test_nagios_config.o $(CFG_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS)
 
-test_timeperiods: test_timeperiods.o $(TP_OBJS) $(TAPOBJ) stub_downtime.o
+test_timeperiods: test_timeperiods.o $(TP_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS)
 
-test_macros: test_macros.o $(TP_OBJS) $(TAPOBJ) stub_downtime.o stub_comments.o
+test_macros: test_macros.o $(TP_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(LIBS)
 
 test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)

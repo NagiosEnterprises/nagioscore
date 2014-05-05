@@ -42,6 +42,7 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 #include "tap.h"
+#include "stub_downtime.c"
 
 /* Dummy functions */
 void logit(int data_type, int display, const char *fmt, ...) {}

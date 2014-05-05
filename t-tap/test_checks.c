@@ -16,6 +16,7 @@
 *
 *****************************************************************************/
 
+#define TEST_CHECKS_C
 #define NSCORE 1
 #include "config.h"
 #include "comments.h"
@@ -26,15 +27,25 @@
 #include "nagios.h"
 #include "broker.h"
 #include "perfdata.h"
+#include "../lib/lnag-utils.h"
 #include "tap.h"
-#include "test-stubs.c"
 #include "stub_sehandlers.c"
 #include "stub_comments.c"
 #include "stub_perfdata.c"
 #include "stub_downtime.c"
-#include "../common/shared.c"
+#include "stub_notifications.c"
+#include "stub_logging.c"
+#include "stub_broker.c"
+#include "stub_macros.c"
+#include "stub_workers.c"
+#include "stub_events.c"
+#include "stub_statusdata.c"
+#include "stub_flapping.c"
+#include "stub_nebmods.c"
+#include "stub_netutils.c"
+#include "stub_commands.c"
+#include "stub_xodtemplate.c"
 
-int log_host_retries = 0;
 int date_format;
 
 /* Test specific functions + variables */
@@ -149,7 +160,7 @@ main(int argc, char **argv) {
 	time_t now = 0L;
 
 
-	plan_tests(42);
+	plan_tests(41);
 
 	time(&now);
 
@@ -175,7 +186,7 @@ main(int argc, char **argv) {
 
 	setup_objects(now);
 	svc1->last_state = STATE_CRITICAL;
-	svc1->notified_on_critical = TRUE;
+	svc1->notification_options = OPT_CRITICAL;
 	svc1->current_notification_number = 999;
 	svc1->last_notification = (time_t)11111;
 	svc1->next_notification = (time_t)22222;
@@ -202,11 +213,9 @@ main(int argc, char **argv) {
 	setup_check_result();
 	tmp_check_result->return_code = STATE_CRITICAL;
 	tmp_check_result->output = strdup("CRITICAL failure");
-	log_service_event_flag = 0;
 
 	handle_async_service_check_result(svc1, tmp_check_result);
 
-	ok(log_service_event_flag == 1, "log_service_event() was called");
 	ok(svc1->last_hard_state_change == (time_t)1234567890, "Got last_hard_state_change time=%lu", svc1->last_hard_state_change);
 	ok(svc1->last_state_change == svc1->last_hard_state_change, "Got same last_state_change");
 	ok(svc1->last_hard_state == 2, "Should save the last hard state as critical for next time");
@@ -369,7 +378,7 @@ main(int argc, char **argv) {
 	host1->plugin_output = strdup("");
 	host1->long_plugin_output = strdup("");
 	host1->perf_data = strdup("");
-	host1->host_check_command = strdup("Dummy command required");
+	host1->check_command = strdup("Dummy command required");
 	host1->accept_passive_checks = TRUE;
 	passive_host_checks_are_soft = TRUE;
 	setup_check_result();

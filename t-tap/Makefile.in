@@ -67,8 +67,8 @@ all: $(TESTS)
 
 ########## TESTS ##########
 
-test_logging: test_logging.o $(SRC_BASE)/logging.o $(TAPOBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+test_logging: test_logging.o $(SRC_BASE)/logging.o $(TAPOBJ) $(SRC_COMMON)/shared.o $(SRC_BASE)/objects-base.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 test_events: test_events.o $(SRC_BASE)/events.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(MATHLIBS) $(LIBS)

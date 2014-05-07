@@ -10,3 +10,4 @@ int broker_host_check(int type, int flags, int attr, host *hst, int check_type, 
 int broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, struct timeval *timestamp, check_result *cr) { return OK; }
 void broker_program_state(int type, int flags, int attr, struct timeval *timestamp) {}
 void broker_system_command(int type, int flags, int attr, struct timeval start_time, struct timeval end_time, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *output, struct timeval *timestamp) {}
+void broker_log_data(int type, int flags, int attr, char *data, unsigned long data_type, time_t entry_time, struct timeval *timestamp) {}

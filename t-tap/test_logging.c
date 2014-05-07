@@ -21,12 +21,27 @@
 #include "nagios.h"
 #include "objects.h"
 #include "tap.h"
-#include "../common/shared.c"
+#include "stub_broker.c"
+#include "stub_xodtemplate.c"
 
 #define TEST_LOGGING 1
-#include "test-stubs.c"
 
 int date_format;
+char *log_file = NULL;
+int verify_config = FALSE;
+int test_scheduling = FALSE;
+int debug_level = DEFAULT_DEBUG_LEVEL;
+char *debug_file;
+int debug_verbosity = DEFAULT_DEBUG_VERBOSITY;
+unsigned long   max_debug_file_size = DEFAULT_MAX_DEBUG_FILE_SIZE;
+int	use_syslog = DEFAULT_USE_SYSLOG;
+unsigned long syslog_options = 0;
+unsigned long logging_options = 0;
+int log_initial_states = DEFAULT_LOG_INITIAL_STATES;
+char *log_archive_path = ".";
+int log_current_states = DEFAULT_LOG_CURRENT_STATES;
+int log_service_retries = DEFAULT_LOG_SERVICE_RETRIES;
+int use_large_installation_tweaks = DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
 
 char *saved_source;
 char *saved_dest;

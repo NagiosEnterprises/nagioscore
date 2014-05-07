@@ -1,9 +1,9 @@
 /* Stub file for common/objects.c */
-service * find_service(char *host_name, char *svc_desc) {}
-host * find_host(char *name) {}
-hostgroup * find_hostgroup(char *name) {}
-contactgroup * find_contactgroup(char *name) {}
-servicegroup * find_servicegroup(char *name) {}
-contact * find_contact(char *name) {}
-command * find_command(char *name) {}
-timeperiod * find_timeperiod(char *name) {}
+service *find_service(const char *host_name, const char *svc_desc) { return NULL; }
+host *find_host(const char *name) { return NULL; }
+hostgroup *find_hostgroup(const char *name) { return NULL; }
+contactgroup *find_contactgroup(const char *name) { return NULL; }
+servicegroup *find_servicegroup(const char *name) { return NULL; }
+contact *find_contact(const char *name) { return NULL; }
+command *find_command(const char *name) { return NULL; }
+timeperiod *find_timeperiod(const char *name) { return NULL; }

@@ -33,9 +33,9 @@
 #include "stub_utils.c"
 #include "stub_sretention.c"
 #include "stub_checks.c"
+#include "stub_macros.c"
 #include "tap.h"
 
-void logit(int data_type, int display, const char *fmt, ...) {}
 int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
@@ -67,6 +67,9 @@ char *global_service_event_handler;
 command *global_service_event_handler_ptr;
 char *global_host_event_handler;
 command *global_host_event_handler_ptr;
+char *command_file = NULL;
+iobroker_set *nagios_iobs = NULL;
+int sigrestart = FALSE;
 
 /* Catch lower calls through these stubs */
 time_t test_start_time = 0L;

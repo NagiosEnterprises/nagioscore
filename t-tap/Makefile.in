@@ -80,8 +80,8 @@ test_checks: test_checks.o $(SRC_BASE)/checks.o $(TAPOBJ) $(SRC_BASE)/utils.o $(
 test_commands: test_commands.o $(SRC_COMMON)/shared.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-test_downtime: test_downtime.o $(SRC_BASE)/downtime-base.o $(SRC_BASE)/xdowntime-base.o $(TAPOBJ)
-	$(CC) $(CFLAGS) -o $@ $^
+test_downtime: test_downtime.o $(SRC_BASE)/downtime-base.o $(TAPOBJ)
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
 test_freshness: test_freshness.o $(SRC_BASE)/freshness.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^

@@ -9,3 +9,4 @@ command *find_command(const char *name) { return NULL; }
 timeperiod *find_timeperiod(const char *name) { return NULL; }
 int prepend_object_to_objectlist(objectlist **list, void *object_ptr) { return OK; }
 int free_objectlist(objectlist **temp_list) { return OK; }
+int free_object_data(void) { return OK; }

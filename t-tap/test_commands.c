@@ -36,13 +36,6 @@
 #include "stub_macros.c"
 #include "tap.h"
 
-int log_debug_info(int level, int verbosity, const char *fmt, ...) {
-	va_list ap;
-	va_start(ap, fmt);
-	/* vprintf( fmt, ap ); */
-	va_end(ap);
-	}
-
 char *temp_path;
 int date_format;
 host *host_list;

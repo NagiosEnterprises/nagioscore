@@ -29,6 +29,7 @@
 #include "../include/cgiauth.h"
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
+extern char *status_file;
 
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
@@ -133,7 +134,7 @@ int main(void) {
 		}
 
 	/* read all status data */
-	result = read_all_status_data(main_config_file, READ_ALL_STATUS_DATA);
+	result = read_all_status_data(status_file, READ_ALL_STATUS_DATA);
 	if(result == ERROR) {
 		printf("<P>Error: Could not read host and service status information!</P>\n");
 		document_footer();

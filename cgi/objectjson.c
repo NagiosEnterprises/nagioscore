@@ -46,6 +46,7 @@
 #define THISCGI "objectjson.cgi"
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
+extern char *status_file;
 
 extern host *host_list;
 extern hostgroup *hostgroup_list;
@@ -697,7 +698,7 @@ int main(void) {
 	last_object_cache_update = ocstat.st_mtime;
 
 	/* read all status data */
-	result = read_all_status_data(get_cgi_config_location(), READ_ALL_STATUS_DATA);
+	result = read_all_status_data(status_file, READ_ALL_STATUS_DATA);
 	if(result == ERROR) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 

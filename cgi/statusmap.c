@@ -53,6 +53,7 @@ extern char physical_images_path[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_logo_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
+extern char *status_file;
 
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
@@ -270,7 +271,7 @@ int main(int argc, char **argv) {
 		}
 
 	/* read all status data */
-	result = read_all_status_data(main_config_file, READ_ALL_STATUS_DATA);
+	result = read_all_status_data(status_file, READ_ALL_STATUS_DATA);
 	if(result == ERROR) {
 		document_header(FALSE);
 		if(create_type == CREATE_HTML)

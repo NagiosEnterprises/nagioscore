@@ -652,7 +652,7 @@ int read_all_object_configuration_data(const char *cfgfile, int options) {
 
 
 /* read all status data */
-int read_all_status_data(const char *cfgfile, int options) {
+int read_all_status_data(const char *status_file_name, int options) {
 	int result = OK;
 
 	/* don't duplicate things we've already read in */
@@ -671,7 +671,7 @@ int read_all_status_data(const char *cfgfile, int options) {
 	initialize_downtime_data();
 
 	/* read in all external status data */
-	result = read_status_data(cfgfile, options);
+	result = read_status_data(status_file_name, options);
 
 	/* mark what items we've read in... */
 	if(options & READ_PROGRAM_STATUS)
@@ -716,7 +716,7 @@ void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_opti
 		}
 
 	/* read all status data */
-	result = read_all_status_data(main_config_file, status_options);
+	result = read_all_status_data(status_file, status_options);
 	if(result == ERROR) {
 		doc_header(FALSE);
 		status_data_error();
@@ -1587,7 +1587,7 @@ void display_info_table(const char *title, int refresh, authdata *current_authda
 	int result;
 
 	/* read program status */
-	result = read_all_status_data(main_config_file, READ_PROGRAM_STATUS);
+	result = read_all_status_data(status_file, READ_PROGRAM_STATUS);
 
 	printf("<TABLE CLASS='infoBox' BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
 	printf("<TR><TD CLASS='infoBox'>\n");

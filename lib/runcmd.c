@@ -132,7 +132,7 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 	int arg = 0, a = 0;
 	unsigned int i;
 	int state, ret = 0;
-	int seen_space = 0;
+	int seen_space = 0, seen_equals = 0;
 	size_t len;
 	char *argz;
 

@@ -44,7 +44,8 @@ char *config_file_dir = NULL;
 
 
 /* silly debug-ish helper used to track down hotspots in config parsing */
-void timing_point(const char *fmt, ...) {
+void timing_point(const char *fmt, ...)
+{
 	static struct timeval last = {0, 0}, first = {0, 0};
 	struct timeval now;
 	va_list ap;
@@ -57,20 +58,20 @@ void timing_point(const char *fmt, ...) {
 		last.tv_sec = first.tv_sec;
 		last.tv_usec = first.tv_usec;
 		printf("[0.0000 (+0.0000)] ");
-		}
-	else {
+	} else {
 		gettimeofday(&now, NULL);
 		printf("[%.4f (+%.4f)] ", tv_delta_f(&first, &now), tv_delta_f(&last, &now));
 		last.tv_sec = now.tv_sec;
 		last.tv_usec = now.tv_usec;
-		}
+	}
 	va_start(ap, fmt);
 	vprintf(fmt, ap);
 	va_end(ap);
-	}
+}
 
 /* fix the problem with strtok() skipping empty options between tokens */
-char *my_strtok(char *buffer, const char *tokens) {
+char *my_strtok(char *buffer, const char *tokens)
+{
 	char *token_position = NULL;
 	char *sequence_head = NULL;
 	static char *my_strtok_buffer = NULL;
@@ -81,7 +82,7 @@ char *my_strtok(char *buffer, const char *tokens) {
 		if((my_strtok_buffer = (char *)strdup(buffer)) == NULL)
 			return NULL;
 		original_my_strtok_buffer = my_strtok_buffer;
-		}
+	}
 
 	sequence_head = my_strtok_buffer;
 
@@ -93,17 +94,18 @@ char *my_strtok(char *buffer, const char *tokens) {
 	if(token_position == NULL) {
 		my_strtok_buffer = strchr(my_strtok_buffer, '\x0');
 		return sequence_head;
-		}
+	}
 
 	token_position[0] = '\x0';
 	my_strtok_buffer = token_position + 1;
 
 	return sequence_head;
-	}
+}
 
 /* fixes compiler problems under Solaris, since strsep() isn't included */
 /* this code is taken from the glibc source */
-char *my_strsep(char **stringp, const char *delim) {
+char *my_strsep(char **stringp, const char *delim)
+{
 	char *begin, *end;
 
 	begin = *stringp;
@@ -123,27 +125,26 @@ char *my_strsep(char **stringp, const char *delim) {
 				end = begin;
 			else
 				end = strchr(begin + 1, ch);
-			}
 		}
-	else {
+	} else {
 		/* find the end of the token.  */
 		end = strpbrk(begin, delim);
-		}
+	}
 
 	if(end) {
 		/* terminate the token and set *STRINGP past NUL character.  */
 		*end++ = '\0';
 		*stringp = end;
-		}
-	else
+	} else
 		/* no more delimiters; this is the last token.  */
 		*stringp = NULL;
 
 	return begin;
-	}
+}
 
 /* open a file read-only via mmap() */
-mmapfile *mmap_fopen(const char *filename) {
+mmapfile *mmap_fopen(const char *filename)
+{
 	mmapfile *new_mmapfile = NULL;
 	int fd = 0;
 	void *mmap_buf = NULL;
@@ -162,14 +163,14 @@ mmapfile *mmap_fopen(const char *filename) {
 	if((fd = open(filename, mode)) == -1) {
 		my_free(new_mmapfile);
 		return NULL;
-		}
+	}
 
 	/* get file info */
 	if((fstat(fd, &statbuf)) == -1) {
 		close(fd);
 		my_free(new_mmapfile);
 		return NULL;
-		}
+	}
 
 	/* get file size */
 	file_size = (unsigned long)statbuf.st_size;
@@ -179,14 +180,13 @@ mmapfile *mmap_fopen(const char *filename) {
 
 		/* mmap() the file - allocate one extra byte for processing zero-byte files */
 		if((mmap_buf =
-		            (void *)mmap(0, file_size, PROT_READ, MAP_PRIVATE, fd,
-		                         0)) == MAP_FAILED) {
+		        (void *)mmap(0, file_size, PROT_READ, MAP_PRIVATE, fd,
+		                     0)) == MAP_FAILED) {
 			close(fd);
 			my_free(new_mmapfile);
 			return NULL;
-			}
 		}
-	else
+	} else
 		mmap_buf = NULL;
 
 	/* populate struct info for later use */
@@ -198,10 +198,11 @@ mmapfile *mmap_fopen(const char *filename) {
 	new_mmapfile->mmap_buf = mmap_buf;
 
 	return new_mmapfile;
-	}
+}
 
 /* close a file originally opened via mmap() */
-int mmap_fclose(mmapfile * temp_mmapfile) {
+int mmap_fclose(mmapfile * temp_mmapfile)
+{
 
 	if(temp_mmapfile == NULL)
 		return ERROR;
@@ -218,10 +219,11 @@ int mmap_fclose(mmapfile * temp_mmapfile) {
 	my_free(temp_mmapfile);
 
 	return OK;
-	}
+}
 
 /* gets one line of input from an mmap()'ed file */
-char *mmap_fgets(mmapfile * temp_mmapfile) {
+char *mmap_fgets(mmapfile * temp_mmapfile)
+{
 	char *buf = NULL;
 	unsigned long x = 0L;
 	int len = 0;
@@ -239,12 +241,12 @@ char *mmap_fgets(mmapfile * temp_mmapfile) {
 
 	/* find the end of the string (or buffer) */
 	for(x = temp_mmapfile->current_position; x < temp_mmapfile->file_size;
-	        x++) {
+	    x++) {
 		if(*((char *)(temp_mmapfile->mmap_buf) + x) == '\n') {
 			x++;
 			break;
-			}
 		}
+	}
 
 	/* calculate length of line we just read */
 	len = (int)(x - temp_mmapfile->current_position);
@@ -266,10 +268,11 @@ char *mmap_fgets(mmapfile * temp_mmapfile) {
 	temp_mmapfile->current_line++;
 
 	return buf;
-	}
+}
 
 /* gets one line of input from an mmap()'ed file (may be contained on more than one line in the source file) */
-char *mmap_fgets_multiline(mmapfile * temp_mmapfile) {
+char *mmap_fgets_multiline(mmapfile * temp_mmapfile)
+{
 	char *buf = NULL;
 	char *tempbuf = NULL;
 	char *stripped = NULL;
@@ -293,8 +296,7 @@ char *mmap_fgets_multiline(mmapfile * temp_mmapfile) {
 				break;
 			memcpy(buf, tempbuf, len);
 			buf[len] = '\x0';
-			}
-		else {
+		} else {
 			/* strip leading white space from continuation lines */
 			stripped = tempbuf;
 			while(*stripped == ' ' || *stripped == '\t')
@@ -302,12 +304,12 @@ char *mmap_fgets_multiline(mmapfile * temp_mmapfile) {
 			len = strlen(stripped);
 			len2 = strlen(buf);
 			if((buf =
-			            (char *)realloc(buf, len + len2 + 1)) == NULL)
+			        (char *)realloc(buf, len + len2 + 1)) == NULL)
 				break;
 			strcat(buf, stripped);
 			len += len2;
 			buf[len] = '\x0';
-			}
+		}
 
 		if(len == 0)
 			break;
@@ -326,7 +328,7 @@ char *mmap_fgets_multiline(mmapfile * temp_mmapfile) {
 			buf[end] = '\n';
 			buf[end + 1] = '\x0';
 			break;
-			}
+		}
 
 		/* one backslash found. continue reading the next line */
 		else if(end > 0 && buf[end] == '\\')
@@ -335,15 +337,16 @@ char *mmap_fgets_multiline(mmapfile * temp_mmapfile) {
 		/* no continuation marker was found, so break */
 		else
 			break;
-		}
+	}
 
 	my_free(tempbuf);
 
 	return buf;
-	}
+}
 
 /* strip newline, carriage return, and tab characters from beginning and end of a string */
-void strip(char *buffer) {
+void strip(char *buffer)
+{
 	register int x, z;
 	int len;
 
@@ -354,15 +357,15 @@ void strip(char *buffer) {
 	len = (int)strlen(buffer);
 	for(x = len - 1; x >= 0; x--) {
 		switch(buffer[x]) {
-			case ' ':
-			case '\n':
-			case '\r':
-			case '\t':
-				buffer[x] = '\x0';
-				continue;
-			}
-		break;
+		case ' ':
+		case '\n':
+		case '\r':
+		case '\t':
+			buffer[x] = '\x0';
+			continue;
 		}
+		break;
+	}
 
 	/* if we stripped all of it, just return */
 	if(!x)
@@ -375,14 +378,14 @@ void strip(char *buffer) {
 	/* NOTE: this is very expensive to do, so avoid it whenever possible */
 	for(x = 0;; x++) {
 		switch(buffer[x]) {
-			case ' ':
-			case '\n':
-			case '\r':
-			case '\t':
-				continue;
-			}
-		break;
+		case ' ':
+		case '\n':
+		case '\r':
+		case '\t':
+			continue;
 		}
+		break;
+	}
 
 	if(x > 0 && z > 0) {
 		/* new length of the string after we stripped the end */
@@ -392,14 +395,15 @@ void strip(char *buffer) {
 		for(z = x; z < len; z++)
 			buffer[z - x] = buffer[z];
 		buffer[len - x] = '\x0';
-		}
 	}
+}
 
 /**************************************************
  *************** HASH FUNCTIONS *******************
  **************************************************/
 /* dual hash function */
-int hashfunc(const char *name1, const char *name2, int hashslots) {
+int hashfunc(const char *name1, const char *name2, int hashslots)
+{
 	unsigned int i, result;
 
 	result = 0;
@@ -415,11 +419,12 @@ int hashfunc(const char *name1, const char *name2, int hashslots) {
 	result = result % hashslots;
 
 	return result;
-	}
+}
 
 /* dual hash data comparison */
 int compare_hashdata(const char *val1a, const char *val1b, const char *val2a,
-                     const char *val2b) {
+                     const char *val2b)
+{
 	int result = 0;
 
 	/* NOTE: If hash calculation changes, update the compare_strings() function! */
@@ -444,16 +449,17 @@ int compare_hashdata(const char *val1a, const char *val1b, const char *val2a,
 			result = -1;
 		else
 			result = strcmp(val1b, val2b);
-		}
+	}
 
 	return result;
-	}
+}
 /*
  * given a date/time in time_t format, produce a corresponding
  * date/time string, including timezone
  */
 void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
-                         int type) {
+                         int type)
+{
 	time_t t;
 	struct tm *tm_ptr, tm_s;
 	int hour;
@@ -466,7 +472,7 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 	const char *months[12] = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept",
 		"Oct", "Nov", "Dec"
-		};
+	};
 	const char *tzone = "";
 
 	if(raw_time == NULL)
@@ -516,7 +522,7 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 			snprintf(buffer, buffer_length,
 			         "%02d-%02d-%04d %02d:%02d:%02d", month, day,
 			         year, hour, minute, second);
-		}
+	}
 
 	/* short date */
 	else if(type == SHORT_DATE) {
@@ -530,7 +536,7 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 		else
 			snprintf(buffer, buffer_length, "%02d-%02d-%04d", month,
 			         day, year);
-		}
+	}
 
 	/* expiration date/time for HTTP headers */
 	else if(type == HTTP_DATE_TIME)
@@ -545,11 +551,12 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 		         second);
 
 	buffer[buffer_length - 1] = '\x0';
-	}
+}
 
 /* get days, hours, minutes, and seconds from a raw time_t format or total seconds */
 void get_time_breakdown(unsigned long raw_time, int *days, int *hours,
-                        int *minutes, int *seconds) {
+                        int *minutes, int *seconds)
+{
 	unsigned long temp_time;
 	int temp_days;
 	int temp_hours;
@@ -570,4 +577,4 @@ void get_time_breakdown(unsigned long raw_time, int *days, int *hours,
 	*hours = temp_hours;
 	*minutes = temp_minutes;
 	*seconds = temp_seconds;
-	}
+}

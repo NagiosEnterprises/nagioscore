@@ -115,12 +115,14 @@ char *encoded_html_string = NULL;
  * source-files once. A decent linker will make the call
  * a no-op anyway, so it's not a big issue
  */
-void logit(int data_type, int display, const char *fmt, ...) {
+void logit(int data_type, int display, const char *fmt, ...)
+{
 	return;
-	}
-int log_debug_info(int leve, int verbosity, const char *fmt, ...) {
+}
+int log_debug_info(int leve, int verbosity, const char *fmt, ...)
+{
 	return 0;
-	}
+}
 
 /*** helpers ****/
 /*
@@ -152,7 +154,8 @@ static command *find_bang_command(char *name)
  **********************************************************/
 
 /* reset all variables used by the CGIs */
-void reset_cgi_vars(void) {
+void reset_cgi_vars(void)
+{
 
 	strcpy(main_config_file, "");
 
@@ -204,12 +207,13 @@ void reset_cgi_vars(void) {
 	ping_syntax = NULL;
 
 	return;
-	}
+}
 
 
 
 /* free all memory for object definitions */
-void free_memory(void) {
+void free_memory(void)
+{
 
 	/* free memory for common object definitions */
 	free_object_data();
@@ -229,7 +233,7 @@ void free_memory(void) {
 	free(ping_syntax);
 
 	return;
-	}
+}
 
 
 
@@ -239,34 +243,37 @@ void free_memory(void) {
  **********************************************************/
 
 /* read the CGI config file location from an environment variable */
-const char *get_cgi_config_location(void) {
+const char *get_cgi_config_location(void)
+{
 	static char *cgiloc = NULL;
 
 	if(!cgiloc) {
 		cgiloc = getenv("NAGIOS_CGI_CONFIG");
 		if(!cgiloc)
 			cgiloc = DEFAULT_CGI_CONFIG_FILE;
-		}
+	}
 
 	return cgiloc;
-	}
+}
 
 
 /* read the command file location from an environment variable */
-const char *get_cmd_file_location(void) {
+const char *get_cmd_file_location(void)
+{
 	static char *cmdloc = NULL;
 
 	if(!cmdloc) {
 		cmdloc = getenv("NAGIOS_COMMAND_FILE");
 		if(!cmdloc)
 			cmdloc = DEFAULT_COMMAND_FILE;
-		}
-	return cmdloc;
 	}
+	return cmdloc;
+}
 
 
 /*read the CGI configuration file */
-int read_cgi_config_file(const char *filename) {
+int read_cgi_config_file(const char *filename)
+{
 	char *input = NULL;
 	mmapfile *thefile;
 	char *var = NULL;
@@ -298,7 +305,7 @@ int read_cgi_config_file(const char *filename) {
 			strncpy(main_config_file, val, sizeof(main_config_file));
 			main_config_file[sizeof(main_config_file) - 1] = '\x0';
 			strip(main_config_file);
-			}
+		}
 
 		else if(!strcmp(var, "show_context_help"))
 			show_context_help = (atoi(val) > 0) ? TRUE : FALSE;
@@ -313,7 +320,7 @@ int read_cgi_config_file(const char *filename) {
 			strncpy(nagios_check_command, val, sizeof(nagios_check_command));
 			nagios_check_command[sizeof(nagios_check_command) - 1] = '\x0';
 			strip(nagios_check_command);
-			}
+		}
 
 		else if(!strcmp(var, "refresh_rate"))
 			refresh_rate = atoi(val);
@@ -334,7 +341,7 @@ int read_cgi_config_file(const char *filename) {
 
 			snprintf(physical_ssi_path, sizeof(physical_images_path), "%sssi/", physical_html_path);
 			physical_ssi_path[sizeof(physical_ssi_path) - 1] = '\x0';
-			}
+		}
 
 		else if(!strcmp(var, "url_html_path")) {
 
@@ -367,7 +374,7 @@ int read_cgi_config_file(const char *filename) {
 			snprintf(url_js_path, sizeof(url_js_path), "%sjs/", url_html_path);
 			url_js_path[sizeof(url_js_path) - 1] = '\x0';
 
-			}
+		}
 
 		else if(!strcmp(var, "service_critical_sound"))
 			service_critical_sound = strdup(val);
@@ -440,7 +447,7 @@ int read_cgi_config_file(const char *filename) {
 
 		else if(!strcmp(var, "navbar_search_aliases"))
 			navbar_search_aliases = (atoi(val) > 0) ? TRUE : FALSE;
-		}
+	}
 
 	for(p = illegal_output_chars; p && *p; p++)
 		illegal_output_char_map[(int)*p] = 1;
@@ -453,12 +460,13 @@ int read_cgi_config_file(const char *filename) {
 		return ERROR;
 	else
 		return OK;
-	}
+}
 
 
 
 /* read the main configuration file */
-int read_main_config_file(const char *filename) {
+int read_main_config_file(const char *filename)
+{
 	char *input = NULL;
 	char *temp_buffer;
 	mmapfile *thefile;
@@ -483,7 +491,7 @@ int read_main_config_file(const char *filename) {
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\x0");
 			interval_length = (temp_buffer == NULL) ? 60 : atoi(temp_buffer);
-			}
+		}
 
 		else if(strstr(input, "log_file=") == input) {
 			temp_buffer = strtok(input, "=");
@@ -491,18 +499,17 @@ int read_main_config_file(const char *filename) {
 			strncpy(log_file, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(log_file));
 			log_file[sizeof(log_file) - 1] = '\x0';
 			strip(log_file);
-			}
+		}
 
 		else if(strstr(input, "object_cache_file=") == input) {
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\x0");
 			object_cache_file = nspath_absolute(temp_buffer, config_file_dir);
-			}
-		else if(strstr(input, "status_file=") == input) {
+		} else if(strstr(input, "status_file=") == input) {
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\x0");
 			status_file = nspath_absolute(temp_buffer, config_file_dir);
-			}
+		}
 
 		else if(strstr(input, "log_archive_path=") == input) {
 			temp_buffer = strtok(input, "=");
@@ -512,7 +519,7 @@ int read_main_config_file(const char *filename) {
 			strip(physical_html_path);
 			if(log_archive_path[strlen(log_archive_path) - 1] != '/' && (strlen(log_archive_path) < sizeof(log_archive_path) - 1))
 				strcat(log_archive_path, "/");
-			}
+		}
 
 		else if(strstr(input, "log_rotation_method=") == input) {
 			temp_buffer = strtok(input, "=");
@@ -527,7 +534,7 @@ int read_main_config_file(const char *filename) {
 				log_rotation_method = LOG_ROTATION_WEEKLY;
 			else if(!strcmp(temp_buffer, "m"))
 				log_rotation_method = LOG_ROTATION_MONTHLY;
-			}
+		}
 
 		else if(strstr(input, "command_file=") == input) {
 			temp_buffer = strtok(input, "=");
@@ -535,13 +542,13 @@ int read_main_config_file(const char *filename) {
 			strncpy(command_file, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(command_file));
 			command_file[sizeof(command_file) - 1] = '\x0';
 			strip(command_file);
-			}
+		}
 
 		else if(strstr(input, "check_external_commands=") == input) {
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\x0");
 			check_external_commands = (temp_buffer == NULL) ? 0 : atoi(temp_buffer);
-			}
+		}
 
 		else if(strstr(input, "date_format=") == input) {
 			temp_buffer = strtok(input, "=");
@@ -556,20 +563,21 @@ int read_main_config_file(const char *filename) {
 				date_format = DATE_FORMAT_STRICT_ISO8601;
 			else
 				date_format = DATE_FORMAT_US;
-			}
 		}
+	}
 
 	/* free memory and close the file */
 	free(input);
 	mmap_fclose(thefile);
 
 	return OK;
-	}
+}
 
 
 
 /* read all object definitions */
-int read_all_object_configuration_data(const char *cfgfile, int options) {
+int read_all_object_configuration_data(const char *cfgfile, int options)
+{
 	int result = OK;
 	host *temp_host = NULL;
 	host *parent_host = NULL;
@@ -585,74 +593,75 @@ int read_all_object_configuration_data(const char *cfgfile, int options) {
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 		/* Find the command object for the check command */
 		temp_host->check_command_ptr =
-				find_bang_command(temp_host->check_command);
+		    find_bang_command(temp_host->check_command);
 
 		/* Find the command object for the event handler */
 		temp_host->event_handler_ptr =
-				find_bang_command(temp_host->event_handler);
+		    find_bang_command(temp_host->event_handler);
 
 		/* Resolve host child->parent relationships */
 		for(temp_hostsmember = temp_host->parent_hosts;
-				temp_hostsmember != NULL;
-				temp_hostsmember = temp_hostsmember->next) {
+		    temp_hostsmember != NULL;
+		    temp_hostsmember = temp_hostsmember->next) {
 			if((parent_host = find_host(temp_hostsmember->host_name)) == NULL) {
 				logit(NSLOG_CONFIG_ERROR, TRUE,
-						"Error: '%s' is not a valid parent for host '%s'!",
-						temp_hostsmember->host_name, temp_host->name);
-				}
+				      "Error: '%s' is not a valid parent for host '%s'!",
+				      temp_hostsmember->host_name, temp_host->name);
+			}
 			/* save the parent host pointer for later */
 			temp_hostsmember->host_ptr = parent_host;
 
 			/* add a reverse (child) link to make searches faster later on */
 			if(add_child_link_to_host(parent_host, temp_host) == NULL) {
 				logit(NSLOG_CONFIG_ERROR, TRUE,
-						"Error: Failed to add '%s' as a child host of '%s'",
-						temp_host->name, parent_host->name);
-				}
+				      "Error: Failed to add '%s' as a child host of '%s'",
+				      temp_host->name, parent_host->name);
 			}
 		}
+	}
 
 	/* Resolve objects in the service object */
 	for(temp_service = service_list; temp_service != NULL;
-			temp_service = temp_service->next) {
+	    temp_service = temp_service->next) {
 		/* Find the command object for the check command */
 		temp_service->check_command_ptr =
-				find_bang_command(temp_service->check_command);
+		    find_bang_command(temp_service->check_command);
 
 		/* Find the command object for the event handler */
 		temp_service->event_handler_ptr =
-				find_bang_command(temp_service->event_handler);
+		    find_bang_command(temp_service->event_handler);
 
 		/* Resolve service child->parent relationships */
 		for(temp_servicesmember = temp_service->parents;
-				temp_servicesmember != NULL;
-				temp_servicesmember = temp_servicesmember->next) {
+		    temp_servicesmember != NULL;
+		    temp_servicesmember = temp_servicesmember->next) {
 			/* Find the parent service */
 			if((parent_service = find_service(temp_servicesmember->host_name,
-					temp_servicesmember->service_description)) == NULL) {
+			                                  temp_servicesmember->service_description)) == NULL) {
 				logit(NSLOG_CONFIG_ERROR, TRUE,
-						"Error: '%s:%s' is not a valid parent for service '%s:%s'!",
-						temp_servicesmember->host_name,
-						temp_servicesmember->service_description,
-						temp_service->host_name, temp_service->description);
-				}
+				      "Error: '%s:%s' is not a valid parent for service '%s:%s'!",
+				      temp_servicesmember->host_name,
+				      temp_servicesmember->service_description,
+				      temp_service->host_name, temp_service->description);
+			}
 			/* add a reverse (child) link to make searches faster later on */
 			if(add_child_link_to_service(parent_service,
-					temp_service) == NULL) {
+			                             temp_service) == NULL) {
 				logit(NSLOG_CONFIG_ERROR, TRUE,
-						"Error: Failed to add '%s:%s' as a child service of '%s:%s'",
-						temp_service->host_name, temp_service->description,
-						parent_service->host_name, parent_service->description);
-				}
+				      "Error: Failed to add '%s:%s' as a child service of '%s:%s'",
+				      temp_service->host_name, temp_service->description,
+				      parent_service->host_name, parent_service->description);
 			}
 		}
+	}
 
 	return result;
-	}
+}
 
 
 /* read all status data */
-int read_all_status_data(const char *cfgfile, int options) {
+int read_all_status_data(const char *cfgfile, int options)
+{
 	int result = OK;
 
 	/* don't duplicate things we've already read in */
@@ -682,10 +691,11 @@ int read_all_status_data(const char *cfgfile, int options) {
 		service_status_has_been_read = TRUE;
 
 	return result;
-	}
+}
 
 
-void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_options, int status_options) {
+void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_options, int status_options)
+{
 	int result;
 
 	/* read the CGI configuration file */
@@ -695,7 +705,7 @@ void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_opti
 		cgi_config_file_error(get_cgi_config_location());
 		doc_footer();
 		exit(EXIT_FAILURE);
-		}
+	}
 
 	/* read the main configuration file */
 	result = read_main_config_file(main_config_file);
@@ -704,7 +714,7 @@ void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_opti
 		main_config_file_error(main_config_file);
 		doc_footer();
 		exit(EXIT_FAILURE);
-		}
+	}
 
 	/* read all object configuration data */
 	result = read_all_object_configuration_data(main_config_file, object_options);
@@ -713,7 +723,7 @@ void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_opti
 		object_data_error();
 		doc_footer();
 		exit(EXIT_FAILURE);
-		}
+	}
 
 	/* read all status data */
 	result = read_all_status_data(main_config_file, status_options);
@@ -723,8 +733,8 @@ void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_opti
 		doc_footer();
 		free_memory();
 		exit(EXIT_FAILURE);
-		}
 	}
+}
 
 
 /**********************************************************
@@ -732,7 +742,8 @@ void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_opti
  **********************************************************/
 
 /* reads contents of file into the lifo struct */
-int read_file_into_lifo(char *filename) {
+int read_file_into_lifo(char *filename)
+{
 	char *input = NULL;
 	mmapfile *thefile;
 	int lifo_result;
@@ -754,17 +765,18 @@ int read_file_into_lifo(char *filename) {
 			free(input);
 			mmap_fclose(thefile);
 			return lifo_result;
-			}
 		}
+	}
 
 	mmap_fclose(thefile);
 
 	return LIFO_OK;
-	}
+}
 
 
 /* frees all memory allocated to lifo */
-void free_lifo_memory(void) {
+void free_lifo_memory(void)
+{
 	lifo *temp_lifo;
 	lifo *next_lifo;
 
@@ -778,14 +790,15 @@ void free_lifo_memory(void) {
 			free((void *)temp_lifo->data);
 		free((void *)temp_lifo);
 		temp_lifo = next_lifo;
-		}
+	}
 
 	return;
-	}
+}
 
 
 /* adds an item to lifo */
-int push_lifo(char *buffer) {
+int push_lifo(char *buffer)
+{
 	lifo *temp_lifo;
 
 	temp_lifo = (lifo *)malloc(sizeof(lifo));
@@ -799,19 +812,20 @@ int push_lifo(char *buffer) {
 	if(temp_lifo->data == NULL) {
 		free(temp_lifo);
 		return LIFO_ERROR_MEMORY;
-		}
+	}
 
 	/* add item to front of lifo... */
 	temp_lifo->next = lifo_list;
 	lifo_list = temp_lifo;
 
 	return LIFO_OK;
-	}
+}
 
 
 
 /* returns/clears an item from lifo */
-char *pop_lifo(void) {
+char *pop_lifo(void)
+{
 	lifo *temp_lifo;
 	char *buf;
 
@@ -829,7 +843,7 @@ char *pop_lifo(void) {
 	lifo_list = temp_lifo;
 
 	return buf;
-	}
+}
 
 
 
@@ -839,7 +853,8 @@ char *pop_lifo(void) {
  **********************************************************/
 
 /* unescapes newlines in a string */
-char *unescape_newlines(char *rawbuf) {
+char *unescape_newlines(char *rawbuf)
+{
 	register int x, y;
 
 	for(x = 0, y = 0; rawbuf[x] != (char)'\x0'; x++) {
@@ -850,26 +865,26 @@ char *unescape_newlines(char *rawbuf) {
 			if(rawbuf[x + 1] == 'n') {
 				rawbuf[y++] = '\n';
 				x++;
-				}
+			}
 
 			/* unescape backslashes and other stuff */
 			if(rawbuf[x + 1] != '\x0') {
 				rawbuf[y++] = rawbuf[x + 1];
 				x++;
-				}
-
 			}
-		else
+
+		} else
 			rawbuf[y++] = rawbuf[x];
-		}
+	}
 	rawbuf[y] = '\x0';
 
 	return rawbuf;
-	}
+}
 
 
 /* strips HTML and bad stuff from plugin output */
-void sanitize_plugin_output(char *buffer) {
+void sanitize_plugin_output(char *buffer)
+{
 	int x = 0;
 	int y = 0;
 	int in_html = FALSE;
@@ -889,13 +904,13 @@ void sanitize_plugin_output(char *buffer) {
 		if(buffer[x] == '<') {
 			in_html = TRUE;
 			continue;
-			}
+		}
 
 		/* end of an HTML tag */
 		else if(buffer[x] == '>') {
 			in_html = FALSE;
 			continue;
-			}
+		}
 
 		/* skip everything inside HTML tags */
 		else if(in_html == TRUE)
@@ -916,7 +931,7 @@ void sanitize_plugin_output(char *buffer) {
 		/* normal character */
 		else
 			new_buffer[y++] = buffer[x];
-		}
+	}
 
 	/* terminate sanitized buffer */
 	new_buffer[y++] = '\x0';
@@ -928,12 +943,13 @@ void sanitize_plugin_output(char *buffer) {
 	free(new_buffer);
 
 	return;
-	}
+}
 
 
 
 /* get date/time string */
-void get_time_string(time_t *raw_time, char *buffer, int buffer_length, int type) {
+void get_time_string(time_t *raw_time, char *buffer, int buffer_length, int type)
+{
 	time_t t;
 	struct tm *tm_ptr = NULL;
 	int hour = 0;
@@ -981,7 +997,7 @@ void get_time_string(time_t *raw_time, char *buffer, int buffer_length, int type
 			snprintf(buffer, buffer_length, "%04d-%02d-%02d%c%02d:%02d:%02d", tm_ptr->tm_year + 1900, tm_ptr->tm_mon + 1, tm_ptr->tm_mday, (date_format == DATE_FORMAT_STRICT_ISO8601) ? 'T' : ' ', tm_ptr->tm_hour, tm_ptr->tm_min, tm_ptr->tm_sec);
 		else
 			snprintf(buffer, buffer_length, "%02d-%02d-%04d %02d:%02d:%02d", tm_ptr->tm_mon + 1, tm_ptr->tm_mday, tm_ptr->tm_year + 1900, tm_ptr->tm_hour, tm_ptr->tm_min, tm_ptr->tm_sec);
-		}
+	}
 
 	/* short date */
 	else if(type == SHORT_DATE) {
@@ -991,7 +1007,7 @@ void get_time_string(time_t *raw_time, char *buffer, int buffer_length, int type
 			snprintf(buffer, buffer_length, "%04d-%02d-%02d", year, month, day);
 		else
 			snprintf(buffer, buffer_length, "%02d-%02d-%04d", month, day, year);
-		}
+	}
 
 	/* expiration date/time for HTTP headers */
 	else if(type == HTTP_DATE_TIME)
@@ -1004,11 +1020,12 @@ void get_time_string(time_t *raw_time, char *buffer, int buffer_length, int type
 	buffer[buffer_length - 1] = '\x0';
 
 	return;
-	}
+}
 
 
 /* get time string for an interval of time */
-void get_interval_time_string(double time_units, char *buffer, int buffer_length) {
+void get_interval_time_string(double time_units, char *buffer, int buffer_length)
+{
 	unsigned long total_seconds;
 	int hours = 0;
 	int minutes = 0;
@@ -1024,11 +1041,12 @@ void get_interval_time_string(double time_units, char *buffer, int buffer_length
 	buffer[buffer_length - 1] = '\x0';
 
 	return;
-	}
+}
 
 
 /* encodes a string in proper URL format */
-const char *url_encode(const char *input) {
+const char *url_encode(const char *input)
+{
 	int len, output_len;
 	int x, y;
 	char temp_expansion[4];
@@ -1052,19 +1070,19 @@ const char *url_encode(const char *input) {
 		if((char)input[x] == (char)'\x0') {
 			str[y] = '\x0';
 			break;
-			}
+		}
 
 		/* alpha-numeric characters and a few other characters don't get encoded */
 		else if(((char)input[x] >= '0' && (char)input[x] <= '9') || ((char)input[x] >= 'A' && (char)input[x] <= 'Z') || ((char)input[x] >= (char)'a' && (char)input[x] <= (char)'z') || (char)input[x] == (char)'.' || (char)input[x] == (char)'-' || (char)input[x] == (char)'_') {
 			str[y] = input[x];
 			y++;
-			}
+		}
 
 		/* spaces are pluses */
 		else if(input[x] == ' ') {
 			str[y] = '+';
 			y++;
-			}
+		}
 
 		/* anything else gets represented by its hex value */
 		else {
@@ -1073,41 +1091,43 @@ const char *url_encode(const char *input) {
 				sprintf(temp_expansion, "%%%02X", (unsigned char)input[x]);
 				strcat(str, temp_expansion);
 				y += 3;
-				}
 			}
 		}
+	}
 
 	str[sizeof(encoded_url_string[0]) - 1] = '\x0';
 
 	return str;
-	}
+}
 
-static char * copy_wc_to_output(wchar_t wc, char *outstp, int output_max) {
+static char * copy_wc_to_output(wchar_t wc, char *outstp, int output_max)
+{
 
 	int		wctomb_result;
 	char	mbtemp[ 10];
 
 	wctomb_result = wctomb(mbtemp, wc);
 	if(( wctomb_result > 0) &&
-			((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
+	   ((( outstp - encoded_html_string) + wctomb_result) < output_max)) {
 		strncpy( outstp, mbtemp, wctomb_result);
 		outstp += wctomb_result;
-		}
-	return outstp;
 	}
+	return outstp;
+}
 
-static char * encode_character(wchar_t wc, char *outstp, int output_max) {
+static char * encode_character(wchar_t wc, char *outstp, int output_max)
+{
 
 	char	temp_expansion[11];
 
 	sprintf(temp_expansion, "&#%u;", (unsigned int)wc);
 	if(((outstp - encoded_html_string) + strlen(temp_expansion)) <
-			(unsigned int)output_max) {
+	   (unsigned int)output_max) {
 		strncpy(outstp, temp_expansion, strlen( temp_expansion));
 		outstp += strlen( temp_expansion);
-		}
-	return outstp;
 	}
+	return outstp;
+}
 
 #define WHERE_OUTSIDE_TAG				0	/* Not in an HTML tag */
 #define WHERE_IN_TAG_NAME				1	/* In HTML tag name (either opening
@@ -1122,7 +1142,8 @@ static char * encode_character(wchar_t wc, char *outstp, int output_max) {
 #define WHERE_IN_COMMENT				6	/* In an HTML comment */
 
 /* escapes a string used in HTML */
-char * html_encode(char *input, int escape_newlines) {
+char * html_encode(char *input, int escape_newlines)
+{
 	int 		len;
 	int			output_max;
 	char		*outstp;
@@ -1131,7 +1152,7 @@ char * html_encode(char *input, int escape_newlines) {
 	size_t		mbstowcs_result;
 	int			x;
 	int			where_in_tag = WHERE_OUTSIDE_TAG; /* Location in HTML tag */
-	wchar_t		attr_value_start = (wchar_t)0;	/* character that starts the 
+	wchar_t		attr_value_start = (wchar_t)0;	/* character that starts the
 													attribute value */
 	int			tag_depth = 0;					/* depth of nested HTML tags */
 
@@ -1146,20 +1167,20 @@ char * html_encode(char *input, int escape_newlines) {
 	/* Convert the string to a wide character string */
 	if(( wcinput = malloc( len * sizeof( wchar_t))) == NULL) {
 		return "";
-		}
+	}
 	if((mbstowcs_result = mbstowcs( wcinput, input, len)) == (size_t)-1) {
 		free( wcinput);
 		return "";
-		}
+	}
 
 	/* Process all converted characters */
-	for( x = 0, inwcp = wcinput; x < (int)mbstowcs_result && '\0' != *inwcp; 
-			x++, inwcp++) {
+	for( x = 0, inwcp = wcinput; x < (int)mbstowcs_result && '\0' != *inwcp;
+	     x++, inwcp++) {
 
 		/* Most ASCII characters don't get encoded */
 		if(( *inwcp  >= 0x20 && *inwcp <= 0x7e) &&
-				( !( '"' == *inwcp || '&' == *inwcp || '\'' == *inwcp ||
-				'<' == *inwcp || '>' == *inwcp))) {
+		   ( !( '"' == *inwcp || '&' == *inwcp || '\'' == *inwcp ||
+		        '<' == *inwcp || '>' == *inwcp))) {
 			outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 			switch(where_in_tag) {
 			case WHERE_IN_TAG_NAME:
@@ -1170,44 +1191,43 @@ char * html_encode(char *input, int escape_newlines) {
 				case '!':
 					where_in_tag = WHERE_IN_COMMENT;
 					break;
-					}
+				}
 				break;
 			case WHERE_IN_TAG_OUTSIDE_ATTRIBUTE:
 				if(*inwcp != 0x20) {
 					where_in_tag = WHERE_IN_TAG_IN_ATTRIBUTE_NAME;
-					}
+				}
 				break;
 			case WHERE_IN_TAG_IN_ATTRIBUTE_NAME:
 				if(*inwcp == '=') {
 					where_in_tag = WHERE_IN_TAG_AT_EQUALS;
-					}
+				}
 				break;
 			case WHERE_IN_TAG_AT_EQUALS:
 				if(*inwcp != 0x20) {
 					attr_value_start = *inwcp;
 					where_in_tag = WHERE_IN_TAG_IN_ATTRIBUTE_VALUE;
-					}
+				}
 				break;
 			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
 				if((*inwcp == 0x20) && (attr_value_start != '"') &&
-						(attr_value_start != '\'')) {
+				   (attr_value_start != '\'')) {
 					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
-					}
-				break;
 				}
+				break;
 			}
+		}
 
 		/* Special handling for quotes */
-		else if(FALSE == escape_html_tags && 
-				('"' == *inwcp || '\'' == *inwcp)) {
+		else if(FALSE == escape_html_tags &&
+		        ('"' == *inwcp || '\'' == *inwcp)) {
 			switch(where_in_tag) {
 			case WHERE_OUTSIDE_TAG:
 				if(tag_depth >0) {
 					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
-					}
-				else {
+				} else {
 					outstp = encode_character(*inwcp, outstp, output_max);
-					}
+				}
 				break;
 			case WHERE_IN_COMMENT:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
@@ -1222,38 +1242,36 @@ char * html_encode(char *input, int escape_newlines) {
 					/* This covers the case where the quote is backslash
 						escaped. */
 					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
-					}
-				else if(attr_value_start == *inwcp) {
+				} else if(attr_value_start == *inwcp) {
 					/* If the quote is the same type of quote that started
-						the attribute value and it is not backslash 
+						the attribute value and it is not backslash
 						escaped, it signals the end of the attribute value */
 					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
-					}
-				else {
+				} else {
 					/* If we encounter an quote that did not start the
-						attribute value and is not backslash escaped, 
+						attribute value and is not backslash escaped,
 						use it as is */
 					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
-					}
+				}
 				break;
 			default:
 				outstp = encode_character(*inwcp, outstp, output_max);
 				break;
-				}
 			}
+		}
 
 		/* newlines turn to <BR> tags */
 		else if(escape_newlines == TRUE && '\n' == *inwcp) {
 			strncpy( outstp, "<BR>", 4);
 			outstp += 4;
-			}
+		}
 
 		else if(escape_newlines == TRUE && '\\' == *inwcp && '\n' == *( inwcp + 1)) {
 			strncpy( outstp, "<BR>", 4);
 			outstp += 4;
 			inwcp++; /* needed so loop skips two wide characters */
-			}
+		}
 
 		/* TODO - strip all but allowed HTML tags out... */
 		else if(('<' == *inwcp) && (FALSE == escape_html_tags)) {
@@ -1271,13 +1289,13 @@ char * html_encode(char *input, int escape_newlines) {
 				default:
 					tag_depth++;
 					break;
-					}
+				}
 				break;
 			default:
 				outstp = encode_character(*inwcp, outstp, output_max);
 				break;
-				}
 			}
+		}
 
 		else if(('>' == *inwcp) && (FALSE == escape_html_tags)) {
 
@@ -1292,34 +1310,34 @@ char * html_encode(char *input, int escape_newlines) {
 				if((attr_value_start != '"') && (attr_value_start != '\'')) {
 					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 					where_in_tag = WHERE_OUTSIDE_TAG;
-					}
-				else {
+				} else {
 					outstp = encode_character(*inwcp, outstp, output_max);
-					}
+				}
 				break;
 			default:
 				outstp = encode_character(*inwcp, outstp, output_max);
 				break;
-				}
 			}
+		}
 
 		/* for simplicity, all other chars represented by their numeric value */
 		else {
 			outstp = encode_character(*inwcp, outstp, output_max);
-			}
 		}
+	}
 
 	/* Null terminate the encoded string */
 	*outstp = '\x0';
 	encoded_html_string[ output_max - 1] = '\x0';
 
 	return encoded_html_string;
-	}
+}
 
 
 
 /* strip > and < from string */
-void strip_html_brackets(char *buffer) {
+void strip_html_brackets(char *buffer)
+{
 	register int x;
 	register int y;
 	register int z;
@@ -1333,15 +1351,16 @@ void strip_html_brackets(char *buffer) {
 		if(buffer[x] == '<' || buffer[x] == '>')
 			continue;
 		buffer[y++] = buffer[x];
-		}
+	}
 	buffer[y++] = '\x0';
 
 	return;
-	}
+}
 
 
 /* escape string for html form usage */
-char *escape_string(const char *input) {
+char *escape_string(const char *input)
+{
 	int			len;
 	int			output_max;
 	wchar_t		wctemp[1];
@@ -1354,7 +1373,7 @@ char *escape_string(const char *input) {
 	/* If they don't give us anything to do... */
 	if( NULL == input) {
 		return "";
-		}
+	}
 
 	/* We need up to six times the space to do the conversion */
 	len = (int)strlen(input);
@@ -1374,54 +1393,55 @@ char *escape_string(const char *input) {
 			/* No complete multibyte character found - try at next memory
 				address */
 			input++;
-			}
+		}
 
 		else if((( size_t)-1 == mbtowc_result) && ( EILSEQ == errno)) {
 			/* Invalid multibyte character found - try at next memory address */
 			input++;
-			}
+		}
 
 		/* Alpha-numeric characters and a few other characters don't get
 				encoded */
 		else if(( *wctemp  >= '0' && *wctemp <= '9') ||
-				( *wctemp >= 'A' && *wctemp <= 'Z') ||
-				( *wctemp >= 'a' && *wctemp <= 'z') ||
-				' ' == *wctemp || '-' == *wctemp || '.' == *wctemp ||
-				'_' == *wctemp || ':' == *wctemp) {
+		        ( *wctemp >= 'A' && *wctemp <= 'Z') ||
+		        ( *wctemp >= 'a' && *wctemp <= 'z') ||
+		        ' ' == *wctemp || '-' == *wctemp || '.' == *wctemp ||
+		        '_' == *wctemp || ':' == *wctemp) {
 			wctomb_result = wctomb( mbtemp, wctemp[0]);
 			if(( wctomb_result > 0) &&
-					((( stp - encoded_html_string) + wctomb_result) < output_max)) {
+			   ((( stp - encoded_html_string) + wctomb_result) < output_max)) {
 				strncpy( stp, mbtemp, wctomb_result);
 				stp += wctomb_result;
-				}
-			input += mbtowc_result;
 			}
+			input += mbtowc_result;
+		}
 
 		/* Encode everything else (this may be excessive) */
 		else {
 			sprintf( temp_expansion, "&#%u;", ( unsigned int)wctemp[ 0]);
 			if((( stp - encoded_html_string) + strlen( temp_expansion)) <
-					(unsigned int)output_max) {
+			   (unsigned int)output_max) {
 				strncpy( stp, temp_expansion, strlen( temp_expansion));
 				stp += strlen( temp_expansion);
-				}
-			input += mbtowc_result;
 			}
+			input += mbtowc_result;
+		}
 
 		/* Read the next character */
 		mbtowc_result = mbtowc( wctemp, input, MB_CUR_MAX);
-		}
+	}
 
 	/* Null terminate the encoded string */
 	*stp = '\x0';
 	encoded_html_string[ output_max - 1] = '\x0';
 
 	return encoded_html_string;
-	}
+}
 
 
 /* determines the log file we should use (from current time) */
-void get_log_archive_to_use(int archive, char *buffer, int buffer_length) {
+void get_log_archive_to_use(int archive, char *buffer, int buffer_length)
+{
 	struct tm *t;
 
 	/* determine the time at which the log was rotated for this archive # */
@@ -1432,7 +1452,7 @@ void get_log_archive_to_use(int archive, char *buffer, int buffer_length) {
 		strncpy(buffer, log_file, buffer_length);
 		buffer[buffer_length - 1] = '\x0';
 		return;
-		}
+	}
 
 	t = localtime(&this_scheduled_log_rotation);
 
@@ -1441,12 +1461,13 @@ void get_log_archive_to_use(int archive, char *buffer, int buffer_length) {
 	buffer[buffer_length - 1] = '\x0';
 
 	return;
-	}
+}
 
 
 
 /* determines log archive to use, given a specific time */
-int determine_archive_to_use_from_time(time_t target_time) {
+int determine_archive_to_use_from_time(time_t target_time)
+{
 	time_t current_time;
 	int current_archive = 0;
 
@@ -1469,15 +1490,16 @@ int determine_archive_to_use_from_time(time_t target_time) {
 		/* if the target time falls within the times encompassed by this archive, we have the right archive! */
 		if(target_time >= this_scheduled_log_rotation)
 			return current_archive - 1;
-		}
+	}
 
 	return 0;
-	}
+}
 
 
 
 /* determines the log rotation times - past, present, future */
-void determine_log_rotation_times(int archive) {
+void determine_log_rotation_times(int archive)
+{
 	struct tm *t;
 	int current_month;
 	int is_dst_now = FALSE;
@@ -1497,65 +1519,63 @@ void determine_log_rotation_times(int archive) {
 
 	switch(log_rotation_method) {
 
-		case LOG_ROTATION_HOURLY:
-			this_scheduled_log_rotation = mktime(t);
-			this_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - ((archive - 1) * 3600));
-			last_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - 3600);
-			break;
+	case LOG_ROTATION_HOURLY:
+		this_scheduled_log_rotation = mktime(t);
+		this_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - ((archive - 1) * 3600));
+		last_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - 3600);
+		break;
 
-		case LOG_ROTATION_DAILY:
-			t->tm_hour = 0;
-			this_scheduled_log_rotation = mktime(t);
-			this_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - ((archive - 1) * 86400));
-			last_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - 86400);
-			break;
+	case LOG_ROTATION_DAILY:
+		t->tm_hour = 0;
+		this_scheduled_log_rotation = mktime(t);
+		this_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - ((archive - 1) * 86400));
+		last_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - 86400);
+		break;
 
-		case LOG_ROTATION_WEEKLY:
-			t->tm_hour = 0;
-			this_scheduled_log_rotation = mktime(t);
-			this_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - (86400 * t->tm_wday));
-			this_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - ((archive - 1) * 604800));
-			last_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - 604800);
-			break;
+	case LOG_ROTATION_WEEKLY:
+		t->tm_hour = 0;
+		this_scheduled_log_rotation = mktime(t);
+		this_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - (86400 * t->tm_wday));
+		this_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - ((archive - 1) * 604800));
+		last_scheduled_log_rotation = (time_t)(this_scheduled_log_rotation - 604800);
+		break;
 
-		case LOG_ROTATION_MONTHLY:
+	case LOG_ROTATION_MONTHLY:
 
-			t = localtime(&current_time);
-			t->tm_mon++;
-			t->tm_mday = 1;
-			t->tm_hour = 0;
-			t->tm_min = 0;
-			t->tm_sec = 0;
-			for(current_month = 0; current_month <= archive; current_month++) {
-				if(t->tm_mon == 0) {
-					t->tm_mon = 11;
-					t->tm_year--;
-					}
-				else
-					t->tm_mon--;
-				}
-			last_scheduled_log_rotation = mktime(t);
-
-			t = localtime(&current_time);
-			t->tm_mon++;
-			t->tm_mday = 1;
-			t->tm_hour = 0;
-			t->tm_min = 0;
-			t->tm_sec = 0;
-			for(current_month = 0; current_month < archive; current_month++) {
-				if(t->tm_mon == 0) {
-					t->tm_mon = 11;
-					t->tm_year--;
-					}
-				else
-					t->tm_mon--;
-				}
-			this_scheduled_log_rotation = mktime(t);
-
-			break;
-		default:
-			break;
+		t = localtime(&current_time);
+		t->tm_mon++;
+		t->tm_mday = 1;
+		t->tm_hour = 0;
+		t->tm_min = 0;
+		t->tm_sec = 0;
+		for(current_month = 0; current_month <= archive; current_month++) {
+			if(t->tm_mon == 0) {
+				t->tm_mon = 11;
+				t->tm_year--;
+			} else
+				t->tm_mon--;
 		}
+		last_scheduled_log_rotation = mktime(t);
+
+		t = localtime(&current_time);
+		t->tm_mon++;
+		t->tm_mday = 1;
+		t->tm_hour = 0;
+		t->tm_min = 0;
+		t->tm_sec = 0;
+		for(current_month = 0; current_month < archive; current_month++) {
+			if(t->tm_mon == 0) {
+				t->tm_mon = 11;
+				t->tm_year--;
+			} else
+				t->tm_mon--;
+		}
+		this_scheduled_log_rotation = mktime(t);
+
+		break;
+	default:
+		break;
+	}
 
 	/* adjust this rotation time for daylight savings time */
 	t = localtime(&this_scheduled_log_rotation);
@@ -1572,7 +1592,7 @@ void determine_log_rotation_times(int archive) {
 		last_scheduled_log_rotation = (time_t)(last_scheduled_log_rotation + 3600);
 
 	return;
-	}
+}
 
 
 
@@ -1581,7 +1601,8 @@ void determine_log_rotation_times(int archive) {
  *************** COMMON HTML FUNCTIONS ********************
  **********************************************************/
 
-void display_info_table(const char *title, int refresh, authdata *current_authdata) {
+void display_info_table(const char *title, int refresh, authdata *current_authdata)
+{
 	time_t current_time;
 	char date_time[MAX_DATETIME_LENGTH];
 	int result;
@@ -1617,17 +1638,18 @@ void display_info_table(const char *title, int refresh, authdata *current_authda
 
 		if(execute_service_checks == FALSE)
 			printf("<DIV CLASS='infoBoxBadProcStatus'>- Service checks are disabled</DIV>");
-		}
+	}
 
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
 
 	return;
-	}
+}
 
 
 
-void display_nav_table(char *url, int archive) {
+void display_nav_table(char *url, int archive)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	char archive_file[MAX_INPUT_BUFFER];
 	char *archive_basename;
@@ -1639,11 +1661,10 @@ void display_nav_table(char *url, int archive) {
 		if(archive == 0) {
 			printf("Latest Archive<br>");
 			printf("<a href='%sarchive=1'><img src='%s%s' border=0 alt='Latest Archive' title='Latest Archive'></a>", url, url_images_path, LEFT_ARROW_ICON);
-			}
-		else {
+		} else {
 			printf("Earlier Archive<br>");
 			printf("<a href='%sarchive=%d'><img src='%s%s' border=0 alt='Earlier Archive' title='Earlier Archive'></a>", url, archive + 1, url_images_path, LEFT_ARROW_ICON);
-			}
+		}
 		printf("</td>\n");
 
 		printf("<td width=15></td>\n");
@@ -1658,7 +1679,7 @@ void display_nav_table(char *url, int archive) {
 		else {
 			get_time_string(&this_scheduled_log_rotation, date_time, (int)sizeof(date_time), LONG_DATE_TIME);
 			printf("%s", date_time);
-			}
+		}
 		printf("</td>\n");
 
 		printf("<td width=15></td>\n");
@@ -1668,20 +1689,18 @@ void display_nav_table(char *url, int archive) {
 			if(archive == 1) {
 				printf("Current Log<br>");
 				printf("<a href='%s'><img src='%s%s' border=0 alt='Current Log' title='Current Log'></a>", url, url_images_path, RIGHT_ARROW_ICON);
-				}
-			else {
+			} else {
 				printf("More Recent Archive<br>");
 				printf("<a href='%sarchive=%d'><img src='%s%s' border=0 alt='More Recent Archive' title='More Recent Archive'></a>", url, archive - 1, url_images_path, RIGHT_ARROW_ICON);
-				}
-			printf("</td>\n");
 			}
-		else
+			printf("</td>\n");
+		} else
 			printf("<td><img src='%s%s' border=0 width=75 height=1></td>\n", url_images_path, EMPTY_ICON);
 
 		printf("</tr>\n");
 
 		printf("</table>\n");
-		}
+	}
 
 	/* get archive to use */
 	get_log_archive_to_use(archive, archive_file, sizeof(archive_file) - 1);
@@ -1695,12 +1714,13 @@ void display_nav_table(char *url, int archive) {
 	printf("<BR><DIV CLASS='navBoxFile'>File: %s</DIV>\n", archive_basename);
 
 	return;
-	}
+}
 
 
 
 /* prints the additional notes or action url for a hostgroup (with macros substituted) */
-void print_extra_hostgroup_url(char *group_name, char *url) {
+void print_extra_hostgroup_url(char *group_name, char *url)
+{
 	char input_buffer[MAX_INPUT_BUFFER] = "";
 	char output_buffer[MAX_INPUT_BUFFER] = "";
 	char *temp_buffer;
@@ -1714,7 +1734,7 @@ void print_extra_hostgroup_url(char *group_name, char *url) {
 	if(temp_hostgroup == NULL) {
 		printf("%s", url);
 		return;
-		}
+	}
 
 	strncpy(input_buffer, url, sizeof(input_buffer) - 1);
 	input_buffer[sizeof(input_buffer) - 1] = '\x0';
@@ -1725,30 +1745,30 @@ void print_extra_hostgroup_url(char *group_name, char *url) {
 			if(strlen(output_buffer) + strlen(temp_buffer) < sizeof(output_buffer) - 1) {
 				strncat(output_buffer, temp_buffer, sizeof(output_buffer) - strlen(output_buffer) - 1);
 				output_buffer[sizeof(output_buffer) - 1] = '\x0';
-				}
-			in_macro = TRUE;
 			}
-		else {
+			in_macro = TRUE;
+		} else {
 
 			if(strlen(output_buffer) + strlen(temp_buffer) < sizeof(output_buffer) - 1) {
 
 				if(!strcmp(temp_buffer, "HOSTGROUPNAME"))
 					strncat(output_buffer, url_encode(temp_hostgroup->group_name), sizeof(output_buffer) - strlen(output_buffer) - 1);
-				}
+			}
 
 			in_macro = FALSE;
-			}
 		}
+	}
 
 	printf("%s", output_buffer);
 
 	return;
-	}
+}
 
 
 
 /* prints the additional notes or action url for a servicegroup (with macros substituted) */
-void print_extra_servicegroup_url(char *group_name, char *url) {
+void print_extra_servicegroup_url(char *group_name, char *url)
+{
 	char input_buffer[MAX_INPUT_BUFFER] = "";
 	char output_buffer[MAX_INPUT_BUFFER] = "";
 	char *temp_buffer;
@@ -1762,7 +1782,7 @@ void print_extra_servicegroup_url(char *group_name, char *url) {
 	if(temp_servicegroup == NULL) {
 		printf("%s", url);
 		return;
-		}
+	}
 
 	strncpy(input_buffer, url, sizeof(input_buffer) - 1);
 	input_buffer[sizeof(input_buffer) - 1] = '\x0';
@@ -1773,30 +1793,30 @@ void print_extra_servicegroup_url(char *group_name, char *url) {
 			if(strlen(output_buffer) + strlen(temp_buffer) < sizeof(output_buffer) - 1) {
 				strncat(output_buffer, temp_buffer, sizeof(output_buffer) - strlen(output_buffer) - 1);
 				output_buffer[sizeof(output_buffer) - 1] = '\x0';
-				}
-			in_macro = TRUE;
 			}
-		else {
+			in_macro = TRUE;
+		} else {
 
 			if(strlen(output_buffer) + strlen(temp_buffer) < sizeof(output_buffer) - 1) {
 
 				if(!strcmp(temp_buffer, "SERVICEGROUPNAME"))
 					strncat(output_buffer, url_encode(temp_servicegroup->group_name), sizeof(output_buffer) - strlen(output_buffer) - 1);
-				}
+			}
 
 			in_macro = FALSE;
-			}
 		}
+	}
 
 	printf("%s", output_buffer);
 
 	return;
-	}
+}
 
 
 
 /* include user-defined SSI footers or headers */
-void include_ssi_files(const char *cgi_name, int type) {
+void include_ssi_files(const char *cgi_name, int type)
+{
 	char common_ssi_file[MAX_INPUT_BUFFER];
 	char cgi_ssi_file[MAX_INPUT_BUFFER];
 	char raw_cgi_name[MAX_INPUT_BUFFER];
@@ -1817,20 +1837,20 @@ void include_ssi_files(const char *cgi_name, int type) {
 		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2007 Ethan Galstad. -->\n");
 		include_ssi_file(common_ssi_file);
 		include_ssi_file(cgi_ssi_file);
-		}
-	else {
+	} else {
 		include_ssi_file(cgi_ssi_file);
 		include_ssi_file(common_ssi_file);
 		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2007 Ethan Galstad. -->\n");
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* include user-defined SSI footer or header */
-void include_ssi_file(const char *filename) {
+void include_ssi_file(const char *filename)
+{
 	char buffer[MAX_INPUT_BUFFER];
 	FILE *fp;
 	struct stat stat_result;
@@ -1853,29 +1873,29 @@ void include_ssi_file(const char *filename) {
 		call_return = system(filename);
 
 		return;
-		}
+	}
 
 	/* an error occurred trying to stat() the file */
 	else if(call_return != 0) {
 
 		/* Handle error conditions. Assume that standard posix error codes and errno are available. If not, comment this section out. */
 		switch(errno) {
-			case ENOTDIR: /* - A component of the path is not a directory. */
-			case ELOOP: /* Too many symbolic links encountered while traversing the path. */
-			case EFAULT: /* Bad address. */
-			case ENOMEM: /* Out of memory (i.e. kernel memory). */
-			case ENAMETOOLONG: /* File name too long. */
-				printf("<br /> A stat call returned %d while looking for the file %s.<br />", errno, filename);
-				return;
-			case EACCES: /* Permission denied. -- The file should be accessible by nagios. */
-				printf("<br /> A stat call returned a permissions error(%d) while looking for the file %s.<br />", errno, filename);
-				return;
-			case ENOENT: /* A component of the path file_name does not exist, or the path is an empty string. Just return if the file doesn't exist. */
-				return;
-			default:
-				return;
-			}
+		case ENOTDIR: /* - A component of the path is not a directory. */
+		case ELOOP: /* Too many symbolic links encountered while traversing the path. */
+		case EFAULT: /* Bad address. */
+		case ENOMEM: /* Out of memory (i.e. kernel memory). */
+		case ENAMETOOLONG: /* File name too long. */
+			printf("<br /> A stat call returned %d while looking for the file %s.<br />", errno, filename);
+			return;
+		case EACCES: /* Permission denied. -- The file should be accessible by nagios. */
+			printf("<br /> A stat call returned a permissions error(%d) while looking for the file %s.<br />", errno, filename);
+			return;
+		case ENOENT: /* A component of the path file_name does not exist, or the path is an empty string. Just return if the file doesn't exist. */
+			return;
+		default:
+			return;
 		}
+	}
 
 	fp = fopen(filename, "r");
 	if(fp == NULL)
@@ -1888,11 +1908,12 @@ void include_ssi_file(const char *filename) {
 	fclose(fp);
 
 	return;
-	}
+}
 
 
 /* displays an error if CGI config file could not be read */
-void cgi_config_file_error(const char *config_file) {
+void cgi_config_file_error(const char *config_file)
+{
 
 	printf("<H1>Whoops!</H1>\n");
 
@@ -1916,12 +1937,13 @@ void cgi_config_file_error(const char *config_file) {
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
 /* displays an error if main config file could not be read */
-void main_config_file_error(const char *config_file) {
+void main_config_file_error(const char *config_file)
+{
 
 	printf("<H1>Whoops!</H1>\n");
 
@@ -1945,11 +1967,12 @@ void main_config_file_error(const char *config_file) {
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 /* displays an error if object data could not be read */
-void object_data_error(void) {
+void object_data_error(void)
+{
 
 	printf("<H1>Whoops!</H1>\n");
 
@@ -1973,11 +1996,12 @@ void object_data_error(void) {
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 /* displays an error if status data could not be read */
-void status_data_error(void) {
+void status_data_error(void)
+{
 
 	printf("<H1>Whoops!</H1>\n");
 
@@ -2005,13 +2029,14 @@ void status_data_error(void) {
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
 
 /* displays context-sensitive help window */
-void display_context_help(const char *chid) {
+void display_context_help(const char *chid)
+{
 	const char *icon = CONTEXT_HELP_ICON1;
 
 	if(show_context_help == FALSE)
@@ -2024,11 +2049,12 @@ void display_context_help(const char *chid) {
 	printf("<a href='%s%s.html' target='cshw' onClick='javascript:window.open(\"%s%s.html\",\"cshw\",\"width=550,height=600,toolbar=0,location=0,status=0,resizable=1,scrollbars=1\");return true'><img src='%s%s' border=0 alt='Display context-sensitive help for this screen' title='Display context-sensitive help for this screen'></a>\n", url_context_help_path, chid, url_context_help_path, chid, url_images_path, icon);
 
 	return;
-	}
+}
 
 
 
-void display_splunk_host_url(host *hst) {
+void display_splunk_host_url(host *hst)
+{
 
 	if(enable_splunk_integration == FALSE)
 		return;
@@ -2038,11 +2064,12 @@ void display_splunk_host_url(host *hst) {
 	printf("<a href='%s?q=search %s' target='_blank'><img src='%s%s' alt='Splunk It' title='Splunk It' border='0'></a>\n", splunk_url, url_encode(hst->name), url_images_path, SPLUNK_SMALL_WHITE_ICON);
 
 	return;
-	}
+}
 
 
 
-void display_splunk_service_url(service *svc) {
+void display_splunk_service_url(service *svc)
+{
 
 	if(enable_splunk_integration == FALSE)
 		return;
@@ -2053,11 +2080,12 @@ void display_splunk_service_url(service *svc) {
 	printf("%s' target='_blank'><img src='%s%s' alt='Splunk It' title='Splunk It' border='0'></a>\n", url_encode(svc->description), url_images_path, SPLUNK_SMALL_WHITE_ICON);
 
 	return;
-	}
+}
 
 
 
-void display_splunk_generic_url(char *buf, int icon) {
+void display_splunk_generic_url(char *buf, int icon)
+{
 	char *newbuf = NULL;
 
 	if(enable_splunk_integration == FALSE)
@@ -2078,11 +2106,12 @@ void display_splunk_generic_url(char *buf, int icon) {
 	free(newbuf);
 
 	return;
-	}
+}
 
 
 /* strip quotes and from string */
-void strip_splunk_query_terms(char *buffer) {
+void strip_splunk_query_terms(char *buffer)
+{
 	register int x;
 	register int y;
 	register int z;
@@ -2097,8 +2126,8 @@ void strip_splunk_query_terms(char *buffer) {
 			buffer[y++] = ' ';
 		else
 			buffer[y++] = buffer[x];
-		}
+	}
 	buffer[y++] = '\x0';
 
 	return;
-	}
+}

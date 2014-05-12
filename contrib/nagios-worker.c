@@ -41,12 +41,10 @@ int main(int argc, char *argv[])
 		if ((opt = strchr(arg, '='))) {
 			opt = '\0';
 			opt++;
-		}
-		else if (i < argc - 1) {
+		} else if (i < argc - 1) {
 			opt = argv[i + 1];
 			i++;
-		}
-		else {
+		} else {
 			usage(argv[0]);
 			return 1;
 		}

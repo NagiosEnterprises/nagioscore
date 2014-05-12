@@ -89,7 +89,7 @@ static void child_exited(int sig)
 
 	result = wait3(&status, 0, &ru);
 	printf("wait3() status: %d; return %d: %s\n",
-		 status, result, strerror(errno));
+	       status, result, strerror(errno));
 	if (WIFEXITED(status)) {
 		printf("Child with pid %d exited normally\n", result);
 	}
@@ -119,7 +119,7 @@ static int print_input(int sd, int events, void *wp_)
 			/* double the size */
 			iocache_grow(wp->ioc, iocache_size(wp->ioc));
 			printf("Growing iocache for worker %d. sizes old/new %lu/%lu\n",
-				   wp->pid, size, iocache_size(wp->ioc));
+			       wp->pid, size, iocache_size(wp->ioc));
 		} else {
 			printf("iocache_size() for worker %d is already at max\n", wp->pid);
 		}
@@ -154,7 +154,7 @@ static int print_input(int sd, int events, void *wp_)
 	}
 
 	printf("iocache: available: %lu; size: %lu; capacity: %lu\n",
-		   iocache_available(wp->ioc), iocache_size(wp->ioc), iocache_capacity(wp->ioc));
+	       iocache_available(wp->ioc), iocache_size(wp->ioc), iocache_capacity(wp->ioc));
 	printf("Got %d packets in %ld bytes (ret: %d)\n", pkt, tot_bytes, ret);
 
 	return 0;
@@ -178,7 +178,7 @@ static int send_command(int sd, int events, void *discard)
 	}
 	if (ret < 0) {
 		printf("main: Failed to read() from fd %d: %s",
-			   sd, strerror(errno));
+		       sd, strerror(errno));
 	}
 
 	/* this happens when we're reading from stdin */

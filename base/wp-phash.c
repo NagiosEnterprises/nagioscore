@@ -55,8 +55,7 @@ static inline unsigned int
 wp_phash(register const char *str, register unsigned int len)
 {
 	/* the last 136 entries have been cut, as we don't need them */
-	static unsigned char asso_values[256] =
-    {
+	static unsigned char asso_values[256] = {
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
@@ -83,13 +82,13 @@ wp_phash(register const char *str, register unsigned int len)
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34,
-    };
+	};
 	register int hval = len;
 
 	switch (hval) {
 	default:
-        hval += asso_values[(unsigned char)str[4]];
-		/*FALLTHROUGH*/
+		hval += asso_values[(unsigned char)str[4]];
+	/*FALLTHROUGH*/
 	case 4:
 		hval += asso_values[(unsigned char)str[3]];
 		break;

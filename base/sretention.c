@@ -38,21 +38,24 @@
 
 
 /* initializes retention data at program start */
-int initialize_retention_data(const char *cfgfile) {
+int initialize_retention_data(const char *cfgfile)
+{
 	return xrddefault_initialize_retention_data(cfgfile);
-	}
+}
 
 
 
 /* cleans up retention data before program termination */
-int cleanup_retention_data(void) {
+int cleanup_retention_data(void)
+{
 	return xrddefault_cleanup_retention_data();
-	}
+}
 
 
 
 /* save all host and service state information */
-int save_state_information(int autosave) {
+int save_state_information(int autosave)
+{
 	int result = OK;
 
 	if(retain_state_information == FALSE)
@@ -77,12 +80,13 @@ int save_state_information(int autosave) {
 		logit(NSLOG_PROCESS_INFO, FALSE, "Auto-save of retention data completed successfully.\n");
 
 	return OK;
-	}
+}
 
 
 
 /* reads in initial host and state information */
-int read_initial_state_information(void) {
+int read_initial_state_information(void)
+{
 	int result = OK;
 
 	if(retain_state_information == FALSE)
@@ -104,4 +108,4 @@ int read_initial_state_information(void) {
 		return ERROR;
 
 	return OK;
-	}
+}

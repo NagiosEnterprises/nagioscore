@@ -234,8 +234,8 @@ unsigned int kvvec_capacity(struct kvvec *kvv)
  * involved, and it will parse the kvvec2buf() produce nicely.
  */
 int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
-			unsigned int len, const char kvsep,
-			const char pair_sep, int flags)
+                       unsigned int len, const char kvsep,
+                       const char pair_sep, int flags)
 {
 	unsigned int num_pairs = 0, i, offset = 0;
 
@@ -328,7 +328,7 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 }
 
 struct kvvec *buf2kvvec(char *str, unsigned int len, const char kvsep,
-			const char pair_sep, int flags)
+                        const char pair_sep, int flags)
 {
 	struct kvvec *kvv;
 

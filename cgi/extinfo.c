@@ -68,7 +68,7 @@ typedef struct sortdata_struct {
 	servicestatus *svcstatus;
 	hoststatus *hststatus;
 	struct sortdata_struct *next;
-	} sortdata;
+} sortdata;
 
 void document_header(int);
 void document_footer(void);
@@ -108,7 +108,8 @@ int display_header = TRUE;
 
 
 
-int main(void) {
+int main(void)
+{
 	int found = FALSE;
 	char temp_buffer[MAX_INPUT_BUFFER] = "";
 	char *processed_string = NULL;
@@ -176,7 +177,7 @@ int main(void) {
 			if(display_type == DISPLAY_SERVICE_INFO) {
 				temp_service = find_service(host_name, service_desc);
 				grab_service_macros_r(mac, temp_service);
-				}
+			}
 
 			/* write some Javascript helper functions */
 			if(temp_host != NULL) {
@@ -191,22 +192,22 @@ int main(void) {
 					printf("function nagios_get_service_description()\n{\n");
 					printf("return \"%s\";\n", temp_service->description);
 					printf("}\n");
-					}
-				printf("//-->\n</SCRIPT>\n");
 				}
+				printf("//-->\n</SCRIPT>\n");
 			}
+		}
 
 		/* find the hostgroup */
 		else if(display_type == DISPLAY_HOSTGROUP_INFO) {
 			temp_hostgroup = find_hostgroup(hostgroup_name);
 			grab_hostgroup_macros_r(mac, temp_hostgroup);
-			}
+		}
 
 		/* find the servicegroup */
 		else if(display_type == DISPLAY_SERVICEGROUP_INFO) {
 			temp_servicegroup = find_servicegroup(servicegroup_name);
 			grab_servicegroup_macros_r(mac, temp_servicegroup);
-			}
+		}
 
 		if((display_type == DISPLAY_HOST_INFO && temp_host != NULL) || (display_type == DISPLAY_SERVICE_INFO && temp_host != NULL && temp_service != NULL) || (display_type == DISPLAY_HOSTGROUP_INFO && temp_hostgroup != NULL) || (display_type == DISPLAY_SERVICEGROUP_INFO && temp_servicegroup != NULL)) {
 			printf("<TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 CLASS='linkBox'>\n");
@@ -225,8 +226,7 @@ int main(void) {
 #endif
 				printf("<A HREF='%s?host=%s&show_log_entries'>View Availability Report For This Host</A><BR>\n", AVAIL_CGI, url_encode(host_name));
 				printf("<A HREF='%s?host=%s'>View Notifications For This Host</A>\n", NOTIFICATIONS_CGI, url_encode(host_name));
-				}
-			else if(display_type == DISPLAY_SERVICE_INFO) {
+			} else if(display_type == DISPLAY_SERVICE_INFO) {
 				printf("<A HREF='%s?host=%s&", HISTORY_CGI, url_encode(host_name));
 				printf("service=%s'>View Alert History For This Service</A><BR>\n", url_encode(service_desc));
 #ifdef USE_TRENDS
@@ -241,22 +241,20 @@ int main(void) {
 				printf("service=%s&show_log_entries'>View Availability Report For This Service</A><BR>\n", url_encode(service_desc));
 				printf("<A HREF='%s?host=%s&", NOTIFICATIONS_CGI, url_encode(host_name));
 				printf("service=%s'>View Notifications For This Service</A>\n", url_encode(service_desc));
-				}
-			else if(display_type == DISPLAY_HOSTGROUP_INFO) {
+			} else if(display_type == DISPLAY_HOSTGROUP_INFO) {
 				printf("<A HREF='%s?hostgroup=%s&style=detail'>View Status Detail For This Hostgroup</A><BR>\n", STATUS_CGI, url_encode(hostgroup_name));
 				printf("<A HREF='%s?hostgroup=%s&style=overview'>View Status Overview For This Hostgroup</A><BR>\n", STATUS_CGI, url_encode(hostgroup_name));
 				printf("<A HREF='%s?hostgroup=%s&style=grid'>View Status Grid For This Hostgroup</A><BR>\n", STATUS_CGI, url_encode(hostgroup_name));
 				printf("<A HREF='%s?hostgroup=%s'>View Availability For This Hostgroup</A><BR>\n", AVAIL_CGI, url_encode(hostgroup_name));
-				}
-			else if(display_type == DISPLAY_SERVICEGROUP_INFO) {
+			} else if(display_type == DISPLAY_SERVICEGROUP_INFO) {
 				printf("<A HREF='%s?servicegroup=%s&style=detail'>View Status Detail For This Servicegroup</A><BR>\n", STATUS_CGI, url_encode(servicegroup_name));
 				printf("<A HREF='%s?servicegroup=%s&style=overview'>View Status Overview For This Servicegroup</A><BR>\n", STATUS_CGI, url_encode(servicegroup_name));
 				printf("<A HREF='%s?servicegroup=%s&style=grid'>View Status Grid For This Servicegroup</A><BR>\n", STATUS_CGI, url_encode(servicegroup_name));
 				printf("<A HREF='%s?servicegroup=%s'>View Availability For This Servicegroup</A><BR>\n", AVAIL_CGI, url_encode(servicegroup_name));
-				}
+			}
 			printf("</TD></TR>\n");
 			printf("</TABLE>\n");
-			}
+		}
 
 		printf("</td>\n");
 
@@ -276,7 +274,7 @@ int main(void) {
 					for(temp_parenthost = temp_host->parent_hosts; temp_parenthost != NULL; temp_parenthost = temp_parenthost->next)
 						printf("<DIV CLASS='dataTitle'><A HREF='%s?host=%s'>%s</A></DIV>\n", STATUS_CGI, url_encode(temp_parenthost->host_name), temp_parenthost->host_name);
 					printf("<BR>");
-					}
+				}
 
 				printf("<DIV CLASS='data'>Member of</DIV><DIV CLASS='dataTitle'>");
 				for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
@@ -285,14 +283,14 @@ int main(void) {
 							printf(", ");
 						printf("<A HREF='%s?hostgroup=%s&style=overview'>%s</A>", STATUS_CGI, url_encode(temp_hostgroup->group_name), temp_hostgroup->group_name);
 						found = TRUE;
-						}
 					}
+				}
 
 				if(found == FALSE)
 					printf("No hostgroups");
 				printf("</DIV><BR>\n");
 				printf("<DIV CLASS='data'>%s</DIV>\n", temp_host->address);
-				}
+			}
 			if(display_type == DISPLAY_SERVICE_INFO) {
 				printf("<DIV CLASS='data'>Service</DIV><DIV CLASS='dataTitle'>%s</DIV><DIV CLASS='data'>On Host</DIV>\n", service_desc);
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n", temp_host->alias);
@@ -304,15 +302,15 @@ int main(void) {
 							printf(", ");
 						printf("<A HREF='%s?servicegroup=%s&style=overview'>%s</A>", STATUS_CGI, url_encode(temp_servicegroup->group_name), temp_servicegroup->group_name);
 						found = TRUE;
-						}
 					}
+				}
 
 				if(found == FALSE)
 					printf("No servicegroups.");
 				printf("</DIV><BR>\n");
 
 				printf("<DIV CLASS='data'>%s</DIV>\n", temp_host->address);
-				}
+			}
 			if(display_type == DISPLAY_HOSTGROUP_INFO) {
 				printf("<DIV CLASS='data'>Hostgroup</DIV>\n");
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n", temp_hostgroup->alias);
@@ -321,8 +319,8 @@ int main(void) {
 					process_macros_r(mac, temp_hostgroup->notes, &processed_string, 0);
 					printf("<p>%s</p>", processed_string);
 					free(processed_string);
-					}
 				}
+			}
 			if(display_type == DISPLAY_SERVICEGROUP_INFO) {
 				printf("<DIV CLASS='data'>Servicegroup</DIV>\n");
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n", temp_servicegroup->alias);
@@ -331,8 +329,8 @@ int main(void) {
 					process_macros_r(mac, temp_servicegroup->notes, &processed_string, 0);
 					printf("<p>%s</p>", processed_string);
 					free(processed_string);
-					}
 				}
+			}
 
 			if(display_type == DISPLAY_SERVICE_INFO) {
 				if(temp_service->icon_image != NULL) {
@@ -341,15 +339,15 @@ int main(void) {
 					printf("%s", processed_string);
 					free(processed_string);
 					printf("' border=0 alt='%s' title='%s'><BR CLEAR=ALL>", (temp_service->icon_image_alt == NULL) ? "" : temp_service->icon_image_alt, (temp_service->icon_image_alt == NULL) ? "" : temp_service->icon_image_alt);
-					}
+				}
 				if(temp_service->icon_image_alt != NULL)
 					printf("<font size=-1><i>( %s )</i></font>\n", temp_service->icon_image_alt);
 				if(temp_service->notes != NULL) {
 					process_macros_r(mac, temp_service->notes, &processed_string, 0);
 					printf("<p>%s</p>\n", processed_string);
 					free(processed_string);
-					}
 				}
+			}
 
 			if(display_type == DISPLAY_HOST_INFO) {
 				if(temp_host->icon_image != NULL) {
@@ -358,16 +356,16 @@ int main(void) {
 					printf("%s", processed_string);
 					free(processed_string);
 					printf("' border=0 alt='%s' title='%s'><BR CLEAR=ALL>", (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt);
-					}
+				}
 				if(temp_host->icon_image_alt != NULL)
 					printf("<font size=-1><i>( %s )</i><font>\n", temp_host->icon_image_alt);
 				if(temp_host->notes != NULL) {
 					process_macros_r(mac, temp_host->notes, &processed_string, 0);
 					printf("<p>%s</p>\n", processed_string);
 					free(processed_string);
-					}
 				}
 			}
+		}
 
 		printf("</td>\n");
 
@@ -385,7 +383,7 @@ int main(void) {
 				printf("' TARGET='%s'><img src='%s%s' border=0 alt='Perform Additional Actions On This Host' title='Perform Additional Actions On This Host'></A>\n", (action_url_target == NULL) ? "_blank" : action_url_target, url_images_path, ACTION_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 				printf("</TD></TR>\n");
-				}
+			}
 			if(temp_host->notes_url != NULL && strcmp(temp_host->notes_url, "")) {
 				printf("<TR><TD ALIGN='right'>\n");
 				printf("<A HREF='");
@@ -396,9 +394,9 @@ int main(void) {
 				printf("' TARGET='%s'><img src='%s%s' border=0 alt='View Additional Notes For This Host' title='View Additional Notes For This Host'></A>\n", (notes_url_target == NULL) ? "_blank" : notes_url_target, url_images_path, NOTES_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 				printf("</TD></TR>\n");
-				}
-			printf("</TABLE>\n");
 			}
+			printf("</TABLE>\n");
+		}
 
 		else if(display_type == DISPLAY_SERVICE_INFO && temp_service != NULL) {
 			printf("<TABLE BORDER='0'><TR><TD ALIGN='right'>\n");
@@ -409,7 +407,7 @@ int main(void) {
 				free(processed_string);
 				printf("' TARGET='%s'><img src='%s%s' border=0 alt='Perform Additional Actions On This Service' title='Perform Additional Actions On This Service'></A>\n", (action_url_target == NULL) ? "_blank" : action_url_target, url_images_path, ACTION_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
-				}
+			}
 			if(temp_service->notes_url != NULL && strcmp(temp_service->notes_url, "")) {
 				printf("<A HREF='");
 				process_macros_r(mac, temp_service->notes_url, &processed_string, 0);
@@ -417,9 +415,9 @@ int main(void) {
 				free(processed_string);
 				printf("' TARGET='%s'><img src='%s%s' border=0 alt='View Additional Notes For This Service' title='View Additional Notes For This Service'></A>\n", (notes_url_target == NULL) ? "_blank" : notes_url_target, url_images_path, NOTES_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
-				}
-			printf("</TD></TR></TABLE>\n");
 			}
+			printf("</TD></TR></TABLE>\n");
+		}
 
 		if(display_type == DISPLAY_HOSTGROUP_INFO && temp_hostgroup != NULL) {
 			printf("<TABLE BORDER='0'>\n");
@@ -430,7 +428,7 @@ int main(void) {
 				printf("' TARGET='%s'><img src='%s%s' border=0 alt='Perform Additional Actions On This Hostgroup' title='Perform Additional Actions On This Hostgroup'></A>\n", (action_url_target == NULL) ? "_blank" : action_url_target, url_images_path, ACTION_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 				printf("</TD></TR>\n");
-				}
+			}
 			if(temp_hostgroup->notes_url != NULL && strcmp(temp_hostgroup->notes_url, "")) {
 				printf("<TR><TD ALIGN='right'>\n");
 				printf("<A HREF='");
@@ -438,9 +436,9 @@ int main(void) {
 				printf("' TARGET='%s'><img src='%s%s' border=0 alt='View Additional Notes For This Hostgroup' title='View Additional Notes For This Hostgroup'></A>\n", (notes_url_target == NULL) ? "_blank" : notes_url_target, url_images_path, NOTES_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 				printf("</TD></TR>\n");
-				}
-			printf("</TABLE>\n");
 			}
+			printf("</TABLE>\n");
+		}
 
 		else if(display_type == DISPLAY_SERVICEGROUP_INFO && temp_servicegroup != NULL) {
 			printf("<TABLE BORDER='0'>\n");
@@ -449,15 +447,15 @@ int main(void) {
 				print_extra_servicegroup_url(temp_servicegroup->group_name, temp_servicegroup->action_url);
 				printf("' TARGET='%s'><img src='%s%s' border=0 alt='Perform Additional Actions On This Servicegroup' title='Perform Additional Actions On This Servicegroup'></A>\n", (action_url_target == NULL) ? "_blank" : action_url_target, url_images_path, ACTION_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
-				}
+			}
 			if(temp_servicegroup->notes_url != NULL && strcmp(temp_servicegroup->notes_url, "")) {
 				printf("<A HREF='");
 				print_extra_servicegroup_url(temp_servicegroup->group_name, temp_servicegroup->notes_url);
 				printf("' TARGET='%s'><img src='%s%s' border=0 alt='View Additional Notes For This Servicegroup' title='View Additional Notes For This Servicegroup'></A>\n", (notes_url_target == NULL) ? "_blank" : notes_url_target, url_images_path, NOTES_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
-				}
-			printf("</TABLE>\n");
 			}
+			printf("</TABLE>\n");
+		}
 
 		/* display context-sensitive help */
 		if(display_type == DISPLAY_HOST_INFO)
@@ -485,7 +483,7 @@ int main(void) {
 		printf("</tr>\n");
 		printf("</table>\n");
 
-		}
+	}
 
 	printf("<BR>\n");
 
@@ -516,11 +514,12 @@ int main(void) {
 	free_downtime_data();
 
 	return OK;
-	}
+}
 
 
 
-void document_header(int use_stylesheet) {
+void document_header(int use_stylesheet)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	time_t expire_time;
@@ -552,7 +551,7 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>", url_stylesheets_path, COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>", url_stylesheets_path, EXTINFO_CSS);
-		}
+	}
 	printf("</head>\n");
 
 	printf("<body CLASS='extinfo'>\n");
@@ -561,10 +560,11 @@ void document_header(int use_stylesheet) {
 	include_ssi_files(EXTINFO_CGI, SSI_HEADER);
 
 	return;
-	}
+}
 
 
-void document_footer(void) {
+void document_footer(void)
+{
 
 	if(embedded == TRUE)
 		return;
@@ -576,10 +576,11 @@ void document_footer(void) {
 	printf("</html>\n");
 
 	return;
-	}
+}
 
 
-int process_cgivars(void) {
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int temp_type;
@@ -592,7 +593,7 @@ int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
+		}
 
 		/* we found the display type */
 		else if(!strcmp(variables[x], "type")) {
@@ -600,7 +601,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 			temp_type = atoi(variables[x]);
 			if(temp_type == DISPLAY_HOST_INFO)
 				display_type = DISPLAY_HOST_INFO;
@@ -620,7 +621,7 @@ int process_cgivars(void) {
 				display_type = DISPLAY_SCHEDULING_QUEUE;
 			else
 				display_type = DISPLAY_PROCESS_INFO;
-			}
+		}
 
 		/* we found the host name */
 		else if(!strcmp(variables[x], "host")) {
@@ -628,13 +629,13 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			host_name = strdup(variables[x]);
 			if(host_name == NULL)
 				host_name = "";
 			strip_html_brackets(host_name);
-			}
+		}
 
 		/* we found the hostgroup name */
 		else if(!strcmp(variables[x], "hostgroup")) {
@@ -642,13 +643,13 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			hostgroup_name = strdup(variables[x]);
 			if(hostgroup_name == NULL)
 				hostgroup_name = "";
 			strip_html_brackets(hostgroup_name);
-			}
+		}
 
 		/* we found the service name */
 		else if(!strcmp(variables[x], "service")) {
@@ -656,13 +657,13 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			service_desc = strdup(variables[x]);
 			if(service_desc == NULL)
 				service_desc = "";
 			strip_html_brackets(service_desc);
-			}
+		}
 
 		/* we found the servicegroup name */
 		else if(!strcmp(variables[x], "servicegroup")) {
@@ -670,13 +671,13 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			servicegroup_name = strdup(variables[x]);
 			if(servicegroup_name == NULL)
 				servicegroup_name = "";
 			strip_html_brackets(servicegroup_name);
-			}
+		}
 
 		/* we found the sort type argument */
 		else if(!strcmp(variables[x], "sorttype")) {
@@ -684,10 +685,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			sort_type = atoi(variables[x]);
-			}
+		}
 
 		/* we found the sort option argument */
 		else if(!strcmp(variables[x], "sortoption")) {
@@ -695,10 +696,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			sort_option = atoi(variables[x]);
-			}
+		}
 
 		/* we found the embed option */
 		else if(!strcmp(variables[x], "embedded"))
@@ -707,17 +708,18 @@ int process_cgivars(void) {
 		/* we found the noheader option */
 		else if(!strcmp(variables[x], "noheader"))
 			display_header = FALSE;
-		}
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
-void show_process_info(void) {
+void show_process_info(void)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	unsigned long run_time;
@@ -735,7 +737,7 @@ void show_process_info(void) {
 		printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
 
 		return;
-		}
+	}
 
 	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
@@ -871,26 +873,26 @@ void show_process_info(void) {
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Enable Performance Data' TITLE='Enable Performance Data'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Enable performance data</a></td></tr>\n", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_PERFORMANCE_DATA);
 
 		printf("</TABLE>\n");
-		}
-	else {
+	} else {
 		printf("<DIV ALIGN=CENTER CLASS='infoMessage'>It appears as though Nagios is not running, so commands are temporarily unavailable...\n");
 		if(!strcmp(nagios_check_command, "")) {
 			printf("<BR><BR>\n");
 			printf("Hint: It looks as though you have not defined a command for checking the process state by supplying a value for the <b>nagios_check_command</b> option in the CGI configuration file.<BR>\n");
 			printf("Read the documentation for more information on checking the status of the Nagios process in the CGIs.\n");
-			}
-		printf("</DIV>\n");
 		}
+		printf("</DIV>\n");
+	}
 
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
 
 	printf("</TD></TR></TABLE>\n");
 	printf("</DIV>\n");
-	}
+}
 
 
-void show_host_info(void) {
+void show_host_info(void)
+{
 	hoststatus *temp_hoststatus;
 	host *temp_host;
 	char date_time[MAX_DATETIME_LENGTH];
@@ -919,7 +921,7 @@ void show_host_info(void) {
 		printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
 
 		return;
-		}
+	}
 
 	/* get host status info */
 	temp_hoststatus = find_hoststatus(host_name);
@@ -928,11 +930,11 @@ void show_host_info(void) {
 	if(temp_host == NULL) {
 		printf("<P><DIV CLASS='errorMessage'>Error: Host Not Found!</DIV></P>>");
 		return;
-		}
+	}
 	if(temp_hoststatus == NULL) {
 		printf("<P><DIV CLASS='errorMessage'>Error: Host Status Information Not Found!</DIV></P");
 		return;
-		}
+	}
 
 
 	printf("<DIV ALIGN=CENTER>\n");
@@ -963,13 +965,12 @@ void show_host_info(void) {
 				duration_error = TRUE;
 			else
 				t = current_time - program_start;
-			}
-		else {
+		} else {
 			if(temp_hoststatus->last_state_change > current_time)
 				duration_error = TRUE;
 			else
 				t = current_time - temp_hoststatus->last_state_change;
-			}
+		}
 		get_time_breakdown((unsigned long)t, &days, &hours, &minutes, &seconds);
 		if(duration_error == TRUE)
 			snprintf(state_duration, sizeof(state_duration) - 1, "???");
@@ -980,15 +981,13 @@ void show_host_info(void) {
 		if(temp_hoststatus->status == SD_HOST_UP) {
 			strcpy(state_string, "UP");
 			bg_class = "hostUP";
-			}
-		else if(temp_hoststatus->status == SD_HOST_DOWN) {
+		} else if(temp_hoststatus->status == SD_HOST_DOWN) {
 			strcpy(state_string, "DOWN");
 			bg_class = "hostDOWN";
-			}
-		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
+		} else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 			strcpy(state_string, "UNREACHABLE");
 			bg_class = "hostUNREACHABLE";
-			}
+		}
 
 		printf("<TR><TD CLASS='dataVar'>Host Status:</td><td CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV>&nbsp;(for %s)%s</td></tr>\n", bg_class, state_string, state_duration, (temp_hoststatus->problem_has_been_acknowledged == TRUE) ? "&nbsp;&nbsp;(Has been acknowledged)" : "");
 
@@ -998,7 +997,7 @@ void show_host_info(void) {
 			asprintf(&buf, "%s %s", temp_host->name, temp_hoststatus->plugin_output);
 			display_splunk_generic_url(buf, 1);
 			free(buf);
-			}
+		}
 		if(temp_hoststatus->long_plugin_output != NULL)
 			printf("<BR>%s", html_encode(temp_hoststatus->long_plugin_output, TRUE));
 		printf("</TD></TR>\n");
@@ -1087,7 +1086,7 @@ void show_host_info(void) {
 
 		printf("</TD></TR>\n");
 		printf("</TABLE>\n");
-		}
+	}
 
 	printf("</TD>\n");
 
@@ -1108,16 +1107,14 @@ void show_host_info(void) {
 #endif
 		if(temp_hoststatus->checks_enabled == TRUE) {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Active Checks Of This Host' TITLE='Disable Active Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Disable active checks of this host</a></td></tr>\n", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_DISABLE_HOST_CHECK, url_encode(host_name));
-			}
-		else
+		} else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Active Checks Of This Host' TITLE='Enable Active Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Enable active checks of this host</a></td></tr>\n", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_HOST_CHECK, url_encode(host_name));
 		printf("<tr CLASS='data'><td><img src='%s%s' border=0 ALT='Re-schedule Next Host Check' TITLE='Re-schedule Next Host Check'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s%s'>Re-schedule the next check of this host</a></td></tr>\n", url_images_path, DELAY_ICON, COMMAND_CGI, CMD_SCHEDULE_HOST_CHECK, url_encode(host_name), (temp_hoststatus->checks_enabled == TRUE) ? "&force_check" : "");
 
 		if(temp_hoststatus->accept_passive_checks == TRUE) {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Submit Passive Check Result For This Host' TITLE='Submit Passive Check Result For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Submit passive check result for this host</a></td></tr>\n", url_images_path, PASSIVE_ICON, COMMAND_CGI, CMD_PROCESS_HOST_CHECK_RESULT, url_encode(host_name));
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Stop Accepting Passive Checks For This Host' TITLE='Stop Accepting Passive Checks For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Stop accepting passive checks for this host</a></td></tr>\n", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_DISABLE_PASSIVE_HOST_CHECKS, url_encode(host_name));
-			}
-		else
+		} else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Accepting Passive Checks For This Host' TITLE='Start Accepting Passive Checks For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Start accepting passive checks for this host</a></td></tr>\n", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_PASSIVE_HOST_CHECKS, url_encode(host_name));
 
 		if(temp_hoststatus->obsess == TRUE)
@@ -1130,7 +1127,7 @@ void show_host_info(void) {
 				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Acknowledge This Host Problem' TITLE='Acknowledge This Host Problem'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Acknowledge this host problem</a></td></tr>\n", url_images_path, ACKNOWLEDGEMENT_ICON, COMMAND_CGI, CMD_ACKNOWLEDGE_HOST_PROBLEM, url_encode(host_name));
 			else
 				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Remove Problem Acknowledgement' TITLE='Remove Problem Acknowledgement'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Remove problem acknowledgement</a></td></tr>\n", url_images_path, REMOVE_ACKNOWLEDGEMENT_ICON, COMMAND_CGI, CMD_REMOVE_HOST_ACKNOWLEDGEMENT, url_encode(host_name));
-			}
+		}
 
 		if(temp_hoststatus->notifications_enabled == TRUE)
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Notifications For This Host' TITLE='Disable Notifications For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Disable notifications for this host</a></td></tr>\n", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_DISABLE_HOST_NOTIFICATIONS, url_encode(host_name));
@@ -1166,14 +1163,12 @@ void show_host_info(void) {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Flap Detection For This Host' TITLE='Enable Flap Detection For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Enable flap detection for this host</a></td></tr>\n", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_HOST_FLAP_DETECTION, url_encode(host_name));
 
 		printf("</TABLE>\n");
-		}
-	else if(is_authorized_for_read_only(&current_authdata) == TRUE) {
+	} else if(is_authorized_for_read_only(&current_authdata) == TRUE) {
 		printf("<DIV ALIGN=CENTER CLASS='infoMessage'>Your account does not have permissions to execute commands.<br>\n");
-		}
-	else {
+	} else {
 		printf("<DIV ALIGN=CENTER CLASS='infoMessage'>It appears as though Nagios is not running, so commands are temporarily unavailable...<br>\n");
 		printf("Click <a href='%s?type=%d'>here</a> to view Nagios process information</DIV>\n", EXTINFO_CGI, DISPLAY_PROCESS_INFO);
-		}
+	}
 	printf("</TD></TR></TABLE>\n");
 
 	printf("</TD>\n");
@@ -1188,7 +1183,7 @@ void show_host_info(void) {
 	if(is_authorized_for_read_only(&current_authdata) == FALSE) {
 		/* display comments */
 		display_comments(HOST_COMMENT);
-		}
+	}
 	printf("</TD>\n");
 
 	printf("</TR>\n");
@@ -1196,10 +1191,11 @@ void show_host_info(void) {
 	printf("</DIV>\n");
 
 	return;
-	}
+}
 
 
-void show_service_info(void) {
+void show_service_info(void)
+{
 	service *temp_service;
 	char date_time[MAX_DATETIME_LENGTH];
 	char status_age[48];
@@ -1227,7 +1223,7 @@ void show_service_info(void) {
 		printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
 
 		return;
-		}
+	}
 
 	/* get service status info */
 	temp_svcstatus = find_servicestatus(host_name, service_desc);
@@ -1236,11 +1232,11 @@ void show_service_info(void) {
 	if(temp_service == NULL) {
 		printf("<P><DIV CLASS='errorMessage'>Error: Service Not Found!</DIV></P>");
 		return;
-		}
+	}
 	if(temp_svcstatus == NULL) {
 		printf("<P><DIV CLASS='errorMessage'>Error: Service Status Not Found!</DIV></P>");
 		return;
-		}
+	}
 
 
 	printf("<DIV ALIGN=CENTER>\n");
@@ -1273,13 +1269,12 @@ void show_service_info(void) {
 				duration_error = TRUE;
 			else
 				t = current_time - program_start;
-			}
-		else {
+		} else {
 			if(temp_svcstatus->last_state_change > current_time)
 				duration_error = TRUE;
 			else
 				t = current_time - temp_svcstatus->last_state_change;
-			}
+		}
 		get_time_breakdown((unsigned long)t, &days, &hours, &minutes, &seconds);
 		if(duration_error == TRUE)
 			snprintf(state_duration, sizeof(state_duration) - 1, "???");
@@ -1290,19 +1285,16 @@ void show_service_info(void) {
 		if(temp_svcstatus->status == SERVICE_OK) {
 			strcpy(state_string, "OK");
 			bg_class = "serviceOK";
-			}
-		else if(temp_svcstatus->status == SERVICE_WARNING) {
+		} else if(temp_svcstatus->status == SERVICE_WARNING) {
 			strcpy(state_string, "WARNING");
 			bg_class = "serviceWARNING";
-			}
-		else if(temp_svcstatus->status == SERVICE_CRITICAL) {
+		} else if(temp_svcstatus->status == SERVICE_CRITICAL) {
 			strcpy(state_string, "CRITICAL");
 			bg_class = "serviceCRITICAL";
-			}
-		else {
+		} else {
 			strcpy(state_string, "UNKNOWN");
 			bg_class = "serviceUNKNOWN";
-			}
+		}
 		printf("<TR><TD CLASS='dataVar'>Current Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV>&nbsp;(for %s)%s</TD></TR>\n", bg_class, state_string, state_duration, (temp_svcstatus->problem_has_been_acknowledged == TRUE) ? "&nbsp;&nbsp;(Has been acknowledged)" : "");
 
 		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Status Information:</TD><TD CLASS='dataVal'>%s", (temp_svcstatus->plugin_output == NULL) ? "" : html_encode(temp_svcstatus->plugin_output, TRUE));
@@ -1311,7 +1303,7 @@ void show_service_info(void) {
 			asprintf(&buf, "%s %s %s", temp_service->host_name, temp_service->description, temp_svcstatus->plugin_output);
 			display_splunk_generic_url(buf, 1);
 			free(buf);
-			}
+		}
 		if(temp_svcstatus->long_plugin_output != NULL)
 			printf("<BR>%s", html_encode(temp_svcstatus->long_plugin_output, TRUE));
 		printf("</TD></TR>\n");
@@ -1404,7 +1396,7 @@ void show_service_info(void) {
 		printf("</TD></TR>\n");
 
 		printf("</TABLE>\n");
-		}
+	}
 
 
 	printf("</TD>\n");
@@ -1426,11 +1418,10 @@ void show_service_info(void) {
 
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Active Checks Of This Service' TITLE='Disable Active Checks Of This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_DISABLE_SVC_CHECK, url_encode(host_name));
 			printf("&service=%s'>Disable active checks of this service</a></td></tr>\n", url_encode(service_desc));
-			}
-		else {
+		} else {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Active Checks Of This Service' TITLE='Enable Active Checks Of This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_SVC_CHECK, url_encode(host_name));
 			printf("&service=%s'>Enable active checks of this service</a></td></tr>\n", url_encode(service_desc));
-			}
+		}
 		printf("<tr CLASS='data'><td><img src='%s%s' border=0 ALT='Re-schedule Next Service Check' TITLE='Re-schedule Next Service Check'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, DELAY_ICON, COMMAND_CGI, CMD_SCHEDULE_SVC_CHECK, url_encode(host_name));
 		printf("&service=%s%s'>Re-schedule the next check of this service</a></td></tr>\n", url_encode(service_desc), (temp_svcstatus->checks_enabled == TRUE) ? "&force_check" : "");
 
@@ -1440,43 +1431,39 @@ void show_service_info(void) {
 
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Stop Accepting Passive Checks For This Service' TITLE='Stop Accepting Passive Checks For This Service'></td><td CLASS='command' NOWRAP><a href='%s?cmd_typ=%d&host=%s", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_DISABLE_PASSIVE_SVC_CHECKS, url_encode(host_name));
 			printf("&service=%s'>Stop accepting passive checks for this service</a></td></tr>\n", url_encode(service_desc));
-			}
-		else {
+		} else {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Accepting Passive Checks For This Service' TITLE='Start Accepting Passive Checks For This Service'></td><td CLASS='command' NOWRAP><a href='%s?cmd_typ=%d&host=%s", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_PASSIVE_SVC_CHECKS, url_encode(host_name));
 			printf("&service=%s'>Start accepting passive checks for this service</a></td></tr>\n", url_encode(service_desc));
-			}
+		}
 
 		if(temp_svcstatus->obsess == TRUE) {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Stop Obsessing Over This Service' TITLE='Stop Obsessing Over This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_STOP_OBSESSING_OVER_SVC, url_encode(host_name));
 			printf("&service=%s'>Stop obsessing over this service</a></td></tr>\n", url_encode(service_desc));
-			}
-		else {
+		} else {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Obsessing Over This Service' TITLE='Start Obsessing Over This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_START_OBSESSING_OVER_SVC, url_encode(host_name));
 			printf("&service=%s'>Start obsessing over this service</a></td></tr>\n", url_encode(service_desc));
-			}
+		}
 
 		if((temp_svcstatus->status == SERVICE_WARNING || temp_svcstatus->status == SERVICE_UNKNOWN || temp_svcstatus->status == SERVICE_CRITICAL) && temp_svcstatus->state_type == HARD_STATE) {
 			if(temp_svcstatus->problem_has_been_acknowledged == FALSE) {
 				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Acknowledge This Service Problem' TITLE='Acknowledge This Service Problem'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, ACKNOWLEDGEMENT_ICON, COMMAND_CGI, CMD_ACKNOWLEDGE_SVC_PROBLEM, url_encode(host_name));
 				printf("&service=%s'>Acknowledge this service problem</a></td></tr>\n", url_encode(service_desc));
-				}
-			else {
+			} else {
 				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Remove Problem Acknowledgement' TITLE='Remove Problem Acknowledgement'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, REMOVE_ACKNOWLEDGEMENT_ICON, COMMAND_CGI, CMD_REMOVE_SVC_ACKNOWLEDGEMENT, url_encode(host_name));
 				printf("&service=%s'>Remove problem acknowledgement</a></td></tr>\n", url_encode(service_desc));
-				}
 			}
+		}
 		if(temp_svcstatus->notifications_enabled == TRUE) {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Notifications For This Service' TITLE='Disable Notifications For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_DISABLE_SVC_NOTIFICATIONS, url_encode(host_name));
 			printf("&service=%s'>Disable notifications for this service</a></td></tr>\n", url_encode(service_desc));
 			if(temp_svcstatus->status != SERVICE_OK) {
 				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Delay Next Service Notification' TITLE='Delay Next Service Notification'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, DELAY_ICON, COMMAND_CGI, CMD_DELAY_SVC_NOTIFICATION, url_encode(host_name));
 				printf("&service=%s'>Delay next service notification</a></td></tr>\n", url_encode(service_desc));
-				}
 			}
-		else {
+		} else {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Notifications For This Service' TITLE='Enable Notifications For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_SVC_NOTIFICATIONS, url_encode(host_name));
 			printf("&service=%s'>Enable notifications for this service</a></td></tr>\n", url_encode(service_desc));
-			}
+		}
 
 		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Send Custom Notification' TITLE='Send Custom Notification'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, NOTIFICATION_ICON, COMMAND_CGI, CMD_SEND_CUSTOM_SVC_NOTIFICATION, url_encode(host_name));
 		printf("&service=%s'>Send custom service notification</a></td></tr>\n", url_encode(service_desc));
@@ -1492,30 +1479,26 @@ void show_service_info(void) {
 		if(temp_svcstatus->event_handler_enabled == TRUE) {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Event Handler For This Service' TITLE='Disable Event Handler For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_DISABLE_SVC_EVENT_HANDLER, url_encode(host_name));
 			printf("&service=%s'>Disable event handler for this service</a></td></tr>\n", url_encode(service_desc));
-			}
-		else {
+		} else {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Event Handler For This Service' TITLE='Enable Event Handler For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_SVC_EVENT_HANDLER, url_encode(host_name));
 			printf("&service=%s'>Enable event handler for this service</a></td></tr>\n", url_encode(service_desc));
-			}
+		}
 
 		if(temp_svcstatus->flap_detection_enabled == TRUE) {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Flap Detection For This Service' TITLE='Disable Flap Detection For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, DISABLED_ICON, COMMAND_CGI, CMD_DISABLE_SVC_FLAP_DETECTION, url_encode(host_name));
 			printf("&service=%s'>Disable flap detection for this service</a></td></tr>\n", url_encode(service_desc));
-			}
-		else {
+		} else {
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Flap Detection For This Service' TITLE='Enable Flap Detection For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s", url_images_path, ENABLED_ICON, COMMAND_CGI, CMD_ENABLE_SVC_FLAP_DETECTION, url_encode(host_name));
 			printf("&service=%s'>Enable flap detection for this service</a></td></tr>\n", url_encode(service_desc));
-			}
+		}
 
 		printf("</table>\n");
-		}
-	else if(is_authorized_for_read_only(&current_authdata) == TRUE) {
+	} else if(is_authorized_for_read_only(&current_authdata) == TRUE) {
 		printf("<DIV ALIGN=CENTER CLASS='infoMessage'>Your account does not have permissions to execute commands.<br>\n");
-		}
-	else {
+	} else {
 		printf("<DIV CLASS='infoMessage'>It appears as though Nagios is not running, so commands are temporarily unavailable...<br>\n");
 		printf("Click <a href='%s?type=%d'>here</a> to view Nagios process information</DIV>\n", EXTINFO_CGI, DISPLAY_PROCESS_INFO);
-		}
+	}
 
 	printf("</td></tr>\n");
 	printf("</table>\n");
@@ -1533,7 +1516,7 @@ void show_service_info(void) {
 	if(is_authorized_for_read_only(&current_authdata) == FALSE) {
 		/* display comments */
 		display_comments(SERVICE_COMMENT);
-		}
+	}
 	printf("</TD>\n");
 	printf("</TR>\n");
 
@@ -1541,12 +1524,13 @@ void show_service_info(void) {
 	printf("</DIV>\n");
 
 	return;
-	}
+}
 
 
 
 
-void show_hostgroup_info(void) {
+void show_hostgroup_info(void)
+{
 	hostgroup *temp_hostgroup;
 
 
@@ -1561,13 +1545,13 @@ void show_hostgroup_info(void) {
 		printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
 
 		return;
-		}
+	}
 
 	/* make sure hostgroup information exists */
 	if(temp_hostgroup == NULL) {
 		printf("<P><DIV CLASS='errorMessage'>Error: Hostgroup Not Found!</DIV></P>");
 		return;
-		}
+	}
 
 
 	printf("<DIV ALIGN=CENTER>\n");
@@ -1610,14 +1594,12 @@ void show_hostgroup_info(void) {
 
 		printf("</TD></TR>\n");
 		printf("</TABLE>\n");
-		}
-	else if(is_authorized_for_read_only(&current_authdata) == TRUE) {
+	} else if(is_authorized_for_read_only(&current_authdata) == TRUE) {
 		printf("<DIV ALIGN=CENTER CLASS='infoMessage'>Your account does not have permissions to execute commands.<br>\n");
-		}
-	else {
+	} else {
 		printf("<DIV CLASS='infoMessage'>It appears as though Nagios is not running, so commands are temporarily unavailable...<br>\n");
 		printf("Click <a href='%s?type=%d'>here</a> to view Nagios process information</DIV>\n", EXTINFO_CGI, DISPLAY_PROCESS_INFO);
-		}
+	}
 
 	printf("</TD></TR>\n");
 	printf("<TR>\n");
@@ -1637,12 +1619,13 @@ void show_hostgroup_info(void) {
 
 
 	return;
-	}
+}
 
 
 
 
-void show_servicegroup_info() {
+void show_servicegroup_info()
+{
 	servicegroup *temp_servicegroup;
 
 
@@ -1657,13 +1640,13 @@ void show_servicegroup_info() {
 		printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
 
 		return;
-		}
+	}
 
 	/* make sure servicegroup information exists */
 	if(temp_servicegroup == NULL) {
 		printf("<P><DIV CLASS='errorMessage'>Error: Servicegroup Not Found!</DIV></P>");
 		return;
-		}
+	}
 
 
 	printf("<DIV ALIGN=CENTER>\n");
@@ -1706,11 +1689,10 @@ void show_servicegroup_info() {
 
 		printf("</TD></TR>\n");
 		printf("</TABLE>\n");
-		}
-	else {
+	} else {
 		printf("<DIV CLASS='infoMessage'>It appears as though Nagios is not running, so commands are temporarily unavailable...<br>\n");
 		printf("Click <a href='%s?type=%d'>here</a> to view Nagios process information</DIV>\n", EXTINFO_CGI, DISPLAY_PROCESS_INFO);
-		}
+	}
 
 	printf("</TD></TR>\n");
 	printf("<TR>\n");
@@ -1729,12 +1711,13 @@ void show_servicegroup_info() {
 
 
 	return;
-	}
+}
 
 
 
 /* shows all service and host comments */
-void show_all_comments(void) {
+void show_all_comments(void)
+{
 	int total_comments = 0;
 	const char *bg_class = "";
 	int odd = 0;
@@ -1749,7 +1732,7 @@ void show_all_comments(void) {
 	if(is_authorized_for_read_only(&current_authdata) == TRUE) {
 		printf("<DIV ALIGN=CENTER CLASS='infoMessage'>Your account does not have permissions to view comments.<br>\n");
 		return;
-		}
+	}
 
 
 	printf("<BR />\n");
@@ -1785,28 +1768,27 @@ void show_all_comments(void) {
 		if(odd) {
 			odd = 0;
 			bg_class = "commentOdd";
-			}
-		else {
+		} else {
 			odd = 1;
 			bg_class = "commentEven";
-			}
+		}
 
 		switch(temp_comment->entry_type) {
-			case USER_COMMENT:
-				comment_type = "User";
-				break;
-			case DOWNTIME_COMMENT:
-				comment_type = "Scheduled Downtime";
-				break;
-			case FLAPPING_COMMENT:
-				comment_type = "Flap Detection";
-				break;
-			case ACKNOWLEDGEMENT_COMMENT:
-				comment_type = "Acknowledgement";
-				break;
-			default:
-				comment_type = "?";
-			}
+		case USER_COMMENT:
+			comment_type = "User";
+			break;
+		case DOWNTIME_COMMENT:
+			comment_type = "Scheduled Downtime";
+			break;
+		case FLAPPING_COMMENT:
+			comment_type = "Flap Detection";
+			break;
+		case ACKNOWLEDGEMENT_COMMENT:
+			comment_type = "Acknowledgement";
+			break;
+		default:
+			comment_type = "?";
+		}
 
 		get_time_string(&temp_comment->entry_time, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
 		get_time_string(&temp_comment->expire_time, expire_time, (int)sizeof(date_time), SHORT_DATE_TIME);
@@ -1815,7 +1797,7 @@ void show_all_comments(void) {
 		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%ld</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>", bg_class, date_time, bg_class, temp_comment->author, bg_class, temp_comment->comment_data, bg_class, temp_comment->comment_id, bg_class, (temp_comment->persistent) ? "Yes" : "No", bg_class, comment_type, bg_class, (temp_comment->expires == TRUE) ? expire_time : "N/A");
 		printf("<td><a href='%s?cmd_typ=%d&com_id=%lu'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>", COMMAND_CGI, CMD_DEL_HOST_COMMENT, temp_comment->comment_id, url_images_path, DELETE_ICON);
 		printf("</tr>\n");
-		}
+	}
 
 	if(total_comments == 0)
 		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=9>There are no host comments</TD></TR>");
@@ -1855,28 +1837,27 @@ void show_all_comments(void) {
 		if(odd) {
 			odd = 0;
 			bg_class = "commentOdd";
-			}
-		else {
+		} else {
 			odd = 1;
 			bg_class = "commentEven";
-			}
+		}
 
 		switch(temp_comment->entry_type) {
-			case USER_COMMENT:
-				comment_type = "User";
-				break;
-			case DOWNTIME_COMMENT:
-				comment_type = "Scheduled Downtime";
-				break;
-			case FLAPPING_COMMENT:
-				comment_type = "Flap Detection";
-				break;
-			case ACKNOWLEDGEMENT_COMMENT:
-				comment_type = "Acknowledgement";
-				break;
-			default:
-				comment_type = "?";
-			}
+		case USER_COMMENT:
+			comment_type = "User";
+			break;
+		case DOWNTIME_COMMENT:
+			comment_type = "Scheduled Downtime";
+			break;
+		case FLAPPING_COMMENT:
+			comment_type = "Flap Detection";
+			break;
+		case ACKNOWLEDGEMENT_COMMENT:
+			comment_type = "Acknowledgement";
+			break;
+		default:
+			comment_type = "?";
+		}
 
 		get_time_string(&temp_comment->entry_time, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
 		get_time_string(&temp_comment->expire_time, expire_time, (int)sizeof(date_time), SHORT_DATE_TIME);
@@ -1887,7 +1868,7 @@ void show_all_comments(void) {
 		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%ld</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>", bg_class, date_time, bg_class, temp_comment->author, bg_class, temp_comment->comment_data, bg_class, temp_comment->comment_id, bg_class, (temp_comment->persistent) ? "Yes" : "No", bg_class, comment_type, bg_class, (temp_comment->expires == TRUE) ? expire_time : "N/A");
 		printf("<td><a href='%s?cmd_typ=%d&com_id=%ld'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>", COMMAND_CGI, CMD_DEL_SVC_COMMENT, temp_comment->comment_id, url_images_path, DELETE_ICON);
 		printf("</tr>\n");
-		}
+	}
 
 	if(total_comments == 0)
 		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=10>There are no service comments</TD></TR>");
@@ -1896,11 +1877,12 @@ void show_all_comments(void) {
 	printf("</DIV>\n");
 
 	return;
-	}
+}
 
 
 
-void show_performance_data(void) {
+void show_performance_data(void)
+{
 	service *temp_service = NULL;
 	servicestatus *temp_servicestatus = NULL;
 	host *temp_host = NULL;
@@ -1997,31 +1979,31 @@ void show_performance_data(void) {
 			if(have_min_service_execution_time == FALSE || temp_servicestatus->execution_time < min_service_execution_time) {
 				have_min_service_execution_time = TRUE;
 				min_service_execution_time = temp_servicestatus->execution_time;
-				}
+			}
 			if(have_max_service_execution_time == FALSE || temp_servicestatus->execution_time > max_service_execution_time) {
 				have_max_service_execution_time = TRUE;
 				max_service_execution_time = temp_servicestatus->execution_time;
-				}
+			}
 
 			total_service_percent_change_a += temp_servicestatus->percent_state_change;
 			if(have_min_service_percent_change_a == FALSE || temp_servicestatus->percent_state_change < min_service_percent_change_a) {
 				have_min_service_percent_change_a = TRUE;
 				min_service_percent_change_a = temp_servicestatus->percent_state_change;
-				}
+			}
 			if(have_max_service_percent_change_a == FALSE || temp_servicestatus->percent_state_change > max_service_percent_change_a) {
 				have_max_service_percent_change_a = TRUE;
 				max_service_percent_change_a = temp_servicestatus->percent_state_change;
-				}
+			}
 
 			total_service_latency += temp_servicestatus->latency;
 			if(have_min_service_latency == FALSE || temp_servicestatus->latency < min_service_latency) {
 				have_min_service_latency = TRUE;
 				min_service_latency = temp_servicestatus->latency;
-				}
+			}
 			if(have_max_service_latency == FALSE || temp_servicestatus->latency > max_service_latency) {
 				have_max_service_latency = TRUE;
 				max_service_latency = temp_servicestatus->latency;
-				}
+			}
 
 			if(temp_servicestatus->last_check >= (current_time - 60))
 				active_service_checks_1min++;
@@ -2035,7 +2017,7 @@ void show_performance_data(void) {
 				active_service_checks_start++;
 			if(temp_servicestatus->last_check != (time_t)0)
 				active_service_checks_ever++;
-			}
+		}
 
 		else {
 			total_passive_service_checks++;
@@ -2044,11 +2026,11 @@ void show_performance_data(void) {
 			if(have_min_service_percent_change_b == FALSE || temp_servicestatus->percent_state_change < min_service_percent_change_b) {
 				have_min_service_percent_change_b = TRUE;
 				min_service_percent_change_b = temp_servicestatus->percent_state_change;
-				}
+			}
 			if(have_max_service_percent_change_b == FALSE || temp_servicestatus->percent_state_change > max_service_percent_change_b) {
 				have_max_service_percent_change_b = TRUE;
 				max_service_percent_change_b = temp_servicestatus->percent_state_change;
-				}
+			}
 
 			if(temp_servicestatus->last_check >= (current_time - 60))
 				passive_service_checks_1min++;
@@ -2062,8 +2044,8 @@ void show_performance_data(void) {
 				passive_service_checks_start++;
 			if(temp_servicestatus->last_check != (time_t)0)
 				passive_service_checks_ever++;
-			}
 		}
+	}
 
 	/* check all hosts */
 	for(temp_hoststatus = hoststatus_list; temp_hoststatus != NULL; temp_hoststatus = temp_hoststatus->next) {
@@ -2084,31 +2066,31 @@ void show_performance_data(void) {
 			if(have_min_host_execution_time == FALSE || temp_hoststatus->execution_time < min_host_execution_time) {
 				have_min_host_execution_time = TRUE;
 				min_host_execution_time = temp_hoststatus->execution_time;
-				}
+			}
 			if(have_max_host_execution_time == FALSE || temp_hoststatus->execution_time > max_host_execution_time) {
 				have_max_host_execution_time = TRUE;
 				max_host_execution_time = temp_hoststatus->execution_time;
-				}
+			}
 
 			total_host_percent_change_a += temp_hoststatus->percent_state_change;
 			if(have_min_host_percent_change_a == FALSE || temp_hoststatus->percent_state_change < min_host_percent_change_a) {
 				have_min_host_percent_change_a = TRUE;
 				min_host_percent_change_a = temp_hoststatus->percent_state_change;
-				}
+			}
 			if(have_max_host_percent_change_a == FALSE || temp_hoststatus->percent_state_change > max_host_percent_change_a) {
 				have_max_host_percent_change_a = TRUE;
 				max_host_percent_change_a = temp_hoststatus->percent_state_change;
-				}
+			}
 
 			total_host_latency += temp_hoststatus->latency;
 			if(have_min_host_latency == FALSE || temp_hoststatus->latency < min_host_latency) {
 				have_min_host_latency = TRUE;
 				min_host_latency = temp_hoststatus->latency;
-				}
+			}
 			if(have_max_host_latency == FALSE || temp_hoststatus->latency > max_host_latency) {
 				have_max_host_latency = TRUE;
 				max_host_latency = temp_hoststatus->latency;
-				}
+			}
 
 			if(temp_hoststatus->last_check >= (current_time - 60))
 				active_host_checks_1min++;
@@ -2122,7 +2104,7 @@ void show_performance_data(void) {
 				active_host_checks_start++;
 			if(temp_hoststatus->last_check != (time_t)0)
 				active_host_checks_ever++;
-			}
+		}
 
 		else {
 			total_passive_host_checks++;
@@ -2131,11 +2113,11 @@ void show_performance_data(void) {
 			if(have_min_host_percent_change_b == FALSE || temp_hoststatus->percent_state_change < min_host_percent_change_b) {
 				have_min_host_percent_change_b = TRUE;
 				min_host_percent_change_b = temp_hoststatus->percent_state_change;
-				}
+			}
 			if(have_max_host_percent_change_b == FALSE || temp_hoststatus->percent_state_change > max_host_percent_change_b) {
 				have_max_host_percent_change_b = TRUE;
 				max_host_percent_change_b = temp_hoststatus->percent_state_change;
-				}
+			}
 
 			if(temp_hoststatus->last_check >= (current_time - 60))
 				passive_host_checks_1min++;
@@ -2149,8 +2131,8 @@ void show_performance_data(void) {
 				passive_host_checks_start++;
 			if(temp_hoststatus->last_check != (time_t)0)
 				passive_host_checks_ever++;
-			}
 		}
+	}
 
 
 	printf("<div align=center>\n");
@@ -2408,11 +2390,12 @@ void show_performance_data(void) {
 	printf("</div>\n");
 
 	return;
-	}
+}
 
 
 
-void display_comments(int type) {
+void display_comments(int type)
+{
 	host *temp_host = NULL;
 	service *temp_service = NULL;
 	int total_comments = 0;
@@ -2430,12 +2413,11 @@ void display_comments(int type) {
 		temp_host = find_host(host_name);
 		if(temp_host == NULL)
 			return;
-		}
-	else {
+	} else {
 		temp_service = find_service(host_name, service_desc);
 		if(temp_service == NULL)
 			return;
-		}
+	}
 
 
 	printf("<A NAME=comments></A>\n");
@@ -2449,7 +2431,7 @@ void display_comments(int type) {
 	else {
 		printf("<a href='%s?cmd_typ=%d&host=%s&", COMMAND_CGI, CMD_ADD_SVC_COMMENT, url_encode(host_name));
 		printf("service=%s' CLASS='comment'>", url_encode(service_desc));
-		}
+	}
 	printf("Add a new comment</a></td>\n");
 
 	printf("<td valign=middle><img src='%s%s' border=0 align=center></td><td CLASS='comment'>", url_images_path, DELETE_ICON);
@@ -2458,7 +2440,7 @@ void display_comments(int type) {
 	else {
 		printf("<a href='%s?cmd_typ=%d&host=%s&", COMMAND_CGI, CMD_DEL_ALL_SVC_COMMENTS, url_encode(host_name));
 		printf("service=%s' CLASS='comment'>", url_encode(service_desc));
-		}
+	}
 	printf("Delete all comments</a></td>\n");
 	printf("</tr>\n");
 
@@ -2487,28 +2469,27 @@ void display_comments(int type) {
 			if(odd) {
 				odd = 0;
 				bg_class = "commentOdd";
-				}
-			else {
+			} else {
 				odd = 1;
 				bg_class = "commentEven";
-				}
+			}
 
 			switch(temp_comment->entry_type) {
-				case USER_COMMENT:
-					comment_type = "User";
-					break;
-				case DOWNTIME_COMMENT:
-					comment_type = "Scheduled Downtime";
-					break;
-				case FLAPPING_COMMENT:
-					comment_type = "Flap Detection";
-					break;
-				case ACKNOWLEDGEMENT_COMMENT:
-					comment_type = "Acknowledgement";
-					break;
-				default:
-					comment_type = "?";
-				}
+			case USER_COMMENT:
+				comment_type = "User";
+				break;
+			case DOWNTIME_COMMENT:
+				comment_type = "Scheduled Downtime";
+				break;
+			case FLAPPING_COMMENT:
+				comment_type = "Flap Detection";
+				break;
+			case ACKNOWLEDGEMENT_COMMENT:
+				comment_type = "Acknowledgement";
+				break;
+			default:
+				comment_type = "?";
+			}
 
 			get_time_string(&temp_comment->entry_time, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
 			get_time_string(&temp_comment->expire_time, expire_time, (int)sizeof(date_time), SHORT_DATE_TIME);
@@ -2518,8 +2499,8 @@ void display_comments(int type) {
 			printf("</tr>\n");
 
 			total_comments++;
-			}
 		}
+	}
 
 	/* see if this host or service has any comments associated with it */
 	if(total_comments == 0)
@@ -2528,13 +2509,14 @@ void display_comments(int type) {
 	printf("</TABLE></DIV>\n");
 
 	return;
-	}
+}
 
 
 
 
 /* shows all service and host scheduled downtime */
-void show_all_downtime(void) {
+void show_all_downtime(void)
+{
 	int total_downtime = 0;
 	const char *bg_class = "";
 	int odd = 0;
@@ -2581,11 +2563,10 @@ void show_all_downtime(void) {
 		if(odd) {
 			odd = 0;
 			bg_class = "downtimeOdd";
-			}
-		else {
+		} else {
 			odd = 1;
 			bg_class = "downtimeEven";
-			}
+		}
 
 		printf("<tr CLASS='%s'>", bg_class);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>", bg_class, EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_downtime->host_name), temp_downtime->host_name);
@@ -2609,7 +2590,7 @@ void show_all_downtime(void) {
 		printf("</td>\n");
 		printf("<td><a href='%s?cmd_typ=%d&down_id=%lu'><img src='%s%s' border=0 ALT='Delete/Cancel This Scheduled Downtime Entry' TITLE='Delete/Cancel This Scheduled Downtime Entry'></td>", COMMAND_CGI, CMD_DEL_HOST_DOWNTIME, temp_downtime->downtime_id, url_images_path, DELETE_ICON);
 		printf("</tr>\n");
-		}
+	}
 
 	if(total_downtime == 0)
 		printf("<TR CLASS='downtimeOdd'><TD CLASS='downtimeOdd' COLSPAN=11>There are no hosts with scheduled downtime</TD></TR>");
@@ -2649,11 +2630,10 @@ void show_all_downtime(void) {
 		if(odd) {
 			odd = 0;
 			bg_class = "downtimeOdd";
-			}
-		else {
+		} else {
 			odd = 1;
 			bg_class = "downtimeEven";
-			}
+		}
 
 		printf("<tr CLASS='%s'>", bg_class);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>", bg_class, EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_downtime->host_name), temp_downtime->host_name);
@@ -2679,7 +2659,7 @@ void show_all_downtime(void) {
 		printf("</td>\n");
 		printf("<td><a href='%s?cmd_typ=%d&down_id=%lu'><img src='%s%s' border=0 ALT='Delete/Cancel This Scheduled Downtime Entry' TITLE='Delete/Cancel This Scheduled Downtime Entry'></td>", COMMAND_CGI, CMD_DEL_SVC_DOWNTIME, temp_downtime->downtime_id, url_images_path, DELETE_ICON);
 		printf("</tr>\n");
-		}
+	}
 
 	if(total_downtime == 0)
 		printf("<TR CLASS='downtimeOdd'><TD CLASS='downtimeOdd' COLSPAN=12>There are no services with scheduled downtime</TD></TR>");
@@ -2688,12 +2668,13 @@ void show_all_downtime(void) {
 	printf("</DIV>\n");
 
 	return;
-	}
+}
 
 
 
 /* shows check scheduling queue */
-void show_scheduling_queue(void) {
+void show_scheduling_queue(void)
+{
 	sortdata *temp_sortdata;
 	servicestatus *temp_svcstatus = NULL;
 	hoststatus *temp_hststatus = NULL;
@@ -2711,7 +2692,7 @@ void show_scheduling_queue(void) {
 		printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
 
 		return;
-		}
+	}
 
 	/* sort hosts and services */
 	sort_data(sort_type, sort_option);
@@ -2760,25 +2741,23 @@ void show_scheduling_queue(void) {
 				/* passive-only checks should appear if they're being forced */
 				if(!(temp_svcstatus->checks_enabled == FALSE && temp_svcstatus->next_check != (time_t)0L && (temp_svcstatus->check_options & CHECK_OPTION_FORCE_EXECUTION)))
 					continue;
-				}
 			}
-		else {
+		} else {
 			temp_hststatus = temp_sortdata->hststatus;
 			if(temp_hststatus->should_be_scheduled == FALSE) {
 				/* passive-only checks should appear if they're being forced */
 				if(!(temp_hststatus->checks_enabled == FALSE && temp_hststatus->next_check != (time_t)0L && (temp_hststatus->check_options & CHECK_OPTION_FORCE_EXECUTION)))
 					continue;
-				}
 			}
+		}
 
 		if(odd) {
 			odd = 0;
 			bgclass = "Even";
-			}
-		else {
+		} else {
 			odd = 1;
 			bgclass = "Odd";
-			}
+		}
 
 		printf("<TR CLASS='queue%s'>", bgclass);
 
@@ -2806,7 +2785,7 @@ void show_scheduling_queue(void) {
 					printf("Freshness ");
 				if(temp_svcstatus->check_options & CHECK_OPTION_ORPHAN_CHECK)
 					printf("Orphan ");
-				}
+			}
 			printf("</TD>");
 
 			printf("<TD CLASS='queue%s'>%s</TD>", (temp_svcstatus->checks_enabled == TRUE) ? "ENABLED" : "DISABLED", (temp_svcstatus->checks_enabled == TRUE) ? "ENABLED" : "DISABLED");
@@ -2815,15 +2794,14 @@ void show_scheduling_queue(void) {
 			if(temp_svcstatus->checks_enabled == TRUE) {
 				printf("<a href='%s?cmd_typ=%d&host=%s", COMMAND_CGI, CMD_DISABLE_SVC_CHECK, url_encode(temp_svcstatus->host_name));
 				printf("&service=%s'><img src='%s%s' border=0 ALT='Disable Active Checks Of This Service' TITLE='Disable Active Checks Of This Service'></a>\n", url_encode(temp_svcstatus->description), url_images_path, DISABLED_ICON);
-				}
-			else {
+			} else {
 				printf("<a href='%s?cmd_typ=%d&host=%s", COMMAND_CGI, CMD_ENABLE_SVC_CHECK, url_encode(temp_svcstatus->host_name));
 				printf("&service=%s'><img src='%s%s' border=0 ALT='Enable Active Checks Of This Service' TITLE='Enable Active Checks Of This Service'></a>\n", url_encode(temp_svcstatus->description), url_images_path, ENABLED_ICON);
-				}
+			}
 			printf("<a href='%s?cmd_typ=%d&host=%s", COMMAND_CGI, CMD_SCHEDULE_SVC_CHECK, url_encode(temp_svcstatus->host_name));
 			printf("&service=%s%s'><img src='%s%s' border=0 ALT='Re-schedule This Service Check' TITLE='Re-schedule This Service Check'></a>\n", url_encode(temp_svcstatus->description), (temp_svcstatus->checks_enabled == TRUE) ? "&force_check" : "", url_images_path, DELAY_ICON);
 			printf("</TD>\n");
-			}
+		}
 
 		/* get the host status */
 		else {
@@ -2848,7 +2826,7 @@ void show_scheduling_queue(void) {
 					printf("Freshness ");
 				if(temp_hststatus->check_options & CHECK_OPTION_ORPHAN_CHECK)
 					printf("Orphan ");
-				}
+			}
 			printf("</TD>");
 
 			printf("<TD CLASS='queue%s'>%s</TD>", (temp_hststatus->checks_enabled == TRUE) ? "ENABLED" : "DISABLED", (temp_hststatus->checks_enabled == TRUE) ? "ENABLED" : "DISABLED");
@@ -2857,19 +2835,18 @@ void show_scheduling_queue(void) {
 			if(temp_hststatus->checks_enabled == TRUE) {
 				printf("<a href='%s?cmd_typ=%d&host=%s", COMMAND_CGI, CMD_DISABLE_HOST_CHECK, url_encode(temp_hststatus->host_name));
 				printf("'><img src='%s%s' border=0 ALT='Disable Active Checks Of This Host' TITLE='Disable Active Checks Of This Host'></a>\n", url_images_path, DISABLED_ICON);
-				}
-			else {
+			} else {
 				printf("<a href='%s?cmd_typ=%d&host=%s", COMMAND_CGI, CMD_ENABLE_HOST_CHECK, url_encode(temp_hststatus->host_name));
 				printf("'><img src='%s%s' border=0 ALT='Enable Active Checks Of This Host' TITLE='Enable Active Checks Of This Host'></a>\n", url_images_path, ENABLED_ICON);
-				}
+			}
 			printf("<a href='%s?cmd_typ=%d&host=%s%s", COMMAND_CGI, CMD_SCHEDULE_HOST_CHECK, url_encode(temp_hststatus->host_name), (temp_hststatus->checks_enabled == TRUE) ? "&force_check" : "");
 			printf("'><img src='%s%s' border=0 ALT='Re-schedule This Host Check' TITLE='Re-schedule This Host Check'></a>\n", url_images_path, DELAY_ICON);
 			printf("</TD>\n");
-			}
+		}
 
 		printf("</TR>\n");
 
-		}
+	}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
@@ -2880,12 +2857,13 @@ void show_scheduling_queue(void) {
 	free_sortdata_list();
 
 	return;
-	}
+}
 
 
 
 /* sorts host and service data */
-int sort_data(int s_type, int s_option) {
+int sort_data(int s_type, int s_option)
+{
 	sortdata *new_sortdata;
 	sortdata *last_sortdata;
 	sortdata *temp_sortdata;
@@ -2917,20 +2895,18 @@ int sort_data(int s_type, int s_option) {
 				else
 					last_sortdata->next = new_sortdata;
 				break;
-				}
-			else
+			} else
 				last_sortdata = temp_sortdata;
-			}
+		}
 
 		if(sortdata_list == NULL) {
 			new_sortdata->next = NULL;
 			sortdata_list = new_sortdata;
-			}
-		else if(temp_sortdata == NULL) {
+		} else if(temp_sortdata == NULL) {
 			new_sortdata->next = NULL;
 			last_sortdata->next = new_sortdata;
-			}
 		}
+	}
 
 	/* sort all host status entries */
 	for(temp_hststatus = hoststatus_list; temp_hststatus != NULL; temp_hststatus = temp_hststatus->next) {
@@ -2954,26 +2930,25 @@ int sort_data(int s_type, int s_option) {
 				else
 					last_sortdata->next = new_sortdata;
 				break;
-				}
-			else
+			} else
 				last_sortdata = temp_sortdata;
-			}
+		}
 
 		if(sortdata_list == NULL) {
 			new_sortdata->next = NULL;
 			sortdata_list = new_sortdata;
-			}
-		else if(temp_sortdata == NULL) {
+		} else if(temp_sortdata == NULL) {
 			new_sortdata->next = NULL;
 			last_sortdata->next = new_sortdata;
-			}
 		}
-
-	return OK;
 	}
 
+	return OK;
+}
 
-int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, sortdata *temp_sortdata) {
+
+int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, sortdata *temp_sortdata)
+{
 	hoststatus *temp_hststatus = NULL;
 	servicestatus *temp_svcstatus = NULL;
 	time_t last_check[2];
@@ -2991,8 +2966,7 @@ int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, s
 		hname[0] = temp_svcstatus->host_name;
 		service_description[0] = temp_svcstatus->description;
 		current_attempt[0] = temp_svcstatus->current_attempt;
-		}
-	else {
+	} else {
 		temp_hststatus = new_sortdata->hststatus;
 		last_check[0] = temp_hststatus->last_check;
 		next_check[0] = temp_hststatus->next_check;
@@ -3000,7 +2974,7 @@ int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, s
 		hname[0] = temp_hststatus->host_name;
 		service_description[0] = "";
 		current_attempt[0] = temp_hststatus->current_attempt;
-		}
+	}
 	if(temp_sortdata->is_service == TRUE) {
 		temp_svcstatus = temp_sortdata->svcstatus;
 		last_check[1] = temp_svcstatus->last_check;
@@ -3009,8 +2983,7 @@ int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, s
 		hname[1] = temp_svcstatus->host_name;
 		service_description[1] = temp_svcstatus->description;
 		current_attempt[1] = temp_svcstatus->current_attempt;
-		}
-	else {
+	} else {
 		temp_hststatus = temp_sortdata->hststatus;
 		last_check[1] = temp_hststatus->last_check;
 		next_check[1] = temp_hststatus->next_check;
@@ -3018,7 +2991,7 @@ int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, s
 		hname[1] = temp_hststatus->host_name;
 		service_description[1] = "";
 		current_attempt[1] = temp_hststatus->current_attempt;
-		}
+	}
 
 	if(s_type == SORT_ASCENDING) {
 
@@ -3027,84 +3000,76 @@ int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, s
 				return TRUE;
 			else
 				return FALSE;
-			}
+		}
 		if(s_option == SORT_NEXTCHECKTIME) {
 			if(next_check[0] <= next_check[1])
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_CURRENTATTEMPT) {
+		} else if(s_option == SORT_CURRENTATTEMPT) {
 			if(current_attempt[0] <= current_attempt[1])
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_SERVICESTATUS) {
+		} else if(s_option == SORT_SERVICESTATUS) {
 			if(status[0] <= status[1])
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_HOSTNAME) {
+		} else if(s_option == SORT_HOSTNAME) {
 			if(strcasecmp(hname[0], hname[1]) < 0)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_SERVICENAME) {
+		} else if(s_option == SORT_SERVICENAME) {
 			if(strcasecmp(service_description[0], service_description[1]) < 0)
 				return TRUE;
 			else
 				return FALSE;
-			}
 		}
-	else {
+	} else {
 		if(s_option == SORT_LASTCHECKTIME) {
 			if(last_check[0] > last_check[1])
 				return TRUE;
 			else
 				return FALSE;
-			}
+		}
 		if(s_option == SORT_NEXTCHECKTIME) {
 			if(next_check[0] > next_check[1])
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_CURRENTATTEMPT) {
+		} else if(s_option == SORT_CURRENTATTEMPT) {
 			if(current_attempt[0] > current_attempt[1])
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_SERVICESTATUS) {
+		} else if(s_option == SORT_SERVICESTATUS) {
 			if(status[0] > status[1])
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_HOSTNAME) {
+		} else if(s_option == SORT_HOSTNAME) {
 			if(strcasecmp(hname[0], hname[1]) > 0)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_SERVICENAME) {
+		} else if(s_option == SORT_SERVICENAME) {
 			if(strcasecmp(service_description[0], service_description[1]) > 0)
 				return TRUE;
 			else
 				return FALSE;
-			}
 		}
+	}
 
 	return TRUE;
-	}
+}
 
 
 
 /* free all memory allocated to the sortdata structures */
-void free_sortdata_list(void) {
+void free_sortdata_list(void)
+{
 	sortdata *this_sortdata;
 	sortdata *next_sortdata;
 
@@ -3112,7 +3077,7 @@ void free_sortdata_list(void) {
 	for(this_sortdata = sortdata_list; this_sortdata != NULL; this_sortdata = next_sortdata) {
 		next_sortdata = this_sortdata->next;
 		free(this_sortdata);
-		}
+	}
 
 	return;
-	}
+}

@@ -41,7 +41,7 @@ typedef struct hostoutage_struct {
 	host *hst;
 	int  affected_child_hosts;
 	struct hostoutage_struct *next;
-	} hostoutage;
+} hostoutage;
 
 
 extern char   main_config_file[MAX_FILENAME_LENGTH];
@@ -179,7 +179,8 @@ int services_critical = 0;
 
 /*efine DEBUG 1*/
 
-int main(void) {
+int main(void)
+{
 	char *sound = NULL;
 
 	/* get the CGI variables passed in the URL */
@@ -219,7 +220,7 @@ int main(void) {
 		printf("</table>\n");
 		printf("</p>\n");
 
-		}
+	}
 
 	/* analyze current host and service status data for tac overview */
 	analyze_status_data();
@@ -244,7 +245,7 @@ int main(void) {
 		printf("<param name=\"autostart\" value=\"true\">");
 		printf("<param name=\"playcount\" value=\"1\">");
 		printf("</object>");
-		}
+	}
 
 
 	/**** display main tac screen ****/
@@ -259,12 +260,13 @@ int main(void) {
 	free_memory();
 
 	return OK;
-	}
+}
 
 
 
 
-void document_header(int use_stylesheet) {
+void document_header(int use_stylesheet)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	time_t expire_time;
@@ -296,7 +298,7 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, TAC_CSS);
-		}
+	}
 
 	printf("</HEAD>\n");
 	printf("<BODY CLASS='tac' marginwidth=2 marginheight=2 topmargin=0 leftmargin=0 rightmargin=0>\n");
@@ -305,10 +307,11 @@ void document_header(int use_stylesheet) {
 	include_ssi_files(TAC_CGI, SSI_HEADER);
 
 	return;
-	}
+}
 
 
-void document_footer(void) {
+void document_footer(void)
+{
 
 	if(embedded == TRUE)
 		return;
@@ -320,10 +323,11 @@ void document_footer(void) {
 	printf("</HTML>\n");
 
 	return;
-	}
+}
 
 
-int process_cgivars(void) {
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -335,7 +339,7 @@ int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
+		}
 
 		/* we found the embed option */
 		else if(!strcmp(variables[x], "embedded"))
@@ -349,17 +353,18 @@ int process_cgivars(void) {
 		else
 			error = TRUE;
 
-		}
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
-void analyze_status_data(void) {
+void analyze_status_data(void)
+{
 	servicestatus *temp_servicestatus;
 	service *temp_service;
 	hoststatus *temp_hoststatus;
@@ -410,82 +415,82 @@ void analyze_status_data(void) {
 			else
 				services_ok_unacknowledged++;
 			services_ok++;
-			}
+		}
 
 		else if(temp_servicestatus->status == SERVICE_WARNING) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
 			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_warning_host_problem++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->scheduled_downtime_depth > 0) {
 				services_warning_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->problem_has_been_acknowledged == TRUE) {
 				services_warning_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->checks_enabled == FALSE) {
 				services_warning_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				services_warning_unacknowledged++;
 			services_warning++;
-			}
+		}
 
 		else if(temp_servicestatus->status == SERVICE_UNKNOWN) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
 			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_unknown_host_problem++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->scheduled_downtime_depth > 0) {
 				services_unknown_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->problem_has_been_acknowledged == TRUE) {
 				services_unknown_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->checks_enabled == FALSE) {
 				services_unknown_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				services_unknown_unacknowledged++;
 			services_unknown++;
-			}
+		}
 
 		else if(temp_servicestatus->status == SERVICE_CRITICAL) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
 			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_critical_host_problem++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->scheduled_downtime_depth > 0) {
 				services_critical_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->problem_has_been_acknowledged == TRUE) {
 				services_critical_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->checks_enabled == FALSE) {
 				services_critical_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				services_critical_unacknowledged++;
 			services_critical++;
-			}
+		}
 
 		else if(temp_servicestatus->status == SERVICE_PENDING) {
 			if(temp_servicestatus->checks_enabled == FALSE)
 				services_pending_disabled++;
 			services_pending++;
-			}
+		}
 
 
 		/* get health stats */
@@ -516,13 +521,12 @@ void analyze_status_data(void) {
 
 			total_service_latency += temp_servicestatus->latency;
 			total_service_execution_time += temp_servicestatus->execution_time;
-			}
-		else
+		} else
 			total_passive_service_checks++;
 
 
 		total_services++;
-		}
+	}
 
 
 
@@ -569,49 +573,49 @@ void analyze_status_data(void) {
 			else
 				hosts_up_unacknowledged++;
 			hosts_up++;
-			}
+		}
 
 		else if(temp_hoststatus->status == SD_HOST_DOWN) {
 			if(temp_hoststatus->scheduled_downtime_depth > 0) {
 				hosts_down_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->problem_has_been_acknowledged == TRUE) {
 				hosts_down_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->checks_enabled == FALSE) {
 				hosts_down_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				hosts_down_unacknowledged++;
 			hosts_down++;
-			}
+		}
 
 		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 			if(temp_hoststatus->scheduled_downtime_depth > 0) {
 				hosts_unreachable_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->problem_has_been_acknowledged == TRUE) {
 				hosts_unreachable_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->checks_enabled == FALSE) {
 				hosts_unreachable_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				hosts_unreachable_unacknowledged++;
 			hosts_unreachable++;
-			}
+		}
 
 		else if(temp_hoststatus->status == HOST_PENDING) {
 			if(temp_hoststatus->checks_enabled == FALSE)
 				hosts_pending_disabled++;
 			hosts_pending++;
-			}
+		}
 
 		/* get health stats */
 		if(temp_hoststatus->status == SD_HOST_UP)
@@ -637,12 +641,11 @@ void analyze_status_data(void) {
 
 			total_host_latency += temp_hoststatus->latency;
 			total_host_execution_time += temp_hoststatus->execution_time;
-			}
-		else
+		} else
 			total_passive_host_checks++;
 
 		total_hosts++;
-		}
+	}
 
 
 	/* calculate service health */
@@ -682,13 +685,14 @@ void analyze_status_data(void) {
 		average_host_execution_time = ((double)total_host_execution_time / (double)total_active_host_checks);
 
 	return;
-	}
+}
 
 
 
 
 /* determine what hosts are causing network outages */
-void find_hosts_causing_outages(void) {
+void find_hosts_causing_outages(void)
+{
 	hoststatus *temp_hoststatus;
 	hostoutage *temp_hostoutage;
 	host *temp_host;
@@ -712,8 +716,8 @@ void find_hosts_causing_outages(void) {
 			/* if the route to this host is not blocked, it is a causing an outage */
 			if(is_route_to_host_blocked(temp_host) == FALSE)
 				add_hostoutage(temp_host);
-			}
 		}
+	}
 
 
 	/* check all hosts that are causing problems and calculate the extent of the problem */
@@ -726,17 +730,18 @@ void find_hosts_causing_outages(void) {
 			total_blocking_outages++;
 		else
 			total_nonblocking_outages++;
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 
 
 /* adds a host outage entry */
-void add_hostoutage(host *hst) {
+void add_hostoutage(host *hst)
+{
 	hostoutage *new_hostoutage;
 
 	/* allocate memory for a new structure */
@@ -753,28 +758,30 @@ void add_hostoutage(host *hst) {
 	hostoutage_list = new_hostoutage;
 
 	return;
-	}
+}
 
 
 
 
 /* frees all memory allocated to the host outage list */
-void free_hostoutage_list(void) {
+void free_hostoutage_list(void)
+{
 	hostoutage *this_hostoutage;
 	hostoutage *next_hostoutage;
 
 	for(this_hostoutage = hostoutage_list; this_hostoutage != NULL; this_hostoutage = next_hostoutage) {
 		next_hostoutage = this_hostoutage->next;
 		free(this_hostoutage);
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* calculates network outage effect of a particular host being down or unreachable */
-void calculate_outage_effect_of_host(host *hst, int *affected_hosts) {
+void calculate_outage_effect_of_host(host *hst, int *affected_hosts)
+{
 	int total_child_hosts_affected = 0;
 	int temp_child_hosts_affected = 0;
 	host *temp_host;
@@ -792,17 +799,18 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts) {
 
 		/* keep a running total of outage effects */
 		total_child_hosts_affected += temp_child_hosts_affected;
-		}
+	}
 
 	*affected_hosts = total_child_hosts_affected + 1;
 
 	return;
-	}
+}
 
 
 
 /* tests whether or not a host is "blocked" by upstream parents (host is already assumed to be down or unreachable) */
-int is_route_to_host_blocked(host *hst) {
+int is_route_to_host_blocked(host *hst)
+{
 	hostsmember *temp_hostsmember;
 	hoststatus *temp_hoststatus;
 
@@ -822,17 +830,18 @@ int is_route_to_host_blocked(host *hst) {
 		/* at least one parent it up (or pending), so this host is not blocked */
 		if(temp_hoststatus->status == SD_HOST_UP || temp_hoststatus->status == HOST_PENDING)
 			return FALSE;
-		}
-
-	return TRUE;
 	}
 
+	return TRUE;
+}
 
 
 
 
 
-void display_tac_overview(void) {
+
+void display_tac_overview(void)
+{
 	char host_health_image[16];
 	char service_health_image[16];
 
@@ -1419,8 +1428,7 @@ void display_tac_overview(void) {
 
 		printf("</table>\n");
 		printf("</td>\n");
-		}
-	else
+	} else
 		printf("<Td valign=center width=100%% class='featureDisabledFlapDetection'>N/A</td>\n");
 	printf("</tr>\n");
 	printf("</table>\n");
@@ -1450,8 +1458,7 @@ void display_tac_overview(void) {
 
 		printf("</table>\n");
 		printf("</td>\n");
-		}
-	else
+	} else
 		printf("<Td valign=center width=100%% class='featureDisabledNotifications'>N/A</td>\n");
 	printf("</tr>\n");
 	printf("</table>\n");
@@ -1482,8 +1489,7 @@ void display_tac_overview(void) {
 
 		printf("</table>\n");
 		printf("</td>\n");
-		}
-	else
+	} else
 		printf("<Td valign=center width=100%% class='featureDisabledHandlers'>N/A</td>\n");
 	printf("</tr>\n");
 	printf("</table>\n");
@@ -1514,8 +1520,7 @@ void display_tac_overview(void) {
 
 		printf("</table>\n");
 		printf("</td>\n");
-		}
-	else
+	} else
 		printf("<Td valign=center width=100%% class='featureDisabledActiveChecks'>N/A</td>\n");
 	printf("</tr>\n");
 	printf("</table>\n");
@@ -1547,8 +1552,7 @@ void display_tac_overview(void) {
 
 		printf("</table>\n");
 		printf("</td>\n");
-		}
-	else
+	} else
 		printf("<Td valign=center width=100%% class='featureDisabledPassiveChecks'>N/A</td>\n");
 	printf("</tr>\n");
 	printf("</table>\n");
@@ -1562,4 +1566,4 @@ void display_tac_overview(void) {
 
 
 	return;
-	}
+}

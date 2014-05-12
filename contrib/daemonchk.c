@@ -20,7 +20,8 @@ static char *ssprintf(char *str, const char *fmt, ...);
 static void terminate(int result, const char *fmt, ...);
 static void get_expire_time_string(time_t *raw_time, char *buffer, int buffer_length);
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	FILE *fp;
 	char *status_file = NULL;
 	char *lock_file = NULL;
@@ -47,31 +48,30 @@ int main(int argc, char **argv) {
 	if(getenv("REQUEST_METHOD")) {
 		process_cgivars();
 		document_header();
-		}
-	else {   /* get arguments */
+	} else { /* get arguments */
 		while((c = getopt(argc, argv, "+c:w:s:l:")) != EOF) {
 			switch(c) {
-				case 'c':
-					ct = atoi(optarg);
-					break;
-				case 'w':
-					wt = atoi(optarg);
-					break;
-				case 's':
-					status_file = optarg;
-					break;
-				case 'l':
-					lock_file = optarg;
-					break;
-				}
+			case 'c':
+				ct = atoi(optarg);
+				break;
+			case 'w':
+				wt = atoi(optarg);
+				break;
+			case 's':
+				status_file = optarg;
+				break;
+			case 'l':
+				lock_file = optarg;
+				break;
 			}
 		}
+	}
 
 	/* find status file, get lastmod time */
 	if(stat(status_file, &statbuf) == -1) {
 		printf("NAGIOS CRITICAL - could not find status log: %s\n", status_file);
 		exit(STATE_CRITICAL);
-		}
+	}
 	time(&current_time);
 	age = (int)(current_time - statbuf.st_mtime);
 
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 	if(stat(lock_file, &statbuf) == -1) {
 		printf("NAGIOS CRITICAL - could not find lock file: %s\n", lock_file);
 		exit(STATE_CRITICAL);
-		}
+	}
 	fp = fopen(lock_file, "r");
 	fscanf(fp, "%d", &pid);
 	fclose(fp);
@@ -89,62 +89,58 @@ int main(int argc, char **argv) {
 		if(stat(proc_file, &statbuf) == -1) {
 			printf("NAGIOS CRITICAL - could not find proc file: %s\n", proc_file);
 			exit(STATE_CRITICAL);
-			}
 		}
-	else if(snprintf(proc_file, CHARLEN - 1, "/bin/ps -o pid -p %d", pid) &&
-	        (fp = popen(proc_file, "r")) != NULL) {
+	} else if(snprintf(proc_file, CHARLEN - 1, "/bin/ps -o pid -p %d", pid) &&
+	          (fp = popen(proc_file, "r")) != NULL) {
 		fgets(input_buffer, CHARLEN - 1, fp);
 		fgets(input_buffer, CHARLEN - 1, fp);
 		if(sscanf(input_buffer, "%d", &testpid) == 1) {
 			if(testpid != pid) {
 				printf("NAGIOS CRITICAL - could not find process(1): %d\n", pid);
 				exit(STATE_CRITICAL);
-				}
 			}
 		}
-	else if(snprintf(proc_file, CHARLEN - 1, "/bin/ps -eo pid") &&
-	        (fp = popen(proc_file, "r")) != NULL) {
+	} else if(snprintf(proc_file, CHARLEN - 1, "/bin/ps -eo pid") &&
+	          (fp = popen(proc_file, "r")) != NULL) {
 		found = FALSE;
 		fgets(input_buffer, CHARLEN - 1, fp);
 		while(fgets(input_buffer, CHARLEN - 1, fp)) {
 			if(sscanf(input_buffer, "%d", &testpid) == 1)
 				if(testpid == pid) found = TRUE;
-			}
+		}
 		if(!found) {
 			printf("NAGIOS CRITICAL - could not find process(2): %d\n", pid);
 			exit(STATE_CRITICAL);
-			}
 		}
-	else if(snprintf(proc_file, CHARLEN - 1, "/bin/ps -Ao pid") &&
-	        (fp = popen(proc_file, "r")) != NULL) {
+	} else if(snprintf(proc_file, CHARLEN - 1, "/bin/ps -Ao pid") &&
+	          (fp = popen(proc_file, "r")) != NULL) {
 		found = FALSE;
 		fgets(input_buffer, CHARLEN - 1, fp);
 		while(fgets(input_buffer, CHARLEN - 1, fp)) {
 			if(sscanf(input_buffer, "%d", &testpid) == 1)
 				if(testpid == pid) found = TRUE;
-			}
+		}
 		if(!found) {
 			printf("NAGIOS CRITICAL - could not find process(2): %d\n", pid);
 			exit(STATE_CRITICAL);
-			}
 		}
+	}
 
 	if(ct > 0 && ct < age) {
 		printf("NAGIOS CRITICAL - status written %d seconds ago\n", age);
 		exit(STATE_CRITICAL);
-		}
-	else if(wt > 0 && wt < age) {
+	} else if(wt > 0 && wt < age) {
 		printf("NAGIOS WARNING - status written %d seconds ago\n", age);
 		exit(STATE_WARNING);
-		}
-	else {
+	} else {
 		printf("NAGIOS ok - status written %d seconds ago\n", age);
 		exit(STATE_OK);
-		}
-
 	}
 
-static void document_header(void) {
+}
+
+static void document_header(void)
+{
 	char date_time[48];
 	time_t current_time;
 
@@ -161,9 +157,10 @@ static void document_header(void) {
 	printf("<body onunload=\"if (window.wnd && wnd.close) wnd.close(); return true;\">\n");
 
 	return;
-	}
+}
 
-static int process_cgivars(void) {
+static int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -175,13 +172,14 @@ static int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
 		}
-	return error;
 	}
+	return error;
+}
 
 /* get date/time string used in META tags for page expiration */
-static void get_expire_time_string(time_t *raw_time, char *buffer, int buffer_length) {
+static void get_expire_time_string(time_t *raw_time, char *buffer, int buffer_length)
+{
 	time_t t;
 	struct tm *tm_ptr;
 	int day;
@@ -209,9 +207,10 @@ static void get_expire_time_string(time_t *raw_time, char *buffer, int buffer_le
 	buffer[buffer_length - 1] = '\x0';
 
 	return;
-	}
+}
 
-static char *strscpy(char *dest, const char *src) {
+static char *strscpy(char *dest, const char *src)
+{
 	int len;
 
 	if(src != NULL)
@@ -227,9 +226,10 @@ static char *strscpy(char *dest, const char *src) {
 	strncpy(dest, src, len);
 
 	return dest;
-	}
+}
 
-static char *ssprintf(char *str, const char *fmt, ...) {
+static char *ssprintf(char *str, const char *fmt, ...)
+{
 	va_list ap;
 	int nchars;
 	int size;
@@ -251,10 +251,9 @@ static char *ssprintf(char *str, const char *fmt, ...) {
 			if(nchars < size) {
 				va_end(ap);
 				return str;
-				}
-			else {
+			} else {
 				size = nchars + 1;
-				}
+			}
 
 		else
 			size *= 2;
@@ -263,14 +262,15 @@ static char *ssprintf(char *str, const char *fmt, ...) {
 
 		if(str == NULL)
 			terminate(STATE_UNKNOWN, "realloc failed in ssprintf");
-		}
-
 	}
 
-static void terminate(int result, const char *fmt, ...) {
+}
+
+static void terminate(int result, const char *fmt, ...)
+{
 	va_list ap;
 	va_start(ap, fmt);
 	vprintf(fmt, ap);
 	va_end(ap);
 	exit(result);
-	}
+}

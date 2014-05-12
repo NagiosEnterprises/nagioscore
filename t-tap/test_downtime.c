@@ -31,12 +31,13 @@
 #include "tap.h"
 
 void logit(int data_type, int display, const char *fmt, ...) {}
-int log_debug_info(int level, int verbosity, const char *fmt, ...) {
+int log_debug_info(int level, int verbosity, const char *fmt, ...)
+{
 	va_list ap;
 	va_start(ap, fmt);
 	/* vprintf( fmt, ap ); */
 	va_end(ap);
-	}
+}
 
 timed_event *event_list_high = NULL;
 timed_event *event_list_high_tail = NULL;
@@ -46,7 +47,8 @@ unsigned long next_downtime_id = 1L;
 extern scheduled_downtime *scheduled_downtime_list;
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 	time_t now = 0L;
 	time_t temp_start_time = 1234567890L;
 	time_t temp_end_time = 2134567890L;
@@ -102,7 +104,7 @@ main(int argc, char **argv) {
 
 	for(temp_downtime = scheduled_downtime_list, i = 0; temp_downtime != NULL; temp_downtime = temp_downtime->next, i++) {
 		diag("downtime id: %d", temp_downtime->downtime_id);
-		}
+	}
 	ok(i == 3, "Got 3 downtimes left: %d", i);
 
 	unschedule_downtime(HOST_DOWNTIME, 3);
@@ -161,7 +163,7 @@ main(int argc, char **argv) {
 
 	for(temp_downtime = scheduled_downtime_list, i = 0; temp_downtime != NULL; temp_downtime = temp_downtime->next, i++) {
 		diag("downtime id: %d", temp_downtime->downtime_id);
-		}
+	}
 	ok(i == 4, "Got 4 downtimes left: %d", i);
 
 	unschedule_downtime(HOST_DOWNTIME, 9);
@@ -175,5 +177,5 @@ main(int argc, char **argv) {
 
 
 	return exit_status();
-	}
+}
 

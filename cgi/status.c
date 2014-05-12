@@ -81,13 +81,13 @@ static nagios_macros *mac;
 typedef struct hostsort_struct {
 	hoststatus *hststatus;
 	struct hostsort_struct *next;
-	} hostsort;
+} hostsort;
 
 /* SERVICESORT structure */
 typedef struct servicesort_struct {
 	servicestatus *svcstatus;
 	struct servicesort_struct *next;
-	} servicesort;
+} servicesort;
 
 hostsort *hostsort_list = NULL;
 servicesort *servicesort_list = NULL;
@@ -189,7 +189,8 @@ int display_header = TRUE;
 
 
 
-int main(void) {
+int main(void)
+{
 	char *sound = NULL;
 	host *temp_host = NULL;
 	hostgroup *temp_hostgroup = NULL;
@@ -227,15 +228,13 @@ int main(void) {
 				if(host_name[i] == '*') {
 					host_filter[regex_i++] = '.';
 					host_filter[regex_i] = '*';
-					}
-				else
+				} else
 					host_filter[regex_i] = host_name[i];
-				}
+			}
 			host_filter[0] = '^';
 			host_filter[regex_i++] = '$';
 			host_filter[regex_i] = '\0';
-			}
-		else {
+		} else {
 			if((temp_host = find_host(host_name)) == NULL) {
 				for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 					if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
@@ -251,8 +250,8 @@ int main(void) {
 						host_filter[regex_i++] = '$';
 						host_filter[regex_i] = '\0';
 						break;
-						}
 					}
+				}
 				if(temp_host == NULL) {
 					for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 						if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
@@ -261,10 +260,10 @@ int main(void) {
 							free(host_name);
 							host_name = strdup(temp_host->name);
 							break;
-							}
 						}
 					}
 				}
+			}
 			/* last effort, search hostgroups then servicegroups */
 			if(temp_host == NULL) {
 				if((temp_hostgroup = find_hostgroup(host_name)) != NULL) {
@@ -272,16 +271,15 @@ int main(void) {
 					show_all_hostgroups = FALSE;
 					free(host_name);
 					hostgroup_name = strdup(temp_hostgroup->group_name);
-					}
-				else if((temp_servicegroup = find_servicegroup(host_name)) != NULL) {
+				} else if((temp_servicegroup = find_servicegroup(host_name)) != NULL) {
 					display_type = DISPLAY_SERVICEGROUPS;
 					show_all_servicegroups = FALSE;
 					free(host_name);
 					servicegroup_name = strdup(temp_servicegroup->group_name);
-					}
 				}
 			}
 		}
+	}
 
 	if(display_header == TRUE) {
 
@@ -305,8 +303,7 @@ int main(void) {
 				printf("<br /><a href='%s?host=all'>View Service Status Detail For All Hosts</a>\n", STATUS_CGI);
 			else
 				printf("<br /><a href='%s?hostgroup=all&style=hostdetail'>View Host Status Detail For All Hosts</a>\n", STATUS_CGI);
-			}
-		else if(display_type == DISPLAY_SERVICEGROUPS) {
+		} else if(display_type == DISPLAY_SERVICEGROUPS) {
 			if(show_all_servicegroups == FALSE) {
 
 				if(group_style_type == STYLE_OVERVIEW || group_style_type == STYLE_GRID || group_style_type == STYLE_SUMMARY)
@@ -327,8 +324,7 @@ int main(void) {
 				if(group_style_type == STYLE_GRID)
 					printf("<a href='%s?servicegroup=all&style=grid'>View Service Status Grid For All Service Groups</a><br>\n", STATUS_CGI);
 
-				}
-			else {
+			} else {
 				if(group_style_type == STYLE_OVERVIEW || group_style_type == STYLE_GRID || group_style_type == STYLE_SUMMARY)
 					printf("<a href='%s?servicegroup=all&style=detail'>View Service Status Detail For All Service Groups</a><br>\n", STATUS_CGI);
 				if(group_style_type == STYLE_DETAIL || group_style_type == STYLE_GRID || group_style_type == STYLE_SUMMARY)
@@ -337,10 +333,9 @@ int main(void) {
 					printf("<a href='%s?servicegroup=all&style=summary'>View Status Summary For All Service Groups</a><br>\n", STATUS_CGI);
 				if(group_style_type == STYLE_DETAIL || group_style_type == STYLE_OVERVIEW || group_style_type == STYLE_SUMMARY)
 					printf("<a href='%s?servicegroup=all&style=grid'>View Service Status Grid For All Service Groups</a><br>\n", STATUS_CGI);
-				}
-
 			}
-		else {
+
+		} else {
 			if(show_all_hostgroups == FALSE) {
 
 				if(group_style_type == STYLE_DETAIL)
@@ -364,8 +359,7 @@ int main(void) {
 					printf("<a href='%s?hostgroup=%s&style=summary'>View Status Summary For This Host Group</a><br>\n", STATUS_CGI, url_encode(hostgroup_name));
 				if(group_style_type == STYLE_OVERVIEW || group_style_type == STYLE_DETAIL || group_style_type == STYLE_SUMMARY || group_style_type == STYLE_HOST_DETAIL)
 					printf("<a href='%s?hostgroup=%s&style=grid'>View Status Grid For This Host Group</a><br>\n", STATUS_CGI, url_encode(hostgroup_name));
-				}
-			else {
+			} else {
 				if(group_style_type == STYLE_OVERVIEW || group_style_type == STYLE_SUMMARY || group_style_type == STYLE_GRID || group_style_type == STYLE_HOST_DETAIL)
 					printf("<a href='%s?hostgroup=all&style=detail'>View Service Status Detail For All Host Groups</a><br>\n", STATUS_CGI);
 				if(group_style_type == STYLE_OVERVIEW || group_style_type == STYLE_DETAIL || group_style_type == STYLE_SUMMARY || group_style_type == STYLE_GRID)
@@ -376,8 +370,8 @@ int main(void) {
 					printf("<a href='%s?hostgroup=all&style=summary'>View Status Summary For All Host Groups</a><br>\n", STATUS_CGI);
 				if(group_style_type == STYLE_OVERVIEW || group_style_type == STYLE_DETAIL || group_style_type == STYLE_SUMMARY || group_style_type == STYLE_HOST_DETAIL)
 					printf("<a href='%s?hostgroup=all&style=grid'>View Status Grid For All Host Groups</a><br>\n", STATUS_CGI);
-				}
 			}
+		}
 
 		printf("</td></tr>\n");
 		printf("</table>\n");
@@ -407,8 +401,7 @@ int main(void) {
 				display_context_help(CONTEXTHELP_STATUS_SGSUMMARY);
 			else if(group_style_type == STYLE_GRID)
 				display_context_help(CONTEXTHELP_STATUS_SGGRID);
-			}
-		else {
+		} else {
 			if(group_style_type == STYLE_HOST_DETAIL)
 				display_context_help(CONTEXTHELP_STATUS_HOST_DETAIL);
 			else if(group_style_type == STYLE_OVERVIEW)
@@ -417,13 +410,13 @@ int main(void) {
 				display_context_help(CONTEXTHELP_STATUS_HGSUMMARY);
 			else if(group_style_type == STYLE_GRID)
 				display_context_help(CONTEXTHELP_STATUS_HGGRID);
-			}
+		}
 		printf("</td>\n");
 
 		/* end of top table */
 		printf("</tr>\n");
 		printf("</table>\n");
-		}
+	}
 
 
 	/* embed sound tag if necessary... */
@@ -445,7 +438,7 @@ int main(void) {
 		printf("<param name=\"autostart\" value=\"true\">");
 		printf("<param name=\"playcount\" value=\"1\">");
 		printf("</object>");
-		}
+	}
 
 
 	/* bottom portion of screen - service or hostgroup detail */
@@ -462,8 +455,7 @@ int main(void) {
 			show_host_detail();
 		else
 			show_service_detail();
-		}
-	else {
+	} else {
 		if(group_style_type == STYLE_OVERVIEW)
 			show_hostgroup_overviews();
 		else if(group_style_type == STYLE_SUMMARY)
@@ -474,7 +466,7 @@ int main(void) {
 			show_host_detail();
 		else
 			show_service_detail();
-		}
+	}
 
 	document_footer();
 
@@ -487,10 +479,11 @@ int main(void) {
 	free_hostsort_list();
 
 	return OK;
-	}
+}
 
 
-void document_header(int use_stylesheet) {
+void document_header(int use_stylesheet)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t expire_time;
 
@@ -520,7 +513,7 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<link rel='stylesheet' type='text/css' href='%s%s' />\n", url_stylesheets_path, COMMON_CSS);
 		printf("<link rel='stylesheet' type='text/css' href='%s%s' />\n", url_stylesheets_path, STATUS_CSS);
-		}
+	}
 
 	/* added jquery library 1/31/2012 */
 	printf("<script type='text/javascript' src='%s%s'></script>\n",url_js_path, JQUERY_JS);
@@ -538,10 +531,11 @@ void document_header(int use_stylesheet) {
 	include_ssi_files(STATUS_CGI, SSI_HEADER);
 
 	return;
-	}
+}
 
 
-void document_footer(void) {
+void document_footer(void)
+{
 
 	if(embedded == TRUE)
 		return;
@@ -553,10 +547,11 @@ void document_footer(void) {
 	printf("</html>\n");
 
 	return;
-	}
+}
 
 
-int process_cgivars(void) {
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -568,7 +563,7 @@ int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
+		}
 
 		/* we found the navbar search argument */
 		else if(!strcmp(variables[x], "navbarsearch")) {
@@ -576,9 +571,9 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
-			navbar_search = TRUE;
 			}
+			navbar_search = TRUE;
+		}
 
 		/* we found the hostgroup argument */
 		else if(!strcmp(variables[x], "hostgroup")) {
@@ -587,7 +582,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			hostgroup_name = (char *)strdup(variables[x]);
 			strip_html_brackets(hostgroup_name);
@@ -596,7 +591,7 @@ int process_cgivars(void) {
 				show_all_hostgroups = TRUE;
 			else
 				show_all_hostgroups = FALSE;
-			}
+		}
 
 		/* we found the servicegroup argument */
 		else if(!strcmp(variables[x], "servicegroup")) {
@@ -605,7 +600,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			servicegroup_name = strdup(variables[x]);
 			strip_html_brackets(servicegroup_name);
@@ -614,7 +609,7 @@ int process_cgivars(void) {
 				show_all_servicegroups = TRUE;
 			else
 				show_all_servicegroups = FALSE;
-			}
+		}
 
 		/* we found the host argument */
 		else if(!strcmp(variables[x], "host")) {
@@ -623,7 +618,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			host_name = strdup(variables[x]);
 			strip_html_brackets(host_name);
@@ -632,7 +627,7 @@ int process_cgivars(void) {
 				show_all_hosts = TRUE;
 			else
 				show_all_hosts = FALSE;
-			}
+		}
 
 		/* we found the columns argument */
 		else if(!strcmp(variables[x], "columns")) {
@@ -640,12 +635,12 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			overview_columns = atoi(variables[x]);
 			if(overview_columns <= 0)
 				overview_columns = 1;
-			}
+		}
 
 		/* we found the service status type argument */
 		else if(!strcmp(variables[x], "servicestatustypes")) {
@@ -653,10 +648,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			service_status_types = atoi(variables[x]);
-			}
+		}
 
 		/* we found the host status type argument */
 		else if(!strcmp(variables[x], "hoststatustypes")) {
@@ -664,10 +659,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			host_status_types = atoi(variables[x]);
-			}
+		}
 
 		/* we found the service properties argument */
 		else if(!strcmp(variables[x], "serviceprops")) {
@@ -675,10 +670,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			service_properties = strtoul(variables[x], NULL, 10);
-			}
+		}
 
 		/* we found the host properties argument */
 		else if(!strcmp(variables[x], "hostprops")) {
@@ -686,10 +681,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			host_properties = strtoul(variables[x], NULL, 10);
-			}
+		}
 
 		/* we found the host or service group style argument */
 		else if(!strcmp(variables[x], "style")) {
@@ -697,7 +692,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "overview"))
 				group_style_type = STYLE_OVERVIEW;
@@ -711,7 +706,7 @@ int process_cgivars(void) {
 				group_style_type = STYLE_HOST_DETAIL;
 			else
 				group_style_type = STYLE_DETAIL;
-			}
+		}
 
 		/* we found the sort type argument */
 		else if(!strcmp(variables[x], "sorttype")) {
@@ -719,10 +714,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			sort_type = atoi(variables[x]);
-			}
+		}
 
 		/* we found the sort option argument */
 		else if(!strcmp(variables[x], "sortoption")) {
@@ -730,10 +725,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			sort_option = atoi(variables[x]);
-			}
+		}
 
 		/* we found the embed option */
 		else if(!strcmp(variables[x], "embedded"))
@@ -749,10 +744,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 			service_filter = strdup(variables[x]);
 			strip_html_brackets(service_filter);
-			}
+		}
 
 		/* experimental page limit feature */
 		else if(!strcmp(variables[x], "start")) {
@@ -760,35 +755,35 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
-			page_start = atoi(variables[x]);
 			}
-		else if(!strcmp(variables[x], "limit")) {
+			page_start = atoi(variables[x]);
+		} else if(!strcmp(variables[x], "limit")) {
 			x++;
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 			temp_result_limit = atoi(variables[x]);
 			if(temp_result_limit == 0)
 				limit_results = FALSE;
 			else
 				limit_results = TRUE;
-			}
-
 		}
+
+	}
 
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
 /* display table with service status totals... */
-void show_service_status_totals(void) {
+void show_service_status_totals(void)
+{
 	int total_ok = 0;
 	int total_warning = 0;
 	int total_unknown = 0;
@@ -828,25 +823,22 @@ void show_service_status_totals(void) {
 				total_critical++;
 				if(temp_servicestatus->problem_has_been_acknowledged == FALSE && (temp_servicestatus->checks_enabled == TRUE || temp_servicestatus->accept_passive_checks == TRUE) && temp_servicestatus->notifications_enabled == TRUE && temp_servicestatus->scheduled_downtime_depth == 0)
 					problem_services_critical++;
-				}
-			else if(temp_servicestatus->status == SERVICE_WARNING) {
+			} else if(temp_servicestatus->status == SERVICE_WARNING) {
 				total_warning++;
 				if(temp_servicestatus->problem_has_been_acknowledged == FALSE && (temp_servicestatus->checks_enabled == TRUE || temp_servicestatus->accept_passive_checks == TRUE) && temp_servicestatus->notifications_enabled == TRUE && temp_servicestatus->scheduled_downtime_depth == 0)
 					problem_services_warning++;
-				}
-			else if(temp_servicestatus->status == SERVICE_UNKNOWN) {
+			} else if(temp_servicestatus->status == SERVICE_UNKNOWN) {
 				total_unknown++;
 				if(temp_servicestatus->problem_has_been_acknowledged == FALSE && (temp_servicestatus->checks_enabled == TRUE || temp_servicestatus->accept_passive_checks == TRUE) && temp_servicestatus->notifications_enabled == TRUE && temp_servicestatus->scheduled_downtime_depth == 0)
 					problem_services_unknown++;
-				}
-			else if(temp_servicestatus->status == SERVICE_OK)
+			} else if(temp_servicestatus->status == SERVICE_OK)
 				total_ok++;
 			else if(temp_servicestatus->status == SERVICE_PENDING)
 				total_pending++;
 			else
 				total_ok++;
-			}
 		}
+	}
 
 	total_services = total_ok + total_unknown + total_warning + total_critical + total_pending;
 	total_problems = total_unknown + total_warning + total_critical;
@@ -862,7 +854,7 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */
+	/* paging */
 	if(temp_result_limit)
 		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
@@ -877,7 +869,7 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */
+	/* paging */
 	if(temp_result_limit)
 		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
@@ -892,7 +884,7 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */
+	/* paging */
 	if(temp_result_limit)
 		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
@@ -907,7 +899,7 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */
+	/* paging */
 	if(temp_result_limit)
 		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
@@ -922,7 +914,7 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */
+	/* paging */
 	if(temp_result_limit)
 		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
@@ -966,7 +958,7 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */
+	/* paging */
 	if(temp_result_limit)
 		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
@@ -981,7 +973,7 @@ void show_service_status_totals(void) {
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-		/* paging */
+	/* paging */
 	if(temp_result_limit)
 		printf("limit=%i&",temp_result_limit);
 	if(display_type == DISPLAY_HOSTS)
@@ -1011,11 +1003,12 @@ void show_service_status_totals(void) {
 	printf("</div>\n");
 
 	return;
-	}
+}
 
 
 /* display a table with host status totals... */
-void show_host_status_totals(void) {
+void show_host_status_totals(void)
+{
 	int total_up = 0;
 	int total_down = 0;
 	int total_unreachable = 0;
@@ -1044,12 +1037,10 @@ void show_host_status_totals(void) {
 		else if(display_type == DISPLAY_SERVICEGROUPS) {
 			if(show_all_servicegroups == TRUE) {
 				count_host = 1;
-				}
-			else if(is_host_member_of_servicegroup(find_servicegroup(servicegroup_name), temp_host) == TRUE) {
+			} else if(is_host_member_of_servicegroup(find_servicegroup(servicegroup_name), temp_host) == TRUE) {
 				count_host = 1;
-				}
 			}
-		else if(display_type == DISPLAY_HOSTGROUPS && (show_all_hostgroups == TRUE || (is_host_member_of_hostgroup(find_hostgroup(hostgroup_name), temp_host) == TRUE)))
+		} else if(display_type == DISPLAY_HOSTGROUPS && (show_all_hostgroups == TRUE || (is_host_member_of_hostgroup(find_hostgroup(hostgroup_name), temp_host) == TRUE)))
 			count_host = 1;
 
 		if(count_host) {
@@ -1060,19 +1051,18 @@ void show_host_status_totals(void) {
 				total_down++;
 				if(temp_hoststatus->problem_has_been_acknowledged == FALSE && temp_hoststatus->notifications_enabled == TRUE && temp_hoststatus->checks_enabled == TRUE && temp_hoststatus->scheduled_downtime_depth == 0)
 					problem_hosts_down++;
-				}
-			else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
+			} else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 				total_unreachable++;
 				if(temp_hoststatus->problem_has_been_acknowledged == FALSE && temp_hoststatus->notifications_enabled == TRUE && temp_hoststatus->checks_enabled == TRUE && temp_hoststatus->scheduled_downtime_depth == 0)
 					problem_hosts_unreachable++;
-				}
+			}
 
 			else if(temp_hoststatus->status == HOST_PENDING)
 				total_pending++;
 			else
 				total_up++;
-			}
 		}
+	}
 
 	total_hosts = total_up + total_down + total_unreachable + total_pending;
 	total_problems = total_down + total_unreachable;
@@ -1101,7 +1091,7 @@ void show_host_status_totals(void) {
 			printf("&style=detail");
 		else if(group_style_type == STYLE_HOST_DETAIL)
 			printf("&style=hostdetail");
-		}
+	}
 	if(service_status_types != all_service_status_types)
 		printf("&servicestatustypes=%d", service_status_types);
 	printf("&hoststatustypes=%d'>", SD_HOST_UP);
@@ -1122,7 +1112,7 @@ void show_host_status_totals(void) {
 			printf("&style=detail");
 		else if(group_style_type == STYLE_HOST_DETAIL)
 			printf("&style=hostdetail");
-		}
+	}
 	if(service_status_types != all_service_status_types)
 		printf("&servicestatustypes=%d", service_status_types);
 	printf("&hoststatustypes=%d'>", SD_HOST_DOWN);
@@ -1143,7 +1133,7 @@ void show_host_status_totals(void) {
 			printf("&style=detail");
 		else if(group_style_type == STYLE_HOST_DETAIL)
 			printf("&style=hostdetail");
-		}
+	}
 	if(service_status_types != all_service_status_types)
 		printf("&servicestatustypes=%d", service_status_types);
 	printf("&hoststatustypes=%d'>", SD_HOST_UNREACHABLE);
@@ -1164,7 +1154,7 @@ void show_host_status_totals(void) {
 			printf("&style=detail");
 		else if(group_style_type == STYLE_HOST_DETAIL)
 			printf("&style=hostdetail");
-		}
+	}
 	if(service_status_types != all_service_status_types)
 		printf("&servicestatustypes=%d", service_status_types);
 	printf("&hoststatustypes=%d'>", HOST_PENDING);
@@ -1210,7 +1200,7 @@ void show_host_status_totals(void) {
 			printf("&style=detail");
 		else if(group_style_type == STYLE_HOST_DETAIL)
 			printf("&style=hostdetail");
-		}
+	}
 	if(service_status_types != all_service_status_types)
 		printf("&servicestatustypes=%d", service_status_types);
 	printf("&hoststatustypes=%d'>", SD_HOST_DOWN | SD_HOST_UNREACHABLE);
@@ -1231,7 +1221,7 @@ void show_host_status_totals(void) {
 			printf("&style=detail");
 		else if(group_style_type == STYLE_HOST_DETAIL)
 			printf("&style=hostdetail");
-		}
+	}
 	if(service_status_types != all_service_status_types)
 		printf("&servicestatustypes=%d", service_status_types);
 	printf("'>");
@@ -1254,12 +1244,13 @@ void show_host_status_totals(void) {
 	printf("</div>\n");
 
 	return;
-	}
+}
 
 
 
 /* display a detailed listing of the status of all services... */
-void show_service_detail(void) {
+void show_service_detail(void)
+{
 	regex_t preg, preg_hostname;
 	time_t t;
 	char date_time[MAX_DATETIME_LENGTH];
@@ -1303,8 +1294,7 @@ void show_service_detail(void) {
 			use_sort = FALSE;
 		else
 			use_sort = TRUE;
-		}
-	else
+	} else
 		use_sort = FALSE;
 
 
@@ -1326,19 +1316,17 @@ void show_service_detail(void) {
 			printf("All Hosts");
 		else
 			printf("Host '%s'", host_name);
-		}
-	else if(display_type == DISPLAY_SERVICEGROUPS) {
+	} else if(display_type == DISPLAY_SERVICEGROUPS) {
 		if(show_all_servicegroups == TRUE)
 			printf("All Service Groups");
 		else
 			printf("Service Group '%s'", url_encode(servicegroup_name));
-		}
-	else {
+	} else {
 		if(show_all_hostgroups == TRUE)
 			printf("All Host Groups");
 		else
 			printf("Host Group '%s'", hostgroup_name);
-		}
+	}
 	printf("</div>\n");
 
 	if(use_sort == TRUE) {
@@ -1357,7 +1345,7 @@ void show_service_detail(void) {
 			printf("state duration");
 		printf("</b> (%s)\n", (sort_type == SORT_ASCENDING) ? "ascending" : "descending");
 		printf("</div>\n");
-		}
+	}
 
 	if(service_filter != NULL)
 		printf("<div align='center' class='statusSort'>Filtered By Services Matching \'%s\'</div>", service_filter);
@@ -1378,7 +1366,7 @@ void show_service_detail(void) {
 	snprintf(temp_url, sizeof(temp_url) - 1, "%s?", STATUS_CGI);
 	temp_url[sizeof(temp_url) - 1] = '\x0';
 	if(display_type == DISPLAY_HOSTS)
-	     snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%shost=%s", (navbar_search == TRUE) ? "&navbarsearch=1&" : "", (host_name == NULL) ? "all" : url_encode(host_name));
+		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "%shost=%s", (navbar_search == TRUE) ? "&navbarsearch=1&" : "", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if(display_type == DISPLAY_SERVICEGROUPS)
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "servicegroup=%s&style=detail", url_encode(servicegroup_name));
 	else
@@ -1391,25 +1379,25 @@ void show_service_detail(void) {
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
-		}
+	}
 	if(host_status_types != all_host_status_types) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&hoststatustypes=%d", host_status_types);
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
-		}
+	}
 	if(service_properties != 0) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&serviceprops=%lu", service_properties);
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
-		}
+	}
 	if(host_properties != 0) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&hostprops=%lu", host_properties);
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
-		}
+	}
 	/*
 	if(temp_result_limit) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&limit=%i", temp_result_limit);
@@ -1467,13 +1455,12 @@ void show_service_detail(void) {
 			if(temp_servicesort == NULL)
 				break;
 			temp_status = temp_servicesort->svcstatus;
-			}
-		else {
+		} else {
 			if(first_entry == TRUE)
 				temp_status = servicestatus_list;
 			else
 				temp_status = temp_status->next;
-			}
+		}
 
 		if(temp_status == NULL)
 			break;
@@ -1537,21 +1524,21 @@ void show_service_detail(void) {
 				show_service = TRUE;
 			else if(navbar_search_aliases == TRUE && !strcmp(host_name, temp_host->alias))
 				show_service = TRUE;
-			}
+		}
 
 		else if(display_type == DISPLAY_HOSTGROUPS) {
 			if(show_all_hostgroups == TRUE)
 				show_service = TRUE;
 			else if(is_host_member_of_hostgroup(temp_hostgroup, temp_host) == TRUE)
 				show_service = TRUE;
-			}
+		}
 
 		else if(display_type == DISPLAY_SERVICEGROUPS) {
 			if(show_all_servicegroups == TRUE)
 				show_service = TRUE;
 			else if(is_service_member_of_servicegroup(temp_servicegroup, temp_service) == TRUE)
 				show_service = TRUE;
-			}
+		}
 
 		/* final checks for display visibility, add to total results.  Used for page numbers */
 		if(result_limit == 0)
@@ -1560,7 +1547,7 @@ void show_service_detail(void) {
 		if( (limit_results == TRUE && show_service== TRUE)  && ( (total_entries < page_start) || (total_entries >= (page_start + result_limit)) )  ) {
 			total_entries++;
 			show_service = FALSE;
-			}
+		}
 
 		/* a visible entry */
 		if(show_service == TRUE) {
@@ -1573,8 +1560,8 @@ void show_service_detail(void) {
 				if(strcmp(last_host, "")) {
 					printf("<tr><td colspan='6'></td></tr>\n");
 					printf("<tr><td colspan='6'></td></tr>\n");
-					}
 				}
+			}
 
 			if(odd)
 				odd = 0;
@@ -1595,13 +1582,11 @@ void show_service_detail(void) {
 				strncpy(status, "PENDING", sizeof(status));
 				status_class = "PENDING";
 				status_bg_class = (odd) ? "Even" : "Odd";
-				}
-			else if(temp_status->status == SERVICE_OK) {
+			} else if(temp_status->status == SERVICE_OK) {
 				strncpy(status, "OK", sizeof(status));
 				status_class = "OK";
 				status_bg_class = (odd) ? "Even" : "Odd";
-				}
-			else if(temp_status->status == SERVICE_WARNING) {
+			} else if(temp_status->status == SERVICE_WARNING) {
 				strncpy(status, "WARNING", sizeof(status));
 				status_class = "WARNING";
 				if(temp_status->problem_has_been_acknowledged == TRUE)
@@ -1610,8 +1595,7 @@ void show_service_detail(void) {
 					status_bg_class = "BGWARNINGSCHED";
 				else
 					status_bg_class = "BGWARNING";
-				}
-			else if(temp_status->status == SERVICE_UNKNOWN) {
+			} else if(temp_status->status == SERVICE_UNKNOWN) {
 				strncpy(status, "UNKNOWN", sizeof(status));
 				status_class = "UNKNOWN";
 				if(temp_status->problem_has_been_acknowledged == TRUE)
@@ -1620,8 +1604,7 @@ void show_service_detail(void) {
 					status_bg_class = "BGUNKNOWNSCHED";
 				else
 					status_bg_class = "BGUNKNOWN";
-				}
-			else if(temp_status->status == SERVICE_CRITICAL) {
+			} else if(temp_status->status == SERVICE_CRITICAL) {
 				strncpy(status, "CRITICAL", sizeof(status));
 				status_class = "CRITICAL";
 				if(temp_status->problem_has_been_acknowledged == TRUE)
@@ -1630,7 +1613,7 @@ void show_service_detail(void) {
 					status_bg_class = "BGCRITICALSCHED";
 				else
 					status_bg_class = "BGCRITICAL";
-				}
+			}
 			status[sizeof(status) - 1] = '\x0';
 
 
@@ -1649,16 +1632,14 @@ void show_service_detail(void) {
 						host_status_bg_class = "HOSTDOWNSCHED";
 					else
 						host_status_bg_class = "HOSTDOWN";
-					}
-				else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
+				} else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 					if(temp_hoststatus->problem_has_been_acknowledged == TRUE)
 						host_status_bg_class = "HOSTUNREACHABLEACK";
 					else if(temp_hoststatus->scheduled_downtime_depth > 0)
 						host_status_bg_class = "HOSTUNREACHABLESCHED";
 					else
 						host_status_bg_class = "HOSTUNREACHABLE";
-					}
-				else
+				} else
 					host_status_bg_class = (odd) ? "Even" : "Odd";
 
 				printf("<td class='status%s'>", host_status_bg_class);
@@ -1678,24 +1659,24 @@ void show_service_detail(void) {
 				total_comments = number_of_host_comments(temp_host->name);
 				if(temp_hoststatus->problem_has_been_acknowledged == TRUE) {
 					printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s#comments'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This host problem has been acknowledged' TITLE='This host problem has been acknowledged'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, ACKNOWLEDGEMENT_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-					}
+				}
 				/* only show comments if this is a non-read-only user */
 				if(is_authorized_for_read_only(&current_authdata) == FALSE) {
 					if(total_comments > 0)
 						printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s#comments'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This host has %d comment%s associated with it' TITLE='This host has %d comment%s associated with it'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, COMMENT_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, total_comments, (total_comments == 1) ? "" : "s", total_comments, (total_comments == 1) ? "" : "s");
-					}
+				}
 				if(temp_hoststatus->notifications_enabled == FALSE) {
 					printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Notifications for this host have been disabled' TITLE='Notifications for this host have been disabled'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, NOTIFICATIONS_DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-					}
+				}
 				if(temp_hoststatus->checks_enabled == FALSE) {
 					printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Checks of this host have been disabled'd TITLE='Checks of this host have been disabled'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-					}
+				}
 				if(temp_hoststatus->is_flapping == TRUE) {
 					printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This host is flapping between states' TITLE='This host is flapping between states'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, FLAPPING_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-					}
+				}
 				if(temp_hoststatus->scheduled_downtime_depth > 0) {
 					printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This host is currently in a period of scheduled downtime' TITLE='This host is currently in a period of scheduled downtime'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, SCHEDULED_DOWNTIME_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-					}
+				}
 				if(temp_host->notes_url != NULL) {
 					printf("<td align=center valign=center>");
 					printf("<a href='");
@@ -1706,7 +1687,7 @@ void show_service_detail(void) {
 					printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, NOTES_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "View Extra Host Notes", "View Extra Host Notes");
 					printf("</a>");
 					printf("</td>\n");
-					}
+				}
 				if(temp_host->action_url != NULL) {
 					printf("<td align=center valign=center>");
 					printf("<a href='");
@@ -1717,7 +1698,7 @@ void show_service_detail(void) {
 					printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, ACTION_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "Perform Extra Host Actions", "Perform Extra Host Actions");
 					printf("</a>");
 					printf("</td>\n");
-					}
+				}
 				if(temp_host->icon_image != NULL) {
 					printf("<td align=center valign=center>");
 					printf("<a href='%s?type=%d&host=%s'>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name));
@@ -1728,14 +1709,13 @@ void show_service_detail(void) {
 					printf("' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt);
 					printf("</a>");
 					printf("</td>\n");
-					}
+				}
 				printf("</tr>\n");
 				printf("</table>\n");
 				printf("</td>\n");
 				printf("</tr>\n");
 				printf("</table>\n");
-				}
-			else
+			} else
 				printf("<td>");
 			printf("</td>\n");
 
@@ -1764,32 +1744,31 @@ void show_service_detail(void) {
 				if(total_comments > 0) {
 					printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_status->host_name));
 					printf("&service=%s#comments'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This service has %d comment%s associated with it' TITLE='This service has %d comment%s associated with it'></a></td>", url_encode(temp_status->description), url_images_path, COMMENT_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, total_comments, (total_comments == 1) ? "" : "s", total_comments, (total_comments == 1) ? "" : "s");
-					}
 				}
+			}
 			if(temp_status->problem_has_been_acknowledged == TRUE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_status->host_name));
 				printf("&service=%s#comments'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This service problem has been acknowledged' TITLE='This service problem has been acknowledged'></a></td>", url_encode(temp_status->description), url_images_path, ACKNOWLEDGEMENT_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
+			}
 			if(temp_status->checks_enabled == FALSE && temp_status->accept_passive_checks == FALSE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_status->host_name));
 				printf("&service=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Active and passive checks have been disabled for this service' TITLE='Active and passive checks have been disabled for this service'></a></td>", url_encode(temp_status->description), url_images_path, DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
-			else if(temp_status->checks_enabled == FALSE) {
+			} else if(temp_status->checks_enabled == FALSE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_status->host_name));
 				printf("&service=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Active checks of the service have been disabled - only passive checks are being accepted' TITLE='Active checks of the service have been disabled - only passive checks are being accepted'></a></td>", url_encode(temp_status->description), url_images_path, PASSIVE_ONLY_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
+			}
 			if(temp_status->notifications_enabled == FALSE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_status->host_name));
 				printf("&service=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Notifications for this service have been disabled' TITLE='Notifications for this service have been disabled'></a></td>", url_encode(temp_status->description), url_images_path, NOTIFICATIONS_DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
+			}
 			if(temp_status->is_flapping == TRUE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_status->host_name));
 				printf("&service=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This service is flapping between states' TITLE='This service is flapping between states'></a></td>", url_encode(temp_status->description), url_images_path, FLAPPING_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
+			}
 			if(temp_status->scheduled_downtime_depth > 0) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_status->host_name));
 				printf("&service=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This service is currently in a period of scheduled downtime' TITLE='This service is currently in a period of scheduled downtime'></a></td>", url_encode(temp_status->description), url_images_path, SCHEDULED_DOWNTIME_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
+			}
 			if(temp_service->notes_url != NULL) {
 				printf("<td align=center valign=center>");
 				printf("<a href='");
@@ -1800,7 +1779,7 @@ void show_service_detail(void) {
 				printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, NOTES_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "View Extra Service Notes", "View Extra Service Notes");
 				printf("</a>");
 				printf("</td>\n");
-				}
+			}
 			if(temp_service->action_url != NULL) {
 				printf("<td align=center valign=center>");
 				printf("<a href='");
@@ -1811,7 +1790,7 @@ void show_service_detail(void) {
 				printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, ACTION_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "Perform Extra Service Actions", "Perform Extra Service Actions");
 				printf("</a>");
 				printf("</td>\n");
-				}
+			}
 			if(temp_service->icon_image != NULL) {
 				printf("<td ALIGN=center valign=center>");
 				printf("<a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_service->host_name));
@@ -1823,12 +1802,12 @@ void show_service_detail(void) {
 				printf("' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, (temp_service->icon_image_alt == NULL) ? "" : temp_service->icon_image_alt, (temp_service->icon_image_alt == NULL) ? "" : temp_service->icon_image_alt);
 				printf("</a>");
 				printf("</td>\n");
-				}
+			}
 			if(enable_splunk_integration == TRUE) {
 				printf("<td ALIGN=center valign=center>");
 				display_splunk_service_url(temp_service);
 				printf("</td>\n");
-				}
+			}
 			printf("</tr>\n");
 			printf("</table>\n");
 			printf("</td>\n");
@@ -1844,13 +1823,12 @@ void show_service_detail(void) {
 					duration_error = TRUE;
 				else
 					t = current_time - program_start;
-				}
-			else {
+			} else {
 				if(temp_status->last_state_change > current_time)
 					duration_error = TRUE;
 				else
 					t = current_time - temp_status->last_state_change;
-				}
+			}
 			get_time_breakdown((unsigned long)t, &days, &hours, &minutes, &seconds);
 			if(duration_error == TRUE)
 				snprintf(state_duration, sizeof(state_duration) - 1, "???");
@@ -1876,9 +1854,9 @@ void show_service_detail(void) {
 			/* mod to account for paging */
 			if(visible_entries != 0)
 				last_host = temp_status->host_name;
-			}
-
 		}
+
+	}
 
 	printf("</table>\n");
 
@@ -1889,25 +1867,24 @@ void show_service_detail(void) {
 			printf("<P><div class='errorMessage'>It appears as though you do not have permission to view information for any of the services you requested...</div></P>\n");
 			printf("<P><div class='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</div></P>\n");
-			}
-		else {
+		} else {
 			printf("<p><div class='infoMessage'>There doesn't appear to be any service status information in the status log...<br><br>\n");
 			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</div></p>\n");
-			}
 		}
-	else {
+	} else {
 		/* do page numbers if applicable */
 		create_pagenumbers(total_entries,temp_url,TRUE);
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 
 /* display a detailed listing of the status of all hosts... */
-void show_host_detail(void) {
+void show_host_detail(void)
+{
 	time_t t;
 	char date_time[MAX_DATETIME_LENGTH];
 	char state_duration[48];
@@ -1944,8 +1921,7 @@ void show_host_detail(void) {
 			use_sort = FALSE;
 		else
 			use_sort = TRUE;
-		}
-	else
+	} else
 		use_sort = FALSE;
 
 
@@ -1987,7 +1963,7 @@ void show_host_detail(void) {
 			printf("state duration");
 		printf("</b> (%s)\n", (sort_type == SORT_ASCENDING) ? "ascending" : "descending");
 		printf("</div>\n");
-		}
+	}
 
 	printf("<br>");
 
@@ -2013,25 +1989,25 @@ void show_host_detail(void) {
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
-		}
+	}
 	if(host_status_types != all_host_status_types) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&hoststatustypes=%d", host_status_types);
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
-		}
+	}
 	if(service_properties != 0) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&serviceprops=%lu", service_properties);
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
-		}
+	}
 	if(host_properties != 0) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&hostprops=%lu", host_properties);
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
-		}
+	}
 	/*
 	if(temp_result_limit) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&limit=%i", temp_result_limit);
@@ -2079,13 +2055,12 @@ void show_host_detail(void) {
 			if(temp_hostsort == NULL)
 				break;
 			temp_status = temp_hostsort->hststatus;
-			}
-		else {
+		} else {
 			if(first_entry == TRUE)
 				temp_status = hoststatus_list;
 			else
 				temp_status = temp_status->next;
-			}
+		}
 
 		if(temp_status == NULL)
 			break;
@@ -2121,7 +2096,7 @@ void show_host_detail(void) {
 				continue;
 			if(is_host_member_of_hostgroup(temp_hostgroup, temp_host) == FALSE)
 				continue;
-			}
+		}
 
 
 
@@ -2133,7 +2108,7 @@ void show_host_detail(void) {
 
 		if( (limit_results == TRUE) && ( (total_entries < page_start) || (total_entries >= (page_start + result_limit)) )  ) {
 			continue;
-			}
+		}
 
 		visible_entries++;
 
@@ -2160,13 +2135,11 @@ void show_host_detail(void) {
 				strncpy(status, "PENDING", sizeof(status));
 				status_class = "PENDING";
 				status_bg_class = (odd) ? "Even" : "Odd";
-				}
-			else if(temp_status->status == SD_HOST_UP) {
+			} else if(temp_status->status == SD_HOST_UP) {
 				strncpy(status, "UP", sizeof(status));
 				status_class = "HOSTUP";
 				status_bg_class = (odd) ? "Even" : "Odd";
-				}
-			else if(temp_status->status == SD_HOST_DOWN) {
+			} else if(temp_status->status == SD_HOST_DOWN) {
 				strncpy(status, "DOWN", sizeof(status));
 				status_class = "HOSTDOWN";
 				if(temp_status->problem_has_been_acknowledged == TRUE)
@@ -2175,8 +2148,7 @@ void show_host_detail(void) {
 					status_bg_class = "BGDOWNSCHED";
 				else
 					status_bg_class = "BGDOWN";
-				}
-			else if(temp_status->status == SD_HOST_UNREACHABLE) {
+			} else if(temp_status->status == SD_HOST_UNREACHABLE) {
 				strncpy(status, "UNREACHABLE", sizeof(status));
 				status_class = "HOSTUNREACHABLE";
 				if(temp_status->problem_has_been_acknowledged == TRUE)
@@ -2185,7 +2157,7 @@ void show_host_detail(void) {
 					status_bg_class = "BGUNREACHABLESCHED";
 				else
 					status_bg_class = "BGUNREACHABLE";
-				}
+			}
 			status[sizeof(status) - 1] = '\x0';
 
 
@@ -2211,21 +2183,21 @@ void show_host_detail(void) {
 			total_comments = number_of_host_comments(temp_host->name);
 			if(temp_status->problem_has_been_acknowledged == TRUE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s#comments'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This host problem has been acknowledged' TITLE='This host problem has been acknowledged'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, ACKNOWLEDGEMENT_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
+			}
 			if(total_comments > 0)
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s#comments'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This host has %d comment%s associated with it' TITLE='This host has %d comment%s associated with it'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, COMMENT_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, total_comments, (total_comments == 1) ? "" : "s", total_comments, (total_comments == 1) ? "" : "s");
 			if(temp_status->notifications_enabled == FALSE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Notifications for this host have been disabled' TITLE='Notifications for this host have been disabled'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, NOTIFICATIONS_DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
+			}
 			if(temp_status->checks_enabled == FALSE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Checks of this host have been disabled' TITLE='Checks of this host have been disabled'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
+			}
 			if(temp_status->is_flapping == TRUE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This host is flapping between states' TITLE='This host is flapping between states'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, FLAPPING_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
+			}
 			if(temp_status->scheduled_downtime_depth > 0) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This host is currently in a period of scheduled downtime' TITLE='This host is currently in a period of scheduled downtime'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, SCHEDULED_DOWNTIME_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
-				}
+			}
 			if(temp_host->notes_url != NULL) {
 				printf("<td align=center valign=center>");
 				printf("<a href='");
@@ -2236,7 +2208,7 @@ void show_host_detail(void) {
 				printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, NOTES_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "View Extra Host Notes", "View Extra Host Notes");
 				printf("</a>");
 				printf("</td>\n");
-				}
+			}
 			if(temp_host->action_url != NULL) {
 				printf("<td align=center valign=center>");
 				printf("<a href='");
@@ -2247,7 +2219,7 @@ void show_host_detail(void) {
 				printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, ACTION_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "Perform Extra Host Actions", "Perform Extra Host Actions");
 				printf("</a>");
 				printf("</td>\n");
-				}
+			}
 			if(temp_host->icon_image != NULL) {
 				printf("<td align=center valign=center>");
 				printf("<a href='%s?type=%d&host=%s'>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name));
@@ -2258,12 +2230,12 @@ void show_host_detail(void) {
 				printf("' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt);
 				printf("</a>");
 				printf("</td>\n");
-				}
+			}
 			if(enable_splunk_integration == TRUE) {
 				printf("<td ALIGN=center valign=center>");
 				display_splunk_host_url(temp_host);
 				printf("</td>\n");
-				}
+			}
 			printf("<td>");
 			printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>", STATUS_CGI, url_encode(temp_status->host_name), url_images_path, STATUS_DETAIL_ICON);
 			printf("</td>\n");
@@ -2284,13 +2256,12 @@ void show_host_detail(void) {
 					duration_error = TRUE;
 				else
 					t = current_time - program_start;
-				}
-			else {
+			} else {
 				if(temp_status->last_state_change > current_time)
 					duration_error = TRUE;
 				else
 					t = current_time - temp_status->last_state_change;
-				}
+			}
 			get_time_breakdown((unsigned long)t, &days, &hours, &minutes, &seconds);
 			if(duration_error == TRUE)
 				snprintf(state_duration, sizeof(state_duration) - 1, "???");
@@ -2311,9 +2282,9 @@ void show_host_detail(void) {
 			printf("</td>\n");
 
 			printf("</tr>\n");
-			}
-
 		}
+
+	}
 
 	printf("</table>\n");
 	printf("</div>\n");
@@ -2325,25 +2296,25 @@ void show_host_detail(void) {
 			printf("<P><div class='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</div></P>\n");
 			printf("<P><div class='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</div></P>\n");
-			}
-		else {
+		} else {
 			printf("<P><div class='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
 			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</div></P>\n");
-			}
 		}
+	}
 
 	else {
 		/* do page numbers if applicable */
 		create_pagenumbers(total_entries,temp_url,FALSE);
-		}
-	return;
 	}
+	return;
+}
 
 
 
 
 /* show an overview of servicegroup(s)... */
-void show_servicegroup_overviews(void) {
+void show_servicegroup_overviews(void)
+{
 	servicegroup *temp_servicegroup = NULL;
 	int current_column;
 	int user_has_seen_something = FALSE;
@@ -2414,18 +2385,18 @@ void show_servicegroup_overviews(void) {
 				current_column++;
 			else
 				current_column = 1;
-			}
+		}
 
 		if(current_column != 1) {
 
 			for(; current_column <= overview_columns; current_column++)
 				printf("<td></td>\n");
 			printf("</tr>\n");
-			}
+		}
 
 		printf("</table>\n");
 		printf("</div>\n");
-		}
+	}
 
 	/* else display overview for just a specific servicegroup */
 	else {
@@ -2442,17 +2413,16 @@ void show_servicegroup_overviews(void) {
 				show_servicegroup_overview(temp_servicegroup);
 
 				user_has_seen_something = TRUE;
-				}
+			}
 
 			printf("</td></tr></table>\n");
 			printf("</div>\n");
 			//printf("</P>\n");
-			}
-		else {
+		} else {
 			printf("<div class='errorMessage'>Sorry, but service group '%s' doesn't seem to exist...</div>", servicegroup_name);
 			servicegroup_error = TRUE;
-			}
 		}
+	}
 
 	/* if user couldn't see anything, print out some helpful info... */
 	if(user_has_seen_something == FALSE && servicegroup_error == FALSE) {
@@ -2464,22 +2434,22 @@ void show_servicegroup_overviews(void) {
 			printf("<div class='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</div>\n");
 			printf("<div class='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</div>\n");
-			}
-		else {
+		} else {
 			printf("<div class='errorMessage'>There are no service groups defined.</div>\n");
-			}
+		}
 
 		printf("</div>\n");
 		//printf("</p>\n");
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* shows an overview of a specific servicegroup... */
-void show_servicegroup_overview(servicegroup *temp_servicegroup) {
+void show_servicegroup_overview(servicegroup *temp_servicegroup)
+{
 	servicesmember *temp_member;
 	host *temp_host;
 	host *last_host;
@@ -2537,18 +2507,19 @@ void show_servicegroup_overview(servicegroup *temp_servicegroup) {
 		show_servicegroup_hostgroup_member_overview(temp_hoststatus, odd, temp_servicegroup);
 
 		last_host = temp_host;
-		}
+	}
 
 	printf("</table>\n");
 	printf("</div>\n");
 
 	return;
-	}
+}
 
 
 
 /* show a summary of servicegroup(s)... */
-void show_servicegroup_summaries(void) {
+void show_servicegroup_summaries(void)
+{
 	servicegroup *temp_servicegroup = NULL;
 	int user_has_seen_something = FALSE;
 	int servicegroup_error = FALSE;
@@ -2613,9 +2584,9 @@ void show_servicegroup_summaries(void) {
 			show_servicegroup_summary(temp_servicegroup, odd);
 
 			user_has_seen_something = TRUE;
-			}
-
 		}
+
+	}
 
 	/* else just show summary for a specific servicegroup */
 	else {
@@ -2625,8 +2596,8 @@ void show_servicegroup_summaries(void) {
 		else {
 			show_servicegroup_summary(temp_servicegroup, 1);
 			user_has_seen_something = TRUE;
-			}
 		}
+	}
 
 	printf("</table>\n");
 	printf("</div>\n");
@@ -2640,28 +2611,28 @@ void show_servicegroup_summaries(void) {
 			printf("<div class='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</div>\n");
 			printf("<div class='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</div>\n");
-			}
-		else {
+		} else {
 			printf("<div class='errorMessage'>There are no service groups defined.</div>\n");
-			}
+		}
 
 		printf("</div></P>\n");
-		}
+	}
 
 	/* we couldn't find the servicegroup */
 	else if(servicegroup_error == TRUE) {
 		printf("<P><div align='center'>\n");
 		printf("<div class='errorMessage'>Sorry, but servicegroup '%s' doesn't seem to exist...</div>\n", servicegroup_name);
 		printf("</div></P>\n");
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* displays status summary information for a specific servicegroup */
-void show_servicegroup_summary(servicegroup *temp_servicegroup, int odd) {
+void show_servicegroup_summary(servicegroup *temp_servicegroup, int odd)
+{
 	const char *status_bg_class = "";
 
 	if(odd == 1)
@@ -2685,12 +2656,13 @@ void show_servicegroup_summary(servicegroup *temp_servicegroup, int odd) {
 	printf("</tr>\n");
 
 	return;
-	}
+}
 
 
 
 /* shows host total summary information for a specific servicegroup */
-void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
+void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup)
+{
 	servicesmember *temp_member;
 	int hosts_up = 0;
 	int hosts_down = 0;
@@ -2747,43 +2719,43 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
 			if(temp_hoststatus->scheduled_downtime_depth > 0) {
 				hosts_down_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->problem_has_been_acknowledged == TRUE) {
 				hosts_down_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->checks_enabled == FALSE) {
 				hosts_down_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				hosts_down_unacknowledged++;
 			hosts_down++;
-			}
+		}
 
 		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 			if(temp_hoststatus->scheduled_downtime_depth > 0) {
 				hosts_unreachable_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->problem_has_been_acknowledged == TRUE) {
 				hosts_unreachable_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->checks_enabled == FALSE) {
 				hosts_unreachable_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				hosts_unreachable_unacknowledged++;
 			hosts_unreachable++;
-			}
+		}
 
 		else
 			hosts_pending++;
 
 		last_host = temp_host;
-		}
+	}
 
 	printf("<table border='0'>\n");
 
@@ -2791,7 +2763,7 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
 		printf("<tr>");
 		printf("<td class='miniStatusUP'><a href='%s?servicegroup=%s&style=detail&&hoststatustypes=%d&hostprops=%lu'>%d UP</a></td>", STATUS_CGI, url_encode(temp_servicegroup->group_name), SD_HOST_UP, host_properties, hosts_up);
 		printf("</tr>\n");
-		}
+	}
 
 	if(hosts_down > 0) {
 		printf("<tr>\n");
@@ -2819,7 +2791,7 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
 		printf("</tr>\n");
 		printf("</table></td>\n");
 		printf("</tr>\n");
-		}
+	}
 
 	if(hosts_unreachable > 0) {
 		printf("<tr>\n");
@@ -2847,7 +2819,7 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
 		printf("</tr>\n");
 		printf("</table></td>\n");
 		printf("</tr>\n");
-		}
+	}
 
 	if(hosts_pending > 0)
 		printf("<tr><td class='miniStatusPENDING'><a href='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d PENDING</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), HOST_PENDING, host_properties, hosts_pending);
@@ -2859,12 +2831,13 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup) {
 
 	return;
 	return;
-	}
+}
 
 
 
 /* shows service total summary information for a specific servicegroup */
-void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
+void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup)
+{
 	int services_ok = 0;
 	int services_warning = 0;
 	int services_unknown = 0;
@@ -2945,75 +2918,75 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_warning_host_problem++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->scheduled_downtime_depth > 0) {
 				services_warning_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->problem_has_been_acknowledged == TRUE) {
 				services_warning_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->checks_enabled == FALSE) {
 				services_warning_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				services_warning_unacknowledged++;
 			services_warning++;
-			}
+		}
 
 		else if(temp_servicestatus->status == SERVICE_UNKNOWN) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
 			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_unknown_host_problem++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->scheduled_downtime_depth > 0) {
 				services_unknown_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->problem_has_been_acknowledged == TRUE) {
 				services_unknown_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->checks_enabled == FALSE) {
 				services_unknown_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				services_unknown_unacknowledged++;
 			services_unknown++;
-			}
+		}
 
 		else if(temp_servicestatus->status == SERVICE_CRITICAL) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
 			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_critical_host_problem++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->scheduled_downtime_depth > 0) {
 				services_critical_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->problem_has_been_acknowledged == TRUE) {
 				services_critical_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->checks_enabled == FALSE) {
 				services_critical_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				services_critical_unacknowledged++;
 			services_critical++;
-			}
+		}
 
 		else if(temp_servicestatus->status == SERVICE_PENDING)
 			services_pending++;
 
 		last_service = temp_service;
-		}
+	}
 
 
 	printf("<table border=0>\n");
@@ -3050,7 +3023,7 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 		printf("</tr>\n");
 		printf("</table></td>\n");
 		printf("</tr>\n");
-		}
+	}
 
 	if(services_unknown > 0) {
 		printf("<tr>\n");
@@ -3081,7 +3054,7 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 		printf("</tr>\n");
 		printf("</table></td>\n");
 		printf("</tr>\n");
-		}
+	}
 
 	if(services_critical > 0) {
 		printf("<tr>\n");
@@ -3112,7 +3085,7 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 		printf("</tr>\n");
 		printf("</table></td>\n");
 		printf("</tr>\n");
-		}
+	}
 
 	if(services_pending > 0)
 		printf("<tr><td class='miniStatusPENDING'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d PENDING</a></td></tr>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_PENDING, host_status_types, service_properties, host_properties, services_pending);
@@ -3123,12 +3096,13 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 		printf("No matching services");
 
 	return;
-	}
+}
 
 
 
 /* show a grid layout of servicegroup(s)... */
-void show_servicegroup_grids(void) {
+void show_servicegroup_grids(void)
+{
 	servicegroup *temp_servicegroup = NULL;
 	int user_has_seen_something = FALSE;
 	int servicegroup_error = FALSE;
@@ -3186,9 +3160,9 @@ void show_servicegroup_grids(void) {
 			show_servicegroup_grid(temp_servicegroup);
 
 			user_has_seen_something = TRUE;
-			}
-
 		}
+
+	}
 
 	/* else just show grid for a specific servicegroup */
 	else {
@@ -3198,8 +3172,8 @@ void show_servicegroup_grids(void) {
 		else {
 			show_servicegroup_grid(temp_servicegroup);
 			user_has_seen_something = TRUE;
-			}
 		}
+	}
 
 	/* if user couldn't see anything, print out some helpful info... */
 	if(user_has_seen_something == FALSE && servicegroup_error == FALSE) {
@@ -3210,27 +3184,27 @@ void show_servicegroup_grids(void) {
 			printf("<div class='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</div>\n");
 			printf("<div class='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</div>\n");
-			}
-		else {
+		} else {
 			printf("<div class='errorMessage'>There are no service groups defined.</div>\n");
-			}
+		}
 
 		printf("</div></P>\n");
-		}
+	}
 
 	/* we couldn't find the servicegroup */
 	else if(servicegroup_error == TRUE) {
 		printf("<P><div align='center'>\n");
 		printf("<div class='errorMessage'>Sorry, but servicegroup '%s' doesn't seem to exist...</div>\n", servicegroup_name);
 		printf("</div></P>\n");
-		}
+	}
 
 	return;
-	}
+}
 
 
 /* displays status grid for a specific servicegroup */
-void show_servicegroup_grid(servicegroup *temp_servicegroup) {
+void show_servicegroup_grid(servicegroup *temp_servicegroup)
+{
 	const char *status_bg_class = "";
 	const char *host_status_class = "";
 	const char *service_status_class = "";
@@ -3279,11 +3253,10 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 		if(odd == 1) {
 			status_bg_class = "Even";
 			odd = 0;
-			}
-		else {
+		} else {
 			status_bg_class = "Odd";
 			odd = 1;
-			}
+		}
 
 		printf("<tr class='status%s'>\n", status_bg_class);
 
@@ -3321,7 +3294,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 			printf("' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt);
 			printf("</a>");
 			printf("<td>\n");
-			}
+		}
 
 		printf("</tr>\n");
 		printf("</table>\n");
@@ -3344,7 +3317,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 			if(current_item > max_grid_width && max_grid_width > 0) {
 				printf("<BR>\n");
 				current_item = 1;
-				}
+			}
 
 			/* get the status of the service */
 			temp_servicestatus = find_servicestatus(temp_member2->host_name, temp_member2->service_description);
@@ -3365,7 +3338,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 			printf("&service=%s' class='status%s'>%s</a>&nbsp;", url_encode(temp_servicestatus->description), service_status_class, temp_servicestatus->description);
 
 			current_item++;
-			}
+		}
 
 		/* actions */
 		printf("<td class='status%s'>", host_status_class);
@@ -3385,7 +3358,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 			printf("' TARGET='%s'>", (notes_url_target == NULL) ? "_blank" : notes_url_target);
 			printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, NOTES_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "View Extra Host Notes", "View Extra Host Notes");
 			printf("</a>");
-			}
+		}
 		if(temp_host->action_url != NULL) {
 			printf("<a href='");
 			process_macros_r(mac, temp_host->action_url, &processed_string, 0);
@@ -3394,7 +3367,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 			printf("' TARGET='%s'>", (action_url_target == NULL) ? "blank" : action_url_target);
 			printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, ACTION_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "Perform Extra Host Actions", "Perform Extra Host Actions");
 			printf("</a>");
-			}
+		}
 
 		printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>\n", STATUS_CGI, url_encode(temp_host->name), url_images_path, STATUS_DETAIL_ICON);
 
@@ -3405,19 +3378,20 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 		printf("</tr>\n");
 
 		last_host = temp_host;
-		}
+	}
 
 	printf("</table>\n");
 	printf("</div>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
 /* show an overview of hostgroup(s)... */
-void show_hostgroup_overviews(void) {
+void show_hostgroup_overviews(void)
+{
 	hostgroup *temp_hostgroup = NULL;
 	int current_column;
 	int user_has_seen_something = FALSE;
@@ -3488,18 +3462,18 @@ void show_hostgroup_overviews(void) {
 				current_column++;
 			else
 				current_column = 1;
-			}
+		}
 
 		if(current_column != 1) {
 
 			for(; current_column <= overview_columns; current_column++)
 				printf("<td></td>\n");
 			printf("</tr>\n");
-			}
+		}
 
 		printf("</table>\n");
 		printf("</div>\n");
-		}
+	}
 
 	/* else display overview for just a specific hostgroup */
 	else {
@@ -3516,17 +3490,16 @@ void show_hostgroup_overviews(void) {
 				show_hostgroup_overview(temp_hostgroup);
 
 				user_has_seen_something = TRUE;
-				}
+			}
 
 			printf("</td></tr></table>\n");
 			printf("</div>\n");
 			printf("</P>\n");
-			}
-		else {
+		} else {
 			printf("<div class='errorMessage'>Sorry, but host group '%s' doesn't seem to exist...</div>", hostgroup_name);
 			hostgroup_error = TRUE;
-			}
 		}
+	}
 
 	/* if user couldn't see anything, print out some helpful info... */
 	if(user_has_seen_something == FALSE && hostgroup_error == FALSE) {
@@ -3538,23 +3511,23 @@ void show_hostgroup_overviews(void) {
 			printf("<div class='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</div>\n");
 			printf("<div class='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</div>\n");
-			}
-		else {
+		} else {
 			printf("<div class='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
 			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</div>\n");
-			}
+		}
 
 		printf("</div>\n");
 		printf("</p>\n");
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* shows an overview of a specific hostgroup... */
-void show_hostgroup_overview(hostgroup *hstgrp) {
+void show_hostgroup_overview(hostgroup *hstgrp)
+{
 	hostsmember *temp_member = NULL;
 	host *temp_host = NULL;
 	hoststatus *temp_hoststatus = NULL;
@@ -3603,18 +3576,19 @@ void show_hostgroup_overview(hostgroup *hstgrp) {
 			odd = 1;
 
 		show_servicegroup_hostgroup_member_overview(temp_hoststatus, odd, NULL);
-		}
+	}
 
 	printf("</table>\n");
 	printf("</div>\n");
 
 	return;
-	}
+}
 
 
 
 /* shows a host status overview... */
-void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd, void *data) {
+void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd, void *data)
+{
 	char status[MAX_INPUT_BUFFER];
 	const char *status_bg_class = "";
 	const char *status_class = "";
@@ -3630,22 +3604,19 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd,
 		strncpy(status, "PENDING", sizeof(status));
 		status_class = "HOSTPENDING";
 		status_bg_class = (odd) ? "Even" : "Odd";
-		}
-	else if(hststatus->status == SD_HOST_UP) {
+	} else if(hststatus->status == SD_HOST_UP) {
 		strncpy(status, "UP", sizeof(status));
 		status_class = "HOSTUP";
 		status_bg_class = (odd) ? "Even" : "Odd";
-		}
-	else if(hststatus->status == SD_HOST_DOWN) {
+	} else if(hststatus->status == SD_HOST_DOWN) {
 		strncpy(status, "DOWN", sizeof(status));
 		status_class = "HOStdOWN";
 		status_bg_class = "HOStdOWN";
-		}
-	else if(hststatus->status == SD_HOST_UNREACHABLE) {
+	} else if(hststatus->status == SD_HOST_UNREACHABLE) {
 		strncpy(status, "UNREACHABLE", sizeof(status));
 		status_class = "HOSTUNREACHABLE";
 		status_bg_class = "HOSTUNREACHABLE";
-		}
+	}
 
 	status[sizeof(status) - 1] = '\x0';
 
@@ -3668,7 +3639,7 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd,
 		printf("' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt);
 		printf("</a>");
 		printf("</td>\n");
-		}
+	}
 	printf("</tr>\n");
 	printf("</table>\n");
 	printf("</td>\n");
@@ -3689,7 +3660,7 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd,
 		printf("' TARGET='%s'>", (notes_url_target == NULL) ? "_blank" : notes_url_target);
 		printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, NOTES_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "View Extra Host Notes", "View Extra Host Notes");
 		printf("</a>");
-		}
+	}
 	if(temp_host->action_url != NULL) {
 		printf("<a href='");
 		process_macros_r(mac, temp_host->action_url, &processed_string, 0);
@@ -3698,7 +3669,7 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd,
 		printf("' TARGET='%s'>", (action_url_target == NULL) ? "_blank" : action_url_target);
 		printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, ACTION_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "Perform Extra Host Actions", "Perform Extra Host Actions");
 		printf("</a>");
-		}
+	}
 	printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>\n", STATUS_CGI, url_encode(hststatus->host_name), url_images_path, STATUS_DETAIL_ICON);
 #ifdef USE_STATUSMAP
 	printf("<a href='%s?host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'></a>", STATUSMAP_CGI, url_encode(hststatus->host_name), url_images_path, STATUSMAP_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "Locate Host On Map", "Locate Host On Map");
@@ -3708,11 +3679,12 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd,
 	printf("</tr>\n");
 
 	return;
-	}
+}
 
 
 
-void show_servicegroup_hostgroup_member_service_status_totals(char *hst_name, void *data) {
+void show_servicegroup_hostgroup_member_service_status_totals(char *hst_name, void *data)
+{
 	int total_ok = 0;
 	int total_warning = 0;
 	int total_unknown = 0;
@@ -3742,7 +3714,7 @@ void show_servicegroup_hostgroup_member_service_status_totals(char *hst_name, vo
 				/* is this service a member of the servicegroup? */
 				if(is_service_member_of_servicegroup(temp_servicegroup, temp_service) == FALSE)
 					continue;
-				}
+			}
 
 			/* make sure we only display services of the specified status levels */
 			if(!(service_status_types & temp_servicestatus->status))
@@ -3764,8 +3736,8 @@ void show_servicegroup_hostgroup_member_service_status_totals(char *hst_name, vo
 				total_pending++;
 			else
 				total_ok++;
-			}
 		}
+	}
 
 
 	printf("<table border=0 WIDTH=100%%>\n");
@@ -3793,12 +3765,13 @@ void show_servicegroup_hostgroup_member_service_status_totals(char *hst_name, vo
 		printf("No matching services");
 
 	return;
-	}
+}
 
 
 
 /* show a summary of hostgroup(s)... */
-void show_hostgroup_summaries(void) {
+void show_hostgroup_summaries(void)
+{
 	hostgroup *temp_hostgroup = NULL;
 	int user_has_seen_something = FALSE;
 	int hostgroup_error = FALSE;
@@ -3863,9 +3836,9 @@ void show_hostgroup_summaries(void) {
 			show_hostgroup_summary(temp_hostgroup, odd);
 
 			user_has_seen_something = TRUE;
-			}
-
 		}
+
+	}
 
 	/* else just show summary for a specific hostgroup */
 	else {
@@ -3875,8 +3848,8 @@ void show_hostgroup_summaries(void) {
 		else {
 			show_hostgroup_summary(temp_hostgroup, 1);
 			user_has_seen_something = TRUE;
-			}
 		}
+	}
 
 	printf("</table>\n");
 	printf("</div>\n");
@@ -3890,29 +3863,29 @@ void show_hostgroup_summaries(void) {
 			printf("<div class='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</div>\n");
 			printf("<div class='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</div>\n");
-			}
-		else {
+		} else {
 			printf("<div class='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
 			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</div>\n");
-			}
+		}
 
 		printf("</div></P>\n");
-		}
+	}
 
 	/* we couldn't find the hostgroup */
 	else if(hostgroup_error == TRUE) {
 		printf("<P><div align='center'>\n");
 		printf("<div class='errorMessage'>Sorry, but hostgroup '%s' doesn't seem to exist...</div>\n", hostgroup_name);
 		printf("</div></P>\n");
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* displays status summary information for a specific hostgroup */
-void show_hostgroup_summary(hostgroup *temp_hostgroup, int odd) {
+void show_hostgroup_summary(hostgroup *temp_hostgroup, int odd)
+{
 	const char *status_bg_class = "";
 
 	if(odd == 1)
@@ -3936,12 +3909,13 @@ void show_hostgroup_summary(hostgroup *temp_hostgroup, int odd) {
 	printf("</tr>\n");
 
 	return;
-	}
+}
 
 
 
 /* shows host total summary information for a specific hostgroup */
-void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
+void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup)
+{
 	hostsmember *temp_member;
 	int hosts_up = 0;
 	int hosts_down = 0;
@@ -3989,41 +3963,41 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 			if(temp_hoststatus->scheduled_downtime_depth > 0) {
 				hosts_down_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->problem_has_been_acknowledged == TRUE) {
 				hosts_down_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->checks_enabled == FALSE) {
 				hosts_down_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				hosts_down_unacknowledged++;
 			hosts_down++;
-			}
+		}
 
 		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE) {
 			if(temp_hoststatus->scheduled_downtime_depth > 0) {
 				hosts_unreachable_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->problem_has_been_acknowledged == TRUE) {
 				hosts_unreachable_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_hoststatus->checks_enabled == FALSE) {
 				hosts_unreachable_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				hosts_unreachable_unacknowledged++;
 			hosts_unreachable++;
-			}
+		}
 
 		else
 			hosts_pending++;
-		}
+	}
 
 	printf("<table border='0'>\n");
 
@@ -4031,7 +4005,7 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 		printf("<tr>");
 		printf("<td class='miniStatusUP'><a href='%s?hostgroup=%s&style=hostdetail&&hoststatustypes=%d&hostprops=%lu'>%d UP</a></td>", STATUS_CGI, url_encode(temp_hostgroup->group_name), SD_HOST_UP, host_properties, hosts_up);
 		printf("</tr>\n");
-		}
+	}
 
 	if(hosts_down > 0) {
 		printf("<tr>\n");
@@ -4059,7 +4033,7 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 		printf("</tr>\n");
 		printf("</table></td>\n");
 		printf("</tr>\n");
-		}
+	}
 
 	if(hosts_unreachable > 0) {
 		printf("<tr>\n");
@@ -4087,7 +4061,7 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 		printf("</tr>\n");
 		printf("</table></td>\n");
 		printf("</tr>\n");
-		}
+	}
 
 	if(hosts_pending > 0)
 		printf("<tr><td class='miniStatusPENDING'><a href='%s?hostgroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%lu'>%d PENDING</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), HOST_PENDING, host_properties, hosts_pending);
@@ -4098,12 +4072,13 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 		printf("No matching hosts");
 
 	return;
-	}
+}
 
 
 
 /* shows service total summary information for a specific hostgroup */
-void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
+void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup)
+{
 	int services_ok = 0;
 	int services_warning = 0;
 	int services_unknown = 0;
@@ -4178,73 +4153,73 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_warning_host_problem++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->scheduled_downtime_depth > 0) {
 				services_warning_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->problem_has_been_acknowledged == TRUE) {
 				services_warning_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->checks_enabled == FALSE) {
 				services_warning_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				services_warning_unacknowledged++;
 			services_warning++;
-			}
+		}
 
 		else if(temp_servicestatus->status == SERVICE_UNKNOWN) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
 			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_unknown_host_problem++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->scheduled_downtime_depth > 0) {
 				services_unknown_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->problem_has_been_acknowledged == TRUE) {
 				services_unknown_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->checks_enabled == FALSE) {
 				services_unknown_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				services_unknown_unacknowledged++;
 			services_unknown++;
-			}
+		}
 
 		else if(temp_servicestatus->status == SERVICE_CRITICAL) {
 			temp_hoststatus = find_hoststatus(temp_servicestatus->host_name);
 			if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)) {
 				services_critical_host_problem++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->scheduled_downtime_depth > 0) {
 				services_critical_scheduled++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->problem_has_been_acknowledged == TRUE) {
 				services_critical_acknowledged++;
 				problem = FALSE;
-				}
+			}
 			if(temp_servicestatus->checks_enabled == FALSE) {
 				services_critical_disabled++;
 				problem = FALSE;
-				}
+			}
 			if(problem == TRUE)
 				services_critical_unacknowledged++;
 			services_critical++;
-			}
+		}
 
 		else if(temp_servicestatus->status == SERVICE_PENDING)
 			services_pending++;
-		}
+	}
 
 
 	printf("<table border=0>\n");
@@ -4281,7 +4256,7 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 		printf("</tr>\n");
 		printf("</table></td>\n");
 		printf("</tr>\n");
-		}
+	}
 
 	if(services_unknown > 0) {
 		printf("<tr>\n");
@@ -4312,7 +4287,7 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 		printf("</tr>\n");
 		printf("</table></td>\n");
 		printf("</tr>\n");
-		}
+	}
 
 	if(services_critical > 0) {
 		printf("<tr>\n");
@@ -4343,7 +4318,7 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 		printf("</tr>\n");
 		printf("</table></td>\n");
 		printf("</tr>\n");
-		}
+	}
 
 	if(services_pending > 0)
 		printf("<tr><td class='miniStatusPENDING'><a href='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d PENDING</a></td></tr>\n", STATUS_CGI, url_encode(temp_hostgroup->group_name), SERVICE_PENDING, host_status_types, service_properties, host_properties, services_pending);
@@ -4354,12 +4329,13 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 		printf("No matching services");
 
 	return;
-	}
+}
 
 
 
 /* show a grid layout of hostgroup(s)... */
-void show_hostgroup_grids(void) {
+void show_hostgroup_grids(void)
+{
 	hostgroup *temp_hostgroup = NULL;
 	int user_has_seen_something = FALSE;
 	int hostgroup_error = FALSE;
@@ -4417,9 +4393,9 @@ void show_hostgroup_grids(void) {
 			show_hostgroup_grid(temp_hostgroup);
 
 			user_has_seen_something = TRUE;
-			}
-
 		}
+
+	}
 
 	/* else just show grid for a specific hostgroup */
 	else {
@@ -4429,8 +4405,8 @@ void show_hostgroup_grids(void) {
 		else {
 			show_hostgroup_grid(temp_hostgroup);
 			user_has_seen_something = TRUE;
-			}
 		}
+	}
 
 	/* if user couldn't see anything, print out some helpful info... */
 	if(user_has_seen_something == FALSE && hostgroup_error == FALSE) {
@@ -4441,28 +4417,28 @@ void show_hostgroup_grids(void) {
 			printf("<div class='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</div>\n");
 			printf("<div class='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</div>\n");
-			}
-		else {
+		} else {
 			printf("<div class='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
 			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</div>\n");
-			}
+		}
 
 		printf("</div></P>\n");
-		}
+	}
 
 	/* we couldn't find the hostgroup */
 	else if(hostgroup_error == TRUE) {
 		printf("<P><div align='center'>\n");
 		printf("<div class='errorMessage'>Sorry, but hostgroup '%s' doesn't seem to exist...</div>\n", hostgroup_name);
 		printf("</div></P>\n");
-		}
+	}
 
 	return;
-	}
+}
 
 
 /* displays status grid for a specific hostgroup */
-void show_hostgroup_grid(hostgroup *temp_hostgroup) {
+void show_hostgroup_grid(hostgroup *temp_hostgroup)
+{
 	hostsmember *temp_member;
 	const char *status_bg_class = "";
 	const char *host_status_class = "";
@@ -4504,11 +4480,10 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 		if(odd == 1) {
 			status_bg_class = "Even";
 			odd = 0;
-			}
-		else {
+		} else {
 			status_bg_class = "Odd";
 			odd = 1;
-			}
+		}
 
 		printf("<tr class='status%s'>\n", status_bg_class);
 
@@ -4547,7 +4522,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 			printf("' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt, (temp_host->icon_image_alt == NULL) ? "" : temp_host->icon_image_alt);
 			printf("</a>");
 			printf("<td>\n");
-			}
+		}
 		printf("<td>\n");
 
 		printf("</tr>\n");
@@ -4571,7 +4546,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 			if(current_item > max_grid_width && max_grid_width > 0) {
 				printf("<BR>\n");
 				current_item = 1;
-				}
+			}
 
 			/* grab macros */
 			grab_service_macros_r(mac, temp_service);
@@ -4595,7 +4570,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 			printf("&service=%s' class='status%s'>%s</a>&nbsp;", url_encode(temp_servicestatus->description), service_status_class, temp_servicestatus->description);
 
 			current_item++;
-			}
+		}
 
 		printf("</td>\n");
 
@@ -4614,7 +4589,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 			printf("' TARGET='%s'>", (notes_url_target == NULL) ? "_blank" : notes_url_target);
 			printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, NOTES_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "View Extra Host Notes", "View Extra Host Notes");
 			printf("</a>");
-			}
+		}
 		if(temp_host->action_url != NULL) {
 			printf("<a href='");
 			process_macros_r(mac, temp_host->action_url, &processed_string, 0);
@@ -4623,7 +4598,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 			printf("' TARGET='%s'>", (action_url_target == NULL) ? "_blank" : action_url_target);
 			printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>", url_images_path, ACTION_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT, "Perform Extra Host Actions", "Perform Extra Host Actions");
 			printf("</a>");
-			}
+		}
 
 		printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>\n", STATUS_CGI, url_encode(temp_host->name), url_images_path, STATUS_DETAIL_ICON);
 #ifdef USE_STATUSMAP
@@ -4632,14 +4607,14 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 		printf("</td>\n");
 
 		printf("</tr>\n");
-		}
+	}
 
 	printf("</table>\n");
 	printf("</div>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
@@ -4650,7 +4625,8 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 
 
 /* sorts the service list */
-int sort_services(int s_type, int s_option) {
+int sort_services(int s_type, int s_option)
+{
 	servicesort *new_servicesort;
 	servicesort *last_servicesort;
 	servicesort *temp_servicesort;
@@ -4682,26 +4658,25 @@ int sort_services(int s_type, int s_option) {
 				else
 					last_servicesort->next = new_servicesort;
 				break;
-				}
-			else
+			} else
 				last_servicesort = temp_servicesort;
-			}
+		}
 
 		if(servicesort_list == NULL) {
 			new_servicesort->next = NULL;
 			servicesort_list = new_servicesort;
-			}
-		else if(temp_servicesort == NULL) {
+		} else if(temp_servicesort == NULL) {
 			new_servicesort->next = NULL;
 			last_servicesort->next = new_servicesort;
-			}
 		}
-
-	return OK;
 	}
 
+	return OK;
+}
 
-int compare_servicesort_entries(int s_type, int s_option, servicesort *new_servicesort, servicesort *temp_servicesort) {
+
+int compare_servicesort_entries(int s_type, int s_option, servicesort *new_servicesort, servicesort *temp_servicesort)
+{
 	servicestatus *new_svcstatus;
 	servicestatus *temp_svcstatus;
 	time_t nt;
@@ -4717,32 +4692,27 @@ int compare_servicesort_entries(int s_type, int s_option, servicesort *new_servi
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_CURRENTATTEMPT) {
+		} else if(s_option == SORT_CURRENTATTEMPT) {
 			if(new_svcstatus->current_attempt < temp_svcstatus->current_attempt)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_SERVICESTATUS) {
+		} else if(s_option == SORT_SERVICESTATUS) {
 			if(new_svcstatus->status <= temp_svcstatus->status)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_HOSTNAME) {
+		} else if(s_option == SORT_HOSTNAME) {
 			if(strcasecmp(new_svcstatus->host_name, temp_svcstatus->host_name) < 0)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_SERVICENAME) {
+		} else if(s_option == SORT_SERVICENAME) {
 			if(strcasecmp(new_svcstatus->description, temp_svcstatus->description) < 0)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_STATEDURATION) {
+		} else if(s_option == SORT_STATEDURATION) {
 			if(new_svcstatus->last_state_change == (time_t)0)
 				nt = (program_start > current_time) ? 0 : (current_time - program_start);
 			else
@@ -4755,40 +4725,34 @@ int compare_servicesort_entries(int s_type, int s_option, servicesort *new_servi
 				return TRUE;
 			else
 				return FALSE;
-			}
 		}
-	else {
+	} else {
 		if(s_option == SORT_LASTCHECKTIME) {
 			if(new_svcstatus->last_check > temp_svcstatus->last_check)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_CURRENTATTEMPT) {
+		} else if(s_option == SORT_CURRENTATTEMPT) {
 			if(new_svcstatus->current_attempt > temp_svcstatus->current_attempt)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_SERVICESTATUS) {
+		} else if(s_option == SORT_SERVICESTATUS) {
 			if(new_svcstatus->status > temp_svcstatus->status)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_HOSTNAME) {
+		} else if(s_option == SORT_HOSTNAME) {
 			if(strcasecmp(new_svcstatus->host_name, temp_svcstatus->host_name) > 0)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_SERVICENAME) {
+		} else if(s_option == SORT_SERVICENAME) {
 			if(strcasecmp(new_svcstatus->description, temp_svcstatus->description) > 0)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_STATEDURATION) {
+		} else if(s_option == SORT_STATEDURATION) {
 			if(new_svcstatus->last_state_change == (time_t)0)
 				nt = (program_start > current_time) ? 0 : (current_time - program_start);
 			else
@@ -4801,16 +4765,17 @@ int compare_servicesort_entries(int s_type, int s_option, servicesort *new_servi
 				return TRUE;
 			else
 				return FALSE;
-			}
 		}
+	}
 
 	return TRUE;
-	}
+}
 
 
 
 /* sorts the host list */
-int sort_hosts(int s_type, int s_option) {
+int sort_hosts(int s_type, int s_option)
+{
 	hostsort *new_hostsort;
 	hostsort *last_hostsort;
 	hostsort *temp_hostsort;
@@ -4842,26 +4807,25 @@ int sort_hosts(int s_type, int s_option) {
 				else
 					last_hostsort->next = new_hostsort;
 				break;
-				}
-			else
+			} else
 				last_hostsort = temp_hostsort;
-			}
+		}
 
 		if(hostsort_list == NULL) {
 			new_hostsort->next = NULL;
 			hostsort_list = new_hostsort;
-			}
-		else if(temp_hostsort == NULL) {
+		} else if(temp_hostsort == NULL) {
 			new_hostsort->next = NULL;
 			last_hostsort->next = new_hostsort;
-			}
 		}
-
-	return OK;
 	}
 
+	return OK;
+}
 
-int compare_hostsort_entries(int s_type, int s_option, hostsort *new_hostsort, hostsort *temp_hostsort) {
+
+int compare_hostsort_entries(int s_type, int s_option, hostsort *new_hostsort, hostsort *temp_hostsort)
+{
 	hoststatus *new_hststatus;
 	hoststatus *temp_hststatus;
 	time_t nt;
@@ -4877,26 +4841,22 @@ int compare_hostsort_entries(int s_type, int s_option, hostsort *new_hostsort, h
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_HOSTSTATUS) {
+		} else if(s_option == SORT_HOSTSTATUS) {
 			if(new_hststatus->status <= temp_hststatus->status)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_HOSTURGENCY) {
+		} else if(s_option == SORT_HOSTURGENCY) {
 			if(HOST_URGENCY(new_hststatus->status) <= HOST_URGENCY(temp_hststatus->status))
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_HOSTNAME) {
+		} else if(s_option == SORT_HOSTNAME) {
 			if(strcasecmp(new_hststatus->host_name, temp_hststatus->host_name) < 0)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_STATEDURATION) {
+		} else if(s_option == SORT_STATEDURATION) {
 			if(new_hststatus->last_state_change == (time_t)0)
 				nt = (program_start > current_time) ? 0 : (current_time - program_start);
 			else
@@ -4909,34 +4869,29 @@ int compare_hostsort_entries(int s_type, int s_option, hostsort *new_hostsort, h
 				return TRUE;
 			else
 				return FALSE;
-			}
 		}
-	else {
+	} else {
 		if(s_option == SORT_LASTCHECKTIME) {
 			if(new_hststatus->last_check > temp_hststatus->last_check)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_HOSTSTATUS) {
+		} else if(s_option == SORT_HOSTSTATUS) {
 			if(new_hststatus->status > temp_hststatus->status)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_HOSTURGENCY) {
+		} else if(s_option == SORT_HOSTURGENCY) {
 			if(HOST_URGENCY(new_hststatus->status) > HOST_URGENCY(temp_hststatus->status))
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_HOSTNAME) {
+		} else if(s_option == SORT_HOSTNAME) {
 			if(strcasecmp(new_hststatus->host_name, temp_hststatus->host_name) > 0)
 				return TRUE;
 			else
 				return FALSE;
-			}
-		else if(s_option == SORT_STATEDURATION) {
+		} else if(s_option == SORT_STATEDURATION) {
 			if(new_hststatus->last_state_change == (time_t)0)
 				nt = (program_start > current_time) ? 0 : (current_time - program_start);
 			else
@@ -4949,16 +4904,17 @@ int compare_hostsort_entries(int s_type, int s_option, hostsort *new_hostsort, h
 				return TRUE;
 			else
 				return FALSE;
-			}
 		}
+	}
 
 	return TRUE;
-	}
+}
 
 
 
 /* free all memory allocated to the servicesort structures */
-void free_servicesort_list(void) {
+void free_servicesort_list(void)
+{
 	servicesort *this_servicesort;
 	servicesort *next_servicesort;
 
@@ -4966,14 +4922,15 @@ void free_servicesort_list(void) {
 	for(this_servicesort = servicesort_list; this_servicesort != NULL; this_servicesort = next_servicesort) {
 		next_servicesort = this_servicesort->next;
 		free(this_servicesort);
-		}
+	}
 
 	return;
-	}
+}
 
 
 /* free all memory allocated to the hostsort structures */
-void free_hostsort_list(void) {
+void free_hostsort_list(void)
+{
 	hostsort *this_hostsort;
 	hostsort *next_hostsort;
 
@@ -4981,15 +4938,16 @@ void free_hostsort_list(void) {
 	for(this_hostsort = hostsort_list; this_hostsort != NULL; this_hostsort = next_hostsort) {
 		next_hostsort = this_hostsort->next;
 		free(this_hostsort);
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* check host properties filter */
-int passes_host_properties_filter(hoststatus *temp_hoststatus) {
+int passes_host_properties_filter(hoststatus *temp_hoststatus)
+{
 
 	if((host_properties & HOST_SCHEDULED_DOWNTIME) && temp_hoststatus->scheduled_downtime_depth <= 0)
 		return FALSE;
@@ -5052,12 +5010,13 @@ int passes_host_properties_filter(hoststatus *temp_hoststatus) {
 		return FALSE;
 
 	return TRUE;
-	}
+}
 
 
 
 /* check service properties filter */
-int passes_service_properties_filter(servicestatus *temp_servicestatus) {
+int passes_service_properties_filter(servicestatus *temp_servicestatus)
+{
 
 	if((service_properties & SERVICE_SCHEDULED_DOWNTIME) && temp_servicestatus->scheduled_downtime_depth <= 0)
 		return FALSE;
@@ -5120,12 +5079,13 @@ int passes_service_properties_filter(servicestatus *temp_servicestatus) {
 		return FALSE;
 
 	return TRUE;
-	}
+}
 
 
 
 /* shows service and host filters in use */
-void show_filters(void) {
+void show_filters(void)
+{
 	int found = 0;
 
 	/* show filters box if necessary */
@@ -5146,18 +5106,18 @@ void show_filters(void) {
 			if(host_status_types & HOST_PENDING) {
 				printf(" Pending");
 				found = 1;
-				}
+			}
 			if(host_status_types & SD_HOST_UP) {
 				printf("%s Up", (found == 1) ? " |" : "");
 				found = 1;
-				}
+			}
 			if(host_status_types & SD_HOST_DOWN) {
 				printf("%s Down", (found == 1) ? " |" : "");
 				found = 1;
-				}
+			}
 			if(host_status_types & SD_HOST_UNREACHABLE)
 				printf("%s Unreachable", (found == 1) ? " |" : "");
-			}
+		}
 		printf("</td></tr>");
 		printf("<tr><td valign=top align=left class='filterName'>Host Properties:</td>");
 		printf("<td valign=top align=left class='filterValue'>");
@@ -5168,84 +5128,84 @@ void show_filters(void) {
 			if(host_properties & HOST_SCHEDULED_DOWNTIME) {
 				printf(" In Scheduled Downtime");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_NO_SCHEDULED_DOWNTIME) {
 				printf("%s Not In Scheduled Downtime", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_STATE_ACKNOWLEDGED) {
 				printf("%s Has Been Acknowledged", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_STATE_UNACKNOWLEDGED) {
 				printf("%s Has Not Been Acknowledged", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_CHECKS_DISABLED) {
 				printf("%s Checks Disabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_CHECKS_ENABLED) {
 				printf("%s Checks Enabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_EVENT_HANDLER_DISABLED) {
 				printf("%s Event Handler Disabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_EVENT_HANDLER_ENABLED) {
 				printf("%s Event Handler Enabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_FLAP_DETECTION_DISABLED) {
 				printf("%s Flap Detection Disabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_FLAP_DETECTION_ENABLED) {
 				printf("%s Flap Detection Enabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_IS_FLAPPING) {
 				printf("%s Is Flapping", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_IS_NOT_FLAPPING) {
 				printf("%s Is Not Flapping", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_NOTIFICATIONS_DISABLED) {
 				printf("%s Notifications Disabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_NOTIFICATIONS_ENABLED) {
 				printf("%s Notifications Enabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_PASSIVE_CHECKS_DISABLED) {
 				printf("%s Passive Checks Disabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_PASSIVE_CHECKS_ENABLED) {
 				printf("%s Passive Checks Enabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_PASSIVE_CHECK) {
 				printf("%s Passive Checks", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_ACTIVE_CHECK) {
 				printf("%s Active Checks", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_HARD_STATE) {
 				printf("%s In Hard State", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(host_properties & HOST_SOFT_STATE) {
 				printf("%s In Soft State", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
 			}
+		}
 		printf("</td>");
 		printf("</tr>\n");
 
@@ -5261,24 +5221,24 @@ void show_filters(void) {
 			if(service_status_types & SERVICE_PENDING) {
 				printf(" Pending");
 				found = 1;
-				}
+			}
 			if(service_status_types & SERVICE_OK) {
 				printf("%s Ok", (found == 1) ? " |" : "");
 				found = 1;
-				}
+			}
 			if(service_status_types & SERVICE_UNKNOWN) {
 				printf("%s Unknown", (found == 1) ? " |" : "");
 				found = 1;
-				}
+			}
 			if(service_status_types & SERVICE_WARNING) {
 				printf("%s Warning", (found == 1) ? " |" : "");
 				found = 1;
-				}
+			}
 			if(service_status_types & SERVICE_CRITICAL) {
 				printf("%s Critical", (found == 1) ? " |" : "");
 				found = 1;
-				}
 			}
+		}
 		printf("</td></tr>");
 		printf("<tr><td valign=top align=left class='filterName'>Service Properties:</td>");
 		printf("<td valign=top align=left class='filterValue'>");
@@ -5289,95 +5249,96 @@ void show_filters(void) {
 			if(service_properties & SERVICE_SCHEDULED_DOWNTIME) {
 				printf(" In Scheduled Downtime");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_NO_SCHEDULED_DOWNTIME) {
 				printf("%s Not In Scheduled Downtime", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_STATE_ACKNOWLEDGED) {
 				printf("%s Has Been Acknowledged", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_STATE_UNACKNOWLEDGED) {
 				printf("%s Has Not Been Acknowledged", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_CHECKS_DISABLED) {
 				printf("%s Active Checks Disabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_CHECKS_ENABLED) {
 				printf("%s Active Checks Enabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_EVENT_HANDLER_DISABLED) {
 				printf("%s Event Handler Disabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_EVENT_HANDLER_ENABLED) {
 				printf("%s Event Handler Enabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_FLAP_DETECTION_DISABLED) {
 				printf("%s Flap Detection Disabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_FLAP_DETECTION_ENABLED) {
 				printf("%s Flap Detection Enabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_IS_FLAPPING) {
 				printf("%s Is Flapping", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_IS_NOT_FLAPPING) {
 				printf("%s Is Not Flapping", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_NOTIFICATIONS_DISABLED) {
 				printf("%s Notifications Disabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_NOTIFICATIONS_ENABLED) {
 				printf("%s Notifications Enabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_PASSIVE_CHECKS_DISABLED) {
 				printf("%s Passive Checks Disabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_PASSIVE_CHECKS_ENABLED) {
 				printf("%s Passive Checks Enabled", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_PASSIVE_CHECK) {
 				printf("%s Passive Checks", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_ACTIVE_CHECK) {
 				printf("%s Active Checks", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_HARD_STATE) {
 				printf("%s In Hard State", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
+			}
 			if(service_properties & SERVICE_SOFT_STATE) {
 				printf("%s In Soft State", (found == 1) ? " &amp;" : "");
 				found = 1;
-				}
 			}
-		printf("</td></tr>");
-		printf("</table>\n");
-
-		printf("</td></tr>");
-		printf("</table>\n");
 		}
+		printf("</td></tr>");
+		printf("</table>\n");
 
-	return;
+		printf("</td></tr>");
+		printf("</table>\n");
 	}
 
-void create_pagenumbers(int total_entries,char *temp_url,int type_service) {
+	return;
+}
+
+void create_pagenumbers(int total_entries,char *temp_url,int type_service)
+{
 
 	int pages = 1;
 	int tmp_start;
@@ -5399,7 +5360,7 @@ void create_pagenumbers(int total_entries,char *temp_url,int type_service) {
 				printf("<div class='pagenumber current_page'> %i </div>\n",(i+1));
 			else
 				printf("<a class='pagenumber' href='%s&start=%i&limit=%i' title='Page %i'> %i </a>\n",temp_url,tmp_start,result_limit,(i+1),(i+1));
-			}
+		}
 
 		printf("<a href='%s&start=%i&limit=%i' class='pagenumber' title='Next Page'><img src='%s%s' height='15' width='10' alt='>' /></a>\n",temp_url,(page_start+result_limit),result_limit,url_images_path,NEXT_PAGE_ICON);
 		printf("<a href='%s&start=%i&limit=%i' class='pagenumber' title='Last Page'><img src='%s%s' height='15' width='15' alt='>>' /></a>\n",temp_url,((pages)*result_limit),result_limit,url_images_path,LAST_PAGE_ICON);
@@ -5410,21 +5371,21 @@ void create_pagenumbers(int total_entries,char *temp_url,int type_service) {
 			printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Hosts</div>\n\n",page_start,((page_start+result_limit) > total_entries ? total_entries :(page_start+result_limit) ),total_entries );
 
 		printf("</div> <!-- end bottom_page_numbers div -->\n\n");
-		}
-	else {
+	} else {
 		if(type_service == TRUE)
 			printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Services</div>\n</div>\n",1,total_entries,total_entries);
 		else
 			printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Hosts</div>\n\n",1,total_entries,total_entries);
 
-		}
+	}
 
 	/* show total results displayed */
 	//printf("<br /><div class='itemTotalsTitle'>Results %i - %i of %d Matching Services</div>\n</div>\n",page_start,((page_start+result_limit) > total_entries ? total_entries :(page_start+result_limit) ),total_entries );
 
-	}
+}
 
-void create_page_limiter(int limit,char *temp_url) {
+void create_page_limiter(int limit,char *temp_url)
+{
 
 	/*  Result Limit Select Box   */
 	printf("<div id='pagelimit'>\n<div id='result_limit'>\n");
@@ -5438,4 +5399,4 @@ void create_page_limiter(int limit,char *temp_url) {
 	printf("</select></div>\n");
 	printf("<div id='top_page_numbers'></div>\n</div>\n");
 	//page numbers
-	}
+}

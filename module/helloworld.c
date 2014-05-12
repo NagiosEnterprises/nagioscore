@@ -44,7 +44,8 @@ int helloworld_handle_data(int, void *);
 
 
 /* this function gets called when the module is loaded by the event broker */
-int nebmodule_init(int flags, char *args, nebmodule *handle) {
+int nebmodule_init(int flags, char *args, nebmodule *handle)
+{
 	char temp_buffer[1024];
 	time_t current_time;
 	unsigned long interval;
@@ -77,11 +78,12 @@ int nebmodule_init(int flags, char *args, nebmodule *handle) {
 	neb_register_callback(NEBCALLBACK_AGGREGATED_STATUS_DATA, helloworld_module_handle, 0, helloworld_handle_data);
 
 	return 0;
-	}
+}
 
 
 /* this function gets called when the module is unloaded by the event broker */
-int nebmodule_deinit(int flags, int reason) {
+int nebmodule_deinit(int flags, int reason)
+{
 	char temp_buffer[1024];
 
 	/* deregister for all events we previously registered for... */
@@ -93,11 +95,12 @@ int nebmodule_deinit(int flags, int reason) {
 	write_to_all_logs(temp_buffer, NSLOG_INFO_MESSAGE);
 
 	return 0;
-	}
+}
 
 
 /* gets called every X minutes by an event in the scheduling queue */
-void helloworld_reminder_message(char *message) {
+void helloworld_reminder_message(char *message)
+{
 	char temp_buffer[1024];
 
 	/* log a message to the Nagios log file */
@@ -106,34 +109,35 @@ void helloworld_reminder_message(char *message) {
 	write_to_all_logs(temp_buffer, NSLOG_INFO_MESSAGE);
 
 	return;
-	}
+}
 
 
 /* handle data from Nagios daemon */
-int helloworld_handle_data(int event_type, void *data) {
+int helloworld_handle_data(int event_type, void *data)
+{
 	nebstruct_aggregated_status_data *agsdata = NULL;
 	char temp_buffer[1024];
 
 	/* what type of event/data do we have? */
 	switch(event_type) {
 
-		case NEBCALLBACK_AGGREGATED_STATUS_DATA:
+	case NEBCALLBACK_AGGREGATED_STATUS_DATA:
 
-			/* an aggregated status data dump just started or ended... */
-			if((agsdata = (nebstruct_aggregated_status_data *)data)) {
+		/* an aggregated status data dump just started or ended... */
+		if((agsdata = (nebstruct_aggregated_status_data *)data)) {
 
-				/* log a message to the Nagios log file */
-				snprintf(temp_buffer, sizeof(temp_buffer) - 1, "helloworld: An aggregated status update just %s.", (agsdata->type == NEBTYPE_AGGREGATEDSTATUS_STARTDUMP) ? "started" : "finished");
-				temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
-				write_to_all_logs(temp_buffer, NSLOG_INFO_MESSAGE);
-				}
-
-			break;
-
-		default:
-			break;
+			/* log a message to the Nagios log file */
+			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "helloworld: An aggregated status update just %s.", (agsdata->type == NEBTYPE_AGGREGATEDSTATUS_STARTDUMP) ? "started" : "finished");
+			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
+			write_to_all_logs(temp_buffer, NSLOG_INFO_MESSAGE);
 		}
 
-	return 0;
+		break;
+
+	default:
+		break;
 	}
+
+	return 0;
+}
 

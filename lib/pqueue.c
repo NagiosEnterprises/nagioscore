@@ -84,8 +84,8 @@ bubble_up(pqueue_t *q, unsigned int i)
 	pqueue_pri_t moving_pri = q->getpri(moving_node);
 
 	for (parent_node = parent(i);
-	        ((i > 1) && q->cmppri(q->getpri(q->d[parent_node]), moving_pri));
-	        i = parent_node, parent_node = parent(i)) {
+	     ((i > 1) && q->cmppri(q->getpri(q->d[parent_node]), moving_pri));
+	     i = parent_node, parent_node = parent(i)) {
 		q->d[i] = q->d[parent_node];
 		q->setpos(q->d[i], i);
 	}
@@ -120,7 +120,7 @@ percolate_down(pqueue_t *q, unsigned int i)
 	pqueue_pri_t moving_pri = q->getpri(moving_node);
 
 	while ((child_node = maxchild(q, i)) &&
-	        q->cmppri(moving_pri, q->getpri(q->d[child_node]))) {
+	       q->cmppri(moving_pri, q->getpri(q->d[child_node]))) {
 		q->d[i] = q->d[child_node];
 		q->setpos(q->d[i], i);
 		i = child_node;

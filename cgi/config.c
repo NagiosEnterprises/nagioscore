@@ -84,31 +84,29 @@ char hashed_color[8];
 
 int embedded = FALSE;
 
-static void print_expand_input(int type) {
+static void print_expand_input(int type)
+{
 	const char *seldesc = "";
 
 	if(type == DISPLAY_COMMAND_EXPANSION) return;	/* Has its own form, w/ larger <input> */
 	else if(type == DISPLAY_SERVICES) {
 		seldesc = " Services Named or on Host";
-		}
-	else if(type == DISPLAY_SERVICEDEPENDENCIES) {
+	} else if(type == DISPLAY_SERVICEDEPENDENCIES) {
 		seldesc = " Dependencies with Host";
-		}
-	else if(type == DISPLAY_SERVICEESCALATIONS) {
+	} else if(type == DISPLAY_SERVICEESCALATIONS) {
 		seldesc = " Escalations on Host";
-		}
-	else if(type == DISPLAY_HOSTDEPENDENCIES) {
+	} else if(type == DISPLAY_HOSTDEPENDENCIES) {
 		seldesc = " Dependencies on/of Host";
-		}
-	else if(type == DISPLAY_HOSTESCALATIONS) {
+	} else if(type == DISPLAY_HOSTESCALATIONS) {
 		seldesc = " Escalations for Host";
-		}
+	}
 	printf("<tr><td align=left class='reportSelectSubTitle'>Show Only%s:</td></tr>\n", seldesc);
 	printf("<tr><td align=left class='reportSelectItem'><input type='text' name='expand'\n");
 	printf("value='%s'>", html_encode(to_expand, FALSE));
-	}
+}
 
-int main(void) {
+int main(void)
+{
 	mac = get_global_macros();
 
 	/* get the arguments passed in the URL */
@@ -168,54 +166,54 @@ int main(void) {
 		printf("<tr><td class='reportSelectItem'><input type='submit' value='Update'></td></tr>\n");
 		printf("</table>\n");
 		printf("</form>\n");
-		}
+	}
 
 	/* display context-sensitive help */
 	switch(display_type) {
-		case DISPLAY_HOSTS:
-			display_context_help(CONTEXTHELP_CONFIG_HOSTS);
-			break;
-		case DISPLAY_HOSTGROUPS:
-			display_context_help(CONTEXTHELP_CONFIG_HOSTGROUPS);
-			break;
-		case DISPLAY_SERVICEGROUPS:
-			display_context_help(CONTEXTHELP_CONFIG_SERVICEGROUPS);
-			break;
-		case DISPLAY_CONTACTS:
-			display_context_help(CONTEXTHELP_CONFIG_CONTACTS);
-			break;
-		case DISPLAY_CONTACTGROUPS:
-			display_context_help(CONTEXTHELP_CONFIG_CONTACTGROUPS);
-			break;
-		case DISPLAY_SERVICES:
-			display_context_help(CONTEXTHELP_CONFIG_SERVICES);
-			break;
-		case DISPLAY_TIMEPERIODS:
-			display_context_help(CONTEXTHELP_CONFIG_TIMEPERIODS);
-			break;
-		case DISPLAY_COMMANDS:
-			display_context_help(CONTEXTHELP_CONFIG_COMMANDS);
-			break;
-		case DISPLAY_SERVICEDEPENDENCIES:
-			display_context_help(CONTEXTHELP_CONFIG_SERVICEDEPENDENCIES);
-			break;
-		case DISPLAY_SERVICEESCALATIONS:
-			display_context_help(CONTEXTHELP_CONFIG_HOSTESCALATIONS);
-			break;
-		case DISPLAY_HOSTDEPENDENCIES:
-			display_context_help(CONTEXTHELP_CONFIG_HOSTDEPENDENCIES);
-			break;
-		case DISPLAY_HOSTESCALATIONS:
-			display_context_help(CONTEXTHELP_CONFIG_HOSTESCALATIONS);
-			break;
-		case DISPLAY_COMMAND_EXPANSION:
-			/* Reusing DISPLAY_COMMANDS help until further notice */
-			display_context_help(CONTEXTHELP_CONFIG_COMMANDS);
-			break;
-		default:
-			display_context_help(CONTEXTHELP_CONFIG_MENU);
-			break;
-		}
+	case DISPLAY_HOSTS:
+		display_context_help(CONTEXTHELP_CONFIG_HOSTS);
+		break;
+	case DISPLAY_HOSTGROUPS:
+		display_context_help(CONTEXTHELP_CONFIG_HOSTGROUPS);
+		break;
+	case DISPLAY_SERVICEGROUPS:
+		display_context_help(CONTEXTHELP_CONFIG_SERVICEGROUPS);
+		break;
+	case DISPLAY_CONTACTS:
+		display_context_help(CONTEXTHELP_CONFIG_CONTACTS);
+		break;
+	case DISPLAY_CONTACTGROUPS:
+		display_context_help(CONTEXTHELP_CONFIG_CONTACTGROUPS);
+		break;
+	case DISPLAY_SERVICES:
+		display_context_help(CONTEXTHELP_CONFIG_SERVICES);
+		break;
+	case DISPLAY_TIMEPERIODS:
+		display_context_help(CONTEXTHELP_CONFIG_TIMEPERIODS);
+		break;
+	case DISPLAY_COMMANDS:
+		display_context_help(CONTEXTHELP_CONFIG_COMMANDS);
+		break;
+	case DISPLAY_SERVICEDEPENDENCIES:
+		display_context_help(CONTEXTHELP_CONFIG_SERVICEDEPENDENCIES);
+		break;
+	case DISPLAY_SERVICEESCALATIONS:
+		display_context_help(CONTEXTHELP_CONFIG_HOSTESCALATIONS);
+		break;
+	case DISPLAY_HOSTDEPENDENCIES:
+		display_context_help(CONTEXTHELP_CONFIG_HOSTDEPENDENCIES);
+		break;
+	case DISPLAY_HOSTESCALATIONS:
+		display_context_help(CONTEXTHELP_CONFIG_HOSTESCALATIONS);
+		break;
+	case DISPLAY_COMMAND_EXPANSION:
+		/* Reusing DISPLAY_COMMANDS help until further notice */
+		display_context_help(CONTEXTHELP_CONFIG_COMMANDS);
+		break;
+	default:
+		display_context_help(CONTEXTHELP_CONFIG_MENU);
+		break;
+	}
 
 	printf("</td>\n");
 
@@ -225,59 +223,60 @@ int main(void) {
 
 
 	switch(display_type) {
-		case DISPLAY_HOSTS:
-			display_hosts();
-			break;
-		case DISPLAY_HOSTGROUPS:
-			display_hostgroups();
-			break;
-		case DISPLAY_SERVICEGROUPS:
-			display_servicegroups();
-			break;
-		case DISPLAY_CONTACTS:
-			display_contacts();
-			break;
-		case DISPLAY_CONTACTGROUPS:
-			display_contactgroups();
-			break;
-		case DISPLAY_SERVICES:
-			display_services();
-			break;
-		case DISPLAY_TIMEPERIODS:
-			display_timeperiods();
-			break;
-		case DISPLAY_COMMANDS:
-			display_commands();
-			break;
-		case DISPLAY_SERVICEDEPENDENCIES:
-			display_servicedependencies();
-			break;
-		case DISPLAY_SERVICEESCALATIONS:
-			display_serviceescalations();
-			break;
-		case DISPLAY_HOSTDEPENDENCIES:
-			display_hostdependencies();
-			break;
-		case DISPLAY_HOSTESCALATIONS:
-			display_hostescalations();
-			break;
-		case DISPLAY_COMMAND_EXPANSION:
-			display_command_expansion();
-			break;
-		default:
-			display_options();
-			break;
-		}
+	case DISPLAY_HOSTS:
+		display_hosts();
+		break;
+	case DISPLAY_HOSTGROUPS:
+		display_hostgroups();
+		break;
+	case DISPLAY_SERVICEGROUPS:
+		display_servicegroups();
+		break;
+	case DISPLAY_CONTACTS:
+		display_contacts();
+		break;
+	case DISPLAY_CONTACTGROUPS:
+		display_contactgroups();
+		break;
+	case DISPLAY_SERVICES:
+		display_services();
+		break;
+	case DISPLAY_TIMEPERIODS:
+		display_timeperiods();
+		break;
+	case DISPLAY_COMMANDS:
+		display_commands();
+		break;
+	case DISPLAY_SERVICEDEPENDENCIES:
+		display_servicedependencies();
+		break;
+	case DISPLAY_SERVICEESCALATIONS:
+		display_serviceescalations();
+		break;
+	case DISPLAY_HOSTDEPENDENCIES:
+		display_hostdependencies();
+		break;
+	case DISPLAY_HOSTESCALATIONS:
+		display_hostescalations();
+		break;
+	case DISPLAY_COMMAND_EXPANSION:
+		display_command_expansion();
+		break;
+	default:
+		display_options();
+		break;
+	}
 
 	document_footer();
 
 	return OK;
-	}
+}
 
 
 
 
-void document_header(int use_stylesheet) {
+void document_header(int use_stylesheet)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t t;
 
@@ -304,7 +303,7 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, CONFIG_CSS);
-		}
+	}
 
 	printf("</head>\n");
 
@@ -314,10 +313,11 @@ void document_header(int use_stylesheet) {
 	include_ssi_files(CONFIG_CGI, SSI_HEADER);
 
 	return;
-	}
+}
 
 
-void document_footer(void) {
+void document_footer(void)
+{
 
 	if(embedded == TRUE)
 		return;
@@ -329,10 +329,11 @@ void document_footer(void) {
 	printf("</html>\n");
 
 	return;
-	}
+}
 
 
-int process_cgivars(void) {
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -345,7 +346,7 @@ int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
+		}
 
 		/* we found the configuration type argument */
 		else if(!strcmp(variables[x], "type")) {
@@ -353,7 +354,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			/* what information should we display? */
 			if(!strcmp(variables[x], "hosts"))
@@ -386,7 +387,7 @@ int process_cgivars(void) {
 			/* we found the embed option */
 			else if(!strcmp(variables[x], "embedded"))
 				embedded = TRUE;
-			}
+		}
 
 		/* we found the string-to-expand argument */
 		else if(!strcmp(variables[x], "expand")) {
@@ -394,27 +395,28 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 			strncpy(to_expand, variables[x], MAX_COMMAND_BUFFER);
 			to_expand[MAX_COMMAND_BUFFER - 1] = '\0';
-			}
+		}
 
 
 		/* we received an invalid argument */
 		else
 			error = TRUE;
 
-		}
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
-void display_hosts(void) {
+void display_hosts(void)
+{
 	host *temp_host = NULL;
 	hostsmember *temp_hostsmember = NULL;
 	contactsmember *temp_contactsmember = NULL;
@@ -430,7 +432,7 @@ void display_hosts(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Host%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : " "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -489,11 +491,10 @@ void display_hosts(void) {
 			if(odd) {
 				odd = 0;
 				bg_class = "dataOdd";
-				}
-			else {
+			} else {
 				odd = 1;
 				bg_class = "dataEven";
-				}
+			}
 
 			printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -511,7 +512,7 @@ void display_hosts(void) {
 					printf(", ");
 
 				printf("<a href='%s?type=hosts&expand=%s'>%s</a>\n", CONFIG_CGI, url_encode(temp_hostsmember->host_name), html_encode(temp_hostsmember->host_name, FALSE));
-				}
+			}
 			if(temp_host->parent_hosts == NULL)
 				printf("&nbsp;");
 			printf("</TD>\n");
@@ -563,13 +564,13 @@ void display_hosts(void) {
 					printf(", ");
 
 				printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactsmember->contact_name), html_encode(temp_contactsmember->contact_name, FALSE));
-				}
+			}
 			for(temp_contactgroupsmember = temp_host->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
 				num_contacts++;
 				if(num_contacts > 1)
 					printf(", ");
 				printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactgroupsmember->group_name), html_encode(temp_contactgroupsmember->group_name, FALSE));
-				}
+			}
 			if(num_contacts == 0)
 				printf("&nbsp;");
 			printf("</TD>\n");
@@ -585,23 +586,23 @@ void display_hosts(void) {
 			if(flag_isset(temp_host->notification_options, OPT_DOWN) == TRUE) {
 				options = 1;
 				printf("Down");
-				}
+			}
 			if(flag_isset(temp_host->notification_options, OPT_UNREACHABLE) == TRUE) {
 				printf("%sUnreachable", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_host->notification_options, OPT_RECOVERY) == TRUE) {
 				printf("%sRecovery", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_host->notification_options, OPT_FLAPPING) == TRUE) {
 				printf("%sFlapping", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_host->notification_options, OPT_DOWNTIME) == TRUE) {
 				printf("%sDowntime", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(options == 0)
 				printf("None");
 			printf("</TD>\n");
@@ -630,15 +631,15 @@ void display_hosts(void) {
 			if(flag_isset(temp_host->stalking_options, OPT_UP) == TRUE) {
 				options = 1;
 				printf("Up");
-				}
+			}
 			if(flag_isset(temp_host->stalking_options, OPT_DOWN) == TRUE) {
 				printf("%sDown", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_host->stalking_options, OPT_UNREACHABLE) == TRUE) {
 				printf("%sUnreachable", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(options == 0)
 				printf("None");
 			printf("</TD>\n");
@@ -666,15 +667,15 @@ void display_hosts(void) {
 			if(flag_isset(temp_host->flap_detection_options, OPT_UP) == TRUE) {
 				options = 1;
 				printf("Up");
-				}
+			}
 			if(flag_isset(temp_host->flap_detection_options, OPT_DOWN) == TRUE) {
 				printf("%sDown", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_host->flap_detection_options, OPT_UNREACHABLE) == TRUE) {
 				printf("%sUnreachable", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(options == 0)
 				printf("None");
 			printf("</TD>\n");
@@ -715,7 +716,7 @@ void display_hosts(void) {
 				process_macros_r(mac, temp_host->icon_image, &processed_string, 0);
 				printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>", bg_class, url_logo_images_path, processed_string, html_encode(temp_host->icon_image, FALSE));
 				free(processed_string);
-				}
+			}
 
 			printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_host->icon_image_alt == NULL) ? "&nbsp;" : html_encode(temp_host->icon_image_alt, FALSE));
 
@@ -724,28 +725,29 @@ void display_hosts(void) {
 			if(temp_host->retain_status_information == TRUE) {
 				options = 1;
 				printf("Status Information");
-				}
+			}
 			if(temp_host->retain_nonstatus_information == TRUE) {
 				printf("%sNon-Status Information", (options == 1) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(options == 0)
 				printf("None");
 			printf("</TD>\n");
 
 			printf("</TR>\n");
-			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
-void display_hostgroups(void) {
+void display_hostgroups(void)
+{
 	hostgroup *temp_hostgroup;
 	hostsmember *temp_hostsmember;
 	int odd = 0;
@@ -755,7 +757,7 @@ void display_hostgroups(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Host Group%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : " "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -779,11 +781,10 @@ void display_hostgroups(void) {
 			if(odd) {
 				odd = 0;
 				bg_class = "dataOdd";
-				}
-			else {
+			} else {
 				odd = 1;
 				bg_class = "dataEven";
-				}
+			}
 
 			printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -799,7 +800,7 @@ void display_hostgroups(void) {
 				if(temp_hostsmember != temp_hostgroup->members)
 					printf(", ");
 				printf("<A HREF='%s?type=hosts&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_hostsmember->host_name), html_encode(temp_hostsmember->host_name, FALSE));
-				}
+			}
 			printf("</TD>\n");
 
 			printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_hostgroup->notes == NULL) ? "&nbsp;" : html_encode(temp_hostgroup->notes, FALSE));
@@ -809,18 +810,19 @@ void display_hostgroups(void) {
 			printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_hostgroup->action_url == NULL) ? "&nbsp;" : html_encode(temp_hostgroup->action_url, FALSE));
 
 			printf("</TR>\n");
-			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
-void display_servicegroups(void) {
+void display_servicegroups(void)
+{
 	servicegroup *temp_servicegroup;
 	servicesmember *temp_servicesmember;
 	int odd = 0;
@@ -830,7 +832,7 @@ void display_servicegroups(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service Group%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : " "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -854,11 +856,10 @@ void display_servicegroups(void) {
 			if(odd) {
 				odd = 0;
 				bg_class = "dataOdd";
-				}
-			else {
+			} else {
 				odd = 1;
 				bg_class = "dataEven";
-				}
+			}
 
 			printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -875,7 +876,7 @@ void display_servicegroups(void) {
 
 				printf("<A HREF='%s?type=services&expand=%s#%s;", CONFIG_CGI, url_encode(temp_servicesmember->host_name), url_encode(temp_servicesmember->host_name));
 				printf("%s'>%s</A>\n", url_encode(temp_servicesmember->service_description), html_encode(temp_servicesmember->service_description, FALSE));
-				}
+			}
 
 			printf("</TD>\n");
 
@@ -886,18 +887,19 @@ void display_servicegroups(void) {
 			printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_servicegroup->action_url == NULL) ? "&nbsp;" : html_encode(temp_servicegroup->action_url, FALSE));
 
 			printf("</TR>\n");
-			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
-void display_contacts(void) {
+void display_contacts(void)
+{
 	contact *temp_contact;
 	commandsmember *temp_commandsmember;
 	int odd = 0;
@@ -909,7 +911,7 @@ void display_contacts(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Contact%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : " "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -940,11 +942,10 @@ void display_contacts(void) {
 			if(odd) {
 				odd = 0;
 				bg_class = "dataOdd";
-				}
-			else {
+			} else {
 				odd = 1;
 				bg_class = "dataEven";
-				}
+			}
 
 			printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -959,27 +960,27 @@ void display_contacts(void) {
 			if(flag_isset(temp_contact->service_notification_options, OPT_UNKNOWN)) {
 				options = 1;
 				printf("Unknown");
-				}
+			}
 			if(flag_isset(temp_contact->service_notification_options, OPT_WARNING)) {
 				printf("%sWarning", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_contact->service_notification_options, OPT_CRITICAL)) {
 				printf("%sCritical", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_contact->service_notification_options, OPT_RECOVERY)) {
 				printf("%sRecovery", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_contact->service_notification_options, OPT_FLAPPING)) {
 				printf("%sFlapping", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_contact->service_notification_options, OPT_DOWNTIME)) {
 				printf("%sDowntime", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(!options)
 				printf("None");
 			printf("</TD>\n");
@@ -989,23 +990,23 @@ void display_contacts(void) {
 			if(flag_isset(temp_contact->host_notification_options, OPT_DOWN) == TRUE) {
 				options = 1;
 				printf("Down");
-				}
+			}
 			if(flag_isset(temp_contact->host_notification_options, OPT_UNREACHABLE) == TRUE) {
 				printf("%sUnreachable", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_contact->host_notification_options, OPT_RECOVERY) == TRUE) {
 				printf("%sRecovery", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_contact->host_notification_options, OPT_FLAPPING) == TRUE) {
 				printf("%sFlapping", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_contact->host_notification_options, OPT_DOWNTIME) == TRUE) {
 				printf("%sDowntime", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(!options)
 				printf("None");
 			printf("</TD>\n");
@@ -1035,7 +1036,7 @@ void display_contacts(void) {
 				printf("<A HREF='%s?type=command&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_commandsmember->command), html_encode(temp_commandsmember->command, FALSE));
 
 				found = TRUE;
-				}
+			}
 			if(found == FALSE)
 				printf("None");
 			printf("</TD>\n");
@@ -1051,7 +1052,7 @@ void display_contacts(void) {
 				printf("<A HREF='%s?type=command&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_commandsmember->command), html_encode(temp_commandsmember->command, FALSE));
 
 				found = TRUE;
-				}
+			}
 			if(found == FALSE)
 				printf("None");
 			printf("</TD>\n");
@@ -1061,28 +1062,29 @@ void display_contacts(void) {
 			if(temp_contact->retain_status_information == TRUE) {
 				options = 1;
 				printf("Status Information");
-				}
+			}
 			if(temp_contact->retain_nonstatus_information == TRUE) {
 				printf("%sNon-Status Information", (options == 1) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(options == 0)
 				printf("None");
 			printf("</TD>\n");
 
 			printf("</TR>\n");
-			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
-void display_contactgroups(void) {
+void display_contactgroups(void)
+{
 	contactgroup *temp_contactgroup;
 	contactsmember *temp_contactsmember;
 	int odd = 0;
@@ -1092,7 +1094,7 @@ void display_contactgroups(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Contact Group%s%s</DIV></P>\n",
@@ -1115,11 +1117,10 @@ void display_contactgroups(void) {
 			if(odd) {
 				odd = 0;
 				bg_class = "dataOdd";
-				}
-			else {
+			} else {
 				odd = 1;
 				bg_class = "dataEven";
-				}
+			}
 
 			printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -1134,22 +1135,23 @@ void display_contactgroups(void) {
 					printf(", ");
 
 				printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactsmember->contact_name), html_encode(temp_contactsmember->contact_name, FALSE));
-				}
+			}
 			printf("</TD>\n");
 
 			printf("</TR>\n");
-			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
-void display_services(void) {
+void display_services(void)
+{
 	service *temp_service = NULL;
 	contactsmember *temp_contactsmember = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
@@ -1167,7 +1169,7 @@ void display_services(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : "s Named or on Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -1227,11 +1229,10 @@ void display_services(void) {
 			if(odd) {
 				odd = 0;
 				bg_class = "dataOdd";
-				}
-			else {
+			} else {
 				odd = 1;
 				bg_class = "dataEven";
-				}
+			}
 
 			printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -1289,13 +1290,13 @@ void display_services(void) {
 				if(num_contacts > 1)
 					printf(", ");
 				printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_contactsmember->contact_name), html_encode(temp_contactsmember->contact_name, FALSE));
-				}
+			}
 			for(temp_contactgroupsmember = temp_service->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
 				num_contacts++;
 				if(num_contacts > 1)
 					printf(", ");
 				printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactgroupsmember->group_name), html_encode(temp_contactgroupsmember->group_name, FALSE));
-				}
+			}
 			if(num_contacts == 0)
 				printf("&nbsp;");
 			printf("</TD>\n");
@@ -1315,27 +1316,27 @@ void display_services(void) {
 			if(flag_isset(temp_service->notification_options, OPT_UNKNOWN) == TRUE) {
 				options = 1;
 				printf("Unknown");
-				}
+			}
 			if(flag_isset(temp_service->notification_options, OPT_WARNING) == TRUE) {
 				printf("%sWarning", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_service->notification_options, OPT_CRITICAL) == TRUE) {
 				printf("%sCritical", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_service->notification_options, OPT_RECOVERY) == TRUE) {
 				printf("%sRecovery", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_service->notification_options, OPT_FLAPPING) == TRUE) {
 				printf("%sFlapping", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_service->notification_options, OPT_DOWNTIME) == TRUE) {
 				printf("%sDowntime", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(!options)
 				printf("None");
 			printf("</TD>\n");
@@ -1362,19 +1363,19 @@ void display_services(void) {
 			if(flag_isset(temp_service->stalking_options, OPT_OK) == TRUE) {
 				options = 1;
 				printf("Ok");
-				}
+			}
 			if(flag_isset(temp_service->stalking_options, OPT_WARNING) == TRUE) {
 				printf("%sWarning", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_service->stalking_options, OPT_UNKNOWN) == TRUE) {
 				printf("%sUnknown", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_service->stalking_options, OPT_CRITICAL) == TRUE) {
 				printf("%sCritical", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(options == 0)
 				printf("None");
 			printf("</TD>\n");
@@ -1402,19 +1403,19 @@ void display_services(void) {
 			if(flag_isset(temp_service->flap_detection_options, OPT_OK) == TRUE) {
 				options = 1;
 				printf("Ok");
-				}
+			}
 			if(flag_isset(temp_service->flap_detection_options, OPT_WARNING) == TRUE) {
 				printf("%sWarning", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_service->flap_detection_options, OPT_UNKNOWN) == TRUE) {
 				printf("%sUnknown", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(flag_isset(temp_service->flap_detection_options, OPT_CRITICAL) == TRUE) {
 				printf("%sCritical", (options) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(options == 0)
 				printf("None");
 			printf("</TD>\n");
@@ -1435,7 +1436,7 @@ void display_services(void) {
 				process_macros_r(mac, temp_service->icon_image, &processed_string, 0);
 				printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>", bg_class, url_logo_images_path, processed_string, html_encode(temp_service->icon_image, FALSE));
 				free(processed_string);
-				}
+			}
 
 			printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_service->icon_image_alt == NULL) ? "&nbsp;" : html_encode(temp_service->icon_image_alt, FALSE));
 
@@ -1444,28 +1445,29 @@ void display_services(void) {
 			if(temp_service->retain_status_information == TRUE) {
 				options = 1;
 				printf("Status Information");
-				}
+			}
 			if(temp_service->retain_nonstatus_information == TRUE) {
 				printf("%sNon-Status Information", (options == 1) ? ", " : "");
 				options = 1;
-				}
+			}
 			if(options == 0)
 				printf("None");
 			printf("</TD>\n");
 
 			printf("</TR>\n");
-			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
-void display_timeperiods(void) {
+void display_timeperiods(void)
+{
 	timerange *temp_timerange = NULL;
 	daterange *temp_daterange = NULL;
 	timeperiod *temp_timeperiod = NULL;
@@ -1487,7 +1489,7 @@ void display_timeperiods(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Time Period%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : " "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -1510,11 +1512,10 @@ void display_timeperiods(void) {
 			if(odd) {
 				odd = 0;
 				bg_class = "dataOdd";
-				}
-			else {
+			} else {
 				odd = 1;
 				bg_class = "dataEven";
-				}
+			}
 
 			printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -1526,7 +1527,7 @@ void display_timeperiods(void) {
 			for(temp_timeperiodexclusion = temp_timeperiod->exclusions; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
 				item++;
 				printf("%s<A HREF='#%s'>%s</A>", (item == 1) ? "" : ",&nbsp;", url_encode(temp_timeperiodexclusion->timeperiod_name), html_encode(temp_timeperiodexclusion->timeperiod_name, FALSE));
-				}
+			}
 			printf("</TD>");
 
 			printf("<TD CLASS='%s'>", bg_class);
@@ -1541,48 +1542,48 @@ void display_timeperiods(void) {
 						printf("<TR><TD COLSPAN='3'></TD><TD CLASS='%s'>\n", bg_class);
 
 					switch(temp_daterange->type) {
-						case DATERANGE_CALENDAR_DATE:
-							printf("%d-%02d-%02d", temp_daterange->syear, temp_daterange->smon + 1, temp_daterange->smday);
-							if((temp_daterange->smday != temp_daterange->emday) || (temp_daterange->smon != temp_daterange->emon) || (temp_daterange->syear != temp_daterange->eyear))
-								printf(" - %d-%02d-%02d", temp_daterange->eyear, temp_daterange->emon + 1, temp_daterange->emday);
+					case DATERANGE_CALENDAR_DATE:
+						printf("%d-%02d-%02d", temp_daterange->syear, temp_daterange->smon + 1, temp_daterange->smday);
+						if((temp_daterange->smday != temp_daterange->emday) || (temp_daterange->smon != temp_daterange->emon) || (temp_daterange->syear != temp_daterange->eyear))
+							printf(" - %d-%02d-%02d", temp_daterange->eyear, temp_daterange->emon + 1, temp_daterange->emday);
+						if(temp_daterange->skip_interval > 1)
+							printf(" / %d", temp_daterange->skip_interval);
+						break;
+					case DATERANGE_MONTH_DATE:
+						printf("%s %d", months[temp_daterange->smon], temp_daterange->smday);
+						if((temp_daterange->smon != temp_daterange->emon) || (temp_daterange->smday != temp_daterange->emday)) {
+							printf(" - %s %d", months[temp_daterange->emon], temp_daterange->emday);
 							if(temp_daterange->skip_interval > 1)
 								printf(" / %d", temp_daterange->skip_interval);
-							break;
-						case DATERANGE_MONTH_DATE:
-							printf("%s %d", months[temp_daterange->smon], temp_daterange->smday);
-							if((temp_daterange->smon != temp_daterange->emon) || (temp_daterange->smday != temp_daterange->emday)) {
-								printf(" - %s %d", months[temp_daterange->emon], temp_daterange->emday);
-								if(temp_daterange->skip_interval > 1)
-									printf(" / %d", temp_daterange->skip_interval);
-								}
-							break;
-						case DATERANGE_MONTH_DAY:
-							printf("day %d", temp_daterange->smday);
-							if(temp_daterange->smday != temp_daterange->emday) {
-								printf(" - %d", temp_daterange->emday);
-								if(temp_daterange->skip_interval > 1)
-									printf(" / %d", temp_daterange->skip_interval);
-								}
-							break;
-						case DATERANGE_MONTH_WEEK_DAY:
-							printf("%s %d %s", days[temp_daterange->swday], temp_daterange->swday_offset, months[temp_daterange->smon]);
-							if((temp_daterange->smon != temp_daterange->emon) || (temp_daterange->swday != temp_daterange->ewday) || (temp_daterange->swday_offset != temp_daterange->ewday_offset)) {
-								printf(" - %s %d %s", days[temp_daterange->ewday], temp_daterange->ewday_offset, months[temp_daterange->emon]);
-								if(temp_daterange->skip_interval > 1)
-									printf(" / %d", temp_daterange->skip_interval);
-								}
-							break;
-						case DATERANGE_WEEK_DAY:
-							printf("%s %d", days[temp_daterange->swday], temp_daterange->swday_offset);
-							if((temp_daterange->swday != temp_daterange->ewday) || (temp_daterange->swday_offset != temp_daterange->ewday_offset)) {
-								printf(" - %s %d", days[temp_daterange->ewday], temp_daterange->ewday_offset);
-								if(temp_daterange->skip_interval > 1)
-									printf(" / %d", temp_daterange->skip_interval);
-								}
-							break;
-						default:
-							break;
 						}
+						break;
+					case DATERANGE_MONTH_DAY:
+						printf("day %d", temp_daterange->smday);
+						if(temp_daterange->smday != temp_daterange->emday) {
+							printf(" - %d", temp_daterange->emday);
+							if(temp_daterange->skip_interval > 1)
+								printf(" / %d", temp_daterange->skip_interval);
+						}
+						break;
+					case DATERANGE_MONTH_WEEK_DAY:
+						printf("%s %d %s", days[temp_daterange->swday], temp_daterange->swday_offset, months[temp_daterange->smon]);
+						if((temp_daterange->smon != temp_daterange->emon) || (temp_daterange->swday != temp_daterange->ewday) || (temp_daterange->swday_offset != temp_daterange->ewday_offset)) {
+							printf(" - %s %d %s", days[temp_daterange->ewday], temp_daterange->ewday_offset, months[temp_daterange->emon]);
+							if(temp_daterange->skip_interval > 1)
+								printf(" / %d", temp_daterange->skip_interval);
+						}
+						break;
+					case DATERANGE_WEEK_DAY:
+						printf("%s %d", days[temp_daterange->swday], temp_daterange->swday_offset);
+						if((temp_daterange->swday != temp_daterange->ewday) || (temp_daterange->swday_offset != temp_daterange->ewday_offset)) {
+							printf(" - %s %d", days[temp_daterange->ewday], temp_daterange->ewday_offset);
+							if(temp_daterange->skip_interval > 1)
+								printf(" / %d", temp_daterange->skip_interval);
+						}
+						break;
+					default:
+						break;
+					}
 
 					printf("</TD><TD CLASS='%s'>\n", bg_class);
 
@@ -1604,12 +1605,12 @@ void display_timeperiods(void) {
 						snprintf(timestring, sizeof(timestring) - 1, "%02d:%02d:%02d", hours, minutes, seconds);
 						timestring[sizeof(timestring) - 1] = '\x0';
 						printf("%s", timestring);
-						}
+					}
 
 					printf("</TD>\n");
 					printf("</TR>\n");
-					}
 				}
+			}
 			for(day = 0; day < 7; day++) {
 
 				if(temp_timeperiod->days[day] == NULL)
@@ -1642,28 +1643,29 @@ void display_timeperiods(void) {
 					snprintf(timestring, sizeof(timestring) - 1, "%02d:%02d:%02d", hours, minutes, seconds);
 					timestring[sizeof(timestring) - 1] = '\x0';
 					printf("%s", timestring);
-					}
+				}
 
 				printf("&nbsp;</TD>\n");
 				printf("</TR>\n");
-				}
+			}
 
 			if(line == 0) {
 				printf("</TD>\n");
 				printf("</TR>\n");
-				}
 			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
-void display_commands(void) {
+void display_commands(void)
+{
 	command *temp_command;
 	int odd = 0;
 	const char *bg_class = "";
@@ -1672,7 +1674,7 @@ void display_commands(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Command%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : " "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -1687,11 +1689,10 @@ void display_commands(void) {
 			if(odd) {
 				odd = 0;
 				bg_class = "dataEven";
-				}
-			else {
+			} else {
 				odd = 1;
 				bg_class = "dataOdd";
-				}
+			}
 
 			printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -1699,13 +1700,13 @@ void display_commands(void) {
 			printf("<TD CLASS='%s'>%s</TD>\n", bg_class, html_encode(temp_command->command_line, FALSE));
 
 			printf("</TR>\n");
-			}
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV></P>\n");
 
 	return;
-	}
+}
 
 
 static void display_servicedependency(servicedependency *temp_sd)
@@ -1749,35 +1750,36 @@ static void display_servicedependency(servicedependency *temp_sd)
 	if(flag_isset(temp_sd->failure_options, OPT_OK) == TRUE) {
 		printf("Ok");
 		options = TRUE;
-		}
+	}
 	if(flag_isset(temp_sd->failure_options, OPT_WARNING) == TRUE) {
 		printf("%sWarning", (options == TRUE) ? ", " : "");
 		options = TRUE;
-		}
+	}
 	if(flag_isset(temp_sd->failure_options, OPT_UNKNOWN) == TRUE) {
 		printf("%sUnknown", (options == TRUE) ? ", " : "");
 		options = TRUE;
-		}
+	}
 	if(flag_isset(temp_sd->failure_options, OPT_CRITICAL) == TRUE) {
 		printf("%sCritical", (options == TRUE) ? ", " : "");
 		options = TRUE;
-		}
+	}
 	if(flag_isset(temp_sd->failure_options, OPT_PENDING) == TRUE) {
 		printf("%sPending", (options == TRUE) ? ", " : "");
 		options = TRUE;
-		}
+	}
 	printf("</TD>\n");
 	printf("</TR>\n");
-	}
+}
 
-void display_servicedependencies(void) {
+void display_servicedependencies(void)
+{
 	unsigned int i;
 
 	/* see if user is authorized to view hostgroup information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service Dependencie%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : "s Involving Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -1802,18 +1804,19 @@ void display_servicedependencies(void) {
 
 	for(i = 0; i < num_objects.servicedependencies; i++) {
 		display_servicedependency(servicedependency_ary[i]);
-		}
+	}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
-void display_serviceescalations(void) {
+void display_serviceescalations(void)
+{
 	serviceescalation *temp_se = NULL;
 	contactsmember *temp_contactsmember = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
@@ -1828,7 +1831,7 @@ void display_serviceescalations(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service Escalation%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : "s on Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -1860,11 +1863,10 @@ void display_serviceescalations(void) {
 		if(odd) {
 			odd = 0;
 			bg_class = "dataOdd";
-			}
-		else {
+		} else {
 			odd = 1;
 			bg_class = "dataEven";
-			}
+		}
 
 		printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -1880,13 +1882,13 @@ void display_serviceescalations(void) {
 			if(num_contacts > 1)
 				printf(", ");
 			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactsmember->contact_name), html_encode(temp_contactsmember->contact_name, FALSE));
-			}
+		}
 		for(temp_contactgroupsmember = temp_se->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
 			num_contacts++;
 			if(num_contacts > 1)
 				printf(", ");
 			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactgroupsmember->group_name), html_encode(temp_contactgroupsmember->group_name, FALSE));
-			}
+		}
 		if(num_contacts == 0)
 			printf("&nbsp;");
 		printf("</TD>\n");
@@ -1920,32 +1922,32 @@ void display_serviceescalations(void) {
 		if(flag_isset(temp_se->escalation_options, OPT_WARNING) == TRUE) {
 			printf("%sWarning", (options == TRUE) ? ", " : "");
 			options = TRUE;
-			}
+		}
 		if(flag_isset(temp_se->escalation_options, OPT_UNKNOWN) == TRUE) {
 			printf("%sUnknown", (options == TRUE) ? ", " : "");
 			options = TRUE;
-			}
+		}
 		if(flag_isset(temp_se->escalation_options, OPT_CRITICAL) == TRUE) {
 			printf("%sCritical", (options == TRUE) ? ", " : "");
 			options = TRUE;
-			}
+		}
 		if(flag_isset(temp_se->escalation_options, OPT_RECOVERY) == TRUE) {
 			printf("%sRecovery", (options == TRUE) ? ", " : "");
 			options = TRUE;
-			}
+		}
 		if(options == FALSE)
 			printf("None");
 		printf("</TD>\n");
 
 		printf("</TR>\n");
-		}
+	}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 static void display_hostdependency(hostdependency *temp_hd)
 {
@@ -1982,32 +1984,33 @@ static void display_hostdependency(hostdependency *temp_hd)
 	if(flag_isset(temp_hd->failure_options, OPT_UP) == TRUE) {
 		printf("Up");
 		options = TRUE;
-		}
+	}
 	if(flag_isset(temp_hd->failure_options, OPT_DOWN) == TRUE) {
 		printf("%sDown", (options == TRUE) ? ", " : "");
 		options = TRUE;
-		}
+	}
 	if(flag_isset(temp_hd->failure_options, OPT_UNREACHABLE) == TRUE) {
 		printf("%sUnreachable", (options == TRUE) ? ", " : "");
 		options = TRUE;
-		}
+	}
 	if(flag_isset(temp_hd->failure_options, OPT_PENDING) == TRUE) {
 		printf("%sPending", (options == TRUE) ? ", " : "");
 		options = TRUE;
-		}
+	}
 	printf("</TD>\n");
 
 	printf("</TR>\n");
-	}
+}
 
-void display_hostdependencies(void) {
+void display_hostdependencies(void)
+{
 	unsigned int i;
 
 	/* see if user is authorized to view hostdependency information... */
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Host Dependencie%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : "s Involving Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -2033,11 +2036,12 @@ void display_hostdependencies(void) {
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
-void display_hostescalations(void) {
+void display_hostescalations(void)
+{
 	hostescalation *temp_he = NULL;
 	contactsmember *temp_contactsmember = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
@@ -2052,7 +2056,7 @@ void display_hostescalations(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Host Escalation%s%s</DIV></P>\n",
 	       (*to_expand == '\0' ? "s" : "s for Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
@@ -2080,11 +2084,10 @@ void display_hostescalations(void) {
 		if(odd) {
 			odd = 0;
 			bg_class = "dataOdd";
-			}
-		else {
+		} else {
 			odd = 1;
 			bg_class = "dataEven";
-			}
+		}
 
 		printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -2097,13 +2100,13 @@ void display_hostescalations(void) {
 			if(num_contacts > 1)
 				printf(", ");
 			printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactsmember->contact_name), html_encode(temp_contactsmember->contact_name, FALSE));
-			}
+		}
 		for(temp_contactgroupsmember = temp_he->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
 			num_contacts++;
 			if(num_contacts > 1)
 				printf(", ");
 			printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactgroupsmember->group_name), html_encode(temp_contactgroupsmember->group_name, FALSE));
-			}
+		}
 		if(num_contacts == 0)
 			printf("&nbsp;");
 		printf("</TD>\n");
@@ -2137,42 +2140,44 @@ void display_hostescalations(void) {
 		if(flag_isset(temp_he->escalation_options, OPT_DOWN) == TRUE) {
 			printf("%sDown", (options == TRUE) ? ", " : "");
 			options = TRUE;
-			}
+		}
 		if(flag_isset(temp_he->escalation_options, OPT_UNREACHABLE) == TRUE) {
 			printf("%sUnreachable", (options == TRUE) ? ", " : "");
 			options = TRUE;
-			}
+		}
 		if(flag_isset(temp_he->escalation_options, OPT_RECOVERY) == TRUE) {
 			printf("%sRecovery", (options == TRUE) ? ", " : "");
 			options = TRUE;
-			}
+		}
 		if(options == FALSE)
 			printf("None");
 		printf("</TD>\n");
 
 		printf("</TR>\n");
-		}
+	}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 	printf("</P>\n");
 
 	return;
-	}
+}
 
 
 
-void unauthorized_message(void) {
+void unauthorized_message(void)
+{
 
 	printf("<P><DIV CLASS='errorMessage'>It appears as though you do not have permission to view the configuration information you requested...</DIV></P>\n");
 	printf("<P><DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 	printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
 
 	return;
-	}
+}
 
 
-static const char *hash_color(int i) {
+static const char *hash_color(int i)
+{
 	char c;
 
 	/* This is actually optimized for MAX_COMMAND_ARGUMENTS==32 ... */
@@ -2180,11 +2185,10 @@ static const char *hash_color(int i) {
 	if((i % 32) < 16) {
 		if((i % 32) < 8) c = '7';
 		else c = '4';
-		}
-	else {
+	} else {
 		if((i % 32) < 24) c = '6';
 		else c = '5';
-		}
+	}
 
 	/* Computation for standard case */
 	hashed_color[0] = '#';
@@ -2198,9 +2202,10 @@ static const char *hash_color(int i) {
 	if((i % 8) == 0) hashed_color[2] = hashed_color[3] = hashed_color[4] = hashed_color[6] = c;
 
 	return(hashed_color);
-	}
+}
 
-void display_command_expansion(void) {
+void display_command_expansion(void)
+{
 	command *temp_command;
 	int odd = 0;
 	const char *bg_class = "";
@@ -2216,7 +2221,7 @@ void display_command_expansion(void) {
 	if(is_authorized_for_configuration_information(&current_authdata) == FALSE) {
 		unauthorized_message();
 		return;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Command Expansion</DIV></P>\n");
 
@@ -2228,9 +2233,9 @@ void display_command_expansion(void) {
 			(*cc) = '\0';
 			cc = c++;
 			command_args[++i] = (c--);
-			}
-		(*cc) = (*c);
 		}
+		(*cc) = (*c);
+	}
 	if((*c) == '\0')(*cc) = '\0';
 	/* Precompute indexes of dangling whitespace */
 	for(i = 0; i < MAX_COMMAND_ARGUMENTS; i++) {
@@ -2238,7 +2243,7 @@ void display_command_expansion(void) {
 		trail_space[i] = 0;
 		for(; cc && ((*cc) != '\0'); cc++) if(isspace(*cc)) trail_space[i]++;
 			else trail_space[i] = 0;
-		}
+	}
 
 	printf("<P><DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='data'>\n");
@@ -2262,11 +2267,10 @@ void display_command_expansion(void) {
 				if(odd) {
 					odd = 0;
 					bg_class = "dataEven";
-					}
-				else {
+				} else {
 					odd = 1;
 					bg_class = "dataOdd";
-					}
+				}
 
 				printf("<TR CLASS='%s'>\n", bg_class);
 
@@ -2288,15 +2292,13 @@ void display_command_expansion(void) {
 						/* Escaped '$' */
 						printf("<FONT COLOR='#444444'>$</FONT>");
 						c = (++cc);
-						}
-					else if(strncmp("ARG", cc, 3)) {
+					} else if(strncmp("ARG", cc, 3)) {
 						/* Non-$ARGn$ macro */
 						c = strstr(cc, "$");
 						if(c)(*(c++)) = '\0';
 						printf("<FONT COLOR='#777777'>$%s%s</FONT>", html_encode(cc, FALSE), (c ? "$" : ""));
 						if(!c) printf("<FONT COLOR='#FF0000'> (not properly terminated)</FONT>");
-						}
-					else {
+					} else {
 						/* $ARGn$ macro */
 						for(c = (cc += 3); isdigit(*c); c++) ;
 						if(((*c) == '\0') || ((*c) == '$')) {
@@ -2309,21 +2311,18 @@ void display_command_expansion(void) {
 										                                      hash_color(i), ((lead_space[i] > 0) || (trail_space[i] > 0) ? "<U>&zwj;" : ""),
 										                                      html_encode(command_args[i], FALSE), ((lead_space[i] > 0) || (trail_space[i] > 0) ? "&zwj;</U>" : ""));
 									else printf("<FONT COLOR='#0000FF'>(empty)</FONT>");
-									}
-								else printf("<FONT COLOR='#0000FF'>(undefined)</FONT>");
-								}
-							else printf("<FONT COLOR='#FF0000'>(not a valid $ARGn$ index: %u)</FONT>", i);
+								} else printf("<FONT COLOR='#0000FF'>(undefined)</FONT>");
+							} else printf("<FONT COLOR='#FF0000'>(not a valid $ARGn$ index: %u)</FONT>", i);
 							if((*c) != '\0') c++;
 							else printf("<FONT COLOR='#FF0000'> (not properly terminated)</FONT>");
-							}
-						else {
+						} else {
 							/* Syntax err in index */
 							c = strstr(cc, "$");
 							printf("<FONT COLOR='#FF0000'>(not an $ARGn$ index: &quot;%s&quot;)</FONT>", html_encode(strtok(cc, "$"), FALSE));
 							if(c) c++;
-							}
 						}
 					}
+				}
 				if(c) printf("%s", html_encode(c, FALSE));
 
 				printf("</TD></TR>\n");
@@ -2334,13 +2333,12 @@ void display_command_expansion(void) {
 						printf("<TD CLASS='%s'>$ARG%u$=<FONT COLOR='%s'>%s%s%s</FONT></TD></TR>\n", bg_class, i, hash_color(i),
 						       ((lead_space[i] > 0) || (trail_space[i] > 0) ? "<U>&zwj;" : ""), html_encode(command_args[i], FALSE),
 						       ((lead_space[i] > 0) || (trail_space[i] > 0) ? "&zwj;</U>" : ""));
-						}
-					else if(arg_count[i] > 1) {
+					} else if(arg_count[i] > 1) {
 						printf("<TR CLASS='%s'><TD CLASS='%s' ALIGN='right'>used %u x:</TD>\n", bg_class, bg_class, i);
 						printf("<TD CLASS='%s'>$ARG%u$=<FONT COLOR='%s'>%s%s%s</FONT></TD></TR>\n", bg_class, i, hash_color(i),
 						       ((lead_space[i] > 0) || (trail_space[i] > 0) ? "<U>&zwj;" : ""), html_encode(command_args[i], FALSE),
 						       ((lead_space[i] > 0) || (trail_space[i] > 0) ? "&zwj;</U>" : ""));
-						}
+					}
 					if((lead_space[i] > 0) || (trail_space[i] > 0)) {
 						printf("<TR CLASS='%s'><TD CLASS='%s' ALIGN='right'><FONT COLOR='#0000FF'>dangling whitespace:</FONT></TD>\n", bg_class, bg_class);
 						printf("<TD CLASS='%s'>$ARG%u$=<FONT COLOR='#0000FF'>", bg_class, i);
@@ -2370,18 +2368,18 @@ void display_command_expansion(void) {
 							else if((*c) == '\v')	printf("[VT]");
 							else			printf("[0x%x]", *c);
 						printf("</FONT></TD></TR>\n");
-						}
 					}
 				}
-
 			}
+
+		}
 
 		if(!arg_count[0]) {
 			printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd' ALIGN='right'><FONT\n");
 			printf("COLOR='#FF0000'>Error:</FONT></TD><TD CLASS='dataOdd'><FONT COLOR='#FF0000'>No\n");
 			printf("command &quot;%s&quot; found</FONT></TD></TR>\n", html_encode(command_args[0], FALSE));
-			}
 		}
+	}
 
 	printf("<TR CLASS='dataEven'><TD><BR/></TD><TD CLASS='dataEven'>Enter the command_check definition from a host or service definition and press Go to see the expansion of the command</TD></TR>\n");
 	printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>To expand:</TD><TD CLASS='dataEven'><FORM\n");
@@ -2393,11 +2391,12 @@ void display_command_expansion(void) {
 	printf("</DIV></P>\n");
 
 	return;
-	}
+}
 
 
 
-void display_options(void) {
+void display_options(void)
+{
 
 	printf("<br><br>\n");
 
@@ -2436,4 +2435,4 @@ void display_options(void) {
 	printf("</form>\n");
 
 	return;
-	}
+}

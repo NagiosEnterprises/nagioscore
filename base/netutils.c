@@ -27,7 +27,8 @@
 
 
 /* connect to a TCP socket in nonblocking fashion */
-int my_tcp_connect(const char *host_name, int port, int *sd, int timeout) {
+int my_tcp_connect(const char *host_name, int port, int *sd, int timeout)
+{
 	struct addrinfo hints;
 	struct addrinfo *res;
 	int result;
@@ -52,14 +53,14 @@ int my_tcp_connect(const char *host_name, int port, int *sd, int timeout) {
 	if(result != 0) {
 		/*printf("GETADDRINFO: %s (%s) = %s\n",host_name,port_str,gai_strerror(result));*/
 		return ERROR;
-		}
+	}
 
 	/* create a socket */
 	*sd = socket(res->ai_family, SOCK_STREAM, res->ai_protocol);
 	if(*sd < 0) {
 		freeaddrinfo(res);
 		return ERROR;
-		}
+	}
 
 	/* make socket non-blocking */
 	flags = fcntl(*sd, F_GETFL, 0);
@@ -72,12 +73,12 @@ int my_tcp_connect(const char *host_name, int port, int *sd, int timeout) {
 	if(result == 0) {
 		result = OK;
 		/*printf("IMMEDIATE SUCCESS\n");*/
-		}
+	}
 
 	/* connection error */
 	else if(result < 0 && errno != EINPROGRESS) {
 		result = ERROR;
-		}
+	}
 
 	/* connection in progress - wait for it... */
 	else {
@@ -101,13 +102,13 @@ int my_tcp_connect(const char *host_name, int port, int *sd, int timeout) {
 				/*printf("TIMEOUT\n");*/
 				result = ERROR;
 				break;
-				}
+			}
 
 			/* an error occurred */
 			if(result < 0 && errno != EINTR) {
 				result = ERROR;
 				break;
-				}
+			}
 
 			/* got something - check it */
 			else if(result > 0) {
@@ -117,13 +118,13 @@ int my_tcp_connect(const char *host_name, int port, int *sd, int timeout) {
 				if(getsockopt(*sd, SOL_SOCKET, SO_ERROR, (void *)(&optval), &optlen) < 0) {
 					result = ERROR;
 					break;
-					}
+				}
 
 				/* an error occurred in the connection */
 				if(optval != 0) {
 					result = ERROR;
 					break;
-					}
+				}
 
 				/* the connection was good! */
 				/*
@@ -132,27 +133,27 @@ int my_tcp_connect(const char *host_name, int port, int *sd, int timeout) {
 				*/
 				result = OK;
 				break;
-				}
+			}
 
 			/* some other error occurred */
 			else {
 				result = ERROR;
 				break;
-				}
-
 			}
-		while(1);
-		}
+
+		} while(1);
+	}
 
 
 	freeaddrinfo(res);
 
 	return result;
-	}
+}
 
 
 /* based on Beej's sendall - thanks Beej! */
-int my_sendall(int s, const char *buf, int *len, int timeout) {
+int my_sendall(int s, const char *buf, int *len, int timeout)
+{
 	int total_sent = 0;
 	int bytes_left = 0;
 	int n;
@@ -182,13 +183,13 @@ int my_sendall(int s, const char *buf, int *len, int timeout) {
 			/*printf("RECV SELECT TIMEOUT\n");*/
 			result = ERROR;
 			break;
-			}
+		}
 		/* error */
 		else if(result < 0) {
 			/*printf("RECV SELECT ERROR: %s\n",strerror(errno));*/
 			result = ERROR;
 			break;
-			}
+		}
 
 		/* we're ready to write some data */
 		result = OK;
@@ -198,7 +199,7 @@ int my_sendall(int s, const char *buf, int *len, int timeout) {
 		if(n == -1) {
 			/*printf("SEND ERROR: (%d) %s\n",s,strerror(errno));*/
 			break;
-			}
+		}
 
 		total_sent += n;
 		bytes_left -= n;
@@ -208,17 +209,18 @@ int my_sendall(int s, const char *buf, int *len, int timeout) {
 		if(current_time - start_time > timeout) {
 			result = ERROR;
 			break;
-			}
 		}
+	}
 
 	*len = total_sent;
 
 	return result;
-	}
+}
 
 
 /* receives all data in non-blocking mode with a timeout  - modelled after sendall() */
-int my_recvall(int s, char *buf, int *len, int timeout) {
+int my_recvall(int s, char *buf, int *len, int timeout)
+{
 	int total_received = 0;
 	int bytes_left = *len;
 	int n = 0;
@@ -251,13 +253,13 @@ int my_recvall(int s, char *buf, int *len, int timeout) {
 			/*printf("RECV SELECT TIMEOUT\n");*/
 			result = ERROR;
 			break;
-			}
+		}
 		/* error */
 		else if(result < 0) {
 			/*printf("RECV SELECT ERROR: %s\n",strerror(errno));*/
 			result = ERROR;
 			break;
-			}
+		}
 
 		/* we're ready to read some data */
 		result = OK;
@@ -269,7 +271,7 @@ int my_recvall(int s, char *buf, int *len, int timeout) {
 		if(n == 0) {
 			/*printf("SERVER DISCONNECT\n");*/
 			break;
-			}
+		}
 
 		/* apply bytes we received */
 		total_received += n;
@@ -280,11 +282,11 @@ int my_recvall(int s, char *buf, int *len, int timeout) {
 		if(current_time - start_time > timeout) {
 			result = ERROR;
 			break;
-			}
 		}
+	}
 
 	/* return number of bytes actually received here */
 	*len = total_received;
 
 	return result;
-	}
+}

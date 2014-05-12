@@ -108,7 +108,7 @@ typedef struct archived_state_struct {
 	int     state_type;
 	char    *state_info;
 	struct archived_state_struct *next;
-	} archived_state;
+} archived_state;
 
 
 archived_state *as_list = NULL;
@@ -239,7 +239,8 @@ int problem_found;
 
 
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	int result = OK;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char image_template[MAX_INPUT_BUFFER];
@@ -270,9 +271,9 @@ int main(int argc, char **argv) {
 			document_header(FALSE);
 			cgi_config_file_error(get_cgi_config_location());
 			document_footer();
-			}
-		return ERROR;
 		}
+		return ERROR;
+	}
 
 	/* read the main configuration file */
 	result = read_main_config_file(main_config_file);
@@ -281,9 +282,9 @@ int main(int argc, char **argv) {
 			document_header(FALSE);
 			main_config_file_error(main_config_file);
 			document_footer();
-			}
-		return ERROR;
 		}
+		return ERROR;
+	}
 
 
 	/* initialize time period to last 24 hours */
@@ -293,22 +294,22 @@ int main(int argc, char **argv) {
 
 	/* default number of backtracked archives */
 	switch(log_rotation_method) {
-		case LOG_ROTATION_MONTHLY:
-			backtrack_archives = 1;
-			break;
-		case LOG_ROTATION_WEEKLY:
-			backtrack_archives = 2;
-			break;
-		case LOG_ROTATION_DAILY:
-			backtrack_archives = 4;
-			break;
-		case LOG_ROTATION_HOURLY:
-			backtrack_archives = 8;
-			break;
-		default:
-			backtrack_archives = 2;
-			break;
-		}
+	case LOG_ROTATION_MONTHLY:
+		backtrack_archives = 1;
+		break;
+	case LOG_ROTATION_WEEKLY:
+		backtrack_archives = 2;
+		break;
+	case LOG_ROTATION_DAILY:
+		backtrack_archives = 4;
+		break;
+	case LOG_ROTATION_HOURLY:
+		backtrack_archives = 8;
+		break;
+	default:
+		backtrack_archives = 2;
+		break;
+	}
 
 	/* get the arguments passed in the URL */
 	process_cgivars();
@@ -322,9 +323,9 @@ int main(int argc, char **argv) {
 			document_header(FALSE);
 			object_data_error();
 			document_footer();
-			}
-		return ERROR;
 		}
+		return ERROR;
+	}
 
 	/* read all status data */
 	result = read_all_status_data(main_config_file, READ_ALL_STATUS_DATA);
@@ -333,9 +334,9 @@ int main(int argc, char **argv) {
 			document_header(FALSE);
 			status_data_error();
 			document_footer();
-			}
-		return ERROR;
 		}
+		return ERROR;
+	}
 
 	document_header(TRUE);
 
@@ -347,14 +348,14 @@ int main(int argc, char **argv) {
 		t3 = t2;
 		t2 = t1;
 		t1 = t3;
-		}
+	}
 
 	/* don't let user create reports in the future */
 	if(t2 > current_time) {
 		t2 = current_time;
 		if(t1 > t2)
 			t1 = t2 - (60 * 60 * 24);
-		}
+	}
 
 	if(mode == CREATE_HTML && display_header == TRUE) {
 		time_t old_t1 = t1, old_t2 = t2;
@@ -390,53 +391,51 @@ int main(int argc, char **argv) {
 						problem_t1 = temp_as->time_stamp;
 						problem_found = TRUE;
 						break;
-						}
 					}
+				}
 				if(problem_found == TRUE) {
 					for(; temp_as != NULL; temp_as = temp_as->next) {
 						if(temp_as->entry_type == AS_HOST_UP && temp_as->time_stamp > problem_t1) {
 							problem_t2 = temp_as->time_stamp;
 							break;
-							}
 						}
 					}
 				}
-			else {
+			} else {
 				for(temp_as = as_list; temp_as != NULL; temp_as = temp_as->next) {
 					if((temp_as->entry_type == AS_SVC_UNKNOWN || temp_as->entry_type == AS_SVC_CRITICAL || temp_as->entry_type == AS_SVC_WARNING) && temp_as->time_stamp > t1) {
 						problem_t1 = temp_as->time_stamp;
 						problem_found = TRUE;
 						break;
-						}
 					}
+				}
 				if(problem_found == TRUE) {
 					for(; temp_as != NULL; temp_as = temp_as->next) {
 						if(temp_as->entry_type == AS_SVC_OK && temp_as->time_stamp > problem_t1) {
 							problem_t2 = temp_as->time_stamp;
 							break;
-							}
 						}
 					}
 				}
+			}
 			if(problem_found == TRUE) {
 				time_t margin;
 
 				if(problem_t2 == 0) {
 					margin = 12 * 60 * 60;
 					problem_t2 = problem_t1;
-					}
-				else
+				} else
 					margin = (problem_t2 - problem_t1) / 2;
 
 				t1 = problem_t1 - margin;
 				t2 = problem_t2 + margin;
-				}
 			}
+		}
 
 		if(timeperiod_type == TIMEPERIOD_NEXTPROBLEM && problem_found == FALSE) {
 			t1 = old_t1;
 			t2 = old_t2;
-			}
+		}
 
 		if(display_type != DISPLAY_NO_TRENDS && input_type == GET_INPUT_NONE) {
 
@@ -451,8 +450,7 @@ int main(int argc, char **argv) {
 				printf("<a href='%s?host=%s'>View Status Detail For This Host</a><BR>\n", STATUS_CGI, url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Alert History For This Host</a><BR>\n", HISTORY_CGI, url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Notifications For This Host</a><BR>\n", NOTIFICATIONS_CGI, url_encode(host_name));
-				}
-			else {
+			} else {
 				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&includesoftstates=%s&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedservicestate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n", TRENDS_CGI, url_encode(host_name), t1, t2, (include_soft_states == TRUE) ? "yes" : "no", (assume_state_retention == TRUE) ? "yes" : "no", (assume_initial_states == TRUE) ? "yes" : "no", (assume_states_during_notrunning == TRUE) ? "yes" : "no", initial_assumed_service_state, backtrack_archives);
 				printf("<a href='%s?host=%s", AVAIL_CGI, url_encode(host_name));
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&includesoftstates=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedservicestate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Service</a><BR>\n", url_encode(svc_description), t1, t2, (include_soft_states == TRUE) ? "yes" : "no", (assume_state_retention == TRUE) ? "yes" : "no", (assume_initial_states == TRUE) ? "yes" : "no", (assume_states_during_notrunning == TRUE) ? "yes" : "no", initial_assumed_service_state, backtrack_archives);
@@ -462,11 +460,11 @@ int main(int argc, char **argv) {
 				printf("service=%s'>View Alert History For This Service</A><BR>\n", url_encode(svc_description));
 				printf("<A HREF='%s?host=%s&", NOTIFICATIONS_CGI, url_encode(host_name));
 				printf("service=%s'>View Notifications For This Service</A><BR>\n", url_encode(svc_description));
-				}
+			}
 
 			printf("</TD></TR>\n");
 			printf("</TABLE>\n");
-			}
+		}
 
 		printf("</td>\n");
 
@@ -494,7 +492,7 @@ int main(int argc, char **argv) {
 
 			get_time_breakdown((time_t)(t2 - t1), &days, &hours, &minutes, &seconds);
 			printf("<div align=center class='reportDuration'>Duration: %dd %dh %dm %ds</div>\n", days, hours, minutes, seconds);
-			}
+		}
 
 		printf("</td>\n");
 
@@ -531,8 +529,7 @@ int main(int argc, char **argv) {
 				printf("<option value=%d %s>Host Up\n", AS_HOST_UP, (initial_assumed_host_state == AS_HOST_UP) ? "SELECTED" : "");
 				printf("<option value=%d %s>Host Down\n", AS_HOST_DOWN, (initial_assumed_host_state == AS_HOST_DOWN) ? "SELECTED" : "");
 				printf("<option value=%d %s>Host Unreachable\n", AS_HOST_UNREACHABLE, (initial_assumed_host_state == AS_HOST_UNREACHABLE) ? "SELECTED" : "");
-				}
-			else {
+			} else {
 				printf("<input type='hidden' name='initialassumedhoststate' value='%d'>", initial_assumed_host_state);
 				printf("<select name='initialassumedservicestate'>\n");
 				printf("<option value=%d %s>Unspecified\n", AS_NO_DATA, (initial_assumed_service_state == AS_NO_DATA) ? "SELECTED" : "");
@@ -541,7 +538,7 @@ int main(int argc, char **argv) {
 				printf("<option value=%d %s>Service Warning\n", AS_SVC_WARNING, (initial_assumed_service_state == AS_SVC_WARNING) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service Unknown\n", AS_SVC_UNKNOWN, (initial_assumed_service_state == AS_SVC_UNKNOWN) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service Critical\n", AS_SVC_CRITICAL, (initial_assumed_service_state == AS_SVC_CRITICAL) ? "SELECTED" : "");
-				}
+			}
 			printf("</select>\n");
 			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<input type='text' name='backtrack' size='2' maxlength='2' value='%d'>\n", backtrack_archives);
@@ -583,7 +580,7 @@ int main(int argc, char **argv) {
 			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<input type='submit' value='Update'>\n");
 			printf("</td></tr>\n");
-			}
+		}
 
 		/* display context-sensitive help */
 		printf("<tr><td></td><td align=right valign=bottom>\n");
@@ -592,8 +589,7 @@ int main(int argc, char **argv) {
 				display_context_help(CONTEXTHELP_TRENDS_HOST);
 			else
 				display_context_help(CONTEXTHELP_TRENDS_SERVICE);
-			}
-		else if(display_type == DISPLAY_NO_TRENDS || input_type != GET_INPUT_NONE) {
+		} else if(display_type == DISPLAY_NO_TRENDS || input_type != GET_INPUT_NONE) {
 			if(input_type == GET_INPUT_NONE)
 				display_context_help(CONTEXTHELP_TRENDS_MENU1);
 			else if(input_type == GET_INPUT_TARGET_TYPE)
@@ -604,7 +600,7 @@ int main(int argc, char **argv) {
 				display_context_help(CONTEXTHELP_TRENDS_MENU3);
 			else if(input_type == GET_INPUT_OPTIONS)
 				display_context_help(CONTEXTHELP_TRENDS_MENU4);
-			}
+		}
 		printf("</td></tr>\n");
 
 		printf("</table>\n");
@@ -615,7 +611,7 @@ int main(int argc, char **argv) {
 		/* end of top table */
 		printf("</tr>\n");
 		printf("</table>\n");
-		}
+	}
 
 
 #ifndef DEBUG
@@ -625,12 +621,11 @@ int main(int argc, char **argv) {
 		temp_host = find_host(host_name);
 		if(temp_host == NULL || is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 			is_authorized = FALSE;
-		}
-	else if(display_type == DISPLAY_SERVICE_TRENDS) {
+	} else if(display_type == DISPLAY_SERVICE_TRENDS) {
 		temp_service = find_service(host_name, svc_description);
 		if(temp_service == NULL || is_authorized_for_service(temp_service, &current_authdata) == FALSE)
 			is_authorized = FALSE;
-		}
+	}
 	if(is_authorized == FALSE) {
 
 		if(mode == CREATE_HTML)
@@ -639,7 +634,7 @@ int main(int argc, char **argv) {
 		document_footer();
 		free_memory();
 		return ERROR;
-		}
+	}
 #endif
 
 
@@ -649,17 +644,16 @@ int main(int argc, char **argv) {
 		document_footer();
 		free_memory();
 		return ERROR;
-		}
+	}
 	/* set drawing parameters, etc */
 
 	if(small_image == TRUE) {
 		image_height = 20;
 		image_width = 500;
-		}
-	else {
+	} else {
 		image_height = 300;
 		image_width = 900;
-		}
+	}
 
 	if(display_type == DISPLAY_HOST_TRENDS) {
 
@@ -668,29 +662,26 @@ int main(int argc, char **argv) {
 			drawing_height = SMALL_HOST_DRAWING_HEIGHT;
 			drawing_x_offset = SMALL_HOST_DRAWING_X_OFFSET;
 			drawing_y_offset = SMALL_HOST_DRAWING_Y_OFFSET;
-			}
-		else {
+		} else {
 			drawing_width = HOST_DRAWING_WIDTH;
 			drawing_height = HOST_DRAWING_HEIGHT;
 			drawing_x_offset = HOST_DRAWING_X_OFFSET;
 			drawing_y_offset = HOST_DRAWING_Y_OFFSET;
-			}
 		}
-	else if(display_type == DISPLAY_SERVICE_TRENDS) {
+	} else if(display_type == DISPLAY_SERVICE_TRENDS) {
 
 		if(small_image == TRUE) {
 			drawing_width = SMALL_SVC_DRAWING_WIDTH;
 			drawing_height = SMALL_SVC_DRAWING_HEIGHT;
 			drawing_x_offset = SMALL_SVC_DRAWING_X_OFFSET;
 			drawing_y_offset = SMALL_SVC_DRAWING_Y_OFFSET;
-			}
-		else {
+		} else {
 			drawing_width = SVC_DRAWING_WIDTH;
 			drawing_height = SVC_DRAWING_HEIGHT;
 			drawing_x_offset = SVC_DRAWING_X_OFFSET;
 			drawing_y_offset = SVC_DRAWING_Y_OFFSET;
-			}
 		}
+	}
 
 	/* last known state should always be initially set to indeterminate! */
 	last_known_state = AS_NO_DATA;
@@ -706,8 +697,8 @@ int main(int argc, char **argv) {
 				printf("Error: Could not allocate memory for image\n");
 #endif
 				return ERROR;
-				}
 			}
+		}
 
 		else {
 
@@ -723,7 +714,7 @@ int main(int argc, char **argv) {
 			if(image_file != NULL) {
 				trends_image = gdImageCreateFromPng(image_file);
 				fclose(image_file);
-				}
+			}
 			if(trends_image == NULL)
 				trends_image = gdImageCreate(image_width, image_height);
 			if(trends_image == NULL) {
@@ -731,8 +722,8 @@ int main(int argc, char **argv) {
 				printf("Error: Could not allocate memory for image\n");
 #endif
 				return ERROR;
-				}
 			}
+		}
 
 		/* allocate colors used for drawing */
 		color_white = gdImageColorAllocate(trends_image, 255, 255, 255);
@@ -781,8 +772,8 @@ int main(int argc, char **argv) {
 			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			string_width = gdFontSmall->w * strlen(temp_buffer);
 			gdImageStringUp(trends_image, gdFontSmall, drawing_x_offset - (string_height / 2), drawing_y_offset + drawing_height + string_width + 5, (unsigned char *)temp_buffer, color_black);
-			}
 		}
+	}
 
 	if(display_type != DISPLAY_NO_TRENDS && input_type == GET_INPUT_NONE) {
 
@@ -794,7 +785,7 @@ int main(int argc, char **argv) {
 
 			/* graph archived state trend data */
 			graph_all_trend_data();
-			}
+		}
 
 		/* print URL to image */
 		if(mode == CREATE_HTML) {
@@ -816,7 +807,7 @@ int main(int argc, char **argv) {
 			printf("&zoom=%d", zoom_factor);
 			printf("' BORDER=0 name='trendsimage' useMap='#trendsmap' width=%d>\n", image_width);
 			printf("</DIV>\n");
-			}
+		}
 
 		if(mode == CREATE_IMAGE || (mode == CREATE_HTML && use_map == TRUE)) {
 
@@ -828,7 +819,7 @@ int main(int argc, char **argv) {
 
 			/* draw state time breakdowns */
 			draw_time_breakdowns();
-			}
+		}
 
 		if(mode == CREATE_IMAGE) {
 
@@ -846,13 +837,13 @@ int main(int argc, char **argv) {
 			else {
 				gdImagePng(trends_image, image_file);
 				fclose(image_file);
-				}
+			}
 #endif
 
 			/* free memory allocated to image */
 			gdImageDestroy(trends_image);
-			}
 		}
+	}
 
 
 	/* show user a selection of hosts and services to choose from... */
@@ -878,7 +869,7 @@ int main(int argc, char **argv) {
 			for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 				if(is_authorized_for_host(temp_host, &current_authdata) == TRUE)
 					printf("<option value='%s'>%s\n", escape_string(temp_host->name), temp_host->name);
-				}
+			}
 
 			printf("</select>\n");
 			printf("</td></tr>\n");
@@ -891,7 +882,7 @@ int main(int argc, char **argv) {
 			printf("</form>\n");
 
 			printf("</DIV></P>\n");
-			}
+		}
 
 		/* ask the user for what service they want a report for */
 		else if(input_type == GET_INPUT_SERVICE_TARGET) {
@@ -908,8 +899,8 @@ int main(int argc, char **argv) {
 						first_service = temp_service->host_name;
 					printf(" \"%s\"", temp_service->host_name);
 					found = TRUE;
-					}
 				}
+			}
 
 			printf(" ]\n");
 			printf("return hostnames[hostindex];\n");
@@ -935,7 +926,7 @@ int main(int argc, char **argv) {
 			for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 				if(is_authorized_for_service(temp_service, &current_authdata) == TRUE)
 					printf("<option value='%s'>%s;%s\n", escape_string(temp_service->description), temp_service->host_name, temp_service->description);
-				}
+			}
 
 			printf("</select>\n");
 			printf("</td></tr>\n");
@@ -948,7 +939,7 @@ int main(int argc, char **argv) {
 			printf("</form>\n");
 
 			printf("</DIV></P>\n");
-			}
+		}
 
 		/* ask the user for report range and options */
 		else if(input_type == GET_INPUT_OPTIONS) {
@@ -1086,8 +1077,7 @@ int main(int argc, char **argv) {
 				printf("<option value=%d>Host Up\n", AS_HOST_UP);
 				printf("<option value=%d>Host Down\n", AS_HOST_DOWN);
 				printf("<option value=%d>Host Unreachable\n", AS_HOST_UNREACHABLE);
-				}
-			else {
+			} else {
 				printf("<select name='initialassumedservicestate'>\n");
 				printf("<option value=%d>Unspecified\n", AS_NO_DATA);
 				printf("<option value=%d>Current State\n", AS_CURRENT_STATE);
@@ -1095,7 +1085,7 @@ int main(int argc, char **argv) {
 				printf("<option value=%d>Service Warning\n", AS_SVC_WARNING);
 				printf("<option value=%d>Service Unknown\n", AS_SVC_UNKNOWN);
 				printf("<option value=%d>Service Critical\n", AS_SVC_CRITICAL);
-				}
+			}
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
@@ -1119,7 +1109,7 @@ int main(int argc, char **argv) {
 			printf("Note: Choosing the 'suppress image map' option will make the report run approximately twice as fast as it would otherwise, but it will prevent you from being able to zoom in on specific time periods.\n");
 			printf("</DIV></P>\n");
 			*/
-			}
+		}
 
 		/* as the user whether they want a graph for a host or service */
 		else {
@@ -1148,9 +1138,9 @@ int main(int argc, char **argv) {
 			printf("</form>\n");
 
 			printf("</DIV></P>\n");
-			}
-
 		}
+
+	}
 
 	document_footer();
 
@@ -1161,11 +1151,12 @@ int main(int argc, char **argv) {
 	free_memory();
 
 	return OK;
-	}
+}
 
 
 
-void document_header(int use_stylesheet) {
+void document_header(int use_stylesheet)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	time_t expire_time;
@@ -1197,7 +1188,7 @@ void document_header(int use_stylesheet) {
 		if(use_stylesheet == TRUE) {
 			printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, COMMON_CSS);
 			printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, TRENDS_CSS);
-			}
+		}
 
 		/* write JavaScript code for popup window */
 		if(display_type != DISPLAY_NO_TRENDS)
@@ -1211,7 +1202,7 @@ void document_header(int use_stylesheet) {
 		include_ssi_files(TRENDS_CGI, SSI_HEADER);
 
 		printf("<div id=\"popup\" style=\"position:absolute; z-index:1; visibility: hidden\"></div>\n");
-		}
+	}
 
 	else {
 		printf("Cache-Control: no-store\r\n");
@@ -1226,14 +1217,15 @@ void document_header(int use_stylesheet) {
 		printf("Expires: %s\r\n", date_time);
 
 		printf("Content-Type: image/png\r\n\r\n");
-		}
-
-	return;
 	}
 
+	return;
+}
 
 
-void document_footer(void) {
+
+void document_footer(void)
+{
 
 	if(embedded == TRUE)
 		return;
@@ -1245,14 +1237,15 @@ void document_footer(void) {
 
 		printf("</body>\n");
 		printf("</html>\n");
-		}
-
-	return;
 	}
 
+	return;
+}
 
 
-int process_cgivars(void) {
+
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -1264,7 +1257,7 @@ int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
+		}
 
 		/* we found the host argument */
 		else if(!strcmp(variables[x], "host")) {
@@ -1272,14 +1265,14 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((host_name = (char *)strdup(variables[x])) == NULL)
 				host_name = "";
 			strip_html_brackets(host_name);
 
 			display_type = DISPLAY_HOST_TRENDS;
-			}
+		}
 
 		/* we found the node width argument */
 		else if(!strcmp(variables[x], "service")) {
@@ -1287,14 +1280,14 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((svc_description = (char *)strdup(variables[x])) == NULL)
 				svc_description = "";
 			strip_html_brackets(svc_description);
 
 			display_type = DISPLAY_SERVICE_TRENDS;
-			}
+		}
 
 		/* we found first time argument */
 		else if(!strcmp(variables[x], "t1")) {
@@ -1302,11 +1295,11 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			t1 = (time_t)strtoul(variables[x], NULL, 10);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
-			}
+		}
 
 		/* we found first time argument */
 		else if(!strcmp(variables[x], "t2")) {
@@ -1314,16 +1307,16 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			t2 = (time_t)strtoul(variables[x], NULL, 10);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
-			}
+		}
 
 		/* we found the image creation option */
 		else if(!strcmp(variables[x], "createimage")) {
 			mode = CREATE_IMAGE;
-			}
+		}
 
 		/* we found the assume initial states option */
 		else if(!strcmp(variables[x], "assumeinitialstates")) {
@@ -1331,13 +1324,13 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "yes"))
 				assume_initial_states = TRUE;
 			else
 				assume_initial_states = FALSE;
-			}
+		}
 
 		/* we found the initial assumed host state option */
 		else if(!strcmp(variables[x], "initialassumedhoststate")) {
@@ -1345,10 +1338,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			initial_assumed_host_state = atoi(variables[x]);
-			}
+		}
 
 		/* we found the initial assumed service state option */
 		else if(!strcmp(variables[x], "initialassumedservicestate")) {
@@ -1356,10 +1349,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			initial_assumed_service_state = atoi(variables[x]);
-			}
+		}
 
 		/* we found the assume state during program not running option */
 		else if(!strcmp(variables[x], "assumestatesduringnotrunning")) {
@@ -1367,13 +1360,13 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "yes"))
 				assume_states_during_notrunning = TRUE;
 			else
 				assume_states_during_notrunning = FALSE;
-			}
+		}
 
 		/* we found the assume state retention option */
 		else if(!strcmp(variables[x], "assumestateretention")) {
@@ -1381,13 +1374,13 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "yes"))
 				assume_state_retention = TRUE;
 			else
 				assume_state_retention = FALSE;
-			}
+		}
 
 		/* we found the include soft states option */
 		else if(!strcmp(variables[x], "includesoftstates")) {
@@ -1395,13 +1388,13 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "yes"))
 				include_soft_states = TRUE;
 			else
 				include_soft_states = FALSE;
-			}
+		}
 
 		/* we found the zoom factor argument */
 		else if(!strcmp(variables[x], "zoom")) {
@@ -1409,12 +1402,12 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			zoom_factor = atoi(variables[x]);
 			if(zoom_factor == 0)
 				zoom_factor = 1;
-			}
+		}
 
 		/* we found the backtrack archives argument */
 		else if(!strcmp(variables[x], "backtrack")) {
@@ -1422,14 +1415,14 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			backtrack_archives = atoi(variables[x]);
 			if(backtrack_archives < 0)
 				backtrack_archives = 0;
 			if(backtrack_archives > MAX_ARCHIVE_BACKTRACKS)
 				backtrack_archives = MAX_ARCHIVE_BACKTRACKS;
-			}
+		}
 
 		/* we found the standard timeperiod argument */
 		else if(!strcmp(variables[x], "timeperiod")) {
@@ -1437,7 +1430,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "today"))
 				timeperiod_type = TIMEPERIOD_TODAY;
@@ -1473,7 +1466,7 @@ int process_cgivars(void) {
 				continue;
 
 			convert_timeperiod_to_times(timeperiod_type);
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "smon")) {
@@ -1481,7 +1474,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1489,7 +1482,7 @@ int process_cgivars(void) {
 			start_month = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "sday")) {
@@ -1497,7 +1490,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1505,7 +1498,7 @@ int process_cgivars(void) {
 			start_day = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "syear")) {
@@ -1513,7 +1506,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1521,7 +1514,7 @@ int process_cgivars(void) {
 			start_year = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "smin")) {
@@ -1529,7 +1522,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1537,7 +1530,7 @@ int process_cgivars(void) {
 			start_minute = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "ssec")) {
@@ -1545,7 +1538,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1553,7 +1546,7 @@ int process_cgivars(void) {
 			start_second = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "shour")) {
@@ -1561,7 +1554,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1569,7 +1562,7 @@ int process_cgivars(void) {
 			start_hour = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 
 		/* we found time argument */
@@ -1578,7 +1571,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1586,7 +1579,7 @@ int process_cgivars(void) {
 			end_month = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "eday")) {
@@ -1594,7 +1587,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1602,7 +1595,7 @@ int process_cgivars(void) {
 			end_day = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "eyear")) {
@@ -1610,7 +1603,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1618,7 +1611,7 @@ int process_cgivars(void) {
 			end_year = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "emin")) {
@@ -1626,7 +1619,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1634,7 +1627,7 @@ int process_cgivars(void) {
 			end_minute = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "esec")) {
@@ -1642,7 +1635,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1650,7 +1643,7 @@ int process_cgivars(void) {
 			end_second = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "ehour")) {
@@ -1658,7 +1651,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1666,7 +1659,7 @@ int process_cgivars(void) {
 			end_hour = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found the embed option */
 		else if(!strcmp(variables[x], "embedded"))
@@ -1684,7 +1677,7 @@ int process_cgivars(void) {
 		else if(!strcmp(variables[x], "nomap")) {
 			display_popups = FALSE;
 			use_map = FALSE;
-			}
+		}
 
 		/* we found the input option */
 		else if(!strcmp(variables[x], "input")) {
@@ -1692,7 +1685,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "gethost"))
 				input_type = GET_INPUT_HOST_TARGET;
@@ -1702,24 +1695,25 @@ int process_cgivars(void) {
 				input_type = GET_INPUT_OPTIONS;
 			else
 				input_type = GET_INPUT_TARGET_TYPE;
-			}
+		}
 
 		/* we found the small image option */
 		else if(!strcmp(variables[x], "smallimage"))
 			small_image = TRUE;
 
-		}
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
 /* top level routine for graphic all trend data */
-void graph_all_trend_data(void) {
+void graph_all_trend_data(void)
+{
 	archived_state *temp_as;
 	archived_state *last_as;
 	time_t a;
@@ -1772,9 +1766,8 @@ void graph_all_trend_data(void) {
 
 				/* add a dummy archived state item, so something can get graphed */
 				add_archived_state(last_known_state, AS_HARD_STATE, t1, "Current Host State Assumed (Faked Log Entry)");
-				}
 			}
-		else {
+		} else {
 			if(svcstatus != NULL) {
 
 				if(svcstatus->status == SERVICE_OK)
@@ -1788,9 +1781,9 @@ void graph_all_trend_data(void) {
 
 				/* add a dummy archived state item, so something can get graphed */
 				add_archived_state(last_known_state, AS_HARD_STATE, t1, "Current Service State Assumed (Faked Log Entry)");
-				}
 			}
 		}
+	}
 
 
 	/******************************************/
@@ -1808,54 +1801,52 @@ void graph_all_trend_data(void) {
 				initial_assumed_state = initial_assumed_service_state;
 			if(initial_assumed_service_state == AS_CURRENT_STATE && svcstatus == NULL)
 				error = TRUE;
-			}
-		else {
+		} else {
 			if(initial_assumed_host_state != AS_HOST_UP && initial_assumed_host_state != AS_HOST_DOWN && initial_assumed_host_state != AS_HOST_UNREACHABLE && initial_assumed_host_state != AS_CURRENT_STATE)
 				error = TRUE;
 			else
 				initial_assumed_state = initial_assumed_host_state;
 			if(initial_assumed_host_state == AS_CURRENT_STATE && hststatus == NULL)
 				error = TRUE;
-			}
+		}
 
 		/* get the current state if applicable */
 		if(((display_type == DISPLAY_HOST_TRENDS && initial_assumed_host_state == AS_CURRENT_STATE) || (display_type == DISPLAY_SERVICE_TRENDS && initial_assumed_service_state == AS_CURRENT_STATE)) && error == FALSE) {
 			if(display_type == DISPLAY_HOST_TRENDS) {
 				switch(hststatus->status) {
-					case SD_HOST_DOWN:
-						initial_assumed_state = AS_HOST_DOWN;
-						break;
-					case SD_HOST_UNREACHABLE:
-						initial_assumed_state = AS_HOST_UNREACHABLE;
-						break;
-					case SD_HOST_UP:
-						initial_assumed_state = AS_HOST_UP;
-						break;
-					default:
-						error = TRUE;
-						break;
-					}
+				case SD_HOST_DOWN:
+					initial_assumed_state = AS_HOST_DOWN;
+					break;
+				case SD_HOST_UNREACHABLE:
+					initial_assumed_state = AS_HOST_UNREACHABLE;
+					break;
+				case SD_HOST_UP:
+					initial_assumed_state = AS_HOST_UP;
+					break;
+				default:
+					error = TRUE;
+					break;
 				}
-			else {
+			} else {
 				switch(svcstatus->status) {
-					case SERVICE_OK:
-						initial_assumed_state = AS_SVC_OK;
-						break;
-					case SERVICE_WARNING:
-						initial_assumed_state = AS_SVC_WARNING;
-						break;
-					case SERVICE_UNKNOWN:
-						initial_assumed_state = AS_SVC_UNKNOWN;
-						break;
-					case SERVICE_CRITICAL:
-						initial_assumed_state = AS_SVC_CRITICAL;
-						break;
-					default:
-						error = TRUE;
-						break;
-					}
+				case SERVICE_OK:
+					initial_assumed_state = AS_SVC_OK;
+					break;
+				case SERVICE_WARNING:
+					initial_assumed_state = AS_SVC_WARNING;
+					break;
+				case SERVICE_UNKNOWN:
+					initial_assumed_state = AS_SVC_UNKNOWN;
+					break;
+				case SERVICE_CRITICAL:
+					initial_assumed_state = AS_SVC_CRITICAL;
+					break;
+				default:
+					error = TRUE;
+					break;
 				}
 			}
+		}
 
 		if(error == FALSE) {
 
@@ -1871,8 +1862,8 @@ void graph_all_trend_data(void) {
 				add_archived_state(initial_assumed_state, AS_HARD_STATE, initial_assumed_time, "First Host State Assumed (Faked Log Entry)");
 			else
 				add_archived_state(initial_assumed_state, AS_HARD_STATE, initial_assumed_time, "First Service State Assumed (Faked Log Entry)");
-			}
 		}
+	}
 
 
 
@@ -1886,8 +1877,8 @@ void graph_all_trend_data(void) {
 		if(temp_as->entry_type != AS_NO_DATA && temp_as->entry_type != AS_PROGRAM_START && temp_as->entry_type != AS_PROGRAM_END) {
 			have_some_real_data = TRUE;
 			break;
-			}
 		}
+	}
 	if(have_some_real_data == FALSE)
 		return;
 
@@ -1920,7 +1911,7 @@ void graph_all_trend_data(void) {
 #ifdef DEBUG
 			printf("SETTING LAST KNOWN STATE=%d<br>\n", last_known_state);
 #endif
-			}
+		}
 
 		/* skip this entry if it occurs before the starting point of the graph */
 		if(temp_as->time_stamp <= t1) {
@@ -1929,7 +1920,7 @@ void graph_all_trend_data(void) {
 #endif
 			last_as = temp_as;
 			continue;
-			}
+		}
 
 		/* graph this span if we're not on the first item */
 		if(last_as != NULL) {
@@ -1956,13 +1947,13 @@ void graph_all_trend_data(void) {
 				if(a < earliest_time) {
 					earliest_time = a;
 					earliest_state = last_as->entry_type;
-					}
+				}
 
 				/* save this time if its the latest we've graphed */
 				if(b > latest_time) {
 					latest_time = b;
 					latest_state = last_as->entry_type;
-					}
+				}
 
 				/* compute availability times for this chunk */
 				graph_trend_data(last_as->entry_type, temp_as->entry_type, last_as->time_stamp, a, b, last_as->state_info);
@@ -1971,14 +1962,14 @@ void graph_all_trend_data(void) {
 				if(b >= t2) {
 					last_as = temp_as;
 					break;
-					}
 				}
 			}
+		}
 
 
 		/* keep track of the last item */
 		last_as = temp_as;
-		}
+	}
 
 
 #ifdef DEBUG
@@ -2011,8 +2002,8 @@ void graph_all_trend_data(void) {
 
 			/* compute availability times for last state */
 			graph_trend_data(last_as->entry_type, current_state, a, a, b, last_as->state_info);
-			}
 		}
+	}
 
 
 
@@ -2021,12 +2012,13 @@ void graph_all_trend_data(void) {
 		printf("</MAP>\n");
 
 	return;
-	}
+}
 
 
 
 /* graphs trend data */
-void graph_trend_data(int first_state, int last_state, time_t real_start_time, time_t start_time, time_t end_time, char *state_info) {
+void graph_trend_data(int first_state, int last_state, time_t real_start_time, time_t start_time, time_t end_time, char *state_info)
+{
 	int start_state;
 	int start_pixel = 0;
 	int end_pixel = 0;
@@ -2052,13 +2044,13 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 	if(first_state == AS_PROGRAM_START && (last_state == AS_PROGRAM_END || last_state == AS_PROGRAM_START)) {
 		if(assume_initial_states == FALSE)
 			return;
-		}
+	}
 	if(first_state == AS_PROGRAM_END) {
 		if(assume_states_during_notrunning == TRUE)
 			first_state = last_known_state;
 		else
 			return;
-		}
+	}
 
 	/* special case if first entry was program start */
 	if(first_state == AS_PROGRAM_START) {
@@ -2074,8 +2066,7 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 #ifdef DEBUG
 				printf("\tWe are assuming state retention (%d)...\n", start_state);
 #endif
-				}
-			else {
+			} else {
 #ifdef DEBUG
 				printf("\tWe are NOT assuming state retention...\n");
 #endif
@@ -2083,19 +2074,17 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 					start_state = AS_HOST_UP;
 				else
 					start_state = AS_SVC_OK;
-				}
 			}
-		else {
+		} else {
 #ifdef DEBUG
 			printf("We ARE NOT assuming initial states!\n");
 #endif
 			return;
-			}
 		}
-	else {
+	} else {
 		start_state = first_state;
 		last_known_state = first_state;
-		}
+	}
 
 #ifdef DEBUG
 	printf("Graphing state %d\n", start_state);
@@ -2116,13 +2105,13 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 	else {
 		start_pixel_ratio = ((double)(start_time - t1)) / ((double)(t2 - t1));
 		start_pixel = (int)(start_pixel_ratio * (drawing_width - 1));
-		}
+	}
 	if(end_time == t1)
 		end_pixel = 0;
 	else {
 		end_pixel_ratio = ((double)(end_time - t1)) / ((double)(t2 - t1));
 		end_pixel = (int)(end_pixel_ratio * (drawing_width - 1));
-		}
+	}
 
 #ifdef DEBUG
 	printf("\tPixel %d to %d\n\n", start_pixel, end_pixel);
@@ -2134,44 +2123,44 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 
 		/* figure out the color to use for drawing */
 		switch(start_state) {
-			case AS_HOST_UP:
-				color_to_use = color_green;
-				height = 60;
-				break;
-			case AS_HOST_DOWN:
-				color_to_use = color_red;
-				height = 40;
-				break;
-			case AS_HOST_UNREACHABLE:
-				color_to_use = color_darkred;
-				height = 20;
-				break;
-			case AS_SVC_OK:
-				color_to_use = color_green;
-				height = 80;
-				break;
-			case AS_SVC_WARNING:
-				color_to_use = color_yellow;
-				height = 60;
-				break;
-			case AS_SVC_UNKNOWN:
-				color_to_use = color_orange;
-				height = 40;
-				break;
-			case AS_SVC_CRITICAL:
-				color_to_use = color_red;
-				height = 20;
-				break;
-			default:
-				color_to_use = color_black;
-				height = 0;
-				break;
-			}
+		case AS_HOST_UP:
+			color_to_use = color_green;
+			height = 60;
+			break;
+		case AS_HOST_DOWN:
+			color_to_use = color_red;
+			height = 40;
+			break;
+		case AS_HOST_UNREACHABLE:
+			color_to_use = color_darkred;
+			height = 20;
+			break;
+		case AS_SVC_OK:
+			color_to_use = color_green;
+			height = 80;
+			break;
+		case AS_SVC_WARNING:
+			color_to_use = color_yellow;
+			height = 60;
+			break;
+		case AS_SVC_UNKNOWN:
+			color_to_use = color_orange;
+			height = 40;
+			break;
+		case AS_SVC_CRITICAL:
+			color_to_use = color_red;
+			height = 20;
+			break;
+		default:
+			color_to_use = color_black;
+			height = 0;
+			break;
+		}
 
 		/* draw a rectangle */
 		if(start_state != AS_NO_DATA)
 			gdImageFilledRectangle(trends_image, start_pixel + drawing_x_offset, drawing_height - height + drawing_y_offset, end_pixel + drawing_x_offset, drawing_height + drawing_y_offset, color_to_use);
-		}
+	}
 
 	/* else we're creating the HTML, so write map area code... */
 	else {
@@ -2179,39 +2168,39 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 
 		/* figure out the the state string to use */
 		switch(start_state) {
-			case AS_HOST_UP:
-				strcpy(state_string, "UP");
-				height = 60;
-				break;
-			case AS_HOST_DOWN:
-				strcpy(state_string, "DOWN");
-				height = 40;
-				break;
-			case AS_HOST_UNREACHABLE:
-				strcpy(state_string, "UNREACHABLE");
-				height = 20;
-				break;
-			case AS_SVC_OK:
-				strcpy(state_string, "OK");
-				height = 80;
-				break;
-			case AS_SVC_WARNING:
-				strcpy(state_string, "WARNING");
-				height = 60;
-				break;
-			case AS_SVC_UNKNOWN:
-				strcpy(state_string, "UNKNOWN");
-				height = 40;
-				break;
-			case AS_SVC_CRITICAL:
-				strcpy(state_string, "CRITICAL");
-				height = 20;
-				break;
-			default:
-				strcpy(state_string, "?");
-				height = 5;
-				break;
-			}
+		case AS_HOST_UP:
+			strcpy(state_string, "UP");
+			height = 60;
+			break;
+		case AS_HOST_DOWN:
+			strcpy(state_string, "DOWN");
+			height = 40;
+			break;
+		case AS_HOST_UNREACHABLE:
+			strcpy(state_string, "UNREACHABLE");
+			height = 20;
+			break;
+		case AS_SVC_OK:
+			strcpy(state_string, "OK");
+			height = 80;
+			break;
+		case AS_SVC_WARNING:
+			strcpy(state_string, "WARNING");
+			height = 60;
+			break;
+		case AS_SVC_UNKNOWN:
+			strcpy(state_string, "UNKNOWN");
+			height = 40;
+			break;
+		case AS_SVC_CRITICAL:
+			strcpy(state_string, "CRITICAL");
+			height = 20;
+			break;
+		default:
+			strcpy(state_string, "?");
+			height = 5;
+			break;
+		}
 
 		/* get the center of this time range */
 		center_time = start_time + ((end_time - start_time) / 2);
@@ -2220,11 +2209,10 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 		if(zoom_factor > 0) {
 			next_start_time = center_time - (((t2 - t1) / 2) / zoom_factor);
 			next_end_time = center_time + (((t2 - t1) / 2) / zoom_factor);
-			}
-		else {
+		} else {
 			next_start_time = center_time + (((t2 - t1) / 2) * zoom_factor);
 			next_end_time = center_time - (((t2 - t1) / 2) * zoom_factor);
-			}
+		}
 
 		printf("<AREA shape='rect' ");
 
@@ -2267,47 +2255,48 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			printf("%s", temp_buffer);
 			printf("\",event)' onMouseOut='hidePopup()'");
-			}
+		}
 
 		printf(">\n");
 
-		}
+	}
 
 
 	/* calculate time in this state */
 	switch(start_state) {
-		case AS_HOST_UP:
-			time_up += (unsigned long)(end_time - start_time);
-			break;
-		case AS_HOST_DOWN:
-			time_down += (unsigned long)(end_time - start_time);
-			break;
-		case AS_HOST_UNREACHABLE:
-			time_unreachable += (unsigned long)(end_time - start_time);
-			break;
-		case AS_SVC_OK:
-			time_ok += (unsigned long)(end_time - start_time);
-			break;
-		case AS_SVC_WARNING:
-			time_warning += (unsigned long)(end_time - start_time);
-			break;
-		case AS_SVC_UNKNOWN:
-			time_unknown += (unsigned long)(end_time - start_time);
-			break;
-		case AS_SVC_CRITICAL:
-			time_critical += (unsigned long)(end_time - start_time);
-			break;
-		default:
-			break;
-		}
+	case AS_HOST_UP:
+		time_up += (unsigned long)(end_time - start_time);
+		break;
+	case AS_HOST_DOWN:
+		time_down += (unsigned long)(end_time - start_time);
+		break;
+	case AS_HOST_UNREACHABLE:
+		time_unreachable += (unsigned long)(end_time - start_time);
+		break;
+	case AS_SVC_OK:
+		time_ok += (unsigned long)(end_time - start_time);
+		break;
+	case AS_SVC_WARNING:
+		time_warning += (unsigned long)(end_time - start_time);
+		break;
+	case AS_SVC_UNKNOWN:
+		time_unknown += (unsigned long)(end_time - start_time);
+		break;
+	case AS_SVC_CRITICAL:
+		time_critical += (unsigned long)(end_time - start_time);
+		break;
+	default:
+		break;
+	}
 
 	return;
-	}
+}
 
 
 
 /* convert current host state to archived state value */
-int convert_host_state_to_archived_state(int current_status) {
+int convert_host_state_to_archived_state(int current_status)
+{
 
 	if(current_status == SD_HOST_UP)
 		return AS_HOST_UP;
@@ -2317,11 +2306,12 @@ int convert_host_state_to_archived_state(int current_status) {
 		return AS_HOST_UNREACHABLE;
 
 	return AS_NO_DATA;
-	}
+}
 
 
 /* convert current service state to archived state value */
-int convert_service_state_to_archived_state(int current_status) {
+int convert_service_state_to_archived_state(int current_status)
+{
 
 	if(current_status == SERVICE_OK)
 		return AS_SVC_OK;
@@ -2333,12 +2323,13 @@ int convert_service_state_to_archived_state(int current_status) {
 		return AS_SVC_CRITICAL;
 
 	return AS_NO_DATA;
-	}
+}
 
 
 
 /* adds an archived state entry */
-void add_archived_state(int entry_type, int state_type, time_t time_stamp, char *state_info) {
+void add_archived_state(int entry_type, int state_type, time_t time_stamp, char *state_info)
+{
 	archived_state *last_as = NULL;
 	archived_state *temp_as = NULL;
 	archived_state *new_as = NULL;
@@ -2357,8 +2348,7 @@ void add_archived_state(int entry_type, int state_type, time_t time_stamp, char 
 		new_as->state_info = (char *)malloc(strlen(state_info) + 1);
 		if(new_as->state_info != NULL)
 			strcpy(new_as->state_info, state_info);
-		}
-	else new_as->state_info = NULL;
+	} else new_as->state_info = NULL;
 
 	new_as->entry_type = entry_type;
 	new_as->processed_state = entry_type;
@@ -2375,25 +2365,24 @@ void add_archived_state(int entry_type, int state_type, time_t time_stamp, char 
 			else
 				last_as->next = new_as;
 			break;
-			}
-		else
+		} else
 			last_as = temp_as;
-		}
+	}
 	if(as_list == NULL) {
 		new_as->next = NULL;
 		as_list = new_as;
-		}
-	else if(temp_as == NULL) {
+	} else if(temp_as == NULL) {
 		new_as->next = NULL;
 		last_as->next = new_as;
-		}
+	}
 
 	return;
-	}
+}
 
 
 /* frees memory allocated to the archived state list */
-void free_archived_state_list(void) {
+void free_archived_state_list(void)
+{
 	archived_state *this_as = NULL;
 	archived_state *next_as = NULL;
 
@@ -2403,16 +2392,17 @@ void free_archived_state_list(void) {
 			free(this_as->state_info);
 		free(this_as);
 		this_as = next_as;
-		}
+	}
 
 	as_list = NULL;
 
 	return;
-	}
+}
 
 
 /* reads log files for archived state data */
-void read_archived_state_data(void) {
+void read_archived_state_data(void)
+{
 	char filename[MAX_FILENAME_LENGTH];
 	int newest_archive = 0;
 	int oldest_archive = 0;
@@ -2450,15 +2440,16 @@ void read_archived_state_data(void) {
 
 		/* scan the log file for archived state data */
 		scan_log_file_for_archived_state_data(filename);
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* grabs archives state data from a log file */
-void scan_log_file_for_archived_state_data(char *filename) {
+void scan_log_file_for_archived_state_data(char *filename)
+{
 	char *input = NULL;
 	char *input2 = NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
@@ -2473,14 +2464,14 @@ void scan_log_file_for_archived_state_data(char *filename) {
 	if(mode == CREATE_HTML) {
 		printf(" ");
 		fflush(NULL);
-		}
+	}
 
 	if((thefile = mmap_fopen(filename)) == NULL) {
 #ifdef DEBUG
 		printf("Could not open file '%s' for reading.\n", filename);
 #endif
 		return;
-		}
+	}
 
 #ifdef DEBUG
 	printf("Scanning log file '%s' for archived state data...\n", filename);
@@ -2540,7 +2531,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 					if(include_soft_states == FALSE)
 						continue;
 					state_type = AS_SOFT_STATE;
-					}
+				}
 				if(strstr(input, ";HARD;"))
 					state_type = AS_HARD_STATE;
 
@@ -2558,8 +2549,8 @@ void scan_log_file_for_archived_state_data(char *filename) {
 					add_archived_state(AS_HOST_UP, state_type, time_stamp, plugin_output);
 				else
 					add_archived_state(AS_NO_DATA, AS_NO_DATA, time_stamp, plugin_output);
-				}
 			}
+		}
 		if(display_type == DISPLAY_SERVICE_TRENDS) {
 			if(strstr(input, "SERVICE ALERT:") || strstr(input, "INITIAL SERVICE STATE:") || strstr(input, "CURRENT SERVICE STATE:")) {
 
@@ -2590,7 +2581,7 @@ void scan_log_file_for_archived_state_data(char *filename) {
 					if(include_soft_states == FALSE)
 						continue;
 					state_type = AS_SOFT_STATE;
-					}
+				}
 				if(strstr(input, ";HARD;"))
 					state_type = AS_HARD_STATE;
 
@@ -2611,10 +2602,10 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				else
 					add_archived_state(AS_NO_DATA, AS_NO_DATA, time_stamp, plugin_output);
 
-				}
 			}
-
 		}
+
+	}
 
 	/* free memory and close the file */
 	free(input);
@@ -2622,12 +2613,13 @@ void scan_log_file_for_archived_state_data(char *filename) {
 	mmap_fclose(thefile);
 
 	return;
-	}
+}
 
 
 
 /* write JavaScript code and layer for popup window */
-void write_popup_code(void) {
+void write_popup_code(void)
+{
 	char *border_color = "#000000";
 	char *background_color = "#ffffcc";
 	int border = 1;
@@ -2704,13 +2696,14 @@ void write_popup_code(void) {
 	printf("</SCRIPT>\n");
 
 	return;
-	}
+}
 
 
 
 
 /* write timestamps */
-void draw_timestamps(void) {
+void draw_timestamps(void)
+{
 	int last_timestamp = 0;
 	archived_state *temp_as;
 	double start_pixel_ratio;
@@ -2735,18 +2728,19 @@ void draw_timestamps(void) {
 		if((start_pixel > last_timestamp + MIN_TIMESTAMP_SPACING) && (start_pixel < drawing_width - 1 - MIN_TIMESTAMP_SPACING)) {
 			draw_timestamp(start_pixel, temp_as->time_stamp);
 			last_timestamp = start_pixel;
-			}
 		}
+	}
 
 	/* draw last timestamp */
 	draw_timestamp(drawing_width - 1, t2);
 
 	return;
-	}
+}
 
 
 /* write timestamp below graph */
-void draw_timestamp(int ts_pixel, time_t ts_time) {
+void draw_timestamp(int ts_pixel, time_t ts_time)
+{
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int string_height;
 	int string_width;
@@ -2766,12 +2760,13 @@ void draw_timestamp(int ts_pixel, time_t ts_time) {
 		draw_dashed_line(ts_pixel + drawing_x_offset, drawing_y_offset, ts_pixel + drawing_x_offset, drawing_y_offset + drawing_height, color_black);
 
 	return;
-	}
+}
 
 
 
 /* draw total state times */
-void draw_time_breakdowns(void) {
+void draw_time_breakdowns(void)
+{
 	char temp_buffer[MAX_INPUT_BUFFER];
 	unsigned long total_time = 0L;
 	unsigned long total_state_time;
@@ -2813,8 +2808,7 @@ void draw_time_breakdowns(void) {
 		get_time_breakdown_string(total_time, time_indeterminate, "Indeterminate", &temp_buffer[0], sizeof(temp_buffer));
 		gdImageString(trends_image, gdFontSmall, drawing_x_offset + drawing_width + 20, drawing_y_offset + 65, (unsigned char *)temp_buffer, color_black);
 		gdImageString(trends_image, gdFontSmall, drawing_x_offset - 10 - (gdFontSmall->w * 13), drawing_y_offset + 65, (unsigned char *)"Indeterminate", color_black);
-		}
-	else {
+	} else {
 		get_time_breakdown_string(total_time, time_ok, "Ok", &temp_buffer[0], sizeof(temp_buffer));
 		gdImageString(trends_image, gdFontSmall, drawing_x_offset + drawing_width + 20, drawing_y_offset + 5, (unsigned char *)temp_buffer, color_darkgreen);
 		gdImageString(trends_image, gdFontSmall, drawing_x_offset - 10 - (gdFontSmall->w * 2), drawing_y_offset + 5, (unsigned char *)"Ok", color_darkgreen);
@@ -2834,13 +2828,14 @@ void draw_time_breakdowns(void) {
 		get_time_breakdown_string(total_time, time_indeterminate, "Indeterminate", &temp_buffer[0], sizeof(temp_buffer));
 		gdImageString(trends_image, gdFontSmall, drawing_x_offset + drawing_width + 20, drawing_y_offset + 85, (unsigned char *)temp_buffer, color_black);
 		gdImageString(trends_image, gdFontSmall, drawing_x_offset - 10 - (gdFontSmall->w * 13), drawing_y_offset + 85, (unsigned char *)"Indeterminate", color_black);
-		}
-
-	return;
 	}
 
+	return;
+}
 
-void get_time_breakdown_string(unsigned long total_time, unsigned long state_time, char *state_string, char *buffer, int buffer_length) {
+
+void get_time_breakdown_string(unsigned long total_time, unsigned long state_time, char *state_string, char *buffer, int buffer_length)
+{
 	int days;
 	int hours;
 	int minutes;
@@ -2856,10 +2851,11 @@ void get_time_breakdown_string(unsigned long total_time, unsigned long state_tim
 	buffer[buffer_length - 1] = '\x0';
 
 	return;
-	}
+}
 
 
-void convert_timeperiod_to_times(int type) {
+void convert_timeperiod_to_times(int type)
+{
 	time_t current_time;
 	struct tm *t;
 
@@ -2874,79 +2870,79 @@ void convert_timeperiod_to_times(int type) {
 	t->tm_isdst = -1;
 
 	switch(type) {
-		case TIMEPERIOD_LAST24HOURS:
-			t1 = current_time - (60 * 60 * 24);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_TODAY:
-			t1 = mktime(t);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_YESTERDAY:
-			t1 = (time_t)(mktime(t) - (60 * 60 * 24));
-			t2 = (time_t)mktime(t);
-			break;
-		case TIMEPERIOD_THISWEEK:
-			t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_LASTWEEK:
-			t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday) - (60 * 60 * 24 * 7));
-			t2 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
-			break;
-		case TIMEPERIOD_THISMONTH:
-			t->tm_mday = 1;
-			t1 = mktime(t);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_LASTMONTH:
-			t->tm_mday = 1;
-			t2 = mktime(t);
-			if(t->tm_mon == 0) {
-				t->tm_mon = 11;
-				t->tm_year--;
-				}
-			else
-				t->tm_mon--;
-			t1 = mktime(t);
-			break;
-		case TIMEPERIOD_THISQUARTER:
-			break;
-		case TIMEPERIOD_LASTQUARTER:
-			break;
-		case TIMEPERIOD_THISYEAR:
-			t->tm_mon = 0;
-			t->tm_mday = 1;
-			t1 = mktime(t);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_LASTYEAR:
-			t->tm_mon = 0;
-			t->tm_mday = 1;
-			t2 = mktime(t);
+	case TIMEPERIOD_LAST24HOURS:
+		t1 = current_time - (60 * 60 * 24);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_TODAY:
+		t1 = mktime(t);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_YESTERDAY:
+		t1 = (time_t)(mktime(t) - (60 * 60 * 24));
+		t2 = (time_t)mktime(t);
+		break;
+	case TIMEPERIOD_THISWEEK:
+		t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_LASTWEEK:
+		t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday) - (60 * 60 * 24 * 7));
+		t2 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
+		break;
+	case TIMEPERIOD_THISMONTH:
+		t->tm_mday = 1;
+		t1 = mktime(t);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_LASTMONTH:
+		t->tm_mday = 1;
+		t2 = mktime(t);
+		if(t->tm_mon == 0) {
+			t->tm_mon = 11;
 			t->tm_year--;
-			t1 = mktime(t);
-			break;
-		case TIMEPERIOD_NEXTPROBLEM:
-			/* Time period will be defined later */
-			break;
-		case TIMEPERIOD_LAST7DAYS:
-			t2 = current_time;
-			t1 = current_time - (7 * 24 * 60 * 60);
-			break;
-		case TIMEPERIOD_LAST31DAYS:
-			t2 = current_time;
-			t1 = current_time - (31 * 24 * 60 * 60);
-			break;
-		default:
-			break;
-		}
-
-	return;
+		} else
+			t->tm_mon--;
+		t1 = mktime(t);
+		break;
+	case TIMEPERIOD_THISQUARTER:
+		break;
+	case TIMEPERIOD_LASTQUARTER:
+		break;
+	case TIMEPERIOD_THISYEAR:
+		t->tm_mon = 0;
+		t->tm_mday = 1;
+		t1 = mktime(t);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_LASTYEAR:
+		t->tm_mon = 0;
+		t->tm_mday = 1;
+		t2 = mktime(t);
+		t->tm_year--;
+		t1 = mktime(t);
+		break;
+	case TIMEPERIOD_NEXTPROBLEM:
+		/* Time period will be defined later */
+		break;
+	case TIMEPERIOD_LAST7DAYS:
+		t2 = current_time;
+		t1 = current_time - (7 * 24 * 60 * 60);
+		break;
+	case TIMEPERIOD_LAST31DAYS:
+		t2 = current_time;
+		t1 = current_time - (31 * 24 * 60 * 60);
+		break;
+	default:
+		break;
 	}
 
+	return;
+}
 
-void compute_report_times(void) {
+
+void compute_report_times(void)
+{
 	time_t current_time;
 	struct tm *st;
 	struct tm *et;
@@ -2977,12 +2973,13 @@ void compute_report_times(void) {
 	et->tm_isdst = -1;
 
 	t2 = mktime(et);
-	}
+}
 
 
 
 /* draws a dashed line */
-void draw_dashed_line(int x1, int y1, int x2, int y2, int color) {
+void draw_dashed_line(int x1, int y1, int x2, int y2, int color)
+{
 	int styleDashed[12];
 
 	styleDashed[0] = color;
@@ -3005,11 +3002,12 @@ void draw_dashed_line(int x1, int y1, int x2, int y2, int color) {
 	gdImageLine(trends_image, x1, y1, x2, y2, gdStyled);
 
 	return;
-	}
+}
 
 
 /* draws horizontal grid lines */
-void draw_horizontal_grid_lines(void) {
+void draw_horizontal_grid_lines(void)
+{
 
 	if(mode == CREATE_HTML)
 		return;
@@ -3024,4 +3022,4 @@ void draw_horizontal_grid_lines(void) {
 		draw_dashed_line(drawing_x_offset, drawing_y_offset + 70, drawing_x_offset + drawing_width, drawing_y_offset + 70, color_black);
 
 	return;
-	}
+}

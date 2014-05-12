@@ -84,7 +84,7 @@ static int nerd_register_channel_callbacks(struct nerd_channel *chan)
 		int result = neb_register_callback(chan->callbacks[i], &nerd_mod, 0, chan->handler);
 		if(result != 0) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "nerd: Failed to register callback %d for channel '%s': %d\n",
-				  chan->callbacks[i], chan->name, result);
+			      chan->callbacks[i], chan->name, result);
 			return -1;
 		}
 	}
@@ -148,7 +148,7 @@ static int cancel_channel_subscription(struct nerd_channel *chan, int sd)
 
 	if(cancelled) {
 		logit(NSLOG_INFO_MESSAGE, TRUE, "nerd: Cancelled %d subscription%s to channel '%s' for %d\n",
-			  cancelled, cancelled == 1 ? "" : "s", chan->name, sd);
+		      cancelled, cancelled == 1 ? "" : "s", chan->name, sd);
 	}
 
 	if(chan->subscriptions == NULL)
@@ -324,7 +324,7 @@ static int chan_opath_checks(int cb, void *data)
 		h = ds->object_ptr;
 		color = red | green;
 	} else if(cb == NEBCALLBACK_SERVICE_CHECK_DATA) {
-	   nebstruct_service_check_data *ds = (nebstruct_service_check_data *)data;
+		nebstruct_service_check_data *ds = (nebstruct_service_check_data *)data;
 		service *s;
 
 		if(ds->type != NEBTYPE_SERVICECHECK_PROCESSED)
@@ -338,7 +338,7 @@ static int chan_opath_checks(int cb, void *data)
 		return 0;
 
 	asprintf(&buf, "%lu|%s|M|%s/%s|%06X\n", cr->finish_time.tv_sec,
-			 check_result_source(cr), host_parent_path(h, '/'), name, color);
+	         check_result_source(cr), host_parent_path(h, '/'), name, color);
 	nerd_broadcast(chan_opath_checks_id, buf, strlen(buf));
 	free(buf);
 	return 0;
@@ -419,10 +419,10 @@ static int nerd_qh_handler(int sd, char *request, unsigned int len)
 
 	if (!*request || !strcmp(request, "help")) {
 		nsock_printf_nul(sd, "Manage subscriptions to NERD channels.\n"
-			"Valid commands:\n"
-			"  list                      list available channels\n"
-			"  subscribe <channel>       subscribe to a channel\n"
-			"  unsubscribe <channel>     unsubscribe to a channel\n");
+		                 "Valid commands:\n"
+		                 "  list                      list available channels\n"
+		                 "  subscribe <channel>       subscribe to a channel\n"
+		                 "  unsubscribe <channel>     unsubscribe to a channel\n");
 		return 0;
 	}
 
@@ -481,14 +481,14 @@ int nerd_init(void)
 	neb_add_core_module(&nerd_mod);
 
 	chan_host_checks_id = nerd_mkchan("hostchecks",
-			"Host check results",
-			chan_host_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA));
+	                                  "Host check results",
+	                                  chan_host_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA));
 	chan_service_checks_id = nerd_mkchan("servicechecks",
-			"Service check results",
-			chan_service_checks, nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
+	                                     "Service check results",
+	                                     chan_service_checks, nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
 	chan_opath_checks_id = nerd_mkchan("opathchecks",
-			"Host and service checks in gource's log format",
-			chan_opath_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA) | nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
+	                                   "Host and service checks in gource's log format",
+	                                   chan_opath_checks, nebcallback_flag(NEBCALLBACK_HOST_CHECK_DATA) | nebcallback_flag(NEBCALLBACK_SERVICE_CHECK_DATA));
 
 	logit(NSLOG_INFO_MESSAGE, TRUE, "nerd: Fully initialized and ready to rock!\n");
 	return 0;

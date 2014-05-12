@@ -241,12 +241,13 @@ timed_event *event_list_high_tail = NULL;
 void logit(int data_type, int display, const char *fmt, ...) {}
 int my_sendall(int s, char *buf, int *len, int timeout) {}
 int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) {}
-int log_debug_info(int level, int verbosity, const char *fmt, ...) {
+int log_debug_info(int level, int verbosity, const char *fmt, ...)
+{
 	va_list ap;
 	va_start(ap, fmt);
 	/* vprintf( fmt, ap ); */
 	va_end(ap);
-	}
+}
 
 int neb_free_callback_list(void) {}
 void broker_program_status(int type, int flags, int attr, struct timeval *timestamp) {}
@@ -275,7 +276,8 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 int service_notification(service *svc, int type, char *not_author, char *not_data, int options) {}
 
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	int result;
 	int error = FALSE;
 	char *buffer = NULL;
@@ -310,18 +312,18 @@ int main(int argc, char **argv) {
 	for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 		c++;
 		//printf("Hostgroup=%s\n", temp_hostgroup->group_name);
-		}
+	}
 	ok(c == 2, "Found all hostgroups");
 
 	temp_hostgroup = find_hostgroup("hostgroup1");
 	for(temp_member = temp_hostgroup->members; temp_member != NULL; temp_member = temp_member->next) {
 		//printf("host pointer=%d\n", temp_member->host_ptr);
-		}
+	}
 
 	temp_hostgroup = find_hostgroup("hostgroup2");
 	for(temp_member = temp_hostgroup->members; temp_member != NULL; temp_member = temp_member->next) {
 		//printf("host pointer=%d\n", temp_member->host_ptr);
-		}
+	}
 
 	temp_host = find_host("host1");
 	ok(temp_host->current_state == 0, "State is assumed OK on initial load");
@@ -345,6 +347,6 @@ int main(int argc, char **argv) {
 	my_free(config_file);
 
 	return exit_status();
-	}
+}
 
 

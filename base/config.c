@@ -60,7 +60,8 @@ static command *find_bang_command(char *name)
 /******************************************************************/
 
 /* read all configuration data */
-int read_all_object_data(char *main_config_file) {
+int read_all_object_data(char *main_config_file)
+{
 	int result = OK;
 	int options = 0;
 
@@ -72,21 +73,22 @@ int read_all_object_data(char *main_config_file) {
 		return ERROR;
 
 	return OK;
-	}
+}
 
 static objectlist *deprecated = NULL;
 static void obsoleted_warning(const char *key, const char *msg)
 {
 	char *buf;
 	asprintf(&buf, "Warning: %s is deprecated and will be removed.%s%s\n",
-		     key, msg ? " " : "", msg ? msg : "");
+	         key, msg ? " " : "", msg ? msg : "");
 	if (!buf)
 		return;
 	prepend_object_to_objectlist(&deprecated, buf);
 }
 
 /* process the main configuration file */
-int read_main_config_file(char *main_config_file) {
+int read_main_config_file(char *main_config_file)
+{
 	char *input = NULL;
 	char *variable = NULL;
 	char *value = NULL;
@@ -108,7 +110,7 @@ int read_main_config_file(char *main_config_file) {
 	if((thefile = mmap_fopen(main_config_file)) == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Cannot open main configuration file '%s' for reading!", main_config_file);
 		return ERROR;
-		}
+	}
 
 	/* save the main config file macro */
 	my_free(mac->x[MACRO_MAINCONFIGFILE]);
@@ -140,24 +142,24 @@ int read_main_config_file(char *main_config_file) {
 			asprintf(&error_message, "NULL variable");
 			error = TRUE;
 			break;
-			}
+		}
 		if((variable = (char *)strdup(temp_ptr)) == NULL) {
 			asprintf(&error_message, "malloc() error");
 			error = TRUE;
 			break;
-			}
+		}
 
 		/* get the value */
 		if((temp_ptr = my_strtok(NULL, "\n")) == NULL) {
 			asprintf(&error_message, "NULL value");
 			error = TRUE;
 			break;
-			}
+		}
 		if((value = (char *)strdup(temp_ptr)) == NULL) {
 			asprintf(&error_message, "malloc() error");
 			error = TRUE;
 			break;
-			}
+		}
 		strip(variable);
 		strip(value);
 
@@ -172,8 +174,8 @@ int read_main_config_file(char *main_config_file) {
 			/* process the resource file */
 			if(read_resource_file(mac->x[MACRO_RESOURCEFILE]) == ERROR) {
 				error = TRUE;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "loadctl_options"))
 			error = set_loadctl_options(value, strlen(value)) != OK;
@@ -182,21 +184,19 @@ int read_main_config_file(char *main_config_file) {
 		else if(!strcmp(variable, "query_socket")) {
 			my_free(qh_socket_path);
 			qh_socket_path = nspath_absolute(value, config_file_dir);
-		}
-		else if(!strcmp(variable, "log_file")) {
+		} else if(!strcmp(variable, "log_file")) {
 
 			if(strlen(value) > MAX_FILENAME_LENGTH - 1) {
 				asprintf(&error_message, "Log file is too long");
 				error = TRUE;
 				break;
-				}
+			}
 
 			my_free(log_file);
 			log_file = nspath_absolute(value, config_file_dir);
 			/* make sure the configured logfile takes effect */
 			close_log_file();
-			}
-		else if(!strcmp(variable, "debug_level"))
+		} else if(!strcmp(variable, "debug_level"))
 			debug_level = atoi(value);
 
 		else if(!strcmp(variable, "debug_verbosity"))
@@ -208,11 +208,11 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Debug log file is too long");
 				error = TRUE;
 				break;
-				}
+			}
 
 			my_free(debug_file);
 			debug_file = nspath_absolute(value, config_file_dir);
-			}
+		}
 
 		else if(!strcmp(variable, "max_debug_file_size"))
 			max_debug_file_size = strtoul(value, NULL, 0);
@@ -223,24 +223,24 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Command file is too long");
 				error = TRUE;
 				break;
-				}
+			}
 
 			my_free(command_file);
 			command_file = nspath_absolute(value, config_file_dir);
 
 			/* save the macro */
 			mac->x[MACRO_COMMANDFILE] = command_file;
-			}
+		}
 
 		else if(!strcmp(variable, "temp_file")) {
 			my_free(temp_file);
 			temp_file = strdup(value);
-			}
+		}
 
 		else if(!strcmp(variable, "temp_path")) {
 			my_free(temp_path);
 			temp_path = nspath_absolute(value, config_file_dir);
-			}
+		}
 
 		else if(!strcmp(variable, "check_result_path")) {
 
@@ -248,7 +248,7 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Check result path is too long");
 				error = TRUE;
 				break;
-				}
+			}
 
 			my_free(check_result_path);
 			check_result_path = nspath_absolute(value, config_file_dir);
@@ -260,10 +260,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Check result path '%s' is not a valid directory", check_result_path);
 				error = TRUE;
 				break;
-				}
+			}
 			closedir(tmpdir);
 
-			}
+		}
 
 		else if(!strcmp(variable, "max_check_result_file_age"))
 			max_check_result_file_age = strtoul(value, NULL, 0);
@@ -274,55 +274,55 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Lock file is too long");
 				error = TRUE;
 				break;
-				}
+			}
 
 			my_free(lock_file);
 			lock_file = nspath_absolute(value, config_file_dir);
-			}
+		}
 
 		else if(!strcmp(variable, "global_host_event_handler")) {
 			my_free(global_host_event_handler);
 			global_host_event_handler = (char *)strdup(value);
-			}
+		}
 
 		else if(!strcmp(variable, "global_service_event_handler")) {
 			my_free(global_service_event_handler);
 			global_service_event_handler = (char *)strdup(value);
-			}
+		}
 
 		else if(!strcmp(variable, "ocsp_command")) {
 			my_free(ocsp_command);
 			ocsp_command = (char *)strdup(value);
-			}
+		}
 
 		else if(!strcmp(variable, "ochp_command")) {
 			my_free(ochp_command);
 			ochp_command = (char *)strdup(value);
-			}
+		}
 
 		else if(!strcmp(variable, "nagios_user")) {
 			my_free(nagios_user);
 			nagios_user = (char *)strdup(value);
-			}
+		}
 
 		else if(!strcmp(variable, "nagios_group")) {
 			my_free(nagios_group);
 			nagios_group = (char *)strdup(value);
-			}
+		}
 
 		else if(!strcmp(variable, "admin_email")) {
 
 			/* save the macro */
 			my_free(mac->x[MACRO_ADMINEMAIL]);
 			mac->x[MACRO_ADMINEMAIL] = (char *)strdup(value);
-			}
+		}
 
 		else if(!strcmp(variable, "admin_pager")) {
 
 			/* save the macro */
 			my_free(mac->x[MACRO_ADMINPAGER]);
 			mac->x[MACRO_ADMINPAGER] = (char *)strdup(value);
-			}
+		}
 
 		else if(!strcmp(variable, "use_syslog")) {
 
@@ -330,10 +330,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for use_syslog");
 				error = TRUE;
 				break;
-				}
+			}
 
 			use_syslog = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "log_notifications")) {
 
@@ -341,10 +341,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for log_notifications");
 				error = TRUE;
 				break;
-				}
+			}
 
 			log_notifications = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "log_service_retries")) {
 
@@ -352,10 +352,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for log_service_retries");
 				error = TRUE;
 				break;
-				}
+			}
 
 			log_service_retries = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "log_host_retries")) {
 
@@ -363,10 +363,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for log_host_retries");
 				error = TRUE;
 				break;
-				}
+			}
 
 			log_host_retries = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "log_event_handlers")) {
 
@@ -374,10 +374,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for log_event_handlers");
 				error = TRUE;
 				break;
-				}
+			}
 
 			log_event_handlers = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "log_external_commands")) {
 
@@ -385,10 +385,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for log_external_commands");
 				error = TRUE;
 				break;
-				}
+			}
 
 			log_external_commands = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "log_passive_checks")) {
 
@@ -396,10 +396,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for log_passive_checks");
 				error = TRUE;
 				break;
-				}
+			}
 
 			log_passive_checks = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "log_initial_states")) {
 
@@ -407,10 +407,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for log_initial_states");
 				error = TRUE;
 				break;
-				}
+			}
 
 			log_initial_states = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "log_current_states")) {
 
@@ -418,10 +418,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for log_current_states");
 				error = TRUE;
 				break;
-				}
+			}
 
 			log_current_states = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "retain_state_information")) {
 
@@ -429,10 +429,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for retain_state_information");
 				error = TRUE;
 				break;
-				}
+			}
 
 			retain_state_information = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "retention_update_interval")) {
 
@@ -441,8 +441,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for retention_update_interval");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "use_retained_program_state")) {
 
@@ -450,10 +450,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for use_retained_program_state");
 				error = TRUE;
 				break;
-				}
+			}
 
 			use_retained_program_state = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "use_retained_scheduling_info")) {
 
@@ -461,10 +461,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for use_retained_scheduling_info");
 				error = TRUE;
 				break;
-				}
+			}
 
 			use_retained_scheduling_info = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "retention_scheduling_horizon")) {
 
@@ -474,8 +474,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for retention_scheduling_horizon");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "additional_freshness_latency"))
 			additional_freshness_latency = atoi(value);
@@ -504,10 +504,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for obsess_over_services");
 				error = TRUE;
 				break;
-				}
+			}
 
 			obsess_over_services = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "obsess_over_hosts")) {
 
@@ -515,10 +515,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for obsess_over_hosts");
 				error = TRUE;
 				break;
-				}
+			}
 
 			obsess_over_hosts = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "translate_passive_host_checks")) {
 
@@ -526,10 +526,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for translate_passive_host_checks");
 				error = TRUE;
 				break;
-				}
+			}
 
 			translate_passive_host_checks = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "passive_host_checks_are_soft"))
 			passive_host_checks_are_soft = (atoi(value) > 0) ? TRUE : FALSE;
@@ -542,11 +542,11 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for service_check_timeout");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 
-		else if(!strcmp(variable,"service_check_timeout_state")){
+		else if(!strcmp(variable,"service_check_timeout_state")) {
 
 			if(!strcmp(value,"o"))
 				service_check_timeout_state=STATE_OK;
@@ -556,12 +556,12 @@ int read_main_config_file(char *main_config_file) {
 				service_check_timeout_state=STATE_CRITICAL;
 			else if(!strcmp(value,"u"))
 				service_check_timeout_state=STATE_UNKNOWN;
-			else{
+			else {
 				asprintf(&error_message,"Illegal value for service_check_timeout_state");
 				error=TRUE;
 				break;
-					}
-				}
+			}
+		}
 
 		else if(!strcmp(variable, "host_check_timeout")) {
 
@@ -571,8 +571,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for host_check_timeout");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "event_handler_timeout")) {
 
@@ -582,8 +582,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for event_handler_timeout");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "notification_timeout")) {
 
@@ -593,8 +593,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for notification_timeout");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "ocsp_timeout")) {
 
@@ -604,8 +604,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for ocsp_timeout");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "ochp_timeout")) {
 
@@ -615,8 +615,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for ochp_timeout");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "use_agressive_host_checking") || !strcmp(variable, "use_aggressive_host_checking")) {
 
@@ -624,10 +624,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for use_aggressive_host_checking");
 				error = TRUE;
 				break;
-				}
+			}
 
 			use_aggressive_host_checking = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "cached_host_check_horizon"))
 			cached_host_check_horizon = strtoul(value, NULL, 0);
@@ -646,10 +646,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for soft_state_dependencies");
 				error = TRUE;
 				break;
-				}
+			}
 
 			soft_state_dependencies = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "log_rotation_method")) {
 			if(!strcmp(value, "n"))
@@ -666,8 +666,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for log_rotation_method");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "log_archive_path")) {
 
@@ -675,11 +675,11 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Log archive path too long");
 				error = TRUE;
 				break;
-				}
+			}
 
 			my_free(log_archive_path);
 			log_archive_path = nspath_absolute(value, config_file_dir);
-			}
+		}
 
 		else if(!strcmp(variable, "enable_event_handlers"))
 			enable_event_handlers = (atoi(value) > 0) ? TRUE : FALSE;
@@ -713,9 +713,9 @@ int read_main_config_file(char *main_config_file) {
 					asprintf(&error_message, "Illegal value for service_inter_check_delay_method");
 					error = TRUE;
 					break;
-					}
 				}
 			}
+		}
 
 		else if(!strcmp(variable, "max_service_check_spread")) {
 			strip(value);
@@ -724,8 +724,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for max_service_check_spread");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "host_inter_check_delay_method")) {
 
@@ -742,9 +742,9 @@ int read_main_config_file(char *main_config_file) {
 					asprintf(&error_message, "Illegal value for host_inter_check_delay_method");
 					error = TRUE;
 					break;
-					}
 				}
 			}
+		}
 
 		else if(!strcmp(variable, "max_host_check_spread")) {
 
@@ -753,8 +753,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for max_host_check_spread");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "service_interleave_factor")) {
 			if(!strcmp(value, "s"))
@@ -764,8 +764,8 @@ int read_main_config_file(char *main_config_file) {
 				scheduling_info.service_interleave_factor = atoi(value);
 				if(scheduling_info.service_interleave_factor < 1)
 					scheduling_info.service_interleave_factor = 1;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "max_concurrent_checks")) {
 
@@ -774,8 +774,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for max_concurrent_checks");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "check_result_reaper_frequency") || !strcmp(variable, "service_reaper_frequency")) {
 
@@ -784,8 +784,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for check_result_reaper_frequency");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "max_check_result_reaper_time")) {
 
@@ -794,12 +794,12 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for max_check_result_reaper_time");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "sleep_time")) {
 			obsoleted_warning(variable, NULL);
-			}
+		}
 
 		else if(!strcmp(variable, "interval_length")) {
 
@@ -808,8 +808,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for interval_length");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "check_external_commands")) {
 
@@ -817,15 +817,15 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for check_external_commands");
 				error = TRUE;
 				break;
-				}
+			}
 
 			check_external_commands = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		/* @todo Remove before Nagios 4.3 */
 		else if(!strcmp(variable, "command_check_interval")) {
 			obsoleted_warning(variable, "Commands are always handled on arrival");
-			}
+		}
 
 		else if(!strcmp(variable, "check_for_orphaned_services")) {
 
@@ -833,10 +833,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for check_for_orphaned_services");
 				error = TRUE;
 				break;
-				}
+			}
 
 			check_orphaned_services = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "check_for_orphaned_hosts")) {
 
@@ -844,10 +844,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for check_for_orphaned_hosts");
 				error = TRUE;
 				break;
-				}
+			}
 
 			check_orphaned_hosts = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "check_service_freshness")) {
 
@@ -855,10 +855,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for check_service_freshness");
 				error = TRUE;
 				break;
-				}
+			}
 
 			check_service_freshness = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "check_host_freshness")) {
 
@@ -866,10 +866,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for check_host_freshness");
 				error = TRUE;
 				break;
-				}
+			}
 
 			check_host_freshness = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "service_freshness_check_interval") || !strcmp(variable, "freshness_check_interval")) {
 
@@ -878,8 +878,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for service_freshness_check_interval");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "host_freshness_check_interval")) {
 
@@ -888,18 +888,17 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for host_freshness_check_interval");
 				error = TRUE;
 				break;
-				}
 			}
-		else if(!strcmp(variable, "auto_reschedule_checks")) {
+		} else if(!strcmp(variable, "auto_reschedule_checks")) {
 
 			if(strlen(value) != 1 || value[0] < '0' || value[0] > '1') {
 				asprintf(&error_message, "Illegal value for auto_reschedule_checks");
 				error = TRUE;
 				break;
-				}
+			}
 
 			auto_reschedule_checks = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "auto_rescheduling_interval")) {
 
@@ -908,8 +907,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for auto_rescheduling_interval");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "auto_rescheduling_window")) {
 
@@ -918,8 +917,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for auto_rescheduling_window");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "status_update_interval")) {
 
@@ -928,8 +927,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for status_update_interval");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "time_change_threshold")) {
 
@@ -939,8 +938,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for time_change_threshold");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "process_performance_data"))
 			process_performance_data = (atoi(value) > 0) ? TRUE : FALSE;
@@ -958,8 +957,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for low_service_flap_threshold");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "high_service_flap_threshold")) {
 
@@ -968,8 +967,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for high_service_flap_threshold");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "low_host_flap_threshold")) {
 
@@ -978,8 +977,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for low_host_flap_threshold");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "high_host_flap_threshold")) {
 
@@ -988,8 +987,8 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for high_host_flap_threshold");
 				error = TRUE;
 				break;
-				}
 			}
+		}
 
 		else if(!strcmp(variable, "date_format")) {
 
@@ -1001,12 +1000,12 @@ int read_main_config_file(char *main_config_file) {
 				date_format = DATE_FORMAT_STRICT_ISO8601;
 			else
 				date_format = DATE_FORMAT_US;
-			}
+		}
 
 		else if(!strcmp(variable, "use_timezone")) {
 			my_free(use_timezone);
 			use_timezone = (char *)strdup(value);
-			}
+		}
 
 		else if(!strcmp(variable, "event_broker_options")) {
 
@@ -1014,7 +1013,7 @@ int read_main_config_file(char *main_config_file) {
 				event_broker_options = BROKER_EVERYTHING;
 			else
 				event_broker_options = strtoul(value, NULL, 0);
-			}
+		}
 
 		else if(!strcmp(variable, "illegal_object_name_chars"))
 			illegal_object_chars = (char *)strdup(value);
@@ -1031,12 +1030,11 @@ int read_main_config_file(char *main_config_file) {
 			if (modptr) {
 				neb_add_module(modptr, argptr, TRUE);
 				free(modptr);
-				}
-			else {
+			} else {
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to allocate module path memory for '%s'\n", value);
-				}
-#endif
 			}
+#endif
+		}
 
 		else if(!strcmp(variable, "use_regexp_matching"))
 			use_regexp_matches = (atoi(value) > 0) ? TRUE : FALSE;
@@ -1050,10 +1048,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for daemon_dumps_core");
 				error = TRUE;
 				break;
-				}
+			}
 
 			daemon_dumps_core = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "use_large_installation_tweaks")) {
 
@@ -1061,10 +1059,10 @@ int read_main_config_file(char *main_config_file) {
 				asprintf(&error_message, "Illegal value for use_large_installation_tweaks ");
 				error = TRUE;
 				break;
-				}
+			}
 
 			use_large_installation_tweaks = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 
 		else if(!strcmp(variable, "enable_environment_macros"))
 			enable_environment_macros = (atoi(value) > 0) ? TRUE : FALSE;
@@ -1105,8 +1103,7 @@ int read_main_config_file(char *main_config_file) {
 		/*** BEGIN perfdata variables ***/
 		else if(!strcmp(variable, "perfdata_timeout")) {
 			perfdata_timeout = atoi(value);
-			}
-		else if(!strcmp(variable, "host_perfdata_command"))
+		} else if(!strcmp(variable, "host_perfdata_command"))
 			host_perfdata_command = (char *)strdup(value);
 		else if(!strcmp(variable, "service_perfdata_command"))
 			service_perfdata_command = (char *)strdup(value);
@@ -1126,8 +1123,7 @@ int read_main_config_file(char *main_config_file) {
 				host_perfdata_file_append = FALSE;
 			else
 				host_perfdata_file_append = TRUE;
-			}
-		else if(!strcmp(variable, "service_perfdata_file_mode")) {
+		} else if(!strcmp(variable, "service_perfdata_file_mode")) {
 			service_perfdata_file_pipe = FALSE;
 			if(strstr(value, "p") != NULL)
 				service_perfdata_file_pipe = TRUE;
@@ -1135,8 +1131,7 @@ int read_main_config_file(char *main_config_file) {
 				service_perfdata_file_append = FALSE;
 			else
 				service_perfdata_file_append = TRUE;
-			}
-		else if(!strcmp(variable, "host_perfdata_file_processing_interval"))
+		} else if(!strcmp(variable, "host_perfdata_file_processing_interval"))
 			host_perfdata_file_processing_interval = strtoul(value, NULL, 0);
 		else if(!strcmp(variable, "service_perfdata_file_processing_interval"))
 			service_perfdata_file_processing_interval = strtoul(value, NULL, 0);
@@ -1157,14 +1152,12 @@ int read_main_config_file(char *main_config_file) {
 			object_cache_file = nspath_absolute(value, config_file_dir);
 			my_free(mac->x[MACRO_OBJECTCACHEFILE]);
 			mac->x[MACRO_OBJECTCACHEFILE] = strdup(object_cache_file);
-		}
-		else if(strstr(input, "precached_object_file=") == input) {
+		} else if(strstr(input, "precached_object_file=") == input) {
 			my_free(object_precache_file);
 			object_precache_file = nspath_absolute(value, config_file_dir);
-		}
-		else if(!strcmp(variable, "allow_empty_hostgroup_assignment")) {
+		} else if(!strcmp(variable, "allow_empty_hostgroup_assignment")) {
 			allow_empty_hostgroup_assignment = (atoi(value) > 0) ? TRUE : FALSE;
-			}
+		}
 		/* skip external data directives */
 		else if(strstr(input, "x") == input)
 			continue;
@@ -1174,27 +1167,26 @@ int read_main_config_file(char *main_config_file) {
 			asprintf(&error_message, "UNKNOWN VARIABLE");
 			error = TRUE;
 			break;
-			}
-
 		}
+
+	}
 
 	if (deprecated) {
 		for (list = deprecated; list; list = list->next) {
 			logit(NSLOG_CONFIG_WARNING, TRUE, "%s", (char *)list->object_ptr);
 			free(list->object_ptr);
-			}
+		}
 		free_objectlist(&deprecated);
 		deprecated = NULL;
-		}
+	}
 
 	if (!temp_path && !(temp_path = getenv("TMPDIR")) && !(temp_path = getenv("TMP"))) {
 		temp_path = strdup("/tmp");
-		}
-	else {
+	} else {
 		/* make sure we don't have a trailing slash */
 		if(temp_path[strlen(temp_path) - 1] == '/')
 			temp_path[strlen(temp_path) - 1] = '\x0';
-		}
+	}
 
 	if((strlen(temp_path) > MAX_FILENAME_LENGTH - 1)) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: temp_path is too long\n");
@@ -1203,20 +1195,18 @@ int read_main_config_file(char *main_config_file) {
 	if((tmpdir = opendir(temp_path)) == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: temp_path '%s' is not a valid directory\n", temp_path);
 		return ERROR;
-		}
+	}
 	closedir(tmpdir);
 
 	/* now that we know we have temp_path, we can set temp_file properly */
 	if (!temp_file) {
 		temp_file = nspath_absolute("nagios.tmp", temp_path);
-		}
-	else if (*temp_file == '.') {
+	} else if (*temp_file == '.') {
 		/* temp_file is relative. Make it nagios.cfg-relative */
 		char *foo = temp_file;
 		temp_file = nspath_absolute(temp_file, config_file_dir);
 		free(foo);
-		}
-	else if (*temp_file != '/') {
+	} else if (*temp_file != '/') {
 		/*
 		 * tempfile is not relative and not absolute, so
 		 * put it in temp_path
@@ -1224,12 +1214,12 @@ int read_main_config_file(char *main_config_file) {
 		char *foo = temp_file;
 		temp_file = nspath_absolute(temp_file, temp_path);
 		free(foo);
-		}
+	}
 
 	if(strlen(temp_file) > MAX_FILENAME_LENGTH - 1) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Temp file '%s' is too long\n", temp_file);
 		return ERROR;
-		}
+	}
 
 	/* save the macros */
 	mac->x[MACRO_TEMPPATH] = temp_path;
@@ -1251,7 +1241,7 @@ int read_main_config_file(char *main_config_file) {
 	if(error == TRUE) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error in configuration file '%s' - Line %d (%s)", main_config_file, current_line, (error_message == NULL) ? "NULL" : error_message);
 		return ERROR;
-		}
+	}
 
 	/* free leftover memory and close the file */
 	my_free(input);
@@ -1269,15 +1259,16 @@ int read_main_config_file(char *main_config_file) {
 		if(daemon_mode == FALSE)
 			printf("Error: Log file is not specified anywhere in main config file '%s'!\n", main_config_file);
 		return ERROR;
-		}
+	}
 
 	return OK;
-	}
+}
 
 
 
 /* processes macros in resource file */
-int read_resource_file(char *resource_file) {
+int read_resource_file(char *resource_file)
+{
 	char *input = NULL;
 	char *variable = NULL;
 	char *value = NULL;
@@ -1290,7 +1281,7 @@ int read_resource_file(char *resource_file) {
 	if((thefile = mmap_fopen(resource_file)) == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Cannot open resource file '%s' for reading!", resource_file);
 		return ERROR;
-		}
+	}
 
 	/* process all lines in the resource file */
 	while(1) {
@@ -1317,22 +1308,22 @@ int read_resource_file(char *resource_file) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: NULL variable - Line %d of resource file '%s'", current_line, resource_file);
 			error = TRUE;
 			break;
-			}
+		}
 		if((variable = (char *)strdup(temp_ptr)) == NULL) {
 			error = TRUE;
 			break;
-			}
+		}
 
 		/* get the value */
 		if((temp_ptr = my_strtok(NULL, "\n")) == NULL) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: NULL variable value - Line %d of resource file '%s'", current_line, resource_file);
 			error = TRUE;
 			break;
-			}
+		}
 		if((value = (char *)strdup(temp_ptr)) == NULL) {
 			error = TRUE;
 			break;
-			}
+		}
 
 		/* what should we do with the variable/value pair? */
 
@@ -1345,10 +1336,10 @@ int read_resource_file(char *resource_file) {
 				if(user_index >= 0 && user_index < MAX_USER_MACROS) {
 					my_free(macro_user[user_index]);
 					macro_user[user_index] = (char *)strdup(value);
-					}
 				}
 			}
 		}
+	}
 
 	/* free leftover memory and close the file */
 	my_free(input);
@@ -1362,7 +1353,7 @@ int read_resource_file(char *resource_file) {
 		return ERROR;
 
 	return OK;
-	}
+}
 
 
 
@@ -1374,7 +1365,8 @@ int read_resource_file(char *resource_file) {
 /****************************************************************/
 
 /* do a pre-flight check to make sure object relationships, etc. make sense */
-int pre_flight_check(void) {
+int pre_flight_check(void)
+{
 	char *buf = NULL;
 	int warnings = 0;
 	int errors = 0;
@@ -1412,15 +1404,15 @@ int pre_flight_check(void) {
 		if (global_host_event_handler_ptr == NULL) {
 			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Global host event handler command '%s' is not defined anywhere!", global_host_event_handler);
 			errors++;
-			}
 		}
+	}
 	if(global_service_event_handler != NULL) {
 		global_service_event_handler_ptr = find_bang_command(global_service_event_handler);
 		if (global_service_event_handler_ptr == NULL) {
 			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Global service event handler command '%s' is not defined anywhere!", global_service_event_handler);
 			errors++;
-			}
 		}
+	}
 
 
 	/**************************************************/
@@ -1433,15 +1425,15 @@ int pre_flight_check(void) {
 		if (!ocsp_command_ptr) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: OCSP command '%s' is not defined anywhere!\n", ocsp_command);
 			errors++;
-			}
 		}
+	}
 	if(ochp_command != NULL) {
 		ochp_command_ptr = find_bang_command(ochp_command);
 		if (!ochp_command_ptr) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: OCHP command '%s' is not defined anywhere!\n", ochp_command);
 			errors++;
-			}
 		}
+	}
 
 
 	/**************************************************/
@@ -1455,11 +1447,10 @@ int pre_flight_check(void) {
 	if((temp_path_fd = mkstemp(buf)) == -1) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "\tError: Unable to write to temp_path ('%s') - %s\n", temp_path, strerror(errno));
 		errors++;
-		}
-	else {
+	} else {
 		close(temp_path_fd);
 		remove(buf);
-		}
+	}
 	my_free(buf);
 
 	/* check if we can write to check_result_path */
@@ -1467,30 +1458,28 @@ int pre_flight_check(void) {
 	if((temp_path_fd = mkstemp(buf)) == -1) {
 		logit(NSLOG_VERIFICATION_WARNING, TRUE, "\tError: Unable to write to check_result_path ('%s') - %s\n", check_result_path, strerror(errno));
 		errors++;
-		}
-	else {
+	} else {
 		close(temp_path_fd);
 		remove(buf);
-		}
+	}
 	my_free(buf);
 
 	/* warn if user didn't specify any illegal macro output chars */
 	if(illegal_output_chars == NULL) {
 		logit(NSLOG_VERIFICATION_WARNING, TRUE, "%s", "Warning: Nothing specified for illegal_macro_output_chars variable!\n");
 		warnings++;
-		}
-	else {
+	} else {
 		char *p;
 		for(p = illegal_output_chars; *p; p++) {
 			illegal_output_char_map[(int)*p] = 1;
-			}
 		}
+	}
 
 	if(verify_config) {
 		printf("\n");
 		printf("Total Warnings: %d\n", warnings);
 		printf("Total Errors:   %d\n", errors);
-		}
+	}
 
 	if(test_scheduling == TRUE)
 		gettimeofday(&tv[3], NULL);
@@ -1512,15 +1501,16 @@ int pre_flight_check(void) {
 		printf("                      ============\n");
 		printf("TOTAL:                %.6lf sec\n", runtime[3]);
 		printf("\n\n");
-		}
+	}
 
 	return (errors > 0) ? ERROR : OK;
-	}
+}
 
 
 
 /* do a pre-flight check to make sure object relationships make sense */
-int pre_flight_object_check(int *w, int *e) {
+int pre_flight_object_check(int *w, int *e)
+{
 	contact *temp_contact = NULL;
 	commandsmember *temp_commandsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
@@ -1548,10 +1538,10 @@ int pre_flight_object_check(int *w, int *e) {
 	buf2 = "Probe 2";
 	for(temp_se = get_first_serviceescalation_by_service(buf1, buf2, &ptr); temp_se != NULL; temp_se = get_next_serviceescalation_by_service(buf1, buf2, &ptr)) {
 		printf("FOUND ESCALATION FOR SVC '%s'/'%s': %d-%d/%.3f, PTR=%p\n", buf1, buf2, temp_se->first_notification, temp_se->last_notification, temp_se->notification_interval, ptr);
-		}
+	}
 	for(temp_he = get_first_hostescalation_by_host(buf1, &ptr); temp_he != NULL; temp_he = get_next_hostescalation_by_host(buf1, &ptr)) {
 		printf("FOUND ESCALATION FOR HOST '%s': %d-%d/%d, PTR=%p\n", buf1, temp_he->first_notification, temp_he->last_notification, temp_he->notification_interval, ptr);
-		}
+	}
 #endif
 
 	if(verify_config)
@@ -1563,7 +1553,7 @@ int pre_flight_object_check(int *w, int *e) {
 	if(get_service_count() == 0) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: There are no services defined!");
 		errors++;
-		}
+	}
 	total_objects = 0;
 	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
@@ -1575,68 +1565,68 @@ int pre_flight_object_check(int *w, int *e) {
 			if(temp_service->event_handler_ptr == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Event handler command '%s' specified in service '%s' for host '%s' not defined anywhere", temp_service->event_handler, temp_service->description, temp_service->host_name);
 				errors++;
-				}
 			}
+		}
 
 		/* check the service check_command */
 		temp_service->check_command_ptr = find_bang_command(temp_service->check_command);
 		if(temp_service->check_command_ptr == NULL) {
 			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service check command '%s' specified in service '%s' for host '%s' not defined anywhere!", temp_service->check_command, temp_service->description, temp_service->host_name);
 			errors++;
-			}
+		}
 
 		/* check for sane recovery options */
 		if(temp_service->notification_options == OPT_RECOVERY) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Recovery notification option in service '%s' for host '%s' doesn't make any sense - specify warning and/or critical options as well", temp_service->description, temp_service->host_name);
 			warnings++;
-			}
+		}
 
 		/* check to see if there is at least one contact/group */
 		if(temp_service->contacts == NULL && temp_service->contact_groups == NULL) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Service '%s' on host '%s' has no default contacts or contactgroups defined!", temp_service->description, temp_service->host_name);
 			warnings++;
-			}
+		}
 
 		/* verify service check timeperiod */
 		if(temp_service->check_period == NULL) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Service '%s' on host '%s' has no check time period defined!", temp_service->description, temp_service->host_name);
 			warnings++;
-			}
+		}
 
 		/* check service notification timeperiod */
 		if(temp_service->notification_period == NULL) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Service '%s' on host '%s' has no notification time period defined!", temp_service->description, temp_service->host_name);
 			warnings++;
-			}
+		}
 
 		/* check parent services */
 		for(sm = temp_service->parents; sm; sm = sm->next) {
 			sm->service_ptr = find_service(sm->host_name, sm->service_description);
 			if(sm->service_ptr == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service '%s' on host '%s' is not a valid parent for service '%s' on host '%s'\n",
-					  sm->host_name, sm->service_description,
-					  temp_service->host_name, temp_service->description);
+				      sm->host_name, sm->service_description,
+				      temp_service->host_name, temp_service->description);
 				errors++;
-				}
+			}
 
 			/* add a reverse (child) link to make searches faster later on */
 			add_child_link_to_service(sm->service_ptr, temp_service);
-			}
+		}
 
 		/* see if the notification interval is less than the check interval */
 		if(temp_service->notification_interval < temp_service->check_interval && temp_service->notification_interval != 0) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Service '%s' on host '%s'  has a notification interval less than its check interval!  Notifications are only re-sent after checks are made, so the effective notification interval will be that of the check interval.", temp_service->description, temp_service->host_name);
 			warnings++;
-			}
+		}
 
 		/* check for illegal characters in service description */
 		if(use_precached_objects == FALSE) {
 			if(contains_illegal_object_chars(temp_service->description) == TRUE) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The description string for service '%s' on host '%s' contains one or more illegal characters.", temp_service->description, temp_service->host_name);
 				errors++;
-				}
 			}
 		}
+	}
 
 	if(verify_config)
 		printf("\tChecked %d services.\n", total_objects);
@@ -1649,7 +1639,7 @@ int pre_flight_object_check(int *w, int *e) {
 	if(get_host_count() == 0) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: There are no hosts defined!");
 		errors++;
-		}
+	}
 
 	total_objects = 0;
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
@@ -1660,7 +1650,7 @@ int pre_flight_object_check(int *w, int *e) {
 		if(temp_host->total_services == 0 && verify_config >= 2) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Host '%s' has no services associated with it!", temp_host->name);
 			warnings++;
-			}
+		}
 
 		/* check the event handler command */
 		if(temp_host->event_handler != NULL) {
@@ -1668,8 +1658,8 @@ int pre_flight_object_check(int *w, int *e) {
 			if(temp_host->event_handler_ptr == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Event handler command '%s' specified for host '%s' not defined anywhere", temp_host->event_handler, temp_host->name);
 				errors++;
-				}
 			}
+		}
 
 		/* hosts that don't have check commands defined shouldn't ever be checked... */
 		if(temp_host->check_command != NULL) {
@@ -1677,8 +1667,8 @@ int pre_flight_object_check(int *w, int *e) {
 			if(temp_host->check_command_ptr == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host check command '%s' specified for host '%s' is not defined anywhere!", temp_host->check_command, temp_host->name);
 				errors++;
-				}
 			}
+		}
 
 		/* check host check timeperiod */
 		if(temp_host->check_period != NULL) {
@@ -1686,17 +1676,17 @@ int pre_flight_object_check(int *w, int *e) {
 			if(temp_timeperiod == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Check period '%s' specified for host '%s' is not defined anywhere!", temp_host->check_period, temp_host->name);
 				errors++;
-				}
+			}
 
 			/* save the pointer to the check timeperiod for later */
 			temp_host->check_period_ptr = temp_timeperiod;
-			}
+		}
 
 		/* check to see if there is at least one contact/group */
 		if(temp_host->contacts == NULL && temp_host->contact_groups == NULL) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Host '%s' has no default contacts or contactgroups defined!", temp_host->name);
 			warnings++;
-			}
+		}
 
 		/* check notification timeperiod */
 		if(temp_host->notification_period != NULL) {
@@ -1704,11 +1694,11 @@ int pre_flight_object_check(int *w, int *e) {
 			if(temp_timeperiod == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Notification period '%s' specified for host '%s' is not defined anywhere!", temp_host->notification_period, temp_host->name);
 				errors++;
-				}
+			}
 
 			/* save the pointer to the notification timeperiod for later */
 			temp_host->notification_period_ptr = temp_timeperiod;
-			}
+		}
 
 		/* check all parent parent host */
 		for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
@@ -1716,29 +1706,29 @@ int pre_flight_object_check(int *w, int *e) {
 			if((temp_host2 = find_host(temp_hostsmember->host_name)) == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: '%s' is not a valid parent for host '%s'!", temp_hostsmember->host_name, temp_host->name);
 				errors++;
-				}
+			}
 
 			/* save the parent host pointer for later */
 			temp_hostsmember->host_ptr = temp_host2;
 
 			/* add a reverse (child) link to make searches faster later on */
 			add_child_link_to_host(temp_host2, temp_host);
-			}
+		}
 
 		/* check for sane recovery options */
 		if(temp_host->notification_options == OPT_RECOVERY) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Recovery notification option in host '%s' definition doesn't make any sense - specify down and/or unreachable options as well", temp_host->name);
 			warnings++;
-			}
+		}
 
 		/* check for illegal characters in host name */
 		if(use_precached_objects == FALSE) {
 			if(contains_illegal_object_chars(temp_host->name) == TRUE) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The name of host '%s' contains one or more illegal characters.", temp_host->name);
 				errors++;
-				}
 			}
 		}
+	}
 
 
 	if(verify_config)
@@ -1754,9 +1744,9 @@ int pre_flight_object_check(int *w, int *e) {
 			if(contains_illegal_object_chars(temp_hostgroup->group_name) == TRUE) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The name of hostgroup '%s' contains one or more illegal characters.", temp_hostgroup->group_name);
 				errors++;
-				}
 			}
 		}
+	}
 
 	if(verify_config)
 		printf("\tChecked %d host groups.\n", total_objects);
@@ -1771,9 +1761,9 @@ int pre_flight_object_check(int *w, int *e) {
 			if(contains_illegal_object_chars(temp_servicegroup->group_name) == TRUE) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The name of servicegroup '%s' contains one or more illegal characters.", temp_servicegroup->group_name);
 				errors++;
-				}
 			}
 		}
+	}
 
 	if(verify_config)
 		printf("\tChecked %d service groups.\n", total_objects);
@@ -1786,19 +1776,18 @@ int pre_flight_object_check(int *w, int *e) {
 	if(contact_list == NULL) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: There are no contacts defined!");
 		errors++;
-		}
+	}
 	for(temp_contact = contact_list, total_objects = 0; temp_contact != NULL; temp_contact = temp_contact->next, total_objects++) {
 
 		/* check service notification commands */
 		if(temp_contact->service_notification_commands == NULL) {
 			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact '%s' has no service notification commands defined!", temp_contact->name);
 			errors++;
-			}
-		else for(temp_commandsmember = temp_contact->service_notification_commands; temp_commandsmember != NULL; temp_commandsmember = temp_commandsmember->next) {
-			temp_commandsmember->command_ptr = find_bang_command(temp_commandsmember->command);
-			if(temp_commandsmember->command_ptr == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!", temp_commandsmember->command, temp_contact->name);
-				errors++;
+		} else for(temp_commandsmember = temp_contact->service_notification_commands; temp_commandsmember != NULL; temp_commandsmember = temp_commandsmember->next) {
+				temp_commandsmember->command_ptr = find_bang_command(temp_commandsmember->command);
+				if(temp_commandsmember->command_ptr == NULL) {
+					logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!", temp_commandsmember->command, temp_contact->name);
+					errors++;
 				}
 			}
 
@@ -1806,12 +1795,11 @@ int pre_flight_object_check(int *w, int *e) {
 		if(temp_contact->host_notification_commands == NULL) {
 			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Contact '%s' has no host notification commands defined!", temp_contact->name);
 			errors++;
-			}
-		else for(temp_commandsmember = temp_contact->host_notification_commands; temp_commandsmember != NULL; temp_commandsmember = temp_commandsmember->next) {
-			temp_commandsmember->command_ptr = find_bang_command(temp_commandsmember->command);
-			if(temp_commandsmember->command_ptr == NULL) {
-				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!", temp_commandsmember->command, temp_contact->name);
-				errors++;
+		} else for(temp_commandsmember = temp_contact->host_notification_commands; temp_commandsmember != NULL; temp_commandsmember = temp_commandsmember->next) {
+				temp_commandsmember->command_ptr = find_bang_command(temp_commandsmember->command);
+				if(temp_commandsmember->command_ptr == NULL) {
+					logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!", temp_commandsmember->command, temp_contact->name);
+					errors++;
 				}
 			}
 
@@ -1819,56 +1807,56 @@ int pre_flight_object_check(int *w, int *e) {
 		if(temp_contact->service_notification_period == NULL) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Contact '%s' has no service notification time period defined!", temp_contact->name);
 			warnings++;
-			}
+		}
 
 		else {
 			temp_timeperiod = find_timeperiod(temp_contact->service_notification_period);
 			if(temp_timeperiod == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service notification period '%s' specified for contact '%s' is not defined anywhere!", temp_contact->service_notification_period, temp_contact->name);
 				errors++;
-				}
+			}
 
 			/* save the pointer to the service notification timeperiod for later */
 			temp_contact->service_notification_period_ptr = temp_timeperiod;
-			}
+		}
 
 		/* check host notification timeperiod */
 		if(temp_contact->host_notification_period == NULL) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Contact '%s' has no host notification time period defined!", temp_contact->name);
 			warnings++;
-			}
+		}
 
 		else {
 			temp_timeperiod = find_timeperiod(temp_contact->host_notification_period);
 			if(temp_timeperiod == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host notification period '%s' specified for contact '%s' is not defined anywhere!", temp_contact->host_notification_period, temp_contact->name);
 				errors++;
-				}
+			}
 
 			/* save the pointer to the host notification timeperiod for later */
 			temp_contact->host_notification_period_ptr = temp_timeperiod;
-			}
+		}
 
 		/* check for sane host recovery options */
 		if(temp_contact->host_notification_options == OPT_RECOVERY) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Host recovery notification option for contact '%s' doesn't make any sense - specify down and/or unreachable options as well", temp_contact->name);
 			warnings++;
-			}
+		}
 
 		/* check for sane service recovery options */
 		if(temp_contact->service_notification_options == OPT_RECOVERY) {
 			logit(NSLOG_VERIFICATION_WARNING, TRUE, "Warning: Service recovery notification option for contact '%s' doesn't make any sense - specify critical and/or warning options as well", temp_contact->name);
 			warnings++;
-			}
+		}
 
 		/* check for illegal characters in contact name */
 		if(use_precached_objects == FALSE) {
 			if(contains_illegal_object_chars(temp_contact->name) == TRUE) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The name of contact '%s' contains one or more illegal characters.", temp_contact->name);
 				errors++;
-				}
 			}
 		}
+	}
 
 	if(verify_config)
 		printf("\tChecked %d contacts.\n", total_objects);
@@ -1884,9 +1872,9 @@ int pre_flight_object_check(int *w, int *e) {
 			if(contains_illegal_object_chars(temp_contactgroup->group_name) == TRUE) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The name of contact group '%s' contains one or more illegal characters.", temp_contactgroup->group_name);
 				errors++;
-				}
 			}
 		}
+	}
 
 	if(verify_config)
 		printf("\tChecked %d contact groups.\n", total_objects);
@@ -1902,9 +1890,9 @@ int pre_flight_object_check(int *w, int *e) {
 			if(contains_illegal_object_chars(temp_command->name) == TRUE) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The name of command '%s' contains one or more illegal characters.", temp_command->name);
 				errors++;
-				}
 			}
 		}
+	}
 
 	if(verify_config)
 		printf("\tChecked %d commands.\n", total_objects);
@@ -1921,8 +1909,8 @@ int pre_flight_object_check(int *w, int *e) {
 			if(contains_illegal_object_chars(temp_timeperiod->name) == TRUE) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The name of time period '%s' contains one or more illegal characters.", temp_timeperiod->name);
 				errors++;
-				}
 			}
+		}
 
 		/* check for valid timeperiod names in exclusion list */
 		for(temp_timeperiodexclusion = temp_timeperiod->exclusions; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
@@ -1931,12 +1919,12 @@ int pre_flight_object_check(int *w, int *e) {
 			if(temp_timeperiod2 == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Excluded time period '%s' specified in timeperiod '%s' is not defined anywhere!", temp_timeperiodexclusion->timeperiod_name, temp_timeperiod->name);
 				errors++;
-				}
+			}
 
 			/* save the timeperiod pointer for later */
 			temp_timeperiodexclusion->timeperiod_ptr = temp_timeperiod2;
-			}
 		}
+	}
 
 	if(verify_config)
 		printf("\tChecked %d time periods.\n", total_objects);
@@ -1946,14 +1934,14 @@ int pre_flight_object_check(int *w, int *e) {
 	if(verify_config) {
 		printf("\tChecked %u host escalations.\n", num_objects.hostescalations);
 		printf("\tChecked %u service escalations.\n", num_objects.serviceescalations);
-		}
+	}
 
 	/* update warning and error count */
 	*w += warnings;
 	*e += errors;
 
 	return (errors > 0) ? ERROR : OK;
-	}
+}
 
 
 /* dfs status values */
@@ -2029,15 +2017,15 @@ static int dfs_servicedep_path(char *ary, service *root, int dep_type, int *erro
 
 		if(child_status == DFS_TEMP_CHECKED) {
 			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Circular %s dependency detected for services '%s;%s' and '%s;%s'\n",
-				  dep_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
-				  root->host_name, root->description,
-				  child->host_name, child->description);
+			      dep_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
+			      root->host_name, root->description,
+			      child->host_name, child->description);
 			(*errors)++;
 			dfs_set_status(child, DFS_LOOPY);
 			dfs_set_status(root, DFS_LOOPY);
 			continue;
-			}
 		}
+	}
 
 	/*
 	 * if we've hit ourself, we'll have marked us as loopy
@@ -2078,14 +2066,14 @@ static int dfs_hostdep_path(char *ary, host *root, int dep_type, int *errors)
 
 		if(child_status == DFS_TEMP_CHECKED) {
 			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Circular %s dependency detected for hosts '%s' and '%s'\n",
-				  dep_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
-				  root->name, child->name);
+			      dep_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
+			      root->name, child->name);
 			dfs_set_status(child, DFS_LOOPY);
 			dfs_set_status(root, DFS_LOOPY);
 			(*errors)++;
 			continue;
-			}
 		}
+	}
 
 	/*
 	 * if we've hit ourself, we'll have marked us as loopy
@@ -2097,7 +2085,8 @@ static int dfs_hostdep_path(char *ary, host *root, int dep_type, int *errors)
 }
 
 
-static int dfs_host_path(char *ary, host *root, int *errors) {
+static int dfs_host_path(char *ary, host *root, int *errors)
+{
 	hostsmember *child = NULL;
 
 	if(dfs_get_status(root) != DFS_UNCHECKED)
@@ -2122,8 +2111,8 @@ static int dfs_host_path(char *ary, host *root, int *errors) {
 			dfs_set_status(child->host_ptr, DFS_LOOPY);
 			dfs_set_status(root, DFS_LOOPY);
 			continue;
-			}
 		}
+	}
 
 	/*
 	 * If root have been modified, do not set it OK
@@ -2133,7 +2122,7 @@ static int dfs_host_path(char *ary, host *root, int *errors) {
 	if(dfs_get_status(root) == DFS_TEMP_CHECKED)
 		dfs_set_status(root, DFS_OK);
 	return dfs_get_status(root);
-	}
+}
 
 static int dfs_timeperiod_path(char *ary, timeperiod *root, int *errors)
 {
@@ -2150,13 +2139,13 @@ static int dfs_timeperiod_path(char *ary, timeperiod *root, int *errors)
 
 		if(child_status == DFS_TEMP_CHECKED) {
 			logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: The timeperiods '%s' and '%s' form or lead into a circular exclusion chain!",
-				  root->name, exc->timeperiod_ptr->name);
+			      root->name, exc->timeperiod_ptr->name);
 			(*errors)++;
 			dfs_set_status(exc->timeperiod_ptr, DFS_LOOPY);
 			dfs_set_status(root, DFS_LOOPY);
 			continue;
-			}
 		}
+	}
 
 	if(dfs_get_status(root) == DFS_TEMP_CHECKED)
 		dfs_set_status(root, DFS_OK);
@@ -2166,7 +2155,8 @@ static int dfs_timeperiod_path(char *ary, timeperiod *root, int *errors)
 
 
 /* check for circular paths and dependencies */
-int pre_flight_circular_check(int *w, int *e) {
+int pre_flight_circular_check(int *w, int *e)
+{
 	host *temp_host = NULL;
 	servicedependency *temp_sd = NULL;
 	hostdependency *temp_hd = NULL;
@@ -2187,12 +2177,12 @@ int pre_flight_circular_check(int *w, int *e) {
 		if (!(ary[i] = calloc(1, alloc))) {
 			while (i) {
 				my_free(ary[--i]);
-				}
+			}
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to allocate memory for circular path checks.\n");
 			errors++;
 			return ERROR;
-			}
 		}
+	}
 
 
 	/********************************************/
@@ -2203,7 +2193,7 @@ int pre_flight_circular_check(int *w, int *e) {
 
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 		dfs_host_path(ary[0], temp_host, &errors);
-		}
+	}
 	if (verify_config)
 		printf("\tChecked %u hosts\n", num_objects.hosts);
 
@@ -2224,7 +2214,7 @@ int pre_flight_circular_check(int *w, int *e) {
 		if(dep_type < 1 || dep_type > ARRAY_SIZE(ary))
 			continue;
 		dfs_servicedep_path(ary[dep_type - 1], temp_sd->dependent_service_ptr, dep_type, &errors);
-		}
+	}
 	if(verify_config)
 		printf("\tChecked %u service dependencies\n", num_objects.servicedependencies);
 
@@ -2238,7 +2228,7 @@ int pre_flight_circular_check(int *w, int *e) {
 		if(dep_type < 1 || dep_type > ARRAY_SIZE(ary))
 			continue;
 		dfs_hostdep_path(ary[dep_type - 1], temp_hd->dependent_host_ptr, dep_type, &errors);
-		}
+	}
 
 	if(verify_config)
 		printf("\tChecked %u host dependencies\n", num_objects.hostdependencies);
@@ -2248,7 +2238,7 @@ int pre_flight_circular_check(int *w, int *e) {
 		memset(ary[i], 0, alloc);
 	for (tp = timeperiod_list; tp; tp = tp->next) {
 		dfs_timeperiod_path(ary[0], tp, &errors);
-		}
+	}
 	if (verify_config)
 		printf("\tChecked %u timeperiods\n", num_objects.timeperiods);
 
@@ -2259,4 +2249,4 @@ int pre_flight_circular_check(int *w, int *e) {
 		free(ary[i]);
 
 	return (errors > 0) ? ERROR : OK;
-	}
+}

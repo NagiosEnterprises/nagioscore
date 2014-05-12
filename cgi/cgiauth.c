@@ -35,7 +35,8 @@ extern int             use_ssl_authentication;
 
 
 /* get current authentication information */
-int get_authentication_information(authdata *authinfo) {
+int get_authentication_information(authdata *authinfo)
+{
 	mmapfile *thefile;
 	char *input = NULL;
 	char *temp_ptr = NULL;
@@ -59,15 +60,13 @@ int get_authentication_information(authdata *authinfo) {
 	if(use_ssl_authentication) {
 		/* patch by Pawl Zuzelski - 7/22/08 */
 		temp_ptr = getenv("SSL_CLIENT_S_DN_CN");
-		}
-	else {
+	} else {
 		temp_ptr = getenv("REMOTE_USER");
-		}
+	}
 	if(temp_ptr == NULL) {
 		authinfo->username = "";
 		authinfo->authenticated = FALSE;
-		}
-	else {
+	} else {
 		authinfo->username = (char *)malloc(strlen(temp_ptr) + 1);
 		if(authinfo->username == NULL)
 			authinfo->username = "";
@@ -77,7 +76,7 @@ int get_authentication_information(authdata *authinfo) {
 			authinfo->authenticated = FALSE;
 		else
 			authinfo->authenticated = TRUE;
-		}
+	}
 
 	/* read in authorization override vars from config file... */
 	if((thefile = mmap_fopen(get_cgi_config_location())) != NULL) {
@@ -106,147 +105,133 @@ int get_authentication_information(authdata *authinfo) {
 					authinfo->authenticated = FALSE;
 				else
 					authinfo->authenticated = TRUE;
-				}
+			}
 
 			else if(strstr(input, "authorized_for_all_hosts=") == input) {
 				temp_ptr = strtok(input, "=");
 				while((temp_ptr = strtok(NULL, ","))) {
 					if(!strcmp(temp_ptr, authinfo->username) || !strcmp(temp_ptr, "*"))
 						authinfo->authorized_for_all_hosts = TRUE;
-					}
 				}
-			else if(strstr(input, "authorized_for_all_services=") == input) {
+			} else if(strstr(input, "authorized_for_all_services=") == input) {
 				temp_ptr = strtok(input, "=");
 				while((temp_ptr = strtok(NULL, ","))) {
 					if(!strcmp(temp_ptr, authinfo->username) || !strcmp(temp_ptr, "*"))
 						authinfo->authorized_for_all_services = TRUE;
-					}
 				}
-			else if(strstr(input, "authorized_for_system_information=") == input) {
+			} else if(strstr(input, "authorized_for_system_information=") == input) {
 				temp_ptr = strtok(input, "=");
 				while((temp_ptr = strtok(NULL, ","))) {
 					if(!strcmp(temp_ptr, authinfo->username) || !strcmp(temp_ptr, "*"))
 						authinfo->authorized_for_system_information = TRUE;
-					}
 				}
-			else if(strstr(input, "authorized_for_configuration_information=") == input) {
+			} else if(strstr(input, "authorized_for_configuration_information=") == input) {
 				temp_ptr = strtok(input, "=");
 				while((temp_ptr = strtok(NULL, ","))) {
 					if(!strcmp(temp_ptr, authinfo->username) || !strcmp(temp_ptr, "*"))
 						authinfo->authorized_for_configuration_information = TRUE;
-					}
 				}
-			else if(strstr(input, "authorized_for_all_host_commands=") == input) {
+			} else if(strstr(input, "authorized_for_all_host_commands=") == input) {
 				temp_ptr = strtok(input, "=");
 				while((temp_ptr = strtok(NULL, ","))) {
 					if(!strcmp(temp_ptr, authinfo->username) || !strcmp(temp_ptr, "*"))
 						authinfo->authorized_for_all_host_commands = TRUE;
-					}
 				}
-			else if(strstr(input, "authorized_for_all_service_commands=") == input) {
+			} else if(strstr(input, "authorized_for_all_service_commands=") == input) {
 				temp_ptr = strtok(input, "=");
 				while((temp_ptr = strtok(NULL, ","))) {
 					if(!strcmp(temp_ptr, authinfo->username) || !strcmp(temp_ptr, "*"))
 						authinfo->authorized_for_all_service_commands = TRUE;
-					}
 				}
-			else if(strstr(input, "authorized_for_system_commands=") == input) {
+			} else if(strstr(input, "authorized_for_system_commands=") == input) {
 				temp_ptr = strtok(input, "=");
 				while((temp_ptr = strtok(NULL, ","))) {
 					if(!strcmp(temp_ptr, authinfo->username) || !strcmp(temp_ptr, "*"))
 						authinfo->authorized_for_system_commands = TRUE;
-					}
 				}
-			else if(strstr(input, "authorized_for_read_only=") == input) {
+			} else if(strstr(input, "authorized_for_read_only=") == input) {
 				temp_ptr = strtok(input, "=");
 				while((temp_ptr = strtok(NULL, ","))) {
 					if(!strcmp(temp_ptr, authinfo->username) || !strcmp(temp_ptr, "*"))
 						authinfo->authorized_for_read_only = TRUE;
-					}
 				}
-			else if((temp_contact = find_contact(authinfo->username)) != NULL) {
+			} else if((temp_contact = find_contact(authinfo->username)) != NULL) {
 				if(strstr(input, "authorized_contactgroup_for_all_hosts=") == input) {
 					temp_ptr = strtok(input, "=");
 					while((temp_ptr = strtok(NULL, ","))) {
 						temp_contactgroup = find_contactgroup(temp_ptr);
 						if(is_contact_member_of_contactgroup(temp_contactgroup, temp_contact))
 							authinfo->authorized_for_all_hosts = TRUE;
-						}
 					}
-				else if(strstr(input, "authorized_contactgroup_for_all_services=") == input) {
+				} else if(strstr(input, "authorized_contactgroup_for_all_services=") == input) {
 					temp_ptr = strtok(input, "=");
 					while((temp_ptr = strtok(NULL, ","))) {
 						temp_contactgroup = find_contactgroup(temp_ptr);
 						if(is_contact_member_of_contactgroup(temp_contactgroup, temp_contact))
 							authinfo->authorized_for_all_services = TRUE;
-						}
 					}
-				else if(strstr(input, "authorized_contactgroup_for_system_information=") == input) {
+				} else if(strstr(input, "authorized_contactgroup_for_system_information=") == input) {
 					temp_ptr = strtok(input, "=");
 					while((temp_ptr = strtok(NULL, ","))) {
 						temp_contactgroup = find_contactgroup(temp_ptr);
 						if(is_contact_member_of_contactgroup(temp_contactgroup, temp_contact))
 							authinfo->authorized_for_system_information = TRUE;
-						}
 					}
-				else if(strstr(input, "authorized_contactgroup_for_configuration_information=") == input) {
+				} else if(strstr(input, "authorized_contactgroup_for_configuration_information=") == input) {
 					temp_ptr = strtok(input, "=");
 					while((temp_ptr = strtok(NULL, ","))) {
 						temp_contactgroup = find_contactgroup(temp_ptr);
 						if(is_contact_member_of_contactgroup(temp_contactgroup, temp_contact))
 							authinfo->authorized_for_configuration_information = TRUE;
-						}
 					}
-				else if(strstr(input, "authorized_contactgroup_for_all_host_commands=") == input) {
+				} else if(strstr(input, "authorized_contactgroup_for_all_host_commands=") == input) {
 					temp_ptr = strtok(input, "=");
 					while((temp_ptr = strtok(NULL, ","))) {
 						temp_contactgroup = find_contactgroup(temp_ptr);
 						if(is_contact_member_of_contactgroup(temp_contactgroup, temp_contact))
 							authinfo->authorized_for_all_host_commands = TRUE;
-						}
 					}
-				else if(strstr(input, "authorized_contactgroup_for_all_service_commands=") == input) {
+				} else if(strstr(input, "authorized_contactgroup_for_all_service_commands=") == input) {
 					temp_ptr = strtok(input, "=");
 					while((temp_ptr = strtok(NULL, ","))) {
 						temp_contactgroup = find_contactgroup(temp_ptr);
 						if(is_contact_member_of_contactgroup(temp_contactgroup, temp_contact))
 							authinfo->authorized_for_all_service_commands = TRUE;
-						}
 					}
-				else if(strstr(input, "authorized_contactgroup_for_system_commands=") == input) {
+				} else if(strstr(input, "authorized_contactgroup_for_system_commands=") == input) {
 					temp_ptr = strtok(input, "=");
 					while((temp_ptr = strtok(NULL, ","))) {
 						temp_contactgroup = find_contactgroup(temp_ptr);
 						if(is_contact_member_of_contactgroup(temp_contactgroup, temp_contact))
 							authinfo->authorized_for_system_commands = TRUE;
-						}
 					}
-				else if(strstr(input, "authorized_contactgroup_for_read_only=") == input) {
+				} else if(strstr(input, "authorized_contactgroup_for_read_only=") == input) {
 					temp_ptr = strtok(input, "=");
 					while((temp_ptr = strtok(NULL, ","))) {
 						temp_contactgroup = find_contactgroup(temp_ptr);
 						if(is_contact_member_of_contactgroup(temp_contactgroup, temp_contact))
 							authinfo->authorized_for_read_only = TRUE;
-						}
 					}
 				}
 			}
+		}
 
 		/* free memory and close the file */
 		free(input);
 		mmap_fclose(thefile);
-		}
+	}
 
 	if(authinfo->authenticated == TRUE)
 		return OK;
 	else
 		return ERROR;
-	}
+}
 
 
 
 /* check if user is authorized to view information about a particular host */
-int is_authorized_for_host(host *hst, authdata *authinfo) {
+int is_authorized_for_host(host *hst, authdata *authinfo)
+{
 	contact *temp_contact;
 
 	if(hst == NULL)
@@ -276,11 +261,12 @@ int is_authorized_for_host(host *hst, authdata *authinfo) {
 		return TRUE;
 
 	return FALSE;
-	}
+}
 
 
 /* check if user is authorized to view information about all hosts in a particular hostgroup */
-int is_authorized_for_hostgroup(hostgroup *hg, authdata *authinfo) {
+int is_authorized_for_hostgroup(hostgroup *hg, authdata *authinfo)
+{
 	hostsmember *temp_hostsmember;
 	host *temp_host;
 
@@ -301,16 +287,17 @@ int is_authorized_for_hostgroup(hostgroup *hg, authdata *authinfo) {
 		temp_host = find_host(temp_hostsmember->host_name);
 		if(is_authorized_for_host(temp_host, authinfo) == TRUE)
 			return TRUE;
-		}
+	}
 
 	/*return TRUE;*/
 	return FALSE;
-	}
+}
 
 
 
 /* check if user is authorized to view information about all services in a particular servicegroup */
-int is_authorized_for_servicegroup(servicegroup *sg, authdata *authinfo) {
+int is_authorized_for_servicegroup(servicegroup *sg, authdata *authinfo)
+{
 	servicesmember *temp_servicesmember;
 	service *temp_service;
 
@@ -330,14 +317,15 @@ int is_authorized_for_servicegroup(servicegroup *sg, authdata *authinfo) {
 		temp_service = find_service(temp_servicesmember->host_name, temp_servicesmember->service_description);
 		if(is_authorized_for_service(temp_service, authinfo) == TRUE)
 			return TRUE;
-		}
+	}
 
 	/*return TRUE*/;
 	return FALSE;
-	}
+}
 
 /* check if current user is restricted to read only */
-int is_authorized_for_read_only(authdata *authinfo) {
+int is_authorized_for_read_only(authdata *authinfo)
+{
 
 	/* if we're not using authentication, fake it */
 	if(use_authentication == FALSE)
@@ -348,10 +336,11 @@ int is_authorized_for_read_only(authdata *authinfo) {
 		return FALSE;
 
 	return authinfo->authorized_for_read_only;
-	}
+}
 
 /* check if user is authorized to view information about a particular service */
-int is_authorized_for_service(service *svc, authdata *authinfo) {
+int is_authorized_for_service(service *svc, authdata *authinfo)
+{
 	host *temp_host;
 	contact *temp_contact;
 
@@ -391,11 +380,12 @@ int is_authorized_for_service(service *svc, authdata *authinfo) {
 		return TRUE;
 
 	return FALSE;
-	}
+}
 
 
 /* check if current user is authorized to view information on all hosts */
-int is_authorized_for_all_hosts(authdata *authinfo) {
+int is_authorized_for_all_hosts(authdata *authinfo)
+{
 
 	/* if we're not using authentication, fake it */
 	if(use_authentication == FALSE)
@@ -406,11 +396,12 @@ int is_authorized_for_all_hosts(authdata *authinfo) {
 		return FALSE;
 
 	return authinfo->authorized_for_all_hosts;
-	}
+}
 
 
 /* check if current user is authorized to view information on all service */
-int is_authorized_for_all_services(authdata *authinfo) {
+int is_authorized_for_all_services(authdata *authinfo)
+{
 
 	/* if we're not using authentication, fake it */
 	if(use_authentication == FALSE)
@@ -421,11 +412,12 @@ int is_authorized_for_all_services(authdata *authinfo) {
 		return FALSE;
 
 	return authinfo->authorized_for_all_services;
-	}
+}
 
 
 /* check if current user is authorized to view system information */
-int is_authorized_for_system_information(authdata *authinfo) {
+int is_authorized_for_system_information(authdata *authinfo)
+{
 
 	/* if we're not using authentication, fake it */
 	if(use_authentication == FALSE)
@@ -436,11 +428,12 @@ int is_authorized_for_system_information(authdata *authinfo) {
 		return FALSE;
 
 	return authinfo->authorized_for_system_information;
-	}
+}
 
 
 /* check if current user is authorized to view configuration information */
-int is_authorized_for_configuration_information(authdata *authinfo) {
+int is_authorized_for_configuration_information(authdata *authinfo)
+{
 
 	/* if we're not using authentication, fake it */
 	if(use_authentication == FALSE)
@@ -451,11 +444,12 @@ int is_authorized_for_configuration_information(authdata *authinfo) {
 		return FALSE;
 
 	return authinfo->authorized_for_configuration_information;
-	}
+}
 
 
 /* check if current user is authorized to issue system commands */
-int is_authorized_for_system_commands(authdata *authinfo) {
+int is_authorized_for_system_commands(authdata *authinfo)
+{
 
 	/* if we're not using authentication, fake it */
 	if(use_authentication == FALSE)
@@ -466,11 +460,12 @@ int is_authorized_for_system_commands(authdata *authinfo) {
 		return FALSE;
 
 	return authinfo->authorized_for_system_commands;
-	}
+}
 
 
 /* check is the current user is authorized to issue commands relating to a particular service */
-int is_authorized_for_service_commands(service *svc, authdata *authinfo) {
+int is_authorized_for_service_commands(service *svc, authdata *authinfo)
+{
 	host *temp_host;
 	contact *temp_contact;
 
@@ -519,14 +514,15 @@ int is_authorized_for_service_commands(service *svc, authdata *authinfo) {
 		/* this user is not a contact for the host, so they must have been given explicit permissions to all service commands */
 		if(authinfo->authorized_for_all_service_commands == TRUE)
 			return TRUE;
-		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 /* check is the current user is authorized to issue commands relating to a particular host */
-int is_authorized_for_host_commands(host *hst, authdata *authinfo) {
+int is_authorized_for_host_commands(host *hst, authdata *authinfo)
+{
 	contact *temp_contact;
 
 	if(hst == NULL)
@@ -561,14 +557,15 @@ int is_authorized_for_host_commands(host *hst, authdata *authinfo) {
 		/* this user is not a contact for the host, so they must have been given explicit permissions to all host commands */
 		if(authinfo->authorized_for_all_host_commands == TRUE)
 			return TRUE;
-		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 /* check is the current user is authorized to issue commands relating to a particular servicegroup */
-int is_authorized_for_servicegroup_commands(servicegroup *sg, authdata *authinfo) {
+int is_authorized_for_servicegroup_commands(servicegroup *sg, authdata *authinfo)
+{
 	servicesmember *temp_servicesmember;
 	service *temp_service;
 
@@ -580,14 +577,15 @@ int is_authorized_for_servicegroup_commands(servicegroup *sg, authdata *authinfo
 		temp_service = find_service(temp_servicesmember->host_name, temp_servicesmember->service_description);
 		if(is_authorized_for_service_commands(temp_service, authinfo) == FALSE)
 			return FALSE;
-		}
+	}
 
 	return TRUE;
-	}
+}
 
 
 /* check is the current user is authorized to issue commands relating to a particular hostgroup */
-int is_authorized_for_hostgroup_commands(hostgroup *hg, authdata *authinfo) {
+int is_authorized_for_hostgroup_commands(hostgroup *hg, authdata *authinfo)
+{
 	hostsmember *temp_hostsmember;
 	host *temp_host;
 
@@ -599,7 +597,7 @@ int is_authorized_for_hostgroup_commands(hostgroup *hg, authdata *authinfo) {
 		temp_host = find_host(temp_hostsmember->host_name);
 		if(is_authorized_for_host_commands(temp_host, authinfo) == FALSE)
 			return FALSE;
-		}
+	}
 
 	return TRUE;
-	}
+}

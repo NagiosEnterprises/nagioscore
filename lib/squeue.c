@@ -231,12 +231,13 @@ unsigned int squeue_size(squeue_t *q)
 	return pqueue_size(q);
 }
 
-int squeue_evt_when_is_after(squeue_event *evt, struct timeval *reftime) {
+int squeue_evt_when_is_after(squeue_event *evt, struct timeval *reftime)
+{
 	if(!evt) return -1;
 
 	if((reftime->tv_sec > evt->when.tv_sec) ||
-			((reftime->tv_sec == evt->when.tv_sec) &&
-			(reftime->tv_usec > evt->when.tv_usec))) {
+	   ((reftime->tv_sec == evt->when.tv_sec) &&
+	    (reftime->tv_usec > evt->when.tv_usec))) {
 		return 1;
 	}
 	return 0;

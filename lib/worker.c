@@ -246,9 +246,9 @@ int finish_job(child_process *cp, int reason)
 
 	if (running_jobs != squeue_size(sq)) {
 		wlog("running_jobs(%d) != squeue_size(sq) (%d)\n",
-			 running_jobs, squeue_size(sq));
+		     running_jobs, squeue_size(sq));
 		wlog("started: %d; running: %d; finished: %d\n",
-			 started, running_jobs, started - running_jobs);
+		     started, running_jobs, started - running_jobs);
 	}
 
 	cp->ei->runtime = tv_delta_f(&cp->ei->start, &cp->ei->stop);
@@ -383,7 +383,7 @@ static void kill_job(child_process *cp, int reason)
 			 * reap attempt later.
 			 */
 			if (reason == ESTALE) {
-wlog("tv.tv_sec is currently %d", tv.tv_sec);
+				wlog("tv.tv_sec is currently %d", tv.tv_sec);
 				tv.tv_sec += 5;
 				wlog("Failed to reap child with pid %d. Next attempt @ %lu.%lu", cp->ei->pid, tv.tv_sec, tv.tv_usec);
 			} else {
@@ -487,14 +487,14 @@ static void reap_jobs(void)
 			if (cp->ei->state != ESTALE)
 				finish_job(cp, cp->ei->state);
 			destroy_job(cp);
-		}
-		else if (!pid || (pid < 0 && errno == ECHILD)) {
+		} else if (!pid || (pid < 0 && errno == ECHILD)) {
 			reapable = 0;
 		}
 	} while (reapable);
 }
 
-void cmd_iobroker_register(int fdout, int fderr, void *arg) {
+void cmd_iobroker_register(int fdout, int fderr, void *arg)
+{
 	/* We must never block, even if plugins issue '_exit()' */
 	fcntl(fdout, F_SETFL, O_NONBLOCK);
 	fcntl(fderr, F_SETFL, O_NONBLOCK);
@@ -506,7 +506,8 @@ void cmd_iobroker_register(int fdout, int fderr, void *arg) {
 	}
 }
 
-char **env_from_kvvec(struct kvvec *kvv_env) {
+char **env_from_kvvec(struct kvvec *kvv_env)
+{
 
 	int i;
 	char **env;
@@ -530,8 +531,8 @@ int start_cmd(child_process *cp)
 
 	char **env = env_from_kvvec(cp->env);
 
-	cp->outstd.fd = runcmd_open(cp->cmd, pfd, pfderr, env, 
-			cmd_iobroker_register, cp);
+	cp->outstd.fd = runcmd_open(cp->cmd, pfd, pfderr, env,
+	                            cmd_iobroker_register, cp);
 	my_free(env);
 	if (cp->outstd.fd < 0) {
 		return -1;
@@ -763,7 +764,7 @@ void enter_worker(int sd, int (*cb)(child_process*))
 
 			if (cp->ei->state == ESTALE) {
 				if(cp->ei->sq_event &&
-						squeue_evt_when_is_after(cp->ei->sq_event, &now)) {
+				   squeue_evt_when_is_after(cp->ei->sq_event, &now)) {
 					/* If the state is already stale, there is a already
 						a job to kill the child on the queue so don't
 						add another one here. */

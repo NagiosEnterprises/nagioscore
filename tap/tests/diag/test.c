@@ -29,7 +29,8 @@
 #include "tap.h"
 
 int
-main(int argc, char *argv[]) {
+main(int argc, char *argv[])
+{
 	unsigned int rc = 0;
 
 	plan_tests(2);
@@ -42,4 +43,4 @@ main(int argc, char *argv[]) {
 	ok(0, "test 2") || diag("ok() passed, and shouldn't");
 
 	return exit_status();
-	}
+}

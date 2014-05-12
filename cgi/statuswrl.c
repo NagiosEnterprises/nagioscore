@@ -128,7 +128,8 @@ int coordinates_were_specified = FALSE; /* were drawing coordinates specified wi
 
 
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	int result;
 
 	/* reset internal variables */
@@ -139,7 +140,7 @@ int main(int argc, char **argv) {
 	if(result == ERROR) {
 		document_header();
 		return ERROR;
-		}
+	}
 
 	/* defaults from CGI config file */
 	layout_method = default_statuswrl_layout_method;
@@ -164,7 +165,7 @@ int main(int argc, char **argv) {
 	if(result == ERROR) {
 		free_memory();
 		return ERROR;
-		}
+	}
 
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
@@ -176,11 +177,12 @@ int main(int argc, char **argv) {
 	free_memory();
 
 	return OK;
-	}
+}
 
 
 
-void document_header(void) {
+void document_header(void)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	time_t expire_time;
@@ -200,11 +202,12 @@ void document_header(void) {
 	printf("Content-Type: x-world/x-vrml\r\n\r\n");
 
 	return;
-	}
+}
 
 
 
-int process_cgivars(void) {
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -217,7 +220,7 @@ int process_cgivars(void) {
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			x++;
 			continue;
-			}
+		}
 
 
 		/* we found the host argument */
@@ -226,7 +229,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((host_name = (char *)strdup(variables[x])) == NULL)
 				host_name = "all";
@@ -237,7 +240,7 @@ int process_cgivars(void) {
 				show_all_hosts = TRUE;
 			else
 				show_all_hosts = FALSE;
-			}
+		}
 
 		/* we found the no textures argument*/
 		else if(!strcmp(variables[x], "notextures"))
@@ -257,9 +260,9 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
-			layout_method = atoi(variables[x]);
 			}
+			layout_method = atoi(variables[x]);
+		}
 
 		/* we found custom viewpoint coord */
 		else if(!strcmp(variables[x], "viewx")) {
@@ -267,41 +270,40 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 			custom_viewpoint_x = strtod(variables[x], NULL);
 			custom_viewpoint = TRUE;
-			}
-		else if(!strcmp(variables[x], "viewy")) {
+		} else if(!strcmp(variables[x], "viewy")) {
 			x++;
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 			custom_viewpoint_y = strtod(variables[x], NULL);
 			custom_viewpoint = TRUE;
-			}
-		else if(!strcmp(variables[x], "viewz")) {
+		} else if(!strcmp(variables[x], "viewz")) {
 			x++;
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 			custom_viewpoint_z = strtod(variables[x], NULL);
 			custom_viewpoint = TRUE;
-			}
-
 		}
+
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
 /* top-level VRML world generation... */
-void display_world(void) {
+void display_world(void)
+{
 	host *temp_host = NULL;
 
 	/* get the url we will use to grab the logo images... */
@@ -357,7 +359,7 @@ void display_world(void) {
 
 		printf("]\n");
 		printf("}\n");
-		}
+	}
 
 	/* coordinates were specified... */
 	else {
@@ -372,10 +374,10 @@ void display_world(void) {
 
 		/* draw host links */
 		draw_host_links();
-		}
+	}
 
 	return;
-	}
+}
 
 
 
@@ -385,7 +387,8 @@ void display_world(void) {
 /******************************************************************/
 
 /* calculates how many "layers" separate parent and child - used by collapsed tree layout method */
-int host_child_depth_separation(host *parent, host *child) {
+int host_child_depth_separation(host *parent, host *child)
+{
 	int this_depth = 0;
 	int min_depth = 0;
 	int have_min_depth = FALSE;
@@ -409,20 +412,21 @@ int host_child_depth_separation(host *parent, host *child) {
 			if(this_depth >= 0 && (have_min_depth == FALSE || (have_min_depth == TRUE && (this_depth < min_depth)))) {
 				have_min_depth = TRUE;
 				min_depth = this_depth;
-				}
 			}
 		}
+	}
 
 	if(have_min_depth == FALSE)
 		return -1;
 	else
 		return min_depth + 1;
-	}
+}
 
 
 
 /* calculates how many hosts reside on a specific "layer" - used by collapsed tree layout method */
-int number_of_host_layer_members(host *parent, int layer) {
+int number_of_host_layer_members(host *parent, int layer)
+{
 	int current_layer;
 	int layer_members = 0;
 	host *temp_host;
@@ -433,15 +437,16 @@ int number_of_host_layer_members(host *parent, int layer) {
 
 		if(current_layer == layer)
 			layer_members++;
-		}
+	}
 
 	return layer_members;
-	}
+}
 
 
 
 /* calculate max number of members on all "layers" beneath and including parent host - used by collapsed tree layout method */
-int max_child_host_layer_members(host *parent) {
+int max_child_host_layer_members(host *parent)
+{
 	int current_layer;
 	int max_members = 1;
 	int current_members = 0;
@@ -455,22 +460,23 @@ int max_child_host_layer_members(host *parent) {
 
 		if(current_members > max_members)
 			max_members = current_members;
-		}
+	}
 
 	return max_members;
-	}
+}
 
 
 
 /* calculate max drawing width for host and children - used by balanced tree layout method */
-int max_child_host_drawing_width(host *parent) {
+int max_child_host_drawing_width(host *parent)
+{
 	host *temp_host;
 	int child_width = 0;
 
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 		if(is_host_immediate_child_of_host(parent, temp_host) == TRUE)
 			child_width += max_child_host_drawing_width(temp_host);
-		}
+	}
 
 	/* no children, so set width to 1 for this host */
 	if(child_width == 0)
@@ -478,7 +484,7 @@ int max_child_host_drawing_width(host *parent) {
 
 	else
 		return child_width;
-	}
+}
 
 
 
@@ -488,7 +494,8 @@ int max_child_host_drawing_width(host *parent) {
 /******************************************************************/
 
 /* calculates host drawing coordinates */
-void calculate_host_coords(void) {
+void calculate_host_coords(void)
+{
 	host *this_host;
 	host *temp_host;
 	int parent_hosts = 0;
@@ -517,10 +524,10 @@ void calculate_host_coords(void) {
 				temp_host->should_be_drawn = TRUE;
 			else
 				temp_host->should_be_drawn = FALSE;
-			}
+		}
 
 		return;
-		}
+	}
 
 	/*****************************/
 	/***** AUTO-LAYOUT MODES *****/
@@ -540,7 +547,7 @@ void calculate_host_coords(void) {
 		else
 		*/
 		temp_host->z_3d = 0.0;
-		}
+	}
 
 
 	/***** COLLAPSED TREE MODE *****/
@@ -565,7 +572,7 @@ void calculate_host_coords(void) {
 			nagios_icon_x = center_x;
 			nagios_icon_y = offset_y;
 			draw_nagios_icon = TRUE;
-			}
+		}
 
 		/* do we need to draw a link to parent(s)? */
 		if(this_host != NULL && is_host_immediate_child_of_host(NULL, this_host) == FALSE)
@@ -581,7 +588,7 @@ void calculate_host_coords(void) {
 				temp_host->x_3d = center_x - (((parent_hosts * DEFAULT_NODE_WIDTH) + ((parent_hosts - 1) * DEFAULT_NODE_HSPACING)) / 2) + (current_parent_host * (DEFAULT_NODE_WIDTH + DEFAULT_NODE_HSPACING)) + (DEFAULT_NODE_WIDTH / 2);
 				temp_host->y_3d = offset_y;
 				current_parent_host++;
-				}
+			}
 
 			/* this is the "main" host we're drawing */
 			else if(this_host == temp_host) {
@@ -589,14 +596,14 @@ void calculate_host_coords(void) {
 				temp_host->have_3d_coords = TRUE;
 				temp_host->x_3d = center_x;
 				temp_host->y_3d = DEFAULT_NODE_HEIGHT + DEFAULT_NODE_VSPACING + offset_y;
-				}
+			}
 
 			/* else do not draw this host (we might if its a child - see below, but assume no for now) */
 			else {
 				temp_host->should_be_drawn = FALSE;
 				temp_host->have_3d_coords = FALSE;
-				}
 			}
+		}
 
 
 		/* TODO: REORDER CHILD LAYER MEMBERS SO THAT WE MINIMIZE LINK CROSSOVERS FROM PARENT HOSTS */
@@ -625,11 +632,11 @@ void calculate_host_coords(void) {
 					else
 						temp_host->y_3d = ((DEFAULT_NODE_HEIGHT + DEFAULT_NODE_VSPACING) * (current_layer + 1)) + offset_y;
 					current_layer_member++;
-					}
 				}
 			}
-
 		}
+
+	}
 
 
 	/***** "BALANCED" TREE MODE *****/
@@ -654,7 +661,7 @@ void calculate_host_coords(void) {
 			nagios_icon_x = center_x;
 			nagios_icon_y = offset_y;
 			draw_nagios_icon = TRUE;
-			}
+		}
 
 		/* do we need to draw a link to parent(s)? */
 		if(this_host != NULL && is_host_immediate_child_of_host(NULL, this_host) == FALSE)
@@ -670,7 +677,7 @@ void calculate_host_coords(void) {
 				temp_host->x_3d = center_x - (((parent_hosts * DEFAULT_NODE_WIDTH) + ((parent_hosts - 1) * DEFAULT_NODE_HSPACING)) / 2) + (current_parent_host * (DEFAULT_NODE_WIDTH + DEFAULT_NODE_HSPACING)) + (DEFAULT_NODE_WIDTH / 2);
 				temp_host->y_3d = offset_y;
 				current_parent_host++;
-				}
+			}
 
 			/* this is the "main" host we're drawing */
 			else if(this_host == temp_host) {
@@ -678,19 +685,19 @@ void calculate_host_coords(void) {
 				temp_host->have_3d_coords = TRUE;
 				temp_host->x_3d = center_x;
 				temp_host->y_3d = DEFAULT_NODE_HEIGHT + DEFAULT_NODE_VSPACING + offset_y;
-				}
+			}
 
 			/* else do not draw this host (we might if its a child - see below, but assume no for now) */
 			else {
 				temp_host->should_be_drawn = FALSE;
 				temp_host->have_3d_coords = FALSE;
-				}
 			}
+		}
 
 		/* draw all children hosts */
 		calculate_balanced_tree_coords(this_host, center_x, DEFAULT_NODE_HEIGHT + DEFAULT_NODE_VSPACING + offset_y);
 
-		}
+	}
 
 
 	/***** CIRCULAR LAYOUT MODE *****/
@@ -703,15 +710,16 @@ void calculate_host_coords(void) {
 
 		/* calculate coordinates for all hosts */
 		calculate_circular_coords();
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* calculate world dimensions */
-void calculate_world_bounds(void) {
+void calculate_world_bounds(void)
+{
 	host *temp_host;
 
 	min_x_coord = 0.0;
@@ -727,7 +735,7 @@ void calculate_world_bounds(void) {
 		if(temp_host->have_3d_coords == FALSE) {
 			temp_host->should_be_drawn = FALSE;
 			continue;
-			}
+		}
 
 		if(temp_host->should_be_drawn == FALSE)
 			continue;
@@ -746,7 +754,7 @@ void calculate_world_bounds(void) {
 			max_z_coord = temp_host->z_3d;
 
 		coordinates_were_specified = TRUE;
-		}
+	}
 
 	/* no drawing coordinates were specified */
 	if(coordinates_were_specified == FALSE) {
@@ -756,7 +764,7 @@ void calculate_world_bounds(void) {
 		max_y_coord = 0.0;
 		min_z_coord = 0.0;
 		max_z_coord = 6.0;
-		}
+	}
 
 	max_world_size = max_x_coord - min_x_coord;
 	if(max_world_size < (max_y_coord - min_y_coord))
@@ -765,7 +773,7 @@ void calculate_world_bounds(void) {
 		max_world_size = max_z_coord - min_z_coord;
 
 	return;
-	}
+}
 
 
 /******************************************************************/
@@ -774,7 +782,8 @@ void calculate_world_bounds(void) {
 
 
 /* write global VRML data */
-void write_global_vrml_data(void) {
+void write_global_vrml_data(void)
+{
 	host *temp_host;
 	float visibility_range = 0.0;
 	float viewpoint_z = 0.0;
@@ -817,7 +826,7 @@ void write_global_vrml_data(void) {
 		printf("fieldOfView 0.78\n");
 		printf("description \"Entry Viewpoint\"\n");
 		printf("}\n");
-		}
+	}
 
 	/* host close-up viewpoint */
 	if(show_all_hosts == FALSE) {
@@ -830,8 +839,8 @@ void write_global_vrml_data(void) {
 			printf("fieldOfView 0.78\n");
 			printf("description \"Host Close-Up Viewpoint\"\n");
 			printf("}\n");
-			}
 		}
+	}
 
 	/* calculate z coord for default viewpoint - don't get too close */
 	viewpoint_z = max_world_size;
@@ -885,15 +894,16 @@ void write_global_vrml_data(void) {
 		printf("Inline{\n");
 		printf("url \"%s%s\"\n", url_html_path, statuswrl_include);
 		printf("}\n");
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* draws a host */
-void draw_host(host *temp_host) {
+void draw_host(host *temp_host)
+{
 	hoststatus *temp_hoststatus = NULL;
 	char state_string[16] = "";
 	double x, y, z;
@@ -910,7 +920,7 @@ void draw_host(host *temp_host) {
 		x = temp_host->x_3d;
 		y = temp_host->y_3d;
 		z = temp_host->z_3d;
-		}
+	}
 
 	/* make the host name safe for embedding in VRML */
 	vrml_safe_hostname = (char *)strdup(temp_host->name);
@@ -920,7 +930,7 @@ void draw_host(host *temp_host) {
 		ch = vrml_safe_hostname[a];
 		if((ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') && (ch < '0' || ch > '9'))
 			vrml_safe_hostname[a] = '_';
-		}
+	}
 
 	/* see if user is authorized to view this host  */
 	if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
@@ -955,7 +965,7 @@ void draw_host(host *temp_host) {
 		printf("texture ImageTexture{\n");
 		printf("url \"%s%s\"\n", url_logo_images_path, temp_host->vrml_image);
 		printf("}\n");
-		}
+	}
 	printf("}\n");
 	printf("geometry Box{\n");
 	printf("size %2.2f %2.2f %2.2f\n", node_width, node_width, node_width);
@@ -985,7 +995,7 @@ void draw_host(host *temp_host) {
 				printf("font_color 0 1 0\n");
 			else if(temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE)
 				printf("font_color 1 0 0\n");
-			}
+		}
 		printf("the_text [\"%s\", \"%s\", ", temp_host->name, temp_host->alias);
 		if(temp_hoststatus == NULL)
 			strcpy(state_string, "UNKNOWN");
@@ -998,13 +1008,13 @@ void draw_host(host *temp_host) {
 				strcpy(state_string, "PENDING");
 			else
 				strcpy(state_string, "UP");
-			}
+		}
 		printf("\"%s\"]\n", state_string);
 
 		printf("}\n");
 		printf("]\n");
 		printf("}\n");
-		}
+	}
 
 	/* host is down or unreachable, so make it fade in and out */
 	if(temp_hoststatus != NULL && (temp_hoststatus->status == SD_HOST_DOWN || temp_hoststatus->status == SD_HOST_UNREACHABLE))
@@ -1013,12 +1023,13 @@ void draw_host(host *temp_host) {
 	free(vrml_safe_hostname);
 
 	return;
-	}
+}
 
 
 
 /* draw links between hosts */
-void draw_host_links(void) {
+void draw_host_links(void)
+{
 	host *parent_host;
 	host *child_host;
 
@@ -1048,19 +1059,20 @@ void draw_host_links(void) {
 
 				/* draw the link between the child and parent hosts */
 				draw_host_link(parent_host, parent_host->x_3d, parent_host->y_3d, parent_host->z_3d, child_host->x_3d, child_host->y_3d, child_host->z_3d);
-				}
 			}
 		}
+	}
 
 
 	return;
-	}
+}
 
 
 
 
 /* draws a link from a parent host to a child host */
-void draw_host_link(host *hst, double x0, double y0, double z0, double x1, double y1, double z1) {
+void draw_host_link(host *hst, double x0, double y0, double z0, double x1, double y1, double z1)
+{
 
 	printf("\n");
 
@@ -1087,12 +1099,13 @@ void draw_host_link(host *hst, double x0, double y0, double z0, double x1, doubl
 	printf("}\n");
 
 	return;
-	}
+}
 
 
 
 /* draw process icon */
-void draw_process_icon(void) {
+void draw_process_icon(void)
+{
 	host *child_host;
 
 	if(draw_nagios_icon == FALSE)
@@ -1120,7 +1133,7 @@ void draw_process_icon(void) {
 		printf("texture ImageTexture{\n");
 		printf("url \"%s%s\"\n", url_logo_images_path, NAGIOS_VRML_IMAGE);
 		printf("}\n");
-		}
+	}
 	printf("}\n");
 	printf("geometry Box{\n");
 	printf("size %2.2f %2.2f %2.2f\n", node_width * 3.0, node_width * 3.0, node_width * 3.0);
@@ -1152,10 +1165,10 @@ void draw_process_icon(void) {
 		/* draw a link to the host */
 		if(is_host_immediate_child_of_host(NULL, child_host) == TRUE)
 			draw_host_link(NULL, nagios_icon_x, nagios_icon_y, 0.0, child_host->x_3d, child_host->y_3d, child_host->z_3d);
-		}
+	}
 
 	return;
-	}
+}
 
 
 
@@ -1165,7 +1178,8 @@ void draw_process_icon(void) {
 /******************************************************************/
 
 /* calculates coords of a host's children - used by balanced tree layout method */
-void calculate_balanced_tree_coords(host *parent, int x, int y) {
+void calculate_balanced_tree_coords(host *parent, int x, int y)
+{
 	int parent_drawing_width;
 	int start_drawing_x;
 	int current_drawing_x;
@@ -1197,26 +1211,28 @@ void calculate_balanced_tree_coords(host *parent, int x, int y) {
 
 			/* recurse into child host ... */
 			calculate_balanced_tree_coords(temp_host, temp_host->x_3d, temp_host->y_3d);
-			}
-
 		}
 
-	return;
 	}
+
+	return;
+}
 
 
 /* calculate coords of all hosts in circular layout method */
-void calculate_circular_coords(void) {
+void calculate_circular_coords(void)
+{
 
 	/* calculate all host coords, starting with first layer */
 	calculate_circular_layer_coords(NULL, 0.0, 360.0, 1, CIRCULAR_DRAWING_RADIUS);
 
 	return;
-	}
+}
 
 
 /* calculates coords of all hosts in a particular "layer" in circular layout method */
-void calculate_circular_layer_coords(host *parent, double start_angle, double useable_angle, int layer, int radius) {
+void calculate_circular_layer_coords(host *parent, double start_angle, double useable_angle, int layer, int radius)
+{
 	int parent_drawing_width = 0;
 	int this_drawing_width = 0;
 	int immediate_children = 0;
@@ -1283,8 +1299,8 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 
 			/* increment current drawing angle */
 			current_drawing_angle += available_angle;
-			}
 		}
+	}
 
 	return;
-	}
+}

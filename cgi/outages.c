@@ -55,14 +55,14 @@ typedef struct hostoutage_struct {
 	unsigned long time_unreachable;
 	float percent_time_unreachable;
 	struct hostoutage_struct *next;
-	} hostoutage;
+} hostoutage;
 
 
 /* HOSTOUTAGESORT structure */
 typedef struct hostoutagesort_struct {
 	hostoutage *outage;
 	struct hostoutagesort_struct *next;
-	} hostoutagesort;
+} hostoutagesort;
 
 
 void document_header(int);
@@ -94,7 +94,8 @@ int display_header = TRUE;
 
 
 
-int main(void) {
+int main(void)
+{
 	/* get the arguments passed in the URL */
 	process_cgivars();
 
@@ -135,7 +136,7 @@ int main(void) {
 		printf("</tr>\n");
 		printf("</table>\n");
 
-		}
+	}
 
 
 	/* display network outage info */
@@ -150,11 +151,12 @@ int main(void) {
 	free_memory();
 
 	return OK;
-	}
+}
 
 
 
-void document_header(int use_stylesheet) {
+void document_header(int use_stylesheet)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	time_t expire_time;
@@ -186,7 +188,7 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>", url_stylesheets_path, COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>", url_stylesheets_path, OUTAGES_CSS);
-		}
+	}
 
 	printf("</head>\n");
 
@@ -196,10 +198,11 @@ void document_header(int use_stylesheet) {
 	include_ssi_files(OUTAGES_CGI, SSI_HEADER);
 
 	return;
-	}
+}
 
 
-void document_footer(void) {
+void document_footer(void)
+{
 
 	if(embedded == TRUE)
 		return;
@@ -211,10 +214,11 @@ void document_footer(void) {
 	printf("</html>\n");
 
 	return;
-	}
+}
 
 
-int process_cgivars(void) {
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -226,7 +230,7 @@ int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
+		}
 
 		/* we found the service severity divisor option */
 		if(!strcmp(variables[x], "service_divisor")) {
@@ -234,12 +238,12 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			service_severity_divisor = atoi(variables[x]);
 			if(service_severity_divisor < 1)
 				service_severity_divisor = 1;
-			}
+		}
 
 		/* we found the embed option */
 		else if(!strcmp(variables[x], "embedded"))
@@ -248,19 +252,20 @@ int process_cgivars(void) {
 		/* we found the noheader option */
 		else if(!strcmp(variables[x], "noheader"))
 			display_header = FALSE;
-		}
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
 
 /* shows all hosts that are causing network outages */
-void display_network_outages(void) {
+void display_network_outages(void)
+{
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int number_of_problem_hosts = 0;
 	int number_of_blocking_problem_hosts = 0;
@@ -288,7 +293,7 @@ void display_network_outages(void) {
 		printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
 
 		return;
-		}
+	}
 
 	/* find all hosts that are causing network outages */
 	find_hosts_causing_outages();
@@ -304,7 +309,7 @@ void display_network_outages(void) {
 		number_of_problem_hosts++;
 		if(temp_hostoutage->affected_child_hosts > 1)
 			number_of_blocking_problem_hosts++;
-		}
+	}
 
 	/* display the problem hosts... */
 	printf("<P><DIV ALIGN=CENTER>\n");
@@ -338,11 +343,10 @@ void display_network_outages(void) {
 		if(odd == 0) {
 			odd = 1;
 			bg_class = "dataOdd";
-			}
-		else {
+		} else {
 			odd = 0;
 			bg_class = "dataEven";
-			}
+		}
 
 		if(temp_hoststatus->status == SD_HOST_UNREACHABLE)
 			status = "UNREACHABLE";
@@ -360,8 +364,7 @@ void display_network_outages(void) {
 			snprintf(temp_buffer, sizeof(temp_buffer) - 1, "This host has %d comment%s associated with it", total_comments, (total_comments == 1) ? "" : "s");
 			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			printf("<TD CLASS='%s'><A HREF='%s?type=%d&host=%s#comments'><IMG SRC='%s%s' BORDER=0 ALT='%s' TITLE='%s'></A></TD>\n", bg_class, EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_hostoutage->hst->name), url_images_path, COMMENT_ICON, temp_buffer, temp_buffer);
-			}
-		else
+		} else
 			printf("<TD CLASS='%s'>N/A</TD>\n", bg_class);
 
 
@@ -395,7 +398,7 @@ void display_network_outages(void) {
 		printf("</TD>\n");
 
 		printf("</TR>\n");
-		}
+	}
 
 	printf("</TABLE>\n");
 
@@ -409,14 +412,15 @@ void display_network_outages(void) {
 	free_hostoutagesort_list();
 
 	return;
-	}
+}
 
 
 
 
 
 /* determine what hosts are causing network outages */
-void find_hosts_causing_outages(void) {
+void find_hosts_causing_outages(void)
+{
 	hoststatus *temp_hoststatus;
 	host *temp_host;
 
@@ -435,18 +439,19 @@ void find_hosts_causing_outages(void) {
 			/* if the route to this host is not blocked, it is a causing an outage */
 			if(is_route_to_host_blocked(temp_host) == FALSE)
 				add_hostoutage(temp_host);
-			}
 		}
+	}
 
 	return;
-	}
+}
 
 
 
 
 
 /* adds a host outage entry */
-void add_hostoutage(host *hst) {
+void add_hostoutage(host *hst)
+{
 	hostoutage *new_hostoutage;
 
 	/* allocate memory for a new structure */
@@ -465,12 +470,13 @@ void add_hostoutage(host *hst) {
 	hostoutage_list = new_hostoutage;
 
 	return;
-	}
+}
 
 
 
 /* frees all memory allocated to the host outage list */
-void free_hostoutage_list(void) {
+void free_hostoutage_list(void)
+{
 	hostoutage *this_hostoutage;
 	hostoutage *next_hostoutage;
 
@@ -478,18 +484,19 @@ void free_hostoutage_list(void) {
 	for(this_hostoutage = hostoutage_list; this_hostoutage != NULL; this_hostoutage = next_hostoutage) {
 		next_hostoutage = this_hostoutage->next;
 		free(this_hostoutage);
-		}
+	}
 
 	/* reset list pointer */
 	hostoutage_list = NULL;
 
 	return;
-	}
+}
 
 
 
 /* frees all memory allocated to the host outage sort list */
-void free_hostoutagesort_list(void) {
+void free_hostoutagesort_list(void)
+{
 	hostoutagesort *this_hostoutagesort;
 	hostoutagesort *next_hostoutagesort;
 
@@ -497,18 +504,19 @@ void free_hostoutagesort_list(void) {
 	for(this_hostoutagesort = hostoutagesort_list; this_hostoutagesort != NULL; this_hostoutagesort = next_hostoutagesort) {
 		next_hostoutagesort = this_hostoutagesort->next;
 		free(this_hostoutagesort);
-		}
+	}
 
 	/* reset list pointer */
 	hostoutagesort_list = NULL;
 
 	return;
-	}
+}
 
 
 
 /* calculates network outage effect of all hosts that are causing blockages */
-void calculate_outage_effects(void) {
+void calculate_outage_effects(void)
+{
 	hostoutage *temp_hostoutage;
 
 	/* check all hosts causing problems */
@@ -518,16 +526,17 @@ void calculate_outage_effects(void) {
 		calculate_outage_effect_of_host(temp_hostoutage->hst, &temp_hostoutage->affected_child_hosts, &temp_hostoutage->affected_child_services);
 
 		temp_hostoutage->severity = (temp_hostoutage->affected_child_hosts + (temp_hostoutage->affected_child_services / service_severity_divisor));
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 
 /* calculates network outage effect of a particular host being down or unreachable */
-void calculate_outage_effect_of_host(host *hst, int *affected_hosts, int *affected_services) {
+void calculate_outage_effect_of_host(host *hst, int *affected_hosts, int *affected_services)
+{
 	int total_child_hosts_affected = 0;
 	int total_child_services_affected = 0;
 	int temp_child_hosts_affected = 0;
@@ -548,18 +557,19 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts, int *affect
 		/* keep a running total of outage effects */
 		total_child_hosts_affected += temp_child_hosts_affected;
 		total_child_services_affected += temp_child_services_affected;
-		}
+	}
 
 	*affected_hosts = total_child_hosts_affected + 1;
 	*affected_services = total_child_services_affected + number_of_host_services(hst);
 
 	return;
-	}
+}
 
 
 
 /* tests whether or not a host is "blocked" by upstream parents (host is already assumed to be down or unreachable) */
-int is_route_to_host_blocked(host *hst) {
+int is_route_to_host_blocked(host *hst)
+{
 	hostsmember *temp_hostsmember;
 	hoststatus *temp_hoststatus;
 
@@ -579,15 +589,16 @@ int is_route_to_host_blocked(host *hst) {
 		/* at least one parent it up (or pending), so this host is not blocked */
 		if(temp_hoststatus->status == SD_HOST_UP || temp_hoststatus->status == HOST_PENDING)
 			return FALSE;
-		}
+	}
 
 	return TRUE;
-	}
+}
 
 
 
 /* calculates the number of services associated a particular host */
-int number_of_host_services(host *hst) {
+int number_of_host_services(host *hst)
+{
 	int total_services = 0;
 	service *temp_service;
 
@@ -596,15 +607,16 @@ int number_of_host_services(host *hst) {
 
 		if(!strcmp(temp_service->host_name, hst->name))
 			total_services++;
-		}
+	}
 
 	return total_services;
-	}
+}
 
 
 
 /* sort the host outages by severity */
-void sort_hostoutages(void) {
+void sort_hostoutages(void)
+{
 	hostoutagesort *last_hostoutagesort;
 	hostoutagesort *new_hostoutagesort;
 	hostoutagesort *temp_hostoutagesort;
@@ -633,20 +645,18 @@ void sort_hostoutages(void) {
 				else
 					last_hostoutagesort->next = new_hostoutagesort;
 				break;
-				}
-			else
+			} else
 				last_hostoutagesort = temp_hostoutagesort;
-			}
+		}
 
 		if(hostoutagesort_list == NULL) {
 			new_hostoutagesort->next = NULL;
 			hostoutagesort_list = new_hostoutagesort;
-			}
-		else if(temp_hostoutagesort == NULL) {
+		} else if(temp_hostoutagesort == NULL) {
 			new_hostoutagesort->next = NULL;
 			last_hostoutagesort->next = new_hostoutagesort;
-			}
 		}
+	}
 
 	return;
-	}
+}

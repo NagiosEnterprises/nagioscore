@@ -55,7 +55,8 @@ static struct {
 
 
 /* creates external command file as a named pipe (FIFO) and opens it for reading (non-blocked mode) */
-int open_command_file(void) {
+int open_command_file(void)
+{
 	struct stat st;
 	int result = 0;
 
@@ -78,8 +79,8 @@ int open_command_file(void) {
 
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n", command_file, errno, strerror(errno));
 			return ERROR;
-			}
 		}
+	}
 
 	/* open the command file for reading (non-blocked) - O_TRUNC flag cannot be used due to errors on some systems */
 	/* NOTE: file must be opened read-write for poll() to work */
@@ -88,17 +89,18 @@ int open_command_file(void) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not open external command file for reading via open(): (%d) -> %s\n", errno, strerror(errno));
 
 		return ERROR;
-		}
+	}
 
 	/* set a flag to remember we already created the file */
 	command_file_created = TRUE;
 
 	return OK;
-	}
+}
 
 
 /* closes the external command file FIFO and deletes it */
-int close_command_file(void) {
+int close_command_file(void)
+{
 
 	/* if we're not checking external commands, don't do anything */
 	if(check_external_commands == FALSE)
@@ -115,11 +117,12 @@ int close_command_file(void) {
 	fclose(command_file_fp);
 
 	return OK;
-	}
+}
 
 
 /* shutdown command file worker thread */
-int shutdown_command_file_worker(void) {
+int shutdown_command_file_worker(void)
+{
 	if (!command_worker.pid)
 		return 0;
 
@@ -130,10 +133,11 @@ int shutdown_command_file_worker(void) {
 	kill(command_worker.pid, SIGKILL);
 	command_worker.pid = 0;
 	return 0;
-	}
+}
 
 
-static int command_input_handler(int sd, int events, void *discard) {
+static int command_input_handler(int sd, int events, void *discard)
+{
 	int ret, cmd_ret;
 	char *buf;
 	unsigned long size;
@@ -145,29 +149,30 @@ static int command_input_handler(int sd, int events, void *discard) {
 		shutdown_command_file_worker();
 		launch_command_file_worker();
 		return 0;
-		}
+	}
 	while ((buf = iocache_use_delim(command_worker.ioc, "\n", 1, &size))) {
 		if (buf[0] == '[') {
 			/* raw external command */
 			buf[size] = 0;
 			log_debug_info(DEBUGL_COMMANDS, 1, "Read raw external command '%s'\n", buf);
-			}
+		}
 
-		/* Drop commands while restarting because we may not be ready to 
+		/* Drop commands while restarting because we may not be ready to
 			handle them */
 		if(TRUE == sigrestart) continue;
 
 		if ((cmd_ret = process_external_command1(buf)) != CMD_ERROR_OK) {
 			logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING, TRUE, "External command error: %s\n", cmd_error_strerror(cmd_ret));
-			}
-
 		}
-	return 0;
+
 	}
+	return 0;
+}
 
 
 /* main controller of command file helper process */
-static int command_file_worker(int sd) {
+static int command_file_worker(int sd)
+{
 	iocache *ioc;
 
 	if (open_command_file() == ERROR)
@@ -186,7 +191,7 @@ static int command_file_worker(int sd) {
 		/* if our master has gone away, we need to die */
 		if (kill(nagios_pid, 0) < 0 && errno == ESRCH) {
 			return EXIT_SUCCESS;
-			}
+		}
 
 		errno = 0;
 		/* wait for data to arrive */
@@ -207,7 +212,7 @@ static int command_file_worker(int sd) {
 			if (errno == EINTR)
 				continue;
 			return EXIT_FAILURE;
-			}
+		}
 
 		errno = 0;
 		ret = iocache_read(ioc, command_file_fd);
@@ -226,11 +231,12 @@ static int command_file_worker(int sd) {
 		 */
 		if (ret < 0 && errno != EINTR)
 			return EXIT_FAILURE;
-		} /* while(1) */
-	}
+	} /* while(1) */
+}
 
 
-int launch_command_file_worker(void) {
+int launch_command_file_worker(void)
+{
 	int ret, sv[2];
 	char *str;
 
@@ -239,8 +245,7 @@ int launch_command_file_worker(void) {
 	 * file worker process attached. Keep it if that's so.
 	 */
 	if (command_worker.pid && kill(command_worker.pid, 0) == 0 &&
-		iobroker_is_registered(nagios_iobs, command_worker.sd))
-	{
+	    iobroker_is_registered(nagios_iobs, command_worker.sd)) {
 		return 0;
 	}
 
@@ -266,12 +271,12 @@ int launch_command_file_worker(void) {
 		ret = iobroker_register(nagios_iobs, command_worker.sd, NULL, command_input_handler);
 		if (ret < 0) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to register command file worker socket %d with io broker %p: %s; errno=%d: %s\n",
-				  command_worker.sd, nagios_iobs, iobroker_strerror(ret), errno, strerror(errno));
+			      command_worker.sd, nagios_iobs, iobroker_strerror(ret), errno, strerror(errno));
 			iocache_destroy(command_worker.ioc);
 			goto err_close;
 		}
 		logit(NSLOG_INFO_MESSAGE, TRUE, "Successfully launched command file worker with pid %d\n",
-			  command_worker.pid);
+		      command_worker.pid);
 		return OK;
 	}
 
@@ -296,7 +301,7 @@ err_close:
 	command_worker.pid = 0;
 	command_worker.sd = -1;
 	return ERROR;
-	}
+}
 
 /******************************************************************/
 /****************** EXTERNAL COMMAND PROCESSING *******************/
@@ -318,7 +323,8 @@ static host *find_host_by_name_or_address(const char *name)
 }
 
 /* processes all external commands in a (regular) file */
-int process_external_commands_from_file(char *fname, int delete_file) {
+int process_external_commands_from_file(char *fname, int delete_file)
+{
 	mmapfile *thefile = NULL;
 	char *input = NULL;
 
@@ -333,7 +339,7 @@ int process_external_commands_from_file(char *fname, int delete_file) {
 	if((thefile = mmap_fopen(fname)) == NULL) {
 		logit(NSLOG_INFO_MESSAGE, FALSE, "Error: Cannot open file '%s' to process external commands!", fname);
 		return ERROR;
-		}
+	}
 
 	/* process all commands in the file */
 	while(1) {
@@ -347,7 +353,7 @@ int process_external_commands_from_file(char *fname, int delete_file) {
 
 		/* process the command */
 		process_external_command1(input);
-		}
+	}
 
 	/* close the file */
 	mmap_fclose(thefile);
@@ -357,12 +363,13 @@ int process_external_commands_from_file(char *fname, int delete_file) {
 		unlink(fname);
 
 	return OK;
-	}
+}
 
 
 
 /* top-level external command processor */
-int process_external_command1(char *cmd) {
+int process_external_command1(char *cmd)
+{
 	char *temp_buffer = NULL;
 	char *command_id = NULL;
 	char *args = NULL;
@@ -402,7 +409,7 @@ int process_external_command1(char *cmd) {
 	if(args == NULL) {
 		my_free(command_id);
 		return CMD_ERROR_INTERNAL_ERROR;
-		}
+	}
 
 	/* decide what type of command this is... */
 
@@ -864,7 +871,7 @@ int process_external_command1(char *cmd) {
 		my_free(args);
 
 		return CMD_ERROR_UNKNOWN_COMMAND;
-		}
+	}
 
 	/* update statistics for external commands */
 	update_check_stats(EXTERNAL_COMMAND_STATS, time(NULL));
@@ -875,11 +882,10 @@ int process_external_command1(char *cmd) {
 		/* passive checks are logged in checks.c as well, as some my bypass external commands by getting dropped in checkresults dir */
 		if(log_passive_checks == TRUE)
 			write_to_all_logs(temp_buffer, NSLOG_PASSIVE_CHECK);
-		}
-	else {
+	} else {
 		if(log_external_commands == TRUE)
 			write_to_all_logs(temp_buffer, NSLOG_EXTERNAL_COMMAND);
-		}
+	}
 	my_free(temp_buffer);
 
 #ifdef USE_EVENT_BROKER
@@ -890,7 +896,7 @@ int process_external_command1(char *cmd) {
 	/* process the command */
 	external_command_ret = (process_external_command2(command_type, entry_time, args) == OK) ? CMD_ERROR_OK : CMD_ERROR_FAILURE;
 	if (external_command_ret != CMD_ERROR_OK) {
-			logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING, TRUE, "Error: External command failed -> %s;%s\n", command_id, args);
+		logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING, TRUE, "Error: External command failed -> %s;%s\n", command_id, args);
 	}
 
 
@@ -904,26 +910,28 @@ int process_external_command1(char *cmd) {
 	my_free(args);
 
 	return external_command_ret;
-	}
+}
 
-const char *cmd_error_strerror(int code) {
+const char *cmd_error_strerror(int code)
+{
 	switch(code) {
-		case CMD_ERROR_OK:
-			return "No error";
-		case CMD_ERROR_FAILURE:
-			return "Command failed";
-		case CMD_ERROR_INTERNAL_ERROR:
-			return "Internal error";
-		case CMD_ERROR_UNKNOWN_COMMAND:
-			return "Unknown or unsupported command";
-		case CMD_ERROR_MALFORMED_COMMAND:
-			return "Malformed command";
-		}
-	return "Unknown error";
+	case CMD_ERROR_OK:
+		return "No error";
+	case CMD_ERROR_FAILURE:
+		return "Command failed";
+	case CMD_ERROR_INTERNAL_ERROR:
+		return "Internal error";
+	case CMD_ERROR_UNKNOWN_COMMAND:
+		return "Unknown or unsupported command";
+	case CMD_ERROR_MALFORMED_COMMAND:
+		return "Malformed command";
 	}
+	return "Unknown error";
+}
 
 /* top-level processor for a single external command */
-int process_external_command2(int cmd, time_t entry_time, char *args) {
+int process_external_command2(int cmd, time_t entry_time, char *args)
+{
 
 	int ret = OK;
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "process_external_command2()\n");
@@ -935,389 +943,390 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 	/* how shall we execute the command? */
 	switch(cmd) {
 
-			/***************************/
-			/***** SYSTEM COMMANDS *****/
-			/***************************/
-
-		case CMD_SHUTDOWN_PROCESS:
-		case CMD_RESTART_PROCESS:
-			ret = cmd_signal_process(cmd, args);
-			break;
-
-		case CMD_SAVE_STATE_INFORMATION:
-			ret = save_state_information(FALSE);
-			break;
-
-		case CMD_READ_STATE_INFORMATION:
-			ret = read_initial_state_information();
-			break;
+	/***************************/
+	/***** SYSTEM COMMANDS *****/
+	/***************************/
+
+	case CMD_SHUTDOWN_PROCESS:
+	case CMD_RESTART_PROCESS:
+		ret = cmd_signal_process(cmd, args);
+		break;
+
+	case CMD_SAVE_STATE_INFORMATION:
+		ret = save_state_information(FALSE);
+		break;
+
+	case CMD_READ_STATE_INFORMATION:
+		ret = read_initial_state_information();
+		break;
 
-		case CMD_ENABLE_NOTIFICATIONS:
-			enable_all_notifications();
-			break;
+	case CMD_ENABLE_NOTIFICATIONS:
+		enable_all_notifications();
+		break;
 
-		case CMD_DISABLE_NOTIFICATIONS:
-			disable_all_notifications();
-			break;
-
-		case CMD_START_EXECUTING_SVC_CHECKS:
-			start_executing_service_checks();
-			break;
-
-		case CMD_STOP_EXECUTING_SVC_CHECKS:
-			stop_executing_service_checks();
-			break;
-
-		case CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS:
-			start_accepting_passive_service_checks();
-			break;
-
-		case CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS:
-			stop_accepting_passive_service_checks();
-			break;
-
-		case CMD_START_OBSESSING_OVER_SVC_CHECKS:
-			start_obsessing_over_service_checks();
-			break;
-
-		case CMD_STOP_OBSESSING_OVER_SVC_CHECKS:
-			stop_obsessing_over_service_checks();
-			break;
-
-		case CMD_START_EXECUTING_HOST_CHECKS:
-			start_executing_host_checks();
-			break;
-
-		case CMD_STOP_EXECUTING_HOST_CHECKS:
-			stop_executing_host_checks();
-			break;
-
-		case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
-			start_accepting_passive_host_checks();
-			break;
-
-		case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
-			stop_accepting_passive_host_checks();
-			break;
-
-		case CMD_START_OBSESSING_OVER_HOST_CHECKS:
-			start_obsessing_over_host_checks();
-			break;
-
-		case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
-			stop_obsessing_over_host_checks();
-			break;
-
-		case CMD_ENABLE_EVENT_HANDLERS:
-			start_using_event_handlers();
-			break;
-
-		case CMD_DISABLE_EVENT_HANDLERS:
-			stop_using_event_handlers();
-			break;
-
-		case CMD_ENABLE_FLAP_DETECTION:
-			enable_flap_detection_routines();
-			break;
-
-		case CMD_DISABLE_FLAP_DETECTION:
-			disable_flap_detection_routines();
-			break;
-
-		case CMD_ENABLE_SERVICE_FRESHNESS_CHECKS:
-			enable_service_freshness_checks();
-			break;
-
-		case CMD_DISABLE_SERVICE_FRESHNESS_CHECKS:
-			disable_service_freshness_checks();
-			break;
-
-		case CMD_ENABLE_HOST_FRESHNESS_CHECKS:
-			enable_host_freshness_checks();
-			break;
-
-		case CMD_DISABLE_HOST_FRESHNESS_CHECKS:
-			disable_host_freshness_checks();
-			break;
-
-		case CMD_ENABLE_PERFORMANCE_DATA:
-			enable_performance_data();
-			break;
-
-		case CMD_DISABLE_PERFORMANCE_DATA:
-			disable_performance_data();
-			break;
-
-
-			/***************************/
-			/*****  HOST COMMANDS  *****/
-			/***************************/
-
-		case CMD_ENABLE_HOST_CHECK:
-		case CMD_DISABLE_HOST_CHECK:
-		case CMD_ENABLE_PASSIVE_HOST_CHECKS:
-		case CMD_DISABLE_PASSIVE_HOST_CHECKS:
-		case CMD_ENABLE_HOST_SVC_CHECKS:
-		case CMD_DISABLE_HOST_SVC_CHECKS:
-		case CMD_ENABLE_HOST_NOTIFICATIONS:
-		case CMD_DISABLE_HOST_NOTIFICATIONS:
-		case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
-		case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
-		case CMD_ENABLE_HOST_AND_CHILD_NOTIFICATIONS:
-		case CMD_DISABLE_HOST_AND_CHILD_NOTIFICATIONS:
-		case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
-		case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
-		case CMD_ENABLE_HOST_FLAP_DETECTION:
-		case CMD_DISABLE_HOST_FLAP_DETECTION:
-		case CMD_ENABLE_HOST_EVENT_HANDLER:
-		case CMD_DISABLE_HOST_EVENT_HANDLER:
-		case CMD_START_OBSESSING_OVER_HOST:
-		case CMD_STOP_OBSESSING_OVER_HOST:
-		case CMD_SET_HOST_NOTIFICATION_NUMBER:
-		case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
-			ret = process_host_command(cmd, entry_time, args);
-			break;
-
-
-			/*****************************/
-			/***** HOSTGROUP COMMANDS ****/
-			/*****************************/
-
-		case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
-		case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
-		case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-		case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-		case CMD_ENABLE_HOSTGROUP_HOST_CHECKS:
-		case CMD_DISABLE_HOSTGROUP_HOST_CHECKS:
-		case CMD_ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
-		case CMD_DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
-		case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
-		case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
-		case CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
-		case CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
-			ret = process_hostgroup_command(cmd, entry_time, args);
-			break;
-
-
-			/***************************/
-			/***** SERVICE COMMANDS ****/
-			/***************************/
-
-		case CMD_ENABLE_SVC_CHECK:
-		case CMD_DISABLE_SVC_CHECK:
-		case CMD_ENABLE_PASSIVE_SVC_CHECKS:
-		case CMD_DISABLE_PASSIVE_SVC_CHECKS:
-		case CMD_ENABLE_SVC_NOTIFICATIONS:
-		case CMD_DISABLE_SVC_NOTIFICATIONS:
-		case CMD_ENABLE_SVC_FLAP_DETECTION:
-		case CMD_DISABLE_SVC_FLAP_DETECTION:
-		case CMD_ENABLE_SVC_EVENT_HANDLER:
-		case CMD_DISABLE_SVC_EVENT_HANDLER:
-		case CMD_START_OBSESSING_OVER_SVC:
-		case CMD_STOP_OBSESSING_OVER_SVC:
-		case CMD_SET_SVC_NOTIFICATION_NUMBER:
-		case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
-			ret = process_service_command(cmd, entry_time, args);
-			break;
-
-
-			/********************************/
-			/***** SERVICEGROUP COMMANDS ****/
-			/********************************/
-
-		case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
-		case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
-		case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
-		case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
-		case CMD_ENABLE_SERVICEGROUP_HOST_CHECKS:
-		case CMD_DISABLE_SERVICEGROUP_HOST_CHECKS:
-		case CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
-		case CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
-		case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
-		case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
-		case CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
-		case CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
-			ret = process_servicegroup_command(cmd, entry_time, args);
-			break;
-
-
-			/**********************************/
-			/**** CONTACT-RELATED COMMANDS ****/
-			/**********************************/
-
-		case CMD_ENABLE_CONTACT_HOST_NOTIFICATIONS:
-		case CMD_DISABLE_CONTACT_HOST_NOTIFICATIONS:
-		case CMD_ENABLE_CONTACT_SVC_NOTIFICATIONS:
-		case CMD_DISABLE_CONTACT_SVC_NOTIFICATIONS:
-			ret = process_contact_command(cmd, entry_time, args);
-			break;
-
-
-			/***************************************/
-			/**** CONTACTGROUP-RELATED COMMANDS ****/
-			/***************************************/
-
-		case CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
-		case CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
-		case CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
-		case CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
-			ret = process_contactgroup_command(cmd, entry_time, args);
-			break;
-
-
-			/***************************/
-			/**** UNSORTED COMMANDS ****/
-			/***************************/
-
-
-		case CMD_ADD_HOST_COMMENT:
-		case CMD_ADD_SVC_COMMENT:
-			ret= cmd_add_comment(cmd, entry_time, args);
-			break;
-
-		case CMD_DEL_HOST_COMMENT:
-		case CMD_DEL_SVC_COMMENT:
-			ret = cmd_delete_comment(cmd, args);
-			break;
-
-		case CMD_DELAY_HOST_NOTIFICATION:
-		case CMD_DELAY_SVC_NOTIFICATION:
-			ret = cmd_delay_notification(cmd, args);
-			break;
-
-		case CMD_SCHEDULE_SVC_CHECK:
-		case CMD_SCHEDULE_FORCED_SVC_CHECK:
-			ret =cmd_schedule_check(cmd, args);
-			break;
-
-		case CMD_SCHEDULE_HOST_SVC_CHECKS:
-		case CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS:
-			ret = cmd_schedule_check(cmd, args);
-			break;
-
-		case CMD_DEL_ALL_HOST_COMMENTS:
-		case CMD_DEL_ALL_SVC_COMMENTS:
-			ret = cmd_delete_all_comments(cmd, args);
-			break;
-
-		case CMD_PROCESS_SERVICE_CHECK_RESULT:
-			ret = cmd_process_service_check_result(cmd, entry_time, args);
-			break;
-
-		case CMD_PROCESS_HOST_CHECK_RESULT:
-			ret = cmd_process_host_check_result(cmd, entry_time, args);
-			break;
-
-		case CMD_ACKNOWLEDGE_HOST_PROBLEM:
-		case CMD_ACKNOWLEDGE_SVC_PROBLEM:
-			ret = cmd_acknowledge_problem(cmd, args);
-			break;
-
-		case CMD_REMOVE_HOST_ACKNOWLEDGEMENT:
-		case CMD_REMOVE_SVC_ACKNOWLEDGEMENT:
-			ret = cmd_remove_acknowledgement(cmd, args);
-			break;
-
-		case CMD_SCHEDULE_HOST_DOWNTIME:
-		case CMD_SCHEDULE_SVC_DOWNTIME:
-		case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
-		case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
-		case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
-		case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
-		case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
-		case CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME:
-		case CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME:
-			ret = cmd_schedule_downtime(cmd, entry_time, args);
-			break;
-
-		case CMD_DEL_HOST_DOWNTIME:
-		case CMD_DEL_SVC_DOWNTIME:
-			ret = cmd_delete_downtime(cmd, args);
-			break;
-
-		case CMD_DEL_DOWNTIME_BY_HOST_NAME:
-			ret = cmd_delete_downtime_by_host_name(cmd, args);
-			break;
-
-		case CMD_DEL_DOWNTIME_BY_HOSTGROUP_NAME:
-			ret = cmd_delete_downtime_by_hostgroup_name(cmd, args);
-			break;
-
-		case CMD_DEL_DOWNTIME_BY_START_TIME_COMMENT:
-			ret = cmd_delete_downtime_by_start_time_comment(cmd, args);
-			break;
-
-		case CMD_SCHEDULE_HOST_CHECK:
-		case CMD_SCHEDULE_FORCED_HOST_CHECK:
-			ret = cmd_schedule_check(cmd, args);
-			break;
-
-		case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
-		case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
-		case CMD_CHANGE_HOST_EVENT_HANDLER:
-		case CMD_CHANGE_SVC_EVENT_HANDLER:
-		case CMD_CHANGE_HOST_CHECK_COMMAND:
-		case CMD_CHANGE_SVC_CHECK_COMMAND:
-		case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
-		case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
-		case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
-		case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
-		case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
-		case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
-			ret = cmd_change_object_char_var(cmd, args);
-			break;
-
-		case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
-		case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
-		case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
-		case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
-		case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
-		case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
-		case CMD_CHANGE_HOST_MODATTR:
-		case CMD_CHANGE_SVC_MODATTR:
-		case CMD_CHANGE_CONTACT_MODATTR:
-		case CMD_CHANGE_CONTACT_MODHATTR:
-		case CMD_CHANGE_CONTACT_MODSATTR:
-			ret = cmd_change_object_int_var(cmd, args);
-			break;
-
-		case CMD_CHANGE_CUSTOM_HOST_VAR:
-		case CMD_CHANGE_CUSTOM_SVC_VAR:
-		case CMD_CHANGE_CUSTOM_CONTACT_VAR:
-			ret = cmd_change_object_custom_var(cmd, args);
-			break;
-
-
-			/***********************/
-			/**** MISC COMMANDS ****/
-			/***********************/
-
-
-		case CMD_PROCESS_FILE:
-			ret = cmd_process_external_commands_from_file(cmd, args);
-			break;
-
-
-			/*************************/
-			/**** CUSTOM COMMANDS ****/
-			/*************************/
-
-
-		case CMD_CUSTOM_COMMAND:
-			/* custom commands aren't handled internally by Nagios, but may be by NEB modules */
-			break;
-
-		default:
-			return CMD_ERROR_UNKNOWN_COMMAND;
-			break;
-		}
+	case CMD_DISABLE_NOTIFICATIONS:
+		disable_all_notifications();
+		break;
+
+	case CMD_START_EXECUTING_SVC_CHECKS:
+		start_executing_service_checks();
+		break;
+
+	case CMD_STOP_EXECUTING_SVC_CHECKS:
+		stop_executing_service_checks();
+		break;
+
+	case CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS:
+		start_accepting_passive_service_checks();
+		break;
+
+	case CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS:
+		stop_accepting_passive_service_checks();
+		break;
+
+	case CMD_START_OBSESSING_OVER_SVC_CHECKS:
+		start_obsessing_over_service_checks();
+		break;
+
+	case CMD_STOP_OBSESSING_OVER_SVC_CHECKS:
+		stop_obsessing_over_service_checks();
+		break;
+
+	case CMD_START_EXECUTING_HOST_CHECKS:
+		start_executing_host_checks();
+		break;
+
+	case CMD_STOP_EXECUTING_HOST_CHECKS:
+		stop_executing_host_checks();
+		break;
+
+	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
+		start_accepting_passive_host_checks();
+		break;
+
+	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
+		stop_accepting_passive_host_checks();
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
+		start_obsessing_over_host_checks();
+		break;
+
+	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
+		stop_obsessing_over_host_checks();
+		break;
+
+	case CMD_ENABLE_EVENT_HANDLERS:
+		start_using_event_handlers();
+		break;
+
+	case CMD_DISABLE_EVENT_HANDLERS:
+		stop_using_event_handlers();
+		break;
+
+	case CMD_ENABLE_FLAP_DETECTION:
+		enable_flap_detection_routines();
+		break;
+
+	case CMD_DISABLE_FLAP_DETECTION:
+		disable_flap_detection_routines();
+		break;
+
+	case CMD_ENABLE_SERVICE_FRESHNESS_CHECKS:
+		enable_service_freshness_checks();
+		break;
+
+	case CMD_DISABLE_SERVICE_FRESHNESS_CHECKS:
+		disable_service_freshness_checks();
+		break;
+
+	case CMD_ENABLE_HOST_FRESHNESS_CHECKS:
+		enable_host_freshness_checks();
+		break;
+
+	case CMD_DISABLE_HOST_FRESHNESS_CHECKS:
+		disable_host_freshness_checks();
+		break;
+
+	case CMD_ENABLE_PERFORMANCE_DATA:
+		enable_performance_data();
+		break;
+
+	case CMD_DISABLE_PERFORMANCE_DATA:
+		disable_performance_data();
+		break;
+
+
+	/***************************/
+	/*****  HOST COMMANDS  *****/
+	/***************************/
+
+	case CMD_ENABLE_HOST_CHECK:
+	case CMD_DISABLE_HOST_CHECK:
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+	case CMD_ENABLE_HOST_SVC_CHECKS:
+	case CMD_DISABLE_HOST_SVC_CHECKS:
+	case CMD_ENABLE_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+	case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+	case CMD_ENABLE_HOST_AND_CHILD_NOTIFICATIONS:
+	case CMD_DISABLE_HOST_AND_CHILD_NOTIFICATIONS:
+	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_HOST_FLAP_DETECTION:
+	case CMD_DISABLE_HOST_FLAP_DETECTION:
+	case CMD_ENABLE_HOST_EVENT_HANDLER:
+	case CMD_DISABLE_HOST_EVENT_HANDLER:
+	case CMD_START_OBSESSING_OVER_HOST:
+	case CMD_STOP_OBSESSING_OVER_HOST:
+	case CMD_SET_HOST_NOTIFICATION_NUMBER:
+	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
+		ret = process_host_command(cmd, entry_time, args);
+		break;
+
+
+	/*****************************/
+	/***** HOSTGROUP COMMANDS ****/
+	/*****************************/
+
+	case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_HOSTGROUP_HOST_CHECKS:
+	case CMD_DISABLE_HOSTGROUP_HOST_CHECKS:
+	case CMD_ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
+	case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
+	case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
+	case CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
+	case CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
+		ret = process_hostgroup_command(cmd, entry_time, args);
+		break;
+
+
+	/***************************/
+	/***** SERVICE COMMANDS ****/
+	/***************************/
+
+	case CMD_ENABLE_SVC_CHECK:
+	case CMD_DISABLE_SVC_CHECK:
+	case CMD_ENABLE_PASSIVE_SVC_CHECKS:
+	case CMD_DISABLE_PASSIVE_SVC_CHECKS:
+	case CMD_ENABLE_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_SVC_FLAP_DETECTION:
+	case CMD_DISABLE_SVC_FLAP_DETECTION:
+	case CMD_ENABLE_SVC_EVENT_HANDLER:
+	case CMD_DISABLE_SVC_EVENT_HANDLER:
+	case CMD_START_OBSESSING_OVER_SVC:
+	case CMD_STOP_OBSESSING_OVER_SVC:
+	case CMD_SET_SVC_NOTIFICATION_NUMBER:
+	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
+		ret = process_service_command(cmd, entry_time, args);
+		break;
+
+
+	/********************************/
+	/***** SERVICEGROUP COMMANDS ****/
+	/********************************/
+
+	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_HOST_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+		ret = process_servicegroup_command(cmd, entry_time, args);
+		break;
+
+
+	/**********************************/
+	/**** CONTACT-RELATED COMMANDS ****/
+	/**********************************/
+
+	case CMD_ENABLE_CONTACT_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACT_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_CONTACT_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACT_SVC_NOTIFICATIONS:
+		ret = process_contact_command(cmd, entry_time, args);
+		break;
+
+
+	/***************************************/
+	/**** CONTACTGROUP-RELATED COMMANDS ****/
+	/***************************************/
+
+	case CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+		ret = process_contactgroup_command(cmd, entry_time, args);
+		break;
+
+
+	/***************************/
+	/**** UNSORTED COMMANDS ****/
+	/***************************/
+
+
+	case CMD_ADD_HOST_COMMENT:
+	case CMD_ADD_SVC_COMMENT:
+		ret= cmd_add_comment(cmd, entry_time, args);
+		break;
+
+	case CMD_DEL_HOST_COMMENT:
+	case CMD_DEL_SVC_COMMENT:
+		ret = cmd_delete_comment(cmd, args);
+		break;
+
+	case CMD_DELAY_HOST_NOTIFICATION:
+	case CMD_DELAY_SVC_NOTIFICATION:
+		ret = cmd_delay_notification(cmd, args);
+		break;
+
+	case CMD_SCHEDULE_SVC_CHECK:
+	case CMD_SCHEDULE_FORCED_SVC_CHECK:
+		ret =cmd_schedule_check(cmd, args);
+		break;
+
+	case CMD_SCHEDULE_HOST_SVC_CHECKS:
+	case CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS:
+		ret = cmd_schedule_check(cmd, args);
+		break;
+
+	case CMD_DEL_ALL_HOST_COMMENTS:
+	case CMD_DEL_ALL_SVC_COMMENTS:
+		ret = cmd_delete_all_comments(cmd, args);
+		break;
+
+	case CMD_PROCESS_SERVICE_CHECK_RESULT:
+		ret = cmd_process_service_check_result(cmd, entry_time, args);
+		break;
+
+	case CMD_PROCESS_HOST_CHECK_RESULT:
+		ret = cmd_process_host_check_result(cmd, entry_time, args);
+		break;
+
+	case CMD_ACKNOWLEDGE_HOST_PROBLEM:
+	case CMD_ACKNOWLEDGE_SVC_PROBLEM:
+		ret = cmd_acknowledge_problem(cmd, args);
+		break;
+
+	case CMD_REMOVE_HOST_ACKNOWLEDGEMENT:
+	case CMD_REMOVE_SVC_ACKNOWLEDGEMENT:
+		ret = cmd_remove_acknowledgement(cmd, args);
+		break;
+
+	case CMD_SCHEDULE_HOST_DOWNTIME:
+	case CMD_SCHEDULE_SVC_DOWNTIME:
+	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
+	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
+	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
+	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
+	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
+	case CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME:
+	case CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME:
+		ret = cmd_schedule_downtime(cmd, entry_time, args);
+		break;
+
+	case CMD_DEL_HOST_DOWNTIME:
+	case CMD_DEL_SVC_DOWNTIME:
+		ret = cmd_delete_downtime(cmd, args);
+		break;
+
+	case CMD_DEL_DOWNTIME_BY_HOST_NAME:
+		ret = cmd_delete_downtime_by_host_name(cmd, args);
+		break;
+
+	case CMD_DEL_DOWNTIME_BY_HOSTGROUP_NAME:
+		ret = cmd_delete_downtime_by_hostgroup_name(cmd, args);
+		break;
+
+	case CMD_DEL_DOWNTIME_BY_START_TIME_COMMENT:
+		ret = cmd_delete_downtime_by_start_time_comment(cmd, args);
+		break;
+
+	case CMD_SCHEDULE_HOST_CHECK:
+	case CMD_SCHEDULE_FORCED_HOST_CHECK:
+		ret = cmd_schedule_check(cmd, args);
+		break;
+
+	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
+	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+		ret = cmd_change_object_char_var(cmd, args);
+		break;
+
+	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
+	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
+	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
+	case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
+	case CMD_CHANGE_HOST_MODATTR:
+	case CMD_CHANGE_SVC_MODATTR:
+	case CMD_CHANGE_CONTACT_MODATTR:
+	case CMD_CHANGE_CONTACT_MODHATTR:
+	case CMD_CHANGE_CONTACT_MODSATTR:
+		ret = cmd_change_object_int_var(cmd, args);
+		break;
+
+	case CMD_CHANGE_CUSTOM_HOST_VAR:
+	case CMD_CHANGE_CUSTOM_SVC_VAR:
+	case CMD_CHANGE_CUSTOM_CONTACT_VAR:
+		ret = cmd_change_object_custom_var(cmd, args);
+		break;
+
+
+	/***********************/
+	/**** MISC COMMANDS ****/
+	/***********************/
+
+
+	case CMD_PROCESS_FILE:
+		ret = cmd_process_external_commands_from_file(cmd, args);
+		break;
+
+
+	/*************************/
+	/**** CUSTOM COMMANDS ****/
+	/*************************/
+
+
+	case CMD_CUSTOM_COMMAND:
+		/* custom commands aren't handled internally by Nagios, but may be by NEB modules */
+		break;
+
+	default:
+		return CMD_ERROR_UNKNOWN_COMMAND;
+		break;
+	}
 
 	return ret;
-	}
+}
 
 
 /* processes an external host command */
-int process_host_command(int cmd, time_t entry_time, char *args) {
+int process_host_command(int cmd, time_t entry_time, char *args)
+{
 	char *host_name = NULL;
 	host *temp_host = NULL;
 	service *temp_service = NULL;
@@ -1338,124 +1347,125 @@ int process_host_command(int cmd, time_t entry_time, char *args) {
 
 	switch(cmd) {
 
-		case CMD_ENABLE_HOST_NOTIFICATIONS:
-			enable_host_notifications(temp_host);
-			break;
+	case CMD_ENABLE_HOST_NOTIFICATIONS:
+		enable_host_notifications(temp_host);
+		break;
 
-		case CMD_DISABLE_HOST_NOTIFICATIONS:
-			disable_host_notifications(temp_host);
-			break;
+	case CMD_DISABLE_HOST_NOTIFICATIONS:
+		disable_host_notifications(temp_host);
+		break;
 
-		case CMD_ENABLE_HOST_AND_CHILD_NOTIFICATIONS:
-			enable_and_propagate_notifications(temp_host, 0, TRUE, TRUE, FALSE);
-			break;
+	case CMD_ENABLE_HOST_AND_CHILD_NOTIFICATIONS:
+		enable_and_propagate_notifications(temp_host, 0, TRUE, TRUE, FALSE);
+		break;
 
-		case CMD_DISABLE_HOST_AND_CHILD_NOTIFICATIONS:
-			disable_and_propagate_notifications(temp_host, 0, TRUE, TRUE, FALSE);
-			break;
+	case CMD_DISABLE_HOST_AND_CHILD_NOTIFICATIONS:
+		disable_and_propagate_notifications(temp_host, 0, TRUE, TRUE, FALSE);
+		break;
 
-		case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
-			enable_and_propagate_notifications(temp_host, 0, FALSE, TRUE, TRUE);
-			break;
+	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+		enable_and_propagate_notifications(temp_host, 0, FALSE, TRUE, TRUE);
+		break;
 
-		case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
-			disable_and_propagate_notifications(temp_host, 0, FALSE, TRUE, TRUE);
-			break;
+	case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+		disable_and_propagate_notifications(temp_host, 0, FALSE, TRUE, TRUE);
+		break;
 
-		case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
-		case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
-			for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
-				if((temp_service = temp_servicesmember->service_ptr) == NULL)
-					continue;
-				if(cmd == CMD_ENABLE_HOST_SVC_NOTIFICATIONS)
-					enable_service_notifications(temp_service);
-				else
-					disable_service_notifications(temp_service);
-				}
-			break;
-
-		case CMD_ENABLE_HOST_SVC_CHECKS:
-		case CMD_DISABLE_HOST_SVC_CHECKS:
-			for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
-				if((temp_service = temp_servicesmember->service_ptr) == NULL)
-					continue;
-				if(cmd == CMD_ENABLE_HOST_SVC_CHECKS)
-					enable_service_checks(temp_service);
-				else
-					disable_service_checks(temp_service);
-				}
-			break;
-
-		case CMD_ENABLE_HOST_CHECK:
-			enable_host_checks(temp_host);
-			break;
-
-		case CMD_DISABLE_HOST_CHECK:
-			disable_host_checks(temp_host);
-			break;
-
-		case CMD_ENABLE_HOST_EVENT_HANDLER:
-			enable_host_event_handler(temp_host);
-			break;
-
-		case CMD_DISABLE_HOST_EVENT_HANDLER:
-			disable_host_event_handler(temp_host);
-			break;
-
-		case CMD_ENABLE_HOST_FLAP_DETECTION:
-			enable_host_flap_detection(temp_host);
-			break;
-
-		case CMD_DISABLE_HOST_FLAP_DETECTION:
-			disable_host_flap_detection(temp_host);
-			break;
-
-		case CMD_ENABLE_PASSIVE_HOST_CHECKS:
-			enable_passive_host_checks(temp_host);
-			break;
-
-		case CMD_DISABLE_PASSIVE_HOST_CHECKS:
-			disable_passive_host_checks(temp_host);
-			break;
-
-		case CMD_START_OBSESSING_OVER_HOST:
-			start_obsessing_over_host(temp_host);
-			break;
-
-		case CMD_STOP_OBSESSING_OVER_HOST:
-			stop_obsessing_over_host(temp_host);
-			break;
-
-		case CMD_SET_HOST_NOTIFICATION_NUMBER:
-			if((str = my_strtok(NULL, ";"))) {
-				intval = atoi(str);
-				set_host_notification_number(temp_host, intval);
-				}
-			break;
-
-		case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
-			if((str = my_strtok(NULL, ";")))
-				intval = atoi(str);
-			str = my_strtok(NULL, ";");
-			if(str)
-				buf[0] = strdup(str);
-			str = my_strtok(NULL, ";");
-			if(str)
-				buf[1] = strdup(str);
-			if(buf[0] && buf[1])
-				host_notification(temp_host, NOTIFICATION_CUSTOM, buf[0], buf[1], intval);
-			break;
-
-		default:
-			break;
+	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
+		for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
+			if((temp_service = temp_servicesmember->service_ptr) == NULL)
+				continue;
+			if(cmd == CMD_ENABLE_HOST_SVC_NOTIFICATIONS)
+				enable_service_notifications(temp_service);
+			else
+				disable_service_notifications(temp_service);
 		}
+		break;
+
+	case CMD_ENABLE_HOST_SVC_CHECKS:
+	case CMD_DISABLE_HOST_SVC_CHECKS:
+		for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
+			if((temp_service = temp_servicesmember->service_ptr) == NULL)
+				continue;
+			if(cmd == CMD_ENABLE_HOST_SVC_CHECKS)
+				enable_service_checks(temp_service);
+			else
+				disable_service_checks(temp_service);
+		}
+		break;
+
+	case CMD_ENABLE_HOST_CHECK:
+		enable_host_checks(temp_host);
+		break;
+
+	case CMD_DISABLE_HOST_CHECK:
+		disable_host_checks(temp_host);
+		break;
+
+	case CMD_ENABLE_HOST_EVENT_HANDLER:
+		enable_host_event_handler(temp_host);
+		break;
+
+	case CMD_DISABLE_HOST_EVENT_HANDLER:
+		disable_host_event_handler(temp_host);
+		break;
+
+	case CMD_ENABLE_HOST_FLAP_DETECTION:
+		enable_host_flap_detection(temp_host);
+		break;
+
+	case CMD_DISABLE_HOST_FLAP_DETECTION:
+		disable_host_flap_detection(temp_host);
+		break;
+
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+		enable_passive_host_checks(temp_host);
+		break;
+
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+		disable_passive_host_checks(temp_host);
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST:
+		start_obsessing_over_host(temp_host);
+		break;
+
+	case CMD_STOP_OBSESSING_OVER_HOST:
+		stop_obsessing_over_host(temp_host);
+		break;
+
+	case CMD_SET_HOST_NOTIFICATION_NUMBER:
+		if((str = my_strtok(NULL, ";"))) {
+			intval = atoi(str);
+			set_host_notification_number(temp_host, intval);
+		}
+		break;
+
+	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
+		if((str = my_strtok(NULL, ";")))
+			intval = atoi(str);
+		str = my_strtok(NULL, ";");
+		if(str)
+			buf[0] = strdup(str);
+		str = my_strtok(NULL, ";");
+		if(str)
+			buf[1] = strdup(str);
+		if(buf[0] && buf[1])
+			host_notification(temp_host, NOTIFICATION_CUSTOM, buf[0], buf[1], intval);
+		break;
+
+	default:
+		break;
+	}
 
 	return OK;
-	}
+}
 
 
 /* processes an external hostgroup command */
-int process_hostgroup_command(int cmd, time_t entry_time, char *args) {
+int process_hostgroup_command(int cmd, time_t entry_time, char *args)
+{
 	char *hostgroup_name = NULL;
 	hostgroup *temp_hostgroup = NULL;
 	hostsmember *temp_member = NULL;
@@ -1479,80 +1489,81 @@ int process_hostgroup_command(int cmd, time_t entry_time, char *args) {
 
 		switch(cmd) {
 
-			case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
-				enable_host_notifications(temp_host);
-				break;
+		case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
+			enable_host_notifications(temp_host);
+			break;
 
-			case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
-				disable_host_notifications(temp_host);
-				break;
+		case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
+			disable_host_notifications(temp_host);
+			break;
 
-			case CMD_ENABLE_HOSTGROUP_HOST_CHECKS:
-				enable_host_checks(temp_host);
-				break;
+		case CMD_ENABLE_HOSTGROUP_HOST_CHECKS:
+			enable_host_checks(temp_host);
+			break;
 
-			case CMD_DISABLE_HOSTGROUP_HOST_CHECKS:
-				disable_host_checks(temp_host);
-				break;
+		case CMD_DISABLE_HOSTGROUP_HOST_CHECKS:
+			disable_host_checks(temp_host);
+			break;
 
-			case CMD_ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
-				enable_passive_host_checks(temp_host);
-				break;
+		case CMD_ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
+			enable_passive_host_checks(temp_host);
+			break;
 
-			case CMD_DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
-				disable_passive_host_checks(temp_host);
-				break;
+		case CMD_DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
+			disable_passive_host_checks(temp_host);
+			break;
 
-			default:
+		default:
 
-				/* loop through all services on the host */
-				for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
-					if((temp_service = temp_servicesmember->service_ptr) == NULL)
-						continue;
+			/* loop through all services on the host */
+			for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
+				if((temp_service = temp_servicesmember->service_ptr) == NULL)
+					continue;
 
-					switch(cmd) {
+				switch(cmd) {
 
-						case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-							enable_service_notifications(temp_service);
-							break;
+				case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+					enable_service_notifications(temp_service);
+					break;
 
-						case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-							disable_service_notifications(temp_service);
-							break;
+				case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+					disable_service_notifications(temp_service);
+					break;
 
-						case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
-							enable_service_checks(temp_service);
-							break;
+				case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
+					enable_service_checks(temp_service);
+					break;
 
-						case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
-							disable_service_checks(temp_service);
-							break;
+				case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
+					disable_service_checks(temp_service);
+					break;
 
-						case CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
-							enable_passive_service_checks(temp_service);
-							break;
+				case CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
+					enable_passive_service_checks(temp_service);
+					break;
 
-						case CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
-							disable_passive_service_checks(temp_service);
-							break;
+				case CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
+					disable_passive_service_checks(temp_service);
+					break;
 
-						default:
-							break;
-						}
-					}
-
-				break;
+				default:
+					break;
+				}
 			}
 
+			break;
 		}
 
-	return OK;
 	}
+
+	return OK;
+}
 
 
 
 /* processes an external service command */
-int process_service_command(int cmd, time_t entry_time, char *args) {
+int process_service_command(int cmd, time_t entry_time, char *args)
+{
 	char *host_name = NULL;
 	char *svc_description = NULL;
 	service *temp_service = NULL;
@@ -1574,84 +1585,85 @@ int process_service_command(int cmd, time_t entry_time, char *args) {
 
 	switch(cmd) {
 
-		case CMD_ENABLE_SVC_NOTIFICATIONS:
-			enable_service_notifications(temp_service);
-			break;
+	case CMD_ENABLE_SVC_NOTIFICATIONS:
+		enable_service_notifications(temp_service);
+		break;
 
-		case CMD_DISABLE_SVC_NOTIFICATIONS:
-			disable_service_notifications(temp_service);
-			break;
+	case CMD_DISABLE_SVC_NOTIFICATIONS:
+		disable_service_notifications(temp_service);
+		break;
 
-		case CMD_ENABLE_SVC_CHECK:
-			enable_service_checks(temp_service);
-			break;
+	case CMD_ENABLE_SVC_CHECK:
+		enable_service_checks(temp_service);
+		break;
 
-		case CMD_DISABLE_SVC_CHECK:
-			disable_service_checks(temp_service);
-			break;
+	case CMD_DISABLE_SVC_CHECK:
+		disable_service_checks(temp_service);
+		break;
 
-		case CMD_ENABLE_SVC_EVENT_HANDLER:
-			enable_service_event_handler(temp_service);
-			break;
+	case CMD_ENABLE_SVC_EVENT_HANDLER:
+		enable_service_event_handler(temp_service);
+		break;
 
-		case CMD_DISABLE_SVC_EVENT_HANDLER:
-			disable_service_event_handler(temp_service);
-			break;
+	case CMD_DISABLE_SVC_EVENT_HANDLER:
+		disable_service_event_handler(temp_service);
+		break;
 
-		case CMD_ENABLE_SVC_FLAP_DETECTION:
-			enable_service_flap_detection(temp_service);
-			break;
+	case CMD_ENABLE_SVC_FLAP_DETECTION:
+		enable_service_flap_detection(temp_service);
+		break;
 
-		case CMD_DISABLE_SVC_FLAP_DETECTION:
-			disable_service_flap_detection(temp_service);
-			break;
+	case CMD_DISABLE_SVC_FLAP_DETECTION:
+		disable_service_flap_detection(temp_service);
+		break;
 
-		case CMD_ENABLE_PASSIVE_SVC_CHECKS:
-			enable_passive_service_checks(temp_service);
-			break;
+	case CMD_ENABLE_PASSIVE_SVC_CHECKS:
+		enable_passive_service_checks(temp_service);
+		break;
 
-		case CMD_DISABLE_PASSIVE_SVC_CHECKS:
-			disable_passive_service_checks(temp_service);
-			break;
+	case CMD_DISABLE_PASSIVE_SVC_CHECKS:
+		disable_passive_service_checks(temp_service);
+		break;
 
-		case CMD_START_OBSESSING_OVER_SVC:
-			start_obsessing_over_service(temp_service);
-			break;
+	case CMD_START_OBSESSING_OVER_SVC:
+		start_obsessing_over_service(temp_service);
+		break;
 
-		case CMD_STOP_OBSESSING_OVER_SVC:
-			stop_obsessing_over_service(temp_service);
-			break;
+	case CMD_STOP_OBSESSING_OVER_SVC:
+		stop_obsessing_over_service(temp_service);
+		break;
 
-		case CMD_SET_SVC_NOTIFICATION_NUMBER:
-			if((str = my_strtok(NULL, ";"))) {
-				intval = atoi(str);
-				set_service_notification_number(temp_service, intval);
-				}
-			break;
-
-		case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
-			if((str = my_strtok(NULL, ";")))
-				intval = atoi(str);
-			str = my_strtok(NULL, ";");
-			if(str)
-				buf[0] = strdup(str);
-			str = my_strtok(NULL, ";");
-			if(str)
-				buf[1] = strdup(str);
-			if(buf[0] && buf[1])
-				service_notification(temp_service, NOTIFICATION_CUSTOM, buf[0], buf[1], intval);
-			break;
-
-		default:
-			break;
+	case CMD_SET_SVC_NOTIFICATION_NUMBER:
+		if((str = my_strtok(NULL, ";"))) {
+			intval = atoi(str);
+			set_service_notification_number(temp_service, intval);
 		}
+		break;
+
+	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
+		if((str = my_strtok(NULL, ";")))
+			intval = atoi(str);
+		str = my_strtok(NULL, ";");
+		if(str)
+			buf[0] = strdup(str);
+		str = my_strtok(NULL, ";");
+		if(str)
+			buf[1] = strdup(str);
+		if(buf[0] && buf[1])
+			service_notification(temp_service, NOTIFICATION_CUSTOM, buf[0], buf[1], intval);
+		break;
+
+	default:
+		break;
+	}
 
 	return OK;
-	}
+}
 
 
 /* processes an external servicegroup command */
-int process_servicegroup_command(int cmd, time_t entry_time, char *args) {
+int process_servicegroup_command(int cmd, time_t entry_time, char *args)
+{
 	char *servicegroup_name = NULL;
 	servicegroup *temp_servicegroup = NULL;
 	servicesmember *temp_member = NULL;
@@ -1669,116 +1681,117 @@ int process_servicegroup_command(int cmd, time_t entry_time, char *args) {
 
 	switch(cmd) {
 
-		case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
-		case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
-		case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
-		case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
-		case CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
-		case CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
 
-			/* loop through all servicegroup members */
-			for(temp_member = temp_servicegroup->members; temp_member != NULL; temp_member = temp_member->next) {
+		/* loop through all servicegroup members */
+		for(temp_member = temp_servicegroup->members; temp_member != NULL; temp_member = temp_member->next) {
 
-				temp_service = find_service(temp_member->host_name, temp_member->service_description);
-				if(temp_service == NULL)
-					continue;
+			temp_service = find_service(temp_member->host_name, temp_member->service_description);
+			if(temp_service == NULL)
+				continue;
 
-				switch(cmd) {
+			switch(cmd) {
 
-					case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
-						enable_service_notifications(temp_service);
-						break;
+			case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+				enable_service_notifications(temp_service);
+				break;
 
-					case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
-						disable_service_notifications(temp_service);
-						break;
+			case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+				disable_service_notifications(temp_service);
+				break;
 
-					case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
-						enable_service_checks(temp_service);
-						break;
+			case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+				enable_service_checks(temp_service);
+				break;
 
-					case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
-						disable_service_checks(temp_service);
-						break;
+			case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+				disable_service_checks(temp_service);
+				break;
 
-					case CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
-						enable_passive_service_checks(temp_service);
-						break;
+			case CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+				enable_passive_service_checks(temp_service);
+				break;
 
-					case CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
-						disable_passive_service_checks(temp_service);
-						break;
+			case CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+				disable_passive_service_checks(temp_service);
+				break;
 
-					default:
-						break;
-					}
-				}
-
-			break;
-
-		case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
-		case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
-		case CMD_ENABLE_SERVICEGROUP_HOST_CHECKS:
-		case CMD_DISABLE_SERVICEGROUP_HOST_CHECKS:
-		case CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
-		case CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
-
-			/* loop through all hosts that have services belonging to the servicegroup */
-			last_host = NULL;
-			for(temp_member = temp_servicegroup->members; temp_member != NULL; temp_member = temp_member->next) {
-
-				if((temp_host = find_host(temp_member->host_name)) == NULL)
-					continue;
-
-				if(temp_host == last_host)
-					continue;
-
-				switch(cmd) {
-
-					case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
-						enable_host_notifications(temp_host);
-						break;
-
-					case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
-						disable_host_notifications(temp_host);
-						break;
-
-					case CMD_ENABLE_SERVICEGROUP_HOST_CHECKS:
-						enable_host_checks(temp_host);
-						break;
-
-					case CMD_DISABLE_SERVICEGROUP_HOST_CHECKS:
-						disable_host_checks(temp_host);
-						break;
-
-					case CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
-						enable_passive_host_checks(temp_host);
-						break;
-
-					case CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
-						disable_passive_host_checks(temp_host);
-						break;
-
-					default:
-						break;
-					}
-
-				last_host = temp_host;
-				}
-
-			break;
-
-		default:
-			break;
+			default:
+				break;
+			}
 		}
 
-	return OK;
+		break;
+
+	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_HOST_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+
+		/* loop through all hosts that have services belonging to the servicegroup */
+		last_host = NULL;
+		for(temp_member = temp_servicegroup->members; temp_member != NULL; temp_member = temp_member->next) {
+
+			if((temp_host = find_host(temp_member->host_name)) == NULL)
+				continue;
+
+			if(temp_host == last_host)
+				continue;
+
+			switch(cmd) {
+
+			case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+				enable_host_notifications(temp_host);
+				break;
+
+			case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+				disable_host_notifications(temp_host);
+				break;
+
+			case CMD_ENABLE_SERVICEGROUP_HOST_CHECKS:
+				enable_host_checks(temp_host);
+				break;
+
+			case CMD_DISABLE_SERVICEGROUP_HOST_CHECKS:
+				disable_host_checks(temp_host);
+				break;
+
+			case CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+				enable_passive_host_checks(temp_host);
+				break;
+
+			case CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+				disable_passive_host_checks(temp_host);
+				break;
+
+			default:
+				break;
+			}
+
+			last_host = temp_host;
+		}
+
+		break;
+
+	default:
+		break;
 	}
+
+	return OK;
+}
 
 
 
 /* processes an external contact command */
-int process_contact_command(int cmd, time_t entry_time, char *args) {
+int process_contact_command(int cmd, time_t entry_time, char *args)
+{
 	char *contact_name = NULL;
 	contact *temp_contact = NULL;
 
@@ -1792,32 +1805,33 @@ int process_contact_command(int cmd, time_t entry_time, char *args) {
 
 	switch(cmd) {
 
-		case CMD_ENABLE_CONTACT_HOST_NOTIFICATIONS:
-			enable_contact_host_notifications(temp_contact);
-			break;
+	case CMD_ENABLE_CONTACT_HOST_NOTIFICATIONS:
+		enable_contact_host_notifications(temp_contact);
+		break;
 
-		case CMD_DISABLE_CONTACT_HOST_NOTIFICATIONS:
-			disable_contact_host_notifications(temp_contact);
-			break;
+	case CMD_DISABLE_CONTACT_HOST_NOTIFICATIONS:
+		disable_contact_host_notifications(temp_contact);
+		break;
 
-		case CMD_ENABLE_CONTACT_SVC_NOTIFICATIONS:
-			enable_contact_service_notifications(temp_contact);
-			break;
+	case CMD_ENABLE_CONTACT_SVC_NOTIFICATIONS:
+		enable_contact_service_notifications(temp_contact);
+		break;
 
-		case CMD_DISABLE_CONTACT_SVC_NOTIFICATIONS:
-			disable_contact_service_notifications(temp_contact);
-			break;
+	case CMD_DISABLE_CONTACT_SVC_NOTIFICATIONS:
+		disable_contact_service_notifications(temp_contact);
+		break;
 
-		default:
-			break;
-		}
+	default:
+		break;
+	}
 
 	return OK;
-	}
+}
 
 
 /* processes an external contactgroup command */
-int process_contactgroup_command(int cmd, time_t entry_time, char *args) {
+int process_contactgroup_command(int cmd, time_t entry_time, char *args)
+{
 	char *contactgroup_name = NULL;
 	contactgroup *temp_contactgroup = NULL;
 	contactsmember *temp_member = NULL;
@@ -1833,48 +1847,48 @@ int process_contactgroup_command(int cmd, time_t entry_time, char *args) {
 
 	switch(cmd) {
 
-		case CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
-		case CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
-		case CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
-		case CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
 
-			/* loop through all contactgroup members */
-			for(temp_member = temp_contactgroup->members; temp_member != NULL; temp_member = temp_member->next) {
+		/* loop through all contactgroup members */
+		for(temp_member = temp_contactgroup->members; temp_member != NULL; temp_member = temp_member->next) {
 
-				if((temp_contact = temp_member->contact_ptr) == NULL)
-					continue;
+			if((temp_contact = temp_member->contact_ptr) == NULL)
+				continue;
 
-				switch(cmd) {
+			switch(cmd) {
 
-					case CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
-						enable_contact_host_notifications(temp_contact);
-						break;
+			case CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+				enable_contact_host_notifications(temp_contact);
+				break;
 
-					case CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
-						disable_contact_host_notifications(temp_contact);
-						break;
+			case CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+				disable_contact_host_notifications(temp_contact);
+				break;
 
-					case CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
-						enable_contact_service_notifications(temp_contact);
-						break;
+			case CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+				enable_contact_service_notifications(temp_contact);
+				break;
 
-					case CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
-						disable_contact_service_notifications(temp_contact);
-						break;
+			case CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+				disable_contact_service_notifications(temp_contact);
+				break;
 
-					default:
-						break;
-					}
-				}
-
-			break;
-
-		default:
-			break;
+			default:
+				break;
+			}
 		}
 
-	return OK;
+		break;
+
+	default:
+		break;
 	}
+
+	return OK;
+}
 
 
 
@@ -1883,7 +1897,8 @@ int process_contactgroup_command(int cmd, time_t entry_time, char *args) {
 /******************************************************************/
 
 /* adds a host or service comment to the status log */
-int cmd_add_comment(int cmd, time_t entry_time, char *args) {
+int cmd_add_comment(int cmd, time_t entry_time, char *args)
+{
 	char *temp_ptr = NULL;
 	host *temp_host = NULL;
 	service *temp_service = NULL;
@@ -1908,7 +1923,7 @@ int cmd_add_comment(int cmd, time_t entry_time, char *args) {
 		/* verify that the service is valid */
 		if((temp_service = find_service(host_name, svc_description)) == NULL)
 			return ERROR;
-		}
+	}
 
 	/* else verify that the host is valid */
 	if((temp_host = find_host(host_name)) == NULL)
@@ -1938,12 +1953,13 @@ int cmd_add_comment(int cmd, time_t entry_time, char *args) {
 		return ERROR;
 
 	return OK;
-	}
+}
 
 
 
 /* removes a host or service comment from the status log */
-int cmd_delete_comment(int cmd, char *args) {
+int cmd_delete_comment(int cmd, char *args)
+{
 	unsigned long comment_id = 0L;
 
 	/* get the comment id we should delete */
@@ -1957,12 +1973,13 @@ int cmd_delete_comment(int cmd, char *args) {
 		delete_service_comment(comment_id);
 
 	return OK;
-	}
+}
 
 
 
 /* removes all comments associated with a host or service from the status log */
-int cmd_delete_all_comments(int cmd, char *args) {
+int cmd_delete_all_comments(int cmd, char *args)
+{
 	service *temp_service = NULL;
 	host *temp_host = NULL;
 	char *host_name = NULL;
@@ -1982,7 +1999,7 @@ int cmd_delete_all_comments(int cmd, char *args) {
 		/* verify that the service is valid */
 		if((temp_service = find_service(host_name, svc_description)) == NULL)
 			return ERROR;
-		}
+	}
 
 	/* else verify that the host is valid */
 	if((temp_host = find_host(host_name)) == NULL)
@@ -1992,12 +2009,13 @@ int cmd_delete_all_comments(int cmd, char *args) {
 	delete_all_comments((cmd == CMD_DEL_ALL_HOST_COMMENTS) ? HOST_COMMENT : SERVICE_COMMENT, host_name, svc_description);
 
 	return OK;
-	}
+}
 
 
 
 /* delays a host or service notification for given number of minutes */
-int cmd_delay_notification(int cmd, char *args) {
+int cmd_delay_notification(int cmd, char *args)
+{
 	char *temp_ptr = NULL;
 	host *temp_host = NULL;
 	service *temp_service = NULL;
@@ -2019,14 +2037,14 @@ int cmd_delay_notification(int cmd, char *args) {
 		/* verify that the service is valid */
 		if((temp_service = find_service(host_name, svc_description)) == NULL)
 			return ERROR;
-		}
+	}
 
 	/* else verify that the host is valid */
 	else {
 
 		if((temp_host = find_host(host_name)) == NULL)
 			return ERROR;
-		}
+	}
 
 	/* get the time that we should delay until... */
 	if((temp_ptr = my_strtok(NULL, "\n")) == NULL)
@@ -2040,12 +2058,13 @@ int cmd_delay_notification(int cmd, char *args) {
 		temp_host->next_notification = delay_time;
 
 	return OK;
-	}
+}
 
 
 
 /* schedules a host check at a particular time */
-int cmd_schedule_check(int cmd, char *args) {
+int cmd_schedule_check(int cmd, char *args)
+{
 	char *temp_ptr = NULL;
 	host *temp_host = NULL;
 	service *temp_service = NULL;
@@ -2063,7 +2082,7 @@ int cmd_schedule_check(int cmd, char *args) {
 		/* verify that the host is valid */
 		if((temp_host = find_host(host_name)) == NULL)
 			return ERROR;
-		}
+	}
 
 	else {
 
@@ -2074,7 +2093,7 @@ int cmd_schedule_check(int cmd, char *args) {
 		/* verify that the service is valid */
 		if((temp_service = find_service(host_name, svc_description)) == NULL)
 			return ERROR;
-		}
+	}
 
 	/* get the next check time */
 	if((temp_ptr = my_strtok(NULL, "\n")) == NULL)
@@ -2091,18 +2110,18 @@ int cmd_schedule_check(int cmd, char *args) {
 			if((temp_service = temp_servicesmember->service_ptr) == NULL)
 				continue;
 			schedule_service_check(temp_service, delay_time, (cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
-			}
 		}
-	else
+	} else
 		schedule_service_check(temp_service, delay_time, (cmd == CMD_SCHEDULE_FORCED_SVC_CHECK) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
 
 	return OK;
-	}
+}
 
 
 
 /* schedules all service checks on a host for a particular time */
-int cmd_schedule_host_service_checks(int cmd, char *args, int force) {
+int cmd_schedule_host_service_checks(int cmd, char *args, int force)
+{
 	char *temp_ptr = NULL;
 	service *temp_service = NULL;
 	servicesmember *temp_servicesmember = NULL;
@@ -2128,16 +2147,17 @@ int cmd_schedule_host_service_checks(int cmd, char *args, int force) {
 		if((temp_service = temp_servicesmember->service_ptr) == NULL)
 			continue;
 		schedule_service_check(temp_service, delay_time, (force == TRUE) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
-		}
+	}
 
 	return OK;
-	}
+}
 
 
 
 
 /* schedules a program shutdown or restart */
-int cmd_signal_process(int cmd, char *args) {
+int cmd_signal_process(int cmd, char *args)
+{
 	time_t scheduled_time = 0L;
 	char *temp_ptr = NULL;
 
@@ -2152,12 +2172,13 @@ int cmd_signal_process(int cmd, char *args) {
 		return ERROR;
 
 	return OK;
-	}
+}
 
 
 
 /* processes results of an external service check */
-int cmd_process_service_check_result(int cmd, time_t check_time, char *args) {
+int cmd_process_service_check_result(int cmd, time_t check_time, char *args)
+{
 	char *temp_ptr = NULL;
 	char *host_name = NULL;
 	char *svc_description = NULL;
@@ -2174,7 +2195,7 @@ int cmd_process_service_check_result(int cmd, time_t check_time, char *args) {
 	if((temp_ptr = my_strtok(NULL, ";")) == NULL) {
 		my_free(host_name);
 		return ERROR;
-		}
+	}
 	svc_description = (char *)strdup(temp_ptr);
 
 	/* get the service check return code */
@@ -2182,7 +2203,7 @@ int cmd_process_service_check_result(int cmd, time_t check_time, char *args) {
 		my_free(host_name);
 		my_free(svc_description);
 		return ERROR;
-		}
+	}
 	return_code = atoi(temp_ptr);
 
 	/* get the plugin output (may be empty) */
@@ -2200,12 +2221,13 @@ int cmd_process_service_check_result(int cmd, time_t check_time, char *args) {
 	my_free(output);
 
 	return result;
-	}
+}
 
 
 
 /* submits a passive service check result for later processing */
-int process_passive_service_check(time_t check_time, char *host_name, char *svc_description, int return_code, char *output) {
+int process_passive_service_check(time_t check_time, char *host_name, char *svc_description, int return_code, char *output)
+{
 	check_result cr;
 	host *temp_host = NULL;
 	service *temp_service = NULL;
@@ -2225,13 +2247,13 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	if(temp_host == NULL) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Passive check result was received for service '%s' on host '%s', but the host could not be found!\n", svc_description, host_name);
 		return ERROR;
-		}
+	}
 
 	/* make sure the service exists */
 	if((temp_service = find_service(temp_host->name, svc_description)) == NULL) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n", svc_description, host_name);
 		return ERROR;
-		}
+	}
 
 	/* skip this is we aren't accepting passive checks for this service */
 	if(temp_service->accept_passive_checks == FALSE)
@@ -2258,12 +2280,13 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 		cr.latency = 0.0;
 
 	return handle_async_service_check_result(temp_service, &cr);
-	}
+}
 
 
 
 /* process passive host check result */
-int cmd_process_host_check_result(int cmd, time_t check_time, char *args) {
+int cmd_process_host_check_result(int cmd, time_t check_time, char *args)
+{
 	char *temp_ptr = NULL;
 	char *host_name = NULL;
 	int return_code = 0;
@@ -2279,7 +2302,7 @@ int cmd_process_host_check_result(int cmd, time_t check_time, char *args) {
 	if((temp_ptr = my_strtok(NULL, ";")) == NULL) {
 		my_free(host_name);
 		return ERROR;
-		}
+	}
 	return_code = atoi(temp_ptr);
 
 	/* get the plugin output (may be empty) */
@@ -2296,11 +2319,12 @@ int cmd_process_host_check_result(int cmd, time_t check_time, char *args) {
 	my_free(output);
 
 	return result;
-	}
+}
 
 
 /* process passive host check result */
-int process_passive_host_check(time_t check_time, char *host_name, int return_code, char *output) {
+int process_passive_host_check(time_t check_time, char *host_name, int return_code, char *output)
+{
 	check_result cr;
 	host *temp_host = NULL;
 	struct timeval tv;
@@ -2324,7 +2348,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	if(temp_host == NULL) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Passive check result was received for host '%s', but the host could not be found!\n", host_name);
 		return ERROR;
-		}
+	}
 
 	/* skip this is we aren't accepting passive checks for this host */
 	if(temp_host->accept_passive_checks == FALSE)
@@ -2348,12 +2372,13 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	handle_async_host_check_result(temp_host, &cr);
 
 	return OK;
-	}
+}
 
 
 
 /* acknowledges a host or service problem */
-int cmd_acknowledge_problem(int cmd, char *args) {
+int cmd_acknowledge_problem(int cmd, char *args)
+{
 	service *temp_service = NULL;
 	host *temp_host = NULL;
 	char *host_name = NULL;
@@ -2383,7 +2408,7 @@ int cmd_acknowledge_problem(int cmd, char *args) {
 		/* verify that the service is valid */
 		if((temp_service = find_service(temp_host->name, svc_description)) == NULL)
 			return ERROR;
-		}
+	}
 
 	/* get the type */
 	if((temp_ptr = my_strtok(NULL, ";")) == NULL)
@@ -2409,7 +2434,7 @@ int cmd_acknowledge_problem(int cmd, char *args) {
 	if((temp_ptr = my_strtok(NULL, "\n")) == NULL) {
 		my_free(ack_author);
 		return ERROR;
-		}
+	}
 	ack_data = (char *)strdup(temp_ptr);
 
 	/* acknowledge the host problem */
@@ -2425,12 +2450,13 @@ int cmd_acknowledge_problem(int cmd, char *args) {
 	my_free(ack_data);
 
 	return OK;
-	}
+}
 
 
 
 /* removes a host or service acknowledgement */
-int cmd_remove_acknowledgement(int cmd, char *args) {
+int cmd_remove_acknowledgement(int cmd, char *args)
+{
 	service *temp_service = NULL;
 	host *temp_host = NULL;
 	char *host_name = NULL;
@@ -2454,7 +2480,7 @@ int cmd_remove_acknowledgement(int cmd, char *args) {
 		/* verify that the service is valid */
 		if((temp_service = find_service(temp_host->name, svc_description)) == NULL)
 			return ERROR;
-		}
+	}
 
 	/* acknowledge the host problem */
 	if(cmd == CMD_REMOVE_HOST_ACKNOWLEDGEMENT)
@@ -2465,12 +2491,13 @@ int cmd_remove_acknowledgement(int cmd, char *args) {
 		remove_service_acknowledgement(temp_service);
 
 	return OK;
-	}
+}
 
 
 
 /* schedules downtime for a specific host or service */
-int cmd_schedule_downtime(int cmd, time_t entry_time, char *args) {
+int cmd_schedule_downtime(int cmd, time_t entry_time, char *args)
+{
 	servicesmember *temp_servicesmember = NULL;
 	service *temp_service = NULL;
 	host *temp_host = NULL;
@@ -2502,7 +2529,7 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args) {
 		/* verify that the hostgroup is valid */
 		if((temp_hostgroup = find_hostgroup(hostgroup_name)) == NULL)
 			return ERROR;
-		}
+	}
 
 	else if(cmd == CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd == CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME) {
 
@@ -2513,7 +2540,7 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args) {
 		/* verify that the servicegroup is valid */
 		if((temp_servicegroup = find_servicegroup(servicegroup_name)) == NULL)
 			return ERROR;
-		}
+	}
 
 	else {
 
@@ -2535,8 +2562,8 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args) {
 			/* verify that the service is valid */
 			if((temp_service = find_service(temp_host->name, svc_description)) == NULL)
 				return ERROR;
-			}
 		}
+	}
 
 	/* get the start time */
 	if((temp_ptr = my_strtok(NULL, ";")) == NULL)
@@ -2589,86 +2616,87 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args) {
 	/* schedule downtime */
 	switch(cmd) {
 
-		case CMD_SCHEDULE_HOST_DOWNTIME:
-			schedule_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
-			break;
+	case CMD_SCHEDULE_HOST_DOWNTIME:
+		schedule_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
+		break;
 
-		case CMD_SCHEDULE_SVC_DOWNTIME:
-			schedule_downtime(SERVICE_DOWNTIME, host_name, svc_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
-			break;
+	case CMD_SCHEDULE_SVC_DOWNTIME:
+		schedule_downtime(SERVICE_DOWNTIME, host_name, svc_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
+		break;
 
-		case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
+	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
+		for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
+			if((temp_service = temp_servicesmember->service_ptr) == NULL)
+				continue;
+			schedule_downtime(SERVICE_DOWNTIME, host_name, temp_service->description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
+		}
+		break;
+
+	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
+		for(temp_hgmember = temp_hostgroup->members; temp_hgmember != NULL; temp_hgmember = temp_hgmember->next)
+			schedule_downtime(HOST_DOWNTIME, temp_hgmember->host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
+		break;
+
+	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
+		for(temp_hgmember = temp_hostgroup->members; temp_hgmember != NULL; temp_hgmember = temp_hgmember->next) {
+			if((temp_host = temp_hgmember->host_ptr) == NULL)
+				continue;
 			for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
 				if((temp_service = temp_servicesmember->service_ptr) == NULL)
 					continue;
-				schedule_downtime(SERVICE_DOWNTIME, host_name, temp_service->description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
-				}
-			break;
-
-		case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
-			for(temp_hgmember = temp_hostgroup->members; temp_hgmember != NULL; temp_hgmember = temp_hgmember->next)
-				schedule_downtime(HOST_DOWNTIME, temp_hgmember->host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
-			break;
-
-		case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
-			for(temp_hgmember = temp_hostgroup->members; temp_hgmember != NULL; temp_hgmember = temp_hgmember->next) {
-				if((temp_host = temp_hgmember->host_ptr) == NULL)
-					continue;
-				for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
-					if((temp_service = temp_servicesmember->service_ptr) == NULL)
-						continue;
-					schedule_downtime(SERVICE_DOWNTIME, temp_service->host_name, temp_service->description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
-					}
-				}
-			break;
-
-		case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
-			last_host = NULL;
-			for(temp_sgmember = temp_servicegroup->members; temp_sgmember != NULL; temp_sgmember = temp_sgmember->next) {
-				temp_host = find_host(temp_sgmember->host_name);
-				if(temp_host == NULL)
-					continue;
-				if(last_host == temp_host)
-					continue;
-				schedule_downtime(HOST_DOWNTIME, temp_sgmember->host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
-				last_host = temp_host;
-				}
-			break;
-
-		case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
-			for(temp_sgmember = temp_servicegroup->members; temp_sgmember != NULL; temp_sgmember = temp_sgmember->next)
-				schedule_downtime(SERVICE_DOWNTIME, temp_sgmember->host_name, temp_sgmember->service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
-			break;
-
-		case CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME:
-
-			/* schedule downtime for "parent" host */
-			schedule_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
-
-			/* schedule (non-triggered) downtime for all child hosts */
-			schedule_and_propagate_downtime(temp_host, entry_time, author, comment_data, start_time, end_time, fixed, 0, duration);
-			break;
-
-		case CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME:
-
-			/* schedule downtime for "parent" host */
-			schedule_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
-
-			/* schedule triggered downtime for all child hosts */
-			schedule_and_propagate_downtime(temp_host, entry_time, author, comment_data, start_time, end_time, fixed, downtime_id, duration);
-			break;
-
-		default:
-			break;
+				schedule_downtime(SERVICE_DOWNTIME, temp_service->host_name, temp_service->description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
+			}
 		}
+		break;
+
+	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
+		last_host = NULL;
+		for(temp_sgmember = temp_servicegroup->members; temp_sgmember != NULL; temp_sgmember = temp_sgmember->next) {
+			temp_host = find_host(temp_sgmember->host_name);
+			if(temp_host == NULL)
+				continue;
+			if(last_host == temp_host)
+				continue;
+			schedule_downtime(HOST_DOWNTIME, temp_sgmember->host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
+			last_host = temp_host;
+		}
+		break;
+
+	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
+		for(temp_sgmember = temp_servicegroup->members; temp_sgmember != NULL; temp_sgmember = temp_sgmember->next)
+			schedule_downtime(SERVICE_DOWNTIME, temp_sgmember->host_name, temp_sgmember->service_description, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
+		break;
+
+	case CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME:
+
+		/* schedule downtime for "parent" host */
+		schedule_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
+
+		/* schedule (non-triggered) downtime for all child hosts */
+		schedule_and_propagate_downtime(temp_host, entry_time, author, comment_data, start_time, end_time, fixed, 0, duration);
+		break;
+
+	case CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME:
+
+		/* schedule downtime for "parent" host */
+		schedule_downtime(HOST_DOWNTIME, host_name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, &downtime_id);
+
+		/* schedule triggered downtime for all child hosts */
+		schedule_and_propagate_downtime(temp_host, entry_time, author, comment_data, start_time, end_time, fixed, downtime_id, duration);
+		break;
+
+	default:
+		break;
+	}
 
 	return OK;
-	}
+}
 
 
 
 /* deletes scheduled host or service downtime */
-int cmd_delete_downtime(int cmd, char *args) {
+int cmd_delete_downtime(int cmd, char *args)
+{
 	unsigned long downtime_id = 0L;
 	char *temp_ptr = NULL;
 
@@ -2683,11 +2711,12 @@ int cmd_delete_downtime(int cmd, char *args) {
 		unschedule_downtime(SERVICE_DOWNTIME, downtime_id);
 
 	return OK;
-	}
+}
 
 
 /* Deletes scheduled host and service downtime based on hostname and optionally other filter arguments */
-int cmd_delete_downtime_by_host_name(int cmd, char *args) {
+int cmd_delete_downtime_by_host_name(int cmd, char *args)
+{
 	char *temp_ptr = NULL;
 	char *end_ptr = NULL;
 	char *hostname = NULL;
@@ -2719,9 +2748,9 @@ int cmd_delete_downtime_by_host_name(int cmd, char *args) {
 				if(*temp_ptr != '\0')
 					downtime_comment = temp_ptr;
 
-				}
 			}
 		}
+	}
 
 	deleted = delete_downtime_by_hostname_service_description_start_time_comment(hostname, service_description, downtime_start_time, downtime_comment);
 
@@ -2729,9 +2758,10 @@ int cmd_delete_downtime_by_host_name(int cmd, char *args) {
 		return ERROR;
 
 	return OK;
-	}
+}
 
-int cmd_delete_downtime_by_hostgroup_name(int cmd, char *args) {
+int cmd_delete_downtime_by_hostgroup_name(int cmd, char *args)
+{
 	char *temp_ptr = NULL;
 	char *end_ptr = NULL;
 	host *temp_host = NULL;
@@ -2775,9 +2805,9 @@ int cmd_delete_downtime_by_hostgroup_name(int cmd, char *args) {
 					if(*temp_ptr != '\0')
 						downtime_comment = temp_ptr;
 
-					}
 				}
 			}
+		}
 
 		/* get the optional service name */
 		temp_ptr = my_strtok(NULL, ";");
@@ -2795,10 +2825,10 @@ int cmd_delete_downtime_by_hostgroup_name(int cmd, char *args) {
 				if(temp_ptr != NULL) {
 					if(*temp_ptr != '\0')
 						downtime_comment = temp_ptr;
-					}
 				}
 			}
 		}
+	}
 
 	for(temp_member = temp_hostgroup->members; temp_member != NULL; temp_member = temp_member->next) {
 		if((temp_host = (host *)temp_member->host_ptr) == NULL)
@@ -2806,15 +2836,16 @@ int cmd_delete_downtime_by_hostgroup_name(int cmd, char *args) {
 		if(host_name != NULL && strcmp(temp_host->name, host_name) != 0)
 			continue;
 		deleted = +delete_downtime_by_hostname_service_description_start_time_comment(temp_host->name, service_description, downtime_start_time, downtime_comment);
-		}
+	}
 
 	if(deleted == 0)
 		return ERROR;
 
 	return OK;
-	}
+}
 
-int cmd_delete_downtime_by_start_time_comment(int cmd, char *args) {
+int cmd_delete_downtime_by_start_time_comment(int cmd, char *args)
+{
 	time_t downtime_start_time = 0L;
 	char *downtime_comment = NULL;
 	char *temp_ptr = NULL;
@@ -2826,13 +2857,13 @@ int cmd_delete_downtime_by_start_time_comment(int cmd, char *args) {
 	if(temp_ptr != NULL) {
 		/* This will be set to 0 if no start_time is entered or data is bad */
 		downtime_start_time = strtoul(temp_ptr, &end_ptr, 10);
-		}
+	}
 
 	/* Get comment - not sure if this should be also tokenised by ; */
 	temp_ptr = my_strtok(NULL, "\n");
 	if(temp_ptr != NULL && *temp_ptr != '\0') {
 		downtime_comment = temp_ptr;
-		}
+	}
 
 	/* No args should give an error */
 	if(downtime_start_time == 0 && downtime_comment == NULL)
@@ -2844,11 +2875,12 @@ int cmd_delete_downtime_by_start_time_comment(int cmd, char *args) {
 		return ERROR;
 
 	return OK;
-	}
+}
 
 
 /* changes a host or service (integer) variable */
-int cmd_change_object_int_var(int cmd, char *args) {
+int cmd_change_object_int_var(int cmd, char *args)
+{
 	service *temp_service = NULL;
 	host *temp_host = NULL;
 	contact *temp_contact = NULL;
@@ -2867,57 +2899,57 @@ int cmd_change_object_int_var(int cmd, char *args) {
 
 	switch(cmd) {
 
-		case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
-		case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
-		case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
-		case CMD_CHANGE_SVC_MODATTR:
+	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
+	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
+	case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
+	case CMD_CHANGE_SVC_MODATTR:
 
-			/* get the host name */
-			if((host_name = my_strtok(args, ";")) == NULL)
-				return ERROR;
-
-			/* get the service name */
-			if((svc_description = my_strtok(NULL, ";")) == NULL)
-				return ERROR;
-
-			/* verify that the service is valid */
-			if((temp_service = find_service(host_name, svc_description)) == NULL)
-				return ERROR;
-
-			break;
-
-		case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
-		case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
-		case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
-		case CMD_CHANGE_HOST_MODATTR:
-
-			/* get the host name */
-			if((host_name = my_strtok(args, ";")) == NULL)
-				return ERROR;
-
-			/* verify that the host is valid */
-			if((temp_host = find_host(host_name)) == NULL)
-				return ERROR;
-			break;
-
-		case CMD_CHANGE_CONTACT_MODATTR:
-		case CMD_CHANGE_CONTACT_MODHATTR:
-		case CMD_CHANGE_CONTACT_MODSATTR:
-
-			/* get the contact name */
-			if((contact_name = my_strtok(args, ";")) == NULL)
-				return ERROR;
-
-			/* verify that the contact is valid */
-			if((temp_contact = find_contact(contact_name)) == NULL)
-				return ERROR;
-			break;
-
-		default:
-			/* unknown command */
+		/* get the host name */
+		if((host_name = my_strtok(args, ";")) == NULL)
 			return ERROR;
-			break;
-		}
+
+		/* get the service name */
+		if((svc_description = my_strtok(NULL, ";")) == NULL)
+			return ERROR;
+
+		/* verify that the service is valid */
+		if((temp_service = find_service(host_name, svc_description)) == NULL)
+			return ERROR;
+
+		break;
+
+	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
+	case CMD_CHANGE_HOST_MODATTR:
+
+		/* get the host name */
+		if((host_name = my_strtok(args, ";")) == NULL)
+			return ERROR;
+
+		/* verify that the host is valid */
+		if((temp_host = find_host(host_name)) == NULL)
+			return ERROR;
+		break;
+
+	case CMD_CHANGE_CONTACT_MODATTR:
+	case CMD_CHANGE_CONTACT_MODHATTR:
+	case CMD_CHANGE_CONTACT_MODSATTR:
+
+		/* get the contact name */
+		if((contact_name = my_strtok(args, ";")) == NULL)
+			return ERROR;
+
+		/* verify that the contact is valid */
+		if((temp_contact = find_contact(contact_name)) == NULL)
+			return ERROR;
+		break;
+
+	default:
+		/* unknown command */
+		return ERROR;
+		break;
+	}
 
 	/* get the value */
 	if((temp_ptr = my_strtok(NULL, ";")) == NULL)
@@ -2929,210 +2961,209 @@ int cmd_change_object_int_var(int cmd, char *args) {
 
 	switch(cmd) {
 
-		case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
 
-			/* save the old check interval */
-			old_dval = temp_host->check_interval;
+		/* save the old check interval */
+		old_dval = temp_host->check_interval;
 
-			/* modify the check interval */
-			temp_host->check_interval = dval;
-			attr = MODATTR_NORMAL_CHECK_INTERVAL;
+		/* modify the check interval */
+		temp_host->check_interval = dval;
+		attr = MODATTR_NORMAL_CHECK_INTERVAL;
 
-			/* schedule a host check if previous interval was 0 (checks were not regularly scheduled) */
-			if(old_dval == 0 && temp_host->checks_enabled == TRUE) {
+		/* schedule a host check if previous interval was 0 (checks were not regularly scheduled) */
+		if(old_dval == 0 && temp_host->checks_enabled == TRUE) {
 
-				/* set the host check flag */
-				temp_host->should_be_scheduled = TRUE;
+			/* set the host check flag */
+			temp_host->should_be_scheduled = TRUE;
 
-				/* schedule a check for right now (or as soon as possible) */
-				time(&preferred_time);
-				if(check_time_against_period(preferred_time, temp_host->check_period_ptr) == ERROR) {
-					get_next_valid_time(preferred_time, &next_valid_time, temp_host->check_period_ptr);
-					temp_host->next_check = next_valid_time;
-					}
-				else
-					temp_host->next_check = preferred_time;
+			/* schedule a check for right now (or as soon as possible) */
+			time(&preferred_time);
+			if(check_time_against_period(preferred_time, temp_host->check_period_ptr) == ERROR) {
+				get_next_valid_time(preferred_time, &next_valid_time, temp_host->check_period_ptr);
+				temp_host->next_check = next_valid_time;
+			} else
+				temp_host->next_check = preferred_time;
 
-				/* schedule a check if we should */
-				if(temp_host->should_be_scheduled == TRUE)
-					schedule_host_check(temp_host, temp_host->next_check, CHECK_OPTION_NONE);
-				}
-
-			break;
-
-		case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
-
-			temp_host->retry_interval = dval;
-			attr = MODATTR_RETRY_CHECK_INTERVAL;
-
-			break;
-
-		case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
-
-			temp_host->max_attempts = intval;
-			attr = MODATTR_MAX_CHECK_ATTEMPTS;
-
-			/* adjust current attempt number if in a hard state */
-			if(temp_host->state_type == HARD_STATE && temp_host->current_state != HOST_UP && temp_host->current_attempt > 1)
-				temp_host->current_attempt = temp_host->max_attempts;
-
-			break;
-
-		case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
-
-			/* save the old check interval */
-			old_dval = temp_service->check_interval;
-
-			/* modify the check interval */
-			temp_service->check_interval = dval;
-			attr = MODATTR_NORMAL_CHECK_INTERVAL;
-
-			/* schedule a service check if previous interval was 0 (checks were not regularly scheduled) */
-			if(old_dval == 0 && temp_service->checks_enabled == TRUE && temp_service->check_interval != 0) {
-
-				/* set the service check flag */
-				temp_service->should_be_scheduled = TRUE;
-
-				/* schedule a check for right now (or as soon as possible) */
-				time(&preferred_time);
-				if(check_time_against_period(preferred_time, temp_service->check_period_ptr) == ERROR) {
-					get_next_valid_time(preferred_time, &next_valid_time, temp_service->check_period_ptr);
-					temp_service->next_check = next_valid_time;
-					}
-				else
-					temp_service->next_check = preferred_time;
-
-				/* schedule a check if we should */
-				if(temp_service->should_be_scheduled == TRUE)
-					schedule_service_check(temp_service, temp_service->next_check, CHECK_OPTION_NONE);
-				}
-
-			break;
-
-		case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
-
-			temp_service->retry_interval = dval;
-			attr = MODATTR_RETRY_CHECK_INTERVAL;
-
-			break;
-
-		case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
-
-			temp_service->max_attempts = intval;
-			attr = MODATTR_MAX_CHECK_ATTEMPTS;
-
-			/* adjust current attempt number if in a hard state */
-			if(temp_service->state_type == HARD_STATE && temp_service->current_state != STATE_OK && temp_service->current_attempt > 1)
-				temp_service->current_attempt = temp_service->max_attempts;
-
-			break;
-
-		case CMD_CHANGE_HOST_MODATTR:
-		case CMD_CHANGE_SVC_MODATTR:
-		case CMD_CHANGE_CONTACT_MODATTR:
-
-			attr = intval;
-			break;
-
-		case CMD_CHANGE_CONTACT_MODHATTR:
-
-			hattr = intval;
-			break;
-
-		case CMD_CHANGE_CONTACT_MODSATTR:
-
-			sattr = intval;
-			break;
-
-
-		default:
-			break;
+			/* schedule a check if we should */
+			if(temp_host->should_be_scheduled == TRUE)
+				schedule_host_check(temp_host, temp_host->next_check, CHECK_OPTION_NONE);
 		}
+
+		break;
+
+	case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
+
+		temp_host->retry_interval = dval;
+		attr = MODATTR_RETRY_CHECK_INTERVAL;
+
+		break;
+
+	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
+
+		temp_host->max_attempts = intval;
+		attr = MODATTR_MAX_CHECK_ATTEMPTS;
+
+		/* adjust current attempt number if in a hard state */
+		if(temp_host->state_type == HARD_STATE && temp_host->current_state != HOST_UP && temp_host->current_attempt > 1)
+			temp_host->current_attempt = temp_host->max_attempts;
+
+		break;
+
+	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
+
+		/* save the old check interval */
+		old_dval = temp_service->check_interval;
+
+		/* modify the check interval */
+		temp_service->check_interval = dval;
+		attr = MODATTR_NORMAL_CHECK_INTERVAL;
+
+		/* schedule a service check if previous interval was 0 (checks were not regularly scheduled) */
+		if(old_dval == 0 && temp_service->checks_enabled == TRUE && temp_service->check_interval != 0) {
+
+			/* set the service check flag */
+			temp_service->should_be_scheduled = TRUE;
+
+			/* schedule a check for right now (or as soon as possible) */
+			time(&preferred_time);
+			if(check_time_against_period(preferred_time, temp_service->check_period_ptr) == ERROR) {
+				get_next_valid_time(preferred_time, &next_valid_time, temp_service->check_period_ptr);
+				temp_service->next_check = next_valid_time;
+			} else
+				temp_service->next_check = preferred_time;
+
+			/* schedule a check if we should */
+			if(temp_service->should_be_scheduled == TRUE)
+				schedule_service_check(temp_service, temp_service->next_check, CHECK_OPTION_NONE);
+		}
+
+		break;
+
+	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
+
+		temp_service->retry_interval = dval;
+		attr = MODATTR_RETRY_CHECK_INTERVAL;
+
+		break;
+
+	case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
+
+		temp_service->max_attempts = intval;
+		attr = MODATTR_MAX_CHECK_ATTEMPTS;
+
+		/* adjust current attempt number if in a hard state */
+		if(temp_service->state_type == HARD_STATE && temp_service->current_state != STATE_OK && temp_service->current_attempt > 1)
+			temp_service->current_attempt = temp_service->max_attempts;
+
+		break;
+
+	case CMD_CHANGE_HOST_MODATTR:
+	case CMD_CHANGE_SVC_MODATTR:
+	case CMD_CHANGE_CONTACT_MODATTR:
+
+		attr = intval;
+		break;
+
+	case CMD_CHANGE_CONTACT_MODHATTR:
+
+		hattr = intval;
+		break;
+
+	case CMD_CHANGE_CONTACT_MODSATTR:
+
+		sattr = intval;
+		break;
+
+
+	default:
+		break;
+	}
 
 
 	/* send data to event broker and update status file */
 	switch(cmd) {
 
-		case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
-		case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
-		case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
-		case CMD_CHANGE_SVC_MODATTR:
+	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
+	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
+	case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
+	case CMD_CHANGE_SVC_MODATTR:
 
-			/* set the modified service attribute */
-			if(cmd == CMD_CHANGE_SVC_MODATTR)
-				temp_service->modified_attributes = attr;
-			else
-				temp_service->modified_attributes |= attr;
-
-#ifdef USE_EVENT_BROKER
-			/* send data to event broker */
-			broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_service, cmd, attr, temp_service->modified_attributes, NULL);
-#endif
-
-			/* update the status log with the service info */
-			update_service_status(temp_service, FALSE);
-
-			break;
-
-		case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
-		case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
-		case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
-		case CMD_CHANGE_HOST_MODATTR:
-
-			/* set the modified host attribute */
-			if(cmd == CMD_CHANGE_HOST_MODATTR)
-				temp_host->modified_attributes = attr;
-			else
-				temp_host->modified_attributes |= attr;
+		/* set the modified service attribute */
+		if(cmd == CMD_CHANGE_SVC_MODATTR)
+			temp_service->modified_attributes = attr;
+		else
+			temp_service->modified_attributes |= attr;
 
 #ifdef USE_EVENT_BROKER
-			/* send data to event broker */
-			broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_host, cmd, attr, temp_host->modified_attributes, NULL);
+		/* send data to event broker */
+		broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_service, cmd, attr, temp_service->modified_attributes, NULL);
 #endif
 
-			/* update the status log with the host info */
-			update_host_status(temp_host, FALSE);
-			break;
+		/* update the status log with the service info */
+		update_service_status(temp_service, FALSE);
 
+		break;
+
+	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
+	case CMD_CHANGE_HOST_MODATTR:
+
+		/* set the modified host attribute */
+		if(cmd == CMD_CHANGE_HOST_MODATTR)
+			temp_host->modified_attributes = attr;
+		else
+			temp_host->modified_attributes |= attr;
+
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_host, cmd, attr, temp_host->modified_attributes, NULL);
+#endif
+
+		/* update the status log with the host info */
+		update_host_status(temp_host, FALSE);
+		break;
+
+	case CMD_CHANGE_CONTACT_MODATTR:
+	case CMD_CHANGE_CONTACT_MODHATTR:
+	case CMD_CHANGE_CONTACT_MODSATTR:
+
+		/* set the modified attribute */
+		switch(cmd) {
 		case CMD_CHANGE_CONTACT_MODATTR:
-		case CMD_CHANGE_CONTACT_MODHATTR:
-		case CMD_CHANGE_CONTACT_MODSATTR:
-
-			/* set the modified attribute */
-			switch(cmd) {
-				case CMD_CHANGE_CONTACT_MODATTR:
-					temp_contact->modified_attributes = attr;
-					break;
-				case CMD_CHANGE_CONTACT_MODHATTR:
-					temp_contact->modified_host_attributes = hattr;
-					break;
-				case CMD_CHANGE_CONTACT_MODSATTR:
-					temp_contact->modified_service_attributes = sattr;
-					break;
-				default:
-					break;
-				}
-
-#ifdef USE_EVENT_BROKER
-			/* send data to event broker */
-			broker_adaptive_contact_data(NEBTYPE_ADAPTIVECONTACT_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_contact, cmd, attr, temp_contact->modified_attributes, hattr, temp_contact->modified_host_attributes, sattr, temp_contact->modified_service_attributes, NULL);
-#endif
-
-			/* update the status log with the contact info */
-			update_contact_status(temp_contact, FALSE);
+			temp_contact->modified_attributes = attr;
 			break;
-
+		case CMD_CHANGE_CONTACT_MODHATTR:
+			temp_contact->modified_host_attributes = hattr;
+			break;
+		case CMD_CHANGE_CONTACT_MODSATTR:
+			temp_contact->modified_service_attributes = sattr;
+			break;
 		default:
 			break;
 		}
 
-	return OK;
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_adaptive_contact_data(NEBTYPE_ADAPTIVECONTACT_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_contact, cmd, attr, temp_contact->modified_attributes, hattr, temp_contact->modified_host_attributes, sattr, temp_contact->modified_service_attributes, NULL);
+#endif
+
+		/* update the status log with the contact info */
+		update_contact_status(temp_contact, FALSE);
+		break;
+
+	default:
+		break;
 	}
+
+	return OK;
+}
 
 
 
 /* changes a host or service (char) variable */
-int cmd_change_object_char_var(int cmd, char *args) {
+int cmd_change_object_char_var(int cmd, char *args)
+{
 	service *temp_service = NULL;
 	host *temp_host = NULL;
 	contact *temp_contact = NULL;
@@ -3151,90 +3182,90 @@ int cmd_change_object_char_var(int cmd, char *args) {
 
 	/* SECURITY PATCH - disable these for the time being */
 	switch(cmd) {
-		case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
-		case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
-		case CMD_CHANGE_HOST_EVENT_HANDLER:
-		case CMD_CHANGE_SVC_EVENT_HANDLER:
-		case CMD_CHANGE_HOST_CHECK_COMMAND:
-		case CMD_CHANGE_SVC_CHECK_COMMAND:
-			return ERROR;
-		}
+	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
+		return ERROR;
+	}
 
 
 	/* get the command arguments */
 	switch(cmd) {
 
-		case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
-		case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
 
-			if((charval = my_strtok(args, "\n")) == NULL)
-				return ERROR;
-
-			break;
-
-		case CMD_CHANGE_HOST_EVENT_HANDLER:
-		case CMD_CHANGE_HOST_CHECK_COMMAND:
-		case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
-		case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
-
-			/* get the host name */
-			if((host_name = my_strtok(args, ";")) == NULL)
-				return ERROR;
-
-			/* verify that the host is valid */
-			if((temp_host = find_host(host_name)) == NULL)
-				return ERROR;
-
-			if((charval = my_strtok(NULL, "\n")) == NULL)
-				return ERROR;
-
-			break;
-
-		case CMD_CHANGE_SVC_EVENT_HANDLER:
-		case CMD_CHANGE_SVC_CHECK_COMMAND:
-		case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
-		case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
-
-			/* get the host name */
-			if((host_name = my_strtok(args, ";")) == NULL)
-				return ERROR;
-
-			/* get the service name */
-			if((svc_description = my_strtok(NULL, ";")) == NULL)
-				return ERROR;
-
-			/* verify that the service is valid */
-			if((temp_service = find_service(host_name, svc_description)) == NULL)
-				return ERROR;
-
-			if((charval = my_strtok(NULL, "\n")) == NULL)
-				return ERROR;
-
-			break;
-
-
-		case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
-		case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
-
-			/* get the contact name */
-			if((contact_name = my_strtok(args, ";")) == NULL)
-				return ERROR;
-
-			/* verify that the contact is valid */
-			if((temp_contact = find_contact(contact_name)) == NULL)
-				return ERROR;
-
-			if((charval = my_strtok(NULL, "\n")) == NULL)
-				return ERROR;
-
-			break;
-
-		default:
-			/* invalid command */
+		if((charval = my_strtok(args, "\n")) == NULL)
 			return ERROR;
-			break;
 
-		}
+		break;
+
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+
+		/* get the host name */
+		if((host_name = my_strtok(args, ";")) == NULL)
+			return ERROR;
+
+		/* verify that the host is valid */
+		if((temp_host = find_host(host_name)) == NULL)
+			return ERROR;
+
+		if((charval = my_strtok(NULL, "\n")) == NULL)
+			return ERROR;
+
+		break;
+
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
+	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+
+		/* get the host name */
+		if((host_name = my_strtok(args, ";")) == NULL)
+			return ERROR;
+
+		/* get the service name */
+		if((svc_description = my_strtok(NULL, ";")) == NULL)
+			return ERROR;
+
+		/* verify that the service is valid */
+		if((temp_service = find_service(host_name, svc_description)) == NULL)
+			return ERROR;
+
+		if((charval = my_strtok(NULL, "\n")) == NULL)
+			return ERROR;
+
+		break;
+
+
+	case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+
+		/* get the contact name */
+		if((contact_name = my_strtok(args, ";")) == NULL)
+			return ERROR;
+
+		/* verify that the contact is valid */
+		if((temp_contact = find_contact(contact_name)) == NULL)
+			return ERROR;
+
+		if((charval = my_strtok(NULL, "\n")) == NULL)
+			return ERROR;
+
+		break;
+
+	default:
+		/* invalid command */
+		return ERROR;
+		break;
+
+	}
 
 	if((temp_ptr = (char *)strdup(charval)) == NULL)
 		return ERROR;
@@ -3243,245 +3274,246 @@ int cmd_change_object_char_var(int cmd, char *args) {
 	/* do some validation */
 	switch(cmd) {
 
-		case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
-		case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
-		case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
-		case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
-		case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
-		case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
 
-			/* make sure the timeperiod is valid */
-			if((temp_timeperiod = find_timeperiod(temp_ptr)) == NULL) {
-				my_free(temp_ptr);
-				return ERROR;
-				}
-
-			break;
-
-		case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
-		case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
-		case CMD_CHANGE_HOST_EVENT_HANDLER:
-		case CMD_CHANGE_SVC_EVENT_HANDLER:
-		case CMD_CHANGE_HOST_CHECK_COMMAND:
-		case CMD_CHANGE_SVC_CHECK_COMMAND:
-
-			/* make sure the command exists */
-			temp_ptr2 = my_strtok(temp_ptr, "!");
-			if((temp_command = find_command(temp_ptr2)) == NULL) {
-				my_free(temp_ptr);
-				return ERROR;
-				}
-
+		/* make sure the timeperiod is valid */
+		if((temp_timeperiod = find_timeperiod(temp_ptr)) == NULL) {
 			my_free(temp_ptr);
-			if((temp_ptr = (char *)strdup(charval)) == NULL)
-				return ERROR;
-
-			break;
-
-		default:
-			break;
+			return ERROR;
 		}
+
+		break;
+
+	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
+
+		/* make sure the command exists */
+		temp_ptr2 = my_strtok(temp_ptr, "!");
+		if((temp_command = find_command(temp_ptr2)) == NULL) {
+			my_free(temp_ptr);
+			return ERROR;
+		}
+
+		my_free(temp_ptr);
+		if((temp_ptr = (char *)strdup(charval)) == NULL)
+			return ERROR;
+
+		break;
+
+	default:
+		break;
+	}
 
 
 	/* update the variable */
 	switch(cmd) {
 
-		case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
 
-			my_free(global_host_event_handler);
-			global_host_event_handler = temp_ptr;
-			global_host_event_handler_ptr = temp_command;
-			attr = MODATTR_EVENT_HANDLER_COMMAND;
-			break;
+		my_free(global_host_event_handler);
+		global_host_event_handler = temp_ptr;
+		global_host_event_handler_ptr = temp_command;
+		attr = MODATTR_EVENT_HANDLER_COMMAND;
+		break;
 
-		case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
 
-			my_free(global_service_event_handler);
-			global_service_event_handler = temp_ptr;
-			global_service_event_handler_ptr = temp_command;
-			attr = MODATTR_EVENT_HANDLER_COMMAND;
-			break;
+		my_free(global_service_event_handler);
+		global_service_event_handler = temp_ptr;
+		global_service_event_handler_ptr = temp_command;
+		attr = MODATTR_EVENT_HANDLER_COMMAND;
+		break;
 
-		case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
 
-			my_free(temp_host->event_handler);
-			temp_host->event_handler = temp_ptr;
-			temp_host->event_handler_ptr = temp_command;
-			attr = MODATTR_EVENT_HANDLER_COMMAND;
-			break;
+		my_free(temp_host->event_handler);
+		temp_host->event_handler = temp_ptr;
+		temp_host->event_handler_ptr = temp_command;
+		attr = MODATTR_EVENT_HANDLER_COMMAND;
+		break;
 
-		case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
 
-			my_free(temp_host->check_command);
-			temp_host->check_command = temp_ptr;
-			temp_host->check_command_ptr = temp_command;
-			attr = MODATTR_CHECK_COMMAND;
-			break;
+		my_free(temp_host->check_command);
+		temp_host->check_command = temp_ptr;
+		temp_host->check_command_ptr = temp_command;
+		attr = MODATTR_CHECK_COMMAND;
+		break;
 
-		case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
 
-			my_free(temp_host->check_period);
-			temp_host->check_period = temp_ptr;
-			temp_host->check_period_ptr = temp_timeperiod;
-			attr = MODATTR_CHECK_TIMEPERIOD;
-			break;
+		my_free(temp_host->check_period);
+		temp_host->check_period = temp_ptr;
+		temp_host->check_period_ptr = temp_timeperiod;
+		attr = MODATTR_CHECK_TIMEPERIOD;
+		break;
 
-		case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
 
-			my_free(temp_host->notification_period);
-			temp_host->notification_period = temp_ptr;
-			temp_host->notification_period_ptr = temp_timeperiod;
-			attr = MODATTR_NOTIFICATION_TIMEPERIOD;
-			break;
+		my_free(temp_host->notification_period);
+		temp_host->notification_period = temp_ptr;
+		temp_host->notification_period_ptr = temp_timeperiod;
+		attr = MODATTR_NOTIFICATION_TIMEPERIOD;
+		break;
 
-		case CMD_CHANGE_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
 
-			my_free(temp_service->event_handler);
-			temp_service->event_handler = temp_ptr;
-			temp_service->event_handler_ptr = temp_command;
-			attr = MODATTR_EVENT_HANDLER_COMMAND;
-			break;
+		my_free(temp_service->event_handler);
+		temp_service->event_handler = temp_ptr;
+		temp_service->event_handler_ptr = temp_command;
+		attr = MODATTR_EVENT_HANDLER_COMMAND;
+		break;
 
-		case CMD_CHANGE_SVC_CHECK_COMMAND:
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
 
-			my_free(temp_service->check_command);
-			temp_service->check_command = temp_ptr;
-			temp_service->check_command_ptr = temp_command;
-			attr = MODATTR_CHECK_COMMAND;
-			break;
+		my_free(temp_service->check_command);
+		temp_service->check_command = temp_ptr;
+		temp_service->check_command_ptr = temp_command;
+		attr = MODATTR_CHECK_COMMAND;
+		break;
 
-		case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
 
-			my_free(temp_service->check_period);
-			temp_service->check_period = temp_ptr;
-			temp_service->check_period_ptr = temp_timeperiod;
-			attr = MODATTR_CHECK_TIMEPERIOD;
-			break;
+		my_free(temp_service->check_period);
+		temp_service->check_period = temp_ptr;
+		temp_service->check_period_ptr = temp_timeperiod;
+		attr = MODATTR_CHECK_TIMEPERIOD;
+		break;
 
-		case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
 
-			my_free(temp_service->notification_period);
-			temp_service->notification_period = temp_ptr;
-			temp_service->notification_period_ptr = temp_timeperiod;
-			attr = MODATTR_NOTIFICATION_TIMEPERIOD;
-			break;
+		my_free(temp_service->notification_period);
+		temp_service->notification_period = temp_ptr;
+		temp_service->notification_period_ptr = temp_timeperiod;
+		attr = MODATTR_NOTIFICATION_TIMEPERIOD;
+		break;
 
-		case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
 
-			my_free(temp_contact->host_notification_period);
-			temp_contact->host_notification_period = temp_ptr;
-			temp_contact->host_notification_period_ptr = temp_timeperiod;
-			hattr = MODATTR_NOTIFICATION_TIMEPERIOD;
-			break;
+		my_free(temp_contact->host_notification_period);
+		temp_contact->host_notification_period = temp_ptr;
+		temp_contact->host_notification_period_ptr = temp_timeperiod;
+		hattr = MODATTR_NOTIFICATION_TIMEPERIOD;
+		break;
 
-		case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
 
-			my_free(temp_contact->service_notification_period);
-			temp_contact->service_notification_period = temp_ptr;
-			temp_contact->service_notification_period_ptr = temp_timeperiod;
-			sattr = MODATTR_NOTIFICATION_TIMEPERIOD;
-			break;
+		my_free(temp_contact->service_notification_period);
+		temp_contact->service_notification_period = temp_ptr;
+		temp_contact->service_notification_period_ptr = temp_timeperiod;
+		sattr = MODATTR_NOTIFICATION_TIMEPERIOD;
+		break;
 
-		default:
-			break;
-		}
+	default:
+		break;
+	}
 
 
 	/* send data to event broker and update status file */
 	switch(cmd) {
 
-		case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
 
-			/* set the modified host attribute */
-			modified_host_process_attributes |= attr;
-
-#ifdef USE_EVENT_BROKER
-			/* send data to event broker */
-			broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, cmd, attr, modified_host_process_attributes, MODATTR_NONE, modified_service_process_attributes, NULL);
-#endif
-
-			/* update program status */
-			update_program_status(FALSE);
-
-			break;
-
-		case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
-
-			/* set the modified service attribute */
-			modified_service_process_attributes |= attr;
+		/* set the modified host attribute */
+		modified_host_process_attributes |= attr;
 
 #ifdef USE_EVENT_BROKER
-			/* send data to event broker */
-			broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, cmd, MODATTR_NONE, modified_host_process_attributes, attr, modified_service_process_attributes, NULL);
+		/* send data to event broker */
+		broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, cmd, attr, modified_host_process_attributes, MODATTR_NONE, modified_service_process_attributes, NULL);
 #endif
 
-			/* update program status */
-			update_program_status(FALSE);
+		/* update program status */
+		update_program_status(FALSE);
 
-			break;
+		break;
 
-		case CMD_CHANGE_SVC_EVENT_HANDLER:
-		case CMD_CHANGE_SVC_CHECK_COMMAND:
-		case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
-		case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
 
-			/* set the modified service attribute */
-			temp_service->modified_attributes |= attr;
+		/* set the modified service attribute */
+		modified_service_process_attributes |= attr;
 
 #ifdef USE_EVENT_BROKER
-			/* send data to event broker */
-			broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_service, cmd, attr, temp_service->modified_attributes, NULL);
+		/* send data to event broker */
+		broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, cmd, MODATTR_NONE, modified_host_process_attributes, attr, modified_service_process_attributes, NULL);
 #endif
 
-			/* update the status log with the service info */
-			update_service_status(temp_service, FALSE);
+		/* update program status */
+		update_program_status(FALSE);
 
-			break;
+		break;
 
-		case CMD_CHANGE_HOST_EVENT_HANDLER:
-		case CMD_CHANGE_HOST_CHECK_COMMAND:
-		case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
-		case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
+	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
 
-			/* set the modified host attribute */
-			temp_host->modified_attributes |= attr;
+		/* set the modified service attribute */
+		temp_service->modified_attributes |= attr;
 
 #ifdef USE_EVENT_BROKER
-			/* send data to event broker */
-			broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_host, cmd, attr, temp_host->modified_attributes, NULL);
+		/* send data to event broker */
+		broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_service, cmd, attr, temp_service->modified_attributes, NULL);
 #endif
 
-			/* update the status log with the host info */
-			update_host_status(temp_host, FALSE);
-			break;
+		/* update the status log with the service info */
+		update_service_status(temp_service, FALSE);
 
-		case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
-		case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+		break;
 
-			/* set the modified attributes */
-			temp_contact->modified_host_attributes |= hattr;
-			temp_contact->modified_service_attributes |= sattr;
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
+	case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+
+		/* set the modified host attribute */
+		temp_host->modified_attributes |= attr;
 
 #ifdef USE_EVENT_BROKER
-			/* send data to event broker */
-			broker_adaptive_contact_data(NEBTYPE_ADAPTIVECONTACT_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_contact, cmd, attr, temp_contact->modified_attributes, hattr, temp_contact->modified_host_attributes, sattr, temp_contact->modified_service_attributes, NULL);
+		/* send data to event broker */
+		broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_host, cmd, attr, temp_host->modified_attributes, NULL);
 #endif
 
-			/* update the status log with the contact info */
-			update_contact_status(temp_contact, FALSE);
-			break;
+		/* update the status log with the host info */
+		update_host_status(temp_host, FALSE);
+		break;
 
-		default:
-			break;
-		}
+	case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
+	case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+
+		/* set the modified attributes */
+		temp_contact->modified_host_attributes |= hattr;
+		temp_contact->modified_service_attributes |= sattr;
+
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_adaptive_contact_data(NEBTYPE_ADAPTIVECONTACT_UPDATE, NEBFLAG_NONE, NEBATTR_NONE, temp_contact, cmd, attr, temp_contact->modified_attributes, hattr, temp_contact->modified_host_attributes, sattr, temp_contact->modified_service_attributes, NULL);
+#endif
+
+		/* update the status log with the contact info */
+		update_contact_status(temp_contact, FALSE);
+		break;
+
+	default:
+		break;
+	}
 
 	return OK;
-	}
+}
 
 
 
 /* changes a custom host or service variable */
-int cmd_change_object_custom_var(int cmd, char *args) {
+int cmd_change_object_custom_var(int cmd, char *args)
+{
 	host *temp_host = NULL;
 	service *temp_service = NULL;
 	contact *temp_contact = NULL;
@@ -3504,24 +3536,24 @@ int cmd_change_object_custom_var(int cmd, char *args) {
 		if((temp_ptr = my_strtok(NULL, ";")) == NULL) {
 			my_free(name1);
 			return ERROR;
-			}
+		}
 		if((name2 = (char *)strdup(temp_ptr)) == NULL) {
 			my_free(name1);
 			return ERROR;
-			}
 		}
+	}
 
 	/* get the custom variable name */
 	if((temp_ptr = my_strtok(NULL, ";")) == NULL) {
 		my_free(name1);
 		my_free(name2);
 		return ERROR;
-		}
+	}
 	if((varname = (char *)strdup(temp_ptr)) == NULL) {
 		my_free(name1);
 		my_free(name2);
 		return ERROR;
-		}
+	}
 
 	/* get the custom variable value */
 	if((temp_ptr = my_strtok(NULL, ";")) == NULL) {
@@ -3529,34 +3561,34 @@ int cmd_change_object_custom_var(int cmd, char *args) {
 		my_free(name2);
 		my_free(varname);
 		return ERROR;
-		}
+	}
 	if((varvalue = (char *)strdup(temp_ptr)) == NULL) {
 		my_free(name1);
 		my_free(name2);
 		my_free(varname);
 		return ERROR;
-		}
+	}
 
 	/* find the object */
 	switch(cmd) {
-		case CMD_CHANGE_CUSTOM_HOST_VAR:
-			if((temp_host = find_host(name1)) == NULL)
-				return ERROR;
-			temp_customvariablesmember = temp_host->custom_variables;
-			break;
-		case CMD_CHANGE_CUSTOM_SVC_VAR:
-			if((temp_service = find_service(name1, name2)) == NULL)
-				return ERROR;
-			temp_customvariablesmember = temp_service->custom_variables;
-			break;
-		case CMD_CHANGE_CUSTOM_CONTACT_VAR:
-			if((temp_contact = find_contact(name1)) == NULL)
-				return ERROR;
-			temp_customvariablesmember = temp_contact->custom_variables;
-			break;
-		default:
-			break;
-		}
+	case CMD_CHANGE_CUSTOM_HOST_VAR:
+		if((temp_host = find_host(name1)) == NULL)
+			return ERROR;
+		temp_customvariablesmember = temp_host->custom_variables;
+		break;
+	case CMD_CHANGE_CUSTOM_SVC_VAR:
+		if((temp_service = find_service(name1, name2)) == NULL)
+			return ERROR;
+		temp_customvariablesmember = temp_service->custom_variables;
+		break;
+	case CMD_CHANGE_CUSTOM_CONTACT_VAR:
+		if((temp_contact = find_contact(name1)) == NULL)
+			return ERROR;
+		temp_customvariablesmember = temp_contact->custom_variables;
+		break;
+	default:
+		break;
+	}
 
 	/* capitalize the custom variable name */
 	for(x = 0; varname[x] != '\x0'; x++)
@@ -3577,8 +3609,8 @@ int cmd_change_object_custom_var(int cmd, char *args) {
 			temp_customvariablesmember->has_been_modified = TRUE;
 
 			break;
-			}
 		}
+	}
 
 	/* free memory */
 	my_free(name1);
@@ -3588,28 +3620,29 @@ int cmd_change_object_custom_var(int cmd, char *args) {
 
 	/* set the modified attributes and update the status of the object */
 	switch(cmd) {
-		case CMD_CHANGE_CUSTOM_HOST_VAR:
-			temp_host->modified_attributes |= MODATTR_CUSTOM_VARIABLE;
-			update_host_status(temp_host, FALSE);
-			break;
-		case CMD_CHANGE_CUSTOM_SVC_VAR:
-			temp_service->modified_attributes |= MODATTR_CUSTOM_VARIABLE;
-			update_service_status(temp_service, FALSE);
-			break;
-		case CMD_CHANGE_CUSTOM_CONTACT_VAR:
-			temp_contact->modified_attributes |= MODATTR_CUSTOM_VARIABLE;
-			update_contact_status(temp_contact, FALSE);
-			break;
-		default:
-			break;
-		}
+	case CMD_CHANGE_CUSTOM_HOST_VAR:
+		temp_host->modified_attributes |= MODATTR_CUSTOM_VARIABLE;
+		update_host_status(temp_host, FALSE);
+		break;
+	case CMD_CHANGE_CUSTOM_SVC_VAR:
+		temp_service->modified_attributes |= MODATTR_CUSTOM_VARIABLE;
+		update_service_status(temp_service, FALSE);
+		break;
+	case CMD_CHANGE_CUSTOM_CONTACT_VAR:
+		temp_contact->modified_attributes |= MODATTR_CUSTOM_VARIABLE;
+		update_contact_status(temp_contact, FALSE);
+		break;
+	default:
+		break;
+	}
 
 	return OK;
-	}
+}
 
 
 /* processes an external host command */
-int cmd_process_external_commands_from_file(int cmd, char *args) {
+int cmd_process_external_commands_from_file(int cmd, char *args)
+{
 	char *fname = NULL;
 	char *temp_ptr = NULL;
 	int delete_file = FALSE;
@@ -3624,7 +3657,7 @@ int cmd_process_external_commands_from_file(int cmd, char *args) {
 	if((temp_ptr = my_strtok(NULL, "\n")) == NULL) {
 		my_free(fname);
 		return ERROR;
-		}
+	}
 	if(atoi(temp_ptr) == 0)
 		delete_file = FALSE;
 	else
@@ -3637,7 +3670,7 @@ int cmd_process_external_commands_from_file(int cmd, char *args) {
 	my_free(fname);
 
 	return OK;
-	}
+}
 
 
 /******************************************************************/
@@ -3645,7 +3678,8 @@ int cmd_process_external_commands_from_file(int cmd, char *args) {
 /******************************************************************/
 
 /* temporarily disables a service check */
-void disable_service_checks(service *svc) {
+void disable_service_checks(service *svc)
+{
 	unsigned long attr = MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* checks are already disabled */
@@ -3668,12 +3702,13 @@ void disable_service_checks(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* enables a service check */
-void enable_service_checks(service *svc) {
+void enable_service_checks(service *svc)
+{
 	time_t preferred_time = 0L;
 	time_t next_valid_time = 0L;
 	unsigned long attr = MODATTR_ACTIVE_CHECKS_ENABLED;
@@ -3698,8 +3733,7 @@ void enable_service_checks(service *svc) {
 	if(check_time_against_period(preferred_time, svc->check_period_ptr) == ERROR) {
 		get_next_valid_time(preferred_time, &next_valid_time, svc->check_period_ptr);
 		svc->next_check = next_valid_time;
-		}
-	else
+	} else
 		svc->next_check = preferred_time;
 
 	/* schedule a check if we should */
@@ -3715,12 +3749,13 @@ void enable_service_checks(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* enable notifications on a program-wide basis */
-void enable_all_notifications(void) {
+void enable_all_notifications(void)
+{
 	unsigned long attr = MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* bail out if we're already set... */
@@ -3743,11 +3778,12 @@ void enable_all_notifications(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 /* disable notifications on a program-wide basis */
-void disable_all_notifications(void) {
+void disable_all_notifications(void)
+{
 	unsigned long attr = MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* bail out if we're already set... */
@@ -3770,11 +3806,12 @@ void disable_all_notifications(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 /* enables notifications for a service */
-void enable_service_notifications(service *svc) {
+void enable_service_notifications(service *svc)
+{
 	unsigned long attr = MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -3796,11 +3833,12 @@ void enable_service_notifications(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 /* disables notifications for a service */
-void disable_service_notifications(service *svc) {
+void disable_service_notifications(service *svc)
+{
 	unsigned long attr = MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -3822,11 +3860,12 @@ void disable_service_notifications(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 /* enables notifications for a host */
-void enable_host_notifications(host *hst) {
+void enable_host_notifications(host *hst)
+{
 	unsigned long attr = MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -3848,11 +3887,12 @@ void enable_host_notifications(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 /* disables notifications for a host */
-void disable_host_notifications(host *hst) {
+void disable_host_notifications(host *hst)
+{
 	unsigned long attr = MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -3874,11 +3914,12 @@ void disable_host_notifications(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 /* enables notifications for all hosts and services "beyond" a given host */
-void enable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services) {
+void enable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services)
+{
 	host *child_host = NULL;
 	service *temp_service = NULL;
 	servicesmember *temp_servicesmember = NULL;
@@ -3907,16 +3948,17 @@ void enable_and_propagate_notifications(host *hst, int level, int affect_top_hos
 				if((temp_service = temp_servicesmember->service_ptr) == NULL)
 					continue;
 				enable_service_notifications(temp_service);
-				}
 			}
 		}
+	}
 
 	return;
-	}
+}
 
 
 /* disables notifications for all hosts and services "beyond" a given host */
-void disable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services) {
+void disable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services)
+{
 	host *child_host = NULL;
 	service *temp_service = NULL;
 	servicesmember *temp_servicesmember = NULL;
@@ -3948,17 +3990,18 @@ void disable_and_propagate_notifications(host *hst, int level, int affect_top_ho
 				if((temp_service = temp_servicesmember->service_ptr) == NULL)
 					continue;
 				disable_service_notifications(temp_service);
-				}
 			}
 		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* enables host notifications for a contact */
-void enable_contact_host_notifications(contact *cntct) {
+void enable_contact_host_notifications(contact *cntct)
+{
 	unsigned long attr = MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -3980,12 +4023,13 @@ void enable_contact_host_notifications(contact *cntct) {
 	update_contact_status(cntct, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* disables host notifications for a contact */
-void disable_contact_host_notifications(contact *cntct) {
+void disable_contact_host_notifications(contact *cntct)
+{
 	unsigned long attr = MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -4007,12 +4051,13 @@ void disable_contact_host_notifications(contact *cntct) {
 	update_contact_status(cntct, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* enables service notifications for a contact */
-void enable_contact_service_notifications(contact *cntct) {
+void enable_contact_service_notifications(contact *cntct)
+{
 	unsigned long attr = MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -4034,12 +4079,13 @@ void enable_contact_service_notifications(contact *cntct) {
 	update_contact_status(cntct, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* disables service notifications for a contact */
-void disable_contact_service_notifications(contact *cntct) {
+void disable_contact_service_notifications(contact *cntct)
+{
 	unsigned long attr = MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -4061,12 +4107,13 @@ void disable_contact_service_notifications(contact *cntct) {
 	update_contact_status(cntct, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* schedules downtime for all hosts "beyond" a given host */
-void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration) {
+void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration)
+{
 	host *child_host = NULL;
 	hostsmember *temp_hostsmember = NULL;
 
@@ -4081,14 +4128,15 @@ void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *a
 
 		/* schedule downtime for this host */
 		schedule_downtime(HOST_DOWNTIME, child_host->name, NULL, entry_time, author, comment_data, start_time, end_time, fixed, triggered_by, duration, NULL);
-		}
+	}
 
 	return;
-	}
+}
 
 
 /* acknowledges a host problem */
-void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int type, int notify, int persistent) {
+void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int type, int notify, int persistent)
+{
 	time_t current_time = 0L;
 
 	/* cannot acknowledge a non-existent problem */
@@ -4118,11 +4166,12 @@ void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int t
 	add_new_host_comment(ACKNOWLEDGEMENT_COMMENT, hst->name, current_time, ack_author, ack_data, persistent, COMMENTSOURCE_INTERNAL, FALSE, (time_t)0, NULL);
 
 	return;
-	}
+}
 
 
 /* acknowledges a service problem */
-void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data, int type, int notify, int persistent) {
+void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data, int type, int notify, int persistent)
+{
 	time_t current_time = 0L;
 
 	/* cannot acknowledge a non-existent problem */
@@ -4152,11 +4201,12 @@ void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data,
 	add_new_service_comment(ACKNOWLEDGEMENT_COMMENT, svc->host_name, svc->description, current_time, ack_author, ack_data, persistent, COMMENTSOURCE_INTERNAL, FALSE, (time_t)0, NULL);
 
 	return;
-	}
+}
 
 
 /* removes a host acknowledgement */
-void remove_host_acknowledgement(host *hst) {
+void remove_host_acknowledgement(host *hst)
+{
 
 	/* set the acknowledgement flag */
 	hst->problem_has_been_acknowledged = FALSE;
@@ -4168,11 +4218,12 @@ void remove_host_acknowledgement(host *hst) {
 	delete_host_acknowledgement_comments(hst);
 
 	return;
-	}
+}
 
 
 /* removes a service acknowledgement */
-void remove_service_acknowledgement(service *svc) {
+void remove_service_acknowledgement(service *svc)
+{
 
 	/* set the acknowledgement flag */
 	svc->problem_has_been_acknowledged = FALSE;
@@ -4184,11 +4235,12 @@ void remove_service_acknowledgement(service *svc) {
 	delete_service_acknowledgement_comments(svc);
 
 	return;
-	}
+}
 
 
 /* starts executing service checks */
-void start_executing_service_checks(void) {
+void start_executing_service_checks(void)
+{
 	unsigned long attr = MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already executing services */
@@ -4210,13 +4262,14 @@ void start_executing_service_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 
 /* stops executing service checks */
-void stop_executing_service_checks(void) {
+void stop_executing_service_checks(void)
+{
 	unsigned long attr = MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already not executing services */
@@ -4238,12 +4291,13 @@ void stop_executing_service_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 /* starts accepting passive service checks */
-void start_accepting_passive_service_checks(void) {
+void start_accepting_passive_service_checks(void)
+{
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already accepting passive services */
@@ -4265,12 +4319,13 @@ void start_accepting_passive_service_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 /* stops accepting passive service checks */
-void stop_accepting_passive_service_checks(void) {
+void stop_accepting_passive_service_checks(void)
+{
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already not accepting passive services */
@@ -4292,12 +4347,13 @@ void stop_accepting_passive_service_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 /* enables passive service checks for a particular service */
-void enable_passive_service_checks(service *svc) {
+void enable_passive_service_checks(service *svc)
+{
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* no change */
@@ -4319,12 +4375,13 @@ void enable_passive_service_checks(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* disables passive service checks for a particular service */
-void disable_passive_service_checks(service *svc) {
+void disable_passive_service_checks(service *svc)
+{
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* no change */
@@ -4346,12 +4403,13 @@ void disable_passive_service_checks(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* starts executing host checks */
-void start_executing_host_checks(void) {
+void start_executing_host_checks(void)
+{
 	unsigned long attr = MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already executing hosts */
@@ -4373,13 +4431,14 @@ void start_executing_host_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 
 /* stops executing host checks */
-void stop_executing_host_checks(void) {
+void stop_executing_host_checks(void)
+{
 	unsigned long attr = MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already not executing hosts */
@@ -4401,12 +4460,13 @@ void stop_executing_host_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 /* starts accepting passive host checks */
-void start_accepting_passive_host_checks(void) {
+void start_accepting_passive_host_checks(void)
+{
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already accepting passive hosts */
@@ -4428,12 +4488,13 @@ void start_accepting_passive_host_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 /* stops accepting passive host checks */
-void stop_accepting_passive_host_checks(void) {
+void stop_accepting_passive_host_checks(void)
+{
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already not accepting passive hosts */
@@ -4455,12 +4516,13 @@ void stop_accepting_passive_host_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 /* enables passive host checks for a particular host */
-void enable_passive_host_checks(host *hst) {
+void enable_passive_host_checks(host *hst)
+{
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* no change */
@@ -4482,12 +4544,13 @@ void enable_passive_host_checks(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* disables passive host checks for a particular host */
-void disable_passive_host_checks(host *hst) {
+void disable_passive_host_checks(host *hst)
+{
 	unsigned long attr = MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* no change */
@@ -4509,11 +4572,12 @@ void disable_passive_host_checks(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 /* enables event handlers on a program-wide basis */
-void start_using_event_handlers(void) {
+void start_using_event_handlers(void)
+{
 	unsigned long attr = MODATTR_EVENT_HANDLER_ENABLED;
 
 	/* no change */
@@ -4536,11 +4600,12 @@ void start_using_event_handlers(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 /* disables event handlers on a program-wide basis */
-void stop_using_event_handlers(void) {
+void stop_using_event_handlers(void)
+{
 	unsigned long attr = MODATTR_EVENT_HANDLER_ENABLED;
 
 	/* no change */
@@ -4563,11 +4628,12 @@ void stop_using_event_handlers(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 /* enables the event handler for a particular service */
-void enable_service_event_handler(service *svc) {
+void enable_service_event_handler(service *svc)
+{
 	unsigned long attr = MODATTR_EVENT_HANDLER_ENABLED;
 
 	/* no change */
@@ -4589,12 +4655,13 @@ void enable_service_event_handler(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* disables the event handler for a particular service */
-void disable_service_event_handler(service *svc) {
+void disable_service_event_handler(service *svc)
+{
 	unsigned long attr = MODATTR_EVENT_HANDLER_ENABLED;
 
 	/* no change */
@@ -4616,11 +4683,12 @@ void disable_service_event_handler(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 /* enables the event handler for a particular host */
-void enable_host_event_handler(host *hst) {
+void enable_host_event_handler(host *hst)
+{
 	unsigned long attr = MODATTR_EVENT_HANDLER_ENABLED;
 
 	/* no change */
@@ -4642,11 +4710,12 @@ void enable_host_event_handler(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 /* disables the event handler for a particular host */
-void disable_host_event_handler(host *hst) {
+void disable_host_event_handler(host *hst)
+{
 	unsigned long attr = MODATTR_EVENT_HANDLER_ENABLED;
 
 	/* no change */
@@ -4668,11 +4737,12 @@ void disable_host_event_handler(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 /* disables checks of a particular host */
-void disable_host_checks(host *hst) {
+void disable_host_checks(host *hst)
+{
 	unsigned long attr = MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* checks are already disabled */
@@ -4695,11 +4765,12 @@ void disable_host_checks(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 /* enables checks of a particular host */
-void enable_host_checks(host *hst) {
+void enable_host_checks(host *hst)
+{
 	time_t preferred_time = 0L;
 	time_t next_valid_time = 0L;
 	unsigned long attr = MODATTR_ACTIVE_CHECKS_ENABLED;
@@ -4724,8 +4795,7 @@ void enable_host_checks(host *hst) {
 	if(check_time_against_period(preferred_time, hst->check_period_ptr) == ERROR) {
 		get_next_valid_time(preferred_time, &next_valid_time, hst->check_period_ptr);
 		hst->next_check = next_valid_time;
-		}
-	else
+	} else
 		hst->next_check = preferred_time;
 
 	/* schedule a check if we should */
@@ -4741,12 +4811,13 @@ void enable_host_checks(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* start obsessing over service check results */
-void start_obsessing_over_service_checks(void) {
+void start_obsessing_over_service_checks(void)
+{
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
@@ -4768,12 +4839,13 @@ void start_obsessing_over_service_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 /* stop obsessing over service check results */
-void stop_obsessing_over_service_checks(void) {
+void stop_obsessing_over_service_checks(void)
+{
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
@@ -4795,12 +4867,13 @@ void stop_obsessing_over_service_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 /* start obsessing over host check results */
-void start_obsessing_over_host_checks(void) {
+void start_obsessing_over_host_checks(void)
+{
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
@@ -4822,12 +4895,13 @@ void start_obsessing_over_host_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 /* stop obsessing over host check results */
-void stop_obsessing_over_host_checks(void) {
+void stop_obsessing_over_host_checks(void)
+{
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
@@ -4849,12 +4923,13 @@ void stop_obsessing_over_host_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 
 /* enables service freshness checking */
-void enable_service_freshness_checks(void) {
+void enable_service_freshness_checks(void)
+{
 	unsigned long attr = MODATTR_FRESHNESS_CHECKS_ENABLED;
 
 	/* no change */
@@ -4876,11 +4951,12 @@ void enable_service_freshness_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 /* disables service freshness checking */
-void disable_service_freshness_checks(void) {
+void disable_service_freshness_checks(void)
+{
 	unsigned long attr = MODATTR_FRESHNESS_CHECKS_ENABLED;
 
 	/* no change */
@@ -4902,11 +4978,12 @@ void disable_service_freshness_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 /* enables host freshness checking */
-void enable_host_freshness_checks(void) {
+void enable_host_freshness_checks(void)
+{
 	unsigned long attr = MODATTR_FRESHNESS_CHECKS_ENABLED;
 
 	/* no change */
@@ -4928,11 +5005,12 @@ void enable_host_freshness_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 /* disables host freshness checking */
-void disable_host_freshness_checks(void) {
+void disable_host_freshness_checks(void)
+{
 	unsigned long attr = MODATTR_FRESHNESS_CHECKS_ENABLED;
 
 	/* no change */
@@ -4954,11 +5032,12 @@ void disable_host_freshness_checks(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 /* enable performance data on a program-wide basis */
-void enable_performance_data(void) {
+void enable_performance_data(void)
+{
 	unsigned long attr = MODATTR_PERFORMANCE_DATA_ENABLED;
 
 	/* bail out if we're already set... */
@@ -4980,11 +5059,12 @@ void enable_performance_data(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 /* disable performance data on a program-wide basis */
-void disable_performance_data(void) {
+void disable_performance_data(void)
+{
 	unsigned long attr = MODATTR_PERFORMANCE_DATA_ENABLED;
 
 #	/* bail out if we're already set... */
@@ -5006,11 +5086,12 @@ void disable_performance_data(void) {
 	update_program_status(FALSE);
 
 	return;
-	}
+}
 
 
 /* start obsessing over a particular service */
-void start_obsessing_over_service(service *svc) {
+void start_obsessing_over_service(service *svc)
+{
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
@@ -5032,11 +5113,12 @@ void start_obsessing_over_service(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 /* stop obsessing over a particular service */
-void stop_obsessing_over_service(service *svc) {
+void stop_obsessing_over_service(service *svc)
+{
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
@@ -5058,11 +5140,12 @@ void stop_obsessing_over_service(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 /* start obsessing over a particular host */
-void start_obsessing_over_host(host *hst) {
+void start_obsessing_over_host(host *hst)
+{
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
@@ -5084,11 +5167,12 @@ void start_obsessing_over_host(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 /* stop obsessing over a particular host */
-void stop_obsessing_over_host(host *hst) {
+void stop_obsessing_over_host(host *hst)
+{
 	unsigned long attr = MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* no change */
@@ -5110,11 +5194,12 @@ void stop_obsessing_over_host(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 /* sets the current notification number for a specific host */
-void set_host_notification_number(host *hst, int num) {
+void set_host_notification_number(host *hst, int num)
+{
 
 	/* set the notification number */
 	hst->current_notification_number = num;
@@ -5123,11 +5208,12 @@ void set_host_notification_number(host *hst, int num) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 /* sets the current notification number for a specific service */
-void set_service_notification_number(service *svc, int num) {
+void set_service_notification_number(service *svc, int num)
+{
 
 	/* set the notification number */
 	svc->current_notification_number = num;
@@ -5136,4 +5222,4 @@ void set_service_notification_number(service *svc, int num) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}

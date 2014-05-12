@@ -56,7 +56,8 @@ int display_frills = TRUE;
 int display_timebreaks = TRUE;
 
 
-int main(void) {
+int main(void)
+{
 	char temp_buffer[MAX_INPUT_BUFFER];
 
 
@@ -124,7 +125,7 @@ int main(void) {
 		printf("</table>\n");
 		printf("</p>\n");
 
-		}
+	}
 
 
 	/* display the contents of the log file */
@@ -136,12 +137,13 @@ int main(void) {
 	free_memory();
 
 	return OK;
-	}
+}
 
 
 
 
-void document_header(int use_stylesheet) {
+void document_header(int use_stylesheet)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	time_t expire_time;
@@ -172,7 +174,7 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, SHOWLOG_CSS);
-		}
+	}
 
 	printf("</HEAD>\n");
 	printf("<BODY CLASS='showlog'>\n");
@@ -181,10 +183,11 @@ void document_header(int use_stylesheet) {
 	include_ssi_files(SHOWLOG_CGI, SSI_HEADER);
 
 	return;
-	}
+}
 
 
-void document_footer(void) {
+void document_footer(void)
+{
 
 	if(embedded == TRUE)
 		return;
@@ -196,10 +199,11 @@ void document_footer(void) {
 	printf("</HTML>\n");
 
 	return;
-	}
+}
 
 
-int process_cgivars(void) {
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -211,7 +215,7 @@ int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
+		}
 
 		/* we found the archive argument */
 		else if(!strcmp(variables[x], "archive")) {
@@ -219,17 +223,17 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			log_archive = atoi(variables[x]);
 			if(log_archive < 0)
 				log_archive = 0;
-			}
+		}
 
 		/* we found the order argument */
 		else if(!strcmp(variables[x], "oldestfirst")) {
 			use_lifo = FALSE;
-			}
+		}
 
 		/* we found the embed option */
 		else if(!strcmp(variables[x], "embedded"))
@@ -251,18 +255,19 @@ int process_cgivars(void) {
 		else
 			error = TRUE;
 
-		}
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
 /* display the contents of the log file */
-int display_log(void) {
+int display_log(void)
+{
 	char *input = NULL;
 	char image[MAX_INPUT_BUFFER];
 	char image_alt[MAX_INPUT_BUFFER];
@@ -283,7 +288,7 @@ int display_log(void) {
 		printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>and check the authorization options in your CGI configuration file.</DIV>\n");
 		printf("<HR>\n");
 		return ERROR;
-		}
+	}
 
 	error = FALSE;
 
@@ -293,14 +298,12 @@ int display_log(void) {
 			if(error == LIFO_ERROR_MEMORY) {
 				printf("<P><DIV CLASS='warningMessage'>Not enough memory to reverse log file - displaying log in natural order...</DIV></P>");
 				error = FALSE;
-				}
-			else
+			} else
 				error = TRUE;
 			use_lifo = FALSE;
-			}
-		else
+		} else
 			error = FALSE;
-		}
+	}
 
 	if(use_lifo == FALSE) {
 
@@ -309,8 +312,8 @@ int display_log(void) {
 			printf("<P><DIV CLASS='errorMessage'>Error: Could not open log file '%s' for reading!</DIV></P>", log_file_to_use);
 			printf("<HR>\n");
 			error = TRUE;
-			}
 		}
+	}
 
 	if(error == FALSE) {
 
@@ -323,8 +326,7 @@ int display_log(void) {
 			if(use_lifo == TRUE) {
 				if((input = pop_lifo()) == NULL)
 					break;
-				}
-			else if((input = mmap_fgets(thefile)) == NULL)
+			} else if((input = mmap_fgets(thefile)) == NULL)
 				break;
 
 			strip(input);
@@ -332,139 +334,106 @@ int display_log(void) {
 			if(strstr(input, " starting...")) {
 				strcpy(image, START_ICON);
 				strcpy(image_alt, START_ICON_ALT);
-				}
-			else if(strstr(input, " shutting down...")) {
+			} else if(strstr(input, " shutting down...")) {
 				strcpy(image, STOP_ICON);
 				strcpy(image_alt, STOP_ICON_ALT);
-				}
-			else if(strstr(input, "Bailing out")) {
+			} else if(strstr(input, "Bailing out")) {
 				strcpy(image, STOP_ICON);
 				strcpy(image_alt, STOP_ICON_ALT);
-				}
-			else if(strstr(input, " restarting...")) {
+			} else if(strstr(input, " restarting...")) {
 				strcpy(image, RESTART_ICON);
 				strcpy(image_alt, RESTART_ICON_ALT);
-				}
-			else if(strstr(input, "HOST ALERT:") && strstr(input, ";DOWN;")) {
+			} else if(strstr(input, "HOST ALERT:") && strstr(input, ";DOWN;")) {
 				strcpy(image, HOST_DOWN_ICON);
 				strcpy(image_alt, HOST_DOWN_ICON_ALT);
-				}
-			else if(strstr(input, "HOST ALERT:") && strstr(input, ";UNREACHABLE;")) {
+			} else if(strstr(input, "HOST ALERT:") && strstr(input, ";UNREACHABLE;")) {
 				strcpy(image, HOST_UNREACHABLE_ICON);
 				strcpy(image_alt, HOST_UNREACHABLE_ICON_ALT);
-				}
-			else if(strstr(input, "HOST ALERT:") && (strstr(input, ";RECOVERY;") || strstr(input, ";UP;"))) {
+			} else if(strstr(input, "HOST ALERT:") && (strstr(input, ";RECOVERY;") || strstr(input, ";UP;"))) {
 				strcpy(image, HOST_UP_ICON);
 				strcpy(image_alt, HOST_UP_ICON_ALT);
-				}
-			else if(strstr(input, "HOST NOTIFICATION:")) {
+			} else if(strstr(input, "HOST NOTIFICATION:")) {
 				strcpy(image, HOST_NOTIFICATION_ICON);
 				strcpy(image_alt, HOST_NOTIFICATION_ICON_ALT);
-				}
-			else if(strstr(input, "SERVICE ALERT:") && strstr(input, ";CRITICAL;")) {
+			} else if(strstr(input, "SERVICE ALERT:") && strstr(input, ";CRITICAL;")) {
 				strcpy(image, CRITICAL_ICON);
 				strcpy(image_alt, CRITICAL_ICON_ALT);
-				}
-			else if(strstr(input, "SERVICE ALERT:") && strstr(input, ";WARNING;")) {
+			} else if(strstr(input, "SERVICE ALERT:") && strstr(input, ";WARNING;")) {
 				strcpy(image, WARNING_ICON);
 				strcpy(image_alt, WARNING_ICON_ALT);
-				}
-			else if(strstr(input, "SERVICE ALERT:") && strstr(input, ";UNKNOWN;")) {
+			} else if(strstr(input, "SERVICE ALERT:") && strstr(input, ";UNKNOWN;")) {
 				strcpy(image, UNKNOWN_ICON);
 				strcpy(image_alt, UNKNOWN_ICON_ALT);
-				}
-			else if(strstr(input, "SERVICE ALERT:") && (strstr(input, ";RECOVERY;") || strstr(input, ";OK;"))) {
+			} else if(strstr(input, "SERVICE ALERT:") && (strstr(input, ";RECOVERY;") || strstr(input, ";OK;"))) {
 				strcpy(image, OK_ICON);
 				strcpy(image_alt, OK_ICON_ALT);
-				}
-			else if(strstr(input, "SERVICE NOTIFICATION:")) {
+			} else if(strstr(input, "SERVICE NOTIFICATION:")) {
 				strcpy(image, NOTIFICATION_ICON);
 				strcpy(image_alt, NOTIFICATION_ICON_ALT);
-				}
-			else if(strstr(input, "SERVICE EVENT HANDLER:")) {
+			} else if(strstr(input, "SERVICE EVENT HANDLER:")) {
 				strcpy(image, SERVICE_EVENT_ICON);
 				strcpy(image_alt, SERVICE_EVENT_ICON_ALT);
-				}
-			else if(strstr(input, "HOST EVENT HANDLER:")) {
+			} else if(strstr(input, "HOST EVENT HANDLER:")) {
 				strcpy(image, HOST_EVENT_ICON);
 				strcpy(image_alt, HOST_EVENT_ICON_ALT);
-				}
-			else if(strstr(input, "EXTERNAL COMMAND:")) {
+			} else if(strstr(input, "EXTERNAL COMMAND:")) {
 				strcpy(image, EXTERNAL_COMMAND_ICON);
 				strcpy(image_alt, EXTERNAL_COMMAND_ICON_ALT);
-				}
-			else if(strstr(input, "PASSIVE SERVICE CHECK:")) {
+			} else if(strstr(input, "PASSIVE SERVICE CHECK:")) {
 				strcpy(image, PASSIVE_ICON);
 				strcpy(image_alt, "Passive Service Check");
-				}
-			else if(strstr(input, "PASSIVE HOST CHECK:")) {
+			} else if(strstr(input, "PASSIVE HOST CHECK:")) {
 				strcpy(image, PASSIVE_ICON);
 				strcpy(image_alt, "Passive Host Check");
-				}
-			else if(strstr(input, "LOG ROTATION:")) {
+			} else if(strstr(input, "LOG ROTATION:")) {
 				strcpy(image, LOG_ROTATION_ICON);
 				strcpy(image_alt, LOG_ROTATION_ICON_ALT);
-				}
-			else if(strstr(input, "active mode...")) {
+			} else if(strstr(input, "active mode...")) {
 				strcpy(image, ACTIVE_ICON);
 				strcpy(image_alt, ACTIVE_ICON_ALT);
-				}
-			else if(strstr(input, "standby mode...")) {
+			} else if(strstr(input, "standby mode...")) {
 				strcpy(image, STANDBY_ICON);
 				strcpy(image_alt, STANDBY_ICON_ALT);
-				}
-			else if(strstr(input, "SERVICE FLAPPING ALERT:") && strstr(input, ";STARTED;")) {
+			} else if(strstr(input, "SERVICE FLAPPING ALERT:") && strstr(input, ";STARTED;")) {
 				strcpy(image, FLAPPING_ICON);
 				strcpy(image_alt, "Service started flapping");
-				}
-			else if(strstr(input, "SERVICE FLAPPING ALERT:") && strstr(input, ";STOPPED;")) {
+			} else if(strstr(input, "SERVICE FLAPPING ALERT:") && strstr(input, ";STOPPED;")) {
 				strcpy(image, FLAPPING_ICON);
 				strcpy(image_alt, "Service stopped flapping");
-				}
-			else if(strstr(input, "SERVICE FLAPPING ALERT:") && strstr(input, ";DISABLED;")) {
+			} else if(strstr(input, "SERVICE FLAPPING ALERT:") && strstr(input, ";DISABLED;")) {
 				strcpy(image, FLAPPING_ICON);
 				strcpy(image_alt, "Service flap detection disabled");
-				}
-			else if(strstr(input, "HOST FLAPPING ALERT:") && strstr(input, ";STARTED;")) {
+			} else if(strstr(input, "HOST FLAPPING ALERT:") && strstr(input, ";STARTED;")) {
 				strcpy(image, FLAPPING_ICON);
 				strcpy(image_alt, "Host started flapping");
-				}
-			else if(strstr(input, "HOST FLAPPING ALERT:") && strstr(input, ";STOPPED;")) {
+			} else if(strstr(input, "HOST FLAPPING ALERT:") && strstr(input, ";STOPPED;")) {
 				strcpy(image, FLAPPING_ICON);
 				strcpy(image_alt, "Host stopped flapping");
-				}
-			else if(strstr(input, "HOST FLAPPING ALERT:") && strstr(input, ";DISABLED;")) {
+			} else if(strstr(input, "HOST FLAPPING ALERT:") && strstr(input, ";DISABLED;")) {
 				strcpy(image, FLAPPING_ICON);
 				strcpy(image_alt, "Host flap detection disabled");
-				}
-			else if(strstr(input, "SERVICE DOWNTIME ALERT:") && strstr(input, ";STARTED;")) {
+			} else if(strstr(input, "SERVICE DOWNTIME ALERT:") && strstr(input, ";STARTED;")) {
 				strcpy(image, SCHEDULED_DOWNTIME_ICON);
 				strcpy(image_alt, "Service entered a period of scheduled downtime");
-				}
-			else if(strstr(input, "SERVICE DOWNTIME ALERT:") && strstr(input, ";STOPPED;")) {
+			} else if(strstr(input, "SERVICE DOWNTIME ALERT:") && strstr(input, ";STOPPED;")) {
 				strcpy(image, SCHEDULED_DOWNTIME_ICON);
 				strcpy(image_alt, "Service exited a period of scheduled downtime");
-				}
-			else if(strstr(input, "SERVICE DOWNTIME ALERT:") && strstr(input, ";CANCELLED;")) {
+			} else if(strstr(input, "SERVICE DOWNTIME ALERT:") && strstr(input, ";CANCELLED;")) {
 				strcpy(image, SCHEDULED_DOWNTIME_ICON);
 				strcpy(image_alt, "Service scheduled downtime has been cancelled");
-				}
-			else if(strstr(input, "HOST DOWNTIME ALERT:") && strstr(input, ";STARTED;")) {
+			} else if(strstr(input, "HOST DOWNTIME ALERT:") && strstr(input, ";STARTED;")) {
 				strcpy(image, SCHEDULED_DOWNTIME_ICON);
 				strcpy(image_alt, "Host entered a period of scheduled downtime");
-				}
-			else if(strstr(input, "HOST DOWNTIME ALERT:") && strstr(input, ";STOPPED;")) {
+			} else if(strstr(input, "HOST DOWNTIME ALERT:") && strstr(input, ";STOPPED;")) {
 				strcpy(image, SCHEDULED_DOWNTIME_ICON);
 				strcpy(image_alt, "Host exited a period of scheduled downtime");
-				}
-			else if(strstr(input, "HOST DOWNTIME ALERT:") && strstr(input, ";CANCELLED;")) {
+			} else if(strstr(input, "HOST DOWNTIME ALERT:") && strstr(input, ";CANCELLED;")) {
 				strcpy(image, SCHEDULED_DOWNTIME_ICON);
 				strcpy(image_alt, "Host scheduled downtime has been cancelled");
-				}
-			else {
+			} else {
 				strcpy(image, INFO_ICON);
 				strcpy(image_alt, INFO_ICON_ALT);
-				}
+			}
 
 			temp_buffer = strtok(input, "]");
 			t = (temp_buffer == NULL) ? 0L : strtoul(temp_buffer + 1, NULL, 10);
@@ -485,7 +454,7 @@ int display_log(void) {
 				printf("<BR CLEAR='all'><DIV CLASS='logEntries'>\n");
 				strncpy(last_message_date, current_message_date, sizeof(last_message_date));
 				last_message_date[sizeof(last_message_date) - 1] = '\x0';
-				}
+			}
 
 			get_time_string(&t, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
 			strip(date_time);
@@ -498,9 +467,9 @@ int display_log(void) {
 			if(enable_splunk_integration == TRUE) {
 				printf("&nbsp;&nbsp;&nbsp;");
 				display_splunk_generic_url(temp_buffer, 2);
-				}
-			printf("<br clear='all'>\n");
 			}
+			printf("<br clear='all'>\n");
+		}
 
 		printf("</DIV></P>\n");
 		printf("<HR>\n");
@@ -509,10 +478,10 @@ int display_log(void) {
 
 		if(use_lifo == FALSE)
 			mmap_fclose(thefile);
-		}
+	}
 
 	if(use_lifo == TRUE)
 		free_lifo_memory();
 
 	return OK;
-	}
+}

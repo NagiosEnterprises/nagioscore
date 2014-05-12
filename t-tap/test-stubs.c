@@ -71,9 +71,10 @@ int handle_scheduled_downtime_by_id(unsigned long long1) {}
 #ifndef TEST_LOGGING
 int log_host_event(host *hst) {}
 int log_service_event_flag = 0;
-int log_service_event(service *svc) {
+int log_service_event(service *svc)
+{
 	log_service_event_flag++;
-	}
+}
 int rotate_log_file(time_t time_t1) {}
 void logit(int int1, int int2, const char *fmt, ...) {}
 #endif
@@ -171,10 +172,11 @@ void reschedule_event(timed_event *event, timed_event **event_list, timed_event 
 int process_passive_service_check(time_t check_time, char *host_name, char *svc_description, int return_code, char *output) {}
 int             soft_state_dependencies = FALSE;
 int             additional_freshness_latency = DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
-hostdependency *get_first_hostdependency_by_dependent_host(char *host_name, void **ptr) {
+hostdependency *get_first_hostdependency_by_dependent_host(char *host_name, void **ptr)
+{
 	/* Return NULL so check_host_dependencies returns back */
 	return NULL;
-	}
+}
 hostdependency *get_next_hostdependency_by_dependent_host(char *host_name, void **ptr) {}
 int             currently_running_host_checks = 0;
 int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, double *exectime, char **output, int max_output_length) {}

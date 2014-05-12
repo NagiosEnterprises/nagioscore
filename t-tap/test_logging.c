@@ -45,20 +45,22 @@ int use_large_installation_tweaks = DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
 
 char *saved_source;
 char *saved_dest;
-int my_rename(char *source, char *dest) {
+int my_rename(char *source, char *dest)
+{
 	char *temp = "renamefailure";
 	saved_source = strdup(source);
 	saved_dest = strdup(dest);
 	if(strcmp(source, "renamefailure") == 0) {
 		return ERROR;
-		}
-	return rename(source, dest);
 	}
+	return rename(source, dest);
+}
 
 void update_program_status() {}
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 	time_t rotation_time;
 	struct stat stat_info, stat_new;
 	char *log_filename_localtime = NULL;
@@ -101,4 +103,4 @@ main(int argc, char **argv) {
 	ok(stat_info.st_mode == stat_new.st_mode, "Mode for new log file kept same as original log file");
 
 	return exit_status();
-	}
+}

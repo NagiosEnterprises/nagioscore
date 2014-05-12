@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 	if (x != &b) {
 		printf("about to fail pretty fucking hard...\n");
 		printf("ea: %p; &b: %p; &c: %p; ed: %p; x: %p\n",
-			   &a, &b, &c, &d, x);
+		       &a, &b, &c, &d, x);
 	}
 	t(x == &b);
 	t(x->id == b.id);

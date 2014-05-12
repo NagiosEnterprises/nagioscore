@@ -44,7 +44,8 @@
 extern comment *comment_list;
 extern scheduled_downtime *scheduled_downtime_list;
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	int result;
 	int c;
 	int last_id;
@@ -71,10 +72,10 @@ int main(int argc, char **argv) {
 		if(temp_comment->comment_id <= last_id) {
 			result = ERROR;
 			break;
-			}
+		}
 		last_id = temp_comment->comment_id;
 		temp_comment = temp_comment->next;
-		}
+	}
 	ok(c == 12, "Got %d comments - expected 12", c);
 	ok(result == OK, "All comments in order");
 
@@ -87,14 +88,14 @@ int main(int argc, char **argv) {
 		if(temp_downtime->start_time < last_time) {
 			result = ERROR;
 			break;
-			}
+		}
 		last_time = temp_downtime->start_time;
 		temp_downtime = temp_downtime->next;
-		}
+	}
 	ok(c == 20, "Got %d downtimes - expected 20", c);
 	ok(result == OK, "All downtimes in order");
 
 	return exit_status();
-	}
+}
 
 

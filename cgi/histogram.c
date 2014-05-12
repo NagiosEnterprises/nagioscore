@@ -139,7 +139,7 @@ typedef struct timeslice_data_struct {
 	unsigned long    service_unknown;
 	unsigned long    host_unreachable;
 	unsigned long    service_warning;
-	} timeslice_data;
+} timeslice_data;
 
 
 timeslice_data *tsdata;
@@ -221,7 +221,8 @@ int total_buckets = 96;
 
 
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	int result = OK;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char image_template[MAX_INPUT_BUFFER];
@@ -255,9 +256,9 @@ int main(int argc, char **argv) {
 			document_header(FALSE);
 			cgi_config_file_error(get_cgi_config_location());
 			document_footer();
-			}
-		return ERROR;
 		}
+		return ERROR;
+	}
 
 	/* read the main configuration file */
 	result = read_main_config_file(main_config_file);
@@ -266,9 +267,9 @@ int main(int argc, char **argv) {
 			document_header(FALSE);
 			main_config_file_error(main_config_file);
 			document_footer();
-			}
-		return ERROR;
 		}
+		return ERROR;
+	}
 
 	/* read all object configuration data */
 	result = read_all_object_configuration_data(main_config_file, READ_ALL_OBJECT_DATA);
@@ -277,9 +278,9 @@ int main(int argc, char **argv) {
 			document_header(FALSE);
 			object_data_error();
 			document_footer();
-			}
-		return ERROR;
 		}
+		return ERROR;
+	}
 
 	/* read all status data */
 	result = read_all_status_data(main_config_file, READ_ALL_STATUS_DATA);
@@ -288,10 +289,10 @@ int main(int argc, char **argv) {
 			document_header(FALSE);
 			status_data_error();
 			document_footer();
-			}
+		}
 		free_memory();
 		return ERROR;
-		}
+	}
 
 	document_header(TRUE);
 
@@ -306,7 +307,7 @@ int main(int argc, char **argv) {
 		t3 = t2;
 		t2 = t1;
 		t1 = t3;
-		}
+	}
 
 
 	if(mode == CREATE_HTML && display_header == TRUE) {
@@ -340,8 +341,7 @@ int main(int argc, char **argv) {
 				printf("<a href='%s?host=%s'>View Status Detail For This Host</a><BR>\n", STATUS_CGI, url_encode(host_name));
 				printf("<a href='%s?host=%s'>View History For This Host</a><BR>\n", HISTORY_CGI, url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Notifications For This Host</a><BR>\n", NOTIFICATIONS_CGI, url_encode(host_name));
-				}
-			else {
+			} else {
 #ifdef USE_TRENDS
 				printf("<a href='%s?host=%s", TRENDS_CGI, url_encode(host_name));
 #endif
@@ -352,11 +352,11 @@ int main(int argc, char **argv) {
 				printf("service=%s'>View History For This Service</A><BR>\n", url_encode(svc_description));
 				printf("<A HREF='%s?host=%s&", NOTIFICATIONS_CGI, url_encode(host_name));
 				printf("service=%s'>View Notifications For This Service</A><BR>\n", url_encode(svc_description));
-				}
+			}
 
 			printf("</TD></TR>\n");
 			printf("</TABLE>\n");
-			}
+		}
 
 		printf("</td>\n");
 
@@ -384,7 +384,7 @@ int main(int argc, char **argv) {
 
 			get_time_breakdown((time_t)(t2 - t1), &days, &hours, &minutes, &seconds);
 			printf("<div align=center class='reportDuration'>Duration: %dd %dh %dm %ds</div>\n", days, hours, minutes, seconds);
-			}
+		}
 
 		printf("</td>\n");
 
@@ -450,15 +450,14 @@ int main(int argc, char **argv) {
 				printf("<option value=%d %s>Host up events\n", GRAPH_HOST_UP, (graph_events == GRAPH_HOST_UP) ? "SELECTED" : "");
 				printf("<option value=%d %s>Host down events\n", GRAPH_HOST_DOWN, (graph_events == GRAPH_HOST_DOWN) ? "SELECTED" : "");
 				printf("<option value=%d %s>Host unreachable events\n", GRAPH_HOST_UNREACHABLE, (graph_events == GRAPH_HOST_UNREACHABLE) ? "SELECTED" : "");
-				}
-			else {
+			} else {
 				printf("<option value=%d %s>All service events\n", GRAPH_SERVICE_ALL, (graph_events == GRAPH_SERVICE_ALL) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service problem events\n", GRAPH_SERVICE_PROBLEMS, (graph_events == GRAPH_SERVICE_PROBLEMS) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service ok events\n", GRAPH_SERVICE_OK, (graph_events == GRAPH_SERVICE_OK) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service warning events\n", GRAPH_SERVICE_WARNING, (graph_events == GRAPH_SERVICE_WARNING) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service unknown events\n", GRAPH_SERVICE_UNKNOWN, (graph_events == GRAPH_SERVICE_UNKNOWN) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service critical events\n", GRAPH_SERVICE_CRITICAL, (graph_events == GRAPH_SERVICE_CRITICAL) ? "SELECTED" : "");
-				}
+			}
 			printf("</select>\n");
 			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<select name='newstatesonly'>\n");
@@ -477,7 +476,7 @@ int main(int argc, char **argv) {
 			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<input type='submit' value='Update'>\n");
 			printf("</td></tr>\n");
-			}
+		}
 
 		/* display context-sensitive help */
 		printf("<tr><td></td><td align=right valign=bottom>\n");
@@ -486,8 +485,7 @@ int main(int argc, char **argv) {
 				display_context_help(CONTEXTHELP_HISTOGRAM_HOST);
 			else
 				display_context_help(CONTEXTHELP_HISTOGRAM_SERVICE);
-			}
-		else if(display_type == DISPLAY_NO_HISTOGRAM || input_type != GET_INPUT_NONE) {
+		} else if(display_type == DISPLAY_NO_HISTOGRAM || input_type != GET_INPUT_NONE) {
 			if(input_type == GET_INPUT_NONE)
 				display_context_help(CONTEXTHELP_HISTOGRAM_MENU1);
 			else if(input_type == GET_INPUT_TARGET_TYPE)
@@ -498,7 +496,7 @@ int main(int argc, char **argv) {
 				display_context_help(CONTEXTHELP_HISTOGRAM_MENU3);
 			else if(input_type == GET_INPUT_OPTIONS)
 				display_context_help(CONTEXTHELP_HISTOGRAM_MENU4);
-			}
+		}
 		printf("</td></tr>\n");
 
 		printf("</table>\n");
@@ -509,19 +507,18 @@ int main(int argc, char **argv) {
 		/* end of top table */
 		printf("</tr>\n");
 		printf("</table>\n");
-		}
+	}
 
 	/* check authorization... */
 	if(display_type == DISPLAY_HOST_HISTOGRAM) {
 		temp_host = find_host(host_name);
 		if(temp_host == NULL || is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 			is_authorized = FALSE;
-		}
-	else if(display_type == DISPLAY_SERVICE_HISTOGRAM) {
+	} else if(display_type == DISPLAY_SERVICE_HISTOGRAM) {
 		temp_service = find_service(host_name, svc_description);
 		if(temp_service == NULL || is_authorized_for_service(temp_service, &current_authdata) == FALSE)
 			is_authorized = FALSE;
-		}
+	}
 	if(is_authorized == FALSE) {
 
 		if(mode == CREATE_HTML)
@@ -530,7 +527,7 @@ int main(int argc, char **argv) {
 		document_footer();
 		free_memory();
 		return ERROR;
-		}
+	}
 
 	if(display_type != DISPLAY_NO_HISTOGRAM && input_type == GET_INPUT_NONE) {
 
@@ -559,7 +556,7 @@ int main(int argc, char **argv) {
 			printf("&graphstatetypes=%d", graph_statetypes);
 			printf("' BORDER=0 name='histogramimage'>\n");
 			printf("</DIV>\n");
-			}
+		}
 
 		/* read and process state data */
 		else {
@@ -587,7 +584,7 @@ int main(int argc, char **argv) {
 				tsdata[x].host_up = 0L;
 				tsdata[x].host_down = 0L;
 				tsdata[x].host_unreachable = 0L;
-				}
+			}
 
 			/* read in all necessary archived state data */
 			read_archived_state_data();
@@ -605,7 +602,7 @@ int main(int argc, char **argv) {
 			if(image_file != NULL) {
 				histogram_image = gdImageCreateFromPng(image_file);
 				fclose(image_file);
-				}
+			}
 			if(histogram_image == NULL)
 				histogram_image = gdImageCreate(image_width, image_height);
 			if(histogram_image == NULL) {
@@ -613,7 +610,7 @@ int main(int argc, char **argv) {
 				printf("Error: Could not allocate memory for image\n");
 #endif
 				return ERROR;
-				}
+			}
 
 			/* allocate colors used for drawing */
 			color_white = gdImageColorAllocate(histogram_image, 255, 255, 255);
@@ -661,8 +658,8 @@ int main(int argc, char **argv) {
 
 			/* free memory allocated for data */
 			free(tsdata);
-			}
 		}
+	}
 
 
 	/* show user a selection of hosts and services to choose from... */
@@ -688,7 +685,7 @@ int main(int argc, char **argv) {
 			for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 				if(is_authorized_for_host(temp_host, &current_authdata) == TRUE)
 					printf("<option value='%s'>%s\n", escape_string(temp_host->name), temp_host->name);
-				}
+			}
 
 			printf("</select>\n");
 			printf("</td></tr>\n");
@@ -701,7 +698,7 @@ int main(int argc, char **argv) {
 			printf("</form>\n");
 
 			printf("</DIV></P>\n");
-			}
+		}
 
 		/* ask the user for what service they want a report for */
 		else if(input_type == GET_INPUT_SERVICE_TARGET) {
@@ -718,8 +715,8 @@ int main(int argc, char **argv) {
 						first_service = temp_service->host_name;
 					printf(" \"%s\"", temp_service->host_name);
 					found = TRUE;
-					}
 				}
+			}
 
 			printf(" ]\n");
 			printf("return hostnames[hostindex];\n");
@@ -745,7 +742,7 @@ int main(int argc, char **argv) {
 			for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 				if(is_authorized_for_service(temp_service, &current_authdata) == TRUE)
 					printf("<option value='%s'>%s;%s\n", escape_string(temp_service->description), temp_service->host_name, temp_service->description);
-				}
+			}
 
 			printf("</select>\n");
 			printf("</td></tr>\n");
@@ -758,7 +755,7 @@ int main(int argc, char **argv) {
 			printf("</form>\n");
 
 			printf("</DIV></P>\n");
-			}
+		}
 
 		/* ask the user for report range and options */
 		else if(input_type == GET_INPUT_OPTIONS) {
@@ -874,15 +871,14 @@ int main(int argc, char **argv) {
 				printf("<option value=%d %s>Host up events\n", GRAPH_HOST_UP, (graph_events == GRAPH_HOST_UP) ? "SELECTED" : "");
 				printf("<option value=%d %s>Host down events\n", GRAPH_HOST_DOWN, (graph_events == GRAPH_HOST_DOWN) ? "SELECTED" : "");
 				printf("<option value=%d %s>Host unreachable events\n", GRAPH_HOST_UNREACHABLE, (graph_events == GRAPH_HOST_UNREACHABLE) ? "SELECTED" : "");
-				}
-			else {
+			} else {
 				printf("<option value=%d %s>All service events\n", GRAPH_SERVICE_ALL, (graph_events == GRAPH_SERVICE_ALL) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service problem events\n", GRAPH_SERVICE_PROBLEMS, (graph_events == GRAPH_SERVICE_PROBLEMS) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service ok events\n", GRAPH_SERVICE_OK, (graph_events == GRAPH_SERVICE_OK) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service warning events\n", GRAPH_SERVICE_WARNING, (graph_events == GRAPH_SERVICE_WARNING) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service unknown events\n", GRAPH_SERVICE_UNKNOWN, (graph_events == GRAPH_SERVICE_UNKNOWN) ? "SELECTED" : "");
 				printf("<option value=%d %s>Service critical events\n", GRAPH_SERVICE_CRITICAL, (graph_events == GRAPH_SERVICE_CRITICAL) ? "SELECTED" : "");
-				}
+			}
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
@@ -925,7 +921,7 @@ int main(int argc, char **argv) {
 			printf("</form>\n");
 
 			printf("</DIV></P>\n");
-			}
+		}
 
 		/* as the user whether they want a graph for a host or service */
 		else {
@@ -953,9 +949,9 @@ int main(int argc, char **argv) {
 			printf("</form>\n");
 
 			printf("</DIV></P>\n");
-			}
-
 		}
+
+	}
 
 	document_footer();
 
@@ -963,10 +959,11 @@ int main(int argc, char **argv) {
 	free_memory();
 
 	return OK;
-	}
+}
 
 
-void document_header(int use_stylesheet) {
+void document_header(int use_stylesheet)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	time_t expire_time;
@@ -998,7 +995,7 @@ void document_header(int use_stylesheet) {
 		if(use_stylesheet == TRUE) {
 			printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, COMMON_CSS);
 			printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, HISTOGRAM_CSS);
-			}
+		}
 
 		printf("</head>\n");
 
@@ -1008,7 +1005,7 @@ void document_header(int use_stylesheet) {
 		include_ssi_files(HISTOGRAM_CGI, SSI_HEADER);
 
 		printf("<div id=\"popup\" style=\"position:absolute; z-index:1; visibility: hidden\"></div>\n");
-		}
+	}
 
 	else {
 		printf("Cache-Control: no-store\r\n");
@@ -1023,14 +1020,15 @@ void document_header(int use_stylesheet) {
 		printf("Expires: %s\r\n", date_time);
 
 		printf("Content-Type: image/png\r\n\r\n");
-		}
-
-	return;
 	}
 
+	return;
+}
 
 
-void document_footer(void) {
+
+void document_footer(void)
+{
 
 	if(embedded == TRUE)
 		return;
@@ -1042,14 +1040,15 @@ void document_footer(void) {
 
 		printf("</body>\n");
 		printf("</html>\n");
-		}
-
-	return;
 	}
 
+	return;
+}
 
 
-int process_cgivars(void) {
+
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -1061,7 +1060,7 @@ int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
+		}
 
 		/* we found the host argument */
 		else if(!strcmp(variables[x], "host")) {
@@ -1069,14 +1068,14 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((host_name = (char *)strdup(variables[x])) == NULL)
 				host_name = "";
 			strip_html_brackets(host_name);
 
 			display_type = DISPLAY_HOST_HISTOGRAM;
-			}
+		}
 
 		/* we found the node width argument */
 		else if(!strcmp(variables[x], "service")) {
@@ -1084,14 +1083,14 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((svc_description = (char *)strdup(variables[x])) == NULL)
 				svc_description = "";
 			strip_html_brackets(svc_description);
 
 			display_type = DISPLAY_SERVICE_HISTOGRAM;
-			}
+		}
 
 		/* we found first time argument */
 		else if(!strcmp(variables[x], "t1")) {
@@ -1099,11 +1098,11 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			t1 = (time_t)strtoul(variables[x], NULL, 10);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
-			}
+		}
 
 		/* we found first time argument */
 		else if(!strcmp(variables[x], "t2")) {
@@ -1111,16 +1110,16 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			t2 = (time_t)strtoul(variables[x], NULL, 10);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
-			}
+		}
 
 		/* we found the image creation option */
 		else if(!strcmp(variables[x], "createimage")) {
 			mode = CREATE_IMAGE;
-			}
+		}
 
 		/* we found the backtrack archives argument */
 		else if(!strcmp(variables[x], "backtrack")) {
@@ -1128,14 +1127,14 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			backtrack_archives = atoi(variables[x]);
 			if(backtrack_archives < 0)
 				backtrack_archives = 0;
 			if(backtrack_archives > MAX_ARCHIVE_BACKTRACKS)
 				backtrack_archives = MAX_ARCHIVE_BACKTRACKS;
-			}
+		}
 
 		/* we found the standard timeperiod argument */
 		else if(!strcmp(variables[x], "timeperiod")) {
@@ -1143,7 +1142,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "today"))
 				timeperiod_type = TIMEPERIOD_TODAY;
@@ -1179,7 +1178,7 @@ int process_cgivars(void) {
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				convert_timeperiod_to_times(timeperiod_type);
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "smon")) {
@@ -1187,7 +1186,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1195,7 +1194,7 @@ int process_cgivars(void) {
 			start_month = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "sday")) {
@@ -1203,7 +1202,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1211,7 +1210,7 @@ int process_cgivars(void) {
 			start_day = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "syear")) {
@@ -1219,7 +1218,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1227,7 +1226,7 @@ int process_cgivars(void) {
 			start_year = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "smin")) {
@@ -1235,7 +1234,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1243,7 +1242,7 @@ int process_cgivars(void) {
 			start_minute = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "ssec")) {
@@ -1251,7 +1250,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1259,7 +1258,7 @@ int process_cgivars(void) {
 			start_second = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "shour")) {
@@ -1267,7 +1266,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1275,7 +1274,7 @@ int process_cgivars(void) {
 			start_hour = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 
 		/* we found time argument */
@@ -1284,7 +1283,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1292,7 +1291,7 @@ int process_cgivars(void) {
 			end_month = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "eday")) {
@@ -1300,7 +1299,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1308,7 +1307,7 @@ int process_cgivars(void) {
 			end_day = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "eyear")) {
@@ -1316,7 +1315,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1324,7 +1323,7 @@ int process_cgivars(void) {
 			end_year = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "emin")) {
@@ -1332,7 +1331,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1340,7 +1339,7 @@ int process_cgivars(void) {
 			end_minute = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "esec")) {
@@ -1348,7 +1347,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1356,7 +1355,7 @@ int process_cgivars(void) {
 			end_second = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "ehour")) {
@@ -1364,7 +1363,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -1372,7 +1371,7 @@ int process_cgivars(void) {
 			end_hour = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found the embed option */
 		else if(!strcmp(variables[x], "embedded"))
@@ -1388,7 +1387,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "gethost"))
 				input_type = GET_INPUT_HOST_TARGET;
@@ -1398,7 +1397,7 @@ int process_cgivars(void) {
 				input_type = GET_INPUT_OPTIONS;
 			else
 				input_type = GET_INPUT_TARGET_TYPE;
-			}
+		}
 
 		/* we found the graph states option */
 		else if(!strcmp(variables[x], "graphevents")) {
@@ -1406,10 +1405,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			graph_events = atoi(variables[x]);
-			}
+		}
 
 		/* we found the graph state types option */
 		else if(!strcmp(variables[x], "graphstatetypes")) {
@@ -1417,10 +1416,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			graph_statetypes = atoi(variables[x]);
-			}
+		}
 
 		/* we found the breakdown option */
 		else if(!strcmp(variables[x], "breakdown")) {
@@ -1428,7 +1427,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "monthly"))
 				breakdown_type = BREAKDOWN_MONTHLY;
@@ -1438,7 +1437,7 @@ int process_cgivars(void) {
 				breakdown_type = BREAKDOWN_DAY_OF_WEEK;
 			else
 				breakdown_type = BREAKDOWN_HOURLY;
-			}
+		}
 
 		/* we found the assume state retention option */
 		else if(!strcmp(variables[x], "assumestateretention")) {
@@ -1446,13 +1445,13 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "yes"))
 				assume_state_retention = TRUE;
 			else
 				assume_state_retention = FALSE;
-			}
+		}
 
 		/* we found the initial states logged option */
 		else if(!strcmp(variables[x], "initialstateslogged")) {
@@ -1460,14 +1459,14 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "yes"))
 				initial_states_logged = TRUE;
 			else
 				initial_states_logged = FALSE;
 
-			}
+		}
 
 		/* we found the new states only option */
 		else if(!strcmp(variables[x], "newstatesonly")) {
@@ -1475,26 +1474,27 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "yes"))
 				new_states_only = TRUE;
 			else
 				new_states_only = FALSE;
 
-			}
 		}
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
 /* graphs histogram data */
-void graph_all_histogram_data(void) {
+void graph_all_histogram_data(void)
+{
 	int pixel_x;
 	int pixel_y;
 	int last_pixel_y;
@@ -1558,7 +1558,7 @@ void graph_all_histogram_data(void) {
 			max_value = tsdata[current_bucket].host_down;
 		if(tsdata[current_bucket].host_unreachable > max_value)
 			max_value = tsdata[current_bucket].host_unreachable;
-		}
+	}
 
 #ifdef DEBUG
 	printf("Done determining max bucket values\n");
@@ -1617,8 +1617,8 @@ void graph_all_histogram_data(void) {
 #ifdef DEBUG
 			printf("  Drawing Y unit #%d @ %d\n", current_unit, (int)(current_unit * y_units * y_scaling_factor));
 #endif
-			}
 		}
+	}
 
 #ifdef DEBUG
 	printf("Starting to draw X grid lines...\n");
@@ -1639,8 +1639,8 @@ void graph_all_histogram_data(void) {
 			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 			string_width = gdFontSmall->w * strlen(temp_buffer);
 			gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET - string_width - 5, DRAWING_Y_OFFSET - (current_unit * y_units * y_scaling_factor) - (string_height / 2), (unsigned char *)temp_buffer, color_black);
-			}
 		}
+	}
 
 	/* draw x units */
 	for(current_unit = 0, actual_unit = 0; (int)(current_unit * x_units) <= DRAWING_WIDTH; current_unit++, actual_unit++) {
@@ -1661,7 +1661,7 @@ void graph_all_histogram_data(void) {
 		string_width = gdFontSmall->w * strlen(temp_buffer);
 
 		gdImageStringUp(histogram_image, gdFontSmall, DRAWING_X_OFFSET + (current_unit * x_units) - (string_height / 2), DRAWING_Y_OFFSET + 5 + string_width, (unsigned char *)temp_buffer, color_black);
-		}
+	}
 
 	/* draw y unit measure */
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "Number of Events");
@@ -1734,13 +1734,13 @@ void graph_all_histogram_data(void) {
 					if(have_state1_min == FALSE || tsdata[actual_bucket].host_up < state1_min) {
 						state1_min = tsdata[actual_bucket].host_up;
 						have_state1_min = TRUE;
-						}
+					}
 					if(state1_max == 0 || tsdata[actual_bucket].host_up > state1_max)
 						state1_max = tsdata[actual_bucket].host_up;
 					state1_sum += tsdata[actual_bucket].host_up;
-					}
 				}
 			}
+		}
 
 #ifdef DEBUG
 		printf("Done graphing HOST UP states...\n");
@@ -1768,13 +1768,13 @@ void graph_all_histogram_data(void) {
 					if(have_state2_min == FALSE || tsdata[actual_bucket].host_down < state2_min) {
 						state2_min = tsdata[actual_bucket].host_down;
 						have_state2_min = TRUE;
-						}
+					}
 					if(state2_max == 0 || tsdata[actual_bucket].host_down > state2_max)
 						state2_max = tsdata[actual_bucket].host_down;
 					state2_sum += tsdata[actual_bucket].host_down;
-					}
 				}
 			}
+		}
 
 #ifdef DEBUG
 		printf("Done graphing HOST DOWN states...\n");
@@ -1802,19 +1802,19 @@ void graph_all_histogram_data(void) {
 					if(have_state3_min == FALSE || tsdata[actual_bucket].host_unreachable < state3_min) {
 						state3_min = tsdata[actual_bucket].host_unreachable;
 						have_state3_min = TRUE;
-						}
+					}
 					if(state3_max == 0 || tsdata[actual_bucket].host_unreachable > state3_max)
 						state3_max = tsdata[actual_bucket].host_unreachable;
 					state3_sum += tsdata[actual_bucket].host_unreachable;
-					}
 				}
 			}
+		}
 
 #ifdef DEBUG
 		printf("Done graphing HOST UNREACHABLE states...\n");
 #endif
 
-		}
+	}
 
 	/* graph service states */
 	else {
@@ -1841,13 +1841,13 @@ void graph_all_histogram_data(void) {
 					if(have_state1_min == FALSE || tsdata[actual_bucket].service_ok < state1_min) {
 						state1_min = tsdata[actual_bucket].service_ok;
 						have_state1_min = TRUE;
-						}
+					}
 					if(state1_max == 0 || tsdata[actual_bucket].service_ok > state1_max)
 						state1_max = tsdata[actual_bucket].service_ok;
 					state1_sum += tsdata[actual_bucket].service_ok;
-					}
 				}
 			}
+		}
 
 		/* graph service warning states */
 		if(graph_events & GRAPH_SERVICE_WARNING) {
@@ -1871,13 +1871,13 @@ void graph_all_histogram_data(void) {
 					if(have_state2_min == FALSE || tsdata[actual_bucket].service_warning < state2_min) {
 						state2_min = tsdata[actual_bucket].service_warning;
 						have_state2_min = TRUE;
-						}
+					}
 					if(state2_max == 0 || tsdata[actual_bucket].service_warning > state2_max)
 						state2_max = tsdata[actual_bucket].service_warning;
 					state2_sum += tsdata[actual_bucket].service_warning;
-					}
 				}
 			}
+		}
 
 		/* graph service unknown states */
 		if(graph_events & GRAPH_SERVICE_UNKNOWN) {
@@ -1901,13 +1901,13 @@ void graph_all_histogram_data(void) {
 					if(have_state3_min == FALSE || tsdata[actual_bucket].service_unknown < state3_min) {
 						state3_min = tsdata[actual_bucket].service_unknown;
 						have_state3_min = TRUE;
-						}
+					}
 					if(state3_max == 0 || tsdata[actual_bucket].service_unknown > state3_max)
 						state3_max = tsdata[actual_bucket].service_unknown;
 					state3_sum += tsdata[actual_bucket].service_unknown;
-					}
 				}
 			}
+		}
 
 		/* graph service critical states */
 		if(graph_events & GRAPH_SERVICE_CRITICAL) {
@@ -1931,14 +1931,14 @@ void graph_all_histogram_data(void) {
 					if(have_state4_min == FALSE || tsdata[actual_bucket].service_critical < state4_min) {
 						state4_min = tsdata[actual_bucket].service_critical;
 						have_state4_min = TRUE;
-						}
+					}
 					if(state4_max == 0 || tsdata[actual_bucket].service_critical > state4_max)
 						state4_max = tsdata[actual_bucket].service_critical;
 					state4_sum += tsdata[actual_bucket].service_critical;
-					}
 				}
 			}
 		}
+	}
 
 #ifdef DEBUG
 	printf("Done graphing states...\n");
@@ -2008,14 +2008,15 @@ void graph_all_histogram_data(void) {
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		string_width = gdFontSmall->w * strlen(temp_buffer);
 		gdImageString(histogram_image, gdFontSmall, DRAWING_X_OFFSET + DRAWING_WIDTH + 115, DRAWING_Y_OFFSET - DRAWING_HEIGHT + ((string_height + 5) * 4), (unsigned char *)temp_buffer, color_black);
-		}
+	}
 
 	return;
-	}
+}
 
 
 /* adds an archived state entry */
-void add_archived_state(int state_type, time_t time_stamp) {
+void add_archived_state(int state_type, time_t time_stamp)
+{
 	struct tm *our_time;
 	int bucket;
 	int skip_state = FALSE;
@@ -2031,7 +2032,7 @@ void add_archived_state(int state_type, time_t time_stamp) {
 #endif
 		program_restart_has_occurred = TRUE;
 		return;
-		}
+	}
 
 	/* see if we should even take into account this event */
 	if(program_restart_has_occurred == TRUE) {
@@ -2045,7 +2046,7 @@ void add_archived_state(int state_type, time_t time_stamp) {
 				skip_state = TRUE;
 			if(state_type == AS_HOST_UP && last_state == AS_HOST_UP)
 				skip_state = TRUE;
-			}
+		}
 
 		if(assume_state_retention == TRUE && initial_states_logged == TRUE) {
 			if(state_type == AS_SVC_WARNING && last_state == AS_SVC_WARNING)
@@ -2058,7 +2059,7 @@ void add_archived_state(int state_type, time_t time_stamp) {
 				skip_state = TRUE;
 			if(state_type == AS_HOST_UNREACHABLE && last_state == AS_HOST_UNREACHABLE)
 				skip_state = TRUE;
-			}
+		}
 
 		if(skip_state == TRUE) {
 			program_restart_has_occurred = FALSE;
@@ -2066,8 +2067,8 @@ void add_archived_state(int state_type, time_t time_stamp) {
 			printf("Skipping state...\n");
 #endif
 			return;
-			}
 		}
+	}
 
 	/* reset program restart variable */
 	program_restart_has_occurred = FALSE;
@@ -2078,7 +2079,7 @@ void add_archived_state(int state_type, time_t time_stamp) {
 		printf("Skipping state (not a new state)...\n");
 #endif
 		return;
-		}
+	}
 
 #ifdef DEBUG2
 	printf("GOODSTATE: %d @ %lu\n", state_type, (unsigned long)time_stamp);
@@ -2125,12 +2126,13 @@ void add_archived_state(int state_type, time_t time_stamp) {
 	last_state = state_type;
 
 	return;
-	}
+}
 
 
 
 /* reads log files for archived state data */
-void read_archived_state_data(void) {
+void read_archived_state_data(void)
+{
 	char filename[MAX_FILENAME_LENGTH];
 	int newest_archive = 0;
 	int oldest_archive = 0;
@@ -2168,15 +2170,16 @@ void read_archived_state_data(void) {
 
 		/* scan the log file for archived state data */
 		scan_log_file_for_archived_state_data(filename);
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* grabs archives state data from a log file */
-void scan_log_file_for_archived_state_data(char *filename) {
+void scan_log_file_for_archived_state_data(char *filename)
+{
 	char *input = NULL;
 	char *input2 = NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
@@ -2189,14 +2192,14 @@ void scan_log_file_for_archived_state_data(char *filename) {
 	if(mode == CREATE_HTML) {
 		printf(" ");
 		fflush(NULL);
-		}
+	}
 
 	if((thefile = mmap_fopen(filename)) == NULL) {
 #ifdef DEBUG2
 		printf("Could not open file '%s' for reading.\n", filename);
 #endif
 		return;
-		}
+	}
 
 #ifdef DEBUG2
 	printf("Scanning log file '%s' for archived state data...\n", filename);
@@ -2260,8 +2263,8 @@ void scan_log_file_for_archived_state_data(char *filename) {
 					add_archived_state(AS_HOST_UNREACHABLE, time_stamp);
 				else if(strstr(input, ";RECOVERY") || strstr(input, ";UP;"))
 					add_archived_state(AS_HOST_UP, time_stamp);
-				}
 			}
+		}
 		if(display_type == DISPLAY_SERVICE_HISTOGRAM) {
 			if(strstr(input, "SERVICE ALERT:")) {
 
@@ -2298,10 +2301,10 @@ void scan_log_file_for_archived_state_data(char *filename) {
 					add_archived_state(AS_SVC_UNKNOWN, time_stamp);
 				else if(strstr(input, ";RECOVERY;") || strstr(input, ";OK;"))
 					add_archived_state(AS_SVC_OK, time_stamp);
-				}
 			}
-
 		}
+
+	}
 
 	/* free memory and close the file */
 	free(input);
@@ -2309,12 +2312,13 @@ void scan_log_file_for_archived_state_data(char *filename) {
 	mmap_fclose(thefile);
 
 	return;
-	}
+}
 
 
 
 
-void convert_timeperiod_to_times(int type) {
+void convert_timeperiod_to_times(int type)
+{
 	time_t current_time;
 	struct tm *t;
 
@@ -2329,77 +2333,77 @@ void convert_timeperiod_to_times(int type) {
 	t->tm_isdst = -1;
 
 	switch(type) {
-		case TIMEPERIOD_LAST24HOURS:
-			t1 = current_time - (60 * 60 * 24);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_TODAY:
-			t1 = mktime(t);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_YESTERDAY:
-			t1 = (time_t)(mktime(t) - (60 * 60 * 24));
-			t2 = (time_t)mktime(t);
-			break;
-		case TIMEPERIOD_THISWEEK:
-			t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_LASTWEEK:
-			t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday) - (60 * 60 * 24 * 7));
-			t2 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
-			break;
-		case TIMEPERIOD_THISMONTH:
-			t->tm_mday = 1;
-			t1 = mktime(t);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_LASTMONTH:
-			t->tm_mday = 1;
-			t2 = mktime(t);
-			if(t->tm_mon == 0) {
-				t->tm_mon = 11;
-				t->tm_year--;
-				}
-			else
-				t->tm_mon--;
-			t1 = mktime(t);
-			break;
-		case TIMEPERIOD_THISQUARTER:
-			break;
-		case TIMEPERIOD_LASTQUARTER:
-			break;
-		case TIMEPERIOD_THISYEAR:
-			t->tm_mon = 0;
-			t->tm_mday = 1;
-			t1 = mktime(t);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_LASTYEAR:
-			t->tm_mon = 0;
-			t->tm_mday = 1;
-			t2 = mktime(t);
+	case TIMEPERIOD_LAST24HOURS:
+		t1 = current_time - (60 * 60 * 24);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_TODAY:
+		t1 = mktime(t);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_YESTERDAY:
+		t1 = (time_t)(mktime(t) - (60 * 60 * 24));
+		t2 = (time_t)mktime(t);
+		break;
+	case TIMEPERIOD_THISWEEK:
+		t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_LASTWEEK:
+		t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday) - (60 * 60 * 24 * 7));
+		t2 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
+		break;
+	case TIMEPERIOD_THISMONTH:
+		t->tm_mday = 1;
+		t1 = mktime(t);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_LASTMONTH:
+		t->tm_mday = 1;
+		t2 = mktime(t);
+		if(t->tm_mon == 0) {
+			t->tm_mon = 11;
 			t->tm_year--;
-			t1 = mktime(t);
-			break;
-		case TIMEPERIOD_LAST7DAYS:
-			t2 = current_time;
-			t1 = current_time - (7 * 24 * 60 * 60);
-			break;
-		case TIMEPERIOD_LAST31DAYS:
-			t2 = current_time;
-			t1 = current_time - (31 * 24 * 60 * 60);
-			break;
-		default:
-			break;
-		}
-
-	return;
+		} else
+			t->tm_mon--;
+		t1 = mktime(t);
+		break;
+	case TIMEPERIOD_THISQUARTER:
+		break;
+	case TIMEPERIOD_LASTQUARTER:
+		break;
+	case TIMEPERIOD_THISYEAR:
+		t->tm_mon = 0;
+		t->tm_mday = 1;
+		t1 = mktime(t);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_LASTYEAR:
+		t->tm_mon = 0;
+		t->tm_mday = 1;
+		t2 = mktime(t);
+		t->tm_year--;
+		t1 = mktime(t);
+		break;
+	case TIMEPERIOD_LAST7DAYS:
+		t2 = current_time;
+		t1 = current_time - (7 * 24 * 60 * 60);
+		break;
+	case TIMEPERIOD_LAST31DAYS:
+		t2 = current_time;
+		t1 = current_time - (31 * 24 * 60 * 60);
+		break;
+	default:
+		break;
 	}
 
+	return;
+}
 
 
-void compute_report_times(void) {
+
+void compute_report_times(void)
+{
 	time_t current_time;
 	struct tm *st;
 	struct tm *et;
@@ -2430,12 +2434,13 @@ void compute_report_times(void) {
 	et->tm_isdst = -1;
 
 	t2 = mktime(et);
-	}
+}
 
 
 
 /* draws a solid line */
-void draw_line(int x1, int y1, int x2, int y2, int color) {
+void draw_line(int x1, int y1, int x2, int y2, int color)
+{
 	int styleSolid[1];
 
 	styleSolid[0] = color;
@@ -2447,11 +2452,12 @@ void draw_line(int x1, int y1, int x2, int y2, int color) {
 	gdImageLine(histogram_image, x1, y1, x2, y2, gdStyled);
 
 	return;
-	}
+}
 
 
 /* draws a dashed line */
-void draw_dashed_line(int x1, int y1, int x2, int y2, int color) {
+void draw_dashed_line(int x1, int y1, int x2, int y2, int color)
+{
 	int styleDashed[6];
 
 	styleDashed[0] = color;
@@ -2468,4 +2474,4 @@ void draw_dashed_line(int x1, int y1, int x2, int y2, int color) {
 	gdImageLine(histogram_image, x1, y1, x2, y2, gdStyled);
 
 	return;
-	}
+}

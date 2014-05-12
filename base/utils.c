@@ -239,13 +239,15 @@ extern int errno;
 #endif
 
 
-static const char *worker_source_name(void *source) {
+static const char *worker_source_name(void *source)
+{
 	return source ? (const char *)source : "unknown internal source (voodoo, perhaps?)";
-	}
+}
 
-static const char *spool_file_source_name(void *source) {
+static const char *spool_file_source_name(void *source)
+{
 	return "check result spool dir";
-	}
+}
 
 struct check_engine nagios_check_engine = {
 	"Nagios Core",
@@ -259,11 +261,12 @@ static struct check_engine nagios_spool_check_engine = {
 	NULL,
 };
 
-const char *check_result_source(check_result *cr) {
+const char *check_result_source(check_result *cr)
+{
 	if(cr->engine)
 		return cr->engine->source_name(cr->source);
 	return cr->source ? (const char *)cr->source : "(unknown engine)";
-	}
+}
 
 
 int set_loadctl_options(char *opts, unsigned int len)
@@ -280,8 +283,7 @@ int set_loadctl_options(char *opts, unsigned int len)
 				if (!(loadctl.options & LOADCTL_ENABLED))
 					logit(0, 0, "Warning: Enabling experimental load control\n");
 				loadctl.options |= LOADCTL_ENABLED;
-			}
-			else {
+			} else {
 				if (loadctl.options & LOADCTL_ENABLED)
 					logit(0, 0, "Warning: Disabling experimental load control\n");
 				loadctl.options &= (~LOADCTL_ENABLED);
@@ -325,7 +327,8 @@ int set_loadctl_options(char *opts, unsigned int len)
 
 
 /* executes a system command - used for notifications, event handlers, etc. */
-int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, double *exectime, char **output, int max_output_length) {
+int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, double *exectime, char **output, int max_output_length)
+{
 	pid_t pid = 0;
 	int status = 0;
 	int result = 0;
@@ -382,7 +385,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 		close(fd[1]);
 
 		return STATE_UNKNOWN;
-		}
+	}
 
 	/* execute the command in the child process */
 	if(pid == 0) {
@@ -425,8 +428,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 			write(fd[1], buffer, strlen(buffer) + 1);
 
 			result = STATE_CRITICAL;
-			}
-		else {
+		} else {
 
 			/* write all the lines of output back to the parent process */
 			while(fgets(buffer, sizeof(buffer) - 1, fp))
@@ -442,8 +444,8 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 				if(WEXITSTATUS(status) == 0 && WIFSIGNALED(status))
 					result = 128 + WTERMSIG(status);
 				result = WEXITSTATUS(status);
-				}
 			}
+		}
 
 		/* close pipe for writing */
 		close(fd[1]);
@@ -462,7 +464,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 #endif
 
 		_exit(result);
-		}
+	}
 
 	/* parent waits for child to finish executing command */
 	else {
@@ -487,7 +489,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 		/* check for possibly missing scripts/binaries/etc */
 		if(result == 126 || result == 127) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Attempting to execute the command \"%s\" resulted in a return code of %d.  Make sure the script or binary you are trying to execute actually exists...\n", cmd, result);
-			}
+		}
 
 		/* check bounds on the return value */
 		if(result < -1 || result > 3)
@@ -507,7 +509,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 			kill((pid_t)(-pid), SIGTERM);
 			sleep(1);
 			kill((pid_t)(-pid), SIGKILL);
-			}
+		}
 
 		/* read output if timeout has not occurred */
 		else {
@@ -523,7 +525,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 				if(bytes_read > 0) {
 					buffer[bytes_read] = '\x0';
 					dbuf_strcat(&output_dbuf, buffer);
-					}
+				}
 
 				/* handle errors */
 				if(bytes_read == -1) {
@@ -538,17 +540,15 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 						pfd.events = POLLIN;
 						poll(&pfd, 1, -1);
 						continue;
-						}
-					else
+					} else
 						break;
-					}
+				}
 
 				/* we're done */
 				if(bytes_read == 0)
 					break;
 
-				}
-			while(1);
+			} while(1);
 
 			/* cap output length - this isn't necessary, but it keeps runaway plugin output from causing problems */
 			if(max_output_length > 0  && (int)output_dbuf.used_size > max_output_length)
@@ -557,7 +557,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 			if(output != NULL && output_dbuf.buf)
 				*output = (char *)strdup(output_dbuf.buf);
 
-			}
+		}
 
 		log_debug_info(DEBUGL_COMMANDS, 1, "Execution time=%.3f sec, early timeout=%d, result=%d, output=%s\n", *exectime, *early_timeout, result, (output_dbuf.buf == NULL) ? "(null)" : output_dbuf.buf);
 
@@ -571,23 +571,25 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 
 		/* close the pipe for reading */
 		close(fd[0]);
-		}
+	}
 
 	return result;
-	}
+}
 
 /*
  * For API compatibility, we must include a my_system() whose
  * signature doesn't include the nagios_macros variable.
  * NDOUtils uses this. Possibly other modules as well.
  */
-int my_system(char *cmd, int timeout, int *early_timeout, double *exectime, char **output, int max_output_length) {
+int my_system(char *cmd, int timeout, int *early_timeout, double *exectime, char **output, int max_output_length)
+{
 	return my_system_r(get_global_macros(), cmd, timeout, early_timeout, exectime, output, max_output_length);
-	}
+}
 
 
 /* given a "raw" command, return the "expanded" or "whole" command line */
-int get_raw_command_line_r(nagios_macros *mac, command *cmd_ptr, char *cmd, char **full_command, int macro_options) {
+int get_raw_command_line_r(nagios_macros *mac, command *cmd_ptr, char *cmd, char **full_command, int macro_options)
+{
 	char temp_arg[MAX_COMMAND_BUFFER] = "";
 	char *arg_buffer = NULL;
 	register int x = 0;
@@ -616,7 +618,7 @@ int get_raw_command_line_r(nagios_macros *mac, command *cmd_ptr, char *cmd, char
 		for(arg_index = 0;; arg_index++) {
 			if(cmd[arg_index] == '!' || cmd[arg_index] == '\x0')
 				break;
-			}
+		}
 
 		/* get each command argument */
 		for(x = 0; x < MAX_COMMAND_ARGUMENTS; x++) {
@@ -640,7 +642,7 @@ int get_raw_command_line_r(nagios_macros *mac, command *cmd_ptr, char *cmd, char
 				/* copy the character */
 				temp_arg[y] = cmd[arg_index];
 				y++;
-				}
+			}
 			temp_arg[y] = '\x0';
 
 			/* ADDED 01/29/04 EG */
@@ -648,24 +650,25 @@ int get_raw_command_line_r(nagios_macros *mac, command *cmd_ptr, char *cmd, char
 			process_macros_r(mac, temp_arg, &arg_buffer, macro_options);
 
 			mac->argv[x] = arg_buffer;
-			}
 		}
+	}
 
 	log_debug_info(DEBUGL_COMMANDS | DEBUGL_CHECKS | DEBUGL_MACROS, 2, "Expanded Command Output: %s\n", *full_command);
 
 	return OK;
-	}
+}
 
 /*
  * This function modifies the global macro struct and is thus not
  * threadsafe
  */
-int get_raw_command_line(command *cmd_ptr, char *cmd, char **full_command, int macro_options) {
+int get_raw_command_line(command *cmd_ptr, char *cmd, char **full_command, int macro_options)
+{
 	nagios_macros *mac;
 
 	mac = get_global_macros();
 	return get_raw_command_line_r(mac, cmd_ptr, cmd, full_command, macro_options);
-	}
+}
 
 
 
@@ -674,7 +677,8 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char **full_command, int m
 /******************************************************************/
 
 /* sets or unsets an environment variable */
-int set_environment_var(char *name, char *value, int set) {
+int set_environment_var(char *name, char *value, int set)
+{
 #ifndef HAVE_SETENV
 	char *env_string = NULL;
 #endif
@@ -695,16 +699,16 @@ int set_environment_var(char *name, char *value, int set) {
 		if(env_string)
 			putenv(env_string);
 #endif
-		}
+	}
 	/* clear the variable */
 	else {
 #ifdef HAVE_UNSETENV
 		unsetenv(name);
 #endif
-		}
+	}
 
 	return OK;
-	}
+}
 
 
 
@@ -715,28 +719,30 @@ int set_environment_var(char *name, char *value, int set) {
 
 
 /* Checks if the given time is in daylight time saving period */
-static int is_dst_time(time_t *time) {
+static int is_dst_time(time_t *time)
+{
 	struct tm *bt = localtime(time);
 	return bt->tm_isdst;
-	}
+}
 
 /* Returns the shift in seconds if the given times are across the daylight time saving period change */
-static int get_dst_shift(time_t *start, time_t *end) {
+static int get_dst_shift(time_t *start, time_t *end)
+{
 	int shift = 0, dst_end, dst_start;
 	dst_start = is_dst_time(start);
 	dst_end = is_dst_time(end);
 	if(dst_start < dst_end) {
 		shift = 3600;
-		}
-	else if(dst_start > dst_end) {
+	} else if(dst_start > dst_end) {
 		shift = -3600;
-		}
-	return shift;
 	}
+	return shift;
+}
 
 /*#define TEST_TIMEPERIODS_A 1*/
 
-static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod) {
+static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod)
+{
 	daterange *temp_daterange = NULL;
 	time_t start_time = (time_t)0L;
 	time_t end_time = (time_t)0L;
@@ -779,75 +785,75 @@ static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod)
 
 			/* get the start time */
 			switch(daterange_type) {
-				case DATERANGE_CALENDAR_DATE:
-					t->tm_sec = 0;
-					t->tm_min = 0;
-					t->tm_hour = 0;
-					t->tm_wday = 0;
-					t->tm_mday = temp_daterange->smday;
-					t->tm_mon = temp_daterange->smon;
-					t->tm_year = (temp_daterange->syear - 1900);
-					t->tm_isdst = -1;
-					start_time = mktime(t);
-					break;
-				case DATERANGE_MONTH_DATE:
-					start_time = calculate_time_from_day_of_month(test_time_year, temp_daterange->smon, temp_daterange->smday);
-					break;
-				case DATERANGE_MONTH_DAY:
-					start_time = calculate_time_from_day_of_month(test_time_year, test_time_mon, temp_daterange->smday);
-					break;
-				case DATERANGE_MONTH_WEEK_DAY:
-					start_time = calculate_time_from_weekday_of_month(test_time_year, temp_daterange->smon, temp_daterange->swday, temp_daterange->swday_offset);
-					break;
-				case DATERANGE_WEEK_DAY:
-					start_time = calculate_time_from_weekday_of_month(test_time_year, test_time_mon, temp_daterange->swday, temp_daterange->swday_offset);
-					break;
-				default:
-					continue;
-					break;
-				}
+			case DATERANGE_CALENDAR_DATE:
+				t->tm_sec = 0;
+				t->tm_min = 0;
+				t->tm_hour = 0;
+				t->tm_wday = 0;
+				t->tm_mday = temp_daterange->smday;
+				t->tm_mon = temp_daterange->smon;
+				t->tm_year = (temp_daterange->syear - 1900);
+				t->tm_isdst = -1;
+				start_time = mktime(t);
+				break;
+			case DATERANGE_MONTH_DATE:
+				start_time = calculate_time_from_day_of_month(test_time_year, temp_daterange->smon, temp_daterange->smday);
+				break;
+			case DATERANGE_MONTH_DAY:
+				start_time = calculate_time_from_day_of_month(test_time_year, test_time_mon, temp_daterange->smday);
+				break;
+			case DATERANGE_MONTH_WEEK_DAY:
+				start_time = calculate_time_from_weekday_of_month(test_time_year, temp_daterange->smon, temp_daterange->swday, temp_daterange->swday_offset);
+				break;
+			case DATERANGE_WEEK_DAY:
+				start_time = calculate_time_from_weekday_of_month(test_time_year, test_time_mon, temp_daterange->swday, temp_daterange->swday_offset);
+				break;
+			default:
+				continue;
+				break;
+			}
 
 			/* get the end time */
 			switch(daterange_type) {
-				case DATERANGE_CALENDAR_DATE:
-					t->tm_sec = 0;
-					t->tm_min = 0;
-					t->tm_hour = 0;
-					t->tm_wday = 0;
-					t->tm_mday = temp_daterange->emday;
-					t->tm_mon = temp_daterange->emon;
-					t->tm_year = (temp_daterange->eyear - 1900);
-					t->tm_isdst = -1;
-					end_time = mktime(t);
-					break;
-				case DATERANGE_MONTH_DATE:
-					year = test_time_year;
+			case DATERANGE_CALENDAR_DATE:
+				t->tm_sec = 0;
+				t->tm_min = 0;
+				t->tm_hour = 0;
+				t->tm_wday = 0;
+				t->tm_mday = temp_daterange->emday;
+				t->tm_mon = temp_daterange->emon;
+				t->tm_year = (temp_daterange->eyear - 1900);
+				t->tm_isdst = -1;
+				end_time = mktime(t);
+				break;
+			case DATERANGE_MONTH_DATE:
+				year = test_time_year;
+				end_time = calculate_time_from_day_of_month(year, temp_daterange->emon, temp_daterange->emday);
+				/* advance a year if necessary: august 2 - february 5 */
+				if(end_time < start_time) {
+					year++;
 					end_time = calculate_time_from_day_of_month(year, temp_daterange->emon, temp_daterange->emday);
-					/* advance a year if necessary: august 2 - february 5 */
-					if(end_time < start_time) {
-						year++;
-						end_time = calculate_time_from_day_of_month(year, temp_daterange->emon, temp_daterange->emday);
-						}
-					break;
-				case DATERANGE_MONTH_DAY:
-					end_time = calculate_time_from_day_of_month(test_time_year, test_time_mon, temp_daterange->emday);
-					break;
-				case DATERANGE_MONTH_WEEK_DAY:
-					year = test_time_year;
-					end_time = calculate_time_from_weekday_of_month(year, temp_daterange->emon, temp_daterange->ewday, temp_daterange->ewday_offset);
-					/* advance a year if necessary: thursday 2 august - monday 3 february */
-					if(end_time < start_time) {
-						year++;
-						end_time = calculate_time_from_weekday_of_month(year, temp_daterange->emon, temp_daterange->ewday, temp_daterange->ewday_offset);
-						}
-					break;
-				case DATERANGE_WEEK_DAY:
-					end_time = calculate_time_from_weekday_of_month(test_time_year, test_time_mon, temp_daterange->ewday, temp_daterange->ewday_offset);
-					break;
-				default:
-					continue;
-					break;
 				}
+				break;
+			case DATERANGE_MONTH_DAY:
+				end_time = calculate_time_from_day_of_month(test_time_year, test_time_mon, temp_daterange->emday);
+				break;
+			case DATERANGE_MONTH_WEEK_DAY:
+				year = test_time_year;
+				end_time = calculate_time_from_weekday_of_month(year, temp_daterange->emon, temp_daterange->ewday, temp_daterange->ewday_offset);
+				/* advance a year if necessary: thursday 2 august - monday 3 february */
+				if(end_time < start_time) {
+					year++;
+					end_time = calculate_time_from_weekday_of_month(year, temp_daterange->emon, temp_daterange->ewday, temp_daterange->ewday_offset);
+				}
+				break;
+			case DATERANGE_WEEK_DAY:
+				end_time = calculate_time_from_weekday_of_month(test_time_year, test_time_mon, temp_daterange->ewday, temp_daterange->ewday_offset);
+				break;
+			default:
+				continue;
+				break;
+			}
 
 #ifdef TEST_TIMEPERIODS_A
 			printf("START:    %lu = %s", (unsigned long)start_time, ctime(&start_time));
@@ -861,48 +867,48 @@ static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod)
 			/* end date was bad - see if we can handle the error */
 			if((unsigned long)end_time == 0L) {
 				switch(daterange_type) {
-					case DATERANGE_CALENDAR_DATE:
+				case DATERANGE_CALENDAR_DATE:
+					continue;
+					break;
+				case DATERANGE_MONTH_DATE:
+					/* end date can't be helped, so skip it */
+					if(temp_daterange->emday < 0)
 						continue;
-						break;
-					case DATERANGE_MONTH_DATE:
-						/* end date can't be helped, so skip it */
-						if(temp_daterange->emday < 0)
-							continue;
 
-						/* else end date slipped past end of month, so use last day of month as end date */
-						/* use same year calculated above */
-						end_time = calculate_time_from_day_of_month(year, temp_daterange->emon, -1);
-						break;
-					case DATERANGE_MONTH_DAY:
-						/* end date can't be helped, so skip it */
-						if(temp_daterange->emday < 0)
-							continue;
-
-						/* else end date slipped past end of month, so use last day of month as end date */
-						end_time = calculate_time_from_day_of_month(test_time_year, test_time_mon, -1);
-						break;
-					case DATERANGE_MONTH_WEEK_DAY:
-						/* end date can't be helped, so skip it */
-						if(temp_daterange->ewday_offset < 0)
-							continue;
-
-						/* else end date slipped past end of month, so use last day of month as end date */
-						/* use same year calculated above */
-						end_time = calculate_time_from_day_of_month(year, test_time_mon, -1);
-						break;
-					case DATERANGE_WEEK_DAY:
-						/* end date can't be helped, so skip it */
-						if(temp_daterange->ewday_offset < 0)
-							continue;
-
-						/* else end date slipped past end of month, so use last day of month as end date */
-						end_time = calculate_time_from_day_of_month(test_time_year, test_time_mon, -1);
-						break;
-					default:
+					/* else end date slipped past end of month, so use last day of month as end date */
+					/* use same year calculated above */
+					end_time = calculate_time_from_day_of_month(year, temp_daterange->emon, -1);
+					break;
+				case DATERANGE_MONTH_DAY:
+					/* end date can't be helped, so skip it */
+					if(temp_daterange->emday < 0)
 						continue;
-						break;
-					}
+
+					/* else end date slipped past end of month, so use last day of month as end date */
+					end_time = calculate_time_from_day_of_month(test_time_year, test_time_mon, -1);
+					break;
+				case DATERANGE_MONTH_WEEK_DAY:
+					/* end date can't be helped, so skip it */
+					if(temp_daterange->ewday_offset < 0)
+						continue;
+
+					/* else end date slipped past end of month, so use last day of month as end date */
+					/* use same year calculated above */
+					end_time = calculate_time_from_day_of_month(year, test_time_mon, -1);
+					break;
+				case DATERANGE_WEEK_DAY:
+					/* end date can't be helped, so skip it */
+					if(temp_daterange->ewday_offset < 0)
+						continue;
+
+					/* else end date slipped past end of month, so use last day of month as end date */
+					end_time = calculate_time_from_day_of_month(test_time_year, test_time_mon, -1);
+					break;
+				default:
+					continue;
+					break;
 				}
+			}
 
 			/* calculate skip date start (and end) */
 			if(temp_daterange->skip_interval > 1) {
@@ -928,7 +934,7 @@ static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod)
 				/* if skipping range has no end, use test date as end */
 				if((daterange_type == DATERANGE_CALENDAR_DATE) && (is_daterange_single_day(temp_daterange) == TRUE))
 					end_time = midnight;
-				}
+			}
 
 #ifdef TEST_TIMEPERIODS_A
 			printf("NEW START:    %lu = %s", (unsigned long)start_time, ctime(&start_time));
@@ -945,15 +951,16 @@ static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod)
 				printf("(MATCH)\n");
 #endif
 				return temp_daterange->times;
-				}
 			}
 		}
+	}
 
 	return tperiod->days[test_time_wday];
 }
 
 /* see if the specified time falls into a valid time range in the given time period */
-int check_time_against_period(time_t test_time, timeperiod *tperiod) {
+int check_time_against_period(time_t test_time, timeperiod *tperiod)
+{
 	timerange *temp_timerange = NULL;
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
 	struct tm *t, tm_s;
@@ -977,8 +984,8 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 	for(temp_timeperiodexclusion = tperiod->exclusions; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
 		if(check_time_against_period(test_time, temp_timeperiodexclusion->timeperiod_ptr) == OK) {
 			return ERROR;
-			}
 		}
+	}
 
 	for(temp_timerange = _get_matching_timerange(test_time, tperiod); temp_timerange != NULL; temp_timerange = temp_timerange->next) {
 
@@ -987,9 +994,9 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 
 		if(test_time >= day_range_start && test_time <= day_range_end)
 			return OK;
-		}
-	return ERROR;
 	}
+	return ERROR;
+}
 
 
 
@@ -997,7 +1004,8 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod) {
 
 void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod);
 
-static void _get_next_invalid_time(time_t pref_time, time_t *invalid_time, timeperiod *tperiod) {
+static void _get_next_invalid_time(time_t pref_time, time_t *invalid_time, timeperiod *tperiod)
+{
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
 	int depth = 0;
 	int max_depth = 300; // commonly roughly equal to "days in the future"
@@ -1050,27 +1058,28 @@ static void _get_next_invalid_time(time_t pref_time, time_t *invalid_time, timep
 #ifdef TEST_TIMEPERIODS_B
 				printf("    EARLIEST INVALID TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
 #endif
-				}
 			}
+		}
 
 		for(temp_timeperiodexclusion = tperiod->exclusions; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
 			_get_next_valid_time(last_earliest_time, &potential_time, temp_timeperiodexclusion->timeperiod_ptr);
 			if (potential_time + 60 < earliest_time)
 				earliest_time = potential_time + 60;
-			}
 		}
+	}
 #ifdef TEST_TIMEPERIODS_B
-		printf("    FINAL EARLIEST INVALID TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
+	printf("    FINAL EARLIEST INVALID TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
 #endif
 
 	if (depth == max_depth)
 		*invalid_time = pref_time;
 	else
 		*invalid_time = earliest_time;
-	}
+}
 
 /* Separate this out from public get_next_valid_time for testing */
-void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod) {
+void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod)
+{
 	timeperiodexclusion *temp_timeperiodexclusion = NULL;
 	int depth = 0;
 	int max_depth = 300; // commonly roughly equal to "days in the future"
@@ -1102,8 +1111,8 @@ void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tper
 
 		timerange *temp_timerange = _get_matching_timerange(earliest_time, tperiod);
 #ifdef TEST_TIMEPERIODS_B
-			printf("  RANGE START: %lu\n", temp_timerange ? temp_timerange->range_start : 0);
-			printf("  RANGE END:   %lu\n", temp_timerange ? temp_timerange->range_end : 0);
+		printf("  RANGE START: %lu\n", temp_timerange ? temp_timerange->range_start : 0);
+		printf("  RANGE END:   %lu\n", temp_timerange ? temp_timerange->range_end : 0);
 #endif
 
 		for(; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
@@ -1136,9 +1145,9 @@ void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tper
 #ifdef TEST_TIMEPERIODS_B
 				printf("    EARLIEST TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
 #endif
-				}
-			have_earliest_time = TRUE;
 			}
+			have_earliest_time = TRUE;
+		}
 
 		if (have_earliest_time == FALSE) {
 			earliest_time = midnight + 86400;
@@ -1148,19 +1157,20 @@ void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tper
 #ifdef TEST_TIMEPERIODS_B
 				printf("    FINAL EARLIEST TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
 #endif
-				}
 			}
 		}
+	}
 
 	if (depth == max_depth)
 		*valid_time = pref_time;
 	else
 		*valid_time = earliest_time;
-	}
+}
 
 
 /* given a preferred time, get the next valid time within a time period */
-void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod) {
+void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod)
+{
 	time_t current_time = (time_t)0L;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "get_next_valid_time()\n");
@@ -1171,11 +1181,12 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 	pref_time = (pref_time < current_time) ? current_time : pref_time;
 
 	_get_next_valid_time(pref_time, valid_time, tperiod);
-	}
+}
 
 
 /* tests if a date range covers just a single day */
-int is_daterange_single_day(daterange *dr) {
+int is_daterange_single_day(daterange *dr)
+{
 
 	if(dr == NULL)
 		return FALSE;
@@ -1192,12 +1203,13 @@ int is_daterange_single_day(daterange *dr) {
 		return FALSE;
 
 	return TRUE;
-	}
+}
 
 
 
 /* returns a time (midnight) of particular (3rd, last) day in a given month */
-time_t calculate_time_from_day_of_month(int year, int month, int monthday) {
+time_t calculate_time_from_day_of_month(int year, int month, int monthday)
+{
 	time_t midnight;
 	int day = 0;
 	struct tm t;
@@ -1227,7 +1239,7 @@ time_t calculate_time_from_day_of_month(int year, int month, int monthday) {
 		/* assume the user's intention is to keep it in the current month */
 		if(t.tm_mon != month)
 			midnight = (time_t)0L;
-		}
+	}
 
 	/* negative offset (last day, 3rd to last day) */
 	else {
@@ -1244,8 +1256,7 @@ time_t calculate_time_from_day_of_month(int year, int month, int monthday) {
 			t.tm_isdst = -1;
 			midnight = mktime(&t);
 
-			}
-		while(t.tm_mon != month);
+		} while(t.tm_mon != month);
 
 		/* now that we know the last day, back up more */
 		/* make the new time */
@@ -1260,15 +1271,16 @@ time_t calculate_time_from_day_of_month(int year, int month, int monthday) {
 		/* assume the user's intention is to keep it in the current month */
 		if(t.tm_mon != month)
 			midnight = (time_t)0L;
-		}
+	}
 
 	return midnight;
-	}
+}
 
 
 
 /* returns a time (midnight) of particular (3rd, last) weekday in a given month */
-time_t calculate_time_from_weekday_of_month(int year, int month, int weekday, int weekday_offset) {
+time_t calculate_time_from_weekday_of_month(int year, int month, int weekday, int weekday_offset)
+{
 	time_t midnight;
 	int days = 0;
 	int weeks = 0;
@@ -1307,7 +1319,7 @@ time_t calculate_time_from_weekday_of_month(int year, int month, int weekday, in
 		/* assume the user's intention is to keep it in the current month */
 		if(t.tm_mon != month)
 			midnight = (time_t)0L;
-		}
+	}
 
 	/* negative offset (last thursday, 3rd to last tuesday) */
 	else {
@@ -1324,8 +1336,7 @@ time_t calculate_time_from_weekday_of_month(int year, int month, int weekday, in
 			t.tm_isdst = -1;
 			midnight = mktime(&t);
 
-			}
-		while(t.tm_mon != month);
+		} while(t.tm_mon != month);
 
 		/* now that we know the last instance of the weekday, back up more */
 		weeks = (weekday_offset < -5) ? -5 : weekday_offset;
@@ -1342,14 +1353,15 @@ time_t calculate_time_from_weekday_of_month(int year, int month, int weekday, in
 		/* assume the user's intention is to keep it in the current month */
 		if(t.tm_mon != month)
 			midnight = (time_t)0L;
-		}
+	}
 
 	return midnight;
-	}
+}
 
 
 /* get the next time to schedule a log rotation */
-time_t get_next_log_rotation_time(void) {
+time_t get_next_log_rotation_time(void)
+{
 	time_t current_time;
 	struct tm *t, tm_s;
 	int is_dst_now = FALSE;
@@ -1362,28 +1374,28 @@ time_t get_next_log_rotation_time(void) {
 	is_dst_now = (t->tm_isdst > 0) ? TRUE : FALSE;
 
 	switch(log_rotation_method) {
-		case LOG_ROTATION_HOURLY:
-			t->tm_hour++;
-			run_time = mktime(t);
-			break;
-		case LOG_ROTATION_DAILY:
-			t->tm_mday++;
-			t->tm_hour = 0;
-			run_time = mktime(t);
-			break;
-		case LOG_ROTATION_WEEKLY:
-			t->tm_mday += (7 - t->tm_wday);
-			t->tm_hour = 0;
-			run_time = mktime(t);
-			break;
-		case LOG_ROTATION_MONTHLY:
-		default:
-			t->tm_mon++;
-			t->tm_mday = 1;
-			t->tm_hour = 0;
-			run_time = mktime(t);
-			break;
-		}
+	case LOG_ROTATION_HOURLY:
+		t->tm_hour++;
+		run_time = mktime(t);
+		break;
+	case LOG_ROTATION_DAILY:
+		t->tm_mday++;
+		t->tm_hour = 0;
+		run_time = mktime(t);
+		break;
+	case LOG_ROTATION_WEEKLY:
+		t->tm_mday += (7 - t->tm_wday);
+		t->tm_hour = 0;
+		run_time = mktime(t);
+		break;
+	case LOG_ROTATION_MONTHLY:
+	default:
+		t->tm_mon++;
+		t->tm_mday = 1;
+		t->tm_hour = 0;
+		run_time = mktime(t);
+		break;
+	}
 
 	if(is_dst_now == TRUE && t->tm_isdst == 0)
 		run_time += 3600;
@@ -1391,7 +1403,7 @@ time_t get_next_log_rotation_time(void) {
 		run_time -= 3600;
 
 	return run_time;
-	}
+}
 
 
 
@@ -1401,7 +1413,8 @@ time_t get_next_log_rotation_time(void) {
 
 
 /* trap signals so we can exit gracefully */
-void setup_sighandler(void) {
+void setup_sighandler(void)
+{
 
 	/* reset the shutdown flag */
 	sigshutdown = FALSE;
@@ -1420,11 +1433,12 @@ void setup_sighandler(void) {
 		signal(SIGSEGV, sighandler);
 
 	return;
-	}
+}
 
 
 /* reset signal handling... */
-void reset_sighandler(void) {
+void reset_sighandler(void)
+{
 
 	/* set signal handling to default actions */
 	signal(SIGQUIT, SIG_DFL);
@@ -1435,11 +1449,12 @@ void reset_sighandler(void) {
 	signal(SIGXFSZ, SIG_DFL);
 
 	return;
-	}
+}
 
 
 /* handle signals */
-void sighandler(int sig) {
+void sighandler(int sig)
+{
 	const char *sigs[35] = {"EXIT", "HUP", "INT", "QUIT", "ILL", "TRAP", "ABRT", "BUS", "FPE", "KILL", "USR1", "SEGV", "USR2", "PIPE", "ALRM", "TERM", "STKFLT", "CHLD", "CONT", "STOP", "TSTP", "TTIN", "TTOU", "URG", "XCPU", "XFSZ", "VTALRM", "PROF", "WINCH", "IO", "PWR", "UNUSED", "ZERR", "DEBUG", (char *)NULL};
 	int x = 0;
 
@@ -1466,26 +1481,28 @@ void sighandler(int sig) {
 	else if(sig < 16) {
 		logit(NSLOG_PROCESS_INFO, TRUE, "Caught SIG%s, shutting down...\n", sigs[sig]);
 		sigshutdown = TRUE;
-		}
-
-	return;
 	}
 
+	return;
+}
+
 /* handle timeouts when executing commands via my_system_r() */
-void my_system_sighandler(int sig) {
+void my_system_sighandler(int sig)
+{
 
 	/* force the child process to exit... */
 	_exit(STATE_CRITICAL);
-	}
+}
 
 
 /* Handle the SIGXFSZ signal. A SIGXFSZ signal is received when a file exceeds
 	the maximum allowable size either as dictated by the fzise paramater in
 	/etc/security/limits.conf (ulimit -f) or by the maximum size allowed by
 	the filesystem */
-void handle_sigxfsz(int sig) {
+void handle_sigxfsz(int sig)
+{
 
-	static time_t lastlog_time = (time_t)0;	/* Save the last log time so we 
+	static time_t lastlog_time = (time_t)0;	/* Save the last log time so we
 											   don't log too often. */
 	unsigned long log_interval = 300;		/* How frequently to log messages
 											   about receiving the signal */
@@ -1500,7 +1517,7 @@ void handle_sigxfsz(int sig) {
 		object_precache_file,
 		status_file,
 		retention_file,
-		};
+	};
 	int x;
 	char **filep;
 	long long size;
@@ -1517,93 +1534,90 @@ void handle_sigxfsz(int sig) {
 		if(getrlimit(RLIMIT_FSIZE, &rlim) != 0) {
 			/* Attempt to log the error, realizing that the logging may fail
 				if it is the log file that is over the size limit. */
-			logit(NSLOG_RUNTIME_ERROR, TRUE, 
-					"Unable to determine current resoure limits: %s\n", 
-					strerror(errno));
-			}
+			logit(NSLOG_RUNTIME_ERROR, TRUE,
+			      "Unable to determine current resoure limits: %s\n",
+			      strerror(errno));
+		}
 
-		/* Try to figure out which file caused the signal and react 
+		/* Try to figure out which file caused the signal and react
 				appropriately */
-		for(x = 0, filep = files; x < (sizeof(files) / sizeof(files[0])); 
-				x++, filep++) {
+		for(x = 0, filep = files; x < (sizeof(files) / sizeof(files[0]));
+		    x++, filep++) {
 			if((*filep != NULL) && strcmp(*filep, "/dev/null")) {
 				if((size = check_file_size(*filep, 1024, rlim)) == -1) {
 					lastlog_time = now;
 					return;
-					}
-				else if(size > max_size) {
+				} else if(size > max_size) {
 					max_size = size;
 					max_name = log_file;
-					}
 				}
 			}
+		}
 		if((max_size > 0) && (max_name != NULL)) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "SIGXFSZ received because a "
-					"file's size may have exceeded the file size limits of "
-					"the filesystem. The largest file checked, '%s', has a "
-					"size of %lld bytes", max_name, max_size);
-			
-			}
-		else {
+			      "file's size may have exceeded the file size limits of "
+			      "the filesystem. The largest file checked, '%s', has a "
+			      "size of %lld bytes", max_name, max_size);
+
+		} else {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "SIGXFSZ received but unable to "
-					"determine which file may have caused it.");
-			}
+			      "determine which file may have caused it.");
 		}
-	return;
 	}
+	return;
+}
 
 /* Checks a file to determine whether it exceeds resource limit imposed
-	limits. Returns the file size if file is OK, 0 if it's status could not 
-	be determined, or -1 if not OK. fudge is the fudge factor (in bytes) for 
+	limits. Returns the file size if file is OK, 0 if it's status could not
+	be determined, or -1 if not OK. fudge is the fudge factor (in bytes) for
 	checking the file size */
-static long long check_file_size(char *path, unsigned long fudge, 
-		struct rlimit rlim) {
+static long long check_file_size(char *path, unsigned long fudge,
+                                 struct rlimit rlim)
+{
 
 	struct stat status;
 
 	/* Make sure we were passed a legitimate file path */
 	if(NULL == path) {
 		return 0;
-		}
+	}
 
 	/* Get the status of the file */
 	if(stat(path, &status) == 0) {
 		/* Make sure it is a file */
 		if(S_ISREG(status.st_mode)) {
-			/* If the file size plus the fudge factor exceeds the 
+			/* If the file size plus the fudge factor exceeds the
 				current resource limit imposed size limit, log an error */
 			if(status.st_size + fudge > rlim.rlim_cur) {
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Size of file '%s' (%llu) "
-						"exceeds (or nearly exceeds) size imposed by resource "
-						"limits (%llu). Consider increasing limits with "
-						"ulimit(1).\n", path, 
-						(unsigned long long)status.st_size, 
-						(unsigned long long)rlim.rlim_cur);
+				      "exceeds (or nearly exceeds) size imposed by resource "
+				      "limits (%llu). Consider increasing limits with "
+				      "ulimit(1).\n", path,
+				      (unsigned long long)status.st_size,
+				      (unsigned long long)rlim.rlim_cur);
 				return -1;
-				}
-			else {
+			} else {
 				return status.st_size;
-				}
 			}
-		else {
+		} else {
 			return 0;
-			}
 		}
-	else {
+	} else {
 		/* If we could not determine the file status, log an error message */
-		logit(NSLOG_RUNTIME_ERROR, TRUE, 
-				"Unable to determine status of file %s: %s\n", 
-				log_file, strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR, TRUE,
+		      "Unable to determine status of file %s: %s\n",
+		      log_file, strerror(errno));
 		return 0;
-		}
 	}
+}
 
 
 /******************************************************************/
 /************************ DAEMON FUNCTIONS ************************/
 /******************************************************************/
 
-int daemon_init(void) {
+int daemon_init(void)
+{
 	pid_t pid = -1;
 	int pidno = 0;
 	int lockfile = 0;
@@ -1644,14 +1658,14 @@ int daemon_init(void) {
 
 		cleanup();
 		exit(ERROR);
-		}
+	}
 
 	/* see if we can read the contents of the lockfile */
 	if((val = read(lockfile, buf, (size_t)10)) < 0) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile exists but cannot be read");
 		cleanup();
 		exit(ERROR);
-		}
+	}
 
 	/* we read something - check the PID */
 	if(val > 0) {
@@ -1659,14 +1673,14 @@ int daemon_init(void) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' does not contain a valid PID (%s)", lock_file, buf);
 			cleanup();
 			exit(ERROR);
-			}
 		}
+	}
 
 	/* check for SIGHUP */
 	if(val == 1 && (pid = (pid_t)pidno) == getpid()) {
 		close(lockfile);
 		return OK;
-		}
+	}
 
 	/* exit on errors... */
 	if((pid = fork()) < 0)
@@ -1690,13 +1704,12 @@ int daemon_init(void) {
 		if(errno == EACCES || errno == EAGAIN) {
 			fcntl(lockfile, F_GETLK, &lock);
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' looks like its already held by another instance of Nagios (PID %d).  Bailing out...", lock_file, (int)lock.l_pid);
-			}
-		else
+		} else
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Cannot lock lockfile '%s': %s. Bailing out...", lock_file, strerror(errno));
 
 		cleanup();
 		exit(ERROR);
-		}
+	}
 
 	/* prevent daemon from dumping a core file... */
 #ifdef RLIMIT_CORE
@@ -1704,7 +1717,7 @@ int daemon_init(void) {
 		getrlimit(RLIMIT_CORE, &limit);
 		limit.rlim_cur = 0;
 		setrlimit(RLIMIT_CORE, &limit);
-		}
+	}
 #endif
 
 	/* write PID to lockfile... */
@@ -1724,7 +1737,7 @@ int daemon_init(void) {
 #endif
 
 	return OK;
-	}
+}
 
 
 
@@ -1733,7 +1746,8 @@ int daemon_init(void) {
 /******************************************************************/
 
 /* drops privileges */
-int drop_privileges(char *user, char *group) {
+int drop_privileges(char *user, char *group)
+{
 	uid_t uid = -1;
 	gid_t gid = -1;
 	struct group *grp = NULL;
@@ -1754,12 +1768,12 @@ int drop_privileges(char *user, char *group) {
 				gid = (gid_t)(grp->gr_gid);
 			else
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not get group entry for '%s'", group);
-			}
+		}
 
 		/* else we were passed the GID */
 		else
 			gid = (gid_t)atoi(group);
-		}
+	}
 
 	/* set effective user ID */
 	if(user != NULL) {
@@ -1771,12 +1785,12 @@ int drop_privileges(char *user, char *group) {
 				uid = (uid_t)(pw->pw_uid);
 			else
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not get passwd entry for '%s'", user);
-			}
+		}
 
 		/* else we were passed the UID */
 		else
 			uid = (uid_t)atoi(user);
-		}
+	}
 
 	/* now that we know what to change to, we fix log file permissions */
 	fix_log_file_owner(uid, gid);
@@ -1786,8 +1800,8 @@ int drop_privileges(char *user, char *group) {
 		if(setgid(gid) == -1) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not set effective GID=%d", (int)gid);
 			result = ERROR;
-			}
 		}
+	}
 #ifdef HAVE_INITGROUPS
 
 	if(uid != geteuid()) {
@@ -1799,9 +1813,9 @@ int drop_privileges(char *user, char *group) {
 			else {
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Possibly root user failed dropping privileges with initgroups()");
 				return ERROR;
-				}
 			}
 		}
+	}
 #endif
 	if(setuid(uid) == -1) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not set effective UID=%d", (int)uid);
@@ -1809,7 +1823,7 @@ int drop_privileges(char *user, char *group) {
 	}
 
 	return result;
-	}
+}
 
 
 
@@ -1819,7 +1833,8 @@ int drop_privileges(char *user, char *group) {
 /******************************************************************/
 
 /* processes files in the check result queue directory */
-int process_check_result_queue(char *dirname) {
+int process_check_result_queue(char *dirname)
+{
 	char file[MAX_FILENAME_LENGTH];
 	DIR *dirp = NULL;
 	struct dirent *dirfile = NULL;
@@ -1834,13 +1849,13 @@ int process_check_result_queue(char *dirname) {
 	if(dirname == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: No check result queue directory specified.\n");
 		return ERROR;
-		}
+	}
 
 	/* open the directory for reading */
 	if((dirp = opendir(dirname)) == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not open check result queue directory '%s' for reading.\n", dirname);
 		return ERROR;
-		}
+	}
 
 	log_debug_info(DEBUGL_CHECKS, 1, "Starting to read check result queue '%s'...\n", dirname);
 
@@ -1852,13 +1867,13 @@ int process_check_result_queue(char *dirname) {
 		if (sigshutdown == TRUE || sigrestart == TRUE) {
 			log_debug_info(DEBUGL_CHECKS, 0, "Breaking out of check result reaper: signal encountered\n");
 			break;
-			}
+		}
 
 		/* break out if we've been here too long */
 		if (start + max_check_reaper_time < time(NULL)) {
 			log_debug_info(DEBUGL_CHECKS, 0, "Breaking out of check result reaper: max time (%ds) exceeded\n", max_check_reaper_time);
 			break;
-			}
+		}
 
 		/* create /path/to/file */
 		snprintf(file, sizeof(file), "%s/%s", dirname, dirfile->d_name);
@@ -1871,7 +1886,7 @@ int process_check_result_queue(char *dirname) {
 			if(stat(file, &stat_buf) == -1) {
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not stat() check result file '%s'.\n", file);
 				continue;
-				}
+			}
 
 			/* we only care about real files */
 			if (!S_ISREG(stat_buf.st_mode))
@@ -1883,7 +1898,7 @@ int process_check_result_queue(char *dirname) {
 			if (stat_buf.st_mtime + max_check_result_file_age < time(NULL)) {
 				delete_check_result_file(dirfile->d_name);
 				continue;
-				}
+			}
 
 			/* can we find the associated ok-to-go file ? */
 			asprintf(&temp_buffer, "%s.ok", file);
@@ -1900,14 +1915,14 @@ int process_check_result_queue(char *dirname) {
 				break;
 
 			check_result_files++;
-			}
 		}
+	}
 
 	closedir(dirp);
 
 	return check_result_files;
 
-	}
+}
 
 
 int process_check_result(check_result *cr)
@@ -1925,23 +1940,23 @@ int process_check_result(check_result *cr)
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Got check result for service '%s' on host '%s'. Unable to find service\n",
 			      cr->service_description, cr->host_name);
 			return ERROR;
-			}
+		}
 		log_debug_info(DEBUGL_CHECKS, 2, "Processing check result for service '%s' on host '%s'\n",
 		               svc->description, svc->host_name);
 		svc->check_source = source_name;
 		return handle_async_service_check_result(svc, cr);
-		}
+	}
 	if (cr->object_check_type == HOST_CHECK) {
 		host *hst;
 		hst = find_host(cr->host_name);
 		if (!hst) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Got host checkresult for '%s', but no such host can be found\n", cr->host_name);
 			return ERROR;
-			}
+		}
 		log_debug_info(DEBUGL_CHECKS, 2, "Processing check result for host '%s'\n", hst->name);
 		hst->check_source = source_name;
 		return handle_async_host_check_result(hst, cr);
-		}
+	}
 
 	/* We should never end up here */
 	logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unknown object check type for checkresult: %d; (host_name: %s; service_description: %s)\n",
@@ -1950,10 +1965,11 @@ int process_check_result(check_result *cr)
 	      cr->service_description ? cr->service_description : "(null)");
 
 	return ERROR;
-	}
+}
 
 /* reads check result(s) from a file */
-int process_check_result_file(char *fname) {
+int process_check_result_file(char *fname)
+{
 	mmapfile *thefile = NULL;
 	char *input = NULL;
 	char *var = NULL;
@@ -1979,7 +1995,7 @@ int process_check_result_file(char *fname) {
 		unlink(fname);
 
 		return ERROR;
-		}
+	}
 
 	/* read in all lines from the file */
 	while(1) {
@@ -2004,13 +2020,13 @@ int process_check_result_file(char *fname) {
 				/* process the check result */
 				process_check_result(&cr);
 
-				}
+			}
 
 			/* cleanse for next check result */
 			free_check_result(&cr);
 			init_check_result(&cr);
 			cr.output_file = fname;
-			}
+		}
 
 		if((var = my_strtok(input, "=")) == NULL)
 			continue;
@@ -2024,8 +2040,8 @@ int process_check_result_file(char *fname) {
 			/* this will only work as intended if file_time comes before check results */
 			if(max_check_result_file_age > 0 && (current_time - (strtoul(val, NULL, 0)) > max_check_result_file_age)) {
 				break;
-				}
 			}
+		}
 
 		/* else we have check result data */
 		else {
@@ -2034,8 +2050,7 @@ int process_check_result_file(char *fname) {
 			else if(!strcmp(var, "service_description")) {
 				cr.service_description = (char *)strdup(val);
 				cr.object_check_type = SERVICE_CHECK;
-				}
-			else if(!strcmp(var, "check_type"))
+			} else if(!strcmp(var, "check_type"))
 				cr.check_type = atoi(val);
 			else if(!strcmp(var, "check_options"))
 				cr.check_options = atoi(val);
@@ -2052,16 +2067,14 @@ int process_check_result_file(char *fname) {
 					continue;
 				cr.start_time.tv_sec = strtoul(v1, NULL, 0);
 				cr.start_time.tv_usec = strtoul(v2, NULL, 0);
-				}
-			else if(!strcmp(var, "finish_time")) {
+			} else if(!strcmp(var, "finish_time")) {
 				if((v1 = strtok(val, ".")) == NULL)
 					continue;
 				if((v2 = strtok(NULL, "\n")) == NULL)
 					continue;
 				cr.finish_time.tv_sec = strtoul(v1, NULL, 0);
 				cr.finish_time.tv_usec = strtoul(v2, NULL, 0);
-				}
-			else if(!strcmp(var, "early_timeout"))
+			} else if(!strcmp(var, "early_timeout"))
 				cr.early_timeout = atoi(val);
 			else if(!strcmp(var, "exited_ok"))
 				cr.exited_ok = atoi(val);
@@ -2069,15 +2082,15 @@ int process_check_result_file(char *fname) {
 				cr.return_code = atoi(val);
 			else if(!strcmp(var, "output"))
 				cr.output = (char *)strdup(val);
-			}
 		}
+	}
 
 	/* do we have the minimum amount of data? */
 	if(cr.host_name != NULL && cr.output != NULL) {
 
 		/* process check result */
 		process_check_result(&cr);
-		}
+	}
 
 	free_check_result(&cr);
 
@@ -2089,13 +2102,14 @@ int process_check_result_file(char *fname) {
 	delete_check_result_file(fname);
 
 	return OK;
-	}
+}
 
 
 
 
 /* deletes as check result file, as well as its ok-to-go file */
-int delete_check_result_file(char *fname) {
+int delete_check_result_file(char *fname)
+{
 	char *temp_buffer = NULL;
 
 	/* delete the result file */
@@ -2107,13 +2121,14 @@ int delete_check_result_file(char *fname) {
 	my_free(temp_buffer);
 
 	return OK;
-	}
+}
 
 
 
 
 /* initializes a host/service check result */
-int init_check_result(check_result *info) {
+int init_check_result(check_result *info)
+{
 
 	if(info == NULL)
 		return ERROR;
@@ -2140,12 +2155,13 @@ int init_check_result(check_result *info) {
 	info->engine = NULL;
 
 	return OK;
-	}
+}
 
 
 
 /* frees memory associated with a host/service check result */
-int free_check_result(check_result *info) {
+int free_check_result(check_result *info)
+{
 
 	if(info == NULL)
 		return OK;
@@ -2155,7 +2171,7 @@ int free_check_result(check_result *info) {
 	my_free(info->output);
 
 	return OK;
-	}
+}
 
 
 /******************************************************************/
@@ -2163,7 +2179,8 @@ int free_check_result(check_result *info) {
 /******************************************************************/
 
 /* gets the next string from a buffer in memory - strings are terminated by newlines, which are removed */
-char *get_next_string_from_buf(char *buf, int *start_index, int bufsize) {
+char *get_next_string_from_buf(char *buf, int *start_index, int bufsize)
+{
 	char *sptr = NULL;
 	const char *nl = "\n";
 	int x;
@@ -2187,12 +2204,13 @@ char *get_next_string_from_buf(char *buf, int *start_index, int bufsize) {
 	*start_index += x + 1;
 
 	return sptr;
-	}
+}
 
 
 
 /* determines whether or not an object name (host, service, etc) contains illegal characters */
-int contains_illegal_object_chars(char *name) {
+int contains_illegal_object_chars(char *name)
+{
 	register int x = 0;
 	register int y = 0;
 
@@ -2207,14 +2225,15 @@ int contains_illegal_object_chars(char *name) {
 			for(y = 0; illegal_object_chars[y]; y++)
 				if(name[x] == illegal_object_chars[y])
 					return TRUE;
-		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 /* escapes newlines in a string */
-char *escape_newlines(char *rawbuf) {
+char *escape_newlines(char *rawbuf)
+{
 	char *newbuf = NULL;
 	register int x, y;
 
@@ -2231,29 +2250,30 @@ char *escape_newlines(char *rawbuf) {
 		if(rawbuf[x] == '\\') {
 			newbuf[y++] = '\\';
 			newbuf[y++] = '\\';
-			}
+		}
 
 		/* escape newlines */
 		else if(rawbuf[x] == '\n') {
 			newbuf[y++] = '\\';
 			newbuf[y++] = 'n';
-			}
+		}
 
 		else
 			newbuf[y++] = rawbuf[x];
-		}
+	}
 	newbuf[y] = '\x0';
 
 	return newbuf;
-	}
+}
 
 
 /* compares strings */
-int compare_strings(char *val1a, char *val2a) {
+int compare_strings(char *val1a, char *val2a)
+{
 
 	/* use the compare_hashdata() function */
 	return compare_hashdata(val1a, NULL, val2a, NULL);
-	}
+}
 
 
 /******************************************************************/
@@ -2261,7 +2281,8 @@ int compare_strings(char *val1a, char *val2a) {
 /******************************************************************/
 
 /* renames a file - works across filesystems (Mike Wiacek) */
-int my_rename(char *source, char *dest) {
+int my_rename(char *source, char *dest)
+{
 	int rename_result = 0;
 
 
@@ -2282,31 +2303,32 @@ int my_rename(char *source, char *dest) {
 			if(my_fcopy(source, dest) == ERROR) {
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to rename file '%s' to '%s': %s\n", source, dest, strerror(errno));
 				return -1;
-				}
+			}
 
 			/* delete the original file */
 			unlink(source);
 
 			/* reset result since we successfully copied file */
 			rename_result = 0;
-			}
+		}
 
 		/* some other error occurred */
 		else {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to rename file '%s' to '%s': %s\n", source, dest, strerror(errno));
 			return rename_result;
-			}
 		}
+	}
 
 	return rename_result;
-	}
+}
 
 /*
  * copy a file from the path at source to the already opened
  * destination file dest.
  * This is handy when creating tempfiles with mkstemp()
  */
-int my_fdcopy(char *source, char *dest, int dest_fd) {
+int my_fdcopy(char *source, char *dest, int dest_fd)
+{
 	int source_fd, rd_result = 0, wr_result = 0;
 	int tot_written = 0, tot_read = 0, buf_size = 0;
 	struct stat st;
@@ -2316,7 +2338,7 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 	if((source_fd = open(source, O_RDONLY, 0644)) < 0) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to open file '%s' for reading: %s\n", source, strerror(errno));
 		return ERROR;
-		}
+	}
 
 	/*
 	 * find out how large the source-file is so we can be sure
@@ -2326,7 +2348,7 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to stat source file '%s' for my_fcopy(): %s\n", source, strerror(errno));
 		close(source_fd);
 		return ERROR;
-		}
+	}
 
 	/*
 	 * If the file is huge, read it and write it in chunks.
@@ -2343,7 +2365,7 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to malloc(%d) bytes: %s\n", buf_size, strerror(errno));
 		close(source_fd);
 		return ERROR;
-		}
+	}
 	/* most of the times, this loop will be gone through once */
 	while(tot_written < st.st_size) {
 		int loop_wr = 0;
@@ -2354,7 +2376,7 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 				continue;
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: my_fcopy() failed to read from '%s': %s\n", source, strerror(errno));
 			break;
-			}
+		}
 		tot_read += rd_result;
 
 		while(loop_wr < rd_result) {
@@ -2365,13 +2387,13 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 					continue;
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: my_fcopy() failed to write to '%s': %s\n", dest, strerror(errno));
 				break;
-				}
-			loop_wr += wr_result;
 			}
+			loop_wr += wr_result;
+		}
 		if(wr_result < 0)
 			break;
 		tot_written += loop_wr;
-		}
+	}
 
 	/*
 	 * clean up irregardless of how things went. dest_fd comes from
@@ -2384,13 +2406,14 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 		/* don't leave half-written files around */
 		unlink(dest);
 		return ERROR;
-		}
-
-	return OK;
 	}
 
+	return OK;
+}
+
 /* copies a file */
-int my_fcopy(char *source, char *dest) {
+int my_fcopy(char *source, char *dest)
+{
 	int dest_fd, result;
 
 	/* make sure we have something */
@@ -2404,19 +2427,20 @@ int my_fcopy(char *source, char *dest) {
 	if((dest_fd = open(dest, O_WRONLY | O_TRUNC | O_CREAT | O_APPEND, 0644)) < 0) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to open file '%s' for writing: %s\n", dest, strerror(errno));
 		return ERROR;
-		}
+	}
 
 	result = my_fdcopy(source, dest, dest_fd);
 	close(dest_fd);
 	return result;
-	}
+}
 
 /******************************************************************/
 /******************** DYNAMIC BUFFER FUNCTIONS ********************/
 /******************************************************************/
 
 /* initializes a dynamic buffer */
-int dbuf_init(dbuf *db, int chunk_size) {
+int dbuf_init(dbuf *db, int chunk_size)
+{
 
 	if(db == NULL)
 		return ERROR;
@@ -2427,11 +2451,12 @@ int dbuf_init(dbuf *db, int chunk_size) {
 	db->chunk_size = chunk_size;
 
 	return OK;
-	}
+}
 
 
 /* frees a dynamic buffer */
-int dbuf_free(dbuf *db) {
+int dbuf_free(dbuf *db)
+{
 
 	if(db == NULL)
 		return ERROR;
@@ -2443,11 +2468,12 @@ int dbuf_free(dbuf *db) {
 	db->allocated_size = 0L;
 
 	return OK;
-	}
+}
 
 
 /* dynamically expands a string */
-int dbuf_strcat(dbuf *db, const char *buf) {
+int dbuf_strcat(dbuf *db, const char *buf)
+{
 	char *newbuf = NULL;
 	unsigned long buflen = 0L;
 	unsigned long new_size = 0L;
@@ -2477,7 +2503,7 @@ int dbuf_strcat(dbuf *db, const char *buf) {
 
 		/* terminate buffer */
 		db->buf[db->used_size] = '\x0';
-		}
+	}
 
 	/* append the new string */
 	strcat(db->buf, buf);
@@ -2486,7 +2512,7 @@ int dbuf_strcat(dbuf *db, const char *buf) {
 	db->used_size += buflen;
 
 	return OK;
-	}
+}
 
 
 /******************************************************************/
@@ -2494,7 +2520,8 @@ int dbuf_strcat(dbuf *db, const char *buf) {
 /******************************************************************/
 
 /* initialize check statistics data structures */
-int init_check_stats(void) {
+int init_check_stats(void)
+{
 	int x = 0;
 	int y = 0;
 
@@ -2506,14 +2533,15 @@ int init_check_stats(void) {
 		for(y = 0; y < 3; y++)
 			check_statistics[x].minute_stats[y] = 0;
 		check_statistics[x].last_update = (time_t)0L;
-		}
+	}
 
 	return OK;
-	}
+}
 
 
 /* records stats for a given type of check */
-int update_check_stats(int check_type, time_t check_time) {
+int update_check_stats(int check_type, time_t check_time)
+{
 	time_t current_time;
 	unsigned long minutes = 0L;
 	int new_current_bucket = 0;
@@ -2530,7 +2558,7 @@ int update_check_stats(int check_type, time_t check_time) {
 		printf("TYPE[%d] CHECK TIME==0!\n", check_type);
 #endif
 		check_time = current_time;
-		}
+	}
 
 	/* do some sanity checks on the age of the stats data before we start... */
 	/* get the new current bucket number */
@@ -2545,7 +2573,7 @@ int update_check_stats(int check_type, time_t check_time) {
 #ifdef DEBUG_CHECK_STATS
 		printf("CLEARING ALL: TYPE[%d], CURRENT=%lu, LASTUPDATE=%lu\n", check_type, (unsigned long)current_time, (unsigned long)check_statistics[check_type].last_update);
 #endif
-		}
+	}
 
 	/* different current bucket number than last time */
 	else if(new_current_bucket != check_statistics[check_type].current_bucket) {
@@ -2564,13 +2592,13 @@ int update_check_stats(int check_type, time_t check_time) {
 
 			/* clear old bucket value */
 			check_statistics[check_type].bucket[this_bucket] = 0;
-			}
+		}
 
 		/* update the current bucket number, push old value to overflow bucket */
 		check_statistics[check_type].overflow_bucket = check_statistics[check_type].bucket[new_current_bucket];
 		check_statistics[check_type].current_bucket = new_current_bucket;
 		check_statistics[check_type].bucket[new_current_bucket] = 0;
-		}
+	}
 #ifdef DEBUG_CHECK_STATS
 	else
 		printf("NO CLEARING NEEDED\n");
@@ -2592,11 +2620,12 @@ int update_check_stats(int check_type, time_t check_time) {
 	check_statistics[check_type].last_update = current_time;
 
 	return OK;
-	}
+}
 
 
 /* generate 1/5/15 minute stats for a given type of check */
-int generate_check_stats(void) {
+int generate_check_stats(void)
+{
 	time_t current_time;
 	int x = 0;
 	int new_current_bucket = 0;
@@ -2627,7 +2656,7 @@ int generate_check_stats(void) {
 #ifdef DEBUG_CHECK_STATS
 			printf("GEN CLEARING ALL: TYPE[%d], CURRENT=%lu, LASTUPDATE=%lu\n", check_type, (unsigned long)current_time, (unsigned long)check_statistics[check_type].last_update);
 #endif
-			}
+		}
 
 		/* different current bucket number than last time */
 		else if(new_current_bucket != check_statistics[check_type].current_bucket) {
@@ -2646,13 +2675,13 @@ int generate_check_stats(void) {
 
 				/* clear old bucket value */
 				check_statistics[check_type].bucket[this_bucket] = 0;
-				}
+			}
 
 			/* update the current bucket number, push old value to overflow bucket */
 			check_statistics[check_type].overflow_bucket = check_statistics[check_type].bucket[new_current_bucket];
 			check_statistics[check_type].current_bucket = new_current_bucket;
 			check_statistics[check_type].bucket[new_current_bucket] = 0;
-			}
+		}
 #ifdef DEBUG_CHECK_STATS
 		else
 			printf("GEN NO CLEARING NEEDED: TYPE[%d], CURRENT=%lu, LASTUPDATE=%lu\n", check_type, (unsigned long)current_time, (unsigned long)check_statistics[check_type].last_update);
@@ -2660,7 +2689,7 @@ int generate_check_stats(void) {
 
 		/* update last check time */
 		check_statistics[check_type].last_update = current_time;
-		}
+	}
 
 	/* determine weights to use for this/last buckets */
 	seconds = ((unsigned long)current_time - (unsigned long)program_start) % 60;
@@ -2694,11 +2723,11 @@ int generate_check_stats(void) {
 			/* if this is the current bucket, use its full value + weighted % of last bucket */
 			if(x == 0) {
 				bucket_value = (int)(this_bucket_value + floor(last_bucket_value * last_bucket_weight));
-				}
+			}
 			/* otherwise use weighted % of this and last bucket */
 			else {
 				bucket_value = (int)(ceil(this_bucket_value * this_bucket_weight) + floor(last_bucket_value * last_bucket_weight));
-				}
+			}
 
 			/* 1 minute stats */
 			if(x == 0)
@@ -2717,15 +2746,15 @@ int generate_check_stats(void) {
 #endif
 			/* record last update time */
 			check_statistics[check_type].last_update = current_time;
-			}
+		}
 
 #ifdef DEBUG_CHECK_STATS
 		printf("TYPE[%d]   1/5/15 = %d, %d, %d (seconds=%d, this_weight=%f, last_weight=%f)\n", check_type, check_statistics[check_type].minute_stats[0], check_statistics[check_type].minute_stats[1], check_statistics[check_type].minute_stats[2], seconds, this_bucket_weight, last_bucket_weight);
 #endif
-		}
+	}
 
 	return OK;
-	}
+}
 
 
 
@@ -2735,7 +2764,8 @@ int generate_check_stats(void) {
 /******************************************************************/
 
 /* check for new releases of Nagios */
-int check_for_nagios_updates(int force, int reschedule) {
+int check_for_nagios_updates(int force, int reschedule)
+{
 	time_t current_time;
 	int result = OK;
 	int api_result = OK;
@@ -2777,7 +2807,7 @@ int check_for_nagios_updates(int force, int reschedule) {
 
 		/* query api */
 		api_result = query_update_api();
-		}
+	}
 
 	/* should we reschedule the update check? */
 	if(reschedule == TRUE) {
@@ -2798,7 +2828,7 @@ int check_for_nagios_updates(int force, int reschedule) {
 		if(do_check == FALSE) {
 			next_check = last_update_check + BASE_UPDATE_CHECK_INTERVAL;
 			next_check = next_check + (unsigned long)(((float)randnum / RAND_MAX) * UPDATE_CHECK_INTERVAL_WOBBLE);
-			}
+		}
 
 		/* we tried to check for an update */
 		else {
@@ -2807,14 +2837,14 @@ int check_for_nagios_updates(int force, int reschedule) {
 			if(api_result == OK) {
 				next_check = current_time + BASE_UPDATE_CHECK_INTERVAL;
 				next_check += (unsigned long)(((float)randnum / RAND_MAX) * UPDATE_CHECK_INTERVAL_WOBBLE);
-				}
+			}
 
 			/* query resulted in an error - retry at a shorter interval */
 			else {
 				next_check = current_time + BASE_UPDATE_CHECK_RETRY_INTERVAL;
 				next_check += (unsigned long)(((float)randnum / RAND_MAX) * UPDATE_CHECK_RETRY_INTERVAL_WOBBLE);
-				}
 			}
+		}
 
 		/* make sure next check isn't in the past - if it is, schedule a check in 1 minute */
 		if(next_check < current_time)
@@ -2824,15 +2854,16 @@ int check_for_nagios_updates(int force, int reschedule) {
 
 		/* schedule the next update event */
 		schedule_new_event(EVENT_CHECK_PROGRAM_UPDATE, TRUE, next_check, FALSE, BASE_UPDATE_CHECK_INTERVAL, NULL, TRUE, NULL, NULL, 0);
-		}
+	}
 
 	return result;
-	}
+}
 
 
 
 /* checks for updates at api.nagios.org */
-int query_update_api(void) {
+int query_update_api(void)
+{
 	const char *api_server = "api.nagios.org";
 	const char *api_path = "/versioncheck/";
 	char *api_query = NULL;
@@ -2864,8 +2895,8 @@ int query_update_api(void) {
 			asprintf(&qopts2, "%s&last_version=%s", api_query_opts, last_program_version);
 			my_free(api_query_opts);
 			api_query_opts = qopts2;
-			}
 		}
+	}
 
 	/* generate the query */
 	asprintf(&api_query, "v=1&product=nagios&tinycheck=1&stableonly=1&uid=%lu", update_uid);
@@ -2874,7 +2905,7 @@ int query_update_api(void) {
 		asprintf(&api_query2, "%s&version=%s%s", api_query, PROGRAM_VERSION, (api_query_opts == NULL) ? "" : api_query_opts);
 		my_free(api_query);
 		api_query = api_query2;
-		}
+	}
 
 	/* generate the HTTP request */
 	asprintf(&buf,
@@ -2909,7 +2940,7 @@ int query_update_api(void) {
 			if(!strcmp(ptr, "")) {
 				in_header = FALSE;
 				continue;
-				}
+			}
 			if(in_header == TRUE)
 				continue;
 
@@ -2920,16 +2951,14 @@ int query_update_api(void) {
 				update_available = atoi(val);
 				/* we were successful */
 				update_check_succeeded = TRUE;
-				}
-			else if(!strcmp(var, "UPDATE_VERSION")) {
+			} else if(!strcmp(var, "UPDATE_VERSION")) {
 				if(new_program_version)
 					my_free(new_program_version);
 				new_program_version = strdup(val);
-				}
-			else if(!strcmp(var, "UPDATE_RELEASEDATE")) {
-				}
+			} else if(!strcmp(var, "UPDATE_RELEASEDATE")) {
 			}
 		}
+	}
 
 	/* cleanup */
 	my_free(buf);
@@ -2943,10 +2972,10 @@ int query_update_api(void) {
 		if(last_program_version)
 			free(last_program_version);
 		last_program_version = (char *)strdup(PROGRAM_VERSION);
-		}
+	}
 
 	return OK;
-	}
+}
 
 
 
@@ -2956,17 +2985,19 @@ int query_update_api(void) {
 /******************************************************************/
 
 /* returns Nagios version */
-char *get_program_version(void) {
+char *get_program_version(void)
+{
 
 	return (char *)PROGRAM_VERSION;
-	}
+}
 
 
 /* returns Nagios modification date */
-char *get_program_modification_date(void) {
+char *get_program_modification_date(void)
+{
 
 	return (char *)PROGRAM_MODIFICATION_DATE;
-	}
+}
 
 
 
@@ -2975,7 +3006,8 @@ char *get_program_modification_date(void) {
 /******************************************************************/
 
 /* do some cleanup before we exit */
-void cleanup(void) {
+void cleanup(void)
+{
 
 #ifdef USE_EVENT_BROKER
 	/* unload modules */
@@ -2984,7 +3016,7 @@ void cleanup(void) {
 		neb_unload_all_modules(NEBMODULE_FORCE_UNLOAD, (sigshutdown == TRUE) ? NEBMODULE_NEB_SHUTDOWN : NEBMODULE_NEB_RESTART);
 		neb_free_module_list();
 		neb_deinit_modules();
-		}
+	}
 #endif
 
 	/* free all allocated memory - including macros */
@@ -2992,11 +3024,12 @@ void cleanup(void) {
 	close_log_file();
 
 	return;
-	}
+}
 
 
 /* free the memory allocated to the linked lists */
-void free_memory(nagios_macros *mac) {
+void free_memory(nagios_macros *mac)
+{
 	int i;
 
 	/* free all allocated memory for the object definitions */
@@ -3072,11 +3105,12 @@ void free_memory(nagios_macros *mac) {
 	my_free(mac->x[MACRO_MAINCONFIGFILE]);
 
 	return;
-	}
+}
 
 
 /* free a notification list that was created */
-void free_notification_list(void) {
+void free_notification_list(void)
+{
 	notification *temp_notification = NULL;
 	notification *next_notification = NULL;
 
@@ -3085,17 +3119,18 @@ void free_notification_list(void) {
 		next_notification = temp_notification->next;
 		my_free(temp_notification);
 		temp_notification = next_notification;
-		}
+	}
 
 	/* reset notification list pointer */
 	notification_list = NULL;
 
 	return;
-	}
+}
 
 
 /* reset all system-wide variables, so when we've receive a SIGHUP we can restart cleanly */
-int reset_variables(void) {
+int reset_variables(void)
+{
 
 	log_file = (char *)strdup(DEFAULT_LOG_FILE);
 	temp_file = (char *)strdup(DEFAULT_TEMP_FILE);
@@ -3250,4 +3285,4 @@ int reset_variables(void) {
 	umask(S_IWGRP | S_IWOTH);
 
 	return OK;
-	}
+}

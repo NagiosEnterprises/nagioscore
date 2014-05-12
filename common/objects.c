@@ -109,7 +109,7 @@ static const char *opts2str(int opts, const struct flag_map *map, char ok_char)
 		flag_unset(opts, OPT_OK);
 		buf[pos++] = ok_char;
 		buf[pos++] = opts ? ',' : 0;
-		}
+	}
 
 	for (i = 0; map[i].name; i++) {
 		if(flag_isset(opts, map[i].opt)) {
@@ -125,48 +125,54 @@ static const char *opts2str(int opts, const struct flag_map *map, char ok_char)
 }
 #endif
 
-unsigned int host_services_value(host *h) {
+unsigned int host_services_value(host *h)
+{
 	servicesmember *sm;
 	unsigned int ret = 0;
 	for(sm = h->services; sm; sm = sm->next) {
 		ret += sm->service_ptr->hourly_value;
-		}
-	return ret;
 	}
+	return ret;
+}
 
 
 #ifndef NSCGI
 /* Host/Service dependencies are not visible in Nagios CGIs, so we exclude them */
-static int cmp_sdep(const void *a_, const void *b_) {
+static int cmp_sdep(const void *a_, const void *b_)
+{
 	const servicedependency *a = *(servicedependency **)a_;
 	const servicedependency *b = *(servicedependency **)b_;
 	int ret;
 	ret = a->master_service_ptr->id - b->master_service_ptr->id;
 	return ret ? ret : (int)(a->dependent_service_ptr->id - b->dependent_service_ptr->id);
-	}
+}
 
-static int cmp_hdep(const void *a_, const void *b_) {
+static int cmp_hdep(const void *a_, const void *b_)
+{
 	const hostdependency *a = *(const hostdependency **)a_;
 	const hostdependency *b = *(const hostdependency **)b_;
 	int ret;
 	ret = a->master_host_ptr->id - b->master_host_ptr->id;
 	return ret ? ret : (int)(a->dependent_host_ptr->id - b->dependent_host_ptr->id);
-	}
+}
 
-static int cmp_serviceesc(const void *a_, const void *b_) {
+static int cmp_serviceesc(const void *a_, const void *b_)
+{
 	const serviceescalation *a = *(const serviceescalation **)a_;
 	const serviceescalation *b = *(const serviceescalation **)b_;
 	return a->service_ptr->id - b->service_ptr->id;
-	}
+}
 
-static int cmp_hostesc(const void *a_, const void *b_) {
+static int cmp_hostesc(const void *a_, const void *b_)
+{
 	const hostescalation *a = *(const hostescalation **)a_;
 	const hostescalation *b = *(const hostescalation **)b_;
 	return a->host_ptr->id - b->host_ptr->id;
-	}
+}
 #endif
 
-static void post_process_object_config(void) {
+static void post_process_object_config(void)
+{
 	objectlist *list;
 	unsigned int i, slot;
 
@@ -227,9 +233,12 @@ static void post_process_object_config(void) {
 const char *service_state_name(int state)
 {
 	switch (state) {
-	case STATE_OK: return "OK";
-	case STATE_WARNING: return "WARNING";
-	case STATE_CRITICAL: return "CRITICAL";
+	case STATE_OK:
+		return "OK";
+	case STATE_WARNING:
+		return "WARNING";
+	case STATE_CRITICAL:
+		return "CRITICAL";
 	}
 
 	return "UNKNOWN";
@@ -238,9 +247,12 @@ const char *service_state_name(int state)
 const char *host_state_name(int state)
 {
 	switch (state) {
-	case HOST_UP: return "UP";
-	case HOST_DOWN: return "DOWN";
-	case HOST_UNREACHABLE: return "UNREACHABLE";
+	case HOST_UP:
+		return "UP";
+	case HOST_DOWN:
+		return "DOWN";
+	case HOST_UNREACHABLE:
+		return "UNREACHABLE";
 	}
 
 	return "(unknown)";
@@ -262,7 +274,8 @@ const char *check_type_name(int check_type)
 
 
 /* read all host configuration data from external source */
-int read_object_config_data(const char *main_config_file, int options) {
+int read_object_config_data(const char *main_config_file, int options)
+{
 	int result = OK;
 
 	/* reset object counts */
@@ -278,7 +291,7 @@ int read_object_config_data(const char *main_config_file, int options) {
 	timing_point("Done post-processing configuration\n");
 
 	return result;
-	}
+}
 
 
 
@@ -287,7 +300,8 @@ int read_object_config_data(const char *main_config_file, int options) {
 /******************************************************************/
 
 
-int skiplist_compare_text(const char *val1a, const char *val1b, const char *val2a, const char *val2b) {
+int skiplist_compare_text(const char *val1a, const char *val1b, const char *val2a, const char *val2b)
+{
 	int result = 0;
 
 	/* check first name */
@@ -310,20 +324,22 @@ int skiplist_compare_text(const char *val1a, const char *val1b, const char *val2
 			result = -1;
 		else
 			result = strcmp(val1b, val2b);
-		}
+	}
 
 	return result;
-	}
+}
 
 
-int get_host_count(void) {
+int get_host_count(void)
+{
 	return num_objects.hosts;
-	}
+}
 
 
-int get_service_count(void) {
+int get_service_count(void)
+{
 	return num_objects.services;
-	}
+}
 
 
 
@@ -338,12 +354,12 @@ static int create_object_table(const char *name, unsigned int elems, unsigned in
 	if (!elems) {
 		*ptr = NULL;
 		return OK;
-		}
+	}
 	ret = calloc(elems, size);
 	if (!ret) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to allocate %s table with %u elements\n", name, elems);
 		return ERROR;
-		}
+	}
 	*ptr = ret;
 	return OK;
 }
@@ -400,7 +416,8 @@ int create_object_tables(unsigned int *ocount)
 
 
 /* add a new timeperiod to the list in memory */
-timeperiod *add_timeperiod(char *name, char *alias) {
+timeperiod *add_timeperiod(char *name, char *alias)
+{
 	timeperiod *new_timeperiod = NULL;
 	int result = OK;
 
@@ -408,7 +425,7 @@ timeperiod *add_timeperiod(char *name, char *alias) {
 	if((name == NULL || !strcmp(name, "")) || (alias == NULL || !strcmp(alias, ""))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Name or alias for timeperiod is NULL\n");
 		return NULL;
-		}
+	}
 
 	new_timeperiod = calloc(1, sizeof(*new_timeperiod));
 	if(!new_timeperiod)
@@ -422,38 +439,39 @@ timeperiod *add_timeperiod(char *name, char *alias) {
 	if(result == OK) {
 		result = dkhash_insert(object_hash_tables[TIMEPERIOD_SKIPLIST], new_timeperiod->name, NULL, new_timeperiod);
 		switch(result) {
-			case DKHASH_EDUPE:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Timeperiod '%s' has already been defined\n", name);
-				result = ERROR;
-				break;
-			case DKHASH_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add timeperiod '%s' to hash table\n", name);
-				result = ERROR;
-				break;
-			}
+		case DKHASH_EDUPE:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Timeperiod '%s' has already been defined\n", name);
+			result = ERROR;
+			break;
+		case DKHASH_OK:
+			result = OK;
+			break;
+		default:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add timeperiod '%s' to hash table\n", name);
+			result = ERROR;
+			break;
 		}
+	}
 
 	/* handle errors */
 	if(result == ERROR) {
 		free(new_timeperiod);
 		return NULL;
-		}
+	}
 
 	new_timeperiod->id = num_objects.timeperiods++;
 	if(new_timeperiod->id)
 		timeperiod_ary[new_timeperiod->id - 1]->next = new_timeperiod;
 	timeperiod_ary[new_timeperiod->id] = new_timeperiod;
 	return new_timeperiod;
-	}
+}
 
 
 
 
 /* adds a new exclusion to a timeperiod */
-timeperiodexclusion *add_exclusion_to_timeperiod(timeperiod *period, char *name) {
+timeperiodexclusion *add_exclusion_to_timeperiod(timeperiod *period, char *name)
+{
 	timeperiodexclusion *new_timeperiodexclusion = NULL;
 
 	/* make sure we have enough data */
@@ -469,13 +487,14 @@ timeperiodexclusion *add_exclusion_to_timeperiod(timeperiod *period, char *name)
 	period->exclusions = new_timeperiodexclusion;
 
 	return new_timeperiodexclusion;
-	}
+}
 
 
 
 
 /* add a new timerange to a timeperiod */
-timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned long start_time, unsigned long end_time) {
+timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned long start_time, unsigned long end_time)
+{
 	timerange *prev = NULL, *tr, *new_timerange = NULL;
 
 	/* make sure we have the data we need */
@@ -485,15 +504,15 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 	if(day < 0 || day > 6) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Day %d is not valid for timeperiod '%s'\n", day, period->name);
 		return NULL;
-		}
+	}
 	if(start_time > 86400) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Start time %lu on day %d is not valid for timeperiod '%s'\n", start_time, day, period->name);
 		return NULL;
-		}
+	}
 	if(end_time > 86400) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: End time %lu on day %d is not value for timeperiod '%s'\n", end_time, day, period->name);
 		return NULL;
-		}
+	}
 
 	/* allocate memory for the new time range */
 	if((new_timerange = malloc(sizeof(timerange))) == NULL)
@@ -507,28 +526,29 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 		new_timerange->next = period->days[day];
 		period->days[day] = new_timerange;
 		return new_timerange;
-		}
+	}
 
 	for(tr = period->days[day]; tr; tr = tr->next) {
 		if(new_timerange->range_start < tr->range_start) {
 			new_timerange->next = tr;
 			prev->next = new_timerange;
 			break;
-			}
+		}
 		if(!tr->next) {
 			tr->next = new_timerange;
 			new_timerange->next = NULL;
 			break;
-			}
-		prev = tr;
 		}
+		prev = tr;
+	}
 
 	return new_timerange;
-	}
+}
 
 
 /* add a new exception to a timeperiod */
-daterange *add_exception_to_timeperiod(timeperiod *period, int type, int syear, int smon, int smday, int swday, int swday_offset, int eyear, int emon, int emday, int ewday, int ewday_offset, int skip_interval) {
+daterange *add_exception_to_timeperiod(timeperiod *period, int type, int syear, int smon, int smday, int swday, int swday_offset, int eyear, int emon, int emday, int ewday, int ewday_offset, int skip_interval)
+{
 	daterange *new_daterange = NULL;
 
 	/* make sure we have the data we need */
@@ -560,12 +580,13 @@ daterange *add_exception_to_timeperiod(timeperiod *period, int type, int syear, 
 	period->exceptions[type] = new_daterange;
 
 	return new_daterange;
-	}
+}
 
 
 
 /* add a new timerange to a daterange */
-timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_time, unsigned long end_time) {
+timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_time, unsigned long end_time)
+{
 	timerange *new_timerange = NULL;
 
 	/* make sure we have the data we need */
@@ -575,11 +596,11 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 	if(start_time > 86400) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Start time %lu is not valid for timeperiod\n", start_time);
 		return NULL;
-		}
+	}
 	if(end_time > 86400) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: End time %lu is not value for timeperiod\n", end_time);
 		return NULL;
-		}
+	}
 
 	/* allocate memory for the new time range */
 	if((new_timerange = malloc(sizeof(timerange))) == NULL)
@@ -593,12 +614,13 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 	drange->times = new_timerange;
 
 	return new_timerange;
-	}
+}
 
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value)
+{
 	host *new_host = NULL;
 	timeperiod *check_tp = NULL, *notify_tp = NULL;
 	int result = OK;
@@ -607,39 +629,39 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	if(name == NULL || !strcmp(name, "")) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host name is NULL\n");
 		return NULL;
-		}
+	}
 
 	if(check_period && !(check_tp = find_timeperiod(check_period))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate check_period '%s' for host '%s'!\n",
-			  check_period, name);
+		      check_period, name);
 		return NULL;
 	}
 	if(notification_period && !(notify_tp = find_timeperiod(notification_period))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate notification_period '%s' for host '%s'!\n",
-			  notification_period, name);
+		      notification_period, name);
 		return NULL;
 	}
 	/* check values */
 	if(max_attempts <= 0) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid max_check_attempts value for host '%s'\n", name);
 		return NULL;
-		}
+	}
 	if(check_interval < 0) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid check_interval value for host '%s'\n", name);
 		return NULL;
-		}
+	}
 	if(notification_interval < 0) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid notification_interval value for host '%s'\n", name);
 		return NULL;
-		}
+	}
 	if(first_notification_delay < 0) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid first_notification_delay value for host '%s'\n", name);
 		return NULL;
-		}
+	}
 	if(freshness_threshold < 0) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid freshness_threshold value for host '%s'\n", name);
 		return NULL;
-		}
+	}
 
 	new_host = calloc(1, sizeof(*new_host));
 
@@ -709,36 +731,37 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	if(result == OK) {
 		result = dkhash_insert(object_hash_tables[HOST_SKIPLIST], new_host->name, NULL, new_host);
 		switch(result) {
-			case DKHASH_EDUPE:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host '%s' has already been defined\n", name);
-				result = ERROR;
-				break;
-			case DKHASH_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add host '%s' to hash table\n", name);
-				result = ERROR;
-				break;
-			}
+		case DKHASH_EDUPE:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host '%s' has already been defined\n", name);
+			result = ERROR;
+			break;
+		case DKHASH_OK:
+			result = OK;
+			break;
+		default:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add host '%s' to hash table\n", name);
+			result = ERROR;
+			break;
 		}
+	}
 
 	/* handle errors */
 	if(result == ERROR) {
 		my_free(new_host);
 		return NULL;
-		}
+	}
 
 	new_host->id = num_objects.hosts++;
 	host_ary[new_host->id] = new_host;
 	if(new_host->id)
 		host_ary[new_host->id - 1]->next = new_host;
 	return new_host;
-	}
+}
 
 
 
-hostsmember *add_parent_host_to_host(host *hst, char *host_name) {
+hostsmember *add_parent_host_to_host(host *hst, char *host_name)
+{
 	hostsmember *new_hostsmember = NULL;
 	int result = OK;
 
@@ -746,13 +769,13 @@ hostsmember *add_parent_host_to_host(host *hst, char *host_name) {
 	if(hst == NULL || host_name == NULL || !strcmp(host_name, "")) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host is NULL or parent host name is NULL\n");
 		return NULL;
-		}
+	}
 
 	/* a host cannot be a parent/child of itself */
 	if(!strcmp(host_name, hst->name)) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host '%s' cannot be a child/parent of itself\n", hst->name);
 		return NULL;
-		}
+	}
 
 	/* allocate memory */
 	if((new_hostsmember = (hostsmember *)calloc(1, sizeof(hostsmember))) == NULL)
@@ -767,16 +790,17 @@ hostsmember *add_parent_host_to_host(host *hst, char *host_name) {
 		my_free(new_hostsmember->host_name);
 		my_free(new_hostsmember);
 		return NULL;
-		}
+	}
 
 	/* add the parent host entry to the host definition */
 	new_hostsmember->next = hst->parent_hosts;
 	hst->parent_hosts = new_hostsmember;
 
 	return new_hostsmember;
-	}
+}
 
-servicesmember *add_parent_service_to_service(service *svc, char *host_name, char *description) {
+servicesmember *add_parent_service_to_service(service *svc, char *host_name, char *description)
+{
 	servicesmember *sm;
 
 	if(!svc || !host_name || !description || !*host_name || !*description)
@@ -790,14 +814,15 @@ servicesmember *add_parent_service_to_service(service *svc, char *host_name, cha
 		my_free(sm->host_name);
 		free(sm);
 		return NULL;
-		}
+	}
 
 	sm->next = svc->parents;
 	svc->parents = sm;
 	return sm;
-	}
+}
 
-hostsmember *add_child_link_to_host(host *hst, host *child_ptr) {
+hostsmember *add_child_link_to_host(host *hst, host *child_ptr)
+{
 	hostsmember *new_hostsmember = NULL;
 
 	/* make sure we have the data we need */
@@ -817,11 +842,12 @@ hostsmember *add_child_link_to_host(host *hst, host *child_ptr) {
 	hst->child_hosts = new_hostsmember;
 
 	return new_hostsmember;
-	}
+}
 
 
 
-servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
+servicesmember *add_service_link_to_host(host *hst, service *service_ptr)
+{
 	servicesmember *new_servicesmember = NULL;
 
 	/* make sure we have the data we need */
@@ -845,11 +871,12 @@ servicesmember *add_service_link_to_host(host *hst, service *service_ptr) {
 	hst->services = new_servicesmember;
 
 	return new_servicesmember;
-	}
+}
 
 
 
-servicesmember *add_child_link_to_service(service *svc, service *child_ptr) {
+servicesmember *add_child_link_to_service(service *svc, service *child_ptr)
+{
 	servicesmember *new_servicesmember = NULL;
 
 	/* make sure we have the data we need */
@@ -857,8 +884,8 @@ servicesmember *add_child_link_to_service(service *svc, service *child_ptr) {
 		return NULL;
 
 	/* allocate memory */
-	if((new_servicesmember = (servicesmember *)malloc(sizeof(servicesmember))) 
-			== NULL) return NULL;
+	if((new_servicesmember = (servicesmember *)malloc(sizeof(servicesmember)))
+	   == NULL) return NULL;
 
 	/* assign values */
 	new_servicesmember->host_name = child_ptr->host_name;
@@ -870,60 +897,65 @@ servicesmember *add_child_link_to_service(service *svc, service *child_ptr) {
 	svc->children = new_servicesmember;
 
 	return new_servicesmember;
-	}
+}
 
 
 
-static contactgroupsmember *add_contactgroup_to_object(contactgroupsmember **cg_list, const char *group_name) {
+static contactgroupsmember *add_contactgroup_to_object(contactgroupsmember **cg_list, const char *group_name)
+{
 	contactgroupsmember *cgm;
 	contactgroup *cg;
 
 	if(!group_name || !*group_name) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact name is NULL\n");
 		return NULL;
-		}
+	}
 	if(!(cg = find_contactgroup(group_name))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contactgroup '%s' is not defined anywhere\n", group_name);
 		return NULL;
-		}
+	}
 	if(!(cgm = malloc(sizeof(*cgm)))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not allocate memory for contactgroup\n");
 		return NULL;
-		}
+	}
 	cgm->group_name = cg->group_name;
 	cgm->group_ptr = cg;
 	cgm->next = *cg_list;
 	*cg_list = cgm;
 
 	return cgm;
-	}
+}
 
 
 /* add a new contactgroup to a host */
-contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name) {
+contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name)
+{
 	return add_contactgroup_to_object(&hst->contact_groups, group_name);
-	}
+}
 
 
 
 /* adds a contact to a host */
-contactsmember *add_contact_to_host(host *hst, char *contact_name) {
+contactsmember *add_contact_to_host(host *hst, char *contact_name)
+{
 
 	return add_contact_to_object(&hst->contacts, contact_name);
-	}
+}
 
 
 
 /* adds a custom variable to a host */
-customvariablesmember *add_custom_variable_to_host(host *hst, char *varname, char *varvalue) {
+customvariablesmember *add_custom_variable_to_host(host *hst, char *varname, char *varvalue)
+{
 
 	return add_custom_variable_to_object(&hst->custom_variables, varname, varvalue);
-	}
+}
 
 
 
 /* add a new host group to the list in memory */
-hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, char *action_url) {
+hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, char *action_url)
+{
 	hostgroup *new_hostgroup = NULL;
 	int result = OK;
 
@@ -931,7 +963,7 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 	if(name == NULL || !strcmp(name, "")) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Hostgroup name is NULL\n");
 		return NULL;
-		}
+	}
 
 	new_hostgroup = calloc(1, sizeof(*new_hostgroup));
 
@@ -946,36 +978,37 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 	if(result == OK) {
 		result = dkhash_insert(object_hash_tables[HOSTGROUP_SKIPLIST], new_hostgroup->group_name, NULL, new_hostgroup);
 		switch(result) {
-			case DKHASH_EDUPE:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Hostgroup '%s' has already been defined\n", name);
-				result = ERROR;
-				break;
-			case DKHASH_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add hostgroup '%s' to hash table\n", name);
-				result = ERROR;
-				break;
-			}
+		case DKHASH_EDUPE:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Hostgroup '%s' has already been defined\n", name);
+			result = ERROR;
+			break;
+		case DKHASH_OK:
+			result = OK;
+			break;
+		default:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add hostgroup '%s' to hash table\n", name);
+			result = ERROR;
+			break;
 		}
+	}
 
 	/* handle errors */
 	if(result == ERROR) {
 		free(new_hostgroup);
 		return NULL;
-		}
+	}
 
 	new_hostgroup->id = num_objects.hostgroups++;
 	hostgroup_ary[new_hostgroup->id] = new_hostgroup;
 	if(new_hostgroup->id)
 		hostgroup_ary[new_hostgroup->id - 1]->next = new_hostgroup;
 	return new_hostgroup;
-	}
+}
 
 
 /* add a new host to a host group */
-hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
+hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name)
+{
 	hostsmember *new_member = NULL;
 	hostsmember *last_member = NULL;
 	hostsmember *temp_member = NULL;
@@ -985,7 +1018,7 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
 	if(temp_hostgroup == NULL || (host_name == NULL || !strcmp(host_name, ""))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Hostgroup or group member is NULL\n");
 		return NULL;
-		}
+	}
 	if (!(h = find_host(host_name))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate host '%s' for hostgroup '%s'\n", host_name, temp_hostgroup->group_name);
 		return NULL;
@@ -1008,7 +1041,7 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
 		new_member->next = temp_hostgroup->members;
 		temp_hostgroup->members = new_member;
 		return new_member;
-		}
+	}
 #endif
 	last_member = temp_hostgroup->members;
 	for(temp_member = temp_hostgroup->members; temp_member != NULL; temp_member = temp_member->next) {
@@ -1019,25 +1052,24 @@ hostsmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name) {
 			else
 				last_member->next = new_member;
 			break;
-			}
-		else
+		} else
 			last_member = temp_member;
-		}
+	}
 	if(temp_hostgroup->members == NULL) {
 		new_member->next = NULL;
 		temp_hostgroup->members = new_member;
-		}
-	else if(temp_member == NULL) {
+	} else if(temp_member == NULL) {
 		new_member->next = NULL;
 		last_member->next = new_member;
-		}
+	}
 
 	return new_member;
-	}
+}
 
 
 /* add a new service group to the list in memory */
-servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes_url, char *action_url) {
+servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes_url, char *action_url)
+{
 	servicegroup *new_servicegroup = NULL;
 	int result = OK;
 
@@ -1045,7 +1077,7 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 	if(name == NULL || !strcmp(name, "")) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Servicegroup name is NULL\n");
 		return NULL;
-		}
+	}
 
 	new_servicegroup = calloc(1, sizeof(*new_servicegroup));
 
@@ -1060,36 +1092,37 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 	if(result == OK) {
 		result = dkhash_insert(object_hash_tables[SERVICEGROUP_SKIPLIST], new_servicegroup->group_name, NULL, new_servicegroup);
 		switch(result) {
-			case DKHASH_EDUPE:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Servicegroup '%s' has already been defined\n", name);
-				result = ERROR;
-				break;
-			case DKHASH_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add servicegroup '%s' to hash table\n", name);
-				result = ERROR;
-				break;
-			}
+		case DKHASH_EDUPE:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Servicegroup '%s' has already been defined\n", name);
+			result = ERROR;
+			break;
+		case DKHASH_OK:
+			result = OK;
+			break;
+		default:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add servicegroup '%s' to hash table\n", name);
+			result = ERROR;
+			break;
 		}
+	}
 
 	/* handle errors */
 	if(result == ERROR) {
 		my_free(new_servicegroup);
 		return NULL;
-		}
+	}
 
 	new_servicegroup->id = num_objects.servicegroups++;
 	servicegroup_ary[new_servicegroup->id] = new_servicegroup;
 	if(new_servicegroup->id)
 		servicegroup_ary[new_servicegroup->id - 1]->next = new_servicegroup;
 	return new_servicegroup;
-	}
+}
 
 
 /* add a new service to a service group */
-servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, char *host_name, char *svc_description) {
+servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, char *host_name, char *svc_description)
+{
 	servicesmember *new_member = NULL;
 	servicesmember *last_member = NULL;
 	servicesmember *temp_member = NULL;
@@ -1099,11 +1132,11 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 	if(temp_servicegroup == NULL || (host_name == NULL || !strcmp(host_name, "")) || (svc_description == NULL || !strcmp(svc_description, ""))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Servicegroup or group member is NULL\n");
 		return NULL;
-		}
+	}
 	if (!(svc = find_service(host_name, svc_description))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate service '%s' on host '%s' for servicegroup '%s'\n", svc_description, host_name, temp_servicegroup->group_name);
 		return NULL;
-		}
+	}
 
 	/* allocate memory for a new member */
 	if((new_member = calloc(1, sizeof(servicesmember))) == NULL)
@@ -1127,7 +1160,7 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 		new_member->next = temp_servicegroup->members;
 		temp_servicegroup->members = new_member;
 		return new_member;
-		}
+	}
 #endif
 	last_member = temp_servicegroup->members;
 	for(temp_member = temp_servicegroup->members; temp_member != NULL; temp_member = temp_member->next) {
@@ -1139,7 +1172,7 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 			else
 				last_member->next = new_member;
 			break;
-			}
+		}
 
 		else if(strcmp(new_member->host_name, temp_member->host_name) == 0 && strcmp(new_member->service_description, temp_member->service_description) < 0) {
 			new_member->next = temp_member;
@@ -1148,26 +1181,26 @@ servicesmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, cha
 			else
 				last_member->next = new_member;
 			break;
-			}
+		}
 
 		else
 			last_member = temp_member;
-		}
+	}
 	if(temp_servicegroup->members == NULL) {
 		new_member->next = NULL;
 		temp_servicegroup->members = new_member;
-		}
-	else if(temp_member == NULL) {
+	} else if(temp_member == NULL) {
 		new_member->next = NULL;
 		last_member->next = new_member;
-		}
+	}
 
 	return new_member;
-	}
+}
 
 
 /* add a new contact to the list in memory */
-contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int service_notification_options, int host_notification_options, int host_notifications_enabled, int service_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information, unsigned int minimum_value) {
+contact *add_contact(char *name, char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period, int service_notification_options, int host_notification_options, int host_notifications_enabled, int service_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information, unsigned int minimum_value)
+{
 	contact *new_contact = NULL;
 	timeperiod *htp = NULL, *stp = NULL;
 	int x = 0;
@@ -1177,17 +1210,17 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 	if(name == NULL || !*name) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact name is NULL\n");
 		return NULL;
-		}
+	}
 	if(svc_notification_period && !(stp = find_timeperiod(svc_notification_period))) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service notification period '%s' specified for contact '%s' is not defined anywhere!\n",
-			  svc_notification_period, name);
+		      svc_notification_period, name);
 		return NULL;
-		}
+	}
 	if(host_notification_period && !(htp = find_timeperiod(host_notification_period))) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Host notification period '%s' specified for contact '%s' is not defined anywhere!\n",
-			  host_notification_period, name);
+		      host_notification_period, name);
 		return NULL;
-		}
+	}
 
 
 	new_contact = calloc(1, sizeof(*new_contact));
@@ -1205,7 +1238,7 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 	if(addresses) {
 		for(x = 0; x < MAX_CONTACT_ADDRESSES; x++)
 			new_contact->address[x] = addresses[x];
-		}
+	}
 
 	new_contact->minimum_value = minimum_value;
 	new_contact->service_notification_options = service_notification_options;
@@ -1220,37 +1253,38 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 	if(result == OK) {
 		result = dkhash_insert(object_hash_tables[CONTACT_SKIPLIST], new_contact->name, NULL, new_contact);
 		switch(result) {
-			case DKHASH_EDUPE:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact '%s' has already been defined\n", name);
-				result = ERROR;
-				break;
-			case DKHASH_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to hash table\n", name);
-				result = ERROR;
-				break;
-			}
+		case DKHASH_EDUPE:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact '%s' has already been defined\n", name);
+			result = ERROR;
+			break;
+		case DKHASH_OK:
+			result = OK;
+			break;
+		default:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to hash table\n", name);
+			result = ERROR;
+			break;
 		}
+	}
 
 	/* handle errors */
 	if(result == ERROR) {
 		free(new_contact);
 		return NULL;
-		}
+	}
 
 	new_contact->id = num_objects.contacts++;
 	contact_ary[new_contact->id] = new_contact;
 	if(new_contact->id)
 		contact_ary[new_contact->id - 1]->next = new_contact;
 	return new_contact;
-	}
+}
 
 
 
 /* adds a host notification command to a contact definition */
-commandsmember *add_host_notification_command_to_contact(contact *cntct, char *command_name) {
+commandsmember *add_host_notification_command_to_contact(contact *cntct, char *command_name)
+{
 	commandsmember *new_commandsmember = NULL;
 	int result = OK;
 
@@ -1258,7 +1292,7 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct, char *c
 	if(cntct == NULL || (command_name == NULL || !strcmp(command_name, ""))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact or host notification command is NULL\n");
 		return NULL;
-		}
+	}
 
 	/* allocate memory */
 	if((new_commandsmember = calloc(1, sizeof(commandsmember))) == NULL)
@@ -1273,19 +1307,20 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct, char *c
 		my_free(new_commandsmember->command);
 		my_free(new_commandsmember);
 		return NULL;
-		}
+	}
 
 	/* add the notification command */
 	new_commandsmember->next = cntct->host_notification_commands;
 	cntct->host_notification_commands = new_commandsmember;
 
 	return new_commandsmember;
-	}
+}
 
 
 
 /* adds a service notification command to a contact definition */
-commandsmember *add_service_notification_command_to_contact(contact *cntct, char *command_name) {
+commandsmember *add_service_notification_command_to_contact(contact *cntct, char *command_name)
+{
 	commandsmember *new_commandsmember = NULL;
 	int result = OK;
 
@@ -1293,7 +1328,7 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct, char
 	if(cntct == NULL || (command_name == NULL || !strcmp(command_name, ""))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact or service notification command is NULL\n");
 		return NULL;
-		}
+	}
 
 	/* allocate memory */
 	if((new_commandsmember = calloc(1, sizeof(commandsmember))) == NULL)
@@ -1308,27 +1343,29 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct, char
 		my_free(new_commandsmember->command);
 		my_free(new_commandsmember);
 		return NULL;
-		}
+	}
 
 	/* add the notification command */
 	new_commandsmember->next = cntct->service_notification_commands;
 	cntct->service_notification_commands = new_commandsmember;
 
 	return new_commandsmember;
-	}
+}
 
 
 
 /* adds a custom variable to a contact */
-customvariablesmember *add_custom_variable_to_contact(contact *cntct, char *varname, char *varvalue) {
+customvariablesmember *add_custom_variable_to_contact(contact *cntct, char *varname, char *varvalue)
+{
 
 	return add_custom_variable_to_object(&cntct->custom_variables, varname, varvalue);
-	}
+}
 
 
 
 /* add a new contact group to the list in memory */
-contactgroup *add_contactgroup(char *name, char *alias) {
+contactgroup *add_contactgroup(char *name, char *alias)
+{
 	contactgroup *new_contactgroup = NULL;
 	int result = OK;
 
@@ -1336,7 +1373,7 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 	if(name == NULL || !strcmp(name, "")) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contactgroup name is NULL\n");
 		return NULL;
-		}
+	}
 
 	new_contactgroup = calloc(1, sizeof(*new_contactgroup));
 	if(!new_contactgroup)
@@ -1350,37 +1387,38 @@ contactgroup *add_contactgroup(char *name, char *alias) {
 	if(result == OK) {
 		result = dkhash_insert(object_hash_tables[CONTACTGROUP_SKIPLIST], new_contactgroup->group_name, NULL, new_contactgroup);
 		switch(result) {
-			case DKHASH_EDUPE:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contactgroup '%s' has already been defined\n", name);
-				result = ERROR;
-				break;
-			case DKHASH_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to hash table\n", name);
-				result = ERROR;
-				break;
-			}
+		case DKHASH_EDUPE:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contactgroup '%s' has already been defined\n", name);
+			result = ERROR;
+			break;
+		case DKHASH_OK:
+			result = OK;
+			break;
+		default:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to hash table\n", name);
+			result = ERROR;
+			break;
 		}
+	}
 
 	/* handle errors */
 	if(result == ERROR) {
 		free(new_contactgroup);
 		return NULL;
-		}
+	}
 
 	new_contactgroup->id = num_objects.contactgroups++;
 	contactgroup_ary[new_contactgroup->id] = new_contactgroup;
 	if(new_contactgroup->id)
 		contactgroup_ary[new_contactgroup->id - 1]->next = new_contactgroup;
 	return new_contactgroup;
-	}
+}
 
 
 
 /* add a new member to a contact group */
-contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_name) {
+contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_name)
+{
 	contactsmember *new_contactsmember = NULL;
 	struct contact *c;
 
@@ -1388,12 +1426,12 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 	if(grp == NULL || (contact_name == NULL || !strcmp(contact_name, ""))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contactgroup or contact name is NULL\n");
 		return NULL;
-		}
+	}
 
 	if (!(c = find_contact(contact_name))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate contact '%s' for contactgroup '%s'\n", contact_name, grp->group_name);
 		return NULL;
-		}
+	}
 
 	/* allocate memory for a new member */
 	if((new_contactsmember = calloc(1, sizeof(contactsmember))) == NULL)
@@ -1410,12 +1448,13 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 	prepend_object_to_objectlist(&c->contactgroups_ptr, (void *)grp);
 
 	return new_contactsmember;
-	}
+}
 
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value)
+{
 	host *h;
 	timeperiod *cp = NULL, *np = NULL;
 	service *new_service = NULL;
@@ -1425,33 +1464,33 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	if(host_name == NULL || description == NULL || !*description || check_command == NULL || !*check_command) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service description, host name, or check command is NULL\n");
 		return NULL;
-		}
+	}
 	if (!(h = find_host(host_name))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to locate host '%s' for service '%s'\n",
-			  host_name, description);
+		      host_name, description);
 		return NULL;
-		}
+	}
 	if(notification_period && !(np = find_timeperiod(notification_period))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: notification_period '%s' for service '%s' on host '%s' could not be found!\n",
-			  notification_period, description, host_name);
+		      notification_period, description, host_name);
 		return NULL;
-		}
+	}
 	if(check_period && !(cp = find_timeperiod(check_period))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: check_period '%s' for service '%s' on host '%s' not found!\n",
-			  check_period, description, host_name);
+		      check_period, description, host_name);
 		return NULL;
-		}
+	}
 
 	/* check values */
 	if(max_attempts <= 0 || check_interval < 0 || retry_interval <= 0 || notification_interval < 0) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid max_attempts, check_interval, retry_interval, or notification_interval value for service '%s' on host '%s'\n", description, host_name);
 		return NULL;
-		}
+	}
 
 	if(first_notification_delay < 0) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid first_notification_delay value for service '%s' on host '%s'\n", description, host_name);
 		return NULL;
-		}
+	}
 
 	/* allocate memory */
 	new_service = calloc(1, sizeof(*new_service));
@@ -1470,36 +1509,35 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	if(display_name) {
 		if((new_service->display_name = (char *)strdup(display_name)) == NULL)
 			result = ERROR;
-		}
-	else {
+	} else {
 		new_service->display_name = new_service->description;
-		}
+	}
 	if((new_service->check_command = (char *)strdup(check_command)) == NULL)
 		result = ERROR;
 	if(event_handler) {
 		if((new_service->event_handler = (char *)strdup(event_handler)) == NULL)
 			result = ERROR;
-		}
+	}
 	if(notes) {
 		if((new_service->notes = (char *)strdup(notes)) == NULL)
 			result = ERROR;
-		}
+	}
 	if(notes_url) {
 		if((new_service->notes_url = (char *)strdup(notes_url)) == NULL)
 			result = ERROR;
-		}
+	}
 	if(action_url) {
 		if((new_service->action_url = (char *)strdup(action_url)) == NULL)
 			result = ERROR;
-		}
+	}
 	if(icon_image) {
 		if((new_service->icon_image = (char *)strdup(icon_image)) == NULL)
 			result = ERROR;
-		}
+	}
 	if(icon_image_alt) {
 		if((new_service->icon_image_alt = (char *)strdup(icon_image_alt)) == NULL)
 			result = ERROR;
-		}
+	}
 
 	new_service->hourly_value = hourly_value;
 	new_service->check_interval = check_interval;
@@ -1541,19 +1579,19 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	if(result == OK) {
 		result = dkhash_insert(object_hash_tables[SERVICE_SKIPLIST], new_service->host_name, new_service->description, new_service);
 		switch(result) {
-			case DKHASH_EDUPE:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service '%s' on host '%s' has already been defined\n", description, host_name);
-				result = ERROR;
-				break;
-			case DKHASH_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add service '%s' on host '%s' to hash table\n", description, host_name);
-				result = ERROR;
-				break;
-			}
+		case DKHASH_EDUPE:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service '%s' on host '%s' has already been defined\n", description, host_name);
+			result = ERROR;
+			break;
+		case DKHASH_OK:
+			result = OK;
+			break;
+		default:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add service '%s' on host '%s' to hash table\n", description, host_name);
+			result = ERROR;
+			break;
 		}
+	}
 
 	/* handle errors */
 	if(result == ERROR) {
@@ -1568,7 +1606,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 		if(display_name)
 			my_free(new_service->display_name);
 		return NULL;
-		}
+	}
 
 	add_service_link_to_host(h, new_service);
 
@@ -1577,35 +1615,39 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	if(new_service->id)
 		service_ary[new_service->id - 1]->next = new_service;
 	return new_service;
-	}
+}
 
 
 
 /* adds a contact group to a service */
-contactgroupsmember *add_contactgroup_to_service(service *svc, char *group_name) {
+contactgroupsmember *add_contactgroup_to_service(service *svc, char *group_name)
+{
 	return add_contactgroup_to_object(&svc->contact_groups, group_name);
-	}
+}
 
 
 
 /* adds a contact to a service */
-contactsmember *add_contact_to_service(service *svc, char *contact_name) {
+contactsmember *add_contact_to_service(service *svc, char *contact_name)
+{
 
 	return add_contact_to_object(&svc->contacts, contact_name);
-	}
+}
 
 
 
 /* adds a custom variable to a service */
-customvariablesmember *add_custom_variable_to_service(service *svc, char *varname, char *varvalue) {
+customvariablesmember *add_custom_variable_to_service(service *svc, char *varname, char *varvalue)
+{
 
 	return add_custom_variable_to_object(&svc->custom_variables, varname, varvalue);
-	}
+}
 
 
 
 /* add a new command to the list in memory */
-command *add_command(char *name, char *value) {
+command *add_command(char *name, char *value)
+{
 	command *new_command = NULL;
 	int result = OK;
 
@@ -1613,7 +1655,7 @@ command *add_command(char *name, char *value) {
 	if((name == NULL || !strcmp(name, "")) || (value == NULL || !strcmp(value, ""))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Command name of command line is NULL\n");
 		return NULL;
-		}
+	}
 
 	/* allocate memory for the new command */
 	new_command = calloc(1, sizeof(*new_command));
@@ -1628,37 +1670,38 @@ command *add_command(char *name, char *value) {
 	if(result == OK) {
 		result = dkhash_insert(object_hash_tables[COMMAND_SKIPLIST], new_command->name, NULL, new_command);
 		switch(result) {
-			case DKHASH_EDUPE:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Command '%s' has already been defined\n", name);
-				result = ERROR;
-				break;
-			case DKHASH_OK:
-				result = OK;
-				break;
-			default:
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add command '%s' to hash table\n", name);
-				result = ERROR;
-				break;
-			}
+		case DKHASH_EDUPE:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Command '%s' has already been defined\n", name);
+			result = ERROR;
+			break;
+		case DKHASH_OK:
+			result = OK;
+			break;
+		default:
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add command '%s' to hash table\n", name);
+			result = ERROR;
+			break;
 		}
+	}
 
 	/* handle errors */
 	if(result == ERROR) {
 		my_free(new_command);
 		return NULL;
-		}
+	}
 
 	new_command->id = num_objects.commands++;
 	command_ary[new_command->id] = new_command;
 	if(new_command->id)
 		command_ary[new_command->id - 1]->next = new_command;
 	return new_command;
-	}
+}
 
 
 
 /* add a new service escalation to the list in memory */
-serviceescalation *add_serviceescalation(char *host_name, char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options) {
+serviceescalation *add_serviceescalation(char *host_name, char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options)
+{
 	serviceescalation *new_serviceescalation = NULL;
 	service *svc;
 	timeperiod *tp = NULL;
@@ -1667,17 +1710,17 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	if(host_name == NULL || !*host_name || description == NULL || !*description) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service escalation host name or description is NULL\n");
 		return NULL;
-		}
+	}
 	if(!(svc = find_service(host_name, description))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Service '%s' on host '%s' has an escalation but is not defined anywhere!\n",
-			  host_name, description);
+		      host_name, description);
 		return NULL;
-		}
+	}
 	if (escalation_period && !(tp = find_timeperiod(escalation_period))) {
 		logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Escalation period '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!\n",
-			  escalation_period, description, host_name);
+		      escalation_period, description, host_name);
 		return NULL ;
-		}
+	}
 
 	new_serviceescalation = calloc(1, sizeof(*new_serviceescalation));
 	if(!new_serviceescalation)
@@ -1685,9 +1728,9 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 
 	if(add_object_to_objectlist(&svc->escalation_list, new_serviceescalation) != OK) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Could not add escalation to service '%s' on host '%s'\n",
-			  svc->host_name, svc->description);
+		      svc->host_name, svc->description);
 		return NULL;
-		}
+	}
 
 	/* assign vars. object names are immutable, so no need to copy */
 	new_serviceescalation->host_name = svc->host_name;
@@ -1705,27 +1748,30 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	new_serviceescalation->id = num_objects.serviceescalations++;
 	serviceescalation_ary[new_serviceescalation->id] = new_serviceescalation;
 	return new_serviceescalation;
-	}
+}
 
 
 
 /* adds a contact group to a service escalation */
-contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se, char *group_name) {
+contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se, char *group_name)
+{
 	return add_contactgroup_to_object(&se->contact_groups, group_name);
-	}
+}
 
 
 
 /* adds a contact to a service escalation */
-contactsmember *add_contact_to_serviceescalation(serviceescalation *se, char *contact_name) {
+contactsmember *add_contact_to_serviceescalation(serviceescalation *se, char *contact_name)
+{
 
 	return add_contact_to_object(&se->contacts, contact_name);
-	}
+}
 
 
 
 /* adds a service dependency definition */
-servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int failure_options, char *dependency_period) {
+servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int failure_options, char *dependency_period)
+{
 	servicedependency *new_servicedependency = NULL;
 	service *parent, *child;
 	timeperiod *tp = NULL;
@@ -1735,20 +1781,20 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	parent = find_service(host_name, service_description);
 	if(!parent) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Master service '%s' on host '%s' is not defined anywhere!\n",
-			  service_description, host_name);
+		      service_description, host_name);
 		return NULL;
-		}
+	}
 	child = find_service(dependent_host_name, dependent_service_description);
 	if(!child) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Dependent service '%s' on host '%s' is not defined anywhere!\n",
-			 dependent_service_description, dependent_host_name);
+		      dependent_service_description, dependent_host_name);
 		return NULL;
-		}
+	}
 	if (dependency_period && !(tp = find_timeperiod(dependency_period))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate timeperiod '%s' for dependency from service '%s' on host '%s' to service '%s' on host '%s'\n",
-			  dependency_period, dependent_service_description, dependent_host_name, service_description, host_name);
+		      dependency_period, dependent_service_description, dependent_host_name, service_description, host_name);
 		return NULL;
-		}
+	}
 
 	/* allocate memory for a new service dependency entry */
 	if((new_servicedependency = calloc(1, sizeof(*new_servicedependency))) == NULL)
@@ -1785,15 +1831,16 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		free(new_servicedependency);
 		/* hack to avoid caller bombing out */
 		return result == OBJECTLIST_DUPE ? (void *)1 : NULL;
-		}
+	}
 
 	num_objects.servicedependencies++;
 	return new_servicedependency;
-	}
+}
 
 
 /* adds a host dependency definition */
-hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int failure_options, char *dependency_period) {
+hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int failure_options, char *dependency_period)
+{
 	hostdependency *new_hostdependency = NULL;
 	host *parent, *child;
 	timeperiod *tp = NULL;
@@ -1803,18 +1850,18 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	parent = find_host(host_name);
 	if (!parent) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Master host '%s' in hostdependency from '%s' to '%s' is not defined anywhere!\n",
-			  host_name, dependent_host_name, host_name);
+		      host_name, dependent_host_name, host_name);
 		return NULL;
-		}
+	}
 	child = find_host(dependent_host_name);
 	if (!child) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Dependent host '%s' in hostdependency from '%s' to '%s' is not defined anywhere!\n",
-			  dependent_host_name, dependent_host_name, host_name);
+		      dependent_host_name, dependent_host_name, host_name);
 		return NULL;
-		}
+	}
 	if (dependency_period && !(tp = find_timeperiod(dependency_period))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to locate dependency_period '%s' for %s->%s host dependency\n",
-			  dependency_period, parent->name, child->name);
+		      dependency_period, parent->name, child->name);
 		return NULL ;
 	}
 
@@ -1844,16 +1891,17 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		free(new_hostdependency);
 		/* hack to avoid caller bombing out */
 		return result == OBJECTLIST_DUPE ? (void *)1 : NULL;
-		}
+	}
 
 	num_objects.hostdependencies++;
 	return new_hostdependency;
-	}
+}
 
 
 
 /* add a new host escalation to the list in memory */
-hostescalation *add_hostescalation(char *host_name, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options) {
+hostescalation *add_hostescalation(char *host_name, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalation_options)
+{
 	hostescalation *new_hostescalation = NULL;
 	host *h;
 	timeperiod *tp = NULL;
@@ -1862,16 +1910,16 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	if(host_name == NULL || !*host_name) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host escalation host name is NULL\n");
 		return NULL;
-		}
+	}
 	if (!(h = find_host(host_name))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Host '%s' has an escalation, but is not defined anywhere!\n", host_name);
 		return NULL;
-		}
+	}
 	if (escalation_period && !(tp = find_timeperiod(escalation_period))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Unable to locate timeperiod '%s' for hostescalation '%s'\n",
-			  escalation_period, host_name);
+		      escalation_period, host_name);
 		return NULL;
-		}
+	}
 
 	new_hostescalation = calloc(1, sizeof(*new_hostescalation));
 
@@ -1880,7 +1928,7 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add hostescalation to host '%s'\n", host_name);
 		free(new_hostescalation);
 		return NULL;
-		}
+	}
 
 	/* assign vars. Object names are immutable, so no need to copy */
 	new_hostescalation->host_name = h->name;
@@ -1895,27 +1943,30 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	new_hostescalation->id = num_objects.hostescalations++;
 	hostescalation_ary[new_hostescalation->id] = new_hostescalation;
 	return new_hostescalation;
-	}
+}
 
 
 
 /* adds a contact group to a host escalation */
-contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he, char *group_name) {
+contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he, char *group_name)
+{
 	return add_contactgroup_to_object(&he->contact_groups, group_name);
-	}
+}
 
 
 
 /* adds a contact to a host escalation */
-contactsmember *add_contact_to_hostescalation(hostescalation *he, char *contact_name) {
+contactsmember *add_contact_to_hostescalation(hostescalation *he, char *contact_name)
+{
 
 	return add_contact_to_object(&he->contacts, contact_name);
-	}
+}
 
 
 
 /* adds a contact to an object */
-contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contactname) {
+contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contactname)
+{
 	contactsmember *new_contactsmember = NULL;
 	contact *c;
 
@@ -1923,22 +1974,22 @@ contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contact
 	if(object_ptr == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact object is NULL\n");
 		return NULL;
-		}
+	}
 
 	if(contactname == NULL || !*contactname) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact name is NULL\n");
 		return NULL;
-		}
+	}
 	if(!(c = find_contact(contactname))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Contact '%s' is not defined anywhere!\n", contactname);
 		return NULL;
-		}
+	}
 
 	/* allocate memory for a new member */
 	if((new_contactsmember = malloc(sizeof(contactsmember))) == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not allocate memory for contact\n");
 		return NULL;
-		}
+	}
 	new_contactsmember->contact_name = c->name;
 
 	/* set initial values */
@@ -1949,44 +2000,44 @@ contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contact
 	*object_ptr = new_contactsmember;
 
 	return new_contactsmember;
-	}
+}
 
 
 
 /* adds a custom variable to an object */
-customvariablesmember *add_custom_variable_to_object(customvariablesmember **object_ptr, char *varname, char *varvalue) {
+customvariablesmember *add_custom_variable_to_object(customvariablesmember **object_ptr, char *varname, char *varvalue)
+{
 	customvariablesmember *new_customvariablesmember = NULL;
 
 	/* make sure we have the data we need */
 	if(object_ptr == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Custom variable object is NULL\n");
 		return NULL;
-		}
+	}
 
 	if(varname == NULL || !strcmp(varname, "")) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Custom variable name is NULL\n");
 		return NULL;
-		}
+	}
 
 	/* allocate memory for a new member */
 	if((new_customvariablesmember = malloc(sizeof(customvariablesmember))) == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not allocate memory for custom variable\n");
 		return NULL;
-		}
+	}
 	if((new_customvariablesmember->variable_name = (char *)strdup(varname)) == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not allocate memory for custom variable name\n");
 		my_free(new_customvariablesmember);
 		return NULL;
-		}
+	}
 	if(varvalue) {
 		if((new_customvariablesmember->variable_value = (char *)strdup(varvalue)) == NULL) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not allocate memory for custom variable value\n");
 			my_free(new_customvariablesmember->variable_name);
 			my_free(new_customvariablesmember);
 			return NULL;
-			}
 		}
-	else
+	} else
 		new_customvariablesmember->variable_value = NULL;
 
 	/* set initial values */
@@ -1997,7 +2048,7 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 	*object_ptr = new_customvariablesmember;
 
 	return new_customvariablesmember;
-	}
+}
 
 
 
@@ -2006,42 +2057,51 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 /******************** OBJECT SEARCH FUNCTIONS *********************/
 /******************************************************************/
 
-timeperiod *find_timeperiod(const char *name) {
+timeperiod *find_timeperiod(const char *name)
+{
 	return dkhash_get(object_hash_tables[TIMEPERIOD_SKIPLIST], name, NULL);
-	}
+}
 
-host *find_host(const char *name) {
+host *find_host(const char *name)
+{
 	return dkhash_get(object_hash_tables[HOST_SKIPLIST], name, NULL);
-	}
+}
 
-hostgroup *find_hostgroup(const char *name) {
+hostgroup *find_hostgroup(const char *name)
+{
 	return dkhash_get(object_hash_tables[HOSTGROUP_SKIPLIST], name, NULL);
-	}
+}
 
-servicegroup *find_servicegroup(const char *name) {
+servicegroup *find_servicegroup(const char *name)
+{
 	return dkhash_get(object_hash_tables[SERVICEGROUP_SKIPLIST], name, NULL);
-	}
+}
 
-contact *find_contact(const char *name) {
+contact *find_contact(const char *name)
+{
 	return dkhash_get(object_hash_tables[CONTACT_SKIPLIST], name, NULL);
-	}
+}
 
-contactgroup *find_contactgroup(const char *name) {
+contactgroup *find_contactgroup(const char *name)
+{
 	return dkhash_get(object_hash_tables[CONTACTGROUP_SKIPLIST], name, NULL);
-	}
+}
 
-command *find_command(const char *name) {
+command *find_command(const char *name)
+{
 	return dkhash_get(object_hash_tables[COMMAND_SKIPLIST], name, NULL);
-	}
+}
 
-service *find_service(const char *host_name, const char *svc_desc) {
+service *find_service(const char *host_name, const char *svc_desc)
+{
 	return dkhash_get(object_hash_tables[SERVICE_SKIPLIST], host_name, svc_desc);
-	}
+}
 
 
 
 /* adds a object to a list of objects */
-int add_object_to_objectlist(objectlist **list, void *object_ptr) {
+int add_object_to_objectlist(objectlist **list, void *object_ptr)
+{
 	objectlist *temp_item = NULL;
 	objectlist *new_item = NULL;
 
@@ -2052,7 +2112,7 @@ int add_object_to_objectlist(objectlist **list, void *object_ptr) {
 	for(temp_item = *list; temp_item; temp_item = temp_item->next) {
 		if(temp_item->object_ptr == object_ptr)
 			break;
-		}
+	}
 	if(temp_item)
 		return OK;
 
@@ -2068,7 +2128,7 @@ int add_object_to_objectlist(objectlist **list, void *object_ptr) {
 	*list = new_item;
 
 	return OK;
-	}
+}
 
 
 /* useful when we don't care if the object is unique or not */
@@ -2083,22 +2143,24 @@ int prepend_object_to_objectlist(objectlist **list, void *object_ptr)
 	item->object_ptr = object_ptr;
 	*list = item;
 	return OK;
-	}
+}
 
 /* useful for adding dependencies to master objects */
-int prepend_unique_object_to_objectlist(objectlist **list, void *object_ptr, size_t size) {
+int prepend_unique_object_to_objectlist(objectlist **list, void *object_ptr, size_t size)
+{
 	objectlist *l;
 	if(list == NULL || object_ptr == NULL)
 		return ERROR;
 	for(l = *list; l; l = l->next) {
 		if(!memcmp(l->object_ptr, object_ptr, size))
 			return OBJECTLIST_DUPE;
-		}
+	}
 	return prepend_object_to_objectlist(list, object_ptr);
 }
 
 /* frees memory allocated to a temporary object list */
-int free_objectlist(objectlist **temp_list) {
+int free_objectlist(objectlist **temp_list)
+{
 	objectlist *this_objectlist = NULL;
 	objectlist *next_objectlist = NULL;
 
@@ -2109,12 +2171,12 @@ int free_objectlist(objectlist **temp_list) {
 	for(this_objectlist = *temp_list; this_objectlist != NULL; this_objectlist = next_objectlist) {
 		next_objectlist = this_objectlist->next;
 		my_free(this_objectlist);
-		}
+	}
 
 	*temp_list = NULL;
 
 	return OK;
-	}
+}
 
 
 
@@ -2123,7 +2185,8 @@ int free_objectlist(objectlist **temp_list) {
 /******************************************************************/
 
 /* determines whether or not a specific host is an immediate child of another host */
-int is_host_immediate_child_of_host(host *parent_host, host *child_host) {
+int is_host_immediate_child_of_host(host *parent_host, host *child_host)
+{
 	hostsmember *temp_hostsmember = NULL;
 
 	/* not enough data */
@@ -2134,7 +2197,7 @@ int is_host_immediate_child_of_host(host *parent_host, host *child_host) {
 	if(parent_host == NULL) {
 		if(child_host->parent_hosts == NULL)
 			return TRUE;
-		}
+	}
 
 	/* mid-level/bottom hosts */
 	else {
@@ -2142,21 +2205,22 @@ int is_host_immediate_child_of_host(host *parent_host, host *child_host) {
 		for(temp_hostsmember = child_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
 			if(temp_hostsmember->host_ptr == parent_host)
 				return TRUE;
-			}
 		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 /* determines whether or not a specific host is an immediate parent of another host */
-int is_host_immediate_parent_of_host(host *child_host, host *parent_host) {
+int is_host_immediate_parent_of_host(host *child_host, host *parent_host)
+{
 
 	if(is_host_immediate_child_of_host(parent_host, child_host) == TRUE)
 		return TRUE;
 
 	return FALSE;
-	}
+}
 
 #ifdef NSCGI
 int hostsmember_elements(hostsmember *list)
@@ -2169,48 +2233,49 @@ int hostsmember_elements(hostsmember *list)
 
 /* returns a count of the immediate children for a given host */
 /* NOTE: This function is only used by the CGIS */
-int number_of_immediate_child_hosts(host *hst) {
+int number_of_immediate_child_hosts(host *hst)
+{
 	int children = 0;
 	host *temp_host = NULL;
 
 	if(hst == NULL) {
 		for(temp_host = host_list; temp_host != NULL;
-				temp_host = temp_host->next) {
+		    temp_host = temp_host->next) {
 			if(is_host_immediate_child_of_host(hst, temp_host) == TRUE)
 				children++;
-			}
+		}
 		return children;
-		}
-	else {
+	} else {
 		return hostsmember_elements(hst->child_hosts);
-		}
 	}
+}
 
 
 /* get the number of immediate parent hosts for a given host */
 /* NOTE: This function is only used by the CGIS */
-int number_of_immediate_parent_hosts(host *hst) {
+int number_of_immediate_parent_hosts(host *hst)
+{
 	int parents = 0;
 	host *temp_host = NULL;
 
 	if(hst == NULL) {
 		for(temp_host = host_list; temp_host != NULL;
-				temp_host = temp_host->next) {
+		    temp_host = temp_host->next) {
 			if(is_host_immediate_parent_of_host(hst, temp_host) == TRUE) {
 				parents++;
-				}
 			}
+		}
 		return parents;
-		}
-	else {
+	} else {
 		return hostsmember_elements(hst->parent_hosts);
-		}
 	}
+}
 #endif
 
 /*  tests whether a host is a member of a particular hostgroup */
 /* NOTE: This function is only used by the CGIS */
-int is_host_member_of_hostgroup(hostgroup *group, host *hst) {
+int is_host_member_of_hostgroup(hostgroup *group, host *hst)
+{
 	hostsmember *temp_hostsmember = NULL;
 
 	if(group == NULL || hst == NULL)
@@ -2219,15 +2284,16 @@ int is_host_member_of_hostgroup(hostgroup *group, host *hst) {
 	for(temp_hostsmember = group->members; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
 		if(temp_hostsmember->host_ptr == hst)
 			return TRUE;
-		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 /*  tests whether a host is a member of a particular servicegroup */
 /* NOTE: This function is only used by the CGIS */
-int is_host_member_of_servicegroup(servicegroup *group, host *hst) {
+int is_host_member_of_servicegroup(servicegroup *group, host *hst)
+{
 	servicesmember *temp_servicesmember = NULL;
 
 	if(group == NULL || hst == NULL)
@@ -2236,15 +2302,16 @@ int is_host_member_of_servicegroup(servicegroup *group, host *hst) {
 	for(temp_servicesmember = group->members; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
 		if(temp_servicesmember->service_ptr != NULL && temp_servicesmember->service_ptr->host_ptr == hst)
 			return TRUE;
-		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 /*  tests whether a service is a member of a particular servicegroup */
 /* NOTE: This function is only used by the CGIS */
-int is_service_member_of_servicegroup(servicegroup *group, service *svc) {
+int is_service_member_of_servicegroup(servicegroup *group, service *svc)
+{
 	servicesmember *temp_servicesmember = NULL;
 
 	if(group == NULL || svc == NULL)
@@ -2253,10 +2320,10 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc) {
 	for(temp_servicesmember = group->members; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
 		if(temp_servicesmember->service_ptr == svc)
 			return TRUE;
-		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 /*
@@ -2266,7 +2333,8 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc) {
  * The cgi's stopped using it quite long ago though, so we need only
  * compile it if we're building the core
  */
-int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct) {
+int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct)
+{
 	contactsmember *member;
 
 	if(!group || !cntct)
@@ -2276,63 +2344,66 @@ int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct) {
 	for(member = group->members; member; member = member->next) {
 		if (member->contact_ptr == cntct)
 			return TRUE;
-		}
-
-	return FALSE;
 	}
 
+	return FALSE;
+}
+
 /*  tests whether a contact is a contact for a particular host */
-int is_contact_for_host(host *hst, contact *cntct) {
+int is_contact_for_host(host *hst, contact *cntct)
+{
 	contactsmember *temp_contactsmember = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 
 	if(hst == NULL || cntct == NULL) {
 		return FALSE;
-		}
+	}
 
 	/* search all individual contacts of this host */
 	for(temp_contactsmember = hst->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
 		if (temp_contactsmember->contact_ptr == cntct)
 			return TRUE;
-		}
+	}
 
 	/* search all contactgroups of this host */
 	for(temp_contactgroupsmember = hst->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
 		temp_contactgroup = temp_contactgroupsmember->group_ptr;
 		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
 			return TRUE;
-		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 
 /*  tests whether a contactgroup is a contactgroup for a particular host */
-int is_contactgroup_for_host(host *hst, contactgroup *group) {
+int is_contactgroup_for_host(host *hst, contactgroup *group)
+{
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 
 	if(hst == NULL || group == NULL) {
 		return FALSE;
-		}
+	}
 
 	/* search all contactgroups of this host */
 	for(temp_contactgroupsmember = hst->contact_groups;
-			temp_contactgroupsmember != NULL;
-			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+	    temp_contactgroupsmember != NULL;
+	    temp_contactgroupsmember = temp_contactgroupsmember->next) {
 		if(temp_contactgroupsmember->group_ptr == group) {
 			return TRUE;
-			}
 		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 
 /* tests whether a contact is an escalated contact for a particular host */
-int is_escalated_contact_for_host(host *hst, contact *cntct) {
+int is_escalated_contact_for_host(host *hst, contact *cntct)
+{
 	hostescalation *temp_hostescalation = NULL;
 	objectlist *list;
 
@@ -2342,16 +2413,17 @@ int is_escalated_contact_for_host(host *hst, contact *cntct) {
 
 		if(is_contact_for_host_escalation(temp_hostescalation, cntct) == TRUE) {
 			return TRUE;
-			}
 		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 
 /* tests whether a contact is an contact for a particular host escalation */
-int is_contact_for_host_escalation(hostescalation *escalation, contact *cntct) {
+int is_contact_for_host_escalation(hostescalation *escalation, contact *cntct)
+{
 	contactsmember *temp_contactsmember = NULL;
 	hostescalation *temp_hostescalation = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
@@ -2359,52 +2431,54 @@ int is_contact_for_host_escalation(hostescalation *escalation, contact *cntct) {
 
 	/* search all contacts of this host escalation */
 	for(temp_contactsmember = temp_hostescalation->contacts;
-			temp_contactsmember != NULL;
-			temp_contactsmember = temp_contactsmember->next) {
+	    temp_contactsmember != NULL;
+	    temp_contactsmember = temp_contactsmember->next) {
 		if(temp_contactsmember->contact_ptr == cntct)
 			return TRUE;
-		}
+	}
 
 	/* search all contactgroups of this host escalation */
 	for(temp_contactgroupsmember = temp_hostescalation->contact_groups;
-			temp_contactgroupsmember != NULL;
-			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+	    temp_contactgroupsmember != NULL;
+	    temp_contactgroupsmember = temp_contactgroupsmember->next) {
 		temp_contactgroup = temp_contactgroupsmember->group_ptr;
 		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
 			return TRUE;
-		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 
 /*  tests whether a contactgroup is a contactgroup for a particular
 	host escalation */
 int is_contactgroup_for_host_escalation(hostescalation *escalation,
-		contactgroup *group) {
+                                        contactgroup *group)
+{
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 
 	if(escalation == NULL || group == NULL) {
 		return FALSE;
-		}
+	}
 
 	/* search all contactgroups of this host escalation */
 	for(temp_contactgroupsmember = escalation->contact_groups;
-			temp_contactgroupsmember != NULL;
-			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+	    temp_contactgroupsmember != NULL;
+	    temp_contactgroupsmember = temp_contactgroupsmember->next) {
 		if(temp_contactgroupsmember->group_ptr == group) {
 			return TRUE;
-			}
 		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 
 /*  tests whether a contact is a contact for a particular service */
-int is_contact_for_service(service *svc, contact *cntct) {
+int is_contact_for_service(service *svc, contact *cntct)
+{
 	contactsmember *temp_contactsmember = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
@@ -2416,7 +2490,7 @@ int is_contact_for_service(service *svc, contact *cntct) {
 	for(temp_contactsmember = svc->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
 		if(temp_contactsmember->contact_ptr == cntct)
 			return TRUE;
-		}
+	}
 
 	/* search all contactgroups of this service */
 	for(temp_contactgroupsmember = svc->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
@@ -2424,15 +2498,16 @@ int is_contact_for_service(service *svc, contact *cntct) {
 		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
 			return TRUE;
 
-		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 
 /*  tests whether a contactgroup is a contactgroup for a particular service */
-int is_contactgroup_for_service(service *svc, contactgroup *group) {
+int is_contactgroup_for_service(service *svc, contactgroup *group)
+{
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 
 	if(svc == NULL || group == NULL)
@@ -2440,20 +2515,21 @@ int is_contactgroup_for_service(service *svc, contactgroup *group) {
 
 	/* search all contactgroups of this service */
 	for(temp_contactgroupsmember = svc->contact_groups;
-			temp_contactgroupsmember != NULL;
-			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+	    temp_contactgroupsmember != NULL;
+	    temp_contactgroupsmember = temp_contactgroupsmember->next) {
 		if(temp_contactgroupsmember->group_ptr == group) {
 			return TRUE;
-			}
 		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 
 /* tests whether a contact is an escalated contact for a particular service */
-int is_escalated_contact_for_service(service *svc, contact *cntct) {
+int is_escalated_contact_for_service(service *svc, contact *cntct)
+{
 	serviceescalation *temp_serviceescalation = NULL;
 	objectlist *list;
 
@@ -2462,66 +2538,68 @@ int is_escalated_contact_for_service(service *svc, contact *cntct) {
 		temp_serviceescalation = (serviceescalation *)list->object_ptr;
 
 		if(is_contact_for_service_escalation(temp_serviceescalation,
-				cntct) == TRUE) {
+		                                     cntct) == TRUE) {
 			return TRUE;
-			}
 		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 
 /* tests whether a contact is an contact for a particular service escalation */
 int is_contact_for_service_escalation(serviceescalation *escalation,
-		contact *cntct) {
+                                      contact *cntct)
+{
 	contactsmember *temp_contactsmember = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 
 	/* search all contacts of this service escalation */
 	for(temp_contactsmember = escalation->contacts;
-			temp_contactsmember != NULL;
-			temp_contactsmember = temp_contactsmember->next) {
+	    temp_contactsmember != NULL;
+	    temp_contactsmember = temp_contactsmember->next) {
 		if(temp_contactsmember->contact_ptr == cntct)
 			return TRUE;
-		}
+	}
 
 	/* search all contactgroups of this service escalation */
 	for(temp_contactgroupsmember =escalation->contact_groups;
-			temp_contactgroupsmember != NULL;
-			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+	    temp_contactgroupsmember != NULL;
+	    temp_contactgroupsmember = temp_contactgroupsmember->next) {
 		temp_contactgroup = temp_contactgroupsmember->group_ptr;
 		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
 			return TRUE;
-		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 
 /*  tests whether a contactgroup is a contactgroup for a particular
 	service escalation */
 int is_contactgroup_for_service_escalation(serviceescalation *escalation,
-		contactgroup *group) {
+        contactgroup *group)
+{
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 
 	if(escalation == NULL || group == NULL) {
 		return FALSE;
-		}
+	}
 
 	/* search all contactgroups of this service escalation */
 	for(temp_contactgroupsmember = escalation->contact_groups;
-			temp_contactgroupsmember != NULL;
-			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+	    temp_contactgroupsmember != NULL;
+	    temp_contactgroupsmember = temp_contactgroupsmember->next) {
 		if(temp_contactgroupsmember->group_ptr == group) {
 			return TRUE;
-			}
 		}
+	}
 
 	return FALSE;
-	}
+}
 
 
 
@@ -2531,7 +2609,8 @@ int is_contactgroup_for_service_escalation(serviceescalation *escalation,
 
 
 /* free all allocated memory for objects */
-int free_object_data(void) {
+int free_object_data(void)
+{
 	daterange *this_daterange = NULL;
 	daterange *next_daterange = NULL;
 	timerange *this_timerange = NULL;
@@ -2575,10 +2654,10 @@ int free_object_data(void) {
 				for(this_timerange = this_daterange->times; this_timerange != NULL; this_timerange = next_timerange) {
 					next_timerange = this_timerange->next;
 					my_free(this_timerange);
-					}
-				my_free(this_daterange);
 				}
+				my_free(this_daterange);
 			}
+		}
 
 		/* free the day time ranges contained in this timeperiod */
 		for(x = 0; x < 7; x++) {
@@ -2586,21 +2665,21 @@ int free_object_data(void) {
 			for(this_timerange = this_timeperiod->days[x]; this_timerange != NULL; this_timerange = next_timerange) {
 				next_timerange = this_timerange->next;
 				my_free(this_timerange);
-				}
 			}
+		}
 
 		/* free exclusions */
 		for(this_timeperiodexclusion = this_timeperiod->exclusions; this_timeperiodexclusion != NULL; this_timeperiodexclusion = next_timeperiodexclusion) {
 			next_timeperiodexclusion = this_timeperiodexclusion->next;
 			my_free(this_timeperiodexclusion->timeperiod_name);
 			my_free(this_timeperiodexclusion);
-			}
+		}
 
 		if (this_timeperiod->alias != this_timeperiod->name)
 			my_free(this_timeperiod->alias);
 		my_free(this_timeperiod->name);
 		my_free(this_timeperiod);
-		}
+	}
 
 	/* reset pointers */
 	my_free(timeperiod_ary);
@@ -2617,7 +2696,7 @@ int free_object_data(void) {
 			my_free(this_hostsmember->host_name);
 			my_free(this_hostsmember);
 			this_hostsmember = next_hostsmember;
-			}
+		}
 
 		/* free memory for child host links */
 		this_hostsmember = this_host->child_hosts;
@@ -2625,7 +2704,7 @@ int free_object_data(void) {
 			next_hostsmember = this_hostsmember->next;
 			my_free(this_hostsmember);
 			this_hostsmember = next_hostsmember;
-			}
+		}
 
 		/* free memory for service links */
 		this_servicesmember = this_host->services;
@@ -2633,7 +2712,7 @@ int free_object_data(void) {
 			next_servicesmember = this_servicesmember->next;
 			my_free(this_servicesmember);
 			this_servicesmember = next_servicesmember;
-			}
+		}
 
 		/* free memory for contact groups */
 		this_contactgroupsmember = this_host->contact_groups;
@@ -2641,7 +2720,7 @@ int free_object_data(void) {
 			next_contactgroupsmember = this_contactgroupsmember->next;
 			my_free(this_contactgroupsmember);
 			this_contactgroupsmember = next_contactgroupsmember;
-			}
+		}
 
 		/* free memory for contacts */
 		this_contactsmember = this_host->contacts;
@@ -2649,7 +2728,7 @@ int free_object_data(void) {
 			next_contactsmember = this_contactsmember->next;
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
-			}
+		}
 
 		/* free memory for custom variables */
 		this_customvariablesmember = this_host->custom_variables;
@@ -2659,7 +2738,7 @@ int free_object_data(void) {
 			my_free(this_customvariablesmember->variable_value);
 			my_free(this_customvariablesmember);
 			this_customvariablesmember = next_customvariablesmember;
-			}
+		}
 
 		if(this_host->display_name != this_host->name)
 			my_free(this_host->display_name);
@@ -2687,7 +2766,7 @@ int free_object_data(void) {
 		my_free(this_host->vrml_image);
 		my_free(this_host->statusmap_image);
 		my_free(this_host);
-		}
+	}
 
 	/* reset pointers */
 	my_free(host_ary);
@@ -2703,7 +2782,7 @@ int free_object_data(void) {
 			next_hostsmember = this_hostsmember->next;
 			my_free(this_hostsmember);
 			this_hostsmember = next_hostsmember;
-			}
+		}
 
 		if (this_hostgroup->alias != this_hostgroup->group_name)
 			my_free(this_hostgroup->alias);
@@ -2712,7 +2791,7 @@ int free_object_data(void) {
 		my_free(this_hostgroup->notes_url);
 		my_free(this_hostgroup->action_url);
 		my_free(this_hostgroup);
-		}
+	}
 
 	/* reset pointers */
 	my_free(hostgroup_ary);
@@ -2727,7 +2806,7 @@ int free_object_data(void) {
 			next_servicesmember = this_servicesmember->next;
 			my_free(this_servicesmember);
 			this_servicesmember = next_servicesmember;
-			}
+		}
 
 		if (this_servicegroup->alias != this_servicegroup->group_name)
 			my_free(this_servicegroup->alias);
@@ -2736,7 +2815,7 @@ int free_object_data(void) {
 		my_free(this_servicegroup->notes_url);
 		my_free(this_servicegroup->action_url);
 		my_free(this_servicegroup);
-		}
+	}
 
 	/* reset pointers */
 	my_free(servicegroup_ary);
@@ -2754,7 +2833,7 @@ int free_object_data(void) {
 				my_free(this_commandsmember->command);
 			my_free(this_commandsmember);
 			this_commandsmember = next_commandsmember;
-			}
+		}
 
 		/* free memory for the service notification commands */
 		this_commandsmember = this_contact->service_notification_commands;
@@ -2764,7 +2843,7 @@ int free_object_data(void) {
 				my_free(this_commandsmember->command);
 			my_free(this_commandsmember);
 			this_commandsmember = next_commandsmember;
-			}
+		}
 
 		/* free memory for custom variables */
 		this_customvariablesmember = this_contact->custom_variables;
@@ -2774,7 +2853,7 @@ int free_object_data(void) {
 			my_free(this_customvariablesmember->variable_value);
 			my_free(this_customvariablesmember);
 			this_customvariablesmember = next_customvariablesmember;
-			}
+		}
 
 		if (this_contact->alias != this_contact->name)
 			my_free(this_contact->alias);
@@ -2786,7 +2865,7 @@ int free_object_data(void) {
 
 		free_objectlist(&this_contact->contactgroups_ptr);
 		my_free(this_contact);
-		}
+	}
 
 	/* reset pointers */
 	my_free(contact_ary);
@@ -2802,13 +2881,13 @@ int free_object_data(void) {
 			next_contactsmember = this_contactsmember->next;
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
-			}
+		}
 
 		if (this_contactgroup->alias != this_contactgroup->group_name)
 			my_free(this_contactgroup->alias);
 		my_free(this_contactgroup->group_name);
 		my_free(this_contactgroup);
-		}
+	}
 
 	/* reset pointers */
 	my_free(contactgroup_ary);
@@ -2824,7 +2903,7 @@ int free_object_data(void) {
 			next_contactgroupsmember = this_contactgroupsmember->next;
 			my_free(this_contactgroupsmember);
 			this_contactgroupsmember = next_contactgroupsmember;
-			}
+		}
 
 		/* free memory for contacts */
 		this_contactsmember = this_service->contacts;
@@ -2832,7 +2911,7 @@ int free_object_data(void) {
 			next_contactsmember = this_contactsmember->next;
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
-			}
+		}
 
 		/* free memory for custom variables */
 		this_customvariablesmember = this_service->custom_variables;
@@ -2842,7 +2921,7 @@ int free_object_data(void) {
 			my_free(this_customvariablesmember->variable_value);
 			my_free(this_customvariablesmember);
 			this_customvariablesmember = next_customvariablesmember;
-			}
+		}
 
 		if(this_service->display_name != this_service->description)
 			my_free(this_service->display_name);
@@ -2868,7 +2947,7 @@ int free_object_data(void) {
 		my_free(this_service->icon_image);
 		my_free(this_service->icon_image_alt);
 		my_free(this_service);
-		}
+	}
 
 	/* reset pointers */
 	my_free(service_ary);
@@ -2880,7 +2959,7 @@ int free_object_data(void) {
 		my_free(this_command->name);
 		my_free(this_command->command_line);
 		my_free(this_command);
-		}
+	}
 
 	/* reset pointers */
 	my_free(command_ary);
@@ -2896,7 +2975,7 @@ int free_object_data(void) {
 			next_contactgroupsmember = this_contactgroupsmember->next;
 			my_free(this_contactgroupsmember);
 			this_contactgroupsmember = next_contactgroupsmember;
-			}
+		}
 
 		/* free memory for contacts */
 		this_contactsmember = this_serviceescalation->contacts;
@@ -2904,9 +2983,9 @@ int free_object_data(void) {
 			next_contactsmember = this_contactsmember->next;
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
-			}
-		my_free(this_serviceescalation);
 		}
+		my_free(this_serviceescalation);
+	}
 
 	/* reset pointers */
 	my_free(serviceescalation_ary);
@@ -2917,7 +2996,7 @@ int free_object_data(void) {
 		for(i = 0; i < num_objects.servicedependencies; i++)
 			my_free(servicedependency_ary[i]);
 		my_free(servicedependency_ary);
-		}
+	}
 
 
 	/**** free host dependency memory ****/
@@ -2925,7 +3004,7 @@ int free_object_data(void) {
 		for(i = 0; i < num_objects.hostdependencies; i++)
 			my_free(hostdependency_ary[i]);
 		my_free(hostdependency_ary);
-		}
+	}
 
 
 	/**** free host escalation memory ****/
@@ -2938,7 +3017,7 @@ int free_object_data(void) {
 			next_contactgroupsmember = this_contactgroupsmember->next;
 			my_free(this_contactgroupsmember);
 			this_contactgroupsmember = next_contactgroupsmember;
-			}
+		}
 
 		/* free memory for contacts */
 		this_contactsmember = this_hostescalation->contacts;
@@ -2946,9 +3025,9 @@ int free_object_data(void) {
 			next_contactsmember = this_contactsmember->next;
 			my_free(this_contactsmember);
 			this_contactsmember = next_contactsmember;
-			}
-		my_free(this_hostescalation);
 		}
+		my_free(this_hostescalation);
+	}
 
 	/* reset pointers */
 	my_free(hostescalation_ary);
@@ -2957,7 +3036,7 @@ int free_object_data(void) {
 	memset(&num_objects, 0, sizeof(num_objects));
 
 	return OK;
-	}
+}
 
 
 
@@ -3049,7 +3128,7 @@ void fcache_timeperiod(FILE *fp, timeperiod *temp_timeperiod)
 				continue;
 
 			switch(temp_daterange->type) {
-				case DATERANGE_CALENDAR_DATE:
+			case DATERANGE_CALENDAR_DATE:
 				fprintf(fp, "\t%d-%02d-%02d", temp_daterange->syear, temp_daterange->smon + 1, temp_daterange->smday);
 				if((temp_daterange->smday != temp_daterange->emday) || (temp_daterange->smon != temp_daterange->emon) || (temp_daterange->syear != temp_daterange->eyear))
 					fprintf(fp, " - %d-%02d-%02d", temp_daterange->eyear, temp_daterange->emon + 1, temp_daterange->emday);
@@ -3114,7 +3193,7 @@ void fcache_timeperiod(FILE *fp, timeperiod *temp_timeperiod)
 void fcache_command(FILE *fp, command *temp_command)
 {
 	fprintf(fp, "define command {\n\tcommand_name\t%s\n\tcommand_line\t%s\n\t}\n\n",
-		   temp_command->name, temp_command->command_line);
+	        temp_command->name, temp_command->command_line);
 }
 
 void fcache_contactgroup(FILE *fp, contactgroup *temp_contactgroup)
@@ -3422,8 +3501,8 @@ void fcache_hostdependency(FILE *fp, hostdependency *temp_hostdependency)
 		fprintf(fp, "\tdependency_period\t%s\n", temp_hostdependency->dependency_period);
 	fprintf(fp, "\tinherits_parent\t%d\n", temp_hostdependency->inherits_parent);
 	fprintf(fp, "\t%s_failure_options\t%s\n",
-			temp_hostdependency->dependency_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
-			opts2str(temp_hostdependency->failure_options, host_flag_map, 'o'));
+	        temp_hostdependency->dependency_type == NOTIFICATION_DEPENDENCY ? "notification" : "execution",
+	        opts2str(temp_hostdependency->failure_options, host_flag_map, 'o'));
 	fprintf(fp, "\t}\n\n");
 }
 
@@ -3444,7 +3523,8 @@ void fcache_hostescalation(FILE *fp, hostescalation *temp_hostescalation)
 }
 
 /* writes cached object definitions for use by web interface */
-int fcache_objects(char *cache_file) {
+int fcache_objects(char *cache_file)
+{
 	FILE *fp = NULL;
 	time_t current_time = 0L;
 	unsigned int i;
@@ -3460,7 +3540,7 @@ int fcache_objects(char *cache_file) {
 	if(fp == NULL) {
 		logit(NSLOG_CONFIG_WARNING, TRUE, "Warning: Could not open object cache file '%s' for writing!\n", cache_file);
 		return ERROR;
-		}
+	}
 
 	/* write header to cache file */
 	fprintf(fp, "########################################\n");
@@ -3524,5 +3604,5 @@ int fcache_objects(char *cache_file) {
 	fclose(fp);
 
 	return OK;
-	}
+}
 #endif

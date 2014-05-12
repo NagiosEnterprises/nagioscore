@@ -90,7 +90,8 @@ authdata current_authdata;
 
 
 
-int main(void) {
+int main(void)
+{
 	int result = OK;
 
 	/* get the arguments passed in the URL */
@@ -106,7 +107,7 @@ int main(void) {
 	if(result == ERROR) {
 		document_footer();
 		return ERROR;
-		}
+	}
 
 	/* read the CGI configuration file */
 	result = read_cgi_config_file(get_cgi_config_location());
@@ -114,7 +115,7 @@ int main(void) {
 		printf("<P>Error: Could not open CGI configuration file '%s' for reading!</P>\n", get_cgi_config_location());
 		document_footer();
 		return ERROR;
-		}
+	}
 
 	/* read the main configuration file */
 	result = read_main_config_file(main_config_file);
@@ -122,7 +123,7 @@ int main(void) {
 		printf("<P>Error: Could not open main configuration file '%s' for reading!</P>\n", main_config_file);
 		document_footer();
 		return ERROR;
-		}
+	}
 
 	/* read all object configuration data */
 	result = read_all_object_configuration_data(main_config_file, READ_ALL_OBJECT_DATA);
@@ -130,7 +131,7 @@ int main(void) {
 		printf("<P>Error: Could not read some or all object configuration data!</P>\n");
 		document_footer();
 		return ERROR;
-		}
+	}
 
 	/* read all status data */
 	result = read_all_status_data(main_config_file, READ_ALL_STATUS_DATA);
@@ -139,7 +140,7 @@ int main(void) {
 		document_footer();
 		free_memory();
 		return ERROR;
-		}
+	}
 
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
@@ -174,10 +175,11 @@ int main(void) {
 	free_memory();
 
 	return OK;
-	}
+}
 
 
-void document_header(void) {
+void document_header(void)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t expire_time;
 	time_t current_time;
@@ -206,18 +208,20 @@ void document_header(void) {
 	printf("</head>\n");
 
 	return;
-	}
+}
 
 
-void document_footer(void) {
+void document_footer(void)
+{
 
 	printf("</wml>\n");
 
 	return;
-	}
+}
 
 
-int process_cgivars(void) {
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -229,7 +233,7 @@ int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
+		}
 
 		/* we found the hostgroup argument */
 		else if(!strcmp(variables[x], "hostgroup")) {
@@ -238,7 +242,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((hostgroup_name = (char *)strdup(variables[x])) == NULL)
 				hostgroup_name = "";
@@ -248,7 +252,7 @@ int process_cgivars(void) {
 				show_all_hostgroups = TRUE;
 			else
 				show_all_hostgroups = FALSE;
-			}
+		}
 
 		/* we found the host argument */
 		else if(!strcmp(variables[x], "host")) {
@@ -257,12 +261,12 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((host_name = (char *)strdup(variables[x])) == NULL)
 				host_name = "";
 			strip_html_brackets(host_name);
-			}
+		}
 
 		/* we found the service argument */
 		else if(!strcmp(variables[x], "service")) {
@@ -271,12 +275,12 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((service_desc = (char *)strdup(variables[x])) == NULL)
 				service_desc = "";
 			strip_html_brackets(service_desc);
-			}
+		}
 
 
 		/* we found the hostgroup style argument */
@@ -285,7 +289,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "overview"))
 				hostgroup_style = DISPLAY_HOSTGROUP_OVERVIEW;
@@ -301,7 +305,7 @@ int process_cgivars(void) {
 				display_type = DISPLAY_UNHANDLED_PROBLEMS;
 			else
 				display_type = DISPLAY_QUICKSTATS;
-			}
+		}
 
 		/* we found the ping argument */
 		else if(!strcmp(variables[x], "ping")) {
@@ -310,12 +314,12 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((ping_address = (char *)strdup(variables[x])) == NULL)
 				ping_address = "";
 			strip_html_brackets(ping_address);
-			}
+		}
 
 		/* we found the traceroute argument */
 		else if(!strcmp(variables[x], "traceroute")) {
@@ -324,43 +328,46 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((traceroute_address = (char *)strdup(variables[x])) == NULL)
 				traceroute_address = "";
 			strip_html_brackets(traceroute_address);
-			}
-
 		}
+
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
-int validate_arguments(void) {
+int validate_arguments(void)
+{
 	int result = OK;
 	if((strcmp(ping_address, "")) && !is_valid_hostip(ping_address)) {
 		printf("<p>Invalid host name/ip</p>\n");
 		result = ERROR;
-		}
+	}
 	if(strcmp(traceroute_address, "") && !is_valid_hostip(traceroute_address)) {
 		printf("<p>Invalid host name/ip</p>\n");
 		result = ERROR;
-		}
-	return result;
 	}
+	return result;
+}
 
-int is_valid_hostip(char *hostip) {
+int is_valid_hostip(char *hostip)
+{
 	char *valid_domain_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-";
 	if(strcmp(hostip, "") && strlen(hostip) == strspn(hostip, valid_domain_chars) && hostip[0] != '-' && hostip[strlen(hostip) - 1] != '-')
 		return TRUE;
 	return FALSE;
-	}
+}
 
 /* main intro screen */
-void display_index(void) {
+void display_index(void)
+{
 
 
 	/**** MAIN MENU SCREEN (CARD 1) ****/
@@ -459,11 +466,12 @@ void display_index(void) {
 
 
 	return;
-	}
+}
 
 
 /* displays process info */
-void display_process(void) {
+void display_process(void)
+{
 
 
 	/**** MAIN SCREEN (CARD 1) ****/
@@ -478,7 +486,7 @@ void display_process(void) {
 		printf("</p>\n");
 		printf("</card>\n");
 		return;
-		}
+	}
 
 	if(nagios_process_state == STATE_OK)
 		printf("Nagios process is running<br/>\n");
@@ -523,12 +531,13 @@ void display_process(void) {
 
 
 	return;
-	}
+}
 
 
 
 /* displays quick stats */
-void display_quick_stats(void) {
+void display_quick_stats(void)
+{
 	host *temp_host;
 	hoststatus *temp_hoststatus;
 	service *temp_service;
@@ -568,7 +577,7 @@ void display_quick_stats(void) {
 			hosts_pending++;
 		else
 			hosts_up++;
-		}
+	}
 
 	/* check all services */
 	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
@@ -590,7 +599,7 @@ void display_quick_stats(void) {
 			services_pending++;
 		else
 			services_ok++;
-		}
+	}
 
 	printf("<p align='left' mode='nowrap'>\n");
 
@@ -614,12 +623,13 @@ void display_quick_stats(void) {
 	printf("</card>\n");
 
 	return;
-	}
+}
 
 
 
 /* displays hostgroup status overview */
-void display_hostgroup_overview(void) {
+void display_hostgroup_overview(void)
+{
 	hostgroup *temp_hostgroup;
 	hostsmember *temp_member;
 	host *temp_host;
@@ -672,12 +682,12 @@ void display_hostgroup_overview(void) {
 				printf("???");
 			printf("<go href='%s' method='post'><postfield name='host' value='%s'/></go></anchor></td>", STATUSWML_CGI, temp_host->name);
 			printf("<td>%s</td></tr>\n", temp_host->name);
-			}
+		}
 
 		printf("</table>\n");
 
 		printf("<br/>\n");
-		}
+	}
 
 	if(show_all_hostgroups == FALSE)
 		printf("<b><anchor title='View All Hostgroups'>View All Hostgroups<go href='%s' method='post'><postfield name='hostgroup' value='all'/><postfield name='style' value='overview'/></go></anchor></b>\n", STATUSWML_CGI);
@@ -686,11 +696,12 @@ void display_hostgroup_overview(void) {
 	printf("</card>\n");
 
 	return;
-	}
+}
 
 
 /* displays hostgroup status summary */
-void display_hostgroup_summary(void) {
+void display_hostgroup_summary(void)
+{
 	hostgroup *temp_hostgroup;
 	hostsmember *temp_member;
 	host *temp_host;
@@ -785,23 +796,23 @@ void display_hostgroup_summary(void) {
 					services_pending++;
 				else
 					services_ok++;
-				}
 			}
+		}
 
 		printf("<tr><td>Hosts:</td><td>");
 		found = 0;
 		if(hosts_unreachable > 0) {
 			printf("%d UNR", hosts_unreachable);
 			found = 1;
-			}
+		}
 		if(hosts_down > 0) {
 			printf("%s%d DWN", (found == 1) ? ", " : "", hosts_down);
 			found = 1;
-			}
+		}
 		if(hosts_pending > 0) {
 			printf("%s%d PND", (found == 1) ? ", " : "", hosts_pending);
 			found = 1;
-			}
+		}
 		printf("%s%d UP", (found == 1) ? ", " : "", hosts_up);
 		printf("</td></tr>\n");
 		printf("<tr><td>Services:</td><td>");
@@ -809,26 +820,26 @@ void display_hostgroup_summary(void) {
 		if(services_critical > 0) {
 			printf("%d CRI", services_critical);
 			found = 1;
-			}
+		}
 		if(services_warning > 0) {
 			printf("%s%d WRN", (found == 1) ? ", " : "", services_warning);
 			found = 1;
-			}
+		}
 		if(services_unknown > 0) {
 			printf("%s%d UNK", (found == 1) ? ", " : "", services_unknown);
 			found = 1;
-			}
+		}
 		if(services_pending > 0) {
 			printf("%s%d PND", (found == 1) ? ", " : "", services_pending);
 			found = 1;
-			}
+		}
 		printf("%s%d OK", (found == 1) ? ", " : "", services_ok);
 		printf("</td></tr>\n");
 
 		printf("</table>\n");
 
 		printf("<br/>\n");
-		}
+	}
 
 	if(show_all_hostgroups == FALSE)
 		printf("<b><anchor title='View All Hostgroups'>View All Hostgroups<go href='%s' method='post'><postfield name='hostgroup' value='all'/><postfield name='style' value='summary'/></go></anchor></b>\n", STATUSWML_CGI);
@@ -838,12 +849,13 @@ void display_hostgroup_summary(void) {
 	printf("</card>\n");
 
 	return;
-	}
+}
 
 
 
 /* displays host status */
-void display_host(void) {
+void display_host(void)
+{
 	host *temp_host;
 	hoststatus *temp_hoststatus;
 	char last_check[MAX_DATETIME_LENGTH];
@@ -870,7 +882,7 @@ void display_host(void) {
 		printf("</p>\n");
 		printf("</card>\n");
 		return;
-		}
+	}
 
 	/* check authorization */
 	if(is_authorized_for_host(temp_host, &current_authdata) == FALSE) {
@@ -879,7 +891,7 @@ void display_host(void) {
 		printf("</p>\n");
 		printf("</card>\n");
 		return;
-		}
+	}
 
 
 	printf("<table columns='2' align='LL'>\n");
@@ -916,19 +928,19 @@ void display_host(void) {
 	if(temp_hoststatus->checks_enabled == FALSE) {
 		printf("%sChecks disabled", (found == 1) ? ", " : "");
 		found = 1;
-		}
+	}
 	if(temp_hoststatus->notifications_enabled == FALSE) {
 		printf("%sNotifications disabled", (found == 1) ? ", " : "");
 		found = 1;
-		}
+	}
 	if(temp_hoststatus->problem_has_been_acknowledged == TRUE) {
 		printf("%sProblem acknowledged", (found == 1) ? ", " : "");
 		found = 1;
-		}
+	}
 	if(temp_hoststatus->scheduled_downtime_depth > 0) {
 		printf("%sIn scheduled downtime", (found == 1) ? ", " : "");
 		found = 1;
-		}
+	}
 	if(found == 0)
 		printf("N/A");
 	printf("</td></tr>\n");
@@ -998,12 +1010,13 @@ void display_host(void) {
 	printf("</card>\n");
 
 	return;
-	}
+}
 
 
 
 /* displays services on a host */
-void display_host_services(void) {
+void display_host_services(void)
+{
 	service *temp_service;
 	servicestatus *temp_servicestatus;
 
@@ -1044,7 +1057,7 @@ void display_host_services(void) {
 
 		printf("<go href='%s' method='post'><postfield name='host' value='%s'/><postfield name='service' value='%s'/></go></anchor></td>", STATUSWML_CGI, temp_service->host_name, temp_service->description);
 		printf("<td>%s</td></tr>\n", temp_service->description);
-		}
+	}
 
 	printf("</table>\n");
 
@@ -1053,12 +1066,13 @@ void display_host_services(void) {
 	printf("</card>\n");
 
 	return;
-	}
+}
 
 
 
 /* displays service status */
-void display_service(void) {
+void display_service(void)
+{
 	service *temp_service;
 	servicestatus *temp_servicestatus;
 	char last_check[MAX_DATETIME_LENGTH];
@@ -1085,7 +1099,7 @@ void display_service(void) {
 		printf("</p>\n");
 		printf("</card>\n");
 		return;
-		}
+	}
 
 	/* check authorization */
 	if(is_authorized_for_service(temp_service, &current_authdata) == FALSE) {
@@ -1094,7 +1108,7 @@ void display_service(void) {
 		printf("</p>\n");
 		printf("</card>\n");
 		return;
-		}
+	}
 
 
 	printf("<table columns='2' align='LL'>\n");
@@ -1133,19 +1147,19 @@ void display_service(void) {
 	if(temp_servicestatus->checks_enabled == FALSE) {
 		printf("%sChecks disabled", (found == 1) ? ", " : "");
 		found = 1;
-		}
+	}
 	if(temp_servicestatus->notifications_enabled == FALSE) {
 		printf("%sNotifications disabled", (found == 1) ? ", " : "");
 		found = 1;
-		}
+	}
 	if(temp_servicestatus->problem_has_been_acknowledged == TRUE) {
 		printf("%sProblem acknowledged", (found == 1) ? ", " : "");
 		found = 1;
-		}
+	}
 	if(temp_servicestatus->scheduled_downtime_depth > 0) {
 		printf("%sIn scheduled downtime", (found == 1) ? ", " : "");
 		found = 1;
-		}
+	}
 	if(found == 0)
 		printf("N/A");
 	printf("</td></tr>\n");
@@ -1170,23 +1184,21 @@ void display_service(void) {
 	if(temp_servicestatus->checks_enabled == FALSE) {
 		printf("<b><anchor title='Enable Checks'>Enable Checks<go href='%s' method='post'><postfield name='host' value='%s'/>", COMMAND_CGI, escape_string(host_name));
 		printf("<postfield name='service' value='%s'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n", escape_string(service_desc), CMD_ENABLE_SVC_CHECK, CMDMODE_COMMIT);
-		}
-	else {
+	} else {
 		printf("<b><anchor title='Disable Checks'>Disable Checks<go href='%s' method='post'><postfield name='host' value='%s'/>", COMMAND_CGI, escape_string(host_name));
 		printf("<postfield name='service' value='%s'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n", escape_string(service_desc), CMD_DISABLE_SVC_CHECK, CMDMODE_COMMIT);
 
 		printf("<b><anchor title='Schedule Immediate Check'>Schedule Immediate Check<go href='%s' method='post'><postfield name='host' value='%s'/>", COMMAND_CGI, escape_string(host_name));
 		printf("<postfield name='service' value='%s'/><postfield name='start_time' value='%lu'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n", escape_string(service_desc), (unsigned long)current_time, CMD_SCHEDULE_SVC_CHECK, CMDMODE_COMMIT);
-		}
+	}
 
 	if(temp_servicestatus->notifications_enabled == FALSE) {
 		printf("<b><anchor title='Enable Notifications'>Enable Notifications<go href='%s' method='post'><postfield name='host' value='%s'/>", COMMAND_CGI, escape_string(host_name));
 		printf("<postfield name='service' value='%s'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n", escape_string(service_desc), CMD_ENABLE_SVC_NOTIFICATIONS, CMDMODE_COMMIT);
-		}
-	else {
+	} else {
 		printf("<b><anchor title='Disable Notifications'>Disable Notifications<go href='%s' method='post'><postfield name='host' value='%s'/>", COMMAND_CGI, escape_string(host_name));
 		printf("<postfield name='service' value='%s'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n", escape_string(service_desc), CMD_DISABLE_SVC_NOTIFICATIONS, CMDMODE_COMMIT);
-		}
+	}
 
 	printf("</p>\n");
 
@@ -1215,11 +1227,12 @@ void display_service(void) {
 	printf("</card>\n");
 
 	return;
-	}
+}
 
 
 /* displays ping results */
-void display_ping(void) {
+void display_ping(void)
+{
 	char input_buffer[MAX_INPUT_BUFFER];
 	char buffer[MAX_INPUT_BUFFER];
 	char *temp_ptr;
@@ -1243,7 +1256,7 @@ void display_ping(void) {
 		printf("<go href='%s'><postfield name='ping' value='$(address)'/></go>\n", STATUSWML_CGI);
 		printf("</do>\n");
 		printf("</p>\n");
-		}
+	}
 
 	else {
 
@@ -1268,20 +1281,19 @@ void display_ping(void) {
 					if(strlen(buffer) + strlen(temp_ptr) < sizeof(buffer) - 1) {
 						strncat(buffer, temp_ptr, sizeof(buffer) - strlen(buffer) - 1);
 						buffer[sizeof(buffer) - 1] = '\x0';
-						}
-					in_macro = TRUE;
 					}
-				else {
+					in_macro = TRUE;
+				} else {
 
 					if(strlen(buffer) + strlen(temp_ptr) < sizeof(buffer) - 1) {
 
 						if(!strcmp(temp_ptr, "HOSTADDRESS"))
 							strncat(buffer, ping_address, sizeof(buffer) - strlen(buffer) - 1);
-						}
+					}
 
 					in_macro = FALSE;
-					}
 				}
+			}
 
 			/* run the ping command */
 			fp = popen(buffer, "r");
@@ -1296,30 +1308,29 @@ void display_ping(void) {
 					if(odd) {
 						odd = 0;
 						printf("%s<br/>\n", buffer);
-						}
-					else {
+					} else {
 						odd = 1;
 						printf("<b>%s</b><br/>\n", buffer);
-						}
 					}
 				}
-			else
+			} else
 				printf("Error executing ping!\n");
 
 			pclose(fp);
-			}
+		}
 
 		printf("</p>\n");
-		}
+	}
 
 	printf("</card>\n");
 
 	return;
-	}
+}
 
 
 /* displays traceroute results */
-void display_traceroute(void) {
+void display_traceroute(void)
+{
 	char buffer[MAX_INPUT_BUFFER];
 	FILE *fp;
 	int odd = 0;
@@ -1340,7 +1351,7 @@ void display_traceroute(void) {
 		printf("<go href='%s'><postfield name='traceroute' value='$(address)'/></go>\n", STATUSWML_CGI);
 		printf("</do>\n");
 		printf("</p>\n");
-		}
+	}
 
 	else {
 
@@ -1365,30 +1376,29 @@ void display_traceroute(void) {
 				if(odd) {
 					odd = 0;
 					printf("%s<br/>\n", buffer);
-					}
-				else {
+				} else {
 					odd = 1;
 					printf("<b>%s</b><br/>\n", buffer);
-					}
 				}
 			}
-		else
+		} else
 			printf("Error executing traceroute!\n");
 
 		pclose(fp);
 
 		printf("</p>\n");
-		}
+	}
 
 	printf("</card>\n");
 
 	return;
-	}
+}
 
 
 
 /* displays problems */
-void display_problems(void) {
+void display_problems(void)
+{
 	host *temp_host;
 	service *temp_service;
 	hoststatus *temp_hoststatus;
@@ -1425,7 +1435,7 @@ void display_problems(void) {
 				continue;
 			if(temp_hoststatus->scheduled_downtime_depth > 0)
 				continue;
-			}
+		}
 
 		total_host_problems++;
 
@@ -1438,7 +1448,7 @@ void display_problems(void) {
 			printf("???");
 		printf("<go href='%s' method='post'><postfield name='host' value='%s'/></go></anchor></td>", STATUSWML_CGI, temp_host->name);
 		printf("<td>%s</td></tr>\n", temp_host->name);
-		}
+	}
 
 	if(total_host_problems == 0)
 		printf("<tr><td>No problems</td></tr>\n");
@@ -1477,8 +1487,8 @@ void display_problems(void) {
 					continue;
 				if(temp_hoststatus->problem_has_been_acknowledged == TRUE)
 					continue;
-				}
 			}
+		}
 
 		total_service_problems++;
 
@@ -1493,7 +1503,7 @@ void display_problems(void) {
 			printf("???");
 		printf("<go href='%s' method='post'><postfield name='host' value='%s'/><postfield name='service' value='%s'/></go></anchor></td>", STATUSWML_CGI, temp_service->host_name, temp_service->description);
 		printf("<td>%s/%s</td></tr>\n", temp_service->host_name, temp_service->description);
-		}
+	}
 
 	if(total_service_problems == 0)
 		printf("<tr><td>No problems</td></tr>\n");
@@ -1505,4 +1515,4 @@ void display_problems(void) {
 	printf("</card>\n");
 
 	return;
-	}
+}

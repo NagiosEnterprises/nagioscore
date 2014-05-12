@@ -41,7 +41,8 @@
 
 
 /* handles service check results in an obsessive compulsive manner... */
-int obsessive_compulsive_service_check_processor(service *svc) {
+int obsessive_compulsive_service_check_processor(service *svc)
+{
 	char *raw_command = NULL;
 	char *processed_command = NULL;
 	host *temp_host = NULL;
@@ -75,7 +76,7 @@ int obsessive_compulsive_service_check_processor(service *svc) {
 	if(raw_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		return ERROR;
-		}
+	}
 
 	log_debug_info(DEBUGL_CHECKS, 2, "Raw obsessive compulsive service processor command line: %s\n", raw_command);
 
@@ -85,7 +86,7 @@ int obsessive_compulsive_service_check_processor(service *svc) {
 	if(processed_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		return ERROR;
-		}
+	}
 
 	log_debug_info(DEBUGL_CHECKS, 2, "Processed obsessive compulsive service processor command line: %s\n", processed_command);
 
@@ -97,12 +98,13 @@ int obsessive_compulsive_service_check_processor(service *svc) {
 	my_free(processed_command);
 
 	return OK;
-	}
+}
 
 
 
 /* handles host check results in an obsessive compulsive manner... */
-int obsessive_compulsive_host_check_processor(host *hst) {
+int obsessive_compulsive_host_check_processor(host *hst)
+{
 	char *raw_command = NULL;
 	char *processed_command = NULL;
 	int macro_options = STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
@@ -130,7 +132,7 @@ int obsessive_compulsive_host_check_processor(host *hst) {
 	if(raw_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		return ERROR;
-		}
+	}
 
 	log_debug_info(DEBUGL_CHECKS, 2, "Raw obsessive compulsive host processor command line: %s\n", raw_command);
 
@@ -140,7 +142,7 @@ int obsessive_compulsive_host_check_processor(host *hst) {
 	if(processed_command == NULL) {
 		clear_volatile_macros_r(&mac);
 		return ERROR;
-		}
+	}
 
 	log_debug_info(DEBUGL_CHECKS, 2, "Processed obsessive compulsive host processor command line: %s\n", processed_command);
 
@@ -152,7 +154,7 @@ int obsessive_compulsive_host_check_processor(host *hst) {
 	my_free(processed_command);
 
 	return OK;
-	}
+}
 
 
 
@@ -163,7 +165,8 @@ int obsessive_compulsive_host_check_processor(host *hst) {
 
 
 /* handles changes in the state of a service */
-int handle_service_event(service *svc) {
+int handle_service_event(service *svc)
+{
 	host *temp_host = NULL;
 	nagios_macros mac;
 
@@ -201,12 +204,13 @@ int handle_service_event(service *svc) {
 	clear_volatile_macros_r(&mac);
 
 	return OK;
-	}
+}
 
 
 
 /* runs the global service event handler */
-int run_global_service_event_handler(nagios_macros *mac, service *svc) {
+int run_global_service_event_handler(nagios_macros *mac, service *svc)
+{
 	char *raw_command = NULL;
 	char *processed_command = NULL;
 	char *raw_logentry = NULL;
@@ -247,7 +251,7 @@ int run_global_service_event_handler(nagios_macros *mac, service *svc) {
 	get_raw_command_line_r(mac, global_service_event_handler_ptr, global_service_event_handler, &raw_command, macro_options);
 	if(raw_command == NULL) {
 		return ERROR;
-		}
+	}
 
 	log_debug_info(DEBUGL_EVENTHANDLERS, 2, "Raw global service event handler command line: %s\n", raw_command);
 
@@ -263,7 +267,7 @@ int run_global_service_event_handler(nagios_macros *mac, service *svc) {
 		asprintf(&raw_logentry, "GLOBAL SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n", svc->host_name, svc->description, global_service_event_handler);
 		process_macros_r(mac, raw_logentry, &processed_logentry, macro_options);
 		logit(NSLOG_EVENT_HANDLER, FALSE, "%s", processed_logentry);
-		}
+	}
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
@@ -277,7 +281,7 @@ int run_global_service_event_handler(nagios_macros *mac, service *svc) {
 		my_free(raw_logentry);
 		my_free(processed_logentry);
 		return OK;
-		}
+	}
 #endif
 
 	/* run the command through a worker */
@@ -305,12 +309,13 @@ int run_global_service_event_handler(nagios_macros *mac, service *svc) {
 	my_free(processed_logentry);
 
 	return OK;
-	}
+}
 
 
 
 /* runs a service event handler command */
-int run_service_event_handler(nagios_macros *mac, service *svc) {
+int run_service_event_handler(nagios_macros *mac, service *svc)
+{
 	char *raw_command = NULL;
 	char *processed_command = NULL;
 	char *raw_logentry = NULL;
@@ -363,7 +368,7 @@ int run_service_event_handler(nagios_macros *mac, service *svc) {
 		asprintf(&raw_logentry, "SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n", svc->host_name, svc->description, svc->event_handler);
 		process_macros_r(mac, raw_logentry, &processed_logentry, macro_options);
 		logit(NSLOG_EVENT_HANDLER, FALSE, "%s", processed_logentry);
-		}
+	}
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
@@ -377,7 +382,7 @@ int run_service_event_handler(nagios_macros *mac, service *svc) {
 		my_free(raw_logentry);
 		my_free(processed_logentry);
 		return OK;
-		}
+	}
 #endif
 
 	/* run the command through a worker */
@@ -405,7 +410,7 @@ int run_service_event_handler(nagios_macros *mac, service *svc) {
 	my_free(processed_logentry);
 
 	return OK;
-	}
+}
 
 
 
@@ -416,7 +421,8 @@ int run_service_event_handler(nagios_macros *mac, service *svc) {
 
 
 /* handles a change in the status of a host */
-int handle_host_event(host *hst) {
+int handle_host_event(host *hst)
+{
 	nagios_macros mac;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_host_event()\n");
@@ -447,11 +453,12 @@ int handle_host_event(host *hst) {
 		run_host_event_handler(&mac, hst);
 
 	return OK;
-	}
+}
 
 
 /* runs the global host event handler */
-int run_global_host_event_handler(nagios_macros *mac, host *hst) {
+int run_global_host_event_handler(nagios_macros *mac, host *hst)
+{
 	char *raw_command = NULL;
 	char *processed_command = NULL;
 	char *raw_logentry = NULL;
@@ -507,7 +514,7 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 		asprintf(&raw_logentry, "GLOBAL HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n", hst->name, global_host_event_handler);
 		process_macros_r(mac, raw_logentry, &processed_logentry, macro_options);
 		logit(NSLOG_EVENT_HANDLER, FALSE, "%s", processed_logentry);
-		}
+	}
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
@@ -521,7 +528,7 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 		my_free(raw_logentry);
 		my_free(processed_logentry);
 		return OK;
-		}
+	}
 #endif
 
 	/* run the command through a worker */
@@ -549,11 +556,12 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 	my_free(processed_logentry);
 
 	return OK;
-	}
+}
 
 
 /* runs a host event handler command */
-int run_host_event_handler(nagios_macros *mac, host *hst) {
+int run_host_event_handler(nagios_macros *mac, host *hst)
+{
 	char *raw_command = NULL;
 	char *processed_command = NULL;
 	char *raw_logentry = NULL;
@@ -605,7 +613,7 @@ int run_host_event_handler(nagios_macros *mac, host *hst) {
 		asprintf(&raw_logentry, "HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n", hst->name, hst->event_handler);
 		process_macros_r(mac, raw_logentry, &processed_logentry, macro_options);
 		logit(NSLOG_EVENT_HANDLER, FALSE, "%s", processed_logentry);
-		}
+	}
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
@@ -619,7 +627,7 @@ int run_host_event_handler(nagios_macros *mac, host *hst) {
 		my_free(raw_logentry);
 		my_free(processed_logentry);
 		return OK;
-		}
+	}
 #endif
 
 	/* run the command through a worker */
@@ -646,4 +654,4 @@ int run_host_event_handler(nagios_macros *mac, host *hst) {
 	my_free(processed_logentry);
 
 	return OK;
-	}
+}

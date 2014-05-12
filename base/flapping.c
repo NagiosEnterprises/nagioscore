@@ -37,7 +37,8 @@
 
 
 /* detects service flapping */
-void check_for_service_flapping(service *svc, int update, int allow_flapstart_notification) {
+void check_for_service_flapping(service *svc, int update, int allow_flapstart_notification)
+{
 	int update_history = TRUE;
 	int is_flapping = FALSE;
 	register int x = 0;
@@ -77,7 +78,7 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 		if(!should_flap_detect(svc))
 			update_history = FALSE;
 
-		}
+	}
 
 	/* record current service state */
 	if(update_history == TRUE) {
@@ -89,7 +90,7 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 		svc->state_history_index++;
 		if(svc->state_history_index >= MAX_STATE_HISTORY_ENTRIES)
 			svc->state_history_index = 0;
-		}
+	}
 
 	/* calculate overall and curved percent state changes */
 	for(x = 0, y = svc->state_history_index; x < MAX_STATE_HISTORY_ENTRIES; x++) {
@@ -100,7 +101,7 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 			if(y >= MAX_STATE_HISTORY_ENTRIES)
 				y = 0;
 			continue;
-			}
+		}
 
 		if(last_state_history_value != svc->state_history[y])
 			curved_changes += (((double)(x - 1) * (high_curve_value - low_curve_value)) / ((double)(MAX_STATE_HISTORY_ENTRIES - 2))) + low_curve_value;
@@ -110,7 +111,7 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 		y++;
 		if(y >= MAX_STATE_HISTORY_ENTRIES)
 			y = 0;
-		}
+	}
 
 	/* calculate overall percent change in state */
 	curved_percent_change = (double)(((double)curved_changes * 100.0) / (double)(MAX_STATE_HISTORY_ENTRIES - 1));
@@ -153,11 +154,12 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 		clear_service_flap(svc, curved_percent_change, high_threshold, low_threshold);
 
 	return;
-	}
+}
 
 
 /* detects host flapping */
-void check_for_host_flapping(host *hst, int update, int actual_check, int allow_flapstart_notification) {
+void check_for_host_flapping(host *hst, int update, int actual_check, int allow_flapstart_notification)
+{
 	int update_history = TRUE;
 	int is_flapping = FALSE;
 	register int x = 0;
@@ -196,14 +198,14 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 		if(!(hst->flap_detection_options & (1 << hst->current_state)))
 			update_history = FALSE;
 
-		}
+	}
 
 	/* if we didn't have an actual check, only update if we've waited long enough */
 	if(update_history == TRUE && actual_check == FALSE && (current_time - hst->last_state_history_update) < wait_threshold) {
 
 		update_history = FALSE;
 
-		}
+	}
 
 	/* what thresholds should we use (global or host-specific)? */
 	low_threshold = (hst->low_flap_threshold <= 0.0) ? low_host_flap_threshold : hst->low_flap_threshold;
@@ -222,7 +224,7 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 		hst->state_history_index++;
 		if(hst->state_history_index >= MAX_STATE_HISTORY_ENTRIES)
 			hst->state_history_index = 0;
-		}
+	}
 
 	/* calculate overall changes in state */
 	for(x = 0, y = hst->state_history_index; x < MAX_STATE_HISTORY_ENTRIES; x++) {
@@ -233,7 +235,7 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 			if(y >= MAX_STATE_HISTORY_ENTRIES)
 				y = 0;
 			continue;
-			}
+		}
 
 		if(last_state_history_value != hst->state_history[y])
 			curved_changes += (((double)(x - 1) * (high_curve_value - low_curve_value)) / ((double)(MAX_STATE_HISTORY_ENTRIES - 2))) + low_curve_value;
@@ -243,7 +245,7 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 		y++;
 		if(y >= MAX_STATE_HISTORY_ENTRIES)
 			y = 0;
-		}
+	}
 
 	/* calculate overall percent change in state */
 	curved_percent_change = (double)(((double)curved_changes * 100.0) / (double)(MAX_STATE_HISTORY_ENTRIES - 1));
@@ -286,7 +288,7 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 		clear_host_flap(hst, curved_percent_change, high_threshold, low_threshold);
 
 	return;
-	}
+}
 
 
 /******************************************************************/
@@ -295,7 +297,8 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 
 
 /* handles a service that is flapping */
-void set_service_flap(service *svc, double percent_change, double high_threshold, double low_threshold, int allow_flapstart_notification) {
+void set_service_flap(service *svc, double percent_change, double high_threshold, double low_threshold, int allow_flapstart_notification)
+{
 	char *temp_buffer = NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "set_service_flap()\n");
@@ -332,11 +335,12 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 		service_notification(svc, NOTIFICATION_FLAPPINGSTART, NULL, NULL, NOTIFICATION_OPTION_NONE);
 
 	return;
-	}
+}
 
 
 /* handles a service that has stopped flapping */
-void clear_service_flap(service *svc, double percent_change, double high_threshold, double low_threshold) {
+void clear_service_flap(service *svc, double percent_change, double high_threshold, double low_threshold)
+{
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "clear_service_flap()\n");
 
@@ -372,11 +376,12 @@ void clear_service_flap(service *svc, double percent_change, double high_thresho
 	svc->check_flapping_recovery_notification = FALSE;
 
 	return;
-	}
+}
 
 
 /* handles a host that is flapping */
-void set_host_flap(host *hst, double percent_change, double high_threshold, double low_threshold, int allow_flapstart_notification) {
+void set_host_flap(host *hst, double percent_change, double high_threshold, double low_threshold, int allow_flapstart_notification)
+{
 	char *temp_buffer = NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "set_host_flap()\n");
@@ -413,11 +418,12 @@ void set_host_flap(host *hst, double percent_change, double high_threshold, doub
 		host_notification(hst, NOTIFICATION_FLAPPINGSTART, NULL, NULL, NOTIFICATION_OPTION_NONE);
 
 	return;
-	}
+}
 
 
 /* handles a host that has stopped flapping */
-void clear_host_flap(host *hst, double percent_change, double high_threshold, double low_threshold) {
+void clear_host_flap(host *hst, double percent_change, double high_threshold, double low_threshold)
+{
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "clear_host_flap()\n");
 
@@ -453,7 +459,7 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 	hst->check_flapping_recovery_notification = FALSE;
 
 	return;
-	}
+}
 
 
 
@@ -462,7 +468,8 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 /******************************************************************/
 
 /* enables flap detection on a program wide basis */
-void enable_flap_detection_routines(void) {
+void enable_flap_detection_routines(void)
+{
 	unsigned int i;
 	unsigned long attr = MODATTR_FLAP_DETECTION_ENABLED;
 
@@ -493,12 +500,13 @@ void enable_flap_detection_routines(void) {
 	for(i = 0; i < num_objects.services; i++)
 		check_for_service_flapping(service_ary[i], FALSE, TRUE);
 
-	}
+}
 
 
 
 /* disables flap detection on a program wide basis */
-void disable_flap_detection_routines(void) {
+void disable_flap_detection_routines(void)
+{
 	unsigned int i;
 	unsigned long attr = MODATTR_FLAP_DETECTION_ENABLED;
 
@@ -530,12 +538,13 @@ void disable_flap_detection_routines(void) {
 		handle_service_flap_detection_disabled(service_ary[i]);
 
 	return;
-	}
+}
 
 
 
 /* enables flap detection for a specific host */
-void enable_host_flap_detection(host *hst) {
+void enable_host_flap_detection(host *hst)
+{
 	unsigned long attr = MODATTR_FLAP_DETECTION_ENABLED;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "enable_host_flap_detection()\n");
@@ -567,12 +576,13 @@ void enable_host_flap_detection(host *hst) {
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* disables flap detection for a specific host */
-void disable_host_flap_detection(host *hst) {
+void disable_host_flap_detection(host *hst)
+{
 	unsigned long attr = MODATTR_FLAP_DETECTION_ENABLED;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "disable_host_flap_detection()\n");
@@ -601,11 +611,12 @@ void disable_host_flap_detection(host *hst) {
 	handle_host_flap_detection_disabled(hst);
 
 	return;
-	}
+}
 
 
 /* handles the details for a host when flap detection is disabled (globally or per-host) */
-void handle_host_flap_detection_disabled(host *hst) {
+void handle_host_flap_detection_disabled(host *hst)
+{
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_host_flap_detection_disabled()\n");
 
@@ -639,17 +650,18 @@ void handle_host_flap_detection_disabled(host *hst) {
 
 		/* clear the recovery notification flag */
 		hst->check_flapping_recovery_notification = FALSE;
-		}
+	}
 
 	/* update host status */
 	update_host_status(hst, FALSE);
 
 	return;
-	}
+}
 
 
 /* enables flap detection for a specific service */
-void enable_service_flap_detection(service *svc) {
+void enable_service_flap_detection(service *svc)
+{
 	unsigned long attr = MODATTR_FLAP_DETECTION_ENABLED;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "enable_service_flap_detection()\n");
@@ -681,12 +693,13 @@ void enable_service_flap_detection(service *svc) {
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}
 
 
 
 /* disables flap detection for a specific service */
-void disable_service_flap_detection(service *svc) {
+void disable_service_flap_detection(service *svc)
+{
 	unsigned long attr = MODATTR_FLAP_DETECTION_ENABLED;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "disable_service_flap_detection()\n");
@@ -715,11 +728,12 @@ void disable_service_flap_detection(service *svc) {
 	handle_service_flap_detection_disabled(svc);
 
 	return;
-	}
+}
 
 
 /* handles the details for a service when flap detection is disabled (globally or per-service) */
-void handle_service_flap_detection_disabled(service *svc) {
+void handle_service_flap_detection_disabled(service *svc)
+{
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_service_flap_detection_disabled()\n");
 
@@ -753,10 +767,10 @@ void handle_service_flap_detection_disabled(service *svc) {
 
 		/* clear the recovery notification flag */
 		svc->check_flapping_recovery_notification = FALSE;
-		}
+	}
 
 	/* update service status */
 	update_service_status(svc, FALSE);
 
 	return;
-	}
+}

@@ -37,15 +37,17 @@ static FILE *log_fp;
 /******************************************************************/
 
 /* write something to the console */
-static void write_to_console(char *buffer) {
+static void write_to_console(char *buffer)
+{
 	/* should we print to the console? */
 	if(daemon_mode == FALSE)
 		printf("%s\n", buffer);
-	}
+}
 
 
 /* write something to the log file, syslog, and possibly the console */
-static void write_to_logs_and_console(char *buffer, unsigned long data_type, int display) {
+static void write_to_logs_and_console(char *buffer, unsigned long data_type, int display)
+{
 	register int len = 0;
 	register int x = 0;
 
@@ -56,7 +58,7 @@ static void write_to_logs_and_console(char *buffer, unsigned long data_type, int
 			buffer[x] = '\x0';
 		else
 			break;
-		}
+	}
 
 	/* write messages to the logs */
 	write_to_all_logs(buffer, data_type);
@@ -69,12 +71,13 @@ static void write_to_logs_and_console(char *buffer, unsigned long data_type, int
 			return;
 
 		write_to_console(buffer);
-		}
 	}
+}
 
 
 /* The main logging function */
-void logit(int data_type, int display, const char *fmt, ...) {
+void logit(int data_type, int display, const char *fmt, ...)
+{
 	va_list ap;
 	char *buffer = NULL;
 
@@ -82,13 +85,14 @@ void logit(int data_type, int display, const char *fmt, ...) {
 	if(vasprintf(&buffer, fmt, ap) > 0) {
 		write_to_logs_and_console(buffer, data_type, display);
 		free(buffer);
-		}
-	va_end(ap);
 	}
+	va_end(ap);
+}
 
 
 /* write something to the log file and syslog facility */
-int write_to_all_logs(char *buffer, unsigned long data_type) {
+int write_to_all_logs(char *buffer, unsigned long data_type)
+{
 
 	/* write to syslog */
 	write_to_syslog(buffer, data_type);
@@ -97,17 +101,18 @@ int write_to_all_logs(char *buffer, unsigned long data_type) {
 	write_to_log(buffer, data_type, NULL);
 
 	return OK;
-	}
+}
 
 
 /* write something to the log file and syslog facility */
-static void write_to_all_logs_with_timestamp(char *buffer, unsigned long data_type, time_t *timestamp) {
+static void write_to_all_logs_with_timestamp(char *buffer, unsigned long data_type, time_t *timestamp)
+{
 	/* write to syslog */
 	write_to_syslog(buffer, data_type);
 
 	/* write to main log */
 	write_to_log(buffer, data_type, timestamp);
-	}
+}
 
 
 static FILE *open_log_file(void)
@@ -119,9 +124,9 @@ static FILE *open_log_file(void)
 	if(log_fp == NULL) {
 		if (daemon_mode == FALSE) {
 			printf("Warning: Cannot open log file '%s' for writing\n", log_file);
-			}
-		return NULL;
 		}
+		return NULL;
+	}
 
 	(void)fcntl(fileno(log_fp), F_SETFD, FD_CLOEXEC);
 	return log_fp;
@@ -156,7 +161,8 @@ int close_log_file(void)
 }
 
 /* write something to the nagios log file */
-int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) {
+int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp)
+{
 	FILE *fp;
 	time_t log_time = 0L;
 
@@ -193,11 +199,12 @@ int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) {
 #endif
 
 	return OK;
-	}
+}
 
 
 /* write something to the syslog facility */
-int write_to_syslog(char *buffer, unsigned long data_type) {
+int write_to_syslog(char *buffer, unsigned long data_type)
+{
 
 	if(buffer == NULL)
 		return ERROR;
@@ -218,11 +225,12 @@ int write_to_syslog(char *buffer, unsigned long data_type) {
 	syslog(LOG_USER | LOG_INFO, "%s", buffer);
 
 	return OK;
-	}
+}
 
 
 /* write a service problem/recovery to the nagios log file */
-int log_service_event(service *svc) {
+int log_service_event(service *svc)
+{
 	char *temp_buffer = NULL;
 	unsigned long log_options = 0L;
 	host *temp_host = NULL;
@@ -246,21 +254,22 @@ int log_service_event(service *svc) {
 		return ERROR;
 
 	asprintf(&temp_buffer, "SERVICE ALERT: %s;%s;%s;%s;%d;%s\n",
-			 svc->host_name, svc->description,
-			 service_state_name(svc->current_state),
-			 state_type_name(svc->state_type),
-			 svc->current_attempt,
-			 (svc->plugin_output == NULL) ? "" : svc->plugin_output);
+	         svc->host_name, svc->description,
+	         service_state_name(svc->current_state),
+	         state_type_name(svc->state_type),
+	         svc->current_attempt,
+	         (svc->plugin_output == NULL) ? "" : svc->plugin_output);
 
 	write_to_all_logs(temp_buffer, log_options);
 	free(temp_buffer);
 
 	return OK;
-	}
+}
 
 
 /* write a host problem/recovery to the log file */
-int log_host_event(host *hst) {
+int log_host_event(host *hst)
+{
 	char *temp_buffer = NULL;
 	unsigned long log_options = 0L;
 
@@ -273,22 +282,23 @@ int log_host_event(host *hst) {
 		log_options = NSLOG_HOST_UP;
 
 	asprintf(&temp_buffer, "HOST ALERT: %s;%s;%s;%d;%s\n",
-			 hst->name,
-			 host_state_name(hst->current_state),
-			 state_type_name(hst->state_type),
-			 hst->current_attempt,
-			 (hst->plugin_output == NULL) ? "" : hst->plugin_output);
+	         hst->name,
+	         host_state_name(hst->current_state),
+	         state_type_name(hst->state_type),
+	         hst->current_attempt,
+	         (hst->plugin_output == NULL) ? "" : hst->plugin_output);
 
 	write_to_all_logs(temp_buffer, log_options);
 
 	my_free(temp_buffer);
 
 	return OK;
-	}
+}
 
 
 /* logs host states */
-int log_host_states(int type, time_t *timestamp) {
+int log_host_states(int type, time_t *timestamp)
+{
 	char *temp_buffer = NULL;
 	host *temp_host = NULL;;
 
@@ -299,23 +309,24 @@ int log_host_states(int type, time_t *timestamp) {
 	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		asprintf(&temp_buffer, "%s HOST STATE: %s;%s;%s;%d;%s\n", (type == INITIAL_STATES) ? "INITIAL" : "CURRENT",
-				 temp_host->name,
-				 host_state_name(temp_host->current_state),
-				 state_type_name(temp_host->state_type),
-				 temp_host->current_attempt,
-				 (temp_host->plugin_output == NULL) ? "" : temp_host->plugin_output);
+		         temp_host->name,
+		         host_state_name(temp_host->current_state),
+		         state_type_name(temp_host->state_type),
+		         temp_host->current_attempt,
+		         (temp_host->plugin_output == NULL) ? "" : temp_host->plugin_output);
 
 		write_to_all_logs_with_timestamp(temp_buffer, NSLOG_INFO_MESSAGE, timestamp);
 
 		my_free(temp_buffer);
-		}
+	}
 
 	return OK;
-	}
+}
 
 
 /* logs service states */
-int log_service_states(int type, time_t *timestamp) {
+int log_service_states(int type, time_t *timestamp)
+{
 	char *temp_buffer = NULL;
 	service *temp_service = NULL;
 	host *temp_host = NULL;;
@@ -331,24 +342,25 @@ int log_service_states(int type, time_t *timestamp) {
 			continue;
 
 		asprintf(&temp_buffer, "%s SERVICE STATE: %s;%s;%s;%s;%d;%s\n",
-				 (type == INITIAL_STATES) ? "INITIAL" : "CURRENT",
-				 temp_service->host_name, temp_service->description,
-				 service_state_name(temp_service->current_state),
-				 state_type_name(temp_service->state_type),
-				 temp_service->current_attempt,
-				 temp_service->plugin_output);
+		         (type == INITIAL_STATES) ? "INITIAL" : "CURRENT",
+		         temp_service->host_name, temp_service->description,
+		         service_state_name(temp_service->current_state),
+		         state_type_name(temp_service->state_type),
+		         temp_service->current_attempt,
+		         temp_service->plugin_output);
 
 		write_to_all_logs_with_timestamp(temp_buffer, NSLOG_INFO_MESSAGE, timestamp);
 
 		my_free(temp_buffer);
-		}
+	}
 
 	return OK;
-	}
+}
 
 
 /* rotates the main log file */
-int rotate_log_file(time_t rotation_time) {
+int rotate_log_file(time_t rotation_time)
+{
 	char *temp_buffer = NULL;
 	char method_string[16] = "";
 	char *log_archive = NULL;
@@ -361,8 +373,7 @@ int rotate_log_file(time_t rotation_time) {
 
 	if(log_rotation_method == LOG_ROTATION_NONE) {
 		return OK;
-		}
-	else if(log_rotation_method == LOG_ROTATION_HOURLY)
+	} else if(log_rotation_method == LOG_ROTATION_HOURLY)
 		strcpy(method_string, "HOURLY");
 	else if(log_rotation_method == LOG_ROTATION_DAILY)
 		strcpy(method_string, "DAILY");
@@ -388,11 +399,11 @@ int rotate_log_file(time_t rotation_time) {
 
 	/* HACK: If the archive exists, don't overwrite it. This is a hack
 		because the real problem is that some log rotations are executed
-		early and as a result the next log rotatation is scheduled for 
+		early and as a result the next log rotatation is scheduled for
 		the same time as the one that ran early */
 	archive_stat_result = stat(log_archive, &archive_stat);
-	if((0 == archive_stat_result) || 
-			((-1 == archive_stat_result) && (ENOENT != errno))) {
+	if((0 == archive_stat_result) ||
+	   ((-1 == archive_stat_result) && (ENOENT != errno))) {
 		return OK;
 	}
 
@@ -405,7 +416,7 @@ int rotate_log_file(time_t rotation_time) {
 	if(rename_result) {
 		my_free(log_archive);
 		return ERROR;
-		}
+	}
 
 	/* record the log rotation after it has been done... */
 	asprintf(&temp_buffer, "LOG ROTATION: %s\n", method_string);
@@ -418,7 +429,7 @@ int rotate_log_file(time_t rotation_time) {
 	if(stat_result == 0) {
 		chmod(log_file, log_file_stat.st_mode);
 		chown(log_file, log_file_stat.st_uid, log_file_stat.st_gid);
-		}
+	}
 
 	/* log current host and service state if activated */
 	if(log_current_states==TRUE) {
@@ -430,11 +441,12 @@ int rotate_log_file(time_t rotation_time) {
 	my_free(log_archive);
 
 	return OK;
-	}
+}
 
 
 /* record log file version/info */
-int write_log_file_info(time_t *timestamp) {
+int write_log_file_info(time_t *timestamp)
+{
 	char *temp_buffer = NULL;
 
 	/* write log version */
@@ -443,11 +455,12 @@ int write_log_file_info(time_t *timestamp) {
 	my_free(temp_buffer);
 
 	return OK;
-	}
+}
 
 
 /* opens the debug log for writing */
-int open_debug_log(void) {
+int open_debug_log(void)
+{
 
 	/* don't do anything if we're not actually running... */
 	if(verify_config || test_scheduling == TRUE)
@@ -463,11 +476,12 @@ int open_debug_log(void) {
 	(void)fcntl(fileno(debug_file_fp), F_SETFD, FD_CLOEXEC);
 
 	return OK;
-	}
+}
 
 
 /* closes the debug log */
-int close_debug_log(void) {
+int close_debug_log(void)
+{
 
 	if(debug_file_fp != NULL)
 		fclose(debug_file_fp);
@@ -475,11 +489,12 @@ int close_debug_log(void) {
 	debug_file_fp = NULL;
 
 	return OK;
-	}
+}
 
 
 /* write to the debug log */
-int log_debug_info(int level, int verbosity, const char *fmt, ...) {
+int log_debug_info(int level, int verbosity, const char *fmt, ...)
+{
 	va_list ap;
 	char *tmppath = NULL;
 	struct timeval current_time;
@@ -523,11 +538,11 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 
 			/* free memory */
 			my_free(tmppath);
-			}
+		}
 
 		/* open a new file */
 		open_debug_log();
-		}
+	}
 
 	return OK;
-	}
+}

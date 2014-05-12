@@ -84,9 +84,9 @@ int main(int argc, char **argv)
 	destroyed = 0;
 	fot = fanout_create(512);
 	ok_int(fanout_remove(fot, 12398) == NULL, 1,
-		"remove on empty table must yield NULL");
+	       "remove on empty table must yield NULL");
 	ok_int(fanout_get(fot, 123887987) == NULL, 1,
-		"get on empty table must yield NULL");
+	       "get on empty table must yield NULL");
 	for (k = 0; k < 16385; k++) {
 		struct test_data *tdata = calloc(1, sizeof(*td));
 		tdata->key = k;
@@ -96,9 +96,9 @@ int main(int argc, char **argv)
 	td = fanout_get(fot, k - 1);
 	ok_int(td != NULL, 1, "get must get what add inserts");
 	ok_int(fanout_remove(fot, k + 1) == NULL, 1,
-		"remove on non-inserted key must yield NULL");
+	       "remove on non-inserted key must yield NULL");
 	ok_int(fanout_get(fot, k + 1) == NULL, 1,
-		"get on non-inserted must yield NULL");
+	       "get on non-inserted must yield NULL");
 	fanout_destroy(fot, pdest);
 	ok_int((int)destroyed, (int)k, "destroy counter while free()'ing");
 

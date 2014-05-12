@@ -51,9 +51,10 @@ comment     **comment_hashlist = NULL;
 
 
 /* initializes comment data */
-int initialize_comment_data(void) {
+int initialize_comment_data(void)
+{
 	return xcddefault_initialize_comment_data();
-	}
+}
 
 
 /******************************************************************/
@@ -62,7 +63,8 @@ int initialize_comment_data(void) {
 
 
 /* adds a new host or service comment */
-int add_new_comment(int type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id) {
+int add_new_comment(int type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id)
+{
 	int result;
 	unsigned long new_comment_id = 0L;
 
@@ -80,11 +82,12 @@ int add_new_comment(int type, int entry_type, char *host_name, char *svc_descrip
 		*comment_id = new_comment_id;
 
 	return result;
-	}
+}
 
 
 /* adds a new host comment */
-int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id) {
+int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id)
+{
 	int result;
 	unsigned long new_comment_id = 0L;
 
@@ -100,11 +103,12 @@ int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, cha
 #endif
 
 	return result;
-	}
+}
 
 
 /* adds a new service comment */
-int add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id) {
+int add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id)
+{
 	int result;
 	unsigned long new_comment_id = 0L;
 
@@ -120,7 +124,7 @@ int add_new_service_comment(int entry_type, char *host_name, char *svc_descripti
 #endif
 
 	return result;
-	}
+}
 
 
 
@@ -130,7 +134,8 @@ int add_new_service_comment(int entry_type, char *host_name, char *svc_descripti
 
 
 /* deletes a host or service comment */
-int delete_comment(int type, unsigned long comment_id) {
+int delete_comment(int type, unsigned long comment_id)
+{
 	comment *this_comment = NULL;
 	comment *last_comment = NULL;
 	comment *next_comment = NULL;
@@ -147,7 +152,7 @@ int delete_comment(int type, unsigned long comment_id) {
 			break;
 
 		last_comment = this_comment;
-		}
+	}
 
 	if(this_comment == NULL)
 		return ERROR;
@@ -170,11 +175,11 @@ int delete_comment(int type, unsigned long comment_id) {
 					comment_hashlist[hashslot] = this_hash->nexthash;
 				else
 					comment_hashlist[hashslot] = NULL;
-				}
-			break;
 			}
-			last_hash = this_hash;
+			break;
 		}
+		last_hash = this_hash;
+	}
 
 	/* then removed from linked list */
 	if(comment_list == this_comment)
@@ -190,34 +195,37 @@ int delete_comment(int type, unsigned long comment_id) {
 	my_free(this_comment);
 
 	return OK;
-	}
+}
 
 
 /* deletes a host comment */
-int delete_host_comment(unsigned long comment_id) {
+int delete_host_comment(unsigned long comment_id)
+{
 	int result = OK;
 
 	/* delete the comment from memory */
 	result = delete_comment(HOST_COMMENT, comment_id);
 
 	return result;
-	}
+}
 
 
 
 /* deletes a service comment */
-int delete_service_comment(unsigned long comment_id) {
+int delete_service_comment(unsigned long comment_id)
+{
 	int result = OK;
 
 	/* delete the comment from memory */
 	result = delete_comment(SERVICE_COMMENT, comment_id);
 
 	return result;
-	}
+}
 
 
 /* deletes all comments for a particular host or service */
-int delete_all_comments(int type, char *host_name, char *svc_description) {
+int delete_all_comments(int type, char *host_name, char *svc_description)
+{
 	int result = OK;
 
 	if(type == HOST_COMMENT)
@@ -226,11 +234,12 @@ int delete_all_comments(int type, char *host_name, char *svc_description) {
 		result = delete_all_service_comments(host_name, svc_description);
 
 	return result;
-	}
+}
 
 
 /* deletes all comments for a particular host */
-int delete_all_host_comments(char *host_name) {
+int delete_all_host_comments(char *host_name)
+{
 	int result = OK;
 	comment *temp_comment = NULL;
 	comment *next_comment = NULL;
@@ -243,14 +252,15 @@ int delete_all_host_comments(char *host_name) {
 		next_comment = get_next_comment_by_host(host_name, temp_comment);
 		if(temp_comment->comment_type == HOST_COMMENT)
 			delete_comment(HOST_COMMENT, temp_comment->comment_id);
-		}
+	}
 
 	return result;
-	}
+}
 
 
 /* deletes all non-persistent acknowledgement comments for a particular host */
-int delete_host_acknowledgement_comments(host *hst) {
+int delete_host_acknowledgement_comments(host *hst)
+{
 	int result = OK;
 	comment *temp_comment = NULL;
 	comment *next_comment = NULL;
@@ -264,16 +274,17 @@ int delete_host_acknowledgement_comments(host *hst) {
 		next_comment = get_next_comment_by_host(hst->name, temp_comment);
 		if(temp_comment->comment_type == HOST_COMMENT && temp_comment->entry_type == ACKNOWLEDGEMENT_COMMENT && temp_comment->persistent == FALSE) {
 			delete_comment(HOST_COMMENT, temp_comment->comment_id);
-			}
-		temp_comment = next_comment;
 		}
+		temp_comment = next_comment;
+	}
 
 	return result;
-	}
+}
 
 
 /* deletes all comments for a particular service */
-int delete_all_service_comments(char *host_name, char *svc_description) {
+int delete_all_service_comments(char *host_name, char *svc_description)
+{
 	int result = OK;
 	comment *temp_comment = NULL;
 	comment *next_comment = NULL;
@@ -286,14 +297,15 @@ int delete_all_service_comments(char *host_name, char *svc_description) {
 		next_comment = temp_comment->next;
 		if(temp_comment->comment_type == SERVICE_COMMENT && !strcmp(temp_comment->host_name, host_name) && !strcmp(temp_comment->service_description, svc_description))
 			delete_comment(SERVICE_COMMENT, temp_comment->comment_id);
-		}
+	}
 
 	return result;
-	}
+}
 
 
 /* deletes all non-persistent acknowledgement comments for a particular service */
-int delete_service_acknowledgement_comments(service *svc) {
+int delete_service_acknowledgement_comments(service *svc)
+{
 	int result = OK;
 	comment *temp_comment = NULL;
 	comment *next_comment = NULL;
@@ -306,14 +318,15 @@ int delete_service_acknowledgement_comments(service *svc) {
 		next_comment = temp_comment->next;
 		if(temp_comment->comment_type == SERVICE_COMMENT && !strcmp(temp_comment->host_name, svc->host_name) && !strcmp(temp_comment->service_description, svc->description)  && temp_comment->entry_type == ACKNOWLEDGEMENT_COMMENT && temp_comment->persistent == FALSE)
 			delete_comment(SERVICE_COMMENT, temp_comment->comment_id);
-		}
+	}
 
 	return result;
-	}
+}
 
 
 /* checks for an expired comment (and removes it) */
-int check_for_expired_comment(unsigned long comment_id) {
+int check_for_expired_comment(unsigned long comment_id)
+{
 	comment *temp_comment = NULL;
 
 	/* check all comments */
@@ -323,11 +336,11 @@ int check_for_expired_comment(unsigned long comment_id) {
 		if(temp_comment->comment_id == comment_id && temp_comment->expires == TRUE && temp_comment->expire_time < time(NULL)) {
 			delete_comment(temp_comment->comment_type, comment_id);
 			break;
-			}
 		}
+	}
 
 	return OK;
-	}
+}
 
 
 #endif
@@ -341,7 +354,8 @@ int check_for_expired_comment(unsigned long comment_id) {
 /******************************************************************/
 
 /* adds comment to hash list in memory */
-int add_comment_to_hashlist(comment *new_comment) {
+int add_comment_to_hashlist(comment *new_comment)
+{
 	comment *temp_comment = NULL;
 	comment *lastpointer = NULL;
 	int hashslot = 0;
@@ -356,7 +370,7 @@ int add_comment_to_hashlist(comment *new_comment) {
 
 		for(i = 0; i < COMMENT_HASHSLOTS; i++)
 			comment_hashlist[i] = NULL;
-		}
+	}
 
 	if(!new_comment)
 		return 0;
@@ -367,7 +381,7 @@ int add_comment_to_hashlist(comment *new_comment) {
 		if(compare_hashdata(temp_comment->host_name, NULL, new_comment->host_name, NULL) >= 0)
 			break;
 		lastpointer = temp_comment;
-		}
+	}
 
 	/* multiples are allowed */
 	if(lastpointer)
@@ -377,7 +391,7 @@ int add_comment_to_hashlist(comment *new_comment) {
 	new_comment->nexthash = temp_comment;
 
 	return 1;
-	}
+}
 
 
 
@@ -387,29 +401,32 @@ int add_comment_to_hashlist(comment *new_comment) {
 
 
 /* adds a host comment to the list in memory */
-int add_host_comment(int entry_type, char *host_name, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source) {
+int add_host_comment(int entry_type, char *host_name, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source)
+{
 	int result = OK;
 
 	result = add_comment(HOST_COMMENT, entry_type, host_name, NULL, entry_time, author, comment_data, comment_id, persistent, expires, expire_time, source);
 
 	return result;
-	}
+}
 
 
 
 /* adds a service comment to the list in memory */
-int add_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source) {
+int add_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source)
+{
 	int result = OK;
 
 	result = add_comment(SERVICE_COMMENT, entry_type, host_name, svc_description, entry_time, author, comment_data, comment_id, persistent, expires, expire_time, source);
 
 	return result;
-	}
+}
 
 
 
 /* adds a comment to the list in memory */
-int add_comment(int comment_type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source) {
+int add_comment(int comment_type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source)
+{
 	comment *new_comment = NULL;
 	comment *last_comment = NULL;
 	comment *temp_comment = NULL;
@@ -429,7 +446,7 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 	if(comment_type == SERVICE_COMMENT) {
 		if((new_comment->service_description = (char *)strdup(svc_description)) == NULL)
 			result = ERROR;
-		}
+	}
 	if((new_comment->author = (char *)strdup(author)) == NULL)
 		result = ERROR;
 	if((new_comment->comment_data = (char *)strdup(comment_data)) == NULL)
@@ -448,7 +465,7 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 	if(result == OK) {
 		if(!add_comment_to_hashlist(new_comment))
 			result = ERROR;
-		}
+	}
 
 	/* handle errors */
 	if(result == ERROR) {
@@ -458,13 +475,12 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 		my_free(new_comment->host_name);
 		my_free(new_comment);
 		return ERROR;
-		}
+	}
 
 	if(defer_comment_sorting) {
 		new_comment->next = comment_list;
 		comment_list = new_comment;
-		}
-	else {
+	} else {
 		/* add new comment to comment list, sorted by comment id */
 		last_comment = comment_list;
 		for(temp_comment = comment_list; temp_comment != NULL; temp_comment = temp_comment->next) {
@@ -475,19 +491,17 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 				else
 					last_comment->next = new_comment;
 				break;
-				}
-			else
+			} else
 				last_comment = temp_comment;
-			}
+		}
 		if(comment_list == NULL) {
 			new_comment->next = NULL;
 			comment_list = new_comment;
-			}
-		else if(temp_comment == NULL) {
+		} else if(temp_comment == NULL) {
 			new_comment->next = NULL;
 			last_comment->next = new_comment;
-			}
 		}
+	}
 
 #ifdef NSCORE
 #ifdef USE_EVENT_BROKER
@@ -497,15 +511,17 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 #endif
 
 	return OK;
-	}
+}
 
-static int comment_compar(const void *p1, const void *p2) {
+static int comment_compar(const void *p1, const void *p2)
+{
 	comment *c1 = *(comment **)p1;
 	comment *c2 = *(comment **)p2;
 	return c1->comment_id - c2->comment_id;
-	}
+}
 
-int sort_comments(void) {
+int sort_comments(void)
+{
 	comment **array, *temp_comment;
 	unsigned long i = 0, unsorted_comments = 0;
 
@@ -517,7 +533,7 @@ int sort_comments(void) {
 	while(temp_comment != NULL) {
 		temp_comment = temp_comment->next;
 		unsorted_comments++;
-		}
+	}
 
 	if(!unsorted_comments)
 		return OK;
@@ -527,25 +543,26 @@ int sort_comments(void) {
 	while(comment_list) {
 		array[i++] = comment_list;
 		comment_list = comment_list->next;
-		}
+	}
 
 	qsort((void *)array, i, sizeof(*array), comment_compar);
 	comment_list = temp_comment = array[0];
 	for(i = 1; i < unsorted_comments; i++) {
 		temp_comment->next = array[i];
 		temp_comment = temp_comment->next;
-		}
+	}
 	temp_comment->next = NULL;
 	my_free(array);
 	return OK;
-	}
+}
 
 /******************************************************************/
 /********************* CLEANUP FUNCTIONS **************************/
 /******************************************************************/
 
 /* frees memory allocated for the comment data */
-void free_comment_data(void) {
+void free_comment_data(void)
+{
 	comment *this_comment = NULL;
 	comment *next_comment = NULL;
 
@@ -557,7 +574,7 @@ void free_comment_data(void) {
 		my_free(this_comment->author);
 		my_free(this_comment->comment_data);
 		my_free(this_comment);
-		}
+	}
 
 	/* free hash list and reset list pointer */
 	my_free(comment_hashlist);
@@ -565,7 +582,7 @@ void free_comment_data(void) {
 	comment_list = NULL;
 
 	return;
-	}
+}
 
 
 
@@ -575,7 +592,8 @@ void free_comment_data(void) {
 /******************************************************************/
 
 /* get the number of comments associated with a particular host */
-int number_of_host_comments(char *host_name) {
+int number_of_host_comments(char *host_name)
+{
 	comment *temp_comment = NULL;
 	int total_comments = 0;
 
@@ -585,14 +603,15 @@ int number_of_host_comments(char *host_name) {
 	for(temp_comment = get_first_comment_by_host(host_name); temp_comment != NULL; temp_comment = get_next_comment_by_host(host_name, temp_comment)) {
 		if(temp_comment->comment_type == HOST_COMMENT)
 			total_comments++;
-		}
+	}
 
 	return total_comments;
-	}
+}
 
 
 /* get the number of comments associated with a particular service */
-int number_of_service_comments(char *host_name, char *svc_description) {
+int number_of_service_comments(char *host_name, char *svc_description)
+{
 	comment *temp_comment = NULL;
 	int total_comments = 0;
 
@@ -602,10 +621,10 @@ int number_of_service_comments(char *host_name, char *svc_description) {
 	for(temp_comment = get_first_comment_by_host(host_name); temp_comment != NULL; temp_comment = get_next_comment_by_host(host_name, temp_comment)) {
 		if(temp_comment->comment_type == SERVICE_COMMENT && !strcmp(temp_comment->service_description, svc_description))
 			total_comments++;
-		}
+	}
 
 	return total_comments;
-	}
+}
 
 
 
@@ -613,13 +632,15 @@ int number_of_service_comments(char *host_name, char *svc_description) {
 /********************* TRAVERSAL FUNCTIONS ************************/
 /******************************************************************/
 
-comment *get_first_comment_by_host(char *host_name) {
+comment *get_first_comment_by_host(char *host_name)
+{
 
 	return get_next_comment_by_host(host_name, NULL);
-	}
+}
 
 
-comment *get_next_comment_by_host(char *host_name, comment *start) {
+comment *get_next_comment_by_host(char *host_name, comment *start)
+{
 	comment *temp_comment = NULL;
 
 	if(host_name == NULL || comment_hashlist == NULL)
@@ -636,7 +657,7 @@ comment *get_next_comment_by_host(char *host_name, comment *start) {
 		return temp_comment;
 
 	return NULL;
-	}
+}
 
 
 
@@ -645,27 +666,30 @@ comment *get_next_comment_by_host(char *host_name, comment *start) {
 /******************************************************************/
 
 /* find a service comment by id */
-comment *find_service_comment(unsigned long comment_id) {
+comment *find_service_comment(unsigned long comment_id)
+{
 
 	return find_comment(comment_id, SERVICE_COMMENT);
-	}
+}
 
 
 /* find a host comment by id */
-comment *find_host_comment(unsigned long comment_id) {
+comment *find_host_comment(unsigned long comment_id)
+{
 
 	return find_comment(comment_id, HOST_COMMENT);
-	}
+}
 
 
 /* find a comment by id */
-comment *find_comment(unsigned long comment_id, int comment_type) {
+comment *find_comment(unsigned long comment_id, int comment_type)
+{
 	comment *temp_comment = NULL;
 
 	for(temp_comment = comment_list; temp_comment != NULL; temp_comment = temp_comment->next) {
 		if(temp_comment->comment_id == comment_id && temp_comment->comment_type == comment_type)
 			return temp_comment;
-		}
+	}
 
 	return NULL;
-	}
+}

@@ -57,13 +57,15 @@ extern int      use_pending_states;
 /******************************************************************/
 
 /* initializes status data at program start */
-int initialize_status_data(const char *cfgfile) {
+int initialize_status_data(const char *cfgfile)
+{
 	return xsddefault_initialize_status_data(cfgfile);
-	}
+}
 
 
 /* update all status data (aggregated dump) */
-int update_all_status_data(void) {
+int update_all_status_data(void)
+{
 	int result = OK;
 
 #ifdef USE_EVENT_BROKER
@@ -78,18 +80,20 @@ int update_all_status_data(void) {
 	broker_aggregated_status_data(NEBTYPE_AGGREGATEDSTATUS_ENDDUMP, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 	return result;
-	}
+}
 
 
 /* cleans up status data before program termination */
-int cleanup_status_data(int delete_status_data) {
+int cleanup_status_data(int delete_status_data)
+{
 	return xsddefault_cleanup_status_data(delete_status_data);
-	}
+}
 
 
 
 /* updates program status info */
-int update_program_status(int aggregated_dump) {
+int update_program_status(int aggregated_dump)
+{
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker (non-aggregated dumps only) */
@@ -98,12 +102,13 @@ int update_program_status(int aggregated_dump) {
 #endif
 
 	return OK;
-	}
+}
 
 
 
 /* updates host status info */
-int update_host_status(host *hst, int aggregated_dump) {
+int update_host_status(host *hst, int aggregated_dump)
+{
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker (non-aggregated dumps only) */
@@ -112,12 +117,13 @@ int update_host_status(host *hst, int aggregated_dump) {
 #endif
 
 	return OK;
-	}
+}
 
 
 
 /* updates service status info */
-int update_service_status(service *svc, int aggregated_dump) {
+int update_service_status(service *svc, int aggregated_dump)
+{
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker (non-aggregated dumps only) */
@@ -126,12 +132,13 @@ int update_service_status(service *svc, int aggregated_dump) {
 #endif
 
 	return OK;
-	}
+}
 
 
 
 /* updates contact status info */
-int update_contact_status(contact *cntct, int aggregated_dump) {
+int update_contact_status(contact *cntct, int aggregated_dump)
+{
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker (non-aggregated dumps only) */
@@ -140,7 +147,7 @@ int update_contact_status(contact *cntct, int aggregated_dump) {
 #endif
 
 	return OK;
-	}
+}
 #endif
 
 
@@ -155,9 +162,10 @@ int update_contact_status(contact *cntct, int aggregated_dump) {
 
 
 /* reads in all status data */
-int read_status_data(const char *cfgfile, int options) {
+int read_status_data(const char *cfgfile, int options)
+{
 	return xsddefault_read_status_data(cfgfile, options);
-	}
+}
 
 
 
@@ -166,7 +174,8 @@ int read_status_data(const char *cfgfile, int options) {
 /******************************************************************/
 
 /* adds hoststatus to hash list in memory */
-int add_hoststatus_to_hashlist(hoststatus *new_hoststatus) {
+int add_hoststatus_to_hashlist(hoststatus *new_hoststatus)
+{
 	hoststatus *temp_hoststatus = NULL;
 	hoststatus *lastpointer = NULL;
 	int hashslot = 0;
@@ -181,7 +190,7 @@ int add_hoststatus_to_hashlist(hoststatus *new_hoststatus) {
 
 		for(i = 0; i < HOSTSTATUS_HASHSLOTS; i++)
 			hoststatus_hashlist[i] = NULL;
-		}
+	}
 
 	if(!new_hoststatus)
 		return 0;
@@ -199,14 +208,15 @@ int add_hoststatus_to_hashlist(hoststatus *new_hoststatus) {
 		new_hoststatus->nexthash = temp_hoststatus;
 
 		return 1;
-		}
+	}
 
 	/* else already exists */
 	return 0;
-	}
+}
 
 
-int add_servicestatus_to_hashlist(servicestatus *new_servicestatus) {
+int add_servicestatus_to_hashlist(servicestatus *new_servicestatus)
+{
 	servicestatus *temp_servicestatus = NULL, *lastpointer = NULL;
 	int hashslot = 0;
 	int i = 0;
@@ -220,7 +230,7 @@ int add_servicestatus_to_hashlist(servicestatus *new_servicestatus) {
 
 		for(i = 0; i < SERVICESTATUS_HASHSLOTS; i++)
 			servicestatus_hashlist[i] = NULL;
-		}
+	}
 
 	if(!new_servicestatus)
 		return 0;
@@ -239,11 +249,11 @@ int add_servicestatus_to_hashlist(servicestatus *new_servicestatus) {
 
 
 		return 1;
-		}
+	}
 
 	/* else already exists */
 	return 0;
-	}
+}
 
 
 
@@ -253,7 +263,8 @@ int add_servicestatus_to_hashlist(servicestatus *new_servicestatus) {
 
 
 /* adds a host status entry to the list in memory */
-int add_host_status(hoststatus *new_hoststatus) {
+int add_host_status(hoststatus *new_hoststatus)
+{
 	char date_string[MAX_DATETIME_LENGTH];
 
 	/* make sure we have what we need */
@@ -265,19 +276,19 @@ int add_host_status(hoststatus *new_hoststatus) {
 	/* massage host status a bit */
 	if(new_hoststatus != NULL) {
 		switch(new_hoststatus->status) {
-			case 0:
-				new_hoststatus->status = SD_HOST_UP;
-				break;
-			case 1:
-				new_hoststatus->status = SD_HOST_DOWN;
-				break;
-			case 2:
-				new_hoststatus->status = SD_HOST_UNREACHABLE;
-				break;
-			default:
-				new_hoststatus->status = SD_HOST_UP;
-				break;
-			}
+		case 0:
+			new_hoststatus->status = SD_HOST_UP;
+			break;
+		case 1:
+			new_hoststatus->status = SD_HOST_DOWN;
+			break;
+		case 2:
+			new_hoststatus->status = SD_HOST_UNREACHABLE;
+			break;
+		default:
+			new_hoststatus->status = SD_HOST_UP;
+			break;
+		}
 		if(new_hoststatus->has_been_checked == FALSE) {
 			if(use_pending_states == TRUE)
 				new_hoststatus->status = HOST_PENDING;
@@ -285,19 +296,18 @@ int add_host_status(hoststatus *new_hoststatus) {
 			if(new_hoststatus->should_be_scheduled == TRUE) {
 				get_time_string(&new_hoststatus->next_check, date_string, sizeof(date_string), LONG_DATE_TIME);
 				asprintf(&new_hoststatus->plugin_output, "Host check scheduled for %s", date_string);
-				}
-			else {
+			} else {
 				/* passive-only hosts that have just been scheduled for a forced check */
 				if(new_hoststatus->checks_enabled == FALSE && new_hoststatus->next_check != (time_t)0L && (new_hoststatus->check_options & CHECK_OPTION_FORCE_EXECUTION)) {
 					get_time_string(&new_hoststatus->next_check, date_string, sizeof(date_string), LONG_DATE_TIME);
 					asprintf(&new_hoststatus->plugin_output, "Forced host check scheduled for %s", date_string);
-					}
+				}
 				/* passive-only hosts not scheduled to be checked */
 				else
 					new_hoststatus->plugin_output = (char *)strdup("Host is not scheduled to be checked...");
-				}
 			}
 		}
+	}
 
 	new_hoststatus->next = NULL;
 	new_hoststatus->nexthash = NULL;
@@ -310,18 +320,18 @@ int add_host_status(hoststatus *new_hoststatus) {
 	if(hoststatus_list == NULL) {
 		hoststatus_list = new_hoststatus;
 		hoststatus_list_tail = new_hoststatus;
-		}
-	else {
+	} else {
 		hoststatus_list_tail->next = new_hoststatus;
 		hoststatus_list_tail = new_hoststatus;
-		}
+	}
 
 	return OK;
-	}
+}
 
 
 /* adds a service status entry to the list in memory */
-int add_service_status(servicestatus *new_svcstatus) {
+int add_service_status(servicestatus *new_svcstatus)
+{
 	char date_string[MAX_DATETIME_LENGTH];
 
 	/* make sure we have what we need */
@@ -334,22 +344,22 @@ int add_service_status(servicestatus *new_svcstatus) {
 	/* massage service status a bit */
 	if(new_svcstatus != NULL) {
 		switch(new_svcstatus->status) {
-			case 0:
-				new_svcstatus->status = SERVICE_OK;
-				break;
-			case 1:
-				new_svcstatus->status = SERVICE_WARNING;
-				break;
-			case 2:
-				new_svcstatus->status = SERVICE_CRITICAL;
-				break;
-			case 3:
-				new_svcstatus->status = SERVICE_UNKNOWN;
-				break;
-			default:
-				new_svcstatus->status = SERVICE_OK;
-				break;
-			}
+		case 0:
+			new_svcstatus->status = SERVICE_OK;
+			break;
+		case 1:
+			new_svcstatus->status = SERVICE_WARNING;
+			break;
+		case 2:
+			new_svcstatus->status = SERVICE_CRITICAL;
+			break;
+		case 3:
+			new_svcstatus->status = SERVICE_UNKNOWN;
+			break;
+		default:
+			new_svcstatus->status = SERVICE_OK;
+			break;
+		}
 		if(new_svcstatus->has_been_checked == FALSE) {
 			if(use_pending_states == TRUE)
 				new_svcstatus->status = SERVICE_PENDING;
@@ -357,19 +367,18 @@ int add_service_status(servicestatus *new_svcstatus) {
 			if(new_svcstatus->should_be_scheduled == TRUE) {
 				get_time_string(&new_svcstatus->next_check, date_string, sizeof(date_string), LONG_DATE_TIME);
 				asprintf(&new_svcstatus->plugin_output, "Service check scheduled for %s", date_string);
-				}
-			else {
+			} else {
 				/* passive-only services that have just been scheduled for a forced check */
 				if(new_svcstatus->checks_enabled == FALSE && new_svcstatus->next_check != (time_t)0L && (new_svcstatus->check_options & CHECK_OPTION_FORCE_EXECUTION)) {
 					get_time_string(&new_svcstatus->next_check, date_string, sizeof(date_string), LONG_DATE_TIME);
 					asprintf(&new_svcstatus->plugin_output, "Forced service check scheduled for %s", date_string);
-					}
+				}
 				/* passive-only services not scheduled to be checked */
 				else
 					new_svcstatus->plugin_output = (char *)strdup("Service is not scheduled to be checked...");
-				}
 			}
 		}
+	}
 
 	new_svcstatus->next = NULL;
 	new_svcstatus->nexthash = NULL;
@@ -382,14 +391,13 @@ int add_service_status(servicestatus *new_svcstatus) {
 	if(servicestatus_list == NULL) {
 		servicestatus_list = new_svcstatus;
 		servicestatus_list_tail = new_svcstatus;
-		}
-	else {
+	} else {
 		servicestatus_list_tail->next = new_svcstatus;
 		servicestatus_list_tail = new_svcstatus;
-		}
+	}
 
 	return OK;
-	}
+}
 
 
 
@@ -401,7 +409,8 @@ int add_service_status(servicestatus *new_svcstatus) {
 
 
 /* free all memory for status data */
-void free_status_data(void) {
+void free_status_data(void)
+{
 	hoststatus *this_hoststatus = NULL;
 	hoststatus *next_hoststatus = NULL;
 	servicestatus *this_svcstatus = NULL;
@@ -415,7 +424,7 @@ void free_status_data(void) {
 		my_free(this_hoststatus->long_plugin_output);
 		my_free(this_hoststatus->perf_data);
 		my_free(this_hoststatus);
-		}
+	}
 
 	/* free memory for the service status list */
 	for(this_svcstatus = servicestatus_list; this_svcstatus != NULL; this_svcstatus = next_svcstatus) {
@@ -426,7 +435,7 @@ void free_status_data(void) {
 		my_free(this_svcstatus->long_plugin_output);
 		my_free(this_svcstatus->perf_data);
 		my_free(this_svcstatus);
-		}
+	}
 
 	/* free hash lists reset list pointers */
 	my_free(hoststatus_hashlist);
@@ -435,7 +444,7 @@ void free_status_data(void) {
 	servicestatus_list = NULL;
 
 	return;
-	}
+}
 
 
 
@@ -446,7 +455,8 @@ void free_status_data(void) {
 
 
 /* find a host status entry */
-hoststatus *find_hoststatus(char *host_name) {
+hoststatus *find_hoststatus(char *host_name)
+{
 	hoststatus *temp_hoststatus = NULL;
 
 	if(host_name == NULL || hoststatus_hashlist == NULL)
@@ -458,11 +468,12 @@ hoststatus *find_hoststatus(char *host_name) {
 		return temp_hoststatus;
 
 	return NULL;
-	}
+}
 
 
 /* find a service status entry */
-servicestatus *find_servicestatus(char *host_name, char *svc_desc) {
+servicestatus *find_servicestatus(char *host_name, char *svc_desc)
+{
 	servicestatus *temp_servicestatus = NULL;
 
 	if(host_name == NULL || svc_desc == NULL || servicestatus_hashlist == NULL)
@@ -474,7 +485,7 @@ servicestatus *find_servicestatus(char *host_name, char *svc_desc) {
 		return temp_servicestatus;
 
 	return NULL;
-	}
+}
 
 
 
@@ -485,7 +496,8 @@ servicestatus *find_servicestatus(char *host_name, char *svc_desc) {
 
 
 /* gets the total number of services of a certain state for a specific host */
-int get_servicestatus_count(char *host_name, int type) {
+int get_servicestatus_count(char *host_name, int type)
+{
 	servicestatus *temp_status = NULL;
 	int count = 0;
 
@@ -496,10 +508,10 @@ int get_servicestatus_count(char *host_name, int type) {
 		if(temp_status->status & type) {
 			if(!strcmp(host_name, temp_status->host_name))
 				count++;
-			}
 		}
+	}
 
 	return count;
-	}
+}
 
 #endif

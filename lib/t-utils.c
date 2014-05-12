@@ -54,7 +54,7 @@ int t_end(void)
 	if (!t_depth || failed) {
 		t_indent(t_depth);
 		printf("Test results: %s%u passed%s, %s%u failed%s\n",
-			   green, passed, reset, failed ? red : "", failed, failed ? reset : "");
+		       green, passed, reset, failed ? red : "", failed, failed ? reset : "");
 	}
 
 	return failed ? EXIT_FAILURE : EXIT_SUCCESS;
@@ -87,8 +87,7 @@ int t_ok(int success, const char *fmt, ...)
 		va_start(ap, fmt);
 		t_okv(success, fmt, ap);
 		va_end(ap);
-	}
-	else
+	} else
 		t_okv(success, NULL, NULL);
 
 	return success;

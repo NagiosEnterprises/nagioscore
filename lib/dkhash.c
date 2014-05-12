@@ -96,7 +96,7 @@ static dkhash_bucket *dkhash_get_bucket2(dkhash_table *t, const char *k1, const 
 	for (bkt = t->buckets[slot]; bkt; bkt = bkt->next) {
 		if (!strcmp(k1, bkt->key) && bkt->key2 && !strcmp(k2, bkt->key2))
 			return bkt;
-		}
+	}
 
 	return NULL;
 }
@@ -214,8 +214,7 @@ void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
 			if (prev == bkt) {
 				/* first entry deleted */
 				t->buckets[slot] = bkt->next;
-			}
-			else {
+			} else {
 				prev->next = bkt->next;
 			}
 			t->entries--;
@@ -227,7 +226,8 @@ void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
 	return NULL;
 }
 
-void dkhash_walk_data(dkhash_table *t, int (*walker)(void *)) {
+void dkhash_walk_data(dkhash_table *t, int (*walker)(void *))
+{
 	dkhash_bucket *bkt, *prev;
 	unsigned int i;
 
@@ -253,8 +253,7 @@ void dkhash_walk_data(dkhash_table *t, int (*walker)(void *)) {
 			dkhash_destroy_bucket(bkt);
 			if (depth) {
 				prev->next = next;
-			}
-			else {
+			} else {
 				t->buckets[i] = next;
 			}
 		}

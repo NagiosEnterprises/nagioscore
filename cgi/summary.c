@@ -100,7 +100,7 @@ typedef struct archived_event_struct {
 	int     state_type;
 	char    *event_info;
 	struct archived_event_struct *next;
-	} archived_event;
+} archived_event;
 
 typedef struct alert_producer_struct {
 	int     producer_type;
@@ -108,7 +108,7 @@ typedef struct alert_producer_struct {
 	char    *service_description;
 	int     total_alerts;
 	struct alert_producer_struct *next;
-	} alert_producer;
+} alert_producer;
 
 
 void read_archived_event_data(void);
@@ -194,7 +194,8 @@ int generate_report = FALSE;
 
 
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char start_timestring[MAX_DATETIME_LENGTH];
 	char end_timestring[MAX_DATETIME_LENGTH];
@@ -235,7 +236,7 @@ int main(int argc, char **argv) {
 		t3 = t2;
 		t2 = t1;
 		t1 = t3;
-		}
+	}
 
 	if(display_header == TRUE) {
 
@@ -282,7 +283,7 @@ int main(int argc, char **argv) {
 
 			get_time_breakdown((time_t)(t2 - t1), &days, &hours, &minutes, &seconds);
 			printf("<div align=center class='reportDuration'>Duration: %dd %dh %dm %ds</div>\n", days, hours, minutes, seconds);
-			}
+		}
 
 		printf("</td>\n");
 
@@ -324,11 +325,11 @@ int main(int argc, char **argv) {
 			if(host_states & AE_HOST_UP) {
 				printf("Up");
 				x = 1;
-				}
+			}
 			if(host_states & AE_HOST_DOWN) {
 				printf("%sDown", (x == 1) ? ", " : "");
 				x = 1;
-				}
+			}
 			if(host_states & AE_HOST_UNREACHABLE)
 				printf("%sUnreachable", (x == 1) ? ", " : "");
 			if(x == 0)
@@ -343,15 +344,15 @@ int main(int argc, char **argv) {
 			if(service_states & AE_SERVICE_OK) {
 				printf("Ok");
 				x = 1;
-				}
+			}
 			if(service_states & AE_SERVICE_WARNING) {
 				printf("%sWarning", (x == 1) ? ", " : "");
 				x = 1;
-				}
+			}
 			if(service_states & AE_SERVICE_UNKNOWN) {
 				printf("%sUnknown", (x == 1) ? ", " : "");
 				x = 1;
-				}
+			}
 			if(service_states & AE_SERVICE_CRITICAL)
 				printf("%sCritical", (x == 1) ? ", " : "");
 			if(x == 0)
@@ -386,7 +387,7 @@ int main(int argc, char **argv) {
 			printf("</td></tr>\n");
 
 			printf("</table>\n");
-			}
+		}
 
 		else {
 			printf("<table border=0>\n");
@@ -396,14 +397,14 @@ int main(int argc, char **argv) {
 			printf("</td></tr>\n");
 
 			printf("</table>\n");
-			}
+		}
 
 		printf("</td>\n");
 
 		/* end of top table */
 		printf("</tr>\n");
 		printf("</table>\n");
-		}
+	}
 
 
 	/*********************************/
@@ -413,7 +414,7 @@ int main(int argc, char **argv) {
 	if(generate_report == TRUE) {
 		read_archived_event_data();
 		display_report();
-		}
+	}
 
 	/* ask user for report options */
 	else {
@@ -553,7 +554,7 @@ int main(int argc, char **argv) {
 		for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 			if(is_authorized_for_hostgroup(temp_hostgroup, &current_authdata) == TRUE)
 				printf("<option value='%s'>%s\n", escape_string(temp_hostgroup->group_name), temp_hostgroup->group_name);
-			}
+		}
 		printf("</select>\n");
 		printf("</td></tr>\n");
 
@@ -563,7 +564,7 @@ int main(int argc, char **argv) {
 		for(temp_servicegroup = servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 			if(is_authorized_for_servicegroup(temp_servicegroup, &current_authdata) == TRUE)
 				printf("<option value='%s'>%s\n", escape_string(temp_servicegroup->group_name), temp_servicegroup->group_name);
-			}
+		}
 		printf("</select>\n");
 		printf("</td></tr>\n");
 
@@ -574,7 +575,7 @@ int main(int argc, char **argv) {
 		for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 			if(is_authorized_for_host(temp_host, &current_authdata) == TRUE)
 				printf("<option value='%s'>%s\n", escape_string(temp_host->name), temp_host->name);
-			}
+		}
 		printf("</select>\n");
 		printf("</td></tr>\n");
 
@@ -630,7 +631,7 @@ int main(int argc, char **argv) {
 
 		printf("</form>\n");
 		printf("</DIV>\n");
-		}
+	}
 
 
 	document_footer();
@@ -641,11 +642,12 @@ int main(int argc, char **argv) {
 	free_producer_list();
 
 	return OK;
-	}
+}
 
 
 
-void document_header(int use_stylesheet) {
+void document_header(int use_stylesheet)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	time_t expire_time;
@@ -666,7 +668,7 @@ void document_header(int use_stylesheet) {
 	else {
 		printf("Content-type: text/plain\r\n\r\n");
 		return;
-		}
+	}
 
 	if(embedded == TRUE || output_format == CSV_OUTPUT)
 		return;
@@ -681,7 +683,7 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, SUMMARY_CSS);
-		}
+	}
 
 	printf("</head>\n");
 
@@ -691,11 +693,12 @@ void document_header(int use_stylesheet) {
 	include_ssi_files(SUMMARY_CGI, SSI_HEADER);
 
 	return;
-	}
+}
 
 
 
-void document_footer(void) {
+void document_footer(void)
+{
 
 	if(output_format != HTML_OUTPUT)
 		return;
@@ -710,11 +713,12 @@ void document_footer(void) {
 	printf("</html>\n");
 
 	return;
-	}
+}
 
 
 
-int process_cgivars(void) {
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -726,7 +730,7 @@ int process_cgivars(void) {
 		/* do some basic length checking on the variable identifier to prevent buffer overflows */
 		if(strlen(variables[x]) >= MAX_INPUT_BUFFER - 1) {
 			continue;
-			}
+		}
 
 		/* we found first time argument */
 		else if(!strcmp(variables[x], "t1")) {
@@ -734,12 +738,12 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			t1 = (time_t)strtoul(variables[x], NULL, 10);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = FALSE;
-			}
+		}
 
 		/* we found first time argument */
 		else if(!strcmp(variables[x], "t2")) {
@@ -747,12 +751,12 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			t2 = (time_t)strtoul(variables[x], NULL, 10);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = FALSE;
-			}
+		}
 
 		/* we found the standard timeperiod argument */
 		else if(!strcmp(variables[x], "timeperiod")) {
@@ -760,7 +764,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(!strcmp(variables[x], "today"))
 				timeperiod_type = TIMEPERIOD_TODAY;
@@ -795,7 +799,7 @@ int process_cgivars(void) {
 
 			convert_timeperiod_to_times(timeperiod_type);
 			compute_time_from_parts = FALSE;
-			}
+		}
 
 		/* we found the embed option */
 		else if(!strcmp(variables[x], "embedded"))
@@ -811,7 +815,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -819,7 +823,7 @@ int process_cgivars(void) {
 			start_month = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "sday")) {
@@ -827,7 +831,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -835,7 +839,7 @@ int process_cgivars(void) {
 			start_day = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "syear")) {
@@ -843,7 +847,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -851,7 +855,7 @@ int process_cgivars(void) {
 			start_year = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "smin")) {
@@ -859,7 +863,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -867,7 +871,7 @@ int process_cgivars(void) {
 			start_minute = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "ssec")) {
@@ -875,7 +879,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -883,7 +887,7 @@ int process_cgivars(void) {
 			start_second = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "shour")) {
@@ -891,7 +895,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -899,7 +903,7 @@ int process_cgivars(void) {
 			start_hour = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 
 		/* we found time argument */
@@ -908,7 +912,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -916,7 +920,7 @@ int process_cgivars(void) {
 			end_month = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "eday")) {
@@ -924,7 +928,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -932,7 +936,7 @@ int process_cgivars(void) {
 			end_day = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "eyear")) {
@@ -940,7 +944,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -948,7 +952,7 @@ int process_cgivars(void) {
 			end_year = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "emin")) {
@@ -956,7 +960,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -964,7 +968,7 @@ int process_cgivars(void) {
 			end_minute = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "esec")) {
@@ -972,7 +976,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -980,7 +984,7 @@ int process_cgivars(void) {
 			end_second = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found time argument */
 		else if(!strcmp(variables[x], "ehour")) {
@@ -988,7 +992,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if(timeperiod_type != TIMEPERIOD_CUSTOM)
 				continue;
@@ -996,7 +1000,7 @@ int process_cgivars(void) {
 			end_hour = atoi(variables[x]);
 			timeperiod_type = TIMEPERIOD_CUSTOM;
 			compute_time_from_parts = TRUE;
-			}
+		}
 
 		/* we found the item limit argument */
 		else if(!strcmp(variables[x], "limit")) {
@@ -1004,10 +1008,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			item_limit = atoi(variables[x]);
-			}
+		}
 
 		/* we found the state types argument */
 		else if(!strcmp(variables[x], "statetypes")) {
@@ -1015,10 +1019,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			state_types = atoi(variables[x]);
-			}
+		}
 
 		/* we found the alert types argument */
 		else if(!strcmp(variables[x], "alerttypes")) {
@@ -1026,10 +1030,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			alert_types = atoi(variables[x]);
-			}
+		}
 
 		/* we found the host states argument */
 		else if(!strcmp(variables[x], "hoststates")) {
@@ -1037,10 +1041,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			host_states = atoi(variables[x]);
-			}
+		}
 
 		/* we found the service states argument */
 		else if(!strcmp(variables[x], "servicestates")) {
@@ -1048,10 +1052,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			service_states = atoi(variables[x]);
-			}
+		}
 
 		/* we found the generate report argument */
 		else if(!strcmp(variables[x], "report")) {
@@ -1059,10 +1063,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			generate_report = (atoi(variables[x]) > 0) ? TRUE : FALSE;
-			}
+		}
 
 
 		/* we found the display type argument */
@@ -1071,10 +1075,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			display_type = atoi(variables[x]);
-			}
+		}
 
 		/* we found the standard report argument */
 		else if(!strcmp(variables[x], "standardreport")) {
@@ -1082,10 +1086,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			standard_report = atoi(variables[x]);
-			}
+		}
 
 		/* we found the hostgroup argument */
 		else if(!strcmp(variables[x], "hostgroup")) {
@@ -1093,7 +1097,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((target_hostgroup_name = (char *)strdup(variables[x])) == NULL)
 				target_hostgroup_name = "";
@@ -1104,8 +1108,8 @@ int process_cgivars(void) {
 			else {
 				show_all_hostgroups = FALSE;
 				target_hostgroup = find_hostgroup(target_hostgroup_name);
-				}
 			}
+		}
 
 		/* we found the servicegroup argument */
 		else if(!strcmp(variables[x], "servicegroup")) {
@@ -1113,7 +1117,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((target_servicegroup_name = (char *)strdup(variables[x])) == NULL)
 				target_servicegroup_name = "";
@@ -1124,8 +1128,8 @@ int process_cgivars(void) {
 			else {
 				show_all_servicegroups = FALSE;
 				target_servicegroup = find_servicegroup(target_servicegroup_name);
-				}
 			}
+		}
 
 		/* we found the host argument */
 		else if(!strcmp(variables[x], "host")) {
@@ -1133,7 +1137,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((target_host_name = (char *)strdup(variables[x])) == NULL)
 				target_host_name = "";
@@ -1144,20 +1148,21 @@ int process_cgivars(void) {
 			else {
 				show_all_hosts = FALSE;
 				target_host = find_host(target_host_name);
-				}
 			}
 		}
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
 /* reads log files for archived event data */
-void read_archived_event_data(void) {
+void read_archived_event_data(void)
+{
 	char filename[MAX_FILENAME_LENGTH];
 	int oldest_archive = 0;
 	int newest_archive = 0;
@@ -1180,15 +1185,16 @@ void read_archived_event_data(void) {
 
 		/* scan the log file for archived state data */
 		scan_log_file_for_archived_event_data(filename);
-		}
+	}
 
 	return;
-	}
+}
 
 
 
 /* grabs archived event data from a log file */
-void scan_log_file_for_archived_event_data(char *filename) {
+void scan_log_file_for_archived_event_data(char *filename)
+{
 	char *input = NULL;
 	char *input2 = NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
@@ -1259,7 +1265,7 @@ void scan_log_file_for_archived_event_data(char *filename) {
 				continue;
 
 			add_archived_event(AE_HOST_ALERT, time_stamp, state, state_type, entry_host_name, NULL, plugin_output);
-			}
+		}
 
 		/* service alerts */
 		if(strstr(input, "SERVICE ALERT:")) {
@@ -1300,8 +1306,8 @@ void scan_log_file_for_archived_event_data(char *filename) {
 				continue;
 
 			add_archived_event(AE_SERVICE_ALERT, time_stamp, state, state_type, entry_host_name, entry_svc_description, plugin_output);
-			}
 		}
+	}
 
 	/* free memory and close the file */
 	free(input);
@@ -1309,12 +1315,13 @@ void scan_log_file_for_archived_event_data(char *filename) {
 	mmap_fclose(thefile);
 
 	return;
-	}
+}
 
 
 
 
-void convert_timeperiod_to_times(int type) {
+void convert_timeperiod_to_times(int type)
+{
 	time_t current_time;
 	struct tm *t;
 
@@ -1329,79 +1336,79 @@ void convert_timeperiod_to_times(int type) {
 	t->tm_isdst = -1;
 
 	switch(type) {
-		case TIMEPERIOD_LAST24HOURS:
-			t1 = current_time - (60 * 60 * 24);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_TODAY:
-			t1 = mktime(t);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_YESTERDAY:
-			t1 = (time_t)(mktime(t) - (60 * 60 * 24));
-			t2 = (time_t)mktime(t);
-			break;
-		case TIMEPERIOD_THISWEEK:
-			t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_LASTWEEK:
-			t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday) - (60 * 60 * 24 * 7));
-			t2 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
-			break;
-		case TIMEPERIOD_THISMONTH:
-			t->tm_mday = 1;
-			t1 = mktime(t);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_LASTMONTH:
-			t->tm_mday = 1;
-			t2 = mktime(t);
-			if(t->tm_mon == 0) {
-				t->tm_mon = 11;
-				t->tm_year--;
-				}
-			else
-				t->tm_mon--;
-			t1 = mktime(t);
-			break;
-		case TIMEPERIOD_THISQUARTER:
-			/* not implemented */
-			break;
-		case TIMEPERIOD_LASTQUARTER:
-			/* not implemented */
-			break;
-		case TIMEPERIOD_THISYEAR:
-			t->tm_mon = 0;
-			t->tm_mday = 1;
-			t1 = mktime(t);
-			t2 = current_time;
-			break;
-		case TIMEPERIOD_LASTYEAR:
-			t->tm_mon = 0;
-			t->tm_mday = 1;
-			t2 = mktime(t);
+	case TIMEPERIOD_LAST24HOURS:
+		t1 = current_time - (60 * 60 * 24);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_TODAY:
+		t1 = mktime(t);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_YESTERDAY:
+		t1 = (time_t)(mktime(t) - (60 * 60 * 24));
+		t2 = (time_t)mktime(t);
+		break;
+	case TIMEPERIOD_THISWEEK:
+		t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_LASTWEEK:
+		t1 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday) - (60 * 60 * 24 * 7));
+		t2 = (time_t)(mktime(t) - (60 * 60 * 24 * t->tm_wday));
+		break;
+	case TIMEPERIOD_THISMONTH:
+		t->tm_mday = 1;
+		t1 = mktime(t);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_LASTMONTH:
+		t->tm_mday = 1;
+		t2 = mktime(t);
+		if(t->tm_mon == 0) {
+			t->tm_mon = 11;
 			t->tm_year--;
-			t1 = mktime(t);
-			break;
-		case TIMEPERIOD_LAST7DAYS:
-			t2 = current_time;
-			t1 = current_time - (7 * 24 * 60 * 60);
-			break;
-		case TIMEPERIOD_LAST31DAYS:
-			t2 = current_time;
-			t1 = current_time - (31 * 24 * 60 * 60);
-			break;
-		default:
-			break;
-		}
-
-	return;
+		} else
+			t->tm_mon--;
+		t1 = mktime(t);
+		break;
+	case TIMEPERIOD_THISQUARTER:
+		/* not implemented */
+		break;
+	case TIMEPERIOD_LASTQUARTER:
+		/* not implemented */
+		break;
+	case TIMEPERIOD_THISYEAR:
+		t->tm_mon = 0;
+		t->tm_mday = 1;
+		t1 = mktime(t);
+		t2 = current_time;
+		break;
+	case TIMEPERIOD_LASTYEAR:
+		t->tm_mon = 0;
+		t->tm_mday = 1;
+		t2 = mktime(t);
+		t->tm_year--;
+		t1 = mktime(t);
+		break;
+	case TIMEPERIOD_LAST7DAYS:
+		t2 = current_time;
+		t1 = current_time - (7 * 24 * 60 * 60);
+		break;
+	case TIMEPERIOD_LAST31DAYS:
+		t2 = current_time;
+		t1 = current_time - (31 * 24 * 60 * 60);
+		break;
+	default:
+		break;
 	}
 
+	return;
+}
 
 
-void compute_report_times(void) {
+
+void compute_report_times(void)
+{
 	time_t current_time;
 	struct tm *st;
 	struct tm *et;
@@ -1432,11 +1439,12 @@ void compute_report_times(void) {
 	et->tm_isdst = -1;
 
 	t2 = mktime(et);
-	}
+}
 
 
 
-void free_event_list(void) {
+void free_event_list(void)
+{
 	archived_event *this_event = NULL;
 	archived_event *next_event = NULL;
 
@@ -1450,16 +1458,17 @@ void free_event_list(void) {
 			free(this_event->event_info);
 		free(this_event);
 		this_event = next_event;
-		}
+	}
 
 	event_list = NULL;
 
 	return;
-	}
+}
 
 
 /* adds an archived event entry to the list in memory */
-void add_archived_event(int event_type, time_t time_stamp, int entry_type, int state_type, char *host_name, char *svc_description, char *event_info) {
+void add_archived_event(int event_type, time_t time_stamp, int entry_type, int state_type, char *host_name, char *svc_description, char *event_info)
+{
 	archived_event *last_event = NULL;
 	archived_event *temp_event = NULL;
 	archived_event *new_event = NULL;
@@ -1483,11 +1492,10 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 	if(event_type == AE_HOST_ALERT) {
 		if(!(host_states & entry_type))
 			return;
-		}
-	else {
+	} else {
 		if(!(service_states & entry_type))
 			return;
-		}
+	}
 
 	/* find the host this entry is associated with */
 	temp_host = find_host(host_name);
@@ -1502,28 +1510,26 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 			return;
 		if(strcmp(target_host->name, temp_host->name))
 			return;
-		}
+	}
 
 	/* check servicegroup math (valid filter for all reports) */
 	if(event_type == AE_SERVICE_ALERT) {
 		temp_service = find_service(host_name, svc_description);
 		if(show_all_servicegroups == FALSE && is_service_member_of_servicegroup(target_servicegroup, temp_service) == FALSE)
 			return;
-		}
-	else {
+	} else {
 		if(show_all_servicegroups == FALSE && is_host_member_of_servicegroup(target_servicegroup, temp_host) == FALSE)
 			return;
-		}
+	}
 
 	/* check authorization */
 	if(event_type == AE_SERVICE_ALERT) {
 		if(is_authorized_for_service(temp_service, &current_authdata) == FALSE)
 			return;
-		}
-	else {
+	} else {
 		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 			return;
-		}
+	}
 
 #ifdef DEBUG
 	if(event_type == AE_HOST_ALERT)
@@ -1542,8 +1548,7 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 		new_event->host_name = (char *)malloc(strlen(host_name) + 1);
 		if(new_event->host_name != NULL)
 			strcpy(new_event->host_name, host_name);
-		}
-	else
+	} else
 		new_event->host_name = NULL;
 
 	/* allocate memory for the service description */
@@ -1551,8 +1556,7 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 		new_event->service_description = (char *)malloc(strlen(svc_description) + 1);
 		if(new_event->service_description != NULL)
 			strcpy(new_event->service_description, svc_description);
-		}
-	else
+	} else
 		new_event->service_description = NULL;
 
 	/* allocate memory for the event info */
@@ -1560,8 +1564,7 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 		new_event->event_info = (char *)malloc(strlen(event_info) + 1);
 		if(new_event->event_info != NULL)
 			strcpy(new_event->event_info, event_info);
-		}
-	else
+	} else
 		new_event->event_info = NULL;
 
 	new_event->event_type = event_type;
@@ -1580,28 +1583,27 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 			else
 				last_event->next = new_event;
 			break;
-			}
-		else
+		} else
 			last_event = temp_event;
-		}
+	}
 	if(event_list == NULL) {
 		new_event->next = NULL;
 		event_list = new_event;
-		}
-	else if(temp_event == NULL) {
+	} else if(temp_event == NULL) {
 		new_event->next = NULL;
 		last_event->next = new_event;
-		}
+	}
 
 	total_items++;
 
 	return;
-	}
+}
 
 
 
 /* determines standard report options */
-void determine_standard_report_options(void) {
+void determine_standard_report_options(void)
+{
 
 	/* report over last 7 days */
 	convert_timeperiod_to_times(TIMEPERIOD_LAST7DAYS);
@@ -1614,86 +1616,88 @@ void determine_standard_report_options(void) {
 	/* report-specific options */
 	switch(standard_report) {
 
-		case SREPORT_RECENT_ALERTS:
-			display_type = REPORT_RECENT_ALERTS;
-			alert_types = AE_HOST_ALERT + AE_SERVICE_ALERT;
-			host_states = AE_HOST_UP + AE_HOST_DOWN + AE_HOST_UNREACHABLE;
-			service_states = AE_SERVICE_OK + AE_SERVICE_WARNING + AE_SERVICE_UNKNOWN + AE_SERVICE_CRITICAL;
-			break;
+	case SREPORT_RECENT_ALERTS:
+		display_type = REPORT_RECENT_ALERTS;
+		alert_types = AE_HOST_ALERT + AE_SERVICE_ALERT;
+		host_states = AE_HOST_UP + AE_HOST_DOWN + AE_HOST_UNREACHABLE;
+		service_states = AE_SERVICE_OK + AE_SERVICE_WARNING + AE_SERVICE_UNKNOWN + AE_SERVICE_CRITICAL;
+		break;
 
-		case SREPORT_RECENT_HOST_ALERTS:
-			display_type = REPORT_RECENT_ALERTS;
-			alert_types = AE_HOST_ALERT;
-			host_states = AE_HOST_UP + AE_HOST_DOWN + AE_HOST_UNREACHABLE;
-			break;
+	case SREPORT_RECENT_HOST_ALERTS:
+		display_type = REPORT_RECENT_ALERTS;
+		alert_types = AE_HOST_ALERT;
+		host_states = AE_HOST_UP + AE_HOST_DOWN + AE_HOST_UNREACHABLE;
+		break;
 
-		case SREPORT_RECENT_SERVICE_ALERTS:
-			display_type = REPORT_RECENT_ALERTS;
-			alert_types = AE_SERVICE_ALERT;
-			service_states = AE_SERVICE_OK + AE_SERVICE_WARNING + AE_SERVICE_UNKNOWN + AE_SERVICE_CRITICAL;
-			break;
+	case SREPORT_RECENT_SERVICE_ALERTS:
+		display_type = REPORT_RECENT_ALERTS;
+		alert_types = AE_SERVICE_ALERT;
+		service_states = AE_SERVICE_OK + AE_SERVICE_WARNING + AE_SERVICE_UNKNOWN + AE_SERVICE_CRITICAL;
+		break;
 
-		case SREPORT_TOP_HOST_ALERTS:
-			display_type = REPORT_TOP_ALERTS;
-			alert_types = AE_HOST_ALERT;
-			host_states = AE_HOST_UP + AE_HOST_DOWN + AE_HOST_UNREACHABLE;
-			break;
+	case SREPORT_TOP_HOST_ALERTS:
+		display_type = REPORT_TOP_ALERTS;
+		alert_types = AE_HOST_ALERT;
+		host_states = AE_HOST_UP + AE_HOST_DOWN + AE_HOST_UNREACHABLE;
+		break;
 
-		case SREPORT_TOP_SERVICE_ALERTS:
-			display_type = REPORT_TOP_ALERTS;
-			alert_types = AE_SERVICE_ALERT;
-			service_states = AE_SERVICE_OK + AE_SERVICE_WARNING + AE_SERVICE_UNKNOWN + AE_SERVICE_CRITICAL;
-			break;
+	case SREPORT_TOP_SERVICE_ALERTS:
+		display_type = REPORT_TOP_ALERTS;
+		alert_types = AE_SERVICE_ALERT;
+		service_states = AE_SERVICE_OK + AE_SERVICE_WARNING + AE_SERVICE_UNKNOWN + AE_SERVICE_CRITICAL;
+		break;
 
-		default:
-			break;
-		}
+	default:
+		break;
+	}
 
 	return;
-	}
+}
 
 
 
 /* displays report */
-void display_report(void) {
+void display_report(void)
+{
 
 	switch(display_type) {
 
-		case REPORT_ALERT_TOTALS:
-			display_alert_totals();
-			break;
+	case REPORT_ALERT_TOTALS:
+		display_alert_totals();
+		break;
 
-		case REPORT_HOSTGROUP_ALERT_TOTALS:
-			display_hostgroup_alert_totals();
-			break;
+	case REPORT_HOSTGROUP_ALERT_TOTALS:
+		display_hostgroup_alert_totals();
+		break;
 
-		case REPORT_HOST_ALERT_TOTALS:
-			display_host_alert_totals();
-			break;
+	case REPORT_HOST_ALERT_TOTALS:
+		display_host_alert_totals();
+		break;
 
-		case REPORT_SERVICEGROUP_ALERT_TOTALS:
-			display_servicegroup_alert_totals();
-			break;
+	case REPORT_SERVICEGROUP_ALERT_TOTALS:
+		display_servicegroup_alert_totals();
+		break;
 
-		case REPORT_SERVICE_ALERT_TOTALS:
-			display_service_alert_totals();
-			break;
+	case REPORT_SERVICE_ALERT_TOTALS:
+		display_service_alert_totals();
+		break;
 
-		case REPORT_TOP_ALERTS:
-			display_top_alerts();
-			break;
+	case REPORT_TOP_ALERTS:
+		display_top_alerts();
+		break;
 
-		default:
-			display_recent_alerts();
-			break;
-		}
+	default:
+		display_recent_alerts();
+		break;
+	}
 
 	return;
-	}
+}
 
 
 /* displays recent alerts */
-void display_recent_alerts(void) {
+void display_recent_alerts(void)
+{
 	archived_event *temp_event;
 	int current_item = 0;
 	int odd = 0;
@@ -1724,11 +1728,10 @@ void display_recent_alerts(void) {
 		if(odd) {
 			odd = 0;
 			bgclass = "Odd";
-			}
-		else {
+		} else {
 			odd = 1;
 			bgclass = "Even";
-			}
+		}
 
 		printf("<tr CLASS='data%s'>", bgclass);
 
@@ -1744,42 +1747,42 @@ void display_recent_alerts(void) {
 		else {
 			printf("<td CLASS='data%s'><a href='%s?type=%d&host=%s", bgclass, EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_event->host_name));
 			printf("&service=%s'>%s</a></td>", url_encode(temp_event->service_description), temp_event->service_description);
-			}
+		}
 
 		switch(temp_event->entry_type) {
-			case AE_HOST_UP:
-				status_bgclass = "hostUP";
-				status = "UP";
-				break;
-			case AE_HOST_DOWN:
-				status_bgclass = "hostDOWN";
-				status = "DOWN";
-				break;
-			case AE_HOST_UNREACHABLE:
-				status_bgclass = "hostUNREACHABLE";
-				status = "UNREACHABLE";
-				break;
-			case AE_SERVICE_OK:
-				status_bgclass = "serviceOK";
-				status = "OK";
-				break;
-			case AE_SERVICE_WARNING:
-				status_bgclass = "serviceWARNING";
-				status = "WARNING";
-				break;
-			case AE_SERVICE_UNKNOWN:
-				status_bgclass = "serviceUNKNOWN";
-				status = "UNKNOWN";
-				break;
-			case AE_SERVICE_CRITICAL:
-				status_bgclass = "serviceCRITICAL";
-				status = "CRITICAL";
-				break;
-			default:
-				status_bgclass = bgclass;
-				status = "???";
-				break;
-			}
+		case AE_HOST_UP:
+			status_bgclass = "hostUP";
+			status = "UP";
+			break;
+		case AE_HOST_DOWN:
+			status_bgclass = "hostDOWN";
+			status = "DOWN";
+			break;
+		case AE_HOST_UNREACHABLE:
+			status_bgclass = "hostUNREACHABLE";
+			status = "UNREACHABLE";
+			break;
+		case AE_SERVICE_OK:
+			status_bgclass = "serviceOK";
+			status = "OK";
+			break;
+		case AE_SERVICE_WARNING:
+			status_bgclass = "serviceWARNING";
+			status = "WARNING";
+			break;
+		case AE_SERVICE_UNKNOWN:
+			status_bgclass = "serviceUNKNOWN";
+			status = "UNKNOWN";
+			break;
+		case AE_SERVICE_CRITICAL:
+			status_bgclass = "serviceCRITICAL";
+			status = "CRITICAL";
+			break;
+		default:
+			status_bgclass = bgclass;
+			status = "???";
+			break;
+		}
 
 		printf("<td CLASS='%s'>%s</td>", status_bgclass, status);
 
@@ -1788,18 +1791,19 @@ void display_recent_alerts(void) {
 		printf("<td CLASS='data%s'>%s</td>", bgclass, temp_event->event_info);
 
 		printf("</tr>\n");
-		}
+	}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 
 	return;
-	}
+}
 
 
 
 /* displays alerts totals */
-void display_alert_totals(void) {
+void display_alert_totals(void)
+{
 	int hard_host_up_alerts = 0;
 	int soft_host_up_alerts = 0;
 	int hard_host_down_alerts = 0;
@@ -1833,16 +1837,15 @@ void display_alert_totals(void) {
 					soft_host_down_alerts++;
 				else if(temp_event->entry_type == AE_HOST_UNREACHABLE)
 					soft_host_unreachable_alerts++;
-				}
-			else {
+			} else {
 				if(temp_event->entry_type == AE_HOST_UP)
 					hard_host_up_alerts++;
 				else if(temp_event->entry_type == AE_HOST_DOWN)
 					hard_host_down_alerts++;
 				else if(temp_event->entry_type == AE_HOST_UNREACHABLE)
 					hard_host_unreachable_alerts++;
-				}
 			}
+		}
 
 		/* service alerts */
 		else {
@@ -1855,8 +1858,7 @@ void display_alert_totals(void) {
 					soft_service_unknown_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_CRITICAL)
 					soft_service_critical_alerts++;
-				}
-			else {
+			} else {
 				if(temp_event->entry_type == AE_SERVICE_OK)
 					hard_service_ok_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_WARNING)
@@ -1865,9 +1867,9 @@ void display_alert_totals(void) {
 					hard_service_unknown_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_CRITICAL)
 					hard_service_critical_alerts++;
-				}
 			}
 		}
+	}
 
 	printf("<BR>\n");
 
@@ -1897,7 +1899,7 @@ void display_alert_totals(void) {
 		printf("</DIV>\n");
 
 		printf("</TD>\n");
-		}
+	}
 
 	if(alert_types & AE_SERVICE_ALERT) {
 
@@ -1919,7 +1921,7 @@ void display_alert_totals(void) {
 		printf("</DIV>\n");
 
 		printf("</TD>\n");
-		}
+	}
 
 	printf("</TR>\n");
 	printf("</TABLE>\n");
@@ -1927,12 +1929,13 @@ void display_alert_totals(void) {
 	printf("</DIV>\n");
 
 	return;
-	}
+}
 
 
 
 /* displays hostgroup alert totals  */
-void display_hostgroup_alert_totals(void) {
+void display_hostgroup_alert_totals(void)
+{
 	hostgroup *temp_hostgroup;
 
 	/**************************/
@@ -1949,16 +1952,17 @@ void display_hostgroup_alert_totals(void) {
 	else {
 		for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next)
 			display_specific_hostgroup_alert_totals(temp_hostgroup);
-		}
+	}
 
 	printf("</DIV>\n");
 
 	return;
-	}
+}
 
 
 /* displays alert totals for a specific hostgroup */
-void display_specific_hostgroup_alert_totals(hostgroup *grp) {
+void display_specific_hostgroup_alert_totals(hostgroup *grp)
+{
 	int hard_host_up_alerts = 0;
 	int soft_host_up_alerts = 0;
 	int hard_host_down_alerts = 0;
@@ -1999,16 +2003,15 @@ void display_specific_hostgroup_alert_totals(hostgroup *grp) {
 					soft_host_down_alerts++;
 				else if(temp_event->entry_type == AE_HOST_UNREACHABLE)
 					soft_host_unreachable_alerts++;
-				}
-			else {
+			} else {
 				if(temp_event->entry_type == AE_HOST_UP)
 					hard_host_up_alerts++;
 				else if(temp_event->entry_type == AE_HOST_DOWN)
 					hard_host_down_alerts++;
 				else if(temp_event->entry_type == AE_HOST_UNREACHABLE)
 					hard_host_unreachable_alerts++;
-				}
 			}
+		}
 
 		/* service alerts */
 		else {
@@ -2021,8 +2024,7 @@ void display_specific_hostgroup_alert_totals(hostgroup *grp) {
 					soft_service_unknown_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_CRITICAL)
 					soft_service_critical_alerts++;
-				}
-			else {
+			} else {
 				if(temp_event->entry_type == AE_SERVICE_OK)
 					hard_service_ok_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_WARNING)
@@ -2031,9 +2033,9 @@ void display_specific_hostgroup_alert_totals(hostgroup *grp) {
 					hard_service_unknown_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_CRITICAL)
 					hard_service_critical_alerts++;
-				}
 			}
 		}
+	}
 
 
 	printf("<BR>\n");
@@ -2063,7 +2065,7 @@ void display_specific_hostgroup_alert_totals(hostgroup *grp) {
 		printf("</DIV>\n");
 
 		printf("</TD>\n");
-		}
+	}
 
 	if(alert_types & AE_SERVICE_ALERT) {
 
@@ -2085,7 +2087,7 @@ void display_specific_hostgroup_alert_totals(hostgroup *grp) {
 		printf("</DIV>\n");
 
 		printf("</TD>\n");
-		}
+	}
 
 	printf("</TR>\n");
 
@@ -2093,12 +2095,13 @@ void display_specific_hostgroup_alert_totals(hostgroup *grp) {
 	printf("</TD></TR></TABLE>\n");
 
 	return;
-	}
+}
 
 
 
 /* displays host alert totals  */
-void display_host_alert_totals(void) {
+void display_host_alert_totals(void)
+{
 	host *temp_host;
 
 	/*********************/
@@ -2115,16 +2118,17 @@ void display_host_alert_totals(void) {
 	else {
 		for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next)
 			display_specific_host_alert_totals(temp_host);
-		}
+	}
 
 	printf("</DIV>\n");
 
 	return;
-	}
+}
 
 
 /* displays alert totals for a specific host */
-void display_specific_host_alert_totals(host *hst) {
+void display_specific_host_alert_totals(host *hst)
+{
 	int hard_host_up_alerts = 0;
 	int soft_host_up_alerts = 0;
 	int hard_host_down_alerts = 0;
@@ -2151,7 +2155,7 @@ void display_specific_host_alert_totals(host *hst) {
 	if(show_all_hostgroups == FALSE && target_hostgroup != NULL) {
 		if(is_host_member_of_hostgroup(target_hostgroup, hst) == FALSE)
 			return;
-		}
+	}
 
 	/* process all events */
 	for(temp_event = event_list; temp_event != NULL; temp_event = temp_event->next) {
@@ -2168,16 +2172,15 @@ void display_specific_host_alert_totals(host *hst) {
 					soft_host_down_alerts++;
 				else if(temp_event->entry_type == AE_HOST_UNREACHABLE)
 					soft_host_unreachable_alerts++;
-				}
-			else {
+			} else {
 				if(temp_event->entry_type == AE_HOST_UP)
 					hard_host_up_alerts++;
 				else if(temp_event->entry_type == AE_HOST_DOWN)
 					hard_host_down_alerts++;
 				else if(temp_event->entry_type == AE_HOST_UNREACHABLE)
 					hard_host_unreachable_alerts++;
-				}
 			}
+		}
 
 		/* service alerts */
 		else {
@@ -2190,8 +2193,7 @@ void display_specific_host_alert_totals(host *hst) {
 					soft_service_unknown_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_CRITICAL)
 					soft_service_critical_alerts++;
-				}
-			else {
+			} else {
 				if(temp_event->entry_type == AE_SERVICE_OK)
 					hard_service_ok_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_WARNING)
@@ -2200,9 +2202,9 @@ void display_specific_host_alert_totals(host *hst) {
 					hard_service_unknown_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_CRITICAL)
 					hard_service_critical_alerts++;
-				}
 			}
 		}
+	}
 
 
 	printf("<BR>\n");
@@ -2232,7 +2234,7 @@ void display_specific_host_alert_totals(host *hst) {
 		printf("</DIV>\n");
 
 		printf("</TD>\n");
-		}
+	}
 
 	if(alert_types & AE_SERVICE_ALERT) {
 
@@ -2254,7 +2256,7 @@ void display_specific_host_alert_totals(host *hst) {
 		printf("</DIV>\n");
 
 		printf("</TD>\n");
-		}
+	}
 
 	printf("</TR>\n");
 
@@ -2262,11 +2264,12 @@ void display_specific_host_alert_totals(host *hst) {
 	printf("</TD></TR></TABLE>\n");
 
 	return;
-	}
+}
 
 
 /* displays servicegroup alert totals  */
-void display_servicegroup_alert_totals(void) {
+void display_servicegroup_alert_totals(void)
+{
 	servicegroup *temp_servicegroup;
 
 	/**************************/
@@ -2283,16 +2286,17 @@ void display_servicegroup_alert_totals(void) {
 	else {
 		for(temp_servicegroup = servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next)
 			display_specific_servicegroup_alert_totals(temp_servicegroup);
-		}
+	}
 
 	printf("</DIV>\n");
 
 	return;
-	}
+}
 
 
 /* displays alert totals for a specific servicegroup */
-void display_specific_servicegroup_alert_totals(servicegroup *grp) {
+void display_specific_servicegroup_alert_totals(servicegroup *grp)
+{
 	int hard_host_up_alerts = 0;
 	int soft_host_up_alerts = 0;
 	int hard_host_down_alerts = 0;
@@ -2326,13 +2330,12 @@ void display_specific_servicegroup_alert_totals(servicegroup *grp) {
 			temp_host = find_host(temp_event->host_name);
 			if(is_host_member_of_servicegroup(grp, temp_host) == FALSE)
 				continue;
-			}
-		else {
+		} else {
 
 			temp_service = find_service(temp_event->host_name, temp_event->service_description);
 			if(is_service_member_of_servicegroup(grp, temp_service) == FALSE)
 				continue;
-			}
+		}
 
 		/* host alerts */
 		if(temp_event->event_type == AE_HOST_ALERT) {
@@ -2343,16 +2346,15 @@ void display_specific_servicegroup_alert_totals(servicegroup *grp) {
 					soft_host_down_alerts++;
 				else if(temp_event->entry_type == AE_HOST_UNREACHABLE)
 					soft_host_unreachable_alerts++;
-				}
-			else {
+			} else {
 				if(temp_event->entry_type == AE_HOST_UP)
 					hard_host_up_alerts++;
 				else if(temp_event->entry_type == AE_HOST_DOWN)
 					hard_host_down_alerts++;
 				else if(temp_event->entry_type == AE_HOST_UNREACHABLE)
 					hard_host_unreachable_alerts++;
-				}
 			}
+		}
 
 		/* service alerts */
 		else {
@@ -2365,8 +2367,7 @@ void display_specific_servicegroup_alert_totals(servicegroup *grp) {
 					soft_service_unknown_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_CRITICAL)
 					soft_service_critical_alerts++;
-				}
-			else {
+			} else {
 				if(temp_event->entry_type == AE_SERVICE_OK)
 					hard_service_ok_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_WARNING)
@@ -2375,9 +2376,9 @@ void display_specific_servicegroup_alert_totals(servicegroup *grp) {
 					hard_service_unknown_alerts++;
 				else if(temp_event->entry_type == AE_SERVICE_CRITICAL)
 					hard_service_critical_alerts++;
-				}
 			}
 		}
+	}
 
 
 	printf("<BR>\n");
@@ -2407,7 +2408,7 @@ void display_specific_servicegroup_alert_totals(servicegroup *grp) {
 		printf("</DIV>\n");
 
 		printf("</TD>\n");
-		}
+	}
 
 	if(alert_types & AE_SERVICE_ALERT) {
 
@@ -2429,7 +2430,7 @@ void display_specific_servicegroup_alert_totals(servicegroup *grp) {
 		printf("</DIV>\n");
 
 		printf("</TD>\n");
-		}
+	}
 
 	printf("</TR>\n");
 
@@ -2437,12 +2438,13 @@ void display_specific_servicegroup_alert_totals(servicegroup *grp) {
 	printf("</TD></TR></TABLE>\n");
 
 	return;
-	}
+}
 
 
 
 /* displays service alert totals  */
-void display_service_alert_totals(void) {
+void display_service_alert_totals(void)
+{
 	service *temp_service;
 
 	/************************/
@@ -2460,11 +2462,12 @@ void display_service_alert_totals(void) {
 	printf("</DIV>\n");
 
 	return;
-	}
+}
 
 
 /* displays alert totals for a specific service */
-void display_specific_service_alert_totals(service *svc) {
+void display_specific_service_alert_totals(service *svc)
+{
 	int hard_service_ok_alerts = 0;
 	int soft_service_ok_alerts = 0;
 	int hard_service_warning_alerts = 0;
@@ -2487,12 +2490,12 @@ void display_specific_service_alert_totals(service *svc) {
 		temp_host = find_host(svc->host_name);
 		if(is_host_member_of_hostgroup(target_hostgroup, temp_host) == FALSE)
 			return;
-		}
+	}
 
 	if(show_all_hosts == FALSE && target_host != NULL) {
 		if(strcmp(target_host->name, svc->host_name))
 			return;
-		}
+	}
 
 	/* process all events */
 	for(temp_event = event_list; temp_event != NULL; temp_event = temp_event->next) {
@@ -2513,8 +2516,7 @@ void display_specific_service_alert_totals(service *svc) {
 				soft_service_unknown_alerts++;
 			else if(temp_event->entry_type == AE_SERVICE_CRITICAL)
 				soft_service_critical_alerts++;
-			}
-		else {
+		} else {
 			if(temp_event->entry_type == AE_SERVICE_OK)
 				hard_service_ok_alerts++;
 			else if(temp_event->entry_type == AE_SERVICE_WARNING)
@@ -2523,8 +2525,8 @@ void display_specific_service_alert_totals(service *svc) {
 				hard_service_unknown_alerts++;
 			else if(temp_event->entry_type == AE_SERVICE_CRITICAL)
 				hard_service_critical_alerts++;
-			}
 		}
+	}
 
 
 	printf("<BR>\n");
@@ -2555,7 +2557,7 @@ void display_specific_service_alert_totals(service *svc) {
 		printf("</DIV>\n");
 
 		printf("</TD>\n");
-		}
+	}
 
 	printf("</TR>\n");
 
@@ -2563,11 +2565,12 @@ void display_specific_service_alert_totals(service *svc) {
 	printf("</TD></TR></TABLE>\n");
 
 	return;
-	}
+}
 
 
 /* find a specific alert producer */
-alert_producer *find_producer(int type, char *hname, char *sdesc) {
+alert_producer *find_producer(int type, char *hname, char *sdesc)
+{
 	alert_producer *temp_producer;
 
 	for(temp_producer = producer_list; temp_producer != NULL; temp_producer = temp_producer->next) {
@@ -2580,14 +2583,15 @@ alert_producer *find_producer(int type, char *hname, char *sdesc) {
 			continue;
 
 		return temp_producer;
-		}
+	}
 
 	return NULL;
-	}
+}
 
 
 /* adds a new producer to the list in memory */
-alert_producer *add_producer(int producer_type, char *host_name, char *service_description) {
+alert_producer *add_producer(int producer_type, char *host_name, char *service_description)
+{
 	alert_producer *new_producer = NULL;
 
 	/* allocate memory for the new entry */
@@ -2600,8 +2604,7 @@ alert_producer *add_producer(int producer_type, char *host_name, char *service_d
 		new_producer->host_name = (char *)malloc(strlen(host_name) + 1);
 		if(new_producer->host_name != NULL)
 			strcpy(new_producer->host_name, host_name);
-		}
-	else
+	} else
 		new_producer->host_name = NULL;
 
 	/* allocate memory for the service description */
@@ -2609,8 +2612,7 @@ alert_producer *add_producer(int producer_type, char *host_name, char *service_d
 		new_producer->service_description = (char *)malloc(strlen(service_description) + 1);
 		if(new_producer->service_description != NULL)
 			strcpy(new_producer->service_description, service_description);
-		}
-	else
+	} else
 		new_producer->service_description = NULL;
 
 	new_producer->producer_type = producer_type;
@@ -2621,11 +2623,12 @@ alert_producer *add_producer(int producer_type, char *host_name, char *service_d
 	producer_list = new_producer;
 
 	return new_producer;
-	}
+}
 
 
 
-void free_producer_list(void) {
+void free_producer_list(void)
+{
 	alert_producer *this_producer = NULL;
 	alert_producer *next_producer = NULL;
 
@@ -2637,17 +2640,18 @@ void free_producer_list(void) {
 			free(this_producer->service_description);
 		free(this_producer);
 		this_producer = next_producer;
-		}
+	}
 
 	producer_list = NULL;
 
 	return;
-	}
+}
 
 
 
 /* displays top alerts */
-void display_top_alerts(void) {
+void display_top_alerts(void)
+{
 	archived_event *temp_event = NULL;
 	alert_producer *temp_producer = NULL;
 	alert_producer *next_producer = NULL;
@@ -2677,7 +2681,7 @@ void display_top_alerts(void) {
 
 		/* update stats for producer */
 		temp_producer->total_alerts++;
-		}
+	}
 
 
 	/* sort the producer list by total alerts (descending) */
@@ -2695,22 +2699,20 @@ void display_top_alerts(void) {
 				else
 					last_producer->next = new_producer;
 				break;
-				}
-			else
+			} else
 				last_producer = temp_producer;
-			}
+		}
 		if(temp_list == NULL) {
 			new_producer->next = NULL;
 			temp_list = new_producer;
-			}
-		else if(temp_producer == NULL) {
+		} else if(temp_producer == NULL) {
 			new_producer->next = NULL;
 			last_producer->next = new_producer;
-			}
+		}
 
 		new_producer = next_producer;
 		total_items++;
-		}
+	}
 	producer_list = temp_list;
 
 
@@ -2738,11 +2740,10 @@ void display_top_alerts(void) {
 		if(odd) {
 			odd = 0;
 			bgclass = "Odd";
-			}
-		else {
+		} else {
 			odd = 1;
 			bgclass = "Even";
-			}
+		}
 
 		printf("<tr CLASS='data%s'>", bgclass);
 
@@ -2757,15 +2758,15 @@ void display_top_alerts(void) {
 		else {
 			printf("<td CLASS='data%s'><a href='%s?type=%d&host=%s", bgclass, EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_producer->host_name));
 			printf("&service=%s'>%s</a></td>", url_encode(temp_producer->service_description), temp_producer->service_description);
-			}
+		}
 
 		printf("<td CLASS='data%s'>%d</td>", bgclass, temp_producer->total_alerts);
 
 		printf("</tr>\n");
-		}
+	}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
 
 	return;
-	}
+}

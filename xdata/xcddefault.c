@@ -39,7 +39,8 @@
 
 
 /* initialize comment data */
-int xcddefault_initialize_comment_data(void) {
+int xcddefault_initialize_comment_data(void)
+{
 	comment *temp_comment = NULL;
 
 	/* find the new starting index for comment id if its missing*/
@@ -47,15 +48,15 @@ int xcddefault_initialize_comment_data(void) {
 		for(temp_comment = comment_list; temp_comment != NULL; temp_comment = temp_comment->next) {
 			if(temp_comment->comment_id >= next_comment_id)
 				next_comment_id = temp_comment->comment_id + 1;
-			}
 		}
+	}
 
 	/* initialize next comment id if necessary */
 	if(next_comment_id == 0L)
 		next_comment_id = 1;
 
 	return OK;
-	}
+}
 
 
 /******************************************************************/
@@ -64,7 +65,8 @@ int xcddefault_initialize_comment_data(void) {
 
 
 /* adds a new host comment */
-int xcddefault_add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id) {
+int xcddefault_add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id)
+{
 
 	/* find the next valid comment id */
 	while(find_host_comment(next_comment_id) != NULL)
@@ -81,11 +83,12 @@ int xcddefault_add_new_host_comment(int entry_type, char *host_name, time_t entr
 	next_comment_id++;
 
 	return OK;
-	}
+}
 
 
 /* adds a new service comment */
-int xcddefault_add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id) {
+int xcddefault_add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id)
+{
 
 	/* find the next valid comment id */
 	while(find_service_comment(next_comment_id) != NULL)
@@ -102,4 +105,4 @@ int xcddefault_add_new_service_comment(int entry_type, char *host_name, char *sv
 	next_comment_id++;
 
 	return OK;
-	}
+}

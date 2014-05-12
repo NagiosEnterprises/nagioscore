@@ -26,7 +26,7 @@ static int qh_echo(int sd, char *buf, unsigned int len)
 {
 	if (!strcmp(buf, "help")) {
 		nsock_printf_nul(sd,
-			"Query handler that simply echoes back what you send it.");
+		                 "Query handler that simply echoes back what you send it.");
 		return 0;
 	}
 	(void)write(sd, buf, len);
@@ -56,29 +56,49 @@ const char *qh_strerror(int code)
 		return "Redirected (possibly deprecated address)";
 
 	switch (code) {
-		/* client errors */
-	case 400: return "Bad request";
-	case 401: return "Unathorized";
-	case 403: return "Forbidden (disabled by config)";
-	case 404: return "Not found";
-	case 405: return "Method not allowed";
-	case 406: return "Not acceptable";
-	case 407: return "Proxy authentication required";
-	case 408: return "Request timed out";
-	case 409: return "Conflict";
-	case 410: return "Gone";
-	case 411: return "Length required";
-	case 412: return "Precondition failed";
-	case 413: return "Request too large";
-	case 414: return "Request-URI too long";
+	/* client errors */
+	case 400:
+		return "Bad request";
+	case 401:
+		return "Unathorized";
+	case 403:
+		return "Forbidden (disabled by config)";
+	case 404:
+		return "Not found";
+	case 405:
+		return "Method not allowed";
+	case 406:
+		return "Not acceptable";
+	case 407:
+		return "Proxy authentication required";
+	case 408:
+		return "Request timed out";
+	case 409:
+		return "Conflict";
+	case 410:
+		return "Gone";
+	case 411:
+		return "Length required";
+	case 412:
+		return "Precondition failed";
+	case 413:
+		return "Request too large";
+	case 414:
+		return "Request-URI too long";
 
-		/* server errors */
-	case 500: return "Internal server error";
-	case 501: return "Not implemented";
-	case 502: return "Bad gateway";
-	case 503: return "Service unavailable";
-	case 504: return "Gateway timeout";
-	case 505: return "Version not supported";
+	/* server errors */
+	case 500:
+		return "Internal server error";
+	case 501:
+		return "Not implemented";
+	case 502:
+		return "Bad gateway";
+	case 503:
+		return "Service unavailable";
+	case 504:
+		return "Gateway timeout";
+	case 505:
+		return "Version not supported";
 	}
 	return "Unknown error";
 }
@@ -123,8 +143,7 @@ static int qh_input(int sd, int events, void *ioc_)
 		worker_set_sockopts(nsd, 0);
 		qh_running++;
 		return 0;
-	}
-	else {
+	} else {
 		int result;
 		unsigned long len;
 		unsigned int query_len = 0;
@@ -200,7 +219,7 @@ static int qh_input(int sd, int events, void *ioc_)
 		case QH_CLOSE: /* oneshot handler */
 		case -1:       /* general error */
 			iobroker_close(nagios_iobs, sd);
-			/* fallthrough */
+		/* fallthrough */
 		case QH_TAKEOVER: /* handler takes over */
 		case 101:         /* switch protocol (takeover + message) */
 			iocache_destroy(ioc);
@@ -272,8 +291,8 @@ int qh_register_handler(const char *name, const char *description, unsigned int 
 	result = dkhash_insert(qh_table, qh->name, NULL, qh);
 	if(result < 0) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE,
-			  "qh: Failed to insert query handler '%s' (%p) into hash table %p (%d): %s\n",
-			  name, qh, qh_table, result, strerror(errno));
+		      "qh: Failed to insert query handler '%s' (%p) into hash table %p (%d): %s\n",
+		      name, qh, qh_table, result, strerror(errno));
 		free(qh);
 		return result;
 	}
@@ -305,8 +324,8 @@ static int qh_help(int sd, char *buf, unsigned int len)
 
 	if (!*buf || !strcmp(buf, "help")) {
 		nsock_printf_nul(sd,
-			"  help <name>   show help for handler <name>\n"
-			"  help list     list registered handlers\n");
+		                 "  help <name>   show help for handler <name>\n"
+		                 "  help list     list registered handlers\n");
 		return 0;
 	}
 
@@ -333,33 +352,33 @@ static int qh_core(int sd, char *buf, unsigned int len)
 
 	if (!*buf || !strcmp(buf, "help")) {
 		nsock_printf_nul(sd, "Query handler for manipulating nagios core.\n"
-			"Available commands:\n"
-			"  loadctl           Print information about current load control settings\n"
-			"  loadctl <options> Configure nagios load control.\n"
-			"                    The options are the same parameters and format as\n"
-			"                    returned above.\n"
-			"  squeuestats       scheduling queue statistics\n"
-		);
+		                 "Available commands:\n"
+		                 "  loadctl           Print information about current load control settings\n"
+		                 "  loadctl <options> Configure nagios load control.\n"
+		                 "                    The options are the same parameters and format as\n"
+		                 "                    returned above.\n"
+		                 "  squeuestats       scheduling queue statistics\n"
+		                );
 		return 0;
 	}
 	if ((space = memchr(buf, ' ', len)))
 		*(space++) = 0;
 	if (!space && !strcmp(buf, "loadctl")) {
 		nsock_printf_nul
-			(sd, "jobs_max=%u;jobs_min=%u;"
-				"jobs_running=%u;jobs_limit=%u;"
-				"load=%.2f;"
-				"backoff_limit=%.2f;backoff_change=%u;"
-				"rampup_limit=%.2f;rampup_change=%u;"
-				"nproc_limit=%u;nofile_limit=%u;"
-				"options=%u;changes=%u;",
-				loadctl.jobs_max, loadctl.jobs_min,
-				loadctl.jobs_running, loadctl.jobs_limit,
-				loadctl.load[0],
-				loadctl.backoff_limit, loadctl.backoff_change,
-				loadctl.rampup_limit, loadctl.rampup_change,
-				loadctl.nproc_limit, loadctl.nofile_limit,
-				loadctl.options, loadctl.changes);
+		(sd, "jobs_max=%u;jobs_min=%u;"
+		 "jobs_running=%u;jobs_limit=%u;"
+		 "load=%.2f;"
+		 "backoff_limit=%.2f;backoff_change=%u;"
+		 "rampup_limit=%.2f;rampup_change=%u;"
+		 "nproc_limit=%u;nofile_limit=%u;"
+		 "options=%u;changes=%u;",
+		 loadctl.jobs_max, loadctl.jobs_min,
+		 loadctl.jobs_running, loadctl.jobs_limit,
+		 loadctl.load[0],
+		 loadctl.backoff_limit, loadctl.backoff_change,
+		 loadctl.rampup_limit, loadctl.rampup_change,
+		 loadctl.nproc_limit, loadctl.nofile_limit,
+		 loadctl.options, loadctl.changes);
 		return 0;
 	}
 
@@ -395,7 +414,7 @@ int qh_init(const char *path)
 	umask(old_umask);
 	if(qh_listen_sock < 0) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "qh: Failed to init socket '%s'. %s: %s\n",
-			  path, nsock_strerror(qh_listen_sock), strerror(errno));
+		      path, nsock_strerror(qh_listen_sock), strerror(errno));
 		return ERROR;
 	}
 

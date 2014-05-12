@@ -80,7 +80,8 @@ int display_flapping_alerts = TRUE;
 int display_downtime_alerts = TRUE;
 
 
-int main(void) {
+int main(void)
+{
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char temp_buffer2[MAX_INPUT_BUFFER];
 
@@ -127,8 +128,7 @@ int main(void) {
 			if(show_all_hosts == FALSE)
 				printf("<A HREF='%s?host=%s'>View Trends For This Host</A>\n", TRENDS_CGI, url_encode(host_name));
 #endif
-			}
-		else {
+		} else {
 			printf("<A HREF='%s?host=%s&", NOTIFICATIONS_CGI, url_encode(host_name));
 			printf("service=%s'>View Notifications For This Service</A><BR />\n", url_encode(svc_description));
 #ifdef USE_TRENDS
@@ -136,7 +136,7 @@ int main(void) {
 			printf("service=%s'>View Trends For This Service</A><BR />\n", url_encode(svc_description));
 #endif
 			printf("<A HREF='%s?host=%s'>View History For This Host</A>\n", HISTORY_CGI, url_encode(host_name));
-			}
+		}
 		printf("</TD></TR>\n");
 		printf("</TABLE>\n");
 
@@ -163,7 +163,7 @@ int main(void) {
 			temp_buffer2[sizeof(temp_buffer2) - 1] = '\x0';
 			strncat(temp_buffer, temp_buffer2, sizeof(temp_buffer) - strlen(temp_buffer) - 1);
 			temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
-			}
+		}
 		display_nav_table(temp_buffer, log_archive);
 
 		printf("</td>\n");
@@ -215,7 +215,7 @@ int main(void) {
 			printf("<option value=%d %s>Host down</option>\n", HISTORY_HOST_DOWN, (history_options == HISTORY_HOST_DOWN) ? "selected" : "");
 			printf("<option value=%d %s>Host unreachable</option>\n", HISTORY_HOST_UNREACHABLE, (history_options == HISTORY_HOST_UNREACHABLE) ? "selected" : "");
 			printf("<option value=%d %s>Host recovery</option>\n", HISTORY_HOST_RECOVERY, (history_options == HISTORY_HOST_RECOVERY) ? "selected" : "");
-			}
+		}
 		printf("</select></td>\n");
 		printf("</tr>\n");
 
@@ -253,7 +253,7 @@ int main(void) {
 		printf("</tr>\n");
 		printf("</table>\n");
 
-		}
+	}
 
 
 	/* display history */
@@ -265,11 +265,12 @@ int main(void) {
 	free_memory();
 
 	return OK;
-	}
+}
 
 
 
-void document_header(int use_stylesheet) {
+void document_header(int use_stylesheet)
+{
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	time_t expire_time;
@@ -300,7 +301,7 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, HISTORY_CSS);
-		}
+	}
 
 	printf("</head>\n");
 	printf("<BODY CLASS='history'>\n");
@@ -309,10 +310,11 @@ void document_header(int use_stylesheet) {
 	include_ssi_files(HISTORY_CGI, SSI_HEADER);
 
 	return;
-	}
+}
 
 
-void document_footer(void) {
+void document_footer(void)
+{
 
 	if(embedded == TRUE)
 		return;
@@ -324,10 +326,11 @@ void document_footer(void) {
 	printf("</html>\n");
 
 	return;
-	}
+}
 
 
-int process_cgivars(void) {
+int process_cgivars(void)
+{
 	char **variables;
 	int error = FALSE;
 	int x;
@@ -346,7 +349,7 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((host_name = (char *)strdup(variables[x])) == NULL)
 				host_name = "";
@@ -358,7 +361,7 @@ int process_cgivars(void) {
 				show_all_hosts = TRUE;
 			else
 				show_all_hosts = FALSE;
-			}
+		}
 
 		/* we found the service argument */
 		else if(!strcmp(variables[x], "service")) {
@@ -366,14 +369,14 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			if((svc_description = (char *)strdup(variables[x])) == NULL)
 				svc_description = "";
 			strip_html_brackets(svc_description);
 
 			display_type = DISPLAY_SERVICES;
-			}
+		}
 
 
 		/* we found the history type argument */
@@ -382,10 +385,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			history_options = atoi(variables[x]);
-			}
+		}
 
 		/* we found the history state type argument */
 		else if(!strcmp(variables[x], "statetype")) {
@@ -393,10 +396,10 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			state_options = atoi(variables[x]);
-			}
+		}
 
 
 		/* we found the log archive argument */
@@ -405,17 +408,17 @@ int process_cgivars(void) {
 			if(variables[x] == NULL) {
 				error = TRUE;
 				break;
-				}
+			}
 
 			log_archive = atoi(variables[x]);
 			if(log_archive < 0)
 				log_archive = 0;
-			}
+		}
 
 		/* we found the order argument */
 		else if(!strcmp(variables[x], "oldestfirst")) {
 			use_lifo = FALSE;
-			}
+		}
 
 		/* we found the embed option */
 		else if(!strcmp(variables[x], "embedded"))
@@ -444,17 +447,18 @@ int process_cgivars(void) {
 		/* we found the no downtime alerts option */
 		else if(!strcmp(variables[x], "nodowntime"))
 			display_downtime_alerts = FALSE;
-		}
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
 
 	return error;
-	}
+}
 
 
 
-void get_history(void) {
+void get_history(void)
+{
 	mmapfile *thefile = NULL;
 	char image[MAX_INPUT_BUFFER];
 	char image_alt[MAX_INPUT_BUFFER];
@@ -486,22 +490,21 @@ void get_history(void) {
 		if(result != LIFO_OK) {
 			if(result == LIFO_ERROR_MEMORY) {
 				printf("<P><DIV CLASS='warningMessage'>Not enough memory to reverse log file - displaying history in natural order...</DIV></P>\n");
-				}
-			else if(result == LIFO_ERROR_FILE) {
+			} else if(result == LIFO_ERROR_FILE) {
 				printf("<HR><P><DIV CLASS='errorMessage'>Error: Cannot open log file '%s' for reading!</DIV></P><HR>", log_file_to_use);
 				return;
-				}
-			use_lifo = FALSE;
 			}
+			use_lifo = FALSE;
 		}
+	}
 
 	if(use_lifo == FALSE) {
 
 		if((thefile = mmap_fopen(log_file_to_use)) == NULL) {
 			printf("<HR><P><DIV CLASS='errorMessage'>Error: Cannot open log file '%s' for reading!</DIV></P><HR>", log_file_to_use);
 			return;
-			}
 		}
+	}
 
 	printf("<P><DIV CLASS='logEntries'>\n");
 
@@ -513,11 +516,10 @@ void get_history(void) {
 		if(use_lifo == TRUE) {
 			if((input = pop_lifo()) == NULL)
 				break;
-			}
-		else {
+		} else {
 			if((input = mmap_fgets(thefile)) == NULL)
 				break;
-			}
+		}
 
 		strip(input);
 
@@ -551,23 +553,20 @@ void get_history(void) {
 				strncpy(image, CRITICAL_ICON, sizeof(image));
 				strncpy(image_alt, CRITICAL_ICON_ALT, sizeof(image_alt));
 				history_detail_type = HISTORY_SERVICE_CRITICAL;
-				}
-			else if(strstr(input, ";WARNING;")) {
+			} else if(strstr(input, ";WARNING;")) {
 				strncpy(image, WARNING_ICON, sizeof(image));
 				strncpy(image_alt, WARNING_ICON_ALT, sizeof(image_alt));
 				history_detail_type = HISTORY_SERVICE_WARNING;
-				}
-			else if(strstr(input, ";UNKNOWN;")) {
+			} else if(strstr(input, ";UNKNOWN;")) {
 				strncpy(image, UNKNOWN_ICON, sizeof(image));
 				strncpy(image_alt, UNKNOWN_ICON_ALT, sizeof(image_alt));
 				history_detail_type = HISTORY_SERVICE_UNKNOWN;
-				}
-			else if(strstr(input, ";RECOVERY;") || strstr(input, ";OK;")) {
+			} else if(strstr(input, ";RECOVERY;") || strstr(input, ";OK;")) {
 				strncpy(image, OK_ICON, sizeof(image));
 				strncpy(image_alt, OK_ICON_ALT, sizeof(image_alt));
 				history_detail_type = HISTORY_SERVICE_RECOVERY;
-				}
 			}
+		}
 
 		/* service flapping alerts */
 		else if(strstr(input, "SERVICE FLAPPING ALERT:")) {
@@ -599,7 +598,7 @@ void get_history(void) {
 				strncpy(image_alt, "Service stopped flapping", sizeof(image_alt));
 			else if(strstr(input, ";DISABLED;"))
 				strncpy(image_alt, "Service flap detection disabled", sizeof(image_alt));
-			}
+		}
 
 		/* service downtime alerts */
 		else if(strstr(input, "SERVICE DOWNTIME ALERT:")) {
@@ -631,7 +630,7 @@ void get_history(void) {
 				strncpy(image_alt, "Service exited from a period of scheduled downtime", sizeof(image_alt));
 			else if(strstr(input, ";CANCELLED;"))
 				strncpy(image_alt, "Service scheduled downtime has been cancelled", sizeof(image_alt));
-			}
+		}
 
 		/* host state alerts */
 		else if(strstr(input, "HOST ALERT:")) {
@@ -651,18 +650,16 @@ void get_history(void) {
 				strncpy(image, HOST_DOWN_ICON, sizeof(image));
 				strncpy(image_alt, HOST_DOWN_ICON_ALT, sizeof(image_alt));
 				history_detail_type = HISTORY_HOST_DOWN;
-				}
-			else if(strstr(input, ";UNREACHABLE;")) {
+			} else if(strstr(input, ";UNREACHABLE;")) {
 				strncpy(image, HOST_UNREACHABLE_ICON, sizeof(image));
 				strncpy(image_alt, HOST_UNREACHABLE_ICON_ALT, sizeof(image_alt));
 				history_detail_type = HISTORY_HOST_UNREACHABLE;
-				}
-			else if(strstr(input, ";RECOVERY") || strstr(input, ";UP;")) {
+			} else if(strstr(input, ";RECOVERY") || strstr(input, ";UP;")) {
 				strncpy(image, HOST_UP_ICON, sizeof(image));
 				strncpy(image_alt, HOST_UP_ICON_ALT, sizeof(image_alt));
 				history_detail_type = HISTORY_HOST_RECOVERY;
-				}
 			}
+		}
 
 		/* host flapping alerts */
 		else if(strstr(input, "HOST FLAPPING ALERT:")) {
@@ -689,7 +686,7 @@ void get_history(void) {
 				strncpy(image_alt, "Host stopped flapping", sizeof(image_alt));
 			else if(strstr(input, ";DISABLED;"))
 				strncpy(image_alt, "Host flap detection disabled", sizeof(image_alt));
-			}
+		}
 
 		/* host downtime alerts */
 		else if(strstr(input, "HOST DOWNTIME ALERT:")) {
@@ -716,7 +713,7 @@ void get_history(void) {
 				strncpy(image_alt, "Host exited from a period of scheduled downtime", sizeof(image_alt));
 			else if(strstr(input, ";CANCELLED;"))
 				strncpy(image_alt, "Host scheduled downtime has been cancelled", sizeof(image_alt));
-			}
+		}
 
 		else if(display_system_messages == FALSE)
 			continue;
@@ -726,28 +723,28 @@ void get_history(void) {
 			strncpy(image, START_ICON, sizeof(image));
 			strncpy(image_alt, START_ICON_ALT, sizeof(image_alt));
 			system_message = TRUE;
-			}
+		}
 
 		/* normal program termination */
 		else if(strstr(input, " shutting down...")) {
 			strncpy(image, STOP_ICON, sizeof(image));
 			strncpy(image_alt, STOP_ICON_ALT, sizeof(image_alt));
 			system_message = TRUE;
-			}
+		}
 
 		/* abnormal program termination */
 		else if(strstr(input, "Bailing out")) {
 			strncpy(image, STOP_ICON, sizeof(image));
 			strncpy(image_alt, STOP_ICON_ALT, sizeof(image_alt));
 			system_message = TRUE;
-			}
+		}
 
 		/* program restart */
 		else if(strstr(input, " restarting...")) {
 			strncpy(image, RESTART_ICON, sizeof(image));
 			strncpy(image_alt, RESTART_ICON_ALT, sizeof(image_alt));
 			system_message = TRUE;
-			}
+		}
 
 		image[sizeof(image) - 1] = '\x0';
 		image_alt[sizeof(image_alt) - 1] = '\x0';
@@ -776,22 +773,20 @@ void get_history(void) {
 
 				if(history_type == HOST_HISTORY || history_type == SERVICE_HISTORY) {
 					snprintf(match1, sizeof( match1),
-							" HOST ALERT: %s;", host_name);
+					         " HOST ALERT: %s;", host_name);
 					snprintf(match2, sizeof( match2),
-							" SERVICE ALERT: %s;", host_name);
-					}
-				else if(history_type == HOST_FLAPPING_HISTORY || history_type == SERVICE_FLAPPING_HISTORY) {
+					         " SERVICE ALERT: %s;", host_name);
+				} else if(history_type == HOST_FLAPPING_HISTORY || history_type == SERVICE_FLAPPING_HISTORY) {
 					snprintf(match1, sizeof( match1),
-							" HOST FLAPPING ALERT: %s;", host_name);
+					         " HOST FLAPPING ALERT: %s;", host_name);
 					snprintf(match2, sizeof( match2),
-							" SERVICE FLAPPING ALERT: %s;", host_name);
-					}
-				else if(history_type == HOST_DOWNTIME_HISTORY || history_type == SERVICE_DOWNTIME_HISTORY) {
+					         " SERVICE FLAPPING ALERT: %s;", host_name);
+				} else if(history_type == HOST_DOWNTIME_HISTORY || history_type == SERVICE_DOWNTIME_HISTORY) {
 					snprintf(match1, sizeof( match1),
-							" HOST DOWNTIME ALERT: %s;", host_name);
+					         " HOST DOWNTIME ALERT: %s;", host_name);
 					snprintf(match2, sizeof( match2),
-							" SERVICE DOWNTIME ALERT: %s;", host_name);
-					}
+					         " SERVICE DOWNTIME ALERT: %s;", host_name);
+				}
 
 				if(show_all_hosts == TRUE)
 					display_line = TRUE;
@@ -811,7 +806,7 @@ void get_history(void) {
 						display_line = TRUE;
 					else
 						display_line = FALSE;
-					}
+				}
 
 				/* check alert state types */
 				if(display_line == TRUE && (history_type == HOST_HISTORY || history_type == SERVICE_HISTORY)) {
@@ -823,8 +818,8 @@ void get_history(void) {
 						display_line = TRUE;
 					else
 						display_line = FALSE;
-					}
 				}
+			}
 
 			else if(display_type == DISPLAY_SERVICES) {
 
@@ -845,7 +840,7 @@ void get_history(void) {
 						display_line = TRUE;
 					else
 						display_line = FALSE;
-					}
+				}
 
 				/* check alert state type */
 				if(display_line == TRUE && history_type == SERVICE_HISTORY) {
@@ -858,8 +853,8 @@ void get_history(void) {
 						display_line = TRUE;
 					else
 						display_line = FALSE;
-					}
 				}
+			}
 
 
 			/* make sure user is authorized to view this host or service information */
@@ -870,13 +865,12 @@ void get_history(void) {
 					if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 						display_line = FALSE;
 
-					}
-				else {
+				} else {
 					temp_service = find_service(entry_host_name, entry_service_desc);
 					if(is_authorized_for_service(temp_service, &current_authdata) == FALSE)
 						display_line = FALSE;
-					}
 				}
+			}
 
 			/* display the entry if we should... */
 			if(display_line == TRUE) {
@@ -893,7 +887,7 @@ void get_history(void) {
 					printf("<BR CLEAR='all' /><DIV CLASS='logEntries'>\n");
 					strncpy(last_message_date, current_message_date, sizeof(last_message_date));
 					last_message_date[sizeof(last_message_date) - 1] = '\x0';
-					}
+				}
 
 				if(display_frills == TRUE)
 					printf("<img align='left' src='%s%s' alt='%s' title='%s' />", url_images_path, image, image_alt, image_alt);
@@ -901,19 +895,19 @@ void get_history(void) {
 				if(enable_splunk_integration == TRUE) {
 					printf("&nbsp;&nbsp;&nbsp;");
 					display_splunk_generic_url(temp_buffer, 2);
-					}
+				}
 				printf("<br clear='all' />\n");
 
 				found_line = TRUE;
-				}
 			}
+		}
 
 		/* free memory */
 		free(entry_host_name);
 		entry_host_name = NULL;
 		free(entry_service_desc);
 		entry_service_desc = NULL;
-		}
+	}
 
 	printf("</DIV></P>\n");
 
@@ -925,7 +919,7 @@ void get_history(void) {
 		else
 			printf("for this service ");
 		printf("in %s log file</DIV></P>", (log_archive == 0) ? "the current" : "this archived");
-		}
+	}
 
 	printf("<HR>\n");
 
@@ -938,4 +932,4 @@ void get_history(void) {
 		mmap_fclose(thefile);
 
 	return;
-	}
+}

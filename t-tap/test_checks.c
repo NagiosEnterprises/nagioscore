@@ -55,7 +55,8 @@ int found_log_rechecking_host_when_service_wobbles = 0;
 int found_log_run_async_host_check = 0;
 check_result *tmp_check_result;
 
-void setup_check_result() {
+void setup_check_result()
+{
 	struct timeval start_time, finish_time;
 	start_time.tv_sec = 1234567890L;
 	start_time.tv_usec = 0L;
@@ -73,10 +74,11 @@ void setup_check_result() {
 	tmp_check_result->latency = 0.6969;
 	tmp_check_result->start_time = start_time;
 	tmp_check_result->finish_time = finish_time;
-	}
+}
 
 int c = 0;
-int update_program_status(int aggregated_dump) {
+int update_program_status(int aggregated_dump)
+{
 	c++;
 	/* printf ("# In the update_program_status hook: %d\n", c); */
 
@@ -84,9 +86,10 @@ int update_program_status(int aggregated_dump) {
 	if(c > 10) {
 		sigshutdown = TRUE;
 		c = 0;
-		}
 	}
-int log_debug_info(int level, int verbosity, const char *fmt, ...) {
+}
+int log_debug_info(int level, int verbosity, const char *fmt, ...)
+{
 	va_list ap;
 	char *buffer = NULL;
 
@@ -95,17 +98,18 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	vasprintf(&buffer, fmt, ap);
 	if(strcmp(buffer, "Service wobbled between non-OK states, so we'll recheck the host state...\n") == 0) {
 		found_log_rechecking_host_when_service_wobbles++;
-		}
+	}
 	if(strcmp(buffer, "run_async_host_check()\n") == 0) {
 		found_log_run_async_host_check++;
-		}
+	}
 	free(buffer);
 	va_end(ap);
-	}
+}
 
 
 void
-setup_objects(time_t time) {
+setup_objects(time_t time)
+{
 	timed_event *new_event = NULL;
 
 	enable_predictive_service_dependency_checks = FALSE;
@@ -153,10 +157,11 @@ setup_objects(time_t time) {
 	svc2->retry_interval = 1;
 	svc2->check_interval = 5;
 
-	}
+}
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 	time_t now = 0L;
 
 
@@ -416,5 +421,5 @@ main(int argc, char **argv) {
 
 
 	return exit_status();
-	}
+}
 

@@ -43,11 +43,12 @@ void		print_license( void);
 void		print_usage( char *);
 void		print_version( void);
 void		parse_worker_command_line( int, char **, char **, int *, char **,
-					char **, char **);
+                                       char **, char **);
 static int	worker( const char *);
 
 /* Everything starts here */
-main( int argc, char **argv, char **env) {
+main( int argc, char **argv, char **env)
+{
 	int daemon_mode = FALSE;
 	char *worker_socket;
 	char *worker_user = ( char *)0;
@@ -58,7 +59,7 @@ main( int argc, char **argv, char **env) {
 	}
 
 	parse_worker_command_line( argc, argv, env, &daemon_mode, &worker_socket,
-			&worker_user, &worker_group);
+	                           &worker_user, &worker_group);
 
 	if( FALSE == daemon_mode) {
 		print_version();
@@ -74,8 +75,8 @@ main( int argc, char **argv, char **env) {
 	if( TRUE == daemon_mode) {
 		if( daemon_init() == ERROR) {
 			fprintf( stderr,
-					"Bailing out due to failure to daemonize. (PID=%d)\n",
-					( int)getpid());
+			         "Bailing out due to failure to daemonize. (PID=%d)\n",
+			         ( int)getpid());
 			exit( 1);
 		}
 	}
@@ -87,8 +88,9 @@ main( int argc, char **argv, char **env) {
 }
 
 void parse_worker_command_line( int argc, char **argv, char **env,
-		int *daemon_mode, char **worker_socket, char **worker_user,
-		char **worker_group) {
+                                int *daemon_mode, char **worker_socket, char **worker_user,
+                                char **worker_group)
+{
 	int c = 0;
 	int display_usage = FALSE;
 	int display_license = FALSE;
@@ -116,43 +118,43 @@ void parse_worker_command_line( int argc, char **argv, char **env,
 
 		switch( c) {
 
-			case '?': /* usage */
-			case 'h':
-				display_usage = TRUE;
-				break;
+		case '?': /* usage */
+		case 'h':
+			display_usage = TRUE;
+			break;
 
-			case 'V': /* version */
-				display_license = TRUE;
-				break;
+		case 'V': /* version */
+			display_license = TRUE;
+			break;
 
-			case 'd': /* daemon mode */
-				*daemon_mode = TRUE;
-				break;
+		case 'd': /* daemon mode */
+			*daemon_mode = TRUE;
+			break;
 
-			case 'W':
-				*worker_socket = optarg;
-				break;
+		case 'W':
+			*worker_socket = optarg;
+			break;
 
-			case 'u':
-				*worker_user = optarg;
-				break;
+		case 'u':
+			*worker_user = optarg;
+			break;
 
-			case 'g':
-				*worker_group = optarg;
-				break;
+		case 'g':
+			*worker_group = optarg;
+			break;
 
-			case ':':
-				printf( "Missing argument for command line option '%c'.\n\n",
-						optopt);
-				print_usage( argv[ 0]);
-				exit( 1);
-				break;
+		case ':':
+			printf( "Missing argument for command line option '%c'.\n\n",
+			        optopt);
+			print_usage( argv[ 0]);
+			exit( 1);
+			break;
 
-			default:
-				printf( "Unknown command line option '%c'.\n\n", c);
-				print_usage( argv[ 0]);
-				exit( 1);
-				break;
+		default:
+			printf( "Unknown command line option '%c'.\n\n", c);
+			print_usage( argv[ 0]);
+			exit( 1);
+			break;
 		}
 	}
 
@@ -169,7 +171,8 @@ void parse_worker_command_line( int argc, char **argv, char **env,
 
 }
 
-void print_license( void) {
+void print_license( void)
+{
 	printf( "\nThis program is free software; you can redistribute it and/or modify\n");
 	printf( "it under the terms of the GNU General Public License version 2 as\n");
 	printf( "published by the Free Software Foundation.\n\n");
@@ -182,7 +185,8 @@ void print_license( void) {
 	printf( "Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n\n");
 }
 
-void print_usage( char *program_name) {
+void print_usage( char *program_name)
+{
 	printf( "\nUsage: %s [-?|-h|--help] [-V|--version] [-d]\n", program_name);
 	printf( "        -W /path/to/socket -u user -g group\n");
 	printf( "\n");
@@ -200,7 +204,8 @@ void print_usage( char *program_name) {
 	printf( "\n");
 }
 
-void print_version( void) {
+void print_version( void)
+{
 	printf( "\nNagios Core 4 Ping Worker %s\n", PING_WORKER_VERSION);
 	printf( "Copyright (c) 2013-present Nagios Core Development Team\n");
 	printf( "        and Community Contributors\n");
@@ -219,7 +224,7 @@ static int worker( const char *path)
 	sd = nsock_unix( path, NSOCK_TCP | NSOCK_CONNECT);
 	if( sd < 0) {
 		printf( "Failed to connect to query socket '%s': %s: %s\n",
-				path, nsock_strerror( sd), strerror( errno));
+		        path, nsock_strerror( sd), strerror( errno));
 		return 1;
 	}
 
@@ -245,7 +250,8 @@ static int worker( const char *path)
 	return 0;
 }
 
-int drop_privileges( char *user, char *group) {
+int drop_privileges( char *user, char *group)
+{
 	uid_t uid = -1;
 	gid_t gid = -1;
 	struct group *grp = NULL;
@@ -266,10 +272,9 @@ int drop_privileges( char *user, char *group) {
 			grp = ( struct group *)getgrnam( group);
 			if( NULL != grp) {
 				gid = ( gid_t)(grp->gr_gid);
-			}
-			else {
+			} else {
 				fprintf( stderr,
-					"Warning: Could not get group entry for '%s'\n", group);
+				         "Warning: Could not get group entry for '%s'\n", group);
 			}
 		}
 
@@ -282,7 +287,7 @@ int drop_privileges( char *user, char *group) {
 		if( gid != getegid()) {
 			if( setgid( gid) == -1) {
 				fprintf( stderr, "Warning: Could not set effective GID=%d\n",
-						( int)gid);
+				         ( int)gid);
 				result = PW_ERROR;
 			}
 		}
@@ -296,10 +301,9 @@ int drop_privileges( char *user, char *group) {
 			pw = ( struct passwd *)getpwnam( user);
 			if( NULL != pw) {
 				uid = ( uid_t)(pw->pw_uid);
-			}
-			else {
+			} else {
 				fprintf( stderr,
-						"Warning: Could not get passwd entry for '%s'\n", user);
+				         "Warning: Could not get passwd entry for '%s'\n", user);
 			}
 		}
 
@@ -316,12 +320,11 @@ int drop_privileges( char *user, char *group) {
 			if( initgroups( user, gid) == -1) {
 				if( EPERM == errno) {
 					fprintf( stderr, "Warning: Unable to change supplementary "
-							"groups using initgroups() -- I hope you know what "
-							"you're doing\n");
-				}
-				else {
+					         "groups using initgroups() -- I hope you know what "
+					         "you're doing\n");
+				} else {
 					fprintf( stderr, "Warning: Possibly root user failed "
-							"dropping privileges with initgroups()\n");
+					         "dropping privileges with initgroups()\n");
 					return PW_ERROR;
 				}
 			}
@@ -329,7 +332,7 @@ int drop_privileges( char *user, char *group) {
 #endif
 		if( setuid( uid) == -1) {
 			fprintf( stderr, "Warning: Could not set effective UID=%d\n",
-					( int)uid);
+			         ( int)uid);
 			result = PW_ERROR;
 		}
 	}
@@ -337,7 +340,8 @@ int drop_privileges( char *user, char *group) {
 	return result;
 }
 
-int daemon_init( void) {
+int daemon_init( void)
+{
 	pid_t pid = -1;
 	int pidno = 0;
 	int lockfile = 0;
@@ -355,8 +359,7 @@ int daemon_init( void) {
 #ifdef DAEMON_DUMPS_CORE
 	if( NULL != homedir) {
 		chdir( homedir);
-	}
-	else {
+	} else {
 #endif
 		chdir( "/");
 #ifdef DAEMON_DUMPS_CORE
@@ -378,7 +381,7 @@ int daemon_init( void) {
 
 #ifdef USE_LOCKFILE
 	lockfile = open( lock_file,
-			O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+	                 O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
 	if( lockfile < 0) {
 		logit( NSLOG_RUNTIME_ERROR, TRUE, "Failed to obtain lock on file %s: %s\n", lock_file, strerror(errno));
@@ -433,8 +436,7 @@ int daemon_init( void) {
 		if( EACCES == errno || EAGAIN == errno) {
 			fcntl( lockfile, F_GETLK, &lock);
 			logit( NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' looks like its already held by another instance of Nagios (PID %d).  Bailing out...", lock_file, (int)lock.l_pid);
-			}
-		else {
+		} else {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Cannot lock lockfile '%s': %s. Bailing out...", lock_file, strerror(errno));
 
 		}

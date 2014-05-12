@@ -146,7 +146,10 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 		case 0:
 			return ret;
 
-		case ' ': case '\t': case '\r': case '\n':
+		case ' ':
+		case '\t':
+		case '\r':
+		case '\n':
 			if (is_state(STATE_INARG)) {
 				set_state(STATE_NONE);
 				argz[a++] = 0;
@@ -169,7 +172,10 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			if (have_state(STATE_INDQ)) {
 				const char next = str[i + 1];
 				switch (next) {
-				case '"': case '\\': case '$': case '`':
+				case '"':
+				case '\\':
+				case '$':
+				case '`':
 					add_state(STATE_BSLASH);
 					continue;
 				}
@@ -223,7 +229,8 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 				add_ret(RUNCMD_HAS_REDIR);
 			}
 			break;
-		case '&': case ';':
+		case '&':
+		case ';':
 			if (!in_quotes) {
 				set_state(STATE_SPECIAL);
 				add_ret(RUNCMD_HAS_JOBCONTROL);
@@ -240,7 +247,8 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			}
 			break;
 
-		case '(': case ')':
+		case '(':
+		case ')':
 			if (!in_quotes) {
 				add_ret(RUNCMD_HAS_PAREN);
 			}
@@ -255,12 +263,13 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			}
 			break;
 
-		case '*': case '?':
+		case '*':
+		case '?':
 			if (!in_quotes) {
 				add_ret(RUNCMD_HAS_WILDCARD);
 			}
 
-			/* fallthrough */
+		/* fallthrough */
 
 		default:
 			break;
@@ -320,7 +329,7 @@ void runcmd_init(void)
 
 /* Start running a command */
 int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
-		void (*iobreg)(int, int, void *), void *iobregarg)
+                void (*iobreg)(int, int, void *), void *iobregarg)
 {
 	char **argv = NULL;
 	int cmd2strv_errors, argc = 0;
@@ -504,8 +513,7 @@ int runcmd_try_close(int fd, int *status, int sig)
 					result = kill(pid, sig);
 					sig = 0;
 					continue;
-				}
-				else return -1;
+				} else return -1;
 			} /* switch */
 		}
 	}
@@ -516,7 +524,8 @@ int runcmd_try_close(int fd, int *status, int sig)
 }
 
 /* sets or unsets an environment variable */
-int update_environment(char *name, char *value, int set) {
+int update_environment(char *name, char *value, int set)
+{
 #ifndef HAVE_SETENV
 	char *env_string = NULL;
 #endif

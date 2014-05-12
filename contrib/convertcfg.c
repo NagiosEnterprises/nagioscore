@@ -28,7 +28,8 @@
 
 char *my_strsep(char **, const char *);
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	FILE *fp;
 	char *temp_ptr;
 	char *temp_ptr2;
@@ -91,13 +92,13 @@ int main(int argc, char **argv) {
 		printf("you will have to do some manual tweaking.\n");
 		printf("\n");
 		return -1;
-		}
+	}
 
 	fp = fopen(argv[1], "r");
 	if(fp == NULL) {
 		printf("Error: Could not open file '%s' for reading.\n", argv[1]);
 		return -1;
-		}
+	}
 
 	for(fgets(input, sizeof(input) - 1, fp); !feof(fp); fgets(input, sizeof(input) - 1, fp)) {
 
@@ -149,7 +150,7 @@ int main(int argc, char **argv) {
 				printf("\tsaturday\t%s\n", temp_ptr);
 
 			printf("\t}\n\n\n");
-			}
+		}
 
 		/* commands */
 		if(strstr(input, "command[") && !strcmp(argv[2], "commands")) {
@@ -167,7 +168,7 @@ int main(int argc, char **argv) {
 			printf("\tcommand_line\t%s\n", temp_ptr + 1);
 
 			printf("\t}\n\n\n");
-			}
+		}
 
 		/* contacts */
 		if(strstr(input, "contact[") && !strcmp(argv[2], "contacts")) {
@@ -205,20 +206,19 @@ int main(int argc, char **argv) {
 				if(notify_warning == 1) {
 					printf("w,u");
 					option = 1;
-					}
+				}
 				if(notify_critical == 1) {
 					if(option == 1)
 						printf(",");
 					printf("c");
 					option = 1;
-					}
+				}
 				if(notify_recovery == 1) {
 					if(option == 1)
 						printf(",");
 					printf("r");
-					}
 				}
-			else
+			} else
 				printf("n");
 			printf("\n");
 
@@ -235,20 +235,19 @@ int main(int argc, char **argv) {
 				if(notify_down == 1) {
 					printf("d");
 					option = 1;
-					}
+				}
 				if(notify_unreachable == 1) {
 					if(option == 1)
 						printf(",");
 					printf("u");
 					option = 1;
-					}
+				}
 				if(notify_recovery == 1) {
 					if(option == 1)
 						printf(",");
 					printf("r");
-					}
 				}
-			else
+			} else
 				printf("n");
 			printf("\n");
 
@@ -269,7 +268,7 @@ int main(int argc, char **argv) {
 				printf("\tpager\t\t\t\t%s\n", temp_ptr);
 
 			printf("\t}\n\n\n");
-			}
+		}
 
 
 		/* contactgroups */
@@ -291,7 +290,7 @@ int main(int argc, char **argv) {
 			printf("\tmembers\t\t\t%s\n", temp_ptr);
 
 			printf("\t}\n\n\n");
-			}
+		}
 
 		/* hosts */
 		if(strstr(input, "host[") && !strcmp(argv[2], "hosts")) {
@@ -314,7 +313,7 @@ int main(int argc, char **argv) {
 				printf("\t}\n\n");
 
 				have_template = 1;
-				}
+			}
 
 			temp_ptr2 = &input[0];
 			temp_ptr = my_strsep(&temp_ptr2, "[");
@@ -361,20 +360,19 @@ int main(int argc, char **argv) {
 				if(notify_down == 1) {
 					printf("d");
 					option = 1;
-					}
+				}
 				if(notify_unreachable == 1) {
 					if(option == 1)
 						printf(",");
 					printf("u");
 					option = 1;
-					}
+				}
 				if(notify_recovery == 1) {
 					if(option == 1)
 						printf(",");
 					printf("r");
-					}
 				}
-			else
+			} else
 				printf("n");
 			printf("\n");
 
@@ -383,7 +381,7 @@ int main(int argc, char **argv) {
 				printf("\tevent_handler\t\t%s\n", temp_ptr);
 
 			printf("\t}\n\n\n");
-			}
+		}
 
 		/* hostgroups */
 		if(strstr(input, "hostgroup[") && !strcmp(argv[2], "hostgroups")) {
@@ -407,7 +405,7 @@ int main(int argc, char **argv) {
 			printf("\tmembers\t\t%s\n", temp_ptr);
 
 			printf("\t}\n\n\n");
-			}
+		}
 
 
 		/* services */
@@ -434,7 +432,7 @@ int main(int argc, char **argv) {
 				printf("\t}\n\n");
 
 				have_template = 1;
-				}
+			}
 
 			temp_ptr2 = &input[0];
 			temp_ptr = my_strsep(&temp_ptr2, "[");
@@ -487,20 +485,19 @@ int main(int argc, char **argv) {
 				if(notify_warning == 1) {
 					printf("w,u");
 					option = 1;
-					}
+				}
 				if(notify_critical == 1) {
 					if(option == 1)
 						printf(",");
 					printf("c");
 					option = 1;
-					}
+				}
 				if(notify_recovery == 1) {
 					if(option == 1)
 						printf(",");
 					printf("r");
-					}
 				}
-			else
+			} else
 				printf("n");
 			printf("\n");
 
@@ -513,7 +510,7 @@ int main(int argc, char **argv) {
 				printf("\tcheck_command\t\t\t%s\n", temp_ptr);
 
 			printf("\t}\n\n\n");
-			}
+		}
 
 		/* hostgroup escalations */
 		if(strstr(input, "hostgroupescalation[") && !strcmp(argv[2], "hostgroupescalations")) {
@@ -542,7 +539,7 @@ int main(int argc, char **argv) {
 			printf("\tnotification_interval\t\t%d\n", atoi(temp_ptr));
 
 			printf("\t}\n\n\n");
-			}
+		}
 
 		/* service escalations */
 		if(strstr(input, "serviceescalation[") && !strcmp(argv[2], "serviceescalations")) {
@@ -573,7 +570,7 @@ int main(int argc, char **argv) {
 			printf("\tnotification_interval\t\t%d\n", atoi(temp_ptr));
 
 			printf("\t}\n\n\n");
-			}
+		}
 
 		/* service dependencies */
 		if(strstr(input, "servicedependency[") && !strcmp(argv[2], "servicedependencies")) {
@@ -613,7 +610,7 @@ int main(int argc, char **argv) {
 				printf("n");
 			printf("\t; These are the criteria for which notifications will be suppressed\n");
 			printf("\t}\n\n\n");
-			}
+		}
 
 
 		/* extended host info */
@@ -657,7 +654,7 @@ int main(int argc, char **argv) {
 				printf("\t3d_coords\t\t%s\n", temp_ptr);
 
 			printf("\t}\n\n\n");
-			}
+		}
 
 
 		/* extended service info */
@@ -688,21 +685,22 @@ int main(int argc, char **argv) {
 				printf("\ticon_image_alt\t\t%s\n", temp_ptr);
 
 			printf("\t}\n\n\n");
-			}
-
 		}
+
+	}
 
 
 	fclose(fp);
 
 	return 0;
-	}
+}
 
 
 
 /* fixes compiler problems under Solaris, since strsep() isn't included */
 /* this code is taken from the glibc source */
-char *my_strsep(char **stringp, const char *delim) {
+char *my_strsep(char **stringp, const char *delim)
+{
 	char *begin, *end;
 
 	begin = *stringp;
@@ -722,8 +720,8 @@ char *my_strsep(char **stringp, const char *delim) {
 				end = begin;
 			else
 				end = strchr(begin + 1, ch);
-			}
 		}
+	}
 
 	else
 		/* Find the end of the token.  */
@@ -734,12 +732,11 @@ char *my_strsep(char **stringp, const char *delim) {
 		/* Terminate the token and set *STRINGP past NUL character.  */
 		*end++ = '\0';
 		*stringp = end;
-		}
-	else
+	} else
 		/* No more delimiters; this is the last token.  */
 		*stringp = NULL;
 
 	return begin;
-	}
+}
 
 

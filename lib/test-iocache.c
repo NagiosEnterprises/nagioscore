@@ -47,7 +47,7 @@ static int test_delimiter(const char *delim, unsigned int delim_len)
 		test(!memcmp(ptr, sc[i].str, len), "memcmp() check, string %d, delim_len %d", i, delim_len);
 		if (error) {
 			printf("delim_len: %d. i: %d; len: %lu; sc[i].len: %d\n",
-				   delim_len, i, len, sc[i].len);
+			       delim_len, i, len, sc[i].len);
 			printf("sc[i].str: %s\n", sc[i].str);
 			printf("ptr      : %s\n", ptr);
 			printf("strlen(sc[i].str): %lu\n", strlen(sc[i].str));

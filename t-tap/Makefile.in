@@ -8,6 +8,7 @@ SRC_XDATA=../xdata
 SRC_BASE=../base
 SRC_CGI=../cgi
 SRC_COMMON=../common
+SRC_LIB=../lib
 
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src -I..
@@ -71,8 +72,8 @@ all: $(TESTS)
 test_logging: test_logging.o $(SRC_BASE)/logging.o $(TAPOBJ) $(SRC_COMMON)/shared.o $(SRC_BASE)/objects-base.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
 
-test_events: test_events.o $(SRC_BASE)/events.o $(TAPOBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(MATHLIBS) $(LIBS)
+test_events: test_events.o $(SRC_BASE)/events.o $(TAPOBJ) $(SRC_BASE)/utils.o $(SRC_COMMON)/shared.o $(SRC_BASE)/objects-base.o $(SRC_BASE)/checks.o $(SRC_LIB)/squeue.o $(SRC_LIB)/nsutils.o $(SRC_LIB)/kvvec.o $(SRC_LIB)/dkhash.o $(SRC_LIB)/pqueue.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(MATHLIBS)
 
 test_checks: test_checks.o $(SRC_BASE)/checks.o $(TAPOBJ) $(SRC_BASE)/utils.o $(SRC_COMMON)/shared.o $(SRC_BASE)/objects-base.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(MATHLIBS) $(LIBS)
@@ -97,9 +98,6 @@ test_macros: test_macros.o $(TP_OBJS) $(TAPOBJ)
 
 test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-test_strtoul: test_strtoul.c
-	$(CC) $(CFLAGS) -o $@ test_strtoul.c $(TAPOBJ)
 
 test: $(TESTS)
 	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(map { "./$$_" } @ARGV)' $(TESTS)

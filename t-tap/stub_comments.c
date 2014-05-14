@@ -8,3 +8,4 @@ int add_new_service_comment(int entry_type, char *host_name, char *svc_descripti
 int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id) {}
 int delete_all_comments(int type, char *host_name, char *svc_description) {}
 void free_comment_data(void) {}
+int check_for_expired_comment(unsigned long comment_id) { return OK; }

@@ -7,40 +7,74 @@
  * This file holds random utility functions shared by cgi's and
  * core, as well as all global variables needed by both.
  */
-int date_format = DATE_FORMAT_US;
-int interval_length = DEFAULT_INTERVAL_LENGTH;
-char *illegal_output_chars = NULL;
+int date_format;
+int interval_length;
+char *illegal_output_chars;
 char illegal_output_char_map[] = CHAR_MAP_INIT(0);
-time_t program_start = 0L;
+time_t program_start;
 int check_external_commands;
-int log_rotation_method = LOG_ROTATION_NONE;
+int log_rotation_method;
 
-char *object_cache_file = DEFAULT_OBJECT_CACHE_FILE;
+char *object_cache_file;
 struct object_count num_objects;
 
-int process_performance_data = DEFAULT_PROCESS_PERFORMANCE_DATA;
-char *status_file = NULL;
+int process_performance_data;
+char *status_file;
 
-int nagios_pid = 0;
-int daemon_mode = FALSE;
+int nagios_pid;
+int daemon_mode;
 
-time_t last_log_rotation = 0L;
+time_t last_log_rotation;
 
-int check_external_commands = DEFAULT_CHECK_EXTERNAL_COMMANDS;
+int check_external_commands;
 
-int enable_timing_point = FALSE; /* cgi's never set this to TRUE */
+int enable_timing_point;
 
-int enable_flap_detection = DEFAULT_ENABLE_FLAP_DETECTION;
-int enable_notifications = TRUE;
-int execute_service_checks = TRUE;
-int accept_passive_service_checks = TRUE;
-int execute_host_checks = TRUE;
-int accept_passive_host_checks = TRUE;
-int enable_event_handlers = TRUE;
-int obsess_over_services = FALSE;
-int obsess_over_hosts = FALSE;
+int enable_flap_detection;
+int enable_notifications;
+int execute_service_checks;
+int accept_passive_service_checks;
+int execute_host_checks;
+int accept_passive_host_checks;
+int enable_event_handlers;
+int obsess_over_services;
+int obsess_over_hosts;
 
-char *config_file_dir = NULL;
+char *config_file_dir;
+
+void init_shared_cfg_vars(void) {
+	date_format = DATE_FORMAT_US;
+	interval_length = DEFAULT_INTERVAL_LENGTH;
+	illegal_output_chars = NULL;
+	program_start = 0L;
+	log_rotation_method = LOG_ROTATION_NONE;
+
+	object_cache_file = strdup(DEFAULT_OBJECT_CACHE_FILE);
+
+	process_performance_data = DEFAULT_PROCESS_PERFORMANCE_DATA;
+	status_file = NULL;
+
+	nagios_pid = 0;
+	daemon_mode = FALSE;
+
+	last_log_rotation = 0L;
+
+	check_external_commands = DEFAULT_CHECK_EXTERNAL_COMMANDS;
+
+	enable_timing_point = FALSE; /* cgi's never set this to TRUE */
+
+	enable_flap_detection = DEFAULT_ENABLE_FLAP_DETECTION;
+	enable_notifications = TRUE;
+	execute_service_checks = TRUE;
+	accept_passive_service_checks = TRUE;
+	execute_host_checks = TRUE;
+	accept_passive_host_checks = TRUE;
+	enable_event_handlers = TRUE;
+	obsess_over_services = FALSE;
+	obsess_over_hosts = FALSE;
+
+	config_file_dir = NULL;
+}
 
 
 /* silly debug-ish helper used to track down hotspots in config parsing */

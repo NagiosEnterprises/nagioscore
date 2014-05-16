@@ -100,6 +100,9 @@ int main(void) {
 	/* reset internal variables */
 	reset_cgi_vars();
 
+	/* Initialize shared configuration variables */                             
+	init_shared_cfg_vars();                                                     
+
 	document_header();
 
 	/* validate arguments in URL */

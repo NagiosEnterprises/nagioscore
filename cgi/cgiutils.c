@@ -688,6 +688,9 @@ int read_all_status_data(const char *status_file_name, int options) {
 void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_options, int status_options) {
 	int result;
 
+	/* Initialize shared configuration variables */
+	init_shared_cfg_vars();
+
 	/* read the CGI configuration file */
 	result = read_cgi_config_file(get_cgi_config_location());
 	if(result == ERROR) {

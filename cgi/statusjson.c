@@ -747,6 +747,9 @@ int main(void) {
 	json_object_append_integer(json_root, "format_version", 
 			OUTPUT_FORMAT_VERSION);
 
+	/* Initialize shared configuration variables */                             
+	init_shared_cfg_vars();                                                     
+
 	init_cgi_data(&cgi_data);
 
 	document_header(cgi_data.format_options & JSON_FORMAT_WHITESPACE);

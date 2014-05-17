@@ -11,7 +11,7 @@ int date_format;
 int interval_length;
 char *illegal_output_chars;
 char illegal_output_char_map[] = CHAR_MAP_INIT(0);
-time_t program_start;
+time_t program_start = 0L;
 int check_external_commands;
 int log_rotation_method;
 
@@ -21,14 +21,14 @@ struct object_count num_objects;
 int process_performance_data;
 char *status_file;
 
-int nagios_pid;
-int daemon_mode;
+int nagios_pid = 0;
+int daemon_mode = FALSE;
 
-time_t last_log_rotation;
+time_t last_log_rotation = 0L;
 
 int check_external_commands;
 
-int enable_timing_point;
+int enable_timing_point = FALSE; /* cgi's never set this to TRUE */
 
 int enable_flap_detection;
 int enable_notifications;
@@ -40,13 +40,12 @@ int enable_event_handlers;
 int obsess_over_services;
 int obsess_over_hosts;
 
-char *config_file_dir;
+char *config_file_dir = NULL;
 
 void init_shared_cfg_vars(void) {
 	date_format = DATE_FORMAT_US;
 	interval_length = DEFAULT_INTERVAL_LENGTH;
 	illegal_output_chars = NULL;
-	program_start = 0L;
 	log_rotation_method = LOG_ROTATION_NONE;
 
 	object_cache_file = strdup(DEFAULT_OBJECT_CACHE_FILE);
@@ -54,14 +53,7 @@ void init_shared_cfg_vars(void) {
 	process_performance_data = DEFAULT_PROCESS_PERFORMANCE_DATA;
 	status_file = NULL;
 
-	nagios_pid = 0;
-	daemon_mode = FALSE;
-
-	last_log_rotation = 0L;
-
 	check_external_commands = DEFAULT_CHECK_EXTERNAL_COMMANDS;
-
-	enable_timing_point = FALSE; /* cgi's never set this to TRUE */
 
 	enable_flap_detection = DEFAULT_ENABLE_FLAP_DETECTION;
 	enable_notifications = TRUE;
@@ -73,7 +65,7 @@ void init_shared_cfg_vars(void) {
 	obsess_over_services = FALSE;
 	obsess_over_hosts = FALSE;
 
-	config_file_dir = NULL;
+	return;
 }
 
 

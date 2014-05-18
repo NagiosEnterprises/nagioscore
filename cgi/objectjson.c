@@ -617,7 +617,7 @@ int main(void) {
 			OUTPUT_FORMAT_VERSION);
 
 	/* Initialize shared configuration variables */                             
-	init_shared_cfg_vars();                                                     
+	init_shared_cfg_vars(1);
 
 	init_cgi_data(&cgi_data);
 

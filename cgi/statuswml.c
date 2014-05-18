@@ -101,7 +101,7 @@ int main(void) {
 	reset_cgi_vars();
 
 	/* Initialize shared configuration variables */                             
-	init_shared_cfg_vars();                                                     
+	init_shared_cfg_vars(1);
 
 	document_header();
 

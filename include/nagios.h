@@ -483,6 +483,7 @@ extern void handle_sigxfsz(int);				/* handle SIGXFSZ */
 int daemon_init(void);				     		/* switches to daemon mode */
 int drop_privileges(char *, char *);				/* drops privileges before startup */
 void display_scheduling_info(void);				/* displays service check scheduling information */
+void init_main_cfg_vars(int); /* Initialize the non-shared main configuration variables */
 
 
 /**** Event Queue Functions ****/

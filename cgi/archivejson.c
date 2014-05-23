@@ -40,6 +40,7 @@
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern int log_rotation_method;
+extern char *status_file;
 
 extern host *host_list;
 extern hostgroup *hostgroup_list;
@@ -614,6 +615,9 @@ int main(void) {
 	json_object_append_integer(json_root, "format_version", 
 			OUTPUT_FORMAT_VERSION);
 
+	/* Initialize shared configuration variables */                             
+	init_shared_cfg_vars();                                                     
+
 	init_cgi_data(&cgi_data);
 
 	document_header();
@@ -706,7 +710,7 @@ int main(void) {
 		}
 
 	/* read all status data */
-	result = read_all_status_data(get_cgi_config_location(), READ_ALL_STATUS_DATA);
+	result = read_all_status_data(status_file, READ_ALL_STATUS_DATA);
 	if(result == ERROR) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 

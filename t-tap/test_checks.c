@@ -159,6 +159,7 @@ int
 main(int argc, char **argv) {
 	time_t now = 0L;
 
+	accept_passive_host_checks = 1;
 
 	plan_tests(41);
 

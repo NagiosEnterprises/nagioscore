@@ -38,7 +38,7 @@ int	use_syslog = DEFAULT_USE_SYSLOG;
 unsigned long syslog_options = 0;
 unsigned long logging_options = 0;
 int log_initial_states = DEFAULT_LOG_INITIAL_STATES;
-char *log_archive_path = ".";
+char *log_archive_path = "var";
 int log_current_states = DEFAULT_LOG_CURRENT_STATES;
 int log_service_retries = DEFAULT_LOG_SERVICE_RETRIES;
 int use_large_installation_tweaks = DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
@@ -79,13 +79,16 @@ main(int argc, char **argv) {
 	log_rotation_method = LOG_ROTATION_HOURLY;
 	ok(rotate_log_file(rotation_time) == ERROR, "Got an error with rename");
 	ok(strcmp(saved_dest, log_filename_localtime) == 0, "Got an hourly rotation");
+	unlink(log_file);
 
 	log_file = "var/nagios.log";
 	log_rotation_method = LOG_ROTATION_HOURLY;
 	ok(system("cp var/nagios.log.dummy var/nagios.log") == 0, "Copied in dummy nagios.log for archiving");
 	ok(rotate_log_file(rotation_time) == OK, "Log rotation should work happily");
 
-	ok(system("diff var/nagios.log var/nagios.log.expected > /dev/null") == 0, "Got correct contents of nagios.log");
+	system("diff var/nagios.log var/nagios.log.expected > var/nagios.log.diff");
+	ok(system("diff var/nagios.log.diff var/nagios.log.diff.expected > /dev/null") == 0, "Got correct contents of nagios.log");
+	unlink("var/nagios.log.diff");
 
 	asprintf(&temp_command, "diff var/nagios.log.dummy %s", log_filename_localtime);
 	ok(system(temp_command) == 0, "nagios log archived correctly");
@@ -99,6 +102,7 @@ main(int argc, char **argv) {
 
 	ok(stat("var/nagios.log", &stat_new) == 0, "Got new stat info for new log file");
 	ok(stat_info.st_mode == stat_new.st_mode, "Mode for new log file kept same as original log file");
+	unlink(log_filename_localtime);
 
 	return exit_status();
 	}

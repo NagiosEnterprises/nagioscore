@@ -1,8 +1,8 @@
 <?php
 include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
-$this_version="4.0.6";
-
+$this_version = '4.0.6';
+$this_year = '2014';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
@@ -12,7 +12,7 @@ $this_version="4.0.6";
 
 <meta name="ROBOTS" content="NOINDEX, NOFOLLOW" />
 <title>Nagios Core</title>
-<link rel='stylesheet' type='text/css' href='stylesheets/common.css' />
+<link rel="stylesheet" type="text/css" href="stylesheets/common.css?<?php echo $this_version; ?>" />
 <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
 
 <script type='text/javascript'>
@@ -128,9 +128,9 @@ $this_version="4.0.6";
 
 <div id="currentversioninfo">
 	<div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
-	<div class="version">Version 4.0.6</div>
+	<div class="version">Version <?php echo $this_version; ?></div>
 	<div class="releasedate">April 29, 2014</div>
-	<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=4.0.6&amp;product=nagioscore" target="_blank">Check for updates</a></div>
+	<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a></div>
 </div>
 
 
@@ -222,7 +222,7 @@ $this_version="4.0.6";
 
 <div id="mainfooter">
 	<div id="maincopy">
-		Copyright &copy; 2010-<?php echo date("Y");?> Nagios Core Development Team and Community Contributors. Copyright &copy; 1999-2009 Ethan Galstad. See the THANKS file for more information on contributors.
+		Copyright &copy; 2010-<?php echo $this_year; ?> Nagios Core Development Team and Community Contributors. Copyright &copy; 1999-2009 Ethan Galstad. See the THANKS file for more information on contributors.
 	</div>
 	<div CLASS="disclaimer">
 		Nagios Core is licensed under the GNU General Public License and is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE.  Nagios, Nagios Core and the Nagios logo are trademarks, servicemarks, registered trademarks or registered servicemarks owned by Nagios Enterprises, LLC.  Use of the Nagios marks is governed by the <A href="http://www.nagios.com/legal/trademarks/">trademark use restrictions</a>.

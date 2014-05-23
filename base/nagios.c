@@ -315,6 +315,9 @@ int main(int argc, char **argv) {
 		exit(nagios_core_worker(worker_socket));
 	}
 
+	/* Initialize shared configuration variables */                             
+	init_shared_cfg_vars();                                                     
+
 	if(daemon_mode == FALSE) {
 		printf("\nNagios Core %s\n", PROGRAM_VERSION);
 		printf("Copyright (c) 2009-present Nagios Core Development Team and Community Contributors\n");

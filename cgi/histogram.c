@@ -127,6 +127,7 @@ extern char url_html_path[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern char physical_images_path[MAX_FILENAME_LENGTH];
+extern char *status_file;
 
 authdata current_authdata;
 
@@ -248,6 +249,9 @@ int main(int argc, char **argv) {
 	/* reset internal CGI variables */
 	reset_cgi_vars();
 
+	/* Initialize shared configuration variables */                             
+	init_shared_cfg_vars();                                                     
+
 	/* read the CGI configuration file */
 	result = read_cgi_config_file(get_cgi_config_location());
 	if(result == ERROR) {
@@ -282,7 +286,7 @@ int main(int argc, char **argv) {
 		}
 
 	/* read all status data */
-	result = read_all_status_data(main_config_file, READ_ALL_STATUS_DATA);
+	result = read_all_status_data(status_file, READ_ALL_STATUS_DATA);
 	if(result == ERROR) {
 		if(mode == CREATE_HTML) {
 			document_header(FALSE);

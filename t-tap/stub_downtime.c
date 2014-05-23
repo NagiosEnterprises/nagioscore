@@ -4,3 +4,5 @@ int schedule_downtime(int type, char *host_name, char *service_description, time
 int unschedule_downtime(int type, unsigned long downtime_id) {}
 int check_pending_flex_host_downtime(host *hst) {}
 int check_pending_flex_service_downtime(service *svc) { return OK; }
+int handle_scheduled_downtime_by_id(unsigned long downtime_id) { return OK; }
+int check_for_expired_downtime(void) { return OK; }

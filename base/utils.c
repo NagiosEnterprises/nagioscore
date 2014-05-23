@@ -3108,6 +3108,7 @@ int reset_variables(void) {
 	log_archive_path = (char *)strdup(DEFAULT_LOG_ARCHIVE_PATH);
 	debug_file = (char *)strdup(DEFAULT_DEBUG_FILE);
 
+	my_free(object_cache_file);
 	object_cache_file = (char *)strdup(DEFAULT_OBJECT_CACHE_FILE);
 	object_precache_file = (char *)strdup(DEFAULT_PRECACHED_OBJECT_FILE);
 

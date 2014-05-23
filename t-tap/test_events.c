@@ -16,6 +16,8 @@
 *
 *****************************************************************************/
 
+#define TEST_EVENTS_C
+
 #define NSCORE 1
 #include "config.h"
 #include "common.h"
@@ -26,87 +28,32 @@
 #include "broker.h"
 #include "sretention.h"
 #include "tap.h"
+#include "stub_logging.c"
+#include "stub_broker.c"
+#include "stub_sretention.c"
+#include "stub_statusdata.c"
+#include "stub_downtime.c"
+#include "stub_comments.c"
+#include "stub_notifications.c"
+#include "stub_workers.c"
+#include "stub_macros.c"
+#include "stub_nebmods.c"
+#include "stub_netutils.c"
+#include "stub_commands.c"
+#include "stub_xodtemplate.c"
+#include "stub_flapping.c"
+#include "stub_sehandlers.c"
+#include "stub_perfdata.c"
+#include "stub_nsock.c"
+#include "stub_iobroker.c"
 
-char *config_file = "etc/nagios.cfg";
-int      test_scheduling;
-
-time_t   program_start;
-time_t   event_start;
-
-int      sigshutdown = FALSE;
-int      sigrestart = FALSE;
-
-int      interval_length = 60;
-int      service_inter_check_delay_method;
-int      host_inter_check_delay_method;
-int      service_interleave_factor_method;
-int      max_host_check_spread;
-int      max_service_check_spread;
-
-int      command_check_interval;
-int      check_reaper_interval;
-int      service_freshness_check_interval;
-int      host_freshness_check_interval;
-int      auto_rescheduling_interval;
-int      host_freshness_check_interval;
-int      auto_rescheduling_interval;
-int      auto_rescheduling_window;
-
-int      check_external_commands;
-int      check_orphaned_services;
-int      check_orphaned_hosts;
-int      check_service_freshness;
-int      check_host_freshness;
-int      auto_reschedule_checks;
-
-int      retain_state_information;
-int      retention_update_interval;
-
-int      max_parallel_service_checks;
-int      currently_running_service_checks;
-
-int      status_update_interval;
-
-int      log_rotation_method;
-
-int      service_check_timeout;
-
-int      execute_service_checks = 1;
-int      execute_host_checks;
-
-int      child_processes_fork_twice;
-
-int      time_change_threshold;
-
-
-extern timed_event *event_list_low;
-extern timed_event *event_list_low_tail;
-extern timed_event *event_list_high;
-extern timed_event *event_list_high_tail;
-
-host     *host_list;
-service  *service_list;
-
-int check_for_expired_comment(unsigned long temp_long) {}
-void broker_timed_event(int int1, int int2, int int3, timed_event *timed_event1, struct timeval *timeval1) {}
 int perform_scheduled_host_check(host *temp_host, int int1, double double1) {
 	time_t now = 0L;
 	time(&now);
 	temp_host->last_check = now;
 	}
-int check_for_expired_downtime(void) {}
-int reap_check_results(void) {}
-void check_host_result_freshness() {}
-int check_for_nagios_updates(int int1, int int2) {}
-time_t get_next_service_notification_time(service *temp_service, time_t time_t1) {}
-int save_state_information(int int1) {}
-void get_time_breakdown(unsigned long long1, int *int1, int *int2, int *int3, int *int4) {}
-int check_for_external_commands(void) {}
-void check_for_orphaned_hosts() {}
-void check_service_result_freshness() {}
-int check_time_against_period(time_t time_t1, timeperiod *timeperiod) {}
-time_t get_next_log_rotation_time(void) {}
-void check_for_orphaned_services() {}
+
+#if 0
 int run_scheduled_service_check(service *service1, int int1, double double1) {
 	currently_running_service_checks++;
 	time_t now = 0L;
@@ -114,11 +61,7 @@ int run_scheduled_service_check(service *service1, int int1, double double1) {
 	service1->last_check = now;
 	/* printf("Currently running service checks: %d\n", currently_running_service_checks); */
 	}
-int handle_scheduled_downtime_by_id(unsigned long long1) {}
-int rotate_log_file(time_t time_t1) {}
-time_t get_next_host_notification_time(host *temp_host, time_t time_t1) {}
-void get_next_valid_time(time_t time_t1, time_t *time_t2, timeperiod *temp_timeperiod) {}
-void logit(int int1, int int2, const char *fmt, ...) {}
+#endif
 
 int c = 0;
 int update_program_status(int aggregated_dump) {
@@ -131,15 +74,6 @@ int update_program_status(int aggregated_dump) {
 		c = 0;
 		}
 	}
-int update_service_status(service *svc, int aggregated_dump) {}
-int update_all_status_data(void) {}
-int log_debug_info(int level, int verbosity, const char *fmt, ...) {
-	va_list ap;
-	va_start(ap, fmt);
-	/* vprintf( fmt, ap ); */
-	va_end(ap);
-	}
-int update_host_status(host *hst, int aggregated_dump) {}
 
 /* Test variables */
 service *svc1 = NULL, *svc2 = NULL, *svc3 = NULL;
@@ -170,7 +104,7 @@ setup_events(time_t time) {
 	new_event->event_interval = 0L;
 	new_event->timing_func = NULL;
 	new_event->compensate_for_time_change = TRUE;
-	reschedule_event(new_event, &event_list_low, &event_list_low_tail);
+	reschedule_event(nagios_squeue, new_event);
 
 	/* Second service is one that will get nudged forward */
 	svc2 = (service *)malloc(sizeof(service));
@@ -193,7 +127,7 @@ setup_events(time_t time) {
 	new_event->event_interval = 0L;
 	new_event->timing_func = NULL;
 	new_event->compensate_for_time_change = TRUE;
-	reschedule_event(new_event, &event_list_low, &event_list_low_tail);
+	reschedule_event(nagios_squeue, new_event);
 	}
 
 void
@@ -222,7 +156,7 @@ setup_events_with_host(time_t time) {
 	new_event->event_interval = 0L;
 	new_event->timing_func = NULL;
 	new_event->compensate_for_time_change = TRUE;
-	reschedule_event(new_event, &event_list_low, &event_list_low_tail);
+	reschedule_event(nagios_squeue, new_event);
 
 	if(host1 == NULL)
 		host1 = (host *)malloc(sizeof(host));
@@ -246,16 +180,23 @@ setup_events_with_host(time_t time) {
 	new_event->event_interval = 0L;
 	new_event->timing_func = NULL;
 	new_event->compensate_for_time_change = TRUE;
-	reschedule_event(new_event, &event_list_low, &event_list_low_tail);
+	reschedule_event(nagios_squeue, new_event);
 	}
 
 int
 main(int argc, char **argv) {
+	int result;
 	time_t now = 0L;
 
-	plan_tests(10);
+	plan_tests(11);
 
 	time(&now);
+	config_file = "etc/nagios.cfg";
+	interval_length = 60;
+	execute_service_checks = 1;
+
+	nagios_squeue = squeue_create(4096);
+	ok(nagios_squeue != NULL, "Created nagios squeue");
 
 	currently_running_service_checks = 0;
 	max_parallel_service_checks = 1;
@@ -293,10 +234,8 @@ main(int argc, char **argv) {
 	/* Checking that a host check immediately following a service check
 	 * correctly checks the host
 	*/
-	timed_event *temp_event = NULL;
-	while((temp_event = event_list_low) != NULL) {
-		remove_event(temp_event, &event_list_low, &event_list_low_tail);
-		}
+	squeue_destroy(nagios_squeue, 0);
+	nagios_squeue = squeue_create(4096);
 
 	sigshutdown = FALSE;
 	currently_running_service_checks = 0;

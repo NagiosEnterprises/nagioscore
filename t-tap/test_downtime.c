@@ -41,9 +41,8 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 timed_event *event_list_high = NULL;
 timed_event *event_list_high_tail = NULL;
 
-unsigned long next_downtime_id = 1L;
-
 extern scheduled_downtime *scheduled_downtime_list;
+squeue_t *nagios_squeue = NULL; /* our scheduling queue */
 
 int
 main(int argc, char **argv) {
@@ -57,6 +56,8 @@ main(int argc, char **argv) {
 	plan_tests(38);
 
 	time(&now);
+
+	next_downtime_id = 1L;
 
 	schedule_downtime(HOST_DOWNTIME, "host1", NULL, temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
 	ok(downtime_id == 1L, "Got host1 downtime: %lu", downtime_id);

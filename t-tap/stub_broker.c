@@ -11,3 +11,5 @@ int broker_service_check(int type, int flags, int attr, service *svc, int check_
 void broker_program_state(int type, int flags, int attr, struct timeval *timestamp) {}
 void broker_system_command(int type, int flags, int attr, struct timeval start_time, struct timeval end_time, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *output, struct timeval *timestamp) {}
 void broker_log_data(int type, int flags, int attr, char *data, unsigned long data_type, time_t entry_time, struct timeval *timestamp) {}
+void broker_comment_data(int type, int flags, int attr, int comment_type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long comment_id, struct timeval *timestamp) {}
+void broker_timed_event(int type, int flags, int attr, timed_event *event, struct timeval *timestamp) {}

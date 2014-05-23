@@ -155,8 +155,8 @@ int update_contact_status(contact *cntct, int aggregated_dump) {
 
 
 /* reads in all status data */
-int read_status_data(const char *cfgfile, int options) {
-	return xsddefault_read_status_data(cfgfile, options);
+int read_status_data(const char *status_file_name, int options) {
+	return xsddefault_read_status_data(status_file_name, options);
 	}
 
 

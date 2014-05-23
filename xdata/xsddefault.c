@@ -484,7 +484,7 @@ int xsddefault_save_status_data(void) {
 /******************************************************************/
 
 /* read all program, host, and service status information */
-int xsddefault_read_status_data(const char *cfgfile, int options) {
+int xsddefault_read_status_data(const char *status_file_name, int options) {
 #ifdef NO_MMAP
 	char input[MAX_PLUGIN_OUTPUT_LENGTH] = "";
 	FILE *fp = NULL;
@@ -531,10 +531,10 @@ int xsddefault_read_status_data(const char *cfgfile, int options) {
 
 	/* open the status file for reading */
 #ifdef NO_MMAP
-	if((fp = fopen(status_file, "r")) == NULL)
+	if((fp = fopen(status_file_name, "r")) == NULL)
 		return ERROR;
 #else
-	if((thefile = mmap_fopen(status_file)) == NULL)
+	if((thefile = mmap_fopen(status_file_name)) == NULL)
 		return ERROR;
 #endif
 
@@ -1023,9 +1023,6 @@ int xsddefault_read_status_data(const char *cfgfile, int options) {
 	my_free(input);
 	mmap_fclose(thefile);
 #endif
-
-	/* free memory */
-	my_free(status_file);
 
 	if(sort_downtime() != OK)
 		return ERROR;

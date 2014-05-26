@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+X.X.X - XX/XX/XXXX
+------------------
+FIXES
+* Fixed bug #596: Fix crashes checking contact authorization for host escalation. (Alexey Dvoryanchikov - duplicates #590, #586)
+
 4.0.6 - 04/29/2014
 ------------------
 ENHANCEMENTS

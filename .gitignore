@@ -9,6 +9,7 @@ config.log
 config.status
 daemon-init
 Makefile
+tags
 .deps/
 .libs/
 *.o

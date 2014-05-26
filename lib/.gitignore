@@ -8,5 +8,6 @@ test-runcmd
 test-fanout
 test-nsutils
 wproc
+iobroker.h
 snprintf.h
 core

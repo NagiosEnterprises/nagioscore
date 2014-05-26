@@ -86,6 +86,8 @@ int main(int argc, char **argv) {
 	result = pre_flight_check();
 	ok(result == OK, "Preflight check okay");
 
+	initialize_downtime_data();
+
 	for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 		c++;
 		//printf("Hostgroup=%s\n", temp_hostgroup->group_name);

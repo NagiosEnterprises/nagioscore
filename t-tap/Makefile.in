@@ -18,6 +18,7 @@ TESTS += test_events
 TESTS += test_checks
 TESTS += test_commands
 TESTS += test_downtime
+TESTS += test_nagios_config
 TESTS += test_timeperiods
 TESTS += test_macros
 

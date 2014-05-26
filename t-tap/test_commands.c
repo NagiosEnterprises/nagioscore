@@ -63,6 +63,8 @@ command *global_host_event_handler_ptr;
 char *command_file = NULL;
 iobroker_set *nagios_iobs = NULL;
 int sigrestart = FALSE;
+int debug_level = 0;
+int debug_verbosity = 0;
 
 /* Catch lower calls through these stubs */
 time_t test_start_time = 0L;

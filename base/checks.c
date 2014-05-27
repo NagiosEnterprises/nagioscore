@@ -334,7 +334,7 @@ static int get_service_check_return_code(service *temp_service,
 			my_free(temp_service->plugin_output);
 			my_free(temp_service->long_plugin_output);
 			my_free(temp_service->perf_data);
-			asprintf(&temp_service->plugin_output, "(Service check timed out after %.2lf seconds)\n", temp_service->execution_time);
+			asprintf(&temp_service->plugin_output, "(Service check timed out after %.2lf seconds)", temp_service->execution_time);
 			rc = service_check_timeout_state;
 			}
 		/* if there was some error running the command, just skip it (this shouldn't be happening) */

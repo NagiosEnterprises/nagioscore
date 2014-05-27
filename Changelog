@@ -11,6 +11,7 @@ FIXES
 * Fixed bug #596: Crashes checking contact authorization for host escalations. (Alexey Dvoryanchikov - duplicates #590, #586)
 * Fixed bug #608: Extra newline in service check timeout output string.
 * Fixed bug #609: Image on home page doesn't have correct image path prefix.
+* Fixed bug #496: Syntax error in exfoliation's common.css.
 
 4.0.6 - 04/29/2014
 ------------------

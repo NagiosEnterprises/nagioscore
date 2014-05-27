@@ -19,6 +19,7 @@ TH.notifications    { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; bo
 .notificationsCRITICAL        { background-color: #f88888; border: 1px solid #777777; padding: 0 4 0 4; }
 .notificationsACKNOWLEDGEMENT { background-color: #aaaaaa; border: 1px solid #777777; padding: 0 4 0 4; }
 .notificationsCUSTOM          { background-color: #778899; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsDOWNTIME        { background-color: #aaccff; border: 1px solid #777777; padding: 0 4 0 4; }
 
 /* these are dark colors */
 .notificationsHOSTUP              { background-color: #88d066; border: 1px solid #777777; padding: 0 4 0 4; }
@@ -26,4 +27,5 @@ TH.notifications    { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; bo
 .notificationsHOSTUNREACHABLE     { background-color: #ffbb55; border: 1px solid #777777; padding: 0 4 0 4; }
 .notificationsHOSTACKNOWLEDGEMENT { background-color: #aaaaaa; border: 1px solid #777777; padding: 0 4 0 4; }
 .notificationsHOSTCUSTOM          { background-color: #778899; border: 1px solid #777777; padding: 0 4 0 4; }
+.notificationsHOSTDOWNTIME        { background-color: #aaccff; border: 1px solid #777777; padding: 0 4 0 4; }
 

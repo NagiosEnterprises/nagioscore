@@ -942,7 +942,7 @@ static int should_run_event(timed_event *temp_event)
 
 		/* don't run a service check if we're already maxed out on the number of parallel service checks...  */
 		if(max_parallel_service_checks != 0 && (currently_running_service_checks >= max_parallel_service_checks)) {
-			nudge_seconds = ranged_urand(5, 17);
+			nudge_seconds = ranged_urand(NUDGE_MIN, NUDGE_MAX);
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "\tMax concurrent service checks (%d) has been reached.  Nudging %s:%s by %d seconds...\n", max_parallel_service_checks, temp_service->host_name, temp_service->description, nudge_seconds);
 			run_event = FALSE;
 		}

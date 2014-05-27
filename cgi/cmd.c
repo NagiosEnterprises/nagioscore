@@ -111,7 +111,7 @@ int main(void) {
 	int result = OK;
 
 	/* Initialize shared configuration variables */                             
-	init_shared_cfg_vars();                                                     
+	init_shared_cfg_vars(1);
 
 	/* get the arguments passed in the URL */
 	process_cgivars();

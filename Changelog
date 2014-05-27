@@ -4,8 +4,11 @@ Nagios Core 4 Change Log
 
 X.X.X - XX/XX/XXXX
 ------------------
+ENHANCEMENTS
+* Added value of custom variables to Object JSON output for hosts, services and contacts (Eric Stanley)
+
 FIXES
-* Fixed bug #596: Fix crashes checking contact authorization for host escalation. (Alexey Dvoryanchikov - duplicates #590, #586)
+* Fixed bug #596: Fix crashes checking contact authorization for host escalations. (Alexey Dvoryanchikov - duplicates #590, #586)
 
 4.0.6 - 04/29/2014
 ------------------

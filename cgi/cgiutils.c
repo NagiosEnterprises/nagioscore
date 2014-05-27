@@ -689,7 +689,7 @@ void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_opti
 	int result;
 
 	/* Initialize shared configuration variables */
-	init_shared_cfg_vars();
+	init_shared_cfg_vars(1);
 
 	/* read the CGI configuration file */
 	result = read_cgi_config_file(get_cgi_config_location());

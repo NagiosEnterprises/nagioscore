@@ -422,7 +422,7 @@ NAGIOS_BEGIN_DECL
 #define normal_check_window(o) ((time_t)(o->check_interval * interval_length))
 #define retry_check_window(o) ((time_t)(o->retry_interval * interval_length))
 #define check_window(o) \
-	((!o->current_state && o->state_type == SOFT_STATE) ? \
+	((o->current_state && o->state_type == SOFT_STATE) ? \
 		retry_check_window(o) : \
 		normal_check_window(o))
 
@@ -483,6 +483,7 @@ extern void handle_sigxfsz(int);				/* handle SIGXFSZ */
 int daemon_init(void);				     		/* switches to daemon mode */
 int drop_privileges(char *, char *);				/* drops privileges before startup */
 void display_scheduling_info(void);				/* displays service check scheduling information */
+void init_main_cfg_vars(int); /* Initialize the non-shared main configuration variables */
 
 
 /**** Event Queue Functions ****/

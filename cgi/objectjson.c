@@ -617,7 +617,7 @@ int main(void) {
 			OUTPUT_FORMAT_VERSION);
 
 	/* Initialize shared configuration variables */                             
-	init_shared_cfg_vars();                                                     
+	init_shared_cfg_vars(1);
 
 	init_cgi_data(&cgi_data);
 
@@ -2402,6 +2402,24 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 	return result;
 	}
 
+json_object * json_object_custom_variables(struct customvariablesmember *custom_variables) {
+
+	json_object *json_custom_variables;
+	customvariablesmember *temp_custom_variablesmember;
+
+	json_custom_variables = json_new_object();
+
+	for(temp_custom_variablesmember = custom_variables; 
+			temp_custom_variablesmember != NULL; 
+			temp_custom_variablesmember = temp_custom_variablesmember->next) {
+		json_object_append_string(json_custom_variables,
+				temp_custom_variablesmember->variable_name,
+				temp_custom_variablesmember->variable_value);
+		}
+
+	return json_custom_variables;
+	}
+
 int json_object_host_passes_selection(host *temp_host, int use_parent_host,
 		host *parent_host, int use_child_host, host *child_host,
 		hostgroup *temp_hostgroup, contact *temp_contact,
@@ -2669,7 +2687,6 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	json_array *json_services;
 	json_array *json_contactgroups;
 	json_array *json_contacts;
-	json_array *json_custom_variables;
 	hostsmember *temp_hostsmember;
 	servicesmember *temp_servicesmember;
 	contactgroupsmember *temp_contact_groupsmember;
@@ -2678,7 +2695,6 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 #else
 	contact *temp_contact;
 #endif
-	customvariablesmember *temp_custom_variablesmember;
 
 	json_object_append_string(json_details, "name", temp_host->name);
 	json_object_append_string(json_details, "display_name", 
@@ -2930,16 +2946,8 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	json_object_append_real(json_details, "z_3d", temp_host->z_3d);
 	json_object_append_boolean(json_details, "should_be_drawn", 
 			temp_host->should_be_drawn);
-
-	json_custom_variables = json_new_array();
-	for(temp_custom_variablesmember = temp_host->custom_variables; 
-			temp_custom_variablesmember != NULL; 
-			temp_custom_variablesmember = temp_custom_variablesmember->next) {
-		json_array_append_string(json_custom_variables,
-				temp_custom_variablesmember->variable_name);
-		}
-	json_object_append_array(json_details, "custom_variables", 
-			json_custom_variables);
+	json_object_append_object(json_details, "custom_variables", 
+			json_object_custom_variables(temp_host->custom_variables));
 	}
 
 int json_object_hostgroup_passes_selection(hostgroup *temp_hostgroup, 
@@ -3557,8 +3565,6 @@ void json_object_service_details(json_object *json_details,
 	json_object *json_child_service;
 	json_array *json_child_services;
 #endif
-	json_array *json_custom_variables;
-	customvariablesmember *temp_customvariablesmember;
 
 	json_object_append_string(json_details, "host_name", 
 			temp_service->host_name);
@@ -3838,16 +3844,8 @@ void json_object_service_details(json_object *json_details,
 			temp_service->icon_image);
 	json_object_append_string(json_details, "icon_image_alt", 
 			temp_service->icon_image_alt);
-
-	json_custom_variables = json_new_array();
-	for(temp_customvariablesmember = temp_service->custom_variables; 
-			temp_customvariablesmember != NULL; 
-			temp_customvariablesmember = temp_customvariablesmember->next) {
-		json_array_append_string(json_custom_variables, 
-				temp_customvariablesmember->variable_name);
-		}
-	json_object_append_array(json_details, "custom_variables", 
-				json_custom_variables);
+	json_object_append_object(json_details, "custom_variables", 
+			json_object_custom_variables(temp_service->custom_variables));
 	}
 
 int json_object_servicegroup_passes_selection(servicegroup *temp_servicegroup,
@@ -4203,10 +4201,8 @@ void json_object_contact_details(json_object *json_details,
 	json_array *json_addresses;
 	json_array *json_host_commands;
 	json_array *json_service_commands;
-	json_array *json_custom_variables;
 	int x;
 	commandsmember *temp_commandsmember;
-	customvariablesmember *temp_customvariablesmember;
 
 	json_object_append_string(json_details, "name", temp_contact->name);
 	json_object_append_string(json_details, "alias", temp_contact->alias);
@@ -4342,16 +4338,8 @@ void json_object_contact_details(json_object *json_details,
 	json_object_append_integer(json_details, "minimum_value", 
 			temp_contact->minimum_value);
 #endif
-
-	json_custom_variables = json_new_array();
-	for(temp_customvariablesmember = temp_contact->custom_variables; 
-			temp_customvariablesmember != NULL; 
-			temp_customvariablesmember = temp_customvariablesmember->next) {
-		json_array_append_string(json_custom_variables, 
-				temp_customvariablesmember->variable_name);
-		}
-	json_object_append_array(json_details, "custom_variables", 
-			json_custom_variables);
+	json_object_append_object(json_details, "custom_variables", 
+			json_object_custom_variables(temp_contact->custom_variables));
 	}
 
 int json_object_contactgroup_passes_selection(contactgroup *temp_contactgroup,

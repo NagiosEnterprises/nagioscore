@@ -265,7 +265,7 @@ int main(int argc, char **argv) {
 	reset_cgi_vars();
 
 	/* Initialize shared configuration variables */                             
-	init_shared_cfg_vars();                                                     
+	init_shared_cfg_vars(1);
 
 	/* read the CGI configuration file */
 	result = read_cgi_config_file(get_cgi_config_location());

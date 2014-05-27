@@ -207,6 +207,8 @@ typedef struct object_json_cgi_data_struct {
 #define OBJECT_QUERY_HOSTESCALATIONLIST		32
 #define OBJECT_QUERY_HELP					33
 
+extern json_object * json_object_custom_variables(struct customvariablesmember *);
+
 extern json_object *json_object_hostcount(int, host *, int, host *, hostgroup *,
 		contact *, contactgroup *, timeperiod *, timeperiod *, command *,
 		command *);

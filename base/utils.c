@@ -36,83 +36,83 @@
 /* global varaiables only used by the daemon */
 char *nagios_binary_path = NULL;
 char *config_file = NULL;
-char *command_file = NULL;
-char *temp_file = NULL;
-char *temp_path = NULL;
-char *check_result_path = NULL;
-char *lock_file = NULL;
+char *command_file;
+char *temp_file;
+char *temp_path;
+char *check_result_path;
+char *lock_file;
 
-int num_check_workers = 0; /* auto-decide */
-char *qh_socket_path = NULL; /* disabled */
+int num_check_workers;
+char *qh_socket_path;
 
-char *nagios_user = NULL;
-char *nagios_group = NULL;
+char *nagios_user;
+char *nagios_group;
 
-char *ocsp_command = NULL;
-char *ochp_command = NULL;
+char *ocsp_command;
+char *ochp_command;
 command *ocsp_command_ptr = NULL;
 command *ochp_command_ptr = NULL;
-int ocsp_timeout = DEFAULT_OCSP_TIMEOUT;
-int ochp_timeout = DEFAULT_OCHP_TIMEOUT;
+int ocsp_timeout;
+int ochp_timeout;
 
-char *illegal_object_chars = NULL;
+char *illegal_object_chars;
 
 int use_regexp_matches;
 int use_true_regexp_matching;
 
-int	use_syslog = DEFAULT_USE_SYSLOG;
-char *log_file = NULL;
-char *log_archive_path = NULL;
-int log_notifications = DEFAULT_NOTIFICATION_LOGGING;
-int log_service_retries = DEFAULT_LOG_SERVICE_RETRIES;
-int log_host_retries = DEFAULT_LOG_HOST_RETRIES;
-int log_event_handlers = DEFAULT_LOG_EVENT_HANDLERS;
-int log_initial_states = DEFAULT_LOG_INITIAL_STATES;
-int log_current_states = DEFAULT_LOG_CURRENT_STATES;
-int log_external_commands = DEFAULT_LOG_EXTERNAL_COMMANDS;
-int log_passive_checks = DEFAULT_LOG_PASSIVE_CHECKS;
+int	use_syslog;
+char *log_file;
+char *log_archive_path;
+int log_notifications;
+int log_service_retries;
+int log_host_retries;
+int log_event_handlers;
+int log_initial_states;
+int log_current_states;
+int log_external_commands;
+int log_passive_checks;
 unsigned long logging_options = 0;
 unsigned long syslog_options = 0;
 
-int service_check_timeout = DEFAULT_SERVICE_CHECK_TIMEOUT;
-int service_check_timeout_state=STATE_CRITICAL;
-int host_check_timeout = DEFAULT_HOST_CHECK_TIMEOUT;
-int event_handler_timeout = DEFAULT_EVENT_HANDLER_TIMEOUT;
-int notification_timeout = DEFAULT_NOTIFICATION_TIMEOUT;
+int service_check_timeout;
+int service_check_timeout_state;
+int host_check_timeout;
+int event_handler_timeout;
+int notification_timeout;
 
 
-char *object_precache_file = DEFAULT_PRECACHED_OBJECT_FILE;
+char *object_precache_file;
 
-char *global_host_event_handler = NULL;
-char *global_service_event_handler = NULL;
+char *global_host_event_handler;
+char *global_service_event_handler;
 command *global_host_event_handler_ptr = NULL;
 command *global_service_event_handler_ptr = NULL;
 
-int service_inter_check_delay_method = ICD_SMART;
-int host_inter_check_delay_method = ICD_SMART;
-int service_interleave_factor_method = ILF_SMART;
-int max_host_check_spread = DEFAULT_HOST_CHECK_SPREAD;
-int max_service_check_spread = DEFAULT_SERVICE_CHECK_SPREAD;
+int service_inter_check_delay_method;
+int host_inter_check_delay_method;
+int service_interleave_factor_method;
+int max_host_check_spread;
+int max_service_check_spread;
 
-int check_reaper_interval = DEFAULT_CHECK_REAPER_INTERVAL;
-int max_check_reaper_time = DEFAULT_MAX_REAPER_TIME;
-int service_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
-int host_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
-int auto_rescheduling_interval = DEFAULT_AUTO_RESCHEDULING_INTERVAL;
+int check_reaper_interval;
+int max_check_reaper_time;
+int service_freshness_check_interval;
+int host_freshness_check_interval;
+int auto_rescheduling_interval;
 
 struct load_control loadctl;
 
-int check_orphaned_services = DEFAULT_CHECK_ORPHANED_SERVICES;
-int check_orphaned_hosts = DEFAULT_CHECK_ORPHANED_HOSTS;
-int check_service_freshness = DEFAULT_CHECK_SERVICE_FRESHNESS;
-int check_host_freshness = DEFAULT_CHECK_HOST_FRESHNESS;
-int auto_reschedule_checks = DEFAULT_AUTO_RESCHEDULE_CHECKS;
-int auto_rescheduling_window = DEFAULT_AUTO_RESCHEDULING_WINDOW;
+int check_orphaned_services;
+int check_orphaned_hosts;
+int check_service_freshness;
+int check_host_freshness;
+int auto_reschedule_checks;
+int auto_rescheduling_window;
 
-int additional_freshness_latency = DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
+int additional_freshness_latency;
 
-int check_for_updates = DEFAULT_CHECK_FOR_UPDATES;
-int bare_update_check = DEFAULT_BARE_UPDATE_CHECK;
+int check_for_updates;
+int bare_update_check;
 time_t last_update_check = 0L;
 unsigned long update_uid = 0L;
 int update_available = FALSE;
@@ -121,30 +121,30 @@ char *new_program_version = NULL;
 
 time_t last_program_stop = 0L;
 
-int use_aggressive_host_checking = DEFAULT_AGGRESSIVE_HOST_CHECKING;
-time_t cached_host_check_horizon = DEFAULT_CACHED_HOST_CHECK_HORIZON;
-time_t cached_service_check_horizon = DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
-int enable_predictive_host_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
-int enable_predictive_service_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS;
+int use_aggressive_host_checking;
+time_t cached_host_check_horizon;
+time_t cached_service_check_horizon;
+int enable_predictive_host_dependency_checks;
+int enable_predictive_service_dependency_checks;
 
-int soft_state_dependencies = FALSE;
+int soft_state_dependencies;
 
-int retain_state_information = FALSE;
-int retention_update_interval = DEFAULT_RETENTION_UPDATE_INTERVAL;
-int use_retained_program_state = TRUE;
-int use_retained_scheduling_info = FALSE;
-int retention_scheduling_horizon = DEFAULT_RETENTION_SCHEDULING_HORIZON;
-char *retention_file = NULL;
+int retain_state_information;
+int retention_update_interval;
+int use_retained_program_state;
+int use_retained_scheduling_info;
+int retention_scheduling_horizon;
+char *retention_file;
 
 unsigned long modified_process_attributes = MODATTR_NONE;
 unsigned long modified_host_process_attributes = MODATTR_NONE;
 unsigned long modified_service_process_attributes = MODATTR_NONE;
-unsigned long retained_host_attribute_mask = 0L;
-unsigned long retained_service_attribute_mask = 0L;
-unsigned long retained_contact_host_attribute_mask = 0L;
-unsigned long retained_contact_service_attribute_mask = 0L;
-unsigned long retained_process_host_attribute_mask = 0L;
-unsigned long retained_process_service_attribute_mask = 0L;
+unsigned long retained_host_attribute_mask;
+unsigned long retained_service_attribute_mask;
+unsigned long retained_contact_host_attribute_mask;
+unsigned long retained_contact_service_attribute_mask;
+unsigned long retained_process_host_attribute_mask;
+unsigned long retained_process_service_attribute_mask;
 
 unsigned long next_event_id = 0L;
 unsigned long next_problem_id = 0L;
@@ -161,55 +161,55 @@ int sigrestart = FALSE;
 int caught_signal = FALSE;
 int sig_id = 0;
 
-int daemon_dumps_core = TRUE;
+int daemon_dumps_core;
 
-int max_parallel_service_checks = DEFAULT_MAX_PARALLEL_SERVICE_CHECKS;
+int max_parallel_service_checks;
 int currently_running_service_checks = 0;
 int currently_running_host_checks = 0;
 
 time_t event_start = 0L;
 
-int translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
-int passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
+int translate_passive_host_checks;
+int passive_host_checks_are_soft;
 
-int status_update_interval = DEFAULT_STATUS_UPDATE_INTERVAL;
+int status_update_interval;
 
-int time_change_threshold = DEFAULT_TIME_CHANGE_THRESHOLD;
+int time_change_threshold;
 
-unsigned long   event_broker_options = BROKER_NOTHING;
+unsigned long   event_broker_options;
 
-double low_service_flap_threshold = DEFAULT_LOW_SERVICE_FLAP_THRESHOLD;
-double high_service_flap_threshold = DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD;
-double low_host_flap_threshold = DEFAULT_LOW_HOST_FLAP_THRESHOLD;
-double high_host_flap_threshold = DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
+double low_service_flap_threshold;
+double high_service_flap_threshold;
+double low_host_flap_threshold;
+double high_host_flap_threshold;
 
-int use_large_installation_tweaks = DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
-int enable_environment_macros = TRUE;
-int free_child_process_memory = -1;
-int child_processes_fork_twice = -1;
+int use_large_installation_tweaks;
+int enable_environment_macros;
+int free_child_process_memory;
+int child_processes_fork_twice;
 
-char *use_timezone = NULL;
+char *use_timezone;
 
-int allow_empty_hostgroup_assignment = DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
+int allow_empty_hostgroup_assignment;
 
 /*** perfdata variables ***/
 int     perfdata_timeout;
-char    *host_perfdata_command = NULL;
-char    *service_perfdata_command = NULL;
-char    *host_perfdata_file_template = NULL;
-char    *service_perfdata_file_template = NULL;
-char    *host_perfdata_file = NULL;
-char    *service_perfdata_file = NULL;
-int     host_perfdata_file_append = TRUE;
-int     service_perfdata_file_append = TRUE;
-int     host_perfdata_file_pipe = FALSE;
-int     service_perfdata_file_pipe = FALSE;
-unsigned long host_perfdata_file_processing_interval = 0L;
-unsigned long service_perfdata_file_processing_interval = 0L;
-char    *host_perfdata_file_processing_command = NULL;
-char    *service_perfdata_file_processing_command = NULL;
-int     host_perfdata_process_empty_results=DEFAULT_HOST_PERFDATA_PROCESS_EMPTY_RESULTS;
-int     service_perfdata_process_empty_results=DEFAULT_SERVICE_PERFDATA_PROCESS_EMPTY_RESULTS;
+char    *host_perfdata_command;
+char    *service_perfdata_command;
+char    *host_perfdata_file_template;
+char    *service_perfdata_file_template;
+char    *host_perfdata_file;
+char    *service_perfdata_file;
+int     host_perfdata_file_append;
+int     service_perfdata_file_append;
+int     host_perfdata_file_pipe;
+int     service_perfdata_file_pipe;
+unsigned long host_perfdata_file_processing_interval;
+unsigned long service_perfdata_file_processing_interval;
+char    *host_perfdata_file_processing_command;
+char    *service_perfdata_file_processing_command;
+int     host_perfdata_process_empty_results;
+int     service_perfdata_process_empty_results;
 /*** end perfdata variables */
 
 /* Filename variables used by handle_sigxfsz */
@@ -219,14 +219,14 @@ static long long check_file_size(char *, unsigned long, struct rlimit);
 
 notification    *notification_list;
 
-time_t max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
+time_t max_check_result_file_age;
 
 check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
 char *debug_file;
-int debug_level = DEFAULT_DEBUG_LEVEL;
-int debug_verbosity = DEFAULT_DEBUG_VERBOSITY;
-unsigned long   max_debug_file_size = DEFAULT_MAX_DEBUG_FILE_SIZE;
+int debug_level;
+int debug_verbosity;
+unsigned long   max_debug_file_size;
 
 iobroker_set *nagios_iobs = NULL;
 squeue_t *nagios_squeue = NULL; /* our scheduling queue */
@@ -237,6 +237,180 @@ sched_info scheduling_info;
 #ifndef errno
 extern int errno;
 #endif
+
+
+/* Initialize the non-shared main configuration variables */
+void init_main_cfg_vars(int first_time) {
+
+	/* Initialize only the first time */
+	if(first_time) {
+		num_check_workers = 0; /* auto-decide */
+		qh_socket_path = NULL; /* disabled */
+		}
+
+	log_file = NULL;
+	temp_file = NULL;
+	temp_path = NULL;
+	check_result_path = NULL;
+	command_file = NULL;
+	lock_file = NULL;
+	log_archive_path = NULL;
+	debug_file = NULL;
+
+	object_precache_file = (char *)strdup(DEFAULT_PRECACHED_OBJECT_FILE);
+
+	nagios_user = NULL;
+	nagios_group = NULL;
+
+	use_regexp_matches = FALSE;
+	use_true_regexp_matching = FALSE;
+
+	use_syslog = DEFAULT_USE_SYSLOG;
+	log_service_retries = DEFAULT_LOG_SERVICE_RETRIES;
+	log_host_retries = DEFAULT_LOG_HOST_RETRIES;
+	log_initial_states = DEFAULT_LOG_INITIAL_STATES;
+	if(first_time) {
+		/* Not sure why this is not reset in reset_variables() */
+		log_current_states = DEFAULT_LOG_CURRENT_STATES;
+		}
+
+	log_notifications = DEFAULT_NOTIFICATION_LOGGING;
+	log_event_handlers = DEFAULT_LOG_EVENT_HANDLERS;
+	log_external_commands = DEFAULT_LOG_EXTERNAL_COMMANDS;
+	log_passive_checks = DEFAULT_LOG_PASSIVE_CHECKS;
+
+	service_check_timeout = DEFAULT_SERVICE_CHECK_TIMEOUT;
+	if(first_time) {
+		/* Not sure why this is not reset in reset_variables() */
+		service_check_timeout_state = STATE_CRITICAL;
+		}
+	host_check_timeout = DEFAULT_HOST_CHECK_TIMEOUT;
+	event_handler_timeout = DEFAULT_EVENT_HANDLER_TIMEOUT;
+	notification_timeout = DEFAULT_NOTIFICATION_TIMEOUT;
+	ocsp_timeout = DEFAULT_OCSP_TIMEOUT;
+	ochp_timeout = DEFAULT_OCHP_TIMEOUT;
+
+	if(first_time) {
+		/* Not sure why this is not reset in reset_variables() */
+		illegal_object_chars = NULL;
+	}
+	service_inter_check_delay_method = ICD_SMART;
+	host_inter_check_delay_method = ICD_SMART;
+	service_interleave_factor_method = ILF_SMART;
+	max_service_check_spread = DEFAULT_SERVICE_CHECK_SPREAD;
+	max_host_check_spread = DEFAULT_HOST_CHECK_SPREAD;
+
+	use_aggressive_host_checking = DEFAULT_AGGRESSIVE_HOST_CHECKING;
+	cached_host_check_horizon = DEFAULT_CACHED_HOST_CHECK_HORIZON;
+	cached_service_check_horizon = DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
+	enable_predictive_host_dependency_checks = 
+			DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
+	enable_predictive_service_dependency_checks = 
+			DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS;
+
+	soft_state_dependencies = FALSE;
+
+	retain_state_information = FALSE;
+	retention_update_interval = DEFAULT_RETENTION_UPDATE_INTERVAL;
+	use_retained_program_state = TRUE;
+	use_retained_scheduling_info = FALSE;
+	retention_scheduling_horizon = DEFAULT_RETENTION_SCHEDULING_HORIZON;
+	if(first_time) {
+		/* Not sure why this is not reset in reset_variables() */
+		retention_file = NULL;
+	}
+	retained_host_attribute_mask = 0L;
+	retained_service_attribute_mask = 0L;
+	retained_process_host_attribute_mask = 0L;
+	retained_process_service_attribute_mask = 0L;
+	retained_contact_host_attribute_mask = 0L;
+	retained_contact_service_attribute_mask = 0L;
+
+	check_reaper_interval = DEFAULT_CHECK_REAPER_INTERVAL;
+	max_check_reaper_time = DEFAULT_MAX_REAPER_TIME;
+	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
+	service_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
+	host_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
+	auto_rescheduling_interval = DEFAULT_AUTO_RESCHEDULING_INTERVAL;
+	auto_rescheduling_window = DEFAULT_AUTO_RESCHEDULING_WINDOW;
+
+	check_orphaned_services = DEFAULT_CHECK_ORPHANED_SERVICES;
+	check_orphaned_hosts = DEFAULT_CHECK_ORPHANED_HOSTS;
+	check_service_freshness = DEFAULT_CHECK_SERVICE_FRESHNESS;
+	check_host_freshness = DEFAULT_CHECK_HOST_FRESHNESS;
+	auto_reschedule_checks = DEFAULT_AUTO_RESCHEDULE_CHECKS;
+
+	if(first_time) {
+		/* Not sure why this is not reset in reset_variables() */
+		daemon_dumps_core = TRUE;
+	}
+
+	max_parallel_service_checks = DEFAULT_MAX_PARALLEL_SERVICE_CHECKS;
+
+	status_update_interval = DEFAULT_STATUS_UPDATE_INTERVAL;
+
+	event_broker_options = BROKER_NOTHING;
+
+	time_change_threshold = DEFAULT_TIME_CHANGE_THRESHOLD;
+
+	low_service_flap_threshold = DEFAULT_LOW_SERVICE_FLAP_THRESHOLD;
+	high_service_flap_threshold = DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD;
+	low_host_flap_threshold = DEFAULT_LOW_HOST_FLAP_THRESHOLD;
+	high_host_flap_threshold = DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
+
+	translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
+	passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
+
+	use_large_installation_tweaks = DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
+	enable_environment_macros = FALSE;
+	free_child_process_memory = -1;
+	child_processes_fork_twice = -1;
+
+	if(first_time) {
+		/* Not sure why these are not reset in reset_variables() */
+		use_timezone = NULL;
+		allow_empty_hostgroup_assignment =
+				DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
+		perfdata_timeout = 0;
+		host_perfdata_command = NULL;
+		service_perfdata_command = NULL;
+		host_perfdata_file_template = NULL;
+		service_perfdata_file_template = NULL;
+		host_perfdata_file = NULL;
+		service_perfdata_file = NULL;
+		host_perfdata_file_pipe = FALSE;
+		host_perfdata_file_append = TRUE;
+		service_perfdata_file_pipe = FALSE;
+		service_perfdata_file_append = TRUE;
+		host_perfdata_file_processing_interval = 0L;
+		service_perfdata_file_processing_interval = 0L;
+		host_perfdata_file_processing_command = NULL;
+		service_perfdata_file_processing_command = NULL;
+		host_perfdata_process_empty_results =
+				DEFAULT_HOST_PERFDATA_PROCESS_EMPTY_RESULTS;
+		service_perfdata_process_empty_results =
+				DEFAULT_SERVICE_PERFDATA_PROCESS_EMPTY_RESULTS;
+	}
+
+	additional_freshness_latency = DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
+
+	if(first_time) {
+		/* Not sure why these are not reset in reset_variables() */
+		check_for_updates = DEFAULT_CHECK_FOR_UPDATES;
+		bare_update_check = DEFAULT_BARE_UPDATE_CHECK;
+		debug_level = DEFAULT_DEBUG_LEVEL;
+		debug_verbosity = DEFAULT_DEBUG_VERBOSITY;
+		max_debug_file_size = DEFAULT_MAX_DEBUG_FILE_SIZE;
+	}
+
+	global_host_event_handler = NULL;
+	global_service_event_handler = NULL;
+
+	ocsp_command = NULL;
+	ochp_command = NULL;
+
+	return;
+	}
 
 
 static const char *worker_source_name(void *source) {
@@ -3097,153 +3271,72 @@ void free_notification_list(void) {
 /* reset all system-wide variables, so when we've receive a SIGHUP we can restart cleanly */
 int reset_variables(void) {
 
+	/* First free any variables previously set */
+	my_free(log_file);
+	my_free(temp_file);
+	my_free(temp_path);
+	my_free(check_result_path);
+	my_free(command_file);
+	my_free(lock_file);
+	my_free(log_archive_path);
+	my_free(debug_file);
+
+	my_free(object_cache_file);
+	my_free(object_precache_file);
+
+	my_free(nagios_user);
+	my_free(nagios_group);
+
+	my_free(global_host_event_handler);
+	my_free(global_service_event_handler);
+
+	my_free(ocsp_command);
+	my_free(ochp_command);
+
+	/* Next re-initialize configuration variables */
+	init_main_cfg_vars(0);
+	init_shared_cfg_vars(0);
+
+	/* Finally, set anything not set in the initialization routines */
 	log_file = (char *)strdup(DEFAULT_LOG_FILE);
 	temp_file = (char *)strdup(DEFAULT_TEMP_FILE);
 	temp_path = (char *)strdup(DEFAULT_TEMP_PATH);
 	check_result_path = (char *)strdup(DEFAULT_CHECK_RESULT_PATH);
 	command_file = (char *)strdup(DEFAULT_COMMAND_FILE);
-	if (lock_file) /* this is kept across restarts */
-		free(lock_file);
-	lock_file = (char *)strdup(DEFAULT_LOCK_FILE);
+	lock_file = (char *)strdup(DEFAULT_LOCK_FILE); /* this is kept across restarts */
 	log_archive_path = (char *)strdup(DEFAULT_LOG_ARCHIVE_PATH);
 	debug_file = (char *)strdup(DEFAULT_DEBUG_FILE);
 
-	my_free(object_cache_file);
-	object_cache_file = (char *)strdup(DEFAULT_OBJECT_CACHE_FILE);
 	object_precache_file = (char *)strdup(DEFAULT_PRECACHED_OBJECT_FILE);
 
 	nagios_user = (char *)strdup(DEFAULT_NAGIOS_USER);
 	nagios_group = (char *)strdup(DEFAULT_NAGIOS_GROUP);
 
-	use_regexp_matches = FALSE;
-	use_true_regexp_matching = FALSE;
-
-	use_syslog = DEFAULT_USE_SYSLOG;
-	log_service_retries = DEFAULT_LOG_SERVICE_RETRIES;
-	log_host_retries = DEFAULT_LOG_HOST_RETRIES;
-	log_initial_states = DEFAULT_LOG_INITIAL_STATES;
-
-	log_notifications = DEFAULT_NOTIFICATION_LOGGING;
-	log_event_handlers = DEFAULT_LOG_EVENT_HANDLERS;
-	log_external_commands = DEFAULT_LOG_EXTERNAL_COMMANDS;
-	log_passive_checks = DEFAULT_LOG_PASSIVE_CHECKS;
-
 	logging_options = NSLOG_RUNTIME_ERROR | NSLOG_RUNTIME_WARNING | NSLOG_VERIFICATION_ERROR | NSLOG_VERIFICATION_WARNING | NSLOG_CONFIG_ERROR | NSLOG_CONFIG_WARNING | NSLOG_PROCESS_INFO | NSLOG_HOST_NOTIFICATION | NSLOG_SERVICE_NOTIFICATION | NSLOG_EVENT_HANDLER | NSLOG_EXTERNAL_COMMAND | NSLOG_PASSIVE_CHECK | NSLOG_HOST_UP | NSLOG_HOST_DOWN | NSLOG_HOST_UNREACHABLE | NSLOG_SERVICE_OK | NSLOG_SERVICE_WARNING | NSLOG_SERVICE_UNKNOWN | NSLOG_SERVICE_CRITICAL | NSLOG_INFO_MESSAGE;
 
 	syslog_options = NSLOG_RUNTIME_ERROR | NSLOG_RUNTIME_WARNING | NSLOG_VERIFICATION_ERROR | NSLOG_VERIFICATION_WARNING | NSLOG_CONFIG_ERROR | NSLOG_CONFIG_WARNING | NSLOG_PROCESS_INFO | NSLOG_HOST_NOTIFICATION | NSLOG_SERVICE_NOTIFICATION | NSLOG_EVENT_HANDLER | NSLOG_EXTERNAL_COMMAND | NSLOG_PASSIVE_CHECK | NSLOG_HOST_UP | NSLOG_HOST_DOWN | NSLOG_HOST_UNREACHABLE | NSLOG_SERVICE_OK | NSLOG_SERVICE_WARNING | NSLOG_SERVICE_UNKNOWN | NSLOG_SERVICE_CRITICAL | NSLOG_INFO_MESSAGE;
 
-	service_check_timeout = DEFAULT_SERVICE_CHECK_TIMEOUT;
-	host_check_timeout = DEFAULT_HOST_CHECK_TIMEOUT;
-	event_handler_timeout = DEFAULT_EVENT_HANDLER_TIMEOUT;
-	notification_timeout = DEFAULT_NOTIFICATION_TIMEOUT;
-	ocsp_timeout = DEFAULT_OCSP_TIMEOUT;
-	ochp_timeout = DEFAULT_OCHP_TIMEOUT;
-
-	interval_length = DEFAULT_INTERVAL_LENGTH;
-	service_inter_check_delay_method = ICD_SMART;
-	host_inter_check_delay_method = ICD_SMART;
-	service_interleave_factor_method = ILF_SMART;
-	max_service_check_spread = DEFAULT_SERVICE_CHECK_SPREAD;
-	max_host_check_spread = DEFAULT_HOST_CHECK_SPREAD;
-
-	use_aggressive_host_checking = DEFAULT_AGGRESSIVE_HOST_CHECKING;
-	cached_host_check_horizon = DEFAULT_CACHED_HOST_CHECK_HORIZON;
-	cached_service_check_horizon = DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
-	enable_predictive_host_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
-	enable_predictive_service_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS;
-
-	soft_state_dependencies = FALSE;
-
-	retain_state_information = FALSE;
-	retention_update_interval = DEFAULT_RETENTION_UPDATE_INTERVAL;
-	use_retained_program_state = TRUE;
-	use_retained_scheduling_info = FALSE;
-	retention_scheduling_horizon = DEFAULT_RETENTION_SCHEDULING_HORIZON;
 	modified_host_process_attributes = MODATTR_NONE;
 	modified_service_process_attributes = MODATTR_NONE;
-	retained_host_attribute_mask = 0L;
-	retained_service_attribute_mask = 0L;
-	retained_process_host_attribute_mask = 0L;
-	retained_process_service_attribute_mask = 0L;
-	retained_contact_host_attribute_mask = 0L;
-	retained_contact_service_attribute_mask = 0L;
-
-	check_reaper_interval = DEFAULT_CHECK_REAPER_INTERVAL;
-	max_check_reaper_time = DEFAULT_MAX_REAPER_TIME;
-	max_check_result_file_age = DEFAULT_MAX_CHECK_RESULT_AGE;
-	service_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
-	host_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
-	auto_rescheduling_interval = DEFAULT_AUTO_RESCHEDULING_INTERVAL;
-	auto_rescheduling_window = DEFAULT_AUTO_RESCHEDULING_WINDOW;
-
-	check_external_commands = DEFAULT_CHECK_EXTERNAL_COMMANDS;
-	check_orphaned_services = DEFAULT_CHECK_ORPHANED_SERVICES;
-	check_orphaned_hosts = DEFAULT_CHECK_ORPHANED_HOSTS;
-	check_service_freshness = DEFAULT_CHECK_SERVICE_FRESHNESS;
-	check_host_freshness = DEFAULT_CHECK_HOST_FRESHNESS;
-	auto_reschedule_checks = DEFAULT_AUTO_RESCHEDULE_CHECKS;
-
-	log_rotation_method = LOG_ROTATION_NONE;
 
 	last_log_rotation = 0L;
 
-	max_parallel_service_checks = DEFAULT_MAX_PARALLEL_SERVICE_CHECKS;
 	currently_running_service_checks = 0;
-
-	enable_notifications = TRUE;
-	execute_service_checks = TRUE;
-	accept_passive_service_checks = TRUE;
-	execute_host_checks = TRUE;
-	accept_passive_service_checks = TRUE;
-	enable_event_handlers = TRUE;
-	obsess_over_services = FALSE;
-	obsess_over_hosts = FALSE;
 
 	next_comment_id = 0L; /* comment and downtime id get initialized to nonzero elsewhere */
 	next_downtime_id = 0L;
 	next_event_id = 1;
 	next_notification_id = 1;
 
-	status_update_interval = DEFAULT_STATUS_UPDATE_INTERVAL;
-
-	event_broker_options = BROKER_NOTHING;
-
-	time_change_threshold = DEFAULT_TIME_CHANGE_THRESHOLD;
-
-	enable_flap_detection = DEFAULT_ENABLE_FLAP_DETECTION;
-	low_service_flap_threshold = DEFAULT_LOW_SERVICE_FLAP_THRESHOLD;
-	high_service_flap_threshold = DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD;
-	low_host_flap_threshold = DEFAULT_LOW_HOST_FLAP_THRESHOLD;
-	high_host_flap_threshold = DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
-
-	process_performance_data = DEFAULT_PROCESS_PERFORMANCE_DATA;
-
-	translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
-	passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
-
-	use_large_installation_tweaks = DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
-	enable_environment_macros = FALSE;
 	free_child_process_memory = FALSE;
 	child_processes_fork_twice = FALSE;
-
-	additional_freshness_latency = DEFAULT_ADDITIONAL_FRESHNESS_LATENCY;
-
-	debug_level = DEFAULT_DEBUG_LEVEL;
-	debug_verbosity = DEFAULT_DEBUG_VERBOSITY;
-	max_debug_file_size = DEFAULT_MAX_DEBUG_FILE_SIZE;
-
-	date_format = DATE_FORMAT_US;
 
 	/* initialize macros */
 	init_macros();
 
-	global_host_event_handler = NULL;
-	global_service_event_handler = NULL;
 	global_host_event_handler_ptr = NULL;
 	global_service_event_handler_ptr = NULL;
 
-	ocsp_command = NULL;
-	ochp_command = NULL;
 	ocsp_command_ptr = NULL;
 	ochp_command_ptr = NULL;
 

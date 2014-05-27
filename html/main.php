@@ -110,7 +110,7 @@ $this_year = '2014';
 	}
 
 	function setCoreStatusHTML(image, text) {
-		$('#core-status').html('<img src="/nagios/images/' + image + '.gif" /> ' + text);
+		$('#core-status').html('<img src="images/' + image + '.gif" /> ' + text);
 	}
 </script>
 

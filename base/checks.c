@@ -3039,7 +3039,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 		/* Additional lines contain long plugin output and optional perf data.
 		/* Once we've hit perf data, the rest of the output is perf data. */
 		else if (in_perf_data) {
-			if (*db2.buf)
+			if (db2.buf && *db2.buf)
 				dbuf_strcat(&db2, " ");
 			dbuf_strcat(&db2, buf);
 
@@ -3058,7 +3058,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 
 				/* get the perf data */
 				if ((ptr = my_strtok(NULL, "\n"))) {
-					if (*db2.buf)
+					if (db2.buf && *db2.buf)
 						dbuf_strcat(&db2, " ");
 					dbuf_strcat(&db2, ptr);
 					}

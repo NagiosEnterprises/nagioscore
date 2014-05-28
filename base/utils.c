@@ -2126,6 +2126,8 @@ int process_check_result(check_result *cr)
 	return ERROR;
 	}
 
+char *unescape_newlines(char*);
+
 /* reads check result(s) from a file */
 int process_check_result_file(char *fname) {
 	mmapfile *thefile = NULL;
@@ -2242,7 +2244,13 @@ int process_check_result_file(char *fname) {
 			else if(!strcmp(var, "return_code"))
 				cr.return_code = atoi(val);
 			else if(!strcmp(var, "output"))
-				cr.output = (char *)strdup(val);
+				/* Interpolate "\\\\" and "\\n" escape sequences to the literal
+				 * characters they represent. This converts from the single line
+				 * format used to store the output in a checkresult file, to the
+				 * newline delimited format we use internally. By converting as
+				 * soon as possible after reading from the file we don't have
+				 * to worry about two different representations later. */
+				cr.output = unescape_newlines(val);
 			}
 		}
 
@@ -2387,28 +2395,39 @@ int contains_illegal_object_chars(char *name) {
 	}
 
 
-/* escapes newlines in a string */
+/* Escapes newlines in a string. */
 char *escape_newlines(char *rawbuf) {
 	char *newbuf = NULL;
-	register int x, y;
+	int x;
+	int y;
 
-	if(rawbuf == NULL)
+	if (rawbuf == NULL)
 		return NULL;
 
-	/* allocate enough memory to escape all chars if necessary */
-	if((newbuf = malloc((strlen(rawbuf) * 2) + 1)) == NULL)
+	/* Count the escapes we need to make. */
+	for (x = 0, y = 0; rawbuf[x]; x++) {
+		if (rawbuf[x] == '\\' || rawbuf[x] == '\n')
+			y++;
+		}
+
+	/* Just duplicate the string if we have nothing to escape. */
+	if (y == 0)
+		return strdup(rawbuf);
+
+	/* Allocate memory for the new string with escapes. */
+	if ((newbuf = malloc(x + y + 1)) == NULL)
 		return NULL;
 
-	for(x = 0, y = 0; rawbuf[x] != (char)'\x0'; x++) {
+	for (x = 0, y = 0; rawbuf[x]; x++) {
 
-		/* escape backslashes */
-		if(rawbuf[x] == '\\') {
+		/* Escape backslashes. */
+		if (rawbuf[x] == '\\') {
 			newbuf[y++] = '\\';
 			newbuf[y++] = '\\';
 			}
 
-		/* escape newlines */
-		else if(rawbuf[x] == '\n') {
+		/* Escape newlines. */
+		else if (rawbuf[x] == '\n') {
 			newbuf[y++] = '\\';
 			newbuf[y++] = 'n';
 			}
@@ -2416,7 +2435,52 @@ char *escape_newlines(char *rawbuf) {
 		else
 			newbuf[y++] = rawbuf[x];
 		}
-	newbuf[y] = '\x0';
+	newbuf[y] = '\0';
+
+	return newbuf;
+	}
+
+/* Unescapes newlines in a string. */
+char *unescape_newlines(char *rawbuf) {
+	char *newbuf = NULL;
+	int x;
+	int y;
+
+	if (rawbuf == NULL)
+		return NULL;
+
+	/* Count the replacements we need to make. */
+	for (x = 0, y = 0; rawbuf[x]; x++) {
+		if (rawbuf[x] == '\\' && (rawbuf[x + 1] == '\\' || rawbuf[x + 1] == 'n'))
+			x++, y++; /* Consume one more char for each replacement. */
+		}
+
+	/* Just duplicate the string if we have nothing to replace. */
+	if (y == 0)
+		return strdup(rawbuf);
+
+	/* Allocate memory for the new string, with our escape sequences replaced. */
+	if ((newbuf = malloc(x - y + 1)) == NULL)
+		return NULL;
+
+	for (x = 0, y = 0; rawbuf[x]; x++) {
+
+		/* Unescape backslashes. */
+		if (rawbuf[x] == '\\' && rawbuf[x + 1] == '\\') {
+			x++;
+			newbuf[y++] = '\\';
+			}
+
+		/* Unescape newlines. */
+		else if (rawbuf[x] == '\\' && rawbuf[x + 1] == 'n') {
+			x++;
+			newbuf[y++] = '\n';
+			}
+
+		else
+			newbuf[y++] = rawbuf[x];
+		}
+	newbuf[y] = '\0';
 
 	return newbuf;
 	}

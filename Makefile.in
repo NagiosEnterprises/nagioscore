@@ -234,21 +234,22 @@ install:
 	cd $(SRC_BASE) && $(MAKE) $@
 	cd $(SRC_CGI) && $(MAKE) $@
 	cd $(SRC_HTM) && $(MAKE) $@
-	$(MAKE) install-exfoliation	
+	$(MAKE) install-exfoliation
 	$(MAKE) install-basic
 
 install-unstripped:
 	cd $(SRC_BASE) && $(MAKE) $@
 	cd $(SRC_CGI) && $(MAKE) $@
 	cd $(SRC_HTM) && $(MAKE) $@
-	$(MAKE) install-exfoliation	
+	$(MAKE) install-exfoliation
 	$(MAKE) install-basic
 
 install-basic:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LIBEXECDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LOGDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LOGDIR)/archives
-	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CHECKRESULTDIR)
+	$(INSTALL) -m 775 $(COMMAND_OPTS) -d $(DESTDIR)$(CHECKRESULTDIR)
+	chmod g+s $(DESTDIR)$(CHECKRESULTDIR)
 
 	@echo ""
 	@echo "*** Main program, CGIs and HTML files installed ***"

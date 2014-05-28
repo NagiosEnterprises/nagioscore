@@ -2960,193 +2960,139 @@ int handle_host_state(host *hst) {
 	}
 
 
-/* parse raw plugin output and return: short and long output, perf data */
+/* Parses raw plugin output and return: short and long output, perf data. */
 int parse_check_output(char *buf, char **short_output, char **long_output, char **perf_data, int escape_newlines_please, int newlines_are_escaped) {
 	int current_line = 0;
-	int found_newline = FALSE;
 	int eof = FALSE;
-	int used_buf = 0;
-	int dbuf_chunk = 1024;
+	int in_perf_data = FALSE;
+	const int dbuf_chunk = 1024;
 	dbuf db1;
 	dbuf db2;
 	char *ptr = NULL;
-	int in_perf_data = FALSE;
-	char *tempbuf = NULL;
-	register int x = 0;
-	register int y = 0;
+	int x = 0;
+	int y = 0;
 
-	/* initialize values */
-	if(short_output)
+	/* Initialize output values. */
+	if (short_output)
 		*short_output = NULL;
-	if(long_output)
+	if (long_output)
 		*long_output = NULL;
-	if(perf_data)
+	if (perf_data)
 		*perf_data = NULL;
 
-	/* nothing to do */
-	if(buf == NULL || !strcmp(buf, ""))
+	/* No input provided or no output requested, nothing to do. */
+	if (!buf || !*buf || (!short_output && !long_output && !perf_data))
 		return OK;
 
-	used_buf = strlen(buf) + 1;
 
-	/* initialize dynamic buffers (1KB chunk size) */
+	/* Initialize dynamic buffers (1KB chunk size). */
 	dbuf_init(&db1, dbuf_chunk);
 	dbuf_init(&db2, dbuf_chunk);
 
-	/* unescape newlines and escaped backslashes first */
-	if(newlines_are_escaped == TRUE) {
-		for(x = 0, y = 0; buf[x] != '\x0'; x++) {
-			if(buf[x] == '\\' && buf[x + 1] == '\\') {
+	/* We should never need to worry about unescaping here again. We assume a
+	 * common internal plugin output format that is newline delimited. */
+	if (newlines_are_escaped) {
+		for (x = 0, y = 0; buf[x]; x++) {
+			if (buf[x] == '\\' && buf[x + 1] == '\\') {
 				x++;
 				buf[y++] = buf[x];
 				}
-			else if(buf[x] == '\\' && buf[x + 1] == 'n') {
+			else if (buf[x] == '\\' && buf[x + 1] == 'n') {
 				x++;
 				buf[y++] = '\n';
 				}
 			else
 				buf[y++] = buf[x];
 			}
-		buf[y] = '\x0';
+		buf[y] = '\0';
 		}
 
-	/* process each line of input */
-	for(x = 0; eof == FALSE; x++) {
+	/* Process each line of input. */
+	for (x = 0; !eof; x++) {
 
-		/* we found the end of a line */
-		if(buf[x] == '\n')
-			found_newline = TRUE;
-		else if(buf[x] == '\\' && buf[x + 1] == 'n' && newlines_are_escaped == TRUE) {
-			found_newline = TRUE;
-			buf[x] = '\x0';
-			x++;
-			}
-		else if(buf[x] == '\x0') {
-			found_newline = TRUE;
+		/* Continue on until we reach the end of a line (or input). */
+		if (buf[x] == '\0')
 			eof = TRUE;
-			}
-		else
-			found_newline = FALSE;
+		else if (buf[x] != '\n')
+			continue;
 
-		if(found_newline == TRUE) {
+		/* Handle this line of input. */
+		buf[x] = '\0';
+		current_line++;
 
-			current_line++;
+		/* The first line contains short plugin output and optional perf data. */
+		if (current_line == 1) {
 
-			/* handle this line of input */
-			buf[x] = '\x0';
-			if((tempbuf = (char *)strdup(buf))) {
-
-				/* first line contains short plugin output and optional perf data */
-				if(current_line == 1) {
-
-					/* get the short plugin output */
-					if((ptr = strtok(tempbuf, "|"))) {
-						if(short_output)
-							*short_output = (char *)strdup(ptr);
-
-						/* get the optional perf data */
-						if((ptr = strtok(NULL, "\n")))
-							dbuf_strcat(&db2, ptr);
-						}
+			/* Get the short plugin output. */
+			if ((ptr = strtok(buf, "|"))) {
+				if (short_output) {
+					strip(ptr); /* Remove leading and trailing whitespace. */
+					*short_output = strdup(ptr);
 					}
 
-				/* additional lines contain long plugin output and optional perf data */
-				else {
+				/* Get the optional perf data. */
+				if ((ptr = strtok(NULL, "\n")))
+					dbuf_strcat(&db2, ptr);
+				}
 
-					/* rest of the output is perf data */
-					if(in_perf_data == TRUE) {
-						dbuf_strcat(&db2, tempbuf);
+			}
+		/* Additional lines contain long plugin output and optional perf data.
+		/* Once we've hit perf data, the rest of the output is perf data. */
+		else if (in_perf_data) {
+			if (*db2.buf)
+				dbuf_strcat(&db2, " ");
+			dbuf_strcat(&db2, buf);
+
+			}
+		/* Look for the perf data separator. */
+		else if (strstr(buf, "|")) {
+			in_perf_data = TRUE;
+
+			/* NOTE: strtok() causes problems if first character of buf='|', so use my_strtok() instead */
+			/* Get the remaining long plugin output. */
+			if ((ptr = my_strtok(buf, "|"))) {
+
+				if (current_line > 2)
+					dbuf_strcat(&db1, "\n");
+				dbuf_strcat(&db1, ptr);
+
+				/* get the perf data */
+				if ((ptr = my_strtok(NULL, "\n"))) {
+					if (*db2.buf)
 						dbuf_strcat(&db2, " ");
-						}
-
-					/* we're still in long output */
-					else {
-
-						/* perf data separator has been found */
-						if(strstr(tempbuf, "|")) {
-
-							/* NOTE: strtok() causes problems if first character of tempbuf='|', so use my_strtok() instead */
-							/* get the remaining long plugin output */
-							if((ptr = my_strtok(tempbuf, "|"))) {
-
-								if(current_line > 2)
-									dbuf_strcat(&db1, "\n");
-								dbuf_strcat(&db1, ptr);
-
-								/* get the perf data */
-								if((ptr = my_strtok(NULL, "\n"))) {
-									dbuf_strcat(&db2, ptr);
-									dbuf_strcat(&db2, " ");
-									}
-								}
-
-							/* set the perf data flag */
-							in_perf_data = TRUE;
-							}
-
-						/* just long output */
-						else {
-							if(current_line > 2)
-								dbuf_strcat(&db1, "\n");
-							dbuf_strcat(&db1, tempbuf);
-							}
-						}
+					dbuf_strcat(&db2, ptr);
 					}
-
-				my_free(tempbuf);
-				tempbuf = NULL;
 				}
 
-
-			/* shift data back to front of buffer and adjust counters */
-			memmove((void *)&buf[0], (void *)&buf[x + 1], (size_t)((int)used_buf - x - 1));
-			used_buf -= (x + 1);
-			buf[used_buf] = '\x0';
-			x = -1;
 			}
-		}
-
-	/* save long output */
-	if(long_output && (db1.buf && strcmp(db1.buf, ""))) {
-
-		if(escape_newlines_please == FALSE)
-			*long_output = (char *)strdup(db1.buf);
-
+		/* Otherwise it's still just long output. */
 		else {
-
-			/* escape newlines (and backslashes) in long output */
-			if((tempbuf = (char *)malloc((strlen(db1.buf) * 2) + 1))) {
-
-				for(x = 0, y = 0; db1.buf[x] != '\x0'; x++) {
-
-					if(db1.buf[x] == '\n') {
-						tempbuf[y++] = '\\';
-						tempbuf[y++] = 'n';
-						}
-					else if(db1.buf[x] == '\\') {
-						tempbuf[y++] = '\\';
-						tempbuf[y++] = '\\';
-						}
-					else
-						tempbuf[y++] = db1.buf[x];
-					}
-
-				tempbuf[y] = '\x0';
-				*long_output = (char *)strdup(tempbuf);
-				my_free(tempbuf);
-				}
+			if (current_line > 2)
+				dbuf_strcat(&db1, "\n");
+			dbuf_strcat(&db1, buf);
 			}
+
+		/* Point buf to the start of the next line. At this point buf[x] == '\0',
+		 * and *(buf+x+1) will be a valid memory reference on our next iteration
+		 * or we are at the end of input (eof == TRUE). */
+		buf += x + 1;
+		x = -1; /* x will be incremented to 0 by the loop update. */
 		}
 
-	/* save perf data */
-	if(perf_data && (db2.buf && strcmp(db2.buf, "")))
-		*perf_data = (char *)strdup(db2.buf);
+	/* Save long output. */
+	if (long_output && db1.buf && *db1.buf) {
+		/* Escape newlines (and backslashes) in long output if requested. */
+		if (escape_newlines_please)
+			*long_output = escape_newlines(db1.buf);
+		else
+			*long_output = strdup(db1.buf);
+		}
 
-	/* strip short output and perf data */
-	if(short_output)
-		strip(*short_output);
-	if(perf_data)
-		strip(*perf_data);
+	/* Save perf data. */
+	if (perf_data && db2.buf && *db2.buf) {
+		strip(db2.buf); /* Remove leading and trailing whitespace. */
+		*perf_data = strdup(db2.buf);
+		}
 
 	/* free dynamic buffers */
 	dbuf_free(&db1);

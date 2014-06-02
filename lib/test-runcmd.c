@@ -87,6 +87,9 @@ struct {
 	{ 0, NULL, 0, { NULL, NULL, NULL }},
 };
 
+/* We need an iobreg callback to pass to runcmd_open(). */
+static void stub_iobreg(int fdout, int fderr, void *arg) { }
+
 int main(int argc, char **argv)
 {
 	int ret, r2;
@@ -100,10 +103,13 @@ int main(int argc, char **argv)
 		for (i = 0; cases[i].input != NULL; i++) {
 			memset(out, 0, BUF_SIZE);
 			int pfd[2] = {-1, -1}, pfderr[2] = {-1, -1};
+			/* We need a stub iobregarg since runcmd_open()'s prototype
+			 * declares it attribute non-null. */
+			int stub_iobregarg = 0;
 			int fd;
 			char *cmd;
 			asprintf(&cmd, "/bin/echo -n %s", cases[i].input);
-			fd = runcmd_open(cmd, pfd, pfderr, NULL);
+			fd = runcmd_open(cmd, pfd, pfderr, NULL, stub_iobreg, &stub_iobregarg);
 			read(pfd[0], out, BUF_SIZE);
 			ok_str(cases[i].output, out, "Echoing a command should give expected output");
 			close(pfd[0]);

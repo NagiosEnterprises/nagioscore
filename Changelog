@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-X.X.X - XX/XX/XXXX
+4.0.7 - 06/03/2014
 ------------------
 ENHANCEMENTS
 * Added value of custom variables to Object JSON output for hosts, services and contacts (Eric Stanley)

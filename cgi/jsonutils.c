@@ -733,7 +733,7 @@ json_object * json_result(time_t query_time, char *cgi, char *query,
 
 	json_object *json_result;
 	va_list a_list;
-	char	buf[8192];
+	char	*buf;
 
 
 	json_result = json_new_object();
@@ -756,9 +756,12 @@ json_object * json_result(time_t query_time, char *cgi, char *query,
 	json_object_append_string(json_result, "type_text", 
 			(char *)result_types[ type]);
 	va_start( a_list, message);
-	vsnprintf(buf, sizeof(buf)-1, message, a_list);
+	if(vasprintf(&buf, message, a_list) == -1) {
+		buf = NULL;
+		}
 	va_end( a_list);
 	json_object_append_string(json_result, "message", buf);
+	if(NULL != buf) free(buf);
 
 	return json_result;
 }
@@ -869,45 +872,62 @@ int passes_start_and_count_limits(int start, int max, int current, int counted) 
 	return result;
 	}
 
+/* Amount to increment the buffer in json_string to avoid frequent
+	repeated reallocations */
+#define BUF_REALLOC_INCREMENT 64
+
 void json_string(int padding, int whitespace, char *key, char *format, ...) {
 
 	va_list a_list;
-	char buf[8192];
+	char *buf = NULL;
 	char *stp;
+	int	offset;
 	size_t bytes;
+	int	extra_bytes = 0;
 
 	if( NULL != format) {
 		va_start( a_list, format);
-		vsnprintf(buf, sizeof(buf)-1, format, a_list);
+		if(vasprintf(&buf, format, a_list) == -1) {
+			buf = NULL;
+			}
 		va_end( a_list);
 		}
 
 	/* Escape any double quotes and strip any newlines */
-	for(stp = buf; *stp != '\0'; stp++) {
+	for(stp = buf; NULL != buf && *stp != '\0'; stp++) {
 		switch(*stp) {
 		case '"':
-			bytes = strlen(buf) - (stp - buf) + 1;
-			if(strlen(buf) > sizeof(buf) - 2) {
-				bytes--;
+			offset = stp - buf;
+			bytes = strlen(buf) - offset + 1;
+			if(0 == extra_bytes) {
+				/* If more room is needed, realloc and update pointers */
+				buf = realloc(buf, strlen(buf) + BUF_REALLOC_INCREMENT);
+				stp = buf + offset;
+				extra_bytes = BUF_REALLOC_INCREMENT;
 				}
-			memmove(stp+1, stp, bytes);
-			*stp = '\\';
-			stp++;
+			if(NULL != buf) {
+				/* Might be null due to realloc() */
+				memmove(stp+1, stp, bytes);
+				*stp = '\\';
+				stp++;
+				}
 			break;
 		case '\n':
 			bytes = strlen(buf) - (stp - buf) + 1;
 			memmove(stp, stp+1, bytes);
+			extra_bytes++;
 			break;
 			}
 		}
 
 	if( NULL == key) {
-		indentf(padding, whitespace, "\"%s\"", (( NULL == format) ? "" : buf));
+		indentf(padding, whitespace, "\"%s\"", (( NULL == buf) ? "" : buf));
 		}
 	else {
 		indentf(padding, whitespace, "\"%s\":%s\"%s\"", key, 
-				(( whitespace> 0) ? " " : ""), (( NULL == format) ? "" : buf));
+				(( whitespace> 0) ? " " : ""), (( NULL == buf) ? "" : buf));
 		}
+	if(NULL != buf) free(buf);
 	}
 
 void json_boolean(int padding, int whitespace, char *key, int value) {

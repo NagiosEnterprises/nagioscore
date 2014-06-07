@@ -141,6 +141,7 @@ setup_objects(time_t time) {
 	svc1->host_problem_at_last_check = FALSE;
 	svc1->plugin_output = strdup("Initial state");
 	svc1->last_hard_state_change = (time_t)1111111111;
+	svc1->accept_passive_checks = 1;
 
 	/* Second service .... to be configured! */
 	svc2 = (service *)calloc(1, sizeof(service));
@@ -423,13 +424,15 @@ int
 main(int argc, char **argv) {
 	time_t now = 0L;
 
-	accept_passive_host_checks = 1;
+	accept_passive_host_checks = TRUE;
+	accept_passive_service_checks = TRUE;
 
-	plan_tests(46);
+	plan_tests(92);
 
 	time(&now);
 
 	run_service_check_tests(SERVICE_CHECK_ACTIVE, now);
+	run_service_check_tests(SERVICE_CHECK_PASSIVE, now);
 
 	return exit_status();
 	}

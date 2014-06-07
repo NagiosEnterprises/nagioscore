@@ -538,11 +538,13 @@ void json_object_append_string(json_object *obj, char *key, char *format, ...) {
 			return;
 			}
 		}
-	va_start( a_list, format);
-	result = vasprintf(&buf, format, a_list);
-	va_end( a_list);
-	if(result >= 0) {
-		mp->value.string = buf;
+	if(NULL != format) {
+		va_start(a_list, format);
+		result = vasprintf(&buf, format, a_list);
+		va_end(a_list);
+		if(result >= 0) {
+			mp->value.string = buf;
+			}
 		}
 	}
 

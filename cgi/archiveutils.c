@@ -741,9 +741,12 @@ au_log_alert *au_create_alert_or_state_log(int obj_type, void *object,
 	alert_log->object = object;
 	alert_log->state_type = state_type;
 	alert_log->state = state;
-	if((alert_log->plugin_output = strdup(plugin_output)) == NULL) {
-		au_free_alert_log(alert_log);
-		return NULL;
+	alert_log->plugin_output = NULL;
+	if(plugin_output != NULL) {
+		if((alert_log->plugin_output = strdup(plugin_output)) == NULL) {
+			au_free_alert_log(alert_log);
+			return NULL;
+			}
 		}
 
 	return alert_log;

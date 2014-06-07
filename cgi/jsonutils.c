@@ -220,6 +220,7 @@ const char *month[12] = { "January", "February", "March", "April", "May",
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern time_t program_start;
 
+static json_object_member * json_object_add_member(json_object *);
 
 json_object *json_new_object(void) {
 	json_object *new;
@@ -273,17 +274,15 @@ void json_free_member(json_object_member *mp, int free_children) {
 	free(mp);
 	}
 
-void json_object_append_object(json_object *obj, char *key, json_object *value) {
-	json_object_member *mp;
-
-	if(NULL == obj) return;
-	if(NULL == value) return;
+/* Adds a member to a JSON object and returns a pointer to the new member.
+	Returns NULL on failure. */
+static json_object_member * json_object_add_member(json_object *obj) {
 
 	if(0 == obj->member_count) {
 		obj->members = calloc(1, sizeof(json_object_member *)); 
 		if(NULL == obj->members) {
 			obj->member_count = 0;
-			return;
+			return NULL;
 			}
 		}
 	else {
@@ -291,15 +290,27 @@ void json_object_append_object(json_object *obj, char *key, json_object *value) 
 				((obj->member_count + 1) * sizeof(json_object_member *)));
 		if(NULL == obj->members) {
 			obj->member_count = 0;
-			return;
+			return NULL;
 			}
 		}
 	obj->members[ obj->member_count] = calloc(1, sizeof(json_object_member));
 	if(NULL == obj->members[ obj->member_count]) {
+		return NULL;
+		}
+	obj->member_count++;
+
+	return obj->members[ obj->member_count - 1];
+	}
+
+void json_object_append_object(json_object *obj, char *key, json_object *value) {
+	json_object_member *mp;
+
+	if(NULL == obj) return;
+	if(NULL == value) return;
+
+	if((mp = json_object_add_member(obj)) == NULL) {
 		return;
 		}
-	mp = obj->members[ obj->member_count];
-	obj->member_count++;
 	mp->type = JSON_TYPE_OBJECT;
 	if(NULL != key) {
 		mp->key = strdup(key);
@@ -321,27 +332,9 @@ void json_object_append_array(json_object *obj, char *key, json_array *value) {
 	if(NULL == obj) return;
 	if(NULL == value) return;
 
-	if(0 == obj->member_count) {
-		obj->members = calloc(1, sizeof(json_object_member *)); 
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	else {
-		obj->members = realloc(obj->members, 
-				((obj->member_count + 1) * sizeof(json_object_member *)));
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	obj->members[ obj->member_count] = calloc(1, sizeof(json_object_member));
-	if(NULL == obj->members[ obj->member_count]) {
+	if((mp = json_object_add_member(obj)) == NULL) {
 		return;
 		}
-	mp = obj->members[ obj->member_count];
-	obj->member_count++;
 	mp->type = JSON_TYPE_ARRAY;
 	if(NULL != key) {
 		mp->key = strdup(key);
@@ -362,27 +355,9 @@ void json_object_append_integer(json_object *obj, char *key, int value) {
 
 	if(NULL == obj) return;
 
-	if(0 == obj->member_count) {
-		obj->members = calloc(1, sizeof(json_object_member *)); 
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	else {
-		obj->members = realloc(obj->members, 
-				((obj->member_count + 1) * sizeof(json_object_member *)));
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	obj->members[ obj->member_count] = calloc(1, sizeof(json_object_member));
-	if(NULL == obj->members[ obj->member_count]) {
+	if((mp = json_object_add_member(obj)) == NULL) {
 		return;
 		}
-	mp = obj->members[ obj->member_count];
-	obj->member_count++;
 	mp->type = JSON_TYPE_INTEGER;
 	if(NULL != key) {
 		mp->key = strdup(key);
@@ -403,27 +378,9 @@ void json_object_append_real(json_object *obj, char *key, double value) {
 
 	if(NULL == obj) return;
 
-	if(0 == obj->member_count) {
-		obj->members = calloc(1, sizeof(json_object_member *)); 
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	else {
-		obj->members = realloc(obj->members, 
-				((obj->member_count + 1) * sizeof(json_object_member *)));
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	obj->members[ obj->member_count] = calloc(1, sizeof(json_object_member));
-	if(NULL == obj->members[ obj->member_count]) {
+	if((mp = json_object_add_member(obj)) == NULL) {
 		return;
 		}
-	mp = obj->members[ obj->member_count];
-	obj->member_count++;
 	mp->type = JSON_TYPE_REAL;
 	if(NULL != key) {
 		mp->key = strdup(key);
@@ -464,27 +421,9 @@ void json_object_append_time_t(json_object *obj, char *key, time_t value) {
 
 	if(NULL == obj) return;
 
-	if(0 == obj->member_count) {
-		obj->members = calloc(1, sizeof(json_object_member *)); 
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	else {
-		obj->members = realloc(obj->members, 
-				((obj->member_count + 1) * sizeof(json_object_member *)));
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	obj->members[ obj->member_count] = calloc(1, sizeof(json_object_member));
-	if(NULL == obj->members[ obj->member_count]) {
+	if((mp = json_object_add_member(obj)) == NULL) {
 		return;
 		}
-	mp = obj->members[ obj->member_count];
-	obj->member_count++;
 	mp->type = JSON_TYPE_TIME_T;
 	if(NULL != key) {
 		mp->key = strdup(key);
@@ -509,27 +448,9 @@ void json_object_append_string(json_object *obj, char *key, char *format, ...) {
 
 	if(NULL == obj) return;
 
-	if(0 == obj->member_count) {
-		obj->members = calloc(1, sizeof(json_object_member *)); 
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	else {
-		obj->members = realloc(obj->members, 
-				((obj->member_count + 1) * sizeof(json_object_member *)));
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	obj->members[ obj->member_count] = calloc(1, sizeof(json_object_member));
-	if(NULL == obj->members[ obj->member_count]) {
+	if((mp = json_object_add_member(obj)) == NULL) {
 		return;
 		}
-	mp = obj->members[ obj->member_count];
-	obj->member_count++;
 	mp->type = JSON_TYPE_STRING;
 	if(NULL != key) {
 		mp->key = strdup(key);
@@ -567,27 +488,9 @@ void json_object_append_boolean(json_object *obj, char *key, int value) {
 
 	if(NULL == obj) return;
 
-	if(0 == obj->member_count) {
-		obj->members = calloc(1, sizeof(json_object_member *)); 
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	else {
-		obj->members = realloc(obj->members, 
-				((obj->member_count + 1) * sizeof(json_object_member *)));
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	obj->members[ obj->member_count] = calloc(1, sizeof(json_object_member));
-	if(NULL == obj->members[ obj->member_count]) {
+	if((mp = json_object_add_member(obj)) == NULL) {
 		return;
 		}
-	mp = obj->members[ obj->member_count];
-	obj->member_count++;
 	mp->type = JSON_TYPE_BOOLEAN;
 	if(NULL != key) {
 		mp->key = strdup(key);
@@ -609,27 +512,9 @@ void json_object_append_duration(json_object *obj, char *key,
 
 	if(NULL == obj) return;
 
-	if(0 == obj->member_count) {
-		obj->members = calloc(1, sizeof(json_object_member *)); 
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	else {
-		obj->members = realloc(obj->members, 
-				((obj->member_count + 1) * sizeof(json_object_member *)));
-		if(NULL == obj->members) {
-			obj->member_count = 0;
-			return;
-			}
-		}
-	obj->members[ obj->member_count] = calloc(1, sizeof(json_object_member));
-	if(NULL == obj->members[ obj->member_count]) {
+	if((mp = json_object_add_member(obj)) == NULL) {
 		return;
 		}
-	mp = obj->members[ obj->member_count];
-	obj->member_count++;
 	mp->type = JSON_TYPE_DURATION;
 	if(NULL != key) {
 		mp->key = strdup(key);

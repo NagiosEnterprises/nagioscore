@@ -1,19 +1,15 @@
 /*
- * $Id: runcmd.c,v 1.3 2005/08/01 23:51:34 exon Exp $
- *
  * A simple interface to executing programs from other programs, using an
- * optimized and safe popen()-like implementation. It is considered safe
- * in that no shell needs to be spawned and the environment passed to the
- * execve()'d program is essentially empty.
+ * optimized and safer popen()-like implementation. It is considered safer in
+ * that no shell needs to be spawned for simple commands, and the environment
+ * passed to the execve()'d program is essentially empty.
  *
+ * This code is based on popen.c, which in turn was taken from
+ * "Advanced Programming in the UNIX Environment" by W. Richard Stevens.
  *
- * The code in this file is a derivative of popen.c which in turn was taken
- * from "Advanced Programming for the Unix Environment" by W. Richard Stevens.
- *
- * Care has been taken to make sure the functions are async-safe. The one
- * function which isn't is runcmd_init() which it doesn't make sense to
- * call twice anyway, so the api as a whole should be considered async-safe.
- *
+ * Care has been taken to make sure the functions are async-safe. The exception
+ * is runcmd_init() which multithreaded applications or plugins must call in a
+ * non-reentrant manner before calling any other runcmd function.
  */
 
 #define NAGIOSPLUG_API_C 1
@@ -39,23 +35,21 @@
 # define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
 #endif
 
-/* 4.3BSD Reno <signal.h> doesn't define SIG_ERR */
-#if defined(SIG_IGN) && !defined(SIG_ERR)
-# define SIG_ERR ((Sigfunc *)-1)
-#endif
-
 /* Determine whether we have setenv()/unsetenv() (see setenv(3) on Linux) */
 #if _BSD_SOURCE || _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
 # define HAVE_SETENV
 #endif
 
-/* This variable must be global, since there's no way the caller
+/*
+ * This variable must be global, since there's no way the caller
  * can forcibly slay a dead or ungainly running program otherwise.
- * Multithreading apps and plugins can initialize it (via runcmd_init())
- * in an async safe manner PRIOR to calling runcmd() for the first time.
  *
- * The check for initialized values is atomic and can
- * occur in any number of threads simultaneously. */
+ * The check for initialized values and allocation is not atomic, and can
+ * potentially occur in any number of threads simultaneously.
+ *
+ * Multithreaded apps and plugins must initialize it (via runcmd_init())
+ * in an async safe manner  before calling any other runcmd function.
+ */
 static pid_t *pids = NULL;
 
 /* If OPEN_MAX isn't defined, we try the sysconf syscall first.
@@ -129,9 +123,11 @@ pid_t runcmd_pid(int fd)
 #define add_ret(r) (ret |= r)
 int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 {
-	int arg = 0, a = 0;
+	int arg = 0;
+	int a = 0;
 	unsigned int i;
-	int state, ret = 0;
+	int state;
+	int ret = 0;
 	size_t len;
 	char *argz;
 
@@ -259,8 +255,7 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			if (!in_quotes) {
 				add_ret(RUNCMD_HAS_WILDCARD);
 			}
-
-			/* fallthrough */
+			break;
 
 		default:
 			break;
@@ -292,9 +287,9 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 }
 
 
-/* this function is NOT async-safe. It is exported so multithreaded
+/* This function is NOT async-safe. It is exported so multithreaded
  * plugins (or other apps) can call it prior to running any commands
- * through this api and thus achieve async-safeness throughout the api */
+ * through this API and thus achieve async-safeness throughout the API. */
 void runcmd_init(void)
 {
 #if defined(RLIMIT_NOFILE)
@@ -326,7 +321,8 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		void (*iobreg)(int, int, void *), void *iobregarg)
 {
 	char **argv = NULL;
-	int cmd2strv_errors, argc = 0;
+	int argc = 0;
+	int cmd2strv_errors;
 	size_t cmdlen;
 	pid_t pid;
 
@@ -335,7 +331,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	if(!pids)
 		runcmd_init();
 
-	/* if no command was passed, return with no error */
+	/* We can't do anything without a command. */
 	if (!cmd || !*cmd)
 		return RUNCMD_EINVAL;
 
@@ -387,7 +383,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		return RUNCMD_EFORK; /* errno set by the failing function */
 	}
 
-	/* Child runs excevp() and _exit. */
+	/* Child runs excevp() and _exit(). */
 	if (pid == 0) {
 		int exit_status = EXIT_SUCCESS; /* To preserve errno when _exit()ing. */
 

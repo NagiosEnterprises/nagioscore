@@ -6,9 +6,20 @@
  * @file runcmd.h
  * @brief runcmd library function declarations
  *
+ * A simple interface to executing programs from other programs, using an
+ * optimized and safer popen()-like implementation. It is considered safer in
+ * that no shell needs to be spawned for simple commands, and the environment
+ * passed to the execve()'d program is essentially empty.
+ *
+ * This code is based on popen.c, which in turn was taken from
+ * "Advanced Programming in the UNIX Environment" by W. Richard Stevens.
+ *
+ * Care has been taken to make sure the functions are async-safe. The exception
+ * is runcmd_init() which multithreaded applications or plugins must call in a
+ * non-reentrant manner before calling any other runcmd function.
+ *
  * @note This is inherited from the nagiosplugins project, although
- * I (AE) wrote the original code, and it might need refactoring
- * for performance later.
+ * it might need refactoring for performance later.
  * @{
  */
 
@@ -35,7 +46,8 @@
  *
  * Only multi-threaded programs that might launch the first external
  * program from multiple threads simultaneously need to bother with
- * this.
+ * this, and they must ensure this is called at least once in a non-reentrant
+ * manner before calling any other runcmd function.
  */
 extern void runcmd_init(void);
 
@@ -92,5 +104,6 @@ extern int runcmd_close(int fd);
  */
 extern int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv);
 
-#endif /* INCLUDE_runcmd_h__ */
 /** @} */
+/* INCLUDE_runcmd_h__ */
+#endif

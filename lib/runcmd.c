@@ -318,6 +318,8 @@ void runcmd_init(void)
 }
 
 
+int update_environment(char *name, char *value, int set);
+
 /* Start running a command */
 int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		void (*iobreg)(int, int, void *), void *iobregarg)
@@ -428,12 +430,27 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 			}
 		}
 
-		i = execvp(argv[0], argv);
-		fprintf(stderr, "execvp(%s, ...) failed. errno is %d: %s\n", argv[0], errno, strerror(errno));
-		if (!cmd2strv_errors)
-			free(argv[0]);
-		else
-			free(argv[2]);
+		/* Add VAR=value arguments from simple commands to the environment. */
+		i = 0;
+		if (!cmd2strv_errors) {
+			char *ev;
+			for (; i < argc && (ev = strchr(argv[i], '=')); ++i) {
+				if (*ev)
+					*ev++ = '\0';
+				update_environment(argv[i], ev, 1);
+			}
+			if (i == argc) {
+				fprintf(stderr, "No command after variables.");
+				free(!cmd2strv_errors ? argv[0] : argv[2]);
+				free(argv);
+				_exit(EXIT_FAILURE);
+			}
+		}
+
+		(void) execvp(argv[i], argv + i);
+		fprintf(stderr, "execvp(%s, ...) failed. errno is %d: %s\n", argv[i], errno, strerror(errno));
+		free(!cmd2strv_errors ? argv[0] : argv[2]);
+		free(argv);
 		_exit (errno);
 	}
 

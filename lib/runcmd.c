@@ -318,6 +318,7 @@ void runcmd_init(void)
 }
 
 
+static int runcmd_setenv(const char *name, const char *value);
 int update_environment(char *name, char *value, int set);
 
 /* Start running a command */
@@ -361,30 +362,23 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	}
 
 	if (pipe(pfd) < 0) {
-		if (!cmd2strv_errors)
-			free(argv[0]);
-		else
-			free(argv[2]);
+		free(!cmd2strv_errors ? argv[0] : argv[2]);
 		free(argv);
 		return RUNCMD_ECMD;
 	}
 	if (pipe(pfderr) < 0) {
-		if (!cmd2strv_errors)
-			free(argv[0]);
-		else
-			free(argv[2]);
+		free(!cmd2strv_errors ? argv[0] : argv[2]);
 		free(argv);
 		close(pfd[0]);
 		close(pfd[1]);
 		return RUNCMD_EFD;
 	}
+
 	iobreg(pfd[0], pfderr[0], iobregarg);
+
 	pid = fork();
 	if (pid < 0) {
-		if (!cmd2strv_errors)
-			free(argv[0]);
-		else
-			free(argv[2]);
+		free(!cmd2strv_errors ? argv[0] : argv[2]);
 		free(argv);
 		close(pfd[0]);
 		close(pfd[1]);
@@ -393,40 +387,54 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		return RUNCMD_EFORK; /* errno set by the failing function */
 	}
 
-	/* child runs excevp() and _exit. */
+	/* Child runs excevp() and _exit. */
 	if (pid == 0) {
+		int exit_status = EXIT_SUCCESS; /* To preserve errno when _exit()ing. */
 
-		/* make sure all our children are killable by our parent */
-		setpgid(getpid(), getpid());
+		/* Make our children their own process group leaders so they are killable
+		 * by their parent (word of the day: filicide / prolicide). */
+		if (setpgid(getpid(), getpid()) == -1) {
+			exit_status = errno;
+			fprintf(stderr, "setpgid(...) errno %d: %s\n", errno, strerror(errno));
+			goto child_error_exit;
+		}
 
 		close (pfd[0]);
 		if (pfd[1] != STDOUT_FILENO) {
-			if(dup2(pfd[1], STDOUT_FILENO) == -1) {
-				_exit(errno);
+			if (dup2(pfd[1], STDOUT_FILENO) == -1) {
+				exit_status = errno;
+				fprintf(stderr, "dup2(pfd[1], STDOUT_FILENO) errno %d: %s\n", errno, strerror(errno));
+				goto child_error_exit;
 			}
-			close (pfd[1]);
+			close(pfd[1]);
 		}
+
 		close (pfderr[0]);
 		if (pfderr[1] != STDERR_FILENO) {
-			if(dup2(pfderr[1], STDERR_FILENO) == -1) {
-				_exit(errno);
+			if (dup2(pfderr[1], STDERR_FILENO) == -1) {
+				exit_status = errno;
+				fprintf(stderr, "dup2(pfderr[1], STDERR_FILENO) errno %d: %s\n", errno, strerror(errno));
+				goto child_error_exit;
 			}
-			close (pfderr[1]);
+			close(pfderr[1]);
 		}
 
-		/* close all descriptors in pids[]
-		 * This is executed in a separate address space (pure child),
-		 * so we don't have to worry about async safety */
-		for (i = 0; i < maxfd; i++)
-			if(pids[i] > 0)
-				close (i);
+		/* Close all descriptors in pids[], the child shouldn't see these. */
+		for (i = 0; i < maxfd; i++) {
+			if (pids[i] > 0)
+				close(i);
+		}
 
-		/* Export the environment */
-		if(NULL != env) {
-			char **envpp = env;
-			while(NULL != *envpp && NULL != *(envpp+1)) {
-				update_environment(*envpp, *(envpp+1), 1);
-				envpp += 2;
+		/* Export the environment. */
+		if (env) {
+			for (; env[0] && env[1]; env += 2) {
+				if (runcmd_setenv(env[0], env[1]) == -1) {
+					exit_status = errno;
+					fprintf(stderr, "runcmd_setenv(%s, ...) errno %d: %s\n",
+						env[0], errno, strerror(errno)
+					);
+					goto child_error_exit;
+				}
 			}
 		}
 
@@ -435,23 +443,32 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		if (!cmd2strv_errors) {
 			char *ev;
 			for (; i < argc && (ev = strchr(argv[i], '=')); ++i) {
-				if (*ev)
-					*ev++ = '\0';
-				update_environment(argv[i], ev, 1);
+				if (*ev) *ev++ = '\0';
+				if (runcmd_setenv(argv[i], ev) == -1) {
+					exit_status = errno;
+					fprintf(stderr, "runcmd_setenv(%s, ev) errno %d: %s\n",
+						argv[i], errno, strerror(errno)
+					);
+					goto child_error_exit;
+				}
 			}
 			if (i == argc) {
-				fprintf(stderr, "No command after variables.");
-				free(!cmd2strv_errors ? argv[0] : argv[2]);
-				free(argv);
-				_exit(EXIT_FAILURE);
+				exit_status = EXIT_FAILURE;
+				fprintf(stderr, "No command after variables.\n");
+				goto child_error_exit;
 			}
 		}
 
-		(void) execvp(argv[i], argv + i);
+		execvp(argv[i], argv + i);
+
+		exit_status = errno;
 		fprintf(stderr, "execvp(%s, ...) failed. errno is %d: %s\n", argv[i], errno, strerror(errno));
+
+child_error_exit:
+		/* Free argv memory before exiting so valgrind doesn't see it as a leak. */
 		free(!cmd2strv_errors ? argv[0] : argv[2]);
 		free(argv);
-		_exit (errno);
+		_exit(exit_status);
 	}
 
 	/* parent picks up execution here */
@@ -462,10 +479,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	 */
 	close(pfd[1]);
 	close(pfderr[1]);
-	if (!cmd2strv_errors)
-		free(argv[0]);
-	else
-		free(argv[2]);
+	free(!cmd2strv_errors ? argv[0] : argv[2]);
 	free(argv);
 
 	/* tag our file's entry in the pid-list and return it */
@@ -530,6 +544,44 @@ int runcmd_try_close(int fd, int *status, int sig)
 	pids[fd] = 0;
 	close(fd);
 	return result;
+}
+
+/**
+ * Sets an environment variable.
+ * This is for runcmd_open() to set the child environment.
+ * @param naem Variable name to set.
+ * @param value Value to set.
+ * @return 0 on success, -1 on error with errno set to: EINVAL if name is NULL;
+ * or the value set by setenv() or asprintf()/putenv().
+ * @note If setenv() is unavailable (e.g. Solaris), a "name=vale" string is
+ * allocated to pass to putenv(), which is retained by the environment. This
+ * 'leaked' memory will be on the heap at program exit.
+ */
+static int runcmd_setenv(const char *name, const char *value) {
+#ifndef HAVE_SETENV
+	char *env_string = NULL;
+#endif
+
+	/* We won't mess with null variable names or values. */
+	if (!name || !value) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	errno = 0;
+#ifdef HAVE_SETENV
+	return setenv(name, value, 1);
+#else
+	/* For Solaris and systems that don't have setenv().
+	 * This will leak memory, but in a "controlled" way, since the memory
+	 * should be freed when the child process exits. */
+	if (asprintf(&env_string, "%s=%s", name, value) = -1) return -1;
+	if (!env_string) {
+		errno == ENOMEM;
+		return -1;
+	}
+	return putenv(env_string);
+#endif
 }
 
 /* sets or unsets an environment variable */

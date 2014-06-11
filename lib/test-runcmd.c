@@ -110,12 +110,14 @@ int main(int argc, char **argv)
 			char *cmd;
 			asprintf(&cmd, "/bin/echo -n %s", cases[i].input);
 			fd = runcmd_open(cmd, pfd, pfderr, NULL, stub_iobreg, &stub_iobregarg);
+			free(cmd);
 			read(pfd[0], out, BUF_SIZE);
 			ok_str(cases[i].output, out, "Echoing a command should give expected output");
 			close(pfd[0]);
 			close(pfderr[0]);
 			close(fd);
 		}
+		free(out);
 	}
 	ret = t_end();
 	t_reset();
@@ -127,6 +129,7 @@ int main(int argc, char **argv)
 			char *out_argv[256];
 			int result = runcmd_cmd2strv(anomaly[i].cmd, &out_argc, out_argv);
 			ok_int(result, anomaly[i].ret, anomaly[i].cmd);
+			if (out_argv[0]) free(out_argv[0]);
 		}
 	}
 	r2 = t_end();
@@ -139,12 +142,13 @@ int main(int argc, char **argv)
 			int x, out_argc;
 			char *out_argv[256];
 			int result = runcmd_cmd2strv(parse_case[i].cmd, &out_argc, out_argv);
-			out_argv[out_argc] = NULL;
+			/*out_argv[out_argc] = NULL;*//* This must be NULL terminated already. */
 			ok_int(result, 0, parse_case[i].cmd);
 			ok_int(out_argc, parse_case[i].argc_exp, parse_case[i].cmd);
 			for (x = 0; x < parse_case[x].argc_exp && out_argv[x]; x++) {
 				ok_str(parse_case[i].argv_exp[x], out_argv[x], "argv comparison test");
 			}
+			if (out_argv[0]) free(out_argv[0]);
 		}
 	}
 

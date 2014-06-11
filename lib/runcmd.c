@@ -132,14 +132,27 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 	char *argz;
 
 	set_state(STATE_NONE);
-	len = strlen(str);
 
+	if (!str || !*str || !out_argc || !out_argv)
+		return RUNCMD_EINVAL;
+
+	len = strlen(str);
 	argz = malloc(len + 10);
+	if (!argz)
+		return RUNCMD_EALLOC;
+
+	/* Point argv[0] at the parsed argument string argz so we don't leak. */
+	out_argv[0] = argz;
+	out_argv[1] = NULL;
+
 	for (i = 0; i < len; i++) {
 		const char *p = &str[i];
 
 		switch (*p) {
 		case 0:
+			if (arg == 0) free(out_argv[0]);
+			out_argv[arg] = NULL;
+			*out_argc = arg;
 			return ret;
 
 		case ' ': case '\t': case '\r': case '\n':
@@ -281,6 +294,7 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 	if (have_state(STATE_INDQ))
 		add_ret(RUNCMD_HAS_UBDQ);
 
+	out_argv[arg] = NULL;
 	*out_argc = arg;
 
 	return ret;
@@ -331,8 +345,8 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	if(!pids)
 		runcmd_init();
 
-	/* We can't do anything without a command. */
-	if (!cmd || !*cmd)
+	/* We can't do anything without a command, or FD arrays. */
+	if (!cmd || !*cmd || !pfd || !pfderr)
 		return RUNCMD_EINVAL;
 
 	cmdlen = strlen(cmd);
@@ -341,11 +355,21 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		return RUNCMD_EALLOC;
 
 	cmd2strv_errors = runcmd_cmd2strv(cmd, &argc, argv);
+
+	if (cmd2strv_errors == RUNCMD_EALLOC) {
+		/* We couldn't allocate the parsed arument array. */
+		free(argv);
+		return RUNCMD_EALLOC;
+	}
+	if (cmd2strv_errors & RUNCMD_HAS_UBSQ || cmd2strv_errors & RUNCMD_HAS_UBDQ) {
+		/* The command has unbalanced quotes (not a complete shell command). */
+		free(argv[0]);
+		free(argv);
+		return RUNCMD_ECMD;
+	}
+
 	if (cmd2strv_errors) {
-		/*
-		 * if there are complications, we fall back to running
-		 * the command via the shell
-		 */
+		/* Run complex commands via the shell. */
 		free(argv[0]);
 		argv[0] = "/bin/sh";
 		argv[1] = "-c";
@@ -360,7 +384,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	if (pipe(pfd) < 0) {
 		free(!cmd2strv_errors ? argv[0] : argv[2]);
 		free(argv);
-		return RUNCMD_ECMD;
+		return RUNCMD_EFD;
 	}
 	if (pipe(pfderr) < 0) {
 		free(!cmd2strv_errors ? argv[0] : argv[2]);
@@ -370,7 +394,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		return RUNCMD_EFD;
 	}
 
-	iobreg(pfd[0], pfderr[0], iobregarg);
+	if (iobreg) iobreg(pfd[0], pfderr[0], iobregarg);
 
 	pid = fork();
 	if (pid < 0) {

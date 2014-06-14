@@ -84,6 +84,17 @@ typedef struct option_help_struct {
 	const string_value_mapping *	valid_values;	/* list of valid values */
 	} option_help;
 
+/* String escaping structures */
+typedef struct json_escape_pair_struct {
+	const wchar_t *from;
+	const wchar_t *to;
+}	json_escape_pair;
+
+typedef struct json_escape_struct {
+	const int				count;
+	const json_escape_pair	*pairs;
+}	json_escape;
+
 /* Output Format Version */
 #define OUTPUT_FORMAT_VERSION	0
 
@@ -177,7 +188,7 @@ extern json_object *json_result(time_t, char *, char *, int, time_t, authdata *,
 extern json_object *json_help(option_help *);
 extern int passes_start_and_count_limits(int, int, int, int);
 extern void indentf(int, int, char *, ...);
-extern void json_string(int, int, char *, char *, ...);
+extern void json_string(int, int, char *, char *);
 extern void json_boolean(int, int, char *, int);
 extern void json_int(int, int, char *, int);
 extern void json_unsigned(int, int, char *, unsigned long long);
@@ -210,4 +221,5 @@ extern char *svm_get_string_from_value(int, const string_value_mapping *);
 extern char *svm_get_description_from_value(int, const string_value_mapping *);
 
 extern time_t compile_time(const char *, const char *);
+extern char *json_escape_string(const char *, const json_escape *);
 #endif

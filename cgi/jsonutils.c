@@ -33,6 +33,10 @@
 #include "../include/cgiauth.h"
 #include "../include/jsonutils.h"
 
+/* Multiplier to increment the buffer in json_escape_string() to avoid frequent
+	repeated reallocations */
+#define BUF_REALLOC_MULTIPLIER 16
+
 const char *result_types[] = {
 	"Success",
 	"Unable to Allocate Memory",
@@ -216,6 +220,16 @@ const char *dayofweek[7] = { "Sunday", "Monday", "Tuesday", "Wednesday",
 const char *month[12] = { "January", "February", "March", "April", "May",
 		"June", "July", "August", "September", "October", "November",
 		"December" };
+
+static const json_escape_pair dquote_newline_escape_pairs[] = {
+	{ L"\"", L"\\\"" },
+	{ L"\n", L"" },
+};
+
+static const json_escape dquote_newline_escapes = {
+	(sizeof(dquote_newline_escape_pairs) / sizeof(dquote_newline_escape_pairs[0])),
+	dquote_newline_escape_pairs
+};
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern time_t program_start;
@@ -872,53 +886,11 @@ int passes_start_and_count_limits(int start, int max, int current, int counted) 
 	return result;
 	}
 
-/* Amount to increment the buffer in json_string to avoid frequent
-	repeated reallocations */
-#define BUF_REALLOC_INCREMENT 64
+void json_string(int padding, int whitespace, char *key, char *value) {
 
-void json_string(int padding, int whitespace, char *key, char *format, ...) {
-
-	va_list a_list;
 	char *buf = NULL;
-	char *stp;
-	int	offset;
-	size_t bytes;
-	int	extra_bytes = 0;
 
-	if( NULL != format) {
-		va_start( a_list, format);
-		if(vasprintf(&buf, format, a_list) == -1) {
-			buf = NULL;
-			}
-		va_end( a_list);
-		}
-
-	/* Escape any double quotes and strip any newlines */
-	for(stp = buf; NULL != buf && *stp != '\0'; stp++) {
-		switch(*stp) {
-		case '"':
-			offset = stp - buf;
-			bytes = strlen(buf) - offset + 1;
-			if(0 == extra_bytes) {
-				/* If more room is needed, realloc and update pointers */
-				buf = realloc(buf, strlen(buf) + BUF_REALLOC_INCREMENT);
-				stp = buf + offset;
-				extra_bytes = BUF_REALLOC_INCREMENT;
-				}
-			if(NULL != buf) {
-				/* Might be null due to realloc() */
-				memmove(stp+1, stp, bytes);
-				*stp = '\\';
-				stp++;
-				}
-			break;
-		case '\n':
-			bytes = strlen(buf) - (stp - buf) + 1;
-			memmove(stp, stp+1, bytes);
-			extra_bytes++;
-			break;
-			}
-		}
+	buf = json_escape_string(value, &dquote_newline_escapes);
 
 	if( NULL == key) {
 		indentf(padding, whitespace, "\"%s\"", (( NULL == buf) ? "" : buf));
@@ -1327,3 +1299,83 @@ time_t compile_time(const char *date, const char *time) {
 
     return mktime(&t);
 }
+
+/* Escape a string based on the values in the escapes parameter */
+char *json_escape_string(const char *src, const json_escape *escapes) {
+
+	wchar_t *wdest;		/* wide character version of the output string */
+	size_t	wdest_size;	/* number of available wchars in wdest */
+	size_t	wdest_len;	/* number of wchars in wdest */
+	int x;
+	json_escape_pair	*escp;		/* pointer to current escape pair */
+	size_t	from_len;
+	size_t	to_len;
+	wchar_t	*fromp;		/* pointer to a found "from" string */
+	long	offset;		/* offset from beginning of wdest to a "from" string */
+	size_t	wchars;		/* number of wide characters to move */
+	size_t	dest_len;	/* length of ouput string "dest" */
+	char	*dest;		/* buffer containing the escaped version of src */
+
+	/* Make sure we're passed valid parameters */
+	if((NULL == src) || (NULL == escapes)) {
+		return NULL;
+		}
+
+	/* Make a wide string copy of src */
+	wdest_len = mbstowcs(NULL, src, 0);
+	if(0 == wdest_len) return NULL;
+	if((wdest = calloc(wdest_len + 1, sizeof(wchar_t))) == NULL) {
+		return NULL;
+		}
+	if(mbstowcs(wdest, src, wdest_len) != wdest_len) {
+		free(wdest);
+		return NULL;
+		}
+	wdest_size = wdest_len;
+
+	/* Process each escape pair */
+	for(x = 0, escp = (json_escape_pair *)escapes->pairs; x < escapes->count;
+			x++, escp++) {
+		from_len = wcslen(escp->from);
+		to_len = wcslen(escp->to);
+		fromp = wdest;
+		while((fromp = wcsstr(fromp, escp->from)) != NULL) {
+			offset = fromp - wdest;
+			if(from_len < to_len) {
+				if((wdest_size - wdest_len) < (to_len - from_len)) {
+					/* If more room is needed, realloc and update variables */
+					wdest_size += (to_len - from_len) * BUF_REALLOC_MULTIPLIER;
+					wdest = realloc(wdest, wdest_size * sizeof(wchar_t));
+					if(NULL == wdest) return NULL;
+					fromp = wdest + offset;
+					}
+				wchars = wdest_len - offset + from_len + 1;
+				wmemmove(fromp + to_len, fromp + from_len, wchars);
+				wcsncpy(fromp, escp->to, to_len);
+				wdest_len += (to_len - from_len);
+				fromp += to_len;
+				}
+			else {
+				wchars = wdest_len - offset - to_len;
+				memmove(fromp + to_len, fromp + from_len,
+						wchars * sizeof(wchar_t));
+				wcsncpy(fromp, escp->to, to_len);
+				fromp += (from_len - to_len);
+				wdest_len -= (from_len - to_len);
+				}
+			}
+		}
+
+	/* Covert the wide string back to a multibyte string */
+	dest_len = wcstombs(NULL, wdest, 0);
+	if(0 == dest_len) return NULL;
+	if((dest = calloc(dest_len + 1, sizeof(char))) == NULL) {
+		return NULL;
+		}
+	if(wcstombs(dest, wdest, dest_len) != dest_len) {
+		free(dest);
+		return NULL;
+		}
+
+	return dest;
+	}

@@ -165,7 +165,8 @@ extern void json_object_append_real(json_object *, char *, double);
 extern void json_object_append_time(json_object *, char *, unsigned long);
 extern void json_object_append_time_t(json_object *, char *, time_t);
 extern void json_set_time_t(json_object_member *, time_t);
-extern void json_object_append_string(json_object *, char *, char *, ...);
+extern void json_object_append_string(json_object *, char *,
+		const json_escape *, char *, ...);
 extern void json_object_append_boolean(json_object *, char *, int);
 extern void json_array_append_object(json_array *, json_object *);
 extern void json_array_append_array(json_array *, json_array *);
@@ -173,7 +174,8 @@ extern void json_array_append_integer(json_array *, int);
 extern void json_array_append_real(json_array *, double);
 extern void json_array_append_time(json_array *, unsigned long);
 extern void json_array_append_time_t(json_array *, time_t);
-extern void json_array_append_string(json_array *, char *, ...);
+extern void json_array_append_string(json_array *, const json_escape *,
+		char *, ...);
 extern void json_array_append_boolean(json_array *, int);
 extern void json_object_append_duration(json_object *, char *, unsigned long);
 extern void json_array_append_duration(json_object *, unsigned long);

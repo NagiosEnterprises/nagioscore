@@ -231,6 +231,15 @@ static const json_escape dquote_newline_escapes = {
 	dquote_newline_escape_pairs
 };
 
+const json_escape_pair percent_escape_pairs[] = {
+	{ L"%", L"%%" },
+};
+
+const json_escape percent_escapes = {
+	(sizeof(percent_escape_pairs) / sizeof(percent_escape_pairs[0])),
+	percent_escape_pairs
+};
+
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern time_t program_start;
 
@@ -422,7 +431,7 @@ void json_object_append_time(json_object *obj, char *key, unsigned long value) {
 	value -= minutes * 60;
 	seconds = value;
 
-	json_object_append_string(obj, key, "%02u:%02u:%02u", hours, minutes, 
+	json_object_append_string(obj, key, NULL, "%02u:%02u:%02u", hours, minutes,
 			seconds);
 	}
 
@@ -454,10 +463,12 @@ void json_set_time_t(json_object_member *mp, time_t value) {
 	mp->value.time = value;
 	}
 
-void json_object_append_string(json_object *obj, char *key, char *format, ...) {
+void json_object_append_string(json_object *obj, char *key,
+		const json_escape *format_escapes, char *format, ...) {
 	json_object_member *mp;
 	va_list a_list;
 	int		result;
+	char	*escaped_format;
 	char	*buf;
 
 	if(NULL == obj) return;
@@ -473,17 +484,28 @@ void json_object_append_string(json_object *obj, char *key, char *format, ...) {
 			return;
 			}
 		}
-	if(NULL != format) {
-		va_start(a_list, format);
-		result = vasprintf(&buf, format, a_list);
+	if((NULL != format_escapes) && (NULL != format)) {
+		escaped_format = json_escape_string(format, format_escapes);
+		}
+	else {
+		escaped_format = format;
+		}
+	if(NULL != escaped_format) {
+		va_start(a_list, escaped_format);
+		result = vasprintf(&buf, escaped_format, a_list);
 		va_end(a_list);
 		if(result >= 0) {
 			mp->value.string = buf;
 			}
 		}
+	if((NULL != format_escapes) && (NULL != escaped_format)) {
+		/* free only if format_escapes were passed and the escaping succeeded */
+		free(escaped_format);
+		}
 	}
 
-void json_array_append_string(json_object *obj, char *format, ...) {
+void json_array_append_string(json_object *obj,
+		const json_escape *format_escapes, char *format, ...) {
 
 	va_list a_list;
 	int		result;
@@ -493,7 +515,7 @@ void json_array_append_string(json_object *obj, char *format, ...) {
 	result = vasprintf(&buf, format, a_list);
 	va_end( a_list);
 	if(result >= 0) {
-		json_object_append_string(obj, NULL, buf);
+		json_object_append_string(obj, NULL, format_escapes, buf);
 		}
 	}
 
@@ -752,13 +774,15 @@ json_object * json_result(time_t query_time, char *cgi, char *query,
 
 	json_result = json_new_object();
 	json_object_append_time_t(json_result, "query_time", query_time);
-	json_object_append_string(json_result, "cgi", cgi);
+	json_object_append_string(json_result, "cgi", &percent_escapes, cgi);
 	if(NULL != authinfo) {
-		json_object_append_string(json_result, "user", authinfo->username);
+		json_object_append_string(json_result, "user", &percent_escapes,
+				authinfo->username);
 		}
 	if(NULL != query) {
-		json_object_append_string(json_result, "query", query);
-		json_object_append_string(json_result, "query_status",
+		json_object_append_string(json_result, "query", &percent_escapes,
+				query);
+		json_object_append_string(json_result, "query_status", &percent_escapes,
 				svm_get_string_from_value(query_status, query_statuses));
 		}
 	json_object_append_time_t(json_result, "program_start", program_start);
@@ -767,14 +791,14 @@ json_object * json_result(time_t query_time, char *cgi, char *query,
 				last_data_update);
 		}
 	json_object_append_integer(json_result, "type_code", type);
-	json_object_append_string(json_result, "type_text", 
+	json_object_append_string(json_result, "type_text", &percent_escapes,
 			(char *)result_types[ type]);
 	va_start( a_list, message);
 	if(vasprintf(&buf, message, a_list) == -1) {
 		buf = NULL;
 		}
 	va_end( a_list);
-	json_object_append_string(json_result, "message", buf);
+	json_object_append_string(json_result, "message", &percent_escapes, buf);
 	if(NULL != buf) free(buf);
 
 	return json_result;
@@ -795,15 +819,17 @@ json_object *json_help(option_help *help) {
 
 	while(NULL != help->name) {
 		json_option = json_new_object();
-		json_object_append_string(json_option, "label", (char *)help->label);
-		json_object_append_string(json_option, "type", (char *)help->type);
+		json_object_append_string(json_option, "label", &percent_escapes,
+				(char *)help->label);
+		json_object_append_string(json_option, "type", &percent_escapes,
+				(char *)help->type);
 
 		json_required = json_new_array();
 		for(x = 0, stpp = (char **)help->required; 
 				(( x < sizeof( help->required) / 
 				sizeof( help->required[ 0])) && ( NULL != *stpp)); 
 				x++, stpp++) {
-			json_array_append_string(json_required, *stpp);
+			json_array_append_string(json_required, &percent_escapes, *stpp);
 			}
 		json_object_append_array(json_option, "required",
 				json_required);
@@ -813,15 +839,15 @@ json_object *json_help(option_help *help) {
 				(( x < sizeof( help->optional) / 
 				sizeof( help->optional[ 0])) && ( NULL != *stpp)); 
 				x++, stpp++) {
-			json_array_append_string(json_optional, *stpp);
+			json_array_append_string(json_optional, &percent_escapes, *stpp);
 			}
 		json_object_append_array(json_option, "optional",
 				json_optional);
 
 		json_object_append_string(json_option, "depends_on", 
-				(char *)help->depends_on);
+				&percent_escapes, (char *)help->depends_on);
 		json_object_append_string(json_option, "description", 
-				(char *)help->description);
+				&percent_escapes, (char *)help->description);
 		if( NULL != help->valid_values) {
 			json_validvalues = json_new_object();
 			for(svmp = (string_value_mapping *)help->valid_values; 
@@ -829,12 +855,13 @@ json_object *json_help(option_help *help) {
 				if( NULL != svmp->description) {
 					json_validvalue = json_new_object();
 					json_object_append_string(json_validvalue, "description", 
-							svmp->description);
+							&percent_escapes, svmp->description);
 					json_object_append_object(json_validvalues, svmp->string, 
 							json_validvalue);
 					}
 				else {
-					json_array_append_string(json_validvalues, svmp->string);
+					json_array_append_string(json_validvalues, &percent_escapes,
+							svmp->string);
 					}
 				}
 			json_object_append_object(json_option, "valid_values", 
@@ -1034,13 +1061,14 @@ void json_enumeration(json_object *json_parent, unsigned format_options,
 	if(format_options & JSON_FORMAT_ENUMERATE) {
 		for(svmp = (string_value_mapping *)map; NULL != svmp->string; svmp++) {
 			if( value == svmp->value) {
-				json_object_append_string(json_parent, key, svmp->string);
+				json_object_append_string(json_parent, key, &percent_escapes,
+						svmp->string);
 				break;
 				}
 			}
 			if( NULL == svmp->string) {
-				json_object_append_string(json_parent, key, "Unknown value %d", 
-						svmp->value);
+				json_object_append_string(json_parent, key, NULL,
+						"Unknown value %d", svmp->value);
 				}
 		}
 	else {
@@ -1058,7 +1086,8 @@ void json_bitmask(json_object *json_parent, unsigned format_options, char *key,
 		json_bitmask_array = json_new_array();
 		for(svmp = (string_value_mapping *)map; NULL != svmp->string; svmp++) {
 			if( value & svmp->value) {
-				json_array_append_string(json_bitmask_array, svmp->string);
+				json_array_append_string(json_bitmask_array, &percent_escapes,
+						svmp->string);
 				}
 			}
 		json_object_append_array(json_parent, key, json_bitmask_array);

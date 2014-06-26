@@ -201,7 +201,7 @@ case "$1" in
 		echo -n "Stopping nagios: "
 
 		pid_nagios
-		killproc_nagios nagios
+		killproc_nagios nagios -SIGTERM
 
  		# now we have to wait for nagios to exit and remove its
  		# own NagiosRunFile, otherwise a following "start" could

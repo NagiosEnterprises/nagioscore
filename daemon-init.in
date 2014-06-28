@@ -144,7 +144,7 @@ printstatus_nagios()
 killproc_nagios ()
 {
 
-	kill $2 $NagiosPID
+	kill -s $1 $NagiosPID
 
 }
 
@@ -201,7 +201,7 @@ case "$1" in
 		echo -n "Stopping nagios: "
 
 		pid_nagios
-		killproc_nagios nagios -TERM
+		killproc_nagios TERM
 
  		# now we have to wait for nagios to exit and remove its
  		# own NagiosRunFile, otherwise a following "start" could
@@ -269,7 +269,7 @@ case "$1" in
 			pid_nagios
 			if status_nagios > /dev/null; then
 				printf "Reloading nagios configuration...\n"
-				killproc_nagios nagios -HUP
+				killproc_nagios HUP
 				echo "done"
 			else
 				$0 stop

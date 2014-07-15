@@ -55,6 +55,7 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 NagiosBin=@bindir@/nagios
 NagiosCfgFile=@sysconfdir@/nagios.cfg
+NagiosCfgtestFile=@localstatedir@/nagios.configtest
 NagiosStatusFile=@localstatedir@/status.dat
 NagiosRetentionFile=@localstatedir@/retention.dat
 NagiosCommandFile=@localstatedir@/rw/nagios.cmd
@@ -86,24 +87,27 @@ check_config() {
 	ERR=`grep ^"Total Errors:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g`
 
 	if test "$WARN" = "0" && test "${ERR}" = "0"; then
-		echo "OK - Configuration check verified" > /var/run/nagios.configtest
-		chmod 0644 /var/run/nagios.configtest
+		echo "OK - Configuration check verified" > $NagiosCfgtestFile
+		chmod 0644 $NagiosCfgtestFile
+		chown $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		/bin/rm "$TMPFILE"
     	return 0
 	elif test "${ERR}" = "0"; then
 		# We'll write out the errors to a file we can have a
 		# script watching for
-		echo "WARNING: Warnings in config files - see log for details: /var/run/nagios.configtest" > /var/run/nagios.configtest
-		egrep -i "(^warning|^error)" "$TMPFILE" >> /var/run/nagios.configtest
-		chmod 0644 /var/run/nagios.configtest
+		echo "WARNING: Warnings in config files - see log for details: $NagiosCfgtestFile" > $NagiosCfgtestFile
+		egrep -i "(^warning|^error)" "$TMPFILE" >> $NagiosCfgtestFile
+		chmod 0644 $NagiosCfgtestFile
+		chown $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		/bin/rm "$TMPFILE"
     	return 0
 	else
 		# We'll write out the errors to a file we can have a
 		# script watching for
-		echo "ERROR: Errors in config files - see log for details: /var/run/nagios.configtest" > /var/run/nagios.configtest
-		egrep -i "(^warning|^error)" "$TMPFILE" >> /var/run/nagios.configtest
-		chmod 0644 /var/run/nagios.configtest
+		echo "ERROR: Errors in config files - see log for details: $NagiosCfgtestFile" > $NagiosCfgtestFile
+		egrep -i "(^warning|^error)" "$TMPFILE" >> $NagiosCfgtestFile
+		chmod 0644 $NagiosCfgtestFile
+		chown $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		cat "$TMPFILE"
     	exit 8
 	fi

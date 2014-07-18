@@ -221,14 +221,45 @@ const char *month[12] = { "January", "February", "March", "April", "May",
 		"June", "July", "August", "September", "October", "November",
 		"December" };
 
-static const json_escape_pair dquote_newline_escape_pairs[] = {
+static const json_escape_pair string_escape_pairs[] = {
+	{ L"\x01", L"\\u0001" },
+	{ L"\x02", L"\\u0002" },
+	{ L"\x03", L"\\u0003" },
+	{ L"\x04", L"\\u0004" },
+	{ L"\x05", L"\\u0004" },
+	{ L"\x06", L"\\u0006" },
+	{ L"\a", L"\\a" },
+	{ L"\b", L"\\b" },
+	{ L"\t", L"\\t" },
+	{ L"\n", L"\\n" },
+	{ L"\v", L"\\v" },
+	{ L"\f", L"\\f" },
+	{ L"\r", L"\\r" },
+	{ L"\x0e", L"\\u000e" },
+	{ L"\x0f", L"\\u000f" },
+	{ L"\x10", L"\\u0010" },
+	{ L"\x11", L"\\u0011" },
+	{ L"\x12", L"\\u0012" },
+	{ L"\x13", L"\\u0013" },
+	{ L"\x14", L"\\u0014" },
+	{ L"\x15", L"\\u0015" },
+	{ L"\x16", L"\\u0016" },
+	{ L"\x17", L"\\u0017" },
+	{ L"\x18", L"\\u0018" },
+	{ L"\x19", L"\\u0019" },
+	{ L"\x1a", L"\\u001a" },
+	{ L"\x1b", L"\\u001b" },
+	{ L"\x1c", L"\\u001c" },
+	{ L"\x1d", L"\\u001d" },
+	{ L"\x1e", L"\\u001e" },
+	{ L"\x1f", L"\\u001f" },
 	{ L"\"", L"\\\"" },
-	{ L"\n", L"" },
+	{ L"\\", L"\\\\" },
 };
 
-static const json_escape dquote_newline_escapes = {
-	(sizeof(dquote_newline_escape_pairs) / sizeof(dquote_newline_escape_pairs[0])),
-	dquote_newline_escape_pairs
+static const json_escape string_escapes = {
+	(sizeof(string_escape_pairs) / sizeof(string_escape_pairs[0])),
+	string_escape_pairs
 };
 
 const json_escape_pair percent_escape_pairs[] = {
@@ -917,7 +948,7 @@ void json_string(int padding, int whitespace, char *key, char *value) {
 
 	char *buf = NULL;
 
-	buf = json_escape_string(value, &dquote_newline_escapes);
+	buf = json_escape_string(value, &string_escapes);
 
 	if( NULL == key) {
 		indentf(padding, whitespace, "\"%s\"", (( NULL == buf) ? "" : buf));

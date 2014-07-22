@@ -988,8 +988,15 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		/* make sure we rescheduled the next service check at a valid time */
 		preferred_time = temp_service->next_check;
 		get_next_valid_time(preferred_time, &next_valid_time, temp_service->check_period_ptr);
-		temp_service->next_check = next_valid_time +
-				ranged_urand(0, check_window(temp_service));
+		temp_service->next_check = next_valid_time;
+		if(next_valid_time > preferred_time) {
+			/* Next valid time is further in the future because of timeperiod
+			 * constraints. Add a random amount so we don't get all checks
+			 * subject to that timeperiod constraint scheduled at the same time
+			 */
+			temp_service->next_check +=
+					ranged_urand(0, check_window(temp_service));
+		}
 
 		/* services with non-recurring intervals do not get rescheduled */
 		if(temp_service->check_interval == 0)

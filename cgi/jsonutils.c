@@ -1079,8 +1079,9 @@ void json_duration(int padding, int whitespace, char *key, unsigned long value,
 		indentf(padding, whitespace, "%s", buf);
 		}
 	else {
-		indentf(padding, whitespace, "\"%s\":%s\"%s\"", key, 
-				(( whitespace > 0) ? " " : ""), buf);
+		indentf(padding, whitespace, "\"%s\":%s%s%s%s", key, 
+				(( whitespace > 0) ? " " : ""), (format_duration ? "\"" : ""),
+				buf, (format_duration ? "\"" : ""));
 		}
 	}
 

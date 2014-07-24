@@ -933,7 +933,7 @@ static int should_run_event(timed_event *temp_event)
 
 	/* if we can't spawn any more jobs, don't bother */
 	if (!wproc_can_spawn(&loadctl)) {
-		wproc_reap(100, 3000);
+		wproc_reap(1, 1); /* Try to reap one job for one msec. */
 		return FALSE;
 	}
 

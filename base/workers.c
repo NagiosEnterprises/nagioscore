@@ -106,20 +106,22 @@ static void wproc_logdump_buffer(int level, int show, const char *prefix, char *
 	}
 }
 
-/* reap 'jobs' jobs or 'secs' seconds, whichever comes first */
+/* Try to reap 'jobs' jobs for 'msecs' milliseconds. Return early on error. */
 void wproc_reap(int jobs, int msecs)
 {
-	time_t start, now;
-	start = time(NULL);
+	struct timeval start;
+	gettimeofday(&start, NULL);
 
-	/* one input equals one job (or close enough to it anyway) */
-	do {
-		int inputs;
+	while (jobs > 0 && msecs > 0) {
+		int inputs = iobroker_poll(nagios_iobs, msecs);
+		if (inputs < 0) return;
 
-		now = time(NULL);
-		inputs = iobroker_poll(nagios_iobs, (now - start) * 1000);
-		jobs -= inputs;
-	} while (jobs > 0 && start + (msecs * 1000) <= now);
+		jobs -= inputs; /* One input is roughly equivalent to one job. */
+
+		struct timeval now;
+		gettimeofday(&now, NULL);
+		msecs -= tv_delta_msec(&start, &now);
+	}
 }
 
 int wproc_can_spawn(struct load_control *lc)

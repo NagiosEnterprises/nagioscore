@@ -1353,8 +1353,8 @@ void adjust_check_scheduling(void) {
 	service *temp_service = NULL;
 	host *temp_host = NULL;
 
-	double projected_host_check_overhead = 0.0625;
-	double projected_service_check_overhead = 0.0625;
+	double projected_host_check_overhead = 0.125;
+	double projected_service_check_overhead = 0.125;
 
 	double inter_check_delay = 0.0;
 	double current_icd_offset = 0.0;

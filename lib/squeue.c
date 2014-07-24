@@ -166,6 +166,22 @@ squeue_event *squeue_add_msec(squeue_t *q, time_t when, time_t msec, void *data)
 	return squeue_add_usec(q, when, msec * 1000, data);
 }
 
+void squeue_change_priority_tv(squeue_t *q, squeue_event *evt, struct timeval *tv)
+{
+	if (!q || !evt || !tv) return;
+
+	evt->when.tv_sec = tv->tv_sec;
+	if (sizeof(evt->when.tv_sec) > 4) {
+		/* Only use bottom sizeof(pqueue_pri_t)-SQ_BITS bits on 64-bit systems,
+		 * or we may get entries at the head of the queue are actually
+		 * scheduled to run several hundred thousand years from now. */
+		evt->when.tv_sec &= (1ULL << ((sizeof(pqueue_pri_t) * 8) - SQ_BITS)) - 1;
+	}
+	evt->when.tv_usec = tv->tv_usec;
+
+	pqueue_change_priority(q, evt_compute_pri(&evt->when), evt);
+}
+
 void *squeue_peek(squeue_t *q)
 {
 	squeue_event *evt = pqueue_peek(q);

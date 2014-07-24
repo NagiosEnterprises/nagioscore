@@ -1329,13 +1329,252 @@ int handle_timed_event(timed_event *event) {
 
 
 
+/* The squeue internal event type, declared again here so we can manipulate the
+ * scheduling queue without a malloc/free for each add/remove.
+ * @todo: Refactor this to not depend so heavily on the event queue
+ * implementation, doing so efficiently may require a different sheduling queue
+ * data structure. */
+struct squeue_event {
+	unsigned int pos;
+	pqueue_pri_t pri;
+	struct timeval when;
+	void *data;
+	};
+
 /*
- * adjusts scheduling of host and service checks
- * @TODO: Replace the earlier O(n lg n) behaviour of this algorithm
- * and instead add a (small) random component to each new scheduled
- * check. It will work better and in O(1) time.
+ * Adjusts scheduling of active, non-forced host and service checks.
  */
 void adjust_check_scheduling(void) {
+	pqueue_t *temp_pqueue; /* squeue_t is a typedef of pqueue_t. */
+	struct squeue_event *sq_event;
+	struct squeue_event **events_to_reschedule;
+
+	timed_event *temp_event;
+	service *temp_service = NULL;
+	host *temp_host = NULL;
+
+	double projected_host_check_overhead = 0.0625;
+	double projected_service_check_overhead = 0.0625;
+
+	double inter_check_delay = 0.0;
+	double current_icd_offset = 0.0;
+	double total_check_exec_time = 0.0;
+	double last_check_exec_time = 0.0;
+
+	double exec_time_factor = 0.0;
+	double current_exec_time = 0.0;
+	double current_exec_time_offset = 0.0;
+	double new_run_time_offset = 0.0;
+
+	time_t first_window_time;
+	time_t last_window_time;
+	time_t last_check_time = (time_t)0;
+
+	int adjust_scheduling;
+	int total_checks;
+	int i;
+
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "adjust_check_scheduling() start\n");
+
+
+	/* Determine our adjustment window. */
+	first_window_time = time(NULL);
+	last_window_time = first_window_time + auto_rescheduling_window;
+
+	/* Nothing to do if the first event is after the reschedule window. */
+	sq_event = pqueue_peek(nagios_squeue);
+	temp_event = sq_event ? sq_event->data : NULL;
+	if (!temp_event || temp_event->run_time > last_window_time)
+		return;
+
+
+	/* Get a sorted array of all check events to reschedule. First we need a
+	 * duplicate of nagios_squeue so we can get the events in-order without
+	 * having to remove them from the original queue. We will use
+	 * pqueue_change_priority() to move the check events in the original queue..
+	 * @note: This is horribly dependent on implementation details of squeue
+	 * and pqueue, but we don't have much choice to avoid a free/malloc of each
+	 * squeue_event from the head to last_window_time, or avoid paying the full
+	 * O(n lg n) penalty twice to drain and rebuild the queue. */
+	temp_pqueue = malloc(sizeof(*temp_pqueue));
+	if (!temp_pqueue) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to allocate queue needed to adjust check scheduling.\n");
+		return;
+		}
+	*temp_pqueue = *nagios_squeue;
+
+	/* We need a separate copy of the underlying queue array. */
+	temp_pqueue->d = malloc(temp_pqueue->size * sizeof(void*));
+	if (!temp_pqueue->d) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to allocate queue data needed to adjust check scheduling.\n");
+		free(temp_pqueue);
+		return;
+		}
+	memcpy(temp_pqueue->d, nagios_squeue->d, temp_pqueue->size * sizeof(void*));
+	temp_pqueue->avail = temp_pqueue->size;
+
+	/* Now allocate space for a sorted array of check events. We shouldn't need
+	 * space for all events, but we can't really calculate how many we'll need
+	 * without looking at all events. */
+	events_to_reschedule = malloc((temp_pqueue->size - 1) * sizeof(void*));
+	if (!events_to_reschedule) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to allocate memory needed to adjust check scheduling.\n");
+		pqueue_free(temp_pqueue); /* pqueue_free() to keep the events. */
+		return;
+		}
+
+	/* Now we get the events to reschedule and collect some scheduling info. */
+	adjust_scheduling = FALSE;
+	total_checks = 0;
+	while ((sq_event = pqueue_pop(temp_pqueue))) {
+
+		/* We need a timed_event and event data. */
+		temp_event = sq_event->data;
+		if (!temp_event || !temp_event->event_data)
+			continue;
+
+		/* Skip events before our current window. */
+		if (temp_event->run_time < first_window_time)
+			continue;
+		/* We're done once past the end of the window. */
+		if (temp_event->run_time > last_window_time)
+			break;
+
+		switch (temp_event->event_type) {
+			case EVENT_HOST_CHECK:
+
+				temp_host = temp_event->event_data;
+
+				/* Leave forced checks. */
+				if (temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)
+					continue;
+
+				/* Does the last check overlap into this one? */
+				if (last_check_time + (time_t)last_check_exec_time > temp_event->run_time)
+					adjust_scheduling = TRUE;
+
+				last_check_time = temp_event->run_time;
+
+				/* Estimate time needed to perform check. */
+				/* @note: Host check execution time is not taken into
+				 * account, as scheduled host checks are run in parallel. */
+				last_check_exec_time = projected_host_check_overhead;
+				total_check_exec_time += last_check_exec_time;
+
+				break;
+
+			case EVENT_SERVICE_CHECK:
+
+				temp_service = temp_event->event_data;
+
+				/* Leave forced checks. */
+				if (temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)
+					continue;
+
+				/* Does the last check overlap into this one? */
+				if (last_check_time + (time_t)last_check_exec_time > temp_event->run_time)
+					adjust_scheduling = TRUE;
+
+				last_check_time = temp_event->run_time;
+
+				/* Estimate time needed to perform check. */
+				/* @note: Service check execution time is not taken into
+				 * account, as service checks are run in parallel. */
+				last_check_exec_time = projected_service_check_overhead;
+				total_check_exec_time += last_check_exec_time;
+
+				break;
+
+			default:
+				continue;
+			}
+
+		events_to_reschedule[total_checks++] = sq_event;
+		}
+
+	/* Removing squeue_events from temp_pqueue invalidates the positions of
+	 * those events in nagios_squeue, so we need to fix that up before we
+	 * return or change their priorities. Start at i=1 since i=0 is unused. */
+	for (i = 1; i < (int)nagios_squeue->size; ++i) {
+		if ((sq_event = nagios_squeue->d[i]))
+			sq_event->pos = i;
+		}
+
+	/* No checks to reschedule, nothing to do... */
+	if (total_checks < 2 || !adjust_scheduling) {
+		log_debug_info(DEBUGL_SCHEDULING, 0, "No checks need to be rescheduled (%d checks in %d sec. window; %.3f total est. exec. time).\n", total_checks, auto_rescheduling_window, total_check_exec_time);
+
+		pqueue_free(temp_pqueue);
+		free(events_to_reschedule);
+		return;
+		}
+
+
+	if (total_check_exec_time > auto_rescheduling_window) {
+		inter_check_delay = 0.0;
+		exec_time_factor = auto_rescheduling_window / total_check_exec_time;
+		}
+	else {
+		inter_check_delay = (auto_rescheduling_window - total_check_exec_time) / total_checks;
+		exec_time_factor = 1.0;
+		}
+
+	log_debug_info(DEBUGL_SCHEDULING, 0, "Rescheduling events: checks: %d, window time: %d, exec time: %.3f, ICD: %.3f, exec factor: %.3f.\n", total_checks, auto_rescheduling_window, total_check_exec_time, inter_check_delay, exec_time_factor);
+
+
+	/* Now smooth out the schedule. */
+	current_icd_offset = inter_check_delay * 0.5;
+	for (i = 0; i < total_checks; ++i) {
+		struct timeval new_run_time;
+
+		/* All events_to_reschedule are valid squeue_events with data pointers
+		 * to timed_events for non-forced host or service checks. */
+		sq_event = events_to_reschedule[i];
+		temp_event = sq_event->data;
+
+		switch (temp_event->event_type) {
+			case EVENT_HOST_CHECK:
+				temp_host = temp_event->event_data;
+				current_exec_time = (temp_host->execution_time + projected_host_check_overhead) * exec_time_factor;
+				break;
+
+			case EVENT_SERVICE_CHECK:
+				temp_service = temp_event->event_data;
+				/* @note: Service check execution time is not taken into
+				 * account, as service checks are run in parallel */
+				current_exec_time = projected_service_check_overhead * exec_time_factor;
+				break;
+
+			default:
+				continue;
+			}
+
+		new_run_time_offset = current_exec_time_offset + current_icd_offset;
+		new_run_time.tv_sec = first_window_time + (time_t)floor(new_run_time_offset);
+		new_run_time.tv_usec = (suseconds_t)(fmod(new_run_time_offset, 1.0) * 1E6);
+
+		log_debug_info(DEBUGL_SCHEDULING, 2, "Check %d: ICD off: %.3f, exec time: %.3f, exec off: %.3f, new run time: %lu.%06ld.\n", i, current_icd_offset, current_exec_time, current_exec_time_offset, (unsigned long)new_run_time.tv_sec, (long)new_run_time.tv_usec);
+
+		squeue_change_priority_tv(nagios_squeue, sq_event, &new_run_time);
+
+		if (temp_event->event_type == EVENT_HOST_CHECK) {
+			temp_event->run_time = temp_host->next_check = new_run_time.tv_sec;
+			update_host_status(temp_host, FALSE);
+			}
+		else {
+			temp_event->run_time = temp_service->next_check = new_run_time.tv_sec;
+			update_service_status(temp_service, FALSE);
+			}
+
+		current_icd_offset += inter_check_delay;
+		current_exec_time_offset += current_exec_time;
+		}
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "adjust_check_scheduling() end\n");
+
+	pqueue_free(temp_pqueue);
+	free(events_to_reschedule);
 	return;
 	}
 

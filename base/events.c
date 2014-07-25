@@ -1355,6 +1355,7 @@ void adjust_check_scheduling(void) {
 
 	double projected_host_check_overhead = 0.125;
 	double projected_service_check_overhead = 0.125;
+	double projected_check_overhead;
 
 	double inter_check_delay = 0.0;
 	double current_icd_offset = 0.0;
@@ -1368,7 +1369,8 @@ void adjust_check_scheduling(void) {
 
 	time_t first_window_time;
 	time_t last_window_time;
-	time_t last_check_time = (time_t)0;
+
+	struct timeval last_check_tv = { (time_t)0, (suseconds_t)0 };
 
 	int adjust_scheduling;
 	int total_checks;
@@ -1443,52 +1445,40 @@ void adjust_check_scheduling(void) {
 
 		switch (temp_event->event_type) {
 			case EVENT_HOST_CHECK:
-
 				temp_host = temp_event->event_data;
 
 				/* Leave forced checks. */
 				if (temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)
 					continue;
 
-				/* Does the last check overlap into this one? */
-				if (last_check_time + (time_t)last_check_exec_time > temp_event->run_time)
-					adjust_scheduling = TRUE;
-
-				last_check_time = temp_event->run_time;
-
-				/* Estimate time needed to perform check. */
-				/* @note: Host check execution time is not taken into
-				 * account, as scheduled host checks are run in parallel. */
-				last_check_exec_time = projected_host_check_overhead;
-				total_check_exec_time += last_check_exec_time;
+				projected_check_overhead = projected_host_check_overhead;
 
 				break;
 
 			case EVENT_SERVICE_CHECK:
-
 				temp_service = temp_event->event_data;
 
 				/* Leave forced checks. */
 				if (temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)
 					continue;
 
-				/* Does the last check overlap into this one? */
-				if (last_check_time + (time_t)last_check_exec_time > temp_event->run_time)
-					adjust_scheduling = TRUE;
-
-				last_check_time = temp_event->run_time;
-
-				/* Estimate time needed to perform check. */
-				/* @note: Service check execution time is not taken into
-				 * account, as service checks are run in parallel. */
-				last_check_exec_time = projected_service_check_overhead;
-				total_check_exec_time += last_check_exec_time;
+				projected_check_overhead = projected_service_check_overhead;
 
 				break;
 
 			default:
 				continue;
 			}
+
+		/* Reschedule if the last check overlap into this one. */
+		if (last_check_tv.tv_sec > 0 && tv_delta_msec(&last_check_tv, &sq_event->when) < last_check_exec_time * 1E3)
+			adjust_scheduling = TRUE;
+
+		/* Estimate time needed to perform the check. */
+		last_check_exec_time = projected_check_overhead;
+		total_check_exec_time += last_check_exec_time;
+
+		last_check_tv = sq_event->when;
 
 		events_to_reschedule[total_checks++] = sq_event;
 		}
@@ -1503,7 +1493,7 @@ void adjust_check_scheduling(void) {
 
 	/* No checks to reschedule, nothing to do... */
 	if (total_checks < 2 || !adjust_scheduling) {
-		log_debug_info(DEBUGL_SCHEDULING, 0, "No checks need to be rescheduled (%d checks in %d sec. window; %.3f total est. exec. time).\n", total_checks, auto_rescheduling_window, total_check_exec_time);
+		log_debug_info(DEBUGL_SCHEDULING, 0, "No events need to be rescheduled (%d checks in %d sec. window; %.3f total est. exec. time).\n", total_checks, auto_rescheduling_window, total_check_exec_time);
 
 		pqueue_free(temp_pqueue);
 		free(events_to_reschedule);
@@ -1554,7 +1544,7 @@ void adjust_check_scheduling(void) {
 		new_run_time.tv_sec = first_window_time + (time_t)floor(new_run_time_offset);
 		new_run_time.tv_usec = (suseconds_t)(fmod(new_run_time_offset, 1.0) * 1E6);
 
-		log_debug_info(DEBUGL_SCHEDULING, 2, "Check %d: ICD off: %.3f, exec time: %.3f, exec off: %.3f, new run time: %lu.%06ld.\n", i, current_icd_offset, current_exec_time, current_exec_time_offset, (unsigned long)new_run_time.tv_sec, (long)new_run_time.tv_usec);
+// 		log_debug_info(DEBUGL_SCHEDULING, 2, "Check %d: ICD off: %.3f, exec time: %.3f, exec off: %.3f, new run time: %lu.%06ld.\n", i, current_icd_offset, current_exec_time, current_exec_time_offset, (unsigned long)new_run_time.tv_sec, (long)new_run_time.tv_usec);
 
 		squeue_change_priority_tv(nagios_squeue, sq_event, &new_run_time);
 

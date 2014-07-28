@@ -36,21 +36,7 @@
 # Description:		Starts and stops the Nagios monitoring server
 ### END INIT INFO
 
-# Load any extra environment variables for Nagios and its plugins
-if test -f /etc/sysconfig/nagios; then
-	. /etc/sysconfig/nagios
-fi
-
-# Source function library
-# Some *nix do not have an rc.d directory, so do a test first
-if [ -f /etc/rc.d/init.d/functions ]; then
-	. /etc/rc.d/init.d/functions
-elif [ -f /etc/init.d/functions ]; then
-	. /etc/init.d/functions
-elif [ -f /lib/lsb/init-functions ]; then
-	. /lib/lsb/init-functions
-fi
-
+# Our install-time configuration.
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 NagiosBin=@bindir@/nagios
@@ -67,6 +53,21 @@ NagiosCGIDir=@sbindir@
 NagiosUser=@nagios_user@
 NagiosGroup=@nagios_grp@
 checkconfig="true"
+
+# Source function library
+# Some *nix do not have an rc.d directory, so do a test first
+if [ -f /etc/rc.d/init.d/functions ]; then
+	. /etc/rc.d/init.d/functions
+elif [ -f /etc/init.d/functions ]; then
+	. /etc/init.d/functions
+elif [ -f /lib/lsb/init-functions ]; then
+	. /lib/lsb/init-functions
+fi
+
+# Load any extra environment variables for Nagios and its plugins.
+if test -f /etc/sysconfig/nagios; then
+	. /etc/sysconfig/nagios
+fi
 
 # Automate addition of RAMDISK based on environment variables
 USE_RAMDISK=${USE_RAMDISK:-0}

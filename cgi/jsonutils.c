@@ -222,6 +222,7 @@ const char *month[12] = { "January", "February", "March", "April", "May",
 		"December" };
 
 static const json_escape_pair string_escape_pairs[] = {
+	{ L"\\", L"\\\\" },
 	{ L"\x01", L"\\u0001" },
 	{ L"\x02", L"\\u0002" },
 	{ L"\x03", L"\\u0003" },
@@ -254,7 +255,6 @@ static const json_escape_pair string_escape_pairs[] = {
 	{ L"\x1e", L"\\u001e" },
 	{ L"\x1f", L"\\u001f" },
 	{ L"\"", L"\\\"" },
-	{ L"\\", L"\\\\" },
 };
 
 static const json_escape string_escapes = {

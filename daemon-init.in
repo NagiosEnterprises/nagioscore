@@ -1,12 +1,12 @@
 #!/bin/sh
-# 
+#
 # chkconfig: 345 99 01
 # description: Nagios network monitor
 # processname: nagios
 # File : nagios
 #
 # Author : Jorge Sanchez Aymar (jsanchez@lanchile.cl)
-# 
+#
 # Changelog :
 #
 # 1999-07-09 Karl DeBisschop <kdebisschop@infoplease.com>
@@ -81,7 +81,9 @@ if test "$USE_RAMDISK" -ne 0 && test "$RAMDISK_SIZE"X != "X"; then
 	fi
 fi
 
-check_config() {
+
+check_config ()
+{
 	TMPFILE=$(mktemp /tmp/.configtest.XXXXXXXX)
 	$NagiosBin -vp $NagiosCfgFile > "$TMPFILE"
 	WARN=`grep ^"Total Warnings:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g`
@@ -92,40 +94,38 @@ check_config() {
 		chmod 0644 $NagiosCfgtestFile
 		chown $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		/bin/rm "$TMPFILE"
-    	return 0
+		return 0
 	elif test "${ERR}" = "0"; then
-		# We'll write out the errors to a file we can have a
-		# script watching for
+		# Write the errors to a file we can have a script watching for.
 		echo "WARNING: Warnings in config files - see log for details: $NagiosCfgtestFile" > $NagiosCfgtestFile
 		egrep -i "(^warning|^error)" "$TMPFILE" >> $NagiosCfgtestFile
 		chmod 0644 $NagiosCfgtestFile
 		chown $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		/bin/rm "$TMPFILE"
-    	return 0
+		return 0
 	else
-		# We'll write out the errors to a file we can have a
-		# script watching for
+		# Write the errors to a file we can have a script watching for.
 		echo "ERROR: Errors in config files - see log for details: $NagiosCfgtestFile" > $NagiosCfgtestFile
 		egrep -i "(^warning|^error)" "$TMPFILE" >> $NagiosCfgtestFile
 		chmod 0644 $NagiosCfgtestFile
 		chown $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		cat "$TMPFILE"
-    	exit 8
+		exit 8
 	fi
 }
 
+
 status_nagios ()
 {
-
 	if test -x $NagiosCGI/daemonchk.cgi; then
 		if $NagiosCGI/daemonchk.cgi -l $NagiosRunFile; then
-		        return 0
+			return 0
 		else
 			return 1
 		fi
 	else
 		if ps -p $NagiosPID > /dev/null 2>&1; then
-		        return 0
+			return 0
 		else
 			return 1
 		fi
@@ -134,10 +134,8 @@ status_nagios ()
 	return 1
 }
 
-
-printstatus_nagios()
+printstatus_nagios ()
 {
-
 	if status_nagios $1 $2; then
 		echo "nagios (pid $NagiosPID) is running..."
 	else
@@ -145,18 +143,13 @@ printstatus_nagios()
 	fi
 }
 
-
 killproc_nagios ()
 {
-
 	kill -s $1 $NagiosPID
-
 }
-
 
 pid_nagios ()
 {
-
 	if test ! -f $NagiosRunFile; then
 		echo "No lock file found in $NagiosRunFile"
 		exit 1
@@ -165,7 +158,7 @@ pid_nagios ()
 	NagiosPID=`head -n 1 $NagiosRunFile`
 }
 
-         
+
 
 # Check that nagios exists.
 if [ ! -f $NagiosBin ]; then
@@ -178,7 +171,7 @@ if [ ! -f $NagiosCfgFile ]; then
     echo "Configuration file $NagiosCfgFile not found.  Exiting."
     exit 1
 fi
-          
+
 # See how we were called.
 case "$1" in
 
@@ -203,31 +196,31 @@ case "$1" in
 		;;
 
 	stop)
-		echo -n "Stopping nagios: "
+		echo -n "Stopping nagios:"
 
 		pid_nagios
 		killproc_nagios TERM
 
- 		# now we have to wait for nagios to exit and remove its
- 		# own NagiosRunFile, otherwise a following "start" could
- 		# happen, and then the exiting nagios will remove the
- 		# new NagiosRunFile, allowing multiple nagios daemons
- 		# to (sooner or later) run - John Sellens
+		# now we have to wait for nagios to exit and remove its
+		# own NagiosRunFile, otherwise a following "start" could
+		# happen, and then the exiting nagios will remove the
+		# new NagiosRunFile, allowing multiple nagios daemons
+		# to (sooner or later) run - John Sellens
 		#echo -n 'Waiting for nagios to exit .'
- 		for i in 1 2 3 4 5 6 7 8 9 10 ; do
- 		    if status_nagios > /dev/null; then
- 			echo -n '.'
- 			sleep 1
- 		    else
- 			break
- 		    fi
- 		done
- 		if status_nagios > /dev/null; then
- 		    echo ''
- 		    echo 'Warning - nagios did not exit in a timely manner'
- 		else
- 		    echo 'done.'
- 		fi
+		for i in 1 2 3 4 5 6 7 8 9 10 ; do
+			if status_nagios > /dev/null; then
+				echo -n '.'
+				sleep 1
+			else
+				break
+			fi
+		done
+		if status_nagios > /dev/null; then
+			echo ''
+			echo 'Warning - nagios did not exit in a timely manner'
+		else
+			echo ' done.'
+		fi
 
 		rm -f $NagiosStatusFile $NagiosRunFile $NagiosLockDir/$NagiosLockFile $NagiosCommandFile
 		;;
@@ -242,7 +235,7 @@ case "$1" in
 			printf "Running configuration check...\n"
 			check_config
 		fi
-		
+
 		if [ $? -eq 0 ]; then
 			echo " OK."
 		else
@@ -259,7 +252,6 @@ case "$1" in
 
 		$0 stop
 		$0 start
-
 		;;
 
 	reload|force-reload)
@@ -267,7 +259,7 @@ case "$1" in
 			printf "Running configuration check...\n"
 			check_config
 		fi
-		
+
 		if test ! -f $NagiosRunFile; then
 			$0 start
 		else
@@ -281,18 +273,17 @@ case "$1" in
 				$0 start
 			fi
 		fi
-
 		;;
 
 	configtest)
 		$NagiosBin -vp $NagiosCfgFile
-		
 		;;
+
 	*)
 		echo "Usage: nagios {start|stop|restart|reload|force-reload|status|checkconfig|configtest}"
 		exit 1
 		;;
 
 esac
-  
+
 # End of this script

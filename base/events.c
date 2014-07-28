@@ -1353,18 +1353,8 @@ void adjust_check_scheduling(void) {
 	service *temp_service = NULL;
 	host *temp_host = NULL;
 
-	double projected_host_check_overhead = 0.125;
-	double projected_service_check_overhead = 0.125;
-	double projected_check_overhead;
-
+	const double INTER_CHECK_RESCHEDULE_THRESHOLD = scheduling_info.service_inter_check_delay * 0.25;
 	double inter_check_delay = 0.0;
-	double current_icd_offset = 0.0;
-	double total_check_exec_time = 0.0;
-	double last_check_exec_time = 0.0;
-
-	double exec_time_factor = 0.0;
-	double current_exec_time = 0.0;
-	double current_exec_time_offset = 0.0;
 	double new_run_time_offset = 0.0;
 
 	time_t first_window_time;
@@ -1372,8 +1362,8 @@ void adjust_check_scheduling(void) {
 
 	struct timeval last_check_tv = { (time_t)0, (suseconds_t)0 };
 
-	int adjust_scheduling;
-	int total_checks;
+	int adjust_scheduling = FALSE;
+	int total_checks = 0;
 	int i;
 
 
@@ -1394,7 +1384,7 @@ void adjust_check_scheduling(void) {
 	/* Get a sorted array of all check events to reschedule. First we need a
 	 * duplicate of nagios_squeue so we can get the events in-order without
 	 * having to remove them from the original queue. We will use
-	 * pqueue_change_priority() to move the check events in the original queue..
+	 * pqueue_change_priority() to move the check events in the original queue.
 	 * @note: This is horribly dependent on implementation details of squeue
 	 * and pqueue, but we don't have much choice to avoid a free/malloc of each
 	 * squeue_event from the head to last_window_time, or avoid paying the full
@@ -1427,8 +1417,6 @@ void adjust_check_scheduling(void) {
 		}
 
 	/* Now we get the events to reschedule and collect some scheduling info. */
-	adjust_scheduling = FALSE;
-	total_checks = 0;
 	while ((sq_event = pqueue_pop(temp_pqueue))) {
 
 		/* We need a timed_event and event data. */
@@ -1446,24 +1434,16 @@ void adjust_check_scheduling(void) {
 		switch (temp_event->event_type) {
 			case EVENT_HOST_CHECK:
 				temp_host = temp_event->event_data;
-
 				/* Leave forced checks. */
 				if (temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)
 					continue;
-
-				projected_check_overhead = projected_host_check_overhead;
-
 				break;
 
 			case EVENT_SERVICE_CHECK:
 				temp_service = temp_event->event_data;
-
 				/* Leave forced checks. */
 				if (temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)
 					continue;
-
-				projected_check_overhead = projected_service_check_overhead;
-
 				break;
 
 			default:
@@ -1471,15 +1451,12 @@ void adjust_check_scheduling(void) {
 			}
 
 		/* Reschedule if the last check overlap into this one. */
-		if (last_check_tv.tv_sec > 0 && tv_delta_msec(&last_check_tv, &sq_event->when) < last_check_exec_time * 1E3)
-			adjust_scheduling = TRUE;
-
-		/* Estimate time needed to perform the check. */
-		last_check_exec_time = projected_check_overhead;
-		total_check_exec_time += last_check_exec_time;
+		if (last_check_tv.tv_sec > 0 && tv_delta_msec(&last_check_tv, &sq_event->when) < INTER_CHECK_RESCHEDULE_THRESHOLD * 1000) {
+/*			log_debug_info(DEBUGL_SCHEDULING, 2, "Rescheduling event %d: %.3fs delay.\n", total_checks, tv_delta_f(&last_check_tv, &sq_event->when));
+*/			adjust_scheduling = TRUE;
+			}
 
 		last_check_tv = sq_event->when;
-
 		events_to_reschedule[total_checks++] = sq_event;
 		}
 
@@ -1493,7 +1470,7 @@ void adjust_check_scheduling(void) {
 
 	/* No checks to reschedule, nothing to do... */
 	if (total_checks < 2 || !adjust_scheduling) {
-		log_debug_info(DEBUGL_SCHEDULING, 0, "No events need to be rescheduled (%d checks in %d sec. window; %.3f total est. exec. time).\n", total_checks, auto_rescheduling_window, total_check_exec_time);
+		log_debug_info(DEBUGL_SCHEDULING, 0, "No events need to be rescheduled (%d checks in %ds window).\n", total_checks, auto_rescheduling_window);
 
 		pqueue_free(temp_pqueue);
 		free(events_to_reschedule);
@@ -1501,20 +1478,13 @@ void adjust_check_scheduling(void) {
 		}
 
 
-	if (total_check_exec_time > auto_rescheduling_window) {
-		inter_check_delay = 0.0;
-		exec_time_factor = auto_rescheduling_window / total_check_exec_time;
-		}
-	else {
-		inter_check_delay = (auto_rescheduling_window - total_check_exec_time) / total_checks;
-		exec_time_factor = 1.0;
-		}
+	inter_check_delay = auto_rescheduling_window / (double)total_checks;
 
-	log_debug_info(DEBUGL_SCHEDULING, 0, "Rescheduling events: checks: %d, window time: %d, exec time: %.3f, ICD: %.3f, exec factor: %.3f.\n", total_checks, auto_rescheduling_window, total_check_exec_time, inter_check_delay, exec_time_factor);
+	log_debug_info(DEBUGL_SCHEDULING, 0, "Rescheduling events: %d checks in %ds window, ICD: %.3fs.\n", total_checks, auto_rescheduling_window, inter_check_delay);
 
 
 	/* Now smooth out the schedule. */
-	current_icd_offset = inter_check_delay * 0.5;
+	new_run_time_offset = inter_check_delay * 0.5;
 	for (i = 0; i < total_checks; ++i) {
 		struct timeval new_run_time;
 
@@ -1523,29 +1493,11 @@ void adjust_check_scheduling(void) {
 		sq_event = events_to_reschedule[i];
 		temp_event = sq_event->data;
 
-		switch (temp_event->event_type) {
-			case EVENT_HOST_CHECK:
-				temp_host = temp_event->event_data;
-				current_exec_time = (temp_host->execution_time + projected_host_check_overhead) * exec_time_factor;
-				break;
-
-			case EVENT_SERVICE_CHECK:
-				temp_service = temp_event->event_data;
-				/* @note: Service check execution time is not taken into
-				 * account, as service checks are run in parallel */
-				current_exec_time = projected_service_check_overhead * exec_time_factor;
-				break;
-
-			default:
-				continue;
-			}
-
-		new_run_time_offset = current_exec_time_offset + current_icd_offset;
 		new_run_time.tv_sec = first_window_time + (time_t)floor(new_run_time_offset);
 		new_run_time.tv_usec = (suseconds_t)(fmod(new_run_time_offset, 1.0) * 1E6);
 
-// 		log_debug_info(DEBUGL_SCHEDULING, 2, "Check %d: ICD off: %.3f, exec time: %.3f, exec off: %.3f, new run time: %lu.%06ld.\n", i, current_icd_offset, current_exec_time, current_exec_time_offset, (unsigned long)new_run_time.tv_sec, (long)new_run_time.tv_usec);
-
+/*		log_debug_info(DEBUGL_SCHEDULING, 2, "Check %d: offset %.3fs, new run time %lu.%06ld.\n", i, new_run_time_offset, (unsigned long)new_run_time.tv_sec, (long)new_run_time.tv_usec);
+*/
 		squeue_change_priority_tv(nagios_squeue, sq_event, &new_run_time);
 
 		if (temp_event->event_type == EVENT_HOST_CHECK) {
@@ -1557,9 +1509,9 @@ void adjust_check_scheduling(void) {
 			update_service_status(temp_service, FALSE);
 			}
 
-		current_icd_offset += inter_check_delay;
-		current_exec_time_offset += current_exec_time;
+		new_run_time_offset += inter_check_delay;
 		}
+
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "adjust_check_scheduling() end\n");
 

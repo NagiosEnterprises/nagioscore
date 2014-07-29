@@ -118,17 +118,9 @@ check_config ()
 status_nagios ()
 {
 	if test -x $NagiosCGI/daemonchk.cgi; then
-		if $NagiosCGI/daemonchk.cgi -l $NagiosRunFile; then
-			return 0
-		else
-			return 1
-		fi
+		if $NagiosCGI/daemonchk.cgi -l $NagiosRunFile > /dev/null 2>&1; then return 0; fi
 	else
-		if ps -p $NagiosPID > /dev/null 2>&1; then
-			return 0
-		else
-			return 1
-		fi
+		if ps -p $NagiosPID > /dev/null 2>&1; then return 0; fi
 	fi
 
 	return 1
@@ -136,7 +128,7 @@ status_nagios ()
 
 printstatus_nagios ()
 {
-	if status_nagios $1 $2; then
+	if status_nagios; then
 		echo "nagios (pid $NagiosPID) is running..."
 	else
 		echo "nagios is not running"
@@ -162,13 +154,13 @@ pid_nagios ()
 
 # Check that nagios exists.
 if [ ! -f $NagiosBin ]; then
-    echo "Executable file $NagiosBin not found.  Exiting."
+    echo "Executable file $NagiosBin not found. Exiting."
     exit 1
 fi
 
 # Check that nagios.cfg exists.
 if [ ! -f $NagiosCfgFile ]; then
-    echo "Configuration file $NagiosCfgFile not found.  Exiting."
+    echo "Configuration file $NagiosCfgFile not found. Exiting."
     exit 1
 fi
 
@@ -177,22 +169,28 @@ case "$1" in
 
 	start)
 		echo -n "Starting nagios:"
+
 		if test "$checkconfig" = "true"; then
 			check_config
+			# check_config exits on configuration errors.
 		fi
-		if [ $? -eq 0 ]; then
-			touch $NagiosVarDir/nagios.log $NagiosRetentionFile
-			rm -f $NagiosCommandFile
-			touch $NagiosRunFile
-			chown $NagiosUser:$NagiosGroup $NagiosRunFile $NagiosVarDir/nagios.log $NagiosRetentionFile
-			$NagiosBin -d $NagiosCfgFile
-			if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
-			echo " done."
-			exit 0
-		else
-			echo "CONFIG ERROR!  Start aborted.  Check your Nagios configuration."
-			exit 1
+
+		if test -f $NagiosRunFile; then
+			NagiosPID=`head -n 1 $NagiosRunFile`
+			if status_nagios; then
+				echo " another instance of nagios is already running."
+				exit 0
+			fi
 		fi
+
+		touch $NagiosVarDir/nagios.log $NagiosRetentionFile
+		rm -f $NagiosCommandFile
+		touch $NagiosRunFile
+		chown $NagiosUser:$NagiosGroup $NagiosRunFile $NagiosVarDir/nagios.log $NagiosRetentionFile
+		$NagiosBin -d $NagiosCfgFile
+		if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
+
+		echo " done."
 		;;
 
 	stop)
@@ -227,7 +225,7 @@ case "$1" in
 
 	status)
 		pid_nagios
-		printstatus_nagios nagios
+		printstatus_nagios
 		;;
 
 	checkconfig)

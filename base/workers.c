@@ -121,6 +121,7 @@ void wproc_reap(int jobs, int msecs)
 		struct timeval now;
 		gettimeofday(&now, NULL);
 		msecs -= tv_delta_msec(&start, &now);
+		start = now;
 	}
 }
 

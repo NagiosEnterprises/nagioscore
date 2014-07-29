@@ -137,7 +137,7 @@ printstatus_nagios ()
 
 killproc_nagios ()
 {
-	kill -s $1 $NagiosPID
+	kill -s "$1" $NagiosPID
 }
 
 pid_nagios ()

@@ -357,12 +357,6 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		free(argv);
 		return RUNCMD_EALLOC;
 	}
-	if (cmd2strv_errors & RUNCMD_HAS_UBSQ || cmd2strv_errors & RUNCMD_HAS_UBDQ) {
-		/* The command has unbalanced quotes (not a complete shell command). */
-		free(argv[0]);
-		free(argv);
-		return RUNCMD_ECMD;
-	}
 
 	if (cmd2strv_errors) {
 		/* Run complex commands via the shell. */

@@ -409,14 +409,15 @@ void free_worker_memory(int flags)
 			workers.wps[i] = NULL;
 		}
 
-		free(workers.wps);
+		my_free(workers.wps);
 	}
+	workers.len = 0;
+	workers.idx = 0;
+
 	to_remove = NULL;
 	dkhash_walk_data(specialized_workers, remove_specialized);
 	dkhash_destroy(specialized_workers);
-	workers.wps = NULL;
-	workers.len = 0;
-	workers.idx = 0;
+	specialized_workers = NULL; /* Don't leave pointers to freed memory. */
 }
 
 static int str2timeval(char *str, struct timeval *tv)
@@ -926,30 +927,39 @@ static int spawn_core_worker(void)
 
 int init_workers(int desired_workers)
 {
-	int i;
-
-	/*
-	 * we register our query handler before launching workers,
-	 * so other workers can join us whenever they're ready
-	 */
 	specialized_workers = dkhash_create(512);
-	if(!qh_register_handler("wproc", "Worker process management and info", 0, wproc_query_handler))
+	if (!specialized_workers) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to allocate specialized worker table.\n");
+		return -1;
+	}
+
+	/* Register our query handler before launching workers, so other workers
+	 * can join us whenever they're ready. */
+	if (!qh_register_handler("wproc", "Worker process management and info", 0, wproc_query_handler))
 		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Successfully registered manager as @wproc with query handler\n");
 	else
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to register manager with query handler\n");
 
-	i = desired_workers;
 	if (desired_workers <= 0) {
-		int cpus = online_cpus();
+		int cpus = online_cpus(); /* Always at least 1 CPU. */
 
-		if(desired_workers < 0) {
+		if (desired_workers < 0) {
+			/* @note This is an undocumented case of questionable utility, and
+			 * should be removed. Users reading this note have been warned. */
 			desired_workers = cpus - desired_workers;
-		}
-		if(desired_workers <= 0) {
+			/* desired_workers is now > 0. */
+		} else {
 			desired_workers = cpus * 1.5;
-			/* min 4 workers, as it's tested and known to work */
-			if(desired_workers < 4)
+
+			if (desired_workers < 4) {
+				/* Use at least 4 workers when autocalculating so we have some
+				 * level of parallelism. */
 				desired_workers = 4;
+			} else if (desired_workers > 48) {
+				/* Limit the autocalculated workers so we don't spawn too many
+				 * on systems with many schedulable cores (>32). */
+				desired_workers = 48;
+			}
 		}
 	}
 	wproc_num_workers_desired = desired_workers;
@@ -961,7 +971,7 @@ int init_workers(int desired_workers)
 	if (desired_workers < (int)workers.len)
 		return -1;
 
-	for (i = 0; i < desired_workers; i++)
+	while (desired_workers-- > 0)
 		spawn_core_worker();
 
 	return 0;

@@ -33,6 +33,10 @@
 #include "../include/cgiauth.h"
 #include "../include/jsonutils.h"
 
+/* Multiplier to increment the buffer in json_escape_string() to avoid frequent
+	repeated reallocations */
+#define BUF_REALLOC_MULTIPLIER 16
+
 const char *result_types[] = {
 	"Success",
 	"Unable to Allocate Memory",
@@ -216,6 +220,56 @@ const char *dayofweek[7] = { "Sunday", "Monday", "Tuesday", "Wednesday",
 const char *month[12] = { "January", "February", "March", "April", "May",
 		"June", "July", "August", "September", "October", "November",
 		"December" };
+
+static const json_escape_pair string_escape_pairs[] = {
+	{ L"\\", L"\\\\" },
+	{ L"\x01", L"\\u0001" },
+	{ L"\x02", L"\\u0002" },
+	{ L"\x03", L"\\u0003" },
+	{ L"\x04", L"\\u0004" },
+	{ L"\x05", L"\\u0004" },
+	{ L"\x06", L"\\u0006" },
+	{ L"\a", L"\\a" },
+	{ L"\b", L"\\b" },
+	{ L"\t", L"\\t" },
+	{ L"\n", L"\\n" },
+	{ L"\v", L"\\v" },
+	{ L"\f", L"\\f" },
+	{ L"\r", L"\\r" },
+	{ L"\x0e", L"\\u000e" },
+	{ L"\x0f", L"\\u000f" },
+	{ L"\x10", L"\\u0010" },
+	{ L"\x11", L"\\u0011" },
+	{ L"\x12", L"\\u0012" },
+	{ L"\x13", L"\\u0013" },
+	{ L"\x14", L"\\u0014" },
+	{ L"\x15", L"\\u0015" },
+	{ L"\x16", L"\\u0016" },
+	{ L"\x17", L"\\u0017" },
+	{ L"\x18", L"\\u0018" },
+	{ L"\x19", L"\\u0019" },
+	{ L"\x1a", L"\\u001a" },
+	{ L"\x1b", L"\\u001b" },
+	{ L"\x1c", L"\\u001c" },
+	{ L"\x1d", L"\\u001d" },
+	{ L"\x1e", L"\\u001e" },
+	{ L"\x1f", L"\\u001f" },
+	{ L"\"", L"\\\"" },
+};
+
+static const json_escape string_escapes = {
+	(sizeof(string_escape_pairs) / sizeof(string_escape_pairs[0])),
+	string_escape_pairs
+};
+
+const json_escape_pair percent_escape_pairs[] = {
+	{ L"%", L"%%" },
+};
+
+const json_escape percent_escapes = {
+	(sizeof(percent_escape_pairs) / sizeof(percent_escape_pairs[0])),
+	percent_escape_pairs
+};
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern time_t program_start;
@@ -408,7 +462,7 @@ void json_object_append_time(json_object *obj, char *key, unsigned long value) {
 	value -= minutes * 60;
 	seconds = value;
 
-	json_object_append_string(obj, key, "%02u:%02u:%02u", hours, minutes, 
+	json_object_append_string(obj, key, NULL, "%02u:%02u:%02u", hours, minutes,
 			seconds);
 	}
 
@@ -440,10 +494,12 @@ void json_set_time_t(json_object_member *mp, time_t value) {
 	mp->value.time = value;
 	}
 
-void json_object_append_string(json_object *obj, char *key, char *format, ...) {
+void json_object_append_string(json_object *obj, char *key,
+		const json_escape *format_escapes, char *format, ...) {
 	json_object_member *mp;
 	va_list a_list;
 	int		result;
+	char	*escaped_format;
 	char	*buf;
 
 	if(NULL == obj) return;
@@ -459,17 +515,28 @@ void json_object_append_string(json_object *obj, char *key, char *format, ...) {
 			return;
 			}
 		}
-	if(NULL != format) {
-		va_start(a_list, format);
-		result = vasprintf(&buf, format, a_list);
+	if((NULL != format_escapes) && (NULL != format)) {
+		escaped_format = json_escape_string(format, format_escapes);
+		}
+	else {
+		escaped_format = format;
+		}
+	if(NULL != escaped_format) {
+		va_start(a_list, escaped_format);
+		result = vasprintf(&buf, escaped_format, a_list);
 		va_end(a_list);
 		if(result >= 0) {
 			mp->value.string = buf;
 			}
 		}
+	if((NULL != format_escapes) && (NULL != escaped_format)) {
+		/* free only if format_escapes were passed and the escaping succeeded */
+		free(escaped_format);
+		}
 	}
 
-void json_array_append_string(json_object *obj, char *format, ...) {
+void json_array_append_string(json_object *obj,
+		const json_escape *format_escapes, char *format, ...) {
 
 	va_list a_list;
 	int		result;
@@ -479,7 +546,7 @@ void json_array_append_string(json_object *obj, char *format, ...) {
 	result = vasprintf(&buf, format, a_list);
 	va_end( a_list);
 	if(result >= 0) {
-		json_object_append_string(obj, NULL, buf);
+		json_object_append_string(obj, NULL, format_escapes, buf);
 		}
 	}
 
@@ -738,13 +805,15 @@ json_object * json_result(time_t query_time, char *cgi, char *query,
 
 	json_result = json_new_object();
 	json_object_append_time_t(json_result, "query_time", query_time);
-	json_object_append_string(json_result, "cgi", cgi);
+	json_object_append_string(json_result, "cgi", &percent_escapes, cgi);
 	if(NULL != authinfo) {
-		json_object_append_string(json_result, "user", authinfo->username);
+		json_object_append_string(json_result, "user", &percent_escapes,
+				authinfo->username);
 		}
 	if(NULL != query) {
-		json_object_append_string(json_result, "query", query);
-		json_object_append_string(json_result, "query_status",
+		json_object_append_string(json_result, "query", &percent_escapes,
+				query);
+		json_object_append_string(json_result, "query_status", &percent_escapes,
 				svm_get_string_from_value(query_status, query_statuses));
 		}
 	json_object_append_time_t(json_result, "program_start", program_start);
@@ -753,14 +822,14 @@ json_object * json_result(time_t query_time, char *cgi, char *query,
 				last_data_update);
 		}
 	json_object_append_integer(json_result, "type_code", type);
-	json_object_append_string(json_result, "type_text", 
+	json_object_append_string(json_result, "type_text", &percent_escapes,
 			(char *)result_types[ type]);
 	va_start( a_list, message);
 	if(vasprintf(&buf, message, a_list) == -1) {
 		buf = NULL;
 		}
 	va_end( a_list);
-	json_object_append_string(json_result, "message", buf);
+	json_object_append_string(json_result, "message", &percent_escapes, buf);
 	if(NULL != buf) free(buf);
 
 	return json_result;
@@ -781,15 +850,17 @@ json_object *json_help(option_help *help) {
 
 	while(NULL != help->name) {
 		json_option = json_new_object();
-		json_object_append_string(json_option, "label", (char *)help->label);
-		json_object_append_string(json_option, "type", (char *)help->type);
+		json_object_append_string(json_option, "label", &percent_escapes,
+				(char *)help->label);
+		json_object_append_string(json_option, "type", &percent_escapes,
+				(char *)help->type);
 
 		json_required = json_new_array();
 		for(x = 0, stpp = (char **)help->required; 
 				(( x < sizeof( help->required) / 
 				sizeof( help->required[ 0])) && ( NULL != *stpp)); 
 				x++, stpp++) {
-			json_array_append_string(json_required, *stpp);
+			json_array_append_string(json_required, &percent_escapes, *stpp);
 			}
 		json_object_append_array(json_option, "required",
 				json_required);
@@ -799,15 +870,15 @@ json_object *json_help(option_help *help) {
 				(( x < sizeof( help->optional) / 
 				sizeof( help->optional[ 0])) && ( NULL != *stpp)); 
 				x++, stpp++) {
-			json_array_append_string(json_optional, *stpp);
+			json_array_append_string(json_optional, &percent_escapes, *stpp);
 			}
 		json_object_append_array(json_option, "optional",
 				json_optional);
 
 		json_object_append_string(json_option, "depends_on", 
-				(char *)help->depends_on);
+				&percent_escapes, (char *)help->depends_on);
 		json_object_append_string(json_option, "description", 
-				(char *)help->description);
+				&percent_escapes, (char *)help->description);
 		if( NULL != help->valid_values) {
 			json_validvalues = json_new_object();
 			for(svmp = (string_value_mapping *)help->valid_values; 
@@ -815,12 +886,13 @@ json_object *json_help(option_help *help) {
 				if( NULL != svmp->description) {
 					json_validvalue = json_new_object();
 					json_object_append_string(json_validvalue, "description", 
-							svmp->description);
+							&percent_escapes, svmp->description);
 					json_object_append_object(json_validvalues, svmp->string, 
 							json_validvalue);
 					}
 				else {
-					json_array_append_string(json_validvalues, svmp->string);
+					json_array_append_string(json_validvalues, &percent_escapes,
+							svmp->string);
 					}
 				}
 			json_object_append_object(json_option, "valid_values", 
@@ -872,53 +944,11 @@ int passes_start_and_count_limits(int start, int max, int current, int counted) 
 	return result;
 	}
 
-/* Amount to increment the buffer in json_string to avoid frequent
-	repeated reallocations */
-#define BUF_REALLOC_INCREMENT 64
+void json_string(int padding, int whitespace, char *key, char *value) {
 
-void json_string(int padding, int whitespace, char *key, char *format, ...) {
-
-	va_list a_list;
 	char *buf = NULL;
-	char *stp;
-	int	offset;
-	size_t bytes;
-	int	extra_bytes = 0;
 
-	if( NULL != format) {
-		va_start( a_list, format);
-		if(vasprintf(&buf, format, a_list) == -1) {
-			buf = NULL;
-			}
-		va_end( a_list);
-		}
-
-	/* Escape any double quotes and strip any newlines */
-	for(stp = buf; NULL != buf && *stp != '\0'; stp++) {
-		switch(*stp) {
-		case '"':
-			offset = stp - buf;
-			bytes = strlen(buf) - offset + 1;
-			if(0 == extra_bytes) {
-				/* If more room is needed, realloc and update pointers */
-				buf = realloc(buf, strlen(buf) + BUF_REALLOC_INCREMENT);
-				stp = buf + offset;
-				extra_bytes = BUF_REALLOC_INCREMENT;
-				}
-			if(NULL != buf) {
-				/* Might be null due to realloc() */
-				memmove(stp+1, stp, bytes);
-				*stp = '\\';
-				stp++;
-				}
-			break;
-		case '\n':
-			bytes = strlen(buf) - (stp - buf) + 1;
-			memmove(stp, stp+1, bytes);
-			extra_bytes++;
-			break;
-			}
-		}
+	buf = json_escape_string(value, &string_escapes);
 
 	if( NULL == key) {
 		indentf(padding, whitespace, "\"%s\"", (( NULL == buf) ? "" : buf));
@@ -1049,8 +1079,9 @@ void json_duration(int padding, int whitespace, char *key, unsigned long value,
 		indentf(padding, whitespace, "%s", buf);
 		}
 	else {
-		indentf(padding, whitespace, "\"%s\":%s\"%s\"", key, 
-				(( whitespace > 0) ? " " : ""), buf);
+		indentf(padding, whitespace, "\"%s\":%s%s%s%s", key, 
+				(( whitespace > 0) ? " " : ""), (format_duration ? "\"" : ""),
+				buf, (format_duration ? "\"" : ""));
 		}
 	}
 
@@ -1062,13 +1093,14 @@ void json_enumeration(json_object *json_parent, unsigned format_options,
 	if(format_options & JSON_FORMAT_ENUMERATE) {
 		for(svmp = (string_value_mapping *)map; NULL != svmp->string; svmp++) {
 			if( value == svmp->value) {
-				json_object_append_string(json_parent, key, svmp->string);
+				json_object_append_string(json_parent, key, &percent_escapes,
+						svmp->string);
 				break;
 				}
 			}
 			if( NULL == svmp->string) {
-				json_object_append_string(json_parent, key, "Unknown value %d", 
-						svmp->value);
+				json_object_append_string(json_parent, key, NULL,
+						"Unknown value %d", svmp->value);
 				}
 		}
 	else {
@@ -1086,7 +1118,8 @@ void json_bitmask(json_object *json_parent, unsigned format_options, char *key,
 		json_bitmask_array = json_new_array();
 		for(svmp = (string_value_mapping *)map; NULL != svmp->string; svmp++) {
 			if( value & svmp->value) {
-				json_array_append_string(json_bitmask_array, svmp->string);
+				json_array_append_string(json_bitmask_array, &percent_escapes,
+						svmp->string);
 				}
 			}
 		json_object_append_array(json_parent, key, json_bitmask_array);
@@ -1327,3 +1360,83 @@ time_t compile_time(const char *date, const char *time) {
 
     return mktime(&t);
 }
+
+/* Escape a string based on the values in the escapes parameter */
+char *json_escape_string(const char *src, const json_escape *escapes) {
+
+	wchar_t *wdest;		/* wide character version of the output string */
+	size_t	wdest_size;	/* number of available wchars in wdest */
+	size_t	wdest_len;	/* number of wchars in wdest */
+	int x;
+	json_escape_pair	*escp;		/* pointer to current escape pair */
+	size_t	from_len;
+	size_t	to_len;
+	wchar_t	*fromp;		/* pointer to a found "from" string */
+	long	offset;		/* offset from beginning of wdest to a "from" string */
+	size_t	wchars;		/* number of wide characters to move */
+	size_t	dest_len;	/* length of ouput string "dest" */
+	char	*dest;		/* buffer containing the escaped version of src */
+
+	/* Make sure we're passed valid parameters */
+	if((NULL == src) || (NULL == escapes)) {
+		return NULL;
+		}
+
+	/* Make a wide string copy of src */
+	wdest_len = mbstowcs(NULL, src, 0);
+	if(0 == wdest_len) return NULL;
+	if((wdest = calloc(wdest_len + 1, sizeof(wchar_t))) == NULL) {
+		return NULL;
+		}
+	if(mbstowcs(wdest, src, wdest_len) != wdest_len) {
+		free(wdest);
+		return NULL;
+		}
+	wdest_size = wdest_len;
+
+	/* Process each escape pair */
+	for(x = 0, escp = (json_escape_pair *)escapes->pairs; x < escapes->count;
+			x++, escp++) {
+		from_len = wcslen(escp->from);
+		to_len = wcslen(escp->to);
+		fromp = wdest;
+		while((fromp = wcsstr(fromp, escp->from)) != NULL) {
+			offset = fromp - wdest;
+			if(from_len < to_len) {
+				if((wdest_size - wdest_len) < (to_len - from_len)) {
+					/* If more room is needed, realloc and update variables */
+					wdest_size += (to_len - from_len) * BUF_REALLOC_MULTIPLIER;
+					wdest = realloc(wdest, wdest_size * sizeof(wchar_t));
+					if(NULL == wdest) return NULL;
+					fromp = wdest + offset;
+					}
+				wchars = wdest_len - offset + from_len + 1;
+				wmemmove(fromp + to_len, fromp + from_len, wchars);
+				wcsncpy(fromp, escp->to, to_len);
+				wdest_len += (to_len - from_len);
+				fromp += to_len;
+				}
+			else {
+				wchars = wdest_len - offset - to_len;
+				memmove(fromp + to_len, fromp + from_len,
+						wchars * sizeof(wchar_t));
+				wcsncpy(fromp, escp->to, to_len);
+				fromp += (from_len - to_len);
+				wdest_len -= (from_len - to_len);
+				}
+			}
+		}
+
+	/* Covert the wide string back to a multibyte string */
+	dest_len = wcstombs(NULL, wdest, 0);
+	if(0 == dest_len) return NULL;
+	if((dest = calloc(dest_len + 1, sizeof(char))) == NULL) {
+		return NULL;
+		}
+	if(wcstombs(dest, wdest, dest_len) != dest_len) {
+		free(dest);
+		return NULL;
+		}
+
+	return dest;
+	}

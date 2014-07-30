@@ -84,6 +84,17 @@ typedef struct option_help_struct {
 	const string_value_mapping *	valid_values;	/* list of valid values */
 	} option_help;
 
+/* String escaping structures */
+typedef struct json_escape_pair_struct {
+	const wchar_t *from;
+	const wchar_t *to;
+}	json_escape_pair;
+
+typedef struct json_escape_struct {
+	const int				count;
+	const json_escape_pair	*pairs;
+}	json_escape;
+
 /* Output Format Version */
 #define OUTPUT_FORMAT_VERSION	0
 
@@ -154,7 +165,8 @@ extern void json_object_append_real(json_object *, char *, double);
 extern void json_object_append_time(json_object *, char *, unsigned long);
 extern void json_object_append_time_t(json_object *, char *, time_t);
 extern void json_set_time_t(json_object_member *, time_t);
-extern void json_object_append_string(json_object *, char *, char *, ...);
+extern void json_object_append_string(json_object *, char *,
+		const json_escape *, char *, ...);
 extern void json_object_append_boolean(json_object *, char *, int);
 extern void json_array_append_object(json_array *, json_object *);
 extern void json_array_append_array(json_array *, json_array *);
@@ -162,7 +174,8 @@ extern void json_array_append_integer(json_array *, int);
 extern void json_array_append_real(json_array *, double);
 extern void json_array_append_time(json_array *, unsigned long);
 extern void json_array_append_time_t(json_array *, time_t);
-extern void json_array_append_string(json_array *, char *, ...);
+extern void json_array_append_string(json_array *, const json_escape *,
+		char *, ...);
 extern void json_array_append_boolean(json_array *, int);
 extern void json_object_append_duration(json_object *, char *, unsigned long);
 extern void json_array_append_duration(json_object *, unsigned long);
@@ -177,7 +190,7 @@ extern json_object *json_result(time_t, char *, char *, int, time_t, authdata *,
 extern json_object *json_help(option_help *);
 extern int passes_start_and_count_limits(int, int, int, int);
 extern void indentf(int, int, char *, ...);
-extern void json_string(int, int, char *, char *, ...);
+extern void json_string(int, int, char *, char *);
 extern void json_boolean(int, int, char *, int);
 extern void json_int(int, int, char *, int);
 extern void json_unsigned(int, int, char *, unsigned long long);
@@ -210,4 +223,5 @@ extern char *svm_get_string_from_value(int, const string_value_mapping *);
 extern char *svm_get_description_from_value(int, const string_value_mapping *);
 
 extern time_t compile_time(const char *, const char *);
+extern char *json_escape_string(const char *, const json_escape *);
 #endif

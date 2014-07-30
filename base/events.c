@@ -86,6 +86,7 @@ void init_timing_loop(void) {
 	double runtime[9];
 	struct timeval now;
 	unsigned int fixed_hosts = 0, fixed_services = 0;
+	int check_delay = 0;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "init_timing_loop() start\n");
 
@@ -211,7 +212,7 @@ void init_timing_loop(void) {
 
 	/******** DETERMINE SERVICE SCHEDULING PARAMS  ********/
 
-	log_debug_info(DEBUGL_EVENTS, 2, "Determining service scheduling parameters...");
+	log_debug_info(DEBUGL_EVENTS, 2, "Determining service scheduling parameters...\n");
 
 	/* default max service check spread (in minutes) */
 	scheduling_info.max_service_check_spread = max_service_check_spread;
@@ -303,7 +304,7 @@ void init_timing_loop(void) {
 
 	/******** SCHEDULE SERVICE CHECKS  ********/
 
-	log_debug_info(DEBUGL_EVENTS, 2, "Scheduling service checks...");
+	log_debug_info(DEBUGL_EVENTS, 2, "Scheduling service checks...\n");
 
 	/* determine check times for service checks (with interleaving to minimize remote load) */
 	current_interleave_block = 0;
@@ -312,8 +313,6 @@ void init_timing_loop(void) {
 		log_debug_info(DEBUGL_EVENTS, 2, "Current Interleave Block: %d\n", current_interleave_block);
 
 		for(interleave_block_index = 0; interleave_block_index < scheduling_info.service_interleave_factor && temp_service != NULL; temp_service = temp_service->next) {
-			int check_delay = 0;
-
 			log_debug_info(DEBUGL_EVENTS, 2, "Service '%s' on host '%s'\n", temp_service->description, temp_service->host_name);
 			/* skip this service if it shouldn't be scheduled */
 			if(temp_service->should_be_scheduled == FALSE) {
@@ -350,28 +349,32 @@ void init_timing_loop(void) {
 			 * If we end up too far into the future, grab a random
 			 * time within the service's window instead.
 			 */
-			temp_service->next_check = (time_t)(current_time + (mult_factor * scheduling_info.service_inter_check_delay));
-			if(temp_service->next_check - current_time > check_window(temp_service)) {
-				log_debug_info(DEBUGL_EVENTS, 0, "  Fixing check time %lu secs too far away (%lu - %lu)\n",
-							   (temp_service->next_check - current_time) - check_window(temp_service),
-							   temp_service->next_check - current_time, check_window(temp_service));
+			check_delay =
+					mult_factor * scheduling_info.service_inter_check_delay;
+			if(check_delay > check_window(temp_service)) {
+				log_debug_info(DEBUGL_EVENTS, 0,
+						"  Fixing check time %lu secs too far away\n",
+						check_delay - check_window(temp_service));
 				fixed_services++;
-				temp_service->next_check = current_time + ranged_urand(0, check_window(temp_service));
-				log_debug_info(DEBUGL_EVENTS, 0, "  New check offset: %lu\n", temp_service->next_check - current_time);
-				}
+				check_delay = ranged_urand(0, check_window(temp_service));
+				log_debug_info(DEBUGL_EVENTS, 0, "  New check offset: %d\n",
+						check_delay);
+			}
+			temp_service->next_check = (time_t)(current_time + check_delay);
 
-			log_debug_info(DEBUGL_EVENTS, 2, "Preferred Check Time: %lu --> %s", (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
+			log_debug_info(DEBUGL_EVENTS, 2, "Preferred Check Time: %lu --> %s\n", (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
 
 
 			/* make sure the service can actually be scheduled when we want */
 			is_valid_time = check_time_against_period(temp_service->next_check, temp_service->check_period_ptr);
 			if(is_valid_time == ERROR) {
-				log_debug_info(DEBUGL_EVENTS, 2, "Preferred Time is Invalid In Timeperiod '%s': %lu --> %s", temp_service->check_period_ptr->name, (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
+				log_debug_info(DEBUGL_EVENTS, 2, "Preferred Time is Invalid In Timeperiod '%s': %lu --> %s\n", temp_service->check_period_ptr->name, (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
 				get_next_valid_time(temp_service->next_check, &next_valid_time, temp_service->check_period_ptr);
-				temp_service->next_check = next_valid_time;
+				temp_service->next_check =
+						(time_t)(next_valid_time + check_delay);
 				}
 
-			log_debug_info(DEBUGL_EVENTS, 2, "Actual Check Time: %lu --> %s", (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
+			log_debug_info(DEBUGL_EVENTS, 2, "Actual Check Time: %lu --> %s\n", (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
 
 			if(scheduling_info.first_service_check == (time_t)0 || (temp_service->next_check < scheduling_info.first_service_check))
 				scheduling_info.first_service_check = temp_service->next_check;
@@ -410,7 +413,7 @@ void init_timing_loop(void) {
 
 	/******** DETERMINE HOST SCHEDULING PARAMS  ********/
 
-	log_debug_info(DEBUGL_EVENTS, 2, "Determining host scheduling parameters...");
+	log_debug_info(DEBUGL_EVENTS, 2, "Determining host scheduling parameters...\n");
 
 	scheduling_info.first_host_check = (time_t)0L;
 	scheduling_info.last_host_check = (time_t)0L;
@@ -476,7 +479,7 @@ void init_timing_loop(void) {
 
 	/******** SCHEDULE HOST CHECKS  ********/
 
-	log_debug_info(DEBUGL_EVENTS, 2, "Scheduling host checks...");
+	log_debug_info(DEBUGL_EVENTS, 2, "Scheduling host checks...\n");
 
 	/* determine check times for host checks */
 	mult_factor = 0;
@@ -501,12 +504,14 @@ void init_timing_loop(void) {
 		 * If it's too far into the future, we grab a random time
 		 * within this host's max check window instead
 		 */
-		temp_host->next_check = (time_t)(current_time + (mult_factor * scheduling_info.host_inter_check_delay));
-		if(temp_host->next_check - current_time > check_window(temp_host)) {
-			log_debug_info(DEBUGL_EVENTS, 1, "Fixing check time (off by %lu)\n", (temp_host->next_check - current_time) - check_window(temp_host));
+		check_delay = mult_factor * scheduling_info.host_inter_check_delay;
+		if(check_delay > check_window(temp_host)) {
+			log_debug_info(DEBUGL_EVENTS, 1, "Fixing check time (off by %lu)\n",
+					check_delay - check_window(temp_host));
 			fixed_hosts++;
-			temp_host->next_check = current_time + ranged_urand(0, check_window(temp_host));
+			check_delay = ranged_urand(0, check_window(temp_host));
 			}
+		temp_host->next_check = (time_t)(current_time + check_delay);
 
 		log_debug_info(DEBUGL_EVENTS, 2, "Preferred Check Time: %lu --> %s", (unsigned long)temp_host->next_check, ctime(&temp_host->next_check));
 
@@ -514,10 +519,10 @@ void init_timing_loop(void) {
 		is_valid_time = check_time_against_period(temp_host->next_check, temp_host->check_period_ptr);
 		if(is_valid_time == ERROR) {
 			get_next_valid_time(temp_host->next_check, &next_valid_time, temp_host->check_period_ptr);
-			temp_host->next_check = next_valid_time;
+			temp_host->next_check = (time_t)(next_valid_time | check_delay);
 			}
 
-		log_debug_info(DEBUGL_EVENTS, 2, "Actual Check Time: %lu --> %s", (unsigned long)temp_host->next_check, ctime(&temp_host->next_check));
+		log_debug_info(DEBUGL_EVENTS, 2, "Actual Check Time: %lu --> %s\n", (unsigned long)temp_host->next_check, ctime(&temp_host->next_check));
 
 		if(scheduling_info.first_host_check == (time_t)0 || (temp_host->next_check < scheduling_info.first_host_check))
 			scheduling_info.first_host_check = temp_host->next_check;

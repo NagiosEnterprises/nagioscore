@@ -110,11 +110,13 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 
 			/*
 			 * If we really can't reschedule the service properly, we
-			 * just push the check to preferred_time and try again then.
+			 * just push the check to preferred_time plus some reasonable
+			 * random value and try again then.
 			 */
 			if(time_is_valid == FALSE &&  check_time_against_period(next_valid_time, svc->check_period_ptr) == ERROR) {
 
-				svc->next_check = preferred_time;
+				svc->next_check = preferred_time +
+						ranged_urand(0, check_window(svc));
 
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' could not be rescheduled properly.  Scheduling check for %s...\n", svc->description, svc->host_name, ctime(&preferred_time));
 
@@ -124,6 +126,14 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 			/* this service could be rescheduled... */
 			else {
 				svc->next_check = next_valid_time;
+				if(next_valid_time > preferred_time) {
+					/* Next valid time is further in the future because of
+					 * timeperiod constraints. Add a random amount so we
+					 * don't get all checks subject to that timeperiod
+					 * constraint scheduled at the same time
+					 */
+					svc->next_check += ranged_urand(0, check_window(svc));
+					}
 				svc->should_be_scheduled = TRUE;
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Rescheduled next service check for %s", ctime(&next_valid_time));
@@ -979,6 +989,14 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		preferred_time = temp_service->next_check;
 		get_next_valid_time(preferred_time, &next_valid_time, temp_service->check_period_ptr);
 		temp_service->next_check = next_valid_time;
+		if(next_valid_time > preferred_time) {
+			/* Next valid time is further in the future because of timeperiod
+			 * constraints. Add a random amount so we don't get all checks
+			 * subject to that timeperiod constraint scheduled at the same time
+			 */
+			temp_service->next_check +=
+					ranged_urand(0, check_window(temp_service));
+		}
 
 		/* services with non-recurring intervals do not get rescheduled */
 		if(temp_service->check_interval == 0)
@@ -1933,7 +1951,8 @@ int run_scheduled_host_check(host *hst, int check_options, double latency) {
 			 */
 			if(time_is_valid == FALSE && check_time_against_period(next_valid_time, hst->check_period_ptr) == ERROR) {
 
-				hst->next_check = preferred_time;
+				hst->next_check = preferred_time +
+						ranged_urand(0, check_window(hst));
 
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' could not be rescheduled properly.  Scheduling check for %s...\n", hst->name, ctime(&preferred_time));
 
@@ -1943,6 +1962,14 @@ int run_scheduled_host_check(host *hst, int check_options, double latency) {
 			/* this service could be rescheduled... */
 			else {
 				hst->next_check = next_valid_time;
+				if(next_valid_time > preferred_time) {
+					/* Next valid time is further in the future because of
+					 * timeperiod constraints. Add a random amount so we
+					 * don't get all checks subject to that timeperiod
+					 * constraint scheduled at the same time
+					 */
+					hst->next_check += ranged_urand(0, check_window(hst));
+					}
 				hst->should_be_scheduled = TRUE;
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Rescheduled next host check for %s", ctime(&next_valid_time));
@@ -2650,6 +2677,13 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 		preferred_time = hst->next_check;
 		get_next_valid_time(preferred_time, &next_valid_time, hst->check_period_ptr);
 		hst->next_check = next_valid_time;
+		if(next_valid_time > preferred_time) {
+			/* Next valid time is further in the future because of timeperiod
+			 * constraints. Add a random amount so we don't get all checks
+			 * subject to that timeperiod constraint scheduled at the same time
+			 */
+			hst->next_check += ranged_urand(0, check_window(hst));
+			}
 
 		/* hosts with non-recurring intervals do not get rescheduled if we're in a HARD or UP state */
 		if(hst->check_interval == 0 && (hst->state_type == HARD_STATE || hst->current_state == HOST_UP))

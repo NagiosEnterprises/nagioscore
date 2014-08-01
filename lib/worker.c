@@ -8,8 +8,9 @@
 #include <time.h>
 #include "libnagios.h"
 
-#define MSG_DELIM "\1\0\0" /**< message limiter */
-#define MSG_DELIM_LEN (sizeof(MSG_DELIM)) /**< message delimiter length */
+#define MSG_DELIM "\1\0\0" /**< message limiter - note this ends up being
+			     \1\0\0\0 on the wire as "" strings null-terminate */
+#define MSG_DELIM_LEN (sizeof(MSG_DELIM)) /**< message delimiter length - 4, not 3 */
 #define PAIR_SEP 0 /**< pair separator for buf2kvvec() and kvvec2buf() */
 #define KV_SEP '=' /**< key/value separator for buf2kvvec() and kvvec2buf() */
 

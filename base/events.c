@@ -1485,7 +1485,7 @@ void adjust_check_scheduling(void) {
 
 	/* Now smooth out the schedule. */
 	new_run_time_offset = inter_check_delay * 0.5;
-	for (i = 0; i < total_checks; ++i) {
+	for (i = 0; i < total_checks; ++i, new_run_time_offset += inter_check_delay) {
 		struct timeval new_run_time;
 
 		/* All events_to_reschedule are valid squeue_events with data pointers
@@ -1493,6 +1493,7 @@ void adjust_check_scheduling(void) {
 		sq_event = events_to_reschedule[i];
 		temp_event = sq_event->data;
 
+		/* Calculate and apply a new queue 'when' time. */
 		new_run_time.tv_sec = first_window_time + (time_t)floor(new_run_time_offset);
 		new_run_time.tv_usec = (suseconds_t)(fmod(new_run_time_offset, 1.0) * 1E6);
 
@@ -1500,16 +1501,28 @@ void adjust_check_scheduling(void) {
 */
 		squeue_change_priority_tv(nagios_squeue, sq_event, &new_run_time);
 
-		if (temp_event->event_type == EVENT_HOST_CHECK) {
-			temp_event->run_time = temp_host->next_check = new_run_time.tv_sec;
-			update_host_status(temp_host, FALSE);
-			}
-		else {
-			temp_event->run_time = temp_service->next_check = new_run_time.tv_sec;
-			update_service_status(temp_service, FALSE);
-			}
 
-		new_run_time_offset += inter_check_delay;
+		if (temp_event->run_time != new_run_time.tv_sec)
+			temp_event->run_time = new_run_time.tv_sec;
+
+		switch (temp_event->event_type) {
+			case EVENT_HOST_CHECK:
+				temp_host = temp_event->event_data;
+				if (temp_host->next_check != new_run_time.tv_sec) {
+					temp_host->next_check = new_run_time.tv_sec;
+					update_host_status(temp_host, FALSE);
+					}
+				break;
+			case EVENT_SERVICE_CHECK:
+				temp_service = temp_event->event_data;
+				if (temp_service->next_check != new_run_time.tv_sec) {
+					temp_service->next_check = new_run_time.tv_sec;
+					update_service_status(temp_service, FALSE);
+					}
+				break;
+			default:
+				break;
+			}
 		}
 
 

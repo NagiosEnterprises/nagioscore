@@ -384,9 +384,9 @@ static void kill_job(child_process *cp, int reason)
 			 * reap attempt later.
 			 */
 			if (reason == ESTALE) {
-wlog("tv.tv_sec is currently %d", tv.tv_sec);
+				wlog("tv.tv_sec is currently %lu", (unsigned long)tv.tv_sec);
 				tv.tv_sec += 5;
-				wlog("Failed to reap child with pid %d. Next attempt @ %lu.%lu", cp->ei->pid, tv.tv_sec, tv.tv_usec);
+				wlog("Failed to reap child with pid %d. Next attempt @ %lu.%lu", cp->ei->pid, (unsigned long)tv.tv_sec, (unsigned long)tv.tv_usec);
 			} else {
 				tv.tv_usec = 250000;
 				if (tv.tv_usec > 1000000) {

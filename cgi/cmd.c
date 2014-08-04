@@ -1893,7 +1893,8 @@ __attribute__((format(printf, 2, 3)))
 static int cmd_submitf(int id, const char *fmt, ...) {
 	char cmd[MAX_EXTERNAL_COMMAND_LENGTH];
 	const char *command_name;
-	int len, len2;
+	int len;
+	int len2;
 	va_list ap;
 
 	command_name = extcmd_get_name(id);
@@ -1905,18 +1906,20 @@ static int cmd_submitf(int id, const char *fmt, ...) {
 	if(!command_name || (strlen(command_name) > 6 && !memcmp("CHANGE", command_name, 6)))
 		return ERROR;
 
-	len = snprintf(cmd, sizeof(cmd) - 1, "[%lu] %s;", time(NULL), command_name);
-	if(len < 0)
+	len = snprintf(cmd, sizeof(cmd), "[%lu] %s;", time(NULL), command_name);
+	if(len < 0 || len >= sizeof(cmd))
 		return ERROR;
 
 	if(fmt) {
 		va_start(ap, fmt);
-		len2 = vsnprintf(&cmd[len], sizeof(cmd) - len - 1, fmt, ap);
+		len2 = vsnprintf(cmd + len, sizeof(cmd) - len, fmt, ap);
 		va_end(ap);
-		if(len2 < 0)
+		len += len2;
+		if(len2 < 0 || len >= sizeof(cmd))
 			return ERROR;
 		}
 
+	cmd[len] = 0; /* 0 <= len < sizeof(cmd) */
 	return write_command_to_file(cmd);
 	}
 

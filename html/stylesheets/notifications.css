@@ -15,10 +15,12 @@ TH.notifications {  font-size: 10pt;  text-align: left;  background-color: #9997
 .notificationsCRITICAL {  background-color: #F83838; }
 .notificationsACKNOWLEDGEMENT {  background-color: #AAAAAA; }
 .notificationsCUSTOM {  background-color: #778899; }
+.notificationsDOWNTIME {  background-color: #07C7C7; }
 
 .notificationsHOSTUP {  background-color: #33FF00; }
 .notificationsHOSTDOWN {  background-color: #F83838; }
 .notificationsHOSTUNREACHABLE {  background-color: #F83838; }
 .notificationsHOSTACKNOWLEDGEMENT {  background-color: #AAAAAA; }
 .notificationsHOSTCUSTOM {  background-color: #778899; }
+.notificationsHOSTDOWNTIME {  background-color: #07C7C7; }
 

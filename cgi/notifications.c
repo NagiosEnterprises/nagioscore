@@ -207,6 +207,7 @@ int main(void) {
 		printf("<option value=%d %s>Service critical\n", NOTIFICATION_SERVICE_CRITICAL, (notification_options == NOTIFICATION_SERVICE_CRITICAL) ? "selected" : "");
 		printf("<option value=%d %s>Service recovery\n", NOTIFICATION_SERVICE_RECOVERY, (notification_options == NOTIFICATION_SERVICE_RECOVERY) ? "selected" : "");
 		printf("<option value=%d %s>Service flapping\n", NOTIFICATION_SERVICE_FLAP, (notification_options == NOTIFICATION_SERVICE_FLAP) ? "selected" : "");
+		printf("<option value=%d %s>Service downtime\n", NOTIFICATION_SERVICE_DOWNTIME, (notification_options == NOTIFICATION_SERVICE_DOWNTIME) ? "selected" : "");
 		if(query_type != FIND_SERVICE) {
 			printf("<option value=%d %s>Host custom\n", NOTIFICATION_HOST_CUSTOM, (notification_options == NOTIFICATION_HOST_CUSTOM) ? "selected" : "");
 			printf("<option value=%d %s>Host acknowledgements\n", NOTIFICATION_HOST_ACK, (notification_options == NOTIFICATION_HOST_ACK) ? "selected" : "");
@@ -214,6 +215,7 @@ int main(void) {
 			printf("<option value=%d %s>Host unreachable\n", NOTIFICATION_HOST_UNREACHABLE, (notification_options == NOTIFICATION_HOST_UNREACHABLE) ? "selected" : "");
 			printf("<option value=%d %s>Host recovery\n", NOTIFICATION_HOST_RECOVERY, (notification_options == NOTIFICATION_HOST_RECOVERY) ? "selected" : "");
 			printf("<option value=%d %s>Host flapping\n", NOTIFICATION_HOST_FLAP, (notification_options == NOTIFICATION_HOST_FLAP) ? "selected" : "");
+			printf("<option value=%d %s>Host downtime\n", NOTIFICATION_HOST_DOWNTIME, (notification_options == NOTIFICATION_HOST_DOWNTIME) ? "selected" : "");
 			}
 		printf("</select></td>\n");
 		printf("</tr>\n");
@@ -587,6 +589,10 @@ void display_notifications(void) {
 					notification_detail_type = NOTIFICATION_SERVICE_FLAP;
 					strcpy(alert_level_class, "UNKNOWN");
 					}
+				else if(strstr(alert_level, "DOWNTIME")) {
+					notification_detail_type = NOTIFICATION_SERVICE_DOWNTIME;
+					strcpy(alert_level_class, "DOWNTIME");
+					}
 				else {
 					strcpy(alert_level, "UNKNOWN");
 					notification_detail_type = NOTIFICATION_SERVICE_UNKNOWN;
@@ -628,6 +634,10 @@ void display_notifications(void) {
 					strcpy(alert_level, "FLAPPING STOP");
 					strcpy(alert_level_class, "UNKNOWN");
 					notification_detail_type = NOTIFICATION_HOST_FLAP;
+					}
+				else if(strstr(alert_level, "DOWNTIME")) {
+					strcpy(alert_level_class, "DOWNTIME");
+					notification_detail_type = NOTIFICATION_HOST_DOWNTIME;
 					}
 				}
 

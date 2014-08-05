@@ -91,15 +91,33 @@ int nsock_unix(const char *path, unsigned int flags)
 
 static inline int nsock_vprintf(int sd, const char *fmt, va_list ap, int plus)
 {
-	char buf[4096];
+	va_list ap_dup;
+	char stack_buf[4096];
 	int len;
 
-	/* -2 to accommodate vsnprintf()'s which don't include nul on overflow */
-	len = vsnprintf(buf, sizeof(buf) - 2, fmt, ap);
+	va_copy(ap_dup, ap);
+	len = vsnprintf(stack_buf, sizeof(stack_buf), fmt, ap_dup);
+	va_end(ap_dup);
 	if (len < 0)
 		return len;
-	buf[len] = 0;
-	return write(sd, buf, len + plus); /* possibly include nul byte */
+
+	if (len < sizeof(stack_buf)) {
+		stack_buf[len] = 0;
+		if (plus) ++len; /* Include the nul byte if requested. */
+		return write(sd, stack_buf, len);
+
+	} else {
+		char *heap_buf = NULL;
+
+		len = vasprintf(&heap_buf, fmt, ap);
+		if (len < 0)
+			return len;
+
+		if (plus) ++len; /* Include the nul byte if requested. */
+		len = write(sd, heap_buf, len);
+		free(heap_buf);
+		return len;
+	}
 }
 
 int nsock_printf_nul(int sd, const char *fmt, ...)

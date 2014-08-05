@@ -5,12 +5,10 @@
 
 #define BUF_SIZE 1024
 
-struct cases {
+struct {
 	char *input;
 	char *output;
-};
-
-struct cases cases[] = {
+} cases[] = {
 	{"test0\\", "test0"},
 	{"te\\st1", "test1"},
 	{"te\\\\st2", "te\\st2"},
@@ -66,6 +64,7 @@ struct {
 	{ RUNCMD_HAS_PAREN, "\\$(hoopla booyaka" },
 	{ 0, "\\$\\(hoopla booyaka" },
 	{ RUNCMD_HAS_JOBCONTROL, "a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a"},
+	{ 0, "a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a"},
 	{ 0, NULL},
 };
 
@@ -85,6 +84,10 @@ struct {
 	{ 0, "\\ \t \\\t  \\ ", 3, { " ", "\t", " ", NULL }},
 	{ 0, "\\$foo walla wonga", 3, { "$foo", "walla", "wonga", NULL }},
 	{ 0, "\"\\$bar is\" very wide open", 4, { "$bar is", "very", "wide", "open", NULL }},
+	{ 0, "VAR=VAL some command", 3, { "VAR=VAL", "some", "command", NULL}},
+	{ RUNCMD_HAS_SHVAR, "VAR=VAL some use of $VAR", 5, { "VAR=VAL", "some", "use", "of", "$VAR", NULL}},
+	{ RUNCMD_HAS_SHVAR, "VAR=$VAL some use of $VAR", 5, { "VAR=$VAL", "some", "use", "of", "$VAR", NULL}},
+	{ RUNCMD_HAS_SHVAR | RUNCMD_HAS_WILDCARD, "VAR=\"$VAL\" a wilder\\ command*", 3, { "VAR=$VAL", "a", "wilder command*", NULL}},
 	{ 0, NULL, 0, { NULL, NULL, NULL }},
 };
 
@@ -144,7 +147,7 @@ int main(int argc, char **argv)
 			char *out_argv[256];
 			int result = runcmd_cmd2strv(parse_case[i].cmd, &out_argc, out_argv);
 			/*out_argv[out_argc] = NULL;*//* This must be NULL terminated already. */
-			ok_int(result, 0, parse_case[i].cmd);
+			ok_int(result, parse_case[i].ret, parse_case[i].cmd);
 			ok_int(out_argc, parse_case[i].argc_exp, parse_case[i].cmd);
 			for (x = 0; x < parse_case[x].argc_exp && out_argv[x]; x++) {
 				ok_str(parse_case[i].argv_exp[x], out_argv[x], "argv comparison test");

@@ -71,47 +71,69 @@ static void exit_worker(int code, const char *msg)
 __attribute__((__format__(__printf__, 1, 2)))
 static void wlog(const char *fmt, ...)
 {
-	va_list ap;
+#define LOG_KEY_LEN 4
 	static char lmsg[8192] = "log=";
-	int len = 4, to_send;
+	int len;
+	va_list ap;
 
 	va_start(ap, fmt);
-	len = vsnprintf(&lmsg[len], sizeof(lmsg) - 7, fmt, ap);
+	len = vsnprintf(lmsg + LOG_KEY_LEN, sizeof(lmsg) - LOG_KEY_LEN - MSG_DELIM_LEN, fmt, ap);
 	va_end(ap);
-	if (len < 0 || len >= (int)sizeof(lmsg))
+	if (len < 0) {
+		/* We can't send what we can't print. */
 		return;
+	}
 
-	len += 4; /* log= */
+	len += LOG_KEY_LEN; /* log= */
+	if (len > sizeof(lmsg) - MSG_DELIM_LEN - 1) {
+		/* A truncated log is better than no log or buffer overflows. */
+		len = sizeof(lmsg) - MSG_DELIM_LEN - 1;
+	}
 
-	/* add delimiter and send it. 1 extra as kv pair separator */
-	to_send = len + MSG_DELIM_LEN + 1;
+	/* Add the kv pair separator and the message delimiter. */
 	lmsg[len] = 0;
-	memcpy(&lmsg[len + 1], MSG_DELIM, MSG_DELIM_LEN);
-	if (write(master_sd, lmsg, to_send) < 0) {
-		if (errno == EPIPE) {
-			/* master has died or abandoned us, so exit */
-			exit_worker(1, "Failed to write() to master");
-		}
+	len++;
+	memcpy(lmsg + len, MSG_DELIM, MSG_DELIM_LEN);
+	len += MSG_DELIM_LEN;
+
+	if (write(master_sd, lmsg, len) < 0 && errno == EPIPE) {
+		/* Master has died or abandoned us, so exit. */
+		exit_worker(1, "Failed to write() to master");
 	}
 }
 
+__attribute__((__format__(__printf__, 3, 4)))
 static void job_error(child_process *cp, struct kvvec *kvv, const char *fmt, ...)
 {
 	char msg[4096];
 	int len;
 	va_list ap;
-	int ret;
 
 	va_start(ap, fmt);
-	len = vsnprintf(msg, sizeof(msg) - 1, fmt, ap);
+	len = vsnprintf(msg, sizeof(msg), fmt, ap);
 	va_end(ap);
+	if (len < 0) {
+		/* We can't send what we can't print. */
+		kvvec_destroy(kvv, 0);
+		return;
+	}
+
+	if (len > sizeof(msg) - 1) {
+		/* A truncated log is better than no log or buffer overflows. */
+		len = sizeof(msg) - 1;
+	}
+	msg[len] = 0;
+
 	if (cp) {
 		kvvec_addkv(kvv, "job_id", mkstr("%d", cp->id));
 	}
 	kvvec_addkv_wlen(kvv, "error_msg", 9, msg, len);
-	ret = worker_send_kvvec(master_sd, kvv);
-	if (ret < 0 && errno == EPIPE)
+
+	if (worker_send_kvvec(master_sd, kvv) < 0 && errno == EPIPE) {
+		/* Master has died or abandoned us, so exit. */
 		exit_worker(1, "Failed to send job error key/value vector to master");
+	}
+
 	kvvec_destroy(kvv, 0);
 }
 
@@ -384,9 +406,9 @@ static void kill_job(child_process *cp, int reason)
 			 * reap attempt later.
 			 */
 			if (reason == ESTALE) {
-wlog("tv.tv_sec is currently %d", tv.tv_sec);
+				wlog("tv.tv_sec is currently %lu", (unsigned long)tv.tv_sec);
 				tv.tv_sec += 5;
-				wlog("Failed to reap child with pid %d. Next attempt @ %lu.%lu", cp->ei->pid, tv.tv_sec, tv.tv_usec);
+				wlog("Failed to reap child with pid %d. Next attempt @ %lu.%lu", cp->ei->pid, (unsigned long)tv.tv_sec, (unsigned long)tv.tv_usec);
 			} else {
 				tv.tv_usec = 250000;
 				if (tv.tv_usec > 1000000) {

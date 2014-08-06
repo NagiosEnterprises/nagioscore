@@ -37,6 +37,12 @@ struct {
 } anomaly[] = {
 	{ RUNCMD_HAS_REDIR, "cat lala | grep foo" },
 	{ 0, "cat lala \\| grep foo" },
+	{ RUNCMD_HAS_REDIR, "cat lala > foo" },
+	{ 0, "cat lala \\> foo" },
+	{ RUNCMD_HAS_REDIR, "cat lala >> foo" },
+	{ 0, "cat lala \\>\\> foo" },
+	{ RUNCMD_HAS_REDIR, "something < bar" },
+	{ 0, "something \\< bar" },
 	{ RUNCMD_HAS_JOBCONTROL, "foo && bar" },
 	{ 0, "foo \\&\\& bar" },
 	{ RUNCMD_HAS_JOBCONTROL, "foo & bar" },

@@ -228,6 +228,8 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			break;
 
 		case '|':
+		case '<':
+		case '>':
 			if (!in_quotes) {
 				add_ret(RUNCMD_HAS_REDIR);
 			}

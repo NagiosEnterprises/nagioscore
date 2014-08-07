@@ -16,7 +16,7 @@ FIXES
 * Fixed Tracker #582, #626: Handle VAR=VAL assignments at the start of simple commands (Eric Mislivec, Phil Randal)
 * Corrected worker communication protocol documentation (Phil Mayers)
 * Fixed init script to leave config test log in a better location, let sysconfig override init script variables, and not remove nagios.cmd when attempting to start with another instance running (Eric Mislivec, Robin Kearney)
-Fixed Tracker #361: Downtime notifications not displayed properly (Andrew Widdersheim)
+* Fixed Tracker #361: Downtime notifications not displayed properly (Andrew Widdersheim)
 
 4.0.7 - 06/03/2014
 ------------------

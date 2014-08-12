@@ -11,6 +11,8 @@ ENHANCEMENTS
 * Limit the number of autocalculated core workers to not spawn too many on large systems (Eric Mislivec, Janice Singh)
 
 FIXES
+* Removed quotes from numeric duration values in JSON CGIs (Eric Stanley)
+* Fixed escaping in JSON CGIs so all required characters are escaped, and in the correct order (Eric Stanley)
 * Fixed segfault in archive JSON CGI when plugin output was empty (Eric Stanley)
 * Fixed several possibilities for buffer overflow (Eric Mislivec, Dirkjan Bussink)
 * Fixed Tracker #582, #626: Handle VAR=VAL assignments at the start of simple commands (Eric Mislivec, Phil Randal)

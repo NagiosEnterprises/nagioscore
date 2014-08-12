@@ -16,6 +16,7 @@ FIXES
 * Fixed segfault in archive JSON CGI when plugin output was empty (Eric Stanley)
 * Fixed several possibilities for buffer overflow (Eric Mislivec, Dirkjan Bussink)
 * Fixed Tracker #582, #626: Handle VAR=VAL assignments at the start of simple commands (Eric Mislivec, Phil Randal)
+* Fixed Tracker #630: Recognize '<' and '>' as redirection operators (Eric Mislivec)
 * Corrected worker communication protocol documentation (Phil Mayers)
 * Fixed init script to leave config test log in a better location, let sysconfig override init script variables, and not remove nagios.cmd when attempting to start with another instance running (Eric Mislivec, Robin Kearney)
 * Fixed Tracker #361: Downtime notifications not displayed properly (Andrew Widdersheim)

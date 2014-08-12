@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.0.8 - xx/xx/xxxx
+4.0.8 - 08/12/2014
 ------------------
 ENHANCEMENTS
 * Removed 8 kB string size limitation in JSON CGIs (Eric Stanley)

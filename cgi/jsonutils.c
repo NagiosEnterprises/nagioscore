@@ -736,10 +736,14 @@ void json_array_print(json_array *obj, int padding, int whitespace,
 void json_member_print(json_object_member *mp, int padding, int whitespace, 
 		char *strftime_format, unsigned format_options) {
 
+	char *buf = NULL;
+
 	switch(mp->type) {
 	case JSON_TYPE_OBJECT:
 		if(NULL != mp->key) {
-			indentf(padding, whitespace, "\"%s\": ", mp->key);
+			buf = json_escape_string(mp->key, &string_escapes);
+			indentf(padding, whitespace, "\"%s\": ", buf);
+			if(NULL != buf) free(buf);
 			}
 		else {
 			indentf(padding, whitespace, "");
@@ -749,7 +753,9 @@ void json_member_print(json_object_member *mp, int padding, int whitespace,
 		break;
 	case JSON_TYPE_ARRAY:
 		if(NULL != mp->key) {
-			indentf(padding, whitespace, "\"%s\": ", mp->key);
+			buf = json_escape_string(mp->key, &string_escapes);
+			indentf(padding, whitespace, "\"%s\": ", buf);
+			if(NULL != buf) free(buf);
 			}
 		else {
 			indentf(padding, whitespace, "");

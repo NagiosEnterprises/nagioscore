@@ -1390,7 +1390,7 @@ char *json_escape_string(const char *src, const json_escape *escapes) {
 
 	/* Make a wide string copy of src */
 	wdest_len = mbstowcs(NULL, src, 0);
-	if(0 == wdest_len) return NULL;
+	if(wdest_len <= 0) return NULL;
 	if((wdest = calloc(wdest_len + 1, sizeof(wchar_t))) == NULL) {
 		return NULL;
 		}
@@ -1412,11 +1412,11 @@ char *json_escape_string(const char *src, const json_escape *escapes) {
 				if((wdest_size - wdest_len) < (to_len - from_len)) {
 					/* If more room is needed, realloc and update variables */
 					wdest_size += (to_len - from_len) * BUF_REALLOC_MULTIPLIER;
-					wdest = realloc(wdest, wdest_size * sizeof(wchar_t));
+					wdest = realloc(wdest, (wdest_size + 1) * sizeof(wchar_t));
 					if(NULL == wdest) return NULL;
 					fromp = wdest + offset;
 					}
-				wchars = wdest_len - offset + from_len + 1;
+				wchars = wdest_len - offset - from_len + 1;
 				wmemmove(fromp + to_len, fromp + from_len, wchars);
 				wcsncpy(fromp, escp->to, to_len);
 				wdest_len += (to_len - from_len);

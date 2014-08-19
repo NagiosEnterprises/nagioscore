@@ -3175,14 +3175,18 @@ json_object *json_archive_statechangelist(unsigned format_options,
 	/* Inject a pseudo entry with the final state */
 	switch(object_type) {
 	case AU_OBJTYPE_HOST:
-		end_log = au_create_alert_or_state_log(object_type, 
-				temp_host, AU_STATETYPE_HARD, temp_state_log->state, 
-				"Final Host Pseudo-State");
+		if(NULL != temp_host) {
+			end_log = au_create_alert_or_state_log(object_type,
+					temp_host, AU_STATETYPE_HARD, temp_state_log->state,
+					"Final Host Pseudo-State");
+			}
 		break;
 	case AU_OBJTYPE_SERVICE:
-		end_log = au_create_alert_or_state_log(object_type, 
-				temp_service, AU_STATETYPE_HARD, temp_state_log->state, 
-				"Final Service Pseudo-State");
+		if(NULL != temp_service) {
+			end_log = au_create_alert_or_state_log(object_type,
+					temp_service, AU_STATETYPE_HARD, temp_state_log->state,
+					"Final Service Pseudo-State");
+			}
 		break;
 		}
 	if(end_log != NULL) {
@@ -4484,11 +4488,13 @@ json_object *json_archive_single_host_availability(unsigned format_options,
 		host = au_add_host(log->hosts, host_name);
 		/* Add global events to this new host */
 		global_host = au_find_host(log->hosts, "*");
-		for(temp_entry = global_host->log_entries->head; NULL != temp_entry; 
-				temp_entry = temp_entry->next) {
-			if(au_list_add_node(host->log_entries, temp_entry->data, 
-					au_cmp_log_entries) == 0) {
-				break;
+		if(NULL != global_host) {
+			for(temp_entry = global_host->log_entries->head; NULL != temp_entry;
+					temp_entry = temp_entry->next) {
+				if(au_list_add_node(host->log_entries, temp_entry->data,
+						au_cmp_log_entries) == 0) {
+					break;
+					}
 				}
 			}
 		}
@@ -4523,11 +4529,13 @@ json_object *json_archive_single_service_availability(unsigned format_options,
 		service = au_add_service(log->services, host_name, service_description);
 		/* Add global events to this new service */
 		global_host = au_find_host(log->hosts, "*");
-		for(temp_entry = global_host->log_entries->head; NULL != temp_entry; 
-				temp_entry = temp_entry->next) {
-			if(au_list_add_node(service->log_entries, temp_entry->data, 
-					au_cmp_log_entries) == 0) {
-				break;
+		if(NULL != global_host) {
+			for(temp_entry = global_host->log_entries->head; NULL != temp_entry;
+					temp_entry = temp_entry->next) {
+				if(au_list_add_node(service->log_entries, temp_entry->data,
+						au_cmp_log_entries) == 0) {
+					break;
+					}
 				}
 			}
 		}

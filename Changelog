@@ -2,6 +2,12 @@
 Nagios Core 4 Change Log
 ########################
 
+4.x.x - xx/xx/xxxx
+------------------
+FIXES
+* Fixed null pointer dereferences in archive JSON (Eric Stanley)
+* Fixed memory overwrite issue in JSON string escaping (Eric Stanley)
+
 4.0.8 - 08/12/2014
 ------------------
 ENHANCEMENTS

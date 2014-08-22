@@ -1131,10 +1131,12 @@ illegal_object_name_chars=`~!$%^&*|'"<>?,()=
 # host check commands.
 # The following macros are stripped of the characters you specify:
 #	$HOSTOUTPUT$
+#	$LONGHOSTOUTPUT$
 #	$HOSTPERFDATA$
 #	$HOSTACKAUTHOR$
 #	$HOSTACKCOMMENT$
 #	$SERVICEOUTPUT$
+#	$LONGSERVICEOUTPUT$
 #	$SERVICEPERFDATA$
 #	$SERVICEACKAUTHOR$
 #	$SERVICEACKCOMMENT$

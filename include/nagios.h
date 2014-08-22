@@ -620,6 +620,20 @@ void my_system_sighandler(int);				/* handles timeouts when executing commands v
 char *get_next_string_from_buf(char *buf, int *start_index, int bufsize);
 int compare_strings(char *, char *);                    /* compares two strings for equality */
 char *escape_newlines(char *);
+/**
+ * Unescapes newlines and backslashes in a check result output string read from
+ * a source that uses newlines as a delimiter (e.g., files in the checkresults
+ * spool dir, or the command pipe).
+ * @note: There is an unescape_newlines() in cgi/cgiutils.c that unescapes more
+ * than '\\' and '\n' in place. Since this function is specifically intended
+ * for processing escaped plugin output, we'll use a more specific name to
+ * avoid confusion and conflicts.
+ * @param rawbuf Input string tp unescape.
+ * @return An unescaped copy of rawbuf in a newly allocated string, or NULL if
+ * rawbuf is NULL or no memory could be allocated for the new string.
+ */
+char *unescape_check_result_output(const char *rawbuf);
+
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *, char *);                          /* renames a file - works across filesystems */
 int my_fcopy(char *, char *);                           /* copies a file - works across filesystems */

@@ -587,9 +587,9 @@ static int runcmd_setenv(const char *name, const char *value) {
 	/* For Solaris and systems that don't have setenv().
 	 * This will leak memory, but in a "controlled" way, since the memory
 	 * should be freed when the child process exits. */
-	if (asprintf(&env_string, "%s=%s", name, value) = -1) return -1;
+	if (asprintf(&env_string, "%s=%s", name, value) == -1) return -1;
 	if (!env_string) {
-		errno == ENOMEM;
+		errno = ENOMEM;
 		return -1;
 	}
 	return putenv(env_string);

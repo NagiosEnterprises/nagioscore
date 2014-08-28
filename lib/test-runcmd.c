@@ -5,6 +5,15 @@
 
 #define BUF_SIZE 1024
 
+#if defined(__sun) && defined(__SVR4)
+/* Assume we have GNU echo from OpenCSW at this location on Solaris. */
+#define ECHO_COMMAND "/opt/csw/gnu/echo"
+#else
+/* Otherwise we'll try to get away with a default. This is GNU echo on Leenooks. */
+#define ECHO_COMMAND "/bin/echo"
+#endif
+
+
 struct {
 	char *input;
 	char *output;
@@ -118,7 +127,7 @@ int main(int argc, char **argv)
 			int stub_iobregarg = 0;
 			int fd;
 			char *cmd;
-			asprintf(&cmd, "/bin/echo -n %s", cases[i].input);
+			asprintf(&cmd, ECHO_COMMAND " -n %s", cases[i].input);
 			fd = runcmd_open(cmd, pfd, pfderr, NULL, stub_iobreg, &stub_iobregarg);
 			free(cmd);
 			read(pfd[0], out, BUF_SIZE);

@@ -774,7 +774,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 			break;
 
 		default:
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker %d: Unknown jobtype: %d\n", wp->pid, job->type);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker %ld: Unknown jobtype: %d\n", (long)wp->pid, job->type);
 			break;
 		}
 		destroy_job(job);
@@ -904,9 +904,9 @@ static int wproc_query_handler(int sd, char *buf, unsigned int len)
 
 		for (i = 0; i < workers.len; i++) {
 			struct wproc_worker *wp = workers.wps[i];
-			nsock_printf(sd, "name=%s;pid=%d;jobs_running=%u;jobs_started=%u\n",
-						 wp->name, wp->pid,
-						 wp->jobs_running, wp->jobs_started);
+			nsock_printf(sd, "name=%s;pid=%ld;jobs_running=%u;jobs_started=%u\n",
+					wp->name, (long)wp->pid,
+					wp->jobs_running, wp->jobs_started);
 		}
 		return 0;
 	}

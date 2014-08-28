@@ -378,7 +378,7 @@ static void kill_job(child_process *cp, int reason)
 		if (errno == ESRCH) {
 			reaped = 1;
 		} else {
-			wlog("kill(-%d, SIGKILL) failed: %s\n", cp->ei->pid, strerror(errno));
+			wlog("kill(-%ld, SIGKILL) failed: %s\n", (long)cp->ei->pid, strerror(errno));
 		}
 	}
 
@@ -406,9 +406,9 @@ static void kill_job(child_process *cp, int reason)
 			 * reap attempt later.
 			 */
 			if (reason == ESTALE) {
-				wlog("tv.tv_sec is currently %lu", (unsigned long)tv.tv_sec);
+				wlog("tv.tv_sec is currently %llu", (unsigned long long)tv.tv_sec);
 				tv.tv_sec += 5;
-				wlog("Failed to reap child with pid %d. Next attempt @ %lu.%lu", cp->ei->pid, (unsigned long)tv.tv_sec, (unsigned long)tv.tv_usec);
+				wlog("Failed to reap child with pid %ld. Next attempt @ %llu.%lu", (long)cp->ei->pid, (unsigned long long)tv.tv_sec, (unsigned long)tv.tv_usec);
 			} else {
 				tv.tv_usec = 250000;
 				if (tv.tv_usec > 1000000) {
@@ -427,7 +427,7 @@ static void kill_job(child_process *cp, int reason)
 	if (cp->ei->state != ESTALE)
 		finish_job(cp, reason);
 	else
-		wlog("job %d (pid=%d): Dormant child reaped", cp->id, cp->ei->pid);
+		wlog("job %d (pid=%ld): Dormant child reaped", cp->id, (long)cp->ei->pid);
 	destroy_job(cp);
 }
 
@@ -442,7 +442,7 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 			if (errno == EINTR || errno == EAGAIN)
 				continue;
 			if (!final && errno != EAGAIN)
-				wlog("job %d (pid=%d): Failed to read(): %s", cp->id, cp->ei->pid, strerror(errno));
+				wlog("job %d (pid=%ld): Failed to read(): %s", cp->id, (long)cp->ei->pid, strerror(errno));
 		}
 
 		if (rd > 0) {
@@ -794,7 +794,7 @@ void enter_worker(int sd, int (*cb)(child_process*))
 				}
 			} else {
 				/* this job timed out, so kill it */
-				wlog("job %d (pid=%d) timed out. Killing it", cp->id, cp->ei->pid);
+				wlog("job %d (pid=%ld) timed out. Killing it", cp->id, (long)cp->ei->pid);
 				kill_job(cp, ETIME);
 			}
 		}

@@ -298,7 +298,7 @@ install-webconf:
 	@echo ""
 	@echo "*** Nagios/Apache conf file installed ***"
 	@echo ""
-	
+
 install-exfoliation:
 	cp -rf contrib/exfoliation/stylesheets/* $(DESTDIR)$(HTMLDIR)/stylesheets
 	cp -rf contrib/exfoliation/images/* $(DESTDIR)$(HTMLDIR)/images
@@ -307,7 +307,7 @@ install-exfoliation:
 	@echo "*** Exfoliation theme installed ***"
 	@echo "NOTE: Use 'make install-classicui' to revert to classic Nagios theme";
 	@echo ""
-	
+
 install-classicui:
 	cp -rf html/stylesheets/* $(DESTDIR)$(HTMLDIR)/stylesheets
 	cp -rf html/images/* $(DESTDIR)$(HTMLDIR)/images
@@ -344,7 +344,7 @@ install-headers:
 	$(INSTALL) -d -m 755 $(DESTDIR)$(INCLUDEDIR)/lib
 	$(INSTALL) -m 644 include/*.h $(DESTDIR)$(INCLUDEDIR)
 	$(INSTALL) -m 644 lib/*.h $(DESTDIR)$(INCLUDEDIR)/lib
-	rm -f $(DESTDIR)$(INCLUDEDIR)/nagios/config.h
+	rm -f $(DESTDIR)$(INCLUDEDIR)/config*.h
 
 install-lib: $(SRC_LIB)/libnagios.a
 	$(INSTALL) -d -m 755 $(DESTDIR)$(LIBDIR)

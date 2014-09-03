@@ -193,6 +193,15 @@
 #include <stdarg.h>
 #endif
 
+/* Another Solarisism: getloadavg() lives in <sys/loadavg.h>, not <stdlib.h>,
+ * so include the former if it exists. This may be true on other systems, or
+ * this function may be missing altogether (see:
+ * https://www.gnu.org/software/gnulib/manual/html_node/getloadavg.html). */
+#undef HAVE_SYS_LOADAVG_H
+#ifdef HAVE_SYS_LOADAVG_H
+#include <sys/loadavg.h>
+#endif
+
 #undef HAVE_SYS_TYPES_H
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>

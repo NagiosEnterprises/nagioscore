@@ -370,8 +370,24 @@ static int wproc_destroy(struct wproc_worker *wp, int flags)
 /* remove the worker list pointed to by to_remove */
 static int remove_specialized(void *data)
 {
-	if (data == to_remove)
+	if (data == to_remove) {
 		return DKHASH_WALK_REMOVE;
+	} else if (to_remove == NULL) {
+		/* remove all specialised workers and their lists */
+		struct wproc_list *h = data;
+		int i;
+		for (i=0;i<h->len;i++) {
+			/* not sure what WPROC_FORCE is actually for.
+			 * Nagios does *not* retain workers across
+			 * restarts, as stated in wproc_destroy?
+			 */
+			wproc_destroy(h->wps[i], WPROC_FORCE);
+		}
+		h->len = 0;
+		free(h->wps);
+		free(h);
+		return DKHASH_WALK_REMOVE;
+	}
 	return 0;
 }
 

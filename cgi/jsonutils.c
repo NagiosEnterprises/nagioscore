@@ -952,64 +952,91 @@ int passes_start_and_count_limits(int start, int max, int current, int counted) 
 
 void json_string(int padding, int whitespace, char *key, char *value) {
 
-	char *buf = NULL;
+	char *keybuf = NULL;
+	char *valbuf = NULL;
 
-	buf = json_escape_string(value, &string_escapes);
+	valbuf = json_escape_string(value, &string_escapes);
 
 	if( NULL == key) {
-		indentf(padding, whitespace, "\"%s\"", (( NULL == buf) ? "" : buf));
+		indentf(padding, whitespace, "\"%s\"",
+				(( NULL == valbuf) ? "" : valbuf));
 		}
 	else {
-		indentf(padding, whitespace, "\"%s\":%s\"%s\"", key, 
-				(( whitespace> 0) ? " " : ""), (( NULL == buf) ? "" : buf));
+		keybuf = json_escape_string(key, &string_escapes);
+		indentf(padding, whitespace, "\"%s\":%s\"%s\"", keybuf, 
+				(( whitespace> 0) ? " " : ""),
+				(( NULL == valbuf) ? "" : valbuf));
 		}
-	if(NULL != buf) free(buf);
+	if(NULL != keybuf) free(keybuf);
+	if(NULL != valbuf) free(valbuf);
 	}
 
 void json_boolean(int padding, int whitespace, char *key, int value) {
+
+	char *keybuf = NULL;
+
 	if( NULL == key) {
 		indentf(padding, whitespace, "%s", 
 				(( 0 == value) ? "false" : "true"));
 		}
 	else {
-		indentf(padding, whitespace, "\"%s\":%s%s", key, 
+		keybuf = json_escape_string(key, &string_escapes);
+		indentf(padding, whitespace, "\"%s\":%s%s", keybuf, 
 				(( whitespace > 0) ? " " : ""),
 				(( 0 == value) ? "false" : "true"));
 		}
+	if(NULL != keybuf) free(keybuf);
 	}
 
 void json_int(int padding, int whitespace, char *key, int value) {
+
+	char *keybuf = NULL;
+
 	if( NULL == key) {
 		indentf(padding, whitespace, "%d", value); 
 		}
 	else {
-		indentf(padding, whitespace, "\"%s\":%s%d", key, 
+		keybuf = json_escape_string(key, &string_escapes);
+		indentf(padding, whitespace, "\"%s\":%s%d", keybuf, 
 				(( whitespace > 0) ? " " : ""), value); 
 		}
+	if(NULL != keybuf) free(keybuf);
 	}
 
 void json_unsigned(int padding, int whitespace, char *key, 
 		unsigned long long value) {
+
+	char *keybuf = NULL;
+
 	if( NULL == key) {
 		indentf(padding, whitespace, "%llu", value);
 		}
 	else {
-		indentf(padding, whitespace, "\"%s\":%s%llu", key, 
+		keybuf = json_escape_string(key, &string_escapes);
+		indentf(padding, whitespace, "\"%s\":%s%llu", keybuf, 
 				(( whitespace > 0) ? " " : ""), value);
 		}
+	if(NULL != keybuf) free(keybuf);
 	}
 
 void json_float(int padding, int whitespace, char *key, double value) {
+
+	char *keybuf = NULL;
+
 	if( NULL == key) {
 		indentf(padding, whitespace, "%.2f", value);
 		}
 	else {
-		indentf(padding, whitespace, "\"%s\":%s%.2f", key, 
+		keybuf = json_escape_string(key, &string_escapes);
+		indentf(padding, whitespace, "\"%s\":%s%.2f", keybuf, 
 				(( whitespace > 0) ? " " : ""), value);
 		}
+	if(NULL != keybuf) free(keybuf);
 	}
 
 void json_time(int padding, int whitespace, char *key, unsigned long value) {
+
+	char *keybuf = NULL;
 	unsigned hours;
 	unsigned minutes;
 	unsigned seconds;
@@ -1025,15 +1052,18 @@ void json_time(int padding, int whitespace, char *key, unsigned long value) {
 				seconds);
 		}
 	else {
-		indentf(padding, whitespace, "\"%s\":%s\"%02u:%02u:%02u\"", key, 
+		keybuf = json_escape_string(key, &string_escapes);
+		indentf(padding, whitespace, "\"%s\":%s\"%02u:%02u:%02u\"", keybuf, 
 				(( whitespace > 0) ? " " : ""), hours, minutes,
 				seconds);
 		}
+	if(NULL != keybuf) free(keybuf);
 	}
 
 void json_time_t(int padding, int whitespace, char *key, time_t value, 
 		char *format) {
 
+	char		*keybuf = NULL;
 	char		buf[1024];
 	struct tm	*tmp_tm;
 
@@ -1052,14 +1082,17 @@ void json_time_t(int padding, int whitespace, char *key, time_t value,
 		indentf(padding, whitespace, "%s", buf);
 		}
 	else {
-		indentf(padding, whitespace, "\"%s\":%s%s", key, 
+		keybuf = json_escape_string(key, &string_escapes);
+		indentf(padding, whitespace, "\"%s\":%s%s", keybuf, 
 				(( whitespace > 0) ? " " : ""), buf);
 		}
+	if(NULL != keybuf) free(keybuf);
 	}
 
 void json_duration(int padding, int whitespace, char *key, unsigned long value,
 		int format_duration) {
 
+	char		*keybuf = NULL;
 	char		buf[1024];
 	int			days = 0;
 	int			hours = 0;
@@ -1085,10 +1118,12 @@ void json_duration(int padding, int whitespace, char *key, unsigned long value,
 		indentf(padding, whitespace, "%s", buf);
 		}
 	else {
-		indentf(padding, whitespace, "\"%s\":%s%s%s%s", key, 
+		keybuf = json_escape_string(key, &string_escapes);
+		indentf(padding, whitespace, "\"%s\":%s%s%s%s", keybuf, 
 				(( whitespace > 0) ? " " : ""), (format_duration ? "\"" : ""),
 				buf, (format_duration ? "\"" : ""));
 		}
+	if(NULL != keybuf) free(keybuf);
 	}
 
 void json_enumeration(json_object *json_parent, unsigned format_options, 

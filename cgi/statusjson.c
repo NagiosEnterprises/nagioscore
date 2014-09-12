@@ -3522,6 +3522,8 @@ void json_status_service_details(json_object *json_details,
 			temp_servicestatus->last_notification);
 	json_object_append_time_t(json_details, "next_notification", 
 			temp_servicestatus->next_notification);
+	json_object_append_time_t(json_details, "next_check", 
+			temp_servicestatus->next_check);
 	json_object_append_boolean(json_details, "no_more_notifications", 
 			temp_servicestatus->no_more_notifications);
 	json_object_append_boolean(json_details, "notifications_enabled", 

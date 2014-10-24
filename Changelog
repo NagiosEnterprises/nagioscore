@@ -5,6 +5,7 @@ Nagios Core 4 Change Log
 4.x.x - xx/xx/xxxx
 ------------------
 FIXES
+* Fixed Github bug #18 - archivejson.cgi returns wrong host for state change query
 * Fixed null pointer dereferences in archive JSON (Eric Stanley)
 * Fixed memory overwrite issue in JSON string escaping (Eric Stanley)
 

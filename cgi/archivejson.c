@@ -3175,6 +3175,7 @@ json_object *json_archive_statechangelist(unsigned format_options,
 	/* Inject a pseudo entry with the final state */
 	switch(object_type) {
 	case AU_OBJTYPE_HOST:
+		temp_host = au_find_host(log->hosts, host_name);
 		if(NULL != temp_host) {
 			end_log = au_create_alert_or_state_log(object_type,
 					temp_host, AU_STATETYPE_HARD, temp_state_log->state,
@@ -3182,6 +3183,8 @@ json_object *json_archive_statechangelist(unsigned format_options,
 			}
 		break;
 	case AU_OBJTYPE_SERVICE:
+		temp_service = au_find_service(log->hosts, host_name,
+				service_description);
 		if(NULL != temp_service) {
 			end_log = au_create_alert_or_state_log(object_type,
 					temp_service, AU_STATETYPE_HARD, temp_state_log->state,

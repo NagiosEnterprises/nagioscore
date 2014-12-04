@@ -9,7 +9,7 @@
  * described by William Pugh (ftp://ftp.cs.umd.edu/pub/skipLists/skiplists.pdf).
  * The structures and function were modified to allow the list to act
  * like a priority queue for the Nagios event list/queue(s).  Multiple nodes with
- * the same key value are allowed on the list to accomodate multiple events
+ * the same key value are allowed on the list to accommodate multiple events
  * occurring at the same (second) point in time.  Implemented peek() and pop()
  * functions to allow for quick event queue processing, and a method to delete
  * a specific list item, based on its pointer, rather than its data value.  Again,

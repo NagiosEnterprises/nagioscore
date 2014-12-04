@@ -295,7 +295,7 @@ class MagpieRSS {
         }
         elseif ($this->feed_type == ATOM and $this->incontent  ) {
             // balance tags properly
-            // note:  i don't think this is actually neccessary
+            // note:  i don't think this is actually necessary
             if ( $this->stack[0] == $el ) 
             {
                 $this->append_content("</$el>");

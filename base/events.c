@@ -1051,7 +1051,7 @@ int event_execution_loop(void) {
 		/* keep track of the last time */
 		last_time = current_time;
 
-		/* update status information occassionally - NagVis watches the NDOUtils DB to see if Nagios is alive */
+		/* update status information occasionally - NagVis watches the NDOUtils DB to see if Nagios is alive */
 		if((unsigned long)(current_time - last_status_update) > 5) {
 			last_status_update = current_time;
 			update_program_status(FALSE);

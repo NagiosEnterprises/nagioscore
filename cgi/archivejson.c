@@ -3240,7 +3240,7 @@ int get_initial_nagios_state(au_linked_list *log_entries, time_t start_time,
 		else {
 			if(AU_STATE_NO_DATA != initial_state) {
 				/* Once we cross the threshold of the start time, if we have
-					an intial state, that is THE initial state */
+					an initial state, that is THE initial state */
 				return initial_state;
 				}
 			else {

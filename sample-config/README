@@ -18,7 +18,7 @@ cgi.cfg           - This is a sample CGI config file
 
 nagios.cfg        - This is a sample main config file
 
-resource.cfg      - This is a sample resource config file, used for definining
+resource.cfg      - This is a sample resource config file, used for defining
 		    custom macros, storing sensitive data, etc.
 
 httpd.conf        - This file contains sample snippets that you'll need to

@@ -1,0 +1,156 @@
+<div id="histogramsvg">
+	<div id="spinner" ng-show="fetchingAlerts"></div>
+	<div>
+		<svg id="histogram" ng-attr-width="{{svgWidth}}"
+				ng-attr-height="{{svgHeight}}" ng-hide="formDisplayed">
+			<g id="header">
+				<text x="335" y="14" ng-show="reporttype == 'hosts'">
+					State History for Host '{{host}}'
+				</text>
+				<text x="335" y="14"
+						ng-show="reporttype == 'services'">
+					State History for Service '{{service}}'
+					on Host '{{host}}'
+				</text>
+				<text x="335" y="31" id="timespan">
+					{{startTime | date:'EEE MMM dd HH:mm:ss yyyy'}} to
+					{{endTime | date:'EEE MMM dd HH:mm:ss yyyy'}}
+				</text>
+			</g>
+			<g id="grid" transform="translate(60,40)">
+				<g id="outline">
+					<line x1="0" y1="0" x2="0" y2="196"
+							style="stroke-width: 1px; stroke: rgb(0, 0, 0);"></line>
+					<line x1="0" y1="196" x2="550" y2="196"
+							style="stroke-width: 1px; stroke: rgb(0, 0, 0);"></line>
+					<line x1="550" y1="196" x2="550" y2="0"
+							style="stroke-width: 1px; stroke: rgb(0, 0, 0);"></line>
+				</g>
+				<g id="xaxis"></g>
+				<g id="xaxis-label">
+					<text x="275" y="276" style="text-anchor: middle;">
+						{{statisticsBreakdownLabel(breakdown)}}
+					</text>
+				</g>
+				<g id="yaxis" transform="translate(550,0)"></g>
+				<g id="yaxis-label">
+					<text transform="rotate(-90) translate(-98,-30)"
+							style="text-anchor: middle;">
+						Number of Events
+					</text>
+				</g>
+			</g>
+			<g class="summary" transform="translate(620,40)"
+					ng-show="reporttype == 'hosts'">
+				<text x="4" y="10" class="label">EVENT TYPE</text>
+				<text x="133" y="10" class="value">MIN</text>
+				<text x="170" y="10" class="value">MAX</text>
+				<text x="206" y="10" class="value">SUM</text>
+				<text x="248" y="10" class="value">AVG</text>
+				<line x1="4" y1="15" x2="276" y2="15"></line>
+				<text x="4" y="28" class="label up">Recovery (Up):</text>
+				<text x="133" y="28" class="value">
+					{{summary[breakdown].minima.up}}
+				</text>
+				<text x="170" y="28" class="value">
+					{{summary[breakdown].maxima.up}}
+				</text>
+				<text x="206" y="28" class="value">
+					{{summary[breakdown].totals.up}}
+				</text>
+				<text x="248" y="28" class="value">
+					{{summary[breakdown].totals.up / getBreakdownPeriods() | number:2}}
+				</text>
+				<text x="4" y="46" class="label down">Down:</text>
+				<text x="133" y="46" class="value">
+					{{summary[breakdown].minima.down}}
+				</text>
+				<text x="170" y="46" class="value">
+					{{summary[breakdown].maxima.down}}
+				</text>
+				<text x="206" y="46" class="value">
+					{{summary[breakdown].totals.down}}
+				</text>
+				<text x="248" y="46" class="value">
+					{{summary[breakdown].totals.down / getBreakdownPeriods() | number:2}}
+				</text>
+				<text x="4" y="64" class="label unreachable">
+					Unreachable:
+				</text>
+				<text x="133" y="64" class="value">
+					{{summary[breakdown].minima.unreachable}}
+				</text>
+				<text x="170" y="64" class="value">
+					{{summary[breakdown].maxima.unreachable}}
+				</text>
+				<text x="206" y="64" class="value">
+					{{summary[breakdown].totals.unreachable}}
+				</text>
+				<text x="248" y="64" class="value">
+					{{summary[breakdown].totals.unreachable / getBreakdownPeriods() | number:2}}
+				</text>
+			</g>
+			<g class="summary" transform="translate(620,40)"
+					ng-show="reporttype == 'services'">
+				<text x="4" y="10" class="label">EVENT TYPE</text>
+				<text x="133" y="10" class="value">MIN</text>
+				<text x="170" y="10" class="value">MAX</text>
+				<text x="206" y="10" class="value">SUM</text>
+				<text x="248" y="10" class="value">AVG</text>
+				<line x1="4" y1="15" x2="276" y2="15"></line>
+				<text x="4" y="28" class="label ok">Recovery (Ok):</text>
+				<text x="133" y="28" class="value">
+					{{summary[breakdown].minima.ok}}
+				</text>
+				<text x="170" y="28" class="value">
+					{{summary[breakdown].maxima.ok}}
+				</text>
+				<text x="206" y="28" class="value">
+					{{summary[breakdown].totals.ok}}
+				</text>
+				<text x="248" y="28" class="value">
+					{{summary[breakdown].totals.ok / getBreakdownPeriods() | number:2}}
+				</text>
+				<text x="4" y="46" class="label warning">Warning:</text>
+				<text x="133" y="46" class="value">
+					{{summary[breakdown].minima.warning}}
+				</text>
+				<text x="170" y="46" class="value">
+					{{summary[breakdown].maxima.warning}}
+				</text>
+				<text x="206" y="46" class="value">
+					{{summary[breakdown].totals.warning}}
+				</text>
+				<text x="248" y="46" class="value">
+					{{summary[breakdown].totals.warning / getBreakdownPeriods() | number:2}}
+				</text>
+				<text x="4" y="64" class="label unknown">Unknown:</text>
+				<text x="133" y="64" class="value">
+					{{summary[breakdown].minima.unknown}}
+				</text>
+				<text x="170" y="64" class="value">
+					{{summary[breakdown].maxima.unknown}}
+				</text>
+				<text x="206" y="64" class="value">
+					{{summary[breakdown].totals.unknown}}
+				</text>
+				<text x="248" y="64" class="value">
+					{{summary[breakdown].totals.unknown / getBreakdownPeriods() | number:2}}
+				</text>
+				<text x="4" y="82" class="label critical">Critical:</text>
+				<text x="133" y="82" class="value">
+					{{summary[breakdown].minima.critical}}
+				</text>
+				<text x="170" y="82" class="value">
+					{{summary[breakdown].maxima.critical}}
+				</text>
+				<text x="206" y="82" class="value">
+					{{summary[breakdown].totals.critical}}
+				</text>
+				<text x="248" y="82" class="value">
+					{{summary[breakdown].totals.critical / getBreakdownPeriods() | number:2}}
+				</text>
+			</g>
+		</svg>
+	</div>
+</div>

@@ -24,3 +24,9 @@ gmon.out
 core.[1-9]*
 /Documentation
 *.pre-indent
+*.swp
+
+html/angularjs/angular-1.3.9
+html/angularjs/ui-utils-0.2.1
+html/bootstrap-3.3.0
+html/d3

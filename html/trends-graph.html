@@ -1,0 +1,121 @@
+<div id="popup" ng-show="popupDisplayed">
+	<span id="popup-state">{{popupContents.state}}</span><br/>
+	<span class="field-name">Time Range: </span>
+	<span id="popup-start">
+		{{popupContents.start | date:'EEE MMM dd HH:mm:ss yyyy'}}
+	</span> to
+	<span id="popup-end">
+		{{popupContents.end | date:'EEE MMM dd HH:mm:ss yyyy'}}
+	</span><br/>
+	<span class="field-name">Duration: </span>
+	<span id="popup-duration">
+		{{popupContents.duration | duration}}
+	</span><br/>
+	<span class="field-name">State Info: </span>
+	<span id="popup-info"></span>{{popupContents.info}}<br/>
+</div>
+
+<div id="trendsvg">
+	<div id="gridspinner" ng-show="fetchingStateChanges"></div>
+	<div id="availabilityspinner" ng-show="fetchingAvailability">
+			</div>
+	<div>
+		<svg id="trend" ng-attr-width="{{svgWidth}}"
+				ng-attr-height="{{svgHeight}}">
+			<g id="header">
+				<text x="365" y="17"
+						ng-show="reporttype == 'services'">
+					State History for Service '{{service}}' on
+					Host '{{host}}'
+				</text>
+				<text x="365" y="17" ng-show="reporttype == 'hosts'">
+					State History for Host '{{host}}'
+				</text>
+				<text x="365" y="40">
+					{{startTime | date:'EEE MMM dd HH:mm:ss yyyy'}} to
+					{{endTime | date:'EEE MMM dd HH:mm:ss yyyy'}}
+				</text>
+			</g>
+			<g id="grid" transform="translate(110, 53)">
+				<rect x="3" y="0"
+						ng-attr-height="{{reporttype == 'hosts' ? 88 : 108}}"
+						width="504" fill="rgb(255, 255, 255)"
+						stroke-width="1" stroke="black">
+				</rect>
+				<g id="groupRects"></g>
+				<g id="groupXAxis"></g>
+				<g id="groupYAxis" ng-include="getYAxisTemplate()">
+				</g>
+			</g>
+			<g id="availability" transform="translate(620,53)"
+					ng-show="reporttype == 'hosts'">
+				<text x="14" y="18" class="Up label">
+					Up :
+				</text>
+				<text x="100" y="18" class="Up value">
+					({{availabilityStates.up.percentageTime * 100 | number: 3}}%)
+					{{availabilityStates.up.totalTime * 1000 | duration}}
+				</text>
+				<text x="14" y="43" class="Down label">
+					Down :
+				</text>
+				<text x="100" y="43" class="Down value">
+					({{availabilityStates.down.percentageTime * 100 | number: 3}}%)
+					{{availabilityStates.down.totalTime * 1000 | duration}}
+				</text>
+				<text x="14" y="68" class="Unreachable label">
+					Unreachable :
+				</text>
+				<text x="100" y="68" class="Unreachable value">
+					({{availabilityStates.unreachable.percentageTime * 100 | number: 3}}%)
+					{{availabilityStates.unreachable.totalTime * 1000 | duration}}
+				</text>
+				<text x="14" y="93" class="Indeterminate label">
+					Indeterminate :
+				</text>
+				<text x="100" y="93" class="Indeterminate value">
+					({{availabilityStates.nodata.percentageTime * 100 | number: 3}}%)
+					{{availabilityStates.nodata.totalTime * 1000 | duration}}
+				</text>
+			</g>
+			<g id="availability" transform="translate(620,53)"
+					ng-show="reporttype == 'services'">
+				<text x="14" y="18" class="Ok label">
+					Ok :
+				</text>
+				<text x="100" y="18" class="Ok value">
+					({{availabilityStates.ok.percentageTime * 100 | number: 3}}%)
+					{{availabilityStates.ok.totalTime * 1000 | duration}}
+				</text>
+				<text x="14" y="41" class="Warning label">
+					Warning :
+				</text>
+				<text x="100" y="41" class="Warning value">
+					({{availabilityStates.warning.percentageTime * 100 | number: 3}}%)
+					{{availabilityStates.warning.totalTime * 1000 | duration}}
+				</text>
+				<text x="14" y="64" class="Unknown label">
+					Unknown :
+				</text>
+				<text x="100" y="64" class="Unknown value">
+					({{availabilityStates.unknown.percentageTime * 100 | number: 3}}%)
+					{{availabilityStates.unknown.totalTime * 1000 | duration}}
+				</text>
+				<text x="14" y="87" class="Critical label">
+					Critical :
+				</text>
+				<text x="100" y="87" class="Critical value">
+					({{availabilityStates.critical.percentageTime * 100 | number: 3}}%)
+					{{availabilityStates.critical.totalTime * 1000 | duration}}
+				</text>
+				<text x="14" y="112" class="Indeterminate label">
+					Indeterminate :
+				</text>
+				<text x="100" y="112" class="Indeterminate value">
+					({{availabilityStates.nodata.percentageTime * 100 | number: 3}}%)
+					{{availabilityStates.nodata.totalTime * 1000 | duration}}
+				</text>
+			</g>
+		</svg>
+	</div>
+</div>

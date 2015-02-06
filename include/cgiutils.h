@@ -35,7 +35,11 @@ NAGIOS_BEGIN_DECL
 	/******************************* CGI NAMES **********************************/
 
 #define STATUS_CGI		"status.cgi"
+#ifdef LEGACY_GRAPHICAL_CGIS
 #define STATUSMAP_CGI		"statusmap.cgi"
+#else
+#define STATUSMAP_CGI		"../map.html"
+#endif
 #define STATUSWORLD_CGI	        "statuswrl.cgi"
 #define COMMAND_CGI		"cmd.cgi"
 #define EXTINFO_CGI		"extinfo.cgi"
@@ -44,12 +48,20 @@ NAGIOS_BEGIN_DECL
 #define HISTORY_CGI		"history.cgi"
 #define CONFIG_CGI              "config.cgi"
 #define OUTAGES_CGI		"outages.cgi"
+#ifdef LEGACY_GRAPHICAL_CGIS
 #define TRENDS_CGI		"trends.cgi"
+#else
+#define TRENDS_CGI		"../trends.html"
+#endif
 #define AVAIL_CGI		"avail.cgi"
 #define TAC_CGI			"tac.cgi"
 #define STATUSWML_CGI           "statuswml.cgi"
 #define TRACEROUTE_CGI		"traceroute.cgi"
+#ifdef LEGACY_GRAPHICAL_CGIS
 #define HISTOGRAM_CGI		"histogram.cgi"
+#else
+#define HISTOGRAM_CGI		"../histogram.html"
+#endif
 #define CHECKSANITY_CGI	   	"checksanity.cgi"
 #define MINISTATUS_CGI          "ministatus.cgi"
 #define SUMMARY_CGI	        "summary.cgi"

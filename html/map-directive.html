@@ -1,0 +1,7 @@
+<div id="popup" ng-include="'map-popup.html'" ng-show="displayPopup"></div>
+
+<div id="spinner" ng-show="fetchingHostlist"></div>
+
+<div id="mapsvg" ng-hide="fetchingHostlist">
+	<svg id="map"></svg>
+</div>

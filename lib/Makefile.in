@@ -7,6 +7,7 @@ LIBNAME = libnagios.a
 
 all: $(LIBNAME)
 
+SOCKETLIBS=@SOCKETLIBS@
 SNPRINTF_O=@SNPRINTF_O@
 TESTED_SRC_C := squeue.c kvvec.c iocache.c iobroker.c bitmap.c dkhash.c runcmd.c
 TESTED_SRC_C += nsutils.c fanout.c
@@ -20,6 +21,12 @@ test: $(TESTS)
 
 test-squeue: pqueue.o test-squeue.o t-utils.o
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) $^ -o $@
+
+test-iocache: t-utils.o test-iocache.o
+	$(CC) $(ALL_CFLAGS) $(SOCKETLIBS) $^ -o $@
+
+test-iobroker: t-utils.o test-iobroker.o
+	$(CC) $(ALL_CFLAGS) $(SOCKETLIBS) $^ -o $@
 
 %.o: %.c %.h Makefile lnag-utils.h
 	$(CC) $(ALL_CFLAGS) -c $< -o $@

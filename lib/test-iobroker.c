@@ -106,7 +106,7 @@ static int listen_handler(int fd, int events, void *arg)
 	return 0;
 }
 
-int sighandler(int sig)
+void sighandler(int sig)
 {
 	/* test failed */
 	t_fail("Caught signal %d", sig);
@@ -120,8 +120,8 @@ static int conn_spam(struct sockaddr_in *sain)
 {
 	int i;
 
-	signal(SIGALRM, (__sighandler_t)sighandler);
-	signal(SIGINT, (__sighandler_t)sighandler);
+	signal(SIGALRM, sighandler);
+	signal(SIGINT, sighandler);
 	signal(SIGPIPE, SIG_IGN);
 	alarm(20);
 

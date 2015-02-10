@@ -50,8 +50,8 @@ static int test_delimiter(const char *delim, unsigned int delim_len)
 				   delim_len, i, len, sc[i].len);
 			printf("sc[i].str: %s\n", sc[i].str);
 			printf("ptr      : %s\n", ptr);
-			printf("strlen(sc[i].str): %lu\n", strlen(sc[i].str));
-			printf("strlen(ptr)      : %lu\n", strlen(ptr));
+			printf("strlen(sc[i].str): %lu\n", (unsigned long)strlen(sc[i].str));
+			printf("strlen(ptr)      : %lu\n", (unsigned long)strlen(ptr));
 			exit(1);
 		}
 	}

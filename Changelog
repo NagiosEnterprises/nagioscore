@@ -2,9 +2,16 @@
 Nagios Core 4 Change Log
 ########################
 
-4.x.x - xx/xx/xxxx
+4.1.0 - xx/xx/xxxx
 ------------------
+ENHANCEMENTS
+* Promoted JSON CGIs to released status (Eric Stanley)
+* New graphical CGI displays: statusmap, trends, histogram (Eric Stanley)
 FIXES
+* Fixed compilation on Solaris (Eric Mislivec)
+* Fixed escaping of keys for scalar values in JSON CGIs (Eric Stanley)
+* Fixed checkresult output processing (Eric Mislivec)
+* Corrected escaping of long output macros (Eric Mislivec)
 * Fixed Github bug #18 - archivejson.cgi returns wrong host for state change query
 * Fixed null pointer dereferences in archive JSON (Eric Stanley)
 * Fixed memory overwrite issue in JSON string escaping (Eric Stanley)

@@ -193,6 +193,8 @@ angular.module("mapApp")
 						break;
 					}
 
+					// Reset the zoom and pan
+					$scope.zoom.translate([0,0]).scale(1);
 					// Show the map
 					if ($scope.build()) {
 

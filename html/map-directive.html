@@ -3,5 +3,16 @@
 <div id="spinner" ng-show="fetchingHostlist"></div>
 
 <div id="mapsvg" ng-hide="fetchingHostlist">
-	<svg id="map" width="100%" height="100%"></svg>
+	<svg id="map" width="100%" height="100%">
+		<filter id="circular-markup-text">
+			<feFlood flood-color="#777777" result="flood"/>
+			<feGaussianBlur in="flood" stdDeviation="1" result="blur"/>
+			<feBlend in="SourceGraphic" in2="blur"/>
+		</filter>
+		<filter id="circular-markup-text-collapsed">
+			<feFlood flood-color="blue" result="flood"/>
+			<feGaussianBlur in="flood" stdDeviation="1" result="blur"/>
+			<feBlend in="SourceGraphic" in2="blur"/>
+		</filter>
+	</svg>
 </div>

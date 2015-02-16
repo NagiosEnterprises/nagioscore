@@ -1704,6 +1704,13 @@ angular.module("mapApp")
 					}
 				};
 
+				// Text filter for labels
+				var textFilter = function(d) {
+					return d.collapsed ?
+						"url(#circular-markup-text-collapsed)" :
+						"url(#circular-markup-text)";
+				}
+
 				// Update the map for partion displays
 				var updatePartitionMap = function(source, reparent) {
 
@@ -1831,32 +1838,13 @@ angular.module("mapApp")
 									})
 									.style({
 										"fill-opacity": 1e-6,
-										fill: "white"
+										fill: "white",
+										filter: function(d) {
+											return textFilter(d);
+										}
 									})
 									.text(function(d) {
 										return d.hostInfo.objectJSON.name;
-									});
-
-								// Append the rectangle to provide the
-								// background for the text
-								var bbox = label.node().getBBox();
-								var padding = 2;
-								var rounding = 4;
-								group.insert("rect", "text")
-									.attr({
-										x: bbox.x - padding,
-										y: bbox.y - padding,
-										rx: rounding,
-										ry: rounding,
-										width: bbox.width + padding * 2,
-										height: bbox.height + padding * 2
-									})
-								    .style({
-										fill: function(d) {
-											return d.collapsed ? "blue" :
-													"#777";
-										},
-										"fill-opacity": 1e-6
 									});
 							});
 					}
@@ -1893,27 +1881,8 @@ angular.module("mapApp")
 								})
 								.style({
 									"fill-opacity": 1,
-								});
-
-							var bbox = label.node().getBBox();
-							var padding = 2;
-							var rounding = 4;
-							group.select("rect")
-								.transition()
-								.duration($scope.updateDuration / 2)
-								.attr({
-									x: bbox.x - padding,
-									y: bbox.y - padding,
-									rx: rounding,
-									ry: rounding,
-									width: bbox.width + padding * 2,
-									height: bbox.height + padding * 2
-								})
-								.style({
-									"fill-opacity": 1,
-									fill: function(d) {
-										return d.collapsed ? "blue" :
-												"#777";
+									filter: function(d) {
+										return textFilter(d);
 									}
 								});
 							})

@@ -23,7 +23,7 @@ if (isset($_GET['corewindow'])) {
 	}
 }
 
-$this_year = '2014';
+$this_year = '2015';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
 

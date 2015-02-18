@@ -108,7 +108,8 @@ angular.module("mapApp")
 				// Application state variables
 				$scope.fetchingHostlist = false;
 				$scope.displayPopup = false;
-				var previousLayout = "";
+				var previousLayout = -1;
+				var statusTimeout = null;
 
 				// User-supplied layout information
 				var userSuppliedLayout = {
@@ -125,9 +126,13 @@ angular.module("mapApp")
 
 				$scope.$watch("reload", function(newValue) {
 
-					var selectionExit;
+					// Cancel the timeout if necessary
+					if (statusTimeout != null) {
+						clearTimeout(statusTimeout);
+					}
 
 					// Clean up after previous maps
+					var selectionExit;
 					switch (previousLayout) {
 					case layouts.UserSupplied.index:
 						selectionExit = d3.select("g#container")
@@ -192,6 +197,9 @@ angular.module("mapApp")
 						d3.select("g#links").remove();
 						break;
 					}
+
+					// Clean up the host list
+					$scope.hostList = {};
 
 					// Reset the zoom and pan
 					$scope.zoom.translate([0,0]).scale(1);
@@ -1289,7 +1297,7 @@ angular.module("mapApp")
 						getServiceStatus(since);
 
 						// Schedule an update
-						setTimeout(function() {
+						statusTimeout = setTimeout(function() {
 							var newSince = (json.result.last_data_update / 1000) -
 									$scope.updateStatusInterval;
 							getAllStatus(newSince) },
@@ -1315,12 +1323,13 @@ angular.module("mapApp")
 					};
 
 					// Send the request for host status
+					statusTimeout = null;
 					$http.get($scope.cgiurl + "statusjson.cgi", getConfig)
 						.error(function(err) {
 							console.warn(err);
 		
 							// Schedule an update
-							setTimeout(function() { getAllStatus(since) },
+							statusTimeout = setTimeout(function() { getAllStatus(since) },
 									$scope.updateStatusInterval);
 						})
 						.success(function(json) {

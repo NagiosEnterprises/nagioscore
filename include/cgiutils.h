@@ -39,6 +39,7 @@ NAGIOS_BEGIN_DECL
 #define STATUSMAP_CGI		"statusmap.cgi"
 #else
 #define STATUSMAP_CGI		"../map.html"
+#define LEGACY_STATUSMAP_CGI		"statusmap.cgi"
 #endif
 #define STATUSWORLD_CGI	        "statuswrl.cgi"
 #define COMMAND_CGI		"cmd.cgi"
@@ -52,6 +53,7 @@ NAGIOS_BEGIN_DECL
 #define TRENDS_CGI		"trends.cgi"
 #else
 #define TRENDS_CGI		"../trends.html"
+#define LEGACY_TRENDS_CGI		"trends.cgi"
 #endif
 #define AVAIL_CGI		"avail.cgi"
 #define TAC_CGI			"tac.cgi"
@@ -61,6 +63,7 @@ NAGIOS_BEGIN_DECL
 #define HISTOGRAM_CGI		"histogram.cgi"
 #else
 #define HISTOGRAM_CGI		"../histogram.html"
+#define LEGACY_HISTOGRAM_CGI		"histogram.cgi"
 #endif
 #define CHECKSANITY_CGI	   	"checksanity.cgi"
 #define MINISTATUS_CGI          "ministatus.cgi"

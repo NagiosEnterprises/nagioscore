@@ -350,7 +350,11 @@ void document_header(int use_stylesheet) {
 		printf("<body CLASS='statusmap' name='mappage' id='mappage'>\n");
 
 		/* include user SSI header */
+#ifdef LEGACY_GRAPHICAL_CGIS
 		include_ssi_files(STATUSMAP_CGI, SSI_HEADER);
+#else
+		include_ssi_files(LEGACY_STATUSMAP_CGI, SSI_HEADER);
+#endif
 
 		printf("<div id=\"popup\" style=\"position:absolute; z-index:1; visibility: hidden\"></div>\n");
 		}
@@ -382,7 +386,11 @@ void document_footer(void) {
 	if(create_type == CREATE_HTML) {
 
 		/* include user SSI footer */
+#ifdef LEGACY_GRAPHICAL_CGIS
 		include_ssi_files(STATUSMAP_CGI, SSI_FOOTER);
+#else
+		include_ssi_files(LEGACY_STATUSMAP_CGI, SSI_FOOTER);
+#endif
 
 		printf("</body>\n");
 		printf("</html>\n");
@@ -626,7 +634,11 @@ void display_page_header(void) {
 		printf("<TR><TD CLASS='linkBox'>\n");
 
 		if(show_all_hosts == FALSE) {
+#ifdef LEGACY_GRAPHICAL_CGIS
 			printf("<a href='%s?host=all&max_width=%d&max_height=%d'>View Status Map For All Hosts</a><BR>", STATUSMAP_CGI, max_image_width, max_image_height);
+#else
+			printf("<a href='%s?host=all&max_width=%d&max_height=%d'>View Status Map For All Hosts</a><BR>", LEGACY_STATUSMAP_CGI, max_image_width, max_image_height);
+#endif
 			printf("<a href='%s?host=%s'>View Status Detail For This Host</a><BR>\n", STATUS_CGI, url_encode(host_name));
 			}
 		printf("<a href='%s?host=all'>View Status Detail For All Hosts</a><BR>\n", STATUS_CGI);
@@ -679,7 +691,11 @@ void display_page_header(void) {
 				zoom_width = total_image_width - (zoom * zoom_width_granularity);
 				zoom_height = total_image_height - (zoom * zoom_height_granularity);
 
+#ifdef LEGACY_GRAPHICAL_CGIS
 				printf("<td valign=center><a href='%s?host=%s&layout=%d&max_width=%d&max_height=%d&proximity_width=%d&proximity_height=%d%s%s", STATUSMAP_CGI, url_encode(host_name), layout_method, max_image_width, max_image_height, zoom_width, zoom_height, (display_header == TRUE) ? "" : "&noheader", (display_popups == FALSE) ? "&nopopups" : "");
+#else
+				printf("<td valign=center><a href='%s?host=%s&layout=%d&max_width=%d&max_height=%d&proximity_width=%d&proximity_height=%d%s%s", LEGACY_STATUSMAP_CGI, url_encode(host_name), layout_method, max_image_width, max_image_height, zoom_width, zoom_height, (display_header == TRUE) ? "" : "&noheader", (display_popups == FALSE) ? "&nopopups" : "");
+#endif
 				if(user_supplied_scaling == TRUE)
 					printf("&scaling_factor=%2.1f", user_scaling_factor);
 				print_layer_url(TRUE);
@@ -701,7 +717,11 @@ void display_page_header(void) {
 		/* right hand column of top row */
 		printf("<td align=right valign=top>\n");
 
+#ifdef LEGACY_GRAPHICAL_CGIS
 		printf("<form method=\"POST\" action=\"%s\">\n", STATUSMAP_CGI);
+#else
+		printf("<form method=\"POST\" action=\"%s\">\n", LEGACY_STATUSMAP_CGI);
+#endif
 		printf("<table border=0 CLASS='optBox'>\n");
 		printf("<tr><td valign=top>\n");
 		printf("<input type='hidden' name='host' value='%s'>\n", escape_string(host_name));
@@ -839,7 +859,11 @@ void display_map(void) {
 	/* write the URL location for the image we just generated - the web browser will come and get it... */
 	if(create_type == CREATE_HTML) {
 		printf("<P><DIV ALIGN=center>\n");
+#ifdef LEGACY_GRAPHICAL_CGIS
 		printf("<img src='%s?host=%s&createimage&time=%lu", STATUSMAP_CGI, url_encode(host_name), (unsigned long)time(NULL));
+#else
+		printf("<img src='%s?host=%s&createimage&time=%lu", LEGACY_STATUSMAP_CGI, url_encode(host_name), (unsigned long)time(NULL));
+#endif
 		printf("&canvas_x=%d&canvas_y=%d&canvas_width=%d&canvas_height=%d&max_width=%d&max_height=%d&layout=%d%s%s%s", canvas_x, canvas_y, canvas_width, canvas_height, max_image_width, max_image_height, layout_method, (use_links == FALSE) ? "&nolinks" : "", (use_text == FALSE) ? "&notext" : "", (use_highlights == FALSE) ? "&nohighlights" : "");
 		print_layer_url(TRUE);
 		printf("' width=%d height=%d border=0 name='statusimage' useMap='#statusmap'>\n", (int)(canvas_width * scaling_factor), (int)(canvas_height * scaling_factor));
@@ -1807,7 +1831,11 @@ void draw_hosts(void) {
 			if(!strcmp(host_name, temp_host->name))
 				printf("href='%s?host=%s' ", STATUS_CGI, url_encode(temp_host->name));
 			else {
+#ifdef LEGACY_GRAPHICAL_CGIS
 				printf("href='%s?host=%s&layout=%d&max_width=%d&max_height=%d&proximity_width=%d&proximity_height=%d%s%s%s%s%s", STATUSMAP_CGI, url_encode(temp_host->name), layout_method, max_image_width, max_image_height, proximity_width, proximity_height, (display_header == TRUE) ? "" : "&noheader", (use_links == FALSE) ? "&nolinks" : "", (use_text == FALSE) ? "&notext" : "", (use_highlights == FALSE) ? "&nohighlights" : "", (display_popups == FALSE) ? "&nopopups" : "");
+#else
+				printf("href='%s?host=%s&layout=%d&max_width=%d&max_height=%d&proximity_width=%d&proximity_height=%d%s%s%s%s%s", LEGACY_STATUSMAP_CGI, url_encode(temp_host->name), layout_method, max_image_width, max_image_height, proximity_width, proximity_height, (display_header == TRUE) ? "" : "&noheader", (use_links == FALSE) ? "&nolinks" : "", (use_text == FALSE) ? "&notext" : "", (use_highlights == FALSE) ? "&nohighlights" : "", (display_popups == FALSE) ? "&nopopups" : "");
+#endif
 				if(user_supplied_scaling == TRUE)
 					printf("&scaling_factor=%2.1f", user_scaling_factor);
 				print_layer_url(TRUE);

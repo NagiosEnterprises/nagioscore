@@ -306,7 +306,7 @@ angular.module("mapApp")
 					var translate = [];
 					switch($scope.layout) {
 					case layouts.UserSupplied.index:
-						d3.selectAll("g.node circle")
+						d3.selectAll("g.node")
 							.attr({
 								transform: function(d) {
 									return getNodeTransform(d);
@@ -487,37 +487,25 @@ angular.module("mapApp")
 						attrs["font-size"] = $scope.fontSize + "px";
 						var textPadding = $scope.nodeScale(serviceCount) +
 								layouts.UserSupplied.textPadding[layouts.UserSupplied.textAlignment];
-						var x = d.hostInfo.objectJSON.x_2d;
-						var y = d.hostInfo.objectJSON.y_2d;
+						var x = 0;
+						var y = 0;
 						switch(layouts.UserSupplied.textAlignment) {
 						case "above":
-							x = userSuppliedLayout.xScale(x);
-							x = $scope.xZoomScale(x);
-							y = userSuppliedLayout.yScale(y);
-							y = $scope.yZoomScale(y) - textPadding;
+							y = -textPadding;
 							attrs["text-anchor"] = "middle";
 							break;
 						case "left":
-							x = userSuppliedLayout.xScale(x);
-							x = $scope.xZoomScale(x) - textPadding;
-							y = userSuppliedLayout.yScale(y);
-							y = $scope.yZoomScale(y);
+							x = -textPadding;
 							attrs["text-anchor"] = "end";
 							attrs.dy = ".4em";
 							break;
 						case "right":
-							x = userSuppliedLayout.xScale(x);
-							x = $scope.xZoomScale(x) + textPadding;
-							y = userSuppliedLayout.yScale(y);
-							y = $scope.yZoomScale(y);
+							x = textPadding;
 							attrs["text-anchor"] = "start";
 							attrs.dy = ".4em";
 							break;
 						case "below":
-							x = userSuppliedLayout.xScale(x);
-							x = $scope.xZoomScale(x);
-							y = userSuppliedLayout.yScale(y);
-							y = $scope.yZoomScale(y) + textPadding;
+							y = textPadding;
 							attrs["text-anchor"] = "middle";
 							break;
 						}
@@ -2378,7 +2366,10 @@ angular.module("mapApp")
 					var nodeEnter = node.enter()
 						.append("g")
 						.attr({
-							class: "node"
+							class: "node",
+							transform: function(d) {
+								return getNodeTransform(d);
+							}
 						})
 						.each(function(d) {
 							// Traverse each node, saving a pointer
@@ -2395,10 +2386,7 @@ angular.module("mapApp")
 					// Create the circle representing the node
 					nodeEnter.append("circle")
 						.attr({
-							r: 1e-6,
-							transform: function(d) {
-								return getNodeTransform(d);
-							}
+							r: 1e-6
 						});
 
 					// Label the nodes with their host names

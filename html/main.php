@@ -95,7 +95,7 @@ $this_year = '2015';
 	function getCoreStatus() {
 		setCoreStatusHTML('passiveonly', 'Checking process status...');
 
-		$.get('cgi-bin/statusjson.cgi?query=programstatus', function(d) {
+		$.get('<?php echo $cfg["cgi_base_url"];?>/statusjson.cgi?query=programstatus', function(d) {
 			d = d && d.data && d.data.programstatus || false;
 			if (d && d.nagios_pid) {
 				var pid = d.nagios_pid;

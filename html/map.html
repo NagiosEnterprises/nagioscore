@@ -38,6 +38,7 @@
 				</div>
 			</div>
 			<div class="row-fluid">
+				<div id="image-cache" style="display: none;"></div>
 				<div class="col-sm-12 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
 					<div ng-hide="formDisplayed" nagios-map
 						cgiurl="{{params.cgiurl}}"
@@ -48,11 +49,13 @@
 						lrx="{{params.lrx}}"
 						lry="{{params.lry}}"
 						root="params.root"
-						maxzoom="{{params.maxzoom}}"
+						maxzoom="params.maxzoom"
 						nolinks="{{params.nolinks}}"
 						notext="{{params.notext}}"
 						nopopups="{{params.nopopups}}"
 						noresize="{{params.noresize}}"
+						noicons="{{params.noicons}}"
+						iconurl="{{params.iconurl}}"
 						reload="{{reload}}"
 						update-interval="10"
 						last-update="lastUpdate"

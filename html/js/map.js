@@ -114,7 +114,10 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 			notext: $scope.search.notext ? true : false,
 			nopopups: $scope.search.nopopups ? true : false,
 			nomenu: $scope.search.nomenu ? true : false,
-			noresize: $scope.search.noresize ? true : false
+			noresize: $scope.search.noresize ? true : false,
+			noicons: $scope.search.noicons ? true : false,
+			iconurl: $scope.search.iconurl ? $scope.search.iconurl :
+					$location.absUrl().replace(/map\.html.*$/, "images/logos/"),
 		};
 
 		$scope.svgWidth = 600;

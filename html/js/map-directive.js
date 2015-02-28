@@ -12,11 +12,13 @@ angular.module("mapApp")
 				lrxValue: "@lrx",
 				lryValue: "@lry",
 				root: "=root",
-				maxzoomValue: "@maxzoom",
+				maxzoom: "=maxzoom",
 				nolinks: "@nolinks",
 				notext: "@notext",
 				nopopups: "@nopopups",
 				noresize: "@noresize",
+				noicons: "@noicons",
+				iconurl: "@iconurl",
 				updateIntervalValue: "@updateInterval",
 				lastUpdate: "=lastUpdate",
 				reload: "@reload",
@@ -54,11 +56,11 @@ angular.module("mapApp")
 				$scope.uly = parseInt($scope.ulyValue);
 				$scope.lrx = parseInt($scope.lrxValue);
 				$scope.lry = parseInt($scope.lryValue);
-				$scope.maxzoom = parseInt($scope.maxzoomValue);
-				$scope.showText = $scope.notext == "false"
-				$scope.showLinks = $scope.nolinks == "false"
-				$scope.showPopups = $scope.nopopups == "false"
-				$scope.allowResize = $scope.noresize == "false"
+				$scope.showText = $scope.notext == "false";
+				$scope.showLinks = $scope.nolinks == "false";
+				$scope.showPopups = $scope.nopopups == "false";
+				$scope.allowResize = $scope.noresize == "false";
+				$scope.showIcons = $scope.noicons == "false";
 
 				// Resize handle variables
 				$scope.handleHeight = 8;
@@ -71,6 +73,8 @@ angular.module("mapApp")
 						name: nagiosProcessName,
 						objectJSON: {
 							name: nagiosProcessName,
+							icon_image: "",
+							icon_image_alt: "",
 							x_2d: 0,
 							y_2d: 0
 						},
@@ -90,6 +94,10 @@ angular.module("mapApp")
 					}
 				};
 				$scope.hostList = new Object;
+
+				// Icon information
+				$scope.iconList = new Object;
+				$scope.iconsLoading = 0;
 
 				// Update frequency
 				$scope.updateStatusInterval =
@@ -473,39 +481,120 @@ angular.module("mapApp")
 					}
 				};
 
+				// Deteremine the amount of text padding due to an icon
+				var getIconTextPadding = function(d) {
+					var iconHeight = 0, iconWidth = 0;
+					if (d.hostInfo.hasOwnProperty("iconInfo")) {
+						iconHeight = d.hostInfo.iconInfo.height;
+						iconWidth = d.hostInfo.iconInfo.width;
+					}
+					else {
+						return 0;
+					}
+					switch($scope.layout) {
+					case layouts.UserSupplied.index:
+						switch(layouts.UserSupplied.textAlignment) {
+						case "above":
+						case "below":
+							return iconHeight / 2;
+							break;
+						case "left":
+						case "right":
+							return iconWidth / 2;
+							break;
+						}
+						break;
+					case layouts.DepthLayers.index:
+					case layouts.CollapsedTree.index:
+					case layouts.BalancedTree.index:
+						return iconHeight / 2;
+						break;
+					case layouts.DepthLayersVertical.index:
+					case layouts.CollapsedTreeVertical.index:
+					case layouts.BalancedTreeVertical.index:
+						return iconWidth / 2;
+						break;
+					case layouts.CircularBalloon.index:
+						var rotateAngle = d.x +
+								layouts.CircularBalloon.rotation;
+						var angle; // angle used to calculate distance
+						var r; // radius used to calculate distance
+						if (rotateAngle < 45.0) {
+							// Text is right of icon
+							angle = rotateAngle;
+							r = iconWidth / 2;
+						}
+						else if(rotateAngle < 135.0) {
+							// Text is below icon
+							angle = Math.abs(90.0 - rotateAngle);
+							r = iconHeight / 2;
+						}
+						else if(rotateAngle < 225.0) {
+							// Text is left icon
+							angle = Math.abs(180.0 - rotateAngle);
+							r = iconWidth / 2;
+						}
+						else if(rotateAngle < 315.0) {
+							// Text is above icon
+							angle = Math.abs(270.0 - rotateAngle);
+							r = iconHeight / 2;
+						}
+						else {
+							// Text is right of icon
+							angle = 360.0 - rotateAngle;
+							r = iconWidth / 2;
+						}
+						var radians = angle * Math.PI / 180.0;
+						var cos = Math.cos(radians);
+						return r + (r - r * cos) * cos;
+						break;
+					case layouts.CircularMarkup.index:
+						return 0;
+						break;
+					case layouts.Force.index:
+						return iconWidth / 2;
+						break;
+					}
+				};
+
 				// Set the node label attributes
 				var setTextAttrs = function(d, domNode) {
 
 					// Placeholder for attributes
 					var attrs = new Object;
+					var style = new Object;
 
 					// Variables used for all layouts
 					var serviceCount = getObjAttr(d, ["serviceCount"], 0);
+					var iconTextPadding = getIconTextPadding(d);
 
 					switch($scope.layout) {
 					case layouts.UserSupplied.index:
 						attrs["font-size"] = $scope.fontSize + "px";
-						var textPadding = $scope.nodeScale(serviceCount) +
+						var textPadding =
 								layouts.UserSupplied.textPadding[layouts.UserSupplied.textAlignment];
+						if (!d.hostInfo.hasOwnProperty("iconInfo")) {
+							textPadding += $scope.nodeScale(serviceCount);
+						}
 						var x = 0;
 						var y = 0;
 						switch(layouts.UserSupplied.textAlignment) {
 						case "above":
-							y = -textPadding;
+							y = -(textPadding + iconTextPadding);
 							attrs["text-anchor"] = "middle";
 							break;
 						case "left":
-							x = -textPadding;
+							x = -(textPadding + iconTextPadding);
 							attrs["text-anchor"] = "end";
 							attrs.dy = ".4em";
 							break;
 						case "right":
-							x = textPadding;
+							x = textPadding + iconTextPadding;
 							attrs["text-anchor"] = "start";
 							attrs.dy = ".4em";
 							break;
 						case "below":
-							y = textPadding;
+							y = textPadding + iconTextPadding;
 							attrs["text-anchor"] = "middle";
 							break;
 						}
@@ -513,7 +602,7 @@ angular.module("mapApp")
 						break;
 					case layouts.DepthLayers.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
-								layouts.DepthLayers.dyText;
+								layouts.DepthLayers.dyText + iconTextPadding;
 						attrs.dy = d.children ? -textPadding : 0;
 						attrs.transform = d.children ? "" :
 								"rotate(90) translate(" + textPadding +
@@ -524,7 +613,8 @@ angular.module("mapApp")
 						break;
 					case layouts.DepthLayersVertical.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
-								layouts.DepthLayersVertical.dxText;
+								layouts.DepthLayersVertical.dxText +
+								iconTextPadding;
 						attrs.dx = d.children ? -textPadding : textPadding;
 						attrs.dy = layouts.DepthLayersVertical.dyText;
 						attrs["text-anchor"] = d.children ? "end" : "start";
@@ -532,7 +622,8 @@ angular.module("mapApp")
 						break;
 					case layouts.CollapsedTree.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
-								layouts.CollapsedTree.dyText;
+								layouts.CollapsedTree.dyText +
+								iconTextPadding;
 						attrs.dy = d.children ? -textPadding : 0;
 						attrs.transform = d.children ? "" :
 								"rotate(90) translate(" + textPadding +
@@ -543,7 +634,8 @@ angular.module("mapApp")
 						break;
 					case layouts.CollapsedTreeVertical.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
-								layouts.CollapsedTreeVertical.dxText;
+								layouts.CollapsedTreeVertical.dxText +
+								iconTextPadding;
 						attrs.dx = d.children ? -textPadding : textPadding;
 						attrs.dy = layouts.CollapsedTreeVertical.dyText;
 						attrs["text-anchor"] = d.children ? "end" : "start";
@@ -551,7 +643,8 @@ angular.module("mapApp")
 						break;
 					case layouts.BalancedTree.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
-								layouts.BalancedTree.dyText;
+								layouts.BalancedTree.dyText +
+								iconTextPadding;
 						attrs.dy = d.children ? -textPadding : 0;
 						attrs.transform = d.children ? "" :
 								"rotate(90) translate(" + textPadding +
@@ -562,7 +655,8 @@ angular.module("mapApp")
 						break;
 					case layouts.BalancedTreeVertical.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
-								layouts.BalancedTreeVertical.dxText;
+								layouts.BalancedTreeVertical.dxText +
+								iconTextPadding;
 						attrs.dx = d.children ? -textPadding : textPadding;
 						attrs.dy = layouts.BalancedTreeVertical.dyText;
 						attrs["text-anchor"] = d.children ? "end" : "start";
@@ -570,7 +664,8 @@ angular.module("mapApp")
 						break;
 					case layouts.CircularBalloon.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
-								layouts.CircularBalloon.textPadding;
+								layouts.CircularBalloon.textPadding +
+								iconTextPadding;
 						if(d.y == 0) {
 							attrs["text-anchor"] = "middle";
 							attrs.transform = "translate(0,-" +
@@ -604,7 +699,7 @@ angular.module("mapApp")
 					case layouts.Force.index:
 						attrs["alignment-baseline"] = "middle";
 						attrs["x"] = $scope.nodeScale(serviceCount) +
-								layouts.Force.textPadding;
+								layouts.Force.textPadding + iconTextPadding;
 						break;
 					}
 
@@ -988,6 +1083,44 @@ angular.module("mapApp")
 					});
 				};
 
+				// Create an ID for an img based on a file name
+				var imgID = function(image) {
+					return "cache-" + image.replace(/\./, "_");
+				};
+
+				// Update the image icon cache
+				var updateImageIconCache = function() {
+					var cache = d3.select("div#image-cache")
+					for (var host in $scope.hostList) {
+						var image =
+								$scope.hostList[host].objectJSON.icon_image;
+						if (image != "") {
+							if (!$scope.iconList.hasOwnProperty(imgID(image))) {
+								$scope.iconList[imgID(image)] = new Object;
+								$scope.iconsLoading++;
+								cache.append("img")
+									.attr({
+										id: function() {
+											return imgID(image);
+										},
+										src: $scope.iconurl + image
+									})
+									.on("load", function() {
+										$scope.iconsLoading--;
+										var img = d3.select(d3.event.path[0]);
+										var image = img.attr("id");
+										$scope.iconList[image].width =
+												img.node().naturalWidth;
+										$scope.iconList[image].height =
+												img.node().naturalHeight;
+									});
+							}
+							$scope.hostList[host].iconInfo =
+									$scope.iconList[imgID(image)];
+						}
+					}
+				};
+
 				// Build the host list and tree from the hosts returned
 				// from the JSON CGIs
 				var processHostList = function(json) {
@@ -1030,6 +1163,24 @@ angular.module("mapApp")
 						}
 					}
 					updateHostTree($scope.hostTree, rootHosts);
+
+					// Update the icon image cache
+					if ($scope.showIcons) {
+						updateImageIconCache();
+					}
+
+					// Finish the host list processing
+					finishProcessingHostList();
+				};
+
+				var finishProcessingHostList = function() {
+
+					if ($scope.showIcons && $scope.iconsLoading > 0) {
+						setTimeout(function() {
+								finishProcessingHostList()
+								}, 10);
+						return;
+					}
 
 					// If this is the first time the map has
 					// been displayed...
@@ -1182,6 +1333,49 @@ angular.module("mapApp")
 					return serviceCount;
 				};
 
+				// Return the glow filter for an icon
+				var getGlowFilter = function(d) {
+					if (d.hostInfo.hasOwnProperty("statusJSON")) {
+						switch (d.hostInfo.statusJSON.status) {
+						case "up":
+							return "url(#icon-glow-up)";
+							break;
+						case "down":
+							return "url(#icon-glow-down)";
+							break;
+						case "unreachable":
+							return "url(#icon-glow-unreachable)";
+							break;
+						default:
+							return null;
+							break;
+						}
+					}
+					else {
+						return null;
+					}
+				};
+
+				// Get the text filter
+				var getTextFilter = function(d) {
+					if ($scope.showIcons &&
+							d.hostInfo.hasOwnProperty("iconInfo") &&
+							d._children) {
+						return "url(#circular-markup-text-collapsed)";
+					}
+					return null;
+				};
+
+				// Get the text stroke color
+				var getTextStrokeColor = function(d) {
+					if ($scope.showIcons &&
+							d.hostInfo.hasOwnProperty("iconInfo") &&
+							d._children) {
+						return "white";
+					}
+					return null;
+				};
+
 				// Update the node's status
 				var updateNode = function(domNode) {
 
@@ -1226,9 +1420,24 @@ angular.module("mapApp")
 								r: $scope.nodeScale(serviceCount)
 							});
 
+						selection.select("image")
+							.style({
+								filter: function(d) {
+									return getGlowFilter(d);
+								}
+							});
+
 						selection.select("text")
 							.each(function() {
 								setTextAttrs(data, this);
+							})
+							.style({
+								filter: function(d) {
+									return getTextFilter(d);
+								},
+								stroke: function(d) {
+									return getTextStrokeColor(d);
+								}
 							});
 						break;
 					case layouts.CircularMarkup.index:
@@ -2058,6 +2267,79 @@ angular.module("mapApp")
 					updateMap(updateNode);
 				};
 
+				// Add a node group to the tree map
+				var addTreeMapNodeGroupContents = function(d, node) {
+					var selection = d3.select(node);
+
+					// Display the circle if the node has no icon or
+					// icons are supressed
+					if(!$scope.showIcons ||
+							d.hostInfo.objectJSON.icon_image == "") {
+						selection.append("circle")
+							.attr({
+								r: 1e-6
+							});
+					}
+
+					// Display the node icon if it has one
+					if($scope.showIcons) {
+						var image = d.hostInfo.objectJSON.icon_image;
+						if (image != "" && image != undefined) {
+							var iconInfo = d.hostInfo.iconInfo;
+							var rotateAngle = null;
+							if ($scope.layout == layouts.CircularBalloon.index) {
+								rotateAngle = d.x +
+										layouts.CircularBalloon.rotation;
+							}
+							selection.append("image")
+								.attr({
+									"xlink:href": $scope.iconurl + image,
+									width: iconInfo.width,
+									height: iconInfo.height,
+									x: -(iconInfo.width / 2),
+									y: -(iconInfo.height / 2),
+									transform: function() {
+										return "rotate(" + -rotateAngle + ")";
+									}
+								})
+								.style({
+									filter: function() {
+										return getGlowFilter(d);
+									}
+								});
+						}
+					}
+
+					// Label the nodes with their host names
+					if($scope.showText) {
+						selection.append("text")
+							.each(function(d) {
+								setTextAttrs(d, this);
+							})
+							.style({
+								"fill-opacity": 1e-6
+							})
+							.text(function(d) {
+								return d.hostInfo.objectJSON.name;
+							});
+					}
+
+					// Register event handlers for showing the popups
+					if($scope.showPopups) {
+						selection
+							.on("mouseover", function(d, i) {
+								if(d.hasOwnProperty("hostInfo")) {
+									displayPopup(d);
+								}
+							})
+							.on("mouseout", function(d, i) {
+								$scope.displayPopup = false;
+								$scope.$apply("displayPopup");
+							});
+					}
+
+				};
+
 				// Update the tree map
 				var updateTreeMap = function(source) {
 
@@ -2180,40 +2462,8 @@ angular.module("mapApp")
 								}
 								d.hostInfo.g.push(this);
 							}
+							addTreeMapNodeGroupContents(d, this);
 						});
-
-					nodeEnter.append("circle")
-						.attr({
-							r: 1e-6
-						});
-
-					// Label the nodes with their host names
-					if($scope.showText) {
-						nodeEnter.append("text")
-							.each(function(d) {
-								setTextAttrs(d, this);
-							})
-							.style({
-								"fill-opacity": 1e-6
-							})
-							.text(function(d) {
-								return d.hostInfo.objectJSON.name;
-							});
-					}
-
-					// Register event handlers for showing the popups
-					if($scope.showPopups) {
-						nodeEnter.selectAll("circle")
-							.on("mouseover", function(d, i) {
-								if(d.hasOwnProperty("hostInfo")) {
-									displayPopup(d);
-								}
-							})
-							.on("mouseout", function(d, i) {
-								$scope.displayPopup = false;
-								$scope.$apply("displayPopup");
-							});
-					}
 
 					// Move the nodes to their final destination
 					var nodeUpdate = node.transition()
@@ -2257,13 +2507,27 @@ angular.module("mapApp")
 							},
 						});
 
+					// Update the images' filters
+					nodeUpdate.select("image")
+						.style({
+							filter: function(d) {
+								return getGlowFilter(d);
+							}
+						});
+
 					// Update the text's opacity
 					nodeUpdate.select("text")
 						.each(function(d) {
 							setTextAttrs(d, this);
 						})
 						.style({
-							"fill-opacity": 1
+							"fill-opacity": 1,
+							filter: function(d) {
+								return getTextFilter(d);
+							},
+							stroke: function(d) {
+								return getTextStrokeColor(d);
+							}
 						});
 
 					// Transition exiting nodes to the parent's
@@ -2332,6 +2596,66 @@ angular.module("mapApp")
 					}
 				};
 
+				var addUserSuppliedNodeGroupContents = function(d, node) {
+					var selection = d3.select(node);
+
+					// Display the circle if the node has no icon or
+					// icons are supressed
+					if(!$scope.showIcons ||
+							d.hostInfo.objectJSON.icon_image == "") {
+						selection.append("circle")
+							.attr({
+								r: 1e-6
+							});
+					}
+
+					// Display the node icon if it has one
+					if($scope.showIcons) {
+						var image = d.hostInfo.objectJSON.icon_image;
+						if (image != "" && image != undefined) {
+							var iconInfo = d.hostInfo.iconInfo
+							selection.append("image")
+								.attr({
+									"xlink:href": $scope.iconurl + image,
+									width: iconInfo.width,
+									height: iconInfo.height,
+									x: -(iconInfo.width / 2),
+									y: -(iconInfo.height / 2),
+								})
+								.style({
+									filter: function() {
+										return getGlowFilter(d);
+									}
+								});
+						}
+					}
+
+					// Label the nodes with their host names
+					if($scope.showText) {
+						selection.append("text")
+							.each(function(d) {
+								setTextAttrs(d, this);
+							})
+							.text(function(d) {
+								return d.hostInfo.objectJSON.name;
+							});
+					}
+
+					// Register event handlers for showing the popups
+					if($scope.showPopups) {
+						selection
+							.on("mouseover", function(d, i) {
+								if(d.hasOwnProperty("hostInfo")) {
+									displayPopup(d);
+								}
+							})
+							.on("mouseout", function(d, i) {
+								$scope.displayPopup = false;
+								$scope.$apply("displayPopup");
+							});
+					}
+				};
+
 				// Update the map that uses configuration-specified
 				// coordinates
 				var updateUserSuppliedMap = function(source) {
@@ -2381,38 +2705,8 @@ angular.module("mapApp")
 								}
 								d.hostInfo.g.push(this);
 							}
+							addUserSuppliedNodeGroupContents(d, this);
 						});
-
-					// Create the circle representing the node
-					nodeEnter.append("circle")
-						.attr({
-							r: 1e-6
-						});
-
-					// Label the nodes with their host names
-					if($scope.showText) {
-						nodeEnter.append("text")
-							.each(function(d) {
-								setTextAttrs(d, this);
-							})
-							.text(function(d) {
-								return d.hostInfo.objectJSON.name;
-							});
-					}
-
-					// Register event handlers for showing the popups
-					if($scope.showPopups) {
-						nodeEnter.selectAll("circle")
-							.on("mouseover", function(d, i) {
-								if(d.hasOwnProperty("hostInfo")) {
-									displayPopup(d);
-								}
-							})
-							.on("mouseout", function(d, i) {
-								$scope.displayPopup = false;
-								$scope.$apply("displayPopup");
-							});
-					}
 				};
 
 				// Tick function for force layout
@@ -2478,6 +2772,85 @@ angular.module("mapApp")
 					// make sense.
 					toggleNode(d);
 					updateMap(d);
+				};
+
+				// Add the components to the force map node group
+				var addForceMapNodeGroupContents = function(d, node) {
+					var selection = d3.select(node);
+
+					if(!$scope.showIcons ||
+							d.hostInfo.objectJSON.icon_image == "") {
+						selection.append("circle")
+							.attr({
+								r: $scope.minRadius
+							});
+					}
+
+					// Display the node icon if it has one
+					if ($scope.showIcons) {
+						var image = d.hostInfo.objectJSON.icon_image;
+						if (image != "" && image != undefined) {
+							var iconInfo = d.hostInfo.iconInfo;
+							var rotateAngle = null;
+							if ($scope.layout == layouts.CircularBalloon.index) {
+								rotateAngle = d.x +
+										layouts.CircularBalloon.rotation;
+							}
+							selection.append("image")
+								.attr({
+									"xlink:href": $scope.iconurl + image,
+									width: iconInfo.width,
+									height: iconInfo.height,
+									x: -(iconInfo.width / 2),
+									y: -(iconInfo.height / 2),
+									transform: function() {
+										return "rotate(" + -rotateAngle + ")";
+									}
+								})
+								.style({
+									filter: function() {
+										return getGlowFilter(d);
+									}
+								});
+						}
+					}
+
+					if ($scope.showText) {
+						selection.append("text")
+							.each(function(d) {
+								setTextAttrs(d, this);
+							})
+							.text(function(d) {
+								return d.hostInfo.objectJSON.name;
+							})
+							.style({
+								filter: function(d) {
+									return getTextFilter(d);
+								},
+								stroke: function(d) {
+									return getTextStrokeColor(d);
+								}
+							});
+					}
+
+					if ($scope.showPopups) {
+						selection
+							.on("click", function(d) {
+								onClickForce(d);
+							})
+							.on("mouseover", function(d) {
+								if($scope.showPopups) {
+									if(d.hasOwnProperty("hostInfo")) {
+										displayPopup(d);
+									}
+								}
+							})
+							.on("mouseout", function(d) {
+								$scope.displayPopup = false;
+								$scope.$apply("displayPopup");
+							});
+					}
+
 				};
 
 				// Update the force map
@@ -2571,37 +2944,9 @@ angular.module("mapApp")
 								}
 								d.hostInfo.g.push(this);
 							}
+							addForceMapNodeGroupContents(d, this);
 						})
 						.call($scope.force.drag);
-
-					nodeEnter.append("circle")
-						.attr({
-							r: $scope.minRadius
-						})
-						.on("click", function(d) {
-							onClickForce(d);
-						})
-						.on("mouseover", function(d) {
-							if($scope.showPopups) {
-								if(d.hasOwnProperty("hostInfo")) {
-									displayPopup(d);
-								}
-							}
-						})
-						.on("mouseout", function(d) {
-							$scope.displayPopup = false;
-							$scope.$apply("displayPopup");
-						});
-
-					if($scope.showText) {
-						nodeEnter.append("text")
-							.each(function(d) {
-								setTextAttrs(d, this);
-							})
-							.text(function(d) {
-								return d.hostInfo.objectJSON.name;
-							});
-					}
 
 					// Update existing nodes
 					forceLayout.node
@@ -2620,6 +2965,17 @@ angular.module("mapApp")
 							},
 							fill: function(d) {
 								return getNodeFill(getHostStatus(d), false);
+							}
+						});
+
+					forceLayout.node
+						.select("text")
+						.style({
+							filter: function(d) {
+								return getTextFilter(d);
+							},
+							stroke: function(d) {
+								return getTextStrokeColor(d);
 							}
 						});
 				};

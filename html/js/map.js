@@ -46,7 +46,8 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 		CircularMarkup: {
 			index: 5,
 			radialExponent: 1.2,
-			padding: 20
+			padding: 20,
+			textPadding: 4
 		},
 		CircularBalloon: {
 			index: 6,

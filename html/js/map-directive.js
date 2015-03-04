@@ -686,14 +686,20 @@ angular.module("mapApp")
 						break;
 					case layouts.CircularMarkup.index:
 						attrs["alignment-baseline"] = "middle";
-						if(d.depth == 0) {
-							attrs["text-anchor"] = "middle";
-						}
-						else if(d.x + d.dx / 2 < Math.PI) {
-							attrs["text-anchor"] = "start";
+						attrs["text-anchor"] = "middle";
+						attrs["transform"] = "";
+						if (d.hostInfo.hasOwnProperty("iconInfo")) {
+							var rotateAngle = (d.x + d.dx / 2) * 180 / Math.PI +
+									layouts.CircularBalloon.rotation;
+							var translate = (d.hostInfo.iconInfo.height +
+									layouts.CircularMarkup.textPadding) / 2;
+							attrs["transform"] = "rotate(" + -rotateAngle +
+									") translate(0, " + translate + ")";
 						}
 						else {
-							attrs["text-anchor"] = "end";
+							if (d.depth > 0 && d.x + d.dx / 2 > Math.PI) {
+								attrs["transform"] = "rotate(180)";
+							}
 						}
 						break;
 					case layouts.Force.index:
@@ -931,7 +937,7 @@ angular.module("mapApp")
 				}
 
 				// Interpolate the node labels in data space.
-				var labelTween = function(a) {
+				var labelGroupTween = function(a) {
 					var i = d3.interpolate({x: a.saveLabel.x,
 							dx: a.saveLabel.dx, y: a.saveLabel.y,
 							dy: a.saveLabel.dy}, a);
@@ -941,30 +947,26 @@ angular.module("mapApp")
 						a.saveLabel.dx = b.dx;
 						a.saveLabel.y = b.y;
 						a.saveLabel.dy = b.dy;
-						return getPartitionLabelTransform(b);
+						return getPartitionLabelGroupTransform(b);
 					};
 				}
 
 				// Get the partition map label group transform
-				var getPartitionLabelTransform = function(d) {
+				var getPartitionLabelGroupTransform = function(d) {
 
 					var radians = d.x + d.dx / 2;
 					var rotate = (radians * 180 / Math.PI) - 90;
 					var exponent = 1 / layouts.CircularMarkup.radialExponent;
-					var translate = Math.pow(d.y, exponent) + 4;
+					var radius = d.y + (d.y / (d.depth * 2));
+					var translate = Math.pow(radius, exponent);
 					var transform = "";
 
 					if(d.depth == 0) {
 						transform = "";
 					}
-					else if(radians < Math.PI) {
-						transform = "rotate(" + rotate + ")" +
-								" translate(" + translate + ")";
-					}
 					else {
 						transform = "rotate(" + rotate + ")" +
-								" translate(" + translate + ")" +
-								" rotate(180)";
+								" translate(" + translate + ")";
 					}
 					return transform;
 				};
@@ -1917,6 +1919,57 @@ angular.module("mapApp")
 						"url(#circular-markup-text)";
 				}
 
+				var addPartitionMapTextGroupContents = function(d, node) {
+					var selection = d3.select(node);
+
+					// Append the label
+					if($scope.showText) {
+						selection.append("text")
+							.each(function(d) {
+								setTextAttrs(d, this);
+							})
+							.style({
+								"fill-opacity": 1e-6,
+								fill: "white",
+								filter: function(d) {
+									return textFilter(d);
+								}
+							})
+							.text(function(d) {
+								return d.hostInfo.objectJSON.name;
+							});
+					}
+
+					// Display the node icon if it has one
+					if($scope.showIcons) {
+						var image = d.hostInfo.objectJSON.icon_image;
+						if (image != "" && image != undefined) {
+							var iconInfo = d.hostInfo.iconInfo;
+							selection.append("image")
+								.attr({
+									"xlink:href": $scope.iconurl + image,
+									width: iconInfo.width,
+									height: iconInfo.height,
+									x: -(iconInfo.width / 2),
+									y: -((iconInfo.height +
+											layouts.CircularMarkup.textPadding +
+											$scope.fontSize) / 2),
+									transform: function() {
+										var rotateAngle = (d.x + d.dx / 2) *
+												180 / Math.PI +
+												layouts.CircularBalloon.rotation;
+										return "rotate(" + -rotateAngle + ")";
+									}
+								})
+								.style({
+									filter: function() {
+										return getGlowFilter(d);
+									}
+								});
+						}
+					}
+				};
+
 				// Update the map for partion displays
 				var updatePartitionMap = function(source, reparent) {
 
@@ -1965,7 +2018,7 @@ angular.module("mapApp")
 						});
 
 					// Update the data for the labels
-					var label = mapsvg
+					var labelGroup = mapsvg
 						.selectAll("g.label")
 						.data(mapdata, function(d) {
 							return d.id || (d.id = ++$scope.nodeID);
@@ -2000,16 +2053,6 @@ angular.module("mapApp")
 							.on("click", function(d) {
 								onClickPartition(d);
 							})
-							.on("mouseover", function(d, i) {
-								if($scope.showPopups &&
-										d.hasOwnProperty("hostInfo")) {
-									displayPopup(d);
-								}
-							})
-							.on("mouseout", function(d, i) {
-								$scope.displayPopup = false;
-								$scope.$apply("displayPopup");
-							})
 							.each(function(d) {
 								// Traverse each node, saving a pointer
 								// to the node in the hostList to
@@ -2022,38 +2065,34 @@ angular.module("mapApp")
 								}
 							});
 
-					if($scope.showText) {
-						label.enter()
-							.append("g")
-							.attr({
-								class: "label",
-								transform: function(d) {
-									return "translate(" +
-											$scope.arc.centroid({x: 0,
-											dx: 1e-6, y: d.y, dy: d.dy}) +
-											")";
+					if ($scope.showPopups) {
+						pathEnter
+							.on("mouseover", function(d, i) {
+								if($scope.showPopups &&
+										d.hasOwnProperty("hostInfo")) {
+									displayPopup(d);
 								}
 							})
-							.each(function(d) {
-								var group = d3.select(this)
-
-								// Append the label
-								var label = group.append("text")
-									.each(function(d) {
-										setTextAttrs(d, this);
-									})
-									.style({
-										"fill-opacity": 1e-6,
-										fill: "white",
-										filter: function(d) {
-											return textFilter(d);
-										}
-									})
-									.text(function(d) {
-										return d.hostInfo.objectJSON.name;
-									});
+							.on("mouseout", function(d, i) {
+								$scope.displayPopup = false;
+								$scope.$apply("displayPopup");
 							});
 					}
+
+					labelGroup.enter()
+						.append("g")
+						.attr({
+							class: "label",
+							transform: function(d) {
+								return "translate(" +
+										$scope.arc.centroid({x: 0,
+										dx: 1e-6, y: d.y, dy: d.dy}) +
+										")";
+							}
+						})
+						.each(function(d) {
+							addPartitionMapTextGroupContents(d, this);
+						});
 
 					// Update paths on changes
 					path.transition()
@@ -2073,28 +2112,36 @@ angular.module("mapApp")
 						})
 						.attrTween("d", arcTween);
 
-					// Update labels on change
+					// Update label groups on change
+					labelGroup
+						.transition()
+						.duration($scope.updateDuration)
+						.attrTween("transform", labelGroupTween);
+
 					if($scope.showText) {
-						label.each(function(d) {
-							var group = d3.select(this);
-
-							var label = group.select("text");
-
-							label.transition()
-								.duration($scope.updateDuration / 2)
-								.each(function(d) {
-									setTextAttrs(d, this);
-								})
-								.style({
-									"fill-opacity": 1,
-									filter: function(d) {
-										return textFilter(d);
-									}
-								});
+						labelGroup
+							.selectAll("text")
+							.style({
+								"fill-opacity": 1,
+								filter: function(d) {
+									return textFilter(d);
+								}
 							})
-							.transition()
-							.duration($scope.updateDuration)
-							.attrTween("transform", labelTween);
+							.each(function(d) {
+								setTextAttrs(d, this);
+							});
+					}
+
+					if($scope.showIcons) {
+						labelGroup
+							.selectAll("image")
+							.attr({
+								transform: function(d) {
+									var rotateAngle = (d.x + d.dx / 2) * 180 / Math.PI +
+											layouts.CircularBalloon.rotation;
+									return "rotate(" + -rotateAngle + ")";
+								}
+							});
 					}
 
 					// Remove paths when necessary
@@ -2110,9 +2157,9 @@ angular.module("mapApp")
 
 					// Remove labels when necessary
 					if($scope.showText) {
-						var labelExit = label.exit();
+						var labelGroupExit = labelGroup.exit();
 
-						labelExit.each(function(d) {
+						labelGroupExit.each(function(d) {
 							var group = d3.select(this);
 
 							group.select("text")
@@ -2122,7 +2169,7 @@ angular.module("mapApp")
 									"fill-opacity": 1e-6
 								});
 
-							group.select("rect")
+							group.select("image")
 								.transition()
 								.duration($scope.updateDuration)
 								.style({
@@ -2132,7 +2179,7 @@ angular.module("mapApp")
 							})
 							.transition()
 							.duration($scope.updateDuration)
-							.attrTween("transform", labelTween)
+							.attrTween("transform", labelGroupTween)
 							.remove();
 					}
 				};
@@ -3299,7 +3346,6 @@ angular.module("mapApp")
 
 				// Display the map
 				var displayMap = function() {
-
 					// Update the scales
 					switch($scope.layout) {
 					case layouts.UserSupplied.index:

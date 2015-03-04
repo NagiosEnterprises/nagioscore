@@ -280,6 +280,13 @@ angular.module("mapApp")
 						withCredentials: true
 					};
 
+					if ($scope.showIcons && $scope.iconsLoading > 0) {
+						setTimeout(function() {
+								getServiceList()
+								}, 10);
+						return;
+					}
+
 					// Send the JSON query
 					$http.get($scope.cgiurl + "objectjson.cgi", getConfig)
 						.error(function(err) {
@@ -1109,7 +1116,7 @@ angular.module("mapApp")
 									})
 									.on("load", function() {
 										$scope.iconsLoading--;
-										var img = d3.select(d3.event.path[0]);
+										var img = d3.select(d3.event.target);
 										var image = img.attr("id");
 										$scope.iconList[image].width =
 												img.node().naturalWidth;
@@ -1467,6 +1474,7 @@ angular.module("mapApp")
 
 				// What to do when getAllStatus succeeds
 				var onGetAllStatusSuccess = function(json, since) {
+
 					// Record the time of the last update
 					$scope.lastUpdate = json.result.query_time;
 
@@ -1506,6 +1514,13 @@ angular.module("mapApp")
 
 				// Get status of all hosts and their services
 				var getAllStatus = function(since) {
+
+					if ($scope.showIcons && $scope.iconsLoading > 0) {
+						setTimeout(function() {
+								getAllStatus()
+								}, 10);
+						return;
+					}
 
 					var parameters = {
 						query: "hostlist",

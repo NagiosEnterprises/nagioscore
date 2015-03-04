@@ -380,8 +380,15 @@ angular.module("mapApp")
 						// Update the group with the new calculated values
 						d3.select("svg#map g#container")
 							.attr("transform",
-									"translate(" + translate + ") scale(" +
-									zoomScale + ")");
+									"translate(" + translate + ")");
+						d3.selectAll("path")
+							.attr("transform", "scale(" + zoomScale + ")");
+						d3.selectAll("g.label")
+							.attr({
+								transform: function(d) {
+									return getPartitionLabelGroupTransform(d);
+								}
+							});
 						break;
 					case layouts.Force.index:
 						d3.selectAll("line.link")
@@ -965,7 +972,7 @@ angular.module("mapApp")
 					var rotate = (radians * 180 / Math.PI) - 90;
 					var exponent = 1 / layouts.CircularMarkup.radialExponent;
 					var radius = d.y + (d.y / (d.depth * 2));
-					var translate = Math.pow(radius, exponent);
+					var translate = Math.pow(radius, exponent) * $scope.zoom.scale();
 					var transform = "";
 
 					if(d.depth == 0) {

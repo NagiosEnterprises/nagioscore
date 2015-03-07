@@ -593,7 +593,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			temp_service->problem_has_been_acknowledged = FALSE;
 			temp_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 
-			/* remove any non-persistant comments associated with the ack */
+			/* remove any non-persistent comments associated with the ack */
 			delete_service_acknowledgement_comments(temp_service);
 			}
 		else if(temp_service->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && temp_service->current_state == STATE_OK) {
@@ -601,7 +601,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			temp_service->problem_has_been_acknowledged = FALSE;
 			temp_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 
-			/* remove any non-persistant comments associated with the ack */
+			/* remove any non-persistent comments associated with the ack */
 			delete_service_acknowledgement_comments(temp_service);
 			}
 
@@ -2909,7 +2909,7 @@ int handle_host_state(host *hst) {
 			hst->problem_has_been_acknowledged = FALSE;
 			hst->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 
-			/* remove any non-persistant comments associated with the ack */
+			/* remove any non-persistent comments associated with the ack */
 			delete_host_acknowledgement_comments(hst);
 			}
 		else if(hst->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && hst->current_state == HOST_UP) {
@@ -2917,7 +2917,7 @@ int handle_host_state(host *hst) {
 			hst->problem_has_been_acknowledged = FALSE;
 			hst->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 
-			/* remove any non-persistant comments associated with the ack */
+			/* remove any non-persistent comments associated with the ack */
 			delete_host_acknowledgement_comments(hst);
 			}
 

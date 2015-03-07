@@ -249,7 +249,7 @@
 
 2003-03-03 15:59  kellan
 
-	* rss_fetch.inc: commited patch from nicola (www.technick.com) to
+	* rss_fetch.inc: committed patch from nicola (www.technick.com) to
 	  quell 'undefined indexes' notices.
 
 	  * Magpie now automatically includes its version in the
@@ -380,7 +380,7 @@
 	  got rid of the idiom of passing back an array, its was awkward to
 	  deal with in PHP, and unusual (and consquently confusing to
 	  people).  now i return true/false values, and try to setup error
-	  string where appropiate (rss_cache has the most complete example
+	  string where appropriate (rss_cache has the most complete example
 	  of this)
 
 	  change the logic for interacting with the cache

@@ -1654,7 +1654,7 @@ void my_system_sighandler(int sig) {
 
 
 /* Handle the SIGXFSZ signal. A SIGXFSZ signal is received when a file exceeds
-	the maximum allowable size either as dictated by the fzise paramater in
+	the maximum allowable size either as dictated by the fzise parameter in
 	/etc/security/limits.conf (ulimit -f) or by the maximum size allowed by
 	the filesystem */
 void handle_sigxfsz(int sig) {
@@ -2610,7 +2610,7 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 		}
 
 	/*
-	 * clean up irregardless of how things went. dest_fd comes from
+	 * clean up regardless of how things went. dest_fd comes from
 	 * our caller, so we mustn't close it.
 	 */
 	close(source_fd);

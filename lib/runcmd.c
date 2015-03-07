@@ -355,7 +355,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	cmd2strv_errors = runcmd_cmd2strv(cmd, &argc, argv);
 
 	if (cmd2strv_errors == RUNCMD_EALLOC) {
-		/* We couldn't allocate the parsed arument array. */
+		/* We couldn't allocate the parsed argument array. */
 		free(argv);
 		return RUNCMD_EALLOC;
 	}

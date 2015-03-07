@@ -1173,7 +1173,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 
 	/* get variable name */
 	variable = input;
-	/* trim at first whitespace occurance */
+	/* trim at first whitespace occurrence */
 	for(x = 0; variable[x] != '\x0'; x++) {
 		if(variable[x] == ' ' || variable[x] == '\t') {
 			variable[x] = 0;
@@ -6386,7 +6386,7 @@ int xodtemplate_recombobulate_hostgroups(void) {
 			continue;
 
 		/* preprocess the hostgroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
-		/* 10/18/07 EG an empty return value means an error occured */
+		/* 10/18/07 EG an empty return value means an error occurred */
 		if((hostgroup_names = xodtemplate_process_hostgroup_names(temp_host->host_groups, temp_host->_config_file, temp_host->_start_line)) == NULL) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process hostgroup names for host '%s' (config file '%s', starting at line %d)\n",
 				  temp_host->host_name, xodtemplate_config_file_name(temp_host->_config_file), temp_host->_start_line);
@@ -6567,7 +6567,7 @@ int xodtemplate_recombobulate_servicegroups(void) {
 			continue;
 
 		/* preprocess the servicegroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
-		/* 10/19/07 EG an empry return value means an error occured */
+		/* 10/19/07 EG an empry return value means an error occurred */
 		if((servicegroup_names = xodtemplate_process_servicegroup_names(temp_service->service_groups, temp_service->_config_file, temp_service->_start_line)) == NULL) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process servicegroup names for service '%s' on host '%s' (config file '%s', starting at line %d)\n",
 				  temp_service->service_description, temp_service->host_name, xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);

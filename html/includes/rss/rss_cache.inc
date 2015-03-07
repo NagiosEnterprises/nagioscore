@@ -46,7 +46,7 @@ class RSSCache {
     Function:   set
     Purpose:    add an item to the cache, keyed on url
     Input:      url from wich the rss file was fetched
-    Output:     true on sucess  
+    Output:     true on success  
 \*=======================================================================*/
     function set ($url, $rss) {
         $this->ERROR = "";

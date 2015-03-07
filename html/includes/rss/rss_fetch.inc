@@ -73,7 +73,7 @@ require_once( MAGPIE_EXTLIB . 'Snoopy.class.inc');
     
     NOTES ON RETRIEVING REMOTE FILES:
     If conditional gets are on (MAGPIE_CONDITIONAL_GET_ON) fetch_rss will
-    return a cached object, and touch the cache object upon recieving a
+    return a cached object, and touch the cache object upon receiving a
     304.
     
     NOTES ON FAILED REQUESTS:

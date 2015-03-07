@@ -1,0 +1,106 @@
+.hidden {
+	display: none;
+}
+
+/* Styles for the spinner div */
+div#spinner {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 40;
+}
+
+/* Styles for the map div */
+div#mapsvg {
+	position: absolute;
+	border-style: solid;
+	border-color: #777777;
+	border-width: 1px;
+	width: 600px;
+	height: 600px;
+}
+
+/* Styles for map elements */
+.link {
+	fill: none;
+	stroke: #cccccc;
+	stroke-width: 1.5px;
+}
+
+.node circle {
+	fill: #ffffff;
+	stroke: #cccccc;
+	stroke-width: 2px;
+}
+
+.node {
+	font-family: sans-serif;
+}
+
+/* Styles for state popups */
+div#popup {
+	font-family: sans-serif;
+	font-size: 11px;
+	position: absolute;
+	width: auto;
+	height: auto;
+	padding: 3px;
+	border: 1px solid black;
+	background-color: #ffffcc;
+	pointer-events: none;
+}
+
+div#popup td {
+	vertical-align: top;
+}
+
+div#popup .popup-label {
+	text-align: right;
+}
+
+div#popup .popup-value {
+	font-weight: bold;
+}
+
+/* Colors for text representing states */
+.up {
+	color: rgb(0, 128, 0);
+}
+.down {
+	color: rgb(255, 0, 0);
+}
+.unreachable {
+	color: rgb(128, 0, 0);
+}
+.ok {
+	color: rgb(0, 128, 0);
+}
+.warning {
+	color: rgb(176, 178, 20);
+}
+.unknown {
+	color: rgb(255, 100, 25);
+}
+.critical {
+	color: rgb(255, 0, 0);
+}
+.pending {
+	color: #ccc;
+}
+
+/* Styles for labels in partion displays */
+g.label {
+	pointer-events: none;
+}
+
+/* Styles for menu button */
+div#menubutton {
+	position: absolute;
+	z-index: 40;
+}
+
+div#menubutton button {
+	padding: 0px;
+	border: none;
+	background-color: white;
+}

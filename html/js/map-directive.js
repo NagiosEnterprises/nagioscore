@@ -22,7 +22,8 @@ angular.module("mapApp")
 				updateIntervalValue: "@updateInterval",
 				lastUpdate: "=lastUpdate",
 				reload: "@reload",
-				svgWidth: "=mapwidth",
+				svgWidth: "=mapWidth",
+				svgHeight: "=mapHeight",
 				build: "&build"
 			},
 			controller: function($scope, $element, $attrs, $http,
@@ -32,7 +33,6 @@ angular.module("mapApp")
 				$scope.popupContents = {};
 
 				// Layout variables
-				$scope.svgHeight = 600;
 				$scope.diameter = Math.min($scope.svgHeight,
 						$scope.svgWidth);
 				$scope.mapZIndex = 20;
@@ -118,6 +118,7 @@ angular.module("mapApp")
 				$scope.displayPopup = false;
 				var previousLayout = -1;
 				var statusTimeout = null;
+				var displayMapDone = false;
 
 				// User-supplied layout information
 				var userSuppliedLayout = {
@@ -132,6 +133,7 @@ angular.module("mapApp")
 				// Force layout information
 				var forceLayout = new Object;
 
+				// Watch for changes on the reload value
 				$scope.$watch("reload", function(newValue) {
 
 					// Cancel the timeout if necessary
@@ -243,26 +245,26 @@ angular.module("mapApp")
 						}
 						previousLayout = $scope.layout;
 
-						// Size and locate the spinner div
-						$scope.spinnerdiv = d3.select("div#spinner")
-							.style({
-								top: "0px",
-								left: "0px",
-								height: function() {
-									return $scope.svgHeight + "px";
-								},
-								width: function() {
-									return $scope.svgWidth + "px";
-								}
-							});
-
 						// Start the spinner
+						$scope.spinnerdiv = d3.select("div#spinner");
 						$scope.fetchingHostlist = true;
 						$scope.spinner = new Spinner($scope.spinnerOpts)
 								.spin($scope.spinnerdiv[0][0]);
 
 						// Get the host list and move forward
 						getHostList();
+					}
+				});
+
+				// Watch for changes in the size of the map
+				$scope.$watch("svgWidth", function(newValue) {
+					if (displayMapDone) {
+						updateOnResize(d3.select("#resize-handle").node());
+					}
+				});
+				$scope.$watch("svgHeight", function(newValue) {
+					if (displayMapDone) {
+						updateOnResize(d3.select("#resize-handle").node());
 					}
 				});
 
@@ -3130,8 +3132,19 @@ angular.module("mapApp")
 
 					// Resize the div
 					$scope.svgWidth = event.x;
-					$scope.$apply("svgWidth");
 					$scope.svgHeight = event.y;
+
+					// Propagate changes to parent scope (so, for example,
+					// menu icon is redrown immediately). Note that it
+					// doesn't seem to matter what we apply, so the
+					// empty string is applied to decouple this directive
+					// from it's parent's scope.
+					$scope.$parent.$apply("");
+
+					updateOnResize(this);
+				};
+
+				var updateOnResize = function(resizeHandle) {
 					d3.select("div#mapsvg")
 						.style({
 							height: function() {
@@ -3219,7 +3232,7 @@ angular.module("mapApp")
 
 					// Move the resize handle
 					if($scope.allowResize) {
-						d3.select(this)
+						d3.select(resizeHandle)
 							.attr({
 								transform: function() {
 									x = $scope.svgWidth -
@@ -3368,6 +3381,9 @@ angular.module("mapApp")
 
 				// Display the map
 				var displayMap = function() {
+
+					displayMapDone = false;
+
 					// Update the scales
 					switch($scope.layout) {
 					case layouts.UserSupplied.index:
@@ -3525,6 +3541,9 @@ angular.module("mapApp")
 
 					// Set the focal point to the root
 					$scope.focalPoint = $scope.hostTree;
+
+					// Signal the fact that displayMap() is done
+					displayMapDone = true;
 				};
 
 				// Activities that take place only on

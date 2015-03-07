@@ -20,11 +20,17 @@ angular.module("nagiosDecorations", [])
 				cgiurl: "@cgiurl",
 				decorationTitle: "@decorationTitle",
 				updateIntervalValue: "@updateInterval",
-				lastUpdate: "=lastUpdate"
+				lastUpdate: "=lastUpdate",
+				initialState: "@initialState",
+				collapsable: "@collapsable",
+				includePartial: "@includePartial"
 			},
 			controller: function($scope, $element, $attrs, $http) {
 
 				$scope.updateInterval = parseInt($scope.updateIntervalValue);
+				$scope.isPermanentlyCollapsed = $scope.isCollapsed =
+						$scope.initialState == "collapsed";
+				$scope.isCollapsable = $scope.collapsable == "true";
 
 				$scope.haveProgramStatus = false;
 
@@ -64,6 +70,28 @@ angular.module("nagiosDecorations", [])
 					return $scope.haveProgramStatus &&
 							!$scope.json.data.programstatus.execute_service_checks;
 				};
+
+				$scope.toggleDisplay = function() {
+					$scope.isPermanentlyCollapsed =
+							!$scope.isPermanentlyCollapsed;
+					if (!$scope.isMousedOver) {
+						$scope.isCollapsed = $scope.isPermanentlyCollapsed;
+					}
+				};
+
+				if ($scope.isCollapsable) {
+					$element.on("mouseover", function() {
+						$scope.isMousedOver = true;
+						$scope.isCollapsed = false;
+						$scope.$apply("isCollapsed");
+					});
+
+					$element.on("mouseout", function() {
+						$scope.isMousedOver = false;
+						$scope.isCollapsed = $scope.isPermanentlyCollapsed;
+						$scope.$apply("isCollapsed");
+					});
+				}
 
 			}
 		};

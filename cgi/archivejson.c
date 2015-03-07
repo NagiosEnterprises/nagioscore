@@ -600,7 +600,7 @@ int main(void) {
 	int result = OK;
 	time_t query_time;
 	archive_json_cgi_data	cgi_data;
-	int whitespace;
+	int whitespace __attribute__ ((unused));
 	json_object *json_root;
 	au_log *log;
 	time_t last_archive_data_update = (time_t)0;
@@ -1078,7 +1078,7 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 	char **variables;
 	int result = RESULT_SUCCESS;
 	int x;
-	int whitespace;
+	int whitespace __attribute__ ((unused));
 	authdata *authinfo = NULL; /* Currently always NULL because
 									get_authentication_information() hasn't
 									been called yet, but in case we want to

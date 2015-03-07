@@ -1,0 +1,36 @@
+#!/usr/bin/make -f
+#
+ARCH ?= $(shell arch)
+ifeq ($(ARCH),x86_64)
+DEB_ARCH := amd64
+RPM_ARCH := x86_64
+KERNEL_ARCH := x86
+else
+    ifeq ($(ARCH),i686)
+DEB_ARCH := i386
+RPM_ARCH := i386
+KERNEL_ARCH := x86
+    else
+$(error Unknown arch "$(ARCH)".)
+    endif
+endif
+
+# Our default target.
+all: rpm
+.PHONY: all
+
+clean:
+	@rm -rf bin/ pkg/ dist/ doc/ _obj
+	@rm -rf ~/rpmbuild/  *.rpm
+.PHONY: clean
+
+
+rpm: 
+	@rm -rf ~/rpmbuild && mkdir -p ~/rpmbuild/SOURCES ~/rpmbuild/RPMS ~/rpmbuild/BUILDROOT
+	@cp -f  ./nagios-4.1.0rc1.tar.gz  ~/rpmbuild/SOURCES/nagios-4.1.0rc1.tar.gz  
+	@rpmbuild -v -ba --buildroot ~/rpmbuild/BUILDROOT ./nagios.spec
+	@mv ~/rpmbuild/RPMS/$(RPM_ARCH)/*.rpm .
+.PHONY: rpm
+
+packages: rpm
+.PHONY: packages

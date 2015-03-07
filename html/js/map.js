@@ -92,7 +92,7 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 	})
 
 	.controller("mapCtrl", function($scope, $location, $modal, $http,
-			nagiosTimeService, nagiosProcessName, layouts) {
+			nagiosTimeService, nagiosProcessName, layouts, $window) {
 		$scope.search = $location.search();
 
 		// URL parameters
@@ -121,7 +121,11 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 					$location.absUrl().replace(/map\.html.*$/, "images/logos/"),
 		};
 
-		$scope.svgWidth = 600;
+		var rightPadding = 1;
+		var bottomPadding = 4;
+
+		$scope.svgWidth = $window.innerWidth - rightPadding;
+		$scope.svgHeight = $window.innerHeight - bottomPadding;
 
 		// Application state variables
 		$scope.formDisplayed = false;
@@ -160,6 +164,13 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 			}
 		};
 
+		angular.element($window).bind("resize", function() {
+			$scope.svgWidth = $window.innerWidth - rightPadding;
+			$scope.svgHeight = $window.innerHeight - bottomPadding;
+			$scope.$apply("svgWidth");
+			$scope.$apply("svgHeight");
+		});
+
 		$scope.displayForm = function(size) {
 			$scope.formDisplayed = true;
 			var modalInstance = $modal.open({
@@ -186,7 +197,7 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 		// Style the menu button
 		$scope.menuButtonStyle = function() {
 			return {
-				left: ($scope.svgWidth - 16) + "px",
+				left: ($scope.svgWidth - 30) + "px",
 				top: "5px"
 			};
 		};

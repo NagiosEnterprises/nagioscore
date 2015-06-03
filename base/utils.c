@@ -192,6 +192,8 @@ char *use_timezone;
 
 int allow_empty_hostgroup_assignment;
 
+int host_down_disable_service_checks;
+
 /*** perfdata variables ***/
 int     perfdata_timeout;
 char    *host_perfdata_command;
@@ -371,6 +373,7 @@ void init_main_cfg_vars(int first_time) {
 		use_timezone = NULL;
 		allow_empty_hostgroup_assignment =
 				DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
+		host_down_disable_service_checks = FALSE;
 		perfdata_timeout = 0;
 		host_perfdata_command = NULL;
 		service_perfdata_command = NULL;
@@ -2126,6 +2129,10 @@ int process_check_result(check_result *cr)
 	return ERROR;
 	}
 
+/* Unescapes newlines in a string. Declared here for now as it's not used
+ * elsewhere. */
+static char *unescape_check_result_file_output(char*);
+
 /* reads check result(s) from a file */
 int process_check_result_file(char *fname) {
 	mmapfile *thefile = NULL;
@@ -2248,7 +2255,7 @@ int process_check_result_file(char *fname) {
 				 * newline delimited format we use internally. By converting as
 				 * soon as possible after reading from the file we don't have
 				 * to worry about two different representations later. */
-				cr.output = unescape_check_result_output(val);
+				cr.output = unescape_check_result_file_output(val);
 			}
 		}
 
@@ -2438,8 +2445,11 @@ char *escape_newlines(char *rawbuf) {
 	return newbuf;
 	}
 
-/* Unescapes newlines (and backslashes) in a string. */
-char *unescape_check_result_output(const char *rawbuf) {
+/* Unescapes newlines (and backslashes) in a string.
+ * @note: There is an unescape_newlines() in cgi/cgiutils.c:845 that unescapes
+ * more than '\\' and '\n'. Since this function isn't used elsewhere, we'll
+ * give it a more specific name to avoid confusion and conflicts. */
+static char *unescape_check_result_file_output(char *rawbuf) {
 	char *newbuf = NULL;
 	int x;
 	int y;

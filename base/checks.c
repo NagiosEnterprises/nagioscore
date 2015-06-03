@@ -1183,6 +1183,7 @@ int check_service_check_viability(service *svc, int check_options, int *time_is_
 	time_t current_time = 0L;
 	time_t preferred_time = 0L;
 	int check_interval = 0;
+	host *temp_host = NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_service_check_viability()\n");
 
@@ -1229,6 +1230,19 @@ int check_service_check_viability(service *svc, int check_options, int *time_is_
 			perform_check = FALSE;
 
 			log_debug_info(DEBUGL_CHECKS, 2, "Execution dependencies for this service failed, so it will not be actively checked.\n");
+			}
+		}
+
+		/* check if host is up - if not, do not perform check */
+		if(host_down_disable_service_checks) {
+			if((temp_host = svc->host_ptr) == NULL) {
+				log_debug_info(DEBUGL_CHECKS, 2, "Host pointer NULL in check_service_check_viability().\n");
+				return ERROR;
+			} else {
+				if(temp_host->current_state != HOST_UP) {
+					log_debug_info(DEBUGL_CHECKS, 2, "Host state not UP, so service check will not be performed - will be rescheduled as normal.\n");
+					perform_check = FALSE;
+				}
 			}
 		}
 

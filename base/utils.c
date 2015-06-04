@@ -2255,7 +2255,7 @@ int process_check_result_file(char *fname) {
 				 * newline delimited format we use internally. By converting as
 				 * soon as possible after reading from the file we don't have
 				 * to worry about two different representations later. */
-				cr.output = unescape_check_result_file_output(val);
+				cr.output = unescape_check_result_output(val);
 			}
 		}
 
@@ -2445,11 +2445,8 @@ char *escape_newlines(char *rawbuf) {
 	return newbuf;
 	}
 
-/* Unescapes newlines (and backslashes) in a string.
- * @note: There is an unescape_newlines() in cgi/cgiutils.c:845 that unescapes
- * more than '\\' and '\n'. Since this function isn't used elsewhere, we'll
- * give it a more specific name to avoid confusion and conflicts. */
-static char *unescape_check_result_file_output(char *rawbuf) {
+/* Unescapes newlines (and backslashes) in a string. */
+char *unescape_check_result_output(const char *rawbuf) {
 	char *newbuf = NULL;
 	int x;
 	int y;

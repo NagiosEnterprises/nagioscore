@@ -36,3 +36,8 @@ Miscellaneous Goodies:
 - htaccess.sample is a *sample* .htaccess file that can be used with
   Apache to require password authentication for access to the web
   interface.
+
+- Automated rpm making. 
+  1. ./configure # to generate contrib/Makefile
+  2. cd contrib ; make rpm
+  3. *.rpm will be generated in contrib directory.

@@ -522,7 +522,7 @@ void json_object_append_string(json_object *obj, char *key,
 		escaped_format = format;
 		}
 	if(NULL != escaped_format) {
-		va_start(a_list, escaped_format);
+	        va_start(a_list, format);
 		result = vasprintf(&buf, escaped_format, a_list);
 		va_end(a_list);
 		if(result >= 0) {

@@ -3117,9 +3117,13 @@ int query_update_api(void) {
 	         "POST %s HTTP/1.0\r\nUser-Agent: Nagios/%s\r\n"
 	         "Connection: close\r\nHost: %s\r\n"
 	         "Content-Type: application/x-www-form-urlencoded\r\n"
-	         "Content-Length: %zd\r\n\r\n%s",
+	         "Content-Length: %lu\r\n\r\n%s",
 	         api_path, PROGRAM_VERSION, api_server,
-	         strlen(api_query), api_query);
+	         (unsigned long) strlen(api_query), api_query);
+
+	if (buf == NULL) {
+	  abort();
+	}
 
 	my_tcp_connect(api_server, 80, &sd, 2);
 	if(sd > 0) {

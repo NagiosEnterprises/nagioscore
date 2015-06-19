@@ -120,6 +120,9 @@ angular.module("mapApp")
 				var statusTimeout = null;
 				var displayMapDone = false;
 
+				// Placeholder for saving icon url
+				var previousIconUrl;
+
 				// User-supplied layout information
 				var userSuppliedLayout = {
 					dimensions: {
@@ -210,6 +213,15 @@ angular.module("mapApp")
 
 					// Clean up the host list
 					$scope.hostList = {};
+
+					// Clean up the icon image cache if the icon url
+					// has changed
+					if (previousIconUrl != $scope.iconurl) {
+						d3.selectAll("div#image-cache img").remove();
+						$scope.iconList = new Object;
+						$scope.iconsLoading = 0;
+					}
+					previousIconUrl = $scope.iconurl;
 
 					// Reset the zoom and pan
 					$scope.zoom.translate([0,0]).scale(1);

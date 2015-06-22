@@ -16,6 +16,8 @@ FIXES
 * Fixed null pointer dereferences in archive JSON (Eric Stanley)
 * Fixed memory overwrite issue in JSON string escaping (Eric Stanley)
 * Fixed escaping of corewindow parameter to account for possible XSS injection (Scott Wilkerson)
+* Fixed passing limit and sort options to pagination and sort links #42 (Scott Wilkerson)
+* Fixed linking in Tactical Overview for several of the Host entries in Featured section #48 (Scott Wilkerson)
 
 4.0.8 - 08/12/2014
 ------------------

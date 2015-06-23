@@ -26,9 +26,6 @@ FIXES
 * Fixed makefile target "html" to PHONY to fix GitHub issue #28 (Trevor McDonald)
 * Fixed typo as per GitHub issue #27 (Trevor McDonald)
 
-
->>>>>>> tmcnag-master
-
 4.0.8 - 08/12/2014
 ------------------
 ENHANCEMENTS

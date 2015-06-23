@@ -1610,7 +1610,7 @@ void display_info_table(const char *title, int refresh, authdata *current_authda
 	if(refresh == TRUE)
 		printf("Updated every %d seconds<br>\n", refresh_rate);
 
-	printf("Nagios&reg; Core&trade; %s - <A HREF='http://www.nagios.org' TARGET='_new' CLASS='homepageURL'>www.nagios.org</A><BR>\n", PROGRAM_VERSION);
+	printf("Nagios&reg; Core&trade; %s - <A HREF='https://www.nagios.org' TARGET='_new' CLASS='homepageURL'>www.nagios.org</A><BR>\n", PROGRAM_VERSION);
 
 	if(current_authdata != NULL)
 		printf("Logged in as <i>%s</i><BR>\n", (!strcmp(current_authdata->username, "")) ? "?" : current_authdata->username);
@@ -1824,14 +1824,14 @@ void include_ssi_files(const char *cgi_name, int type) {
 	cgi_ssi_file[sizeof(cgi_ssi_file) - 1] = '\x0';
 
 	if(type == SSI_HEADER) {
-		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2007 Ethan Galstad. -->\n");
+		printf("\n<!-- Produced by Nagios (https://www.nagios.org).  Copyright (c) 1999-2007 Ethan Galstad. -->\n");
 		include_ssi_file(common_ssi_file);
 		include_ssi_file(cgi_ssi_file);
 		}
 	else {
 		include_ssi_file(cgi_ssi_file);
 		include_ssi_file(common_ssi_file);
-		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2007 Ethan Galstad. -->\n");
+		printf("\n<!-- Produced by Nagios (https://www.nagios.org).  Copyright (c) 1999-2007 Ethan Galstad. -->\n");
 		}
 
 	return;
@@ -1922,7 +1922,7 @@ void cgi_config_file_error(const char *config_file) {
 	printf("</P>\n");
 
 	printf("<P>\n");
-	printf("Make sure you read the documentation on installing and configuring Nagios thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.nagios.org'>http://www.nagios.org</a>.\n");
+	printf("Make sure you read the documentation on installing and configuring Nagios thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='https://www.nagios.org'>https://www.nagios.org</a>.\n");
 	printf("</P>\n");
 
 	return;
@@ -1951,7 +1951,7 @@ void main_config_file_error(const char *config_file) {
 	printf("</P>\n");
 
 	printf("<P>\n");
-	printf("Make sure you read the documentation on installing and configuring Nagios thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.nagios.org'>http://www.nagios.org</a>.\n");
+	printf("Make sure you read the documentation on installing and configuring Nagios thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='https://www.nagios.org'>https://www.nagios.org</a>.\n");
 	printf("</P>\n");
 
 	return;
@@ -1979,7 +1979,7 @@ void object_data_error(void) {
 	printf("</P>\n");
 
 	printf("<P>\n");
-	printf("Make sure you read the documentation on installing, configuring and running Nagios thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.nagios.org'>http://www.nagios.org</a>.\n");
+	printf("Make sure you read the documentation on installing, configuring and running Nagios thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='https://www.nagios.org'>https://www.nagios.org</a>.\n");
 	printf("</P>\n");
 
 	return;
@@ -2011,7 +2011,7 @@ void status_data_error(void) {
 	printf("</P>\n");
 
 	printf("<P>\n");
-	printf("Make sure you read the documentation on installing, configuring and running Nagios thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.nagios.org'>http://www.nagios.org</a>.\n");
+	printf("Make sure you read the documentation on installing, configuring and running Nagios thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='https://www.nagios.org'>https://www.nagios.org</a>.\n");
 	printf("</P>\n");
 
 	return;

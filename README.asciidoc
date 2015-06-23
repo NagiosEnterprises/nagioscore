@@ -6,11 +6,11 @@ released under the GNU General Public License, version 2. CGI programs
 are included to allow you to view the current status, history, etc via
 a web interface if you so desire.
 
-Visit the Nagios homepage at http://www.nagios.org for documentation,
+Visit the Nagios homepage at https://www.nagios.org for documentation,
 new releases, bug reports, information on discussion forums, and more.
 
 
-http://www.nagios.org/about/features/[Features]
+https://www.nagios.org/about/features/[Features]
 -----------------------------------------------
 * Monitoring of network services (via SMTP, POP3, HTTP, PING, etc).
 * Monitoring of host resources (processor load, disk usage, etc.).
@@ -38,7 +38,7 @@ for more detail.
 
 Download
 --------
-Latest releases can be downloaded from http://www.nagios.org/download/
+Latest releases can be downloaded from https://www.nagios.org/download/
 
 
 Installation
@@ -50,9 +50,9 @@ are available to help you get Nagios up and monitoring.
 Documentation & Support
 -----------------------
 * http://nagios.sourceforge.net/docs/nagioscore/4/en/[User Guide]
-* http://library.nagios.com/library/products/nagioscore/[Nagios Core Documentation Library]
-* http://support.nagios.com/forum/viewforum.php?f=7[Support Forums]
-* http://www.nagios.org/support/[Additional Support Resources]
+* https://library.nagios.com/library/products/nagioscore/[Nagios Core Documentation Library]
+* https://support.nagios.com/forum/viewforum.php?f=7[Support Forums]
+* https://www.nagios.org/support/[Additional Support Resources]
 
 
 Contributing
@@ -62,8 +62,8 @@ https://github.com/NagiosEnterprises/nagioscore
 
 Do you have an idea or feature request to make Nagios better? Join or
 start a discussion on the
-http://support.nagios.com/forum/viewforum.php?f=34[Nagios Core Development forum].
-Bugs can be reported at http://tracker.nagios.org, or by
+https://support.nagios.com/forum/viewforum.php?f=34[Nagios Core Development forum].
+Bugs can be reported by
 https://github.com/NagiosEnterprises/nagioscore/issues/new[opening an
 issue on GitHub]. If you have identified a security related issue in
 Nagios, please contact security@nagios.com.

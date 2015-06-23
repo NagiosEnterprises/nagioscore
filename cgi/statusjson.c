@@ -3482,7 +3482,7 @@ void json_status_service_details(json_object *json_details,
 			&percent_escapes, temp_servicestatus->long_plugin_output);
 	json_object_append_string(json_details, "perf_data", &percent_escapes,
 			temp_servicestatus->perf_data);
-	json_object_append_integer(json_details, "max_attemps", 
+	json_object_append_integer(json_details, "max_attempts", 
 			temp_servicestatus->max_attempts);
 	json_object_append_integer(json_details, "current_attempt", 
 			temp_servicestatus->current_attempt);

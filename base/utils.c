@@ -192,6 +192,8 @@ char *use_timezone;
 
 int allow_empty_hostgroup_assignment;
 
+int host_down_disable_service_checks;
+
 /*** perfdata variables ***/
 int     perfdata_timeout;
 char    *host_perfdata_command;
@@ -371,6 +373,7 @@ void init_main_cfg_vars(int first_time) {
 		use_timezone = NULL;
 		allow_empty_hostgroup_assignment =
 				DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
+		host_down_disable_service_checks = FALSE;
 		perfdata_timeout = 0;
 		host_perfdata_command = NULL;
 		service_perfdata_command = NULL;
@@ -2125,6 +2128,10 @@ int process_check_result(check_result *cr)
 
 	return ERROR;
 	}
+
+/* Unescapes newlines in a string. Declared here for now as it's not used
+ * elsewhere. */
+static char *unescape_check_result_file_output(char*);
 
 /* reads check result(s) from a file */
 int process_check_result_file(char *fname) {

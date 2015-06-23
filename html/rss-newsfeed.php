@@ -14,7 +14,7 @@ do_newsfeed_html();
 function do_newsfeed_html() {
 	$html = '';
 
-	$rss = fetch_rss('http://www.nagios.org/backend/feeds/frontpage');
+	$rss = fetch_rss('https://www.nagios.org/backend/feeds/frontpage');
 	// Output an unordered list of the first n items if any were returned.
 	if ($rss && $rss->items) {
 		$html = '<ul>';
@@ -29,11 +29,11 @@ function do_newsfeed_html() {
 		}
 
 		$html .= '
-		<li><a href="http://www.nagios.org/news" target="_blank">More news...</a></li>
+		<li><a href="https://www.nagios.org/news" target="_blank">More news...</a></li>
 		</ul>';
 	}
 	else {
-		$html = "Unable to fetch the latest Nagios news. Stay on top of what's happening by visiting <a href='http://www.nagios.org/news' target='_blank'>http://www.nagios.org/news</a>.";
+		$html = "Unable to fetch the latest Nagios news. Stay on top of what's happening by visiting <a href='https://www.nagios.org/news' target='_blank'>https://www.nagios.org/news</a>.";
 	}
 
 	print $html;

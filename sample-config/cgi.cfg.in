@@ -370,3 +370,16 @@ lock_author_names=1
 
 navbar_search_for_addresses=1
 navbar_search_for_aliases=1
+
+
+
+
+
+# DEFAULTS FOR CHECKBOXES FOR ACKNOWLEDGEMENTS
+# Enabling ack_no_sticky will default the "Sticky Acknowledgement" to 
+# be unchecked.
+# Enabling ack_no_send will default the "Send Notification" to 
+# be unchecked.
+
+#ack_no_sticky=0
+#ack_no_send=0

@@ -187,6 +187,8 @@ extern unsigned long max_debug_file_size;
 
 extern int allow_empty_hostgroup_assignment;
 
+extern int host_down_disable_service_checks;
+
 extern time_t last_program_stop;
 extern time_t event_start;
 

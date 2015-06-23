@@ -118,7 +118,7 @@ extern squeue_event *squeue_add_msec(squeue_t *q, time_t when, time_t msec, void
  *
  * @param q The scheduling queue holding the event.
  * @param evt The event to reschedule.
- * @param when When the event should be rescheduled to.
+ * @param tv When the event should be rescheduled to.
  */
 extern void squeue_change_priority_tv(squeue_t *q, squeue_event *evt, struct timeval *tv);
 

@@ -67,7 +67,7 @@ extern const char *runcmd_strerror(int code);
 
 /**
  * Start a command from a command string
- * @param[in] cmdstring The command to launch
+ * @param[in] cmd The command to launch
  * @param[out] pfd Child's stdout filedescriptor
  * @param[out] pfderr Child's stderr filedescriptor
  * @param[in] env Currently ignored for portability

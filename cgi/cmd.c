@@ -44,6 +44,8 @@ extern int  use_authentication;
 
 extern int  lock_author_names;
 
+extern int ack_no_sticky;
+extern int ack_no_send;
 
 #define MAX_AUTHOR_LENGTH	64
 #define MAX_COMMENT_LENGTH	1024
@@ -950,10 +952,10 @@ void request_command_data(int cmd) {
 			printf("</b></td></tr>\n");
 			if(cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) {
 				printf("<tr><td CLASS='optBoxItem'>Sticky Acknowledgement:</td><td><b>");
-				printf("<INPUT TYPE='checkbox' NAME='sticky_ack' CHECKED>");
+				printf("<INPUT TYPE='checkbox' NAME='sticky_ack' %s>", (ack_no_sticky == TRUE) ? "" : "CHECKED");
 				printf("</b></td></tr>\n");
 				printf("<tr><td CLASS='optBoxItem'>Send Notification:</td><td><b>");
-				printf("<INPUT TYPE='checkbox' NAME='send_notification' CHECKED>");
+				printf("<INPUT TYPE='checkbox' NAME='send_notification' %s>", (ack_no_send == TRUE) ? "" : "CHECKED");
 				printf("</b></td></tr>\n");
 				}
 			printf("<tr><td CLASS='optBoxItem'>Persistent%s:</td><td><b>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? " Comment" : "");
@@ -976,10 +978,10 @@ void request_command_data(int cmd) {
 			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>", escape_string(service_desc));
 			if(cmd == CMD_ACKNOWLEDGE_SVC_PROBLEM) {
 				printf("<tr><td CLASS='optBoxItem'>Sticky Acknowledgement:</td><td><b>");
-				printf("<INPUT TYPE='checkbox' NAME='sticky_ack' CHECKED>");
+				printf("<INPUT TYPE='checkbox' NAME='sticky_ack' %s>", (ack_no_sticky == TRUE) ? "" : "CHECKED");
 				printf("</b></td></tr>\n");
 				printf("<tr><td CLASS='optBoxItem'>Send Notification:</td><td><b>");
-				printf("<INPUT TYPE='checkbox' NAME='send_notification' CHECKED>");
+				printf("<INPUT TYPE='checkbox' NAME='send_notification' %s>", (ack_no_send == TRUE) ? "" : "CHECKED");
 				printf("</b></td></tr>\n");
 				}
 			printf("<tr><td CLASS='optBoxItem'>Persistent%s:</td><td><b>", (cmd == CMD_ACKNOWLEDGE_SVC_PROBLEM) ? " Comment" : "");

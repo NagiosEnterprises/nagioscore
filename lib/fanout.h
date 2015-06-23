@@ -64,7 +64,7 @@ extern int fanout_add(fanout_table *t, unsigned long key, void *data);
  * Remove an entry from the fanout table and return its data.
  *
  * @param[in] t fanout table to look in
- * @param[key] The key whose data we should locate
+ * @param[in] key The key whose data we should locate
  * @return Pointer to the data stored on success; NULL on errors
  */
 extern void *fanout_remove(fanout_table *t, unsigned long key);

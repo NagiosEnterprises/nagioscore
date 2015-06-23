@@ -409,4 +409,4 @@ dist: distclean
 	rm -f nagios-$(VERSION)
 
 # Targets that always get built
-.PHONY:	indent clean clean distclean dox test
+.PHONY:	indent clean clean distclean dox test html

@@ -7,6 +7,9 @@ Nagios Core 4 Change Log
 ENHANCEMENTS
 * Promoted JSON CGIs to released status (Eric Stanley)
 * New graphical CGI displays: statusmap, trends, histogram (Eric Stanley)
+* Make sticky status for acks and comments configurable enhancement #20 (Trevor McDonald / Scott Wilkerson)
+* Add host_down_disable_service_checks directive to nagios.cfg #44 (Trevor McDonald / Scott Wilkerson)
+
 FIXES
 * Fixed compilation on Solaris (Eric Mislivec)
 * Fixed escaping of keys for scalar values in JSON CGIs (Eric Stanley)
@@ -18,6 +21,11 @@ FIXES
 * Fixed escaping of corewindow parameter to account for possible XSS injection (Scott Wilkerson)
 * Fixed passing limit and sort options to pagination and sort links #42 (Scott Wilkerson)
 * Fixed linking in Tactical Overview for several of the Host entries in Featured section #48 (Scott Wilkerson)
+* Fixed doxygen comments to work with latest doxygen 1.8.9.1 #30 (Trevor McDonald)
+* Fixed makefile target "html" to PHONY to fix GitHub issue #28 (Trevor McDonald)
+* Fixed typo as per GitHub issue #27 (Trevor McDonald)
+
+
 
 4.0.8 - 08/12/2014
 ------------------

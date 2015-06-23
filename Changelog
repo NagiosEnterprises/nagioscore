@@ -18,6 +18,7 @@ FIXES
 * Fixed escaping of corewindow parameter to account for possible XSS injection (Scott Wilkerson)
 * Fixed passing limit and sort options to pagination and sort links #42 (Scott Wilkerson)
 * Fixed linking in Tactical Overview for several of the Host entries in Featured section #48 (Scott Wilkerson)
+* Fixed jsonquery.php 404 not found error, and disabled Send Query button until form populates #43 (Scott Wilkerson)
 
 4.0.8 - 08/12/2014
 ------------------

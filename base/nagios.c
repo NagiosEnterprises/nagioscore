@@ -324,7 +324,7 @@ int main(int argc, char **argv) {
 		printf("Copyright (c) 1999-2009 Ethan Galstad\n");
 		printf("Last Modified: %s\n", PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
-		printf("Website: http://www.nagios.org\n");
+		printf("Website: https://www.nagios.org\n");
 		}
 
 	/* just display the license */
@@ -365,7 +365,7 @@ int main(int argc, char **argv) {
 		printf("  -d, --daemon                 Starts Nagios in daemon mode, instead of as a foreground process\n");
 		printf("  -W, --worker /path/to/socket Act as a worker for an already running daemon\n");
 		printf("\n");
-		printf("Visit the Nagios website at http://www.nagios.org/ for bug fixes, new\n");
+		printf("Visit the Nagios website at https://www.nagios.org/ for bug fixes, new\n");
 		printf("releases, online documentation, FAQs, information on subscribing to\n");
 		printf("the mailing lists, and commercial support options for Nagios.\n");
 		printf("\n");

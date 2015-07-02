@@ -14,7 +14,7 @@ do_corebanner_html();
 function do_corebanner_html() {
 	$html = ''; // Default to empty on error or no results.
 
-	$rss = fetch_rss('http://www.nagios.org/backend/feeds/corebanner');
+	$rss = fetch_rss('https://www.nagios.org/backend/feeds/corebanner');
 	// Output the first item's description if any were returned.
 	if ($rss && $rss->items) {
 		foreach ($rss->items as $item) {

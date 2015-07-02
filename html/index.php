@@ -8,8 +8,8 @@ if (isset($_GET['corewindow'])) {
 	$a = parse_url($_GET['corewindow']);
 
 	// Build the base url.
-	$url = $a['path'].'?';
-	if (isset($a['host'])) $url = $a['scheme'].'://'.$a['host'].$url;
+	$url = htmlentities($a['path'], ).'?';
+	$url = (isset($a['host'])) ? $a['scheme'].'://'.$a['host'].$url : '/'.$url;
 
 	$query = isset($a['query']) ? $a['query'] : '';
 	$pairs = explode('&', $query);
@@ -42,7 +42,7 @@ $this_year = '2014';
 		<!-- This page requires a web browser which supports frames. -->
 		<h2>Nagios Core</h2>
 		<p align="center">
-			<a href="http://www.nagios.org/">www.nagios.org</a><br>
+			<a href="https://www.nagios.org/">www.nagios.org</a><br>
 			Copyright &copy; 2010-<?php echo $this_year; ?> Nagios Core Development Team and Community Contributors.
 			Copyright &copy; 1999-2010 Ethan Galstad<br>
 		</p>

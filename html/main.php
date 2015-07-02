@@ -24,7 +24,7 @@ $this_year = '2014';
 
 		loadRemoteFeed( // "Latest News"
 			'#splashbox4-contents', 'frontpage', 3,
-			'<ul>', processNewsItem, '<li><a href="http://www.nagios.org/news" target="_blank">More news...</a></li></ul>'
+			'<ul>', processNewsItem, '<li><a href="https://www.nagios.org/news" target="_blank">More news...</a></li></ul>'
 		);
 
 		loadRemoteFeed( // "Don't Miss..."
@@ -39,7 +39,7 @@ $this_year = '2014';
 	function loadRemoteFeed(id, name, n, prefix, formatter, suffix) {
 		$.ajax({
 			type: 'GET',
-			url: 'http://www.nagios.org/backend/feeds/' + name + '/',
+			url: 'https://www.nagios.org/backend/feeds/' + name + '/',
 			crossDomain: true,
 			success: function(d, status, jqXHR) {
 				// We should have Internet access, set the playlist HTML.
@@ -121,7 +121,7 @@ $this_year = '2014';
 
 
 <div id="mainbrandsplash">
-	<div id="mainlogo"><a href="http://www.nagios.org/" target="_blank"><img src="images/logofullsize.png" border="0" alt="Nagios" title="Nagios"></a></div>
+	<div id="mainlogo"><a href="https://www.nagios.org/" target="_blank"><img src="images/logofullsize.png" border="0" alt="Nagios" title="Nagios"></a></div>
 	<div><span id="core-status"></span></div>
 </div>
 
@@ -130,7 +130,7 @@ $this_year = '2014';
 	<div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
 	<div class="version">Version <?php echo $this_version; ?></div>
 	<div class="releasedate">April 29, 2014</div>
-	<div class="checkforupdates"><a href="http://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a></div>
+	<div class="checkforupdates"><a href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a></div>
 </div>
 
 
@@ -141,7 +141,7 @@ $this_year = '2014';
 ?>
 		<div class="updatechecksdisabled">
 			<div class="warningmessage">Warning: Automatic Update Checks are Disabled!</div>
-			<div class="submessage">Disabling update checks presents a possible security risk.  Visit <a href="http://www.nagios.org/" target="_blank">nagios.org</a> to check for updates manually or enable update checks in your Nagios config file.</a></div>
+			<div class="submessage">Disabling update checks presents a possible security risk.  Visit <a href="https://www.nagios.org/" target="_blank">nagios.org</a> to check for updates manually or enable update checks in your Nagios config file.</a></div>
 		</div>
 <?php
 	} else if (
@@ -150,7 +150,7 @@ $this_year = '2014';
 ?>
 		<div class="updateavailable">
 			<div class="updatemessage">A new version of Nagios Core is available!</div>
-			<div class="submessage">Visit <a href="http://www.nagios.org/download/" target="_blank">nagios.org</a> to download Nagios <?php echo $updateinfo['update_version'];?>.</div>
+			<div class="submessage">Visit <a href="https://www.nagios.org/download/" target="_blank">nagios.org</a> to download Nagios <?php echo $updateinfo['update_version'];?>.</div>
 		</div>
 <?php
 	}
@@ -172,25 +172,25 @@ $this_year = '2014';
 		<div id="splashbox1" class="splashbox splashbox-clear">
 			<h2>Get Started</h2>
 			<ul>
-				<li><a href="http://go.nagios.com/nagioscore/startmonitoring" target="_blank">Start monitoring your infrastructure</a></li>
-				<li><a href="http://go.nagios.com/nagioscore/changelook" target="_blank">Change the look and feel of Nagios</a></li>
-				<li><a href="http://go.nagios.com/nagioscore/extend" target="_blank">Extend Nagios with hundreds of addons</a></li>
-				<!--<li><a href="http://go.nagios.com/nagioscore/docs" target="_blank">Read the Nagios documentation</a></li>-->
-				<li><a href="http://go.nagios.com/nagioscore/support" target="_blank">Get support</a></li>
-				<li><a href="http://go.nagios.com/nagioscore/training" target="_blank">Get training</a></li>
-				<li><a href="http://go.nagios.com/nagioscore/certification" target="_blank">Get certified</a></li>
+				<li><a href="https://go.nagios.com/nagioscore/startmonitoring" target="_blank">Start monitoring your infrastructure</a></li>
+				<li><a href="https://go.nagios.com/nagioscore/changelook" target="_blank">Change the look and feel of Nagios</a></li>
+				<li><a href="https://go.nagios.com/nagioscore/extend" target="_blank">Extend Nagios with hundreds of addons</a></li>
+				<!--<li><a href="https://go.nagios.com/nagioscore/docs" target="_blank">Read the Nagios documentation</a></li>-->
+				<li><a href="https://go.nagios.com/nagioscore/support" target="_blank">Get support</a></li>
+				<li><a href="https://go.nagios.com/nagioscore/training" target="_blank">Get training</a></li>
+				<li><a href="https://go.nagios.com/nagioscore/certification" target="_blank">Get certified</a></li>
 			</ul>
 		</div>
 
 		<div id="splashbox2" class="splashbox">
 			<h2>Quick Links</h2>
 			<ul>
-				<li><a href="http://library.nagios.com" target="_blank">Nagios Library</a> (tutorials and docs)</li>
-				<li><a href="http://labs.nagios.com" target="_blank">Nagios Labs</a> (development blog)</li>
-				<li><a href="http://exchange.nagios.org" target="_blank">Nagios Exchange</a> (plugins and addons)</li>
-				<li><a href="http://support.nagios.com" target="_blank">Nagios Support</a> (tech support)</li>
-				<li><a href="http://www.nagios.com" target="_blank">Nagios.com</a> (company)</li>
-				<li><a href="http://www.nagios.org" target="_blank">Nagios.org</a> (project)</li>
+				<li><a href="https://library.nagios.com" target="_blank">Nagios Library</a> (tutorials and docs)</li>
+				<li><a href="https://labs.nagios.com" target="_blank">Nagios Labs</a> (development blog)</li>
+				<li><a href="https://exchange.nagios.org" target="_blank">Nagios Exchange</a> (plugins and addons)</li>
+				<li><a href="https://support.nagios.com" target="_blank">Nagios Support</a> (tech support)</li>
+				<li><a href="https://www.nagios.com" target="_blank">Nagios.com</a> (company)</li>
+				<li><a href="https://www.nagios.org" target="_blank">Nagios.org</a> (project)</li>
 			</ul>
 		</div>
 
@@ -228,7 +228,7 @@ $this_year = '2014';
 		Nagios Core is licensed under the GNU General Public License and is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE.  Nagios, Nagios Core and the Nagios logo are trademarks, servicemarks, registered trademarks or registered servicemarks owned by Nagios Enterprises, LLC.  Use of the Nagios marks is governed by the <A href="http://www.nagios.com/legal/trademarks/">trademark use restrictions</a>.
 	</div>
 	<div class="logos">
-		<a href="http://www.nagios.org/" target="_blank"><img src="images/weblogo1.png" width="102" height="47" border="0" style="padding: 0 40px 0 40px;" title="Nagios.org" /></a>
+		<a href="https://www.nagios.org/" target="_blank"><img src="images/weblogo1.png" width="102" height="47" border="0" style="padding: 0 40px 0 40px;" title="Nagios.org" /></a>
 		<a href="http://sourceforge.net/projects/nagios" target="_blank"><img src="images/sflogo.png" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
 	</div>
 </div> 

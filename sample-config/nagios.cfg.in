@@ -705,7 +705,7 @@ interval_length=60
 # patches to Nagios.  Nagios is critical to you - make sure you keep it in
 # good shape.  Nagios will check once a day for new updates. Data collected
 # by Nagios Enterprises from the update check is processed in accordance 
-# with our privacy policy - see http://api.nagios.org for details.
+# with our privacy policy - see https://api.nagios.org for details.
 
 check_for_updates=1
 

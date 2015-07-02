@@ -69,7 +69,7 @@ print "<div class='infoBoxTitle'>traceroute</div>";
 print "Genereated by $self<br>";
 print "Last Updated: $mdate<br>";
 print "Updated every $refresh seconds<br>";
-print "Nagios&reg; - <a href='http://www.nagios.org' target='_new' class='homepageURL'>www.nagios.org</a><br>";
+print "Nagios&reg; - <a href='https://www.nagios.org' target='_new' class='homepageURL'>www.nagios.org</a><br>";
 print "Logged in as <i>$ENV{'REMOTE_USER'}</i><br>";
 print "</td></tr>";
 print "</table>";

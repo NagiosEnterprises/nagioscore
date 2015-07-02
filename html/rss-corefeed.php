@@ -14,7 +14,7 @@ do_corefeed_html();
 function do_corefeed_html() {
 	$html = '';
 
-	$rss = fetch_rss('http://www.nagios.org/backend/feeds/corepromo');
+	$rss = fetch_rss('https://www.nagios.org/backend/feeds/corepromo');
 	// Output an unordered list of the first n items if any were returned.
 	if ($rss && $rss->items) {
 		$html = '<ul>';
@@ -29,7 +29,7 @@ function do_corefeed_html() {
 		$html .= '</ul>';
 	}
 	else {
-		$html = "Unable to fetch the Nagios Core feed. Stay on top of what's happening by visiting <a href='http://www.nagios.org/' target='_blank'>http://www.nagios.org/</a>.";
+		$html = "Unable to fetch the Nagios Core feed. Stay on top of what's happening by visiting <a href='https://www.nagios.org/' target='_blank'>https://www.nagios.org/</a>.";
 	}
 
 	print $html;

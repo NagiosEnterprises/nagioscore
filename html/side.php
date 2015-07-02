@@ -18,7 +18,7 @@ $link_target = 'main';
 <body class='navbar'>
 
 <div class="navbarlogo">
-	<a href="http://www.nagios.org" target="_blank"><img src="images/sblogo.png" height="39" width="140" border="0" alt="Nagios" /></a>
+	<a href="https://www.nagios.org" target="_blank"><img src="images/sblogo.png" height="39" width="140" border="0" alt="Nagios" /></a>
 </div>
 
 <div class="navsection">
@@ -26,7 +26,7 @@ $link_target = 'main';
 	<div class="navsectionlinks">
 		<ul class="navsectionlinks">
 			<li><a href="main.php" target="<?php echo $link_target;?>">Home</a></li>
-			<li><a href="http://go.nagios.com/nagioscore/docs" target="_blank">Documentation</a></li>
+			<li><a href="https://go.nagios.com/nagioscore/docs" target="_blank">Documentation</a></li>
 		</ul>
 	</div>
 </div>

@@ -194,7 +194,7 @@ void print_usage( char *program_name) {
 	printf( "  -u, --user user              Drop priviliges to the specified user\n");
 	printf( "  -g, --group group            Drop priviliges to the specified user\n");
 	printf( "\n");
-	printf( "Visit the Nagios website at http://www.nagios.org/ for bug fixes, new\n");
+	printf( "Visit the Nagios website at https://www.nagios.org/ for bug fixes, new\n");
 	printf( "releases, online documentation, FAQs, information on subscribing to\n");
 	printf( "the mailing lists, and commercial support options for Nagios.\n");
 	printf( "\n");
@@ -206,7 +206,7 @@ void print_version( void) {
 	printf( "        and Community Contributors\n");
 	printf( "Last Modified: %s\n", PING_WORKER_MODIFICATION_DATE);
 	printf( "License: GPL\n");
-	printf( "Website: http://www.nagios.org\n");
+	printf( "Website: https://www.nagios.org\n");
 }
 
 static int worker( const char *path)

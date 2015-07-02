@@ -1872,9 +1872,15 @@ ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobrok
 
 
 PKG_NAME=nagios
+<<<<<<< HEAD
 PKG_VERSION="4.0.6"
 PKG_HOME_URL="https://www.nagios.org/"
 PKG_REL_DATE="04-29-2014"
+=======
+PKG_VERSION="4.1.0rc1"
+PKG_HOME_URL="https://www.nagios.org/"
+PKG_REL_DATE="02-18-2015"
+>>>>>>> 73c9ef199f7ffd61b79d10f0a26808c16a520dd0
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -3881,7 +3887,8 @@ done
 
 
 
-for ac_header in arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h libgen.h limits.h math.h netdb.h netinet/in.h pwd.h regex.h signal.h socket.h stdarg.h string.h strings.h sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h sys/msg.h sys/poll.h syslog.h uio.h unistd.h locale.h wchar.h
+
+for ac_header in arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h libgen.h limits.h math.h netdb.h netinet/in.h pwd.h regex.h signal.h socket.h stdarg.h string.h strings.h sys/loadavg.h sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h sys/msg.h sys/poll.h syslog.h uio.h unistd.h locale.h wchar.h
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then

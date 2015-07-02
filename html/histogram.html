@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html ng-app="histogramApp">
+	<head>
+		<meta charset="utf-8">
+		<title>Nagios Histogram</title>
+		<link type="image/ico" rel="shortcut icon" href="images/favicon.ico"/>
+		<link type="text/css" rel="stylesheet"
+				href="bootstrap-3.3.0/css/bootstrap.min.css">
+		<link type="text/css" rel="stylesheet"
+				href="bootstrap-3.3.0/css/bootstrap-theme.min.css">
+		<link type='text/css' rel='stylesheet' href='stylesheets/common.css'>
+		<link type='text/css' rel='stylesheet'
+				href='stylesheets/histogram.css'>
+		<link type='text/css' rel='stylesheet'
+				href='stylesheets/histogramgraph.css'>
+		<script type="text/javascript"
+				src="angularjs/angular-1.3.9/angular.min.js"></script>
+		<script type="text/javascript"
+				src="angularjs/ui-bootstrap-tpls-0.12.0.min.js"></script>
+		<script type="text/javascript"
+				src="angularjs/ui-utils-0.2.1/ui-utils.js"></script>
+		<script type="text/javascript" src="d3/d3.min.js"></script>
+		<script type="text/javascript" src="spin/spin.min.js"></script>
+		<script type="text/javascript" src="js/histogram.js"></script>
+		<script type="text/javascript" src="js/histogram-events.js"></script>
+		<script type="text/javascript" src="js/histogram-form.js"></script>
+		<script type="text/javascript" src="js/histogram-graph.js"></script>
+		<script type="text/javascript" src="js/nagios-decorations.js"></script>
+		<script type="text/javascript" src="js/nagios-time.js"></script>
+	</head>
+	<body ng-controller="histogramCtrl">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-md-3">
+					<div info-box
+						cgiurl="{{params.cgiurl}}"
+						decoration-title="{{infoBoxTitle()}}"
+						last-update="lastUpdate">
+					</div>
+					<div ng-include="'histogram-links.html'">
+					</div>
+				</div>
+				<div class="col-md-6" align="center"
+						ng-include="'graph-header.html'">
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-l2 col-md-12 col-lg-10 col-lg-offset-1">
+					<div ng-hide="formDisplayed" nagios-histogram
+						cgiurl="{{params.cgiurl}}"
+						reporttype="{{params.reporttype}}"
+						host="{{params.host}}"
+						service="{{params.service}}"
+						timeperiod="{{params.timeperiod}}"
+						t1="{{params.t1}}" t2="{{params.t2}}"
+						breakdown="{{params.breakdown}}"
+						graphevents="{{params.graphevents}}"
+						graphstatetypes="{{params.graphstatetypes}}"
+						assumestateretention="{{params.assumestateretention}}"
+						initialstateslogged="{{params.initialstateslogged}}"
+						ignorerepeatedstates="{{params.ignorerepeatedstates}}"
+						last-update="lastUpdate"
+						reload="{{reload}}"
+						build="canBuildHistogram()">
+					</div>
+	
+					<div id="menubutton">
+						<button type="button" class="btn" ng-click="displayForm()">
+							<img src="images/menu.png"/>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</body>
+</html>

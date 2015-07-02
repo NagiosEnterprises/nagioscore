@@ -65,7 +65,7 @@ indent:
 	@sh indent-all.sh
 
 ctags:
-	ctags -R
+	ctags -R --exclude=html/angularjs --exclude=html/d3
 
 all:
 	cd $(SRC_BASE) && $(MAKE)
@@ -234,21 +234,22 @@ install:
 	cd $(SRC_BASE) && $(MAKE) $@
 	cd $(SRC_CGI) && $(MAKE) $@
 	cd $(SRC_HTM) && $(MAKE) $@
-	$(MAKE) install-exfoliation	
+	$(MAKE) install-exfoliation
 	$(MAKE) install-basic
 
 install-unstripped:
 	cd $(SRC_BASE) && $(MAKE) $@
 	cd $(SRC_CGI) && $(MAKE) $@
 	cd $(SRC_HTM) && $(MAKE) $@
-	$(MAKE) install-exfoliation	
+	$(MAKE) install-exfoliation
 	$(MAKE) install-basic
 
 install-basic:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LIBEXECDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LOGDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LOGDIR)/archives
-	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CHECKRESULTDIR)
+	$(INSTALL) -m 775 $(COMMAND_OPTS) -d $(DESTDIR)$(CHECKRESULTDIR)
+	chmod g+s $(DESTDIR)$(CHECKRESULTDIR)
 
 	@echo ""
 	@echo "*** Main program, CGIs and HTML files installed ***"
@@ -297,7 +298,7 @@ install-webconf:
 	@echo ""
 	@echo "*** Nagios/Apache conf file installed ***"
 	@echo ""
-	
+
 install-exfoliation:
 	cp -rf contrib/exfoliation/stylesheets/* $(DESTDIR)$(HTMLDIR)/stylesheets
 	cp -rf contrib/exfoliation/images/* $(DESTDIR)$(HTMLDIR)/images
@@ -306,7 +307,7 @@ install-exfoliation:
 	@echo "*** Exfoliation theme installed ***"
 	@echo "NOTE: Use 'make install-classicui' to revert to classic Nagios theme";
 	@echo ""
-	
+
 install-classicui:
 	cp -rf html/stylesheets/* $(DESTDIR)$(HTMLDIR)/stylesheets
 	cp -rf html/images/* $(DESTDIR)$(HTMLDIR)/images
@@ -343,7 +344,7 @@ install-headers:
 	$(INSTALL) -d -m 755 $(DESTDIR)$(INCLUDEDIR)/lib
 	$(INSTALL) -m 644 include/*.h $(DESTDIR)$(INCLUDEDIR)
 	$(INSTALL) -m 644 lib/*.h $(DESTDIR)$(INCLUDEDIR)/lib
-	rm -f $(DESTDIR)$(INCLUDEDIR)/nagios/config.h
+	rm -f $(DESTDIR)$(INCLUDEDIR)/config*.h
 
 install-lib: $(SRC_LIB)/libnagios.a
 	$(INSTALL) -d -m 755 $(DESTDIR)$(LIBDIR)
@@ -408,4 +409,4 @@ dist: distclean
 	rm -f nagios-$(VERSION)
 
 # Targets that always get built
-.PHONY:	indent clean clean distclean dox test
+.PHONY:	indent clean clean distclean dox test html

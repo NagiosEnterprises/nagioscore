@@ -55,7 +55,7 @@ int found_log_rechecking_host_when_service_wobbles = 0;
 int found_log_run_async_host_check = 0;
 check_result *tmp_check_result;
 
-void setup_check_result() {
+void setup_check_result(int check_type) {
 	struct timeval start_time, finish_time;
 	start_time.tv_sec = 1234567890L;
 	start_time.tv_usec = 0L;
@@ -63,7 +63,7 @@ void setup_check_result() {
 	finish_time.tv_usec = 0L;
 
 	tmp_check_result = (check_result *)malloc(sizeof(check_result));
-	tmp_check_result->check_type = SERVICE_CHECK_ACTIVE;
+	tmp_check_result->check_type = check_type;
 	tmp_check_result->check_options = 0;
 	tmp_check_result->scheduled_check = TRUE;
 	tmp_check_result->reschedule_check = TRUE;
@@ -141,6 +141,7 @@ setup_objects(time_t time) {
 	svc1->host_problem_at_last_check = FALSE;
 	svc1->plugin_output = strdup("Initial state");
 	svc1->last_hard_state_change = (time_t)1111111111;
+	svc1->accept_passive_checks = 1;
 
 	/* Second service .... to be configured! */
 	svc2 = (service *)calloc(1, sizeof(service));
@@ -155,23 +156,14 @@ setup_objects(time_t time) {
 
 	}
 
-int
-main(int argc, char **argv) {
-	time_t now = 0L;
-
-	accept_passive_host_checks = 1;
-
-	plan_tests(41);
-
-	time(&now);
-
+void run_service_check_tests(int check_type, time_t when) {
 
 	/* Test to confirm that if a service is warning, the notified_on_critical is reset */
 	tmp_check_result = (check_result *)calloc(1, sizeof(check_result));
 	tmp_check_result->host_name = strdup("host1");
 	tmp_check_result->service_description = strdup("Normal service");
 	tmp_check_result->object_check_type = SERVICE_CHECK;
-	tmp_check_result->check_type = SERVICE_CHECK_ACTIVE;
+	tmp_check_result->check_type = check_type;
 	tmp_check_result->check_options = 0;
 	tmp_check_result->scheduled_check = TRUE;
 	tmp_check_result->reschedule_check = TRUE;
@@ -185,7 +177,7 @@ main(int argc, char **argv) {
 	tmp_check_result->return_code = 1;
 	tmp_check_result->output = strdup("Warning - check notified_on_critical reset");
 
-	setup_objects(now);
+	setup_objects(when);
 	svc1->last_state = STATE_CRITICAL;
 	svc1->notification_options = OPT_CRITICAL;
 	svc1->current_notification_number = 999;
@@ -211,7 +203,7 @@ main(int argc, char **argv) {
 	host1->current_state = HOST_DOWN;
 	svc1->current_state = STATE_OK;
 	svc1->state_type = HARD_STATE;
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_CRITICAL;
 	tmp_check_result->output = strdup("CRITICAL failure");
 
@@ -232,7 +224,7 @@ main(int argc, char **argv) {
 		OK -> WARNING 1/4 -> ack -> WARNING 2/4 -> OK transition
 		Tests that the ack is left for 2/4
 	*/
-	setup_objects(now);
+	setup_objects(when);
 	host1->current_state = HOST_UP;
 	host1->max_attempts = 4;
 	svc1->last_state = STATE_OK;
@@ -240,7 +232,7 @@ main(int argc, char **argv) {
 	svc1->current_state = STATE_OK;
 	svc1->state_type = SOFT_STATE;
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_WARNING;
 	tmp_check_result->output = strdup("WARNING failure");
 	handle_async_service_check_result(svc1, tmp_check_result);
@@ -253,14 +245,14 @@ main(int argc, char **argv) {
 
 	svc1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_WARNING;
 	tmp_check_result->output = strdup("WARNING failure");
 	handle_async_service_check_result(svc1, tmp_check_result);
 
 	ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, "Ack left");
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_OK;
 	tmp_check_result->output = strdup("Back to OK");
 	handle_async_service_check_result(svc1, tmp_check_result);
@@ -274,7 +266,7 @@ main(int argc, char **argv) {
 	   OK -> WARNING 1/4 -> ack -> WARNING 2/4 -> WARNING 3/4 -> WARNING 4/4 -> WARNING 4/4 -> OK transition
 	   Tests that the ack is not removed on hard state change
 	*/
-	setup_objects(now);
+	setup_objects(when);
 	host1->current_state = HOST_UP;
 	host1->max_attempts = 4;
 	svc1->last_state = STATE_OK;
@@ -283,12 +275,14 @@ main(int argc, char **argv) {
 	svc1->state_type = SOFT_STATE;
 	svc1->current_attempt = 1;
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_OK;
 	tmp_check_result->output = strdup("Reset to OK");
 	handle_async_service_check_result(svc1, tmp_check_result);
+	ok(svc1->current_attempt == 1, "Current attempt is 1") ||
+			diag("Current attempt now: %d", svc1->current_attempt);
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_WARNING;
 	tmp_check_result->output = strdup("WARNING failure 1");
 	handle_async_service_check_result(svc1, tmp_check_result);
@@ -297,29 +291,37 @@ main(int argc, char **argv) {
 	ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, "No acks - testing transition to hard warning state");
 
 	svc1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
+	ok(svc1->current_attempt == 1, "Current attempt is 1") ||
+			diag("Current attempt now: %d", svc1->current_attempt);
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_WARNING;
 	tmp_check_result->output = strdup("WARNING failure 2");
 	handle_async_service_check_result(svc1, tmp_check_result);
 	ok(svc1->state_type == SOFT_STATE, "Soft state");
 	ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, "Ack left");
+	ok(svc1->current_attempt == 2, "Current attempt is 2") ||
+			diag("Current attempt now: %d", svc1->current_attempt);
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_WARNING;
 	tmp_check_result->output = strdup("WARNING failure 3");
 	handle_async_service_check_result(svc1, tmp_check_result);
 	ok(svc1->state_type == SOFT_STATE, "Soft state");
 	ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, "Ack left");
+	ok(svc1->current_attempt == 3, "Current attempt is 3") ||
+			diag("Current attempt now: %d", svc1->current_attempt);
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_WARNING;
 	tmp_check_result->output = strdup("WARNING failure 4");
 	handle_async_service_check_result(svc1, tmp_check_result);
 	ok(svc1->state_type == HARD_STATE, "Hard state");
 	ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, "Ack left on hard failure");
+	ok(svc1->current_attempt == 4, "Current attempt is 4") ||
+			diag("Current attempt now: %d", svc1->current_attempt);
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_OK;
 	tmp_check_result->output = strdup("Back to OK");
 	handle_async_service_check_result(svc1, tmp_check_result);
@@ -332,7 +334,7 @@ main(int argc, char **argv) {
 	   OK -> WARNING 1/1 -> ack -> WARNING -> OK transition
 	   Tests that the ack is not removed on 2nd warning, but is on OK
 	*/
-	setup_objects(now);
+	setup_objects(when);
 	host1->current_state = HOST_UP;
 	host1->max_attempts = 4;
 	svc1->last_state = STATE_OK;
@@ -341,7 +343,7 @@ main(int argc, char **argv) {
 	svc1->state_type = SOFT_STATE;
 	svc1->current_attempt = 1;
 	svc1->max_attempts = 2;
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_WARNING;
 	tmp_check_result->output = strdup("WARNING failure 1");
 
@@ -351,13 +353,13 @@ main(int argc, char **argv) {
 
 	svc1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_WARNING;
 	tmp_check_result->output = strdup("WARNING failure 2");
 	handle_async_service_check_result(svc1, tmp_check_result);
 	ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, "Ack left");
 
-	setup_check_result();
+	setup_check_result(check_type);
 	tmp_check_result->return_code = STATE_OK;
 	tmp_check_result->output = strdup("Back to OK");
 	handle_async_service_check_result(svc1, tmp_check_result);
@@ -368,7 +370,7 @@ main(int argc, char **argv) {
 	   UP -> DOWN 1/4 -> ack -> DOWN 2/4 -> DOWN 3/4 -> DOWN 4/4 -> UP transition
 	   Tests that the ack is not removed on 2nd DOWN, but is on UP
 	*/
-	setup_objects(now);
+	setup_objects(when);
 	host1->current_state = HOST_UP;
 	host1->last_state = HOST_UP;
 	host1->last_hard_state = HOST_UP;
@@ -382,7 +384,7 @@ main(int argc, char **argv) {
 	host1->check_command = strdup("Dummy command required");
 	host1->accept_passive_checks = TRUE;
 	passive_host_checks_are_soft = TRUE;
-	setup_check_result();
+	setup_check_result(check_type);
 
 	tmp_check_result->return_code = STATE_CRITICAL;
 	tmp_check_result->output = strdup("DOWN failure 2");
@@ -415,6 +417,22 @@ main(int argc, char **argv) {
 	ok(host1->current_attempt == 1, "Attempts reset") || diag("current_attempt=%d", host1->current_attempt);
 	ok(strcmp(host1->plugin_output, "UP again") == 0, "output set") || diag("plugin_output=%s", host1->plugin_output);
 
+
+	}
+
+int
+main(int argc, char **argv) {
+	time_t now = 0L;
+
+	accept_passive_host_checks = TRUE;
+	accept_passive_service_checks = TRUE;
+
+	plan_tests(92);
+
+	time(&now);
+
+	run_service_check_tests(SERVICE_CHECK_ACTIVE, now);
+	run_service_check_tests(SERVICE_CHECK_PASSIVE, now);
 
 	return exit_status();
 	}

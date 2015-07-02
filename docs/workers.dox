@@ -28,7 +28,7 @@ fairly simple and very easy to debug. The breakdown goes as follows:
 @li A key/value pair is separated from the next key/value pair with a
 nul byte ('\0').
 @li Each request is separated from the next with a message delimiter
-sequence made up by a one-byte followed by two nul bytes: "\1\0\0".
+sequence made up by a one-byte followed by three nul bytes: "\1\0\0\0".
 @li Keys cannot containt equal signs.
 underscores and numbers.
 @li Values cannot contain nul bytes.
@@ -149,7 +149,7 @@ we run out of filedescriptors or child processes.
 A complete request looks like this (with C-style format codes
 replaced with actual values, ofcourse):
 @verbatim
-job_id=%d\0type=%d\0command=%s\0timeout=%u\0\1\0\0
+job_id=%d\0type=%d\0command=%s\0timeout=%u\0\1\0\0\0
 @endverbatim
 
 Note that values can contain equal signs, but cannot contain nul
@@ -251,7 +251,7 @@ Step 3, Nagios:
   type=2
   timeout=60
   command=/opt/plugins/check_ping -H localhost -w 40%,100.0 -c 60%,200.0
-  \1\0\0
+  \1\0\0\0
 Step 4, Worker:
   job_id=0
   type=2
@@ -263,7 +263,7 @@ Step 4, Worker:
   outstd=OK: RTA: 12.6ms; PL: 0%|rta=12.6ms;100.0;200.0;0;; pl=0%;40;60
   wait_status=0
   outerr=
-  \1\0\0
+  \1\0\0\0
 @endverbatim
 Steps 3 and 4 in this chain repeat indefinitely.
 */

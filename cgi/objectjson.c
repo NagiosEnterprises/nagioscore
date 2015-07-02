@@ -141,39 +141,39 @@ const string_value_mapping valid_queries[] = {
 	};
 
 static const int query_status[][2] = {
-	{ OBJECT_QUERY_HOSTCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_HOSTLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_HOST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_HOSTGROUPCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_HOSTGROUPLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_HOSTGROUP, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_SERVICECOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_SERVICELIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_SERVICE, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_SERVICEGROUPCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_SERVICEGROUPLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_SERVICEGROUP, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_CONTACTCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_CONTACTLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_CONTACT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_CONTACTGROUPCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_CONTACTGROUPLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_CONTACTGROUP, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_TIMEPERIODCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_TIMEPERIODLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_TIMEPERIOD, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_COMMANDCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_COMMANDLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_COMMAND, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_SERVICEDEPENDENCYCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_SERVICEDEPENDENCYLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_SERVICEESCALATIONCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_SERVICEESCALATIONLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_HOSTDEPENDENCYCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_HOSTDEPENDENCYLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_HOSTESCALATIONCOUNT, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_HOSTESCALATIONLIST, QUERY_STATUS_BETA },
-	{ OBJECT_QUERY_HELP, QUERY_STATUS_BETA },
+	{ OBJECT_QUERY_HOSTCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_HOSTLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_HOST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_HOSTGROUPCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_HOSTGROUPLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_HOSTGROUP, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_SERVICECOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_SERVICELIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_SERVICE, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_SERVICEGROUPCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_SERVICEGROUPLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_SERVICEGROUP, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_CONTACTCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_CONTACTLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_CONTACT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_CONTACTGROUPCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_CONTACTGROUPLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_CONTACTGROUP, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_TIMEPERIODCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_TIMEPERIODLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_TIMEPERIOD, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_COMMANDCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_COMMANDLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_COMMAND, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_SERVICEDEPENDENCYCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_SERVICEDEPENDENCYLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_SERVICEESCALATIONCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_SERVICEESCALATIONLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_HOSTDEPENDENCYCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_HOSTDEPENDENCYLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_HOSTESCALATIONCOUNT, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_HOSTESCALATIONLIST, QUERY_STATUS_RELEASED },
+	{ OBJECT_QUERY_HELP, QUERY_STATUS_RELEASED },
 	{ -1, -1 },
 };
 
@@ -540,6 +540,8 @@ option_help object_json_help[] = {
 		},
 	};
 
+extern const json_escape percent_escapes;
+
 int json_object_host_passes_selection(host *, int, host *, int, host *, 
 		hostgroup *, contact *, contactgroup *, timeperiod *, timeperiod *,
 		command *, command *);
@@ -617,7 +619,7 @@ int main(void) {
 			OUTPUT_FORMAT_VERSION);
 
 	/* Initialize shared configuration variables */                             
-	init_shared_cfg_vars();                                                     
+	init_shared_cfg_vars(1);
 
 	init_cgi_data(&cgi_data);
 
@@ -2402,6 +2404,24 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 	return result;
 	}
 
+json_object * json_object_custom_variables(struct customvariablesmember *custom_variables) {
+
+	json_object *json_custom_variables;
+	customvariablesmember *temp_custom_variablesmember;
+
+	json_custom_variables = json_new_object();
+
+	for(temp_custom_variablesmember = custom_variables; 
+			temp_custom_variablesmember != NULL; 
+			temp_custom_variablesmember = temp_custom_variablesmember->next) {
+		json_object_append_string(json_custom_variables,
+				temp_custom_variablesmember->variable_name, &percent_escapes,
+				temp_custom_variablesmember->variable_value);
+		}
+
+	return json_custom_variables;
+	}
+
 int json_object_host_passes_selection(host *temp_host, int use_parent_host,
 		host *parent_host, int use_child_host, host *child_host,
 		hostgroup *temp_hostgroup, contact *temp_contact,
@@ -2512,40 +2532,41 @@ json_object * json_object_host_selectors(int start, int count,
 		json_object_append_integer(json_selectors, "count", count);
 		}
 	if( 1 == use_parent_host) {
-		json_object_append_string(json_selectors, "parenthost", 
+		json_object_append_string(json_selectors, "parenthost",
+				&percent_escapes,
 				( NULL == parent_host ? "none" : parent_host->name));
 		}
 	if( 1 == use_child_host) {
-		json_object_append_string(json_selectors, "childhost", 
+		json_object_append_string(json_selectors, "childhost", &percent_escapes,
 				( NULL == child_host ? "none" : child_host->name));
 		}
 	if( NULL != temp_hostgroup) {
-		json_object_append_string(json_selectors, "hostgroup", 
+		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,
 				temp_hostgroup->group_name);
 		}
 	if( NULL != temp_contact) {
-		json_object_append_string(json_selectors, "contact",
+		json_object_append_string(json_selectors, "contact", &percent_escapes,
 				temp_contact->name);
 		}
 	if( NULL != temp_contactgroup) {
 		json_object_append_string(json_selectors, "contactgroup",
-				temp_contactgroup->group_name);
+				&percent_escapes, temp_contactgroup->group_name);
 		}
 	if( NULL != check_timeperiod) {
 		json_object_append_string(json_selectors, "checktimeperiod",
-				check_timeperiod->name);
+				&percent_escapes, check_timeperiod->name);
 		}
 	if( NULL != notification_timeperiod) {
 		json_object_append_string(json_selectors, "hostnotificationtimeperiod",
-				notification_timeperiod->name);
+				&percent_escapes, notification_timeperiod->name);
 		}
 	if( NULL != check_command) {
 		json_object_append_string(json_selectors, "checkcommand",
-				check_command->name);
+				&percent_escapes, check_command->name);
 		}
 	if( NULL != event_handler) {
 		json_object_append_string(json_selectors, "eventhandler",
-				event_handler->name);
+				&percent_escapes, event_handler->name);
 		}
 
 	return json_selectors;
@@ -2632,7 +2653,8 @@ json_object * json_object_hostlist(unsigned format_options, int start,
 						json_host_details);
 				}
 			else {
-				json_array_append_string(json_hostlist_array, temp_host->name);
+				json_array_append_string(json_hostlist_array, &percent_escapes,
+						temp_host->name);
 				}
 			counted++;
 			}
@@ -2654,7 +2676,8 @@ json_object *json_object_host(unsigned format_options, host *temp_host) {
 	json_object *json_host = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "name", temp_host->name);
+	json_object_append_string(json_details, "name", &percent_escapes,
+			temp_host->name);
 	json_object_host_details(json_details, format_options, temp_host);
 	json_object_append_object(json_host, "host", json_details);
 
@@ -2669,7 +2692,6 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	json_array *json_services;
 	json_array *json_contactgroups;
 	json_array *json_contacts;
-	json_array *json_custom_variables;
 	hostsmember *temp_hostsmember;
 	servicesmember *temp_servicesmember;
 	contactgroupsmember *temp_contact_groupsmember;
@@ -2678,42 +2700,46 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 #else
 	contact *temp_contact;
 #endif
-	customvariablesmember *temp_custom_variablesmember;
 
-	json_object_append_string(json_details, "name", temp_host->name);
-	json_object_append_string(json_details, "display_name", 
+	json_object_append_string(json_details, "name", &percent_escapes,
+			temp_host->name);
+	json_object_append_string(json_details, "display_name", &percent_escapes,
 			temp_host->display_name);
-	json_object_append_string(json_details, "alias", temp_host->alias);
-	json_object_append_string(json_details, "address", temp_host->address);
+	json_object_append_string(json_details, "alias", &percent_escapes,
+			temp_host->alias);
+	json_object_append_string(json_details, "address", &percent_escapes,
+			temp_host->address);
 
 	json_parent_hosts = json_new_array();
 	for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; 
 			temp_hostsmember = temp_hostsmember->next) {
-		json_array_append_string(json_parent_hosts, temp_hostsmember->host_name);
+		json_array_append_string(json_parent_hosts, &percent_escapes,
+				temp_hostsmember->host_name);
 		}
 	json_object_append_array(json_details, "parent_hosts", json_parent_hosts);
 
 	json_child_hosts = json_new_array();
 	for(temp_hostsmember = temp_host->child_hosts; temp_hostsmember != NULL; 
 			temp_hostsmember = temp_hostsmember->next) {
-		json_array_append_string(json_child_hosts, temp_hostsmember->host_name);
+		json_array_append_string(json_child_hosts, &percent_escapes,
+				temp_hostsmember->host_name);
 		}
 	json_object_append_array(json_details, "child_hosts", json_child_hosts);
 
 	json_services = json_new_array();
 	for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; 
 			temp_servicesmember = temp_servicesmember->next) {
-		json_array_append_string(json_services, 
+		json_array_append_string(json_services, &percent_escapes,
 				temp_servicesmember->service_description);
 		}
 	json_object_append_array(json_details, "services", json_services);
 
 #ifdef JSON_NAGIOS_4X
-	json_object_append_string(json_details, "check_command", 
+	json_object_append_string(json_details, "check_command", &percent_escapes,
 			temp_host->check_command);
 #else
 	json_object_append_string(json_details, "host_check_command", 
-			temp_host->host_check_command);
+			&percent_escapes, temp_host->host_check_command);
 #endif
 
 	json_enumeration(json_details, format_options, "initial_state", 
@@ -2724,14 +2750,14 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 			temp_host->retry_interval);
 	json_object_append_integer(json_details, "max_attempts", 
 			temp_host->max_attempts);
-	json_object_append_string(json_details, "event_handler", 
+	json_object_append_string(json_details, "event_handler", &percent_escapes,
 			temp_host->event_handler);
 
 	json_contactgroups = json_new_array();
 	for(temp_contact_groupsmember = temp_host->contact_groups; 
 			temp_contact_groupsmember != NULL; 
 			temp_contact_groupsmember = temp_contact_groupsmember->next) {
-		json_array_append_string(json_contactgroups, 
+		json_array_append_string(json_contactgroups, &percent_escapes,
 				temp_contact_groupsmember->group_name);
 		}
 	json_object_append_array(json_details, "contact_groups", json_contactgroups);
@@ -2741,14 +2767,15 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	for(temp_contactsmember = temp_host->contacts; 
 			temp_contactsmember != NULL; 
 			temp_contactsmember = temp_contactsmember->next) {
-		json_array_append_string(json_contacts, 
+		json_array_append_string(json_contacts, &percent_escapes,
 				temp_contactsmember->contact_name);
 		}
 #else
 	for(temp_contact = contact_list; temp_contact != NULL; 
 			temp_contact = temp_contact->next) {
 		if(TRUE == is_contact_for_host(temp_host, temp_contact)) {
-			json_array_append_string(json_contacts, temp_contact->name);
+			json_array_append_string(json_contacts, &percent_escapes,
+					temp_contact->name);
 			}
 		}
 #endif
@@ -2792,8 +2819,8 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 			temp_host->notify_on_downtime);
 #endif
 	json_object_append_string(json_details, "notification_period", 
-			temp_host->notification_period);
-	json_object_append_string(json_details, "check_period", 
+			&percent_escapes, temp_host->notification_period);
+	json_object_append_string(json_details, "check_period", &percent_escapes,
 			temp_host->check_period);
 	json_object_append_boolean(json_details, "flap_detection_enabled", 
 			temp_host->flap_detection_enabled);
@@ -2888,7 +2915,7 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	json_object_append_boolean(json_details, "failure_prediction_enabled", 
 			temp_host->failure_prediction_enabled);
 	json_object_append_string(json_details, "failure_prediction_options", 
-			temp_host->failure_prediction_options);
+			NULL, temp_host->failure_prediction_options);
 #endif
 #ifdef JSON_NAGIOS_4X
 #if 0
@@ -2910,14 +2937,19 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	json_object_append_boolean(json_details, "hourly_value", 
 			temp_host->hourly_value);
 #endif
-	json_object_append_string(json_details, "notes", temp_host->notes);
-	json_object_append_string(json_details, "notes_url", temp_host->notes_url);
-	json_object_append_string(json_details, "action_url", temp_host->action_url);
-	json_object_append_string(json_details, "icon_image", temp_host->icon_image);
-	json_object_append_string(json_details, "icon_image_alt", 
+	json_object_append_string(json_details, "notes", &percent_escapes,
+			temp_host->notes);
+	json_object_append_string(json_details, "notes_url", &percent_escapes,
+			temp_host->notes_url);
+	json_object_append_string(json_details, "action_url", &percent_escapes,
+			temp_host->action_url);
+	json_object_append_string(json_details, "icon_image", &percent_escapes,
+			temp_host->icon_image);
+	json_object_append_string(json_details, "icon_image_alt", &percent_escapes,
 			temp_host->icon_image_alt);
-	json_object_append_string(json_details, "vrml_image", temp_host->vrml_image);
-	json_object_append_string(json_details, "statusmap_image", 
+	json_object_append_string(json_details, "vrml_image", &percent_escapes,
+			temp_host->vrml_image);
+	json_object_append_string(json_details, "statusmap_image", &percent_escapes,
 			temp_host->statusmap_image);
 	json_object_append_boolean(json_details, "have_2d_coords", 
 			temp_host->have_2d_coords);
@@ -2930,16 +2962,8 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 	json_object_append_real(json_details, "z_3d", temp_host->z_3d);
 	json_object_append_boolean(json_details, "should_be_drawn", 
 			temp_host->should_be_drawn);
-
-	json_custom_variables = json_new_array();
-	for(temp_custom_variablesmember = temp_host->custom_variables; 
-			temp_custom_variablesmember != NULL; 
-			temp_custom_variablesmember = temp_custom_variablesmember->next) {
-		json_array_append_string(json_custom_variables,
-				temp_custom_variablesmember->variable_name);
-		}
-	json_object_append_array(json_details, "custom_variables", 
-			json_custom_variables);
+	json_object_append_object(json_details, "custom_variables", 
+			json_object_custom_variables(temp_host->custom_variables));
 	}
 
 int json_object_hostgroup_passes_selection(hostgroup *temp_hostgroup, 
@@ -2977,7 +3001,7 @@ json_object *json_object_hostgroup_selectors(int start, int count,
 		}
 	if( NULL != temp_hostgroup_member) {
 		json_object_append_string(json_selectors, "hostgroupmember", 
-				temp_hostgroup_member->name);
+				&percent_escapes, temp_hostgroup_member->name);
 		}
 
 	return json_selectors;
@@ -3052,7 +3076,7 @@ json_object *json_object_hostgrouplist(unsigned format_options, int start,
 				}
 			else {
 				json_array_append_string(json_hostgrouplist_array, 
-						temp_hostgroup->group_name);
+						&percent_escapes, temp_hostgroup->group_name);
 				}
 			counted++;
 			}
@@ -3077,7 +3101,7 @@ json_object *json_object_hostgroup(unsigned format_options,
 	json_object *json_hostgroup = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "group_name", 
+	json_object_append_string(json_details, "group_name", &percent_escapes,
 			temp_hostgroup->group_name);
 	json_object_hostgroup_details(json_details, format_options, temp_hostgroup);
 	json_object_append_object(json_hostgroup, "hostgroup", json_details);
@@ -3091,21 +3115,24 @@ void json_object_hostgroup_details(json_object *json_details,
 	json_array *json_members;
 	hostsmember *temp_member;
 
-	json_object_append_string(json_details, "group_name", 
+	json_object_append_string(json_details, "group_name", &percent_escapes,
 			temp_hostgroup->group_name);
-	json_object_append_string(json_details, "alias", temp_hostgroup->alias);
+	json_object_append_string(json_details, "alias", &percent_escapes,
+			temp_hostgroup->alias);
 
 	json_members = json_new_array();
 	for(temp_member = temp_hostgroup->members; temp_member != NULL; 
 			temp_member = temp_member->next) {
-		json_array_append_string(json_members, temp_member->host_name);
+		json_array_append_string(json_members, &percent_escapes,
+				temp_member->host_name);
 		}
 	json_object_append_array(json_details, "members", json_members);
 
-	json_object_append_string(json_details, "notes", temp_hostgroup->notes);
-	json_object_append_string(json_details, "notes_url", 
+	json_object_append_string(json_details, "notes", &percent_escapes,
+			temp_hostgroup->notes);
+	json_object_append_string(json_details, "notes_url", &percent_escapes,
 			temp_hostgroup->notes_url);
-	json_object_append_string(json_details, "action_url", 
+	json_object_append_string(json_details, "action_url", &percent_escapes,
 			temp_hostgroup->action_url);
 	}
 
@@ -3312,59 +3339,62 @@ json_object *json_object_service_selectors(int start, int count,
 		json_object_append_integer(json_selectors, "count", count);
 		}
 	if( NULL != match_host) {
-		json_object_append_string(json_selectors, "host", match_host->name);
+		json_object_append_string(json_selectors, "host", &percent_escapes,
+				match_host->name);
 		}
 	if( 1 == use_parent_host) {
-		json_object_append_string(json_selectors, "parenthost", 
+		json_object_append_string(json_selectors, "parenthost",
+				&percent_escapes,
 				( NULL == parent_host ? "none" : parent_host->name));
 		}
 	if( 1 == use_child_host) {
-		json_object_append_string(json_selectors, "childhost", 
+		json_object_append_string(json_selectors, "childhost", &percent_escapes,
 				( NULL == child_host ? "none" : child_host->name));
 		}
 	if( NULL != temp_hostgroup) {
-		json_object_append_string(json_selectors, "hostgroup", 
+		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,
 				temp_hostgroup->group_name);
 		}
 	if( NULL != temp_servicegroup) {
-		json_object_append_string(json_selectors, "servicegroup", 
+		json_object_append_string(json_selectors, "servicegroup", &percent_escapes,
 				temp_servicegroup->group_name);
 		}
 	if(NULL != temp_contact) {
-		json_object_append_string(json_selectors, "contact",
+		json_object_append_string(json_selectors, "contact",&percent_escapes,
 				temp_contact->name);
 		}
 	if(NULL != temp_contactgroup) {
 		json_object_append_string(json_selectors, "contactgroup",
-				temp_contactgroup->group_name);
+				&percent_escapes, temp_contactgroup->group_name);
 		}
 	if( NULL != service_description) {
-		json_object_append_string(json_selectors, "servicedescription", 
-				service_description);
+		json_object_append_string(json_selectors, "servicedescription",
+				&percent_escapes, service_description);
 		}
 	if( NULL != parent_service_name) {
 		json_object_append_string(json_selectors, "parentservice",
-				parent_service_name);
+				&percent_escapes, parent_service_name);
 		}
 	if( NULL != child_service_name) {
 		json_object_append_string(json_selectors, "childservice",
-				child_service_name);
+				&percent_escapes, child_service_name);
 		}
 	if( NULL != check_timeperiod) {
 		json_object_append_string(json_selectors, "checktimeperiod",
-				check_timeperiod->name);
+				&percent_escapes, check_timeperiod->name);
 		}
 	if( NULL != notification_timeperiod) {
 		json_object_append_string(json_selectors,
-				"servicenotificationtimeperiod", notification_timeperiod->name);
+				"servicenotificationtimeperiod", &percent_escapes,
+				notification_timeperiod->name);
 		}
 	if( NULL != check_command) {
 		json_object_append_string(json_selectors, "checkcommand",
-				check_command->name);
+				&percent_escapes, check_command->name);
 		}
 	if( NULL != event_handler) {
 		json_object_append_string(json_selectors, "eventhandler",
-				event_handler->name);
+				&percent_escapes, event_handler->name);
 		}
 
 	return json_selectors;
@@ -3499,8 +3529,8 @@ json_object *json_object_servicelist(unsigned format_options, int start,
 							json_service_details);
 					}
 				else {
-					json_array_append_string(json_servicelist_array, "%s",
-							temp_service->description); 
+					json_array_append_string(json_servicelist_array,
+							&percent_escapes, temp_service->description);
 					}
 				counted++;
 				service_count++;
@@ -3529,9 +3559,9 @@ json_object *json_object_service(unsigned format_options, service *temp_service)
 	json_object *json_service = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "host_name", 
+	json_object_append_string(json_details, "host_name", &percent_escapes,
 			temp_service->host_name);
-	json_object_append_string(json_details, "description", 
+	json_object_append_string(json_details, "description", &percent_escapes,
 			temp_service->description);
 	json_object_service_details(json_details, format_options, temp_service);
 	json_object_append_object(json_service, "service", json_details);
@@ -3557,33 +3587,31 @@ void json_object_service_details(json_object *json_details,
 	json_object *json_child_service;
 	json_array *json_child_services;
 #endif
-	json_array *json_custom_variables;
-	customvariablesmember *temp_customvariablesmember;
 
-	json_object_append_string(json_details, "host_name", 
+	json_object_append_string(json_details, "host_name", &percent_escapes,
 			temp_service->host_name);
-	json_object_append_string(json_details, "description", 
+	json_object_append_string(json_details, "description", &percent_escapes,
 			temp_service->description);
-	json_object_append_string(json_details, "display_name", 
+	json_object_append_string(json_details, "display_name", &percent_escapes,
 			temp_service->display_name);
 #ifdef JSON_NAGIOS_4X
 #if 0
 	if( CORE3_COMPATIBLE) {
-		json_object_append_string(json_details, "service_check_command", 
-				temp_service->check_command);
+		json_object_append_string(json_details, "service_check_command",
+				&percent_escapes, temp_service->check_command);
 		}
 	else {
 #endif
-		json_object_append_string(json_details, "check_command", 
-				temp_service->check_command);
+		json_object_append_string(json_details, "check_command",
+				&percent_escapes, temp_service->check_command);
 #if 0
 		}
 #endif
 #else
-	json_object_append_string(json_details, "service_check_command", 
-			temp_service->service_check_command);
+	json_object_append_string(json_details, "service_check_command",
+			&percent_escapes, temp_service->service_check_command);
 #endif
-	json_object_append_string(json_details, "event_handler", 
+	json_object_append_string(json_details, "event_handler", &percent_escapes,
 			temp_service->event_handler);
 
 	json_enumeration(json_details, format_options, "initial_state", 
@@ -3602,7 +3630,7 @@ void json_object_service_details(json_object *json_details,
 	for(temp_contact_groupsmember = temp_service->contact_groups; 
 			temp_contact_groupsmember != NULL; 
 			temp_contact_groupsmember = temp_contact_groupsmember->next) {
-		json_array_append_string(json_contactgroups,
+		json_array_append_string(json_contactgroups, &percent_escapes,
 				temp_contact_groupsmember->group_name);
 		}
 	json_object_append_array(json_details, "contact_groups", json_contactgroups);
@@ -3612,14 +3640,15 @@ void json_object_service_details(json_object *json_details,
 	for(temp_contactsmember = temp_service->contacts; 
 			temp_contactsmember != NULL; 
 			temp_contactsmember = temp_contactsmember->next) {
-		json_array_append_string(json_contacts,
+		json_array_append_string(json_contacts, &percent_escapes,
 				temp_contactsmember->contact_name);
 		}
 #else
 	for(temp_contact = contact_list; temp_contact != NULL; 
 			temp_contact = temp_contact->next) {
 		if(TRUE == is_contact_for_service(temp_service, temp_contact)) {
-			json_array_append_string(json_contacts, temp_contact->name);
+			json_array_append_string(json_contacts, &percent_escapes,
+					temp_contact->name);
 			}
 		}
 #endif
@@ -3700,9 +3729,9 @@ void json_object_service_details(json_object *json_details,
 
 	json_object_append_boolean(json_details, "is_volatile", 
 			temp_service->is_volatile);
-	json_object_append_string(json_details, "notification_period", 
-			temp_service->notification_period);
-	json_object_append_string(json_details, "check_period", 
+	json_object_append_string(json_details, "notification_period",
+			&percent_escapes, temp_service->notification_period);
+	json_object_append_string(json_details, "check_period", &percent_escapes,
 			temp_service->check_period);
 	json_object_append_boolean(json_details, "flap_detection_enabled", 
 			temp_service->flap_detection_enabled);
@@ -3795,7 +3824,7 @@ void json_object_service_details(json_object *json_details,
 	json_object_append_boolean(json_details, "failure_prediction_enabled", 
 			temp_service->failure_prediction_enabled);
 	json_object_append_string(json_details, "failure_prediction_options", 
-			temp_service->failure_prediction_options);
+			NULL, temp_service->failure_prediction_options);
 #endif
 #ifdef JSON_NAGIOS_4X
 	json_object_append_integer(json_details, "hourly_value", 
@@ -3809,9 +3838,9 @@ void json_object_service_details(json_object *json_details,
 			temp_servicesmember = temp_servicesmember->next) {
 		json_parent_service = json_new_object();
 		json_object_append_string(json_parent_service, "host_name",
-				temp_servicesmember->host_name);
+				&percent_escapes, temp_servicesmember->host_name);
 		json_object_append_string(json_parent_service, "service_description",
-				temp_servicesmember->service_description);
+				&percent_escapes, temp_servicesmember->service_description);
 		json_array_append_object(json_parent_services, json_parent_service);
 		}
 	json_object_append_array(json_details, "parents", json_parent_services);
@@ -3822,32 +3851,26 @@ void json_object_service_details(json_object *json_details,
 			temp_servicesmember = temp_servicesmember->next) {
 		json_child_service = json_new_object();
 		json_object_append_string(json_child_service, "host_name",
-				temp_servicesmember->host_name);
+				&percent_escapes, temp_servicesmember->host_name);
 		json_object_append_string(json_child_service, "service_description",
-				temp_servicesmember->service_description);
+				&percent_escapes, temp_servicesmember->service_description);
 		json_array_append_object(json_child_services, json_child_service);
 		}
 	json_object_append_array(json_details, "children", json_child_services);
 #endif
 
-	json_object_append_string(json_details, "notes", temp_service->notes);
-	json_object_append_string(json_details, "notes_url", temp_service->notes_url);
-	json_object_append_string(json_details, "action_url", 
+	json_object_append_string(json_details, "notes", &percent_escapes,
+			temp_service->notes);
+	json_object_append_string(json_details, "notes_url", &percent_escapes,
+			temp_service->notes_url);
+	json_object_append_string(json_details, "action_url", &percent_escapes,
 			temp_service->action_url);
-	json_object_append_string(json_details, "icon_image", 
+	json_object_append_string(json_details, "icon_image", &percent_escapes,
 			temp_service->icon_image);
-	json_object_append_string(json_details, "icon_image_alt", 
+	json_object_append_string(json_details, "icon_image_alt", &percent_escapes,
 			temp_service->icon_image_alt);
-
-	json_custom_variables = json_new_array();
-	for(temp_customvariablesmember = temp_service->custom_variables; 
-			temp_customvariablesmember != NULL; 
-			temp_customvariablesmember = temp_customvariablesmember->next) {
-		json_array_append_string(json_custom_variables, 
-				temp_customvariablesmember->variable_name);
-		}
-	json_object_append_array(json_details, "custom_variables", 
-				json_custom_variables);
+	json_object_append_object(json_details, "custom_variables", 
+			json_object_custom_variables(temp_service->custom_variables));
 	}
 
 int json_object_servicegroup_passes_selection(servicegroup *temp_servicegroup,
@@ -3885,9 +3908,9 @@ json_object * json_object_servicegroup_selectors(int start, int count,
 		}
 	if( NULL != temp_servicegroup_member) {
 		json_object_append_string(json_selectors, "servicegroupmemberhost", 
-				temp_servicegroup_member->host_name);
+				&percent_escapes, temp_servicegroup_member->host_name);
 		json_object_append_string(json_selectors, "servicegroupmemberservice", 
-				temp_servicegroup_member->description);
+				&percent_escapes, temp_servicegroup_member->description);
 		}
 
 	return json_selectors;
@@ -3963,7 +3986,7 @@ json_object *json_object_servicegrouplist(unsigned format_options, int start,
 				}
 			else {
 				json_object_append_string(json_servicegrouplist_array, NULL, 
-						temp_servicegroup->group_name);
+						&percent_escapes, temp_servicegroup->group_name);
 				}
 			counted++;
 			}
@@ -3989,7 +4012,7 @@ json_object * json_object_servicegroup(unsigned format_options,
 	json_object *json_details = json_new_object();
 
 	json_object_append_string(json_details, "group_name", 
-			temp_servicegroup->group_name);
+			&percent_escapes, temp_servicegroup->group_name);
 	json_object_servicegroup_details(json_details, format_options, 
 			temp_servicegroup);
 	json_object_append_object(json_servicegroup, "servicegroup", json_details);
@@ -4004,26 +4027,28 @@ void json_object_servicegroup_details(json_object *json_details,
 	servicesmember *temp_member;
 	json_object *json_member;
 
-	json_object_append_string(json_details, "group_name", 
+	json_object_append_string(json_details, "group_name", &percent_escapes,
 			temp_servicegroup->group_name);
-	json_object_append_string(json_details, "alias", temp_servicegroup->alias);
+	json_object_append_string(json_details, "alias", &percent_escapes,
+			temp_servicegroup->alias);
 
 	json_members = json_new_array();
 	for(temp_member = temp_servicegroup->members; temp_member != NULL; 
 			temp_member = temp_member->next) {
 		json_member = json_new_object();
-		json_object_append_string(json_member, "host_name", 
+		json_object_append_string(json_member, "host_name", &percent_escapes,
 				temp_member->host_name);
-		json_object_append_string(json_member, "service_description", 
-				temp_member->service_description);
+		json_object_append_string(json_member, "service_description",
+				&percent_escapes, temp_member->service_description);
 		json_array_append_object(json_members, json_member);
 		}
 	json_object_append_array(json_details, "members", json_members);
 
-	json_object_append_string(json_details, "notes", temp_servicegroup->notes);
-	json_object_append_string(json_details, "notes_url", 
+	json_object_append_string(json_details, "notes", &percent_escapes,
+			temp_servicegroup->notes);
+	json_object_append_string(json_details, "notes_url", &percent_escapes,
 			temp_servicegroup->notes_url);
-	json_object_append_string(json_details, "action_url", 
+	json_object_append_string(json_details, "action_url", &percent_escapes,
 			temp_servicegroup->action_url);
 	}
 
@@ -4074,16 +4099,16 @@ json_object *json_object_contact_display_selectors(int start, int count,
 		json_object_append_integer(json_selectors, "count", count);
 		}
 	if( NULL != temp_contactgroup) {
-		json_object_append_string(json_selectors, "contactgroup", 
-				temp_contactgroup->group_name);
+		json_object_append_string(json_selectors, "contactgroup",
+				&percent_escapes, temp_contactgroup->group_name);
 		}
 	if( NULL != host_notification_timeperiod) {
 		json_object_append_string(json_selectors, "hostnotificationtimeperiod",
-				host_notification_timeperiod->name);
+				&percent_escapes, host_notification_timeperiod->name);
 		}
 	if( NULL != service_notification_timeperiod) {
 		json_object_append_string(json_selectors,
-				"servicenotificationtimeperiod",
+				"servicenotificationtimeperiod", &percent_escapes,
 				service_notification_timeperiod->name);
 		}
 
@@ -4166,7 +4191,7 @@ json_object *json_object_contactlist(unsigned format_options, int start,
 				}
 			else {
 				json_array_append_string(json_contactlist_array, 
-						temp_contact->name);
+						&percent_escapes, temp_contact->name);
 				}
 			counted++;
 			}
@@ -4190,7 +4215,8 @@ json_object *json_object_contact(unsigned format_options, contact *temp_contact)
 	json_object *json_contact = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "name", temp_contact->name);
+	json_object_append_string(json_details, "name", &percent_escapes,
+			temp_contact->name);
 	json_object_contact_details(json_details, format_options, temp_contact);
 	json_object_append_object(json_contact, "contact", json_details);
 
@@ -4203,20 +4229,23 @@ void json_object_contact_details(json_object *json_details,
 	json_array *json_addresses;
 	json_array *json_host_commands;
 	json_array *json_service_commands;
-	json_array *json_custom_variables;
 	int x;
 	commandsmember *temp_commandsmember;
-	customvariablesmember *temp_customvariablesmember;
 
-	json_object_append_string(json_details, "name", temp_contact->name);
-	json_object_append_string(json_details, "alias", temp_contact->alias);
-	json_object_append_string(json_details, "email", temp_contact->email);
-	json_object_append_string(json_details, "pager", temp_contact->pager);
+	json_object_append_string(json_details, "name", &percent_escapes,
+			temp_contact->name);
+	json_object_append_string(json_details, "alias", &percent_escapes,
+			temp_contact->alias);
+	json_object_append_string(json_details, "email", &percent_escapes,
+			temp_contact->email);
+	json_object_append_string(json_details, "pager", &percent_escapes,
+			temp_contact->pager);
 
 	json_addresses = json_new_array();
 	for( x = 0; x < MAX_CONTACT_ADDRESSES; x++) {
 		if( NULL != temp_contact->address[ x]) {
-			json_array_append_string(json_addresses, temp_contact->address[ x]);
+			json_array_append_string(json_addresses, &percent_escapes,
+					temp_contact->address[ x]);
 			}
 		}
 	json_object_append_array(json_details, "addresses", json_addresses);
@@ -4225,7 +4254,7 @@ void json_object_contact_details(json_object *json_details,
 	for(temp_commandsmember = temp_contact->host_notification_commands; 
 			temp_commandsmember != NULL; 
 			temp_commandsmember = temp_commandsmember->next) {
-		json_array_append_string(json_host_commands, 
+		json_array_append_string(json_host_commands, &percent_escapes,
 				temp_commandsmember->command);
 		}
 	json_object_append_array(json_details, "host_notification_commands", 
@@ -4235,7 +4264,7 @@ void json_object_contact_details(json_object *json_details,
 	for(temp_commandsmember = temp_contact->service_notification_commands; 
 			temp_commandsmember != NULL; 
 			temp_commandsmember = temp_commandsmember->next) {
-		json_array_append_string(json_service_commands, 
+		json_array_append_string(json_service_commands, &percent_escapes,
 				temp_commandsmember->command);
 		}
 	json_object_append_array(json_details, "service_notification_commands", 
@@ -4325,9 +4354,9 @@ void json_object_contact_details(json_object *json_details,
 #endif
 
 	json_object_append_string(json_details, "host_notification_period", 
-			temp_contact->host_notification_period);
+			&percent_escapes, temp_contact->host_notification_period);
 	json_object_append_string(json_details, "service_notification_period", 
-			temp_contact->service_notification_period);
+			&percent_escapes, temp_contact->service_notification_period);
 	json_object_append_boolean(json_details, "host_notifications_enabled", 
 			temp_contact->host_notifications_enabled);
 	json_object_append_boolean(json_details, "service_notifications_enabled", 
@@ -4342,16 +4371,8 @@ void json_object_contact_details(json_object *json_details,
 	json_object_append_integer(json_details, "minimum_value", 
 			temp_contact->minimum_value);
 #endif
-
-	json_custom_variables = json_new_array();
-	for(temp_customvariablesmember = temp_contact->custom_variables; 
-			temp_customvariablesmember != NULL; 
-			temp_customvariablesmember = temp_customvariablesmember->next) {
-		json_array_append_string(json_custom_variables, 
-				temp_customvariablesmember->variable_name);
-		}
-	json_object_append_array(json_details, "custom_variables", 
-			json_custom_variables);
+	json_object_append_object(json_details, "custom_variables", 
+			json_object_custom_variables(temp_contact->custom_variables));
 	}
 
 int json_object_contactgroup_passes_selection(contactgroup *temp_contactgroup,
@@ -4383,7 +4404,7 @@ json_object *json_object_contactgroup_display_selectors( int start, int count,
 		}
 	if( NULL != temp_contactgroup_member) {
 		json_object_append_string(json_selectors, "contactgroupmember", 
-				temp_contactgroup_member->name);
+				&percent_escapes, temp_contactgroup_member->name);
 		}
 
 	return json_selectors;
@@ -4457,8 +4478,8 @@ json_object *json_object_contactgrouplist(unsigned format_options, int start,
 						temp_contactgroup->group_name, json_contactgroup_details);
 				}
 			else {
-				json_array_append_string(json_contactgrouplist_array, 
-						temp_contactgroup->group_name);
+				json_array_append_string(json_contactgrouplist_array,
+						&percent_escapes, temp_contactgroup->group_name);
 				}
 			counted++;
 			}
@@ -4483,7 +4504,7 @@ json_object *json_object_contactgroup(unsigned format_options,
 	json_object *json_contactgroup = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "group_name", 
+	json_object_append_string(json_details, "group_name", &percent_escapes,
 			temp_contactgroup->group_name);
 	json_object_contactgroup_details(json_details, format_options, 
 			temp_contactgroup);
@@ -4498,14 +4519,16 @@ void json_object_contactgroup_details(json_object *json_details,
 	json_array *json_members;
 	contactsmember *temp_member;
 
-	json_object_append_string(json_details, "group_name", 
+	json_object_append_string(json_details, "group_name", &percent_escapes,
 			temp_contactgroup->group_name);
-	json_object_append_string(json_details, "alias", temp_contactgroup->alias);
+	json_object_append_string(json_details, "alias", &percent_escapes,
+			temp_contactgroup->alias);
 
 	json_members = json_new_array();
 	for(temp_member = temp_contactgroup->members; temp_member != NULL; 
 			temp_member = temp_member->next) {
-		json_array_append_string(json_members, temp_member->contact_name);
+		json_array_append_string(json_members, &percent_escapes,
+				temp_member->contact_name);
 		}
 	json_object_append_array(json_details, "members", json_members);
 	}
@@ -4583,7 +4606,7 @@ json_object *json_object_timeperiodlist(unsigned format_options, int start,
 				}
 			else {
 				json_array_append_string(json_timeperiodlist_array, 
-						temp_timeperiod->name);
+						&percent_escapes, temp_timeperiod->name);
 				}
 			counted++;
 			}
@@ -4608,7 +4631,8 @@ json_object *json_object_timeperiod(unsigned format_options,
 	json_object *json_timeperiod = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "name", temp_timeperiod->name);
+	json_object_append_string(json_details, "name", &percent_escapes,
+			temp_timeperiod->name);
 	json_object_timeperiod_details(json_details, format_options, temp_timeperiod);
 	json_object_append_object(json_timeperiod, "timeperiod", json_details);
 
@@ -4626,8 +4650,10 @@ void json_object_timeperiod_details(json_object *json_details,
 	daterange *temp_daterange;
 	timeperiodexclusion *temp_timeperiodexclusion;
 
-	json_object_append_string(json_details, "name", temp_timeperiod->name);
-	json_object_append_string(json_details, "alias", temp_timeperiod->alias);
+	json_object_append_string(json_details, "name", &percent_escapes,
+			temp_timeperiod->name);
+	json_object_append_string(json_details, "alias", &percent_escapes,
+			temp_timeperiod->alias);
 
 	json_days = json_new_object();
 	for(x = 0; x < sizeof(temp_timeperiod->days) / sizeof(temp_timeperiod->days[0]); x++) {
@@ -4655,7 +4681,7 @@ void json_object_timeperiod_details(json_object *json_details,
 	for(temp_timeperiodexclusion = temp_timeperiod->exclusions; 
 			temp_timeperiodexclusion != NULL; 
 			temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
-		json_array_append_string(json_exclusions, 
+		json_array_append_string(json_exclusions, &percent_escapes,
 				temp_timeperiodexclusion->timeperiod_name);
 		}
 	json_object_append_array(json_details, "exclusions", json_exclusions);
@@ -4671,22 +4697,22 @@ json_object * json_object_daterange(unsigned format_options,
 
 	switch(daterange_type) {
 	case DATERANGE_CALENDAR_DATE:
-		json_object_append_string(json_daterange, "type", 
+		json_object_append_string(json_daterange, "type", NULL,
 				"DATERANGE_CALENDAR_DATE");
 		if(temp_daterange->syear == temp_daterange->eyear &&
 				temp_daterange->smon == temp_daterange->emon &&
 				temp_daterange->smday == temp_daterange->emday) {
-			json_object_append_string(json_daterange, "date", "%4d-%02d-%02d",
-					temp_daterange->syear, temp_daterange->smon+1,
-					temp_daterange->smday);
+			json_object_append_string(json_daterange, "date", NULL,
+					"%4d-%02d-%02d", temp_daterange->syear,
+					temp_daterange->smon+1, temp_daterange->smday);
 			}
 		else {
-			json_object_append_string(json_daterange, "startdate", 
+			json_object_append_string(json_daterange, "startdate", NULL,
 					"%4d-%02d-%02d", temp_daterange->syear, 
 					temp_daterange->smon+1, temp_daterange->smday);
-			json_object_append_string(json_daterange, "enddate", "%4d-%02d-%02d", 
-					temp_daterange->eyear, temp_daterange->emon+1, 
-					temp_daterange->emday);
+			json_object_append_string(json_daterange, "enddate", NULL,
+					"%4d-%02d-%02d", temp_daterange->eyear,
+					temp_daterange->emon+1, temp_daterange->emday);
 			}
 		if( temp_daterange->skip_interval > 0) {
 			json_object_append_integer(json_daterange, "skip_interval", 
@@ -4698,22 +4724,23 @@ json_object * json_object_daterange(unsigned format_options,
 		json_object_append_array(json_daterange, "times", json_timeranges);
 		break;
 	case DATERANGE_MONTH_DATE:
-		json_object_append_string(json_daterange, "type", "DATERANGE_MONTH_DATE");
+		json_object_append_string(json_daterange, "type", NULL,
+				"DATERANGE_MONTH_DATE");
 		if(temp_daterange->smon == temp_daterange->emon &&
 				temp_daterange->smday == temp_daterange->emday) {
-			json_object_append_string(json_daterange, "month", 
+			json_object_append_string(json_daterange, "month", &percent_escapes,
 					(char *)month[temp_daterange->smon]);
-			json_object_append_integer(json_daterange, "day", 
+			json_object_append_integer(json_daterange, "day",
 					temp_daterange->smday);
 			}
 		else {
-			json_object_append_string(json_daterange, "startmonth", 
-					(char *)month[temp_daterange->smon]);
-			json_object_append_integer(json_daterange, "startday", 
+			json_object_append_string(json_daterange, "startmonth",
+					&percent_escapes, (char *)month[temp_daterange->smon]);
+			json_object_append_integer(json_daterange, "startday",
 					temp_daterange->smday);
-			json_object_append_string(json_daterange, "endmonth", 
-					(char *)month[temp_daterange->emon]);
-			json_object_append_integer(json_daterange, "endday", 
+			json_object_append_string(json_daterange, "endmonth",
+					&percent_escapes, (char *)month[temp_daterange->emon]);
+			json_object_append_integer(json_daterange, "endday",
 					temp_daterange->emday);
 			}
 		if( temp_daterange->skip_interval > 0) {
@@ -4726,7 +4753,8 @@ json_object * json_object_daterange(unsigned format_options,
 		json_object_append_array(json_daterange, "times", json_timeranges);
 		break;
 	case DATERANGE_MONTH_DAY:
-		json_object_append_string(json_daterange, "type", "DATERANGE_MONTH_DAY");
+		json_object_append_string(json_daterange, "type", NULL,
+				"DATERANGE_MONTH_DAY");
 		if(temp_daterange->smday == temp_daterange->emday) {
 			json_object_append_integer(json_daterange, "day", 
 					temp_daterange->smday);
@@ -4747,30 +4775,30 @@ json_object * json_object_daterange(unsigned format_options,
 		json_object_append_array(json_daterange, "times", json_timeranges);
 		break;
 	case DATERANGE_MONTH_WEEK_DAY:
-		json_object_append_string(json_daterange, "type", 
+		json_object_append_string(json_daterange, "type", NULL,
 				"DATERANGE_MONTH_WEEK_DAY");
 		if(temp_daterange->smon == temp_daterange->emon &&
 				temp_daterange->swday == temp_daterange->ewday &&
 				temp_daterange->swday_offset == temp_daterange->ewday_offset) {
-			json_object_append_string(json_daterange, "month", 
+			json_object_append_string(json_daterange, "month", &percent_escapes,
 					(char *)month[temp_daterange->smon]);
-			json_object_append_string(json_daterange, "weekday", 
-					(char *)dayofweek[temp_daterange->swday]);
-			json_object_append_integer(json_daterange, "weekdayoffset", 
+			json_object_append_string(json_daterange, "weekday",
+					&percent_escapes, (char *)dayofweek[temp_daterange->swday]);
+			json_object_append_integer(json_daterange, "weekdayoffset",
 					temp_daterange->swday_offset);
 			}
 		else {
-			json_object_append_string(json_daterange, "startmonth", 
-					(char *)month[temp_daterange->smon]);
-			json_object_append_string(json_daterange, "startweekday", 
-					(char *)dayofweek[temp_daterange->swday]);
-			json_object_append_integer(json_daterange, "startweekdayoffset", 
+			json_object_append_string(json_daterange, "startmonth",
+					&percent_escapes, (char *)month[temp_daterange->smon]);
+			json_object_append_string(json_daterange, "startweekday",
+					&percent_escapes, (char *)dayofweek[temp_daterange->swday]);
+			json_object_append_integer(json_daterange, "startweekdayoffset",
 					temp_daterange->swday_offset);
-			json_object_append_string(json_daterange, "endmonth", 
-					(char *)month[temp_daterange->emon]);
-			json_object_append_string(json_daterange, "endweekday", 
-					(char *)dayofweek[temp_daterange->ewday]);
-			json_object_append_integer(json_daterange, "endweekdayoffset", 
+			json_object_append_string(json_daterange, "endmonth",
+					&percent_escapes, (char *)month[temp_daterange->emon]);
+			json_object_append_string(json_daterange, "endweekday",
+					&percent_escapes, (char *)dayofweek[temp_daterange->ewday]);
+			json_object_append_integer(json_daterange, "endweekdayoffset",
 					temp_daterange->ewday_offset);
 			}
 		if( temp_daterange->skip_interval > 0) {
@@ -4783,21 +4811,22 @@ json_object * json_object_daterange(unsigned format_options,
 		json_object_append_array(json_daterange, "times", json_timeranges);
 		break;
 	case DATERANGE_WEEK_DAY:
-		json_object_append_string(json_daterange, "type", "DATERANGE_WEEK_DAY");
+		json_object_append_string(json_daterange, "type", NULL,
+				"DATERANGE_WEEK_DAY");
 		if(temp_daterange->swday == temp_daterange->ewday &&
 				temp_daterange->swday_offset == temp_daterange->ewday_offset) {
-			json_object_append_string(json_daterange, "weekday", 
-					(char *)dayofweek[temp_daterange->swday]);
-			json_object_append_integer(json_daterange, "weekdayoffset", 
+			json_object_append_string(json_daterange, "weekday",
+					&percent_escapes, (char *)dayofweek[temp_daterange->swday]);
+			json_object_append_integer(json_daterange, "weekdayoffset",
 					temp_daterange->swday_offset);
 			}
 		else {
-			json_object_append_string(json_daterange, "startweekday", 
-					(char *)dayofweek[temp_daterange->swday]);
+			json_object_append_string(json_daterange, "startweekday",
+					&percent_escapes, (char *)dayofweek[temp_daterange->swday]);
 			json_object_append_integer(json_daterange, "startweekdayoffset", 
 					temp_daterange->swday_offset);
-			json_object_append_string(json_daterange, "endweekday", 
-					(char *)dayofweek[temp_daterange->ewday]);
+			json_object_append_string(json_daterange, "endweekday",
+					&percent_escapes, (char *)dayofweek[temp_daterange->ewday]);
 			json_object_append_integer(json_daterange, "endweekdayoffset", 
 					temp_daterange->ewday_offset);
 			}
@@ -4811,7 +4840,7 @@ json_object * json_object_daterange(unsigned format_options,
 		json_object_append_array(json_daterange, "times", json_timeranges);
 		break;
 	default:
-		json_object_append_string(json_daterange, "type", 
+		json_object_append_string(json_daterange, "type", NULL,
 				"Unknown daterange type: %u", daterange_type);
 		break;
 		}
@@ -4906,8 +4935,8 @@ json_object *json_object_commandlist(unsigned format_options, int start,
 						temp_command->name, json_command_details);
 				}
 			else {
-				json_array_append_string(json_commandlist_array, 
-						temp_command->name);
+				json_array_append_string(json_commandlist_array,
+						&percent_escapes, temp_command->name);
 				}
 			counted++;
 			}
@@ -4931,7 +4960,8 @@ json_object *json_object_command(unsigned format_options, command *temp_command)
 	json_object *json_command = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "name", temp_command->name);
+	json_object_append_string(json_details, "name", &percent_escapes,
+			temp_command->name);
 	json_object_command_details(json_details, format_options, temp_command);
 	json_object_append_object(json_command, "command", json_details);
 
@@ -4940,8 +4970,9 @@ json_object *json_object_command(unsigned format_options, command *temp_command)
 
 void json_object_command_details(json_object *json_details, 
 		unsigned format_options, command *temp_command) {
-	json_object_append_string(json_details, "name", temp_command->name);
-	json_object_append_string(json_details, "command_line", 
+	json_object_append_string(json_details, "name", &percent_escapes,
+			temp_command->name);
+	json_object_append_string(json_details, "command_line", &percent_escapes,
 			temp_command->command_line);
 	}
 
@@ -5051,35 +5082,35 @@ json_object *json_object_servicedependency_selectors(int start, int count,
 		}
 	if(NULL != master_host) {
 		json_object_append_string(json_selectors, "masterhostname",
-				master_host->name);
+				&percent_escapes, master_host->name);
 		}
 	if(NULL != master_hostgroup) {
 		json_object_append_string(json_selectors, "masterhostgroupname",
-				master_hostgroup->group_name);
+				&percent_escapes, master_hostgroup->group_name);
 		}
 	if(NULL != master_service_description) {
 		json_object_append_string(json_selectors, "masterservicedescription",
-				master_service_description);
+				&percent_escapes, master_service_description);
 		}
 	if(NULL != master_servicegroup) {
 		json_object_append_string(json_selectors, "masterservicegroupname",
-				master_servicegroup->group_name);
+				&percent_escapes, master_servicegroup->group_name);
 		}
 	if(NULL != dependent_host) {
 		json_object_append_string(json_selectors, "dependenthostname",
-				dependent_host->name);
+				&percent_escapes, dependent_host->name);
 		}
 	if(NULL != dependent_hostgroup) {
 		json_object_append_string(json_selectors, "dependenthostgroupname",
-				dependent_hostgroup->group_name);
+				&percent_escapes, dependent_hostgroup->group_name);
 		}
 	if(NULL != dependent_service_description) {
 		json_object_append_string(json_selectors, "dependentservicedescription",
-				dependent_service_description);
+				&percent_escapes, dependent_service_description);
 		}
 	if(NULL != dependent_servicegroup) {
 		json_object_append_string(json_selectors, "dependentservicegroupname",
-				dependent_servicegroup->group_name);
+				&percent_escapes, dependent_servicegroup->group_name);
 		}
 
 	return json_selectors;
@@ -5194,15 +5225,16 @@ void json_object_servicedependency_details(json_object *json_details,
 	json_object_append_integer(json_details, "dependency_type", 
 			temp_servicedependency->dependency_type);
 	json_object_append_string(json_details, "dependent_host_name", 
-			temp_servicedependency->dependent_host_name);
+			&percent_escapes, temp_servicedependency->dependent_host_name);
 	json_object_append_string(json_details, "dependent_service_description", 
+			&percent_escapes,
 			temp_servicedependency->dependent_service_description);
 	json_object_append_string(json_details, "host_name", 
-			temp_servicedependency->host_name);
+			&percent_escapes, temp_servicedependency->host_name);
 	json_object_append_string(json_details, "service_description", 
-			temp_servicedependency->service_description);
+			&percent_escapes, temp_servicedependency->service_description);
 	json_object_append_string(json_details, "dependency_period", 
-			temp_servicedependency->dependency_period);
+			&percent_escapes, temp_servicedependency->dependency_period);
 	json_object_append_boolean(json_details, "inherits_parent", 
 			temp_servicedependency->inherits_parent);
 
@@ -5334,27 +5366,28 @@ json_object *json_object_serviceescalation_selectors(int start, int count,
 		json_object_append_integer(json_selectors, "count", count);
 		}
 	if(NULL != match_host) {
-		json_object_append_string(json_selectors, "hostname", match_host->name);
+		json_object_append_string(json_selectors, "hostname", &percent_escapes,
+				match_host->name);
 		}
 	if(NULL != service_description) {
 		json_object_append_string(json_selectors, "servicedescription",
-				service_description);
+				&percent_escapes, service_description);
 		}
 	if(NULL != match_hostgroup) {
 		json_object_append_string(json_selectors, "hostgroup",
-				match_hostgroup->group_name);
+				&percent_escapes, match_hostgroup->group_name);
 		}
 	if(NULL != match_servicegroup) {
 		json_object_append_string(json_selectors, "servicegroup",
-				match_servicegroup->group_name);
+				&percent_escapes, match_servicegroup->group_name);
 		}
 	if( NULL != match_contact) {
 		json_object_append_string(json_selectors, "contact",
-				match_contact->name);
+				&percent_escapes, match_contact->name);
 		}
 	if( NULL != match_contactgroup) {
 		json_object_append_string(json_selectors, "contactgroup",
-				match_contactgroup->group_name);
+				&percent_escapes, match_contactgroup->group_name);
 		}
 
 	return json_selectors;
@@ -5465,9 +5498,9 @@ void json_object_serviceescalation_details(json_object *json_details,
 	contactgroupsmember *temp_contact_groupsmember;
 	contactsmember *temp_contactsmember;
 
-	json_object_append_string(json_details, "host_name", 
+	json_object_append_string(json_details, "host_name", &percent_escapes,
 			temp_serviceescalation->host_name);
-	json_object_append_string(json_details, "description", 
+	json_object_append_string(json_details, "description", &percent_escapes,
 			temp_serviceescalation->description);
 	json_object_append_integer(json_details, "first_notification", 
 			temp_serviceescalation->first_notification);
@@ -5475,8 +5508,8 @@ void json_object_serviceescalation_details(json_object *json_details,
 			temp_serviceescalation->last_notification);
 	json_object_append_real(json_details, "notification_interval", 
 			temp_serviceescalation->notification_interval);
-	json_object_append_string(json_details, "escalation_period", 
-			temp_serviceescalation->escalation_period);
+	json_object_append_string(json_details, "escalation_period",
+			&percent_escapes, temp_serviceescalation->escalation_period);
 
 #ifdef JSON_NAGIOS_4X
 #if 0
@@ -5516,7 +5549,7 @@ void json_object_serviceescalation_details(json_object *json_details,
 	for(temp_contact_groupsmember = temp_serviceescalation->contact_groups; 
 			temp_contact_groupsmember != NULL; 
 			temp_contact_groupsmember = temp_contact_groupsmember->next) {
-		json_array_append_string(json_contactgroups,
+		json_array_append_string(json_contactgroups, &percent_escapes,
 				temp_contact_groupsmember->group_name);
 		}
 	json_object_append_array(json_details, "contact_groups", json_contactgroups);
@@ -5525,7 +5558,7 @@ void json_object_serviceescalation_details(json_object *json_details,
 	for(temp_contactsmember = temp_serviceescalation->contacts; 
 			temp_contactsmember != NULL; 
 			temp_contactsmember = temp_contactsmember->next) {
-		json_array_append_string(json_contacts, 
+		json_array_append_string(json_contacts, &percent_escapes,
 				temp_contactsmember->contact_name);
 		}
 	json_object_append_array(json_details, "contacts", json_contacts);
@@ -5590,19 +5623,19 @@ json_object *json_object_hostdependency_selectors(int start, int count,
 		}
 	if(NULL != master_host) {
 		json_object_append_string(json_selectors, "masterhostname",
-				master_host->name);
+				&percent_escapes, master_host->name);
 		}
 	if(NULL != master_hostgroup) {
 		json_object_append_string(json_selectors, "masterhostgroupname",
-				master_hostgroup->group_name);
+				&percent_escapes, master_hostgroup->group_name);
 		}
 	if(NULL != dependent_host) {
 		json_object_append_string(json_selectors, "dependenthostname",
-				dependent_host->name);
+				&percent_escapes, dependent_host->name);
 		}
 	if(NULL != dependent_hostgroup) {
 		json_object_append_string(json_selectors, "dependenthostgroupname",
-				dependent_hostgroup->group_name);
+				&percent_escapes, dependent_hostgroup->group_name);
 		}
 
 	return json_selectors;
@@ -5706,11 +5739,11 @@ void json_object_hostdependency_details(json_object *json_details,
 	json_object_append_integer(json_details, "dependency_type", 
 			temp_hostdependency->dependency_type);
 	json_object_append_string(json_details, "dependent_host_name", 
-			temp_hostdependency->dependent_host_name);
+			&percent_escapes, temp_hostdependency->dependent_host_name);
 	json_object_append_string(json_details, "host_name", 
-			temp_hostdependency->host_name);
+			&percent_escapes, temp_hostdependency->host_name);
 	json_object_append_string(json_details, "dependency_period", 
-			temp_hostdependency->dependency_period);
+			&percent_escapes, temp_hostdependency->dependency_period);
 	json_object_append_boolean(json_details, "inherits_parent", 
 			temp_hostdependency->inherits_parent);
 
@@ -5809,19 +5842,20 @@ json_object *json_object_hostescalation_selectors(int start, int count,
 		json_object_append_integer(json_selectors, "count", count);
 		}
 	if( NULL != match_host) {
-		json_object_append_string(json_selectors, "hostname", match_host->name);
+		json_object_append_string(json_selectors, "hostname", &percent_escapes,
+				match_host->name);
 		}
 	if(NULL != match_hostgroup) {
 		json_object_append_string(json_selectors, "hostgroup",
-				match_hostgroup->group_name);
+				&percent_escapes, match_hostgroup->group_name);
 		}
 	if( NULL != match_contact) {
 		json_object_append_string(json_selectors, "contact",
-				match_contact->name);
+				&percent_escapes, match_contact->name);
 		}
 	if( NULL != match_contactgroup) {
 		json_object_append_string(json_selectors, "contactgroup",
-				match_contactgroup->group_name);
+				&percent_escapes, match_contactgroup->group_name);
 		}
 
 	return json_selectors;
@@ -5927,7 +5961,7 @@ void json_object_hostescalation_details(json_object *json_details,
 	contactgroupsmember *temp_contact_groupsmember;
 	contactsmember *temp_contactsmember;
 
-	json_object_append_string(json_details, "host_name", 
+	json_object_append_string(json_details, "host_name", &percent_escapes,
 			temp_hostescalation->host_name);
 	json_object_append_integer(json_details, "first_notification", 
 			temp_hostescalation->first_notification);
@@ -5935,8 +5969,8 @@ void json_object_hostescalation_details(json_object *json_details,
 			temp_hostescalation->last_notification);
 	json_object_append_real(json_details, "notification_interval", 
 			temp_hostescalation->notification_interval);
-	json_object_append_string(json_details, "escalation_period", 
-			temp_hostescalation->escalation_period);
+	json_object_append_string(json_details, "escalation_period",
+			&percent_escapes, temp_hostescalation->escalation_period);
 
 #ifdef JSON_NAGIOS_4X
 #if 0
@@ -5970,7 +6004,7 @@ void json_object_hostescalation_details(json_object *json_details,
 	for(temp_contact_groupsmember = temp_hostescalation->contact_groups; 
 			temp_contact_groupsmember != NULL; 
 			temp_contact_groupsmember = temp_contact_groupsmember->next) {
-		json_array_append_string(json_contactgroups, NULL,
+		json_array_append_string(json_contactgroups, &percent_escapes,
 				temp_contact_groupsmember->group_name);
 		}
 	json_object_append_array(json_details, "contact_groups", json_contactgroups);
@@ -5979,7 +6013,7 @@ void json_object_hostescalation_details(json_object *json_details,
 	for(temp_contactsmember = temp_hostescalation->contacts; 
 			temp_contactsmember != NULL; 
 			temp_contactsmember = temp_contactsmember->next) {
-		json_array_append_string(json_contacts, NULL, 
+		json_array_append_string(json_contacts, &percent_escapes,
 				temp_contactsmember->contact_name);
 		}
 	json_object_append_array(json_details, "contacts", json_contacts);

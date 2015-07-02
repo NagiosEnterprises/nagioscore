@@ -1,0 +1,68 @@
+<table>
+	<tbody>
+		<tr>
+			<td class="popup-label">Name:</td>
+			<td class="popup-value">{{popupContents.hostname}}</td>
+		</tr>
+		<tr>
+			<td class="popup-label">Alias:</td>
+			<td class="popup-value">{{popupContents.alias}}</td>
+		</tr>
+		<tr>
+			<td class="popup-label">Address:</td>
+			<td class="popup-value">{{popupContents.address}}</td>
+		</tr>
+		<tr>
+			<td class="popup-label">State:</td>
+			<td class="popup-value" ng-class="popupContents.state">
+				{{popupContents.state}}
+			</td>
+		</tr>
+		<tr>
+			<td class="popup-label">State Duration:</td>
+			<td class="popup-value">
+				{{popupContents.duration | duration}}
+			</td>
+		</tr>
+		<tr>
+			<td class="popup-label">Last Status Check:</td>
+			<td class="popup-value">
+				{{popupContents.lastcheck | date:'EEE MMM dd HH:mm:ss yyyy'}}
+			</td>
+		</tr>
+		<tr>
+			<td class="popup-label">Last State Change:</td>
+			<td class="popup-value">
+				{{popupContents.lastchange | date:'EEE MMM dd HH:mm:ss yyyy'}}
+			</td>
+		</tr>
+		<tr>
+			<td class="popup-label">Parent Host(s):</td>
+			<td class="popup-value">{{popupContents.parents}}</td>
+		</tr>
+		<tr>
+			<td class="popup-label">Immediate Child Host(s):</td>
+			<td class="popup-value">{{popupContents.children}}</td>
+		</tr>
+		<tr>
+			<td class="popup-label">Services:</td>
+			<td class="popup-value">
+				<table>
+					<tbody>
+						<tr ng-repeat="(state, count) in popupContents.services">
+							<td>
+								<span ng-class="state">{{state}}: {{count}}</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" class="popup-value">
+				<br/>Click node to collapse/expand its children
+				<br/>Shift-click node to make it the root
+			</td>
+		</tr>
+	</tbody>
+</table>

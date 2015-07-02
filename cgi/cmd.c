@@ -44,6 +44,8 @@ extern int  use_authentication;
 
 extern int  lock_author_names;
 
+extern int ack_no_sticky;
+extern int ack_no_send;
 
 #define MAX_AUTHOR_LENGTH	64
 #define MAX_COMMENT_LENGTH	1024
@@ -111,7 +113,7 @@ int main(void) {
 	int result = OK;
 
 	/* Initialize shared configuration variables */                             
-	init_shared_cfg_vars();                                                     
+	init_shared_cfg_vars(1);
 
 	/* get the arguments passed in the URL */
 	process_cgivars();
@@ -950,10 +952,10 @@ void request_command_data(int cmd) {
 			printf("</b></td></tr>\n");
 			if(cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) {
 				printf("<tr><td CLASS='optBoxItem'>Sticky Acknowledgement:</td><td><b>");
-				printf("<INPUT TYPE='checkbox' NAME='sticky_ack' CHECKED>");
+				printf("<INPUT TYPE='checkbox' NAME='sticky_ack' %s>", (ack_no_sticky == TRUE) ? "" : "CHECKED");
 				printf("</b></td></tr>\n");
 				printf("<tr><td CLASS='optBoxItem'>Send Notification:</td><td><b>");
-				printf("<INPUT TYPE='checkbox' NAME='send_notification' CHECKED>");
+				printf("<INPUT TYPE='checkbox' NAME='send_notification' %s>", (ack_no_send == TRUE) ? "" : "CHECKED");
 				printf("</b></td></tr>\n");
 				}
 			printf("<tr><td CLASS='optBoxItem'>Persistent%s:</td><td><b>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? " Comment" : "");
@@ -976,10 +978,10 @@ void request_command_data(int cmd) {
 			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>", escape_string(service_desc));
 			if(cmd == CMD_ACKNOWLEDGE_SVC_PROBLEM) {
 				printf("<tr><td CLASS='optBoxItem'>Sticky Acknowledgement:</td><td><b>");
-				printf("<INPUT TYPE='checkbox' NAME='sticky_ack' CHECKED>");
+				printf("<INPUT TYPE='checkbox' NAME='sticky_ack' %s>", (ack_no_sticky == TRUE) ? "" : "CHECKED");
 				printf("</b></td></tr>\n");
 				printf("<tr><td CLASS='optBoxItem'>Send Notification:</td><td><b>");
-				printf("<INPUT TYPE='checkbox' NAME='send_notification' CHECKED>");
+				printf("<INPUT TYPE='checkbox' NAME='send_notification' %s>", (ack_no_send == TRUE) ? "" : "CHECKED");
 				printf("</b></td></tr>\n");
 				}
 			printf("<tr><td CLASS='optBoxItem'>Persistent%s:</td><td><b>", (cmd == CMD_ACKNOWLEDGE_SVC_PROBLEM) ? " Comment" : "");
@@ -1893,7 +1895,8 @@ __attribute__((format(printf, 2, 3)))
 static int cmd_submitf(int id, const char *fmt, ...) {
 	char cmd[MAX_EXTERNAL_COMMAND_LENGTH];
 	const char *command_name;
-	int len, len2;
+	int len;
+	int len2;
 	va_list ap;
 
 	command_name = extcmd_get_name(id);
@@ -1905,18 +1908,20 @@ static int cmd_submitf(int id, const char *fmt, ...) {
 	if(!command_name || (strlen(command_name) > 6 && !memcmp("CHANGE", command_name, 6)))
 		return ERROR;
 
-	len = snprintf(cmd, sizeof(cmd) - 1, "[%lu] %s;", time(NULL), command_name);
-	if(len < 0)
+	len = snprintf(cmd, sizeof(cmd), "[%lu] %s;", time(NULL), command_name);
+	if(len < 0 || len >= sizeof(cmd))
 		return ERROR;
 
 	if(fmt) {
 		va_start(ap, fmt);
-		len2 = vsnprintf(&cmd[len], sizeof(cmd) - len - 1, fmt, ap);
+		len2 = vsnprintf(cmd + len, sizeof(cmd) - len, fmt, ap);
 		va_end(ap);
-		if(len2 < 0)
+		len += len2;
+		if(len2 < 0 || len >= sizeof(cmd))
 			return ERROR;
 		}
 
+	cmd[len] = 0; /* 0 <= len < sizeof(cmd) */
 	return write_command_to_file(cmd);
 	}
 

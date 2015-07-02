@@ -103,6 +103,10 @@ NAGIOS_BEGIN_DECL
 #define add_notified_on(o, f) (o->notified_on |= (1 << f))
 
 
+/* Event-related macros */
+#define NUDGE_MIN	5
+#define NUDGE_MAX	17
+
 /****************** DATA STRUCTURES *******************/
 
 /* @todo Remove typedef's of non-opaque types in Nagios 5 */

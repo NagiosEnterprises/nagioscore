@@ -2186,10 +2186,11 @@ int cmd_process_service_check_result(int cmd, time_t check_time, char *args) {
 	return_code = atoi(temp_ptr);
 
 	/* get the plugin output (may be empty) */
-	if((temp_ptr = my_strtok(NULL, "\n")) == NULL)
-		output = (char *)strdup("");
-	else
-		output = (char *)strdup(temp_ptr);
+	temp_ptr = my_strtok(NULL, "\n");
+	/* Interpolate backslash and newline escape sequences to the literal
+	 * characters they represent. This converts to the format we use internally
+	 * so we don't have to worry about different representations later. */
+	output = (temp_ptr) ? unescape_check_result_output(temp_ptr) : strdup("");
 
 	/* submit the passive check result */
 	result = process_passive_service_check(check_time, host_name, svc_description, return_code, output);
@@ -2283,10 +2284,11 @@ int cmd_process_host_check_result(int cmd, time_t check_time, char *args) {
 	return_code = atoi(temp_ptr);
 
 	/* get the plugin output (may be empty) */
-	if((temp_ptr = my_strtok(NULL, "\n")) == NULL)
-		output = (char *)strdup("");
-	else
-		output = (char *)strdup(temp_ptr);
+	temp_ptr = my_strtok(NULL, "\n");
+	/* Interpolate backslash and newline escape sequences to the literal
+	 * characters they represent. This converts to the format we use internally
+	 * so we don't have to worry about different representations later. */
+	output = (temp_ptr) ? unescape_check_result_output(temp_ptr) : strdup("");
 
 	/* submit the check result */
 	result = process_passive_host_check(check_time, host_name, return_code, output);

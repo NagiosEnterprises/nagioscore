@@ -1,19 +1,15 @@
 /*
- * $Id: runcmd.c,v 1.3 2005/08/01 23:51:34 exon Exp $
- *
  * A simple interface to executing programs from other programs, using an
- * optimized and safe popen()-like implementation. It is considered safe
- * in that no shell needs to be spawned and the environment passed to the
- * execve()'d program is essentially empty.
+ * optimized and safer popen()-like implementation. It is considered safer in
+ * that no shell needs to be spawned for simple commands, and the environment
+ * passed to the execve()'d program is essentially empty.
  *
+ * This code is based on popen.c, which in turn was taken from
+ * "Advanced Programming in the UNIX Environment" by W. Richard Stevens.
  *
- * The code in this file is a derivative of popen.c which in turn was taken
- * from "Advanced Programming for the Unix Environment" by W. Richard Stevens.
- *
- * Care has been taken to make sure the functions are async-safe. The one
- * function which isn't is runcmd_init() which it doesn't make sense to
- * call twice anyway, so the api as a whole should be considered async-safe.
- *
+ * Care has been taken to make sure the functions are async-safe. The exception
+ * is runcmd_init() which multithreaded applications or plugins must call in a
+ * non-reentrant manner before calling any other runcmd function.
  */
 
 #define NAGIOSPLUG_API_C 1
@@ -39,23 +35,21 @@
 # define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
 #endif
 
-/* 4.3BSD Reno <signal.h> doesn't define SIG_ERR */
-#if defined(SIG_IGN) && !defined(SIG_ERR)
-# define SIG_ERR ((Sigfunc *)-1)
-#endif
-
 /* Determine whether we have setenv()/unsetenv() (see setenv(3) on Linux) */
 #if _BSD_SOURCE || _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
 # define HAVE_SETENV
 #endif
 
-/* This variable must be global, since there's no way the caller
+/*
+ * This variable must be global, since there's no way the caller
  * can forcibly slay a dead or ungainly running program otherwise.
- * Multithreading apps and plugins can initialize it (via runcmd_init())
- * in an async safe manner PRIOR to calling runcmd() for the first time.
  *
- * The check for initialized values is atomic and can
- * occur in any number of threads simultaneously. */
+ * The check for initialized values and allocation is not atomic, and can
+ * potentially occur in any number of threads simultaneously.
+ *
+ * Multithreaded apps and plugins must initialize it (via runcmd_init())
+ * in an async safe manner  before calling any other runcmd function.
+ */
 static pid_t *pids = NULL;
 
 /* If OPEN_MAX isn't defined, we try the sysconf syscall first.
@@ -129,21 +123,36 @@ pid_t runcmd_pid(int fd)
 #define add_ret(r) (ret |= r)
 int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 {
-	int arg = 0, a = 0;
+	int arg = 0;
+	int a = 0;
 	unsigned int i;
-	int state, ret = 0;
+	int state;
+	int ret = 0;
 	size_t len;
 	char *argz;
 
 	set_state(STATE_NONE);
-	len = strlen(str);
 
-	argz = malloc(len + 10);
+	if (!str || !*str || !out_argc || !out_argv)
+		return RUNCMD_EINVAL;
+
+	len = strlen(str);
+	argz = malloc(len + 1);
+	if (!argz)
+		return RUNCMD_EALLOC;
+
+	/* Point argv[0] at the parsed argument string argz so we don't leak. */
+	out_argv[0] = argz;
+	out_argv[1] = NULL;
+
 	for (i = 0; i < len; i++) {
 		const char *p = &str[i];
 
 		switch (*p) {
 		case 0:
+			if (arg == 0) free(out_argv[0]);
+			out_argv[arg] = NULL;
+			*out_argc = arg;
 			return ret;
 
 		case ' ': case '\t': case '\r': case '\n':
@@ -219,6 +228,8 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			break;
 
 		case '|':
+		case '<':
+		case '>':
 			if (!in_quotes) {
 				add_ret(RUNCMD_HAS_REDIR);
 			}
@@ -227,10 +238,6 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			if (!in_quotes) {
 				set_state(STATE_SPECIAL);
 				add_ret(RUNCMD_HAS_JOBCONTROL);
-				if (i && str[i - 1] != *p) {
-					argz[a++] = 0;
-					out_argv[arg++] = &argz[a];
-				}
 			}
 			break;
 
@@ -259,8 +266,7 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			if (!in_quotes) {
 				add_ret(RUNCMD_HAS_WILDCARD);
 			}
-
-			/* fallthrough */
+			break;
 
 		default:
 			break;
@@ -286,15 +292,16 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 	if (have_state(STATE_INDQ))
 		add_ret(RUNCMD_HAS_UBDQ);
 
+	out_argv[arg] = NULL;
 	*out_argc = arg;
 
 	return ret;
 }
 
 
-/* this function is NOT async-safe. It is exported so multithreaded
+/* This function is NOT async-safe. It is exported so multithreaded
  * plugins (or other apps) can call it prior to running any commands
- * through this api and thus achieve async-safeness throughout the api */
+ * through this API and thus achieve async-safeness throughout the API. */
 void runcmd_init(void)
 {
 #if defined(RLIMIT_NOFILE)
@@ -318,12 +325,16 @@ void runcmd_init(void)
 }
 
 
+static int runcmd_setenv(const char *name, const char *value);
+int update_environment(char *name, char *value, int set);
+
 /* Start running a command */
 int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		void (*iobreg)(int, int, void *), void *iobregarg)
 {
 	char **argv = NULL;
-	int cmd2strv_errors, argc = 0;
+	int argc = 0;
+	int cmd2strv_errors;
 	size_t cmdlen;
 	pid_t pid;
 
@@ -332,8 +343,8 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	if(!pids)
 		runcmd_init();
 
-	/* if no command was passed, return with no error */
-	if (!cmd || !*cmd)
+	/* We can't do anything without a command, or FD arrays. */
+	if (!cmd || !*cmd || !pfd || !pfderr)
 		return RUNCMD_EINVAL;
 
 	cmdlen = strlen(cmd);
@@ -342,11 +353,15 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		return RUNCMD_EALLOC;
 
 	cmd2strv_errors = runcmd_cmd2strv(cmd, &argc, argv);
+
+	if (cmd2strv_errors == RUNCMD_EALLOC) {
+		/* We couldn't allocate the parsed arument array. */
+		free(argv);
+		return RUNCMD_EALLOC;
+	}
+
 	if (cmd2strv_errors) {
-		/*
-		 * if there are complications, we fall back to running
-		 * the command via the shell
-		 */
+		/* Run complex commands via the shell. */
 		free(argv[0]);
 		argv[0] = "/bin/sh";
 		argv[1] = "-c";
@@ -359,30 +374,23 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	}
 
 	if (pipe(pfd) < 0) {
-		if (!cmd2strv_errors)
-			free(argv[0]);
-		else
-			free(argv[2]);
+		free(!cmd2strv_errors ? argv[0] : argv[2]);
 		free(argv);
-		return RUNCMD_ECMD;
+		return RUNCMD_EFD;
 	}
 	if (pipe(pfderr) < 0) {
-		if (!cmd2strv_errors)
-			free(argv[0]);
-		else
-			free(argv[2]);
+		free(!cmd2strv_errors ? argv[0] : argv[2]);
 		free(argv);
 		close(pfd[0]);
 		close(pfd[1]);
 		return RUNCMD_EFD;
 	}
-	iobreg(pfd[0], pfderr[0], iobregarg);
+
+	if (iobreg) iobreg(pfd[0], pfderr[0], iobregarg);
+
 	pid = fork();
 	if (pid < 0) {
-		if (!cmd2strv_errors)
-			free(argv[0]);
-		else
-			free(argv[2]);
+		free(!cmd2strv_errors ? argv[0] : argv[2]);
 		free(argv);
 		close(pfd[0]);
 		close(pfd[1]);
@@ -391,50 +399,88 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		return RUNCMD_EFORK; /* errno set by the failing function */
 	}
 
-	/* child runs excevp() and _exit. */
+	/* Child runs excevp() and _exit(). */
 	if (pid == 0) {
+		int exit_status = EXIT_SUCCESS; /* To preserve errno when _exit()ing. */
 
-		/* make sure all our children are killable by our parent */
-		setpgid(getpid(), getpid());
+		/* Make our children their own process group leaders so they are killable
+		 * by their parent (word of the day: filicide / prolicide). */
+		if (setpgid(getpid(), getpid()) == -1) {
+			exit_status = errno;
+			fprintf(stderr, "setpgid(...) errno %d: %s\n", errno, strerror(errno));
+			goto child_error_exit;
+		}
 
 		close (pfd[0]);
 		if (pfd[1] != STDOUT_FILENO) {
-			if(dup2(pfd[1], STDOUT_FILENO) == -1) {
-				_exit(errno);
+			if (dup2(pfd[1], STDOUT_FILENO) == -1) {
+				exit_status = errno;
+				fprintf(stderr, "dup2(pfd[1], STDOUT_FILENO) errno %d: %s\n", errno, strerror(errno));
+				goto child_error_exit;
 			}
-			close (pfd[1]);
+			close(pfd[1]);
 		}
+
 		close (pfderr[0]);
 		if (pfderr[1] != STDERR_FILENO) {
-			if(dup2(pfderr[1], STDERR_FILENO) == -1) {
-				_exit(errno);
+			if (dup2(pfderr[1], STDERR_FILENO) == -1) {
+				exit_status = errno;
+				fprintf(stderr, "dup2(pfderr[1], STDERR_FILENO) errno %d: %s\n", errno, strerror(errno));
+				goto child_error_exit;
 			}
-			close (pfderr[1]);
+			close(pfderr[1]);
 		}
 
-		/* close all descriptors in pids[]
-		 * This is executed in a separate address space (pure child),
-		 * so we don't have to worry about async safety */
-		for (i = 0; i < maxfd; i++)
-			if(pids[i] > 0)
-				close (i);
+		/* Close all descriptors in pids[], the child shouldn't see these. */
+		for (i = 0; i < maxfd; i++) {
+			if (pids[i] > 0)
+				close(i);
+		}
 
-		/* Export the environment */
-		if(NULL != env) {
-			char **envpp = env;
-			while(NULL != *envpp && NULL != *(envpp+1)) {
-				update_environment(*envpp, *(envpp+1), 1);
-				envpp += 2;
+		/* Export the environment. */
+		if (env) {
+			for (; env[0] && env[1]; env += 2) {
+				if (runcmd_setenv(env[0], env[1]) == -1) {
+					exit_status = errno;
+					fprintf(stderr, "runcmd_setenv(%s, ...) errno %d: %s\n",
+						env[0], errno, strerror(errno)
+					);
+					goto child_error_exit;
+				}
 			}
 		}
 
-		i = execvp(argv[0], argv);
-		fprintf(stderr, "execvp(%s, ...) failed. errno is %d: %s\n", argv[0], errno, strerror(errno));
-		if (!cmd2strv_errors)
-			free(argv[0]);
-		else
-			free(argv[2]);
-		_exit (errno);
+		/* Add VAR=value arguments from simple commands to the environment. */
+		i = 0;
+		if (!cmd2strv_errors) {
+			char *ev;
+			for (; i < argc && (ev = strchr(argv[i], '=')); ++i) {
+				if (*ev) *ev++ = '\0';
+				if (runcmd_setenv(argv[i], ev) == -1) {
+					exit_status = errno;
+					fprintf(stderr, "runcmd_setenv(%s, ev) errno %d: %s\n",
+						argv[i], errno, strerror(errno)
+					);
+					goto child_error_exit;
+				}
+			}
+			if (i == argc) {
+				exit_status = EXIT_FAILURE;
+				fprintf(stderr, "No command after variables.\n");
+				goto child_error_exit;
+			}
+		}
+
+		execvp(argv[i], argv + i);
+
+		exit_status = errno;
+		fprintf(stderr, "execvp(%s, ...) failed. errno is %d: %s\n", argv[i], errno, strerror(errno));
+
+child_error_exit:
+		/* Free argv memory before exiting so valgrind doesn't see it as a leak. */
+		free(!cmd2strv_errors ? argv[0] : argv[2]);
+		free(argv);
+		_exit(exit_status);
 	}
 
 	/* parent picks up execution here */
@@ -445,10 +491,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	 */
 	close(pfd[1]);
 	close(pfderr[1]);
-	if (!cmd2strv_errors)
-		free(argv[0]);
-	else
-		free(argv[2]);
+	free(!cmd2strv_errors ? argv[0] : argv[2]);
 	free(argv);
 
 	/* tag our file's entry in the pid-list and return it */
@@ -513,6 +556,44 @@ int runcmd_try_close(int fd, int *status, int sig)
 	pids[fd] = 0;
 	close(fd);
 	return result;
+}
+
+/**
+ * Sets an environment variable.
+ * This is for runcmd_open() to set the child environment.
+ * @param naem Variable name to set.
+ * @param value Value to set.
+ * @return 0 on success, -1 on error with errno set to: EINVAL if name is NULL;
+ * or the value set by setenv() or asprintf()/putenv().
+ * @note If setenv() is unavailable (e.g. Solaris), a "name=vale" string is
+ * allocated to pass to putenv(), which is retained by the environment. This
+ * 'leaked' memory will be on the heap at program exit.
+ */
+static int runcmd_setenv(const char *name, const char *value) {
+#ifndef HAVE_SETENV
+	char *env_string = NULL;
+#endif
+
+	/* We won't mess with null variable names or values. */
+	if (!name || !value) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	errno = 0;
+#ifdef HAVE_SETENV
+	return setenv(name, value, 1);
+#else
+	/* For Solaris and systems that don't have setenv().
+	 * This will leak memory, but in a "controlled" way, since the memory
+	 * should be freed when the child process exits. */
+	if (asprintf(&env_string, "%s=%s", name, value) == -1) return -1;
+	if (!env_string) {
+		errno = ENOMEM;
+		return -1;
+	}
+	return putenv(env_string);
+#endif
 }
 
 /* sets or unsets an environment variable */

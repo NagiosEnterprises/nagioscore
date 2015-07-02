@@ -159,26 +159,26 @@ const string_value_mapping valid_queries[] = {
 	};
 
 static const int query_status[][2] = {
-	{ STATUS_QUERY_HOSTCOUNT, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_HOSTLIST, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_HOST, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_SERVICECOUNT, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_SERVICELIST, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_SERVICE, QUERY_STATUS_BETA },
+	{ STATUS_QUERY_HOSTCOUNT, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_HOSTLIST, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_HOST, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_SERVICECOUNT, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_SERVICELIST, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_SERVICE, QUERY_STATUS_RELEASED },
 #if 0
 	{ STATUS_QUERY_CONTACTCOUNT, QUERY_STATUS_BETA },
 	{ STATUS_QUERY_CONTACTLIST, QUERY_STATUS_BETA },
 	{ STATUS_QUERY_CONTACT, QUERY_STATUS_BETA },
 #endif
-	{ STATUS_QUERY_COMMENTCOUNT, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_COMMENTLIST, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_COMMENT, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_DOWNTIMECOUNT, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_DOWNTIMELIST, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_DOWNTIME, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_PROGRAMSTATUS, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_PERFORMANCEDATA, QUERY_STATUS_BETA },
-	{ STATUS_QUERY_HELP, QUERY_STATUS_BETA },
+	{ STATUS_QUERY_COMMENTCOUNT, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_COMMENTLIST, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_COMMENT, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_DOWNTIMECOUNT, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_DOWNTIMELIST, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_DOWNTIME, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_PROGRAMSTATUS, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_PERFORMANCEDATA, QUERY_STATUS_RELEASED },
+	{ STATUS_QUERY_HELP, QUERY_STATUS_RELEASED },
 	{ -1, -1},
 	};
 
@@ -697,6 +697,8 @@ option_help status_json_help[] = {
 		},
 	};
 
+extern const json_escape percent_escapes;
+
 int json_status_host_passes_selection(host *, int, host *, int, host *, 
 		hostgroup *, contact *, hoststatus *, int, time_t, time_t,
 		contactgroup *, timeperiod *, timeperiod *, command *, command *);
@@ -748,7 +750,7 @@ int main(void) {
 			OUTPUT_FORMAT_VERSION);
 
 	/* Initialize shared configuration variables */                             
-	init_shared_cfg_vars();                                                     
+	init_shared_cfg_vars(1);
 
 	init_cgi_data(&cgi_data);
 
@@ -2502,15 +2504,16 @@ json_object *json_status_host_selectors(unsigned format_options, int start,
 		json_object_append_integer(json_selectors, "count", count);
 		}
 	if(1 == use_parent_host) {
-		json_object_append_string(json_selectors, "parenthost", 
+		json_object_append_string(json_selectors, "parenthost",
+				&percent_escapes,
 				( NULL == parent_host ? "none" : parent_host->name));
 		}
 	if(1 == use_child_host) {
-		json_object_append_string(json_selectors, "childhost", 
+		json_object_append_string(json_selectors, "childhost", &percent_escapes,
 				( NULL == child_host ? "none" : child_host->name));
 		}
 	if(NULL != temp_hostgroup) {
-		json_object_append_string(json_selectors, "hostgroup", 
+		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,
 				temp_hostgroup->group_name);
 		}
 	if(HOST_STATUS_ALL != host_statuses) {
@@ -2518,12 +2521,12 @@ json_object *json_status_host_selectors(unsigned format_options, int start,
 				host_statuses, svm_host_statuses);
 		}
 	if(NULL != temp_contact) {
-		json_object_append_string(json_selectors, "contact",
+		json_object_append_string(json_selectors, "contact",&percent_escapes,
 				temp_contact->name);
 		}
 	if(NULL != temp_contactgroup) {
 		json_object_append_string(json_selectors, "contactgroup",
-				temp_contactgroup->group_name);
+				&percent_escapes, temp_contactgroup->group_name);
 		}
 	if(time_field > 0) {
 		json_enumeration(json_selectors, format_options, "hosttimefield", 
@@ -2537,19 +2540,19 @@ json_object *json_status_host_selectors(unsigned format_options, int start,
 		}
 	if( NULL != check_timeperiod) {
 		json_object_append_string(json_selectors, "checktimeperiod",
-				check_timeperiod->name);
+				&percent_escapes, check_timeperiod->name);
 		}
 	if( NULL != notification_timeperiod) {
 		json_object_append_string(json_selectors, "hostnotificationtimeperiod",
-				notification_timeperiod->name);
+				&percent_escapes, notification_timeperiod->name);
 		}
 	if( NULL != check_command) {
 		json_object_append_string(json_selectors, "checkcommand",
-				check_command->name);
+				&percent_escapes, check_command->name);
 		}
 	if( NULL != event_handler) {
 		json_object_append_string(json_selectors, "eventhandler",
-				event_handler->name);
+				&percent_escapes, event_handler->name);
 		}
 
 	return json_selectors;
@@ -2732,7 +2735,8 @@ json_object *json_status_host(unsigned format_options, host *temp_host,
 	json_object *json_host = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "name", temp_host->name);
+	json_object_append_string(json_details, "name", &percent_escapes,
+			temp_host->name);
 	json_status_host_details(json_details, format_options, temp_host, 
 			temp_hoststatus);
 	json_object_append_object(json_host, "host", json_details);
@@ -2743,13 +2747,14 @@ json_object *json_status_host(unsigned format_options, host *temp_host,
 void json_status_host_details(json_object *json_details, unsigned format_options, 
 		host *temp_host, hoststatus *temp_hoststatus) {
 
-	json_object_append_string(json_details, "name", temp_host->name);
+	json_object_append_string(json_details, "name", &percent_escapes,
+			temp_host->name);
 	json_object_append_string(json_details, "plugin_output", 
-			temp_hoststatus->plugin_output);
+			&percent_escapes, temp_hoststatus->plugin_output);
 	json_object_append_string(json_details, "long_plugin_output", 
-			temp_hoststatus->long_plugin_output);
+			&percent_escapes, temp_hoststatus->long_plugin_output);
 	json_object_append_string(json_details, "perf_data", 
-			temp_hoststatus->perf_data);
+			&percent_escapes, temp_hoststatus->perf_data);
 	json_enumeration(json_details, format_options, "status", 
 			temp_hoststatus->status, svm_host_statuses);
 	json_object_append_time_t(json_details, "last_update", 
@@ -3156,20 +3161,21 @@ json_object *json_status_service_selectors(unsigned format_options,
 		json_object_append_integer(json_selectors, "count", count);
 		}
 	if( 1 == use_parent_host) {
-		json_object_append_string(json_selectors, "parenthost", 
+		json_object_append_string(json_selectors, "parenthost",
+				&percent_escapes,
 				( NULL == parent_host ? "none" : parent_host->name));
 		}
 	if( 1 == use_child_host) {
-		json_object_append_string(json_selectors, "childhost", 
+		json_object_append_string(json_selectors, "childhost", &percent_escapes,
 				( NULL == child_host ? "none" : child_host->name));
 		}
 	if( NULL != temp_hostgroup) {
-		json_object_append_string(json_selectors, "hostgroup", 
+		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,
 				temp_hostgroup->group_name);
 		}
 	if( NULL != temp_servicegroup) {
-		json_object_append_string(json_selectors, "servicegroup", 
-				temp_servicegroup->group_name);
+		json_object_append_string(json_selectors, "servicegroup",
+				&percent_escapes, temp_servicegroup->group_name);
 		}
 	if(HOST_STATUS_ALL != host_statuses) {
 		json_bitmask(json_selectors, format_options, "host_status", 
@@ -3180,12 +3186,12 @@ json_object *json_status_service_selectors(unsigned format_options,
 				service_statuses, svm_service_statuses);
 		}
 	if(NULL != temp_contact) {
-		json_object_append_string(json_selectors, "contact",
+		json_object_append_string(json_selectors, "contact",&percent_escapes,
 				temp_contact->name);
 		}
 	if(NULL != temp_contactgroup) {
 		json_object_append_string(json_selectors, "contactgroup",
-				temp_contactgroup->group_name);
+				&percent_escapes, temp_contactgroup->group_name);
 		}
 	if(time_field > 0) {
 		json_enumeration(json_selectors, format_options, "servicetimefield", 
@@ -3198,32 +3204,33 @@ json_object *json_status_service_selectors(unsigned format_options,
 		json_object_append_time_t(json_selectors, "endtime", end_time);
 		}
 	if(NULL != service_description) {
-		json_object_append_string(json_selectors, "servicedescription", 
-				service_description);
+		json_object_append_string(json_selectors, "servicedescription",
+				&percent_escapes, service_description);
 		}
 	if( NULL != parent_service_name) {
 		json_object_append_string(json_selectors, "parentservice",
-				parent_service_name);
+				&percent_escapes, parent_service_name);
 		}
 	if( NULL != child_service_name) {
 		json_object_append_string(json_selectors, "childservice",
-				child_service_name);
+				&percent_escapes, child_service_name);
 		}
 	if( NULL != check_timeperiod) {
 		json_object_append_string(json_selectors, "checktimeperiod",
-				check_timeperiod->name);
+				&percent_escapes, check_timeperiod->name);
 		}
 	if( NULL != notification_timeperiod) {
 		json_object_append_string(json_selectors,
-				"servicenotificationtimeperiod", notification_timeperiod->name);
+				"servicenotificationtimeperiod", &percent_escapes,
+				notification_timeperiod->name);
 		}
 	if( NULL != check_command) {
 		json_object_append_string(json_selectors, "checkcommand",
-				check_command->name);
+				&percent_escapes, check_command->name);
 		}
 	if( NULL != event_handler) {
 		json_object_append_string(json_selectors, "eventhandler",
-				event_handler->name);
+				&percent_escapes, event_handler->name);
 		}
 
 	return json_selectors;
@@ -3450,9 +3457,9 @@ json_object *json_status_service(unsigned format_options, service *temp_service,
 	json_object *json_service = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "host_name", 
+	json_object_append_string(json_details, "host_name", &percent_escapes,
 			temp_service->host_name);
-	json_object_append_string(json_details, "description", 
+	json_object_append_string(json_details, "description", &percent_escapes,
 			temp_service->description);
 	json_status_service_details(json_details, format_options, temp_service, 
 			temp_servicestatus);
@@ -3465,17 +3472,17 @@ void json_status_service_details(json_object *json_details,
 		unsigned format_options, service *temp_service, 
 		servicestatus *temp_servicestatus) {
 
-	json_object_append_string(json_details, "host_name", 
+	json_object_append_string(json_details, "host_name", &percent_escapes,
 			temp_service->host_name);
-	json_object_append_string(json_details, "description", 
+	json_object_append_string(json_details, "description", &percent_escapes,
 			temp_service->description);
-	json_object_append_string(json_details, "plugin_output", 
+	json_object_append_string(json_details, "plugin_output", &percent_escapes,
 			temp_servicestatus->plugin_output);
-	json_object_append_string(json_details, "long_plugin_output", 
-			temp_servicestatus->long_plugin_output);
-	json_object_append_string(json_details, "perf_data", 
+	json_object_append_string(json_details, "long_plugin_output",
+			&percent_escapes, temp_servicestatus->long_plugin_output);
+	json_object_append_string(json_details, "perf_data", &percent_escapes,
 			temp_servicestatus->perf_data);
-	json_object_append_integer(json_details, "max_attemps", 
+	json_object_append_integer(json_details, "max_attempts", 
 			temp_servicestatus->max_attempts);
 	json_object_append_integer(json_details, "current_attempt", 
 			temp_servicestatus->current_attempt);
@@ -3515,6 +3522,8 @@ void json_status_service_details(json_object *json_details,
 			temp_servicestatus->last_notification);
 	json_object_append_time_t(json_details, "next_notification", 
 			temp_servicestatus->next_notification);
+	json_object_append_time_t(json_details, "next_check", 
+			temp_servicestatus->next_check);
 	json_object_append_boolean(json_details, "no_more_notifications", 
 			temp_servicestatus->no_more_notifications);
 	json_object_append_boolean(json_details, "notifications_enabled", 
@@ -3719,11 +3728,12 @@ json_object *json_status_comment_selectors(unsigned format_options, int start,
 				expiring, svm_valid_expiration);
 		}
 	if(NULL != host_name) {
-		json_object_append_string(json_selectors, "hostname", host_name);
+		json_object_append_string(json_selectors, "hostname", &percent_escapes,
+				host_name);
 		}
 	if(NULL != service_description) {
 		json_object_append_string(json_selectors, "servicedescription", 
-				service_description);
+				&percent_escapes, service_description);
 		}
 
 	return json_selectors;
@@ -3857,13 +3867,15 @@ void json_status_comment_details(json_object *json_details,
 	json_object_append_boolean(json_details, "expires", temp_comment->expires);
 	json_object_append_time_t(json_details, "expire_time", 
 			temp_comment->expire_time);
-	json_object_append_string(json_details, "host_name", temp_comment->host_name);
+	json_object_append_string(json_details, "host_name", &percent_escapes,
+			temp_comment->host_name);
 	if(SERVICE_COMMENT == temp_comment->comment_type) {
 		json_object_append_string(json_details,  "service_description", 
-				temp_comment->service_description);
+				&percent_escapes, temp_comment->service_description);
 		}
-	json_object_append_string(json_details,  "author", temp_comment->author);
-	json_object_append_string(json_details,  "comment_data", 
+	json_object_append_string(json_details, "author", &percent_escapes,
+			temp_comment->author);
+	json_object_append_string(json_details, "comment_data", &percent_escapes,
 			temp_comment->comment_data);
 	}
 
@@ -4037,11 +4049,12 @@ json_object *json_status_downtime_selectors(unsigned format_options, int start,
 				in_effect, svm_valid_in_effect_status);
 		}
 	if(NULL != host_name) {
-		json_object_append_string(json_selectors, "hostname", host_name);
+		json_object_append_string(json_selectors, "hostname", &percent_escapes,
+				host_name);
 		}
 	if(NULL != service_description) {
-		json_object_append_string(json_selectors, "servicedescription", 
-				service_description);
+		json_object_append_string(json_selectors, "servicedescription",
+				&percent_escapes, service_description);
 		}
 
 	return json_selectors;
@@ -4169,11 +4182,11 @@ void json_status_downtime_details(json_object *json_details,
 			temp_downtime->downtime_id);
 	json_enumeration(json_details, format_options, "type", temp_downtime->type, 
 			svm_downtime_types);
-	json_object_append_string(json_details, "host_name", 
+	json_object_append_string(json_details, "host_name", &percent_escapes,
 			temp_downtime->host_name);
 	if(SERVICE_DOWNTIME == temp_downtime->type) {
-		json_object_append_string(json_details, "service_description", 
-				temp_downtime->service_description);
+		json_object_append_string(json_details, "service_description",
+				&percent_escapes, temp_downtime->service_description);
 		}
 	json_object_append_time_t(json_details, "entry_time", 
 			temp_downtime->entry_time);
@@ -4191,8 +4204,10 @@ void json_status_downtime_details(json_object *json_details,
 			temp_downtime->is_in_effect);
 	json_object_append_boolean(json_details, "start_notification_sent", 
 			temp_downtime->start_notification_sent);
-	json_object_append_string(json_details, "author", temp_downtime->author);
-	json_object_append_string(json_details, "comment", temp_downtime->comment);
+	json_object_append_string(json_details, "author", &percent_escapes,
+			temp_downtime->author);
+	json_object_append_string(json_details, "comment", &percent_escapes,
+			temp_downtime->comment);
 	}
 
 json_object *json_status_program(unsigned format_options) {
@@ -4211,7 +4226,7 @@ json_object *json_status_program(unsigned format_options) {
 			"modified_service_process_attributes", 
 			(unsigned long long)modified_service_process_attributes);
 #endif
-	json_object_append_string(json_status, "version", PROGRAM_VERSION);
+	json_object_append_string(json_status, "version", NULL, PROGRAM_VERSION);
 	json_object_append_integer(json_status, "nagios_pid", nagios_pid);
 	json_object_append_boolean(json_status, "daemon_mode", daemon_mode);
 	json_object_append_time_t(json_status, "program_start", program_start);
@@ -4251,9 +4266,9 @@ json_object *json_status_program(unsigned format_options) {
 			process_performance_data);
 #if 0
 	json_object_append_string(json_status, "global_host_event_handler", 
-			global_host_event_handler);
+			&percent_escapes, global_host_event_handler);
 	json_object_append_string(json_status, "global_service_event_handler", 
-			global_service_event_handler);
+			&percent_escapes, global_service_event_handler);
 	json_object_append_unsigned(json_status, "next_comment_id", 
 			(unsigned long long)next_comment_id);
 	json_object_append_unsigned(json_status, "next_downtime_id", 
@@ -4272,53 +4287,57 @@ json_object *json_status_program(unsigned format_options) {
 	json_object_append_unsigned(json_status, "high_external_command_buffer_slots",
 			(unsigned long long)high_external_command_buffer_slots);
 	json_object_append_string(json_status, "active_scheduled_host_check_stats", 
-			"%d,%d,%d", 
+			NULL, "%d,%d,%d", 
 			check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[0],
 			check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[1],
 			check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[2]);
 	json_object_append_string(json_status, "active_ondemand_host_check_stats", 
-			"%d,%d,%d", 
+			NULL, "%d,%d,%d", 
 			check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[0],
 			check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[1],
 			check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[2]);
-	json_object_append_string(json_status, "passive_host_check_stats", "%d,%d,%d",
+	json_object_append_string(json_status, "passive_host_check_stats", NULL,
+			"%d,%d,%d",
 			check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[0],
 			check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[1],
 			check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[2]);
-	json_object_append_string(json_status, "actine_scheduled_service_check_stats",
-			"%d,%d,%d",
+	json_object_append_string(json_status,
+			"active_scheduled_service_check_stats", NULL, "%d,%d,%d",
 			check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[0],
 			check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[1],
 			check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[2]);
 	json_object_append_string(json_status, "active_ondemand_service_check_stats", 
-			"%d,%d,%d",
+			NULL, "%d,%d,%d",
 			check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[0],
 			check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[1],
 			check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[2]);
 	json_object_append_string(json_status, "passive_service_check_stats", 
-			"%d,%d,%d",
+			NULL, "%d,%d,%d",
 			check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[0],
 			check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[1],
 			check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[2]);
-	json_object_append_string(json_status, "cached_host_check_stats", "%d,%d,%d",
+	json_object_append_string(json_status, "cached_host_check_stats", NULL,
+			"%d,%d,%d",
 			check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[0],
 			check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[1],
 			check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[2]);
 	json_object_append_string(json_status, "cached_service_check_stats", 
-			"%d,%d,%d",
+			NULL, "%d,%d,%d",
 			check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[0],
 			check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[1],
 			check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[2]);
-	json_object_append_string(json_status, "external_command_stats", "%d,%d,%d",
+	json_object_append_string(json_status, "external_command_stats", NULL,
+			"%d,%d,%d",
 			check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[0],
 			check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[1],
 			check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[2]);
 	json_object_append_string(json_status, "parallel_host_check_stats", 
-			"%d,%d,%d",
+			NULL, "%d,%d,%d",
 			check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[0],
 			check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[1],
 			check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[2]);
-	json_object_append_string(json_status, "serial_host_check_stats", "%d,%d,%d",
+	json_object_append_string(json_status, "serial_host_check_stats", NULL,
+			"%d,%d,%d",
 			check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[0],
 			check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[1],
 			check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[2]);

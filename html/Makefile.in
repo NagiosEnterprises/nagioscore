@@ -17,6 +17,11 @@ COMMAND_OPTS=@COMMAND_OPTS@
 CP=@CP@
 
 all html:
+	(cd angularjs && unzip -u angular-1.3.9.zip)
+	(cd angularjs && unzip -u ui-utils-0.2.1.zip)
+	if [ ! -d bootstrap-3.3.0 ] ; then mkdir -p bootstrap-3.3.0 && ( cd bootstrap-3.3.0 && unzip -u ../bootstrap-3.3.0-dist.zip && mv dist/* . && rmdir dist ) ; fi
+	mkdir -p d3
+	(cd d3 && unzip -u ../d3-3.5.3.zip)
 
 clean:
 	rm -f *.cfg *.sub core
@@ -28,6 +33,10 @@ clean:
 	rm -f docs/images/*.jbf
 	rm -f stylesheets/*~
 	rm -f js/*~
+	rm -rf angularjs/angular-1.3.9
+	rm -rf angularjs/ui-utils-0.2.1
+	rm -rf bootstrap-3.3.0
+	rm -rf d3
 
 distclean: clean
 	rm -f Makefile config.inc.php
@@ -48,6 +57,15 @@ install:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/includes/rss
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/includes/rss/extlib
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/ssi
+# Directories for new CGI pages
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/angularjs
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/angularjs/angular-1.3.9
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/angularjs/ui-utils-0.2.1
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/bootstrap-3.3.0
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/bootstrap-3.3.0/css
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/d3
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/spin
+# End of directories for new CGI pages
 	$(INSTALL) -m 664 $(INSTALL_OPTS) robots.txt $(DESTDIR)$(HTMLDIR)
 #	$(INSTALL) -m 664 $(INSTALL_OPTS) docs/robots.txt $(DESTDIR)$(HTMLDIR)/docs
 # Remove old HTML files (PHP files are used now)
@@ -55,6 +73,25 @@ install:
 	rm -f $(DESTDIR)$(HTMLDIR)/main.html
 	rm -f $(DESTDIR)$(HTMLDIR)/side.html
 	$(INSTALL) -m 664 $(INSTALL_OPTS) jsonquery.html $(DESTDIR)$(HTMLDIR)
+# New graphical CGI pages
+	$(INSTALL) -m 664 $(INSTALL_OPTS) graph-header.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) histogram.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) histogram-form.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) histogram-graph.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) histogram-links.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) infobox.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) map.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) map-directive.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) map-form.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) map-links.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) map-popup.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) trends.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) trends-form.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) trends-graph.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) trends-host-yaxis.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) trends-links.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) trends-service-yaxis.html $(DESTDIR)$(HTMLDIR)
+# End of new graphical CGI pages
 	$(INSTALL) -m 664 $(INSTALL_OPTS) rss-corefeed.html $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 664 $(INSTALL_OPTS) rss-newsfeed.html $(DESTDIR)$(HTMLDIR)
 	for file in *.php; \
@@ -87,6 +124,16 @@ install:
 	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/includes/rss; done
 	for file in includes/rss/extlib/*.*; \
 	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/includes/rss/extlib; done
+# Support files for new graphical CGIs
+	$(INSTALL) -m 664 $(INSTALL_OPTS) angularjs/angular-1.3.9/angular.min.js  $(DESTDIR)$(HTMLDIR)/angularjs/angular-1.3.9
+	$(INSTALL) -m 664 $(INSTALL_OPTS) angularjs/angular-1.3.9/angular.min.js.map  $(DESTDIR)$(HTMLDIR)/angularjs/angular-1.3.9
+	$(INSTALL) -m 664 $(INSTALL_OPTS) angularjs/ui-bootstrap-tpls-0.12.0.min.js  $(DESTDIR)$(HTMLDIR)/angularjs
+	$(INSTALL) -m 664 $(INSTALL_OPTS) angularjs/ui-utils-0.2.1/ui-utils.js   $(DESTDIR)$(HTMLDIR)/angularjs/ui-utils-0.2.1
+	$(INSTALL) -m 664 $(INSTALL_OPTS) bootstrap-3.3.0/css/bootstrap.min.css $(DESTDIR)$(HTMLDIR)/bootstrap-3.3.0/css
+	$(INSTALL) -m 664 $(INSTALL_OPTS) bootstrap-3.3.0/css/bootstrap-theme.min.css $(DESTDIR)$(HTMLDIR)/bootstrap-3.3.0/css
+	$(INSTALL) -m 664 $(INSTALL_OPTS) d3/d3.min.js $(DESTDIR)$(HTMLDIR)/d3
+	$(INSTALL) -m 664 $(INSTALL_OPTS) spin/spin.min.js $(DESTDIR)$(HTMLDIR)/spin
+# End of support files for new graphical CGIs
 
 install-unstripped:
 	$(MAKE) install

@@ -1131,10 +1131,12 @@ illegal_object_name_chars=`~!$%^&*|'"<>?,()=
 # host check commands.
 # The following macros are stripped of the characters you specify:
 #	$HOSTOUTPUT$
+#	$LONGHOSTOUTPUT$
 #	$HOSTPERFDATA$
 #	$HOSTACKAUTHOR$
 #	$HOSTACKCOMMENT$
 #	$SERVICEOUTPUT$
+#	$LONGSERVICEOUTPUT$
 #	$SERVICEPERFDATA$
 #	$SERVICEACKAUTHOR$
 #	$SERVICEACKCOMMENT$
@@ -1311,6 +1313,16 @@ allow_empty_hostgroup_assignment=0
 # with a minimum of 4 workers.  This value will override the defaults
 
 #check_workers=3
+
+
+
+# DISABLE SERVICE CHECKS WHEN HOST DOWN
+# This option will disable all service checks if the host is not in an UP state
+#
+# While desirable in some environments, enabling this value can distort report
+# values as the expected quantity of checks will not have been performed
+
+#host_down_disable_service_checks=0
 
 
 

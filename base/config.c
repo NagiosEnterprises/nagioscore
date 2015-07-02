@@ -1169,6 +1169,9 @@ int read_main_config_file(char *main_config_file) {
 		else if(strstr(input, "x") == input)
 			continue;
 
+		else if(!strcmp(variable,"host_down_disable_service_checks")) {
+			host_down_disable_service_checks = strtoul(value, NULL, 0);
+		}
 		/* we don't know what this variable is... */
 		else {
 			asprintf(&error_message, "UNKNOWN VARIABLE");

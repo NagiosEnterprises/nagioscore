@@ -1,0 +1,131 @@
+<form role="form">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal"
+				ng-click="cancel()">
+			<span aria-hidden="true">&times;</span>
+			<span class="sr-only">Close</span>
+		</button>
+		<h4 class="modal-title" id="nagiosTrendsLabel">
+			Nagios Histogram
+		</h4>
+	</div>
+	<div class="modal-body">
+		<tabset>
+			<tab heading="Standard">
+				<div class="form-group" id="cgiurlDiv">
+					<label>URL for JSON CGIs</label>
+					<input type="text" class="form-control"
+							ng-model="params.cgiurl"
+							placeholder="URL for JSON CGIs"
+							ui-event="{ blur : 'onBlurCgiurl($event)' }">
+				</div>
+				<div class="form-group">
+					<label>Report Type</label>
+					<select class="form-control"
+							ng-model="params.reporttype">
+						<option value="">
+							-- Select Report Type --
+						</option>
+						<option value="hosts">Host</option>
+						<option value="services">Service</option>
+					</select>
+				</div>
+				<div class="form-group" ng-show="showHost()">
+					<label>Host</label>
+					<select name="host" class="form-control"
+							ng-model="params.host"
+							ng-options="host for host in hostlist track by host">
+						<option value="">-- Select Host --</option>
+					</select>
+				</div>
+				<div class="form-group" ng-show="showService()">
+					<label>Service</label>
+					<select name="service" class="form-control"
+							ng-model="params.service"
+							ng-options="service for service in servicelist track by service">
+						<option value="">
+							{{params.host == "" ? "-- Select Host First --" : "-- Select Service --"}}
+						</option>
+					</select>
+				</div>
+				<div class="form-group" ng-show="showTimeperiod()">
+					<label>Report Period</label>
+					<select name="timeperiod" class="form-control"
+							ng-model="params.timeperiod"
+							ng-options="tp.value as tp.label for tp in timeperiodlist">
+						<option value="">-- Select Timeperiod --</option>
+					</select>
+				</div>
+				<div class="form-group" ng-show="showDates()">
+					<label>Start Date (inclusive)</label>
+					<input type="date" class="form-control"
+							ng-model="params.startDate">
+				</div>
+				<div class="form-group" ng-show="showDates()">
+					<label>End Date (inclusive)</label>
+					<input type="date" class="form-control"
+							ng-model="params.endDate">
+				</div>
+			</tab>
+			<tab heading="Advanced">
+				<div class="form-group">
+					<label>Statistics Breakdown</label>
+					<select name="breakdown" class="form-control"
+							ng-model="params.breakdown"
+							ng-options="bd.value as bd.label for bd in statisticsBreakdown">
+						<option value="">
+							-- Select Statistics Breakdown --
+						</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Events To Graph</label>
+					<select name="graphevents" class="form-control"
+							ng-model="params.events"
+							ng-options="evt.value as evt.label for evt in eventslist">
+						<option value="">-- Select Graph Events --</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>State Types To Graph</label>
+					<select name="graphstatetypes" class="form-control"
+							ng-model="params.graphstatetypes">
+						<option value="">-- Select State Types --</option>
+						<option value="2">Hard states</option>
+						<option value="1">Soft states</option>
+						<option value="3" selected>
+							Hard and soft states
+						</option>
+					</select>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox"
+								ng-model="params.assumestateretention">
+						Assume State Retention
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox"
+								ng-model="params.initialstateslogged">
+						Initial State Logged
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" 
+								ng-model="params.ignorerepeatedstates">
+						Ignore Repeated States
+					</label>
+				</div>
+			</tab>
+		</tabset>
+	</div>
+	<div class="modal-footer">
+		<button id="submit" type="submit" class="btn btn-default"
+				ng-disabled="disableApply()" ng-click="apply()">
+			Apply
+		</button>
+	</div>
+</form>

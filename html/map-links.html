@@ -1,0 +1,21 @@
+<table border="1" cellpadding="0" cellspacing="0" class="linkBox">
+	<tbody>
+		<tr>
+			<td class="linkBox">
+				<span ng-show="params.root != 'Nagios Process'">
+					<a ng-href="{{params.cgiurl}}status.cgi?host={{params.host | uriComponentEncode}}" target="_self">
+						View Status Detail For This Host
+					</a>
+					<br/>
+				</span>
+				<a ng-href="{{params.cgiurl}}status.cgi?host=all" target="_self">
+					View Status Detail For All Hosts
+				</a>
+				<br/>
+				<a ng-href="{{params.cgiurl}}status.cgi?hostgroup=all" target="_self">
+					View Status Overview For All Hosts
+				</a>
+			</td>
+		</tr>
+	</tbody>
+</table>

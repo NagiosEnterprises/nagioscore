@@ -2,6 +2,8 @@ $( document).ready( function() {
 	var parts = $(location).attr( 'href').split( '/');
 	parts.pop()
 	var baseurl = parts.join( '/');
+    
+    $('#query button').attr('disabled','disabled');
 
 	var disableWhenDependsOnValueBlank = false;
 
@@ -310,7 +312,8 @@ $( document).ready( function() {
 	}
 
 	function updateForm(query) {
-		for( var key in help.data.options ) {
+		$('#query button').attr('disabled','disabled');
+        for( var key in help.data.options ) {
 			updateOption(query, key, help.data.options[ key]);
 		}
 	}
@@ -416,13 +419,16 @@ $( document).ready( function() {
 		$('select#query').change(function() {
 			var query = $('select#query').val();
 			updateForm(query);
+            $('#query button').removeAttr('disabled');
 		});
+        $('#query button').removeAttr('disabled');
 	}
 
 	$('select#cginame').change(function() {
 		var cginame = $('select#cginame').val();
 		if( cginame == 'none') {
 			$('#cgiform tr.generated').remove();
+            $('#query button').attr('disabled','disabled');
 		}
 		else {
 			$.get( baseurl + '/cgi-bin/' + cginame, 

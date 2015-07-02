@@ -42,10 +42,14 @@ int obsess_over_hosts;
 
 char *config_file_dir = NULL;
 
-void init_shared_cfg_vars(void) {
+void init_shared_cfg_vars(int first_time) {
 	date_format = DATE_FORMAT_US;
 	interval_length = DEFAULT_INTERVAL_LENGTH;
-	illegal_output_chars = NULL;
+	if(first_time) {
+		/* Not sure why these are not reset in reset_variables() */
+		illegal_output_chars = NULL;
+	}
+	program_start = 0L;
 	log_rotation_method = LOG_ROTATION_NONE;
 
 	object_cache_file = strdup(DEFAULT_OBJECT_CACHE_FILE);

@@ -161,7 +161,7 @@ static int nagios_core_worker(const char *path)
 		return 1;
 	}
 
-	ret = nsock_printf_nul(sd, "@wproc register name=Core Worker %d;pid=%d", getpid(), getpid());
+	ret = nsock_printf_nul(sd, "@wproc register name=Core Worker %ld;pid=%ld", (long)getpid(), (long)getpid());
 	if (ret < 0) {
 		printf("Failed to register as worker.\n");
 		return 1;
@@ -315,8 +315,9 @@ int main(int argc, char **argv) {
 		exit(nagios_core_worker(worker_socket));
 	}
 
-	/* Initialize shared configuration variables */                             
-	init_shared_cfg_vars();                                                     
+	/* Initialize configuration variables */                             
+	init_main_cfg_vars(1);
+	init_shared_cfg_vars(1);
 
 	if(daemon_mode == FALSE) {
 		printf("\nNagios Core %s\n", PROGRAM_VERSION);

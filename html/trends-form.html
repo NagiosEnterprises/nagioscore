@@ -1,0 +1,141 @@
+<form role="form">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal"
+				ng-click="cancel()">
+			<span aria-hidden="true">&times;</span>
+			<span class="sr-only">Close</span>
+		</button>
+		<h4 class="modal-title" id="nagiosTrendsLabel">
+			Nagios Trends
+		</h4>
+	</div>
+	<div class="modal-body">
+		<tabset>
+			<tab heading="Standard">
+				<div class="form-group">
+					<label>URL for JSON CGIs</label>
+					<input type="text" class="form-control"
+							ng-model="params.cgiurl"
+							placeholder="URL for JSON CGIs"
+							ui-event="{ blur : 'onBlurCgiurl($event)' }">
+				</div>
+				<div class="form-group">
+					<label>Report Type</label>
+					<select class="form-control"
+							ng-model="params.reporttype">
+						<option value="">
+							-- Select Report Type --
+						</option>
+						<option value="hosts">Host</option>
+						<option value="services">Service</option>
+					</select>
+				</div>
+				<div class="form-group" ng-show="showHost()">
+					<label>Host</label>
+					<select name="host" class="form-control"
+							ng-model="params.host"
+							ng-options="host for host in hostlist track by host">
+						<option value="">-- Select Host --</option>
+					</select>
+				</div>
+				<div class="form-group" ng-show="showService()">
+					<label>Service</label>
+					<select name="service" class="form-control"
+							ng-model="params.service"
+							ng-options="service for service in servicelist track by service">
+						<option value="">
+							{{params.host == "" ? "-- Select Host First --" : "-- Select Service --"}}
+						</option>
+					</select>
+				</div>
+				<div class="form-group" ng-show="showTimeperiod()">
+					<label>Report Period</label>
+					<select name="timeperiod" class="form-control"
+							ng-model="params.timeperiod"
+							ng-options="tp.value as tp.label for tp in timeperiodlist">
+						<option value="">-- Select Timeperiod --</option>
+					</select>
+				</div>
+				<div class="form-group" ng-show="showDates()">
+					<label>Start Date (inclusive)</label>
+					<input type="date" class="form-control"
+							ng-model="params.startDate">
+				</div>
+				<div class="form-group" ng-show="showDates()">
+					<label>End Date (inclusive)</label>
+					<input type="date" class="form-control"
+							ng-model="params.endDate">
+				</div>
+			</tab>
+			<tab heading="Advanced">
+				<div class="checkbox">
+					<label>
+						<input type="checkbox"
+								ng-model="params.assumeinitialstates">
+						Assume Initial States
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox"
+								ng-model="params.assumestateretention">
+						Assume State Retention
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox"
+								ng-model="params.assumestatesduringnotrunning">
+						Assume States During Program Downtime
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox"
+								ng-model="params.includesoftstates">
+						Include Soft States
+					</label>
+				</div>
+				<div class="form-group">
+					<label>
+						First Assumed State
+					</label>
+					<select class="form-control"
+							ng-model="params.initialassumedstate"
+							ng-options="st.value as st.label for st in initialAssumedStates[params.reporttype]">
+						<option value="">
+							{{params.reporttype == "" ? "-- Select Report Type First --" : "-- Select First Assumed State --"}}
+						</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="backtrack">
+						Backtracked Archives (To Scan for Initial
+						States)
+					</label>
+					<input type="number" class="form-control"
+							ng-model="params.backtrack"
+							placeholder="Number of backtracked archives">
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="params.nomap">
+						Supress Image Map
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="params.nopopups">
+						Supress Popups
+					</label>
+				</div>
+			</tab>
+		</tabset>
+	</div>
+	<div class="modal-footer">
+		<button id="submit" type="submit" class="btn btn-default"
+				ng-disabled="disableApply()" ng-click="apply()">
+			Apply
+		</button>
+	</div>
+</form>

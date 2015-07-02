@@ -35,7 +35,7 @@ struct object_count {
 
 extern struct object_count num_objects;
 
-extern void init_shared_cfg_vars(void);
+extern void init_shared_cfg_vars(int);
 extern void timing_point(const char *fmt, ...); /* print a message and the time since the first message */
 extern char *my_strtok(char *buffer, const char *tokens);
 extern char *my_strsep(char **stringp, const char *delim);

@@ -85,13 +85,13 @@ const string_value_mapping valid_queries[] = {
 	};
 
 static const int query_status[][2] = {
-	{ ARCHIVE_QUERY_HELP, QUERY_STATUS_BETA },
-	{ ARCHIVE_QUERY_ALERTCOUNT, QUERY_STATUS_BETA },
-	{ ARCHIVE_QUERY_ALERTLIST, QUERY_STATUS_BETA },
-	{ ARCHIVE_QUERY_NOTIFICATIONCOUNT, QUERY_STATUS_BETA },
-	{ ARCHIVE_QUERY_NOTIFICATIONLIST, QUERY_STATUS_BETA },
-	{ ARCHIVE_QUERY_STATECHANGELIST, QUERY_STATUS_BETA },
-	{ ARCHIVE_QUERY_AVAILABILITY, QUERY_STATUS_BETA },
+	{ ARCHIVE_QUERY_HELP, QUERY_STATUS_RELEASED },
+	{ ARCHIVE_QUERY_ALERTCOUNT, QUERY_STATUS_RELEASED },
+	{ ARCHIVE_QUERY_ALERTLIST, QUERY_STATUS_RELEASED },
+	{ ARCHIVE_QUERY_NOTIFICATIONCOUNT, QUERY_STATUS_RELEASED },
+	{ ARCHIVE_QUERY_NOTIFICATIONLIST, QUERY_STATUS_RELEASED },
+	{ ARCHIVE_QUERY_STATECHANGELIST, QUERY_STATUS_RELEASED },
+	{ ARCHIVE_QUERY_AVAILABILITY, QUERY_STATUS_RELEASED },
 	{ -1, -1 },
 	};
 
@@ -549,6 +549,8 @@ option_help archive_json_help[] = {
 		},
 	};
 
+extern const json_escape percent_escapes;
+
 int json_archive_alert_passes_selection(time_t, time_t, time_t, int, int, 
 		au_host *, char *, au_service *, char *, int, host *, int, host *,
 		hostgroup *, servicegroup *, contact *, contactgroup *, unsigned, 
@@ -616,7 +618,7 @@ int main(void) {
 			OUTPUT_FORMAT_VERSION);
 
 	/* Initialize shared configuration variables */                             
-	init_shared_cfg_vars();                                                     
+	init_shared_cfg_vars(1);
 
 	init_cgi_data(&cgi_data);
 
@@ -2149,42 +2151,44 @@ json_object * json_archive_alert_selectors(unsigned format_options, int start,
 		}
 
 	if(NULL != match_host) {
-		json_object_append_string(json_selectors, "hostname", match_host);
+		json_object_append_string(json_selectors, "hostname", &percent_escapes,
+				match_host);
 		}
 
 	if(NULL != match_service) {
 		json_object_append_string(json_selectors, "servicedescription", 
-				match_service);
+				&percent_escapes, match_service);
 		}
 
 	if(1 == use_parent_host) {
 		json_object_append_string(json_selectors, "parenthost", 
+				&percent_escapes,
 				( NULL == parent_host ? "none" : parent_host->name));
 		}
 
 	if( 1 == use_child_host) {
-		json_object_append_string(json_selectors, "childhost", 
+		json_object_append_string(json_selectors, "childhost", &percent_escapes,
 				( NULL == child_host ? "none" : child_host->name));
 		}
 
 	if(NULL != match_hostgroup) {
-		json_object_append_string(json_selectors, "hostgroup", 
+		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,
 				match_hostgroup->group_name);
 		}
 
 	if((object_types & AU_OBJTYPE_SERVICE) && (NULL != match_servicegroup)) {
-		json_object_append_string(json_selectors, "servicegroup", 
-				match_servicegroup->group_name);
+		json_object_append_string(json_selectors, "servicegroup",
+				&percent_escapes, match_servicegroup->group_name);
 		}
 
 	if(NULL != match_contact) {
-		json_object_append_string(json_selectors, "contact", 
+		json_object_append_string(json_selectors, "contact", &percent_escapes,
 				match_contact->name);
 		}
 
 	if(NULL != match_contactgroup) {
-		json_object_append_string(json_selectors, "contactgroup", 
-				match_contactgroup->group_name);
+		json_object_append_string(json_selectors, "contactgroup",
+				&percent_escapes, match_contactgroup->group_name);
 		}
 
 	return json_selectors;
@@ -2349,13 +2353,14 @@ void json_archive_alert_details(json_object *json_details,
 	switch(temp_alert->obj_type) {
 	case AU_OBJTYPE_HOST:
 		temp_host = (au_host *)temp_alert->object;
-		json_object_append_string(json_details, "name", temp_host->name);
+		json_object_append_string(json_details, "name", &percent_escapes,
+				temp_host->name);
 		break;
 	case AU_OBJTYPE_SERVICE:
 		temp_service = (au_service *)temp_alert->object;
-		json_object_append_string(json_details, "host_name", 
+		json_object_append_string(json_details, "host_name", &percent_escapes,
 				temp_service->host_name);
-		json_object_append_string(json_details, "description", 
+		json_object_append_string(json_details, "description", &percent_escapes,
 				temp_service->description);
 		break;
 		}
@@ -2364,7 +2369,7 @@ void json_archive_alert_details(json_object *json_details,
 			temp_alert->state_type, svm_au_state_types);
 	json_enumeration(json_details, format_options, "state", temp_alert->state, 
 			svm_au_states);
-	json_object_append_string(json_details, "plugin_output", 
+	json_object_append_string(json_details, "plugin_output", &percent_escapes,
 			temp_alert->plugin_output);
 	}
 
@@ -2656,47 +2661,51 @@ json_object * json_archive_notification_selectors(unsigned format_options,
 		}
 
 	if(NULL != match_host) {
-		json_object_append_string(json_selectors, "hostname", match_host);
+		json_object_append_string(json_selectors, "hostname", &percent_escapes,
+				match_host);
 		}
 
 	if(NULL != match_service) {
 		json_object_append_string(json_selectors, "servicedescription", 
-				match_service);
+				&percent_escapes, match_service);
 		}
 
 	if(1 == use_parent_host) {
 		json_object_append_string(json_selectors, "parenthost", 
+				&percent_escapes,
 				( NULL == parent_host ? "none" : parent_host->name));
 		}
 
 	if( 1 == use_child_host) {
 		json_object_append_string(json_selectors, "childhost", 
+				&percent_escapes,
 				( NULL == child_host ? "none" : child_host->name));
 		}
 
 	if(NULL != match_hostgroup) {
-		json_object_append_string(json_selectors, "hostgroup", 
+		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,
 				match_hostgroup->group_name);
 		}
 
 	if((match_object_types & AU_OBJTYPE_SERVICE) && 
 			(NULL != match_servicegroup)) {
-		json_object_append_string(json_selectors, "servicegroup", 
-				match_servicegroup->group_name);
+		json_object_append_string(json_selectors, "servicegroup",
+				&percent_escapes, match_servicegroup->group_name);
 		}
 
 	if(NULL != match_contact) {
-		json_object_append_string(json_selectors, "contact", match_contact);
+		json_object_append_string(json_selectors, "contact", &percent_escapes,
+				match_contact);
 		}
 
 	if(NULL != match_contactgroup) {
-		json_object_append_string(json_selectors, "contactgroup", 
-				match_contactgroup->group_name);
+		json_object_append_string(json_selectors, "contactgroup",
+				&percent_escapes, match_contactgroup->group_name);
 		}
 
 	if(NULL != match_notification_method) {
-		json_object_append_string(json_selectors, "notificationmethod", 
-				match_notification_method);
+		json_object_append_string(json_selectors, "notificationmethod",
+				&percent_escapes, match_notification_method);
 		}
 
 	return json_selectors;
@@ -2874,25 +2883,25 @@ void json_archive_notification_details(json_object *json_details,
 	switch(temp_notification->obj_type) {
 	case AU_OBJTYPE_HOST:
 		temp_host = (au_host *)temp_notification->object;
-		json_object_append_string(json_details, "name", temp_host->name);
+		json_object_append_string(json_details, "name", &percent_escapes,
+				temp_host->name);
 		break;
 	case AU_OBJTYPE_SERVICE:
 		temp_service = (au_service *)temp_notification->object;
-		json_object_append_string(json_details, "host_name", 
+		json_object_append_string(json_details, "host_name", &percent_escapes,
 				temp_service->host_name);
-		json_object_append_string(json_details, "description", 
+		json_object_append_string(json_details, "description", &percent_escapes,
 				temp_service->description);
 		break;
 		}
 
-	json_object_append_string(json_details, "contact", 
+	json_object_append_string(json_details, "contact", &percent_escapes,
 			temp_notification->contact->name);
-	json_enumeration(json_details, format_options, "notification_type", 
-			temp_notification->notification_type, 
-			svm_au_notification_types);
-	json_object_append_string(json_details, "method", 
+	json_enumeration(json_details, format_options, "notification_type",
+			temp_notification->notification_type, svm_au_notification_types);
+	json_object_append_string(json_details, "method", &percent_escapes,
 			temp_notification->method);
-	json_object_append_string(json_details, "message", 
+	json_object_append_string(json_details, "message", &percent_escapes,
 			temp_notification->message);
 	}
 
@@ -2988,12 +2997,13 @@ json_object *json_archive_statechange_selectors(unsigned format_options,
 		}
 
 	if(NULL != host_name) {
-		json_object_append_string(json_selectors, "hostname", host_name);
+		json_object_append_string(json_selectors, "hostname", &percent_escapes,
+				host_name);
 		}
 
 	if(NULL != service_description) {
 		json_object_append_string(json_selectors, "servicedescription", 
-				service_description);
+				&percent_escapes, service_description);
 		}
 
 	if(state_types != AU_STATETYPE_ALL) {
@@ -3165,14 +3175,21 @@ json_object *json_archive_statechangelist(unsigned format_options,
 	/* Inject a pseudo entry with the final state */
 	switch(object_type) {
 	case AU_OBJTYPE_HOST:
-		end_log = au_create_alert_or_state_log(object_type, 
-				temp_host, AU_STATETYPE_HARD, temp_state_log->state, 
-				"Final Host Pseudo-State");
+		temp_host = au_find_host(log->hosts, host_name);
+		if(NULL != temp_host) {
+			end_log = au_create_alert_or_state_log(object_type,
+					temp_host, AU_STATETYPE_HARD, temp_state_log->state,
+					"Final Host Pseudo-State");
+			}
 		break;
 	case AU_OBJTYPE_SERVICE:
-		end_log = au_create_alert_or_state_log(object_type, 
-				temp_service, AU_STATETYPE_HARD, temp_state_log->state, 
-				"Final Service Pseudo-State");
+		temp_service = au_find_service(log->hosts, host_name,
+				service_description);
+		if(NULL != temp_service) {
+			end_log = au_create_alert_or_state_log(object_type,
+					temp_service, AU_STATETYPE_HARD, temp_state_log->state,
+					"Final Service Pseudo-State");
+			}
 		break;
 		}
 	if(end_log != NULL) {
@@ -4072,27 +4089,28 @@ json_object *json_archive_availability_selectors(unsigned format_options,
 		}
 
 	if(NULL != host_name) {
-		json_object_append_string(json_selectors, "hostname", host_name);
+		json_object_append_string(json_selectors, "hostname", &percent_escapes,
+				host_name);
 		}
 
 	if(NULL != service_description) {
 		json_object_append_string(json_selectors, "servicedescription", 
-				service_description);
+				&percent_escapes, service_description);
 		}
 
 	if(NULL != hostgroup) {
-		json_object_append_string(json_selectors, "hostgroup", 
+		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,
 				hostgroup->group_name);
 		}
 
 	if(NULL != servicegroup) {
-		json_object_append_string(json_selectors, "servicegroup", 
-				servicegroup->group_name);
+		json_object_append_string(json_selectors, "servicegroup",
+				&percent_escapes, servicegroup->group_name);
 		}
 
 	if(NULL != report_timeperiod) {
-		json_object_append_string(json_selectors, "timeperiod", 
-				report_timeperiod->name);
+		json_object_append_string(json_selectors, "timeperiod",
+				&percent_escapes, report_timeperiod->name);
 		}
 
 	json_object_append_boolean(json_selectors, "assumeinitialstate", 
@@ -4333,7 +4351,7 @@ json_object *json_archive_availability(unsigned format_options,
 						}
 					json_hostgroup_object = json_new_object();
 					json_object_append_string(json_hostgroup_object, "name",
-							temp_hostgroup->group_name);
+							&percent_escapes, temp_hostgroup->group_name);
 					json_object_append_array(json_hostgroup_object, "hosts", 
 							json_host_list);
 					json_array_append_object(json_hostgroup_list, 
@@ -4366,7 +4384,7 @@ json_object *json_archive_availability(unsigned format_options,
 					}
 				json_hostgroup_object = json_new_object();
 				json_object_append_string(json_hostgroup_object, "name",
-						hostgroup_selector->group_name);
+						&percent_escapes, hostgroup_selector->group_name);
 				json_object_append_array(json_hostgroup_object, "hosts", 
 						json_host_list);
 				json_object_append_object(json_data, "hostgroup", 
@@ -4406,7 +4424,7 @@ json_object *json_archive_availability(unsigned format_options,
 						}
 					json_servicegroup_object = json_new_object();
 					json_object_append_string(json_servicegroup_object, "name",
-							temp_servicegroup->group_name);
+							&percent_escapes, temp_servicegroup->group_name);
 					json_object_append_array(json_servicegroup_object, "hosts", 
 							json_service_list);
 					json_array_append_object(json_servicegroup_list, 
@@ -4442,7 +4460,7 @@ json_object *json_archive_availability(unsigned format_options,
 					}
 				json_servicegroup_object = json_new_object();
 				json_object_append_string(json_servicegroup_object, "name",
-						servicegroup_selector->group_name);
+						&percent_escapes, servicegroup_selector->group_name);
 				json_object_append_array(json_servicegroup_object, "services", 
 						json_service_list);
 				json_object_append_object(json_data, "servicegroup", 
@@ -4473,11 +4491,13 @@ json_object *json_archive_single_host_availability(unsigned format_options,
 		host = au_add_host(log->hosts, host_name);
 		/* Add global events to this new host */
 		global_host = au_find_host(log->hosts, "*");
-		for(temp_entry = global_host->log_entries->head; NULL != temp_entry; 
-				temp_entry = temp_entry->next) {
-			if(au_list_add_node(host->log_entries, temp_entry->data, 
-					au_cmp_log_entries) == 0) {
-				break;
+		if(NULL != global_host) {
+			for(temp_entry = global_host->log_entries->head; NULL != temp_entry;
+					temp_entry = temp_entry->next) {
+				if(au_list_add_node(host->log_entries, temp_entry->data,
+						au_cmp_log_entries) == 0) {
+					break;
+					}
 				}
 			}
 		}
@@ -4512,11 +4532,13 @@ json_object *json_archive_single_service_availability(unsigned format_options,
 		service = au_add_service(log->services, host_name, service_description);
 		/* Add global events to this new service */
 		global_host = au_find_host(log->hosts, "*");
-		for(temp_entry = global_host->log_entries->head; NULL != temp_entry; 
-				temp_entry = temp_entry->next) {
-			if(au_list_add_node(service->log_entries, temp_entry->data, 
-					au_cmp_log_entries) == 0) {
-				break;
+		if(NULL != global_host) {
+			for(temp_entry = global_host->log_entries->head; NULL != temp_entry;
+					temp_entry = temp_entry->next) {
+				if(au_list_add_node(service->log_entries, temp_entry->data,
+						au_cmp_log_entries) == 0) {
+					break;
+					}
 				}
 			}
 		}
@@ -4543,7 +4565,8 @@ json_object *json_archive_host_availability(unsigned format_options,
 	json_host_availability = json_new_object();
 
 	if(name != NULL) {
-		json_object_append_string(json_host_availability, "name", name);
+		json_object_append_string(json_host_availability, "name",
+				&percent_escapes, name);
 	}
 
 	json_object_append_duration(json_host_availability, "time_up", 
@@ -4578,11 +4601,11 @@ json_object *json_archive_service_availability(unsigned format_options,
 
 	if(host_name != NULL) {
 		json_object_append_string(json_service_availability, "host_name", 
-				host_name);
+				&percent_escapes, host_name);
 	}
 	if(description != NULL) {
 		json_object_append_string(json_service_availability, "description", 
-				description);
+				&percent_escapes, description);
 	}
 
 	json_object_append_duration(json_service_availability, "time_ok", 

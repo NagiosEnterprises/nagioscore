@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html ng-app="trendsApp">
+	<head>
+		<meta charset="utf-8">
+		<title>Nagios Trends</title>
+		<link type="image/ico" rel="shortcut icon" href="images/favicon.ico"/>
+		<link type="text/css" rel="stylesheet"
+				href="bootstrap-3.3.0/css/bootstrap.min.css">
+		<link type="text/css" rel="stylesheet"
+				href="bootstrap-3.3.0/css/bootstrap-theme.min.css">
+		<link type='text/css' rel='stylesheet' href='stylesheets/common.css'>
+		<link type='text/css' rel='stylesheet' href='stylesheets/trends.css'>
+		<link type='text/css' rel='stylesheet'
+				href='stylesheets/trendsgraph.css'>
+		<script type="text/javascript" src="d3/d3.min.js"></script>
+		<script type="text/javascript"
+				src="angularjs/angular-1.3.9/angular.min.js"></script>
+		<script type="text/javascript"
+				src="angularjs/ui-bootstrap-tpls-0.12.0.min.js"></script>
+		<script type="text/javascript"
+				src="angularjs/ui-utils-0.2.1/ui-utils.js"></script>
+		<script type="text/javascript" src="spin/spin.min.js"></script>
+		<script type="text/javascript" src="js/trends.js"></script>
+		<script type="text/javascript" src="js/trends-form.js"></script>
+		<script type="text/javascript" src="js/trends-graph.js"></script>
+		<script type="text/javascript" src="js/nagios-decorations.js"></script>
+		<script type="text/javascript" src="js/nagios-time.js"></script>
+	</head>
+	<body ng-controller="trendsCtrl">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-3">
+					<div info-box cgiurl="{{params.cgiurl}}"
+							decoration-title="{{infoBoxTitle()}}"
+							last-update="lastUpdate">
+					</div>
+					<div ng-include="'trends-links.html'">
+					</div>
+				</div>
+				<div class="col-sm-6" align="center"
+						ng-include="'graph-header.html'">
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="col-sm-l2 col-md-12 col-lg-10 col-lg-offset-1">
+					<div ng-hide="formDisplayed" nagios-trends
+						cgiurl="{{params.cgiurl}}"
+						reporttype="{{params.reporttype}}"
+						host="{{params.host}}"
+						service="{{params.service}}"
+						timeperiod="{{params.timeperiod}}"
+						t1="{{params.t1}}"
+						t2="{{params.t2}}"
+						assumeinitialstates="{{params.assumeinitialstates}}"
+						assumestateretention="{{params.assumestateretention}}"
+						assumestatesduringnotrunning="{{params.assumestatesduringnotrunning}}"
+						includesoftstates="{{params.includesoftstates}}"
+						initialassumedhoststate="{{params.initialassumedhoststate}}"
+						initialassumedservicestate="{{params.initialassumedservicestate}}"
+						backtrack="{{params.backtrack}}"
+						nopopups="{{params.nopopups}}"
+						nomap="{{params.nomap}}"
+						last-update="lastUpdate"
+						reload="{{reload}}"
+						build="canBuildTrend()">
+					</div>
+
+					<div id="menubutton">
+						<button type="button" class="btn" data-toggle="modal"
+								data-target="#reportForm" ng-click="displayForm()">
+							<img src="images/menu.png"/>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

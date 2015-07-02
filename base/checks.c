@@ -110,11 +110,13 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 
 			/*
 			 * If we really can't reschedule the service properly, we
-			 * just push the check to preferred_time and try again then.
+			 * just push the check to preferred_time plus some reasonable
+			 * random value and try again then.
 			 */
 			if(time_is_valid == FALSE &&  check_time_against_period(next_valid_time, svc->check_period_ptr) == ERROR) {
 
-				svc->next_check = preferred_time;
+				svc->next_check = preferred_time +
+						ranged_urand(0, check_window(svc));
 
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' could not be rescheduled properly.  Scheduling check for %s...\n", svc->description, svc->host_name, ctime(&preferred_time));
 
@@ -124,6 +126,14 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 			/* this service could be rescheduled... */
 			else {
 				svc->next_check = next_valid_time;
+				if(next_valid_time > preferred_time) {
+					/* Next valid time is further in the future because of
+					 * timeperiod constraints. Add a random amount so we
+					 * don't get all checks subject to that timeperiod
+					 * constraint scheduled at the same time
+					 */
+					svc->next_check += ranged_urand(0, check_window(svc));
+					}
 				svc->should_be_scheduled = TRUE;
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Rescheduled next service check for %s", ctime(&next_valid_time));
@@ -334,7 +344,7 @@ static int get_service_check_return_code(service *temp_service,
 			my_free(temp_service->plugin_output);
 			my_free(temp_service->long_plugin_output);
 			my_free(temp_service->perf_data);
-			asprintf(&temp_service->plugin_output, "(Service check timed out after %.2lf seconds)\n", temp_service->execution_time);
+			asprintf(&temp_service->plugin_output, "(Service check timed out after %.2lf seconds)", temp_service->execution_time);
 			rc = service_check_timeout_state;
 			}
 		/* if there was some error running the command, just skip it (this shouldn't be happening) */
@@ -979,6 +989,14 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		preferred_time = temp_service->next_check;
 		get_next_valid_time(preferred_time, &next_valid_time, temp_service->check_period_ptr);
 		temp_service->next_check = next_valid_time;
+		if(next_valid_time > preferred_time) {
+			/* Next valid time is further in the future because of timeperiod
+			 * constraints. Add a random amount so we don't get all checks
+			 * subject to that timeperiod constraint scheduled at the same time
+			 */
+			temp_service->next_check +=
+					ranged_urand(0, check_window(temp_service));
+		}
 
 		/* services with non-recurring intervals do not get rescheduled */
 		if(temp_service->check_interval == 0)
@@ -1165,6 +1183,7 @@ int check_service_check_viability(service *svc, int check_options, int *time_is_
 	time_t current_time = 0L;
 	time_t preferred_time = 0L;
 	int check_interval = 0;
+	host *temp_host = NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_service_check_viability()\n");
 
@@ -1211,6 +1230,19 @@ int check_service_check_viability(service *svc, int check_options, int *time_is_
 			perform_check = FALSE;
 
 			log_debug_info(DEBUGL_CHECKS, 2, "Execution dependencies for this service failed, so it will not be actively checked.\n");
+			}
+		}
+
+		/* check if host is up - if not, do not perform check */
+		if(host_down_disable_service_checks) {
+			if((temp_host = svc->host_ptr) == NULL) {
+				log_debug_info(DEBUGL_CHECKS, 2, "Host pointer NULL in check_service_check_viability().\n");
+				return ERROR;
+			} else {
+				if(temp_host->current_state != HOST_UP) {
+					log_debug_info(DEBUGL_CHECKS, 2, "Host state not UP, so service check will not be performed - will be rescheduled as normal.\n");
+					perform_check = FALSE;
+				}
 			}
 		}
 
@@ -1933,7 +1965,8 @@ int run_scheduled_host_check(host *hst, int check_options, double latency) {
 			 */
 			if(time_is_valid == FALSE && check_time_against_period(next_valid_time, hst->check_period_ptr) == ERROR) {
 
-				hst->next_check = preferred_time;
+				hst->next_check = preferred_time +
+						ranged_urand(0, check_window(hst));
 
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' could not be rescheduled properly.  Scheduling check for %s...\n", hst->name, ctime(&preferred_time));
 
@@ -1943,6 +1976,14 @@ int run_scheduled_host_check(host *hst, int check_options, double latency) {
 			/* this service could be rescheduled... */
 			else {
 				hst->next_check = next_valid_time;
+				if(next_valid_time > preferred_time) {
+					/* Next valid time is further in the future because of
+					 * timeperiod constraints. Add a random amount so we
+					 * don't get all checks subject to that timeperiod
+					 * constraint scheduled at the same time
+					 */
+					hst->next_check += ranged_urand(0, check_window(hst));
+					}
 				hst->should_be_scheduled = TRUE;
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Rescheduled next host check for %s", ctime(&next_valid_time));
@@ -2650,6 +2691,13 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 		preferred_time = hst->next_check;
 		get_next_valid_time(preferred_time, &next_valid_time, hst->check_period_ptr);
 		hst->next_check = next_valid_time;
+		if(next_valid_time > preferred_time) {
+			/* Next valid time is further in the future because of timeperiod
+			 * constraints. Add a random amount so we don't get all checks
+			 * subject to that timeperiod constraint scheduled at the same time
+			 */
+			hst->next_check += ranged_urand(0, check_window(hst));
+			}
 
 		/* hosts with non-recurring intervals do not get rescheduled if we're in a HARD or UP state */
 		if(hst->check_interval == 0 && (hst->state_type == HARD_STATE || hst->current_state == HOST_UP))
@@ -2960,197 +3008,145 @@ int handle_host_state(host *hst) {
 	}
 
 
-/* parse raw plugin output and return: short and long output, perf data */
+/* Parses raw plugin output and returns: short and long output, perf data. */
 int parse_check_output(char *buf, char **short_output, char **long_output, char **perf_data, int escape_newlines_please, int newlines_are_escaped) {
 	int current_line = 0;
-	int found_newline = FALSE;
 	int eof = FALSE;
-	int used_buf = 0;
-	int dbuf_chunk = 1024;
-	dbuf db1;
-	dbuf db2;
-	char *ptr = NULL;
 	int in_perf_data = FALSE;
-	char *tempbuf = NULL;
-	register int x = 0;
-	register int y = 0;
+	const int dbuf_chunk = 1024;
+	dbuf long_text;
+	dbuf perf_text;
+	char *ptr = NULL;
+	int x = 0;
+	int y = 0;
 
-	/* initialize values */
-	if(short_output)
+	/* Initialize output values. */
+	if (short_output)
 		*short_output = NULL;
-	if(long_output)
+	if (long_output)
 		*long_output = NULL;
-	if(perf_data)
+	if (perf_data)
 		*perf_data = NULL;
 
-	/* nothing to do */
-	if(buf == NULL || !strcmp(buf, ""))
+	/* No input provided or no output requested, nothing to do. */
+	if (!buf || !*buf || (!short_output && !long_output && !perf_data))
 		return OK;
 
-	used_buf = strlen(buf) + 1;
 
-	/* initialize dynamic buffers (1KB chunk size) */
-	dbuf_init(&db1, dbuf_chunk);
-	dbuf_init(&db2, dbuf_chunk);
+	/* Initialize dynamic buffers (1KB chunk size). */
+	dbuf_init(&long_text, dbuf_chunk);
+	dbuf_init(&perf_text, dbuf_chunk);
 
-	/* unescape newlines and escaped backslashes first */
-	if(newlines_are_escaped == TRUE) {
-		for(x = 0, y = 0; buf[x] != '\x0'; x++) {
-			if(buf[x] == '\\' && buf[x + 1] == '\\') {
+	/* We should never need to worry about unescaping here again. We assume a
+	 * common internal plugin output format that is newline delimited. */
+	if (newlines_are_escaped) {
+		for (x = 0, y = 0; buf[x]; x++) {
+			if (buf[x] == '\\' && buf[x + 1] == '\\') {
 				x++;
 				buf[y++] = buf[x];
 				}
-			else if(buf[x] == '\\' && buf[x + 1] == 'n') {
+			else if (buf[x] == '\\' && buf[x + 1] == 'n') {
 				x++;
 				buf[y++] = '\n';
 				}
 			else
 				buf[y++] = buf[x];
 			}
-		buf[y] = '\x0';
+		buf[y] = '\0';
 		}
 
-	/* process each line of input */
-	for(x = 0; eof == FALSE; x++) {
+	/* Process each line of input. */
+	for (x = 0; !eof && buf[0]; x++) {
 
-		/* we found the end of a line */
-		if(buf[x] == '\n')
-			found_newline = TRUE;
-		else if(buf[x] == '\\' && buf[x + 1] == 'n' && newlines_are_escaped == TRUE) {
-			found_newline = TRUE;
-			buf[x] = '\x0';
-			x++;
-			}
-		else if(buf[x] == '\x0') {
-			found_newline = TRUE;
+		/* Continue on until we reach the end of a line (or input). */
+		if (buf[x] == '\n')
+			buf[x] = '\0';
+		else if (buf[x] == '\0')
 			eof = TRUE;
-			}
 		else
-			found_newline = FALSE;
+			continue;
 
-		if(found_newline == TRUE) {
+		/* Handle this line of input. */
+		current_line++;
 
-			current_line++;
+		/* The first line contains short plugin output and optional perf data. */
+		if (current_line == 1) {
 
-			/* handle this line of input */
-			buf[x] = '\x0';
-			if((tempbuf = (char *)strdup(buf))) {
-
-				/* first line contains short plugin output and optional perf data */
-				if(current_line == 1) {
-
-					/* get the short plugin output */
-					if((ptr = strtok(tempbuf, "|"))) {
-						if(short_output)
-							*short_output = (char *)strdup(ptr);
-
-						/* get the optional perf data */
-						if((ptr = strtok(NULL, "\n")))
-							dbuf_strcat(&db2, ptr);
-						}
+			/* Get the short plugin output. If buf[0] is '|', strtok() will
+			 * return buf+1 or NULL if buf[1] is '\0'. We use my_strtok()
+			 * instead which returns a pointer to '\0' in this case. */
+			if ((ptr = my_strtok(buf, "|"))) {
+				if (short_output) {
+					strip(ptr); /* Remove leading and trailing whitespace. */
+					*short_output = strdup(ptr);
 					}
 
-				/* additional lines contain long plugin output and optional perf data */
-				else {
-
-					/* rest of the output is perf data */
-					if(in_perf_data == TRUE) {
-						dbuf_strcat(&db2, tempbuf);
-						dbuf_strcat(&db2, " ");
-						}
-
-					/* we're still in long output */
-					else {
-
-						/* perf data separator has been found */
-						if(strstr(tempbuf, "|")) {
-
-							/* NOTE: strtok() causes problems if first character of tempbuf='|', so use my_strtok() instead */
-							/* get the remaining long plugin output */
-							if((ptr = my_strtok(tempbuf, "|"))) {
-
-								if(current_line > 2)
-									dbuf_strcat(&db1, "\n");
-								dbuf_strcat(&db1, ptr);
-
-								/* get the perf data */
-								if((ptr = my_strtok(NULL, "\n"))) {
-									dbuf_strcat(&db2, ptr);
-									dbuf_strcat(&db2, " ");
-									}
-								}
-
-							/* set the perf data flag */
-							in_perf_data = TRUE;
-							}
-
-						/* just long output */
-						else {
-							if(current_line > 2)
-								dbuf_strcat(&db1, "\n");
-							dbuf_strcat(&db1, tempbuf);
-							}
-						}
-					}
-
-				my_free(tempbuf);
-				tempbuf = NULL;
+				/* Get the optional perf data. */
+				if ((ptr = my_strtok(NULL, "\n")))
+					dbuf_strcat(&perf_text, ptr);
 				}
 
-
-			/* shift data back to front of buffer and adjust counters */
-			memmove((void *)&buf[0], (void *)&buf[x + 1], (size_t)((int)used_buf - x - 1));
-			used_buf -= (x + 1);
-			buf[used_buf] = '\x0';
-			x = -1;
 			}
-		}
+		/* Additional lines contain long plugin output and optional perf data.
+		 * Once we've hit perf data, the rest of the output is perf data. */
+		else if (in_perf_data) {
+			if (perf_text.buf && *perf_text.buf)
+				dbuf_strcat(&perf_text, " ");
+			dbuf_strcat(&perf_text, buf);
 
-	/* save long output */
-	if(long_output && (db1.buf && strcmp(db1.buf, ""))) {
+			}
+		/* Look for the perf data separator. */
+		else if (strchr(buf, '|')) {
+			in_perf_data = TRUE;
 
-		if(escape_newlines_please == FALSE)
-			*long_output = (char *)strdup(db1.buf);
+			if ((ptr = my_strtok(buf, "|"))) {
 
+				/* Get the remaining long plugin output. */
+				if (current_line > 2)
+					dbuf_strcat(&long_text, "\n");
+				dbuf_strcat(&long_text, ptr);
+
+				/* Get the perf data. */
+				if ((ptr = my_strtok(NULL, "\n"))) {
+					if (perf_text.buf && *perf_text.buf)
+						dbuf_strcat(&perf_text, " ");
+					dbuf_strcat(&perf_text, ptr);
+					}
+				}
+
+			}
+		/* Otherwise it's still just long output. */
 		else {
-
-			/* escape newlines (and backslashes) in long output */
-			if((tempbuf = (char *)malloc((strlen(db1.buf) * 2) + 1))) {
-
-				for(x = 0, y = 0; db1.buf[x] != '\x0'; x++) {
-
-					if(db1.buf[x] == '\n') {
-						tempbuf[y++] = '\\';
-						tempbuf[y++] = 'n';
-						}
-					else if(db1.buf[x] == '\\') {
-						tempbuf[y++] = '\\';
-						tempbuf[y++] = '\\';
-						}
-					else
-						tempbuf[y++] = db1.buf[x];
-					}
-
-				tempbuf[y] = '\x0';
-				*long_output = (char *)strdup(tempbuf);
-				my_free(tempbuf);
-				}
+			if (current_line > 2)
+				dbuf_strcat(&long_text, "\n");
+			dbuf_strcat(&long_text, buf);
 			}
+
+		/* Point buf to the start of the next line. *(buf+x+1) will be a valid
+		 * memory reference on our next iteration or we are at the end of input
+		 * (eof == TRUE) and *(buf+x+1) will never be referenced. */
+		buf += x + 1;
+		x = -1; /* x will be incremented to 0 by the loop update. */
 		}
 
-	/* save perf data */
-	if(perf_data && (db2.buf && strcmp(db2.buf, "")))
-		*perf_data = (char *)strdup(db2.buf);
+	/* Save long output. */
+	if (long_output && long_text.buf && *long_text.buf) {
+		/* Escape newlines (and backslashes) in long output if requested. */
+		if (escape_newlines_please)
+			*long_output = escape_newlines(long_text.buf);
+		else
+			*long_output = strdup(long_text.buf);
+		}
 
-	/* strip short output and perf data */
-	if(short_output)
-		strip(*short_output);
-	if(perf_data)
-		strip(*perf_data);
+	/* Save perf data. */
+	if (perf_data && perf_text.buf && *perf_text.buf) {
+		strip(perf_text.buf); /* Remove leading and trailing whitespace. */
+		*perf_data = strdup(perf_text.buf);
+		}
 
 	/* free dynamic buffers */
-	dbuf_free(&db1);
-	dbuf_free(&db2);
+	dbuf_free(&long_text);
+	dbuf_free(&perf_text);
 
 	return OK;
 	}

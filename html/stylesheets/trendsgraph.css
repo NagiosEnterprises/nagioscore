@@ -1,0 +1,126 @@
+/* General text style */
+text {
+	font-family: sans-serif;
+	font-size: 11px;
+}
+
+/* Colors for text representing states */
+text.Up {
+	fill: rgb(0, 128, 0);
+}
+text.Down {
+	fill: rgb(255, 0, 0);
+}
+text.Unreachable {
+	fill: rgb(128, 0, 0);
+}
+text.Ok {
+	fill: rgb(0, 128, 0);
+}
+text.Warning {
+	fill: rgb(176, 178, 20);
+}
+text.Unknown {
+	fill: rgb(255, 100, 25);
+}
+text.Critical {
+	fill: rgb(255, 0, 0);
+}
+text.Indeterminate {
+	fill: rgb(0, 0, 0);
+}
+
+/* Class to hide elements */
+.hidden {
+	display: none;
+}
+
+/* Trend SVG style */
+div#trendsvg {
+	position: absolute;
+	z-index: 10;
+	left: 0;
+	top: 0;
+}
+
+/* Center header text */
+g#header text {
+	text-anchor: middle;
+}
+
+/* Anchor the y-axis text to the end of the text */
+text.yaxis {
+	text-anchor: end;
+}
+
+/* Draw grid lines as dashed lines */
+line.vLine,
+line.hLine {
+	stroke-width: 1;
+	stroke: black;
+	stroke-dasharray: 2,2;
+	pointer-events: none;
+}
+
+/* Styles for state popups */
+div#popup {
+	font-family: sans-serif;
+	font-size: 11px;
+	position: absolute;
+	width: auto;
+	height: auto;
+	padding: 3px;
+	border: 1px solid black;
+	background-color: #ffffcc;
+	pointer-events: none;
+	z-index: 20;
+}
+div#popup #popup-state {
+	font-weight: bold;
+	text-decoration: underline;
+}
+div#popup .field-name {
+	font-weight: bold;
+}
+div#popup #popup-start,
+div#popup #popup-end,
+div#popup #popup-duration,
+div#popup #popup-info {
+	font-style: italic;
+}
+
+/* Styles for grid spinner */
+div#gridspinner {
+	position: absolute;
+	top: 74px;
+	left: 355px;
+	height: 50px;
+	width: 50px;
+	z-index: 40;
+}
+
+/* Styles for availability spinner */
+div#availabilityspinner {
+	position: absolute;
+	top: 74px;
+	left: 735px;
+	height: 50px;
+	width: 50px;
+	z-index: 40;
+}
+
+/* Styles for menu button */
+div#menubutton {
+	position: absolute;
+	top: 5px;
+	left: 871px;
+	height: 25px;
+	width: 22px;
+	z-index: 40;
+}
+
+div#menubutton button {
+	padding: 0px;
+	border: none;
+	background-color: white;
+}

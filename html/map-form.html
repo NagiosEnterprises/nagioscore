@@ -1,0 +1,116 @@
+<form role="form">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal"
+				ng-click="cancel()">
+			<span aria-hidden="true">&times;</span>
+			<span class="sr-only">Close</span>
+		</button>
+		<h4 class="modal-title" id="nagiosTrendsLabel">
+			Nagios Map
+		</h4>
+	</div>
+	<div class="modal-body">
+		<div class="form-group">
+			<label>URL for JSON CGIs</label>
+			<input type="text" class="form-control" ng-model="params.cgiurl"
+					placeholder="http://localhost/nagios/cgi-bin/"
+					ui-event="{ blur : 'onBlurCgiurl($event)' }">
+		</div>
+		<div class="form-group">
+			<label>URL for Icons</label>
+			<input type="text" class="form-control" ng-model="params.iconurl"
+					placeholder="http://localhost/nagios/images/logos/">
+		</div>
+		<div class="form-group">
+			<label>Layout</label>
+			<select class="form-control" ng-model="params.layout">
+				<option value="3">Balanced Tree (Horizontal)</option>
+				<option value="7">Balanced Tree (Vertical)</option>
+				<!--option value="4">Circular</option-->
+				<option value="6">Circular Balloon</option>
+				<option value="5">Circular Markup</option>
+				<option value="2">Collapsed Tree (Horizontal)</option>
+				<option value="8">Collapsed Tree (Vertical)</option>
+				<option value="1">Depth Layers (Horizontal)</option>
+				<option value="9">Depth Layers (Vertical)</option>
+				<option value="10">Force Map</option>
+				<option value="0">User Supplied</option>
+			</select>
+		</div>
+		<div class="form-group" ng-show="showDimensions()">
+			<label>Dimensions (User Supplied Layout Only)</label>
+			<select class="form-control" ng-model="params.dimensions">
+				<option value="fixed">Fixed</option>
+				<option value="auto">Automatic</option>
+				<option value="user">User Supplied</option>
+			</select>
+		</div>
+		<div class="form-group" ng-show="showCoordinates()">
+			<label>Upper Left X Coordinate</label>
+			<input type="number" class="form-control" placeholder="0"
+					ng-model="params.ulx">
+		</div>
+		<div class="form-group" ng-show="showCoordinates()">
+			<label>Upper Left Y Coordinate</label>
+			<input type="number" class="form-control" placeholder="0"
+					ng-model="params.uly">
+		</div>
+		<div class="form-group" ng-show="showCoordinates()">
+			<label>Lower Right X Coordinate</label>
+			<input type="number" class="form-control" placeholder="0"
+					ng-model="params.lrx">
+		</div>
+		<div class="form-group" ng-show="showCoordinates()">
+			<label>Lower Right Y Coordinate</label>
+			<input type="number" class="form-control" placeholder="0"
+					ng-model="params.lry">
+		</div>
+		<div class="form-group">
+			<label>Root Node</label>
+			<select class="form-control" ng-model="params.root"
+					ng-options="node for node in nodelist">
+			</select>
+		</div>
+		<div class="form-group">
+			<label>Maximum Zoom Ratio</label>
+			<input type="text" class="form-control"
+					ng-model="params.maxzoom">
+		</div>
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" ng-model="params.nolinks">
+				Disable Display of Links
+			</label>
+		</div>
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" ng-model="params.notext">
+				Disable Display of Text
+			</label>
+		</div>
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" ng-model="params.nopopups">
+				Disable Display of Popups
+			</label>
+		</div>
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" ng-model="params.nomenu">
+				Disable Display of the Menu Button (and also this dialog!)
+			</label>
+		</div>
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" ng-model="params.noresize">
+				Disallow Resizing of Map
+			</label>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button id="submit" type="submit" class="btn btn-default"
+				ng-disabled="disableApply()" ng-click="apply()">
+			Apply
+		</button>
+	</div>
+</form>

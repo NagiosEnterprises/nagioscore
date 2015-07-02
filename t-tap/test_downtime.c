@@ -23,26 +23,20 @@
 #include "downtime.h"
 #include "stub_broker.c"
 #include "stub_comments.c"
-#include "stub_objects.c"
 #include "stub_statusdata.c"
 #include "stub_notifications.c"
-#include "stub_shared.c"
 #include "stub_events.c"
+#include "stub_logging.c"
+#include "stub_nebmods.c"
+#include "stub_netutils.c"
+#include "stub_commands.c"
+#include "stub_checks.c"
 #include "tap.h"
-
-void logit(int data_type, int display, const char *fmt, ...) {}
-int log_debug_info(int level, int verbosity, const char *fmt, ...) {
-	va_list ap;
-	va_start(ap, fmt);
-	/* vprintf( fmt, ap ); */
-	va_end(ap);
-	}
 
 timed_event *event_list_high = NULL;
 timed_event *event_list_high_tail = NULL;
 
 extern scheduled_downtime *scheduled_downtime_list;
-squeue_t *nagios_squeue = NULL; /* our scheduling queue */
 
 int
 main(int argc, char **argv) {
@@ -52,6 +46,17 @@ main(int argc, char **argv) {
 	unsigned long downtime_id = 0L;
 	scheduled_downtime *temp_downtime;
 	int i = 0;
+	char *main_config_file = "../t/etc/nagios-test-downtime.cfg";
+
+	/* Initialize configuration variables */
+	init_main_cfg_vars(1);
+	init_shared_cfg_vars(1);
+
+	/* Read the configuration */
+	read_main_config_file(main_config_file);
+	read_object_config_data(main_config_file, READ_ALL_OBJECT_DATA);
+	pre_flight_check();
+	initialize_downtime_data();
 
 	plan_tests(38);
 
@@ -59,22 +64,22 @@ main(int argc, char **argv) {
 
 	next_downtime_id = 1L;
 
-	schedule_downtime(HOST_DOWNTIME, "host1", NULL, temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(HOST_DOWNTIME, "host1", NULL, temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 1L, "Got host1 downtime: %lu", downtime_id);
-	schedule_downtime(HOST_DOWNTIME, "host2", NULL, temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(HOST_DOWNTIME, "host2", NULL, temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 2L, "Got host2 downtime: %lu", downtime_id);
-	schedule_downtime(HOST_DOWNTIME, "host3", NULL, temp_start_time, "user", "diff comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(HOST_DOWNTIME, "host3", NULL, temp_start_time, "user", "diff comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 3L, "Got host3 downtime: %lu", downtime_id);
-	schedule_downtime(HOST_DOWNTIME, "host4", NULL, temp_start_time, "user", "test comment", temp_start_time + 1, temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(HOST_DOWNTIME, "host4", NULL, temp_start_time, "user", "test comment", temp_start_time + 1, temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 4L, "Got host4 downtime: %lu", downtime_id);
 
-	schedule_downtime(SERVICE_DOWNTIME, "host1", "svc", temp_start_time, "user", "svc comment",  temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host1", "svc", temp_start_time, "user", "svc comment",  temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 5L, "Got host1::svc downtime: %lu", downtime_id);
-	schedule_downtime(SERVICE_DOWNTIME, "host2", "svc", temp_start_time, "user", "diff comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host2", "svc", temp_start_time, "user", "diff comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 6L, "Got host2::svc downtime: %lu", downtime_id);
-	schedule_downtime(SERVICE_DOWNTIME, "host3", "svc", temp_start_time, "user", "svc comment",  temp_start_time + 1, temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host3", "svc", temp_start_time, "user", "svc comment",  temp_start_time + 1, temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 7L, "Got host3::svc downtime: %lu", downtime_id);
-	schedule_downtime(SERVICE_DOWNTIME, "host4", "svc", temp_start_time, "user", "uniq comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host4", "svc", temp_start_time, "user", "uniq comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 8L, "Got host4::svc downtime: %lu", downtime_id);
 
 	for(temp_downtime = scheduled_downtime_list, i = 0; temp_downtime != NULL; temp_downtime = temp_downtime->next, i++) {}
@@ -102,7 +107,7 @@ main(int argc, char **argv) {
 	ok(i == 1, "Deleted 1 by unique comment: %d", i);
 
 	for(temp_downtime = scheduled_downtime_list, i = 0; temp_downtime != NULL; temp_downtime = temp_downtime->next, i++) {
-		diag("downtime id: %d", temp_downtime->downtime_id);
+		printf("# downtime id: %d\n", temp_downtime->downtime_id);
 		}
 	ok(i == 3, "Got 3 downtimes left: %d", i);
 
@@ -115,31 +120,31 @@ main(int argc, char **argv) {
 
 
 	/* Set all downtimes up again */
-	schedule_downtime(HOST_DOWNTIME, "host1", NULL, temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(HOST_DOWNTIME, "host1", NULL, temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 9L, "Got host1 downtime: %lu", downtime_id);
-	schedule_downtime(HOST_DOWNTIME, "host2", NULL, temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(HOST_DOWNTIME, "host2", NULL, temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 10L, "Got host2 downtime: %lu", downtime_id);
-	schedule_downtime(HOST_DOWNTIME, "host3", NULL, temp_start_time, "user", "diff comment", temp_start_time + 1,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(HOST_DOWNTIME, "host3", NULL, temp_start_time, "user", "diff comment", temp_start_time + 1,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 11L, "Got host3 downtime: %lu", downtime_id);
-	schedule_downtime(HOST_DOWNTIME, "host4", NULL, temp_start_time, "user", "test comment", temp_start_time + 1, temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(HOST_DOWNTIME, "host4", NULL, temp_start_time, "user", "test comment", temp_start_time + 1, temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 12L, "Got host4 downtime: %lu", downtime_id);
 
-	schedule_downtime(SERVICE_DOWNTIME, "host1", "svc", temp_start_time, "user", "svc comment",  temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host1", "svc", temp_start_time, "user", "svc comment",  temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 13L, "Got host1::svc downtime: %lu", downtime_id);
-	schedule_downtime(SERVICE_DOWNTIME, "host2", "svc", temp_start_time, "user", "diff comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host2", "svc", temp_start_time, "user", "diff comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 14L, "Got host2::svc downtime: %lu", downtime_id);
-	schedule_downtime(SERVICE_DOWNTIME, "host3", "svc", temp_start_time, "user", "svc comment",  temp_start_time, temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host3", "svc", temp_start_time, "user", "svc comment",  temp_start_time, temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 15L, "Got host3::svc downtime: %lu", downtime_id);
-	schedule_downtime(SERVICE_DOWNTIME, "host4", "svc", temp_start_time, "user", "uniq comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host4", "svc", temp_start_time, "user", "uniq comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 16L, "Got host4::svc downtime: %lu", downtime_id);
 
-	schedule_downtime(SERVICE_DOWNTIME, "host1", "svc2", temp_start_time, "user", "svc2 comment",  temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host1", "svc2", temp_start_time, "user", "svc2 comment",  temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 17L, "Got host1::svc2 downtime: %lu", downtime_id);
-	schedule_downtime(SERVICE_DOWNTIME, "host2", "svc2", temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host2", "svc2", temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 18L, "Got host2::svc2 downtime: %lu", downtime_id);
-	schedule_downtime(SERVICE_DOWNTIME, "host3", "svc2", temp_start_time, "user", "svc2 comment",  temp_start_time + 1, temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host3", "svc2", temp_start_time, "user", "svc2 comment",  temp_start_time + 1, temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 19L, "Got host3::svc2 downtime: %lu", downtime_id);
-	schedule_downtime(SERVICE_DOWNTIME, "host4", "svc2", temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 0, 0, 0, &downtime_id);
+	schedule_downtime(SERVICE_DOWNTIME, "host4", "svc2", temp_start_time, "user", "test comment", temp_start_time,  temp_end_time, 1, 0, 0, &downtime_id);
 	ok(downtime_id == 20L, "Got host4::svc2 downtime: %lu", downtime_id);
 
 	i = delete_downtime_by_hostname_service_description_start_time_comment("host2", NULL, 0, "test comment");
@@ -161,7 +166,7 @@ main(int argc, char **argv) {
 	ok(i == 0, "Deleted 0") || diag("Actually deleted: %d", i);
 
 	for(temp_downtime = scheduled_downtime_list, i = 0; temp_downtime != NULL; temp_downtime = temp_downtime->next, i++) {
-		diag("downtime id: %d", temp_downtime->downtime_id);
+		printf("# downtime id: %d\n", temp_downtime->downtime_id);
 		}
 	ok(i == 4, "Got 4 downtimes left: %d", i);
 

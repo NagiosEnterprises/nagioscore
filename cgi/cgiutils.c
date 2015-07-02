@@ -70,6 +70,9 @@ int             lock_author_names = TRUE;
 int             navbar_search_addresses = TRUE;
 int             navbar_search_aliases = TRUE;
 
+int		ack_no_sticky  = FALSE;
+int		ack_no_send    = FALSE;
+
 time_t          this_scheduled_log_rotation = 0L;
 time_t          last_scheduled_log_rotation = 0L;
 time_t          next_scheduled_log_rotation = 0L;
@@ -440,6 +443,10 @@ int read_cgi_config_file(const char *filename) {
 
 		else if(!strcmp(var, "navbar_search_aliases"))
 			navbar_search_aliases = (atoi(val) > 0) ? TRUE : FALSE;
+		else if(!strcmp(var, "ack_no_sticky"))
+			ack_no_sticky = (atoi(val) > 0) ? TRUE : FALSE;
+		else if(!strcmp(var, "ack_no_send"))
+			ack_no_send = (atoi(val) > 0) ? TRUE : FALSE;
 		}
 
 	for(p = illegal_output_chars; p && *p; p++)
@@ -689,7 +696,7 @@ void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_opti
 	int result;
 
 	/* Initialize shared configuration variables */
-	init_shared_cfg_vars();
+	init_shared_cfg_vars(1);
 
 	/* read the CGI configuration file */
 	result = read_cgi_config_file(get_cgi_config_location());

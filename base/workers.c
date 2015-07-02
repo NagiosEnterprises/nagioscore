@@ -106,20 +106,23 @@ static void wproc_logdump_buffer(int level, int show, const char *prefix, char *
 	}
 }
 
-/* reap 'jobs' jobs or 'secs' seconds, whichever comes first */
+/* Try to reap 'jobs' jobs for 'msecs' milliseconds. Return early on error. */
 void wproc_reap(int jobs, int msecs)
 {
-	time_t start, now;
-	start = time(NULL);
+	struct timeval start;
+	gettimeofday(&start, NULL);
 
-	/* one input equals one job (or close enough to it anyway) */
-	do {
-		int inputs;
+	while (jobs > 0 && msecs > 0) {
+		int inputs = iobroker_poll(nagios_iobs, msecs);
+		if (inputs < 0) return;
 
-		now = time(NULL);
-		inputs = iobroker_poll(nagios_iobs, (now - start) * 1000);
-		jobs -= inputs;
-	} while (jobs > 0 && start + (msecs * 1000) <= now);
+		jobs -= inputs; /* One input is roughly equivalent to one job. */
+
+		struct timeval now;
+		gettimeofday(&now, NULL);
+		msecs -= tv_delta_msec(&start, &now);
+		start = now;
+	}
 }
 
 int wproc_can_spawn(struct load_control *lc)
@@ -409,14 +412,15 @@ void free_worker_memory(int flags)
 			workers.wps[i] = NULL;
 		}
 
-		free(workers.wps);
+		my_free(workers.wps);
 	}
+	workers.len = 0;
+	workers.idx = 0;
+
 	to_remove = NULL;
 	dkhash_walk_data(specialized_workers, remove_specialized);
 	dkhash_destroy(specialized_workers);
-	workers.wps = NULL;
-	workers.len = 0;
-	workers.idx = 0;
+	specialized_workers = NULL; /* Don't leave pointers to freed memory. */
 }
 
 static int str2timeval(char *str, struct timeval *tv)
@@ -770,7 +774,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 			break;
 
 		default:
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker %d: Unknown jobtype: %d\n", wp->pid, job->type);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Worker %ld: Unknown jobtype: %d\n", (long)wp->pid, job->type);
 			break;
 		}
 		destroy_job(job);
@@ -900,9 +904,9 @@ static int wproc_query_handler(int sd, char *buf, unsigned int len)
 
 		for (i = 0; i < workers.len; i++) {
 			struct wproc_worker *wp = workers.wps[i];
-			nsock_printf(sd, "name=%s;pid=%d;jobs_running=%u;jobs_started=%u\n",
-						 wp->name, wp->pid,
-						 wp->jobs_running, wp->jobs_started);
+			nsock_printf(sd, "name=%s;pid=%ld;jobs_running=%u;jobs_started=%u\n",
+					wp->name, (long)wp->pid,
+					wp->jobs_running, wp->jobs_started);
 		}
 		return 0;
 	}
@@ -926,30 +930,39 @@ static int spawn_core_worker(void)
 
 int init_workers(int desired_workers)
 {
-	int i;
-
-	/*
-	 * we register our query handler before launching workers,
-	 * so other workers can join us whenever they're ready
-	 */
 	specialized_workers = dkhash_create(512);
-	if(!qh_register_handler("wproc", "Worker process management and info", 0, wproc_query_handler))
+	if (!specialized_workers) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to allocate specialized worker table.\n");
+		return -1;
+	}
+
+	/* Register our query handler before launching workers, so other workers
+	 * can join us whenever they're ready. */
+	if (!qh_register_handler("wproc", "Worker process management and info", 0, wproc_query_handler))
 		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Successfully registered manager as @wproc with query handler\n");
 	else
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to register manager with query handler\n");
 
-	i = desired_workers;
 	if (desired_workers <= 0) {
-		int cpus = online_cpus();
+		int cpus = online_cpus(); /* Always at least 1 CPU. */
 
-		if(desired_workers < 0) {
+		if (desired_workers < 0) {
+			/* @note This is an undocumented case of questionable utility, and
+			 * should be removed. Users reading this note have been warned. */
 			desired_workers = cpus - desired_workers;
-		}
-		if(desired_workers <= 0) {
+			/* desired_workers is now > 0. */
+		} else {
 			desired_workers = cpus * 1.5;
-			/* min 4 workers, as it's tested and known to work */
-			if(desired_workers < 4)
+
+			if (desired_workers < 4) {
+				/* Use at least 4 workers when autocalculating so we have some
+				 * level of parallelism. */
 				desired_workers = 4;
+			} else if (desired_workers > 48) {
+				/* Limit the autocalculated workers so we don't spawn too many
+				 * on systems with many schedulable cores (>32). */
+				desired_workers = 48;
+			}
 		}
 	}
 	wproc_num_workers_desired = desired_workers;
@@ -961,7 +974,7 @@ int init_workers(int desired_workers)
 	if (desired_workers < (int)workers.len)
 		return -1;
 
-	for (i = 0; i < desired_workers; i++)
+	while (desired_workers-- > 0)
 		spawn_core_worker();
 
 	return 0;

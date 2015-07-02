@@ -2353,12 +2353,15 @@ int is_escalated_contact_for_host(host *hst, contact *cntct) {
 /* tests whether a contact is an contact for a particular host escalation */
 int is_contact_for_host_escalation(hostescalation *escalation, contact *cntct) {
 	contactsmember *temp_contactsmember = NULL;
-	hostescalation *temp_hostescalation = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 
+	if(escalation == NULL || cntct == NULL) {
+		return FALSE;
+		}
+
 	/* search all contacts of this host escalation */
-	for(temp_contactsmember = temp_hostescalation->contacts;
+	for(temp_contactsmember = escalation->contacts;
 			temp_contactsmember != NULL;
 			temp_contactsmember = temp_contactsmember->next) {
 		if(temp_contactsmember->contact_ptr == cntct)
@@ -2366,7 +2369,7 @@ int is_contact_for_host_escalation(hostescalation *escalation, contact *cntct) {
 		}
 
 	/* search all contactgroups of this host escalation */
-	for(temp_contactgroupsmember = temp_hostescalation->contact_groups;
+	for(temp_contactgroupsmember = escalation->contact_groups;
 			temp_contactgroupsmember != NULL;
 			temp_contactgroupsmember = temp_contactgroupsmember->next) {
 		temp_contactgroup = temp_contactgroupsmember->group_ptr;

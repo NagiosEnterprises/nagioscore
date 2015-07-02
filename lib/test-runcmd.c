@@ -5,12 +5,19 @@
 
 #define BUF_SIZE 1024
 
-struct cases {
+#if defined(__sun) && defined(__SVR4)
+/* Assume we have GNU echo from OpenCSW at this location on Solaris. */
+#define ECHO_COMMAND "/opt/csw/gnu/echo"
+#else
+/* Otherwise we'll try to get away with a default. This is GNU echo on Leenooks. */
+#define ECHO_COMMAND "/bin/echo"
+#endif
+
+
+struct {
 	char *input;
 	char *output;
-};
-
-struct cases cases[] = {
+} cases[] = {
 	{"test0\\", "test0"},
 	{"te\\st1", "test1"},
 	{"te\\\\st2", "te\\st2"},
@@ -30,7 +37,7 @@ struct cases cases[] = {
 	{"\\'te\\\\st13", "'te\\st13"},
 	{"'test14\"'", "test14\""},
 	{"\"\\\\test\"", "\\test"},
-	{NULL},
+	{NULL, NULL},
 };
 
 struct {
@@ -39,6 +46,12 @@ struct {
 } anomaly[] = {
 	{ RUNCMD_HAS_REDIR, "cat lala | grep foo" },
 	{ 0, "cat lala \\| grep foo" },
+	{ RUNCMD_HAS_REDIR, "cat lala > foo" },
+	{ 0, "cat lala \\> foo" },
+	{ RUNCMD_HAS_REDIR, "cat lala >> foo" },
+	{ 0, "cat lala \\>\\> foo" },
+	{ RUNCMD_HAS_REDIR, "something < bar" },
+	{ 0, "something \\< bar" },
 	{ RUNCMD_HAS_JOBCONTROL, "foo && bar" },
 	{ 0, "foo \\&\\& bar" },
 	{ RUNCMD_HAS_JOBCONTROL, "foo & bar" },
@@ -65,6 +78,8 @@ struct {
 	{ 0, "echo \\$foo" },
 	{ RUNCMD_HAS_PAREN, "\\$(hoopla booyaka" },
 	{ 0, "\\$\\(hoopla booyaka" },
+	{ RUNCMD_HAS_JOBCONTROL, "a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a&a"},
+	{ 0, "a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a\\&a"},
 	{ 0, NULL},
 };
 
@@ -84,8 +99,15 @@ struct {
 	{ 0, "\\ \t \\\t  \\ ", 3, { " ", "\t", " ", NULL }},
 	{ 0, "\\$foo walla wonga", 3, { "$foo", "walla", "wonga", NULL }},
 	{ 0, "\"\\$bar is\" very wide open", 4, { "$bar is", "very", "wide", "open", NULL }},
+	{ 0, "VAR=VAL some command", 3, { "VAR=VAL", "some", "command", NULL}},
+	{ RUNCMD_HAS_SHVAR, "VAR=VAL some use of $VAR", 5, { "VAR=VAL", "some", "use", "of", "$VAR", NULL}},
+	{ RUNCMD_HAS_SHVAR, "VAR=$VAL some use of $VAR", 5, { "VAR=$VAL", "some", "use", "of", "$VAR", NULL}},
+	{ RUNCMD_HAS_SHVAR | RUNCMD_HAS_WILDCARD, "VAR=\"$VAL\" a wilder\\ command*", 3, { "VAR=$VAL", "a", "wilder command*", NULL}},
 	{ 0, NULL, 0, { NULL, NULL, NULL }},
 };
+
+/* We need an iobreg callback to pass to runcmd_open(). */
+static void stub_iobreg(int fdout, int fderr, void *arg) { }
 
 int main(int argc, char **argv)
 {
@@ -100,16 +122,21 @@ int main(int argc, char **argv)
 		for (i = 0; cases[i].input != NULL; i++) {
 			memset(out, 0, BUF_SIZE);
 			int pfd[2] = {-1, -1}, pfderr[2] = {-1, -1};
+			/* We need a stub iobregarg since runcmd_open()'s prototype
+			 * declares it attribute non-null. */
+			int stub_iobregarg = 0;
 			int fd;
 			char *cmd;
-			asprintf(&cmd, "/bin/echo -n %s", cases[i].input);
-			fd = runcmd_open(cmd, pfd, pfderr, NULL);
+			asprintf(&cmd, ECHO_COMMAND " -n %s", cases[i].input);
+			fd = runcmd_open(cmd, pfd, pfderr, NULL, stub_iobreg, &stub_iobregarg);
+			free(cmd);
 			read(pfd[0], out, BUF_SIZE);
 			ok_str(cases[i].output, out, "Echoing a command should give expected output");
 			close(pfd[0]);
 			close(pfderr[0]);
 			close(fd);
 		}
+		free(out);
 	}
 	ret = t_end();
 	t_reset();
@@ -121,6 +148,7 @@ int main(int argc, char **argv)
 			char *out_argv[256];
 			int result = runcmd_cmd2strv(anomaly[i].cmd, &out_argc, out_argv);
 			ok_int(result, anomaly[i].ret, anomaly[i].cmd);
+			if (out_argv[0]) free(out_argv[0]);
 		}
 	}
 	r2 = t_end();
@@ -133,12 +161,13 @@ int main(int argc, char **argv)
 			int x, out_argc;
 			char *out_argv[256];
 			int result = runcmd_cmd2strv(parse_case[i].cmd, &out_argc, out_argv);
-			out_argv[out_argc] = NULL;
-			ok_int(result, 0, parse_case[i].cmd);
+			/*out_argv[out_argc] = NULL;*//* This must be NULL terminated already. */
+			ok_int(result, parse_case[i].ret, parse_case[i].cmd);
 			ok_int(out_argc, parse_case[i].argc_exp, parse_case[i].cmd);
 			for (x = 0; x < parse_case[x].argc_exp && out_argv[x]; x++) {
 				ok_str(parse_case[i].argv_exp[x], out_argv[x], "argv comparison test");
 			}
+			if (out_argv[0]) free(out_argv[0]);
 		}
 	}
 

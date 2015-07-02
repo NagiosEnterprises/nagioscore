@@ -1410,14 +1410,24 @@ void show_service_detail(void) {
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
-	/*
 	if(temp_result_limit) {
 		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&limit=%i", temp_result_limit);
 		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
 		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
 		temp_url[sizeof(temp_url) - 1] = '\x0';
 		}
-	*/
+
+	if(use_sort) {
+		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&sorttype=%i", sort_type);
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
+		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
+		temp_url[sizeof(temp_url) - 1] = '\x0';
+
+		snprintf(temp_buffer, sizeof(temp_buffer) - 1, "&sortoption=%i", sort_option);
+		temp_buffer[sizeof(temp_buffer) - 1] = '\x0';
+		strncat(temp_url, temp_buffer, sizeof(temp_url) - strlen(temp_url) - 1);
+		temp_url[sizeof(temp_url) - 1] = '\x0';
+		}
 
 	/* GET input can override cgi.cfg */
 	if(limit_results==TRUE)

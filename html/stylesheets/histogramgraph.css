@@ -1,0 +1,137 @@
+/* General text style */
+text {
+	font-family: sans-serif;
+	font-size: 11px;
+}
+
+/* Colors for text representing states */
+text.up {
+	fill: rgb(0, 128, 0);
+}
+text.down {
+	fill: rgb(255, 0, 0);
+}
+text.unreachable {
+	fill: rgb(128, 0, 0);
+}
+text.ok {
+	fill: rgb(0, 128, 0);
+}
+text.warning {
+	fill: rgb(176, 178, 20);
+}
+text.unknown {
+	fill: rgb(255, 100, 25);
+}
+text.critical {
+	fill: rgb(255, 0, 0);
+}
+
+/* Colors for text representing states */
+path.up {
+	stroke: rgb(0, 128, 0);
+}
+path.down {
+	stroke: rgb(255, 0, 0);
+}
+path.unreachable {
+	stroke: rgb(128, 0, 0);
+}
+path.ok {
+	stroke: rgb(0, 128, 0);
+}
+path.warning {
+	stroke: rgb(176, 178, 20);
+}
+path.unknown {
+	stroke: rgb(255, 100, 25);
+}
+path.critical {
+	stroke: rgb(255, 0, 0);
+}
+
+/* Class to hide elements */
+.hidden {
+	display: none;
+}
+
+/* Trend SVG style */
+div#histogramsvg {
+	position: absolute;
+	z-index: 10;
+	left: 0;
+	top: 0;
+}
+
+/* Center header text */
+g#header text,
+g#yaxis-label text {
+	text-anchor: middle;
+}
+
+/* Anchor the y-axis text to the end of the text */
+g#xaxis text,
+g#yaxis text {
+	text-anchor: end;
+}
+
+/* Draw grid lines as dashed lines */
+g#xaxis line,
+g#yaxis line {
+	stroke-width: 1;
+	stroke: #c0c0c0;
+	stroke-dasharray: 2,4;
+	pointer-events: none;
+}
+
+/* Hide the axes path */
+g#xaxis path,
+g#yaxis path {
+	display: none;
+}
+
+/* Styles for data lines */
+g#grid path {
+	fill: none;
+	stroke-width: 1;
+}
+
+/* Styles for grid spinner */
+div#gridspinner {
+	position: absolute;
+	top: 74px;
+	left: 355px;
+	height: 50px;
+	width: 50px;
+	z-index: 40;
+}
+
+/* Styles for the summary table */
+g.summary .label {
+	text-anchor: left;
+}
+
+g.summary .value {
+	text-anchor: end;
+}
+
+g.summary line {
+	stroke-width: 1;
+	stroke: black;
+}
+
+/* Styles for menu button */
+div#menubutton {
+	position: absolute;
+	top: 5px;
+	left: 871px;
+	height: 25px;
+	width: 22px;
+	z-index: 40;
+}
+
+div#menubutton button {
+	padding: 0px;
+	border: none;
+	background-color: white;
+}

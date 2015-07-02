@@ -114,6 +114,15 @@ extern squeue_event *squeue_add_usec(squeue_t *q, time_t when, time_t usec, void
 extern squeue_event *squeue_add_msec(squeue_t *q, time_t when, time_t msec, void *data);
 
 /**
+ * Change an event's priority to a new time.
+ *
+ * @param q The scheduling queue holding the event.
+ * @param evt The event to reschedule.
+ * @param tv When the event should be rescheduled to.
+ */
+extern void squeue_change_priority_tv(squeue_t *q, squeue_event *evt, struct timeval *tv);
+
+/**
  * Returns the data of the next scheduled event from the scheduling
  * queue without removing it from the queue.
  *

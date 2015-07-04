@@ -2529,7 +2529,12 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 			if(hst->check_type == CHECK_TYPE_ACTIVE || passive_host_checks_are_soft == TRUE) {
 
 				/* set the state type */
-				hst->state_type = SOFT_STATE;
+				/* we've maxed out on the retries */
+				if(hst->current_attempt == hst->max_attempts)
+					hst->state_type = HARD_STATE;
+				/* the host is in a soft state and the check will be retried */
+				else
+					hst->state_type = SOFT_STATE;
 				}
 
 			/* by default, passive check results are treated as HARD states */

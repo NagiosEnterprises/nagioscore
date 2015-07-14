@@ -15,6 +15,7 @@ FIXES
 * Fixed Github bug #18 - archivejson.cgi returns wrong host for state change query
 * Fixed null pointer dereferences in archive JSON (Eric Stanley)
 * Fixed memory overwrite issue in JSON string escaping (Eric Stanley)
+* Fixed escaping of corewindow parameter to account for possible XSS injection (Scott Wilkerson)
 
 4.0.8 - 08/12/2014
 ------------------

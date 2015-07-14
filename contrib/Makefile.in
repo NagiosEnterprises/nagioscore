@@ -45,6 +45,7 @@ clean:
 	rm -f */*/*~
 	rm -f */*~
 	rm -f *~
+	rm -rf rpmbuild *.rpm
 
 distclean: clean
 	rm -f Makefile
@@ -83,3 +84,31 @@ $(CGI_O): $(CGI_C)
 
 %.cgi : %.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(CGI_O) -o $@
+
+##############################################################################
+# rpm making automation for CentOS/RHEL.
+
+ARCH ?= $(shell arch)
+ifeq ($(ARCH),x86_64)
+RPM_ARCH := x86_64
+else
+    ifeq ($(ARCH),i686)
+RPM_ARCH := i386
+    else
+$(error Unknown arch "$(ARCH)".)
+    endif
+endif
+
+rpm:
+	# create nagios tar ball.
+	@(cd ..;rm -f nagios-@VERSION@)
+	@(cd ..;ln -s . nagios-@VERSION@)
+	@(cd ..;tar zhcf nagios-@VERSION@.tar.gz --exclude nagios-@VERSION@/nagios-@VERSION@.tar.gz --exclude nagios-@VERSION@/nagios-@VERSION@ --exclude RCS --exclude CVS --exclude build-* --exclude *~ --exclude .git* nagios-@VERSION@/)
+	@(cd ..;rm -f nagios-@VERSION@)
+	# build the rpm using rpmbuild from ./rmbuild as topdir
+	@rm -rf rpmbuild && mkdir -p rpmbuild/SOURCES
+	@cp  ../nagios-@VERSION@.tar.gz rpmbuild/SOURCES/nagios-@VERSION@.tar.gz
+	@rpmbuild -ba --define "_topdir ${PWD}/rpmbuild"   ../nagios.spec
+	@mv rpmbuild/RPMS/$(RPM_ARCH)/*.rpm .
+	@ls -l *.rpm
+

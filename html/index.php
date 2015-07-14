@@ -8,8 +8,8 @@ if (isset($_GET['corewindow'])) {
 	$a = parse_url($_GET['corewindow']);
 
 	// Build the base url.
-	$url = $a['path'].'?';
-	if (isset($a['host'])) $url = $a['scheme'].'://'.$a['host'].$url;
+	$url = htmlentities($a['path']).'?';
+	$url = (isset($a['host'])) ? $a['scheme'].'://'.$a['host'].$url : '/'.$url;
 
 	$query = isset($a['query']) ? $a['query'] : '';
 	$pairs = explode('&', $query);

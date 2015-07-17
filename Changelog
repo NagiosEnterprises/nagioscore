@@ -26,6 +26,9 @@ FIXES
 * Fixed makefile target "html" to PHONY to fix GitHub issue #28 (Trevor McDonald)
 * Fixed typo as per GitHub issue #27 (Trevor McDonald)
 
+KNOWN ISSUES
+* New map does not account for multiple parents, leaving "legacy" map as an option in the menu
+
 4.0.8 - 08/12/2014
 ------------------
 ENHANCEMENTS

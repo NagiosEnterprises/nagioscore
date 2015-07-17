@@ -9,15 +9,10 @@ AC_CONFIG_HEADER(include/config.h lib/snprintf.h lib/iobroker.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
-<<<<<<< HEAD
-PKG_VERSION="4.0.6"
-PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="04-29-2014"
-=======
+
 PKG_VERSION="4.1.0rc1"
 PKG_HOME_URL="https://www.nagios.org/"
 PKG_REL_DATE="02-18-2015"
->>>>>>> 73c9ef199f7ffd61b79d10f0a26808c16a520dd0
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL

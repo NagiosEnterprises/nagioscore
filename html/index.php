@@ -8,11 +8,7 @@ if (isset($_GET['corewindow'])) {
 	$a = parse_url($_GET['corewindow']);
 
 	// Build the base url.
-<<<<<<< HEAD
-	$url = htmlentities($a['path'], ).'?';
-=======
 	$url = htmlentities($a['path']).'?';
->>>>>>> 73c9ef199f7ffd61b79d10f0a26808c16a520dd0
 	$url = (isset($a['host'])) ? $a['scheme'].'://'.$a['host'].$url : '/'.$url;
 
 	$query = isset($a['query']) ? $a['query'] : '';

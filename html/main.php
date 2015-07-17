@@ -129,11 +129,7 @@ $this_year = '2015';
 <div id="currentversioninfo">
 	<div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
 	<div class="version">Version <?php echo $this_version; ?></div>
-<<<<<<< HEAD
-	<div class="releasedate">April 29, 2014</div>
-=======
 	<div class="releasedate">February 18, 2015</div>
->>>>>>> 73c9ef199f7ffd61b79d10f0a26808c16a520dd0
 	<div class="checkforupdates"><a href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a></div>
 </div>
 

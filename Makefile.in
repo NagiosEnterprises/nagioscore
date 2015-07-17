@@ -65,7 +65,7 @@ indent:
 	@sh indent-all.sh
 
 ctags:
-	ctags -R --exclude=html/angularjs --exclude=html/d3
+	ctags -R --exclude=html/angularjs --exclude=html/d3 --exclude=t-tap
 
 all:
 	cd $(SRC_BASE) && $(MAKE)

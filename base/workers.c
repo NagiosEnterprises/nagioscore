@@ -290,6 +290,8 @@ static void destroy_job(struct wproc_job *job)
 	case WPJOB_SVC_EVTHANDLER:
 	case WPJOB_GLOBAL_HOST_EVTHANDLER:
 	case WPJOB_HOST_EVTHANDLER:
+	case WPJOB_HOST_PERFDATA:
+	case WPJOB_SVC_PERFDATA:
 		/* these require nothing special */
 		break;
 	case WPJOB_CALLBACK:
@@ -771,6 +773,11 @@ static int handle_worker_result(int sd, int events, void *arg)
 
 		case WPJOB_CALLBACK:
 			run_job_callback(job, &wpres, 0);
+			break;
+
+		case WPJOB_HOST_PERFDATA:
+		case WPJOB_SVC_PERFDATA:
+			/* these require nothing special */
 			break;
 
 		default:

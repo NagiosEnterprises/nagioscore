@@ -118,7 +118,7 @@ int xsddefault_save_status_data(void) {
 	host *temp_host = NULL;
 	service *temp_service = NULL;
 	contact *temp_contact = NULL;
-	comment *temp_comment = NULL;
+	nagios_comment *temp_comment = NULL;
 	scheduled_downtime *temp_downtime = NULL;
 	time_t current_time;
 	int fd = 0;

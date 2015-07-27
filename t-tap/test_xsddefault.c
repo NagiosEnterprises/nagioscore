@@ -41,7 +41,7 @@
 #include "../include/skiplist.h"
 #include "tap.h"
 
-extern comment *comment_list;
+extern nagios_comment *comment_list;
 extern scheduled_downtime *scheduled_downtime_list;
 
 int main(int argc, char **argv) {
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 	int c;
 	int last_id;
 	time_t last_time;
-	comment *temp_comment;
+	nagios_comment *temp_comment;
 	scheduled_downtime *temp_downtime;
 
 	plan_tests(7);

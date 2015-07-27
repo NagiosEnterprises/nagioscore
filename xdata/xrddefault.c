@@ -87,7 +87,7 @@ int xrddefault_save_state_information(void) {
 	host *temp_host = NULL;
 	service *temp_service = NULL;
 	contact *temp_contact = NULL;
-	comment *temp_comment = NULL;
+	nagios_comment *temp_comment = NULL;
 	scheduled_downtime *temp_downtime = NULL;
 	int x = 0;
 	int fd = 0;

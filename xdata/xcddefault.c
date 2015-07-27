@@ -40,7 +40,7 @@
 
 /* initialize comment data */
 int xcddefault_initialize_comment_data(void) {
-	comment *temp_comment = NULL;
+	nagios_comment *temp_comment = NULL;
 
 	/* find the new starting index for comment id if its missing*/
 	if(next_comment_id == 0L) {

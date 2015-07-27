@@ -123,7 +123,7 @@ typedef struct status_json_cgi_data_struct {
 	/* ID of comment for which details should be returned */
 	int			comment_id;
 	/* Comment whose id is comment_id */
-	comment *	comment;
+	nagios_comment *comment;
 	/* ID of downtime for which details should be returned */
 	int		 	downtime_id;
 	/* Downtime whose id is downtime_id */
@@ -260,8 +260,9 @@ extern json_object *json_status_commentcount(unsigned, int, time_t, time_t,
 		unsigned, unsigned, unsigned, unsigned, char *, char *);
 extern json_object *json_status_commentlist(unsigned, int, int, int, int, 
 		time_t, time_t, unsigned, unsigned, unsigned, unsigned, char *, char *);
-extern json_object *json_status_comment(unsigned, comment *);
-extern void json_status_comment_details(json_object *, unsigned, comment *);
+extern json_object *json_status_comment(unsigned, nagios_comment *);
+extern void json_status_comment_details(json_object *, unsigned,
+		nagios_comment *);
 
 extern json_object *json_status_downtimecount(unsigned, int, time_t, time_t, 
 		unsigned, unsigned, unsigned, int, unsigned, char *, char *);

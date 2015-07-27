@@ -191,7 +191,7 @@ static int downtime_add(scheduled_downtime *dt)
 	return OK;
 }
 
-static void downtime_remove(scheduled_downtime *dt)
+void downtime_remove(scheduled_downtime *dt)
 {
 	fanout_remove(dt_fanout, dt->downtime_id);
 	if(scheduled_downtime_list == dt)

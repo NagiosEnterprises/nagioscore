@@ -602,7 +602,6 @@ int main(void) {
 	int result = OK;
 	time_t query_time;
 	object_json_cgi_data	cgi_data;
-	int whitespace;
 	json_object *json_root;
 	struct stat ocstat;
 	time_t	last_object_cache_update = (time_t)0;
@@ -635,7 +634,6 @@ int main(void) {
 		document_footer();
 		return result;
 		}
-	whitespace = cgi_data.format_options & JSON_FORMAT_WHITESPACE;
 
 	/* reset internal variables */
 	reset_cgi_vars();
@@ -1291,7 +1289,6 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 	char **variables;
 	int result = RESULT_SUCCESS;
 	int x;
-	int whitespace;
 	authdata *authinfo = NULL; /* Currently always NULL because
 									get_authentication_information() hasn't
 									been called yet, but in case we want to
@@ -1302,7 +1299,6 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 	for(x = 0; variables[x] != NULL; x++) {
 		/* We set these each iteration because they could change with each
 			iteration */
-		whitespace = cgi_data->format_options & JSON_FORMAT_WHITESPACE;
 
 		if(!strcmp(variables[x], "query")) {
 			if((result = parse_enumeration_cgivar(THISCGI, 

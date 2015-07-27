@@ -600,7 +600,6 @@ int main(void) {
 	int result = OK;
 	time_t query_time;
 	archive_json_cgi_data	cgi_data;
-	int whitespace;
 	json_object *json_root;
 	au_log *log;
 	time_t last_archive_data_update = (time_t)0;
@@ -634,7 +633,6 @@ int main(void) {
 		document_footer();
 		return result;
 		}
-	whitespace = cgi_data.format_options & JSON_FORMAT_WHITESPACE;
 
 	/* reset internal variables */
 	reset_cgi_vars();
@@ -1078,7 +1076,6 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 	char **variables;
 	int result = RESULT_SUCCESS;
 	int x;
-	int whitespace;
 	authdata *authinfo = NULL; /* Currently always NULL because
 									get_authentication_information() hasn't
 									been called yet, but in case we want to
@@ -1089,7 +1086,6 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 	for(x = 0; variables[x] != NULL; x++) {
 		/* We set these each iteration because they could change with each
 			iteration */
-		whitespace = cgi_data->format_options & JSON_FORMAT_WHITESPACE;
 
 		if(!strcmp(variables[x], "query")) {
 			if((result = parse_enumeration_cgivar(THISCGI, 
@@ -3026,26 +3022,20 @@ json_object *json_archive_statechangelist(unsigned format_options,
 	au_node *temp_node;
 	int initial_host_state = AU_STATE_NO_DATA;
 	int	initial_service_state = AU_STATE_NO_DATA;
-	int last_host_state = AU_STATE_NO_DATA;
-	int	last_service_state = AU_STATE_NO_DATA;
 	au_log_entry *temp_entry = NULL;
 	au_log_alert *temp_state_log = NULL;
 	au_log_alert *start_log = NULL;
 	au_log_alert *end_log = NULL;
 	au_host *temp_host = NULL;
 	au_service *temp_service = NULL;
-	void *object = NULL;
 	int have_seen_first_entry = 0;
 	int current = 0;
 	int counted = 0;
 
-	if(assumed_initial_host_state != AU_STATE_NO_DATA) {
-		last_host_state = initial_host_state = assumed_initial_host_state;
-		}
-	if(assumed_initial_service_state != AU_STATE_NO_DATA) {
-		last_service_state = initial_service_state = 
-				assumed_initial_service_state;
-		}
+	if(assumed_initial_host_state != AU_STATE_NO_DATA)
+		initial_host_state = assumed_initial_host_state;
+	if(assumed_initial_service_state != AU_STATE_NO_DATA)
+		initial_service_state = assumed_initial_service_state;
 
 	json_data = json_new_object();
 	json_object_append_object(json_data, "selectors", 
@@ -3069,13 +3059,11 @@ json_object *json_archive_statechangelist(unsigned format_options,
 		switch(temp_state_log->obj_type) {
 		case AU_OBJTYPE_HOST:
 			temp_host = (au_host *)temp_state_log->object;
-			object = (void *)temp_host;
 			temp_service = NULL;
 			break;
 		case AU_OBJTYPE_SERVICE:
 			temp_host = NULL;
 			temp_service = (au_service *)temp_state_log->object;
-			object = (void *)temp_service;
 			break;
 			}
 
@@ -3094,16 +3082,12 @@ json_object *json_archive_statechangelist(unsigned format_options,
 				state */
 			switch(temp_state_log->obj_type) {
 			case AU_OBJTYPE_HOST:
-				if(AU_STATE_NO_DATA == assumed_initial_host_state) {
-					last_host_state = initial_host_state = 
-							temp_state_log->state;
-					}
+				if(AU_STATE_NO_DATA == assumed_initial_host_state)
+					initial_host_state = temp_state_log->state;
 				break;
 			case AU_OBJTYPE_SERVICE:
-				if(AU_STATE_NO_DATA == assumed_initial_service_state) {
-					last_service_state = initial_service_state = 
-							temp_state_log->state;
-					}
+				if(AU_STATE_NO_DATA == assumed_initial_service_state)
+					initial_service_state = temp_state_log->state;
 				break;
 				}
 			continue;

@@ -106,7 +106,11 @@ int neb_add_core_module(nebmodule *mod) {
 	mod->should_be_loaded = FALSE;
 	mod->is_currently_loaded = TRUE;
 	mod->core_module = TRUE;
+#ifdef USE_LTDL
+	mod->module_handle = (lt_dlhandle)mod;
+#else
 	mod->module_handle = mod;
+#endif
 	mod->next = neb_module_list;
 	neb_module_list = mod;
 	return 0;

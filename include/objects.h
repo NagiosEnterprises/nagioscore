@@ -148,7 +148,7 @@ typedef struct notify_list {
  */
 struct check_engine {
 	char *name;         /* "Nagios Core", "Merlin", "Mod Gearman" fe */
-	const char *(*source_name)(void *);
+	const char *(*source_name)( const void *);
 	void (*clean_result)(void *);
 };
 
@@ -170,9 +170,9 @@ typedef struct check_result {
 	int exited_ok;					/* did the plugin check return okay? */
 	int return_code;				/* plugin return code */
 	char *output;	                                /* plugin output */
-	struct rusage rusage;			/* resource usage by this check */
-	struct check_engine *engine;	/* where did we get this check from? */
-	void *source;					/* engine handles this */
+	struct rusage rusage;   			/* resource usage by this check */
+	struct check_engine *engine;                    /* where did we get this check from? */
+	const void *source;				/* engine handles this */
 	} check_result;
 
 

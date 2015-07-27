@@ -179,7 +179,7 @@ static int reg_one(iobroker_set *iobs, int fd, int events, void *arg, int (*hand
 	if (!iobs) {
 		return IOBROKER_ENOSET;
 	}
-	if (fd < 0 || fd > iobs->max_fds)
+	if (fd < 0 || fd >= iobs->max_fds)
 		return IOBROKER_EINVAL;
 
 	/*

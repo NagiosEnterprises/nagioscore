@@ -416,11 +416,11 @@ void init_main_cfg_vars(int first_time) {
 	}
 
 
-static const char *worker_source_name(void *source) {
+static const char *worker_source_name(const void *source) {
 	return source ? (const char *)source : "unknown internal source (voodoo, perhaps?)";
 	}
 
-static const char *spool_file_source_name(void *source) {
+static const char *spool_file_source_name(const void *source) {
 	return "check result spool dir";
 	}
 
@@ -1117,7 +1117,7 @@ static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod)
 			/* time falls inside the range of days
 			 * end time < start_time when range covers end-of-$unit
 			 * (fe. end-of-month) */
-			if((midnight + 84800 >= start_time && (midnight <= end_time || start_time > end_time)) || (midnight <= end_time && start_time > end_time)) {
+			if((midnight + 84800UL >= start_time && (midnight <= end_time || start_time > end_time)) || (midnight <= end_time && start_time > end_time)) {
 #ifdef TEST_TIMEPERIODS_A
 				printf("(MATCH)\n");
 #endif
@@ -2131,7 +2131,7 @@ int process_check_result(check_result *cr)
 
 /* Unescapes newlines in a string. Declared here for now as it's not used
  * elsewhere. */
-static char *unescape_check_result_file_output(char*);
+/* static char *unescape_check_result_file_output(char*); */
 
 /* reads check result(s) from a file */
 int process_check_result_file(char *fname) {

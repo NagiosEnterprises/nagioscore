@@ -12,6 +12,7 @@ Makefile
 tags
 .deps/
 .libs/
+nbproject/
 *.o
 *.la
 *.lo

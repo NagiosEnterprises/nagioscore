@@ -4910,6 +4910,9 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 				return ERROR;
 			}
 		}
+
+        bitmap_clear(service_map);
+
 		for(clist = children; clist; clist = clist->next) {
 			xodtemplate_service *c = (xodtemplate_service *)clist->object_ptr;
 			if(bitmap_isset(service_map, c->id))

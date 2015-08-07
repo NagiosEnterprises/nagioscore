@@ -3377,6 +3377,7 @@ void fcache_servicedependency(FILE *fp, servicedependency *temp_servicedependenc
 {
 	fprintf(fp, "define servicedependency {\n");
 	fprintf(fp, "\thost_name\t%s\n", temp_servicedependency->host_name);
+	fprintf(fp, "\tdependency_type\t%d\n", temp_servicedependency->dependency_type);
 	fprintf(fp, "\tservice_description\t%s\n", temp_servicedependency->service_description);
 	fprintf(fp, "\tdependent_host_name\t%s\n", temp_servicedependency->dependent_host_name);
 	fprintf(fp, "\tdependent_service_description\t%s\n", temp_servicedependency->dependent_service_description);

@@ -11,6 +11,9 @@ ENHANCEMENTS
 * Add host_down_disable_service_checks directive to nagios.cfg #44 (Trevor McDonald / Scott Wilkerson)
 
 FIXES
+* Fixed Service Dependency getting ignored (John Frickson)
+* Flexible downtime recorded as unscheduled downtime (John Frickson)
+* Flexible downtimes produce 1 notification before entering downtime (John Frickson)
 * Fixed compilation on Solaris (Eric Mislivec)
 * Fixed escaping of keys for scalar values in JSON CGIs (Eric Stanley)
 * Fixed checkresult output processing (Eric Mislivec)

@@ -3291,7 +3291,7 @@ static int add_custom_macro_environment_vars_r(nagios_macros *mac,
 		customvarvalue = 
 				clean_macro_chars(temp_customvariablesmember->variable_value,
 				STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS);
-		if(NULL != customvarvalue) {
+		if(customvarvalue && *customvarvalue) {
 			my_free(temp_customvariablesmember->variable_value);
 			temp_customvariablesmember->variable_value = customvarvalue;
 			/* Allocate memory for each environment variable name, but not the 
@@ -3323,7 +3323,7 @@ static int add_custom_macro_environment_vars_r(nagios_macros *mac,
 		customvarvalue =
 				clean_macro_chars(temp_customvariablesmember->variable_value,
 				STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS);
-		if(NULL != customvarvalue) {
+		if(customvarvalue && *customvarvalue) {
 			my_free(temp_customvariablesmember->variable_value);
 			temp_customvariablesmember->variable_value = customvarvalue;
 			/* Allocate memory for each environment variable name, but not the 
@@ -3355,7 +3355,7 @@ static int add_custom_macro_environment_vars_r(nagios_macros *mac,
 		customvarvalue = 
 				clean_macro_chars(temp_customvariablesmember->variable_value,
 				STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS);
-		if(NULL != customvarvalue) {
+		if(customvarvalue && *customvarvalue) {
 			my_free(temp_customvariablesmember->variable_value);
 			temp_customvariablesmember->variable_value = customvarvalue;
 			/* Allocate memory for each environment variable name, but not the 

@@ -2151,7 +2151,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 					}
 
 				/* get the variable value */
-				if(strcmp(value, XODTEMPLATE_NULL))
+				if(*value && strcmp(value, XODTEMPLATE_NULL))
 					customvarvalue = (char *)strdup(value);
 				else
 					customvarvalue = NULL;
@@ -2979,7 +2979,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 					}
 
 				/* get the variable value */
-				if(strcmp(value, XODTEMPLATE_NULL))
+				if(*value && strcmp(value, XODTEMPLATE_NULL))
 					customvarvalue = (char *)strdup(value);
 				else
 					customvarvalue = NULL;

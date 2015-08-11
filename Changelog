@@ -11,6 +11,7 @@ ENHANCEMENTS
 * Add host_down_disable_service_checks directive to nagios.cfg #44 (Trevor McDonald / Scott Wilkerson)
 
 FIXES
+* Fix contact macros in environment variables (dvoryanchikov)
 * Fixed host's current attempt goes to 1 after going to hard state (John Frickson)
 * Fixed two bugs/problems: Replace use of %zd in base/utils.c & incorrect va_start() in cgi/jsonutils.c (Peter Eriksson)
 * Fixed: Let remove_specialized actually remove all workers (Phil Mayers)

@@ -4,10 +4,13 @@ Nagios Core 4 Change Log
 
 4.1.x - xx/xx/xxxx
 ------------------
+SECURITY FIXES
+* Fixed vulnerability CVE-2008-4796 (John Frickson)
+
 ENHANCEMENTS
 
 FIXES
-* Fixed vulnerability CVE-2008-4796 (John Frickson)
+* Added function nwrite() to handle partial writes (velripn / John Frickson)
 
 KNOWN ISSUES
 

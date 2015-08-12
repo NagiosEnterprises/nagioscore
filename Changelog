@@ -2,6 +2,16 @@
 Nagios Core 4 Change Log
 ########################
 
+4.1.x - xx/xx/xxxx
+------------------
+ENHANCEMENTS
+
+FIXES
+* Fixed vulnerability CVE-2008-4796 (John Frickson)
+
+KNOWN ISSUES
+
+
 4.1.0 - xx/xx/xxxx
 ------------------
 ENHANCEMENTS
@@ -11,6 +21,7 @@ ENHANCEMENTS
 * Add host_down_disable_service_checks directive to nagios.cfg #44 (Trevor McDonald / Scott Wilkerson)
 
 FIXES
+* Fix SIGSEGV with empty custom variable (orbis / John Frickson)
 * Fix contact macros in environment variables (dvoryanchikov)
 * Fixed host's current attempt goes to 1 after going to hard state (John Frickson)
 * Fixed two bugs/problems: Replace use of %zd in base/utils.c & incorrect va_start() in cgi/jsonutils.c (Peter Eriksson)

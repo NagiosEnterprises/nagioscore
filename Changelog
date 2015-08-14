@@ -22,6 +22,7 @@ ENHANCEMENTS
 * New graphical CGI displays: statusmap, trends, histogram (Eric Stanley)
 * Make sticky status for acks and comments configurable enhancement #20 (Trevor McDonald / Scott Wilkerson)
 * Add host_down_disable_service_checks directive to nagios.cfg #44 (Trevor McDonald / Scott Wilkerson)
+* httpd.conf doesn't support Apache versions > 2.3 (DanielB / John Frickson)
 
 FIXES
 * Fix SIGSEGV with empty custom variable (orbis / John Frickson)

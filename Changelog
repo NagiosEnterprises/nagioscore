@@ -8,6 +8,7 @@ SECURITY FIXES
 * Fixed vulnerability CVE-2008-4796 (John Frickson)
 
 ENHANCEMENTS
+* Increase socket queue length for listen()
 
 FIXES
 * Added function nwrite() to handle partial writes (velripn / John Frickson)

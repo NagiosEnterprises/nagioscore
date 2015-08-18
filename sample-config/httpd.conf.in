@@ -11,15 +11,29 @@ ScriptAlias @cgiurl@ "@sbindir@"
 #  SSLRequireSSL
    Options ExecCGI
    AllowOverride None
-   Order allow,deny
-   Allow from all
-#  Order deny,allow
-#  Deny from all
-#  Allow from 127.0.0.1
-   AuthName "Nagios Access"
-   AuthType Basic
-   AuthUserFile @sysconfdir@/htpasswd.users
-   Require valid-user
+   <IfVersion >= 2.3>
+      <RequireAll>
+         Require all granted
+#        Require host 127.0.0.1
+
+         AuthName "Nagios Access"
+         AuthType Basic
+         AuthUserFile @sysconfdir@/htpasswd.users
+         Require valid-user
+      </RequireAll>
+   </IfVersion>
+   <IfVersion < 2.3>
+      Order allow,deny
+      Allow from all
+#     Order deny,allow
+#     Deny from all
+#     Allow from 127.0.0.1
+
+      AuthName "Nagios Access"
+      AuthType Basic
+      AuthUserFile @sysconfdir@/htpasswd.users
+      Require valid-user
+   </IfVersion>
 </Directory>
 
 Alias @htmurl@ "@datadir@"
@@ -28,14 +42,27 @@ Alias @htmurl@ "@datadir@"
 #  SSLRequireSSL
    Options None
    AllowOverride None
-   Order allow,deny
-   Allow from all
-#  Order deny,allow
-#  Deny from all
-#  Allow from 127.0.0.1
-   AuthName "Nagios Access"
-   AuthType Basic
-   AuthUserFile @sysconfdir@/htpasswd.users
-   Require valid-user
-</Directory>
+   <IfVersion >= 2.3>
+      <RequireAll>
+         Require all granted
+#        Require host 127.0.0.1
 
+         AuthName "Nagios Access"
+         AuthType Basic
+         AuthUserFile @sysconfdir@/htpasswd.users
+         Require valid-user
+      </RequireAll>
+   </IfVersion>
+   <IfVersion < 2.3>
+      Order allow,deny
+      Allow from all
+#     Order deny,allow
+#     Deny from all
+#     Allow from 127.0.0.1
+
+      AuthName "Nagios Access"
+      AuthType Basic
+      AuthUserFile @sysconfdir@/htpasswd.users
+      Require valid-user
+   </IfVersion>
+</Directory>

@@ -3174,7 +3174,7 @@ struct kvvec * macros_to_kvv(nagios_macros *mac) {
 
 	/* Create the kvvec to hold the macros */
 	if((kvvp = calloc(1, sizeof(struct kvvec))) == NULL) return NULL;
-	if(!kvvec_init(kvvp, MACRO_X_COUNT + MAX_COMMAND_ARGUMENTS + MAX_CONTACT_ADDRESSES)) return NULL;
+	if(!kvvec_init(kvvp, MACRO_X_COUNT + MAX_COMMAND_ARGUMENTS + MAX_CONTACT_ADDRESSES + 4)) return NULL;
 
 	add_macrox_environment_vars_r(mac, kvvp);
 	add_argv_macro_environment_vars_r(mac, kvvp);
@@ -3291,7 +3291,7 @@ static int add_custom_macro_environment_vars_r(nagios_macros *mac,
 		customvarvalue = 
 				clean_macro_chars(temp_customvariablesmember->variable_value,
 				STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS);
-		if(NULL != customvarvalue) {
+		if(customvarvalue && *customvarvalue) {
 			my_free(temp_customvariablesmember->variable_value);
 			temp_customvariablesmember->variable_value = customvarvalue;
 			/* Allocate memory for each environment variable name, but not the 
@@ -3323,7 +3323,7 @@ static int add_custom_macro_environment_vars_r(nagios_macros *mac,
 		customvarvalue =
 				clean_macro_chars(temp_customvariablesmember->variable_value,
 				STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS);
-		if(NULL != customvarvalue) {
+		if(customvarvalue && *customvarvalue) {
 			my_free(temp_customvariablesmember->variable_value);
 			temp_customvariablesmember->variable_value = customvarvalue;
 			/* Allocate memory for each environment variable name, but not the 
@@ -3355,7 +3355,7 @@ static int add_custom_macro_environment_vars_r(nagios_macros *mac,
 		customvarvalue = 
 				clean_macro_chars(temp_customvariablesmember->variable_value,
 				STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS);
-		if(NULL != customvarvalue) {
+		if(customvarvalue && *customvarvalue) {
 			my_free(temp_customvariablesmember->variable_value);
 			temp_customvariablesmember->variable_value = customvarvalue;
 			/* Allocate memory for each environment variable name, but not the 
@@ -3381,6 +3381,15 @@ static int add_contact_address_environment_vars_r(nagios_macros *mac,
 	/* these only get set during notifications */
 	if(mac->contact_ptr == NULL)
 		return OK;
+
+	asprintf(&varname, "%sCONTACTNAME", MACRO_ENV_VAR_PREFIX);
+	kvvec_addkv(kvvp, varname, mac->contact_ptr->name);
+    asprintf(&varname, "%sCONTACTALIAS", MACRO_ENV_VAR_PREFIX);
+    kvvec_addkv(kvvp, varname, mac->contact_ptr->alias);
+    asprintf(&varname, "%sCONTACTEMAIL", MACRO_ENV_VAR_PREFIX);
+    kvvec_addkv(kvvp, varname, mac->contact_ptr->email);
+    asprintf(&varname, "%sCONTACTPAGER", MACRO_ENV_VAR_PREFIX);
+    kvvec_addkv(kvvp, varname, mac->contact_ptr->pager);
 
 	for(x = 0; x < MAX_CONTACT_ADDRESSES; x++) {
 		/* Allocate memory for each environment variable name, but not the 

@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.1.0 - xx/xx/xxxx
+4.1.0 - 08/18/2015
 ------------------
 ENHANCEMENTS
 * Promoted JSON CGIs to released status (Eric Stanley)
@@ -12,6 +12,7 @@ ENHANCEMENTS
 * httpd.conf doesn't support Apache versions > 2.3 (DanielB / John Frickson)
 
 FIXES
+* Fix for not all service dependencies created (John Frickson)
 * Fix SIGSEGV with empty custom variable (orbis / John Frickson)
 * Fix contact macros in environment variables (dvoryanchikov)
 * Fixed host's current attempt goes to 1 after going to hard state (John Frickson)

@@ -21,7 +21,7 @@
 
 Summary: Open Source host, service and network monitoring program
 Name: nagios
-Version: 4.1.0rc3
+Version: 4.1.0
 Release: 2%{?dist}
 License: GPL
 Group: Applications/System

@@ -2,6 +2,13 @@
 Nagios Core 4 Change Log
 ########################
 
+4.1.1 - 08/19/2015
+------------------
+FIXES
+* CGI Could not read object configuration data (broken by error in 4.1.0)
+* exclude (!) not working (broken by mis-applied fix for 4.1.0)
+
+
 4.1.0 - 08/18/2015
 ------------------
 ENHANCEMENTS

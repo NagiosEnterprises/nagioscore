@@ -4896,6 +4896,9 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 			continue;
 		bitmap_set(parent_map, p->id);
 
+        bitmap_clear(service_map);
+
+
 		/*
 		 * if this is a same-host dependency, we must expand
 		 * dependent_service_description for the host we're
@@ -4910,8 +4913,6 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 				return ERROR;
 			}
 		}
-
-        bitmap_clear(service_map);
 
 		for(clist = children; clist; clist = clist->next) {
 			xodtemplate_service *c = (xodtemplate_service *)clist->object_ptr;

@@ -2,8 +2,12 @@
 Nagios Core 4 Change Log
 ########################
 
+
 4.1.x - xx/xx/xxxx
 ------------------
+SECURITY FIXES
+* Fixed vulnerability CVE-2008-4796 (John Frickson)
+
 ENHANCEMENTS
 * Increase socket queue length for listen()
 
@@ -11,7 +15,6 @@ FIXES
 * "View Status" links under "Map" broken in Nagios Core Version 4.1.1 (John Frickson)
 * Can't send big buffer - wproc: Core Worker seems to be choked (velripn / John Frickson)
 * Too big CPU load on FreeBSD and other systems using poll() interface (cejkar)
-FIXES
 * Flexible downtime recorded as unscheduled downtime (John Frickson)
 
 4.1.1 - 08/19/2015

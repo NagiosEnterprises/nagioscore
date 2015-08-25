@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.1.x - xx/xx/xxxx
+------------------
+FIXES
+* Can't send big buffer - wproc: Core Worker seems to be choked (velripn / John Frickson)
+
 4.1.1 - 08/19/2015
 ------------------
 FIXES

@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.1.x - xx/xx/xxxx
+------------------
+FIXES
+* Too big CPU load on FreeBSD and other systems using poll() interface (cejkar)
+
 4.1.1 - 08/19/2015
 ------------------
 FIXES

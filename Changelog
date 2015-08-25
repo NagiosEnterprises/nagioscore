@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.1.x - xx/xx/xxxx
+------------------
+FIXES
+* "View Status" links under "Map" broken in Nagios Core Version 4.1.1 (John Frickson)
+
 4.1.1 - 08/19/2015
 ------------------
 FIXES

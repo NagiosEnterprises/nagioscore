@@ -287,6 +287,7 @@ int launch_command_file_worker(void) {
 	str = strdup(command_file);
 	free_memory(get_global_macros());
 	command_file = str;
+	signal(SIGPIPE, SIG_IGN);
 	exit(command_file_worker(sv[1]));
 
 	/* error conditions for parent */

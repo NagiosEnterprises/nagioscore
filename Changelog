@@ -10,6 +10,7 @@ SECURITY FIXES
 
 ENHANCEMENTS
 * Increase socket queue length for listen()
+* Added host name to the website page title (leres / John Frickson)
 
 FIXES
 * Command worker fails to handle SIGPIPE

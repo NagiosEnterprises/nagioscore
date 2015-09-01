@@ -30,7 +30,9 @@ $this_year = '2015';
 <html>
 <head>
 	<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
-	<title>Nagios Core</title>
+<script LANGUAGE="javascript">
+	document.write("<title>Nagios Core on " + window.location.hostname + "</title>");
+</script>
 	<link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
 </head>
 

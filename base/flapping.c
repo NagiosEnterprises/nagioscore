@@ -120,13 +120,20 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 	log_debug_info(DEBUGL_FLAPPING, 2, "LFT=%.2f, HFT=%.2f, CPC=%.2f, PSC=%.2f%%\n", low_threshold, high_threshold, curved_percent_change, curved_percent_change);
 
 
-	/* don't do anything if we don't have flap detection enabled on a program-wide basis */
-	if(enable_flap_detection == FALSE)
+	/* don't do anything if we don't have flap detection enabled
+	   on a program-wide basis or for this service */
+	if(enable_flap_detection == FALSE || svc->flap_detection_enabled == FALSE) {
+		if(svc->is_flapping == TRUE) {
+			log_debug_info(DEBUGL_FLAPPING, 1, "Disabled flap detection for service '%s' on host '%s'.\n", svc->description, svc->host_name);
+			/* delete the comment we added earlier */
+			if(svc->flapping_comment_id != 0)
+				delete_service_comment(svc->flapping_comment_id);
+			svc->flapping_comment_id = 0;
+			svc->is_flapping = FALSE;
+			svc->check_flapping_recovery_notification = FALSE;
+		}
 		return;
-
-	/* don't do anything if we don't have flap detection enabled for this service */
-	if(svc->flap_detection_enabled == FALSE)
-		return;
+	}
 
 	/* are we flapping, undecided, or what?... */
 
@@ -253,13 +260,20 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 	log_debug_info(DEBUGL_FLAPPING, 2, "LFT=%.2f, HFT=%.2f, CPC=%.2f, PSC=%.2f%%\n", low_threshold, high_threshold, curved_percent_change, curved_percent_change);
 
 
-	/* don't do anything if we don't have flap detection enabled on a program-wide basis */
-	if(enable_flap_detection == FALSE)
+	/* don't do anything if we don't have flap detection enabled
+	   on a program-wide basis or for this service */
+	if(enable_flap_detection == FALSE || hst->flap_detection_enabled == FALSE) {
+		if(hst->is_flapping == TRUE) {
+			log_debug_info(DEBUGL_FLAPPING, 1, "Disabled flap detection for host '%s'.\n", hst->name);
+			/* delete the comment we added earlier */
+			if(hst->flapping_comment_id != 0)
+				delete_host_comment(hst->flapping_comment_id);
+			hst->flapping_comment_id = 0;
+			hst->is_flapping = FALSE;
+			hst->check_flapping_recovery_notification = FALSE;
+		}
 		return;
-
-	/* don't do anything if we don't have flap detection enabled for this host */
-	if(hst->flap_detection_enabled == FALSE)
-		return;
+	}
 
 	/* are we flapping, undecided, or what?... */
 

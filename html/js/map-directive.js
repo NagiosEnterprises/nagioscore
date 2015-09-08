@@ -1143,6 +1143,9 @@ angular.module("mapApp")
 												img.node().naturalWidth;
 										$scope.iconList[image].height =
 												img.node().naturalHeight;
+									})
+									.on("error", function() {
+										$scope.iconsLoading--;
 									});
 							}
 							$scope.hostList[host].iconInfo =

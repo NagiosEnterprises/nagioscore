@@ -580,7 +580,7 @@ int main(int argc, char **argv) {
 			/* get program (re)start time and save as macro */
 			program_start = time(NULL);
 			my_free(mac->x[MACRO_PROCESSSTARTTIME]);
-			asprintf(&mac->x[MACRO_PROCESSSTARTTIME], "%lu", (unsigned long)program_start);
+			asprintf(&mac->x[MACRO_PROCESSSTARTTIME], "%llu", (unsigned long long)program_start);
 
 			/* drop privileges */
 			if(drop_privileges(nagios_user, nagios_group) == ERROR) {
@@ -795,7 +795,7 @@ int main(int argc, char **argv) {
 			/* get event start time and save as macro */
 			event_start = time(NULL);
 			my_free(mac->x[MACRO_EVENTSTARTTIME]);
-			asprintf(&mac->x[MACRO_EVENTSTARTTIME], "%lu", (unsigned long)event_start);
+			asprintf(&mac->x[MACRO_EVENTSTARTTIME], "%llu", (unsigned long long)event_start);
 
 			timing_point("Entering event execution loop\n");
 			/***** start monitoring all services *****/

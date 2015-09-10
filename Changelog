@@ -22,8 +22,9 @@ FIXES
 * Service Flexible downtimes produce 1 notification before entering (John Frickson)
 * Once you "set flap_detection_enabled 0" it should remove flapping state from the host/services page (John Frickson)
 * New map doesn't finish loading if a logo image is not found (John Frickson)
-* Extraneous Div end tag in map.html (Scott Wilerson)
+* Extraneous Div end tag in map.html (Scott Wilkerson)
 * Status Map icons and online/offline status dots disappear in IE11 (John Frickson)
+* Compile / logging issues with BSD 6 - Fixed a bunch of *printf's that print a time_t (John Frickson)
 
 4.1.1 - 08/19/2015
 ------------------

@@ -1527,9 +1527,9 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 
 #ifdef DEBUG
 	if(event_type == AE_HOST_ALERT)
-		printf("Adding host alert (%s) @ %lu<BR>\n", host_name, (unsigned long)time_stamp);
+		printf("Adding host alert (%s) @ %llu<BR>\n", host_name, (unsigned long long)time_stamp);
 	else
-		printf("Adding service alert (%s/%s) @ %lu<BR>\n", host_name, svc_description, (unsigned long)time_stamp);
+		printf("Adding service alert (%s/%s) @ %llu<BR>\n", host_name, svc_description, (unsigned long long)time_stamp);
 #endif
 
 	/* allocate memory for the new entry */

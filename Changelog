@@ -11,6 +11,7 @@ SECURITY FIXES
 ENHANCEMENTS
 * Increase socket queue length for listen()
 * Added host name to the website page title (leres / John Frickson)
+* Added additional icons for NetBSD and SuSE (John Frickson)
 
 FIXES
 * Command worker fails to handle SIGPIPE
@@ -21,6 +22,8 @@ FIXES
 * Service Flexible downtimes produce 1 notification before entering (John Frickson)
 * Once you "set flap_detection_enabled 0" it should remove flapping state from the host/services page (John Frickson)
 * New map doesn't finish loading if a logo image is not found (John Frickson)
+* Extraneous Div end tag in map.html (Scott Wilerson)
+* Status Map icons and online/offline status dots disappear in IE11 (John Frickson)
 
 4.1.1 - 08/19/2015
 ------------------

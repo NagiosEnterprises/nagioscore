@@ -38,37 +38,36 @@
 			</div>
 		</div>
 		<div id="map-container" ng-hide="formDisplayed"
-				nagios-map
-				cgiurl="{{params.cgiurl}}"
-				layout="{{params.layout}}"
-				dimensions="{{params.dimensions}}"
-				ulx="{{params.ulx}}"
-				uly="{{params.uly}}"
-				lrx="{{params.lrx}}"
-				lry="{{params.lry}}"
-				root="params.root"
-				maxzoom="params.maxzoom"
-				nolinks="{{params.nolinks}}"
-				notext="{{params.notext}}"
-				nopopups="{{params.nopopups}}"
-				noresize="{{params.noresize}}"
-				noicons="{{params.noicons}}"
-				iconurl="{{params.iconurl}}"
-				reload="{{reload}}"
-				update-interval="10"
-				last-update="lastUpdate"
-				map-width="svgWidth"
-				map-height="svgHeight"
-				build="canBuildMap()">
-			</div>
+			nagios-map
+			cgiurl="{{params.cgiurl}}"
+			layout="{{params.layout}}"
+			dimensions="{{params.dimensions}}"
+			ulx="{{params.ulx}}"
+			uly="{{params.uly}}"
+			lrx="{{params.lrx}}"
+			lry="{{params.lry}}"
+			root="params.root"
+			maxzoom="params.maxzoom"
+			nolinks="{{params.nolinks}}"
+			notext="{{params.notext}}"
+			nopopups="{{params.nopopups}}"
+			noresize="{{params.noresize}}"
+			noicons="{{params.noicons}}"
+			iconurl="{{params.iconurl}}"
+			reload="{{reload}}"
+			update-interval="10"
+			last-update="lastUpdate"
+			map-width="svgWidth"
+			map-height="svgHeight"
+			build="canBuildMap()">
+		</div>
 
-			<div id="menubutton" ng-style="menuButtonStyle()"
-					ng-hide="params.nomenu">
-				<button type="button" class="btn"
-						ng-click="displayForm()">
-					<img src="images/menu.png"/>
-				</button>
-			</div>
+		<div id="menubutton" ng-style="menuButtonStyle()"
+				ng-hide="params.nomenu">
+			<button type="button" class="btn"
+					ng-click="displayForm()">
+				<img src="images/menu.png"/>
+			</button>
 		</div>
 	</body>
 </html>

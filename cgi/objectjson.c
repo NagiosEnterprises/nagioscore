@@ -728,6 +728,10 @@ int main(void) {
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
 
+	/* For most locales, floats get output with a comma instead of a
+	 * decimal point, which messes up the JSON data structure. */
+	setlocale(LC_NUMERIC, "C");
+
 	/* Return something to the user */
 	switch( cgi_data.query) {
 	case OBJECT_QUERY_HOSTCOUNT:

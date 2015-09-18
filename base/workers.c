@@ -1016,7 +1016,7 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 	struct kvvec_buf *env_kvvb = NULL;
 	struct wproc_worker *wp;
 	int ret, result = OK;
-    ssize_t written;
+    ssize_t written = 0;
 
 	if (!job || !job->wp)
 		return ERROR;

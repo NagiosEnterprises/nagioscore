@@ -24,7 +24,10 @@ FIXES
 * New map doesn't finish loading if a logo image is not found (John Frickson)
 * Extraneous Div end tag in map.html (Scott Wilkerson)
 * Status Map icons and online/offline status dots disappear in IE11 (John Frickson)
-* Compile / logging issues with BSD 6 - Fixed a bunch of *printf's that print a time_t (John Frickson)
+* Compile / logging issues with BSD 6
+* Related to above, Fixed a lot of incorrectly handled time_t's in *printf's (John Frickson)
+* New map not working for RU locale (actually, most locales) (John Frickson)
+* Replaced all instances of signal() with sigaction() + blocking (John Frickson)
 
 4.1.1 - 08/19/2015
 ------------------

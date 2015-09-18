@@ -30,7 +30,12 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h libgen.h limits.h math.h netdb.h netinet/in.h pwd.h regex.h signal.h socket.h stdarg.h string.h strings.h sys/loadavg.h sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h sys/msg.h sys/poll.h syslog.h uio.h unistd.h locale.h wchar.h)
+AC_CHECK_HEADERS(arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h)
+AC_CHECK_HEADERS(libgen.h limits.h math.h netdb.h netinet/in.h pwd.h regex.h)
+AC_CHECK_HEADERS(signal.h socket.h stdarg.h string.h strings.h sys/loadavg.h)
+AC_CHECK_HEADERS(sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h)
+AC_CHECK_HEADERS(sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h)
+AC_CHECK_HEADERS(sys/msg.h sys/poll.h syslog.h uio.h unistd.h locale.h wchar.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -66,6 +71,7 @@ AC_CHECK_FUNC(vsnprintf,,SNPRINTF_O=../lib/snprintf.o)
 AC_CHECK_FUNC(snprintf,,SNPRINTF_O=../lib/snprintf.o)
 AC_CHECK_FUNC(asprintf,,SNPRINTF_O=../lib/snprintf.o)
 AC_CHECK_FUNC(vasprintf,,SNPRINTF_O=../lib/snprintf.o)
+AC_CHECK_FUNCS(sigaction)
 
 AC_CACHE_CHECK([for C99 vsnprintf],ac_cv_HAVE_C99_VSNPRINTF,[
 AC_TRY_RUN([

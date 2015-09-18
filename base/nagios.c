@@ -227,6 +227,9 @@ int main(int argc, char **argv) {
 	nagios_macros *mac;
 	const char *worker_socket = NULL;
 	int i;
+#ifdef HAVE_SIGACTION
+	struct sigaction sig_action;
+#endif
 
 #ifdef HAVE_GETOPT_H
 	int option_index = 0;
@@ -392,7 +395,15 @@ int main(int argc, char **argv) {
 	 * we may encounter this signal before the other signal handlers
 	 * are set.
 	 */
+#ifdef HAVE_SIGACTION
+	sig_action.sa_sigaction = NULL;
+	sig_action.sa_handler = handle_sigxfsz;
+	sigfillset(&sig_action.sa_mask);
+	sig_action.sa_flags = SA_NODEFER|SA_RESTART;
+	sigaction(SIGXFSZ, &sig_action, NULL);
+#else
 	signal(SIGXFSZ, handle_sigxfsz);
+#endif
 
 	/*
 	 * let's go to town. We'll be noisy if we're verifying config

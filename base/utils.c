@@ -1608,7 +1608,7 @@ void setup_sighandler(void) {
 	sigemptyset(&sig_action.sa_mask);
 	sig_action.sa_flags = 0;
 	sigaction(SIGPIPE, &sig_action, NULL);
-	sig_action.sa_handler = my_system_sighandler;
+	sig_action.sa_handler = sighandler;
 	sigfillset(&sig_action.sa_mask);
 	sig_action.sa_flags = SA_NODEFER|SA_RESTART;
 	sigaction(SIGQUIT, &sig_action, NULL);

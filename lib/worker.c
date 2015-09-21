@@ -55,8 +55,10 @@ static void exit_worker(int code, const char *msg)
 	sigemptyset(&sig_action.sa_mask);
 	sig_action.sa_flags = 0;
 	sigaction(SIGTERM, &sig_action, NULL);
+	sigaction(SIGSEGV, &sig_action, NULL);
 #else
 	signal(SIGTERM, SIG_IGN);
+	signal(SIGSEGV, SIG_IGN);
 #endif
 	kill(0, SIGTERM);
 	while (waitpid(-1, &discard, WNOHANG) > 0)

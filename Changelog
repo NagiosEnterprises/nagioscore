@@ -28,6 +28,7 @@ FIXES
 * Related to above, Fixed a lot of incorrectly handled time_t's in *printf's (John Frickson)
 * New map not working for RU locale (actually, most locales) (John Frickson)
 * Replaced all instances of signal() with sigaction() + blocking (John Frickson)
+* UTF-8 characters like german ä are not processed properly by function url_encode
 
 4.1.1 - 08/19/2015
 ------------------

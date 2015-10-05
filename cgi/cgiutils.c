@@ -1080,7 +1080,7 @@ const char *url_encode(const char *input) {
 		else {
 			str[y] = '\x0';
 			if((int)strlen(str) < (output_len - 3)) {
-				sprintf(temp_expansion, "%%%02X", (unsigned char)input[x]);
+				sprintf(temp_expansion, "%%%02X", (unsigned int)(input[x] & 0xff));
 				strcat(str, temp_expansion);
 				y += 3;
 				}

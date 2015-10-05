@@ -453,6 +453,8 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 
 		rd = read(io->fd, buf, sizeof(buf));
 		if (rd < 0) {
+			if (errno == EAGAIN && !final)
+				break;
 			if (errno == EINTR || errno == EAGAIN)
 				continue;
 			if (!final && errno != EAGAIN)

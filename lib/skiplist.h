@@ -19,8 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************/
 
-#ifndef LIBNAGIOS_skiplist_h__
-#define LIBNAGIOS_skiplist_h__
+#ifndef LIBNAGIOS_SKIPLIST_H_INCLUDED
+#define LIBNAGIOS_SKIPLIST_H_INCLUDED
 #include "lnag-utils.h"
 
 /**

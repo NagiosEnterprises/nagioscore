@@ -20,8 +20,8 @@
  *
  *****************************************************************************/
 
-#ifndef _NEBSTRUCTS_H
-#define _NEBSTRUCTS_H
+#ifndef NAGIOS_NEBSTRUCTS_H_INCLUDED
+#define NAGIOS_NEBSTRUCTS_H_INCLUDED
 
 #include "common.h"
 #include "objects.h"

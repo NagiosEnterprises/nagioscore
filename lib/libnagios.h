@@ -1,5 +1,5 @@
-#ifndef LIBNAGIOS_libnagios_h__
-#define LIBNAGIOS_libnagios_h__
+#ifndef LIBNAGIOS_LIBNAGIOS_H_INCLUDED
+#define LIBNAGIOS_LIBNAGIOS_H_INCLUDED
 /**
  * @file libnagios.h
  *

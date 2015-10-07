@@ -1,5 +1,5 @@
-#ifndef LIBNAGIOS_nwrite_h__
-#define LIBNAGIOS_nwrite_h__
+#ifndef LIBNAGIOS_NWRITE_H_INCLUDED
+#define LIBNAGIOS_NWRITE_H_INCLUDED
 
 /**
  * @file nwrite.h
@@ -49,4 +49,4 @@ static inline ssize_t nwrite(int fd, const void *buf, size_t count, ssize_t *wri
 }
 
 /** @} */
-#endif /* LIBNAGIOS_nwrite_h__ */
+#endif /* LIBNAGIOS_NWRITE_H_INCLUDED */

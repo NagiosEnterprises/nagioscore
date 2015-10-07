@@ -20,8 +20,8 @@
  *
  *****************************************************************************/
 
-#ifndef _PERFDATA_H
-#define _PERFDATA_H
+#ifndef NAGIOS_PERFDATA_H_INCLUDED
+#define NAGIOS_PERFDATA_H_INCLUDED
 
 #include "common.h"
 #include "objects.h"

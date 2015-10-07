@@ -1,5 +1,5 @@
-#ifndef LIBNAGIOS_lnag_utils_h__
-#define LIBNAGIOS_lnag_utils_h__
+#ifndef LIBNAGIOS_LNAG_UTILS_H_INCLUDED
+#define LIBNAGIOS_LNAG_UTILS_H_INCLUDED
 
 #include <unistd.h> /* for sysconf() */
 #include <stdlib.h> /* for rand() */

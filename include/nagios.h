@@ -17,8 +17,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************/
 
-#ifndef _NAGIOS_H
-#define _NAGIOS_H
+#ifndef NAGIOS_NAGIOS_H_INCLUDED
+#define NAGIOS_NAGIOS_H_INCLUDED
 
 #ifndef NSCORE
 # define NSCORE

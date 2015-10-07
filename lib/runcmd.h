@@ -1,5 +1,5 @@
-#ifndef LIBNAGIOS_runcmd_h__
-#define LIBNAGIOS_runcmd_h__
+#ifndef NDO_LIBNAGIOS_RUNCMD_H_INCLUDED
+#define NDO_LIBNAGIOS_RUNCMD_H_INCLUDED
 #include <signal.h>
 
 /**

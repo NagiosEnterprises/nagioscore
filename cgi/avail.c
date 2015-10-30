@@ -1589,7 +1589,7 @@ int process_cgivars(void) {
 				}
 
 			for(temp_timeperiod = timeperiod_list; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next) {
-				if(!strcmp(url_encode(temp_timeperiod->name), variables[x])) {
+				if(!strcmp(temp_timeperiod->name, variables[x])) {
 					current_timeperiod = temp_timeperiod;
 					break;
 					}

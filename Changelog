@@ -7,6 +7,7 @@ Nagios Core 4 Change Log
 ------------------
 SECURITY FIXES
 * Fixed vulnerability CVE-2008-4796 (John Frickson)
+* Fixed vulnerability CVE-2013-4214 (John Frickson)
 
 ENHANCEMENTS
 * Increase socket queue length for listen()
@@ -30,6 +31,7 @@ FIXES
 * Replaced all instances of signal() with sigaction() + blocking (John Frickson)
 * UTF-8 characters like german ä are not processed properly by function url_encode (John Frickson)
 * nagios worker processes can hog CPU (huxley / John Frickson)
+* custom time periods that include special characters were not being handled in reports (John Frickson)
 
 4.1.1 - 08/19/2015
 ------------------

@@ -205,7 +205,7 @@ case "$1" in
 		# new NagiosRunFile, allowing multiple nagios daemons
 		# to (sooner or later) run - John Sellens
 		#echo -n 'Waiting for nagios to exit .'
-		for i in 1 2 3 4 5 6 7 8 9 10 ; do
+		for i in {1..90}; do
 			if status_nagios > /dev/null; then
 				echo -n '.'
 				sleep 1
@@ -215,7 +215,8 @@ case "$1" in
 		done
 		if status_nagios > /dev/null; then
 			echo ''
-			echo 'Warning - nagios did not exit in a timely manner'
+			echo 'Warning - nagios did not exit in a timely manner - Killing it!'
+			killproc_nagios KILL
 		else
 			echo ' done.'
 		fi

@@ -33,6 +33,7 @@ FIXES
 * nagios worker processes can hog CPU (huxley / John Frickson)
 * custom time periods that include special characters were not being handled in reports (John Frickson)
 * Fixed init script to wait up to 90 seconds then kill the nagios process (John Frickson)
+* No Host Groups results in wrong error message (John Frickson)
 
 4.1.1 - 08/19/2015
 ------------------

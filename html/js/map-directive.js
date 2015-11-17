@@ -1065,50 +1065,54 @@ angular.module("mapApp")
 								function(list, index) {
 									return list[index].hostInfo.name;
 								});
-						if (childIndex == null) {
+								
+						if ($scope.hostList[e]) {
 
-							// Create the node object
-							var hostNode = new Object;
+							if (childIndex == null) {
 
-							// Point the node's host info to the entry in
-							// the host list
-							hostNode.hostInfo = $scope.hostList[e];
+								// Create the node object
+								var hostNode = new Object;
 
-							// And vice versa
-							if (!$scope.hostList[e].hasOwnProperty("hostNodes")) {
-								$scope.hostList[e].hostNodes = new Array;
+								// Point the node's host info to the entry in
+								// the host list
+								hostNode.hostInfo = $scope.hostList[e];
+
+								// And vice versa
+								if (!$scope.hostList[e].hasOwnProperty("hostNodes")) {
+									$scope.hostList[e].hostNodes = new Array;
+								}
+								if (!$scope.hostList[e].hostNodes.reduce(function(a, b) {
+										return a && b === hostNode; }, false)) {
+									$scope.hostList[e].hostNodes.push(hostNode);
+								}
+
+								// Set the parent of this node
+								hostNode.parent = node;
+
+								// Initialize layout information for transitions
+								hostNode.saveArc = new Object;
+								hostNode.saveArc.x = 0;
+								hostNode.saveArc.dx = 0;
+								hostNode.saveArc.y = 0;
+								hostNode.saveArc.dy = 0;
+								hostNode.saveLabel = new Object;
+								hostNode.saveLabel.x = 0;
+								hostNode.saveLabel.dx = 0;
+								hostNode.saveLabel.y = 0;
+								hostNode.saveLabel.dy = 0;
+
+								// Add the node to the parent node's children
+								node.children.push(hostNode);
+
+								// Get the index
+								childIndex = node.children.length - 1;
 							}
-							if (!$scope.hostList[e].hostNodes.reduce(function(a, b) {
-									return a && b === hostNode; }, false)) {
-								$scope.hostList[e].hostNodes.push(hostNode);
+							// Recurse to all children of this host
+							if ($scope.hostList[e].objectJSON.child_hosts.length > 0) {
+								var childHosts = $scope.hostList[e].objectJSON.child_hosts;
+								updateHostTree(node.children[childIndex],
+										childHosts, hostNode);
 							}
-
-							// Set the parent of this node
-							hostNode.parent = node;
-
-							// Initialize layout information for transitions
-							hostNode.saveArc = new Object;
-							hostNode.saveArc.x = 0;
-							hostNode.saveArc.dx = 0;
-							hostNode.saveArc.y = 0;
-							hostNode.saveArc.dy = 0;
-							hostNode.saveLabel = new Object;
-							hostNode.saveLabel.x = 0;
-							hostNode.saveLabel.dx = 0;
-							hostNode.saveLabel.y = 0;
-							hostNode.saveLabel.dy = 0;
-
-							// Add the node to the parent node's children
-							node.children.push(hostNode);
-
-							// Get the index
-							childIndex = node.children.length - 1;
-						}
-						// Recurse to all children of this host
-						if ($scope.hostList[e].objectJSON.child_hosts.length > 0) {
-							var childHosts = $scope.hostList[e].objectJSON.child_hosts;
-							updateHostTree(node.children[childIndex],
-									childHosts, hostNode);
 						}
 					});
 				};

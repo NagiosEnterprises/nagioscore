@@ -35,6 +35,7 @@ FIXES
 * Fixed init script to wait up to 90 seconds then kill the nagios process (John Frickson)
 * No Host Groups results in wrong error message (John Frickson)
 * Setup Nagios users to view specific host is not working in the new network map (John Frickson)
+* statusjson.cgi fails glibc realloc truncate response output (John Frickson)
 
 4.1.1 - 08/19/2015
 ------------------

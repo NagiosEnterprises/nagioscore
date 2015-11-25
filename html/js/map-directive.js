@@ -1186,6 +1186,14 @@ angular.module("mapApp")
 							$scope.hostList[host].name = host;
 							$scope.hostList[host].serviceCount = 0;
 						}
+						// If a hosts' parent is not in the hostlist (user
+						// doesn't have permission to view parent) re-parent the
+						// host directly under the nagios process
+						for (var parent in json.data.hostlist[host].parent_hosts) {
+							if (!json.data.hostlist[parent]) {
+								json.data.hostlist[host].parent_hosts.splice(0, 1);
+							}
+						}
 						// Update the information returned
 						$scope.hostList[host].objectJSON =
 								json.data.hostlist[host];

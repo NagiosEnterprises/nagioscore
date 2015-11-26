@@ -1462,8 +1462,8 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->notification_period_ptr = np;
 	new_service->check_period_ptr = cp;
 	new_service->host_ptr = h;
-	new_service->check_period = cp ? cp->name : NULL;
-	new_service->notification_period = np ? np->name : NULL;
+	new_service->check_period = cp ? (char *)strdup(cp->name) : NULL;
+	new_service->notification_period = np ? (char *)strdup(np->name) : NULL;
 	new_service->host_name = h->name;
 	if((new_service->description = (char *)strdup(description)) == NULL)
 		result = ERROR;

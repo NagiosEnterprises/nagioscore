@@ -517,7 +517,7 @@ typedef struct nebstruct_statechange_struct {
 	int             current_attempt;
 	int             max_attempts;
 	char            *output;
-
+	char            *longoutput;
 	void            *object_ptr;
 	} nebstruct_statechange_data;
 

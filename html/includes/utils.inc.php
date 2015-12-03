@@ -5,7 +5,7 @@ require_once(dirname(__FILE__).'/../config.inc.php');
 
 function get_update_information(){
 	global $cfg;
-	
+
 	// initialize array
 	$updateinfo=array(
 		"found_update_info" => false,
@@ -217,6 +217,7 @@ function read_cgi_config_file($thefile=""){
 
 				// do not allow for multiple values
 				$contents[$v[0]] = $v[1];
+				$cfg[$v[0]] = $v[1];
 				}
 			}
 		fclose($fh);

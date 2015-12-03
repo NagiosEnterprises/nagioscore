@@ -13,6 +13,8 @@ ENHANCEMENTS
 * Increase socket queue length for listen()
 * Added host name to the website page title (leres / John Frickson)
 * Added additional icons for NetBSD and SuSE (John Frickson)
+* The new Status Map will now use cgi.cfg options (John Frickson)
+    default_statusmap_layout will default to "6" for the new map
 
 FIXES
 * Command worker fails to handle SIGPIPE

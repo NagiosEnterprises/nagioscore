@@ -80,7 +80,7 @@ install:
 	$(INSTALL) -m 664 $(INSTALL_OPTS) histogram-graph.html $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 664 $(INSTALL_OPTS) histogram-links.html $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 664 $(INSTALL_OPTS) infobox.html $(DESTDIR)$(HTMLDIR)
-	$(INSTALL) -m 664 $(INSTALL_OPTS) map.html $(DESTDIR)$(HTMLDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) map.php $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 664 $(INSTALL_OPTS) map-directive.html $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 664 $(INSTALL_OPTS) map-form.html $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 664 $(INSTALL_OPTS) map-links.html $(DESTDIR)$(HTMLDIR)

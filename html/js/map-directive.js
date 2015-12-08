@@ -1190,7 +1190,9 @@ angular.module("mapApp")
 						// doesn't have permission to view parent) re-parent the
 						// host directly under the nagios process
 						for (var parent in json.data.hostlist[host].parent_hosts) {
-							if (!json.data.hostlist[parent]) {
+							var prnt = json.data.hostlist[host].parent_hosts[parent];
+							if (!json.data.hostlist[prnt]) {
+								var p = json.data.hostlist[host].parent_hosts;
 								json.data.hostlist[host].parent_hosts.splice(0, 1);
 							}
 						}
@@ -3477,7 +3479,11 @@ angular.module("mapApp")
 									return a.parent == b.parent ? 1 : 2;
 									break;
 								case layouts.CircularBalloon.index:
-									return (a.parent == b.parent ? 1 : 2) / a.depth;
+									var d = a.depth > 0 ? a.depth : b.depth, sep;
+									if (d <= 0)
+										d = 1;
+									sep = (a.parent == b.parent ? 1 : 2) / d;
+									return sep;
 									break;
 								}
 							});

@@ -15,6 +15,7 @@ ENHANCEMENTS
 * Added additional icons for NetBSD and SuSE (John Frickson)
 * The new Status Map will now use cgi.cfg options (John Frickson)
     default_statusmap_layout will default to "6" for the new map
+* The new Status Map will now show some valid values in the popup for "Nagios Process" (John Frickson)
 
 FIXES
 * Command worker fails to handle SIGPIPE

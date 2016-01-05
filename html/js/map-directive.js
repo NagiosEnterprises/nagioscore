@@ -1770,22 +1770,35 @@ angular.module("mapApp")
 
 					$scope.popupContents.hostname = getObjAttr(d,
 							["objectJSON", "name"], "unknown");
-					$scope.popupContents.alias = getObjAttr(d,
-							["objectJSON", "alias"], "unknown");
-					$scope.popupContents.address = getObjAttr(d,
-							["objectJSON", "address"], "unknown");
-					$scope.popupContents.state = getObjAttr(d,
-							["statusJSON", "status"], "pending");
-					$scope.popupContents.duration = getStateDuration(d);
-					$scope.popupContents.lastcheck =
-							getStateTime(getObjAttr(d,
-							["statusJSON", "last_check"], 0));
-					$scope.popupContents.lastchange =
-							getStateTime(getObjAttr(d,
-							["statusJSON", "last_state_change"], 0));
-					$scope.popupContents.parents = getParentHosts(d);
-					$scope.popupContents.children = getChildHosts(d);
-					$scope.popupContents.services = getServiceSummary(d);
+					if($scope.popupContents.hostname == nagiosProcessName) {
+						var now = new Date;
+						$scope.popupContents.alias = nagiosProcessName;
+						$scope.popupContents.address = window.location.host;
+						$scope.popupContents.state = "up";
+						$scope.popupContents.duration = now.getTime() - $scope.lastNagiosStart;
+						$scope.popupContents.lastcheck = $scope.lastUpdate;
+						$scope.popupContents.lastchange = $scope.lastNagiosStart;
+						$scope.popupContents.parents = "";
+						$scope.popupContents.children = "";
+						$scope.popupContents.services = null;
+					} else {
+						$scope.popupContents.alias = getObjAttr(d,
+								["objectJSON", "alias"], "unknown");
+						$scope.popupContents.address = getObjAttr(d,
+								["objectJSON", "address"], "unknown");
+						$scope.popupContents.state = getObjAttr(d,
+								["statusJSON", "status"], "pending");
+						$scope.popupContents.duration = getStateDuration(d);
+						$scope.popupContents.lastcheck =
+								getStateTime(getObjAttr(d,
+								["statusJSON", "last_check"], 0));
+						$scope.popupContents.lastchange =
+								getStateTime(getObjAttr(d,
+								["statusJSON", "last_state_change"], 0));
+						$scope.popupContents.parents = getParentHosts(d);
+						$scope.popupContents.children = getChildHosts(d);
+						$scope.popupContents.services = getServiceSummary(d);
+					}
 				};
 
 				// Update the map

@@ -517,8 +517,8 @@ typedef struct nebstruct_statechange_struct {
 	int             current_attempt;
 	int             max_attempts;
 	char            *output;
-	char            *longoutput;
 	void            *object_ptr;
+	char            *longoutput;
 	} nebstruct_statechange_data;
 
 NAGIOS_END_DECL

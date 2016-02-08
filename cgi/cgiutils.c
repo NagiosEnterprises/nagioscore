@@ -1138,7 +1138,7 @@ char * html_encode(char *input, int escape_newlines) {
 	char		*outstp;
 	wchar_t		*wcinput;
 	wchar_t		*inwcp;
-	wchar_t		*tagname;
+	wchar_t		*tagname = L"";
 	size_t		mbstowcs_result;
 	int			x;
 	int			where_in_tag = WHERE_OUTSIDE_TAG; /* Location in HTML tag */
@@ -1304,6 +1304,7 @@ char * html_encode(char *input, int escape_newlines) {
 			case WHERE_IN_TAG_NAME:
 			case WHERE_IN_TAG_OUTSIDE_ATTRIBUTE:
 			case WHERE_IN_COMMENT:
+			case WHERE_IN_TAG_IN_ATTRIBUTE_NAME:
 				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				where_in_tag = WHERE_OUTSIDE_TAG;
 				*inwcp = 0;

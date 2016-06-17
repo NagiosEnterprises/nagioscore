@@ -104,6 +104,14 @@ extern int runcmd_close(int fd);
  */
 extern int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv);
 
+/**
+ * If you're using libnagios to execute a remote command, the 
+ * static pid_t pids is not freed after runcmd_open
+ * You can call this function when you're sure pids is no longer
+ * in use, to keep down memory leaks
+ */
+extern void runcmd_free_pids(void);
+
 /** @} */
 /* INCLUDE_runcmd_h__ */
 #endif

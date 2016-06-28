@@ -168,16 +168,3 @@ where you want to check for SSL:
 
 * You will now be able to reference any of the variables in `config.h.in`
 and any files listed in the `AC_CONFIG_FILES` macro in `configure.ac`.
-
-
-
-
-
-
-
-<style>
-h1 { text-decoration:underline; color:#660000; }
-h2 { margin-top:2em; text-decoration:underline; color:#006600; }
-h3 { margin-top:1.5em; color:#000066 }
-blockquote { font-style:italic; font-weight:bold; }
-</style>

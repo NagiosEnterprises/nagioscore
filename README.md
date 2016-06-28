@@ -131,9 +131,6 @@ master.
 
            git subtgree pull --prefix=macros autoconf-macros master
 
-* If you already have an autoconf directory, such as `build_aux`, you can
-replace `--prefix=macros` with `--prefix=build_aux` in any of the
-commands above, or references below.
 
 
 ## References

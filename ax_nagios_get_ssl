@@ -49,7 +49,7 @@ AC_DEFUN([AX_NAGIOS_GET_SSL],
 # -------------------------------
 
 SSL_TYPE=openssl
-try_pkg_config=0
+try_pkg_config=1
 ssl_dir=
 ssl_inc_dir=
 ssl_lib_dir=

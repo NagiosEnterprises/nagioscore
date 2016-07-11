@@ -49,14 +49,19 @@ AC_DEFUN([AX_NAGIOS_GET_SSL],
 # -------------------------------
 
 SSL_TYPE=openssl
+try_pkg_config=0
 ssl_dir=
 ssl_inc_dir=
 ssl_lib_dir=
 SSL_INC_DIR=
+SSL_INC_PREFIX=
+SSL_HDR=
 SSL_LIB_DIR=
 
 AC_SUBST(HAVE_SSL)
 AC_SUBST(SSL_INC_DIR)
+AC_SUBST(SSL_HDR)
+AC_SUBST(SSL_INC_PREFIX)
 AC_SUBST(SSL_LIB_DIR)
 
 
@@ -80,6 +85,10 @@ AC_ARG_WITH([ssl-lib],
 	AS_HELP_STRING([--with-ssl-lib=DIR],[sets location of the SSL libraries]),
 	[ssl_lib_dir=$withval])
 
+if test x$ssl_inc_dir != x -o x$ssl_lib_dir != x; then
+	try_pkg_config=0
+fi
+
 AC_ARG_WITH([kerberos-inc],
 	AS_HELP_STRING([--with-kerberos-inc=DIR],
 		[sets location of the Kerberos include files]),
@@ -90,8 +99,8 @@ if test x$SSL_TYPE = xyes; then
 fi
 
 
-dflt_hdrs="$ssl_inc_dir $ssl_dir $ssl_dir/include $ssl_dir/include \
-			/usr/local/opt/{BBB} /usr/include/{BBB} /usr/local/include{BBB} \
+dflt_hdrs="$ssl_inc_dir $ssl_dir $ssl_inc_dir/include $ssl_dir/include \
+			/usr/local/opt/{BBB} /usr/include/{BBB} /usr/local/include/{BBB} \
 			/usr/local/{AAA} /usr/local/{BBB} /usr/lib/{AAA} /usr/lib/{BBB} \
 			/usr/{AAA} /usr/pkg /usr/local /usr /usr/freeware/lib/{BBB} \
 			/usr/sfw /usr/sfw/include /opt/{BBB}"
@@ -109,17 +118,19 @@ AS_CASE([$SSL_TYPE],
 	[yes|openssl],
 		[ssl_hdr_dirs=`echo "$dflt_hdrs" | sed -e 's/{AAA}/ssl/g' | sed -e 's/{BBB}/openssl/g'`
 		 ssl_lib_dirs=`echo "$dflt_libs" | sed -e 's/{AAA}/ssl/g' | sed -e 's/{BBB}/openssl/g'`
-		 ssl_hdr=ssl.h
+		 SSL_INC_PREFIX=openssl
+		 SSL_HDR=ssl.h
 		 ssl_lib=libssl],
 	[gnutls],
 		[ssl_hdr_dirs=`echo "$dflt_hdrs" | sed -e 's/{AAA}/gnutls/g' | sed -e 's/{BBB}/gnutls/g'`
 		 ssl_lib_dirs=`echo "$dflt_libs" | sed -e 's/{AAA}/gnutls/g' | sed -e 's/{BBB}/gnutls/g'`
-		 ssl_hdr=compat.h
+		 SSL_INC_PREFIX=gnutls
+		 SSL_HDR=compat.h
 		 ssl_lib=libgnutls],
 	[nss],
 		[ssl_hdr_dirs=`echo "$dflt_hdrs" | sed -e 's/{AAA}/nss_compat_ossl/g' | sed -e 's/{BBB}/nss_compat_ossl/g'`
 		 ssl_lib_dirs=`echo "$dflt_libs" | sed -e 's/{AAA}/nss_compat_ossl/g' | sed -e 's/{BBB}/nss_compat_ossl/g'`
-		 ssl_hdr=nss_compat_ossl.h
+		 SSL_HDR=nss_compat_ossl.h
 		 ssl_lib=libnss_compat],
 	[*], echo >&6; AC_MSG_ERROR(['--with-ssl-type=$SSL_TYPE' is invalid])
 )
@@ -154,48 +165,51 @@ if test x$SSL_TYPE != xNONE; then
 	fi
 
 	# First, try using pkg_config
-#	AC_CHECK_TOOL([PKG_CONFIG], [pkg-config])
-#	if test x"$PKG_CONFIG" != x ; then
-#		cflags=`$PKG_CONFIG $SSL_TYPE --cflags-only-I 2>/dev/null`
-#		if test $? = 0; then
-#			CFLAGS="$CFLAGS $cflags"
-#			LDFLAGS="$LDFLAGS `$PKG_CONFIG $SSL_TYPE --libs-only-L 2>/dev/null`"
-#			LIBS="$LIBS `$PKG_CONFIG $SSL_TYPE --libs-only-l 2>/dev/null`"
-#			found_ssl=yes
-#			AC_DEFINE_UNQUOTED(HAVE_SSL,[1],[Have SSL support])
-#		fi
-#	fi
+	AC_CHECK_TOOL([PKG_CONFIG], [pkg-config])
+	if test x"$PKG_CONFIG" != x -a $try_pkg_config -ne 0 ; then
+		cflags=`$PKG_CONFIG $SSL_TYPE --cflags-only-I 2>/dev/null`
+		if test $? = 0; then
+			CFLAGS="$CFLAGS $cflags"
+			LDFLAGS="$LDFLAGS `$PKG_CONFIG $SSL_TYPE --libs-only-L 2>/dev/null`"
+			LIBS="$LIBS `$PKG_CONFIG $SSL_TYPE --libs-only-l 2>/dev/null`"
+			found_ssl=yes
+			AC_DEFINE_UNQUOTED(HAVE_SSL,[1],[Have SSL support])
+		fi
+	fi
 
 	if test x_$found_ssl != x_yes; then
 
 		# Find the SSL Headers
-
 		AC_MSG_CHECKING(for SSL headers)
 		for dir in $ssl_hdr_dirs; do
+			if test "$dir" = "/include"; then
+				continue
+			fi
 			ssldir="$dir"
-			if test -f "$dir/include/openssl/$ssl_hdr"; then
+			if test -f "$dir/include/$SSL_INC_PREFIX/$SSL_HDR"; then
 				found_ssl=yes
-				CFLAGS="$CFLAGS -I$dir/include/openssl -I$ssldir/include"
-				SSL_INC_DIR="$dir/include/openssl"
+				CFLAGS="$CFLAGS -I$dir/include/$SSL_INC_PREFIX -I$ssldir/include"
+				SSL_INC_DIR="$dir/include/$SSL_INC_PREFIX"
 				break
 			fi
-			if test -f "$dir/include/$ssl_hdr"; then
+			if test -f "$dir/include/$SSL_HDR"; then
 				found_ssl=yes
+				SSL_INC_PREFIX=""
 				CFLAGS="$CFLAGS -I$dir/include"
 				SSL_INC_DIR="$dir/include"
 				break
 			fi
-			if test -f "$dir/$ssl_hdr"; then
+			if test -f "$dir/$SSL_HDR"; then
 				found_ssl=yes
+				SSL_INC_PREFIX=""
 				CFLAGS="$CFLAGS -I$dir"
 				SSL_INC_DIR="$dir"
-				ssldir="$dir/.."
 				break
 			fi
-			if test -f "$dir/openssl/$ssl_hdr"; then
+			if test -f "$dir/$SSL_INC_PREFIX/$SSL_HDR"; then
 				found_ssl=yes
-				CFLAGS="$CFLAGS -I$dir/openssl"
-				SSL_INC_DIR="$dir/openssl"
+				CFLAGS="$CFLAGS -I$dir/$SSL_INC_PREFIX"
+				SSL_INC_DIR="$dir/$SSL_INC_PREFIX"
 				ssldir="$dir/.."
 				break
 			fi
@@ -247,11 +261,15 @@ if test x$SSL_TYPE != xNONE; then
 	fi
 
 	if test x$found_ssl = xyes ; then
+		if test -n "$SSL_INC_PREFIX" ; then
+			SSL_INC_PREFIX="${SSL_INC_PREFIX}/"
+		fi
+
 		# try to compile and link to see if SSL is set up properly
 		AC_MSG_CHECKING([whether compiling and linking against SSL works])
 
 		AC_LINK_IFELSE(
-			[AC_LANG_PROGRAM([#include <openssl/ssl.h>], [SSL_new(NULL)])],
+			[AC_LANG_PROGRAM([#include <${SSL_INC_PREFIX}${SSL_HDR}>], [SSL_new(NULL)])],
 			[
 				AC_MSG_RESULT([yes])
 				$1

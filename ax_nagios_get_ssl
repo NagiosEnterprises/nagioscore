@@ -68,11 +68,11 @@ AC_SUBST(SSL_LIB_DIR)
 # gnutls/openssl.h
 # nss_compat_ossl/nss_compat_ossl.h
 
-# Which type - openssl, gnutls-openssl, nss
-AC_ARG_WITH([ssl-type],
-dnl	AS_HELP_STRING([--with-ssl-type=TYPE],[replace TYPE with gnutls or nss to use one of these instead of openssl]),
-	AS_HELP_STRING([--with-ssl-type=TYPE],[replace TYPE with gnutls to use that instead of openssl]),
-	[SSL_TYPE=$withval])
+dnl # Which type - openssl, gnutls-openssl, nss
+dnl AC_ARG_WITH([ssl-type],
+dnl dnl	AS_HELP_STRING([--with-ssl-type=TYPE],[replace TYPE with gnutls or nss to use one of these instead of openssl]),
+dnl 	AS_HELP_STRING([--with-ssl-type=TYPE],[replace TYPE with gnutls to use that instead of openssl]),
+dnl 	[SSL_TYPE=$withval])
 
 AC_ARG_WITH([ssl],
 	AS_HELP_STRING([--with-ssl=DIR],[sets location of the SSL installation]),
@@ -125,6 +125,7 @@ AS_CASE([$SSL_TYPE],
 		[ssl_hdr_dirs=`echo "$dflt_hdrs" | sed -e 's/{AAA}/gnutls/g' | sed -e 's/{BBB}/gnutls/g'`
 		 ssl_lib_dirs=`echo "$dflt_libs" | sed -e 's/{AAA}/gnutls/g' | sed -e 's/{BBB}/gnutls/g'`
 		 SSL_INC_PREFIX=gnutls
+		 SSL_TYPE=gnutls_compat
 		 SSL_HDR=compat.h
 		 ssl_lib=libgnutls],
 	[nss],
@@ -168,7 +169,7 @@ if test x$SSL_TYPE != xNONE; then
 	AC_CHECK_TOOL([PKG_CONFIG], [pkg-config])
 	if test x"$PKG_CONFIG" != x -a $try_pkg_config -ne 0 ; then
 		cflags=`$PKG_CONFIG $SSL_TYPE --cflags-only-I 2>/dev/null`
-		if test $? = 0; then
+		if test $? -eq 0; then
 			CFLAGS="$CFLAGS $cflags"
 			LDFLAGS="$LDFLAGS `$PKG_CONFIG $SSL_TYPE --libs-only-L 2>/dev/null`"
 			LIBS="$LIBS `$PKG_CONFIG $SSL_TYPE --libs-only-l 2>/dev/null`"
@@ -194,7 +195,9 @@ if test x$SSL_TYPE != xNONE; then
 			fi
 			if test -f "$dir/include/$SSL_HDR"; then
 				found_ssl=yes
-				SSL_INC_PREFIX=""
+				if test "$SSL_HDR" != compat.h ; then
+					SSL_INC_PREFIX=""
+				fi
 				CFLAGS="$CFLAGS -I$dir/include"
 				SSL_INC_DIR="$dir/include"
 				break

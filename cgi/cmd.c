@@ -62,6 +62,7 @@ char *comment_author = "";
 char *comment_data = "";
 char *start_time_string = "";
 char *end_time_string = "";
+char *cookie_form_id = NULL, *form_id = NULL;
 
 unsigned long comment_id = 0;
 unsigned long downtime_id = 0;
@@ -111,6 +112,7 @@ int string_to_time(char *, time_t *);
 
 int main(void) {
 	int result = OK;
+	int formid_ok = OK;
 
 	/* Initialize shared configuration variables */                             
 	init_shared_cfg_vars(1);
@@ -216,6 +218,14 @@ int main(void) {
 		return OK;
         }
 
+	if (cookie_form_id && *cookie_form_id) {
+		formid_ok = ERROR;
+		if (form_id && *form_id) {
+			if (!strcmp(form_id, cookie_form_id))
+				formid_ok = OK;
+		}
+	}
+
 	/* if no command was specified... */
 	if(command_type == CMD_NONE) {
 		if(content_type == WML_CONTENT)
@@ -229,8 +239,12 @@ int main(void) {
 		request_command_data(command_type);
 
 	/* the user wants to commit the command */
-	else if(command_mode == CMDMODE_COMMIT)
-		commit_command_data(command_type);
+	else if(command_mode == CMDMODE_COMMIT) {
+		if (formid_ok == ERROR)	/* we're expecting an id but it wasn't there... */
+			printf("<p>Error: Invalid form id!</p>\n");
+		else
+			commit_command_data(command_type);
+	}
 
 	document_footer();
 
@@ -648,7 +662,29 @@ int process_cgivars(void) {
 		else if(!strcmp(variables[x], "broadcast_notification"))
 			broadcast_notification = NOTIFICATION_OPTION_BROADCAST;
 
+		/* we found the cookie form id */
+		else if (!strcmp(variables[x], "NagFormId")) {
+			x++;
+			if (variables[x] == NULL) {
+				error = TRUE;
+				break;
+			}
+
+			cookie_form_id = (char*)strdup(variables[x]);
 		}
+
+		/* we found the form id on the form */
+		else if (!strcmp(variables[x], "nagFormId")) {
+			x++;
+			if (variables[x] == NULL) {
+				error = TRUE;
+				break;
+			}
+
+			form_id = (char*)strdup(variables[x]);
+		}
+
+	}
 
 	/* free memory allocated to the CGI variables */
 	free_cgivars(variables);
@@ -939,6 +975,8 @@ void request_command_data(int cmd) {
 	printf("<TABLE CELLSPACING=0 CELLPADDING=0 BORDER=1 CLASS='optBox'>\n");
 	printf("<TR><TD CLASS='optBoxItem'>\n");
 	printf("<form method='post' action='%s'>\n", COMMAND_CGI);
+	if (cookie_form_id && *cookie_form_id)
+		printf("<INPUT TYPE='hidden' NAME='nagFormId' VALUE='%s'\n", cookie_form_id);
 	printf("<TABLE CELLSPACING=0 CELLPADDING=0 CLASS='optBox'>\n");
 
 	printf("<tr><td><INPUT TYPE='HIDDEN' NAME='cmd_typ' VALUE='%d'><INPUT TYPE='HIDDEN' NAME='cmd_mod' VALUE='%d'></td></tr>\n", cmd, CMDMODE_COMMIT);

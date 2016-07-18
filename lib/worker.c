@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+#include <syslog.h>
 #include "libnagios.h"
 
 #define MSG_DELIM "\1\0\0" /**< message limiter - note this ends up being
@@ -447,6 +448,8 @@ static void kill_job(child_process *cp, int reason)
 
 static void gather_output(child_process *cp, iobuf *io, int final)
 {
+	int retry = 5;
+
 	for (;;) {
 		char buf[4096];
 		int rd;
@@ -455,8 +458,17 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 		if (rd < 0) {
 			if (errno == EAGAIN && !final)
 				break;
-			if (errno == EINTR || errno == EAGAIN)
+			if (errno == EINTR || errno == EAGAIN) {
+				char	buf[1024];
+				if (--retry == 0) {
+					sprintf(buf, "job %d (pid=%ld): Failed to read(): %s", cp->id, (long)cp->ei->pid, strerror(errno));
+					break;
+				}
+				sprintf(buf, "job %d (pid=%ld): read() returned error %d", cp->id, (long)cp->ei->pid, errno);
+				syslog(LOG_ERR, buf);
+				sleep(1);
 				continue;
+			}
 			if (!final && errno != EAGAIN)
 				wlog("job %d (pid=%ld): Failed to read(): %s", cp->id, (long)cp->ei->pid, strerror(errno));
 		}

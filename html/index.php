@@ -26,7 +26,7 @@ if (isset($_GET['corewindow'])) {
 		$url = "main.php";
 }
 
-$this_year = '2015';
+$this_year = '2016';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
 

@@ -8,6 +8,7 @@ Nagios Core 4 Change Log
 SECURITY FIXES
 * Fixed vulnerability CVE-2008-4796 (John Frickson)
 * Fixed vulnerability CVE-2013-4214 (John Frickson)
+* web interface vulnerable to Cross-Site Request Forgery attacks (John Frickson)
 
 ENHANCEMENTS
 * Increase socket queue length for listen()
@@ -18,6 +19,10 @@ ENHANCEMENTS
 * The new Status Map will now show some valid values in the popup for "Nagios Process" (John Frickson)
 
 FIXES
+* Network outage view without access to all hosts (John Frickson)
+* Core workers looping (John Frickson)
+* service query returns duplicate host_name and description fields in the returned data (John Frickson)
+* HTML output of plug-ins is parsed in wrong way => webgui unusable (John Frickson)
 * Command worker fails to handle SIGPIPE
 * "View Status" links under "Map" broken in Nagios Core Version 4.1.1 (John Frickson)
 * Can't send big buffer - wproc: Core Worker seems to be choked (velripn / John Frickson)
@@ -27,7 +32,10 @@ FIXES
 * Once you "set flap_detection_enabled 0" it should remove flapping state from the host/services page (John Frickson)
 * New map doesn't finish loading if a logo image is not found (John Frickson)
 * Extraneous Div end tag in map.html (Scott Wilkerson)
+* Issue with "Problems" section (John Frickson)
 * Status Map icons and online/offline status dots disappear in IE11 (John Frickson)
+* New network map overlays the nagios process with objects (John Frickson)
+* Added Default-Start and Default-Stop to the init script (John Frickson)
 * Compile / logging issues with BSD 6
 * Related to above, Fixed a lot of incorrectly handled time_t's in *printf's (John Frickson)
 * New map not working for RU locale (actually, most locales) (John Frickson)
@@ -39,6 +47,8 @@ FIXES
 * No Host Groups results in wrong error message (John Frickson)
 * Setup Nagios users to view specific host is not working in the new network map (John Frickson)
 * statusjson.cgi fails glibc realloc truncate response output (John Frickson)
+* Report Time Period does not work if an @ character is in the timeperiod name (John Frickson)
+* State History does not use actual plugin long_output (John Frickson)
 
 4.1.1 - 08/19/2015
 ------------------

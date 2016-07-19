@@ -98,9 +98,8 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 		// URL parameters
 		$scope.params = {
 			cgiurl: $scope.search.cgiurl ? $scope.search.cgiurl :
-					$location.absUrl().replace(/map\.html.*$/, "cgi-bin/"),
-			layout: $scope.search.layout ? parseInt($scope.search.layout) :
-					6,
+					$location.absUrl().replace(/map\.php.*$/, "cgi-bin/"),
+			layout: map_layout,
 			dimensions: $scope.search.dimensions ?
 					$scope.search.dimensions : "",
 			ulx: $scope.search.ulx ? parseInt($scope.search.ulx) : 0,
@@ -118,7 +117,7 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 			noresize: $scope.search.noresize ? true : false,
 			noicons: $scope.search.noicons ? true : false,
 			iconurl: $scope.search.iconurl ? $scope.search.iconurl :
-					$location.absUrl().replace(/map\.html.*$/, "images/logos/"),
+					$location.absUrl().replace(/map\.php.*$/, "images/logos/"),
 		};
 
 		var rightPadding = 1;
@@ -139,10 +138,12 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 		// we won't know that until we try to fetch the list of hosts, so
 		// we can't know that now.
 		$scope.canBuildMap = function() {
+			document.body.className = "";
 			if ($scope.params.layout == layouts.UserSupplied.index) {
 				switch ($scope.params.dimensions) {
 				case "fixed":
 				case "auto":
+					document.body.className = "hasBgImage";
 					return true;
 					break;
 				case "user":
@@ -151,6 +152,7 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 						return false;
 					}
 					else {
+						document.body.className = "hasBgImage";
 						return true;
 					}
 					break;

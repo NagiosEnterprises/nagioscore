@@ -1180,7 +1180,7 @@ void display_service(void) {
 		printf("<postfield name='service' value='%s'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n", escape_string(service_desc), CMD_DISABLE_SVC_CHECK, CMDMODE_COMMIT);
 
 		printf("<b><anchor title='Schedule Immediate Check'>Schedule Immediate Check<go href='%s' method='post'><postfield name='host' value='%s'/>", COMMAND_CGI, escape_string(host_name));
-		printf("<postfield name='service' value='%s'/><postfield name='start_time' value='%lu'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n", escape_string(service_desc), (unsigned long)current_time, CMD_SCHEDULE_SVC_CHECK, CMDMODE_COMMIT);
+		printf("<postfield name='service' value='%s'/><postfield name='start_time' value='%llu'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n", escape_string(service_desc), (unsigned long long)current_time, CMD_SCHEDULE_SVC_CHECK, CMDMODE_COMMIT);
 		}
 
 	if(temp_servicestatus->notifications_enabled == FALSE) {

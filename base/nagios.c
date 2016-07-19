@@ -227,6 +227,9 @@ int main(int argc, char **argv) {
 	nagios_macros *mac;
 	const char *worker_socket = NULL;
 	int i;
+#ifdef HAVE_SIGACTION
+	struct sigaction sig_action;
+#endif
 
 #ifdef HAVE_GETOPT_H
 	int option_index = 0;
@@ -392,7 +395,15 @@ int main(int argc, char **argv) {
 	 * we may encounter this signal before the other signal handlers
 	 * are set.
 	 */
+#ifdef HAVE_SIGACTION
+	sig_action.sa_sigaction = NULL;
+	sig_action.sa_handler = handle_sigxfsz;
+	sigfillset(&sig_action.sa_mask);
+	sig_action.sa_flags = SA_NODEFER|SA_RESTART;
+	sigaction(SIGXFSZ, &sig_action, NULL);
+#else
 	signal(SIGXFSZ, handle_sigxfsz);
+#endif
 
 	/*
 	 * let's go to town. We'll be noisy if we're verifying config
@@ -580,7 +591,7 @@ int main(int argc, char **argv) {
 			/* get program (re)start time and save as macro */
 			program_start = time(NULL);
 			my_free(mac->x[MACRO_PROCESSSTARTTIME]);
-			asprintf(&mac->x[MACRO_PROCESSSTARTTIME], "%lu", (unsigned long)program_start);
+			asprintf(&mac->x[MACRO_PROCESSSTARTTIME], "%llu", (unsigned long long)program_start);
 
 			/* drop privileges */
 			if(drop_privileges(nagios_user, nagios_group) == ERROR) {
@@ -795,7 +806,7 @@ int main(int argc, char **argv) {
 			/* get event start time and save as macro */
 			event_start = time(NULL);
 			my_free(mac->x[MACRO_EVENTSTARTTIME]);
-			asprintf(&mac->x[MACRO_EVENTSTARTTIME], "%lu", (unsigned long)event_start);
+			asprintf(&mac->x[MACRO_EVENTSTARTTIME], "%llu", (unsigned long long)event_start);
 
 			timing_point("Entering event execution loop\n");
 			/***** start monitoring all services *****/

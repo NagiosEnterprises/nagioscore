@@ -86,6 +86,12 @@ body.navbar a:hover,a:active {
 	text-align:center;
 	}
 
+.navsectionheader {
+	font-size: 8pt;
+	font-weight: bold;
+	color:#DEE7C6;
+	}
+
 div.navsectionlinks {
 	margin: 3px 0 0 0;
 	}

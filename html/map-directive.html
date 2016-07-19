@@ -17,9 +17,9 @@
 		<filter id="icon-glow-up" x="-50%" y="-50%"
 				width="200%" height="200%">
 			<feComponentTransfer in="SourceAlpha" result="solid">
-				<feFuncR type="table" tableValues="0"/>
-				<feFuncG type="table" tableValues=".60 0"/>
-				<feFuncB type="table" tableValues="0"/>
+				<feFuncR type="table" tableValues="0 0 0 0"/>
+				<feFuncG type="table" tableValues=".60 0 0 0"/>
+				<feFuncB type="table" tableValues="0 0 0 0"/>
 			</feComponentTransfer>
 			<feGaussianBlur in="solid" stdDeviation="6" result="blur"/>
 			<feBlend in="SourceGraphic" in2="blur"/>
@@ -27,9 +27,9 @@
 		<filter id="icon-glow-down" x="-50%" y="-50%"
 				width="200%" height="200%">
 			<feComponentTransfer in="SourceAlpha" result="solid">
-				<feFuncR type="table" tableValues="1 0"/>
-				<feFuncG type="table" tableValues="0"/>
-				<feFuncB type="table" tableValues="0"/>
+				<feFuncR type="table" tableValues="1 0 0 0"/>
+				<feFuncG type="table" tableValues="0 0 0 0"/>
+				<feFuncB type="table" tableValues="0 0 0 0"/>
 			</feComponentTransfer>
 			<feGaussianBlur in="solid" stdDeviation="6" result="blur"/>
 			<feBlend in="SourceGraphic" in2="blur"/>
@@ -37,9 +37,9 @@
 		<filter id="icon-glow-unreachable" x="-50%" y="-50%"
 				width="200%" height="200%">
 			<feComponentTransfer in="SourceAlpha" result="solid">
-				<feFuncR type="table" tableValues=".5 0"/>
-				<feFuncG type="table" tableValues="0"/>
-				<feFuncB type="table" tableValues="0"/>
+				<feFuncR type="table" tableValues=".5 0 0 0"/>
+				<feFuncG type="table" tableValues="0 0 0 0"/>
+				<feFuncB type="table" tableValues="0 0 0 0"/>
 			</feComponentTransfer>
 			<feGaussianBlur in="solid" stdDeviation="6" result="blur"/>
 			<feBlend in="SourceGraphic" in2="blurOffset"/>

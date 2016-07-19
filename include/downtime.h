@@ -21,8 +21,8 @@
  *****************************************************************************/
 
 
-#ifndef _DOWNTIME_H
-#define _DOWNTIME_H
+#ifndef NAGIOS_DOWNTIME_H_INCLUDED
+#define NAGIOS_DOWNTIME_H_INCLUDED
 
 #include "common.h"
 #include "objects.h"

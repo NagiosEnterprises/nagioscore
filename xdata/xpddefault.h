@@ -20,8 +20,8 @@
  *
  *****************************************************************************/
 
-#ifndef _XPDDEFAULT_H
-#define _XPDDEFAULT_H
+#ifndef NAGIOS_XPDDEFAULT_H_INCLUDED
+#define NAGIOS_XPDDEFAULT_H_INCLUDED
 
 #include "../include/objects.h"
 

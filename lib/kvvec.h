@@ -1,5 +1,5 @@
-#ifndef LIBNAGIOS_kvvec_h__
-#define LIBNAGIOS_kvvec_h__
+#ifndef LIBNAGIOS_KVVEC_H_INCLUDED
+#define LIBNAGIOS_KVVEC_H_INCLUDED
 
 /**
  * @file kvvec.h

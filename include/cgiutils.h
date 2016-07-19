@@ -18,8 +18,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************/
 
-#ifndef _CGIUTILS_H
-#define _CGIUTILS_H
+#ifndef NAGIOS_CGIUTILS_H_INCLUDED
+#define NAGIOS_CGIUTILS_H_INCLUDED
 #include "lib/libnagios.h"
 #include "logging.h"
 #include "objects.h"

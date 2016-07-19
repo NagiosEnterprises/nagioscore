@@ -96,6 +96,11 @@ div.navsectiontitle {
   background-color: #efefef;
   border:1px solid #dddddd;
 }
+.navsectionheader {
+  font-size: 9pt;
+  font-weight: bold;
+  padding: 0 0 0 15px;
+}
 div.navsectionlinks {
   margin: 3px 0 0 0;
 }

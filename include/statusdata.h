@@ -20,8 +20,8 @@
  *
  *****************************************************************************/
 
-#ifndef _STATUSDATA_H
-#define _STATUSDATA_H
+#ifndef NAGIOS_STATUSDATA_H_INCLUDED
+#define NAGIOS_STATUSDATA_H_INCLUDED
 
 #include "common.h"
 #include "objects.h"

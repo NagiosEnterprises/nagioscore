@@ -1,5 +1,5 @@
-#ifndef LIBNAGIOS_libnagios_h__
-#define LIBNAGIOS_libnagios_h__
+#ifndef LIBNAGIOS_LIBNAGIOS_H_INCLUDED
+#define LIBNAGIOS_LIBNAGIOS_H_INCLUDED
 /**
  * @file libnagios.h
  *
@@ -22,4 +22,5 @@
 #include "nsock.h"
 #include "nspath.h"
 #include "snprintf.h"
+#include "nwrite.h"
 #endif /* LIB_libnagios_h__ */

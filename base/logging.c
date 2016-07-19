@@ -184,7 +184,7 @@ int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) {
 	strip(buffer);
 
 	/* write the buffer to the log file */
-	fprintf(fp, "[%lu] %s\n", log_time, buffer);
+	fprintf(fp, "[%llu] %s\n", (unsigned long long)log_time, buffer);
 	fflush(fp);
 
 #ifdef USE_EVENT_BROKER

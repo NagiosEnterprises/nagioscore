@@ -21,8 +21,8 @@
  *****************************************************************************/
 
 
-#ifndef _OBJECTS_H
-#define _OBJECTS_H
+#ifndef NAGIOS_OBJECTS_H_INCLUDED
+#define NAGIOS_OBJECTS_H_INCLUDED
 
 #include "common.h"
 
@@ -31,7 +31,7 @@ NAGIOS_BEGIN_DECL
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        402     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        403     /* increment when changes are made to data structures... */
 /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 

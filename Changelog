@@ -2,6 +2,44 @@
 Nagios Core 4 Change Log
 ########################
 
+
+4.1.x - xx/xx/xxxx
+------------------
+SECURITY FIXES
+* Fixed vulnerability CVE-2008-4796 (John Frickson)
+* Fixed vulnerability CVE-2013-4214 (John Frickson)
+
+ENHANCEMENTS
+* Increase socket queue length for listen()
+* Added host name to the website page title (leres / John Frickson)
+* Added additional icons for NetBSD and SuSE (John Frickson)
+* The new Status Map will now use cgi.cfg options (John Frickson)
+    default_statusmap_layout will default to "6" for the new map
+* The new Status Map will now show some valid values in the popup for "Nagios Process" (John Frickson)
+
+FIXES
+* Command worker fails to handle SIGPIPE
+* "View Status" links under "Map" broken in Nagios Core Version 4.1.1 (John Frickson)
+* Can't send big buffer - wproc: Core Worker seems to be choked (velripn / John Frickson)
+* Too big CPU load on FreeBSD and other systems using poll() interface (cejkar)
+* Flexible downtime recorded as unscheduled downtime (John Frickson)
+* Service Flexible downtimes produce 1 notification before entering (John Frickson)
+* Once you "set flap_detection_enabled 0" it should remove flapping state from the host/services page (John Frickson)
+* New map doesn't finish loading if a logo image is not found (John Frickson)
+* Extraneous Div end tag in map.html (Scott Wilkerson)
+* Status Map icons and online/offline status dots disappear in IE11 (John Frickson)
+* Compile / logging issues with BSD 6
+* Related to above, Fixed a lot of incorrectly handled time_t's in *printf's (John Frickson)
+* New map not working for RU locale (actually, most locales) (John Frickson)
+* Replaced all instances of signal() with sigaction() + blocking (John Frickson)
+* UTF-8 characters like german ä are not processed properly by function url_encode (John Frickson)
+* nagios worker processes can hog CPU (huxley / John Frickson)
+* custom time periods that include special characters were not being handled in reports (John Frickson)
+* Fixed init script to wait up to 90 seconds then kill the nagios process (John Frickson)
+* No Host Groups results in wrong error message (John Frickson)
+* Setup Nagios users to view specific host is not working in the new network map (John Frickson)
+* statusjson.cgi fails glibc realloc truncate response output (John Frickson)
+
 4.1.1 - 08/19/2015
 ------------------
 FIXES

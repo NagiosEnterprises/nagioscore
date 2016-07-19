@@ -20,8 +20,8 @@
  *
  *****************************************************************************/
 
-#ifndef _XSDDEFAULT_H
-#define _XSDDEFAULT_H
+#ifndef NAGIOS_XSDDEFAULT_H_INCLUDED
+#define NAGIOS_XSDDEFAULT_H_INCLUDED
 
 #ifdef NSCORE
 int xsddefault_initialize_status_data(const char *);

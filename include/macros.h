@@ -19,8 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************/
 
-#ifndef _MACROS_H
-#define _MACROS_H
+#ifndef NAGIOS_MACROS_H_INCLUDED
+#define NAGIOS_MACROS_H_INCLUDED
 
 #include "common.h"
 #include "objects.h"

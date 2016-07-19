@@ -20,8 +20,8 @@
  *
  *****************************************************************************/
 
-#ifndef _AUTH_H
-#define _AUTH_H
+#ifndef NAGIOS_CGIAUTH_H_INCLUDED
+#define NAGIOS_CGIAUTH_H_INCLUDED
 #include "common.h"
 #include "objects.h"
 

@@ -589,6 +589,18 @@ int check_service_notification_viability(service *svc, int type, int options) {
 		return ERROR;
 		}
 
+	/* if this service is currently in a flex downtime period, don't send the notification */
+	if(svc->pending_flex_downtime > 0) {
+		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This service is starting a flex downtime, so we won't send notifications.\n");
+		return ERROR;
+		}
+
+	/* if this host is currently in a flex downtime period, don't send the notification */
+	if(temp_host->pending_flex_downtime > 0) {
+		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "The host this service is associated with is starting a flex downtime, so we won't send notifications.\n");
+		return ERROR;
+		}
+
 	return OK;
 	}
 

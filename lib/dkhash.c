@@ -2,9 +2,7 @@
 #include <string.h>
 #include "dkhash.h"
 #include "lnag-utils.h"
-
-#define dkhash_func(k) hash((unsigned char *)k)
-#define dkhash_func2(k1, k2) (dkhash_func(k1) ^ dkhash_func(k2))
+#include "nsutils.h"
 
 typedef struct dkhash_bucket {
 	const char *key;
@@ -60,7 +58,7 @@ unsigned int dkhash_table_size(dkhash_table *t)
  * typical data.
  */
 #define PRIME 509
-static inline unsigned int hash(register const unsigned char *k)
+static inline unsigned int hash(register const char *k)
 {
 	register unsigned int h = 0x123; /* magic */
 
@@ -72,9 +70,11 @@ static inline unsigned int hash(register const unsigned char *k)
 
 static inline unsigned int dkhash_slot(dkhash_table *t, const char *k1, const char *k2)
 {
-	if(k2)
-		return dkhash_func2(k1, k2) % t->num_buckets;
-	return dkhash_func(k1) % t->num_buckets;
+	register unsigned int h;
+	h = hash(k1);
+	if (k2)
+		h = hash(k2);
+	return h & t->num_buckets;
 }
 
 static dkhash_bucket *dkhash_get_bucket(dkhash_table *t, const char *key, unsigned int slot)
@@ -150,7 +150,9 @@ void *dkhash_get(dkhash_table *t, const char *k1, const char *k2)
 
 dkhash_table *dkhash_create(unsigned int size)
 {
-	dkhash_table *t;
+	double			ratio;
+	unsigned int	sz;
+	dkhash_table	*t;
 
 	if (!size)
 		return NULL;
@@ -158,12 +160,17 @@ dkhash_table *dkhash_create(unsigned int size)
 	if(!(t = calloc(1, sizeof(*t))))
 		return NULL;
 
-	if(!(t->buckets = calloc(size, sizeof(dkhash_bucket *)))) {
+	sz = rup2pof2(size);
+	ratio = (double)sz / (double)size;
+	if (ratio < 1.4)
+		sz = rup2pof2(sz + 1);
+
+	if (!(t->buckets = calloc(sz, sizeof(dkhash_bucket *)))) {
 		free(t);
 		return NULL;
 	}
 
-	t->num_buckets = size;
+	t->num_buckets = sz;
 	return t;
 }
 

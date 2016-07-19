@@ -21,8 +21,8 @@
  *****************************************************************************/
 
 
-#ifndef _XODTEMPLATE_H
-#define _XODTEMPLATE_H
+#ifndef NAGIOS_XODTEMPLATE_H_INCLUDED
+#define NAGIOS_XODTEMPLATE_H_INCLUDED
 
 
 

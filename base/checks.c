@@ -924,6 +924,11 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			/* this is a hard state */
 			temp_service->state_type = HARD_STATE;
 
+			/* check for start of flexible (non-fixed) scheduled downtime if we just had a hard error */
+			/* we need to check for both, state_change (SOFT) and hard_state_change (HARD) values */
+			if((hard_state_change == TRUE || state_change == TRUE) && temp_service->pending_flex_downtime > 0)
+				check_pending_flex_service_downtime(temp_service);
+
 			/* if we've hard a hard state change... */
 			if(hard_state_change == TRUE) {
 
@@ -937,11 +942,6 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				log_service_event(temp_service);
 				state_was_logged = TRUE;
 				}
-
-			/* check for start of flexible (non-fixed) scheduled downtime if we just had a hard error */
-			/* we need to check for both, state_change (SOFT) and hard_state_change (HARD) values */
-			if((hard_state_change == TRUE || state_change == TRUE) && temp_service->pending_flex_downtime > 0)
-				check_pending_flex_service_downtime(temp_service);
 
 			/* 10/04/07 check to see if the service and/or associate host is flapping */
 			/* this should be done before a notification is sent out to ensure the host didn't just start flapping */

@@ -1,5 +1,5 @@
-#ifndef NAGIOS_INCLUDE_CONFIG_PWD_H
-#define NAGIOS_INCLUDE_CONFIG_PWD_H
+#ifndef NAGIOS_CONFIG_PWD_H_INCLUDED
+#define NAGIOS_CONFIG_PWD_H_INCLUDED
 /**
  * @file include/config_pwd.h
  * A wrapper header to let us conditionally define and then undefine

@@ -648,8 +648,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->display_name = display_name ? display_name : new_host->name;
 	new_host->alias = alias ? alias : new_host->name;
 	new_host->address = address ? address : new_host->name;
-	new_host->check_period = check_tp ? check_tp->name : NULL;
-	new_host->notification_period = notify_tp ? notify_tp->name : NULL;
+	new_host->check_period = check_tp ? (char *)strdup(check_tp->name) : NULL;
+	new_host->notification_period = notify_tp ? (char *)strdup(notify_tp->name) : NULL;
 	new_host->notification_period_ptr = notify_tp;
 	new_host->check_period_ptr = check_tp;
 	new_host->check_command = check_command;
@@ -1194,8 +1194,8 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 	if(!new_contact)
 		return NULL;
 
-	new_contact->host_notification_period = htp ? htp->name : NULL;
-	new_contact->service_notification_period = stp ? stp->name : NULL;
+	new_contact->host_notification_period = htp ? (char *)strdup(htp->name) : NULL;
+	new_contact->service_notification_period = stp ? (char *)strdup(stp->name) : NULL;
 	new_contact->host_notification_period_ptr = htp;
 	new_contact->service_notification_period_ptr = stp;
 	new_contact->name = name;
@@ -1462,8 +1462,8 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->notification_period_ptr = np;
 	new_service->check_period_ptr = cp;
 	new_service->host_ptr = h;
-	new_service->check_period = cp ? cp->name : NULL;
-	new_service->notification_period = np ? np->name : NULL;
+	new_service->check_period = cp ? (char *)strdup(cp->name) : NULL;
+	new_service->notification_period = np ? (char *)strdup(np->name) : NULL;
 	new_service->host_name = h->name;
 	if((new_service->description = (char *)strdup(description)) == NULL)
 		result = ERROR;
@@ -1695,7 +1695,7 @@ serviceescalation *add_serviceescalation(char *host_name, char *description, int
 	new_serviceescalation->service_ptr = svc;
 	new_serviceescalation->escalation_period_ptr = tp;
 	if(tp)
-		new_serviceescalation->escalation_period = tp->name;
+		new_serviceescalation->escalation_period = (char *)strdup(tp->name);
 
 	new_serviceescalation->first_notification = first_notification;
 	new_serviceescalation->last_notification = last_notification;
@@ -1764,7 +1764,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->host_name = parent->host_name;
 	new_servicedependency->service_description = parent->description;
 	if (tp)
-		new_servicedependency->dependency_period = tp->name;
+		new_servicedependency->dependency_period = (char *)strdup(tp->name);
 
 	new_servicedependency->dependency_type = (dependency_type == EXECUTION_DEPENDENCY) ? EXECUTION_DEPENDENCY : NOTIFICATION_DEPENDENCY;
 	new_servicedependency->inherits_parent = (inherits_parent > 0) ? TRUE : FALSE;
@@ -1829,7 +1829,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency->dependent_host_name = child->name;
 	new_hostdependency->host_name = parent->name;
 	if(tp)
-		new_hostdependency->dependency_period = tp->name;
+		new_hostdependency->dependency_period = (char *)strdup(tp->name);
 
 	new_hostdependency->dependency_type = (dependency_type == EXECUTION_DEPENDENCY) ? EXECUTION_DEPENDENCY : NOTIFICATION_DEPENDENCY;
 	new_hostdependency->inherits_parent = (inherits_parent > 0) ? TRUE : FALSE;
@@ -1885,7 +1885,7 @@ hostescalation *add_hostescalation(char *host_name, int first_notification, int 
 	/* assign vars. Object names are immutable, so no need to copy */
 	new_hostescalation->host_name = h->name;
 	new_hostescalation->host_ptr = h;
-	new_hostescalation->escalation_period = tp ? tp->name : NULL;
+	new_hostescalation->escalation_period = tp ? (char *)strdup(tp->name) : NULL;
 	new_hostescalation->escalation_period_ptr = tp;
 	new_hostescalation->first_notification = first_notification;
 	new_hostescalation->last_notification = last_notification;

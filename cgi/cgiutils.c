@@ -1327,6 +1327,14 @@ char * html_encode(char *input, int escape_newlines) {
 				}
 			}
 
+		/* check_multi puts out a '&ndash' so don't encode the '&' in that case */
+		else if (*inwcp == '&' && escape_html_tags == FALSE) {
+			if (tag_depth > 0 && !wcsncmp(inwcp, L"&ndash", 6))
+				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+			else
+				outstp = encode_character(*inwcp, outstp, output_max);
+			}
+
 		/* for simplicity, all other chars represented by their numeric value */
 		else {
 			outstp = encode_character(*inwcp, outstp, output_max);

@@ -119,16 +119,17 @@ AS_CASE([$dist_type],
 	[*solaris*|*hp-ux*|*aix*|*osx*], opsys=unix)
 
 
-need_cgi=no
-need_web=no
-need_brk=no
-need_plg=no
-need_pipe=no
-need_spl=no
-need_loc=no
-need_log_subdir=no
-need_etc_subdir=no
-need_pls_dir=no
+						# Does this package need to know:
+need_cgi=no				# where the cgi-bin directory is
+need_web=no				# where the website directory is
+need_brk=no				# where the event broker modules directory is
+need_plg=no				# where the plugins directory is
+need_pipe=no			# where the pipe directory is
+need_spl=no				# where the spool directory is
+need_loc=no				# where the locale directory is
+need_log_subdir=no		# where the loc sub-directory is
+need_etc_subdir=no		# where the etc sub-directory is
+need_pls_dir=no			# where the package locate state directory is
 
 AS_CASE([$PKG_NAME],
 	[nagios],
@@ -143,6 +144,7 @@ AS_CASE([$PKG_NAME],
 		need_web=yes,
 
 	[ndoutils],
+		need_brk=yes
 		need_spl=yes,
 
 	[nrpe],

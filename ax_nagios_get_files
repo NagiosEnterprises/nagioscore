@@ -97,7 +97,7 @@ AS_CASE([$init_type],
 		fi,
 
 	[launchd],
-		src_init="mac-init.plist"
+		src_init="mac-init.plist",
 
 	[*],
 		src_init="unknown"

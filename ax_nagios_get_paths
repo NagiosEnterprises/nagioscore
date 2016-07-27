@@ -606,6 +606,7 @@ eval libexecdir=$libexecdir
 eval brokersdir=$brokersdir
 eval pluginsdir=$pluginsdir
 eval cgibindir=$cgibindir
+eval localstatedir=$localstatedir
 eval pkglocalstatedir=$pkglocalstatedir
 eval webdir=$webdir
 eval localedir=$localedir

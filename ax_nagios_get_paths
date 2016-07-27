@@ -131,6 +131,10 @@ need_log_subdir=no		# where the loc sub-directory is
 need_etc_subdir=no		# where the etc sub-directory is
 need_pls_dir=no			# where the package locate state directory is
 
+if test x"$INIT_PROG" = x; then
+	INIT_PROG="$PKG_NAME"
+fi
+
 AS_CASE([$PKG_NAME],
 	[nagios],
 		need_log_subdir=yes
@@ -286,14 +290,14 @@ tmpfilesd=${tmpfilesd="/usr/lib/tmpfiles.d"}
 if test ! -d "$tmpfilesd"; then
 	tmpfilesd="N/A"
 else
-	tmpfilesd="$tmpfilesd/$PKG_NAME.conf"
+	tmpfilesd="$tmpfilesd/$INIT_PROG.conf"
 fi
 subsyslockdir=${subsyslockdir="/var/lock/subsys"}
 if test ! -d "$subsyslockdir"; then
 	subsyslockdir="N/A"
 	subsyslockfile="N/A"
 else
-	subsyslockfile="$subsyslockdir/$PKG_NAME"
+	subsyslockfile="$subsyslockdir/$INIT_PROG"
 fi
 if test "$need_loc" = no; then
 	localedir="N/A"
@@ -374,23 +378,23 @@ elif test $opsys = "linux"; then
 	fi
 	privatesysconfdir=${privatesysconfdir="$pkgsysconfdir/private"}
 	if test $need_log_subdir = yes; then
-		logdir=${logdir="$localstatedir/log/$PKG_NAME"}
+		logdir=${logdir="$localstatedir/log/$INIT_PROG"}
 	else
 		logdir=${logdir="$localstatedir/log"}
 	fi
-	piddir=${piddir="$localstatedir/run/${PKG_NAME}"}
+	piddir=${piddir="$localstatedir/run/${INIT_PROG}"}
 	if test "$need_pipe" = yes; then
-		pipedir=${pipedir="$localstatedir/run/${PKG_NAME}"}
+		pipedir=${pipedir="$localstatedir/run/${INIT_PROG}"}
 	else
 		pipedir="N/A"
 	fi
 	if test "$need_pls_dir" = yes; then
-		pkglocalstatedir=${pkglocalstatedir="$localstatedir/lib/$PKG_NAME"}
+		pkglocalstatedir=${pkglocalstatedir="$localstatedir/lib/$INIT_PROG"}
 	else
 		pkglocalstatedir="N/A"
 	fi
 	if test "$need_spl" = yes; then
-		spooldir=${spooldir="$localstatedir/spool/$PKG_NAME"}
+		spooldir=${spooldir="$localstatedir/spool/$INIT_PROG"}
 	else
 		spooldir="N/A"
 	fi
@@ -439,7 +443,7 @@ elif test $opsys = "unix"; then
 	fi
 	privatesysconfdir=${privatesysconfdir="$pkgsysconfdir/private"}
 	if test "$need_pls_dir" = yes; then
-		pkglocalstatedir=${pkglocalstatedir="$localstatedir/lib/$PKG_NAME"}
+		pkglocalstatedir=${pkglocalstatedir="$localstatedir/lib/$INIT_PROG"}
 	else
 		pkglocalstatedir="N/A"
 	fi
@@ -447,7 +451,7 @@ elif test $opsys = "unix"; then
 		localedir=${localedir="/usr/local/share/locale/<lang>/LC_MESSAGES/nagios-plugins.mo"}
 	fi
 	if test "$need_spl" = yes; then
-		spooldir=${spooldir="$localstatedir/spool/$PKG_NAME"}
+		spooldir=${spooldir="$localstatedir/spool/$INIT_PROG"}
 	else
 		spooldir="N/A"
 	fi
@@ -473,14 +477,14 @@ elif test $opsys = "unix"; then
 			logdir=${logdir="$pkglocalstatedir/log"},
 
 		[*],
-			piddir=${piddir="$localstatedir/run/${PKG_NAME}"}
+			piddir=${piddir="$localstatedir/run/${INIT_PROG}"}
 			if test "$need_pipe" = yes; then
-				pipedir=${pipedir="$localstatedir/run/${PKG_NAME}"}
+				pipedir=${pipedir="$localstatedir/run/${INIT_PROG}"}
 			else
 				pipedir="N/A"
 			fi
 			if test $need_log_subdir = yes; then
-				logdir=${logdir="$localstatedir/log/$PKG_NAME"}
+				logdir=${logdir="$localstatedir/log/$INIT_PROG"}
 			else
 				logdir=${logdir="$localstatedir/log"}
 			fi
@@ -530,7 +534,7 @@ elif test $opsys = "bsd"; then
 	fi
 	privatesysconfdir=${privatesysconfdir="$pkgsysconfdir/private"}
 	if test "$need_pls_dir" = yes; then
-		pkglocalstatedir=${pkglocalstatedir="$localstatedir/lib/$PKG_NAME"}
+		pkglocalstatedir=${pkglocalstatedir="$localstatedir/lib/$INIT_PROG"}
 	else
 		pkglocalstatedir="N/A"
 	fi
@@ -538,7 +542,7 @@ elif test $opsys = "bsd"; then
 		localedir=${localedir="/usr/local/share/locale/<lang>/LC_MESSAGES/nagios-plugins.mo"}
 	fi
 	if test "$need_spl" = yes; then
-		spooldir=${spooldir="$localstatedir/spool/$PKG_NAME"}
+		spooldir=${spooldir="$localstatedir/spool/$INIT_PROG"}
 	else
 		spooldir="N/A"
 	fi
@@ -563,14 +567,14 @@ elif test $opsys = "bsd"; then
 	else
 		cgibindir="N/A"
 	fi
-	piddir=${piddir="$localstatedir/run/${PKG_NAME}"}
+	piddir=${piddir="$localstatedir/run/${INIT_PROG}"}
 	if test "$need_pipe" = yes; then
-		pipedir=${pipedir="$localstatedir/run/${PKG_NAME}"}
+		pipedir=${pipedir="$localstatedir/run/${INIT_PROG}"}
 	else
 		pipedir="N/A"
 	fi
 	if test $need_log_subdir = yes; then
-		logdir=${logdir="$localstatedir/log/$PKG_NAME"}
+		logdir=${logdir="$localstatedir/log/$INIT_PROG"}
 	else
 		logdir=${logdir="$localstatedir/log"}
 	fi
@@ -625,9 +629,9 @@ AS_CASE([$init_type],
 		else
 			initdir=${initdir="/etc/init.d"}
 		fi
-		initname=${initname="$PKG_NAME"}
+		initname=${initname="$INIT_PROG"}
 		initconfdir=${initconfdir="/etc/conf.d"}
-		initconf=${initconf="$initconfdir/$PKG_NAME"},
+		initconf=${initconf="$initconfdir/$INIT_PROG"},
 
 	[systemd],
 		if test $dist_type = "debian"; then
@@ -635,27 +639,27 @@ AS_CASE([$init_type],
 		else
 			initdir=${initdir="/usr/lib/systemd/system"}
 		fi
-		initname=${initname="$PKG_NAME.service"},
+		initname=${initname="$INIT_PROG.service"},
 
 	[bsd],
 		initdir=${initdir="/etc/rc.d"}
-		initname=${initname="rc.$PKG_NAME"},
+		initname=${initname="rc.$INIT_PROG"},
 
 	[newbsd],
 		initdir=${initdir="/etc/rc.d"}
-		initname=${initname="$PKG_NAME"},
+		initname=${initname="$INIT_PROG"},
 
 	[gentoo],
 		initdir=${initdir="/etc/init.d"}
-		initname=${initname="$PKG_NAME"}
+		initname=${initname="$INIT_PROG"}
 		initconfdir=${initconfdir="/etc/init.d"}
-		initconf=${initconf="$initconfdir/$PKG_NAME"},
+		initconf=${initconf="$initconfdir/$INIT_PROG"},
 
 	[openrc],
 		initdir=${initdir="/etc/init.d"}
-		initname=${initname="$PKG_NAME"}
+		initname=${initname="$INIT_PROG"}
 		initconfdir=${initconfdir="/etc/conf.d"}
-		initconf=${initconf="$initconfdir/$PKG_NAME"},
+		initconf=${initconf="$initconfdir/$INIT_PROG"},
 
 	[smf*],
 		if test $init_type = smf10; then
@@ -663,21 +667,21 @@ AS_CASE([$init_type],
 		else
 			initdir=${initdir="/lib/svc/manifest/network/nagios"}
 		fi
-		initname=${initname="$PKG_NAME.xml"}
+		initname=${initname="$INIT_PROG.xml"}
 		initconfdir=unknown
 		initconf=unknown,
 
 	[upstart],
 		initdir=${initdir="/etc/init"}
-		initname=${initname="$PKG_NAME.conf"}
+		initname=${initname="$INIT_PROG.conf"}
 		initconfdir=${initconfdir="/etc/default"}
-		initconf=${initconf="$initconfdir/$PKG_NAME"},
+		initconf=${initconf="$initconfdir/$INIT_PROG"},
 
 	[launchd],
 		initdir=${initdir="/Library/LaunchDaemons"}
-		initname=${initname="org.nagios.$PKG_NAME.plist"},
+		initname=${initname="org.nagios.$INIT_PROG.plist"},
 #		initconfdir=${initconfdir="/private/etc"}
-#		initconf=${initconf="$initconfdir/$PKG_NAME"},
+#		initconf=${initconf="$initconfdir/$INIT_PROG"},
 
 
 	[*],
@@ -694,7 +698,7 @@ AS_CASE([$inetd_type],
 
 	[xinetd],
 		inetddir=${inetddir="/etc/xinetd.d"}
-		inetdname=${inetdname="$PKG_NAME"},
+		inetdname=${inetdname="$INIT_PROG"},
 
 	[systemd],
 		if test $dist_type = "debian"; then
@@ -702,7 +706,7 @@ AS_CASE([$inetd_type],
 		else
 			inetddir=${inetddir="/usr/lib/systemd/system"}
 		fi
-		netdname=${inetdname="$PKG_NAME.socket"},
+		netdname=${inetdname="$INIT_PROG.socket"},
 
 	[smf*],
 		if test $init_type = smf10; then
@@ -710,15 +714,15 @@ AS_CASE([$inetd_type],
 		else
 			inetddir=${inetddir="/lib/svc/manifest/network/nagios"}
 		fi
-		inetdname=${inetdname="$PKG_NAME.xml"},
+		inetdname=${inetdname="$INIT_PROG.xml"},
 
 #	[upstart],
 #		inetddir=${inetddir="/etc/init.d"}
-#		inetdname=${inetdname="$PKG_NAME"},
+#		inetdname=${inetdname="$INIT_PROG"},
 
 	[launchd],
 		inetddir=${inetddir="/Library/LaunchDaemons"}
-		inetdname=${inetdname="org.nagios.$PKG_NAME.plist"},
+		inetdname=${inetdname="org.nagios.$INIT_PROG.plist"},
 
 	[*],
 		inetddir=${inetddir="unknown"}

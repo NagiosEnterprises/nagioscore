@@ -119,12 +119,14 @@ AC_SUBST(init_type)
 			elif test "$dist_type" = "slackware"; then
 				init_type="bsd"
 				init_type_wanted=no
+			elif test "$dist_type" = "aix"; then
+				init_type="bsd"
+				init_type_wanted=no
 			fi
 		fi
 
 		PSCMD="ps -p1 -o args"
 		AS_CASE([$dist_type],
-			[aix],		PSCMD="env UNIX95=1; ps -p1 -o args",
 			[solaris],	PSCMD="env UNIX95=1; ps -p1 -o args",
 			[hp-ux],	PSCMD="env UNIX95=1; ps -p1 -o args")
 

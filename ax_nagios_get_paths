@@ -642,8 +642,13 @@ AS_CASE([$init_type],
 		initname=${initname="$INIT_PROG.service"},
 
 	[bsd],
-		initdir=${initdir="/etc/rc.d"}
-		initname=${initname="rc.$INIT_PROG"},
+		if test $dist_type = "aix"; then
+			initdir=${initdir="/sbin/rc.d/init.d"}
+			initname=${initname="$INIT_PROG"},
+		else
+			initdir=${initdir="/etc/rc.d"}
+			initname=${initname="rc.$INIT_PROG"},
+		fi
 
 	[newbsd],
 		initdir=${initdir="/etc/rc.d"}

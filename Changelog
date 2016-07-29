@@ -3,7 +3,7 @@ Nagios Core 4 Change Log
 ########################
 
 
-4.1.x - xx/xx/xxxx
+4.1.2 - 2016-08-01
 ------------------
 SECURITY FIXES
 * Fixed vulnerability CVE-2008-4796 (John Frickson)
@@ -51,6 +51,7 @@ FIXES
 * Report Time Period does not work if an @ character is in the timeperiod name (John Frickson)
 * State History does not use actual plugin long_output (John Frickson)
 * Time period corruption (xoubih)
+* Tactical Overview - Disabled Flap Detection Link (John Frickson)
 
 4.1.1 - 08/19/2015
 ------------------

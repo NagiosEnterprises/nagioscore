@@ -23,7 +23,6 @@ FIXES
 * Core workers looping (John Frickson)
 * service query returns duplicate host_name and description fields in the returned data (John Frickson)
 * HTML output of plug-ins is parsed in wrong way => webgui unusable (John Frickson)
-    Note: this is a partial fix. There are still some problems.
 * Command worker fails to handle SIGPIPE
 * "View Status" links under "Map" broken in Nagios Core Version 4.1.1 (John Frickson)
 * Can't send big buffer - wproc: Core Worker seems to be choked (velripn / John Frickson)

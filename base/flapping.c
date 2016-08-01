@@ -120,13 +120,13 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 	log_debug_info(DEBUGL_FLAPPING, 2, "LFT=%.2f, HFT=%.2f, CPC=%.2f, PSC=%.2f%%\n", low_threshold, high_threshold, curved_percent_change, curved_percent_change);
 
 
-	/* don't do anything if we don't have flap detection enabled on a program-wide basis */
-	if(enable_flap_detection == FALSE)
+	/* don't do anything if we don't have flap detection enabled
+	   on a program-wide basis or for this service */
+	if(enable_flap_detection == FALSE || svc->flap_detection_enabled == FALSE) {
+		if(svc->is_flapping == TRUE)
+			clear_service_flap(svc, curved_percent_change, high_threshold, low_threshold, 1);
 		return;
-
-	/* don't do anything if we don't have flap detection enabled for this service */
-	if(svc->flap_detection_enabled == FALSE)
-		return;
+	}
 
 	/* are we flapping, undecided, or what?... */
 
@@ -150,7 +150,7 @@ void check_for_service_flapping(service *svc, int update, int allow_flapstart_no
 
 	/* did the service just stop flapping? */
 	else if(is_flapping == FALSE && svc->is_flapping == TRUE)
-		clear_service_flap(svc, curved_percent_change, high_threshold, low_threshold);
+		clear_service_flap(svc, curved_percent_change, high_threshold, low_threshold, 0);
 
 	return;
 	}
@@ -253,13 +253,13 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 	log_debug_info(DEBUGL_FLAPPING, 2, "LFT=%.2f, HFT=%.2f, CPC=%.2f, PSC=%.2f%%\n", low_threshold, high_threshold, curved_percent_change, curved_percent_change);
 
 
-	/* don't do anything if we don't have flap detection enabled on a program-wide basis */
-	if(enable_flap_detection == FALSE)
+	/* don't do anything if we don't have flap detection enabled
+	   on a program-wide basis or for this service */
+	if(enable_flap_detection == FALSE || hst->flap_detection_enabled == FALSE) {
+		if(hst->is_flapping == TRUE)
+			clear_host_flap(hst, curved_percent_change, high_threshold, low_threshold, 1);
 		return;
-
-	/* don't do anything if we don't have flap detection enabled for this host */
-	if(hst->flap_detection_enabled == FALSE)
-		return;
+	}
 
 	/* are we flapping, undecided, or what?... */
 
@@ -283,7 +283,7 @@ void check_for_host_flapping(host *hst, int update, int actual_check, int allow_
 
 	/* did the host just stop flapping? */
 	else if(is_flapping == FALSE && hst->is_flapping == TRUE)
-		clear_host_flap(hst, curved_percent_change, high_threshold, low_threshold);
+		clear_host_flap(hst, curved_percent_change, high_threshold, low_threshold, 0);
 
 	return;
 	}
@@ -336,17 +336,22 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 
 
 /* handles a service that has stopped flapping */
-void clear_service_flap(service *svc, double percent_change, double high_threshold, double low_threshold) {
+void clear_service_flap(service *svc, double percent_change, double high_threshold, double low_threshold, int is_disabled) {
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "clear_service_flap()\n");
 
 	if(svc == NULL)
 		return;
 
-	log_debug_info(DEBUGL_FLAPPING, 1, "Service '%s' on host '%s' stopped flapping.\n", svc->description, svc->host_name);
-
-	/* log a notice - this one is parsed by the history CGI */
-	logit(NSLOG_INFO_MESSAGE, FALSE, "SERVICE FLAPPING ALERT: %s;%s;STOPPED; Service appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n", svc->host_name, svc->description, percent_change, low_threshold);
+	if (is_disabled == 0) {
+		log_debug_info(DEBUGL_FLAPPING, 1, "Service '%s' on host '%s' stopped flapping.\n", svc->description, svc->host_name);
+		/* log a notice - this one is parsed by the history CGI */
+		logit(NSLOG_INFO_MESSAGE, FALSE, "SERVICE FLAPPING ALERT: %s;%s;STOPPED; Service appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n", svc->host_name, svc->description, percent_change, low_threshold);
+	} else {
+		log_debug_info(DEBUGL_FLAPPING, 1, "Disabled flap detection for service '%s' on host '%s'.\n", svc->description, svc->host_name);
+		/* log a notice - this one is parsed by the history CGI */
+		logit(NSLOG_INFO_MESSAGE, FALSE, "SERVICE FLAPPING ALERT: %s;%s;STOPPED; Disabled flap detection for service\n", svc->host_name, svc->description);
+	}
 
 	/* delete the comment we added earlier */
 	if(svc->flapping_comment_id != 0)
@@ -361,12 +366,14 @@ void clear_service_flap(service *svc, double percent_change, double high_thresho
 	broker_flapping_data(NEBTYPE_FLAPPING_STOP, NEBFLAG_NONE, NEBATTR_FLAPPING_STOP_NORMAL, SERVICE_FLAPPING, svc, percent_change, high_threshold, low_threshold, NULL);
 #endif
 
-	/* send a notification */
-	service_notification(svc, NOTIFICATION_FLAPPINGSTOP, NULL, NULL, NOTIFICATION_OPTION_NONE);
+	if (is_disabled == 0) {
+		/* send a notification */
+		service_notification(svc, NOTIFICATION_FLAPPINGSTOP, NULL, NULL, NOTIFICATION_OPTION_NONE);
 
-	/* should we send a recovery notification? */
-	if(svc->check_flapping_recovery_notification == TRUE && svc->current_state == STATE_OK)
-		service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		/* should we send a recovery notification? */
+		if(svc->check_flapping_recovery_notification == TRUE && svc->current_state == STATE_OK)
+			service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+	}
 
 	/* clear the recovery notification flag */
 	svc->check_flapping_recovery_notification = FALSE;
@@ -417,17 +424,22 @@ void set_host_flap(host *hst, double percent_change, double high_threshold, doub
 
 
 /* handles a host that has stopped flapping */
-void clear_host_flap(host *hst, double percent_change, double high_threshold, double low_threshold) {
+void clear_host_flap(host *hst, double percent_change, double high_threshold, double low_threshold, int is_disabled) {
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "clear_host_flap()\n");
 
 	if(hst == NULL)
 		return;
 
-	log_debug_info(DEBUGL_FLAPPING, 1, "Host '%s' stopped flapping.\n", hst->name);
-
-	/* log a notice - this one is parsed by the history CGI */
-	logit(NSLOG_INFO_MESSAGE, FALSE, "HOST FLAPPING ALERT: %s;STOPPED; Host appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n", hst->name, percent_change, low_threshold);
+	if (is_disabled == 0) {
+		log_debug_info(DEBUGL_FLAPPING, 1, "Host '%s' stopped flapping.\n", hst->name);
+		/* log a notice - this one is parsed by the history CGI */
+		logit(NSLOG_INFO_MESSAGE, FALSE, "HOST FLAPPING ALERT: %s;STOPPED; Host appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n", hst->name, percent_change, low_threshold);
+	} else {
+		log_debug_info(DEBUGL_FLAPPING, 1, "Disabled flap detection for host '%s'.\n", hst->name);
+		/* log a notice - this one is parsed by the history CGI */
+		logit(NSLOG_INFO_MESSAGE, FALSE, "HOST FLAPPING ALERT: %s;STOPPED; Disabled flap detection\n", hst->name);
+	}
 
 	/* delete the comment we added earlier */
 	if(hst->flapping_comment_id != 0)
@@ -442,12 +454,14 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 	broker_flapping_data(NEBTYPE_FLAPPING_STOP, NEBFLAG_NONE, NEBATTR_FLAPPING_STOP_NORMAL, HOST_FLAPPING, hst, percent_change, high_threshold, low_threshold, NULL);
 #endif
 
-	/* send a notification */
-	host_notification(hst, NOTIFICATION_FLAPPINGSTOP, NULL, NULL, NOTIFICATION_OPTION_NONE);
+	if (is_disabled == 0) {
+		/* send a notification */
+		host_notification(hst, NOTIFICATION_FLAPPINGSTOP, NULL, NULL, NOTIFICATION_OPTION_NONE);
 
-	/* should we send a recovery notification? */
-	if(hst->check_flapping_recovery_notification == TRUE && hst->current_state == HOST_UP)
-		host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		/* should we send a recovery notification? */
+		if(hst->check_flapping_recovery_notification == TRUE && hst->current_state == HOST_UP)
+			host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+	}
 
 	/* clear the recovery notification flag */
 	hst->check_flapping_recovery_notification = FALSE;

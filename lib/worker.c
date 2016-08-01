@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+#include <syslog.h>
 #include "libnagios.h"
 
 #define MSG_DELIM "\1\0\0" /**< message limiter - note this ends up being
@@ -35,6 +36,9 @@ static void exit_worker(int code, const char *msg)
 {
 	child_process *cp;
 	int discard;
+#ifdef HAVE_SIGACTION
+	struct sigaction sig_action;
+#endif
 
 	if (msg) {
 		perror(msg);
@@ -46,7 +50,17 @@ static void exit_worker(int code, const char *msg)
 	 * process group of its own, so we can signal not only
 	 * the plugin but also all of its children.
 	 */
+#ifdef HAVE_SIGACTION
+	sig_action.sa_sigaction = NULL;
+	sig_action.sa_handler = SIG_IGN;
+	sigemptyset(&sig_action.sa_mask);
+	sig_action.sa_flags = 0;
+	sigaction(SIGTERM, &sig_action, NULL);
+	sigaction(SIGSEGV, &sig_action, NULL);
+#else
 	signal(SIGTERM, SIG_IGN);
+	signal(SIGSEGV, SIG_IGN);
+#endif
 	kill(0, SIGTERM);
 	while (waitpid(-1, &discard, WNOHANG) > 0)
 		; /* do nothing */
@@ -164,7 +178,8 @@ int worker_send_kvvec(int sd, struct kvvec *kvv)
 		return -1;
 
 	/* bufsize, not buflen, as it gets us the delimiter */
-	ret = write(sd, kvvb->buf, kvvb->bufsize);
+	/* ret = write(sd, kvvb->buf, kvvb->bufsize); */
+    ret = nwrite(sd, kvvb->buf, kvvb->bufsize,NULL);
 	free(kvvb->buf);
 	free(kvvb);
 
@@ -433,14 +448,27 @@ static void kill_job(child_process *cp, int reason)
 
 static void gather_output(child_process *cp, iobuf *io, int final)
 {
+	int retry = 5;
+
 	for (;;) {
 		char buf[4096];
 		int rd;
 
 		rd = read(io->fd, buf, sizeof(buf));
 		if (rd < 0) {
-			if (errno == EINTR || errno == EAGAIN)
+			if (errno == EAGAIN && !final)
+				break;
+			if (errno == EINTR || errno == EAGAIN) {
+				char	buf[1024];
+				if (--retry == 0) {
+					sprintf(buf, "job %d (pid=%ld): Failed to read(): %s", cp->id, (long)cp->ei->pid, strerror(errno));
+					break;
+				}
+				sprintf(buf, "job %d (pid=%ld): read() returned error %d", cp->id, (long)cp->ei->pid, errno);
+				syslog(LOG_ERR, buf);
+				sleep(1);
 				continue;
+			}
 			if (!final && errno != EAGAIN)
 				wlog("job %d (pid=%ld): Failed to read(): %s", cp->id, (long)cp->ei->pid, strerror(errno));
 		}
@@ -726,6 +754,10 @@ int set_socket_options(int sd, int bufsize)
 
 void enter_worker(int sd, int (*cb)(child_process*))
 {
+#ifdef HAVE_SIGACTION
+	struct sigaction sig_action;
+#endif
+
 	/* created with socketpair(), usually */
 	master_sd = sd;
 	parent_pid = getppid();
@@ -739,7 +771,15 @@ void enter_worker(int sd, int (*cb)(child_process*))
 	}
 
 	/* we need to catch child signals to mark jobs as reapable */
+#ifdef HAVE_SIGACTION
+	sig_action.sa_sigaction = NULL;
+	sig_action.sa_handler = sigchld_handler;
+	sigfillset(&sig_action.sa_mask);
+	sig_action.sa_flags=SA_NOCLDSTOP;
+	sigaction(SIGCHLD, &sig_action, NULL);
+#else
 	signal(SIGCHLD, sigchld_handler);
+#endif
 
 	fcntl(fileno(stdout), F_SETFD, FD_CLOEXEC);
 	fcntl(fileno(stderr), F_SETFD, FD_CLOEXEC);

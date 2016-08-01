@@ -2271,9 +2271,9 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 		printf("coords='%d,%d,%d,%d' ", drawing_x_offset + start_pixel, drawing_y_offset + (drawing_height - height), drawing_x_offset + end_pixel, drawing_y_offset + drawing_height);
 
 #ifdef LEGACY_GRAPHICAL_CGIS
-		printf("href='%s?t1=%lu&t2=%lu&host=%s", TRENDS_CGI, (unsigned long)next_start_time, (unsigned long)next_end_time, url_encode(host_name));
+		printf("href='%s?t1=%llu&t2=%llu&host=%s", TRENDS_CGI, (unsigned long long)next_start_time, (unsigned long long)next_end_time, url_encode(host_name));
 #else
-		printf("href='%s?t1=%lu&t2=%lu&host=%s", LEGACY_TRENDS_CGI, (unsigned long)next_start_time, (unsigned long)next_end_time, url_encode(host_name));
+		printf("href='%s?t1=%llu&t2=%llu&host=%s", LEGACY_TRENDS_CGI, (unsigned long long)next_start_time, (unsigned long long)next_end_time, url_encode(host_name));
 #endif
 		if(display_type == DISPLAY_SERVICE_TRENDS)
 			printf("&service=%s", url_encode(svc_description));

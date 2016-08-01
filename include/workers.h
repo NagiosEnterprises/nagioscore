@@ -1,5 +1,5 @@
-#ifndef INCLUDE_workers_h__
-#define INCLUDE_workers_h__
+#ifndef INCLUDE_WORKERS_H_INCLUDED
+#define INCLUDE_WORKERS_H_INCLUDED
 #include "lib/libnagios.h"
 #include "lib/worker.h"
 #include "nagios.h" /* for check_result definition */

@@ -1,5 +1,5 @@
-#ifndef INCLUDE_test_utils_h__
-#define INCLUDE_test_utils_h__
+#ifndef NAGIOS_T_UTILS_H_INCLUDED
+#define NAGIOS_T_UTILS_H_INCLUDED
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>

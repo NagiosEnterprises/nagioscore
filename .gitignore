@@ -12,7 +12,12 @@ Makefile
 tags
 .deps/
 .libs/
+
 nbproject/
+.cproject
+.project
+.settings/
+
 *.o
 *.la
 *.lo
@@ -21,6 +26,7 @@ nbproject/
 *.gcov
 *.a
 *.so
+cgi/run*
 gmon.out
 core.[1-9]*
 /Documentation

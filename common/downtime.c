@@ -803,7 +803,6 @@ int check_pending_flex_host_downtime(host *hst) {
 int check_pending_flex_service_downtime(service *svc) {
 	scheduled_downtime *temp_downtime = NULL;
 	time_t current_time = 0L;
-	unsigned long * new_downtime_id = NULL;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_pending_flex_service_downtime()\n");
@@ -842,10 +841,7 @@ int check_pending_flex_service_downtime(service *svc) {
 				log_debug_info(DEBUGL_DOWNTIME, 0, "Flexible downtime (id=%lu) for service '%s' on host '%s' starting now...\n", temp_downtime->downtime_id, svc->description, svc->host_name);
 
 				temp_downtime->flex_downtime_start = current_time;
-				if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long *)))) {
-					*new_downtime_id = temp_downtime->downtime_id;
-					temp_downtime->start_event = schedule_new_event(EVENT_SCHEDULED_DOWNTIME, TRUE, temp_downtime->flex_downtime_start, FALSE, 0, NULL, FALSE, (void *)new_downtime_id, NULL, 0);
-					}
+				handle_scheduled_downtime_by_id(temp_downtime->downtime_id);
 				}
 			}
 		}

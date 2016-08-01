@@ -17,8 +17,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************/
 
-#ifndef _NAGIOS_H
-#define _NAGIOS_H
+#ifndef NAGIOS_NAGIOS_H_INCLUDED
+#define NAGIOS_NAGIOS_H_INCLUDED
 
 #ifndef NSCORE
 # define NSCORE
@@ -530,9 +530,9 @@ int my_system_r(nagios_macros *mac, char *, int, int *, double *, char **, int);
 void check_for_service_flapping(service *, int, int);	      /* determines whether or not a service is "flapping" between states */
 void check_for_host_flapping(host *, int, int, int);		/* determines whether or not a host is "flapping" between states */
 void set_service_flap(service *, double, double, double, int);	/* handles a service that is flapping */
-void clear_service_flap(service *, double, double, double);	/* handles a service that has stopped flapping */
+void clear_service_flap(service *, double, double, double, int);	/* handles a service that has stopped flapping */
 void set_host_flap(host *, double, double, double, int);		/* handles a host that is flapping */
-void clear_host_flap(host *, double, double, double);		/* handles a host that has stopped flapping */
+void clear_host_flap(host *, double, double, double, int);		/* handles a host that has stopped flapping */
 void enable_flap_detection_routines(void);			/* enables flap detection on a program-wide basis */
 void disable_flap_detection_routines(void);			/* disables flap detection on a program-wide basis */
 void enable_host_flap_detection(host *);			/* enables flap detection for a particular host */

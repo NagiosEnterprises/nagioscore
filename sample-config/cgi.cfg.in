@@ -191,8 +191,8 @@ authorized_for_all_host_commands=nagiosadmin
 # to the path specified by the 'physical_html_path' directive.
 # Note:  The image file may be in GIF, PNG, JPEG, or GD2 format.
 # However, I recommend that you convert your image to GD2 format
-# (uncompressed), as this will cause less CPU load when the CGI
-# generates the image.
+# (uncompressed) but ONLY IF YOU WILL USE THE LEGACY MAP EXCLUSIVELY,
+# as this will cause less CPU load when the CGI generates the image.
 
 #statusmap_background_image=smbackground.gd2
 
@@ -215,16 +215,30 @@ authorized_for_all_host_commands=nagiosadmin
 # DEFAULT STATUSMAP LAYOUT METHOD
 # This option allows you to specify the default layout method
 # the statusmap CGI should use for drawing hosts.  If you do
-# not use this option, the default is to use user-defined
-# coordinates.  Valid options are as follows:
+# not use this option, the default for the legacy map is to use
+# user-defined coordinates and the default for the new map is "6"
+# (Circular Balloon).
+# Valid options for the legacy map are as follows:
 #	0 = User-defined coordinates
 #	1 = Depth layers
-#       2 = Collapsed tree
-#       3 = Balanced tree
-#       4 = Circular
-#       5 = Circular (Marked Up)
+#	2 = Collapsed tree
+#	3 = Balanced tree
+#	4 = Circular
+#	5 = Circular (Marked Up)
+# Valid options for the new map are as follows:
+#	0 = User-defined coordinates
+#	1 = Depth Layers (Horizontal)
+#	2 = Collapsed tree (Horizontal)
+#	3 = Balanced tree (Horizontal)
+#	4 = DON'T USE
+#	5 = Circular Markup
+#	6 = Circular Balloon
+#	7 = Balanced tree (Vertical)
+#	8 = Collapsed tree (Vertical)
+#	9 = Depth Layers (Vertical)
+#	10 = Force Map
 
-default_statusmap_layout=5
+#default_statusmap_layout=6
 
 
 

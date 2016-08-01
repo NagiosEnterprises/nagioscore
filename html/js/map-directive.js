@@ -1065,50 +1065,54 @@ angular.module("mapApp")
 								function(list, index) {
 									return list[index].hostInfo.name;
 								});
-						if (childIndex == null) {
+								
+						if ($scope.hostList[e]) {
 
-							// Create the node object
-							var hostNode = new Object;
+							if (childIndex == null) {
 
-							// Point the node's host info to the entry in
-							// the host list
-							hostNode.hostInfo = $scope.hostList[e];
+								// Create the node object
+								var hostNode = new Object;
 
-							// And vice versa
-							if (!$scope.hostList[e].hasOwnProperty("hostNodes")) {
-								$scope.hostList[e].hostNodes = new Array;
+								// Point the node's host info to the entry in
+								// the host list
+								hostNode.hostInfo = $scope.hostList[e];
+
+								// And vice versa
+								if (!$scope.hostList[e].hasOwnProperty("hostNodes")) {
+									$scope.hostList[e].hostNodes = new Array;
+								}
+								if (!$scope.hostList[e].hostNodes.reduce(function(a, b) {
+										return a && b === hostNode; }, false)) {
+									$scope.hostList[e].hostNodes.push(hostNode);
+								}
+
+								// Set the parent of this node
+								hostNode.parent = node;
+
+								// Initialize layout information for transitions
+								hostNode.saveArc = new Object;
+								hostNode.saveArc.x = 0;
+								hostNode.saveArc.dx = 0;
+								hostNode.saveArc.y = 0;
+								hostNode.saveArc.dy = 0;
+								hostNode.saveLabel = new Object;
+								hostNode.saveLabel.x = 0;
+								hostNode.saveLabel.dx = 0;
+								hostNode.saveLabel.y = 0;
+								hostNode.saveLabel.dy = 0;
+
+								// Add the node to the parent node's children
+								node.children.push(hostNode);
+
+								// Get the index
+								childIndex = node.children.length - 1;
 							}
-							if (!$scope.hostList[e].hostNodes.reduce(function(a, b) {
-									return a && b === hostNode; }, false)) {
-								$scope.hostList[e].hostNodes.push(hostNode);
+							// Recurse to all children of this host
+							if ($scope.hostList[e].objectJSON.child_hosts.length > 0) {
+								var childHosts = $scope.hostList[e].objectJSON.child_hosts;
+								updateHostTree(node.children[childIndex],
+										childHosts, hostNode);
 							}
-
-							// Set the parent of this node
-							hostNode.parent = node;
-
-							// Initialize layout information for transitions
-							hostNode.saveArc = new Object;
-							hostNode.saveArc.x = 0;
-							hostNode.saveArc.dx = 0;
-							hostNode.saveArc.y = 0;
-							hostNode.saveArc.dy = 0;
-							hostNode.saveLabel = new Object;
-							hostNode.saveLabel.x = 0;
-							hostNode.saveLabel.dx = 0;
-							hostNode.saveLabel.y = 0;
-							hostNode.saveLabel.dy = 0;
-
-							// Add the node to the parent node's children
-							node.children.push(hostNode);
-
-							// Get the index
-							childIndex = node.children.length - 1;
-						}
-						// Recurse to all children of this host
-						if ($scope.hostList[e].objectJSON.child_hosts.length > 0) {
-							var childHosts = $scope.hostList[e].objectJSON.child_hosts;
-							updateHostTree(node.children[childIndex],
-									childHosts, hostNode);
 						}
 					});
 				};
@@ -1143,6 +1147,9 @@ angular.module("mapApp")
 												img.node().naturalWidth;
 										$scope.iconList[image].height =
 												img.node().naturalHeight;
+									})
+									.on("error", function() {
+										$scope.iconsLoading--;
 									});
 							}
 							$scope.hostList[host].iconInfo =
@@ -1178,6 +1185,16 @@ angular.module("mapApp")
 							$scope.hostList[host] = new Object;
 							$scope.hostList[host].name = host;
 							$scope.hostList[host].serviceCount = 0;
+						}
+						// If a hosts' parent is not in the hostlist (user
+						// doesn't have permission to view parent) re-parent the
+						// host directly under the nagios process
+						for (var parent in json.data.hostlist[host].parent_hosts) {
+							var prnt = json.data.hostlist[host].parent_hosts[parent];
+							if (!json.data.hostlist[prnt]) {
+								var p = json.data.hostlist[host].parent_hosts;
+								json.data.hostlist[host].parent_hosts.splice(0, 1);
+							}
 						}
 						// Update the information returned
 						$scope.hostList[host].objectJSON =
@@ -1753,22 +1770,35 @@ angular.module("mapApp")
 
 					$scope.popupContents.hostname = getObjAttr(d,
 							["objectJSON", "name"], "unknown");
-					$scope.popupContents.alias = getObjAttr(d,
-							["objectJSON", "alias"], "unknown");
-					$scope.popupContents.address = getObjAttr(d,
-							["objectJSON", "address"], "unknown");
-					$scope.popupContents.state = getObjAttr(d,
-							["statusJSON", "status"], "pending");
-					$scope.popupContents.duration = getStateDuration(d);
-					$scope.popupContents.lastcheck =
-							getStateTime(getObjAttr(d,
-							["statusJSON", "last_check"], 0));
-					$scope.popupContents.lastchange =
-							getStateTime(getObjAttr(d,
-							["statusJSON", "last_state_change"], 0));
-					$scope.popupContents.parents = getParentHosts(d);
-					$scope.popupContents.children = getChildHosts(d);
-					$scope.popupContents.services = getServiceSummary(d);
+					if($scope.popupContents.hostname == nagiosProcessName) {
+						var now = new Date;
+						$scope.popupContents.alias = nagiosProcessName;
+						$scope.popupContents.address = window.location.host;
+						$scope.popupContents.state = "up";
+						$scope.popupContents.duration = now.getTime() - $scope.lastNagiosStart;
+						$scope.popupContents.lastcheck = $scope.lastUpdate;
+						$scope.popupContents.lastchange = $scope.lastNagiosStart;
+						$scope.popupContents.parents = "";
+						$scope.popupContents.children = "";
+						$scope.popupContents.services = null;
+					} else {
+						$scope.popupContents.alias = getObjAttr(d,
+								["objectJSON", "alias"], "unknown");
+						$scope.popupContents.address = getObjAttr(d,
+								["objectJSON", "address"], "unknown");
+						$scope.popupContents.state = getObjAttr(d,
+								["statusJSON", "status"], "pending");
+						$scope.popupContents.duration = getStateDuration(d);
+						$scope.popupContents.lastcheck =
+								getStateTime(getObjAttr(d,
+								["statusJSON", "last_check"], 0));
+						$scope.popupContents.lastchange =
+								getStateTime(getObjAttr(d,
+								["statusJSON", "last_state_change"], 0));
+						$scope.popupContents.parents = getParentHosts(d);
+						$scope.popupContents.children = getChildHosts(d);
+						$scope.popupContents.services = getServiceSummary(d);
+					}
 				};
 
 				// Update the map
@@ -3462,7 +3492,11 @@ angular.module("mapApp")
 									return a.parent == b.parent ? 1 : 2;
 									break;
 								case layouts.CircularBalloon.index:
-									return (a.parent == b.parent ? 1 : 2) / a.depth;
+									var d = a.depth > 0 ? a.depth : b.depth, sep;
+									if (d <= 0)
+										d = 1;
+									sep = (a.parent == b.parent ? 1 : 2) / d;
+									return sep;
 									break;
 								}
 							});

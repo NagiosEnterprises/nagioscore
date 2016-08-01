@@ -22,8 +22,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *************************************************************************/
 
-#ifndef JSONUTILS_H_INCLUDED
-#define JSONUTILS_H_INCLUDED
+#ifndef NAGIOS_JSONUTILS_H_INCLUDED
+#define NAGIOS_JSONUTILS_H_INCLUDED
 
 /* JSON object definitions */
 #define JSON_TYPE_INVALID	0

@@ -1589,7 +1589,7 @@ int process_cgivars(void) {
 				}
 
 			for(temp_timeperiod = timeperiod_list; temp_timeperiod != NULL; temp_timeperiod = temp_timeperiod->next) {
-				if(!strcmp(url_encode(temp_timeperiod->name), variables[x])) {
+				if(!strcmp(temp_timeperiod->name, variables[x])) {
 					current_timeperiod = temp_timeperiod;
 					break;
 					}
@@ -2199,7 +2199,7 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 	archived_state *temp_as = NULL;
 	time_t part_subject_state = 0L;
 	int saved_status = 0;
-	int saved_stamp = 0;
+	time_t saved_stamp = 0;
 	int count = 0;
 	archived_state *temp_before = NULL;
 	archived_state *last = NULL;

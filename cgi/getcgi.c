@@ -122,6 +122,7 @@ char **getcgivars(void) {
 	int paircount;
 	char *nvpair;
 	char *eqpos;
+	char *cookies, *formid;
 
 	/* initialize char variable(s) */
 	cgiinput = "";
@@ -240,6 +241,38 @@ char **getcgivars(void) {
 			}
 		nvpair = strtok(NULL, "&");
 		}
+
+	/* See if there is a NagFormId cookie & get it if it's available */
+
+	cookies = getenv("HTTP_COOKIE");
+	if (cookies && *cookies) {
+		formid = strstr(cookies, "NagFormId=");
+		if (formid) {
+			if(!(paircount % 256)) {
+				pairlist = (char **)realloc(pairlist, (paircount + 1) * sizeof(char **));
+				if(pairlist == NULL) {
+					printf("getcgivars(): Could not re-allocate memory for name-value pairlist.\n");
+					exit(1);
+				}
+			}
+
+			formid = strtok(formid, ";");
+			if (strlen(formid) > 10 && strlen(formid) < 21) {
+				for (i = strlen(formid) - 1; i > 9; --i)
+					if (!isxdigit(formid[i]))
+						break;
+				if (i == 9) {
+					pairlist[paircount] = strdup(formid);
+
+					if (!pairlist[paircount]) {
+						printf("getcgivars(): Could not allocate memory for name-value pair #%d.\n", paircount);
+						exit(1);
+					}
+					paircount++;
+				}
+			}
+		}
+	}
 
 	/* terminate the list */
 	pairlist[paircount] = '\x0';

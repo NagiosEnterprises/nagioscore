@@ -20,8 +20,8 @@
  *
  *****************************************************************************/
 
-#ifndef _XRDDEFAULT_H
-#define _XRDDEFAULT_H
+#ifndef NAGIOS_XRDDEFAULT_H_INCLUDED
+#define NAGIOS_XRDDEFAULT_H_INCLUDED
 
 
 #define XRDDEFAULT_NO_DATA               0

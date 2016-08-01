@@ -1,5 +1,5 @@
-#ifndef INCLUDE_logging_h__
-#define INCLUDE_logging_h__
+#ifndef NAGIOS_LOGGING_H_INCLUDED
+#define NAGIOS_LOGGING_H_INCLUDED
 
 #include "objects.h"
 

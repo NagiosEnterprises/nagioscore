@@ -206,10 +206,26 @@ int main(int argc, char **argv)
 {
 	simple_worker *wp;
 	int i;
+#ifdef HAVE_SIGACTION
+	struct sigaction sig_action;
+
+	sig_action.sa_sigaction = NULL;
+	sigfillset(&sig_action.sa_mask);
+	sig_action.sa_flags=SA_NOCLDSTOP;
+	sig_action.sa_handler = child_exited;
+	sigaction(SIGCHLD, &sig_action, NULL);
+
+	sig_action.sa_flags = SA_NODEFER|SA_RESTART;
+	sig_action.sa_handler = sighandler;
+	sigfillset(&sig_action.sa_mask);
+	sigaction(SIGINT, &sig_action, NULL);
+	sigaction(SIGPIPE, &sig_action, NULL);
+#else /* HAVE_SIGACTION */
 
 	signal(SIGINT, sighandler);
 	signal(SIGPIPE, sighandler);
 	signal(SIGCHLD, child_exited);
+#endif /* HAVE_SIGACTION */
 
 	iobs = iobroker_create();
 	if (!iobs)

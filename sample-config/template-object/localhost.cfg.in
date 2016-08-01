@@ -96,7 +96,7 @@ define service{
 
 # Define a service to check the number of currently running procs
 # on the local machine.  Warning if > 250 processes, critical if
-# > 400 users.
+# > 400 processes.
 
 define service{
         use                             local-service         ; Name of service template to use

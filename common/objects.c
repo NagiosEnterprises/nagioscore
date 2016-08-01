@@ -357,7 +357,7 @@ int create_object_tables(unsigned int *ocount)
 	int i;
 
 	for (i = 0; i < NUM_HASHED_OBJECT_TYPES; i++) {
-		const unsigned int hash_size = ocount[i] * 1.5;
+		const unsigned int hash_size = ocount[i];
 		if (!hash_size)
 			continue;
 		object_hash_tables[i] = dkhash_create(hash_size);

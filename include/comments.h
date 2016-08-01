@@ -21,8 +21,8 @@
  *****************************************************************************/
 
 
-#ifndef _COMMENTS_H
-#define _COMMENTS_H
+#ifndef NAGIOS_COMMENTS_H_INCLUDED
+#define NAGIOS_COMMENTS_H_INCLUDED
 #include "common.h"
 #include "objects.h"
 

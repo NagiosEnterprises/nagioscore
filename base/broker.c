@@ -947,12 +947,14 @@ void broker_statechange_data(int type, int flags, int attr, int statechange_type
 		ds.host_name = temp_service->host_name;
 		ds.service_description = temp_service->description;
 		ds.output = temp_service->plugin_output;
+		ds.longoutput = temp_service->long_plugin_output;
 		}
 	else {
 		temp_host = (host *)data;
 		ds.host_name = temp_host->name;
 		ds.service_description = NULL;
 		ds.output = temp_host->plugin_output;
+		ds.longoutput = temp_host->long_plugin_output;
 		}
 	ds.object_ptr = data;
 	ds.state = state;

@@ -20,8 +20,8 @@
  *
  *****************************************************************************/
 
-#ifndef _BROKER_H
-#define _BROKER_H
+#ifndef NAGIOS_BROKER_H_INCLUDED
+#define NAGIOS_BROKER_H_INCLUDED
 
 #include "nagios.h"
 

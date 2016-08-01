@@ -93,7 +93,10 @@ function fetch_rss ($url) {
         error("fetch_rss called without a url");
         return false;
     }
-    
+
+    // Nagios: per CVE-2013-4214 a fixed cache location is a potential
+    // security vulnerability so we're going to force the cache off here
+    MAGPIE_CACHE_ON = 0;
     // if cache is disabled
     if ( !MAGPIE_CACHE_ON ) {
         // fetch file, and parse it

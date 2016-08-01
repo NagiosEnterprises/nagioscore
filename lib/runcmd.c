@@ -626,3 +626,14 @@ int update_environment(char *name, char *value, int set) {
 
 	return 0;
 }
+
+/**
+ * This will free pids if non-null
+ * Useful for external applications that rely on libnagios to
+ * keep a lid on potential memory leaks
+ */
+void runcmd_free_pids(void) {
+	if (pids)
+		free(pids);
+}
+

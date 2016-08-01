@@ -1,5 +1,5 @@
-#ifndef LIBNAGIOS_fanout_h__
-#define LIBNAGIOS_fanout_h__
+#ifndef LIBNAGIOS_FANOUT_H_INCLUDED
+#define LIBNAGIOS_FANOUT_H_INCLUDED
 #include "lnag-utils.h"
 
 /**

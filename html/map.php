@@ -1,7 +1,37 @@
 <!DOCTYPE html>
 <html ng-app="mapApp">
+
+<?php
+	include_once(dirname(__FILE__).'/includes/utils.inc.php');
+	get_update_information();
+?>   
+
 	<head>
 		<meta charset="utf-8"/>
+<?php
+	if (isset($cfg["statusmap_background_image"])) {
+		$img = "images/" . $cfg["statusmap_background_image"];
+		echo "\t\t<style>\n";
+		echo "\t\t\tbody.hasBgImage { background: url('$img');\n";
+		echo "\t\t</style>\n";
+	}
+
+	$layout = 6;
+	if (isset($cfg["default_statusmap_layout"])) {
+		$layout = $cfg["default_statusmap_layout"];
+		if (is_numeric($layout))
+			$layout = $layout + 0;
+		else
+			$layout = -1;
+		if ($layout > 10 || $layout < 0)
+			$layout = 6;
+	}
+	if ($layout == 4)
+		$layout = 6;
+?>   
+		<script type="text/javascript">
+		map_layout=<?php echo $layout; ?>;
+		</script>
 		<title>Nagios Map</title>
 		<link type="image/ico" rel="shortcut icon" href="images/favicon.ico"/>
 		<link type="text/css" rel="stylesheet"
@@ -25,7 +55,7 @@
 		<script type="text/javascript" src="js/nagios-decorations.js"></script>
 		<script type="text/javascript" src="js/nagios-time.js"></script>
 	</head>
-	<body ng-controller="mapCtrl">
+	<body ng-controller="mapCtrl" <?php echo $img; ?>>
 		<div id="image-cache" style="display: none;"></div>
 		<div id="header-container">
 			<div info-box cgiurl="{{params.cgiurl}}"
@@ -38,37 +68,36 @@
 			</div>
 		</div>
 		<div id="map-container" ng-hide="formDisplayed"
-				nagios-map
-				cgiurl="{{params.cgiurl}}"
-				layout="{{params.layout}}"
-				dimensions="{{params.dimensions}}"
-				ulx="{{params.ulx}}"
-				uly="{{params.uly}}"
-				lrx="{{params.lrx}}"
-				lry="{{params.lry}}"
-				root="params.root"
-				maxzoom="params.maxzoom"
-				nolinks="{{params.nolinks}}"
-				notext="{{params.notext}}"
-				nopopups="{{params.nopopups}}"
-				noresize="{{params.noresize}}"
-				noicons="{{params.noicons}}"
-				iconurl="{{params.iconurl}}"
-				reload="{{reload}}"
-				update-interval="10"
-				last-update="lastUpdate"
-				map-width="svgWidth"
-				map-height="svgHeight"
-				build="canBuildMap()">
-			</div>
+			nagios-map
+			cgiurl="{{params.cgiurl}}"
+			layout="{{params.layout}}"
+			dimensions="{{params.dimensions}}"
+			ulx="{{params.ulx}}"
+			uly="{{params.uly}}"
+			lrx="{{params.lrx}}"
+			lry="{{params.lry}}"
+			root="params.root"
+			maxzoom="params.maxzoom"
+			nolinks="{{params.nolinks}}"
+			notext="{{params.notext}}"
+			nopopups="{{params.nopopups}}"
+			noresize="{{params.noresize}}"
+			noicons="{{params.noicons}}"
+			iconurl="{{params.iconurl}}"
+			reload="{{reload}}"
+			update-interval="10"
+			last-update="lastUpdate"
+			map-width="svgWidth"
+			map-height="svgHeight"
+			build="canBuildMap()">
+		</div>
 
-			<div id="menubutton" ng-style="menuButtonStyle()"
-					ng-hide="params.nomenu">
-				<button type="button" class="btn"
-						ng-click="displayForm()">
-					<img src="images/menu.png"/>
-				</button>
-			</div>
+		<div id="menubutton" ng-style="menuButtonStyle()"
+				ng-hide="params.nomenu">
+			<button type="button" class="btn"
+					ng-click="displayForm()">
+				<img src="images/menu.png"/>
+			</button>
 		</div>
 	</body>
 </html>

@@ -1,6 +1,7 @@
 <?php
 // Allow specifying main window URL for permalinks, etc.
 $url = 'main.php';
+
 if (isset($_GET['corewindow'])) {
 
 	// The default window url may have been overridden with a permalink...
@@ -21,16 +22,22 @@ if (isset($_GET['corewindow'])) {
 			$url .= "&$key=$val";
 		}
 	}
+	if (preg_match("/^http:\/\/|^https:\/\/|^\//", $url) != 1)
+		$url = "main.php";
 }
 
-$this_year = '2015';
+$this_year = '2016';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
 
 <html>
 <head>
 	<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
-	<title>Nagios Core</title>
+<script LANGUAGE="javascript">
+	var n = Math.round(Math.random() * 10000000000);
+	document.write("<title>Nagios Core on " + window.location.hostname + "</title>");
+	document.cookie = "NagFormId=" + n.toString(16);
+</script>
 	<link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
 </head>
 

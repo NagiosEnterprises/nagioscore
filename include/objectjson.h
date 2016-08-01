@@ -21,8 +21,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *************************************************************************/
 
-#ifndef OBJECTJSON_H_INCLUDED
-#define OBJECTJSON_H_INCLUDED
+#ifndef NAGIOS_OBJECTJSON_H_INCLUDED
+#define NAGIOS_OBJECTJSON_H_INCLUDED
 
 /* Structure containing CGI query string options and values */
 typedef struct object_json_cgi_data_struct {

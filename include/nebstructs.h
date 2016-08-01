@@ -20,8 +20,8 @@
  *
  *****************************************************************************/
 
-#ifndef _NEBSTRUCTS_H
-#define _NEBSTRUCTS_H
+#ifndef NAGIOS_NEBSTRUCTS_H_INCLUDED
+#define NAGIOS_NEBSTRUCTS_H_INCLUDED
 
 #include "common.h"
 #include "objects.h"
@@ -517,8 +517,8 @@ typedef struct nebstruct_statechange_struct {
 	int             current_attempt;
 	int             max_attempts;
 	char            *output;
-
 	void            *object_ptr;
+	char            *longoutput;
 	} nebstruct_statechange_data;
 
 NAGIOS_END_DECL

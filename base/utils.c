@@ -514,7 +514,9 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 	dbuf output_dbuf;
 	int dbuf_chunk = 1024;
 	int flags;
-
+#ifdef HAVE_SIGACTION
+	struct sigaction sig_action;
+#endif
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "my_system_r()\n");
 
@@ -552,7 +554,7 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 
 	/* return an error if we couldn't fork */
 	if(pid == -1) {
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: fork() in my_system_r() failed for command \"%s\"\n", cmd);
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: fork() in my_system_r() failed for command \"%s\" - errno: %s\n", cmd, strerror(errno));
 
 		/* close both ends of the pipe */
 		close(fd[0]);
@@ -586,7 +588,15 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 		fcntl(fd[1], F_SETFD, flags);
 
 		/* trap commands that timeout */
+#ifdef HAVE_SIGACTION
+		sig_action.sa_sigaction = NULL;
+		sig_action.sa_handler = my_system_sighandler;
+		sigfillset(&sig_action.sa_mask);
+		sig_action.sa_flags = SA_NODEFER|SA_RESTART;
+		sigaction(SIGALRM, &sig_action, NULL);
+#else
 		signal(SIGALRM, my_system_sighandler);
+#endif /* HAVE_SIGACTION */
 		alarm(timeout);
 
 		/* run the command */
@@ -950,8 +960,8 @@ static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod)
 
 #ifdef TEST_TIMEPERIODS_A
 			printf("TYPE: %d\n", daterange_type);
-			printf("TEST:     %lu = %s", (unsigned long)test_time, ctime(&test_time));
-			printf("MIDNIGHT: %lu = %s", (unsigned long)midnight, ctime(&midnight));
+			printf("TEST:     %llu = %s", (unsigned long long)test_time, ctime(&test_time));
+			printf("MIDNIGHT: %llu = %s", (unsigned long long)midnight, ctime(&midnight));
 #endif
 
 			/* get the start time */
@@ -1027,8 +1037,8 @@ static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod)
 				}
 
 #ifdef TEST_TIMEPERIODS_A
-			printf("START:    %lu = %s", (unsigned long)start_time, ctime(&start_time));
-			printf("END:      %lu = %s", (unsigned long)end_time, ctime(&end_time));
+			printf("START:    %llu = %s", (unsigned long long)start_time, ctime(&start_time));
+			printf("END:      %llu = %s", (unsigned long long)end_time, ctime(&end_time));
 #endif
 
 			/* start date was bad, so skip this date range */
@@ -1108,8 +1118,8 @@ static timerange* _get_matching_timerange(time_t test_time, timeperiod *tperiod)
 				}
 
 #ifdef TEST_TIMEPERIODS_A
-			printf("NEW START:    %lu = %s", (unsigned long)start_time, ctime(&start_time));
-			printf("NEW END:      %lu = %s", (unsigned long)end_time, ctime(&end_time));
+			printf("NEW START:    %llu = %s", (unsigned long long)start_time, ctime(&start_time));
+			printf("NEW END:      %llu = %s", (unsigned long long)end_time, ctime(&end_time));
 			printf("%d DAYS PASSED\n", days);
 			printf("DLST SHIFT:   %i\n", shift);
 #endif
@@ -1225,7 +1235,7 @@ static void _get_next_invalid_time(time_t pref_time, time_t *invalid_time, timep
 			if(potential_time > earliest_time) {
 				earliest_time = potential_time;
 #ifdef TEST_TIMEPERIODS_B
-				printf("    EARLIEST INVALID TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
+				printf("    EARLIEST INVALID TIME: %llu = %s", (unsigned long long)earliest_time, ctime(&earliest_time));
 #endif
 				}
 			}
@@ -1237,7 +1247,7 @@ static void _get_next_invalid_time(time_t pref_time, time_t *invalid_time, timep
 			}
 		}
 #ifdef TEST_TIMEPERIODS_B
-		printf("    FINAL EARLIEST INVALID TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
+		printf("    FINAL EARLIEST INVALID TIME: %llu = %s", (unsigned long long)earliest_time, ctime(&earliest_time));
 #endif
 
 	if (depth == max_depth)
@@ -1311,7 +1321,7 @@ void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tper
 			if(have_earliest_time == FALSE || potential_time < earliest_time) {
 				earliest_time = potential_time;
 #ifdef TEST_TIMEPERIODS_B
-				printf("    EARLIEST TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
+				printf("    EARLIEST TIME: %llu = %s", (unsigned long long)earliest_time, ctime(&earliest_time));
 #endif
 				}
 			have_earliest_time = TRUE;
@@ -1323,7 +1333,7 @@ void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tper
 			for(temp_timeperiodexclusion = tperiod->exclusions; temp_timeperiodexclusion != NULL; temp_timeperiodexclusion = temp_timeperiodexclusion->next) {
 				_get_next_invalid_time(earliest_time, &earliest_time, temp_timeperiodexclusion->timeperiod_ptr);
 #ifdef TEST_TIMEPERIODS_B
-				printf("    FINAL EARLIEST TIME: %lu = %s", (unsigned long)earliest_time, ctime(&earliest_time));
+				printf("    FINAL EARLIEST TIME: %llu = %s", (unsigned long long)earliest_time, ctime(&earliest_time));
 #endif
 				}
 			}
@@ -1579,6 +1589,9 @@ time_t get_next_log_rotation_time(void) {
 
 /* trap signals so we can exit gracefully */
 void setup_sighandler(void) {
+#ifdef HAVE_SIGACTION
+	struct sigaction sig_action;
+#endif
 
 	/* reset the shutdown flag */
 	sigshutdown = FALSE;
@@ -1589,12 +1602,28 @@ void setup_sighandler(void) {
 	setbuf(stderr, (char *)NULL);
 
 	/* initialize signal handling */
+#ifdef HAVE_SIGACTION
+	sig_action.sa_sigaction = NULL;
+	sig_action.sa_handler = SIG_IGN;
+	sigemptyset(&sig_action.sa_mask);
+	sig_action.sa_flags = 0;
+	sigaction(SIGPIPE, &sig_action, NULL);
+	sig_action.sa_handler = sighandler;
+	sigfillset(&sig_action.sa_mask);
+	sig_action.sa_flags = SA_NODEFER|SA_RESTART;
+	sigaction(SIGQUIT, &sig_action, NULL);
+	sigaction(SIGTERM, &sig_action, NULL);
+	sigaction(SIGHUP, &sig_action, NULL);
+	if(daemon_dumps_core == FALSE && daemon_mode == TRUE)
+		sigaction(SIGSEGV, &sig_action, NULL);
+#else /* HAVE_SIGACTION */
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGQUIT, sighandler);
 	signal(SIGTERM, sighandler);
 	signal(SIGHUP, sighandler);
 	if(daemon_dumps_core == FALSE && daemon_mode == TRUE)
 		signal(SIGSEGV, sighandler);
+#endif /* HAVE_SIGACTION */
 
 	return;
 	}
@@ -1604,12 +1633,26 @@ void setup_sighandler(void) {
 void reset_sighandler(void) {
 
 	/* set signal handling to default actions */
+#ifdef HAVE_SIGACTION
+	struct sigaction sig_action;
+	sig_action.sa_sigaction = NULL;
+	sig_action.sa_handler = SIG_DFL;
+	sigemptyset(&sig_action.sa_mask);
+	sig_action.sa_flags = 0;
+	sigaction(SIGQUIT, &sig_action, NULL);
+	sigaction(SIGTERM, &sig_action, NULL);
+	sigaction(SIGHUP, &sig_action, NULL);
+	sigaction(SIGSEGV, &sig_action, NULL);
+	sigaction(SIGPIPE, &sig_action, NULL);
+	sigaction(SIGXFSZ, &sig_action, NULL);
+#else /* HAVE_SIGACTION */
 	signal(SIGQUIT, SIG_DFL);
 	signal(SIGTERM, SIG_DFL);
 	signal(SIGHUP, SIG_DFL);
 	signal(SIGSEGV, SIG_DFL);
 	signal(SIGPIPE, SIG_DFL);
 	signal(SIGXFSZ, SIG_DFL);
+#endif /* HAVE_SIGACTION */
 
 	return;
 	}
@@ -2786,7 +2829,7 @@ int update_check_stats(int check_type, time_t check_time) {
 			check_statistics[check_type].bucket[x] = 0;
 		check_statistics[check_type].overflow_bucket = 0;
 #ifdef DEBUG_CHECK_STATS
-		printf("CLEARING ALL: TYPE[%d], CURRENT=%lu, LASTUPDATE=%lu\n", check_type, (unsigned long)current_time, (unsigned long)check_statistics[check_type].last_update);
+		printf("CLEARING ALL: TYPE[%d], CURRENT=%llu, LASTUPDATE=%llu\n", check_type, (unsigned long long)current_time, (unsigned long long)check_statistics[check_type].last_update);
 #endif
 		}
 
@@ -2868,7 +2911,7 @@ int generate_check_stats(void) {
 				check_statistics[check_type].bucket[x] = 0;
 			check_statistics[check_type].overflow_bucket = 0;
 #ifdef DEBUG_CHECK_STATS
-			printf("GEN CLEARING ALL: TYPE[%d], CURRENT=%lu, LASTUPDATE=%lu\n", check_type, (unsigned long)current_time, (unsigned long)check_statistics[check_type].last_update);
+			printf("GEN CLEARING ALL: TYPE[%d], CURRENT=%llu, LASTUPDATE=%llu\n", check_type, (unsigned long long)current_time, (unsigned long long)check_statistics[check_type].last_update);
 #endif
 			}
 
@@ -2884,7 +2927,7 @@ int generate_check_stats(void) {
 					break;
 
 #ifdef DEBUG_CHECK_STATS
-				printf("GEN CLEARING BUCKET %d, (NEW=%d, OLD=%d), CURRENT=%lu, LASTUPDATE=%lu\n", this_bucket, new_current_bucket, check_statistics[check_type].current_bucket, (unsigned long)current_time, (unsigned long)check_statistics[check_type].last_update);
+				printf("GEN CLEARING BUCKET %d, (NEW=%d, OLD=%d), CURRENT=%llu, LASTUPDATE=%llu\n", this_bucket, new_current_bucket, check_statistics[check_type].current_bucket, (unsigned long long)current_time, (unsigned long long)check_statistics[check_type].last_update);
 #endif
 
 				/* clear old bucket value */
@@ -2898,7 +2941,7 @@ int generate_check_stats(void) {
 			}
 #ifdef DEBUG_CHECK_STATS
 		else
-			printf("GEN NO CLEARING NEEDED: TYPE[%d], CURRENT=%lu, LASTUPDATE=%lu\n", check_type, (unsigned long)current_time, (unsigned long)check_statistics[check_type].last_update);
+			printf("GEN NO CLEARING NEEDED: TYPE[%d], CURRENT=%llu, LASTUPDATE=%llu\n", check_type, (unsigned long long)current_time, (unsigned long long)check_statistics[check_type].last_update);
 #endif
 
 		/* update last check time */

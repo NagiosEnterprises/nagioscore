@@ -11,6 +11,7 @@
 #include "snprintf.h"
 #include "lnag-utils.h"
 #include "nsock.h"
+#include <limits.h>
 
 const char *nsock_strerror(int code)
 {
@@ -29,6 +30,7 @@ const char *nsock_strerror(int code)
 
 int nsock_unix(const char *path, unsigned int flags)
 {
+    static int listen_backlog = INT_MAX;
 	struct sockaddr_un saun;
 	struct sockaddr *sa;
 	int sock = 0, mode;
@@ -81,10 +83,18 @@ int nsock_unix(const char *path, unsigned int flags)
 	if(flags & NSOCK_UDP)
 		return sock;
 
-	if(listen(sock, 3) < 0) {
-		close(sock);
-		return NSOCK_ELISTEN;
-	}
+    /* Default the backlog number on listen() to INT_MAX. If INT_MAX fails,
+     * try using SOMAXCONN (usually 127) and if that fails, return an error */
+    for (;;) {
+        if (listen(sock, listen_backlog)) {
+            if (listen_backlog == SOMAXCONN) {
+                close(sock);
+                return NSOCK_ELISTEN;
+            } else
+                listen_backlog = SOMAXCONN;
+        }
+        break;
+    }
 
 	return sock;
 }

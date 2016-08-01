@@ -3544,15 +3544,14 @@ void show_hostgroup_overviews(void) {
 		printf("<p>\n");
 		printf("<div align='center'>\n");
 
-		if(hoststatus_list != NULL) {
+		if(hostgroup_list != NULL) {
 			printf("<div class='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</div>\n");
 			printf("<div class='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</div>\n");
-			}
+		}
 		else {
-			printf("<div class='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
-			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</div>\n");
-			}
+			printf("<div class='errorMessage'>There are no host groups defined.</div>\n");
+		}
 
 		printf("</div>\n");
 		printf("</p>\n");

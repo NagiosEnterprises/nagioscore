@@ -1398,7 +1398,7 @@ void display_tac_overview(void) {
 		printf("<table border=0 width=100%%>\n");
 
 		if(flap_disabled_services > 0)
-			printf("<tr><td width=100%% class='featureItemDisabledServiceFlapDetection'><a href='%s?hostgroup=all&style=hostdetail&serviceprops=%d'>%d Service%s Disabled</a></td></tr>\n", STATUS_CGI, SERVICE_FLAP_DETECTION_DISABLED, flap_disabled_services, (flap_disabled_services == 1) ? "" : "s");
+			printf("<tr><td width=100%% class='featureItemDisabledServiceFlapDetection'><a href='%s?host=all&type=detail&serviceprops=%d'>%d Service%s Disabled</a></td></tr>\n", STATUS_CGI, SERVICE_FLAP_DETECTION_DISABLED, flap_disabled_services, (flap_disabled_services == 1) ? "" : "s");
 		else
 			printf("<tr><td width=100%% class='featureItemEnabledServiceFlapDetection'>All Services Enabled</td></tr>\n");
 

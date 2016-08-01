@@ -1479,6 +1479,9 @@ int process_cgivars(json_object *json_root, archive_json_cgi_data *cgi_data,
 			x++;
 			}
 
+		else if(!strcmp(variables[x], "NagFormId"))
+			++x;
+
 		else if(!strcmp(variables[x], ""));
 
 		else {

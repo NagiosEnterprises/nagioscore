@@ -1,5 +1,5 @@
-#ifndef _NETUTILS_H
-#define _NETUTILS_H
+#ifndef NAGIOS_NETUGILS_H_INCLUDED
+#define NAGIOS_NETUGILS_H_INCLUDED
 #include "common.h"
 NAGIOS_BEGIN_DECL
 int my_tcp_connect(const char *host_name, int port, int *sd, int timeout);

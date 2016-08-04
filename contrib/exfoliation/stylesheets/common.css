@@ -96,11 +96,7 @@ div.navsectiontitle {
   background-color: #efefef;
   border:1px solid #dddddd;
 }
-.navsectionheader {
-  font-size: 9pt;
-  font-weight: bold;
-  padding: 0 0 0 15px;
-}
+
 div.navsectionlinks {
   margin: 3px 0 0 0;
 }
@@ -117,7 +113,7 @@ ul.navsectionlinks li a {
   text-decoration: none;
   padding: 0 0 0 15px;
  /* background: transparent url(../images/greendot.gif) no-repeat scroll 0 0; */
-  
+
 }
 ul.navsectionlinks li ul {
   margin: 0px;
@@ -127,7 +123,7 @@ ul.navsectionlinks li ul {
 ul.navsectionlinks li ul li { }
 ul.navsectionlinks li a:hover {
 /*  background: transparent url(../images/orangedot.gif) no-repeat scroll 0 0; */
-color: #8391cd; 
+color: #8391cd;
 }
 ul.navsectionlinks li ul li a {
   background: none;
@@ -143,6 +139,23 @@ ul.navsectionlinks li ul li ul {
   list-style: none;
 }
 
+div.navsectionheader {
+  padding: 0;
+  margin: 0;
+}
+div.navsectionheader ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+div.navsectionheader ul li {
+  font-size: 9pt;
+  font-weight: bold;
+  padding: 0 0 0 15px;
+}
+div.navsectionheader ul li ul li {
+  font-weight: normal;
+}
 
 .navbarsearch {
   margin: 5px 0 0 0;
@@ -239,10 +252,10 @@ td.infoBox { font-size: 8pt; padding: 0 0 1em 0; white-space: nowrap; }
 div.infoBoxTitle { font-size: 10pt; font-weight: bold; }
 div.infoBoxBadProcStatus { font-size: 8pt; font-weight: bold; color: red; }
 
-.linkBox { font-size: 8pt; padding: 1; }
+.linkBox { font-size: 8pt; padding: 1px; }
 table.linkBox td { white-space: nowrap; }
 
-.filter      { font-size: 8pt; padding: 1; }
+.filter      { font-size: 8pt; padding: 1px; }
 .filterTitle { font-size: 9pt; font-weight: bold; }
 .filterName  { font-size: 8pt; text-align: right; font-weight: bold; }
 .filterValue { font-size: 8pt; }
@@ -256,19 +269,19 @@ table.linkBox td { white-space: nowrap; }
 
 table.data    { padding: 0; }
 th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-bottom: 1px solid #777777; color: #333333; }
-.dataOdd      { font-size: 8pt; background-color: #e7e7e7; padding: 0 4 0 4; }
-.dataEven     { font-size: 8pt; background-color: #f4f2f2; padding: 0 4 0 4; }
+.dataOdd      { font-size: 8pt; background-color: #e7e7e7; padding: 0px 4px 0px 4px; }
+.dataEven     { font-size: 8pt; background-color: #f4f2f2; padding: 0px 4px 0px 4px; }
 .dataTitle    { font-size: 12pt; text-align: center; font-weight: bold; }
 .dataSubTitle { font-size: 10pt; text-align: center; font-weight: bold; }
 
-.optBox             { font-size:  9pt; white-space: nowrap; padding: 2 0 0 0; }
+.optBox             { font-size:  9pt; white-space: nowrap; padding: 2px 0px 0px 0px; }
 .optBoxTitle        { font-size: 10pt; font-weight: bold; text-align: center; }
-.optBoxRequiredItem { font-size:  9pt; text-align: right; padding: 0 5 0 5; color: red; }
-.optBoxItem         { font-size:  9pt; text-align: right; padding: 0 5 0 5; }
+.optBoxRequiredItem { font-size:  9pt; text-align: right; padding: 0px 5px 0px 5px; color: red; }
+.optBoxItem         { font-size:  9pt; text-align: right; padding: 0px 5px 0px 5px; }
 .optBoxValue        { font-size:  9pt; }
 
 .optionBoxTitle { font-size: 10pt; text-align: center; font-weight: bold; }
-.optionBox      { font-size: 10pt; padding: 2; }
+.optionBox      { font-size: 10pt; padding: 2px; }
 
 .navBoxTitle { font-size: 10pt; font-weight: bold; white-space: nowrap; }
 .navBoxItem  { font-size: 8pt; }
@@ -294,16 +307,16 @@ th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-b
 .dateSelectSubTitle { font-size:  9pt; text-align: right; }
 .dateSelectItem     { font-size:  9pt; }
 
-.popupText { font-size: 8pt; background-color: #eeeeaa; border: 1px solid #777777; padding: 10 10 10 10; }
+.popupText { font-size: 8pt; background-color: #eeeeaa; border: 1px solid #777777; padding: 10px 10px 10px 10px; }
 
-.hostImportantProblem      { font-size: 8pt; background-color: #88aadd; border: 1px solid #aaaaaa; padding: 0 5 0 5; }
-.hostUnimportantProblem    { font-size: 8pt; background-color: #aaccff; border: 1px solid #888888; padding: 0 5 0 5; }
+.hostImportantProblem      { font-size: 8pt; background-color: #88aadd; border: 1px solid #aaaaaa; padding: 0px 5px 0px 5px; }
+.hostUnimportantProblem    { font-size: 8pt; background-color: #aaccff; border: 1px solid #888888; padding: 0px 5px 0px 5px; }
 
-.serviceImportantProblem   { font-size: 8pt; background-color: #88aadd; border: 1px solid #aaaaaa; padding: 0 5 0 5; }
-.serviceUnimportantProblem { font-size: 8pt; background-color: #aaccff; border: 1px solid #888888; padding: 0 5 0 5; }
+.serviceImportantProblem   { font-size: 8pt; background-color: #88aadd; border: 1px solid #aaaaaa; padding: 0px 5px 0px 5px; }
+.serviceUnimportantProblem { font-size: 8pt; background-color: #aaccff; border: 1px solid #888888; padding: 0px 5px 0px 5px; }
 
-.outageImportantProblem    { font-size: 8pt; background-color: #88aadd; border: 1px solid #aaaaaa; padding: 0 5 0 5; }
-.outageUnimportantProblem  { font-size: 8pt; background-color: #aaccff; border: 1px solid #888888; padding: 0 5 0 5; }
+.outageImportantProblem    { font-size: 8pt; background-color: #88aadd; border: 1px solid #aaaaaa; padding: 0px 5px 0px 5px; }
+.outageUnimportantProblem  { font-size: 8pt; background-color: #aaccff; border: 1px solid #888888; padding: 0px 5px 0px 5px; }
 
 
 /* Some nagios configurations have side.html rather than side.php and define */

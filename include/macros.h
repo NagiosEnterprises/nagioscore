@@ -275,6 +275,8 @@ int grab_servicegroup_macros_r(nagios_macros *mac, servicegroup *);
 int grab_hostgroup_macros_r(nagios_macros *mac, hostgroup *);
 int grab_contact_macros_r(nagios_macros *mac, contact *);
 
+int grab_argv_macros_r(nagios_macros *mac, char *check_command);
+
 int grab_macro_value_r(nagios_macros *mac, char *, char **, int *, int *);
 int grab_macrox_value_r(nagios_macros *mac, int, char *, char *, char **, int *);
 int grab_custom_macro_value_r(nagios_macros *mac, char *, char *, char *, char **);

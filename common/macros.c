@@ -375,6 +375,60 @@ int grab_contact_macros(contact *cntct) {
 	return grab_contact_macros_r(&global_macros, cntct);
 	}
 
+int grab_argv_macros_r(nagios_macros *mac, char *check_command) {
+	char *cmd_ptr = check_command;
+	char temp_arg[MAX_COMMAND_BUFFER] = "";
+	char *arg_buffer = NULL;
+	int macro_options = STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
+	register int x = 0;
+	register int y = 0;
+	register int arg_index = 0;
+
+	/* clear the argv macros */
+	clear_argv_macros_r(mac);
+
+	/* make sure we've got all the requirements */
+	if(cmd_ptr == NULL || cmd_ptr[0] == '\0')
+		return ERROR;
+
+	/* skip the command name (we're about to get the arguments)... */
+	for(arg_index = 0;; arg_index++) {
+		if(cmd_ptr[arg_index] == '!' || cmd_ptr[arg_index] == '\x0')
+			break;
+		}
+
+	/* get each command argument */
+	for(x = 0; x < MAX_COMMAND_ARGUMENTS; x++) {
+		/* we reached the end of the arguments... */
+		if(cmd_ptr[arg_index] == '\x0')
+			break;
+
+		/* get the next argument */
+		/* can't use strtok(), as that's used in process_macros... */
+		for(arg_index++, y = 0; y < (int)sizeof(temp_arg) - 1; arg_index++) {
+
+			/* handle escaped argument delimiters */
+			if(cmd_ptr[arg_index] == '\\' && cmd_ptr[arg_index+1] == '!') {
+				arg_index++;
+			} else if(cmd_ptr[arg_index] == '!' || cmd_ptr[arg_index] == '\x0') {
+				/* end of argument */
+				break;
+			}
+
+			/* copy the character */
+			temp_arg[y] = cmd_ptr[arg_index];
+			y++;
+			}
+		temp_arg[y] = '\x0';
+
+		process_macros_r(mac, temp_arg, &arg_buffer, macro_options);
+
+		mac->argv[x] = arg_buffer;
+		}
+
+	return OK;
+
+	}
 
 /******************************************************************/
 /******************* MACRO GENERATION FUNCTIONS *******************/

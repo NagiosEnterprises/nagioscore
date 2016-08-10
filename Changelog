@@ -3,6 +3,15 @@ Nagios Core 4 Change Log
 ########################
 
 
+4.2.x - 2016-xx-xx
+------------------
+FIXES
+* Fix undefined variable php error (John Frickson)
+* Links on the sidebar menu under 'Problems' are indented too far (John Frickson)
+* Using $ARGn$ Macros in perfdata (John Frickson)
+* using a wildcard in search returns service status total all zero's (John Frickson)
+
+
 4.2.0 - 2016-08-01
 ------------------
 SECURITY FIXES

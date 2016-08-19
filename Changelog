@@ -10,6 +10,8 @@ FIXES
 * Links on the sidebar menu under 'Problems' are indented too far (John Frickson)
 * Using $ARGn$ Macros in perfdata (John Frickson)
 * using a wildcard in search returns service status total all zero's (John Frickson)
+* read_only does not take priority (deppy)
+* Running nagios -v on 4.2.0 takes 90+ seconds (John Frickson)
 
 
 4.2.0 - 2016-08-01

@@ -73,8 +73,8 @@ static inline unsigned int dkhash_slot(dkhash_table *t, const char *k1, const ch
 	register unsigned int h;
 	h = hash(k1);
 	if (k2)
-		h = hash(k2);
-	return h & t->num_buckets;
+		h ^= hash(k2);
+	return h % t->num_buckets;
 }
 
 static dkhash_bucket *dkhash_get_bucket(dkhash_table *t, const char *key, unsigned int slot)

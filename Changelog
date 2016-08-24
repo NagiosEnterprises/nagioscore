@@ -12,7 +12,7 @@ FIXES
 * using a wildcard in search returns service status total all zero's (John Frickson)
 * read_only does not take priority (deppy)
 * Running nagios -v on 4.2.0 takes 90+ seconds (John Frickson)
-
+* Bare "make" invoked in subtarget (mjo)
 
 4.2.0 - 2016-08-01
 ------------------

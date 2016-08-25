@@ -300,8 +300,11 @@ install-webconf:
 	@echo ""
 
 install-exfoliation:
-	cp -rf contrib/exfoliation/stylesheets/* $(DESTDIR)$(HTMLDIR)/stylesheets
-	cp -rf contrib/exfoliation/images/* $(DESTDIR)$(HTMLDIR)/images
+	@cd contrib/exfoliation; \
+	for file in $$(find . -path "./stylesheets/*" -o -path "./images/*" -type f); do \
+		install -v -m 644 $(INSTALL_OPTS) -D $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
+	done; \
+	cd ..
 
 	@echo ""
 	@echo "*** Exfoliation theme installed ***"
@@ -309,8 +312,11 @@ install-exfoliation:
 	@echo ""
 
 install-classicui:
-	cp -rf html/stylesheets/* $(DESTDIR)$(HTMLDIR)/stylesheets
-	cp -rf html/images/* $(DESTDIR)$(HTMLDIR)/images
+	@cd html; \
+	for file in $$(find . -path "./stylesheets/*" -o -path "./images/*" -type f); do \
+		install -v -m 644 $(INSTALL_OPTS) -D $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
+	done; \
+	cd ..
 
 	@echo ""
 	@echo "*** Classic theme installed ***"

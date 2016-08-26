@@ -3953,7 +3953,11 @@ void display_host_availability(void) {
 		printf("<p align='center'>\n");
 		printf("<a href='%s?host=%s", TRENDS_CGI, url_encode(host_name));
 		printf("&t1=%lu&t2=%lu&includesoftstates=%s&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedhoststate=%d&backtrack=%d'>", t1, t2, (include_soft_states == TRUE) ? "yes" : "no", (assume_state_retention == TRUE) ? "yes" : "no", (assume_initial_states == TRUE) ? "yes" : "no", (assume_states_during_notrunning == TRUE) ? "yes" : "no", initial_assumed_host_state, backtrack_archives);
+#ifdef LEGACY_GRAPHICAL_CGIS
 		printf("<img src='%s?createimage&smallimage&host=%s", TRENDS_CGI, url_encode(host_name));
+#else
+		printf("<img src='%s?createimage&smallimage&host=%s", LEGACY_TRENDS_CGI, url_encode(host_name));
+#endif
 		printf("&t1=%lu&t2=%lu&includesoftstates=%s&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedhoststate=%d&backtrack=%d' border=1 alt='Host State Trends' title='Host State Trends' width='500' height='20'>", t1, t2, (include_soft_states == TRUE) ? "yes" : "no", (assume_state_retention == TRUE) ? "yes" : "no", (assume_initial_states == TRUE) ? "yes" : "no", (assume_states_during_notrunning == TRUE) ? "yes" : "no", initial_assumed_host_state, backtrack_archives);
 		printf("</a><br>\n");
 		printf("</p>\n");
@@ -4437,7 +4441,11 @@ void display_service_availability(void) {
 		printf("<p align='center'>\n");
 		printf("<a href='%s?host=%s", TRENDS_CGI, url_encode(host_name));
 		printf("&service=%s&t1=%lu&t2=%lu&includesoftstates=%s&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedservicestate=%d&backtrack=%d'>", url_encode(svc_description), t1, t2, (include_soft_states == TRUE) ? "yes" : "no", (assume_state_retention == TRUE) ? "yes" : "no", (assume_initial_states == TRUE) ? "yes" : "no", (assume_states_during_notrunning == TRUE) ? "yes" : "no", initial_assumed_service_state, backtrack_archives);
+#ifdef LEGACY_GRAPHICAL_CGIS
 		printf("<img src='%s?createimage&smallimage&host=%s", TRENDS_CGI, url_encode(host_name));
+#else
+		printf("<img src='%s?createimage&smallimage&host=%s", LEGACY_TRENDS_CGI, url_encode(host_name));
+#endif
 		printf("&service=%s&t1=%lu&t2=%lu&includesoftstates=%s&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedservicestate=%d&backtrack=%d' border=1 alt='Service State Trends' title='Service State Trends' width='500' height='20'>", url_encode(svc_description), t1, t2, (include_soft_states == TRUE) ? "yes" : "no", (assume_state_retention == TRUE) ? "yes" : "no", (assume_initial_states == TRUE) ? "yes" : "no", (assume_states_during_notrunning == TRUE) ? "yes" : "no", initial_assumed_service_state, backtrack_archives);
 		printf("</a><br>\n");
 		printf("</p>\n");

@@ -15,6 +15,7 @@ FIXES
 * Bare "make" invoked in subtarget (mjo)
 * Theme images/stylesheets installed with inconsistent permissions (mjo / John Frickson)
 * Missing Image for Host and Service State Trends in Availability Report (nichokap / John Frickson)
+* Maintain non-persistent comments through reload (John Frickson)
 
 
 4.2.0 - 2016-08-01

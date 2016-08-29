@@ -4723,6 +4723,8 @@ void service_report_url(const char *hn, const char *sd, const char *label) {
 	printf("&showscheduleddowntime=%s", (show_scheduled_downtime == TRUE) ? "yes" : "no");
 	if(current_timeperiod != NULL)
 		printf("&rpttimeperiod=%s", url_encode(current_timeperiod->name));
+	if(include_soft_states != NULL)
+		printf("&includesoftstates=%s", (include_soft_states == TRUE) ? "yes" : "no");
 	printf("'>%s</a>", label);
 
 	return;

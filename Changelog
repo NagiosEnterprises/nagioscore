@@ -17,6 +17,7 @@ FIXES
 * Missing Image for Host and Service State Trends in Availability Report (nichokap / John Frickson)
 * Maintain non-persistent comments through reload (John Frickson)
 * Servicegroup availability report ignores includesoftstates in service report links (PriceChild)
+* error: format not a string literal and no format arguments (Karsten Weiss)
 
 
 4.2.0 - 2016-08-01

@@ -483,7 +483,7 @@ int register_downtime(int type, unsigned long downtime_id) {
 			should work even if the downtime has ended because the
 			handle_scheduled_dowtime() function will immediately schedule
 			another downtime event which will end the downtime. */
-		if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long *)))) {
+		if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long)))) {
 			*new_downtime_id = downtime_id;
 			temp_downtime->start_event = schedule_new_event(EVENT_SCHEDULED_DOWNTIME, TRUE, temp_downtime->start_time, FALSE, 0, NULL, FALSE, (void *)new_downtime_id, NULL, 0);
 			/* Turn off is_in_effect flag so handle_scheduled_downtime() will
@@ -728,7 +728,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 		else {
 			event_time = temp_downtime->end_time;
 			}
-		if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long *)))) {
+		if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long)))) {
 			*new_downtime_id = temp_downtime->downtime_id;
 			schedule_new_event(EVENT_SCHEDULED_DOWNTIME, TRUE, event_time, FALSE, 0, NULL, FALSE, (void *)new_downtime_id, NULL, 0);
 			}
@@ -787,7 +787,7 @@ int check_pending_flex_host_downtime(host *hst) {
 
 				log_debug_info(DEBUGL_DOWNTIME, 0, "Flexible downtime (id=%lu) for host '%s' starting now...\n", temp_downtime->downtime_id, hst->name);
 				temp_downtime->flex_downtime_start = current_time;
-				if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long *)))) {
+				if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long)))) {
 					*new_downtime_id = temp_downtime->downtime_id;
 					temp_downtime->start_event = schedule_new_event(EVENT_SCHEDULED_DOWNTIME, TRUE, temp_downtime->flex_downtime_start, FALSE, 0, NULL, FALSE, (void *)new_downtime_id, NULL, 0);
 					}

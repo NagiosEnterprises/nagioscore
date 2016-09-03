@@ -24,6 +24,7 @@ AC_CANONICAL_HOST
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
+AC_PROG_LN_S
 AC_PATH_PROG([STRIP],[strip],[true])
 
 dnl Checks for header files.
@@ -176,11 +177,19 @@ AC_ARG_WITH(httpd_conf,
 	HTTPD_CONF=$withval,
 	HTTPD_CONF=no
 ) 
+LN_HTTPD_SITES_ENABLED=0
 if test x$HTTPD_CONF = xno; then
 	if test -d /etc/httpd/conf.d; then
 		HTTPD_CONF="/etc/httpd/conf.d"
 	elif test -d /etc/apache2/conf.d; then
 		HTTPD_CONF="/etc/apache2/conf.d"
+	elif test -d /etc/apache2/sites-available; then
+		HTTPD_CONF="/etc/apache2/sites-available"
+		if test -d /etc/apache2/sites-enabled; then
+			LN_HTTPD_SITES_ENABLED=1
+		fi
+	elif test -d /etc/apache2/sites-enabled; then
+		HTTPD_CONF="/etc/apache2/sites-enabled"
 	elif test -d /etc/apache/conf.d; then
 		HTTPD_CONF="/etc/apache/conf.d"
 	else
@@ -188,6 +197,7 @@ if test x$HTTPD_CONF = xno; then
 	fi
 fi 
 AC_SUBST(HTTPD_CONF)
+AC_SUBST(LN_HTTPD_SITES_ENABLED)
 
 dnl Location of check result path
 CHECKRESULTDIR=no

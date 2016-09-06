@@ -38,7 +38,7 @@ NAGIOS_BEGIN_DECL
 #ifdef LEGACY_GRAPHICAL_CGIS
 #define STATUSMAP_CGI		"statusmap.cgi"
 #else
-#define STATUSMAP_CGI		"../map.html"
+#define STATUSMAP_CGI		"../map.php"
 #define LEGACY_STATUSMAP_CGI		"statusmap.cgi"
 #endif
 #define STATUSWORLD_CGI	        "statuswrl.cgi"

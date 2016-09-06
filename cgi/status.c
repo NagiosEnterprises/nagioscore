@@ -1025,7 +1025,10 @@ void show_host_status_totals(void) {
 	hoststatus *temp_hoststatus;
 	host *temp_host;
 	int count_host;
+	regex_t preg_hostname;
 
+	if(host_filter != NULL)
+		regcomp(&preg_hostname, host_filter, REG_ICASE);
 
 	/* check the status of all hosts... */
 	for(temp_hoststatus = hoststatus_list; temp_hoststatus != NULL; temp_hoststatus = temp_hoststatus->next) {
@@ -1039,8 +1042,14 @@ void show_host_status_totals(void) {
 
 		count_host = 0;
 
-		if(display_type == DISPLAY_HOSTS && (show_all_hosts == TRUE || !strcmp(host_name, temp_hoststatus->host_name)))
-			count_host = 1;
+		if(display_type == DISPLAY_HOSTS) {
+			if (show_all_hosts == TRUE)
+				count_host = 1;
+			else if (!strcmp(host_name, temp_hoststatus->host_name))
+				count_host = 1;
+			else if(host_filter != NULL && 0 == regexec(&preg_hostname, temp_hoststatus->host_name, 0, NULL, 0))
+				count_host = 1;
+			}
 		else if(display_type == DISPLAY_SERVICEGROUPS) {
 			if(show_all_servicegroups == TRUE) {
 				count_host = 1;

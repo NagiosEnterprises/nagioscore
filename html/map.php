@@ -9,6 +9,7 @@
 	<head>
 		<meta charset="utf-8"/>
 <?php
+	$img = "";
 	if (isset($cfg["statusmap_background_image"])) {
 		$img = "images/" . $cfg["statusmap_background_image"];
 		echo "\t\t<style>\n";

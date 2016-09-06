@@ -86,12 +86,6 @@ body.navbar a:hover,a:active {
 	text-align:center;
 	}
 
-.navsectionheader {
-	font-size: 8pt;
-	font-weight: bold;
-	color:#DEE7C6;
-	}
-
 div.navsectionlinks {
 	margin: 3px 0 0 0;
 	}
@@ -151,6 +145,23 @@ ul.navsectionlinks li ul li ul {
 	padding: 0 0 0 15px;
 	}
 
+div.navsectionheader {
+  padding: 0;
+  margin: 0;
+}
+div.navsectionheader ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+div.navsectionheader ul li {
+  font-size: 9pt;
+  font-weight: bold;
+  padding: 0 0 0 15px;
+}
+div.navsectionheader ul li ul li {
+  font-weight: normal;
+}
 
 .navbarsearch {
 	margin: 5px 0 0 0;

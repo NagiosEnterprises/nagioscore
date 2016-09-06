@@ -465,7 +465,7 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 					break;
 				}
 				sprintf(buf, "job %d (pid=%ld): read() returned error %d", cp->id, (long)cp->ei->pid, errno);
-				syslog(LOG_ERR, buf);
+				syslog(LOG_ERR, "%s", buf);
 				sleep(1);
 				continue;
 			}

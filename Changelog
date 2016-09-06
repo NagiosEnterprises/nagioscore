@@ -3,6 +3,24 @@ Nagios Core 4 Change Log
 ########################
 
 
+4.2.1 - 2016-09-06
+------------------
+FIXES
+* Fix undefined variable php error (John Frickson)
+* Links on the sidebar menu under 'Problems' are indented too far (John Frickson)
+* Using $ARGn$ Macros in perfdata (John Frickson)
+* using a wildcard in search returns service status total all zero's (John Frickson)
+* read_only does not take priority (deppy)
+* Running nagios -v on 4.2.0 takes 90+ seconds (John Frickson)
+* Bare "make" invoked in subtarget (mjo)
+* Theme images/stylesheets installed with inconsistent permissions (mjo / John Frickson)
+* Missing Image for Host and Service State Trends in Availability Report (nichokap / John Frickson)
+* Maintain non-persistent comments through reload (John Frickson)
+* Servicegroup availability report ignores includesoftstates in service report links (PriceChild)
+* error: format not a string literal and no format arguments (Karsten Weiss)
+* Synced config.guess and config.sub with GNU (Zakhar Kleyman)
+
+
 4.2.0 - 2016-08-01
 ------------------
 SECURITY FIXES

@@ -242,15 +242,16 @@ int xpddefault_update_service_performance_data(service *svc) {
 	hst = find_host(svc->host_name);
 	grab_host_macros_r(&mac, hst);
 	grab_service_macros_r(&mac, svc);
+	grab_argv_macros_r(&mac, svc->check_command);
 
 	/* run the performance data command */
 	xpddefault_run_service_performance_data_command(&mac, svc);
 
-	/* get rid of used memory we won't need anymore */
-	clear_argv_macros_r(&mac);
-
 	/* update the performance data file */
 	xpddefault_update_service_performance_data_file(&mac, svc);
+
+	/* get rid of used memory we won't need anymore */
+	clear_argv_macros_r(&mac);
 
 	/* now free() it all */
 	clear_volatile_macros_r(&mac);
@@ -282,6 +283,7 @@ int xpddefault_update_host_performance_data(host *hst) {
 	/* set up macros and get to work */
 	memset(&mac, 0, sizeof(mac));
 	grab_host_macros_r(&mac, hst);
+	grab_argv_macros_r(&mac, hst->check_command);
 
 	/* run the performance data command */
 	xpddefault_run_host_performance_data_command(&mac, hst);

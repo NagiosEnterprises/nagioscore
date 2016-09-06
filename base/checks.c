@@ -2075,6 +2075,7 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 
 	/* neb module wants to override the host check - perhaps it will check the host itself */
 	/* NOTE: if a module does this, it has to do a lot of the stuff found below to make sure things don't get whacked out of shape! */
+	/* NOTE: if would be easier for modules to override checks when the NEBTYPE_SERVICECHECK_INITIATE event is called (later) */
 	if(neb_result == NEBERROR_CALLBACKOVERRIDE)
 		return OK;
 #endif
@@ -2144,7 +2145,16 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, hst, CHECK_TYPE_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, processed_command, NULL, NULL, NULL, NULL, cr);
+	neb_result = broker_host_check(NEBTYPE_HOSTCHECK_INITIATE, NEBFLAG_NONE, NEBATTR_NONE, hst, CHECK_TYPE_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, processed_command, NULL, NULL, NULL, NULL, cr);
+
+	/* neb module wants to override the service check - perhaps it will check the service itself */
+	if (neb_result == NEBERROR_CALLBACKOVERRIDE) {
+		clear_volatile_macros_r(&mac);
+		hst->latency = old_latency;
+		free_check_result(cr);
+		my_free(processed_command);
+		return OK;
+	}
 #endif
 
 	/* reset latency (permanent value for this check will get set later) */

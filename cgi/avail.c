@@ -2302,6 +2302,11 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 				}
 			saved_status = temp_as->entry_type;
 			saved_stamp = temp_as->time_stamp;
+
+			/* check if first time is before schedule downtime */
+			if(saved_stamp < start_time)
+				saved_stamp = start_time;
+
 			}
 		}
 

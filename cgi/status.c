@@ -3602,6 +3602,10 @@ void show_hostgroup_overview(hostgroup *hstgrp) {
 		if(temp_host == NULL)
 			continue;
 
+		/* make sure user has rights to view this host */
+		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
+			continue;
+
 		/* find the host status */
 		temp_hoststatus = find_hoststatus(temp_host->name);
 		if(temp_hoststatus == NULL)
@@ -3985,6 +3989,10 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 		if(temp_host == NULL)
 			continue;
 
+		/* make sure user has rights to view this host */
+		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
+			continue;
+
 		/* find the host status */
 		temp_hoststatus = find_hoststatus(temp_host->name);
 		if(temp_hoststatus == NULL)
@@ -4154,6 +4162,10 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 		/* find the host this service is associated with */
 		temp_host = find_host(temp_servicestatus->host_name);
 		if(temp_host == NULL)
+			continue;
+
+		/* make sure user has rights to view this host */
+		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 			continue;
 
 		/* see if this service is associated with a host in the specified hostgroup */
@@ -4509,6 +4521,10 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 		/* find the host... */
 		temp_host = find_host(temp_member->host_name);
 		if(temp_host == NULL)
+			continue;
+
+		/* make sure user has rights to view this host */
+		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 			continue;
 
 		/* grab macros */

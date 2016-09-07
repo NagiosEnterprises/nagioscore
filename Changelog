@@ -9,6 +9,7 @@ FIXES
 * Fix permissions for Host Groups reports (status.cgi) (Patrik Halfar)
 * Service Parents does not appear to be functioning as intended (lev)
 * Availability report mixes up scheduled and unscheduled warning percentages (Helmut Mikulcik)
+* Remove deprecated "framespacing" (John Frickson)
 
 
 4.2.1 - 2016-09-06

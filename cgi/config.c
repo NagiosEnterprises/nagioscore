@@ -291,7 +291,7 @@ void document_header(int use_stylesheet) {
 	printf("Pragma: no-cache\r\n");
 	printf("Last-Modified: %s\r\n", date_time);
 	printf("Expires: %s\r\n", date_time);
-	printf("Content-type: text/html\r\n\r\n");
+	printf("Content-type: text/html; charset=utf-8\r\n\r\n");
 
 	printf("<html>\n");
 	printf("<head>\n");

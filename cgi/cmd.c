@@ -273,7 +273,7 @@ void document_header(int use_stylesheet) {
 
 	else {
 
-		printf("Content-type: text/html\r\n\r\n");
+		printf("Content-type: text/html; charset=utf-8\r\n\r\n");
 
 		printf("<html>\n");
 		printf("<head>\n");

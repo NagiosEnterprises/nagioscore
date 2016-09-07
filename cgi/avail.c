@@ -4409,7 +4409,7 @@ void display_service_availability(void) {
 			percent_time_ok_scheduled = (double)(((double)temp_subject->scheduled_time_ok * 100.0) / (double)total_time);
 			percent_time_ok_unscheduled = percent_time_ok - percent_time_ok_scheduled;
 			percent_time_warning = (double)(((double)temp_subject->time_warning * 100.0) / (double)total_time);
-			percent_time_warning_scheduled = (double)(((double)temp_subject->scheduled_time_unknown * 100.0) / (double)total_time);
+			percent_time_warning_scheduled = (double)(((double)temp_subject->scheduled_time_warning * 100.0) / (double)total_time);
 			percent_time_warning_unscheduled = percent_time_warning - percent_time_warning_scheduled;
 			percent_time_unknown = (double)(((double)temp_subject->time_unknown * 100.0) / (double)total_time);
 			percent_time_unknown_scheduled = (double)(((double)temp_subject->scheduled_time_unknown * 100.0) / (double)total_time);
@@ -4577,7 +4577,7 @@ void display_service_availability(void) {
 				percent_time_ok_scheduled = (double)(((double)temp_subject->scheduled_time_ok * 100.0) / (double)total_time);
 				percent_time_ok_unscheduled = percent_time_ok - percent_time_ok_scheduled;
 				percent_time_warning = (double)(((double)temp_subject->time_warning * 100.0) / (double)total_time);
-				percent_time_warning_scheduled = (double)(((double)temp_subject->scheduled_time_unknown * 100.0) / (double)total_time);
+				percent_time_warning_scheduled = (double)(((double)temp_subject->scheduled_time_warning * 100.0) / (double)total_time);
 				percent_time_warning_unscheduled = percent_time_warning - percent_time_warning_scheduled;
 				percent_time_unknown = (double)(((double)temp_subject->time_unknown * 100.0) / (double)total_time);
 				percent_time_unknown_scheduled = (double)(((double)temp_subject->scheduled_time_unknown * 100.0) / (double)total_time);

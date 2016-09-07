@@ -514,6 +514,7 @@ int close_command_file(void);					/* closes and deletes the external command fil
 
 
 /**** Monitoring/Event Handler Functions ****/
+int check_service_parents(service *svc);			/* checks service parents */
 int check_service_dependencies(service *, int);          	/* checks service dependencies */
 int check_host_dependencies(host *, int);                	/* checks host dependencies */
 void check_for_orphaned_services(void);				/* checks for orphaned services */

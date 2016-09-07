@@ -5,7 +5,9 @@ Nagios Core 4 Change Log
 
 4.2.x - xxxx-xx-xx
 ------------------
+FIXES
 * Fix permissions for Host Groups reports (status.cgi) (Patrik Halfar)
+* Service Parents does not appear to be functioning as intended (lev)
 
 
 4.2.1 - 2016-09-06

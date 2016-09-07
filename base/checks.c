@@ -1233,6 +1233,13 @@ int check_service_check_viability(service *svc, int check_options, int *time_is_
 			}
 		}
 
+		/* check if parent service is OK */
+		if(check_service_parents(svc) == DEPENDENCIES_FAILED) {
+			preferred_time = current_time + check_interval;
+			perform_check = FALSE;
+			log_debug_info(DEBUGL_CHECKS, 2, "Execution parents for this service failed, so it will not be actively checked.\n");
+		}
+
 		/* check if host is up - if not, do not perform check */
 		if(host_down_disable_service_checks) {
 			if((temp_host = svc->host_ptr) == NULL) {
@@ -1254,6 +1261,40 @@ int check_service_check_viability(service *svc, int check_options, int *time_is_
 
 	return result;
 	}
+
+
+
+/* checks service parents */
+int check_service_parents(service *svc)
+{
+	servicesmember *temp_servicesmember = NULL;
+	int state = STATE_OK;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_service_parents()\n");
+
+	/* check all parents... */
+	for(temp_servicesmember = svc->parents; temp_servicesmember; temp_servicesmember = temp_servicesmember->next) {
+		service *parent_service;
+
+		/* find the service we depend on... */
+		if((parent_service = temp_servicesmember->service_ptr) == NULL) {
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: service '%s' on host '%s' is NULL ptr\n",
+				  temp_servicesmember->service_description, temp_servicesmember->host_name);
+			continue;
+		}
+
+		state = parent_service->last_hard_state;
+
+		/* is the service we depend on in a state that fails the dependency tests? */
+		if((state == STATE_CRITICAL) || (state == STATE_UNKNOWN))
+			return DEPENDENCIES_FAILED;
+
+		if(check_service_parents(parent_service) != DEPENDENCIES_OK)
+			return DEPENDENCIES_FAILED;
+	}
+
+	return DEPENDENCIES_OK;
+}
 
 
 

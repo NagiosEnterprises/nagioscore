@@ -173,7 +173,7 @@ unsigned long host_properties = 0L;
 unsigned long service_properties = 0L;
 
 
-
+int num_services = 0;
 
 int sort_type = SORT_NONE;
 int sort_option = SORT_HOSTNAME;
@@ -447,6 +447,11 @@ int main(void) {
 		printf("</object>");
 		}
 
+	/* Special case where there is a host with no services */
+	if(display_type == DISPLAY_HOSTS && num_services == 0) {
+		display_type = DISPLAY_HOSTGROUPS;
+		group_style_type = STYLE_HOST_DETAIL;
+	}
 
 	/* bottom portion of screen - service or hostgroup detail */
 	if(display_type == DISPLAY_HOSTS)
@@ -849,6 +854,7 @@ void show_service_status_totals(void) {
 		}
 
 	total_services = total_ok + total_unknown + total_warning + total_critical + total_pending;
+	num_services = total_services;
 	total_problems = total_unknown + total_warning + total_critical;
 
 
@@ -1953,8 +1959,11 @@ void show_host_detail(void) {
 	int duration_error = FALSE;
 	int total_entries = 0;
 	int visible_entries = 0;
+	regex_t preg_hostname;
 //	int show_host = FALSE;
 
+	if(host_filter != NULL)
+		regcomp(&preg_hostname, host_filter, REG_ICASE);
 
 	/* sort the host list if necessary */
 	if(sort_type != SORT_NONE) {
@@ -2121,6 +2130,14 @@ void show_host_detail(void) {
 		/* make sure user has rights to see this... */
 		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 			continue;
+
+		if (show_all_hosts == FALSE) {
+			if(host_filter != NULL) {
+				if (regexec(&preg_hostname, temp_host->name, 0, NULL, 0) != 0)
+					continue;
+			} else if (strcmp(host_name, temp_host->name))
+				continue;
+		}
 
 		user_has_seen_something = TRUE;
 

@@ -1582,7 +1582,7 @@ void show_service_detail(void) {
 		if(result_limit == 0)
 			limit_results = FALSE;
 
-		if( (limit_results == TRUE && show_service== TRUE)  && ( (total_entries < page_start) || (total_entries >= (page_start + result_limit)) )  ) {
+		if( (limit_results == TRUE && show_service== TRUE)  && ( (total_entries < page_start) || (total_entries > (page_start + result_limit)) )  ) {
 			total_entries++;
 			show_service = FALSE;
 			}
@@ -2167,7 +2167,7 @@ void show_host_detail(void) {
 		if(result_limit == 0)
 			limit_results = FALSE;
 
-		if( (limit_results == TRUE) && ( (total_entries < page_start) || (total_entries >= (page_start + result_limit)) )  ) {
+		if( (limit_results == TRUE) && ( (total_entries < page_start) || (total_entries > (page_start + result_limit)) )  ) {
 			continue;
 			}
 
@@ -5432,19 +5432,22 @@ void create_pagenumbers(int total_entries,char *temp_url,int type_service) {
 
 	int pages = 1;
 	int tmp_start;
-	int i;
+	int i, last_page;
 	int previous_page;
 
 	/* do page numbers if applicable */
 	if(result_limit > 0 && total_entries > result_limit) {
 		pages = (total_entries / result_limit);
+		last_page = pages;
+		if (total_entries % result_limit > 0)
+			++last_page;
 		previous_page = (page_start-result_limit) > 0 ? (page_start-result_limit) : 0;
 		printf("<div id='bottom_page_numbers'>\n");
 		printf("<div class='inner_numbers'>\n");
 		printf("<a href='%s&start=0&limit=%i' class='pagenumber' title='First Page'><img src='%s%s' height='15' width='15' alt='<<' /></a>\n",temp_url,result_limit,url_images_path,FIRST_PAGE_ICON);
 		printf("<a href='%s&start=%i&limit=%i' class='pagenumber' title='Previous Page'><img src='%s%s' height='15' width='10' alt='<' /></a>\n",temp_url,previous_page,result_limit,url_images_path,PREVIOUS_PAGE_ICON);
 
-		for(i = 0; i < (pages + 1); i++) {
+		for(i = 0; i < last_page; i++) {
 			tmp_start = (i * result_limit);
 			if(tmp_start == page_start)
 				printf("<div class='pagenumber current_page'> %i </div>\n",(i+1));

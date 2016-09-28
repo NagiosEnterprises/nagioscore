@@ -12,6 +12,7 @@ FIXES
 * Remove deprecated "framespacing" (John Frickson)
 * The nagios tarball contains two identical jquery copies (John Frickson)
 * extinfo.cgi does not set content-type (most cgi's don't) (John Frickson)
+* Timeperiods are corrupted by external command CHANGE_SVC_CHECK_TIMEPERIOD (xoubih)
 
 
 4.2.1 - 2016-09-06

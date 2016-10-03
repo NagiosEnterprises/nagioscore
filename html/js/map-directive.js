@@ -590,15 +590,18 @@ angular.module("mapApp")
 
 					// Placeholder for attributes
 					var attrs = new Object;
-					var style = new Object;
 
 					// Variables used for all layouts
 					var serviceCount = getObjAttr(d, ["serviceCount"], 0);
 					var iconTextPadding = getIconTextPadding(d);
+					var fontSize = $scope.fontSize + "px";
+
+					if (d.hostInfo.name == $scope.$parent.search.host)
+						fontSize = ($scope.fontSize * 2) + "px";
+					attrs["font-size"] = fontSize;	// $scope.fontSize + "px";
 
 					switch($scope.layout) {
 					case layouts.UserSupplied.index:
-						attrs["font-size"] = $scope.fontSize + "px";
 						var textPadding =
 								layouts.UserSupplied.textPadding[layouts.UserSupplied.textAlignment];
 						if (!d.hostInfo.hasOwnProperty("iconInfo")) {
@@ -637,7 +640,6 @@ angular.module("mapApp")
 								", " + (($scope.fontSize / 2) - 1) + ")";
 						attrs["text-anchor"] = d.children ? "middle" :
 								"start";
-						attrs["font-size"] = $scope.fontSize + "px";
 						break;
 					case layouts.DepthLayersVertical.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
@@ -646,7 +648,6 @@ angular.module("mapApp")
 						attrs.dx = d.children ? -textPadding : textPadding;
 						attrs.dy = layouts.DepthLayersVertical.dyText;
 						attrs["text-anchor"] = d.children ? "end" : "start";
-						attrs["font-size"] = $scope.fontSize + "px";
 						break;
 					case layouts.CollapsedTree.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
@@ -658,7 +659,6 @@ angular.module("mapApp")
 								", " + (($scope.fontSize / 2) - 1) + ")";
 						attrs["text-anchor"] = d.children ? "middle" :
 								"start";
-						attrs["font-size"] = $scope.fontSize + "px";
 						break;
 					case layouts.CollapsedTreeVertical.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
@@ -667,7 +667,6 @@ angular.module("mapApp")
 						attrs.dx = d.children ? -textPadding : textPadding;
 						attrs.dy = layouts.CollapsedTreeVertical.dyText;
 						attrs["text-anchor"] = d.children ? "end" : "start";
-						attrs["font-size"] = $scope.fontSize + "px";
 						break;
 					case layouts.BalancedTree.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
@@ -679,7 +678,6 @@ angular.module("mapApp")
 								", " + (($scope.fontSize / 2) - 1) + ")";
 						attrs["text-anchor"] = d.children ? "middle" :
 								"start";
-						attrs["font-size"] = $scope.fontSize + "px";
 						break;
 					case layouts.BalancedTreeVertical.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
@@ -688,7 +686,6 @@ angular.module("mapApp")
 						attrs.dx = d.children ? -textPadding : textPadding;
 						attrs.dy = layouts.BalancedTreeVertical.dyText;
 						attrs["text-anchor"] = d.children ? "end" : "start";
-						attrs["font-size"] = $scope.fontSize + "px";
 						break;
 					case layouts.CircularBalloon.index:
 						var textPadding = $scope.nodeScale(serviceCount) +
@@ -710,7 +707,6 @@ angular.module("mapApp")
 									textPadding + ")";
 						}
 						attrs.dy = layouts.CircularBalloon.dyText;
-						attrs["font-size"] = $scope.fontSize + "px";
 						break;
 					case layouts.CircularMarkup.index:
 						attrs["alignment-baseline"] = "middle";
@@ -737,6 +733,12 @@ angular.module("mapApp")
 						break;
 					}
 
+					if (d.hostInfo.name == $scope.$parent.search.host) {
+						attrs["font-weight"] = "bold";
+						attrs["stroke"] = "red";
+						attrs["stroke-width"] = "1";
+						attrs["fill"] = "#0000ff";
+					}
 					d3.select(domNode).attr(attrs);
 				};
 

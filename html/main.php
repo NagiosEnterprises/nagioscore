@@ -204,14 +204,12 @@ $this_year = '2016';
 		<div id="splashbox4" class="splashbox splashbox-clear"><!-- latest news feed -->
 			<h2>Latest News</h2>
 			<div id="splashbox4-contents">
-				<?php @include(dirname(__FILE__).'/rss-newsfeed.html'); ?>
 			</div>
 		</div>
 
 		<div id="splashbox5" class="splashbox"><!-- core promo feed -->
 			<h2>Don't Miss...</h2>
 			<div id="splashbox5-contents">
-				<?php @include(dirname(__FILE__).'/rss-corefeed.html'); ?>
 			</div>
 		</div>
 

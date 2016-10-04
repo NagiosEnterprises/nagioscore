@@ -25,7 +25,7 @@ FIXES
 * nagios host URL parameter for NEW map doesn`t work - Network Map for All Hosts (John Frickson)
 * next_problem_id is improperly initialized (gherteg)
 * Passive problems not showing as "unhandled" (John Frickson)
-* September reported as Sept instead of Sep (John Frickson)
+* September reported as Sept instead of Sep (Rostislav Opočenský)
 
 
 4.2.1 - 2016-09-06

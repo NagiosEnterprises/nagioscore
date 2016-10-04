@@ -23,6 +23,7 @@ FIXES
 * Quick search doesn't show hosts without services (service status detail page) (John Frickson)
 * In host/services details view, if exactly 100 entries would not show last one (John Frickson)
 * nagios host URL parameter for NEW map doesn`t work - Network Map for All Hosts (John Frickson)
+* next_problem_id is improperly initialized (gherteg)
 
 
 4.2.1 - 2016-09-06

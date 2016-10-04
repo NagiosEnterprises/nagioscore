@@ -5,7 +5,8 @@ THANKS!
 The success of Nagios has been due to the fantastic community members that
 support it and provide bug reports, patches, and great ideas.  Here are a
 few of the many members that have contributed to Nagios in various ways
-since 1999.  If I missed your name, let me know.
+since 1999.  If I missed your name, misspelled it or otherwise got it
+wrong, please let me know.
 
 * Adam Bowen
 * Ahmon Dancy
@@ -98,6 +99,7 @@ since 1999.  If I missed your name, let me know.
 * Geoff Montee
 * Gerd Mueller
 * Gerhard Lausser
+* gherteg
 * Glenn Thompson
 * Gordon Messmer
 * Gordon Smith

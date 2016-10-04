@@ -147,7 +147,7 @@ unsigned long retained_process_host_attribute_mask;
 unsigned long retained_process_service_attribute_mask;
 
 unsigned long next_event_id = 0L;
-unsigned long next_problem_id = 0L;
+unsigned long next_problem_id = 1L;
 unsigned long next_comment_id = 0L;
 unsigned long next_notification_id = 0L;
 

@@ -26,6 +26,7 @@ FIXES
 * next_problem_id is improperly initialized (gherteg)
 * Passive problems not showing as "unhandled" (John Frickson)
 * September reported as Sept instead of Sep (Rostislav Opočenský)
+* Notifications are not sent for active alerts after scheduled downtime ends (John Frickson)
 
 
 4.2.1 - 2016-09-06

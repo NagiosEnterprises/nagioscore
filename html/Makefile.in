@@ -66,10 +66,12 @@ install:
 # End of directories for new CGI pages
 	$(INSTALL) -m 664 $(INSTALL_OPTS) robots.txt $(DESTDIR)$(HTMLDIR)
 #	$(INSTALL) -m 664 $(INSTALL_OPTS) docs/robots.txt $(DESTDIR)$(HTMLDIR)/docs
-# Remove old HTML files (PHP files are used now)
+# Remove old files
 	rm -f $(DESTDIR)$(HTMLDIR)/index.html
 	rm -f $(DESTDIR)$(HTMLDIR)/main.html
 	rm -f $(DESTDIR)$(HTMLDIR)/side.html
+	rm -f $(DESTDIR)$(HTMLDIR)/rss-*
+	rm -rf $(DESTDIR)$(HTMLDIR)/include/rss
 	$(INSTALL) -m 664 $(INSTALL_OPTS) jsonquery.html $(DESTDIR)$(HTMLDIR)
 # New graphical CGI pages
 	$(INSTALL) -m 664 $(INSTALL_OPTS) graph-header.html $(DESTDIR)$(HTMLDIR)

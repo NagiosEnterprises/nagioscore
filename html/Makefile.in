@@ -70,6 +70,7 @@ install:
 	rm -f $(DESTDIR)$(HTMLDIR)/index.html
 	rm -f $(DESTDIR)$(HTMLDIR)/main.html
 	rm -f $(DESTDIR)$(HTMLDIR)/side.html
+	rm -f $(DESTDIR)$(HTMLDIR)/map.html
 	rm -f $(DESTDIR)$(HTMLDIR)/rss-*
 	rm -rf $(DESTDIR)$(HTMLDIR)/include/rss
 	$(INSTALL) -m 664 $(INSTALL_OPTS) jsonquery.html $(DESTDIR)$(HTMLDIR)

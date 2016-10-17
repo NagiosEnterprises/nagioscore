@@ -119,14 +119,19 @@ AC_SUBST(init_type)
 			elif test "$dist_type" = "slackware"; then
 				init_type="bsd"
 				init_type_wanted=no
+			elif test "$dist_type" = "aix"; then
+				init_type="bsd"
+				init_type_wanted=no
+			elif test "$dist_type" = "hp-ux"; then
+				init_type="unknown"
+				init_type_wanted=no
 			fi
 		fi
 
 		PSCMD="ps -p1 -o args"
-		AS_CASE([$dist_type],
-			[aix],		PSCMD="env UNIX95=1; ps -p1 -o args",
-			[solaris],	PSCMD="env UNIX95=1; ps -p1 -o args",
-			[hp-ux],	PSCMD="env UNIX95=1; ps -p1 -o args")
+		if test $dist_type = solaris; then
+			PSCMD="env UNIX95=1; ps -p1 -o args"
+		fi
 
 		if test "$init_type_wanted" = yes; then
 			pid1=`$PSCMD | grep -vi COMMAND | cut -d' ' -f1`
@@ -173,7 +178,7 @@ AC_SUBST(init_type)
 
 			if test "$init_type_wanted" = yes; then
 				if test "$pid1" = "/sbin/init" -o "$pid1" = "/usr/sbin/init"; then
-					if `/sbin/init --version 2>/dev/null | grep "upstart" >/dev/null`; then
+					if `$pid1 --version 2>/dev/null | grep "upstart" >/dev/null`; then
 						init_type="upstart"
 						init_type_wanted=no
 					elif test -f "/etc/rc" -a ! -L "/etc/rc"; then

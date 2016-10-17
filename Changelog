@@ -20,6 +20,7 @@ FIXES
 * Fix permissions for Host Groups reports (status.cgi) (Patrik Halfar)
 * Service Parents does not appear to be functioning as intended (lev)
 * Availability report mixes up scheduled and unscheduled warning percentages (Helmut Mikulcik)
+* Invalid values for saved_stamp in comput_subject_downtime_times() (John Frickson)
 * Remove deprecated "framespacing" (John Frickson)
 * The nagios tarball contains two identical jquery copies (John Frickson)
 * extinfo.cgi does not set content-type (most cgi's don't) (John Frickson)
@@ -32,6 +33,7 @@ FIXES
 * September reported as Sept instead of Sep (Rostislav Opočenský)
 * Notifications are not sent for active alerts after scheduled downtime ends (John Frickson)
 * Nagios 4.2.0 not working on Solaris (John Frickson)
+* install-exfoliation and install-classicui don't work FreeBSD and Mac OS X (John Frickson)
 
 
 4.2.1 - 2016-09-06

@@ -96,10 +96,12 @@ AC_SUBST(dist_ver)
 					[bsd],
 						dist_type=`uname -s | tr ["[A-Z]" "[a-z]"]`
 						dist_ver=`uname -r`,
-					[aix|hp-ux],
-						dist_ver=$OSTYPE,
+					[aix],
+						dist_ver="`uname -v`.`uname -r`",
+					[hp-ux],
+						dist_ver=`uname -r | cut -d'.' -f1-3`,
 					[solaris],
-						dist_ver=`echo $OSTYPE | cut -d'.' -f2`,
+						dist_ver=`uname -r | cut -d'.' -f2`,
 					[*],
 						dist_ver=$OSTYPE
 				)

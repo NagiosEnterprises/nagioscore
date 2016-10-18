@@ -3,7 +3,7 @@ Nagios Core 4 Change Log
 ########################
 
 
-4.2.x - xxxx-xx-xx
+4.2.2 - 2016-10-xx
 ------------------
 SECURITY FIXES
 * There was a fix to vulnerability CVE-2008-4796 in the 4.2.0 release on

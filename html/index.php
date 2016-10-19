@@ -41,7 +41,7 @@ $this_year = '2016';
 	<link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
 </head>
 
-<frameset cols="180,*" style="border: 0px; framespacing: 0px">
+<frameset cols="180,*" style="border: 0px;">
 	<frame src="side.php" name="side" frameborder="0" style="">
 	<frame src="<?php echo $url; ?>" name="main" frameborder="0" style="">
 

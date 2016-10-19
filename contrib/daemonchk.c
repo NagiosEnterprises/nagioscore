@@ -190,7 +190,7 @@ static void get_expire_time_string(time_t *raw_time, char *buffer, int buffer_le
 	int second;
 	int year;
 	char *weekdays[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-	char *months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"};
+	char *months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 	if(raw_time == NULL)
 		time(&t);

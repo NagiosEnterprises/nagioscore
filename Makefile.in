@@ -33,12 +33,14 @@ LIBDIR=@libdir@
 INCLUDEDIR=@includedir@/nagios
 HTMLDIR=@datadir@
 datarootdir=@datarootdir@
+LN_S=@LN_S@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
 COMMAND_OPTS=@COMMAND_OPTS@
 HTTPD_CONF=@HTTPD_CONF@
+LN_HTTPD_SITES_ENABLED=@LN_HTTPD_SITES_ENABLED@
 INIT_DIR=@init_dir@
-INIT_OPTS=-o root -g root
+INIT_OPTS=@INIT_OPTS@
 CGICFGDIR=$(CGIDIR)
 
 USE_EVENTBROKER=@USE_EVENTBROKER@
@@ -294,6 +296,9 @@ install-config:
 
 install-webconf:
 	$(INSTALL) -m 644 sample-config/httpd.conf $(DESTDIR)$(HTTPD_CONF)/nagios.conf
+	if [ $(LN_HTTPD_SITES_ENABLED) -eq 1 ]; then \
+		$(LN_S) $(DESTDIR)$(HTTPD_CONF)/nagios.conf $(DESTDIR)/etc/apache2/sites-enabled/nagios.conf; \
+	fi
 
 	@echo ""
 	@echo "*** Nagios/Apache conf file installed ***"
@@ -301,8 +306,13 @@ install-webconf:
 
 install-exfoliation:
 	@cd contrib/exfoliation; \
-	for file in $$(find . -path "./stylesheets/*" -o -path "./images/*" -type f); do \
-		install -m 644 $(INSTALL_OPTS) -D $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
+	$(INSTALL) $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/stylesheets; \
+	for file in $$(find ./stylesheets/ -type f); do \
+		$(INSTALL) -m 644 $(INSTALL_OPTS) $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
+	done; \
+	$(INSTALL) $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/images; \
+	for file in $$(find ./images -type f); do \
+		$(INSTALL) -m 644 $(INSTALL_OPTS) $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
 	done; \
 	cd ../..
 
@@ -313,8 +323,13 @@ install-exfoliation:
 
 install-classicui:
 	@cd html; \
-	for file in $$(find . -path "./stylesheets/*" -o -path "./images/*" -type f); do \
-		install -m 644 $(INSTALL_OPTS) -D $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
+	$(INSTALL) $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/stylesheets; \
+	for file in $$(find ./stylesheets/ -type f); do \
+		$(INSTALL) -m 644 $(INSTALL_OPTS) $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
+	done; \
+	$(INSTALL) $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/images; \
+	for file in $$(find ./images -type f); do \
+		$(INSTALL) -m 644 $(INSTALL_OPTS) $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
 	done; \
 	cd ..
 

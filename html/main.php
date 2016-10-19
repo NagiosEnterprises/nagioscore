@@ -1,7 +1,7 @@
 <?php
 include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
-$this_version = '4.2.1';
+$this_version = '4.2.2-RC1';
 $this_year = '2016';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
@@ -129,7 +129,7 @@ $this_year = '2016';
 <div id="currentversioninfo">
 	<div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
 	<div class="version">Version <?php echo $this_version; ?></div>
-	<div class="releasedate">September 06, 2016</div>
+	<div class="releasedate">October 18, 2016</div>
 	<div class="checkforupdates"><a href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a></div>
 </div>
 
@@ -204,14 +204,12 @@ $this_year = '2016';
 		<div id="splashbox4" class="splashbox splashbox-clear"><!-- latest news feed -->
 			<h2>Latest News</h2>
 			<div id="splashbox4-contents">
-				<?php @include(dirname(__FILE__).'/rss-newsfeed.html'); ?>
 			</div>
 		</div>
 
 		<div id="splashbox5" class="splashbox"><!-- core promo feed -->
 			<h2>Don't Miss...</h2>
 			<div id="splashbox5-contents">
-				<?php @include(dirname(__FILE__).'/rss-corefeed.html'); ?>
 			</div>
 		</div>
 

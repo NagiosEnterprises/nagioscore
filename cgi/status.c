@@ -173,7 +173,7 @@ unsigned long host_properties = 0L;
 unsigned long service_properties = 0L;
 
 
-
+int num_services = 0;
 
 int sort_type = SORT_NONE;
 int sort_option = SORT_HOSTNAME;
@@ -447,6 +447,11 @@ int main(void) {
 		printf("</object>");
 		}
 
+	/* Special case where there is a host with no services */
+	if(display_type == DISPLAY_HOSTS && num_services == 0) {
+		display_type = DISPLAY_HOSTGROUPS;
+		group_style_type = STYLE_HOST_DETAIL;
+	}
 
 	/* bottom portion of screen - service or hostgroup detail */
 	if(display_type == DISPLAY_HOSTS)
@@ -505,7 +510,7 @@ void document_header(int use_stylesheet) {
 	get_time_string(&expire_time, date_time, (int)sizeof(date_time), HTTP_DATE_TIME);
 	printf("Expires: %s\r\n", date_time);
 
-	printf("Content-type: text/html\r\n\r\n");
+	printf("Content-type: text/html; charset=utf-8\r\n\r\n");
 
 	if(embedded == TRUE)
 		return;
@@ -849,6 +854,7 @@ void show_service_status_totals(void) {
 		}
 
 	total_services = total_ok + total_unknown + total_warning + total_critical + total_pending;
+	num_services = total_services;
 	total_problems = total_unknown + total_warning + total_critical;
 
 
@@ -1576,7 +1582,7 @@ void show_service_detail(void) {
 		if(result_limit == 0)
 			limit_results = FALSE;
 
-		if( (limit_results == TRUE && show_service== TRUE)  && ( (total_entries < page_start) || (total_entries >= (page_start + result_limit)) )  ) {
+		if( (limit_results == TRUE && show_service== TRUE)  && ( (total_entries < page_start) || (total_entries > (page_start + result_limit)) )  ) {
 			total_entries++;
 			show_service = FALSE;
 			}
@@ -1953,8 +1959,11 @@ void show_host_detail(void) {
 	int duration_error = FALSE;
 	int total_entries = 0;
 	int visible_entries = 0;
+	regex_t preg_hostname;
 //	int show_host = FALSE;
 
+	if(host_filter != NULL)
+		regcomp(&preg_hostname, host_filter, REG_ICASE);
 
 	/* sort the host list if necessary */
 	if(sort_type != SORT_NONE) {
@@ -2122,6 +2131,14 @@ void show_host_detail(void) {
 		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 			continue;
 
+		if (show_all_hosts == FALSE) {
+			if(host_filter != NULL) {
+				if (regexec(&preg_hostname, temp_host->name, 0, NULL, 0) != 0)
+					continue;
+			} else if (strcmp(host_name, temp_host->name))
+				continue;
+		}
+
 		user_has_seen_something = TRUE;
 
 		/* see if we should display services for hosts with this type of status */
@@ -2150,7 +2167,7 @@ void show_host_detail(void) {
 		if(result_limit == 0)
 			limit_results = FALSE;
 
-		if( (limit_results == TRUE) && ( (total_entries < page_start) || (total_entries >= (page_start + result_limit)) )  ) {
+		if( (limit_results == TRUE) && ( (total_entries < page_start) || (total_entries > (page_start + result_limit)) )  ) {
 			continue;
 			}
 
@@ -2236,8 +2253,13 @@ void show_host_detail(void) {
 			if(temp_status->notifications_enabled == FALSE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Notifications for this host have been disabled' TITLE='Notifications for this host have been disabled'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, NOTIFICATIONS_DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
 				}
-			if(temp_status->checks_enabled == FALSE) {
-				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Checks of this host have been disabled' TITLE='Checks of this host have been disabled'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
+			if(temp_status->checks_enabled == FALSE && temp_status->accept_passive_checks == FALSE) {
+				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name));
+				printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Active and passive checks have been disabled for this host' TITLE='Active and passive checks have been disabled for this host'></a></td>", url_images_path, DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
+				}
+			else if(temp_status->checks_enabled == FALSE) {
+				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name));
+				printf("<IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Active checks of this host have been disabled - only passive checks are being accepted' TITLE='Active checks of this host have been disabled - only passive checks are being accepted'></a></td>", url_images_path, PASSIVE_ONLY_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
 				}
 			if(temp_status->is_flapping == TRUE) {
 				printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='This host is flapping between states' TITLE='This host is flapping between states'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, FLAPPING_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
@@ -3602,6 +3624,10 @@ void show_hostgroup_overview(hostgroup *hstgrp) {
 		if(temp_host == NULL)
 			continue;
 
+		/* make sure user has rights to view this host */
+		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
+			continue;
+
 		/* find the host status */
 		temp_hoststatus = find_hoststatus(temp_host->name);
 		if(temp_hoststatus == NULL)
@@ -3985,6 +4011,10 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup) {
 		if(temp_host == NULL)
 			continue;
 
+		/* make sure user has rights to view this host */
+		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
+			continue;
+
 		/* find the host status */
 		temp_hoststatus = find_hoststatus(temp_host->name);
 		if(temp_hoststatus == NULL)
@@ -4154,6 +4184,10 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup) {
 		/* find the host this service is associated with */
 		temp_host = find_host(temp_servicestatus->host_name);
 		if(temp_host == NULL)
+			continue;
+
+		/* make sure user has rights to view this host */
+		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 			continue;
 
 		/* see if this service is associated with a host in the specified hostgroup */
@@ -4509,6 +4543,10 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 		/* find the host... */
 		temp_host = find_host(temp_member->host_name);
 		if(temp_host == NULL)
+			continue;
+
+		/* make sure user has rights to view this host */
+		if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
 			continue;
 
 		/* grab macros */
@@ -5399,19 +5437,22 @@ void create_pagenumbers(int total_entries,char *temp_url,int type_service) {
 
 	int pages = 1;
 	int tmp_start;
-	int i;
+	int i, last_page;
 	int previous_page;
 
 	/* do page numbers if applicable */
 	if(result_limit > 0 && total_entries > result_limit) {
 		pages = (total_entries / result_limit);
+		last_page = pages;
+		if (total_entries % result_limit > 0)
+			++last_page;
 		previous_page = (page_start-result_limit) > 0 ? (page_start-result_limit) : 0;
 		printf("<div id='bottom_page_numbers'>\n");
 		printf("<div class='inner_numbers'>\n");
 		printf("<a href='%s&start=0&limit=%i' class='pagenumber' title='First Page'><img src='%s%s' height='15' width='15' alt='<<' /></a>\n",temp_url,result_limit,url_images_path,FIRST_PAGE_ICON);
 		printf("<a href='%s&start=%i&limit=%i' class='pagenumber' title='Previous Page'><img src='%s%s' height='15' width='10' alt='<' /></a>\n",temp_url,previous_page,result_limit,url_images_path,PREVIOUS_PAGE_ICON);
 
-		for(i = 0; i < (pages + 1); i++) {
+		for(i = 0; i < last_page; i++) {
 			tmp_start = (i * result_limit);
 			if(tmp_start == page_start)
 				printf("<div class='pagenumber current_page'> %i </div>\n",(i+1));

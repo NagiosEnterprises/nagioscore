@@ -10,9 +10,9 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.2.1"
+PKG_VERSION="4.2.2-RC1"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="09-06-2016"
+PKG_REL_DATE="10-18-2016"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
@@ -24,6 +24,7 @@ AC_CANONICAL_HOST
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
+AC_PROG_LN_S
 AC_PATH_PROG([STRIP],[strip],[true])
 
 dnl Checks for header files.
@@ -135,6 +136,20 @@ AC_SEARCH_LIBS(nanosleep,[rt posix4],,[
 	exit 1
 	])
 
+case $host_os in
+*bsd*|darwin*)
+	root_grp=wheel
+	;;
+*)
+	root_grp=root
+	;;
+esac
+
+AC_ARG_WITH(root_group,AC_HELP_STRING([--with-root-group=<grp>],[sets group name for installing init]),root_grp=$withval)
+AC_SUBST(root_grp)
+INIT_OPTS="-o root -g $root_grp"
+AC_SUBST(INIT_OPTS)
+
 AC_ARG_WITH(nagios_user,AC_HELP_STRING([--with-nagios-user=<user>],[sets user name to run nagios]),nagios_user=$withval,nagios_user=nagios)
 AC_ARG_WITH(nagios_group,AC_HELP_STRING([--with-nagios-group=<grp>],[sets group name to run nagios]),nagios_grp=$withval,nagios_grp=nagios)
 AC_SUBST(nagios_user)
@@ -176,11 +191,19 @@ AC_ARG_WITH(httpd_conf,
 	HTTPD_CONF=$withval,
 	HTTPD_CONF=no
 ) 
+LN_HTTPD_SITES_ENABLED=0
 if test x$HTTPD_CONF = xno; then
 	if test -d /etc/httpd/conf.d; then
 		HTTPD_CONF="/etc/httpd/conf.d"
 	elif test -d /etc/apache2/conf.d; then
 		HTTPD_CONF="/etc/apache2/conf.d"
+	elif test -d /etc/apache2/sites-available; then
+		HTTPD_CONF="/etc/apache2/sites-available"
+		if test -d /etc/apache2/sites-enabled; then
+			LN_HTTPD_SITES_ENABLED=1
+		fi
+	elif test -d /etc/apache2/sites-enabled; then
+		HTTPD_CONF="/etc/apache2/sites-enabled"
 	elif test -d /etc/apache/conf.d; then
 		HTTPD_CONF="/etc/apache/conf.d"
 	else
@@ -188,6 +211,7 @@ if test x$HTTPD_CONF = xno; then
 	fi
 fi 
 AC_SUBST(HTTPD_CONF)
+AC_SUBST(LN_HTTPD_SITES_ENABLED)
 
 dnl Location of check result path
 CHECKRESULTDIR=no

@@ -97,6 +97,14 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	/* check the viability of sending out a service notification */
 	if(check_service_notification_viability(svc, type, options) == ERROR) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test failed.  No notification will be sent out.\n");
+		/* Set next_notification time if we're in a downtime and
+			notification_interval = zero, otherwise if the service
+			doesn't recover after downtime ends, it will never send
+			the notification */
+			if (svc->notification_interval == 0.0) {
+				if (temp_host->scheduled_downtime_depth > 0 || svc->scheduled_downtime_depth > 0)
+					svc->next_notification = current_time;
+				}
 		return OK;
 		}
 

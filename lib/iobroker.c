@@ -421,7 +421,7 @@ int iobroker_poll(iobroker_set *iobs, int timeout)
 		}
 		for (i = 0; i < p; i++) {
 			iobroker_fd *s;
-			if ((iobs->pfd[i].revents & POLLIN) != POLLIN) {
+			if (iobs->pfd[i].revents == 0) {
 				continue;
 			}
 

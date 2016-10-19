@@ -7,7 +7,8 @@ Nagios Core 4 Change Log
 -------------------
 FIXES
 * external command during reload doesn't work (John Frickson)
-* Nagios provides no error condition as to why it fails on the verify for serviceescalation
+* Nagios provides no error condition as to why it fails on the verify for serviceescalation (John Frickson)
+* No root group in FreeBSD and Apple OS X (John Frickson)
 
 
 4.2.2 - 2016-10-xx

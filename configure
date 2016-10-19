@@ -650,6 +650,7 @@ lockfile
 init_dir
 TMPDIR
 CHECKRESULTDIR
+LN_HTTPD_SITES_ENABLED
 HTTPD_CONF
 MAIL_PROG
 COMMAND_OPTS
@@ -658,12 +659,15 @@ command_user
 INSTALL_OPTS
 nagios_grp
 nagios_user
+INIT_OPTS
+root_grp
 SOCKETLIBS
 SNPRINTF_O
 EGREP
 GREP
 CPP
 STRIP
+LN_S
 SET_MAKE
 OBJEXT
 EXEEXT
@@ -725,6 +729,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_root_group
 with_nagios_user
 with_nagios_group
 with_command_user
@@ -1379,6 +1384,7 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-root-group=<grp> sets group name for installing init
   --with-nagios-user=<user>
                           sets user name to run nagios
   --with-nagios-group=<grp>
@@ -3363,6 +3369,17 @@ $as_echo "no" >&6; }
   SET_MAKE="MAKE=${MAKE-make}"
 fi
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ln -s works" >&5
+$as_echo_n "checking whether ln -s works... " >&6; }
+LN_S=$as_ln_s
+if test "$LN_S" = "ln -s"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, using $LN_S" >&5
+$as_echo "no, using $LN_S" >&6; }
+fi
+
 # Extract the first word of "strip", so it can be a program name with args.
 set dummy strip; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -4693,6 +4710,25 @@ else
 fi
 
 
+case $host_os in
+*bsd*|darwin*)
+	root_grp=wheel
+	;;
+*)
+	root_grp=root
+	;;
+esac
+
+
+# Check whether --with-root_group was given.
+if test "${with_root_group+set}" = set; then :
+  withval=$with_root_group; root_grp=$withval
+fi
+
+
+INIT_OPTS="-o root -g $root_grp"
+
+
 
 # Check whether --with-nagios_user was given.
 if test "${with_nagios_user+set}" = set; then :
@@ -4812,17 +4848,26 @@ else
 
 fi
 
+LN_HTTPD_SITES_ENABLED=0
 if test x$HTTPD_CONF = xno; then
 	if test -d /etc/httpd/conf.d; then
 		HTTPD_CONF="/etc/httpd/conf.d"
 	elif test -d /etc/apache2/conf.d; then
 		HTTPD_CONF="/etc/apache2/conf.d"
+	elif test -d /etc/apache2/sites-available; then
+		HTTPD_CONF="/etc/apache2/sites-available"
+		if test -d /etc/apache2/sites-enabled; then
+			LN_HTTPD_SITES_ENABLED=1
+		fi
+	elif test -d /etc/apache2/sites-enabled; then
+		HTTPD_CONF="/etc/apache2/sites-enabled"
 	elif test -d /etc/apache/conf.d; then
 		HTTPD_CONF="/etc/apache/conf.d"
 	else
 		HTTPD_CONF="/etc/httpd/conf.d"
 	fi
 fi
+
 
 
 CHECKRESULTDIR=no

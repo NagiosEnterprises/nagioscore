@@ -136,6 +136,20 @@ AC_SEARCH_LIBS(nanosleep,[rt posix4],,[
 	exit 1
 	])
 
+case $host_os in
+*bsd*|darwin*)
+	root_grp=wheel
+	;;
+*)
+	root_grp=root
+	;;
+esac
+
+AC_ARG_WITH(root_group,AC_HELP_STRING([--with-root-group=<grp>],[sets group name for installing init]),root_grp=$withval)
+AC_SUBST(root_grp)
+INIT_OPTS="-o root -g $root_grp"
+AC_SUBST(INIT_OPTS)
+
 AC_ARG_WITH(nagios_user,AC_HELP_STRING([--with-nagios-user=<user>],[sets user name to run nagios]),nagios_user=$withval,nagios_user=nagios)
 AC_ARG_WITH(nagios_group,AC_HELP_STRING([--with-nagios-group=<grp>],[sets group name to run nagios]),nagios_grp=$withval,nagios_grp=nagios)
 AC_SUBST(nagios_user)

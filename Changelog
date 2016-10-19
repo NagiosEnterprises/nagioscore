@@ -9,6 +9,7 @@ FIXES
 * external command during reload doesn't work (John Frickson)
 * Nagios provides no error condition as to why it fails on the verify for serviceescalation (John Frickson)
 * No root group in FreeBSD and Apple OS X (John Frickson)
+* jsonquery.html doesn't display scheduled_time_ok correctly (John Frickson)
 
 
 4.2.2 - 2016-10-xx

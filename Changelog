@@ -43,6 +43,7 @@ FIXES
 * Notifications are not sent for active alerts after scheduled downtime ends (John Frickson)
 * Nagios 4.2.0 not working on Solaris (John Frickson)
 * install-exfoliation and install-classicui don't work FreeBSD and Mac OS X (John Frickson)
+* Updated makefile to delete some no-longer-needed files (John Frickson)
 
 
 4.2.1 - 2016-09-06

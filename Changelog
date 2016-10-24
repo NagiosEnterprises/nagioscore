@@ -3,7 +3,7 @@ Nagios Core 4 Change Log
 ########################
 
 
-4.2.2 - 2016-10-xx
+4.2.2 - 2016-10-24
 ------------------
 SECURITY FIXES
 * There was a fix to vulnerability CVE-2008-4796 in the 4.2.0 release on
@@ -34,6 +34,7 @@ FIXES
 * Notifications are not sent for active alerts after scheduled downtime ends (John Frickson)
 * Nagios 4.2.0 not working on Solaris (John Frickson)
 * install-exfoliation and install-classicui don't work FreeBSD and Mac OS X (John Frickson)
+* Updated makefile to delete some no-longer-needed files (John Frickson)
 
 
 4.2.1 - 2016-09-06

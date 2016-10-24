@@ -3,6 +3,39 @@ Nagios Core 4 Change Log
 ########################
 
 
+4.2.2 - 2016-10-xx
+------------------
+SECURITY FIXES
+* There was a fix to vulnerability CVE-2008-4796 in the 4.2.0 release on
+  August 1, 2016. The fix was apparently incomplete, as there was still a
+  problem. However, we are now getting all RSS feeds using AJAX calls
+  instead of the (outdated) MagpieRSS package. Thanks for bringing this to
+  our attention go to Dawid Golunski (http://legalhackers.com).
+
+ENHANCEMENTS
+* Update status.c to display passive check icon for hosts when passive checks
+	are enabled and actives disabled (John Frickson)
+
+FIXES
+* Fix permissions for Host Groups reports (status.cgi) (Patrik Halfar)
+* Service Parents does not appear to be functioning as intended (lev)
+* Availability report mixes up scheduled and unscheduled warning percentages (Helmut Mikulcik)
+* Invalid values for saved_stamp in comput_subject_downtime_times() (John Frickson)
+* Remove deprecated "framespacing" (John Frickson)
+* The nagios tarball contains two identical jquery copies (John Frickson)
+* extinfo.cgi does not set content-type (most cgi's don't) (John Frickson)
+* Timeperiods are corrupted by external command CHANGE_SVC_CHECK_TIMEPERIOD (xoubih)
+* Quick search doesn't show hosts without services (service status detail page) (John Frickson)
+* In host/services details view, if exactly 100 entries would not show last one (John Frickson)
+* nagios host URL parameter for NEW map doesn`t work - Network Map for All Hosts (John Frickson)
+* next_problem_id is improperly initialized (gherteg)
+* Passive problems not showing as "unhandled" (John Frickson)
+* September reported as Sept instead of Sep (Rostislav Opočenský)
+* Notifications are not sent for active alerts after scheduled downtime ends (John Frickson)
+* Nagios 4.2.0 not working on Solaris (John Frickson)
+* install-exfoliation and install-classicui don't work FreeBSD and Mac OS X (John Frickson)
+
+
 4.2.1 - 2016-09-06
 ------------------
 FIXES

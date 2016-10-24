@@ -1033,7 +1033,7 @@ void document_header(int use_stylesheet) {
 	printf("Expires: %s\r\n", date_time);
 
 	if(output_format == HTML_OUTPUT)
-		printf("Content-type: text/html\r\n\r\n");
+		printf("Content-type: text/html; charset=utf-8\r\n\r\n");
 	else {
 		printf("Content-type: text/csv\r\n\r\n");
 		return;
@@ -2302,6 +2302,11 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 				}
 			saved_status = temp_as->entry_type;
 			saved_stamp = temp_as->time_stamp;
+
+			/* check if first time is before schedule downtime */
+			if(saved_stamp < start_time)
+				saved_stamp = start_time;
+
 			}
 		}
 
@@ -4409,7 +4414,7 @@ void display_service_availability(void) {
 			percent_time_ok_scheduled = (double)(((double)temp_subject->scheduled_time_ok * 100.0) / (double)total_time);
 			percent_time_ok_unscheduled = percent_time_ok - percent_time_ok_scheduled;
 			percent_time_warning = (double)(((double)temp_subject->time_warning * 100.0) / (double)total_time);
-			percent_time_warning_scheduled = (double)(((double)temp_subject->scheduled_time_unknown * 100.0) / (double)total_time);
+			percent_time_warning_scheduled = (double)(((double)temp_subject->scheduled_time_warning * 100.0) / (double)total_time);
 			percent_time_warning_unscheduled = percent_time_warning - percent_time_warning_scheduled;
 			percent_time_unknown = (double)(((double)temp_subject->time_unknown * 100.0) / (double)total_time);
 			percent_time_unknown_scheduled = (double)(((double)temp_subject->scheduled_time_unknown * 100.0) / (double)total_time);
@@ -4577,7 +4582,7 @@ void display_service_availability(void) {
 				percent_time_ok_scheduled = (double)(((double)temp_subject->scheduled_time_ok * 100.0) / (double)total_time);
 				percent_time_ok_unscheduled = percent_time_ok - percent_time_ok_scheduled;
 				percent_time_warning = (double)(((double)temp_subject->time_warning * 100.0) / (double)total_time);
-				percent_time_warning_scheduled = (double)(((double)temp_subject->scheduled_time_unknown * 100.0) / (double)total_time);
+				percent_time_warning_scheduled = (double)(((double)temp_subject->scheduled_time_warning * 100.0) / (double)total_time);
 				percent_time_warning_unscheduled = percent_time_warning - percent_time_warning_scheduled;
 				percent_time_unknown = (double)(((double)temp_subject->time_unknown * 100.0) / (double)total_time);
 				percent_time_unknown_scheduled = (double)(((double)temp_subject->scheduled_time_unknown * 100.0) / (double)total_time);

@@ -494,7 +494,7 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 	int year;
 	const char *weekdays[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	const char *months[12] = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept",
+		"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
 		"Oct", "Nov", "Dec"
 		};
 	const char *tzone = "";

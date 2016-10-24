@@ -662,7 +662,7 @@ void document_header(int use_stylesheet) {
 	printf("Expires: %s\r\n", date_time);
 
 	if(output_format == HTML_OUTPUT)
-		printf("Content-type: text/html\r\n\r\n");
+		printf("Content-type: text/html; charset=utf-8\r\n\r\n");
 	else {
 		printf("Content-type: text/plain\r\n\r\n");
 		return;

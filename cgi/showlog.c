@@ -157,7 +157,7 @@ void document_header(int use_stylesheet) {
 	get_time_string(&expire_time, date_time, (int)sizeof(date_time), HTTP_DATE_TIME);
 	printf("Expires: %s\r\n", date_time);
 
-	printf("Content-type: text/html\r\n\r\n");
+	printf("Content-type: text/html; charset=utf-8\r\n\r\n");
 
 	if(embedded == TRUE)
 		return;

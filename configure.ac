@@ -37,6 +37,7 @@ AC_CHECK_HEADERS(signal.h socket.h stdarg.h string.h strings.h sys/loadavg.h)
 AC_CHECK_HEADERS(sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h)
 AC_CHECK_HEADERS(sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h)
 AC_CHECK_HEADERS(sys/msg.h sys/poll.h syslog.h uio.h unistd.h locale.h wchar.h)
+AC_CHECK_HEADERS(sys/prctl.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

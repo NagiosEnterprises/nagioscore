@@ -3974,6 +3974,18 @@ fi
 
 done
 
+for ac_header in sys/prctl.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/prctl.h" "ac_cv_header_sys_prctl_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_prctl_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_PRCTL_H 1
+_ACEOF
+
+fi
+
+done
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for an ANSI C-conforming const" >&5
 $as_echo_n "checking for an ANSI C-conforming const... " >&6; }

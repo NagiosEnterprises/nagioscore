@@ -13,6 +13,7 @@ FIXES
 * daemon_dumps_core=1 has no effect on Linux when Nagios started as root (John Frickson)
 * Configuration check in hostgroup - misspelled hostname does not error (John Frickson)
 * contacts or contact_groups directive with no value should not be allowed (John Frickson)
+* Compile 64-bit on SPARC produces LD error (John Frickson)
 
 
 4.2.2 - 2016-10-xx

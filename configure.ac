@@ -637,6 +637,7 @@ if test x$USE_EVENTBROKER = xyes; then
 	case $host_os in
 		solaris2*|sysv4*)
 			MOD_LDFLAGS="-G"
+			MOD_CFLAGS="-fPIC"
 		;;
 		aix4*|aix5*)
 			#MOD_LDFLAGS="-G -bnoentry -bexpall"

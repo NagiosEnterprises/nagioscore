@@ -6361,7 +6361,10 @@ int xodtemplate_recombobulate_hostgroups(void) {
 			}
 
 		/* get list of hosts in the hostgroup */
-		xodtemplate_expand_hosts(&accept, temp_hostgroup->reject_map, temp_hostgroup->members, temp_hostgroup->_config_file, temp_hostgroup->_start_line);
+		if (xodtemplate_expand_hosts(&accept, temp_hostgroup->reject_map, temp_hostgroup->members, temp_hostgroup->_config_file, temp_hostgroup->_start_line) == ERROR) {
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand members specified in hostgroup (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostgroup->_config_file), temp_hostgroup->_start_line);
+			return ERROR;
+		}
 
 		if (!accept && !bitmap_count_set_bits(temp_hostgroup->reject_map)) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand members specified in hostgroup (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostgroup->_config_file), temp_hostgroup->_start_line);

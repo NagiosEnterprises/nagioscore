@@ -1101,7 +1101,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 	xodtemplate_hostescalation *temp_hostescalation = NULL;
 	xodtemplate_hostextinfo *temp_hostextinfo = NULL;
 	xodtemplate_serviceextinfo *temp_serviceextinfo = NULL;
-	int x, force_skiplists = FALSE;
+	int x, lth, force_skiplists = FALSE;
 
 
 	/* should some object definitions be added to skiplists immediately? */
@@ -1177,6 +1177,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 
 	/* get variable name */
 	variable = input;
+	lth = strlen(variable);
 	/* trim at first whitespace occurance */
 	for(x = 0; variable[x] != '\x0'; x++) {
 		if(variable[x] == ' ' || variable[x] == '\t') {
@@ -1186,7 +1187,10 @@ int xodtemplate_add_object_property(char *input, int options) {
 		}
 
 	/* get variable value */
-	value = input + x + 1;
+	if (x == lth)
+		value = "";
+	else
+		value = input + x + 1;
 	while (*value == ' ' || *value == '\t')
 		value++;
 	/* now strip trailing spaces */
@@ -1879,6 +1883,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_serviceescalation->have_hostgroup_name = TRUE;
 				}
 			else if(!strcmp(variable, "contact_groups")) {
+				if (*value == '\0') {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Error: Empty value for contact_groups (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_serviceescalation->_config_file), temp_serviceescalation->_start_line);
+					result = ERROR;
+					break;
+				}
 				if(strcmp(value, XODTEMPLATE_NULL)) {
 					if((temp_serviceescalation->contact_groups = (char *)strdup(value)) == NULL)
 						result = ERROR;
@@ -1886,6 +1895,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_serviceescalation->have_contact_groups = TRUE;
 				}
 			else if(!strcmp(variable, "contacts")) {
+				if (*value == '\0') {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Error: Empty value for contacts (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_serviceescalation->_config_file), temp_serviceescalation->_start_line);
+					result = ERROR;
+					break;
+				}
 				if(strcmp(value, XODTEMPLATE_NULL)) {
 					if((temp_serviceescalation->contacts = (char *)strdup(value)) == NULL)
 						result = ERROR;
@@ -2261,6 +2275,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->have_host_groups = TRUE;
 				}
 			else if(!strcmp(variable, "contact_groups")) {
+				if (*value == '\0') {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Error: Empty value for contact_groups (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_host->_config_file), temp_host->_start_line);
+					result = ERROR;
+					break;
+				}
 				if(strcmp(value, XODTEMPLATE_NULL)) {
 					if((temp_host->contact_groups = (char *)strdup(value)) == NULL)
 						result = ERROR;
@@ -2268,6 +2287,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->have_contact_groups = TRUE;
 				}
 			else if(!strcmp(variable, "contacts")) {
+				if (*value == '\0') {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Error: Empty value for contacts (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_host->_config_file), temp_host->_start_line);
+					result = ERROR;
+					break;
+				}
 				if(strcmp(value, XODTEMPLATE_NULL)) {
 					if((temp_host->contacts = (char *)strdup(value)) == NULL)
 						result = ERROR;
@@ -2734,6 +2758,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_service->have_notification_period = TRUE;
 				}
 			else if(!strcmp(variable, "contact_groups")) {
+				if (*value == '\0') {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Error: Empty value for contact_groups (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);
+					result = ERROR;
+					break;
+				}
 				if(strcmp(value, XODTEMPLATE_NULL)) {
 					if((temp_service->contact_groups = (char *)strdup(value)) == NULL)
 						result = ERROR;
@@ -2741,6 +2770,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_service->have_contact_groups = TRUE;
 				}
 			else if(!strcmp(variable, "contacts")) {
+				if (*value == '\0') {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Error: Empty value for contacts (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);
+					result = ERROR;
+					break;
+				}
 				if(strcmp(value, XODTEMPLATE_NULL)) {
 					if((temp_service->contacts = (char *)strdup(value)) == NULL)
 						result = ERROR;
@@ -3177,6 +3211,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_hostescalation->have_host_name = TRUE;
 				}
 			else if(!strcmp(variable, "contact_groups")) {
+				if (*value == '\0') {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Error: Empty value for contact_groups (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostescalation->_config_file), temp_hostescalation->_start_line);
+					result = ERROR;
+					break;
+				}
 				if(strcmp(value, XODTEMPLATE_NULL)) {
 					if((temp_hostescalation->contact_groups = (char *)strdup(value)) == NULL)
 						result = ERROR;
@@ -3184,6 +3223,11 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_hostescalation->have_contact_groups = TRUE;
 				}
 			else if(!strcmp(variable, "contacts")) {
+				if (*value == '\0') {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Error: Empty value for contacts (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostescalation->_config_file), temp_hostescalation->_start_line);
+					result = ERROR;
+					break;
+				}
 				if(strcmp(value, XODTEMPLATE_NULL)) {
 					if((temp_hostescalation->contacts = (char *)strdup(value)) == NULL)
 						result = ERROR;

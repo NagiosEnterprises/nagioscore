@@ -15,6 +15,7 @@ FIXES
 * contacts or contact_groups directive with no value should not be allowed (John Frickson)
 * Compile 64-bit on SPARC produces LD error (John Frickson)
 * HOSTSTATEID returns 0 even if host does not exist (John Frickson)
+* Submitting UNREACHABLE passive result for host sets it as DOWN if the host has no parents (John Frickson)
 
 
 4.2.2 - 2016-10-xx

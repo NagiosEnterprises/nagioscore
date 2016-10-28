@@ -2891,7 +2891,11 @@ int determine_host_reachability(host *hst) {
 		}
 
 	/* host has no parents, so it is DOWN */
-	if(hst->parent_hosts == NULL) {
+	if(hst->check_type == CHECK_TYPE_PASSIVE && && hst->current_state == HOST_UNREACHABLE) {
+		log_debug_info(DEBUGL_CHECKS, 2, "Passive check so keep it UNREACHABLE.\n");
+		return HOST_UNREACHABLE;
+		}
+	else if(hst->parent_hosts == NULL) {
 		log_debug_info(DEBUGL_CHECKS, 2, "Host has no parents, so it is DOWN.\n");
 		return HOST_DOWN;
 		}

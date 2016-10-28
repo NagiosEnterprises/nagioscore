@@ -16,6 +16,7 @@ FIXES
 * Compile 64-bit on SPARC produces LD error (John Frickson)
 * HOSTSTATEID returns 0 even if host does not exist (John Frickson)
 * Submitting UNREACHABLE passive result for host sets it as DOWN if the host has no parents (John Frickson)
+* nagios: job XX (pid=YY): read() returned error 11 (changed from LOG_ERR to LOG_NOTICE) (John Frickson)
 
 
 4.2.2 - 2016-10-xx

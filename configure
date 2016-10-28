@@ -5680,6 +5680,7 @@ $as_echo_n "checking for linker flags for loadable modules... " >&6; }
 	case $host_os in
 		solaris2*|sysv4*)
 			MOD_LDFLAGS="-G"
+			MOD_CFLAGS="-fPIC"
 		;;
 		aix4*|aix5*)
 			#MOD_LDFLAGS="-G -bnoentry -bexpall"

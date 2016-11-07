@@ -5701,7 +5701,7 @@ $as_echo_n "checking for linker flags for loadable modules... " >&6; }
 			MOD_LDFLAGS="-shared"
 			MOD_CFLAGS="-fPIC"
 		;;
-		freebsd*)
+		*bsd*)
 			MOD_LDFLAGS="-shared"
 			MOD_CFLAGS="-fPIC"
 		;;

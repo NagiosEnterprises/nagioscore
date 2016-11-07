@@ -658,7 +658,7 @@ if test x$USE_EVENTBROKER = xyes; then
 			MOD_LDFLAGS="-shared"
 			MOD_CFLAGS="-fPIC"
 		;;
-		freebsd*)
+		*bsd*)
 			MOD_LDFLAGS="-shared"
 			MOD_CFLAGS="-fPIC"
 		;;

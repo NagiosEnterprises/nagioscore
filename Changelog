@@ -5,6 +5,9 @@ Nagios Core 4 Change Log
 
 4.2.x - xxxx-xx-xx
 -------------------
+SECURITY FIXES
+* Fixed a root privilege escalation
+
 FIXES
 * external command during reload doesn't work (John Frickson)
 * Nagios provides no error condition as to why it fails on the verify for serviceescalation (John Frickson)
@@ -19,7 +22,7 @@ FIXES
 * nagios: job XX (pid=YY): read() returned error 11 (changed from LOG_ERR to LOG_NOTICE) (John Frickson)
 
 
-4.2.2 - 2016-10-xx
+4.2.2 - 2016-10-24
 ------------------
 SECURITY FIXES
 * There was a fix to vulnerability CVE-2008-4796 in the 4.2.0 release on

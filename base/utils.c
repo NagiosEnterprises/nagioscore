@@ -2200,7 +2200,7 @@ int process_check_result_file(char *fname) {
 	if((thefile = mmap_fopen(fname)) == NULL) {
 
 		/* try removing the file - zero length files can't be mmap()'ed, so it might exist */
-		unlink(fname);
+		delete_check_result_file(fname);
 
 		return ERROR;
 		}

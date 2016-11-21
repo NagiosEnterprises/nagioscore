@@ -1831,17 +1831,29 @@ int daemon_init(void) {
 	char buf[256];
 	struct flock lock;
 	char *homedir = NULL;
+	char *cp;
 
 #ifdef RLIMIT_CORE
 	struct rlimit limit;
 #endif
 
 	/* change working directory. scuttle home if we're dumping core */
-	homedir = getenv("HOME");
-	if(daemon_dumps_core == TRUE && homedir != NULL)
-		chdir(homedir);
-	else
-		chdir("/");
+	if(daemon_dumps_core == TRUE) {
+		homedir = getenv("HOME");
+		if (homedir && *homedir)
+			chdir(homedir);
+		else if (log_file && *log_file) {
+			homedir = strdup(log_file);
+			cp = strrchr(homedir, '/');
+			if (cp)
+				*cp = '\0';
+			else
+				strcpy(homedir, "/");
+			chdir(homedir);
+			free(homedir);
+		} else
+			chdir("/");
+	}
 
 	umask(S_IWGRP | S_IWOTH);
 
@@ -1959,6 +1971,9 @@ int drop_privileges(char *user, char *group) {
 	struct group *grp = NULL;
 	struct passwd *pw = NULL;
 	int result = OK;
+#ifdef HAVE_SYS_RESOURCE_H
+	struct rlimit rl;
+#endif
 
 	/* only drop privileges if we're running as root, so we don't interfere with being debugged while running as some random user */
 	if(getuid() != 0)
@@ -2023,10 +2038,26 @@ int drop_privileges(char *user, char *group) {
 			}
 		}
 #endif
+
+#ifdef HAVE_SYS_RESOURCE_H
+	if (result == OK && daemon_dumps_core == TRUE) {
+		rl.rlim_cur = RLIM_INFINITY;
+		rl.rlim_max = RLIM_INFINITY;
+		setrlimit(RLIMIT_CORE, &rl);
+	}
+#endif
+
 	if(setuid(uid) == -1) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not set effective UID=%d", (int)uid);
 		result = ERROR;
 	}
+
+#ifdef HAVE_SYS_PRCTL_H
+	if (result == OK && daemon_dumps_core == TRUE) {
+		if (prctl(PR_SET_DUMPABLE, 1))
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Call to prctl(PR_SET_DUMPABLE, 1) failed with error %d", errno);
+	}
+#endif
 
 	return result;
 	}

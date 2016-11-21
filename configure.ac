@@ -10,9 +10,9 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.2.2"
+PKG_VERSION="4.2.3"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="10-24-2016"
+PKG_REL_DATE="11-21-2016"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
@@ -37,6 +37,7 @@ AC_CHECK_HEADERS(signal.h socket.h stdarg.h string.h strings.h sys/loadavg.h)
 AC_CHECK_HEADERS(sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h)
 AC_CHECK_HEADERS(sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h)
 AC_CHECK_HEADERS(sys/msg.h sys/poll.h syslog.h uio.h unistd.h locale.h wchar.h)
+AC_CHECK_HEADERS(sys/prctl.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -135,6 +136,20 @@ AC_SEARCH_LIBS(nanosleep,[rt posix4],,[
 	echo "Error: nanosleep() needed for timing operations."
 	exit 1
 	])
+
+case $host_os in
+*bsd*|darwin*)
+	root_grp=wheel
+	;;
+*)
+	root_grp=root
+	;;
+esac
+
+AC_ARG_WITH(root_group,AC_HELP_STRING([--with-root-group=<grp>],[sets group name for installing init]),root_grp=$withval)
+AC_SUBST(root_grp)
+INIT_OPTS="-o root -g $root_grp"
+AC_SUBST(INIT_OPTS)
 
 AC_ARG_WITH(nagios_user,AC_HELP_STRING([--with-nagios-user=<user>],[sets user name to run nagios]),nagios_user=$withval,nagios_user=nagios)
 AC_ARG_WITH(nagios_group,AC_HELP_STRING([--with-nagios-group=<grp>],[sets group name to run nagios]),nagios_grp=$withval,nagios_grp=nagios)
@@ -622,6 +637,7 @@ if test x$USE_EVENTBROKER = xyes; then
 	case $host_os in
 		solaris2*|sysv4*)
 			MOD_LDFLAGS="-G"
+			MOD_CFLAGS="-fPIC"
 		;;
 		aix4*|aix5*)
 			#MOD_LDFLAGS="-G -bnoentry -bexpall"
@@ -642,7 +658,7 @@ if test x$USE_EVENTBROKER = xyes; then
 			MOD_LDFLAGS="-shared"
 			MOD_CFLAGS="-fPIC"
 		;;
-		freebsd*)
+		*bsd*)
 			MOD_LDFLAGS="-shared"
 			MOD_CFLAGS="-fPIC"
 		;;

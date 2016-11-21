@@ -79,13 +79,19 @@ if test "$USE_RAMDISK" -ne 0 && test "$RAMDISK_SIZE"X != "X"; then
 		mkdir -p -m 0755 ${RAMDISK_DIR}
 		mount -t tmpfs -o size=${RAMDISK_SIZE}m tmpfs ${RAMDISK_DIR}
 		mkdir -p -m 0755 ${RAMDISK_DIR}/checkresults
-		chown -R $NagiosUser:$NagiosGroup ${RAMDISK_DIR}
+		chown -h -R $NagiosUser:$NagiosGroup ${RAMDISK_DIR}
 	fi
 fi
 
 
 check_config ()
 {
+	rm -f "$NagiosCfgtestFile";
+	if test -e "$NagiosCfgtestFile"; then
+		echo "ERROR: Could not delete '$NagiosCfgtestFile'"
+		exit 8
+	fi
+
 	TMPFILE=$(mktemp /tmp/.configtest.XXXXXXXX)
 	$NagiosBin -vp $NagiosCfgFile > "$TMPFILE"
 	WARN=`grep ^"Total Warnings:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g`
@@ -94,7 +100,7 @@ check_config ()
 	if test "$WARN" = "0" && test "${ERR}" = "0"; then
 		echo "OK - Configuration check verified" > $NagiosCfgtestFile
 		chmod 0644 $NagiosCfgtestFile
-		chown $NagiosUser:$NagiosGroup $NagiosCfgtestFile
+		chown -h $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		/bin/rm "$TMPFILE"
 		return 0
 	elif test "${ERR}" = "0"; then
@@ -102,7 +108,7 @@ check_config ()
 		echo "WARNING: Warnings in config files - see log for details: $NagiosCfgtestFile" > $NagiosCfgtestFile
 		egrep -i "(^warning|^error)" "$TMPFILE" >> $NagiosCfgtestFile
 		chmod 0644 $NagiosCfgtestFile
-		chown $NagiosUser:$NagiosGroup $NagiosCfgtestFile
+		chown -h $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		/bin/rm "$TMPFILE"
 		return 0
 	else
@@ -110,7 +116,7 @@ check_config ()
 		echo "ERROR: Errors in config files - see log for details: $NagiosCfgtestFile" > $NagiosCfgtestFile
 		egrep -i "(^warning|^error)" "$TMPFILE" >> $NagiosCfgtestFile
 		chmod 0644 $NagiosCfgtestFile
-		chown $NagiosUser:$NagiosGroup $NagiosCfgtestFile
+		chown -h $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		cat "$TMPFILE"
 		exit 8
 	fi
@@ -188,7 +194,7 @@ case "$1" in
 		touch $NagiosVarDir/nagios.log $NagiosRetentionFile
 		rm -f $NagiosCommandFile
 		touch $NagiosRunFile
-		chown $NagiosUser:$NagiosGroup $NagiosRunFile $NagiosVarDir/nagios.log $NagiosRetentionFile
+		chown -h $NagiosUser:$NagiosGroup $NagiosRunFile $NagiosVarDir/nagios.log $NagiosRetentionFile
 		$NagiosBin -d $NagiosCfgFile
 		if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
 

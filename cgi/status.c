@@ -805,7 +805,10 @@ void show_service_status_totals(void) {
 	service *temp_service;
 	host *temp_host;
 	int count_service;
+	regex_t preg_hostname;
 
+	if(host_filter != NULL)
+		regcomp(&preg_hostname, host_filter, REG_ICASE);
 
 	/* check the status of all services... */
 	for(temp_servicestatus = servicestatus_list; temp_servicestatus != NULL; temp_servicestatus = temp_servicestatus->next) {
@@ -820,10 +823,22 @@ void show_service_status_totals(void) {
 
 		count_service = 0;
 
-		if(display_type == DISPLAY_HOSTS && (show_all_hosts == TRUE || !strcmp(host_name, temp_servicestatus->host_name)))
-			count_service = 1;
-		else if(display_type == DISPLAY_SERVICEGROUPS && (show_all_servicegroups == TRUE || (is_service_member_of_servicegroup(find_servicegroup(servicegroup_name), temp_service) == TRUE)))
-			count_service = 1;
+		if(display_type == DISPLAY_HOSTS) {
+			if (show_all_hosts == TRUE)
+				count_service = 1;
+			else if (!strcmp(host_name, temp_servicestatus->host_name))
+				count_service = 1;
+			else if(host_filter != NULL && 0 == regexec(&preg_hostname, temp_servicestatus->host_name, 0, NULL, 0))
+				count_service = 1;
+			}
+		else if(display_type == DISPLAY_SERVICEGROUPS) {
+			if(show_all_servicegroups == TRUE) {
+				count_service = 1;
+				}
+			else if(is_host_member_of_servicegroup(find_servicegroup(servicegroup_name), temp_host) == TRUE) {
+				count_service = 1;
+				}
+			}
 		else if(display_type == DISPLAY_HOSTGROUPS && (show_all_hostgroups == TRUE || (is_host_member_of_hostgroup(find_hostgroup(hostgroup_name), temp_host) == TRUE)))
 			count_service = 1;
 

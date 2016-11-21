@@ -3,10 +3,10 @@ Nagios Core 4 Change Log
 ########################
 
 
-4.2.x - xxxx-xx-xx
+4.2.3 - 2016-11-21
 -------------------
 SECURITY FIXES
-* Fixed a root privilege escalation
+* Fixed a root privilege escalation (CVE-2016-8641) (John Frickson)
 
 FIXES
 * external command during reload doesn't work (John Frickson)

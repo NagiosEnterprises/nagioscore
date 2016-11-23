@@ -2660,7 +2660,7 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
             /* and we stay in SOFT_STATE*/
             if(hst->max_attempts == 1)
             {
-                if (hst->parent_host == NULL) {
+                if (hst->parent_hosts == NULL) {
                     hst->state_type = HARD_STATE;
                 } else {
                     if (hst->state_type == SOFT_STATE)

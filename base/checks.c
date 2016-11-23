@@ -2617,7 +2617,7 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 		/***** HOST IS NOW DOWN/UNREACHABLE *****/
 		else {
 
-			log_debug_info(DEBUGL_CHECKS, 1, "Host is now %s.\n", host_state_name(hst->current_state));
+			log_debug_info(DEBUGL_CHECKS, 1, "Host is now %s.\n", host_state_name(new_state));
 
 			/* active and (in some cases) passive check results are treated as SOFT states */
 			if(hst->check_type == CHECK_TYPE_ACTIVE || passive_host_checks_are_soft == TRUE) {
@@ -2646,12 +2646,29 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 			reschedule_check = TRUE;
 
 			/* schedule a re-check of the host at the retry interval because we can't determine its final state yet... */
-			if(hst->check_type == CHECK_TYPE_ACTIVE || passive_host_checks_are_soft == TRUE)
+			/* dsvoboda[Coservit]: retry_interval only when current_attempt < max_attempt */
+			if(hst->current_attempt < hst->max_attempts && (hst->check_type == CHECK_TYPE_ACTIVE || passive_host_checks_are_soft == TRUE))
 				next_check = (unsigned long)(current_time + (hst->retry_interval * interval_length));
 
 			/* schedule a re-check of the host at the normal interval */
 			else
 				next_check = (unsigned long)(current_time + (hst->check_interval * interval_length));
+
+            /* dsvoboda[Coservit]:  when max_attempts is 1 (no retry) */
+            /*HARD_STATE if the host has no parents (hst->parent_hosts == NULL) */
+            /* otherwise, we schedule a re-check of the host immediately after its parents UP, childrens UNREACHABLE, etc.
+            /* and we stay in SOFT_STATE*/
+            if(hst->max_attempts == 1)
+            {
+                if (hst->parent_hosts == NULL) {
+                    hst->state_type = HARD_STATE;
+                } else {
+                    if (hst->state_type == SOFT_STATE)
+                    {
+                        next_check = current_time;
+                    }
+                }
+            }
 
 			/* propagate checks to immediate parents if they are UP */
 			/* we do this because a parent host (or grandparent) may have gone down and blocked our route */

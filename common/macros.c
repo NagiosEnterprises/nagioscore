@@ -743,8 +743,13 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 
 				/* find the host for on-demand macros */
 				if(arg1) {
-					if((temp_host = find_host(arg1)) == NULL)
+					if((temp_host = find_host(arg1)) == NULL) {
+						if (macro_type == MACRO_HOSTSTATEID) {
+							*output = strdup("2");
+							return OK;
+							}
 						return ERROR;
+						}
 					}
 
 				/* else use saved host pointer */
@@ -900,8 +905,13 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 				/* else we have a service macro with a servicegroup name and a delimiter... */
 				else if(arg1 && arg2) {
 
-					if((temp_servicegroup = find_servicegroup(arg1)) == NULL)
+					if((temp_servicegroup = find_servicegroup(arg1)) == NULL) {
+						if (macro_type == MACRO_SERVICESTATEID) {
+							*output = strdup("3");
+							return OK;
+							}
 						return ERROR;
+						}
 
 					delimiter_len = strlen(arg2);
 					*free_macro = TRUE;

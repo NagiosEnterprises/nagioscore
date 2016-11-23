@@ -4604,7 +4604,7 @@ json_object *json_archive_service_availability(unsigned format_options,
 	json_object_append_duration(json_service_availability, "time_unknown", 
 			availability->time_unknown);
 	json_object_append_duration(json_service_availability, "scheduled_time_ok", 
-			availability->scheduled_time_up);
+			availability->scheduled_time_ok);
 	json_object_append_duration(json_service_availability, 
 			"scheduled_time_warning", availability->scheduled_time_warning);
 	json_object_append_duration(json_service_availability, 

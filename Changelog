@@ -2,6 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
+4.2.3.1 - 2016-11-23
+--------------------
+FIXES
+* fixed an issue where SOFT state was returned systematically when host without parents changed from UP to DOWN and max_attempts is 1 (dsvoboda - Coservit)
 
 4.2.3 - 2016-11-21
 -------------------

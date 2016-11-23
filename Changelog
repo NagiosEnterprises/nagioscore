@@ -2,6 +2,12 @@
 Nagios Core 4 Change Log
 ########################
 
+4.2.x - xxxx-xx-xx
+------------------
+SECURITY FIXES
+* Fixed another root privilege escalation (CVE-2016-9566) Thanks for bringing this
+  to our attention go to Dawid Golunski (http://legalhackers.com).
+
 
 4.2.3 - 2016-11-21
 -------------------

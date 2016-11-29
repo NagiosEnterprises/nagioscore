@@ -482,7 +482,7 @@ int open_debug_log(void)
 	if(debug_level == DEBUGL_NONE)
 		return OK;
 
-	if ((fh = open(log_file, O_RDWR|O_APPEND|O_CREAT|O_NOFOLLOW, S_IRUSR|S_IWUSR)) == -1)
+	if ((fh = open(debug_file, O_RDWR|O_APPEND|O_CREAT|O_NOFOLLOW, S_IRUSR|S_IWUSR)) == -1)
 		return ERROR;
 	if((debug_file_fp = fdopen(fh, "a+")) == NULL)
 		return ERROR;

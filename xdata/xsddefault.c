@@ -796,8 +796,6 @@ int xsddefault_read_status_data(const char *status_file_name, int options) {
 							temp_hoststatus->next_check = strtoul(val, NULL, 10);
 						else if(!strcmp(var, "check_options"))
 							temp_hoststatus->check_options = atoi(val);
-						else if(!strcmp(var, "current_attempt"))
-							temp_hoststatus->current_attempt = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "state_type"))
 							temp_hoststatus->state_type = atoi(val);
 						else if(!strcmp(var, "last_state_change"))

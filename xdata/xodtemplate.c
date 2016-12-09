@@ -231,7 +231,7 @@ int xodtemplate_read_config_data(const char *main_config_file, int options) {
 
 	/* allocate memory for 256 config files (increased dynamically) */
 	xodtemplate_current_config_file = 0;
-	xodtemplate_config_files = (char **)malloc(256 * sizeof(char **));
+	xodtemplate_config_files = (char **)malloc(256 * sizeof(char *));
 	if(xodtemplate_config_files == NULL) {
 #ifdef NSCORE
 		printf("Unable to allocate memory!\n");
@@ -615,7 +615,7 @@ int xodtemplate_process_config_file(char *filename, int options) {
 
 	/* reallocate memory for config files */
 	if(!(xodtemplate_current_config_file % 256)) {
-		xodtemplate_config_files = (char **)realloc(xodtemplate_config_files, (xodtemplate_current_config_file + 256) * sizeof(char **));
+		xodtemplate_config_files = (char **)realloc(xodtemplate_config_files, (xodtemplate_current_config_file + 256) * sizeof(char *));
 		if(xodtemplate_config_files == NULL)
 			return ERROR;
 		}

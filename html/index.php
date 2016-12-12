@@ -8,9 +8,12 @@ if (isset($_GET['corewindow'])) {
 	// Parse the URL and remove permalink option from base.
 	$a = parse_url($_GET['corewindow']);
 
-	// Build the base url.
-	$url = htmlentities($a['path']).'?';
-	$url = (isset($a['host'])) ? $a['scheme'].'://'.$a['host'].$url : '/'.$url;
+	// ignore host and build base url using just the path to avoid malicious host redirect.
+	if(isset($a['path']) && $a['path'] != '/'){
+		$url = htmlentities($a['path']).'?';
+	}else{
+		$url = '/main.php?';
+	}
 
 	$query = isset($a['query']) ? $a['query'] : '';
 	$pairs = explode('&', $query);

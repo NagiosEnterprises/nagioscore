@@ -2,6 +2,17 @@
 Nagios Core 4 Change Log
 ########################
 
+4.x.x - xxxx-xx-xx
+------------------
+SECURITY FIXES
+
+FIXES
+* Fix early event scheduling (pmalek / John Frickson)
+* on-demand host checks triggered by service checks cause attempt number increments (fredericve)
+
+ENHANCEMENTS
+
+
 4.2.4 - 2016-12-07
 ------------------
 SECURITY FIXES

@@ -5914,7 +5914,9 @@ $as_echo "no" >&6; }
 fi
 
 
-
+if test -z "$PERL"; then
+	as_fn_error $? "Cannot continue without perl!" "$LINENO" 5
+fi
 ac_config_files="$ac_config_files Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile"
 
 

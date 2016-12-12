@@ -770,7 +770,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			log_debug_info(DEBUGL_CHECKS, 1, "Host is currently UP, so we'll recheck its state to make sure...\n");
 
 			/* only run a new check if we can and have to */
-			if(execute_host_checks && temp_host->last_check + cached_host_check_horizon < current_time) {
+			if(execute_host_checks && (state_change == TRUE && state_changes_use_cached_state == FALSE) && temp_host->last_check + cached_host_check_horizon < current_time) {
 				schedule_host_check(temp_host, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
 				}
 			else {
@@ -786,7 +786,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Host is currently %s.\n", host_state_name(temp_host->current_state));
 
-			if(execute_host_checks) {
+			if(execute_host_checks && (state_change == TRUE && state_changes_use_cached_state == FALSE)) {
 				schedule_host_check(temp_host, current_time, CHECK_OPTION_NONE);
 				}
 			/* else fake the host check, but (possibly) resend host notifications to contacts... */

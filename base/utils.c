@@ -2231,7 +2231,8 @@ int process_check_result_file(char *fname) {
 	if((thefile = mmap_fopen(fname)) == NULL) {
 
 		/* try removing the file - zero length files can't be mmap()'ed, so it might exist */
-		unlink(fname);
+		log_debug_info(DEBUGL_CHECKS, 1, "Failed to open check result file for reading: '%s'\n", fname);
+		delete_check_result_file(fname);
 
 		return ERROR;
 		}
@@ -2338,8 +2339,11 @@ int process_check_result_file(char *fname) {
 
 		/* process check result */
 		process_check_result(&cr);
-		}
-
+	}
+	else {
+		/* log a debug message */
+		log_debug_info(DEBUGL_CHECKS, 1, "Minimum amount of data not present; Skipped check result file: '%s'\n", fname);
+	}
 	free_check_result(&cr);
 
 	/* free memory and close file */

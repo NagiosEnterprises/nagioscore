@@ -11,6 +11,7 @@ FIXES
 * on-demand host checks triggered by service checks cause attempt number increments (fredericve)
 * Service notification not being send when host is in soft down state (John Frickson)
 * configure does not error if no perl installed on CentOS 7 (John Frickson)
+* failed passive requests leave .ok files in checkresults dir (caronc)
 
 ENHANCEMENTS
 

@@ -573,7 +573,7 @@ int check_service_notification_viability(service *svc, int type, int options) {
 		}
 
 	/* if the host is down or unreachable, don't notify contacts about service failures */
-	if(temp_host->current_state != HOST_UP) {
+	if(temp_host->current_state != STATE_UP && temp_host->state_type == HARD_STATE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "The host is either down or unreachable, so we won't notify contacts about this service.\n");
 		return ERROR;
 		}

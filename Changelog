@@ -9,6 +9,7 @@ SECURITY FIXES
 FIXES
 * Fix early event scheduling (pmalek / John Frickson)
 * on-demand host checks triggered by service checks cause attempt number increments (fredericve)
+* Service notification not being send when host is in soft down state (John Frickson)
 
 ENHANCEMENTS
 

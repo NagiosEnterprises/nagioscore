@@ -448,7 +448,7 @@ int main(void) {
 		}
 
 	/* Special case where there is a host with no services */
-	if(display_type == DISPLAY_HOSTS && num_services == 0) {
+	if(display_type == DISPLAY_HOSTS && num_services == 0 && display_header) {
 		display_type = DISPLAY_HOSTGROUPS;
 		group_style_type = STYLE_HOST_DETAIL;
 	}

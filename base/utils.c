@@ -305,9 +305,9 @@ void init_main_cfg_vars(int first_time) {
 	use_aggressive_host_checking = DEFAULT_AGGRESSIVE_HOST_CHECKING;
 	cached_host_check_horizon = DEFAULT_CACHED_HOST_CHECK_HORIZON;
 	cached_service_check_horizon = DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
-	enable_predictive_host_dependency_checks = 
+	enable_predictive_host_dependency_checks =
 			DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
-	enable_predictive_service_dependency_checks = 
+	enable_predictive_service_dependency_checks =
 			DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS;
 
 	soft_state_dependencies = FALSE;
@@ -872,6 +872,8 @@ int set_environment_var(char *name, char *value, int set) {
 
 	/* set the environment variable */
 	if(set == TRUE) {
+		log_debug_info(DEBUGL_EVENTS, 0, "set_environment_var '%s'='%s'\n", name, value);
+		syslog(LOG_DAEMON|LOG_INFO, "set_environment_var '%s'='%s'\n", name, value);
 
 #ifdef HAVE_SETENV
 		setenv(name, (value == NULL) ? "" : value, 1);
@@ -1705,7 +1707,7 @@ void my_system_sighandler(int sig) {
 	the filesystem */
 void handle_sigxfsz(int sig) {
 
-	static time_t lastlog_time = (time_t)0;	/* Save the last log time so we 
+	static time_t lastlog_time = (time_t)0;	/* Save the last log time so we
 											   don't log too often. */
 	unsigned long log_interval = 300;		/* How frequently to log messages
 											   about receiving the signal */
@@ -1737,14 +1739,14 @@ void handle_sigxfsz(int sig) {
 		if(getrlimit(RLIMIT_FSIZE, &rlim) != 0) {
 			/* Attempt to log the error, realizing that the logging may fail
 				if it is the log file that is over the size limit. */
-			logit(NSLOG_RUNTIME_ERROR, TRUE, 
-					"Unable to determine current resoure limits: %s\n", 
+			logit(NSLOG_RUNTIME_ERROR, TRUE,
+					"Unable to determine current resoure limits: %s\n",
 					strerror(errno));
 			}
 
-		/* Try to figure out which file caused the signal and react 
+		/* Try to figure out which file caused the signal and react
 				appropriately */
-		for(x = 0, filep = files; x < (sizeof(files) / sizeof(files[0])); 
+		for(x = 0, filep = files; x < (sizeof(files) / sizeof(files[0]));
 				x++, filep++) {
 			if((*filep != NULL) && strcmp(*filep, "/dev/null")) {
 				if((size = check_file_size(*filep, 1024, rlim)) == -1) {
@@ -1762,7 +1764,7 @@ void handle_sigxfsz(int sig) {
 					"file's size may have exceeded the file size limits of "
 					"the filesystem. The largest file checked, '%s', has a "
 					"size of %lld bytes", max_name, max_size);
-			
+
 			}
 		else {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "SIGXFSZ received but unable to "
@@ -1773,10 +1775,10 @@ void handle_sigxfsz(int sig) {
 	}
 
 /* Checks a file to determine whether it exceeds resource limit imposed
-	limits. Returns the file size if file is OK, 0 if it's status could not 
-	be determined, or -1 if not OK. fudge is the fudge factor (in bytes) for 
+	limits. Returns the file size if file is OK, 0 if it's status could not
+	be determined, or -1 if not OK. fudge is the fudge factor (in bytes) for
 	checking the file size */
-static long long check_file_size(char *path, unsigned long fudge, 
+static long long check_file_size(char *path, unsigned long fudge,
 		struct rlimit rlim) {
 
 	struct stat status;
@@ -1790,14 +1792,14 @@ static long long check_file_size(char *path, unsigned long fudge,
 	if(stat(path, &status) == 0) {
 		/* Make sure it is a file */
 		if(S_ISREG(status.st_mode)) {
-			/* If the file size plus the fudge factor exceeds the 
+			/* If the file size plus the fudge factor exceeds the
 				current resource limit imposed size limit, log an error */
 			if(status.st_size + fudge > rlim.rlim_cur) {
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Size of file '%s' (%llu) "
 						"exceeds (or nearly exceeds) size imposed by resource "
 						"limits (%llu). Consider increasing limits with "
-						"ulimit(1).\n", path, 
-						(unsigned long long)status.st_size, 
+						"ulimit(1).\n", path,
+						(unsigned long long)status.st_size,
 						(unsigned long long)rlim.rlim_cur);
 				return -1;
 				}
@@ -1811,8 +1813,8 @@ static long long check_file_size(char *path, unsigned long fudge,
 		}
 	else {
 		/* If we could not determine the file status, log an error message */
-		logit(NSLOG_RUNTIME_ERROR, TRUE, 
-				"Unable to determine status of file %s: %s\n", 
+		logit(NSLOG_RUNTIME_ERROR, TRUE,
+				"Unable to determine status of file %s: %s\n",
 				log_file, strerror(errno));
 		return 0;
 		}

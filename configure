@@ -646,6 +646,7 @@ BROKERLIBS
 BROKER_LDFLAGS
 cgiurl
 htmurl
+COREWINDOW
 lockfile
 init_dir
 TMPDIR
@@ -743,6 +744,7 @@ with_lockfile
 with_iobroker
 with_gd_lib
 with_gd_inc
+enable_corewindow
 enable_statusmap
 enable_statuswrl
 with_cgiurl
@@ -1372,6 +1374,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-corewindow     enables the 'corewindow' URL argument
   --disable-statusmap     disables compilation of statusmap CGI
   --disable-statuswrl     disables compilation of statuswrl (VRML) CGI
   --enable-nanosleep      enables use of nanosleep (instead of sleep) in event
@@ -2547,6 +2550,9 @@ host_os=$*
 IFS=$ac_save_IFS
 case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
+
+
+ac_config_files="$ac_config_files html/index.php"
 
 
 ac_ext=c
@@ -5078,6 +5084,15 @@ fi
 
 TRYGD=yep
 
+COREWINDOW=no
+# Check whether --enable-corewindow was given.
+if test "${enable_corewindow+set}" = set; then :
+  enableval=$enable_corewindow; COREWINDOW=yes
+
+fi
+
+
+
 TRYSTATUSMAP=yep
 # Check whether --enable-statusmap was given.
 if test "${enable_statusmap+set}" = set; then :
@@ -6528,6 +6543,7 @@ do
     "include/config.h") CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
     "lib/snprintf.h") CONFIG_HEADERS="$CONFIG_HEADERS lib/snprintf.h" ;;
     "lib/iobroker.h") CONFIG_HEADERS="$CONFIG_HEADERS lib/iobroker.h" ;;
+    "html/index.php") CONFIG_FILES="$CONFIG_FILES html/index.php" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
     "subst") CONFIG_FILES="$CONFIG_FILES subst" ;;

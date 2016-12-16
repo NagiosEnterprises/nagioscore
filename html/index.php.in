@@ -2,7 +2,7 @@
 // Allow specifying main window URL for permalinks, etc.
 $url = 'main.php';
 
-if (isset($_GET['corewindow'])) {
+if ("@COREWINDOW@" == "yes" && isset($_GET['corewindow'])) {
 
 	// The default window url may have been overridden with a permalink...
 	// Parse the URL and remove permalink option from base.

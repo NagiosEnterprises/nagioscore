@@ -5,6 +5,9 @@ Nagios Core 4 Change Log
 4.x.x - xxxx-xx-xx
 ------------------
 SECURITY FIXES
+* Fix for CVE-2016-6209 - The "corewindow" parameter (as in
+  http://localhost/nagios?corewindow=www.somewhere.com) has been disabled by
+  default. See the UPGRADING document for how to enable it. (John Frickson)
 
 FIXES
 * Fix early event scheduling (pmalek / John Frickson)

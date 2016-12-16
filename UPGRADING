@@ -1,5 +1,18 @@
-Upgrading to Nagios 3.x
------------------------
+Upgrading Nagios Core
+=====================
+
+nagios-4.3.0 - 2017-xx-xx
+-------------------------
+
+If you use "corewindow", as in
+	http://localhost/nagios?corewindow=www.somewere.com
+note that this functionality has been disabled by default in this
+release. If you still want to use it, run ./configure with the
+parameter --enable-corewindow
+
+
+nagios-3.0
+----------
 
 The HTML documentation covers what you need to know in order
 to upgrade from Nagios 2.x  You can find the documentation in
@@ -11,9 +24,3 @@ Make sure to read the following sections:
 
 - "What's New" (whatsnew.html)
 - "Upgrading Nagios" (upgrading.html)
-
-
-
-
-
-

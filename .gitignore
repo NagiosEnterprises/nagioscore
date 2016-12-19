@@ -14,9 +14,11 @@ tags
 .libs/
 
 nbproject/
+.kdev4/
+.settings/
 .cproject
 .project
-.settings/
+*.kdev4
 
 *.o
 *.la

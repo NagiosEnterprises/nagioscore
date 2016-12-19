@@ -56,7 +56,6 @@ use_pending_states=1
 
 
 
-
 # AUTHENTICATION USAGE
 # This option controls whether or not the CGIs will use any 
 # authentication when displaying host and service information, as
@@ -78,14 +77,12 @@ use_authentication=1
 
 
 
-
 # x509 CERT AUTHENTICATION
 # When enabled, this option allows you to use x509 cert (SSL)
 # authentication in the CGIs.  This is an advanced option and should
 # not be enabled unless you know what you're doing.
 
 use_ssl_authentication=0
-
 
 
 
@@ -152,7 +149,6 @@ authorized_for_system_commands=nagiosadmin
 # you choose to not use authorization). You may use an asterisk (*)
 # to authorize any user who has authenticated to the web server.
 
-
 authorized_for_all_services=nagiosadmin
 authorized_for_all_hosts=nagiosadmin
 
@@ -182,7 +178,6 @@ authorized_for_all_host_commands=nagiosadmin
 
 
 
-
 # STATUSMAP BACKGROUND IMAGE
 # This option allows you to specify an image to be used as a 
 # background in the statusmap CGI.  It is assumed that the image
@@ -198,7 +193,6 @@ authorized_for_all_host_commands=nagiosadmin
 
 
 
-
 # STATUSMAP TRANSPARENCY INDEX COLOR
 # These options set the r,g,b values of the background color used the statusmap CGI,
 # so normal browsers that can't show real png transparency set the desired color as
@@ -208,7 +202,6 @@ authorized_for_all_host_commands=nagiosadmin
 #color_transparency_index_r=255
 #color_transparency_index_g=255
 #color_transparency_index_b=255
-
 
 
 
@@ -287,6 +280,8 @@ ping_syntax=/bin/ping -n -U -c 5 $HOSTADDRESS$
 
 refresh_rate=90
 
+
+
 # DEFAULT PAGE LIMIT
 # This option allows you to specify the default number of results 
 # displayed on the status.cgi.  This number can be adjusted from
@@ -296,13 +291,13 @@ refresh_rate=90
 result_limit=100
 
 
+
 # ESCAPE HTML TAGS
 # This option determines whether HTML tags in host and service
 # status output is escaped in the web interface.  If enabled,
 # your plugin output will not be able to contain clickable links.
 
 escape_html_tags=1
-
 
 
 
@@ -341,7 +336,6 @@ notes_url_target=_blank
 
 
 
-
 # LOCK AUTHOR NAMES OPTION
 # This option determines whether users can change the author name 
 # when submitting comments, scheduling downtime.  If disabled, the 
@@ -350,7 +344,6 @@ notes_url_target=_blank
 #         1 = lock author names (disallow editing)
 
 lock_author_names=1
-
 
 
 
@@ -368,11 +361,8 @@ lock_author_names=1
 
 #enable_splunk_integration=1
 
-
 # This option should be the URL used to access your instance of Splunk
-
 #splunk_url=http://127.0.0.1:8000/
-
 
 
 
@@ -387,8 +377,6 @@ navbar_search_for_aliases=1
 
 
 
-
-
 # DEFAULTS FOR CHECKBOXES FOR ACKNOWLEDGEMENTS
 # Enabling ack_no_sticky will default the "Sticky Acknowledgement" to 
 # be unchecked.
@@ -397,3 +385,12 @@ navbar_search_for_aliases=1
 
 #ack_no_sticky=0
 #ack_no_send=0
+
+
+
+# SHOW ONLY HARD STATES IS TACTICAL OVERVIEW
+# This option controls whether only HARD states are counted on the
+# Tactical Overview, or if both HARD and SOFT states are counted.
+# Set to 1 to show only HARD states. Defaults to 0 (HARD+SOFT).
+
+#tac_cgi_hard_only=0

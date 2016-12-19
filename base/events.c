@@ -1322,6 +1322,11 @@ int handle_timed_event(timed_event *event) {
 			break;
 		}
 
+#ifdef USE_EVENT_BROKER
+	/* send event data to broker */
+	broker_timed_event(NEBTYPE_TIMEDEVENT_END, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
+#endif
+
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_timed_event() end\n");
 
 	return OK;

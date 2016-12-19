@@ -74,6 +74,7 @@
 #define NEBTYPE_TIMEDEVENT_DELAY                 203   /* NOT IMPLEMENTED */
 #define NEBTYPE_TIMEDEVENT_SKIP                  204   /* NOT IMPLEMENTED */
 #define NEBTYPE_TIMEDEVENT_SLEEP                 205
+#define NEBTYPE_TIMEDEVENT_END                   206
 
 #define NEBTYPE_LOG_DATA                         300
 #define NEBTYPE_LOG_ROTATION                     301

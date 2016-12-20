@@ -38,7 +38,7 @@
 
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
-#define MACRO_X_COUNT				156	/* size of macro_x[] array */
+#define MACRO_X_COUNT				157	/* size of macro_x[] array */
 
 NAGIOS_BEGIN_DECL
 
@@ -217,6 +217,7 @@ typedef struct nagios_macros nagios_macros;
 #define MACRO_HOSTIMPORTANCE                    153
 #define MACRO_SERVICEIMPORTANCE                 154
 #define MACRO_HOSTANDSERVICESIMPORTANCE         155
+#define MACRO_HOSTGROUPMEMBERADDRESSES          156
 
 
 /************* MACRO CLEANING OPTIONS *****************/

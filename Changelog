@@ -17,6 +17,7 @@ FIXES
 * failed passive requests leave .ok files in checkresults dir (caronc)
 * Services don't show in status.cgi if "noheader" specified (John Frickson)
 * Standardized check interval config file names (John Frickson)
+* "Event Log" (showlog.cgi) could not open log file (John Frickson)
 
 ENHANCEMENTS
 * Added new flag to cgi.cfg: tac_cgi_hard_only to show only HARD states (John Frickson)

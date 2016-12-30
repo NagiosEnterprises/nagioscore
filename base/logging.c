@@ -118,7 +118,7 @@ static FILE *open_log_file(void)
 	if(log_fp) /* keep it open unless we rotate */
 		return log_fp;
 
-	if ((fh = open(log_file, O_RDWR|O_APPEND|O_CREAT|O_NOFOLLOW, S_IRUSR|S_IWUSR|S_IRGRP)) == -1) {
+	if ((fh = open(log_file, O_RDWR|O_APPEND|O_CREAT|O_NOFOLLOW, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1) {
 		if (daemon_mode == FALSE)
 			printf("Warning: Cannot open log file '%s' for writing\n", log_file);
 		return NULL;

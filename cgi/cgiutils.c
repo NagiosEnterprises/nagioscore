@@ -1052,7 +1052,7 @@ const char *url_encode(const char *input) {
 		return str;
 
 	len = (int)strlen(input);
-	output_len = (int)sizeof(encoded_url_string[0]);
+	output_len = (int)sizeof(encoded_url_string[i]);
 
 	str[0] = '\x0';
 
@@ -1087,7 +1087,8 @@ const char *url_encode(const char *input) {
 			}
 		}
 
-	str[sizeof(encoded_url_string[0]) - 1] = '\x0';
+	str[sizeof(encoded_url_string[i]) - 1] = '\x0';
+	i = !i;
 
 	return str;
 	}

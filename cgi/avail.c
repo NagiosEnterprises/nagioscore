@@ -444,7 +444,10 @@ int main(int argc, char **argv) {
 			printf("<div align=center class='reportRange'>%s to %s</div>\n", start_timestring, end_timestring);
 
 			get_time_breakdown((time_t)(t2 - t1), &days, &hours, &minutes, &seconds);
-			printf("<div align=center class='reportDuration'>Duration: %dd %dh %dm %ds</div>\n", days, hours, minutes, seconds);
+			printf("<div align=center class='reportDuration'>Duration: %dd %dh %dm %ds", days, hours, minutes, seconds);
+			if (current_timeperiod)
+				printf("<br>(using timeperiod %s)", current_timeperiod->name);
+			printf("</div>\n");
 			}
 
 		printf("</td>\n");

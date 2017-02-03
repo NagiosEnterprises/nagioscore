@@ -47,6 +47,7 @@ extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern char url_docs_path[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_logo_images_path[MAX_FILENAME_LENGTH];
+extern char url_js_path[MAX_FILENAME_LENGTH];
 
 extern int              enable_splunk_integration;
 
@@ -522,6 +523,7 @@ int main(void) {
 
 void document_header(int use_stylesheet) {
 	char date_time[MAX_DATETIME_LENGTH];
+	char *vidurl = NULL;
 	time_t current_time;
 	time_t expire_time;
 
@@ -552,7 +554,26 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>", url_stylesheets_path, COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>", url_stylesheets_path, EXTINFO_CSS);
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, NAGFUNCS_CSS);
 		}
+
+	if (display_type == DISPLAY_HOST_INFO)
+		vidurl = "https://www.youtube.com/embed/n3QEAf-MxY4";
+	else if(display_type == DISPLAY_SERVICE_INFO)
+		vidurl = "https://www.youtube.com/embed/f_knwQOS6FI";
+
+	if (vidurl) {
+		printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, JQUERY_JS);
+		printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, NAGFUNCS_JS);
+		printf("<script type='text/javascript'>\n");
+		printf("var vbox, vboxText = "
+				"'<a href=https://www.youtube.com/watch?v=oHEhYv-SOiI&list=PLN-ryIrpC_mCsnNKTzAWYg_DUNE0M2plw "
+				"target=_blank>Click here to watch the entire Nagios Core 4 Tour!</a>';\n");
+		printf("$(document).ready(function() {\n"
+				"vbox = new vidbox({pos:'lr',vidurl:'%s',text:vboxText});\n", vidurl);
+		printf("});\n</script>\n");
+	}
+
 	printf("</head>\n");
 
 	printf("<body CLASS='extinfo'>\n");

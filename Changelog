@@ -23,6 +23,7 @@ ENHANCEMENTS
 * Added new flag to cgi.cfg: tac_cgi_hard_only to show only HARD states (John Frickson)
 * Add broker-event for the end of a timed event (NEBTYPE_TIMEDEVENT_END) (John Frickson)
 * There is no Macro to retrieve addresses of hostgroup members (now $HOSTGROUPMEMBERADDRESSES$) (John Frickson)
+* Add "Page Tour" videos to several of the core web pages (John Frickson)
 
 
 4.2.4 - 2016-12-07

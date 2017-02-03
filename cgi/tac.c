@@ -49,6 +49,7 @@ extern char   url_html_path[MAX_FILENAME_LENGTH];
 extern char   url_images_path[MAX_FILENAME_LENGTH];
 extern char   url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern char   url_media_path[MAX_FILENAME_LENGTH];
+extern char   url_js_path[MAX_FILENAME_LENGTH];
 
 extern int    refresh_rate;
 extern int    tac_cgi_hard_only;
@@ -297,7 +298,18 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, TAC_CSS);
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, NAGFUNCS_CSS);
 		}
+
+	printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, JQUERY_JS);
+	printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, NAGFUNCS_JS);
+
+	printf("<script type='text/javascript'>\nvar vbox, vboxText = "
+			"'<a href=https://www.youtube.com/watch?v=oHEhYv-SOiI&list=PLN-ryIrpC_mCsnNKTzAWYg_DUNE0M2plw "
+			"target=_blank>Click here to watch the entire Nagios Core 4 Tour!</a>';\n");
+	printf("$(document).ready(function() { vbox = new vidbox({pos:'lr',"
+			"vidurl:'https://www.youtube.com/embed/l20YRDhbOfA',text:vboxText});");
+	printf("\n});\n</script>\n");
 
 	printf("</HEAD>\n");
 	printf("<BODY CLASS='tac' marginwidth=2 marginheight=2 topmargin=0 leftmargin=0 rightmargin=0>\n");

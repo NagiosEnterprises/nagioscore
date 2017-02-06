@@ -59,7 +59,6 @@ char            *action_url_target = NULL;
 
 char            *ping_syntax = NULL;
 
-char            nagios_check_command[MAX_INPUT_BUFFER] = "";
 char            nagios_process_info[MAX_INPUT_BUFFER] = "";
 int             nagios_process_state = STATE_OK;
 
@@ -177,7 +176,6 @@ void reset_cgi_vars(void) {
 		strcat(log_archive_path, "/");
 	strcpy(command_file, get_cmd_file_location());
 
-	strcpy(nagios_check_command, "");
 	strcpy(nagios_process_info, "");
 	nagios_process_state = STATE_OK;
 
@@ -312,12 +310,6 @@ int read_cgi_config_file(const char *filename) {
 
 		else if(!strcmp(var, "use_authentication"))
 			use_authentication = (atoi(val) > 0) ? TRUE : FALSE;
-
-		else if(!strcmp(var, "nagios_check_command")) {
-			strncpy(nagios_check_command, val, sizeof(nagios_check_command));
-			nagios_check_command[sizeof(nagios_check_command) - 1] = '\x0';
-			strip(nagios_check_command);
-			}
 
 		else if(!strcmp(var, "refresh_rate"))
 			refresh_rate = atoi(val);

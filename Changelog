@@ -18,6 +18,7 @@ FIXES
 * Services don't show in status.cgi if "noheader" specified (John Frickson)
 * Standardized check interval config file names (John Frickson)
 * "Event Log" (showlog.cgi) could not open log file (John Frickson)
+* "nagios_check_command" has been deprecated since v3.0. Last vestiges removed (John Frickson)
 
 ENHANCEMENTS
 * Added new flag to cgi.cfg: tac_cgi_hard_only to show only HARD states (John Frickson)

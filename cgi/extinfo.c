@@ -33,7 +33,6 @@
 
 static nagios_macros *mac;
 
-extern char             nagios_check_command[MAX_INPUT_BUFFER];
 extern char             nagios_process_info[MAX_INPUT_BUFFER];
 extern int              nagios_process_state;
 extern int              refresh_rate;
@@ -895,11 +894,6 @@ void show_process_info(void) {
 		}
 	else {
 		printf("<DIV ALIGN=CENTER CLASS='infoMessage'>It appears as though Nagios is not running, so commands are temporarily unavailable...\n");
-		if(!strcmp(nagios_check_command, "")) {
-			printf("<BR><BR>\n");
-			printf("Hint: It looks as though you have not defined a command for checking the process state by supplying a value for the <b>nagios_check_command</b> option in the CGI configuration file.<BR>\n");
-			printf("Read the documentation for more information on checking the status of the Nagios process in the CGIs.\n");
-			}
 		printf("</DIV>\n");
 		}
 

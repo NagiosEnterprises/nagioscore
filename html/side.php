@@ -27,6 +27,7 @@ $link_target = 'main';
 		<ul class="navsectionlinks">
 			<li><a href="main.php" target="<?php echo $link_target;?>">Home</a></li>
 			<li><a href="https://go.nagios.com/nagioscore/docs" target="_blank">Documentation</a></li>
+			<li><a href="dologout" target="_top">Logout</a></li>
 		</ul>
 	</div>
 </div>

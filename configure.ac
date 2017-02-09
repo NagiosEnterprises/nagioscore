@@ -550,11 +550,17 @@ if test x$TRYGD = xyep; then
 	fi
 fi
 
+AC_ARG_WITH(cgi2url,
+	AC_HELP_STRING([--with-cgi2url=<local-url>],
+		[sets URL for scripts calling cgi programs - defaults to /nagios/cgi-bin (do not use a trailing slash)]),
+	cgi2url=$withval,
+	cgi2url=/nagios/cgi-bin
+)
 AC_ARG_WITH(cgiurl,
 	AC_HELP_STRING([--with-cgiurl=<local-url>],
-		[sets URL for cgi programs (do not use a trailing slash)]),
+		[sets URL for cgi programs - defaults to /nagios/cgibin (do not use a trailing slash)]),
 	cgiurl=$withval,
-	cgiurl=/nagios/cgi-bin
+	cgiurl=/nagios/cgibin
 )
 AC_ARG_WITH(htmurl,
 	AC_HELP_STRING([--with-htmurl=<local-url>],
@@ -564,6 +570,7 @@ AC_ARG_WITH(htmurl,
 )
 AC_SUBST(htmurl)
 AC_SUBST(cgiurl)
+AC_SUBST(cgi2url)
 
 USE_NANOSLEEP=yes
 AC_ARG_ENABLE(nanosleep,
@@ -784,6 +791,9 @@ AC_SUBST(BASEEXTRALIBS)
 AC_SUBST(INITDIR)
 AC_SUBST(USE_EVENTBROKER)
 
+apachepw=`echo "$$ \`date\`" | md5sum | cut -d' ' -f1`
+AC_SUBST(apachepw)
+
 AC_PATH_PROG(PERL,perl)
 if test -z "$PERL"; then
 	AC_MSG_ERROR([Cannot continue without perl!])
@@ -853,6 +863,7 @@ echo " Web Interface Options:"
 echo " ------------------------"
 
 AC_MSG_RESULT([                 HTML URL:  http://localhost$htmurl/])
+AC_MSG_RESULT([      CGI URL for Scripts:  http://localhost$cgi2url/])
 AC_MSG_RESULT([                  CGI URL:  http://localhost$cgiurl/])
 AC_MSG_RESULT([ Traceroute (used by WAP):  $PATH_TO_TRACEROUTE])
 

@@ -35,7 +35,7 @@ angular.module("trendsApp", ["ui.bootstrap", "ui.utils",
 		// URL parameters
 		$scope.params = {
 			cgiurl: $scope.search.cgiurl ? $scope.search.cgiurl : 
-					$location.absUrl().replace(/trends\.html.*$/, "cgi-bin/"),
+					$location.absUrl().replace(/trends\.html.*$/, nagcfg.cgidir),
 			reporttype: $scope.search.reporttype ?
 					$scope.search.reporttype : "",
 			host: $scope.search.host ? $scope.search.host : "",

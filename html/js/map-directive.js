@@ -590,6 +590,8 @@ angular.module("mapApp")
 
 					// Placeholder for attributes
 					var attrs = new Object;
+					var state = "ok";
+					var stateCounts = {};
 
 					// Variables used for all layouts
 					var serviceCount = getObjAttr(d, ["serviceCount"], 0);
@@ -598,7 +600,27 @@ angular.module("mapApp")
 
 					if (d.hostInfo.name == $scope.$parent.search.host)
 						fontSize = ($scope.fontSize * 2) + "px";
-					attrs["font-size"] = fontSize;	// $scope.fontSize + "px";
+					attrs["font-size"] = fontSize;
+					attrs["font-weight"] = "normal";
+					attrs["text-decoration"] = "none";
+					attrs["fill"] = "#000000";
+
+					if (d.hostInfo.name != $scope.$parent.search.host && d.hostInfo.hasOwnProperty("serviceStatusJSON")) {
+						for (var service in d.hostInfo.serviceStatusJSON) {
+							var state = d.hostInfo.serviceStatusJSON[service];
+							if(!stateCounts.hasOwnProperty(state))
+								stateCounts[state] = 0;
+							stateCounts[state]++;
+						}
+						if (stateCounts["critical"])
+							state = "critical";
+						else if (stateCounts["warning"])
+							state = "warning";
+						else if (stateCounts["unknown"])
+							state = "unknown";
+						else if (stateCounts["pending"])
+							state = "pending";
+					}
 
 					switch($scope.layout) {
 					case layouts.UserSupplied.index:
@@ -738,6 +760,15 @@ angular.module("mapApp")
 						attrs["stroke"] = "red";
 						attrs["stroke-width"] = "1";
 						attrs["fill"] = "#0000ff";
+					} else if (state != "ok") {
+						attrs["font-weight"] = "bold";
+						attrs["text-decoration"] = "underline";
+						switch(state) {
+							case "critical":attrs["fill"] = "#ff0000";	break;
+							case "warning":	attrs["fill"] = "#b0b214";	break;
+							case "unknown":	attrs["fill"] = "#ff6419";	break;
+							case "pending":	attrs["fill"] = "#cccccc";	break;
+						}
 					}
 					d3.select(domNode).attr(attrs);
 				};
@@ -1599,6 +1630,7 @@ angular.module("mapApp")
 					$scope.lastUpdate = json.result.query_time;
 
 					for (var host in json.data.servicelist) {
+						var serviceStatUpdated = false;
 						if (!$scope.hostList[host].hasOwnProperty("serviceStatusJSON")) {
 							$scope.hostList[host].serviceCount =
 									Object.keys(json.data.servicelist[host]).length;
@@ -1634,8 +1666,15 @@ angular.module("mapApp")
 							serviceCountUpdated = true;
 						}
 						for (service in json.data.servicelist[host]) {
+							if ($scope.hostList[host].serviceStatusJSON[service] != json.data.servicelist[host][service])
+								serviceStatUpdated = true;
 							$scope.hostList[host].serviceStatusJSON[service] =
 								json.data.servicelist[host][service];
+						}
+						if (serviceStatUpdated) {
+							$scope.hostList[host].g.forEach(function(e, i, a) {
+								updateNode(e);
+							});
 						}
 					}
 					if (serviceCountUpdated) {

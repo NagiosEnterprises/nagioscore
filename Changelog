@@ -25,6 +25,8 @@ ENHANCEMENTS
 * Add broker-event for the end of a timed event (NEBTYPE_TIMEDEVENT_END) (John Frickson)
 * There is no Macro to retrieve addresses of hostgroup members (now $HOSTGROUPMEMBERADDRESSES$) (John Frickson)
 * Add "Page Tour" videos to several of the core web pages (John Frickson)
+* Added a login page, and a `Logoff` links (John Frickson)
+* On the status map, the host name will be colored if services are not all OK. (John Frickson)
 
 
 4.2.4 - 2016-12-07

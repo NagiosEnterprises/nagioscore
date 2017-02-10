@@ -62,11 +62,15 @@
 
 		<script type='text/javascript'>
 			var vbox;
-			var vboxText = "<a href=https://www.youtube.com/watch?v=oHEhYv-SOiI&list=PLN-ryIrpC_mCsnNKTzAWYg_DUNE0M2plw target=_blank>" +
-							"Click here to watch the entire Nagios Core 4 Tour!</a>";
+			var vBoxId = "map";
+			var vboxText = "<a href=https://www.nagios.com/tours target=_blank>" +
+						"Click here to watch the entire Nagios Core 4 Tour!</a>";
 			$(document).ready(function() {
+				var user = "<?php echo $_SERVER['REMOTE_USER']; ?>";
+
+				vBoxId += ";" + user;
 				vbox = new vidbox({pos:'lr',vidurl:'https://www.youtube.com/embed/leaRdb3BElI',
-									text:vboxText});
+									text:vboxText,vidid:vBoxId});
 			});
 		</script>
 

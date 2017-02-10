@@ -58,6 +58,12 @@ div.vidbox_lr { right:10px; bottom:10px; }
 	display:none;
 	text-align: center;
 }
+.vidboxCancel {
+	float:right;
+	cursor: pointer;
+	padding:5px 20px 0 0;
+	color: #ccccff;
+}
 .vidFrame { width:600px; }
 .vidboxIframe { margin-top:10px; }
 .textFrame { margin: 10px; }

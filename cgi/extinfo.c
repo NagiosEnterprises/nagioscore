@@ -131,10 +131,10 @@ int main(void) {
 	/* initialize macros */
 	init_macros();
 
-	document_header(TRUE);
-
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
+
+	document_header(TRUE);
 
 
 	if(display_header == TRUE) {
@@ -565,11 +565,15 @@ void document_header(int use_stylesheet) {
 		printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, JQUERY_JS);
 		printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, NAGFUNCS_JS);
 		printf("<script type='text/javascript'>\n");
-		printf("var vbox, vboxText = "
-				"'<a href=https://www.youtube.com/watch?v=oHEhYv-SOiI&list=PLN-ryIrpC_mCsnNKTzAWYg_DUNE0M2plw "
-				"target=_blank>Click here to watch the entire Nagios Core 4 Tour!</a>';\n");
+		printf("var vbox, vBoxId='extinfo%d', vboxText = "
+				"'<a href=https://www.nagios.com/tours target=_blank>"
+				"Click here to watch the entire Nagios Core 4 Tour!</a>';\n",
+				display_type);
 		printf("$(document).ready(function() {\n"
-				"vbox = new vidbox({pos:'lr',vidurl:'%s',text:vboxText});\n", vidurl);
+				"var user = '%s';\nvBoxId += ';' + user;\n",
+				current_authdata.username);
+		printf("vbox = new vidbox({pos:'lr',vidurl:'%s',text:vboxText,"
+				"vidid:vBoxId});\n", vidurl);
 		printf("});\n</script>\n");
 	}
 

@@ -212,10 +212,10 @@ int main(void) {
 	/* initialize macros */
 	init_macros();
 
-	document_header(TRUE);
-
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
+
+	document_header(TRUE);
 
 	/* if a navbar search was performed, find the host by name, address or partial name */
 	if(navbar_search == TRUE) {
@@ -534,9 +534,10 @@ void document_header(int use_stylesheet) {
 	printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, NAGFUNCS_JS);
 	/* JS function to append content to elements on page */
 	printf("<script type='text/javascript'>\n");
-	printf("var vbox, vboxText = "
-			"'<a href=https://www.youtube.com/watch?v=oHEhYv-SOiI&list=PLN-ryIrpC_mCsnNKTzAWYg_DUNE0M2plw "
-			"target=_blank>Click here to watch the entire Nagios Core 4 Tour!</a>';\n");
+	printf("var vbox, vBoxId='status%d%d', vboxText = "
+			"'<a href=https://www.nagios.com/tours target=_blank>"
+			"Click here to watch the entire Nagios Core 4 Tour!</a>';\n",
+			display_type, group_style_type);
 	printf("$(document).ready(function() {\n"
 			"$('#top_page_numbers').append($('#bottom_page_numbers').html() );\n");
 	if (display_type == DISPLAY_HOSTS)
@@ -552,8 +553,12 @@ void document_header(int use_stylesheet) {
 		else if (group_style_type == STYLE_HOST_DETAIL)
 			vidurl = "https://www.youtube.com/embed/nNiRr0hDZag";
 	}
-	if (vidurl)
-		printf("vbox = new vidbox({pos:'lr',vidurl:'%s',text:vboxText});\n", vidurl);
+	if (vidurl) {
+		printf("var user = '%s';\nvBoxId += ';' + user;",
+			 current_authdata.username);
+		printf("vbox = new vidbox({pos:'lr',vidurl:'%s',text:vboxText,"
+				"vidid:vBoxId});\n", vidurl);
+	}
 	printf("});\n");
 	printf("function set_limit(url) { \nthis.location = url+'&limit='+$('#limit').val();\n  }\n");
 

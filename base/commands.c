@@ -637,6 +637,8 @@ int process_external_command1(char *cmd) {
 	else if(!strcmp(command_id, "CHANGE_HOST_MODATTR"))
 		command_type = CMD_CHANGE_HOST_MODATTR;
 
+	else if (!strcmp(command_id,"CLEAR_HOST_FLAPPING_STATE"))
+		command_type = CMD_CLEAR_HOST_FLAPPING_STATE;
 
 	/************************************/
 	/**** HOSTGROUP-RELATED COMMANDS ****/
@@ -775,6 +777,8 @@ int process_external_command1(char *cmd) {
 	else if(!strcmp(command_id, "CHANGE_SVC_MODATTR"))
 		command_type = CMD_CHANGE_SVC_MODATTR;
 
+	else if (!strcmp(command_id,"CLEAR_SVC_FLAPPING_STATE"))
+		command_type = CMD_CLEAR_SVC_FLAPPING_STATE;
 
 	/***************************************/
 	/**** SERVICEGROUP-RELATED COMMANDS ****/
@@ -1097,6 +1101,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 		case CMD_STOP_OBSESSING_OVER_HOST:
 		case CMD_SET_HOST_NOTIFICATION_NUMBER:
 		case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
+		case CMD_CLEAR_HOST_FLAPPING_STATE:
 			ret = process_host_command(cmd, entry_time, args);
 			break;
 
@@ -1139,6 +1144,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 		case CMD_STOP_OBSESSING_OVER_SVC:
 		case CMD_SET_SVC_NOTIFICATION_NUMBER:
 		case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
+		case CMD_CLEAR_SVC_FLAPPING_STATE:
 			ret = process_service_command(cmd, entry_time, args);
 			break;
 
@@ -1455,6 +1461,10 @@ int process_host_command(int cmd, time_t entry_time, char *args) {
 				}
 			break;
 
+		case CMD_CLEAR_HOST_FLAPPING_STATE:
+			clear_host_flapping_state(temp_host);
+			break;
+
 		case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
 			if((str = my_strtok(NULL, ";")))
 				intval = atoi(str);
@@ -1649,6 +1659,10 @@ int process_service_command(int cmd, time_t entry_time, char *args) {
 				intval = atoi(str);
 				set_service_notification_number(temp_service, intval);
 				}
+			break;
+
+		case CMD_CLEAR_SVC_FLAPPING_STATE:
+			clear_service_flapping_state(temp_service);
 			break;
 
 		case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
@@ -5161,3 +5175,91 @@ void set_service_notification_number(service *svc, int num) {
 
 	return;
 	}
+
+/* clears the flapping state for a specific host */
+void clear_host_flapping_state(host *hst) {
+
+	int		i;
+	double	low_threshold = 0.0;
+	double	high_threshold = 0.0;
+
+	if (enable_flap_detection == FALSE || hst->flap_detection_enabled == FALSE)
+		return;
+
+	low_threshold = (hst->low_flap_threshold <= 0.0) ? low_host_flap_threshold : hst->low_flap_threshold;
+	high_threshold = (hst->high_flap_threshold <= 0.0) ? high_host_flap_threshold : hst->high_flap_threshold;
+
+	for (i = 0; i < MAX_STATE_HISTORY_ENTRIES; ++i)
+		hst->state_history[i] = 0;			/* clear the history */
+	hst->state_history_index = 0;
+	hst->percent_state_change = 0.0;
+	if(hst->flapping_comment_id != 0)	/* delete the comment we added earlier */
+		delete_host_comment(hst->flapping_comment_id);
+	hst->flapping_comment_id = 0;
+	hst->is_flapping = FALSE;			/* clear the flapping indicator */
+
+	if (hst->is_flapping) {
+		log_debug_info(DEBUGL_FLAPPING, 1, "Host '%s' flapping state cleared.\n", hst->name);
+		/* log a notice - this one is parsed by the history CGI */
+		logit(NSLOG_INFO_MESSAGE, FALSE, "HOST FLAPPING ALERT: %s;STOPPED; Flapping state cleared for host. (%2.1f%% change < %2.1f%% threshold)\n", hst->name, hst->percent_state_change, low_threshold);
+
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_flapping_data(NEBTYPE_FLAPPING_STOP, NEBFLAG_NONE, NEBATTR_FLAPPING_STOP_NORMAL, HOST_FLAPPING, hst, hst->percent_state_change, high_threshold, low_threshold, NULL);
+#endif
+
+		/* send a notification */
+		host_notification(hst, NOTIFICATION_FLAPPINGSTOP, NULL, NULL, NOTIFICATION_OPTION_NONE);
+
+		/* should we send a recovery notification? */
+		if(hst->check_flapping_recovery_notification == TRUE && hst->current_state == HOST_UP)
+			host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+	}
+
+	/* clear the recovery notification flag */
+	hst->check_flapping_recovery_notification = FALSE;
+}
+
+/* clears the flapping state for a specific service */
+void clear_service_flapping_state(service *svc) {
+
+	int		i;
+	double	low_threshold = 0.0;
+	double	high_threshold = 0.0;
+
+	if (enable_flap_detection == FALSE || svc->flap_detection_enabled == FALSE)
+		return;
+
+	low_threshold = (svc->low_flap_threshold <= 0.0) ? low_service_flap_threshold : svc->low_flap_threshold;
+	high_threshold = (svc->high_flap_threshold <= 0.0) ? high_service_flap_threshold : svc->high_flap_threshold;
+
+	for (i = 0; i < MAX_STATE_HISTORY_ENTRIES; ++i)
+		svc->state_history[i] = 0;			/* clear the history */
+	svc->state_history_index = 0;
+	svc->percent_state_change = 0.0;
+	if(svc->flapping_comment_id != 0)	/* delete the comment we added earlier */
+		delete_service_comment(svc->flapping_comment_id);
+	svc->flapping_comment_id = 0;
+	svc->is_flapping = FALSE;			/* clear the flapping indicator */
+
+	if (svc->is_flapping) {
+		log_debug_info(DEBUGL_FLAPPING, 1, "Service '%s' on host '%s' flapping state cleared.\n", svc->description, svc->host_name);
+		/* log a notice - this one is parsed by the history CGI */
+		logit(NSLOG_INFO_MESSAGE, FALSE, "SERVICE FLAPPING ALERT: %s;%s;STOPPED; Flapping state cleared for servicee. (%2.1f%% change < %2.1f%% threshold)\n", svc->host_name, svc->description, svc->percent_state_change, low_threshold);
+
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_flapping_data(NEBTYPE_FLAPPING_STOP, NEBFLAG_NONE, NEBATTR_FLAPPING_STOP_NORMAL, SERVICE_FLAPPING, svc, svc->percent_state_change, high_threshold, low_threshold, NULL);
+#endif
+
+		/* send a notification */
+		service_notification(svc, NOTIFICATION_FLAPPINGSTOP, NULL, NULL, NOTIFICATION_OPTION_NONE);
+
+		/* should we send a recovery notification? */
+		if(svc->check_flapping_recovery_notification == TRUE && svc->current_state == STATE_OK)
+			service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+	}
+
+	/* clear the recovery notification flag */
+	svc->check_flapping_recovery_notification = FALSE;
+}

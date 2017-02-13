@@ -27,6 +27,7 @@ ENHANCEMENTS
 * Add "Page Tour" videos to several of the core web pages (John Frickson)
 * Added a login page, and a `Logoff` links (John Frickson)
 * On the status map, the host name will be colored if services are not all OK. (John Frickson)
+* Added "Clear flapping state" command on host and services detail pages. (John Frickson)
 
 
 4.2.4 - 2016-12-07

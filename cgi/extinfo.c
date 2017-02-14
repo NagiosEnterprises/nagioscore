@@ -2446,6 +2446,7 @@ void display_comments(int type) {
 	int odd = 1;
 	char date_time[MAX_DATETIME_LENGTH];
 	nagios_comment *temp_comment;
+	scheduled_downtime *temp_downtime;
 	char *comment_type;
 	char expire_time[MAX_DATETIME_LENGTH];
 
@@ -2540,15 +2541,31 @@ void display_comments(int type) {
 					comment_type = "?";
 				}
 
+			if (temp_comment->entry_type == DOWNTIME_COMMENT) {
+				for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
+					if (temp_downtime->comment_id == temp_comment->comment_id)
+						break;
+					}
+				}
+			else
+				temp_downtime = NULL;
+
 			get_time_string(&temp_comment->entry_time, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
 			get_time_string(&temp_comment->expire_time, expire_time, (int)sizeof(date_time), SHORT_DATE_TIME);
 			printf("<tr CLASS='%s'>", bg_class);
-			printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%lu</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>", bg_class, date_time, bg_class, temp_comment->author, bg_class, temp_comment->comment_data, bg_class, temp_comment->comment_id, bg_class, (temp_comment->persistent) ? "Yes" : "No", bg_class, comment_type, bg_class, (temp_comment->expires == TRUE) ? expire_time : "N/A");
+			printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>", bg_class, date_time, bg_class, temp_comment->author);
+			printf("<td CLASS='%s'>%s", bg_class, temp_comment->comment_data);
+			if (temp_downtime)
+				printf("<hr>%s", temp_downtime->comment);
+			printf("</td><td CLASS='%s'>%lu</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",
+				bg_class, temp_comment->comment_id, bg_class, (temp_comment->persistent) ? "Yes" : "No",
+				bg_class, comment_type, bg_class, (temp_comment->expires == TRUE) ? expire_time : "N/A");
 			if(is_authorized_for_read_only(&current_authdata)==FALSE)
 				printf("<td><a href='%s?cmd_typ=%d&com_id=%lu'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>", COMMAND_CGI, (type == HOST_COMMENT) ? CMD_DEL_HOST_COMMENT : CMD_DEL_SVC_COMMENT, temp_comment->comment_id, url_images_path, DELETE_ICON);
 			printf("</tr>\n");
 
 			total_comments++;
+
 			}
 		}
 

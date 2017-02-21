@@ -810,26 +810,28 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			}
 
 		/* if the host is down or unreachable ... */
-		/* The host might be in a SOFT problem state due to host check retries/caching.  Not sure if we should take that into account and do something different or not... */
 		if(route_result != HOST_UP) {
+			if (temp_host->state_type == HARD_STATE) {
+				log_debug_info(DEBUGL_CHECKS, 2, "Host is not UP, so we mark state changes if appropriate\n");
 
-			log_debug_info(DEBUGL_CHECKS, 2, "Host is not UP, so we mark state changes if appropriate\n");
+				/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earlier... */
+				if(temp_service->last_hard_state != temp_service->current_state)
+					hard_state_change = TRUE;
 
-			/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earlier... */
-			if(temp_service->last_hard_state != temp_service->current_state)
-				hard_state_change = TRUE;
+				/* update last state change times */
+				if(state_change == TRUE || hard_state_change == TRUE)
+					temp_service->last_state_change = temp_service->last_check;
+				if(hard_state_change == TRUE) {
+					temp_service->last_hard_state_change = temp_service->last_check;
+					temp_service->state_type = HARD_STATE;
+					temp_service->last_hard_state = temp_service->current_state;
+					}
 
-			/* update last state change times */
-			if(state_change == TRUE || hard_state_change == TRUE)
-				temp_service->last_state_change = temp_service->last_check;
-			if(hard_state_change == TRUE) {
-				temp_service->last_hard_state_change = temp_service->last_check;
-				temp_service->state_type = HARD_STATE;
-				temp_service->last_hard_state = temp_service->current_state;
+				/* put service into a hard state without attempting check retries and don't send out notifications about it */
+				temp_service->host_problem_at_last_check = TRUE;
 				}
-
-			/* put service into a hard state without attempting check retries and don't send out notifications about it */
-			temp_service->host_problem_at_last_check = TRUE;
+			else if (temp_service->last_state == STATE_OK)
+				temp_service->state_type = SOFT_STATE;
 			}
 
 		/* the host is up - it recovered since the last time the service was checked... */

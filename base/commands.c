@@ -1341,6 +1341,7 @@ int process_host_command(int cmd, time_t entry_time, char *args) {
 	servicesmember *temp_servicesmember = NULL;
 	char *str = NULL;
 	char *buf[2] = {NULL, NULL};
+	char *author, *comment;
 	int intval = 0;
 
 	printf("ARGS: %s\n", args);
@@ -1471,6 +1472,13 @@ int process_host_command(int cmd, time_t entry_time, char *args) {
 			break;
 		}
 
+	if ((author = my_strtok(NULL, ";")) != NULL) {
+		if ((comment = my_strtok(NULL, ";")) != NULL) {
+			time_t current_time = time(NULL);
+			add_new_host_comment(USER_COMMENT, host_name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
+		}
+	}
+
 	return OK;
 	}
 
@@ -1478,11 +1486,13 @@ int process_host_command(int cmd, time_t entry_time, char *args) {
 /* processes an external hostgroup command */
 int process_hostgroup_command(int cmd, time_t entry_time, char *args) {
 	char *hostgroup_name = NULL;
+	char *author = NULL, *comment = NULL;
 	hostgroup *temp_hostgroup = NULL;
 	hostsmember *temp_member = NULL;
 	host *temp_host = NULL;
 	service *temp_service = NULL;
 	servicesmember *temp_servicesmember = NULL;
+	time_t current_time = time(NULL);
 
 	/* get the hostgroup name */
 	if((hostgroup_name = my_strtok(args, ";")) == NULL)
@@ -1491,6 +1501,9 @@ int process_hostgroup_command(int cmd, time_t entry_time, char *args) {
 	/* find the hostgroup */
 	if((temp_hostgroup = find_hostgroup(hostgroup_name)) == NULL)
 		return ERROR;
+
+	if ((author = my_strtok(NULL, ";")) != NULL)
+		comment = my_strtok(NULL, ";");
 
 	/* loop through all hosts in the hostgroup */
 	for(temp_member = temp_hostgroup->members; temp_member != NULL; temp_member = temp_member->next) {
@@ -1502,26 +1515,38 @@ int process_hostgroup_command(int cmd, time_t entry_time, char *args) {
 
 			case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
 				enable_host_notifications(temp_host);
+				if (comment)
+					add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 				break;
 
 			case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
 				disable_host_notifications(temp_host);
+				if (comment)
+					add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 				break;
 
 			case CMD_ENABLE_HOSTGROUP_HOST_CHECKS:
 				enable_host_checks(temp_host);
+				if (comment)
+					add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 				break;
 
 			case CMD_DISABLE_HOSTGROUP_HOST_CHECKS:
 				disable_host_checks(temp_host);
+				if (comment)
+					add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 				break;
 
 			case CMD_ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
 				enable_passive_host_checks(temp_host);
+				if (comment)
+					add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 				break;
 
 			case CMD_DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
 				disable_passive_host_checks(temp_host);
+				if (comment)
+					add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 				break;
 
 			default:
@@ -1535,26 +1560,38 @@ int process_hostgroup_command(int cmd, time_t entry_time, char *args) {
 
 						case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
 							enable_service_notifications(temp_service);
+							if (comment)
+								add_new_service_comment(USER_COMMENT, temp_host->name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 							break;
 
 						case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
 							disable_service_notifications(temp_service);
+							if (comment)
+								add_new_service_comment(USER_COMMENT, temp_host->name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 							break;
 
 						case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
 							enable_service_checks(temp_service);
+							if (comment)
+								add_new_service_comment(USER_COMMENT, temp_host->name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 							break;
 
 						case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
 							disable_service_checks(temp_service);
+							if (comment)
+								add_new_service_comment(USER_COMMENT, temp_host->name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 							break;
 
 						case CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
 							enable_passive_service_checks(temp_service);
+							if (comment)
+								add_new_service_comment(USER_COMMENT, temp_host->name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 							break;
 
 						case CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
 							disable_passive_service_checks(temp_service);
+							if (comment)
+								add_new_service_comment(USER_COMMENT, temp_host->name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 							break;
 
 						default:
@@ -1579,6 +1616,7 @@ int process_service_command(int cmd, time_t entry_time, char *args) {
 	service *temp_service = NULL;
 	char *str = NULL;
 	char *buf[2] = {NULL, NULL};
+	char *author, *comment;
 	int intval = 0;
 
 	/* get the host name */
@@ -1671,6 +1709,13 @@ int process_service_command(int cmd, time_t entry_time, char *args) {
 			break;
 		}
 
+	if ((author = my_strtok(NULL, ";")) != NULL) {
+		if ((comment = my_strtok(NULL, ";")) != NULL) {
+			time_t current_time = time(NULL);
+			add_new_service_comment(USER_COMMENT, host_name, svc_description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
+		}
+	}
+
 	return OK;
 	}
 
@@ -1678,11 +1723,13 @@ int process_service_command(int cmd, time_t entry_time, char *args) {
 /* processes an external servicegroup command */
 int process_servicegroup_command(int cmd, time_t entry_time, char *args) {
 	char *servicegroup_name = NULL;
+	char *author = NULL, *comment = NULL;
 	servicegroup *temp_servicegroup = NULL;
 	servicesmember *temp_member = NULL;
 	host *temp_host = NULL;
 	host *last_host = NULL;
 	service *temp_service = NULL;
+	time_t current_time = time(NULL);
 
 	/* get the servicegroup name */
 	if((servicegroup_name = my_strtok(args, ";")) == NULL)
@@ -1691,6 +1738,9 @@ int process_servicegroup_command(int cmd, time_t entry_time, char *args) {
 	/* find the servicegroup */
 	if((temp_servicegroup = find_servicegroup(servicegroup_name)) == NULL)
 		return ERROR;
+
+	if ((author = my_strtok(NULL, ";")) != NULL)
+		comment = my_strtok(NULL, ";");
 
 	switch(cmd) {
 
@@ -1712,26 +1762,38 @@ int process_servicegroup_command(int cmd, time_t entry_time, char *args) {
 
 					case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
 						enable_service_notifications(temp_service);
+						if (comment)
+							add_new_service_comment(USER_COMMENT, temp_member->host_name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
 						disable_service_notifications(temp_service);
+						if (comment)
+							add_new_service_comment(USER_COMMENT, temp_member->host_name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
 						enable_service_checks(temp_service);
+						if (comment)
+							add_new_service_comment(USER_COMMENT, temp_member->host_name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
 						disable_service_checks(temp_service);
+						if (comment)
+							add_new_service_comment(USER_COMMENT, temp_member->host_name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					case CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
 						enable_passive_service_checks(temp_service);
+						if (comment)
+							add_new_service_comment(USER_COMMENT, temp_member->host_name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					case CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
 						disable_passive_service_checks(temp_service);
+						if (comment)
+							add_new_service_comment(USER_COMMENT, temp_member->host_name, temp_service->description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					default:
@@ -1762,26 +1824,38 @@ int process_servicegroup_command(int cmd, time_t entry_time, char *args) {
 
 					case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
 						enable_host_notifications(temp_host);
+						if (comment)
+							add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
 						disable_host_notifications(temp_host);
+						if (comment)
+							add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					case CMD_ENABLE_SERVICEGROUP_HOST_CHECKS:
 						enable_host_checks(temp_host);
+						if (comment)
+							add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					case CMD_DISABLE_SERVICEGROUP_HOST_CHECKS:
 						disable_host_checks(temp_host);
+						if (comment)
+							add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					case CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
 						enable_passive_host_checks(temp_host);
+						if (comment)
+							add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					case CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
 						disable_passive_host_checks(temp_host);
+						if (comment)
+							add_new_host_comment(USER_COMMENT, temp_host->name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 						break;
 
 					default:
@@ -2028,6 +2102,7 @@ int cmd_delay_notification(int cmd, char *args) {
 	service *temp_service = NULL;
 	char *host_name = NULL;
 	char *svc_description = NULL;
+	char *author, *comment;
 	time_t delay_time = 0L;
 
 	/* get the host name */
@@ -2054,7 +2129,7 @@ int cmd_delay_notification(int cmd, char *args) {
 		}
 
 	/* get the time that we should delay until... */
-	if((temp_ptr = my_strtok(NULL, "\n")) == NULL)
+	if((temp_ptr = my_strtok(NULL, ";")) == NULL)
 		return ERROR;
 	delay_time = strtoul(temp_ptr, NULL, 10);
 
@@ -2063,6 +2138,16 @@ int cmd_delay_notification(int cmd, char *args) {
 		temp_service->next_notification = delay_time;
 	else
 		temp_host->next_notification = delay_time;
+
+	if ((author = my_strtok(NULL, ";")) != NULL) {
+		if ((comment = my_strtok(NULL, ";")) != NULL) {
+			time_t current_time = time(NULL);
+			if(cmd == CMD_DELAY_SVC_NOTIFICATION)
+				add_new_service_comment(USER_COMMENT, host_name, svc_description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
+			else
+				add_new_host_comment(USER_COMMENT, host_name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
+		}
+	}
 
 	return OK;
 	}
@@ -2077,6 +2162,7 @@ int cmd_schedule_check(int cmd, char *args) {
 	servicesmember *temp_servicesmember = NULL;
 	char *host_name = NULL;
 	char *svc_description = NULL;
+	char *author, *comment;
 	time_t delay_time = 0L;
 
 	/* get the host name */
@@ -2102,7 +2188,7 @@ int cmd_schedule_check(int cmd, char *args) {
 		}
 
 	/* get the next check time */
-	if((temp_ptr = my_strtok(NULL, "\n")) == NULL)
+	if((temp_ptr = my_strtok(NULL, ";")) == NULL)
 		return ERROR;
 	delay_time = strtoul(temp_ptr, NULL, 10);
 
@@ -2120,6 +2206,16 @@ int cmd_schedule_check(int cmd, char *args) {
 		}
 	else
 		schedule_service_check(temp_service, delay_time, (cmd == CMD_SCHEDULE_FORCED_SVC_CHECK) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
+
+	if ((author = my_strtok(NULL, ";")) != NULL) {
+		if ((comment = my_strtok(NULL, ";")) != NULL) {
+			time_t current_time = time(NULL);
+			if (svc_description)
+				add_new_service_comment(USER_COMMENT, host_name, svc_description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
+			else
+				add_new_host_comment(USER_COMMENT, host_name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
+		}
+	}
 
 	return OK;
 	}

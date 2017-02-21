@@ -394,3 +394,22 @@ navbar_search_for_aliases=1
 # Set to 1 to show only HARD states. Defaults to 0 (HARD+SOFT).
 
 #tac_cgi_hard_only=0
+
+
+
+# COMMAND COMMENTS
+# These options control whether or not comments are required, optional,
+# or not allowed for specific commands. The format for each line is:
+#    cmd-name=req,def-comment
+#
+#    cmd-name     is "CMT_" plus a command such as ADD_HOST_COMMENT
+#    req          0 = not allowed, 1 = optional, 2 = required
+#    def-comment  optional default comment that will be put in the input field
+#
+# The following examples override the default comment requirements in
+# some way.
+
+#CMT_ADD_HOST_COMMENT=1
+#CMT_ACKNOWLEDGE_HOST_PROBLEM=2,"Problem is being looked into"
+#CMT_SCHEDULE_SVC_CHECK=1
+#CMT_SCHEDULE_HOST_DOWNTIME=0

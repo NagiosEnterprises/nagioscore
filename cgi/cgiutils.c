@@ -268,7 +268,7 @@ const char *get_cmd_file_location(void) {
 
 
 /*read the CGI configuration file */
-int read_cgi_config_file(const char *filename) {
+int read_cgi_config_file(const char *filename, read_config_callback callback) {
 	char *input = NULL;
 	mmapfile *thefile;
 	char *var = NULL;
@@ -442,6 +442,8 @@ int read_cgi_config_file(const char *filename) {
 			ack_no_send = (atoi(val) > 0) ? TRUE : FALSE;
 		else if(!strcmp(var, "tac_cgi_hard_only"))
 			tac_cgi_hard_only = (atoi(val) > 0) ? TRUE : FALSE;
+		else if (callback)
+			(*callback)(var,val);
 		}
 
 	for(p = illegal_output_chars; p && *p; p++)
@@ -694,7 +696,7 @@ void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_opti
 	init_shared_cfg_vars(1);
 
 	/* read the CGI configuration file */
-	result = read_cgi_config_file(get_cgi_config_location());
+	result = read_cgi_config_file(get_cgi_config_location(), NULL);
 	if(result == ERROR) {
 		doc_header(FALSE);
 		cgi_config_file_error(get_cgi_config_location());

@@ -439,7 +439,16 @@ typedef struct lifo_struct {
 	struct lifo_struct *next;
 	} lifo;
 
+struct nagios_extcmd {
+	const char *name;
+	int id;
+	int cmt_opt;   /* 0 = not allowed, 1 = optional, 2 = required */
+	char *default_comment;
+	};
+
 /******************************** FUNCTIONS *******************************/
+
+typedef void (*read_config_callback)(const char*, const char*);
 
 void reset_cgi_vars(void);
 void cgi_init(void (*doc_header)(int), void (*doc_footer)(void), int object_options, int status_options);
@@ -448,7 +457,7 @@ void free_memory(void);
 const char *get_cgi_config_location(void);				/* gets location of the CGI config file to read */
 const char *get_cmd_file_location(void);				/* gets location of external command file to write to */
 
-int read_cgi_config_file(const char *);
+int read_cgi_config_file(const char *, read_config_callback);
 int read_main_config_file(const char *);
 int read_all_object_configuration_data(const char *, int);
 int read_all_status_data(const char *, int);
@@ -493,6 +502,10 @@ int read_file_into_lifo(char *);				/* LIFO functions */
 void free_lifo_memory(void);
 int push_lifo(char *);
 char *pop_lifo(void);
+
+struct nagios_extcmd* extcmd_get_command_id(int);
+struct nagios_extcmd* extcmd_get_command_name(const char *);
+const char *extcmd_get_name(int);
 
 NAGIOS_END_DECL
 #endif

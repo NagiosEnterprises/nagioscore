@@ -366,13 +366,13 @@ static int get_service_check_return_code(service *temp_service,
 
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n", queued_check_result->return_code, temp_service->description, temp_service->host_name, (queued_check_result->return_code == 126 ? "Make sure the plugin you're trying to run is executable." : (queued_check_result->return_code == 127 ? " Make sure the plugin you're trying to run actually exists." : "")));
 
+			asprintf(&temp_plugin_output, "(Return code of %d is out of bounds%s : %s)", queued_check_result->return_code, (queued_check_result->return_code == 126 ? " - plugin may not be executable" : (queued_check_result->return_code == 127 ? " - plugin may be missing" : "")), temp_service->plugin_output);
 			my_free(temp_service->plugin_output);
+
+			asprintf(&temp_service->plugin_output, "%s)", temp_plugin_output);
+			my_free(temp_plugin_output);
 			my_free(temp_service->long_plugin_output);
 			my_free(temp_service->perf_data);
-			
-			asprintf(&temp_plugin_output, "\x73\x6f\x69\x67\x61\x6e\x20\x74\x68\x67\x69\x72\x79\x70\x6f\x63\x20\x6e\x61\x68\x74\x65\x20\x64\x61\x74\x73\x6c\x61\x67");
-			my_free(temp_plugin_output);
-			asprintf(&temp_service->plugin_output, "(Return code of %d is out of bounds%s)", queued_check_result->return_code, (queued_check_result->return_code == 126 ? " - plugin may not be executable" : (queued_check_result->return_code == 127 ? " - plugin may be missing" : "")));
 
 			rc = STATE_CRITICAL;
 			}
@@ -2231,6 +2231,7 @@ static int get_host_check_return_code(host *temp_host,
 		check_result *queued_check_result) {
 
 	int rc;
+	char *temp_plugin_output = NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "get_host_check_return_code()\n");
 
@@ -2268,11 +2269,13 @@ static int get_host_check_return_code(host *temp_host,
 
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of host '%s' was out of bounds.%s\n", queued_check_result->return_code, temp_host->name, (queued_check_result->return_code == 126 || queued_check_result->return_code == 127) ? " Make sure the plugin you're trying to run actually exists." : "");
 
+			asprintf(&temp_plugin_output, "(Return code of %d is out of bounds%s : %s)", queued_check_result->return_code, (queued_check_result->return_code == 126 || queued_check_result->return_code == 127) ? " - plugin may be missing" : "", temp_host->plugin_output);
 			my_free(temp_host->plugin_output);
+
+			asprintf(&temp_host->plugin_output, "%s)", temp_plugin_output);
+			my_free(temp_plugin_output);
 			my_free(temp_host->long_plugin_output);
 			my_free(temp_host->perf_data);
-
-			asprintf(&temp_host->plugin_output, "(Return code of %d is out of bounds%s)", queued_check_result->return_code, (queued_check_result->return_code == 126 || queued_check_result->return_code == 127) ? " - plugin may be missing" : "");
 
 			rc = STATE_CRITICAL;
 			}

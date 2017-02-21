@@ -12,6 +12,9 @@ FIXES
 * Config: status_update_interval can not be set to 1
 * Check attempts not increasing if nagios is reloaded
 
+ENHANCEMENTS
+* Feature Request: return code xxx out of bounds - include message as well (John Frickson)
+
 
 4.3.0 - 2017-02-21
 ------------------

@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.x.x - xxxx-xx-xx
+4.3.0 - 2017-02-21
 ------------------
 SECURITY FIXES
 * Fix for CVE-2016-6209 - The "corewindow" parameter (as in

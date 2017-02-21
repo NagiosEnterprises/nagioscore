@@ -859,6 +859,10 @@ void show_service_status_totals(void) {
 				count_service = 1;
 			else if(host_filter != NULL && 0 == regexec(&preg_hostname, temp_servicestatus->host_name, 0, NULL, 0))
 				count_service = 1;
+			else if (!strcmp(host_name, temp_host->address))
+				count_service = 1;
+			else if(host_filter != NULL && 0 == regexec(&preg_hostname, temp_host->address, 0, NULL, 0))
+				count_service = 1;
 			}
 		else if(display_type == DISPLAY_SERVICEGROUPS) {
 			if(show_all_servicegroups == TRUE) {
@@ -1098,6 +1102,10 @@ void show_host_status_totals(void) {
 			else if (!strcmp(host_name, temp_hoststatus->host_name))
 				count_host = 1;
 			else if(host_filter != NULL && 0 == regexec(&preg_hostname, temp_hoststatus->host_name, 0, NULL, 0))
+				count_host = 1;
+			else if (!strcmp(host_name, temp_host->address))
+				count_host = 1;
+			else if(host_filter != NULL && 0 == regexec(&preg_hostname, temp_host->address, 0, NULL, 0))
 				count_host = 1;
 			}
 		else if(display_type == DISPLAY_SERVICEGROUPS) {
@@ -2177,7 +2185,7 @@ void show_host_detail(void) {
 
 		if (show_all_hosts == FALSE) {
 			if(host_filter != NULL) {
-				if (regexec(&preg_hostname, temp_host->name, 0, NULL, 0) != 0)
+				if (regexec(&preg_hostname, temp_host->name, 0, NULL, 0) != 0 && regexec(&preg_hostname, temp_host->address, 0, NULL, 0) != 0)
 					continue;
 			} else if (strcmp(host_name, temp_host->name))
 				continue;

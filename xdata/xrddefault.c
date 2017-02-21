@@ -1039,7 +1039,7 @@ int xrddefault_read_state_information(void) {
 									temp_host->check_options = atoi(val);
 								}
 							else if(!strcmp(var, "current_attempt"))
-								temp_host->current_attempt = (atoi(val) > 0) ? TRUE : FALSE;
+								temp_host->current_attempt = atoi(val);
 							else if(!strcmp(var, "current_event_id"))
 								temp_host->current_event_id = strtoul(val, NULL, 10);
 							else if(!strcmp(var, "last_event_id"))

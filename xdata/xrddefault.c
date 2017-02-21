@@ -214,8 +214,8 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "check_options=%d\n", temp_host->check_options);
 		fprintf(fp, "current_attempt=%d\n", temp_host->current_attempt);
 		fprintf(fp, "max_attempts=%d\n", temp_host->max_attempts);
-		fprintf(fp, "normal_check_interval=%f\n", temp_host->check_interval);
-		fprintf(fp, "retry_check_interval=%f\n", temp_host->check_interval);
+		fprintf(fp, "check_interval=%f\n", temp_host->check_interval);
+		fprintf(fp, "retry_interval=%f\n", temp_host->retry_interval);
 		fprintf(fp, "state_type=%d\n", temp_host->state_type);
 		fprintf(fp, "last_state_change=%llu\n", (unsigned long long)temp_host->last_state_change);
 		fprintf(fp, "last_hard_state_change=%llu\n", (unsigned long long)temp_host->last_hard_state_change);
@@ -278,8 +278,8 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "last_problem_id=%lu\n", temp_service->last_problem_id);
 		fprintf(fp, "current_attempt=%d\n", temp_service->current_attempt);
 		fprintf(fp, "max_attempts=%d\n", temp_service->max_attempts);
-		fprintf(fp, "normal_check_interval=%f\n", temp_service->check_interval);
-		fprintf(fp, "retry_check_interval=%f\n", temp_service->retry_interval);
+		fprintf(fp, "check_interval=%f\n", temp_service->check_interval);
+		fprintf(fp, "retry_interval=%f\n", temp_service->retry_interval);
 		fprintf(fp, "state_type=%d\n", temp_service->state_type);
 		fprintf(fp, "last_state_change=%llu\n", (unsigned long long)temp_service->last_state_change);
 		fprintf(fp, "last_hard_state_change=%llu\n", (unsigned long long)temp_service->last_hard_state_change);
@@ -1191,11 +1191,11 @@ int xrddefault_read_state_information(void) {
 										temp_host->modified_attributes -= MODATTR_EVENT_HANDLER_COMMAND;
 									}
 								}
-							else if(!strcmp(var, "normal_check_interval")) {
+							else if(!strcmp(var, "check_interval")) {
 								if(temp_host->modified_attributes & MODATTR_NORMAL_CHECK_INTERVAL && strtod(val, NULL) >= 0)
 									temp_host->check_interval = strtod(val, NULL);
 								}
-							else if(!strcmp(var, "retry_check_interval")) {
+							else if(!strcmp(var, "retry_interval")) {
 								if(temp_host->modified_attributes & MODATTR_RETRY_CHECK_INTERVAL && strtod(val, NULL) >= 0)
 									temp_host->retry_interval = strtod(val, NULL);
 								}
@@ -1462,11 +1462,11 @@ int xrddefault_read_state_information(void) {
 										temp_service->modified_attributes -= MODATTR_EVENT_HANDLER_COMMAND;
 									}
 								}
-							else if(!strcmp(var, "normal_check_interval")) {
+							else if(!strcmp(var, "check_interval")) {
 								if(temp_service->modified_attributes & MODATTR_NORMAL_CHECK_INTERVAL && strtod(val, NULL) >= 0)
 									temp_service->check_interval = strtod(val, NULL);
 								}
-							else if(!strcmp(var, "retry_check_interval")) {
+							else if(!strcmp(var, "retry_interval")) {
 								if(temp_service->modified_attributes & MODATTR_RETRY_CHECK_INTERVAL && strtod(val, NULL) >= 0)
 									temp_service->retry_interval = strtod(val, NULL);
 								}

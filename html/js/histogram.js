@@ -24,7 +24,7 @@ angular.module("histogramApp", ["ui.bootstrap", "ui.utils",
 		// URL parameters
 		$scope.params = {
 			cgiurl: $scope.search.cgiurl ? $scope.search.cgiurl : 
-					$location.absUrl().replace(/histogram\.html.*$/, "cgi-bin/"),
+					$location.absUrl().replace(/histogram\.html.*$/, nagcfg.cgidir),
 			reporttype: $scope.search.reporttype ?
 					$scope.search.reporttype : "",
 			host: $scope.search.host ? $scope.search.host : "",

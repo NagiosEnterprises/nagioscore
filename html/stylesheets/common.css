@@ -252,6 +252,8 @@ div.navsectionheader ul li ul li {
 	
 #splashpage #mainfooter{
 	/*margin: 100px 0 0 0;*/
+	margin: auto;
+	width: 800px;
 	clear: both;
 	font-size: 8pt;
 	}

@@ -1069,7 +1069,7 @@ int event_execution_loop(void) {
 		last_event = temp_event;
 
 		gettimeofday(&now, NULL);
-		poll_time_ms = tv_delta_msec(&now, event_runtime) - 25;
+		poll_time_ms = tv_delta_msec(&now, event_runtime);
 		if (poll_time_ms < 0)
 			poll_time_ms = 0;
 		else if(poll_time_ms >= 1500)
@@ -1097,9 +1097,9 @@ int event_execution_loop(void) {
 			continue;
 			}
 
-		/* 100 milliseconds allowance for firing off events early */
+		/* 5 milliseconds allowance for firing off events early */
 		gettimeofday(&now, NULL);
-		if (tv_delta_msec(&now, event_runtime) > 100)
+		if (tv_delta_msec(&now, event_runtime) > 5)
 			continue;
 
 		/* move on if we shouldn't run this event */
@@ -1155,7 +1155,7 @@ int handle_timed_event(timed_event *event) {
 	gettimeofday(&tv, NULL);
 	event_runtime = squeue_event_runtime(event->sq_event);
 	latency = (double)(tv_delta_f(event_runtime, &tv));
-	if (latency < 0.0) /* events may run up to 0.1 seconds early */
+	if (latency < 0.0) /* events may run up to 0.005 seconds early */
 		latency = 0.0;
 
 	/* how should we handle the event? */
@@ -1321,6 +1321,11 @@ int handle_timed_event(timed_event *event) {
 
 			break;
 		}
+
+#ifdef USE_EVENT_BROKER
+	/* send event data to broker */
+	broker_timed_event(NEBTYPE_TIMEDEVENT_END, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
+#endif
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_timed_event() end\n");
 

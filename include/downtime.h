@@ -49,8 +49,8 @@ typedef struct scheduled_downtime {
 	int	start_notification_sent;
 	char *author;
 	char *comment;
-#ifndef NSCGI
 	unsigned long comment_id;
+#ifndef NSCGI
 	int start_flex_downtime;
 	int incremented_pending_downtime;
 #endif

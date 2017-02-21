@@ -1,0 +1,71 @@
+/* vidbox */
+div.vidboxContainer { position: fixed; background: transparent; z-index: 100; }
+div.vidbox_ul { left:10px; top: 10px }
+div.vidbox_ur { right: 10px; top:10px; }
+div.vidbox_ll { left:10px; bottom:10px; }
+div.vidbox_lr { right:10px; bottom:10px; }
+
+.vidboxTab {
+	border: 1px solid black;
+	height: 20px;
+	width: 130px;
+	font: bold italic 15px serif;
+	position: fixed;
+	z-index: 110;
+	text-align: center;
+	background: #660000;
+	color: #f0f0f0;
+	cursor: pointer;
+	border-top-left-radius: 20px;
+	border-top-right-radius: 20px;
+}
+.vidboxTabClose {
+/*	height:9px; */
+	width:12px;
+	border:1px solid white;
+	font: bold 13px sans-serif;
+	line-height: 10px;
+	margin: 3px 0 0 10px;
+	vertical-align: top;
+	padding-bottom: 3px;
+	display: none;
+}
+.vidboxTab_ul { left: -55px; top:70px;
+			   border-radius: 20px 20px 0px 0px;
+			   transform:rotate(90deg);
+			   height: 30px; line-height: 25px !important;
+}
+.vidboxTab_ur { right:-55px; top:70px;
+			   border-radius: 20px 20px 0px 0px;
+			   transform:rotate(270deg);
+			   height: 30px; line-height: 25px !important;
+}
+.vidboxTab_ll { left:-55px; bottom:70px;
+			   border-radius: 20px 20px 0px 0px;
+			   transform:rotate(90deg);
+			   height: 30px; line-height: 25px !important;
+}
+.vidboxTab_lr { right:-55px; bottom:70px;
+			   border-radius: 20px 20px 0px 0px;
+			   transform:rotate(270deg);
+			   height: 30px; line-height: 25px !important;
+}
+
+.vidboxFrame {
+	background-color:#303030;
+	color:white;
+	border: 1px solid black;
+	display:none;
+	text-align: center;
+}
+.vidboxCancel {
+	float:right;
+	cursor: pointer;
+	padding:5px 20px 0 0;
+	color: #ccccff;
+}
+.vidFrame { width:600px; }
+.vidboxIframe { margin-top:10px; }
+.textFrame { margin: 10px; }
+.textFrame a:link, .textFrame a:visited { color: #ccccff; }
+.textFrame a:hover, .textFrame a:active { text-decoration: underline; color: #eeeeff; }

@@ -231,7 +231,7 @@ int xodtemplate_read_config_data(const char *main_config_file, int options) {
 
 	/* allocate memory for 256 config files (increased dynamically) */
 	xodtemplate_current_config_file = 0;
-	xodtemplate_config_files = (char **)malloc(256 * sizeof(char **));
+	xodtemplate_config_files = (char **)malloc(256 * sizeof(char *));
 	if(xodtemplate_config_files == NULL) {
 #ifdef NSCORE
 		printf("Unable to allocate memory!\n");
@@ -615,7 +615,7 @@ int xodtemplate_process_config_file(char *filename, int options) {
 
 	/* reallocate memory for config files */
 	if(!(xodtemplate_current_config_file % 256)) {
-		xodtemplate_config_files = (char **)realloc(xodtemplate_config_files, (xodtemplate_current_config_file + 256) * sizeof(char **));
+		xodtemplate_config_files = (char **)realloc(xodtemplate_config_files, (xodtemplate_current_config_file + 256) * sizeof(char *));
 		if(xodtemplate_config_files == NULL)
 			return ERROR;
 		}
@@ -2392,10 +2392,14 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->have_initial_state = TRUE;
 				}
 			else if(!strcmp(variable, "check_interval") || !strcmp(variable, "normal_check_interval")) {
+				if(!strcmp(variable, "normal_check_interval"))
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The normal_check_interval attribute is deprecated and will be removed in future versions. Please use check_interval instead.\n");
 				temp_host->check_interval = strtod(value, NULL);
 				temp_host->have_check_interval = TRUE;
 				}
 			else if(!strcmp(variable, "retry_interval") || !strcmp(variable, "retry_check_interval")) {
+				if(!strcmp(variable, "normal_retry_interval"))
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The normal_retry_interval attribute is deprecated and will be removed in future versions. Please use retry_interval instead.\n");
 				temp_host->retry_interval = strtod(value, NULL);
 				temp_host->have_retry_interval = TRUE;
 				}
@@ -2847,10 +2851,14 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_service->have_max_check_attempts = TRUE;
 				}
 			else if(!strcmp(variable, "check_interval") || !strcmp(variable, "normal_check_interval")) {
+				if(!strcmp(variable, "normal_check_interval"))
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The normal_check_interval attribute is deprecated and will be removed in future versions. Please use check_interval instead.\n");
 				temp_service->check_interval = strtod(value, NULL);
 				temp_service->have_check_interval = TRUE;
 				}
 			else if(!strcmp(variable, "retry_interval") || !strcmp(variable, "retry_check_interval")) {
+				if(!strcmp(variable, "normal_retry_interval"))
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The normal_retry_interval attribute is deprecated and will be removed in future versions. Please use retry_interval instead.\n");
 				temp_service->retry_interval = strtod(value, NULL);
 				temp_service->have_retry_interval = TRUE;
 				}

@@ -624,6 +624,7 @@ enable_option_checking=no
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 PERL
+apachepw
 USE_EVENTBROKER
 INITDIR
 BASEEXTRALIBS
@@ -644,8 +645,10 @@ MOD_LDFLAGS
 MOD_CFLAGS
 BROKERLIBS
 BROKER_LDFLAGS
+cgi2url
 cgiurl
 htmurl
+COREWINDOW
 lockfile
 init_dir
 TMPDIR
@@ -743,8 +746,10 @@ with_lockfile
 with_iobroker
 with_gd_lib
 with_gd_inc
+enable_corewindow
 enable_statusmap
 enable_statuswrl
+with_cgi2url
 with_cgiurl
 with_htmurl
 enable_nanosleep
@@ -1372,6 +1377,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-corewindow     enables the 'corewindow' URL argument
   --disable-statusmap     disables compilation of statusmap CGI
   --disable-statuswrl     disables compilation of statuswrl (VRML) CGI
   --enable-nanosleep      enables use of nanosleep (instead of sleep) in event
@@ -1407,9 +1413,12 @@ Optional Packages:
                           poll, or select
   --with-gd-lib=DIR       sets location of the gd library
   --with-gd-inc=DIR       sets location of the gd include files
+  --with-cgi2url=<local-url>
+                          sets URL for scripts calling cgi programs - defaults
+                          to /nagios/cgi-bin (do not use a trailing slash)
   --with-cgiurl=<local-url>
-                          sets URL for cgi programs (do not use a trailing
-                          slash)
+                          sets URL for cgi programs - defaults to
+                          /nagios/cgibin (do not use a trailing slash)
   --with-htmurl=<local-url>
                           sets URL for public html
 
@@ -2349,9 +2358,9 @@ ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobrok
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.2.4"
+PKG_VERSION="4.3.0"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="12-07-2016"
+PKG_REL_DATE="02-21-2017"
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -2547,6 +2556,9 @@ host_os=$*
 IFS=$ac_save_IFS
 case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
+
+
+ac_config_files="$ac_config_files html/index.php"
 
 
 ac_ext=c
@@ -5078,6 +5090,15 @@ fi
 
 TRYGD=yep
 
+COREWINDOW=no
+# Check whether --enable-corewindow was given.
+if test "${enable_corewindow+set}" = set; then :
+  enableval=$enable_corewindow; COREWINDOW=yes
+
+fi
+
+
+
 TRYSTATUSMAP=yep
 # Check whether --enable-statusmap was given.
 if test "${enable_statusmap+set}" = set; then :
@@ -5445,11 +5466,20 @@ _ACEOF
 fi
 
 
+# Check whether --with-cgi2url was given.
+if test "${with_cgi2url+set}" = set; then :
+  withval=$with_cgi2url; cgi2url=$withval
+else
+  cgi2url=/nagios/cgi-bin
+
+fi
+
+
 # Check whether --with-cgiurl was given.
 if test "${with_cgiurl+set}" = set; then :
   withval=$with_cgiurl; cgiurl=$withval
 else
-  cgiurl=/nagios/cgi-bin
+  cgiurl=/nagios/cgibin
 
 fi
 
@@ -5461,6 +5491,7 @@ else
   htmurl=/nagios
 
 fi
+
 
 
 
@@ -5874,6 +5905,9 @@ fi
 
 
 
+apachepw=`echo "$$ \`date\`" | md5sum | cut -d' ' -f1`
+
+
 # Extract the first word of "perl", so it can be a program name with args.
 set dummy perl; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -5914,7 +5948,9 @@ $as_echo "no" >&6; }
 fi
 
 
-
+if test -z "$PERL"; then
+	as_fn_error $? "Cannot continue without perl!" "$LINENO" 5
+fi
 ac_config_files="$ac_config_files Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile"
 
 
@@ -6526,6 +6562,7 @@ do
     "include/config.h") CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
     "lib/snprintf.h") CONFIG_HEADERS="$CONFIG_HEADERS lib/snprintf.h" ;;
     "lib/iobroker.h") CONFIG_HEADERS="$CONFIG_HEADERS lib/iobroker.h" ;;
+    "html/index.php") CONFIG_FILES="$CONFIG_FILES html/index.php" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
     "subst") CONFIG_FILES="$CONFIG_FILES subst" ;;
@@ -7352,6 +7389,8 @@ echo " ------------------------"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:                  HTML URL:  http://localhost$htmurl/" >&5
 $as_echo "                 HTML URL:  http://localhost$htmurl/" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result:       CGI URL for Scripts:  http://localhost$cgi2url/" >&5
+$as_echo "      CGI URL for Scripts:  http://localhost$cgi2url/" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:                   CGI URL:  http://localhost$cgiurl/" >&5
 $as_echo "                  CGI URL:  http://localhost$cgiurl/" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:  Traceroute (used by WAP):  $PATH_TO_TRACEROUTE" >&5

@@ -72,27 +72,29 @@ NAGIOS_BEGIN_DECL
 
 	/**************************** STYLE SHEET NAMES ******************************/
 
-#define COMMON_CSS		"common.css"
+#define COMMON_CSS         "common.css"
 
-#define SHOWLOG_CSS		"showlog.css"
-#define STATUS_CSS		"status.css"
-#define STATUSMAP_CSS		"statusmap.css"
-#define COMMAND_CSS		"cmd.css"
-#define EXTINFO_CSS		"extinfo.css"
-#define NOTIFICATIONS_CSS	"notifications.css"
-#define HISTORY_CSS		"history.css"
-#define CONFIG_CSS		"config.css"
-#define OUTAGES_CSS		"outages.css"
-#define TRENDS_CSS		"trends.css"
-#define AVAIL_CSS		"avail.css"
-#define TAC_CSS			"tac.css"
-#define HISTOGRAM_CSS		"histogram.css"
-#define CHECKSANITY_CSS		"checksanity.css"
-#define MINISTATUS_CSS          "ministatus.css"
-#define SUMMARY_CSS             "summary.css"
+#define SHOWLOG_CSS        "showlog.css"
+#define STATUS_CSS         "status.css"
+#define STATUSMAP_CSS      "statusmap.css"
+#define COMMAND_CSS        "cmd.css"
+#define EXTINFO_CSS        "extinfo.css"
+#define NOTIFICATIONS_CSS  "notifications.css"
+#define HISTORY_CSS        "history.css"
+#define CONFIG_CSS         "config.css"
+#define OUTAGES_CSS        "outages.css"
+#define TRENDS_CSS         "trends.css"
+#define AVAIL_CSS          "avail.css"
+#define TAC_CSS            "tac.css"
+#define HISTOGRAM_CSS      "histogram.css"
+#define CHECKSANITY_CSS    "checksanity.css"
+#define MINISTATUS_CSS     "ministatus.css"
+#define SUMMARY_CSS        "summary.css"
+#define NAGFUNCS_CSS       "nag_funcs.css"
 
 	/********************************* JAVASCRIPT INCLUDES **********************/
-#define JQUERY_JS		"jquery-1.7.1.min.js"
+#define JQUERY_JS          "jquery-1.7.1.min.js"
+#define NAGFUNCS_JS        "nag_funcs.js"
 
 	/********************************* ICONS ************************************/
 

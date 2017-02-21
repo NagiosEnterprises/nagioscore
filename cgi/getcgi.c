@@ -218,7 +218,7 @@ char **getcgivars(void) {
 	/* first, split on ampersands (&) to extract the name-value pairs into pairlist */
 	/* allocate memory for 256 name-value pairs at a time, increasing by same
 	   amount as necessary... */
-	pairlist = (char **)malloc(256 * sizeof(char **));
+	pairlist = (char **)malloc(256 * sizeof(char *));
 	if(pairlist == NULL) {
 		printf("getcgivars(): Could not allocate memory for name-value pairlist.\n");
 		exit(1);
@@ -233,7 +233,7 @@ char **getcgivars(void) {
 			}
 		paircount++;
 		if(!(paircount % 256)) {
-			pairlist = (char **)realloc(pairlist, (paircount + 256) * sizeof(char **));
+			pairlist = (char **)realloc(pairlist, (paircount + 256) * sizeof(char *));
 			if(pairlist == NULL) {
 				printf("getcgivars(): Could not re-allocate memory for name-value pairlist.\n");
 				exit(1);
@@ -249,7 +249,7 @@ char **getcgivars(void) {
 		formid = strstr(cookies, "NagFormId=");
 		if (formid) {
 			if(!(paircount % 256)) {
-				pairlist = (char **)realloc(pairlist, (paircount + 1) * sizeof(char **));
+				pairlist = (char **)realloc(pairlist, (paircount + 1) * sizeof(char *));
 				if(pairlist == NULL) {
 					printf("getcgivars(): Could not re-allocate memory for name-value pairlist.\n");
 					exit(1);
@@ -278,7 +278,7 @@ char **getcgivars(void) {
 	pairlist[paircount] = '\x0';
 
 	/* extract the names and values from the pairlist */
-	cgivars = (char **)malloc((paircount * 2 + 1) * sizeof(char **));
+	cgivars = (char **)malloc((paircount * 2 + 1) * sizeof(char *));
 	if(cgivars == NULL) {
 		printf("getcgivars(): Could not allocate memory for name-value list.\n");
 		exit(1);

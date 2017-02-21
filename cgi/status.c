@@ -212,10 +212,10 @@ int main(void) {
 	/* initialize macros */
 	init_macros();
 
-	document_header(TRUE);
-
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
+
+	document_header(TRUE);
 
 	/* if a navbar search was performed, find the host by name, address or partial name */
 	if(navbar_search == TRUE) {
@@ -448,7 +448,7 @@ int main(void) {
 		}
 
 	/* Special case where there is a host with no services */
-	if(display_type == DISPLAY_HOSTS && num_services == 0) {
+	if(display_type == DISPLAY_HOSTS && num_services == 0 && display_header) {
 		display_type = DISPLAY_HOSTGROUPS;
 		group_style_type = STYLE_HOST_DETAIL;
 	}
@@ -497,6 +497,7 @@ int main(void) {
 
 void document_header(int use_stylesheet) {
 	char date_time[MAX_DATETIME_LENGTH];
+	char *vidurl = NULL;
 	time_t expire_time;
 
 	printf("Cache-Control: no-store\r\n");
@@ -525,14 +526,42 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<link rel='stylesheet' type='text/css' href='%s%s' />\n", url_stylesheets_path, COMMON_CSS);
 		printf("<link rel='stylesheet' type='text/css' href='%s%s' />\n", url_stylesheets_path, STATUS_CSS);
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, NAGFUNCS_CSS);
 		}
 
 	/* added jquery library 1/31/2012 */
-	printf("<script type='text/javascript' src='%s%s'></script>\n",url_js_path, JQUERY_JS);
+	printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, JQUERY_JS);
+	printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, NAGFUNCS_JS);
 	/* JS function to append content to elements on page */
 	printf("<script type='text/javascript'>\n");
-	printf("$(document).ready(function() { $('#top_page_numbers').append($('#bottom_page_numbers').html() ); });");
-	printf("function set_limit(url) { \nthis.location = url+'&limit='+$('#limit').val();\n  }");
+	printf("var vbox, vBoxId='status%d%d', vboxText = "
+			"'<a href=https://www.nagios.com/tours target=_blank>"
+			"Click here to watch the entire Nagios Core 4 Tour!</a>';\n",
+			display_type, group_style_type);
+	printf("$(document).ready(function() {\n"
+			"$('#top_page_numbers').append($('#bottom_page_numbers').html() );\n");
+	if (display_type == DISPLAY_HOSTS)
+		vidurl = "https://www.youtube.com/embed/ahDIJcbSEFM";
+	else if(display_type == DISPLAY_SERVICEGROUPS) {
+		if (group_style_type == STYLE_HOST_DETAIL)
+			vidurl = "https://www.youtube.com/embed/nNiRr0hDZag";
+		else if (group_style_type == STYLE_OVERVIEW)
+			vidurl = "https://www.youtube.com/embed/MyvgTKLyQhA";
+	} else {
+		if (group_style_type == STYLE_OVERVIEW)
+			vidurl = "https://www.youtube.com/embed/jUDrjgEDb2A";
+		else if (group_style_type == STYLE_HOST_DETAIL)
+			vidurl = "https://www.youtube.com/embed/nNiRr0hDZag";
+	}
+	if (vidurl) {
+		printf("var user = '%s';\nvBoxId += ';' + user;",
+			 current_authdata.username);
+		printf("vbox = new vidbox({pos:'lr',vidurl:'%s',text:vboxText,"
+				"vidid:vBoxId});\n", vidurl);
+	}
+	printf("});\n");
+	printf("function set_limit(url) { \nthis.location = url+'&limit='+$('#limit').val();\n  }\n");
+
 	printf("</script>\n");
 
 	printf("</head>\n");

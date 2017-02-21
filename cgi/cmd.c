@@ -951,6 +951,11 @@ void request_command_data(int cmd) {
 			printf("schedule downtime for all services in a particular servicegroup");
 			break;
 
+		case CMD_CLEAR_HOST_FLAPPING_STATE:
+		case CMD_CLEAR_SVC_FLAPPING_STATE:
+			printf("clear flapping state for a %s", (cmd == CMD_CLEAR_HOST_FLAPPING_STATE) ? "host" : "service");
+			break;
+
 		case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
 		case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
 			printf("send a custom %s notification", (cmd == CMD_SEND_CUSTOM_HOST_NOTIFICATION) ? "host" : "service");
@@ -1095,6 +1100,7 @@ void request_command_data(int cmd) {
 		case CMD_DISABLE_SVC_FLAP_DETECTION:
 		case CMD_START_OBSESSING_OVER_SVC:
 		case CMD_STOP_OBSESSING_OVER_SVC:
+		case CMD_CLEAR_SVC_FLAPPING_STATE:
 			printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
 			printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>", escape_string(host_name));
 			printf("</b></td></tr>\n");
@@ -1123,6 +1129,7 @@ void request_command_data(int cmd) {
 		case CMD_DISABLE_PASSIVE_HOST_CHECKS:
 		case CMD_START_OBSESSING_OVER_HOST:
 		case CMD_STOP_OBSESSING_OVER_HOST:
+		case CMD_CLEAR_HOST_FLAPPING_STATE:
 			printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
 			printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>", escape_string(host_name));
 			printf("</b></td></tr>\n");
@@ -1590,6 +1597,7 @@ void commit_command_data(int cmd) {
 		case CMD_DISABLE_SVC_FLAP_DETECTION:
 		case CMD_START_OBSESSING_OVER_SVC:
 		case CMD_STOP_OBSESSING_OVER_SVC:
+		case CMD_CLEAR_SVC_FLAPPING_STATE:
 
 			/* make sure we have author name and comment data... */
 			if(cmd == CMD_SCHEDULE_SVC_DOWNTIME) {
@@ -1694,6 +1702,7 @@ void commit_command_data(int cmd) {
 		case CMD_SCHEDULE_HOST_CHECK:
 		case CMD_START_OBSESSING_OVER_HOST:
 		case CMD_STOP_OBSESSING_OVER_HOST:
+		case CMD_CLEAR_HOST_FLAPPING_STATE:
 
 			/* make sure we have author name and comment data... */
 			if(cmd == CMD_SCHEDULE_HOST_DOWNTIME || cmd == CMD_SCHEDULE_HOST_SVC_DOWNTIME) {
@@ -2037,6 +2046,7 @@ int commit_command(int cmd) {
 		case CMD_ENABLE_HOST_CHECK:
 		case CMD_DISABLE_HOST_CHECK:
 		case CMD_REMOVE_HOST_ACKNOWLEDGEMENT:
+		case CMD_CLEAR_HOST_FLAPPING_STATE:
 			result = cmd_submitf(cmd, "%s", host_name);
 			break;
 
@@ -2055,6 +2065,7 @@ int commit_command(int cmd) {
 		case CMD_ENABLE_SVC_CHECK:
 		case CMD_DISABLE_SVC_CHECK:
 		case CMD_REMOVE_SVC_ACKNOWLEDGEMENT:
+		case CMD_CLEAR_SVC_FLAPPING_STATE:
 			result = cmd_submitf(cmd, "%s;%s", host_name, service_desc);
 			break;
 
@@ -2775,6 +2786,14 @@ void show_command_help(int cmd) {
 			printf("option, Nagios will treat this as \"flexible\" downtime.  Flexible downtime starts when a service enters a non-OK state (sometime between the\n");
 			printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed dowtime.\n");
 			printf("Note that scheduling downtime for services does not automatically schedule downtime for the hosts those services are associated with.  If you want to also schedule downtime for all hosts in the servicegroup, check the 'Schedule downtime for hosts too' option.\n");
+			break;
+
+		case CMD_CLEAR_HOST_FLAPPING_STATE:
+		case CMD_CLEAR_SVC_FLAPPING_STATE:
+			printf("This command is used to reset the flapping state for the specified %s.\n",
+				(cmd == CMD_CLEAR_HOST_FLAPPING_STATE) ? "host" : "service");
+			printf("All state history for the specified %s will be cleared.\n",
+				(cmd == CMD_CLEAR_HOST_FLAPPING_STATE) ? "host" : "service");
 			break;
 
 		case CMD_SEND_CUSTOM_HOST_NOTIFICATION:

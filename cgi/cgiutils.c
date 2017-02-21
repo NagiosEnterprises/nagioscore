@@ -59,7 +59,6 @@ char            *action_url_target = NULL;
 
 char            *ping_syntax = NULL;
 
-char            nagios_check_command[MAX_INPUT_BUFFER] = "";
 char            nagios_process_info[MAX_INPUT_BUFFER] = "";
 int             nagios_process_state = STATE_OK;
 
@@ -72,6 +71,7 @@ int             navbar_search_aliases = TRUE;
 
 int		ack_no_sticky  = FALSE;
 int		ack_no_send    = FALSE;
+int		tac_cgi_hard_only = FALSE;
 
 time_t          this_scheduled_log_rotation = 0L;
 time_t          last_scheduled_log_rotation = 0L;
@@ -176,7 +176,6 @@ void reset_cgi_vars(void) {
 		strcat(log_archive_path, "/");
 	strcpy(command_file, get_cmd_file_location());
 
-	strcpy(nagios_check_command, "");
 	strcpy(nagios_process_info, "");
 	nagios_process_state = STATE_OK;
 
@@ -312,12 +311,6 @@ int read_cgi_config_file(const char *filename) {
 		else if(!strcmp(var, "use_authentication"))
 			use_authentication = (atoi(val) > 0) ? TRUE : FALSE;
 
-		else if(!strcmp(var, "nagios_check_command")) {
-			strncpy(nagios_check_command, val, sizeof(nagios_check_command));
-			nagios_check_command[sizeof(nagios_check_command) - 1] = '\x0';
-			strip(nagios_check_command);
-			}
-
 		else if(!strcmp(var, "refresh_rate"))
 			refresh_rate = atoi(val);
 
@@ -447,6 +440,8 @@ int read_cgi_config_file(const char *filename) {
 			ack_no_sticky = (atoi(val) > 0) ? TRUE : FALSE;
 		else if(!strcmp(var, "ack_no_send"))
 			ack_no_send = (atoi(val) > 0) ? TRUE : FALSE;
+		else if(!strcmp(var, "tac_cgi_hard_only"))
+			tac_cgi_hard_only = (atoi(val) > 0) ? TRUE : FALSE;
 		}
 
 	for(p = illegal_output_chars; p && *p; p++)

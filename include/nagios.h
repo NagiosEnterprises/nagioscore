@@ -761,6 +761,8 @@ void enable_contact_host_notifications(contact *);      /* enables host notifica
 void disable_contact_host_notifications(contact *);     /* disables host notifications for a specific contact */
 void enable_contact_service_notifications(contact *);   /* enables service notifications for a specific contact */
 void disable_contact_service_notifications(contact *);  /* disables service notifications for a specific contact */
+void clear_host_flapping_state(host *);					/* clears the flapping state for a specific host */
+void clear_service_flapping_state(service *);			/* clears the flapping state for a specific service */
 
 int launch_command_file_worker(void);
 int shutdown_command_file_worker(void);

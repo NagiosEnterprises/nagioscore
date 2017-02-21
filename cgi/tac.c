@@ -49,8 +49,10 @@ extern char   url_html_path[MAX_FILENAME_LENGTH];
 extern char   url_images_path[MAX_FILENAME_LENGTH];
 extern char   url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern char   url_media_path[MAX_FILENAME_LENGTH];
+extern char   url_js_path[MAX_FILENAME_LENGTH];
 
 extern int    refresh_rate;
+extern int    tac_cgi_hard_only;
 
 extern char *service_critical_sound;
 extern char *service_warning_sound;
@@ -190,10 +192,10 @@ int main(void) {
 
 	cgi_init(document_header, document_footer, READ_ALL_OBJECT_DATA, READ_ALL_STATUS_DATA);
 
-	document_header(TRUE);
-
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
+
+	document_header(TRUE);
 
 	if(display_header == TRUE) {
 
@@ -296,7 +298,21 @@ void document_header(int use_stylesheet) {
 	if(use_stylesheet == TRUE) {
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, TAC_CSS);
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, NAGFUNCS_CSS);
 		}
+
+	printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, JQUERY_JS);
+	printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, NAGFUNCS_JS);
+
+	printf("<script type='text/javascript'>\nvar vbox, vBoxId='tac', "
+			"vboxText = '<a href=https://www.nagios.com/tours target=_blank>"
+			"Click here to watch the entire Nagios Core 4 Tour!</a>';\n");
+	printf("$(document).ready(function() {\n"
+			"var user = '%s';\nvBoxId += ';' + user;", current_authdata.username);
+	printf("vbox = new vidbox({pos:'lr',"
+			"vidurl:'https://www.youtube.com/embed/l20YRDhbOfA',text:vboxText,"
+			"vidid:vBoxId});");
+	printf("\n});\n</script>\n");
 
 	printf("</HEAD>\n");
 	printf("<BODY CLASS='tac' marginwidth=2 marginheight=2 topmargin=0 leftmargin=0 rightmargin=0>\n");
@@ -430,8 +446,10 @@ void analyze_status_data(void) {
 				services_warning_disabled++;
 				problem = FALSE;
 				}
-			if(problem == TRUE)
-				services_warning_unacknowledged++;
+			if(problem == TRUE) {
+				if (temp_servicestatus->state_type == HARD_STATE || tac_cgi_hard_only == FALSE)
+					services_warning_unacknowledged++;
+			}
 			services_warning++;
 			}
 
@@ -453,8 +471,10 @@ void analyze_status_data(void) {
 				services_unknown_disabled++;
 				problem = FALSE;
 				}
-			if(problem == TRUE)
-				services_unknown_unacknowledged++;
+			if(problem == TRUE) {
+				if (temp_servicestatus->state_type == HARD_STATE || tac_cgi_hard_only == FALSE)
+					services_unknown_unacknowledged++;
+				}
 			services_unknown++;
 			}
 
@@ -476,8 +496,10 @@ void analyze_status_data(void) {
 				services_critical_disabled++;
 				problem = FALSE;
 				}
-			if(problem == TRUE)
-				services_critical_unacknowledged++;
+			if(problem == TRUE) {
+				if (temp_servicestatus->state_type == HARD_STATE || tac_cgi_hard_only == FALSE)
+					services_critical_unacknowledged++;
+				}
 			services_critical++;
 			}
 
@@ -584,8 +606,10 @@ void analyze_status_data(void) {
 				hosts_down_disabled++;
 				problem = FALSE;
 				}
-			if(problem == TRUE)
-				hosts_down_unacknowledged++;
+			if(problem == TRUE) {
+				if (temp_hoststatus->state_type == HARD_STATE || tac_cgi_hard_only == FALSE)
+					hosts_down_unacknowledged++;
+				}
 			hosts_down++;
 			}
 
@@ -602,8 +626,10 @@ void analyze_status_data(void) {
 				hosts_unreachable_disabled++;
 				problem = FALSE;
 				}
-			if(problem == TRUE)
-				hosts_unreachable_unacknowledged++;
+			if(problem == TRUE) {
+				if (temp_hoststatus->state_type == HARD_STATE || tac_cgi_hard_only == FALSE)
+					hosts_unreachable_unacknowledged++;
+			}
 			hosts_unreachable++;
 			}
 

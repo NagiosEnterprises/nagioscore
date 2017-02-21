@@ -510,6 +510,7 @@ int xsddefault_read_status_data(const char *status_file_name, int options) {
 	char *service_description = NULL;
 	char *author = NULL;
 	char *comment_data = NULL;
+	scheduled_downtime *temp_downtime;
 	unsigned long downtime_id = 0;
 	time_t start_time = 0L;
 	time_t flex_downtime_start = 0L;
@@ -640,10 +641,16 @@ int xsddefault_read_status_data(const char *status_file_name, int options) {
 				case XSDDEFAULT_SERVICEDOWNTIME_DATA:
 
 					/* add the downtime */
-					if(data_type == XSDDEFAULT_HOSTDOWNTIME_DATA)
+					if(data_type == XSDDEFAULT_HOSTDOWNTIME_DATA) {
 						add_host_downtime(host_name, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
-					else
+						temp_downtime = find_downtime(HOST_DOWNTIME, downtime_id);
+					} else {
 						add_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
+						temp_downtime = find_downtime(SERVICE_DOWNTIME, downtime_id);
+					}
+
+					if (temp_downtime)
+						temp_downtime->comment_id = comment_id;
 
 					/* free temp memory */
 					my_free(host_name);
@@ -653,6 +660,7 @@ int xsddefault_read_status_data(const char *status_file_name, int options) {
 
 					/* reset defaults */
 					downtime_id = 0;
+					comment_id = 0;
 					entry_time = 0L;
 					start_time = 0L;
 					end_time = 0L;
@@ -796,8 +804,6 @@ int xsddefault_read_status_data(const char *status_file_name, int options) {
 							temp_hoststatus->next_check = strtoul(val, NULL, 10);
 						else if(!strcmp(var, "check_options"))
 							temp_hoststatus->check_options = atoi(val);
-						else if(!strcmp(var, "current_attempt"))
-							temp_hoststatus->current_attempt = (atoi(val) > 0) ? TRUE : FALSE;
 						else if(!strcmp(var, "state_type"))
 							temp_hoststatus->state_type = atoi(val);
 						else if(!strcmp(var, "last_state_change"))

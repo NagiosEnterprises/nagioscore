@@ -236,6 +236,8 @@ div.navsectionheader ul li ul li {
   clear: both;
   font-size: 8pt;
   padding-top: 35px;
+  margin: auto;
+  width: 800px;
 }
 #splashpage #mainfooter .disclaimer {
   margin: auto;

@@ -24,8 +24,8 @@
 
 #include "shared.h"
 
-#define PROGRAM_VERSION "4.2.4"
-#define PROGRAM_MODIFICATION_DATE "12-07-2016"
+#define PROGRAM_VERSION "4.3.0"
+#define PROGRAM_MODIFICATION_DATE "02-21-2017"
 
 NAGIOS_BEGIN_DECL
 
@@ -345,6 +345,10 @@ NAGIOS_END_DECL
 #define CMD_DEL_DOWNTIME_BY_HOST_NAME                   170
 #define CMD_DEL_DOWNTIME_BY_HOSTGROUP_NAME              171
 #define CMD_DEL_DOWNTIME_BY_START_TIME_COMMENT          172
+
+/* new commands in Nagios 4.x found below... */
+#define CMD_CLEAR_HOST_FLAPPING_STATE                   173
+#define CMD_CLEAR_SVC_FLAPPING_STATE                    174
 
 /* custom command introduced in Nagios 3.x */
 #define CMD_CUSTOM_COMMAND                              999

@@ -1,7 +1,7 @@
 <?php
 include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
-$this_version = '4.2.4';
+$this_version = '4.3.0';
 $link_target = 'main';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
@@ -27,6 +27,7 @@ $link_target = 'main';
 		<ul class="navsectionlinks">
 			<li><a href="main.php" target="<?php echo $link_target;?>">Home</a></li>
 			<li><a href="https://go.nagios.com/nagioscore/docs" target="_blank">Documentation</a></li>
+			<li><a href="dologout" target="_top">Logout</a></li>
 		</ul>
 	</div>
 </div>

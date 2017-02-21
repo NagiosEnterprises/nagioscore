@@ -799,6 +799,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/* HOSTGROUP MACROS */
 			/********************/
 		case MACRO_HOSTGROUPMEMBERS:
+		case MACRO_HOSTGROUPMEMBERADDRESSES:
 			*free_macro = TRUE;
 		case MACRO_HOSTGROUPNAME:
 		case MACRO_HOSTGROUPALIAS:
@@ -1863,7 +1864,6 @@ int grab_standard_hostgroup_macro_r(nagios_macros *mac, int macro_type, hostgrou
 	hostsmember *temp_hostsmember = NULL;
 	char *temp_buffer = NULL;
 	unsigned int	temp_len = 0;
-	unsigned int	init_len = 0;
 
 	if(temp_hostgroup == NULL || output == NULL)
 		return ERROR;
@@ -1878,15 +1878,16 @@ int grab_standard_hostgroup_macro_r(nagios_macros *mac, int macro_type, hostgrou
 				*output = temp_hostgroup->alias;
 			break;
 		case MACRO_HOSTGROUPMEMBERS:
+		case MACRO_HOSTGROUPMEMBERADDRESSES:
 			/* make the calculations for total string length */
 			for(temp_hostsmember = temp_hostgroup->members; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-				if(temp_hostsmember->host_name == NULL)
-					continue;
-				if(temp_len == 0) {
-					temp_len += strlen(temp_hostsmember->host_name) + 1;
+				if(macro_type == MACRO_HOSTGROUPMEMBERS) {
+					if(temp_hostsmember->host_name != NULL)
+						temp_len += strlen(temp_hostsmember->host_name) + 2;
 					}
 				else {
-					temp_len += strlen(temp_hostsmember->host_name) + 2;
+					if(temp_hostsmember->host_ptr->address != NULL)
+						temp_len += strlen(temp_hostsmember->host_ptr->address) + 2;
 					}
 				}
 			if(!temp_len) {
@@ -1898,23 +1899,28 @@ int grab_standard_hostgroup_macro_r(nagios_macros *mac, int macro_type, hostgrou
 			/* allocate or reallocate the memory buffer */
 			if(*output == NULL) {
 				*output = (char *)malloc(temp_len);
+				**output = '\0';
 				}
 			else {
-				init_len = strlen(*output);
-				temp_len += init_len;
+				temp_len += strlen(*output);
 				*output = (char *)realloc(*output, temp_len);
 				}
-			/* now fill in the string with the member names */
+			/* now fill in the string with the member names or addresses */
 			for(temp_hostsmember = temp_hostgroup->members; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-				if(temp_hostsmember->host_name == NULL)
-					continue;
-				temp_buffer = *output + init_len;
-				if(init_len == 0) {  /* If our buffer didn't contain anything, we just need to write "%s,%s" */
-					init_len += sprintf(temp_buffer, "%s", temp_hostsmember->host_name);
+				if(macro_type == MACRO_HOSTGROUPMEMBERS) {
+					if(temp_hostsmember->host_name == NULL)
+						continue;
 					}
 				else {
-					init_len += sprintf(temp_buffer, ",%s", temp_hostsmember->host_name);
+					if(temp_hostsmember->host_ptr->address == NULL)
+						continue;
 					}
+				if(**output != '\0')
+					strcat(*output, ",");
+				if(macro_type == MACRO_HOSTGROUPMEMBERS)
+					strcat(*output, temp_hostsmember->host_name);
+				else
+					strcat(*output, temp_hostsmember->host_ptr->address);
 				}
 			break;
 		case MACRO_HOSTGROUPACTIONURL:
@@ -2771,6 +2777,7 @@ int init_macrox_names(void) {
 	add_macrox_name(HOSTIMPORTANCE);
 	add_macrox_name(SERVICEIMPORTANCE);
 	add_macrox_name(HOSTANDSERVICESIMPORTANCE);
+	add_macrox_name(HOSTGROUPMEMBERADDRESSES);
 
 	return OK;
 	}
@@ -2950,6 +2957,7 @@ int clear_hostgroup_macros_r(nagios_macros *mac) {
 
 	/* generated */
 	my_free(mac->x[MACRO_HOSTGROUPMEMBERS]);
+	my_free(mac->x[MACRO_HOSTGROUPMEMBERADDRESSES]);
 
 	/* clear pointers */
 	mac->hostgroup_ptr = NULL;
@@ -3073,7 +3081,7 @@ int set_macrox_environment_vars_r(nagios_macros *mac, int set) {
 			 * member macros tend to overflow the
 			 * environment on large installations
 			 */
-			if(x == MACRO_SERVICEGROUPMEMBERS || x == MACRO_HOSTGROUPMEMBERS)
+			if(x == MACRO_SERVICEGROUPMEMBERS || x == MACRO_HOSTGROUPMEMBERS || x == MACRO_HOSTGROUPMEMBERADDRESSES)
 				continue;
 
 			/* summary macros are CPU intensive to compute */
@@ -3249,9 +3257,9 @@ struct kvvec * macros_to_kvv(nagios_macros *mac) {
 	}
 
 /* adds macrox environment variables */
-static int add_macrox_environment_vars_r(nagios_macros *mac,
-		struct kvvec *kvvp) {
-	register int x = 0;
+static int add_macrox_environment_vars_r(nagios_macros *mac, struct kvvec *kvvp)
+{
+	/*register*/ int x = 0;
 	int free_macro = FALSE;
 	char *envname;
 
@@ -3270,12 +3278,13 @@ static int add_macrox_environment_vars_r(nagios_macros *mac,
 			 * member macros tend to overflow the
 			 * environment on large installations
 			 */
-			if(x == MACRO_SERVICEGROUPMEMBERS ||
-					x == MACRO_HOSTGROUPMEMBERS) continue;
+			if(x == MACRO_SERVICEGROUPMEMBERS || x == MACRO_HOSTGROUPMEMBERS ||
+				x == MACRO_HOSTGROUPMEMBERADDRESSES)
+				continue;
 
 			/* summary macros are CPU intensive to compute */
-			if(x >= MACRO_TOTALHOSTSUP &&
-					x <= MACRO_TOTALSERVICEPROBLEMSUNHANDLED) continue;
+			if(x >= MACRO_TOTALHOSTSUP && x <= MACRO_TOTALSERVICEPROBLEMSUNHANDLED)
+				continue;
 			}
 
 		/* generate the macro value if it hasn't already been done */

@@ -2,6 +2,35 @@
 Nagios Core 4 Change Log
 ########################
 
+4.3.0 - 2017-02-21
+------------------
+SECURITY FIXES
+* Fix for CVE-2016-6209 - The "corewindow" parameter (as in
+  http://localhost/nagios?corewindow=www.somewhere.com) has been disabled by
+  default. See the UPGRADING document for how to enable it. (John Frickson)
+
+FIXES
+* Fix early event scheduling (pmalek / John Frickson)
+* on-demand host checks triggered by service checks cause attempt number increments (fredericve)
+* Service notification not being send when host is in soft down state (John Frickson)
+* configure does not error if no perl installed on CentOS 7 (John Frickson)
+* failed passive requests leave .ok files in checkresults dir (caronc)
+* Services don't show in status.cgi if "noheader" specified (John Frickson)
+* Standardized check interval config file names (John Frickson)
+* "Event Log" (showlog.cgi) could not open log file (John Frickson)
+* "nagios_check_command" has been deprecated since v3.0. Last vestiges removed (John Frickson)
+
+ENHANCEMENTS
+* Added new flag to cgi.cfg: tac_cgi_hard_only to show only HARD states (John Frickson)
+* Add broker-event for the end of a timed event (NEBTYPE_TIMEDEVENT_END) (John Frickson)
+* There is no Macro to retrieve addresses of hostgroup members (now $HOSTGROUPMEMBERADDRESSES$) (John Frickson)
+* Add "Page Tour" videos to several of the core web pages (John Frickson)
+* Added a login page, and a `Logoff` links (John Frickson)
+* On the status map, the host name will be colored if services are not all OK. (John Frickson)
+* Added "Clear flapping state" command on host and services detail pages. (John Frickson)
+* User-entered comment now displays below generated comment for downtime (John Frickson)
+
+
 4.2.4 - 2016-12-07
 ------------------
 SECURITY FIXES

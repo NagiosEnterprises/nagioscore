@@ -770,7 +770,7 @@ int xrddefault_read_state_information(void) {
 							remove_comment = TRUE;
 						}
 					/* non-persistent comments don't last past restarts UNLESS they're acks (see above) */
-					else if(persistent == FALSE && sigrestart == FALSE)
+					else if(persistent == FALSE && (sigrestart == FALSE || entry_type == DOWNTIME_COMMENT))
 						remove_comment = TRUE;
 
 					if(remove_comment == TRUE)

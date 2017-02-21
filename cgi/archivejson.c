@@ -638,7 +638,7 @@ int main(void) {
 	reset_cgi_vars();
 
 	/* read the CGI configuration file */
-	result = read_cgi_config_file(get_cgi_config_location());
+	result = read_cgi_config_file(get_cgi_config_location(), NULL);
 	if(result == ERROR) {
 		json_object_append_object(json_root, "result", 
 				json_result(query_time, THISCGI, 

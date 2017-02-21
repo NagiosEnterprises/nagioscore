@@ -1,26 +1,21 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include "../include/common.h"
+#include "../include/cgiutils.h"
 
-struct nagios_extcmd {
-	const char *name;
-	int id;
-	/*	size_t namelen;
-		int min_args;
-		int (*handler)(struct nagios_extcmd *, int, char **);
-		struct nagios_extcmd *next_handler;
-	 */
-	};
 
-#define CMD_DEF(name, min_args, handler) \
-	{ #name, CMD_ ## name }
+#define ALT_CMD_DEF(name)
+
+#define CMD_DEF(name, cmd_opt, dflt_comment) \
+	{ #name, CMD_ ## name, cmd_opt, dflt_comment }
 /*	{ #name, sizeof(#name) - 1, CMD_ ## name, min_args, handler, NULL } */
 struct nagios_extcmd in_core_commands[] = {
 	CMD_DEF(NONE, 0, NULL),
-	CMD_DEF(ADD_HOST_COMMENT, 0, NULL),
+	CMD_DEF(ADD_HOST_COMMENT, 2, NULL),
 	CMD_DEF(DEL_HOST_COMMENT, 0, NULL),
-	CMD_DEF(ADD_SVC_COMMENT, 0, NULL),
+	CMD_DEF(ADD_SVC_COMMENT, 2, NULL),
 	CMD_DEF(DEL_SVC_COMMENT, 0, NULL),
 	CMD_DEF(ENABLE_SVC_CHECK, 0, NULL),
 	CMD_DEF(DISABLE_SVC_CHECK, 0, NULL),
@@ -48,8 +43,8 @@ struct nagios_extcmd in_core_commands[] = {
 	CMD_DEF(PROCESS_SERVICE_CHECK_RESULT, 0, NULL),
 	CMD_DEF(SAVE_STATE_INFORMATION, 0, NULL),
 	CMD_DEF(READ_STATE_INFORMATION, 0, NULL),
-	CMD_DEF(ACKNOWLEDGE_HOST_PROBLEM, 0, NULL),
-	CMD_DEF(ACKNOWLEDGE_SVC_PROBLEM, 0, NULL),
+	CMD_DEF(ACKNOWLEDGE_HOST_PROBLEM, 2, NULL),
+	CMD_DEF(ACKNOWLEDGE_SVC_PROBLEM, 2, NULL),
 	CMD_DEF(START_EXECUTING_SVC_CHECKS, 0, NULL),
 	CMD_DEF(STOP_EXECUTING_SVC_CHECKS, 0, NULL),
 	CMD_DEF(START_ACCEPTING_PASSIVE_SVC_CHECKS, 0, NULL),
@@ -70,8 +65,8 @@ struct nagios_extcmd in_core_commands[] = {
 	CMD_DEF(REMOVE_SVC_ACKNOWLEDGEMENT, 0, NULL),
 	CMD_DEF(SCHEDULE_FORCED_HOST_SVC_CHECKS, 0, NULL),
 	CMD_DEF(SCHEDULE_FORCED_SVC_CHECK, 0, NULL),
-	CMD_DEF(SCHEDULE_HOST_DOWNTIME, 0, NULL),
-	CMD_DEF(SCHEDULE_SVC_DOWNTIME, 0, NULL),
+	CMD_DEF(SCHEDULE_HOST_DOWNTIME, 2, NULL),
+	CMD_DEF(SCHEDULE_SVC_DOWNTIME, 2, NULL),
 	CMD_DEF(ENABLE_HOST_FLAP_DETECTION, 0, NULL),
 	CMD_DEF(DISABLE_HOST_FLAP_DETECTION, 0, NULL),
 	CMD_DEF(ENABLE_SVC_FLAP_DETECTION, 0, NULL),
@@ -88,9 +83,9 @@ struct nagios_extcmd in_core_commands[] = {
 	CMD_DEF(DEL_SVC_DOWNTIME, 0, NULL),
 	CMD_DEF(ENABLE_PERFORMANCE_DATA, 0, NULL),
 	CMD_DEF(DISABLE_PERFORMANCE_DATA, 0, NULL),
-	CMD_DEF(SCHEDULE_HOSTGROUP_HOST_DOWNTIME, 0, NULL),
-	CMD_DEF(SCHEDULE_HOSTGROUP_SVC_DOWNTIME, 0, NULL),
-	CMD_DEF(SCHEDULE_HOST_SVC_DOWNTIME, 0, NULL),
+	CMD_DEF(SCHEDULE_HOSTGROUP_HOST_DOWNTIME, 2, NULL),
+	CMD_DEF(SCHEDULE_HOSTGROUP_SVC_DOWNTIME, 2, NULL),
+	CMD_DEF(SCHEDULE_HOST_SVC_DOWNTIME, 2, NULL),
 	CMD_DEF(PROCESS_HOST_CHECK_RESULT, 0, NULL),
 	CMD_DEF(START_EXECUTING_HOST_CHECKS, 0, NULL),
 	CMD_DEF(STOP_EXECUTING_HOST_CHECKS, 0, NULL),
@@ -124,8 +119,8 @@ struct nagios_extcmd in_core_commands[] = {
 	CMD_DEF(DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS, 0, NULL),
 	CMD_DEF(ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS, 0, NULL),
 	CMD_DEF(DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS, 0, NULL),
-	CMD_DEF(SCHEDULE_SERVICEGROUP_HOST_DOWNTIME, 0, NULL),
-	CMD_DEF(SCHEDULE_SERVICEGROUP_SVC_DOWNTIME, 0, NULL),
+	CMD_DEF(SCHEDULE_SERVICEGROUP_HOST_DOWNTIME, 2, NULL),
+	CMD_DEF(SCHEDULE_SERVICEGROUP_SVC_DOWNTIME, 2, NULL),
 	CMD_DEF(CHANGE_GLOBAL_HOST_EVENT_HANDLER, 0, NULL),
 	CMD_DEF(CHANGE_GLOBAL_SVC_EVENT_HANDLER, 0, NULL),
 	CMD_DEF(CHANGE_HOST_EVENT_HANDLER, 0, NULL),
@@ -162,8 +157,8 @@ struct nagios_extcmd in_core_commands[] = {
 	CMD_DEF(ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS, 0, NULL),
 	CMD_DEF(DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS, 0, NULL),
 	CMD_DEF(CHANGE_RETRY_HOST_CHECK_INTERVAL, 0, NULL),
-	CMD_DEF(SEND_CUSTOM_HOST_NOTIFICATION, 0, NULL),
-	CMD_DEF(SEND_CUSTOM_SVC_NOTIFICATION, 0, NULL),
+	CMD_DEF(SEND_CUSTOM_HOST_NOTIFICATION, 2, NULL),
+	CMD_DEF(SEND_CUSTOM_SVC_NOTIFICATION, 2, NULL),
 	CMD_DEF(CHANGE_HOST_NOTIFICATION_TIMEPERIOD, 0, NULL),
 	CMD_DEF(CHANGE_SVC_NOTIFICATION_TIMEPERIOD, 0, NULL),
 	CMD_DEF(CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD, 0, NULL),
@@ -181,33 +176,37 @@ struct nagios_extcmd in_core_commands[] = {
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
-const char *extcmd_get_name(int id) {
+struct nagios_extcmd* extcmd_get_command_id(int id)
+{
 	unsigned int i;
 
 	for(i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
 		struct nagios_extcmd *ecmd;
 		ecmd = &in_core_commands[i];
 		if(ecmd->id == id)
-			return ecmd->name;
+			return ecmd;
 		}
 
 	return NULL;
-	}
+}
 
-#ifdef ECMD_LIST_TESTING
-int main(int argc, char **argv) {
-	int i, no_handler = 0;
+struct nagios_extcmd* extcmd_get_command_name(const char *name)
+{
+	unsigned int i;
 
 	for(i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
-		struct nagios_extcmd *cmd = &in_core_commands[i];
-		if(!cmd->handler) {
-			no_handler++;
-			printf("%s has no handler\n", extcmd_get_name(i));
-			}
+		struct nagios_extcmd *ecmd;
+		ecmd = &in_core_commands[i];
+		if(!strcmp(ecmd->name, name))
+			return ecmd;
 		}
-	printf("%d of %d commands have no handler\n",
-	       no_handler, ARRAY_SIZE(in_core_commands));
 
-	return 0;
-	}
-#endif
+	return NULL;
+}
+
+const char *extcmd_get_name(int id) {
+	struct nagios_extcmd *ecmd = extcmd_get_command_id(id);
+	if (!ecmd)
+		return NULL;
+	return ecmd->name;
+}

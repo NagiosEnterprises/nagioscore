@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
 	init_shared_cfg_vars(1);
 
 	/* read the CGI configuration file */
-	result = read_cgi_config_file(get_cgi_config_location());
+	result = read_cgi_config_file(get_cgi_config_location(), NULL);
 	if(result == ERROR) {
 		document_header();
 		return ERROR;

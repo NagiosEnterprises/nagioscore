@@ -137,9 +137,9 @@ static int command_input_handler(int sd, int events, void *discard) {
 	int ret, cmd_ret;
 	char *buf;
 	unsigned long size;
-#ifdef USE_NANOSLEEP 
-	struct timespec ts;
-#endif
+
+	if (sigrestart)
+		return 0;
 
 	ret = iocache_read(command_worker.ioc, sd);
 	log_debug_info(DEBUGL_COMMANDS, 2, "Read %d bytes from command worker\n", ret);
@@ -155,17 +155,6 @@ static int command_input_handler(int sd, int events, void *discard) {
 			buf[size] = 0;
 			log_debug_info(DEBUGL_COMMANDS, 1, "Read raw external command '%s'\n", buf);
 			}
-
-		/* wait while restarting because we may not be ready to handle commands */
-		while (sigrestart) {
-#ifdef USE_NANOSLEEP 
-			ts.tv_sec = 0;
-			ts.tv_nsec = 10000000;
-			nanosleep(&ts, NULL);
-#else
-			sleep(1);
-#endif
-		}
 
 		if ((cmd_ret = process_external_command1(buf)) != CMD_ERROR_OK) {
 			logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING, TRUE, "External command error: %s\n", cmd_error_strerror(cmd_ret));

@@ -1,6 +1,6 @@
 $( document).ready( function() {
 	var parts = $(location).attr( 'href').split( '/');
-	parts.pop();
+	parts.pop()
 	var baseurl = parts.join( '/');
     
     $('#query button').attr('disabled','disabled');
@@ -257,7 +257,7 @@ $( document).ready( function() {
 			}
 		}
 		$.ajax({
-			url: baseurl + '/' + nagcfg.cgidir + cgi + '.cgi',
+			url: baseurl + '/cgi-bin/' + cgi + '.cgi',
 			data: parameters,
 			success: success,
 			async: false
@@ -431,7 +431,7 @@ $( document).ready( function() {
             $('#query button').attr('disabled','disabled');
 		}
 		else {
-			$.get( baseurl + '/' + nagcfg.cgidir + cginame, 
+			$.get( baseurl + '/cgi-bin/' + cginame, 
 					{ query: "help" }, function(data, results) {
 				help = data;
 				buildForm(data);
@@ -541,7 +541,7 @@ $( document).ready( function() {
 				}
 			}
 			var p = jQuery.param( parameters);
-			var url = baseurl + '/' + nagcfg.cgidir + cginame + '?' + p
+			var url = baseurl + '/cgi-bin/' + cginame + '?' + p
 			$('#results').append( 
 				$('<p></p>').text( 'URL: ').append(
 					$('<a></a>').attr({
@@ -550,7 +550,7 @@ $( document).ready( function() {
 					}).text( url)
 				)
 			);
-			$.get( baseurl + '/' + nagcfg.cgidir + cginame, 
+			$.get( baseurl + '/cgi-bin/' + cginame, 
 				parameters, 
 				function(data, results) {
 					$('#results').append( 

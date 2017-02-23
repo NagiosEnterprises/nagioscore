@@ -37,8 +37,6 @@ while ($f = shift @ARGV) {
 		s|\@bindir\@|@bindir@|g;
 		s|\@htmurl\@|@htmurl@|g;
 		s|\@cgiurl\@|@cgiurl@|g;
-		s|\@cgi2url\@|@cgi2url@|g;
-		s|\@apachepw\@|@apachepw@|g;
 		s|\@MAIL_PROG\@|@MAIL_PROG@|g;
 		s|\@VERSION\@|@VERSION@|g;
 		s|\$\{exec_prefix\}|@exec_prefix@|g; # must be next to last

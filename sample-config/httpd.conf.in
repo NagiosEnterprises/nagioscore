@@ -6,97 +6,63 @@
 # needed to fit your system.
 
 ScriptAlias @cgiurl@ "@sbindir@"
-ScriptAlias @cgi2url@ "@sbindir@"
+
+<Directory "@sbindir@">
+#  SSLRequireSSL
+   Options ExecCGI
+   AllowOverride None
+   <IfVersion >= 2.3>
+      <RequireAll>
+         Require all granted
+#        Require host 127.0.0.1
+
+         AuthName "Nagios Access"
+         AuthType Basic
+         AuthUserFile @sysconfdir@/htpasswd.users
+         Require valid-user
+      </RequireAll>
+   </IfVersion>
+   <IfVersion < 2.3>
+      Order allow,deny
+      Allow from all
+#     Order deny,allow
+#     Deny from all
+#     Allow from 127.0.0.1
+
+      AuthName "Nagios Access"
+      AuthType Basic
+      AuthUserFile @sysconfdir@/htpasswd.users
+      Require valid-user
+   </IfVersion>
+</Directory>
+
 Alias @htmurl@ "@datadir@"
 
-<Location "@htmurl@">
-#	SSLRequireSSL
-	Options None
-	AllowOverride None
-	<IfVersion >= 2.3>
-		<RequireAll>
-			Require all granted
-#			Require host 127.0.0.1
-			AuthName "Nagios Access"
-			AuthUserFile @sysconfdir@/htpasswd.users
-			AuthType form
-			AuthFormLoginRequiredLocation "@htmurl@/login.html"
-			Session On
-			SessionCookieName NagiosSession path=@htmurl@
-			SessionEnv On
-			SessionCryptoPassphrase "@apachepw@"
-			Require valid-user
-		</RequireAll>
-	</IfVersion>
-	<IfVersion < 2.3>
-		Order allow,deny
-		Allow from all
-#		Order deny,allow
-#		Deny from all
-#		Allow from 127.0.0.1
-		AuthType form
-		AuthFormLoginRequiredLocation "@htmurl@/login.html"
-		Session On
-		SessionCookieName NagiosSession path=@htmurl@
-		SessionEnv On
-		SessionCryptoPassphrase "@apachepw@"
-		Require valid-user
-	</IfVersion>
-</Location>
+<Directory "@datadir@">
+#  SSLRequireSSL
+   Options None
+   AllowOverride None
+   <IfVersion >= 2.3>
+      <RequireAll>
+         Require all granted
+#        Require host 127.0.0.1
 
-<Location "@cgi2url@">
-#	SSLRequireSSL
-	Options ExecCGI
-	AllowOverride None
-	<IfVersion >= 2.3>
-		<RequireAll>
-			Require all granted
-#			Require host 127.0.0.1
-			AuthName "Nagios Access"
-			AuthType Basic
-			AuthUserFile @sysconfdir@/htpasswd.users
-			Require valid-user
-		</RequireAll>
-	</IfVersion>
-	<IfVersion < 2.3>
-		Order allow,deny
-		Allow from all
-#		Order deny,allow
-#		Deny from all
-#		Allow from 127.0.0.1
-		AuthName "Nagios Access"
-		AuthType Basic
-		AuthUserFile @sysconfdir@/htpasswd.users
-		Require valid-user
-	</IfVersion>
-</Location>
+         AuthName "Nagios Access"
+         AuthType Basic
+         AuthUserFile @sysconfdir@/htpasswd.users
+         Require valid-user
+      </RequireAll>
+   </IfVersion>
+   <IfVersion < 2.3>
+      Order allow,deny
+      Allow from all
+#     Order deny,allow
+#     Deny from all
+#     Allow from 127.0.0.1
 
-<LocationMatch "@htmurl@/(login.html|images/corelogo.gif)">
-	Require all granted
-</LocationMatch>
-
-<Location "@htmurl@/dologin.html">
-	Order allow,deny
-	Allow from all
-	SetHandler form-login-handler
-	AuthFormProvider file
-	AuthUserFile @sysconfdir@/htpasswd.users
-	AuthType form
-	AuthName "Nagios Access"
-	AuthFormLoginRequiredLocation "@htmurl@/login.html"
-	AuthFormLoginSuccessLocation "@htmurl@/index.php"
-	Session On
-	SessionCookieName NagiosSession path=@htmurl@
-	SessionEnv On
-	SessionCryptoPassphrase "@apachepw@"
-</Location>
-
-<Location @htmurl@/dologout>
-	SetHandler form-logout-handler
-	AuthFormLogoutLocation @htmurl@/login.html?logoff
-	session On
-	# Expire the session
-	SessionMaxAge 1
-	SessionCookieName NagiosSession path=@htmurl@
-	SessionCryptoPassphrase "@apachepw@"
-</Location>
+      AuthName "Nagios Access"
+      AuthType Basic
+      AuthUserFile @sysconfdir@/htpasswd.users
+      Require valid-user
+   </IfVersion>
+</Directory>

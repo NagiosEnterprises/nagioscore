@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-x.x.x - xxxx-xx-xx
+4.3.1 - 2017-02-23
 ------------------
 FIXES
 * Service hard state generation and host hard or soft down status (John Frickson)
@@ -12,8 +12,6 @@ FIXES
 * Config: status_update_interval can not be set to 1 (John Frickson)
 * Check attempts not increasing if nagios is reloaded (John Frickson)
 * nagios hangs on reload while sending external command to cmd file (John Frickson)
-
-ENHANCEMENTS
 * Feature Request: return code xxx out of bounds - include message as well (John Frickson)
 
 

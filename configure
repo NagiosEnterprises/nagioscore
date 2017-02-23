@@ -624,7 +624,6 @@ enable_option_checking=no
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 PERL
-apachepw
 USE_EVENTBROKER
 INITDIR
 BASEEXTRALIBS
@@ -645,7 +644,6 @@ MOD_LDFLAGS
 MOD_CFLAGS
 BROKERLIBS
 BROKER_LDFLAGS
-cgi2url
 cgiurl
 htmurl
 COREWINDOW
@@ -749,7 +747,6 @@ with_gd_inc
 enable_corewindow
 enable_statusmap
 enable_statuswrl
-with_cgi2url
 with_cgiurl
 with_htmurl
 enable_nanosleep
@@ -1413,12 +1410,9 @@ Optional Packages:
                           poll, or select
   --with-gd-lib=DIR       sets location of the gd library
   --with-gd-inc=DIR       sets location of the gd include files
-  --with-cgi2url=<local-url>
-                          sets URL for scripts calling cgi programs - defaults
-                          to /nagios/cgi-bin (do not use a trailing slash)
   --with-cgiurl=<local-url>
-                          sets URL for cgi programs - defaults to
-                          /nagios/cgibin (do not use a trailing slash)
+                          sets URL for cgi programs (do not use a trailing
+                          slash)
   --with-htmurl=<local-url>
                           sets URL for public html
 
@@ -2358,9 +2352,9 @@ ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobrok
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.3.0"
+PKG_VERSION="4.3.1"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="02-21-2017"
+PKG_REL_DATE="02-23-2017"
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -5466,20 +5460,11 @@ _ACEOF
 fi
 
 
-# Check whether --with-cgi2url was given.
-if test "${with_cgi2url+set}" = set; then :
-  withval=$with_cgi2url; cgi2url=$withval
-else
-  cgi2url=/nagios/cgi-bin
-
-fi
-
-
 # Check whether --with-cgiurl was given.
 if test "${with_cgiurl+set}" = set; then :
   withval=$with_cgiurl; cgiurl=$withval
 else
-  cgiurl=/nagios/cgibin
+  cgiurl=/nagios/cgi-bin
 
 fi
 
@@ -5491,7 +5476,6 @@ else
   htmurl=/nagios
 
 fi
-
 
 
 
@@ -5903,9 +5887,6 @@ fi
 
 
 
-
-
-apachepw=`echo "$$ \`date\`" | md5sum | cut -d' ' -f1`
 
 
 # Extract the first word of "perl", so it can be a program name with args.
@@ -7389,8 +7370,6 @@ echo " ------------------------"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:                  HTML URL:  http://localhost$htmurl/" >&5
 $as_echo "                 HTML URL:  http://localhost$htmurl/" >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:       CGI URL for Scripts:  http://localhost$cgi2url/" >&5
-$as_echo "      CGI URL for Scripts:  http://localhost$cgi2url/" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:                   CGI URL:  http://localhost$cgiurl/" >&5
 $as_echo "                  CGI URL:  http://localhost$cgiurl/" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:  Traceroute (used by WAP):  $PATH_TO_TRACEROUTE" >&5

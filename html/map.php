@@ -51,7 +51,6 @@
 		<script type="text/javascript"
 				src="angularjs/ui-utils-0.2.1/ui-utils.js"></script>
 		<script type="text/javascript" src="spin/spin.min.js"></script>
-		<script type="text/javascript" src="js/config.js"></script>
 		<script type="text/javascript" src="js/map.js"></script>
 		<script type="text/javascript" src="js/map-directive.js"></script>
 		<script type="text/javascript" src="js/map-form.js"></script>
@@ -84,8 +83,7 @@
 					last-update="lastUpdate"
 					initial-state="collapsed"
 					collapsable="true"
-			>
-					<!-- include-partial="map-links.html"-->
+					include-partial="map-links.html">
 			</div>
 		</div>
 		<div id="map-container" ng-hide="formDisplayed"

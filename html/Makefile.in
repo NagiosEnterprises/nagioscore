@@ -39,7 +39,7 @@ clean:
 	rm -rf d3
 
 distclean: clean
-	rm -f Makefile config.inc.php index.php
+	rm -f Makefile config.inc.php
 
 devclean: distclean
 
@@ -74,7 +74,6 @@ install:
 	rm -f $(DESTDIR)$(HTMLDIR)/rss-*
 	rm -rf $(DESTDIR)$(HTMLDIR)/include/rss
 	$(INSTALL) -m 664 $(INSTALL_OPTS) jsonquery.html $(DESTDIR)$(HTMLDIR)
-	$(INSTALL) -m 664 $(INSTALL_OPTS) login.html $(DESTDIR)$(HTMLDIR)
 # New graphical CGI pages
 	$(INSTALL) -m 664 $(INSTALL_OPTS) graph-header.html $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 664 $(INSTALL_OPTS) histogram.html $(DESTDIR)$(HTMLDIR)

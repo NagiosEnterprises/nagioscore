@@ -2937,7 +2937,7 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 			temp_host->obsess_over_host);
 #endif
 #ifdef JSON_NAGIOS_4X
-	json_object_append_boolean(json_details, "hourly_value", 
+	json_object_append_integer(json_details, "hourly_value", 
 			temp_host->hourly_value);
 #endif
 	json_object_append_string(json_details, "notes", &percent_escapes,

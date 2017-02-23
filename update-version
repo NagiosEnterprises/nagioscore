@@ -12,10 +12,10 @@ else
 fi
 
 # Current version number
-CURRENTVERSION=4.3.0
+CURRENTVERSION=4.3.1
 
 # Last date
-LASTDATE=02-21-2017
+LASTDATE=02-23-2017
 
 if [ "x$1" = "x" ]
 then
@@ -44,10 +44,9 @@ then
 fi
 
 # Update version number and release date in main PHP page
-perl -i -p -e "s/this_year = '.*';/this_year = '$YEAR';/;" html/index.php.in
+perl -i -p -e "s/this_year = '.*';/this_year = '$YEAR';/;" html/index.php
 perl -i -p -e "s/this_year = '.*';/this_year = '$YEAR';/;" html/main.php
 perl -i -p -e "s/releasedate\">.*<\//releasedate\">$LONGDATE<\//;" html/main.php
-perl -i -p -e "s/%%VERSION%%/$newversion/" html/index.php.in
 perl -i -p -e "s/this_version = '.*';/this_version = '$newversion';/;" html/main.php
 perl -i -p -e "s/this_version = '.*';/this_version = '$newversion';/;" html/side.php
 

@@ -2,6 +2,19 @@
 Nagios Core 4 Change Log
 ########################
 
+4.3.1 - 2017-02-23
+------------------
+FIXES
+* Service hard state generation and host hard or soft down status (John Frickson)
+* Comments are duplicated through Nagios reload (John Frickson)
+* host hourly value is incorrectly dumped as json boolean (John Frickson)
+* Bug - Quick Search no longer allows search by IP (John Frickson)
+* Config: status_update_interval can not be set to 1 (John Frickson)
+* Check attempts not increasing if nagios is reloaded (John Frickson)
+* nagios hangs on reload while sending external command to cmd file (John Frickson)
+* Feature Request: return code xxx out of bounds - include message as well (John Frickson)
+
+
 4.3.0 - 2017-02-21
 ------------------
 SECURITY FIXES

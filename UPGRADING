@@ -10,13 +10,6 @@ note that this functionality has been disabled by default in this
 release. If you still want to use it, run ./configure with the
 parameter --enable-corewindow
 
-The Nagios core web pages now have a login page and a "Logout" button
-in the "General" section of the side menu bar. To enable these new
-features, you must update the apache configuration file for Nagios
-(nagios.conf) either by running `make install-webconf` or copying the
-appropriate sections from `sample-config/nagios.cfg` and include the
-session, session_cookie, and session_crypto apache modules.
-
 
 nagios-3.0
 ----------

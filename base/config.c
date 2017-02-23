@@ -924,7 +924,7 @@ int read_main_config_file(char *main_config_file) {
 		else if(!strcmp(variable, "status_update_interval")) {
 
 			status_update_interval = atoi(value);
-			if(status_update_interval <= 1) {
+			if(status_update_interval < 1) {
 				asprintf(&error_message, "Illegal value for status_update_interval");
 				error = TRUE;
 				break;

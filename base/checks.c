@@ -366,13 +366,13 @@ static int get_service_check_return_code(service *temp_service,
 
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n", queued_check_result->return_code, temp_service->description, temp_service->host_name, (queued_check_result->return_code == 126 ? "Make sure the plugin you're trying to run is executable." : (queued_check_result->return_code == 127 ? " Make sure the plugin you're trying to run actually exists." : "")));
 
+			asprintf(&temp_plugin_output, "(Return code of %d is out of bounds%s : %s)", queued_check_result->return_code, (queued_check_result->return_code == 126 ? " - plugin may not be executable" : (queued_check_result->return_code == 127 ? " - plugin may be missing" : "")), temp_service->plugin_output);
 			my_free(temp_service->plugin_output);
+
+			asprintf(&temp_service->plugin_output, "%s)", temp_plugin_output);
+			my_free(temp_plugin_output);
 			my_free(temp_service->long_plugin_output);
 			my_free(temp_service->perf_data);
-			
-			asprintf(&temp_plugin_output, "\x73\x6f\x69\x67\x61\x6e\x20\x74\x68\x67\x69\x72\x79\x70\x6f\x63\x20\x6e\x61\x68\x74\x65\x20\x64\x61\x74\x73\x6c\x61\x67");
-			my_free(temp_plugin_output);
-			asprintf(&temp_service->plugin_output, "(Return code of %d is out of bounds%s)", queued_check_result->return_code, (queued_check_result->return_code == 126 ? " - plugin may not be executable" : (queued_check_result->return_code == 127 ? " - plugin may be missing" : "")));
 
 			rc = STATE_CRITICAL;
 			}
@@ -810,26 +810,28 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			}
 
 		/* if the host is down or unreachable ... */
-		/* The host might be in a SOFT problem state due to host check retries/caching.  Not sure if we should take that into account and do something different or not... */
 		if(route_result != HOST_UP) {
+			if (temp_host->state_type == HARD_STATE) {
+				log_debug_info(DEBUGL_CHECKS, 2, "Host is not UP, so we mark state changes if appropriate\n");
 
-			log_debug_info(DEBUGL_CHECKS, 2, "Host is not UP, so we mark state changes if appropriate\n");
+				/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earlier... */
+				if(temp_service->last_hard_state != temp_service->current_state)
+					hard_state_change = TRUE;
 
-			/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earlier... */
-			if(temp_service->last_hard_state != temp_service->current_state)
-				hard_state_change = TRUE;
+				/* update last state change times */
+				if(state_change == TRUE || hard_state_change == TRUE)
+					temp_service->last_state_change = temp_service->last_check;
+				if(hard_state_change == TRUE) {
+					temp_service->last_hard_state_change = temp_service->last_check;
+					temp_service->state_type = HARD_STATE;
+					temp_service->last_hard_state = temp_service->current_state;
+					}
 
-			/* update last state change times */
-			if(state_change == TRUE || hard_state_change == TRUE)
-				temp_service->last_state_change = temp_service->last_check;
-			if(hard_state_change == TRUE) {
-				temp_service->last_hard_state_change = temp_service->last_check;
-				temp_service->state_type = HARD_STATE;
-				temp_service->last_hard_state = temp_service->current_state;
+				/* put service into a hard state without attempting check retries and don't send out notifications about it */
+				temp_service->host_problem_at_last_check = TRUE;
 				}
-
-			/* put service into a hard state without attempting check retries and don't send out notifications about it */
-			temp_service->host_problem_at_last_check = TRUE;
+			else if (temp_service->last_state == STATE_OK)
+				temp_service->state_type = SOFT_STATE;
 			}
 
 		/* the host is up - it recovered since the last time the service was checked... */
@@ -2229,6 +2231,7 @@ static int get_host_check_return_code(host *temp_host,
 		check_result *queued_check_result) {
 
 	int rc;
+	char *temp_plugin_output = NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "get_host_check_return_code()\n");
 
@@ -2266,11 +2269,13 @@ static int get_host_check_return_code(host *temp_host,
 
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of host '%s' was out of bounds.%s\n", queued_check_result->return_code, temp_host->name, (queued_check_result->return_code == 126 || queued_check_result->return_code == 127) ? " Make sure the plugin you're trying to run actually exists." : "");
 
+			asprintf(&temp_plugin_output, "(Return code of %d is out of bounds%s : %s)", queued_check_result->return_code, (queued_check_result->return_code == 126 || queued_check_result->return_code == 127) ? " - plugin may be missing" : "", temp_host->plugin_output);
 			my_free(temp_host->plugin_output);
+
+			asprintf(&temp_host->plugin_output, "%s)", temp_plugin_output);
+			my_free(temp_plugin_output);
 			my_free(temp_host->long_plugin_output);
 			my_free(temp_host->perf_data);
-
-			asprintf(&temp_host->plugin_output, "(Return code of %d is out of bounds%s)", queued_check_result->return_code, (queued_check_result->return_code == 126 || queued_check_result->return_code == 127) ? " - plugin may be missing" : "");
 
 			rc = STATE_CRITICAL;
 			}

@@ -872,9 +872,6 @@ int set_environment_var(char *name, char *value, int set) {
 
 	/* set the environment variable */
 	if(set == TRUE) {
-		log_debug_info(DEBUGL_EVENTS, 0, "set_environment_var '%s'='%s'\n", name, value);
-		syslog(LOG_DAEMON|LOG_INFO, "set_environment_var '%s'='%s'\n", name, value);
-
 #ifdef HAVE_SETENV
 		setenv(name, (value == NULL) ? "" : value, 1);
 #else

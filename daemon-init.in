@@ -192,7 +192,9 @@ case "$1" in
 		fi
 
 		touch $NagiosVarDir/nagios.log $NagiosRetentionFile
-		rm -f $NagiosCommandFile
+		# must vent stalled pipe to allow blocked writers to escape a deadlock in blocking open() syscall
+		# see http://unix.stackexchange.com/questions/335406/opening-named-pipe-blocks-forever-if-pipe-is-deleted-without-being-connected
+		mv -f $NagiosCommandFile $NagiosCommandFile~ &>/dev/null && dd if=$NagiosCommandFile~ count=0 &>/dev/null && rm -f $NagiosCommandFile~ || true
 		touch $NagiosRunFile
 		chown -h $NagiosUser:$NagiosGroup $NagiosRunFile $NagiosVarDir/nagios.log $NagiosRetentionFile
 		$NagiosBin -d $NagiosCfgFile

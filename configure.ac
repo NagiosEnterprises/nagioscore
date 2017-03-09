@@ -788,6 +788,12 @@ AC_PATH_PROG(PERL,perl)
 if test -z "$PERL"; then
 	AC_MSG_ERROR([Cannot continue without perl!])
 fi
+
+AC_PATH_PROG(UNZIP,unzip)
+if test -z "$UNZIP"; then
+	AC_MSG_ERROR([Cannot continue without unzip!])
+fi
+
 AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile)
 
 

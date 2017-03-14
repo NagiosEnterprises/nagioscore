@@ -9,6 +9,7 @@ FIXED
 * Changed release date to ISO format (yyyy-mm-dd) (John Frickson)
 * `make all` fails if unzip is not installed (John Frickson)
 * Quick Search no longer allows search by Alias (John Frickson)
+* flexible downtime on a service immediately turns off notifications (John Frickson)
 
 
 4.3.1 - 2017-02-23

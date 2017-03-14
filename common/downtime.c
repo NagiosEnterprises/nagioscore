@@ -849,6 +849,76 @@ int check_pending_flex_service_downtime(service *svc) {
 	return OK;
 	}
 
+int is_host_in_pending_flex_downtime(struct host *temp_host)
+{
+	scheduled_downtime *temp_downtime = NULL;
+	time_t current_time = 0L;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "is_host_in_pending_flex_downtime()\n");
+
+	if (temp_host == NULL)
+		return FALSE;
+
+	time(&current_time);
+
+	/* check all downtime entries */
+	for (temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
+		if(temp_downtime->type != HOST_DOWNTIME)
+			continue;
+		if(temp_downtime->fixed == TRUE)
+			continue;
+		if(temp_downtime->is_in_effect == TRUE)
+			continue;
+		/* triggered downtime entries should be ignored here */
+		if(temp_downtime->triggered_by != 0)
+			continue;
+
+		/* this entry matches our host! */
+		if(find_host(temp_downtime->host_name) == temp_host) {
+			/* if the time boundaries are okay, start this scheduled downtime */
+			if(temp_downtime->start_time <= current_time && current_time <= temp_downtime->end_time)
+				return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+int is_service_in_pending_flex_downtime(struct service *temp_service)
+{
+	scheduled_downtime *temp_downtime = NULL;
+	time_t current_time = 0L;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "is_service_in_pending_flex_downtime()\n");
+
+	if(temp_service == NULL)
+		return FALSE;
+
+	time(&current_time);
+
+	/* check all downtime entries */
+	for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
+		if(temp_downtime->type != SERVICE_DOWNTIME)
+			continue;
+		if(temp_downtime->fixed == TRUE)
+			continue;
+		if(temp_downtime->is_in_effect == TRUE)
+			continue;
+		/* triggered downtime entries should be ignored here */
+		if(temp_downtime->triggered_by != 0)
+			continue;
+
+		/* this entry matches our service! */
+		if(find_service(temp_downtime->host_name, temp_downtime->service_description) == temp_service) {
+			/* if the time boundaries are okay, start this scheduled downtime */
+			if(temp_downtime->start_time <= current_time && current_time <= temp_downtime->end_time)
+				return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
 
 /* checks for (and removes) expired downtime entries */
 int check_for_expired_downtime(void) {

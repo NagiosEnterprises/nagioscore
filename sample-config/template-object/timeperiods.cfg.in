@@ -59,7 +59,7 @@ define timeperiod{
 # Some U.S. holidays
 # Note: The timeranges for each holiday are meant to *exclude* the holidays from being
 # treated as a valid time for notifications, etc.  You probably don't want your pager 
-# going off on New Year's.  Although you're employer might... :-)
+# going off on New Year's.  Although your employer might... :-)
 define timeperiod{
 	name			us-holidays
         timeperiod_name         us-holidays

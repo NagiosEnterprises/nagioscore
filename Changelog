@@ -235,7 +235,7 @@ FIXES
 * Fixed map now resets zoom when form apply()'d (Eric Stanley)
 * Fixed so close box on dialogs actually closes dialog (Eric Stanley)
 * Corrected directive in trends display (Eric Stanley)
-* Fixed minor issue with link in trends linkes (Eric Stanley)
+* Fixed minor issue with link in trends links (Eric Stanley)
 * Fixed issue with map displaying on Firefox (Eric Stanley)
 * Added exclusions for ctags generation (Eric Stanley)
 * Update map-popup.html (Scott Wilkerson)

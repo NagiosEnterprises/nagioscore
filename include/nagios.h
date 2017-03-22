@@ -567,7 +567,7 @@ int handle_async_service_check_result(service *, check_result *);
 int handle_host_state(host *);               			/* top level host state handler */
 
 
-/**** Common Check Fucntions *****/
+/**** Common Check Functions *****/
 int reap_check_results(void);
 
 

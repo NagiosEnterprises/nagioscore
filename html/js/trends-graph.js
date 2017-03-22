@@ -286,7 +286,7 @@ angular.module("trendsApp")
 					d3.select("g#groupXAxis").select("path").remove();
 				};
 
-				// Handle a succesful availabilty response
+				// Handle a succesful availability response
 				var onAvailabilitySuccess = function(json) {
 
 					// Local layout variables

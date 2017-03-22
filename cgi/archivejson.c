@@ -405,7 +405,7 @@ option_help archive_json_help[] = {
 		{ "alertcount", "alertlist", "notificationcount", "notificationlist", 
 				"statechangelist", "availability", NULL },
 		"hostname",
-		"Description for the service requested. For availibility reports, "
+		"Description for the service requested. For availability reports, "
 		"if the availability object type is services and the "
 		"servicedescription is not specified, the report will be generated "
 		"either for all services or for all services on the specified host, "

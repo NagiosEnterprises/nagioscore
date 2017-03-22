@@ -1337,7 +1337,7 @@ int handle_timed_event(timed_event *event) {
 /* The squeue internal event type, declared again here so we can manipulate the
  * scheduling queue without a malloc/free for each add/remove.
  * @todo: Refactor this to not depend so heavily on the event queue
- * implementation, doing so efficiently may require a different sheduling queue
+ * implementation, doing so efficiently may require a different scheduling queue
  * data structure. */
 struct squeue_event {
 	unsigned int pos;

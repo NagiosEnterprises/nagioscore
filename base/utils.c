@@ -3080,7 +3080,7 @@ int check_for_nagios_updates(int force, int reschedule) {
 	if(update_uid == 0L)
 		update_uid = current_time;
 
-	/* update chekcs are disabled */
+	/* update checks are disabled */
 	if(check_for_updates == FALSE)
 		do_check = FALSE;
 	/* we checked for updates recently, so don't do it again */

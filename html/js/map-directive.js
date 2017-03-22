@@ -1730,7 +1730,7 @@ angular.module("mapApp")
 				};
 
 				// Determine how long an object has been in it's 
-				// curret state
+				// current state
 				var getStateDuration = function(d) {
 					var now = new Date;
 					var duration;

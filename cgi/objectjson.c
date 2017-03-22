@@ -185,7 +185,7 @@ option_help object_json_help[] = {
 		{ "all", NULL },
 		{ NULL },
 		NULL,
-		"Specifies the type of query to be exeuted.",
+		"Specifies the type of query to be executed.",
 		valid_queries
 		},
 	{ 

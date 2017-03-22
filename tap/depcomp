@@ -45,7 +45,7 @@ Environment variables:
   object      Object file output by `PROGRAMS ARGS'.
   DEPDIR      directory where to store dependencies.
   depfile     Dependency file to output.
-  tmpdepfile  Temporary file to use when outputing dependencies.
+  tmpdepfile  Temporary file to use when outputting dependencies.
   libtool     Whether libtool is used (yes/no).
 
 Report bugs to <bug-automake@gnu.org>.

@@ -191,8 +191,8 @@ void print_usage( char *program_name) {
 	printf( "  -d, --daemon                 Starts the ping worker in daemon mode,\n");
 	printf( "                               instead of as a foreground process\n");
 	printf( "  -W, --worker /path/to/socket Act as a worker for an already running daemon\n");
-	printf( "  -u, --user user              Drop priviliges to the specified user\n");
-	printf( "  -g, --group group            Drop priviliges to the specified user\n");
+	printf( "  -u, --user user              Drop privileges to the specified user\n");
+	printf( "  -g, --group group            Drop privileges to the specified user\n");
 	printf( "\n");
 	printf( "Visit the Nagios website at https://www.nagios.org/ for bug fixes, new\n");
 	printf( "releases, online documentation, FAQs, information on subscribing to\n");

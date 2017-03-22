@@ -2426,7 +2426,7 @@ angular.module("mapApp")
 					var selection = d3.select(node);
 
 					// Display the circle if the node has no icon or
-					// icons are supressed
+					// icons are suppressed
 					if(!$scope.showIcons ||
 							d.hostInfo.objectJSON.icon_image == "") {
 						selection.append("circle")
@@ -2754,7 +2754,7 @@ angular.module("mapApp")
 					var selection = d3.select(node);
 
 					// Display the circle if the node has no icon or
-					// icons are supressed
+					// icons are suppressed
 					if(!$scope.showIcons ||
 							d.hostInfo.objectJSON.icon_image == "") {
 						selection.append("circle")

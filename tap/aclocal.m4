@@ -5425,7 +5425,7 @@ case `$NM -V 2>&1` in
   symcode='[[ABCDGIRSTW]]' ;;
 esac
 
-# Try without a prefix undercore, then with it.
+# Try without a prefix underscore, then with it.
 for ac_symprfx in "" "_"; do
 
   # Write the raw and C identifiers.

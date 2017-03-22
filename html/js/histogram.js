@@ -18,7 +18,7 @@ angular.module("histogramApp", ["ui.bootstrap", "ui.utils",
 
 	.controller("histogramCtrl", function($scope, $location, $modal) {
 
-		// Parameters fonud in the URL
+		// Parameters found in the URL
 		$scope.search = $location.search();
 
 		// URL parameters

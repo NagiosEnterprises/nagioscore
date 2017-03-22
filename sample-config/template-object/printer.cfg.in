@@ -72,7 +72,7 @@ define service{
 	}
 
 
-# Create a service for "pinging" the printer occassionally.  Useful for monitoring RTA, packet loss, etc.
+# Create a service for "pinging" the printer occasionally.  Useful for monitoring RTA, packet loss, etc.
 
 define service{
 	use			generic-service

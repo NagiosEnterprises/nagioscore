@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # 
-# Check that empty host/service groups pass verfication.
+# Check that empty host/service groups pass verification.
 # Likely error on non-patched version:
 # "Error: Host 'r' specified in host group 'generic-pc' is not defined anywhere!"
 

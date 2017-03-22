@@ -1214,7 +1214,7 @@ static void _get_next_invalid_time(time_t pref_time, time_t *invalid_time, timep
 		timerange *temp_timerange = _get_matching_timerange(earliest_time, tperiod);
 
 		for(; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
-			/* ranges with start/end of zero mean exlude this day */
+			/* ranges with start/end of zero mean exclude this day */
 			if(temp_timerange->range_start == 0 && temp_timerange->range_end == 0)
 				continue;
 
@@ -1293,7 +1293,7 @@ void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tper
 #endif
 
 		for(; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
-			/* ranges with start/end of zero mean exlude this day */
+			/* ranges with start/end of zero mean exclude this day */
 			if(temp_timerange->range_start == 0 && temp_timerange->range_end == 0)
 				continue;
 

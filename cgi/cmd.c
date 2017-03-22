@@ -1918,7 +1918,7 @@ void commit_command_data(int cmd) {
 
 		if(result == OK) {
 			if(content_type == WML_CONTENT)
-				printf("<p>Your command was submitted sucessfully...</p>\n");
+				printf("<p>Your command was submitted successfully...</p>\n");
 			else {
 				printf("<P><DIV CLASS='infoMessage'>Your command request was successfully submitted to Nagios for processing.<BR><BR>\n");
 				printf("Note: It may take a while before the command is actually processed.<BR><BR>\n");

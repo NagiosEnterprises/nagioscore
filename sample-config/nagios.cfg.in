@@ -852,7 +852,7 @@ process_performance_data=0
 # performance data files are opened in write ("w") or append ("a")
 # mode. If you want to use named pipes, you should use the special
 # pipe ("p") mode which avoid blocking at startup, otherwise you will
-# likely want the defult append ("a") mode.
+# likely want the default append ("a") mode.
 
 #host_perfdata_file_mode=a
 #service_perfdata_file_mode=a

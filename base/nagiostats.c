@@ -329,7 +329,7 @@ int main(int argc, char **argv) {
 		printf(" NUMSVCWARN           number of services WARNING.\n");
 		printf(" NUMSVCUNKN           number of services UNKNOWN.\n");
 		printf(" NUMSVCCRIT           number of services CRITICAL.\n");
-		printf(" NUMSVCPROB           number of service problems (WARNING, UNKNOWN or CRITIAL).\n");
+		printf(" NUMSVCPROB           number of service problems (WARNING, UNKNOWN or CRITICAL).\n");
 		printf(" NUMSVCCHECKED        number of services that have been checked since start.\n");
 		printf(" NUMSVCSCHEDULED      number of services that are currently scheduled to be checked.\n");
 		printf(" NUMSVCFLAPPING       number of services that are currently flapping.\n");

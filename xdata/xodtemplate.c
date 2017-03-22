@@ -3650,7 +3650,7 @@ xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_object(xod
 
 
 
-/* parses a timeperod directive... :-) */
+/* parses a timeperiod directive... :-) */
 int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *tperiod, char *var, char *val) {
 	char *input = NULL;
 	char temp_buffer[5][MAX_INPUT_BUFFER] = {"", "", "", "", ""};

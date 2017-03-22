@@ -1062,7 +1062,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 
 static const char *xodtemplate_type_name(unsigned int id) {
 	static const char *otype_name[] = {
-		"NONE", "timeperiod", "commmand", "contact", "contactgroup",
+		"NONE", "timeperiod", "command", "contact", "contactgroup",
 		"host", "hostgroup", "service", "servicedependency",
 		"serviceescalation", "hostescalation", "hostdependency",
 		"hostextinfo", "serviceextinfo", "servicegroup"

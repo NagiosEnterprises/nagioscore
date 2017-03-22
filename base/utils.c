@@ -1737,7 +1737,7 @@ void handle_sigxfsz(int sig) {
 			/* Attempt to log the error, realizing that the logging may fail
 				if it is the log file that is over the size limit. */
 			logit(NSLOG_RUNTIME_ERROR, TRUE,
-					"Unable to determine current resoure limits: %s\n",
+					"Unable to determine current resource limits: %s\n",
 					strerror(errno));
 			}
 

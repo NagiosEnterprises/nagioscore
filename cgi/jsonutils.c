@@ -128,7 +128,7 @@ const string_value_mapping svm_service_states[] = {
 const string_value_mapping svm_check_options[] = {
 	{ "force_execution", CHECK_OPTION_FORCE_EXECUTION, "FORCE_EXECUTION" },
 	{ "freshness_check", CHECK_OPTION_FRESHNESS_CHECK, "FRESHNESS_CHECK" },
-	{ "ophan_check", CHECK_OPTION_ORPHAN_CHECK, "ORPHAN_CHECK" },
+	{ "orphan_check", CHECK_OPTION_ORPHAN_CHECK, "ORPHAN_CHECK" },
 	{ NULL, -1, NULL },
 	};
 

@@ -1415,7 +1415,7 @@ char *json_escape_string(const char *src, const json_escape *escapes) {
 	wchar_t	*fromp;		/* pointer to a found "from" string */
 	long	offset;		/* offset from beginning of wdest to a "from" string */
 	size_t	wchars;		/* number of wide characters to move */
-	size_t	dest_len;	/* length of ouput string "dest" */
+	size_t	dest_len;	/* length of output string "dest" */
 	char	*dest;		/* buffer containing the escaped version of src */
 
 	/* Make sure we're passed valid parameters */

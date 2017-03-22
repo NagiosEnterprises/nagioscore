@@ -712,7 +712,7 @@ check_for_updates=1
 
 
 # BARE UPDATE CHECK
-# This option deterines what data Nagios will send to api.nagios.org when
+# This option determines what data Nagios will send to api.nagios.org when
 # it checks for updates.  By default, Nagios will send information on the 
 # current version of Nagios you have installed, as well as an indicator as
 # to whether this was a new installation or not.  Nagios Enterprises uses

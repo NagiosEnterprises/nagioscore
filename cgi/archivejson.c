@@ -3525,7 +3525,7 @@ printf( "    %lu to %lu (%lus): %s/%s/%s\n", start_time, end_time,
 	state_duration = calculate_window_duration(start_time, end_time, 
 			report_timeperiod);
 
-	/* Deterime the appropriate state */
+	/* Determine the appropriate state */
 	switch(last_nagios_state) {
 	case AU_STATE_PROGRAM_START:
 		switch(last_downtime_state) {

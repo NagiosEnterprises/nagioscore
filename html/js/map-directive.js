@@ -509,7 +509,7 @@ angular.module("mapApp")
 					}
 				};
 
-				// Deteremine the amount of text padding due to an icon
+				// Determine the amount of text padding due to an icon
 				var getIconTextPadding = function(d) {
 					var iconHeight = 0, iconWidth = 0;
 					if (d.hostInfo.hasOwnProperty("iconInfo")) {

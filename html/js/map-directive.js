@@ -2131,7 +2131,7 @@ angular.module("mapApp")
 							return d.id || (d.id = ++$scope.nodeID);
 						});
 
-					// Traverse the data, artifically setting the layout
+					// Traverse the data, artificially setting the layout
 					//for collapsed children
 					updateToggledNodes($scope.hostTree,
 							updateDescendantsOnCollapse);

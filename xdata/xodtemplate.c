@@ -6987,7 +6987,7 @@ static int xodtemplate_register_hostgroup_members(xodtemplate_hostgroup *this_ho
 	for(list = this_hostgroup->member_list; list; list = list->next) {
 		xodtemplate_host *h = (xodtemplate_host *)list->object_ptr;
 		if (!add_host_to_hostgroup(hg, h->host_name)) {
-			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Bad member of hostgrop '%s' (config file '%s', starting on line %d)\n", hg->group_name, xodtemplate_config_file_name(this_hostgroup->_config_file), this_hostgroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Bad member of hostgroup '%s' (config file '%s', starting on line %d)\n", hg->group_name, xodtemplate_config_file_name(this_hostgroup->_config_file), this_hostgroup->_start_line);
 			return -1;
 			}
 		num_regs++;

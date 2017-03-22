@@ -230,7 +230,7 @@ FIXES
 * Fixes to make all/html target tolerant of being run multiple times (Eric Stanley)
 * For user-supplied maps, converted node group to have transform (Eric Stanley)
 * Fixed issue transitioning from circular markup map to other maps (Eric Stanley)
-* Fix displayForm to trigger on the buttom press (Scott Wilkerson)
+* Fix displayForm to trigger on the button press (Scott Wilkerson)
 * Fix fo getBBox crash on Firefox (Eric Stanley)
 * Fixed map now resets zoom when form apply()'d (Eric Stanley)
 * Fixed so close box on dialogs actually closes dialog (Eric Stanley)

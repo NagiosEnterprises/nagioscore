@@ -11,7 +11,7 @@ those from this tarball.  For example:
   cd /opt/nagios/share
   tar xvfz exfoliation.tgz
 
-On debian/unbuntu installations you might have to modify side.html to include
+On debian/ubuntu installations you might have to modify side.html to include
 the common.css stylesheet by adding a line like this in the head section:
 
   <link rel="stylesheet" href="common.css" type="text/css" />

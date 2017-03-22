@@ -6630,7 +6630,7 @@ int xodtemplate_recombobulate_servicegroups(void) {
 			continue;
 
 		/* preprocess the servicegroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
-		/* 10/19/07 EG an empry return value means an error occured */
+		/* 10/19/07 EG an empty return value means an error occured */
 		if((servicegroup_names = xodtemplate_process_servicegroup_names(temp_service->service_groups, temp_service->_config_file, temp_service->_start_line)) == NULL) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process servicegroup names for service '%s' on host '%s' (config file '%s', starting at line %d)\n",
 				  temp_service->service_description, temp_service->host_name, xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);

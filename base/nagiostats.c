@@ -306,7 +306,7 @@ int main(int argc, char **argv) {
 		printf("\n");
 		printf("Output:\n");
 		printf(" -m, --mrtg         display output in MRTG compatible format.\n");
-		printf(" -d, --data=VARS    comma-seperated list of variables to output in MRTG\n");
+		printf(" -d, --data=VARS    comma-separated list of variables to output in MRTG\n");
 		printf("                    (or compatible) format.  See possible values below.\n");
 		printf("                    Percentages are rounded, times are in milliseconds.\n");
 		printf(" -D, --delimiter=C  character to use as delimiter in MRTG output mode.\n");

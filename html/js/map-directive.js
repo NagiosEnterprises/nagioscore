@@ -1713,7 +1713,7 @@ angular.module("mapApp")
 				};
 
 				// Get an object attribute in a generic way that checks for
-				// the existance of all attributes in the hierarchy
+				// the existence of all attributes in the hierarchy
 				var getObjAttr = function(d, attrs, nilval) {
 
 					if(d.hasOwnProperty("hostInfo")) {

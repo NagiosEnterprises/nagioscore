@@ -1060,11 +1060,11 @@ angular.module("mapApp")
 					// Sort the hosts array
 					hosts.sort();
 
-					// First remove any childen of the node that are not
+					// First remove any children of the node that are not
 					// in the list of hosts
 					if (node.hasOwnProperty("children") &&
 								node.children != null) {
-						node.childen = node.children.filter(function(e) {
+						node.children = node.children.filter(function(e) {
 							return findElement(hosts, e.hostInfo.name,
 									function(list, index) {
 										return list[index];
@@ -1086,7 +1086,7 @@ angular.module("mapApp")
 
 					// If the node has no children and the host list
 					// does, create the property and initialize it
-					if (!node.hasOwnProperty("chlidren") ||
+					if (!node.hasOwnProperty("children") ||
 							node.children == null) {
 						node.children = new Array;
 					}

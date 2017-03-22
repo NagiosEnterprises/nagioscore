@@ -235,7 +235,7 @@ option_help object_json_help[] = {
 		{ NULL },
 		{ "hostcount", "hostlist", "servicecount", "servicelist", NULL },
 		NULL,
-		"Limits the hosts or serivces returned to those whose host parent is specified. A value of 'none' returns all hosts or services reachable directly by the Nagios core host.",
+		"Limits the hosts or services returned to those whose host parent is specified. A value of 'none' returns all hosts or services reachable directly by the Nagios core host.",
 		parent_host_extras
 		},
 	{ 
@@ -245,7 +245,7 @@ option_help object_json_help[] = {
 		{ NULL },
 		{ "hostcount", "hostlist", "servicecount", "servicelist", NULL },
 		NULL,
-		"Limits the hosts or serivces returned to those whose having the host specified as a child host. A value of 'none' returns all hosts or services with no child hosts.",
+		"Limits the hosts or services returned to those whose having the host specified as a child host. A value of 'none' returns all hosts or services with no child hosts.",
 		child_host_extras
 		},
 	{ 
@@ -305,7 +305,7 @@ option_help object_json_help[] = {
 		{ NULL },
 		{ "servicecount", "servicelist", NULL },
 		NULL,
-		"Limits the serivces returned to those whose service parent has the name specified. A value of 'none' returns all services with no service parent.",
+		"Limits the services returned to those whose service parent has the name specified. A value of 'none' returns all services with no service parent.",
 		parent_service_extras
 		},
 	{
@@ -315,7 +315,7 @@ option_help object_json_help[] = {
 		{ NULL },
 		{ "servicecount", "servicelist", NULL },
 		NULL,
-		"Limits the serivces returned to those whose having the named service as a child service. A value of 'none' returns all services with no child services.",
+		"Limits the services returned to those whose having the named service as a child service. A value of 'none' returns all services with no child services.",
 		child_service_extras
 		},
 	{ 

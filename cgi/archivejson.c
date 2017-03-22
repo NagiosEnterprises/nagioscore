@@ -344,7 +344,7 @@ option_help archive_json_help[] = {
 		{ "alertcount", "alertlist", "notificationcount", "notificationlist", 
 				NULL },
 		NULL,
-		"Limits the hosts or serivces returned to those whose host parent is specified. A value of 'none' returns all hosts or services reachable directly by the Nagios core host.",
+		"Limits the hosts or services returned to those whose host parent is specified. A value of 'none' returns all hosts or services reachable directly by the Nagios core host.",
 		parent_host_extras
 		},
 	{ 
@@ -355,7 +355,7 @@ option_help archive_json_help[] = {
 		{ "alertcount", "alertlist", "notificationcount", "notificationlist", 
 				NULL },
 		NULL,
-		"Limits the hosts or serivces returned to those whose having the host specified as a child host. A value of 'none' returns all hosts or services with no child hosts.",
+		"Limits the hosts or services returned to those whose having the host specified as a child host. A value of 'none' returns all hosts or services with no child hosts.",
 		child_host_extras
 		},
 	{ 

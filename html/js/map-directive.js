@@ -280,7 +280,7 @@ angular.module("mapApp")
 					}
 				});
 
-				// Get the serivces of the children of a specific node
+				// Get the services of the children of a specific node
 				var getServiceList = function() {
 
 					var parameters = {

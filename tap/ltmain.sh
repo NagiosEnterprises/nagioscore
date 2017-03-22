@@ -5633,7 +5633,7 @@ relink_command=\"$relink_command\""
 	  relink_command=
 
 	  # To insure that "foo" is sourced, and not "foo.exe",
-	  # finese the cygwin/MSYS system by explicitly sourcing "foo."
+	  # finesse the cygwin/MSYS system by explicitly sourcing "foo."
 	  # which disallows the automatic-append-.exe behavior.
 	  case $build in
 	  *cygwin* | *mingw*) wrapperdot=${wrapper}. ;;
@@ -5671,7 +5671,7 @@ relink_command=\"$relink_command\""
 
 	  relink_command=
 	  # To insure that "foo" is sourced, and not "foo.exe",
-	  # finese the cygwin/MSYS system by explicitly sourcing "foo."
+	  # finesse the cygwin/MSYS system by explicitly sourcing "foo."
 	  # which disallows the automatic-append-.exe behavior.
 	  case $build in
 	  *cygwin* | *mingw*) wrapperdot=${wrapper}. ;;

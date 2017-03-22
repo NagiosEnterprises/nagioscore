@@ -2077,7 +2077,7 @@ angular.module("mapApp")
 					}
 				};
 
-				// Update the map for partion displays
+				// Update the map for partition displays
 				var updatePartitionMap = function(source, reparent) {
 
 					// The svg element that holds it all

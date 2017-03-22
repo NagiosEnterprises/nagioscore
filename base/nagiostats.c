@@ -318,7 +318,7 @@ int main(int argc, char **argv) {
 		printf(" STATUSFILEAGE        string with age of status data file.\n");
 		printf(" STATUSFILEAGETT      string with age of status data file (time_t format).\n");
 		printf(" NAGIOSVERSION        string with Nagios version.\n");
-		printf(" NAGIOSPID            pid number of Nagios deamon.\n");
+		printf(" NAGIOSPID            pid number of Nagios daemon.\n");
 		printf(" NAGIOSVERPID         string with Nagios version and PID.\n");
 		printf(" TOTCMDBUF            total number of external command buffer slots available.\n");
 		printf(" USEDCMDBUF           number of external command buffer slots currently in use.\n");

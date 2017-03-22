@@ -1178,7 +1178,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 	/* get variable name */
 	variable = input;
 	lth = strlen(variable);
-	/* trim at first whitespace occurance */
+	/* trim at first whitespace occurrence */
 	for(x = 0; variable[x] != '\x0'; x++) {
 		if(variable[x] == ' ' || variable[x] == '\t') {
 			variable[x] = 0;

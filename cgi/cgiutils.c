@@ -1354,7 +1354,7 @@ void strip_html_brackets(char *buffer) {
 	if(buffer == NULL || buffer[0] == '\x0')
 		return;
 
-	/* remove all occurances in string */
+	/* remove all occurrences in string */
 	z = (int)strlen(buffer);
 	for(x = 0, y = 0; x < z; x++) {
 		if(buffer[x] == '<' || buffer[x] == '>')
@@ -2117,7 +2117,7 @@ void strip_splunk_query_terms(char *buffer) {
 	if(buffer == NULL || buffer[0] == '\x0')
 		return;
 
-	/* remove all occurances in string */
+	/* remove all occurrences in string */
 	z = (int)strlen(buffer);
 	for(x = 0, y = 0; x < z; x++) {
 		if(buffer[x] == '\'' || buffer[x] == '\"' || buffer[x] == ';' || buffer[x] == ':' || buffer[x] == ',' || buffer[x] == '-' || buffer[x] == '=')

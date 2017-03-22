@@ -33,7 +33,7 @@
 #include "../include/nebmodules.h"
 #include "../include/workers.h"
 
-/* global varaiables only used by the daemon */
+/* global variables only used by the daemon */
 char *nagios_binary_path = NULL;
 char *config_file = NULL;
 char *command_file;

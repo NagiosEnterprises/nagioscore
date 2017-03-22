@@ -3750,11 +3750,11 @@ void json_object_service_details(json_object *json_details,
 #ifdef JSON_NAGIOS_4X
 #if 0
 	if( CORE3_COMPATIBLE) {
-		json_object_append_boolean(json_details, "flap_dectetion_on_ok", 
+		json_object_append_boolean(json_details, "flap_detection_on_ok", 
 				flag_isset(temp_service->flap_detection_options, OPT_OK));
-		json_object_append_boolean(json_details, "flap_dectetion_on_warning", 
+		json_object_append_boolean(json_details, "flap_detection_on_warning", 
 				flag_isset(temp_service->flap_detection_options, OPT_WARNING));
-		json_object_append_boolean(json_details, "flap_dectetion_on_unknown", 
+		json_object_append_boolean(json_details, "flap_detection_on_unknown", 
 				flag_isset(temp_service->flap_detection_options, OPT_UNKNOWN));
 		json_object_append_boolean(json_details, "flap_detection_on_critical", 
 				flag_isset(temp_service->flap_detection_options, OPT_CRITICAL));
@@ -3767,11 +3767,11 @@ void json_object_service_details(json_object *json_details,
 		}
 #endif
 #else
-	json_object_append_boolean(json_details, "flap_dectetion_on_ok", 
+	json_object_append_boolean(json_details, "flap_detection_on_ok", 
 			temp_service->flap_detection_on_ok);
-	json_object_append_boolean(json_details, "flap_dectetion_on_warning", 
+	json_object_append_boolean(json_details, "flap_detection_on_warning", 
 			temp_service->flap_detection_on_warning);
-	json_object_append_boolean(json_details, "flap_dectetion_on_unknown", 
+	json_object_append_boolean(json_details, "flap_detection_on_unknown", 
 			temp_service->flap_detection_on_unknown);
 	json_object_append_boolean(json_details, "flap_detection_on_critical", 
 			temp_service->flap_detection_on_critical);

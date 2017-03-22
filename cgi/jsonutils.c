@@ -184,7 +184,7 @@ const string_value_mapping svm_option_types[] = {
 	{ "down", OPT_DOWN, "Down" },
 	{ "unreachable", OPT_UNREACHABLE, "Unreachable" },
 	{ "ok", OPT_OK, "OK" },
-	{ "unkwown", OPT_UNKNOWN, "Unknown" },
+	{ "unknown", OPT_UNKNOWN, "Unknown" },
 	{ "warning", OPT_WARNING, "Warning" },
 	{ "critical", OPT_CRITICAL, "Critical" },
 	{ "recovery", OPT_RECOVERY, "Recovery" },

@@ -152,7 +152,7 @@ sub readCfgFile {
 				push( @{ $cfg{ $key}}, $value);
 			}
 			else {
-				die "Paramater $key already exists" if( exists( $cfg{ $key}));
+				die "Parameter $key already exists" if( exists( $cfg{ $key}));
 				$cfg{ $key} = $value;
 			}
 		}

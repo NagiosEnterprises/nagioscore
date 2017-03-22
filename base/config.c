@@ -2222,7 +2222,7 @@ int pre_flight_circular_check(int *w, int *e) {
 		dep_type = temp_sd->dependency_type;
 		/*
 		 * this shouldn't happen, but it can in case dependencies are
-		 * added to services on hosts in empty hostgroups (ie, nonexistant)
+		 * added to services on hosts in empty hostgroups (ie, nonexistent)
 		 */
 		if(dep_type < 1 || dep_type > ARRAY_SIZE(ary))
 			continue;

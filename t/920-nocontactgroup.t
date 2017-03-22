@@ -16,5 +16,5 @@ my $precache = "$Bin/var/objects.precache";
 
 
 my $output = `$nagios -v "$etc/nagios-no-contactgroup.cfg"`;
-like( $output, "/Error: Could not find any contactgroup matching 'nonexistantone'/", "Correct error for no contactgroup" );
+like( $output, "/Error: Could not find any contactgroup matching 'nonexistentone'/", "Correct error for no contactgroup" );
 isnt($?, 0, "And get return code error" );

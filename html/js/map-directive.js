@@ -2921,7 +2921,7 @@ angular.module("mapApp")
 					// Note: reparenting the tree is not implemented
 					// because the map doesn't appear any different
 					// after reparenting. However, reparenting would
-					// affect what is collapesd/expanded when an
+					// affect what is collapsed/expanded when an
 					// interior node is click, so it eventually may
 					// make sense.
 					toggleNode(d);

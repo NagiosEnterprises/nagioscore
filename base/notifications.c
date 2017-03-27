@@ -439,9 +439,9 @@ int check_service_notification_viability(service *svc, int type, int options) {
 
 
 
-	/****************************************/
+	/*****************************************/
 	/*** SPECIAL CASE FOR ACKNOWLEDGEMENTS ***/
-	/****************************************/
+	/*****************************************/
 
 	/* acknowledgements only have to pass three general filters, although they have another test of their own... */
 	if(type == NOTIFICATION_ACKNOWLEDGEMENT) {
@@ -1361,9 +1361,9 @@ int check_host_notification_viability(host *hst, int type, int options) {
 
 
 
-	/****************************************/
+	/*****************************************/
 	/*** SPECIAL CASE FOR ACKNOWLEDGEMENTS ***/
-	/****************************************/
+	/*****************************************/
 
 	/* acknowledgements only have to pass three general filters, although they have another test of their own... */
 	if(type == NOTIFICATION_ACKNOWLEDGEMENT) {

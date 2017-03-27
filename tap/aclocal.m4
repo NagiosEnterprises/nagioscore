@@ -1662,7 +1662,7 @@ AC_CACHE_VAL([lt_cv_sys_max_cmd_len], [dnl
   cygwin* | mingw*)
     # On Win9x/ME, this test blows up -- it succeeds, but takes
     # about 5 minutes as the teststring grows exponentially.
-    # Worse, since 9x/ME are not pre-emptively multitasking,
+    # Worse, since 9x/ME are not preemptively multitasking,
     # you end up with a "frozen" computer, even though with patience
     # the test eventually succeeds (with a max line length of 256k).
     # Instead, let's just punt: use the minimum linelength reported by
@@ -5425,7 +5425,7 @@ case `$NM -V 2>&1` in
   symcode='[[ABCDGIRSTW]]' ;;
 esac
 
-# Try without a prefix undercore, then with it.
+# Try without a prefix underscore, then with it.
 for ac_symprfx in "" "_"; do
 
   # Write the raw and C identifiers.

@@ -112,7 +112,7 @@ sub readObjectCache {
 		if( $lines[ 0] =~ /define\s+(\S+)\s*{/) {
 			$definitionType = $1;
 		}
-		die "Unkwnown definition line: " . $lines[ 0] if( !defined( $definitionType));
+		die "Unknown definition line: " . $lines[ 0] if( !defined( $definitionType));
 
 		# Create a hash of the remaining lines
 		my $href = {};
@@ -152,7 +152,7 @@ sub readCfgFile {
 				push( @{ $cfg{ $key}}, $value);
 			}
 			else {
-				die "Paramater $key already exists" if( exists( $cfg{ $key}));
+				die "Parameter $key already exists" if( exists( $cfg{ $key}));
 				$cfg{ $key} = $value;
 			}
 		}

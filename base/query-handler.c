@@ -58,7 +58,7 @@ const char *qh_strerror(int code)
 	switch (code) {
 		/* client errors */
 	case 400: return "Bad request";
-	case 401: return "Unathorized";
+	case 401: return "Unauthorized";
 	case 403: return "Forbidden (disabled by config)";
 	case 404: return "Not found";
 	case 405: return "Method not allowed";

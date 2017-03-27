@@ -22,7 +22,7 @@ Additional CGIs:
 ----------------
 
 - traceroute.cgi is (surprise) a CGI that allows you to do a traceroute
-  to a specific IP address.  Simply do a 'chmod +x' to make it executeable
+  to a specific IP address.  Simply do a 'chmod +x' to make it executable
   and place it in the CGI directory (i.e. /usr/local/nagios/sbin).
   Requires Perl.
 

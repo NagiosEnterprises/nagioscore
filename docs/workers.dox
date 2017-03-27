@@ -29,7 +29,7 @@ fairly simple and very easy to debug. The breakdown goes as follows:
 nul byte ('\0').
 @li Each request is separated from the next with a message delimiter
 sequence made up by a one-byte followed by three nul bytes: "\1\0\0\0".
-@li Keys cannot containt equal signs.
+@li Keys cannot contain equal signs.
 underscores and numbers.
 @li Values cannot contain nul bytes.
 @li Neither keys nor values can contain the message delimiter.

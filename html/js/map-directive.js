@@ -280,7 +280,7 @@ angular.module("mapApp")
 					}
 				});
 
-				// Get the serivces of the children of a specific node
+				// Get the services of the children of a specific node
 				var getServiceList = function() {
 
 					var parameters = {
@@ -509,7 +509,7 @@ angular.module("mapApp")
 					}
 				};
 
-				// Deteremine the amount of text padding due to an icon
+				// Determine the amount of text padding due to an icon
 				var getIconTextPadding = function(d) {
 					var iconHeight = 0, iconWidth = 0;
 					if (d.hostInfo.hasOwnProperty("iconInfo")) {
@@ -1060,11 +1060,11 @@ angular.module("mapApp")
 					// Sort the hosts array
 					hosts.sort();
 
-					// First remove any childen of the node that are not
+					// First remove any children of the node that are not
 					// in the list of hosts
 					if (node.hasOwnProperty("children") &&
 								node.children != null) {
-						node.childen = node.children.filter(function(e) {
+						node.children = node.children.filter(function(e) {
 							return findElement(hosts, e.hostInfo.name,
 									function(list, index) {
 										return list[index];
@@ -1086,7 +1086,7 @@ angular.module("mapApp")
 
 					// If the node has no children and the host list
 					// does, create the property and initialize it
-					if (!node.hasOwnProperty("chlidren") ||
+					if (!node.hasOwnProperty("children") ||
 							node.children == null) {
 						node.children = new Array;
 					}
@@ -1713,7 +1713,7 @@ angular.module("mapApp")
 				};
 
 				// Get an object attribute in a generic way that checks for
-				// the existance of all attributes in the hierarchy
+				// the existence of all attributes in the hierarchy
 				var getObjAttr = function(d, attrs, nilval) {
 
 					if(d.hasOwnProperty("hostInfo")) {
@@ -1730,7 +1730,7 @@ angular.module("mapApp")
 				};
 
 				// Determine how long an object has been in it's 
-				// curret state
+				// current state
 				var getStateDuration = function(d) {
 					var now = new Date;
 					var duration;
@@ -2077,7 +2077,7 @@ angular.module("mapApp")
 					}
 				};
 
-				// Update the map for partion displays
+				// Update the map for partition displays
 				var updatePartitionMap = function(source, reparent) {
 
 					// The svg element that holds it all
@@ -2131,7 +2131,7 @@ angular.module("mapApp")
 							return d.id || (d.id = ++$scope.nodeID);
 						});
 
-					// Traverse the data, artifically setting the layout
+					// Traverse the data, artificially setting the layout
 					//for collapsed children
 					updateToggledNodes($scope.hostTree,
 							updateDescendantsOnCollapse);
@@ -2426,7 +2426,7 @@ angular.module("mapApp")
 					var selection = d3.select(node);
 
 					// Display the circle if the node has no icon or
-					// icons are supressed
+					// icons are suppressed
 					if(!$scope.showIcons ||
 							d.hostInfo.objectJSON.icon_image == "") {
 						selection.append("circle")
@@ -2754,7 +2754,7 @@ angular.module("mapApp")
 					var selection = d3.select(node);
 
 					// Display the circle if the node has no icon or
-					// icons are supressed
+					// icons are suppressed
 					if(!$scope.showIcons ||
 							d.hostInfo.objectJSON.icon_image == "") {
 						selection.append("circle")
@@ -2921,7 +2921,7 @@ angular.module("mapApp")
 					// Note: reparenting the tree is not implemented
 					// because the map doesn't appear any different
 					// after reparenting. However, reparenting would
-					// affect what is collapesd/expanded when an
+					// affect what is collapsed/expanded when an
 					// interior node is click, so it eventually may
 					// make sense.
 					toggleNode(d);

@@ -62,7 +62,7 @@ typedef struct pqueue_t
     pqueue_set_pri_f setpri; /**< callback to set priority of a node */
     pqueue_get_pos_f getpos; /**< callback to get position of a node */
     pqueue_set_pos_f setpos; /**< callback to set position of a node */
-    void **d;                /**< The actualy queue in binary heap form */
+    void **d;                /**< The actual queue in binary heap form */
 } pqueue_t;
 
 

@@ -84,7 +84,7 @@ oreo.prototype.get = function(name)
 *                   null          -1 or > 0  Sets an empty cookie
 *                   unset         any        Expire / remove it
 *
-*              parms.domain and/or parms.path will override domaid and/or
+*              parms.domain and/or parms.path will override domain and/or
 *              path in the constructor.
 *
 * Returns:     Nothing

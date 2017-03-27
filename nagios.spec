@@ -104,7 +104,7 @@ CFLAGS="%{mycflags} %{myXcflags}" LDFLAGS="$CFLAGS" %configure \
 find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-march=nocona/g" Makefile {} \; -print
 %{__make} %{?_smp_mflags} all
 
-### Build our documentaiton
+### Build our documentation
 %{__make} dox
 
 ### Apparently contrib does not obey configure !

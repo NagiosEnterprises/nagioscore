@@ -286,7 +286,7 @@ angular.module("trendsApp")
 					d3.select("g#groupXAxis").select("path").remove();
 				};
 
-				// Handle a succesful availabilty response
+				// Handle a succesful availability response
 				var onAvailabilitySuccess = function(json) {
 
 					// Local layout variables
@@ -588,7 +588,7 @@ angular.module("trendsApp")
 					// Get the new domain
 					var domain = $scope.xScale.domain();
 
-					// Determin the new start and end times
+					// Determine the new start and end times
 					var start = Math.round(domain[0].getTime() / 1000);
 					var end = Math.round(domain[1].getTime() / 1000);
 					if(start == end) {

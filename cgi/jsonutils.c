@@ -128,7 +128,7 @@ const string_value_mapping svm_service_states[] = {
 const string_value_mapping svm_check_options[] = {
 	{ "force_execution", CHECK_OPTION_FORCE_EXECUTION, "FORCE_EXECUTION" },
 	{ "freshness_check", CHECK_OPTION_FRESHNESS_CHECK, "FRESHNESS_CHECK" },
-	{ "ophan_check", CHECK_OPTION_ORPHAN_CHECK, "ORPHAN_CHECK" },
+	{ "orphan_check", CHECK_OPTION_ORPHAN_CHECK, "ORPHAN_CHECK" },
 	{ NULL, -1, NULL },
 	};
 
@@ -184,7 +184,7 @@ const string_value_mapping svm_option_types[] = {
 	{ "down", OPT_DOWN, "Down" },
 	{ "unreachable", OPT_UNREACHABLE, "Unreachable" },
 	{ "ok", OPT_OK, "OK" },
-	{ "unkwown", OPT_UNKNOWN, "Unknown" },
+	{ "unknown", OPT_UNKNOWN, "Unknown" },
 	{ "warning", OPT_WARNING, "Warning" },
 	{ "critical", OPT_CRITICAL, "Critical" },
 	{ "recovery", OPT_RECOVERY, "Recovery" },
@@ -1415,7 +1415,7 @@ char *json_escape_string(const char *src, const json_escape *escapes) {
 	wchar_t	*fromp;		/* pointer to a found "from" string */
 	long	offset;		/* offset from beginning of wdest to a "from" string */
 	size_t	wchars;		/* number of wide characters to move */
-	size_t	dest_len;	/* length of ouput string "dest" */
+	size_t	dest_len;	/* length of output string "dest" */
 	char	*dest;		/* buffer containing the escaped version of src */
 
 	/* Make sure we're passed valid parameters */

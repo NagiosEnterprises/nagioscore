@@ -25,7 +25,7 @@
  */
 
 /* '## __VA_ARGS__' is a gcc'ism. C99 doesn't allow the token pasting
-   and requires the caller to add the final comma if they've ommitted
+   and requires the caller to add the final comma if they've omitted
    the optional arguments */
 #ifdef __GNUC__
 # define ok(e, test, ...) ((e) ?					\

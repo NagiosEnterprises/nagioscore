@@ -481,7 +481,7 @@ int register_downtime(int type, unsigned long downtime_id) {
 			Nagios and the downtime was in effect when we last shutdown
 			Nagios, so we should restart the flexible downtime now. This
 			should work even if the downtime has ended because the
-			handle_scheduled_dowtime() function will immediately schedule
+			handle_scheduled_downtime() function will immediately schedule
 			another downtime event which will end the downtime. */
 		if((new_downtime_id = (unsigned long *)malloc(sizeof(unsigned long)))) {
 			*new_downtime_id = downtime_id;

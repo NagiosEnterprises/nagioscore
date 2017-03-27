@@ -185,7 +185,7 @@ option_help object_json_help[] = {
 		{ "all", NULL },
 		{ NULL },
 		NULL,
-		"Specifies the type of query to be exeuted.",
+		"Specifies the type of query to be executed.",
 		valid_queries
 		},
 	{ 
@@ -235,7 +235,7 @@ option_help object_json_help[] = {
 		{ NULL },
 		{ "hostcount", "hostlist", "servicecount", "servicelist", NULL },
 		NULL,
-		"Limits the hosts or serivces returned to those whose host parent is specified. A value of 'none' returns all hosts or services reachable directly by the Nagios core host.",
+		"Limits the hosts or services returned to those whose host parent is specified. A value of 'none' returns all hosts or services reachable directly by the Nagios core host.",
 		parent_host_extras
 		},
 	{ 
@@ -245,7 +245,7 @@ option_help object_json_help[] = {
 		{ NULL },
 		{ "hostcount", "hostlist", "servicecount", "servicelist", NULL },
 		NULL,
-		"Limits the hosts or serivces returned to those whose having the host specified as a child host. A value of 'none' returns all hosts or services with no child hosts.",
+		"Limits the hosts or services returned to those whose having the host specified as a child host. A value of 'none' returns all hosts or services with no child hosts.",
 		child_host_extras
 		},
 	{ 
@@ -305,7 +305,7 @@ option_help object_json_help[] = {
 		{ NULL },
 		{ "servicecount", "servicelist", NULL },
 		NULL,
-		"Limits the serivces returned to those whose service parent has the name specified. A value of 'none' returns all services with no service parent.",
+		"Limits the services returned to those whose service parent has the name specified. A value of 'none' returns all services with no service parent.",
 		parent_service_extras
 		},
 	{
@@ -315,7 +315,7 @@ option_help object_json_help[] = {
 		{ NULL },
 		{ "servicecount", "servicelist", NULL },
 		NULL,
-		"Limits the serivces returned to those whose having the named service as a child service. A value of 'none' returns all services with no child services.",
+		"Limits the services returned to those whose having the named service as a child service. A value of 'none' returns all services with no child services.",
 		child_service_extras
 		},
 	{ 
@@ -3750,11 +3750,11 @@ void json_object_service_details(json_object *json_details,
 #ifdef JSON_NAGIOS_4X
 #if 0
 	if( CORE3_COMPATIBLE) {
-		json_object_append_boolean(json_details, "flap_dectetion_on_ok", 
+		json_object_append_boolean(json_details, "flap_detection_on_ok", 
 				flag_isset(temp_service->flap_detection_options, OPT_OK));
-		json_object_append_boolean(json_details, "flap_dectetion_on_warning", 
+		json_object_append_boolean(json_details, "flap_detection_on_warning", 
 				flag_isset(temp_service->flap_detection_options, OPT_WARNING));
-		json_object_append_boolean(json_details, "flap_dectetion_on_unknown", 
+		json_object_append_boolean(json_details, "flap_detection_on_unknown", 
 				flag_isset(temp_service->flap_detection_options, OPT_UNKNOWN));
 		json_object_append_boolean(json_details, "flap_detection_on_critical", 
 				flag_isset(temp_service->flap_detection_options, OPT_CRITICAL));
@@ -3767,11 +3767,11 @@ void json_object_service_details(json_object *json_details,
 		}
 #endif
 #else
-	json_object_append_boolean(json_details, "flap_dectetion_on_ok", 
+	json_object_append_boolean(json_details, "flap_detection_on_ok", 
 			temp_service->flap_detection_on_ok);
-	json_object_append_boolean(json_details, "flap_dectetion_on_warning", 
+	json_object_append_boolean(json_details, "flap_detection_on_warning", 
 			temp_service->flap_detection_on_warning);
-	json_object_append_boolean(json_details, "flap_dectetion_on_unknown", 
+	json_object_append_boolean(json_details, "flap_detection_on_unknown", 
 			temp_service->flap_detection_on_unknown);
 	json_object_append_boolean(json_details, "flap_detection_on_critical", 
 			temp_service->flap_detection_on_critical);

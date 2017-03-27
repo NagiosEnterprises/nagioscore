@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 		printf("\tcontactgroups\n");
 		printf("\thosts\n");
 		printf("\thostgroups\n");
-		printf("\thostgroupescalationss\n");
+		printf("\thostgroupescalations\n");
 		printf("\tservices\n");
 		printf("\tservicedependencies\n");
 		printf("\tserviceescalations\n");

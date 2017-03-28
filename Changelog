@@ -4,7 +4,7 @@ Nagios Core 4 Change Log
 
 x.x.x - xxxx-xx-xx
 ------------------
-FIXED
+FIXES
 * Every 15sec /var/log/messages is flooded with "nagios: set_environment_var" (John Frickson)
 * Changed release date to ISO format (yyyy-mm-dd) (John Frickson)
 * `make all` fails if unzip is not installed (John Frickson)
@@ -14,6 +14,9 @@ FIXED
 * Update timeperiods.cfg.in (spelling) (Parth Laxmikant Kolekar)
 * Spelling fixes (Josh Soref)
 * Vent command pipe before remove to avoid deadlocks on writing end (Kai Kunstmann)
+
+ENHANCEMENTS
+* new status for check dependencies (John Frickson)
 
 
 4.3.1 - 2017-02-23

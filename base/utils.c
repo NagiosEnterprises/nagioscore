@@ -193,6 +193,10 @@ char *use_timezone;
 int allow_empty_hostgroup_assignment;
 
 int host_down_disable_service_checks;
+int service_skip_check_dependency_status;
+int service_skip_check_parent_status;
+int service_skip_check_host_down_status;
+int host_skip_check_dependency_status;
 
 /*** perfdata variables ***/
 int     perfdata_timeout;
@@ -374,6 +378,10 @@ void init_main_cfg_vars(int first_time) {
 		allow_empty_hostgroup_assignment =
 				DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
 		host_down_disable_service_checks = FALSE;
+		service_skip_check_dependency_status = -1;
+		service_skip_check_parent_status = -1;
+		service_skip_check_host_down_status = -1;
+		host_skip_check_dependency_status = -1;
 		perfdata_timeout = 0;
 		host_perfdata_command = NULL;
 		service_perfdata_command = NULL;

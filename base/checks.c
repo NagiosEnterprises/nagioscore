@@ -1233,6 +1233,8 @@ int check_service_check_viability(service *svc, int check_options, int *time_is_
 		if(check_service_dependencies(svc, EXECUTION_DEPENDENCY) == DEPENDENCIES_FAILED) {
 			preferred_time = current_time + check_interval;
 			perform_check = FALSE;
+			if (service_skip_check_dependency_status >= 0)
+				svc->current_state = service_skip_check_dependency_status;
 
 			log_debug_info(DEBUGL_CHECKS, 2, "Execution dependencies for this service failed, so it will not be actively checked.\n");
 			}
@@ -1242,6 +1244,8 @@ int check_service_check_viability(service *svc, int check_options, int *time_is_
 		if(check_service_parents(svc) == DEPENDENCIES_FAILED) {
 			preferred_time = current_time + check_interval;
 			perform_check = FALSE;
+			if (service_skip_check_parent_status >= 0)
+				svc->current_state = service_skip_check_parent_status;
 			log_debug_info(DEBUGL_CHECKS, 2, "Execution parents for this service failed, so it will not be actively checked.\n");
 		}
 
@@ -1254,6 +1258,8 @@ int check_service_check_viability(service *svc, int check_options, int *time_is_
 				if(temp_host->current_state != HOST_UP) {
 					log_debug_info(DEBUGL_CHECKS, 2, "Host state not UP, so service check will not be performed - will be rescheduled as normal.\n");
 					perform_check = FALSE;
+					if (service_skip_check_host_down_status >= 0)
+						svc->current_state = service_skip_check_host_down_status;
 				}
 			}
 		}
@@ -2835,6 +2841,8 @@ int check_host_check_viability(host *hst, int check_options, int *time_is_valid,
 			log_debug_info(DEBUGL_CHECKS, 0, "Host check dependencies failed\n");
 			preferred_time = current_time + check_interval;
 			perform_check = FALSE;
+			if (host_skip_check_dependency_status >= 0)
+				hst->current_state = host_skip_check_dependency_status;
 			}
 		}
 

@@ -10,6 +10,10 @@ FIXED
 * `make all` fails if unzip is not installed (John Frickson)
 * Quick Search no longer allows search by Alias (John Frickson)
 * flexible downtime on a service immediately turns off notifications (John Frickson)
+* Fix to allow url_encode to be called twice (Z. Liu)
+* Update timeperiods.cfg.in (spelling) (Parth Laxmikant Kolekar)
+* Spelling fixes (Josh Soref)
+* Vent command pipe before remove to avoid deadlocks on writing end (Kai Kunstmann)
 
 
 4.3.1 - 2017-02-23

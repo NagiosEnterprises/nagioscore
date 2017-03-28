@@ -1326,23 +1326,48 @@ allow_empty_hostgroup_assignment=0
 
 
 
-# EXPERIMENTAL load controlling options
-# To get current defaults based on your system issue a command to
-# the query handler. Please note that this is an experimental feature
-# and not meant for production use. Used incorrectly it can induce
-# enormous latency.
-# #core loadctl
-#   jobs_max - The maximum amount of jobs to run at one time
-#   jobs_min - The minimum amount of jobs to run at one time
-#   jobs_limit - The maximum amount of jobs the current load lets us run
-#   backoff_limit - The minimum backoff_change
-#   backoff_change - # of jobs to remove from jobs_limit when backing off
-#   rampup_limit - Minimum rampup_change
-#   rampup_change - # of jobs to add to jobs_limit when ramping up
-# NOTE: The backoff_limit and rampup_limit are NOT used by anything currently,
-#       so if your system is under load nothing will actively modify the jobs
-#       even if you have these options enabled, they are for external
-#       connector information only.  However, if you change the jobs_max or
-#       jobs_min manually here or through the query handler interface that
-#       WILL affect your system
+# SET SERVICE/HOST STATUS WHEN SERVICE CHECK SKIPPED
+# These options will allow you to set the status of a service when its
+# service check is skipped due to one of three reasons:
+# 1) failed dependency check; 2) parent's status; 3) host not up
+# Number 3 can only happen if 'host_down_disable_service_checks' above
+# is set to 1.
+# Valid values for the service* options are:
+#     -1     Do not change the service status (default - same as before 4.4)
+#      0     Set the service status to STATE_OK
+#      1     Set the service status to STATE_WARNING
+#      2     Set the service status to STATE_CRITICAL
+#      3     Set the service status to STATE_UNKNOWN
+# The host_dependency_skip_check_status option will allow you to set the
+# status of a host when itscheck is skipped due to a failed dependency check.
+# Valid values for the host_dependency_skip_check_status are:
+#     -1     Do not change the service status (default - same as before 4.4)
+#      0     Set the host status to STATE_UP
+#      1     Set the host status to STATE_DOWN
+#      2     Set the host status to STATE_UNREACHABLE
+# We may add one or more statuses in the future.
+
+#service_skip_check_dependency_status=-1
+#service_skip_check_parent_status=-1
+#service_skip_check_host_down_status=-1
+#host_skip_check_dependency_status=-1
+
+
+
+# LOAD CONTROL OPTIONS
+# To get current defaults based on your system, issue this command to
+# the query handler:
+#    echo -e '@core loadctl\0' | nc -U /usr/local/nagios/var/rw/nagios.qh
+#
+# Please note that used incorrectly these options can induce enormous latency.
+#
+# loadctl_options:
+#   jobs_max        The maximum amount of jobs to run at one time
+#   jobs_min        The minimum amount of jobs to run at one time
+#   jobs_limit      The maximum amount of jobs the current load lets us run
+#   backoff_limit   The minimum backoff_change
+#   backoff_change  # of jobs to remove from jobs_limit when backing off
+#   rampup_limit    Minimum rampup_change
+#   rampup_change   # of jobs to add to jobs_limit when ramping up
+
 #loadctl_options=jobs_max=100;backoff_limit=10;rampup_change=5

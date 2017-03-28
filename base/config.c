@@ -1172,6 +1172,38 @@ int read_main_config_file(char *main_config_file) {
 		else if(!strcmp(variable,"host_down_disable_service_checks")) {
 			host_down_disable_service_checks = strtoul(value, NULL, 0);
 		}
+		else if(!strcmp(variable,"service_skip_check_dependency_status")) {
+			service_skip_check_dependency_status = atoi(value);
+			if(service_skip_check_dependency_status < -1 || service_skip_check_dependency_status > 3) {
+				asprintf(&error_message, "Illegal value for service_skip_check_dependency_status");
+				error = TRUE;
+				break;
+			}
+		}
+		else if(!strcmp(variable,"service_skip_check_parent_status")) {
+			service_skip_check_parent_status = atoi(value);
+			if(service_skip_check_parent_status < -1 || service_skip_check_parent_status > 3) {
+				asprintf(&error_message, "Illegal value for service_skip_check_parent_status");
+				error = TRUE;
+				break;
+			}
+		}
+		else if(!strcmp(variable,"service_skip_check_host_down_status")) {
+			service_skip_check_host_down_status = atoi(value);
+			if(service_skip_check_host_down_status < -1 || service_skip_check_host_down_status > 3) {
+				asprintf(&error_message, "Illegal value for service_skip_check_host_down_status");
+				error = TRUE;
+				break;
+			}
+		}
+		else if(!strcmp(variable,"host_skip_check_dependency_status")) {
+			host_skip_check_dependency_status = atoi(value);
+			if(host_skip_check_dependency_status < -1 || host_skip_check_dependency_status > 3) {
+				asprintf(&error_message, "Illegal value for host_skip_check_dependency_status");
+				error = TRUE;
+				break;
+			}
+		}
 		/* we don't know what this variable is... */
 		else {
 			asprintf(&error_message, "UNKNOWN VARIABLE");

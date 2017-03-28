@@ -35,6 +35,9 @@ FIXES
 * Quick search with no hits shows a permission denied error (John Frickson)
 * Setting a service as its own parent is not caught by the sanity checker (-v) and causes a segfault (John Frickson)
 
+ENHANCEMENTS
+* new status for check dependencies (John Frickson)
+
 
 4.3.1 - 2017-02-23
 ------------------

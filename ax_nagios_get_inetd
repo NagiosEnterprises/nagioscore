@@ -115,7 +115,7 @@ AC_SUBST(inetd_type)
 						inetd_type=`UNIX95= ps -A -o comm | grep inetd | head -1`,
 
 					[*],
-						inetd_type=[`ps -C "inetd,xinetd" -o fname | grep -vi COMMAND`])
+						inetd_type=[`ps -C "inetd,xinetd" -o fname | grep -vi COMMAND | head -1`])
 			fi
 
 			if test x"$inetd_type" = x; then

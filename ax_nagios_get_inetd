@@ -93,29 +93,30 @@ AC_SUBST(inetd_type)
 
 			inetd_disabled=""
 
-			if test x"$init_type" = "xupstart"; then
-				inetd_type="upstart"
-			elif test "$opsys" = "osx"; then
-				inetd_type="launchd"
-			fi
+			AS_CASE([$dist_type],
+				[solaris],
+					if test x"$init_type" = "xsmf10" -o x"$init_type" = "xsmf11"; then
+						inetd_type="$init_type"
+					else
+						inetd_type="inetd"
+					fi,
+
+				[*bsd*],
+					inetd_type=`ps -A -o comm -c | grep inetd`,
+
+				[osx],
+					inetd_type=`launchd`,
+
+				[aix|hp-ux],
+					inetd_type=`UNIX95= ps -A -o comm | grep inetd | head -1`,
+
+				[*],
+					inetd_type=[`ps -C "inetd,xinetd" -o fname | grep -vi COMMAND | head -1`])
 
 			if test x"$inetd_type" = x; then
-				AS_CASE([$dist_type],
-					[solaris],
-						if test x"$init_type" = "xsmf10" -o x"$init_type" = "xsmf11"; then
-							inetd_type="$init_type"
-						else
-							inetd_type="inetd"
-						fi,
-
-					[*bsd*],
-						inetd_type=`ps -A -o comm -c | grep inetd`,
-
-					[aix|hp-ux],
-						inetd_type=`UNIX95= ps -A -o comm | grep inetd | head -1`,
-
-					[*],
-						inetd_type=[`ps -C "inetd,xinetd" -o fname | grep -vi COMMAND | head -1`])
+				if test x"$init_type" = "xupstart"; then
+					inetd_type="upstart"
+				fi
 			fi
 
 			if test x"$inetd_type" = x; then

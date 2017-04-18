@@ -5,7 +5,7 @@
  * Program: Nagios Core Testing
  * License: GPL
  *
- * First Written:   10-08-2009, based on nagios.c
+ * First Written:	10-08-2009, based on nagios.c
  *
  * Description:
  *
@@ -45,42 +45,133 @@
 #include "stub_downtime.c"
 
 /* Dummy functions */
-void logit(int data_type, int display, const char *fmt, ...) {}
-int my_sendall(int s, char *buf, int *len, int timeout) { return 0; }
-void free_comment_data(void) {}
-int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) { return 0; }
-int log_debug_info(int level, int verbosity, const char *fmt, ...) { return 0; }
+void logit(int data_type, int display, const char *fmt, ...)
+{
+}
 
-int neb_free_callback_list(void) { return 0; }
-void broker_program_status(int type, int flags, int attr, struct timeval *timestamp) {}
-int neb_deinit_modules(void) { return 0; }
-void broker_program_state(int type, int flags, int attr, struct timeval *timestamp) {}
-void broker_comment_data(int type, int flags, int attr, int comment_type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long comment_id, struct timeval *timestamp) {}
-int neb_unload_all_modules(int flags, int reason) { return 0; }
-int neb_add_module(char *filename, char *args, int should_be_loaded) { return 0; }
-void broker_system_command(int type, int flags, int attr, struct timeval start_time, struct timeval end_time, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *output, struct timeval *timestamp) {}
+int my_sendall(int s, char *buf, int *len, int timeout)
+{
+	return 0;
+}
 
-timed_event *schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args, int event_options) { return NULL; }
-int my_tcp_connect(char *host_name, int port, int *sd, int timeout) { return 0; }
-int my_recvall(int s, char *buf, int *len, int timeout) { return 0; }
-int neb_free_module_list(void) { return 0; }
-int close_command_file(void) { return 0; }
-int close_log_file(void) { return 0; }
-int fix_log_file_owner(uid_t uid, gid_t gid) { return 0; }
-int handle_async_service_check_result(service *temp_service, check_result *queued_check_result) { return 0; }
-int handle_async_host_check_result(host *temp_host, check_result *queued_check_result) { return 0; }
+void free_comment_data(void)
+{
+}
 
-int main(int argc, char **argv) {
-	int result;
-	int c = 0;
-	time_t current_time;
-	time_t test_time;
-	time_t saved_test_time;
-	time_t next_valid_time = 0L;
-	time_t chosen_valid_time = 0L;
+int write_to_log(char *buffer, unsigned long data_type, time_t * timestamp)
+{
+	return 0;
+}
+
+int log_debug_info(int level, int verbosity, const char *fmt, ...)
+{
+	return 0;
+}
+
+int neb_free_callback_list(void)
+{
+	return 0;
+}
+
+void broker_program_status(int type, int flags, int attr, struct timeval *timestamp)
+{
+}
+
+int neb_deinit_modules(void)
+{
+	return 0;
+}
+
+void broker_program_state(int type, int flags, int attr, struct timeval *timestamp)
+{
+}
+
+void broker_comment_data(int type, int flags, int attr, int comment_type, int entry_type,
+						 char *host_name, char *svc_description, time_t entry_time,
+						 char *author_name, char *comment_data, int persistent, int source,
+						 int expires, time_t expire_time, unsigned long comment_id,
+						 struct timeval *timestamp)
+{
+}
+
+int neb_unload_all_modules(int flags, int reason)
+{
+	return 0;
+}
+
+int neb_add_module(char *filename, char *args, int should_be_loaded)
+{
+	return 0;
+}
+
+void broker_system_command(int type, int flags, int attr, struct timeval start_time,
+						   struct timeval end_time, double exectime, int timeout,
+						   int early_timeout, int retcode, char *cmd, char *output,
+						   struct timeval *timestamp)
+{
+}
+
+timed_event *schedule_new_event(int event_type, int high_priority, time_t run_time,
+								int recurring, unsigned long event_interval, void *timing_func,
+								int compensate_for_time_change, void *event_data,
+								void *event_args, int event_options)
+{
+	return NULL;
+}
+
+int my_tcp_connect(char *host_name, int port, int *sd, int timeout)
+{
+	return 0;
+}
+
+int my_recvall(int s, char *buf, int *len, int timeout)
+{
+	return 0;
+}
+
+int neb_free_module_list(void)
+{
+	return 0;
+}
+
+int close_command_file(void)
+{
+	return 0;
+}
+
+int close_log_file(void)
+{
+	return 0;
+}
+
+int fix_log_file_owner(uid_t uid, gid_t gid)
+{
+	return 0;
+}
+
+int handle_async_service_check_result(service * temp_service,
+									  check_result * queued_check_result)
+{
+	return 0;
+}
+
+int handle_async_host_check_result(host * temp_host, check_result * queued_check_result)
+{
+	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	int 		result;
+	int 		c = 0;
+	time_t		current_time;
+	time_t		test_time;
+	time_t		saved_test_time;
+	time_t		next_valid_time = 0L;
+	time_t		chosen_valid_time = 0L;
 	timeperiod *temp_timeperiod = NULL;
-	int is_valid_time = 0;
-	int iterations = 1000;
+	int 		is_valid_time = 0;
+	int 		iterations = 1000;
 
 	plan_tests(6046);
 
@@ -118,7 +209,8 @@ int main(int argc, char **argv) {
 	ok(is_valid_time == OK, "Fine because 24x7");
 
 	get_next_valid_time(current_time, &next_valid_time, temp_timeperiod);
-	ok((next_valid_time - current_time) <= 2, "Next valid time should be the current_time, but with a 2 second tolerance");
+	ok((next_valid_time - current_time) <= 2,
+	   "Next valid time should be the current_time, but with a 2 second tolerance");
 
 
 	/* 2009-10-25 is the day when clocks go back an hour in Europe. Bug happens during 23:00 to 00:00 */
@@ -130,7 +222,7 @@ int main(int argc, char **argv) {
 	tzset();
 	test_time = saved_test_time;
 	c = 0;
-	while(c < iterations) {
+	while (c < iterations) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 		ok(is_valid_time == OK, "Always OK for 24x7 with TZ=UTC, time_t=%lu", test_time);
 		chosen_valid_time = 0L;
@@ -138,20 +230,22 @@ int main(int argc, char **argv) {
 		ok(test_time == chosen_valid_time, "get_next_valid_time always returns same time");
 		test_time += 1800;
 		c++;
-		}
+	}
 
 	putenv("TZ=Europe/London");
 	tzset();
 	test_time = saved_test_time;
 	c = 0;
-	while(c < iterations) {
+	while (c < iterations) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
-		ok(is_valid_time == OK, "Always OK for 24x7 with TZ=Europe/London, time_t=%lu", test_time);
+		ok(is_valid_time == OK, "Always OK for 24x7 with TZ=Europe/London, time_t=%lu",
+		   test_time);
 		_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
-		ok(test_time == chosen_valid_time, "get_next_valid_time always returns same time, time_t=%lu", test_time);
+		ok(test_time == chosen_valid_time,
+		   "get_next_valid_time always returns same time, time_t=%lu", test_time);
 		test_time += 1800;
 		c++;
-		}
+	}
 
 	/* 2009-11-01 is the day when clocks go back an hour in America. Bug happens during 23:00 to 00:00 */
 	/* This is 23:01:01 */
@@ -162,20 +256,22 @@ int main(int argc, char **argv) {
 	tzset();
 	test_time = saved_test_time;
 	c = 0;
-	while(c < iterations) {
+	while (c < iterations) {
 		is_valid_time = check_time_against_period(test_time, temp_timeperiod);
-		ok(is_valid_time == OK, "Always OK for 24x7 with TZ=America/New_York, time_t=%lu", test_time);
+		ok(is_valid_time == OK, "Always OK for 24x7 with TZ=America/New_York, time_t=%lu",
+		   test_time);
 		_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
-		ok(test_time == chosen_valid_time, "get_next_valid_time always returns same time, time_t=%lu", test_time);
+		ok(test_time == chosen_valid_time,
+		   "get_next_valid_time always returns same time, time_t=%lu", test_time);
 		test_time += 1800;
 		c++;
-		}
+	}
 
 
 
 	/* Tests around clock change going back for TZ=Europe/London. 1256511661 = Sun Oct
-	25 23:01:01 2009 */
-	/* A little trip to Paris*/
+	   25 23:01:01 2009 */
+	/* A little trip to Paris */
 	putenv("TZ=Europe/Paris");
 	tzset();
 
@@ -183,47 +279,56 @@ int main(int argc, char **argv) {
 	/* Timeperiod exclude tests, from Jean Gabes */
 	temp_timeperiod = find_timeperiod("Test_exclude");
 	ok(temp_timeperiod != NULL, "Testing Exclude timeperiod");
-	test_time = 1278939600; //mon jul 12 15:00:00
+	test_time = 1278939600; 	//mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
 
 	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
-	ok(chosen_valid_time == 1288103400, "Next valid time should be Tue Oct 26 16:30:00 2010, was %s", ctime(&chosen_valid_time));
+	ok(chosen_valid_time == 1288103400,
+	   "Next valid time should be Tue Oct 26 16:30:00 2010, was %s",
+	   ctime(&chosen_valid_time));
 
 
 	temp_timeperiod = find_timeperiod("Test_exclude2");
 	ok(temp_timeperiod != NULL, "Testing Exclude timeperiod 2");
-	test_time = 1278939600; //mon jul 12 15:00:00
+	test_time = 1278939600; 	//mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
 	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
-	ok(chosen_valid_time == 1279058340, "Next valid time should be Tue Jul 13 23:59:00 2010, was %s", ctime(&chosen_valid_time));
+	ok(chosen_valid_time == 1279058340,
+	   "Next valid time should be Tue Jul 13 23:59:00 2010, was %s",
+	   ctime(&chosen_valid_time));
 
 
 	temp_timeperiod = find_timeperiod("Test_exclude3");
 	ok(temp_timeperiod != NULL, "Testing Exclude timeperiod 3");
-	test_time = 1278939600; //mon jul 12 15:00:00
+	test_time = 1278939600; 	//mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
 	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
-	ok(chosen_valid_time == 1284474600, "Next valid time should be Tue Sep 14 16:30:00 2010, was %s", ctime(&chosen_valid_time));
+	ok(chosen_valid_time == 1284474600,
+	   "Next valid time should be Tue Sep 14 16:30:00 2010, was %s",
+	   ctime(&chosen_valid_time));
 
 
 	temp_timeperiod = find_timeperiod("Test_exclude4");
 	ok(temp_timeperiod != NULL, "Testing Exclude timeperiod 4");
-	test_time = 1278939600; //mon jul 12 15:00:00
+	test_time = 1278939600; 	//mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
 	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
-	ok(chosen_valid_time == 1283265000, "Next valid time should be Tue Aug 31 16:30:00 2010, was %s", ctime(&chosen_valid_time));
+	ok(chosen_valid_time == 1283265000,
+	   "Next valid time should be Tue Aug 31 16:30:00 2010, was %s",
+	   ctime(&chosen_valid_time));
 
 	temp_timeperiod = find_timeperiod("exclude_always");
 	ok(temp_timeperiod != NULL, "Testing exclude always");
-	test_time = 1278939600; //mon jul 12 15:00:00
+	test_time = 1278939600; 	//mon jul 12 15:00:00
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "12 Jul 2010 15:00:00 should not be valid");
 	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
-	ok(chosen_valid_time == test_time, "There should be no next valid time, was %s", ctime(&chosen_valid_time));
+	ok(chosen_valid_time == test_time, "There should be no next valid time, was %s",
+	   ctime(&chosen_valid_time));
 
 
 	/* Back to New york */
@@ -266,7 +371,9 @@ int main(int argc, char **argv) {
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
 	ok(is_valid_time == ERROR, "Sun Oct 25 01:26:40 2009 - false");
 	_get_next_valid_time(test_time, &chosen_valid_time, temp_timeperiod);
-	ok(chosen_valid_time == 1256440500, "Next valid time should be Sun Oct 25 03:15:00 2009, was %s", ctime(&chosen_valid_time));
+	ok(chosen_valid_time == 1256440500,
+	   "Next valid time should be Sun Oct 25 03:15:00 2009, was %s",
+	   ctime(&chosen_valid_time));
 
 	test_time = 1256440500;
 	is_valid_time = check_time_against_period(test_time, temp_timeperiod);
@@ -321,4 +428,4 @@ int main(int argc, char **argv) {
 	my_free(config_file);
 
 	return exit_status();
-	}
+}

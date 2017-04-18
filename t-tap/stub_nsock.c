@@ -1,8 +1,8 @@
 /* Stub functions for lib/nsock.c */
 static inline int nsock_vprintf(int sd, const char *fmt, va_list ap, int plus)
 {
-	char buf[4096];
-	int len;
+	char		buf[4096];
+	int 		len;
 
 	/* -2 to accommodate vsnprintf()'s which don't include nul on overflow */
 	len = vsnprintf(buf, sizeof(buf) - 2, fmt, ap);
@@ -14,8 +14,8 @@ static inline int nsock_vprintf(int sd, const char *fmt, va_list ap, int plus)
 
 int nsock_printf_nul(int sd, const char *fmt, ...)
 {
-	va_list ap;
-	int ret;
+	va_list 	ap;
+	int 		ret;
 
 	va_start(ap, fmt);
 	ret = nsock_vprintf(sd, fmt, ap, 1);
@@ -23,9 +23,10 @@ int nsock_printf_nul(int sd, const char *fmt, ...)
 	return ret;
 }
 
-int nsock_printf(int sd, const char *fmt, ...) {
-	va_list ap;
-	int ret;
+int nsock_printf(int sd, const char *fmt, ...)
+{
+	va_list 	ap;
+	int 		ret;
 
 	va_start(ap, fmt);
 	ret = nsock_vprintf(sd, fmt, ap, 0);

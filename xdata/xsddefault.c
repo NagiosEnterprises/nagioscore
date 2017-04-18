@@ -33,29 +33,29 @@
 #include "xsddefault.h"
 
 #ifdef NSCORE
-#include "../include/nagios.h"
+# include "../include/nagios.h"
 #endif
 
 #ifdef NSCGI
-#include "../include/cgiutils.h"
-time_t program_start;
-int daemon_mode;
-time_t last_log_rotation;
-int enable_notifications;
-int execute_service_checks;
-int accept_passive_service_checks;
-int execute_host_checks;
-int accept_passive_host_checks;
-int enable_event_handlers;
-int obsess_over_services;
-int obsess_over_hosts;
-int check_service_freshness;
-int check_host_freshness;
-int enable_flap_detection;
-int process_performance_data;
-int nagios_pid;
-int buffer_stats[1][3];
-int program_stats[MAX_CHECK_STATS_TYPES][3];
+# include "../include/cgiutils.h"
+time_t		program_start;
+int 		daemon_mode;
+time_t		last_log_rotation;
+int 		enable_notifications;
+int 		execute_service_checks;
+int 		accept_passive_service_checks;
+int 		execute_host_checks;
+int 		accept_passive_host_checks;
+int 		enable_event_handlers;
+int 		obsess_over_services;
+int 		obsess_over_hosts;
+int 		check_service_freshness;
+int 		check_host_freshness;
+int 		enable_flap_detection;
+int 		process_performance_data;
+int 		nagios_pid;
+int 		buffer_stats[1][3];
+int 		program_stats[MAX_CHECK_STATS_TYPES][3];
 #endif
 
 #ifdef NSCORE
@@ -66,45 +66,47 @@ int program_stats[MAX_CHECK_STATS_TYPES][3];
 
 
 /* initialize status data */
-int xsddefault_initialize_status_data(const char *cfgfile) {
+int xsddefault_initialize_status_data(const char *cfgfile)
+{
 	nagios_macros *mac;
 
 	/* initialize locations if necessary */
-	if(!status_file)
+	if (!status_file)
 		status_file = (char *)strdup(DEFAULT_STATUS_FILE);
 
 	/* make sure we have what we need */
-	if(status_file == NULL)
+	if (status_file == NULL)
 		return ERROR;
 
 	mac = get_global_macros();
 	/* save the status file macro */
 	my_free(mac->x[MACRO_STATUSDATAFILE]);
-	if((mac->x[MACRO_STATUSDATAFILE] = (char *)strdup(status_file)))
+	if ((mac->x[MACRO_STATUSDATAFILE] = (char *)strdup(status_file)))
 		strip(mac->x[MACRO_STATUSDATAFILE]);
 
 	/* delete the old status log (it might not exist) */
-	if(status_file)
+	if (status_file)
 		unlink(status_file);
 
 	return OK;
-	}
+}
 
 
 /* cleanup status data before terminating */
-int xsddefault_cleanup_status_data(int delete_status_data) {
+int xsddefault_cleanup_status_data(int delete_status_data)
+{
 
 	/* delete the status log */
-	if(delete_status_data == TRUE && status_file) {
-		if(unlink(status_file))
+	if (delete_status_data == TRUE && status_file) {
+		if (unlink(status_file))
 			return ERROR;
-		}
+	}
 
 	/* free memory */
 	my_free(status_file);
 
 	return OK;
-	}
+}
 
 
 /******************************************************************/
@@ -112,62 +114,67 @@ int xsddefault_cleanup_status_data(int delete_status_data) {
 /******************************************************************/
 
 /* write all status data to file */
-int xsddefault_save_status_data(void) {
-	char *tmp_log = NULL;
+int xsddefault_save_status_data(void)
+{
+	char	   *tmp_log = NULL;
 	customvariablesmember *temp_customvariablesmember = NULL;
-	host *temp_host = NULL;
-	service *temp_service = NULL;
-	contact *temp_contact = NULL;
+	host	   *temp_host = NULL;
+	service    *temp_service = NULL;
+	contact    *temp_contact = NULL;
 	nagios_comment *temp_comment = NULL;
 	scheduled_downtime *temp_downtime = NULL;
-	time_t current_time;
-	int fd = 0;
-	FILE *fp = NULL;
-	int result = OK;
+	time_t		current_time;
+	int 		fd = 0;
+	FILE	   *fp = NULL;
+	int 		result = OK;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "save_status_data()\n");
 
 	/* users may not want us to write status data */
-	if(!status_file || !strcmp(status_file, "/dev/null"))
+	if (!status_file || !strcmp(status_file, "/dev/null"))
 		return OK;
 
 	asprintf(&tmp_log, "%sXXXXXX", temp_file);
-	if(tmp_log == NULL)
+	if (tmp_log == NULL)
 		return ERROR;
 
 	log_debug_info(DEBUGL_STATUSDATA, 2, "Writing status data to temp file '%s'\n", tmp_log);
 
-	if((fd = mkstemp(tmp_log)) == -1) {
+	if ((fd = mkstemp(tmp_log)) == -1) {
 
 		/* log an error */
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to create temp file '%s' for writing status data: %s\n", tmp_log, strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR, TRUE,
+			  "Error: Unable to create temp file '%s' for writing status data: %s\n", tmp_log,
+			  strerror(errno));
 
 		/* free memory */
 		my_free(tmp_log);
 
 		return ERROR;
-		}
-	fp = (FILE *)fdopen(fd, "w");
-	if(fp == NULL) {
+	}
+	fp = (FILE *) fdopen(fd, "w");
+	if (fp == NULL) {
 
 		close(fd);
 		unlink(tmp_log);
 
 		/* log an error */
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to open temp file '%s' for writing status data: %s\n", tmp_log, strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR, TRUE,
+			  "Error: Unable to open temp file '%s' for writing status data: %s\n", tmp_log,
+			  strerror(errno));
 
 		/* free memory */
 		my_free(tmp_log);
 
 		return ERROR;
-		}
+	}
 
 	/* generate check statistics */
 	generate_check_stats();
 
 	/* write version info to status file */
 	fprintf(fp, "########################################\n");
-	fprintf(fp, "#          NAGIOS STATUS FILE\n");
+	fprintf(fp, "#			NAGIOS STATUS FILE\n");
 	fprintf(fp, "#\n");
 	fprintf(fp, "# THIS FILE IS AUTOMATICALLY GENERATED\n");
 	fprintf(fp, "# BY NAGIOS.  DO NOT MODIFY THIS FILE!\n");
@@ -181,8 +188,10 @@ int xsddefault_save_status_data(void) {
 	fprintf(fp, "\tversion=%s\n", PROGRAM_VERSION);
 	fprintf(fp, "\tlast_update_check=%llu\n", (unsigned long long)last_update_check);
 	fprintf(fp, "\tupdate_available=%d\n", update_available);
-	fprintf(fp, "\tlast_version=%s\n", (last_program_version == NULL) ? "" : last_program_version);
-	fprintf(fp, "\tnew_version=%s\n", (new_program_version == NULL) ? "" : new_program_version);
+	fprintf(fp, "\tlast_version=%s\n",
+			(last_program_version == NULL) ? "" : last_program_version);
+	fprintf(fp, "\tnew_version=%s\n",
+			(new_program_version == NULL) ? "" : new_program_version);
 	fprintf(fp, "\t}\n\n");
 
 	/* save program status data */
@@ -205,41 +214,81 @@ int xsddefault_save_status_data(void) {
 	fprintf(fp, "\tcheck_host_freshness=%d\n", check_host_freshness);
 	fprintf(fp, "\tenable_flap_detection=%d\n", enable_flap_detection);
 	fprintf(fp, "\tprocess_performance_data=%d\n", process_performance_data);
-	fprintf(fp, "\tglobal_host_event_handler=%s\n", (global_host_event_handler == NULL) ? "" : global_host_event_handler);
-	fprintf(fp, "\tglobal_service_event_handler=%s\n", (global_service_event_handler == NULL) ? "" : global_service_event_handler);
+	fprintf(fp, "\tglobal_host_event_handler=%s\n",
+			(global_host_event_handler == NULL) ? "" : global_host_event_handler);
+	fprintf(fp, "\tglobal_service_event_handler=%s\n",
+			(global_service_event_handler == NULL) ? "" : global_service_event_handler);
 	fprintf(fp, "\tnext_comment_id=%lu\n", next_comment_id);
 	fprintf(fp, "\tnext_downtime_id=%lu\n", next_downtime_id);
 	fprintf(fp, "\tnext_event_id=%lu\n", next_event_id);
 	fprintf(fp, "\tnext_problem_id=%lu\n", next_problem_id);
 	fprintf(fp, "\tnext_notification_id=%lu\n", next_notification_id);
-	fprintf(fp, "\tactive_scheduled_host_check_stats=%d,%d,%d\n", check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[0], check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[1], check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[2]);
-	fprintf(fp, "\tactive_ondemand_host_check_stats=%d,%d,%d\n", check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[0], check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[1], check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[2]);
-	fprintf(fp, "\tpassive_host_check_stats=%d,%d,%d\n", check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[0], check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[1], check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[2]);
-	fprintf(fp, "\tactive_scheduled_service_check_stats=%d,%d,%d\n", check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[0], check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[1], check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[2]);
-	fprintf(fp, "\tactive_ondemand_service_check_stats=%d,%d,%d\n", check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[0], check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[1], check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[2]);
-	fprintf(fp, "\tpassive_service_check_stats=%d,%d,%d\n", check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[0], check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[1], check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[2]);
-	fprintf(fp, "\tcached_host_check_stats=%d,%d,%d\n", check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[0], check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[1], check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[2]);
-	fprintf(fp, "\tcached_service_check_stats=%d,%d,%d\n", check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[0], check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[1], check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[2]);
-	fprintf(fp, "\texternal_command_stats=%d,%d,%d\n", check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[0], check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[1], check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[2]);
+	fprintf(fp, "\tactive_scheduled_host_check_stats=%d,%d,%d\n",
+			check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[0],
+			check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[1],
+			check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp, "\tactive_ondemand_host_check_stats=%d,%d,%d\n",
+			check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[0],
+			check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[1],
+			check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp, "\tpassive_host_check_stats=%d,%d,%d\n",
+			check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[0],
+			check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[1],
+			check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp, "\tactive_scheduled_service_check_stats=%d,%d,%d\n",
+			check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[0],
+			check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[1],
+			check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[2]);
+	fprintf(fp, "\tactive_ondemand_service_check_stats=%d,%d,%d\n",
+			check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[0],
+			check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[1],
+			check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[2]);
+	fprintf(fp, "\tpassive_service_check_stats=%d,%d,%d\n",
+			check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[0],
+			check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[1],
+			check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[2]);
+	fprintf(fp, "\tcached_host_check_stats=%d,%d,%d\n",
+			check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[0],
+			check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[1],
+			check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp, "\tcached_service_check_stats=%d,%d,%d\n",
+			check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[0],
+			check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[1],
+			check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[2]);
+	fprintf(fp, "\texternal_command_stats=%d,%d,%d\n",
+			check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[0],
+			check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[1],
+			check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[2]);
 
-	fprintf(fp, "\tparallel_host_check_stats=%d,%d,%d\n", check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[0], check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[1], check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[2]);
-	fprintf(fp, "\tserial_host_check_stats=%d,%d,%d\n", check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[0], check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[1], check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp, "\tparallel_host_check_stats=%d,%d,%d\n",
+			check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[0],
+			check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[1],
+			check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp, "\tserial_host_check_stats=%d,%d,%d\n",
+			check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[0],
+			check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[1],
+			check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[2]);
 	fprintf(fp, "\t}\n\n");
 
 
 	/* save host status data */
-	for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
+	for (temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 
 		fprintf(fp, "hoststatus {\n");
 		fprintf(fp, "\thost_name=%s\n", temp_host->name);
 
 		fprintf(fp, "\tmodified_attributes=%lu\n", temp_host->modified_attributes);
-		fprintf(fp, "\tcheck_command=%s\n", (temp_host->check_command == NULL) ? "" : temp_host->check_command);
-		fprintf(fp, "\tcheck_period=%s\n", (temp_host->check_period == NULL) ? "" : temp_host->check_period);
-		fprintf(fp, "\tnotification_period=%s\n", (temp_host->notification_period == NULL) ? "" : temp_host->notification_period);
+		fprintf(fp, "\tcheck_command=%s\n",
+				(temp_host->check_command == NULL) ? "" : temp_host->check_command);
+		fprintf(fp, "\tcheck_period=%s\n",
+				(temp_host->check_period == NULL) ? "" : temp_host->check_period);
+		fprintf(fp, "\tnotification_period=%s\n",
+				(temp_host->notification_period ==
+				 NULL) ? "" : temp_host->notification_period);
 		fprintf(fp, "\tcheck_interval=%f\n", temp_host->check_interval);
 		fprintf(fp, "\tretry_interval=%f\n", temp_host->retry_interval);
-		fprintf(fp, "\tevent_handler=%s\n", (temp_host->event_handler == NULL) ? "" : temp_host->event_handler);
+		fprintf(fp, "\tevent_handler=%s\n",
+				(temp_host->event_handler == NULL) ? "" : temp_host->event_handler);
 
 		fprintf(fp, "\thas_been_checked=%d\n", temp_host->has_been_checked);
 		fprintf(fp, "\tshould_be_scheduled=%d\n", temp_host->should_be_scheduled);
@@ -252,27 +301,37 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tcurrent_event_id=%lu\n", temp_host->current_event_id);
 		fprintf(fp, "\tcurrent_problem_id=%lu\n", temp_host->current_problem_id);
 		fprintf(fp, "\tlast_problem_id=%lu\n", temp_host->last_problem_id);
-		fprintf(fp, "\tplugin_output=%s\n", (temp_host->plugin_output == NULL) ? "" : temp_host->plugin_output);
-		fprintf(fp, "\tlong_plugin_output=%s\n", (temp_host->long_plugin_output == NULL) ? "" : temp_host->long_plugin_output);
-		fprintf(fp, "\tperformance_data=%s\n", (temp_host->perf_data == NULL) ? "" : temp_host->perf_data);
+		fprintf(fp, "\tplugin_output=%s\n",
+				(temp_host->plugin_output == NULL) ? "" : temp_host->plugin_output);
+		fprintf(fp, "\tlong_plugin_output=%s\n",
+				(temp_host->long_plugin_output == NULL) ? "" : temp_host->long_plugin_output);
+		fprintf(fp, "\tperformance_data=%s\n",
+				(temp_host->perf_data == NULL) ? "" : temp_host->perf_data);
 		fprintf(fp, "\tlast_check=%llu\n", (unsigned long long)temp_host->last_check);
 		fprintf(fp, "\tnext_check=%llu\n", (unsigned long long)temp_host->next_check);
 		fprintf(fp, "\tcheck_options=%d\n", temp_host->check_options);
 		fprintf(fp, "\tcurrent_attempt=%d\n", temp_host->current_attempt);
 		fprintf(fp, "\tmax_attempts=%d\n", temp_host->max_attempts);
 		fprintf(fp, "\tstate_type=%d\n", temp_host->state_type);
-		fprintf(fp, "\tlast_state_change=%llu\n", (unsigned long long)temp_host->last_state_change);
-		fprintf(fp, "\tlast_hard_state_change=%llu\n", (unsigned long long)temp_host->last_hard_state_change);
+		fprintf(fp, "\tlast_state_change=%llu\n",
+				(unsigned long long)temp_host->last_state_change);
+		fprintf(fp, "\tlast_hard_state_change=%llu\n",
+				(unsigned long long)temp_host->last_hard_state_change);
 		fprintf(fp, "\tlast_time_up=%llu\n", (unsigned long long)temp_host->last_time_up);
 		fprintf(fp, "\tlast_time_down=%llu\n", (unsigned long long)temp_host->last_time_down);
-		fprintf(fp, "\tlast_time_unreachable=%llu\n", (unsigned long long)temp_host->last_time_unreachable);
-		fprintf(fp, "\tlast_notification=%llu\n", (unsigned long long)temp_host->last_notification);
-		fprintf(fp, "\tnext_notification=%llu\n", (unsigned long long)temp_host->next_notification);
+		fprintf(fp, "\tlast_time_unreachable=%llu\n",
+				(unsigned long long)temp_host->last_time_unreachable);
+		fprintf(fp, "\tlast_notification=%llu\n",
+				(unsigned long long)temp_host->last_notification);
+		fprintf(fp, "\tnext_notification=%llu\n",
+				(unsigned long long)temp_host->next_notification);
 		fprintf(fp, "\tno_more_notifications=%d\n", temp_host->no_more_notifications);
-		fprintf(fp, "\tcurrent_notification_number=%d\n", temp_host->current_notification_number);
+		fprintf(fp, "\tcurrent_notification_number=%d\n",
+				temp_host->current_notification_number);
 		fprintf(fp, "\tcurrent_notification_id=%lu\n", temp_host->current_notification_id);
 		fprintf(fp, "\tnotifications_enabled=%d\n", temp_host->notifications_enabled);
-		fprintf(fp, "\tproblem_has_been_acknowledged=%d\n", temp_host->problem_has_been_acknowledged);
+		fprintf(fp, "\tproblem_has_been_acknowledged=%d\n",
+				temp_host->problem_has_been_acknowledged);
 		fprintf(fp, "\tacknowledgement_type=%d\n", temp_host->acknowledgement_type);
 		fprintf(fp, "\tactive_checks_enabled=%d\n", temp_host->checks_enabled);
 		fprintf(fp, "\tpassive_checks_enabled=%d\n", temp_host->accept_passive_checks);
@@ -285,27 +344,37 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tpercent_state_change=%.2f\n", temp_host->percent_state_change);
 		fprintf(fp, "\tscheduled_downtime_depth=%d\n", temp_host->scheduled_downtime_depth);
 		/* custom variables */
-		for(temp_customvariablesmember = temp_host->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {
-			if(temp_customvariablesmember->variable_name)
-				fprintf(fp, "\t_%s=%d;%s\n", temp_customvariablesmember->variable_name, temp_customvariablesmember->has_been_modified, (temp_customvariablesmember->variable_value == NULL) ? "" : temp_customvariablesmember->variable_value);
-			}
-		fprintf(fp, "\t}\n\n");
+		for (temp_customvariablesmember = temp_host->custom_variables;
+			 temp_customvariablesmember != NULL;
+			 temp_customvariablesmember = temp_customvariablesmember->next) {
+			if (temp_customvariablesmember->variable_name)
+				fprintf(fp, "\t_%s=%d;%s\n", temp_customvariablesmember->variable_name,
+						temp_customvariablesmember->has_been_modified,
+						(temp_customvariablesmember->variable_value ==
+						 NULL) ? "" : temp_customvariablesmember->variable_value);
 		}
+		fprintf(fp, "\t}\n\n");
+	}
 
 	/* save service status data */
-	for(temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
+	for (temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
 
 		fprintf(fp, "servicestatus {\n");
 		fprintf(fp, "\thost_name=%s\n", temp_service->host_name);
 
 		fprintf(fp, "\tservice_description=%s\n", temp_service->description);
 		fprintf(fp, "\tmodified_attributes=%lu\n", temp_service->modified_attributes);
-		fprintf(fp, "\tcheck_command=%s\n", (temp_service->check_command == NULL) ? "" : temp_service->check_command);
-		fprintf(fp, "\tcheck_period=%s\n", (temp_service->check_period == NULL) ? "" : temp_service->check_period);
-		fprintf(fp, "\tnotification_period=%s\n", (temp_service->notification_period == NULL) ? "" : temp_service->notification_period);
+		fprintf(fp, "\tcheck_command=%s\n",
+				(temp_service->check_command == NULL) ? "" : temp_service->check_command);
+		fprintf(fp, "\tcheck_period=%s\n",
+				(temp_service->check_period == NULL) ? "" : temp_service->check_period);
+		fprintf(fp, "\tnotification_period=%s\n",
+				(temp_service->notification_period ==
+				 NULL) ? "" : temp_service->notification_period);
 		fprintf(fp, "\tcheck_interval=%f\n", temp_service->check_interval);
 		fprintf(fp, "\tretry_interval=%f\n", temp_service->retry_interval);
-		fprintf(fp, "\tevent_handler=%s\n", (temp_service->event_handler == NULL) ? "" : temp_service->event_handler);
+		fprintf(fp, "\tevent_handler=%s\n",
+				(temp_service->event_handler == NULL) ? "" : temp_service->event_handler);
 
 		fprintf(fp, "\thas_been_checked=%d\n", temp_service->has_been_checked);
 		fprintf(fp, "\tshould_be_scheduled=%d\n", temp_service->should_be_scheduled);
@@ -321,28 +390,41 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tcurrent_attempt=%d\n", temp_service->current_attempt);
 		fprintf(fp, "\tmax_attempts=%d\n", temp_service->max_attempts);
 		fprintf(fp, "\tstate_type=%d\n", temp_service->state_type);
-		fprintf(fp, "\tlast_state_change=%llu\n", (unsigned long long)temp_service->last_state_change);
-		fprintf(fp, "\tlast_hard_state_change=%llu\n", (unsigned long long)temp_service->last_hard_state_change);
+		fprintf(fp, "\tlast_state_change=%llu\n",
+				(unsigned long long)temp_service->last_state_change);
+		fprintf(fp, "\tlast_hard_state_change=%llu\n",
+				(unsigned long long)temp_service->last_hard_state_change);
 		fprintf(fp, "\tlast_time_ok=%llu\n", (unsigned long long)temp_service->last_time_ok);
-		fprintf(fp, "\tlast_time_warning=%llu\n", (unsigned long long)temp_service->last_time_warning);
-		fprintf(fp, "\tlast_time_unknown=%llu\n", (unsigned long long)temp_service->last_time_unknown);
-		fprintf(fp, "\tlast_time_critical=%llu\n", (unsigned long long)temp_service->last_time_critical);
-		fprintf(fp, "\tplugin_output=%s\n", (temp_service->plugin_output == NULL) ? "" : temp_service->plugin_output);
-		fprintf(fp, "\tlong_plugin_output=%s\n", (temp_service->long_plugin_output == NULL) ? "" : temp_service->long_plugin_output);
-		fprintf(fp, "\tperformance_data=%s\n", (temp_service->perf_data == NULL) ? "" : temp_service->perf_data);
+		fprintf(fp, "\tlast_time_warning=%llu\n",
+				(unsigned long long)temp_service->last_time_warning);
+		fprintf(fp, "\tlast_time_unknown=%llu\n",
+				(unsigned long long)temp_service->last_time_unknown);
+		fprintf(fp, "\tlast_time_critical=%llu\n",
+				(unsigned long long)temp_service->last_time_critical);
+		fprintf(fp, "\tplugin_output=%s\n",
+				(temp_service->plugin_output == NULL) ? "" : temp_service->plugin_output);
+		fprintf(fp, "\tlong_plugin_output=%s\n",
+				(temp_service->long_plugin_output ==
+				 NULL) ? "" : temp_service->long_plugin_output);
+		fprintf(fp, "\tperformance_data=%s\n",
+				(temp_service->perf_data == NULL) ? "" : temp_service->perf_data);
 		fprintf(fp, "\tlast_check=%llu\n", (unsigned long long)temp_service->last_check);
 		fprintf(fp, "\tnext_check=%llu\n", (unsigned long long)temp_service->next_check);
 		fprintf(fp, "\tcheck_options=%d\n", temp_service->check_options);
-		fprintf(fp, "\tcurrent_notification_number=%d\n", temp_service->current_notification_number);
+		fprintf(fp, "\tcurrent_notification_number=%d\n",
+				temp_service->current_notification_number);
 		fprintf(fp, "\tcurrent_notification_id=%lu\n", temp_service->current_notification_id);
-		fprintf(fp, "\tlast_notification=%llu\n", (unsigned long long)temp_service->last_notification);
-		fprintf(fp, "\tnext_notification=%llu\n", (unsigned long long)temp_service->next_notification);
+		fprintf(fp, "\tlast_notification=%llu\n",
+				(unsigned long long)temp_service->last_notification);
+		fprintf(fp, "\tnext_notification=%llu\n",
+				(unsigned long long)temp_service->next_notification);
 		fprintf(fp, "\tno_more_notifications=%d\n", temp_service->no_more_notifications);
 		fprintf(fp, "\tnotifications_enabled=%d\n", temp_service->notifications_enabled);
 		fprintf(fp, "\tactive_checks_enabled=%d\n", temp_service->checks_enabled);
 		fprintf(fp, "\tpassive_checks_enabled=%d\n", temp_service->accept_passive_checks);
 		fprintf(fp, "\tevent_handler_enabled=%d\n", temp_service->event_handler_enabled);
-		fprintf(fp, "\tproblem_has_been_acknowledged=%d\n", temp_service->problem_has_been_acknowledged);
+		fprintf(fp, "\tproblem_has_been_acknowledged=%d\n",
+				temp_service->problem_has_been_acknowledged);
 		fprintf(fp, "\tacknowledgement_type=%d\n", temp_service->acknowledgement_type);
 		fprintf(fp, "\tflap_detection_enabled=%d\n", temp_service->flap_detection_enabled);
 		fprintf(fp, "\tprocess_performance_data=%d\n", temp_service->process_performance_data);
@@ -352,46 +434,66 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tpercent_state_change=%.2f\n", temp_service->percent_state_change);
 		fprintf(fp, "\tscheduled_downtime_depth=%d\n", temp_service->scheduled_downtime_depth);
 		/* custom variables */
-		for(temp_customvariablesmember = temp_service->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {
-			if(temp_customvariablesmember->variable_name)
-				fprintf(fp, "\t_%s=%d;%s\n", temp_customvariablesmember->variable_name, temp_customvariablesmember->has_been_modified, (temp_customvariablesmember->variable_value == NULL) ? "" : temp_customvariablesmember->variable_value);
-			}
-		fprintf(fp, "\t}\n\n");
+		for (temp_customvariablesmember = temp_service->custom_variables;
+			 temp_customvariablesmember != NULL;
+			 temp_customvariablesmember = temp_customvariablesmember->next) {
+			if (temp_customvariablesmember->variable_name)
+				fprintf(fp, "\t_%s=%d;%s\n", temp_customvariablesmember->variable_name,
+						temp_customvariablesmember->has_been_modified,
+						(temp_customvariablesmember->variable_value ==
+						 NULL) ? "" : temp_customvariablesmember->variable_value);
 		}
+		fprintf(fp, "\t}\n\n");
+	}
 
 	/* save contact status data */
-	for(temp_contact = contact_list; temp_contact != NULL; temp_contact = temp_contact->next) {
+	for (temp_contact = contact_list; temp_contact != NULL; temp_contact = temp_contact->next) {
 
 		fprintf(fp, "contactstatus {\n");
 		fprintf(fp, "\tcontact_name=%s\n", temp_contact->name);
 
 		fprintf(fp, "\tmodified_attributes=%lu\n", temp_contact->modified_attributes);
-		fprintf(fp, "\tmodified_host_attributes=%lu\n", temp_contact->modified_host_attributes);
-		fprintf(fp, "\tmodified_service_attributes=%lu\n", temp_contact->modified_service_attributes);
-		fprintf(fp, "\thost_notification_period=%s\n", (temp_contact->host_notification_period == NULL) ? "" : temp_contact->host_notification_period);
-		fprintf(fp, "\tservice_notification_period=%s\n", (temp_contact->service_notification_period == NULL) ? "" : temp_contact->service_notification_period);
+		fprintf(fp, "\tmodified_host_attributes=%lu\n",
+				temp_contact->modified_host_attributes);
+		fprintf(fp, "\tmodified_service_attributes=%lu\n",
+				temp_contact->modified_service_attributes);
+		fprintf(fp, "\thost_notification_period=%s\n",
+				(temp_contact->host_notification_period ==
+				 NULL) ? "" : temp_contact->host_notification_period);
+		fprintf(fp, "\tservice_notification_period=%s\n",
+				(temp_contact->service_notification_period ==
+				 NULL) ? "" : temp_contact->service_notification_period);
 
-		fprintf(fp, "\tlast_host_notification=%llu\n", (unsigned long long)temp_contact->last_host_notification);
-		fprintf(fp, "\tlast_service_notification=%llu\n", (unsigned long long)temp_contact->last_service_notification);
-		fprintf(fp, "\thost_notifications_enabled=%d\n", temp_contact->host_notifications_enabled);
-		fprintf(fp, "\tservice_notifications_enabled=%d\n", temp_contact->service_notifications_enabled);
+		fprintf(fp, "\tlast_host_notification=%llu\n",
+				(unsigned long long)temp_contact->last_host_notification);
+		fprintf(fp, "\tlast_service_notification=%llu\n",
+				(unsigned long long)temp_contact->last_service_notification);
+		fprintf(fp, "\thost_notifications_enabled=%d\n",
+				temp_contact->host_notifications_enabled);
+		fprintf(fp, "\tservice_notifications_enabled=%d\n",
+				temp_contact->service_notifications_enabled);
 		/* custom variables */
-		for(temp_customvariablesmember = temp_contact->custom_variables; temp_customvariablesmember != NULL; temp_customvariablesmember = temp_customvariablesmember->next) {
-			if(temp_customvariablesmember->variable_name)
-				fprintf(fp, "\t_%s=%d;%s\n", temp_customvariablesmember->variable_name, temp_customvariablesmember->has_been_modified, (temp_customvariablesmember->variable_value == NULL) ? "" : temp_customvariablesmember->variable_value);
-			}
-		fprintf(fp, "\t}\n\n");
+		for (temp_customvariablesmember = temp_contact->custom_variables;
+			 temp_customvariablesmember != NULL;
+			 temp_customvariablesmember = temp_customvariablesmember->next) {
+			if (temp_customvariablesmember->variable_name)
+				fprintf(fp, "\t_%s=%d;%s\n", temp_customvariablesmember->variable_name,
+						temp_customvariablesmember->has_been_modified,
+						(temp_customvariablesmember->variable_value ==
+						 NULL) ? "" : temp_customvariablesmember->variable_value);
 		}
+		fprintf(fp, "\t}\n\n");
+	}
 
 	/* save all comments */
-	for(temp_comment = comment_list; temp_comment != NULL; temp_comment = temp_comment->next) {
+	for (temp_comment = comment_list; temp_comment != NULL; temp_comment = temp_comment->next) {
 
-		if(temp_comment->comment_type == HOST_COMMENT)
+		if (temp_comment->comment_type == HOST_COMMENT)
 			fprintf(fp, "hostcomment {\n");
 		else
 			fprintf(fp, "servicecomment {\n");
 		fprintf(fp, "\thost_name=%s\n", temp_comment->host_name);
-		if(temp_comment->comment_type == SERVICE_COMMENT)
+		if (temp_comment->comment_type == SERVICE_COMMENT)
 			fprintf(fp, "\tservice_description=%s\n", temp_comment->service_description);
 		fprintf(fp, "\tentry_type=%d\n", temp_comment->entry_type);
 		fprintf(fp, "\tcomment_id=%lu\n", temp_comment->comment_id);
@@ -403,23 +505,25 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tauthor=%s\n", temp_comment->author);
 		fprintf(fp, "\tcomment_data=%s\n", temp_comment->comment_data);
 		fprintf(fp, "\t}\n\n");
-		}
+	}
 
 	/* save all downtime */
-	for(temp_downtime = scheduled_downtime_list; temp_downtime != NULL; temp_downtime = temp_downtime->next) {
+	for (temp_downtime = scheduled_downtime_list; temp_downtime != NULL;
+		 temp_downtime = temp_downtime->next) {
 
-		if(temp_downtime->type == HOST_DOWNTIME)
+		if (temp_downtime->type == HOST_DOWNTIME)
 			fprintf(fp, "hostdowntime {\n");
 		else
 			fprintf(fp, "servicedowntime {\n");
 		fprintf(fp, "\thost_name=%s\n", temp_downtime->host_name);
-		if(temp_downtime->type == SERVICE_DOWNTIME)
+		if (temp_downtime->type == SERVICE_DOWNTIME)
 			fprintf(fp, "\tservice_description=%s\n", temp_downtime->service_description);
 		fprintf(fp, "\tdowntime_id=%lu\n", temp_downtime->downtime_id);
 		fprintf(fp, "\tcomment_id=%lu\n", temp_downtime->comment_id);
 		fprintf(fp, "\tentry_time=%llu\n", (unsigned long long)temp_downtime->entry_time);
 		fprintf(fp, "\tstart_time=%llu\n", (unsigned long long)temp_downtime->start_time);
-		fprintf(fp, "\tflex_downtime_start=%llu\n", (unsigned long long)temp_downtime->flex_downtime_start);
+		fprintf(fp, "\tflex_downtime_start=%llu\n",
+				(unsigned long long)temp_downtime->flex_downtime_start);
 		fprintf(fp, "\tend_time=%llu\n", (unsigned long long)temp_downtime->end_time);
 		fprintf(fp, "\ttriggered_by=%lu\n", temp_downtime->triggered_by);
 		fprintf(fp, "\tfixed=%d\n", temp_downtime->fixed);
@@ -429,7 +533,7 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tauthor=%s\n", temp_downtime->author);
 		fprintf(fp, "\tcomment=%s\n", temp_downtime->comment);
 		fprintf(fp, "\t}\n\n");
-		}
+	}
 
 
 	/* reset file permissions */
@@ -445,17 +549,19 @@ int xsddefault_save_status_data(void) {
 	result = fclose(fp);
 
 	/* save/close was successful */
-	if(result == 0) {
+	if (result == 0) {
 
 		result = OK;
 
 		/* move the temp file to the status log (overwrite the old status log) */
-		if(my_rename(tmp_log, status_file)) {
+		if (my_rename(tmp_log, status_file)) {
 			unlink(tmp_log);
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to update status data file '%s': %s", status_file, strerror(errno));
+			logit(NSLOG_RUNTIME_ERROR, TRUE,
+				  "Error: Unable to update status data file '%s': %s", status_file,
+				  strerror(errno));
 			result = ERROR;
-			}
 		}
+	}
 
 	/* a problem occurred saving the file */
 	else {
@@ -464,14 +570,15 @@ int xsddefault_save_status_data(void) {
 
 		/* remove temp file and log an error */
 		unlink(tmp_log);
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to save status file: %s", strerror(errno));
-		}
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to save status file: %s",
+			  strerror(errno));
+	}
 
 	/* free memory */
 	my_free(tmp_log);
 
 	return result;
-	}
+}
 
 #endif
 
@@ -484,558 +591,577 @@ int xsddefault_save_status_data(void) {
 /******************************************************************/
 
 /* read all program, host, and service status information */
-int xsddefault_read_status_data(const char *status_file_name, int options) {
-#ifdef NO_MMAP
-	char input[MAX_PLUGIN_OUTPUT_LENGTH] = "";
-	FILE *fp = NULL;
-#else
-	char *input = NULL;
-	mmapfile *thefile = NULL;
-#endif
-	int data_type = XSDDEFAULT_NO_DATA;
+int xsddefault_read_status_data(const char *status_file_name, int options)
+{
+# ifdef NO_MMAP
+	char		input[MAX_PLUGIN_OUTPUT_LENGTH] = "";
+	FILE	   *fp = NULL;
+# else
+	char	   *input = NULL;
+	mmapfile   *thefile = NULL;
+# endif
+	int 		data_type = XSDDEFAULT_NO_DATA;
 	hoststatus *temp_hoststatus = NULL;
 	servicestatus *temp_servicestatus = NULL;
-	char *var = NULL;
-	char *val = NULL;
-	char *ptr = NULL;
+	char	   *var = NULL;
+	char	   *val = NULL;
+	char	   *ptr = NULL;
 	/* comment and downtime vars */
 	unsigned long comment_id = 0;
-	int persistent = FALSE;
-	int expires = FALSE;
-	time_t expire_time = 0L;
-	int entry_type = USER_COMMENT;
-	int source = COMMENTSOURCE_INTERNAL;
-	time_t entry_time = 0L;
-	char *host_name = NULL;
-	char *service_description = NULL;
-	char *author = NULL;
-	char *comment_data = NULL;
+	int 		persistent = FALSE;
+	int 		expires = FALSE;
+	time_t		expire_time = 0L;
+	int 		entry_type = USER_COMMENT;
+	int 		source = COMMENTSOURCE_INTERNAL;
+	time_t		entry_time = 0L;
+	char	   *host_name = NULL;
+	char	   *service_description = NULL;
+	char	   *author = NULL;
+	char	   *comment_data = NULL;
 	scheduled_downtime *temp_downtime;
 	unsigned long downtime_id = 0;
-	time_t start_time = 0L;
-	time_t flex_downtime_start = 0L;
-	time_t end_time = 0L;
-	int fixed = FALSE;
+	time_t		start_time = 0L;
+	time_t		flex_downtime_start = 0L;
+	time_t		end_time = 0L;
+	int 		fixed = FALSE;
 	unsigned long triggered_by = 0;
 	unsigned long duration = 0L;
-	int x = 0;
-	int is_in_effect = FALSE;
-	int start_notification_sent = FALSE;
+	int 		x = 0;
+	int 		is_in_effect = FALSE;
+	int 		start_notification_sent = FALSE;
 
 
 	/* initialize some vars */
-	for(x = 0; x < MAX_CHECK_STATS_TYPES; x++) {
+	for (x = 0; x < MAX_CHECK_STATS_TYPES; x++) {
 		program_stats[x][0] = 0;
 		program_stats[x][1] = 0;
 		program_stats[x][2] = 0;
-		}
+	}
 
 	/* open the status file for reading */
-#ifdef NO_MMAP
-	if((fp = fopen(status_file_name, "r")) == NULL)
+# ifdef NO_MMAP
+	if ((fp = fopen(status_file_name, "r")) == NULL)
 		return ERROR;
-#else
-	if((thefile = mmap_fopen(status_file_name)) == NULL)
+# else
+	if ((thefile = mmap_fopen(status_file_name)) == NULL)
 		return ERROR;
-#endif
+# endif
 
 	/* Big speedup when reading status.dat in bulk */
 	defer_downtime_sorting = 1;
 	defer_comment_sorting = 1;
 
 	/* read all lines in the status file */
-	while(1) {
+	while (1) {
 
-#ifdef NO_MMAP
+# ifdef NO_MMAP
 		strcpy(input, "");
-		if(fgets(input, sizeof(input), fp) == NULL)
+		if (fgets(input, sizeof(input), fp) == NULL)
 			break;
-#else
+# else
 		/* free memory */
 		my_free(input);
 
 		/* read the next line */
-		if((input = mmap_fgets(thefile)) == NULL)
+		if ((input = mmap_fgets(thefile)) == NULL)
 			break;
-#endif
+# endif
 
 		strip(input);
 
 		/* skip blank lines and comments */
-		if(input[0] == '#' || input[0] == '\x0')
+		if (input[0] == '#' || input[0] == '\x0')
 			continue;
 
-		else if(!strcmp(input, "info {"))
+		else if (!strcmp(input, "info {"))
 			data_type = XSDDEFAULT_INFO_DATA;
-		else if(!strcmp(input, "programstatus {"))
+		else if (!strcmp(input, "programstatus {"))
 			data_type = XSDDEFAULT_PROGRAMSTATUS_DATA;
-		else if(!strcmp(input, "hoststatus {")) {
+		else if (!strcmp(input, "hoststatus {")) {
 			data_type = XSDDEFAULT_HOSTSTATUS_DATA;
-			temp_hoststatus = (hoststatus *)calloc(1, sizeof(hoststatus));
-			}
-		else if(!strcmp(input, "servicestatus {")) {
+			temp_hoststatus = (hoststatus *) calloc(1, sizeof(hoststatus));
+		} else if (!strcmp(input, "servicestatus {")) {
 			data_type = XSDDEFAULT_SERVICESTATUS_DATA;
-			temp_servicestatus = (servicestatus *)calloc(1, sizeof(servicestatus));
-			}
-		else if(!strcmp(input, "contactstatus {")) {
+			temp_servicestatus = (servicestatus *) calloc(1, sizeof(servicestatus));
+		} else if (!strcmp(input, "contactstatus {")) {
 			data_type = XSDDEFAULT_CONTACTSTATUS_DATA;
 			/* unimplemented */
-			}
-		else if(!strcmp(input, "hostcomment {"))
+		} else if (!strcmp(input, "hostcomment {"))
 			data_type = XSDDEFAULT_HOSTCOMMENT_DATA;
-		else if(!strcmp(input, "servicecomment {"))
+		else if (!strcmp(input, "servicecomment {"))
 			data_type = XSDDEFAULT_SERVICECOMMENT_DATA;
-		else if(!strcmp(input, "hostdowntime {"))
+		else if (!strcmp(input, "hostdowntime {"))
 			data_type = XSDDEFAULT_HOSTDOWNTIME_DATA;
-		else if(!strcmp(input, "servicedowntime {"))
+		else if (!strcmp(input, "servicedowntime {"))
 			data_type = XSDDEFAULT_SERVICEDOWNTIME_DATA;
 
-		else if(!strcmp(input, "}")) {
+		else if (!strcmp(input, "}")) {
 
-			switch(data_type) {
+			switch (data_type) {
 
-				case XSDDEFAULT_INFO_DATA:
-					break;
+			case XSDDEFAULT_INFO_DATA:
+				break;
 
-				case XSDDEFAULT_PROGRAMSTATUS_DATA:
-					break;
+			case XSDDEFAULT_PROGRAMSTATUS_DATA:
+				break;
 
-				case XSDDEFAULT_HOSTSTATUS_DATA:
-					add_host_status(temp_hoststatus);
-					temp_hoststatus = NULL;
-					break;
+			case XSDDEFAULT_HOSTSTATUS_DATA:
+				add_host_status(temp_hoststatus);
+				temp_hoststatus = NULL;
+				break;
 
-				case XSDDEFAULT_SERVICESTATUS_DATA:
-					add_service_status(temp_servicestatus);
-					temp_servicestatus = NULL;
-					break;
+			case XSDDEFAULT_SERVICESTATUS_DATA:
+				add_service_status(temp_servicestatus);
+				temp_servicestatus = NULL;
+				break;
 
-				case XSDDEFAULT_CONTACTSTATUS_DATA:
-					/* unimplemented */
-					break;
+			case XSDDEFAULT_CONTACTSTATUS_DATA:
+				/* unimplemented */
+				break;
 
-				case XSDDEFAULT_HOSTCOMMENT_DATA:
-				case XSDDEFAULT_SERVICECOMMENT_DATA:
+			case XSDDEFAULT_HOSTCOMMENT_DATA:
+			case XSDDEFAULT_SERVICECOMMENT_DATA:
 
-					/* add the comment */
-					add_comment((data_type == XSDDEFAULT_HOSTCOMMENT_DATA) ? HOST_COMMENT : SERVICE_COMMENT, entry_type, host_name, service_description, entry_time, author, comment_data, comment_id, persistent, expires, expire_time, source);
+				/* add the comment */
+				add_comment((data_type ==
+							 XSDDEFAULT_HOSTCOMMENT_DATA) ? HOST_COMMENT : SERVICE_COMMENT,
+							entry_type, host_name, service_description, entry_time, author,
+							comment_data, comment_id, persistent, expires, expire_time,
+							source);
 
-					/* free temp memory */
-					my_free(host_name);
-					my_free(service_description);
-					my_free(author);
-					my_free(comment_data);
+				/* free temp memory */
+				my_free(host_name);
+				my_free(service_description);
+				my_free(author);
+				my_free(comment_data);
 
-					/* reset defaults */
-					entry_type = USER_COMMENT;
-					comment_id = 0;
-					source = COMMENTSOURCE_INTERNAL;
-					persistent = FALSE;
-					entry_time = 0L;
-					expires = FALSE;
-					expire_time = 0L;
+				/* reset defaults */
+				entry_type = USER_COMMENT;
+				comment_id = 0;
+				source = COMMENTSOURCE_INTERNAL;
+				persistent = FALSE;
+				entry_time = 0L;
+				expires = FALSE;
+				expire_time = 0L;
 
-					break;
+				break;
 
-				case XSDDEFAULT_HOSTDOWNTIME_DATA:
-				case XSDDEFAULT_SERVICEDOWNTIME_DATA:
+			case XSDDEFAULT_HOSTDOWNTIME_DATA:
+			case XSDDEFAULT_SERVICEDOWNTIME_DATA:
 
-					/* add the downtime */
-					if(data_type == XSDDEFAULT_HOSTDOWNTIME_DATA) {
-						add_host_downtime(host_name, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
-						temp_downtime = find_downtime(HOST_DOWNTIME, downtime_id);
-					} else {
-						add_service_downtime(host_name, service_description, entry_time, author, comment_data, start_time, flex_downtime_start, end_time, fixed, triggered_by, duration, downtime_id, is_in_effect, start_notification_sent);
-						temp_downtime = find_downtime(SERVICE_DOWNTIME, downtime_id);
-					}
-
-					if (temp_downtime)
-						temp_downtime->comment_id = comment_id;
-
-					/* free temp memory */
-					my_free(host_name);
-					my_free(service_description);
-					my_free(author);
-					my_free(comment_data);
-
-					/* reset defaults */
-					downtime_id = 0;
-					comment_id = 0;
-					entry_time = 0L;
-					start_time = 0L;
-					end_time = 0L;
-					fixed = FALSE;
-					triggered_by = 0;
-					duration = 0L;
-					is_in_effect = FALSE;
-					start_notification_sent = FALSE;
-
-					break;
-
-				default:
-					break;
+				/* add the downtime */
+				if (data_type == XSDDEFAULT_HOSTDOWNTIME_DATA) {
+					add_host_downtime(host_name, entry_time, author, comment_data, start_time,
+									  flex_downtime_start, end_time, fixed, triggered_by,
+									  duration, downtime_id, is_in_effect,
+									  start_notification_sent);
+					temp_downtime = find_downtime(HOST_DOWNTIME, downtime_id);
+				} else {
+					add_service_downtime(host_name, service_description, entry_time, author,
+										 comment_data, start_time, flex_downtime_start,
+										 end_time, fixed, triggered_by, duration, downtime_id,
+										 is_in_effect, start_notification_sent);
+					temp_downtime = find_downtime(SERVICE_DOWNTIME, downtime_id);
 				}
 
-			data_type = XSDDEFAULT_NO_DATA;
+				if (temp_downtime)
+					temp_downtime->comment_id = comment_id;
+
+				/* free temp memory */
+				my_free(host_name);
+				my_free(service_description);
+				my_free(author);
+				my_free(comment_data);
+
+				/* reset defaults */
+				downtime_id = 0;
+				comment_id = 0;
+				entry_time = 0L;
+				start_time = 0L;
+				end_time = 0L;
+				fixed = FALSE;
+				triggered_by = 0;
+				duration = 0L;
+				is_in_effect = FALSE;
+				start_notification_sent = FALSE;
+
+				break;
+
+			default:
+				break;
 			}
 
-		else if(data_type != XSDDEFAULT_NO_DATA) {
+			data_type = XSDDEFAULT_NO_DATA;
+		}
+
+		else if (data_type != XSDDEFAULT_NO_DATA) {
 
 			var = strtok(input, "=");
 			val = strtok(NULL, "\n");
-			if(val == NULL)
+			if (val == NULL)
 				continue;
 
-			switch(data_type) {
+			switch (data_type) {
 
-				case XSDDEFAULT_INFO_DATA:
-					break;
+			case XSDDEFAULT_INFO_DATA:
+				break;
 
-				case XSDDEFAULT_PROGRAMSTATUS_DATA:
-					/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
-					if(!strcmp(var, "nagios_pid"))
-						nagios_pid = atoi(val);
-					else if(!strcmp(var, "daemon_mode"))
-						daemon_mode = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "program_start"))
-						program_start = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "last_log_rotation"))
-						last_log_rotation = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "enable_notifications"))
-						enable_notifications = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "active_service_checks_enabled"))
-						execute_service_checks = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "passive_service_checks_enabled"))
-						accept_passive_service_checks = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "active_host_checks_enabled"))
-						execute_host_checks = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "passive_host_checks_enabled"))
-						accept_passive_host_checks = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "enable_event_handlers"))
-						enable_event_handlers = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "obsess_over_services"))
-						obsess_over_services = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "obsess_over_hosts"))
-						obsess_over_hosts = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "check_service_freshness"))
-						check_service_freshness = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "check_host_freshness"))
-						check_host_freshness = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "enable_flap_detection"))
-						enable_flap_detection = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "process_performance_data"))
-						process_performance_data = (atoi(val) > 0) ? TRUE : FALSE;
+			case XSDDEFAULT_PROGRAMSTATUS_DATA:
+				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
+				if (!strcmp(var, "nagios_pid"))
+					nagios_pid = atoi(val);
+				else if (!strcmp(var, "daemon_mode"))
+					daemon_mode = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "program_start"))
+					program_start = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "last_log_rotation"))
+					last_log_rotation = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "enable_notifications"))
+					enable_notifications = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "active_service_checks_enabled"))
+					execute_service_checks = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "passive_service_checks_enabled"))
+					accept_passive_service_checks = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "active_host_checks_enabled"))
+					execute_host_checks = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "passive_host_checks_enabled"))
+					accept_passive_host_checks = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "enable_event_handlers"))
+					enable_event_handlers = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "obsess_over_services"))
+					obsess_over_services = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "obsess_over_hosts"))
+					obsess_over_hosts = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "check_service_freshness"))
+					check_service_freshness = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "check_host_freshness"))
+					check_host_freshness = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "enable_flap_detection"))
+					enable_flap_detection = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "process_performance_data"))
+					process_performance_data = (atoi(val) > 0) ? TRUE : FALSE;
 
-					else if(strstr(var, "_stats")) {
+				else if (strstr(var, "_stats")) {
 
-						x = -1;
-						if(!strcmp(var, "active_scheduled_host_check_stats"))
-							x = ACTIVE_SCHEDULED_HOST_CHECK_STATS;
-						if(!strcmp(var, "active_ondemand_host_check_stats"))
-							x = ACTIVE_ONDEMAND_HOST_CHECK_STATS;
-						if(!strcmp(var, "passive_host_check_stats"))
-							x = PASSIVE_HOST_CHECK_STATS;
-						if(!strcmp(var, "active_scheduled_service_check_stats"))
-							x = ACTIVE_SCHEDULED_SERVICE_CHECK_STATS;
-						if(!strcmp(var, "active_ondemand_service_check_stats"))
-							x = ACTIVE_ONDEMAND_SERVICE_CHECK_STATS;
-						if(!strcmp(var, "passive_service_check_stats"))
-							x = PASSIVE_SERVICE_CHECK_STATS;
-						if(!strcmp(var, "cached_host_check_stats"))
-							x = ACTIVE_CACHED_HOST_CHECK_STATS;
-						if(!strcmp(var, "cached_service_check_stats"))
-							x = ACTIVE_CACHED_SERVICE_CHECK_STATS;
-						if(!strcmp(var, "external_command_stats"))
-							x = EXTERNAL_COMMAND_STATS;
-						if(!strcmp(var, "parallel_host_check_stats"))
-							x = PARALLEL_HOST_CHECK_STATS;
-						if(!strcmp(var, "serial_host_check_stats"))
-							x = SERIAL_HOST_CHECK_STATS;
+					x = -1;
+					if (!strcmp(var, "active_scheduled_host_check_stats"))
+						x = ACTIVE_SCHEDULED_HOST_CHECK_STATS;
+					if (!strcmp(var, "active_ondemand_host_check_stats"))
+						x = ACTIVE_ONDEMAND_HOST_CHECK_STATS;
+					if (!strcmp(var, "passive_host_check_stats"))
+						x = PASSIVE_HOST_CHECK_STATS;
+					if (!strcmp(var, "active_scheduled_service_check_stats"))
+						x = ACTIVE_SCHEDULED_SERVICE_CHECK_STATS;
+					if (!strcmp(var, "active_ondemand_service_check_stats"))
+						x = ACTIVE_ONDEMAND_SERVICE_CHECK_STATS;
+					if (!strcmp(var, "passive_service_check_stats"))
+						x = PASSIVE_SERVICE_CHECK_STATS;
+					if (!strcmp(var, "cached_host_check_stats"))
+						x = ACTIVE_CACHED_HOST_CHECK_STATS;
+					if (!strcmp(var, "cached_service_check_stats"))
+						x = ACTIVE_CACHED_SERVICE_CHECK_STATS;
+					if (!strcmp(var, "external_command_stats"))
+						x = EXTERNAL_COMMAND_STATS;
+					if (!strcmp(var, "parallel_host_check_stats"))
+						x = PARALLEL_HOST_CHECK_STATS;
+					if (!strcmp(var, "serial_host_check_stats"))
+						x = SERIAL_HOST_CHECK_STATS;
 
-						if(x >= 0) {
-							if((ptr = strtok(val, ","))) {
-								program_stats[x][0] = atoi(ptr);
-								if((ptr = strtok(NULL, ","))) {
-									program_stats[x][1] = atoi(ptr);
-									if((ptr = strtok(NULL, "\n")))
-										program_stats[x][2] = atoi(ptr);
-									}
-								}
+					if (x >= 0) {
+						if ((ptr = strtok(val, ","))) {
+							program_stats[x][0] = atoi(ptr);
+							if ((ptr = strtok(NULL, ","))) {
+								program_stats[x][1] = atoi(ptr);
+								if ((ptr = strtok(NULL, "\n")))
+									program_stats[x][2] = atoi(ptr);
 							}
 						}
-					break;
-
-				case XSDDEFAULT_HOSTSTATUS_DATA:
-					/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
-					if(temp_hoststatus != NULL) {
-						if(!strcmp(var, "host_name"))
-							temp_hoststatus->host_name = (char *)strdup(val);
-						else if(!strcmp(var, "has_been_checked"))
-							temp_hoststatus->has_been_checked = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "should_be_scheduled"))
-							temp_hoststatus->should_be_scheduled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "check_execution_time"))
-							temp_hoststatus->execution_time = strtod(val, NULL);
-						else if(!strcmp(var, "check_latency"))
-							temp_hoststatus->latency = strtod(val, NULL);
-						else if(!strcmp(var, "check_type"))
-							temp_hoststatus->check_type = atoi(val);
-						else if(!strcmp(var, "current_state"))
-							temp_hoststatus->status = atoi(val);
-						else if(!strcmp(var, "last_hard_state"))
-							temp_hoststatus->last_hard_state = atoi(val);
-						else if(!strcmp(var, "plugin_output")) {
-							temp_hoststatus->plugin_output = (char *)strdup(val);
-							unescape_newlines(temp_hoststatus->plugin_output);
-							}
-						else if(!strcmp(var, "long_plugin_output")) {
-							temp_hoststatus->long_plugin_output = (char *)strdup(val);
-							unescape_newlines(temp_hoststatus->long_plugin_output);
-							}
-						else if(!strcmp(var, "performance_data"))
-							temp_hoststatus->perf_data = (char *)strdup(val);
-						else if(!strcmp(var, "current_attempt"))
-							temp_hoststatus->current_attempt = atoi(val);
-						else if(!strcmp(var, "max_attempts"))
-							temp_hoststatus->max_attempts = atoi(val);
-						else if(!strcmp(var, "last_check"))
-							temp_hoststatus->last_check = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "next_check"))
-							temp_hoststatus->next_check = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "check_options"))
-							temp_hoststatus->check_options = atoi(val);
-						else if(!strcmp(var, "state_type"))
-							temp_hoststatus->state_type = atoi(val);
-						else if(!strcmp(var, "last_state_change"))
-							temp_hoststatus->last_state_change = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "last_hard_state_change"))
-							temp_hoststatus->last_hard_state_change = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "last_time_up"))
-							temp_hoststatus->last_time_up = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "last_time_down"))
-							temp_hoststatus->last_time_down = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "last_time_unreachable"))
-							temp_hoststatus->last_time_unreachable = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "last_notification"))
-							temp_hoststatus->last_notification = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "next_notification"))
-							temp_hoststatus->next_notification = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "no_more_notifications"))
-							temp_hoststatus->no_more_notifications = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "current_notification_number"))
-							temp_hoststatus->current_notification_number = atoi(val);
-						else if(!strcmp(var, "notifications_enabled"))
-							temp_hoststatus->notifications_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "problem_has_been_acknowledged"))
-							temp_hoststatus->problem_has_been_acknowledged = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "acknowledgement_type"))
-							temp_hoststatus->acknowledgement_type = atoi(val);
-						else if(!strcmp(var, "active_checks_enabled"))
-							temp_hoststatus->checks_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "passive_checks_enabled"))
-							temp_hoststatus->accept_passive_checks = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "event_handler_enabled"))
-							temp_hoststatus->event_handler_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "flap_detection_enabled"))
-							temp_hoststatus->flap_detection_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "process_performance_data"))
-							temp_hoststatus->process_performance_data = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "obsess_over_host") || !strcmp(var, "obsess"))
-							temp_hoststatus->obsess = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "last_update"))
-							temp_hoststatus->last_update = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "is_flapping"))
-							temp_hoststatus->is_flapping = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "percent_state_change"))
-							temp_hoststatus->percent_state_change = strtod(val, NULL);
-						else if(!strcmp(var, "scheduled_downtime_depth")) {
-							temp_hoststatus->scheduled_downtime_depth = atoi(val);
-							if (temp_hoststatus->scheduled_downtime_depth < 0)
-								temp_hoststatus->scheduled_downtime_depth = 0;
-							}
-						}
-					break;
-
-				case XSDDEFAULT_SERVICESTATUS_DATA:
-					/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
-					if(temp_servicestatus != NULL) {
-						if(!strcmp(var, "host_name"))
-							temp_servicestatus->host_name = (char *)strdup(val);
-						else if(!strcmp(var, "service_description"))
-							temp_servicestatus->description = (char *)strdup(val);
-						else if(!strcmp(var, "has_been_checked"))
-							temp_servicestatus->has_been_checked = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "should_be_scheduled"))
-							temp_servicestatus->should_be_scheduled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "check_execution_time"))
-							temp_servicestatus->execution_time = strtod(val, NULL);
-						else if(!strcmp(var, "check_latency"))
-							temp_servicestatus->latency = strtod(val, NULL);
-						else if(!strcmp(var, "check_type"))
-							temp_servicestatus->check_type = atoi(val);
-						else if(!strcmp(var, "current_state"))
-							temp_servicestatus->status = atoi(val);
-						else if(!strcmp(var, "last_hard_state"))
-							temp_servicestatus->last_hard_state = atoi(val);
-						else if(!strcmp(var, "current_attempt"))
-							temp_servicestatus->current_attempt = atoi(val);
-						else if(!strcmp(var, "max_attempts"))
-							temp_servicestatus->max_attempts = atoi(val);
-						else if(!strcmp(var, "state_type"))
-							temp_servicestatus->state_type = atoi(val);
-						else if(!strcmp(var, "last_state_change"))
-							temp_servicestatus->last_state_change = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "last_hard_state_change"))
-							temp_servicestatus->last_hard_state_change = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "last_time_ok"))
-							temp_servicestatus->last_time_ok = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "last_time_warning"))
-							temp_servicestatus->last_time_warning = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "last_time_unknown"))
-							temp_servicestatus->last_time_unknown = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "last_time_critical"))
-							temp_servicestatus->last_time_critical = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "plugin_output")) {
-							temp_servicestatus->plugin_output = (char *)strdup(val);
-							unescape_newlines(temp_servicestatus->plugin_output);
-							}
-						else if(!strcmp(var, "long_plugin_output")) {
-							temp_servicestatus->long_plugin_output = (char *)strdup(val);
-							unescape_newlines(temp_servicestatus->long_plugin_output);
-							}
-						else if(!strcmp(var, "performance_data"))
-							temp_servicestatus->perf_data = (char *)strdup(val);
-						else if(!strcmp(var, "last_check"))
-							temp_servicestatus->last_check = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "next_check"))
-							temp_servicestatus->next_check = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "check_options"))
-							temp_servicestatus->check_options = atoi(val);
-						else if(!strcmp(var, "current_notification_number"))
-							temp_servicestatus->current_notification_number = atoi(val);
-						else if(!strcmp(var, "last_notification"))
-							temp_servicestatus->last_notification = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "next_notification"))
-							temp_servicestatus->next_notification = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "no_more_notifications"))
-							temp_servicestatus->no_more_notifications = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "notifications_enabled"))
-							temp_servicestatus->notifications_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "active_checks_enabled"))
-							temp_servicestatus->checks_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "passive_checks_enabled"))
-							temp_servicestatus->accept_passive_checks = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "event_handler_enabled"))
-							temp_servicestatus->event_handler_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "problem_has_been_acknowledged"))
-							temp_servicestatus->problem_has_been_acknowledged = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "acknowledgement_type"))
-							temp_servicestatus->acknowledgement_type = atoi(val);
-						else if(!strcmp(var, "flap_detection_enabled"))
-							temp_servicestatus->flap_detection_enabled = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "process_performance_data"))
-							temp_servicestatus->process_performance_data = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "obsess_over_service") || !strcmp(var, "obsess"))
-							temp_servicestatus->obsess = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "last_update"))
-							temp_servicestatus->last_update = strtoul(val, NULL, 10);
-						else if(!strcmp(var, "is_flapping"))
-							temp_servicestatus->is_flapping = (atoi(val) > 0) ? TRUE : FALSE;
-						else if(!strcmp(var, "percent_state_change"))
-							temp_servicestatus->percent_state_change = strtod(val, NULL);
-						else if(!strcmp(var, "scheduled_downtime_depth")) {
-							temp_servicestatus->scheduled_downtime_depth = atoi(val);
-							if (temp_servicestatus->scheduled_downtime_depth < 0)
-								temp_servicestatus->scheduled_downtime_depth = 0;
-							}
-						}
-					break;
-
-				case XSDDEFAULT_CONTACTSTATUS_DATA:
-					/* unimplemented */
-					break;
-
-				case XSDDEFAULT_HOSTCOMMENT_DATA:
-				case XSDDEFAULT_SERVICECOMMENT_DATA:
-					if(!strcmp(var, "host_name"))
-						host_name = (char *)strdup(val);
-					else if(!strcmp(var, "service_description"))
-						service_description = (char *)strdup(val);
-					else if(!strcmp(var, "entry_type"))
-						entry_type = atoi(val);
-					else if(!strcmp(var, "comment_id"))
-						comment_id = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "source"))
-						source = atoi(val);
-					else if(!strcmp(var, "persistent"))
-						persistent = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "entry_time"))
-						entry_time = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "expires"))
-						expires = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "expire_time"))
-						expire_time = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "author"))
-						author = (char *)strdup(val);
-					else if(!strcmp(var, "comment_data"))
-						comment_data = (char *)strdup(val);
-					break;
-
-				case XSDDEFAULT_HOSTDOWNTIME_DATA:
-				case XSDDEFAULT_SERVICEDOWNTIME_DATA:
-					if(!strcmp(var, "host_name"))
-						host_name = (char *)strdup(val);
-					else if(!strcmp(var, "service_description"))
-						service_description = (char *)strdup(val);
-					else if(!strcmp(var, "downtime_id"))
-						downtime_id = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "comment_id"))
-						comment_id = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "entry_time"))
-						entry_time = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "start_time"))
-						start_time = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "flex_downtime_start"))
-						flex_downtime_start = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "end_time"))
-						end_time = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "fixed"))
-						fixed = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "triggered_by"))
-						triggered_by = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "duration"))
-						duration = strtoul(val, NULL, 10);
-					else if(!strcmp(var, "is_in_effect"))
-						is_in_effect = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "start_notification_sent"))
-						start_notification_sent = (atoi(val) > 0) ? TRUE : FALSE;
-					else if(!strcmp(var, "author"))
-						author = (char *)strdup(val);
-					else if(!strcmp(var, "comment"))
-						comment_data = (char *)strdup(val);
-					break;
-
-				default:
-					break;
+					}
 				}
+				break;
 
+			case XSDDEFAULT_HOSTSTATUS_DATA:
+				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
+				if (temp_hoststatus != NULL) {
+					if (!strcmp(var, "host_name"))
+						temp_hoststatus->host_name = (char *)strdup(val);
+					else if (!strcmp(var, "has_been_checked"))
+						temp_hoststatus->has_been_checked = (atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "should_be_scheduled"))
+						temp_hoststatus->should_be_scheduled = (atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "check_execution_time"))
+						temp_hoststatus->execution_time = strtod(val, NULL);
+					else if (!strcmp(var, "check_latency"))
+						temp_hoststatus->latency = strtod(val, NULL);
+					else if (!strcmp(var, "check_type"))
+						temp_hoststatus->check_type = atoi(val);
+					else if (!strcmp(var, "current_state"))
+						temp_hoststatus->status = atoi(val);
+					else if (!strcmp(var, "last_hard_state"))
+						temp_hoststatus->last_hard_state = atoi(val);
+					else if (!strcmp(var, "plugin_output")) {
+						temp_hoststatus->plugin_output = (char *)strdup(val);
+						unescape_newlines(temp_hoststatus->plugin_output);
+					} else if (!strcmp(var, "long_plugin_output")) {
+						temp_hoststatus->long_plugin_output = (char *)strdup(val);
+						unescape_newlines(temp_hoststatus->long_plugin_output);
+					} else if (!strcmp(var, "performance_data"))
+						temp_hoststatus->perf_data = (char *)strdup(val);
+					else if (!strcmp(var, "current_attempt"))
+						temp_hoststatus->current_attempt = atoi(val);
+					else if (!strcmp(var, "max_attempts"))
+						temp_hoststatus->max_attempts = atoi(val);
+					else if (!strcmp(var, "last_check"))
+						temp_hoststatus->last_check = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "next_check"))
+						temp_hoststatus->next_check = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "check_options"))
+						temp_hoststatus->check_options = atoi(val);
+					else if (!strcmp(var, "state_type"))
+						temp_hoststatus->state_type = atoi(val);
+					else if (!strcmp(var, "last_state_change"))
+						temp_hoststatus->last_state_change = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "last_hard_state_change"))
+						temp_hoststatus->last_hard_state_change = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "last_time_up"))
+						temp_hoststatus->last_time_up = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "last_time_down"))
+						temp_hoststatus->last_time_down = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "last_time_unreachable"))
+						temp_hoststatus->last_time_unreachable = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "last_notification"))
+						temp_hoststatus->last_notification = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "next_notification"))
+						temp_hoststatus->next_notification = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "no_more_notifications"))
+						temp_hoststatus->no_more_notifications =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "current_notification_number"))
+						temp_hoststatus->current_notification_number = atoi(val);
+					else if (!strcmp(var, "notifications_enabled"))
+						temp_hoststatus->notifications_enabled =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "problem_has_been_acknowledged"))
+						temp_hoststatus->problem_has_been_acknowledged =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "acknowledgement_type"))
+						temp_hoststatus->acknowledgement_type = atoi(val);
+					else if (!strcmp(var, "active_checks_enabled"))
+						temp_hoststatus->checks_enabled = (atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "passive_checks_enabled"))
+						temp_hoststatus->accept_passive_checks =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "event_handler_enabled"))
+						temp_hoststatus->event_handler_enabled =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "flap_detection_enabled"))
+						temp_hoststatus->flap_detection_enabled =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "process_performance_data"))
+						temp_hoststatus->process_performance_data =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "obsess_over_host") || !strcmp(var, "obsess"))
+						temp_hoststatus->obsess = (atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "last_update"))
+						temp_hoststatus->last_update = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "is_flapping"))
+						temp_hoststatus->is_flapping = (atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "percent_state_change"))
+						temp_hoststatus->percent_state_change = strtod(val, NULL);
+					else if (!strcmp(var, "scheduled_downtime_depth")) {
+						temp_hoststatus->scheduled_downtime_depth = atoi(val);
+						if (temp_hoststatus->scheduled_downtime_depth < 0)
+							temp_hoststatus->scheduled_downtime_depth = 0;
+					}
+				}
+				break;
+
+			case XSDDEFAULT_SERVICESTATUS_DATA:
+				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
+				if (temp_servicestatus != NULL) {
+					if (!strcmp(var, "host_name"))
+						temp_servicestatus->host_name = (char *)strdup(val);
+					else if (!strcmp(var, "service_description"))
+						temp_servicestatus->description = (char *)strdup(val);
+					else if (!strcmp(var, "has_been_checked"))
+						temp_servicestatus->has_been_checked = (atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "should_be_scheduled"))
+						temp_servicestatus->should_be_scheduled =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "check_execution_time"))
+						temp_servicestatus->execution_time = strtod(val, NULL);
+					else if (!strcmp(var, "check_latency"))
+						temp_servicestatus->latency = strtod(val, NULL);
+					else if (!strcmp(var, "check_type"))
+						temp_servicestatus->check_type = atoi(val);
+					else if (!strcmp(var, "current_state"))
+						temp_servicestatus->status = atoi(val);
+					else if (!strcmp(var, "last_hard_state"))
+						temp_servicestatus->last_hard_state = atoi(val);
+					else if (!strcmp(var, "current_attempt"))
+						temp_servicestatus->current_attempt = atoi(val);
+					else if (!strcmp(var, "max_attempts"))
+						temp_servicestatus->max_attempts = atoi(val);
+					else if (!strcmp(var, "state_type"))
+						temp_servicestatus->state_type = atoi(val);
+					else if (!strcmp(var, "last_state_change"))
+						temp_servicestatus->last_state_change = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "last_hard_state_change"))
+						temp_servicestatus->last_hard_state_change = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "last_time_ok"))
+						temp_servicestatus->last_time_ok = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "last_time_warning"))
+						temp_servicestatus->last_time_warning = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "last_time_unknown"))
+						temp_servicestatus->last_time_unknown = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "last_time_critical"))
+						temp_servicestatus->last_time_critical = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "plugin_output")) {
+						temp_servicestatus->plugin_output = (char *)strdup(val);
+						unescape_newlines(temp_servicestatus->plugin_output);
+					} else if (!strcmp(var, "long_plugin_output")) {
+						temp_servicestatus->long_plugin_output = (char *)strdup(val);
+						unescape_newlines(temp_servicestatus->long_plugin_output);
+					} else if (!strcmp(var, "performance_data"))
+						temp_servicestatus->perf_data = (char *)strdup(val);
+					else if (!strcmp(var, "last_check"))
+						temp_servicestatus->last_check = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "next_check"))
+						temp_servicestatus->next_check = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "check_options"))
+						temp_servicestatus->check_options = atoi(val);
+					else if (!strcmp(var, "current_notification_number"))
+						temp_servicestatus->current_notification_number = atoi(val);
+					else if (!strcmp(var, "last_notification"))
+						temp_servicestatus->last_notification = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "next_notification"))
+						temp_servicestatus->next_notification = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "no_more_notifications"))
+						temp_servicestatus->no_more_notifications =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "notifications_enabled"))
+						temp_servicestatus->notifications_enabled =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "active_checks_enabled"))
+						temp_servicestatus->checks_enabled = (atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "passive_checks_enabled"))
+						temp_servicestatus->accept_passive_checks =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "event_handler_enabled"))
+						temp_servicestatus->event_handler_enabled =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "problem_has_been_acknowledged"))
+						temp_servicestatus->problem_has_been_acknowledged =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "acknowledgement_type"))
+						temp_servicestatus->acknowledgement_type = atoi(val);
+					else if (!strcmp(var, "flap_detection_enabled"))
+						temp_servicestatus->flap_detection_enabled =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "process_performance_data"))
+						temp_servicestatus->process_performance_data =
+							(atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "obsess_over_service") || !strcmp(var, "obsess"))
+						temp_servicestatus->obsess = (atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "last_update"))
+						temp_servicestatus->last_update = strtoul(val, NULL, 10);
+					else if (!strcmp(var, "is_flapping"))
+						temp_servicestatus->is_flapping = (atoi(val) > 0) ? TRUE : FALSE;
+					else if (!strcmp(var, "percent_state_change"))
+						temp_servicestatus->percent_state_change = strtod(val, NULL);
+					else if (!strcmp(var, "scheduled_downtime_depth")) {
+						temp_servicestatus->scheduled_downtime_depth = atoi(val);
+						if (temp_servicestatus->scheduled_downtime_depth < 0)
+							temp_servicestatus->scheduled_downtime_depth = 0;
+					}
+				}
+				break;
+
+			case XSDDEFAULT_CONTACTSTATUS_DATA:
+				/* unimplemented */
+				break;
+
+			case XSDDEFAULT_HOSTCOMMENT_DATA:
+			case XSDDEFAULT_SERVICECOMMENT_DATA:
+				if (!strcmp(var, "host_name"))
+					host_name = (char *)strdup(val);
+				else if (!strcmp(var, "service_description"))
+					service_description = (char *)strdup(val);
+				else if (!strcmp(var, "entry_type"))
+					entry_type = atoi(val);
+				else if (!strcmp(var, "comment_id"))
+					comment_id = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "source"))
+					source = atoi(val);
+				else if (!strcmp(var, "persistent"))
+					persistent = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "entry_time"))
+					entry_time = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "expires"))
+					expires = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "expire_time"))
+					expire_time = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "author"))
+					author = (char *)strdup(val);
+				else if (!strcmp(var, "comment_data"))
+					comment_data = (char *)strdup(val);
+				break;
+
+			case XSDDEFAULT_HOSTDOWNTIME_DATA:
+			case XSDDEFAULT_SERVICEDOWNTIME_DATA:
+				if (!strcmp(var, "host_name"))
+					host_name = (char *)strdup(val);
+				else if (!strcmp(var, "service_description"))
+					service_description = (char *)strdup(val);
+				else if (!strcmp(var, "downtime_id"))
+					downtime_id = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "comment_id"))
+					comment_id = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "entry_time"))
+					entry_time = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "start_time"))
+					start_time = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "flex_downtime_start"))
+					flex_downtime_start = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "end_time"))
+					end_time = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "fixed"))
+					fixed = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "triggered_by"))
+					triggered_by = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "duration"))
+					duration = strtoul(val, NULL, 10);
+				else if (!strcmp(var, "is_in_effect"))
+					is_in_effect = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "start_notification_sent"))
+					start_notification_sent = (atoi(val) > 0) ? TRUE : FALSE;
+				else if (!strcmp(var, "author"))
+					author = (char *)strdup(val);
+				else if (!strcmp(var, "comment"))
+					comment_data = (char *)strdup(val);
+				break;
+
+			default:
+				break;
 			}
+
 		}
+	}
 
 	/* free memory and close the file */
-#ifdef NO_MMAP
+# ifdef NO_MMAP
 	fclose(fp);
-#else
+# else
 	my_free(input);
 	mmap_fclose(thefile);
-#endif
+# endif
 
-	if(sort_downtime() != OK)
+	if (sort_downtime() != OK)
 		return ERROR;
-	if(sort_comments() != OK)
+	if (sort_comments() != OK)
 		return ERROR;
 
 	return OK;
-	}
+}
 
 #endif

@@ -1,6 +1,6 @@
 #ifndef LIBNAGIOS_FANOUT_H_INCLUDED
-#define LIBNAGIOS_FANOUT_H_INCLUDED
-#include "lnag-utils.h"
+# define LIBNAGIOS_FANOUT_H_INCLUDED
+# include "lnag-utils.h"
 
 /**
  * @file fanout.h
@@ -16,7 +16,6 @@
  */
 
 NAGIOS_BEGIN_DECL
-
 /** Primary (opaque) type for this api */
 typedef struct fanout_table fanout_table;
 
@@ -37,7 +36,7 @@ extern fanout_table *fanout_create(unsigned long size);
  * @param[in] t The fanout table to destroy
  * @param[in] destructor Function to call on data pointers in table
  */
-extern void fanout_destroy(fanout_table *t, void (*destructor)(void *));
+extern void fanout_destroy(fanout_table * t, void (*destructor) (void *));
 
 /**
  * Return a pointer from the fanout table t
@@ -46,7 +45,7 @@ extern void fanout_destroy(fanout_table *t, void (*destructor)(void *));
  * @param[in] key key to fetch
  * @return NULL on errors; Pointer to data on success
  */
-extern void *fanout_get(fanout_table *t, unsigned long key);
+extern void *fanout_get(fanout_table * t, unsigned long key);
 
 /**
  * Add an entry to the fanout table.
@@ -58,7 +57,7 @@ extern void *fanout_get(fanout_table *t, unsigned long key);
  * @param[in] data Data to add. Must not be NULL
  * @return 0 on success, -1 on errors
  */
-extern int fanout_add(fanout_table *t, unsigned long key, void *data);
+extern int	fanout_add(fanout_table * t, unsigned long key, void *data);
 
 /**
  * Remove an entry from the fanout table and return its data.
@@ -67,7 +66,7 @@ extern int fanout_add(fanout_table *t, unsigned long key, void *data);
  * @param[in] key The key whose data we should locate
  * @return Pointer to the data stored on success; NULL on errors
  */
-extern void *fanout_remove(fanout_table *t, unsigned long key);
+extern void *fanout_remove(fanout_table * t, unsigned long key);
 NAGIOS_END_DECL
 /** @} */
 #endif

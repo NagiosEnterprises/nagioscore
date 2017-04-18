@@ -21,9 +21,9 @@
  *****************************************************************************/
 
 #ifndef NAGIOS_XPDDEFAULT_H_INCLUDED
-#define NAGIOS_XPDDEFAULT_H_INCLUDED
+# define NAGIOS_XPDDEFAULT_H_INCLUDED
 
-#include "../include/objects.h"
+# include "../include/objects.h"
 
 
 int xpddefault_initialize_performance_data(const char *);
@@ -32,11 +32,11 @@ int xpddefault_cleanup_performance_data(void);
 int xpddefault_update_service_performance_data(service *);
 int xpddefault_update_host_performance_data(host *);
 
-int xpddefault_run_service_performance_data_command(nagios_macros *mac, service *);
-int xpddefault_run_host_performance_data_command(nagios_macros *mac, host *);
+int xpddefault_run_service_performance_data_command(nagios_macros * mac, service *);
+int xpddefault_run_host_performance_data_command(nagios_macros * mac, host *);
 
-int xpddefault_update_service_performance_data_file(nagios_macros *mac, service *);
-int xpddefault_update_host_performance_data_file(nagios_macros *mac, host *);
+int xpddefault_update_service_performance_data_file(nagios_macros * mac, service *);
+int xpddefault_update_host_performance_data_file(nagios_macros * mac, host *);
 
 int xpddefault_preprocess_file_templates(char *);
 

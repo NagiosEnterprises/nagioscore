@@ -21,28 +21,26 @@
  *****************************************************************************/
 
 #ifndef NAGIOS_CGIAUTH_H_INCLUDED
-#define NAGIOS_CGIAUTH_H_INCLUDED
-#include "common.h"
-#include "objects.h"
+# define NAGIOS_CGIAUTH_H_INCLUDED
+# include "common.h"
+# include "objects.h"
 
-NAGIOS_BEGIN_DECL
-
-typedef struct authdata_struct {
-	char *username;
-	int authorized_for_all_hosts;
-	int authorized_for_all_host_commands;
-	int authorized_for_all_services;
-	int authorized_for_all_service_commands;
-	int authorized_for_system_information;
-	int authorized_for_system_commands;
-	int authorized_for_configuration_information;
-	int authorized_for_read_only;
-	int authenticated;
-	} authdata;
+NAGIOS_BEGIN_DECL typedef struct authdata_struct {
+	char	   *username;
+	int 		authorized_for_all_hosts;
+	int 		authorized_for_all_host_commands;
+	int 		authorized_for_all_services;
+	int 		authorized_for_all_service_commands;
+	int 		authorized_for_system_information;
+	int 		authorized_for_system_commands;
+	int 		authorized_for_configuration_information;
+	int 		authorized_for_read_only;
+	int 		authenticated;
+} authdata;
 
 
 
-int get_authentication_information(authdata *);       /* gets current authentication information */
+int get_authentication_information(authdata *); /* gets current authentication information */
 
 int is_authorized_for_host(host *, authdata *);
 int is_authorized_for_service(service *, authdata *);
@@ -66,5 +64,4 @@ int is_authorized_for_configuration_information(authdata *);
 int is_authorized_for_read_only(authdata *);
 
 NAGIOS_END_DECL
-
 #endif

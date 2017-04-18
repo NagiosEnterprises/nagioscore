@@ -1,5 +1,5 @@
 #ifndef NAGIOS_CONFIG_PWD_H_INCLUDED
-#define NAGIOS_CONFIG_PWD_H_INCLUDED
+# define NAGIOS_CONFIG_PWD_H_INCLUDED
 /**
  * @file include/config_pwd.h
  * A wrapper header to let us conditionally define and then undefine
@@ -8,16 +8,16 @@
  * out when config.h is generated.
  */
 
-#if defined(__sun) && defined(__SVR4) && !defined(__XOPEN_OR_POSIX)
-#define __XOPEN_OR_POSIX
-#define NEED_TO_UNDEF__XOPEN_OR_POSIX
-#endif
+# if defined(__sun) && defined(__SVR4) && !defined(__XOPEN_OR_POSIX)
+#  define __XOPEN_OR_POSIX
+#  define NEED_TO_UNDEF__XOPEN_OR_POSIX
+# endif
 
-#include <pwd.h>
+# include <pwd.h>
 
-#if defined(NEED_TO_UNDEF__XOPEN_OR_POSIX)
-#undef __XOPEN_OR_POSIX
-#undef NEED_TO_UNDEF__XOPEN_OR_POSIX
-#endif
+# if defined(NEED_TO_UNDEF__XOPEN_OR_POSIX)
+#  undef __XOPEN_OR_POSIX
+#  undef NEED_TO_UNDEF__XOPEN_OR_POSIX
+# endif
 
 #endif

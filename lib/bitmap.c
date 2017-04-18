@@ -11,24 +11,24 @@
 typedef unsigned int bmap;
 
 #define MAPSIZE (sizeof(bmap) * CHAR_BIT)
-#define MAPMASK (MAPSIZE - 1) /* bits - 1, so 63 for 64-bit machines */
-#define SHIFTOUT (MAPSIZE == 64 ? 6 : 5) /* log2(bits) */
+#define MAPMASK (MAPSIZE - 1)	/* bits - 1, so 63 for 64-bit machines */
+#define SHIFTOUT (MAPSIZE == 64 ? 6 : 5)	/* log2(bits) */
 
 struct bitmap {
-	bmap *vector;
+	bmap	   *vector;
 	unsigned long alloc;
 };
 
-void bitmap_clear(bitmap *bm)
+void bitmap_clear(bitmap * bm)
 {
 	if (bm)
 		memset(bm->vector, 0, bm->alloc * sizeof(bmap));
 }
 
-int bitmap_resize(bitmap *bm, unsigned long size)
+int bitmap_resize(bitmap * bm, unsigned long size)
 {
 	unsigned long ralloc;
-	bmap *nvec;
+	bmap	   *nvec;
 
 	if (!bm)
 		return -1;
@@ -53,9 +53,9 @@ int bitmap_resize(bitmap *bm, unsigned long size)
 	return 0;
 }
 
-static bitmap *bitmap_init(bitmap *bm, unsigned long size)
+static bitmap *bitmap_init(bitmap * bm, unsigned long size)
 {
-	int ret;
+	int 		ret;
 
 	if (!bm)
 		return NULL;
@@ -67,9 +67,9 @@ static bitmap *bitmap_init(bitmap *bm, unsigned long size)
 	return bm;
 }
 
-bitmap *bitmap_create(unsigned long size)
+bitmap	   *bitmap_create(unsigned long size)
 {
-	bitmap *bm;
+	bitmap	   *bm;
 
 	if (!(bm = calloc(1, sizeof(bitmap))))
 		return NULL;
@@ -82,7 +82,7 @@ bitmap *bitmap_create(unsigned long size)
 	return NULL;
 }
 
-void bitmap_destroy(bitmap *bm)
+void bitmap_destroy(bitmap * bm)
 {
 	if (!bm)
 		return;
@@ -91,9 +91,9 @@ void bitmap_destroy(bitmap *bm)
 	free(bm);
 }
 
-bitmap *bitmap_copy(const bitmap *bm)
+bitmap	   *bitmap_copy(const bitmap * bm)
 {
-	bitmap *ret;
+	bitmap	   *ret;
 
 	if (!bm)
 		return NULL;
@@ -142,9 +142,9 @@ static inline unsigned int l_bits(bmap map)
 }
 
 
-int bitmap_set(bitmap *bm, unsigned long pos)
+int bitmap_set(bitmap * bm, unsigned long pos)
 {
-	const bmap l = pos >> SHIFTOUT;
+	const bmap	l = pos >> SHIFTOUT;
 	const unsigned int bit = pos & MAPMASK;
 
 	if (!bm)
@@ -156,11 +156,11 @@ int bitmap_set(bitmap *bm, unsigned long pos)
 	return 0;
 }
 
-int bitmap_isset(const bitmap *bm, unsigned long pos)
+int bitmap_isset(const bitmap * bm, unsigned long pos)
 {
-	const bmap l = pos >> SHIFTOUT;
-	const int bit = pos & MAPMASK;
-	int set;
+	const bmap	l = pos >> SHIFTOUT;
+	const int	bit = pos & MAPMASK;
+	int 		set;
 
 	if (!bm || l > bm->alloc)
 		return 0;
@@ -169,17 +169,17 @@ int bitmap_isset(const bitmap *bm, unsigned long pos)
 	return set;
 }
 
-int bitmap_unset(bitmap *bm, unsigned long pos)
+int bitmap_unset(bitmap * bm, unsigned long pos)
 {
-	const bmap l = pos >> SHIFTOUT;
-	const int bit = pos & MAPMASK;
-	const int val = bitmap_isset(bm, pos);
+	const bmap	l = pos >> SHIFTOUT;
+	const int	bit = pos & MAPMASK;
+	const int	val = bitmap_isset(bm, pos);
 
 	bm->vector[l] &= ~(1 << bit);
 	return val;
 }
 
-unsigned long bitmap_cardinality(const bitmap *bm)
+unsigned long bitmap_cardinality(const bitmap * bm)
 {
 	if (!bm)
 		return 0;
@@ -190,7 +190,7 @@ unsigned long bitmap_cardinality(const bitmap *bm)
 /*
  * count set bits in alloc * (mapsize / 8) ops
  */
-unsigned long bitmap_count_set_bits(const bitmap *bm)
+unsigned long bitmap_count_set_bits(const bitmap * bm)
 {
 	unsigned long i, set_bits = 0;
 
@@ -204,7 +204,7 @@ unsigned long bitmap_count_set_bits(const bitmap *bm)
 	return set_bits;
 }
 
-unsigned long bitmap_count_unset_bits(const bitmap *bm)
+unsigned long bitmap_count_unset_bits(const bitmap * bm)
 {
 	return bitmap_cardinality(bm) - bitmap_count_set_bits(bm);
 }
@@ -223,7 +223,7 @@ unsigned long bitmap_count_unset_bits(const bitmap *bm)
 		return NULL; \
 	for (i = 0; i < a->alloc; i++)
 
-bitmap *bitmap_intersect(const bitmap *a, const bitmap *b)
+bitmap	   *bitmap_intersect(const bitmap * a, const bitmap * b)
 {
 	BITMAP_MATH(a, b) {
 		bm->vector[i] = a->vector[i] & b->vector[i];
@@ -233,25 +233,25 @@ bitmap *bitmap_intersect(const bitmap *a, const bitmap *b)
 }
 
 
-bitmap *bitmap_union(const bitmap *a, const bitmap *b)
+bitmap	   *bitmap_union(const bitmap * a, const bitmap * b)
 {
-	if(!a)
+	if (!a)
 		return bitmap_copy(b);
-	if(!b)
+	if (!b)
 		return bitmap_copy(a);
 	do {
 		BITMAP_MATH(a, b) {
 			bm->vector[i] = a->vector[i] | b->vector[i];
 		}
 		return bm;
-	} while(0);
+	} while (0);
 }
 
-bitmap *bitmap_unite(bitmap *res, const bitmap *addme)
+bitmap	   *bitmap_unite(bitmap * res, const bitmap * addme)
 {
 	unsigned int i;
 
-	if(!addme || !res)
+	if (!addme || !res)
 		return res;
 
 	if (bitmap_size(addme) > bitmap_size(res)) {
@@ -269,7 +269,7 @@ bitmap *bitmap_unite(bitmap *res, const bitmap *addme)
  * numerator, so if it's larger we must include any overflow in the
  * resulting set.
  */
-bitmap *bitmap_diff(const bitmap *a, const bitmap *b)
+bitmap	   *bitmap_diff(const bitmap * a, const bitmap * b)
 {
 	const bitmap *a_ = a, *b_ = b;
 
@@ -285,7 +285,7 @@ bitmap *bitmap_diff(const bitmap *a, const bitmap *b)
 /*
  * symmetric set difference lists all items only present in one set
  */
-bitmap *bitmap_symdiff(const bitmap *a, const bitmap *b)
+bitmap	   *bitmap_symdiff(const bitmap * a, const bitmap * b)
 {
 	BITMAP_MATH(a, b) {
 		bm->vector[i] = (a->vector[i] | b->vector[i]) ^ (a->vector[i] & b->vector[i]);
@@ -297,9 +297,9 @@ bitmap *bitmap_symdiff(const bitmap *a, const bitmap *b)
 }
 
 #define min(a, b) (a > b ? b : a)
-int bitmap_cmp(const bitmap *a, const bitmap *b)
+int bitmap_cmp(const bitmap * a, const bitmap * b)
 {
-	int ret;
+	int 		ret;
 
 	ret = memcmp(a->vector, b->vector, min(a->alloc, b->alloc) * MAPSIZE);
 	if (ret || a->alloc == b->alloc) {

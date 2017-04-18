@@ -25,8 +25,8 @@ static char *msg[] = {
 
 static int echo_service(int fd, int events, void *arg)
 {
-	char buf[1024];
-	int len;
+	char		buf[1024];
+	int 		len;
 
 	len = read(fd, buf, sizeof(buf));
 	if (len < 0) {
@@ -49,14 +49,14 @@ static int echo_service(int fd, int events, void *arg)
 
 static int connected_handler(int fd, int events, void *arg)
 {
-	int *counter = (int *)arg;
-	int i;
+	int 	   *counter = (int *)arg;
+	int 		i;
 
 	i = *counter;
 
 	if (events == IOBROKER_POLLIN) {
-		char buf[1024];
-		int len = read(fd, buf, sizeof(buf));
+		char		buf[1024];
+		int 		len = read(fd, buf, sizeof(buf));
 
 		buf[len] = 0;
 
@@ -84,9 +84,9 @@ static int connected_handler(int fd, int events, void *arg)
 
 static int listen_handler(int fd, int events, void *arg)
 {
-	int sock;
+	int 		sock;
 	struct sockaddr_in sain;
-	socklen_t addrlen;
+	socklen_t	addrlen;
 
 	if (!arg || arg != iobs) {
 		printf("Argument passing seems to fail spectacularly\n");
@@ -115,10 +115,10 @@ void sighandler(int sig)
 
 
 #define NUM_PROCS 500
-static int proc_counter[NUM_PROCS];
+static int	proc_counter[NUM_PROCS];
 static int conn_spam(struct sockaddr_in *sain)
 {
-	int i;
+	int 		i;
 #ifdef HAVE_SIGACTION
 	struct sigaction sig_action;
 
@@ -129,19 +129,19 @@ static int conn_spam(struct sockaddr_in *sain)
 	sigaction(SIGPIPE, &sig_action, NULL);
 	sig_action.sa_handler = sighandler;
 	sigfillset(&sig_action.sa_mask);
-	sig_action.sa_flags = SA_NODEFER|SA_RESTART;
+	sig_action.sa_flags = SA_NODEFER | SA_RESTART;
 	sigaction(SIGQUIT, &sig_action, NULL);
 	sigaction(SIGINT, &sig_action, NULL);
-#else /* HAVE_SIGACTION */
+#else	 /* HAVE_SIGACTION */
 	signal(SIGALRM, sighandler);
 	signal(SIGINT, sighandler);
 	signal(SIGPIPE, SIG_IGN);
-#endif /* HAVE_SIGACTION */
+#endif	 /* HAVE_SIGACTION */
 
 	alarm(20);
 
 	for (i = 0; i < NUM_PROCS; i++) {
-		int fd, sockopt = 1;
+		int 		fd, sockopt = 1;
 
 		fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		(void)setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof(sockopt));
@@ -157,9 +157,9 @@ static int conn_spam(struct sockaddr_in *sain)
 
 int main(int argc, char **argv)
 {
-	int listen_fd, flags, sockopt = 1;
+	int 		listen_fd, flags, sockopt = 1;
 	struct sockaddr_in sain;
-	int error;
+	int 		error;
 	const char *err_msg;
 
 	t_set_colors(0);
@@ -169,7 +169,9 @@ int main(int argc, char **argv)
 	ok_int(error, IOBROKER_ENOSET, "test errors when passing null");
 
 	err_msg = iobroker_strerror(error);
-	test(err_msg && !strcmp(err_msg, iobroker_errors[(~error) + 1].string), "iobroker_strerror() returns the right string");
+	test(err_msg
+		 && !strcmp(err_msg, iobroker_errors[(~error) + 1].string),
+		 "iobroker_strerror() returns the right string");
 
 	iobs = iobroker_create();
 	error = iobroker_get_max_fds(iobs);

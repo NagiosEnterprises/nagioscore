@@ -48,7 +48,7 @@
  * potentially occur in any number of threads simultaneously.
  *
  * Multithreaded apps and plugins must initialize it (via runcmd_init())
- * in an async safe manner  before calling any other runcmd function.
+ * in an async safe manner	before calling any other runcmd function.
  */
 static pid_t *pids = NULL;
 
@@ -60,12 +60,12 @@ static pid_t *pids = NULL;
 #ifdef OPEN_MAX
 # define maxfd OPEN_MAX
 #else
-# ifndef _SC_OPEN_MAX /* sysconf macro unavailable, so guess */
+# ifndef _SC_OPEN_MAX			/* sysconf macro unavailable, so guess */
 #  define maxfd 256
 # else
-static int maxfd = 0;
-# endif /* _SC_OPEN_MAX */
-#endif /* OPEN_MAX */
+static int	maxfd = 0;
+# endif  /* _SC_OPEN_MAX */
+#endif	 /* OPEN_MAX */
 
 
 const char *runcmd_strerror(int code)
@@ -90,7 +90,7 @@ const char *runcmd_strerror(int code)
 /* yield the pid belonging to a particular file descriptor */
 pid_t runcmd_pid(int fd)
 {
-	if(!pids || fd >= maxfd || fd < 0)
+	if (!pids || fd >= maxfd || fd < 0)
 		return 0;
 
 	return pids[fd];
@@ -107,11 +107,11 @@ pid_t runcmd_pid(int fd)
  * though, which is to be interpreted as a bitfield with potentially
  * multiple flags set.
  */
-#define STATE_NONE  0
+#define STATE_NONE	0
 #define STATE_WHITE (1 << 0)
 #define STATE_INARG (1 << 1)
-#define STATE_INSQ  (1 << 2)
-#define STATE_INDQ  (1 << 3)
+#define STATE_INSQ	(1 << 2)
+#define STATE_INDQ	(1 << 3)
 #define STATE_SPECIAL (1 << 4)
 #define STATE_BSLASH (1 << 5)
 #define in_quotes (state & (STATE_INSQ | STATE_INDQ))
@@ -123,13 +123,13 @@ pid_t runcmd_pid(int fd)
 #define add_ret(r) (ret |= r)
 int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 {
-	int arg = 0;
-	int a = 0;
+	int 		arg = 0;
+	int 		a = 0;
 	unsigned int i;
-	int state;
-	int ret = 0;
-	size_t len;
-	char *argz;
+	int 		state;
+	int 		ret = 0;
+	size_t		len;
+	char	   *argz;
 
 	set_state(STATE_NONE);
 
@@ -150,12 +150,16 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 
 		switch (*p) {
 		case 0:
-			if (arg == 0) free(out_argv[0]);
+			if (arg == 0)
+				free(out_argv[0]);
 			out_argv[arg] = NULL;
 			*out_argc = arg;
 			return ret;
 
-		case ' ': case '\t': case '\r': case '\n':
+		case ' ':
+		case '\t':
+		case '\r':
+		case '\n':
 			if (is_state(STATE_INARG)) {
 				set_state(STATE_NONE);
 				argz[a++] = 0;
@@ -176,9 +180,12 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			 * a few, but not all, shell specials
 			 */
 			if (have_state(STATE_INDQ)) {
-				const char next = str[i + 1];
+				const char	next = str[i + 1];
 				switch (next) {
-				case '"': case '\\': case '$': case '`':
+				case '"':
+				case '\\':
+				case '$':
+				case '`':
 					add_state(STATE_BSLASH);
 					continue;
 				}
@@ -234,7 +241,8 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 				add_ret(RUNCMD_HAS_REDIR);
 			}
 			break;
-		case '&': case ';':
+		case '&':
+		case ';':
 			if (!in_quotes) {
 				set_state(STATE_SPECIAL);
 				add_ret(RUNCMD_HAS_JOBCONTROL);
@@ -247,7 +255,8 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			}
 			break;
 
-		case '(': case ')':
+		case '(':
+		case ')':
 			if (!in_quotes) {
 				add_ret(RUNCMD_HAS_PAREN);
 			}
@@ -262,7 +271,8 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 			}
 			break;
 
-		case '*': case '?':
+		case '*':
+		case '?':
 			if (!in_quotes) {
 				add_ret(RUNCMD_HAS_WILDCARD);
 			}
@@ -311,8 +321,8 @@ void runcmd_init(void)
 		maxfd = rlim.rlim_cur;
 	}
 #elif !defined(OPEN_MAX) && !defined(IOV_MAX) && defined(_SC_OPEN_MAX)
-	if(!maxfd) {
-		if((maxfd = sysconf(_SC_OPEN_MAX)) < 0) {
+	if (!maxfd) {
+		if ((maxfd = sysconf(_SC_OPEN_MAX)) < 0) {
 			/* possibly log or emit a warning here, since there's no
 			 * guarantee that our guess at maxfd will be adequate */
 			maxfd = 256;
@@ -325,22 +335,22 @@ void runcmd_init(void)
 }
 
 
-static int runcmd_setenv(const char *name, const char *value);
+static int	runcmd_setenv(const char *name, const char *value);
 int update_environment(char *name, char *value, int set);
 
 /* Start running a command */
 int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
-		void (*iobreg)(int, int, void *), void *iobregarg)
+				void (*iobreg) (int, int, void *), void *iobregarg)
 {
-	char **argv = NULL;
-	int argc = 0;
-	int cmd2strv_errors;
-	size_t cmdlen;
-	pid_t pid;
+	char	  **argv = NULL;
+	int 		argc = 0;
+	int 		cmd2strv_errors;
+	size_t		cmdlen;
+	pid_t		pid;
 
-	int i = 0;
+	int 		i = 0;
 
-	if(!pids)
+	if (!pids)
 		runcmd_init();
 
 	/* We can't do anything without a command, or FD arrays. */
@@ -386,7 +396,8 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		return RUNCMD_EFD;
 	}
 
-	if (iobreg) iobreg(pfd[0], pfderr[0], iobregarg);
+	if (iobreg)
+		iobreg(pfd[0], pfderr[0], iobregarg);
 
 	pid = fork();
 	if (pid < 0) {
@@ -396,12 +407,12 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		close(pfd[1]);
 		close(pfderr[0]);
 		close(pfderr[1]);
-		return RUNCMD_EFORK; /* errno set by the failing function */
+		return RUNCMD_EFORK;	/* errno set by the failing function */
 	}
 
 	/* Child runs excevp() and _exit(). */
 	if (pid == 0) {
-		int exit_status = EXIT_SUCCESS; /* To preserve errno when _exit()ing. */
+		int 		exit_status = EXIT_SUCCESS; /* To preserve errno when _exit()ing. */
 
 		/* Make our children their own process group leaders so they are killable
 		 * by their parent (word of the day: filicide / prolicide). */
@@ -411,21 +422,23 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 			goto child_error_exit;
 		}
 
-		close (pfd[0]);
+		close(pfd[0]);
 		if (pfd[1] != STDOUT_FILENO) {
 			if (dup2(pfd[1], STDOUT_FILENO) == -1) {
 				exit_status = errno;
-				fprintf(stderr, "dup2(pfd[1], STDOUT_FILENO) errno %d: %s\n", errno, strerror(errno));
+				fprintf(stderr, "dup2(pfd[1], STDOUT_FILENO) errno %d: %s\n", errno,
+						strerror(errno));
 				goto child_error_exit;
 			}
 			close(pfd[1]);
 		}
 
-		close (pfderr[0]);
+		close(pfderr[0]);
 		if (pfderr[1] != STDERR_FILENO) {
 			if (dup2(pfderr[1], STDERR_FILENO) == -1) {
 				exit_status = errno;
-				fprintf(stderr, "dup2(pfderr[1], STDERR_FILENO) errno %d: %s\n", errno, strerror(errno));
+				fprintf(stderr, "dup2(pfderr[1], STDERR_FILENO) errno %d: %s\n", errno,
+						strerror(errno));
 				goto child_error_exit;
 			}
 			close(pfderr[1]);
@@ -443,8 +456,8 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 				if (runcmd_setenv(env[0], env[1]) == -1) {
 					exit_status = errno;
 					fprintf(stderr, "runcmd_setenv(%s, ...) errno %d: %s\n",
-						env[0], errno, strerror(errno)
-					);
+							env[0], errno, strerror(errno)
+						);
 					goto child_error_exit;
 				}
 			}
@@ -453,14 +466,15 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		/* Add VAR=value arguments from simple commands to the environment. */
 		i = 0;
 		if (!cmd2strv_errors) {
-			char *ev;
+			char	   *ev;
 			for (; i < argc && (ev = strchr(argv[i], '=')); ++i) {
-				if (*ev) *ev++ = '\0';
+				if (*ev)
+					*ev++ = '\0';
 				if (runcmd_setenv(argv[i], ev) == -1) {
 					exit_status = errno;
 					fprintf(stderr, "runcmd_setenv(%s, ev) errno %d: %s\n",
-						argv[i], errno, strerror(errno)
-					);
+							argv[i], errno, strerror(errno)
+						);
 					goto child_error_exit;
 				}
 			}
@@ -474,7 +488,8 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		execvp(argv[i], argv + i);
 
 		exit_status = errno;
-		fprintf(stderr, "execvp(%s, ...) failed. errno is %d: %s\n", argv[i], errno, strerror(errno));
+		fprintf(stderr, "execvp(%s, ...) failed. errno is %d: %s\n", argv[i], errno,
+				strerror(errno));
 
 child_error_exit:
 		/* Free argv memory before exiting so valgrind doesn't see it as a leak. */
@@ -503,11 +518,11 @@ child_error_exit:
 
 int runcmd_close(int fd)
 {
-	int status;
-	pid_t pid;
+	int 		status;
+	pid_t		pid;
 
 	/* make sure this fd was opened by runcmd_open() */
-	if(fd < 0 || fd > maxfd || !pids || (pid = pids[fd]) == 0)
+	if (fd < 0 || fd > maxfd || !pids || (pid = pids[fd]) == 0)
 		return RUNCMD_EINVAL;
 
 	pids[fd] = 0;
@@ -526,30 +541,31 @@ int runcmd_close(int fd)
 
 int runcmd_try_close(int fd, int *status, int sig)
 {
-	pid_t pid;
-	int result;
+	pid_t		pid;
+	int 		result;
 
 	/* make sure this fd was opened by popen() */
-	if(fd < 0 || fd > maxfd || !pids || !pids[fd])
+	if (fd < 0 || fd > maxfd || !pids || !pids[fd])
 		return RUNCMD_EINVAL;
 
 	pid = pids[fd];
-	while((result = waitpid(pid, status, WNOHANG)) != pid) {
-		if(!result) return 0;
-		if(result == -1) {
-			switch(errno) {
+	while ((result = waitpid(pid, status, WNOHANG)) != pid) {
+		if (!result)
+			return 0;
+		if (result == -1) {
+			switch (errno) {
 			case EINTR:
 				continue;
 			case EINVAL:
 				return -1;
 			case ECHILD:
-				if(sig) {
+				if (sig) {
 					result = kill(pid, sig);
 					sig = 0;
 					continue;
-				}
-				else return -1;
-			} /* switch */
+				} else
+					return -1;
+			}					/* switch */
 		}
 	}
 
@@ -569,9 +585,10 @@ int runcmd_try_close(int fd, int *status, int sig)
  * allocated to pass to putenv(), which is retained by the environment. This
  * 'leaked' memory will be on the heap at program exit.
  */
-static int runcmd_setenv(const char *name, const char *value) {
+static int runcmd_setenv(const char *name, const char *value)
+{
 #ifndef HAVE_SETENV
-	char *env_string = NULL;
+	char	   *env_string = NULL;
 #endif
 
 	/* We won't mess with null variable names or values. */
@@ -587,7 +604,8 @@ static int runcmd_setenv(const char *name, const char *value) {
 	/* For Solaris and systems that don't have setenv().
 	 * This will leak memory, but in a "controlled" way, since the memory
 	 * should be freed when the child process exits. */
-	if (asprintf(&env_string, "%s=%s", name, value) == -1) return -1;
+	if (asprintf(&env_string, "%s=%s", name, value) == -1)
+		return -1;
 	if (!env_string) {
 		errno = ENOMEM;
 		return -1;
@@ -597,16 +615,18 @@ static int runcmd_setenv(const char *name, const char *value) {
 }
 
 /* sets or unsets an environment variable */
-int update_environment(char *name, char *value, int set) {
+int update_environment(char *name, char *value, int set)
+{
 #ifndef HAVE_SETENV
-	char *env_string = NULL;
+	char	   *env_string = NULL;
 #endif
 
 	/* we won't mess with null variable names */
-	if(name == NULL) return -1;
+	if (name == NULL)
+		return -1;
 
 	/* set the environment variable */
-	if(set == 1) {
+	if (set == 1) {
 
 #ifdef HAVE_SETENV
 		setenv(name, (value == NULL) ? "" : value, 1);
@@ -614,7 +634,8 @@ int update_environment(char *name, char *value, int set) {
 		/* needed for Solaris and systems that don't have setenv() */
 		/* this will leak memory, but in a "controlled" way, since lost memory should be freed when the child process exits */
 		asprintf(&env_string, "%s=%s", name, (value == NULL) ? "" : value);
-		if(env_string) putenv(env_string);
+		if (env_string)
+			putenv(env_string);
 #endif
 	}
 	/* clear the variable */
@@ -632,8 +653,8 @@ int update_environment(char *name, char *value, int set) {
  * Useful for external applications that rely on libnagios to
  * keep a lid on potential memory leaks
  */
-void runcmd_free_pids(void) {
+void runcmd_free_pids(void)
+{
 	if (pids)
 		free(pids);
 }
-

@@ -12,10 +12,10 @@
 #include "squeue.c"
 #include "t-utils.h"
 
-static void squeue_foreach(squeue_t *q, int (*walker)(squeue_event *, void *), void *arg)
+static void squeue_foreach(squeue_t * q, int (*walker) (squeue_event *, void *), void *arg)
 {
-	squeue_t *dup;
-	void *e, *dup_d;
+	squeue_t   *dup;
+	void	   *e, *dup_d;
 
 	dup = squeue_create(q->size);
 	dup_d = dup->d;
@@ -44,9 +44,9 @@ typedef struct sq_test_event {
 } sq_test_event;
 
 static time_t sq_high = 0;
-static int sq_walker(squeue_event *evt, void *arg)
+static int sq_walker(squeue_event * evt, void *arg)
 {
-	static int walks = 0;
+	static int	walks = 0;
 
 	walks++;
 	t(sq_high <= evt->when.tv_sec, "sq_high: %lu; evt->when: %lu\n",
@@ -57,7 +57,7 @@ static int sq_walker(squeue_event *evt, void *arg)
 }
 
 #define EVT_ARY 65101
-static int sq_test_random(squeue_t *sq)
+static int sq_test_random(squeue_t * sq)
 {
 	unsigned long size, i;
 	unsigned long long numbers[EVT_ARY], *d, max = 0;
@@ -67,7 +67,7 @@ static int sq_test_random(squeue_t *sq)
 	now.tv_sec = time(NULL);
 	srand((int)now.tv_sec);
 	for (i = 0; i < EVT_ARY; i++) {
-		now.tv_usec = (time_t)rand();
+		now.tv_usec = (time_t) rand();
 		squeue_add_tv(sq, &now, &numbers[i]);
 		numbers[i] = evt_compute_pri(&now);
 		t(squeue_size(sq) == i + 1 + size);
@@ -94,7 +94,7 @@ static int sq_test_random(squeue_t *sq)
 
 int main(int argc, char **argv)
 {
-	squeue_t *sq;
+	squeue_t   *sq;
 	struct timeval tv;
 	sq_test_event a, b, c, d, *x;
 
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 	sq_test_random(sq);
 
 	/* testing squeue_peek() */
-	t((x = (sq_test_event *)squeue_peek(sq)) != NULL);
+	t((x = (sq_test_event *) squeue_peek(sq)) != NULL);
 	t(x == &b, "x: %p; a: %p; b: %p; c: %p; d: %p\n", x, &a, &b, &c, &d);
 	t(x->id == b.id);
 	t(squeue_size(sq) == 4);
@@ -146,8 +146,7 @@ int main(int argc, char **argv)
 	t((x = squeue_peek(sq)) != NULL);
 	if (x != &b) {
 		printf("about to fail pretty fucking hard...\n");
-		printf("ea: %p; &b: %p; &c: %p; ed: %p; x: %p\n",
-			   &a, &b, &c, &d, x);
+		printf("ea: %p; &b: %p; &c: %p; ed: %p; x: %p\n", &a, &b, &c, &d, x);
 	}
 	t(x == &b);
 	t(x->id == b.id);
@@ -155,8 +154,7 @@ int main(int argc, char **argv)
 
 	/* testing squeue_pop(), lifo manner */
 	t((x = squeue_pop(sq)) != NULL);
-	t(squeue_size(sq) == 3,
-	  "squeue_size(sq) = %d\n", squeue_size(sq));
+	t(squeue_size(sq) == 3, "squeue_size(sq) = %d\n", squeue_size(sq));
 	t(x == &b, "x: %p; &b: %p\n", x, &b);
 	t(x->id == b.id, "x->id: %lu; d.id: %lu\n", x->id, d.id);
 

@@ -48,15 +48,13 @@
 	  && ('w' == 119) && ('x' == 120) && ('y' == 121) && ('z' == 122) \
 	  && ('{' == 123) && ('|' == 124) && ('}' == 125) && ('~' == 126))
 /* The character set is not based on ISO-646.  */
-error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gnu-gperf@gnu.org>."
+error
+	"gperf generated tables don't work with this execution character set. Please report a bug to <bug-gnu-gperf@gnu.org>."
 #endif
-
-static inline unsigned int
-wp_phash(register const char *str, register unsigned int len)
+static inline unsigned int wp_phash(register const char *str, register unsigned int len)
 {
 	/* the last 136 entries have been cut, as we don't need them */
-	static unsigned char asso_values[256] =
-    {
+	static unsigned char asso_values[256] = {
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
@@ -66,9 +64,9 @@ wp_phash(register const char *str, register unsigned int len)
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-		34, 34, 34, 34, 34,  5, 34,  0, 34, 34,
-		34,  0, 34, 34, 34, 10, 34, 34, 34,  5,
-		0,  0, 25, 34,  0,  0, 10, 15, 34, 34,
+		34, 34, 34, 34, 34, 5, 34, 0, 34, 34,
+		34, 0, 34, 34, 34, 10, 34, 34, 34, 5,
+		0, 0, 25, 34, 0, 0, 10, 15, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
@@ -83,14 +81,13 @@ wp_phash(register const char *str, register unsigned int len)
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34,
-    };
+	};
 	register int hval = len;
 
 	switch (hval) {
 	default:
-        hval += asso_values[(unsigned char)str[4]];
-		/*FALLTHROUGH*/
-	case 4:
+		hval += asso_values[(unsigned char)str[4]];
+	 /*FALLTHROUGH*/ case 4:
 		hval += asso_values[(unsigned char)str[3]];
 		break;
 	}

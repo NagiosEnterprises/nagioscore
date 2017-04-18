@@ -169,42 +169,44 @@ struct nagios_extcmd in_core_commands[] = {
 	CMD_DEF(CHANGE_CONTACT_MODHATTR, 0, NULL),
 	CMD_DEF(CLEAR_HOST_FLAPPING_STATE, 0, NULL),
 	CMD_DEF(CLEAR_SVC_FLAPPING_STATE, 0, NULL),
-	};
+};
+
 #undef CMD_DEF
 
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
-struct nagios_extcmd* extcmd_get_command_id(int id)
+struct nagios_extcmd *extcmd_get_command_id(int id)
 {
 	unsigned int i;
 
-	for(i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
+	for (i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
 		struct nagios_extcmd *ecmd;
 		ecmd = &in_core_commands[i];
-		if(ecmd->id == id)
+		if (ecmd->id == id)
 			return ecmd;
-		}
+	}
 
 	return NULL;
 }
 
-struct nagios_extcmd* extcmd_get_command_name(const char *name)
+struct nagios_extcmd *extcmd_get_command_name(const char *name)
 {
 	unsigned int i;
 
-	for(i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
+	for (i = 0; i < ARRAY_SIZE(in_core_commands); i++) {
 		struct nagios_extcmd *ecmd;
 		ecmd = &in_core_commands[i];
-		if(!strcmp(ecmd->name, name))
+		if (!strcmp(ecmd->name, name))
 			return ecmd;
-		}
+	}
 
 	return NULL;
 }
 
-const char *extcmd_get_name(int id) {
+const char *extcmd_get_name(int id)
+{
 	struct nagios_extcmd *ecmd = extcmd_get_command_id(id);
 	if (!ecmd)
 		return NULL;

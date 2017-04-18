@@ -1,6 +1,6 @@
 #ifndef NDO_LIBNAGIOS_RUNCMD_H_INCLUDED
-#define NDO_LIBNAGIOS_RUNCMD_H_INCLUDED
-#include <signal.h>
+# define NDO_LIBNAGIOS_RUNCMD_H_INCLUDED
+# include <signal.h>
 
 /**
  * @file runcmd.h
@@ -24,22 +24,22 @@
  */
 
 /** Return code bitflags for runcmd_cmd2strv() */
-#define RUNCMD_HAS_REDIR (1 << 0) /**< I/O redirection */
-#define RUNCMD_HAS_SUBCOMMAND  (1 << 1) /**< subcommands present */
-#define RUNCMD_HAS_PAREN (1 << 2) /**< parentheses present in command */
-#define RUNCMD_HAS_JOBCONTROL (1 << 3) /**< job control stuff present */
-#define RUNCMD_HAS_UBSQ (1 << 4) /**< unbalanced single quotes */
-#define RUNCMD_HAS_UBDQ (1 << 5) /**< unbalanced double quotes */
-#define RUNCMD_HAS_WILDCARD (1 << 6) /**< wildcards present */
-#define RUNCMD_HAS_SHVAR    (1 << 7) /**< shell variables present */
+# define RUNCMD_HAS_REDIR (1 << 0)/**< I/O redirection */
+# define RUNCMD_HAS_SUBCOMMAND	(1 << 1)/**< subcommands present */
+# define RUNCMD_HAS_PAREN (1 << 2)/**< parentheses present in command */
+# define RUNCMD_HAS_JOBCONTROL (1 << 3)/**< job control stuff present */
+# define RUNCMD_HAS_UBSQ (1 << 4)/**< unbalanced single quotes */
+# define RUNCMD_HAS_UBDQ (1 << 5)/**< unbalanced double quotes */
+# define RUNCMD_HAS_WILDCARD (1 << 6)/**< wildcards present */
+# define RUNCMD_HAS_SHVAR	 (1 << 7)/**< shell variables present */
 
 
-#define RUNCMD_EFD    (-1)  /**< Failed to pipe() or open() */
-#define RUNCMD_EALLOC (-2)  /**< Failed to alloc */
-#define RUNCMD_ECMD   (-3)  /**< Bad command */
-#define RUNCMD_EFORK  (-4)  /**< Failed to fork() */
-#define RUNCMD_EINVAL (-5)  /**< Invalid parameters */
-#define RUNCMD_EWAIT  (-6)  /**< Failed to wait() */
+# define RUNCMD_EFD    (-1) /**< Failed to pipe() or open() */
+# define RUNCMD_EALLOC (-2) /**< Failed to alloc */
+# define RUNCMD_ECMD   (-3) /**< Bad command */
+# define RUNCMD_EFORK  (-4) /**< Failed to fork() */
+# define RUNCMD_EINVAL (-5) /**< Invalid parameters */
+# define RUNCMD_EWAIT  (-6) /**< Failed to wait() */
 
 /**
  * Initialize the runcmd library.
@@ -74,9 +74,9 @@ extern const char *runcmd_strerror(int code);
  * @param[in] iobreg The callback function to register the iobrokers for the read ends of the pipe
  * @param[in] iobregarg The "arg" value to pass to iobroker_register()
  */
-extern int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
-		void (*iobreg)(int, int, void *), void *iobregarg)
-	__attribute__((__nonnull__(1, 2, 3, 5, 6)));
+extern int	runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
+						void (*iobreg) (int, int, void *), void *iobregarg)
+	__attribute__ ((__nonnull__(1, 2, 3, 5, 6)));
 
 /**
  * Close a command and return its exit status
@@ -86,7 +86,7 @@ extern int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
  * @param[in] fd The child's stdout filedescriptor
  * @return exit-status of the child, or -1 in case of errors
  */
-extern int runcmd_close(int fd);
+extern int	runcmd_close(int fd);
 
 /**
  * Convert a string to a vector of arguments like a shell would
@@ -102,10 +102,10 @@ extern int runcmd_close(int fd);
  * representing f.e. unclosed quotes, job control or output redirection.
  * See the RUNCMD_HAS_* and their ilk to find out about the flag.
  */
-extern int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv);
+extern int	runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv);
 
 /**
- * If you're using libnagios to execute a remote command, the 
+ * If you're using libnagios to execute a remote command, the
  * static pid_t pids is not freed after runcmd_open
  * You can call this function when you're sure pids is no longer
  * in use, to keep down memory leaks

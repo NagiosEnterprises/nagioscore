@@ -5,13 +5,13 @@
 #include <errno.h>
 
 struct iocache {
-	char *ioc_buf; /* the data */
-	unsigned long ioc_offset; /* where we're reading in the buffer */
-	unsigned long ioc_buflen; /* the amount of data read into the buffer */
-	unsigned long ioc_bufsize; /* size of the buffer */
+	char	   *ioc_buf;		/* the data */
+	unsigned long ioc_offset;	/* where we're reading in the buffer */
+	unsigned long ioc_buflen;	/* the amount of data read into the buffer */
+	unsigned long ioc_bufsize;	/* size of the buffer */
 };
 
-void iocache_destroy(iocache *ioc)
+void iocache_destroy(iocache * ioc)
 {
 	if (!ioc)
 		return;
@@ -27,12 +27,12 @@ void iocache_destroy(iocache *ioc)
  * of the ioc_buf, expelling old data to make more room
  * for new reads.
  */
-static inline void iocache_move_data(iocache *ioc)
+static inline void iocache_move_data(iocache * ioc)
 {
 	unsigned long available;
 
 	if (!ioc->ioc_offset)
-		return; /* nothing to do */
+		return; 				/* nothing to do */
 
 	/* if we're fully read, we only have to reset the counters */
 	if (ioc->ioc_buflen <= ioc->ioc_offset) {
@@ -45,15 +45,15 @@ static inline void iocache_move_data(iocache *ioc)
 	ioc->ioc_buflen = available;
 }
 
-void iocache_reset(iocache *ioc)
+void iocache_reset(iocache * ioc)
 {
 	if (ioc)
 		ioc->ioc_offset = ioc->ioc_buflen = 0;
 }
 
-int iocache_resize(iocache *ioc, unsigned long new_size)
+int iocache_resize(iocache * ioc, unsigned long new_size)
 {
-	char *buf;
+	char	   *buf;
 
 	if (!ioc)
 		return -1;
@@ -68,17 +68,17 @@ int iocache_resize(iocache *ioc, unsigned long new_size)
 	return 0;
 }
 
-int iocache_grow(iocache *ioc, unsigned long increment)
+int iocache_grow(iocache * ioc, unsigned long increment)
 {
 	return iocache_resize(ioc, iocache_size(ioc) + increment);
 }
 
-unsigned long iocache_size(iocache *ioc)
+unsigned long iocache_size(iocache * ioc)
 {
 	return ioc ? ioc->ioc_bufsize : 0;
 }
 
-unsigned long iocache_capacity(iocache *ioc)
+unsigned long iocache_capacity(iocache * ioc)
 {
 	if (!ioc || !ioc->ioc_buf || !ioc->ioc_bufsize)
 		return 0;
@@ -88,7 +88,7 @@ unsigned long iocache_capacity(iocache *ioc)
 	return ioc->ioc_bufsize - ioc->ioc_buflen;
 }
 
-unsigned long iocache_available(iocache *ioc)
+unsigned long iocache_available(iocache * ioc)
 {
 	if (!ioc || !ioc->ioc_buf || !ioc->ioc_bufsize || !ioc->ioc_buflen)
 		return 0;
@@ -96,9 +96,9 @@ unsigned long iocache_available(iocache *ioc)
 	return ioc->ioc_buflen - ioc->ioc_offset;
 }
 
-char *iocache_use_size(iocache *ioc, unsigned long size)
+char	   *iocache_use_size(iocache * ioc, unsigned long size)
 {
-	char *ret;
+	char	   *ret;
 
 	if (!ioc || !ioc->ioc_buf)
 		return NULL;
@@ -111,7 +111,7 @@ char *iocache_use_size(iocache *ioc, unsigned long size)
 	return ret;
 }
 
-int iocache_unuse_size(iocache *ioc, unsigned long size)
+int iocache_unuse_size(iocache * ioc, unsigned long size)
 {
 	if (!ioc || !ioc->ioc_buf)
 		return -1;
@@ -124,10 +124,11 @@ int iocache_unuse_size(iocache *ioc, unsigned long size)
 }
 
 
-char *iocache_use_delim(iocache *ioc, const char *delim, size_t delim_len, unsigned long *size)
+char	   *iocache_use_delim(iocache * ioc, const char *delim, size_t delim_len,
+							  unsigned long *size)
 {
-	char *ptr = NULL;
-	char *buf;
+	char	   *ptr = NULL;
+	char	   *buf;
 	unsigned long remains;
 
 	if (!ioc || !ioc->ioc_buf || !ioc->ioc_bufsize || !ioc->ioc_buflen)
@@ -163,9 +164,9 @@ char *iocache_use_delim(iocache *ioc, const char *delim, size_t delim_len, unsig
 	return NULL;
 }
 
-iocache *iocache_create(unsigned long size)
+iocache    *iocache_create(unsigned long size)
 {
-	iocache *ioc;
+	iocache    *ioc;
 
 	ioc = calloc(1, sizeof(*ioc));
 	if (ioc && size) {
@@ -180,9 +181,9 @@ iocache *iocache_create(unsigned long size)
 	return ioc;
 }
 
-int iocache_read(iocache *ioc, int fd)
+int iocache_read(iocache * ioc, int fd)
 {
-	int to_read, bytes_read;
+	int 		to_read, bytes_read;
 
 	if (!ioc || !ioc->ioc_buf || fd < 0)
 		return -1;
@@ -202,7 +203,7 @@ int iocache_read(iocache *ioc, int fd)
 }
 
 
-int iocache_add(iocache *ioc, char *buf, unsigned int len)
+int iocache_add(iocache * ioc, char *buf, unsigned int len)
 {
 	if (!ioc || iocache_capacity(ioc) < len)
 		return -1;
@@ -214,13 +215,14 @@ int iocache_add(iocache *ioc, char *buf, unsigned int len)
 
 /*
  * Three cases to handle:
- *  - buf has data, iocache doesn't.
- *  - iocache has data, buf doesn't.
- *  - both buf and iocache has data.
+ *	- buf has data, iocache doesn't.
+ *	- iocache has data, buf doesn't.
+ *	- both buf and iocache has data.
  */
-int iocache_sendto(iocache *ioc, int fd, char *buf, unsigned int len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
+int iocache_sendto(iocache * ioc, int fd, char *buf, unsigned int len, int flags,
+				   const struct sockaddr *dest_addr, socklen_t addrlen)
 {
-	int sent;
+	int 		sent;
 
 	errno = 0;
 	if (!ioc)

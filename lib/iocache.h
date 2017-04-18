@@ -1,8 +1,8 @@
 #ifndef LIBNAGIOS_IOCACHE_H_INCLUDED
-#define LIBNAGIOS_IOCACHE_H_INCLUDED
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+# define LIBNAGIOS_IOCACHE_H_INCLUDED
+# include <stdlib.h>
+# include <sys/types.h>
+# include <sys/socket.h>
 
 /**
  * @file iocache.h
@@ -23,7 +23,7 @@ typedef struct iocache iocache;
  * Destroys an iocache object, freeing all memory allocated to it.
  * @param ioc The iocache object to destroy
  */
-extern void iocache_destroy(iocache *ioc);
+extern void iocache_destroy(iocache * ioc);
 
 /**
  * Resets an iocache struct, discarding all data in it without free()'ing
@@ -31,7 +31,7 @@ extern void iocache_destroy(iocache *ioc);
  *
  * @param[in] ioc The iocache struct to reset
  */
-extern void iocache_reset(iocache *ioc);
+extern void iocache_reset(iocache * ioc);
 
 /**
  * Resizes the buffer in an io cache
@@ -39,7 +39,7 @@ extern void iocache_reset(iocache *ioc);
  * @param new_size The new size of the io cache
  * @return 0 on success, -1 on errors
  */
-extern int iocache_resize(iocache *ioc, unsigned long new_size);
+extern int	iocache_resize(iocache * ioc, unsigned long new_size);
 
 /**
  * Grows an iocache object
@@ -48,28 +48,28 @@ extern int iocache_resize(iocache *ioc, unsigned long new_size);
  * @param[in] increment How much to increase it
  * @return 0 on success, -1 on errors
  */
-extern int iocache_grow(iocache *ioc, unsigned long increment);
+extern int	iocache_grow(iocache * ioc, unsigned long increment);
 
 /**
  * Returns the total size of the io cache
  * @param[in] ioc The iocache to inspect
  * @return The size of the io cache. If ioc is null, 0 is returned
  */
-extern unsigned long iocache_size(iocache *ioc);
+extern unsigned long iocache_size(iocache * ioc);
 
 /**
  * Returns remaining read capacity of the io cache
  * @param ioc The io cache to operate on
  * @return The number of bytes available to read
  */
-extern unsigned long iocache_capacity(iocache *ioc);
+extern unsigned long iocache_capacity(iocache * ioc);
 
 /**
  * Return the amount of unread but stored data in the io cache
  * @param ioc The io cache to operate on
  * @return Number of bytes available to read
  */
-extern unsigned long iocache_available(iocache *ioc);
+extern unsigned long iocache_available(iocache * ioc);
 
 /**
  * Use a chunk of data from iocache based on size. The caller
@@ -80,7 +80,7 @@ extern unsigned long iocache_available(iocache *ioc);
  * @param size The size of the data we want returned
  * @return NULL on errors (insufficient data, fe). pointer on success
  */
-extern char *iocache_use_size(iocache *ioc, unsigned long size);
+extern char *iocache_use_size(iocache * ioc, unsigned long size);
 
 /**
  * Use a chunk of data from iocache based on delimiter. The
@@ -94,7 +94,8 @@ extern char *iocache_use_size(iocache *ioc, unsigned long size);
  * @param size Length of the returned buffer
  * @return NULL on errors (delimiter not found, insufficient data). pointer on success
  */
-extern char *iocache_use_delim(iocache *ioc, const char *delim, size_t delim_len, unsigned long *size);
+extern char *iocache_use_delim(iocache * ioc, const char *delim, size_t delim_len,
+							   unsigned long *size);
 
 /**
  * Forget that a specified number of bytes have been used.
@@ -102,7 +103,7 @@ extern char *iocache_use_delim(iocache *ioc, const char *delim, size_t delim_len
  * @param size The number of bytes you want to forget you've seen
  * @return -1 if there was an error, 0 otherwise.
  */
-extern int iocache_unuse_size(iocache *ioc, unsigned long size);
+extern int	iocache_unuse_size(iocache * ioc, unsigned long size);
 
 /**
  * Creates the iocache object, initializing it with the given size
@@ -117,7 +118,7 @@ extern iocache *iocache_create(unsigned long size);
  * @param fd The filedescriptor we should read from
  * @return The number of bytes read on success. < 0 on errors
  */
-extern int iocache_read(iocache *ioc, int fd);
+extern int	iocache_read(iocache * ioc, int fd);
 
 /**
  * Add data to the iocache buffer
@@ -130,7 +131,7 @@ extern int iocache_read(iocache *ioc, int fd);
  * @param[in] len Length (in bytes) of data pointed to by buf
  * @return iocache_available(ioc) on success, -1 on errors
  */
-extern int iocache_add(iocache *ioc, char *buf, unsigned int len);
+extern int	iocache_add(iocache * ioc, char *buf, unsigned int len);
 
 /**
  * Like sendto(), but sends all cached data prior to the requested
@@ -144,7 +145,8 @@ extern int iocache_add(iocache *ioc, char *buf, unsigned int len);
  * @param[in] addrlen size (in bytes) of dest_addr
  * @return bytes sent on success, -ERRNO on errors
  */
-extern int iocache_sendto(iocache *ioc, int fd, char *buf, unsigned int len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen);
+extern int	iocache_sendto(iocache * ioc, int fd, char *buf, unsigned int len, int flags,
+						   const struct sockaddr *dest_addr, socklen_t addrlen);
 
 /**
  * Like send(2), but sends all cached data prior to the requested
@@ -158,7 +160,7 @@ extern int iocache_sendto(iocache *ioc, int fd, char *buf, unsigned int len, int
  * @param[in] flags Flags passed to sendto(2)
  * @return bytes sent on success, -ERRNO on errors
  */
-static inline int iocache_send(iocache *ioc, int fd, char *buf, unsigned int len, int flags)
+static inline int iocache_send(iocache * ioc, int fd, char *buf, unsigned int len, int flags)
 {
 	return iocache_sendto(ioc, fd, buf, len, flags, NULL, 0);
 }
@@ -173,9 +175,9 @@ static inline int iocache_send(iocache *ioc, int fd, char *buf, unsigned int len
  * @param[in] len Length (in bytes) of data to send
  * @return bytes sent on success, -ERRNO on errors
  */
-static inline int iocache_write(iocache *ioc, int fd, char *buf, unsigned int len)
+static inline int iocache_write(iocache * ioc, int fd, char *buf, unsigned int len)
 {
 	return iocache_send(ioc, fd, buf, len, 0);
 }
-#endif /* INCLUDE_iocache_h__ */
+#endif	 /* INCLUDE_iocache_h__ */
 /** @} */

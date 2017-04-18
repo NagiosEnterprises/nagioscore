@@ -13,20 +13,20 @@
 # define PATH_MAX 4096
 #endif
 
-#define PCOMP_IGNORE (1 << 0) /* marks negated or ignored components */
-#define PCOMP_ALLOC  (1 << 1) /* future used for symlink resolutions */
+#define PCOMP_IGNORE (1 << 0)	/* marks negated or ignored components */
+#define PCOMP_ALLOC  (1 << 1)	/* future used for symlink resolutions */
 
 /* path component struct */
 struct pcomp {
-	char *str; /* file- or directoryname */
-	unsigned int len;   /* length of this component */
-	int flags;
+	char	   *str;			/* file- or directoryname */
+	unsigned int len;			/* length of this component */
+	int 		flags;
 };
 
 static inline int path_components(const char *path)
 {
-	char *slash;
-	int comps = 1;
+	char	   *slash;
+	int 		comps = 1;
 	if (!path)
 		return 0;
 	for (slash = strchr(path, '/'); slash; slash = strchr(slash + 1, '/'))
@@ -36,11 +36,11 @@ static inline int path_components(const char *path)
 
 static char *pcomp_construct(struct pcomp *pcomp, int comps)
 {
-	int i, plen = 0, offset = 0;
-	char *path;
+	int 		i, plen = 0, offset = 0;
+	char	   *path;
 
 	for (i = 0; i < comps; i++) {
-		if(pcomp[i].flags & PCOMP_IGNORE)
+		if (pcomp[i].flags & PCOMP_IGNORE)
 			continue;
 		plen += pcomp[i].len + 1;
 	}
@@ -48,7 +48,7 @@ static char *pcomp_construct(struct pcomp *pcomp, int comps)
 	path = malloc(plen + 2);
 
 	for (i = 0; i < comps; i++) {
-		if(pcomp[i].flags & PCOMP_IGNORE)
+		if (pcomp[i].flags & PCOMP_IGNORE)
 			continue;
 		memcpy(path + offset, pcomp[i].str, pcomp[i].len);
 		offset += pcomp[i].len;
@@ -64,11 +64,11 @@ static char *pcomp_construct(struct pcomp *pcomp, int comps)
  * Converts "foo/bar/.././lala.txt" to "foo/lala.txt".
  * "../../../../../bar/../foo/" becomes "/foo/"
  */
-char *nspath_normalize(const char *orig_path)
+char	   *nspath_normalize(const char *orig_path)
 {
 	struct pcomp *pcomp = NULL;
-	int comps, i = 0, m, depth = 0, have_slash = 0;
-	char *path, *rpath, *p, *slash;
+	int 		comps, i = 0, m, depth = 0, have_slash = 0;
+	char	   *path, *rpath, *p, *slash;
 
 	if (!orig_path || !*orig_path)
 		return NULL;
@@ -99,13 +99,13 @@ char *nspath_normalize(const char *orig_path)
 			if ((*orig_path == '/' || depth) && p[1] == '.' && p[2] == 0) {
 				/* dot-dot-slash negates the previous non-negated component */
 				pcomp[i].flags |= PCOMP_IGNORE;
-				for(m = 0; depth && m <= i; m++) {
+				for (m = 0; depth && m <= i; m++) {
 					if (pcomp[i - m].flags & PCOMP_IGNORE) {
 						continue;
 					}
 					pcomp[i - m].flags |= PCOMP_IGNORE;
 					depth--;
-					break; /* we only remove one level at most */
+					break;		/* we only remove one level at most */
 				}
 				continue;
 			}
@@ -133,11 +133,11 @@ char *nspath_normalize(const char *orig_path)
 	return path;
 }
 
-char *nspath_absolute(const char *rel_path, const char *base)
+char	   *nspath_absolute(const char *rel_path, const char *base)
 {
-	char cwd[PATH_MAX];
-	int len;
-	char *path = NULL, *normpath;
+	char		cwd[PATH_MAX];
+	int 		len;
+	char	   *path = NULL, *normpath;
 
 	if (*rel_path == '/')
 		return nspath_normalize(rel_path);
@@ -161,9 +161,9 @@ char *nspath_absolute(const char *rel_path, const char *base)
 	return normpath;
 }
 
-char *nspath_real(const char *rel_path, const char *base)
+char	   *nspath_real(const char *rel_path, const char *base)
 {
-	char *abspath, *ret;
+	char	   *abspath, *ret;
 
 	if (!(abspath = nspath_absolute(rel_path, base)))
 		return NULL;
@@ -174,9 +174,9 @@ char *nspath_real(const char *rel_path, const char *base)
 }
 
 /* we must take care not to destroy the original buffer here */
-char *nspath_absolute_dirname(const char *path, const char *base)
+char	   *nspath_absolute_dirname(const char *path, const char *base)
 {
-	char *buf, *ret;
+	char	   *buf, *ret;
 
 	if (!(buf = nspath_absolute(path, base)))
 		return NULL;
@@ -188,8 +188,8 @@ char *nspath_absolute_dirname(const char *path, const char *base)
 
 int nspath_mkdir_p(const char *orig_path, mode_t mode, int options)
 {
-	char *sep, *path;
-	int ret = 0, mkdir_start = 0;
+	char	   *sep, *path;
+	int 		ret = 0, mkdir_start = 0;
 
 	if (!orig_path) {
 		errno = EFAULT;
@@ -204,7 +204,7 @@ int nspath_mkdir_p(const char *orig_path, mode_t mode, int options)
 		struct stat st;
 
 		if ((sep = strchr(sep + 1, '/'))) {
-			*sep = 0; /* nul-terminate path */
+			*sep = 0;			/* nul-terminate path */
 		} else if (options & NSPATH_MKDIR_SKIP_LAST) {
 			break;
 		}

@@ -5,12 +5,12 @@
 #include "kvvec.c"
 #include "t-utils.h"
 
-static int walking_steps, walks;
+static int	walking_steps, walks;
 
 static int walker(struct key_value *kv, void *discard)
 {
 	static struct kvvec *vec = (void *)1;
-	static int step;
+	static int	step;
 
 	walking_steps++;
 
@@ -21,8 +21,7 @@ static int walker(struct key_value *kv, void *discard)
 	}
 
 	if (discard && vec) {
-		t_ok(!kv_compare(&vec->kv[step], kv), "step %d on walk %d",
-			 step, walks);
+		t_ok(!kv_compare(&vec->kv[step], kv), "step %d on walk %d", step, walks);
 	}
 
 	step++;
@@ -41,7 +40,7 @@ static const char *test_data[] = {
 	"key=value",
 	"something-random=pre-determined luls",
 	"string=with\nnewlines\n\n\nand\nlots\nof\nthem\ntoo\n",
-	"tabs=	this	and		that			and three in a row",
+	"tabs=	this	and 	that			and three in a row",
 	NULL,
 };
 
@@ -57,11 +56,11 @@ static const char *pair_term_missing[] = {
 
 static void add_vars(struct kvvec *kvv, const char **ary, int len)
 {
-	int i;
+	int 		i;
 
 	for (i = 0; i < len && ary[i]; i++) {
-		char *arg = strdup(test_data[i]);
-		char *eq = strchr(arg, '=');
+		char	   *arg = strdup(test_data[i]);
+		char	   *eq = strchr(arg, '=');
 		if (eq) {
 			*eq++ = 0;
 		}
@@ -72,7 +71,7 @@ static void add_vars(struct kvvec *kvv, const char **ary, int len)
 
 int main(int argc, char **argv)
 {
-	int i, j;
+	int 		i, j;
 	struct kvvec *kvv, *kvv2, *kvv3;
 	struct kvvec_buf *kvvb, *kvvb2;
 	struct kvvec k = KVVEC_INITIALIZER;
@@ -123,8 +122,7 @@ int main(int argc, char **argv)
 	test(kvvb2->bufsize == kvvb->bufsize, "bufsizes must match");
 
 	if (kvvb2->buflen == kvvb->buflen && kvvb2->bufsize == kvvb->bufsize &&
-		!memcmp(kvvb2->buf, kvvb->buf, kvvb->bufsize))
-	{
+		!memcmp(kvvb2->buf, kvvb->buf, kvvb->bufsize)) {
 		t_pass("kvvec -> buf -> kvvec conversion works flawlessly");
 	} else {
 		t_fail("kvvec -> buf -> kvvec conversion failed :'(");
@@ -138,7 +136,8 @@ int main(int argc, char **argv)
 	kvvec_destroy(kvv3, KVVEC_FREE_ALL);
 
 	for (j = 0; pair_term_missing[j]; j++) {
-		buf2kvvec_prealloc(&k, strdup(pair_term_missing[j]), strlen(pair_term_missing[j]), '=', ';', KVVEC_COPY);
+		buf2kvvec_prealloc(&k, strdup(pair_term_missing[j]), strlen(pair_term_missing[j]), '=',
+						   ';', KVVEC_COPY);
 		for (i = 0; i < k.kv_pairs; i++) {
 			struct key_value *kv = &k.kv[i];
 			test(kv->key_len == kv->value_len, "%d.%d; key_len=%d; value_len=%d (%s = %s)",

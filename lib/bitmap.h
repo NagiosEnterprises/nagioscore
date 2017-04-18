@@ -1,5 +1,5 @@
 #ifndef LIBNAGIOS_bitmap_h__
-#define LIBNAGIOS_bitmap_h__
+# define LIBNAGIOS_bitmap_h__
 
 /**
  * @file bitmap.h
@@ -20,7 +20,7 @@ typedef struct bitmap bitmap;
  * @param size The new desired size of the bitmap
  * @return 0 on success, -1 on errors.
  */
-extern int bitmap_resize(bitmap *bm, unsigned long size);
+extern int	bitmap_resize(bitmap * bm, unsigned long size);
 
 /**
  * Create a bitmaptor of size 'size'
@@ -33,14 +33,14 @@ extern bitmap *bitmap_create(unsigned long size);
  * Destroy a bitmaptor by freeing all the memory it uses
  * @param bm The bitmaptor to destroy
  */
-extern void bitmap_destroy(bitmap *bm);
+extern void bitmap_destroy(bitmap * bm);
 
 /**
  * Copy a bitmaptor
  * @param bm The bitmaptor to copy
  * @return Pointer to an identical bitmap on success, NULL on errors
  */
-extern bitmap *bitmap_copy(const bitmap *bm);
+extern bitmap *bitmap_copy(const bitmap * bm);
 
 /**
  * Set a bit in the map
@@ -48,7 +48,7 @@ extern bitmap *bitmap_copy(const bitmap *bm);
  * @param pos Position of the bit to set
  * @return 0 on success, -1 on errors
  */
-extern int bitmap_set(bitmap *bm, unsigned long pos);
+extern int	bitmap_set(bitmap * bm, unsigned long pos);
 
 /**
  * Check if a particular bit is set in the map
@@ -56,42 +56,42 @@ extern int bitmap_set(bitmap *bm, unsigned long pos);
  * @param pos Position of the bit to check
  * @return 1 if set, otherwise 0
  */
-extern int bitmap_isset(const bitmap *bm, unsigned long pos);
+extern int	bitmap_isset(const bitmap * bm, unsigned long pos);
 
 /**
  * Unset a particular bit in the map
  * @param bm The bitmaptor to operate on
  * @param pos Position of the bit to unset
  */
-extern int bitmap_unset(bitmap *bm, unsigned long pos);
+extern int	bitmap_unset(bitmap * bm, unsigned long pos);
 
 /**
  * Obtain cardinality (max number of elements) of the bitmaptor
  * @param bm The bitmaptor to check
  * @return The cardinality of the bitmaptor
  */
-extern unsigned long bitmap_cardinality(const bitmap *bm);
-#define bitmap_size bitmap_cardinality
+extern unsigned long bitmap_cardinality(const bitmap * bm);
+# define bitmap_size bitmap_cardinality
 
 /**
  * Count set bits in map. Completed in O(n/8) time.
  * @param bm The bitmaptor to count bits in
  * @return The number of set bits
  */
-extern unsigned long bitmap_count_set_bits(const bitmap *bm);
+extern unsigned long bitmap_count_set_bits(const bitmap * bm);
 
 /**
  * Count unset bits in map. Completed in O(n/8) time.
  * @param bm The bitmaptor to count bits in
  * @return The number of set bits
  */
-extern unsigned long bitmap_count_unset_bits(const bitmap *bm);
+extern unsigned long bitmap_count_unset_bits(const bitmap * bm);
 
 /**
  * Unset all bits in a bitmap
  * @param bm The bitmap to clear
  */
-extern void bitmap_clear(bitmap *bm);
+extern void bitmap_clear(bitmap * bm);
 
 /**
  * Calculate intersection of two bitmaps
@@ -102,7 +102,7 @@ extern void bitmap_clear(bitmap *bm);
  * @param b The second bitmaptor
  * @return NULL on errors; A newly created bitmaptor on success.
  */
-extern bitmap *bitmap_intersect(const bitmap *a, const bitmap *b);
+extern bitmap *bitmap_intersect(const bitmap * a, const bitmap * b);
 
 /**
  * Calculate union of two bitmaps
@@ -113,7 +113,7 @@ extern bitmap *bitmap_intersect(const bitmap *a, const bitmap *b);
  * @param b The second bitmaptor
  * @return NULL on errors; A newly created bitmaptor on success.
  */
-extern bitmap *bitmap_union(const bitmap *a, const bitmap *b);
+extern bitmap *bitmap_union(const bitmap * a, const bitmap * b);
 
 /**
  * Calculate union of two bitmaps and store result in one of them
@@ -121,7 +121,7 @@ extern bitmap *bitmap_union(const bitmap *a, const bitmap *b);
  * @param addme The bitmap to unite to the first bitmap
  * @return NULL on errors, res on success
  */
-extern bitmap *bitmap_unite(bitmap *res, const bitmap *addme);
+extern bitmap *bitmap_unite(bitmap * res, const bitmap * addme);
 
 /**
  * Calculate set difference between two bitmaps
@@ -133,7 +133,7 @@ extern bitmap *bitmap_unite(bitmap *res, const bitmap *addme);
  * @param b The first bitmaptor (denominator)
  * @return NULL on errors; A newly created bitmaptor on success.
  */
-extern bitmap *bitmap_diff(const bitmap *a, const bitmap *b);
+extern bitmap *bitmap_diff(const bitmap * a, const bitmap * b);
 
 /**
  * Calculate symmetric difference between two bitmaps
@@ -143,7 +143,7 @@ extern bitmap *bitmap_diff(const bitmap *a, const bitmap *b);
  * @param a The first bitmaptor
  * @param b The second bitmaptor
  */
-extern bitmap *bitmap_symdiff(const bitmap *a, const bitmap *b);
+extern bitmap *bitmap_symdiff(const bitmap * a, const bitmap * b);
 
 /**
  * Compare two bitmaps for equality
@@ -151,6 +151,6 @@ extern bitmap *bitmap_symdiff(const bitmap *a, const bitmap *b);
  * @param b The other bitmaptor
  * @return Similar to memcmp(), with tiebreaks determined by cardinality
  */
-extern int bitmap_cmp(const bitmap *a, const bitmap *b);
+extern int	bitmap_cmp(const bitmap * a, const bitmap * b);
 /** @} */
-#endif /* LIBNAGIOS_bitmap_h__ */
+#endif	 /* LIBNAGIOS_bitmap_h__ */

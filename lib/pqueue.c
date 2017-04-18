@@ -6,7 +6,7 @@
  * use this file except in compliance with the License. You may obtain a copy
  * of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *	   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -28,15 +28,13 @@
 #define parent(i) (unsigned long)((i) >> 1)
 
 
-pqueue_t *
-pqueue_init(unsigned int n,
-            pqueue_cmp_pri_f cmppri,
-            pqueue_get_pri_f getpri,
-            pqueue_set_pri_f setpri,
-            pqueue_get_pos_f getpos,
-            pqueue_set_pos_f setpos)
+pqueue_t   *pqueue_init(unsigned int n,
+						pqueue_cmp_pri_f cmppri,
+						pqueue_get_pri_f getpri,
+						pqueue_set_pri_f setpri,
+						pqueue_get_pos_f getpos, pqueue_set_pos_f setpos)
 {
-	pqueue_t *q;
+	pqueue_t   *q;
 
 	if (!(q = calloc(1, sizeof(pqueue_t)))) {
 		return NULL;
@@ -49,7 +47,7 @@ pqueue_init(unsigned int n,
 	}
 
 	q->size = 1;
-	q->avail = q->step = (n + 1); /* see comment above about n+1 */
+	q->avail = q->step = (n + 1);	/* see comment above about n+1 */
 	q->cmppri = cmppri;
 	q->setpri = setpri;
 	q->getpri = getpri;
@@ -60,32 +58,29 @@ pqueue_init(unsigned int n,
 }
 
 
-void
-pqueue_free(pqueue_t *q)
+void pqueue_free(pqueue_t * q)
 {
 	free(q->d);
 	free(q);
 }
 
 
-unsigned int
-pqueue_size(pqueue_t *q)
+unsigned int pqueue_size(pqueue_t * q)
 {
 	/* queue element 0 exists but doesn't count since it isn't used. */
 	return (q->size - 1);
 }
 
 
-static void
-bubble_up(pqueue_t *q, unsigned int i)
+static void bubble_up(pqueue_t * q, unsigned int i)
 {
 	unsigned int parent_node;
-	void *moving_node = q->d[i];
+	void	   *moving_node = q->d[i];
 	pqueue_pri_t moving_pri = q->getpri(moving_node);
 
 	for (parent_node = parent(i);
-	        ((i > 1) && q->cmppri(q->getpri(q->d[parent_node]), moving_pri));
-	        i = parent_node, parent_node = parent(i)) {
+		 ((i > 1) && q->cmppri(q->getpri(q->d[parent_node]), moving_pri));
+		 i = parent_node, parent_node = parent(i)) {
 		q->d[i] = q->d[parent_node];
 		q->setpos(q->d[i], i);
 	}
@@ -95,8 +90,7 @@ bubble_up(pqueue_t *q, unsigned int i)
 }
 
 
-static unsigned int
-maxchild(pqueue_t *q, unsigned int i)
+static unsigned int maxchild(pqueue_t * q, unsigned int i)
 {
 	unsigned int child_node = left(i);
 
@@ -104,23 +98,22 @@ maxchild(pqueue_t *q, unsigned int i)
 		return 0;
 	}
 
-	if ((child_node + 1) < q->size && q->cmppri(q->getpri(q->d[child_node]), q->getpri(q->d[child_node + 1]))) {
-		child_node++;    /* use right child instead of left */
+	if ((child_node + 1) < q->size
+		&& q->cmppri(q->getpri(q->d[child_node]), q->getpri(q->d[child_node + 1]))) {
+		child_node++;			/* use right child instead of left */
 	}
 
 	return child_node;
 }
 
 
-static void
-percolate_down(pqueue_t *q, unsigned int i)
+static void percolate_down(pqueue_t * q, unsigned int i)
 {
 	unsigned int child_node;
-	void *moving_node = q->d[i];
+	void	   *moving_node = q->d[i];
 	pqueue_pri_t moving_pri = q->getpri(moving_node);
 
-	while ((child_node = maxchild(q, i)) &&
-	        q->cmppri(moving_pri, q->getpri(q->d[child_node]))) {
+	while ((child_node = maxchild(q, i)) && q->cmppri(moving_pri, q->getpri(q->d[child_node]))) {
 		q->d[i] = q->d[child_node];
 		q->setpos(q->d[i], i);
 		i = child_node;
@@ -131,10 +124,9 @@ percolate_down(pqueue_t *q, unsigned int i)
 }
 
 
-int
-pqueue_insert(pqueue_t *q, void *d)
+int pqueue_insert(pqueue_t * q, void *d)
 {
-	void *tmp;
+	void	   *tmp;
 	unsigned int i;
 	unsigned int newsize;
 
@@ -161,8 +153,7 @@ pqueue_insert(pqueue_t *q, void *d)
 }
 
 
-void
-pqueue_change_priority(pqueue_t *q, pqueue_pri_t new_pri, void *d)
+void pqueue_change_priority(pqueue_t * q, pqueue_pri_t new_pri, void *d)
 {
 	unsigned int posn;
 	pqueue_pri_t old_pri = q->getpri(d);
@@ -177,8 +168,7 @@ pqueue_change_priority(pqueue_t *q, pqueue_pri_t new_pri, void *d)
 }
 
 
-int
-pqueue_remove(pqueue_t *q, void *d)
+int pqueue_remove(pqueue_t * q, void *d)
 {
 	unsigned int posn = q->getpos(d);
 	q->d[posn] = q->d[--q->size];
@@ -192,10 +182,9 @@ pqueue_remove(pqueue_t *q, void *d)
 }
 
 
-void *
-pqueue_pop(pqueue_t *q)
+void	   *pqueue_pop(pqueue_t * q)
 {
-	void *head;
+	void	   *head;
 
 	if (!q || q->size == 1) {
 		return NULL;
@@ -209,8 +198,7 @@ pqueue_pop(pqueue_t *q)
 }
 
 
-void *
-pqueue_peek(pqueue_t *q)
+void	   *pqueue_peek(pqueue_t * q)
 {
 	if (!q || q->size == 1) {
 		return NULL;
@@ -219,44 +207,37 @@ pqueue_peek(pqueue_t *q)
 }
 
 #if 0
-void
-pqueue_dump(pqueue_t *q, FILE *out, pqueue_print_entry_f print)
+void pqueue_dump(pqueue_t * q, FILE * out, pqueue_print_entry_f print)
 {
-	int i;
+	int 		i;
 
 	fprintf(out, "posn\tleft\tright\tparent\tmaxchild\t...\n");
-	for (i = 1; i < q->size ; i++) {
+	for (i = 1; i < q->size; i++) {
 		fprintf(out, "%d\t%d\t%d\t%d\t%ul\t",
-		        i,
-		        left(i), right(i), parent(i),
-		        (unsigned int)maxchild(q, i));
+				i, left(i), right(i), parent(i), (unsigned int)maxchild(q, i));
 		print(out, q->d[i]);
 	}
 }
 
 
-static void
-set_pos(void *d, unsigned int val)
+static void set_pos(void *d, unsigned int val)
 {
 	/* do nothing */
 }
 
 
-static void
-set_pri(void *d, pqueue_pri_t pri)
+static void set_pri(void *d, pqueue_pri_t pri)
 {
 	/* do nothing */
 }
 
 
-void
-pqueue_print(pqueue_t *q, FILE *out, pqueue_print_entry_f print)
+void pqueue_print(pqueue_t * q, FILE * out, pqueue_print_entry_f print)
 {
-	pqueue_t *dup;
-	void *e;
+	pqueue_t   *dup;
+	void	   *e;
 
-	dup = pqueue_init(q->size, q->cmppri, q->getpri, set_pri,
-	                  q->getpos, set_pos);
+	dup = pqueue_init(q->size, q->cmppri, q->getpri, set_pri, q->getpos, set_pos);
 	dup->size = q->size;
 	dup->avail = q->avail;
 	dup->step = q->step;
@@ -271,8 +252,7 @@ pqueue_print(pqueue_t *q, FILE *out, pqueue_print_entry_f print)
 }
 #endif
 
-static int
-subtree_is_valid(pqueue_t *q, int pos)
+static int subtree_is_valid(pqueue_t * q, int pos)
 {
 	if (left(pos) < q->size) {
 		/* has a left child */
@@ -296,8 +276,7 @@ subtree_is_valid(pqueue_t *q, int pos)
 }
 
 
-int
-pqueue_is_valid(pqueue_t *q)
+int pqueue_is_valid(pqueue_t * q)
 {
 	return subtree_is_valid(q, 1);
 }

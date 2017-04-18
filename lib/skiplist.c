@@ -12,7 +12,7 @@
  * the same key value are allowed on the list to accomodate multiple events
  * occurring at the same (second) point in time.  Implemented peek() and pop()
  * functions to allow for quick event queue processing, and a method to delete
- * a specific list item, based on its pointer, rather than its data value.  Again,
+ * a specific list item, based on its pointer, rather than its data value.	Again,
  * this is useful for the Nagios event queue.
  *
  * License:
@@ -37,55 +37,61 @@
 
 
 typedef struct skiplistnode_struct {
-	void *data;
-	struct skiplistnode_struct *forward[1]; /* this must be the last element of the struct, as we allocate # of elements during runtime*/
-	} skiplistnode;
+	void	   *data;
+	struct skiplistnode_struct *forward[1]; /* this must be the last element of the struct, as we allocate # of elements during runtime */
+} skiplistnode;
 
 struct skiplist_struct {
-	int current_level;
-	int max_levels;
-	float level_probability;
+	int 		current_level;
+	int 		max_levels;
+	float		level_probability;
 	unsigned long items;
-	int allow_duplicates;
-	int append_duplicates;
-	int (*compare_function)(void *, void *);
+	int 		allow_duplicates;
+	int 		append_duplicates;
+	int 		(*compare_function) (void *, void *);
 	skiplistnode *head;
-	};
+};
 
-unsigned long skiplist_num_items(skiplist *list) {
+unsigned long skiplist_num_items(skiplist * list)
+{
 	return list ? list->items : 0;
-	}
+}
 
-static skiplistnode *skiplist_new_node(skiplist *list, int node_levels) {
+static skiplistnode *skiplist_new_node(skiplist * list, int node_levels)
+{
 	skiplistnode *newnode = NULL;
 	register int x = 0;
 
-	if(list == NULL)
+	if (list == NULL)
 		return NULL;
 
-	if(node_levels < 0 || node_levels > list->max_levels)
+	if (node_levels < 0 || node_levels > list->max_levels)
 		return NULL;
 
 	/* allocate memory for node + variable number of level pointers */
-	if((newnode = (skiplistnode *)malloc(sizeof(skiplistnode) + (node_levels * sizeof(skiplistnode *))))) {
+	if ((newnode =
+		 (skiplistnode *) malloc(sizeof(skiplistnode) +
+								 (node_levels * sizeof(skiplistnode *))))) {
 
 		/* initialize forward pointers */
-		for(x = 0; x < node_levels; x++)
+		for (x = 0; x < node_levels; x++)
 			newnode->forward[x] = NULL;
 
 		/* initialize data pointer */
 		newnode->data = NULL;
-		}
-
-	return newnode;
 	}
 
+	return newnode;
+}
 
-skiplist *skiplist_new(int max_levels, float level_probability, int allow_duplicates, int append_duplicates, int (*compare_function)(void *, void *)) {
-	skiplist *newlist = NULL;
+
+skiplist   *skiplist_new(int max_levels, float level_probability, int allow_duplicates,
+						 int append_duplicates, int (*compare_function) (void *, void *))
+{
+	skiplist   *newlist = NULL;
 
 	/* alloc memory for new list structure */
-	if((newlist = (skiplist *)malloc(sizeof(skiplist)))) {
+	if ((newlist = (skiplist *) malloc(sizeof(skiplist)))) {
 
 		/* initialize levels, etc. */
 		newlist->current_level = 0;
@@ -98,91 +104,92 @@ skiplist *skiplist_new(int max_levels, float level_probability, int allow_duplic
 
 		/* initialize head node */
 		newlist->head = skiplist_new_node(newlist, max_levels);
-		}
+	}
 
 	return newlist;
-	}
+}
 
 
-static int skiplist_random_level(skiplist *list) {
-	int level = 0;
-	float r = 0.0;
+static int skiplist_random_level(skiplist * list)
+{
+	int 		level = 0;
+	float		r = 0.0;
 
-	if(list == NULL)
+	if (list == NULL)
 		return -1;
 
-	for(level = 0; level < list->max_levels; level++) {
+	for (level = 0; level < list->max_levels; level++) {
 		r = ((float)rand() / (float)RAND_MAX);
-		if(r > list->level_probability)
+		if (r > list->level_probability)
 			break;
-		}
-
-	return (level >= list->max_levels) ? list->max_levels - 1 : level;
 	}
 
+	return (level >= list->max_levels) ? list->max_levels - 1 : level;
+}
 
-int skiplist_insert(skiplist *list, void *data) {
+
+int skiplist_insert(skiplist * list, void *data)
+{
 	skiplistnode **update = NULL;
 	skiplistnode *thisnode = NULL;
 	skiplistnode *nextnode = NULL;
 	skiplistnode *newnode = NULL;
-	int level = 0;
-	int x = 0;
+	int 		level = 0;
+	int 		x = 0;
 
-	if(list == NULL || data == NULL) {
+	if (list == NULL || data == NULL) {
 		return SKIPLIST_ERROR_ARGS;
-		}
+	}
 
 	/* check to make sure we don't have duplicates */
 	/* NOTE: this could made be more efficient */
-	if(list->allow_duplicates == FALSE) {
-		if(skiplist_find_first(list, data, NULL))
+	if (list->allow_duplicates == FALSE) {
+		if (skiplist_find_first(list, data, NULL))
 			return SKIPLIST_ERROR_DUPLICATE;
-		}
+	}
 
 	/* initialize update vector */
-	if((update = (skiplistnode **)malloc(sizeof(skiplistnode *) * list->max_levels)) == NULL) {
+	if ((update = (skiplistnode **) malloc(sizeof(skiplistnode *) * list->max_levels)) == NULL) {
 		return SKIPLIST_ERROR_MEMORY;
-		}
-	for(x = 0; x < list->max_levels; x++)
+	}
+	for (x = 0; x < list->max_levels; x++)
 		update[x] = NULL;
 
 	/* find proper position for insert, remember pointers  with an update vector */
 	thisnode = list->head;
-	for(level = list->current_level; level >= 0; level--) {
+	for (level = list->current_level; level >= 0; level--) {
 
-		while((nextnode = thisnode->forward[level])) {
-			if(list->append_duplicates == TRUE) {
-				if(list->compare_function(nextnode->data, data) > 0)
+		while ((nextnode = thisnode->forward[level])) {
+			if (list->append_duplicates == TRUE) {
+				if (list->compare_function(nextnode->data, data) > 0)
 					break;
-				}
-			else {
-				if(list->compare_function(nextnode->data, data) >= 0)
+			} else {
+				if (list->compare_function(nextnode->data, data) >= 0)
 					break;
-				}
-			thisnode = nextnode;
 			}
+			thisnode = nextnode;
+		}
 
 		update[level] = thisnode;
-		}
+	}
 
 	/* get a random level the new node should be inserted at */
 	level = skiplist_random_level(list);
 
 	/* we're adding a new level... */
-	if(level > list->current_level) {
-		/*printf("NEW LEVEL!\n");*/
+	if (level > list->current_level) {
+		/*printf("NEW LEVEL!\n"); */
 		list->current_level++;
 		level = list->current_level;
 		update[level] = list->head;
-		}
+	}
 
 	/* create a new node */
-	if((newnode = skiplist_new_node(list, level)) == NULL) {
-		/*printf("NODE ERROR\n");*/
+	if ((newnode = skiplist_new_node(list, level)) == NULL) {
+		/*printf("NODE ERROR\n"); */
 		free(update);
 		return SKIPLIST_ERROR_MEMORY;
-		}
+	}
 	newnode->data = data;
 
 	/* update pointers to insert node at proper location */
@@ -191,8 +198,8 @@ int skiplist_insert(skiplist *list, void *data) {
 		newnode->forward[level] = thisnode->forward[level];
 		thisnode->forward[level] = newnode;
 
-		}
-	while(--level >= 0);
+	}
+	while (--level >= 0);
 
 	/* update counters */
 	list->items++;
@@ -201,26 +208,27 @@ int skiplist_insert(skiplist *list, void *data) {
 	free(update);
 
 	return SKIPLIST_OK;
-	}
+}
 
 
 
-int skiplist_empty(skiplist *list) {
+int skiplist_empty(skiplist * list)
+{
 	skiplistnode *this = NULL;
 	skiplistnode *next = NULL;
-	int level = 0;
+	int 		level = 0;
 
-	if(list == NULL)
+	if (list == NULL)
 		return ERROR;
 
 	/* free all list nodes (but not header) */
-	for(this = list->head->forward[0]; this != NULL; this = next) {
+	for (this = list->head->forward[0]; this != NULL; this = next) {
 		next = this->forward[0];
 		free(this);
-		}
+	}
 
 	/* reset level pointers */
-	for(level = list->current_level; level >= 0; level--)
+	for (level = list->current_level; level >= 0; level--)
 		list->head->forward[level] = NULL;
 
 	/* reset list level */
@@ -230,68 +238,71 @@ int skiplist_empty(skiplist *list) {
 	list->items = 0;
 
 	return OK;
-	}
+}
 
 
 
-int skiplist_free(skiplist **list) {
+int skiplist_free(skiplist ** list)
+{
 	skiplistnode *this = NULL;
 	skiplistnode *next = NULL;
 
-	if(list == NULL)
+	if (list == NULL)
 		return ERROR;
-	if(*list == NULL)
+	if (*list == NULL)
 		return OK;
 
 	/* free header and all list nodes */
-	for(this = (*list)->head; this != NULL; this = next) {
+	for (this = (*list)->head; this != NULL; this = next) {
 		next = this->forward[0];
 		free(this);
-		}
+	}
 
 	/* free list structure */
 	free(*list);
 	*list = NULL;
 
 	return OK;
-	}
+}
 
 
 
 /* get first item in list */
-void *skiplist_peek(skiplist *list) {
+void	   *skiplist_peek(skiplist * list)
+{
 
-	if(list == NULL)
+	if (list == NULL)
 		return NULL;
 
 	/* return first item */
 	return list->head->forward[0]->data;
-	}
+}
 
 
 
 /* get/remove first item in list */
-void *skiplist_pop(skiplist *list) {
+void	   *skiplist_pop(skiplist * list)
+{
 	skiplistnode *thisnode = NULL;
-	void *data = NULL;
-	int level = 0;
+	void	   *data = NULL;
+	int 		level = 0;
 
-	if(list == NULL)
+	if (list == NULL)
 		return NULL;
 
 	/* get first item */
 	thisnode = list->head->forward[0];
-	if(thisnode == NULL)
+	if (thisnode == NULL)
 		return NULL;
 
 	/* get data for first item */
 	data = thisnode->data;
 
 	/* remove first item from queue - update forward links from head to first node */
-	for(level = 0; level <= list->current_level; level++) {
-		if(list->head->forward[level] == thisnode)
+	for (level = 0; level <= list->current_level; level++) {
+		if (list->head->forward[level] == thisnode)
 			list->head->forward[level] = thisnode->forward[level];
-		}
+	}
 
 	/* free deleted node */
 	free(thisnode);
@@ -300,161 +311,165 @@ void *skiplist_pop(skiplist *list) {
 	list->items--;
 
 	return data;
-	}
+}
 
 
 
 /* get first item in list */
-void *skiplist_get_first(skiplist *list, void **node_ptr) {
+void	   *skiplist_get_first(skiplist * list, void **node_ptr)
+{
 	skiplistnode *thisnode = NULL;
 
-	if(list == NULL)
+	if (list == NULL)
 		return NULL;
 
 	/* get first node */
 	thisnode = list->head->forward[0];
 
 	/* return pointer to node */
-	if(node_ptr)
+	if (node_ptr)
 		*node_ptr = (void *)thisnode;
 
-	if(thisnode)
+	if (thisnode)
 		return thisnode->data;
 	else
 		return NULL;
-	}
+}
 
 
 
 /* get next item in list */
-void *skiplist_get_next(void **node_ptr) {
+void	   *skiplist_get_next(void **node_ptr)
+{
 	skiplistnode *thisnode = NULL;
 	skiplistnode *nextnode = NULL;
 
-	if(node_ptr == NULL || *node_ptr == NULL)
+	if (node_ptr == NULL || *node_ptr == NULL)
 		return NULL;
 
-	thisnode = (skiplistnode *)(*node_ptr);
+	thisnode = (skiplistnode *) (*node_ptr);
 	nextnode = thisnode->forward[0];
 
 	*node_ptr = (void *)nextnode;
 
-	if(nextnode)
+	if (nextnode)
 		return nextnode->data;
 	else
 		return NULL;
-	}
+}
 
 
 
 /* first first item in list */
-void *skiplist_find_first(skiplist *list, void *data, void **node_ptr) {
+void	   *skiplist_find_first(skiplist * list, void *data, void **node_ptr)
+{
 	skiplistnode *thisnode = NULL;
 	skiplistnode *nextnode = NULL;
-	int level = 0;
+	int 		level = 0;
 
-	if(list == NULL || data == NULL)
+	if (list == NULL || data == NULL)
 		return NULL;
 
 	thisnode = list->head;
-	for(level = list->current_level; level >= 0; level--) {
-		while((nextnode = thisnode->forward[level])) {
-			if(list->compare_function(nextnode->data, data) >= 0)
+	for (level = list->current_level; level >= 0; level--) {
+		while ((nextnode = thisnode->forward[level])) {
+			if (list->compare_function(nextnode->data, data) >= 0)
 				break;
 			thisnode = nextnode;
-			}
 		}
+	}
 
 	/* we found it! */
-	if(nextnode && list->compare_function(nextnode->data, data) == 0) {
-		if(node_ptr)
+	if (nextnode && list->compare_function(nextnode->data, data) == 0) {
+		if (node_ptr)
 			*node_ptr = (void *)nextnode;
 		return nextnode->data;
-		}
-	else {
-		if(node_ptr)
+	} else {
+		if (node_ptr)
 			*node_ptr = NULL;
-		}
+	}
 
 	return NULL;
-	}
+}
 
 
 
 /* find next match */
-void *skiplist_find_next(skiplist *list, void *data, void **node_ptr) {
+void	   *skiplist_find_next(skiplist * list, void *data, void **node_ptr)
+{
 	skiplistnode *thisnode = NULL;
 	skiplistnode *nextnode = NULL;
 
-	if(list == NULL || data == NULL || node_ptr == NULL)
+	if (list == NULL || data == NULL || node_ptr == NULL)
 		return NULL;
-	if(*node_ptr == NULL)
+	if (*node_ptr == NULL)
 		return NULL;
 
-	thisnode = (skiplistnode *)(*node_ptr);
+	thisnode = (skiplistnode *) (*node_ptr);
 	nextnode = thisnode->forward[0];
 
-	if(nextnode) {
-		if(list->compare_function(nextnode->data, data) == 0) {
+	if (nextnode) {
+		if (list->compare_function(nextnode->data, data) == 0) {
 			*node_ptr = (void *)nextnode;
 			return nextnode->data;
-			}
 		}
+	}
 
 	*node_ptr = NULL;
 	return NULL;
-	}
+}
 
 
 
 /* delete first matching item from list */
-int skiplist_delete_first(skiplist *list, void *data) {
+int skiplist_delete_first(skiplist * list, void *data)
+{
 	skiplistnode **update = NULL;
 	skiplistnode *thisnode = NULL;
 	skiplistnode *nextnode = NULL;
-	int level = 0;
-	int top_level = 0;
-	int deleted = FALSE;
-	int x = 0;
+	int 		level = 0;
+	int 		top_level = 0;
+	int 		deleted = FALSE;
+	int 		x = 0;
 
-	if(list == NULL || data == NULL)
+	if (list == NULL || data == NULL)
 		return ERROR;
 
 	/* initialize update vector */
-	if((update = (skiplistnode **)malloc(sizeof(skiplistnode *) * list->max_levels)) == NULL)
+	if ((update = (skiplistnode **) malloc(sizeof(skiplistnode *) * list->max_levels)) == NULL)
 		return ERROR;
-	for(x = 0; x < list->max_levels; x++)
+	for (x = 0; x < list->max_levels; x++)
 		update[x] = NULL;
 
 	/* find location in list */
 	thisnode = list->head;
-	for(top_level = level = list->current_level; level >= 0; level--) {
-		while((nextnode = thisnode->forward[level])) {
-			if(list->compare_function(nextnode->data, data) >= 0)
+	for (top_level = level = list->current_level; level >= 0; level--) {
+		while ((nextnode = thisnode->forward[level])) {
+			if (list->compare_function(nextnode->data, data) >= 0)
 				break;
 			thisnode = nextnode;
-			}
-		update[level] = thisnode;
 		}
+		update[level] = thisnode;
+	}
 
 	/* we found a match! */
-	if(list->compare_function(nextnode->data, data) == 0) {
+	if (list->compare_function(nextnode->data, data) == 0) {
 
 		/* adjust level pointers to bypass (soon to be) removed node */
-		for(level = 0; level <= top_level; level++) {
+		for (level = 0; level <= top_level; level++) {
 
 			thisnode = update[level];
-			if(thisnode->forward[level] != nextnode)
+			if (thisnode->forward[level] != nextnode)
 				break;
 
 			thisnode->forward[level] = nextnode->forward[level];
-			}
+		}
 
 		/* free node memory */
 		free(nextnode);
 
 		/* adjust top/current level of list is necessary */
-		while(list->head->forward[top_level] == NULL && top_level > 0)
+		while (list->head->forward[top_level] == NULL && top_level > 0)
 			top_level--;
 		list->current_level = top_level;
 
@@ -462,90 +477,92 @@ int skiplist_delete_first(skiplist *list, void *data) {
 		list->items--;
 
 		deleted = TRUE;
-		}
+	}
 
 	/* free memory */
 	free(update);
 
 	return deleted;
-	}
+}
 
 
 
 /* delete all matching items from list */
-int skiplist_delete(skiplist *list, void *data) {
-	int deleted = 0;
-	int total_deleted = 0;
+int skiplist_delete(skiplist * list, void *data)
+{
+	int 		deleted = 0;
+	int 		total_deleted = 0;
 
 	/* NOTE: there is a more efficient way to do this... */
-	while((deleted = skiplist_delete_first(list, data)) == 1)
+	while ((deleted = skiplist_delete_first(list, data)) == 1)
 		total_deleted++;
 
 	return total_deleted;
-	}
+}
 
 
 
 /* delete specific node from list */
-int skiplist_delete_node(skiplist *list, void *node_ptr) {
-	void *data = NULL;
+int skiplist_delete_node(skiplist * list, void *node_ptr)
+{
+	void	   *data = NULL;
 	skiplistnode **update = NULL;
 	skiplistnode *thenode = NULL;
 	skiplistnode *thisnode = NULL;
 	skiplistnode *nextnode = NULL;
-	int level = 0;
-	int top_level = 0;
-	int deleted = FALSE;
-	int x = 0;
+	int 		level = 0;
+	int 		top_level = 0;
+	int 		deleted = FALSE;
+	int 		x = 0;
 
-	if(list == NULL || node_ptr == NULL)
+	if (list == NULL || node_ptr == NULL)
 		return ERROR;
 
 	/* we'll need the data from the node to first find the node */
-	thenode = (skiplistnode *)node_ptr;
+	thenode = (skiplistnode *) node_ptr;
 	data = thenode->data;
 
 	/* initialize update vector */
-	if((update = (skiplistnode **)malloc(sizeof(skiplistnode *) * list->max_levels)) == NULL)
+	if ((update = (skiplistnode **) malloc(sizeof(skiplistnode *) * list->max_levels)) == NULL)
 		return ERROR;
-	for(x = 0; x < list->max_levels; x++)
+	for (x = 0; x < list->max_levels; x++)
 		update[x] = NULL;
 
 	/* find location in list */
 	thisnode = list->head;
-	for(top_level = level = list->current_level; level >= 0; level--) {
-		while((nextnode = thisnode->forward[level])) {
+	for (top_level = level = list->current_level; level >= 0; level--) {
+		while ((nextnode = thisnode->forward[level])) {
 
 			/* next node would be too far */
-			if(list->compare_function(nextnode->data, data) > 0)
+			if (list->compare_function(nextnode->data, data) > 0)
 				break;
 			/* this is the exact node we want */
-			if(list->compare_function(nextnode->data, data) == 0 && nextnode == thenode)
+			if (list->compare_function(nextnode->data, data) == 0 && nextnode == thenode)
 				break;
 
 			thisnode = nextnode;
-			}
-		update[level] = thisnode;
 		}
+		update[level] = thisnode;
+	}
 
 	/* we found a match! (value + pointers match) */
-	if(nextnode && list->compare_function(nextnode->data, data) == 0 && nextnode == thenode) {
+	if (nextnode && list->compare_function(nextnode->data, data) == 0 && nextnode == thenode) {
 
 		/* adjust level pointers to bypass (soon to be) removed node */
-		for(level = 0; level <= top_level; level++) {
+		for (level = 0; level <= top_level; level++) {
 
 			thisnode = update[level];
-			if(thisnode->forward[level] != nextnode)
+			if (thisnode->forward[level] != nextnode)
 				break;
 
 			thisnode->forward[level] = nextnode->forward[level];
-			}
+		}
 
 		/* free node memory */
 		free(nextnode);
 
 		/* adjust top/current level of list is necessary */
-		while(list->head->forward[top_level] == NULL && top_level > 0)
+		while (list->head->forward[top_level] == NULL && top_level > 0)
 			top_level--;
 		list->current_level = top_level;
 
@@ -553,13 +570,10 @@ int skiplist_delete_node(skiplist *list, void *node_ptr) {
 		list->items--;
 
 		deleted = TRUE;
-		}
+	}
 
 	/* free memory */
 	free(update);
 
 	return deleted;
-	}
-
-
-
+}

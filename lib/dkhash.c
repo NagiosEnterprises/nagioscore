@@ -7,7 +7,7 @@
 typedef struct dkhash_bucket {
 	const char *key;
 	const char *key2;
-	void *data;
+	void	   *data;
 	struct dkhash_bucket *next;
 } dkhash_bucket;
 
@@ -21,32 +21,32 @@ struct dkhash_table {
 };
 
 /* struct data access functions */
-unsigned int dkhash_collisions(dkhash_table *t)
+unsigned int dkhash_collisions(dkhash_table * t)
 {
 	return t ? t->collisions : 0;
 }
 
-unsigned int dkhash_num_entries(dkhash_table *t)
+unsigned int dkhash_num_entries(dkhash_table * t)
 {
 	return t ? t->entries : 0;
 }
 
-unsigned int dkhash_num_entries_max(dkhash_table *t)
+unsigned int dkhash_num_entries_max(dkhash_table * t)
 {
 	return t ? t->max_entries : 0;
 }
 
-unsigned int dkhash_num_entries_added(dkhash_table *t)
+unsigned int dkhash_num_entries_added(dkhash_table * t)
 {
 	return t ? t->added : 0;
 }
 
-unsigned int dkhash_num_entries_removed(dkhash_table *t)
+unsigned int dkhash_num_entries_removed(dkhash_table * t)
 {
 	return t ? t->removed : 0;
 }
 
-unsigned int dkhash_table_size(dkhash_table *t)
+unsigned int dkhash_table_size(dkhash_table * t)
 {
 	return t ? t->num_buckets : 0;
 }
@@ -60,7 +60,7 @@ unsigned int dkhash_table_size(dkhash_table *t)
 #define PRIME 509
 static inline unsigned int hash(register const char *k)
 {
-	register unsigned int h = 0x123; /* magic */
+	register unsigned int h = 0x123;	/* magic */
 
 	while (*k)
 		h = *k++ + PRIME * h;
@@ -68,7 +68,7 @@ static inline unsigned int hash(register const char *k)
 	return h;
 }
 
-static inline unsigned int dkhash_slot(dkhash_table *t, const char *k1, const char *k2)
+static inline unsigned int dkhash_slot(dkhash_table * t, const char *k1, const char *k2)
 {
 	register unsigned int h;
 	h = hash(k1);
@@ -77,7 +77,7 @@ static inline unsigned int dkhash_slot(dkhash_table *t, const char *k1, const ch
 	return h % t->num_buckets;
 }
 
-static dkhash_bucket *dkhash_get_bucket(dkhash_table *t, const char *key, unsigned int slot)
+static dkhash_bucket *dkhash_get_bucket(dkhash_table * t, const char *key, unsigned int slot)
 {
 	dkhash_bucket *bkt;
 
@@ -89,19 +89,20 @@ static dkhash_bucket *dkhash_get_bucket(dkhash_table *t, const char *key, unsign
 	return NULL;
 }
 
-static dkhash_bucket *dkhash_get_bucket2(dkhash_table *t, const char *k1, const char *k2, unsigned int slot)
+static dkhash_bucket *dkhash_get_bucket2(dkhash_table * t, const char *k1, const char *k2,
+										 unsigned int slot)
 {
 	dkhash_bucket *bkt;
 
 	for (bkt = t->buckets[slot]; bkt; bkt = bkt->next) {
 		if (!strcmp(k1, bkt->key) && bkt->key2 && !strcmp(k2, bkt->key2))
 			return bkt;
-		}
+	}
 
 	return NULL;
 }
 
-int dkhash_insert(dkhash_table *t, const char *k1, const char *k2, void *data)
+int dkhash_insert(dkhash_table * t, const char *k1, const char *k2, void *data)
 {
 	unsigned int slot;
 	dkhash_bucket *bkt;
@@ -119,7 +120,7 @@ int dkhash_insert(dkhash_table *t, const char *k1, const char *k2, void *data)
 		return DKHASH_ENOMEM;
 
 	if (t->buckets[slot])
-		t->collisions++; /* "soft" collision */
+		t->collisions++;		/* "soft" collision */
 
 	t->added++;
 	bkt->data = data;
@@ -134,7 +135,7 @@ int dkhash_insert(dkhash_table *t, const char *k1, const char *k2, void *data)
 	return DKHASH_OK;
 }
 
-void *dkhash_get(dkhash_table *t, const char *k1, const char *k2)
+void	   *dkhash_get(dkhash_table * t, const char *k1, const char *k2)
 {
 	dkhash_bucket *bkt;
 	unsigned int slot;
@@ -150,14 +151,14 @@ void *dkhash_get(dkhash_table *t, const char *k1, const char *k2)
 
 dkhash_table *dkhash_create(unsigned int size)
 {
-	double			ratio;
-	unsigned int	sz;
-	dkhash_table	*t;
+	double		ratio;
+	unsigned int sz;
+	dkhash_table *t;
 
 	if (!size)
 		return NULL;
 
-	if(!(t = calloc(1, sizeof(*t))))
+	if (!(t = calloc(1, sizeof(*t))))
 		return NULL;
 
 	sz = rup2pof2(size);
@@ -174,7 +175,7 @@ dkhash_table *dkhash_create(unsigned int size)
 	return t;
 }
 
-int dkhash_destroy(dkhash_table *t)
+int dkhash_destroy(dkhash_table * t)
 {
 	unsigned int i;
 
@@ -193,16 +194,16 @@ int dkhash_destroy(dkhash_table *t)
 	return DKHASH_OK;
 }
 
-static inline void *dkhash_destroy_bucket(dkhash_bucket *bkt)
+static inline void *dkhash_destroy_bucket(dkhash_bucket * bkt)
 {
-	void *data;
+	void	   *data;
 
 	data = bkt->data;
 	free(bkt);
 	return data;
 }
 
-void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
+void	   *dkhash_remove(dkhash_table * t, const char *k1, const char *k2)
 {
 	unsigned int slot;
 	dkhash_bucket *bkt, *prev;
@@ -221,8 +222,7 @@ void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
 			if (prev == bkt) {
 				/* first entry deleted */
 				t->buckets[slot] = bkt->next;
-			}
-			else {
+			} else {
 				prev->next = bkt->next;
 			}
 			t->entries--;
@@ -234,7 +234,8 @@ void *dkhash_remove(dkhash_table *t, const char *k1, const char *k2)
 	return NULL;
 }
 
-void dkhash_walk_data(dkhash_table *t, int (*walker)(void *)) {
+void dkhash_walk_data(dkhash_table * t, int (*walker) (void *))
+{
 	dkhash_bucket *bkt, *prev;
 	unsigned int i;
 
@@ -242,7 +243,7 @@ void dkhash_walk_data(dkhash_table *t, int (*walker)(void *)) {
 		return;
 
 	for (i = 0; i < t->num_buckets; i++) {
-		int depth = 0;
+		int 		depth = 0;
 		dkhash_bucket *next;
 
 		prev = t->buckets[i];
@@ -260,8 +261,7 @@ void dkhash_walk_data(dkhash_table *t, int (*walker)(void *)) {
 			dkhash_destroy_bucket(bkt);
 			if (depth) {
 				prev->next = next;
-			}
-			else {
+			} else {
 				t->buckets[i] = next;
 			}
 		}

@@ -1,5 +1,5 @@
 #ifndef LIBNAGIOS_KVVEC_H_INCLUDED
-#define LIBNAGIOS_KVVEC_H_INCLUDED
+# define LIBNAGIOS_KVVEC_H_INCLUDED
 
 /**
  * @file kvvec.h
@@ -16,10 +16,14 @@
  * One of the two major components of the kvvec api
  */
 struct key_value {
-	char *key;     /**< The key */
-	char *value;   /**< The value */
-	int key_len;   /**< Length of key */
-	int value_len; /**< Length of value */
+	char	   *key;
+				   /**< The key */
+	char	   *value;
+				   /**< The value */
+	int 		key_len;
+				   /**< Length of key */
+	int 		value_len;
+				   /**< Length of value */
 };
 
 /**
@@ -27,7 +31,7 @@ struct key_value {
  * used as return value and internal tracker for kvvec2buf()
  */
 struct kvvec_buf {
-	char *buf;             /**< The buffer */
+	char	   *buf;	   /**< The buffer */
 	unsigned long buflen;  /**< Length of buffer */
 	unsigned long bufsize; /**< Size of buffer (includes overalloc) */
 };
@@ -40,23 +44,23 @@ struct kvvec_buf {
  */
 struct kvvec {
 	struct key_value *kv; /**< The key/value array */
-	int kv_alloc;         /**< Allocated size of key/value array */
-	int kv_pairs;         /**< Number of key/value pairs */
-	int kvv_sorted;        /**< Determines if this kvvec has been sorted */
+	int 		kv_alloc; /**< Allocated size of key/value array */
+	int 		kv_pairs; /**< Number of key/value pairs */
+	int 		kvv_sorted;/**< Determines if this kvvec has been sorted */
 };
 
 /** Portable initializer for stack-allocated key/value vectors */
-#define KVVEC_INITIALIZER { NULL, 0, 0, 0 }
+# define KVVEC_INITIALIZER { NULL, 0, 0, 0 }
 
 /** Parameters for kvvec_destroy() */
-#define KVVEC_FREE_KEYS   1 /**< Free keys when destroying a kv vector */
-#define KVVEC_FREE_VALUES 2 /**< Free values when destroying a kv vector */
+# define KVVEC_FREE_KEYS   1/**< Free keys when destroying a kv vector */
+# define KVVEC_FREE_VALUES 2/**< Free values when destroying a kv vector */
 /** Free both keys and values when destroying a kv vector */
-#define KVVEC_FREE_ALL    (KVVEC_FREE_KEYS | KVVEC_FREE_VALUES)
+# define KVVEC_FREE_ALL    (KVVEC_FREE_KEYS | KVVEC_FREE_VALUES)
 
-#define KVVEC_ASSIGN      0 /**< Assign from buf in buf2kvvec_prealloc() */
-#define KVVEC_COPY        1 /**< Copy from buf in buf2kvvec_prealloc() */
-#define KVVEC_APPEND      2 /**< Don't reset kvvec in buf2kvvec_prealloc() */
+# define KVVEC_ASSIGN	   0/**< Assign from buf in buf2kvvec_prealloc() */
+# define KVVEC_COPY 	   1/**< Copy from buf in buf2kvvec_prealloc() */
+# define KVVEC_APPEND	   2/**< Don't reset kvvec in buf2kvvec_prealloc() */
 
 /**
  * Initialize a previously allocated key/value vector
@@ -84,7 +88,7 @@ extern struct kvvec *kvvec_create(int hint);
  * @param[in] size The size to grow to
  * @return 0 on success, < 0 on errors
  */
-extern int kvvec_resize(struct kvvec *kvv, int size);
+extern int	kvvec_resize(struct kvvec *kvv, int size);
 
 /**
  * Grow a key/value vector.
@@ -96,7 +100,7 @@ extern int kvvec_resize(struct kvvec *kvv, int size);
  * @param hint The amount of key/value slots we should grow by
  * @return 0 on success, < 0 on errors
  */
-extern int kvvec_grow(struct kvvec *kvv, int hint);
+extern int	kvvec_grow(struct kvvec *kvv, int hint);
 
 /**
  * Return remaining storage capacity of key/value vector
@@ -110,7 +114,7 @@ extern unsigned int kvvec_capacity(struct kvvec *kvv);
  * @param kvv The key/value vector to sort
  * @return 0
  */
-extern int kvvec_sort(struct kvvec *kvv);
+extern int	kvvec_sort(struct kvvec *kvv);
 
 /**
  * Add a key/value pair to an existing key/value vector, with
@@ -122,7 +126,8 @@ extern int kvvec_sort(struct kvvec *kvv);
  * @param valuelen Length of the value
  * @return 0 on success, < 0 on errors
  */
-extern int kvvec_addkv_wlen(struct kvvec *kvv, const char *key, int keylen, const char *value, int valuelen);
+extern int	kvvec_addkv_wlen(struct kvvec *kvv, const char *key, int keylen, const char *value,
+							 int valuelen);
 
 /**
  * Shortcut to kvvec_addkv_wlen() when lengths aren't known
@@ -131,7 +136,7 @@ extern int kvvec_addkv_wlen(struct kvvec *kvv, const char *key, int keylen, cons
  * @param value The value
  * @return 0 on success, < 0 on errors
  */
-#define kvvec_addkv(kvv, key, value) kvvec_addkv_wlen(kvv, key, 0, value, 0)
+# define kvvec_addkv(kvv, key, value) kvvec_addkv_wlen(kvv, key, 0, value, 0)
 
 /**
  * Walk each key/value pair in a key/value vector, sending them
@@ -143,7 +148,8 @@ extern int kvvec_addkv_wlen(struct kvvec *kvv, const char *key, int keylen, cons
  * @param callback Callback function
  * @return 0 on success, < 0 on errors
  */
-extern int kvvec_foreach(struct kvvec *kvv, void *arg, int (*callback)(struct key_value *, void *));
+extern int	kvvec_foreach(struct kvvec *kvv, void *arg,
+						  int (*callback) (struct key_value *, void *));
 
 /**
  * Destroy a key/value vector
@@ -151,7 +157,7 @@ extern int kvvec_foreach(struct kvvec *kvv, void *arg, int (*callback)(struct ke
  * @param flags or'ed combination of KVVEC_FREE_{KEYS,VALUES}, or KVVEC_FREE_ALL
  * @return 0 on success, < 0 on errors
  */
-extern int kvvec_destroy(struct kvvec *kvv, int flags);
+extern int	kvvec_destroy(struct kvvec *kvv, int flags);
 
 /**
  * Free key/value pairs associated with a key/value vector
@@ -171,11 +177,12 @@ void kvvec_free_kvpairs(struct kvvec *kvv, int flags);
  * @param kv_sep Character separating keys and their values
  * @param pair_sep Character separating key/value pairs
  * @param overalloc Integer determining how much extra data we should
- *                  allocate. The overallocated memory is filled with
- *                  nul bytes.
+ *					allocate. The overallocated memory is filled with
+ *					nul bytes.
  * @return A pointer to a newly created kvvec_buf structure
  */
-extern struct kvvec_buf *kvvec2buf(struct kvvec *kvv, char kv_sep, char pair_sep, int overalloc);
+extern struct kvvec_buf *kvvec2buf(struct kvvec *kvv, char kv_sep, char pair_sep,
+								   int overalloc);
 
 /**
  * Create a key/value vector from a pre-parsed buffer. Immensely
@@ -188,7 +195,8 @@ extern struct kvvec_buf *kvvec2buf(struct kvvec *kvv, char kv_sep, char pair_sep
  * @param flags bitmask. See KVVEC_{ASSIGN,COPY,APPEND} for values
  * @return The created key/value vector
  */
-extern struct kvvec *buf2kvvec(char *str, unsigned int len, const char kvsep, const char pair_sep, int flags);
+extern struct kvvec *buf2kvvec(char *str, unsigned int len, const char kvsep,
+							   const char pair_sep, int flags);
 
 /**
  * Parse a buffer into the pre-allocated key/value vector. Immensely
@@ -202,6 +210,7 @@ extern struct kvvec *buf2kvvec(char *str, unsigned int len, const char kvsep, co
  * @param flags bitmask. See KVVEC_{ASSIGN,COPY,APPEND} for values
  * @return The number of pairs in the created key/value vector
  */
-extern int buf2kvvec_prealloc(struct kvvec *kvv, char *str, unsigned int len, const char kvsep, const char pair_sep, int flags);
+extern int	buf2kvvec_prealloc(struct kvvec *kvv, char *str, unsigned int len,
+							   const char kvsep, const char pair_sep, int flags);
 /** @} */
-#endif /* INCLUDE_kvvec_h__ */
+#endif	 /* INCLUDE_kvvec_h__ */

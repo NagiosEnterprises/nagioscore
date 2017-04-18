@@ -1,6 +1,6 @@
 #ifndef LIBNAGIOS_NSOCK_H_INCLUDED
-#define LIBNAGIOS_NSOCK_H_INCLUDED
-#include <errno.h>
+# define LIBNAGIOS_NSOCK_H_INCLUDED
+# include <errno.h>
 
 /**
  * @file nsock.h
@@ -14,21 +14,21 @@
  * @{
  */
 
-#define NSOCK_EBIND    (-1)     /**< failed to bind() */
-#define NSOCK_ELISTEN  (-2)     /**< failed to listen() */
-#define NSOCK_ESOCKET  (-3)     /**< failed to socket() */
-#define NSOCK_EUNLINK  (-4)     /**< failed to unlink() */
-#define NSOCK_ECONNECT (-5)     /**< failed to connect() */
-#define NSOCK_EFCNTL   (-6)     /**< failed to fcntl() */
-#define NSOCK_EINVAL (-EINVAL) /**< -22, normally */
+# define NSOCK_EBIND	(-1)	/**< failed to bind() */
+# define NSOCK_ELISTEN	(-2)	/**< failed to listen() */
+# define NSOCK_ESOCKET	(-3)	/**< failed to socket() */
+# define NSOCK_EUNLINK	(-4)	/**< failed to unlink() */
+# define NSOCK_ECONNECT (-5)	/**< failed to connect() */
+# define NSOCK_EFCNTL	(-6)	/**< failed to fcntl() */
+# define NSOCK_EINVAL (-EINVAL)/**< -22, normally */
 
 /* flags for the various create calls */
-#define NSOCK_TCP     (1 << 0)  /**< use tcp mode */
-#define NSOCK_UDP     (1 << 1)  /**< use udp mode */
-#define NSOCK_UNLINK  (1 << 2)  /**< unlink existing path (only nsock_unix) */
-#define NSOCK_REUSE   (1 << 2)  /**< reuse existing address */
-#define NSOCK_CONNECT (1 << 3)  /**< connect rather than create */
-#define NSOCK_BLOCK   (1 << 4)  /**< socket should be in blocking mode */
+# define NSOCK_TCP	   (1 << 0) /**< use tcp mode */
+# define NSOCK_UDP	   (1 << 1) /**< use udp mode */
+# define NSOCK_UNLINK  (1 << 2) /**< unlink existing path (only nsock_unix) */
+# define NSOCK_REUSE   (1 << 2) /**< reuse existing address */
+# define NSOCK_CONNECT (1 << 3) /**< connect rather than create */
+# define NSOCK_BLOCK   (1 << 4) /**< socket should be in blocking mode */
 
 /**
  * Grab an error string relating to nsock_unix()
@@ -47,7 +47,7 @@ extern const char *nsock_strerror(int code);
  * @param flags Various options controlling the mode of the socket
  * @return An NSOCK_E macro on errors, the created socket on succes
  */
-extern int nsock_unix(const char *path, unsigned int flags);
+extern int	nsock_unix(const char *path, unsigned int flags);
 
 /**
  * Write a nul-terminated message to the socket pointed to by sd.
@@ -58,8 +58,8 @@ extern int nsock_unix(const char *path, unsigned int flags);
  * @param fmt The format string
  * @return Whatever write() returns
  */
-extern int nsock_printf_nul(int sd, const char *fmt, ...)
-	__attribute__((__format__(__printf__, 2, 3)));
+extern int	nsock_printf_nul(int sd, const char *fmt, ...)
+	__attribute__ ((__format__(__printf__, 2, 3)));
 
 /**
  * Write a printf()-formatted string to the socket pointed to by sd.
@@ -69,8 +69,8 @@ extern int nsock_printf_nul(int sd, const char *fmt, ...)
  * @param fmt The format string
  * @return Whatever write() returns
  */
-extern int nsock_printf(int sd, const char *fmt, ...)
-	__attribute__((__format__(__printf__, 2, 3)));
+extern int	nsock_printf(int sd, const char *fmt, ...)
+	__attribute__ ((__format__(__printf__, 2, 3)));
 
 /** @} */
-#endif /* LIBNAGIOS_NSOCK_H_INCLUDED */
+#endif	 /* LIBNAGIOS_NSOCK_H_INCLUDED */

@@ -25,7 +25,7 @@ struct squeue_event {
 	unsigned int pos;
 	pqueue_pri_t pri;
 	struct timeval when;
-	void *data;
+	void	   *data;
 };
 
 /*
@@ -43,7 +43,7 @@ static pqueue_pri_t evt_compute_pri(struct timeval *tv)
 	pqueue_pri_t ret;
 
 	/* keep weird compilers on 32-bit systems from doing wrong */
-	if(sizeof(pqueue_pri_t) < 8) {
+	if (sizeof(pqueue_pri_t) < 8) {
 		ret = tv->tv_sec;
 		ret += !!tv->tv_usec;
 	} else {
@@ -62,47 +62,47 @@ static int sq_cmp_pri(pqueue_pri_t next, pqueue_pri_t cur)
 
 static unsigned long long sq_get_pri(void *a)
 {
-	return ((squeue_event *)a)->pri;
+	return ((squeue_event *) a)->pri;
 }
 
 static void sq_set_pri(void *a, pqueue_pri_t pri)
 {
-	((squeue_event *)a)->pri = pri;
+	((squeue_event *) a)->pri = pri;
 }
 
 static unsigned int sq_get_pos(void *a)
 {
-	return ((squeue_event *)a)->pos;
+	return ((squeue_event *) a)->pos;
 }
 
 static void sq_set_pos(void *a, unsigned int pos)
 {
-	((squeue_event *)a)->pos = pos;
+	((squeue_event *) a)->pos = pos;
 }
 
-const struct timeval *squeue_event_runtime(squeue_event *evt)
+const struct timeval *squeue_event_runtime(squeue_event * evt)
 {
 	if (evt)
 		return &evt->when;
 	return NULL;
 }
 
-void *squeue_event_data(squeue_event *evt)
+void	   *squeue_event_data(squeue_event * evt)
 {
 	if (evt)
 		return evt->data;
 	return NULL;
 }
 
-squeue_t *squeue_create(unsigned int horizon)
+squeue_t   *squeue_create(unsigned int horizon)
 {
 	if (!horizon)
-		horizon = 127; /* makes pqueue allocate 128 elements */
+		horizon = 127;			/* makes pqueue allocate 128 elements */
 
 	return pqueue_init(horizon, sq_cmp_pri, sq_get_pri, sq_set_pri, sq_get_pos, sq_set_pos);
 }
 
-squeue_event *squeue_add_tv(squeue_t *q, struct timeval *tv, void *data)
+squeue_event *squeue_add_tv(squeue_t * q, struct timeval * tv, void *data)
 {
 	squeue_event *evt;
 
@@ -138,7 +138,7 @@ squeue_event *squeue_add_tv(squeue_t *q, struct timeval *tv, void *data)
 	return NULL;
 }
 
-squeue_event *squeue_add(squeue_t *q, time_t when, void *data)
+squeue_event *squeue_add(squeue_t * q, time_t when, void *data)
 {
 	struct timeval tv;
 
@@ -152,7 +152,7 @@ squeue_event *squeue_add(squeue_t *q, time_t when, void *data)
 	return squeue_add_tv(q, &tv, data);
 }
 
-squeue_event *squeue_add_usec(squeue_t *q, time_t when, time_t usec, void *data)
+squeue_event *squeue_add_usec(squeue_t * q, time_t when, time_t usec, void *data)
 {
 	struct timeval tv;
 	tv.tv_sec = when;
@@ -161,14 +161,15 @@ squeue_event *squeue_add_usec(squeue_t *q, time_t when, time_t usec, void *data)
 	return squeue_add_tv(q, &tv, data);
 }
 
-squeue_event *squeue_add_msec(squeue_t *q, time_t when, time_t msec, void *data)
+squeue_event *squeue_add_msec(squeue_t * q, time_t when, time_t msec, void *data)
 {
 	return squeue_add_usec(q, when, msec * 1000, data);
 }
 
-void squeue_change_priority_tv(squeue_t *q, squeue_event *evt, struct timeval *tv)
+void squeue_change_priority_tv(squeue_t * q, squeue_event * evt, struct timeval *tv)
 {
-	if (!q || !evt || !tv) return;
+	if (!q || !evt || !tv)
+		return;
 
 	evt->when.tv_sec = tv->tv_sec;
 	if (sizeof(evt->when.tv_sec) > 4) {
@@ -182,7 +183,7 @@ void squeue_change_priority_tv(squeue_t *q, squeue_event *evt, struct timeval *t
 	pqueue_change_priority(q, evt_compute_pri(&evt->when), evt);
 }
 
-void *squeue_peek(squeue_t *q)
+void	   *squeue_peek(squeue_t * q)
 {
 	squeue_event *evt = pqueue_peek(q);
 	if (evt)
@@ -190,10 +191,10 @@ void *squeue_peek(squeue_t *q)
 	return NULL;
 }
 
-void *squeue_pop(squeue_t *q)
+void	   *squeue_pop(squeue_t * q)
 {
 	squeue_event *evt;
-	void *ptr = NULL;
+	void	   *ptr = NULL;
 
 	evt = pqueue_pop(q);
 	if (evt) {
@@ -203,9 +204,9 @@ void *squeue_pop(squeue_t *q)
 	return ptr;
 }
 
-int squeue_remove(squeue_t *q, squeue_event *evt)
+int squeue_remove(squeue_t * q, squeue_event * evt)
 {
-	int ret;
+	int 		ret;
 
 	if (!q || !evt)
 		return -1;
@@ -216,7 +217,7 @@ int squeue_remove(squeue_t *q, squeue_event *evt)
 	return ret;
 }
 
-void squeue_destroy(squeue_t *q, int flags)
+void squeue_destroy(squeue_t * q, int flags)
 {
 	unsigned int i;
 
@@ -229,7 +230,7 @@ void squeue_destroy(squeue_t *q, int flags)
 	 */
 	if (flags & SQUEUE_FREE_DATA) {
 		for (i = 0; i < pqueue_size(q); i++) {
-			free(((squeue_event *)q->d[i + 1])->data);
+			free(((squeue_event *) q->d[i + 1])->data);
 			free(q->d[i + 1]);
 		}
 	} else {
@@ -240,19 +241,20 @@ void squeue_destroy(squeue_t *q, int flags)
 	pqueue_free(q);
 }
 
-unsigned int squeue_size(squeue_t *q)
+unsigned int squeue_size(squeue_t * q)
 {
 	if (!q)
 		return 0;
 	return pqueue_size(q);
 }
 
-int squeue_evt_when_is_after(squeue_event *evt, struct timeval *reftime) {
-	if(!evt) return -1;
+int squeue_evt_when_is_after(squeue_event * evt, struct timeval *reftime)
+{
+	if (!evt)
+		return -1;
 
-	if((reftime->tv_sec > evt->when.tv_sec) ||
-			((reftime->tv_sec == evt->when.tv_sec) &&
-			(reftime->tv_usec > evt->when.tv_usec))) {
+	if ((reftime->tv_sec > evt->when.tv_sec) ||
+		((reftime->tv_sec == evt->when.tv_sec) && (reftime->tv_usec > evt->when.tv_usec))) {
 		return 1;
 	}
 	return 0;

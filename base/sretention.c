@@ -29,7 +29,7 @@
 #include "../include/nagios.h"
 #include "../include/sretention.h"
 #include "../include/broker.h"
-#include "../xdata/xrddefault.h"		/* default routines */
+#include "../xdata/xrddefault.h"	/* default routines */
 
 
 /******************************************************************/
@@ -38,24 +38,27 @@
 
 
 /* initializes retention data at program start */
-int initialize_retention_data(const char *cfgfile) {
+int initialize_retention_data(const char *cfgfile)
+{
 	return xrddefault_initialize_retention_data(cfgfile);
-	}
+}
 
 
 
 /* cleans up retention data before program termination */
-int cleanup_retention_data(void) {
+int cleanup_retention_data(void)
+{
 	return xrddefault_cleanup_retention_data();
-	}
+}
 
 
 
 /* save all host and service state information */
-int save_state_information(int autosave) {
-	int result = OK;
+int save_state_information(int autosave)
+{
+	int 		result = OK;
 
-	if(retain_state_information == FALSE)
+	if (retain_state_information == FALSE)
 		return OK;
 
 #ifdef USE_EVENT_BROKER
@@ -70,22 +73,24 @@ int save_state_information(int autosave) {
 	broker_retention_data(NEBTYPE_RETENTIONDATA_ENDSAVE, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
-	if(result == ERROR)
+	if (result == ERROR)
 		return ERROR;
 
-	if(autosave == TRUE)
-		logit(NSLOG_PROCESS_INFO, FALSE, "Auto-save of retention data completed successfully.\n");
+	if (autosave == TRUE)
+		logit(NSLOG_PROCESS_INFO, FALSE,
+			  "Auto-save of retention data completed successfully.\n");
 
 	return OK;
-	}
+}
 
 
 
 /* reads in initial host and state information */
-int read_initial_state_information(void) {
-	int result = OK;
+int read_initial_state_information(void)
+{
+	int 		result = OK;
 
-	if(retain_state_information == FALSE)
+	if (retain_state_information == FALSE)
 		return OK;
 
 #ifdef USE_EVENT_BROKER
@@ -100,8 +105,8 @@ int read_initial_state_information(void) {
 	broker_retention_data(NEBTYPE_RETENTIONDATA_ENDLOAD, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
-	if(result == ERROR)
+	if (result == ERROR)
 		return ERROR;
 
 	return OK;
-	}
+}

@@ -10,18 +10,18 @@
 #include "iobroker.h"
 
 #ifdef IOBROKER_USES_EPOLL
-#include <sys/epoll.h>
+# include <sys/epoll.h>
 /* these were added later */
-#ifndef EPOLLRDHUP
-# define EPOLLRDHUP 0
-#endif
-#ifndef EPOLLONESHOT
-# define EPOLLONESHOT 0
-#endif
+# ifndef EPOLLRDHUP
+#  define EPOLLRDHUP 0
+# endif
+# ifndef EPOLLONESHOT
+#  define EPOLLONESHOT 0
+# endif
 #elif !defined(IOBROKER_USES_SELECT)
-#include <poll.h>
+# include <poll.h>
 #else
-#include <sys/select.h>
+# include <sys/select.h>
 #endif
 
 #if defined(IOBROKER_USES_EPOLL) && defined(IOBROKER_USES_POLL)
@@ -33,19 +33,19 @@
 #endif
 
 typedef struct {
-	int fd; /* the file descriptor */
-	int events; /* events the caller is interested in */
-	int (*handler)(int, int, void *); /* where we send data */
-	void *arg; /* the argument we send to the input handler */
+	int 		fd; 			/* the file descriptor */
+	int 		events; 		/* events the caller is interested in */
+	int 		(*handler) (int, int, void *);	/* where we send data */
+	void	   *arg;			/* the argument we send to the input handler */
 } iobroker_fd;
 
 
 struct iobroker_set {
 	iobroker_fd **iobroker_fds;
-	int max_fds; /* max number of sockets we can accept */
-	int num_fds; /* number of sockets we're currently brokering for */
+	int 		max_fds;		/* max number of sockets we can accept */
+	int 		num_fds;		/* number of sockets we're currently brokering for */
 #ifdef IOBROKER_USES_EPOLL
-	int epfd;
+	int 		epfd;
 	struct epoll_event *ep_events;
 #elif !defined(IOBROKER_USES_SELECT)
 	struct pollfd *pfd;
@@ -53,13 +53,14 @@ struct iobroker_set {
 };
 
 static struct {
-	int code;
+	int 		code;
 	const char *string;
 } iobroker_errors[] = {
-	{ IOBROKER_SUCCESS, "Success" },
-	{ IOBROKER_ENOSET, "IOB set is NULL" },
-	{ IOBROKER_ENOINIT, "IOB set not initialized" },
-};
+	{
+	IOBROKER_SUCCESS, "Success"}, {
+	IOBROKER_ENOSET, "IOB set is NULL"}, {
+IOBROKER_ENOINIT, "IOB set not initialized"},};
+
 static const char *iobroker_unknown_error = "unknown error";
 
 #ifndef ARRAY_SIZE
@@ -103,14 +104,14 @@ int iobroker_max_usable_fds(void)
 }
 
 
-int iobroker_get_max_fds(iobroker_set *iobs)
+int iobroker_get_max_fds(iobroker_set * iobs)
 {
 	if (!iobs)
 		return IOBROKER_ENOSET;
 	return iobs->max_fds;
 }
 
-int iobroker_get_num_fds(iobroker_set *iobs)
+int iobroker_get_num_fds(iobroker_set * iobs)
 {
 	if (!iobs)
 		return IOBROKER_ENOSET;
@@ -131,10 +132,9 @@ struct iobroker_set *iobroker_create(void)
 	if (!iobs->iobroker_fds) {
 		goto error_out;
 	}
-
 #ifdef IOBROKER_USES_EPOLL
 	{
-		int flags;
+		int 		flags;
 
 		iobs->ep_events = calloc(iobs->max_fds, sizeof(struct epoll_event));
 		if (!iobs->ep_events) {
@@ -172,7 +172,8 @@ error_out:
 	return NULL;
 }
 
-static int reg_one(iobroker_set *iobs, int fd, int events, void *arg, int (*handler)(int, int, void *))
+static int reg_one(iobroker_set * iobs, int fd, int events, void *arg,
+				   int (*handler) (int, int, void *))
 {
 	iobroker_fd *s;
 
@@ -212,7 +213,8 @@ static int reg_one(iobroker_set *iobs, int fd, int events, void *arg, int (*hand
 	return 0;
 }
 
-int iobroker_register(iobroker_set *iobs, int fd, void *arg, int (*handler)(int, int, void *))
+int iobroker_register(iobroker_set * iobs, int fd, void *arg,
+					  int (*handler) (int, int, void *))
 {
 #ifdef IOBROKER_USES_EPOLL
 	return reg_one(iobs, fd, EPOLLIN | EPOLLRDHUP, arg, handler);
@@ -221,7 +223,8 @@ int iobroker_register(iobroker_set *iobs, int fd, void *arg, int (*handler)(int,
 #endif
 }
 
-int iobroker_register_out(iobroker_set *iobs, int fd, void *arg, int (*handler)(int, int, void *))
+int iobroker_register_out(iobroker_set * iobs, int fd, void *arg,
+						  int (*handler) (int, int, void *))
 {
 #ifdef IOBROKER_USES_EPOLL
 	return reg_one(iobs, fd, EPOLLOUT, arg, handler);
@@ -230,7 +233,7 @@ int iobroker_register_out(iobroker_set *iobs, int fd, void *arg, int (*handler)(
 #endif
 }
 
-int iobroker_is_registered(iobroker_set *iobs, int fd)
+int iobroker_is_registered(iobroker_set * iobs, int fd)
 {
 	if (!iobs || fd < 0 || fd > iobs->max_fds || !iobs->iobroker_fds[fd])
 		return 0;
@@ -238,7 +241,7 @@ int iobroker_is_registered(iobroker_set *iobs, int fd)
 	return iobs->iobroker_fds[fd]->fd == fd;
 }
 
-int iobroker_unregister(iobroker_set *iobs, int fd)
+int iobroker_unregister(iobroker_set * iobs, int fd)
 {
 	if (!iobs)
 		return IOBROKER_ENOSET;
@@ -269,15 +272,15 @@ int iobroker_unregister(iobroker_set *iobs, int fd)
 }
 
 
-int iobroker_deregister(iobroker_set *iobs, int fd)
+int iobroker_deregister(iobroker_set * iobs, int fd)
 {
 	return iobroker_unregister(iobs, fd);
 }
 
 
-int iobroker_close(iobroker_set *iobs, int fd)
+int iobroker_close(iobroker_set * iobs, int fd)
 {
-	int result;
+	int 		result;
 
 	result = iobroker_unregister(iobs, fd);
 	(void)close(fd);
@@ -285,10 +288,10 @@ int iobroker_close(iobroker_set *iobs, int fd)
 }
 
 
-void iobroker_destroy(iobroker_set *iobs, int flags)
+void iobroker_destroy(iobroker_set * iobs, int flags)
 {
-	int i;
-	int (*dereg)(iobroker_set *, int) = iobroker_unregister;
+	int 		i;
+	int 		(*dereg) (iobroker_set *, int) = iobroker_unregister;
 
 	if (!iobs)
 		return;
@@ -296,7 +299,6 @@ void iobroker_destroy(iobroker_set *iobs, int flags)
 	if (flags & IOBROKER_CLOSE_SOCKETS) {
 		dereg = iobroker_close;
 	}
-
 #ifdef IOBROKER_USES_EPOLL
 	if (iobs->epfd >= 0)
 		close(iobs->epfd);
@@ -323,9 +325,9 @@ void iobroker_destroy(iobroker_set *iobs, int flags)
 }
 
 
-int iobroker_poll(iobroker_set *iobs, int timeout)
+int iobroker_poll(iobroker_set * iobs, int timeout)
 {
-	int i, nfds, ret = 0;
+	int 		i, nfds, ret = 0;
 
 	if (!iobs)
 		return IOBROKER_ENOSET;
@@ -340,7 +342,7 @@ int iobroker_poll(iobroker_set *iobs, int timeout)
 	}
 
 	for (i = 0; i < nfds; i++) {
-		int fd;
+		int 		fd;
 		iobroker_fd *s = NULL;
 
 		fd = iobs->ep_events[i].data.fd;
@@ -362,8 +364,8 @@ int iobroker_poll(iobroker_set *iobs, int timeout)
 	 * used if epoll() or poll() doesn't work properly.
 	 */
 	{
-		fd_set read_fds;
-		int num_fds = 0;
+		fd_set		read_fds;
+		int 		num_fds = 0;
 		struct timeval tv;
 
 		FD_ZERO(&read_fds);
@@ -379,7 +381,7 @@ int iobroker_poll(iobroker_set *iobs, int timeout)
 			tv.tv_sec = timeout / 1000;
 			tv.tv_usec = (timeout % 1000) * 1000;
 			nfds = select(iobs->max_fds, &read_fds, NULL, NULL, &tv);
-		} else { /* timeout of -1 means poll indefinitely */
+		} else {				/* timeout of -1 means poll indefinitely */
 			nfds = select(iobs->max_fds, &read_fds, NULL, NULL, NULL);
 		}
 		if (nfds < 0) {
@@ -406,7 +408,7 @@ int iobroker_poll(iobroker_set *iobs, int timeout)
 	 * isn't available.
 	 */
 	{
-		int p = 0;
+		int 		p = 0;
 
 		for (i = 0; i < iobs->max_fds; i++) {
 			if (!iobs->iobroker_fds[i])

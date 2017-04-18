@@ -5,7 +5,7 @@
  * Program: Nagios Core Testing
  * License: GPL
  *
- * First Written:   10-08-2009, based on nagios.c
+ * First Written:	10-08-2009, based on nagios.c
  *
  * Description:
  *
@@ -54,18 +54,19 @@
 #include "stub_notifications.c"
 
 
-int main(int argc, char **argv) {
-	int result;
-	int error = FALSE;
-	char *buffer = NULL;
-	int display_license = FALSE;
-	int display_help = FALSE;
-	int c = 0;
-	struct tm *tm;
-	time_t now;
-	char datestring[256];
-	host *temp_host = NULL;
-	hostgroup *temp_hostgroup = NULL;
+int main(int argc, char **argv)
+{
+	int 		result;
+	int 		error = FALSE;
+	char	   *buffer = NULL;
+	int 		display_license = FALSE;
+	int 		display_help = FALSE;
+	int 		c = 0;
+	struct tm  *tm;
+	time_t		now;
+	char		datestring[256];
+	host	   *temp_host = NULL;
+	hostgroup  *temp_hostgroup = NULL;
 	hostsmember *temp_member = NULL;
 
 	plan_tests(14);
@@ -88,21 +89,24 @@ int main(int argc, char **argv) {
 
 	initialize_downtime_data();
 
-	for(temp_hostgroup = hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+	for (temp_hostgroup = hostgroup_list; temp_hostgroup != NULL;
+		 temp_hostgroup = temp_hostgroup->next) {
 		c++;
 		//printf("Hostgroup=%s\n", temp_hostgroup->group_name);
-		}
+	}
 	ok(c == 2, "Found all hostgroups");
 
 	temp_hostgroup = find_hostgroup("hostgroup1");
-	for(temp_member = temp_hostgroup->members; temp_member != NULL; temp_member = temp_member->next) {
+	for (temp_member = temp_hostgroup->members; temp_member != NULL;
+		 temp_member = temp_member->next) {
 		//printf("host pointer=%d\n", temp_member->host_ptr);
-		}
+	}
 
 	temp_hostgroup = find_hostgroup("hostgroup2");
-	for(temp_member = temp_hostgroup->members; temp_member != NULL; temp_member = temp_member->next) {
+	for (temp_member = temp_hostgroup->members; temp_member != NULL;
+		 temp_member = temp_member->next) {
 		//printf("host pointer=%d\n", temp_member->host_ptr);
-		}
+	}
 
 	temp_host = find_host("host1");
 	ok(temp_host->current_state == 0, "State is assumed OK on initial load");
@@ -114,7 +118,8 @@ int main(int argc, char **argv) {
 
 	ok(find_host_comment(418) != NULL, "Found host comment id 418");
 	ok(find_service_comment(419) != NULL, "Found service comment id 419");
-	ok(find_service_comment(420) == NULL, "Did not find service comment id 420 as not persistent");
+	ok(find_service_comment(420) == NULL,
+	   "Did not find service comment id 420 as not persistent");
 	ok(find_host_comment(1234567888) == NULL, "No such host comment");
 
 	ok(find_host_downtime(1102) != NULL, "Found host downtime id 1102");
@@ -126,6 +131,4 @@ int main(int argc, char **argv) {
 	my_free(config_file);
 
 	return exit_status();
-	}
-
-
+}

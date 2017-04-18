@@ -1,7 +1,7 @@
 #ifndef LIBNAGIOS_NSUTILS_H_INCLUDED
-#define LIBNAGIOS_NSUTILS_H_INCLUDED
-#include <sys/types.h>
-#include <sys/time.h>
+# define LIBNAGIOS_NSUTILS_H_INCLUDED
+# include <sys/types.h>
+# include <sys/time.h>
 
 /**
  * @file nsutils.h
@@ -21,7 +21,7 @@
  */
 
 /** Macro for dynamically increasing vector lengths */
-#define alloc_nr(x) (((x)+16)*3/2)
+# define alloc_nr(x) (((x)+16)*3/2)
 
 /**
  * Check if a number is a power of 2
@@ -70,14 +70,14 @@ static inline unsigned int ranged_urand(unsigned int low, unsigned int high)
  * Get number of online cpus
  * @return Active cpu cores detected on success. 0 on failure.
  */
-extern int real_online_cpus(void);
+extern int	real_online_cpus(void);
 
 /**
  * Wrapper for real_online_cpus(), returning 1 in case we can't
  * detect any active cpus.
  * @return Number of active cpu cores on success. 1 on failure.
  */
-extern int online_cpus(void);
+extern int	online_cpus(void);
 
 /**
  * Create a short-lived string in stack-allocated memory
@@ -89,7 +89,7 @@ extern int online_cpus(void);
  * @return A pointer to the formatted string on success. Undefined on errors
  */
 extern const char *mkstr(const char *fmt, ...)
-	__attribute__((__format__(__printf__, 1, 2)));
+	__attribute__ ((__format__(__printf__, 1, 2)));
 
 /**
  * Calculate the millisecond delta between two timeval structs
@@ -97,7 +97,7 @@ extern const char *mkstr(const char *fmt, ...)
  * @param[in] stop The stop time
  * @return The millisecond delta between the two structs
  */
-extern int tv_delta_msec(const struct timeval *start, const struct timeval *stop);
+extern int	tv_delta_msec(const struct timeval *start, const struct timeval *stop);
 
 
 /**
@@ -109,4 +109,4 @@ extern int tv_delta_msec(const struct timeval *start, const struct timeval *stop
 extern float tv_delta_f(const struct timeval *start, const struct timeval *stop);
 
 /** @} */
-#endif /* LIBNAGIOS_NSUTILS_H_INCLUDED */
+#endif	 /* LIBNAGIOS_NSUTILS_H_INCLUDED */

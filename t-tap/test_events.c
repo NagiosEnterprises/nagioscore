@@ -7,11 +7,11 @@
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
 * GNU General Public License for more details.
 *
 * You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+* along with this program.	If not, see <http://www.gnu.org/licenses/>.
 *
 *
 *****************************************************************************/
@@ -45,47 +45,51 @@
 #include "stub_nsock.c"
 #include "stub_iobroker.c"
 
-int perform_scheduled_host_check(host *temp_host, int int1, double double1) {
-	time_t now = 0L;
+int perform_scheduled_host_check(host * temp_host, int int1, double double1)
+{
+	time_t		now = 0L;
 	time(&now);
 	temp_host->last_check = now;
-	}
+}
 
 #if 0
-int run_scheduled_service_check(service *service1, int int1, double double1) {
+int run_scheduled_service_check(service * service1, int int1, double double1)
+{
 	currently_running_service_checks++;
-	time_t now = 0L;
+	time_t		now = 0L;
 	time(&now);
 	service1->last_check = now;
 	/* printf("Currently running service checks: %d\n", currently_running_service_checks); */
-	}
+}
 #endif
 
-int c = 0;
-int update_program_status(int aggregated_dump) {
+int 		c = 0;
+int update_program_status(int aggregated_dump)
+{
 	c++;
 	/* printf ("# In the update_program_status hook: %d\n", c); */
 
 	/* Set this to break out of event_execution_loop */
-	if(c > 10) {
+	if (c > 10) {
 		sigshutdown = TRUE;
 		c = 0;
-		}
 	}
+}
 
 /* Test variables */
-service *svc1 = NULL, *svc2 = NULL, *svc3 = NULL;
-host *host1 = NULL;
+service    *svc1 = NULL, *svc2 = NULL, *svc3 = NULL;
+host	   *host1 = NULL;
 
-void test_event_process_svc1_results(void *args) {
-	check_result *tmp_check_result = (check_result *)args;
-	service *svc = find_service(tmp_check_result->host_name,
-			tmp_check_result->service_description);
+void test_event_process_svc1_results(void *args)
+{
+	check_result *tmp_check_result = (check_result *) args;
+	service    *svc = find_service(tmp_check_result->host_name,
+								   tmp_check_result->service_description);
 	handle_async_service_check_result(svc, tmp_check_result);
 }
 
-void
-setup_events(time_t time) {
+void setup_events(time_t time)
+{
 	timed_event *new_event = NULL;
 
 	/* First service is a normal one */
@@ -97,7 +101,7 @@ setup_events(time_t time) {
 	svc1->retry_interval = 1;
 	svc1->check_interval = 5;
 
-	new_event = (timed_event *)malloc(sizeof(timed_event));
+	new_event = (timed_event *) malloc(sizeof(timed_event));
 	new_event->event_type = EVENT_SERVICE_CHECK;
 	new_event->event_data = (void *)svc1;
 	new_event->event_args = (void *)NULL;
@@ -120,7 +124,7 @@ setup_events(time_t time) {
 	svc2->retry_interval = 1;
 	svc2->check_interval = 5;
 
-	new_event = (timed_event *)malloc(sizeof(timed_event));
+	new_event = (timed_event *) malloc(sizeof(timed_event));
 	new_event->event_type = EVENT_SERVICE_CHECK;
 	new_event->event_data = (void *)svc2;
 	new_event->event_args = (void *)NULL;
@@ -136,12 +140,13 @@ setup_events(time_t time) {
 
 }
 
-setup_svc1_result_events(time_t time) {
+setup_svc1_result_events(time_t time)
+{
 	timed_event *new_event = NULL;
 	check_result *tmp_check_result = NULL;
 
 	/* Results for first check */
-	tmp_check_result = (check_result *)calloc(1, sizeof(check_result));
+	tmp_check_result = (check_result *) calloc(1, sizeof(check_result));
 	tmp_check_result->host_name = strdup("host1");
 	tmp_check_result->service_description = strdup("Normal service");
 	tmp_check_result->object_check_type = SERVICE_CHECK;
@@ -160,7 +165,7 @@ setup_svc1_result_events(time_t time) {
 	tmp_check_result->output = strdup("OK - Everything Hunky Dorey");
 
 	/* Event to process those results */
-	new_event = (timed_event *)malloc(sizeof(timed_event));
+	new_event = (timed_event *) malloc(sizeof(timed_event));
 	new_event->event_type = EVENT_USER_FUNCTION;
 	new_event->event_data = (void *)test_event_process_svc1_results;
 	new_event->event_args = (void *)tmp_check_result;
@@ -174,10 +179,10 @@ setup_svc1_result_events(time_t time) {
 	new_event->sq_event = NULL;
 	reschedule_event(nagios_squeue, new_event);
 
-	}
+}
 
-void
-setup_events_with_host(time_t time) {
+void setup_events_with_host(time_t time)
+{
 	timed_event *new_event = NULL;
 
 	/* First service is a normal one */
@@ -189,7 +194,7 @@ setup_events_with_host(time_t time) {
 	svc3->retry_interval = 1;
 	svc3->check_interval = 5;
 
-	new_event = (timed_event *)malloc(sizeof(timed_event));
+	new_event = (timed_event *) malloc(sizeof(timed_event));
 	new_event->event_type = EVENT_SERVICE_CHECK;
 	new_event->event_data = (void *)svc3;
 	new_event->event_args = (void *)NULL;
@@ -212,7 +217,7 @@ setup_events_with_host(time_t time) {
 	host1->current_state = STATE_OK;
 	host1->is_executing = 0;
 
-	new_event = (timed_event *)malloc(sizeof(timed_event));
+	new_event = (timed_event *) malloc(sizeof(timed_event));
 	new_event->event_type = EVENT_HOST_CHECK;
 	new_event->event_data = (void *)host1;
 	new_event->event_args = (void *)NULL;
@@ -225,13 +230,13 @@ setup_events_with_host(time_t time) {
 	new_event->compensate_for_time_change = TRUE;
 	new_event->sq_event = NULL;
 	reschedule_event(nagios_squeue, new_event);
-	}
+}
 
-int
-main(int argc, char **argv) {
-	int result;
-	time_t now = 0L;
-	char *main_config_file = "../t/etc/nagios-test-events.cfg";
+int main(int argc, char **argv)
+{
+	int 		result;
+	time_t		now = 0L;
+	char	   *main_config_file = "../t/etc/nagios-test-events.cfg";
 
 	/* Initialize configuration variables */
 	init_main_cfg_vars(1);
@@ -259,10 +264,9 @@ main(int argc, char **argv) {
 	event_execution_loop();
 
 	ok(svc1->last_check == now, "svc1 has not had its next check time changed")
-			|| diag("last_check = now: %ld", svc1->last_check - now);
+		|| diag("last_check = now: %ld", svc1->last_check - now);
 	ok(svc2->next_check > now + NUDGE_MIN && svc2->next_check < now + NUDGE_MAX,
-			"svc2 has been nudged") ||
-			diag("Nudge amount: %ld\n", svc2->next_check - now);
+	   "svc2 has been nudged") || diag("Nudge amount: %ld\n", svc2->next_check - now);
 
 
 	sigshutdown = FALSE;
@@ -273,9 +277,9 @@ main(int argc, char **argv) {
 	printf("# Running execution loop - may take some time...\n");
 	event_execution_loop();
 	ok(svc1->next_check == now, "svc1 has not had its next check time changed")
-			|| diag("next_check - now: %ld", svc1->next_check - now);
+		|| diag("next_check - now: %ld", svc1->next_check - now);
 	ok(svc2->next_check == now, "svc2 also has not changed, because can execute")
-			|| diag("Nudge amount: %ld\n", svc2->next_check - now);
+		|| diag("Nudge amount: %ld\n", svc2->next_check - now);
 
 
 	/* This test should have both services moved forward due to not executing any service checks */
@@ -290,13 +294,13 @@ main(int argc, char **argv) {
 	printf("# Running execution loop - may take some time...\n");
 	event_execution_loop();
 	ok(svc1->next_check == now + 300, "svc1 rescheduled ahead - normal interval")
-			|| diag("next_check - now: %ld", svc1->next_check - now);
+		|| diag("next_check - now: %ld", svc1->next_check - now);
 	ok(svc2->next_check == now + 60, "svc2 rescheduled ahead - retry interval")
-			|| diag("next_check - now: %ld", svc2->next_check - now);
+		|| diag("next_check - now: %ld", svc2->next_check - now);
 
 	/* Checking that a host check immediately following a service check
 	 * correctly checks the host
-	*/
+	 */
 	squeue_destroy(nagios_squeue, 0);
 	nagios_squeue = squeue_create(4096);
 
@@ -311,13 +315,12 @@ main(int argc, char **argv) {
 	event_execution_loop();
 
 	ok(host1->last_check - now <= 2,
-			"host1 was checked (within 2 seconds tolerance)") ||
-			diag("last_check - now: %ld", host1->last_check - now);
+	   "host1 was checked (within 2 seconds tolerance)") ||
+diag("last_check - now: %ld", host1->last_check - now);
 	ok(svc3->last_check == 0, "svc3 was skipped");
 	ok(host1->next_check == now, "host1 rescheduled ahead - normal interval")
-			|| diag("next_check - now: %ld", host1->next_check - now);
+		|| diag("next_check - now: %ld", host1->next_check - now);
 	ok(svc3->next_check == now + 300, "svc3 rescheduled ahead - normal interval");
 
 	return exit_status();
-	}
-
+}

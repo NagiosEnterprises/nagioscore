@@ -3,7 +3,7 @@
 
 struct fanout_entry {
 	unsigned long key;
-	void *data;
+	void	   *data;
 	struct fanout_entry *next;
 };
 
@@ -26,7 +26,7 @@ fanout_table *fanout_create(unsigned long size)
 	return t;
 }
 
-void fanout_destroy(fanout_table *t, void (*destructor)(void *))
+void fanout_destroy(fanout_table * t, void (*destructor) (void *))
 {
 	unsigned long i;
 	struct fanout_entry **entries, *next;
@@ -42,7 +42,7 @@ void fanout_destroy(fanout_table *t, void (*destructor)(void *))
 		struct fanout_entry *entry;
 
 		for (entry = entries[i]; entry; entry = next) {
-			void *data = entry->data;
+			void	   *data = entry->data;
 			next = entry->next;
 			free(entry);
 			if (destructor) {
@@ -72,7 +72,7 @@ int fanout_add(struct fanout_table *t, unsigned long key, void *data)
 	return 0;
 }
 
-void *fanout_get(fanout_table *t, unsigned long key)
+void	   *fanout_get(fanout_table * t, unsigned long key)
 {
 	struct fanout_entry *entry;
 	unsigned long slot;
@@ -89,7 +89,7 @@ void *fanout_get(fanout_table *t, unsigned long key)
 	return NULL;
 }
 
-void *fanout_remove(fanout_table *t, unsigned long key)
+void	   *fanout_remove(fanout_table * t, unsigned long key)
 {
 	struct fanout_entry *entry, *next, *prev = NULL;
 	unsigned long slot;
@@ -101,7 +101,7 @@ void *fanout_remove(fanout_table *t, unsigned long key)
 	for (entry = t->entries[slot]; entry; prev = entry, entry = next) {
 		next = entry->next;
 		if (entry->key == key) {
-			void *data = entry->data;
+			void	   *data = entry->data;
 			if (prev) {
 				prev->next = entry->next;
 			} else {

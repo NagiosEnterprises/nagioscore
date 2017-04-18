@@ -16,8 +16,8 @@ void usage(char *progname)
 
 int main(int argc, char *argv[])
 {
-	int sd, i, ret;
-	char *path = NULL, *name = NULL, *cmd = NULL, response[128];
+	int 		sd, i, ret;
+	char	   *path = NULL, *name = NULL, *cmd = NULL, response[128];
 
 	if (argc < 2) {
 		usage(argv[0]);
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	}
 
 	for (i = 1; i < argc; i++) {
-		char *opt, *arg = argv[i];
+		char	   *opt, *arg = argv[i];
 		if (*arg != '-') {
 			if (!path) {
 				path = arg;
@@ -41,12 +41,10 @@ int main(int argc, char *argv[])
 		if ((opt = strchr(arg, '='))) {
 			opt = '\0';
 			opt++;
-		}
-		else if (i < argc - 1) {
+		} else if (i < argc - 1) {
 			opt = argv[i + 1];
 			i++;
-		}
-		else {
+		} else {
 			usage(argv[0]);
 			return 1;
 		}

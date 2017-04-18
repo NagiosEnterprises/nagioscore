@@ -20,8 +20,8 @@
  ************************************************************************/
 
 #ifndef LIBNAGIOS_SKIPLIST_H_INCLUDED
-#define LIBNAGIOS_SKIPLIST_H_INCLUDED
-#include "lnag-utils.h"
+# define LIBNAGIOS_SKIPLIST_H_INCLUDED
+# include "lnag-utils.h"
 
 /**
  * @file skiplist.h
@@ -32,14 +32,12 @@
  * @{
  */
 
-#define SKIPLIST_OK              0 /**< A ok */
-#define SKIPLIST_ERROR_ARGS      1 /**< Bad arguments */
-#define SKIPLIST_ERROR_MEMORY    2 /**< Memory error */
-#define SKIPLIST_ERROR_DUPLICATE 3 /**< Trying to insert non-unique item */
+# define SKIPLIST_OK			  0/**< A ok */
+# define SKIPLIST_ERROR_ARGS	  1/**< Bad arguments */
+# define SKIPLIST_ERROR_MEMORY	  2/**< Memory error */
+# define SKIPLIST_ERROR_DUPLICATE 3/**< Trying to insert non-unique item */
 
-NAGIOS_BEGIN_DECL
-
-struct skiplist_struct;
+NAGIOS_BEGIN_DECL struct skiplist_struct;
 typedef struct skiplist_struct skiplist;
 
 /**
@@ -47,7 +45,7 @@ typedef struct skiplist_struct skiplist;
  * @param list The list to investigate
  * @return number of items in list
  */
-unsigned long skiplist_num_items(skiplist *list);
+unsigned long skiplist_num_items(skiplist * list);
 
 /**
  * Create a new skiplist
@@ -59,7 +57,8 @@ unsigned long skiplist_num_items(skiplist *list);
  * @param compare_function Comparison function for data entries
  * @return pointer to a new skiplist on success, NULL on errors
  */
-skiplist *skiplist_new(int max_levels, float level_probability, int allow_duplicates, int append_duplicates, int (*compare_function)(void *, void *));
+skiplist   *skiplist_new(int max_levels, float level_probability, int allow_duplicates,
+						 int append_duplicates, int (*compare_function) (void *, void *));
 
 /**
  * Insert an item into a skiplist
@@ -67,14 +66,14 @@ skiplist *skiplist_new(int max_levels, float level_probability, int allow_duplic
  * @param data The data to insert
  * @return SKIPLIST_OK on success, or an error code
  */
-int skiplist_insert(skiplist *list, void *data);
+int skiplist_insert(skiplist * list, void *data);
 
 /**
  * Empty the skiplist of all data
  * @param list The list to empty
  * @return ERROR on failures. OK on success
  */
-int skiplist_empty(skiplist *list);
+int skiplist_empty(skiplist * list);
 
 /**
  * Free all nodes (but not all data) in a skiplist
@@ -82,20 +81,20 @@ int skiplist_empty(skiplist *list);
  * @param list The list to free
  * @return OK on success, ERROR on failures
  */
-int skiplist_free(skiplist **list);
+int skiplist_free(skiplist ** list);
 
 /**
  * Get the first item in the skiplist
  * @param list The list to peek into
  * @return The first item, or NULL if there is none
  */
-void *skiplist_peek(skiplist *list);
+void	   *skiplist_peek(skiplist * list);
 
 /**
  * Pop the first item from the skiplist
  * @param list The list to pop from
  */
-void *skiplist_pop(skiplist *list);
+void	   *skiplist_pop(skiplist * list);
 
 /**
  * Get first node of skiplist
@@ -103,7 +102,7 @@ void *skiplist_pop(skiplist *list);
  * @param[out] node_ptr State variable for skiplist_get_next()
  * @return The data-item of the first node on success, NULL on errors
  */
-void *skiplist_get_first(skiplist *list, void **node_ptr);
+void	   *skiplist_get_first(skiplist * list, void **node_ptr);
 
 /**
  * Get next item from node_ptr
@@ -111,7 +110,7 @@ void *skiplist_get_first(skiplist *list, void **node_ptr);
  * skiplist_get_first() or skiplist_get_next()
  * @return The next data-item matching node_ptr on success, NULL on errors
  */
-void *skiplist_get_next(void **node_ptr);
+void	   *skiplist_get_next(void **node_ptr);
 
 /**
  * Find first entry in skiplist matching data
@@ -121,7 +120,7 @@ void *skiplist_get_next(void **node_ptr);
  * skiplist_find_next()
  * @return The first found data-item, of NULL if none could be found
  */
-void *skiplist_find_first(skiplist *list, void *data, void **node_ptr);
+void	   *skiplist_find_first(skiplist * list, void *data, void **node_ptr);
 
 /**
  * Find next entry in skiplist matching data
@@ -131,7 +130,7 @@ void *skiplist_find_first(skiplist *list, void *data, void **node_ptr);
  * skiplist_find_next() or skiplist_find_first()
  * @return The next found data-item, or NULL if none could be found
  */
-void *skiplist_find_next(skiplist *list, void *data, void **node_ptr);
+void	   *skiplist_find_next(skiplist * list, void *data, void **node_ptr);
 
 /**
  * Delete all items matching 'data' from skiplist
@@ -139,7 +138,7 @@ void *skiplist_find_next(skiplist *list, void *data, void **node_ptr);
  * @param data Comparison object used to find the real node
  * @return OK on success, ERROR on errors
  */
-int skiplist_delete(skiplist *list, void *data);
+int skiplist_delete(skiplist * list, void *data);
 
 /**
  * Delete first item matching 'data' from skiplist
@@ -147,7 +146,7 @@ int skiplist_delete(skiplist *list, void *data);
  * @param data Comparison object used to search the list
  * @return OK on success, ERROR on errors.
  */
-int skiplist_delete_first(skiplist *list, void *data);
+int skiplist_delete_first(skiplist * list, void *data);
 
 /**
  * Delete a particular node from the skiplist
@@ -155,7 +154,7 @@ int skiplist_delete_first(skiplist *list, void *data);
  * @param node_ptr The node to delete
  * @return OK on success, ERROR on errors.
  */
-int skiplist_delete_node(skiplist *list, void *node_ptr);
+int skiplist_delete_node(skiplist * list, void *node_ptr);
 
 NAGIOS_END_DECL
 /* @} */

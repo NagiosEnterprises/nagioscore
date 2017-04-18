@@ -119,79 +119,79 @@
 #undef TIME_WITH_SYS_TIME
 #undef HAVE_SYS_TIME_H
 #if TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
+# include <sys/time.h>
+# include <time.h>
 #else
-#if HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
 #endif
 
 #undef HAVE_SYS_RESOURCE_H
 #ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
+# include <sys/resource.h>
 #endif
 
 #undef HAVE_LIMITS_H
 #ifdef HAVE_LIMITS_H
-#include <limits.h>
+# include <limits.h>
 #endif
 
 #undef HAVE_PWD_H
 #ifdef HAVE_PWD_H
-#include "config_pwd.h"
+# include "config_pwd.h"
 #endif
 
 #undef HAVE_GRP_H
 #ifdef HAVE_GRP_H
-#include <grp.h>
+# include <grp.h>
 #endif
 
 #undef HAVE_STRINGS_H
 #ifdef HAVE_STRINGS_H
-#include <strings.h>
+# include <strings.h>
 #endif
 
 #undef HAVE_STRING_H
 #ifdef HAVE_STRINGS_H
-#include <string.h>
+# include <string.h>
 #endif
 
 #undef HAVE_UNISTD_H
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+# include <unistd.h>
 #endif
 
 #undef HAVE_SYSLOG_H
 #ifdef HAVE_SYSLOG_H
-#include <syslog.h>
+# include <syslog.h>
 #endif
 
 #undef HAVE_SIGNAL_H
 #ifdef HAVE_SIGNAL_H
-#include <signal.h>
+# include <signal.h>
 #endif
 
 #undef HAVE_SYS_STAT_H
 #ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
+# include <sys/stat.h>
 #endif
 
 #undef HAVE_SYS_MMAN_H
 #ifdef HAVE_SYS_MMAN_H
-#include <sys/mman.h>
+# include <sys/mman.h>
 #endif
 
 #undef HAVE_FCNTL_H
 #ifdef HAVE_FCNTL_H
-#include <fcntl.h>
+# include <fcntl.h>
 #endif
 
 #undef HAVE_STDARG_H
 #ifdef HAVE_STDARG_H
-#include <stdarg.h>
+# include <stdarg.h>
 #endif
 
 /* Another Solarisism: getloadavg() lives in <sys/loadavg.h>, not <stdlib.h>,
@@ -200,159 +200,159 @@
  * https://www.gnu.org/software/gnulib/manual/html_node/getloadavg.html). */
 #undef HAVE_SYS_LOADAVG_H
 #ifdef HAVE_SYS_LOADAVG_H
-#include <sys/loadavg.h>
+# include <sys/loadavg.h>
 #endif
 
 #undef HAVE_SYS_TYPES_H
 #ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
+# include <sys/types.h>
 #endif
 
 #undef HAVE_SYS_WAIT_H
 #ifdef HAVE_SYS_WAIT_H
-#include <sys/wait.h>
+# include <sys/wait.h>
 #endif
 
 #undef HAVE_ERRNO_H
 #ifdef HAVE_ERRNO_H
-#include <errno.h>
+# include <errno.h>
 #endif
 
 #undef HAVE_SYS_TIMEB_H
 #if HAVE_SYS_TIMEB_H
-#include <sys/timeb.h>
+# include <sys/timeb.h>
 #endif
 
 #undef HAVE_SYS_IPC_H
 #ifdef HAVE_SYS_IPC_H
-#include <sys/ipc.h>
+# include <sys/ipc.h>
 #endif
 
 #undef HAVE_SYS_MSG_H
 #ifdef HAVE_SYS_MSG_H
-#include <sys/msg.h>
+# include <sys/msg.h>
 #endif
 
 #undef HAVE_MATH_H
 #ifdef HAVE_MATH_H
-#include <math.h>
+# include <math.h>
 #endif
 
 #undef HAVE_CTYPE_H
 #ifdef HAVE_CTYPE_H
-#include <ctype.h>
+# include <ctype.h>
 #endif
 
 #undef HAVE_DIRENT_H
 #ifdef HAVE_DIRENT_H
-#include <dirent.h>
+# include <dirent.h>
 #endif
 
 #undef HAVE_REGEX_H
 #ifdef HAVE_REGEX_H
-#include <regex.h>
+# include <regex.h>
 
-#undef HAVE_SYS_SOCKET_H
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
+# undef HAVE_SYS_SOCKET_H
+# ifdef HAVE_SYS_SOCKET_H
+#  include <sys/socket.h>
+# endif
 
-#undef HAVE_SOCKET
-#ifdef HAVE_SOCKET_H
-#include <socket.h>
-#endif
+# undef HAVE_SOCKET
+# ifdef HAVE_SOCKET_H
+#  include <socket.h>
+# endif
 
-#undef HAVE_NETINET_IN_H
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
+# undef HAVE_NETINET_IN_H
+# ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+# endif
 
-#undef HAVE_ARPA_INET_H
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
+# undef HAVE_ARPA_INET_H
+# ifdef HAVE_ARPA_INET_H
+#  include <arpa/inet.h>
+# endif
 
-#undef HAVE_NETDB_H
-#ifdef HAVE_NETDB_H
-#include <netdb.h>
-#endif
+# undef HAVE_NETDB_H
+# ifdef HAVE_NETDB_H
+#  include <netdb.h>
+# endif
 
-#undef HAVE_LIBGEN_H
-#ifdef HAVE_LIBGEN_H
-#include <libgen.h>
-#endif
+# undef HAVE_LIBGEN_H
+# ifdef HAVE_LIBGEN_H
+#  include <libgen.h>
+# endif
 
-#undef HAVE_SYS_UN_H
-#ifdef HAVE_SYS_UN_H
-#include <sys/un.h>
-#endif
+# undef HAVE_SYS_UN_H
+# ifdef HAVE_SYS_UN_H
+#  include <sys/un.h>
+# endif
 
-#undef HAVE_SYS_POLL_H
-#ifdef HAVE_SYS_POLL_H
-#include <sys/poll.h>
-#endif
+# undef HAVE_SYS_POLL_H
+# ifdef HAVE_SYS_POLL_H
+#  include <sys/poll.h>
+# endif
 
-#undef HAVE_GETOPT_H
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#endif
+# undef HAVE_GETOPT_H
+# ifdef HAVE_GETOPT_H
+#  include <getopt.h>
+# endif
 
-#undef HAVE_LINUX_MODULE_H
-#ifdef HAVE_LINUX_MODULE_H
-#include <linux/module.h>
-#endif
+# undef HAVE_LINUX_MODULE_H
+# ifdef HAVE_LINUX_MODULE_H
+#  include <linux/module.h>
+# endif
 
-#undef HAVE_LOCALE_H
-#ifdef HAVE_LOCALE_H
-#include <locale.h>
-#endif
+# undef HAVE_LOCALE_H
+# ifdef HAVE_LOCALE_H
+#  include <locale.h>
+# endif
 
-#undef HAVE_WCHAR_H
-#ifdef HAVE_WCHAR_H
-#include <wchar.h>
-#endif
+# undef HAVE_WCHAR_H
+# ifdef HAVE_WCHAR_H
+#  include <wchar.h>
+# endif
 
-#undef HAVE_SYS_PRCTL_H
-#ifdef HAVE_SYS_PRCTL_H
-#include <sys/prctl.h>
-#endif
+# undef HAVE_SYS_PRCTL_H
+# ifdef HAVE_SYS_PRCTL_H
+#  include <sys/prctl.h>
+# endif
 
 /* configure script should allow user to override ltdl choice, but this will do for now... */
-#undef USE_LTDL
-#undef HAVE_LTDL_H
-#ifdef HAVE_LTDL_H
-#define USE_LTDL
-#endif
+# undef USE_LTDL
+# undef HAVE_LTDL_H
+# ifdef HAVE_LTDL_H
+#  define USE_LTDL
+# endif
 
-#ifdef USE_LTDL
-#include <ltdl.h>
-#else
-#undef HAVE_DLFCN_H
-#ifdef HAVE_DLFCN_H
-#include <dlfcn.h>
-#endif
-#endif
+# ifdef USE_LTDL
+#  include <ltdl.h>
+# else
+#  undef HAVE_DLFCN_H
+#  ifdef HAVE_DLFCN_H
+#	include <dlfcn.h>
+#  endif
+# endif
 
 
 /* moved to end to prevent AIX compiler warnings */
-#ifndef RTLD_GLOBAL
-#define RTLD_GLOBAL 0
-#endif
+# ifndef RTLD_GLOBAL
+#  define RTLD_GLOBAL 0
+# endif
 
-#ifndef RTLD_NOW
-#define RTLD_NOW 0
-#endif
+# ifndef RTLD_NOW
+#  define RTLD_NOW 0
+# endif
 
 
 /***** MARO DEFINITIONS *****/
 
 /* this needs to come after all system include files, so we don't accidentally attempt to redefine it */
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
-#endif
-#ifndef WIFEXITED
-# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
-#endif
+# ifndef WEXITSTATUS
+#  define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
+# endif
+# ifndef WIFEXITED
+#  define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
+# endif
 
 
 #endif

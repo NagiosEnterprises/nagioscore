@@ -1,13 +1,13 @@
 #ifndef LIBNAGIOS_WORKER_H_INCLUDED
-#define LIBNAGIOS_WORKER_H_INCLUDED
-#include <errno.h>
-#include <sys/socket.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include "libnagios.h"
+# define LIBNAGIOS_WORKER_H_INCLUDED
+# include <errno.h>
+# include <sys/socket.h>
+# include <stdio.h>
+# include <sys/types.h>
+# include <sys/wait.h>
+# include <sys/time.h>
+# include <sys/resource.h>
+# include "libnagios.h"
 
 /**
  * @file worker.h
@@ -18,33 +18,33 @@
  * as an example on how to use the API's found here.
  */
 
-#ifndef ETIME
-#define ETIME ETIMEDOUT
-#endif
+# ifndef ETIME
+#  define ETIME ETIMEDOUT
+# endif
 
 typedef struct iobuf {
-	int fd;
+	int 		fd;
 	unsigned int len;
-	char *buf;
+	char	   *buf;
 } iobuf;
 
 typedef struct execution_information execution_information;
 
 typedef struct child_process {
 	unsigned int id, timeout;
-	char *cmd;
+	char	   *cmd;
 	struct kvvec *env;
-	int ret;
+	int 		ret;
 	struct kvvec *request;
-	iobuf outstd;
-	iobuf outerr;
+	iobuf		outstd;
+	iobuf		outerr;
 	execution_information *ei;
 } child_process;
 
 /**
  * Callback for enter_worker that simply runs a command
  */
-extern int start_cmd(child_process *cp);
+extern int	start_cmd(child_process * cp);
 
 /**
  * Spawn a helper with a specific process name
@@ -53,14 +53,14 @@ extern int start_cmd(child_process *cp);
  * @param path The path to the executable (can be $PATH relative)
  * @param argv Argument vector for the helper to spawn
  */
-extern int spawn_named_helper(char *path, char **argv);
+extern int	spawn_named_helper(char *path, char **argv);
 
 /**
  * Spawn any random helper process. Uses spawn_named_helper()
  * @param argv The (NULL-sentinel-terminated) argument vector
  * @return 0 on success, < 0 on errors
  */
-extern int spawn_helper(char **argv);
+extern int	spawn_helper(char **argv);
 
 /**
  * To be called when a child_process has completed to ship the result to nagios
@@ -68,14 +68,14 @@ extern int spawn_helper(char **argv);
  * @param reason 0 if everything was OK, 1 if the job was unable to run
  * @return 0 on success, non-zero otherwise
  */
-extern int finish_job(child_process *cp, int reason);
+extern int	finish_job(child_process * cp, int reason);
 
 /**
  * Start to poll the socket and call the callback when there are new tasks
  * @param sd A socket descriptor to poll
  * @param cb The callback to call upon completion
  */
-extern void enter_worker(int sd, int (*cb)(child_process*));
+extern void enter_worker(int sd, int (*cb) (child_process *));
 
 /**
  * Build a buffer from a key/value vector buffer.
@@ -93,11 +93,11 @@ extern struct kvvec_buf *build_kvvec_buf(struct kvvec *kvv);
  * @param kvv The key/value vector to send
  * @return The number of bytes sent, or -1 on errors
  */
-extern int worker_send_kvvec(int sd, struct kvvec *kvv);
+extern int	worker_send_kvvec(int sd, struct kvvec *kvv);
 
 /** @deprecated Use worker_send_kvvec() instead */
 extern int send_kvvec(int sd, struct kvvec *kvv)
-	NAGIOS_DEPRECATED(4.1.0, "worker_send_kvvec()");
+NAGIOS_DEPRECATED(4.1 .0, "worker_send_kvvec()");
 
 /**
  * Grab a worker message from an iocache buffer
@@ -106,7 +106,7 @@ extern int send_kvvec(int sd, struct kvvec *kvv)
  * @param[in] flags Currently unused
  * @return A buffer from the iocache on succes; NULL on errors
  */
-extern char *worker_ioc2msg(iocache *ioc, unsigned long *size, int flags);
+extern char *worker_ioc2msg(iocache * ioc, unsigned long *size, int flags);
 
 /**
  * Parse a worker message to a preallocated key/value vector
@@ -117,7 +117,8 @@ extern char *worker_ioc2msg(iocache *ioc, unsigned long *size, int flags);
  * @param[in] kvv_flags Flags for buf2kvvec()
  * @return 0 on success, < 0 on errors
  */
-extern int worker_buf2kvvec_prealloc(struct kvvec *kvv, char *buf, unsigned long len, int kvv_flags);
+extern int worker_buf2kvvec_prealloc(struct kvvec *kvv, char *buf, unsigned long len,
+									 int kvv_flags);
 
 /**
  * Set some common socket options
@@ -129,5 +130,5 @@ extern int worker_set_sockopts(int sd, int bufsize);
 
 /** @deprecated Use worker_set_sockopts() instead */
 extern int set_socket_options(int sd, int bufsize)
-	NAGIOS_DEPRECATED(4.1.0, "worker_set_sockopts()");
-#endif /* INCLUDE_worker_h__ */
+NAGIOS_DEPRECATED(4.1 .0, "worker_set_sockopts()");
+#endif	 /* INCLUDE_worker_h__ */

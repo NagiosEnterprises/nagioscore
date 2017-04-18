@@ -1,13 +1,13 @@
 #ifndef LIBNAGIOS_NSPATH_H_INCLUDED
-#define LIBNAGIOS_NSPATH_H_INCLUDED
-#ifndef _GNU_SOURCE
-# ifndef NODOXY
-#  define _GNU_SOURCE 1
+# define LIBNAGIOS_NSPATH_H_INCLUDED
+# ifndef _GNU_SOURCE
+#  ifndef NODOXY
+#	define _GNU_SOURCE 1
+#  endif
 # endif
-#endif
-#include <errno.h>
-#include <sys/stat.h>
-#include "snprintf.h"
+# include <errno.h>
+# include <sys/stat.h>
+# include "snprintf.h"
 
 /**
  * @file nspath.h
@@ -80,12 +80,12 @@ extern char *nspath_absolute_dirname(const char *path, const char *base);
  * @param mode Filemode (same as mkdir() takes)
  * @param options Options flag. See NSPATH_MKDIR_* for or-able options
  * @return 0 on success, -1 on errors and errno will hold error code
- *   from either stat() or mkdir().
+ *	 from either stat() or mkdir().
  */
-extern int nspath_mkdir_p(const char *path, mode_t mode, int options);
+extern int	nspath_mkdir_p(const char *path, mode_t mode, int options);
 
 /** Don't mkdir() last element of path when calling nspath_mkdir_p() */
-#define NSPATH_MKDIR_SKIP_LAST (1 << 0)
+# define NSPATH_MKDIR_SKIP_LAST (1 << 0)
 
 /** @} */
 #endif

@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #if defined(hpux) || defined(__hpux) || defined(_hpux)
-#  include <sys/pstat.h>
+# include <sys/pstat.h>
 #endif
 
 /*
@@ -14,24 +14,24 @@
  * with this disgusting nest of #ifdefs.
  */
 #ifndef _SC_NPROCESSORS_ONLN
-#  ifdef _SC_NPROC_ONLN
-#    define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
-#  elif defined _SC_CRAY_NCPU
-#    define _SC_NPROCESSORS_ONLN _SC_CRAY_NCPU
-#  endif
+# ifdef _SC_NPROC_ONLN
+#  define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
+# elif defined _SC_CRAY_NCPU
+#  define _SC_NPROCESSORS_ONLN _SC_CRAY_NCPU
+# endif
 #endif
 
 int real_online_cpus(void)
 {
 #ifdef _SC_NPROCESSORS_ONLN
-	long ncpus;
+	long		ncpus;
 
 	if ((ncpus = (long)sysconf(_SC_NPROCESSORS_ONLN)) > 0)
 		return (int)ncpus;
 #elif defined(hpux) || defined(__hpux) || defined(_hpux)
 	struct pst_dynamic psd;
 
-	if (!pstat_getdynamic(&psd, sizeof(psd), (size_t)1, 0))
+	if (!pstat_getdynamic(&psd, sizeof(psd), (size_t) 1, 0))
 		return (int)psd.psd_proc_cnt;
 #endif
 
@@ -40,13 +40,13 @@ int real_online_cpus(void)
 
 int online_cpus(void)
 {
-	int ncpus = real_online_cpus();
+	int 		ncpus = real_online_cpus();
 	return ncpus > 0 ? ncpus : 1;
 }
 
 int tv_delta_msec(const struct timeval *start, const struct timeval *stop)
 {
-	int msecs;
+	int 		msecs;
 	unsigned long usecs = 0;
 
 	msecs = (stop->tv_sec - start->tv_sec) * 1000;
@@ -63,8 +63,8 @@ int tv_delta_msec(const struct timeval *start, const struct timeval *stop)
 float tv_delta_f(const struct timeval *start, const struct timeval *stop)
 {
 #define DIVIDER 1000000
-	float ret;
-	time_t usecs, stop_usec;
+	float		ret;
+	time_t		usecs, stop_usec;
 
 	ret = stop->tv_sec - start->tv_sec;
 	stop_usec = stop->tv_usec;
@@ -78,14 +78,14 @@ float tv_delta_f(const struct timeval *start, const struct timeval *stop)
 	return ret;
 }
 
-#define MKSTR_BUFS 256 /* should be plenty */
+#define MKSTR_BUFS 256			/* should be plenty */
 const char *mkstr(const char *fmt, ...)
 {
-	static char buf[MKSTR_BUFS][32]; /* 8k statically on the stack */
-	static int slot = 0;
-	char *ret;
+	static char buf[MKSTR_BUFS][32];	/* 8k statically on the stack */
+	static int	slot = 0;
+	char	   *ret;
 
-	va_list ap;
+	va_list 	ap;
 	va_start(ap, fmt);
 	ret = buf[slot++ % MKSTR_BUFS];
 	vsnprintf(ret, sizeof(buf[0]), fmt, ap);

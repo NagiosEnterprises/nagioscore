@@ -1,7 +1,7 @@
 #include "t-utils.h"
 
 const char *cyan = "", *red = "", *green = "", *yellow = "", *reset = "";
-uint passed, failed, t_verbose = 0;
+uint		passed, failed, t_verbose = 0;
 static uint t_depth;
 static const char *indent_str = "  ";
 
@@ -29,7 +29,7 @@ void t_set_colors(int force)
 
 static void t_indent(uint depth)
 {
-	uint i;
+	uint		i;
 	for (i = 0; i < depth; i++) {
 		printf("%s", indent_str);
 	}
@@ -37,7 +37,7 @@ static void t_indent(uint depth)
 
 void t_start(const char *fmt, ...)
 {
-	va_list ap;
+	va_list 	ap;
 
 	t_indent(t_depth++);
 	va_start(ap, fmt);
@@ -81,14 +81,13 @@ static int t_okv(int success, const char *fmt, va_list ap)
 
 int t_ok(int success, const char *fmt, ...)
 {
-	va_list ap;
+	va_list 	ap;
 
 	if (fmt) {
 		va_start(ap, fmt);
 		t_okv(success, fmt, ap);
 		va_end(ap);
-	}
-	else
+	} else
 		t_okv(success, NULL, NULL);
 
 	return success;
@@ -96,7 +95,7 @@ int t_ok(int success, const char *fmt, ...)
 
 void t_pass(const char *fmt, ...)
 {
-	va_list ap;
+	va_list 	ap;
 
 	va_start(ap, fmt);
 	t_okv(TEST_PASS, fmt, ap);
@@ -105,7 +104,7 @@ void t_pass(const char *fmt, ...)
 
 void t_fail(const char *fmt, ...)
 {
-	va_list ap;
+	va_list 	ap;
 
 	va_start(ap, fmt);
 	t_okv(TEST_FAIL, fmt, ap);
@@ -115,7 +114,7 @@ void t_fail(const char *fmt, ...)
 void t_diag(const char *fmt, ...)
 {
 	if (fmt) {
-		va_list ap;
+		va_list 	ap;
 		t_indent(t_depth + 1);
 		va_start(ap, fmt);
 		vfprintf(stdout, fmt, ap);
@@ -160,9 +159,9 @@ int ok_str(const char *a, const char *b, const char *name)
 	return TEST_FAIL;
 }
 
-void __attribute__((__noreturn__)) crash(const char *fmt, ...)
+void __attribute__ ((__noreturn__)) crash(const char *fmt, ...)
 {
-	va_list ap;
+	va_list 	ap;
 
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);

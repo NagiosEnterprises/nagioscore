@@ -18,20 +18,20 @@
 
 
 typedef struct simple_worker {
-	int pid, sd;
+	int 		pid, sd;
 	unsigned int job_index;
-	iocache *ioc;
+	iocache    *ioc;
 } simple_worker;
 
 /* we can't handle packets larger than 64MiB */
 #define MAX_IOCACHE_SIZE (64 * 1024 * 1024)
-static int sigreceived;
+static int	sigreceived;
 static iobroker_set *iobs;
 
-static simple_worker *spawn_worker(void (*init_func)(void *), void *init_arg)
+static simple_worker *spawn_worker(void (*init_func) (void *), void *init_arg)
 {
-	int sv[2];
-	int pid;
+	int 		sv[2];
+	int 		pid;
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) < 0)
 		return NULL;
@@ -85,11 +85,10 @@ static void sighandler(int sig)
 static void child_exited(int sig)
 {
 	struct rusage ru;
-	int status, result;
+	int 		status, result;
 
 	result = wait3(&status, 0, &ru);
-	printf("wait3() status: %d; return %d: %s\n",
-		 status, result, strerror(errno));
+	printf("wait3() status: %d; return %d: %s\n", status, result, strerror(errno));
 	if (WIFEXITED(status)) {
 		printf("Child with pid %d exited normally\n", result);
 	}
@@ -102,10 +101,10 @@ static void child_exited(int sig)
 
 static int print_input(int sd, int events, void *wp_)
 {
-	int ret, pkt = 0;
-	simple_worker *wp = (simple_worker *)wp_;
+	int 		ret, pkt = 0;
+	simple_worker *wp = (simple_worker *) wp_;
 	struct kvvec kvv = KVVEC_INITIALIZER;
-	char *buf;
+	char	   *buf;
 	unsigned long tot_bytes = 0, size;
 
 	/*
@@ -136,7 +135,7 @@ static int print_input(int sd, int events, void *wp_)
 	}
 	printf("read %d bytes from worker with pid %d::\n", ret, wp->pid);
 	while ((buf = worker_ioc2msg(wp->ioc, &size, 0))) {
-		int i, ret;
+		int 		i, ret;
 		tot_bytes += size;
 		ret = worker_buf2kvvec_prealloc(&kvv, buf, (unsigned int)size, KVVEC_ASSIGN);
 		if (!ret < 0) {
@@ -162,12 +161,12 @@ static int print_input(int sd, int events, void *wp_)
 
 #define NWPS 3
 static simple_worker *wps[NWPS];
-static int wp_index;
+static int	wp_index;
 
 static int send_command(int sd, int events, void *discard)
 {
-	char buf[8192];
-	int ret;
+	char		buf[8192];
+	int 		ret;
 	simple_worker *wp;
 	struct kvvec *kvv;
 
@@ -177,8 +176,7 @@ static int send_command(int sd, int events, void *discard)
 		return 0;
 	}
 	if (ret < 0) {
-		printf("main: Failed to read() from fd %d: %s",
-			   sd, strerror(errno));
+		printf("main: Failed to read() from fd %d: %s", sd, strerror(errno));
 	}
 
 	/* this happens when we're reading from stdin */
@@ -197,7 +195,7 @@ static int send_command(int sd, int events, void *discard)
 
 void print_some_crap(void *arg)
 {
-	char *str = (char *)arg;
+	char	   *str = (char *)arg;
 
 	printf("%d: Argument passed: %s\n", getpid(), str);
 }
@@ -205,27 +203,27 @@ void print_some_crap(void *arg)
 int main(int argc, char **argv)
 {
 	simple_worker *wp;
-	int i;
+	int 		i;
 #ifdef HAVE_SIGACTION
 	struct sigaction sig_action;
 
 	sig_action.sa_sigaction = NULL;
 	sigfillset(&sig_action.sa_mask);
-	sig_action.sa_flags=SA_NOCLDSTOP;
+	sig_action.sa_flags = SA_NOCLDSTOP;
 	sig_action.sa_handler = child_exited;
 	sigaction(SIGCHLD, &sig_action, NULL);
 
-	sig_action.sa_flags = SA_NODEFER|SA_RESTART;
+	sig_action.sa_flags = SA_NODEFER | SA_RESTART;
 	sig_action.sa_handler = sighandler;
 	sigfillset(&sig_action.sa_mask);
 	sigaction(SIGINT, &sig_action, NULL);
 	sigaction(SIGPIPE, &sig_action, NULL);
-#else /* HAVE_SIGACTION */
+#else	 /* HAVE_SIGACTION */
 
 	signal(SIGINT, sighandler);
 	signal(SIGPIPE, sighandler);
 	signal(SIGCHLD, child_exited);
-#endif /* HAVE_SIGACTION */
+#endif	 /* HAVE_SIGACTION */
 
 	iobs = iobroker_create();
 	if (!iobs)

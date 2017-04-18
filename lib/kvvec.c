@@ -105,7 +105,7 @@ static int kv_compare(const void *a_, const void *b_)
 {
 	const struct key_value *a = (const struct key_value *)a_;
 	const struct key_value *b = (const struct key_value *)b_;
-	int ret = 0;
+	int 		ret = 0;
 
 	ret = strcmp(a->key, b->key);
 	if (ret)
@@ -129,9 +129,9 @@ int kvvec_sort(struct kvvec *kvv)
 	return 0;
 }
 
-int kvvec_foreach(struct kvvec *kvv, void *arg, int (*callback)(struct key_value *,void *))
+int kvvec_foreach(struct kvvec *kvv, void *arg, int (*callback) (struct key_value *, void *))
 {
-	int i;
+	int 		i;
 
 	if (!kvv)
 		return 0;
@@ -144,7 +144,7 @@ int kvvec_foreach(struct kvvec *kvv, void *arg, int (*callback)(struct key_value
 
 void kvvec_free_kvpairs(struct kvvec *kvv, int flags)
 {
-	int i;
+	int 		i;
 
 	if (flags == KVVEC_FREE_ALL) {
 		for (i = 0; i < kvv->kv_pairs; i++) {
@@ -180,7 +180,7 @@ int kvvec_destroy(struct kvvec *kvv, int flags)
 struct kvvec_buf *kvvec2buf(struct kvvec *kvv, char kv_sep, char pair_sep, int overalloc)
 {
 	struct kvvec_buf *kvvb;
-	int i;
+	int 		i;
 	unsigned long len = 0;
 
 	if (!kvv)
@@ -233,9 +233,8 @@ unsigned int kvvec_capacity(struct kvvec *kvv)
  * much use, but it's nifty for ipc where only computers are
  * involved, and it will parse the kvvec2buf() produce nicely.
  */
-int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
-			unsigned int len, const char kvsep,
-			const char pair_sep, int flags)
+int buf2kvvec_prealloc(struct kvvec *kvv, char *str, unsigned int len,
+					   const char kvsep, const char pair_sep, int flags)
 {
 	unsigned int num_pairs = 0, i, offset = 0;
 
@@ -272,7 +271,7 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 	offset = 0;
 	for (i = 0; i < num_pairs; i++) {
 		struct key_value *kv;
-		char *key_end_ptr, *kv_end_ptr;
+		char	   *key_end_ptr, *kv_end_ptr;
 
 		/* keys can't begin with nul bytes */
 		if (offset && str[offset] == '\0') {
@@ -283,7 +282,9 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 		if (!key_end_ptr) {
 			break;
 		}
-		kv_end_ptr = memchr(key_end_ptr + 1, pair_sep, len - ((unsigned long)key_end_ptr - (unsigned long)str));
+		kv_end_ptr =
+			memchr(key_end_ptr + 1, pair_sep,
+				   len - ((unsigned long)key_end_ptr - (unsigned long)str));
 		if (!kv_end_ptr) {
 			if (i != num_pairs - 1)
 				break;
@@ -328,7 +329,7 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 }
 
 struct kvvec *buf2kvvec(char *str, unsigned int len, const char kvsep,
-			const char pair_sep, int flags)
+						const char pair_sep, int flags)
 {
 	struct kvvec *kvv;
 

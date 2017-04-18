@@ -5,24 +5,24 @@
 #include "t-utils.h"
 
 static struct {
-	char *k1, *k2;
+	char	   *k1, *k2;
 } keys[] = {
-	{ "nisse", "banan" },
-	{ "foo", "bar" },
-	{ "kalle", "penslar" },
-	{ "hello", "world" },
-	{ "test", "fnurg" },
-	{ "barsk", "nitfol" },
-	{ "andreas", "regerar" },
-	{ "Nagios", "rules" },
-};
+	{
+	"nisse", "banan"}, {
+	"foo", "bar"}, {
+	"kalle", "penslar"}, {
+	"hello", "world"}, {
+	"test", "fnurg"}, {
+	"barsk", "nitfol"}, {
+	"andreas", "regerar"}, {
+"Nagios", "rules"},};
 
-static int removed;
+static int	removed;
 static struct test_data {
-	int x, i, j;
+	int 		x, i, j;
 } del;
 
-unsigned int dkhash_count_entries(dkhash_table *table)
+unsigned int dkhash_count_entries(dkhash_table * table)
 {
 	unsigned int i, count = 0;
 
@@ -35,25 +35,25 @@ unsigned int dkhash_count_entries(dkhash_table *table)
 	return count;
 }
 
-int dkhash_check_table(dkhash_table *t)
+int dkhash_check_table(dkhash_table * t)
 {
 	return t ? t->entries - dkhash_count_entries(t) : 0;
 }
 
-void dkhash_debug_print_table(dkhash_table *t, const char *name, int force)
+void dkhash_debug_print_table(dkhash_table * t, const char *name, int force)
 {
-	int delta = dkhash_check_table(t);
+	int 		delta = dkhash_check_table(t);
 	unsigned int count;
 	if (!delta && !force)
 		return;
 
 	count = dkhash_count_entries(t);
 	printf("debug data for dkhash table '%s'\n", name);
-	printf("  entries: %u; counted: %u; delta: %d\n",
-	       t->entries, count, delta);
+	printf("  entries: %u; counted: %u; delta: %d\n", t->entries, count, delta);
 	printf("  added: %u; removed: %u; delta: %d\n",
-	       t->added, t->removed, t->added - t->removed);
+		   t->added, t->removed, t->added - t->removed);
 }
+
 #define dkhash_debug_table(t, force) dkhash_debug_print_table(t, #t, force)
 
 static struct test_data *ddup(int x, int i, int j)
@@ -68,8 +68,8 @@ static struct test_data *ddup(int x, int i, int j)
 }
 
 struct dkhash_check {
-	uint entries, count, max, added, removed;
-	int ent_delta, addrm_delta;
+	uint		entries, count, max, added, removed;
+	int 		ent_delta, addrm_delta;
 };
 
 static int del_matching(void *data)
@@ -88,11 +88,11 @@ int main(int argc, char **argv)
 {
 	dkhash_table *tx, *t;
 	unsigned int x;
-	int ret, r2;
+	int 		ret, r2;
 	struct test_data s;
-	char *p1, *p2;
-	char *strs[10];
-	char tmp[32];
+	char	   *p1, *p2;
+	char	   *strs[10];
+	char		tmp[32];
 
 	t_set_colors(0);
 	t_start("dkhash basic test");
@@ -111,11 +111,14 @@ int main(int argc, char **argv)
 	test(p1 != p2, "we should never get the wrong key");
 	ok_int(2, dkhash_num_entries(t), "should be 2 entries after 2 inserts");
 	p2 = dkhash_remove(t, "kalle", "bezinga");
-	ok_int(2, dkhash_num_entries(t), "should be 2 entries after 2 inserts and 1 failed remove");
-	ok_int(0, dkhash_num_entries_removed(t), "should be 0 removed entries after failed remove");
+	ok_int(2, dkhash_num_entries(t),
+		   "should be 2 entries after 2 inserts and 1 failed remove");
+	ok_int(0, dkhash_num_entries_removed(t),
+		   "should be 0 removed entries after failed remove");
 	p2 = dkhash_remove(t, "kalle", "bananas");
 	test(p1 == p2, "dkhash_remove() should return removed data");
-	ok_int(dkhash_num_entries(t), 1, "should be 1 entries after 2 inserts and 1 successful remove");
+	ok_int(dkhash_num_entries(t), 1,
+		   "should be 1 entries after 2 inserts and 1 successful remove");
 	p2 = dkhash_remove(t, "nisse", NULL);
 	test(p1 == p2, "dkhash_remove() should return removed data");
 	ret = t_end();
@@ -155,7 +158,7 @@ int main(int argc, char **argv)
 	ret = r2 ? r2 : ret;
 
 	t_reset();
-	for(x = 0; x < 10; x++) {
+	for (x = 0; x < 10; x++) {
 		sprintf(tmp, "string %d", x);
 		strs[x] = strdup(tmp);
 	}
@@ -163,10 +166,10 @@ int main(int argc, char **argv)
 	t_start("dkhash single bucket add remove forward");
 
 	t = dkhash_create(1);
-	for(x = 0; x < 10; x++) {
+	for (x = 0; x < 10; x++) {
 		dkhash_insert(t, strs[x], NULL, strs[x]);
 	}
-	for(x = 0; x < 10; x++) {
+	for (x = 0; x < 10; x++) {
 		p1 = strs[x];
 		p2 = dkhash_remove(t, p1, NULL);
 		test(p1 == p2, "remove should return a value");
@@ -178,10 +181,10 @@ int main(int argc, char **argv)
 	t_start("dkhash single bucket add remove backward");
 
 	t = dkhash_create(1);
-	for(x = 0; x < 10; x++) {
+	for (x = 0; x < 10; x++) {
 		dkhash_insert(t, strs[x], NULL, strs[x]);
 	}
-	for(x = 9; x; x--) {
+	for (x = 9; x; x--) {
 		p1 = strs[x];
 		p2 = dkhash_remove(t, p1, NULL);
 		test(p1 == p2, "remove should return a value");

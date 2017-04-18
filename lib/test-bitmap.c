@@ -5,20 +5,20 @@
 #define PRIME 2089
 int main(int argc, char **argv)
 {
-	bitmap *a = NULL, *b, *r_union, *r_diff, *r_symdiff, *r_intersect;
+	bitmap	   *a = NULL, *b, *r_union, *r_diff, *r_symdiff, *r_intersect;
 	unsigned int i;
-	int sa[] = {    2, 3, 4, 1783, 1784, 1785 };
-	int sb[] = { 1, 2, 3,          1784, 1785, 1786, 1790, 1791, 1792 };
+	int 		sa[] = { 2, 3, 4, 1783, 1784, 1785 };
+	int 		sb[] = { 1, 2, 3, 1784, 1785, 1786, 1790, 1791, 1792 };
 
 	t_set_colors(0);
 	t_start("bitmap tests");
 
 	/*
-	 * intersect:   2, 3,          1784, 1785
-	 * union:    1, 2, 3, 4, 1783, 1784, 1785, 1786, 1790, 1791, 1792
-	 * diff A/B:          4, 1783
-	 * diff B/A: 1,                            1786, 1790, 1791, 1792
-	 * symdiff:  1,          1783,             1786, 1790, 1791, 1792
+	 * intersect:	2, 3,		   1784, 1785
+	 * union:	 1, 2, 3, 4, 1783, 1784, 1785, 1786, 1790, 1791, 1792
+	 * diff A/B:		  4, 1783
+	 * diff B/A: 1, 						   1786, 1790, 1791, 1792
+	 * symdiff:  1, 		 1783,			   1786, 1790, 1791, 1792
 	 */
 
 	ok_int(bitmap_count_set_bits(a), 0, "counting set bits in null vector a");
@@ -26,7 +26,8 @@ int main(int argc, char **argv)
 	a = bitmap_create(PRIME);
 	b = bitmap_create(PRIME);
 	ok_int(bitmap_count_set_bits(b), 0, "counting set bits in empty vector b");
-	ok_int(bitmap_count_unset_bits(b), bitmap_cardinality(b), "counting unset bits in empty vector b");
+	ok_int(bitmap_count_unset_bits(b), bitmap_cardinality(b),
+		   "counting unset bits in empty vector b");
 
 	t_set_colors(0);
 	ok_int(bitmap_cardinality(a) > PRIME, 1, "bitmap cardinality test");
@@ -70,7 +71,8 @@ int main(int argc, char **argv)
 		if (bitmap_isset(a, sa[i]) && bitmap_isset(b, sa[i])) {
 			ok_int(bitmap_isset(r_intersect, sa[i]), 1, "intersect must have bits in both");
 		} else {
-			ok_int(bitmap_isset(r_intersect, sa[i]), 0, "Intersect must not have bits in only one or none");
+			ok_int(bitmap_isset(r_intersect, sa[i]), 0,
+				   "Intersect must not have bits in only one or none");
 		}
 	}
 

@@ -1,5 +1,5 @@
 #ifndef LIBNAGIOS_NWRITE_H_INCLUDED
-#define LIBNAGIOS_NWRITE_H_INCLUDED
+# define LIBNAGIOS_NWRITE_H_INCLUDED
 
 /**
  * @file nwrite.h
@@ -24,9 +24,9 @@
  * @param sent The number of bytes written (can be NULL)
  * @return The number of bytes written or -1 if error
  */
-static inline ssize_t nwrite(int fd, const void *buf, size_t count, ssize_t *written)
+static inline ssize_t nwrite(int fd, const void *buf, size_t count, ssize_t * written)
 {
-	ssize_t	out, tot = 0;
+	ssize_t 	out, tot = 0;
 
 	if (!buf || count == 0)
 		return 0;
@@ -35,7 +35,7 @@ static inline ssize_t nwrite(int fd, const void *buf, size_t count, ssize_t *wri
 		out = write(fd, buf + tot, count - tot);
 		if (out > 0)
 			tot += out;
-		else if(errno == EAGAIN || errno == EINTR)
+		else if (errno == EAGAIN || errno == EINTR)
 			continue;
 		else {
 			if (written)
@@ -49,4 +49,4 @@ static inline ssize_t nwrite(int fd, const void *buf, size_t count, ssize_t *wri
 }
 
 /** @} */
-#endif /* LIBNAGIOS_NWRITE_H_INCLUDED */
+#endif	 /* LIBNAGIOS_NWRITE_H_INCLUDED */

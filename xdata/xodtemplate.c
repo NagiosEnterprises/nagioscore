@@ -2517,7 +2517,7 @@ int xodtemplate_add_object_property(char *input, int options)
 			temp_host->have_check_interval = TRUE;
 		} else if (!strcmp(variable, "retry_interval")
 				   || !strcmp(variable, "retry_check_interval")) {
-			if (!strcmp(variable, "normal_retry_interval"))
+			if (!strcmp(variable, "retry_check_interval"))
 				logit(NSLOG_CONFIG_WARNING, TRUE,
 					  "WARNING: The normal_retry_interval attribute is deprecated and will be removed in future versions. Please use retry_interval instead.\n");
 			temp_host->retry_interval = strtod(value, NULL);
@@ -2963,7 +2963,7 @@ int xodtemplate_add_object_property(char *input, int options)
 			temp_service->have_check_interval = TRUE;
 		} else if (!strcmp(variable, "retry_interval")
 				   || !strcmp(variable, "retry_check_interval")) {
-			if (!strcmp(variable, "normal_retry_interval"))
+			if (!strcmp(variable, "retry_check_interval"))
 				logit(NSLOG_CONFIG_WARNING, TRUE,
 					  "WARNING: The normal_retry_interval attribute is deprecated and will be removed in future versions. Please use retry_interval instead.\n");
 			temp_service->retry_interval = strtod(value, NULL);

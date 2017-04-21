@@ -490,7 +490,7 @@ int read_main_config_file(const char *filename) {
 		else if(strstr(input, "log_file=") == input) {
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\x0");
-			strncpy(log_file, (temp_buffer == NULL) ? "" : temp_buffer, sizeof(log_file));
+			strncpy(log_file, (temp_buffer == NULL) ? "" : nspath_absolute(temp_buffer, config_file_dir),sizeof(log_file) - 1);
 			log_file[sizeof(log_file) - 1] = '\x0';
 			strip(log_file);
 			}

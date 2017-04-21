@@ -15,6 +15,7 @@ FIXED
 * Spelling fixes (Josh Soref)
 * Vent command pipe before remove to avoid deadlocks on writing end (Kai Kunstmann)
 * CGI utility cgiutil.c does not process relative config file path names properly (John Frickson)
+* xdata/xodtemplate.c bug in option-deprecation code (John Frickson)
 
 
 4.3.1 - 2017-02-23

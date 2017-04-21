@@ -1026,10 +1026,12 @@ void show_service_status_totals(void)
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-	/* paging */
-	if (temp_result_limit)
-		printf("limit=%i&", temp_result_limit);
-	if (display_type == DISPLAY_HOSTS)
+	if (navbar_search)
+		printf("navbarsearch=1&");
+		/* paging */
+	if(temp_result_limit)
+		printf("limit=%i&",temp_result_limit);
+	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if (display_type == DISPLAY_SERVICEGROUPS)
 		printf("servicegroup=%s&style=detail", url_encode(servicegroup_name));
@@ -1041,10 +1043,12 @@ void show_service_status_totals(void)
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-	/* paging */
-	if (temp_result_limit)
-		printf("limit=%i&", temp_result_limit);
-	if (display_type == DISPLAY_HOSTS)
+	if (navbar_search)
+		printf("navbarsearch=1&");
+		/* paging */
+	if(temp_result_limit)
+		printf("limit=%i&",temp_result_limit);
+	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if (display_type == DISPLAY_SERVICEGROUPS)
 		printf("servicegroup=%s&style=detail", url_encode(servicegroup_name));
@@ -1056,10 +1060,12 @@ void show_service_status_totals(void)
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-	/* paging */
-	if (temp_result_limit)
-		printf("limit=%i&", temp_result_limit);
-	if (display_type == DISPLAY_HOSTS)
+	if (navbar_search)
+		printf("navbarsearch=1&");
+		/* paging */
+	if(temp_result_limit)
+		printf("limit=%i&",temp_result_limit);
+	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if (display_type == DISPLAY_SERVICEGROUPS)
 		printf("servicegroup=%s&style=detail", url_encode(servicegroup_name));
@@ -1071,10 +1077,12 @@ void show_service_status_totals(void)
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-	/* paging */
-	if (temp_result_limit)
-		printf("limit=%i&", temp_result_limit);
-	if (display_type == DISPLAY_HOSTS)
+	if (navbar_search)
+		printf("navbarsearch=1&");
+		/* paging */
+	if(temp_result_limit)
+		printf("limit=%i&",temp_result_limit);
+	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if (display_type == DISPLAY_SERVICEGROUPS)
 		printf("servicegroup=%s&style=detail", url_encode(servicegroup_name));
@@ -1086,10 +1094,12 @@ void show_service_status_totals(void)
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-	/* paging */
-	if (temp_result_limit)
-		printf("limit=%i&", temp_result_limit);
-	if (display_type == DISPLAY_HOSTS)
+	if (navbar_search)
+		printf("navbarsearch=1&");
+		/* paging */
+	if(temp_result_limit)
+		printf("limit=%i&",temp_result_limit);
+	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if (display_type == DISPLAY_SERVICEGROUPS)
 		printf("servicegroup=%s&style=detail", url_encode(servicegroup_name));
@@ -1134,10 +1144,12 @@ void show_service_status_totals(void)
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-	/* paging */
-	if (temp_result_limit)
-		printf("limit=%i&", temp_result_limit);
-	if (display_type == DISPLAY_HOSTS)
+	if (navbar_search)
+		printf("navbarsearch=1&");
+		/* paging */
+	if(temp_result_limit)
+		printf("limit=%i&",temp_result_limit);
+	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if (display_type == DISPLAY_SERVICEGROUPS)
 		printf("servicegroup=%s&style=detail", url_encode(servicegroup_name));
@@ -1149,10 +1161,12 @@ void show_service_status_totals(void)
 
 	printf("<th class='serviceTotals'>");
 	printf("<a class='serviceTotals' href='%s?", STATUS_CGI);
-	/* paging */
-	if (temp_result_limit)
-		printf("limit=%i&", temp_result_limit);
-	if (display_type == DISPLAY_HOSTS)
+	if (navbar_search)
+		printf("navbarsearch=1&");
+		/* paging */
+	if(temp_result_limit)
+		printf("limit=%i&",temp_result_limit);
+	if(display_type == DISPLAY_HOSTS)
 		printf("host=%s", (host_name == NULL) ? "all" : url_encode(host_name));
 	else if (display_type == DISPLAY_SERVICEGROUPS)
 		printf("servicegroup=%s&style=detail", url_encode(servicegroup_name));
@@ -1287,6 +1301,8 @@ void show_host_status_totals(void)
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
+	if (navbar_search)
+		printf("navbarsearch=1&");
 	/* paging */
 	if (temp_result_limit)
 		printf("limit=%i&", temp_result_limit);
@@ -1309,6 +1325,8 @@ void show_host_status_totals(void)
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
+	if (navbar_search)
+		printf("navbarsearch=1&");
 	/* paging */
 	if (temp_result_limit)
 		printf("limit=%i&", temp_result_limit);
@@ -1331,6 +1349,8 @@ void show_host_status_totals(void)
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
+	if (navbar_search)
+		printf("navbarsearch=1&");
 	/* paging */
 	if (temp_result_limit)
 		printf("limit=%i&", temp_result_limit);
@@ -1353,6 +1373,8 @@ void show_host_status_totals(void)
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
+	if (navbar_search)
+		printf("navbarsearch=1&");
 	/* paging */
 	if (temp_result_limit)
 		printf("limit=%i&", temp_result_limit);
@@ -1402,6 +1424,8 @@ void show_host_status_totals(void)
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
+	if (navbar_search)
+		printf("navbarsearch=1&");
 	/* paging */
 	if (temp_result_limit)
 		printf("limit=%i&", temp_result_limit);
@@ -1424,6 +1448,8 @@ void show_host_status_totals(void)
 
 	printf("<th class='hostTotals'>");
 	printf("<a class='hostTotals' href='%s?", STATUS_CGI);
+	if (navbar_search)
+		printf("navbarsearch=1&");
 	/* paging */
 	if (temp_result_limit)
 		printf("limit=%i&", temp_result_limit);

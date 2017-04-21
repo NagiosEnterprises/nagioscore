@@ -174,6 +174,7 @@ unsigned long service_properties = 0L;
 
 
 int num_services = 0;
+int num_hosts = 0;
 
 int sort_type = SORT_NONE;
 int sort_option = SORT_HOSTNAME;
@@ -448,7 +449,7 @@ int main(void) {
 		}
 
 	/* Special case where there is a host with no services */
-	if(display_type == DISPLAY_HOSTS && num_services == 0 && display_header) {
+	if(display_type == DISPLAY_HOSTS && num_services == 0 && num_hosts != 0 && display_header) {
 		display_type = DISPLAY_HOSTGROUPS;
 		group_style_type = STYLE_HOST_DETAIL;
 	}
@@ -1164,6 +1165,7 @@ void show_host_status_totals(void) {
 		}
 
 	total_hosts = total_up + total_down + total_unreachable + total_pending;
+	num_hosts = total_hosts;
 	total_problems = total_down + total_unreachable;
 
 	printf("<div class='hostTotals'>Host Status Totals</div>\n");

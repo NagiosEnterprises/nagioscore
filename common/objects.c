@@ -785,6 +785,13 @@ servicesmember *add_parent_service_to_service(service *svc, char *host_name, cha
 	if((sm = calloc(1, sizeof(*sm))) == NULL)
 		return NULL;
 
+	if (strcmp(svc->host_name, host_name) == 0 && strcmp(svc->description, description) == 0) {
+		logit(NSLOG_CONFIG_ERROR, TRUE,
+				"Error: Host '%s' Service '%s' cannot be a child/parent of itself\n",
+				svc->host_name, svc->description);
+		return NULL;
+	}
+
 	if ((sm->host_name = strdup(host_name)) == NULL || (sm->service_description = strdup(description)) == NULL) {
 		/* there was an error copying (description is NULL now) */
 		my_free(sm->host_name);

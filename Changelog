@@ -2,6 +2,13 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.0 - xxxx-xx-xx
+------------------
+ENHANCEMENTS
+* new status for check dependencies (John Frickson)
+* Allow more flexible requirements for comments (John Frickson)
+
+
 x.x.x - xxxx-xx-xx
 ------------------
 FIXES
@@ -19,22 +26,6 @@ FIXES
 * Wildcard searching causes service status links to not work properly (John Frickson)
 * Quick search with no hits shows a permission denied error (John Frickson)
 # Setting a service as its own parent is not caught by the sanity checker (-v) and causes a segfault (John Frickson)
-
-ENHANCEMENTS
-* new status for check dependencies (John Frickson)
-* Allow more flexible requirements for comments (John Frickson)
-
-ENHANCEMENTS
-* new status for check dependencies (John Frickson)
-* Allow more flexible requirements for comments (John Frickson)
-
-ENHANCEMENTS
-* new status for check dependencies (John Frickson)
-* Allow more flexible requirements for comments (John Frickson)
-
-ENHANCEMENTS
-* new status for check dependencies (John Frickson)
-* Allow more flexible requirements for comments (John Frickson)
 
 
 4.3.1 - 2017-02-23

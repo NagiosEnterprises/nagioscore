@@ -5234,7 +5234,7 @@ void clear_service_flapping_state(service *svc) {
 	if (svc->is_flapping) {
 		log_debug_info(DEBUGL_FLAPPING, 1, "Service '%s' on host '%s' flapping state cleared.\n", svc->description, svc->host_name);
 		/* log a notice - this one is parsed by the history CGI */
-		logit(NSLOG_INFO_MESSAGE, FALSE, "SERVICE FLAPPING ALERT: %s;%s;STOPPED; Flapping state cleared for servicee. (%2.1f%% change < %2.1f%% threshold)\n", svc->host_name, svc->description, svc->percent_state_change, low_threshold);
+		logit(NSLOG_INFO_MESSAGE, FALSE, "SERVICE FLAPPING ALERT: %s;%s;STOPPED; Flapping state cleared for service. (%2.1f%% change < %2.1f%% threshold)\n", svc->host_name, svc->description, svc->percent_state_change, low_threshold);
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */

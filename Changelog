@@ -2,6 +2,25 @@
 Nagios Core 4 Change Log
 ########################
 
+4.3.2 - xxxx-xx-xx
+------------------
+FIXED
+* Every 15sec /var/log/messages is flooded with "nagios: set_environment_var" (John Frickson)
+* Changed release date to ISO format (yyyy-mm-dd) (John Frickson)
+* `make all` fails if unzip is not installed (John Frickson)
+* Quick Search no longer allows search by Alias (John Frickson)
+* flexible downtime on a service immediately turns off notifications (John Frickson)
+* Fix to allow url_encode to be called twice (Z. Liu)
+* Update timeperiods.cfg.in (spelling) (Parth Laxmikant Kolekar)
+* Spelling fixes (Josh Soref)
+* Vent command pipe before remove to avoid deadlocks on writing end (Kai Kunstmann)
+* CGI utility cgiutil.c does not process relative config file path names properly (John Frickson)
+* xdata/xodtemplate.c bug in option-deprecation code (John Frickson)
+* Wildcard searching causes service status links to not work properly (John Frickson)
+* Quick search with no hits shows a permission denied error (John Frickson)
+* Setting a service as its own parent is not caught by the sanity checker (-v) and causes a segfault (John Frickson)
+
+
 4.3.1 - 2017-02-23
 ------------------
 FIXES
@@ -88,7 +107,7 @@ FIXES
 * Fix permissions for Host Groups reports (status.cgi) (Patrik Halfar)
 * Service Parents does not appear to be functioning as intended (lev)
 * Availability report mixes up scheduled and unscheduled warning percentages (Helmut Mikulcik)
-* Invalid values for saved_stamp in comput_subject_downtime_times() (John Frickson)
+* Invalid values for saved_stamp in compute_subject_downtime_times() (John Frickson)
 * Remove deprecated "framespacing" (John Frickson)
 * The nagios tarball contains two identical jquery copies (John Frickson)
 * extinfo.cgi does not set content-type (most cgi's don't) (John Frickson)
@@ -220,12 +239,12 @@ FIXES
 * Fixes to make all/html target tolerant of being run multiple times (Eric Stanley)
 * For user-supplied maps, converted node group to have transform (Eric Stanley)
 * Fixed issue transitioning from circular markup map to other maps (Eric Stanley)
-* Fix displayForm to trigger on the buttom press (Scott Wilkerson)
+* Fix displayForm to trigger on the button press (Scott Wilkerson)
 * Fix fo getBBox crash on Firefox (Eric Stanley)
 * Fixed map now resets zoom when form apply()'d (Eric Stanley)
 * Fixed so close box on dialogs actually closes dialog (Eric Stanley)
 * Corrected directive in trends display (Eric Stanley)
-* Fixed minor issue with link in trends linkes (Eric Stanley)
+* Fixed minor issue with link in trends links (Eric Stanley)
 * Fixed issue with map displaying on Firefox (Eric Stanley)
 * Added exclusions for ctags generation (Eric Stanley)
 * Update map-popup.html (Scott Wilkerson)

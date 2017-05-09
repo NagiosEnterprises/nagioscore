@@ -410,7 +410,7 @@ int rotate_log_file(time_t rotation_time) {
 
 	/* HACK: If the archive exists, don't overwrite it. This is a hack
 		because the real problem is that some log rotations are executed
-		early and as a result the next log rotatation is scheduled for 
+		early and as a result the next log rotation is scheduled for 
 		the same time as the one that ran early */
 	archive_stat_result = stat(log_archive, &archive_stat);
 	if((0 == archive_stat_result) || 

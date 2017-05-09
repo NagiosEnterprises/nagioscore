@@ -10,9 +10,9 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.3.1"
+PKG_VERSION="4.3.2"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="02-23-2017"
+PKG_REL_DATE="2017-05-09"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
@@ -788,6 +788,12 @@ AC_PATH_PROG(PERL,perl)
 if test -z "$PERL"; then
 	AC_MSG_ERROR([Cannot continue without perl!])
 fi
+
+AC_PATH_PROG(UNZIP,unzip)
+if test -z "$UNZIP"; then
+	AC_MSG_ERROR([Cannot continue without unzip!])
+fi
+
 AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile)
 
 

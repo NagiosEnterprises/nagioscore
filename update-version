@@ -3,19 +3,19 @@
 # Get date (two formats)
 if [ -n "$2" ]; then
     LONGDATE=`date -d "$2" "+%B %d, %Y"`
-    SHORTDATE=`date -d "$2" "+%m-%d-%Y"`
+    SHORTDATE=`date -d "$2" "+%Y-%m-%d"`
     YEAR=`date -d "$2" "+%Y"`
 else
     LONGDATE=`date "+%B %d, %Y"`
-    SHORTDATE=`date "+%m-%d-%Y"`
+    SHORTDATE=`date "+%Y-%m-%d"`
     YEAR=`date "+%Y"`
 fi
 
 # Current version number
-CURRENTVERSION=4.3.1
+CURRENTVERSION=4.3.2
 
 # Last date
-LASTDATE=02-23-2017
+LASTDATE=2017-05-09
 
 if [ "x$1" = "x" ]
 then
@@ -44,7 +44,7 @@ then
 fi
 
 # Update version number and release date in main PHP page
-perl -i -p -e "s/this_year = '.*';/this_year = '$YEAR';/;" html/index.php
+perl -i -p -e "s/this_year = '.*';/this_year = '$YEAR';/;" html/index.php.in
 perl -i -p -e "s/this_year = '.*';/this_year = '$YEAR';/;" html/main.php
 perl -i -p -e "s/releasedate\">.*<\//releasedate\">$LONGDATE<\//;" html/main.php
 perl -i -p -e "s/this_version = '.*';/this_version = '$newversion';/;" html/main.php

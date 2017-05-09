@@ -6,7 +6,7 @@ A list of API incompatibilities between Nagios 3 and 4.
 
 @section globalvars Global Variables
 @li event_list_{high,low} and event_list_{high,low}_tail are no more.
-Instead there is "squeue_t *nagios_sqeueue", which is a single queue
+Instead there is "squeue_t *nagios_squeue", which is a single queue
 to handle all timed events.
 @li last_command_check, command_check_interval, external_command_buffer
 and external_command_buffer_slots are no more.

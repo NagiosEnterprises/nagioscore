@@ -31,7 +31,7 @@ my @output = `$diff`;
 if ($? == 0) {
 	pass( "Nagios precached objects file matches expected" );
 } else {
-	fail( "Nagios precached objects discrepency!!!\nTest with: $diff\nCopy with: cp $precache.generated $precache.expected" );
+	fail( "Nagios precached objects discrepancy!!!\nTest with: $diff\nCopy with: cp $precache.generated $precache.expected" );
 	print "#$_" foreach @output;
 }	
 

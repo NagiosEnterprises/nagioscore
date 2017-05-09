@@ -158,6 +158,24 @@ pid_nagios ()
 	NagiosPID=`head -n 1 $NagiosRunFile`
 }
 
+remove_commandfile ()
+{
+	# Removing a stalled command file, while there are processes trying/waiting to write into it,
+	# will deadlock those processes in a blocking open() system call. To allow such processes to
+	# die on a broken pipe, the pipe must be opened for reading without actually reading from it,
+	# which is what dd does here. To avoid a chicken-egg problem, the pipe is renamed beforehand.
+	# In order for the dd to not deadlock when there is no writing process, it is executed in the
+	# background in a subshell together with an empty echo to have at least one writing process.
+	
+	# see http://unix.stackexchange.com/questions/335406/opening-named-pipe-blocks-forever-if-pipe-is-deleted-without-being-connected
+	
+	if [ -p $NagiosCommandFile ]; then
+		mv -f $NagiosCommandFile $NagiosCommandFile~
+		(dd if=$NagiosCommandFile~ count=0 2>/dev/null & echo -n "" >$NagiosCommandFile~)
+	fi
+	
+	rm -f $NagiosCommandFile $NagiosCommandFile~
+}
 
 
 # Check that nagios exists.
@@ -192,7 +210,7 @@ case "$1" in
 		fi
 
 		touch $NagiosVarDir/nagios.log $NagiosRetentionFile
-		rm -f $NagiosCommandFile
+		remove_commandfile
 		touch $NagiosRunFile
 		chown -h $NagiosUser:$NagiosGroup $NagiosRunFile $NagiosVarDir/nagios.log $NagiosRetentionFile
 		$NagiosBin -d $NagiosCfgFile
@@ -229,7 +247,8 @@ case "$1" in
 			echo ' done.'
 		fi
 
-		rm -f $NagiosStatusFile $NagiosRunFile $NagiosLockDir/$NagiosLockFile $NagiosCommandFile
+		remove_commandfile
+		rm -f $NagiosStatusFile $NagiosRunFile $NagiosLockDir/$NagiosLockFile
 		;;
 
 	status)

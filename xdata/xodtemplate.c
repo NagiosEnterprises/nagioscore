@@ -1062,7 +1062,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int cfgfile, i
 
 static const char *xodtemplate_type_name(unsigned int id) {
 	static const char *otype_name[] = {
-		"NONE", "timeperiod", "commmand", "contact", "contactgroup",
+		"NONE", "timeperiod", "command", "contact", "contactgroup",
 		"host", "hostgroup", "service", "servicedependency",
 		"serviceescalation", "hostescalation", "hostdependency",
 		"hostextinfo", "serviceextinfo", "servicegroup"
@@ -1178,7 +1178,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 	/* get variable name */
 	variable = input;
 	lth = strlen(variable);
-	/* trim at first whitespace occurance */
+	/* trim at first whitespace occurrence */
 	for(x = 0; variable[x] != '\x0'; x++) {
 		if(variable[x] == ' ' || variable[x] == '\t') {
 			variable[x] = 0;
@@ -2398,7 +2398,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_host->have_check_interval = TRUE;
 				}
 			else if(!strcmp(variable, "retry_interval") || !strcmp(variable, "retry_check_interval")) {
-				if(!strcmp(variable, "normal_retry_interval"))
+				if(!strcmp(variable, "retry_check_interval"))
 					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The normal_retry_interval attribute is deprecated and will be removed in future versions. Please use retry_interval instead.\n");
 				temp_host->retry_interval = strtod(value, NULL);
 				temp_host->have_retry_interval = TRUE;
@@ -2857,7 +2857,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 				temp_service->have_check_interval = TRUE;
 				}
 			else if(!strcmp(variable, "retry_interval") || !strcmp(variable, "retry_check_interval")) {
-				if(!strcmp(variable, "normal_retry_interval"))
+				if(!strcmp(variable, "retry_check_interval"))
 					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The normal_retry_interval attribute is deprecated and will be removed in future versions. Please use retry_interval instead.\n");
 				temp_service->retry_interval = strtod(value, NULL);
 				temp_service->have_retry_interval = TRUE;
@@ -3650,7 +3650,7 @@ xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_object(xod
 
 
 
-/* parses a timeperod directive... :-) */
+/* parses a timeperiod directive... :-) */
 int xodtemplate_parse_timeperiod_directive(xodtemplate_timeperiod *tperiod, char *var, char *val) {
 	char *input = NULL;
 	char temp_buffer[5][MAX_INPUT_BUFFER] = {"", "", "", "", ""};
@@ -6630,7 +6630,7 @@ int xodtemplate_recombobulate_servicegroups(void) {
 			continue;
 
 		/* preprocess the servicegroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
-		/* 10/19/07 EG an empry return value means an error occured */
+		/* 10/19/07 EG an empty return value means an error occured */
 		if((servicegroup_names = xodtemplate_process_servicegroup_names(temp_service->service_groups, temp_service->_config_file, temp_service->_start_line)) == NULL) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process servicegroup names for service '%s' on host '%s' (config file '%s', starting at line %d)\n",
 				  temp_service->service_description, temp_service->host_name, xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);
@@ -6987,7 +6987,7 @@ static int xodtemplate_register_hostgroup_members(xodtemplate_hostgroup *this_ho
 	for(list = this_hostgroup->member_list; list; list = list->next) {
 		xodtemplate_host *h = (xodtemplate_host *)list->object_ptr;
 		if (!add_host_to_hostgroup(hg, h->host_name)) {
-			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Bad member of hostgrop '%s' (config file '%s', starting on line %d)\n", hg->group_name, xodtemplate_config_file_name(this_hostgroup->_config_file), this_hostgroup->_start_line);
+			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Bad member of hostgroup '%s' (config file '%s', starting on line %d)\n", hg->group_name, xodtemplate_config_file_name(this_hostgroup->_config_file), this_hostgroup->_start_line);
 			return -1;
 			}
 		num_regs++;

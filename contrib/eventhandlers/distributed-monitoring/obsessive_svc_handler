@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # OBSESSIVE_SVC_HANDLER
-# Written by Ethan Galstad (nagios@nagils.org)
+# Written by Ethan Galstad (nagios@nagios.org)
 # Last Modified: 07-19-2001
 #
 # This script is intended to run as the OCSP command

@@ -879,7 +879,7 @@ void display_tac_overview(void) {
 	/* right column */
 	printf("<td align=right valign=bottom width=50%%>\n");
 
-	printf("<table border=0 cellspacing=0 cellspadding=0>\n");
+	printf("<table border=0 cellspacing=0 cellpadding=0>\n");
 
 	printf("<tr>\n");
 
@@ -892,7 +892,7 @@ void display_tac_overview(void) {
 
 	printf("<td>\n");
 
-	printf("<table border=0 cellspacing=4 cellspadding=0>\n");
+	printf("<table border=0 cellspacing=4 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td class='perfTitle'>&nbsp;<a href='%s?type=%d' class='perfTitle'>Monitoring Performance</a></td>\n", EXTINFO_CGI, DISPLAY_PERFORMANCE);
 	printf("</tr>\n");
@@ -900,10 +900,10 @@ void display_tac_overview(void) {
 	printf("<tr>\n");
 	printf("<td>\n");
 
-	printf("<table border=0 cellspacing=0 cellspadding=0>\n");
+	printf("<table border=0 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td class='perfBox'>\n");
-	printf("<table border=0 cellspacing=4 cellspadding=0>\n");
+	printf("<table border=0 cellspacing=4 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Service Check Execution Time:</a></td>", EXTINFO_CGI, DISPLAY_PERFORMANCE);
 	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%.2f / %.2f / %.3f sec</a></td>\n", EXTINFO_CGI, DISPLAY_PERFORMANCE, min_service_execution_time, max_service_execution_time, average_service_execution_time);
@@ -1029,11 +1029,11 @@ void display_tac_overview(void) {
 		strncpy(service_health_image, THERM_OK_IMAGE, sizeof(service_health_image));
 	service_health_image[sizeof(service_health_image) - 1] = '\x0';
 
-	printf("<table border=0 cellspacing=0 cellspadding=0>\n");
+	printf("<table border=0 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td>\n");
 
-	printf("<table border=0 cellspacing=4 cellspadding=0>\n");
+	printf("<table border=0 cellspacing=4 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td class='healthTitle'>&nbsp;Network Health</td>\n");
 	printf("</tr>\n");
@@ -1041,10 +1041,10 @@ void display_tac_overview(void) {
 	printf("<tr>\n");
 	printf("<td>\n");
 
-	printf("<table border=0 cellspacing=0 cellspadding=0>\n");
+	printf("<table border=0 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td class='healthBox'>\n");
-	printf("<table border=0 cellspacing=4 cellspadding=0>\n");
+	printf("<table border=0 cellspacing=4 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='healthItem'>Host Health:</td>");
 	printf("<td valign=top width=100 class='healthBar'><img src='%s%s' border=0 width=%d height=20 alt='%2.1f%% Health' title='%2.1f%% Health'></td>\n", url_images_path, host_health_image, (percent_host_health < 5.0) ? 5 : (int)percent_host_health, percent_host_health, percent_host_health);

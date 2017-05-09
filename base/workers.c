@@ -707,7 +707,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 			      wpjob_type_name(job->type), job->id, wp->name, error_reason);
 #ifdef DEBUG
 			/* The log below could leak sensitive information, such as 
-				passwords, so only enable it if you neally need it */
+				passwords, so only enable it if you really need it */
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc:   command: %s\n", job->command);
 #endif
 			if (job->type != WPJOB_CHECK && oj) {

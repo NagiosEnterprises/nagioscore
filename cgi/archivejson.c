@@ -174,7 +174,7 @@ const string_value_mapping valid_host_notification_types[] = {
 	{ "hostcustom", AU_NOTIFICATION_HOST_CUSTOM, 
 			"Host Custom" },
 	{ "hostack", AU_NOTIFICATION_HOST_ACK, 
-			"Host Acknowlegement" },
+			"Host Acknowledgement" },
 	{ "hostflapstart", AU_NOTIFICATION_HOST_FLAPPING_START, 
 			"Host Flapping Start" },
 	{ "hostflapstop", AU_NOTIFICATION_HOST_FLAPPING_STOP, 
@@ -194,7 +194,7 @@ const string_value_mapping valid_service_notification_types[] = {
 	{ "custom", AU_NOTIFICATION_SERVICE_CUSTOM, 
 			"Service Custom" },
 	{ "serviceack", AU_NOTIFICATION_SERVICE_ACK, 
-			"Service Acknowlegement" },
+			"Service Acknowledgement" },
 	{ "serviceflapstart", AU_NOTIFICATION_SERVICE_FLAPPING_START, 
 			"Service Flapping Start" },
 	{ "serviceflapstop", AU_NOTIFICATION_SERVICE_FLAPPING_STOP, 
@@ -344,7 +344,7 @@ option_help archive_json_help[] = {
 		{ "alertcount", "alertlist", "notificationcount", "notificationlist", 
 				NULL },
 		NULL,
-		"Limits the hosts or serivces returned to those whose host parent is specified. A value of 'none' returns all hosts or services reachable directly by the Nagios core host.",
+		"Limits the hosts or services returned to those whose host parent is specified. A value of 'none' returns all hosts or services reachable directly by the Nagios core host.",
 		parent_host_extras
 		},
 	{ 
@@ -355,7 +355,7 @@ option_help archive_json_help[] = {
 		{ "alertcount", "alertlist", "notificationcount", "notificationlist", 
 				NULL },
 		NULL,
-		"Limits the hosts or serivces returned to those whose having the host specified as a child host. A value of 'none' returns all hosts or services with no child hosts.",
+		"Limits the hosts or services returned to those whose having the host specified as a child host. A value of 'none' returns all hosts or services with no child hosts.",
 		child_host_extras
 		},
 	{ 
@@ -405,7 +405,7 @@ option_help archive_json_help[] = {
 		{ "alertcount", "alertlist", "notificationcount", "notificationlist", 
 				"statechangelist", "availability", NULL },
 		"hostname",
-		"Description for the service requested. For availibility reports, "
+		"Description for the service requested. For availability reports, "
 		"if the availability object type is services and the "
 		"servicedescription is not specified, the report will be generated "
 		"either for all services or for all services on the specified host, "
@@ -3227,7 +3227,7 @@ int get_initial_nagios_state(au_linked_list *log_entries, time_t start_time,
 		else {
 			if(AU_STATE_NO_DATA != initial_state) {
 				/* Once we cross the threshold of the start time, if we have
-					an intial state, that is THE initial state */
+					an initial state, that is THE initial state */
 				return initial_state;
 				}
 			else {
@@ -3525,7 +3525,7 @@ printf( "    %lu to %lu (%lus): %s/%s/%s\n", start_time, end_time,
 	state_duration = calculate_window_duration(start_time, end_time, 
 			report_timeperiod);
 
-	/* Deterime the appropriate state */
+	/* Determine the appropriate state */
 	switch(last_nagios_state) {
 	case AU_STATE_PROGRAM_START:
 		switch(last_downtime_state) {

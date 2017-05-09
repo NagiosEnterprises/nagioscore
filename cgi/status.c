@@ -1895,13 +1895,16 @@ void show_service_detail(void)
 					status_bg_class = "BGUNKNOWN";
 			} else if (temp_status->status == SERVICE_CRITICAL) {
 				strncpy(status, "CRITICAL", sizeof(status));
-				status_class = "CRITICAL";
-				if (temp_status->problem_has_been_acknowledged == TRUE)
+				if (temp_status->problem_has_been_acknowledged == TRUE) {
+					status_class = "CRITICALACK";
 					status_bg_class = "BGCRITICALACK";
-				else if (temp_status->scheduled_downtime_depth > 0)
+				} else if (temp_status->scheduled_downtime_depth > 0) {
+					status_class = "CRITICAL";
 					status_bg_class = "BGCRITICALSCHED";
-				else
+				} else {
+					status_class = "CRITICAL";
 					status_bg_class = "BGCRITICAL";
+				}
 			}
 			status[sizeof(status) - 1] = '\x0';
 

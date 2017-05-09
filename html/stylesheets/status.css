@@ -38,7 +38,7 @@ div.status {  font-size: 10pt;  text-align: center; }
 .statusHOSTPENDING,.statusPENDING {  background-color: #ACACAC; }
 .statusHOSTUP,.statusOK  {  background-color: #33FF00; }
 .statusHOSTDOWN,.statusCRITICAL  {  background-color: #F83838; }
-.statusHOSTDOWNACK {  background-color: #F83838; }
+.statusHOSTDOWNACK,.statusCRITICALACK {  background-color: #F83838; }
 .statusHOSTDOWNSCHED {  background-color: #F83838; }
 .statusHOSTUNREACHABLE {  background-color: #F83838; }
 .statusHOSTUNREACHABLEACK {  background-color: #F83838; }

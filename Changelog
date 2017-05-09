@@ -7,6 +7,7 @@ Nagios Core 4 Change Log
 ENHANCEMENTS
 * new status for check dependencies (John Frickson)
 * Allow more flexible requirements for comments (John Frickson)
+* Add a `statusCRITICALACK` class for the status column (John Frickson)
 
 
 4.3.3 - 2017-05-09

@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.3.2 - xxxx-xx-xx
+4.3.2 - 2017-05-09
 ------------------
 FIXED
 * Every 15sec /var/log/messages is flooded with "nagios: set_environment_var" (John Frickson)

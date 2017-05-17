@@ -400,7 +400,6 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	char *temp_ptr = NULL;
 	servicedependency *temp_dependency = NULL;
 	service *master_service = NULL;
-	int state_changes_use_cached_state = TRUE; /* TODO - 09/23/07 move this to a global variable */
 	int flapping_check_done = FALSE;
 
 
@@ -676,7 +675,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			else {
 				/* can we use the last cached host state? */
 				/* usually only use cached host state if no service state change has occurred */
-				if((state_change == FALSE || state_changes_use_cached_state == TRUE) && temp_host->has_been_checked == TRUE && ((current_time - temp_host->last_check) <= cached_host_check_horizon)) {
+				if(state_change == FALSE && temp_host->has_been_checked == TRUE && ((current_time - temp_host->last_check) <= cached_host_check_horizon)) {
 					log_debug_info(DEBUGL_CHECKS, 1, "* Using cached host state: %d\n", temp_host->current_state);
 					update_check_stats(ACTIVE_ONDEMAND_HOST_CHECK_STATS, current_time);
 					update_check_stats(ACTIVE_CACHED_HOST_CHECK_STATS, current_time);
@@ -770,7 +769,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			log_debug_info(DEBUGL_CHECKS, 1, "Host is currently UP, so we'll recheck its state to make sure...\n");
 
 			/* only run a new check if we can and have to */
-			if(execute_host_checks && (state_change == TRUE && state_changes_use_cached_state == FALSE) && temp_host->last_check + cached_host_check_horizon < current_time) {
+			if(execute_host_checks && state_change == TRUE && temp_host->last_check + cached_host_check_horizon < current_time) {
 				schedule_host_check(temp_host, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
 				}
 			else {
@@ -786,7 +785,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Host is currently %s.\n", host_state_name(temp_host->current_state));
 
-			if(execute_host_checks && (state_change == TRUE && state_changes_use_cached_state == FALSE)) {
+			if(execute_host_checks && state_change == TRUE) {
 				schedule_host_check(temp_host, current_time, CHECK_OPTION_NONE);
 				}
 			/* else fake the host check, but (possibly) resend host notifications to contacts... */

@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.3.3 - 2017-05-09
+------------------
+* xodtemplate.c wrong option-deprecation code warning (alex2grad / John Frickson)
+* On-demand host check always use cached host state (John Frickson)
+
 4.3.2 - 2017-05-09
 ------------------
 FIXED
@@ -19,7 +24,6 @@ FIXED
 * Wildcard searching causes service status links to not work properly (John Frickson)
 * Quick search with no hits shows a permission denied error (John Frickson)
 * Setting a service as its own parent is not caught by the sanity checker (-v) and causes a segfault (John Frickson)
-* xodtemplate.c wrong option-deprecation code warning (alex2grad / John Frickson)
 
 
 4.3.1 - 2017-02-23

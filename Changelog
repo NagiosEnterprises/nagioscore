@@ -8,6 +8,7 @@ ENHANCEMENTS
 * new status for check dependencies (John Frickson)
 * Allow more flexible requirements for comments (John Frickson)
 * Add a `statusCRITICALACK` class for the status column (John Frickson)
+* CSV output based on groups (all options) (John Frickson)
 
 
 4.3.3 - 2017-05-09
@@ -15,6 +16,7 @@ ENHANCEMENTS
 * xodtemplate.c wrong option-deprecation code warning (alex2grad / John Frickson)
 * On-demand host check always use cached host state (John Frickson)
 * 'á' causes Serivce Status Information to not be displayed (John Frickson)
+
 
 
 4.3.2 - 2017-05-09

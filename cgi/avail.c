@@ -852,15 +852,12 @@ int main(int argc, char **argv)
 			   backtrack_archives);
 		printf("</td></tr>\n");
 
-		if ((display_type == DISPLAY_HOST_AVAIL && show_all_hosts == TRUE)
-			|| (display_type == DISPLAY_SERVICE_AVAIL && show_all_services == TRUE)) {
-			printf("<tr>");
-			printf("<td valign=top class='reportSelectSubTitle'>Output in CSV Format:</td>\n");
-			printf("<td valign=top class='reportSelectItem'>");
-			printf("<input type='checkbox' name='csvoutput' value=''>\n");
-			printf("</td>\n");
-			printf("</tr>\n");
-		}
+		printf("<tr>");
+		printf("<td valign=top class='reportSelectSubTitle'>Output in CSV Format:</td>\n");
+		printf("<td valign=top class='reportSelectItem'>");
+		printf("<input type='checkbox' name='csvoutput' value=''>\n");
+		printf("</td>\n");
+		printf("</tr>\n");
 
 		printf
 			("<tr><td></td><td align=left class='dateSelectItem'><input type='submit' value='Create Availability Report!'></td></tr>\n");

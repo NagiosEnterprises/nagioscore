@@ -9,6 +9,7 @@ ENHANCEMENTS
 * Allow more flexible requirements for comments (John Frickson)
 * Add a `statusCRITICALACK` class for the status column (John Frickson)
 * CSV output based on groups (all options) (John Frickson)
+* New Macro(s) to generate URL for host / service object to be used in notifications (John Frickson)
 
 
 4.3.3 - 2017-05-09

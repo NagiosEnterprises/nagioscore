@@ -175,6 +175,11 @@ int read_main_config_file(char *main_config_file) {
 				}
 			}
 
+		else if(!strcmp(variable, "website_url")) {
+			my_free(website_url);
+			website_url = strdup(value);
+			}
+
 		else if(!strcmp(variable, "loadctl_options"))
 			error = set_loadctl_options(value, strlen(value)) != OK;
 		else if(!strcmp(variable, "check_workers"))

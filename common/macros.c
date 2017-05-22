@@ -689,6 +689,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/* HOST MACROS */
 			/***************/
 		case MACRO_HOSTGROUPNAMES:
+		case MACRO_HOSTINFOURL:
 			*free_macro = TRUE;
 		case MACRO_HOSTNAME:
 		case MACRO_HOSTALIAS:
@@ -828,6 +829,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 			/* SERVICE MACROS */
 			/******************/
 		case MACRO_SERVICEGROUPNAMES:
+		case MACRO_SERVICEINFOURL:
 			*free_macro = TRUE;
 		case MACRO_SERVICEDESC:
 		case MACRO_SERVICESTATE:
@@ -1813,6 +1815,12 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 			*output = (char *)mkstr("%u", temp_host->hourly_value +
 					host_services_value(temp_host));
 			break;
+		case MACRO_HOSTINFOURL:
+			buf1 = get_url_encoded_string(temp_host->name);
+			asprintf(output, "%s/cgi-bin/extinfo.cgi?type=1&host=%s",
+					website_url ? website_url : "website_url not set", buf1);
+			my_free(buf1);
+			break;
 #endif
 
 			/***************/
@@ -2144,6 +2152,21 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 			break;
 		case MACRO_SERVICEIMPORTANCE:
 			*output = (char *)mkstr("%u", temp_service->hourly_value);
+			break;
+		case MACRO_SERVICEINFOURL:
+
+			buf1 = get_url_encoded_string(temp_service->host_name);
+			buf2 = get_url_encoded_string(temp_service->description);
+			asprintf(output, "%s/cgi-bin/extinfo.cgi?type=2&host=%s&service=%s",
+					website_url ? website_url : "website_url not set",
+					buf1, buf2);
+			my_free(buf1);
+			my_free(buf2);
+			break;
+
+
+
+			my_free(buf1);
 			break;
 #endif
 
@@ -2778,6 +2801,8 @@ int init_macrox_names(void) {
 	add_macrox_name(SERVICEIMPORTANCE);
 	add_macrox_name(HOSTANDSERVICESIMPORTANCE);
 	add_macrox_name(HOSTGROUPMEMBERADDRESSES);
+	add_macrox_name(HOSTINFOURL);
+	add_macrox_name(SERVICEINFOURL);
 
 	return OK;
 	}

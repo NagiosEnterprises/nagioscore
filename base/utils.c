@@ -189,6 +189,7 @@ int 		free_child_process_memory;
 int 		child_processes_fork_twice;
 
 char	   *use_timezone;
+char	   *website_url;
 
 int 		allow_empty_hostgroup_assignment;
 
@@ -268,6 +269,7 @@ void init_main_cfg_vars(int first_time)
 
 	nagios_user = NULL;
 	nagios_group = NULL;
+	website_url = NULL;
 
 	use_regexp_matches = FALSE;
 	use_true_regexp_matching = FALSE;
@@ -3580,6 +3582,7 @@ void free_memory(nagios_macros * mac)
 	my_free(command_file);
 	mac->x[MACRO_COMMANDFILE] = NULL;	/* assigned from command_file */
 	my_free(log_archive_path);
+	my_free(website_url);
 
 	for (i = 0; i < MAX_USER_MACROS; i++) {
 		my_free(macro_user[i]);
@@ -3641,6 +3644,7 @@ int reset_variables(void)
 
 	my_free(ocsp_command);
 	my_free(ochp_command);
+	my_free(website_url);
 
 	/* Next re-initialize configuration variables */
 	init_main_cfg_vars(0);

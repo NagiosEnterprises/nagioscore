@@ -65,6 +65,7 @@ extern int	obsess_over_hosts;
 extern int	enable_timing_point;
 
 extern char *config_file_dir;
+extern char *website_url;
 
 # ifdef HAVE_TZNAME
 #  ifdef CYGWIN

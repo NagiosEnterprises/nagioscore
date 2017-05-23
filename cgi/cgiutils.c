@@ -566,19 +566,93 @@ int read_main_config_file(const char *filename)
 			check_external_commands = (temp_buffer == NULL) ? 0 : atoi(temp_buffer);
 		}
 
-		else if (strstr(input, "date_format=") == input) {
+		else if (strstr(input, "date_format=") == input) {			/*										NEED TO CHECK AFTER CONFIG FILE HAS BEEN READ!!!!!!! */
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\x0");
 			if (temp_buffer == NULL)
-				date_format = DATE_FORMAT_US;
-			else if (!strcmp(temp_buffer, "euro"))
-				date_format = DATE_FORMAT_EURO;
-			else if (!strcmp(temp_buffer, "iso8601"))
-				date_format = DATE_FORMAT_ISO8601;
-			else if (!strcmp(temp_buffer, "strict-iso8601"))
-				date_format = DATE_FORMAT_STRICT_ISO8601;
-			else
-				date_format = DATE_FORMAT_US;
+				temp_buffer = "us";
+
+			if (!long_date_time_format)
+				long_date_time_format = strdup(LONG_DATE_TIME_FORMAT);
+			if (!long_date_format)
+				long_date_format = strdup(LONG_DATE_FORMAT);
+			if (!time_format)
+				time_format = strdup(TIME_FORMAT);
+
+			if (!strcmp(temp_buffer, "euro")) {
+				date_format = strdup(DATE_FORMAT_EURO);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_EURO);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_EURO);
+
+			} else if (!strcmp(temp_buffer, "iso8601")) {
+				date_format = strdup(DATE_FORMAT_ISO8601);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_ISO8601);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_ISO8601);
+
+			} else if (!strcmp(temp_buffer, "strict-iso8601")) {
+				date_format = strdup(DATE_FORMAT_STRICT_ISO8601);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_STRICT_ISO8601);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_STRICT_ISO8601);
+
+			} else {
+				date_format = strdup(DATE_FORMAT_US);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_US);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_US);
+
+			}
+		}
+
+		else if (strstr(input, "short_date_time_format") == input) {
+			temp_buffer = strtok(input, "=");
+			temp_buffer = strtok(NULL, "\x0");
+			if (temp_buffer == NULL)
+				temp_buffer = SHORT_DATE_TIME_FORMAT_US;
+			my_free(short_date_time_format);
+			short_date_time_format = strdup(temp_buffer);
+		}
+
+		else if (strstr(input, "long_date_time_format") == input) {
+			temp_buffer = strtok(input, "=");
+			temp_buffer = strtok(NULL, "\x0");
+			if (temp_buffer == NULL)
+				temp_buffer = LONG_DATE_TIME_FORMAT;
+			my_free(long_date_time_format);
+			long_date_time_format = strdup(temp_buffer);
+		}
+
+		else if (strstr(input, "short_date_format") == input) {
+			temp_buffer = strtok(input, "=");
+			temp_buffer = strtok(NULL, "\x0");
+			if (temp_buffer == NULL)
+				temp_buffer = SHORT_DATE_FORMAT_US;
+			my_free(short_date_format);
+			short_date_format = strdup(temp_buffer);
+		}
+
+		else if (strstr(input, "long_date_format") == input) {
+			temp_buffer = strtok(input, "=");
+			temp_buffer = strtok(NULL, "\x0");
+			if (temp_buffer == NULL)
+				temp_buffer = LONG_DATE_FORMAT;
+			my_free(long_date_format);
+			long_date_format = strdup(temp_buffer);
+		}
+
+		else if (strstr(input, "time_format") == input) {
+			temp_buffer = strtok(input, "=");
+			temp_buffer = strtok(NULL, "\x0");
+			if (temp_buffer == NULL)
+				temp_buffer = TIME_FORMAT;
+			my_free(time_format);
+			time_format = strdup(temp_buffer);
 		}
 	}
 
@@ -963,17 +1037,7 @@ void sanitize_plugin_output(char *buffer)
 void get_time_string(time_t * raw_time, char *buffer, int buffer_length, int type)
 {
 	time_t		t;
-	struct tm  *tm_ptr = NULL;
-	int 		hour = 0;
-	int 		minute = 0;
-	int 		second = 0;
-	int 		month = 0;
-	int 		day = 0;
-	int 		year = 0;
-	const char *weekdays[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-	const char *months[12] =
-		{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	const char *tzone = "";
+	struct tm  *tm_ptr, tm_s;
 
 	if (raw_time == NULL)
 		time(&t);
@@ -981,69 +1045,29 @@ void get_time_string(time_t * raw_time, char *buffer, int buffer_length, int typ
 		t = *raw_time;
 
 	if (type == HTTP_DATE_TIME)
-		tm_ptr = gmtime(&t);
+		tm_ptr = gmtime_r(&t, &tm_s);
 	else
-		tm_ptr = localtime(&t);
-
-	hour = tm_ptr->tm_hour;
-	minute = tm_ptr->tm_min;
-	second = tm_ptr->tm_sec;
-	month = tm_ptr->tm_mon + 1;
-	day = tm_ptr->tm_mday;
-	year = tm_ptr->tm_year + 1900;
-
-#ifdef HAVE_TM_ZONE
-	tzone = (char *)tm_ptr->tm_zone;
-#else
-	tzone = (tm_ptr->tm_isdst) ? tzname[1] : tzname[0];
-#endif
+		tm_ptr = localtime_r(&t, &tm_s);
 
 	/* ctime() style */
 	if (type == LONG_DATE_TIME)
-		snprintf(buffer, buffer_length, "%s %s %d %02d:%02d:%02d %s %d",
-				 weekdays[tm_ptr->tm_wday], months[tm_ptr->tm_mon], day, hour, minute, second,
-				 tzone, year);
+		strftime(buffer, buffer_length, long_date_time_format, tm_ptr);
 
-	/* short style */
-	else if (type == SHORT_DATE_TIME) {
-		if (date_format == DATE_FORMAT_EURO)
-			snprintf(buffer, buffer_length, "%02d-%02d-%04d %02d:%02d:%02d", tm_ptr->tm_mday,
-					 tm_ptr->tm_mon + 1, tm_ptr->tm_year + 1900, tm_ptr->tm_hour,
-					 tm_ptr->tm_min, tm_ptr->tm_sec);
-		else if (date_format == DATE_FORMAT_ISO8601
-				 || date_format == DATE_FORMAT_STRICT_ISO8601)
-			snprintf(buffer, buffer_length, "%04d-%02d-%02d%c%02d:%02d:%02d",
-					 tm_ptr->tm_year + 1900, tm_ptr->tm_mon + 1, tm_ptr->tm_mday,
-					 (date_format == DATE_FORMAT_STRICT_ISO8601) ? 'T' : ' ', tm_ptr->tm_hour,
-					 tm_ptr->tm_min, tm_ptr->tm_sec);
-		else
-			snprintf(buffer, buffer_length, "%02d-%02d-%04d %02d:%02d:%02d",
-					 tm_ptr->tm_mon + 1, tm_ptr->tm_mday, tm_ptr->tm_year + 1900,
-					 tm_ptr->tm_hour, tm_ptr->tm_min, tm_ptr->tm_sec);
-	}
+	/* short date/time */
+	else if (type == SHORT_DATE_TIME)
+		strftime(buffer, buffer_length, short_date_time_format, tm_ptr);
 
 	/* short date */
-	else if (type == SHORT_DATE) {
-		if (date_format == DATE_FORMAT_EURO)
-			snprintf(buffer, buffer_length, "%02d-%02d-%04d", day, month, year);
-		else if (date_format == DATE_FORMAT_ISO8601
-				 || date_format == DATE_FORMAT_STRICT_ISO8601)
-			snprintf(buffer, buffer_length, "%04d-%02d-%02d", year, month, day);
-		else
-			snprintf(buffer, buffer_length, "%02d-%02d-%04d", month, day, year);
-	}
+	else if (type == SHORT_DATE)
+		strftime(buffer, buffer_length, short_date_format, tm_ptr);
 
 	/* expiration date/time for HTTP headers */
 	else if (type == HTTP_DATE_TIME)
-		snprintf(buffer, buffer_length, "%s, %02d %s %d %02d:%02d:%02d GMT",
-				 weekdays[tm_ptr->tm_wday], day, months[tm_ptr->tm_mon], year, hour, minute,
-				 second);
+		strftime(buffer, buffer_length, "%a, %d %b %Y %T GMT", tm_ptr);
 
 	/* short time */
 	else
-		snprintf(buffer, buffer_length, "%02d:%02d:%02d", hour, minute, second);
-
-	buffer[buffer_length - 1] = '\x0';
+		strftime(buffer, buffer_length, time_format, tm_ptr);
 
 	return;
 }

@@ -5519,7 +5519,7 @@ int json_object_serviceescalation_passes_selection(serviceescalation * temp_serv
 	}
 
 	if ((NULL != service_description) &&
-		(strcmp(temp_serviceescalation->description, service_description)) {
+		(strcmp(temp_serviceescalation->description, service_description))) {
 		return 0;
 	}
 

@@ -28,7 +28,9 @@
 #include "../include/broker.h"
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
+#include "../lib/sqlite3.h"
 
+static sqlite3	*cfgdb;
 
 /*** helpers ****/
 /*
@@ -53,6 +55,62 @@ static command *find_bang_command(char *name)
 	return cmd;
 }
 
+
+static bool create_config_db(char *main_config_file)
+{
+	const char *cfgfiles = "CREATE TABLE IF NOT EXISTS cfg_files ("
+				"path TEXT PRIMARY KEY, modtime INT, "
+				"hash TEXT, ismain INT DEFAULT 0) WITHOUT ROWID";
+	const char *insmain = "REPLACE INTO cfg_files VALUES(?, ?, 1)";
+	const char *maintbl = "CREATE TABLE IF NOT EXISTS main_cfg ("
+				"name TEXT PRIMARY KEY, value TEXT) "
+				"WITHOUT ROWID";
+	const char *objtbl = "CREATE TABLE IF NOT EXISTS objects ("
+				"obj_type TEXT, obj_name TEXT, field TEXT, value TEXT,"
+				"PRIMARY KEY(obj_type,obj_id,field) WITHOUT ROWID";
+
+	sqlite3			*db;
+	sqlite3_stmt	*stmt;
+	char			*dbname, *cp;
+	int				rc;
+	struct stat		st;
+
+	stat(main_config_file, &st);
+
+	dbname = malloc(strlen(main_config_file) + 16);
+	strcpy(dbname, main_config_file);
+	cp = strrchr(dbname, '/');
+	if (cp)
+		++cp;
+	else
+		cp = dbname;
+	strcpy(cp, "nagios.sqlite");
+	rc = sqlite3_open_v2(dbname, &db, SQLITE_OPEN_READWRITE, NULL);
+	if (rc == SQLITE_CANTOPEN)
+		rc = sqlite3_open_v2(dbname, &db, SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE, NULL);
+	free(dbname);
+	if (rc)
+		return false;
+	cfgdb = db;
+	rc = sqlite3_exec(db, cfgfiles, NULL, NULL, NULL);
+	if (rc)
+		return false;
+	rc = sqlite3_exec(db, maintbl, NULL, NULL, NULL);
+	if (rc)
+		return false;
+	rc = sqlite3_exec(db, objtbl, NULL, NULL, NULL);
+	if (rc)
+		return false;
+	rc = sqlite3_prepare(db, insmain, -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+		return false;
+	sqlite3_bind_text(stmt, 1, main_config_file, -1, NULL);
+	sqlite3_bind_int64(stmt, 2, st.st_mtime);
+	sqlite3_step(stmt);
+	sqlite3_finalize(stmt);
+
+	return true;
+}
 
 
 /******************************************************************/
@@ -105,6 +163,7 @@ int read_main_config_file(char *main_config_file)
 
 	mac = get_global_macros();
 
+create_config_db(main_config_file);
 
 	/* open the config file for reading */
 	if ((thefile = mmap_fopen(main_config_file)) == NULL) {
@@ -1000,14 +1059,67 @@ int read_main_config_file(char *main_config_file)
 
 		else if (!strcmp(variable, "date_format")) {
 
-			if (!strcmp(value, "euro"))
-				date_format = DATE_FORMAT_EURO;
-			else if (!strcmp(value, "iso8601"))
-				date_format = DATE_FORMAT_ISO8601;
-			else if (!strcmp(value, "strict-iso8601"))
-				date_format = DATE_FORMAT_STRICT_ISO8601;
-			else
-				date_format = DATE_FORMAT_US;
+			if (!long_date_time_format)
+				long_date_time_format = strdup(LONG_DATE_TIME_FORMAT);
+			if (!long_date_format)
+				long_date_format = strdup(LONG_DATE_FORMAT);
+			if (!time_format)
+				time_format = strdup(TIME_FORMAT);
+
+			if (!strcmp(value, "euro")) {
+				date_format = strdup(DATE_FORMAT_EURO);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_EURO);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_EURO);
+
+			} else if (!strcmp(value, "iso8601")) {
+				date_format = strdup(DATE_FORMAT_ISO8601);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_ISO8601);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_ISO8601);
+
+			} else if (!strcmp(value, "strict-iso8601")) {
+				date_format = strdup(DATE_FORMAT_STRICT_ISO8601);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_STRICT_ISO8601);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_STRICT_ISO8601);
+
+			} else {
+				date_format = strdup(DATE_FORMAT_US);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_US);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_US);
+
+			}
+		}
+
+		else if (!strcmp(variable, "short_date_time_format")) {
+			my_free(short_date_time_format);
+			short_date_time_format = strdup(value);
+		}
+
+		else if (!strcmp(variable, "long_date_time_format")) {
+			my_free(long_date_time_format);
+			long_date_time_format = strdup(value);
+		}
+
+		else if (!strcmp(variable, "short_date_format")) {
+			my_free(short_date_format);
+			short_date_format = strdup(value);
+		}
+
+		else if (!strcmp(variable, "long_date_format")) {
+			my_free(long_date_format);
+			long_date_format = strdup(value);
+		}
+
+		else if (!strcmp(variable, "time_format")) {
+			my_free(time_format);
+			time_format = strdup(value);
 		}
 
 		else if (!strcmp(variable, "use_timezone")) {
@@ -1215,7 +1327,21 @@ int read_main_config_file(char *main_config_file)
 			break;
 		}
 
+		if (!error) {
+			sqlite3_stmt	*stmt;
+			int				rc;
+
+			rc = sqlite3_prepare(cfgdb, "REPLACE INTO main_cfg VALUES (?,?)", -1, &stmt, NULL);
+			if (rc != SQLITE_OK)
+				return false;
+			sqlite3_bind_text(stmt, 1, variable, -1, NULL);
+			sqlite3_bind_text(stmt, 2, value, -1, NULL);
+			sqlite3_step(stmt);
+			sqlite3_finalize(stmt);
+		}
 	}
+
+	sqlite3_close(cfgdb);
 
 	if (deprecated) {
 		for (list = deprecated; list; list = list->next) {

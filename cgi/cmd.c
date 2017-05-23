@@ -3134,11 +3134,11 @@ int string_to_time(char *buffer, time_t * t)
 	lt.tm_yday = 0;
 
 
-	if (date_format == DATE_FORMAT_EURO)
+	if (!strcmp(date_format, DATE_FORMAT_EURO))
 		ret =
 			sscanf(buffer, "%02d-%02d-%04d %02d:%02d:%02d", &lt.tm_mday, &lt.tm_mon,
 				   &lt.tm_year, &lt.tm_hour, &lt.tm_min, &lt.tm_sec);
-	else if (date_format == DATE_FORMAT_ISO8601 || date_format == DATE_FORMAT_STRICT_ISO8601)
+	else if (!strcmp(date_format, DATE_FORMAT_ISO8601) || !strcmp(date_format, DATE_FORMAT_STRICT_ISO8601))
 		ret =
 			sscanf(buffer, "%04d-%02d-%02d%*[ T]%02d:%02d:%02d", &lt.tm_year, &lt.tm_mon,
 				   &lt.tm_mday, &lt.tm_hour, &lt.tm_min, &lt.tm_sec);

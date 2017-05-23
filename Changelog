@@ -6,6 +6,8 @@ Nagios Core 4 Change Log
 ------------------
 * xodtemplate.c wrong option-deprecation code warning (alex2grad / John Frickson)
 * On-demand host check always use cached host state (John Frickson)
+* 'á' causes Serivce Status Information to not be displayed (John Frickson)
+
 
 4.3.2 - 2017-05-09
 ------------------

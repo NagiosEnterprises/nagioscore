@@ -55,7 +55,6 @@
 
 #ifdef NSCORE
 # include "../include/nagios.h"
-# include "../lib/sqlite3.h"
 #endif
 
 #ifdef NSCGI
@@ -70,10 +69,6 @@
 #define XOD_SEEN  1 			/* seen, but not yet loopy */
 #define XOD_LOOPY 2 			/* loopy */
 #define XOD_OK	  3 			/* not loopy */
-
-#ifdef NSCORE
-static sqlite3	*cfgdb = NULL;
-#endif
 
 xodtemplate_timeperiod *xodtemplate_timeperiod_list = NULL;
 xodtemplate_command *xodtemplate_command_list = NULL;
@@ -164,25 +159,6 @@ static bitmap *service_map = NULL, *parent_map = NULL;
 
 
 
-#ifdef NSCORE
-static void open_sqlite(const char *main_cfg)
-{
-	char	*dbname, *cp;
-
-	dbname = malloc(strlen(main_cfg) + 16);
-	strcpy(dbname, main_cfg);
-	cp = strrchr(dbname, '/');
-	if (cp)
-		++cp;
-	else
-		cp = dbname;
-	strcpy(cp, "nagios.sqlite");
-	sqlite3_open_v2(dbname, &cfgdb, SQLITE_OPEN_READWRITE, NULL);
-	free(dbname);
-}
-#endif
-
-
 /* returns the name of a numbered config file */
 static const char *xodtemplate_config_file_name(int cfgfile)
 {
@@ -270,7 +246,9 @@ int xodtemplate_read_config_data(const char *main_config_file, int options)
 	presorted_objects = FALSE;
 #ifdef NSCORE
 	presorted_objects = (use_precached_objects == TRUE) ? TRUE : FALSE;
+#endif
 
+#ifdef NSCORE
 	if (test_scheduling == TRUE)
 		gettimeofday(&tv[0], NULL);
 
@@ -296,8 +274,6 @@ int xodtemplate_read_config_data(const char *main_config_file, int options)
 			printf("Unable to open main config file '%s'\n", main_config_file);
 			return ERROR;
 		}
-
-		open_sqlite(main_config_file);
 
 		/* daemon reads all config files/dirs specified in the main config file */
 		/* read in all lines from the main config file */
@@ -407,9 +383,6 @@ int xodtemplate_read_config_data(const char *main_config_file, int options)
 	if (!host_map || !contact_map) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE,
 			  "Error: Failed to create bitmaps for resolving objects\n");
-#ifdef NSCORE
-		sqlite3_close(cfgdb);
-#endif
 		return ERROR;
 	}
 
@@ -439,9 +412,6 @@ int xodtemplate_read_config_data(const char *main_config_file, int options)
 	service_map = bitmap_create(xodcount.services);
 	if (!service_map) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Failed to create service map\n");
-#ifdef NSCORE
-		sqlite3_close(cfgdb);
-#endif
 		return ERROR;
 	}
 
@@ -571,9 +541,6 @@ int xodtemplate_read_config_data(const char *main_config_file, int options)
 	bitmap_destroy(host_map);
 	bitmap_destroy(service_map);
 
-#ifdef NSCORE
-	sqlite3_close(cfgdb);
-#endif
 	return result;
 }
 
@@ -671,23 +638,11 @@ int xodtemplate_process_config_file(char *filename, int options)
 	register int x = 0;
 	register int y = 0;
 	char	   *ptr = NULL;
-#ifdef NSCORE
-	sqlite3_stmt	*stmt;
-	struct stat		st;
-#endif
 
 
 #ifdef NSCORE
 	if (verify_config >= 2)
 		printf("Processing object config file '%s'...\n", filename);
-
-	stat(filename, &st);
-	if (sqlite3_prepare(cfgdb, "REPLACE INTO cfg_files VALUES(?, ?, 0)", -1, &stmt, NULL) == SQLITE_OK) {
-		sqlite3_bind_text(stmt, 1, filename, -1, NULL);
-		sqlite3_bind_int64(stmt, 2, st.st_mtime);
-		sqlite3_step(stmt);
-		sqlite3_finalize(stmt);
-	}
 #endif
 
 	/* save config file name */
@@ -801,16 +756,7 @@ int xodtemplate_process_config_file(char *filename, int options)
 				result = ERROR;
 				break;
 			}
-/*
-			if (sqlite3_prepare(cfgdb, "REPLACE INTO objects VALUES(?, ?, ?, ?)", -1, &stmt, NULL) == SQLITE_OK) {
-				sqlite3_bind_text(stmt, 1, input, -1, NULL);
-				sqlite3_bind_int64(stmt, 2, 0);
-				sqlite3_bind_text(stmt, 3, "@@HASH@@");
-				sqlite3_bind_text(stmt, 4, "Hash_Value");
-				sqlite3_step(stmt);
-				sqlite3_finalize(stmt);
-			}
-*/
+
 			in_definition = TRUE;
 		}
 
@@ -830,16 +776,6 @@ int xodtemplate_process_config_file(char *filename, int options)
 					result = ERROR;
 					break;
 				}
-/*
-				if (sqlite3_prepare(cfgdb, "REPLACE INTO objects VALUES(?, ?, ?, ?)", -1, &stmt, NULL) == SQLITE_OK) {
-					sqlite3_bind_text(stmt, 1, input, -1, NULL);
-					sqlite3_bind_int64(stmt, 2, 0);
-					sqlite3_bind_text(stmt, 3, "@@HASH@@");
-					sqlite3_bind_text(stmt, 4, "Hash_Value");
-					sqlite3_step(stmt);
-					sqlite3_finalize(stmt);
-				}
-*/
 			}
 
 			/* this is a directive inside an object definition */

@@ -176,8 +176,12 @@ int read_main_config_file(char *main_config_file) {
 			}
 
 		else if(!strcmp(variable, "website_url")) {
+			int lth;
 			my_free(website_url);
 			website_url = strdup(value);
+			lth = strlen(website_url);
+			if (website_url[lth-1] == '/')
+				website_url[lth-1] = '\0';
 			}
 
 		else if(!strcmp(variable, "loadctl_options"))

@@ -1131,31 +1131,37 @@ const char *url_encode(const char *input)
 	return str;
 }
 
-static char *copy_wc_to_output(wchar_t wc, char *outstp, int output_max)
+static inline char* encode_character(char in, char *outcp, int output_max)
 {
+	char	*entity = NULL;
+	int		rep_lth, out_len = outcp - encoded_html_string;
 
-	int 		wctomb_result;
-	char		mbtemp[10];
+	switch(in) {
+	case '&':	entity = "&amp;";	break;
+	case '"':	entity = "&quot;";	break;
+	case '\'':	entity = "&#39;";	break;
+	case '<':	entity = "&lt;";	break;
+	case '>':	entity = "&gt;";	break;
+	}
 
-	wctomb_result = wctomb(mbtemp, wc);
-	if ((wctomb_result > 0) && (((outstp - encoded_html_string) + wctomb_result) < output_max)) {
-		strncpy(outstp, mbtemp, wctomb_result);
-		outstp += wctomb_result;
+	if (entity) {
+		rep_lth = strlen(entity);
+		if (out_len + rep_lth < output_max) {
+			strcpy(outcp, entity);
+			outcp += rep_lth;
+		}
+		return outcp;
 	}
 	return outstp;
 }
 
-static char *encode_character(wchar_t wc, char *outstp, int output_max)
-{
+	if (out_len + 6 >= output_max)
+		return outcp;
 
-	char		temp_expansion[11];
+	sprintf(outcp, "&#%u", (unsigned int)in);
+	outcp += strlen(outcp);
 
-	sprintf(temp_expansion, "&#%u;", (unsigned int)wc);
-	if (((outstp - encoded_html_string) + strlen(temp_expansion)) < (unsigned int)output_max) {
-		strncpy(outstp, temp_expansion, strlen(temp_expansion));
-		outstp += strlen(temp_expansion);
-	}
-	return outstp;
+	return outcp;
 }
 
 #define WHERE_OUTSIDE_TAG				0	/* Not in an HTML tag */
@@ -1174,17 +1180,14 @@ static char *encode_character(wchar_t wc, char *outstp, int output_max)
 char	   *html_encode(char *input, int escape_newlines)
 {
 	int 		len;
-	int 		output_max;
-	char	   *outstp;
-	wchar_t    *wcinput;
-	wchar_t    *inwcp;
-	wchar_t    *tagname = L"";
-	size_t		mbstowcs_result;
-	int 		x;
-	int 		where_in_tag = WHERE_OUTSIDE_TAG;	/* Location in HTML tag */
-	wchar_t 	attr_value_start = (wchar_t) 0; /* character that starts the
-												   attribute value */
-	int 		tag_depth = 0;	/* depth of nested HTML tags */
+	int			output_max;
+	char		*incp, *outcp;
+	char		*tagname = "";
+	int			x;
+	int			where_in_tag = WHERE_OUTSIDE_TAG; /* Location in HTML tag */
+	wchar_t		attr_value_start = (wchar_t)0;	/* character that starts the 
+													attribute value */
+	int			tag_depth = 0;					/* depth of nested HTML tags */
 
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
@@ -1194,123 +1197,117 @@ char	   *html_encode(char *input, int escape_newlines)
 
 	strcpy(encoded_html_string, "");
 
-	/* Convert the string to a wide character string */
-	if ((wcinput = malloc(len * sizeof(wchar_t))) == NULL) {
-		return "";
-	}
-	if ((mbstowcs_result = mbstowcs(wcinput, input, len)) == (size_t) - 1) {
-		free(wcinput);
-		return "";
-	}
-
 	/* Process all converted characters */
-	for (x = 0, inwcp = wcinput; x < (int)mbstowcs_result && '\0' != *inwcp; x++, inwcp++) {
+	for (x = 0, incp = input; x < len && *incp; x++, incp++) {
 
 		/* Most ASCII characters don't get encoded */
-		if ((*inwcp >= 0x20 && *inwcp <= 0x7e) &&
-			(!('"' == *inwcp || '&' == *inwcp || '\'' == *inwcp ||
-			   '<' == *inwcp || '>' == *inwcp))) {
-			outstp = copy_wc_to_output(*inwcp, outstp, output_max);
-			switch (where_in_tag) {
+		if (*incp >= 0x20 && *incp <= 0x7e && !strchr("'\"&^<>", *incp)) {
+			*outcp++ = *incp;
+
+			switch(where_in_tag) {
+
 			case WHERE_IN_TAG_NAME:
-				switch (*inwcp) {
+				switch(*incp) {
 				case 0x20:
 					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
-					*inwcp = 0;
+					*incp = 0;
 					break;
 				case '!':
 					where_in_tag = WHERE_IN_COMMENT;
 					break;
 				}
 				break;
+
 			case WHERE_IN_TAG_OUTSIDE_ATTRIBUTE:
-				if (*inwcp != 0x20) {
+				if(*incp != 0x20)
 					where_in_tag = WHERE_IN_TAG_IN_ATTRIBUTE_NAME;
-				}
 				break;
+
 			case WHERE_IN_TAG_IN_ATTRIBUTE_NAME:
-				if (*inwcp == '=') {
+				if(*incp == '=')
 					where_in_tag = WHERE_IN_TAG_AT_EQUALS;
-				}
 				break;
+
 			case WHERE_IN_TAG_AT_EQUALS:
-				if (*inwcp != 0x20) {
-					attr_value_start = *inwcp;
+				if(*incp != 0x20) {
+					attr_value_start = *incp;
 					where_in_tag = WHERE_IN_TAG_IN_ATTRIBUTE_VALUE;
 				}
 				break;
+
 			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
-				if ((*inwcp == 0x20) && (attr_value_start != '"') &&
-					(attr_value_start != '\'')) {
+				if((*incp == 0x20) && (attr_value_start != '"') && (attr_value_start != '\''))
 					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
-				}
 				break;
 			}
 		}
 
 		/* Special handling for quotes */
-		else if (FALSE == escape_html_tags && ('"' == *inwcp || '\'' == *inwcp)) {
-			switch (where_in_tag) {
+		else if(escape_html_tags == FALSE && (*incp == '"' || *incp == '\'')) {
+
+			switch(where_in_tag) {
+
 			case WHERE_OUTSIDE_TAG:
-				if (tag_depth > 0) {
-					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
-				} else {
-					outstp = encode_character(*inwcp, outstp, output_max);
-				}
+				if (tag_depth > 0)
+					*outcp++ = *incp;
+				else
+					outcp = encode_character(*incp, outcp, output_max);
 				break;
+
 			case WHERE_IN_COMMENT:
-				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+				*outcp++ = *incp;
 				break;
+
 			case WHERE_IN_TAG_AT_EQUALS:
-				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
-				attr_value_start = *inwcp;
+				*outcp++ = *incp;
+				attr_value_start = *incp;
 				where_in_tag = WHERE_IN_TAG_IN_ATTRIBUTE_VALUE;
 				break;
+
 			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
-				if (*(inwcp - 1) == '\\') {
-					/* This covers the case where the quote is backslash
-					   escaped. */
-					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
-				} else if (attr_value_start == *inwcp) {
+				if(*(incp-1) == '\\')
+					/* This covers the case where the quote is backslash escaped. */
+					*outcp++ = *incp;
+				else if(attr_value_start == *incp) {
 					/* If the quote is the same type of quote that started
-					   the attribute value and it is not backslash
-					   escaped, it signals the end of the attribute value */
-					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+						the attribute value and it is not backslash 
+						escaped, it signals the end of the attribute value */
+					*outcp++ = *incp;
 					where_in_tag = WHERE_IN_TAG_OUTSIDE_ATTRIBUTE;
-				} else {
-					/* If we encounter an quote that did not start the
-					   attribute value and is not backslash escaped,
-					   use it as is */
-					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				}
-				break;
-			default:
-				if (tag_depth > 0 && !wcscmp(tagname, L"script"))
-					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				else
-					outstp = encode_character(*inwcp, outstp, output_max);
+					/* If we encounter an quote that did not start the attribute
+						value and is not backslash escaped, use it as is */
+					*outcp++ = *incp;
+				break;
+
+			default:
+				if (tag_depth > 0 && !strcmp(tagname, "script"))
+					*outcp++ = *incp;
+				else
+					outcp = encode_character(*incp, outcp, output_max);
 				break;
 			}
 		}
 
 		/* newlines turn to <BR> tags */
-		else if (escape_newlines == TRUE && '\n' == *inwcp) {
-			strncpy(outstp, "<BR>", 4);
-			outstp += 4;
+		else if(escape_newlines == TRUE && *incp == '\n') {
+			strncpy( outcp, "<BR>", 4);
+			outcp += 4;
 		}
 
-		else if (escape_newlines == TRUE && '\\' == *inwcp && '\n' == *(inwcp + 1)) {
-			strncpy(outstp, "<BR>", 4);
-			outstp += 4;
-			inwcp++;			/* needed so loop skips two wide characters */
+		else if(escape_newlines == TRUE && *incp == '\\' && *(incp + 1) == '\n') {
+			strncpy( outcp, "<BR>", 4);
+			outcp += 4;
+			incp++; /* needed so loop skips two characters */
 		}
 
 		/* TODO - strip all but allowed HTML tags out... */
-		else if (('<' == *inwcp) && (FALSE == escape_html_tags)) {
+		else if (*incp == '<' && escape_html_tags == FALSE) {
 
 			switch (where_in_tag) {
 			case WHERE_OUTSIDE_TAG:
-				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+				*outcp++ = *incp;
 				where_in_tag = WHERE_IN_TAG_NAME;
 				switch (*(inwcp + 1)) {
 				case '/':
@@ -1320,64 +1317,70 @@ char	   *html_encode(char *input, int escape_newlines)
 					break;
 				default:
 					tag_depth++;
-					tagname = inwcp + 1;
+					tagname = incp + 1;
 					break;
 				}
 				break;
+
 			default:
-				if (tag_depth > 0 && !wcscmp(tagname, L"script"))
-					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+				if (tag_depth > 0 && !strcmp(tagname, "script"))
+					*outcp++ = *incp;
 				else
-					outstp = encode_character(*inwcp, outstp, output_max);
+					outcp = encode_character(*incp, outcp, output_max);
 				break;
 			}
 		}
 
-		else if (('>' == *inwcp) && (FALSE == escape_html_tags)) {
+		else if( *incp == '>' && escape_html_tags == FALSE) {
 
 			switch (where_in_tag) {
 			case WHERE_IN_TAG_NAME:
 			case WHERE_IN_TAG_OUTSIDE_ATTRIBUTE:
 			case WHERE_IN_COMMENT:
 			case WHERE_IN_TAG_IN_ATTRIBUTE_NAME:
-				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+				*outcp++ = *incp;
 				where_in_tag = WHERE_OUTSIDE_TAG;
-				*inwcp = 0;
+				*incp = 0;
 				break;
+
 			case WHERE_IN_TAG_IN_ATTRIBUTE_VALUE:
-				if ((attr_value_start != '"') && (attr_value_start != '\'')) {
-					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+				if((attr_value_start != '"') && (attr_value_start != '\'')) {
+					*outcp++ = *incp;
 					where_in_tag = WHERE_OUTSIDE_TAG;
-				} else {
-					outstp = encode_character(*inwcp, outstp, output_max);
 				}
-				break;
-			default:
-				if (tag_depth > 0 && !wcscmp(tagname, L"script"))
-					outstp = copy_wc_to_output(*inwcp, outstp, output_max);
 				else
-					outstp = encode_character(*inwcp, outstp, output_max);
+					outcp = encode_character(*incp, outcp, output_max);
+				break;
+
+			default:
+				if (tag_depth > 0 && !strcmp(tagname, "script"))
+					*outcp++ = *incp;
+				else
+					outcp = encode_character(*incp, outcp, output_max);
 				break;
 			}
 		}
 
 		/* check_multi puts out a '&ndash' so don't encode the '&' in that case */
-		else if (*inwcp == '&' && escape_html_tags == FALSE) {
-			if (tag_depth > 0 && !wcsncmp(inwcp, L"&ndash", 6))
-				outstp = copy_wc_to_output(*inwcp, outstp, output_max);
+		else if (*incp == '&' && escape_html_tags == FALSE) {
+			if (tag_depth > 0 && !strcmp(incp, "&ndash"))
+				*outcp++ = *incp;
 			else
-				outstp = encode_character(*inwcp, outstp, output_max);
+				outcp = encode_character(*incp, outcp, output_max);
 		}
 
+		else if ((unsigned char)*incp > 0x7f)
+			/* pass through UTF-8 characters */
+			*outcp++ = *incp;
+
 		/* for simplicity, all other chars represented by their numeric value */
-		else {
-			outstp = encode_character(*inwcp, outstp, output_max);
-		}
+		else
+			outcp = encode_character(*incp, outcp, output_max);
 	}
 
 	/* Null terminate the encoded string */
-	*outstp = '\x0';
-	encoded_html_string[output_max - 1] = '\x0';
+	*outcp = '\x0';
+	encoded_html_string[ output_max - 1] = '\x0';
 
 	return encoded_html_string;
 }

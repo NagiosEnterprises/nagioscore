@@ -13,3 +13,4 @@ Contents
 5.0.0a1 2017-03-01
 -------------------
 * Reformatted ALL source files - John Frickson
+* new status for check dependencies - John Frickson

@@ -1,6 +1,12 @@
 Upgrading Nagios Core
 =====================
 
+nagios-5.0.0 - xxxx-xx-xx
+-------------------------
+There are a number of fairly large changes for Core 5 but most of them are
+behind the scenes.
+
+
 nagios-4.3.0 - 2017-02-21
 -------------------------
 

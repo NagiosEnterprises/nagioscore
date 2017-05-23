@@ -1082,30 +1082,17 @@ high_host_flap_threshold=20.0
 
 
 
-# DATE/TIME FORMAT OPTIONS
-# This option determines how dates and times are displayed. Prior to
-# version 5.0.0 of Nagios Core, there was only a 'date_format' field,
-# and the first four options below. As of 5.0.0, additional fields
-# are available: short_date_format, long_date_format,
-# short_date_time_format, long_date_time_format, and time_format.
+# DATE FORMAT OPTION
+# This option determines how short dates are displayed. Valid options
+# include:
+#	us		(MM-DD-YYYY HH:MM:SS)
+#	euro    	(DD-MM-YYYY HH:MM:SS)
+#	iso8601		(YYYY-MM-DD HH:MM:SS)
+#	strict-iso8601	(YYYY-MM-DDTHH:MM:SS)
 #
-# Valid options include:
-#   us                (MM-DD-YYYY HH:MM:SS) (MM-DD-YYYY) (HH:MM:SS)
-#   euro              (DD-MM-YYYY HH:MM:SS) (DD-MM-YYYY) (HH:MM:SS)
-#   iso8601           (YYYY-MM-DD HH:MM:SS) (YYYY-MM-DD) (HH:MM:SS)
-#   strict-iso8601    (YYYY-MM-DDTHH:MM:SS) (YYYY-MM-DD) (HH:MM:SS)
-# alternatively, these can be any valid strftime(3) format.
-# For example:
-#   %F %T             (YYYY-MM-DD HH:MM:SS)
-#   %Y-%j %r          (YYYY-DDD HH:MM:SS am/pm)
-#   %d-%m-%y %H:%M:%S (DD-MM-YYYY HH:MM:SS)
 
 date_format=us
-#short_date_time_format=us
-#long_date_time_format=us
-#short_date_format=us
-#long_date_format=us
-#time_format=us
+
 
 
 

@@ -1152,8 +1152,6 @@ static inline char* encode_character(char in, char *outcp, int output_max)
 		}
 		return outcp;
 	}
-	return outstp;
-}
 
 	if (out_len + 6 >= output_max)
 		return outcp;
@@ -1177,7 +1175,7 @@ static inline char* encode_character(char in, char *outcp, int output_max)
 #define WHERE_IN_COMMENT				6	/* In an HTML comment */
 
 /* escapes a string used in HTML */
-char	   *html_encode(char *input, int escape_newlines)
+char *html_encode(char *input, int escape_newlines)
 {
 	int 		len;
 	int			output_max;
@@ -1185,14 +1183,14 @@ char	   *html_encode(char *input, int escape_newlines)
 	char		*tagname = "";
 	int			x;
 	int			where_in_tag = WHERE_OUTSIDE_TAG; /* Location in HTML tag */
-	wchar_t		attr_value_start = (wchar_t)0;	/* character that starts the 
+	char		attr_value_start = (wchar_t)0;	/* character that starts the 
 													attribute value */
 	int			tag_depth = 0;					/* depth of nested HTML tags */
 
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
 	output_max = len * 6;
-	if ((outstp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
+	if ((outcp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
 		return "";
 
 	strcpy(encoded_html_string, "");
@@ -1309,7 +1307,7 @@ char	   *html_encode(char *input, int escape_newlines)
 			case WHERE_OUTSIDE_TAG:
 				*outcp++ = *incp;
 				where_in_tag = WHERE_IN_TAG_NAME;
-				switch (*(inwcp + 1)) {
+				switch (*(incp + 1)) {
 				case '/':
 					tag_depth--;
 					break;

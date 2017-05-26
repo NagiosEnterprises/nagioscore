@@ -25,6 +25,10 @@ AC_CONFIG_FILES([html/index.php])
 
 dnl Checks for programs.
 AC_PROG_CC
+AC_PROG_CC_C99
+if test x"$ac_cv_prog_cc_c99" = x"no"; then
+	AC_MSG_ERROR([A compiler that conforms to at least C99 is required!])
+fi
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
 AC_PATH_PROG([STRIP],[strip],[true])
@@ -35,11 +39,11 @@ AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS(arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h)
 AC_CHECK_HEADERS(libgen.h limits.h math.h netdb.h netinet/in.h pwd.h regex.h)
-AC_CHECK_HEADERS(signal.h socket.h stdarg.h string.h strings.h sys/loadavg.h)
-AC_CHECK_HEADERS(sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h)
-AC_CHECK_HEADERS(sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h)
-AC_CHECK_HEADERS(sys/msg.h sys/poll.h syslog.h uio.h unistd.h locale.h wchar.h)
-AC_CHECK_HEADERS(sys/prctl.h)
+AC_CHECK_HEADERS(signal.h socket.h stdarg.h stdbool.h string.h strings.h)
+AC_CHECK_HEADERS(sys/loadavg.h sys/mman.h sys/types.h sys/time.h sys/resource.h)
+AC_CHECK_HEADERS(sys/wait.h sys/socket.h sys/stat.h sys/timeb.h sys/un.h)
+AC_CHECK_HEADERS(sys/ipc.hsys/msg.h sys/poll.h syslog.h uio.h unistd.h locale.h)
+AC_CHECK_HEADERS(wchar.h sys/prctl.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

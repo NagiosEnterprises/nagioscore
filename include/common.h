@@ -31,7 +31,12 @@ NAGIOS_BEGIN_DECL
 /*************************************************************/
 /************** SHARED GLOBAL VARIABLES **********************/
 /*************************************************************/
-extern int	date_format;
+extern char *date_format;
+extern char *short_date_time_format;
+extern char *long_date_time_format;
+extern char *short_date_format;
+extern char *long_date_format;
+extern char *time_format;
 extern int	interval_length;
 extern char *illegal_output_chars;
 extern char illegal_output_char_map[256];
@@ -410,19 +415,29 @@ extern const char *cmd_error_strerror(int error_code);
 
 /**************************** DATE FORMATS ******************************/
 
-# define DATE_FORMAT_US 				 0	/* U.S. (MM-DD-YYYY HH:MM:SS) */
-# define DATE_FORMAT_EURO				 1	/* European (DD-MM-YYYY HH:MM:SS) */
-# define DATE_FORMAT_ISO8601			 2	/* ISO8601 (YYYY-MM-DD HH:MM:SS) */
-# define DATE_FORMAT_STRICT_ISO8601 	 3	/* ISO8601 (YYYY-MM-DDTHH:MM:SS) */
+# define DATE_FORMAT_US							"%m/%d/%Y %T"		/* U.S. (MM-DD-YYYY HH:MM:SS) */
+# define DATE_FORMAT_EURO						"%d/%m/%Y %T"		/* European (DD-MM-YYYY HH:MM:SS) */
+# define DATE_FORMAT_ISO8601					"%F %T"				/* ISO8601 (YYYY-MM-DD HH:MM:SS) */
+# define DATE_FORMAT_STRICT_ISO8601				"%FT%T"				/* ISO8601 (YYYY-MM-DDTHH:MM:SS) */
+# define SHORT_DATE_TIME_FORMAT_US				DATE_FORMAT_US
+# define SHORT_DATE_TIME_FORMAT_EURO			DATE_FORMAT_EURO
+# define SHORT_DATE_TIME_FORMAT_ISO8601			DATE_FORMAT_ISO8601
+# define SHORT_DATE_TIME_FORMAT_STRICT_ISO8601	DATE_FORMAT_STRICT_ISO8601
+# define LONG_DATE_TIME_FORMAT					"%a %b %e %T %Z %Y"	/* ddd mmm _d zone HH:MM:SS YYYY */
+# define SHORT_DATE_FORMAT_US	 				"%m/%d/%Y"			/* U.S. (MM-DD-YYYY HH:MM:SS) */
+# define SHORT_DATE_FORMAT_EURO					"%d/%m/%Y"			/* European (DD-MM-YYYY HH:MM:SS) */
+# define SHORT_DATE_FORMAT_ISO8601				"%F"				/* ISO8601 (YYYY-MM-DD HH:MM:SS) */
+# define SHORT_DATE_FORMAT_STRICT_ISO8601		"%F"				/* ISO8601 (YYYY-MM-DDTHH:MM:SS) */
+# define LONG_DATE_FORMAT						"%a %b %e %Y"		/* ddd mmm _d YYYY */
+# define TIME_FORMAT							"%T"				/* HH:MM:SS */
 
 
 /************************** MISC DEFINITIONS ****************************/
 
-# define MAX_FILENAME_LENGTH			256
-										/* max length of path/filename that Nagios will process */
-# define MAX_INPUT_BUFFER			1024	/* size in bytes of max. input buffer (for reading files, misc stuff) */
-# define MAX_COMMAND_BUFFER 					 8192	/* max length of raw or processed command line */
-# define MAX_EXTERNAL_COMMAND_LENGTH			 8192	/* max length of an external command */
+# define MAX_FILENAME_LENGTH			256		/* max length of path/filename that Nagios will process */
+# define MAX_INPUT_BUFFER				1024	/* size in bytes of max. input buffer (for reading files, misc stuff) */
+# define MAX_COMMAND_BUFFER 			8192	/* max length of raw or processed command line */
+# define MAX_EXTERNAL_COMMAND_LENGTH	8192	/* max length of an external command */
 
 # define MAX_DATETIME_LENGTH			48
 

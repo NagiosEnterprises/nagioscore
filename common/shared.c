@@ -7,19 +7,24 @@
  * This file holds random utility functions shared by cgi's and
  * core, as well as all global variables needed by both.
  */
-int 		date_format;
+char	 	*date_format = NULL;
+char	 	*short_date_time_format = NULL;
+char		*long_date_time_format = NULL;
+char	 	*short_date_format = NULL;
+char		*long_date_format = NULL;
+char	 	*time_format = NULL;
 int 		interval_length;
-char	   *illegal_output_chars;
+char		*illegal_output_chars;
 char		illegal_output_char_map[] = CHAR_MAP_INIT(0);
 time_t		program_start = 0L;
 int 		check_external_commands;
 int 		log_rotation_method;
 
-char	   *object_cache_file;
+char		*object_cache_file;
 struct object_count num_objects;
 
 int 		process_performance_data;
-char	   *status_file;
+char		*status_file;
 
 int 		nagios_pid = 0;
 int 		daemon_mode = FALSE;
@@ -40,11 +45,11 @@ int 		enable_event_handlers;
 int 		obsess_over_services;
 int 		obsess_over_hosts;
 
-char	   *config_file_dir = NULL;
+char		*config_file_dir = NULL;
 
 void init_shared_cfg_vars(int first_time)
 {
-	date_format = DATE_FORMAT_US;
+/*	date_format = DATE_FORMAT_US;										NEED TO CHECK AFTER CONFIG FILE HAS BEEN READ!!!!!!! */
 	interval_length = DEFAULT_INTERVAL_LENGTH;
 	if (first_time) {
 		/* Not sure why these are not reset in reset_variables() */
@@ -488,18 +493,6 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length, int
 {
 	time_t		t;
 	struct tm  *tm_ptr, tm_s;
-	int 		hour;
-	int 		minute;
-	int 		second;
-	int 		month;
-	int 		day;
-	int 		year;
-	const char *weekdays[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-	const char *months[12] = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-		"Oct", "Nov", "Dec"
-	};
-	const char *tzone = "";
 
 	if (raw_time == NULL)
 		time(&t);
@@ -511,65 +504,25 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length, int
 	else
 		tm_ptr = localtime_r(&t, &tm_s);
 
-	hour = tm_ptr->tm_hour;
-	minute = tm_ptr->tm_min;
-	second = tm_ptr->tm_sec;
-	month = tm_ptr->tm_mon + 1;
-	day = tm_ptr->tm_mday;
-	year = tm_ptr->tm_year + 1900;
-
-#ifdef HAVE_TM_ZONE
-	tzone = tm_ptr->tm_zone;
-#else
-	tzone = (tm_ptr->tm_isdst) ? tzname[1] : tzname[0];
-#endif
-
 	/* ctime() style date/time */
 	if (type == LONG_DATE_TIME)
-		snprintf(buffer, buffer_length, "%s %s %d %02d:%02d:%02d %s %d",
-				 weekdays[tm_ptr->tm_wday], months[tm_ptr->tm_mon], day,
-				 hour, minute, second, tzone, year);
+		strftime(buffer, buffer_length, long_date_time_format, tm_ptr);
 
 	/* short date/time */
-	else if (type == SHORT_DATE_TIME) {
-		if (date_format == DATE_FORMAT_EURO)
-			snprintf(buffer, buffer_length,
-					 "%02d-%02d-%04d %02d:%02d:%02d", day, month, year, hour, minute, second);
-		else if (date_format == DATE_FORMAT_ISO8601
-				 || date_format == DATE_FORMAT_STRICT_ISO8601)
-			snprintf(buffer, buffer_length,
-					 "%04d-%02d-%02d%c%02d:%02d:%02d", year, month,
-					 day,
-					 (date_format ==
-					  DATE_FORMAT_STRICT_ISO8601) ? 'T' : ' ', hour, minute, second);
-		else
-			snprintf(buffer, buffer_length,
-					 "%02d-%02d-%04d %02d:%02d:%02d", month, day, year, hour, minute, second);
-	}
+	else if (type == SHORT_DATE_TIME)
+		strftime(buffer, buffer_length, short_date_time_format, tm_ptr);
 
 	/* short date */
-	else if (type == SHORT_DATE) {
-		if (date_format == DATE_FORMAT_EURO)
-			snprintf(buffer, buffer_length, "%02d-%02d-%04d", day, month, year);
-		else if (date_format == DATE_FORMAT_ISO8601
-				 || date_format == DATE_FORMAT_STRICT_ISO8601)
-			snprintf(buffer, buffer_length, "%04d-%02d-%02d", year, month, day);
-		else
-			snprintf(buffer, buffer_length, "%02d-%02d-%04d", month, day, year);
-	}
+	else if (type == SHORT_DATE)
+		strftime(buffer, buffer_length, short_date_format, tm_ptr);
 
 	/* expiration date/time for HTTP headers */
 	else if (type == HTTP_DATE_TIME)
-		snprintf(buffer, buffer_length,
-				 "%s, %02d %s %d %02d:%02d:%02d GMT",
-				 weekdays[tm_ptr->tm_wday], day, months[tm_ptr->tm_mon],
-				 year, hour, minute, second);
+		strftime(buffer, buffer_length, "%a, %d %b %Y %T GMT", tm_ptr);
 
 	/* short time */
 	else
-		snprintf(buffer, buffer_length, "%02d:%02d:%02d", hour, minute, second);
-
-	buffer[buffer_length - 1] = '\x0';
+		strftime(buffer, buffer_length, time_format, tm_ptr);
 }
 
 /* get days, hours, minutes, and seconds from a raw time_t format or total seconds */

@@ -1009,14 +1009,67 @@ int read_main_config_file(char *main_config_file)
 
 		else if (!strcmp(variable, "date_format")) {
 
-			if (!strcmp(value, "euro"))
-				date_format = DATE_FORMAT_EURO;
-			else if (!strcmp(value, "iso8601"))
-				date_format = DATE_FORMAT_ISO8601;
-			else if (!strcmp(value, "strict-iso8601"))
-				date_format = DATE_FORMAT_STRICT_ISO8601;
-			else
-				date_format = DATE_FORMAT_US;
+			if (!long_date_time_format)
+				long_date_time_format = strdup(LONG_DATE_TIME_FORMAT);
+			if (!long_date_format)
+				long_date_format = strdup(LONG_DATE_FORMAT);
+			if (!time_format)
+				time_format = strdup(TIME_FORMAT);
+
+			if (!strcmp(value, "euro")) {
+				date_format = strdup(DATE_FORMAT_EURO);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_EURO);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_EURO);
+
+			} else if (!strcmp(value, "iso8601")) {
+				date_format = strdup(DATE_FORMAT_ISO8601);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_ISO8601);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_ISO8601);
+
+			} else if (!strcmp(value, "strict-iso8601")) {
+				date_format = strdup(DATE_FORMAT_STRICT_ISO8601);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_STRICT_ISO8601);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_STRICT_ISO8601);
+
+			} else {
+				date_format = strdup(DATE_FORMAT_US);
+				if (!short_date_time_format)
+					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_US);
+				if (!short_date_format)
+					short_date_format = strdup(SHORT_DATE_FORMAT_US);
+
+			}
+		}
+
+		else if (!strcmp(variable, "short_date_time_format")) {
+			my_free(short_date_time_format);
+			short_date_time_format = strdup(value);
+		}
+
+		else if (!strcmp(variable, "long_date_time_format")) {
+			my_free(long_date_time_format);
+			long_date_time_format = strdup(value);
+		}
+
+		else if (!strcmp(variable, "short_date_format")) {
+			my_free(short_date_format);
+			short_date_format = strdup(value);
+		}
+
+		else if (!strcmp(variable, "long_date_format")) {
+			my_free(long_date_format);
+			long_date_format = strdup(value);
+		}
+
+		else if (!strcmp(variable, "time_format")) {
+			my_free(time_format);
+			time_format = strdup(value);
 		}
 
 		else if (!strcmp(variable, "use_timezone")) {
@@ -1585,7 +1638,7 @@ int pre_flight_check(void)
 	if (verify_config) {
 		printf("\n");
 		printf("Total Warnings: %d\n", warnings);
-		printf("Total Errors:	%d\n", errors);
+		printf("Total Errors:   %d\n", errors);
 	}
 
 	if (test_scheduling == TRUE)

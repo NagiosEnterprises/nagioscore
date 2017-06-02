@@ -179,6 +179,31 @@ char	   *my_strsep(char **stringp, const char *delim)
 	return begin;
 }
 
+char* safe_strtok(char *str, const char *delim, char **save_ptr)
+{
+	char	*token;
+
+	if (str == NULL)
+		str = *save_ptr;
+
+	str += strspn(str, delim);
+	if (*str == '\0') {
+		*save_ptr = str;
+		return NULL;
+	}
+
+	token = str;
+	str = strpbrk(token, delim);
+	if (str == NULL)
+		*save_ptr = strchr(token, '\0');
+	else {
+		*str = '\0';
+		*save_ptr = str + 1;
+	}
+	return token;
+}
+
+
 /* open a file read-only via mmap() */
 mmapfile   *mmap_fopen(const char *filename)
 {

@@ -81,7 +81,7 @@ NAGIOS_BEGIN_DECL
 # define flag_unset(c, flag)  (c &= ~(flag))
 # define should_stalk(o) flag_isset(o->stalking_options, 1 << o->current_state)
 # define should_flap_detect(o) flag_isset(o->flap_detection_options, 1 << o->current_state)
-# define should_notify(o) flag_isset(o->notification_options, 1 << o->current_state)
+//# define should_notify(o) flag_isset(o->notification_options, 1 << o->current_state)
 # define add_notified_on(o, f) (o->notified_on |= (1 << f))
 /* Event-related macros */
 # define NUDGE_MIN	5
@@ -111,6 +111,7 @@ typedef struct timed_event {
 /* NOTIFY_LIST structure */
 typedef struct notify_list {
 	struct contact *contact;
+	bool exclude;
 	struct notify_list *next;
 } notification;
 
@@ -260,6 +261,7 @@ typedef struct timeperiod {
 /* CONTACTSMEMBER structure */
 typedef struct contactsmember {
 	char	   *contact_name;
+	unsigned int notification_options;
 	struct contact *contact_ptr;
 	struct contactsmember *next;
 } contactsmember;
@@ -270,6 +272,7 @@ typedef struct contactgroup {
 	unsigned int id;
 	char	   *group_name;
 	char	   *alias;
+	unsigned int notification_options;
 	struct contactsmember *members;
 	struct contactgroup *next;
 } contactgroup;
@@ -278,6 +281,7 @@ typedef struct contactgroup {
 /* CONTACTGROUPSMEMBER structure */
 typedef struct contactgroupsmember {
 	char	   *group_name;
+	unsigned int notification_options;
 	struct contactgroup *group_ptr;
 	struct contactgroupsmember *next;
 } contactgroupsmember;

@@ -732,7 +732,7 @@ int main(int argc, char **argv)
 			broker_program_state(NEBTYPE_PROCESS_PRELAUNCH, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 			timing_point("First callback made\n");
 #endif
-
+sleep(10);
 			/* read in all object config data */
 			if (result == OK)
 				result = read_all_object_data(config_file);

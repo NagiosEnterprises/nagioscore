@@ -67,31 +67,30 @@ servicedependency **servicedependency_ary = NULL;
 int 		__nagios_object_structure_version = CURRENT_OBJECT_STRUCTURE_VERSION;
 
 struct flag_map {
-	int 		opt;
-	int 		ch;
-	const char *name;
+	int 	opt;
+	int 	ch;
 };
 
 static const struct flag_map service_flag_map[] = {
-	{OPT_WARNING, 'w', "warning"},
-	{OPT_UNKNOWN, 'u', "unknown"},
-	{OPT_CRITICAL, 'c', "critical"},
-	{OPT_FLAPPING, 'f', "flapping"},
-	{OPT_DOWNTIME, 's', "downtime"},
-	{OPT_OK, 'o', "ok"},
-	{OPT_RECOVERY, 'r', "recovery"},
-	{OPT_PENDING, 'p', "pending"},
-	{0, 0, NULL},
+	{ OPT_WARNING,     'w' },
+	{ OPT_UNKNOWN,     'u' },
+	{ OPT_CRITICAL,    'c' },
+	{ OPT_FLAPPING,    'f' },
+	{ OPT_DOWNTIME,    's' },
+	{ OPT_OK,          'o' },
+	{ OPT_RECOVERY,    'r' },
+	{ OPT_PENDING,     'p' },
+	{ 0, 0 },
 };
 
 static const struct flag_map host_flag_map[] = {
-	{OPT_DOWN, 'd', "down"},
-	{OPT_UNREACHABLE, 'u', "unreachable"},
-	{OPT_FLAPPING, 'f', "flapping"},
-	{OPT_RECOVERY, 'r', "recovery"},
-	{OPT_DOWNTIME, 's', "downtime"},
-	{OPT_PENDING, 'p', "pending"},
-	{0, 0, NULL},
+	{ OPT_DOWN,        'd' },
+	{ OPT_UNREACHABLE, 'u' },
+	{ OPT_FLAPPING,    'f' },
+	{ OPT_RECOVERY,    'r' },
+	{ OPT_DOWNTIME,    's' },
+	{ OPT_PENDING,     'p' },
+	{ 0, 0 },
 };
 
 static const char *opts2str(int opts, const struct flag_map *map, char ok_char)
@@ -111,12 +110,10 @@ static const char *opts2str(int opts, const struct flag_map *map, char ok_char)
 		buf[pos++] = opts ? ',' : 0;
 	}
 
-	for (i = 0; map[i].name; i++) {
+	for (i = 0; map[i].ch; i++) {
 		if (flag_isset(opts, map[i].opt)) {
 			buf[pos++] = map[i].ch;
 			flag_unset(opts, map[i].opt);
-			if (!opts)
-				break;
 			buf[pos++] = ',';
 		}
 	}
@@ -124,6 +121,37 @@ static const char *opts2str(int opts, const struct flag_map *map, char ok_char)
 	return buf;
 }
 #endif
+
+static void set_notification_options(unsigned int *notification_options, const char *opts, bool is_host)
+{
+
+	while(*opts) {
+		switch(*opts) {
+			case ',':	break;
+			case 'a':	*notification_options = OPT_ALL;		break;
+			case 'c':	*notification_options = OPT_CRITICAL;	break;
+			case 'd':	*notification_options = OPT_DOWN;		break;
+			case 'f':	*notification_options = OPT_FLAPPING;	break;
+			case 'n':	*notification_options = OPT_NOTHING;	break;
+			case 'r':	*notification_options = OPT_RECOVERY;	break;
+			case 's':	*notification_options = OPT_DOWNTIME;	break;
+			case 'w':	*notification_options = OPT_WARNING;	break;
+			case 'u':
+				if (is_host)
+					*notification_options = OPT_UNREACHABLE;
+				else
+					*notification_options = OPT_UNKNOWN;
+				break;
+			default:
+//				logit(NSLOG_CONFIG_ERROR, TRUE,
+//					  "Error: Invalid notification option '%s' in host definition.\n",
+//					  temp_ptr);
+				break;
+		}
+
+		++opts;
+	}
+}
 
 unsigned int host_services_value(host * h)
 {
@@ -990,7 +1018,22 @@ static contactgroupsmember *add_contactgroup_to_object(contactgroupsmember ** cg
 /* add a new contactgroup to a host */
 contactgroupsmember *add_contactgroup_to_host(host * hst, char *group_name)
 {
-	return add_contactgroup_to_object(&hst->contact_groups, group_name);
+	char	*name, *opts;
+	contactgroupsmember	*new_contactgroupsmember;
+
+	name = strdup(group_name);
+	opts = strtok(name, ":");
+	opts = strtok(NULL, ":");
+
+	new_contactgroupsmember = add_contactgroup_to_object(&hst->contact_groups, name);
+	if (new_contactgroupsmember) {
+		if (opts)
+			set_notification_options(&new_contactgroupsmember->notification_options, opts, true);
+		else
+			new_contactgroupsmember->notification_options = hst->notification_options;
+	}
+	my_free(name);
+	return new_contactgroupsmember;
 }
 
 
@@ -998,8 +1041,22 @@ contactgroupsmember *add_contactgroup_to_host(host * hst, char *group_name)
 /* adds a contact to a host */
 contactsmember *add_contact_to_host(host * hst, char *contact_name)
 {
+	char	*name, *opts;
+	contactsmember *new_contactsmember;
 
-	return add_contact_to_object(&hst->contacts, contact_name);
+	name = strdup(contact_name);
+	opts = strtok(name, ":");
+	opts = strtok(NULL, ":");
+
+	new_contactsmember = add_contact_to_object(&hst->contacts, name);
+	if (new_contactsmember) {
+		if (opts)
+			set_notification_options(&new_contactsmember->notification_options, opts, true);
+		else
+			new_contactsmember->notification_options = hst->notification_options;
+	}
+	my_free(name);
+	return new_contactsmember;
 }
 
 
@@ -1755,7 +1812,22 @@ service    *add_service(char *host_name, char *description, char *display_name,
 /* adds a contact group to a service */
 contactgroupsmember *add_contactgroup_to_service(service * svc, char *group_name)
 {
-	return add_contactgroup_to_object(&svc->contact_groups, group_name);
+	char	*name, *opts;
+	contactgroupsmember	*new_contactgroupsmember;
+
+	name = strdup(group_name);
+	opts = strtok(name, ":");
+	opts = strtok(NULL, ":");
+
+	new_contactgroupsmember = add_contactgroup_to_object(&svc->contact_groups, name);
+	if (new_contactgroupsmember) {
+		if (opts)
+			set_notification_options(&new_contactgroupsmember->notification_options, opts, false);
+		else
+			new_contactgroupsmember->notification_options = svc->notification_options;
+	}
+	my_free(name);
+	return new_contactgroupsmember;
 }
 
 
@@ -1763,8 +1835,22 @@ contactgroupsmember *add_contactgroup_to_service(service * svc, char *group_name
 /* adds a contact to a service */
 contactsmember *add_contact_to_service(service * svc, char *contact_name)
 {
+	char	*name, *opts;
+	contactsmember *new_contactsmember;
 
-	return add_contact_to_object(&svc->contacts, contact_name);
+	name = strdup(contact_name);
+	opts = strtok(name, ":");
+	opts = strtok(NULL, ":");
+
+	new_contactsmember = add_contact_to_object(&svc->contacts, name);
+	if (new_contactsmember) {
+		if (opts)
+			set_notification_options(&new_contactsmember->notification_options, opts, false);
+		else
+			new_contactsmember->notification_options = svc->notification_options;
+	}
+	my_free(name);
+	return new_contactsmember;
 }
 
 
@@ -1902,7 +1988,22 @@ serviceescalation *add_serviceescalation(char *host_name, char *description,
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation * se,
 														   char *group_name)
 {
-	return add_contactgroup_to_object(&se->contact_groups, group_name);
+	char	*name, *opts;
+	contactgroupsmember	*new_contactgroupsmember;
+
+	name = strdup(group_name);
+	opts = strtok(name, ":");
+	opts = strtok(NULL, ":");
+
+	new_contactgroupsmember = add_contactgroup_to_object(&se->contact_groups, name);
+	if (new_contactgroupsmember) {
+		if (opts)
+			set_notification_options(&new_contactgroupsmember->notification_options, opts, false);
+		else
+			new_contactgroupsmember->notification_options = se->escalation_options;
+	}
+	my_free(name);
+	return new_contactgroupsmember;
 }
 
 
@@ -1910,8 +2011,22 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation * s
 /* adds a contact to a service escalation */
 contactsmember *add_contact_to_serviceescalation(serviceescalation * se, char *contact_name)
 {
+	char	*name, *opts;
+	contactsmember *new_contactsmember;
 
-	return add_contact_to_object(&se->contacts, contact_name);
+	name = strdup(contact_name);
+	opts = strtok(name, ":");
+	opts = strtok(NULL, ":");
+
+	new_contactsmember = add_contact_to_object(&se->contacts, name);
+	if (new_contactsmember) {
+		if (opts)
+			set_notification_options(&new_contactsmember->notification_options, opts, false);
+		else
+			new_contactsmember->notification_options = se->escalation_options;
+	}
+	my_free(name);
+	return new_contactsmember;
 }
 
 
@@ -2128,7 +2243,22 @@ hostescalation *add_hostescalation(char *host_name, int first_notification,
 /* adds a contact group to a host escalation */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation * he, char *group_name)
 {
-	return add_contactgroup_to_object(&he->contact_groups, group_name);
+	char	*name, *opts;
+	contactgroupsmember	*new_contactgroupsmember;
+
+	name = strdup(group_name);
+	opts = strtok(name, ":");
+	opts = strtok(NULL, ":");
+
+	new_contactgroupsmember = add_contactgroup_to_object(&he->contact_groups, name);
+	if (new_contactgroupsmember) {
+		if (opts)
+			set_notification_options(&new_contactgroupsmember->notification_options, opts, false);
+		else
+			new_contactgroupsmember->notification_options = he->escalation_options;
+	}
+	my_free(name);
+	return new_contactgroupsmember;
 }
 
 
@@ -2136,8 +2266,22 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation * he, cha
 /* adds a contact to a host escalation */
 contactsmember *add_contact_to_hostescalation(hostescalation * he, char *contact_name)
 {
+	char	*name, *opts;
+	contactsmember *new_contactsmember;
 
-	return add_contact_to_object(&he->contacts, contact_name);
+	name = strdup(contact_name);
+	opts = strtok(name, ":");
+	opts = strtok(NULL, ":");
+
+	new_contactsmember = add_contact_to_object(&he->contacts, name);
+	if (new_contactsmember) {
+		if (opts)
+			set_notification_options(&new_contactsmember->notification_options, opts, false);
+		else
+			new_contactsmember->notification_options = he->escalation_options;
+	}
+	my_free(name);
+	return new_contactsmember;
 }
 
 

@@ -8664,6 +8664,7 @@ int xodtemplate_register_host(xodtemplate_host * this_host)
 	contactgroupsmember *new_contactgroupsmember = NULL;
 	char	   *contact_name = NULL;
 	char	   *contact_group = NULL;
+	char		*save_str;
 	xodtemplate_customvariablesmember *temp_customvariablesmember = NULL;
 
 	/* bail out if we shouldn't register this object */
@@ -8720,10 +8721,11 @@ int xodtemplate_register_host(xodtemplate_host * this_host)
 
 	/* add all contact groups to the host */
 	if (this_host->contact_groups != NULL) {
+		save_str = NULL;
 
-		for (contact_group = strtok(this_host->contact_groups, ","); contact_group != NULL;
-			 contact_group = strtok(NULL, ",")) {
-
+		for (contact_group = safe_strtok(this_host->contact_groups, ",", &save_str);
+			 contact_group != NULL; contact_group = safe_strtok(NULL, ",", &save_str))
+		{
 			strip(contact_group);
 			new_contactgroupsmember = add_contactgroup_to_host(new_host, contact_group);
 			if (new_contactgroupsmember == NULL) {
@@ -8738,10 +8740,11 @@ int xodtemplate_register_host(xodtemplate_host * this_host)
 
 	/* add all contacts to the host */
 	if (this_host->contacts != NULL) {
+		save_str = NULL;
 
-		for (contact_name = strtok(this_host->contacts, ","); contact_name != NULL;
-			 contact_name = strtok(NULL, ",")) {
-
+		for (contact_name = safe_strtok(this_host->contacts, ",", &save_str);
+			 contact_name != NULL; contact_name = safe_strtok(NULL, ",", &save_str))
+		{
 			strip(contact_name);
 			new_contactsmember = add_contact_to_host(new_host, contact_name);
 			if (new_contactsmember == NULL) {
@@ -8782,6 +8785,7 @@ int xodtemplate_register_service(xodtemplate_service * this_service)
 	contactgroupsmember *new_contactgroupsmember = NULL;
 	char	   *contact_name = NULL;
 	char	   *contact_group = NULL;
+	char		*save_str;
 	xodtemplate_customvariablesmember *temp_customvariablesmember = NULL;
 
 	/* bail out if we shouldn't register this object */
@@ -8874,8 +8878,11 @@ int xodtemplate_register_service(xodtemplate_service * this_service)
 	/* add all contact groups to the service */
 	if (this_service->contact_groups != NULL) {
 
-		for (contact_group = strtok(this_service->contact_groups, ","); contact_group != NULL;
-			 contact_group = strtok(NULL, ",")) {
+		save_str = NULL;
+
+		for (contact_group = safe_strtok(this_service->contact_groups, ",", &save_str);
+			 contact_group != NULL; contact_group = safe_strtok(NULL, ",", &save_str))
+		{
 
 			strip(contact_group);
 			new_contactgroupsmember = add_contactgroup_to_service(new_service, contact_group);
@@ -8892,8 +8899,11 @@ int xodtemplate_register_service(xodtemplate_service * this_service)
 	/* add all the contacts to the service */
 	if (this_service->contacts != NULL) {
 
-		for (contact_name = strtok(this_service->contacts, ","); contact_name != NULL;
-			 contact_name = strtok(NULL, ",")) {
+		save_str = NULL;
+
+		for (contact_name = safe_strtok(this_service->contacts, ",", &save_str);
+			 contact_name != NULL; contact_name = safe_strtok(NULL, ",", &save_str))
+		{
 
 			/* add this contact to the service definition */
 			strip(contact_name);

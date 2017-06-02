@@ -245,6 +245,9 @@ int service_notification(service * svc, int type, char *not_author, char *not_da
 		for (temp_notification = notification_list; temp_notification != NULL;
 			 temp_notification = temp_notification->next) {
 
+			if (temp_notification->exclude)
+				continue;
+
 			/* grab the macro variables for this contact */
 			grab_contact_macros_r(&mac, temp_notification->contact);
 
@@ -578,7 +581,7 @@ int check_service_notification_viability(service * svc, int type, int options)
 	}
 
 	/* see if we should notify about problems with this service */
-	if (should_notify(svc) == FALSE) {
+	if ((flag_isset(svc->notification_options, 1 << svc->current_state)) == FALSE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1,
 					   "We shouldn't notify about %s states for this service.\n",
 					   service_state_name(svc->current_state));
@@ -675,7 +678,7 @@ int check_service_notification_viability(service * svc, int type, int options)
 
 
 /* check viability of sending out a service notification to a specific contact (contact-specific filters) */
-int check_contact_service_notification_viability(contact * cntct, service * svc, int type, int options)
+int check_contact_service_notification_viability(contact * cntct, service * svc, int notify_opts, int type, int options)
 {
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_contact_service_notification_viability()\n");
@@ -728,7 +731,8 @@ int check_contact_service_notification_viability(contact * cntct, service * svc,
 	if (type == NOTIFICATION_FLAPPINGSTART || type == NOTIFICATION_FLAPPINGSTOP
 		|| type == NOTIFICATION_FLAPPINGDISABLED) {
 
-		if ((cntct->service_notification_options & OPT_FLAPPING) == FALSE) {
+//		if ((cntct->service_notification_options & OPT_FLAPPING) == FALSE) {
+		if ((notify_opts & OPT_FLAPPING) == FALSE) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2,
 						   "We shouldn't notify this contact about FLAPPING service events.\n");
 			return ERROR;
@@ -744,7 +748,8 @@ int check_contact_service_notification_viability(contact * cntct, service * svc,
 	if (type == NOTIFICATION_DOWNTIMESTART || type == NOTIFICATION_DOWNTIMEEND
 		|| type == NOTIFICATION_DOWNTIMECANCELLED) {
 
-		if ((cntct->service_notification_options & OPT_DOWNTIME) == FALSE) {
+//		if ((cntct->service_notification_options & OPT_DOWNTIME) == FALSE) {
+		if ((notify_opts & OPT_DOWNTIME) == FALSE) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2,
 						   "We shouldn't notify this contact about DOWNTIME service events.\n");
 			return ERROR;
@@ -758,7 +763,8 @@ int check_contact_service_notification_viability(contact * cntct, service * svc,
 	/*************************************/
 
 	/* see if we should notify about problems with this service */
-	if (!(cntct->service_notification_options & (1 << svc->current_state))) {
+//	if (!(cntct->service_notification_options & (1 << svc->current_state))) {
+	if (!(notify_opts & (1 << svc->current_state))) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 2,
 					   "We shouldn't notify this contact about %s service states.\n",
 					   service_state_name(svc->current_state));
@@ -767,13 +773,15 @@ int check_contact_service_notification_viability(contact * cntct, service * svc,
 
 	if (svc->current_state == STATE_OK) {
 
-		if ((cntct->service_notification_options & OPT_RECOVERY) == FALSE) {
+//		if ((cntct->service_notification_options & OPT_RECOVERY) == FALSE) {
+		if ((notify_opts & OPT_RECOVERY) == FALSE) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2,
 						   "We shouldn't notify this contact about RECOVERY service states.\n");
 			return ERROR;
 		}
 
-		if (!(svc->notified_on & cntct->service_notification_options)) {
+//		if (!(svc->notified_on & cntct->service_notification_options)) {
+		if (!(svc->notified_on & notify_opts)) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2,
 						   "We shouldn't notify about this recovery.\n");
 			return ERROR;
@@ -1056,6 +1064,7 @@ int create_notification_list_from_service(nagios_macros * mac, service * svc, in
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 	int 		escalate_notification = FALSE;
+	uint32_t	notify_opts;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "create_notification_list_from_service()\n");
@@ -1100,12 +1109,13 @@ int create_notification_list_from_service(nagios_macros * mac, service * svc, in
 				if ((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 					continue;
 				/* check now if the contact can be notified */
-				if (check_contact_service_notification_viability
-					(temp_contact, svc, type, options) == OK)
-					add_notification(mac, temp_contact);
-				else
+				if (check_contact_service_notification_viability(temp_contact, svc, 0, type, options) == OK)
+					add_notification(mac, temp_contact, false);
+				else {
+					add_notification(mac, temp_contact, true);
 					log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",
 								   temp_contact->name);
+				}
 			}
 
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2,
@@ -1126,9 +1136,8 @@ int create_notification_list_from_service(nagios_macros * mac, service * svc, in
 					if ((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 						continue;
 					/* check now if the contact can be notified */
-					if (check_contact_service_notification_viability
-						(temp_contact, svc, type, options) == OK)
-						add_notification(mac, temp_contact);
+					if (check_contact_service_notification_viability(temp_contact, svc, 0, type, options) == OK)
+						add_notification(mac, temp_contact, false);
 					else
 						log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",
 									   temp_contact->name);
@@ -1148,13 +1157,18 @@ int create_notification_list_from_service(nagios_macros * mac, service * svc, in
 			 temp_contactsmember = temp_contactsmember->next) {
 			if ((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 				continue;
-			/* check now if the contact can be notified */
-			if (check_contact_service_notification_viability(temp_contact, svc, type, options)
-				== OK)
-				add_notification(mac, temp_contact);
+			if (temp_contactsmember->notification_options != 0)
+				notify_opts = temp_contactsmember->notification_options;
 			else
+				notify_opts = temp_contact->service_notification_options;
+			/* check now if the contact can be notified */
+			if (check_contact_service_notification_viability(temp_contact, svc, notify_opts, type, options) == OK)
+				add_notification(mac, temp_contact, false);
+			else {
+				add_notification(mac, temp_contact, true);
 				log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",
 							   temp_contact->name);
+			}
 		}
 
 		/* add all contacts that belong to contactgroups for this service */
@@ -1169,10 +1183,13 @@ int create_notification_list_from_service(nagios_macros * mac, service * svc, in
 				 temp_contactsmember = temp_contactsmember->next) {
 				if ((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 					continue;
+				if (temp_contactgroup->notification_options != 0)
+					notify_opts = temp_contactgroup->notification_options;
+				else
+					notify_opts = temp_contact->service_notification_options;
 				/* check now if the contact can be notified */
-				if (check_contact_service_notification_viability
-					(temp_contact, svc, type, options) == OK)
-					add_notification(mac, temp_contact);
+				if (check_contact_service_notification_viability(temp_contact, svc, notify_opts, type, options) == OK)
+					add_notification(mac, temp_contact, false);
 				else
 					log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",
 								   temp_contact->name);
@@ -1640,7 +1657,7 @@ int check_host_notification_viability(host * hst, int type, int options)
 	}
 
 	/* see if we should notify about problems with this host */
-	if ((hst->notification_options & (1 << hst->current_state)) == FALSE) {
+	if ((flag_isset(hst->notification_options, 1 << hst->current_state)) == FALSE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1,
 					   "We shouldn't notify about %s status for this host.\n",
 					   host_state_name(hst->current_state));
@@ -1717,7 +1734,7 @@ int check_host_notification_viability(host * hst, int type, int options)
 
 
 /* checks the viability of notifying a specific contact about a host */
-int check_contact_host_notification_viability(contact * cntct, host * hst, int type, int options)
+int check_contact_host_notification_viability(contact * cntct, host * hst, int notify_opts, int type, int options)
 {
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_contact_host_notification_viability()\n");
@@ -1771,7 +1788,8 @@ int check_contact_host_notification_viability(contact * cntct, host * hst, int t
 	if (type == NOTIFICATION_FLAPPINGSTART || type == NOTIFICATION_FLAPPINGSTOP
 		|| type == NOTIFICATION_FLAPPINGDISABLED) {
 
-		if ((cntct->host_notification_options & OPT_FLAPPING) == FALSE) {
+//		if ((cntct->host_notification_options & OPT_FLAPPING) == FALSE) {
+		if ((notify_opts & OPT_FLAPPING) == FALSE) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2,
 						   "We shouldn't notify this contact about FLAPPING host events.\n");
 			return ERROR;
@@ -1788,7 +1806,8 @@ int check_contact_host_notification_viability(contact * cntct, host * hst, int t
 	if (type == NOTIFICATION_DOWNTIMESTART || type == NOTIFICATION_DOWNTIMEEND
 		|| type == NOTIFICATION_DOWNTIMECANCELLED) {
 
-		if (flag_isset(cntct->host_notification_options, OPT_DOWNTIME) == FALSE) {
+//		if (flag_isset(cntct->host_notification_options, OPT_DOWNTIME) == FALSE) {
+		if (flag_isset(notify_opts, OPT_DOWNTIME) == FALSE) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2,
 						   "We shouldn't notify this contact about DOWNTIME host events.\n");
 			return ERROR;
@@ -1803,7 +1822,7 @@ int check_contact_host_notification_viability(contact * cntct, host * hst, int t
 	/*************************************/
 
 	/* see if we should notify about problems with this host */
-	if (flag_isset(cntct->host_notification_options, 1 << hst->current_state) == FALSE) {
+	if (flag_isset(notify_opts, 1 << hst->current_state) == FALSE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 2,
 					   "We shouldn't notify this contact about %s states.\n",
 					   host_state_name(hst->current_state));
@@ -2094,6 +2113,7 @@ int create_notification_list_from_host(nagios_macros * mac, host * hst, int opti
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
 	int 		escalate_notification = FALSE;
+	uint32_t	notify_opts;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "create_notification_list_from_host()\n");
 
@@ -2137,12 +2157,13 @@ int create_notification_list_from_host(nagios_macros * mac, host * hst, int opti
 				if ((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 					continue;
 				/* check now if the contact can be notified */
-				if (check_contact_host_notification_viability(temp_contact, hst, type, options)
-					== OK)
-					add_notification(mac, temp_contact);
-				else
+				if (check_contact_host_notification_viability(temp_contact, hst, 0, type, options) == OK)
+					add_notification(mac, temp_contact, false);
+				else {
+					add_notification(mac, temp_contact, true);
 					log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",
 								   temp_contact->name);
+				}
 			}
 
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2,
@@ -2163,9 +2184,8 @@ int create_notification_list_from_host(nagios_macros * mac, host * hst, int opti
 					if ((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 						continue;
 					/* check now if the contact can be notified */
-					if (check_contact_host_notification_viability
-						(temp_contact, hst, type, options) == OK)
-						add_notification(mac, temp_contact);
+					if (check_contact_host_notification_viability(temp_contact, hst, 0, type, options) == OK)
+						add_notification(mac, temp_contact, false);
 					else
 						log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",
 									   temp_contact->name);
@@ -2188,13 +2208,18 @@ int create_notification_list_from_host(nagios_macros * mac, host * hst, int opti
 			 temp_contactsmember = temp_contactsmember->next) {
 			if ((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 				continue;
-			/* check now if the contact can be notified */
-			if (check_contact_host_notification_viability(temp_contact, hst, type, options) ==
-				OK)
-				add_notification(mac, temp_contact);
+			if (temp_contactsmember->notification_options != 0)
+				notify_opts = temp_contactsmember->notification_options;
 			else
+				notify_opts = temp_contact->service_notification_options;
+			/* check now if the contact can be notified */
+			if (check_contact_host_notification_viability(temp_contact, hst, notify_opts, type, options) == OK)
+				add_notification(mac, temp_contact, false);
+			else {
+				add_notification(mac, temp_contact, true);
 				log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",
 							   temp_contact->name);
+			}
 		}
 
 		log_debug_info(DEBUGL_NOTIFICATIONS, 2,
@@ -2214,9 +2239,12 @@ int create_notification_list_from_host(nagios_macros * mac, host * hst, int opti
 				if ((temp_contact = temp_contactsmember->contact_ptr) == NULL)
 					continue;
 				/* check now if the contact can be notified */
-				if (check_contact_host_notification_viability(temp_contact, hst, type, options)
-					== OK)
-					add_notification(mac, temp_contact);
+				if (temp_contactsmember->notification_options != 0)
+					notify_opts = temp_contactsmember->notification_options;
+				else
+					notify_opts = temp_contact->service_notification_options;
+				if (check_contact_host_notification_viability(temp_contact, hst, notify_opts, type, options) == OK)
+					add_notification(mac, temp_contact, false);
 				else
 					log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",
 								   temp_contact->name);
@@ -2392,7 +2420,7 @@ notification *find_notification(contact * cntct)
 
 
 /* add a new notification to the list in memory */
-int add_notification(nagios_macros * mac, contact * cntct)
+int add_notification(nagios_macros * mac, contact * cntct, bool exclude)
 {
 	notification *new_notification = NULL;
 	notification *temp_notification = NULL;
@@ -2415,10 +2443,14 @@ int add_notification(nagios_macros * mac, contact * cntct)
 
 	/* fill in the contact info */
 	new_notification->contact = cntct;
+	new_notification->exclude = exclude;
 
 	/* add new notification to head of list */
 	new_notification->next = notification_list;
 	notification_list = new_notification;
+
+	if (exclude)
+		return OK;
 
 	/* add contact to notification recipients macro */
 	if (mac->x[MACRO_NOTIFICATIONRECIPIENTS] == NULL)

@@ -826,7 +826,6 @@ int get_raw_command_line_r(nagios_macros * mac, command * cmd_ptr, char *cmd,
 	*full_command =
 		(char *)strdup((cmd_ptr->command_line == NULL) ? "" : cmd_ptr->command_line);
 
-	/* XXX: Crazy indent */
 	/* get the command arguments */
 	if (cmd != NULL) {
 

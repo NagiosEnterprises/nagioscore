@@ -2430,8 +2430,8 @@ int add_notification(nagios_macros * mac, contact * cntct, bool exclude)
 	if (cntct == NULL)
 		return ERROR;
 
-	log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding contact '%s' to notification list.\n",
-				   cntct->name);
+	if (!exclude)
+		log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding contact '%s' to notification list.\n", cntct->name);
 
 	/* don't add anything if this contact is already on the notification list */
 	if ((temp_notification = find_notification(cntct)) != NULL)

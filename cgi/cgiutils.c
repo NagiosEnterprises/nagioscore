@@ -566,7 +566,7 @@ int read_main_config_file(const char *filename)
 			check_external_commands = (temp_buffer == NULL) ? 0 : atoi(temp_buffer);
 		}
 
-		else if (strstr(input, "date_format=") == input) {			/*										NEED TO CHECK AFTER CONFIG FILE HAS BEEN READ!!!!!!! */
+		else if (strstr(input, "date_format=") == input) {			/*										TODO - NEED TO CHECK AFTER CONFIG FILE HAS BEEN READ!!!!!!! */
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\x0");
 			if (temp_buffer == NULL)

@@ -813,10 +813,6 @@ int read_main_config_file(char *main_config_file)
 			}
 		}
 
-		else if (!strcmp(variable, "sleep_time")) {
-			obsoleted_warning(variable, NULL);
-		}
-
 		else if (!strcmp(variable, "interval_length")) {
 
 			interval_length = atoi(value);
@@ -836,11 +832,6 @@ int read_main_config_file(char *main_config_file)
 			}
 
 			check_external_commands = (atoi(value) > 0) ? TRUE : FALSE;
-		}
-
-		/* @todo Remove before Nagios 4.3 */
-		else if (!strcmp(variable, "command_check_interval")) {
-			obsoleted_warning(variable, "Commands are always handled on arrival");
 		}
 
 		else if (!strcmp(variable, "check_for_orphaned_services")) {
@@ -963,9 +954,6 @@ int read_main_config_file(char *main_config_file)
 
 		else if (!strcmp(variable, "enable_flap_detection"))
 			enable_flap_detection = (atoi(value) > 0) ? TRUE : FALSE;
-
-		else if (!strcmp(variable, "enable_failure_prediction"))
-			obsoleted_warning(variable, NULL);
 
 		else if (!strcmp(variable, "low_service_flap_threshold")) {
 
@@ -1143,20 +1131,6 @@ int read_main_config_file(char *main_config_file)
 
 		else if (!strcmp(variable, "child_processes_fork_twice"))
 			child_processes_fork_twice = (atoi(value) > 0) ? TRUE : FALSE;
-
-		/*** embedded perl variables are deprecated now ***/
-		else if (!strcmp(variable, "enable_embedded_perl"))
-			obsoleted_warning(variable, NULL);
-		else if (!strcmp(variable, "use_embedded_perl_implicitly"))
-			obsoleted_warning(variable, NULL);
-		else if (!strcmp(variable, "auth_file"))
-			obsoleted_warning(variable, NULL);
-		else if (!strcmp(variable, "p1_file"))
-			obsoleted_warning(variable, NULL);
-
-		/*** as is external_command_buffer_slots */
-		else if (!strcmp(variable, "external_command_buffer_slots"))
-			obsoleted_warning(variable, "All commands are always processed upon arrival");
 
 		else if (!strcmp(variable, "check_for_updates"))
 			check_for_updates = (atoi(value) > 0) ? TRUE : FALSE;

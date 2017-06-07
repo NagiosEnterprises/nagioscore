@@ -3631,19 +3631,16 @@ int reset_variables(void)
 	my_free(lock_file);
 	my_free(log_archive_path);
 	my_free(debug_file);
-
 	my_free(object_cache_file);
 	my_free(object_precache_file);
-
 	my_free(nagios_user);
 	my_free(nagios_group);
-
 	my_free(global_host_event_handler);
 	my_free(global_service_event_handler);
-
 	my_free(ocsp_command);
 	my_free(ochp_command);
 	my_free(website_url);
+	my_free(date_format);
 
 	/* Next re-initialize configuration variables */
 	init_main_cfg_vars(0);

@@ -151,6 +151,48 @@ static command *find_bang_command(char *name)
 	return cmd;
 }
 
+static void check_date_formats(const char *format)
+{
+	if (!format || !*format)
+		format = "us";
+
+	if (!long_date_time_format)
+		long_date_time_format = strdup(LONG_DATE_TIME_FORMAT);
+	if (!long_date_format)
+		long_date_format = strdup(LONG_DATE_FORMAT);
+	if (!time_format)
+		time_format = strdup(TIME_FORMAT);
+
+	if (!strcmp(format, "euro")) {
+		date_format = strdup(DATE_FORMAT_EURO);
+		if (!short_date_time_format)
+			short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_EURO);
+		if (!short_date_format)
+			short_date_format = strdup(SHORT_DATE_FORMAT_EURO);
+
+	} else if (!strcmp(format, "iso8601")) {
+		date_format = strdup(DATE_FORMAT_ISO8601);
+		if (!short_date_time_format)
+			short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_ISO8601);
+		if (!short_date_format)
+			short_date_format = strdup(SHORT_DATE_FORMAT_ISO8601);
+
+	} else if (!strcmp(format, "strict-iso8601")) {
+		date_format = strdup(DATE_FORMAT_STRICT_ISO8601);
+		if (!short_date_time_format)
+			short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_STRICT_ISO8601);
+		if (!short_date_format)
+			short_date_format = strdup(SHORT_DATE_FORMAT_STRICT_ISO8601);
+
+	}
+
+	if (!date_format)
+		date_format = strdup(DATE_FORMAT_US);
+	if (!short_date_time_format)
+		short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_US);
+	if (!short_date_format)
+		short_date_format = strdup(SHORT_DATE_FORMAT_US);
+}
 
 
 /**********************************************************
@@ -566,48 +608,13 @@ int read_main_config_file(const char *filename)
 			check_external_commands = (temp_buffer == NULL) ? 0 : atoi(temp_buffer);
 		}
 
-		else if (strstr(input, "date_format=") == input) {			/*										TODO - NEED TO CHECK AFTER CONFIG FILE HAS BEEN READ!!!!!!! */
+		else if (strstr(input, "date_format=") == input) {
 			temp_buffer = strtok(input, "=");
 			temp_buffer = strtok(NULL, "\x0");
 			if (temp_buffer == NULL)
 				temp_buffer = "us";
 
-			if (!long_date_time_format)
-				long_date_time_format = strdup(LONG_DATE_TIME_FORMAT);
-			if (!long_date_format)
-				long_date_format = strdup(LONG_DATE_FORMAT);
-			if (!time_format)
-				time_format = strdup(TIME_FORMAT);
-
-			if (!strcmp(temp_buffer, "euro")) {
-				date_format = strdup(DATE_FORMAT_EURO);
-				if (!short_date_time_format)
-					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_EURO);
-				if (!short_date_format)
-					short_date_format = strdup(SHORT_DATE_FORMAT_EURO);
-
-			} else if (!strcmp(temp_buffer, "iso8601")) {
-				date_format = strdup(DATE_FORMAT_ISO8601);
-				if (!short_date_time_format)
-					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_ISO8601);
-				if (!short_date_format)
-					short_date_format = strdup(SHORT_DATE_FORMAT_ISO8601);
-
-			} else if (!strcmp(temp_buffer, "strict-iso8601")) {
-				date_format = strdup(DATE_FORMAT_STRICT_ISO8601);
-				if (!short_date_time_format)
-					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_STRICT_ISO8601);
-				if (!short_date_format)
-					short_date_format = strdup(SHORT_DATE_FORMAT_STRICT_ISO8601);
-
-			} else {
-				date_format = strdup(DATE_FORMAT_US);
-				if (!short_date_time_format)
-					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_US);
-				if (!short_date_format)
-					short_date_format = strdup(SHORT_DATE_FORMAT_US);
-
-			}
+			check_date_formats(temp_buffer);
 		}
 
 		else if (strstr(input, "short_date_time_format") == input) {
@@ -655,6 +662,8 @@ int read_main_config_file(const char *filename)
 			time_format = strdup(temp_buffer);
 		}
 	}
+
+	check_date_formats(NULL);
 
 	/* free memory and close the file */
 	free(input);

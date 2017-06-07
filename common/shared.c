@@ -49,7 +49,6 @@ char		*config_file_dir = NULL;
 
 void init_shared_cfg_vars(int first_time)
 {
-/*	date_format = DATE_FORMAT_US;										TODO - NEED TO CHECK AFTER CONFIG FILE HAS BEEN READ!!!!!!! */
 	interval_length = DEFAULT_INTERVAL_LENGTH;
 	if (first_time) {
 		/* Not sure why these are not reset in reset_variables() */

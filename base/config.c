@@ -53,6 +53,48 @@ static command *find_bang_command(char *name)
 	return cmd;
 }
 
+static void check_date_formats(const char *format)
+{
+	if (!format || !*format)
+		format = "us";
+
+	if (!long_date_time_format)
+		long_date_time_format = strdup(LONG_DATE_TIME_FORMAT);
+	if (!long_date_format)
+		long_date_format = strdup(LONG_DATE_FORMAT);
+	if (!time_format)
+		time_format = strdup(TIME_FORMAT);
+
+	if (!strcmp(format, "euro")) {
+		date_format = strdup(DATE_FORMAT_EURO);
+		if (!short_date_time_format)
+			short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_EURO);
+		if (!short_date_format)
+			short_date_format = strdup(SHORT_DATE_FORMAT_EURO);
+
+	} else if (!strcmp(format, "iso8601")) {
+		date_format = strdup(DATE_FORMAT_ISO8601);
+		if (!short_date_time_format)
+			short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_ISO8601);
+		if (!short_date_format)
+			short_date_format = strdup(SHORT_DATE_FORMAT_ISO8601);
+
+	} else if (!strcmp(format, "strict-iso8601")) {
+		date_format = strdup(DATE_FORMAT_STRICT_ISO8601);
+		if (!short_date_time_format)
+			short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_STRICT_ISO8601);
+		if (!short_date_format)
+			short_date_format = strdup(SHORT_DATE_FORMAT_STRICT_ISO8601);
+
+	}
+
+	if (!date_format)
+		date_format = strdup(DATE_FORMAT_US);
+	if (!short_date_time_format)
+		short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_US);
+	if (!short_date_format)
+		short_date_format = strdup(SHORT_DATE_FORMAT_US);
+}
 
 
 /******************************************************************/
@@ -995,45 +1037,8 @@ int read_main_config_file(char *main_config_file)
 			}
 		}
 
-		else if (!strcmp(variable, "date_format")) {
-
-			if (!long_date_time_format)
-				long_date_time_format = strdup(LONG_DATE_TIME_FORMAT);
-			if (!long_date_format)
-				long_date_format = strdup(LONG_DATE_FORMAT);
-			if (!time_format)
-				time_format = strdup(TIME_FORMAT);
-
-			if (!strcmp(value, "euro")) {
-				date_format = strdup(DATE_FORMAT_EURO);
-				if (!short_date_time_format)
-					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_EURO);
-				if (!short_date_format)
-					short_date_format = strdup(SHORT_DATE_FORMAT_EURO);
-
-			} else if (!strcmp(value, "iso8601")) {
-				date_format = strdup(DATE_FORMAT_ISO8601);
-				if (!short_date_time_format)
-					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_ISO8601);
-				if (!short_date_format)
-					short_date_format = strdup(SHORT_DATE_FORMAT_ISO8601);
-
-			} else if (!strcmp(value, "strict-iso8601")) {
-				date_format = strdup(DATE_FORMAT_STRICT_ISO8601);
-				if (!short_date_time_format)
-					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_STRICT_ISO8601);
-				if (!short_date_format)
-					short_date_format = strdup(SHORT_DATE_FORMAT_STRICT_ISO8601);
-
-			} else {
-				date_format = strdup(DATE_FORMAT_US);
-				if (!short_date_time_format)
-					short_date_time_format = strdup(SHORT_DATE_TIME_FORMAT_US);
-				if (!short_date_format)
-					short_date_format = strdup(SHORT_DATE_FORMAT_US);
-
-			}
-		}
+		else if (!strcmp(variable, "date_format"))
+			check_date_formats(value);
 
 		else if (!strcmp(variable, "short_date_time_format")) {
 			my_free(short_date_time_format);
@@ -1276,6 +1281,11 @@ int read_main_config_file(char *main_config_file)
 				break;
 			}
 		}
+
+		// put this here so the compiler doesn't complain
+		else if (!strcmp(variable,"dummy_obsolete"))
+			obsoleted_warning(variable, "Some message");
+
 		/* we don't know what this variable is... */
 		else {
 			asprintf(&error_message, "UNKNOWN VARIABLE");
@@ -1284,6 +1294,8 @@ int read_main_config_file(char *main_config_file)
 		}
 
 	}
+
+	check_date_formats(NULL);
 
 	if (deprecated) {
 		for (list = deprecated; list; list = list->next) {

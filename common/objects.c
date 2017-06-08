@@ -1942,7 +1942,7 @@ serviceescalation *add_serviceescalation(char *host_name, char *description,
 	if (!(svc = find_service(host_name, description))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE,
 			  "Error: Service '%s' on host '%s' has an escalation but is not defined anywhere!\n",
-			  host_name, description);
+			  description, host_name);
 		return NULL;
 	}
 	if (escalation_period && !(tp = find_timeperiod(escalation_period))) {

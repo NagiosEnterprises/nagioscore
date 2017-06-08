@@ -7098,25 +7098,23 @@ int xodtemplate_recombobulate_hostgroups(void)
 		}
 
 		/* resolve groups into a group-list */
-		for (next_ptr = ptr = temp_hostgroup->hostgroup_members; next_ptr; ptr = next_ptr + 1) {
-			xodtemplate_hostgroup *hg;
-			next_ptr = strchr(ptr, ',');
-			if (next_ptr)
-				*next_ptr = 0;
-			while (*ptr == ' ' || *ptr == '\t')
-				ptr++;
-
-			strip(ptr);
-
-			if (!(hg = xodtemplate_find_real_hostgroup(ptr))) {
+		if (temp_hostgroup->hostgroup_members) {
+			if (xodtemplate_expand_hostgroups(&accept, temp_hostgroup->reject_map, temp_hostgroup->hostgroup_members, temp_hostgroup->_config_file, temp_hostgroup->_start_line) == ERROR) {
 				logit(NSLOG_CONFIG_ERROR, TRUE,
 					  "Error: Could not find member group '%s' specified in hostgroup '%s' (config file '%s', starting on line %d)\n",
-					  ptr, temp_hostgroup->hostgroup_name,
+					  temp_hostgroup->hostgroup_members, temp_hostgroup->hostgroup_name,
 					  xodtemplate_config_file_name(temp_hostgroup->_config_file),
 					  temp_hostgroup->_start_line);
 				return ERROR;
 			}
-			add_object_to_objectlist(&temp_hostgroup->group_list, hg);
+			for (list = accept; list; list = next) {
+				xodtemplate_hostgroup *hg;
+				hg = (xodtemplate_hostgroup*)list->object_ptr;
+				next = list->next;
+				free(list);
+				if (strcmp(hg->hostgroup_name, temp_hostgroup->hostgroup_name))
+					add_object_to_objectlist(&temp_hostgroup->group_list, hg);
+			}
 		}
 
 		/* move on if we have no members */
@@ -7133,9 +7131,7 @@ int xodtemplate_recombobulate_hostgroups(void)
 		}
 
 		/* get list of hosts in the hostgroup */
-		if (xodtemplate_expand_hosts
-			(&accept, temp_hostgroup->reject_map, temp_hostgroup->members,
-			 temp_hostgroup->_config_file, temp_hostgroup->_start_line) == ERROR) {
+		if (xodtemplate_expand_hosts(&accept, temp_hostgroup->reject_map, temp_hostgroup->members, temp_hostgroup->_config_file, temp_hostgroup->_start_line) == ERROR) {
 			logit(NSLOG_CONFIG_ERROR, TRUE,
 				  "Error: Could not expand members specified in hostgroup (config file '%s', starting on line %d)\n",
 				  xodtemplate_config_file_name(temp_hostgroup->_config_file),

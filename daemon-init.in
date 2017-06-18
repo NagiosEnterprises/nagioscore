@@ -152,7 +152,7 @@ pid_nagios ()
 {
 	if test ! -f $NagiosRunFile; then
 		echo "No lock file found in $NagiosRunFile"
-		exit 1
+		return 1
 	fi
 
 	NagiosPID=`head -n 1 $NagiosRunFile`
@@ -223,6 +223,9 @@ case "$1" in
 		echo -n "Stopping nagios:"
 
 		pid_nagios
+		if [ $? -eq 1 ]; then
+			exit 0
+		fi
 		killproc_nagios TERM
 
 		# now we have to wait for nagios to exit and remove its
@@ -253,6 +256,9 @@ case "$1" in
 
 	status)
 		pid_nagios
+		if [ $? -eq 1 ]; then
+			exit 3
+		fi
 		printstatus_nagios
 		;;
 

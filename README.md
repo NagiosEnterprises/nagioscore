@@ -1,29 +1,26 @@
-autoconf-macros README
-======================
-
-Sections below are: Purpose, Contents, Usage, References
-
-
-
-##Purpose
+autoconf-macros
+===============
 
 The purpose of Nagios autoconf-macros is to have a central place for
 autoconf macros that can be maintained in one place, but be used by any
 of the Nagios software. It is intended to be used as a git subtree.
-See the Usage and References section below.
+See the [Usage](#usage) and [References](#references) sections below.
 
 Since this project will be included in several parent projects, any
 changes must be as project-neutral as possible.
 
+Make sure to check out the [CHANGELOG](CHANGELOG.md) for relevant 
+information, as well.
 
 
-## Contents
+Contents
+--------
 
 The collection consists of the following macros:
 
 ### AX_NAGIOS_GET_OS alias AC_NAGIOS_GET_OS
 
-> Output Variable : opsys
+> Output Variable : `opsys`
 
 This macro detects the operating system, and transforms it into a generic
 label. The most common OS's that use Nagios software are recognized and
@@ -31,7 +28,7 @@ used in subsequent macros.
 
 ### AX_NAGIOS_GET_DISTRIB_TYPE alias AC_NAGIOS_GET_DISTRIB_TYPE
 
-> Output Variables : dist_type, dist_ver
+> Output Variables : `dist_type`, `dist_ver`
 
 This macro detects the distribution type. For Linux, this would be rh
 (for Red Hat and derivitives), suse (OpenSUSE, SLES, derivitives), gentoo
@@ -41,7 +38,7 @@ also be aix, solaris, osx, and so on for Unix operating systems.
 
 ### AX_NAGIOS_GET_INIT alias AC_NAGIOS_GET_INIT
 
-> Output Variable : init_type
+> Output Variable : `init_type`
 
 This macro detects what software is used to start daemons on bootup
 or on request, generally knows as the "init system". The init_type
@@ -51,7 +48,7 @@ gentoo (older Gentoo), upstart (several), or unknown.
 
 ### AX_NAGIOS_GET_INETD alias AC_NAGIOS_GET_INETD
 
-> Output Variable : inetd_type
+> Output Variable : `inetd_type`
 
 This macro detects what software is used to start daemons or services
 on demand, which historically has been "inetd". The inetd_type
@@ -60,7 +57,7 @@ will generally be one of inetd, xinetd, launchd (OS X), smf10 or smf11
 
 ### AX_NAGIOS_GET_PATHS alias AC_NAGIOS_GET_PATHS
 
-> Output Variables : many!
+> Output Variables : **many!**
 
 This macro determines the installation paths for binaries, config files,
 PID files, and so on. For a "standard" install of Nagios, NRPE, NDO Utils,
@@ -72,7 +69,7 @@ O/S dependant directories, such as /usr/bin, /usr/sbin, /var/lib/nagios,
 
 ### AX_NAGIOS_GET_FILES alias AC_NAGIOS_GET_FILES
 
-> Output Variables : src_init, src_inetd, src_tmpfile
+> Output Variables : `src_init`, `src_inetd`, `src_tmpfile`
 
 Each Nagios project will have a top-level directory named "/startup/".
 In that directory will be "*.in" files for the various "init_type" and
@@ -81,7 +78,7 @@ that directory will be needed.
 
 ### AX_NAGIOS_GET_SSL alias AC_NAGIOS_GET_SSL
 
-> Output Variables : HAVE_KRB5_H, HAVE_SSL, SSL_INC_DIR, SSL_LIB_DIR, CFLAGS, LDFLAGS, LIBS
+> Output Variables : `HAVE_KRB5_H`, `HAVE_SSL`, `SSL_INC_DIR`, `SSL_LIB_DIR`, `CFLAGS`, `LDFLAGS`, `LIBS`
 
 This macro checks various directories for SSL libraries and header files.
 The searches are based on known install locations on various operating
@@ -90,8 +87,8 @@ If it finds the headers and libraries, it will then do an `AC_LINK_IFELSE`
 on a simple program to make sure a compile and link will work correctly.
 
 
-
-## Usage
+Usage
+-----
 
 This repo is intended to be used as a git subtree, so changes will
 automatically propogate, and still be reasonably easy to use.
@@ -112,7 +109,8 @@ it should look like this:
 
            .git/      .gitignore    ChangeLog   LICENSE   Makefile.in
            README     configure.ac  include/    macros/   src/
-The `macros/` directory has been added.
+
+* The `macros/` directory has been added.
 
 * Now do a `git push` to save everything.
 
@@ -132,8 +130,8 @@ master.
            git subtgree pull --squash --prefix=macros autoconf-macros master
 
 
-
-## References
+References
+----------
 
 Now that autoconf-macros is available to your project, you will need to
 reference it.
@@ -165,3 +163,37 @@ where you want to check for SSL:
 
 * You will now be able to reference any of the variables in `config.h.in`
 and any files listed in the `AC_CONFIG_FILES` macro in `configure.ac`.
+
+
+License Notice
+--------------
+
+Copyright (c) 2016-2017 Nagios Enterprises, LLC
+
+This work is made available to you under the terms of Version 2 of
+the GNU General Public License. A copy of that license should have
+been provided with this software, but in any event can be obtained
+from http://www.fsf.org.
+
+This work is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301 or visit their web page on the internet at
+http://www.fsf.org.
+
+
+Questions?
+----------
+
+If you have questions about this addon, or problems getting things
+working, first try searching the nagios-users mailing list archives.
+Details on searching the list archives can be found at
+http://www.nagios.org
+
+If you don't find an answer there, post a message in the Nagios
+Plugin Development forum at https://support.nagios.com/forum/viewforum.php?f=35

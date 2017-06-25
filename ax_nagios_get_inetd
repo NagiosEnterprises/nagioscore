@@ -114,18 +114,18 @@ AC_SUBST(inetd_type)
 					inetd_type=[`ps -C "inetd,xinetd" -o fname | grep -vi COMMAND | head -1`])
 
 			if test x"$inetd_type" = x; then
-				if test x"$init_type" = "xupstart"; then
-					inetd_type="upstart"
-				fi
-			fi
-
-			if test x"$inetd_type" = x; then
 				if test -f /etc/xinetd.conf -a -d /etc/xinetd.d; then
 					inetd_disabled="(Not running)"
 					inetd_type=xinetd
 				elif test -f /etc/inetd.conf -o -f /usr/sbin/inetd; then
 					inetd_type=inetd
 					inetd_disabled="(Not running)"
+				fi
+			fi
+			
+			if test x"$inetd_type" = x; then
+				if test x"$init_type" = "xupstart"; then
+					inetd_type="upstart"
 				fi
 			fi
 

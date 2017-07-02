@@ -2,6 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
+4.3.4 - ????
+------------
+* Fix for CVE-2016-10089 (David Walser, Rémi Verschelde)
+
 4.3.3 - 2017-05-09
 ------------------
 * xodtemplate.c wrong option-deprecation code warning (alex2grad / John Frickson)

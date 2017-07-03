@@ -30,7 +30,6 @@
 #include "../include/cgiutils.h"
 #include "../include/getcgi.h"
 #include "../include/cgiauth.h"
-#include <string.h>
 
 static nagios_macros *mac;
 
@@ -1332,15 +1331,15 @@ void show_service_info(void) {
 			display_splunk_generic_url(buf, 1);
 			free(buf);
 			}
-		if(temp_svcstatus->long_plugin_output != NULL)
-			printf("<BR>%s", html_encode(temp_svcstatus->long_plugin_output, TRUE));
+		//if(temp_svcstatus->long_plugin_output != NULL)
+			//printf("<BR>%s", html_encode(temp_svcstatus->long_plugin_output, TRUE));
 		printf("</TD></TR>\n");
-
-		//To display IPMI output in another tab.
 		if(strcmp(temp_svcstatus->description, "IPMI"))
 			printf("<TR><TD CLASS='dataVar' VALIGN='top'>Performance Data New:</td><td CLASS='dataVal'>%s </td></tr>\n", (temp_svcstatus->perf_data == NULL) ? "" : html_encode(temp_svcstatus->perf_data, TRUE));
 		else
-			printf("<TR><TD CLASS='dataVar' VALIGN='top'>Performance Data New: </td><td><a href='http://127.0.0.1/index.php' target='_blank'>IPMI_DETAILS</a></td></tr>");
+			printf("<TR><TD CLASS='dataVar' VALIGN='top'>Performance Data New: </td><td><a href='http://10.129.26.133/index.php?%s' target='_blank'>IPMI_DETAILS</a></td></tr>", temp_service->host_name);
+
+		/*printf("<TR><TD CLASS='dataVar' VALIGN='top'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n", (temp_svcstatus->perf_data == NULL) ? "" : html_encode(temp_svcstatus->perf_data, TRUE));*/
 
 		printf("<TR><TD CLASS='dataVar'>Current Attempt:</TD><TD CLASS='dataVal'>%d/%d", temp_svcstatus->current_attempt, temp_svcstatus->max_attempts);
 		printf("&nbsp;&nbsp;(%s state)</TD></TR>\n", (temp_svcstatus->state_type == HARD_STATE) ? "HARD" : "SOFT");

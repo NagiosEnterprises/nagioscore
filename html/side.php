@@ -41,6 +41,16 @@ $link_target = 'main';
 				<a href="<?php echo $cfg["cgi_base_url"];?>/statusmap.cgi?host=all" target="<?php echo $link_target;?>">(Legacy)</a>
 			</li>
 			<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&amp;style=hostdetail" target="<?php echo $link_target;?>">Hosts</a></li>
+
+			<li><a href='http://10.129.26.133/test.php' target="<?php echo $link_target;?>">Add New Host</a></li>
+			<li><a href='http://10.129.26.133/htmlremove.php' target="<?php echo $link_target;?>">Remove Host </a></li>
+
+			<li><a href='http://10.129.26.133/htmlservices.php' target="<?php echo $link_target;?>">Add New Service</a></li>
+
+
+
+
+
 			<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all" target="<?php echo $link_target;?>">Services</a></li>
 			<li>
 				<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?hostgroup=all&amp;style=overview" target="<?php echo $link_target;?>">Host Groups</a>

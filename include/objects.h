@@ -25,6 +25,7 @@
 # define NAGIOS_OBJECTS_H_INCLUDED
 
 # include "common.h"
+#include <stdbool.h>
 
 NAGIOS_BEGIN_DECL
 /*************** CURRENT OBJECT REVISION **************/

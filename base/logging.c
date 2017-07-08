@@ -450,8 +450,13 @@ int rotate_log_file(time_t rotation_time)
 	write_log_file_info(&rotation_time);
 
 	if (stat_result == 0) {
-		chmod(log_file, log_file_stat.st_mode);
-		chown(log_file, log_file_stat.st_uid, log_file_stat.st_gid);
+		if ((chmod(log_file, log_file_stat.st_mode)
+			|| chown(log_file, log_file_stat.st_uid, log_file_stat.st_gid)) != 0) {
+
+			asprintf(&temp_buffer, "logging: chmod() failed\n");
+			write_to_all_logs_with_timestamp(temp_buffer, NSLOG_RUNTIME_ERROR, &rotation_time);
+			my_free(temp_buffer);
+		}
 	}
 
 	/* log current host and service state if activated */

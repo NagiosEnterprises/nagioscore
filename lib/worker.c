@@ -767,8 +767,10 @@ void enter_worker(int sd, int (*cb) (child_process *))
 	/* created with socketpair(), usually */
 	master_sd = sd;
 	parent_pid = getppid();
-	(void)chdir("/tmp");
-	(void)chdir("nagios-workers");
+	if ((chdir("/tmp")
+		 || chdir("nagios-workers")) != 0) {
+		/* ignore */
+	}
 
 	ptab = fanout_create(4096);
 

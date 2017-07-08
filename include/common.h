@@ -80,6 +80,8 @@ extern char *tzname[2];
 #  endif
 # endif
 
+/* get asprintf to check the value for compiler warnings */
+#define asprintf(...) do { if (asprintf(__VA_ARGS__)) { } } while (0)
 
 NAGIOS_END_DECL
 /* Experimental performance tweaks - use with caution */

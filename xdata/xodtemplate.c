@@ -7073,7 +7073,7 @@ int xodtemplate_recombobulate_hostgroups(void)
 	xodtemplate_host *temp_host = NULL;
 	xodtemplate_hostgroup *temp_hostgroup = NULL;
 	char	   *hostgroup_names = NULL;
-	char	   *ptr, *next_ptr, *temp_ptr = NULL;
+	char	   *temp_ptr = NULL;
 
 	/* expand members of all hostgroups - this could be done in xodtemplate_register_hostgroup(), but we can save the CGIs some work if we do it here */
 	for (temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup;

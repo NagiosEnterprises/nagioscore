@@ -547,7 +547,8 @@ int my_system_r(nagios_macros * mac, char *cmd, int timeout, int *early_timeout,
 	log_debug_info(DEBUGL_COMMANDS, 1, "Running command '%s'...\n", cmd);
 
 	/* create a pipe */
-	pipe(fd);
+	if (pipe(fd) != 0)
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "my_system_r(): pipe() failed: %s\n", strerror(errno));
 
 	/* make the pipe non-blocking */
 	fcntl(fd[0], F_SETFL, O_NONBLOCK);
@@ -627,14 +628,19 @@ int my_system_r(nagios_macros * mac, char *cmd, int timeout, int *early_timeout,
 			buffer[sizeof(buffer) - 1] = '\x0';
 
 			/* write the error back to the parent process */
-			write(fd[1], buffer, strlen(buffer) + 1);
+			if (write(fd[1], buffer, strlen(buffer) + 1) == -1)
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "ERROR: my_system_r(): write() failed for '%s', %s\n", buffer, strerror(errno));
+
 
 			result = STATE_CRITICAL;
 		} else {
 
 			/* write all the lines of output back to the parent process */
-			while (fgets(buffer, sizeof(buffer) - 1, fp))
-				write(fd[1], buffer, strlen(buffer));
+			while (fgets(buffer, sizeof(buffer) - 1, fp)) {
+				if (write(fd[1], buffer, strlen(buffer)) == -1) {
+					logit(NSLOG_RUNTIME_WARNING, TRUE, "ERROR: my_system_r(): fgets write() failed for '%s', %s\n", buffer, strerror(errno));
+				}
+			}
 
 			/* close the command and get termination status */
 			status = pclose(fp);
@@ -1928,6 +1934,7 @@ int daemon_init(void)
 	struct flock lock;
 	char	   *homedir = NULL;
 	char	   *cp;
+	int 		ret;
 
 #ifdef RLIMIT_CORE
 	struct rlimit limit;
@@ -1936,8 +1943,11 @@ int daemon_init(void)
 	/* change working directory. scuttle home if we're dumping core */
 	if (daemon_dumps_core == TRUE) {
 		homedir = getenv("HOME");
-		if (homedir && *homedir)
-			chdir(homedir);
+		if (homedir && *homedir) {
+			if (chdir(homedir) != 0) {
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "daemon_init(): homedir chdir() failed for '%s'\n", strerror(errno));
+			}
+		}
 		else if (log_file && *log_file) {
 			homedir = strdup(log_file);
 			cp = strrchr(homedir, '/');
@@ -1945,10 +1955,15 @@ int daemon_init(void)
 				*cp = '\0';
 			else
 				strcpy(homedir, "/");
-			chdir(homedir);
+			if (chdir(homedir) != 0) {
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "daemon_init(): log_file chdir() failed for '%s'\n", strerror(errno));
+			}
 			free(homedir);
-		} else
-			chdir("/");
+		} else {
+			if (chdir("/") != 0) {
+				logit(NSLOG_RUNTIME_WARNING, TRUE, "daemon_init(): chdir(/) failed for '%s'\n", strerror(errno));				
+			}
+		}
 	}
 
 	umask(S_IWGRP | S_IWOTH);
@@ -2043,9 +2058,11 @@ int daemon_init(void)
 
 	/* write PID to lockfile... */
 	lseek(lockfile, 0, SEEK_SET);
-	ftruncate(lockfile, 0);
+	if (ftruncate(lockfile, 0) == -1)
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "daemon_init(): ftruncate() failed: %s\n", strerror(errno));
 	sprintf(buf, "%d\n", (int)getpid());
-	write(lockfile, buf, strlen(buf));
+	if ((ret = write(lockfile, buf, strlen(buf))) != strlen(buf))
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "daemon_init(): write() wrote %d bytes\n", ret);
 
 	/* make sure lock file stays open while program is executing... */
 	val = fcntl(lockfile, F_GETFD, 0);

@@ -300,8 +300,14 @@ int launch_command_file_worker(void)
 	setpgid(0, 0);
 
 	/* we must preserve command_file before nuking memory */
-	(void)chdir("/tmp");
-	(void)chdir("nagios-cfw");
+	ret = chdir("/tmp");
+	if (ret != 0)
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "chdir(/tmp) failed with: %s\n", strerror(errno));
+
+	ret = chdir("nagios-cfw");
+	if (ret != 0)
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "chdir(nagios-cfw) failed with: %s\n", strerror(errno));
+
 	str = strdup(command_file);
 	free_memory(get_global_macros());
 	command_file = str;

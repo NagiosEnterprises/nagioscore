@@ -244,11 +244,13 @@ static int chan_host_checks(int cb, void *data)
 		return 0;
 
 	h = (host *) ds->object_ptr;
-	asprintf(&buf, "%s from %d -> %d: %s\n", h->name, h->last_state, h->current_state,
-				 cr->output);
-	len = strlen(buf);
-	nerd_broadcast(chan_host_checks_id, buf, len);
-	free(buf);
+	asprintf(&buf, "%s from %d -> %d: %s\n", h->name, h->last_state, h->current_state, cr->output);
+
+	if (buf != NULL) {
+		len = strlen(buf);
+		nerd_broadcast(chan_host_checks_id, buf, len);
+		free(buf);
+	}
 	return 0;
 }
 
@@ -263,11 +265,13 @@ static int chan_service_checks(int cb, void *data)
 	if (ds->type != NEBTYPE_SERVICECHECK_PROCESSED)
 		return 0;
 	s = (service *) ds->object_ptr;
-	asprintf(&buf, "%s;%s from %d -> %d: %s\n", s->host_name, s->description,
-				 s->last_state, s->current_state, cr->output);
-	len = strlen(buf);
-	nerd_broadcast(chan_service_checks_id, buf, len);
-	free(buf);
+	asprintf(&buf, "%s;%s from %d -> %d: %s\n", s->host_name, s->description, s->last_state, s->current_state, cr->output);
+
+	if (buf != NULL) {
+		len = strlen(buf);
+		nerd_broadcast(chan_service_checks_id, buf, len);
+		free(buf);
+	}
 	return 0;
 }
 

@@ -80,8 +80,11 @@ extern char *tzname[2];
 #  endif
 # endif
 
-/* get asprintf to check the value for compiler warnings */
+/* the following macros are used to get rid of unused
+   result compiler warnings when it isn't particularly
+   necessary to check the results of such functions */
 #define asprintf(...) do { if (asprintf(__VA_ARGS__)) { } } while (0)
+#define _unused_result(a) if(a)
 
 NAGIOS_END_DECL
 /* Experimental performance tweaks - use with caution */

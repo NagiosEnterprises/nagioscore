@@ -28,9 +28,7 @@ static int qh_echo(int sd, char *buf, unsigned int len)
 		nsock_printf_nul(sd, "Query handler that simply echoes back what you send it.");
 		return 0;
 	}
-	if (write(sd, buf, len))
-		return 0;
-	
+	_unused_result(write(sd, buf, len));
 	return 0;
 }
 

@@ -176,9 +176,8 @@ static int nagios_core_worker(const char *path)
 		return 1;
 	}
 	if (memcmp(response, "OK", 3)) {
-		ret = read(sd, response + 3, sizeof(response) - 4);
-		if (ret == (sizeof(response) - 4))
-			response[sizeof(response) - 2] = 0;
+		_unused_result(read(sd, response + 3, sizeof(response) - 4));
+		response[sizeof(response) - 2] = 0;
 		printf("Failed to register with wproc manager: %s\n", response);
 		return 1;
 	}

@@ -774,9 +774,8 @@ void enter_worker(int sd, int (*cb) (child_process *))
 
 	ptab = fanout_create(4096);
 
-	if (setpgid(0, 0)) {
-		/* XXX: handle error somehow, or maybe just ignore it */
-	}
+	/* no need to check this. either it works or not */
+	_unused_result(setpgid(0, 0));
 
 	/* we need to catch child signals to mark jobs as reapable */
 #ifdef HAVE_SIGACTION

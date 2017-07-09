@@ -128,7 +128,5 @@ extern int worker_buf2kvvec_prealloc(struct kvvec *kvv, char *buf, unsigned long
  */
 extern int worker_set_sockopts(int sd, int bufsize);
 
-/** @deprecated Use worker_set_sockopts() instead */
-extern int set_socket_options(int sd, int bufsize)
 NAGIOS_DEPRECATED(4.1 .0, "worker_set_sockopts()");
 #endif	 /* INCLUDE_worker_h__ */

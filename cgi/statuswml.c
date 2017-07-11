@@ -23,7 +23,6 @@
 #include "../include/common.h"
 #include "../include/objects.h"
 #include "../include/statusdata.h"
-
 #include "../include/cgiutils.h"
 #include "../include/getcgi.h"
 #include "../include/cgiauth.h"

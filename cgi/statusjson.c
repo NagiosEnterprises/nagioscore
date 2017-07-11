@@ -35,7 +35,6 @@
 #include "../include/statusdata.h"
 #include "../include/comments.h"
 #include "../include/downtime.h"
-
 #include "../include/cgiutils.h"
 #include "../include/getcgi.h"
 #include "../include/cgiauth.h"

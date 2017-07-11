@@ -23,4 +23,8 @@
 # include "nspath.h"
 # include "snprintf.h"
 # include "nwrite.h"
+
+#define asprintf(...) do { if (asprintf(__VA_ARGS__)) { } } while (0)
+#define _unused_result(a) if(a)
+
 #endif	 /* LIB_libnagios_h__ */

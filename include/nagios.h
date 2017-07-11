@@ -649,14 +649,8 @@ int my_rename(char *, char *);	/* renames a file - works across filesystems */
 int my_fcopy(char *, char *);	/* copies a file - works across filesystems */
 int my_fdcopy(char *, char *, int); /* copies a named source to an already opened destination file */
 
-/* thread-safe version of get_raw_command_line_r() */
+/* thread safe - given a raw command line, generate the actual command line to use */
 extern int	get_raw_command_line_r(nagios_macros * mac, command *, char *, char **, int);
-
-/*
- * given a raw command line, determine the actual command to run
- * Manipulates global_macros.argv and is thus not threadsafe
- */
-extern int	get_raw_command_line(command *, char *, char **, int);
 
 int check_time_against_period(time_t, timeperiod *);	/* check to see if a specific time is covered by a time period */
 int is_daterange_single_day(daterange *);

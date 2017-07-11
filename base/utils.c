@@ -880,19 +880,6 @@ int get_raw_command_line_r(nagios_macros * mac, command * cmd_ptr, char *cmd,
 	return OK;
 }
 
-/*
- * This function modifies the global macro struct and is thus not
- * threadsafe
- */
-int get_raw_command_line(command * cmd_ptr, char *cmd, char **full_command, int macro_options)
-{
-	nagios_macros *mac;
-
-	mac = get_global_macros();
-	return get_raw_command_line_r(mac, cmd_ptr, cmd, full_command, macro_options);
-}
-
-
 
 /******************************************************************/
 /******************** ENVIRONMENT FUNCTIONS ***********************/

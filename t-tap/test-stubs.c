@@ -225,10 +225,6 @@ int broker_service_check(int type, int flags, int attr, service * svc, int check
 {
 }
 
-int get_raw_command_line(command * a, char *b, char **c, int d)
-{
-}
-
 int get_raw_command_line_r(nagios_macros * mac, command * a, char *b, char **c, int d)
 {
 }

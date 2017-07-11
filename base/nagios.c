@@ -298,9 +298,11 @@ int main(int argc, char **argv)
 		case 'u':				/* use precached object config */
 			use_precached_objects = TRUE;
 			break;
+
 		case 'T':
 			enable_timing_point = TRUE;
 			break;
+
 		case 'W':
 			worker_socket = optarg;
 			break;
@@ -365,21 +367,15 @@ int main(int argc, char **argv)
 		printf("\n");
 		printf("Options:\n");
 		printf("\n");
-		printf
-			("	-v, --verify-config 		 Verify all configuration data (-v -v for more info)\n");
-		printf
-			("	-s, --test-scheduling		 Shows projected/recommended check scheduling and other\n");
-		printf
-			("								 diagnostic info based on the current configuration files.\n");
-		printf("  -T, --enable-timing-point    Enable timed commentary on initialization\n");
-		printf
-			("	-x, --dont-verify-paths 	 Deprecated (Don't check for circular object paths)\n");
-		printf("  -p, --precache-objects	   Precache object configuration\n");
-		printf("  -u, --use-precached-objects  Use precached object config file\n");
-		printf
-			("	-d, --daemon				 Starts Nagios in daemon mode, instead of as a foreground process\n");
-		printf
-			("	-W, --worker /path/to/socket Act as a worker for an already running daemon\n");
+        printf("    -v, --verify-config            Verify all configuration data (-v -v for more info)\n");
+        printf("    -s, --test-scheduling          Shows projected/recommended check scheduling and other\n");
+        printf("                                   diagnostic info based on the current configuration files.\n");
+        printf("    -T, --enable-timing-point      Enable timed commentary on initialization\n");
+        printf("    -x, --dont-verify-paths        Deprecated (Don't check for circular object paths)\n");
+        printf("    -p, --precache-objects         Precache object configuration\n");
+        printf("    -u, --use-precached-objects    Use precached object config file\n");
+        printf("    -d, --daemon                   Starts Nagios in daemon mode, instead of as a foreground process\n");
+        printf("    -W, --worker /path/to/socket   Act as a worker for an already running daemon\n");
 		printf("\n");
 		printf("Visit the Nagios website at https://www.nagios.org/ for bug fixes, new\n");
 		printf("releases, online documentation, FAQs, information on subscribing to\n");

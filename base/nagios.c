@@ -694,8 +694,6 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			}
 			timing_point("Query handler initialized\n");
-			nerd_init();
-			timing_point("NERD initialized\n");
 
 			/* initialize check workers */
 			if (init_workers(num_check_workers) < 0) {

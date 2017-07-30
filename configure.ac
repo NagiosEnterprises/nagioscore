@@ -227,6 +227,7 @@ AC_ARG_WITH(checkresult-dir,
 if test x$CHECKRESULTDIR = xno; then
 	CHECKRESULTDIR="$localstatedir/spool/checkresults"
 fi 
+AC_SUBST(CHECKRESULTDIR)
 
 dnl Location of check result path
 TMPDIR=no
@@ -270,7 +271,7 @@ AC_ARG_WITH(lockfile,
 	lockfile=$withval,
 	lockfile=$localstatedir/nagios.lock
 )
-
+AC_SUBST(lockfile)
 
 dnl Determine the library to be used by the iobroker
 
@@ -818,13 +819,6 @@ perl subst sample-config/template-object/windows.cfg
 perl subst sample-config/template-object/printer.cfg
 perl subst sample-config/template-object/switch.cfg
 
-
-
-eval localstatedir=$localstatedir
-eval lockfile=$lockfile
-eval CHECKRESULTDIR=$CHECKRESULTDIR
-AC_SUBST(CHECKRESULTDIR)
-AC_SUBST(lockfile)
 
 dnl Review options
 echo ""

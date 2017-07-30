@@ -10,6 +10,7 @@ Nagios Core 4 Change Log
 * New Macro(s) to generate URL for host / service object (John Frickson)
 * Fix minor map issues (Troy Lea)
 * Fix lockfile issues (Bryan Heden)
+* Switch order of daemon_init and drop_priveleges (Bryan Heden)
 
 
 4.3.2 - 2017-05-09

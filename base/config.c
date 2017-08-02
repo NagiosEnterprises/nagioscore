@@ -107,7 +107,7 @@ int read_main_config_file(char *main_config_file) {
 
 	/* open the config file for reading */
 	if((thefile = mmap_fopen(main_config_file)) == NULL) {
-		printf("Error: Cannot open main configuration file '%s' for reading!", main_config_file);
+		printf("Error: Cannot open main configuration file '%s' for reading!\n", main_config_file);
 		exit(ERROR);
 		}
 
@@ -1291,7 +1291,7 @@ int read_resource_file(char *resource_file) {
 	int user_index = 0;
 
 	if((thefile = mmap_fopen(resource_file)) == NULL) {
-		printf("Error: Cannot open resource file '%s' for reading!", resource_file);
+		printf("Error: Cannot open resource file '%s' for reading!\n", resource_file);
 		exit(ERROR);
 		}
 

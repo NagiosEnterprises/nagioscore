@@ -1,0 +1,66 @@
+#!/sbin/openrc-run
+
+# This is a custom variable, and has the following default value if a
+# specific config file is not defined by the user.
+: ${NAGIOS_CONFIG:="@sysconfdir@/nagios.cfg"}
+
+# These two facilitate the bindir variable substitution below.
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
+# The rest are OpenRC variables.
+extra_commands="checkconfig"
+extra_started_commands="reload"
+
+# We put "--daemon" in command_args and not command_args_background
+# because the latter interacts weirdly with the config file argument.
+command="@bindir@/nagios"
+command_args="--daemon ${NAGIOS_CONFIG}"
+pidfile="@lockfile@"
+
+depend(){
+  # Most daemons don't really *need* the network; they're happy with
+  # the loopback interface. However, nagios might start generating
+  # "EVERYTHING IS DOWN" alerts if it starts before the real live
+  # network comes up.
+  need net
+  use logger
+  after mysql postgresql
+}
+
+reload(){
+  checkconfig || return $?
+  ebegin "Reloading configuration"
+  start-stop-daemon --signal HUP --pidfile "${pidfile}"
+  eend $?
+}
+
+checkconfig(){
+  ebegin "Verifying config files"
+
+  # Save the output in case verification fails and errors are printed.
+  OUTPUT=$( ${command} --verify-config "${NAGIOS_CONFIG}" )
+
+  # Save the exit code from the verification so that `echo` doesn't
+  # clobber it. Then, if verification failed, show its
+  # output. Otherwise, succeed quietly.
+  local exit_code=$?
+  [ $exit_code -ne 0 ] && echo "${OUTPUT}" >&2
+  eend $exit_code
+}
+
+start_pre() {
+  # Without this, the "start" action will appear to succeed even if
+  # the config file contains errors, and the daemon fails to start.
+  # Another approach would be to wait for the PID file to appear, but
+  # this is fast enough and feels cleaner.
+  checkconfig || return $?
+}
+
+stop_pre() {
+  # If this is a restart, check to make sure the user's config
+  # isn't busted before we stop the running daemon.
+  if [ "${RC_CMD}" = "restart" ] ; then
+    checkconfig || return $?
+  fi
+}

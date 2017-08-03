@@ -793,7 +793,7 @@ if test -z "$UNZIP"; then
 	AC_MSG_ERROR([Cannot continue without unzip!])
 fi
 
-AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile)
+AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init openrc-init t/Makefile t-tap/Makefile)
 
 
 perl subst include/locations.h

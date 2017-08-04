@@ -267,9 +267,9 @@ AC_SUBST(init_dir)
 dnl User can override lock file location
 AC_ARG_WITH(lockfile,
 	AC_HELP_STRING([--with-lockfile=<path>],
-		[sets path and file name for lock file]),
+		[sets path for lock file (default: /run/nagios.lock)]),
 	lockfile=$withval,
-	lockfile=$localstatedir/nagios.lock
+	lockfile=/run/nagios.lock
 )
 AC_SUBST(lockfile)
 

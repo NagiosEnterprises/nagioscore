@@ -11,6 +11,7 @@ Nagios Core 4 Change Log
 * Fix minor map issues (Troy Lea)
 * Fix lockfile issues (Bryan Heden)
 * Switch order of daemon_init and drop_priveleges (Bryan Heden)
+* Add an OpenRC init script (Michael Orlitzky)
 
 
 4.3.2 - 2017-05-09

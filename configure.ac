@@ -267,9 +267,9 @@ AC_SUBST(init_dir)
 dnl User can override lock file location
 AC_ARG_WITH(lockfile,
 	AC_HELP_STRING([--with-lockfile=<path>],
-		[sets path and file name for lock file]),
+		[sets path for lock file (default: /run/nagios.lock)]),
 	lockfile=$withval,
-	lockfile=$localstatedir/nagios.lock
+	lockfile=/run/nagios.lock
 )
 AC_SUBST(lockfile)
 
@@ -793,7 +793,7 @@ if test -z "$UNZIP"; then
 	AC_MSG_ERROR([Cannot continue without unzip!])
 fi
 
-AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile)
+AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init openrc-init t/Makefile t-tap/Makefile)
 
 
 perl subst include/locations.h

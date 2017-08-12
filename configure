@@ -1405,7 +1405,7 @@ Optional Packages:
                           sets path to check results spool directory
   --with-temp-dir=<path>  sets path to temp directory
   --with-init-dir=<path>  sets directory to place init script into
-  --with-lockfile=<path>  sets path and file name for lock file
+  --with-lockfile=<path>  sets path for lock file (default: /run/nagios.lock)
   --with-iobroker=<method>
                           specify the method to use with iobroker: epoll,
                           poll, or select
@@ -2353,9 +2353,9 @@ ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobrok
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.3.2"
+PKG_VERSION="4.3.3"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2017-05-09"
+PKG_REL_DATE="2017-08-12"
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -4946,10 +4946,9 @@ fi
 if test "${with_lockfile+set}" = set; then :
   withval=$with_lockfile; lockfile=$withval
 else
-  lockfile=$localstatedir/nagios.lock
+  lockfile=/run/nagios.lock
 
 fi
-
 
 
 
@@ -5978,7 +5977,7 @@ if test -z "$UNZIP"; then
 	as_fn_error $? "Cannot continue without unzip!" "$LINENO" 5
 fi
 
-ac_config_files="$ac_config_files Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile"
+ac_config_files="$ac_config_files Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init openrc-init t/Makefile t-tap/Makefile"
 
 
 
@@ -6604,6 +6603,7 @@ do
     "worker/ping/Makefile") CONFIG_FILES="$CONFIG_FILES worker/ping/Makefile" ;;
     "xdata/Makefile") CONFIG_FILES="$CONFIG_FILES xdata/Makefile" ;;
     "daemon-init") CONFIG_FILES="$CONFIG_FILES daemon-init" ;;
+    "openrc-init") CONFIG_FILES="$CONFIG_FILES openrc-init" ;;
     "t/Makefile") CONFIG_FILES="$CONFIG_FILES t/Makefile" ;;
     "t-tap/Makefile") CONFIG_FILES="$CONFIG_FILES t-tap/Makefile" ;;
 
@@ -7361,8 +7361,6 @@ perl subst sample-config/template-object/localhost.cfg
 perl subst sample-config/template-object/windows.cfg
 perl subst sample-config/template-object/printer.cfg
 perl subst sample-config/template-object/switch.cfg
-
-
 
 
 echo ""

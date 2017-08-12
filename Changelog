@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.3.3 - 2017-05-09
+4.3.3 - 2017-08-12
 ------------------
 * xodtemplate.c wrong option-deprecation code warning (alex2grad / John Frickson)
 * On-demand host check always use cached host state (John Frickson)

@@ -107,7 +107,7 @@ int read_main_config_file(char *main_config_file) {
 
 	/* open the config file for reading */
 	if((thefile = mmap_fopen(main_config_file)) == NULL) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Cannot open main configuration file '%s' for reading!\n", main_config_file);
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Cannot open main configuration file '%s' for reading!", main_config_file);
 		exit(ERROR);
 		}
 
@@ -1269,7 +1269,7 @@ int read_main_config_file(char *main_config_file) {
 
 	/* make sure a log file has been specified */
 	if(log_file == NULL) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Log file is not specified anywhere in main config file '%s'!\n", main_config_file);
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Log file is not specified anywhere in main config file '%s'!", main_config_file);
 		exit(ERROR);
 		}
 	strip(log_file);
@@ -1291,7 +1291,7 @@ int read_resource_file(char *resource_file) {
 	int user_index = 0;
 
 	if((thefile = mmap_fopen(resource_file)) == NULL) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Cannot open resource file '%s' for reading!\n", resource_file);
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Cannot open resource file '%s' for reading!", resource_file);
 		return ERROR;
 		}
 

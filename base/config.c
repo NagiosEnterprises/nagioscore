@@ -107,7 +107,7 @@ int read_main_config_file(char *main_config_file) {
 	/* open the config file for reading */
 	if((thefile = mmap_fopen(main_config_file)) == NULL) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Cannot open main configuration file '%s' for reading!", main_config_file);
-		return ERROR;
+		exit(ERROR);
 		}
 
 	/* save the main config file macro */
@@ -1272,12 +1272,11 @@ int read_main_config_file(char *main_config_file) {
 	my_free(value);
 
 	/* make sure a log file has been specified */
-	strip(log_file);
-	if(!strcmp(log_file, "")) {
-		if(daemon_mode == FALSE)
-			printf("Error: Log file is not specified anywhere in main config file '%s'!\n", main_config_file);
-		return ERROR;
+	if(log_file == NULL) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Log file is not specified anywhere in main config file '%s'!", main_config_file);
+		exit(ERROR);
 		}
+	strip(log_file);
 
 	return OK;
 	}

@@ -100,7 +100,6 @@ int read_main_config_file(char *main_config_file) {
 	DIR *tmpdir = NULL;
 	nagios_macros *mac;
 	objectlist *list;
-	char *log_file = NULL;
 
 	mac = get_global_macros();
 

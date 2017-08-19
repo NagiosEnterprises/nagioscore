@@ -209,7 +209,7 @@ case "$1" in
 
 		su $NagiosUser -c "touch $NagiosVarDir/nagios.log $NagiosRetentionFile"
 		remove_commandfile
-		su $NagiosUser -c "touch $NagiosRunFile"
+		touch $NagiosRunFile
 		$NagiosBin -d $NagiosCfgFile
 		if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
 

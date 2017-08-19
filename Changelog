@@ -7,6 +7,7 @@ Nagios Core 4 Change Log
 * Improved config file parsing (Mark Felder)
 * Fixed configure script to check for existence of /run for lock file (in regards to CVE-2017-12847, Bryan Heden)
 * Use absolute paths when deleting check results files (manu0401)
+* Add sanity checking in reassign_worker (sq5bpf)
 
 4.3.3 - 2017-08-12
 ------------------

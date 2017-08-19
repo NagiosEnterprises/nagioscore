@@ -691,9 +691,22 @@ int xodtemplate_process_config_file(char *filename, int options) {
 				&& strcmp(input, "serviceescalation") 
 				&& strcmp(input, "hostgroupescalation") 
 				&& strcmp(input, "hostdependency") 
-				&& strcmp(input, "hostescalation")
-				&& strcmp(input, "hostextinfo") 
-				&& strcmp(input, "serviceextinfo")) {
+				&& strcmp(input, "hostescalation")) {
+				
+				if (   strcmp(input, "hostextinfo") 
+				    && strcmp(input, "serviceextinfo")) {
+
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid object definition type '%s' in file '%s' on line %d.\n", input, filename, current_line);
+					result = ERROR;
+					break;
+				}
+
+				logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: Extinfo objects are deprecated and will be removed in future versions\n");
+			}
+
+
+			if(strcmp(input, "timeperiod") && strcmp(input, "command") && strcmp(input, "contact") && strcmp(input, "contactgroup") && strcmp(input, "host") && strcmp(input, "hostgroup") && strcmp(input, "servicegroup") && strcmp(input, "service") && strcmp(input, "servicedependency") && strcmp(input, "serviceescalation") && strcmp(input, "hostgroupescalation") && strcmp(input, "hostdependency") && strcmp(input, "hostescalation")) {
+				if(strcmp(input, "hostextinfo") && strcmp(input, "serviceextinfo")) {
 					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid object definition type '%s' in file '%s' on line %d.\n", input, filename, current_line);
 					result = ERROR;
 					break;

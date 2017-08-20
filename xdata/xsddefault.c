@@ -237,6 +237,7 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tcheck_command=%s\n", (temp_host->check_command == NULL) ? "" : temp_host->check_command);
 		fprintf(fp, "\tcheck_period=%s\n", (temp_host->check_period == NULL) ? "" : temp_host->check_period);
 		fprintf(fp, "\tnotification_period=%s\n", (temp_host->notification_period == NULL) ? "" : temp_host->notification_period);
+		fprintf(fp, "\timportance=%u\n", temp_host->hourly_value);
 		fprintf(fp, "\tcheck_interval=%f\n", temp_host->check_interval);
 		fprintf(fp, "\tretry_interval=%f\n", temp_host->retry_interval);
 		fprintf(fp, "\tevent_handler=%s\n", (temp_host->event_handler == NULL) ? "" : temp_host->event_handler);
@@ -303,6 +304,7 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tcheck_command=%s\n", (temp_service->check_command == NULL) ? "" : temp_service->check_command);
 		fprintf(fp, "\tcheck_period=%s\n", (temp_service->check_period == NULL) ? "" : temp_service->check_period);
 		fprintf(fp, "\tnotification_period=%s\n", (temp_service->notification_period == NULL) ? "" : temp_service->notification_period);
+		fprintf(fp, "\timportance=%u\n", temp_service->hourly_value);
 		fprintf(fp, "\tcheck_interval=%f\n", temp_service->check_interval);
 		fprintf(fp, "\tretry_interval=%f\n", temp_service->retry_interval);
 		fprintf(fp, "\tevent_handler=%s\n", (temp_service->event_handler == NULL) ? "" : temp_service->event_handler);

@@ -10,9 +10,9 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.3.2"
+PKG_VERSION="4.3.4"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2017-05-09"
+PKG_REL_DATE="2017-08-21"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
@@ -265,14 +265,21 @@ AC_ARG_WITH(init_dir,
 AC_SUBST(init_dir)
 
 dnl User can override lock file location
+dnl Use the /var/run/ path by default
+dnl and use /run if it is available
+
+default_lockfile_path=/var/run/nagios.lock
+if test -d /run; then
+	default_lockfile_path=/run/nagios.lock
+fi
+
 AC_ARG_WITH(lockfile,
 	AC_HELP_STRING([--with-lockfile=<path>],
-		[sets path and file name for lock file]),
+		[sets path for lock file (default: [/var]/run/nagios.lock)]),
 	lockfile=$withval,
-	lockfile=$localstatedir/nagios.lock
+	lockfile=$default_lockfile_path
 )
 AC_SUBST(lockfile)
-
 
 dnl Determine the library to be used by the iobroker
 
@@ -794,7 +801,7 @@ if test -z "$UNZIP"; then
 	AC_MSG_ERROR([Cannot continue without unzip!])
 fi
 
-AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init t/Makefile t-tap/Makefile)
+AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init openrc-init t/Makefile t-tap/Makefile)
 
 
 perl subst include/locations.h
@@ -819,8 +826,6 @@ perl subst sample-config/template-object/localhost.cfg
 perl subst sample-config/template-object/windows.cfg
 perl subst sample-config/template-object/printer.cfg
 perl subst sample-config/template-object/switch.cfg
-
-
 
 
 dnl Review options

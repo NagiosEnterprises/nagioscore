@@ -12,13 +12,24 @@ ENHANCEMENTS
 * New Macro(s) to generate URL for host / service object to be used in notifications (John Frickson)
 
 
-4.3.3 - 2017-05-09
+4.3.4 - 2017-08-21
+------------------
+* Improved config file parsing (Mark Felder)
+* Fixed configure script to check for existence of /run for lock file (in regards to CVE-2017-12847, Bryan Heden)
+* Use absolute paths when deleting check results files (Emmanuel Dreyfus)
+* Add sanity checking in reassign_worker (sq5bpf)
+
+
+4.3.3 - 2017-08-12
 ------------------
 * xodtemplate.c wrong option-deprecation code warning (alex2grad / John Frickson)
 * On-demand host check always use cached host state (John Frickson)
 * 'á' causes Serivce Status Information to not be displayed (John Frickson)
-
-
+* New Macro(s) to generate URL for host / service object (John Frickson)
+* Fix minor map issues (Troy Lea)
+* Fix lockfile issues (Bryan Heden)
+* Switch order of daemon_init and drop_priveleges (CVE-2017-12847, Bryan Heden)
+* Add an OpenRC init script (Michael Orlitzky)
 
 
 4.3.2 - 2017-05-09

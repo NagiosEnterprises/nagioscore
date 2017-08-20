@@ -197,7 +197,7 @@ distclean: clean
 	cd $(SRC_TTAP) && $(MAKE) $@
 	cd $(SRC_WORKERS) && $(MAKE) $@
 	rm -f sample-config/*.cfg  sample-config/*.conf sample-config/template-object/*.cfg
-	rm -f daemon-init pkginfo
+	rm -f daemon-init openrc-init pkginfo
 	rm -f Makefile subst
 	rm -f config.log config.status config.cache
 	rm -f tags

@@ -720,22 +720,32 @@ int xodtemplate_process_config_file(char *filename, int options)
 			}
 
 			/* check validity of object type */
-			if (strcmp(input, "timeperiod") && strcmp(input, "command")
-				&& strcmp(input, "contact") && strcmp(input, "contactgroup")
-				&& strcmp(input, "host") && strcmp(input, "hostgroup")
-				&& strcmp(input, "servicegroup") && strcmp(input, "service")
-				&& strcmp(input, "servicedependency") && strcmp(input, "serviceescalation")
-				&& strcmp(input, "hostgroupescalation") && strcmp(input, "hostdependency")
+			if(    strcmp(input, "timeperiod") 
+				&& strcmp(input, "command") 
+				&& strcmp(input, "contact") 
+				&& strcmp(input, "contactgroup") 
+				&& strcmp(input, "host") 
+				&& strcmp(input, "hostgroup") 
+				&& strcmp(input, "servicegroup") 
+				&& strcmp(input, "service") 
+				&& strcmp(input, "servicedependency") 
+				&& strcmp(input, "serviceescalation") 
+				&& strcmp(input, "hostgroupescalation") 
+				&& strcmp(input, "hostdependency") 
 				&& strcmp(input, "hostescalation")) {
-				if (strcmp(input, "hostextinfo") && strcmp(input, "serviceextinfo")) {
-					logit(NSLOG_CONFIG_ERROR, TRUE,
-						  "Error: Invalid object definition type '%s' in file '%s' on line %d.\n",
-						  input, filename, current_line);
+				
+				if (   strcmp(input, "hostextinfo") 
+				    && strcmp(input, "serviceextinfo")) {
+
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid object definition type '%s' in file '%s' on line %d.\n", input, filename, current_line);
 					result = ERROR;
 					break;
 				}
 				logit(NSLOG_CONFIG_WARNING, TRUE,
 					  "WARNING: Extinfo objects are deprecated and will be removed in future versions\n");
+			}
+
+				logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: Extinfo objects are deprecated and will be removed in future versions\n");
 			}
 
 			/* we're already in an object definition... */
@@ -2578,6 +2588,189 @@ int xodtemplate_add_object_property(char *input, int options)
 						  "Error: Invalid flap detection option '%s' in host definition.\n",
 						  temp_ptr);
 					result = ERROR;
+					}
+				temp_host->have_initial_state = TRUE;
+				}
+			else if(!strcmp(variable, "check_interval") || !strcmp(variable, "normal_check_interval")) {
+				if(!strcmp(variable, "normal_check_interval"))
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The normal_check_interval attribute is deprecated and will be removed in future versions. Please use check_interval instead.\n");
+				temp_host->check_interval = strtod(value, NULL);
+				temp_host->have_check_interval = TRUE;
+				}
+			else if(!strcmp(variable, "retry_interval") || !strcmp(variable, "retry_check_interval")) {
+				if(!strcmp(variable, "retry_check_interval"))
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The retry_check_interval attribute is deprecated and will be removed in future versions. Please use retry_interval instead.\n");
+				temp_host->retry_interval = strtod(value, NULL);
+				temp_host->have_retry_interval = TRUE;
+				}
+			else if(!strcmp(variable, "importance") ||
+					!strcmp(variable, "hourly_value")) {
+				if(!strcmp(variable, "hourly_value")) {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The hourly_value attribute is deprecated and will be removed in future versions. Please use importance instead.\n");
+					}
+				temp_host->hourly_value = (unsigned int)strtoul(value, NULL, 10);
+				temp_host->have_hourly_value = 1;
+				}
+			else if(!strcmp(variable, "max_check_attempts")) {
+				temp_host->max_check_attempts = atoi(value);
+				temp_host->have_max_check_attempts = TRUE;
+				}
+			else if(!strcmp(variable, "checks_enabled") || !strcmp(variable, "active_checks_enabled")) {
+				temp_host->active_checks_enabled = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_host->have_active_checks_enabled = TRUE;
+				}
+			else if(!strcmp(variable, "passive_checks_enabled")) {
+				temp_host->passive_checks_enabled = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_host->have_passive_checks_enabled = TRUE;
+				}
+			else if(!strcmp(variable, "event_handler_enabled")) {
+				temp_host->event_handler_enabled = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_host->have_event_handler_enabled = TRUE;
+				}
+			else if(!strcmp(variable, "check_freshness")) {
+				temp_host->check_freshness = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_host->have_check_freshness = TRUE;
+				}
+			else if(!strcmp(variable, "freshness_threshold")) {
+				temp_host->freshness_threshold = atoi(value);
+				temp_host->have_freshness_threshold = TRUE;
+				}
+			else if(!strcmp(variable, "low_flap_threshold")) {
+				temp_host->low_flap_threshold = strtod(value, NULL);
+				temp_host->have_low_flap_threshold = TRUE;
+				}
+			else if(!strcmp(variable, "high_flap_threshold")) {
+				temp_host->high_flap_threshold = strtod(value, NULL);
+				temp_host->have_high_flap_threshold = TRUE;
+				}
+			else if(!strcmp(variable, "flap_detection_enabled")) {
+				temp_host->flap_detection_enabled = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_host->have_flap_detection_enabled = TRUE;
+				}
+			else if(!strcmp(variable, "flap_detection_options")) {
+
+				/* user is specifying something, so discard defaults... */
+				temp_host->flap_detection_options = OPT_NOTHING;
+
+				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
+					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "up"))
+						flag_set(temp_host->flap_detection_options, OPT_UP);
+					else if(!strcmp(temp_ptr, "d") || !strcmp(temp_ptr, "down"))
+						flag_set(temp_host->flap_detection_options, OPT_DOWN);
+					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
+						flag_set(temp_host->flap_detection_options, OPT_UNREACHABLE);
+					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
+						temp_host->flap_detection_options = OPT_NOTHING;
+						}
+					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
+						temp_host->flap_detection_options = OPT_ALL;
+						}
+					else {
+						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid flap detection option '%s' in host definition.\n", temp_ptr);
+						result = ERROR;
+						}
+					}
+				temp_host->have_flap_detection_options = TRUE;
+				}
+			else if(!strcmp(variable, "notification_options")) {
+				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
+					if(!strcmp(temp_ptr, "d") || !strcmp(temp_ptr, "down"))
+						flag_set(temp_host->notification_options, OPT_DOWN);
+					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
+						flag_set(temp_host->notification_options, OPT_UNREACHABLE);
+					else if(!strcmp(temp_ptr, "r") || !strcmp(temp_ptr, "recovery"))
+						flag_set(temp_host->notification_options, OPT_RECOVERY);
+					else if(!strcmp(temp_ptr, "f") || !strcmp(temp_ptr, "flapping"))
+						flag_set(temp_host->notification_options, OPT_FLAPPING);
+					else if(!strcmp(temp_ptr, "s") || !strcmp(temp_ptr, "downtime"))
+						flag_set(temp_host->notification_options, OPT_DOWNTIME);
+					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
+						temp_host->notification_options = OPT_NOTHING;
+						}
+					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
+						temp_host->notification_options = OPT_ALL;
+						}
+					else {
+						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid notification option '%s' in host definition.\n", temp_ptr);
+						result = ERROR;
+						}
+					}
+				temp_host->have_notification_options = TRUE;
+				}
+			else if(!strcmp(variable, "notifications_enabled")) {
+				temp_host->notifications_enabled = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_host->have_notifications_enabled = TRUE;
+				}
+			else if(!strcmp(variable, "notification_interval")) {
+				temp_host->notification_interval = strtod(value, NULL);
+				temp_host->have_notification_interval = TRUE;
+				}
+			else if(!strcmp(variable, "first_notification_delay")) {
+				temp_host->first_notification_delay = strtod(value, NULL);
+				temp_host->have_first_notification_delay = TRUE;
+				}
+			else if(!strcmp(variable, "stalking_options")) {
+				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
+					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "up"))
+						flag_set(temp_host->stalking_options, OPT_UP);
+					else if(!strcmp(temp_ptr, "d") || !strcmp(temp_ptr, "down"))
+						flag_set(temp_host->stalking_options, OPT_DOWN);
+					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
+						flag_set(temp_host->stalking_options, OPT_UNREACHABLE);
+					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
+						temp_host->stalking_options = OPT_NOTHING;
+						}
+					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
+						temp_host->stalking_options = OPT_ALL;
+						}
+					else {
+						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid stalking option '%s' in host definition.\n", temp_ptr);
+						result = ERROR;
+						}
+					}
+				temp_host->have_stalking_options = TRUE;
+				}
+			else if(!strcmp(variable, "process_perf_data")) {
+				temp_host->process_perf_data = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_host->have_process_perf_data = TRUE;
+				}
+			else if(!strcmp(variable, "failure_prediction_enabled")) {
+				xodtemplate_obsoleted(variable, temp_host->_start_line);
+				}
+			else if(!strcmp(variable, "2d_coords")) {
+				if((temp_ptr = strtok(value, ", ")) == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value '%s' in host definition.\n", temp_ptr);
+					return ERROR;
+					}
+				temp_host->x_2d = atoi(temp_ptr);
+				if((temp_ptr = strtok(NULL, ", ")) == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value '%s' in host definition.\n", temp_ptr);
+					return ERROR;
+					}
+				temp_host->y_2d = atoi(temp_ptr);
+				temp_host->have_2d_coords = TRUE;
+				}
+			else if(!strcmp(variable, "3d_coords")) {
+				if((temp_ptr = strtok(value, ", ")) == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in host definition.\n", temp_ptr);
+					return ERROR;
+					}
+				temp_host->x_3d = strtod(temp_ptr, NULL);
+				if((temp_ptr = strtok(NULL, ", ")) == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in host definition.\n", temp_ptr);
+					return ERROR;
+					}
+				temp_host->y_3d = strtod(temp_ptr, NULL);
+				if((temp_ptr = strtok(NULL, ", ")) == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in host definition.\n", temp_ptr);
+					return ERROR;
+					}
+				temp_host->z_3d = strtod(temp_ptr, NULL);
+				temp_host->have_3d_coords = TRUE;
+				}
+			else if(!strcmp(variable, "obsess_over_host") || !strcmp(variable, "obsess")) {
+				temp_host->obsess = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_host->have_obsess = TRUE;
 				}
 			}
 			temp_host->have_flap_detection_options = TRUE;
@@ -2782,6 +2975,169 @@ int xodtemplate_add_object_property(char *input, int options)
 				default:
 					result = ERROR;
 					break;
+					}
+				temp_service->have_initial_state = TRUE;
+				}
+			else if(!strcmp(variable, "importance") ||
+					!strcmp(variable, "hourly_value")) {
+				if(!strcmp(variable, "hourly_value")) {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The hourly_value attribute is deprecated and will be removed in future versions. Please use importance instead.\n");
+					}
+				temp_service->hourly_value = (unsigned int)strtoul(value, NULL, 10);
+				temp_service->have_hourly_value = 1;
+				}
+			else if(!strcmp(variable, "max_check_attempts")) {
+				temp_service->max_check_attempts = atoi(value);
+				temp_service->have_max_check_attempts = TRUE;
+				}
+			else if(!strcmp(variable, "check_interval") || !strcmp(variable, "normal_check_interval")) {
+				if(!strcmp(variable, "normal_check_interval"))
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The normal_check_interval attribute is deprecated and will be removed in future versions. Please use check_interval instead.\n");
+				temp_service->check_interval = strtod(value, NULL);
+				temp_service->have_check_interval = TRUE;
+				}
+			else if(!strcmp(variable, "retry_interval") || !strcmp(variable, "retry_check_interval")) {
+				if(!strcmp(variable, "retry_check_interval"))
+					logit(NSLOG_CONFIG_WARNING, TRUE, "WARNING: The retry_check_interval attribute is deprecated and will be removed in future versions. Please use retry_interval instead.\n");
+				temp_service->retry_interval = strtod(value, NULL);
+				temp_service->have_retry_interval = TRUE;
+				}
+			else if(!strcmp(variable, "active_checks_enabled")) {
+				temp_service->active_checks_enabled = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_active_checks_enabled = TRUE;
+				}
+			else if(!strcmp(variable, "passive_checks_enabled")) {
+				temp_service->passive_checks_enabled = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_passive_checks_enabled = TRUE;
+				}
+			else if(!strcmp(variable, "parallelize_check")) {
+				temp_service->parallelize_check = atoi(value);
+				temp_service->have_parallelize_check = TRUE;
+				}
+			else if(!strcmp(variable, "is_volatile")) {
+				temp_service->is_volatile = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_is_volatile = TRUE;
+				}
+			else if(!strcmp(variable, "obsess_over_service") || !strcmp(variable, "obsess")) {
+				temp_service->obsess = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_obsess = TRUE;
+				}
+			else if(!strcmp(variable, "event_handler_enabled")) {
+				temp_service->event_handler_enabled = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_event_handler_enabled = TRUE;
+				}
+			else if(!strcmp(variable, "check_freshness")) {
+				temp_service->check_freshness = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_check_freshness = TRUE;
+				}
+			else if(!strcmp(variable, "freshness_threshold")) {
+				temp_service->freshness_threshold = atoi(value);
+				temp_service->have_freshness_threshold = TRUE;
+				}
+			else if(!strcmp(variable, "low_flap_threshold")) {
+				temp_service->low_flap_threshold = strtod(value, NULL);
+				temp_service->have_low_flap_threshold = TRUE;
+				}
+			else if(!strcmp(variable, "high_flap_threshold")) {
+				temp_service->high_flap_threshold = strtod(value, NULL);
+				temp_service->have_high_flap_threshold = TRUE;
+				}
+			else if(!strcmp(variable, "flap_detection_enabled")) {
+				temp_service->flap_detection_enabled = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_flap_detection_enabled = TRUE;
+				}
+			else if(!strcmp(variable, "flap_detection_options")) {
+
+				/* user is specifying something, so discard defaults... */
+				temp_service->flap_detection_options = OPT_NOTHING;
+
+				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
+					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "ok"))
+						flag_set(temp_service->flap_detection_options, OPT_OK);
+					else if(!strcmp(temp_ptr, "w") || !strcmp(temp_ptr, "warning"))
+						flag_set(temp_service->flap_detection_options, OPT_WARNING);
+					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unknown"))
+						flag_set(temp_service->flap_detection_options, OPT_UNKNOWN);
+					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
+						flag_set(temp_service->flap_detection_options, OPT_CRITICAL);
+					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
+						temp_service->flap_detection_options = OPT_NOTHING;
+						}
+					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
+						temp_service->flap_detection_options = OPT_ALL;
+						}
+					else {
+						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid flap detection option '%s' in service definition.\n", temp_ptr);
+						return ERROR;
+						}
+					}
+				temp_service->have_flap_detection_options = TRUE;
+				}
+			else if(!strcmp(variable, "notification_options")) {
+				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
+					if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unknown"))
+						flag_set(temp_service->notification_options, OPT_UNKNOWN);
+					else if(!strcmp(temp_ptr, "w") || !strcmp(temp_ptr, "warning"))
+						flag_set(temp_service->notification_options, OPT_WARNING);
+					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
+						flag_set(temp_service->notification_options, OPT_CRITICAL);
+					else if(!strcmp(temp_ptr, "r") || !strcmp(temp_ptr, "recovery"))
+						flag_set(temp_service->notification_options, OPT_RECOVERY);
+					else if(!strcmp(temp_ptr, "f") || !strcmp(temp_ptr, "flapping"))
+						flag_set(temp_service->notification_options, OPT_FLAPPING);
+					else if(!strcmp(temp_ptr, "s") || !strcmp(temp_ptr, "downtime"))
+						flag_set(temp_service->notification_options, OPT_DOWNTIME);
+					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
+						temp_service->notification_options = OPT_NOTHING;
+						}
+					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
+						temp_service->notification_options = OPT_ALL;
+						}
+					else {
+						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid notification option '%s' in service definition.\n", temp_ptr);
+						return ERROR;
+						}
+					}
+				temp_service->have_notification_options = TRUE;
+				}
+			else if(!strcmp(variable, "notifications_enabled")) {
+				temp_service->notifications_enabled = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_notifications_enabled = TRUE;
+				}
+			else if(!strcmp(variable, "notification_interval")) {
+				temp_service->notification_interval = strtod(value, NULL);
+				temp_service->have_notification_interval = TRUE;
+				}
+			else if(!strcmp(variable, "first_notification_delay")) {
+				temp_service->first_notification_delay = strtod(value, NULL);
+				temp_service->have_first_notification_delay = TRUE;
+				}
+			else if(!strcmp(variable, "stalking_options")) {
+				for(temp_ptr = strtok(value, ", "); temp_ptr; temp_ptr = strtok(NULL, ", ")) {
+					if(!strcmp(temp_ptr, "o") || !strcmp(temp_ptr, "ok"))
+						flag_set(temp_service->stalking_options, OPT_OK);
+					else if(!strcmp(temp_ptr, "w") || !strcmp(temp_ptr, "warning"))
+						flag_set(temp_service->stalking_options, OPT_WARNING);
+					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unknown"))
+						flag_set(temp_service->stalking_options, OPT_UNKNOWN);
+					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
+						flag_set(temp_service->stalking_options, OPT_CRITICAL);
+					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
+						temp_service->stalking_options = OPT_NOTHING;
+						}
+					else if(!strcmp(temp_ptr, "a") || !strcmp(temp_ptr, "all")) {
+						temp_service->stalking_options = OPT_ALL;
+						}
+					else {
+						logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid stalking option '%s' in service definition.\n", temp_ptr);
+						return ERROR;
+						}
+					}
+				temp_service->have_stalking_options = TRUE;
+				}
+			else if(!strcmp(variable, "process_perf_data")) {
+				temp_service->process_perf_data = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_process_perf_data = TRUE;
 				}
 			}
 		} else if (!strcmp(variable, "service_description")

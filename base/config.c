@@ -149,12 +149,10 @@ int read_main_config_file(char *main_config_file)
 
 
 	/* open the config file for reading */
-	if ((thefile = mmap_fopen(main_config_file)) == NULL) {
-		logit(NSLOG_CONFIG_ERROR, TRUE,
-			  "Error: Cannot open main configuration file '%s' for reading!",
-			  main_config_file);
-		return ERROR;
-	}
+	if((thefile = mmap_fopen(main_config_file)) == NULL) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Cannot open main configuration file '%s' for reading!", main_config_file);
+		exit(ERROR);
+		}
 
 	/* save the main config file macro */
 	my_free(mac->x[MACRO_MAINCONFIGFILE]);
@@ -230,7 +228,16 @@ int read_main_config_file(char *main_config_file)
 				website_url[lth-1] = '\0';
 		}
 
-		else if (!strcmp(variable, "loadctl_options"))
+		else if(!strcmp(variable, "website_url")) {
+			int lth;
+			my_free(website_url);
+			website_url = strdup(value);
+			lth = strlen(website_url);
+			if (website_url[lth-1] == '/')
+				website_url[lth-1] = '\0';
+			}
+
+		else if(!strcmp(variable, "loadctl_options"))
 			error = set_loadctl_options(value, strlen(value)) != OK;
 		else if (!strcmp(variable, "check_workers"))
 			num_check_workers = atoi(value);
@@ -1383,13 +1390,11 @@ int read_main_config_file(char *main_config_file)
 	my_free(value);
 
 	/* make sure a log file has been specified */
+	if(log_file == NULL) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Log file is not specified anywhere in main config file '%s'!", main_config_file);
+		exit(ERROR);
+		}
 	strip(log_file);
-	if (!strcmp(log_file, "")) {
-		if (daemon_mode == FALSE)
-			printf("Error: Log file is not specified anywhere in main config file '%s'!\n",
-				   main_config_file);
-		return ERROR;
-	}
 
 	return OK;
 }

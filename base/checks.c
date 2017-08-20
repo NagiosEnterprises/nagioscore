@@ -886,7 +886,7 @@ int handle_async_service_check_result(service * temp_service,
 
 			/* only run a new check if we can and have to */
 			if (execute_host_checks && state_change == TRUE
-			&& temp_host->last_check + cached_host_check_horizon < current_time) {
+				&& temp_host->last_check + cached_host_check_horizon < current_time) {
 				schedule_host_check(temp_host, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
 			} else {
 				log_debug_info(DEBUGL_CHECKS, 1, "* Using cached host state: %d\n",

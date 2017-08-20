@@ -27,6 +27,18 @@
 		if ($layout > 10 || $layout < 0)
 			$layout = 6;
 	}
+
+	/* This allows a user supplied layout */
+	if (
+		filter_input(INPUT_GET, 'layout', FILTER_VALIDATE_INT) === 0 ||
+		filter_input(INPUT_GET, 'layout', FILTER_VALIDATE_INT, array(
+			"options" => array("min_range"=>1, "max_range"=>10)
+			)
+		)
+	) {
+		$layout = $_GET['layout'];
+	}
+	
 	if ($layout == 4)
 		$layout = 6;
 ?>   

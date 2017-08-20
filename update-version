@@ -44,7 +44,7 @@ then
 fi
 
 # Update version number and release date in main PHP page
-perl -i -p -e "s/this_year = '.*';/this_year = '$YEAR';/;" html/index.php
+perl -i -p -e "s/this_year = '.*';/this_year = '$YEAR';/;" html/index.php.in
 perl -i -p -e "s/this_year = '.*';/this_year = '$YEAR';/;" html/main.php
 perl -i -p -e "s/releasedate\">.*<\//releasedate\">$LONGDATE<\//;" html/main.php
 perl -i -p -e "s/this_version = '.*';/this_version = '$newversion';/;" html/main.php

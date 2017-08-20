@@ -2269,76 +2269,79 @@ int grab_standard_service_macro_r(nagios_macros * mac, int macro_type, service *
 		break;
 
 #ifdef NSCORE
-	case MACRO_SERVICEGROUPNAMES:
-		/* find all servicegroups this service is associated with */
-		for (temp_objectlist = temp_service->servicegroups_ptr; temp_objectlist != NULL;
-			 temp_objectlist = temp_objectlist->next) {
+		case MACRO_SERVICEGROUPNAMES:
+			/* find all servicegroups this service is associated with */
+			for(temp_objectlist = temp_service->servicegroups_ptr; temp_objectlist != NULL; temp_objectlist = temp_objectlist->next) {
 
-			if ((temp_servicegroup = (servicegroup *) temp_objectlist->object_ptr) == NULL)
-				continue;
+				if((temp_servicegroup = (servicegroup *)temp_objectlist->object_ptr) == NULL)
+					continue;
 
-			asprintf(&buf1, "%s%s%s", (buf2) ? buf2 : "", (buf2) ? "," : "",
-					 temp_servicegroup->group_name);
-			my_free(buf2);
-			buf2 = buf1;
-		}
-		if (buf2) {
-			*output = (char *)strdup(buf2);
-			my_free(buf2);
-		}
-		break;
-	case MACRO_SERVICEIMPORTANCE:
-		*output = (char *)mkstr("%u", temp_service->hourly_value);
-		break;
-	case MACRO_SERVICEINFOURL:
-		buf1 = get_url_encoded_string(temp_service->host_name);
-		buf2 = get_url_encoded_string(temp_service->description);
-		asprintf(output, "%s/cgi-bin/extinfo.cgi?type=2&host=%s&service=%s",
+				asprintf(&buf1, "%s%s%s", (buf2) ? buf2 : "", (buf2) ? "," : "", temp_servicegroup->group_name);
+				my_free(buf2);
+				buf2 = buf1;
+				}
+			if(buf2) {
+				*output = (char *)strdup(buf2);
+				my_free(buf2);
+				}
+			break;
+		case MACRO_SERVICEIMPORTANCE:
+			*output = (char *)mkstr("%u", temp_service->hourly_value);
+			break;
+		case MACRO_SERVICEINFOURL:
+
+			buf1 = get_url_encoded_string(temp_service->host_name);
+			buf2 = get_url_encoded_string(temp_service->description);
+			asprintf(output, "%s/cgi-bin/extinfo.cgi?type=2&host=%s&service=%s",
 					website_url ? website_url : "website_url not set",
 					buf1, buf2);
-		my_free(buf1);
-		my_free(buf2);
-		break;
+			my_free(buf1);
+			my_free(buf2);
+			break;
+
+
+
+			my_free(buf1);
+			break;
 #endif
 
-		/***************/
-		/* MISC MACROS */
-		/***************/
-	case MACRO_SERVICEACKAUTHOR:
-	case MACRO_SERVICEACKAUTHORNAME:
-	case MACRO_SERVICEACKAUTHORALIAS:
-	case MACRO_SERVICEACKCOMMENT:
-		/* no need to do any more work - these are already precomputed elsewhere */
-		/* NOTE: these macros won't work as on-demand macros */
-		*output = mac->x[macro_type];
-		*free_macro = FALSE;
-		break;
+			/***************/
+			/* MISC MACROS */
+			/***************/
+		case MACRO_SERVICEACKAUTHOR:
+		case MACRO_SERVICEACKAUTHORNAME:
+		case MACRO_SERVICEACKAUTHORALIAS:
+		case MACRO_SERVICEACKCOMMENT:
+			/* no need to do any more work - these are already precomputed elsewhere */
+			/* NOTE: these macros won't work as on-demand macros */
+			*output = mac->x[macro_type];
+			*free_macro = FALSE;
+			break;
 
-	default:
-		log_debug_info(DEBUGL_MACROS, 0, "UNHANDLED SERVICE MACRO #%d! THIS IS A BUG!\n",
-					   macro_type);
-		return ERROR;
-		break;
-	}
+		default:
+			log_debug_info(DEBUGL_MACROS, 0, "UNHANDLED SERVICE MACRO #%d! THIS IS A BUG!\n", macro_type);
+			return ERROR;
+			break;
+		}
 
 	/* post-processing */
 	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
-	switch (macro_type) {
-	case MACRO_SERVICEACTIONURL:
-	case MACRO_SERVICENOTESURL:
-		process_macros_r(mac, *output, &temp_buffer, URL_ENCODE_MACRO_CHARS);
-		*output = temp_buffer;
-		break;
-	case MACRO_SERVICENOTES:
-		process_macros_r(mac, *output, &temp_buffer, 0);
-		*output = temp_buffer;
-		break;
-	default:
-		break;
-	}
+	switch(macro_type) {
+		case MACRO_SERVICEACTIONURL:
+		case MACRO_SERVICENOTESURL:
+			process_macros_r(mac, *output, &temp_buffer, URL_ENCODE_MACRO_CHARS);
+			*output = temp_buffer;
+			break;
+		case MACRO_SERVICENOTES:
+			process_macros_r(mac, *output, &temp_buffer, 0);
+			*output = temp_buffer;
+			break;
+		default:
+			break;
+		}
 
 	return OK;
-}
+	}
 
 int grab_standard_service_macro(int macro_type, service * temp_service, char **output, int *free_macro)
 {

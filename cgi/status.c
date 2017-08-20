@@ -1904,6 +1904,7 @@ void show_service_detail(void)
 				} else {
 					status_class = "CRITICAL";
 					status_bg_class = "BGCRITICAL";
+					}
 				}
 			}
 			status[sizeof(status) - 1] = '\x0';

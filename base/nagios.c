@@ -615,8 +615,23 @@ int main(int argc, char **argv)
 			/* get program (re)start time and save as macro */
 			program_start = time(NULL);
 			my_free(mac->x[MACRO_PROCESSSTARTTIME]);
-			asprintf(&mac->x[MACRO_PROCESSSTARTTIME], "%llu",
-					 (unsigned long long)program_start);
+			asprintf(&mac->x[MACRO_PROCESSSTARTTIME], "%llu", (unsigned long long)program_start);
+			
+			/* enter daemon mode (unless we're restarting...) */
+			if(daemon_mode == TRUE && sigrestart == FALSE) {
+
+				result = daemon_init();
+
+				/* we had an error daemonizing, so bail... */
+				if(result == ERROR) {
+					logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR, TRUE, "Bailing out due to failure to daemonize. (PID=%d)", (int)getpid());
+					cleanup();
+					exit(EXIT_FAILURE);
+					}
+
+				/* get new PID */
+				nagios_pid = (int)getpid();
+				}
 
 			/* drop privileges */
 			if (drop_privileges(nagios_user, nagios_group) == ERROR) {

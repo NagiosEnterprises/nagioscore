@@ -188,8 +188,10 @@ int 		enable_environment_macros;
 int 		free_child_process_memory;
 int 		child_processes_fork_twice;
 
+
 char	   *use_timezone;
 char	   *website_url;
+
 
 int 		allow_empty_hostgroup_assignment;
 
@@ -2252,7 +2254,11 @@ int process_check_result_queue(char *dirname)
 
 			/* if the file is too old, we delete it */
 			if (stat_buf.st_mtime + max_check_result_file_age < time(NULL)) {
-				delete_check_result_file(dirfile->d_name);
+
+				if (delete_check_result_file(file) != OK 
+					&& delete_check_result_file(dirfile->d_name) != OK)
+						logit(NSLOG_RUNTIME_WARNING, TRUE, "Error: Unable to delete '%s' or '%s'!", file, dirfile->d_name);
+
 				continue;
 			}
 
@@ -2490,14 +2496,14 @@ int delete_check_result_file(char *fname)
 	char	   *temp_buffer = NULL;
 
 	/* delete the result file */
-	unlink(fname);
+	result = unlink(fname);
 
 	/* delete the ok-to-go file */
 	asprintf(&temp_buffer, "%s.ok", fname);
-	unlink(temp_buffer);
+	result |= unlink(temp_buffer);
 	my_free(temp_buffer);
 
-	return OK;
+	return result;
 }
 
 

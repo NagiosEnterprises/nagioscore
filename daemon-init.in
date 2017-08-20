@@ -91,6 +91,10 @@ check_config ()
 		echo "ERROR: Could not delete '$NagiosCfgtestFile'"
 		exit 8
 	fi
+	if ! su $NagiosUser -c "touch $NagiosCfgtestFile"; then
+		echo "ERROR: Could not create or update '$NagiosCfgtestFile'"
+		exit 8
+	fi
 
 	TMPFILE=$(mktemp /tmp/.configtest.XXXXXXXX)
 	$NagiosBin -vp $NagiosCfgFile > "$TMPFILE"
@@ -99,24 +103,18 @@ check_config ()
 
 	if test "$WARN" = "0" && test "${ERR}" = "0"; then
 		echo "OK - Configuration check verified" > $NagiosCfgtestFile
-		chmod 0644 $NagiosCfgtestFile
-		chown -h $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		/bin/rm "$TMPFILE"
 		return 0
 	elif test "${ERR}" = "0"; then
 		# Write the errors to a file we can have a script watching for.
 		echo "WARNING: Warnings in config files - see log for details: $NagiosCfgtestFile" > $NagiosCfgtestFile
 		egrep -i "(^warning|^error)" "$TMPFILE" >> $NagiosCfgtestFile
-		chmod 0644 $NagiosCfgtestFile
-		chown -h $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		/bin/rm "$TMPFILE"
 		return 0
 	else
 		# Write the errors to a file we can have a script watching for.
 		echo "ERROR: Errors in config files - see log for details: $NagiosCfgtestFile" > $NagiosCfgtestFile
 		egrep -i "(^warning|^error)" "$TMPFILE" >> $NagiosCfgtestFile
-		chmod 0644 $NagiosCfgtestFile
-		chown -h $NagiosUser:$NagiosGroup $NagiosCfgtestFile
 		cat "$TMPFILE"
 		exit 8
 	fi
@@ -152,7 +150,7 @@ pid_nagios ()
 {
 	if test ! -f $NagiosRunFile; then
 		echo "No lock file found in $NagiosRunFile"
-		exit 1
+		return 1
 	fi
 
 	NagiosPID=`head -n 1 $NagiosRunFile`
@@ -209,10 +207,9 @@ case "$1" in
 			fi
 		fi
 
-		touch $NagiosVarDir/nagios.log $NagiosRetentionFile
+		su $NagiosUser -c "touch $NagiosVarDir/nagios.log $NagiosRetentionFile"
 		remove_commandfile
 		touch $NagiosRunFile
-		chown -h $NagiosUser:$NagiosGroup $NagiosRunFile $NagiosVarDir/nagios.log $NagiosRetentionFile
 		$NagiosBin -d $NagiosCfgFile
 		if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
 
@@ -223,6 +220,9 @@ case "$1" in
 		echo -n "Stopping nagios:"
 
 		pid_nagios
+		if [ $? -eq 1 ]; then
+			exit 0
+		fi
 		killproc_nagios TERM
 
 		# now we have to wait for nagios to exit and remove its
@@ -253,6 +253,9 @@ case "$1" in
 
 	status)
 		pid_nagios
+		if [ $? -eq 1 ]; then
+			exit 3
+		fi
 		printstatus_nagios
 		;;
 

@@ -2493,7 +2493,8 @@ int process_check_result_file(char *fname)
 /* deletes as check result file, as well as its ok-to-go file */
 int delete_check_result_file(char *fname)
 {
-	char	   *temp_buffer = NULL;
+	char * temp_buffer = NULL;
+	int result = OK;
 
 	/* delete the result file */
 	result = unlink(fname);

@@ -604,9 +604,13 @@ static void fo_reassign_wproc_job(void *job_)
 {
 	struct wproc_job *job = (struct wproc_job *)job_;
 	job->wp = get_worker(job->command);
-	job->id = get_job_id(job->wp);
-	/* macros aren't used right now anyways */
-	wproc_run_job(job, NULL);
+	if (job->wp != NULL) {
+		job->id = get_job_id(job->wp);
+		/* macros aren't used right now anyways */
+		wproc_run_job(job, NULL);
+	} else {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: Error: can't get_worker() in fo_reassign_wproc_job\n");
+	}
 }
 
 static int handle_worker_result(int sd, int events, void *arg)

@@ -1405,7 +1405,8 @@ Optional Packages:
                           sets path to check results spool directory
   --with-temp-dir=<path>  sets path to temp directory
   --with-init-dir=<path>  sets directory to place init script into
-  --with-lockfile=<path>  sets path for lock file (default: /run/nagios.lock)
+  --with-lockfile=<path>  sets path for lock file (default:
+                          [/var]/run/nagios.lock)
   --with-iobroker=<method>
                           specify the method to use with iobroker: epoll,
                           poll, or select
@@ -2353,9 +2354,9 @@ ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobrok
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.3.3"
+PKG_VERSION="4.3.4"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2017-08-12"
+PKG_REL_DATE="2017-08-24"
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -4942,11 +4943,17 @@ fi
 
 
 
+default_lockfile_path=/var/run/nagios.lock
+if test -d /run; then
+	default_lockfile_path=/run/nagios.lock
+fi
+
+
 # Check whether --with-lockfile was given.
 if test "${with_lockfile+set}" = set; then :
   withval=$with_lockfile; lockfile=$withval
 else
-  lockfile=/run/nagios.lock
+  lockfile=$default_lockfile_path
 
 fi
 

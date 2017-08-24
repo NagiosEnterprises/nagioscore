@@ -10,9 +10,9 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.3.3"
+PKG_VERSION="4.3.4"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2017-08-12"
+PKG_REL_DATE="2017-08-24"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
@@ -265,11 +265,19 @@ AC_ARG_WITH(init_dir,
 AC_SUBST(init_dir)
 
 dnl User can override lock file location
+dnl Use the /var/run/ path by default
+dnl and use /run if it is available
+
+default_lockfile_path=/var/run/nagios.lock
+if test -d /run; then
+	default_lockfile_path=/run/nagios.lock
+fi
+
 AC_ARG_WITH(lockfile,
 	AC_HELP_STRING([--with-lockfile=<path>],
-		[sets path for lock file (default: /run/nagios.lock)]),
+		[sets path for lock file (default: [/var]/run/nagios.lock)]),
 	lockfile=$withval,
-	lockfile=/run/nagios.lock
+	lockfile=$default_lockfile_path
 )
 AC_SUBST(lockfile)
 

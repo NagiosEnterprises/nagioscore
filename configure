@@ -2356,7 +2356,7 @@ PKG_NAME=nagios
 
 PKG_VERSION="4.3.4"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2017-08-21"
+PKG_REL_DATE="2017-08-24"
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do

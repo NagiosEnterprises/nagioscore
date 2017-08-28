@@ -1,12 +1,12 @@
 #!/sbin/openrc-run
 
+# These two variables facilitate the bindir substitution below.
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
 # This is a custom variable, and has the following default value if a
 # specific config file is not defined by the user.
 : ${NAGIOS_CONFIG:="@sysconfdir@/nagios.cfg"}
-
-# These two facilitate the bindir variable substitution below.
-prefix=@prefix@
-exec_prefix=@exec_prefix@
 
 # The rest are OpenRC variables.
 extra_commands="checkconfig"

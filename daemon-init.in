@@ -169,7 +169,7 @@ remove_commandfile ()
 	
 	if [ -p $NagiosCommandFile ]; then
 		mv -f $NagiosCommandFile $NagiosCommandFile~
-		(dd if=$NagiosCommandFile~ count=0 2>/dev/null & echo -n "" >$NagiosCommandFile~)
+		(dd if=$NagiosCommandFile~ count=0 2>/dev/null & echo -n "" >$NagiosCommandFile~ &)
 	fi
 	
 	rm -f $NagiosCommandFile $NagiosCommandFile~

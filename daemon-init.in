@@ -162,14 +162,15 @@ remove_commandfile ()
 	# will deadlock those processes in a blocking open() system call. To allow such processes to
 	# die on a broken pipe, the pipe must be opened for reading without actually reading from it,
 	# which is what dd does here. To avoid a chicken-egg problem, the pipe is renamed beforehand.
-	# In order for the dd to not deadlock when there is no writing process, it is executed in the
-	# background in a subshell together with an empty echo to have at least one writing process.
+	# In order for the dd to not deadlock when there is no writing process, it is executed in a
+	# subshell together with an empty echo to have at least one writing process.  Both are called
+	# in the background to avoid stalling the subshell from closure (see NagiosCore issue #443)
 	
 	# see http://unix.stackexchange.com/questions/335406/opening-named-pipe-blocks-forever-if-pipe-is-deleted-without-being-connected
 	
 	if [ -p $NagiosCommandFile ]; then
 		mv -f $NagiosCommandFile $NagiosCommandFile~
-		(dd if=$NagiosCommandFile~ count=0 2>/dev/null & echo -n "" >$NagiosCommandFile~)
+		(dd if=$NagiosCommandFile~ count=0 2>/dev/null & echo -n "" >$NagiosCommandFile~ &)
 	fi
 	
 	rm -f $NagiosCommandFile $NagiosCommandFile~

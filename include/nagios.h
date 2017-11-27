@@ -558,6 +558,7 @@ int execute_sync_host_check(host *);
 int run_scheduled_host_check(host *, int, double);
 int run_async_host_check(host *, int, double, int, int, int *, time_t *);
 int handle_async_host_check_result(host *, check_result *);
+double calculate_check_result_execution_time(check_result *);
 
 
 /**** Service Check Functions ****/

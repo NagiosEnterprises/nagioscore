@@ -417,8 +417,20 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	else
 		next_service_check = current_time + check_window(temp_service);
 
-	log_debug_info(DEBUGL_CHECKS, 0, "** Handling check result for service '%s' on host '%s' from '%s'...\n", temp_service->description, temp_service->host_name, check_result_source(queued_check_result));
-	log_debug_info(DEBUGL_CHECKS, 1, "HOST: %s, SERVICE: %s, CHECK TYPE: %s, OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT: %s\n", temp_service->host_name, temp_service->description, (queued_check_result->check_type == CHECK_TYPE_ACTIVE) ? "Active" : "Passive", queued_check_result->check_options, (queued_check_result->scheduled_check == TRUE) ? "Yes" : "No", (queued_check_result->reschedule_check == TRUE) ? "Yes" : "No", (queued_check_result->exited_ok == TRUE) ? "Yes" : "No", queued_check_result->return_code, queued_check_result->output);
+	log_debug_info(DEBUGL_CHECKS, 0, "** Handling check result for service '%s' on host '%s' from '%s'...\n", 
+		temp_service->description, 
+		temp_service->host_name, 
+		check_result_source(queued_check_result));
+	log_debug_info(DEBUGL_CHECKS, 1, "HOST: %s, SERVICE: %s, CHECK TYPE: %s, OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT: %s\n", 
+		temp_service->host_name, 
+		temp_service->description, 
+		(queued_check_result->check_type == CHECK_TYPE_ACTIVE) ? "Active" : "Passive", 
+		queued_check_result->check_options, 
+		(queued_check_result->scheduled_check == TRUE) ? "Yes" : "No", 
+		(queued_check_result->reschedule_check == TRUE) ? "Yes" : "No", 
+		(queued_check_result->exited_ok == TRUE) ? "Yes" : "No", 
+		queued_check_result->return_code, 
+		queued_check_result->output);
 
 	/* decrement the number of service checks still out there... */
 	if(queued_check_result->check_type == CHECK_TYPE_ACTIVE && currently_running_service_checks > 0)
@@ -457,9 +469,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	temp_service->latency = queued_check_result->latency;
 
 	/* update the execution time for this check (millisecond resolution) */
-	temp_service->execution_time = (double)((double)(queued_check_result->finish_time.tv_sec - queued_check_result->start_time.tv_sec) + (double)((queued_check_result->finish_time.tv_usec - queued_check_result->start_time.tv_usec) / 1000.0) / 1000.0);
-	if(temp_service->execution_time < 0.0)
-		temp_service->execution_time = 0.0;
+	temp_service->execution_time = calculate_check_result_execution_time(queued_check_result);
 
 	/* get the last check time */
 	temp_service->last_check = queued_check_result->start_time.tv_sec;
@@ -526,11 +536,13 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			break;
 		}
 
-	/* log passive checks - we need to do this here, as some my bypass external commands by getting dropped in checkresults dir */
-	if(temp_service->check_type == CHECK_TYPE_PASSIVE) {
-		if(log_passive_checks == TRUE)
-			logit(NSLOG_PASSIVE_CHECK, FALSE, "PASSIVE SERVICE CHECK: %s;%s;%d;%s\n", temp_service->host_name, temp_service->description, temp_service->current_state, temp_service->plugin_output);
-		}
+	/* log passive checks - we need to do this here, as some may bypass external commands by getting dropped in checkresults dir */
+	if(temp_service->check_type == CHECK_TYPE_PASSIVE && log_passive_checks == TRUE)
+		logit(NSLOG_PASSIVE_CHECK, FALSE, "PASSIVE SERVICE CHECK: %s;%s;%d;%s\n", 
+			temp_service->host_name, 
+			temp_service->description, 
+			temp_service->current_state, 
+			temp_service->plugin_output);
 
 	/* get the host that this service runs on */
 	temp_host = (host *)temp_service->host_ptr;
@@ -540,7 +552,9 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 		/* if the host has never been checked before, verify its status */
 		/* only do this if 1) the initial state was set to non-UP or 2) the host is not scheduled to be checked soon (next 5 minutes) */
-		if(temp_host->has_been_checked == FALSE && (temp_host->initial_state != HOST_UP || (unsigned long)temp_host->next_check == 0L || (unsigned long)(temp_host->next_check - current_time) > 300)) {
+		if(temp_host->has_been_checked == FALSE && (temp_host->initial_state != HOST_UP 
+			|| (unsigned long)temp_host->next_check == 0L 
+			|| (unsigned long)(temp_host->next_check - current_time) > 300)) {
 
 			/* set a flag to remember that we launched a check */
 			first_host_check_initiated = TRUE;
@@ -554,7 +568,13 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		temp_service->current_attempt = temp_service->current_attempt + 1;
 
 
-	log_debug_info(DEBUGL_CHECKS, 2, "ST: %s  CA: %d  MA: %d  CS: %d  LS: %d  LHS: %d\n", (temp_service->state_type == SOFT_STATE) ? "SOFT" : "HARD", temp_service->current_attempt, temp_service->max_attempts, temp_service->current_state, temp_service->last_state, temp_service->last_hard_state);
+	log_debug_info(DEBUGL_CHECKS, 2, "ST: %s  CA: %d  MA: %d  CS: %d  LS: %d  LHS: %d\n", 
+		(temp_service->state_type == SOFT_STATE) ? "SOFT" : "HARD", 
+		temp_service->current_attempt, 
+		temp_service->max_attempts, 
+		temp_service->current_state, 
+		temp_service->last_state, 
+		temp_service->last_hard_state);
 
 	/* check for a state change (either soft or hard) */
 	if(temp_service->current_state != temp_service->last_state) {
@@ -2342,16 +2362,18 @@ int handle_async_host_check_result(host *temp_host, check_result *queued_check_r
 		}
 
 	/* clear the freshening flag (it would have been set if this host was determined to be stale) */
-	if(queued_check_result->check_options & CHECK_OPTION_FRESHNESS_CHECK)
+	if(queued_check_result->check_options & CHECK_OPTION_FRESHNESS_CHECK) {
 		temp_host->is_being_freshened = FALSE;
 
-	/* DISCARD INVALID FRESHNESS CHECK RESULTS */
-	/* If a host goes stale, Nagios will initiate a forced check in order to freshen it.  There is a race condition whereby a passive check
-	   could arrive between the 1) initiation of the forced check and 2) the time when the forced check result is processed here.  This would
-	   make the host fresh again, so we do a quick check to make sure the host is still stale before we accept the check result. */
-	if((queued_check_result->check_options & CHECK_OPTION_FRESHNESS_CHECK) && is_host_result_fresh(temp_host, current_time, FALSE) == TRUE) {
-		log_debug_info(DEBUGL_CHECKS, 0, "Discarding host freshness check result because the host is currently fresh (race condition avoided).\n");
-		return OK;
+		/* DISCARD INVALID FRESHNESS CHECK RESULTS */
+		/* If a host goes stale, Nagios will initiate a forced check in order to freshen it.  There is a race condition whereby a passive check
+		   could arrive between the 1) initiation of the forced check and 2) the time when the forced check result is processed here.  This would
+		   make the host fresh again, so we do a quick check to make sure the host is still stale before we accept the check result. */
+		if(is_host_result_fresh(temp_host, current_time, FALSE) == TRUE) {
+			log_debug_info(DEBUGL_CHECKS, 0, "Discarding host freshness check result because the host is currently fresh (race condition avoided).\n");
+			return OK;
+			}
+
 		}
 
 	/* was this check passive or active? */
@@ -2368,9 +2390,7 @@ int handle_async_host_check_result(host *temp_host, check_result *queued_check_r
 	temp_host->latency = queued_check_result->latency;
 
 	/* update the execution time for this check (millisecond resolution) */
-	temp_host->execution_time = (double)((double)(queued_check_result->finish_time.tv_sec - queued_check_result->start_time.tv_sec) + (double)((queued_check_result->finish_time.tv_usec - queued_check_result->start_time.tv_usec) / 1000.0) / 1000.0);
-	if(temp_host->execution_time < 0.0)
-		temp_host->execution_time = 0.0;
+	temp_host->execution_time = calculate_check_result_execution_time(queued_check_result);
 
 	/* set the checked flag */
 	temp_host->has_been_checked = TRUE;
@@ -2381,9 +2401,6 @@ int handle_async_host_check_result(host *temp_host, check_result *queued_check_r
 
 	/* get the last check time */
 	temp_host->last_check = queued_check_result->start_time.tv_sec;
-
-	/* was this check passive or active? */
-	temp_host->check_type = (queued_check_result->check_type == CHECK_TYPE_ACTIVE) ? CHECK_TYPE_ACTIVE : CHECK_TYPE_PASSIVE;
 
 	/* save the old host state */
 	temp_host->last_state = temp_host->current_state;
@@ -2568,16 +2585,11 @@ int process_host_check_result(host *hst, int new_state, char *old_plugin_output,
 			else {
 
 				/* set the state type */
-				/* we've maxed out on the retries */
 				if(hst->current_attempt == hst->max_attempts)
+					/* we've maxed out on the retries */
 					hst->state_type = HARD_STATE;
-				/* the host was in a hard problem state before, so it still is now */
-                /* 2015-07-23 with the change adjust_host_check_attempt, this can no longer happen
-                else if(hst->current_attempt == 1)
-					hst->state_type = HARD_STATE;
-                */
-				/* the host is in a soft state and the check will be retried */
 				else
+					/* the host is in a soft state and the check will be retried */
 					hst->state_type = SOFT_STATE;
 				}
 
@@ -3223,3 +3235,23 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 
 	return OK;
 	}
+
+
+double calculate_check_result_execution_time(check_result *cr) {
+
+	double execution_time = 0.0;
+
+	if (cr != NULL) {
+		
+		double start_s = cr->start_time.tv_sec;
+		double start_us = cr->start_time.tv_usec;
+		double finish_s = cr->finish_time.tv_sec;
+		double finish_us = cr->finish_time.tv_usec;
+
+		execution_time = ((finish_s - start_s) + ((finish_us - start_us) / 1000.0) / 1000.0);
+		if (execution_time < 0.0)
+			execution_time = 0.0;
+	}
+
+	return execution_time;
+}

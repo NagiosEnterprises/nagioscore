@@ -1371,3 +1371,10 @@ allow_empty_hostgroup_assignment=0
 #   rampup_change   # of jobs to add to jobs_limit when ramping up
 
 #loadctl_options=jobs_max=100;backoff_limit=10;rampup_change=5
+
+# SOFT STATE TYPE RECOVERY 
+# Historically, recoveries are HARD state types
+# These options introduce the ability to use max_attempts for
+# recoveries as well as non-OK states
+#enable_soft_host_recovery=0
+#enable_soft_service_recovery=0

@@ -119,6 +119,9 @@ extern int host_freshness_check_interval;
 extern int auto_rescheduling_interval;
 extern int auto_rescheduling_window;
 
+extern int enable_soft_host_recovery;
+extern int enable_soft_service_recovery;
+
 extern int check_orphaned_services;
 extern int check_orphaned_hosts;
 extern int check_service_freshness;

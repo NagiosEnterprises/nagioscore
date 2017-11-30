@@ -200,8 +200,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 	if (neb_result == NEBERROR_CALLBACKCANCEL || neb_result == NEBERROR_CALLBACKOVERRIDE) {
 		log_debug_info(DEBUGL_CHECKS, 0, "Check of service '%s' on host '%s' (id=%u) was %s by a module\n",
-		               svc->description, svc->host_name, svc->id,
-		               neb_result == NEBERROR_CALLBACKCANCEL ? "cancelled" : "overridden");
+					   svc->description, svc->host_name, svc->id,
+					   neb_result == NEBERROR_CALLBACKCANCEL ? "cancelled" : "overridden");
 	}
 	/* neb module wants to cancel the service check - the check will be rescheduled for a later time by the scheduling logic */
 	if(neb_result == NEBERROR_CALLBACKCANCEL) {
@@ -383,6 +383,8 @@ static int get_service_check_return_code(service *temp_service,
 
 
 /* handles asynchronous service check results */
+/* TODO: skips a check when recovering with soft state
+		 never enters hard recovery after being in soft recovery */
 int handle_async_service_check_result(service *temp_service, check_result *queued_check_result) {
 	host *temp_host = NULL;
 	time_t next_service_check = 0L;
@@ -516,7 +518,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	log_debug_info(DEBUGL_CHECKS, 2, "Parsing check output...\n");
 	log_debug_info(DEBUGL_CHECKS, 2, "Short Output: %s\n", (temp_service->plugin_output == NULL) ? "NULL" : temp_service->plugin_output);
 	log_debug_info(DEBUGL_CHECKS, 2, "Long Output:  %s\n", (temp_service->long_plugin_output == NULL) ? "NULL" : temp_service->long_plugin_output);
-	log_debug_info(DEBUGL_CHECKS, 2, "Perf Data:    %s\n", (temp_service->perf_data == NULL) ? "NULL" : temp_service->perf_data);
+	log_debug_info(DEBUGL_CHECKS, 2, "Perf Data:	%s\n", (temp_service->perf_data == NULL) ? "NULL" : temp_service->perf_data);
 
 	/* record the time the last state ended */
 	switch(temp_service->last_state) {
@@ -585,9 +587,12 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* checks for a hard state change where host was down at last service check */
 	/* this occurs in the case where host goes down and service current attempt gets reset to 1 */
 	/* if this check is not made, the service recovery looks like a soft recovery instead of a hard one */
+	/* unless that is exactly what we want with enable_soft_service_recovery */
 	if(temp_service->host_problem_at_last_check == TRUE && temp_service->current_state == STATE_OK) {
-		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
-		hard_state_change = TRUE;
+		if (enable_soft_service_recovery == FALSE) {
+			log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
+			hard_state_change = TRUE;
+			}
 		}
 
 	/* check for a "normal" hard state change where max check attempts is reached */
@@ -746,6 +751,10 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 			/* run the service event handler to handle the soft state change */
 			handle_service_event(temp_service);
+
+			/* still in soft/ok, so see if we need to reschedule */
+			if (enable_soft_service_recovery)
+				next_service_check = (time_t)(temp_service->last_check + (temp_service->retry_interval * interval_length));
 			}
 
 		/* else no service state change has occurred... */
@@ -757,20 +766,23 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		if(obsess_over_services == TRUE)
 			obsessive_compulsive_service_check_processor(temp_service);
 
-		/* reset all service variables because its okay now... */
-		temp_service->host_problem_at_last_check = FALSE;
-		temp_service->current_attempt = 1;
-		temp_service->state_type = HARD_STATE;
-		temp_service->last_hard_state = STATE_OK;
-		temp_service->last_notification = (time_t)0;
-		temp_service->next_notification = (time_t)0;
-		temp_service->current_notification_number = 0;
-		temp_service->problem_has_been_acknowledged = FALSE;
-		temp_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
-		temp_service->notified_on = 0;
+		if ((enable_soft_service_recovery == FALSE || hard_state_change == TRUE) 
+			&& reschedule_check == TRUE) {
+			
+			/* reset all service variables because its okay now... */
+			temp_service->host_problem_at_last_check = FALSE;
+			temp_service->current_attempt = 1;
+			temp_service->state_type = HARD_STATE;
+			temp_service->last_hard_state = STATE_OK;
+			temp_service->last_notification = (time_t)0;
+			temp_service->next_notification = (time_t)0;
+			temp_service->current_notification_number = 0;
+			temp_service->problem_has_been_acknowledged = FALSE;
+			temp_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
+			temp_service->notified_on = 0;
 
-		if(reschedule_check == TRUE)
 			next_service_check = (time_t)(temp_service->last_check + (temp_service->check_interval * interval_length));
+			}
 		}
 
 
@@ -943,7 +955,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		/* we've reached the maximum number of service rechecks, so handle the error */
 		else {
 
-			log_debug_info(DEBUGL_CHECKS, 1, "Service has reached max number of rechecks, so we'll handle the error...\n");
+			log_debug_info(DEBUGL_CHECKS, 1, "Service has reached max number of rechecks, so we'll handle it...\n");
 
 			/* this is a hard state */
 			temp_service->state_type = HARD_STATE;
@@ -2134,8 +2146,8 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 
 	if(neb_result == NEBERROR_CALLBACKCANCEL || neb_result == NEBERROR_CALLBACKOVERRIDE) {
 		log_debug_info(DEBUGL_CHECKS, 0, "Check of host '%s' (id=%u) was %s by a module\n",
-		               hst->name, hst->id,
-		               neb_result == NEBERROR_CALLBACKCANCEL ? "cancelled" : "overridden");
+					   hst->name, hst->id,
+					   neb_result == NEBERROR_CALLBACKCANCEL ? "cancelled" : "overridden");
 		}
 	/* neb module wants to cancel the host check - the check will be rescheduled for a later time by the scheduling logic */
 	if(neb_result == NEBERROR_CALLBACKCANCEL) {
@@ -2335,15 +2347,15 @@ int handle_async_host_check_result(host *temp_host, check_result *queued_check_r
 
 	log_debug_info(DEBUGL_CHECKS, 1, "** Handling async check result for host '%s' from '%s'...\n", temp_host->name, check_result_source(queued_check_result));
 
-	log_debug_info(DEBUGL_CHECKS, 2, "\tCheck Type:         %s\n", (queued_check_result->check_type == CHECK_TYPE_ACTIVE) ? "Active" : "Passive");
-	log_debug_info(DEBUGL_CHECKS, 2, "\tCheck Options:      %d\n", queued_check_result->check_options);
+	log_debug_info(DEBUGL_CHECKS, 2, "\tCheck Type:		 %s\n", (queued_check_result->check_type == CHECK_TYPE_ACTIVE) ? "Active" : "Passive");
+	log_debug_info(DEBUGL_CHECKS, 2, "\tCheck Options:	  %d\n", queued_check_result->check_options);
 	log_debug_info(DEBUGL_CHECKS, 2, "\tScheduled Check?:   %s\n", (queued_check_result->scheduled_check == TRUE) ? "Yes" : "No");
 	log_debug_info(DEBUGL_CHECKS, 2, "\tReschedule Check?:  %s\n", (queued_check_result->reschedule_check == TRUE) ? "Yes" : "No");
-	log_debug_info(DEBUGL_CHECKS, 2, "\tExited OK?:         %s\n", (queued_check_result->exited_ok == TRUE) ? "Yes" : "No");
-	log_debug_info(DEBUGL_CHECKS, 2, "\tExec Time:          %.3f\n", temp_host->execution_time);
-	log_debug_info(DEBUGL_CHECKS, 2, "\tLatency:            %.3f\n", temp_host->latency);
-	log_debug_info(DEBUGL_CHECKS, 2, "\tReturn Status:      %d\n", queued_check_result->return_code);
-	log_debug_info(DEBUGL_CHECKS, 2, "\tOutput:             %s\n", (queued_check_result == NULL) ? "NULL" : queued_check_result->output);
+	log_debug_info(DEBUGL_CHECKS, 2, "\tExited OK?:		 %s\n", (queued_check_result->exited_ok == TRUE) ? "Yes" : "No");
+	log_debug_info(DEBUGL_CHECKS, 2, "\tExec Time:		  %.3f\n", temp_host->execution_time);
+	log_debug_info(DEBUGL_CHECKS, 2, "\tLatency:			%.3f\n", temp_host->latency);
+	log_debug_info(DEBUGL_CHECKS, 2, "\tReturn Status:	  %d\n", queued_check_result->return_code);
+	log_debug_info(DEBUGL_CHECKS, 2, "\tOutput:			 %s\n", (queued_check_result == NULL) ? "NULL" : queued_check_result->output);
 
 	/* decrement the number of host checks still out there... */
 	if(queued_check_result->check_type == CHECK_TYPE_ACTIVE && currently_running_host_checks > 0)
@@ -2434,7 +2446,7 @@ int handle_async_host_check_result(host *temp_host, check_result *queued_check_r
 	log_debug_info(DEBUGL_CHECKS, 2, "Parsing check output...\n");
 	log_debug_info(DEBUGL_CHECKS, 2, "Short Output: %s\n", (temp_host->plugin_output == NULL) ? "NULL" : temp_host->plugin_output);
 	log_debug_info(DEBUGL_CHECKS, 2, "Long Output:  %s\n", (temp_host->long_plugin_output == NULL) ? "NULL" : temp_host->long_plugin_output);
-	log_debug_info(DEBUGL_CHECKS, 2, "Perf Data:    %s\n", (temp_host->perf_data == NULL) ? "NULL" : temp_host->perf_data);
+	log_debug_info(DEBUGL_CHECKS, 2, "Perf Data:	%s\n", (temp_host->perf_data == NULL) ? "NULL" : temp_host->perf_data);
 
 	/* get the check return code */
 	result = get_host_check_return_code(temp_host, queued_check_result);
@@ -2879,7 +2891,7 @@ int adjust_host_check_attempt(host *hst, int is_active) {
 	log_debug_info(DEBUGL_CHECKS, 2, "Adjusting check attempt number for host '%s': current attempt=%d/%d, state=%d, state type=%d\n", hst->name, hst->current_attempt, hst->max_attempts, hst->current_state, hst->state_type);
 
 	/* if host is in a hard state, reset current attempt number */
-    /* 2015-07-23 only reset current_attempt if host is up */
+	/* 2015-07-23 only reset current_attempt if host is up */
 	if(hst->state_type == HARD_STATE && hst->current_state == HOST_UP)
 		hst->current_attempt = 1;
 

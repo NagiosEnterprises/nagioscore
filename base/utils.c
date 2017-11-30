@@ -100,6 +100,9 @@ int service_freshness_check_interval;
 int host_freshness_check_interval;
 int auto_rescheduling_interval;
 
+int enable_soft_host_recovery;
+int enable_soft_service_recovery;
+
 struct load_control loadctl;
 
 int check_orphaned_services;
@@ -341,6 +344,9 @@ void init_main_cfg_vars(int first_time) {
 	host_freshness_check_interval = DEFAULT_FRESHNESS_CHECK_INTERVAL;
 	auto_rescheduling_interval = DEFAULT_AUTO_RESCHEDULING_INTERVAL;
 	auto_rescheduling_window = DEFAULT_AUTO_RESCHEDULING_WINDOW;
+	
+	enable_soft_host_recovery = FALSE;
+	enable_soft_service_recovery = FALSE;
 
 	check_orphaned_services = DEFAULT_CHECK_ORPHANED_SERVICES;
 	check_orphaned_hosts = DEFAULT_CHECK_ORPHANED_HOSTS;

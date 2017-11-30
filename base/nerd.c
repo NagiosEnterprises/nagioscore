@@ -1,3 +1,4 @@
+#ifdef ENABLE_NERD
 /*
  * Nagios Event Radio Dispatcher
  *
@@ -7,6 +8,10 @@
  *
  * This code uses the eventbroker api to get its data, which means
  * we're finally eating our own dogfood in that respect.
+ *
+ * Note: Disabled by default as of 4.4.0
+ * ./configure --enable-nerd
+ * to enable!
  */
 
 #define _GNU_SOURCE 1
@@ -493,3 +498,5 @@ int nerd_init(void)
 	logit(NSLOG_INFO_MESSAGE, TRUE, "nerd: Fully initialized and ready to rock!\n");
 	return 0;
 }
+
+#endif

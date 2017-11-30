@@ -1036,7 +1036,8 @@ void document_header(int use_stylesheet) {
 	if(output_format == HTML_OUTPUT)
 		printf("Content-type: text/html; charset=utf-8\r\n\r\n");
 	else {
-		printf("Content-type: text/csv\r\n\r\n");
+		printf("Content-type: text/csv\r\n");
+		printf("Content-Disposition: attachment; filename=\"avail.csv\"\r\n\r\n");
 		return;
 		}
 

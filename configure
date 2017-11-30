@@ -648,6 +648,7 @@ BROKER_LDFLAGS
 cgiurl
 htmurl
 COREWINDOW
+NERD_O
 lockfile
 init_dir
 TMPDIR
@@ -745,6 +746,7 @@ with_lockfile
 with_iobroker
 with_gd_lib
 with_gd_inc
+enable_nerd
 enable_corewindow
 enable_statusmap
 enable_statuswrl
@@ -1375,6 +1377,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-nerd           enables Nagios Event Radio Dispatch (NERD)
   --enable-corewindow     enables the 'corewindow' URL argument
   --disable-statusmap     disables compilation of statusmap CGI
   --disable-statuswrl     disables compilation of statuswrl (VRML) CGI
@@ -5090,6 +5093,25 @@ fi
 
 
 TRYGD=yep
+
+dnls 'NERD' is now disabled by default. enable it for functionality
+NERD=no
+NERD_O=""
+# Check whether --enable-nerd was given.
+if test "${enable_nerd+set}" = set; then :
+  enableval=$enable_nerd; NERD=yes
+
+fi
+
+if test x$NERD = xyes; then
+
+cat >>confdefs.h <<_ACEOF
+#define ENABLE_NERD /**/
+_ACEOF
+
+	NERD_O="nerd.o"
+fi
+
 
 COREWINDOW=no
 # Check whether --enable-corewindow was given.

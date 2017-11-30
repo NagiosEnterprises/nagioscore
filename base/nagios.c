@@ -664,8 +664,11 @@ int main(int argc, char **argv) {
 				exit(EXIT_FAILURE);
 			}
 			timing_point("Query handler initialized\n");
+
+#ifdef ENABLE_NERD
 			nerd_init();
 			timing_point("NERD initialized\n");
+#endif
 
 			/* initialize check workers */
 			if(init_workers(num_check_workers) < 0) {

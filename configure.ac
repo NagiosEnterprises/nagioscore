@@ -383,6 +383,20 @@ AC_ARG_WITH(gd-inc,
 
 TRYGD=yep
 
+dnls 'NERD' is now disabled by default. enable it for functionality
+NERD=no
+NERD_O=""
+AC_ARG_ENABLE(nerd,
+	AC_HELP_STRING([--enable-nerd],
+		[enables Nagios Event Radio Dispatch (NERD)]),
+	NERD=yes
+)
+if test x$NERD = xyes; then
+	AC_DEFINE_UNQUOTED(ENABLE_NERD,,[defined if user enabled NERD (radio dispatcher)])
+	NERD_O="nerd.o"
+fi
+AC_SUBST(NERD_O)
+
 dnl 'corewindow' is now disabled. Allow it to be enabled if someone wants it
 COREWINDOW=no
 AC_ARG_ENABLE(corewindow,

@@ -34,7 +34,7 @@
 /*#define DEBUG_CHECKS*/
 /*#define DEBUG_HOST_CHECKS 1*/
 
-#define replace_semicolons(output, ptr) do { ptr = output; while (ptr = strchr(ptr, ';')) { * ptr = ':'; } } while (0)
+#define replace_semicolons(output, ptr) do { ptr = output; while ((ptr = strchr(ptr, ';')) != NULL) { * ptr = ':'; } } while (0)
 
 #ifdef USE_EVENT_BROKER
 #include "../include/neberrors.h"
@@ -393,7 +393,6 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 	int hard_state_change = FALSE;
 	int first_host_check_initiated = FALSE;
 	time_t current_time = 0L;
-	int state_was_logged = FALSE;
 	char *old_plugin_output = NULL;
 	char *temp_plugin_output = NULL;
 	char *temp_ptr = NULL;
@@ -577,9 +576,10 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 	if(hard_state_change == TRUE) {
 		svc->last_hard_state_change = svc->last_check;
 		svc->state_type = HARD_STATE;
-	} else {
+		} 
+	else {
 		svc->state_type = SOFT_STATE;
-	}
+		}
 
 	/* a state change occurred... */
 	/* reset last and next notification times and acknowledgement flag if necessary, misc other stuff */
@@ -880,6 +880,7 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 						}
 					}
 				}
+			}
 
 
 		/* we've reached the maximum number of service rechecks, so handle the error */
@@ -892,8 +893,9 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 
 			/* check for start of flexible (non-fixed) scheduled downtime if we just had a hard error */
 			/* we need to check for both, state_change (SOFT) and hard_state_change (HARD) values */
-			if((hard_state_change == TRUE || state_change == TRUE) && svc->pending_flex_downtime > 0)
+			if((hard_state_change == TRUE || state_change == TRUE) && svc->pending_flex_downtime > 0) {
 				check_pending_flex_service_downtime(svc);
+				}
 
 			/* if we've hard a hard state change or the service is volatile */
 			if((hard_state_change == TRUE) || (svc->is_volatile == TRUE)) {
@@ -907,6 +909,7 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 
 			/* save the last hard state */
 			svc->last_hard_state = svc->current_state;
+			}
 		}
 
 	/* 10/04/07 check to see if the service and/or associate host is flapping */
@@ -916,15 +919,13 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 
 	/* should we send a notification? */
 	if (send_notification == TRUE) {
-
-		/* notify contacts about the service recovery */
 		service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
 		}
 
 	/* should we obsessive over service checks? */
 	if(obsess_over_services == TRUE) {
 		obsessive_compulsive_service_check_processor(svc);
-	}
+		}
 
 	/* reschedule the next service check ONLY for active, scheduled checks */
 	if(reschedule_check == TRUE) {
@@ -938,8 +939,9 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 		svc->next_check = next_service_check;
 
 		/* make sure we don't get ourselves into too much trouble... */
-		if(current_time > svc->next_check)
+		if(current_time > svc->next_check) {
 			svc->next_check = current_time;
+			}
 
 		/* make sure we rescheduled the next service check at a valid time */
 		preferred_time = svc->next_check;
@@ -966,8 +968,10 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 		}
 
 	/* if we're stalking this state type and state was not already logged AND the plugin output changed since last check, log it now.. */
-	if(log_event == FALSE && should_stalk(svc) && svc->state_type == HARD_STATE && state_change == FALSE && compare_strings(old_plugin_output, svc->plugin_output)) {
-		log_event = TRUE
+	if(log_event == FALSE && should_stalk(svc) && svc->state_type == HARD_STATE 
+		&& state_change == FALSE && compare_strings(old_plugin_output, svc->plugin_output)) {
+
+		log_event = TRUE;
 		}
 
 	if (log_event == TRUE) {

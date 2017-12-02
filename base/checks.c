@@ -408,6 +408,7 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 	if(svc == NULL || queued_check_result == NULL)
 		return ERROR;
 
+
 	/* skip this service check results if its passive and we aren't accepting passive check results */
 	if(queued_check_result->check_type == CHECK_TYPE_PASSIVE) {
 
@@ -419,7 +420,6 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 			log_debug_info(DEBUGL_CHECKS, 0, "Discarding passive service check result because passive checks are disabled for this service.\n");
 			return ERROR;
 			}
-		}
 
 		svc->check_type = CHECK_TYPE_PASSIVE;
 
@@ -434,6 +434,7 @@ int handle_async_service_check_result(service *svc, check_result *queued_check_r
 				svc->current_state, 
 				svc->plugin_output);
 			}
+		}
 
 	else {
 

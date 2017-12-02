@@ -566,6 +566,7 @@ int run_scheduled_host_check(host *, int, double);
 int run_async_host_check(host *, int, double, int, int, int *, time_t *);
 int handle_async_host_check_result(host *, check_result *);
 double calculate_check_result_execution_time(check_result *);
+void record_last_service_state_ended(service *);
 
 
 /**** Service Check Functions ****/

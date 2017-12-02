@@ -34,6 +34,7 @@
 /*#define DEBUG_CHECKS*/
 /*#define DEBUG_HOST_CHECKS 1*/
 
+#define replace_semicolons(output, ptr) do { ptr = output; while (ptr = strchr(ptr, ';')) { * ptr = ':'; } } while (0)
 
 #ifdef USE_EVENT_BROKER
 #include "../include/neberrors.h"
@@ -322,8 +323,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	}
 
 
-static int get_service_check_return_code(service *temp_service,
-		check_result *queued_check_result) {
+static int get_service_check_return_code(service *temp_service, check_result *queued_check_result) {
 
 	int rc;
 	char *temp_plugin_output = NULL;
@@ -383,9 +383,7 @@ static int get_service_check_return_code(service *temp_service,
 
 
 /* handles asynchronous service check results */
-/* TODO: skips a check when recovering with soft state
-		 never enters hard recovery after being in soft recovery */
-int handle_async_service_check_result(service *temp_service, check_result *queued_check_result) {
+int handle_async_service_check_result(service *svc, check_result *queued_check_result) {
 	host *temp_host = NULL;
 	time_t next_service_check = 0L;
 	time_t preferred_time = 0L;
@@ -394,7 +392,6 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	int state_change = FALSE;
 	int hard_state_change = FALSE;
 	int first_host_check_initiated = FALSE;
-	int route_result = HOST_UP;
 	time_t current_time = 0L;
 	int state_was_logged = FALSE;
 	char *old_plugin_output = NULL;
@@ -402,30 +399,66 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	char *temp_ptr = NULL;
 	servicedependency *temp_dependency = NULL;
 	service *master_service = NULL;
-	int flapping_check_done = FALSE;
-
+	int send_notification = FALSE;
+	int log_event = FALSE;
+	int handle_event = FALSE;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_service_check_result()\n");
 
 	/* make sure we have what we need */
-	if(temp_service == NULL || queued_check_result == NULL)
+	if(svc == NULL || queued_check_result == NULL)
 		return ERROR;
+
+	/* skip this service check results if its passive and we aren't accepting passive check results */
+	if(queued_check_result->check_type == CHECK_TYPE_PASSIVE) {
+
+		if(accept_passive_service_checks == FALSE) {
+			log_debug_info(DEBUGL_CHECKS, 0, "Discarding passive service check result because passive service checks are disabled globally.\n");
+			return ERROR;
+			}
+		if(svc->accept_passive_checks == FALSE) {
+			log_debug_info(DEBUGL_CHECKS, 0, "Discarding passive service check result because passive checks are disabled for this service.\n");
+			return ERROR;
+			}
+		}
+
+		svc->check_type = CHECK_TYPE_PASSIVE;
+
+		/* update check statistics for passive checks */
+		update_check_stats(PASSIVE_SERVICE_CHECK_STATS, queued_check_result->start_time.tv_sec);
+
+		/* log passive checks - we need to do this here, as some may bypass external commands by getting dropped in checkresults dir */
+		if (log_passive_checks == TRUE) {
+			logit(NSLOG_PASSIVE_CHECK, FALSE, "PASSIVE SERVICE CHECK: %s;%s;%d;%s\n", 
+				svc->host_name, 
+				svc->description, 
+				svc->current_state, 
+				svc->plugin_output);
+			}
+
+	else {
+
+		svc->check_type = CHECK_TYPE_ACTIVE;
+
+		/* decrement the number of service checks still out there... */
+		if (currently_running_service_checks > 0)
+			currently_running_service_checks--;
+
+		/* clear the execution flag if this was an active check */
+		svc->is_executing = FALSE;
+	}
 
 	/* get the current time */
 	time(&current_time);
 
-	if (current_time < temp_service->next_check)
-		next_service_check = temp_service->next_check + check_window(temp_service);
-	else
-		next_service_check = current_time + check_window(temp_service);
-
 	log_debug_info(DEBUGL_CHECKS, 0, "** Handling check result for service '%s' on host '%s' from '%s'...\n", 
-		temp_service->description, 
-		temp_service->host_name, 
+		svc->description, 
+		svc->host_name, 
 		check_result_source(queued_check_result));
-	log_debug_info(DEBUGL_CHECKS, 1, "HOST: %s, SERVICE: %s, CHECK TYPE: %s, OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT: %s\n", 
-		temp_service->host_name, 
-		temp_service->description, 
+	log_debug_info(DEBUGL_CHECKS, 1, 
+		"HOST: %s, SERVICE: %s, CHECK TYPE: %s, OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT: %s\n", 
+		svc->host_name, 
+		svc->description, 
 		(queued_check_result->check_type == CHECK_TYPE_ACTIVE) ? "Active" : "Passive", 
 		queued_check_result->check_options, 
 		(queued_check_result->scheduled_check == TRUE) ? "Yes" : "No", 
@@ -434,123 +467,188 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		queued_check_result->return_code, 
 		queued_check_result->output);
 
-	/* decrement the number of service checks still out there... */
-	if(queued_check_result->check_type == CHECK_TYPE_ACTIVE && currently_running_service_checks > 0)
-		currently_running_service_checks--;
+	/* check freshness */
+	if(queued_check_result->check_options & CHECK_OPTION_FRESHNESS_CHECK) {
 
-	/* skip this service check results if its passive and we aren't accepting passive check results */
-	if(queued_check_result->check_type == CHECK_TYPE_PASSIVE) {
-		if(accept_passive_service_checks == FALSE) {
-			log_debug_info(DEBUGL_CHECKS, 0, "Discarding passive service check result because passive service checks are disabled globally.\n");
-			return ERROR;
-			}
-		if(temp_service->accept_passive_checks == FALSE) {
-			log_debug_info(DEBUGL_CHECKS, 0, "Discarding passive service check result because passive checks are disabled for this service.\n");
-			return ERROR;
-			}
+		/* DISCARD INVALID FRESHNESS CHECK RESULTS */
+		/* If a services goes stale, Nagios will initiate a forced check in order to freshen it.  There is a race condition whereby a passive check
+		   could arrive between the 1) initiation of the forced check and 2) the time when the forced check result is processed here.  This would
+		   make the service fresh again, so we do a quick check to make sure the service is still stale before we accept the check result. */
+		if (is_service_result_fresh(svc, current_time, FALSE) == TRUE) {
+			log_debug_info(DEBUGL_CHECKS, 0, "Discarding service freshness check result because the service is currently fresh (race condition avoided).\n");
+			return OK;
 		}
 
-	/* clear the freshening flag (it would have been set if this service was determined to be stale) */
-	if(queued_check_result->check_options & CHECK_OPTION_FRESHNESS_CHECK)
-		temp_service->is_being_freshened = FALSE;
+		/* clear the freshening flag (it would have been set if this service was determined to be stale) */	
+		svc->is_being_freshened = FALSE;
+	}
 
-	/* clear the execution flag if this was an active check */
-	if(queued_check_result->check_type == CHECK_TYPE_ACTIVE)
-		temp_service->is_executing = FALSE;
-
-	/* DISCARD INVALID FRESHNESS CHECK RESULTS */
-	/* If a services goes stale, Nagios will initiate a forced check in order to freshen it.  There is a race condition whereby a passive check
-	   could arrive between the 1) initiation of the forced check and 2) the time when the forced check result is processed here.  This would
-	   make the service fresh again, so we do a quick check to make sure the service is still stale before we accept the check result. */
-	if((queued_check_result->check_options & CHECK_OPTION_FRESHNESS_CHECK) && is_service_result_fresh(temp_service, current_time, FALSE) == TRUE) {
-		log_debug_info(DEBUGL_CHECKS, 0, "Discarding service freshness check result because the service is currently fresh (race condition avoided).\n");
-		return OK;
-		}
+	/* reschedule the next check at the regular interval - may be overridden */
+	next_service_check = (time_t)(svc->last_check + (svc->check_interval * interval_length));
 
 	/* check latency is passed to us */
-	temp_service->latency = queued_check_result->latency;
+	svc->latency = queued_check_result->latency;
 
 	/* update the execution time for this check (millisecond resolution) */
-	temp_service->execution_time = calculate_check_result_execution_time(queued_check_result);
+	svc->execution_time = calculate_check_result_execution_time(queued_check_result);
 
 	/* get the last check time */
-	temp_service->last_check = queued_check_result->start_time.tv_sec;
-
-	/* was this check passive or active? */
-	temp_service->check_type = (queued_check_result->check_type == CHECK_TYPE_ACTIVE) ? CHECK_TYPE_ACTIVE : CHECK_TYPE_PASSIVE;
-
-	/* update check statistics for passive checks */
-	if(queued_check_result->check_type == CHECK_TYPE_PASSIVE)
-		update_check_stats(PASSIVE_SERVICE_CHECK_STATS, queued_check_result->start_time.tv_sec);
+	svc->last_check = queued_check_result->start_time.tv_sec;
 
 	/* should we reschedule the next service check? NOTE: This may be overridden later... */
 	reschedule_check = queued_check_result->reschedule_check;
 
 	/* save the old service status info */
-	temp_service->last_state = temp_service->current_state;
+	svc->last_state = svc->current_state;
 
 	/* save old plugin output */
-	if(temp_service->plugin_output)
-		old_plugin_output = (char *)strdup(temp_service->plugin_output);
+	if(svc->plugin_output)
+		old_plugin_output = (char *)strdup(svc->plugin_output);
 
 	/* clear the old plugin output and perf data buffers */
-	my_free(temp_service->plugin_output);
-	my_free(temp_service->long_plugin_output);
-	my_free(temp_service->perf_data);
+	my_free(svc->plugin_output);
+	my_free(svc->long_plugin_output);
+	my_free(svc->perf_data);
 
 	/* parse check output to get: (1) short output, (2) long output, (3) perf data */
-	parse_check_output(queued_check_result->output, &temp_service->plugin_output, &temp_service->long_plugin_output, &temp_service->perf_data, TRUE, FALSE);
+	parse_check_output(queued_check_result->output, &svc->plugin_output, &svc->long_plugin_output, &svc->perf_data, TRUE, FALSE);
 
 	/* make sure the plugin output isn't null */
-	if(temp_service->plugin_output == NULL)
-		temp_service->plugin_output = (char *)strdup("(No output returned from plugin)");
+	if(svc->plugin_output == NULL) {
+		svc->plugin_output = (char *)strdup("(No output returned from plugin)");
+		}
 
-	/* replace semicolons in plugin output (but not performance data) with colons */
-	else if((temp_ptr = temp_service->plugin_output)) {
-		while((temp_ptr = strchr(temp_ptr, ';')))
-			* temp_ptr = ':';
+	/* otherwise replace the semicolons with colons */
+	else {
+		replace_semicolons(svc->plugin_output, temp_ptr);
 		}
 
 	/* grab the return code */
-	temp_service->current_state = get_service_check_return_code(temp_service,
-			queued_check_result);
+	svc->current_state = get_service_check_return_code(svc, queued_check_result);
 
-	log_debug_info(DEBUGL_CHECKS, 2, "Parsing check output...\n");
-	log_debug_info(DEBUGL_CHECKS, 2, "Short Output: %s\n", (temp_service->plugin_output == NULL) ? "NULL" : temp_service->plugin_output);
-	log_debug_info(DEBUGL_CHECKS, 2, "Long Output:  %s\n", (temp_service->long_plugin_output == NULL) ? "NULL" : temp_service->long_plugin_output);
-	log_debug_info(DEBUGL_CHECKS, 2, "Perf Data:	%s\n", (temp_service->perf_data == NULL) ? "NULL" : temp_service->perf_data);
+	log_debug_info(DEBUGL_CHECKS, 2, 
+		"Parsing check output...\n"
+		"Short Output: %s\n"
+		"Long Output: %s\n"
+		"Perf Data:	%s\n",
+		(svc->plugin_output == NULL) ? "NULL" : svc->plugin_output,
+		(svc->long_plugin_output == NULL) ? "NULL" : svc->long_plugin_output,
+		(svc->perf_data == NULL) ? "NULL" : svc->perf_data);
 
 	/* record the time the last state ended */
-	switch(temp_service->last_state) {
-		case STATE_OK:
-			temp_service->last_time_ok = temp_service->last_check;
-			break;
-		case STATE_WARNING:
-			temp_service->last_time_warning = temp_service->last_check;
-			break;
-		case STATE_UNKNOWN:
-			temp_service->last_time_unknown = temp_service->last_check;
-			break;
-		case STATE_CRITICAL:
-			temp_service->last_time_critical = temp_service->last_check;
-			break;
-		default:
-			break;
-		}
-
-	/* log passive checks - we need to do this here, as some may bypass external commands by getting dropped in checkresults dir */
-	if(temp_service->check_type == CHECK_TYPE_PASSIVE && log_passive_checks == TRUE)
-		logit(NSLOG_PASSIVE_CHECK, FALSE, "PASSIVE SERVICE CHECK: %s;%s;%d;%s\n", 
-			temp_service->host_name, 
-			temp_service->description, 
-			temp_service->current_state, 
-			temp_service->plugin_output);
+	record_last_service_state_ended(svc);
 
 	/* get the host that this service runs on */
-	temp_host = (host *)temp_service->host_ptr;
+	temp_host = (host *)svc->host_ptr;
 
-	/* if the service check was okay... */
-	if(temp_service->current_state == STATE_OK) {
+	/* increment the current attempt number if this is a soft state (service was rechecked) */
+	if(svc->state_type == SOFT_STATE && (svc->current_attempt < svc->max_attempts))
+		svc->current_attempt = svc->current_attempt + 1;
+
+	log_debug_info(DEBUGL_CHECKS, 2, 
+		"STATE: %s, CURRENT_ATTEMP: %d, MAX_ATTEMPTS: %d, CURRENT_STATE: %d, LAST_STATE: %d, LAST_HARD_STATE: %d\n",
+		(svc->state_type == SOFT_STATE) ? "SOFT" : "HARD", 
+		svc->current_attempt, 
+		svc->max_attempts, 
+		svc->current_state, 
+		svc->last_state, 
+		svc->last_hard_state);
+
+	/* check for a state change (either soft or hard) */
+	if(svc->current_state != svc->last_state) {
+		log_debug_info(DEBUGL_CHECKS, 2, "Service has changed state since last check!\n");
+		state_change = TRUE;
+		}
+
+	/* checks for a hard state change where host was down at last service check */
+	/* this occurs in the case where host goes down and service current attempt gets reset to 1 */
+	/* if this check is not made, the service recovery looks like a soft recovery instead of a hard one */
+	if(svc->host_problem_at_last_check == TRUE && svc->current_state == STATE_OK) {
+		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
+		hard_state_change = TRUE;
+		}
+
+	/* check for a "normal" hard state change where max check attempts is reached */
+	else if(svc->current_attempt >= svc->max_attempts && svc->current_state != svc->last_hard_state) {
+		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
+		hard_state_change = TRUE;
+		}
+
+	if(hard_state_change == TRUE) {
+		svc->last_hard_state_change = svc->last_check;
+		svc->state_type = HARD_STATE;
+	} else {
+		svc->state_type = SOFT_STATE;
+	}
+
+	/* a state change occurred... */
+	/* reset last and next notification times and acknowledgement flag if necessary, misc other stuff */
+	if(state_change == TRUE || hard_state_change == TRUE) {
+
+		/* reschedule the service check */
+		reschedule_check = TRUE;
+
+		/* reset notification times */
+		svc->last_notification = (time_t)0;
+		svc->next_notification = (time_t)0;
+
+		/* reset notification suppression option */
+		svc->no_more_notifications = FALSE;
+
+		if((svc->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
+			|| (svc->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && svc->current_state == STATE_OK)) {
+
+			svc->problem_has_been_acknowledged = FALSE;
+			svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
+
+			/* remove any non-persistant comments associated with the ack */
+			delete_service_acknowledgement_comments(svc);
+			}
+
+		/* update the event and problem ids */
+		if(state_change == TRUE) {
+
+			svc->last_state_change = svc->last_check;
+
+			/* always update the event id on a state change */
+			svc->last_event_id = svc->current_event_id;
+			svc->current_event_id = next_event_id;
+			next_event_id++;
+
+			/* update the problem id when transitioning to a problem state */
+			if(svc->last_state == STATE_OK) {
+				/* don't reset last problem id, or it will be zero the next time a problem is encountered */
+				svc->current_problem_id = next_problem_id;
+				next_problem_id++;
+				}
+
+			/* clear the problem id when transitioning from a problem state to an OK state */
+			if(svc->current_state == STATE_OK) {
+				svc->last_problem_id = svc->current_problem_id;
+				svc->current_problem_id = 0L;
+				}
+			}
+		}
+
+	/* initialize the last host and service state change times if necessary */
+	if(svc->last_state_change == (time_t)0)
+		svc->last_state_change = svc->last_check;
+	if(svc->last_hard_state_change == (time_t)0)
+		svc->last_hard_state_change = svc->last_check;
+	if(temp_host->last_state_change == (time_t)0)
+		temp_host->last_state_change = svc->last_check;
+	if(temp_host->last_hard_state_change == (time_t)0)
+		temp_host->last_hard_state_change = svc->last_check;
+
+
+	/**************************************/
+	/******* SERVICE CHECK OK LOGIC *******/
+	/**************************************/
+
+	/* if the service is up and running OK... */
+	if(svc->current_state == STATE_OK) {
+
+		log_debug_info(DEBUGL_CHECKS, 1, "Service is OK.\n");
 
 		/* if the host has never been checked before, verify its status */
 		/* only do this if 1) the initial state was set to non-UP or 2) the host is not scheduled to be checked soon (next 5 minutes) */
@@ -562,141 +660,19 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			first_host_check_initiated = TRUE;
 			schedule_host_check(temp_host, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
 			}
-		}
-
-
-	/* increment the current attempt number if this is a soft state (service was rechecked) */
-	if(temp_service->state_type == SOFT_STATE && (temp_service->current_attempt < temp_service->max_attempts))
-		temp_service->current_attempt = temp_service->current_attempt + 1;
-
-
-	log_debug_info(DEBUGL_CHECKS, 2, "ST: %s  CA: %d  MA: %d  CS: %d  LS: %d  LHS: %d\n", 
-		(temp_service->state_type == SOFT_STATE) ? "SOFT" : "HARD", 
-		temp_service->current_attempt, 
-		temp_service->max_attempts, 
-		temp_service->current_state, 
-		temp_service->last_state, 
-		temp_service->last_hard_state);
-
-	/* check for a state change (either soft or hard) */
-	if(temp_service->current_state != temp_service->last_state) {
-		log_debug_info(DEBUGL_CHECKS, 2, "Service has changed state since last check!\n");
-		state_change = TRUE;
-		}
-
-	/* checks for a hard state change where host was down at last service check */
-	/* this occurs in the case where host goes down and service current attempt gets reset to 1 */
-	/* if this check is not made, the service recovery looks like a soft recovery instead of a hard one */
-	/* unless that is exactly what we want with enable_soft_service_recovery */
-	if(temp_service->host_problem_at_last_check == TRUE && temp_service->current_state == STATE_OK) {
-		if (enable_soft_service_recovery == FALSE) {
-			log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
-			hard_state_change = TRUE;
-			}
-		}
-
-	/* check for a "normal" hard state change where max check attempts is reached */
-	if(temp_service->current_attempt >= temp_service->max_attempts && temp_service->current_state != temp_service->last_hard_state) {
-		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
-		hard_state_change = TRUE;
-		}
-
-	/* a state change occurred... */
-	/* reset last and next notification times and acknowledgement flag if necessary, misc other stuff */
-	if(state_change == TRUE || hard_state_change == TRUE) {
-
-		/* reschedule the service check */
-		reschedule_check = TRUE;
-
-		/* reset notification times */
-		temp_service->last_notification = (time_t)0;
-		temp_service->next_notification = (time_t)0;
-
-		/* reset notification suppression option */
-		temp_service->no_more_notifications = FALSE;
-
-		if(temp_service->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE)) {
-
-			temp_service->problem_has_been_acknowledged = FALSE;
-			temp_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
-
-			/* remove any non-persistant comments associated with the ack */
-			delete_service_acknowledgement_comments(temp_service);
-			}
-		else if(temp_service->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && temp_service->current_state == STATE_OK) {
-
-			temp_service->problem_has_been_acknowledged = FALSE;
-			temp_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
-
-			/* remove any non-persistant comments associated with the ack */
-			delete_service_acknowledgement_comments(temp_service);
-			}
-
-		/*
-		 * hard changes between non-OK states should continue
-		 * to be escalated, so don't reset current notification number
-		 */
-		}
-
-	/* initialize the last host and service state change times if necessary */
-	if(temp_service->last_state_change == (time_t)0)
-		temp_service->last_state_change = temp_service->last_check;
-	if(temp_service->last_hard_state_change == (time_t)0)
-		temp_service->last_hard_state_change = temp_service->last_check;
-	if(temp_host->last_state_change == (time_t)0)
-		temp_host->last_state_change = temp_service->last_check;
-	if(temp_host->last_hard_state_change == (time_t)0)
-		temp_host->last_hard_state_change = temp_service->last_check;
-
-	/* update last service state change times */
-	if(state_change == TRUE)
-		temp_service->last_state_change = temp_service->last_check;
-	if(hard_state_change == TRUE)
-		temp_service->last_hard_state_change = temp_service->last_check;
-
-	/* update the event and problem ids */
-	if(state_change == TRUE) {
-
-		/* always update the event id on a state change */
-		temp_service->last_event_id = temp_service->current_event_id;
-		temp_service->current_event_id = next_event_id;
-		next_event_id++;
-
-		/* update the problem id when transitioning to a problem state */
-		if(temp_service->last_state == STATE_OK) {
-			/* don't reset last problem id, or it will be zero the next time a problem is encountered */
-			temp_service->current_problem_id = next_problem_id;
-			next_problem_id++;
-			}
-
-		/* clear the problem id when transitioning from a problem state to an OK state */
-		if(temp_service->current_state == STATE_OK) {
-			temp_service->last_problem_id = temp_service->current_problem_id;
-			temp_service->current_problem_id = 0L;
-			}
-		}
-
-
-	/**************************************/
-	/******* SERVICE CHECK OK LOGIC *******/
-	/**************************************/
-
-	/* if the service is up and running OK... */
-	if(temp_service->current_state == STATE_OK) {
-
-		log_debug_info(DEBUGL_CHECKS, 1, "Service is OK.\n");
 
 		/* reset the acknowledgement flag (this should already have been done, but just in case...) */
-		temp_service->problem_has_been_acknowledged = FALSE;
-		temp_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
+		svc->problem_has_been_acknowledged = FALSE;
+		svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 
 		/* verify the route to the host and send out host recovery notifications */
 		if(temp_host->current_state != HOST_UP) {
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Host is NOT UP, so we'll check it to see if it recovered...\n");
 
-			if(first_host_check_initiated == TRUE)
+			if(first_host_check_initiated == TRUE) {
 				log_debug_info(DEBUGL_CHECKS, 1, "First host check was already initiated, so we'll skip a new host check.\n");
+				}
 			else {
 				/* can we use the last cached host state? */
 				/* usually only use cached host state if no service state change has occurred */
@@ -707,54 +683,21 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 					}
 
 				/* else launch an async (parallel) check of the host */
-				else
+				else {
 					schedule_host_check(temp_host, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
+					}
 				}
 			}
 
 		/* if a hard service recovery has occurred... */
 		if(hard_state_change == TRUE) {
-
 			log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a HARD RECOVERY.\n");
-
-			/* set the state type macro */
-			temp_service->state_type = HARD_STATE;
-
-			/* log the service recovery */
-			log_service_event(temp_service);
-			state_was_logged = TRUE;
-
-			/* 10/04/07 check to see if the service and/or associate host is flapping */
-			/* this should be done before a notification is sent out to ensure the host didn't just start flapping */
-			check_for_service_flapping(temp_service, TRUE, TRUE);
-			check_for_host_flapping(temp_host, TRUE, FALSE, TRUE);
-			flapping_check_done = TRUE;
-
-			/* notify contacts about the service recovery */
-			service_notification(temp_service, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
-
-			/* run the service event handler to handle the hard state change */
-			handle_service_event(temp_service);
+			send_notification = TRUE;
 			}
 
 		/* else if a soft service recovery has occurred... */
 		else if(state_change == TRUE) {
-
 			log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a SOFT RECOVERY.\n");
-
-			/* this is a soft recovery */
-			temp_service->state_type = SOFT_STATE;
-
-			/* log the soft recovery */
-			log_service_event(temp_service);
-			state_was_logged = TRUE;
-
-			/* run the service event handler to handle the soft state change */
-			handle_service_event(temp_service);
-
-			/* still in soft/ok, so see if we need to reschedule */
-			if (enable_soft_service_recovery)
-				next_service_check = (time_t)(temp_service->last_check + (temp_service->retry_interval * interval_length));
 			}
 
 		/* else no service state change has occurred... */
@@ -762,27 +705,21 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			log_debug_info(DEBUGL_CHECKS, 1, "Service did not change state.\n");
 			}
 
-		/* should we obsessive over service checks? */
-		if(obsess_over_services == TRUE)
-			obsessive_compulsive_service_check_processor(temp_service);
+		/* log and handle event */
+		log_event = TRUE;
+		handle_event = TRUE;
 
-		if ((enable_soft_service_recovery == FALSE || hard_state_change == TRUE) 
-			&& reschedule_check == TRUE) {
-			
-			/* reset all service variables because its okay now... */
-			temp_service->host_problem_at_last_check = FALSE;
-			temp_service->current_attempt = 1;
-			temp_service->state_type = HARD_STATE;
-			temp_service->last_hard_state = STATE_OK;
-			temp_service->last_notification = (time_t)0;
-			temp_service->next_notification = (time_t)0;
-			temp_service->current_notification_number = 0;
-			temp_service->problem_has_been_acknowledged = FALSE;
-			temp_service->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
-			temp_service->notified_on = 0;
-
-			next_service_check = (time_t)(temp_service->last_check + (temp_service->check_interval * interval_length));
-			}
+		/* reset all service variables because its okay now... */
+		svc->host_problem_at_last_check = FALSE;
+		svc->current_attempt = 1;
+		svc->state_type = HARD_STATE;
+		svc->last_hard_state = STATE_OK;
+		svc->last_notification = (time_t)0;
+		svc->next_notification = (time_t)0;
+		svc->current_notification_number = 0;
+		svc->problem_has_been_acknowledged = FALSE;
+		svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
+		svc->notified_on = 0;
 		}
 
 
@@ -794,32 +731,52 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	else {
 
 		log_debug_info(DEBUGL_CHECKS, 1, "Service is in a non-OK state!\n");
+		log_debug_info(DEBUGL_CHECKS, 1, "Host is currently %s.\n", host_state_name(temp_host->current_state));
 
 		/* check the route to the host if its up right now... */
 		if(temp_host->current_state == HOST_UP) {
 
-			log_debug_info(DEBUGL_CHECKS, 1, "Host is currently UP, so we'll recheck its state to make sure...\n");
+			log_debug_info(DEBUGL_CHECKS, 1, "* Rechecking Host state to make sure...\n");
 
 			/* only run a new check if we can and have to */
 			if(execute_host_checks && state_change == TRUE && temp_host->last_check + cached_host_check_horizon < current_time) {
+
+				log_debug_info(DEBUGL_CHECKS, 1, "* Scheduling host check\n");
 				schedule_host_check(temp_host, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
 				}
 			else {
+
 				log_debug_info(DEBUGL_CHECKS, 1, "* Using cached host state: %d\n", temp_host->current_state);
-				route_result = temp_host->current_state;
 				update_check_stats(ACTIVE_ONDEMAND_HOST_CHECK_STATS, current_time);
 				update_check_stats(ACTIVE_CACHED_HOST_CHECK_STATS, current_time);
+				}
+
+
+			/* it recovered since the last time the service was checked... */
+			if(svc->host_problem_at_last_check == TRUE) {
+
+				/* next time the service is checked we shouldn't get into this same case... */
+				svc->host_problem_at_last_check = FALSE;
+
+				/* reset the current check counter, so we give the service a chance */
+				/* this helps prevent the case where service has N max check attempts, N-1 of which have already occurred. */
+				/* if we didn't do this, the next check might fail and result in a hard problem - we should really give it more time */
+				/* ADDED IF STATEMENT 01-17-05 EG */
+				/* 01-17-05: Services in hard problem states before hosts went down would sometimes come back as soft problem states after */
+				/* the hosts recovered.  This caused problems, so hopefully this will fix it */
+				if(svc->state_type == SOFT_STATE) {
+					svc->current_attempt = 1;
+					}
 				}
 			}
 
 		/* else the host is either down or unreachable, so recheck it if necessary */
 		else {
 
-			log_debug_info(DEBUGL_CHECKS, 1, "Host is currently %s.\n", host_state_name(temp_host->current_state));
-
 			if(execute_host_checks && state_change == TRUE) {
 				schedule_host_check(temp_host, current_time, CHECK_OPTION_NONE);
 				}
+
 			/* else fake the host check, but (possibly) resend host notifications to contacts... */
 			else {
 
@@ -829,79 +786,56 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				/* This probably never evaluates to FALSE, present for historical reasons only, can probably be removed in the future */
 				if(temp_host->has_been_checked == FALSE) {
 					temp_host->has_been_checked = TRUE;
-					temp_host->last_check = temp_service->last_check;
+					temp_host->last_check = svc->last_check;
 					}
-
-				/* fake the route check result */
-				route_result = temp_host->current_state;
 
 				/* possibly re-send host notifications... */
 				host_notification(temp_host, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
 				}
-			}
 
-		/* if the host is down or unreachable ... */
-		if(route_result != HOST_UP) {
 			if (temp_host->state_type == HARD_STATE) {
 				log_debug_info(DEBUGL_CHECKS, 2, "Host is not UP, so we mark state changes if appropriate\n");
 
 				/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earlier... */
-				if(temp_service->last_hard_state != temp_service->current_state)
+				if(svc->last_hard_state != svc->current_state) {
 					hard_state_change = TRUE;
+					}
 
 				/* update last state change times */
-				if(state_change == TRUE || hard_state_change == TRUE)
-					temp_service->last_state_change = temp_service->last_check;
-				if(hard_state_change == TRUE) {
-					temp_service->last_hard_state_change = temp_service->last_check;
-					temp_service->state_type = HARD_STATE;
-					temp_service->last_hard_state = temp_service->current_state;
+				if(state_change == TRUE || hard_state_change == TRUE) {
+
+					svc->last_state_change = svc->last_check;
+
+					if(hard_state_change == TRUE) {
+						svc->last_hard_state_change = svc->last_check;
+						svc->state_type = HARD_STATE;
+						svc->last_hard_state = svc->current_state;
+						}
 					}
 
 				/* put service into a hard state without attempting check retries and don't send out notifications about it */
-				temp_service->host_problem_at_last_check = TRUE;
+				svc->host_problem_at_last_check = TRUE;
 				}
-			else if (temp_service->last_state == STATE_OK)
-				temp_service->state_type = SOFT_STATE;
+			else if (svc->last_state == STATE_OK) {
+				svc->state_type = SOFT_STATE;
+				}
 			}
 
-		/* the host is up - it recovered since the last time the service was checked... */
-		else if(temp_service->host_problem_at_last_check == TRUE) {
-
-			/* next time the service is checked we shouldn't get into this same case... */
-			temp_service->host_problem_at_last_check = FALSE;
-
-			/* reset the current check counter, so we give the service a chance */
-			/* this helps prevent the case where service has N max check attempts, N-1 of which have already occurred. */
-			/* if we didn't do this, the next check might fail and result in a hard problem - we should really give it more time */
-			/* ADDED IF STATEMENT 01-17-05 EG */
-			/* 01-17-05: Services in hard problem states before hosts went down would sometimes come back as soft problem states after */
-			/* the hosts recovered.  This caused problems, so hopefully this will fix it */
-			if(temp_service->state_type == SOFT_STATE)
-				temp_service->current_attempt = 1;
-			}
-
-		log_debug_info(DEBUGL_CHECKS, 1, "Current/Max Attempt(s): %d/%d\n", temp_service->current_attempt, temp_service->max_attempts);
+		log_debug_info(DEBUGL_CHECKS, 1, "Current/Max Attempt(s): %d/%d\n", svc->current_attempt, svc->max_attempts);
 
 		/* if we should retry the service check, do so (except if the host is down or unreachable!) */
-		if(temp_service->current_attempt < temp_service->max_attempts) {
+		if(svc->current_attempt < svc->max_attempts) {
 
 			/* the host is down or unreachable, so don't attempt to retry the service check */
-			if(route_result != HOST_UP) {
+			if(temp_host->current_state != HOST_UP) {
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Host isn't UP, so we won't retry the service check...\n");
+				reschedule_check = FALSE;
 
-				/* the host is not up, so reschedule the next service check at regular interval */
-				if(reschedule_check == TRUE)
-					next_service_check = (time_t)(temp_service->last_check + (temp_service->check_interval * interval_length));
-
-				/* log the problem as a hard state if the host just went down */
+				/* log and handle event */
 				if(hard_state_change == TRUE) {
-					log_service_event(temp_service);
-					state_was_logged = TRUE;
-
-					/* run the service event handler to handle the hard state */
-					handle_service_event(temp_service);
+					log_event = TRUE;
+					handle_event = TRUE;					
 					}
 				}
 
@@ -910,46 +844,42 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Host is UP, so we'll retry the service check...\n");
 
+				/* reschedule the next check at the retry interval */
+				next_service_check = (time_t)(svc->last_check + (svc->retry_interval * interval_length));
+
 				/* this is a soft state */
-				temp_service->state_type = SOFT_STATE;
+				svc->state_type = SOFT_STATE;
 
-				/* log the service check retry */
-				log_service_event(temp_service);
-				state_was_logged = TRUE;
+				/* log and handle event */
+				log_event = TRUE;
+				handle_event = TRUE;
 
-				/* run the service event handler to handle the soft state */
-				handle_service_event(temp_service);
+				/* perform dependency checks on the second to last check of the service */
+				if(svc->current_attempt == (svc->max_attempts - 1) && execute_service_checks && enable_predictive_service_dependency_checks == TRUE) {
+					objectlist *list;
 
-				if(reschedule_check == TRUE)
-					next_service_check = (time_t)(temp_service->last_check + (temp_service->retry_interval * interval_length));
-				}
+					log_debug_info(DEBUGL_CHECKS, 1, "Looking for services to check for predictive dependency checks...\n");
 
-			/* perform dependency checks on the second to last check of the service */
-			if(execute_service_checks && enable_predictive_service_dependency_checks == TRUE && temp_service->current_attempt == (temp_service->max_attempts - 1)) {
-				objectlist *list;
-
-				log_debug_info(DEBUGL_CHECKS, 1, "Looking for services to check for predictive dependency checks...\n");
-
-				/* check services that THIS ONE depends on for notification AND execution */
-				/* we do this because we might be sending out a notification soon and we want the dependency logic to be accurate */
-				for(list = temp_service->exec_deps; list; list = list->next) {
-					temp_dependency = (servicedependency *)list->object_ptr;
-					if(temp_dependency->dependent_service_ptr == temp_service && temp_dependency->master_service_ptr != NULL) {
-						master_service = (service *)temp_dependency->master_service_ptr;
-						log_debug_info(DEBUGL_CHECKS, 2, "Predictive check of service '%s' on host '%s' queued.\n", master_service->description, master_service->host_name);
-						schedule_service_check(master_service, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
+					/* check services that THIS ONE depends on for notification AND execution */
+					/* we do this because we might be sending out a notification soon and we want the dependency logic to be accurate */
+					for(list = svc->exec_deps; list; list = list->next) {
+						temp_dependency = (servicedependency *)list->object_ptr;
+						if(temp_dependency->dependent_service_ptr == svc && temp_dependency->master_service_ptr != NULL) {
+							master_service = (service *)temp_dependency->master_service_ptr;
+							log_debug_info(DEBUGL_CHECKS, 2, "Predictive check of service '%s' on host '%s' queued.\n", master_service->description, master_service->host_name);
+							schedule_service_check(master_service, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
+							}
 						}
-					}
-				for(list = temp_service->notify_deps; list; list = list->next) {
-					temp_dependency = (servicedependency *)list->object_ptr;
-					if(temp_dependency->dependent_service_ptr == temp_service && temp_dependency->master_service_ptr != NULL) {
-						master_service = (service *)temp_dependency->master_service_ptr;
-						log_debug_info(DEBUGL_CHECKS, 2, "Predictive check of service '%s' on host '%s' queued.\n", master_service->description, master_service->host_name);
-						schedule_service_check(master_service, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
+					for(list = svc->notify_deps; list; list = list->next) {
+						temp_dependency = (servicedependency *)list->object_ptr;
+						if(temp_dependency->dependent_service_ptr == svc && temp_dependency->master_service_ptr != NULL) {
+							master_service = (service *)temp_dependency->master_service_ptr;
+							log_debug_info(DEBUGL_CHECKS, 2, "Predictive check of service '%s' on host '%s' queued.\n", master_service->description, master_service->host_name);
+							schedule_service_check(master_service, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
+							}
 						}
 					}
 				}
-			}
 
 
 		/* we've reached the maximum number of service rechecks, so handle the error */
@@ -958,53 +888,43 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			log_debug_info(DEBUGL_CHECKS, 1, "Service has reached max number of rechecks, so we'll handle it...\n");
 
 			/* this is a hard state */
-			temp_service->state_type = HARD_STATE;
+			svc->state_type = HARD_STATE;
 
 			/* check for start of flexible (non-fixed) scheduled downtime if we just had a hard error */
 			/* we need to check for both, state_change (SOFT) and hard_state_change (HARD) values */
-			if((hard_state_change == TRUE || state_change == TRUE) && temp_service->pending_flex_downtime > 0)
-				check_pending_flex_service_downtime(temp_service);
+			if((hard_state_change == TRUE || state_change == TRUE) && svc->pending_flex_downtime > 0)
+				check_pending_flex_service_downtime(svc);
 
-			/* if we've hard a hard state change... */
-			if(hard_state_change == TRUE) {
+			/* if we've hard a hard state change or the service is volatile */
+			if((hard_state_change == TRUE) || (svc->is_volatile == TRUE)) {
 
-				/* log the service problem (even if host is not up, which is new in 0.0.5) */
-				log_service_event(temp_service);
-				state_was_logged = TRUE;
+				/* log and handle event */
+				log_event = TRUE;
+				handle_event = TRUE;
 				}
 
-			/* else log the problem (again) if this service is flagged as being volatile */
-			else if(temp_service->is_volatile == TRUE) {
-				log_service_event(temp_service);
-				state_was_logged = TRUE;
-				}
-
-			/* 10/04/07 check to see if the service and/or associate host is flapping */
-			/* this should be done before a notification is sent out to ensure the host didn't just start flapping */
-			check_for_service_flapping(temp_service, TRUE, TRUE);
-			check_for_host_flapping(temp_host, TRUE, FALSE, TRUE);
-			flapping_check_done = TRUE;
-
-			/* (re)send notifications out about this service problem if the host is up (and was at last check also) and the dependencies were okay... */
-			service_notification(temp_service, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
-
-			/* run the service event handler if we changed state from the last hard state or if this service is flagged as being volatile */
-			if(hard_state_change == TRUE || temp_service->is_volatile == TRUE)
-				handle_service_event(temp_service);
+			send_notification = TRUE;
 
 			/* save the last hard state */
-			temp_service->last_hard_state = temp_service->current_state;
-
-			/* reschedule the next check at the regular interval */
-			if(reschedule_check == TRUE)
-				next_service_check = (time_t)(temp_service->last_check + (temp_service->check_interval * interval_length));
-			}
-
-
-		/* should we obsessive over service checks? */
-		if(obsess_over_services == TRUE)
-			obsessive_compulsive_service_check_processor(temp_service);
+			svc->last_hard_state = svc->current_state;
 		}
+
+	/* 10/04/07 check to see if the service and/or associate host is flapping */
+	/* this should be done before a notification is sent out to ensure the host didn't just start flapping */
+	check_for_service_flapping(svc, TRUE, TRUE);
+	check_for_host_flapping(temp_host, TRUE, FALSE, TRUE);
+
+	/* should we send a notification? */
+	if (send_notification == TRUE) {
+
+		/* notify contacts about the service recovery */
+		service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		}
+
+	/* should we obsessive over service checks? */
+	if(obsess_over_services == TRUE) {
+		obsessive_compulsive_service_check_processor(svc);
+	}
 
 	/* reschedule the next service check ONLY for active, scheduled checks */
 	if(reschedule_check == TRUE) {
@@ -1012,68 +932,65 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		log_debug_info(DEBUGL_CHECKS, 1, "Rescheduling next check of service at %s", ctime(&next_service_check));
 
 		/* default is to reschedule service check unless a test below fails... */
-		temp_service->should_be_scheduled = TRUE;
+		svc->should_be_scheduled = TRUE;
 
 		/* next check time was calculated above */
-		temp_service->next_check = next_service_check;
+		svc->next_check = next_service_check;
 
 		/* make sure we don't get ourselves into too much trouble... */
-		if(current_time > temp_service->next_check)
-			temp_service->next_check = current_time;
+		if(current_time > svc->next_check)
+			svc->next_check = current_time;
 
 		/* make sure we rescheduled the next service check at a valid time */
-		preferred_time = temp_service->next_check;
-		get_next_valid_time(preferred_time, &next_valid_time, temp_service->check_period_ptr);
-		temp_service->next_check = next_valid_time;
+		preferred_time = svc->next_check;
+		get_next_valid_time(preferred_time, &next_valid_time, svc->check_period_ptr);
+		svc->next_check = next_valid_time;
+
+		/* Next valid time is further in the future because of timeperiod
+		   constraints. Add a random amount so we don't get all checks
+		   subject to that timeperiod constraint scheduled at the same time */
 		if(next_valid_time > preferred_time) {
-			/* Next valid time is further in the future because of timeperiod
-			 * constraints. Add a random amount so we don't get all checks
-			 * subject to that timeperiod constraint scheduled at the same time
-			 */
-			temp_service->next_check +=
-					ranged_urand(0, check_window(temp_service));
-		}
+			svc->next_check += ranged_urand(0, check_window(svc));
+			}
 
 		/* services with non-recurring intervals do not get rescheduled */
-		if(temp_service->check_interval == 0)
-			temp_service->should_be_scheduled = FALSE;
-
 		/* services with active checks disabled do not get rescheduled */
-		if(temp_service->checks_enabled == FALSE)
-			temp_service->should_be_scheduled = FALSE;
+		if(svc->checks_enabled == FALSE || svc->check_interval == 0) {
+			svc->should_be_scheduled = FALSE;
+			}
 
 		/* schedule a non-forced check if we can */
-		if(temp_service->should_be_scheduled == TRUE)
-			schedule_service_check(temp_service, temp_service->next_check, CHECK_OPTION_NONE);
+		if(svc->should_be_scheduled == TRUE) {
+			schedule_service_check(svc, svc->next_check, CHECK_OPTION_NONE);
+			}
 		}
 
 	/* if we're stalking this state type and state was not already logged AND the plugin output changed since last check, log it now.. */
-	if(temp_service->state_type == HARD_STATE && state_change == FALSE && state_was_logged == FALSE && compare_strings(old_plugin_output, temp_service->plugin_output)) {
+	if(log_event == FALSE && should_stalk(svc) && svc->state_type == HARD_STATE && state_change == FALSE && compare_strings(old_plugin_output, svc->plugin_output)) {
+		log_event = TRUE
+		}
 
-		if(should_stalk(temp_service))
-			log_service_event(temp_service);
+	if (log_event == TRUE) {
+		log_service_event(svc);
+		}
 
+	if (handle_event == TRUE) {
+		handle_service_event(svc);
 		}
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED, NEBFLAG_NONE, NEBATTR_NONE, temp_service, temp_service->check_type, queued_check_result->start_time, queued_check_result->finish_time, NULL, temp_service->latency, temp_service->execution_time, service_check_timeout, queued_check_result->early_timeout, queued_check_result->return_code, NULL, NULL, queued_check_result);
+	broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED, NEBFLAG_NONE, NEBATTR_NONE, svc, svc->check_type, queued_check_result->start_time, queued_check_result->finish_time, NULL, svc->latency, svc->execution_time, service_check_timeout, queued_check_result->early_timeout, queued_check_result->return_code, NULL, NULL, queued_check_result);
 #endif
 
 	/* set the checked flag */
-	temp_service->has_been_checked = TRUE;
+	svc->has_been_checked = TRUE;
 
 	/* update the current service status log */
-	update_service_status(temp_service, FALSE);
-
-	/* check to see if the service and/or associate host is flapping */
-	if(flapping_check_done == FALSE) {
-		check_for_service_flapping(temp_service, TRUE, TRUE);
-		check_for_host_flapping(temp_host, TRUE, FALSE, TRUE);
-		}
+	update_service_status(svc, FALSE);
 
 	/* update service performance info */
-	update_service_performance_data(temp_service);
+	update_service_performance_data(svc);
 
 	/* free allocated memory */
 	my_free(temp_plugin_output);
@@ -3248,7 +3165,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 	return OK;
 	}
 
-
+/* helper function for determining exec time of a check result */
 double calculate_check_result_execution_time(check_result *cr) {
 
 	double execution_time = 0.0;
@@ -3266,4 +3183,25 @@ double calculate_check_result_execution_time(check_result *cr) {
 	}
 
 	return execution_time;
+}
+
+/* helper function for setting last service state */
+void record_last_service_state_ended(service * svc) 
+{
+	switch(svc->last_state) {
+		case STATE_OK:
+			svc->last_time_ok = svc->last_check;
+			break;
+		case STATE_WARNING:
+			svc->last_time_warning = svc->last_check;
+			break;
+		case STATE_UNKNOWN:
+			svc->last_time_unknown = svc->last_check;
+			break;
+		case STATE_CRITICAL:
+			svc->last_time_critical = svc->last_check;
+			break;
+		default:
+			break;
+		}
 }

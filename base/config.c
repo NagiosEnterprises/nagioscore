@@ -929,14 +929,6 @@ int read_main_config_file(char *main_config_file) {
 				break;
 				}
 			}
-
-		else if(!strcmp(variable, "enable_soft_host_recovery")) {
-			enable_soft_host_recovery = (atoi(value) > 0) ? TRUE : FALSE;
-			}
-
-		else if(!strcmp(variable, "enable_soft_service_recovery")) {
-			enable_soft_service_recovery = (atoi(value) > 0) ? TRUE : FALSE;
-			}
 			
 		else if(!strcmp(variable, "status_update_interval")) {
 

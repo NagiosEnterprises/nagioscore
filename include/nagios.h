@@ -559,14 +559,11 @@ void handle_service_flap_detection_disabled(service *);		/* handles the details 
 int check_host_check_viability(host *, int, int *, time_t *);
 int adjust_host_check_attempt(host *, int);
 int determine_host_reachability(host *);
-int process_host_check_result(host *, int, char *, int, int, int, unsigned long);
 int perform_on_demand_host_check(host *, int *, int, int, unsigned long);
 int execute_sync_host_check(host *);
 int run_scheduled_host_check(host *, int, double);
 int run_async_host_check(host *, int, double, int, int, int *, time_t *);
 int handle_async_host_check_result(host *, check_result *);
-double calculate_check_result_execution_time(check_result *);
-void record_last_service_state_ended(service *);
 
 
 /**** Service Check Functions ****/

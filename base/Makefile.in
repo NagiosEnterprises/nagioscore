@@ -14,13 +14,13 @@ CC=@CC@
 CFLAGS=-Wall -I.. @CFLAGS@ @DEFS@ -DNSCORE
 
 # Compiler flags for use with gprof
-#CFLAGS=-pg -DHAVE_CONFIG_H -DNSCORE
+#CFLAGS=-pg -I.. -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for use with Valgrind
-#CFLAGS=-O0 -g -DHAVE_CONFIG_H -DNSCORE
+#CFLAGS=-O0 -I.. -g -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for optimization (overrides default)
-#CFLAGS=-O3 -Wall -fno-strict-aliasing -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
+#CFLAGS=-O3 -Wall -I.. -fno-strict-aliasing -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for optimization (complements default)
 #CFLAGS_WARN=-Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs

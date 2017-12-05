@@ -1837,7 +1837,7 @@ int daemon_init(void) {
 	int pidno = 0;
 	int lockfile = 0;
 	int val = 0;
-	char buf[256];
+	char buf[256] = { 0 };
 	struct flock lock;
 	char *homedir = NULL;
 	char *cp;
@@ -1914,8 +1914,22 @@ int daemon_init(void) {
 		return(ERROR);
 
 	/* parent process goes away.. */
-	else if((int)pid != 0)
+	else if((int)pid != 0) {
+
+		iobroker_destroy(nagios_iobs, IOBROKER_CLOSE_SOCKETS);
+		cleanup();
+		cleanup_performance_data();
+		cleanup_downtime_data();
+		my_free(lock_file);
+		my_free(config_file);
+		my_free(config_file_dir);
+		my_free(nagios_binary_path);
+		my_free(object_cache_file);
+		my_free(object_precache_file);
+		my_free(status_file);
+		my_free(retention_file);
 		exit(OK);
+		}
 
 	/* child continues... */
 

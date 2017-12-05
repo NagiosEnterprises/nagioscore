@@ -180,6 +180,8 @@ static int nagios_core_worker(const char *path)
 	}
 
 	enter_worker(sd, start_cmd);
+	free_worker_memory(WPROC_FORCE);
+	free_memory(get_global_macros());
 	return 0;
 }
 
@@ -345,6 +347,9 @@ int main(int argc, char **argv) {
 		printf("along with this program; if not, write to the Free Software\n");
 		printf("Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n\n");
 
+		my_free(object_cache_file);
+		my_free(object_precache_file);
+
 		exit(OK);
 		}
 
@@ -374,6 +379,9 @@ int main(int argc, char **argv) {
 		printf("the mailing lists, and commercial support options for Nagios.\n");
 		printf("\n");
 
+		my_free(object_cache_file);
+		my_free(object_precache_file);
+
 		exit(ERROR);
 		}
 
@@ -384,7 +392,12 @@ int main(int argc, char **argv) {
 	 */
 	config_file = nspath_absolute(argv[optind], NULL);
 	if(config_file == NULL) {
+		
 		printf("Error allocating memory.\n");
+
+		my_free(object_cache_file);
+		my_free(object_precache_file);
+
 		exit(ERROR);
 		}
 

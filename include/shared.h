@@ -38,6 +38,7 @@ extern struct object_count num_objects;
 extern void init_shared_cfg_vars(int);
 extern void timing_point(const char *fmt, ...); /* print a message and the time since the first message */
 extern char *my_strtok(char *buffer, const char *tokens);
+extern char *my_strtok_with_free(char *buffer, const char *tokens, int free_orig);
 extern char *my_strsep(char **stringp, const char *delim);
 extern mmapfile *mmap_fopen(const char *filename);
 extern int mmap_fclose(mmapfile *temp_mmapfile);

@@ -619,7 +619,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 	char *buf, *error_reason = NULL;
 	unsigned long size;
 	int ret;
-	static struct kvvec kvv = KVVEC_INITIALIZER;
+	struct kvvec * kvv;
 	struct wproc_worker *wp = (struct wproc_worker *)arg;
 
 	if(iocache_capacity(wp->ioc) == 0) {
@@ -659,7 +659,8 @@ static int handle_worker_result(int sd, int events, void *arg)
 		}
 
 		/* for everything else we need to actually parse */
-		if (buf2kvvec_prealloc(&kvv, buf, size, '=', '\0', KVVEC_ASSIGN) <= 0) {
+		kvv = buf2kvvec(buf, size, '=', '\0', KVVEC_COPY);
+		if (kvv == NULL) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE,
 				  "wproc: Failed to parse key/value vector from worker response with len %lu. First kv=%s",
 				  size, buf ? buf : "(NULL)");
@@ -669,8 +670,8 @@ static int handle_worker_result(int sd, int events, void *arg)
 		memset(&wpres, 0, sizeof(wpres));
 		wpres.job_id = -1;
 		wpres.type = -1;
-		wpres.response = &kvv;
-		parse_worker_result(&wpres, &kvv);
+		wpres.response = kvv;
+		parse_worker_result(&wpres, kvv);
 
 		job = get_job(wp, wpres.job_id);
 		if (!job) {
@@ -806,6 +807,8 @@ static int handle_worker_result(int sd, int events, void *arg)
 		}
 		destroy_job(job);
 	}
+
+	kvvec_destroy(kvv, KVVEC_FREE_ALL);
 
 	return 0;
 }
@@ -1014,12 +1017,13 @@ int init_workers(int desired_workers)
  */
 static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 {
-	static struct kvvec kvv = KVVEC_INITIALIZER;
+	static struct kvvec * kvv;
 	struct kvvec_buf *kvvb;
 	struct kvvec *env_kvvp = NULL;
 	struct kvvec_buf *env_kvvb = NULL;
 	struct wproc_worker *wp;
 	int ret, result = OK;
+	int i = 0;
     ssize_t written = 0;
 
 	if (!job || !job->wp)
@@ -1027,29 +1031,32 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 
 	wp = job->wp;
 
-	if (!kvvec_init(&kvv, 4))	/* job_id, type, command and timeout */
+	/* job_id, type, command and timeout 
+	   +2 extra to stop a kvvec_grow from happening 
+	   a grow occurs when add_num >= cur_num - 1 */
+	if ((kvv = kvvec_create(6)) == NULL)
 		return ERROR;
 
-	kvvec_addkv(&kvv, "job_id", (char *)mkstr("%d", job->id));
-	kvvec_addkv(&kvv, "type", (char *)mkstr("%d", job->type));
-	kvvec_addkv(&kvv, "command", job->command);
-	kvvec_addkv(&kvv, "timeout", (char *)mkstr("%u", job->timeout));
+	kvvec_addkv(kvv, "job_id", (char *)mkstr("%d", job->id));
+	kvvec_addkv(kvv, "type", (char *)mkstr("%d", job->type));
+	kvvec_addkv(kvv, "command", job->command);
+	kvvec_addkv(kvv, "timeout", (char *)mkstr("%u", job->timeout));
 
 	/* Add the macro environment variables */
 	if(mac) {
 		env_kvvp = macros_to_kvv(mac);
 		if(NULL != env_kvvp) {
 			env_kvvb = kvvec2buf(env_kvvp, '=', '\n', 0);
-			if(NULL == env_kvvb) {
-				kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
-			}
-			else {
-				kvvec_addkv_wlen(&kvv, "env", strlen("env"), env_kvvb->buf,
+			if(NULL != env_kvvb) {
+				kvvec_addkv_wlen(kvv, "env", strlen("env"), env_kvvb->buf,
 						env_kvvb->buflen);
 			}
+			kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
+			my_free(env_kvvb->buf);
+			my_free(env_kvvb);
 		}
 	}
-	kvvb = build_kvvec_buf(&kvv);
+	kvvb = build_kvvec_buf(kvv);
 	/* ret = write(wp->sd, kvvb->buf, kvvb->bufsize); */
 	ret = nwrite(wp->sd, kvvb->buf, kvvb->bufsize, &written);
 	if (ret != (int)kvvb->bufsize) {
@@ -1062,13 +1069,12 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 		wp->jobs_started++;
 		loadctl.jobs_running++;
 	}
-	if(NULL != env_kvvp) kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
-	if(NULL != env_kvvb) {
-		free(env_kvvb->buf);
-		free(env_kvvb);
-	}
-	free(kvvb->buf);
-	free(kvvb);
+
+	my_free(kvvb->buf);
+	my_free(kvvb);
+
+	/* no key/value flags, they were not allocated */
+	kvvec_destroy(kvv, 0);
 
 	return result;
 }

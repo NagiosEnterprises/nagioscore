@@ -1920,14 +1920,6 @@ int daemon_init(void) {
 		cleanup();
 		cleanup_performance_data();
 		cleanup_downtime_data();
-		my_free(lock_file);
-		my_free(config_file);
-		my_free(config_file_dir);
-		my_free(nagios_binary_path);
-		my_free(object_cache_file);
-		my_free(object_precache_file);
-		my_free(status_file);
-		my_free(retention_file);
 		exit(OK);
 		}
 
@@ -3329,6 +3321,7 @@ char *get_program_modification_date(void) {
 
 /* do some cleanup before we exit */
 void cleanup(void) {
+	xodtemplate_free_memory();
 
 #ifdef USE_EVENT_BROKER
 	/* unload modules */
@@ -3354,8 +3347,6 @@ void free_memory(nagios_macros *mac) {
 
 	/* free all allocated memory for the object definitions */
 	free_object_data();
-
-	/* free memory allocated to comments */
 	free_comment_data();
 
 	/* free event queue data */
@@ -3408,22 +3399,35 @@ void free_memory(nagios_macros *mac) {
 	mac->x[MACRO_TEMPFILE] = NULL; /* assigned from temp_file */
 	my_free(temp_path);
 	mac->x[MACRO_TEMPPATH] = NULL; /*assigned from temp_path */
-	my_free(check_result_path);
 	my_free(command_file);
 	mac->x[MACRO_COMMANDFILE] = NULL; /* assigned from command_file */
+
+	my_free(check_result_path);
 	my_free(log_archive_path);
 	my_free(website_url);
+	my_free(lock_file);
+	my_free(config_file);
+	my_free(config_file_dir);
+	my_free(nagios_binary_path);
+	my_free(status_file);
+	my_free(retention_file);
 
 	for (i = 0; i < MAX_USER_MACROS; i++) {
 		my_free(macro_user[i]);
 	}
 
 	/* these have no other reference */
+	my_free(mac->x[MACRO_PROCESSSTARTTIME]);
+	my_free(mac->x[MACRO_EVENTSTARTTIME]);
 	my_free(mac->x[MACRO_ADMINEMAIL]);
 	my_free(mac->x[MACRO_ADMINPAGER]);
 	my_free(mac->x[MACRO_RESOURCEFILE]);
 	my_free(mac->x[MACRO_OBJECTCACHEFILE]);
 	my_free(mac->x[MACRO_MAINCONFIGFILE]);
+	my_free(mac->x[MACRO_RETENTIONDATAFILE]);
+	my_free(mac->x[MACRO_HOSTPERFDATAFILE]);
+	my_free(mac->x[MACRO_STATUSDATAFILE]);
+	my_free(mac->x[MACRO_SERVICEPERFDATAFILE]);
 
 	return;
 	}

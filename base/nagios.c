@@ -347,9 +347,7 @@ int main(int argc, char **argv) {
 		printf("along with this program; if not, write to the Free Software\n");
 		printf("Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n\n");
 
-		my_free(object_cache_file);
-		my_free(object_precache_file);
-
+		cleanup();
 		exit(OK);
 		}
 
@@ -379,9 +377,7 @@ int main(int argc, char **argv) {
 		printf("the mailing lists, and commercial support options for Nagios.\n");
 		printf("\n");
 
-		my_free(object_cache_file);
-		my_free(object_precache_file);
-
+		cleanup();
 		exit(ERROR);
 		}
 
@@ -395,9 +391,7 @@ int main(int argc, char **argv) {
 		
 		printf("Error allocating memory.\n");
 
-		my_free(object_cache_file);
-		my_free(object_precache_file);
-
+		cleanup();
 		exit(ERROR);
 		}
 
@@ -439,6 +433,7 @@ int main(int argc, char **argv) {
 		result = read_main_config_file(config_file);
 		if(result != OK) {
 			printf("   Error processing main config file!\n\n");
+			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -448,6 +443,7 @@ int main(int argc, char **argv) {
 		/* drop privileges */
 		if((result = drop_privileges(nagios_user, nagios_group)) == ERROR) {
 			printf("   Failed to drop privileges.  Aborting.");
+			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -457,6 +453,7 @@ int main(int argc, char **argv) {
 		 */
 		if (!verify_config && test_configured_paths() == ERROR) {
 			printf("   One or more path problems detected. Aborting.\n");
+			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -481,6 +478,7 @@ int main(int argc, char **argv) {
 			printf("     may have been removed or modified in this version.  Make sure to read\n");
 			printf("     the HTML documentation regarding the config files, as well as the\n");
 			printf("     'Whats New' section to find out what has changed.\n\n");
+			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -501,6 +499,7 @@ int main(int argc, char **argv) {
 			printf("     may have been removed or modified in this version.  Make sure to read\n");
 			printf("     the HTML documentation regarding the config files, as well as the\n");
 			printf("     'Whats New' section to find out what has changed.\n\n");
+			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -547,8 +546,7 @@ int main(int argc, char **argv) {
 
 		/* make valgrind shut up about still reachable memory */
 		neb_free_module_list();
-		free(config_file_dir);
-		free(config_file);
+		cleanup();
 
 		exit(result);
 		}
@@ -569,12 +567,14 @@ int main(int argc, char **argv) {
 
 		if (!nagios_binary_path) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to allocate memory for nagios_binary_path\n");
+			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
 		if (!(nagios_iobs = iobroker_create())) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to create IO broker set: %s\n",
 				  strerror(errno));
+			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -596,6 +596,7 @@ int main(int argc, char **argv) {
 			result = read_main_config_file(config_file);
 			if (result != OK) {
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process config file '%s'. Aborting\n", config_file);
+				cleanup();
 				exit(EXIT_FAILURE);
 				}
 			timing_point("Main config file read\n");
@@ -605,7 +606,7 @@ int main(int argc, char **argv) {
 			program_start = time(NULL);
 			my_free(mac->x[MACRO_PROCESSSTARTTIME]);
 			asprintf(&mac->x[MACRO_PROCESSSTARTTIME], "%llu", (unsigned long long)program_start);
-			
+
 			/* enter daemon mode (unless we're restarting...) */
 			if(daemon_mode == TRUE && sigrestart == FALSE) {
 
@@ -634,11 +635,13 @@ int main(int argc, char **argv) {
 			if (test_path_access(nagios_binary_path, X_OK)) {
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Spawning workers will be impossible. Aborting.\n");
+				cleanup();
 				exit(EXIT_FAILURE);
 				}
 
 			if (test_configured_paths() == ERROR) {
 				/* error has already been logged */
+				cleanup();
 				exit(EXIT_FAILURE);
 				}
 
@@ -706,6 +709,7 @@ int main(int argc, char **argv) {
 				/* if we're dumping core, we must remove all dl-files */
 				if (daemon_dumps_core)
 					neb_unload_all_modules(NEBMODULE_FORCE_UNLOAD, NEBMODULE_NEB_SHUTDOWN);
+				cleanup();
 				exit(EXIT_FAILURE);
 				}
 			timing_point("Modules loaded\n");
@@ -873,15 +877,13 @@ int main(int argc, char **argv) {
 			free_worker_memory(WPROC_FORCE);
 			/* shutdown stuff... */
 			if(sigshutdown == TRUE) {
+				shutdown_command_file_worker();
 				iobroker_destroy(nagios_iobs, IOBROKER_CLOSE_SOCKETS);
 				nagios_iobs = NULL;
 
 				/* log a shutdown message */
 				logit(NSLOG_PROCESS_INFO, TRUE, "Successfully shutdown... (PID=%d)\n", (int)getpid());
 				}
-
-			/* clean up after ourselves */
-			cleanup();
 
 			/* close debug log */
 			close_debug_log();
@@ -893,10 +895,7 @@ int main(int argc, char **argv) {
 			unlink(lock_file);
 
 		/* free misc memory */
-		my_free(lock_file);
-		my_free(config_file);
-		my_free(config_file_dir);
-		my_free(nagios_binary_path);
+		cleanup();
 		}
 
 	return OK;

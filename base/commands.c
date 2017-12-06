@@ -393,23 +393,31 @@ int process_external_command1(char *cmd) {
 	log_debug_info(DEBUGL_EXTERNALCOMMANDS, 2, "Raw command entry: %s\n", cmd);
 
 	/* get the command entry time */
-	if((temp_ptr = my_strtok(cmd, "[")) == NULL)
+	if((temp_ptr = my_strtok_with_free(cmd, "[", FALSE)) == NULL)
 		return CMD_ERROR_MALFORMED_COMMAND;
-	if((temp_ptr = my_strtok(NULL, "]")) == NULL)
+	if((temp_ptr = my_strtok_with_free(NULL, "]", FALSE)) == NULL) {
+		temp_ptr = my_strtok_with_free(NULL, NULL, TRUE);
 		return CMD_ERROR_MALFORMED_COMMAND;
+		}
 	entry_time = (time_t)strtoul(temp_ptr, NULL, 10);
 
 	/* get the command identifier */
-	if((temp_ptr = my_strtok(NULL, ";")) == NULL)
+	if((temp_ptr = my_strtok_with_free(NULL, ";", FALSE)) == NULL) {
+		temp_ptr = my_strtok_with_free(NULL, NULL, TRUE);
 		return CMD_ERROR_MALFORMED_COMMAND;
-	if((command_id = (char *)strdup(temp_ptr + 1)) == NULL)
+		}
+	else if((command_id = (char *)strdup(temp_ptr + 1)) == NULL) {
+		temp_ptr = my_strtok_with_free(NULL, NULL, TRUE);
 		return CMD_ERROR_INTERNAL_ERROR;
+		}
 
 	/* get the command arguments */
-	if((temp_ptr = my_strtok(NULL, "\n")) == NULL)
+	if((temp_ptr = my_strtok_with_free(NULL, "\n", FALSE)) == NULL)
 		args = (char *)strdup("");
 	else
 		args = (char *)strdup(temp_ptr);
+
+	temp_ptr = my_strtok_with_free(NULL, NULL, TRUE);
 	if(args == NULL) {
 		my_free(command_id);
 		return CMD_ERROR_INTERNAL_ERROR;
@@ -2166,7 +2174,7 @@ int cmd_schedule_check(int cmd, char *args) {
 	time_t delay_time = 0L;
 
 	/* get the host name */
-	if((host_name = my_strtok(args, ";")) == NULL)
+	if((host_name = my_strtok_with_free(args, ";", FALSE)) == NULL)
 		return ERROR;
 
 	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS) {
@@ -2179,17 +2187,21 @@ int cmd_schedule_check(int cmd, char *args) {
 	else {
 
 		/* get the service description */
-		if((svc_description = my_strtok(NULL, ";")) == NULL)
+		if((svc_description = my_strtok_with_free(NULL, ";", FALSE)) == NULL)
 			return ERROR;
 
 		/* verify that the service is valid */
-		if((temp_service = find_service(host_name, svc_description)) == NULL)
+		if((temp_service = find_service(host_name, svc_description)) == NULL) {
+			temp_ptr = my_strtok_with_free(NULL, ";", TRUE);
 			return ERROR;
+			}
 		}
 
 	/* get the next check time */
-	if((temp_ptr = my_strtok(NULL, ";")) == NULL)
+	if((temp_ptr = my_strtok_with_free(NULL, ";", FALSE)) == NULL) {
+		temp_ptr = my_strtok_with_free(NULL, ";", TRUE);
 		return ERROR;
+	}
 	delay_time = strtoul(temp_ptr, NULL, 10);
 
 	/* schedule the host check */
@@ -2207,8 +2219,8 @@ int cmd_schedule_check(int cmd, char *args) {
 	else
 		schedule_service_check(temp_service, delay_time, (cmd == CMD_SCHEDULE_FORCED_SVC_CHECK) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
 
-	if ((author = my_strtok(NULL, ";")) != NULL) {
-		if ((comment = my_strtok(NULL, ";")) != NULL) {
+	if ((author = my_strtok_with_free(NULL, ";", FALSE)) != NULL) {
+		if ((comment = my_strtok_with_free(NULL, ";", FALSE)) != NULL) {
 			time_t current_time = time(NULL);
 			if (svc_description)
 				add_new_service_comment(USER_COMMENT, host_name, svc_description, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
@@ -2216,6 +2228,8 @@ int cmd_schedule_check(int cmd, char *args) {
 				add_new_host_comment(USER_COMMENT, host_name, current_time, author, comment, FALSE, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
 		}
 	}
+
+	temp_ptr = my_strtok_with_free(NULL, ";", TRUE);
 
 	return OK;
 	}

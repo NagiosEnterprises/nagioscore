@@ -49,12 +49,10 @@ int reap_check_results(void) {
 	int reaped_checks = 0;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "reap_check_results() start\n");
-	log_debug_info(DEBUGL_CHECKS, 0, "Starting to reap check results.\n");
 
 	/* process files in the check result queue */
 	reaped_checks = process_check_result_queue(check_result_path);
 
-	log_debug_info(DEBUGL_CHECKS, 0, "Finished reaping %d check results\n", reaped_checks);
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "reap_check_results() end\n");
 
 	return OK;

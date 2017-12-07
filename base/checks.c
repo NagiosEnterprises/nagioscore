@@ -1054,8 +1054,13 @@ int handle_async_service_check_result(service *svc, check_result *cr) {
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_service_check_result()\n");
 
 	/* make sure we have what we need */
-	if(svc == NULL || cr == NULL)
+	if(svc == NULL || cr == NULL) {
+		if (hst == NULL)
+			log_debug_info(DEBUGL_CHECKS, 2, "No service specified, bailing!\n");
+		if (cr == NULL)
+			log_debug_info(DEBUGL_CHECKS, 2, "No check result specified, bailing!\n");
 		return ERROR;
+		}
 
 	if(cr->check_type == CHECK_TYPE_PASSIVE)
 		if (service_is_passive(svc, cr) == ERROR) {
@@ -2654,8 +2659,13 @@ int handle_async_host_check_result(host *hst, check_result *cr) {
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_host_check_result()\n");
 
 	/* make sure we have what we need */
-	if(hst == NULL || cr == NULL)
+	if(hst == NULL || cr == NULL) {
+		if (hst == NULL)
+			log_debug_info(DEBUGL_CHECKS, 2, "No host specified, bailing!\n");
+		if (cr == NULL)
+			log_debug_info(DEBUGL_CHECKS, 2, "No check result specified, bailing!\n");
 		return ERROR;
+		}
 
 	if (cr->check_type == CHECK_TYPE_PASSIVE)
 		if (host_is_passive(hst, cr) == ERROR) {

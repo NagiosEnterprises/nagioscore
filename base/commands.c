@@ -2355,23 +2355,39 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	if(host_name == NULL || svc_description == NULL || output == NULL)
 		return ERROR;
 
+	/* find the host by its name or address */
 	temp_host = find_host_by_name_or_address(host_name);
 
 	/* we couldn't find the host */
 	if(temp_host == NULL) {
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Passive check result was received for service '%s' on host '%s', but the host could not be found!\n", svc_description, host_name);
+		log_debug_info(DEBUGL_CHECKS, 0, 
+			"Passive check result was received for service '%s' on host '%s', but the service could not be found!\n", 
+			svc_description, host_name);
+		logit(NSLOG_RUNTIME_WARNING, TRUE, 
+			"Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n", 
+			svc_description, host_name);
 		return ERROR;
 		}
 
-	/* make sure the service exists */
-	if((temp_service = find_service(temp_host->name, svc_description)) == NULL) {
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n", svc_description, host_name);
+	/* now the service */
+	temp_service = find_service(temp_host->name, svc_description);
+
+	/* we couldn't find the service */
+	if(temp_service == NULL) {
+		log_debug_info(DEBUGL_CHECKS, 0, 
+			"Passive check result was received for service '%s' on host '%s', but the service could not be found!\n", 
+			svc_description, host_name);
+		logit(NSLOG_RUNTIME_WARNING, TRUE, 
+			"Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n", 
+			svc_description, host_name);
 		return ERROR;
 		}
 
 	/* skip this is we aren't accepting passive checks for this service */
-	if(temp_service->accept_passive_checks == FALSE)
+	if(temp_service->accept_passive_checks == FALSE) {
+		log_debug_info(DEBUGL_CHECKS, 0, "Service '%s' on host '%s' is not accepting passive checks, bailing\n", host_name, svc_description);
 		return ERROR;
+		}
 
 	memset(&cr, 0, sizeof(cr));
 	cr.exited_ok = 1;
@@ -2460,12 +2476,15 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	/* we couldn't find the host */
 	if(temp_host == NULL) {
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Passive check result was received for host '%s', but the host could not be found!\n", host_name);
+		log_debug_info(DEBUGL_CHECKS, 0, "Passive check result was received for host '%s', but the host could not be found!\n", host_name);
 		return ERROR;
 		}
 
 	/* skip this is we aren't accepting passive checks for this host */
-	if(temp_host->accept_passive_checks == FALSE)
+	if(temp_host->accept_passive_checks == FALSE) {
+		log_debug_info(DEBUGL_CHECKS, 0, "Host '%s' is not accepting passive checks, bailing\n", host_name);
 		return ERROR;
+		}
 
 	memset(&cr, 0, sizeof(cr));
 	cr.exited_ok = 1;

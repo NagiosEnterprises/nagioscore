@@ -2108,12 +2108,13 @@ int process_check_result_queue(char *dirname) {
 		return ERROR;
 		}
 
-	log_debug_info(DEBUGL_CHECKS, 1, "Starting to read check result queue '%s'...\n", dirname);
+	log_debug_info(DEBUGL_CHECKS, 0, "Starting to read check result queue '%s'...\n", dirname);
 
 	start = time(NULL);
 
 	/* process all files in the directory... */
 	while((dirfile = readdir(dirp)) != NULL) {
+
 		/* bail out if we encountered a signal */
 		if (sigshutdown == TRUE || sigrestart == TRUE) {
 			log_debug_info(DEBUGL_CHECKS, 0, "Breaking out of check result reaper: signal encountered\n");
@@ -2130,7 +2131,13 @@ int process_check_result_queue(char *dirname) {
 		snprintf(file, sizeof(file), "%s/%s", dirname, dirfile->d_name);
 		file[sizeof(file) - 1] = '\x0';
 
-		/* process this if it's a check result file... */
+		/* process this if it's a check result file...
+		   remember it needs to be in the format of
+			 filename = cXXXXXX
+		   where X is any integer
+		   there must also be a filename present
+		   	 okfile = cXXXXXX.ok
+		   where the XXXXXX is the same as in the filename */
 		x = strlen(dirfile->d_name);
 		if(x == 7 && dirfile->d_name[0] == 'c') {
 
@@ -2166,14 +2173,18 @@ int process_check_result_queue(char *dirname) {
 			result = process_check_result_file(file);
 
 			/* break out if we encountered an error */
-			if(result == ERROR)
+			if(result == ERROR) {
+				log_debug_info(DEBUGL_CHECKS, 0, "Encountered an error processing the check result file\n");
 				break;
+				}
 
 			check_result_files++;
 			}
 		}
 
 	closedir(dirp);
+
+	log_debug_info(DEBUGL_CHECKS, 0, "Finished reaping %d check results\n", check_result_files);
 
 	return check_result_files;
 
@@ -2232,6 +2243,8 @@ int process_check_result_file(char *fname) {
 	char *input = NULL;
 	char *var = NULL;
 	char *val = NULL;
+	char *vartok = NULL;
+	char *valtok = NULL;
 	char *v1 = NULL, *v2 = NULL;
 	time_t current_time;
 	check_result cr;
@@ -2287,17 +2300,31 @@ int process_check_result_file(char *fname) {
 			cr.output_file = fname;
 			}
 
-		if((var = my_strtok(input, "=")) == NULL)
+		if((vartok = my_strtok_with_free(input, "=", FALSE)) == NULL)
 			continue;
-		if((val = my_strtok(NULL, "\n")) == NULL)
+		if((valtok = my_strtok_with_free(NULL, "\n", FALSE)) == NULL) {
+			vartok = my_strtok_with_free(NULL, NULL, TRUE);
 			continue;
+		}
+
+		/* clean up some memory before we go any further */
+		var = strdup(vartok);
+		val = strdup(valtok);
+		vartok = my_strtok_with_free(NULL, NULL, TRUE);
+
+		log_debug_info(DEBUGL_CHECKS, 2, " * %25s: %s\n", var, val);
 
 		/* found the file time */
 		if(!strcmp(var, "file_time")) {
 
 			/* file is too old - ignore check results it contains and delete it */
 			/* this will only work as intended if file_time comes before check results */
-			if(max_check_result_file_age > 0 && (current_time - (strtoul(val, NULL, 0)) > max_check_result_file_age)) {
+			if(max_check_result_file_age > 0 
+				&& (current_time - (strtoul(val, NULL, 0)) > max_check_result_file_age)) {
+
+				log_debug_info(DEBUGL_CHECKS, 1, 
+					"Skipping check_result because file_time is %s and max cr file age is %d", 
+					val, max_check_result_file_age);
 				break;
 				}
 			}
@@ -2352,6 +2379,8 @@ int process_check_result_file(char *fname) {
 				cr.output = unescape_check_result_output(val);
 			}
 		}
+
+	log_debug_info(DEBUGL_CHECKS, 2, " **************\n");
 
 	/* do we have the minimum amount of data? */
 	if(cr.host_name != NULL && cr.output != NULL) {

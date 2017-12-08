@@ -1434,6 +1434,9 @@ time_t calculate_time_from_day_of_month(int year, int month, int monthday) {
 			day--;
 
 			/* make the new time */
+			t.tm_sec = 0;
+			t.tm_min = 0;
+			t.tm_hour = 0;
 			t.tm_mon = month;
 			t.tm_year = year;
 			t.tm_mday = day;

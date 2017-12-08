@@ -15,9 +15,10 @@ ENHANCEMENTS
 
 FIXES
 * Command line macro detection skips potential macros with no ending dollar sign (Bryan Heden, Jake Omann)
+* Fixed a lockup condition sometimes encountered on shutdown or restart (Aaron Beck)
 
 
-4.3.4 - 2017-08-21
+4.3.4 - 2017-08-24
 ------------------
 * Improved config file parsing (Mark Felder)
 * Fixed configure script to check for existence of /run for lock file (in regards to CVE-2017-12847, Bryan Heden)

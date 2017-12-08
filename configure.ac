@@ -820,6 +820,7 @@ AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile cont
 
 perl subst include/locations.h
 perl subst html/config.inc.php
+perl subst daemon-service
 
 
 echo ""

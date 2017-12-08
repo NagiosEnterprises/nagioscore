@@ -8,8 +8,8 @@ Type=forking
 User=@nagios_user@
 Group=@nagios_grp@
 PIDFile=@lockfile@
-ExecStartPre=@bindir@/nagios -v @localstatedir@/rw/nagios.cmd
-ExecStart=@bindir@/nagios -d @localstatedir@/rw/nagios.cmd 
+ExecStartPre=@bindir@/nagios -v @localstatedir@/etc/nagios.cfg
+ExecStart=@bindir@/nagios -d @localstatedir@/etc/nagios.cfg
 ExecStop=/bin/kill -s TERM ${MAINPID}
 ExecStopPost=/usr/bin/rm -f @localstatedir@/rw/nagios.cmd
 

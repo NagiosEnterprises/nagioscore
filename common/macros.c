@@ -137,9 +137,18 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 		temp_buffer = buf_ptr;
 
 		/* find the next delimiter - terminate preceding string and advance buffer pointer for next run */
-		if((delim_ptr = strchr(buf_ptr, '$'))) {
-			delim_ptr[0] = '\x0';
-			buf_ptr = (char *)delim_ptr + 1;
+		if(delim_ptr = strchr(buf_ptr, '$')) {
+
+			/* quick check if this is actually a macro, or
+			   the last $ in the string */
+			if (strrchr(buf_ptr, '$') != delim_ptr) {
+				delim_ptr[0] = '\x0';
+				buf_ptr = (char *)delim_ptr + 1;
+				}
+			else {
+				log_debug_info(DEBUGL_MACROS, 2, "  This can't be a macro! No ending $ '%s'\n", buf_ptr);
+				buf_ptr = NULL;	
+				}
 			}
 		/* no delimiter found - we already have the last of the buffer */
 		else

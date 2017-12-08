@@ -13,6 +13,9 @@ ENHANCEMENTS
 * enable_page_tour interface option (Bryan Heden)
 * Code cleanups in important sections (Workers, Handling Results) (Bryan Heden)
 
+FIXES
+* Command line macro detection skips potential macros with no ending dollar sign (Bryan Heden, Jake Omann)
+
 
 4.3.4 - 2017-08-21
 ------------------

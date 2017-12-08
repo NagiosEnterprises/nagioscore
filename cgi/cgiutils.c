@@ -88,6 +88,7 @@ int             service_status_has_been_read = FALSE;
 int             program_status_has_been_read = FALSE;
 
 int             refresh_rate = DEFAULT_REFRESH_RATE;
+int 			enable_page_tour = TRUE;
 int				result_limit = 100;
 
 int             escape_html_tags = FALSE;
@@ -186,6 +187,8 @@ void reset_cgi_vars(void) {
 	interval_length = 60;
 
 	refresh_rate = DEFAULT_REFRESH_RATE;
+
+	enable_page_tour = TRUE;
 
 	default_statusmap_layout_method = 0;
 	default_statusmap_layout_method = 0;
@@ -313,6 +316,9 @@ int read_cgi_config_file(const char *filename, read_config_callback callback) {
 
 		else if(!strcmp(var, "refresh_rate"))
 			refresh_rate = atoi(val);
+
+		else if(!strcmp(var, "enable_page_tour"))
+			enable_page_tour = (atoi(val) > 0) ? TRUE : FALSE;
 
 		/* page limit added 2/1/2012 -MG */
 		else if(!strcmp(var, "result_limit"))

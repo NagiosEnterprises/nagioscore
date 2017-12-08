@@ -3,6 +3,14 @@
 
 require_once(dirname(__FILE__).'/../config.inc.php');
 
+// get enable_page_tour no matter what
+function get_enable_page_tour(){
+	global $cfg;
+	$cfg["enable_page_tour"] = true;
+	read_cgi_config_file();
+}
+get_enable_page_tour();
+
 function get_update_information(){
 	global $cfg;
 
@@ -125,53 +133,59 @@ function get_update_information(){
 function read_main_config_file($thefile=""){
 	global $cfg;
 	
-	$contents=array();
+	static $already_called = false;
+	static $contents=array();
 	
-	// file name can be overridden from default
-	if(isset($thefile) && $thefile!="")
-		$fname=$thefile;
-	else
-		$fname=$cfg['main_config_file'];
-		
-	// open main config file for reading...
-	if(($fh=@fopen($fname,'r'))!=FALSE){
-		// read all lines in the config file
-		while(!feof($fh)){
-			$s=fgets($fh);
+	if (!$already_called) {
 			
-			// skip comments
-			if($s[0]=='#')
-				continue;
+		// file name can be overridden from default
+		if(isset($thefile) && $thefile!="")
+			$fname=$thefile;
+		else
+			$fname=$cfg['main_config_file'];
+			
+		// open main config file for reading...
+		if(($fh=@fopen($fname,'r'))!=FALSE){
+			// read all lines in the config file
+			while(!feof($fh)){
+				$s=fgets($fh);
 				
-			// skip blank lines
-			// TODO - is this necessary?
-			
-			// split comments out from config
-			$s2=explode(";",$s);
-				
-			// get var/val pairs
-			$v=explode("=",$s2[0]);
-			
-			if(isset($v[0]) && isset($v[1])){
-
-				// trim var/val pairs
-				$v[0]=trim($v[0]);
-				$v[1]=trim($v[1]);
-
-				// allow for multiple values for some variables...
-				$arr=false;
-				if(!strcmp($v[0],"cfg_file"))
-					$arr=true;
-				else if(!strcmp($v[0],"cfg_dir"))
-					$arr=true;
+				// skip comments
+				if($s[0]=='#')
+					continue;
 					
-				if($arr==true)
-					$contents[$v[0]][] = $v[1];
-				else
-					$contents[$v[0]] = $v[1];
+				// skip blank lines
+				// TODO - is this necessary?
+				
+				// split comments out from config
+				$s2=explode(";",$s);
+					
+				// get var/val pairs
+				$v=explode("=",$s2[0]);
+				
+				if(isset($v[0]) && isset($v[1])){
+
+					// trim var/val pairs
+					$v[0]=trim($v[0]);
+					$v[1]=trim($v[1]);
+
+					// allow for multiple values for some variables...
+					$arr=false;
+					if(!strcmp($v[0],"cfg_file"))
+						$arr=true;
+					else if(!strcmp($v[0],"cfg_dir"))
+						$arr=true;
+						
+					if($arr==true)
+						$contents[$v[0]][] = $v[1];
+					else
+						$contents[$v[0]] = $v[1];
+					}
 				}
+			fclose($fh);
 			}
-		fclose($fh);
+
+		$already_called = true;
 		}
 
 	return $contents;
@@ -181,46 +195,52 @@ function read_main_config_file($thefile=""){
 // reads variables from cgi config file
 function read_cgi_config_file($thefile=""){
 	global $cfg;
-	
-	$contents=array();
-	
-	// file name can be overridden from default
-	if(isset($thefile) && $thefile!="")
-		$fname=$thefile;
-	else
-		$fname=$cfg['cgi_config_file'];
+
+	static $already_called = false;
+	static $contents=array();
+
+	if (!$already_called) {
 		
-	// open cgi config file for reading...
-	if(($fh=@fopen($fname,'r'))!=FALSE){
-		// read all lines in the config file
-		while(!feof($fh)){
-			$s=fgets($fh);
+		// file name can be overridden from default
+		if(isset($thefile) && $thefile!="")
+			$fname=$thefile;
+		else
+			$fname=$cfg['cgi_config_file'];
 			
-			// skip comments
-			if($s[0]=='#')
-				continue;
+		// open cgi config file for reading...
+		if(($fh=@fopen($fname,'r'))!=FALSE){
+			// read all lines in the config file
+			while(!feof($fh)){
+				$s=fgets($fh);
 				
-			// skip blank lines
-			// TODO - is this necessary?
-			
-			// split comments out from config
-			$s2=explode(";",$s);
+				// skip comments
+				if($s[0]=='#')
+					continue;
+					
+				// skip blank lines
+				// TODO - is this necessary?
 				
-			// get var/val pairs
-			$v=explode("=",$s2[0]);
-			
-			if(isset($v[0]) && isset($v[1])){
+				// split comments out from config
+				$s2=explode(";",$s);
+					
+				// get var/val pairs
+				$v=explode("=",$s2[0]);
+				
+				if(isset($v[0]) && isset($v[1])){
 
-				// trim var/val pairs
-				$v[0]=ltrim(rtrim($v[0]));
-				$v[1]=ltrim(rtrim($v[1]));
+					// trim var/val pairs
+					$v[0]=ltrim(rtrim($v[0]));
+					$v[1]=ltrim(rtrim($v[1]));
 
-				// do not allow for multiple values
-				$contents[$v[0]] = $v[1];
-				$cfg[$v[0]] = $v[1];
+					// do not allow for multiple values
+					$contents[$v[0]] = $v[1];
+					$cfg[$v[0]] = $v[1];
+					}
 				}
+			fclose($fh);
 			}
-		fclose($fh);
+
+		$already_called = true;
 		}
 
 	return $contents;

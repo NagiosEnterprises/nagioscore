@@ -10,6 +10,8 @@ ENHANCEMENTS
 * Add a `statusCRITICALACK` class for the status column (John Frickson)
 * CSV output based on groups (all options) (John Frickson)
 * New Macro(s) to generate URL for host / service object to be used in notifications (John Frickson)
+* enable_page_tour interface option (Bryan Heden)
+* Code cleanups in important sections (Workers, Handling Results) (Bryan Heden)
 
 
 4.3.4 - 2017-08-21

@@ -282,6 +282,13 @@ refresh_rate=90
 
 
 
+# PAGE TOUR
+# Enable page tour for helpful tips and tricks on various pages
+
+#enable_page_tour=1
+
+
+
 # DEFAULT PAGE LIMIT
 # This option allows you to specify the default number of results 
 # displayed on the status.cgi.  This number can be adjusted from

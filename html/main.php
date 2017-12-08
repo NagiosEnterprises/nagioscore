@@ -18,16 +18,21 @@ $this_year = '2017';
 <script type="text/javascript" src="js/nag_funcs.js"></script>
 
 <script type='text/javascript'>
-	var vbox, cookie;
-	var vBoxId = "main";
-	var vboxText = "<a href=https://www.nagios.com/tours target=_blank> " +
-					"Click here to watch the entire Nagios Core 4 Tour!</a>";
+	var cookie;
+	<?php if ($cfg["enable_page_tour"]) { ?>
+		var vbox;
+		var vBoxId = "main";
+		var vboxText = "<a href=https://www.nagios.com/tours target=_blank> " +
+						"Click here to watch the entire Nagios Core 4 Tour!</a>";
+	<?php } ?>
 	$(document).ready(function() {
 		var user = "<?php echo $_SERVER['REMOTE_USER']; ?>";
 
-		vBoxId += ";" + user;
-		vbox = new vidbox({pos:'lr',vidurl:'https://www.youtube.com/embed/2hVBAet-XpY',
-							text:vboxText,vidid:vBoxId});
+		<?php if ($cfg["enable_page_tour"]) { ?>
+			vBoxId += ";" + user;
+			vbox = new vidbox({pos:'lr',vidurl:'https://www.youtube.com/embed/2hVBAet-XpY',
+								text:vboxText,vidid:vBoxId});
+		<?php } ?>
 		loadRemoteFeed( // Our top banner splash.
 			'#splashbox0-contents', 'corebanner', 1,
 			'', processBannerItem, ''

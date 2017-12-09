@@ -138,17 +138,8 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 
 		/* find the next delimiter - terminate preceding string and advance buffer pointer for next run */
 		if(delim_ptr = strchr(buf_ptr, '$')) {
-
-			/* quick check if this is actually a macro, or
-			   the last $ in the string */
-			if (strrchr(buf_ptr, '$') != NULL) {
-				delim_ptr[0] = '\x0';
-				buf_ptr = (char *)delim_ptr + 1;
-				}
-			else {
-				log_debug_info(DEBUGL_MACROS, 2, "  This can't be a macro! No ending $ '%s'\n", buf_ptr);
-				buf_ptr = NULL;	
-				}
+			delim_ptr[0] = '\x0';
+			buf_ptr = (char *)delim_ptr + 1;
 			}
 		/* no delimiter found - we already have the last of the buffer */
 		else
@@ -200,7 +191,10 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 				*output_buffer = (char *)realloc(*output_buffer, strlen(*output_buffer) + strlen(temp_buffer) + 3);
 				strcat(*output_buffer, "$");
 				strcat(*output_buffer, temp_buffer);
-				strcat(*output_buffer, "$");
+
+				/* just could have been a stray $ */
+				if (buf_ptr != NULL)
+					strcat(*output_buffer, "$");
 				}
 
 			/* insert macro */

@@ -141,7 +141,7 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 
 			/* quick check if this is actually a macro, or
 			   the last $ in the string */
-			if (strrchr(buf_ptr, '$') != delim_ptr) {
+			if (strrchr(buf_ptr, '$') != NULL) {
 				delim_ptr[0] = '\x0';
 				buf_ptr = (char *)delim_ptr + 1;
 				}

@@ -17,6 +17,7 @@ FIXES
 * Command line macro detection skips potential macros with no ending dollar sign (Bryan Heden, Jake Omann)
 * Fixed a lockup condition sometimes encountered on shutdown or restart (Aaron Beck)
 * Fixed negative time offset calculations computing incorrectly sometimes (bbeutel)
+* Fixed reloads causing defunct (zombie) processes (#441) (Bryan Heden)
 
 
 4.3.4 - 2017-08-24

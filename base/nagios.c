@@ -767,7 +767,7 @@ int main(int argc, char **argv) {
 			broker_program_state(NEBTYPE_PROCESS_START, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
-			/* initialize status data unless we're starting */
+			/* initialize status data only if we're starting (no restarts) */
 			if(sigrestart == FALSE) {
 				initialize_status_data(config_file);
 				timing_point("Status data initialized\n");
@@ -841,7 +841,7 @@ int main(int argc, char **argv) {
 			qh_deinit(qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET);
 
 			/* 03/01/2007 EG Moved from sighandler() to prevent FUTEX locking problems under NPTL */
-			/* 03/21/2007 EG SIGSEGV signals are still logged in sighandler() so we don't loose them */
+			/* 03/21/2007 EG SIGSEGV signals are still logged in sighandler() so we don't lose them */
 			/* did we catch a signal? */
 			if(caught_signal == TRUE) {
 
@@ -869,7 +869,7 @@ int main(int argc, char **argv) {
 			/* clean up the scheduled downtime data */
 			cleanup_downtime_data();
 
-			/* clean up the status data unless we're restarting */
+			/* clean up the status data if we are not restarting */
 			if(sigrestart == FALSE) {
 				cleanup_status_data(TRUE);
 				}
@@ -883,6 +883,22 @@ int main(int argc, char **argv) {
 
 				/* log a shutdown message */
 				logit(NSLOG_PROCESS_INFO, TRUE, "Successfully shutdown... (PID=%d)\n", (int)getpid());
+				}
+
+			/* try and wait on any child processes that we didn't
+			   catch with the SIGCHLD handler */
+			if (sigrestart == TRUE) {
+
+				int status = 0;
+				pid_t child_pid;
+				log_debug_info(DEBUGL_PROCESS, 0, "Calling waitpid(,,WNOHANG|WUNTRACED) on all children...\n");
+
+				while ((child_pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
+
+					log_debug_info(DEBUGL_PROCESS, 0, " * child PID: (%d), status: (%d)\n", child_pid, status);
+					}
+
+				log_debug_info(DEBUGL_PROCESS, 0, "All children have been wait()ed on\n");
 				}
 
 			/* close debug log */

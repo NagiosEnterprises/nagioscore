@@ -619,7 +619,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 	char *buf, *error_reason = NULL;
 	unsigned long size;
 	int ret;
-	struct kvvec * kvv;
+	static struct kvvec kvv = KVVEC_INITIALIZER;
 	struct wproc_worker *wp = (struct wproc_worker *)arg;
 
 	if(iocache_capacity(wp->ioc) == 0) {
@@ -659,8 +659,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 		}
 
 		/* for everything else we need to actually parse */
-		kvv = buf2kvvec(buf, size, '=', '\0', KVVEC_COPY);
-		if (kvv == NULL) {
+		if (buf2kvvec_prealloc(&kvv, buf, size, '=', '\0', KVVEC_ASSIGN) <= 0) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE,
 				  "wproc: Failed to parse key/value vector from worker response with len %lu. First kv=%s",
 				  size, buf ? buf : "(NULL)");
@@ -670,8 +669,8 @@ static int handle_worker_result(int sd, int events, void *arg)
 		memset(&wpres, 0, sizeof(wpres));
 		wpres.job_id = -1;
 		wpres.type = -1;
-		wpres.response = kvv;
-		parse_worker_result(&wpres, kvv);
+		wpres.response = &kvv;
+		parse_worker_result(&wpres, &kvv);
 
 		job = get_job(wp, wpres.job_id);
 		if (!job) {
@@ -807,8 +806,6 @@ static int handle_worker_result(int sd, int events, void *arg)
 		}
 		destroy_job(job);
 	}
-
-	kvvec_destroy(kvv, KVVEC_FREE_ALL);
 
 	return 0;
 }
@@ -1004,8 +1001,10 @@ int init_workers(int desired_workers)
 	if (desired_workers < (int)workers.len)
 		return -1;
 
-	while (desired_workers-- > 0)
-		spawn_core_worker();
+	while (desired_workers-- > 0) {
+		int worker_pid = spawn_core_worker();
+		log_debug_info(DEBUGL_WORKERS, 2, "Spawned new worker with pid: (%d)\n", worker_pid);
+	}
 
 	return 0;
 }

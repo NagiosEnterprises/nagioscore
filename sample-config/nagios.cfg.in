@@ -1255,20 +1255,23 @@ enable_environment_macros=0
 # be written to the debug file.  OR values together to log multiple
 # types of information.
 # Values: 
-#          -1 = Everything
-#          0 = Nothing
-#	   1 = Functions
-#          2 = Configuration
-#          4 = Process information
-#	   8 = Scheduled events
-#          16 = Host/service checks
-#          32 = Notifications
-#          64 = Event broker
-#          128 = External commands
-#          256 = Commands
-#          512 = Scheduled downtime
-#          1024 = Comments
-#          2048 = Macros
+#         -1      = Everything
+#          0      = Nothing
+#          1      = Functions
+#          2      = Configuration
+#          4      = Process information
+#          8      = Scheduled events
+#          16     = Host/service checks
+#          32     = Notifications
+#          64     = Event broker
+#          128    = External commands
+#          256    = Commands
+#          512    = Scheduled downtime
+#          1024   = Comments
+#          2048   = Macros
+#          4096   = Interprocess communication
+#          8192   = Scheduling
+#          16384  = Workers
 
 debug_level=0
 

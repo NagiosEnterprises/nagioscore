@@ -1628,6 +1628,8 @@ void setup_sighandler(void) {
 	sigaction(SIGHUP, &sig_action, NULL);
 	if(daemon_dumps_core == FALSE && daemon_mode == TRUE)
 		sigaction(SIGSEGV, &sig_action, NULL);
+	sig_action.sa_flags = SA_NOCLDWAIT;
+	sigaction(SIGCHLD, &sig_action, NULL);
 #else /* HAVE_SIGACTION */
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGQUIT, sighandler);
@@ -1635,6 +1637,7 @@ void setup_sighandler(void) {
 	signal(SIGHUP, sighandler);
 	if(daemon_dumps_core == FALSE && daemon_mode == TRUE)
 		signal(SIGSEGV, sighandler);
+	signal(SIGCHLD, sighandler);
 #endif /* HAVE_SIGACTION */
 
 	return;
@@ -1693,6 +1696,15 @@ void sighandler(int sig) {
 	/* we received a SIGHUP, so restart... */
 	if(sig == SIGHUP)
 		sigrestart = TRUE;
+
+	else if(sig == SIGCHLD) {
+		pid_t child_pid;
+		int status = 0;
+		logit(NSLOG_PROCESS_INFO, FALSE, "Caught SIGCHLD, calling waitpid() with WNOHANG|WUNTRACED\n");
+		while ((child_pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
+			logit(NSLOG_PROCESS_INFO, FALSE, " * waitpid() on child_pid = (%d)\n", (int)child_pid);
+		}
+	}
 
 	/* else begin shutting down... */
 	else if(sig < 16) {

@@ -48,7 +48,7 @@ static simple_worker *spawn_worker(void (*init_func)(void *), void *init_arg)
 		simple_worker *worker = calloc(1, sizeof(simple_worker));
 		close(sv[1]);
 		if (!worker) {
-			kill(SIGKILL, pid);
+			kill(pid, SIGKILL);
 			close(sv[0]);
 			return NULL;
 		}

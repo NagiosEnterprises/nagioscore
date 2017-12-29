@@ -170,6 +170,7 @@ typedef struct check_result {
 	int exited_ok;					/* did the plugin check return okay? */
 	int return_code;				/* plugin return code */
 	char *output;	                                /* plugin output */
+	/* 5DEPR: rusage is deprecated in Nagios, will be removed in 5.0.0 */
 	struct rusage rusage;   			/* resource usage by this check */
 	struct check_engine *engine;                    /* where did we get this check from? */
 	const void *source;				/* engine handles this */

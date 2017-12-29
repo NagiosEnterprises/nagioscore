@@ -202,23 +202,6 @@ want to reserve that for special cases.
 The following are completely optional (for now):
 @li command - The command we executed
 @li timeout - The timeout Nagios requested for this job
-@li ru_nsignals - The ru_nsignals field from the rusage struct
-@li ru_nswap - The ru_nswap field from the rusage struct
-@li ru_minflt - The ru_minflt field from the rusage struct
-@li ru_majflt - The ru_majflt field from the rusage struct
-@li ru_stime - The ru_stime field from the rusage struct
-@li ru_utime - The ru_utime field from the rusage struct
-@li ru_inblock - The ru_inblock field from the rusage struct
-@li ru_oublock - The ru_oublock field from the rusage struct
-
-The meaning of the fields of the rusage struct can be viewed in the
-section 2 man-page for the getrusage() system call. Normally, you
-would access it by executing the following command:
-@verbatim
-man 2 getrusage
-@endverbatim
-Note that most systems do not support all the fields of the rusage
-struct and may leave them empty if so.
 
 @section logging Logging
 Worker processes can send events to the main Nagios process that

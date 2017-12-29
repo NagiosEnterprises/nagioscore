@@ -462,7 +462,6 @@ static int handle_worker_check(wproc_result *wpres, struct wproc_worker *wp, str
 	int result = ERROR;
 	check_result *cr = (check_result *)job->arg;
 
-	memcpy(&cr->rusage, &wpres->rusage, sizeof(wpres->rusage));
 	cr->start_time.tv_sec = wpres->start.tv_sec;
 	cr->start_time.tv_usec = wpres->start.tv_usec;
 	cr->finish_time.tv_sec = wpres->stop.tv_sec;
@@ -553,42 +552,6 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 			break;
 		case WPRES_runtime:
 			/* ignored */
-			break;
-		case WPRES_ru_utime:
-			str2timeval(value, &wpres->rusage.ru_utime);
-			break;
-		case WPRES_ru_stime:
-			str2timeval(value, &wpres->rusage.ru_stime);
-			break;
-		case WPRES_ru_minflt:
-			wpres->rusage.ru_minflt = atoi(value);
-			break;
-		case WPRES_ru_majflt:
-			wpres->rusage.ru_majflt = atoi(value);
-			break;
-		case WPRES_ru_nswap:
-			wpres->rusage.ru_nswap = atoi(value);
-			break;
-		case WPRES_ru_inblock:
-			wpres->rusage.ru_inblock = atoi(value);
-			break;
-		case WPRES_ru_oublock:
-			wpres->rusage.ru_oublock = atoi(value);
-			break;
-		case WPRES_ru_msgsnd:
-			wpres->rusage.ru_msgsnd = atoi(value);
-			break;
-		case WPRES_ru_msgrcv:
-			wpres->rusage.ru_msgrcv = atoi(value);
-			break;
-		case WPRES_ru_nsignals:
-			wpres->rusage.ru_nsignals = atoi(value);
-			break;
-		case WPRES_ru_nvcsw:
-			wpres->rusage.ru_nsignals = atoi(value);
-			break;
-		case WPRES_ru_nivcsw:
-			wpres->rusage.ru_nsignals = atoi(value);
 			break;
 
 		default:

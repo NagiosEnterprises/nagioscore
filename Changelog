@@ -18,6 +18,7 @@ FIXES
 * Fixed a lockup condition sometimes encountered on shutdown or restart (Aaron Beck)
 * Fixed negative time offset calculations computing incorrectly sometimes (bbeutel)
 * Fixed reloads causing defunct (zombie) processes (#441) (Bryan Heden)
+* Fixed wait3(), wait4() implementations (replaced with waitpid()) (#326) (Bryan Heden)
 
 
 4.3.4 - 2017-08-24

@@ -37,6 +37,7 @@ typedef struct wproc_result {
 	int exited_ok;
 	int early_timeout;
 	struct kvvec *response;
+	/* 5DEPR: rusage is deprecated for Nagios, will be removed in 5.0.0 */
 	struct rusage rusage;
 } wproc_result;
 

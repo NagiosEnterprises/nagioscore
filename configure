@@ -626,7 +626,6 @@ LIBOBJS
 UNZIP
 PERL
 USE_EVENTBROKER
-INITDIR
 BASEEXTRALIBS
 GDLIBS
 CGIEXTRAS
@@ -649,8 +648,6 @@ cgiurl
 htmurl
 COREWINDOW
 NERD_O
-lockfile
-init_dir
 TMPDIR
 CHECKRESULTDIR
 LN_HTTPD_SITES_ENABLED
@@ -666,6 +663,35 @@ INIT_OPTS
 root_grp
 SOCKETLIBS
 SNPRINTF_O
+bsd_enable
+src_tmpfile
+src_inetd
+src_init
+subsyslockfile
+subsyslockdir
+tmpfilesd
+inetddir
+initdir
+spooldir
+pipedir
+piddir
+logdir
+pkglocalstatedir
+privatesysconfdir
+webdir
+cgibindir
+brokersdir
+pluginsdir
+inetdname
+initname
+objsysconfdir
+pkgsysconfdir
+inetd_type
+init_type
+dist_ver
+dist_type
+arch
+opsys
 EGREP
 GREP
 CPP
@@ -732,6 +758,22 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_opsys
+with_dist_type
+with_init_type
+with_inetd_type
+enable_install_method
+enable_showdirs_only
+with_pkgsysconfdir
+with_objsysconfdir
+with_privatesysconfdir
+with_webdir
+with_pluginsdir
+with_brokersdir
+with_cgibindir
+with_logdir
+with_piddir
+with_pipedir
 with_root_group
 with_nagios_user
 with_nagios_group
@@ -741,8 +783,6 @@ with_mail
 with_httpd_conf
 with_checkresult_dir
 with_temp_dir
-with_init_dir
-with_lockfile
 with_iobroker
 with_gd_lib
 with_gd_inc
@@ -1377,6 +1417,18 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-install-method=<method>
+                          sets the install method to use: 'default' (the
+                          default) will install to /usr/local/nagios, 'os'
+                          will try to determine which method to use based on
+                          OS type and distribution. Fine tuning using the
+                          '--bindir', etc. overrides above will still work
+  --enable-showdirs-only=yes
+                          This option will cause 'configure' to stop after
+                          determining the install locations based on
+                          '--enable-install-method', so you can see the
+                          destinations before a full './configure', 'make',
+                          'make install' process.
   --enable-nerd           enables Nagios Event Radio Dispatch (NERD)
   --enable-corewindow     enables the 'corewindow' URL argument
   --disable-statusmap     disables compilation of statusmap CGI
@@ -1391,6 +1443,26 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-opsys=OS         specify operating system (linux, osx, bsd, solaris,
+                          irix, cygwin, aix, hp-ux, etc.)
+  --with-dist-type=type   specify distribution type (suse, rh, debian, etc.)
+  --with-init-type=type   specify init type (bsd, sysv, systemd, launchd,
+                          smf10, smf11, upstart, openrc, etc.)
+  --with-inetd-type=type  which super-server the system runs (inetd, xinetd,
+                          systemd, launchd, smf10, smf11, etc.)
+  --with-pkgsysconfdir=DIR
+                          where configuration files should be placed
+  --with-objsysconfdir=DIR
+                          where object configuration files should be placed
+  --with-privatesysconfdir=DIR
+                          where private configuration files should be placed
+  --with-webdir=DIR       where the website files should be placed
+  --with-pluginsdir=DIR   where the plugins should be placed
+  --with-brokersdir=DIR   where the broker modules should be placed
+  --with-cgibindir=DIR    where the CGI programs should be placed
+  --with-logdir=DIR       where log files should be placed
+  --with-piddir=DIR       where the PID file should be placed
+  --with-pipedir=DIR      where socket and pipe files should be placed
   --with-root-group=<grp> sets group name for installing init
   --with-nagios-user=<user>
                           sets user name to run nagios
@@ -1407,9 +1479,6 @@ Optional Packages:
   --with-checkresult-dir=<path>
                           sets path to check results spool directory
   --with-temp-dir=<path>  sets path to temp directory
-  --with-init-dir=<path>  sets directory to place init script into
-  --with-lockfile=<path>  sets path for lock file (default:
-                          [/var]/run/nagios.lock)
   --with-iobroker=<method>
                           specify the method to use with iobroker: epoll,
                           poll, or select
@@ -2357,9 +2426,9 @@ ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobrok
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.3.4"
+PKG_VERSION="4.4.0"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2017-08-24"
+PKG_REL_DATE="2018-??-??"
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -4346,6 +4415,1268 @@ _ACEOF
 
 
 
+
+
+
+
+#
+# Get user hints
+#
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking what the operating system is " >&5
+$as_echo_n "checking what the operating system is ... " >&6; }
+
+# Check whether --with-opsys was given.
+if test "${with_opsys+set}" = set; then :
+  withval=$with_opsys;
+			#
+			# Run this if --with was specified
+			#
+			if test "x$withval" = x -o x$withval = xno; then
+				opsys_wanted=yes
+			else
+				opsys_wanted=no
+				opsys="$withval"
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $opsys" >&5
+$as_echo "$opsys" >&6; }
+			fi
+
+else
+
+			#
+			# Run this if --with was not specified
+			#
+			opsys_wanted=yes
+
+fi
+
+
+		if test x$opsys = xno; then
+			opsys=""
+			opsys_wanted=yes
+		elif test x$opsys = xyes; then
+			as_fn_error $? "you must enter an O/S type if '--with-opsys' is specified" "$LINENO" 5
+		fi
+
+		#
+		# Determine operating system if it wasn't supplied
+		#
+		if test $opsys_wanted=yes; then
+			opsys=`uname -s | tr "[A-Z]" "[a-z]"`
+			if test x"$opsys" = "x"; then opsys="unknown"; fi
+			case $opsys in #(
+  darwin*) :
+    opsys="osx" ;; #(
+  *bsd*) :
+    opsys="bsd" ;; #(
+  dragonfly) :
+    opsys="bsd" ;; #(
+  sunos) :
+    opsys="solaris" ;; #(
+  gnu/hurd) :
+    opsys="linux" ;; #(
+  irix*) :
+    opsys="irix" ;; #(
+  cygwin*) :
+    opsys="cygwin" ;; #(
+  mingw*) :
+    opsys="mingw" ;; #(
+  msys*) :
+    opsys="msys" ;; #(
+  *) :
+     ;;
+esac
+		fi
+
+		arch=`uname -m | tr "[A-Z]" "[a-z]"`
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $opsys" >&5
+$as_echo "$opsys" >&6; }
+
+
+
+
+
+
+#
+# Get user hints for possible cross-compile
+#
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking what the distribution type is " >&5
+$as_echo_n "checking what the distribution type is ... " >&6; }
+
+# Check whether --with-dist-type was given.
+if test "${with_dist_type+set}" = set; then :
+  withval=$with_dist_type;
+			#
+			# Run this if --with was specified
+			#
+			if test "x$withval" = x -o x$withval = xno; then
+				dist_type_wanted=yes
+			else
+				dist_type_wanted=no
+				dist_type="$withval"
+				dist_ver="unknown"
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $dist_type" >&5
+$as_echo "$dist_type" >&6; }
+			fi
+
+else
+
+			#
+			# Run this if --with was not specified
+			#
+			dist_type_wanted=yes
+
+fi
+
+
+		if test x$dist_type = xno; then
+			dist_type_wanted=yes
+		elif test x$dist_type = xyes; then
+			as_fn_error $? "you must enter a distribution type if '--with-dist-type' is specified" "$LINENO" 5
+		fi
+
+		#
+		# Determine distribution type if it wasn't supplied
+		#
+		dist_ver="unknown"
+
+		if test $dist_type_wanted=yes; then
+			dist_type="unknown"
+
+			if test "$opsys" != "linux"; then
+				dist_type="$opsys"
+				case $opsys in #(
+  bsd) :
+    dist_type=`uname -s | tr "A-Z" "a-z"`
+						dist_ver=`uname -r` ;; #(
+  aix) :
+    dist_ver="`uname -v`.`uname -r`" ;; #(
+  hp-ux) :
+    dist_ver=`uname -r | cut -d'.' -f1-3` ;; #(
+  solaris) :
+    dist_ver=`uname -r | cut -d'.' -f2` ;; #(
+  *) :
+    dist_ver=$OSTYPE
+				 ;; #(
+  *) :
+     ;;
+esac
+
+			else
+
+				if test -r "/etc/gentoo-release"; then
+					dist_type="gentoo"
+					dist_ver=`cat /etc/gentoo-release`
+
+				elif test -r "/etc/os-release"; then
+					. /etc/os-release
+					if test x"$ID_LIKE" != x; then
+						dist_type=`echo $ID_LIKE | cut -d' ' -f1 | tr "[A-Z]" "[a-z]"`
+					elif test x"$ID" = xol; then
+						dist_type=rh
+					else
+						dist_type=`echo $ID | tr "[A-Z]" "[a-z]"`
+					fi
+					if test x"$dist_type" = sles; then
+						dist_type=suse
+					fi
+					if test x"$VERSION_ID" != x; then
+						dist_ver=$VERSION_ID
+					elif test x"$VERSION" != x; then
+						dist_ver=`echo $VERSION | cut -d'.' -f1 | tr -d :alpha::blank::punct:`
+					fi
+
+				elif test -r "/etc/redhat-release"; then
+					dist_type=rh
+					dist_ver=`cat /etc/redhat-release`
+
+				elif test -r "/etc/debian_version"; then
+					dist_type="debian"
+					if test -r "/etc/lsb-release"; then
+						. /etc/lsb-release
+						dist_ver=`echo "$DISTRIB_RELEASE"`
+					else
+						dist_ver=`cat /etc/debian_version`
+					fi
+
+				elif test -r "/etc/SuSE-release"; then
+					dist_type=suse
+					dist_ver=`grep VERSION /etc/SuSE-release`
+
+				fi
+
+			fi
+
+			if test "$dist_ver" != "unknown"; then
+				dist_ver=`echo "$dist_ver" | cut -d'.' -f1 | tr -d :alpha::blank::punct:`
+			fi
+		fi
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $dist_type" >&5
+$as_echo "$dist_type" >&6; }
+
+
+
+
+
+#
+# Get user hints for possible cross-compile
+#
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking what init system is being used " >&5
+$as_echo_n "checking what init system is being used ... " >&6; }
+
+# Check whether --with-init_type was given.
+if test "${with_init_type+set}" = set; then :
+  withval=$with_init_type;
+			#
+			# Run this if --with was specified
+			#
+			if test "x$withval" = x -o x$withval = xno; then
+					init_type_wanted=yes
+			else
+					init_type_wanted=no
+					init_type="$withval"
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $init_type" >&5
+$as_echo "$init_type" >&6; }
+			fi
+
+else
+
+			#
+			# Run this if --with was not specified
+			#
+			init_type_wanted=yes
+
+fi
+
+
+		if test x$init_type = xno; then
+			init_type_wanted=yes
+		elif test x$init_type = xyes; then
+			as_fn_error $? "you must enter an init type if '--with-init-type' is specified" "$LINENO" 5
+		fi
+
+		#
+		# Determine init type if it wasn't supplied
+		#
+		if test $init_type_wanted = yes; then
+			init_type=""
+
+			if test x"$opsys" = x; then
+				init_type="unknown"
+				init_type_wanted=no
+			elif test x"$dist_type" = x; then
+				init_type="unknown"
+				init_type_wanted=no
+			elif test "$opsys" = "osx"; then
+				init_type="launchd"
+				init_type_wanted=no
+			elif test "$opsys" = "bsd"; then
+				init_type="newbsd"
+				init_type_wanted=no
+			elif test "$dist_type" = "solaris"; then
+				if test -d "/lib/svc/manifest"; then
+					init_type="smf11"
+					init_type_wanted=no
+				elif test -d "/lib/svc/monitor"; then
+					init_type="smf10"
+					init_type_wanted=no
+				else
+					init_type="sysv"
+					init_type_wanted=no
+				fi
+			elif test "$dist_type" = "slackware"; then
+				init_type="bsd"
+				init_type_wanted=no
+			elif test "$dist_type" = "aix"; then
+				init_type="bsd"
+				init_type_wanted=no
+			elif test "$dist_type" = "hp-ux"; then
+				init_type="unknown"
+				init_type_wanted=no
+			fi
+		fi
+
+		PSCMD="ps -p1 -o args"
+		if test $dist_type = solaris; then
+			PSCMD="env UNIX95=1; ps -p1 -o args"
+		fi
+
+		if test "$init_type_wanted" = yes; then
+			pid1=`$PSCMD | grep -vi COMMAND | cut -d' ' -f1`
+			if test x"$pid1" = "x"; then
+				init_type="unknown"
+				init_type_wanted=no
+			fi
+			if `echo $pid1 | grep "systemd" > /dev/null`; then
+				init_type="systemd"
+				init_type_wanted=no
+			fi
+
+			if test "$init_type_wanted" = yes; then
+				if test "$pid1" = "init"; then
+					if test -e "/sbin/init"; then
+						pid1="/sbin/init";
+					elif test -e "/usr/sbin/init"; then
+						pid1="/usr/sbin/init"
+					else
+						init_type="unknown"
+						init_type_wanted=no
+					fi
+				fi
+				if test -L "$pid1"; then
+					pid1=`readlink "$pid1"`
+				fi
+			fi
+
+			if test "$init_type_wanted" = yes; then
+				if `echo $pid1 | grep "systemd" > /dev/null`; then
+					init_type="systemd"
+					init_type_wanted=no
+				elif test -f "/sbin/rc"; then
+					if test -f /sbin/runscript; then
+						init_type_wanted=no
+						if `/sbin/start-stop-daemon -V | grep "OpenRC" > /dev/null`; then
+							init_type="openrc"
+						else
+							init_type="gentoo"
+						fi
+					fi
+				fi
+			fi
+
+			if test "$init_type_wanted" = yes; then
+				if test "$pid1" = "/sbin/init" -o "$pid1" = "/usr/sbin/init"; then
+					if `$pid1 --version 2>/dev/null | grep "upstart" >/dev/null`; then
+						init_type="upstart"
+						init_type_wanted=no
+					elif test -f "/etc/rc" -a ! -L "/etc/rc"; then
+						init_type="newbsd"
+						init_type_wanted=no
+					else
+						init_type="sysv"
+						init_type_wanted=no
+					fi
+				fi
+			fi
+
+			if test "$init_type_wanted" = yes; then
+				init_type="unknown"
+			fi
+		fi
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $init_type" >&5
+$as_echo "$init_type" >&6; }
+
+
+
+
+
+#
+# Get user hints for possible cross-compile
+#
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking what inetd is being used " >&5
+$as_echo_n "checking what inetd is being used ... " >&6; }
+
+# Check whether --with-inetd_type was given.
+if test "${with_inetd_type+set}" = set; then :
+  withval=$with_inetd_type;
+			inetd_type_wanted=yes
+			#
+			# Run this if --with was specified
+			#
+			if test "x$withval" = x -o x$withval = xno; then
+				inetd_type_wanted=yes
+			else
+				inetd_type_wanted=no
+				inetd_type="$withval"
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $inetd_type" >&5
+$as_echo "$inetd_type" >&6; }
+			fi
+
+else
+
+			#
+			# Run this if --with was not specified
+			#
+			inetd_type_wanted=yes
+
+fi
+
+
+		if test x$inetd_type = xno; then
+			inetd_type_wanted=yes
+		elif test x$inetd_type = xyes; then
+			as_fn_error $? "you must enter an inetd type if '--with-inetd-type' is specified" "$LINENO" 5
+		fi
+
+		#
+		# Determine inetd type if it wasn't supplied
+		#
+		if test $inetd_type_wanted = yes; then
+
+			inetd_disabled=""
+
+			case $dist_type in #(
+  solaris) :
+    if test x"$init_type" = "xsmf10" -o x"$init_type" = "xsmf11"; then
+						inetd_type="$init_type"
+					else
+						inetd_type="inetd"
+					fi ;; #(
+  *bsd*) :
+    inetd_type=`ps -A -o comm -c | grep inetd` ;; #(
+  osx) :
+    inetd_type=`launchd` ;; #(
+  aix|hp-ux) :
+    inetd_type=`UNIX95= ps -A -o comm | grep inetd | head -1` ;; #(
+  *) :
+    inetd_type=`ps -C "inetd,xinetd" -o fname | grep -vi COMMAND | head -1` ;; #(
+  *) :
+     ;;
+esac
+
+			if test x"$inetd_type" = x; then
+				if test -f /etc/xinetd.conf -a -d /etc/xinetd.d; then
+					inetd_disabled="(Not running)"
+					inetd_type=xinetd
+				elif test -f /etc/inetd.conf -o -f /usr/sbin/inetd; then
+					inetd_type=inetd
+					inetd_disabled="(Not running)"
+				fi
+			fi
+
+			if test x"$inetd_type" = x; then
+				if test x"$init_type" = "xupstart"; then
+					inetd_type="upstart"
+				fi
+			fi
+
+			if test x"$inetd_type" = x; then
+				if test x"$init_type" = "xsystemd"; then
+					inetd_type="systemd"
+				else
+					inetd_type="unknown"
+				fi
+			fi
+
+			if test -n "$inetd_disabled"; then
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $inetd_type $inetd_disabled" >&5
+$as_echo "$inetd_type $inetd_disabled" >&6; }
+			else
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $inetd_type" >&5
+$as_echo "$inetd_type" >&6; }
+			fi
+		fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if test x$DBG_PATHS != x; then
+	echo
+	echo Incoming paths:
+	echo "    prefix        $prefix"
+	echo "    exec_prefix   $exec_prefix"
+	echo "    bindir        $bindir"
+	echo "    sbindir       $sbindir"
+	echo "    libexecdir    $libexecdir"
+	echo "    sysconfdir    $sysconfdir"
+	echo "    localstatedir $localstatedir"
+	echo "    datarootdir   $datarootdir"
+	echo "    datadir       $datadir"
+	echo "    localedir     $localedir"
+	echo
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for which paths to use " >&5
+$as_echo_n "checking for which paths to use ... " >&6; }
+
+# Check whether --enable-install_method was given.
+if test "${enable_install_method+set}" = set; then :
+  enableval=$enable_install_method; install_method=$enableval
+else
+  install_method=default
+
+fi
+
+
+# Check whether --enable-showdirs_only was given.
+if test "${enable_showdirs_only+set}" = set; then :
+  enableval=$enable_showdirs_only; showdirs_only=$enableval
+else
+  showdirs_only=no
+
+fi
+
+
+case $install_method in #(
+  yes) :
+    install_method="os" ;; #(
+  no) :
+    install_method="default" ;; #(
+  default|os) :
+    : ;; #(
+  *) :
+    echo >&6; as_fn_error $? "'--enable-install-method=$install_method' is invalid" "$LINENO" 5
+ ;; #(
+  *) :
+     ;;
+esac
+
+if test $showdirs_only != "no"; then showdirs_only="yes"; fi
+
+case $dist_type in #(
+  *solaris*|*hp-ux*|*aix*|*osx*) :
+    opsys=unix ;; #(
+  *) :
+     ;;
+esac
+
+
+						# Does this package need to know:
+need_cgi=no				# where the cgi-bin directory is
+need_web=no				# where the website directory is
+need_brk=no				# where the event broker modules directory is
+need_plg=no				# where the plugins directory is
+need_pipe=no			# where the pipe directory is
+need_spl=no				# where the spool directory is
+need_loc=no				# where the locale directory is
+need_log_subdir=no		# where the loc sub-directory is
+need_etc_subdir=no		# where the etc sub-directory is
+need_pls_dir=no			# where the package locate state directory is
+
+if test x"$INIT_PROG" = x; then
+	INIT_PROG="$PKG_NAME"
+fi
+
+case $PKG_NAME in #(
+  nagios) :
+    need_log_subdir=yes
+		need_etc_subdir=yes
+		need_pls_dir=yes
+		need_brk=yes
+		need_pipe=yes
+		need_spl=yes
+		need_loc=yes
+		need_cgi=yes
+		need_web=yes ;; #(
+  ndoutils) :
+    need_brk=yes
+		need_spl=yes ;; #(
+  nrpe) :
+    need_plg=yes ;; #(
+  nsca) :
+    need_cgi=no ;; #(
+  plugins) :
+    need_loc=yes
+		need_plg=yes
+ ;; #(
+  *) :
+     ;;
+esac
+
+
+# Check whether --with-pkgsysconfdir was given.
+if test "${with_pkgsysconfdir+set}" = set; then :
+  withval=$with_pkgsysconfdir; if test x$withval != x -a x$withval != xno -a x$withval != xyes; then
+		pkgsysconfdir="$withval"
+	fi
+fi
+
+
+# Check whether --with-objsysconfdir was given.
+if test "${with_objsysconfdir+set}" = set; then :
+  withval=$with_objsysconfdir; if test x$withval != x -a x$withval != xno -a x$withval != xyes; then
+		objsysconfdir="$withval"
+	fi
+fi
+
+
+# Check whether --with-privatesysconfdir was given.
+if test "${with_privatesysconfdir+set}" = set; then :
+  withval=$with_privatesysconfdir; if test x$withval != x -a x$withval != xno -a x$withval != xyes; then
+		privatesysconfdir="$withval"
+	fi
+fi
+
+
+# Check whether --with-webdir was given.
+if test "${with_webdir+set}" = set; then :
+  withval=$with_webdir; if test x$withval != x -a x$withval != xno -a x$withval != xyes; then
+		webdir="$withval"
+	fi
+fi
+
+
+# Check whether --with-pluginsdir was given.
+if test "${with_pluginsdir+set}" = set; then :
+  withval=$with_pluginsdir; if test x$withval != x -a x$withval != xno -a x$withval != xyes; then
+		pluginsdir="$withval"
+	fi
+fi
+
+
+# Check whether --with-brokersdir was given.
+if test "${with_brokersdir+set}" = set; then :
+  withval=$with_brokersdir; if test x$withval != x -a x$withval != xno -a x$withval != xyes; then
+		brokersdir="$withval"
+	fi
+fi
+
+
+# Check whether --with-cgibindir was given.
+if test "${with_cgibindir+set}" = set; then :
+  withval=$with_cgibindir; if test x$withval != x -a x$withval != xno -a x$withval != xyes; then
+		cgibindir="$withval"
+	fi
+fi
+
+
+# Check whether --with-logdir was given.
+if test "${with_logdir+set}" = set; then :
+  withval=$with_logdir; if test x$withval != x -a x$withval != xno -a x$withval != xyes; then
+		logdir="$withval"
+	fi
+fi
+
+
+# Check whether --with-piddir was given.
+if test "${with_piddir+set}" = set; then :
+  withval=$with_piddir; if test x$withval != x -a x$withval != xno -a x$withval != xyes; then
+		piddir="$withval"
+	fi
+fi
+
+
+# Check whether --with-pipedir was given.
+if test "${with_pipedir+set}" = set; then :
+  withval=$with_pipedir; if test x$withval != x -a x$withval != xno -a x$withval != xyes; then
+		pipedir="$withval"
+	fi
+fi
+
+
+
+#
+# Setup the base directory
+#
+
+if test $install_method = "default"; then
+	if test $opsys = "unix"; then
+		if test x"$prefix" = "xNONE"; then prefix="/usr/local/nagios"; fi
+	else
+		if test x"$prefix" = "xNONE"; then prefix=${ac_default_prefix}; fi
+	fi
+	datarootdir=${datarootdir="$prefix"}
+
+else
+	if test x"$datadir" = x'${datarootdir}'; then { datadir=; unset datadir;}; fi
+	if test x"$sysconfdir" = x'${prefix}/etc'; then { sysconfdir=; unset sysconfdir;}; fi
+
+	if test x"$prefix" = "xNONE"; then
+		if test $dist_type = freebsd -o $dist_type = openbsd -o $dist_type = osx; then
+			prefix="/usr/local"
+		elif test $dist_type = netbsd; then
+			prefix="/usr/pkg"
+		else
+			prefix="/usr"
+		fi
+	fi
+	if test x"$exec_prefix" = "xNONE"; then exec_prefix=$prefix; fi
+	if test x"$localstatedir" = x'${prefix}/var'; then
+		if test $dist_type = "osx"; then
+			localstatedir="/private/var"
+		else
+			localstatedir="/var"
+		fi
+	fi
+
+	if test $opsys = "unix"; then
+		if test x"$datarootdir" = x'${prefix}/share'; then
+			if test $dist_type = "hp-ux"; then
+				datarootdir="/usr/local/share"
+				if test x"$libexecdir" = x'${exec_prefix}/libexec'; then
+					libexecdir="/usr/nagios"
+				fi
+			elif test $dist_type = "osx"; then
+				datarootdir="/usr/local/share"
+				if test x"$libexecdir" = x'${exec_prefix}/libexec'; then
+					libexecdir="/usr/local/nagios"
+				fi
+			elif test x"$libexecdir" = x'${exec_prefix}/libexec'; then
+				libexecdir="/usr/lib/nagios"
+			fi
+		fi
+		if test $dist_type = "osx"; then
+			if test x"$sbindir" = x'${exec_prefix}/sbin'; then
+				sbindir="$libexecdir"
+			fi
+			if test x"$libexecdir" = x'${exec_prefix}/libexec'; then
+				libexecdir="/usr/local/libexec/nagios"
+			fi
+		fi
+	elif test $opsys = "bsd"; then
+		if test x"$libexecdir" = x'${exec_prefix}/libexec'; then
+			libexecdir=${exec_prefix}/libexec/nagios;
+		fi
+	elif test x"$libexecdir" = x'${exec_prefix}/lib'; then
+		libexecdir=${libexecdir}/nagios;
+	elif test x"$libexecdir" = x'${exec_prefix}/libexec'; then
+		libexecdir=${exec_prefix}/lib/nagios;
+	fi
+
+fi
+
+if test x"$exec_prefix" = "xNONE"; then exec_prefix=${prefix}; fi
+
+tmpfilesd=${tmpfilesd="/usr/lib/tmpfiles.d"}
+if test ! -d "$tmpfilesd"; then
+	tmpfilesd="N/A"
+else
+	tmpfilesd="$tmpfilesd/$INIT_PROG.conf"
+fi
+subsyslockdir=${subsyslockdir="/run"}
+if test ! -d "$subsyslockdir"; then
+	subsyslockdir="N/A"
+	subsyslockfile="N/A"
+else
+	subsyslockfile="$subsyslockdir/$INIT_PROG"
+fi
+if test "$need_loc" = no; then
+	localedir="N/A"
+fi
+
+if test $install_method = "default" ; then
+	#
+	# Do the default setup
+	#
+	sbindir=${bindir}
+	datadir=${datadir="$datarootdir"}
+	if test $need_web = yes; then
+		webdir=${webdir="$datadir"}
+	else
+		webdir="N/A"
+	fi
+	if test $opsys = "unix"; then
+		sysconfdir=${sysconfdir="/etc/opt"}
+	fi
+	pkgsysconfdir=${pkgsysconfdir="$sysconfdir"}
+	if test $need_etc_subdir = yes; then
+		objsysconfdir=${objsysconfdir="$pkgsysconfdir/objects"}
+	else
+		objsysconfdir="N/A"
+	fi
+	privatesysconfdir=${privatesysconfdir="$pkgsysconfdir"}
+	logdir=${logdir="$localstatedir"}
+	piddir=${piddir="$localstatedir"}
+	if test "$need_pipe" = yes; then
+		pipedir=${pipedir="$localstatedir/rw"}
+	else
+		pipedir="N/A"
+	fi
+	if test "$need_pls_dir" = yes; then
+		pkglocalstatedir=${pkglocalstatedir="$localstatedir"}
+	else
+		pkglocalstatedir="N/A"
+	fi
+	if test "$need_spl" = yes; then
+		spooldir=${spooldir="$localstatedir/var"}
+	else
+		spooldir="N/A"
+	fi
+	if test $need_brk = yes; then
+		brokersdir=${brokersdir="$bindir"}
+	else
+		brokersdir="N/A"
+	fi
+	if test $need_plg = yes; then
+		pluginsdir=${pluginsdir="$libexecdir"}
+	else
+		pluginsdir="N/A"
+	fi
+	if test $need_cgi = yes; then
+		cgibindir=${cgibindir="$prefix/sbin"}
+	else
+		cgibindir="N/A"
+	fi
+
+elif test $opsys = "linux"; then
+
+	#
+	# Linux "Standard" install
+	#
+	install_method="$install_method : FHS"
+	datadir=${datadir="$datarootdir/nagios"}
+	if test $need_web = yes; then
+		webdir=${webdir="$datadir/html"}
+	else
+		webdir="N/A"
+	fi
+	sysconfdir=${sysconfdir="/etc"}
+	pkgsysconfdir=${pkgsysconfdir="$sysconfdir/nagios"}
+	if test $need_etc_subdir = yes; then
+		objsysconfdir=${objsysconfdir="$pkgsysconfdir/objects"}
+	else
+		objsysconfdir="N/A"
+	fi
+	privatesysconfdir=${privatesysconfdir="$pkgsysconfdir/private"}
+	if test $need_log_subdir = yes; then
+		logdir=${logdir="$localstatedir/log/$INIT_PROG"}
+	else
+		logdir=${logdir="$localstatedir/log"}
+	fi
+	piddir=${piddir="$localstatedir/run/${INIT_PROG}"}
+	if test "$need_pipe" = yes; then
+		pipedir=${pipedir="$localstatedir/run/${INIT_PROG}"}
+	else
+		pipedir="N/A"
+	fi
+	if test "$need_pls_dir" = yes; then
+		pkglocalstatedir=${pkglocalstatedir="$localstatedir/lib/$INIT_PROG"}
+	else
+		pkglocalstatedir="N/A"
+	fi
+	if test "$need_spl" = yes; then
+		spooldir=${spooldir="$localstatedir/spool/$INIT_PROG"}
+	else
+		spooldir="N/A"
+	fi
+	if test $need_brk = yes; then
+		brokersdir=${brokersdir="$libexecdir/brokers"}
+	else
+		brokersdir="N/A"
+	fi
+	if test $need_plg = yes; then
+		pluginsdir=${pluginsdir="$libexecdir/plugins"}
+	else
+		pluginsdir="N/A"
+	fi
+	if test $need_cgi = yes; then
+		cgibindir=${cgibindir="$libexecdir/cgi-bin"}
+	else
+		cgibindir="N/A"
+	fi
+
+elif test $opsys = "unix"; then
+
+	#
+	# "Standard" Unix install
+	#
+	install_method="$install_method : Unix Standard"
+	if test $dist_type = osx; then
+		install_method="$install_method : OS X Standard"
+		sbindir=${sbindir="/usr/local/libexec"}
+	fi
+	datadir=${datadir="$datarootdir/nagios"}
+	if test $need_web = yes; then
+		webdir=${webdir="$datadir/html"}
+	else
+		webdir="N/A"
+	fi
+	if test $dist_type = osx; then
+		sysconfdir=${sysconfdir="/private/etc"}
+	else
+		sysconfdir=${sysconfdir="/etc"}
+	fi
+	pkgsysconfdir=${pkgsysconfdir="$sysconfdir/nagios"}
+	if test $need_etc_subdir = yes; then
+		objsysconfdir=${objsysconfdir="$pkgsysconfdir/objects"}
+	else
+		objsysconfdir="N/A"
+	fi
+	privatesysconfdir=${privatesysconfdir="$pkgsysconfdir/private"}
+	if test "$need_pls_dir" = yes; then
+		pkglocalstatedir=${pkglocalstatedir="$localstatedir/lib/$INIT_PROG"}
+	else
+		pkglocalstatedir="N/A"
+	fi
+	if test "$need_loc" = yes; then
+		localedir=${localedir="/usr/local/share/locale/<lang>/LC_MESSAGES/nagios-plugins.mo"}
+	fi
+	if test "$need_spl" = yes; then
+		spooldir=${spooldir="$localstatedir/spool/$INIT_PROG"}
+	else
+		spooldir="N/A"
+	fi
+	if test $need_brk = yes; then
+		brokersdir=${brokersdir="$libexecdir/brokers"}
+	else
+		brokersdir="N/A"
+	fi
+	if test $need_plg = yes; then
+		pluginsdir=${pluginsdir="$libexecdir/plugins"}
+	else
+		pluginsdir="N/A"
+	fi
+	if test $need_cgi = yes; then
+		cgibindir=${cgibindir="$libexecdir/cgi-bin"}
+	else
+		cgibindir="N/A"
+	fi
+	case $dist_type in #(
+  *hp-ux*) :
+    piddir=${piddir="$pkgsysconfdir"}
+			pipedir=${pipedir="$pkglocalstatedir"}
+			logdir=${logdir="$pkglocalstatedir/log"} ;; #(
+  *) :
+    piddir=${piddir="$localstatedir/run/${INIT_PROG}"}
+			if test "$need_pipe" = yes; then
+				pipedir=${pipedir="$localstatedir/run/${INIT_PROG}"}
+			else
+				pipedir="N/A"
+			fi
+			if test $need_log_subdir = yes; then
+				logdir=${logdir="$localstatedir/log/$INIT_PROG"}
+			else
+				logdir=${logdir="$localstatedir/log"}
+			fi
+	 ;; #(
+  *) :
+     ;;
+esac
+
+elif test $opsys = "bsd"; then
+
+	#
+	# "Standard" BSD install
+	#
+	install_method="$install_method : BSD"
+	if test $dist_type = freebsd -o $dist_type = openbsd; then
+		prefix=${prefix="/usr/local"}
+		exec_prefix=${exec_prefix="/usr/local"}
+		if test $dist_type = freebsd; then
+			install_method="$install_method : FreeBSD"
+		else
+			install_method="$install_method : OpenBSD"
+		fi
+	elif test $dist_type = netbsd; then
+		prefix=${prefix="/usr/pkg"}
+		exec_prefix=${exec_prefix="/usr/pkg"}
+		install_method="$install_method : NetBSD"
+	fi
+	datadir=${datadir="$datarootdir/nagios"}
+	if test $need_web = yes -o $need_cgi = yes; then
+		if test $dist_type = freebsd; then
+			webdir=${webdir="$prefix/www/nagios"}
+		elif test $dist_type = netbsd; then
+			webdir=${webdir="$prefix/share/nagios"}
+		elif test $dist_type = openbsd; then
+			webdir=${webdir="/var/www/nagios"}
+		fi
+	else
+		webdir="N/A"
+	fi
+	if test $dist_type = freebsd; then
+		sysconfdir=${sysconfdir="/usr/local/etc"}
+	else
+		sysconfdir=${sysconfdir="/etc"}
+	fi
+	pkgsysconfdir=${pkgsysconfdir="$sysconfdir/nagios"}
+	if test $need_etc_subdir = yes; then
+		objsysconfdir=${objsysconfdir="$pkgsysconfdir/objects"}
+	else
+		objsysconfdir="N/A"
+	fi
+	privatesysconfdir=${privatesysconfdir="$pkgsysconfdir/private"}
+	if test "$need_pls_dir" = yes; then
+		pkglocalstatedir=${pkglocalstatedir="$localstatedir/lib/$INIT_PROG"}
+	else
+		pkglocalstatedir="N/A"
+	fi
+	if test "$need_loc" = yes; then
+		localedir=${localedir="/usr/local/share/locale/<lang>/LC_MESSAGES/nagios-plugins.mo"}
+	fi
+	if test "$need_spl" = yes; then
+		spooldir=${spooldir="$localstatedir/spool/$INIT_PROG"}
+	else
+		spooldir="N/A"
+	fi
+	if test $need_brk = yes; then
+		brokersdir=${brokersdir="$libexecdir/brokers"}
+	else
+		brokersdir="N/A"
+	fi
+	if test $need_plg = yes; then
+		pluginsdir=${pluginsdir="$libexecdir/plugins"}
+	else
+		pluginsdir="N/A"
+	fi
+	if test $need_cgi = yes; then
+		if test $dist_type = freebsd; then
+			cgibindir=${cgibindir="$webdir/cgi-bin"}
+		elif test $dist_type = netbsd; then
+			cgibindir=${pluginsdir="$libexecdir/cgi-bin"}
+		elif test $dist_type = openbsd; then
+			cgibindir=${pluginsdir="/var/www/cgi-bin/nagios"}
+		fi
+	else
+		cgibindir="N/A"
+	fi
+	piddir=${piddir="$localstatedir/run/${INIT_PROG}"}
+	if test "$need_pipe" = yes; then
+		pipedir=${pipedir="$localstatedir/run/${INIT_PROG}"}
+	else
+		pipedir="N/A"
+	fi
+	if test $need_log_subdir = yes; then
+		logdir=${logdir="$localstatedir/log/$INIT_PROG"}
+	else
+		logdir=${logdir="$localstatedir/log"}
+	fi
+
+else
+
+	#
+	# Unknown install
+	#
+	install_method="unknown"
+	webdir=unknown
+	pkgsysconfdir=unknown
+	objsysconfdir=unknown
+	privatesysconfdir=unknown
+	logdir=unknown
+	piddir=unknown
+	pipedir=unknown
+	pkglocalstatedir=unknown
+	spooldir=unknown
+	brokersdir=unknown
+	pluginsdir=unknown
+	cgibindir=unknown
+
+fi
+
+eval prefix=$prefix
+eval exec_prefix=$exec_prefix
+eval bindir=$bindir
+eval sbindir=$sbindir
+eval datarootdir=$datarootdir
+eval datadir=$datadir
+eval libexecdir=$libexecdir
+eval brokersdir=$brokersdir
+eval pluginsdir=$pluginsdir
+eval cgibindir=$cgibindir
+eval localstatedir=$localstatedir
+eval pkglocalstatedir=$pkglocalstatedir
+eval webdir=$webdir
+eval localedir=$localedir
+eval sysconfdir=$sysconfdir
+eval pkgsysconfdir=$pkgsysconfdir
+eval piddir=$piddir
+
+#
+# Init scripts/files
+#
+case $init_type in #(
+  sysv) :
+    if test $dist_type = "hp-ux"; then
+			initdir=${initdir="/sbin/init.d"}
+		else
+			initdir=${initdir="/etc/init.d"}
+		fi
+		initname=${initname="$INIT_PROG"}
+		initconfdir=${initconfdir="/etc/conf.d"}
+		initconf=${initconf="$initconfdir/$INIT_PROG"} ;; #(
+  systemd) :
+    if test $dist_type = "debian"; then
+			initdir=${initdir="/lib/systemd/system"}
+		else
+			initdir=${initdir="/usr/lib/systemd/system"}
+		fi
+		initname=${initname="$INIT_PROG.service"} ;; #(
+  bsd) :
+    if test $dist_type = "aix"; then
+			initdir=${initdir="/sbin/rc.d/init.d"}
+			initname=${initname="$INIT_PROG"}
+		else
+			initdir=${initdir="/etc/rc.d"}
+			initname=${initname="rc.$INIT_PROG"}
+		fi ;; #(
+  newbsd) :
+    initdir=${initdir="/etc/rc.d"}
+		initname=${initname="$INIT_PROG"} ;; #(
+  gentoo) :
+    initdir=${initdir="/etc/init.d"}
+		initname=${initname="$INIT_PROG"}
+		initconfdir=${initconfdir="/etc/init.d"}
+		initconf=${initconf="$initconfdir/$INIT_PROG"} ;; #(
+  openrc) :
+    initdir=${initdir="/etc/init.d"}
+		initname=${initname="$INIT_PROG"}
+		initconfdir=${initconfdir="/etc/conf.d"}
+		initconf=${initconf="$initconfdir/$INIT_PROG"} ;; #(
+  smf*) :
+    if test $init_type = smf10; then
+			initdir=${initdir="/var/svc/manifest/network/nagios"}
+		else
+			initdir=${initdir="/lib/svc/manifest/network/nagios"}
+		fi
+		initname=${initname="$INIT_PROG.xml"}
+		initconfdir=unknown
+		initconf=unknown ;; #(
+  upstart) :
+    initdir=${initdir="/etc/init"}
+		initname=${initname="$INIT_PROG.conf"}
+		initconfdir=${initconfdir="/etc/default"}
+		initconf=${initconf="$initconfdir/$INIT_PROG"} ;; #(
+  launchd) :
+    initdir=${initdir="/Library/LaunchDaemons"}
+		initname=${initname="org.nagios.$INIT_PROG.plist"} ;; #(
+  #		initconfdir=${initconfdir="/private/etc"}
+#		initconf=${initconf="$initconfdir/$INIT_PROG"},
+
+
+	*) :
+    initdir=unknown
+		initname=unknown ;; #(
+  *) :
+     ;;
+esac
+
+#
+# Inetd (per connection) scripts/files
+#
+case $inetd_type in #(
+  inetd*) :
+    inetddir=${inetddir="/etc"}
+		inetdname=${inetdname="inetd.conf"} ;; #(
+  xinetd) :
+    inetddir=${inetddir="/etc/xinetd.d"}
+		inetdname=${inetdname="$INIT_PROG"} ;; #(
+  systemd) :
+    if test $dist_type = "debian"; then
+			inetddir=${inetddir="/lib/systemd/system"}
+		else
+			inetddir=${inetddir="/usr/lib/systemd/system"}
+		fi
+		netdname=${inetdname="$INIT_PROG.socket"} ;; #(
+  smf*) :
+    if test $init_type = smf10; then
+			inetddir=${inetddir="/var/svc/manifest/network/nagios"}
+		else
+			inetddir=${inetddir="/lib/svc/manifest/network/nagios"}
+		fi
+		inetdname=${inetdname="$INIT_PROG.xml"} ;; #(
+  #	[upstart],
+#		inetddir=${inetddir="/etc/init.d"}
+#		inetdname=${inetdname="$INIT_PROG"},
+
+	launchd) :
+    inetddir=${inetddir="/Library/LaunchDaemons"}
+		inetdname=${inetdname="org.nagios.$INIT_PROG.plist"} ;; #(
+  *) :
+    inetddir=${inetddir="unknown"}
+		inetdname=${inetdname="unknown"} ;; #(
+  *) :
+     ;;
+esac
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $install_method" >&5
+$as_echo "$install_method" >&6; }
+
+
+
+
+
+
+
+
+src_inetd=""
+src_init=""
+bsd_enable=""
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for which init file to use " >&5
+$as_echo_n "checking for which init file to use ... " >&6; }
+
+case $init_type in #(
+  sysv) :
+    src_init=default-init ;; #(
+  systemd) :
+    src_tmpfile=tmpfile.conf
+		src_init=default-service ;; #(
+  bsd) :
+    src_init=bsd-init ;; #(
+  newbsd) :
+    if test $dist_type = freebsd ; then
+			bsd_enable="_enable"
+			src_init=newbsd-init
+		elif test $dist_type = openbsd ; then
+			bsd_enable="_flags"
+			src_init=openbsd-init
+		elif test $dist_type = netbsd ; then
+			bsd_enable=""
+			src_init=newbsd-init
+		fi ;; #(
+  #	[gentoo],
+
+	openrc) :
+    src_init=openrc-init ;; #(
+  smf*) :
+    src_init="solaris-init.xml"
+		src_inetd="solaris-inetd.xml" ;; #(
+  upstart) :
+    if test $dist_type = rh ; then
+			src_init=rh-upstart-init
+		else
+			src_init=upstart-init
+		fi ;; #(
+  launchd) :
+    src_init="mac-init.plist" ;; #(
+  *) :
+    src_init="unknown"
+ ;; #(
+  *) :
+     ;;
+esac
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $src_init" >&5
+$as_echo "$src_init" >&6; }
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for which inetd files to use " >&5
+$as_echo_n "checking for which inetd files to use ... " >&6; }
+
+if test x$src_inetd = x; then
+
+	case $inetd_type in #(
+  inetd*) :
+    src_inetd=default-inetd ;; #(
+  xinetd) :
+    src_inetd=default-xinetd ;; #(
+  systemd) :
+    src_inetd=default-socket ;; #(
+  launchd) :
+    src_inetd="mac-inetd.plist" ;; #(
+  *) :
+    src_inetd="unknown"
+	 ;; #(
+  *) :
+     ;;
+esac
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $src_inetd" >&5
+$as_echo "$src_inetd" >&6; }
+
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for va_copy" >&5
 $as_echo_n "checking for va_copy... " >&6; }
 if ${ac_cv_HAVE_VA_COPY+:} false; then :
@@ -4857,7 +6188,13 @@ fi
 
 fi
 if test x$MAIL_PROG = x; then
-	MAIL_PROG="/bin/mail"
+	if which mail >/dev/null; then
+		MAIL_PROG=`which mail`
+	elif which sendmail >/dev/null; then
+		MAIL_PROG=`which sendmail`
+	else
+		MAIL_PROG="/bin/mail"
+	fi
 fi
 
 
@@ -4920,44 +6257,6 @@ fi
 
 if test x$TMPDIR = xno; then
 	TMPDIR="/tmp"
-fi
-
-
-init_dir=/etc/rc.d/init.d
-if test -d /etc/rc.d/init.d; then
-	init_dir="/etc/rc.d/init.d"
-elif test -d /usr/local/etc/rc.d; then
-	init_dir="/usr/local/etc/rc.d"
-elif test -d /etc/rc.d; then
-	init_dir="/etc/rc.d"
-elif test -d /etc/init.d; then
-	init_dir="/etc/init.d"
-elif test -d /sbin/init.d; then
-	init_dir="/sbin/init.d"
-fi
-
-
-# Check whether --with-init_dir was given.
-if test "${with_init_dir+set}" = set; then :
-  withval=$with_init_dir; init_dir=$withval
-
-fi
-
-
-
-
-default_lockfile_path=/var/run/nagios.lock
-if test -d /run; then
-	default_lockfile_path=/run/nagios.lock
-fi
-
-
-# Check whether --with-lockfile was given.
-if test "${with_lockfile+set}" = set; then :
-  withval=$with_lockfile; lockfile=$withval
-else
-  lockfile=$default_lockfile_path
-
 fi
 
 
@@ -5917,7 +7216,6 @@ fi
 
 
 
-
 # Extract the first word of "perl", so it can be a program name with args.
 set dummy perl; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -6006,7 +7304,7 @@ if test -z "$UNZIP"; then
 	as_fn_error $? "Cannot continue without unzip!" "$LINENO" 5
 fi
 
-ac_config_files="$ac_config_files Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init daemon-service daemon-openrc t/Makefile t-tap/Makefile"
+ac_config_files="$ac_config_files Makefile lib/Makefile base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile subst pkginfo startup/openrc-init startup/default-init startup/default-service t/Makefile t-tap/Makefile"
 
 
 
@@ -6620,8 +7918,6 @@ do
     "html/index.php") CONFIG_FILES="$CONFIG_FILES html/index.php" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
-    "subst") CONFIG_FILES="$CONFIG_FILES subst" ;;
-    "pkginfo") CONFIG_FILES="$CONFIG_FILES pkginfo" ;;
     "base/Makefile") CONFIG_FILES="$CONFIG_FILES base/Makefile" ;;
     "common/Makefile") CONFIG_FILES="$CONFIG_FILES common/Makefile" ;;
     "contrib/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/Makefile" ;;
@@ -6631,9 +7927,11 @@ do
     "worker/Makefile") CONFIG_FILES="$CONFIG_FILES worker/Makefile" ;;
     "worker/ping/Makefile") CONFIG_FILES="$CONFIG_FILES worker/ping/Makefile" ;;
     "xdata/Makefile") CONFIG_FILES="$CONFIG_FILES xdata/Makefile" ;;
-    "daemon-init") CONFIG_FILES="$CONFIG_FILES daemon-init" ;;
-    "daemon-service") CONFIG_FILES="$CONFIG_FILES daemon-service" ;;
-    "daemon-openrc") CONFIG_FILES="$CONFIG_FILES daemon-openrc" ;;
+    "subst") CONFIG_FILES="$CONFIG_FILES subst" ;;
+    "pkginfo") CONFIG_FILES="$CONFIG_FILES pkginfo" ;;
+    "startup/openrc-init") CONFIG_FILES="$CONFIG_FILES startup/openrc-init" ;;
+    "startup/default-init") CONFIG_FILES="$CONFIG_FILES startup/default-init" ;;
+    "startup/default-service") CONFIG_FILES="$CONFIG_FILES startup/default-service" ;;
     "t/Makefile") CONFIG_FILES="$CONFIG_FILES t/Makefile" ;;
     "t-tap/Makefile") CONFIG_FILES="$CONFIG_FILES t-tap/Makefile" ;;
 
@@ -7368,10 +8666,8 @@ $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
 
-
 perl subst include/locations.h
 perl subst html/config.inc.php
-perl subst daemon-service
 
 
 echo ""
@@ -7424,12 +8720,12 @@ if test x$incdir = x$prefix/include; then
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:     Install \${includedir}:  $includedir" >&5
 $as_echo "    Install \${includedir}:  $includedir" >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:                 Lock file:  $lockfile" >&5
-$as_echo "                Lock file:  $lockfile" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result:                 Lock file:  $subsyslockfile" >&5
+$as_echo "                Lock file:  $subsyslockfile" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:    Check result directory:  $CHECKRESULTDIR" >&5
 $as_echo "   Check result directory:  $CHECKRESULTDIR" >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:            Init directory:  $init_dir" >&5
-$as_echo "           Init directory:  $init_dir" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result:            Init directory:  $initdir" >&5
+$as_echo "           Init directory:  $initdir" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:   Apache conf.d directory:  $HTTPD_CONF" >&5
 $as_echo "  Apache conf.d directory:  $HTTPD_CONF" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:              Mail program:  $MAIL_PROG" >&5

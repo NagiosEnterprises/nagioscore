@@ -48,9 +48,7 @@ NagiosStatusFile=@localstatedir@/status.dat
 NagiosRetentionFile=@localstatedir@/retention.dat
 NagiosCommandFile=@localstatedir@/rw/nagios.cmd
 NagiosVarDir=@localstatedir@
-NagiosRunFile=@lockfile@
-NagiosLockDir=/var/lock/subsys
-NagiosLockFile=nagios
+NagiosRunFile=@subsyslockfile@
 NagiosCGIDir=@sbindir@
 NagiosUser=@nagios_user@
 NagiosGroup=@nagios_grp@
@@ -212,7 +210,6 @@ case "$1" in
 		remove_commandfile
 		touch $NagiosRunFile
 		$NagiosBin -d $NagiosCfgFile
-		if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
 
 		echo " done."
 		;;
@@ -249,7 +246,7 @@ case "$1" in
 		fi
 
 		remove_commandfile
-		rm -f $NagiosStatusFile $NagiosRunFile $NagiosLockDir/$NagiosLockFile
+		rm -f $NagiosStatusFile $NagiosRunFile
 		;;
 
 	status)

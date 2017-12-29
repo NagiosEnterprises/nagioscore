@@ -292,7 +292,7 @@ if test ! -d "$tmpfilesd"; then
 else
 	tmpfilesd="$tmpfilesd/$INIT_PROG.conf"
 fi
-subsyslockdir=${subsyslockdir="/var/lock/subsys"}
+subsyslockdir=${subsyslockdir="/run"}
 if test ! -d "$subsyslockdir"; then
 	subsyslockdir="N/A"
 	subsyslockfile="N/A"

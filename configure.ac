@@ -10,9 +10,9 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.3.4"
+PKG_VERSION="4.4.0"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2017-08-24"
+PKG_REL_DATE="2018-??-??"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
@@ -51,6 +51,13 @@ AC_TYPE_SIZE_T
 AC_TYPE_SIGNAL
 AC_TYPE_GETGROUPS
 
+dnl Get Nagios autoconf-macros
+AC_NAGIOS_GET_OS
+AC_NAGIOS_GET_DISTRIB_TYPE
+AC_NAGIOS_GET_INIT
+AC_NAGIOS_GET_INETD
+AC_NAGIOS_GET_PATHS
+AC_NAGIOS_GET_FILES
 
 dnl Check for asprintf() and friends...
 AC_CACHE_CHECK([for va_copy],ac_cv_HAVE_VA_COPY,[
@@ -139,6 +146,7 @@ AC_SEARCH_LIBS(nanosleep,[rt posix4],,[
 	exit 1
 	])
 
+dnl TODO: host_os needs changed to reflect AC_NAGIOS
 case $host_os in
 *bsd*|darwin*)
 	root_grp=wheel
@@ -182,7 +190,13 @@ if test x$MAIL_PROG = xno; then
 fi 
 dnl Fix for systems that don't (yet) have mail/mailx installed...
 if test x$MAIL_PROG = x; then
-	MAIL_PROG="/bin/mail"
+	if which mail >/dev/null; then
+		MAIL_PROG=`which mail`
+	elif which sendmail >/dev/null; then
+		MAIL_PROG=`which sendmail`
+	else
+		MAIL_PROG="/bin/mail"
+	fi
 fi
 AC_SUBST(MAIL_PROG)
 
@@ -230,6 +244,7 @@ fi
 AC_SUBST(CHECKRESULTDIR)
 
 dnl Location of check result path
+dnl TODO: this should be moved to autoconf-macros
 TMPDIR=no
 AC_ARG_WITH(temp-dir,
 	AC_HELP_STRING([--with-temp-dir=<path>],
@@ -242,44 +257,6 @@ if test x$TMPDIR = xno; then
 fi 
 AC_SUBST(TMPDIR)
 
-dnl Check for location of init scripts
-init_dir=/etc/rc.d/init.d
-if test -d /etc/rc.d/init.d; then
-	init_dir="/etc/rc.d/init.d"
-elif test -d /usr/local/etc/rc.d; then
-	init_dir="/usr/local/etc/rc.d"
-elif test -d /etc/rc.d; then
-	init_dir="/etc/rc.d"
-elif test -d /etc/init.d; then
-	init_dir="/etc/init.d"
-elif test -d /sbin/init.d; then
-	init_dir="/sbin/init.d"
-fi
-
-dnl User can override init script location
-AC_ARG_WITH(init_dir,
-	AC_HELP_STRING([--with-init-dir=<path>],
-		[sets directory to place init script into]),
-	init_dir=$withval
-)
-AC_SUBST(init_dir)
-
-dnl User can override lock file location
-dnl Use the /var/run/ path by default
-dnl and use /run if it is available
-
-default_lockfile_path=/var/run/nagios.lock
-if test -d /run; then
-	default_lockfile_path=/run/nagios.lock
-fi
-
-AC_ARG_WITH(lockfile,
-	AC_HELP_STRING([--with-lockfile=<path>],
-		[sets path for lock file (default: [/var]/run/nagios.lock)]),
-	lockfile=$withval,
-	lockfile=$default_lockfile_path
-)
-AC_SUBST(lockfile)
 
 dnl Determine the library to be used by the iobroker
 
@@ -802,7 +779,6 @@ AC_SUBST(USE_LIBTAP)
 AC_SUBST(CGIEXTRAS)
 AC_SUBST(GDLIBS)
 AC_SUBST(BASEEXTRALIBS)
-AC_SUBST(INITDIR)
 AC_SUBST(USE_EVENTBROKER)
 
 AC_PATH_PROG(PERL,perl)
@@ -815,12 +791,30 @@ if test -z "$UNZIP"; then
 	AC_MSG_ERROR([Cannot continue without unzip!])
 fi
 
-AC_OUTPUT(Makefile lib/Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile daemon-init daemon-service daemon-openrc t/Makefile t-tap/Makefile)
-
+AC_OUTPUT([
+	Makefile
+	lib/Makefile
+	base/Makefile
+	common/Makefile
+	contrib/Makefile
+	cgi/Makefile
+	html/Makefile
+	module/Makefile
+	worker/Makefile
+	worker/ping/Makefile
+	xdata/Makefile
+	subst
+	pkginfo
+	startup/openrc-init
+	startup/default-init
+	startup/default-service
+	t/Makefile 
+	t-tap/Makefile
+])
 
 perl subst include/locations.h
 perl subst html/config.inc.php
-perl subst daemon-service
+dnl perl subst daemon-service
 
 
 echo ""
@@ -866,9 +860,9 @@ if test x$incdir = x$prefix/include; then
 	includedir=$prefix/include/nagios
 fi
 AC_MSG_RESULT([    Install \${includedir}:  $includedir])
-AC_MSG_RESULT([                Lock file:  $lockfile])
+AC_MSG_RESULT([                Lock file:  $subsyslockfile])
 AC_MSG_RESULT([   Check result directory:  $CHECKRESULTDIR])
-AC_MSG_RESULT([           Init directory:  $init_dir])
+AC_MSG_RESULT([           Init directory:  $initdir])
 AC_MSG_RESULT([  Apache conf.d directory:  $HTTPD_CONF])
 AC_MSG_RESULT([             Mail program:  $MAIL_PROG])
 AC_MSG_RESULT([                  Host OS:  $host_os])

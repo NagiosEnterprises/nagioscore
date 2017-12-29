@@ -8,6 +8,7 @@
 #include <time.h>
 #include <syslog.h>
 #include "libnagios.h"
+#include "../include/config.h"
 
 #define MSG_DELIM "\1\0\0" /**< message limiter - note this ends up being
 			     \1\0\0\0 on the wire as "" strings null-terminate */

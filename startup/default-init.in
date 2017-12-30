@@ -72,16 +72,33 @@ USE_RAMDISK=${USE_RAMDISK:-0}
 if test "$USE_RAMDISK" -ne 0 && test "$RAMDISK_SIZE"X != "X"; then
 	ramdisk=`mount |grep "${RAMDISK_DIR} type tmpfs"`
 	if [ "$ramdisk"X == "X" ]; then
-		mkdir -p -m 0755 ${RAMDISK_DIR}
-		mount -t tmpfs -o size=${RAMDISK_SIZE}m tmpfs ${RAMDISK_DIR}
-		mkdir -p -m 0755 ${RAMDISK_DIR}/checkresults
-		chown -h -R $NagiosUser:$NagiosGroup ${RAMDISK_DIR}
+		if [ ! -d ${RAMDISK_DIR} ]; then
+			mkdir -p -m 0755 ${RAMDISK_DIR}
+			if [ -d ${RAMDISK_DIR} ]; then
+				NagiosUserUID=`id -u ${NagiosUser}`
+				NagiosGroupGID=`id -g ${NagiosGroup}`
+				mount -t tmpfs -o uid=${NagiosUserUID},gid={$NagiosGroupGID},size=${RAMDISK_SIZE}m tmpfs ${RAMDISK_DIR}
+				su ${NagiosUser} -c "mkdir -m 0755 ${RAMDISK_DIR}/checkresults"
+			else
+				echo "ERROR: Unable to create ramdisk directory (${RAMDISK_DIR})"
+				exit 1
+			fi
+		else
+			echo "ERROR: Ramdisk directory (${RAMDISK_DIR}) already exists!"
+			exit 1
+		fi
 	fi
 fi
 
 
 check_config ()
 {
+	if test "$checkconfig" != "true"; then
+		return 0
+	fi
+
+	echo "Running configuration check...\n"
+
 	rm -f "$NagiosCfgtestFile";
 	if test -e "$NagiosCfgtestFile"; then
 		echo "ERROR: Could not delete '$NagiosCfgtestFile'"
@@ -191,10 +208,7 @@ case "$1" in
 	start)
 		echo -n "Starting nagios:"
 
-		if test "$checkconfig" = "true"; then
-			check_config
-			# check_config exits on configuration errors.
-		fi
+		check_config
 
 		if test -f $NagiosRunFile; then
 			NagiosPID=`head -n 1 $NagiosRunFile`
@@ -256,10 +270,7 @@ case "$1" in
 		;;
 
 	checkconfig)
-		if test "$checkconfig" = "true"; then
-			printf "Running configuration check...\n"
-			check_config
-		fi
+		check_config
 
 		if [ $? -eq 0 ]; then
 			echo " OK."
@@ -270,20 +281,14 @@ case "$1" in
 		;;
 
 	restart)
-		if test "$checkconfig" = "true"; then
-			printf "Running configuration check...\n"
-			check_config
-		fi
+		check_config
 
 		$0 stop
 		$0 start
 		;;
 
 	reload|force-reload)
-		if test "$checkconfig" = "true"; then
-			printf "Running configuration check...\n"
-			check_config
-		fi
+		check_config
 
 		if test ! -f $NagiosRunFile; then
 			$0 start

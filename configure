@@ -7304,7 +7304,7 @@ if test -z "$UNZIP"; then
 	as_fn_error $? "Cannot continue without unzip!" "$LINENO" 5
 fi
 
-ac_config_files="$ac_config_files Makefile lib/Makefile base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile subst pkginfo startup/openrc-init startup/default-init startup/default-service t/Makefile t-tap/Makefile"
+ac_config_files="$ac_config_files Makefile lib/Makefile base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile subst pkginfo startup/openrc-init startup/default-init startup/default-service startup/upstart-init t/Makefile t-tap/Makefile"
 
 
 
@@ -7932,6 +7932,7 @@ do
     "startup/openrc-init") CONFIG_FILES="$CONFIG_FILES startup/openrc-init" ;;
     "startup/default-init") CONFIG_FILES="$CONFIG_FILES startup/default-init" ;;
     "startup/default-service") CONFIG_FILES="$CONFIG_FILES startup/default-service" ;;
+    "startup/upstart-init") CONFIG_FILES="$CONFIG_FILES startup/upstart-init" ;;
     "t/Makefile") CONFIG_FILES="$CONFIG_FILES t/Makefile" ;;
     "t-tap/Makefile") CONFIG_FILES="$CONFIG_FILES t-tap/Makefile" ;;
 

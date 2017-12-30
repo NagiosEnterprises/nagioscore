@@ -808,6 +808,7 @@ AC_OUTPUT([
 	startup/openrc-init
 	startup/default-init
 	startup/default-service
+	startup/upstart-init
 	t/Makefile 
 	t-tap/Makefile
 ])

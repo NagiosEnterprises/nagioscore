@@ -41,7 +41,7 @@
 # Our install-time configuration.
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-NagiosBin=@bindir@/nagios
+NagiosBin=@bindir@/@nagios_name@
 NagiosCfgFile=@sysconfdir@/nagios.cfg
 NagiosCfgtestFile=@localstatedir@/nagios.configtest
 NagiosStatusFile=@localstatedir@/status.dat

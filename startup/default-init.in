@@ -39,8 +39,6 @@
 ### END INIT INFO
 
 # Our install-time configuration.
-prefix=@prefix@
-exec_prefix=@exec_prefix@
 NagiosBin=@bindir@/@nagios_name@
 NagiosCfgFile=@sysconfdir@/nagios.cfg
 NagiosCfgtestFile=@localstatedir@/nagios.configtest

@@ -741,7 +741,6 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_LASTHOSTSTATEID:
 		case MACRO_HOSTIMPORTANCE:
 		case MACRO_HOSTANDSERVICESIMPORTANCE:
-		case MACRO_LASTHOSTSTATETYPE:
 
 			/* a standard host macro */
 			if(arg2 == NULL) {
@@ -876,7 +875,6 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_LASTSERVICESTATE:
 		case MACRO_LASTSERVICESTATEID:
 		case MACRO_SERVICEIMPORTANCE:
-		case MACRO_LASTSERVICESTATETYPE:
 
 			/* use saved service pointer */
 			if(arg1 == NULL && arg2 == NULL) {
@@ -1716,9 +1714,6 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 		case MACRO_LASTHOSTUNREACHABLE:
 			*output = (char *)mkstr("%lu", (unsigned long)temp_host->last_time_unreachable);
 			break;
-		case MACRO_LASTHOSTSTATETYPE:
-			*output = (char *)state_type_name(temp_host->last_state_type);
-			break;
 		case MACRO_HOSTNOTIFICATIONNUMBER:
 			*output = (char *)mkstr("%d", temp_host->current_notification_number);
 			break;
@@ -2080,9 +2075,6 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 			break;
 		case MACRO_LASTSERVICECRITICAL:
 			*output = (char *)mkstr("%lu", (unsigned long)temp_service->last_time_critical);
-			break;
-		case MACRO_LASTSERVICESTATETYPE:
-			*output = (char *)state_type_name(temp_service->last_state_type);
 			break;
 		case MACRO_SERVICEDOWNTIME:
 			*output = (char *)mkstr("%d", temp_service->scheduled_downtime_depth);
@@ -2814,8 +2806,6 @@ int init_macrox_names(void) {
 	add_macrox_name(HOSTGROUPMEMBERADDRESSES);
 	add_macrox_name(HOSTINFOURL);
 	add_macrox_name(SERVICEINFOURL);
-	add_macrox_name(LASTHOSTSTATETYPE);
-	add_macrox_name(LASTSERVICESTATETYPE);
 
 	return OK;
 	}

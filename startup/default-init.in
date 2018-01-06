@@ -83,9 +83,6 @@ if test "$USE_RAMDISK" -ne 0 && test "$RAMDISK_SIZE"X != "X"; then
 				echo "ERROR: Unable to create ramdisk directory (${RAMDISK_DIR})"
 				exit 1
 			fi
-		else
-			echo "ERROR: Ramdisk directory (${RAMDISK_DIR}) already exists!"
-			exit 1
 		fi
 	fi
 fi

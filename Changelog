@@ -10,6 +10,7 @@ ENHANCEMENTS
 * Add a `statusCRITICALACK` class for the status column (John Frickson)
 * CSV output based on groups (all options) (John Frickson)
 * New Macro(s) to generate URL for host / service object to be used in notifications (John Frickson)
+* New Macro(s) to determine if host/service notifications are enabled (#419) (Bryan Heden)
 * enable_page_tour interface option (Bryan Heden)
 * Code cleanups in important sections (Workers, Handling Results) (Bryan Heden)
 * Automatic mail program detection (with same /bin/mail failback) (Bryan Heden)

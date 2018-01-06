@@ -741,6 +741,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_LASTHOSTSTATEID:
 		case MACRO_HOSTIMPORTANCE:
 		case MACRO_HOSTANDSERVICESIMPORTANCE:
+		case MACRO_HOSTNOTIFICATIONENABLED:
 
 			/* a standard host macro */
 			if(arg2 == NULL) {
@@ -875,6 +876,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_LASTSERVICESTATE:
 		case MACRO_LASTSERVICESTATEID:
 		case MACRO_SERVICEIMPORTANCE:
+		case MACRO_SERVICENOTIFICATIONENABLED:
 
 			/* use saved service pointer */
 			if(arg1 == NULL && arg2 == NULL) {
@@ -1720,6 +1722,9 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 		case MACRO_HOSTNOTIFICATIONID:
 			*output = (char *)mkstr("%lu", temp_host->current_notification_id);
 			break;
+		case MACRO_HOSTNOTIFICATIONENABLED:
+			*output = (char *)mkstr("%s", temp_host->notifications_enabled ? "YES" : "NO");
+			break;
 		case MACRO_HOSTEVENTID:
 			*output = (char *)mkstr("%lu", temp_host->current_event_id);
 			break;
@@ -2109,6 +2114,9 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 			break;
 		case MACRO_SERVICENOTIFICATIONID:
 			*output = (char *)mkstr("%lu", temp_service->current_notification_id);
+			break;
+		case MACRO_SERVICENOTIFICATIONENABLED:
+			*output = (char *)mkstr("%s", temp_service->notifications_enabled ? "YES" : "NO");
 			break;
 		case MACRO_SERVICEEVENTID:
 			*output = (char *)mkstr("%lu", temp_service->current_event_id);
@@ -2806,6 +2814,8 @@ int init_macrox_names(void) {
 	add_macrox_name(HOSTGROUPMEMBERADDRESSES);
 	add_macrox_name(HOSTINFOURL);
 	add_macrox_name(SERVICEINFOURL);
+	add_macrox_name(HOSTNOTIFICATIONENABLED);
+	add_macrox_name(SERVICENOTIFICATIONENABLED);
 
 	return OK;
 	}

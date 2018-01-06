@@ -220,7 +220,8 @@ typedef struct nagios_macros nagios_macros;
 #define MACRO_HOSTGROUPMEMBERADDRESSES          156
 #define MACRO_HOSTINFOURL                       157
 #define MACRO_SERVICEINFOURL                    158
-
+#define MACRO_HOSTLASTSTATETYPE                 159
+#define MACRO_SERVICELASTSTATETYPE              160
 
 /************* MACRO CLEANING OPTIONS *****************/
 

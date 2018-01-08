@@ -917,21 +917,7 @@ static int spawn_core_worker(void)
 	return ret;
 }
 
-
-int init_workers(int desired_workers)
-{
-	specialized_workers = dkhash_create(512);
-	if (!specialized_workers) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to allocate specialized worker table.\n");
-		return -1;
-	}
-
-	/* Register our query handler before launching workers, so other workers
-	 * can join us whenever they're ready. */
-	if (!qh_register_handler("wproc", "Worker process management and info", 0, wproc_query_handler))
-		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Successfully registered manager as @wproc with query handler\n");
-	else
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to register manager with query handler\n");
+int get_desired_workers(int desired_workers) {
 
 	if (desired_workers <= 0) {
 		int cpus = online_cpus(); /* Always at least 1 CPU. */
@@ -955,7 +941,28 @@ int init_workers(int desired_workers)
 			}
 		}
 	}
-	wproc_num_workers_desired = desired_workers;
+
+	return desired_workers;
+}
+
+/* if this function is updated, the function rlimit_problem_detection()
+   must be updated as well */
+int init_workers(int desired_workers)
+{
+	specialized_workers = dkhash_create(512);
+	if (!specialized_workers) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to allocate specialized worker table.\n");
+		return -1;
+	}
+
+	/* Register our query handler before launching workers, so other workers
+	 * can join us whenever they're ready. */
+	if (!qh_register_handler("wproc", "Worker process management and info", 0, wproc_query_handler))
+		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Successfully registered manager as @wproc with query handler\n");
+	else
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to register manager with query handler\n");
+
+	wproc_num_workers_desired = get_desired_workers(desired_workers);
 
 	if (workers_alive() == desired_workers)
 		return 0;

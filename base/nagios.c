@@ -580,6 +580,7 @@ int main(int argc, char **argv) {
 
 		/* keep monitoring things until we get a shutdown command */
 		do {
+
 			/* reset internal book-keeping (in case we're restarting) */
 			wproc_num_workers_spawned = wproc_num_workers_online = 0;
 			caught_signal = sigshutdown = FALSE;
@@ -753,6 +754,12 @@ int main(int argc, char **argv) {
 				}
 
 			timing_point("Object configuration parsed and understood\n");
+			
+			/* lets do a quick system limit detection
+			   to determine if we're likely to run into any
+			   problems. */
+			rlimit_problem_detection(num_check_workers);
+			timing_point("Limit detection");
 
 			/* write the objects.cache file */
 			fcache_objects(object_cache_file);

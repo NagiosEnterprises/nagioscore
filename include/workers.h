@@ -49,6 +49,7 @@ extern void wproc_reap(int jobs, int msecs);
 extern int wproc_can_spawn(struct load_control *lc);
 extern void free_worker_memory(int flags);
 extern int workers_alive(void);
+extern int get_desired_workers(int desired_workers);
 extern int init_workers(int desired_workers);
 extern int wproc_run_check(check_result *cr, char *cmd, nagios_macros *mac);
 extern int wproc_notify(char *cname, char *hname, char *sdesc, char *cmd, nagios_macros *mac);

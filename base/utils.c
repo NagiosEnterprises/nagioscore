@@ -33,6 +33,10 @@
 #include "../include/nebmodules.h"
 #include "../include/workers.h"
 
+#include <sys/time.h>
+#include <sys/resource.h>
+
+
 /* global variables only used by the daemon */
 char *nagios_binary_path = NULL;
 char *config_file = NULL;
@@ -3574,3 +3578,127 @@ int reset_variables(void) {
 
 	return OK;
 	}
+
+/* try and detect any problems with sys limits 
+   we're specifically interested in NPROC
+   but could easily add NOFILE here if necessary */
+void rlimit_problem_detection(int desired_workers) {
+
+	log_debug_info(DEBUGL_PROCESS, 2, "rlimit_problem_detection()\n");
+
+	struct rlimit rlim;
+	int ilim;
+	host * temp_host = NULL;
+	service * temp_service = NULL;
+
+	/* how many times a worker forks/execs to run a plugin */
+	int forks_per_worker_per_check = 2;
+
+	/* time period to calculate over (in minutes) */
+	int time_period_calc = 5;
+
+	/* how many processes do we just want to account for? */
+	int arbitrary_user_processes = 300;
+
+	double checks_per_time_period = 0.0;
+	double this_interval = 0.0;
+	int total_num_procs = 0;
+
+
+	/* first, we grab the NPROC limit, then we check if it isn't unlimited
+	   if it isn't, but the max is, then we set the soft limit to the max
+	   if that doesn't work, or the max isn't unlimited, then we try and
+	   calculate what the current usage is really, and how many workers
+	   we expect to have, and calculate what our usage (generally) is 
+	   going to be */
+
+	ilim = getrlimit(RLIMIT_NPROC, &rlim);
+	if (ilim != 0) {
+
+		/* nothing we can do here, so just let it keep moving along */
+		logit(NSLOG_PROCESS_INFO, TRUE, "WARNING: getrlimit(RLIMIT_NPROC) failed with errno: %s\n", strerror(errno));
+		return;
+	}
+
+	if (rlim.rlim_cur == RLIM_INFINITY) {
+
+		/* we won't have any problems due to fork constraints */
+		log_debug_info(DEBUGL_PROCESS, 0, " * RLIMIT_NPROC is unlimited, no need to continue checking.\n");
+		return;
+	}
+
+	desired_workers = get_desired_workers(desired_workers);
+	
+	/* calculate the amount of checks
+	   and the worst-case (estimation) frequency in which they repeat */
+	for (temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
+
+		this_interval = 0;
+
+		if (!(temp_host->checks_enabled)) {
+			continue;
+		}
+
+		/* get the smallest possible */
+		if (temp_host->check_interval > temp_host->retry_interval 
+			&& temp_host->retry_interval != 0) {
+
+			this_interval = temp_host->retry_interval;
+		} else {
+			this_interval = temp_host->check_interval;
+		}
+
+		/* get them on an average scale (5 min) */
+		if (this_interval > 0) {
+			this_interval = ceil((double) time_period_calc / this_interval);
+		}
+
+		checks_per_time_period += this_interval;
+	}
+
+	for (temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
+
+		this_interval = 0;
+
+		if (!(temp_service->checks_enabled)) {
+			continue;
+		}
+
+		/* get the smallest possible */
+		if (temp_service->check_interval > temp_service->retry_interval 
+			&& temp_service->retry_interval != 0) {
+			
+			this_interval = temp_service->retry_interval;
+		} else {
+			this_interval = temp_service->check_interval;
+		}
+
+		/* get them on an average scale (5 min) */
+		if (this_interval > 0) {
+			this_interval = ceil(time_period_calc / this_interval);
+		}
+
+		checks_per_time_period += this_interval;
+	}
+
+	total_num_procs = checks_per_time_period * forks_per_worker_per_check;
+	total_num_procs += desired_workers;
+	total_num_procs += arbitrary_user_processes;
+
+	log_debug_info(DEBUGL_PROCESS, 0, " * total_num_procs is:               %d\n", total_num_procs);
+	log_debug_info(DEBUGL_PROCESS, 0, " * using forks_per_worker_per_check: %d\n", forks_per_worker_per_check);
+	log_debug_info(DEBUGL_PROCESS, 0, " * using            desired_workers: %d\n", desired_workers);
+	log_debug_info(DEBUGL_PROCESS, 0, " * using   arbitrary_user_processes: %d\n", arbitrary_user_processes);
+
+
+	if (rlim.rlim_cur > total_num_procs) {
+
+		log_debug_info(DEBUGL_PROCESS, 0, " * RLIMIT_NPROC is %d, total max estimated processes is %d, everything looks okay!\n",
+			rlim.rlim_cur, total_num_procs);
+	} else {
+
+		/* just warn the user - no need to bail out */
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "WARNING: RLIMIT_NPROC is %d, total max estimated processes is %d! You should increase your limits (ulimit -u, or limits.conf)\n",
+			rlim.rlim_cur, total_num_procs);
+	}
+}

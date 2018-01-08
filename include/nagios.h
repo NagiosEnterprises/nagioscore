@@ -633,6 +633,7 @@ void my_system_sighandler(int);				/* handles timeouts when executing commands v
 char *get_next_string_from_buf(char *buf, int *start_index, int bufsize);
 int compare_strings(char *, char *);                    /* compares two strings for equality */
 char *escape_newlines(char *);
+void rlimit_problem_detection(int);
 /**
  * Unescapes newlines and backslashes in a check result output string read from
  * a source that uses newlines as a delimiter (e.g., files in the checkresults

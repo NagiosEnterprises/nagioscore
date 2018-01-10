@@ -2124,7 +2124,7 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 			*output = (char *)mkstr("%s", temp_service->notifications_enabled ? "YES" : "NO");
 			break;
 		case MACRO_SERVICENOTIFICATIONPERIOD:
-			*output = (char *)mkstr("%s", temp_host->notification_period);
+			*output = (char *)mkstr("%s", temp_service->notification_period);
 			break;
 		case MACRO_SERVICEEVENTID:
 			*output = (char *)mkstr("%lu", temp_service->current_event_id);

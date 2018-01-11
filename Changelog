@@ -20,6 +20,7 @@ ENHANCEMENTS
     * Moved all files to startup/
     * Added upstart job
 * Added system limit detection (RLIMIT_NPROC) to check for anticipated fork() failures (#434) (Bryan Heden)
+* Added stalking on notifications (`N` or `notifications` option when specifying `stalking_options`) (#342) (Bryan Heden)
 
 FIXES
 * Command line macro detection skips potential macros with no ending dollar sign (Bryan Heden, Jake Omann)

@@ -795,20 +795,15 @@ static inline void set_host_state_type(host *hst, int hard_state_change) {
 	if(hard_state_change == TRUE || (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE)) {
 		hst->last_hard_state_change = hst->last_check;
 		hst->state_type = HARD_STATE;
+
+		if(hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
+			hst->current_attempt = 1;
+			}
 		}
 	else {
 		hst->state_type = SOFT_STATE;
 		}
 
-	/* passive checks are treated as HARD states by default... */
-	if(hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
-
-		/* set the state type */
-		hst->state_type = HARD_STATE;
-
-		/* reset the current attempt */
-		hst->current_attempt = 1;
-		}
 }
 
 /******************************************************************************
@@ -1042,9 +1037,9 @@ int handle_async_service_check_result(service *svc, check_result *cr) {
 
 	int state_change = FALSE;
 	int hard_state_change = FALSE;
-	int send_notification = TRUE;
-	int handle_event = TRUE;
-	int log_event = TRUE;
+	int send_notification = FALSE;
+	int handle_event = FALSE;
+	int log_event = FALSE;
 
 	char *old_plugin_output = NULL;
 
@@ -1384,6 +1379,10 @@ int handle_async_service_check_result(service *svc, check_result *cr) {
 	/* should we send a notification? */
 	if (send_notification == TRUE) {
 		service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		
+		if (should_stalk_notifications(svc)) {
+			log_event = TRUE;
+			}
 		}
 
 	/* should we obsessive over service checks? */
@@ -2650,9 +2649,9 @@ int handle_async_host_check_result(host *hst, check_result *cr) {
 
 	int state_change = FALSE;
 	int hard_state_change = FALSE;
-	int send_notification = TRUE;
-	int handle_event = TRUE;
-	int log_event = TRUE;
+	int send_notification = FALSE;
+	int handle_event = FALSE;
+	int log_event = FALSE;
 
 	char *old_plugin_output = NULL;
 
@@ -2717,6 +2716,11 @@ int handle_async_host_check_result(host *hst, check_result *cr) {
 	if (state_change == TRUE || hard_state_change == TRUE) {
 		hst->should_be_scheduled = TRUE;
 		host_state_or_hard_state_type_change(hst, state_change, hard_state_change);
+
+		/* if host's state type is hard, we should send a notification on a state/type change */
+		if (hst->state_type = HARD_STATE) {
+			send_notification = TRUE;
+			}
 		}
 
 	initialize_last_host_state_change_times(hst);
@@ -2782,21 +2786,38 @@ int handle_async_host_check_result(host *hst, check_result *cr) {
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Host is still %s.\n", host_state_name(hst->current_state));
 
+            /* set state type to HARD for passive checks and active checks that were previously in a HARD STATE */
+            /* something similar is done in set_host_state_type, but this accounts for an additional check (outside of state_change||hard_state_change */
+            if(hst->state_type == HARD_STATE || (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE)) {
+                hst->state_type = HARD_STATE;
+            	}
+            else {
+                hst->state_type = SOFT_STATE;
+                }
+                
+
 			/* active checks and passive checks (treated as SOFT states) */
 			if (hst->check_type == CHECK_TYPE_ACTIVE || passive_host_checks_are_soft == TRUE) {
 
 				/* set the state type */
-				if(hst->current_attempt == hst->max_attempts)
+				if(hst->current_attempt == hst->max_attempts) {
 					hst->state_type = HARD_STATE;
-				else
+					}
+				else {
 					hst->state_type = SOFT_STATE;
+					}
 
 				}
 
 			/* schedule a re-check of the host at the retry interval because we can't determine its final state yet... */
-			if(hst->state_type == SOFT_STATE)
+			if(hst->state_type == SOFT_STATE) {
 				next_check = (unsigned long)(current_time + (hst->retry_interval * interval_length));
+				}
 
+			/* if the state_type is hard, then send a notification */
+			else {
+				send_notification = TRUE;
+				}
 			}
 		}
 
@@ -2812,6 +2833,10 @@ int handle_async_host_check_result(host *hst, check_result *cr) {
 
 	if (send_notification == TRUE) {
 		host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+
+		if (should_stalk_notifications(hst)) {
+			log_event = TRUE;
+			}
 		}
 
 	/* should we obsess over hosts? */

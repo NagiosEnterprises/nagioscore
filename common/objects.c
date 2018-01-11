@@ -81,6 +81,7 @@ static const struct flag_map service_flag_map[] = {
 	{ OPT_OK, 'o', "ok" },
 	{ OPT_RECOVERY, 'r', "recovery" },
 	{ OPT_PENDING, 'p', "pending" },
+	{ OPT_NOTIFICATIONS, 'N', "notifications" },
 	{ 0, 0, NULL },
 };
 
@@ -91,6 +92,7 @@ static const struct flag_map host_flag_map[] = {
 	{ OPT_RECOVERY, 'r', "recovery" },
 	{ OPT_DOWNTIME, 's', "downtime" },
 	{ OPT_PENDING, 'p', "pending" },
+	{ OPT_NOTIFICATIONS, 'N', "notifications" },
 	{ 0, 0, NULL },
 };
 

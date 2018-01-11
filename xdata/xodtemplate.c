@@ -2533,6 +2533,8 @@ int xodtemplate_add_object_property(char *input, int options) {
 						flag_set(temp_host->stalking_options, OPT_DOWN);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
 						flag_set(temp_host->stalking_options, OPT_UNREACHABLE);
+					else if(!strcmp(temp_ptr, "N") || !strcmp(temp_ptr, "notifications"))
+						flag_set(temp_host->stalking_options, OPT_NOTIFICATIONS);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
 						temp_host->stalking_options = OPT_NOTHING;
 						}
@@ -2998,6 +3000,8 @@ int xodtemplate_add_object_property(char *input, int options) {
 						flag_set(temp_service->stalking_options, OPT_UNKNOWN);
 					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
 						flag_set(temp_service->stalking_options, OPT_CRITICAL);
+					else if(!strcmp(temp_ptr, "N") || !strcmp(temp_ptr, "notifications"))
+						flag_set(temp_service->stalking_options, OPT_NOTIFICATIONS);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
 						temp_service->stalking_options = OPT_NOTHING;
 						}

@@ -343,50 +343,70 @@ static inline int get_service_check_return_code(service *svc, check_result *cr) 
 		return STATE_UNKNOWN;
 		}
 
+	/* return now if it's a passive check */
+	if (cr->check_type != CHECK_TYPE_ACTIVE) {
+		return cr->return_code;
+	}
+
 	/* grab the return code */
 	rc = cr->return_code;
 
-	/* adjust return code (active checks only) */
-	if(cr->check_type == CHECK_TYPE_ACTIVE) {
-		if(cr->early_timeout == TRUE) {
+	/* free up some memz */
+	my_free(svc->plugin_output);
+	my_free(svc->long_plugin_output);
+	my_free(svc->perf_data);
 
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' timed out after %.3fs!\n", svc->description, svc->host_name, svc->execution_time);
-			my_free(svc->plugin_output);
-			my_free(svc->long_plugin_output);
-			my_free(svc->perf_data);
-			asprintf(&svc->plugin_output, "(Service check timed out after %.2lf seconds)", svc->execution_time);
+	/* did the check result have an early timeout? */
+	if(cr->early_timeout == TRUE) {
 
-			rc = service_check_timeout_state;
-			}
-		/* if there was some error running the command, just skip it (this shouldn't be happening) */
-		else if(cr->exited_ok == FALSE) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' timed out after %.3fs!\n", svc->description, svc->host_name, svc->execution_time);
+		asprintf(&svc->plugin_output, "(Service check timed out after %.2lf seconds)", svc->execution_time);
 
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of service '%s' on host '%s' did not exit properly!\n", svc->description, svc->host_name);
-			my_free(svc->plugin_output);
-			my_free(svc->long_plugin_output);
-			my_free(svc->perf_data);
-			svc->plugin_output = (char *)strdup("(Service check did not exit properly)");
+		rc = service_check_timeout_state;
+		}
 
-			rc = STATE_CRITICAL;
-			}
+	/* if there was some error running the command, just skip it (this shouldn't be happening) */
+	else if(cr->exited_ok == FALSE) {
 
-		/* make sure the return code is within bounds */
-		else if(cr->return_code < 0 || cr->return_code > 3) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of service '%s' on host '%s' did not exit properly!\n", svc->description, svc->host_name);
+		svc->plugin_output = (char *)strdup("(Service check did not exit properly)");
 
-			char *temp_plugin_output = NULL;
+		rc = STATE_CRITICAL;
+		}
 
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n", cr->return_code, svc->description, svc->host_name, (cr->return_code == 126 ? "Make sure the plugin you're trying to run is executable." : (cr->return_code == 127 ? " Make sure the plugin you're trying to run actually exists." : "")));
+	/* 126 is a return code for non-executable */
+	else if (cr->return_code == 126) {
 
-			asprintf(&temp_plugin_output, "(Return code of %d is out of bounds%s : %s)", cr->return_code, (cr->return_code == 126 ? " - plugin may not be executable" : (cr->return_code == 127 ? " - plugin may be missing" : "")), svc->plugin_output);
-			my_free(svc->plugin_output);
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of 126 for service '%s' on host '%s' may indicate a non-executable plugin.\n",
+			svc->description, svc->host_name);
+		svc->plugin_output = strdup("(Return code of 126 is out of bounds. Check if plugin is executable)");
+		rc = STATE_CRITICAL;
+		}
 
-			asprintf(&svc->plugin_output, "%s)", temp_plugin_output);
-			my_free(temp_plugin_output);
-			my_free(svc->long_plugin_output);
-			my_free(svc->perf_data);
+	/* 127 is a return code for non-existent */
+	else if (cr->return_code == 127) {
 
-			rc = STATE_CRITICAL;
-			}
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of 127 for service '%s' on host '%s' may indicate this plugin doesn't exist.\n",
+			svc->description, svc->host_name);
+		svc->plugin_output = strdup("(Return code of 127 is out of bounds. Check if plugin exists)");
+		rc = STATE_CRITICAL;
+		}
+
+	/* make sure the return code is within bounds */
+	else if(cr->return_code < 0 || cr->return_code > 3) {
+
+		logit(NSLOG_RUNTIME_WARNING, TRUE, 
+			"Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.\n", 
+			cr->return_code,
+			svc->description,
+			svc->host_name);
+
+		asprintf(&svc->plugin_output, "(Return code of %d for service '%s' on host '%s' was out of bounds)",
+			cr->return_code,
+			svc->description,
+			svc->host_name);
+
+		rc = STATE_CRITICAL;
 		}
 
 	return rc;
@@ -403,70 +423,87 @@ static inline int get_host_check_return_code(host *hst, check_result *cr) {
 		return HOST_UNREACHABLE;
 		}
 
+	/* return now if it's a passive check */
+	if (cr->check_type != CHECK_TYPE_ACTIVE) {
+		return cr->return_code;
+	}
+
 	/* get the unprocessed return code */
-	/* NOTE: for passive checks, this is the final/processed state */
 	rc = cr->return_code;
 
-	/* adjust return code (active checks only) */
-	if(cr->check_type == CHECK_TYPE_ACTIVE) {
-		if(cr->early_timeout) {
+	/* free up some memz */
+	my_free(hst->plugin_output);
+	my_free(hst->long_plugin_output);
+	my_free(hst->perf_data);
 
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' timed out after %.2lf seconds\n", hst->name, hst->execution_time);
-			my_free(hst->plugin_output);
-			my_free(hst->long_plugin_output);
-			my_free(hst->perf_data);
-			asprintf(&hst->plugin_output, "(Host check timed out after %.2lf seconds)", hst->execution_time);
+	/* did the check result have an early timeout? */
+	if(cr->early_timeout) {
 
-			rc = HOST_UNREACHABLE;
-			}
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' timed out after %.2lf seconds\n", hst->name, hst->execution_time);
+		asprintf(&hst->plugin_output, "(Host check timed out after %.2lf seconds)", hst->execution_time);
 
-		/* if there was some error running the command, just skip it (this shouldn't be happening) */
-		else if(cr->exited_ok == FALSE) {
-
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of host '%s' did not exit properly!\n", hst->name);
-			my_free(hst->plugin_output);
-			my_free(hst->long_plugin_output);
-			my_free(hst->perf_data);
-			hst->plugin_output = (char *)strdup("(Host check did not exit properly)");
-
-			rc = HOST_UNREACHABLE;
-			}
-
-		/* make sure the return code is within bounds */
-		else if(cr->return_code < 0 || cr->return_code > 3) {
-
-			char *temp_plugin_output = NULL;
-
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of %d for check of host '%s' was out of bounds.%s\n", cr->return_code, hst->name, (cr->return_code == 126 || cr->return_code == 127) ? " Make sure the plugin you're trying to run actually exists." : "");
-
-			asprintf(&temp_plugin_output, "(Return code of %d is out of bounds%s : %s)", cr->return_code, (cr->return_code == 126 || cr->return_code == 127) ? " - plugin may be missing" : "", hst->plugin_output);
-			my_free(hst->plugin_output);
-
-			asprintf(&hst->plugin_output, "%s)", temp_plugin_output);
-			my_free(temp_plugin_output);
-			my_free(hst->long_plugin_output);
-			my_free(hst->perf_data);
-
-			rc = HOST_UNREACHABLE;
-			}
-
-		/* a NULL host check command means we should assume the host is UP */
-		if(hst->check_command == NULL) {
-			my_free(hst->plugin_output);
-			hst->plugin_output = (char *)strdup("(Host assumed to be UP)");
-			rc = HOST_UP;
-			}
-
-		/* if we're not doing aggressive host checking, let WARNING states indicate the host is up (fake the result to be HOST_UP) */
-		if(use_aggressive_host_checking == FALSE && rc == STATE_WARNING) {
-			rc = HOST_UP;
-			}
-
-		/* any problem state indicates the host is not UP */
-		if(rc != HOST_UP) {
-			rc = HOST_DOWN;
-			}
+		rc = HOST_UNREACHABLE;
 		}
+
+	/* if there was some error running the command, just skip it (this shouldn't be happening) */
+	else if(cr->exited_ok == FALSE) {
+
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of host '%s' did not exit properly!\n", hst->name);
+		hst->plugin_output = (char *)strdup("(Host check did not exit properly)");
+
+		rc = HOST_UNREACHABLE;
+		}
+
+	/* 126 is a return code for non-executable */
+	else if (cr->return_code == 126) {
+
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of 126 for host '%s' may indicate a non-executable plugin.\n",
+			hst->name);
+		hst->plugin_output = strdup("(Return code of 126 is out of bounds. Check if plugin is executable)");
+		rc = HOST_UNREACHABLE;
+		}
+
+	/* 127 is a return code for non-existent */
+	else if (cr->return_code == 127) {
+
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of 127 for host '%s' may indicate this plugin doesn't exist.\n",
+			hst->name);
+		hst->plugin_output = strdup("(Return code of 127 is out of bounds. Check if plugin exists)");
+		rc = HOST_UNREACHABLE;
+		}
+
+	/* make sure the return code is within bounds */
+	else if(cr->return_code < 0 || cr->return_code > 3) {
+
+		logit(NSLOG_RUNTIME_WARNING, TRUE, 
+			"Warning: Return code of %d for check of host '%s' was out of bounds.\n", 
+			cr->return_code,
+			hst->name);
+
+		asprintf(&hst->plugin_output, "(Return code of %d for host '%s' was out of bounds)",
+			cr->return_code,
+			hst->name);
+
+		rc = HOST_UNREACHABLE;
+		}
+
+	/* a NULL host check command means we should assume the host is UP */
+	if(hst->check_command == NULL) {
+		my_free(hst->plugin_output);
+		hst->plugin_output = (char *)strdup("(Host assumed to be UP)");
+		rc = HOST_UP;
+		}
+
+	/* if we're not doing aggressive host checking, let WARNING states indicate the host is up (fake the result to be HOST_UP) */
+	if(use_aggressive_host_checking == FALSE && rc == STATE_WARNING) {
+		rc = HOST_UP;
+		}
+
+	/* any problem state indicates the host is not UP */
+	if(rc != HOST_UP) {
+		rc = HOST_DOWN;
+		}
+		
 	return rc;
 }
 

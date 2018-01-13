@@ -80,8 +80,14 @@ unsigned long iocache_size(iocache *ioc)
 
 unsigned long iocache_capacity(iocache *ioc)
 {
-	if (!ioc || !ioc->ioc_buf || !ioc->ioc_bufsize)
+	if (!ioc)
 		return 0;
+
+	if (!ioc->ioc_buf)
+		return -1;
+	
+	if (!ioc->ioc_bufsize)
+		return -2;
 
 	iocache_move_data(ioc);
 

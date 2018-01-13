@@ -60,7 +60,7 @@ extern unsigned long iocache_size(iocache *ioc);
 /**
  * Returns remaining read capacity of the io cache
  * @param ioc The io cache to operate on
- * @return The number of bytes available to read
+ * @return The number of bytes available to read, or 0 if ioc is null, -1 if the buffer is null, or -2 if the buffer size is <= 0
  */
 extern unsigned long iocache_capacity(iocache *ioc);
 

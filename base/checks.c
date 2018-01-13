@@ -351,13 +351,12 @@ static inline int get_service_check_return_code(service *svc, check_result *cr) 
 	/* grab the return code */
 	rc = cr->return_code;
 
-	/* free up some memz */
-	my_free(svc->plugin_output);
-	my_free(svc->long_plugin_output);
-	my_free(svc->perf_data);
-
 	/* did the check result have an early timeout? */
 	if(cr->early_timeout == TRUE) {
+
+		my_free(svc->plugin_output);
+		my_free(svc->long_plugin_output);
+		my_free(svc->perf_data);
 
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of service '%s' on host '%s' timed out after %.3fs!\n", svc->description, svc->host_name, svc->execution_time);
 		asprintf(&svc->plugin_output, "(Service check timed out after %.2lf seconds)", svc->execution_time);
@@ -367,6 +366,10 @@ static inline int get_service_check_return_code(service *svc, check_result *cr) 
 
 	/* if there was some error running the command, just skip it (this shouldn't be happening) */
 	else if(cr->exited_ok == FALSE) {
+		
+		my_free(svc->plugin_output);
+		my_free(svc->long_plugin_output);
+		my_free(svc->perf_data);
 
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of service '%s' on host '%s' did not exit properly!\n", svc->description, svc->host_name);
 		svc->plugin_output = (char *)strdup("(Service check did not exit properly)");
@@ -376,6 +379,10 @@ static inline int get_service_check_return_code(service *svc, check_result *cr) 
 
 	/* 126 is a return code for non-executable */
 	else if (cr->return_code == 126) {
+		
+		my_free(svc->plugin_output);
+		my_free(svc->long_plugin_output);
+		my_free(svc->perf_data);
 
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of 126 for service '%s' on host '%s' may indicate a non-executable plugin.\n",
 			svc->description, svc->host_name);
@@ -385,6 +392,10 @@ static inline int get_service_check_return_code(service *svc, check_result *cr) 
 
 	/* 127 is a return code for non-existent */
 	else if (cr->return_code == 127) {
+		
+		my_free(svc->plugin_output);
+		my_free(svc->long_plugin_output);
+		my_free(svc->perf_data);
 
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of 127 for service '%s' on host '%s' may indicate this plugin doesn't exist.\n",
 			svc->description, svc->host_name);
@@ -431,13 +442,12 @@ static inline int get_host_check_return_code(host *hst, check_result *cr) {
 	/* get the unprocessed return code */
 	rc = cr->return_code;
 
-	/* free up some memz */
-	my_free(hst->plugin_output);
-	my_free(hst->long_plugin_output);
-	my_free(hst->perf_data);
-
 	/* did the check result have an early timeout? */
 	if(cr->early_timeout) {
+
+		my_free(hst->plugin_output);
+		my_free(hst->long_plugin_output);
+		my_free(hst->perf_data);
 
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' timed out after %.2lf seconds\n", hst->name, hst->execution_time);
 		asprintf(&hst->plugin_output, "(Host check timed out after %.2lf seconds)", hst->execution_time);
@@ -448,6 +458,10 @@ static inline int get_host_check_return_code(host *hst, check_result *cr) {
 	/* if there was some error running the command, just skip it (this shouldn't be happening) */
 	else if(cr->exited_ok == FALSE) {
 
+		my_free(hst->plugin_output);
+		my_free(hst->long_plugin_output);
+		my_free(hst->perf_data);
+
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning:  Check of host '%s' did not exit properly!\n", hst->name);
 		hst->plugin_output = (char *)strdup("(Host check did not exit properly)");
 
@@ -456,6 +470,10 @@ static inline int get_host_check_return_code(host *hst, check_result *cr) {
 
 	/* 126 is a return code for non-executable */
 	else if (cr->return_code == 126) {
+
+		my_free(hst->plugin_output);
+		my_free(hst->long_plugin_output);
+		my_free(hst->perf_data);
 
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of 126 for host '%s' may indicate a non-executable plugin.\n",
 			hst->name);
@@ -466,6 +484,10 @@ static inline int get_host_check_return_code(host *hst, check_result *cr) {
 	/* 127 is a return code for non-existent */
 	else if (cr->return_code == 127) {
 
+		my_free(hst->plugin_output);
+		my_free(hst->long_plugin_output);
+		my_free(hst->perf_data);
+
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Return code of 127 for host '%s' may indicate this plugin doesn't exist.\n",
 			hst->name);
 		hst->plugin_output = strdup("(Return code of 127 is out of bounds. Check if plugin exists)");
@@ -474,6 +496,10 @@ static inline int get_host_check_return_code(host *hst, check_result *cr) {
 
 	/* make sure the return code is within bounds */
 	else if(cr->return_code < 0 || cr->return_code > 3) {
+
+		my_free(hst->plugin_output);
+		my_free(hst->long_plugin_output);
+		my_free(hst->perf_data);
 
 		logit(NSLOG_RUNTIME_WARNING, TRUE, 
 			"Warning: Return code of %d for check of host '%s' was out of bounds.\n", 

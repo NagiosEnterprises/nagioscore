@@ -962,7 +962,8 @@ int init_workers(int desired_workers)
 	else
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to register manager with query handler\n");
 
-	wproc_num_workers_desired = get_desired_workers(desired_workers);
+	desired_workers = get_desired_workers(desired_workers);
+	wproc_num_workers_desired = desired_workers;
 
 	if (workers_alive() == desired_workers)
 		return 0;

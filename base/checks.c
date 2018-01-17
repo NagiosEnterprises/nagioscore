@@ -3346,19 +3346,16 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 			/* Get the short plugin output. If buf[0] is '|', strtok() will
 			 * return buf+1 or NULL if buf[1] is '\0'. We use my_strtok()
 			 * instead which returns a pointer to '\0' in this case. */
-			if ((ptr = my_strtok_with_free(buf, "|", FALSE))) {
+			if ((ptr = my_strtok(buf, "|"))) {
 				if (short_output) {
 					strip(ptr); /* Remove leading and trailing whitespace. */
 					*short_output = strdup(ptr);
 					}
 
 				/* Get the optional perf data. */
-				if ((ptr = my_strtok_with_free(NULL, "\n", FALSE))) {
+				if ((ptr = my_strtok(NULL, "\n")))
 					dbuf_strcat(&perf_text, ptr);
-					}
 				}
-
-				ptr = my_strtok_with_free(NULL, "\n", TRUE);
 
 			}
 		/* Additional lines contain long plugin output and optional perf data.
@@ -3373,7 +3370,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 		else if (strchr(buf, '|')) {
 			in_perf_data = TRUE;
 
-			if ((ptr = my_strtok_with_free(buf, "|", FALSE))) {
+			if ((ptr = my_strtok(buf, "|"))) {
 
 				/* Get the remaining long plugin output. */
 				if (current_line > 2)
@@ -3381,14 +3378,12 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 				dbuf_strcat(&long_text, ptr);
 
 				/* Get the perf data. */
-				if ((ptr = my_strtok_with_free(NULL, "\n", FALSE))) {
+				if ((ptr = my_strtok(NULL, "\n"))) {
 					if (perf_text.buf && *perf_text.buf)
 						dbuf_strcat(&perf_text, " ");
 					dbuf_strcat(&perf_text, ptr);
 					}
 				}
-
-				ptr = my_strtok_with_free(NULL, "\n", TRUE);
 
 			}
 		/* Otherwise it's still just long output. */

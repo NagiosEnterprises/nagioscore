@@ -777,18 +777,25 @@ static inline void service_initial_handling(service *svc, check_result *cr, char
 	svc->last_state = svc->current_state;
 
 	/* save old plugin output */
-	if(svc->plugin_output)
+	if(svc->plugin_output) {
 		old_plugin_output = (char *)strdup(svc->plugin_output);
+		}
+
+	my_free(svc->plugin_output);
+	my_free(svc->long_plugin_output);
+	my_free(svc->perf_data);
 
 	/* parse check output to get: (1) short output, (2) long output, (3) perf data */
 	parse_check_output(cr->output, &svc->plugin_output, &svc->long_plugin_output, &svc->perf_data, TRUE, FALSE);
 
 	/* make sure the plugin output isn't null */
-	if(svc->plugin_output == NULL)
+	if(svc->plugin_output == NULL) {
 		svc->plugin_output = (char *)strdup("(No output returned from plugin)");
+		}
 	/* otherwise replace the semicolons with colons */
-	else
+	else {
 		replace_semicolons(svc->plugin_output, temp_ptr);
+		}
 
 	log_debug_info(DEBUGL_CHECKS, 2, 
 		"Parsing check output...\n"
@@ -813,18 +820,25 @@ static inline void host_initial_handling(host *hst, check_result *cr, char *old_
 	hst->last_state = hst->current_state;
 
 	/* save old plugin output */
-	if(hst->plugin_output)
+	if(hst->plugin_output) {
 		old_plugin_output = (char *)strdup(hst->plugin_output);
+		}
+
+	my_free(hst->plugin_output);
+	my_free(hst->long_plugin_output);
+	my_free(hst->perf_data);
 
 	/* parse check output to get: (1) short output, (2) long output, (3) perf data */
 	parse_check_output(cr->output, &hst->plugin_output, &hst->long_plugin_output, &hst->perf_data, TRUE, FALSE);
 
 	/* make sure the plugin output isn't null */
-	if(hst->plugin_output == NULL)
+	if(hst->plugin_output == NULL) {
 		hst->plugin_output = (char *)strdup("(No output returned from host check)");
+		}
 	/* otherwise replace the semicolons with colons */
-	else
+	else {
 		replace_semicolons(hst->plugin_output, temp_ptr);
+		}
 
 	log_debug_info(DEBUGL_CHECKS, 2, 
 		"Parsing check output...\n"

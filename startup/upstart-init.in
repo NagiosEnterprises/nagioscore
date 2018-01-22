@@ -1,0 +1,25 @@
+# nagios - Nagios Core
+#
+# Nagios Core is an advanced monitoring utility
+# built to manage checking your infrastructure
+#
+# Copyright (c) 2017 Nagios(R) Core(TM) Development Team
+
+description     "Nagios Core"
+author          "Nagios Enterprises"
+
+oom score never
+
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [!2345]
+
+reload signal SIGHUP
+
+expect fork
+respawn
+
+pre-start script
+    @bindir@/@nagios_name@ -vp @sysconfdir@/nagios.cfg
+end script
+
+exec @bindir@/@nagios_name@ -d @sysconfdir@/nagios.cfg

@@ -1,0 +1,303 @@
+# ===========================================================================
+# SYNOPSIS
+#
+#   AX_NAGIOS_GET_SSL
+#
+# DESCRIPTION
+#
+#    This macro finds the openssl binary, the header files directory and
+#    the library files directory. It will also search for the gnutls
+#    compatibility library/headers and the nss compatibility library/headers.
+#
+# LICENSE
+#
+#    Copyright (c) 2016 Nagios Core Development Team
+#
+#   This program is free software; you can redistribute it and/or modify it
+#   under the terms of the GNU General Public License as published by the
+#   Free Software Foundation; either version 2 of the License, or (at your
+#   option) any later version.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+#   Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License along
+#   with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#   As a special exception, the respective Autoconf Macro's copyright owner
+#   gives unlimited permission to copy, distribute and modify the configure
+#   scripts that are the output of Autoconf when processing the Macro. You
+#   need not follow the terms of the GNU General Public License when using
+#   or distributing such scripts, even though portions of the text of the
+#   Macro appear in them. The GNU General Public License (GPL) does govern
+#   all other use of the material that constitutes the Autoconf Macro.
+#
+#   This special exception to the GPL applies to versions of the Autoconf
+#   Macro released by the Autoconf Archive. When you make and distribute a
+#   modified version of the Autoconf Macro, you may extend this special
+#   exception to the GPL to apply to your modified version as well.
+# ===========================================================================
+
+AU_ALIAS([AC_NAGIOS_GET_SSL], [AX_NAGIOS_GET_SSL])
+AC_DEFUN([AX_NAGIOS_GET_SSL],
+[
+
+# -------------------------------
+#  SSL library and include paths
+# -------------------------------
+
+SSL_TYPE=openssl
+try_pkg_config=1
+ssl_dir=
+ssl_inc_dir=
+ssl_lib_dir=
+SSL_INC_DIR=
+SSL_INC_PREFIX=
+SSL_HDR=
+SSL_LIB_DIR=
+
+AC_SUBST(HAVE_SSL)
+AC_SUBST(SSL_TYPE)
+AC_SUBST(SSL_INC_DIR)
+AC_SUBST(SSL_HDR)
+AC_SUBST(SSL_INC_PREFIX)
+AC_SUBST(SSL_LIB_DIR)
+
+
+# gnutls/openssl.h
+# nss_compat_ossl/nss_compat_ossl.h
+
+dnl # Which type - openssl, gnutls-openssl, nss
+dnl AC_ARG_WITH([ssl-type],
+dnl dnl	AS_HELP_STRING([--with-ssl-type=TYPE],[replace TYPE with gnutls or nss to use one of these instead of openssl]),
+dnl 	AS_HELP_STRING([--with-ssl-type=TYPE],[replace TYPE with gnutls to use that instead of openssl]),
+dnl 	[SSL_TYPE=$withval])
+
+AC_ARG_WITH([ssl],
+	AS_HELP_STRING([--with-ssl=DIR],[sets location of the SSL installation]),
+	[ssl_dir=$withval])
+AC_ARG_WITH([ssl-inc],
+	AS_HELP_STRING([--with-ssl-inc=DIR],
+		[sets location of the SSL include files]),
+	[ssl_inc_dir=$withval])
+AC_ARG_WITH([ssl-lib],
+	AS_HELP_STRING([--with-ssl-lib=DIR],[sets location of the SSL libraries]),
+	[ssl_lib_dir=$withval])
+
+if test x$ssl_inc_dir != x -o x$ssl_lib_dir != x; then
+	try_pkg_config=0
+fi
+
+AC_ARG_WITH([kerberos-inc],
+	AS_HELP_STRING([--with-kerberos-inc=DIR],
+		[sets location of the Kerberos include files]),
+	[kerberos_inc_dir=$withval])
+
+if test x$SSL_TYPE = xyes; then
+    SSL_TYPE=openssl
+fi
+
+
+dflt_hdrs="$ssl_inc_dir $ssl_dir $ssl_inc_dir/include $ssl_dir/include \
+			/usr/local/opt/{BBB} /usr/include/{BBB} /usr/local/include/{BBB} \
+			/usr/local/{AAA} /usr/local/{BBB} /usr/lib/{AAA} /usr/lib/{BBB} \
+			/usr/{AAA} /usr/pkg /usr/local /usr /usr/freeware/lib/{BBB} \
+			/usr/sfw /usr/sfw/include /opt/{BBB}"
+
+dflt_libs="$ssl_lib_dir {ssldir} {ssldir}/lib {ssldir}/lib64 /usr/lib64 \
+			/usr/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu \
+			/usr/local/lib /usr/lib/{AAA} /usr/{AAA}/lib /usr/{BBB}/lib \
+			/usr/pkg/lib /usr/freeware/lib/{BBB} /usr/sfw/lib /opt/freeware/lib \
+			/opt/{BBB}/lib/hpux64 /opt/{BBB}/lib/pa20_64 /opt/{BBB}/lib/hpux32 \
+			/opt/{BBB}/lib /opt/{BBB}";
+
+
+AS_CASE([$SSL_TYPE],
+	[no], [SSL_TYPE=NONE],
+	[yes|openssl],
+		[ssl_hdr_dirs=`echo "$dflt_hdrs" | sed -e 's/{AAA}/ssl/g' | sed -e 's/{BBB}/openssl/g'`
+		 ssl_lib_dirs=`echo "$dflt_libs" | sed -e 's/{AAA}/ssl/g' | sed -e 's/{BBB}/openssl/g'`
+		 SSL_INC_PREFIX=openssl
+		 SSL_HDR=ssl.h
+		 ssl_lib=libssl],
+	[gnutls],
+		[ssl_hdr_dirs=`echo "$dflt_hdrs" | sed -e 's/{AAA}/gnutls/g' | sed -e 's/{BBB}/gnutls/g'`
+		 ssl_lib_dirs=`echo "$dflt_libs" | sed -e 's/{AAA}/gnutls/g' | sed -e 's/{BBB}/gnutls/g'`
+		 SSL_INC_PREFIX=gnutls
+		 SSL_TYPE=gnutls_compat
+		 SSL_HDR=compat.h
+		 ssl_lib=libgnutls],
+	[nss],
+		[ssl_hdr_dirs=`echo "$dflt_hdrs" | sed -e 's/{AAA}/nss_compat_ossl/g' | sed -e 's/{BBB}/nss_compat_ossl/g'`
+		 ssl_lib_dirs=`echo "$dflt_libs" | sed -e 's/{AAA}/nss_compat_ossl/g' | sed -e 's/{BBB}/nss_compat_ossl/g'`
+		 SSL_HDR=nss_compat_ossl.h
+		 ssl_lib=libnss_compat],
+	[*], echo >&6; AC_MSG_ERROR(['--with-ssl-type=$SSL_TYPE' is invalid])
+)
+
+
+# Check for SSL support
+
+if test x$SSL_TYPE != xNONE; then
+
+	found_ssl=no
+
+	# RedHat 8.0 and 9.0 include openssl compiled with kerberos,
+	# so we must include header file
+	# Must come before openssl checks for Redhat EL 3
+	AC_MSG_CHECKING(for Kerberos include files)
+	found_kerberos=no
+	for dir in $kerberos_inc_dir /usr/kerberos/include /usr/include/krb5 \
+				/usr/include; do
+		kerbdir="$dir"
+		if test -f "$dir/krb5.h"; then
+			found_kerberos=yes
+			CFLAGS="$CFLAGS -I$kerbdir"
+			AC_DEFINE_UNQUOTED(HAVE_KRB5_H,[1],[Have the krb5.h header file])
+			break
+		fi
+	done
+
+	if test x_$found_kerberos != x_yes; then
+		AC_MSG_WARN(could not find include files)
+	else
+		AC_MSG_RESULT(found Kerberos include files in $kerbdir)
+	fi
+
+	# First, try using pkg_config
+	AC_CHECK_TOOL([PKG_CONFIG], [pkg-config])
+	if test x"$PKG_CONFIG" != x -a $try_pkg_config -ne 0 ; then
+		cflags=`$PKG_CONFIG $SSL_TYPE --cflags-only-I 2>/dev/null`
+		if test $? -eq 0; then
+			CFLAGS="$CFLAGS $cflags"
+			LDFLAGS="$LDFLAGS `$PKG_CONFIG $SSL_TYPE --libs-only-L 2>/dev/null`"
+			LIBS="$LIBS `$PKG_CONFIG $SSL_TYPE --libs-only-l 2>/dev/null`"
+			found_ssl=yes
+			AC_DEFINE_UNQUOTED(HAVE_SSL,[1],[Have SSL support])
+		fi
+	fi
+
+	if test x_$found_ssl != x_yes; then
+
+		# Find the SSL Headers
+		AC_MSG_CHECKING(for SSL headers)
+		for dir in $ssl_hdr_dirs; do
+			if test "$dir" = "/include"; then
+				continue
+			fi
+			ssldir="$dir"
+			if test -f "$dir/include/$SSL_INC_PREFIX/$SSL_HDR"; then
+				found_ssl=yes
+				CFLAGS="$CFLAGS -I$dir/include/$SSL_INC_PREFIX -I$ssldir/include"
+				SSL_INC_DIR="$dir/include/$SSL_INC_PREFIX"
+				break
+			fi
+			if test -f "$dir/include/$SSL_HDR"; then
+				found_ssl=yes
+				if test "$SSL_HDR" != compat.h ; then
+					SSL_INC_PREFIX=""
+				fi
+				CFLAGS="$CFLAGS -I$dir/include"
+				SSL_INC_DIR="$dir/include"
+				break
+			fi
+			if test -f "$dir/$SSL_HDR"; then
+				found_ssl=yes
+				SSL_INC_PREFIX=""
+				CFLAGS="$CFLAGS -I$dir"
+				SSL_INC_DIR="$dir"
+				break
+			fi
+			if test -f "$dir/$SSL_INC_PREFIX/$SSL_HDR"; then
+				found_ssl=yes
+				CFLAGS="$CFLAGS -I$dir/$SSL_INC_PREFIX"
+				SSL_INC_DIR="$dir/$SSL_INC_PREFIX"
+				ssldir="$dir/.."
+				break
+			fi
+		done
+
+		if test x_$found_ssl != x_yes; then
+			AC_MSG_ERROR(Cannot find ssl headers)
+		else
+			AC_MSG_RESULT(found in $ssldir)
+
+			# Now try and find SSL libraries
+
+			AC_MSG_CHECKING(for SSL libraries)
+			found_ssl=no
+			ssl_lib_dirs=`echo "$ssl_lib_dirs" | sed -e "s|{ssldir}|$ssldir|g"`
+
+			if test "`uname -s`" = "Darwin" ; then
+				soext="dylib"
+			elif test "`uname -s`" = "HP-UX" ; then
+				if test x$arch = "xia64"; then
+					soext="so"
+				else
+					soext="sl"
+				fi
+			elif test "`uname -s`" = "AIX" ; then
+				soext="a"
+			else
+				soext="so"
+			fi
+
+			for dir in $ssl_lib_dirs; do
+				if test -f "$dir/$ssl_lib.$soext"; then
+					found_ssl=yes
+					SSL_LIB_DIR="$dir"
+					break
+				fi
+			done
+
+			if test x_$found_ssl != x_yes; then
+				AC_MSG_ERROR(Cannot find ssl libraries)
+			else
+				AC_MSG_RESULT(found in $SSL_LIB_DIR)
+
+				LDFLAGS="$LDFLAGS -L$SSL_LIB_DIR";
+				LIBS="$LIBS -l`echo $ssl_lib | sed -e 's/^lib//'` -lcrypto";
+				AC_DEFINE_UNQUOTED(HAVE_SSL,[1],[Have SSL support])
+			fi
+		fi
+	fi
+
+	if test x$found_ssl = xyes ; then
+		if test -n "$SSL_INC_PREFIX" ; then
+			SSL_INC_PREFIX="${SSL_INC_PREFIX}/"
+		fi
+
+		# try to compile and link to see if SSL is set up properly
+		AC_MSG_CHECKING([whether compiling and linking against SSL works])
+
+		AC_LINK_IFELSE(
+			[AC_LANG_PROGRAM([#include <${SSL_INC_PREFIX}${SSL_HDR}>], [SSL_new(NULL)])],
+			[
+				AC_MSG_RESULT([yes])
+				$1
+			], [
+				AC_MSG_ERROR([no])
+				$2
+			])
+	fi
+
+	if test x$found_ssl = xyes -a x$need_dh = xyes; then
+
+		# Find the openssl program
+
+		if test x$need_dh = xyes; then
+			AC_PATH_PROG(sslbin,openssl,value-if-not-found,$ssl_dir/sbin$PATH_SEPARATOR$ssl_dir/bin$PATH_SEPARATOR$PATH)
+			AC_DEFINE(USE_SSL_DH)
+			# Generate DH parameters
+			if test -f "$sslbin"; then
+				echo ""
+				echo "*** Generating DH Parameters for SSL/TLS ***"
+				# awk to strip off meta data at bottom of dhparam output
+				$sslbin dhparam -C 2048 | awk '/^-----/ {exit} {print}' > include/dh.h
+			fi
+		fi
+	fi
+fi
+])

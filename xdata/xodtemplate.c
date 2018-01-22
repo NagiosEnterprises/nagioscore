@@ -2533,6 +2533,8 @@ int xodtemplate_add_object_property(char *input, int options) {
 						flag_set(temp_host->stalking_options, OPT_DOWN);
 					else if(!strcmp(temp_ptr, "u") || !strcmp(temp_ptr, "unreachable"))
 						flag_set(temp_host->stalking_options, OPT_UNREACHABLE);
+					else if(!strcmp(temp_ptr, "N") || !strcmp(temp_ptr, "notifications"))
+						flag_set(temp_host->stalking_options, OPT_NOTIFICATIONS);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
 						temp_host->stalking_options = OPT_NOTHING;
 						}
@@ -2998,6 +3000,8 @@ int xodtemplate_add_object_property(char *input, int options) {
 						flag_set(temp_service->stalking_options, OPT_UNKNOWN);
 					else if(!strcmp(temp_ptr, "c") || !strcmp(temp_ptr, "critical"))
 						flag_set(temp_service->stalking_options, OPT_CRITICAL);
+					else if(!strcmp(temp_ptr, "N") || !strcmp(temp_ptr, "notifications"))
+						flag_set(temp_service->stalking_options, OPT_NOTIFICATIONS);
 					else if(!strcmp(temp_ptr, "n") || !strcmp(temp_ptr, "none")) {
 						temp_service->stalking_options = OPT_NOTHING;
 						}
@@ -5711,6 +5715,7 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 		xodtemplate_get_inherited_string(&template_host->have_contact_groups, &template_host->contact_groups, &this_host->have_contact_groups, &this_host->contact_groups);
 		xodtemplate_get_inherited_string(&template_host->have_contacts, &template_host->contacts, &this_host->have_contacts, &this_host->contacts);
 
+
 		xod_inherit_str(this_host, template_host, check_command);
 		xod_inherit_str(this_host, template_host, check_period);
 		xod_inherit_str(this_host, template_host, event_handler);
@@ -7561,30 +7566,64 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 		return ERROR;
 		}
 
-	/* add the contact groups */
+	/* add all contact groups to the serviceescalation */
 	if(this_serviceescalation->contact_groups != NULL) {
+
+		contactgroupsmember *temp_contact_group = NULL;
 
 		for(contact_group = strtok(this_serviceescalation->contact_groups, ","); contact_group != NULL; contact_group = strtok(NULL, ",")) {
 
+			int found_match = FALSE;
+
 			strip(contact_group);
-			new_contactgroupsmember = add_contactgroup_to_serviceescalation(new_serviceescalation, contact_group);
-			if(new_contactgroupsmember == NULL) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to service escalation (config file '%s', starting on line %d)\n", contact_group, xodtemplate_config_file_name(this_serviceescalation->_config_file), this_serviceescalation->_start_line);
-				return ERROR;
+
+			/* unless this contact group already exists on the serviceescalation */
+			if (new_serviceescalation->contact_groups != NULL) {
+				for(temp_contact_group = new_serviceescalation->contact_groups; temp_contact_group != NULL; temp_contact_group = temp_contact_group->next) {
+					if (!strcmp(temp_contact_group->group_name, contact_group)) {
+						found_match = TRUE;
+						break;
+						}
+					}
+				}
+
+			if (found_match == FALSE) {
+				new_contactgroupsmember = add_contactgroup_to_serviceescalation(new_serviceescalation, contact_group);
+				if(new_contactgroupsmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to serviceescalation (config file '%s', starting on line %d)\n", contact_group, xodtemplate_config_file_name(this_serviceescalation->_config_file), this_serviceescalation->_start_line);
+					return ERROR;
+					}
 				}
 			}
 		}
 
-	/* add the contacts */
+	/* add all contacts to the serviceescalation */
 	if(this_serviceescalation->contacts != NULL) {
+
+		contactsmember *temp_contact = NULL;
 
 		for(contact_name = strtok(this_serviceescalation->contacts, ","); contact_name != NULL; contact_name = strtok(NULL, ",")) {
 
+			int found_match = FALSE;
+
 			strip(contact_name);
-			new_contactsmember = add_contact_to_serviceescalation(new_serviceescalation, contact_name);
-			if(new_contactsmember == NULL) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to service escalation (config file '%s', starting on line %d)\n", contact_name, xodtemplate_config_file_name(this_serviceescalation->_config_file), this_serviceescalation->_start_line);
-				return ERROR;
+
+			/* unless this contact already exists on the serviceescalation */
+			if (new_serviceescalation->contacts != NULL) {
+				for(temp_contact = new_serviceescalation->contacts; temp_contact != NULL; temp_contact = temp_contact->next) {
+					if (!strcmp(temp_contact->contact_name, contact_name)) {
+						found_match = TRUE;
+						break;
+						}
+					}
+				}
+
+			if (found_match == FALSE) {
+				new_contactsmember = add_contact_to_serviceescalation(new_serviceescalation, contact_name);
+				if(new_contactsmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to serviceescalation (config file '%s', starting on line %d)\n", contact_name, xodtemplate_config_file_name(this_serviceescalation->_config_file), this_serviceescalation->_start_line);
+					return ERROR;
+					}
 				}
 			}
 		}
@@ -7692,13 +7731,30 @@ int xodtemplate_register_host(xodtemplate_host *this_host) {
 	/* add all contact groups to the host */
 	if(this_host->contact_groups != NULL) {
 
+		contactgroupsmember *temp_contact_group = NULL;
+
 		for(contact_group = strtok(this_host->contact_groups, ","); contact_group != NULL; contact_group = strtok(NULL, ",")) {
 
+			int found_match = FALSE;
+
 			strip(contact_group);
-			new_contactgroupsmember = add_contactgroup_to_host(new_host, contact_group);
-			if(new_contactgroupsmember == NULL) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to host (config file '%s', starting on line %d)\n", contact_group, xodtemplate_config_file_name(this_host->_config_file), this_host->_start_line);
-				return ERROR;
+
+			/* unless this contact group already exists on the host */
+			if (new_host->contact_groups != NULL) {
+				for(temp_contact_group = new_host->contact_groups; temp_contact_group != NULL; temp_contact_group = temp_contact_group->next) {
+					if (!strcmp(temp_contact_group->group_name, contact_group)) {
+						found_match = TRUE;
+						break;
+						}
+					}
+				}
+
+			if (found_match == FALSE) {
+				new_contactgroupsmember = add_contactgroup_to_host(new_host, contact_group);
+				if(new_contactgroupsmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to host (config file '%s', starting on line %d)\n", contact_group, xodtemplate_config_file_name(this_host->_config_file), this_host->_start_line);
+					return ERROR;
+					}
 				}
 			}
 		}
@@ -7706,13 +7762,30 @@ int xodtemplate_register_host(xodtemplate_host *this_host) {
 	/* add all contacts to the host */
 	if(this_host->contacts != NULL) {
 
+		contactsmember *temp_contact = NULL;
+
 		for(contact_name = strtok(this_host->contacts, ","); contact_name != NULL; contact_name = strtok(NULL, ",")) {
 
+			int found_match = FALSE;
+
 			strip(contact_name);
-			new_contactsmember = add_contact_to_host(new_host, contact_name);
-			if(new_contactsmember == NULL) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to host (config file '%s', starting on line %d)\n", contact_name, xodtemplate_config_file_name(this_host->_config_file), this_host->_start_line);
-				return ERROR;
+
+			/* unless this contact already exists on the host */
+			if (new_host->contacts != NULL) {
+				for(temp_contact = new_host->contacts; temp_contact != NULL; temp_contact = temp_contact->next) {
+					if (!strcmp(temp_contact->contact_name, contact_name)) {
+						found_match = TRUE;
+						break;
+						}
+					}
+				}
+
+			if (found_match == FALSE) {
+				new_contactsmember = add_contact_to_host(new_host, contact_name);
+				if(new_contactsmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to host (config file '%s', starting on line %d)\n", contact_name, xodtemplate_config_file_name(this_host->_config_file), this_host->_start_line);
+					return ERROR;
+					}
 				}
 			}
 		}
@@ -7798,30 +7871,61 @@ int xodtemplate_register_service(xodtemplate_service *this_service) {
 	/* add all contact groups to the service */
 	if(this_service->contact_groups != NULL) {
 
+		contactgroupsmember *temp_contact_group = NULL;
+
 		for(contact_group = strtok(this_service->contact_groups, ","); contact_group != NULL; contact_group = strtok(NULL, ",")) {
 
+			int found_match = FALSE;
+
 			strip(contact_group);
-			new_contactgroupsmember = add_contactgroup_to_service(new_service, contact_group);
-			if(new_contactgroupsmember == NULL) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to service (config file '%s', starting on line %d)\n", contact_group, xodtemplate_config_file_name(this_service->_config_file), this_service->_start_line);
-				return ERROR;
+
+			/* unless this contact group already exists on the service */
+			if (new_service->contact_groups != NULL) {
+				for(temp_contact_group = new_service->contact_groups; temp_contact_group != NULL; temp_contact_group = temp_contact_group->next) {
+					if (!strcmp(temp_contact_group->group_name, contact_group)) {
+						found_match = TRUE;
+						break;
+						}
+					}
+				}
+
+			if (found_match == FALSE) {
+				new_contactgroupsmember = add_contactgroup_to_service(new_service, contact_group);
+				if(new_contactgroupsmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to service (config file '%s', starting on line %d)\n", contact_group, xodtemplate_config_file_name(this_service->_config_file), this_service->_start_line);
+					return ERROR;
+					}
 				}
 			}
 		}
 
-	/* add all the contacts to the service */
+	/* add all contacts to the service */
 	if(this_service->contacts != NULL) {
+
+		contactsmember *temp_contact = NULL;
 
 		for(contact_name = strtok(this_service->contacts, ","); contact_name != NULL; contact_name = strtok(NULL, ",")) {
 
-			/* add this contact to the service definition */
-			strip(contact_name);
-			new_contactsmember = add_contact_to_service(new_service, contact_name);
+			int found_match = FALSE;
 
-			/* stop adding contacts if we ran into an error */
-			if(new_contactsmember == NULL) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to service (config file '%s', starting on line %d)\n", contact_name, xodtemplate_config_file_name(this_service->_config_file), this_service->_start_line);
-				return ERROR;
+			strip(contact_name);
+
+			/* unless this contact already exists on the service */
+			if (new_service->contacts != NULL) {
+				for(temp_contact = new_service->contacts; temp_contact != NULL; temp_contact = temp_contact->next) {
+					if (!strcmp(temp_contact->contact_name, contact_name)) {
+						found_match = TRUE;
+						break;
+						}
+					}
+				}
+
+			if (found_match == FALSE) {
+				new_contactsmember = add_contact_to_service(new_service, contact_name);
+				if(new_contactsmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to service (config file '%s', starting on line %d)\n", contact_name, xodtemplate_config_file_name(this_service->_config_file), this_service->_start_line);
+					return ERROR;
+					}
 				}
 			}
 		}
@@ -7904,30 +8008,64 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 		return ERROR;
 		}
 
-	/* add all contact groups */
+	/* add all contact groups to the hostescalation */
 	if(this_hostescalation->contact_groups != NULL) {
+
+		contactgroupsmember *temp_contact_group = NULL;
 
 		for(contact_group = strtok(this_hostescalation->contact_groups, ","); contact_group != NULL; contact_group = strtok(NULL, ",")) {
 
+			int found_match = FALSE;
+
 			strip(contact_group);
-			new_contactgroupsmember = add_contactgroup_to_hostescalation(new_hostescalation, contact_group);
-			if(new_contactgroupsmember == NULL) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to host escalation (config file '%s', starting on line %d)\n", contact_group, xodtemplate_config_file_name(this_hostescalation->_config_file), this_hostescalation->_start_line);
-				return ERROR;
+
+			/* unless this contact group already exists on the hostescalation */
+			if (new_hostescalation->contact_groups != NULL) {
+				for(temp_contact_group = new_hostescalation->contact_groups; temp_contact_group != NULL; temp_contact_group = temp_contact_group->next) {
+					if (!strcmp(temp_contact_group->group_name, contact_group)) {
+						found_match = TRUE;
+						break;
+						}
+					}
+				}
+
+			if (found_match == FALSE) {
+				new_contactgroupsmember = add_contactgroup_to_hostescalation(new_hostescalation, contact_group);
+				if(new_contactgroupsmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to hostescalation (config file '%s', starting on line %d)\n", contact_group, xodtemplate_config_file_name(this_hostescalation->_config_file), this_hostescalation->_start_line);
+					return ERROR;
+					}
 				}
 			}
 		}
 
-	/* add the contacts */
+	/* add all contacts to the hostescalation */
 	if(this_hostescalation->contacts != NULL) {
+
+		contactsmember *temp_contact = NULL;
 
 		for(contact_name = strtok(this_hostescalation->contacts, ","); contact_name != NULL; contact_name = strtok(NULL, ",")) {
 
+			int found_match = FALSE;
+
 			strip(contact_name);
-			new_contactsmember = add_contact_to_hostescalation(new_hostescalation, contact_name);
-			if(new_contactsmember == NULL) {
-				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to host escalation (config file '%s', starting on line %d)\n", contact_name, xodtemplate_config_file_name(this_hostescalation->_config_file), this_hostescalation->_start_line);
-				return ERROR;
+
+			/* unless this contact already exists on the hostescalation */
+			if (new_hostescalation->contacts != NULL) {
+				for(temp_contact = new_hostescalation->contacts; temp_contact != NULL; temp_contact = temp_contact->next) {
+					if (!strcmp(temp_contact->contact_name, contact_name)) {
+						found_match = TRUE;
+						break;
+						}
+					}
+				}
+
+			if (found_match == FALSE) {
+				new_contactsmember = add_contact_to_hostescalation(new_hostescalation, contact_name);
+				if(new_contactsmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to hostescalation (config file '%s', starting on line %d)\n", contact_name, xodtemplate_config_file_name(this_hostescalation->_config_file), this_hostescalation->_start_line);
+					return ERROR;
+					}
 				}
 			}
 		}
